@@ -1,80 +1,80 @@
-// 
-// 	 Enemy Engaged RAH-66 Comanche Versus KA-52 Hokum
-// 	 Copyright (C) 2000 Empire Interactive (Europe) Ltd,
-// 	 677 High Road, North Finchley, London N12 0DA
-// 
-// 	 Please see the document LICENSE.TXT for the full licence agreement
-// 
-// 2. LICENCE
-//  2.1 	
-//  	Subject to the provisions of this Agreement we now grant to you the 
-//  	following rights in respect of the Source Code:
-//   2.1.1 
-//   	the non-exclusive right to Exploit  the Source Code and Executable 
-//   	Code on any medium; and 
-//   2.1.2 
-//   	the non-exclusive right to create and distribute Derivative Works.
-//  2.2 	
-//  	Subject to the provisions of this Agreement we now grant you the
-// 	following rights in respect of the Object Code:
-//   2.2.1 
-// 	the non-exclusive right to Exploit the Object Code on the same
-// 	terms and conditions set out in clause 3, provided that any
-// 	distribution is done so on the terms of this Agreement and is
-// 	accompanied by the Source Code and Executable Code (as
-// 	applicable).
-// 
-// 3. GENERAL OBLIGATIONS
-//  3.1 
-//  	In consideration of the licence granted in clause 2.1 you now agree:
-//   3.1.1 
-// 	that when you distribute the Source Code or Executable Code or
-// 	any Derivative Works to Recipients you will also include the
-// 	terms of this Agreement;
-//   3.1.2 
-// 	that when you make the Source Code, Executable Code or any
-// 	Derivative Works ("Materials") available to download, you will
-// 	ensure that Recipients must accept the terms of this Agreement
-// 	before being allowed to download such Materials;
-//   3.1.3 
-// 	that by Exploiting the Source Code or Executable Code you may
-// 	not impose any further restrictions on a Recipient's subsequent
-// 	Exploitation of the Source Code or Executable Code other than
-// 	those contained in the terms and conditions of this Agreement;
-//   3.1.4 
-// 	not (and not to allow any third party) to profit or make any
-// 	charge for the Source Code, or Executable Code, any
-// 	Exploitation of the Source Code or Executable Code, or for any
-// 	Derivative Works;
-//   3.1.5 
-// 	not to place any restrictions on the operability of the Source 
-// 	Code;
-//   3.1.6 
-// 	to attach prominent notices to any Derivative Works stating
-// 	that you have changed the Source Code or Executable Code and to
-// 	include the details anddate of such change; and
-//   3.1.7 
-//   	not to Exploit the Source Code or Executable Code otherwise than
-// 	as expressly permitted by  this Agreement.
-// 
 
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #include "project.h"
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 #define DEBUG_MODULE 0
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 //
 // Definition of Terms
 // ===================
@@ -90,20 +90,20 @@
 //
 //	VISIBLE TASK			-		A Task that is shown to the user
 //
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 //VJ WUT mod bug, date: 26-mar-03
 //remove "const" from definition
 task_data
 	task_database[NUM_ENTITY_SUB_TYPE_TASKS] =
 	{
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_NOTHING,
 		//
-		////////////////////////////////////////
+
 
 		"Nothing",													// Name
 		"NOTHING",													// Short Name
@@ -158,11 +158,11 @@ task_data
 			0,															// Troop Space
 		},
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_ADVANCE,
 		//
-		////////////////////////////////////////
+
 
 		"Advance",													// Name
 		"Advance",													// Short Name
@@ -218,11 +218,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_ANTI_SHIP_STRIKE,
 		//
-		////////////////////////////////////////
+
 
 		"Anti-Ship Strike",										// Name
 		"Anti-Ship Strike",										// Short Name
@@ -279,11 +279,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_BAI
 		//
-		////////////////////////////////////////
+
 
 		"Battlefield Air Interdiction",						// Name
 		"BAI",														// Short Name
@@ -340,11 +340,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_BARCAP
 		//
-		////////////////////////////////////////
+
 
 		"Barrier Combat Air Patrol",							// Name
 		"BARCAP",													// Short Name
@@ -401,11 +401,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_BDA,
 		//
-		////////////////////////////////////////
+
 
 		"Battle Damage Assessment",							// Name
 		"BDA",														// Short Name
@@ -461,11 +461,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_CLOSE_AIR_SUPPORT
 		//
-		////////////////////////////////////////
+
 
 		"Close Air Support",										// Name
 		"CAS",														// Short Name
@@ -522,11 +522,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_COASTAL_PATROL,
 		//
-		////////////////////////////////////////
+
 
 		"Coastal Patrol",											// Name
 		"Patrol",													// Short Name
@@ -582,11 +582,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_COMBAT_AIR_PATROL
 		//
-		////////////////////////////////////////
+
 
 		"Combat Air Patrol",										// Name
 		"CAP",														// Short Name
@@ -643,11 +643,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_ENGAGE,
 		//
-		////////////////////////////////////////
+
 
 		"Engage",													// Name
 		"Engage",													// Short Name
@@ -708,11 +708,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_ESCORT,
 		//
-		////////////////////////////////////////
+
 
 		"Escort",													// Name
 		"Escort",													// Short Name
@@ -769,11 +769,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_FREE_FLIGHT,
 		//
-		////////////////////////////////////////
+
 
 		"Free Flight",												// Name
 		"Free Flight",												// Short Name
@@ -829,11 +829,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_GROUND_STRIKE,
 		//
-		////////////////////////////////////////
+
 
 		"Ground Strike",											// Name
 		"Strike",													// Short Name
@@ -890,11 +890,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_LANDING,
 		//
-		////////////////////////////////////////
+
 
 		"Landing",													// Name
 		"Landing",													// Short Name
@@ -955,11 +955,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_LANDING_HOLDING,
 		//
-		////////////////////////////////////////
+
 
 		"Landing Holding",										// Name
 		"Landing Holding",										// Short Name
@@ -1020,11 +1020,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_OCA_STRIKE,
 		//
-		////////////////////////////////////////
+
 
 		"Offensive Counter Air Strike",						// Name
 		"OCA Strike",												// Short Name
@@ -1080,11 +1080,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_OCA_SWEEP,
 		//
-		////////////////////////////////////////
+
 
 		"Offensive Counter Air Sweep",						// Name
 		"OCA Sweep",												// Short Name
@@ -1140,11 +1140,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_RECON,
 		//
-		////////////////////////////////////////
+
 
 		"Recon",														// Name
 		"Recon",														// Short Name
@@ -1200,11 +1200,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_REPAIR,
 		//
-		////////////////////////////////////////
+
 
 		"Repair",													// Name
 		"Repair",													// Short Name
@@ -1260,11 +1260,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_RETREAT,
 		//
-		////////////////////////////////////////
+
 
 		"Retreat",													// Name
 		"Retreat",													// Short Name
@@ -1320,11 +1320,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_SEAD,
 		//
-		////////////////////////////////////////
+
 
 		"Suppression Of Enemy Air Defences",				// Name
 		"SEAD",														// Short Name
@@ -1381,11 +1381,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_SUPPLY,
 		//
-		////////////////////////////////////////
+
 
 		"Supply",													// Name
 		"Supply",													// Short Name
@@ -1442,11 +1442,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_TAKEOFF,
 		//
-		////////////////////////////////////////
+
 
 		"Takeoff",													// Name
 		"Takeoff",													// Short Name
@@ -1507,11 +1507,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_TAKEOFF_HOLDING,
 		//
-		////////////////////////////////////////
+
 
 		"Takeoff Holding",										// Name
 		"Takeoff Holding",										// Short Name
@@ -1572,11 +1572,11 @@ task_data
 		},
 
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TRANSFER_FIXED_WING,
 		//
-		////////////////////////////////////////
+
 
 		"Transfer",													// Name
 		"Transfer",													// Short Name
@@ -1632,11 +1632,11 @@ task_data
 			0,															// Troop Space
 		},
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TRANSFER_HELICOPTER,
 		//
-		////////////////////////////////////////
+
 
 		"Transfer",													// Name
 		"Transfer",													// Short Name
@@ -1691,11 +1691,11 @@ task_data
 			0,															// Troop Space
 		},
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_TROOP_INSERTION,
 		//
-		////////////////////////////////////////
+
 
 		"Troop Insertion",										// Name
 		"Insertion",												// Short Name
@@ -1750,11 +1750,11 @@ task_data
 			8,															// Troop Space
 		},
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_TROOP_MOVEMENT_INSERT_CAPTURE,
 		//
-		////////////////////////////////////////
+
 
 		"Troop Movement (Insert/capture)",					// Name
 		"TROOP MOVEMENT (INS/CAPT)",							// Short Name
@@ -1809,11 +1809,11 @@ task_data
 			0,															// Troop Space
 		},
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_TROOP_MOVEMENT_INSERT_DEFEND,
 		//
-		////////////////////////////////////////
+
 
 		"Troop Movement (Insert/Defend)",					// Name
 		"TROOP MOVEMENT (Ins/Def)",							// Short Name
@@ -1868,11 +1868,11 @@ task_data
 			0,															// Troop Space
 		},
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_TASK_TROOP_MOVEMENT_PATROL,
 		//
-		////////////////////////////////////////
+
 
 		"Troop Movement (Patrol)",								// Name
 		"TROOP MOVEMENT (Patrol)",								// Short Name
@@ -1928,6 +1928,6 @@ task_data
 		},
 	};
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+

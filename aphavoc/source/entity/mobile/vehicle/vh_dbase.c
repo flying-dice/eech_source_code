@@ -1,90 +1,90 @@
-//
-// 	 Enemy Engaged RAH-66 Comanche Versus KA-52 Hokum
-// 	 Copyright (C) 2000 Empire Interactive (Europe) Ltd,
-// 	 677 High Road, North Finchley, London N12 0DA
-//
-// 	 Please see the document LICENSE.TXT for the full licence agreement
-//
-// 2. LICENCE
-//  2.1
-//  	Subject to the provisions of this Agreement we now grant to you the
-//  	following rights in respect of the Source Code:
-//   2.1.1
-//   	the non-exclusive right to Exploit  the Source Code and Executable
-//   	Code on any medium; and
-//   2.1.2
-//   	the non-exclusive right to create and distribute Derivative Works.
-//  2.2
-//  	Subject to the provisions of this Agreement we now grant you the
-// 	following rights in respect of the Object Code:
-//   2.2.1
-// 	the non-exclusive right to Exploit the Object Code on the same
-// 	terms and conditions set out in clause 3, provided that any
-// 	distribution is done so on the terms of this Agreement and is
-// 	accompanied by the Source Code and Executable Code (as
-// 	applicable).
-//
-// 3. GENERAL OBLIGATIONS
-//  3.1
-//  	In consideration of the licence granted in clause 2.1 you now agree:
-//   3.1.1
-// 	that when you distribute the Source Code or Executable Code or
-// 	any Derivative Works to Recipients you will also include the
-// 	terms of this Agreement;
-//   3.1.2
-// 	that when you make the Source Code, Executable Code or any
-// 	Derivative Works ("Materials") available to download, you will
-// 	ensure that Recipients must accept the terms of this Agreement
-// 	before being allowed to download such Materials;
-//   3.1.3
-// 	that by Exploiting the Source Code or Executable Code you may
-// 	not impose any further restrictions on a Recipient's subsequent
-// 	Exploitation of the Source Code or Executable Code other than
-// 	those contained in the terms and conditions of this Agreement;
-//   3.1.4
-// 	not (and not to allow any third party) to profit or make any
-// 	charge for the Source Code, or Executable Code, any
-// 	Exploitation of the Source Code or Executable Code, or for any
-// 	Derivative Works;
-//   3.1.5
-// 	not to place any restrictions on the operability of the Source
-// 	Code;
-//   3.1.6
-// 	to attach prominent notices to any Derivative Works stating
-// 	that you have changed the Source Code or Executable Code and to
-// 	include the details anddate of such change; and
-//   3.1.7
-//   	not to Exploit the Source Code or Executable Code otherwise than
-// 	as expressly permitted by  this Agreement.
-//
 
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #include "project.h"
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 #define DEBUG_MODULE 0
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 //VJ WUT mod bug, date: 26-mar-03
 //remove "const" from definition
 vehicle_data
 	vehicle_database[NUM_ENTITY_SUB_TYPE_VEHICLES] =
 	{
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_M1A2_ABRAMS
 		//
-		////////////////////////////////////////
+
 		{
 			"M1A2 Abrams",													// full_name
 			"M1A2 ABRAMS",	 												// long_display_name
@@ -142,11 +142,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TANK_TICKING,							// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TANK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_T80U
 		//
-		////////////////////////////////////////
+
 		{
 			"T-80U",															// full_name
 			"T-80U",	 		 												// long_display_name
@@ -204,11 +204,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TANK_TICKING,							// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TANK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_M2A2_BRADLEY
 		//
-		////////////////////////////////////////
+
 		{
 			"M2A2 Bradley",                                 	// full_name
 			"M2A2 BRADLEY", 												// long_display_name
@@ -266,11 +266,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TANK_TICKING,							// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TANK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_BMP2
 		//
-		////////////////////////////////////////
+
 		{
 			"BMP-2",                                        	// full_name
 			"BMP-2", 														// long_display_name
@@ -328,11 +328,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TANK_TICKING,							// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TANK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_BMP3
 		//
-		////////////////////////////////////////
+
 		{
 			"BMP-3",                                        	// full_name
 			"BMP-3", 														// long_display_name
@@ -390,11 +390,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TANK_TICKING,							// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TANK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_M113A2
 		//
-		////////////////////////////////////////
+
 		{
 			"M113A2",                                       	// full_name
 			"M113A2", 														// long_display_name
@@ -452,11 +452,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TRUCK_TICKING,						// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TRUCK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_BTR80
 		//
-		////////////////////////////////////////
+
 		{
 			"BTR-80",                                       	// full_name
 			"BTR-80", 														// long_display_name
@@ -514,11 +514,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TRUCK_TICKING,						// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TRUCK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_M1025_HUMVEE
 		//
-		////////////////////////////////////////
+
 		{
 			"M1025 HumVee",                                 	// full_name
 			"M1025 HUMVEE", 	  											// long_display_name
@@ -576,11 +576,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_JEEP_TICKING,							// idle_sound_effect
 			SOUND_SAMPLE_INDEX_JEEP_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_BRDM2
 		//
-		////////////////////////////////////////
+
 		{
 			"BRDM-2",                                       	// full_name
 			"BRDM-2", 			  											// long_display_name
@@ -638,11 +638,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_JEEP_TICKING,							// idle_sound_effect
 			SOUND_SAMPLE_INDEX_JEEP_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_M109A2
 		//
-		////////////////////////////////////////
+
 		{
 			"M109A2",                                       	// full_name
 			"M109A2", 			  											// long_display_name
@@ -700,11 +700,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TANK_TICKING,							// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TANK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_2S19
 		//
-		////////////////////////////////////////
+
 		{
 			"2S19 Msta",                                         	// full_name
 			"2S19", 				  											// long_display_name
@@ -762,11 +762,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TANK_TICKING,							// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TANK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_M270_MLRS
 		//
-		////////////////////////////////////////
+
 		{
 			"M270 MLRS",                                    	// full_name
 			"M270 MLRS", 		  											// long_display_name
@@ -824,11 +824,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TANK_TICKING,							// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TANK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_BM21_GRAD
 		//
-		////////////////////////////////////////
+
 		{
 			"BM-21 Grad",													// full_name
 			"BM-21 GRAD", 		  											// long_display_name
@@ -886,11 +886,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TRUCK_TICKING,						// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TRUCK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_M163_VULCAN
 		//
-		////////////////////////////////////////
+
 		{
 			"M163 Vulcan",                                  	// full_name
 			"M163 VULCAN", 	  											// long_display_name
@@ -948,11 +948,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TRUCK_TICKING,						// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TRUCK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_SA19_GRISON
 		//
-		////////////////////////////////////////
+
 		{
 			"SA-19 Grison",                                 	// full_name
 			"SA-19 GRISON", 	  											// long_display_name
@@ -1010,11 +1010,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TRUCK_TICKING,						// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TRUCK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_M1037_AVENGER
 		//
-		////////////////////////////////////////
+
 		{
 			"M1097 Avenger",                                	// full_name
 			"M1097 AVENGER", 	  											// long_display_name
@@ -1072,11 +1072,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TRUCK_TICKING,						// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TRUCK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_M48A1_CHAPARRAL
 		//
-		////////////////////////////////////////
+
 		{
 			"M48A1 Chaparral",                              	// full_name
 			"M48A1 CHAPARRAL", 	  	 									// long_display_name
@@ -1134,11 +1134,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TRUCK_TICKING,						// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TRUCK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_SA13_GOPHER
 		//
-		////////////////////////////////////////
+
 		{
 			"SA-13 Gopher",                                 	// full_name
 			"SA-13 GOPHER", 	  	 										// long_display_name
@@ -1196,11 +1196,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TRUCK_TICKING,						// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TRUCK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_M998_HUMVEE
 		//
-		////////////////////////////////////////
+
 		{
 			"M998 HumVee",                                  	// full_name
 			"M998 HUMVEE", 	  	 										// long_display_name
@@ -1258,11 +1258,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_JEEP_TICKING,							// idle_sound_effect
 			SOUND_SAMPLE_INDEX_JEEP_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_UAZ469B
 		//
-		////////////////////////////////////////
+
 		{
 			"UAZ-469B",                                     	// full_name
 			"UAZ-469B", 	  		 										// long_display_name
@@ -1320,11 +1320,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_JEEP_TICKING,							// idle_sound_effect
 			SOUND_SAMPLE_INDEX_JEEP_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_M923A1_BIG_FOOT
 		//
-		////////////////////////////////////////
+
 		{
 			"M923A1 Big Foot",											// full_name
 			"M923A1 BIG FOOT", 	  	 									// long_display_name
@@ -1382,11 +1382,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TRUCK_TICKING,						// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TRUCK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_M923A1_BIG_FOOT_COVERED
 		//
-		////////////////////////////////////////
+
 		{
 			"M923A1 Big Foot",											// full_name
 			"M923A1 BIG FOOT", 	  	 									// long_display_name
@@ -1444,11 +1444,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TRUCK_TICKING,						// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TRUCK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_URAL_4320
 		//
-		////////////////////////////////////////
+
 		{
 			"Ural-4320",													// full_name
 			"URAL-4320", 	 		 	 									// long_display_name
@@ -1506,11 +1506,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TRUCK_TICKING,						// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TRUCK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_M978_HEMTT
 		//
-		////////////////////////////////////////
+
 		{
 			"M978 HEMTT",													// full_name
 			"M978 HEMTT", 	 		 	 									// long_display_name
@@ -1568,11 +1568,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TRUCK_TICKING,						// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TRUCK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_URAL_FUEL_TANKER
 		//
-		////////////////////////////////////////
+
 		{
 			"Ural Fuel Tanker",		  									// full_name
 			"URAL FUEL TANKER", 	 		 								// long_display_name
@@ -1630,11 +1630,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_TRUCK_TICKING,						// idle_sound_effect
 			SOUND_SAMPLE_INDEX_TRUCK_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_TARAWA_CLASS
 		//
-		////////////////////////////////////////
+
 		{
 			"Tarawa Class",                                 	// full_name
 			"TARAWA CLASS", 	  			 								// long_display_name
@@ -1692,11 +1692,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_NONE,									// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_KIEV_CLASS
 		//
-		////////////////////////////////////////
+
 		{
 			"Kiev Class",                                   	// full_name
 			"KIEV CLASS", 	  				 								// long_display_name
@@ -1754,11 +1754,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_NONE,									// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_OLIVER_HAZARD_PERRY_CLASS
 		//
-		////////////////////////////////////////
+
 		{
 			"Oliver Hazard Perry Class",								// full_name
 			"OLIVER HAZARD PERRY CLASS", 	  							// long_display_name
@@ -1816,11 +1816,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_SHIP_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_KRIVAK_II_CLASS
 		//
-		////////////////////////////////////////
+
 		{
 			"Krivak II Class",											// full_name
 			"KRIVAK II CLASS", 	  										// long_display_name
@@ -1878,11 +1878,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_SHIP_MOVING,							// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_LCU
 		//
-		////////////////////////////////////////
+
 		{
 			"Landing Craft Utility",	  								// full_name
 			"LANDING CRAFT UTILITY", 									// long_display_name
@@ -1940,11 +1940,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_NONE,									// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_LCAC
 		//
-		////////////////////////////////////////
+
 		{
 			"Landing Craft Air Cushioned",							// full_name
 			"LANDING CRAFT (LCAC)",			 	  						// long_display_name
@@ -2002,11 +2002,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_HOVERCRAFT_TICKING,					// idle_sound_effect
 			SOUND_SAMPLE_INDEX_HOVERCRAFT_MOVING,					// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_AIST_CLASS
 		//
-		////////////////////////////////////////
+
 		{
 			"Aist Class",			 										// full_name
 			"AIST CLASS", 	  												// long_display_name
@@ -2064,11 +2064,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_HOVERCRAFT_TICKING,					// idle_sound_effect
 			SOUND_SAMPLE_INDEX_HOVERCRAFT_MOVING,					// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_US_INFANTRY
 		//
-		////////////////////////////////////////
+
 		{
 			"Infantry",     		                            	// full_name
 			"INFANTRY", 	  	  											// long_display_name
@@ -2126,11 +2126,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_NONE,									// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_US_INFANTRY_SAM_STANDING
 		//
-		////////////////////////////////////////
+
 		{
 			"FIM-92A Stinger MANPAD",											// full_name
 			"INFANTRY", 	  	  											// long_display_name
@@ -2188,11 +2188,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_NONE,									// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_US_INFANTRY_SAM_KNEELING
 		//
-		////////////////////////////////////////
+
 		{
 			"FIM-92A Stinger MANPAD",											// full_name
 			"INFANTRY", 	  	  											// long_display_name
@@ -2250,11 +2250,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_NONE,									// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_CIS_INFANTRY
 		//
-		////////////////////////////////////////
+
 		{
 			"Infantry",     		                            	// full_name
 			"INFANTRY", 	  	  											// long_display_name
@@ -2312,11 +2312,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_NONE,									// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_CIS_INFANTRY_SAM_STANDING
 		//
-		////////////////////////////////////////
+
 		{
 			"SA-7B MANPAD",										// full_name
 			"INFANTRY", 	  	  											// long_display_name
@@ -2374,11 +2374,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_NONE,									// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_CIS_INFANTRY_SAM_KNEELING
 		//
-		////////////////////////////////////////
+
 		{
 			"SA-7B MANPAD",										// full_name
 			"INFANTRY", 	  	  											// long_display_name
@@ -2436,11 +2436,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_NONE,									// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_US_MANPAD
 		//
-		////////////////////////////////////////
+
 		{
 			"MANPAD",     		                            	// full_name
 			"MANPAD", 	  	  											// long_display_name
@@ -2498,11 +2498,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_NONE,									// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_US_MACHINEGUNNER
 		//
-		////////////////////////////////////////
+
 		{
 			"Machinegunner",     		                            	// full_name
 			"MACHNGNR", 	  	  											// long_display_name
@@ -2560,11 +2560,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_NONE,									// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_RS_MANPAD
 		//
-		////////////////////////////////////////
+
 		{
 			"MANPAD",     		                            	// full_name
 			"MANPAD", 	  	  											// long_display_name
@@ -2622,11 +2622,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_NONE,									// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_RS_MACHINEGUNNER
 		//
-		////////////////////////////////////////
+
 		{
 			"Machinegunner",     		                            	// full_name
 			"MACHNGNR", 	  	  											// long_display_name
@@ -2684,11 +2684,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_NONE,									// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_US_LIGHT_FIRING_POINT
 		//
-		////////////////////////////////////////
+
 		{
 			"Firing point",     		                            	// full_name
 			"FIRING POINT", 	  	  											// long_display_name
@@ -2746,11 +2746,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_NONE,									// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_US_MEDIUM_FIRING_POINT
 		//
-		////////////////////////////////////////
+
 		{
 			"Firing point",     		                            	// full_name
 			"FIRING POINT", 	  	  											// long_display_name
@@ -2808,11 +2808,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_NONE,									// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_US_HEAVY_FIRING_POINT
 		//
-		////////////////////////////////////////
+
 		{
 			"Firing point",     		                            	// full_name
 			"FIRING POINT", 	  	  											// long_display_name
@@ -2870,11 +2870,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_NONE,									// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_RS_LIGHT_FIRING_POINT
 		//
-		////////////////////////////////////////
+
 		{
 			"Firing point",     		                            	// full_name
 			"FIRING POINT", 	  	  											// long_display_name
@@ -2932,11 +2932,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_NONE,									// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_RS_MEDIUM_FIRING_POINT
 		//
-		////////////////////////////////////////
+
 		{
 			"Firing point",     		                            	// full_name
 			"FIRING POINT", 	  	  											// long_display_name
@@ -2994,11 +2994,11 @@ vehicle_data
 			SOUND_SAMPLE_INDEX_NONE,									// idle_sound_effect
 			SOUND_SAMPLE_INDEX_NONE,									// moving_sound_effect
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_VEHICLE_RS_HEAVY_FIRING_POINT
 		//
-		////////////////////////////////////////
+
 		{
 			"Firing point",     		                            	// full_name
 			"FIRING POINT", 	  	  											// long_display_name
@@ -3058,6 +3058,6 @@ vehicle_data
 		},
 	};
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+

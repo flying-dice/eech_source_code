@@ -1,97 +1,97 @@
-//
-// 	 Enemy Engaged RAH-66 Comanche Versus KA-52 Hokum
-// 	 Copyright (C) 2000 Empire Interactive (Europe) Ltd,
-// 	 677 High Road, North Finchley, London N12 0DA
-//
-// 	 Please see the document LICENSE.TXT for the full licence agreement
-//
-// 2. LICENCE
-//  2.1
-//  	Subject to the provisions of this Agreement we now grant to you the
-//  	following rights in respect of the Source Code:
-//   2.1.1
-//   	the non-exclusive right to Exploit  the Source Code and Executable
-//   	Code on any medium; and
-//   2.1.2
-//   	the non-exclusive right to create and distribute Derivative Works.
-//  2.2
-//  	Subject to the provisions of this Agreement we now grant you the
-// 	following rights in respect of the Object Code:
-//   2.2.1
-// 	the non-exclusive right to Exploit the Object Code on the same
-// 	terms and conditions set out in clause 3, provided that any
-// 	distribution is done so on the terms of this Agreement and is
-// 	accompanied by the Source Code and Executable Code (as
-// 	applicable).
-//
-// 3. GENERAL OBLIGATIONS
-//  3.1
-//  	In consideration of the licence granted in clause 2.1 you now agree:
-//   3.1.1
-// 	that when you distribute the Source Code or Executable Code or
-// 	any Derivative Works to Recipients you will also include the
-// 	terms of this Agreement;
-//   3.1.2
-// 	that when you make the Source Code, Executable Code or any
-// 	Derivative Works ("Materials") available to download, you will
-// 	ensure that Recipients must accept the terms of this Agreement
-// 	before being allowed to download such Materials;
-//   3.1.3
-// 	that by Exploiting the Source Code or Executable Code you may
-// 	not impose any further restrictions on a Recipient's subsequent
-// 	Exploitation of the Source Code or Executable Code other than
-// 	those contained in the terms and conditions of this Agreement;
-//   3.1.4
-// 	not (and not to allow any third party) to profit or make any
-// 	charge for the Source Code, or Executable Code, any
-// 	Exploitation of the Source Code or Executable Code, or for any
-// 	Derivative Works;
-//   3.1.5
-// 	not to place any restrictions on the operability of the Source
-// 	Code;
-//   3.1.6
-// 	to attach prominent notices to any Derivative Works stating
-// 	that you have changed the Source Code or Executable Code and to
-// 	include the details anddate of such change; and
-//   3.1.7
-//   	not to Exploit the Source Code or Executable Code otherwise than
-// 	as expressly permitted by  this Agreement.
-//
 
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #include "project.h"
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 #define DEBUG_MODULE 0
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
 // Xhit: Introduced main_rotor_radius and number_of_main_rotors. (030328)
 //		 IMPORTANT: number_of_main_rotors is 2 only if the helicopter got 2 main rotors
 //		 on different axis (like the CHINOOK).
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 //VJ WUT mod bug, date: 26-mar-03
 //remove "const" from definition
 aircraft_data
    aircraft_database[NUM_ENTITY_SUB_TYPE_AIRCRAFT] =
    {
-      ////////////////////////////////////////
+
       //
       // ENTITY_SUB_TYPE_AIRCRAFT_AH64D_APACHE_LONGBOW
       //
-      ////////////////////////////////////////
+
       {
          "AH-64D Apache Longbow",											// full_name
          "AH-64D APACHE LONGBOW",											// long_display_name
@@ -164,11 +164,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_EXTERIOR_APACHE_ROTOR_WIND_UP,			// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_EXTERIOR_APACHE_ROTOR_WIND_DOWN,		// wind_down_sound_effect_index
       },
-      ////////////////////////////////////////
+
       //
       // ENTITY_SUB_TYPE_AIRCRAFT_MI28N_HAVOC_B
       //
-      ////////////////////////////////////////
+
       {
          "Mi-28N Havoc B",														// full_name
          "Mi-28N HAVOC B",														// long_display_name
@@ -241,11 +241,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_EXTERIOR_HAVOC_ROTOR_WIND_UP,			// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_EXTERIOR_HAVOC_ROTOR_WIND_DOWN,			// wind_down_sound_effect_index
       },
-      ////////////////////////////////////////
+
       //
       // ENTITY_SUB_TYPE_AIRCRAFT_RAH66_COMANCHE
       //
-      ////////////////////////////////////////
+
       {
          "RAH-66 Comanche",													// full_name
          "RAH-66 COMANCHE",	  												// long_display_name
@@ -318,11 +318,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_EXTERIOR_APACHE_ROTOR_WIND_UP,			// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_EXTERIOR_APACHE_ROTOR_WIND_DOWN,		// wind_down_sound_effect_index
       },
-      ////////////////////////////////////////
+
       //
       // ENTITY_SUB_TYPE_AIRCRAFT_KA52_HOKUM_B
       //
-      ////////////////////////////////////////
+
       {
          "Ka-52 Alligator",														// full_name
          "Ka-52 ALLIGATOR",														// long_display_name
@@ -395,11 +395,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_EXTERIOR_HAVOC_ROTOR_WIND_UP,			// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_EXTERIOR_HAVOC_ROTOR_WIND_DOWN,			// wind_down_sound_effect_index
       },
-      ////////////////////////////////////////
+
       //
       // ENTITY_SUB_TYPE_AIRCRAFT_UH60_BLACK_HAWK
       //
-      ////////////////////////////////////////
+
       ////Moje 030524 1st line under "OBJECT_3D_UH60_BLACKHAWK" changed from "NUM_GUNSHIP_TYPES"
       ////Moje 040209 CHanged loadout schemes
       {
@@ -474,11 +474,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_MEDIUM_HELICOPTER_ROTOR_WIND_UP,		// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_MEDIUM_HELICOPTER_ROTOR_WIND_DOWN,		// wind_down_sound_effect_index
       },
-      ////////////////////////////////////////
+
       //
       // ENTITY_SUB_TYPE_AIRCRAFT_MI24D_HIND
       //
-      ////////////////////////////////////////
+
       ////Moje 030524 1st line under "OBJECT_3D_MI24_HIND" changed from "NUM_GUNSHIP_TYPES"
       ////Moje 040209 CHanged loadout schemes
       {
@@ -553,11 +553,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_MEDIUM_HELICOPTER_ROTOR_WIND_UP,		// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_MEDIUM_HELICOPTER_ROTOR_WIND_DOWN,		// wind_down_sound_effect_index
       },
-      ////////////////////////////////////////
+
       //
       // ENTITY_SUB_TYPE_AIRCRAFT_CH46E_SEA_KNIGHT
       //
-      ////////////////////////////////////////
+
       {
          "CH-46E Sea Knight",													// full_name
          "CH-46E SEA KNIGHT",		 											// long_display_name
@@ -630,11 +630,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_MEDIUM_HELICOPTER_ROTOR_WIND_UP,		// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_MEDIUM_HELICOPTER_ROTOR_WIND_DOWN,		// wind_down_sound_effect_index
       },
-      ////////////////////////////////////////
+
       //
       // ENTITY_SUB_TYPE_AIRCRAFT_KA29_HELIX_B
       //
-      ////////////////////////////////////////
+
       {
          "Ka-29 Helix B",														// full_name
          "Ka-29 HELIX B",			 											// long_display_name
@@ -707,11 +707,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_MEDIUM_HELICOPTER_ROTOR_WIND_UP,		// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_MEDIUM_HELICOPTER_ROTOR_WIND_DOWN,		// wind_down_sound_effect_index
       },
-      ////////////////////////////////////////
+
       //
       // ENTITY_SUB_TYPE_AIRCRAFT_CH3_JOLLY_GREEN_GIANT
       //
-      ////////////////////////////////////////
+
       {
          "CH-3 Jolly Green Giant",											// full_name
          "CH-3 JOLLY GREEN GIANT",	 										// long_display_name
@@ -784,11 +784,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_LARGE_HELICOPTER_ROTOR_WIND_UP,			// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_LARGE_HELICOPTER_ROTOR_WIND_DOWN,		// wind_down_sound_effect_index
       },
-      ////////////////////////////////////////
+
       //
       // ENTITY_SUB_TYPE_AIRCRAFT_MI17_HIP
       //
-      ////////////////////////////////////////
+
       {
          "Mi-17 Hip",															// full_name
          "Mi-17 HIP",					 										// long_display_name
@@ -861,11 +861,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_LARGE_HELICOPTER_ROTOR_WIND_UP,			// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_LARGE_HELICOPTER_ROTOR_WIND_DOWN,		// wind_down_sound_effect_index
       },
-      ////////////////////////////////////////
+
       //
       // ENTITY_SUB_TYPE_AIRCRAFT_CH47D_CHINOOK
       //
-      ////////////////////////////////////////
+
       {
          "CH-47D Chinook",														// full_name
          "CH-47D CHINOOK",		 		 										// long_display_name
@@ -938,11 +938,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_LARGE_HELICOPTER_ROTOR_WIND_UP,			// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_LARGE_HELICOPTER_ROTOR_WIND_DOWN,		// wind_down_sound_effect_index
       },
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_MI6_HOOK
 		//
-		////////////////////////////////////////
+
 		{
 			"Mi-6 Hook",															// full_name
          "Mi-6 HOOK",			 		 										// long_display_name
@@ -1015,11 +1015,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_LARGE_HELICOPTER_ROTOR_WIND_UP,			// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_LARGE_HELICOPTER_ROTOR_WIND_DOWN,		// wind_down_sound_effect_index
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_A10A_THUNDERBOLT
 		//
-		////////////////////////////////////////
+
 		{
 			"A-10A Thunderbolt",													// full_name
          "A-10A THUNDERBOLT",			 										// long_display_name
@@ -1092,11 +1092,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_NONE,											// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_NONE,											// wind_down_sound_effect_index
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_SU25_FROGFOOT
 		//
-		////////////////////////////////////////
+
 		{
 			"Su-25 Frogfoot",														// full_name
          "Su-25 FROGFOOT",		 		 										// long_display_name
@@ -1169,11 +1169,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_NONE,											// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_NONE,											// wind_down_sound_effect_index
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_F16_FIGHTING_FALCON
 		//
-		////////////////////////////////////////
+
 		{
 			"F-16C Fighting Falcon",												// full_name
          "F-16 FIGHTING FALCON",	  	 										// long_display_name
@@ -1246,11 +1246,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_NONE,											// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_NONE,											// wind_down_sound_effect_index
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_MIG29_FULCRUM
 		//
-		////////////////////////////////////////
+
 		{
 			"MiG-29 Fulcrum",														// full_name
          "MiG-29 FULCRUM",	  			 										// long_display_name
@@ -1323,11 +1323,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_NONE,											// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_NONE,											// wind_down_sound_effect_index
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_AV8B_HARRIER
 		//
-		////////////////////////////////////////
+
 		{
 			"AV-8B Harrier",														// full_name
          "AV-8B HARRIER",	  			 										// long_display_name
@@ -1400,11 +1400,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_NONE,											// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_NONE,											// wind_down_sound_effect_index
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_YAK41_FREESTYLE
 		//
-		////////////////////////////////////////
+
 		{
 			"Yak-41 Freestyle",													// full_name
          "Yak-41 FREESTYLE",	 		 										// long_display_name
@@ -1477,11 +1477,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_NONE,											// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_NONE,											// wind_down_sound_effect_index
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_FA18_HORNET
 		//
-		////////////////////////////////////////
+
 		{
 			"F/A-18C Hornet",														// full_name
          "F/A-18 HORNET",	 			 										// long_display_name
@@ -1554,11 +1554,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_NONE,											// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_NONE,											// wind_down_sound_effect_index
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_SU33_FLANKER
 		//
-		////////////////////////////////////////
+
 		{
 			"Su-33 Flanker",														// full_name
          "Su-33 FLANKER",	 			 										// long_display_name
@@ -1632,11 +1632,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_NONE,											// wind_down_sound_effect_index
 		},
 
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_SU34_FULLBACK
 		//
-		////////////////////////////////////////
+
 		{
 			"Su-34 Fullback",														// full_name
          "Su-34 FULLBACK",	 			 										// long_display_name
@@ -1710,17 +1710,17 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_NONE,											// wind_down_sound_effect_index
 		},
 
-		////////////////////////////////////////////////////////////////////////////////
+
 		//
 		// COMANCHE HOKUM
 		//
-		////////////////////////////////////////////////////////////////////////////////
 
-		////////////////////////////////////////
+
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_AH64A_APACHE
 		//
-		////////////////////////////////////////
+
       ////Moje 030816 1st line under "OBJECT_3D_AH_64A" changed from "NUM_GUNSHIP_TYPES"
       ////Moje 040209 CHanged loadout schemes
       {
@@ -1795,11 +1795,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_SMALL_HELICOPTER_ROTOR_WIND_UP,			// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_SMALL_HELICOPTER_ROTOR_WIND_DOWN,		// wind_down_sound_effect_index
       },
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_KA50_HOKUM
 		//
-		////////////////////////////////////////
+
       ////Moje 030816 1st line under "OBJECT_3D_KA_50" changed from "NUM_GUNSHIP_TYPES"
       {
          "Ka-50 Black Shark",															// full_name
@@ -1873,11 +1873,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_SMALL_HELICOPTER_ROTOR_WIND_UP,			// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_SMALL_HELICOPTER_ROTOR_WIND_DOWN,		// wind_down_sound_effect_index
       },
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_OH58D_KIOWA_WARRIOR
 		//
-		////////////////////////////////////////
+
       {
          "OH-58D Kiowa Warrior",												//full_name
          "OH-58D KIOWA WARRIOR",												//long_display_name
@@ -1950,11 +1950,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_SMALL_HELICOPTER_ROTOR_WIND_UP,			// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_SMALL_HELICOPTER_ROTOR_WIND_DOWN,		// wind_down_sound_effect_index
       },
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_MV22_OSPREY
 		//
-		////////////////////////////////////////
+
       {
          "MV-22 Osprey",														// full_name
          "MV-22 OSPREY",														// long_display_name
@@ -2027,11 +2027,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_MEDIUM_HELICOPTER_ROTOR_WIND_UP,		// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_MEDIUM_HELICOPTER_ROTOR_WIND_DOWN,		// wind_down_sound_effect_index
       },
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_AH1T_SEACOBRA
 		//
-		////////////////////////////////////////
+
       {
          "AH-1T Sea Cobra",														// full_name
          "AH-1T SEACOBRA",														// long_display_name
@@ -2104,11 +2104,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_EXTERIOR_APACHE_ROTOR_WIND_UP,			// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_EXTERIOR_APACHE_ROTOR_WIND_DOWN,		// wind_down_sound_effect_index
       },
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_AH1W_SUPERCOBRA
 		//
-		////////////////////////////////////////
+
       {
          "AH-1W Super Cobra",													// full_name
          "AH-1W SUPERCOBRA",													// long_display_name
@@ -2180,11 +2180,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_EXTERIOR_APACHE_ROTOR_WIND_UP,			// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_EXTERIOR_APACHE_ROTOR_WIND_DOWN,		// wind_down_sound_effect_index
       },
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_CH53E_SUPER_STALLION
 		//
-		////////////////////////////////////////
+
       {
          "CH-53E Super Stallion",											// full_name
          "CH-53E SUPER STALLION",											// long_display_name
@@ -2257,11 +2257,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_LARGE_HELICOPTER_ROTOR_WIND_UP,			// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_LARGE_HELICOPTER_ROTOR_WIND_DOWN,		// wind_down_sound_effect_index
       },
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_C17_GLOBEMASTER_III
 		//
-		////////////////////////////////////////
+
 		{
 			"C-17 Globemaster III",												// full_name
          "C-17 GLOBEMASTER III",												// long_display_name
@@ -2334,11 +2334,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_NONE,											// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_NONE,											// wind_down_sound_effect_index
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_IL76MD_CANDID_B
 		//
-		////////////////////////////////////////
+
 		{
 			"Il-76MD Candid-B",													// full_name
          "Il-76MD CANDID-B",													// long_display_name
@@ -2411,11 +2411,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_NONE,											// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_NONE,											// wind_down_sound_effect_index
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_C130J_HERCULES_II
 		//
-		////////////////////////////////////////
+
 		{
 			"C-130J Hercules II",			  									// full_name
          "C-130J HERCULES II",			  									// long_display_name
@@ -2488,11 +2488,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_NONE,											// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_NONE,											// wind_down_sound_effect_index
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_AN12B_CUB
 		//
-		////////////////////////////////////////
+
 		{
 			"An-12B Cub",															// full_name
          "An-12B Cub",															// long_display_name
@@ -2565,11 +2565,11 @@ aircraft_data
 			SOUND_SAMPLE_INDEX_NONE,											// wind_up_sound_effect_index
 			SOUND_SAMPLE_INDEX_NONE,											// wind_down_sound_effect_index
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_AIRCRAFT_AH1Z_VIPER
 		//
-		////////////////////////////////////////
+
       {
          "AH-1Z Viper",													// full_name
          "AH-1Z VIPER",													// long_display_name
@@ -2643,6 +2643,6 @@ aircraft_data
       },
 	};
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+

@@ -1,80 +1,80 @@
-// 
-// 	 Enemy Engaged RAH-66 Comanche Versus KA-52 Hokum
-// 	 Copyright (C) 2000 Empire Interactive (Europe) Ltd,
-// 	 677 High Road, North Finchley, London N12 0DA
-// 
-// 	 Please see the document LICENSE.TXT for the full licence agreement
-// 
-// 2. LICENCE
-//  2.1 	
-//  	Subject to the provisions of this Agreement we now grant to you the 
-//  	following rights in respect of the Source Code:
-//   2.1.1 
-//   	the non-exclusive right to Exploit  the Source Code and Executable 
-//   	Code on any medium; and 
-//   2.1.2 
-//   	the non-exclusive right to create and distribute Derivative Works.
-//  2.2 	
-//  	Subject to the provisions of this Agreement we now grant you the
-// 	following rights in respect of the Object Code:
-//   2.2.1 
-// 	the non-exclusive right to Exploit the Object Code on the same
-// 	terms and conditions set out in clause 3, provided that any
-// 	distribution is done so on the terms of this Agreement and is
-// 	accompanied by the Source Code and Executable Code (as
-// 	applicable).
-// 
-// 3. GENERAL OBLIGATIONS
-//  3.1 
-//  	In consideration of the licence granted in clause 2.1 you now agree:
-//   3.1.1 
-// 	that when you distribute the Source Code or Executable Code or
-// 	any Derivative Works to Recipients you will also include the
-// 	terms of this Agreement;
-//   3.1.2 
-// 	that when you make the Source Code, Executable Code or any
-// 	Derivative Works ("Materials") available to download, you will
-// 	ensure that Recipients must accept the terms of this Agreement
-// 	before being allowed to download such Materials;
-//   3.1.3 
-// 	that by Exploiting the Source Code or Executable Code you may
-// 	not impose any further restrictions on a Recipient's subsequent
-// 	Exploitation of the Source Code or Executable Code other than
-// 	those contained in the terms and conditions of this Agreement;
-//   3.1.4 
-// 	not (and not to allow any third party) to profit or make any
-// 	charge for the Source Code, or Executable Code, any
-// 	Exploitation of the Source Code or Executable Code, or for any
-// 	Derivative Works;
-//   3.1.5 
-// 	not to place any restrictions on the operability of the Source 
-// 	Code;
-//   3.1.6 
-// 	to attach prominent notices to any Derivative Works stating
-// 	that you have changed the Source Code or Executable Code and to
-// 	include the details anddate of such change; and
-//   3.1.7 
-//   	not to Exploit the Source Code or Executable Code otherwise than
-// 	as expressly permitted by  this Agreement.
-// 
 
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #include "project.h"
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 #define DEBUG_MODULE 0
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 void pack_mobile_data (entity *en, mobile *raw, pack_modes mode)
 {
@@ -82,16 +82,16 @@ void pack_mobile_data (entity *en, mobile *raw, pack_modes mode)
 
 	switch (mode)
 	{
-		////////////////////////////////////////
+
 		case PACK_MODE_SERVER_SESSION:
 		case PACK_MODE_CLIENT_SESSION:
-		////////////////////////////////////////
+
 		{
 			pack_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, raw->sub_type);
 
 			pack_vec3d (en, VEC3D_TYPE_POSITION, &raw->position);
 
-			/////////////////////////////////////////////////////////////////
+
 
 			if (get_local_entity_type (en) != ENTITY_TYPE_CARGO)
 			{
@@ -99,7 +99,7 @@ void pack_mobile_data (entity *en, mobile *raw, pack_modes mode)
 				pack_attitude_matrix (en, raw->attitude);
 			}
 
-			/////////////////////////////////////////////////////////////////
+
 			if (!check_zero_3d_vector (&raw->motion_vector))
 			{
 
@@ -112,11 +112,11 @@ void pack_mobile_data (entity *en, mobile *raw, pack_modes mode)
 
 				pack_int_value (en, INT_TYPE_VALID, FALSE);
 			}
-			/////////////////////////////////////////////////////////////////
+
 
 			// velocity packed at lower levels (aircraft / vehicle)
 
-			/////////////////////////////////////////////////////////////////
+
 			// special case for special effect root
 			// Pack first non-locally contructed entity as the list_root.
 			if (get_local_entity_first_child (en, LIST_TYPE_SPECIAL_EFFECT))
@@ -151,9 +151,9 @@ void pack_mobile_data (entity *en, mobile *raw, pack_modes mode)
 
 				pack_int_value (en, INT_TYPE_VALID, FALSE);
 			}
-			/////////////////////////////////////////////////////////////////
 
-			/////////////////////////////////////////////////////////////////
+
+
 			if (raw->target_root.first_child)
 			{
 
@@ -166,13 +166,13 @@ void pack_mobile_data (entity *en, mobile *raw, pack_modes mode)
 
 				pack_int_value (en, INT_TYPE_VALID, FALSE);
 			}
-			/////////////////////////////////////////////////////////////////
+
 
 			// padlock_link
 
 			// sector_link
 
-			/////////////////////////////////////////////////////////////////
+
 			if (raw->target_link.parent)
 			{
 
@@ -185,7 +185,7 @@ void pack_mobile_data (entity *en, mobile *raw, pack_modes mode)
 
 				pack_int_value (en, INT_TYPE_VALID, FALSE);
 			}
-			/////////////////////////////////////////////////////////////////
+
 
 			// update_link
 
@@ -205,15 +205,15 @@ void pack_mobile_data (entity *en, mobile *raw, pack_modes mode)
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case PACK_MODE_BROWSE_SESSION:
-		////////////////////////////////////////
+
 		{
 			break;
 		}
-		////////////////////////////////////////
+
 		case PACK_MODE_UPDATE_ENTITY:
-		////////////////////////////////////////
+
 		{
 			//
 			// cannot update entity at this level as the update may not apply to all entity types below
@@ -224,9 +224,9 @@ void pack_mobile_data (entity *en, mobile *raw, pack_modes mode)
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 void unpack_mobile_data (entity *en, mobile *raw, pack_modes mode)
 {
@@ -234,16 +234,16 @@ void unpack_mobile_data (entity *en, mobile *raw, pack_modes mode)
 
 	switch (mode)
 	{
-		////////////////////////////////////////
+
 		case PACK_MODE_SERVER_SESSION:
 		case PACK_MODE_CLIENT_SESSION:
-		////////////////////////////////////////
+
 		{
 			raw->sub_type = unpack_int_value (en, INT_TYPE_ENTITY_SUB_TYPE);
 
 			unpack_vec3d (en, VEC3D_TYPE_POSITION, &raw->position);
 
-			/////////////////////////////////////////////////////////////////
+
 
 			if (get_local_entity_type (en) == ENTITY_TYPE_CARGO)
 			{
@@ -256,43 +256,43 @@ void unpack_mobile_data (entity *en, mobile *raw, pack_modes mode)
 				unpack_attitude_matrix (en, raw->attitude);
 			}
 
-			/////////////////////////////////////////////////////////////////
+
 			if (unpack_int_value (en, INT_TYPE_VALID))
 			{
 
 				unpack_vec3d (en, VEC3D_TYPE_MOTION_VECTOR, &raw->motion_vector);
 			}
-			/////////////////////////////////////////////////////////////////
+
 
 			// velocity unpacked at lower levels (aircraft / vehicle)
 
-			/////////////////////////////////////////////////////////////////
+
 			if (unpack_int_value (en, INT_TYPE_VALID))
 			{
 
 				unpack_list_root (en, LIST_TYPE_SPECIAL_EFFECT, &raw->special_effect_root);
 			}
-			/////////////////////////////////////////////////////////////////
 
-			/////////////////////////////////////////////////////////////////
+
+
 			if (unpack_int_value (en, INT_TYPE_VALID))
 			{
 
 				unpack_list_root (en, LIST_TYPE_TARGET, &raw->target_root);
 			}
-			/////////////////////////////////////////////////////////////////
+
 
 			// padlock_link
 
 			// sector_link
 
-			/////////////////////////////////////////////////////////////////
+
 			if (unpack_int_value (en, INT_TYPE_VALID))
 			{
 
 				unpack_list_link (en, LIST_TYPE_TARGET, &raw->target_link);
 			}
-			/////////////////////////////////////////////////////////////////
+
 
 			// update_link
 
@@ -312,15 +312,15 @@ void unpack_mobile_data (entity *en, mobile *raw, pack_modes mode)
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case PACK_MODE_BROWSE_SESSION:
-		////////////////////////////////////////
+
 		{
 			break;
 		}
-		////////////////////////////////////////
+
 		case PACK_MODE_UPDATE_ENTITY:
-		////////////////////////////////////////
+
 		{
 			//
 			// cannot update entity at this level as the update may not apply to all entity types below
@@ -331,9 +331,9 @@ void unpack_mobile_data (entity *en, mobile *raw, pack_modes mode)
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 int pack_mobile_local_sound_effects (entity *mobile, pack_modes mode)
 {
@@ -404,9 +404,9 @@ int pack_mobile_local_sound_effects (entity *mobile, pack_modes mode)
 	return count;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 int unpack_mobile_local_sound_effects (entity *mobile, pack_modes mode)
 {
@@ -439,6 +439,6 @@ int unpack_mobile_local_sound_effects (entity *mobile, pack_modes mode)
 	return count;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+

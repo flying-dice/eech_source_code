@@ -1,88 +1,88 @@
-//
-// 	 Enemy Engaged RAH-66 Comanche Versus KA-52 Hokum
-// 	 Copyright (C) 2000 Empire Interactive (Europe) Ltd,
-// 	 677 High Road, North Finchley, London N12 0DA
-//
-// 	 Please see the document LICENSE.TXT for the full licence agreement
-//
-// 2. LICENCE
-//  2.1
-//  	Subject to the provisions of this Agreement we now grant to you the
-//  	following rights in respect of the Source Code:
-//   2.1.1
-//   	the non-exclusive right to Exploit  the Source Code and Executable
-//   	Code on any medium; and
-//   2.1.2
-//   	the non-exclusive right to create and distribute Derivative Works.
-//  2.2
-//  	Subject to the provisions of this Agreement we now grant you the
-// 	following rights in respect of the Object Code:
-//   2.2.1
-// 	the non-exclusive right to Exploit the Object Code on the same
-// 	terms and conditions set out in clause 3, provided that any
-// 	distribution is done so on the terms of this Agreement and is
-// 	accompanied by the Source Code and Executable Code (as
-// 	applicable).
-//
-// 3. GENERAL OBLIGATIONS
-//  3.1
-//  	In consideration of the licence granted in clause 2.1 you now agree:
-//   3.1.1
-// 	that when you distribute the Source Code or Executable Code or
-// 	any Derivative Works to Recipients you will also include the
-// 	terms of this Agreement;
-//   3.1.2
-// 	that when you make the Source Code, Executable Code or any
-// 	Derivative Works ("Materials") available to download, you will
-// 	ensure that Recipients must accept the terms of this Agreement
-// 	before being allowed to download such Materials;
-//   3.1.3
-// 	that by Exploiting the Source Code or Executable Code you may
-// 	not impose any further restrictions on a Recipient's subsequent
-// 	Exploitation of the Source Code or Executable Code other than
-// 	those contained in the terms and conditions of this Agreement;
-//   3.1.4
-// 	not (and not to allow any third party) to profit or make any
-// 	charge for the Source Code, or Executable Code, any
-// 	Exploitation of the Source Code or Executable Code, or for any
-// 	Derivative Works;
-//   3.1.5
-// 	not to place any restrictions on the operability of the Source
-// 	Code;
-//   3.1.6
-// 	to attach prominent notices to any Derivative Works stating
-// 	that you have changed the Source Code or Executable Code and to
-// 	include the details anddate of such change; and
-//   3.1.7
-//   	not to Exploit the Source Code or Executable Code otherwise than
-// 	as expressly permitted by  this Agreement.
-//
 
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #include "project.h"
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 #define DEBUG_MODULE 										0
 
 #define DEBUG_MODULE_DISPLAY_TARGET_POINT_OFFSETS	0
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 #define MAX_CRUISE_TIME	((float) (511.0))	// change this then update EN_FLOAT.C FLOAT_TYPE_WEAPON_LIFETIME pack size
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 //
 // Weapon Dynamics
 //
@@ -122,9 +122,9 @@
 //
 //						t = (2.0 * u * sin (theta)) / G					// theta = 45 degrees
 //
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 //VJ WUT mod bug, date: 26-mar-03
 //remove "const" from definition
@@ -132,11 +132,11 @@
 weapon_data
 	weapon_database[NUM_ENTITY_SUB_TYPE_WEAPONS] =
 	{
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_NO_WEAPON
 		//
-		////////////////////////////////////////
+
 		{
 			"No Weapon",														// full_name
 			"?",																	// hud_name
@@ -206,17 +206,17 @@ weapon_data
 			0.0,																	// max_altitude	
 		},
 
-		////////////////////////////////////////////////////////////////////////////////
+
 		//
 		// BALLISTIC WEAPONS
 		//
-		////////////////////////////////////////////////////////////////////////////////
 
-		////////////////////////////////////////
+
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_M16A2_5P56MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"M16A2 5.56mm Round",		 											// full_name
 			"?",																	// hud_name
@@ -286,11 +286,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_M60E4_7P62MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"M60E4 7.62mm Round",		 											// full_name
 			"?",																	// hud_name
@@ -360,11 +360,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_M2HB_12P7MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"M2HB 12.7mm Round",		 											// full_name
 			"M2HB 12.7mm",																	// hud_name
@@ -434,11 +434,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_M61A1_20MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"M61A1 20mm Round",												// full_name
 			"?",																	// hud_name
@@ -511,11 +511,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_M61A1_CIWS_20MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"M61A1 CIWS 20mm Round",												// full_name
 			"?",																	// hud_name
@@ -588,11 +588,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_M197_20MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"M197 20mm Round",												// full_name
 			"GUN",																// hud_name
@@ -663,11 +663,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_GAU12U_25MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"GAU-12/U 25mm Round", 			  								// full_name
 			"?",																	// hud_name
@@ -738,11 +738,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_M242_25MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"M242 25mm Round", 				  								// full_name
 			"?",																	// hud_name
@@ -813,11 +813,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_GAU8A_30MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"GAU-8/A 30mm Round",				  							// full_name
 			"?",																	// hud_name
@@ -888,11 +888,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_M230_30MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"M230 30mm Round",				  								// full_name
 			"GUN",																// hud_name
@@ -963,11 +963,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_OTO_MELARA_76MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			//
 			// customised for Oliver Hazard Perry Class (pitch limits 20.0 to 85.0 degrees)
@@ -1041,11 +1041,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_M256_120MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			//
 			// customised for M1A2 Abrams (pitch limits -9.0 to 20.0 degrees)
@@ -1119,11 +1119,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_M284_155MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"M284 155mm Round",				  								// full_name
 			"?",																	// hud_name
@@ -1193,11 +1193,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_M26A1_227MM_ROCKET
 		//
-		////////////////////////////////////////
+
 		{
 			//
 			// customised for M270 MLRS (pitch limits 15.0 to 50.0 degrees)
@@ -1271,11 +1271,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_AK_47_7P62MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"AK-47 7.62mm Round",		 											// full_name
 			"?",																	// hud_name
@@ -1346,11 +1346,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_PKM_7P62MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"PKM 7.62mm Round",		 											// full_name
 			"?",																	// hud_name
@@ -1421,11 +1421,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_NSVT_12P7MM_ROUND // also used as A-12,7
 		//
-		////////////////////////////////////////
+
 		{
 			"12.7 Machine Gun",		 											// full_name
 			"A-12,7",																	// hud_name
@@ -1496,11 +1496,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_YAK_B_12P7MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"Yak-B",				  							// full_name
 			"YAK-B",																	// hud_name
@@ -1571,11 +1571,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_KPVT_14P5MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"14.5mm Round",	  					  							// full_name
 			"?",																	// hud_name
@@ -1646,11 +1646,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_GSH23L_23MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"UPK-23",						  								// full_name
 			"UPK-23",															// hud_name
@@ -1721,11 +1721,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_GSH_30_1_30MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"GSh-301 30mm Round",				  							// full_name
 			"?",																	// hud_name
@@ -1796,11 +1796,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_2A38M_30MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"2A38M 30mm Round",												// full_name
 			"?",																	// hud_name
@@ -1870,11 +1870,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_2A42_30MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"2A42 30mm Round",												// full_name
 			"?",																	// hud_name
@@ -1945,11 +1945,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_2A42_30MM_HE_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"2A42 30mm HE Round",	  		  								// full_name
 			"Gun(HE)",															// hud_name
@@ -2020,11 +2020,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_2A42_30MM_AP_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"2A42 30mm AP Round",	  		  								// full_name
 			"Gun(AP)",															// hud_name
@@ -2095,11 +2095,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_2A72_30MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"2A72 30mm Round",  		  		  								// full_name
 			"?",																	// hud_name
@@ -2170,11 +2170,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_GSH_2_30_30MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"AO-17A 30mm Round",	  	  		  								// full_name
 			"?",																	// hud_name
@@ -2245,11 +2245,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_AK_630_30MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"ADMG-630 30mm Round",											// full_name
 			"?",																	// hud_name
@@ -2319,11 +2319,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_AK_726_76MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"76mm Round",														// full_name
 			"?",																	// hud_name
@@ -2393,11 +2393,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_A_190_100MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"100mm Round",														// full_name
 			"?",																	// hud_name
@@ -2467,11 +2467,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_2A70_100MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"2K23 100mm Round",	  	  		  								// full_name
 			"?",																	// hud_name
@@ -2541,11 +2541,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_BM21_122MM_ROCKET
 		//
-		////////////////////////////////////////
+
 		{
 			//
 			// customised for BM-21 (pitch limits 5.0 to 55.0 degrees)
@@ -2619,11 +2619,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_2A46M1_125MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			//
 			// customised for T80U (pitch limits -5.0 to 14.0 degrees)
@@ -2697,11 +2697,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_2A65_152MM_ROUND
 		//
-		////////////////////////////////////////
+
 		{
 			"2A65 152mm Round",	 	 	  		  							// full_name
 			"?",																	// hud_name
@@ -2772,17 +2772,17 @@ weapon_data
 			0.0,																	// max_altitude	
 		},
 
-		////////////////////////////////////////////////////////////////////////////////
+
 		//
 		// UNGUIDED ROCKETS
 		//
-		////////////////////////////////////////////////////////////////////////////////
 
-		////////////////////////////////////////
+
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_HYDRA70_M255
 		//
-		////////////////////////////////////////
+
 		{
 			"Hydra 70 M255",					  								// full_name
 			"RKT(HE)",	 		 												// hud_name
@@ -2852,11 +2852,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_HYDRA70_M261
 		//
-		////////////////////////////////////////
+
 		{
 			"Hydra 70 M261",			 		  								// full_name
 			"RKT(MP)",															// hud_name
@@ -2926,11 +2926,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_M73_HE
 		//
-		////////////////////////////////////////
+
 		{
 			"M73 HE submunition",			 		  								// full_name
 			"?",															// hud_name
@@ -3000,11 +3000,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_MK_40_FFAR
 		//
-		////////////////////////////////////////
+
 		{
 			"LAU-69/A",	  						  								// full_name
 			"?",																	// hud_name
@@ -3074,11 +3074,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_S5
 		//
-		////////////////////////////////////////
+
 		{
 			"S-5",	  							  								// full_name
 			"S-5",																	// hud_name
@@ -3148,11 +3148,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_S8
 		//
-		////////////////////////////////////////
+
 		{
 			"S-8",								  								// full_name
 			"S-8",																// hud_name
@@ -3222,11 +3222,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_S13
 		//
-		////////////////////////////////////////
+
 		{
 			"S-13",	  							  								// full_name
 			"S-13", 																// hud_name
@@ -3297,17 +3297,17 @@ weapon_data
 			0.0,																	// max_altitude	
 		},
 
-		////////////////////////////////////////////////////////////////////////////////
+
 		//
 		// AIR-TO-AIR GUIDED MISSILES
 		//
-		////////////////////////////////////////////////////////////////////////////////
 
-		////////////////////////////////////////
+
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_AIM92A_STINGER
 		//
-		////////////////////////////////////////
+
 		{
 			"AIM-92A Stinger",					  								// full_name
 			"AAM",		 														// hud_name
@@ -3377,11 +3377,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_AIM9M_SIDEWINDER
 		//
-		////////////////////////////////////////
+
 		{
 			"AIM-9M Sidewinder",					  							// full_name
 			"AIM-9",																	// hud_name
@@ -3451,11 +3451,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_AIM120C_AMRAAM
 		//
-		////////////////////////////////////////
+
 		{
 			"AIM-120C AMRAAM",		 				  							// full_name
 			"?",																	// hud_name
@@ -3525,11 +3525,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_9M39_IGLA_V
 		//
-		////////////////////////////////////////
+
 		{
 			"9K38 Igla-V",			  				  								// full_name
 			"Igla-V",		 													// hud_name
@@ -3599,11 +3599,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_R_60
 		//
-		////////////////////////////////////////
+
 		{
 			"R-60",						  								// full_name
 			"R-60",																	// hud_name
@@ -3673,11 +3673,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_R_60M
 		//
-		////////////////////////////////////////
+
 		{
 			"R-60M",						  								// full_name
 			"R-60M",																	// hud_name
@@ -3747,11 +3747,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_R_27R
 		//
-		////////////////////////////////////////
+
 		{
 			"R-27R",						  							// full_name
 			"?",																	// hud_name
@@ -3821,11 +3821,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_R_27T
 		//
-		////////////////////////////////////////
+
 		{
 			"R-27T",						  							// full_name
 			"?",																	// hud_name
@@ -3895,11 +3895,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_R_73
 		//
-		////////////////////////////////////////
+
 		{
 			"R-73",																// full_name
 			"?",																	// hud_name
@@ -3970,17 +3970,17 @@ weapon_data
 			0.0,																	// max_altitude	
 		},
 
-		////////////////////////////////////////////////////////////////////////////////
+
 		//
 		// AIR-TO-SURFACE GUIDED MISSILES
 		//
-		////////////////////////////////////////////////////////////////////////////////
 
-		////////////////////////////////////////
+
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_AGM114L_LONGBOW_HELLFIRE
 		//
-		////////////////////////////////////////
+
 		{
 			"AGM-114L Longbow Hellfire", 									// full_name
 			"AGM(RDR)",			 												// hud_name
@@ -4050,11 +4050,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_AGM114K_HELLFIRE_II
 		//
-		////////////////////////////////////////
+
 		{
 			"AGM-114K Hellfire II",											// full_name
 			"AGM(LSR)",	 				 										// hud_name
@@ -4124,11 +4124,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_AGM114R_HELLFIRE_II
 		//
-		////////////////////////////////////////
+
 		{
 			"AGM-114R Hellfire II",											// full_name
 			"AGM(LSR)",	 				 										// hud_name
@@ -4198,11 +4198,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_AGM65D_MAVERICK
 		//
-		////////////////////////////////////////
+
 		{
 			"AGM-65D Maverick", 												// full_name
 			"?",																	// hud_name
@@ -4272,11 +4272,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_AGM65F_MAVERICK
 		//
-		////////////////////////////////////////
+
 		{
 			"AGM-65F Maverick", 												// full_name
 			"?",																	// hud_name
@@ -4346,11 +4346,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_9M120_ATAKA_V
 		//
-		////////////////////////////////////////
+
 		{
 			"9M120 Ataka-V",				 				 								// full_name
 			"ATAKA",	  															// hud_name
@@ -4420,11 +4420,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_9K121_VIKHR
 		//
-		////////////////////////////////////////
+
 		{
 			"9K121 Vikhr",				 				 								// full_name
 			"VIKHR",				  												// hud_name
@@ -4494,11 +4494,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_9M114_SHTURM
 		//
-		////////////////////////////////////////
+
 		{
 			"9K114 Shturm",				 				 						// full_name
 			"SHTURM",																	// hud_name
@@ -4568,11 +4568,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_KH_25MT
 		//
-		////////////////////////////////////////
+
 		{
 			"Kh-25MT",						 				 						// full_name
 			"?",																	// hud_name
@@ -4642,11 +4642,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_KH_29L
 		//
-		////////////////////////////////////////
+
 		{
 			"Kh-29L",						 				 						// full_name
 			"?",																	// hud_name
@@ -4717,17 +4717,17 @@ weapon_data
 			0.0,																	// max_altitude	
 		},
 
-		////////////////////////////////////////////////////////////////////////////////
+
 		//
 		// SURFACE-TO-AIR GUIDED MISSILES
 		//
-		////////////////////////////////////////////////////////////////////////////////
 
-		////////////////////////////////////////
+
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_MIM_72G_CHAPARRAL
 		//
-		////////////////////////////////////////
+
 		{
 			"MIM-72G Chaparral",						  								// full_name
 			"?",																	// hud_name
@@ -4797,11 +4797,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_FIM92A_STINGER
 		//
-		////////////////////////////////////////
+
 		{
 			"FIM-92A Stinger",				  								// full_name
 			"?",																	// hud_name
@@ -4871,11 +4871,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_RIM_66B_STANDARD
 		//
-		////////////////////////////////////////
+
 		{
 			"SM-1MR Standard",												// full_name
 			"?",																	// hud_name
@@ -4945,11 +4945,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_RIM_7M_SEA_SPARROW
 		//
-		////////////////////////////////////////
+
 		{
 			"RIM-7P Sea Sparrow",													// full_name
 			"?",																	// hud_name
@@ -5019,11 +5019,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_9K34_STRELA_3
 		//
-		////////////////////////////////////////
+
 		{
 			"9K32 Strela 2",		  				  								// full_name
 			"?",																	// hud_name
@@ -5093,11 +5093,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_9M333
 		//
-		////////////////////////////////////////
+
 		{
 			"9M333",						 			  								// full_name
 			"?",																	// hud_name
@@ -5167,11 +5167,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_9M311
 		//
-		////////////////////////////////////////
+
 		{
 			"9M311",					 			  								// full_name
 			"?",																	// hud_name
@@ -5241,11 +5241,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_4K60_STORM
 		//
-		////////////////////////////////////////
+
 		{
 			"M-11 Shtorm",															// full_name
 			"?",																	// hud_name
@@ -5315,11 +5315,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_9M33_OSA
 		//
-		////////////////////////////////////////
+
 		{
 			"9K33M",																// full_name
 			"?",																	// hud_name
@@ -5390,17 +5390,17 @@ weapon_data
 			0.0,																	// max_altitude	
 		},
 
-		////////////////////////////////////////////////////////////////////////////////
+
 		//
 		// SURFACE-TO-SURFACE GUIDED MISSILES
 		//
-		////////////////////////////////////////////////////////////////////////////////
 
-		////////////////////////////////////////
+
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_BGM_71D_TOW_2
 		//
-		////////////////////////////////////////
+
 		{
 			"BGM-71D TOW-2", 														// full_name
 			"TOW-2",																// hud_name
@@ -5470,11 +5470,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_9M113_KONKURS
 		//
-		////////////////////////////////////////
+
 		{
 			"9M113 Konkurs",	 	 												// full_name
 			"?",																	// hud_name
@@ -5544,11 +5544,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_9M117_BASTION
 		//
-		////////////////////////////////////////
+
 		{
 			"9M117 Bastion",														// full_name
 			"?",																	// hud_name
@@ -5618,11 +5618,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_9M119M_INVAR
 		//
-		////////////////////////////////////////
+
 		{
 			"9M119 Svir",		 	 		 										// full_name
 			"?",																	// hud_name
@@ -5693,17 +5693,17 @@ weapon_data
 			0.0,																	// max_altitude	
 		},
 
-		////////////////////////////////////////////////////////////////////////////////
+
 		//
 		// DECOYS
 		//
-		////////////////////////////////////////////////////////////////////////////////
 
-		////////////////////////////////////////
+
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_CHAFF
 		//
-		////////////////////////////////////////
+
 		{
 			"CHAFF",	  							  								// full_name
 			"?",																	// hud_name
@@ -5773,11 +5773,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_FLARE
 		//
-		////////////////////////////////////////
+
 		{
 			"FLARE",	  							  								// full_name
 			"?",																	// hud_name
@@ -5847,11 +5847,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_SMOKE_GRENADE
 		//
-		////////////////////////////////////////
+
 		{
 			"SMOKE GRENADE",					  								// full_name
 			"?",																	// hud_name
@@ -5922,17 +5922,17 @@ weapon_data
 			0.0,																	// max_altitude	
 		},
 
-		////////////////////////////////////////////////////////////////////////////////
+
 		//
 		// CARGO
 		//
-		////////////////////////////////////////////////////////////////////////////////
 
-		////////////////////////////////////////
+
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_CRATE
 		//
-		////////////////////////////////////////
+
 		{
 			"CRATE",																// full_name
 			"?",																	// hud_name
@@ -6003,17 +6003,17 @@ weapon_data
 			0.0,																	// max_altitude	
 		},
 
-		////////////////////////////////////////////////////////////////////////////////
+
 		//
 		// DEBRIS
 		//
-		////////////////////////////////////////////////////////////////////////////////
 
-		////////////////////////////////////////
+
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_HOKUM_BLADE
 		//
-		////////////////////////////////////////
+
 		{
 			"Rotor Blade",														// full_name
 			"?",																	// hud_name
@@ -6083,11 +6083,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_HOKUM_PILOT
 		//
-		////////////////////////////////////////
+
 		{
 			"Ejected Pilot",													// full_name
 			"?",																	// hud_name
@@ -6157,11 +6157,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_HOKUM_CO_PILOT
 		//
-		////////////////////////////////////////
+
 		{
 			"Ejected Co-pilot",												// full_name
 			"?",																	// hud_name
@@ -6231,11 +6231,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_HOKUM_LH_DOOR
 		//
-		////////////////////////////////////////
+
 		{
 			"Crew Door",														// full_name
 			"?",																	// hud_name
@@ -6305,11 +6305,11 @@ weapon_data
 			0.0,																	// tracer_fire_time
 			0.0,																	// max_altitude	
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_WEAPON_HOKUM_RH_DOOR
 		//
-		////////////////////////////////////////
+
 		{
 			"Crew Door",														// full_name
 			"?",																	// hud_name
@@ -6381,9 +6381,9 @@ weapon_data
 		},
 	};
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 void validate_weapon_database (void)
 {
@@ -6535,9 +6535,9 @@ void validate_weapon_database (void)
 }
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 static void calculate_seeker_limits_from_launch_angle(void)
 {
@@ -6552,22 +6552,22 @@ static void calculate_seeker_limits_from_launch_angle(void)
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 weapon_package
 	weapon_config_database[NUM_WEAPON_CONFIG_TYPES][NUM_WEAPON_PACKAGES] =
 	{
-		////////////////////////////////////////
+
 		//
 		// INCLUDE ORDER IS CRITICAL
 		//
-		////////////////////////////////////////
+
 
 		#include "configs/unarmed.h"
 
-		////////////////////////////////////////
+
 
 		#include "configs/apache.h"			// ENTITY_SUB_TYPE_AIRCRAFT_AH64D_APACHE_LONGBOW
 		#include "configs/havoc.h"		  		// ENTITY_SUB_TYPE_AIRCRAFT_MI28N_HAVOC_B
@@ -6603,7 +6603,7 @@ weapon_package
 		#include "configs/hercules.h"			// ENTITY_SUB_TYPE_AIRCRAFT_C130J_HERCULES_II
 		#include "configs/cub.h"	 			// ENTITY_SUB_TYPE_AIRCRAFT_AN12B_CUB
 
-		////////////////////////////////////////
+
 
 		#include "configs/abrams.h"			// ENTITY_SUB_TYPE_VEHICLE_M1A2_ABRAMS
 		#include "configs/t80u.h"	  			// ENTITY_SUB_TYPE_VEHICLE_T80U
@@ -6655,9 +6655,9 @@ weapon_package
 		#include "configs/rs_heavy_firing_point.h"			// ENTITY_SUB_TYPE_VEHICLE_RS_HEAVY_FIRING_POINT
 	};
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 muzzle_flash_animation
 	muzzle_flash_animation_database[NUM_MUZZLE_FLASH_TYPES] =
@@ -6734,16 +6734,16 @@ muzzle_flash_animation
 		},
 	};
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 vec3d
 	target_point_offsets[OBJECT_3D_LAST];
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 void initialise_target_point_offsets (void)
 {
@@ -6823,6 +6823,6 @@ void initialise_target_point_offsets (void)
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+

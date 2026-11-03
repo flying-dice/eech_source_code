@@ -1,68 +1,68 @@
-// 
-// 	 Enemy Engaged RAH-66 Comanche Versus KA-52 Hokum
-// 	 Copyright (C) 2000 Empire Interactive (Europe) Ltd,
-// 	 677 High Road, North Finchley, London N12 0DA
-// 
-// 	 Please see the document LICENSE.TXT for the full licence agreement
-// 
-// 2. LICENCE
-//  2.1 	
-//  	Subject to the provisions of this Agreement we now grant to you the 
-//  	following rights in respect of the Source Code:
-//   2.1.1 
-//   	the non-exclusive right to Exploit  the Source Code and Executable 
-//   	Code on any medium; and 
-//   2.1.2 
-//   	the non-exclusive right to create and distribute Derivative Works.
-//  2.2 	
-//  	Subject to the provisions of this Agreement we now grant you the
-// 	following rights in respect of the Object Code:
-//   2.2.1 
-// 	the non-exclusive right to Exploit the Object Code on the same
-// 	terms and conditions set out in clause 3, provided that any
-// 	distribution is done so on the terms of this Agreement and is
-// 	accompanied by the Source Code and Executable Code (as
-// 	applicable).
-// 
-// 3. GENERAL OBLIGATIONS
-//  3.1 
-//  	In consideration of the licence granted in clause 2.1 you now agree:
-//   3.1.1 
-// 	that when you distribute the Source Code or Executable Code or
-// 	any Derivative Works to Recipients you will also include the
-// 	terms of this Agreement;
-//   3.1.2 
-// 	that when you make the Source Code, Executable Code or any
-// 	Derivative Works ("Materials") available to download, you will
-// 	ensure that Recipients must accept the terms of this Agreement
-// 	before being allowed to download such Materials;
-//   3.1.3 
-// 	that by Exploiting the Source Code or Executable Code you may
-// 	not impose any further restrictions on a Recipient's subsequent
-// 	Exploitation of the Source Code or Executable Code other than
-// 	those contained in the terms and conditions of this Agreement;
-//   3.1.4 
-// 	not (and not to allow any third party) to profit or make any
-// 	charge for the Source Code, or Executable Code, any
-// 	Exploitation of the Source Code or Executable Code, or for any
-// 	Derivative Works;
-//   3.1.5 
-// 	not to place any restrictions on the operability of the Source 
-// 	Code;
-//   3.1.6 
-// 	to attach prominent notices to any Derivative Works stating
-// 	that you have changed the Source Code or Executable Code and to
-// 	include the details anddate of such change; and
-//   3.1.7 
-//   	not to Exploit the Source Code or Executable Code otherwise than
-// 	as expressly permitted by  this Agreement.
-// 
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #include "project.h"
 
@@ -72,9 +72,9 @@
 #include "ai/taskgen/croute.h"
 #include "ai/highlevl/imaps.h"
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 #define DEBUG_MODULE_MESSAGE_TEXT	0
 
@@ -84,9 +84,9 @@
 
 #define FAST_TRACK						1
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 entity_comms_message_data
 	entity_comms_message_database[NUM_ENTITY_COMMS_MESSAGES] =
@@ -369,25 +369,25 @@ entity_comms_message_data
 		},
 	};
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 #define ATTRIBUTE_BUFFER_SIZE (1000)
 
 static char
 	attribute_buffer[ATTRIBUTE_BUFFER_SIZE];
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 static int
 	comms_messages_enabled = TRUE;
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 void enable_entity_comms_messages (void)
 {
@@ -396,9 +396,9 @@ void enable_entity_comms_messages (void)
 	comms_messages_enabled = TRUE;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 void disable_entity_comms_messages (void)
 {
@@ -408,31 +408,31 @@ void disable_entity_comms_messages (void)
 }
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 void transmit_pfz(entity* sender, entity* receiver, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, entity* targets[])
 {
 	entity* target;
 	int i;
 
-	////////////////////////////////////////
+
 	//
 	// trap single player or comms messages disabled
 	//
-	////////////////////////////////////////
+
 
 	if ((direct_play_get_comms_mode () == DIRECT_PLAY_COMMS_MODE_NONE) || (!comms_messages_enabled))
 	{
 		return;
 	}
 
-	////////////////////////////////////////
+
 	//
 	// build message
 	//
-	////////////////////////////////////////
+
 
 	pack_entity_comms_message (ENTITY_COMMS_PILOT_PFZ_TRANSFER);
 
@@ -457,39 +457,39 @@ void transmit_pfz(entity* sender, entity* receiver, float x1, float y1, float x2
 	pack_entity_safe_ptr(NULL);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 //
 // WARNING! CHARS AND SHORT INTS ARE PROMOTED TO INTS ON THE VARIABLE ARGUMENT LIST
 //
 //				FLOATS ARE PROMOTED TO DOUBLES ON THE VARIABLE ARGUMENT LIST
 //
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 void transmit_entity_comms_message (entity_comms_messages message, entity *en, ...)
 {
 	va_list
 		pargs;
 
-	////////////////////////////////////////
+
 	//
 	// trap single player or comms messages disabled
 	//
-	////////////////////////////////////////
+
 
 	if ((direct_play_get_comms_mode () == DIRECT_PLAY_COMMS_MODE_NONE) || (!comms_messages_enabled))
 	{
 		return;
 	}
 
-	////////////////////////////////////////
+
 	//
 	// build message
 	//
-	////////////////////////////////////////
+
 
 	va_start (pargs, en);
 
@@ -497,17 +497,17 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 	switch (message)
 	{
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_ZERO:
-		////////////////////////////////////////
+
 		{
 			debug_fatal ("ENTITY_COMMS_ZERO encountered during transmit");
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_ADD_PLANNER_WAYPOINT:
-		////////////////////////////////////////
+
 		{
 			vec3d
 				*pos;
@@ -532,9 +532,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_ADVISE_TRANSMIT_RECON:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *wp)
@@ -552,9 +552,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_ATTITUDE_ANGLES:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, float heading, float pitch, float roll)
@@ -585,9 +585,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_ATTITUDE_MATRIX:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, matrix3x3 attitude)
@@ -612,9 +612,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_CAMPAIGN_COMPLETED:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, int side)
@@ -648,9 +648,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_CAPTURE_KEYSITE:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, int side)
@@ -677,9 +677,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_CHAR_VALUE:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, char_types type, char value)
@@ -711,9 +711,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_CREATE:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, entity_types type, int index, char *pargs)
@@ -750,9 +750,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_CREATE_META_EXPLOSION:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, meta_explosion_types type, vec3d *position, entity *parent, int entity_index_list[])
@@ -815,9 +815,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_CREATE_META_SMOKE_LIST_SPECIFIED_OFFSET:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, meta_smoke_list_types type, entity *parent, vec3d *rel_pos, int entity_index_list[])
@@ -901,9 +901,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_CREATE_META_SMOKE_LIST_SUB_OBJECT_OFFSET:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, meta_smoke_list_types type, entity *parent, int sub_object_type, int sub_object_depth, int entity_index_list[])
@@ -969,9 +969,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_CREATE_SOUND_EFFECT:
-		////////////////////////////////////////
+
 		{
 			entity
 				*parent;
@@ -1065,9 +1065,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_CREATE_WAYPOINT_ROUTE:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, unsigned int check_sum)
@@ -1086,7 +1086,7 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 				count,
 				check_sum;
 
-			////////////////////////////////////////
+
 
 			ASSERT (en);
 			pack_entity_safe_ptr (en);
@@ -1125,13 +1125,13 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 				pack_int_value (NULL, INT_TYPE_VALID, FALSE);
 			}
 
-			////////////////////////////////////////
+
 
 			check_sum = va_arg (pargs, unsigned int);
 
 			pack_int_value (en, INT_TYPE_ROUTE_CHECK_SUM, check_sum);
 
-			////////////////////////////////////////
+
 			
 			count = 0;
 
@@ -1147,7 +1147,7 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_int_value (en, INT_TYPE_ROUTE_LENGTH, count);
 
-			////////////////////////////////////////
+
 
 			wp = get_local_entity_first_child (en, LIST_TYPE_WAYPOINT);
 
@@ -1167,9 +1167,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_CREATE_WEAPON:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, entity *launcher, entity_sub_type weapon_sub_type, int weapon_index, int burst_size, int *smoke_trail_indices)
@@ -1194,15 +1194,15 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			ASSERT (!en);
 
-			////////////////////////////////////////
+
 
 			launcher = va_arg (pargs, entity *);
 
 			ASSERT (launcher);
 
-			////////////////////////////////////////
+
 			// COMMS WEAPON LAG TIMING
-			////////////////////////////////////////
+
 			if (get_comms_model () == COMMS_MODEL_CLIENT)
 			{
 				if (launcher == get_gunship_entity ())
@@ -1223,7 +1223,7 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (launcher);
 
-			////////////////////////////////////////
+
 
 			weapon_sub_type = va_arg (pargs, entity_sub_types);
 
@@ -1231,13 +1231,13 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, weapon_sub_type);
 
-			////////////////////////////////////////
+
 
 			weapon_index = va_arg (pargs, int);
 
 			pack_entity_safe_index (weapon_index);
 
-			////////////////////////////////////////
+
 
 			burst_size = va_arg (pargs, int);
 
@@ -1255,13 +1255,13 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 				ASSERT (burst_size == BURST_SIZE_DONT_CARE);
 			}
 
-			////////////////////////////////////////
+
 
 			create_smoke_trail = va_arg (pargs, int);
 
 			pack_int_value (en, INT_TYPE_SMOKE_TYPE, create_smoke_trail);
 
-			////////////////////////////////////////
+
 
 			smoke_trail_indices = va_arg (pargs, int *);
 
@@ -1289,9 +1289,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_DAMAGE_PLAYER:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, int damage, int random);
@@ -1326,9 +1326,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_DAMAGE_PLAYER_AVIONICS:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, gunship_damage_levels damage_level)
@@ -1358,9 +1358,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_DAMAGE_WEAPON_PACKAGE:
-		////////////////////////////////////////
+
 		{
 			int
 				weapon_package_heading_depth,
@@ -1405,11 +1405,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_DESTROY:
 		case ENTITY_COMMS_DESTROY_FAMILY:
 		case ENTITY_COMMS_DESTROY_LOCAL_FAMILY:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en)
@@ -1438,9 +1438,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_END:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en)
@@ -1450,9 +1450,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_FLOAT_VALUE:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, float_types type, float value)
@@ -1499,9 +1499,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_INT_VALUE:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, int_types type, int value)
@@ -1548,9 +1548,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_KILL:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en)
@@ -1568,9 +1568,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_MOBILE_KILL:
-		////////////////////////////////////////
+
 		{
 			entity
 				*victim;
@@ -1595,9 +1595,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_MOBILE_LAND:
-		////////////////////////////////////////
+
 		{
 
 			entity
@@ -1625,9 +1625,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_MOBILE_TAKEOFF:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, entity *wp)
@@ -1645,9 +1645,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_MOVE_PLANNER_WAYPOINT:
-		////////////////////////////////////////
+
 		{
 			vec3d
 				*pos;
@@ -1672,9 +1672,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_PAUSE_SOUND_TYPE:
-		////////////////////////////////////////
+
 		{
 			entity_sub_types
 				type;
@@ -1706,9 +1706,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_PAUSE_WEAPON_SOUND_TYPE:
-		////////////////////////////////////////
+
 		{
 			entity_sub_types
 				weapon_sub_type;
@@ -1733,9 +1733,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_PILOT_COMMUNICATION:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *sender, entity *target, int type, char *message)
@@ -1781,17 +1781,17 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_PILOT_PFZ_TRANSFER:
-		////////////////////////////////////////
+
 		{
 			ASSERT(!"Use transmit_pfz() function");
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_PILOT_REQUEST_ACCEPTED:
-		////////////////////////////////////////
+
 		{
 
 			int
@@ -1819,9 +1819,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_PLAY_CPG_CONTACT_MESSAGE:
-		////////////////////////////////////////
+
 		{
 			int
 				speech_index1,
@@ -1850,9 +1850,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_PLAY_CPG_MESSAGE:
-		////////////////////////////////////////
+
 		{
 			int
 				speech_index,
@@ -1899,9 +1899,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_PLAY_WARNING_MESSAGE:
-		////////////////////////////////////////
+
 		{
 			int
 				speech_index;
@@ -1926,9 +1926,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_PLAYER_KILL:
-		////////////////////////////////////////
+
 		{
 			entity
 				*aggressor,
@@ -1956,9 +1956,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_PLAYER_TASK_COMPLETED:
-		////////////////////////////////////////
+
 		{
 			entity
 				*task;
@@ -1987,9 +1987,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_PLAYER_TASK_TERMINATED:
-		////////////////////////////////////////
+
 		{
 
 			entity
@@ -2019,9 +2019,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_RADIO_MESSAGE:
-		////////////////////////////////////////
+
 		{
 
 			int
@@ -2052,9 +2052,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_REPAIR_ANTI_AIRCRAFT_GROUP:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en)
@@ -2074,9 +2074,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_REPAIR_BRIDGE_ENTITY:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en)
@@ -2096,9 +2096,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_REQUEST_TARGET_LIST:
-		////////////////////////////////////////
+
 		{
 			entity
 				*destination;
@@ -2127,9 +2127,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_RESTORE_ENTITY:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, vec3d *pos, int operational_state)
@@ -2161,9 +2161,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_RESTORE_FIXED_ENTITY:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en)
@@ -2181,9 +2181,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_RESUME_SOUND_TYPE:
-		////////////////////////////////////////
+
 		{
 			entity_sub_types
 				type;
@@ -2208,9 +2208,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_ROUTED_VEHICLE_ROUTE_DATA:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, vec3d *pos, int operational_state)
@@ -2237,9 +2237,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_SEND_TARGET_LIST:
-		////////////////////////////////////////
+
 		{
 			entity
 				*destination;
@@ -2288,9 +2288,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_SET_EXTERNAL_VIEW_ENTITY:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en)
@@ -2308,9 +2308,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_SET_GUIDE_CRITERIA:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, int type, int valid, float value)
@@ -2351,9 +2351,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_SET_GUIDE_POSITION_ENTITY:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, entity *position_entity)
@@ -2382,9 +2382,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_SET_TASK_POINTERS:
-		////////////////////////////////////////
+
 		{
 
 			task
@@ -2456,9 +2456,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_SET_WAYPOINT:
-		////////////////////////////////////////
+
 		{
 			entity
 				*wp;
@@ -2487,9 +2487,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_STRING:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, string_types type, char *s)
@@ -2521,9 +2521,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_SWITCH_LIST:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, list_types type, entity *parent)
@@ -2573,9 +2573,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_SWITCH_PARENT:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, list_types type, entity *parent)
@@ -2607,9 +2607,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_TASK_ASSIGN_REQUEST:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en (pilot_entity), entity *task, entity *mobile)
@@ -2643,9 +2643,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_TASK_ASSIGN_RESULT:
-		////////////////////////////////////////
+
 		{
 			entity
 				*task,
@@ -2686,9 +2686,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_TASK_KILL:
-		////////////////////////////////////////
+
 		{
 			entity
 				*victim,
@@ -2717,9 +2717,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_TASK_LOSS:
-		////////////////////////////////////////
+
 		{
 			entity
 				*victim,
@@ -2748,9 +2748,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_UPDATE:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en)
@@ -2770,9 +2770,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_UPDATE_FOG_OF_WAR:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, int in_use)
@@ -2788,9 +2788,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_UPDATE_SECTOR_SIDE:
-		////////////////////////////////////////
+
 		{
 			int
 				in_use;
@@ -2815,9 +2815,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_UPDATE_SECTOR_SIDE_COUNT:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en)
@@ -2833,9 +2833,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_VEC3D:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en, vec3d_types type, vec3d *v)
@@ -2867,10 +2867,10 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		case ENTITY_COMMS_ZERO_DESIRED_VELOCITY:
 		case ENTITY_COMMS_ZERO_VELOCITY:
-		////////////////////////////////////////
+
 		{
 			//
 			// (entity_comms_messages message, entity *en)
@@ -2888,9 +2888,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			break;
 		}
-		////////////////////////////////////////
+
 		default:
-		////////////////////////////////////////
+
 		{
 			debug_fatal ("Transmit invalid entity comms message = %d", message);
 
@@ -2901,9 +2901,9 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 	va_end (pargs);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 void process_received_entity_comms_messages (void)
 {
@@ -2913,19 +2913,19 @@ void process_received_entity_comms_messages (void)
 	entity_comms_messages
 		message;
 
-	////////////////////////////////////////
+
 	//
 	// trap single player
 	//
-	////////////////////////////////////////
+
 
 	ASSERT (direct_play_get_comms_mode () == DIRECT_PLAY_COMMS_MODE_MULTI);
 
-	////////////////////////////////////////
+
 	//
 	// process messages
 	//
-	////////////////////////////////////////
+
 
 	set_comms_data_flow (COMMS_DATA_FLOW_RX);
 
@@ -2937,17 +2937,17 @@ void process_received_entity_comms_messages (void)
 
 		switch (message)
 		{
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_ZERO:
-			////////////////////////////////////////
+
 			{
 				debug_fatal ("ENTITY_COMMS_ZERO encountered during receive");
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_ADD_PLANNER_WAYPOINT:
-			////////////////////////////////////////
+
 			{
 				entity
 					*wp;
@@ -2980,9 +2980,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_ADVISE_TRANSMIT_RECON:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -3002,9 +3002,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_ATTITUDE_ANGLES:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -3028,9 +3028,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_ATTITUDE_MATRIX:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -3052,9 +3052,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_CAMPAIGN_COMPLETED:
-			////////////////////////////////////////
+
 			{
 				//
 				// (entity_comms_messages message, entity *en, int side)
@@ -3085,9 +3085,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_CAPTURE_KEYSITE:
-			////////////////////////////////////////
+
 			{
 				//
 				// (entity_comms_messages message, entity *en, int side)
@@ -3113,9 +3113,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_CHAR_VALUE:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -3142,9 +3142,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_CREATE:
-			////////////////////////////////////////
+
 			{
 				entity_types
 					type;
@@ -3171,9 +3171,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_CREATE_META_EXPLOSION:
-			////////////////////////////////////////
+
 			{
 				entity
 					*parent;
@@ -3225,9 +3225,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_CREATE_META_SMOKE_LIST_SPECIFIED_OFFSET:
-			////////////////////////////////////////
+
 			{
 				entity
 					*parent;
@@ -3286,9 +3286,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_CREATE_META_SMOKE_LIST_SUB_OBJECT_OFFSET:
-			////////////////////////////////////////
+
 			{
 				entity
 					*parent;
@@ -3341,9 +3341,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_CREATE_SOUND_EFFECT:
-			////////////////////////////////////////
+
 			{
 				entity
 					*parent;
@@ -3448,9 +3448,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_CREATE_WAYPOINT_ROUTE:
-			////////////////////////////////////////
+
 			{
 				//
 				// (entity_comms_messages message, entity *en, unsigned int check_sum)
@@ -3498,11 +3498,11 @@ void process_received_entity_comms_messages (void)
 					stop_ptr = &stop;
 				}
 	
-				////////////////////////////////////////
+
 	
 				check_sum = unpack_int_value (NULL, INT_TYPE_ROUTE_CHECK_SUM);
 	
-				////////////////////////////////////////
+
 
 				count = unpack_int_value (NULL, INT_TYPE_ROUTE_LENGTH);
 
@@ -3530,9 +3530,9 @@ void process_received_entity_comms_messages (void)
 	
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_CREATE_WEAPON:
-			////////////////////////////////////////
+
 			{
 				entity
 					*launcher;
@@ -3553,9 +3553,9 @@ void process_received_entity_comms_messages (void)
 
 				launcher = unpack_entity_safe_ptr ();
 	
-				////////////////////////////////////////
+
 				// COMMS WEAPON LAG TIMING
-				////////////////////////////////////////
+
 				if (get_comms_model () == COMMS_MODEL_CLIENT)
 				{
 					if (launcher == get_gunship_entity ())
@@ -3569,17 +3569,17 @@ void process_received_entity_comms_messages (void)
 					}
 				}
 
-				////////////////////////////////////////
+
 
 				weapon_sub_type = unpack_int_value (NULL, INT_TYPE_ENTITY_SUB_TYPE);
 
 				ASSERT (entity_sub_type_weapon_valid (weapon_sub_type));
 
-				////////////////////////////////////////
+
 
 				weapon_index = unpack_entity_safe_index ();
 
-				////////////////////////////////////////
+
 
 				if (get_comms_model () == COMMS_MODEL_SERVER)
 				{
@@ -3597,11 +3597,11 @@ void process_received_entity_comms_messages (void)
 					}
 				}
 
-				////////////////////////////////////////
+
 
 				create_smoke_trail = unpack_int_value (NULL, INT_TYPE_SMOKE_TYPE);
 
-				////////////////////////////////////////
+
 
 				smoke_trail_indices = NULL;
 
@@ -3624,11 +3624,11 @@ void process_received_entity_comms_messages (void)
 					}
 				}
 
-				////////////////////////////////////////
+
 
 				create_client_server_entity_weapon (launcher, weapon_sub_type, weapon_index, burst_size, smoke_trail_indices, 0);
 
-				////////////////////////////////////////
+
 
 				if (smoke_trail_indices)
 				{
@@ -3643,9 +3643,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_DAMAGE_PLAYER:
-			////////////////////////////////////////
+
 			{
 				//
 				// (entity_comms_messages message, entity *en, int damage, int random);
@@ -3684,9 +3684,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_DAMAGE_PLAYER_AVIONICS:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -3713,9 +3713,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_DAMAGE_WEAPON_PACKAGE:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -3755,9 +3755,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_DESTROY:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -3774,9 +3774,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_DESTROY_FAMILY:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -3793,9 +3793,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_DESTROY_LOCAL_FAMILY:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -3812,17 +3812,17 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_END:
-			////////////////////////////////////////
+
 			{
 				done = TRUE;
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_FLOAT_VALUE:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -3874,9 +3874,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_INT_VALUE:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -3928,9 +3928,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_KILL:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -3956,9 +3956,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_MOBILE_KILL:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en,
@@ -3980,9 +3980,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_MOBILE_LAND:
-			////////////////////////////////////////
+
 			{
 				entity
 					*wp,
@@ -4004,9 +4004,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_MOBILE_TAKEOFF:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en,
@@ -4063,9 +4063,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_MOVE_PLANNER_WAYPOINT:
-			////////////////////////////////////////
+
 			{
 				entity
 					*member,
@@ -4106,9 +4106,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_PAUSE_SOUND_TYPE:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -4141,9 +4141,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_PAUSE_WEAPON_SOUND_TYPE:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -4171,9 +4171,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_PILOT_COMMUNICATION:
-			////////////////////////////////////////
+
 			{
 				//
 				// (entity_comms_messages message, entity *sender, entity *target, int type, char *message)
@@ -4238,9 +4238,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_PILOT_PFZ_TRANSFER:
-			////////////////////////////////////////
+
 			{
 				//
 				// (entity_comms_messages message, entity *sender, entity *target, int type, char *message)
@@ -4352,9 +4352,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_PILOT_REQUEST_ACCEPTED:
-			////////////////////////////////////////
+
 			{
 
 				entity
@@ -4387,9 +4387,9 @@ void process_received_entity_comms_messages (void)
 	
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_PLAY_CPG_CONTACT_MESSAGE:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -4420,9 +4420,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_PLAY_CPG_MESSAGE:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -4463,9 +4463,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_PLAY_WARNING_MESSAGE:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -4492,9 +4492,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_PLAYER_KILL:
-			////////////////////////////////////////
+
 			{
 				entity
 					*aggressor,
@@ -4523,9 +4523,9 @@ void process_received_entity_comms_messages (void)
 */
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_PLAYER_TASK_COMPLETED:
-			////////////////////////////////////////
+
 			{
 				entity
 					*task,
@@ -4556,9 +4556,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_PLAYER_TASK_TERMINATED:
-			////////////////////////////////////////
+
 			{
 				entity
 					*task,
@@ -4589,9 +4589,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_RADIO_MESSAGE:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -4629,9 +4629,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_REPAIR_ANTI_AIRCRAFT_GROUP:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -4654,9 +4654,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_REPAIR_BRIDGE_ENTITY:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -4681,9 +4681,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_REQUEST_TARGET_LIST:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en,
@@ -4756,9 +4756,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_RESTORE_ENTITY:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -4792,9 +4792,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_RESTORE_FIXED_ENTITY:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -4811,9 +4811,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_RESUME_SOUND_TYPE:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -4841,9 +4841,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_ROUTED_VEHICLE_ROUTE_DATA:
-			////////////////////////////////////////
+
 			{
 				//
 				// (entity_comms_messages message, entity *en, vec3d *pos, int operational_state)
@@ -4908,9 +4908,9 @@ void process_received_entity_comms_messages (void)
 	
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_SEND_TARGET_LIST:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en,
@@ -4979,9 +4979,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_SET_EXTERNAL_VIEW_ENTITY:
-			////////////////////////////////////////
+
 			{
 				//
 				// (entity_comms_messages message, entity *en)
@@ -5004,9 +5004,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_SET_GUIDE_CRITERIA:
-			////////////////////////////////////////
+
 			{
 				//
 				// (entity_comms_messages message, entity *en, int type, int valid, float value)
@@ -5046,9 +5046,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_SET_GUIDE_POSITION_ENTITY:
-			////////////////////////////////////////
+
 			{
 				//
 				// (entity_comms_messages message, entity *en, entity *position_entity)
@@ -5078,9 +5078,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_SET_TASK_POINTERS:
-			////////////////////////////////////////
+
 			{
 
 				entity
@@ -5162,9 +5162,9 @@ void process_received_entity_comms_messages (void)
 	
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_SET_WAYPOINT:
-			////////////////////////////////////////
+
 			{
 				//
 				// (entity_comms_messages message, entity *en, entity *wp)
@@ -5194,9 +5194,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_STRING:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -5223,9 +5223,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_SWITCH_LIST:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en,
@@ -5271,9 +5271,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_SWITCH_PARENT:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en,
@@ -5314,9 +5314,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_TASK_ASSIGN_REQUEST:
-			////////////////////////////////////////
+
 			{
 				//
 				// (entity_comms_messages message, entity *en (pilot_entity), entity *task, entity *mobile)
@@ -5355,9 +5355,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_TASK_ASSIGN_RESULT:
-			////////////////////////////////////////
+
 			{
 				//
 				// (entity_comms_messages message, entity *pilot, entity *task, entity *mobile)
@@ -5407,9 +5407,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_TASK_KILL:
-			////////////////////////////////////////
+
 			{
 	
 				entity
@@ -5436,9 +5436,9 @@ void process_received_entity_comms_messages (void)
 	
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_TASK_LOSS:
-			////////////////////////////////////////
+
 			{
 	
 				entity
@@ -5465,9 +5465,9 @@ void process_received_entity_comms_messages (void)
 	
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_UPDATE:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -5488,9 +5488,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_UPDATE_FOG_OF_WAR:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -5507,9 +5507,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_UPDATE_SECTOR_SIDE:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -5531,9 +5531,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_UPDATE_SECTOR_SIDE_COUNT:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -5550,9 +5550,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_VEC3D:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -5579,9 +5579,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_ZERO_DESIRED_VELOCITY:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -5598,9 +5598,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			case ENTITY_COMMS_ZERO_VELOCITY:
-			////////////////////////////////////////
+
 			{
 				entity
 					*en;
@@ -5617,9 +5617,9 @@ void process_received_entity_comms_messages (void)
 
 				break;
 			}
-			////////////////////////////////////////
+
 			default:
-			////////////////////////////////////////
+
 			{
 				debug_fatal ("Received invalid entity comms message = %d", message);
 
@@ -5631,9 +5631,9 @@ void process_received_entity_comms_messages (void)
 	set_comms_data_flow (COMMS_DATA_FLOW_TX);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 void pack_entity_comms_message (entity_comms_messages message)
 {
@@ -5652,9 +5652,9 @@ void pack_entity_comms_message (entity_comms_messages message)
 	pack_unsigned_data (message, NUM_ENTITY_COMMS_MESSAGE_PACK_BITS);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 entity_comms_messages unpack_entity_comms_message (void)
 {
@@ -5677,6 +5677,6 @@ entity_comms_messages unpack_entity_comms_message (void)
 	return (message);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+

@@ -1,91 +1,91 @@
-// 
-// 	 Enemy Engaged RAH-66 Comanche Versus KA-52 Hokum
-// 	 Copyright (C) 2000 Empire Interactive (Europe) Ltd,
-// 	 677 High Road, North Finchley, London N12 0DA
-// 
-// 	 Please see the document LICENSE.TXT for the full licence agreement
-// 
-// 2. LICENCE
-//  2.1 	
-//  	Subject to the provisions of this Agreement we now grant to you the 
-//  	following rights in respect of the Source Code:
-//   2.1.1 
-//   	the non-exclusive right to Exploit  the Source Code and Executable 
-//   	Code on any medium; and 
-//   2.1.2 
-//   	the non-exclusive right to create and distribute Derivative Works.
-//  2.2 	
-//  	Subject to the provisions of this Agreement we now grant you the
-// 	following rights in respect of the Object Code:
-//   2.2.1 
-// 	the non-exclusive right to Exploit the Object Code on the same
-// 	terms and conditions set out in clause 3, provided that any
-// 	distribution is done so on the terms of this Agreement and is
-// 	accompanied by the Source Code and Executable Code (as
-// 	applicable).
-// 
-// 3. GENERAL OBLIGATIONS
-//  3.1 
-//  	In consideration of the licence granted in clause 2.1 you now agree:
-//   3.1.1 
-// 	that when you distribute the Source Code or Executable Code or
-// 	any Derivative Works to Recipients you will also include the
-// 	terms of this Agreement;
-//   3.1.2 
-// 	that when you make the Source Code, Executable Code or any
-// 	Derivative Works ("Materials") available to download, you will
-// 	ensure that Recipients must accept the terms of this Agreement
-// 	before being allowed to download such Materials;
-//   3.1.3 
-// 	that by Exploiting the Source Code or Executable Code you may
-// 	not impose any further restrictions on a Recipient's subsequent
-// 	Exploitation of the Source Code or Executable Code other than
-// 	those contained in the terms and conditions of this Agreement;
-//   3.1.4 
-// 	not (and not to allow any third party) to profit or make any
-// 	charge for the Source Code, or Executable Code, any
-// 	Exploitation of the Source Code or Executable Code, or for any
-// 	Derivative Works;
-//   3.1.5 
-// 	not to place any restrictions on the operability of the Source 
-// 	Code;
-//   3.1.6 
-// 	to attach prominent notices to any Derivative Works stating
-// 	that you have changed the Source Code or Executable Code and to
-// 	include the details anddate of such change; and
-//   3.1.7 
-//   	not to Exploit the Source Code or Executable Code otherwise than
-// 	as expressly permitted by  this Agreement.
-// 
 
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #include "project.h"
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 #define DEBUG_MODULE 0
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 //VJ WUT mod bug, date: 26-mar-03
 //remove "const" from definition
 group_data
 	group_database[NUM_ENTITY_SUB_TYPE_GROUPS] =
 	{
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_ATTACK_HELICOPTER
 		//
-		////////////////////////////////////////
+
 		{
 			"Attack Helicopters",								  			// full_name
 			"Attack",															// group_short_name
@@ -122,11 +122,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_MARINE_ATTACK_HELICOPTER
 		//
-		////////////////////////////////////////
+
 		{
 			"Marine Attack Helicopters",									// full_name
 			"Marine Attack",													// group_short_name
@@ -163,11 +163,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_ASSAULT_HELICOPTER
 		//
-		////////////////////////////////////////
+
 		{
 			"Assault Helicopters",											// full_name
 			"Assault",															// group_short_name
@@ -204,11 +204,11 @@ group_data
 				10,																// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_MARINE_ASSAULT_HELICOPTER
 		//
-		////////////////////////////////////////
+
 		{
 			"Marine Assault Helicopters",									// full_name
 			"Marine Assault",													// group_short_name
@@ -245,11 +245,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_RECON_HELICOPTER
 		//
-		////////////////////////////////////////
+
 		{
 			"Recon Helicopters",												// full_name
 			"Recon",																// group_short_name
@@ -286,11 +286,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_RECON_ATTACK_HELICOPTER
 		//
-		////////////////////////////////////////
+
 		{
 			"Recon/Attack Helicopters",									// full_name
 			"Recon/Attack",													// group_short_name
@@ -327,11 +327,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_MEDIUM_LIFT_TRANSPORT_HELICOPTER
 		//
-		////////////////////////////////////////
+
 		{
 			"Medium-Lift Transport Helicopters",						// full_name
 			"Medium-Lift",														// group_short_name
@@ -368,11 +368,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_HEAVY_LIFT_TRANSPORT_HELICOPTER
 		//
-		////////////////////////////////////////
+
 		{
 			"Heavy-Lift Transport Helicopters",							// full_name
 			"Heavy-Lift",														// group_short_name
@@ -409,11 +409,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_MULTI_ROLE_FIGHTER
 		//
-		////////////////////////////////////////
+
 		{
 			"Multi-Role Fighters",											// full_name
 			"Fighter",															// group_short_name
@@ -450,11 +450,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_CARRIER_BORNE_ATTACK_AIRCRAFT
 		//
-		////////////////////////////////////////
+
 		{
 			"Carrier-Borne Attack Aircraft",								// full_name
 			"Navy Attack",														// group_short_name
@@ -491,11 +491,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_CARRIER_BORNE_INTERCEPTOR
 		//
-		////////////////////////////////////////
+
 		{
 			"Carrier-Borne Interceptors",									// full_name
 			"Navy Fighter",													// group_short_name
@@ -532,11 +532,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_CLOSE_AIR_SUPPORT_AIRCRAFT
 		//
-		////////////////////////////////////////
+
 		{
 			"Close Air Support Aircraft",									// full_name
 			"CAS",																// group_short_name
@@ -573,11 +573,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_MEDIUM_LIFT_TRANSPORT_AIRCRAFT
 		//
-		////////////////////////////////////////
+
 		{
 			"Medium-Lift Transport Aircraft",							// full_name
 			"Medium-Lift",														// group_short_name
@@ -614,11 +614,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_HEAVY_LIFT_TRANSPORT_AIRCRAFT
 		//
-		////////////////////////////////////////
+
 		{
 			"Heavy-Lift Transport Aircraft",								// full_name
 			"Heavy-Lift",														// group_short_name
@@ -655,11 +655,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_ANTI_AIRCRAFT
 		//
-		////////////////////////////////////////
+
 		{
 			"Air Defence Artillery",										// full_name
 			"SAM/AAA",															// group_short_name
@@ -696,11 +696,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_PRIMARY_FRONTLINE
 		//
-		////////////////////////////////////////
+
 		{
 			"Frontline",														// full_name
 			"Frontline",														// group_short_name
@@ -737,11 +737,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_SECONDARY_FRONTLINE
 		//
-		////////////////////////////////////////
+
 		{
 			"Support",															// full_name
 			"Support",															// group_short_name
@@ -778,11 +778,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_SELF_PROPELLED_ARTILLERY
 		//
-		////////////////////////////////////////
+
 		{
 			"Artillery",														// full_name
 			"Artillery",														// group_short_name
@@ -819,11 +819,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_SELF_PROPELLED_MLRS
 		//
-		////////////////////////////////////////
+
 		{
 			"MLRS",																// full_name
 			"MLRS",																// group_short_name
@@ -860,11 +860,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_STATIC_INFANTRY
 		//
-		////////////////////////////////////////
+
 		{
 			"Infantry",															// full_name
 			"Infantry",															// group_short_name
@@ -901,11 +901,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_INFANTRY
 		//
-		////////////////////////////////////////
+
 		{
 			"Infantry",															// full_name
 			"Infantry",															// group_short_name
@@ -942,11 +942,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_INFANTRY_PATROL
 		//
-		////////////////////////////////////////
+
 		{
 			"Infantry",															// full_name
 			"Infantry",															// group_short_name
@@ -983,11 +983,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_ASSAULT_SHIP
 		//
-		////////////////////////////////////////
+
 		{
 			"Assault Ships",													// full_name
 			"Assault",															// group_short_name
@@ -1024,11 +1024,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_FRIGATE
 		//
-		////////////////////////////////////////
+
 		{
 			"Frigates",															// full_name
 			"Frigate",															// group_short_name
@@ -1065,11 +1065,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_LANDING_CRAFT
 		//
-		////////////////////////////////////////
+
 		{
 			"Landing Craft",													// full_name
 			"LCU",																// group_short_name
@@ -1106,11 +1106,11 @@ group_data
 				0,																	// .troop space
 			}
 		},
-		////////////////////////////////////////
+
 		//
 		// ENTITY_SUB_TYPE_GROUP_BUILDINGS
 		//
-		////////////////////////////////////////
+
 		{
 			"Buildings",														// full_name
 			"Buildings",														// group_short_name
@@ -1149,6 +1149,6 @@ group_data
 		},
 	};
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
