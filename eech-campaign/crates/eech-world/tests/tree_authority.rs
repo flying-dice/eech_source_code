@@ -102,6 +102,7 @@ package.preload.eech_dc = function ()
 			local provider = config.terrain
 			config.bind_mobile { movement_kind = "helicopter", side = "blue" }
 			config.bind_mobile { movement_kind = "ground", side = "red" }
+			for _, side in ipairs (scenario.extra_mobiles or {}) do config.bind_mobile { movement_kind = "ground", side = side } end
 			local now, since_launch, launched, tests = 0, 0, false, 0
 			local queue = {}
 			local engine = {}
@@ -150,10 +151,14 @@ package.preload.eech_dc = function ()
 					for _, line in ipairs ((scenario.after or {}) [since_launch] or {}) do queue [#queue + 1] = line end
 				end
 			end
+			-- the scripted roster: positions by roster id (scenario.positions), and the launchers with a ballistic weapon in stock (scenario.armed; default only the first mobile)
+			local positions = scenario.positions or { ["eech-world:1"] = "0,0,0", ["eech-world:2"] = "30,0,20" }
+			local armed = scenario.armed or { ["eech-world:1"] = true }
 			function engine:wpn_case_query (id, weapon)
-				if weapon == 0 then return "alive=1 weapon_count=0 has_target=0 position=" .. (id == "eech-world:1" and "0,0,0" or "100,0,100") end
-				if id == "eech-world:1" and weapon == 7 then return "alive=1 weapon_count=3 warhead=2 guidance=0 aiming=2 decoy=0 position=0,0,0" end
-				return "alive=1 weapon_count=0 warhead=2 guidance=0 aiming=2 decoy=0 position=0,0,0"
+				local position = positions [id] or "1000000,0,1000000"
+				if weapon == 0 then return "alive=1 weapon_count=0 has_target=0 position=" .. position end
+				if armed [id] and weapon == 7 then return "alive=1 weapon_count=3 warhead=2 guidance=0 aiming=2 decoy=0 position=" .. position end
+				return "alive=1 weapon_count=0 warhead=2 guidance=0 aiming=2 decoy=0 position=" .. position
 			end
 			function engine:wpn_case_launch ()
 				launched = true
@@ -483,6 +488,71 @@ fn all_fallible_setup_happens_inside_the_owned_close_scope_and_the_first_failure
         assert!(error.contains(fragment) && !error.contains("closing"), "{scenario}: {error}");
         assert_eq!(closed, 1);
     }
+}
+
+/// the `case_selected` row
+fn selected(driven: &Driven) -> Value {
+    rows(driven)
+        .into_iter()
+        .find(|row| row["event"] == "case_selected")
+        .unwrap_or_else(|| panic!("no case_selected row: {}", driven.rows))
+}
+
+#[test]
+fn the_controlled_launch_takes_the_nearest_valid_target_of_any_side_within_the_collision_precision_range() {
+    // positive first: the default war has the armed launcher with a red target 36 m away (inside the 50 m of wn_flight.c) and the run passes
+    let driven = drive(&healthy(""), &[]);
+    let outcome = driven.result.clone();
+    assert!(outcome.is_ok(), "{outcome:?}\n{}", driven.rows);
+    let row = selected(&driven);
+    assert_eq!(
+        (row["launcher"].clone(), row["target"].clone(), row["weapon"].clone()),
+        (Value::from("eech-world:1"), Value::from("eech-world:2"), Value::from(7))
+    );
+    assert_eq!(row["distance"], "36.056");
+    assert_eq!(row["precision_range"], 50);
+    // the nearest target of ANY side: a blue (same side) entity 20 m away is taken over the red one at 40 m, and the row says so
+    let scenario =
+        healthy(", extra_mobiles = { 'blue' }, positions = { ['eech-world:1'] = '0,0,0', ['eech-world:2'] = '40,0,0', ['eech-world:3'] = '20,0,0' }");
+    let driven = drive(&scenario, &[]);
+    let outcome = driven.result.clone();
+    assert!(outcome.is_ok(), "{outcome:?}\n{}", driven.rows);
+    let row = selected(&driven);
+    assert_eq!(
+        (row["target"].clone(), row["distance"].clone(), row["same_side"].clone()),
+        (Value::from("eech-world:3"), Value::from("20.000"), Value::from(true))
+    );
+    // a nearer pair whose launcher has no ballistic weapon is skipped: the first ARMED launcher's nearest target is the case
+    let scenario = healthy(", extra_mobiles = { 'red' }, positions = { ['eech-world:1'] = '0,0,0', ['eech-world:2'] = '45,0,0', ['eech-world:3'] = '47,0,0' }");
+    let driven = drive(&scenario, &[]);
+    let outcome = driven.result.clone();
+    assert!(outcome.is_ok(), "{outcome:?}\n{}", driven.rows);
+    let row = selected(&driven);
+    assert_eq!(
+        (row["launcher"].clone(), row["target"].clone(), row["distance"].clone()),
+        (Value::from("eech-world:1"), Value::from("eech-world:2"), Value::from("45.000"))
+    );
+    assert_eq!(row["pairs_in_range"], 6, "all six ordered pairs of the three entities are within 50 m");
+    // single faults: the only target is at or beyond the precision range (the range is strict: 50 m is outside), or no launcher is armed: a named setup failure, never a chosen distant pair
+    for positions in ["['eech-world:2'] = '50,0,0'", "['eech-world:2'] = '100,0,100'", "['eech-world:2'] = '0,60,0'"] {
+        let scenario = format!("positions = {{ ['eech-world:1'] = '0,0,0', {positions} }}, {}", healthy(""));
+        let driven = drive(&scenario, &[]);
+        let rows_text = driven.rows.clone();
+        let error = error_of(driven);
+        assert!(
+            error.contains("SETUP FAILURE") && error.contains("50 m collision-precision range"),
+            "{positions}: {error}"
+        );
+        assert!(
+            rows_text.contains("\"launcher\":\"none\"") && !rows_text.contains("\"event\":\"case_launch\""),
+            "{positions}: {rows_text}"
+        );
+    }
+    let error = error_of(drive(&format!("armed = {{}}, {}", healthy("")), &[]));
+    assert!(error.contains("SETUP FAILURE"), "{error}");
+    // and a selected pair that still makes no tree test remains UNREACHED: the counter guard is not weakened
+    let error = error_of(drive(&healthy(", no_tree_tests = true"), &[]));
+    assert!(error.contains("UNREACHED"), "{error}");
 }
 
 #[test]

@@ -1,0 +1,84 @@
+{
+  "schema": "tree-f0-native-identities-safe-v1",
+  "source": "f0f928147f6ca81906212038d86ecdf98ce5b400",
+  "provenance": "Safe projection of Root's retained records (source clearance ad1c1503522a324bdbb08ee7e8ca0ebe16d2cb04f93c36fe03bde622fbff4e3c; builds-and-payloads 5890e13d2ae0cac0f2265b03a5ab72458daeed9c2a5b15b50ed1691a62e8ace6; ordinary short comparison bb0dd20699708851c69e3fc826c26607f9dc7b7b87f5a1890a734bf7ab8c3964). No raw retail coordinates, transcripts or private paths; the private records stay outside Git.",
+  "builds": {
+    "windows_controller_actual_exit": 0,
+    "linux_controller_actual_exit": 0,
+    "profiles": [
+      {
+        "profile": "hosted-fixture",
+        "build_info_sha256": "9fc4d144cb840b45df922eca96a302580b3c7cd790baaf5200bc2e9d127e2995",
+        "payloads_verified": 87,
+        "image": "sha256:bcead02430cac871ae51a5b8cd9373df75017522ee6630f050ec4d578a0dceae",
+        "target": "x86_64-pc-windows-gnu, release, FIXTURE BUILD (eech-dc/weapon-fixture): test-only, not a shipping artifact",
+        "actual_profile_exit": 0
+      },
+      {
+        "profile": "original-control",
+        "build_info_sha256": "073f87a2d3e5da30b1e34db4e9b0b16c9f7e5748f8610fd75887fe9860d86cb9",
+        "payloads_verified": 87,
+        "image": "sha256:2aaafaf7c5ee77dc4c754393e2145e7b1233c0d3ad2e5b07801e5a4416d11106",
+        "target": "x86_64-pc-windows-gnu, release, FIXTURE BUILD (eech-dc/weapon-fixture,eech-dc/collision-fixture): explicit ORIGINAL tree collision control",
+        "actual_profile_exit": 0
+      },
+      {
+        "profile": "ordinary",
+        "build_info_sha256": "294146a06181db79aba7941a24645c7607bf0ee9514e7b969171b4f0a5b1a57d",
+        "payloads_verified": 87,
+        "image": "sha256:7f1dc8f936768fcc54779aeb4bf927742c0784b1670216b632ec8db32fad7b1a",
+        "target": "x86_64-pc-windows-gnu, release",
+        "actual_profile_exit": 0
+      }
+    ]
+  },
+  "ordinary_short": {
+    "native_actual_exit": 0,
+    "controller_actual_exit": 0,
+    "pre_post_inputs_actual_exit": [
+      0,
+      0
+    ],
+    "payloads_unchanged": 87,
+    "baseline": "model-reference-profile-recording-80fd62ea4-20261030",
+    "files": [
+      {
+        "file": "recording.acmi",
+        "bytes": 230871,
+        "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+        "literal_complete_equal": true
+      },
+      {
+        "file": "observations.jsonl",
+        "bytes": 1553674,
+        "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+        "literal_complete_equal": true
+      },
+      {
+        "file": "metrics.json",
+        "bytes": 7477,
+        "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+        "literal_complete_equal": true
+      }
+    ],
+    "scope": "Complete ordinary short comparison only, not full40/all8 or wholeTask49/D3 acceptance."
+  },
+  "tree_authority_first_control_actual": {
+    "mode": "control",
+    "profile": "hosted",
+    "actual_controller_exit": 1,
+    "actual_native_exit": 1,
+    "input_manifest_exits": [
+      0,
+      0
+    ],
+    "payload_count": 87,
+    "cohort_size": 1,
+    "case_weapons_ended": 1,
+    "terminal_code": "hit_land",
+    "terminal_steps": 7,
+    "tests_delta": 0,
+    "tree_begin_after": 0,
+    "verdict": "UNREACHED (the witness's own guard, correctly): the launch completed a real cohort but the weapon step made no tree test; the first selection, a cannon at a distant enemy, fell to the ground before the collision-precision range of wn_flight.c. A setup blocker, never a pass; no negative mode was run and the other ten roots are untouched."
+  }
+}

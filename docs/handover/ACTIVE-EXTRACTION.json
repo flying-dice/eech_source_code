@@ -20,24 +20,25 @@
     "Reviewer CHANGES_REQUIRED of eec18682f (4 groups) is the required input of the correction batch: forest identity and one store; endpoint subsequences; safe and honest authority witness; DCS and scope truth. The report is retained literally under reference/d3-tree-collision-production/. It is not an acceptance.",
     "Earlier Linux logs on eec18682f are retained, failures included: s2 DC tree test exit 101 (a moved Lua function), s4 fmt-check exit 1, s7 full-suite exit 101 (81/82 host_callbacks: the collision driver lacked the reference arithmetic selection), later s8 host_callbacks 82 pass exit 0 and s9 four-crate full tests exit 0 (57 result rows, 1113 tests). The C ABI tests (engine tests and model_walk-style isolated controls) did run; there was no retail data, native campaign or Windows build.",
     "Correction batch 1 evidence (D:/EECH-Migration-Evidence/tree-correction-20261103-c/, commit d7cf5b17c): genuine RED for the NEW-only subsequence (tree_dialogue exit 101), GREEN after the rule (exit 0); fmt, strict clippy (default, tree-dialogue-check, collision, weapon, both) and the four-crate tests (59 result rows, 1128 tests) all exit 0 on the stable input fingerprint 13b84c99a03746fd5d82de5256f2ce137d2dfbe6dd972c1dd9103b663a565d7f.",
-    "Residual batch evidence (D:/EECH-Migration-Evidence/tree-residual-20261103-d/): the new single-fault controls failed on the d7 witness (r1-red.log, tree_authority exit 101: 4 of 14 tests, the launch-report domains, the terminal grammar, the cohort report and the factory/close-scope guards), then passed on the corrected witness (r3-final.log: tree_authority 14/14 exit 0, fmt --check 0, strict clippy -p eech-world --all-targets 0, progress guard fix-blocker 0) with the input fingerprint e25116537b2f2809f480f64c0145f214ca6f94ee99b12ea8287e8002ed860c32 identical before and after."
+    "Residual batch evidence (D:/EECH-Migration-Evidence/tree-residual-20261103-d/): the new single-fault controls failed on the d7 witness (r1-red.log, tree_authority exit 101: 4 of 14 tests, the launch-report domains, the terminal grammar, the cohort report and the factory/close-scope guards), then passed on the corrected witness (r3-final.log: tree_authority 14/14 exit 0, fmt --check 0, strict clippy -p eech-world --all-targets 0, progress guard fix-blocker 0) with the input fingerprint e25116537b2f2809f480f64c0145f214ca6f94ee99b12ea8287e8002ed860c32 identical before and after.",
+    "f0f928147 native/ordinary evidence (safe projection in the reference folder): Windows hosted/Original/ordinary and Linux hosted builds actual 0, 87 payloads; ordinary short COMPLETE literal-equal to 80fd; first tree-authority control UNREACHED (tests_delta 0). Case-selection correction evidence: D:/EECH-Migration-Evidence/tree-select-20261103-e/ (q1-red.log: the 14 retained guards pass and only the new selection control fails on the f0 selector, exit 101; q3-final.log: green)."
   ],
   "blockers": [
     {
       "id": "tree-source-review",
       "status": "open",
       "blocks_cutover": false,
-      "evidence": "Two independent passes by the same reviewer: eec18682f CHANGES_REQUIRED (four groups), then d7cf5b17c CHANGES_REQUIRED (sha256 cde3f802de4b3a387f5c8d9109f65351d6e3a2abe581e530117b28159c708c19; native_launch_clearance=false; no new production P1; both production P1 groups, the final announced-order forest store and the endpoint subsequences, CLOSED). Two residual P2 groups were corrected in the next commit (witness and prose only; production C/Rust/ordinary scripts byte-identical to d7cf5b17c): checked-close exclusive evidence with all fallible setup inside the owned close scope, the real wpn-case-launch schema/domains and complete terminal grammar, and two qualified prose claims. The author's green tests do not close the gate.",
-      "missing_fact": "The same reviewer's clearance of the NEW commit's changed bytes (the witness Lua, tests/tree_authority.rs, the prose). No native launch is cleared until then.",
+      "evidence": "The same reviewer returned CHANGES_REQUIRED for eec18682f and d7cf5b17c (both literal reports published), then SOURCE_CLEAR_FOR_PLANNED_NATIVE_VALIDATION for f0f928147f6ca81906212038d86ecdf98ce5b400 (ad1c1503522a324bdbb08ee7e8ca0ebe16d2cb04f93c36fe03bde622fbff4e3c; native_launch_clearance=true; finite native actuals NOT closed; whole Task49/D3 not accepted). The next commit changes the witness's case selection and its controls only, which is materially changed selection for the same reviewer; the f0 clearance is not extended to it by the author.",
+      "missing_fact": "The same reviewer's look at the changed case selection (Lua and its collaborator controls only) and at the new native actuals; closed helpers and kernels are not reviewed again.",
       "next_fix": "Return the corrected commit to the same reviewer; do not run native authority on a source the reviewer has not cleared."
     },
     {
       "id": "tree-native-authority-actual",
       "status": "open",
       "blocks_cutover": false,
-      "evidence": "Source and focused Linux checks pass; the hosted route has never run natively. lua/tree-authority.lua drives a REAL weapon launch through the public Lua -> native module -> terrain provider path, with a hosted profile and an explicit Original profile.",
-      "missing_fact": "Native actuals after reviewer clearance: Linux and Windows weapon-fixture builds of the exact cleared source; tree-authority control, new_only, forced_hit and the seven refusals; the Original control on weapon-fixture+collision-fixture (CAPABILITY RED expected); each actual exit recorded.",
-      "next_fix": "Root freezes the cleared clean source and runs the commands in docs/d3-tree-collision-provider.md."
+      "evidence": "f0f928147: Windows hosted/Original/ordinary and Linux hosted fixture builds all actual 0 with 87 payloads; the ordinary exact short comparison is COMPLETE and literal-equal to 80fd (Tacview, observations, metrics). The first tree-authority hosted control completed a real cohort but is UNREACHED by its own guard: tests_delta=0, tree_begin_after=0 (the selected cannon fell to the ground before the 50 m collision-precision range of wn_flight.c). The queue stopped before the other ten roots; no negative ran. Safe projection: eech-campaign/reference/d3-tree-collision-production/f0-native-identities-and-first-control-20261103.json.",
+      "missing_fact": "A healthy control that actually reaches TREE (tests_delta >= 1 equal to tree_begin) on ONE fresh replacement root with the corrected witness blob; then new_only, forced_hit, the seven refusals and the Original control on their own fresh roots. The other ten verified-unused roots stay untouched until the control reaches TREE.",
+      "next_fix": "Root runs the corrected literal Git-blob diagnostic with explicit Lua/native identities on one fresh replacement control root; the f0 native builds and the ordinary short are reusable if the scope proof (Lua, tests, docs only) holds."
     },
     {
       "id": "forest-geometry-retail-source",
@@ -70,6 +71,14 @@
       "evidence": "get_line_of_sight_collision_entity and the sector entity lists remain the campaign's (D5-adjacent coupling declared in mb_hostlos.h); the tree slice does not touch them.",
       "missing_fact": "A characterised host contract for entity/object collision (Task49 proper) and its production routing.",
       "next_fix": "The next bounded Task49 slice after this one is validated; not started here."
+    },
+    {
+      "id": "tree-control-case-precondition",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "The first healthy control was UNREACHED (zero tree tests): wn_flight.c asks for the tree lookup only after an entity miss at high collision precision (a non-AI party, a viewed weapon, or the new position within 50 m of the target). The selector now takes the armed launcher's nearest valid target of any side within 50 m (a test precondition, identical in hosted and Original, the side not a measured need). Source and Linux controls only.",
+      "missing_fact": "That such a pair exists in the retail war at the warmup and that the near-target shell makes a tree test (a near target does not imply a miss; a hit on the target ends the weapon before the tree lookup). If no pair exists the setup fails by name with the pair counts; if the shell hits the target first the run is UNREACHED again, and the next fact is the launch geometry, not a loosened guard.",
+      "next_fix": "The next native actual on one fresh replacement control root. Do not fake a tree call, force a host hit, change weapon physics or precision rules, or remove the UNREACHED guard."
     }
   ],
   "next_action": "fix-blocker",

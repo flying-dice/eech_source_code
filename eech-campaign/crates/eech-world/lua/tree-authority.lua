@@ -31,6 +31,11 @@
 --   old_twice         tree_begin asks OLD, and tree_terrain asks OLD again:                                             [terrain-provider:tree.lookups]
 --   third_lookup      tree_begin asks OLD, tree_terrain asks NEW, and the next tree_terrain asks NEW again:             [terrain-provider:tree.lookups]
 --
+-- THE CONTROLLED LAUNCH. The original flight asks for the tree lookup only after an entity-collision miss and only at high collision precision (wn_flight.c: a non-AI target or launcher, a viewed
+-- weapon, or the weapon's new position within 50 m of its target). The witness therefore launches from the launcher that has an unguided ballistic weapon in stock and the NEAREST valid target of
+-- any side within that 50 m of it (`case_selected` records the selection, the distance and whether the sides are equal): a test precondition, not a campaign decision, applied identically in the
+-- hosted and Original profiles. A near target does not imply a miss; a run that still makes no tree test is UNREACHED, and with no such pair in the war the setup fails by name.
+--
 -- WHAT COUNTS AS THE ENGINE STOPPING: only the first line of the failure, anchored: `runtime error: eech: EECH fatal error: host terrain: [terrain-provider:<marker>] `. A Lua error that merely
 -- mentions a marker, a witness failure, a failure without that wrapper and a different marker (a callback cause where an answer cause was expected) are failures of the witness, never proof. After
 -- the stop NOTHING is asked of the engine again (no census, report, query or restoration), and no result of the campaign continuing is claimed.
@@ -451,32 +456,77 @@ local function main ()
 		local s = state (id, 0)
 		if s and s.alive == 1 then s.side = descriptors [id].side alive [id] = s end
 	end
-	local function nearest_enemy (id)
-		local s, best, best_d = alive [id], nil, nil
-		for _, other in ipairs (ordered) do
-			local o = alive [other]
-			if o and other ~= id and o.side ~= s.side and (o.side == "blue" or o.side == "red") then
-				local dx, dz = o.position [1] - s.position [1], o.position [3] - s.position [3]
-				local d = math.sqrt (dx * dx + dz * dz)
-				if not best_d or d < best_d then best, best_d = other, d end
-			end
-		end
-		return best
+	-- THE CASE PRECONDITION. The original flight asks the campaign for the tree lookup only after an entity-collision MISS and only when its collision precision is high (wn_flight.c
+	-- high_precision_collision: a non-AI target or launcher, a viewed weapon, or the weapon's new position within 50 m of its target). A weapon fired at a distant enemy falls to the ground first
+	-- and never asks (the first actual: a cannon at a distant enemy, zero tree tests, UNREACHED). So the controlled launch takes the pair whose target stands within that 50 m of the launcher:
+	-- the nearest valid target of ANY side. The side is not a measured need of the capability and no campaign decision is asserted: the launch temporarily links the target as a test
+	-- precondition, exactly as before (and restores the link). A near target does not imply a miss or a tree test; the counter guards below still decide, and a run with no tree test is UNREACHED.
+	local PRECISION_RANGE = 50
+	local function distance_between (a, b)
+		local dx, dy, dz = a.position [1] - b.position [1], a.position [2] - b.position [2], a.position [3] - b.position [3]
+		return math.sqrt (dx * dx + dy * dy + dz * dz)
 	end
-	-- the first launcher (in roster order) with an unguided ballistic weapon in stock and an enemy to aim at: a weapon that flies a ballistic path to the ground or its target
-	local launcher, target, weapon
+	local rank = {}
+	for index, id in ipairs (ordered) do rank [id] = index end
+	-- every ordered pair (launcher, target) of live roster entities that are different and within the precision range, found by a 50 m grid (no all-pairs scan), nearest first, ties by roster order
+	local cells, pairs_near = {}, {}
 	for _, id in ipairs (ordered) do
-		if alive [id] then
-			local enemy = nearest_enemy (id)
-			for w = 1, 127 do
-				local q = enemy and state (id, w)
-				if q and q.weapon_count and q.weapon_count > 0 and q.guidance == 0 and q.aiming ~= 0 and q.decoy == 0 then launcher, target, weapon = id, enemy, w break end
+		local o = alive [id]
+		if o and #o.position >= 3 then
+			local cx, cz = math.floor (o.position [1] / PRECISION_RANGE), math.floor (o.position [3] / PRECISION_RANGE)
+			o.cx, o.cz = cx, cz
+			local key = cx .. ":" .. cz
+			cells [key] = cells [key] or {}
+			table.insert (cells [key], id)
+		end
+	end
+	for _, id in ipairs (ordered) do
+		local o = alive [id]
+		if o and o.cx then
+			for dx = -1, 1 do
+				for dz = -1, 1 do
+					for _, other in ipairs (cells [(o.cx + dx) .. ":" .. (o.cz + dz)] or {}) do
+						if other ~= id then
+							local distance = distance_between (o, alive [other])
+							if distance < PRECISION_RANGE then pairs_near [#pairs_near + 1] = { launcher = id, target = other, distance = distance } end
+						end
+					end
+				end
 			end
 		end
-		if launcher then break end
 	end
-	emit { event = "case_selected", launcher = launcher or "none", target = target or "none", weapon = weapon or -1 }
-	if not launcher then hard ("SETUP FAILURE: no launcher with an unguided ballistic weapon and an enemy was found") end
+	table.sort (pairs_near, function (x, y)
+		if x.distance ~= y.distance then return x.distance < y.distance end
+		if x.launcher ~= y.launcher then return rank [x.launcher] < rank [y.launcher] end
+		return rank [x.target] < rank [y.target]
+	end)
+	-- a launcher qualifies by an unguided ballistic weapon in stock (the first such weapon number), as before; asked once per launcher
+	local weapon_of = {}
+	local function ballistic_weapon (id)
+		if weapon_of [id] == nil then
+			weapon_of [id] = false
+			for w = 1, 127 do
+				local q = state (id, w)
+				if q and q.weapon_count and q.weapon_count > 0 and q.guidance == 0 and q.aiming ~= 0 and q.decoy == 0 then weapon_of [id] = w break end
+			end
+		end
+		return weapon_of [id]
+	end
+	local launcher, target, weapon, chosen
+	local launchers_checked = 0
+	for _, candidate in ipairs (pairs_near) do
+		if weapon_of [candidate.launcher] == nil then launchers_checked = launchers_checked + 1 end
+		local w = ballistic_weapon (candidate.launcher)
+		if w then launcher, target, weapon, chosen = candidate.launcher, candidate.target, w, candidate break end
+	end
+	emit {
+		event = "case_selected", launcher = launcher or "none", target = target or "none", weapon = weapon or -1, selection = "nearest_valid_target_any_side_within_precision_range",
+		precision_range = PRECISION_RANGE, pairs_in_range = #pairs_near, launchers_checked = launchers_checked,
+		distance = chosen and string.format ("%.3f", chosen.distance) or "none", same_side = chosen and (alive [launcher].side == alive [target].side) or false,
+	}
+	if not launcher then
+		hard (string.format ("SETUP FAILURE: no launcher with an unguided ballistic weapon in stock has a valid target within the %d m collision-precision range of its own position (%d ordered pairs in range, %d launchers checked): the war offers no controlled case that can reach the tree test, which is a missing precondition and not a pass", PRECISION_RANGE, #pairs_near, launchers_checked))
+	end
 
 	events () -- everything the natural war logged before the launch is taken first, so what is read after is the launch's own
 	local tests_before = counter ("contact_trees_tests")
