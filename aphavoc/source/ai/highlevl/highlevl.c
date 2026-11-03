@@ -111,14 +111,14 @@ static entity
 static float
 	target_rating [MAX_HIGHLEVEL_TARGET_CHECKS];
 
-#ifdef DEBUG
 
-#define AI_LOG_FILENAME "AI.LOG"
 
-static FILE
-	*ai_log_file = NULL;
 
-#endif
+
+
+
+
+
 
 static float
 	importance_rating,
@@ -3122,65 +3122,65 @@ void create_artillery_strike_tasks (void)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifdef DEBUG
 
-void ai_log (const char *string, ...)
-{
-	static char
-		buffer[1000];
 
-	char
-		time_info[100];
 
-	float
-		elapsed_time;
 
-	int
-		elapsed_days,
-		hours,
-		minutes,
-		seconds;
 
-	va_list
-		args;
 
-	if (!ai_log_file)
-	{
-		return;
-	}
 
-	ASSERT (get_session_entity ());
 
-	va_start (args, string);
 
-	vsprintf (buffer, string, args);
 
-	va_end (args);
 
-	elapsed_time = get_local_entity_float_value (get_session_entity (), FLOAT_TYPE_ELAPSED_TIME);
 
-	convert_float_to_int (elapsed_time / ONE_DAY, &elapsed_days);
 
-	elapsed_time = fmod (elapsed_time, ONE_DAY);
 
-	get_digital_clock_int_values (elapsed_time, &hours, &minutes, &seconds);
 
-	sprintf (time_info, "Day %d %02d:%02d:%02d :- ", elapsed_days, hours, minutes, seconds);
 
-	// JB 030311 Enable running out of separate directories
-	ai_log_file = safe_fopen (AI_LOG_FILENAME, "a");
 
-	if (ai_log_file)
-	{
-		fprintf (ai_log_file, time_info);
-		fprintf (ai_log_file, buffer);
-		fprintf (ai_log_file, "\n");
-	
-		fclose (ai_log_file);
-	}
-}
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
