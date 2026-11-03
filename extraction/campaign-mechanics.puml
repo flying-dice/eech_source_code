@@ -1,0 +1,561 @@
+@startmindmap campaign-mechanics
+title EECH dynamic campaign: every mechanic from strategic to tactical unit level
+caption Built from a full read of campaign-bundle.txt and campaign-bundle-appendix.txt. Citations are [path:line symbol], paths relative to aphavoc/source/.
+<style>
+mindmapDiagram {
+  node { FontSize 11 }
+  :depth(0) { FontSize 16 }
+  :depth(1) { FontSize 14 }
+}
+</style>
+* EECH Dynamic Campaign
+** L0 Campaign and session frame (strategic shell)
+*** Bootstrap and game loop
+**** Initialisation phases
+***** Callsigns, bridges, population names, entity system reset [gameflow/gameflow.c:143 process_game_initialisation_phases]
+***** create_campaign then setup_campaign then create_server_pilot [gameflow/gameflow.c:143 process_game_initialisation_phases]
+***** Regen queues initialised last [entity/special/regen/rg_updt.c:892 initialise_regen_queues]
+**** Campaign creation (server only)
+***** Division DB and parser initialised, campaign script parsed [ai/faction/faction.c:111 create_campaign]
+***** Factions create FORCE entities under the session [ai/faction/faction.c:234 create_faction]
+***** Campaign objectives and order of battle built per force [ai/highlevl/setup.c:91 setup_campaign]
+**** Flight loop
+***** Per time-acceleration step: comms, entity updates, update functions [flight.c:102 flight]
+***** Periodic update-function scheduler with sleep and offset [update.c:281 update_update_functions]
+***** High-level AI functions registered with period and start offset [ai/highlevl/highlevl.c:346 add_high_level_ai_function]
+*** Campaign script interpreter
+**** Structure tags
+***** START, END_CAMPAIGN, IF/ELSE/ENDIF, WHILE, CALCULATE, CREATE_VARIABLE, CALL, FILENAME include [ai/parser/parsgen.c:243 parser_campaign_file]
+***** Events: CREATE_EVENT / END_EVENT / EVENT run from file offset [ai/parser/parsgen.c:2395 update_script_triggers]
+**** Setup tags
+***** CAMPAIGN_DATA: side file, placements, map and sector size, population bounds, session created [ai/parser/parsgen.c:243 parser_campaign_file]
+***** FACTION side, colour, attitude; FORCE_NAME; MEDAL; CAMPAIGN_REQUIRES_APACHE_HAVOC [ai/parser/parsgen.c:243 parser_campaign_file]
+***** TASK_GENERATION per task type, HARDWARE_RESERVES per category, REGEN_FREQUENCY per side [ai/parser/parsgen.c:243 parser_campaign_file]
+***** FRONTLINE_FORCES n places armour and seeds FARP helicopter groups [ai/parser/parsgen.c:243 parser_campaign_file]
+***** KEYSITE, CREATE_MEMBERS, CREATE_GROUP, CREATE_TASK scripted forces and missions [ai/parser/parsgen.c:243 parser_campaign_file]
+**** Triggers
+***** Message triggers: TASK_COMPLETED/FAILED, OBJECT_DESTROYED/FIRED/TARGETED/LANDED, SECTOR_WON/LOST/REACHED, WAYPOINT_REACHED [entity/system/en_types/en_force.c:139 campaign_trigger_names]
+***** Polled triggers: TIME_DURATION, VARIABLE_CONDITION, RANDOM (rand16 % value == 0) [ai/parser/parsgen.c:2588 trigger_triggered]
+***** KEY_PRESS triggers bound to keys [ai/parser/parsgen.c:2455 generate_key_bound_triggers]
+***** Triggers polled every 1 s [ai/highlevl/highlevl.c:181 start_high_level_ai]
+*** Session world state
+**** Time of day
+***** time = start + elapsed mod 24 h; day counter [entity/special/session/session.c:136 calculate_session_time_of_day]
+****** Segments: night &lt;6h, dawn &lt;8h, day &lt;18h, dusk &lt;20h [entity/special/session/session.c:177 get_day_segment_type]
+****** Random starts 00:30, 05:30, 09:00, 12:00, 15:00, 17:30 plus or minus 15 min [entity/special/session/session.c:263 get_session_random_start_time_of_day]
+****** Skip-night jumps to dawn; time acceleration factor [entity/special/session/ss_updt.c:79 update_time_of_day]
+**** Weather
+***** Fixed mode or moving local rain cell 5-100 km at 360 kt [entity/special/session/session.c:538 set_session_random_weather_mode]
+***** Wind cell 8-128 km, wind 5-25 kt [entity/special/session/session.h:176 MIN_WIND_RADIUS]
+**** Realism and cheat flags
+***** Infinite fuel/weapons, invulnerability, suppress AI fire [entity/special/session/ss_int.c:295 get_local_int_value]
+***** Cheats forced off when any network connection exists [entity/special/session/ss_int.c:295 get_local_int_value]
+***** Option defaults: random time and weather, EASY difficulty [global.c:383 initialise_global_options_data_version2]
+**** Fog of war ceiling
+***** fog_of_war_maximum_value bounded 8 x decay rate to 8 h [entity/special/session/ss_creat.c:81 create_local]
+***** Default 4 h; command line "fog" overrides [ai/highlevl/highlevl.h:69 DEFAULT_FOG_OF_WAR_MAXIMUM_VALUE]
+*** Victory and campaign end
+**** Objective selection
+***** Enemy in-use keysites flagged campaign_objective [ai/highlevl/setup.c:126 create_force_campaign_objectives]
+****** Rated by isolation from other own keysites plus random, top 5 per side [ai/highlevl/setup.c:126 create_force_campaign_objectives]
+**** Victory checks on CHECK_CAMPAIGN_OBJECTIVES
+***** All objectives: troop-insertion targets captured, others destroyed [entity/special/force/fc_msgs.c:144 response_to_check_campaign_objectives]
+***** Enemy has no alive in-use keysite with air force capacity [entity/special/force/fc_msgs.c:144 response_to_check_campaign_objectives]
+***** Enemy has no player-controllable gunships left [entity/special/force/fc_msgs.c:144 response_to_check_campaign_objectives]
+**** Campaign completed
+***** Campaign medal and successful or failed tour logged [ui_menu/ingame/campaign/campaign.c:1096 campaign_completed]
+***** Session marked complete, end dialog shown [ui_menu/ingame/campaign/campaign.c:1096 campaign_completed]
+** L1 Theatre picture (map, sectors, influence)
+*** Sector grid
+**** Sector entities (local only, created before networked entities) [entity/special/sector/sc_seccreat.c:87 create_local_sector_entities]
+***** Sector side = BLUE if blue influence > red else RED (ties go red) [entity/special/sector/sc_int.c:200 get_local_int_value]
+***** Tallest structure height tracked as entities link in [entity/special/sector/sc_msgs.c:79 response_to_link_child]
+***** Sector counts per force refreshed every minute [entity/special/sector/sector.c:579 update_sector_side_count]
+**** Map bounds
+***** 5 km map perimeter excluded from placements [entity/system/en_main/en_world.h:135 MAP_PERIMETER_SIZE]
+***** Altitude range -8000 to 65535 m [entity/system/en_main/en_world.c:86 set_entity_world_map_size]
+**** Initial sides
+***** Side PSD: red > 240 RED, blue > 240 BLUE, anything else fatal [ai/faction/popread.c:341 read_sector_side_file]
+***** Binary .DAT alternative [ai/ai_misc/ai_dbase.c:119 load_ai_sector_data]
+*** Influence maps (imaps)
+**** Storage
+***** imaps[type][side] one byte per sector, normalised 0..255 [ai/highlevl/imaps.c:156 get_imap_value]
+***** Renormalised every 2 min, staggered 20 s offsets [ai/highlevl/highlevl.c:181 start_high_level_ai]
+**** Sector side influence
+***** Keysite pushes sector_side_max_value with falloff 1/((0.3dx+1)^2+(0.3dz+1)^2) [ai/highlevl/imaps.c:335 update_imap_sector_side]
+***** Removed and re-added on capture or destruction [entity/special/keysite/ks_pack.c:284 unpack_local_keysite_data]
+**** Importance
+***** Keysite importance spread over importance_radius with (1 - r^2/R^2) [ai/highlevl/imaps.c:454 update_imap_importance_level]
+**** Distance to friendly base
+***** Max of (1 - r^2/R^2) over air_coverage_radius of in-use keysites [ai/highlevl/imaps.c:618 update_keysite_distance_to_friendly_base]
+***** Recomputed for the whole side after capture or loss [ai/highlevl/imaps.c:694 update_imap_distance_to_friendly_base]
+**** Threat layers
+***** Air defence: potential surface-to-air threat over 10 x air scan range [ai/highlevl/imaps.c:844 update_imap_surface_to_air_defence_level]
+***** Surface defence: potential surface-to-surface threat over 10 x surface scan range [ai/highlevl/imaps.c:1009 update_imap_surface_to_surface_defence_level]
+***** Vehicles add or remove values as they enter or leave a sector [entity/special/sector/sector.c:238 add_mobile_values_to_sector]
+*** Fog of war
+**** Gain
+***** Unit's own sector set to max; sectors within 2 x recon radius get (1 - r/R) x max [entity/special/sector/sector.c:374 set_sector_fog_of_war_value]
+***** Owned sectors always read as fully known [entity/special/sector/sector.c:510 get_sector_fog_of_war_value]
+**** Decay
+***** Every sector loses FOG_OF_WAR_DECAY_RATE (30 s) per tick [entity/special/sector/sector.c:533 update_sector_fog_of_war]
+**** Use as gate
+***** Task generators require fog above 0.2-0.5 x max before targeting [ai/highlevl/highlevl.c:575 create_bai_tasks]
+***** Objective names shown only if known or fog > 0.1 [entity/special/task/task.c:1475 get_task_objective_string]
+***** Groups keep last seen time and last known position [entity/special/group/gp_vec3d.c:79 get_local_vec3d]
+*** Frontline
+**** Own sectors adjacent (8-way) to enemy sectors become frontline [ai/frontl/ai_fline.c:125 create_frontline]
+***** Chain ordered from the sector with fewest 4-way neighbours [ai/frontl/ai_fline.c:250 parse_frontline_arrangements]
+***** Rebuilt for all forces on change [ai/frontl/ai_fline.c:383 recreate_frontline]
+*** Road network and routes
+**** Road graph
+***** Nodes with safe radius, side occupying, aware, exploring [ai/ai_misc/ai_route.c:898 get_road_sub_route]
+***** Link breaks count destroyed bridges, max 32 per link [ai/ai_misc/ai_route.c:1069 set_road_link_breaks]
+**** Biased route generation
+***** Recursive midpoint subdivision while segment > 5 km [ai/taskgen/croute.c:1132 generate_biased_vec3d_route]
+****** Candidate score = elevation bias x terrain + range bias + enemy-sector bias; lowest wins [ai/taskgen/croute.c:1132 generate_biased_vec3d_route]
+****** Per movement type: AIR elev 5 range 0.5; GROUND 1/1; SEA elev 9999 [ai/taskgen/croute.c:114 route_biasing_database]
+****** Near-collinear nodes (cos > 0.94) removed [ai/taskgen/croute.c:1559 optimise_route]
+*** Terrain
+**** Terrain classes: water, land, forest; ground-vehicle suitability per type [misc/terr_db.c:153 initialise_terrain_database]
+***** Fields and forest floor not drivable; roads, beach, built-up are [misc/terr_db.c:153 initialise_terrain_database]
+** L2 Force (side) strategic AI
+*** Force entity
+**** Attitude COWARD..ERRATIC (default NORMAL) [entity/special/force/fc_creat.c:79 create_local]
+***** Task generation enable flag per task type [entity/special/force/fc_creat.c:79 create_local]
+***** Hardware reserves per category (armed/unarmed FW, heli, routed, ship) [entity/system/en_types/en_force.c:169 force_info_catagory_names]
+**** Force info book-keeping
+***** Spawned units use up a reserve once the game is running [entity/special/force/force.c:211 add_to_force_info]
+***** Losses tracked per category [entity/special/force/force.c:249 remove_from_force_info]
+***** Regen arrivals add back to reserve [entity/special/force/force.c:278 replace_into_force_info]
+*** High-level task scheduler
+**** Campaign cadence
+***** CAS 15 min, patrols 5 min, advance/retreat 12 min, keysite strike 7.5 min, artillery 15 min [ai/highlevl/highlevl.c:181 start_high_level_ai]
+***** Troop insertion 2 min, OCA sweep 30, heli transfer 7.5, FW transfer 15, SEAD 12, BAI 20, OCA strike 30 min [ai/highlevl/highlevl.c:181 start_high_level_ai]
+**** Skirmish cadence (faster)
+***** CAS 6 min, SEAD 10, advance/retreat 15, artillery 12, keysite strike 10, BAI 10 min [ai/highlevl/highlevl.c:181 start_high_level_ai]
+**** Common generator pattern
+***** Scan up to 160 enemy targets, rate from imaps, sort, take top N [ai/highlevl/highlevl.c:84 MAX_HIGHLEVEL_TARGET_CHECKS]
+***** Only targets with rating >= 0.75 x best [ai/highlevl/highlevl.c:86 MIN_TASK_CREATION_RATIO]
+***** Skip targets already the object of a task; per-sector caps [entity/special/task/task.c:618 entity_is_object_of_task]
+***** Priority = rating / max x task_database priority [ai/highlevl/highlevl.c:815 create_cas_tasks]
+*** Task generators
+**** Close air support
+***** Enemy frontline groups; rating (1 - air def) + 3 base dist + 2 side ratio, max 6; 1 per sector [ai/highlevl/highlevl.c:815 create_cas_tasks]
+**** Battlefield air interdiction
+***** Enemy rear groups; rating 2(1 - air def) + 3 base dist + 2 side ratio; fog > 0.5 max [ai/highlevl/highlevl.c:575 create_bai_tasks]
+****** Creates BAI plus RECON [ai/highlevl/highlevl.c:575 create_bai_tasks]
+**** Keysite strike
+***** Rating (1 - air def) + 4 base dist + 2(1 - efficiency) + 2 side ratio, max 9 [ai/highlevl/highlevl.c:1026 create_keysite_strike_tasks]
+****** Recon target or fog &lt; 0.25 max: RECON first, strike follows as reaction [ai/highlevl/highlevl.c:1026 create_keysite_strike_tasks]
+****** Else efficiency >= minimum: GROUND_STRIKE or ANTI_SHIP_STRIKE [ai/highlevl/highlevl.c:1026 create_keysite_strike_tasks]
+**** Offensive counter-air
+***** OCA targets; rating (1 - air def) + 4 base dist + 2 side ratio; fog >= 0.25 max [ai/highlevl/highlevl.c:1286 create_oca_strike_tasks]
+****** OCA_STRIKE 1 per cycle, OCA_SWEEP 2 per cycle [ai/highlevl/highlevl.c:1473 create_oca_sweep_tasks]
+**** SEAD
+***** Enemy rear groups with air attack strength 10; rating 4 base dist + 3 side ratio [ai/highlevl/highlevl.c:1918 create_sead_tasks]
+***** Around struck keysite: up to 3 SEAD on AA groups within 4 km [ai/highlevl/highlevl.c:2576 create_sead_tasks_around_keysite]
+**** Troop insertion
+***** Weakened keysites (efficiency &lt; minimum); rating adds 3(1 - eff) [ai/highlevl/highlevl.c:1660 create_troop_insertion_tasks]
+****** Recon first if recon target or fog &lt; 0.2 max [ai/highlevl/highlevl.c:1660 create_troop_insertion_tasks]
+****** Defender launches backup troop insertion if fewer than 2 patrols [ai/highlevl/highlevl.c:1660 create_troop_insertion_tasks]
+**** Transfers (rebasing)
+***** Rating 4 x enemy base distance + 4(1 - idle groups / 4), max 8 [ai/highlevl/highlevl.c:2132 create_fixed_wing_transfer_tasks]
+****** Neediest keysites receive from least needy, up to 3 pairs [ai/highlevl/highlevl.c:2352 create_helicopter_transfer_tasks]
+**** Ground war
+***** Advance: frontline groups move to an adjacent unoccupied, unbroken road node with better enemy-base gradient [ai/highlevl/highlevl.c:375 create_advance_and_retreat_tasks]
+***** Artillery: frontline artillery engages enemy groups or keysites in weapon range, up to 5 [ai/highlevl/highlevl.c:2838 create_artillery_strike_tasks]
+***** Troop patrols: one 4-man patrol per FARP, military base, airbase [ai/highlevl/highlevl.c:2735 create_troop_patrol_tasks]
+*** Reactions
+**** On task assigned against our keysite
+***** requires_cap: defender CAP 30 min [ai/highlevl/reaction.c:217 create_reaction_to_offensive_keysite_task_assigned]
+***** requires_barcap: BARCAP 6 km out toward the attacker [ai/highlevl/reaction.c:217 create_reaction_to_offensive_keysite_task_assigned]
+**** On successful recon
+***** More than 1 SEAD needed: SEAD instead of strike [ai/highlevl/reaction.c:314 create_reaction_to_recon_task_completed]
+***** Otherwise TI if weakened, OCA strike+sweep, ground strike, anti-ship, SEAD or BAI by target [ai/highlevl/reaction.c:314 create_reaction_to_recon_task_completed]
+**** On strike completed
+***** Restrike while efficiency >= minimum; BDA if recon target [ai/highlevl/reaction.c:609 create_reaction_to_strike_task_completed]
+**** On artillery fire
+***** Victim side launches BAI plus RECON on the battery [ai/highlevl/reaction.c:703 create_reaction_to_artillery_fire]
+**** Campaign Commander map click
+***** Player orders TI, strike, OCA, anti-ship, SEAD, BAI or CAS on clicked target [ai/highlevl/reaction.c:818 create_reaction_to_map_click]
+***** camcom 2 allows duplicate tasks [cmndline.c:274 session_camcom]
+*** Logistics
+**** Low-supply requests
+***** Keysite stock &lt;= 75 and it consumes that supply [entity/special/keysite/keysite.c:337 update_keysite_cargo]
+***** Ground group ammo or fuel &lt; 100 [entity/special/group/group.c:619 assess_group_supplies]
+**** Supply task creation
+***** Ammo from factory (else refinery) or airbase within 10 km, whichever is nearer [entity/special/force/fc_msgs.c:672 response_to_force_low_on_supplies]
+***** Fuel from refinery (else factory) or airbase; one task per cargo type [entity/special/force/fc_msgs.c:672 response_to_force_low_on_supplies]
+**** Supply flight
+***** PICK_UP takes cargo; supplier stock -= 10 [entity/special/keysite/ks_msgs.c:251 response_to_waypoint_pick_up_reached]
+***** Crates dropped every 100 m between DROP_OFF and FINISH_DROP_OFF [entity/mobile/aircraft/fixwing/fixwing.c:80 update_fixed_wing_crate_dropping]
+***** DROP_OFF restocks the requesting keysite [entity/mobile/mb_msgs.c:906 response_to_waypoint_drop_off_reached]
+**** Turnaround time
+***** Rearm sleep = base x (5 - 4 x ammo supply / 100), 1x to 5x [entity/system/en_types/en_suply.c:95 get_local_entity_rearming_sleep_time]
+***** Refuel sleep scales the same way with fuel supply [entity/system/en_types/en_suply.c:126 get_local_entity_refueling_sleep_time]
+*** Assistance requests
+**** Fired-at group or keysite asks its force, 60 s +/- 20 s cooldown [entity/special/group/gp_msgs.c:295 response_to_entity_fired_at]
+***** Force sends idle-engage air groups within speed x 2 km to attack the aggressor [entity/special/force/fc_msgs.c:1022 response_to_request_assistance]
+*** Order of battle
+**** Divisions built per force [ai/highlevl/order.c:690 initialise_order_of_battle]
+***** Armoured: companies of 3 frontline groups; artillery companies [ai/highlevl/order.c:690 initialise_order_of_battle]
+***** Airborne: attack, transport, fighter companies per airbase and carrier [ai/highlevl/order.c:690 initialise_order_of_battle]
+***** Carrier task force and infantry brigades per base [ai/highlevl/order.c:690 initialise_order_of_battle]
+**** Division database
+***** Company caps: armoured brigade 4 groups, artillery brigade 2, 0 = unlimited [entity/special/division/dv_dbase.c:80 division_database]
+***** add_group_to_division reuses a company with a vacancy or creates one [entity/special/division/division.c:149 add_group_to_division]
+*** Reinforcement (regeneration)
+**** Queues
+***** Circular queue per side and regen type (FW, heli, ground, people, sea), default 5 [entity/special/regen/rg_updt.c:763 regen_queue_insert]
+***** Dead aircraft and vehicles queued by type and group [entity/special/regen/rg_updt.c:656 add_entity_to_regen_queue]
+***** 10 infantry patrols preloaded per side; people never drained [entity/special/regen/rg_updt.c:892 initialise_regen_queues]
+**** Spawn conditions
+***** Regen building alive, keysite usable, category reserve > 0 [entity/special/regen/rg_updt.c:199 regen_update]
+***** No human player landed at that keysite [entity/special/regen/rg_updt.c:199 regen_update]
+***** Apache Havoc campaigns skip people and FW transports [entity/special/regen/rg_updt.c:199 regen_update]
+**** Spawn
+***** One member created at the regen point, building doors open 30 s [entity/special/regen/rg_updt.c:199 regen_update]
+***** Period = regen_frequency[side] x difficulty modifier (always 1.0) [entity/special/regen/regen.c:328 get_regen_frequency_difficulty_modifier]
+***** Queue size grows or shrinks on capture or loss of bases [entity/special/regen/rg_updt.c:955 increment_regen_queue_size]
+** L3 Keysites (bases and objectives)
+*** Keysite database
+**** AIRBASE: ammo -0.2 fuel -0.4, importance 1.0, 80 km radius, 400 km air cover, LARGE, assign 3 reserve 2, CAP [entity/special/keysite/ks_dbase.c:82 keysite_database]
+***** OCA, recon, strike and troop target, repairable, campaign objective [entity/special/keysite/ks_dbase.c:82 keysite_database]
+**** ANCHORAGE (carrier): importance 1.0, 100 km cover, SMALL, BARCAP, not repairable [entity/special/keysite/ks_dbase.c:82 keysite_database]
+***** OCA, recon, ship strike, hidden by fog, campaign objective [entity/special/keysite/ks_dbase.c:82 keysite_database]
+**** FARP: -0.05 / -0.03, importance 0.4, 100 km cover, SMALL, CAP, hidden by fog [entity/special/keysite/ks_dbase.c:82 keysite_database]
+**** Economic and military sites
+***** FACTORY +1 ammo; OIL_REFINERY +1 fuel; PORT +0.2 / +0.2 [entity/special/keysite/ks_dbase.c:82 keysite_database]
+***** MILITARY_BASE importance 0.8 objective; POWER_STATION fuel -0.5 objective; RADIO_TRANSMITTER 0.5 [entity/special/keysite/ks_dbase.c:82 keysite_database]
+***** Minimum efficiency 0.3 for every type [entity/special/keysite/ks_dbase.c:82 keysite_database]
+*** Placement and construction
+**** Population placement file
+***** City KEY_* templates become power, radio, factory, port, military, oil keysites [ai/faction/popread.c:918 read_population_city_placements]
+***** Airports become AIRBASE, FARP objects FARP, water airfields ANCHORAGE carriers [ai/faction/popread.c:1476 read_population_airfield_placements]
+***** SAM placements become anti-aircraft groups [ai/faction/popread.c:2148 read_population_sam_placements]
+**** Landing infrastructure
+***** Landing entity per landing type with total sites; keysite landing-type bitmask [ai/faction/popread.c:1476 read_population_airfield_placements]
+***** FW routes: APPROACH, LOWER_UNDERCARRIAGE, TOUCH_DOWN, TAXI, LANDED; takeoff START_UP..TAKEN_OFF [ai/faction/popread.c:2814 insert_airport_fixedwing_routes]
+***** Heli routes and holding loops expanded x3 from centroid [ai/faction/popread.c:3096 insert_airport_helicopter_routes]
+**** Buildings
+***** Important or updatable buildings join the keysite building group; regen buildings make REGEN entities [ai/faction/popread.c:3943 insert_airfield_buildings]
+***** FARPs in own sectors enabled at start [entity/special/keysite/keysite.c:507 initialise_keysite_farp_enable]
+*** Strength and efficiency
+**** Strength = sum of building importance; efficiency = strength / max [entity/special/keysite/ks_float.c:223 get_local_float_value]
+***** Building destroyed subtracts importance, tasks re-assessed [entity/special/keysite/keysite.c:739 subtract_local_entity_importance_from_keysite]
+***** Efficiency &lt;= minimum: non-repairable destroyed, repairable goes UNUSABLE [entity/special/keysite/keysite.c:739 subtract_local_entity_importance_from_keysite]
+*** Server update loop
+**** Every 3 min: assign RECON, STRIKE, SUPPORT tasks (x2 interval if unusable) [entity/special/keysite/ks_updt.c:82 update_server]
+***** assign_keysite_tasks picks highest-priority unassigned tasks, up to assign count [ai/taskgen/assign.c:96 assign_keysite_tasks]
+****** reserve count of non-critical tasks held back for the player while time remains [ai/taskgen/assign.c:96 assign_keysite_tasks]
+**** Every minute: supplies += database usage, cargo crates spawned, bounded 10..100 [entity/special/keysite/ks_updt.c:82 update_server]
+**** Repair
+***** Damaged repairable keysite with no repair task creates REPAIR (priority 10) [entity/special/keysite/ks_updt.c:82 update_server]
+***** While REPAIRING: one dead building restored per 10 min, regen buildings 20 min [entity/special/keysite/keysite.c:1581 repair_client_server_entity_keysite]
+*** Under attack
+**** Structure hit: assist timer, aircraft aggressor triggers CAP (priority 10, 15 min) [entity/special/keysite/keysite.c:854 notify_keysite_structure_under_attack]
+***** Force assigns CAP category immediately and requests assistance [entity/special/keysite/keysite.c:854 notify_keysite_structure_under_attack]
+*** Destruction and capture
+**** Destroyed
+***** UNUSABLE, not in use, imaps updated, landed aircraft destroyed, inbound diverted [entity/special/keysite/ks_dstry.c:282 kill_local]
+***** All forces re-check campaign objectives [entity/special/keysite/ks_dstry.c:282 kill_local]
+**** Captured by troops
+***** Side and force switched, imaps moved, buildings change side [entity/special/keysite/keysite.c:1289 capture_keysite]
+***** cpac option: idle landed aircraft groups defect to the captor [entity/special/keysite/keysite.c:1289 capture_keysite]
+***** Up to 5 structures repaired; regen queues +6 heli +4 FW for airbases, +2 heli for FARPs [entity/special/keysite/keysite.c:1289 capture_keysite]
+***** Loser's regen shrinks: airbase heli -6 FW -4, FARP -2 [entity/special/keysite/keysite.c:945 destroy_keysite]
+** L4 Missions (tasks)
+*** Task database
+**** Fields: category, priority, difficulty, ROE, engage, escort threshold, primary/solo/persistent, pass %, score, AI stat needs [entity/special/task/ts_dbase.c:100 task_database]
+**** Strike category
+***** BAI p4 d3 ROE objective, 25/75 %, 1000 pts, ground attack 6 [entity/special/task/ts_dbase.c:284]
+***** CAS p6 d3 min 2 aircraft, 25/75 %, ground attack 8 [entity/special/task/ts_dbase.c:466]
+***** GROUND_STRIKE p9 d4 min 2, escort at difficulty 3, 10/25 % [entity/special/task/ts_dbase.c:834]
+***** ANTI_SHIP_STRIKE p7 d4 escort 3, 25/50 %, 750 pts [entity/special/task/ts_dbase.c:223]
+***** SEAD p9 d4 escort 5, 10/100 % [entity/special/task/ts_dbase.c:1325]
+***** OCA_STRIKE p6 10/33 %; OCA_SWEEP p7 25/50 % air attack 5 [entity/special/task/ts_dbase.c:1025]
+***** TROOP_INSERTION p10 d2 escort 3, troop space 8 [entity/special/task/ts_dbase.c:1696]
+**** Support and recon
+***** CAP p5 750 pts; BARCAP p7; ESCORT p7 25/100 % [entity/special/task/ts_dbase.c:587]
+***** RECON p7 and BDA p9: stealth 5, 1000 pts [entity/special/task/ts_dbase.c:1145]
+***** SUPPLY p4 cargo 5 escort 6; REPAIR p5 cargo 6 escort 5 [entity/special/task/ts_dbase.c:1386]
+***** TRANSFER FW p5 escort 6; TRANSFER heli p7 escort 7 [entity/special/task/ts_dbase.c:1577]
+***** ADVANCE / RETREAT p9 ground; COASTAL_PATROL p1 sea [entity/special/task/ts_dbase.c:163]
+**** Unit-level tasks
+***** ENGAGE p10 solo; LANDING, TAKEOFF and holding tasks solo and persistent [entity/special/task/ts_dbase.c:648]
+***** TROOP_MOVEMENT capture, defend, patrol (ground) [entity/special/task/ts_dbase.c:1755]
+*** Construction
+**** create_task: task id, varargs route, expire, priority, critical, stop timer [ai/taskgen/taskgen.c:114 create_task]
+***** Enemy force is warned via TASK_CREATED [ai/taskgen/taskgen.c:114 create_task]
+***** Difficulty from route: +1 per 2 SAM-covered sectors and per 2 enemy sectors, max 5 each [entity/special/task/task.c:708 assess_task_difficulty]
+**** Per-type templates
+***** Strike tasks: ATTACK waypoint, expire 20-40 min, user data = target strength baseline [ai/taskgen/taskgen.c:1224 create_ground_strike_task]
+***** CAP and BARCAP: 4-point 8 km box CAP_START, NAV, NAV, CAP_LOOP [ai/taskgen/taskgen.c:784 create_cap_task]
+***** Troop insertion: drop 1500 m (airbase) or 750 m from target, then capture route [ai/taskgen/taskgen.c:1801 create_troop_insertion_task]
+***** Supply: PICK_UP, PREPARE 4 km before, DROP_OFF, FINISH 2 km after [ai/taskgen/taskgen.c:1638 create_supply_task]
+***** Ground force: CONVOY, SUB_ROUTE_NAVIGATION, REVERSE_CONVOY, DEFEND, 12 h expiry [ai/taskgen/taskgen.c:1138 create_ground_force_task]
+**** Launch base
+***** Best keysite: +5 per idle suitable group, +0.5 busy, cap 12, range falloff to 100 km [entity/special/task/task.c:1030 find_most_suitable_keysite_for_task]
+****** x(1 - 0.2 per queued task of same type), x0.5 if not usable [entity/special/task/task.c:1030 find_most_suitable_keysite_for_task]
+*** Assignment
+**** Group selection
+***** Suitability: movement and landing type match; AI stats must meet the task [ai/highlevl/suitable.c:212 get_group_to_task_suitability]
+***** Idle, awake, enough members, enough idle groups of type, ETA within expiry [ai/taskgen/assign.c:401 get_suitable_registered_group]
+***** Escort rules: jets escort jets, helicopters escort slower types [ai/taskgen/assign.c:306 suitable_group_task_specific_checks]
+**** Assigning
+***** Return keysite must have landing sites for every member [ai/taskgen/assign.c:765 assign_task_to_group]
+***** Escort task created when difficulty >= escort threshold [ai/taskgen/assign.c:524 assign_primary_task_to_group]
+***** Helicopter fuel load = 1.25 x route time + 20 min, rounded to quarter tank [ai/taskgen/assign.c:1326 set_helicopter_fuel_level]
+***** Player accepts a mission from the map [ui_menu/ingame/campaign/ca_selct.c:1023 notify_accept_current_selections]
+*** Lifecycle
+**** Timers
+***** Unassigned task expires; assigned task stops at stop time; completed task purged after 20 min [entity/special/task/ts_updt.c:79 update_server]
+**** Completion rating
+***** Route tasks succeed on route complete; patrols on stop time [entity/special/task/task.c:94 assess_task_completeness]
+***** Group targets: killed fraction; groups of 4 or fewer must all die [entity/special/task/task.c:94 assess_task_completeness]
+***** Keysite strikes: success if efficiency &lt; 0.8 x minimum, else rating = efficiency drop [entity/special/task/task.c:94 assess_task_completeness]
+***** Escort: survivor fraction [entity/special/task/task.c:94 assess_task_completeness]
+**** Outcome
+***** Points: full for success, quarter for partial, none for failure [entity/special/task/task.c:508 award_points_for_task_completion]
+***** Force notified (reactions), task moved to completed list, guides sent home [entity/special/task/ts_msgs.c:261 response_to_task_completed]
+***** Terminate propagates to dependents and guides; persistent tasks refuse [entity/special/task/ts_msgs.c:396 response_to_task_terminated]
+***** Kill and loss records, friendly-fire check [entity/special/task/task.c:1347 add_kill_to_task]
+** L5 Groups (flights, platoons, ships)
+*** Group database
+**** Helicopters
+***** ATTACK AH-64D / Mi-28N: echelon, max 4, min idle 2, AA6 GA8 speed 3 stealth 6 [entity/special/group/gp_dbase.c:82 group_database]
+***** RECON_ATTACK RAH-66 / Ka-52 min idle 3; RECON OH-58D / Ka-50; ASSAULT UH-60 / Mi-24 troops 10 [entity/special/group/gp_dbase.c:82 group_database]
+***** Lift helicopters: no engage, cargo 8-10 [entity/special/group/gp_dbase.c:82 group_database]
+**** Fixed wing
+***** MRF F-16 / MiG-29 AA10; CAS A-10 / Su-25 GA10; carrier attack and interceptor [entity/special/group/gp_dbase.c:82 group_database]
+**** Ground and sea
+***** PRIMARY / SECONDARY frontline armour, 16-vehicle road formation [entity/special/group/gp_dbase.c:82 group_database]
+***** SP artillery and MLRS (artillery flag), anti-aircraft, infantry, patrols [entity/special/group/gp_dbase.c:82 group_database]
+***** Assault ship (carrier keysite), frigates, landing craft [entity/special/group/gp_dbase.c:82 group_database]
+*** State
+**** BUSY if anything on its guide stack, else IDLE [entity/special/group/gp_int.c:304 get_local_int_value]
+***** Air groups' ENGAGE_ENEMY is set at runtime; ground and sea use the database default [entity/special/group/gp_int.c:304 get_local_int_value]
+***** Leader is the first member; position = leader position [entity/special/group/gp_ptr.c:132 get_local_ptr_value]
+**** Callsigns from a fixed list [entity/special/group/group.c:84 group_callsign_names]
+*** Combat behaviour
+**** Fired at
+***** Request assistance once per cooldown [entity/special/group/gp_msgs.c:295 response_to_entity_fired_at]
+***** Retaliate if engage on and ROE allows [entity/special/group/gp_msgs.c:295 response_to_entity_fired_at]
+****** Player aggressor: always; ROE ALL: always; ROE OBJECTIVE: if unassisted or task done [entity/special/group/group.c:1277 group_task_specific_retaliation_checks]
+****** ROE NONE: recon never retaliates within 2 km of its objective [entity/special/group/group.c:1277 group_task_specific_retaliation_checks]
+***** HARD difficulty: a player's radar lock counts as being fired at [entity/special/group/gp_msgs.c:365 response_to_entity_targeted]
+**** Ground war moves
+***** Advance: occupant enemy must retreat; supporting friends pulled forward [entity/special/group/gp_msgs.c:411 response_to_ground_force_advance]
+***** Retreat: linked node, not enemy, unbroken, inside map; else stuck [entity/special/group/gp_msgs.c:725 response_to_ground_force_retreat]
+**** Return to base
+***** Abort engages and skip to the waypoint after the objective [entity/special/group/group.c:822 group_return_to_base]
+***** Emergency transfer to nearest free base when home is lost; else members die [entity/special/group/group.c:1130 create_group_emergency_transfer_task]
+*** Upkeep
+**** Losses and kills counted; member killed updates task ratings [entity/special/group/gp_msgs.c:1281 response_to_mobile_killed]
+**** Idle groups of same type amalgamate up to max size [entity/special/group/group.c:381 amalgamate_groups]
+**** Supplies: air groups draw from keysite stock; ground groups request resupply [entity/special/group/group.c:619 assess_group_supplies]
+** L6 Guides and waypoints (manoeuvre)
+*** Guide entity
+**** Created per task and member bitmask; type comes from the waypoint [entity/special/guide/guide.c:115 create_client_server_guide_entity]
+***** Speed = waypoint velocity factor x cruise speed [entity/special/guide/guide.c:401 set_guide_new_waypoint]
+***** Reached when leader (or all, for last-to-reach) meets radius, altitude, heading, weapon vector [entity/special/guide/guide.c:260 check_guide_reached_waypoint]
+***** No valid members left: task terminated GROUP_DESTROYED [entity/special/guide/guide.c:870 delete_group_member_from_guide_entity]
+**** Guide types
+***** Navigation direct, virtual, routed, altitude; landing direct; landed (0.5 m) [entity/special/guide/gd_dbase.c:82 guide_database]
+***** Position modes: waypoint, relative world, absolute, relative object [entity/special/guide/gd_dbase.c:82 guide_database]
+*** Waypoint database
+**** Per waypoint type, separate radius, velocity and criteria for FW, heli, ground, sea [entity/special/waypoint/wp_dbase.c:82 waypoint_database]
+***** Objective waypoints: ATTACK (heli action 5 km), RECON, DROP_OFF, REPAIR, INSERT_TROOPS [entity/special/waypoint/wp_dbase.c:140]
+***** Player may skip RAISE_UNDERCARRIAGE, TAKEN_OFF, TAXI [entity/special/waypoint/wp_dbase.c:1166]
+**** Reached handling
+***** Human recon leader must transmit recon data by radio [entity/special/waypoint/wp_msgs.c:285 response_to_waypoint_reached]
+***** CAP_LOOP jumps back to CAP_START until the task completes [entity/special/waypoint/wp_msgs.c:285 response_to_waypoint_reached]
+***** Force notified FORCE_WAYPOINT_REACHED; verbose state set [entity/special/waypoint/wp_msgs.c:285 response_to_waypoint_reached]
+**** Relative waypoints follow their objective entity [entity/special/waypoint/wp_vec3d.c:217 get_local_vec3d]
+*** Waypoint actions on members
+**** ATTACK: engage objective group, entity, sector targets, or 2 km area [entity/mobile/mb_msgs.c:516 response_to_waypoint_attack_action]
+**** LAND: request landing site; if base gone, emergency transfer [entity/mobile/mb_msgs.c:1121 response_to_waypoint_land_reached]
+**** LANDED: refuel, rearm from group stock, full repair, regroup [entity/mobile/mb_msgs.c:1308 response_to_waypoint_landed_reached]
+**** DEFEND: route done, stop, consume fuel, assess supplies [entity/mobile/mb_msgs.c:779 response_to_waypoint_defend_reached]
+**** Troops
+***** TROOP_INSERT: troops on board spawn as infantry with capture task [entity/mobile/mb_msgs.c:2370 response_to_waypoint_troop_insert_reached]
+***** TROOP_CAPTURE: d = (eff - min)/(1 - min) x members/(members + losses); capture if d &lt; random [entity/mobile/mb_msgs.c:2218 response_to_waypoint_troop_capture_reached]
+***** TROOP_DEFEND loops into a new patrol [entity/mobile/mb_msgs.c:2333 response_to_waypoint_troop_defend_reached]
+*** Air traffic control
+**** Landing entity locks
+***** landing_lock, landed_lock, takeoff_lock bitmasks per formation slot [entity/special/landing/landing.h:77 LANDING]
+***** Busy slot: member sent to holding pattern [entity/special/landing/ld_msgs.c:176 response_to_landing_site_request]
+***** Landing done: pull next holding member; all landed: group sleeps 15 min [entity/special/landing/ld_msgs.c:1120 response_to_task_terminated]
+***** Takeoff route freed: next queued member released; hangar doors opened [entity/special/landing/ld_msgs.c:1689 response_to_unlock_takeoff_route]
+**** Departure
+***** Inserted into takeoff route or queue; helicopters spin rotors 25 s [entity/mobile/mobile.c:573 insert_mobile_into_takeoff_route]
+***** When all taken off: group leaves keysite, members switch to primary guide [entity/mobile/mobile.c:702 mobile_check_all_members_taken_off]
+*** Attack guide state machines
+**** Air-to-ground
+***** Helicopter: APPROACH, SEEK_COVER, FLY_TO_COVER, TAKE_COVER, FIRE, back to cover [entity/special/guide/ag_attck.c:185 attack_guide_approach_reached]
+****** No line of sight: bob up 10 m to 100 m AGL, else seek new cover [entity/special/guide/ag_attck.c:406 attack_guide_fire_reached]
+****** Hasty fire when already targeted; no cover: spiral at 0.8 range [entity/special/guide/ag_attck.c:656 attack_guide_hasty_fire_reached]
+***** Jets: APPROACH 20 s, CLIMB 15 s, DIVE 10 s, FIRE, EGRESS, repeat [entity/special/guide/ag_attck.c:378 attack_guide_climb_reached]
+***** Cover search: current spot, structures, forest, terrain; score > 100 accepted early [entity/special/guide/gd_cover.c:162 update_guide_seek_cover_results]
+**** Air-to-air
+***** FIRE_INTERCEPT, then MOVE_SIX (jets) or MOVE_CIRCLE (helicopters) [entity/special/guide/aa_attck.c:209 attack_guide_fire_intercept_reached]
+***** Wait while own guided missile flies; 5 s launch delay [entity/special/guide/aa_attck.c:209 attack_guide_fire_intercept_reached]
+** L7 Units (tactical members)
+*** Aircraft database
+**** AH-64D 110 kt, 15 m cruise, recon 5 km, scan 3/4 km, damage 600, 200 pts, configs 1-50 [entity/mobile/aircraft/ac_dbase.c:88 aircraft_database]
+**** RAH-66 100 kt, damage 500, configs 1-384; Ka-52 damage 650 [entity/mobile/aircraft/ac_dbase.c:88 aircraft_database]
+**** A-10A 300 kt, damage 850, 300 pts, not flyable; transports 50 pts [entity/mobile/aircraft/ac_dbase.c:88 aircraft_database]
+*** Aircraft behaviour
+**** Target scanning
+***** Only AI task leader on primary task scans, every 0.5-1 x scan delay [entity/mobile/aircraft/ac_tgt.c:92 check_aircraft_target_scan_valid]
+***** Air-to-ground prefers targets ahead: range^2 x (2 - (cos + 1)) [entity/mobile/aircraft/ac_tgt.c:331 get_aircraft_air_to_surface_scan_group_targets]
+***** Each player emitter off (radar, radar jammer, IR jammer) cuts detection range ~10% [entity/mobile/aircraft/ac_tgt.c:539 get_aircraft_air_to_air_scan_group_targets]
+**** Firing
+***** Gates: target, AI fire not suppressed, best weapon, system ready, angle error, line of sight [entity/mobile/aircraft/ac_wpn.c:164 aircraft_fire_weapon]
+***** Longbow Hellfire fired lock-on-after-launch beyond half range [entity/mobile/aircraft/ac_wpn.c:164 aircraft_fire_weapon]
+**** Damage states
+***** CRITICAL under 5%, MORTAL under 30%; AI ejects under 3.75% [entity/mobile/aircraft/aircraft.c:78 aircraft_critically_damaged]
+***** Crossing a band sends low-priority (&lt;= 5) flights home [entity/mobile/aircraft/aircraft.c:277 assess_aircraft_damage_level]
+***** Damaged aircraft bleed: chance damage_type^4 per second [entity/mobile/aircraft/fixwing/fw_updt.c:115 update_server]
+**** Helicopter specifics
+***** Fuel burn = economy/60 x rotor rpm/125; RTB at 20 min reserve; no fuel-out death [entity/mobile/aircraft/helicop/hc_updt.c:108 update_fuel_weight]
+***** Comanche stealth: bays closed -40%, stubs off -35%, gear up -10% [entity/mobile/aircraft/helicop/hc_float.c:243 get_local_float_value]
+***** AI waits for human wingmen to lift off [entity/mobile/aircraft/helicop/hc_move.c:135 helicopter_movement]
+***** Rearm only inside keysite area (player must be landed) [entity/mobile/aircraft/helicop/helicop.c:2135 get_helicopter_allowed_to_rearm]
+*** Player gunship
+**** Pilot entity: name, rank, side, kills, difficulty [entity/special/pilot/pilot.c:271 create_new_pilot_entity]
+**** Mission end
+***** Points to experience; valour medal, promotion, air medal, wings, purple heart [entity/mobile/aircraft/helicop/helicop.c:693 notify_gunship_entity_mission_terminated]
+***** Success 1.0, partial 0.5, failure 0 for success rate [entity/mobile/aircraft/helicop/helicop.c:693 notify_gunship_entity_mission_terminated]
+**** Wingman radio commands
+***** Attack my target, help me, weapons hold/free, hold, rejoin, bob up, 9 formations [misc/msg_in.c:965 process_radio_message]
+***** Request airstrike: GROUND_STRIKE, SEAD or CAS by target type [misc/msg_in.c:1937 process_message_request_airstrike]
+***** Request artillery: nearest idle in-range battery shells a 1 km area [misc/msg_in.c:2105 process_message_request_artillery]
+*** Ground vehicles
+**** Vehicle database
+***** M1A2 damage 1500, armour front/side/rear 1/0.75/0.5; T-80U 1350 [entity/mobile/vehicle/vh_dbase.c:81 vehicle_database]
+***** SAM: SA-19 7.5 km, Avenger 4 km, Chaparral 5 km, SA-13 5 km; Vulcan 2.5 km [entity/mobile/vehicle/vh_dbase.c:81 vehicle_database]
+***** Ships: Tarawa 12000 dmg 3000 pts, Kiev 15000 3500 pts, frigates 8000 [entity/mobile/vehicle/vh_dbase.c:81 vehicle_database]
+**** Scanning
+***** Only the first group member scans, every 0.5-1.5 x delay [entity/mobile/vehicle/vh_tgt.c:95 check_vehicle_target_scan_valid]
+***** SAM floor vs players scaled by difficulty: hard 1.0, medium 1.5, easy 2.0 [entity/mobile/vehicle/vh_tgt.c:1117 get_scan_floor_difficulty_factor]
+**** Firing
+***** Reload x (1 +/- 0.333) x difficulty factor (hard 0.5, medium 0.66, easy 1.0) [entity/mobile/vehicle/vh_wpn.c:88 update_vehicle_weapon_fire]
+***** Radar SAMs need the target inside their altitude band [entity/mobile/vehicle/vh_wpn.c:88 update_vehicle_weapon_fire]
+***** Ships: CIWS engages the first incoming missile [entity/mobile/vehicle/vh_wpn.c:617 update_vehicle_missile_defence]
+***** Empty package refilled from group ammo after rearm time [entity/mobile/vehicle/vh_wpn.c:724 rearm_vehicle_weapons]
+**** Damage
+***** Critical at 15%; explosive or flammable stop and burn [entity/mobile/vehicle/vehicle.c:415 assess_vehicle_damage_level]
+***** Routed vehicles halt while any group member is engaging [entity/mobile/vehicle/routed/rv_move.c:97 routed_vehicle_movement]
+***** Bridge out stops convoys on that link [entity/mobile/vehicle/routed/routed.c:386 stop_vehicles_on_route]
+**** Infantry
+***** Not counted in force info; no regen of individuals [entity/mobile/vehicle/person/ps_creat.c:79 create_local]
+*** Kill accounting
+**** Points = victim value; +10% if it targeted us, +50% if it targeted a friend; 0 same side [entity/mobile/mobile.c:281 calculate_task_points_for_kill]
+**** Group and task kills, task score, player log, force stats [entity/mobile/mobile.c:365 credit_client_server_mobile_kill]
+**** Death adds the unit to its side's regen queue [entity/mobile/aircraft/fixwing/fw_dstry.c:306 kill_local]
+**** Wrecks persist 5 min to 3 h by distance from player [entity/mobile/mobile.c:494 MAX_DEATH_TIMER_VALUE]
+** L8 Weapons and damage (lowest level)
+*** Weapon database (83 entries)
+**** Fields: guidance, warhead, threat type, soft/hard damage, ranges, velocity, ROF, reload, launch angle error [entity/mobile/weapon/wn_dbase.c:133 weapon_database]
+**** Guns
+***** M230 30 mm HE soft 30 hard 15, 1.2 km [entity/mobile/weapon/wn_dbase.c:897]
+***** GAU-8 30 mm HEDP 100/100 [entity/mobile/weapon/wn_dbase.c:822]
+**** Rockets and artillery
+***** Hydra M255 500/120, 5 km [entity/mobile/weapon/wn_dbase.c:2787]
+***** M284 155 mm 1610, 30 km; M26A1 MLRS 2500, 31.6 km; BM-21 1400 [entity/mobile/weapon/wn_dbase.c:1128]
+***** Ballistic range from 45 degree shot: u = sqrt(range x G) [entity/mobile/weapon/wn_dbase.c:133 weapon_database]
+**** Missiles
+***** AGM-114L Longbow active radar 2000/2000, 8 km; AGM-114K SAL [entity/mobile/weapon/wn_dbase.c:3985]
+***** Vikhr SAL 10 km; Ataka radio command 6 km; TOW-2 wire 3.75 km [entity/mobile/weapon/wn_dbase.c:4429]
+***** Stinger IR 550, 5 km; AMRAAM active radar 65 km [entity/mobile/weapon/wn_dbase.c:3312]
+**** Decoys and debris
+***** Chaff, flare, smoke grenade; crates for supply drops [entity/mobile/weapon/wn_dbase.c:5708]
+***** Rotor blades, ejected crew and doors act as damaging debris [entity/mobile/weapon/wn_dbase.c:6018]
+*** Weapon loadouts
+**** Config table: up to 32 packages per config (type, count, salvo) [entity/mobile/weapon/wn_dbase.c:6560 weapon_config_database]
+***** Apache: 1200 rounds, 2 Stinger, 4 Hellfire per rail, 19 Hydra, 10 chaff, 20 flares [entity/mobile/weapon/configs/apache.h:86 NUM_CHAIN_GUN_ROUNDS]
+***** Config counts: Comanche 384, Hind 60, Apache 50, most vehicles 1 [entity/mobile/weapon/wn_dbase.c:6560 weapon_config_database]
+**** Mission loadout chosen at takeoff: scout, air-to-air, air-to-surface or default [entity/mobile/mb_msgs.c:160 response_to_task_assigned]
+*** Best weapon selection
+**** Filter: undamaged packages with ammo; class by target (A2A/S2A vs air, A2S/S2S vs ground) [entity/mobile/weapon/wn_tgt.c:79 get_best_weapon_for_target]
+***** No line of sight: only ballistic weapons beyond 8 km (indirect fire) [entity/mobile/weapon/wn_tgt.c:79 get_best_weapon_for_target]
+***** Range min..effective (guided up to 0.9 max vs aircraft) [entity/mobile/weapon/wn_tgt.c:79 get_best_weapon_for_target]
+***** Score: damage capped at 2x target, guided x(range km + 1), A2A x2 [entity/mobile/weapon/wn_tgt.c:79 get_best_weapon_for_target]
+**** Launch notifies the target force (FIRED_AT) for reactions [entity/mobile/weapon/wn_creat.c:414 create_client_server_entity_weapon]
+*** Damage model
+**** Kinetic: random 0.75..1.25 x velocity ratio vs armour thickness by aspect [entity/mobile/weapon/damage.c:338 weapon_damage_capability]
+**** HE: random 0.75..2.75; splash scaled by warhead class and armour^1.5 [entity/mobile/weapon/damage.c:338 weapon_damage_capability]
+**** Damage to players scaled by difficulty: easy 0.33, medium 0.66, hard 1.0 [entity/mobile/weapon/damage.c:338 weapon_damage_capability]
+**** Soft vs hard target classes (aircraft, infantry vs armour, ships, hardened buildings) [entity/mobile/weapon/damage.h:101 WARHEAD_EFFECTIVE_HARDENED_BUILDING]
+*** Fixed targets
+**** Structure database (805 entries)
+***** Hardness light/stone/hardened, initial damage, importance 0/0.25/0.5/1.0 [entity/fixed/fx_objdb.c:91 set_fixed_3d_object_database_item]
+***** Factories: stone, 2000 damage, high importance [entity/fixed/fx_objdb.c:217 initialise_high_importance_large_stone_buildings]
+***** Points = importance x 500; armour 3/15/40 by hardness [entity/fixed/fx_int.c:215 get_local_int_value]
+**** Bridges
+***** Segment types and strengths (stone 200, concrete wide 800, suspension 750) [entity/fixed/segment/sg_dbase.c:80 segment_database]
+***** Segment killed: vehicles on it die, road link broken, REPAIR task created [entity/special/bridge/br_msgs.c:82 response_to_child_killed]
+***** Repair restores segments and clears link breaks [entity/special/bridge/bridge.c:892 repair_local_bridge_entity]
+left side
+** Cross-level flows (strategic down to unit and back up)
+*** Strike chain
+**** Scheduler fires keysite generator [ai/highlevl/highlevl.c:1026 create_keysite_strike_tasks]
+***** RECON task, then on success GROUND_STRIKE [ai/highlevl/reaction.c:314 create_reaction_to_recon_task_completed]
+****** Base assigns a suitable idle group; escort if difficult [ai/taskgen/assign.c:524 assign_primary_task_to_group]
+******* Guide runs ATTACK waypoint, members pick best weapon [entity/mobile/mb_msgs.c:516 response_to_waypoint_attack_action]
+******** Buildings die, keysite efficiency falls, task rated, points awarded [entity/special/task/task.c:94 assess_task_completeness]
+*** Capture chain
+**** Efficiency below minimum makes the keysite a troop target [ai/highlevl/highlevl.c:1660 create_troop_insertion_tasks]
+***** Assault helicopters insert troops near the base [ai/taskgen/taskgen.c:1801 create_troop_insertion_task]
+****** Troops walk in and roll the capture check [entity/mobile/mb_msgs.c:2218 response_to_waypoint_troop_capture_reached]
+******* Keysite flips side, imaps and frontline move [entity/special/keysite/keysite.c:1289 capture_keysite]
+******** Victory check runs for every force [entity/special/force/fc_msgs.c:144 response_to_check_campaign_objectives]
+*** Attrition and replacement chain
+**** Unit killed: kill credited, task and group loss [entity/mobile/mobile.c:365 credit_client_server_mobile_kill]
+***** Unit queued for regen; reserve book-keeping [entity/special/regen/rg_updt.c:656 add_entity_to_regen_queue]
+****** Regen spawns a replacement at a working base if reserves remain [entity/special/regen/rg_updt.c:199 regen_update]
+******* New member joins a division company [entity/special/division/division.c:149 add_group_to_division]
+*** Supply chain
+**** Base consumes stock each minute [entity/special/keysite/ks_updt.c:82 update_server]
+***** Stock &lt;= 75 triggers FORCE_LOW_ON_SUPPLIES [entity/special/keysite/keysite.c:337 update_keysite_cargo]
+****** SUPPLY task flown from factory, refinery or airbase [entity/special/force/fc_msgs.c:672 response_to_force_low_on_supplies]
+******* Restock shortens rearm and refuel times [entity/system/en_types/en_suply.c:95 get_local_entity_rearming_sleep_time]
+*** Self-defence chain
+**** Unit fired at [entity/mobile/weapon/wn_creat.c:414 create_client_server_entity_weapon]
+***** Group retaliates under its ROE and asks for help [entity/special/group/gp_msgs.c:295 response_to_entity_fired_at]
+****** Force diverts nearby air groups [entity/special/force/fc_msgs.c:1022 response_to_request_assistance]
+******* Keysite under air attack spawns CAP [entity/special/keysite/keysite.c:854 notify_keysite_structure_under_attack]
+** Known gaps and quirks in the source
+*** Strategic layer
+**** Balance-of-power trigger is a stub that always returns 50 [ai/parser/parsgen.c:2588 trigger_triggered]
+**** Per-force task-generation flags never checked (validate always TRUE) [ai/taskgen/taskgen.c:2373 validate_task_generation]
+**** Force update_server body entirely commented out (criteria timers, percentages, tours) [entity/special/force/fc_updt.c:84 update_server]
+**** Criteria counting commented out for FORCE_DESTROYED, INEFFICIENT_KEYSITE, SPECIAL_KILL, WAYPOINT_REACHED [entity/special/force/fc_msgs.c:510 response_to_force_destroyed]
+**** FORCE_ARMOUR_* and FORCE_ENTERED_SECTOR responses are stubs [entity/special/force/fc_msgs.c:355 response_to_force_armour_advancing]
+**** Campaign trigger loop over types commented out; only polled triggers run [ai/parser/parsgen.c:218 update_campaign_triggers]
+**** Regen difficulty modifier always MEDIUM (1.0) [entity/special/regen/regen.c:328 get_regen_frequency_difficulty_modifier]
+**** Task difficulty documents 10 factors but computes only 2 [entity/special/task/task.c:708 assess_task_difficulty]
+*** Theatre layer
+**** Sector exposure computed but call commented out [ai/ai_misc/ai_sect.c:97 initialise_ai_sector_exposure]
+**** Road node link positions reader stubbed [ai/ai_misc/ai_route.c:644 read_road_route_node_link_positions]
+**** Faction parser loader body stripped [ai/faction/parser.c:101 regen_frequency_modifier]
+**** Sector "enemy" defence getter sums the side passed in [entity/special/sector/sector.c:164 get_local_sector_entity_enemy_surface_to_air_defence_level]
+*** Unit layer
+**** Group selection keeps the LOWEST suitability score [ai/taskgen/assign.c:401 get_suitable_registered_group]
+**** Entity quicksort orders descending [entity/en_misc/en_misc.c:124 quicksort_entity_list]
+**** Best-weapon altitude check effectively never runs [entity/mobile/weapon/wn_tgt.c:79 get_best_weapon_for_target]
+**** Helicopters cannot die from running out of fuel [entity/mobile/aircraft/helicop/hc_updt.c:108 update_fuel_weight]
+**** Capture roll multiplies defender strength by attacker survival, so troops that took losses capture more easily [entity/mobile/mb_msgs.c:2218 response_to_waypoint_troop_capture_reached]
+**** Advance "warmth" hard-coded so supporting groups always follow [entity/special/group/gp_msgs.c:411 response_to_ground_force_advance]
+**** REVERSE_CONVOY formation reversal commented out [entity/mobile/vehicle/routed/rv_msgs.c:281 response_to_waypoint_reverse_convoy_reached]
+**** Hangar door search measures sender to sender, so every building matches and the last one opens [entity/special/landing/ld_msgs.c:717 response_to_lock_takeoff_route]
+**** Vacant FARP recon commented out; infantry absent from force info [entity/special/force/fc_msgs.c:941 response_to_force_vacant_farp]
+**** Konkurs flagged semi-active radar; us_inf.h and cis_inf.h configs not included [entity/mobile/weapon/wn_dbase.c:5479]
+** Legend
+*** Depth: L0 campaign, L1 theatre, L2 force, L3 keysite, L4 task, L5 group, L6 guide and waypoint, L7 unit, L8 weapon and damage
+**** Each leaf cites path:line symbol
+***** Paths are relative to aphavoc/source/
+****** Table rows cite the row's line in the database file
+@endmindmap
