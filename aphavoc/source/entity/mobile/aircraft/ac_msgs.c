@@ -274,13 +274,13 @@ static int response_to_unlink_parent (entity_messages message, entity *receiver,
 			break;
 		}
 
-		case LIST_TYPE_UPDATE:
 
-		{
-			set_local_entity_float_value (receiver, FLOAT_TYPE_VIEW_INTEREST_LEVEL, 0.0);
 
-			break;
-		}
+
+
+
+
+
 	}
 
 	return (TRUE);
@@ -498,23 +498,23 @@ static int response_to_guide_cover_position_reached (entity_messages message, en
 		return (TRUE);
 	}
 
-	//
-	// Play Speech
-	//
 
-	silence_timer = 15.0 + (frand1 () * 12.0);
 
-	play_client_server_wingman_message
-	(
-		aggressor,
-		0.8,
-		1.5,
-		SPEECH_CATEGORY_IN_POSITION,
-		silence_timer,
-		SPEECH_INTRODUCTION_ALWAYS,
-		SPEECH_ARRAY_WINGMAN_MESSAGES,
-		SPEECH_WINGMAN_IN_POSITION
-	);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	return (TRUE);
 }

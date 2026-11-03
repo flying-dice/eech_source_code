@@ -68,9 +68,9 @@ struct AIRCRAFT_DATA
 {
 	const char
 		*full_name,
-		*long_display_name,
-		*short_display_name,
-		*easy_display_name;
+
+
+
 
 	object_3d_index_numbers
 

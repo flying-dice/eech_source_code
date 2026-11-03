@@ -275,21 +275,21 @@ static entity *create_local (entity_types type, int index, char *pargs)
 		//
 
 
-		//
-		// 3D object
-		//
 
-		raw->ac.inst3d = construct_3d_object (raw->ac.object_3d_shape);
 
-		set_fixed_wing_id_number (en);
 
-		initialise_fixed_wing_propellors (en);
 
-		#if RECOGNITION_GUIDE
 
-		raw->ac.loading_door_state = AIRCRAFT_LOADING_DOORS_CLOSED_FLOAT_VALUE;
 
-		#endif
+
+
+
+
+
+
+
+
+
 
 		//
 		// weapon config
@@ -315,11 +315,11 @@ static entity *create_local (entity_types type, int index, char *pargs)
 
 		insert_local_entity_into_parents_child_list (en, LIST_TYPE_MEMBER, raw->ac.member_link.parent, raw->ac.member_link.child_pred);
 
-		//
-		// insert into LIST_TYPE_MEMBER before LIST_TYPE_VIEW
-		//
 
-		insert_local_entity_into_parents_child_list (en, LIST_TYPE_VIEW, get_camera_entity (), get_local_entity_view_list_pred (en));
+
+
+
+
 
 		insert_local_entity_into_parents_child_list (en, LIST_TYPE_SECTOR, get_local_sector_entity (&raw->ac.mob.position), NULL);
 
@@ -440,70 +440,70 @@ entity *create_client_server_entity_fixed_wing (int index, entity_sub_types sub_
 		ENTITY_ATTR_END
 	);
 
-	//
-	// create and attach special effects
-	//
-
-	{
-		sound_sample_indices
-			sound_sample_index;
-
-		//
-		// damage smoke
-		//
 
 
 
-		//
-		// sound effects
-		//
 
-		sound_sample_index = aircraft_database [sub_type].continuous_sound_effect_index;
 
-		create_client_server_sound_effect_entity
-		(
-			new_entity,
-			ENTITY_SIDE_NEUTRAL,
-			ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1,
-			SOUND_CHANNEL_SOUND_EFFECT,
-			SOUND_LOCALITY_ALL,
-			NULL,												// position
-			1.0,												// amplification
-			1.0,												// Werewolf pitch
-			FALSE,											// valid sound effect
-			TRUE,												// looping
-			1,													// sample count
-			&sound_sample_index							// sample index list
-		);
 
-		sound_sample_index = SOUND_SAMPLE_INDEX_JET_AFTERBURNER;
 
-		create_client_server_sound_effect_entity
-		(
-			new_entity,
-			ENTITY_SIDE_NEUTRAL,
-			ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING2,
-			SOUND_CHANNEL_SOUND_EFFECT,
-			SOUND_LOCALITY_ALL,
-			NULL,												// position
-			1.0,												// amplification
-			1.0,												// Werewolf pitch
-			FALSE,											// valid sound effect
-			TRUE,												// looping
-			1,													// sample count
-			&sound_sample_index							// sample index list
-		);
-	}
 
-	//
-	// initialise terrain elevation cache
-	//
 
-	raw = (fixed_wing *) get_local_entity_data (new_entity);
 
-	ASSERT(point_inside_map_area(position));
 
-	get_3d_terrain_point_data (position->x, position->z, &raw->ac.terrain_info);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	return new_entity;
 }

@@ -138,13 +138,13 @@ static void set_local_int_value (entity *en, int_types type, int value)
 	switch (type)
 	{
 
-		case INT_TYPE_CPG_IDENTIFIED:
 
-		{
-			raw->cpg_identified = value;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_DAMAGE_LEVEL:
 
@@ -222,13 +222,13 @@ static void set_local_int_value (entity *en, int_types type, int value)
 			break;
 		}
 
-		case INT_TYPE_LIGHTS_ON:
 
-		{
-			raw->lights_on = value;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_OBJECT_3D_SHAPE:
 
@@ -274,21 +274,21 @@ static void set_local_int_value (entity *en, int_types type, int value)
 			raw->weapon_salvo_timer = 0.0;
 
 			//
-			// special case for player's gunship
-			//
 
-			if (en == get_gunship_entity ())
-			{
-				rocket_salvo_count = 0;
 
-				if (value == ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
-				{
-					hud_mode = previous_hud_mode;
-				}
-				else
-				{
-					if (hud_mode != HUD_MODE_WEAPON)
-						previous_hud_mode = hud_mode;
+
+
+
+
+
+
+
+
+
+
+
+
+
 					hud_mode = HUD_MODE_WEAPON;
 				}
 			}
@@ -479,13 +479,13 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 
-		case INT_TYPE_CPG_IDENTIFIED:
 
-		{
-			value = raw->cpg_identified;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_DAMAGE_LEVEL:
 
@@ -495,13 +495,13 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 
-		case INT_TYPE_DEFAULT_3D_SHAPE:
 
-		{
-			value = aircraft_database[raw->mob.sub_type].default_3d_shape;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_DEFAULT_WEAPON_CONFIG_TYPE:
 
@@ -519,13 +519,13 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 
-		case INT_TYPE_DESTROYED_3D_SHAPE:
 
-		{
-			value = get_3d_object_destroyed_object_index (raw->object_3d_shape);
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_EJECTED:
 
@@ -818,21 +818,21 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 
-		case INT_TYPE_LIGHTS_ON:
 
-		{
-			value = raw->lights_on;
 
-			break;
-		}
 
-		case INT_TYPE_MAP_ICON:
 
-		{
-			value = aircraft_database [raw->mob.sub_type].map_icon;
 
-			break;
-		}
+
+
+
+
+
+
+
+
+
+
 
 		case INT_TYPE_MAX_WEAPON_CONFIG_TYPE:
 
@@ -976,13 +976,13 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 
-		case INT_TYPE_TARGET_SYMBOL_TYPE:
 
-		{
-			value = aircraft_database[raw->mob.sub_type].target_symbol_type;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_TARGET_TYPE:
 
@@ -1036,37 +1036,37 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 
-		case INT_TYPE_TRACK_ENTITY_ON_MAP:
 
-		{
-			value = TRUE;
 
-			break;
-		}
 
-		case INT_TYPE_VIEW_CATEGORY:
 
-		{
-			value = aircraft_database[raw->mob.sub_type].view_category;
 
-			break;
-		}
 
-		case INT_TYPE_VIEW_TYPE:
 
-		{
-			value = aircraft_database[raw->mob.sub_type].view_type;
 
-			break;
-		}
 
-		case INT_TYPE_VIEWABLE:
 
-		{
-			value = raw->view_link.parent != NULL;
 
-			break;
-		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		case INT_TYPE_WEAPON_AND_TARGET_VECTORS_VALID:
 

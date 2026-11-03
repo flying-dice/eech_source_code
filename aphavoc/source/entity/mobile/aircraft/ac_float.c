@@ -110,13 +110,13 @@ static void set_local_float_value (entity *en, float_types type, float value)
 			break;
 		}
 
-		case FLOAT_TYPE_CARGO_DOOR_STATE:
 
-		{
-			raw->cargo_door_state = value;
 
-			break;
-		}
+
+
+
+
+
 
 		case FLOAT_TYPE_DEATH_TIMER:
 
@@ -142,37 +142,37 @@ static void set_local_float_value (entity *en, float_types type, float value)
 			break;
 		}
 
-		case FLOAT_TYPE_LOADING_DOOR_STATE:
 
-		{
-			raw->loading_door_state = value;
 
-			break;
-		}
 
-		case FLOAT_TYPE_RUDDER_STATE:
 
-		{
-			raw->rudder_state = value;
 
-			break;
-		}
 
-		case FLOAT_TYPE_UNDERCARRIAGE_STATE:
 
-		{
-			raw->undercarriage_state = value;
 
-			break;
-		}
 
-		case FLOAT_TYPE_VIEW_INTEREST_LEVEL:
 
-		{
-			raw->view_interest_level = value;
 
-			break;
-		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		case FLOAT_TYPE_WEAPON_BURST_TIMER:
 
@@ -331,13 +331,13 @@ static float get_local_float_value (entity *en, float_types type)
 			break;
 		}
 
-		case FLOAT_TYPE_CARGO_DOOR_STATE:
 
-		{
-			value = raw->cargo_door_state;
 
-			break;
-		}
+
+
+
+
+
 
 		case FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE:
 
@@ -354,37 +354,37 @@ static float get_local_float_value (entity *en, float_types type)
 			break;
 		}
 
-		case FLOAT_TYPE_CHASE_VIEW_MAX_DISTANCE:
 
-		{
-			value = aircraft_database[raw->mob.sub_type].chase_view_max_distance;
 
-			break;
-		}
 
-		case FLOAT_TYPE_CHASE_VIEW_MAX_DISTANCE_TEST:
 
-		{
-			value = aircraft_database[raw->mob.sub_type].chase_view_max_distance_test;
 
-			break;
-		}
 
-		case FLOAT_TYPE_CHASE_VIEW_MIN_DISTANCE:
 
-		{
-			value = aircraft_database[raw->mob.sub_type].chase_view_min_distance;
 
-			break;
-		}
 
-		case FLOAT_TYPE_CHASE_VIEW_MIN_DISTANCE_TEST:
 
-		{
-			value = aircraft_database[raw->mob.sub_type].chase_view_min_distance_test;
 
-			break;
-		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		case FLOAT_TYPE_CRUISE_ALTITUDE:
 
@@ -450,54 +450,54 @@ static float get_local_float_value (entity *en, float_types type)
 			break;
 		}
 
-		case FLOAT_TYPE_LOADING_DOOR_STATE:
 
-		{
-			value = raw->loading_door_state;
 
-			break;
-		}
 
-		case FLOAT_TYPE_MAIN_ROTOR_DIRECTION:
 
-		{
-			value = aircraft_database[raw->mob.sub_type].main_rotor_direction;
 
-			break;
-		}
 
-		case FLOAT_TYPE_MAIN_ROTOR_BLADE_DROOP_ANGLE:
 
-		{
-			value = aircraft_database[raw->mob.sub_type].main_rotor_blade_droop_angle;
 
-			break;
-		}
 
-		// Xhit: added FLOAT_TYPE_MAIN_ROTOR_RADIUS for downwash effect (030328)
-		case FLOAT_TYPE_MAIN_ROTOR_RADIUS:
 
-		{
-			value = aircraft_database[raw->mob.sub_type].main_rotor_radius;
 
-			break;
-		}
 
-		case FLOAT_TYPE_MAIN_ROTOR_SHAFT_ANGLE:
 
-		{
-			value = aircraft_database[raw->mob.sub_type].main_rotor_shaft_angle;
 
-			break;
-		}
 
-		case FLOAT_TYPE_MAX_3D_OBJECT_VISUAL_RANGE:
 
-		{
-			value = object_3d_information_database[raw->object_3d_shape].maximum_distance;
 
-			break;
-		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		case FLOAT_TYPE_MAX_TURN_RATE:
 
@@ -507,29 +507,29 @@ static float get_local_float_value (entity *en, float_types type)
 			break;
 		}
 
-		case FLOAT_TYPE_MAX_ROLL:
 
-		{
-			value = aircraft_database[raw->mob.sub_type].max_roll;
 
-			break;
-		}
-		// Xhit: added FLOAT_TYPE_NUMBER_OF_MAIN_ROTORS for downwash effect (030328)
-		case FLOAT_TYPE_NUMBER_OF_MAIN_ROTORS:
 
-		{
-			value = aircraft_database[raw->mob.sub_type].number_of_main_rotors;
 
-			break;
-		}
 
-		case FLOAT_TYPE_MAX_VERTICAL_TURN_ALLOWANCE:
 
-		{
-			value = aircraft_database[raw->mob.sub_type].max_vertical_turn_allowance;
 
-			break;
-		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		case FLOAT_TYPE_POTENTIAL_AIR_THREAT:
 
@@ -563,13 +563,13 @@ static float get_local_float_value (entity *en, float_types type)
 			break;
 		}
 
-		case FLOAT_TYPE_PROPELLOR_DIRECTION:
 
-		{
-			value = aircraft_database[raw->mob.sub_type].propellor_direction;
 
-			break;
-		}
+
+
+
+
+
 
 		case FLOAT_TYPE_RADAR_ALTITUDE:
 
@@ -587,13 +587,13 @@ static float get_local_float_value (entity *en, float_types type)
 			break;
 		}
 
-		case FLOAT_TYPE_RUDDER_STATE:
 
-		{
-			value = raw->rudder_state;
 
-			break;
-		}
+
+
+
+
+
 
 		case FLOAT_TYPE_SURFACE_SCAN_RANGE:
 
@@ -603,13 +603,13 @@ static float get_local_float_value (entity *en, float_types type)
 			break;
 		}
 
-		case FLOAT_TYPE_TAIL_ROTOR_DIRECTION:
 
-		{
-			value = aircraft_database[raw->mob.sub_type].tail_rotor_direction;
 
-			break;
-		}
+
+
+
+
+
 
 		case FLOAT_TYPE_TARGET_PRIORITY_AIR_ATTACK:
 
@@ -651,21 +651,21 @@ static float get_local_float_value (entity *en, float_types type)
 			break;
 		}
 
-		case FLOAT_TYPE_UNDERCARRIAGE_STATE:
 
-		{
-			value = raw->undercarriage_state;
 
-			break;
-		}
 
-		case FLOAT_TYPE_VIEW_INTEREST_LEVEL:
 
-		{
-			value = raw->view_interest_level;
 
-			break;
-		}
+
+
+
+
+
+
+
+
+
+
 
 		case FLOAT_TYPE_WEAPON_BURST_TIMER:
 

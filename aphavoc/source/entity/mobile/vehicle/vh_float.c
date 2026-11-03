@@ -126,21 +126,21 @@ static void set_local_float_value (entity *en, float_types type, float value)
 			break;
 		}
 
-		case FLOAT_TYPE_LOADING_DOOR_STATE:
 
-		{
-			raw->loading_door_state = value;
 
-			break;
-		}
 
-		case FLOAT_TYPE_RADAR_ROTATION_STATE:
 
-		{
-			raw->radar_rotation_state = value;
 
-			break;
-		}
+
+
+
+
+
+
+
+
+
+
 
 		case FLOAT_TYPE_SLEEP:
 
@@ -166,13 +166,13 @@ static void set_local_float_value (entity *en, float_types type, float value)
 			break;
 		}
 
-		case FLOAT_TYPE_VIEW_INTEREST_LEVEL:
 
-		{
-			raw->view_interest_level = value;
 
-			break;
-		}
+
+
+
+
+
 
 		case FLOAT_TYPE_WEAPON_BURST_TIMER:
 
@@ -315,45 +315,45 @@ static float get_local_float_value (entity *en, float_types type)
 			break;
 		}
 
-		case FLOAT_TYPE_AXLE_LENGTH:
 
-		{
-			value = vehicle_database[raw->mob.sub_type].axle_length;
 
-			break;
-		}
 
-		case FLOAT_TYPE_CHASE_VIEW_MAX_DISTANCE:
 
-		{
-			value = vehicle_database[raw->mob.sub_type].chase_view_max_distance;
 
-			break;
-		}
 
-		case FLOAT_TYPE_CHASE_VIEW_MAX_DISTANCE_TEST:
 
-		{
-			value = vehicle_database[raw->mob.sub_type].chase_view_max_distance_test;
 
-			break;
-		}
 
-		case FLOAT_TYPE_CHASE_VIEW_MIN_DISTANCE:
 
-		{
-			value = vehicle_database[raw->mob.sub_type].chase_view_min_distance;
 
-			break;
-		}
 
-		case FLOAT_TYPE_CHASE_VIEW_MIN_DISTANCE_TEST:
 
-		{
-			value = vehicle_database[raw->mob.sub_type].chase_view_min_distance_test;
 
-			break;
-		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		case FLOAT_TYPE_CRUISE_VELOCITY:
 
@@ -395,29 +395,29 @@ static float get_local_float_value (entity *en, float_types type)
 			break;
 		}
 
-		case FLOAT_TYPE_LOADING_DOOR_STATE:
 
-		{
-			value = raw->loading_door_state;
 
-			break;
-		}
 
-		case FLOAT_TYPE_MAX_3D_OBJECT_VISUAL_RANGE:
 
-		{
-			value = object_3d_information_database[raw->object_3d_shape].maximum_distance;
 
-			break;
-		}
 
-		case FLOAT_TYPE_MAX_ACCELERATION:
 
-		{
-			value = vehicle_database[raw->mob.sub_type].max_acceleration;
 
-			break;
-		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		case FLOAT_TYPE_MAX_TURN_RATE:
 
@@ -459,21 +459,21 @@ static float get_local_float_value (entity *en, float_types type)
 			break;
 		}
 
-		case FLOAT_TYPE_POWER_OUTPUT:
 
-		{
-			value = vehicle_database[raw->mob.sub_type].power_output;
 
-			break;
-		}
 
-		case FLOAT_TYPE_RADAR_ROTATION_STATE:
 
-		{
-			value = raw->radar_rotation_state;
 
-			break;
-		}
+
+
+
+
+
+
+
+
+
+
 
 		case FLOAT_TYPE_RECON_RADIUS:
 
@@ -547,13 +547,13 @@ static float get_local_float_value (entity *en, float_types type)
 			break;
 		}
 
-		case FLOAT_TYPE_VIEW_INTEREST_LEVEL:
 
-		{
-			value = raw->view_interest_level;
 
-			break;
-		}
+
+
+
+
+
 
 		case FLOAT_TYPE_WEAPON_BURST_TIMER:
 

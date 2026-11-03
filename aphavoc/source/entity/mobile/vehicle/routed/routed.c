@@ -72,45 +72,45 @@
 
 #define DEBUG_MODULE 0
 
-#define MAX_META_SMOKE_LIST_ATTACHMENT_POINTS 2
 
 
 
 
 
-static struct ATTACHED_META_SMOKE_LIST_TABLE
-{
 
-	meta_smoke_list_types							type;
-	object_3d_sub_object_index_numbers			attachment_point[MAX_META_SMOKE_LIST_ATTACHMENT_POINTS];
 
-} attached_meta_smoke_list_table[] =
-	{
 
-		//
-		// DUST TRAILS
-		//
 
-		{
-			META_SMOKE_LIST_TYPE_VEHICLE_DUST_TRAIL,
-			{
-				OBJECT_3D_SUB_OBJECT_WHEEL_SMOKE_EFFECT,
-				-1
-			}
-		},
 
-		//
-		// TERMINATOR
-		//
 
-		{
-			(meta_smoke_list_types) -1,
-			{
-				-1,
-				-1
-			}
-		}
-	};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

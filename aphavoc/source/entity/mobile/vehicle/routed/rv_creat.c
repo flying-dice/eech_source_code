@@ -269,10 +269,10 @@ static entity *create_local (entity_types type, int index, char *pargs)
 		raw->vh.damage_level = vehicle_database[raw->vh.mob.sub_type].initial_damage_level;
 
 		//
-		// radar dish rotation (ok to use a random number as this is for visual effect only)
-		//
 
-		raw->vh.radar_rotation_state = frand1 ();
+
+
+
 
 
 		//
@@ -281,28 +281,28 @@ static entity *create_local (entity_types type, int index, char *pargs)
 
 
 		//
-		// 3D object
-		//
 
-		raw->vh.inst3d = construct_3d_object (raw->vh.object_3d_shape);
 
-		set_routed_vehicle_id_number (en);
 
-		set_initial_rotation_angle_of_routed_vehicle_wheels (raw->vh.inst3d);
 
-		//
-		// align with terrain
-		//
 
-		ASSERT(point_inside_map_area(&raw->vh.mob.position));
 
-		get_3d_terrain_point_data (raw->vh.mob.position.x, raw->vh.mob.position.z, &raw->vh.terrain_info);
 
-		heading = get_heading_from_attitude_matrix (raw->vh.mob.attitude);
 
-		face_normal = get_3d_terrain_point_data_normal (&raw->vh.terrain_info);
 
-		get_3d_transformation_matrix_from_face_normal_and_heading (raw->vh.mob.attitude, face_normal, heading);
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		//
 		// weapon config
@@ -329,10 +329,10 @@ static entity *create_local (entity_types type, int index, char *pargs)
 		insert_local_entity_into_parents_child_list (en, LIST_TYPE_MEMBER, raw->vh.member_link.parent, raw->vh.member_link.child_pred);
 
 		//
-		// insert into LIST_TYPE_MEMBER before LIST_TYPE_VIEW
-		//
 
-		insert_local_entity_into_parents_child_list (en, LIST_TYPE_VIEW, get_camera_entity (), get_local_entity_view_list_pred (en));
+
+
+
 
 		insert_local_entity_into_parents_child_list (en, LIST_TYPE_SECTOR, get_local_sector_entity (&raw->vh.mob.position), NULL);
 
@@ -454,68 +454,68 @@ entity *create_client_server_entity_routed_vehicle (int index, entity_sub_types 
 	);
 
 	//
-	// create and attach special effects
-	//
-
-	{
-		//
-		// dust trails
-		//
 
 
 
-		//
-		// headlights
-		//
 
-		set_vehicle_headlight_state (new_entity, OFF);
 
-		//
-		// sound effects
-		//
 
-		sample_index = vehicle_database [sub_type].idle_sound_effect;
 
-		if (sample_index != SOUND_SAMPLE_INDEX_NONE)
-		{
-			create_client_server_sound_effect_entity
-			(
-				new_entity,
-				ENTITY_SIDE_NEUTRAL,
-				ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1,
-				SOUND_CHANNEL_SOUND_EFFECT,
-				SOUND_LOCALITY_ALL,
-				NULL,												// position
-				1.0,												// amplification
-				1.0,												// Werewolf pitch
-				TRUE,												// valid sound effect
-				TRUE,												// looping
-				1,													// sample count
-				&sample_index									// sample index list
-			);
-		}
 
-		sample_index = vehicle_database [sub_type].moving_sound_effect;
 
-		if (sample_index != SOUND_SAMPLE_INDEX_NONE)
-		{
-			create_client_server_sound_effect_entity
-			(
-				new_entity,
-				ENTITY_SIDE_NEUTRAL,
-				ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING2,
-				SOUND_CHANNEL_SOUND_EFFECT,
-				SOUND_LOCALITY_ALL,
-				NULL,												// position
-				1.0,												// amplification
-				1.0,												// Werewolf pitch
-				FALSE,											// valid sound effect
-				TRUE,												// looping
-				1,													// sample count
-				&sample_index									// sample index list
-			);
-		}
-	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	//
 	//

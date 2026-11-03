@@ -142,10 +142,23 @@
 
 
 
+static int response_to_collision (entity_messages message, entity *receiver, entity *sender, va_list pargs)
+{
 
+	entity
+		*force,
+		*enemy_force,
+		*aggressor;
 
+	int
+		total_damage_level;
 
+	aircraft_damage_types
+		old_damage_state,
+		new_damage_state;
 
+	float
+		damage_modifier;
 
 
 
@@ -153,107 +166,94 @@
 
 
 
+	damage_modifier = va_arg (pargs, double);
 
+	if (sender)
+	{
+		if (get_local_entity_type (sender) == ENTITY_TYPE_WEAPON)
+		{
+			aggressor = get_local_entity_parent (sender, LIST_TYPE_LAUNCHED_WEAPON);
+		}
+		else
+		{
+			aggressor = sender;
+		}
+	}
+	else
+	{
+		aggressor = NULL;
+	}
 
+	force = get_local_force_entity ((entity_sides) get_local_entity_int_value (receiver, INT_TYPE_SIDE));
 
+	enemy_force = get_local_force_entity (get_enemy_side (get_local_entity_int_value (receiver, INT_TYPE_SIDE)));
 
+	//
+	// assess damage
+	//
 
+	old_damage_state = aircraft_critically_damaged (receiver);
 
+	damage_client_server_entity (receiver, sender, damage_modifier);
 
+	total_damage_level = get_local_entity_int_value (receiver, INT_TYPE_DAMAGE_LEVEL);
 
+	new_damage_state = aircraft_critically_damaged (receiver);
 
 
+	//
+	// credit kill
+	//
 
 
+	if ((aggressor) && (old_damage_state == AIRCRAFT_DAMAGE_NONE) && (new_damage_state > AIRCRAFT_DAMAGE_NONE))
+	{
+		credit_client_server_mobile_kill (receiver, aggressor);
+	}
 
 
+	//
+	// Assess damage caused
+	//
 
 
+	if (total_damage_level <= 0)
+	{
 
+		notify_local_entity (ENTITY_MESSAGE_FORCE_DESTROYED, force, receiver, aggressor);
 
+		notify_local_entity (ENTITY_MESSAGE_FORCE_DESTROYED, enemy_force, receiver, aggressor);
 
+		kill_client_server_entity (receiver);
 
+		if (aggressor)
+		{
+			play_aircraft_destroyed_speech (receiver, aggressor);
+		}
+	}
+	else
+	{
 
 
+		//
+		// SPECIAL_EFFECT_HOOK FOR GETTING_SHOT
+		//
 
 
+		if (aggressor)
+		{
+			play_aircraft_shot_at_speech (receiver, aggressor);
+		}
 
 
+		//
+		//
 
 
+		//notify hit. ?
+	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	return (TRUE);
 
 
 
@@ -299,9 +299,9 @@ static int response_to_waypoint_start_up_reached (entity_messages message, entit
 
 
 
-	set_client_server_fixed_wing_afterburner_state (receiver, ON);
 
-	open_client_server_entity_flaps( receiver );
+
+
 
 
 	//
@@ -336,21 +336,6 @@ static int response_to_waypoint_touch_down_reached (entity_messages message, ent
 	{
 		set_client_server_entity_int_value (receiver, INT_TYPE_OPERATIONAL_STATE, OPERATIONAL_STATE_TAXIING);
 
-		open_client_server_entity_airbrakes( receiver );
-
-		close_client_server_entity_flaps( receiver );
-
-
-
-		//
-		// sound effect
-		//
-		{
-			vec3d
-				*position;
-
-			sound_sample_indices
-				sound_sample_index;
 
 
 
@@ -358,26 +343,41 @@ static int response_to_waypoint_touch_down_reached (entity_messages message, ent
 
 
 
-			position = get_local_entity_vec3d_ptr (receiver, VEC3D_TYPE_POSITION);
 
-			sound_sample_index = SOUND_SAMPLE_INDEX_JET_TOUCHDOWN_SCREECH;
 
-			create_client_server_sound_effect_entity
-			(
-				receiver,
-				ENTITY_SIDE_NEUTRAL,
-				ENTITY_SUB_TYPE_EFFECT_SOUND_MISC,
-				SOUND_CHANNEL_SOUND_EFFECT,
-				SOUND_LOCALITY_ALL,
-				NULL,												// position
-				1.0,												// amplification
-				1.0,												// Werewolf pitch
-				TRUE,												// valid sound effect
-				FALSE,											// looping
-				1,													// sample count
-				&sound_sample_index							// sample index list
-			);
-		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	}
 
 	return (TRUE);

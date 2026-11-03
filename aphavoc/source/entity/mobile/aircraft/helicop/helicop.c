@@ -89,8 +89,8 @@ sector
 
 
 //Werewolf: Changed to accomodate new rotor sound components: turbine sound, rotorslap sound
-static void create_specified_helicopter_rotor_sound_effects (entity *en, sound_locality_types locality, sound_sample_indices looping_effect, sound_sample_indices wind_up_effect, sound_sample_indices wind_down_effect, sound_sample_indices turbine_effect, sound_sample_indices rotorslap_effect);
-static float kill_sound_effect(entity* en, entity_sub_types type);
+
+
 
 static int mission_logged = FALSE;
 
@@ -183,51 +183,51 @@ void assign_entity_to_user (entity *en)
 
 	old_group = NULL;
 
-	//
-	// Maintain Input Events
-	//
 
-	if (get_event_stack_head_function () == set_input_events)
-	{
-		pop_event (set_input_events);
 
-		input_events_flag = TRUE;
-	}
-	else
-	{
-		input_events_flag = FALSE;
-	}
 
-	//
-	// Maintain Planner Events
-	//
 
-	if (get_event_stack_head_function () == ingame_screen_set_events)
-	{
-		ASSERT (get_in_flight_game_mode () == IN_FLIGHT_GAME_MODE_PLANNER);
 
-		pop_event (ingame_screen_set_events);
 
-		ingame_events_flag = TRUE;
-	}
-	else
-	{
-		ingame_events_flag = FALSE;
-	}
 
-	previous = gunship_entity;
 
-	if (previous)
-	{
 
-		if (get_current_flight_dynamics ())
-		{
 
-			fuel = get_current_flight_dynamics_fuel_weight ();
 
-			set_client_server_entity_float_value (previous, FLOAT_TYPE_FUEL_SUPPLY_LEVEL, fuel);
-		}
-	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	if (en)
 	{
@@ -247,10 +247,10 @@ void assign_entity_to_user (entity *en)
 
 		//set_status_message ("Invulnerable", STATUS_MESSAGE_TYPE_ALERT);
 
-		if (get_time_acceleration () != TIME_ACCELERATION_PAUSE)
-		{
-			set_min_time_acceleration (NULL);
-		}
+
+
+
+
 
 		set_global_gunship_type ((gunship_types) get_local_entity_int_value (en, INT_TYPE_GUNSHIP_TYPE));
 	}
@@ -259,29 +259,29 @@ void assign_entity_to_user (entity *en)
 
 		set_global_gunship_type (NUM_GUNSHIP_TYPES);
 
-		if (get_camera_entity())
-		{
-			if (previous)
-			{
-				set_external_view_entity (previous);
 
-				notify_local_entity (ENTITY_MESSAGE_SET_CAMERA_ACTION, get_camera_entity (), NULL, CAMERA_ACTION_END_OF_MISSION);
-			}
-			else
-			{
-				notify_local_entity (ENTITY_MESSAGE_SET_CAMERA_ACTION, get_camera_entity (), NULL, CAMERA_ACTION_CINEMATIC);
-			}
-		}
-	}
 
-	//
-	// big problems as this function can be called by the client in RX mode,
-	// but it needs to do a lot of setting things c/s (i.e. it really needs to be in TX mode)
-	//
 
-	store_data_flow = get_comms_data_flow ();
 
-	set_comms_data_flow (COMMS_DATA_FLOW_TX);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	//
 	// release old gunship entity
@@ -335,27 +335,27 @@ void assign_entity_to_user (entity *en)
 		}
 
 		//
-		// Deinitialise
-		//
 
-		deinitialise_cockpits ();
 
-		deinitialise_avionics ();
 
-		//
-		// Deinitialise flight dynamics
-		//
 
-		if (get_current_flight_dynamics ())
-		{
-			//
-			// damage helicopter according to flight model
-			//
 
-			damage_entity_to_flight_model (gunship_entity);
 
-			deinitialise_flight_dynamics ();
-		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		set_client_server_entity_int_value (gunship_entity, INT_TYPE_PLAYER, ENTITY_PLAYER_AI);
 
@@ -438,38 +438,38 @@ void assign_entity_to_user (entity *en)
 		mission_logged = FALSE;
 
 		//
-		// Initialise avionics, cockpits and flight model
-		//
 
-		initialise_flight_dynamics (en); 
 
-		update_helicopter_damage ();
 
-		initialise_avionics ();
 
-		initialise_cockpits ();
 
-		fuel = get_local_entity_float_value (en, FLOAT_TYPE_FUEL_SUPPLY_LEVEL);
 
-		set_current_flight_dynamics_fuel_weight (fuel);
-		
-		current_flight_dynamics->fuel_weight.modifier = ceil(fuel / get_local_entity_float_value (en, FLOAT_TYPE_FUEL_DEFAULT_WEIGHT) * 4.0) / 4.0;
 
-		restore_helicopter_entity (en);
 
-		current_flight_dynamics->main_rotor_rpm.value = en->helicopter_data->main_rotor_rpm;
 
-		//
-		// set view mode
-		//
 
-		set_external_view_entity (en);
 
-		notify_local_entity (ENTITY_MESSAGE_SET_CAMERA_ACTION, get_camera_entity (), NULL, CAMERA_ACTION_CHASE);
 
-		reinitialise_virtual_cockpit_view ();
 
-		set_view_mode (VIEW_MODE_COCKPIT_PANEL_LEVEL_AHEAD);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		//
 		// set all helicopters in new group to "weapons hold"
@@ -497,7 +497,7 @@ void assign_entity_to_user (entity *en)
 		// setup gunship
 		//
 
-		set_client_server_entity_int_value (en, INT_TYPE_UNIQUE_ID, direct_play_get_player_id ());
+
 
 		// set gunship sector
 		{
@@ -511,14 +511,14 @@ void assign_entity_to_user (entity *en)
 			}
 		}
 
-		if (command_line_tacview_logging && command_line_tacview_logging < 3)
-			start_tacview_logging(en);
 
-		//
-		// Notify campaign screen
-		//
 
-		activate_accept_selections_button ();
+
+
+
+
+
+
 
 	}
 	else
@@ -537,17 +537,17 @@ void assign_entity_to_user (entity *en)
 	//
 	//
 
-	if (ingame_events_flag)
-	{
-		push_event (ingame_screen_set_events, "ingame screen events");
-	}
 
-	if (input_events_flag)
-	{
-		push_event (set_input_events, "input events");
-	}
 
-	set_comms_data_flow (store_data_flow);
+
+
+
+
+
+
+
+
+
 }
 
 
@@ -635,16 +635,16 @@ void assign_entity_to_user (entity *en)
 
 
 
-void restore_helicopter_entity (entity *en)
-{
-	ASSERT (en);
 
-	restore_helicopter_main_rotors (en);
-	set_client_server_entity_int_value (en, INT_TYPE_MAIN_ROTOR_DAMAGED, FALSE);
 
-	restore_helicopter_tail_rotors (en);
-	set_client_server_entity_int_value (en, INT_TYPE_TAIL_ROTOR_DAMAGED, FALSE);
-}
+
+
+
+
+
+
+
+
 
 
 
@@ -671,19 +671,19 @@ void notify_gunship_entity_mission_completed (entity *en, entity *task)
 
 	autoselect_debriefing_page (task, FALSE);
 
-	//
-	// Show Mission Complete Message
-	//
 
-	sprintf (s, "Mission %s", task_status_names [get_local_entity_int_value (task, INT_TYPE_TASK_COMPLETED)]);
 
-	set_status_message (get_trans (s), STATUS_MESSAGE_TYPE_ALERT);
 
-	//
-	// Play Mission Complete CD track
-	//
 
-	play_music (MUSIC_TYPE_MISSION_COMPLETE, TRUE);
+
+
+
+
+
+
+
+
+
 }
 
 
@@ -1481,8 +1481,8 @@ void notify_gunship_entity_mission_terminated (entity *en, entity *task)
 
 
 
-#define HELICOPTER_ROTOR_SOUNDS_LOOPING_MAX_RPM_VALUE	45
-#define HELICOPTER_ROTOR_SOUNDS_LOOPING_MIN_RPM_VALUE	30
+
+
 
 
 
@@ -1969,119 +1969,119 @@ int get_local_entity_suitable_for_player (entity *en, entity *pilot)
 
 
 
+void helicopter_assume_player_control (entity *en)
+{
+	entity
+		*group,
+		*guide,
+		*task;
 
+	unsigned int
+		member_number,
+		valid_members;
 
+	ASSERT (en);
 
+	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
+	ASSERT (get_local_entity_int_value (en, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI);
 
+	//
+	// If the helicopter is doing an engage task - destroy the guide, and reassign the helicopter to a valid task
+	//
 
+	group = get_local_entity_parent (en, LIST_TYPE_MEMBER);
 
+	ASSERT (group);
 
+	guide = get_local_entity_parent (en, LIST_TYPE_FOLLOWER);
 
+	if (guide)
+	{
+		task = get_local_entity_parent (guide, LIST_TYPE_GUIDE);
 
+		ASSERT (task);
 
+		if (get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE) == ENTITY_SUB_TYPE_TASK_ENGAGE)
+		{
+			member_number = (1 << get_local_entity_int_value (en, INT_TYPE_GROUP_MEMBER_NUMBER));
 
+			valid_members = get_local_entity_int_value (guide, INT_TYPE_VALID_GUIDE_MEMBERS);
 
+			ASSERT (valid_members == member_number);
 
+			destroy_client_server_entity (guide);
 
+			reassign_group_members_to_valid_tasks (group, task, member_number, FALSE);
+		}
+	}
 
+	set_client_server_entity_float_value (en, FLOAT_TYPE_MAIN_ROTOR_SPIN_UP_TIMER, 0.0);
 
+	update_player_helicopter_waypoint_distance (en);
+}
 
 
 
 
 
+void helicopter_release_player_control (entity *en)
+{
+	entity
+		*group,
+		*guide,
+		*task;
 
+	unsigned int
+		member_number;
 
+	ASSERT (en);
 
+	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
+	ASSERT (get_local_entity_int_value (en, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI);
 
+	//
+	// If the helicopter is doing a primary task - reassign the helicopter to a valid task (so it can pick up engage tasks again)
+	//
 
+	if (get_local_entity_int_value (en, INT_TYPE_ALIVE))
+	{
+		group = get_local_entity_parent (en, LIST_TYPE_MEMBER);
 
+		ASSERT (group);
 
+		guide = get_local_entity_parent (en, LIST_TYPE_FOLLOWER);
 
+		if (guide)
+		{
+			task = get_local_entity_parent (guide, LIST_TYPE_GUIDE);
 
+			ASSERT (task);
 
+			if (get_local_entity_int_value (task, INT_TYPE_PRIMARY_TASK))
+			{
+				member_number = (1 << get_local_entity_int_value (en, INT_TYPE_GROUP_MEMBER_NUMBER));
 
+				reassign_group_members_to_valid_tasks (group, task, member_number, TRUE);
+			}
+		}
 
+		update_player_helicopter_waypoint_distance (en);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+		if (get_local_entity_int_value (en, INT_TYPE_LANDED))
+		{
+			set_client_server_entity_float_value (en, FLOAT_TYPE_MAIN_ROTOR_SPIN_UP_TIMER, MAIN_ROTOR_SPIN_UP_TIMER);
+		}
+		else
+		{
+			set_client_server_entity_float_value (en, FLOAT_TYPE_MAIN_ROTOR_SPIN_UP_TIMER, 0.0);
+			close_client_server_entity_loading_doors (en);
+			close_client_server_entity_cargo_doors (en);
+			raise_client_server_entity_undercarriage (en);
+		}
+	}
+}
 
 
 

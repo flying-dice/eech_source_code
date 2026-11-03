@@ -69,11 +69,11 @@ struct WEAPON_DATA
 	char
 		*full_name;
 	const char
-		*hud_name,
-		*mfd_name,
-		*abbrev,
-		*weapon_loading_list_name,
-		*weapon_loading_name_text;
+
+
+
+
+
 
 	object_3d_index_numbers
 
@@ -82,7 +82,7 @@ struct WEAPON_DATA
 		guidance_type;
 
 	weapon_aiming_types
-
+		aiming_type;
 
 	weapon_decoy_types
 		decoy_type;
@@ -107,7 +107,7 @@ struct WEAPON_DATA
 
 
 
-		report_ammo_low_count;
+
 
 	int
 
@@ -120,7 +120,7 @@ struct WEAPON_DATA
 
 
 
-		flight_profile_or_self_destr,		// for Hellfire, Vikhr and self destruction weapons
+
 
 
 	unsigned int
@@ -144,9 +144,9 @@ struct WEAPON_DATA
 		burst_duration,					// seconds
 		rate_of_fire,						// rounds/minute
 		reload_time,						// seconds
+		max_launch_angle_error,			// radians
 
 
-		drag_coefficient,                    // projectile drag, used for calculating deceleration
 
 
 
@@ -186,8 +186,8 @@ extern weapon_package
 
 
 
-extern muzzle_flash_animation
-	muzzle_flash_animation_database[NUM_MUZZLE_FLASH_TYPES];
+
+
 
 
 

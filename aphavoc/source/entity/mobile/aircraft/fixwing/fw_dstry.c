@@ -121,15 +121,15 @@ static void destroy_local (entity *en)
 	//
 
 
-	destruct_3d_object (raw->ac.inst3d);
+
 
 	free_mem (raw->ac.weapon_package_status_array);
 
-	if (raw->ac.sound_effect_data)
-	{
 
-		destroy_system_sound_effect (raw->ac.sound_effect_data);
-	}
+
+
+
+
 
 
 	//
@@ -159,7 +159,7 @@ static void destroy_local (entity *en)
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_MEMBER);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_VIEW);
+
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_TAKEOFF_QUEUE);
 
@@ -266,7 +266,7 @@ static void destroy_local_family (entity *en)
 {
 	destroy_local_entity_children (en, LIST_TYPE_MOVEMENT_DEPENDENT);
 
-	destroy_local_sound_effects (en);
+
 
 	destroy_local_entity (en);
 }
@@ -438,31 +438,31 @@ static void kill_local (entity *en)
 	// mobile
 	//
 
-	//
-	// kill weapon sound effects
-	//
 
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_CHAIN_GUN);
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_GATLING_GUN);
 
-	//
-	// kill engine sound effects
-	//
 
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1);
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING2);
 
-	//
-	// Kill speech
-	//
 
-	notify_speech_buffers_entity_killed (en);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	// special_effect root
 
 	unlink_local_entity_children (en, LIST_TYPE_TARGET);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_PADLOCK);
+
 
 	// sector_link
 
@@ -484,7 +484,7 @@ static void kill_local (entity *en)
 	//
 
 
-	damage_fixed_wing_3d_object (en);
+
 
 	// must be done before alive flag set to FALSE
 	remove_mobile_values_from_sector (get_local_entity_parent (en, LIST_TYPE_SECTOR), en);
@@ -537,46 +537,46 @@ static void kill_local (entity *en)
 	//
 
 
-	set_local_fixed_wing_afterburner_state (en, OFF);
-
-	fixed_wing_impact_movement (en);
-
-	if (get_comms_model () == COMMS_MODEL_SERVER)
-	{
-		vec3d
-			*position;
-
-		sound_sample_indices
-			sound_sample_index;
 
 
 
-		position = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
 
-		sound_sample_index = SOUND_SAMPLE_INDEX_SHOT_DOWN_AIRCRAFT;
 
-		create_client_server_sound_effect_entity
-		(
-			en,
-			ENTITY_SIDE_NEUTRAL,
-			ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1,
-			SOUND_CHANNEL_SOUND_EFFECT,
-			SOUND_LOCALITY_ALL,
-			NULL,												// position
-			1.0,												// amplification
-			1.0,												// Werewolf pitch
-			TRUE,												// valid sound effect
-			TRUE,												// looping
-			1,													// sample count
-			&sound_sample_index							// sample index list
-		);
-	}
 
-	#if LANDING_ROUTE_CHECK
 
-	destroy_debug_entity_landing_route_check (en);
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 	//

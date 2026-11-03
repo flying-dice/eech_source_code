@@ -304,16 +304,16 @@ static void kill_local (entity *en)
 	//
 
 
-	if (get_comms_model () == COMMS_MODEL_SERVER)
-	{
 
 
-		get_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &pos);
 
-		pos.y = get_3d_terrain_elevation (pos.x, pos.z);
 
-		create_client_server_crater (CRATER_TYPE_SMALL_EXPLOSION, &pos);
-	}
+
+
+
+
+
+
 
 	//
 	// must be done AFTER object explosion

@@ -147,13 +147,13 @@ static void set_local_int_value (entity *en, int_types type, int value)
 	switch (type)
 	{
 
-		case INT_TYPE_CPG_IDENTIFIED:
 
-		{
-			raw->cpg_identified = value;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_DAMAGE_LEVEL:
 
@@ -211,13 +211,13 @@ static void set_local_int_value (entity *en, int_types type, int value)
 			break;
 		}
 
-		case INT_TYPE_LIGHTS_ON:
 
-		{
-			raw->lights_on = value;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_LOS_TO_TARGET:
 
@@ -420,21 +420,21 @@ static int get_local_int_value (entity *en, int_types type)
 	switch (type)
 	{
 
-		case INT_TYPE_COLLISION_TEST_MOBILE:
 
-		{
-			value = TRUE;
 
-			break;
-		}
 
-		case INT_TYPE_CPG_IDENTIFIED:
 
-		{
-			value = raw->cpg_identified;
 
-			break;
-		}
+
+
+
+
+
+
+
+
+
+
 
 		case INT_TYPE_DAMAGE_LEVEL:
 
@@ -444,13 +444,13 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 
-		case INT_TYPE_DEFAULT_3D_SHAPE:
 
-		{
-			value = vehicle_database[raw->mob.sub_type].default_3d_shape;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_DEFAULT_WEAPON_CONFIG_TYPE:
 
@@ -468,13 +468,13 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 
-		case INT_TYPE_DESTROYED_3D_SHAPE:
 
-		{
-			value = get_3d_object_destroyed_object_index (raw->object_3d_shape);
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_ENGAGE_ENEMY:
 
@@ -705,13 +705,13 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 
-		case INT_TYPE_LIGHTS_ON:
 
-		{
-			value = raw->lights_on;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_LOS_TO_TARGET:
 
@@ -721,13 +721,13 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 
-		case INT_TYPE_MAP_ICON:
 
-		{
-			value = vehicle_database [raw->mob.sub_type].map_icon;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_MAX_WEAPON_CONFIG_TYPE:
 
@@ -865,13 +865,13 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 
-		case INT_TYPE_TARGET_SYMBOL_TYPE:
 
-		{
-			value = vehicle_database[raw->mob.sub_type].target_symbol_type;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_TARGET_TYPE:
 
@@ -918,37 +918,37 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 
-		case INT_TYPE_TRACK_ENTITY_ON_MAP:
 
-		{
-			value = TRUE;
 
-			break;
-		}
 
-		case INT_TYPE_VIEW_CATEGORY:
 
-		{
-			value = vehicle_database[raw->mob.sub_type].view_category;
 
-			break;
-		}
 
-		case INT_TYPE_VIEW_TYPE:
 
-		{
-			value = vehicle_database[raw->mob.sub_type].view_type;
 
-			break;
-		}
 
-		case INT_TYPE_VIEWABLE:
 
-		{
-			value = raw->view_link.parent != NULL;
 
-			break;
-		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		case INT_TYPE_ARMOR_LEVEL:
 

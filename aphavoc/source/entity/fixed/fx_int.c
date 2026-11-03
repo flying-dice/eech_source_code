@@ -124,13 +124,13 @@ static void set_local_int_value (entity *en, int_types type, int value)
 			break;
 		}
 
-		case INT_TYPE_OBJECT_DRAWN_ONCE_THIS_FRAME:
 
-		{
-			raw->object_drawn_once_this_frame = value;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_SIDE:
 
@@ -225,12 +225,12 @@ static int get_local_int_value (entity *en, int_types type)
 	switch (type)
 	{
 
-		case INT_TYPE_ALIGN_WITH_TERRAIN:
 
-		{
-			value = fixed_database[raw->sub_type].align_with_terrain;
 
-			break;
+
+
+
+
 		}
 
 		case INT_TYPE_ALIVE:
@@ -241,12 +241,12 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 
-		case INT_TYPE_COLLISION_TEST_FIXED:
 
-		{
-			value = fixed_database[raw->sub_type].collision_test_fixed;
 
-			break;
+
+
+
+
 		}
 
 		case INT_TYPE_DEFAULT_3D_SHAPE:
@@ -281,12 +281,12 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 
-		case INT_TYPE_GROUND_RADAR_CLUTTER:
 
-		{
-			value = fixed_database[raw->sub_type].ground_radar_clutter;
 
-			break;
+
+
+
+
 		}
 
 		case INT_TYPE_GUNSHIP_RADAR_LOS_CLEAR:
@@ -329,12 +329,12 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 
-		case INT_TYPE_OBJECT_DRAWN_ONCE_THIS_FRAME:
 
-		{
-			value = raw->object_drawn_once_this_frame;
 
-			break;
+
+
+
+
 		}
 
 		case INT_TYPE_POINTS_VALUE:

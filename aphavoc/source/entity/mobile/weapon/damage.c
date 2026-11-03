@@ -118,93 +118,93 @@ int damage_client_server_entity (entity *en, entity *weapon, float damage_modifi
 
 	ASSERT ((warhead_type >= WEAPON_WARHEAD_TYPE_NONE) && (warhead_type < NUM_WEAPON_WARHEAD_TYPES));
 
-	if (get_local_entity_int_value (en, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-	{
-		sound_sample_indices
-			int_sound,
-			ext_sound;
 
-		//
-		// damage sound effects
-		//
 
-		int_sound = SOUND_SAMPLE_INDEX_NONE;
-		ext_sound = SOUND_SAMPLE_INDEX_NONE;
 
-		switch (warhead_type)
-		{
-			case WEAPON_WARHEAD_TYPE_SOLID_SHOT:
-			{
-				if (get_local_entity_index (weapon) & 1)
-				{
-					int_sound = SOUND_SAMPLE_INDEX_INTERIOR_LIGHT_DAMAGE2;
-					ext_sound = SOUND_SAMPLE_INDEX_EXTERIOR_LIGHT_DAMAGE2;
-				}
-				else
-				{
-					int_sound = SOUND_SAMPLE_INDEX_INTERIOR_LIGHT_DAMAGE1;
-					ext_sound = SOUND_SAMPLE_INDEX_EXTERIOR_LIGHT_DAMAGE1;
-				}
 
-				break;
-			}
-			case WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK:
-			case WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_DUAL_PURPOSE:
-			case WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE:
-			case WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_AIRCRAFT:
-			case WEAPON_WARHEAD_TYPE_CONVENTIONAL_MUNITIONS:
-			{
-				if (get_local_entity_index (weapon) & 1)
-				{
-					int_sound = SOUND_SAMPLE_INDEX_INTERIOR_HEAVY_DAMAGE2;
-					ext_sound = SOUND_SAMPLE_INDEX_EXTERIOR_HEAVY_DAMAGE2;
-				}
-				else
-				{
-					int_sound = SOUND_SAMPLE_INDEX_INTERIOR_HEAVY_DAMAGE1;
-					ext_sound = SOUND_SAMPLE_INDEX_EXTERIOR_HEAVY_DAMAGE1;
-				}
 
-				break;
-			}
-		}
 
-		if (int_sound != SOUND_SAMPLE_INDEX_NONE)
-		{
-			create_client_server_sound_effect_entity
-			(
-				en,
-				ENTITY_SIDE_NEUTRAL,
-				ENTITY_SUB_TYPE_EFFECT_SOUND_MISC,
-				SOUND_CHANNEL_SOUND_EFFECT,
-				SOUND_LOCALITY_INTERIOR,
-				NULL,												// position
-				damage_modifier,								// amplification
-				1.0,												// Werewolf pitch
-				TRUE,												// valid sound effect
-				FALSE,											// looping
-				1,													// sample count
-				&int_sound										// sample index list
-			);
-		}
 
-		if (ext_sound != SOUND_SAMPLE_INDEX_NONE)
-		{
-			create_client_server_sound_effect_entity
-			(
-				en,
-				ENTITY_SIDE_NEUTRAL,
-				ENTITY_SUB_TYPE_EFFECT_SOUND_MISC,
-				SOUND_CHANNEL_SOUND_EFFECT,
-				SOUND_LOCALITY_EXTERIOR,
-				NULL,												// position
-				damage_modifier,								// amplification
-				1.0,												// Werewolf pitch
-				TRUE,												// valid sound effect
-				FALSE,											// looping
-				1,													// sample count
-				&ext_sound										// sample index list
-			);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		}
 
 		//
@@ -432,48 +432,48 @@ int weapon_damage_capability (entity *wpn, entity *target, float damage_modifier
 	if (get_local_entity_int_value (target, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
 		result *= get_player_damage_modifier (target);
 	
-	if (wpn) // damage multiplier for clients
-		if (wpn->weapon_data->launched_weapon_link.parent)
-			result *= comms_weapon_damage_multiplier_value(wpn->weapon_data->launched_weapon_link.parent, FALSE, weapon_type);
 
-	if (wpn && command_line_debug_show_damage) // draw damage value
-	{
-		viewpoint
-			temp_vp;
-		vec3d
-			temp_vec;
-		int
-			digit,
-			zero = TRUE,
-			p = 1000;
-		
-		get_local_entity_vec3d (target, VEC3D_TYPE_POSITION, &temp_vp.position);
-		get_local_entity_attitude_matrix (wpn, temp_vp.attitude);
-		temp_vec.x = 4;
-		temp_vec.y = temp_vec.z = 0;
-		multiply_matrix3x3_vec3d(&temp_vec, temp_vp.attitude, &temp_vec);
-		temp_vp.position.x -= 2 * temp_vec.x;
-		temp_vp.position.y -= 2 * temp_vec.y;
-		temp_vp.position.z -= 2 * temp_vec.z;
 
-		temp = result;
 
-		for (i = 3; i >= 0; i-- )
-		{
-			digit = temp / p;
-			if (digit)
-				zero = FALSE;
 
-			if (!zero)
-				create_debug_3d_object (&temp_vp, OBJECT_3D_DIG_0 + digit, 2, 5.0);
 
-			temp %= p;
-			p /= 10;
-			temp_vp.position.x += temp_vec.x;
-			temp_vp.position.y += temp_vec.y;
-			temp_vp.position.z += temp_vec.z;
-		}
-	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	return result;
 }
@@ -484,7 +484,7 @@ int weapon_damage_capability (entity *wpn, entity *target, float damage_modifier
 
 #define DESTROYED_OBJECT_KEYWORD "_DESTROYED"
 
-#define DEBUG_NON_ENTRIES	0
+
 
 
 

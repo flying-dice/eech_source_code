@@ -76,16 +76,16 @@
 
 
 
-static int
-	num_building_destroyed_cpg_comments [NUM_ENTITY_SIDES] = {0, 2, 2},
-	last_building_destroyed_cpg_comment [NUM_ENTITY_SIDES] = {0, 0, 0};
 
-static speech_instance_type
-	building_destroyed_cpg_comments [] =
-	{
-		{ -1,												(speech_array_types) -1, 										100,	SPEECH_INTRODUCTION_NEVER },
-		{ SPEECH_CPG_TARGET_DESTROYED,						SPEECH_ARRAY_CPG_MESSAGES,			25,	SPEECH_INTRODUCTION_SOMETIMES },
-	};
+
+
+
+
+
+
+
+
+
 
 
 

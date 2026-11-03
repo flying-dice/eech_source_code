@@ -272,34 +272,34 @@ static entity *create_local (entity_types type, int index, char *pargs)
 
 
 		//
-		// 3D object
-		//
 
-		raw->vh.inst3d = construct_3d_object (raw->vh.object_3d_shape);
 
-		//
-		// Turn off any waypoint route lines
-		//
 
-		{
 
-			//
-			// Remove the waypoint route objects
-			//
 
-			object_3d_sub_object_search_data
-				search;
 
-			search.search_object = raw->vh.inst3d;
-			search.search_depth = 0;
-			search.sub_object_index = OBJECT_3D_SUB_OBJECT_WAYPOINT_ROUTES;
 
-			if ( find_object_3d_sub_object ( &search ) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND )
-			{
 
-				search.result_sub_object->visible_object = FALSE;
-			}
-		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		set_ship_vehicle_id_number (en);
 
@@ -328,10 +328,10 @@ static entity *create_local (entity_types type, int index, char *pargs)
 		insert_local_entity_into_parents_child_list (en, LIST_TYPE_MEMBER, raw->vh.member_link.parent, raw->vh.member_link.child_pred);
 
 		//
-		// insert into LIST_TYPE_MEMBER before LIST_TYPE_VIEW
-		//
 
-		insert_local_entity_into_parents_child_list (en, LIST_TYPE_VIEW, get_camera_entity (), get_local_entity_view_list_pred (en));
+
+
+
 
 		insert_local_entity_into_parents_child_list (en, LIST_TYPE_SECTOR, get_local_sector_entity (&raw->vh.mob.position), NULL);
 
@@ -450,60 +450,60 @@ entity *create_client_server_entity_ship (int index, entity_sub_types sub_type, 
 	);
 
 	//
-	// create and attach special effects
-	//
-
-	//
-	// ship wakes
-	//
 
 
 
-	//
-	// sound effects
-	//
 
-	sample_index = vehicle_database [sub_type].idle_sound_effect;
 
-	if (sample_index != SOUND_SAMPLE_INDEX_NONE)
-	{
-		create_client_server_sound_effect_entity
-		(
-			new_entity,
-			ENTITY_SIDE_NEUTRAL,
-			ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1,
-			SOUND_CHANNEL_SOUND_EFFECT,
-			SOUND_LOCALITY_ALL,
-			NULL,												// position
-			1.0,												// amplification
-			1.0,												// Werewolf pitch
-			TRUE,												// valid sound effect
-			TRUE,												// looping
-			1,													// sample count
-			&sample_index									// sample index list
-		);
-	}
 
-	sample_index = vehicle_database [sub_type].moving_sound_effect;
 
-	if (sample_index != SOUND_SAMPLE_INDEX_NONE)
-	{
-		create_client_server_sound_effect_entity
-		(
-			new_entity,
-			ENTITY_SIDE_NEUTRAL,
-			ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING2,
-			SOUND_CHANNEL_SOUND_EFFECT,
-			SOUND_LOCALITY_ALL,
-			NULL,												// position
-			1.0,												// amplification
-			1.0,												// Werewolf pitch
-			FALSE,											// valid sound effect
-			TRUE,												// looping
-			1,													// sample count
-			&sample_index									// sample index list
-		);
-	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	//
 	//

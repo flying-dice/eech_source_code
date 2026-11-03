@@ -114,15 +114,15 @@ static void destroy_local (entity *en)
 	//
 
 
-	destruct_3d_object (raw->ac.inst3d);
+
 
 	free_mem (raw->ac.weapon_package_status_array);
 
-	if (raw->ac.sound_effect_data)
-	{
 
-		destroy_system_sound_effect (raw->ac.sound_effect_data);
-	}
+
+
+
+
 
 
 	//
@@ -138,7 +138,7 @@ static void destroy_local (entity *en)
 
 	unlink_local_entity_children (en, LIST_TYPE_GUNSHIP_TARGET);
 
-	unlink_local_entity_children (en, LIST_TYPE_PADLOCK);
+
 
 	//
 	// aircraft
@@ -160,7 +160,7 @@ static void destroy_local (entity *en)
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_MOVEMENT_DEPENDENT);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_VIEW);
+
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_TAKEOFF_QUEUE);
 
@@ -172,7 +172,7 @@ static void destroy_local (entity *en)
 
 	unlink_local_entity_children (en, LIST_TYPE_TARGET);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_PADLOCK);
+
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_SECTOR);
 
@@ -189,11 +189,11 @@ static void destroy_local (entity *en)
 		set_raw_gunship_entity (NULL);
 	}
 
-	#if LANDING_ROUTE_CHECK
 
-	destroy_debug_entity_landing_route_check (en);
 
-	#endif
+
+
+
 
 
 	//
@@ -276,7 +276,7 @@ static void destroy_local_family (entity *en)
 {
 	destroy_local_entity_children (en, LIST_TYPE_MOVEMENT_DEPENDENT);
 
-	destroy_local_sound_effects (en);
+
 
 	destroy_local_entity (en);
 }
@@ -480,7 +480,7 @@ static void kill_local (entity *en)
 
 	unlink_local_entity_children (en, LIST_TYPE_GUNSHIP_TARGET);
 
-	unlink_local_entity_children (en, LIST_TYPE_PADLOCK);
+
 
 	//
 	// aircraft
@@ -519,44 +519,44 @@ static void kill_local (entity *en)
 	//
 
 	//
-	// kill weapon sound effects
-	//
 
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_CHAIN_GUN);
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_GATLING_GUN);
 
-	//
-	// kill engine sound effects
-	//
 
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_SLAP);
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_APU_TURBINE);
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE1);
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE2);
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_LOOPING);
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_WIND_UP1);
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_WIND_UP2);
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_WIND_DOWN1);
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_WIND_DOWN2);
 
-	//
-	// kill radio / warning effects
-	//
 
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_INCOMING_MISSILE_WARNING);
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_LOCK_ON_TONE);
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_MCA);
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_RADAR_LOCKED);
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_RADAR_TRACKED);
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_CPG_MESSAGE);
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_RADIO_MESSAGE);
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_WARNING_MESSAGE);
 
-	notify_speech_buffers_entity_killed (en);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	unlink_local_entity_children (en, LIST_TYPE_TARGET);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_PADLOCK);
+
 
 	// sector_link
 
@@ -576,7 +576,7 @@ static void kill_local (entity *en)
 	//
 
 
-	damage_helicopter_3d_object (en);
+
 
 	// must be done before alive flag set to FALSE
 	remove_mobile_values_from_sector (get_local_entity_parent (en, LIST_TYPE_SECTOR), en);
@@ -648,7 +648,7 @@ static void kill_local (entity *en)
 	//
 
 
-	helicopter_impact_movement (en);
+
 
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
@@ -658,32 +658,32 @@ static void kill_local (entity *en)
 		sound_sample_indices
 			sound_sample_index;
 
-		set_client_server_entity_int_value (en, INT_TYPE_MAIN_ROTOR_DAMAGED, TRUE);
-
-		set_client_server_entity_int_value (en, INT_TYPE_TAIL_ROTOR_DAMAGED, TRUE);
 
 
 
-		position = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
 
-		sound_sample_index = SOUND_SAMPLE_INDEX_SHOT_DOWN_HELICOPTER;
 
-		create_client_server_sound_effect_entity
-		(
-			en,
-			ENTITY_SIDE_NEUTRAL,
-			ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_LOOPING,
-			SOUND_CHANNEL_SOUND_EFFECT,
-			SOUND_LOCALITY_ALL,
-			NULL,												// position
-			1.0,												// amplification
-			1.0,												// Werewolf pitch
-			TRUE,												// valid sound effect
-			TRUE,												// looping
-			1,													// sample count
-			&sound_sample_index							// sample index list
-		);
-	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	set_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE, OPERATIONAL_STATE_DYING);
 
@@ -698,11 +698,11 @@ static void kill_local (entity *en)
 		set_gunship_entity (NULL);
 	}
 
-	#if LANDING_ROUTE_CHECK
 
-	destroy_debug_entity_landing_route_check (en);
 
-	#endif
+
+
+
 
 
 	//

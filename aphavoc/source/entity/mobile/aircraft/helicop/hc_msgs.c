@@ -92,22 +92,22 @@ static int response_to_link_child (entity_messages message, entity *receiver, en
 	switch (list_type)
 	{
 
-		case LIST_TYPE_TARGET:
 
-		{
-			if (sender)
-			{
-				if (receiver == get_gunship_entity ())
-				{
-					if (get_local_entity_int_value (sender, INT_TYPE_THREAT_TYPE) != THREAT_TYPE_INVALID)
-					{
-						activate_common_threat_warning_system (sender);
-					}
-				}
-			}
 
-			break;
-		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	}
 
 	return (TRUE);
@@ -166,262 +166,262 @@ static int response_to_link_child (entity_messages message, entity *receiver, en
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+static int response_to_collision (entity_messages message, entity *receiver, entity *sender, va_list pargs)
+{
+
+	entity
+		*force,
+		*enemy_force,
+		*aggressor;
+
+	int
+		damage_caused,
+		total_damage_level;
+
+	aircraft_damage_types
+		old_damage_state,
+		new_damage_state;
+
+	float
+		damage_modifier;
+
+	ASSERT (receiver);
+
+	damage_modifier = va_arg (pargs, double);
+	
+	ASSERT(damage_modifier >= 0 && damage_modifier <= 1.0);
+
+
+
+
+
+
+
+
+	if (sender)
+	{
+		if (get_local_entity_type (sender) == ENTITY_TYPE_WEAPON)
+		{
+			aggressor = get_local_entity_parent (sender, LIST_TYPE_LAUNCHED_WEAPON);
+		}
+		else
+		{
+			aggressor = sender;
+		}
+	}
+	else
+	{
+		aggressor = NULL;
+	}
+
+	//
+	// Fix to stop helicopters from killing themselves through firing missiles into the ground...
+	//
+
+	if ((aggressor == receiver) && (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI))
+	{
+		return TRUE;
+	}
+
+	//
+	//
+	//
+
+	force = get_local_force_entity ((entity_sides) get_local_entity_int_value (receiver, INT_TYPE_SIDE));
+
+	enemy_force = get_local_force_entity (get_enemy_side (get_local_entity_int_value (receiver, INT_TYPE_SIDE)));
+
+	//
+	// assess damage
+	//
+
+	old_damage_state = aircraft_critically_damaged (receiver);
+
+	damage_caused = damage_client_server_entity (receiver, sender, damage_modifier);
+
+	total_damage_level = get_local_entity_int_value (receiver, INT_TYPE_DAMAGE_LEVEL);
+
+	new_damage_state = aircraft_critically_damaged (receiver);
+
+	if ((old_damage_state != AIRCRAFT_DAMAGE_CRITICAL) && (new_damage_state == AIRCRAFT_DAMAGE_CRITICAL))
+	{
+		if (aggressor)
+		{
+			//
+			// credit kill
+			//
+		
+			credit_client_server_mobile_kill (receiver, aggressor);
+/*	
+			//
+			// multiplayer pilot kills
+			//
+	
+			if (receiver != aggressor)
+			{
+				if (
+						(get_local_entity_int_value (receiver, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI) &&
+						(get_local_entity_int_value (aggressor, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
+					)
+				{
+					entity
+						*pilot_en;
+	
+					int
+						score;
+	
+					pilot_en = get_local_entity_first_child (aggressor, LIST_TYPE_AIRCREW);
+	
+					while (pilot_en)
+					{
+						score = get_local_entity_int_value (pilot_en, INT_TYPE_KILLS);	
+	
+						if ((get_global_session_special_gametype() == SPECIAL_GAME_TYPE_COOPERATIVE) &&
+								(get_local_entity_int_value (receiver, INT_TYPE_SIDE) == get_local_entity_int_value (aggressor, INT_TYPE_SIDE)))
+						{
+							score -= 1;
+						}
+						else
+						{
+							score += 1;
+	
+							notify_local_entity (ENTITY_MESSAGE_FORCE_SPECIAL_KILL, enemy_force, receiver, score);
+						}
+	
+						set_client_server_entity_int_value (pilot_en, INT_TYPE_KILLS, score);
+	
+						pilot_en = get_local_entity_child_succ (pilot_en, LIST_TYPE_AIRCREW);
+					}
+				}
+			}
+*/
+		}
+	}
+
+
+	//
+	// Assess damage caused
+	//
+
+
+	if (total_damage_level <= 0)
+	{
+		ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
+
+		//
+		// if the player was shot down, record it in the log
+		//
+
+		if (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) == ENTITY_PLAYER_LOCAL)
+		{
+			// deaths moved to landing assessment - player dies upon hitting the ground with enough force
+//			inc_player_log_kills (get_global_gunship_side (), get_current_player_log (), receiver);
+
+			dynamics_kill_model (DYNAMICS_DESTROY_SHOT_DOWN, aggressor);
+		}
+		else if (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) == ENTITY_PLAYER_REMOTE)
+		{
+			transmit_entity_comms_message (ENTITY_COMMS_PLAYER_KILL, aggressor, receiver);
+
+			kill_client_server_entity (receiver);
+		}
+		else
+		{
+
+			kill_client_server_entity (receiver);
+		}
+
+		notify_local_entity (ENTITY_MESSAGE_FORCE_DESTROYED, force, receiver, aggressor); // should these be before kill ?
+
+		notify_local_entity (ENTITY_MESSAGE_FORCE_DESTROYED, enemy_force, receiver, aggressor);
+
+		//
+		// Play appropriate sound effects / speech
+		//
+
+		if (aggressor)
+		{
+			play_aircraft_destroyed_speech (receiver, aggressor);
+		}
+	}
+	else
+	{
+		if (damage_caused > 0)
+		{
+			if (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
+			{
+				//
+				// Damage users helicopter
+				//
+
+				damage_helicopter_via_damage_level (receiver, aggressor);
+
+				//
+				// damage avionics
+				//
+
+				if (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)	
+				{
+					if (damage_caused < 100.0)
+					{
+						damage_client_server_entity_avionics (receiver, GUNSHIP_DAMAGE_LEVEL_LIGHT);
+					}
+					else if (damage_caused < 300.0)
+					{
+						damage_client_server_entity_avionics (receiver, GUNSHIP_DAMAGE_LEVEL_MEDIUM);
+					}
+					else
+					{
+						damage_client_server_entity_avionics (receiver, GUNSHIP_DAMAGE_LEVEL_HEAVY);
+					}
+				}
+			}
+		}
+
+
+		//
+		// SPECIAL_EFFECT_HOOK FOR GETTING_SHOT
+		//
+
+
+		if (aggressor)
+		{
+			play_aircraft_shot_at_speech (receiver, aggressor);
+		}
+
+
+		//
+		//
+
+
+		//notify hit. ?
+	}
+
+	//
+	// add force to players helicopters
+	//
+
+	if (damage_caused > 0.0)
+	{
+		switch (get_local_entity_int_value (receiver, INT_TYPE_PLAYER))
+		{
+			case ENTITY_PLAYER_LOCAL:
+			{
+				add_dynamic_explosion_force (get_local_entity_vec3d_ptr (sender, VEC3D_TYPE_POSITION), (float)damage_caused);
+	
+				break;
+			}
+			case ENTITY_PLAYER_REMOTE:
+			{
+				// send comms message
+	
+				break;
+			}
+		}
+	}
+
+	return (TRUE);
+}
 
 
 
@@ -540,11 +540,11 @@ static int response_to_check_mobile_reached_guide (entity_messages message, enti
 	entity_sub_types
 		waypoint_type;
 
-	if (receiver == get_external_view_entity ())
-	{
 
-		wp = NULL;
-	}
+
+
+
+
 
 	ASSERT (sender);
 

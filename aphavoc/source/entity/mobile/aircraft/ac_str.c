@@ -203,13 +203,13 @@ static const char *get_local_string (entity *en, string_types type)
 	switch (type)
 	{
 
-		case STRING_TYPE_EASY_DISPLAY_NAME:
 
-		{
-			s = aircraft_database[raw->mob.sub_type].easy_display_name;
 
-			break;
-		}
+
+
+
+
+
 
 		case STRING_TYPE_FULL_NAME:
 
@@ -219,21 +219,21 @@ static const char *get_local_string (entity *en, string_types type)
 			break;
 		}
 
-		case STRING_TYPE_LONG_DISPLAY_NAME:
 
-		{
-			s = aircraft_database[raw->mob.sub_type].long_display_name;
 
-			break;
-		}
 
-		case STRING_TYPE_SHORT_DISPLAY_NAME:
 
-		{
-			s = aircraft_database[raw->mob.sub_type].short_display_name;
 
-			break;
-		}
+
+
+
+
+
+
+
+
+
+
 
 		default:
 

@@ -205,7 +205,7 @@ typedef enum
 
 
 
-#define AIRCRAFT_DAMAGED_SMOKE_SPEED_THRESHOLD 20.0
+
 
 //extern int get_local_aircraft_maneuver_complete (entity *en, float min_angle);
 
@@ -229,7 +229,7 @@ extern void assess_aircraft_damage_level (entity *en, int old_damage_level, int 
 
 
 
-extern void switch_aircraft_damaged_smoke (entity *en);
+
 
 
 

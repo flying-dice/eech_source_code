@@ -71,18 +71,7 @@
 
 
 
-static int
-	num_vehicle_hit_comments [NUM_ENTITY_SIDES] = {0, 4, 4},
-	last_vehicle_hit_comment [NUM_ENTITY_SIDES] = {0, 0, 0};
 
-static speech_instance_type
-	vehicle_hit_comments [] =
-	{
-		{ SPEECH_GC_REQUEST_SUPPORT_AT,		SPEECH_ARRAY_GC_MESSAGES,		100,	SPEECH_INTRODUCTION_ALWAYS },
-		{ SPEECH_GC_PINNED_DOWN_AT,			SPEECH_ARRAY_GC_MESSAGES,		100,	SPEECH_INTRODUCTION_ALWAYS },
-		{ SPEECH_GC_NEED_AIR_SUPPORT_AT,		SPEECH_ARRAY_GC_MESSAGES,		100,	SPEECH_INTRODUCTION_ALWAYS },
-		{ SPEECH_GC_UNDER_HEAVY_FIRE,			SPEECH_ARRAY_GC_MESSAGES,		100,	SPEECH_INTRODUCTION_ALWAYS },
-	};
 
 
 
@@ -252,29 +241,40 @@ static speech_instance_type
 
 
 
-static int
-	num_vh_destroyed_wingman_comments [NUM_ENTITY_SIDES] = {0, 1, 1},
-	last_vh_destroyed_wingman_comment [NUM_ENTITY_SIDES] = {0, 0, 0};
 
-static speech_instance_type
-	vehicle_destroyed_wingman_comments [] =
-	{
-		{ SPEECH_WINGMAN_TARGET_DESTROYED,	SPEECH_ARRAY_WINGMAN_MESSAGES,	100, 	SPEECH_INTRODUCTION_SOMETIMES },
-	};
 
 
 
-static int
-	num_vh_destroyed_cpg_comments [NUM_ENTITY_SIDES] = {0, 3, 3},
-	last_vh_destroyed_cpg_comment [NUM_ENTITY_SIDES] = {0, 0, 0};
 
-static speech_instance_type
-	vehicle_destroyed_cpg_comments [] =
-	{
-		{ SPEECH_CPG_TARGET_DESTROYED,					SPEECH_ARRAY_CPG_MESSAGES,			100, 	SPEECH_INTRODUCTION_SOMETIMES },
-		{ SPEECH_CPG_KILL_CONFIRMED,						SPEECH_ARRAY_CPG_MESSAGES,			100, 	SPEECH_INTRODUCTION_SOMETIMES },
-		{ SPEECH_CPG_GOOD_KILL,								SPEECH_ARRAY_CPG_MESSAGES,			100, 	SPEECH_INTRODUCTION_SOMETIMES },
-	};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -461,7 +461,7 @@ void assess_vehicle_damage_level (entity *en, int old_damage_level)
 			set_client_server_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE, OPERATIONAL_STATE_STOPPED);
 		}
 		
-		if (!raw->damage_level)
-			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_FIRE);
+
+
 	}
 }

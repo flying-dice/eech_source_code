@@ -154,7 +154,7 @@ extern bridge_segment_data
 
 
 
-
+extern void initialise_segment_database();
 
 
 

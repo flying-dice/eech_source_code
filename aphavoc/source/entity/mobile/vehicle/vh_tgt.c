@@ -290,40 +290,40 @@ void vehicle_target_scan (entity *en)
 				
 				if (!current_target)
 				{
-					// PLAY_SPEECH (GC)
-					//
-					// [GC Introduction],
-					// We have incoming enemy aircraft
-	
-					pos = get_local_entity_vec3d_ptr (target_group, VEC3D_TYPE_POSITION); 
 
-					ASSERT (pos);
 
-					get_speech_sector_coordinates (pos);
 
-					play_client_server_speech
-					(
-						get_session_entity (),
-						en,
-						(entity_sides) raw->mob.side,
-						ENTITY_SUB_TYPE_EFFECT_SOUND_RADIO_MESSAGE,
-						SOUND_LOCALITY_RADIO,
-						0.0,
-						1.0,
-						20.0,
-						SPEECH_ORIGINATOR_GROUND_CONTROLLER,
-						SPEECH_CATEGORY_SIGHTED_TARGETS,
-						60.0,
-						SPEECH_ARRAY_GC_MESSAGES, SPEECH_GC_INTRODUCTION,
-						SPEECH_ARRAY_GC_MESSAGES, SPEECH_GC_INCOMING_ENEMY_AIRCRAFT_HEADING,
-						SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [0],
-						SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [1],
-						SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [2],
-						SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [3],
-						SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [4],
-						SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [5],
-						-1
-					);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 				}
 				else if (debug)
 				{
@@ -380,44 +380,44 @@ void vehicle_target_scan (entity *en)
 				//
 
 				
-				// PLAY_SPEECH (GC)
-				//
-				// [GC Introduction],
-				// We have incoming enemy ground units
 
-				if (!current_target)
-				{
-					pos = get_local_entity_vec3d_ptr (target_group, VEC3D_TYPE_POSITION); 
 
-					ASSERT (pos);
 
-					get_speech_sector_coordinates (pos);
 
-					play_client_server_speech
-					(
-						get_session_entity (),
-						en,
-						(entity_sides) raw->mob.side,
-						ENTITY_SUB_TYPE_EFFECT_SOUND_RADIO_MESSAGE,
-						SOUND_LOCALITY_RADIO,
-						0.0,
-						0.8,
-						40.0,
-						SPEECH_ORIGINATOR_GROUND_CONTROLLER,
-						SPEECH_CATEGORY_SIGHTED_TARGETS,
-						90.0,
-						SPEECH_ARRAY_GC_MESSAGES, SPEECH_GC_INTRODUCTION,
-						SPEECH_ARRAY_GC_MESSAGES, SPEECH_GC_INCOMING_ENEMY_GROUND_UNITS_AT,
-						SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [0],
-						SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [1],
-						SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [2],
-						SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [3],
-						SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [4],
-						SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [5],
-						-1
-					);
-				}
-				else if (debug)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 				{
 					debug_log("VH_TGT: already has target");
 				}

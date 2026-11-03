@@ -116,13 +116,13 @@ static void set_local_int_value (entity *en, int_types type, int value)
 			break;
 		}
 
-		case INT_TYPE_OBJECT_DRAWN_ONCE_THIS_FRAME:
 
-		{
-			raw->object_drawn_once_this_frame = value;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_SIDE:
 
@@ -142,13 +142,13 @@ static void set_local_int_value (entity *en, int_types type, int value)
 		}
 		*/
 
-		case INT_TYPE_TACVIEW_LOGGING:
 
-		{
-			raw->tacview_logging = value;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_UPDATED:
 		case INT_TYPE_MOVED:
@@ -330,13 +330,13 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 
-		case INT_TYPE_OBJECT_DRAWN_ONCE_THIS_FRAME:
 
-		{
-			value = raw->object_drawn_once_this_frame;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_SIDE:
 
@@ -346,13 +346,13 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 
-		case INT_TYPE_SOUND_LIST_VALID:
 
-		{
-			value = TRUE;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_TASK_TARGET_TYPE:
 
@@ -371,12 +371,12 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 		*/
-		case INT_TYPE_TACVIEW_LOGGING:
-		{
-			value = raw->tacview_logging;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_UPDATED:
 		case INT_TYPE_MOVED:

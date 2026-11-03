@@ -109,72 +109,72 @@ static void set_local_float_value (entity *en, float_types type, float value)
 			break;
 		}
 
-		case FLOAT_TYPE_MAIN_ROTOR_BLADE_CONING_ANGLE:
 
-		{
-			raw->main_rotor_blade_coning_angle = value;
 
-			break;
-		}
 
-		case FLOAT_TYPE_MAIN_ROTOR_PITCH:
 
-		{
-			raw->main_rotor_pitch = value;
 
-			break;
-		}
 
-		case FLOAT_TYPE_MAIN_ROTOR_ROLL:
 
-		{
-			raw->main_rotor_roll = value;
 
-			break;
-		}
 
-		case FLOAT_TYPE_MAIN_ROTOR_RPM:
 
-		{
-			raw->main_rotor_rpm = value;
 
-			break;
-		}
 
-		case FLOAT_TYPE_MAIN_ROTOR_SPIN_UP_TIMER:
 
-		{
-			raw->main_rotor_spin_up_timer = value;
 
-			break;
-		}
 
-		case FLOAT_TYPE_TAIL_ROTOR_RPM:
 
-		{
-			raw->tail_rotor_rpm = value;
 
-			break;
-		}
 
-		
-		// Jabberwock 050310 MP Cannon bug
-		case FLOAT_TYPE_PLAYER_WEAPON_HEADING:
 
-		{
-			raw->player_weapon_heading = value;
 
-			break;
-		}
 
-		case FLOAT_TYPE_PLAYER_WEAPON_PITCH:
 
-		{
-			raw->player_weapon_pitch = value;
 
-			break;
-		}
-		// Jabberwock 050310 ends
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		default:
 
@@ -269,45 +269,45 @@ static float get_local_float_value (entity *en, float_types type)
 			break;
 		}
 
-		case FLOAT_TYPE_MAIN_ROTOR_BLADE_CONING_ANGLE:
 
-		{
-			value = raw->main_rotor_blade_coning_angle;
 
-			break;
-		}
 
-		case FLOAT_TYPE_MAIN_ROTOR_PITCH:
 
-		{
-			value = raw->main_rotor_pitch;
 
-			break;
-		}
 
-		case FLOAT_TYPE_MAIN_ROTOR_ROLL:
 
-		{
-			value = raw->main_rotor_roll;
 
-			break;
-		}
 
-		case FLOAT_TYPE_MAIN_ROTOR_RPM:
 
-		{
-			value = raw->main_rotor_rpm;
 
-			break;
-		}
 
-		case FLOAT_TYPE_MAIN_ROTOR_SPIN_UP_TIMER:
 
-		{
-			value = raw->main_rotor_spin_up_timer;
 
-			break;
-		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		case FLOAT_TYPE_RADAR_STEALTH_FACTOR:
 
@@ -329,32 +329,32 @@ static float get_local_float_value (entity *en, float_types type)
 			break;
 		}
 
-		case FLOAT_TYPE_TAIL_ROTOR_RPM:
 
-		{
-			value = raw->tail_rotor_rpm;
 
-			break;
-		}
 
-		
-		// Jabberwock 050310 MP Cannon bug
-		case FLOAT_TYPE_PLAYER_WEAPON_HEADING:
 
-		{
-			value = raw->player_weapon_heading;
 
-			break;
-		}
 
-		case FLOAT_TYPE_PLAYER_WEAPON_PITCH:
 
-		{
-			value = raw->player_weapon_pitch;
 
-			break;
-		}
-		// Jabberwock 050310 ends
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		default:
 

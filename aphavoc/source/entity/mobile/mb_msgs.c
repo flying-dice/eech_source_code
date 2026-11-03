@@ -485,31 +485,31 @@ static int response_to_waypoint_approach_reached (entity_messages message, entit
 
 
 
-static int
-	num_waypoint_attack_cpg_comments [NUM_ENTITY_SIDES] = {0, 3, 3},
-	last_waypoint_attack_cpg_comment [NUM_ENTITY_SIDES] = {0, 0, 0};
-
-static speech_instance_type
-	waypoint_attack_cpg_comments [] =
-	{
-		{ SPEECH_CPG_APPROACHING_ENGAGEMENT_AREA,				SPEECH_ARRAY_CPG_MESSAGES,			100, 	SPEECH_INTRODUCTION_NEVER },
-		{ SPEECH_CPG_APPROACHING_BATTLE_POSITION,				SPEECH_ARRAY_CPG_MESSAGES,			100, 	SPEECH_INTRODUCTION_NEVER },
-		{ SPEECH_CPG_APPROACHING_RP,								SPEECH_ARRAY_CPG_MESSAGES,			100, 	SPEECH_INTRODUCTION_NEVER },
-	};
 
 
 
-static int
-	num_waypoint_attack_wingman_comments [NUM_ENTITY_SIDES] = {0, 3, 3},
-	last_waypoint_attack_wingman_comment [NUM_ENTITY_SIDES] = {0, 0, 0};
 
-static speech_instance_type
-	waypoint_attack_wingman_comments [] =
-	{
-		{ SPEECH_WINGMAN_APPROACHING_ENGAGEMENT_AREA,		SPEECH_ARRAY_WINGMAN_MESSAGES,	100, 	SPEECH_INTRODUCTION_ALWAYS },
-		{ SPEECH_WINGMAN_APPROACHING_BATTLE_POSITION,		SPEECH_ARRAY_WINGMAN_MESSAGES,	100, 	SPEECH_INTRODUCTION_ALWAYS },
-		{ SPEECH_WINGMAN_APPROACHING_RP,							SPEECH_ARRAY_WINGMAN_MESSAGES,	100, 	SPEECH_INTRODUCTION_ALWAYS },
-	};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -569,44 +569,44 @@ static int response_to_waypoint_attack_action (entity_messages message, entity *
 
 	side = (entity_sides) get_local_entity_int_value (receiver, INT_TYPE_SIDE);
 
-	//
-	// Play Speech
-	//
-	
-	if (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI)
-	{
-		val = get_speech_random_value
-				(
-					waypoint_attack_wingman_comments,
-					num_waypoint_attack_wingman_comments [side],
-					last_waypoint_attack_wingman_comment [side]
-				);
 
-		speech_index = waypoint_attack_wingman_comments [val].speech_index;
-	
-		play_client_server_wingman_message
-		(
-			receiver,
-			1.0,
-			5.0,
-			SPEECH_CATEGORY_MISSION_RELATED, -1.0,
-			waypoint_attack_wingman_comments [val].introduction,
-			SPEECH_ARRAY_WINGMAN_MESSAGES, speech_index
-		);
-	}
-	else
-	{
-		val = get_speech_random_value
-				(
-					waypoint_attack_cpg_comments,
-					num_waypoint_attack_cpg_comments [side],
-					last_waypoint_attack_cpg_comment [side]
-				);
 
-		speech_index = waypoint_attack_cpg_comments [val].speech_index;
-	
 
-	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	//
 	// Engage Targets
@@ -844,12 +844,12 @@ static int response_to_waypoint_defend_reached (entity_messages message, entity 
 	
 		set_local_entity_float_value (member, FLOAT_TYPE_VIEW_INTEREST_LEVEL, DEFAULT_VIEW_INTEREST_LEVEL);
 	
-		set_infinite_smoke_list_generating_state (member, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_VEHICLE_WAKE, INFINITE_SMOKE_OFF);
-	
-		if (get_local_entity_int_value (member, INT_TYPE_LIGHTS_ON))
-		{
-	
-			set_vehicle_headlight_state (member, OFF);
+
+
+
+
+
+
 		}
 
 		//
@@ -1539,19 +1539,19 @@ static int response_to_waypoint_landed_reached (entity_messages message, entity 
 	//
 
 
-	set_infinite_smoke_list_generating_state (receiver, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_VEHICLE_WAKE, INFINITE_SMOKE_OFF);
 
-	if (get_local_entity_int_value (receiver, INT_TYPE_IDENTIFY_VEHICLE))
-	{
-		if (get_local_entity_int_value (receiver, INT_TYPE_LIGHTS_ON))
-		{
-			set_vehicle_headlight_state (receiver, OFF);
-		}
-	}
 
-	open_client_server_entity_loading_doors (receiver);
 
-	open_client_server_entity_cargo_doors (receiver);
+
+
+
+
+
+
+
+
+
+
 
 
 	//
@@ -1698,14 +1698,14 @@ static int response_to_waypoint_sub_route_navigation_reached (entity_messages me
 	{
 		if (!get_local_entity_int_value (receiver, INT_TYPE_LIGHTS_ON))
 		{
-			set_vehicle_headlight_state (receiver, ON);
-		}
-	}
-	else
-	{
-		if (get_local_entity_int_value (receiver, INT_TYPE_LIGHTS_ON))
-		{
-			set_vehicle_headlight_state (receiver, OFF);
+
+
+
+
+
+
+
+
 		}
 	}
 
@@ -1958,10 +1958,10 @@ static int response_to_waypoint_recon_action (entity_messages message, entity *r
 
 
 
-		if (receiver == get_gunship_entity ())
-		{
-			set_status_message (get_trans ("ADVISE_TRANSMIT_RECON"), STATUS_MESSAGE_TYPE_ALERT);
-		}
+
+
+
+
 		else
 		{
 
@@ -2013,27 +2013,27 @@ static int response_to_waypoint_recon_reached (entity_messages message, entity *
 	set_local_entity_float_value (receiver, FLOAT_TYPE_VIEW_INTEREST_LEVEL, DEFAULT_VIEW_INTEREST_LEVEL);
 
 
-	//
-	// SPECIAL_EFFECT_HOOK FOR RECON WAYPOINT REACHED
-	//
 
 
-	if (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI)
-	{
-		play_client_server_wingman_message
-		(
-			receiver,
-			1.0,
-			20.0,
-			SPEECH_CATEGORY_MISSION_RELATED, -1.0,
-			SPEECH_INTRODUCTION_ALWAYS,
-			SPEECH_ARRAY_WINGMAN_MESSAGES, SPEECH_WINGMAN_TRANSMITTING_RECON_DATA
-		);
-	}
-	else
-	{
 
-	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 	//

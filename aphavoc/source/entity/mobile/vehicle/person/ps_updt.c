@@ -119,7 +119,7 @@ static void update_server (entity *en)
 
 
 
-		update_person_animation (en);
+
 
 
 		//
@@ -148,7 +148,7 @@ static void update_server (entity *en)
 	}
 	else
 	{
-		update_person_animation (en);
+
 
 		if (get_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE) == OPERATIONAL_STATE_DEAD)
 		{

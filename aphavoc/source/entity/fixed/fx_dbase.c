@@ -85,7 +85,7 @@ const fixed_data
       //
 
       {
-
+         OBJECT_3D_CRATE, 										// default_3d_shape
 
 
 
@@ -96,7 +96,7 @@ const fixed_data
       //
 
       {
-
+			OBJECT_3D_STONE_BRIDGE_START,							// default_3d_shape
 
 
 
@@ -107,7 +107,7 @@ const fixed_data
       //
 
       {
-
+			OBJECT_3D_STONE_BRIDGE_MID,							// default_3d_shape
 
 
 
@@ -118,7 +118,7 @@ const fixed_data
       //
 
       {
-
+			OBJECT_3D_STONE_BRIDGE_MID,							// default_3d_shape
 
 
 
@@ -129,7 +129,7 @@ const fixed_data
       //
 
       {
-
+			OBJECT_3D_INVALID_OBJECT_INDEX,						// default_3d_shape
 
 
 
@@ -140,7 +140,7 @@ const fixed_data
       //
 
       {
-
+			OBJECT_3D_CRATE,										// default_3d_shape
 
 
 
@@ -151,7 +151,7 @@ const fixed_data
       //
 
       {
-
+			OBJECT_3D_EFFECT_CRATER,								// default_3d_shape
 
 
 
@@ -162,7 +162,7 @@ const fixed_data
       //
 
       {
-
+         OBJECT_3D_PYLON, 		 									// default_3d_shape
 
 
 
@@ -173,7 +173,7 @@ const fixed_data
       //
 
       {
-
+         OBJECT_3D_PYLON, 		 									// default_3d_shape
 
 
 
@@ -184,7 +184,7 @@ const fixed_data
       //
 
       {
-
+         OBJECT_3D_PYLON, 		 									// default_3d_shape
 
 
 
@@ -195,7 +195,7 @@ const fixed_data
       //
 
       {
-
+         OBJECT_3D_PYLON, 		 									// default_3d_shape
 
 
 
@@ -206,7 +206,7 @@ const fixed_data
       //
 
       {
-
+         OBJECT_3D_PYLON, 		 									// default_3d_shape
 
 
 
@@ -217,7 +217,7 @@ const fixed_data
       //
 
       {
-
+         OBJECT_3D_CRATE, 	  									// default_3d_shape
 
 
 
@@ -228,7 +228,7 @@ const fixed_data
       //
 
       {
-
+         OBJECT_3D_CRATE, 	  									// default_3d_shape
 
 
 
@@ -239,7 +239,7 @@ const fixed_data
       //
 
       {
-
+         OBJECT_3D_CRATE,										// default_3d_shape
 
 
 

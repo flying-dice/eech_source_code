@@ -110,13 +110,13 @@ static void set_local_vec3d (entity *en, vec3d_types type, vec3d *v)
 			break;
 		}
 
-		case VEC3D_TYPE_EO_TRACKING_POINT:
 
-		{
-			raw->eo_tracking_point = *v;
 
-			break;
-		}
+
+
+
+
+
 
 		default:
 
@@ -216,13 +216,13 @@ static void get_local_vec3d (entity *en, vec3d_types type, vec3d *v)
 			break;
 		}
 
-		case VEC3D_TYPE_EO_TRACKING_POINT:
 
-		{
-			*v = raw->eo_tracking_point;
 
-			break;
-		}
+
+
+
+
+
 
 		default:
 
@@ -267,13 +267,13 @@ static vec3d *get_local_vec3d_ptr (entity *en, vec3d_types type)
 			break;
 		}
 
-		case VEC3D_TYPE_EO_TRACKING_POINT:
 
-		{
-			v = &raw->eo_tracking_point;
 
-			break;
-		}
+
+
+
+
+
 
 		default:
 

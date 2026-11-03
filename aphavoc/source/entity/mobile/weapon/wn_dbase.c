@@ -147,7 +147,7 @@ weapon_data
 
 
 			(weapon_guidance_types) 0,		 																// guidance_type
-
+			(weapon_aiming_types) 0,																		// aiming_type
 			(weapon_decoy_types) 0,																		// decoy_type
 			(weapon_warhead_types) 0,																		// warhead_type
 			(threat_types) 0,																		// threat_type
@@ -179,19 +179,19 @@ weapon_data
 			0.0,																	// min_range
 			0.0,																	// max_range
 			0.0,																	// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			0.0,																	// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			0.0,																	// rate_of_fire
 			0.0,																	// reload_time
-
+			0.0,																	// max_launch_angle_error
 
 
 
@@ -227,7 +227,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_SOLID_SHOT,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -260,19 +260,19 @@ weapon_data
 			0.0,		  															// min_range
 			1800.0,																// max_range
 			600.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			600.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			1000.0,																// rate_of_fire
 			10.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -301,7 +301,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_SOLID_SHOT,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -334,19 +334,19 @@ weapon_data
 			0.0,		  															// min_range
 			1800.0,																// max_range
 			600.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			600.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			1000.0,																// rate_of_fire
 			10.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -375,7 +375,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_SOLID_SHOT,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -408,19 +408,19 @@ weapon_data
 			0.0,		  															// min_range
 			1800.0,																// max_range
 			600.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			600.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			1000.0,																// rate_of_fire
 			10.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -449,7 +449,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_SOLID_SHOT,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -485,19 +485,19 @@ weapon_data
 			0.0,																	// min_range
 			1600.0,																// max_range
 			600.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			884.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			1000.0,																// rate_of_fire
 			10.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -526,7 +526,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_SOLID_SHOT,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -562,19 +562,19 @@ weapon_data
 			0.0,																	// min_range
 			1600.0,																// max_range
 			600.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			884.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			1000.0,																// rate_of_fire
 			10.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -603,7 +603,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_SOLID_SHOT,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -637,19 +637,19 @@ weapon_data
 			0.0,			 														// min_range
 			1600.0,																// max_range
 			500.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			884.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			750.0,																// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -678,7 +678,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_SOLID_SHOT,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -712,19 +712,19 @@ weapon_data
 			0.0,																	// min_range
 			1600.0,																// max_range
 			600.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			1051.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			1650.0,																// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -753,7 +753,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_SOLID_SHOT,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -787,19 +787,19 @@ weapon_data
 			0.0,		  															// min_range
 			3500.0,																// max_range
 			2000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			1000.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			1000.0,																// rate_of_fire
 			9.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -828,7 +828,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_DUAL_PURPOSE,						// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -862,19 +862,19 @@ weapon_data
 			0.0,																	// min_range
 			1200.0,																// max_range
 			600.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			1030.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			2100.0,																// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -903,7 +903,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -937,19 +937,19 @@ weapon_data
 			0.0,	 																// min_range
 			1200.0,																// max_range
 			800.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			792.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			625.0,																// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -982,7 +982,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_ANGLE_OF_PROJECTION,				// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -1015,19 +1015,19 @@ weapon_data
 			2571.4,																// min_range
 			4000.0,																// max_range
 			2000.0,																// effective_range
-
+			50.0 / 4000.0,		 												// max_range_error_ratio
 
 
 			198.1,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			20.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -1060,7 +1060,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_ANGLE_OF_PROJECTION,				// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -1093,19 +1093,19 @@ weapon_data
 			0.0,																	// min_range
 			4000.0,																// max_range
 			2000.0,																// effective_range
-
+			50.0 / 4000.0,														// max_range_error_ratio
 
 
 			247.1,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			15.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -1134,7 +1134,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_ANGLE_OF_PROJECTION,				// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -1167,19 +1167,19 @@ weapon_data
 			0.0,		  															// min_range
 			30000.0,																// max_range
 			15000.0,																// effective_range
-
+			150.0 / 30000.0, 													// max_range_error_ratio
 
 
 			542.5,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			20.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -1212,7 +1212,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_ANGLE_OF_PROJECTION,				// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -1245,19 +1245,19 @@ weapon_data
 			15801.5,																// min_range
 			31600.0,																// max_range
 			15000.0,																// effective_range
-
+			150.0 / 31600.0,													// max_range_error_ratio
 
 
 			556.8,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			25.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -1286,7 +1286,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_SOLID_SHOT,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -1320,19 +1320,19 @@ weapon_data
 			0.0,		  															// min_range
 			1800.0,																// max_range
 			600.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			600.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			1000.0,																// rate_of_fire
 			10.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -1361,7 +1361,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_SOLID_SHOT,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -1395,19 +1395,19 @@ weapon_data
 			0.0,		  															// min_range
 			1800.0,																// max_range
 			600.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			600.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			1000.0,																// rate_of_fire
 			10.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -1436,7 +1436,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_SOLID_SHOT,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -1470,19 +1470,19 @@ weapon_data
 			0.0,		  															// min_range
 			1800.0,																// max_range
 			600.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			600.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			1000.0,																// rate_of_fire
 			10.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -1511,7 +1511,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_SOLID_SHOT,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -1545,19 +1545,19 @@ weapon_data
 			0.0,		  															// min_range
 			1500.0,																// max_range
 			800.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			600.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			4000.0,																// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -1586,7 +1586,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_SOLID_SHOT,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -1620,19 +1620,19 @@ weapon_data
 			0.0,		  															// min_range
 			1600.0,																// max_range
 			600.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			600.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			1000.0,																// rate_of_fire
 			12.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -1661,7 +1661,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_SOLID_SHOT,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -1695,19 +1695,19 @@ weapon_data
 			0.0,		  															// min_range
 			2000.0,																// max_range
 			500.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			930.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			3200.0,																// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -1736,7 +1736,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -1770,19 +1770,19 @@ weapon_data
 			0.0,	  																// min_range
 			1600.0,																// max_range
 			800.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			800.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			1500.0,																// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -1811,7 +1811,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -1844,19 +1844,19 @@ weapon_data
 			0.0,																	// min_range
 			2500.0,																// max_range
 			1500.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			1200.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			2000.0,																// rate_of_fire
 			15.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -1885,7 +1885,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -1919,19 +1919,19 @@ weapon_data
 			0.0,			 														// min_range
 			4000.0,																// max_range
 			800.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			1000.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			600.0,																// rate_of_fire
 			15.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -1960,7 +1960,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -1994,19 +1994,19 @@ weapon_data
 			0.0,			 														// min_range
 			2000.0,																// max_range
 			600.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			1000.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			600.0,																// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -2035,7 +2035,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_DUAL_PURPOSE,						// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -2069,19 +2069,19 @@ weapon_data
 			0.0,			 														// min_range
 			2000.0,																// max_range
 			600.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			1000.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			350.0,																// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -2110,7 +2110,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -2144,19 +2144,19 @@ weapon_data
 			0.0,	 																// min_range
 			2000.0,																// max_range
 			1000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			800.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			1000.0,																// rate_of_fire
 			16.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -2185,7 +2185,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_DUAL_PURPOSE,						// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -2219,19 +2219,19 @@ weapon_data
 			0.0,																	// min_range
 			1500.0,																// max_range
 			800.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			1000.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			100.0,																// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -2260,7 +2260,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -2293,19 +2293,19 @@ weapon_data
 			0.0,																	// min_range
 			1500.0,																// max_range
 			1000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			800.0,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			3.0,																	// burst_duration
 			1000.0,																// rate_of_fire
 			9.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -2334,7 +2334,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_ANGLE_OF_PROJECTION,				// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -2367,19 +2367,19 @@ weapon_data
 			0.0,		  															// min_range
 			4000.0,																// max_range
 			2000.0,																// effective_range
-
+			50.0 / 4000.0,														// max_range_error_ratio
 
 
 			198.1,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			20.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -2408,7 +2408,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_ANGLE_OF_PROJECTION,				// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -2441,19 +2441,19 @@ weapon_data
 			0.0,																	// min_range
 			4000.0,																// max_range
 			2000.0,																// effective_range
-
+			50.0 / 4000.0,		 												// max_range_error_ratio
 
 
 			198.1,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			25.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -2482,7 +2482,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_ANGLE_OF_PROJECTION,				// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -2515,19 +2515,19 @@ weapon_data
 			0.0,																	// min_range
 			4000.0,																// max_range
 			2000.0,																// effective_range
-
+			50.0 / 4000.0,		 												// max_range_error_ratio
 
 
 			198.1,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			22.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -2560,7 +2560,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_ANGLE_OF_PROJECTION,				// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -2593,19 +2593,19 @@ weapon_data
 			5209.4,	  															// min_range
 			30000.0,																// max_range
 			15000.0,																// effective_range
-
+			150.0 / 30000.0,													// max_range_error_ratio
 
 
 			542.5,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			20.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -2638,7 +2638,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_ANGLE_OF_PROJECTION,				// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -2671,19 +2671,19 @@ weapon_data
 			0.0,																	// min_range
 			4000.0,																// max_range
 			3000.0,																// effective_range
-
+			50.0 / 4000.0,														// max_range_error_ratio
 
 
 			289.1,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			15.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -2712,7 +2712,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_ANGLE_OF_PROJECTION,				// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -2745,19 +2745,19 @@ weapon_data
 			0.0,	 																// min_range
 			24000.0,																// max_range
 			12000.0,																// effective_range
-
+			150.0 / 24000.0,													// max_range_error_ratio
 
 
 			485.2,																// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			25.0,																	// reload_time
-
+			rad (1.0),															// max_launch_angle_error
 
 
 
@@ -2793,7 +2793,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -2826,19 +2826,19 @@ weapon_data
 			100.0,																// min_range
 			5000.0,																// max_range
 			800.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			850.0,																// cruise_velocity
 
-
+			2.718,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (0.1),															// max_launch_angle_error
 
 
 
@@ -2867,7 +2867,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -2900,19 +2900,19 @@ weapon_data
 			100.0,																// min_range
 			5000.0,																// max_range
 			800.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			850.0,																// cruise_velocity
 
-
+			2.718,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (0.1),															// max_launch_angle_error
 
 
 
@@ -2941,7 +2941,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -2974,19 +2974,19 @@ weapon_data
 			100.0,																// min_range
 			5000.0,																// max_range
 			800.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			850.0,																// cruise_velocity
 
-
+			2.718,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (0.1),															// max_launch_angle_error
 
 
 
@@ -3015,7 +3015,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -3048,19 +3048,19 @@ weapon_data
 			100.0,																// min_range
 			5000.0,																// max_range
 			750.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			850.0,																// cruise_velocity
 
-
+			2.718,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (0.1),															// max_launch_angle_error
 
 
 
@@ -3089,7 +3089,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -3122,19 +3122,19 @@ weapon_data
 			100.0,																// min_range
 			3000.0,																// max_range
 			600.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			700.0,																// cruise_velocity
 
-
+			2.209,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (0.1),															// max_launch_angle_error
 
 
 
@@ -3163,7 +3163,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -3196,19 +3196,19 @@ weapon_data
 			100.0,																// min_range
 			4000.0,																// max_range
 			600.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			750.0,																// cruise_velocity
 
-
+			2.379,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (0.1),															// max_launch_angle_error
 
 
 
@@ -3237,7 +3237,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -3270,19 +3270,19 @@ weapon_data
 			100.0,																// min_range
 			6000.0,																// max_range
 			600.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			800.0,																// cruise_velocity
 
-
+			2.548,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (0.1),															// max_launch_angle_error
 
 
 
@@ -3318,7 +3318,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_PASSIVE_INFRA_RED,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_IR_MISSILE,											// threat_type
@@ -3351,19 +3351,19 @@ weapon_data
 			500.0,																// min_range
 			5000.0,																// max_range
 			2500.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			680.0,																// cruise_velocity
 
-
+			4.281,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (40.0),															// max_launch_angle_error
 
 
 
@@ -3392,7 +3392,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_PASSIVE_INFRA_RED,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_IR_MISSILE,	 										// threat_type
@@ -3425,19 +3425,19 @@ weapon_data
 			500.0,																// min_range
 			18000.0,																// max_range
 			5000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			850.0,																// cruise_velocity
 
-
+			5.437,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (40.0),															// max_launch_angle_error
 
 
 
@@ -3466,7 +3466,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_ACTIVE_RADAR, 							// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_RF_MISSILE,											// threat_type
@@ -3499,19 +3499,19 @@ weapon_data
 			500.0,																// min_range
 			65000.0,																// max_range
 			5000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			1300.0,																// cruise_velocity
 
-
+			8.495,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (45.0),															// max_launch_angle_error
 
 
 
@@ -3540,7 +3540,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_PASSIVE_INFRA_RED, 					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_IR_MISSILE,	 										// threat_type
@@ -3573,19 +3573,19 @@ weapon_data
 			500.0,																// min_range
 			5200.0,																// max_range
 			3000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			850.0,																// cruise_velocity
 
-
+			5.437,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (30.0),															// max_launch_angle_error
 
 
 
@@ -3614,7 +3614,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_PASSIVE_INFRA_RED,	  				// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_IR_MISSILE,											// threat_type
@@ -3647,19 +3647,19 @@ weapon_data
 			500.0,																// min_range
 			8000.0,																// max_range
 			5000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			1000.0,																// cruise_velocity
 
-
+			6.456,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (30.0),															// max_launch_angle_error
 
 
 
@@ -3688,7 +3688,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_PASSIVE_INFRA_RED,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_IR_MISSILE,											// threat_type
@@ -3721,19 +3721,19 @@ weapon_data
 			500.0,																// min_range
 			15000.0,																// max_range
 			5000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			1000.0,																// cruise_velocity
 
-
+			6.456,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (30.0),															// max_launch_angle_error
 
 
 
@@ -3762,7 +3762,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_SEMI_ACTIVE_RADAR,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_RF_MISSILE,											// threat_type
@@ -3795,19 +3795,19 @@ weapon_data
 			500.0,																// min_range
 			40000.0,																// max_range
 			5000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			1500.0,																// cruise_velocity
 
-
+			9.854,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (30.0),															// max_launch_angle_error
 
 
 
@@ -3836,7 +3836,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_PASSIVE_INFRA_RED,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_IR_MISSILE,											// threat_type
@@ -3869,19 +3869,19 @@ weapon_data
 			500.0,																// min_range
 			20000.0,																// max_range
 			5000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			1500.0,																// cruise_velocity
 
-
+			9.854,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (30.0),															// max_launch_angle_error
 
 
 
@@ -3910,7 +3910,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_PASSIVE_INFRA_RED,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_IR_MISSILE,											// threat_type
@@ -3943,19 +3943,19 @@ weapon_data
 			500.0,																// min_range
 			30000.0,																// max_range
 			5000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			850.0,																// cruise_velocity
 
-
+			5.437,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (30.0),															// max_launch_angle_error
 
 
 
@@ -3991,7 +3991,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_ACTIVE_RADAR,							// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_RF_MISSILE,											// threat_type
@@ -4024,19 +4024,19 @@ weapon_data
 			500.0,																// min_range
 			8000.0,																// max_range
 			3000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			442.0,																// cruise_velocity
 
-
+			3.996,																// burn_time
 			23.5,				//X-PATCH//15.876,							// cruise_time
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (30.0),															// max_launch_angle_error
 
 
 
@@ -4065,7 +4065,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_SEMI_ACTIVE_LASER,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_LASER_MISSILE,										// threat_type
@@ -4098,19 +4098,19 @@ weapon_data
 			500.0,																// min_range
 			8000.0,																// max_range
 			3000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			442.0,																// cruise_velocity
 
-
+			3.996,																// burn_time
 			23.5,				//X-PATCH//15.876,							// cruise_time
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (30.0),															// max_launch_angle_error
 
 
 
@@ -4139,7 +4139,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_SEMI_ACTIVE_LASER,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_LASER_MISSILE,										// threat_type
@@ -4172,19 +4172,19 @@ weapon_data
 			500.0,																// min_range
 			8000.0,																// max_range
 			3000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			442.0,																// cruise_velocity
 
-
+			3.996,																// burn_time
 			23.5,				//X-PATCH//15.876,							// cruise_time
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (30.0),															// max_launch_angle_error
 
 
 
@@ -4213,7 +4213,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_PASSIVE_INFRA_RED,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_IR_MISSILE,											// threat_type
@@ -4246,19 +4246,19 @@ weapon_data
 			500.0,																// min_range
 			24000.0,																// max_range
 			6000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			340.0,																// cruise_velocity
 
-
+			5.912,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (10.0),															// max_launch_angle_error
 
 
 
@@ -4287,7 +4287,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_PASSIVE_INFRA_RED,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_IR_MISSILE,											// threat_type
@@ -4320,19 +4320,19 @@ weapon_data
 			500.0,																// min_range
 			24000.0,																// max_range
 			6000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			340.0,																// cruise_velocity
 
-
+			5.912,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (10.0),															// max_launch_angle_error
 
 
 
@@ -4361,7 +4361,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_RADIO_COMMAND,							// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_RF_MISSILE,											// threat_type
@@ -4394,19 +4394,19 @@ weapon_data
 			500.0,																// min_range
 			6000.0,																// max_range
 			3000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			400.0,																// cruise_velocity
 
-
+			3.568,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (25.0),															// max_launch_angle_error
 
 
 
@@ -4435,7 +4435,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_SEMI_ACTIVE_LASER,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_LASER_MISSILE,										// threat_type
@@ -4468,19 +4468,19 @@ weapon_data
 			500.0,																// min_range
 			10000.0,																// max_range
 			3000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			400.0,																// cruise_velocity
 
-
+			3.568,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (25.0),															// max_launch_angle_error
 
 
 
@@ -4509,7 +4509,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_RADIO_COMMAND,							// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_RF_MISSILE,											// threat_type
@@ -4542,19 +4542,19 @@ weapon_data
 			400.0,								// min_range
 			5000.0,								// max_range
 			3000.0,								// effective_range
-
+			0.0,							// max_range_error_ratio
 
 
 			340.0,							// cruise_velocity
 
-
+			2.956,							// burn_time
 
 
 
 			0.0,							// burst_duration
 			FIRE_SINGLE_WEAPON,					// rate_of_fire
 			0.0,							// reload_time
-
+			rad (20.0),						// max_launch_angle_error
 
 
 
@@ -4583,7 +4583,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_PASSIVE_INFRA_RED,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_IR_MISSILE,											// threat_type
@@ -4616,19 +4616,19 @@ weapon_data
 			500.0,																// min_range
 			10000.0,																// max_range
 			4000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			340.0,																// cruise_velocity
 
-
+			5.912,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (10.0),															// max_launch_angle_error
 
 
 
@@ -4657,7 +4657,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_SEMI_ACTIVE_LASER,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_LASER_MISSILE,										// threat_type
@@ -4690,19 +4690,19 @@ weapon_data
 			500.0,																// min_range
 			40000.0,																// max_range
 			6000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			340.0,																// cruise_velocity
 
-
+			5.912,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (10.0),															// max_launch_angle_error
 
 
 
@@ -4738,7 +4738,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_PASSIVE_INFRA_RED,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_IR_MISSILE,											// threat_type
@@ -4771,19 +4771,19 @@ weapon_data
 			500.0,																// min_range
 			5000.0,																// max_range
 			3500.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			850.0,																// cruise_velocity
 
-
+			5.437,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			25.0,																	// reload_time
-
+			rad (60.0),															// max_launch_angle_error
 
 
 
@@ -4812,7 +4812,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_PASSIVE_INFRA_RED,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_IR_MISSILE,											// threat_type
@@ -4845,19 +4845,19 @@ weapon_data
 			500.0,																// min_range
 			5000.0,																// max_range
 			3500.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			680.0,																// cruise_velocity
 
-
+			4.281,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			25.0,																	// reload_time
-
+			rad (40.0),															// max_launch_angle_error
 
 
 
@@ -4886,7 +4886,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_SEMI_ACTIVE_RADAR,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_RF_MISSILE,											// threat_type
@@ -4919,19 +4919,19 @@ weapon_data
 			500.0,																// min_range
 			30000.0,																// max_range
 			15000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			850.0,																// cruise_velocity
 
-
+			8.155,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			25.0,																	// reload_time
-
+			rad (60.0),															// max_launch_angle_error
 
 
 
@@ -4960,7 +4960,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_SEMI_ACTIVE_RADAR,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_RF_MISSILE,											// threat_type
@@ -4993,19 +4993,19 @@ weapon_data
 			500.0,																// min_range
 			55000.0,																// max_range
 			15000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			850.0,																// cruise_velocity
 
-
+			8.155,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			25.0,																	// reload_time
-
+			rad (60.0),															// max_launch_angle_error
 
 
 
@@ -5034,7 +5034,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_PASSIVE_INFRA_RED,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_IR_MISSILE,											// threat_type
@@ -5067,19 +5067,19 @@ weapon_data
 			500.0,																// min_range
 			3200.0,																// max_range
 			2000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			510.0,																// cruise_velocity
 
-
+			3.126,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			25.0,																	// reload_time
-
+			rad (30.0),															// max_launch_angle_error
 
 
 
@@ -5108,7 +5108,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_PASSIVE_INFRA_RED,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_IR_MISSILE,											// threat_type
@@ -5141,19 +5141,19 @@ weapon_data
 			500.0,																// min_range
 			5000.0,																// max_range
 			3500.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			510.0,																// cruise_velocity
 
-
+			4.689,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			25.0,																	// reload_time
-
+			rad (25.0),															// max_launch_angle_error
 
 
 
@@ -5182,7 +5182,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_RADIO_COMMAND,							// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_RF_MISSILE,											// threat_type
@@ -5215,19 +5215,19 @@ weapon_data
 			500.0,																// min_range
 			8000.0,																// max_range
 			5000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			890.0,																// cruise_velocity
 
-
+			5.708,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			25.0,																	// reload_time
-
+			rad (60.0),															// max_launch_angle_error
 
 
 
@@ -5256,7 +5256,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_RADIO_COMMAND,							// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_RF_MISSILE,											// threat_type
@@ -5289,19 +5289,19 @@ weapon_data
 			500.0,																// min_range
 			24000.0,																// max_range
 			12000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			952.0,																// cruise_velocity
 
-
+			9.195,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			25.0,																	// reload_time
-
+			rad (45.0),															// max_launch_angle_error
 
 
 
@@ -5330,7 +5330,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_RADIO_COMMAND,							// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE,							// warhead_type
 			THREAT_TYPE_RF_MISSILE,											// threat_type
@@ -5363,19 +5363,19 @@ weapon_data
 			500.0,																// min_range
 			12000.0,																// max_range
 			8000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			850.0,																// cruise_velocity
 
-
+			8.155,			 													// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			24.0,																	// reload_time
-
+			rad (45.0),															// max_launch_angle_error
 
 
 
@@ -5411,7 +5411,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_WIRE_GUIDED,							// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -5444,19 +5444,19 @@ weapon_data
 			100.0,																// min_range
 			3750.0,																// max_range
 			3000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			300.0,																// cruise_velocity
 
-
+			5.097,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			30.0,																	// reload_time
-
+			rad (30.0),															// max_launch_angle_error
 
 
 
@@ -5485,7 +5485,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_SEMI_ACTIVE_RADAR,					// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_RF_MISSILE,											// threat_type
@@ -5518,19 +5518,19 @@ weapon_data
 			100.0,																// min_range
 			4000.0,																// max_range
 			3000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			300.0,																// cruise_velocity
 
-
+			5.097,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			30.0,																	// reload_time
-
+			rad (15.0),															// max_launch_angle_error
 
 
 
@@ -5559,7 +5559,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_SEMI_ACTIVE_LASER_BEAM_RIDING,	// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_LASER_MISSILE,										// threat_type
@@ -5592,19 +5592,19 @@ weapon_data
 			100.0,																// min_range
 			5000.0,																// max_range
 			3000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			300.0,																// cruise_velocity
 
-
+			5.097,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			30.0,																	// reload_time
-
+			rad (20.0),															// max_launch_angle_error
 
 
 
@@ -5633,7 +5633,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_SEMI_ACTIVE_LASER_BEAM_RIDING,	// guidance_type
-
+			WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT,					// aiming_type
 			WEAPON_DECOY_TYPE_NONE,											// decoy_type
 			WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK,			// warhead_type
 			THREAT_TYPE_LASER_MISSILE,										// threat_type
@@ -5666,19 +5666,19 @@ weapon_data
 			100.0,																// min_range
 			4000.0,																// max_range
 			3000.0,																// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			300.0,																// cruise_velocity
 
-
+			5.097,																// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			30.0,																	// reload_time
-
+			rad (20.0),															// max_launch_angle_error
 
 
 
@@ -5714,7 +5714,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_NONE,										// aiming_type
 			WEAPON_DECOY_TYPE_CHAFF,  										// decoy_type
 			WEAPON_WARHEAD_TYPE_NONE,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -5747,19 +5747,19 @@ weapon_data
 			0.0,		 															// min_range
 			0.0,																	// max_range
 			0.0,																	// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			25.0,		 															// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (0.0),															// max_launch_angle_error
 
 
 
@@ -5788,7 +5788,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_NONE,										// aiming_type
 			WEAPON_DECOY_TYPE_FLARE,	 									// decoy_type
 			WEAPON_WARHEAD_TYPE_NONE,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -5821,19 +5821,19 @@ weapon_data
 			0.0,		 															// min_range
 			0.0,																	// max_range
 			0.0,																	// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			50.0,		 															// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (0.0),															// max_launch_angle_error
 
 
 
@@ -5862,7 +5862,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_NONE,										// aiming_type
 			WEAPON_DECOY_TYPE_SMOKE_GRENADE,								// decoy_type
 			WEAPON_WARHEAD_TYPE_SMOKE_GRENADE,							// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -5895,19 +5895,19 @@ weapon_data
 			0.0,		 															// min_range
 			0.0,																	// max_range
 			0.0,																	// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			6.0,		 															// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (0.0),															// max_launch_angle_error
 
 
 
@@ -5943,7 +5943,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_NONE,										// aiming_type
 			WEAPON_DECOY_TYPE_NONE,			 								// decoy_type
 			WEAPON_WARHEAD_TYPE_NONE,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -5976,19 +5976,19 @@ weapon_data
 			0.0,		 															// min_range
 			0.0,																	// max_range
 			0.0,																	// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			0.0,		 															// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (0.0),															// max_launch_angle_error
 
 
 
@@ -6024,7 +6024,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_NONE,										// aiming_type
 			WEAPON_DECOY_TYPE_NONE,			 								// decoy_type
 			WEAPON_WARHEAD_TYPE_SOLID_SHOT,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -6057,19 +6057,19 @@ weapon_data
 			0.0,		 															// min_range
 			0.0,																	// max_range
 			0.0,																	// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			20.0,		 															// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (0.0),															// max_launch_angle_error
 
 
 
@@ -6098,7 +6098,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_NONE,										// aiming_type
 			WEAPON_DECOY_TYPE_NONE,			 								// decoy_type
 			WEAPON_WARHEAD_TYPE_SOLID_SHOT,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -6131,19 +6131,19 @@ weapon_data
 			0.0,		 															// min_range
 			0.0,																	// max_range
 			0.0,																	// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			60.0,		 															// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (0.0),															// max_launch_angle_error
 
 
 
@@ -6172,7 +6172,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_NONE,										// aiming_type
 			WEAPON_DECOY_TYPE_NONE,			 								// decoy_type
 			WEAPON_WARHEAD_TYPE_SOLID_SHOT,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -6205,19 +6205,19 @@ weapon_data
 			0.0,		 															// min_range
 			0.0,																	// max_range
 			0.0,																	// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			60.0,		 															// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (0.0),															// max_launch_angle_error
 
 
 
@@ -6246,7 +6246,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_NONE,										// aiming_type
 			WEAPON_DECOY_TYPE_NONE,			 								// decoy_type
 			WEAPON_WARHEAD_TYPE_SOLID_SHOT,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -6279,19 +6279,19 @@ weapon_data
 			0.0,		 															// min_range
 			0.0,																	// max_range
 			0.0,																	// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			8.0,		 															// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (0.0),															// max_launch_angle_error
 
 
 
@@ -6320,7 +6320,7 @@ weapon_data
 
 
 			WEAPON_GUIDANCE_TYPE_NONE,										// guidance_type
-
+			WEAPON_AIMING_TYPE_NONE,										// aiming_type
 			WEAPON_DECOY_TYPE_NONE,			 								// decoy_type
 			WEAPON_WARHEAD_TYPE_SOLID_SHOT,										// warhead_type
 			THREAT_TYPE_INVALID,												// threat_type
@@ -6353,19 +6353,19 @@ weapon_data
 			0.0,		 															// min_range
 			0.0,																	// max_range
 			0.0,																	// effective_range
-
+			0.0,																	// max_range_error_ratio
 
 
 			8.0,		 															// cruise_velocity
 
-
+			0.0,																	// burn_time
 
 
 
 			0.0,																	// burst_duration
 			FIRE_SINGLE_WEAPON,												// rate_of_fire
 			0.0,																	// reload_time
-
+			rad (0.0),															// max_launch_angle_error
 
 
 

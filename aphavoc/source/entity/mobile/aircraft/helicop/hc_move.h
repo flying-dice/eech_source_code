@@ -86,9 +86,9 @@ extern void update_player_helicopter_waypoint_distance (entity *en);
 
 
 
-extern float
-	min_coning_angle,
-	max_coning_angle;
+
+
+
 
 
 

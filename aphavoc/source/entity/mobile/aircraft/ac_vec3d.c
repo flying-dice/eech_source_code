@@ -217,24 +217,24 @@ static void set_local_vec3d (entity *en, vec3d_types type, vec3d *v)
 				}
          }
 
-			//
-			// notify special effects of move
-			//
-
-			special_effect = get_local_entity_first_child (en, LIST_TYPE_SPECIAL_EFFECT);
-
-			while (special_effect)
-			{
 
 
 
 
 
 
-				notify_local_entity (ENTITY_MESSAGE_SET_ENTITY_POSITION, special_effect, en, &raw->mob.position, (double) heading, (double) raw->mob.velocity);
 
-				special_effect = get_local_entity_child_succ (special_effect, LIST_TYPE_SPECIAL_EFFECT);
-			}
+
+
+
+
+
+
+
+
+
+
+
 
          break;
       }

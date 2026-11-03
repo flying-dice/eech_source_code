@@ -102,13 +102,13 @@ static void set_local_float_value (entity *en, float_types type, float value)
 	switch (type)
 	{
 
-		case FLOAT_TYPE_PERSON_ANIMATION_STATE:
 
-		{
-			raw->person_animation_state = value;
 
-			break;
-		}
+
+
+
+
+
 
 		default:
 
@@ -203,13 +203,13 @@ static float get_local_float_value (entity *en, float_types type)
 	switch (type)
 	{
 
-		case FLOAT_TYPE_PERSON_ANIMATION_STATE:
 
-		{
-			value = raw->person_animation_state;
 
-			break;
-		}
+
+
+
+
+
 
 		default:
 

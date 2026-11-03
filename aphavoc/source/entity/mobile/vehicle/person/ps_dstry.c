@@ -112,15 +112,15 @@ static void destroy_local (entity *en)
 	//
 
 
-	destruct_3d_object (raw->vh.inst3d);
+
 
 	free_mem (raw->vh.weapon_package_status_array);
 
-	if (raw->vh.sound_effect_data)
-	{
 
-		destroy_system_sound_effect (raw->vh.sound_effect_data);
-	}
+
+
+
+
 
 
 	//
@@ -148,7 +148,7 @@ static void destroy_local (entity *en)
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_MEMBER);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_VIEW);
+
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_TAKEOFF_QUEUE);
 
@@ -160,7 +160,7 @@ static void destroy_local (entity *en)
 
 	unlink_local_entity_children (en, LIST_TYPE_TARGET);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_PADLOCK);
+
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_SECTOR);
 
@@ -251,7 +251,7 @@ static void destroy_local_family (entity *en)
 
 //	destroy_local_entity_children (en, LIST_TYPE_WAYPOINT);
 
-	destroy_local_sound_effects (en);
+
 
 	destroy_local_entity (en);
 }
@@ -341,7 +341,7 @@ static void kill_local (entity *en)
 	set_local_entity_int_value (en, INT_TYPE_ALIVE, FALSE);
 
 	// update person object
-	damage_person_3d_object (en);
+
 
 	group = get_local_entity_parent (en, LIST_TYPE_MEMBER);
 
@@ -442,13 +442,13 @@ static void kill_local (entity *en)
 	// kill weapon sound effects
 	//
 
-	kill_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_CHAIN_GUN);
+
 
 	//unlink_local_entity_children (en, LIST_TYPE_SPECIAL_EFFECT);
 
 	unlink_local_entity_children (en, LIST_TYPE_TARGET);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_PADLOCK);
+
 
 	// sector_link
 

@@ -264,18 +264,18 @@ static void update_server (entity *en)
 
 				// provide resync for AI wingmen
 
-				group = get_local_entity_parent (en, LIST_TYPE_MEMBER);
-
-				if (group)
-				{
-
-					if ((get_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE) != OPERATIONAL_STATE_LANDED) &&
-							(get_local_entity_int_value (group, INT_TYPE_MULTIPLAYER_GROUP)))
-					{
 
 
-					}
-				}
+
+
+
+
+
+
+
+
+
+
 
 
 				//
@@ -331,104 +331,104 @@ static void update_server (entity *en)
 			case ENTITY_PLAYER_LOCAL:
 
 			{
-				vec3d* pos = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
-				entity* sec = NULL;
-
-				ASSERT (en == get_gunship_entity ());
-
-				if (raw->invulnerable_timer > 0.0)
-				{
-
-					raw->invulnerable_timer -= get_delta_time ();
-				}
-
-				if (pos)
-				{
-					sec = get_local_sector_entity(pos);
-					gunship_current_sector = (sector *) get_local_entity_data(sec);
-				}
-
-				update_current_flight_dynamics_fuel_weight ();
-
-				update_current_flight_dynamics_flight_time ();
-
-
-				if ((!get_local_entity_int_value (en, INT_TYPE_AUTO_PILOT)) && (!get_local_entity_int_value (en, INT_TYPE_EJECTED)))
-				{
-
-					update_flight_dynamics ();
-
-					update_player_helicopter_waypoint_distance (en);
-				}
-				else
-				{
-					if ((damage_type == AIRCRAFT_DAMAGE_CRITICAL) || (get_local_entity_int_value (en, INT_TYPE_EJECTED)) || (get_local_entity_int_value (en, INT_TYPE_LANDED)))
-					{
-
-						set_current_flight_dynamics_auto_pilot (FALSE);
-
-						if (get_local_entity_int_value (en, INT_TYPE_LANDED))
-						{
-
-							set_current_flight_dynamics_rotor_brake (TRUE);
-
-							current_flight_dynamics->input_data.collective.value = 0.0;
-						}
-					}
-
-					for (loop = 0; loop < get_entity_movement_iterations (); loop ++)
-					{
-
-						if (get_local_entity_int_value (en, INT_TYPE_EJECTED) || raw->main_rotor_rpm < 50 && get_local_entity_int_value (en, INT_TYPE_AIRBORNE_AIRCRAFT))
-						{
-
-							helicopter_death_movement (en);
-						}
-						else
-						{
-
-							ASSERT(point_inside_map_area(&raw->ac.mob.position));
-
-							get_3d_terrain_point_data (raw->ac.mob.position.x, raw->ac.mob.position.z, &raw->ac.terrain_info);
-
-							helicopter_movement (en);
-
-							if (get_local_entity_int_value (en, INT_TYPE_AUTO_PILOT))
-							{
-
-								set_dynamics_entity_values (en);
-							}
-						}
-					}
-				}
-
-
-
-
-
-				//
-				// ORDER IS CRITICAL
-				//
-
-				if (raw->ac.mob.alive)
-				{
 
 
 
 
 
 
-					update_aircraft_weapon_system_ready (en);
 
-					update_entity_weapon_systems (en);
 
-					update_entity_weapon_system_weapon_and_target_vectors (en);
 
-					update_avionics ();
 
-					update_cockpits ();
 
-					update_aircraft_decoy_release (en);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 				}
 
 				//
@@ -455,80 +455,80 @@ static void update_server (entity *en)
 
 			case ENTITY_PLAYER_REMOTE:
 
-			{
-
-
-
-				if (raw->invulnerable_timer > 0.0)
-				{
-
-					raw->invulnerable_timer -= get_delta_time ();
-				}
-
-				if ((get_local_entity_int_value (en, INT_TYPE_AUTO_PILOT)) || (get_local_entity_int_value (en, INT_TYPE_EJECTED)))
-				{
-
-					for (loop = 0; loop < get_entity_movement_iterations (); loop ++)
-					{
-
-						if (get_local_entity_int_value (en, INT_TYPE_EJECTED) || raw->main_rotor_rpm < 50 && get_local_entity_int_value (en, INT_TYPE_AIRBORNE_AIRCRAFT))
-						{
-
-							helicopter_death_movement (en);
-						}
-						else
-						{
-
-							if (!get_local_entity_int_value (en, INT_TYPE_LANDED))
-							{
-
-								ASSERT(point_inside_map_area(&raw->ac.mob.position));
-
-								get_3d_terrain_point_data (raw->ac.mob.position.x, raw->ac.mob.position.z, &raw->ac.terrain_info);
-							}
-
-							helicopter_movement (en);
-						}
-					}
 
 
 
 
 
 
-				}
-				else
-				{
-
-					interpolate_entity_position (en);
-
-					update_player_helicopter_waypoint_distance (en);
-				}
-
-
-				//
-				// ORDER IS CRITICAL
-				//
-
-				if (raw->ac.mob.alive)
-				{
 
 
 
 
 
 
-					update_aircraft_weapon_system_ready (en);
-
-					update_entity_weapon_systems (en);
-
-					update_entity_weapon_system_weapon_and_target_vectors (en);
-				}
-
-				//
 
 
-				break;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 			}
 		}
 

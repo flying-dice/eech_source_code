@@ -287,47 +287,47 @@ static entity *create_local (entity_types type, int index, char *pargs)
 		//
 
 
-		//
-		// 3D object
-		//
 
-		raw->ac.inst3d = construct_3d_object (raw->ac.object_3d_shape);
 
-		set_helicopter_id_number (en);
 
-		if (get_local_entity_int_value (en, INT_TYPE_PLAYER_CONTROLLABLE))
-		{
-			deactivate_weapon_payload_markers (en);
-		}
 
-		#if RECOGNITION_GUIDE
 
-		raw->ac.loading_door_state = AIRCRAFT_LOADING_DOORS_CLOSED_FLOAT_VALUE;
 
-		#endif
 
-		set_sub_object_type_visible_status (raw->ac.inst3d, OBJECT_3D_SUB_OBJECT_TROOP_TAKEOFF_ROUTE, FALSE);
-		set_sub_object_type_visible_status (raw->ac.inst3d, OBJECT_3D_SUB_OBJECT_TROOP_LANDING_ROUTE, FALSE);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		set_local_entity_int_value (en, INT_TYPE_TROOPS_ONBOARD, 0);
 
-		//
-		// vary main rotor start position (ok to use a random number as this is for visual effect only)
-		//
 
-		#if RECOGNITION_GUIDE
 
-		set_rotation_angle_of_helicopter_main_rotors (raw->ac.inst3d, 0.0);
 
-		set_rotation_angle_of_helicopter_tail_rotor (raw->ac.inst3d, 0.0);
 
-		#else
 
-		set_rotation_angle_of_helicopter_main_rotors (raw->ac.inst3d, sfrand1 () * PI);
 
-		set_rotation_angle_of_helicopter_tail_rotor (raw->ac.inst3d, sfrand1 () * PI);
 
-		#endif
+
+
+
+
+
+
+
+
+
+
 
 		//
 		// weapon config
@@ -353,11 +353,11 @@ static entity *create_local (entity_types type, int index, char *pargs)
 
 		insert_local_entity_into_parents_child_list (en, LIST_TYPE_MEMBER, raw->ac.member_link.parent, raw->ac.member_link.child_pred);
 
-		//
-		// insert into LIST_TYPE_MEMBER before LIST_TYPE_VIEW
-		//
 
-		insert_local_entity_into_parents_child_list (en, LIST_TYPE_VIEW, get_camera_entity (), get_local_entity_view_list_pred (en));
+
+
+
+
 
 		insert_local_entity_into_parents_child_list (en, LIST_TYPE_SECTOR, get_local_sector_entity (&raw->ac.mob.position), NULL);
 
@@ -478,164 +478,164 @@ entity *create_client_server_entity_helicopter (int index, entity_sub_types sub_
 		ENTITY_ATTR_END
 	);
 
-	//
-	// create and attach special effects
-	//
-
-	//
-	// damage smoke
-	//
-
-
-
-
-
-	{
-		sound_sample_indices
-			mca_effect_index,
-			lock_on_effect_index,
-			tracked_effect_index,
-			locked_effect_index,
-			incoming_effect_index;
-
-		//
-		// sound effects
-		//
-
-		mca_effect_index = SOUND_SAMPLE_INDEX_NONE;
-		lock_on_effect_index = SOUND_SAMPLE_INDEX_NONE;
-		tracked_effect_index = SOUND_SAMPLE_INDEX_NONE;
-		locked_effect_index = SOUND_SAMPLE_INDEX_NONE;
-		incoming_effect_index = SOUND_SAMPLE_INDEX_NONE;
-
-		switch (sub_type)
-		{
-			case ENTITY_SUB_TYPE_AIRCRAFT_AH64D_APACHE_LONGBOW:
-			{
-				mca_effect_index = SOUND_SAMPLE_INDEX_APACHE_MCA;
-				lock_on_effect_index = SOUND_SAMPLE_INDEX_APACHE_LOCK_ON;
-				tracked_effect_index = SOUND_SAMPLE_INDEX_WARNING_TRACKED_BY_RADAR;
-				locked_effect_index = SOUND_SAMPLE_INDEX_WARNING_LOCKED_BY_RADAR;
-				incoming_effect_index = SOUND_SAMPLE_INDEX_WARNING_INCOMING_MISSILE;
-				break;
-			}
-			case ENTITY_SUB_TYPE_AIRCRAFT_RAH66_COMANCHE:
-			{
-				mca_effect_index = SOUND_SAMPLE_INDEX_COMANCHE_MCA;
-				lock_on_effect_index = SOUND_SAMPLE_INDEX_COMANCHE_LOCK_ON;
-				tracked_effect_index = SOUND_SAMPLE_INDEX_WARNING_TRACKED_BY_RADAR;
-				locked_effect_index = SOUND_SAMPLE_INDEX_WARNING_LOCKED_BY_RADAR;
-				incoming_effect_index = SOUND_SAMPLE_INDEX_WARNING_INCOMING_MISSILE;
-				break;
-			}
-		////Moje 030527 start
-			case ENTITY_SUB_TYPE_AIRCRAFT_UH60_BLACK_HAWK:
-		////Moje 030527 End
-			{
-				mca_effect_index = SOUND_SAMPLE_INDEX_BLACKHAWK_MCA;
-				lock_on_effect_index = SOUND_SAMPLE_INDEX_BLACKHAWK_LOCK_ON;
-				tracked_effect_index = SOUND_SAMPLE_INDEX_WARNING_TRACKED_BY_RADAR;
-				locked_effect_index = SOUND_SAMPLE_INDEX_WARNING_LOCKED_BY_RADAR;
-				incoming_effect_index = SOUND_SAMPLE_INDEX_WARNING_INCOMING_MISSILE;
-				break;
-			}
-		////Moje 030816 start
-			case ENTITY_SUB_TYPE_AIRCRAFT_AH64A_APACHE:
-		////Moje 030816 End
-			{
-				mca_effect_index = SOUND_SAMPLE_INDEX_APACHE_MCA;
-				lock_on_effect_index = SOUND_SAMPLE_INDEX_APACHE_LOCK_ON;
-				tracked_effect_index = SOUND_SAMPLE_INDEX_WARNING_TRACKED_BY_RADAR;
-				locked_effect_index = SOUND_SAMPLE_INDEX_WARNING_LOCKED_BY_RADAR;
-				incoming_effect_index = SOUND_SAMPLE_INDEX_WARNING_INCOMING_MISSILE;
-				break;
-			}
-			case ENTITY_SUB_TYPE_AIRCRAFT_MI28N_HAVOC_B:
-			{
-				mca_effect_index = SOUND_SAMPLE_INDEX_HAVOC_MCA;
-				lock_on_effect_index = SOUND_SAMPLE_INDEX_HAVOC_LOCK_ON;
-				tracked_effect_index = SOUND_SAMPLE_INDEX_WARNING_TRACKED_BY_RADAR;
-				locked_effect_index = SOUND_SAMPLE_INDEX_WARNING_LOCKED_BY_RADAR;
-				incoming_effect_index = SOUND_SAMPLE_INDEX_WARNING_INCOMING_MISSILE;
-				break;
-			}
-			case ENTITY_SUB_TYPE_AIRCRAFT_KA52_HOKUM_B:
-			{
-				mca_effect_index = SOUND_SAMPLE_INDEX_HOKUM_MCA;
-				lock_on_effect_index = SOUND_SAMPLE_INDEX_HOKUM_LOCK_ON;
-				tracked_effect_index = SOUND_SAMPLE_INDEX_WARNING_TRACKED_BY_RADAR;
-				locked_effect_index = SOUND_SAMPLE_INDEX_WARNING_LOCKED_BY_RADAR;
-				incoming_effect_index = SOUND_SAMPLE_INDEX_WARNING_INCOMING_MISSILE;
-				break;
-			}
-			////Moje 030612 line below added
-			case ENTITY_SUB_TYPE_AIRCRAFT_MI24D_HIND:
-			{
-				mca_effect_index = SOUND_SAMPLE_INDEX_HIND_MCA;
-				lock_on_effect_index = SOUND_SAMPLE_INDEX_HIND_LOCK_ON;
-				tracked_effect_index = SOUND_SAMPLE_INDEX_WARNING_TRACKED_BY_RADAR;
-				locked_effect_index = SOUND_SAMPLE_INDEX_WARNING_LOCKED_BY_RADAR;
-				incoming_effect_index = SOUND_SAMPLE_INDEX_WARNING_INCOMING_MISSILE;
-				break;
-			}
-			////Moje 030816 line below added
-			case ENTITY_SUB_TYPE_AIRCRAFT_KA50_HOKUM:
-			{
-				mca_effect_index = SOUND_SAMPLE_INDEX_HOKUM_MCA;
-				lock_on_effect_index = SOUND_SAMPLE_INDEX_HOKUM_LOCK_ON;
-				tracked_effect_index = SOUND_SAMPLE_INDEX_WARNING_TRACKED_BY_RADAR;
-				locked_effect_index = SOUND_SAMPLE_INDEX_WARNING_LOCKED_BY_RADAR;
-				incoming_effect_index = SOUND_SAMPLE_INDEX_WARNING_INCOMING_MISSILE;
-				break;
-			}
-			// start new entities by GCsDriver  08-12-2007
-			case ENTITY_SUB_TYPE_AIRCRAFT_AH1T_SEACOBRA:
-			case ENTITY_SUB_TYPE_AIRCRAFT_AH1W_SUPERCOBRA:
-			case ENTITY_SUB_TYPE_AIRCRAFT_AH1Z_VIPER:
-			case ENTITY_SUB_TYPE_AIRCRAFT_OH58D_KIOWA_WARRIOR:
-			case ENTITY_SUB_TYPE_AIRCRAFT_CH46E_SEA_KNIGHT:
-			case ENTITY_SUB_TYPE_AIRCRAFT_CH3_JOLLY_GREEN_GIANT:
-			case ENTITY_SUB_TYPE_AIRCRAFT_CH47D_CHINOOK:
-			case ENTITY_SUB_TYPE_AIRCRAFT_MV22_OSPREY:
-			case ENTITY_SUB_TYPE_AIRCRAFT_CH53E_SUPER_STALLION:
-			{
-				mca_effect_index = SOUND_SAMPLE_INDEX_APACHE_MCA;
-				lock_on_effect_index = SOUND_SAMPLE_INDEX_APACHE_LOCK_ON;
-				tracked_effect_index = SOUND_SAMPLE_INDEX_WARNING_TRACKED_BY_RADAR;
-				locked_effect_index = SOUND_SAMPLE_INDEX_WARNING_LOCKED_BY_RADAR;
-				incoming_effect_index = SOUND_SAMPLE_INDEX_WARNING_INCOMING_MISSILE;
-				break;
-			}
-			case ENTITY_SUB_TYPE_AIRCRAFT_KA29_HELIX_B:
-			case ENTITY_SUB_TYPE_AIRCRAFT_MI17_HIP:
-			case ENTITY_SUB_TYPE_AIRCRAFT_MI6_HOOK:
-			{
-				mca_effect_index = SOUND_SAMPLE_INDEX_HOKUM_MCA;
-				lock_on_effect_index = SOUND_SAMPLE_INDEX_HOKUM_LOCK_ON;
-				tracked_effect_index = SOUND_SAMPLE_INDEX_WARNING_TRACKED_BY_RADAR;
-				locked_effect_index = SOUND_SAMPLE_INDEX_WARNING_LOCKED_BY_RADAR;
-				incoming_effect_index = SOUND_SAMPLE_INDEX_WARNING_INCOMING_MISSILE;
-				break;
-			}
-			// end new entities by GCsDriver  08-12-2007
-		}
 
 
 
 
 
 
-	}
 
-	//
-	// initialise terrain elevation cache
-	//
 
-	raw = (helicopter *) get_local_entity_data (new_entity);
 
-	ASSERT(point_inside_map_area(position));
 
-	get_3d_terrain_point_data (position->x, position->z, &raw->ac.terrain_info);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	return new_entity;
 }

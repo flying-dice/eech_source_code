@@ -67,7 +67,7 @@
 struct FIXED_DATA
 {
 	object_3d_index_numbers
-
+		default_3d_shape;
 
 	int
 
