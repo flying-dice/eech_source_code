@@ -143,14 +143,14 @@ static void destroy_local (entity *en)
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_UPDATE);
 
-	//
-	// notify campaign screen (should be done AFTER unlinked from keysite)
-	//
 
-	if (task_database [raw->sub_type].primary_task)
-	{
-		notify_campaign_screen (CAMPAIGN_SCREEN_MISSION_DESTROYED, en);
-	}
+
+
+
+
+
+
+
 
 
 	//
@@ -309,16 +309,16 @@ static void destroy_server_family (entity *en)
 
 
 
-static void destroy_client_family (entity *en)
-{
 
 
 
 
 
 
-	transmit_entity_comms_message (ENTITY_COMMS_DESTROY_FAMILY, en);
-}
+
+
+
+
 
 
 

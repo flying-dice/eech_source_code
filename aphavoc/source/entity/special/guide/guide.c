@@ -426,7 +426,7 @@ int set_guide_new_waypoint (entity *en, entity *wp)
 
 	if (get_comms_model () != COMMS_MODEL_SERVER)
 	{
-		transmit_entity_comms_message (ENTITY_COMMS_SET_WAYPOINT, en, wp);
+
 
 		return TRUE;
 	}
@@ -792,7 +792,7 @@ void attach_group_member_to_guide_entity (entity *member, entity *guide)
 
 	insert_local_entity_into_parents_child_list (member, LIST_TYPE_FOLLOWER, guide, NULL);
 
-	transmit_entity_comms_message (ENTITY_COMMS_SWITCH_LIST, member, LIST_TYPE_FOLLOWER, guide, LIST_TYPE_FOLLOWER);
+
 
 	//
 	// set mobile range to maximum (okay, so I've just picked an arbitrary big number coz it may need to be packed up)
@@ -820,7 +820,7 @@ void attach_group_to_guide_entity (entity *group, entity *guide)
 
 	insert_local_entity_into_parents_child_list (guide, LIST_TYPE_GUIDE_STACK, group, NULL);
 
-	transmit_entity_comms_message (ENTITY_COMMS_SWITCH_LIST, guide, LIST_TYPE_GUIDE_STACK, group, LIST_TYPE_GUIDE_STACK);
+
 
 	//
 	// set-up guide criteria relevant to the group type

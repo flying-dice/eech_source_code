@@ -96,20 +96,20 @@ entity
 
 
 
-#define WIND_GUSTING_SAMPLE_POINTS	6
 
-static float
-	wind_gust_modulation_amounts [WIND_GUSTING_SAMPLE_POINTS] =
-	{
-		 0.25,
-		-0.05,
-		-0.25,
-		 0.05,
-		-0.01,
-		 0.15
-	};
 
-static float get_wind_gusting_modulation_value (float wind_gusting_value);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -336,177 +336,177 @@ float get_session_preset_time_of_day (session_time_of_day_settings preset_enum)
 
 
 
-void get_session_weather_at_point (vec3d *pos, weathermodes *current_weather_mode, weathermodes *target_weather_mode, float *transitional_state)
-{
-	float
-		range;
-
-	session
-		*raw;
-
-	weathermodes
-		cwm,
-		twm;
-
-	float
-		ts;
-
-	ASSERT (get_session_entity ());
-
-	ASSERT (pos);
-
-	raw = (session *) get_local_entity_data (get_session_entity ());
-
-	if (raw->local_weather_model)
-	{
-		//
-		// local weather model
-		//
-
-		if (raw->weather_radius == 0.0)
-		{
-			//
-			// weather is fine all across the map
-			//
-
-			cwm = WEATHERMODE_DRY;
-			twm = WEATHERMODE_DRY;
-
-			ts = 1.0;
-		}
-		else
-		{
-			//
-			// there is some bad weather somewhere on the map
-			//
-
-			range = get_approx_2d_range (pos, &raw->weather_position);
-
-			if (range >= raw->weather_radius)
-			{
-				//
-				// camera is in the dry zone
-				//
-
-				cwm = WEATHERMODE_DRY;
-				twm = WEATHERMODE_DRY;
-
-				ts = 0.0;
-			}
-			else if (range >= (raw->weather_radius * 0.666))
-			{
-				//
-				// camera is in the dry / light rain zone
-				//
-
-				cwm = WEATHERMODE_DRY;
-				//VJ 051014 link winter/summer to snow/rain
-				if (get_global_season() == SESSION_SEASON_WINTER)
-					twm = WEATHERMODE_SNOW;
-				else
-					twm = WEATHERMODE_LIGHT_RAIN;
-
-				ts = (raw->weather_radius - range) / (raw->weather_radius * 0.333);
-			}
-			else if (range >= (raw->weather_radius * 0.333))
-			{
-				//
-				// camera is in the light rain / heavy rain zone
-				//
-
-				//VJ 051014 link winter/summer to snow/rain
-				if (get_global_season() == SESSION_SEASON_WINTER)
-				{
-					cwm = WEATHERMODE_SNOW;
-					twm = WEATHERMODE_SNOW;
-				}
-				else
-				{
-					cwm = WEATHERMODE_LIGHT_RAIN;
-					twm = WEATHERMODE_HEAVY_RAIN;
-				}
-
-				ts = ((raw->weather_radius * 0.666) - range) / (raw->weather_radius * 0.333);
-			}
-			else
-			{
-				//
-				// camera is in the heavy rain zone
-				//
-
-				//VJ 051014 link winter/summer to snow/rain
-				if (get_global_season() == SESSION_SEASON_WINTER)
-				{
-					cwm = WEATHERMODE_SNOW;
-					twm = WEATHERMODE_SNOW;
-				}
-				else
-				{
-					cwm = WEATHERMODE_HEAVY_RAIN;
-					twm = WEATHERMODE_HEAVY_RAIN;
-				}
-				ts = 0.0;
-			}
-
-			ts = bound (ts, 0.0, 1.0);
-		}
-	}
-	else
-	{
-		//
-		// global weather model
-		//
-
-		cwm = raw->weather_mode;
-		twm = raw->target_weather_mode;
-
-		ts = raw->weather_mode_transitional_status;
-	}
-
-	//
-	// return required values
-	//
-
-	if (current_weather_mode)
-	{
-		*current_weather_mode = cwm;
-	}
-
-	if (target_weather_mode)
-	{
-		*target_weather_mode = twm;
-	}
-
-	if (transitional_state)
-	{
-		*transitional_state = ts;
-	}
-}
 
 
 
 
 
-weathermodes get_simple_session_weather_at_point (vec3d *pos)
-{
-	weathermodes
-		cwm,
-		twm;
 
-	float
-		transitional_status;
 
-	get_session_weather_at_point (pos, &cwm, &twm, &transitional_status);
 
-	if (transitional_status < 0.5)
-	{
-		return cwm;
-	}
-	else
-	{
-		return twm;
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

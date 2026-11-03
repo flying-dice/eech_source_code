@@ -390,14 +390,14 @@ void create_reaction_to_recon_task_completed (entity *task)
 
 			if (get_local_entity_int_value (objective, INT_TYPE_ALIVE))
 			{
-				sprintf (s, "%s %s %s %s %s",
-										get_local_entity_string (task, STRING_TYPE_SHORT_DISPLAY_NAME),
-										get_trans ("revealed enemy"),
-										get_local_entity_string (objective, STRING_TYPE_FULL_NAME),
-										get_trans ("is currently"),
-										keysite_usable_state_names [get_local_entity_int_value (objective, INT_TYPE_KEYSITE_USABLE_STATE)]);
 
-				send_text_message (objective, force, MESSAGE_TEXT_SYSTEM_RECON_DATA, s);
+
+
+
+
+
+
+
 
 				if (keysite_database [sub_type].troop_insertion_target)
 				{
@@ -508,13 +508,13 @@ void create_reaction_to_recon_task_completed (entity *task)
 			}
 			else
 			{
-				sprintf (s, "%s %s %s",
-										get_local_entity_string (task, STRING_TYPE_FULL_NAME),
-										get_trans ("revealed"),
-										get_local_entity_string (objective, STRING_TYPE_FULL_NAME),
-										get_trans ("has been destroyed"));
 
-				send_text_message (objective, force, MESSAGE_TEXT_SYSTEM_RECON_DATA, s);
+
+
+
+
+
+
 			}
 
 			break;
@@ -548,21 +548,21 @@ void create_reaction_to_recon_task_completed (entity *task)
 	
 					if (member_count == 1)
 					{
-						sprintf (s, "%s %s 1 %s",
-											get_local_entity_string (task, STRING_TYPE_FULL_NAME),
-											get_trans ("revealed"),
-											get_trans ("enemy A-A installation"));
-					}
-					else
-					{
-						sprintf (s, "%s %s %d %s",
-											get_local_entity_string (task, STRING_TYPE_FULL_NAME),
-											get_trans ("revealed"),
-											get_local_entity_int_value (objective, INT_TYPE_MEMBER_COUNT),
-											get_trans ("enemy A-A installations"));
-					}
-						
-					send_text_message (objective, force, MESSAGE_TEXT_SYSTEM_RECON_DATA, s);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 				}
 			}
 			else if (group_database [sub_type].frontline_flag)
@@ -589,11 +589,11 @@ void create_reaction_to_recon_task_completed (entity *task)
 										get_local_entity_string (task, STRING_TYPE_FULL_NAME));
 					}	
 	
-					sprintf (s, "%s %s",
-											get_local_entity_string (task, STRING_TYPE_FULL_NAME),
-											get_trans ("revealed enemy armoured battalion"));
-						
-					send_text_message (objective, force, MESSAGE_TEXT_SYSTEM_RECON_DATA, s);
+
+
+
+
+
 				}
 			}
 

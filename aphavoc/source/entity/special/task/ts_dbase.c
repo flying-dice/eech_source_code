@@ -122,7 +122,7 @@ task_data
 		TASK_ROE_NONE,												// Rules Of Engagement
 		FALSE,														// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		FALSE,														// primary task
@@ -181,7 +181,7 @@ task_data
 		TASK_ROE_ALL,												// Rules Of Engagement
 		FALSE,														// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -241,7 +241,7 @@ task_data
 		TASK_ROE_ALL,												// Rules Of Engagement
 		TRUE,															// Engage Enemy
 		3,																// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -302,7 +302,7 @@ task_data
 		TASK_ROE_OBJECTIVE,										// Rules Of Engagement
 		TRUE,															// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -363,7 +363,7 @@ task_data
 		TASK_ROE_ALL,												// Rules Of Engagement
 		TRUE,															// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -424,7 +424,7 @@ task_data
 		TASK_ROE_NONE,												// Rules Of Engagement
 		FALSE,														// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -484,7 +484,7 @@ task_data
 		TASK_ROE_OBJECTIVE,										// Rules Of Engagement
 		TRUE,															// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -545,7 +545,7 @@ task_data
 		TASK_ROE_ALL,												// Rules Of Engagement
 		FALSE,														// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -605,7 +605,7 @@ task_data
 		TASK_ROE_ALL,												// Rules Of Engagement
 		TRUE,															// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -666,7 +666,7 @@ task_data
 		TASK_ROE_OBJECTIVE,										// Rules Of Engagement
 		TRUE,															// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_RED,													// 2D waypoint route colour
+
 
 		FALSE,														// add start waypoint
 		FALSE,														// primary task
@@ -731,7 +731,7 @@ task_data
 		TASK_ROE_ALL,												// Rules Of Engagement
 		TRUE,															// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -792,7 +792,7 @@ task_data
 		TASK_ROE_NONE,												// Rules Of Engagement
 		FALSE,														// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -852,7 +852,7 @@ task_data
 		TASK_ROE_ALL,												// Rules Of Engagement
 		TRUE,															// Engage Enemy
 		3,																// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -913,7 +913,7 @@ task_data
 		TASK_ROE_NONE,												// Rules Of Engagement
 		FALSE,														// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		FALSE,														// primary task
@@ -978,7 +978,7 @@ task_data
 		TASK_ROE_NONE,												// Rules Of Engagement
 		FALSE,														// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		FALSE,														// primary task
@@ -1043,7 +1043,7 @@ task_data
 		TASK_ROE_ALL,												// Rules Of Engagement
 		TRUE,															// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -1103,7 +1103,7 @@ task_data
 		TASK_ROE_ALL,												// Rules Of Engagement
 		TRUE,															// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -1163,7 +1163,7 @@ task_data
 		TASK_ROE_NONE,												// Rules Of Engagement
 		FALSE,														// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -1223,7 +1223,7 @@ task_data
 		TASK_ROE_NONE,												// Rules Of Engagement
 		FALSE,														// Engage Enemy
 		5,																// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -1283,7 +1283,7 @@ task_data
 		TASK_ROE_ALL,												// Rules Of Engagement
 		FALSE,														// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -1343,7 +1343,7 @@ task_data
 		TASK_ROE_OBJECTIVE,										// Rules Of Engagement
 		TRUE,															// Engage Enemy
 		5,																// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -1404,7 +1404,7 @@ task_data
 		TASK_ROE_NONE,												// Rules Of Engagement
 		FALSE,														// Engage Enemy
 		6,																// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -1465,7 +1465,7 @@ task_data
 		TASK_ROE_NONE,												// Rules Of Engagement
 		FALSE,														// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		FALSE,														// primary task
@@ -1530,7 +1530,7 @@ task_data
 		TASK_ROE_NONE,												// Rules Of Engagement
 		FALSE,														// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		FALSE,														// primary task
@@ -1595,7 +1595,7 @@ task_data
 		TASK_ROE_NONE,												// Rules Of Engagement
 		FALSE,														// Engage Enemy
 		6,																// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -1655,7 +1655,7 @@ task_data
 		TASK_ROE_NONE,												// Rules Of Engagement
 		FALSE,														// Engage Enemy
 		7,																// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -1714,7 +1714,7 @@ task_data
 		TASK_ROE_NONE,												// Rules Of Engagement
 		FALSE,														// Engage Enemy
 		3,																// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		TRUE,															// primary task
@@ -1773,7 +1773,7 @@ task_data
 		TASK_ROE_ALL,												// Rules Of Engagement
 		TRUE,															// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		FALSE,														// primary task
@@ -1832,7 +1832,7 @@ task_data
 		TASK_ROE_ALL,												// Rules Of Engagement
 		TRUE,															// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		TRUE,															// add start waypoint
 		FALSE,														// primary task
@@ -1891,7 +1891,7 @@ task_data
 		TASK_ROE_ALL,												// Rules Of Engagement
 		TRUE,															// Engage Enemy
 		ESCORT_NEVER,												// Escort Required Threshold
-		COLOUR_WHITE,												// 2D waypoint route colour
+
 
 		FALSE,														// add start waypoint
 		TRUE,															// primary task

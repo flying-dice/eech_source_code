@@ -228,11 +228,11 @@ static entity *create_local (entity_types type, int index, char *pargs)
 
 		set_session_entity (en);
 
-		//
-		// for special (i.e. deathmatch games), initialise the high score table (Not used in C-H yet...)
-		//
 
-		initialise_pilot_high_score_table ();
+
+
+
+
 	}
 
 	return (en);

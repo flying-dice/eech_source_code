@@ -97,11 +97,11 @@ static void reset_update_function_list (void);
 void initialise_update_function_list (void)
 {
 
-	#if UPDATE_FUNCTION_DEBUG
 
-	debug_log ("UPDATE FUNCTION: initialise");
 
-	#endif
+
+
+
 
 	update_counter = 0;
 
@@ -115,11 +115,11 @@ void initialise_update_function_list (void)
 void deinitialise_update_function_list (void)
 {
 
-	#if UPDATE_FUNCTION_DEBUG
 
-	debug_log ("UPDATE FUNCTION: deinitialise");
 
-	#endif
+
+
+
 
 	reset_update_function_list ();
 }
@@ -131,11 +131,11 @@ void deinitialise_update_function_list (void)
 void reset_update_function_list (void)
 {
 
-	#if UPDATE_FUNCTION_DEBUG
 
-	debug_log ("UPDATE FUNCTION: reset update function list");
 
-	#endif
+
+
+
 
 	while (update_function_list)
 	{
@@ -168,13 +168,13 @@ int add_update_function (void ((*function) (void)), float sleep_time, float offs
 		return FALSE;
 	}
 
-	#if UPDATE_FUNCTION_DEBUG
 
-	update_counter ++;
 
-	debug_log ("UPDATE FUNCTION: add function %d count = %d", function, update_counter);
 
-	#endif
+
+
+
+
 
 	list_ptr = update_function_list;
 
@@ -253,13 +253,13 @@ int remove_update_function (void ((*function) (void)))
 				update_function_list = update_function->next;
 			}
 
-			#if UPDATE_FUNCTION_DEBUG
 
-			update_counter --;
-		
-			debug_log ("UPDATE FUNCTION: remove function %d, counter = %d", update_function, update_counter);
-		
-			#endif
+
+
+
+
+
+
 
 			free_mem (update_function);
 
@@ -294,11 +294,11 @@ void update_update_functions (void)
 		if (update_function->last_update_timer <= 0.0)
 		{
 
-			#if UPDATE_FUNCTION_DEBUG >= 2
 
-			debug_log ("UPDATE FUNCTION: updating function %d, last updated %d, sleep time %d", update_function->function, update_function->last_update_timer, update_function->sleep_time);
 
-			#endif
+
+
+
 
 			update_function->function ();
 

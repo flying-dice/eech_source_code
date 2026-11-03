@@ -517,7 +517,7 @@ static void kill_local (entity *en)
 	// Notify Campaign Screen
 	//
 
-	notify_campaign_screen (CAMPAIGN_SCREEN_GROUP_REMOVE_MEMBER, group);
+
 
 	//
 	// Notify the GROUP that the mobile has been killed  (N.B. must be done AFTER mobile is unlinked from member list)

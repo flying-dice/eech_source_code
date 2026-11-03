@@ -793,6 +793,8 @@ void attack_guide_hasty_take_cover_reached (entity *en)
 
 
 
+void set_attack_guide_approach_position (entity *en)
+{
 
 
 
@@ -821,6 +823,7 @@ void attack_guide_hasty_take_cover_reached (entity *en)
 
 
 
+	set_client_server_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, ENTITY_SUB_TYPE_GUIDE_ATTACK_AG_APPROACH);
 
 
 
@@ -833,8 +836,14 @@ void attack_guide_hasty_take_cover_reached (entity *en)
 
 
 
+	selected_weapon = get_local_entity_int_value (aggressor, INT_TYPE_SELECTED_WEAPON);
 
+	if (selected_weapon == ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
+	{
+		delete_group_member_from_engage_guide (aggressor, en, FALSE);
 
+		return;
+	}
 
 
 
@@ -958,11 +967,14 @@ void attack_guide_hasty_take_cover_reached (entity *en)
 
 
 
+}
 
 
 
 
 
+void set_attack_guide_seek_cover_position (entity *en)
+{
 
 
 
@@ -976,6 +988,7 @@ void attack_guide_hasty_take_cover_reached (entity *en)
 
 
 
+	set_client_server_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, ENTITY_SUB_TYPE_GUIDE_ATTACK_AG_SEEK_COVER);
 
 
 
@@ -1040,20 +1053,7 @@ void attack_guide_hasty_take_cover_reached (entity *en)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}
 
 
 
@@ -1160,6 +1160,8 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+void set_attack_guide_fly_to_cover_position (entity *en)
+{
 
 
 
@@ -1170,6 +1172,7 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+	set_client_server_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, ENTITY_SUB_TYPE_GUIDE_ATTACK_AG_FLY_TO_COVER);
 
 
 
@@ -1214,11 +1217,14 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+}
 
 
 
 
 
+void set_attack_guide_take_cover_position (entity *en)
+{
 
 
 
@@ -1229,6 +1235,7 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+	set_client_server_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, ENTITY_SUB_TYPE_GUIDE_ATTACK_AG_TAKE_COVER);
 
 
 
@@ -1274,11 +1281,14 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+}
 
 
 
 
 
+void set_attack_guide_climb_position (entity *en)
+{
 
 
 
@@ -1301,6 +1311,7 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+	set_client_server_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, ENTITY_SUB_TYPE_GUIDE_ATTACK_AG_CLIMB);
 
 
 
@@ -1313,8 +1324,14 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+	selected_weapon = get_local_entity_int_value (aggressor, INT_TYPE_SELECTED_WEAPON);
 
+	if (selected_weapon == ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
+	{
+		delete_group_member_from_engage_guide (aggressor, en, FALSE);
 
+		return;
+	}
 
 
 
@@ -1377,11 +1394,14 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+}
 
 
 
 
 
+void set_attack_guide_dive_position (entity *en)
+{
 
 
 
@@ -1401,6 +1421,7 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+	set_client_server_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, ENTITY_SUB_TYPE_GUIDE_ATTACK_AG_DIVE);
 
 
 
@@ -1409,8 +1430,14 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+	selected_weapon = get_local_entity_int_value (aggressor, INT_TYPE_SELECTED_WEAPON);
 
+	if (selected_weapon == ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
+	{
+		delete_group_member_from_engage_guide (aggressor, en, FALSE);
 
+		return;
+	}
 
 
 
@@ -1429,6 +1456,7 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+	set_client_server_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, ENTITY_SUB_TYPE_GUIDE_ATTACK_AG_DIVE);
 
 
 
@@ -1444,11 +1472,14 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+}
 
 
 
 
 
+void set_attack_guide_fire_position (entity *en)
+{
 
 
 
@@ -1470,6 +1501,7 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+			set_client_server_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, ENTITY_SUB_TYPE_GUIDE_ATTACK_AG_FIRE);
 
 
 
@@ -1507,8 +1539,14 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+			selected_weapon = get_local_entity_int_value (aggressor, INT_TYPE_SELECTED_WEAPON);
 
+			if (selected_weapon == ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
+			{
+				delete_group_member_from_engage_guide (aggressor, en, FALSE);
 
+				return;
+			}
 
 
 
@@ -1530,6 +1568,7 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+			set_client_server_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, ENTITY_SUB_TYPE_GUIDE_ATTACK_AG_FIRE);
 
 
 
@@ -1558,11 +1597,14 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+}
 
 
 
 
 
+void set_attack_guide_disengage_position (entity *en)
+{
 
 
 
@@ -1589,12 +1631,29 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+	switch (get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE))
+	{
+		case ENTITY_SUB_TYPE_GUIDE_ATTACK_AG_FIRE:
+		{
+			set_client_server_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, ENTITY_SUB_TYPE_GUIDE_ATTACK_AG_DISENGAGE);
 
+			break;
+		}
 
+		case ENTITY_SUB_TYPE_GUIDE_ATTACK_AG_FIRE_VIRTUAL:
+		{
+			set_client_server_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, ENTITY_SUB_TYPE_GUIDE_ATTACK_AG_DISENGAGE_VIRTUAL);
 
+			virtual_ = TRUE;
 
+			break;
+		}
 
+		default:
+		{
+			debug_fatal ("AG_ATTCK: Invalid Guide Type %d", get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE));
 
+			break;
 
 
 
@@ -1611,8 +1670,14 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+	selected_weapon = get_local_entity_int_value (aggressor, INT_TYPE_SELECTED_WEAPON);
 
+	if (selected_weapon == ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
+	{
+		delete_group_member_from_engage_guide (aggressor, en, FALSE);
 
+		return;
+	}
 
 
 
@@ -1675,11 +1740,14 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+}
 
 
 
 
 
+void set_attack_guide_egress_position (entity *en)
+{
 
 
 
@@ -1705,6 +1773,7 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+	set_client_server_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, ENTITY_SUB_TYPE_GUIDE_ATTACK_AG_EGRESS);
 
 
 
@@ -1838,11 +1907,14 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+}
 
 
 
 
 
+void set_attack_guide_hasty_fire_position (entity *en)
+{
 
 
 
@@ -1853,6 +1925,7 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+	set_client_server_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, ENTITY_SUB_TYPE_GUIDE_ATTACK_AG_HASTY_FIRE);
 
 
 
@@ -1891,11 +1964,14 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+}
 
 
 
 
 
+void set_attack_guide_hasty_take_cover_position (entity *en)
+{
 
 
 
@@ -1906,6 +1982,7 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
+	set_client_server_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, ENTITY_SUB_TYPE_GUIDE_ATTACK_AG_HASTY_TAKE_COVER);
 
 
 
@@ -1954,84 +2031,7 @@ void attack_guide_no_cover_found (entity *en)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}
 
 
 

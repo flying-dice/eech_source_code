@@ -367,7 +367,7 @@ extern void (*fn_set_client_server_entity_float_value[NUM_ENTITY_TYPES][NUM_FLOA
 
 
 
-
+extern float (*fn_get_local_entity_float_value[NUM_ENTITY_TYPES][NUM_FLOAT_TYPES]) (entity *en, float_types type);
 
 #define get_local_entity_float_value(EN,FLOAT_TYPE) (fn_get_local_entity_float_value[get_local_entity_type ((EN))][validate_float_type ((FLOAT_TYPE))] ((EN), (FLOAT_TYPE)))
 
@@ -389,33 +389,33 @@ extern void (*fn_set_client_server_entity_float_value[NUM_ENTITY_TYPES][NUM_FLOA
 
 
 
-#define MAX_FRACTIONAL_BITS	(11)
 
-#define pack_float_0_fractional_bits(VALUE,PACKED_VALUE) (convert_float_to_int ((VALUE), (PACKED_VALUE)))
-#define pack_float_1_fractional_bits(VALUE,PACKED_VALUE) (convert_float_to_int ((VALUE) * (float) 2.0, (PACKED_VALUE)))
-#define pack_float_2_fractional_bits(VALUE,PACKED_VALUE) (convert_float_to_int ((VALUE) * (float) 4.0, (PACKED_VALUE)))
-#define pack_float_3_fractional_bits(VALUE,PACKED_VALUE) (convert_float_to_int ((VALUE) * (float) 8.0, (PACKED_VALUE)))
-#define pack_float_4_fractional_bits(VALUE,PACKED_VALUE) (convert_float_to_int ((VALUE) * (float) 16.0, (PACKED_VALUE)))
-#define pack_float_5_fractional_bits(VALUE,PACKED_VALUE) (convert_float_to_int ((VALUE) * (float) 32.0, (PACKED_VALUE)))
-#define pack_float_6_fractional_bits(VALUE,PACKED_VALUE) (convert_float_to_int ((VALUE) * (float) 64.0, (PACKED_VALUE)))
-#define pack_float_7_fractional_bits(VALUE,PACKED_VALUE) (convert_float_to_int ((VALUE) * (float) 128.0, (PACKED_VALUE)))
-#define pack_float_8_fractional_bits(VALUE,PACKED_VALUE) (convert_float_to_int ((VALUE) * (float) 256.0, (PACKED_VALUE)))
-#define pack_float_9_fractional_bits(VALUE,PACKED_VALUE) (convert_float_to_int ((VALUE) * (float) 512.0, (PACKED_VALUE)))
-#define pack_float_10_fractional_bits(VALUE,PACKED_VALUE) (convert_float_to_int ((VALUE) * (float) 1024.0, (PACKED_VALUE)))
-#define pack_float_11_fractional_bits(VALUE,PACKED_VALUE) (convert_float_to_int ((VALUE) * (float) 2048.0, (PACKED_VALUE)))
 
-#define unpack_float_0_fractional_bits(PACKED_VALUE) ((float) (PACKED_VALUE))
-#define unpack_float_1_fractional_bits(PACKED_VALUE) ((float) (PACKED_VALUE) * (float) (1.0 / 2.0))
-#define unpack_float_2_fractional_bits(PACKED_VALUE) ((float) (PACKED_VALUE) * (float) (1.0 / 4.0))
-#define unpack_float_3_fractional_bits(PACKED_VALUE) ((float) (PACKED_VALUE) * (float) (1.0 / 8.0))
-#define unpack_float_4_fractional_bits(PACKED_VALUE) ((float) (PACKED_VALUE) * (float) (1.0 / 16.0))
-#define unpack_float_5_fractional_bits(PACKED_VALUE) ((float) (PACKED_VALUE) * (float) (1.0 / 32.0))
-#define unpack_float_6_fractional_bits(PACKED_VALUE) ((float) (PACKED_VALUE) * (float) (1.0 / 64.0))
-#define unpack_float_7_fractional_bits(PACKED_VALUE) ((float) (PACKED_VALUE) * (float) (1.0 / 128.0))
-#define unpack_float_8_fractional_bits(PACKED_VALUE) ((float) (PACKED_VALUE) * (float) (1.0 / 256.0))
-#define unpack_float_9_fractional_bits(PACKED_VALUE) ((float) (PACKED_VALUE) * (float) (1.0 / 512.0))
-#define unpack_float_10_fractional_bits(PACKED_VALUE) ((float) (PACKED_VALUE) * (float) (1.0 / 1024.0))
-#define unpack_float_11_fractional_bits(PACKED_VALUE) ((float) (PACKED_VALUE) * (float) (1.0 / 2048.0))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

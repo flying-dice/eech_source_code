@@ -321,6 +321,8 @@ void attack_guide_fire_intercept_reached (entity *en)
 
 
 
+void set_attack_guide_move_six_position (entity *en)
+{
 
 
 
@@ -342,6 +344,7 @@ void attack_guide_fire_intercept_reached (entity *en)
 
 
 
+	set_client_server_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, ENTITY_SUB_TYPE_GUIDE_ATTACK_AA_MOVE_SIX);
 
 
 
@@ -358,8 +361,14 @@ void attack_guide_fire_intercept_reached (entity *en)
 
 
 
+	selected_weapon = get_local_entity_int_value (aggressor, INT_TYPE_SELECTED_WEAPON);
 
+	if (selected_weapon == ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
+	{
+		delete_group_member_from_engage_guide (aggressor, en, FALSE);
 
+		return;
+	}
 
 
 
@@ -396,11 +405,14 @@ void attack_guide_fire_intercept_reached (entity *en)
 
 
 
+}
 
 
 
 
 
+void set_attack_guide_move_circle_position (entity *en)
+{
 
 
 
@@ -420,6 +432,7 @@ void attack_guide_fire_intercept_reached (entity *en)
 
 
 
+	set_client_server_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, ENTITY_SUB_TYPE_GUIDE_ATTACK_AA_MOVE_CIRCLE);
 
 
 
@@ -486,11 +499,14 @@ void attack_guide_fire_intercept_reached (entity *en)
 
 
 
+}
 
 
 
 
 
+void set_attack_guide_fire_intercept_position (entity *en)
+{
 
 
 
@@ -510,6 +526,7 @@ void attack_guide_fire_intercept_reached (entity *en)
 
 
 
+	set_client_server_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, ENTITY_SUB_TYPE_GUIDE_ATTACK_AA_FIRE_INTERCEPT);
 
 
 
@@ -522,8 +539,14 @@ void attack_guide_fire_intercept_reached (entity *en)
 
 
 
+	selected_weapon = get_local_entity_int_value (aggressor, INT_TYPE_SELECTED_WEAPON);
 
+	if (selected_weapon == ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
+	{
+		delete_group_member_from_engage_guide (aggressor, en, FALSE);
 
+		return;
+	}
 
 
 
@@ -556,30 +579,7 @@ void attack_guide_fire_intercept_reached (entity *en)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}
 
 
 

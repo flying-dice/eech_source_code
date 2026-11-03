@@ -119,11 +119,11 @@ static void destroy_local (entity *en)
 
 	unlink_local_entity_children (en, LIST_TYPE_TAKEOFF_QUEUE);
 
-	#if LANDING_ROUTE_CHECK
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_UPDATE);
 
-	#endif
+
+
+
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_LANDING_SITE);
 
@@ -228,16 +228,16 @@ static void destroy_server_family (entity *en)
 
 
 
-static void destroy_client_family (entity *en)
-{
 
 
 
 
 
 
-	transmit_entity_comms_message (ENTITY_COMMS_DESTROY_FAMILY, en);
-}
+
+
+
+
 
 
 

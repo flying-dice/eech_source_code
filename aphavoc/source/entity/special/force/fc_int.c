@@ -92,13 +92,13 @@ static void set_local_int_value (entity *en, int_types type, int value)
 	switch (type)
 	{
 
-		case INT_TYPE_COLOUR:
 
-		{
-			raw->colour = value;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_FORCE_ATTITUDE:
 
@@ -201,13 +201,13 @@ static int get_local_int_value (entity *en, int_types type)
 	switch (type)
 	{
 
-		case INT_TYPE_COLOUR:
 
-		{
-			value = raw->colour;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_FORCE_ATTITUDE:
 

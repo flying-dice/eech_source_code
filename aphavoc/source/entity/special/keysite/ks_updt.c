@@ -145,21 +145,21 @@ static void update_server (entity *en)
 		
 		raw->supplies.fuel_supply_level = bound (raw->supplies.fuel_supply_level, KEYSITE_MINIMUM_FUEL_SUPPLY_LEVEL, 100.0);
 	
-		#if (DEBUG_MODULE || DEBUG_SUPPLY)
 
-		if ((keysite_database [raw->sub_type].default_supply_usage.ammo_supply_level < 0.0) || 	
-			(keysite_database [raw->sub_type].default_supply_usage.fuel_supply_level < 0.0))
-		{
 
-			debug_log ("KS_UPDT: SUPPLY_INFO: keysite %s %s ammo %.1f, fuel %.1f (usage %.2f, %.2f)",
-						raw->keysite_name,
-						entity_sub_type_keysite_names [raw->sub_type],
-						raw->supplies.ammo_supply_level, raw->supplies.fuel_supply_level,
-						keysite_database [raw->sub_type].default_supply_usage.ammo_supply_level,
-						keysite_database [raw->sub_type].default_supply_usage.fuel_supply_level);
-		}
 
-		#endif
+
+
+
+
+
+
+
+
+
+
+
+
 	}
 
 	//

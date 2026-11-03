@@ -599,20 +599,20 @@ int assign_primary_task_to_group (entity *group_en, entity *task_en)
 		{
 			threat = assess_task_difficulty (task_en, &air_threat, &enemy_sectors);
 
-			#if DEBUG_ESCORT_TASK_CREATION
 
-			debug_filtered_log ("(ASSIGN) Side %s: Assigned %s to %s, objective %s",
-											entity_side_short_names [side],
-											get_local_entity_string (group_en, STRING_TYPE_FULL_NAME),
-											get_local_entity_string (task_en, STRING_TYPE_FULL_NAME),
-											get_task_objective_string (task_en)
-									);
 
-			debug_filtered_log ("Threat: %d (air_threat: %d, enemy_sectors: %d) - Threshold %d",
-											threat, air_threat, enemy_sectors,
-											task_database [task_type].escort_required_threshold);
 
-			#endif
+
+
+
+
+
+
+
+
+
+
+
 
 			if (threat >= task_database [task_type].escort_required_threshold)
 			{
@@ -751,7 +751,7 @@ entity *push_task_onto_group_task_stack (entity *group, entity *task, unsigned i
 
 			insert_local_entity_into_parents_child_list (task, LIST_TYPE_ASSIGNED_TASK, task_parent, NULL);
 
-			transmit_entity_comms_message (ENTITY_COMMS_SWITCH_LIST, task, LIST_TYPE_UNASSIGNED_TASK, task_parent, LIST_TYPE_ASSIGNED_TASK);
+
 		}
 	}
 
@@ -1222,7 +1222,7 @@ void respond_to_player_task_assign_request (entity *pilot, entity *task, entity 
 	{
 		if (assign_primary_task_to_group (group, task))
 		{
-			transmit_entity_comms_message (ENTITY_COMMS_TASK_ASSIGN_RESULT, pilot, task, mobile);
+
 
 			return;
 		}
@@ -1231,13 +1231,13 @@ void respond_to_player_task_assign_request (entity *pilot, entity *task, entity 
 	{
 		if (get_local_group_primary_task (group))
 		{
-			transmit_entity_comms_message (ENTITY_COMMS_TASK_ASSIGN_RESULT, pilot, task, mobile);
+
 
 			return;
 		}
 	}
 
-	transmit_entity_comms_message (ENTITY_COMMS_TASK_ASSIGN_RESULT, pilot, NULL, NULL);
+
 }
 
 

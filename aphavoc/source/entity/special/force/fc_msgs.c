@@ -394,65 +394,65 @@ static int response_to_force_armour_resisting (entity_messages message, entity *
 	// RETALIATION
 	//
 
-	if ((sender) && (enemy_entity))
-	{
-	
-		entity
-			*sector_en;
-		
-		vec3d
-			*pos;
 
-		entity_sides
-			side;
 
-		float
-			enemy_forces,
-			ally_forces;
-	
-		pos = get_local_entity_vec3d_ptr (enemy_entity, VEC3D_TYPE_POSITION);
-		
-		sector_en = get_local_sector_entity (pos);
 
-		side = (entity_sides) get_local_entity_int_value (sender, INT_TYPE_SIDE);
 
-		enemy_forces = get_local_sector_entity_enemy_surface_to_surface_defence_level (sector_en, get_enemy_side (side)) + get_local_sector_entity_enemy_surface_to_air_defence_level (sector_en, get_enemy_side (side));
-		ally_forces =  get_local_sector_entity_enemy_surface_to_surface_defence_level (sector_en, side) + get_local_sector_entity_enemy_surface_to_air_defence_level (sector_en, side);
 
-		if (enemy_forces > 2 * ally_forces)
-		{
-			// PLAY_SPEECH (GC)
-			//
-			// [GC Introduction],
-			// Requesting support 
 
-			get_speech_sector_coordinates(pos);
 
-			play_client_server_speech
-			(
-				get_session_entity (),
-				receiver,
-				side,
-				ENTITY_SUB_TYPE_EFFECT_SOUND_RADIO_MESSAGE,
-				SOUND_LOCALITY_RADIO,
-				0.0,
-				1.0,
-				60.0,
-				SPEECH_ORIGINATOR_GROUND_CONTROLLER,
-				SPEECH_CATEGORY_MOVING,
-				-1.0,
-				SPEECH_ARRAY_GC_MESSAGES, SPEECH_GC_INTRODUCTION,
-				SPEECH_ARRAY_GC_MESSAGES, SPEECH_GC_REQUEST_SUPPORT_AT,
-				SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [0],
-				SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [1],
-				SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [2],
-				SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [3],
-				SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [4],
-				SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [5],
-				-1
-			);
-		}
-	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	//
 	//
@@ -1076,11 +1076,11 @@ static int response_to_request_assistance (entity_messages message, entity *rece
 
 	response = FALSE;
 
-	//
-	// Send Text Message
-	//
 
-	send_text_message (target_group, victim_group, MESSAGE_TEXT_SYSTEM_ENTITY_UNDER_ATTACK, NULL);
+
+
+
+
 
 	//
 	// Play Speech
@@ -1179,7 +1179,7 @@ static int response_to_request_assistance (entity_messages message, entity *rece
 			
 														member = get_local_entity_first_child (group, LIST_TYPE_MEMBER);
 				
-														play_client_server_radio_message_response (member, SPEECH_WINGMAN_ROGER_COMING_TO_ASSIST, 1.0, 10.0);
+
 			
 														response = TRUE;
 

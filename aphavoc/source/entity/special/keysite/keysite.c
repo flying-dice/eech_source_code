@@ -1329,7 +1329,7 @@ void capture_keysite (entity *en, entity_sides new_side)
 
 	update_imap_sector_side (en, FALSE);
 
-	transmit_entity_comms_message (ENTITY_COMMS_UPDATE_SECTOR_SIDE, en, FALSE);
+
 
 	update_imap_importance_level (en, FALSE);
 
@@ -1350,7 +1350,7 @@ void capture_keysite (entity *en, entity_sides new_side)
 
 	update_imap_sector_side (en, TRUE);
 
-	transmit_entity_comms_message (ENTITY_COMMS_UPDATE_SECTOR_SIDE, en, TRUE);
+
 
 	update_imap_importance_level (en, TRUE);
 
@@ -1428,7 +1428,7 @@ void capture_keysite (entity *en, entity_sides new_side)
 
 	change_local_keysite_building_sides (en, new_side);
 
-	transmit_entity_comms_message (ENTITY_COMMS_CAPTURE_KEYSITE, en, new_side);
+
 
 	//
 	// Notify force to check campaign criteria
@@ -1443,11 +1443,11 @@ void capture_keysite (entity *en, entity_sides new_side)
 		force = get_local_entity_child_succ (force, LIST_TYPE_FORCE);
 	}
 
-	//
-	// Send text message
-	//
 
-	send_text_message (en, NULL, MESSAGE_TEXT_SYSTEM_KEYSITE_CAPTURED, NULL);
+
+
+
+
 
 	//
 	// Repair some structures
@@ -1617,7 +1617,7 @@ int repair_client_server_entity_keysite (entity *en)
 				
 				restore_local_fixed_entity (building);
 
-				transmit_entity_comms_message (ENTITY_COMMS_RESTORE_FIXED_ENTITY, building);
+
 
 				//
 				// Set timer
@@ -1662,7 +1662,7 @@ int repair_client_server_entity_keysite (entity *en)
 				
 				restore_local_fixed_entity (building);
 
-				transmit_entity_comms_message (ENTITY_COMMS_RESTORE_FIXED_ENTITY, building);
+
 
 				//
 				// Set timer

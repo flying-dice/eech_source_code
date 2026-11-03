@@ -89,8 +89,8 @@ typedef struct REGENERATION_OBJECT_DATABASE_STRUCTURE regeneration_object_databa
 regeneration_object_database_structure
 	regeneration_object_database[OBJECT_3D_LAST];
 
-int
-	object_3d_updateable_flag[OBJECT_3D_LAST];
+
+
 
 
 
@@ -141,73 +141,73 @@ void initialise_object_3d_regeneration_database ( void )
 		regeneration_object_database[count].regeneration_sub_type = NUM_ENTITY_SUB_TYPE_REGENS;
 	}
 
-	//
-	// Setup the updateable flags for each 3d object
-	//
 
-	for ( count = OBJECT_3D_INVALID_OBJECT_INDEX + 1; count < OBJECT_3D_LAST; count++ )
-	{
 
-		object_3d_updateable_flag[count] = -1;
-	}
+
+
+
+
+
+
+
 }
 
 
 
 
 
-int get_3d_object_updateable_flag ( int object )
-{
 
-	if ( object_3d_updateable_flag[object] == -1 )
-	{
 
-		object_3d_instance
-			*object_instance;
 
-		object_3d_sub_object_search_data
-			search;
 
-		object_3d_updateable_flag[object] = FALSE;
 
-		object_instance = construct_3d_object ( object );
 
-		search.search_object = object_instance;
-		search.search_depth = 0;
-		search.sub_object_index = OBJECT_3D_SUB_OBJECT_UPDATEABLE_OBJECT;
-	
-		if ( find_object_3d_sub_object ( &search ) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND )
-		{
 
-			object_3d_updateable_flag[object] = TRUE;
-		}
-		else
-		{
 
-			search.search_object = object_instance;
-			search.search_depth = 0;
-			search.sub_object_index = OBJECT_3D_SUB_OBJECT_RADAR;
-		
-			if ( find_object_3d_sub_object ( &search ) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND )
-			{
-	
-				object_3d_updateable_flag[object] = TRUE;
-			}
-			
-			search.sub_object_index = OBJECT_3D_SUB_OBJECT_GROUND_CREW;
-		
-			if ( find_object_3d_sub_object ( &search ) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND )
-			{
-	
-				object_3d_updateable_flag[object] = TRUE;
-			}
-		}
 
-		destruct_3d_object ( object_instance );
-	}
 
-	return ( object_3d_updateable_flag[object] );
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

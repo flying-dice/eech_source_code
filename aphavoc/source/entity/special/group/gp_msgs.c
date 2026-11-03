@@ -151,14 +151,14 @@ static int response_to_link_child (entity_messages message, entity *receiver, en
 				}
 			}
 
-			//
-			// if member is a mobile, notify the campaign screen of the change
-			//
 
-			if (get_local_entity_int_value (sender, INT_TYPE_IDENTIFY_MOBILE))
-			{
-				notify_campaign_screen (CAMPAIGN_SCREEN_GROUP_ADD_MEMBER, sender);
-			}
+
+
+
+
+
+
+
 
 			break;
 		}
@@ -549,57 +549,57 @@ static int response_to_ground_force_advance (entity_messages message, entity *re
 
 				destroy_local_entity_family (new_task);
 
-				transmit_entity_comms_message (ENTITY_COMMS_DESTROY_LOCAL_FAMILY, new_task);
+
 
 				return FALSE;
 			}
 
 
-			//
-			// SPECIAL_EFFECT_HOOK FOR FRONTLINE ADVANCING
-			//
 
 
-			{
-				// PLAY_SPEECH (GC)
-				//
-				// [GC Introduction],
-				// We are advancing
-
-				pos = &road_node_positions [advance_node];
-
-				ASSERT (pos);
-
-				get_speech_sector_coordinates (pos);
-
-				play_client_server_speech
-				(
-					get_session_entity (),
-					receiver,
-					(entity_sides) group_raw->side,
-					ENTITY_SUB_TYPE_EFFECT_SOUND_RADIO_MESSAGE,
-					SOUND_LOCALITY_RADIO,
-					0.0,
-					0.3,
-					20.0,
-					SPEECH_ORIGINATOR_GROUND_CONTROLLER,
-					SPEECH_CATEGORY_MOVING,
-					180.0,
-					SPEECH_ARRAY_GC_MESSAGES, SPEECH_GC_INTRODUCTION,
-					SPEECH_ARRAY_GC_MESSAGES, SPEECH_GC_ADVANCING_TO,
-					SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [0],
-					SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [1],
-					SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [2],
-					SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [3],
-					SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [4],
-					SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [5],
-					-1
-				);
-			}
 
 
-			//
-			//
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	
 			//
@@ -866,49 +866,49 @@ static int response_to_ground_force_retreat (entity_messages message, entity *re
 								road_nodes [retreat_node].side_exploring &= ~group_raw->side;
 		
 
-								//
-								// SPECIAL_EFFECT_HOOK FOR FRONTLINE RETREATING
-								//
 
-		
-								{
-									// PLAY_SPEECH (GC)
-									//
-									// [GC Introduction],
-									// We are retreating 
-			
-									ASSERT (pos);
-					
-									get_speech_sector_coordinates (pos);
 
-									play_client_server_speech
-									(
-										get_session_entity (),
-										receiver,
-										(entity_sides) group_raw->side,
-										ENTITY_SUB_TYPE_EFFECT_SOUND_RADIO_MESSAGE,
-										SOUND_LOCALITY_RADIO,
-										0.0,
-										0.3,
-										20.0,
-										SPEECH_ORIGINATOR_GROUND_CONTROLLER,
-										SPEECH_CATEGORY_MOVING,
-										180.0,
-										SPEECH_ARRAY_GC_MESSAGES, SPEECH_GC_INTRODUCTION,
-										SPEECH_ARRAY_GC_MESSAGES, SPEECH_GC_RETREATING_TO,
-										SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [0],
-										SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [1],
-										SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [2],
-										SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [3],
-										SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [4],
-										SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [5],
-										-1
-									);
-								}
-		
 
-								//
-								//
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		
 								//
@@ -926,7 +926,7 @@ static int response_to_ground_force_retreat (entity_messages message, entity *re
 		
 								destroy_local_entity_family (new_task);
 			
-								transmit_entity_comms_message (ENTITY_COMMS_DESTROY_LOCAL_FAMILY, new_task);
+
 							}
 						}
 					}
@@ -1033,121 +1033,121 @@ static int response_to_task_completed (entity_messages message, entity *receiver
 			{
 				notify_gunship_entity_mission_completed (member, task);
 			}
-			else if (get_local_entity_int_value (member, INT_TYPE_PLAYER) == ENTITY_PLAYER_REMOTE)
-			{
-				transmit_entity_comms_message (ENTITY_COMMS_PLAYER_TASK_COMPLETED, member, task);
-			}
+
+
+
+
 		
 			member = get_local_entity_child_succ (member, LIST_TYPE_MEMBER);
 		}
 
-		//
-		// Play Speech (Unless failed)
-		//
 
-		switch (get_local_entity_int_value (task, INT_TYPE_TASK_COMPLETED))
-		{
-			case TASK_INCOMPLETE:
-			{
-				debug_fatal ("GP_MSGS: Response to task completed - Task NOT complete");
 
-				break;
-			}
-			case TASK_COMPLETED_FAILURE:
-			{
-				//
-				// Play Speech
-				//
 
-				if (get_local_entity_int_value (task, INT_TYPE_TASK_TERMINATED) != TASK_TERMINATED_GROUP_DESTROYED)
-				{
-					if (get_local_entity_int_value (receiver, INT_TYPE_AIRCRAFT_GROUP))
-					{
-						play_client_server_speech
-						(
-							get_session_entity (),
-							receiver,
-							(entity_sides) get_local_entity_int_value (receiver, INT_TYPE_SIDE),
-							ENTITY_SUB_TYPE_EFFECT_SOUND_RADIO_MESSAGE,
-							SOUND_LOCALITY_RADIO,
-							0.0,
-							1.0,
-							20.0,
-							SPEECH_ORIGINATOR_FORWARD_AIR_CONTROLLER,
-							SPEECH_CATEGORY_MISSION_RELATED,
-							-1.0,
-							SPEECH_ARRAY_CALLSIGNS, get_local_entity_int_value (receiver, INT_TYPE_GROUP_CALLSIGN),
-							SPEECH_ARRAY_FAC_MESSAGES, SPEECH_FAC_INTRODUCTION,
-							SPEECH_ARRAY_FAC_MESSAGES, SPEECH_FAC_RETURN_TO_BASE,
-							-1
-						);
-					}
-				}
-				
-				break;
-			}
-			case TASK_COMPLETED_PARTIAL:
-			case TASK_COMPLETED_SUCCESS:
-			{
-				//
-				// Play Speech
-				//
 
-				if (get_local_entity_int_value (receiver, INT_TYPE_AIRCRAFT_GROUP))
-				{
-					member = get_local_entity_first_child (receiver, LIST_TYPE_MEMBER);
 
-					if (member)
-					{
-						if (get_local_entity_int_value (member, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI)
-						{
-							if (rand16 () & 0x01)
-							{
-								speech_index = SPEECH_WINGMAN_MISSION_COMPLETE1;
-							}
-							else
-							{
-								speech_index = SPEECH_WINGMAN_MISSION_COMPLETE2;
-							}
 
-							play_client_server_wingman_message
-							(
-								member,
-								0.7,
-								20.0,
-								SPEECH_CATEGORY_MISSION_RELATED, -1.0,
-								SPEECH_INTRODUCTION_ALWAYS,
-								SPEECH_ARRAY_WINGMAN_MESSAGES, speech_index
-							);
-						}
-						else
-						{
-							if (rand16 () & 0x01)
-							{
-								speech_index = SPEECH_CPG_MISSION_COMPLETED1;
-							}
-							else
-							{
-								speech_index = SPEECH_CPG_MISSION_COMPLETED2;
-							}
-		
-							play_client_server_cpg_message (receiver, 0.8, 30.0, SPEECH_CATEGORY_MISSION_RELATED, 0.0, speech_index);
-						}
-					}
-				}
-				
-				break;
-			}
-		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	}
 	
-	//
-	// send system message
-	//
 
-	if (get_local_entity_int_value (task, INT_TYPE_VISIBLE_TASK))
-	{
-		send_text_message (receiver, task, MESSAGE_TEXT_SYSTEM_TASK_COMPLETED, NULL);
+
+
+
+
+
+
 
 
 
@@ -1253,10 +1253,10 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 			{
 				notify_gunship_entity_mission_terminated (member, task);
 			}
-			else if (get_local_entity_int_value (member, INT_TYPE_PLAYER) == ENTITY_PLAYER_REMOTE)
-			{
-				transmit_entity_comms_message (ENTITY_COMMS_PLAYER_TASK_TERMINATED, member, task);
-			}
+
+
+
+
 		}
 	
 		member = get_local_entity_child_succ (member, LIST_TYPE_MEMBER);

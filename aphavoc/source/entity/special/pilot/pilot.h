@@ -102,22 +102,22 @@ typedef struct PILOT pilot;
 
 
 
-struct CLIENT_PILOT_REQUEST_DATA
-{
 
-	char
-		name [STRING_TYPE_PLAYERS_NAME_MAX_LENGTH + 1];
 
-	int
-		string_length,
-		side,
-		rank,
-		sub_type,
-		unique_id,
-		difficulty;
-};
 
-typedef struct CLIENT_PILOT_REQUEST_DATA client_pilot_request_data;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

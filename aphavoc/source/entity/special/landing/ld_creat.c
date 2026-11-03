@@ -203,20 +203,20 @@ static entity *create_local (entity_types type, int index, char *pargs)
 			insert_local_entity_into_parents_child_list (en, LIST_TYPE_LANDING_SITE, raw->landing_site_link.parent, NULL);
 		}
 
-		#if LANDING_ROUTE_CHECK
 
-		insert_local_entity_into_parents_child_list (en, LIST_TYPE_UPDATE, get_update_entity (), NULL);
 
-		#endif
 
-		#if LANDING_KEYSITE_DEBUG_OUTPUT
 
-		if (get_local_entity_int_value (raw->landing_site_link.parent, INT_TYPE_ENTITY_SUB_TYPE) != ENTITY_SUB_TYPE_KEYSITE_FARP)
-		{
-			debug_filtered_log ("%d x %s", raw->total_landing_sites, entity_sub_type_landing_names [raw->sub_type]);
-		}
 
-		#endif
+
+
+
+
+
+
+
+
+
 
 
 		//

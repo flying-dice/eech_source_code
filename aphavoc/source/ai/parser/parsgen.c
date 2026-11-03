@@ -152,11 +152,11 @@ static void key_bound_trigger_function (event *ev);
 
 
 
-void debug_parser_message (int tag, FILE *file_ptr);
 
-void parser_debug_log (char *msg, ...);
 
-void parser_debug_fatal (char *msg, ...);
+
+
+
 
 
 
@@ -313,7 +313,7 @@ int parser_campaign_file (const char *filename, int *offset)
 		if (debug_mode)
 		{
 
-			debug_parser_message (tag, file_ptr);
+
 		}
 
 		switch (tag)
@@ -1183,7 +1183,7 @@ int parser_campaign_file (const char *filename, int *offset)
 				load_route_data ();
 
 
-				update_gunships_screen_progress_indicator ();
+
 
 
 				//
@@ -1251,7 +1251,7 @@ int parser_campaign_file (const char *filename, int *offset)
 				//
 
 
-				update_gunships_screen_progress_indicator ();
+
 
 
 				if (strstr (strupr (side_data_filename), "SID"))
@@ -1266,7 +1266,7 @@ int parser_campaign_file (const char *filename, int *offset)
 				}
 
 
-				update_gunships_screen_progress_indicator ();
+
 
 
 				if (population_placement_filename)
@@ -1280,7 +1280,7 @@ int parser_campaign_file (const char *filename, int *offset)
 				//
 
 
-				update_gunships_screen_progress_indicator ();
+
 
 
 				if (campaign_population_filename)
@@ -2185,15 +2185,6 @@ int parser_campaign_file (const char *filename, int *offset)
 				break;
 			}
 
-	//VJ 051202 add season file tag for winter/summer camo
-			case FILE_TAG_SEASON:
-			{
-				int
-					season = 0;
-
-				season = get_next_file_int (file_ptr);
-				//VJ 051227 use set and get global season here
-				set_global_season( season );
 
 
 
@@ -2202,105 +2193,114 @@ int parser_campaign_file (const char *filename, int *offset)
 
 
 
-				break;
+
+
+
+
+
+
+
+
+
+
 			}
 
 
-			case FILE_TAG_SAVED_CAMPAIGN:
-			{
-
-				int
-					server_version_number,
-					client_version_number,
-					campaign_size;
-
-				FILE
-					*saved_file_ptr;
-
-				unsigned char
-					*load_ptr,
-					*campaign_buffer;
-				char
-					filename [128];
-
-//				comms_model_types
-//					comms_model;
-
-				// Data Path
-				result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
-
-				ASSERT (result == FILE_TAG_PATH);
-
-				get_next_file_string (file_ptr, current_session->data_path, sizeof (current_session->data_path));
-
-				// Campaign Directory
-				result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
-
-				ASSERT (result == FILE_TAG_PATH);
-
-				get_next_file_string (file_ptr, current_session->campaign_directory, sizeof (current_session->campaign_directory));
-
-				// Get full pathname for .SAV file (must be done before campaign filename overwritten)
-				strcpy (temp_filename, current_session->campaign_filename);
-
-				load_ptr = (unsigned char *) strrchr (temp_filename, '.');
-
-				*load_ptr = 0;
-
-				sprintf (filename, "%s\\%s\\%s.sav",
-								current_session->data_path,
-								current_session->campaign_directory,
-								temp_filename);
-
-				// Campaign Filename
-				result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
-
-				ASSERT (result == FILE_TAG_FILENAME);
-
-				get_next_file_string (file_ptr, current_session->campaign_filename, sizeof (current_session->campaign_filename));
-
-				// load .save file
-				saved_file_ptr = safe_fopen (filename, "rb");
-
-				campaign_size = file_size (filename);
-
-				campaign_buffer = (unsigned char *) malloc_heap_mem (sizeof (char) * (campaign_size + 1));
-
-				load_ptr = campaign_buffer;
-
-				fread (campaign_buffer, campaign_size + 1, 1, saved_file_ptr);
-
-
-				// check version number
-				client_version_number = get_global_version_number ();
-
-				server_version_number = get_list_item (load_ptr, int);
-
-				campaign_size -= sizeof (int);
-
-				if (client_version_number != server_version_number)
-				{
-
-					debug_fatal ("COMM_MAN: Server Version No. %d, Client Version No. %d", server_version_number, client_version_number);
-				}
-				//
 
 
 
-				// unpack session
-
-				unpack_session (load_ptr, campaign_size, PACK_MODE_SERVER_SESSION);
 
 
-				fclose (saved_file_ptr);
-
-				free_mem (campaign_buffer);
-
-				break;
-			}
 
 
-// OLD PARSER
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 			default:

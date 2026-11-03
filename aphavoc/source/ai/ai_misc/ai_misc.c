@@ -114,11 +114,11 @@ entity *get_closest_waypoint (entity *task, vec3d *pos, float min_range, float *
 		if (range <= min_range)
 		{
 
-			#if LANDING_DEBUG >= 2
 
-			debug_log ("AI_MISC: EARLY OUT: found waypoint %d (type %d) range %f", current_waypoint, entity_sub_type_waypoint_names [get_local_entity_int_value (current_waypoint, INT_TYPE_ENTITY_SUB_TYPE)], range);
 
-			#endif
+
+
+
 
 			return current_waypoint;
 		}
@@ -130,11 +130,11 @@ entity *get_closest_waypoint (entity *task, vec3d *pos, float min_range, float *
 
 			closest_waypoint = current_waypoint;
 
-			#if LANDING_DEBUG
 
-			debug_log ("AI_MISC: found waypoint %d (type %d) range %f", current_keysite, entity_sub_type_waypoint_names [get_local_entity_int_value (current_waypoint, INT_TYPE_ENTITY_SUB_TYPE)], range);
 
-			#endif
+
+
+
 		}
 
 		current_waypoint = get_local_entity_child_succ (current_waypoint, LIST_TYPE_WAYPOINT);
@@ -289,17 +289,17 @@ entity *get_closest_free_landing_site (entity_sub_types sub_type, entity *force,
 							if (range <= min_range)
 							{
 		
-								#if LANDING_DEBUG >= 2
-		
-								debug_log ("AI_MISC: EARLY OUT: found key landing site type %d range %f, total %d, free %d, reserved %d",
-									get_local_entity_int_value (current_landing, INT_TYPE_ENTITY_SUB_TYPE),
-									range,
-									get_local_entity_int_value (current_landing, INT_TYPE_TOTAL_LANDING_SITES),
-									get_local_entity_int_value (current_landing, INT_TYPE_FREE_LANDING_SITES),
-									get_local_entity_int_value (current_landing, INT_TYPE_RESERVED_LANDING_SITES));
-		
-								#endif
-		
+
+
+
+
+
+
+
+
+
+
+
 								if (actual_range)
 								{
 									*actual_range = range;	
@@ -315,18 +315,18 @@ entity *get_closest_free_landing_site (entity_sub_types sub_type, entity *force,
 		
 								closest_landing = current_landing;
 		
-								#if LANDING_DEBUG
-		
-								debug_log ("AI_MISC: found %s landing site type %d range %f, total %d, free %d, reserved %d",
-									get_local_entity_string (current_keysite, STRING_TYPE_KEYSITE_NAME),
-									get_local_entity_int_value (current_landing, INT_TYPE_ENTITY_SUB_TYPE),
-									range,
-									get_local_entity_int_value (current_landing, INT_TYPE_TOTAL_LANDING_SITES),
-									get_local_entity_int_value (current_landing, INT_TYPE_FREE_LANDING_SITES),
-									get_local_entity_int_value (current_landing, INT_TYPE_RESERVED_LANDING_SITES));
-		
-								#endif
-							}
+
+
+
+
+
+
+
+
+
+
+
+
 						}
 					}
 		
@@ -344,44 +344,44 @@ entity *get_closest_free_landing_site (entity_sub_types sub_type, entity *force,
 	}
 
 	//
-	// DEBUG
-	//
 
-	if (!closest_landing)
-	{
 
-		debug_log ("AI_MISC: FAILED GET CLOSEST LANDING_SITE !!!!!!!!!!!!");
 
-		debug_log ("	searching for %d %s landing sites", sites_required, entity_sub_type_landing_names [sub_type]);
 
-		current_keysite = get_local_entity_first_child (force, LIST_TYPE_KEYSITE_FORCE);
 
-		while (current_keysite)
-		{
 
-			current_landing = get_local_entity_first_child (current_keysite, LIST_TYPE_LANDING_SITE);
 
-			while (current_landing)
-			{
 
-				landing_pos = get_local_entity_vec3d_ptr (current_landing, VEC3D_TYPE_POSITION);
 
-				range = get_approx_2d_range (landing_pos, pos);
 
-				debug_log ("	found %s landing site type %s use %d, range %f, total %d, free %d, reserved %d",
-								get_local_entity_string (current_keysite, STRING_TYPE_KEYSITE_NAME),
-								entity_sub_type_landing_names [get_local_entity_int_value (current_landing, INT_TYPE_ENTITY_SUB_TYPE)],
-								get_local_entity_int_value (current_keysite, INT_TYPE_IN_USE),
-								range,
-								get_local_entity_int_value (current_landing, INT_TYPE_TOTAL_LANDING_SITES),
-								get_local_entity_int_value (current_landing, INT_TYPE_FREE_LANDING_SITES),
-								get_local_entity_int_value (current_landing, INT_TYPE_RESERVED_LANDING_SITES));
 
-				current_landing = get_local_entity_child_succ (current_landing, LIST_TYPE_LANDING_SITE);
-			}
 
-			current_keysite = get_local_entity_child_succ (current_keysite, LIST_TYPE_KEYSITE_FORCE);
-		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		{
 		
 			int
@@ -518,11 +518,11 @@ int get_closest_road_node (vec3d *pos, float error)
 		}
 	}
 
-	#if LANDING_DEBUG >= 3
 
-	debug_log ("ROAD ROUTE: closest node to %f, %f is node %d at %f, %f", x, z, best_node, road_node_positions [best_node].x, road_node_positions [best_node].z);
 
-	#endif
+
+
+
 
 	return best_node;
 }
@@ -576,11 +576,11 @@ int get_closest_side_road_node (entity_sides side, vec3d *pos, float error)
 		}
 	}
 
-	#if LANDING_DEBUG >= 3
 
-	debug_log ("ROAD ROUTE: closest node to %f, %f is node %d at %f, %f", x, z, best_node, road_node_positions [best_node].x, road_node_positions [best_node].z);
 
-	#endif
+
+
+
 
 	return best_node;
 }
@@ -589,27 +589,6 @@ int get_closest_side_road_node (entity_sides side, vec3d *pos, float error)
 
 
 
-int validate_landing_route (entity *route_task)
-{
-
-	int
-		count;
-
-	entity_sub_types
-		type;
-
-	entity
-		*landing_en,
-		*keysite_en,
-		*wp;
-
-	formation_types
-		route_formation,
-		wp_formation;
-
-	landing_en = get_local_entity_parent (route_task, LIST_TYPE_ASSIGNED_TASK);
-
-	keysite_en = get_local_entity_parent (landing_en, LIST_TYPE_LANDING_SITE);
 
 
 
@@ -621,391 +600,6 @@ int validate_landing_route (entity *route_task)
 
 
 
-	switch (get_local_entity_int_value (route_task, INT_TYPE_ENTITY_SUB_TYPE))
-	{
-
-		case ENTITY_SUB_TYPE_TASK_LANDING:
-		{
-
-			switch (get_local_entity_int_value (landing_en, INT_TYPE_ENTITY_SUB_TYPE))
-			{
-
-				case ENTITY_SUB_TYPE_LANDING_FIXED_WING:
-				{
-
-					//
-					// Navigation waypoint
-					//
-		
-					wp = get_local_entity_first_child (route_task, LIST_TYPE_WAYPOINT);
-
-					if (wp)
-					{
-	
-						type = get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE);
-	
-						count = 0;
-			
-						while (type != ENTITY_SUB_TYPE_WAYPOINT_LANDED)
-						{
-			
-							if ((type != ENTITY_SUB_TYPE_WAYPOINT_NAVIGATION) &&
-								(type != ENTITY_SUB_TYPE_WAYPOINT_TOUCH_DOWN))
-							{
-			
-								debug_fatal ("WARNING. Route parser failed on landing route. Non nav waypoint in route");
-							}
-	
-							if (type == ENTITY_SUB_TYPE_WAYPOINT_TOUCH_DOWN)
-							{
-	
-								count ++;
-							}
-			
-							wp = get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT);
-			
-							type = get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE);
-						}
-	
-						if (count != 1)
-						{
-	
-							debug_fatal ("WARNING. Route parser failed on takeoff route. Incorrect number of Touch down waypoints");
-						}
-	
-						//
-						// Landed
-						//
-			
-						if (type != ENTITY_SUB_TYPE_WAYPOINT_LANDED)
-						{
-			
-							debug_fatal ("WARNING. Route parser failed on landing route. Landed waypoint not in correct place");
-						}
-	
-						//
-						// Extras
-						//
-			
-						if (get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT))
-						{
-			
-							debug_fatal ("WARNING. Route parser failed on landing route. Waypoint present after Landed waypoint");
-						}
-					}
-					else
-					{
-
-						debug_log ("WARNING. Route parser. No Waypoint present in Landing route");
-					}
-
-					break;
-				}
-
-				case ENTITY_SUB_TYPE_LANDING_HELICOPTER:
-				case ENTITY_SUB_TYPE_LANDING_GROUND:
-				case ENTITY_SUB_TYPE_LANDING_SEA:
-				{
-
-					//
-					// Navigations
-					//
-		
-					wp = get_local_entity_first_child (route_task, LIST_TYPE_WAYPOINT);
-
-					if (wp)
-					{
-			
-						while (get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT))
-						{
-			
-							type = get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE);
-			
-							if (type != ENTITY_SUB_TYPE_WAYPOINT_NAVIGATION)
-							{
-			
-								debug_fatal ("WARNING. Route parser failed on landing route. Non nav waypoint in route");
-							}
-			
-							wp = get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT);
-						}
-	
-						//
-						// Landed
-						//
-			
-						type = get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE);
-			
-						if (type != ENTITY_SUB_TYPE_WAYPOINT_LANDED)
-						{
-			
-							debug_fatal ("WARNING. Route parser failed on landing route. Landed waypoint not in correct place");
-						}
-	
-						//
-						// Extras
-						//
-			
-						if (get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT))
-						{
-			
-							debug_fatal ("WARNING. Route parser failed on landing route. Waypoint present after Landed waypoint");
-						}
-					}
-					else
-					{
-
-						debug_log ("WARNING. Route parser. No Waypoint present in Landing route");
-					}
-		
-					break;
-				}
-			}
-
-			break;
-		}
-
-		case ENTITY_SUB_TYPE_TASK_TAKEOFF:
-		{
-
-			switch (get_local_entity_int_value (landing_en, INT_TYPE_ENTITY_SUB_TYPE))
-			{
-
-				case ENTITY_SUB_TYPE_LANDING_FIXED_WING:
-				{
-
-					//
-					// Navigation waypoints
-					//
-
-					count = 0;
-		
-					wp = get_local_entity_first_child (route_task, LIST_TYPE_WAYPOINT);
-
-					if (wp)
-					{
-			
-						route_formation = (formation_types) get_local_entity_int_value (wp, INT_TYPE_WAYPOINT_FORMATION);
-			
-						type = get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE);
-			
-						while (type != ENTITY_SUB_TYPE_WAYPOINT_TAKEN_OFF)
-						{
-			
-							wp_formation = (formation_types)get_local_entity_int_value (wp, INT_TYPE_WAYPOINT_FORMATION);
-		/*
-							if (route_formation != wp_formation)
-							{
-			
-								debug_fatal ("WARNING. Route parser failed on takeoff formation, route %s, wp %s",
-												get_formation_name (route_formation), get_formation_name (wp_formation));
-							}
-		*/
-							if ((type != ENTITY_SUB_TYPE_WAYPOINT_NAVIGATION) &&
-								(type != ENTITY_SUB_TYPE_WAYPOINT_LIFT_OFF) &&
-								(type != ENTITY_SUB_TYPE_WAYPOINT_START_UP))
-							{
-			
-								debug_fatal ("WARNING. Route parser failed on takeoff route. Non nav / lift off / startup waypoint in route");
-							}
-	
-							if (type == ENTITY_SUB_TYPE_WAYPOINT_LIFT_OFF)
-							{
-	
-								count ++;
-							}
-			
-							wp = get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT);
-			
-							type = get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE);
-						}
-	
-						if (count != 1)
-						{
-	
-							debug_fatal ("WARNING. Route parser failed on takeoff route. Incorrect number of Lift off waypoints");
-						}
-	
-						//
-						// taken off waypoint
-						//
-			
-						wp_formation = (formation_types)get_local_entity_int_value (wp, INT_TYPE_WAYPOINT_FORMATION);
-		/*
-						if (route_formation != wp_formation)
-						{
-			
-							debug_fatal ("WARNING. Route parser failed on takeoff formation, route %s, wp %s",
-											get_formation_name (route_formation), get_formation_name (wp_formation));
-						}
-		*/
-						if (type != ENTITY_SUB_TYPE_WAYPOINT_TAKEN_OFF)
-						{
-			
-							debug_fatal ("WARNING. Route parser failed on takeoff route. Taken off waypoint not in correct place");
-						}
-	
-						//
-						// Extras
-						//
-			
-						if (get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT))
-						{
-			
-							debug_fatal ("WARNING. Route parser failed on landing route. Waypoint present after Take off waypoint");
-						}
-					}
-					else
-					{
-
-						debug_log ("WARNING. Route parser. No Waypoint present in Takeoff route");
-					}
-
-					break;
-				}
-
-				case ENTITY_SUB_TYPE_LANDING_HELICOPTER:
-				case ENTITY_SUB_TYPE_LANDING_GROUND:
-				case ENTITY_SUB_TYPE_LANDING_SEA:
-				{
-
-					//
-					// Navigation waypoints
-					//
-		
-					wp = get_local_entity_first_child (route_task, LIST_TYPE_WAYPOINT);
-
-					if (wp)
-					{
-			
-						route_formation = (formation_types)get_local_entity_int_value (wp, INT_TYPE_WAYPOINT_FORMATION);
-			
-						while (get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT))
-						{
-			
-							wp_formation = (formation_types)get_local_entity_int_value (wp, INT_TYPE_WAYPOINT_FORMATION);
-		/*
-							if (route_formation != wp_formation)
-							{
-			
-								debug_fatal ("WARNING. Route parser failed on takeoff formation, route %s, wp %s",
-												get_formation_name (route_formation), get_formation_name (wp_formation));
-							}
-		*/
-							type = get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE);
-			
-							if (type != ENTITY_SUB_TYPE_WAYPOINT_NAVIGATION)
-							{
-			
-								debug_fatal ("WARNING. Route parser failed on takeoff route. Non nav waypoint in route");
-							}
-			
-							wp = get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT);
-						}
-	
-						//
-						// taken off waypoint
-						//
-			
-						wp_formation = (formation_types)get_local_entity_int_value (wp, INT_TYPE_WAYPOINT_FORMATION);
-		/*
-						if (route_formation != wp_formation)
-						{
-			
-							debug_fatal ("WARNING. Route parser failed on takeoff formation, route %s, wp %s",
-											get_formation_name (route_formation), get_formation_name (wp_formation));
-						}
-		*/
-						type = get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE);
-			
-						if (type != ENTITY_SUB_TYPE_WAYPOINT_TAKEN_OFF)
-						{
-			
-							debug_fatal ("WARNING. Route parser failed on takeoff route. Taken off waypoint not in correct place");
-						}
-	
-						//
-						// Extras
-						//
-			
-						if (get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT))
-						{
-			
-							debug_fatal ("WARNING. Route parser failed on landing route. Waypoint present after Take off waypoint");
-						}
-					}
-					else
-					{
-
-						debug_log ("WARNING. Route parser. No Waypoint present in Takeoff route");
-					}
-
-					break;
-				}
-			}
-
-			break;
-		}
-
-		case ENTITY_SUB_TYPE_TASK_LANDING_HOLDING:
-		case ENTITY_SUB_TYPE_TASK_TAKEOFF_HOLDING:
-		{
-
-			//
-			// Navigation waypoint
-			//
-
-			wp = get_local_entity_first_child (route_task, LIST_TYPE_WAYPOINT);
-
-			if (wp)
-			{
-	
-				while (get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT))
-				{
-	
-					type = get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE);
-/*
-					if (type != ENTITY_SUB_TYPE_WAYPOINT_HOLDING)
-					{
-	
-						debug_fatal ("WARNING. Route parser failed on holding route. Non holding waypoint in route");
-					}
-				*/
-	
-					wp = get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT);
-				}
-	
-				//
-				// loop waypoint
-				//
-	
-				type = get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE);
-	
-				if (type != ENTITY_SUB_TYPE_WAYPOINT_HOLDING_LOOP)
-				{
-	
-					debug_fatal ("WARNING. Route parser failed on holding route. Loop waypoint not in correct place");
-				}
-	
-				//
-				// Extras
-				//
-	
-				if (get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT))
-				{
-	
-					debug_fatal ("WARNING. Route parser failed on landing route. Waypoint present after Loop waypoint");
-				}
-			}
-			else
-			{
-
-				debug_log ("WARNING. Route parser. No Waypoint present in Loop route");
-			}
-
-			break;
-		}
-	}
 
 
 
@@ -1013,8 +607,414 @@ int validate_landing_route (entity *route_task)
 
 
 
-	return TRUE;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

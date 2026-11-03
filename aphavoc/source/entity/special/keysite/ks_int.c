@@ -149,13 +149,13 @@ static void set_local_int_value (entity *en, int_types type, int value)
 			break;
 		}
 
-		case INT_TYPE_NDB_FREQUENCY:
 
-		{
-			raw->ndb_frequency = value;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_OBJECT_INDEX:
 
@@ -250,13 +250,13 @@ static int get_local_int_value (entity *en, int_types type)
 	switch (type)
 	{
 
-		case INT_TYPE_ALIGN_WITH_TERRAIN:
 
-		{
-			value = keysite_database [raw->sub_type].align_with_terrain;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_ALIVE:
 
@@ -314,21 +314,21 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 
-		case INT_TYPE_MAP_ICON:
 
-		{
-			value = keysite_database [raw->sub_type].map_icon;
 
-			break;
-		}
 
-		case INT_TYPE_NDB_FREQUENCY:
 
-		{
-			value = raw->ndb_frequency;
 
-			break;
-		}
+
+
+
+
+
+
+
+
+
+
 
 		case INT_TYPE_OBJECT_INDEX:
 

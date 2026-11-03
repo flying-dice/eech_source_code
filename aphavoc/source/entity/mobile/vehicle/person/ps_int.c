@@ -114,7 +114,7 @@ static void set_remote_int_value (entity *en, int_types type, int value)
 
 
 
-	transmit_entity_comms_message (ENTITY_COMMS_INT_VALUE, en, type, value);
+
 }
 
 

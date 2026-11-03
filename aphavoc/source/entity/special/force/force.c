@@ -79,8 +79,8 @@
 int
 	force_hardware_update;
 
-static int
-	display_timer_valid;
+
+
 
 
 

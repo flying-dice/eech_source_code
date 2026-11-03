@@ -191,7 +191,7 @@ static void update_server (entity *en)
 				
 					destroy_local_entity_family (en);
 		
-					transmit_entity_comms_message (ENTITY_COMMS_DESTROY_LOCAL_FAMILY, en);
+
 				}
 			}
 			

@@ -117,7 +117,7 @@ void create_campaign (session_list_data_type *session)
 	int
 		offset;
 
-   disable_entity_comms_messages ();
+
 
    ASSERT (!get_session_entity ());
 
@@ -147,14 +147,14 @@ void create_campaign (session_list_data_type *session)
 
 	ASSERT (get_session_entity ());
 
-	attach_session_sound_effects (get_session_entity ());
 
-	enable_entity_comms_messages ();
 
-//VJ 060217 initialize map info after parsing the campaign file
-//VJ 060319 further bug fixes
- 	read_map_info_data();
-	debug_log("###CUSTOM TEXTURE STARTUP: faction.c: create_campaign: read_map_info_data");
+
+
+
+
+
+
 }
 
 
@@ -1024,7 +1024,7 @@ entity *create_landing_faction_members (entity *keysite, entity_sub_types member
 
 				update_imap_sector_side (keysite, TRUE);
 
-				transmit_entity_comms_message (ENTITY_COMMS_UPDATE_SECTOR_SIDE, keysite, TRUE);
+
 
 				update_imap_importance_level (keysite, TRUE);
 

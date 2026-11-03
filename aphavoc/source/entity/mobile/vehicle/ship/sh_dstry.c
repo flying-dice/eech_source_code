@@ -508,7 +508,7 @@ static void kill_local (entity *en)
 	// Notify Campaign Screen
 	//
 
-	notify_campaign_screen (CAMPAIGN_SCREEN_GROUP_REMOVE_MEMBER, group);
+
 
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{

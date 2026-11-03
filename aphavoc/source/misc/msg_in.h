@@ -64,34 +64,34 @@
 
 
 
-#define MAX_LOG_DISPLAY_MESSAGES	25
 
 
 
 
 
-struct MESSAGE_LOG_TYPE
-{
-	message_text_types
-		type;
 
-	unsigned int
-		day						: NUM_DAY_BITS;
 
-	float
-		time_of_day;
 
-	vec3d
-		position;
 
-	rgb_colour
-		colour;
 
-	char
-		*string;
-};
 
-typedef struct MESSAGE_LOG_TYPE message_log_type;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

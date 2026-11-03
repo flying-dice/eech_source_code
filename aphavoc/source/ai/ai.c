@@ -89,7 +89,7 @@ int
 
 
 
-static void reinitialise_ai_debug ();
+
 
 
 
@@ -114,7 +114,7 @@ void initialise_ai_system (void)
 
 	initialise_high_level_ai ();
 
-	initialise_speech_buffers ();
+
 }
 
 
@@ -142,7 +142,7 @@ void stop_ai_system (void)
 void deinitialise_ai_system (void)
 {
 
-	deinitialise_briefing_parser ();
+
 
 	deinitialise_ai_database ();
 
@@ -154,9 +154,9 @@ void deinitialise_ai_system (void)
 
 	deinitialise_high_level_ai ();
 
-	deinitialise_speech_buffers ();
 
-	reinitialise_ai_debug ();
+
+
 
 	#if AI_DEBUG
 
@@ -206,7 +206,7 @@ void reinitialise_client_ai_system (void)
 
 	initialise_keysite_farp_enable (get_local_force_entity (ENTITY_SIDE_RED_FORCE));
 
-	initialise_briefing_parser ();
+
 
 	set_assign_create_waypoint_route (TRUE);
 }
@@ -220,11 +220,11 @@ void reinitialise_ai_system (void)
 
 	ASSERT (get_current_game_session ());
 
-	deinitialise_briefing_parser ();
 
-	initialise_briefing_parser ();
 
-	reinitialise_ai_debug ();
+
+
+
 
 	clear_road_route_data ();
 
@@ -236,9 +236,9 @@ void reinitialise_ai_system (void)
 
 	initialise_formation_component_database ();
 
-	deinitialise_speech_buffers ();
 
-	initialise_speech_buffers ();
+
+
 
 	set_assign_create_waypoint_route (TRUE);
 

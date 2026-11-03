@@ -605,7 +605,7 @@ static int response_to_waypoint_attack_action (entity_messages message, entity *
 
 		speech_index = waypoint_attack_cpg_comments [val].speech_index;
 	
-		play_client_server_cpg_message (receiver, 1.0, 5.0, SPEECH_CATEGORY_MISSION_RELATED, 0.0, speech_index);
+
 	}
 
 	//
@@ -952,7 +952,7 @@ static int response_to_waypoint_drop_off_reached (entity_messages message, entit
 		
 					notify_local_entity (ENTITY_MESSAGE_WAYPOINT_DROP_OFF_REACHED, requester, receiver, cargo);
 		
-					transmit_entity_comms_message (ENTITY_COMMS_SWITCH_LIST, cargo, LIST_TYPE_MOVEMENT_DEPENDENT, requester, LIST_TYPE_CARGO);
+
 	
 
 
@@ -1779,7 +1779,7 @@ static int response_to_waypoint_sub_route_navigation_reached (entity_messages me
 
 			mb = get_local_entity_first_child (group, LIST_TYPE_MEMBER);
 
-			transmit_entity_comms_message (ENTITY_COMMS_ROUTED_VEHICLE_ROUTE_DATA, mb, from_node, to_node);
+
 		}
 		else
 		{
@@ -1894,7 +1894,7 @@ static int response_to_waypoint_pick_up_reached (entity_messages message, entity
 
 	insert_local_entity_into_parents_child_list (cargo, LIST_TYPE_MOVEMENT_DEPENDENT, receiver, NULL);
 
-	transmit_entity_comms_message (ENTITY_COMMS_SWITCH_LIST, cargo, LIST_TYPE_CARGO, receiver, LIST_TYPE_MOVEMENT_DEPENDENT);
+
 
 	//
 	//
@@ -1956,7 +1956,7 @@ static int response_to_waypoint_recon_action (entity_messages message, entity *r
 		// tell player to transmit recon
 		//
 
-		play_client_server_cpg_message (receiver, 1.0, 30.0, SPEECH_CATEGORY_MISSION_RELATED, 0.0, SPEECH_CPG_OBJECTIVE_IN_RANGE_RECON);
+
 
 		if (receiver == get_gunship_entity ())
 		{
@@ -1964,7 +1964,7 @@ static int response_to_waypoint_recon_action (entity_messages message, entity *r
 		}
 		else
 		{
-			transmit_entity_comms_message (ENTITY_COMMS_ADVISE_TRANSMIT_RECON, receiver);
+
 		}
 	}
 
@@ -2032,7 +2032,7 @@ static int response_to_waypoint_recon_reached (entity_messages message, entity *
 	}
 	else
 	{
-		play_client_server_cpg_message (receiver, 0.8, 30.0, SPEECH_CATEGORY_MISSION_RELATED, 0.0, SPEECH_CPG_TRANSMITTING_RECON);
+
 	}
 
 

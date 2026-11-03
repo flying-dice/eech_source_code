@@ -74,7 +74,7 @@ extern float get_local_entity_target_bearing (entity *source, entity *target, fl
 
 extern float get_local_entity_target_relative_bearing (entity *source, entity *target);
 
-extern void get_local_entity_target_point (entity *en, vec3d *target_point);
+
 
 
 

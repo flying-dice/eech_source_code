@@ -489,13 +489,13 @@ static int get_local_int_value (entity *en, int_types type)
 			break;
 		}
 
-		case INT_TYPE_MAP_ICON:
 
-		{
-			value = group_database [raw->sub_type].map_icon;
 
-			break;
-		}
+
+
+
+
+
 
 		case INT_TYPE_MAXIMUM_MEMBER_COUNT:
 

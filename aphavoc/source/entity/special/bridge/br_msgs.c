@@ -163,11 +163,11 @@ static int response_to_child_killed (entity_messages message, entity *receiver, 
 		}
 	}
 
-	//
-	// insert segment into the update list ( so that it can fall to the floor etc. )
-	//
 
-	insert_local_entity_into_parents_child_list (sender, LIST_TYPE_UPDATE, get_update_entity (), NULL);
+
+
+
+
 
 	return (TRUE);
 }

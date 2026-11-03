@@ -64,31 +64,31 @@
 
 
 
+enum GAME_STATUS_TYPES
+{
+
+	GAME_STATUS_UNINITIALISED,
+	GAME_STATUS_UNINITIALISING,
+	GAME_STATUS_INITIALISING,
+	GAME_STATUS_INITIALISED,
+	NUM_GAME_STATUS_TYPES
+};
+
+typedef enum GAME_STATUS_TYPES game_status_types;
 
 
 
 
 
+extern game_status_types
+	game_status;
 
+extern const char
+	*game_status_string;
 
+extern void set_game_status (game_status_types status);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#define get_game_status() (game_status)
 
 
 
@@ -982,8 +982,8 @@ extern global_options_data
 
 
 
-
-
+#define set_global_season(VALUE) (current_map_info.season = (VALUE))   //VJ 051227 changed from global_season
+#define get_global_season() (current_map_info.season)                  //VJ 051227 changed from global_season
 
 #define set_global_session_campaign_time_of_day(VALUE) (global_options.session_campaign_time_of_day = (VALUE))
 #define get_global_session_campaign_time_of_day() (global_options.session_campaign_time_of_day)

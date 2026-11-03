@@ -126,9 +126,9 @@ static int response_to_link_parent (entity_messages message, entity *receiver, e
 
 
 
-	//
-	// notify campaign screen
-	//
+
+
+
 
 	list_type = va_arg (pargs, list_types);
 
@@ -142,10 +142,10 @@ static int response_to_link_parent (entity_messages message, entity *receiver, e
 		{
 			set_local_entity_int_value (receiver, INT_TYPE_TASK_STATE, TASK_STATE_UNASSIGNED);
 
-			if (task_database [sub_type].primary_task)
-			{
-				notify_campaign_screen (CAMPAIGN_SCREEN_MISSION_CREATED, receiver);
-			}
+
+
+
+
 
 			break;
 		}
@@ -155,10 +155,10 @@ static int response_to_link_parent (entity_messages message, entity *receiver, e
 		{
 			set_local_entity_int_value (receiver, INT_TYPE_TASK_STATE, TASK_STATE_ASSIGNED);
 
-			if (task_database [sub_type].primary_task)
-			{
-				notify_campaign_screen (CAMPAIGN_SCREEN_MISSION_ASSIGNED, receiver);
-			}
+
+
+
+
 
 			break;
 		}
@@ -168,10 +168,10 @@ static int response_to_link_parent (entity_messages message, entity *receiver, e
 		{
 			set_local_entity_int_value (receiver, INT_TYPE_TASK_STATE, TASK_STATE_COMPLETED);
 
-			if (task_database [sub_type].primary_task)
-			{
-				notify_campaign_screen (CAMPAIGN_SCREEN_MISSION_COMPLETED, receiver);
-			}
+
+
+
+
 
 			break;
 		}
@@ -514,7 +514,7 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 			
 		destroy_local_entity_family (receiver);
 	
-		transmit_entity_comms_message (ENTITY_COMMS_DESTROY_LOCAL_FAMILY, receiver);
+
 	}
 
 	return (TRUE);

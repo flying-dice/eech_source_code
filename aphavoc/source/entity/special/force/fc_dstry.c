@@ -268,16 +268,16 @@ static void destroy_server_family (entity *en)
 
 
 
-static void destroy_client_family (entity *en)
-{
 
 
 
 
 
 
-	transmit_entity_comms_message (ENTITY_COMMS_DESTROY_FAMILY, en);
-}
+
+
+
+
 
 
 

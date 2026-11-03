@@ -264,16 +264,16 @@ static void destroy_server_family (entity *en)
 
 
 
-static void destroy_client_family (entity *en)
-{
 
 
 
 
 
 
-	transmit_entity_comms_message (ENTITY_COMMS_DESTROY_FAMILY, en);
-}
+
+
+
+
 
 
 
@@ -310,11 +310,11 @@ static void kill_local (entity *en)
 	//
 
 
-	//
-	// Notify campaign screen
-	//
 
-	notify_campaign_screen (CAMPAIGN_SCREEN_BASE_DESTROYED, en);
+
+
+
+
 
 	//
 	// Set keysite to unusable
@@ -380,7 +380,7 @@ static void kill_local (entity *en)
 	{
 		ai_log ("(KEYSITE) %s DESTROYED", get_local_entity_string (en, STRING_TYPE_KEYSITE_NAME));
 
-		send_text_message (en, NULL, MESSAGE_TEXT_SYSTEM_KEYSITE_DESTROYED, NULL);
+
 	}
 
 

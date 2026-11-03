@@ -426,7 +426,7 @@ void credit_client_server_mobile_kill (entity *victim, entity *aggressor)
 
 		add_kill_to_task (task, victim, aggressor);
 	
-		transmit_entity_comms_message (ENTITY_COMMS_TASK_KILL, task, victim, aggressor);
+
 	}
 
 	//
@@ -439,7 +439,7 @@ void credit_client_server_mobile_kill (entity *victim, entity *aggressor)
 	{
 		add_loss_to_task (task, victim, aggressor);
 	
-		transmit_entity_comms_message (ENTITY_COMMS_TASK_LOSS, task, victim, aggressor);
+
 	}
 
 	//
@@ -454,7 +454,7 @@ void credit_client_server_mobile_kill (entity *victim, entity *aggressor)
 		}
 		else if (get_local_entity_int_value (aggressor, INT_TYPE_PLAYER) == ENTITY_PLAYER_REMOTE)
 		{
-			transmit_entity_comms_message (ENTITY_COMMS_PLAYER_KILL, aggressor, victim);
+
 		}
 	}
 	
@@ -462,7 +462,7 @@ void credit_client_server_mobile_kill (entity *victim, entity *aggressor)
 	// Send Text Message
 	//
 
-	send_text_message (aggressor, victim, MESSAGE_TEXT_SYSTEM_ENTITY_KILLED, NULL);
+
 
 	//
 	// Add to force statistics
@@ -474,7 +474,7 @@ void credit_client_server_mobile_kill (entity *victim, entity *aggressor)
 
 	add_mobile_to_force_kills_stats (force, victim);
 
-	transmit_entity_comms_message (ENTITY_COMMS_MOBILE_KILL, force, victim);
+
 
 	#if DEBUG_KILL_INFO
 

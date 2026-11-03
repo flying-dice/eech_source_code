@@ -92,9 +92,9 @@ const char
 
 
 
-void play_sector_air_defences_sighted_speech (entity *en, entity *sector_en);
 
-void play_sector_keysite_sighted_speech (entity *en, entity *sector_en, entity *target_keysite);
+
+
 
 
 
@@ -326,46 +326,46 @@ float get_local_sector_side_ratio (int sx, int sz, entity_sides side)
 
 
 
-void validate_local_sector_entities (void)
-{
-	int
-		x_sector,
-		z_sector,
-		entity_x_sector,
-		entity_z_sector;
 
-	vec3d
-		*position;
 
-	entity
-		*sec,
-		*en;
 
-	for (x_sector = 0; x_sector < NUM_MAP_X_SECTORS; x_sector++)
-	{
-		for (z_sector = 0; z_sector < NUM_MAP_Z_SECTORS; z_sector++)
-		{
-			sec = get_local_raw_sector_entity (x_sector, z_sector);
 
-			en = get_local_entity_first_child (sec, LIST_TYPE_SECTOR);
 
-			while (en)
-			{
-				position = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
 
-				get_x_sector (entity_x_sector, position->x);
-				get_z_sector (entity_z_sector, position->z);
 
-				if ((entity_x_sector != x_sector) || (entity_z_sector != z_sector))
-				{
-					debug_fatal ("Entity is in the wrong sector (type = %s)", get_local_entity_type_name (en));
-				}
 
-				en = get_local_entity_child_succ (en, LIST_TYPE_SECTOR);
-			}
-		}
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -567,7 +567,7 @@ void update_client_server_sector_fog_of_war (void)
 
 	update_sector_fog_of_war ();
 
-	transmit_entity_comms_message (ENTITY_COMMS_UPDATE_FOG_OF_WAR, NULL);
+
 
 	debug_log ("SECTOR: End update sector fog of war");
 }
@@ -627,7 +627,7 @@ void update_client_server_sector_side_count (void)
 
 	update_sector_side_count ();
 
-	transmit_entity_comms_message (ENTITY_COMMS_UPDATE_SECTOR_SIDE_COUNT, NULL);
+
 
 	debug_log ("SECTOR: End update sector sides");
 }

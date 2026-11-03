@@ -365,7 +365,7 @@ entity *create_task
 	set_local_entity_ptr_value (new_task, PTR_TYPE_ROUTE_FORMATION_TYPES, route_formation_types);
 	set_local_entity_ptr_value (new_task, PTR_TYPE_RETURN_KEYSITE, end_keysite);
 
-	transmit_entity_comms_message (ENTITY_COMMS_SET_TASK_POINTERS, new_task);
+
 
 
 	//

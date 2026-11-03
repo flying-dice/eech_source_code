@@ -202,7 +202,7 @@ static void destroy_local_family (entity *en)
 {
 	destroy_local_entity_children (en, LIST_TYPE_FORCE);
 
-	destroy_local_sound_effects (en);
+
 
 	destroy_local_entity (en);
 }
@@ -215,7 +215,7 @@ static void destroy_server_family (entity *en)
 {
 	destroy_client_server_entity_children (en, LIST_TYPE_FORCE);
 
-	destroy_client_server_sound_effects (en);
+
 
 	destroy_client_server_entity (en);
 }
@@ -224,16 +224,16 @@ static void destroy_server_family (entity *en)
 
 
 
-static void destroy_client_family (entity *en)
-{
 
 
 
 
 
 
-	transmit_entity_comms_message (ENTITY_COMMS_DESTROY_FAMILY, en);
-}
+
+
+
+
 
 
 

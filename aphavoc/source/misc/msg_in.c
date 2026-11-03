@@ -75,26 +75,26 @@
 
 #define DEBUG_MODULE	0
 
-#define MESSAGE_LIST_INC	100
 
 
 
 
 
-static float
-	current_message_timer = 0.0;
 
-static message_log_type
-	*message_log = NULL;
 
-static int
-	num_messages = 0,
-	max_messages = 0,
-	current_message = -1,
-	group_wingman_cycle_forwards = FALSE;
 
-static rgb_colour
-	message_side_colour [NUM_ENTITY_SIDES];
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -124,7 +124,7 @@ static void process_message_request_artillery (entity *en);
 
 static void process_message_request_assistance (entity *en);
 
-static void set_new_display_message (int index);
+
 
 void process_message_attack_pfz(entity *en, entity *wingman);
 
@@ -241,157 +241,29 @@ void process_message_attack_pfz(entity *en, entity *wingman);
 
 
 
-static int message_intended_for_recipient (entity *sender, entity *target, message_text_types type)
-{
-	if (!get_pilot_entity ())
-	{
-		//
-		// can't display messages until player is properly in the game
-		//
-
-		return FALSE;
-	}
-
-	switch (type)
-	{
-		case MESSAGE_TEXT_SYSTEM_NEW_PILOT:
-		case MESSAGE_TEXT_SYSTEM_ENTITY_KILLED:
-		case MESSAGE_TEXT_SYSTEM_KEYSITE_CAPTURED:
-		case MESSAGE_TEXT_SYSTEM_KEYSITE_DESTROYED:
-		case MESSAGE_TEXT_LOCAL_MESSAGE:
-		{
-			//
-			// all pilots display these messages
-			//
-
-			return TRUE;
-		}
-
-		case MESSAGE_TEXT_SYSTEM_RECON_DATA:
-		case MESSAGE_TEXT_SYSTEM_ENTITY_UNDER_ATTACK:
-		{
-			ASSERT (target);
-
-			if (get_local_entity_int_value (target, INT_TYPE_SIDE) == get_local_entity_int_value (get_pilot_entity (), INT_TYPE_SIDE))
-			{
-				//
-				// message broadcast to all pilots on this side
-				//
-
-				return TRUE;
-			}
-
-			break;
-		}
-
-		case MESSAGE_TEXT_SYSTEM_TASK_COMPLETED:
-		{
-			//
-			// all pilots on this side display these messages - but only if the task was a primary task
-			//
-
-			ASSERT (target);
-
-			if (task_database [get_local_entity_int_value (target, INT_TYPE_ENTITY_SUB_TYPE)].primary_task)
-			{
-				if (get_local_entity_int_value (target, INT_TYPE_SIDE) == get_local_entity_int_value (get_pilot_entity (), INT_TYPE_SIDE))
-				{
-					return TRUE;
-				}
-			}
 
-			break;
-		}
 
-		case MESSAGE_TEXT_PILOT_STRING:
-		{
-			ASSERT (sender);
 
-			ASSERT (target);
 
-			if (target == get_pilot_entity ())
-			{
-				//
-				// personal message for this pilot
-				//
 
-				return TRUE;
-			}
 
-			if (sender == get_pilot_entity ())
-			{
-				//
-				// Echo Message sent by this pilot
-				//
 
-				return TRUE;
-			}
 
-			if (target == get_session_entity ())
-			{
-				//
-				// message broadcast to all pilots
-				//
 
-				return TRUE;
-			}
 
-			ASSERT (target);
 
-			if ((get_local_entity_type (target) == ENTITY_TYPE_FORCE) && (get_pilot_entity () != sender))
-			{
-				//
-				// message broadcast to all pilots on this side (but don't display it if you sent it!!)
-				//
 
-				if (get_local_entity_int_value (target, INT_TYPE_SIDE) == get_local_entity_int_value (get_pilot_entity (), INT_TYPE_SIDE))
-				{
-					return TRUE;
-				}
-			}
 
-			break;
-		}
 
-		case MESSAGE_TEXT_WINGMAN_STRING:
-		case MESSAGE_TEXT_SHORT_WINGMAN_STRING:
-		{
-			entity
-				*parent;
 
-			ASSERT (sender);
-			ASSERT (target);
 
-			parent = get_local_entity_parent (get_pilot_entity (), LIST_TYPE_AIRCREW);
 
-			if (target == parent)
-			{
-				//
-				// personal message for this pilot
-				//
 
-				return TRUE;
-			}
 
-			break;
-		}
 
-		case MESSAGE_WINGMAN_STATUS_REPORT:
-		{
-			if (target == get_pilot_entity())
-				return TRUE;
 
-			break;
-		}
 
-		default:
-		{
-			debug_fatal ("MESSAGE: Unknown message type %d", type);
-		}
-	}
 
-	return FALSE;
-}
 
 
 
@@ -862,86 +734,214 @@ static int message_intended_for_recipient (entity *sender, entity *target, messa
 
 
 
-void set_incoming_message (entity *sender, entity *target, message_text_types type, char *string)
-{
-	message_log_type
-		*temp,
-		*new_message;
 
-	entity
-		*subject;
 
-	//
-	// check that this player SHOULD display the message
-	//
 
-	if (!message_intended_for_recipient (sender, target, type))
-	{
-		return;
-	}
 
-	//
-	// Need more log space ?
-	//
 
-	if (num_messages >= max_messages)
-	{
-		max_messages += MESSAGE_LIST_INC;
 
-		temp = (message_log_type *) malloc_heap_mem (sizeof (message_log_type) * max_messages);
 
-		if (num_messages > 0)
-		{
-			ASSERT (message_log);
 
-			memcpy (temp, message_log, sizeof (message_log_type) * num_messages);
 
-			free_mem (message_log);
-		}
 
-		message_log = temp;
-	}
 
-	//
-	// add to log
-	//
 
-	new_message = &message_log [num_messages];
 
-	new_message->type = type;
 
-	if (get_session_entity ())
-	{
-		new_message->day = get_local_entity_int_value (get_session_entity (), INT_TYPE_DAY);
 
-		new_message->time_of_day = get_local_entity_float_value (get_session_entity (), FLOAT_TYPE_TIME_OF_DAY);
-	}
-	else
-	{
-		new_message->day = 0;
 
-		new_message->time_of_day = 0.0;
-	}
 
-	subject = format_incoming_message (new_message, sender, target, string);
 
-	num_messages ++;
 
-	// Jabberwock 031129 Chat server log
-	if ((type == MESSAGE_TEXT_PILOT_STRING) && (get_comms_model () == COMMS_MODEL_SERVER))
-	{
-		server_log ("%s: %s", get_local_entity_string (sender, STRING_TYPE_PILOTS_NAME), string);
-	}
 
-	if ((current_message == -1) || (message_text_info [type].skip_queue))
-	{
-		set_new_display_message (num_messages - 1);
-	}
 
-	notify_campaign_screen (CAMPAIGN_SCREEN_NEW_MESSAGE, subject);
 
-	set_message_objective_view_interest_level (sender, target, type);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1053,7 +1053,7 @@ void process_radio_message (entity *en, message_categories type, int value)
 		{
 			wingman = get_local_entity_safe_ptr (value);
 
-			transmit_entity_comms_message (ENTITY_COMMS_REQUEST_TARGET_LIST, en, wingman);
+
 
 			break;
 		}
@@ -1457,7 +1457,7 @@ void process_message_attack_my_target (entity *en, entity *wingman)
 
 					engage_specific_target (group, target, valid_members, TRUE);
 
-					play_client_server_radio_message_affirmative_response (wingman, SPEECH_WINGMAN_ROGER_ENGAGING_TARGET, 1.0, 10.0);
+
 
 					return;
 				}
@@ -1465,7 +1465,7 @@ void process_message_attack_my_target (entity *en, entity *wingman)
 		}
 	}
 
-	play_client_server_radio_message_negative_response (wingman, SPEECH_WINGMAN_UNABLE_TO_COMPLY, 1.0, 10.0);
+
 }
 
 
@@ -1487,14 +1487,14 @@ void process_message_attack_pfz(entity *en, entity *wingman)
 	if (group && get_local_entity_int_value (group, INT_TYPE_ENGAGE_ENEMY))
 	{
 		if (get_local_entity_int_value (wingman, INT_TYPE_WEAPONS_HOLD))
-			play_client_server_radio_message_affirmative_response (wingman, SPEECH_WINGMAN_ACKNOWLEDGE, 1.0, 10.0);
+
 		else
-			play_client_server_radio_message_affirmative_response (wingman, SPEECH_WINGMAN_ROGER_ENGAGING_TARGET, 1.0, 10.0);
+
 
 		return;
 	}
 
-	play_client_server_radio_message_negative_response (wingman, SPEECH_WINGMAN_UNABLE_TO_COMPLY, 1.0, 10.0);
+
 }
 
 
@@ -1570,7 +1570,7 @@ void process_message_help_me (entity *en, entity *wingman)
 
 		if (task_assigned)
 		{
-			play_client_server_radio_message_affirmative_response (wingman, SPEECH_WINGMAN_ROGER_COMING_TO_ASSIST, 1.0, 8.0);
+
 
 			//
 			// call to "help me" also cancels "weapons hold"
@@ -1580,7 +1580,7 @@ void process_message_help_me (entity *en, entity *wingman)
 		}
 		else
 		{
-			play_client_server_radio_message_negative_response (wingman, SPEECH_WINGMAN_UNABLE_TO_COMPLY, 1.0, 8.0);
+
 		}
 	}
 }
@@ -1610,7 +1610,7 @@ void process_message_return_to_base (entity *en)
 	{
 		group_return_to_base (group);
 
-		play_client_server_radio_message_affirmative_response (group, SPEECH_WINGMAN_ROGER_RETURNING_TO_BASE, 0.2, 20.0);
+
 	}
 }
 
@@ -1743,11 +1743,11 @@ void process_message_weapons_hold (entity *en, entity *wingman, int state, int p
 	{
 		if (state)
 		{
-			play_client_server_radio_message_affirmative_response (wingman, SPEECH_WINGMAN_ROGER_WEAPONS_HOLD, 0.6, 6.0);
+
 		}
 		else
 		{
-			play_client_server_radio_message_affirmative_response (wingman, SPEECH_WINGMAN_ROGER_WEAPONS_FREE, 0.6, 6.0);
+
 		}
 	}
 
@@ -1799,11 +1799,11 @@ void process_message_hold_position (entity *en, entity *wingman)
 
 			set_client_server_entity_vec3d (wingman, VEC3D_TYPE_WAIT_POSITION, get_local_entity_vec3d_ptr (wingman, VEC3D_TYPE_POSITION));
 
-			play_client_server_radio_message_affirmative_response (wingman, SPEECH_WINGMAN_ROGER_MAINTAINING_POSITION, 0.6, 10.0);
+
 		}
 		else
 		{
-			play_client_server_radio_message_negative_response (wingman, SPEECH_WINGMAN_UNABLE_TO_COMPLY, 0.6, 8.0);
+
 		}
 	}
 }
@@ -1848,7 +1848,7 @@ void process_message_rejoin_formation (entity *en, entity *wingman)
 		// Play Speech
 		//
 
-		play_client_server_radio_message_affirmative_response (wingman, SPEECH_WINGMAN_ROGER_REJOINING_FORMATION, 0.5, 7.0);
+
 
 		//
 		// Abort any engage tasks
@@ -1890,7 +1890,7 @@ void process_message_bob_up (entity *en, entity *wingman)
 
 				if (follower)
 				{
-					play_client_server_radio_message_affirmative_response (follower, SPEECH_WINGMAN_ROGER_BOBBING_UP, 1.0, 4.0);
+
 				}
 			}
 
@@ -1907,7 +1907,7 @@ void process_message_bob_up (entity *en, entity *wingman)
 			{
 				attack_guide_proceed_to_fire_positon (guide);
 
-				play_client_server_radio_message_affirmative_response (wingman, SPEECH_WINGMAN_ROGER_BOBBING_UP, 1.0, 4.0);
+
 			}
 		}
 	}
@@ -1925,7 +1925,7 @@ void process_message_change_formation (entity *en, entity *group, int new_format
 
 	set_client_server_entity_int_value (group, INT_TYPE_GROUP_FORMATION, new_formation);
 
-	play_client_server_radio_message_affirmative_response (group, SPEECH_WINGMAN_ROGER_MOVING_INTO_ORDERED_POSITION, 0.1, 5.0);
+
 }
 
 

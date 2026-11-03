@@ -290,6 +290,8 @@ void deinitialise_road_route_data (void)
 
 
 
+void read_road_route_data (void)
+{
 
 
 
@@ -297,21 +299,19 @@ void deinitialise_road_route_data (void)
 
 
 
+   if (read_road_route_node_data ("ROADS"))
+	{
+	   read_road_route_node_positions ("ROADS");
 
+   	read_road_route_node_link_positions ("ROADS");
+	}
+	else if (read_road_route_node_data ("ROADDATA"))
+	{
+	   read_road_route_node_positions ("ROADDATA");
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+   	read_road_route_node_link_positions ("ROADDATA");
+	}
+}
 
 
 
@@ -641,6 +641,8 @@ void deinitialise_road_route_data (void)
 // List of node_link_data for each position and cost.
 //
 
+static int read_road_route_node_link_positions (char *name)
+{
 
 
 
@@ -773,12 +775,10 @@ void deinitialise_road_route_data (void)
 
 
 
+	road_nodes_loaded = TRUE;
 
 
-
-
-
-
+}
 
 
 
@@ -1166,71 +1166,71 @@ int get_road_link_breaks (int node1, int node2)
 
 
 #define MAX_SAFE_RADIUS_CHECK (50 * KILOMETRE)
-/*
-void initialise_road_safe_radius (void)
-{
 
-	int
-		safe,
-		loop;
 
-	float
-		segment_size,
-		radius,
-		angle,
-		x,
-		z;
 
-	terrain_3d_find_fast
-		terrain_cache;
 
-	ASSERT (road_nodes);
-	ASSERT (road_node_positions);
-	ASSERT (road_node_link_positions);
 
-	memset (&terrain_cache, 0, sizeof (terrain_3d_find_fast));
 
-	segment_size = (float) PI2 / 4;
 
-	for (loop = 0; loop < total_number_of_road_nodes; loop ++)
-	{
 
-		//
-		// do radius check for forest floor
-		//
 
-		safe = TRUE;
 
-		for (radius = 0; ((radius < MAX_SAFE_RADIUS_CHECK) && (safe)); radius ++)
-		{
 
-			for (angle = 0.0; ((angle < PI2) && (safe)); angle += segment_size)
-			{
 
-				x = road_node_positions [loop].x + (sin (angle) * radius);
-				z = road_node_positions [loop].z + (cos (angle) * radius);
 
-				if ((x <= MIN_MAP_X) || (x >= MAX_MAP_X) || (z <= MIN_MAP_Z) || (z >= MAX_MAP_Z))
-				{
 
-					safe = FALSE;
-				}
-				else
-				{
-			
-					get_3d_terrain_elevation_and_face_normal (x, z, NULL, &terrain_cache);
-			
-					safe = get_terrain_type_suitable_for_ground_vehicle (terrain_cache.terrain_type);
-				}
-			}
-		}
 
-		debug_log ("AI_ROUTE: safe radius for node %d is %f", loop, radius);
 
-		road_nodes [loop].safe_radius = radius;
-	}
-}
-*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

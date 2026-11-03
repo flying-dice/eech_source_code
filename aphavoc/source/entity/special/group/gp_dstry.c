@@ -247,16 +247,16 @@ static void destroy_server_family (entity *en)
 
 
 
-static void destroy_client_family (entity *en)
-{
 
 
 
 
 
 
-	transmit_entity_comms_message (ENTITY_COMMS_DESTROY_FAMILY, en);
-}
+
+
+
+
 
 
 
@@ -307,11 +307,11 @@ static void kill_local (entity *en)
 
 	ASSERT (!get_local_entity_first_child (en, LIST_TYPE_GUIDE_STACK));
 
-	//
-	// Notify Campaign Screen (should be done before unlinked from keysite)
-	//
 
-	notify_campaign_screen (CAMPAIGN_SCREEN_GROUP_DESTROYED, en);
+
+
+
+
 
 	//
 	// Kill

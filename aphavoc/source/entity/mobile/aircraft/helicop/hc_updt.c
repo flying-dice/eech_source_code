@@ -273,7 +273,7 @@ static void update_server (entity *en)
 							(get_local_entity_int_value (group, INT_TYPE_MULTIPLAYER_GROUP)))
 					{
 
-						transmit_entity_comms_message (ENTITY_COMMS_UPDATE, en);
+
 					}
 				}
 
@@ -403,7 +403,7 @@ static void update_server (entity *en)
 				}
 
 
-				transmit_entity_comms_message (ENTITY_COMMS_UPDATE, en);
+
 
 
 				//

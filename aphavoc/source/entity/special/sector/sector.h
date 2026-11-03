@@ -149,7 +149,7 @@ extern void update_sector_side_count (void);
 
 extern void update_client_server_sector_side_count (void);
 
-extern void validate_local_sector_entities (void);
+
 
 extern int get_sector_task_type_count (entity *en, entity_sub_types task_type, entity_sides side);
 

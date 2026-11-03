@@ -336,21 +336,21 @@ entity *create_bridge( vec3d *end1, vec3d *end2, int start_node, int end_node, e
 		);
 	}
 
-	//
-	// scale the legs
-	//
 
-	if ( bridge_info->default_leg_height == 0.0 )
-	{
-		// bridge doesn't have legs
 
-		set_local_entity_float_value( bridge_entity, FLOAT_TYPE_SCALE, 1.0 );
-	}
-	else
-	{
 
-		set_local_entity_float_value( bridge_entity, FLOAT_TYPE_SCALE, max_leg_height / bridge_info->default_leg_height );
-	}
+
+
+
+
+
+
+
+
+
+
+
+
 
 	return bridge_entity;
 }
@@ -882,7 +882,7 @@ void repair_client_server_bridge_entity (entity *en)
 
 	repair_local_bridge_entity (en);
 
-	transmit_entity_comms_message (ENTITY_COMMS_REPAIR_BRIDGE_ENTITY, en);
+
 }
 
 

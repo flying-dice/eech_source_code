@@ -76,17 +76,17 @@
 
 
 
-static void set_supply_heat_map_cargo_spot (entity *en, int x, int z, int value);
 
 
 
 
-	
-unsigned char
-	*supply_heat_bitmap = NULL;
 
-unsigned char
-	*supply_heat_map = NULL;
+
+
+
+
+
+
 
 
 
@@ -151,27 +151,6 @@ float get_local_entity_refueling_sleep_time (entity *group)
 
 
 
-void build_supply_heat_map (void)
-{
-
-	int
-		x,
-		z;
-
-	entity
-		*en,
-		*group,
-		*sector;
-
-	float
-		supplies;
-
-	if (!supply_heat_map)
-	{
-		supply_heat_bitmap = (unsigned char *) malloc_heap_mem (sizeof (unsigned char) * (NUM_MAP_X_SECTORS * NUM_MAP_Z_SECTORS * 3));
-
-		supply_heat_map = (unsigned char *) malloc_heap_mem (sizeof (unsigned char) * (NUM_MAP_X_SECTORS * NUM_MAP_Z_SECTORS));
-	}
 
 
 
@@ -179,160 +158,181 @@ void build_supply_heat_map (void)
 
 
 
-	memset (supply_heat_map, 0, sizeof (unsigned char) * (NUM_MAP_X_SECTORS * NUM_MAP_Z_SECTORS));
-
-	memset (supply_heat_bitmap, 0, sizeof (unsigned char) * (NUM_MAP_X_SECTORS * NUM_MAP_Z_SECTORS * 3));
-	
-	// draw cargo
-
-   for (x = 0; x < NUM_MAP_X_SECTORS; x ++)
-   {
-
-      for (z = 0; z < NUM_MAP_Z_SECTORS; z ++)
-      {
-
-			sector = get_local_raw_sector_entity (x, z);
-
-			en = get_local_entity_first_child (sector, LIST_TYPE_SECTOR);
-
-			while (en)
-			{
-
-				if (get_local_entity_type (en) == ENTITY_TYPE_CARGO)
-				{
-					set_supply_heat_map_cargo_spot (en, x, z, 1);
-				}
-
-				else if (get_local_entity_int_value (en, INT_TYPE_ALIVE))
-				{
-					if (get_local_entity_int_value (en, INT_TYPE_IDENTIFY_VEHICLE))
-					{
-						if (get_local_entity_int_value (en, INT_TYPE_GROUP_LEADER))
-						{
-	
-							group = get_local_entity_parent (en, LIST_TYPE_MEMBER);
-	
-							// get combined value of supplies - (each in range 0-100) into range 0-127
-
-							supplies = (get_local_entity_float_value (group, FLOAT_TYPE_FUEL_SUPPLY_LEVEL) +
-											get_local_entity_float_value (group, FLOAT_TYPE_AMMO_SUPPLY_LEVEL)) *
-											0.05;
-							
-							set_supply_heat_map_cargo_spot (en, x, z, (int) supplies);
-						}
-					}
-				}
-
-				en = get_local_entity_child_succ (en, LIST_TYPE_SECTOR);
-			}
-		}
-	}
-
-	// draw frontline groups
-}
 
 
 
 
 
-void set_supply_heat_map_cargo_spot (entity *en, int x, int z, int value)
-{
 
-	rgb_colour
-		col;
 
-	int
-		x_loop,
-		z_loop,
-		x_a,
-		z_a,
-		offset,
-		str;
 
-	float
-		scale;
-	
-	offset = supply_heat_map[x + (NUM_MAP_X_SECTORS * z)];
 
-	if (offset > 128)
-	{
-		offset = 3;
-	}
-	else if (offset > 64)
-	{
-		offset = 2;
-	}
-	else if (offset > 32)
-	{
-		offset = 1;
-	}
-	else
-	{
-		offset = 0;
-	}
-	
-	offset = min (offset, 3);
 
-	if (offset)
-	{
-		scale = 255 / (offset * 2);
-	}
-	else
-	{
-		scale = 0;
-		
-		offset = 0;
-	}
-	
-	for (z_loop = max (z - offset, 0); z_loop < min (z + offset + 1, NUM_MAP_Z_SECTORS); z_loop ++)
-	{
-		z_a = abs (z_loop - (z));
 
-		for (x_loop = max (x - offset, 0); x_loop < min (x + offset + 1, NUM_MAP_X_SECTORS); x_loop ++)
-		{
 
-			col.r = supply_heat_bitmap [(z_loop * NUM_MAP_X_SECTORS * 3) + (x_loop * 3)];
-			col.g = supply_heat_bitmap [(z_loop * NUM_MAP_X_SECTORS * 3) + (x_loop * 3) + 1];
-			col.b = supply_heat_bitmap [(z_loop * NUM_MAP_X_SECTORS * 3) + (x_loop * 3) + 2];
 
-			x_a = abs (x_loop - (x));
 
-			str = 255 - (scale * (x_a + z_a));
 
-			if (str > supply_heat_map[(z_loop * NUM_MAP_X_SECTORS) + x_loop])
-			{
-				supply_heat_map[(z_loop * NUM_MAP_X_SECTORS) + x_loop] = bound (str, 0.0, 255.0);
-			}
-			
-			if (get_local_entity_int_value (en, INT_TYPE_SIDE) == ENTITY_SIDE_BLUE_FORCE)
-			{
-				if (str > col.b)
-				{
-					col.b = bound ((str), 0.0, 255.0);
-				}
-			}
-			else if (get_local_entity_int_value (en, INT_TYPE_SIDE) == ENTITY_SIDE_RED_FORCE)
-			{
-				if (str > col.r)
-				{
-					col.r = bound ((str), 0.0, 255.0);
-				}
-			}
-			else
-			{
-				if (str > col.g)
-				{
-					col.g = bound ((str), 0.0, 255.0);
-				}
-			}
 
-			supply_heat_bitmap [(z_loop * NUM_MAP_X_SECTORS * 3) + (x_loop * 3)] = col.r;
-			supply_heat_bitmap [(z_loop * NUM_MAP_X_SECTORS * 3) + (x_loop * 3) + 1] = col.g;
-			supply_heat_bitmap [(z_loop * NUM_MAP_X_SECTORS * 3) + (x_loop * 3) + 2] = col.b;
 
-		}
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

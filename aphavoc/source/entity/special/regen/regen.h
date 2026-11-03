@@ -203,7 +203,7 @@ extern float
 
 extern void initialise_object_3d_regeneration_database ( void );
 
-extern int get_3d_object_updateable_flag ( int object );
+
 
 extern enum ENTITY_SUB_TYPE_REGEN get_object_3d_regeneration_type ( object_3d_index_numbers object, int *landing_sub_type );
 

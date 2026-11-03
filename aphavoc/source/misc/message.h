@@ -187,25 +187,25 @@ typedef enum MESSAGE_TEXT_TYPES message_text_types;
 
 
 
-struct MESSAGE_TEXT_INFO_TYPE
-{
-	unsigned char
-		send_string		: 1,
-		echo				: 1,
-		skip_queue		: 1;
-
-	float
-		display_time;
-};
-
-typedef struct MESSAGE_TEXT_INFO_TYPE message_text_info_type;
 
 
 
 
 
-extern const message_text_info_type
-	message_text_info [NUM_MESSAGE_TEXT_TYPES];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

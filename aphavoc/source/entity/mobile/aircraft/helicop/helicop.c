@@ -400,7 +400,7 @@ void assign_entity_to_user (entity *en)
 
 	if (old_group)
 	{
-		notify_campaign_screen (CAMPAIGN_SCREEN_GROUP_REMOVE_MEMBER, old_group);
+
 
 		//
 		// set all helicopters in old group to "weapons free", and clear "hold position" flag

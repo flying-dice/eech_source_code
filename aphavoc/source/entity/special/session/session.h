@@ -215,9 +215,9 @@ extern float get_session_random_start_time_of_day (void);
 
 extern float get_session_preset_time_of_day (session_time_of_day_settings preset_enum);
 
-extern void get_session_weather_at_point (vec3d *pos, weathermodes *current_weather_mode, weathermodes *target_weather_mode, float *transitional_state);
 
-extern weathermodes get_simple_session_weather_at_point (vec3d *pos);
+
+
 
 extern void set_session_fixed_weather_mode (entity *en, weathermodes weather_mode);
 
@@ -225,7 +225,7 @@ extern void set_session_random_weather_mode (entity *en);
 
 
 
-extern void attach_session_sound_effects (entity *en);
+
 
 extern int check_point_inside_population_area (vec3d *point);
 

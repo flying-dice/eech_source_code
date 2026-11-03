@@ -74,9 +74,9 @@
 
 #define DEBUG_MODULE 0
 
-#define NUM_TABLE_ENTRIES 10
 
-#define FLASH_RATE 1.0
+
+
 
 
 
@@ -94,24 +94,24 @@ entity
 
 
 
-struct PILOT_SCORE_TYPE
-{
-	int
-		kills,
-		valid;
 
-	entity_sides
-		side;
 
-	char
-		name [STRING_TYPE_PLAYERS_NAME_MAX_LENGTH + 1];
-};
 
-typedef struct PILOT_SCORE_TYPE pilot_score_type;
 
-pilot_score_type pilot_high_score_table [NUM_TABLE_ENTRIES];
 
-static void qs_table (pilot_score_type *list, int left, int right);
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -140,21 +140,21 @@ void set_pilot_entity (entity *en)
 
 		pilot_entity = en;
 
-		// turn on NEXT button now Pilot entity has arrived
-		if (get_comms_model () == COMMS_MODEL_CLIENT)
-		{
 
-			set_display_gunship_buttons (FALSE, "ENGAGE");
 
-			// turn on only the gunship_next button
-			set_ui_object_drawable (gunship_screen_next_button, TRUE);
-		}
-		//-- Werewolf
-		else
-		{
-			// If we're the server, remember our player name. This will be sent out in the heartbeat packets.
-			net_set_hostname( get_local_entity_string (en, STRING_TYPE_PILOTS_NAME) );
-		}
+
+
+
+
+
+
+
+
+
+
+
+
+
 		//-- Werewolf
 	}
 	else if (pilot_entity)
@@ -329,37 +329,37 @@ void create_server_pilot (void)
 
 
 
-void create_client_pilot (void)
-{
-	client_pilot_request_data
-		pilot_data;
 
-	ASSERT (get_comms_model () == COMMS_MODEL_CLIENT);
 
-	//
-	// pack required gunship data
-	//
 
-	strcpy (pilot_data.name, get_player_log_name (get_current_player_log ()));
-	pilot_data.side = get_global_gunship_side ();
-	pilot_data.rank = get_player_log_rank (get_global_gunship_side (), get_current_player_log ());
-	pilot_data.sub_type = ENTITY_SUB_TYPE_PILOT_PILOT;
-	pilot_data.unique_id = direct_play_get_player_id ();
-	pilot_data.difficulty = get_global_difficulty_level ();
 
-	//
-	// Send request
-	//
 
-	send_packet (get_server_id (), PACKET_TYPE_CLIENT_PILOT_REQUEST, (unsigned char *) &pilot_data, sizeof (client_pilot_request_data), SEND_TYPE_PERSONAL);
 
-	// turn off NEXT button while Pilot entity is being created client_server
-	if (get_comms_model () == COMMS_MODEL_CLIENT)
-	{
 
-		set_display_gunship_buttons (FALSE, "ENGAGE");
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

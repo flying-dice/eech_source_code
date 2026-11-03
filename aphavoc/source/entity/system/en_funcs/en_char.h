@@ -151,7 +151,7 @@ extern void (*fn_set_client_server_entity_char_value[NUM_ENTITY_TYPES][NUM_CHAR_
 
 
 
-
+extern char (*fn_get_local_entity_char_value[NUM_ENTITY_TYPES][NUM_CHAR_TYPES]) (entity *en, char_types type);
 
 #define get_local_entity_char_value(EN,CHAR_TYPE) (fn_get_local_entity_char_value[get_local_entity_type ((EN))][validate_char_type ((CHAR_TYPE))] ((EN), (CHAR_TYPE)))
 

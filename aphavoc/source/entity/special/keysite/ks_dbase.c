@@ -106,9 +106,9 @@ keysite_data
 			1000.0,											// recon distance
 			80.0,												// sector side max value
 
-			MAP_LAYER_CONTROL_KEYSITES,				// map layer type
-			MAP_ICON_AIRBASE,								// map icon
-			FALSE,											// align with terrain (buildings)
+
+
+
 			TRUE,												// unique name
 			FALSE,											// hidden by fog
 			KEYSITE_AIR_FORCE_CAPACITY_LARGE,		// air force capacity
@@ -153,9 +153,9 @@ keysite_data
 			280.0,											// recon distance
 			50.0,												// sector side max value
 
-			MAP_LAYER_CONTROL_SHIPS,					// map layer type
-			MAP_ICON_CARRIER,								// map icon
-			FALSE,											// align with terrain (buildings)
+
+
+
 			TRUE,												// unique name
 			TRUE,												// hidden by fog
 			KEYSITE_AIR_FORCE_CAPACITY_SMALL,		// air force capacity
@@ -200,9 +200,9 @@ keysite_data
 			300.0,											// recon distance
 			20.0,												// sector side max value
 
-			MAP_LAYER_CONTROL_KEYSITES,				// map layer type
-			MAP_ICON_BUILDING,							// map icon
-			FALSE,											// align with terrain (buildings)
+
+
+
 			FALSE,											// unique name
 			FALSE,											// hidden by fog
 			KEYSITE_AIR_FORCE_CAPACITY_NONE,			// air force capacity
@@ -247,9 +247,9 @@ keysite_data
 			320.0,											// recon distance
 			40.0,												// sector side max value
 
-			MAP_LAYER_CONTROL_KEYSITES,				// map layer type
-			MAP_ICON_FARP,									// map icon
-			TRUE,												// align with terrain (buildings)
+
+
+
 			FALSE,											// unique name
 			TRUE,												// hidden by fog
 			KEYSITE_AIR_FORCE_CAPACITY_SMALL,		// air force capacity
@@ -294,9 +294,9 @@ keysite_data
 			450.0,											// recon distance
 			30.0,												// sector side max value
 
-			MAP_LAYER_CONTROL_KEYSITES,				// map layer type
-			MAP_ICON_BUILDING,							// map icon
-			FALSE,											// align with terrain (buildings)
+
+
+
 			FALSE,											// unique name
 			TRUE,												// hidden by fog
 			KEYSITE_AIR_FORCE_CAPACITY_NONE,			// air force capacity
@@ -341,9 +341,9 @@ keysite_data
 			700.0,											// recon distance
 			20.0,												// sector side max value
 
-			MAP_LAYER_CONTROL_KEYSITES,				// map layer type
-			MAP_ICON_BUILDING,							// map icon
-			FALSE,											// align with terrain (buildings)
+
+
+
 			FALSE,											// unique name
 			FALSE,											// hidden by fog
 			KEYSITE_AIR_FORCE_CAPACITY_NONE,			// air force capacity
@@ -388,9 +388,9 @@ keysite_data
 			400.0,											// recon distance
 			0.0,												// sector side max value
 
-			MAP_LAYER_CONTROL_KEYSITES,				// map layer type
-			MAP_ICON_POWER_STATION,						// map icon
-			FALSE,											// align with terrain (buildings)
+
+
+
 			FALSE,											// unique name
 			TRUE,												// hidden by fog
 			KEYSITE_AIR_FORCE_CAPACITY_NONE,			// air force capacity
@@ -435,9 +435,9 @@ keysite_data
 			800.0,											// recon distance
 			20.0,												// sector side max value
 
-			MAP_LAYER_CONTROL_KEYSITES,				// map layer type
-			MAP_ICON_OIL_REFINERY,						// map icon
-			FALSE,											// align with terrain (buildings)
+
+
+
 			FALSE,											// unique name
 			TRUE,												// hidden by fog
 			KEYSITE_AIR_FORCE_CAPACITY_NONE,			// air force capacity
@@ -482,9 +482,9 @@ keysite_data
 			250.0,											// recon distance
 			30.0,												// sector side max value
 
-			MAP_LAYER_CONTROL_KEYSITES,				// map layer type
-			MAP_ICON_RADIO_TRANSMITTER,				// map icon
-			FALSE,											// align with terrain (buildings)
+
+
+
 			FALSE,											// unique name
 			TRUE,												// hidden by fog
 			KEYSITE_AIR_FORCE_CAPACITY_NONE,			// air force capacity

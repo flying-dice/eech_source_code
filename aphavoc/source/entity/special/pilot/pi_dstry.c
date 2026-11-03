@@ -95,14 +95,14 @@ static void destroy_local (entity *en)
 
 	raw = (pilot *) get_local_entity_data (en);
 
-	//
-	// notify others that player has quit
-	//
 
-	if (get_comms_model () == COMMS_MODEL_SERVER)
-	{
-		send_pilot_quit_message (en);
-	}
+
+
+
+
+
+
+
 
 
 	//
@@ -130,11 +130,11 @@ static void destroy_local (entity *en)
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_PLAYER_TASK);
 
-	//
-	// Notify Campaign Screen
-	//
-	
-	campaign_screen_update_chat_page_pilot (en);
+
+
+
+
+
 
 	//
 	// check if this player entity belongs to the local player

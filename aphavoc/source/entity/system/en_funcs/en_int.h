@@ -640,7 +640,7 @@ extern void (*fn_set_client_server_entity_int_value[NUM_ENTITY_TYPES][NUM_INT_TY
 
 
 
-
+extern int (*fn_get_local_entity_int_value[NUM_ENTITY_TYPES][NUM_INT_TYPES]) (entity *en, int_types type);
 
 #define get_local_entity_int_value(EN,INT_TYPE) (fn_get_local_entity_int_value[get_local_entity_type ((EN))][validate_int_type ((INT_TYPE))] ((EN), (int_types)(INT_TYPE)))
 

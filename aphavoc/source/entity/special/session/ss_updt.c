@@ -123,38 +123,22 @@ static void update_time_of_day (entity *en)
 
 
 
-static void update_time_of_day_resync (entity *en)
-{
-	session
-		*raw;
-		
-	ASSERT (en);
 
-	raw = (session *) get_local_entity_data (en);
 
-	raw->time_of_day_resync += get_delta_time ();
 
-	if (raw->time_of_day_resync > SESSION_RESYNC_FREQUENCY)
-	{
 
-		transmit_entity_comms_message (ENTITY_COMMS_UPDATE, en);
 
-		raw->time_of_day_resync = 0.0;
 
 
 
 
 
 
-	}
-}
 
 
 
 
 
-#define LIGHTNING_EFFECT_MINIMUM_TIMER		20.0 * ONE_SECOND
-#define LIGHTNING_EFFECT_MAXIMUM_TIMER		4.0 * ONE_MINUTE
 
 
 
@@ -530,8 +514,24 @@ static void update_time_of_day_resync (entity *en)
 
 
 
-#define SESSION_RAIN_SOUND_EFFECT_ZERO_VOLUME_ALTITUDE		180.0
-#define SESSION_TERRAIN_SOUND_EFFECT_ZERO_VOLUME_ALTITUDE	280.0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -922,11 +922,11 @@ static void update_server (entity *en)
 {
 	update_time_of_day (en);
 
-	update_time_of_day_resync (en);
 
-	update_transitional_weather (en);
 
-	update_session_sound_effects (en);
+
+
+
 }
 
 

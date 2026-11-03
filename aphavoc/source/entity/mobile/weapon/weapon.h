@@ -1843,37 +1843,37 @@ typedef int weapon_kill_codes;
 
 
 
+struct WEAPON_PACKAGE
+{
+	int
+		sub_type,
+		number,
+		heading_depth,
+		pitch_depth,
+		muzzle_depth,
+		make_weapon_system_ready,
+		rotate,
+		salvo_size;
 
+	float
+		heading_rate,
+		min_heading_limit,
+		max_heading_limit,
+		pitch_rate,
+		min_pitch_limit,
+		max_pitch_limit,
+		muzzle_rotate_rate,
+		rotate_inhibit_velocity;
 
+	unsigned int
+		heading_share_mask,
+		pitch_share_mask;
 
+	muzzle_flash_types
+		muzzle_flash_type;
+};
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+typedef struct WEAPON_PACKAGE weapon_package;
 
 
 

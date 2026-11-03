@@ -114,7 +114,7 @@ static void set_remote_float_value (entity *en, float_types type, float value)
 
 
 
-	transmit_entity_comms_message (ENTITY_COMMS_FLOAT_VALUE, en, type, value);
+
 }
 
 

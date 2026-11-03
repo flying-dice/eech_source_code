@@ -566,41 +566,41 @@ int create_generic_waypoint_route (entity *group, entity *task_en, entity *retur
 	}
 	
 
-	//
-	// Generate checksum
-	//
 
 
-	check_sum = generate_route_check_sum (new_route);
 
-	if (get_comms_model () == COMMS_MODEL_CLIENT)
-	{
 
-		route_node
-			*route;
 
-		//ASSERT (check_sum == get_local_entity_int_value (task_en, INT_TYPE_ROUTE_CHECK_SUM));
-		if (check_sum != get_local_entity_int_value (task_en, INT_TYPE_ROUTE_CHECK_SUM))
-		{
 
-			debug_log ("CROUTE: WARNING: checksums differ... server %d, client %d (task %s, %d)", check_sum, get_local_entity_int_value (task_en, INT_TYPE_ROUTE_CHECK_SUM), get_local_entity_string (task_en, STRING_TYPE_FULL_NAME), get_local_entity_index (task_en));
 
-			route = new_route;
 
-			while (route)
-			{
-		
-				debug_log ("CROUTE:    %s %s [%f, %f, %f]", entity_sub_type_waypoint_names [route->type], formation_names [route->formation], route->position.x, route->position.y, route->position.z);
-		
-				route = route->next;
-			}
-		}
-	}
-	else
-	{
 
-		set_client_server_entity_int_value (task_en, INT_TYPE_ROUTE_CHECK_SUM, check_sum);
-	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 	//
@@ -809,19 +809,19 @@ int create_generic_waypoint_route (entity *group, entity *task_en, entity *retur
 		destroy_fast_route (specified_route);
 	}
 
-	destroy_fast_route (new_route);
 
 
-	//
-	// Create on Clients
-	//
 
 
-	if (get_comms_model () == COMMS_MODEL_SERVER)
-	{
 
-		transmit_entity_comms_message (ENTITY_COMMS_CREATE_WAYPOINT_ROUTE, task_en, group, return_keysite, start_ptr, stop_ptr, check_sum, node_count);
-	}
+
+
+
+
+
+
+
+
 
 	return TRUE;
 }
@@ -1037,13 +1037,6 @@ void parser_task_waypoint_route (entity *group, entity *task)
 
 
 
-unsigned char generate_route_check_sum (route_node *route)
-{
-
-	unsigned char
-		check_sum;
-
-	check_sum = 0;
 
 
 
@@ -1053,43 +1046,6 @@ unsigned char generate_route_check_sum (route_node *route)
 
 
 
-	// dont checksum start and end points because entities may be in slightly different positions due to pack/unpack
-
-	route = route->next;
-
-	if (route)
-	{
-	
-		while (route->next)
-		{
-	
-			check_sum += (int) route->position.x;
-
-
-
-
-
-
-
-			check_sum += (int) route->position.y;
-
-
-
-
-
-
-
-			check_sum += (int) route->position.z;
-
-
-
-
-
-
-
-			route = route->next;
-		}
-	}
 
 
 
@@ -1099,8 +1055,52 @@ unsigned char generate_route_check_sum (route_node *route)
 
 
 
-	return check_sum;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -102,8 +102,8 @@ group_data
 			5,																		// maximum_groups_per_division
 			"N/A",																// platoon_name
 			PLATOON_SHORT_NAME_CALLSIGN,									// platoon_short_name_type
-			MAP_LAYER_CONTROL_AIRCRAFT,									// map layer type
-			MAP_ICON_HELICOPTER,												// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -143,8 +143,8 @@ group_data
 			5,																		// maximum_groups_per_division
 			"N/A",																// platoon_name
 			PLATOON_SHORT_NAME_CALLSIGN,									// platoon_short_name_type
-			MAP_LAYER_CONTROL_AIRCRAFT,									// map layer type
-			MAP_ICON_HELICOPTER,												// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -184,8 +184,8 @@ group_data
 			5,																		// maximum_groups_per_division
 			"N/A",																// platoon_name
 			PLATOON_SHORT_NAME_CALLSIGN,									// platoon_short_name_type
-			MAP_LAYER_CONTROL_AIRCRAFT,									// map layer type
-			MAP_ICON_HELICOPTER,												// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -225,8 +225,8 @@ group_data
 			5,																		// maximum_groups_per_division
 			"N/A",																// platoon_name
 			PLATOON_SHORT_NAME_CALLSIGN,									// platoon_short_name_type
-			MAP_LAYER_CONTROL_AIRCRAFT,									// map layer type
-			MAP_ICON_HELICOPTER,												// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -266,8 +266,8 @@ group_data
 			5,																		// maximum_groups_per_division
 			"N/A",																// platoon_name
 			PLATOON_SHORT_NAME_CALLSIGN,									// platoon_short_name_type
-			MAP_LAYER_CONTROL_AIRCRAFT,									// map layer type
-			MAP_ICON_HELICOPTER,												// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -307,8 +307,8 @@ group_data
 			5,																		// maximum_groups_per_division
 			"N/A",																// platoon_name
 			PLATOON_SHORT_NAME_CALLSIGN,									// platoon_short_name_type
-			MAP_LAYER_CONTROL_AIRCRAFT,									// map layer type
-			MAP_ICON_HELICOPTER,												// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -348,8 +348,8 @@ group_data
 			5,																		// maximum_groups_per_division
 			"N/A",																// platoon_name
 			PLATOON_SHORT_NAME_CALLSIGN,									// platoon_short_name_type
-			MAP_LAYER_CONTROL_AIRCRAFT,									// map layer type
-			MAP_ICON_TRANSPORT_HELICOPTER,								// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -389,8 +389,8 @@ group_data
 			5,																		// maximum_groups_per_division
 			"N/A",																// platoon_name
 			PLATOON_SHORT_NAME_CALLSIGN,									// platoon_short_name_type
-			MAP_LAYER_CONTROL_AIRCRAFT,									// map layer type
-			MAP_ICON_TRANSPORT_HELICOPTER,								// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -430,8 +430,8 @@ group_data
 			5,																		// maximum_groups_per_division
 			"N/A",																// platoon_name
 			PLATOON_SHORT_NAME_CALLSIGN,									// platoon_short_name_type
-			MAP_LAYER_CONTROL_AIRCRAFT,									// map layer type
-			MAP_ICON_JET,														// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -471,8 +471,8 @@ group_data
 			5,																		// maximum_groups_per_division
 			"N/A",																// platoon_name
 			PLATOON_SHORT_NAME_CALLSIGN,									// platoon_short_name_type
-			MAP_LAYER_CONTROL_AIRCRAFT,									// map layer type
-			MAP_ICON_JET,														// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -512,8 +512,8 @@ group_data
 			5,																		// maximum_groups_per_division
 			"N/A",																// platoon_name
 			PLATOON_SHORT_NAME_CALLSIGN,									// platoon_short_name_type
-			MAP_LAYER_CONTROL_AIRCRAFT,									// map layer type
-			MAP_ICON_JET,														// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -553,8 +553,8 @@ group_data
 			5,																		// maximum_groups_per_division
 			"N/A",																// platoon_name
 			PLATOON_SHORT_NAME_CALLSIGN,									// platoon_short_name_type
-			MAP_LAYER_CONTROL_AIRCRAFT,									// map layer type
-			MAP_ICON_JET,														// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -594,8 +594,8 @@ group_data
 			5,																		// maximum_groups_per_division
 			"N/A",																// platoon_name
 			PLATOON_SHORT_NAME_CALLSIGN,									// platoon_short_name_type
-			MAP_LAYER_CONTROL_AIRCRAFT,									// map layer type
-			MAP_ICON_TRANSPORT_AIRCRAFT,									// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -635,8 +635,8 @@ group_data
 			5,																		// maximum_groups_per_division
 			"N/A",																// platoon_name
 			PLATOON_SHORT_NAME_CALLSIGN,									// platoon_short_name_type
-			MAP_LAYER_CONTROL_AIRCRAFT,									// map layer type
-			MAP_ICON_TRANSPORT_AIRCRAFT,									// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -676,8 +676,8 @@ group_data
 			10,																	// maximum_groups_per_division
 			"%s Battalion",													// platoon_name
 			PLATOON_SHORT_NAME_ARMOUR,										// platoon_short_name_type
-			MAP_LAYER_CONTROL_SAM_AAA,										// map layer type
-			MAP_ICON_AAA,														// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			TRUE,																	// local_only_group
@@ -717,8 +717,8 @@ group_data
 			3,																		// maximum_groups_per_division
 			"%s Battalion",													// platoon_name
 			PLATOON_SHORT_NAME_ARMOUR,										// platoon_short_name_type
-			MAP_LAYER_CONTROL_ARMOUR,										// map layer type
-			MAP_ICON_TANK,														// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_PRIMARY,									// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -758,8 +758,8 @@ group_data
 			3,																		// maximum_groups_per_division
 			"%s Battalion",													// platoon_name
 			PLATOON_SHORT_NAME_ARMOUR,										// platoon_short_name_type
-			MAP_LAYER_CONTROL_ARMOUR,										// map layer type
-			MAP_ICON_APC,														// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_SECONDARY,								// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -799,8 +799,8 @@ group_data
 			1,																		// maximum_groups_per_division
 			"%s Battalion",													// platoon_name
 			PLATOON_SHORT_NAME_ARMOUR,										// platoon_short_name_type
-			MAP_LAYER_CONTROL_ARMOUR,										// map layer type
-			MAP_ICON_ARTILLERY,												// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_ARTILLERY,								// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -840,8 +840,8 @@ group_data
 			1,																		// maximum_groups_per_division
 			"%s Battalion",													// platoon_name
 			PLATOON_SHORT_NAME_ARMOUR,										// platoon_short_name_type
-			MAP_LAYER_CONTROL_ARMOUR,										// map layer type
-			MAP_ICON_ARTILLERY,												// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_ARTILLERY,								// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -881,8 +881,8 @@ group_data
 			8,																		// maximum_groups_per_division
 			"%c Company",														// platoon_name
 			PLATOON_SHORT_NAME_ARMOUR,										// platoon_short_name_type
-			MAP_LAYER_CONTROL_NONE,											// map layer type
-			MAP_ICON_NONE,														// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			TRUE,																	// local_only_group
@@ -922,8 +922,8 @@ group_data
 			4,																		// maximum_groups_per_division
 			"%c Company",														// platoon_name
 			PLATOON_SHORT_NAME_ARMOUR,										// platoon_short_name_type
-			MAP_LAYER_CONTROL_NONE,											// map layer type
-			MAP_ICON_NONE,														// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -963,8 +963,8 @@ group_data
 			1,																		// maximum_groups_per_division
 			"%c Company",														// platoon_name
 			PLATOON_SHORT_NAME_ARMOUR,										// platoon_short_name_type
-			MAP_LAYER_CONTROL_NONE,											// map layer type
-			MAP_ICON_NONE,														// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -1004,8 +1004,8 @@ group_data
 			5,																		// maximum_groups_per_division
 			"%s",																	// platoon_name
 			PLATOON_SHORT_NAME_KEYSITE,									// platoon_short_name_type
-			MAP_LAYER_CONTROL_SHIPS,										// map layer type
-			MAP_ICON_CARRIER,													// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -1045,8 +1045,8 @@ group_data
 			5,																		// maximum_groups_per_division
 			"Frigates (%s)",													// platoon_name
 			PLATOON_SHORT_NAME_SHIPS,										// platoon_short_name_type
-			MAP_LAYER_CONTROL_SHIPS,										// map layer type
-			MAP_ICON_SHIP,														// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -1086,8 +1086,8 @@ group_data
 			5,																		// maximum_groups_per_division
 			"Landing Craft (%s)",											// platoon_name
 			PLATOON_SHORT_NAME_SHIPS,										// platoon_short_name_type
-			MAP_LAYER_CONTROL_SHIPS,										// map layer type
-			MAP_ICON_SHIP,														// map icon type
+
+
 			(60.0 * 1.0),														// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			FALSE,																// local_only_group
@@ -1127,8 +1127,8 @@ group_data
 			0,																		// maximum_groups_per_division
 			"N/A",																// platoon_name
 			PLATOON_SHORT_NAME_INVALID,									// platoon_short_name_type
-			MAP_LAYER_CONTROL_NONE,											// map layer type
-			MAP_ICON_NONE,														// map icon type
+
+
 			0.0,																	// rearming time
 			GROUP_FRONTLINE_FLAG_NONE,										// frontline_flag (part of)
 			TRUE,																	// local_only_group

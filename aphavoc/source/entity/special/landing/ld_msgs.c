@@ -84,30 +84,30 @@
 
 
 
-#if LANDING_ROUTE_CHECK
 
-char
-	*debug_landing_lock_names [] =
-	{
 
-		"LOCK_RESERVE_LOCK",
-		"LOCK_LANDING_SITE_LOCK",
-		"LOCK_LANDING_ROUTE_LOCK",
-		"LOCK_TAKEOFF_ROUTE_LOCK",
-		"NUM_DEBUG_LANDING_LOCKS"
-	},
-	*debug_landing_lock_unlock_names [] =
-	{
-		"UNLOCKING",
-		"LOCKING",
-	};
 
-debug_landing_lock_type
-	*debug_landing_lock_list = NULL;
 
-void debug_update_entity_landing_locks (entity *en, entity *landing, debug_landing_lock lock, int lock_flag);
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -333,39 +333,39 @@ static int response_to_landing_site_request (entity_messages message, entity *re
 			//
 
 
-			// PLAY_SPEECH (ATC)
-			//
-			// [callsign + number],
-			// ATC Introduction,
-			// [Permission denied],
-			// Please proceed to holding route and await further instructions
-			// Ignore ground vehicles!
 
-			if (get_game_status () != GAME_STATUS_INITIALISING && get_local_entity_int_value (member, INT_TYPE_IDENTIFY_AIRCRAFT))
-			{
-				if (incoming_group)
-				{
-					play_client_server_speech
-					(
-						get_session_entity (),
-						member,
-						(entity_sides) get_local_entity_int_value (member, INT_TYPE_SIDE),
-						ENTITY_SUB_TYPE_EFFECT_SOUND_RADIO_MESSAGE,
-						SOUND_LOCALITY_RADIO,
-						0.0,
-						0.4,
-						12.0,
-						SPEECH_ORIGINATOR_AIR_TRAFFIC_CONTROLLER,
-						SPEECH_CATEGORY_LANDING_TAKING_OFF, 10.0,
-						SPEECH_ARRAY_CALLSIGNS, get_local_entity_int_value (incoming_group, INT_TYPE_GROUP_CALLSIGN),
-						SPEECH_ARRAY_NUMBERS, 1,
-						SPEECH_ARRAY_NUMBERS, get_local_entity_int_value (member, INT_TYPE_GROUP_MEMBER_ID),
-						SPEECH_ARRAY_ATC_MESSAGES, SPEECH_ATC_INTRODUCTION,
-						SPEECH_ARRAY_ATC_MESSAGES, SPEECH_ATC_PROCEED_TO_HOLDING_ROUTE,
-						-1
-					);
-				}
-			}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 			//
@@ -417,41 +417,41 @@ static int response_to_landing_site_request (entity_messages message, entity *re
 			//
 
 
-			// PLAY_SPEECH (ATC)
-			//
-			// [callsign + number],
-			// ATC Introduction,
-			// [Permission granted],
-			// (You are clear to land) | (sea state calm, you are cleared to land) | (sea state rough, etc)
-			// Ignore ground vehicles!
 
-			if (get_game_status () != GAME_STATUS_INITIALISING && get_local_entity_int_value (member, INT_TYPE_IDENTIFY_AIRCRAFT))
-			{
-				if (incoming_group)
-				{
-					play_client_server_speech
-					(
-						get_session_entity (),
-						member,
-						(entity_sides) get_local_entity_int_value (member, INT_TYPE_SIDE),
-						ENTITY_SUB_TYPE_EFFECT_SOUND_RADIO_MESSAGE,
-						SOUND_LOCALITY_RADIO,
-						0.0,
-						0.5,
-						8.0,
-						SPEECH_ORIGINATOR_AIR_TRAFFIC_CONTROLLER, 
-						SPEECH_CATEGORY_LANDING_TAKING_OFF, 20.0,
-						SPEECH_ARRAY_CALLSIGNS, get_local_entity_int_value (incoming_group, INT_TYPE_GROUP_CALLSIGN),
-						SPEECH_ARRAY_NUMBERS, 1,
-						SPEECH_ARRAY_NUMBERS, get_local_entity_int_value (member, INT_TYPE_GROUP_MEMBER_ID),
-						SPEECH_ARRAY_ATC_MESSAGES, SPEECH_ATC_INTRODUCTION,
-						SPEECH_ARRAY_ATC_MESSAGES, SPEECH_ATC_CLEAR_FOR_LANDING,
-						SPEECH_ARRAY_ATC_MESSAGES, SPEECH_ATC_WINDS,
-						SPEECH_ARRAY_ATC_MESSAGES, get_speech_atc_wind_speed (member),
-						-1
-					);
-				}
-			}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 			//
@@ -560,17 +560,6 @@ static int response_to_lock_landing_route (entity_messages message, entity *rece
 	//
 
 
-	#if LANDING_ROUTE_CHECK
-
-	#if LANDING_LOCK_USER_ONLY
-	if (sender == get_gunship_entity ())
-	#endif
-	debug_update_entity_landing_locks (sender, receiver,
-													//DEBUG_LANDING_LOCK_RESERVE_LOCK,
-													//DEBUG_LANDING_LOCK_LANDING_SITE_LOCK,
-													DEBUG_LANDING_LOCK_LANDING_ROUTE_LOCK,
-													//DEBUG_LANDING_LOCK_TAKEOFF_ROUTE_LOCK,
-													TRUE);
 
 
 
@@ -587,7 +576,18 @@ static int response_to_lock_landing_route (entity_messages message, entity *rece
 
 
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
 												
 	return (TRUE);
 }
@@ -678,18 +678,6 @@ static int response_to_lock_landing_site (entity_messages message, entity *recei
 	//
 
 
-	#if LANDING_ROUTE_CHECK
-
-	#if LANDING_LOCK_USER_ONLY
-	if (sender == get_gunship_entity ())
-	#endif
-	debug_update_entity_landing_locks (sender, receiver,
-													//DEBUG_LANDING_LOCK_RESERVE_LOCK,
-													DEBUG_LANDING_LOCK_LANDING_SITE_LOCK,
-													//DEBUG_LANDING_LOCK_LANDING_ROUTE_LOCK,
-													//DEBUG_LANDING_LOCK_TAKEOFF_ROUTE_LOCK,
-													TRUE);
-	
 
 
 
@@ -705,7 +693,19 @@ static int response_to_lock_landing_site (entity_messages message, entity *recei
 
 
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	return (TRUE);
 }
@@ -853,17 +853,6 @@ static int response_to_lock_takeoff_route (entity_messages message, entity *rece
 		//
 
 
-		#if LANDING_ROUTE_CHECK
-
-		#if LANDING_LOCK_USER_ONLY
-		if (sender == get_gunship_entity ())
-		#endif
-		debug_update_entity_landing_locks (sender, receiver,
-													//DEBUG_LANDING_LOCK_RESERVE_LOCK,
-													//DEBUG_LANDING_LOCK_LANDING_SITE_LOCK,
-													//DEBUG_LANDING_LOCK_LANDING_ROUTE_LOCK,
-													DEBUG_LANDING_LOCK_TAKEOFF_ROUTE_LOCK,
-													TRUE);
 
 
 
@@ -879,7 +868,18 @@ static int response_to_lock_takeoff_route (entity_messages message, entity *rece
 
 
 
-		#endif
+
+
+
+
+
+
+
+
+
+
+
+
 
 		return (TRUE);
 	}
@@ -896,44 +896,44 @@ static int response_to_lock_takeoff_route (entity_messages message, entity *rece
 	//
 
 
-	// PLAY_SPEECH (ATC)
-	//
-	// [callsign + number],
-	// ATC Introduction,
-	// [Permission denied],
-	// Please await takeoff clearance
-	// Ignore ground vehicles!
 
-	if (get_game_status () != GAME_STATUS_INITIALISING && get_local_entity_int_value (sender, INT_TYPE_IDENTIFY_AIRCRAFT))
-	{
-		entity
-			*group;
 
-		group = get_local_entity_parent (sender, LIST_TYPE_MEMBER);
 
-		if (group)
-		{
-			play_client_server_speech
-			(
-				get_session_entity (),
-				sender,
-				(entity_sides) get_local_entity_int_value (sender, INT_TYPE_SIDE),
-				ENTITY_SUB_TYPE_EFFECT_SOUND_RADIO_MESSAGE,
-				SOUND_LOCALITY_RADIO,
-				0.0,
-				0.4,
-				12.0,
-				SPEECH_ORIGINATOR_AIR_TRAFFIC_CONTROLLER, 
-				SPEECH_CATEGORY_LANDING_TAKING_OFF, 20.0,
-				SPEECH_ARRAY_CALLSIGNS, get_local_entity_int_value (group, INT_TYPE_GROUP_CALLSIGN),
-				SPEECH_ARRAY_NUMBERS, 1,
-				SPEECH_ARRAY_NUMBERS, get_local_entity_int_value (sender, INT_TYPE_GROUP_MEMBER_ID),
-				SPEECH_ARRAY_ATC_MESSAGES, SPEECH_ATC_INTRODUCTION,
-				SPEECH_ARRAY_ATC_MESSAGES, SPEECH_ATC_PROCEED_TO_HOLDING_ROUTE,
-				-1
-			);
-		}
-	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 	//
@@ -1018,18 +1018,6 @@ static int response_to_reserve_landing_site (entity_messages message, entity *re
 	//
 
 
-	#if LANDING_ROUTE_CHECK
-
-	#if LANDING_LOCK_USER_ONLY
-	if (sender == get_gunship_entity ())
-	#endif
-	{
-		debug_update_entity_landing_locks (sender, receiver,
-														DEBUG_LANDING_LOCK_RESERVE_LOCK,
-														//DEBUG_LANDING_LOCK_LANDING_SITE_LOCK,
-														//DEBUG_LANDING_LOCK_LANDING_ROUTE_LOCK,
-														//DEBUG_LANDING_LOCK_TAKEOFF_ROUTE_LOCK,
-														TRUE);
 
 
 
@@ -1046,8 +1034,20 @@ static int response_to_reserve_landing_site (entity_messages message, entity *re
 
 
 
-	}
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 	//
@@ -1528,17 +1528,6 @@ static int response_to_unlock_landing_route (entity_messages message, entity *re
 	//
 
 
-	#if LANDING_ROUTE_CHECK
-
-	#if LANDING_LOCK_USER_ONLY
-	if (sender == get_gunship_entity ())
-	#endif
-	debug_update_entity_landing_locks (sender, receiver,
-													//DEBUG_LANDING_LOCK_RESERVE_LOCK,
-													//DEBUG_LANDING_LOCK_LANDING_SITE_LOCK,
-													DEBUG_LANDING_LOCK_LANDING_ROUTE_LOCK,
-													//DEBUG_LANDING_LOCK_TAKEOFF_ROUTE_LOCK,
-													FALSE);
 
 
 
@@ -1555,7 +1544,18 @@ static int response_to_unlock_landing_route (entity_messages message, entity *re
 
 
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
 
 	return (TRUE);
 }
@@ -1650,17 +1650,6 @@ static int response_to_unlock_landing_site (entity_messages message, entity *rec
 	//
 
 
-	#if LANDING_ROUTE_CHECK
-
-	#if LANDING_LOCK_USER_ONLY
-	if (sender == get_gunship_entity ())
-	#endif
-	debug_update_entity_landing_locks (sender, receiver,
-													//DEBUG_LANDING_LOCK_RESERVE_LOCK,
-													DEBUG_LANDING_LOCK_LANDING_SITE_LOCK,
-													//DEBUG_LANDING_LOCK_LANDING_ROUTE_LOCK,
-													//DEBUG_LANDING_LOCK_TAKEOFF_ROUTE_LOCK,
-													FALSE);
 
 
 
@@ -1677,7 +1666,18 @@ static int response_to_unlock_landing_site (entity_messages message, entity *rec
 
 
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
 
 	return (TRUE);
 }
@@ -1783,17 +1783,6 @@ static int response_to_unlock_takeoff_route (entity_messages message, entity *re
 	//
 
 
-	#if LANDING_ROUTE_CHECK
-
-	#if LANDING_LOCK_USER_ONLY
-	if (sender == get_gunship_entity ())
-	#endif
-	debug_update_entity_landing_locks (sender, receiver,
-													//DEBUG_LANDING_LOCK_RESERVE_LOCK,
-													//DEBUG_LANDING_LOCK_LANDING_SITE_LOCK,
-													//DEBUG_LANDING_LOCK_LANDING_ROUTE_LOCK,
-													DEBUG_LANDING_LOCK_TAKEOFF_ROUTE_LOCK,
-													FALSE);
 
 
 
@@ -1810,7 +1799,18 @@ static int response_to_unlock_takeoff_route (entity_messages message, entity *re
 
 
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
 
 	//
 	// spin through takeoff queue (in reverse order)
@@ -1952,18 +1952,6 @@ static int response_to_unreserve_landing_site (entity_messages message, entity *
 	//
 
 
-	#if LANDING_ROUTE_CHECK
-
-	#if LANDING_LOCK_USER_ONLY
-	if (sender == get_gunship_entity ())
-	#endif
-	debug_update_entity_landing_locks (sender, receiver,
-													DEBUG_LANDING_LOCK_RESERVE_LOCK,
-													//DEBUG_LANDING_LOCK_LANDING_SITE_LOCK,
-													//DEBUG_LANDING_LOCK_LANDING_ROUTE_LOCK,
-													//DEBUG_LANDING_LOCK_TAKEOFF_ROUTE_LOCK,
-													FALSE);
-	
 
 
 
@@ -1979,7 +1967,19 @@ static int response_to_unreserve_landing_site (entity_messages message, entity *
 
 
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	return (TRUE);
 }
