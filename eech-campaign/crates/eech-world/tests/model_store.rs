@@ -3170,7 +3170,8 @@ package.preload["eech_dc"] = function ()
 							case, scene_of (scene), bad_level, bad_offset, #own.offsets)
 					else
 						local chain = native ("target_point_chain", scene)
-						if chain.result == "chain" then
+						-- `queries_absent_ignored=1` plays an engine that ignores an ABSENT chain and goes on to ask for a position
+						if chain.result == "chain" or (host.args.queries_absent_ignored == "1" and chain.result == "absent") then
 							local last = (mutate and host.args.queries_pose ~= "same") and "0x40a00000" or "0x3f800000"
 							local pose = ROOT_POSE .. "," .. level (ZERO) .. "," .. level (last)
 							local world = native ("target_point_world", scene, pose)
@@ -3178,7 +3179,8 @@ package.preload["eech_dc"] = function ()
 								levels = 2, legacy_same = host.args.queries_legacy == "differs" and "0" or "1", restored = 1,
 								mutation = mutate and "x+1,heading+0.25,scale_x*1.5" or "-", pose = host.args.queries_pose == "wrong" and string.gsub (pose, ",0x%x+$", ",0x00000001") or pose })
 						else
-							row (case, { scene = scene, result = BASE, chain = 1, vp_written = 0, levels = 0, legacy_same = host.args.queries_legacy == "differs" and "0" or "1", restored = 1 })
+							row (case, { scene = scene, result = host.args.queries_absent_result == "wrong" and "0x3f800000,0x3f800000,0x3f800000" or BASE, chain = 1, vp_written = host.args.queries_absent_vp == "1" and 1 or 0, levels = 0,
+								legacy_same = host.args.queries_legacy == "differs" and "0" or (host.args.queries_legacy == "unknown" and "-1" or "1"), restored = host.args.queries_restored == "no" and 0 or 1 })
 						end
 					end
 				end
@@ -3505,6 +3507,72 @@ fn a_getter_that_does_not_use_the_hosts_answer_or_the_live_placement_is_found_an
         let run = stand_in_run(&args, "healthy");
         assert!(!run.status.success() && run.stderr.contains(fragment), "{args:?}: {}", run.stderr);
     }
+}
+
+#[test]
+fn a_valid_absent_chain_on_an_existing_instance_is_covered_only_as_four_untouched_entity_position_rows() {
+    // the faithful ABSENT: every chain question about an instance is answered absent with the correct name. Four instance calls (two cases, unmutated and mutating), each the entity
+    // position bit for bit, the viewpoint untouched during the getter, no world or fixed question, the sentinel restored (measured); fixed and fallback joins stay strict.
+    for extra in [vec![], vec!["queries_legacy=differs"]] {
+        let mut args = vec!["mode=queries_chain_absent"];
+        args.extend(extra.iter().copied());
+        let run = queries_run(&args);
+        assert!(run.status.success(), "{args:?}: {}", run.stderr);
+        let summary = run.row("summary");
+        assert_eq!(
+            (
+                summary["queries_found"].as_i64(),
+                summary["queries_absent"].as_i64(),
+                summary["queries_fixed"].as_i64(),
+                summary["queries_fallback"].as_i64(),
+                summary["queries_refused"].as_i64(),
+                summary["queries_problem"].as_str()
+            ),
+            (Some(0), Some(4), Some(4), Some(4), Some(0), Some("")),
+            "{args:?}"
+        );
+        // a legacy_same of 0 is a deliberate host-vs-original difference, counted as such and never turned into 1
+        let differs = if extra.is_empty() { 0 } else { 4 };
+        assert_eq!(summary["queries_legacy_differs"].as_i64(), Some(differs), "{args:?}");
+        for row in run
+            .rows()
+            .into_iter()
+            .filter(|r| r["event"] == "target_query" && matches!(r["case"].as_str(), Some("instance_a" | "instance_b")))
+        {
+            let text = row["report"].as_str().unwrap();
+            assert!(text.contains("chain=1 world=0 fixed=0 vp_written=0 levels=0"), "{text}");
+            assert!(text.contains("restored=1"), "{text}");
+        }
+    }
+    // each breach of the contract is found by its own fragment, and none of the other controls moved
+    for (args, fragment) in [
+        // the absence is ignored and a position is asked anyway
+        (vec!["queries_absent_ignored=1"], "the absence was ignored"),
+        // the viewpoint is written on an absence
+        (vec!["queries_absent_vp=1"], "not write the viewpoint"),
+        // another position than the entity's is returned
+        (vec!["queries_absent_result=wrong"], "return the entity position"),
+        // the sentinel is not restored (measured)
+        (vec!["queries_restored=no"], "a measured restoration"),
+        // a bad scene on the event, and a drifting own/getter chain, still fail as before
+        (vec!["queries_wrong_scene=1"], "is for scene"),
+        (vec!["queries_legacy=unknown"], "legacy_same must be 0"),
+    ] {
+        let mut all = vec!["mode=queries_chain_absent"];
+        all.extend(args.iter().copied());
+        let run = queries_run(&all);
+        assert!(!run.status.success() && run.stderr.contains(fragment), "{args:?}: {}", run.stderr);
+    }
+    // zero FOUND is allowed ONLY in the named control: the same ignored absence in the ordinary run is a position asked after the host named none
+    let run = queries_run(&["queries_absent_ignored=1"]);
+    assert!(
+        !run.status.success() && run.stderr.contains("a position was asked but the host named"),
+        "{}",
+        run.stderr
+    );
+    // and the mode needs the fixture observation like every queries_ mode
+    let run = stand_in_run(&["mode=queries_chain_absent"], "healthy");
+    assert!(!run.status.success() && run.stderr.contains("queries=1"), "{}", run.stderr);
 }
 
 #[test]

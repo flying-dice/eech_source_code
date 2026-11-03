@@ -80,6 +80,12 @@
 --                      (`status=refused reason=chain_path_outside_instance`) BEFORE the sentinel, the mutation, the getter or any pose read: no position or fixed question is asked for it, the own
 --                      chain question is the only one the provider sees, and the other rows are unaffected. A boot-only bad chain could not reach this phase. Covered only when at least one
 --                      row was refused this way; a run in which none was is UNREACHED.
+--   queries_chain_absent   (a HOST-vs-RETAIL selection control; Lua only, healthy otherwise) every chain question about an instance is answered `{ result = "absent", name = <the correct name> }`;
+--                      catalogue, metadata and every other answer are the reference host's. This is a deliberate difference between the host's physical selection and the retail model, NOT a claim
+--                      that the retail model has no target point, and `legacy_same=0` (the original's own search still finds one) is accepted and counted as exactly that, never turned into 1. Covered
+--                      only when all FOUR instance calls (two cases, unmutated and mutating) are a valid ABSENT on an existing instance: the entity position bit for bit, the instance viewpoint
+--                      (position AND attitude) untouched during the getter, no world and no fixed question, the diagnostic's sentinel restored (measured). Zero FOUND rows are allowed ONLY in this
+--                      named control, and only with exactly those four ABSENT rows; every fixed and fallback join stays strict.
 --   THE SIX-ROW WITNESS. The query report must be EXACTLY six lines in the C grammar (fields in the order C prints them, none missing, repeated or unknown, no stray text), named
 --   instance_a, instance_b, instance_none, fixed_horizontal, fixed_flat, fixed_invalid, once each and in that order; counts are 0 or 1, the viewpoint-write verdict is the full
 --   meaning (position AND attitude written, or neither), `restored` is a measured readback, and every provider event is joined to its row by operation, scene and order. This is a finite
@@ -140,7 +146,7 @@ local modes = { reference = true, vanish = true, inflate = true, bounds_zero = t
 	bad_hex = true, bad_absent = true, bad_end_absent = true, bad_found_declared_absent = true, bad_end_declared_absent = true, object_withheld = true, animation_withheld = true,
 	animation_unknown = true, animation_dropped = true, offsets_changed = true, offsets_withheld = true, offsets_bad_nan = true, offsets_bad_name = true, offsets_bad_end = true,
 	queries_changed = true, queries_chain_withheld = true, queries_world_withheld = true, queries_fixed_withheld = true, queries_world_bad_nan = true, queries_fixed_bad_nan = true,
-	queries_chain_bad_name = true, queries_world_bad_name = true, queries_fixed_bad_name = true, queries_chain_too_deep = true, queries_chain_offset_late = true }
+	queries_chain_bad_name = true, queries_world_bad_name = true, queries_fixed_bad_name = true, queries_chain_too_deep = true, queries_chain_offset_late = true, queries_chain_absent = true }
 local scenarios = {
 	lebanon_retail = { map = "..\\common\\maps\\map5", campaign = "LEBANON.CHC" },
 	georgia_retail = { map = "..\\common\\maps\\map3", campaign = "GEORGIA.CHC" },
@@ -214,7 +220,7 @@ local fpu_roundings = whole_list (args.fpu_rounding or "0,1,2,3", "fpu_rounding"
 local fpu_scene = whole (args.fpu_scene or "1", "fpu_scene", 1, 2147483646)
 local fpu_depth = whole (args.fpu_depth or "0", "fpu_depth", 0, 2147483646)
 -- a refusing mode stops the engine at the refused entry, so only one initial rounding can be measured in it: decided now, before anything is written or booted
-local healthy_modes = { reference = true, vanish = true, inflate = true, bounds_zero = true, absent_all = true, offsets_changed = true, queries_changed = true, queries_chain_offset_late = true }
+local healthy_modes = { reference = true, vanish = true, inflate = true, bounds_zero = true, absent_all = true, offsets_changed = true, queries_changed = true, queries_chain_offset_late = true, queries_chain_absent = true }
 local boot_only_modes = { missing = true, bad_nil = true, bad_catalogue = true, bad_name = true, bad_scene_nan = true, bad_collider_unloaded = true, bad_scene0_loaded = true,
 	offsets_withheld = true, offsets_bad_nan = true, offsets_bad_name = true, offsets_bad_end = true }
 if fpu_requested and not healthy_modes [mode] then
@@ -378,6 +384,14 @@ elseif string.sub (mode, 1, 8) == "queries_" then
 		if mode == "queries_changed" then
 			if op == "target_point_world" and answer.result == "world" then tripped = true return { result = "world", p = CHANGED_WORLD, name = answer.name } end
 			if op == "target_point_fixed" and answer.result == "fixed" then tripped = true return { result = "fixed", p = CHANGED_FIXED, name = answer.name } end
+			return answer
+		end
+		if mode == "queries_chain_absent" then
+			-- every chain question about an instance: a valid ABSENT with the correct name (the host-vs-retail selection difference); everything else is the reference host's answer
+			if op == "target_point_chain" then
+				tripped = true
+				return { result = "absent", name = answer.name }
+			end
 			return answer
 		end
 		if mode == "queries_chain_offset_late" then
@@ -800,6 +814,7 @@ end
 
 local queries_problem
 local queries_rows, queries_found, queries_absent, queries_fixed, queries_fallback, queries_refused = 0, 0, 0, 0, 0, 0
+local queries_legacy_differs = 0
 local function same_words (a, b) return type (a) == "string" and type (b) == "string" and string.lower (a) == string.lower (b) end
 
 -- the C grammar of the six rows, field by field in the order C prints them
@@ -960,7 +975,12 @@ local function judge_queries (mutate, report)
 					return string.format ("%s: the fixture went on to use the out-of-range chain (sibling position %d) instead of refusing the row before touching anything", row.case, LATE_OFFSET)
 				end
 				-- the original's own search (compiled in the diagnostic build only) reaches the sub-instance the host's chain does, or both find none
-				if row.legacy_same ~= "1" then return string.format ("%s: the chain the host named does not reach the sub-instance the original's search finds (legacy_same=%s)", row.case, tostring (row.legacy_same)) end
+				-- (in the named absent control the host deliberately names none where the original's search may find one: legacy_same=0 is that difference, counted, and nothing else is accepted)
+				if mode == "queries_chain_absent" then
+					if row.legacy_same ~= "0" and row.legacy_same ~= "1" then return string.format ("%s: legacy_same must be 0 (a deliberate host-vs-original difference) or 1, got %s", row.case, tostring (row.legacy_same)) end
+					if row.legacy_same == "0" then queries_legacy_differs = queries_legacy_differs + 1 end
+					if world ~= 0 then return string.format ("%s: a position was asked although the host answered ABSENT to the chain question (the absence was ignored)", row.case) end
+				elseif row.legacy_same ~= "1" then return string.format ("%s: the chain the host named does not reach the sub-instance the original's search finds (legacy_same=%s)", row.case, tostring (row.legacy_same)) end
 				if row.cache ~= "-" or row.restored ~= "1" then return string.format ("%s: an instance row must carry no cache and a measured restoration (cache %s, restored %s)", row.case, row.cache, row.restored) end
 				if world == 1 then
 					local event = world_events [1]
@@ -1042,7 +1062,11 @@ elseif queries_requested then
 			queries_problem = queries_problem or judge_queries (mutate, report)
 			if queries_problem then break end
 		end
-		if not queries_problem and not primary and queries_found < (mode == "queries_chain_offset_late" and 1 or 2) then
+		if not queries_problem and not primary and mode == "queries_chain_absent" then
+			if queries_found ~= 0 or queries_absent ~= 4 then
+				queries_problem = string.format ("the absent control needs exactly four ABSENT instance rows and no FOUND one, got %d absent and %d found", queries_absent, queries_found)
+			end
+		elseif not queries_problem and not primary and queries_found < (mode == "queries_chain_offset_late" and 1 or 2) then
 			queries_problem = string.format ("UNREACHED: only %d instance queries reached a host-named target point; the control is unavailable, not covered", queries_found)
 		end
 		if not queries_problem and mode == "queries_chain_offset_late" and queries_refused < 1 then
@@ -1069,7 +1093,7 @@ emit { event = "summary", mode = mode, frames = frames, frames_run = ran, failur
 	probes_requested = probes_requested, probes_ok = probes_ok, probes_failed = probes_failed,
 	progress_problem = progress_problem or "", los_problem = los_problem or "", probe_problem = probe_problem or "", fpu_requested = fpu_requested, fpu_expected_entries = fpu_expected_entries, fpu_rows = fpu_rows, fpu_measured = fpu_measured, fpu_unreached = fpu_unreached,
 	fpu_problem = fpu_problem or "", offsets_requested = offsets_requested, offsets_rows = offsets_rows, offsets_asked = offsets_asked, offsets_problem = offsets_problem or "",
-	queries_requested = queries_requested, queries_rows = queries_rows, queries_found = queries_found, queries_absent = queries_absent, queries_fixed = queries_fixed, queries_fallback = queries_fallback, queries_refused = queries_refused,
+	queries_requested = queries_requested, queries_rows = queries_rows, queries_found = queries_found, queries_absent = queries_absent, queries_fixed = queries_fixed, queries_fallback = queries_fallback, queries_refused = queries_refused, queries_legacy_differs = queries_legacy_differs,
 	queries_problem = queries_problem or "" }
 out.close ()
 io.stderr:write (string.format ("model-authority: mode=%s frames=%d/%d reference triangle=%d found=%d ended=%d absent=%d; replied found=%d ended=%d absent=%d; primary=%s\n", mode, ran, frames,
