@@ -147,7 +147,7 @@ extern void set_raw_gunship_entity (entity *en);
 
 
 
-extern void restore_helicopter_entity (entity *en);
+
 
 extern void notify_gunship_entity_mission_completed (entity *en, entity *task);
 

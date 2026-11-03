@@ -185,7 +185,7 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 	
 	if (total_damage_level <= 0)
 	{
-		if (aggressor)
+
 
 
 

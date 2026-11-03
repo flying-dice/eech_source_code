@@ -68,7 +68,7 @@ extern void routed_vehicle_movement (entity *en);
 
 extern void routed_vehicle_death_movement (entity *en);
 
-extern void routed_vehicle_impact_movement (entity *en);
+
 
 
 

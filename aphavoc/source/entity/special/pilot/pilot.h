@@ -153,9 +153,9 @@ extern void create_client_pilot (void);
 
 extern entity *get_player_task (entity *en);
 
-extern void send_pilot_quit_message (entity *en);
 
-extern void initialise_pilot_high_score_table (void);
+
+
 
 extern int update_pilot_high_score_table (void);
 

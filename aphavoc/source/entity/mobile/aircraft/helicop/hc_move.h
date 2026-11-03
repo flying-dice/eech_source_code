@@ -74,7 +74,7 @@ extern void helicopter_movement (entity *en);
 
 extern void helicopter_death_movement (entity *en);
 
-extern void helicopter_impact_movement (entity *en);
+
 
 extern void update_player_helicopter_waypoint_distance (entity *en);
 

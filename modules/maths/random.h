@@ -81,9 +81,9 @@ extern int
 
 extern void initialise_random_number_generator (void);
 
-extern void set_random_number_seed (int seed);
 
-extern int get_random_number_seed (void);
+
+
 
 
 

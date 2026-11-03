@@ -72,7 +72,7 @@ extern void basic_fixed_wing_movement (entity *en);
 
 extern void basic_fixed_wing_death_movement (entity *en);
 
-extern void fixed_wing_impact_movement (entity *en);
+
 
 
 

@@ -119,7 +119,7 @@ extern void set_incoming_message (entity *sender, entity *target, message_text_t
 
 extern void process_radio_message (entity *en, message_categories type, int value);
 
-extern void play_client_server_radio_message_response (entity *en, int speech_index, float priority, float expire_time);
+
 
 
 

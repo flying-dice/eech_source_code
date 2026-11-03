@@ -1485,8 +1485,8 @@ void process_message_attack_pfz(entity *en, entity *wingman)
 
 	group = get_local_entity_parent (en, LIST_TYPE_MEMBER);
 	if (group && get_local_entity_int_value (group, INT_TYPE_ENGAGE_ENEMY))
+	{
 
-		if (get_local_entity_int_value (wingman, INT_TYPE_WEAPONS_HOLD))
 
 
 

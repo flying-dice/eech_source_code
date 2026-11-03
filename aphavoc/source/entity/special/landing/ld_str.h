@@ -64,7 +64,7 @@
 
 
 
-extern void overload_landing_string_functions (void);
+
 
 
 

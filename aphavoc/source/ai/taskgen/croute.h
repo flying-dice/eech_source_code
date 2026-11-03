@@ -104,7 +104,7 @@ extern int
 
 extern int create_generic_waypoint_route (entity *group, entity *task_en, entity *return_keysite, vec3d *client_start, vec3d *client_stop, unsigned int *waypoint_indices, int indices_count);
 
-extern unsigned char generate_route_check_sum (route_node *route);
+
 
 extern void initialise_route_generator (void);
 
