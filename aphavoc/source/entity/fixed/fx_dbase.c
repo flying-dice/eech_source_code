@@ -85,10 +85,10 @@ const fixed_data
       //
 
       {
-         OBJECT_3D_CRATE, 										// default_3d_shape
-			FALSE,	  													// align_with_terrain
-			FALSE,	  													// collision_test_fixed
-			FALSE,														// ground_radar_clutter
+
+
+
+
       },
 
       //
@@ -96,10 +96,10 @@ const fixed_data
       //
 
       {
-			OBJECT_3D_STONE_BRIDGE_START,							// default_3d_shape
-			FALSE,  	  													// align_with_terrain
-			TRUE,	  		  												// collision_test_fixed
-			FALSE,														// ground_radar_clutter
+
+
+
+
       },
 
       //
@@ -107,10 +107,10 @@ const fixed_data
       //
 
       {
-			OBJECT_3D_STONE_BRIDGE_MID,							// default_3d_shape
-			FALSE,  	  													// align_with_terrain
-			TRUE,	  		  												// collision_test_fixed
-			FALSE,														// ground_radar_clutter
+
+
+
+
       },
 
       //
@@ -118,10 +118,10 @@ const fixed_data
       //
 
       {
-			OBJECT_3D_STONE_BRIDGE_MID,							// default_3d_shape
-			FALSE,  	  													// align_with_terrain
-			TRUE,	  		  												// collision_test_fixed
-			FALSE,														// ground_radar_clutter
+
+
+
+
       },
 
       //
@@ -129,10 +129,10 @@ const fixed_data
       //
 
       {
-			OBJECT_3D_INVALID_OBJECT_INDEX,						// default_3d_shape
-			FALSE,  	  													// align_with_terrain
-			TRUE,		 	 	  											// collision_test_fixed
-			TRUE,		 													// ground_radar_clutter
+
+
+
+
       },
 
       //
@@ -140,10 +140,10 @@ const fixed_data
       //
 
       {
-			OBJECT_3D_CRATE,										// default_3d_shape
-			FALSE,  	  													// align_with_terrain
-			TRUE,  	  													// collision_test_fixed
-			FALSE,														// ground_radar_clutter
+
+
+
+
       },
 
       //
@@ -151,10 +151,10 @@ const fixed_data
       //
 
       {
-			OBJECT_3D_EFFECT_CRATER,								// default_3d_shape
-			TRUE,  	  													// align_with_terrain
-			FALSE,	  	  												// collision_test_fixed
-			FALSE,														// ground_radar_clutter
+
+
+
+
       },
 
       //
@@ -162,10 +162,10 @@ const fixed_data
       //
 
       {
-         OBJECT_3D_PYLON, 		 									// default_3d_shape
-			FALSE,  	  													// align_with_terrain
-			TRUE,	  		  												// collision_test_fixed
-			FALSE,														// ground_radar_clutter
+
+
+
+
       },
 
       //
@@ -173,10 +173,10 @@ const fixed_data
       //
 
       {
-         OBJECT_3D_PYLON, 		 									// default_3d_shape
-			FALSE,  	  													// align_with_terrain
-			TRUE,	  		  												// collision_test_fixed
-			FALSE,														// ground_radar_clutter
+
+
+
+
       },
 
       //
@@ -184,10 +184,10 @@ const fixed_data
       //
 
       {
-         OBJECT_3D_PYLON, 		 									// default_3d_shape
-			FALSE,  	  													// align_with_terrain
-			TRUE,	  		  												// collision_test_fixed
-			FALSE,														// ground_radar_clutter
+
+
+
+
       },
 
       //
@@ -195,10 +195,10 @@ const fixed_data
       //
 
       {
-         OBJECT_3D_PYLON, 		 									// default_3d_shape
-			FALSE,  	  													// align_with_terrain
-			TRUE,	  		  												// collision_test_fixed
-			FALSE,														// ground_radar_clutter
+
+
+
+
       },
 
       //
@@ -206,10 +206,10 @@ const fixed_data
       //
 
       {
-         OBJECT_3D_PYLON, 		 									// default_3d_shape
-			FALSE,  	  													// align_with_terrain
-			TRUE,	  		  												// collision_test_fixed
-			FALSE,														// ground_radar_clutter
+
+
+
+
       },
 
       //
@@ -217,10 +217,10 @@ const fixed_data
       //
 
       {
-         OBJECT_3D_CRATE, 	  									// default_3d_shape
-			FALSE,  	  													// align_with_terrain
-			TRUE,	  		  												// collision_test_fixed
-			FALSE,														// ground_radar_clutter
+
+
+
+
       },
 
       //
@@ -228,10 +228,10 @@ const fixed_data
       //
 
       {
-         OBJECT_3D_CRATE, 	  									// default_3d_shape
-			FALSE,  	  													// align_with_terrain
-			FALSE,  		  												// collision_test_fixed
-			FALSE,														// ground_radar_clutter
+
+
+
+
       },
 
       //
@@ -239,10 +239,10 @@ const fixed_data
       //
 
       {
-         OBJECT_3D_CRATE,										// default_3d_shape
-			FALSE,														// align_with_terrain
-			FALSE,		  												// collision_test_fixed
-			FALSE,														// ground_radar_clutter
+
+
+
+
       },
 	};
 

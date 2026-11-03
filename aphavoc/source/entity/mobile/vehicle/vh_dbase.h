@@ -73,7 +73,7 @@ struct VEHICLE_DATA
 		*easy_display_name;
 
 	object_3d_index_numbers
-		default_3d_shape;
+
 
 	entity_forces
 		force;
@@ -90,7 +90,7 @@ struct VEHICLE_DATA
 		target_type;
 
 	target_symbol_types
-		target_symbol_type;
+
 
 	target_priority_types
 		target_priority_type;
@@ -102,28 +102,28 @@ struct VEHICLE_DATA
 		threat_type;
 
 	view_categories
-		view_category;
+
 
 	view_types
-		view_type;
+
 
 	int
-		map_icon;
+
 
 	int
 		carries_smoke_grenades;
 
 	float
-		chase_view_min_distance,
-		chase_view_max_distance,
-		chase_view_min_distance_test,
-		chase_view_max_distance_test,
+
+
+
+
 		cruise_velocity,
-		axle_length,
-		max_acceleration,
+
+
 		max_turn_rate,
-		g_max,
-		power_output,
+
+
 		recon_radius,
 		target_scan_delay,
 		air_scan_floor,
@@ -149,8 +149,8 @@ struct VEHICLE_DATA
 		points_value			: 12;
 
 	sound_sample_indices
-		idle_sound_effect,
-		moving_sound_effect;
+
+
 };
 
 typedef struct VEHICLE_DATA vehicle_data;

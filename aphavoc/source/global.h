@@ -64,33 +64,33 @@
 
 
 
-enum GAME_STATUS_TYPES
-{
-
-	GAME_STATUS_UNINITIALISED,
-	GAME_STATUS_UNINITIALISING,
-	GAME_STATUS_INITIALISING,
-	GAME_STATUS_INITIALISED,
-	NUM_GAME_STATUS_TYPES
-};
-
-typedef enum GAME_STATUS_TYPES game_status_types;
 
 
 
 
 
-extern game_status_types
-	game_status;
 
-extern const char
-	*game_status_string;
 
-extern void set_game_status (game_status_types status);
 
-#define get_game_status() (game_status)
 
-#define NUM_GLOBAL_OPTIONS_SOUND_CHANNEL_TYPES 7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -160,149 +160,149 @@ extern entity_sides
 
 
 
-enum HUD_COLOURS
-{
-	HUD_COL_WHITE,
-	HUD_COL_RED,
-	HUD_COL_AMBER,
-	HUD_COL_GOLD,
-	HUD_COL_GREEN,
-	HUD_COL_CYAN,
-	HUD_COL_BLUE,
-	HUD_COL_BLACK,
-    //060207 Mavericks hud colours mod.   "_L_=LIGHT", "_N_=NEON", "_D_=DARK"
-        HUD_COL_ORANGE,
-        HUD_COL_D_ORANGE,
-        HUD_COL_L_YELLO,
-        HUD_COL_D_YELLO,
-        HUD_COL_N1_GREEN,
-        HUD_COL_D2_GREEN,
-        HUD_COL_N3_GREEN,
-        HUD_COL_LAVENDER1,
-        HUD_COL_LAVENDER2,
-        HUD_COL_D_LAVENDER,
-        HUD_COL_D_BROWN,
-        HUD_COL_PINK,
-        HUD_COL_BLUE1,
-        HUD_COL_BLUE2,
-        HUD_COL_BLUE3,
-    NUM_HUD_COLOURS
-};
-
-typedef enum HUD_COLOURS hud_colours;
-
-enum HUD_CODES
-{
-	HUD_CODES_COLOUR,
-	HUD_CODES_ALPHA,
-	HUD_CODES_SIZE,
-	HUD_CODES_MFD,
-	HUD_CODES_LAST
-};
-
-typedef enum HUD_CODES hud_codes;
-
-//VJ 060211 save hud info to eech.ini, for every gunship
-extern int hud_code[NUM_GUNSHIP_TYPES][HUD_CODES_LAST];
 
 
 
 
 
-// Casm 03MAR10 Canopy sound amplification control
-
-enum CSA_CODES
-{
-	CSA_CODES_ROTOR_PLAYER,
-	CSA_CODES_ROTOR_EXTERNAL,
-	CSA_CODES_ENGINE_PLAYER,
-	CSA_CODES_ENGINE_EXTERNAL,
-	CSA_CODES_MISC_PLAYER,
-	CSA_CODES_MISC_EXTERNAL,
-	CSA_CODES_GUNS,
-	CSA_CODES_ENV,
-	CSA_CODES_LAST
-};
-typedef enum CSA_CODES csa_codes;
-
-enum CSA_VALUES
-{
-	CSA_VALUES_MIN,
-	CSA_VALUES_TOP,
-	CSA_VALUES_MUL,
-	CSA_VALUES_LAST
-};
-typedef enum CSA_VALUES csa_values;
-
-extern int canopy_sound_amp[CSA_CODES_LAST][CSA_VALUES_LAST];
 
 
 
 
 
-enum CPG_ASSIST_TYPES
-{
-	CPG_ASSIST_TYPE_NONE,
-	CPG_ASSIST_TYPE_EASY,
-	CPG_ASSIST_TYPE_REAL,
-	NUM_CPG_ASSISTANCE_TYPES
-};
-
-typedef enum CPG_ASSIST_TYPES cpg_assist_types;
-
-extern int global_co_pilot_scans_for_targets;
 
 
 
 
 
-enum INPUT_DEVICE_TYPES
-{
-
-	NO_INPUT,
-	KEYBOARD_INPUT,
-	JOYSTICK_INPUT,
-	MOUSE_INPUT,
-	RUDDER_INPUT,
-	THROTTLE_INPUT,
-	NUM_INPUT_DEVICE_TYPES
-};
-
-typedef enum INPUT_DEVICE_TYPES input_device_types;
 
 
 
 
 
-enum DYNAMICS_MODEL_TYPES
-{
-
-	DYNAMICS_MODEL_NONE,
-	DYNAMICS_MODEL_VECTOR,
-	DYNAMICS_MODEL_BASIC,
-	DYNAMICS_MODEL_NORMAL,
-	DYNAMICS_MODEL_ADVANCED,
-	NUM_DYNAMICS_MODEL_TYPES
-};
-
-typedef enum DYNAMICS_MODEL_TYPES dynamics_model_types;
 
 
 
 
 
-enum MAP_TYPES
-{
 
-	INVALID_MAP,
-	MAP1,
-	MAP2,
-	MAP3,
-	MAP4,
-	NUM_MAP_TYPES
-};
 
-typedef enum MAP_TYPES map_types;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -373,90 +373,90 @@ typedef enum GAME_DIFFICULTY_SETTINGS game_difficulty_settings;
 
 
 
-enum GAME_MUSIC_TYPES
-{
-
-	GAME_MUSIC_INVALID,
-
-	GAME_MUSIC_OFF,
-	GAME_MUSIC_ON,
-
-	GAME_MUSIC_LAST,
-};
-
-typedef enum GAME_MUSIC_TYPES game_music_types;
 
 
 
 
 
-struct GAME_TEXT_LANGUAGE_TYPE
-{
-
-	int
-		language;
-
-	const char
-		*text;
-
-	int
-		xpos,
-		ypos,
-		xsize,
-		ysize;
-};
-
-typedef struct GAME_TEXT_LANGUAGE_TYPE game_text_language_type;
-
-
-
-
-/*
-struct GAME_TEXT_TRANSLATION_TYPE
-{
-	int
-		button_id;
-
-	game_text_language_type
-		language [NUM_LANGUAGES];
-};
-
-typedef struct GAME_TEXT_TRANSLATION_TYPE game_text_translation_type;
-*/
-
-
-
-
-enum COCKPIT_DETAIL_LEVELS
-{
-	COCKPIT_DETAIL_LEVEL_LOW,
-	COCKPIT_DETAIL_LEVEL_MEDIUM,
-	COCKPIT_DETAIL_LEVEL_HIGH,
-	NUM_COCKPIT_DETAIL_LEVELS
-};
-
-typedef enum COCKPIT_DETAIL_LEVELS cockpit_detail_levels;
-
-enum AVIONICS_REALISM_LEVELS
-{
-	AVIONICS_REALISM_LEVEL_SIMPLE,
-	AVIONICS_REALISM_LEVEL_ADVANCED,
-	AVIONICS_REALISM_LEVEL_REALISTIC,
-	NUM_AVIONICS_REALISM_LEVELS
-};
-
-typedef enum AVIONICS_REALISM_LEVELS avionics_realism_levels;
 
 
 
 
 
-typedef enum {
-	COUNTER_MEASURES_MODE_SAFE,
-	COUNTER_MEASURES_MODE_MANUAL,
-	COUNTER_MEASURES_MODE_SEMI,
-	COUNTER_MEASURES_MODE_AUTO,
-};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -465,24 +465,24 @@ typedef enum {
 struct GLOBAL_OPTIONS_DATA
 {
 
-	//
-	// ALWAYS KEEP THIS FIRST
-	//
-
-	int
-		version_number;
-
-	//
 
 
 
-	//
-	// VERSION 1.0
-	//
 
 
-	int
-		current_language;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	int
 		gunship_side;
@@ -490,91 +490,91 @@ struct GLOBAL_OPTIONS_DATA
 	gunship_types
 		gunship_type;
 
-	hud_colours
-		hud_colour;
 
-	int
-		map,
-		hud_enlarge,
-		blurred_main_rotors_visible_from_cockpit,
-		display_external_view_name,
-		graphics_files_installed;
 
-	input_device_types
-		cyclic_input,
-		collective_input,
-		pedal_input;
 
-	int
-		joystick_device_index;
 
-	dynamics_model_types
-		dynamics_model;
 
-	GUID
-		service_provider_guid;
 
-	game_music_types
-		sound_music_status;
 
-	unsigned int
-		sound_effects_enabled							:1,
-		sound_speech_enabled								:1,
-		graphics_rain_textures_enabled				:1;
 
-	unsigned int
-		dynamics_options_wind							:1,
-		dynamics_options_transitional_lift			:1,
-		dynamics_options_vortex_ring					:1,
-		dynamics_options_retreating_blade_stall	:1,
-		dynamics_options_reverse_throttle_input	:1,
-		dynamics_options_keyboard_assistance		:1,
-		dynamics_options_cross_coupling				:1,
-		dynamics_options_ground_effect				:1,
-		dynamics_options_object_collisions			:1,
-		dynamics_options_ground_collisions			:1,
-		dynamics_options_damage							:1,
-		dynamics_options_over_torque					:1,
-		dynamics_options_draw_flight_path			:1;
 
-	unsigned int
-		graphics_device_selection_automatic			:1,
-		graphics_device_selection_primary			:1;
 
-	GUID
-		graphics_device_guid;
 
-	int
-		graphics_files_wrong_format;
 
-	unsigned int
-		graphics_files_red_mask,
-		graphics_files_green_mask,
-		graphics_files_blue_mask,
-		graphics_files_alpha_mask;
 
-	int
-		comms_port,
-		baud_rate,
-		stop_bits,
-		parity,
-		flow;
 
-	cpg_assist_types
-		cpg_assist_type;
 
-	int
-		counter_measures_mode;
 
-	char
-		ip_address[128];
 
-	char
-		phone_number[128];
 
-	int
-		graphics_object_detail_level,
-		graphics_terrain_detail_level;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 	//
@@ -606,53 +606,53 @@ struct GLOBAL_OPTIONS_DATA
 		session_campaign_realism_invulnerable_from_collisions		:1,
 		session_campaign_realism_suppress_ai_fire						:1;
 
-	int
-		display_hud_on_external_view,
-		draw_cockpit_graphics,
-		draw_overlaid_instruments;
-
-	int
-		sound_speech_copilot_enabled;
-
-	float
-		visual_screen_width,
-		visual_screen_height;
-
-	GUID
-		graphics_card_device_identifier;
-
-	int
-		number_of_graphics_card_resolutions;
-
-	graphics_resolution_mode
-		graphics_card_resolutions[32];
 
 
-	//
-	// COMANCHE HOKUM
-	//
 
 
-	int
-		apache_havoc_installed,
-		ase_auto_page,
-		glass_cockpit,
-		avionics_realism_level,
-		display_in_flight_intelligence_messages,
-		unscaled_displays;
 
-	cockpit_detail_levels
-		cockpit_detail_level;
 
-	int
-		map_layer_options;
 
-	int
-		sound_channel_volume [NUM_GLOBAL_OPTIONS_SOUND_CHANNEL_TYPES],
-		sound_channel_muted [NUM_GLOBAL_OPTIONS_SOUND_CHANNEL_TYPES];
 
-	char
-		spare[1000];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 };
 
 typedef struct GLOBAL_OPTIONS_DATA global_options_data;
@@ -665,14 +665,14 @@ extern global_options_data
 	global_options;
 
 
-//
-// use set/get functions to access global_options
-//
 
 
-#define get_global_version_number() (global_options.version_number)
 
-#define set_global_version_number(VERSION_NUMBER) (global_options.version_number = (VERSION_NUMBER))
+
+
+
+
+
 
 
 
@@ -686,55 +686,38 @@ extern global_options_data
 
 
 
-#define get_global_hud_colour() (global_options.hud_colour)
 
 
 
-#define set_global_hud_enlarge(FLAG) (global_options.hud_enlarge = (FLAG))
 
-#define get_global_hud_enlarge() (global_options.hud_enlarge)
 
 
 
-#define set_global_display_hud_on_external_view(FLAG) (global_options.display_hud_on_external_view = (FLAG))
 
-#define get_global_display_hud_on_external_view() (global_options.display_hud_on_external_view)
 
 
 
-#define set_global_draw_cockpit_graphics(FLAG) (global_options.draw_cockpit_graphics = (FLAG))
 
-#define get_global_draw_cockpit_graphics() (global_options.draw_cockpit_graphics)
 
 
 
-#define set_global_draw_overlaid_instruments(FLAG) (global_options.draw_overlaid_instruments = (FLAG))
 
-#define get_global_draw_overlaid_instruments() (global_options.draw_overlaid_instruments)
 
 
 
-#define set_global_3d_visual_screen_width(WIDTH) (global_options.visual_screen_width = (WIDTH))
 
-#define get_global_3d_visual_screen_width() (global_options.visual_screen_width)
 
 
 
-#define set_global_3d_visual_screen_height(HEIGHT) (global_options.visual_screen_height = (HEIGHT))
 
-#define get_global_3d_visual_screen_height() (global_options.visual_screen_height)
 
 
 
-#define set_global_blurred_main_rotors_visible_from_cockpit(FLAG) (global_options.blurred_main_rotors_visible_from_cockpit = (FLAG))
 
-#define get_global_blurred_main_rotors_visible_from_cockpit() (global_options.blurred_main_rotors_visible_from_cockpit)
 
 
 
-#define set_global_display_external_view_name(FLAG) (global_options.display_external_view_name = (FLAG))
 
-#define get_global_display_external_view_name() (global_options.display_external_view_name)
 
 
 
@@ -746,132 +729,77 @@ extern global_options_data
 
 
 
-#define set_global_dynamics_model(MODEL) (global_options.dynamics_model = (MODEL))
 
-#define get_global_dynamics_model() (global_options.dynamics_model)
 
 
 
-#define set_global_cyclic_input(INPUT) (global_options.cyclic_input = (INPUT))
 
-#define get_global_cyclic_input() (global_options.cyclic_input)
 
 
 
-#define set_global_collective_input(INPUT) (global_options.collective_input = (INPUT))
 
-#define get_global_collective_input() (global_options.collective_input)
 
 
 
-#define set_global_pedal_input(INPUT) (global_options.pedal_input = (INPUT))
 
-#define get_global_pedal_input() (global_options.pedal_input)
 
 
 
-// Retro 17Jul2004 - this variable has a new meaning now: total number of enumerated joystick devices
-#define set_global_joystick_device_index(INDEX) (global_options.joystick_device_index = (INDEX))
 
-#define get_global_joystick_device_index() (global_options.joystick_device_index)
 
 
 
-#define set_global_map(MAP) (global_options.map = (MAP))
 
-#define get_global_map() (global_options.map)
 
 
 
-#define set_global_sound_effects_enabled(FLAG) (global_options.sound_effects_enabled = (FLAG))
-#define get_global_sound_effects_enabled() (global_options.sound_effects_enabled)
 
-#define set_global_sound_music(FLAG) (global_options.sound_music_status = (FLAG))
-#define get_global_sound_music() (global_options.sound_music_status)
 
-#define set_global_speech_effects_enabled(FLAG) (global_options.sound_speech_enabled = (FLAG))
-#define get_global_speech_effects_enabled() (global_options.sound_speech_enabled)
 
-#define set_global_copilot_speech_effects_enabled(FLAG) (global_options.sound_speech_copilot_enabled = (FLAG))
-#define get_global_copilot_speech_effects_enabled() (global_options.sound_speech_copilot_enabled)
 
 
 
-#define set_global_graphics_rain_textures_enabled(FLAG) (global_options.graphics_rain_textures_enabled = (FLAG))
 
-#define get_global_graphics_rain_textures_enabled() (global_options.graphics_rain_textures_enabled)
 
 
 
-#define get_global_apache_havoc_installed() (global_options.apache_havoc_installed)
 
-#define set_global_apache_havoc_installed(FLAG) (global_options.apache_havoc_installed = (FLAG))
 
 
 
-#define get_global_dynamics_options_wind() (global_options.dynamics_options_wind)
 
-#define get_global_dynamics_options_transitional_lift() (global_options.dynamics_options_transitional_lift)
 
-#define get_global_dynamics_options_vortex_ring() (global_options.dynamics_options_vortex_ring)
 
-#define get_global_dynamics_options_reverse_throttle_input() (global_options.dynamics_options_reverse_throttle_input)
 
-#define get_global_dynamics_options_keyboard_assistance() (global_options.dynamics_options_keyboard_assistance)
 
-#define get_global_dynamics_options_retreating_blade_stall() (global_options.dynamics_options_retreating_blade_stall)
 
-#define get_global_dynamics_options_cross_coupling() (global_options.dynamics_options_cross_coupling)
 
-#define get_global_dynamics_options_ground_effect() (global_options.dynamics_options_ground_effect)
 
-#define get_global_dynamics_options_object_collisions() (global_options.dynamics_options_object_collisions)
 
-#define get_global_dynamics_options_ground_collisions() (global_options.dynamics_options_ground_collisions)
 
-#define get_global_dynamics_options_damage() (global_options.dynamics_options_damage)
 
-#define get_global_dynamics_options_over_torque() (global_options.dynamics_options_over_torque)
 
-#define get_global_dynamics_options_draw_flight_path() (global_options.dynamics_options_draw_flight_path)
 
 
 
-#define set_global_dynamics_options_wind(FLAG) (global_options.dynamics_options_wind = (FLAG))
 
-#define set_global_dynamics_options_transitional_lift(FLAG) (global_options.dynamics_options_transitional_lift = (FLAG))
 
-#define set_global_dynamics_options_vortex_ring(FLAG) (global_options.dynamics_options_vortex_ring = (FLAG))
 
-#define set_global_dynamics_options_retreating_blade_stall(FLAG) (global_options.dynamics_options_retreating_blade_stall = (FLAG))
 
-#define set_global_dynamics_options_reverse_throttle_input(FLAG) (global_options.dynamics_options_reverse_throttle_input = (FLAG))
 
-#define set_global_dynamics_options_keyboard_assistance(FLAG) (global_options.dynamics_options_keyboard_assistance = (FLAG))
 
-#define set_global_dynamics_options_cross_coupling(FLAG) (global_options.dynamics_options_cross_coupling = (FLAG))
 
-#define set_global_dynamics_options_ground_effect(FLAG) (global_options.dynamics_options_ground_effect = (FLAG))
 
-#define set_global_dynamics_options_object_collisions(FLAG) (global_options.dynamics_options_object_collisions = (FLAG))
 
-#define set_global_dynamics_options_ground_collisions(FLAG) (global_options.dynamics_options_ground_collisions = (FLAG))
 
-#define set_global_dynamics_options_damage(FLAG) (global_options.dynamics_options_damage = (FLAG))
 
-#define set_global_dynamics_options_over_torque(FLAG) (global_options.dynamics_options_over_torque = (FLAG))
 
-#define set_global_dynamics_options_draw_flight_path(FLAG) (global_options.dynamics_options_draw_flight_path = (FLAG))
 
 
 
-#define set_global_graphics_device_selection_automatic(FLAG) (global_options.graphics_device_selection_automatic = (FLAG))
 
-#define get_global_graphics_device_selection_automatic() (global_options.graphics_device_selection_automatic)
 
-#define set_global_graphics_device_selection_primary(FLAG) (global_options.graphics_device_selection_primary = (FLAG))
 
-#define get_global_graphics_device_selection_primary() (global_options.graphics_device_selection_primary)
 
 
 
@@ -899,98 +827,170 @@ extern global_options_data
 
 
 
-#define set_global_comms_port(VALUE) (global_options.comms_port = (VALUE))
 
-#define get_global_comms_port() (global_options.comms_port)
 
-#define set_global_baud_rate(VALUE) (global_options.baud_rate = (VALUE))
 
-#define get_global_baud_rate() (global_options.baud_rate)
 
-#define set_global_stop_bits(VALUE) (global_options.stop_bits = (VALUE))
 
-#define get_global_stop_bits() (global_options.stop_bits)
 
-#define set_global_parity(VALUE) (global_options.parity = (VALUE))
 
-#define get_global_parity() (global_options.parity)
 
-#define set_global_flow(VALUE) (global_options.flow = (VALUE))
 
-#define get_global_flow() (global_options.flow)
 
 
 
-#define set_global_cpg_assist_type(TYPE) (global_options.cpg_assist_type = (TYPE))
 
-#define get_global_cpg_assist_type() (global_options.cpg_assist_type)
 
-#define set_global_auto_counter_measures(FLAG) (global_options.counter_measures_mode = ((FLAG) ? COUNTER_MEASURES_MODE_AUTO : COUNTER_MEASURES_MODE_MANUAL))
-#define get_global_auto_counter_measures() (global_options.counter_measures_mode == COUNTER_MEASURES_MODE_AUTO)
 
-#define set_global_counter_measures_mode(MODE) (global_options.counter_measures_mode = (MODE))
-#define get_global_counter_measures_mode() (global_options.counter_measures_mode)
 
-#define set_global_ase_auto_page(FLAG) (global_options.ase_auto_page = (FLAG))
 
-#define get_global_ase_auto_page() (global_options.ase_auto_page)
 
-#define set_global_glass_cockpit(FLAG) (global_options.glass_cockpit = (FLAG))
 
-#define get_global_glass_cockpit() (global_options.glass_cockpit)
 
-#define set_global_cockpit_detail_level(LEVEL) (global_options.cockpit_detail_level = (LEVEL))
 
-#define get_global_cockpit_detail_level() (global_options.cockpit_detail_level)
 
-#define set_global_avionics_realism_level(LEVEL) (global_options.avionics_realism_level = (LEVEL))
 
-#define get_global_avionics_realism_level() (global_options.avionics_realism_level)
 
-#define set_global_display_in_flight_intelligence_messages(FLAG) (global_options.display_in_flight_intelligence_messages = (FLAG))
 
-#define get_global_display_in_flight_intelligence_messages() (global_options.display_in_flight_intelligence_messages)
 
-#define set_global_unscaled_displays(FLAG) (global_options.unscaled_displays = (FLAG))
 
-#define get_global_unscaled_displays() (global_options.unscaled_displays)
 
-#define set_global_map_layer_options(VALUE) (global_options.map_layer_options = (VALUE))
 
-#define get_global_map_layer_options() (global_options.map_layer_options)
 
-#define set_global_sound_channel_volume(CHANNEL,VALUE) (global_options.sound_channel_volume [(CHANNEL)] = (VALUE))
 
-#define get_global_sound_channel_volume(CHANNEL) (global_options.sound_channel_volume [(CHANNEL)])
 
-#define set_global_sound_channel_muted(CHANNEL,VALUE) (global_options.sound_channel_muted [(CHANNEL)] = (VALUE))
 
-#define get_global_sound_channel_muted(CHANNEL) (global_options.sound_channel_muted [(CHANNEL)])
 
 
 
-#define set_global_graphics_object_detail_level(TYPE) (global_options.graphics_object_detail_level = (TYPE))
 
-#define get_global_graphics_object_detail_level() (global_options.graphics_object_detail_level)
 
-#define set_global_graphics_terrain_detail_level(TYPE) (global_options.graphics_terrain_detail_level = (TYPE))
 
-#define get_global_graphics_terrain_detail_level() (global_options.graphics_terrain_detail_level)
 
 
 
-#define set_global_session_free_flight_time_of_day(VALUE) (global_options.session_free_flight_time_of_day = (VALUE))
-#define get_global_session_free_flight_time_of_day() (global_options.session_free_flight_time_of_day)
 
-#define set_global_season(VALUE) (current_map_info.season = (VALUE))   //VJ 051227 changed from global_season
-#define get_global_season() (current_map_info.season)                  //VJ 051227 changed from global_season
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #define set_global_session_campaign_time_of_day(VALUE) (global_options.session_campaign_time_of_day = (VALUE))
 #define get_global_session_campaign_time_of_day() (global_options.session_campaign_time_of_day)
 
 
-#define set_global_session_free_flight_weather(VALUE) (global_options.session_free_flight_weather = (VALUE))
-#define get_global_session_free_flight_weather() (global_options.session_free_flight_weather)
+
+
 
 #define set_global_session_campaign_weather(VALUE) (global_options.session_campaign_weather = (VALUE))
 #define get_global_session_campaign_weather() (global_options.session_campaign_weather)
@@ -1000,20 +1000,20 @@ extern global_options_data
 #define get_global_difficulty_level() (global_options.difficulty_level)
 
 
-#define set_global_session_free_flight_realism_infinite_weapons(VALUE) (global_options.session_free_flight_realism_infinite_weapons = (VALUE))
-#define get_global_session_free_flight_realism_infinite_weapons() (global_options.session_free_flight_realism_infinite_weapons)
 
-#define set_global_session_free_flight_realism_infinite_fuel(VALUE) (global_options.session_free_flight_realism_infinite_fuel = (VALUE))
-#define get_global_session_free_flight_realism_infinite_fuel() (global_options.session_free_flight_realism_infinite_fuel)
 
-#define set_global_session_free_flight_realism_invulnerable_from_weapons(VALUE) (global_options.session_free_flight_realism_invulnerable_from_weapons = (VALUE))
-#define get_global_session_free_flight_realism_invulnerable_from_weapons() (global_options.session_free_flight_realism_invulnerable_from_weapons)
 
-#define set_global_session_free_flight_realism_invulnerable_from_collisions(VALUE) (global_options.session_free_flight_realism_invulnerable_from_collisions = (VALUE))
-#define get_global_session_free_flight_realism_invulnerable_from_collisions() (global_options.session_free_flight_realism_invulnerable_from_collisions)
 
-#define set_global_session_free_flight_realism_suppress_ai_fire(VALUE) (global_options.session_free_flight_realism_suppress_ai_fire = (VALUE))
-#define get_global_session_free_flight_realism_suppress_ai_fire() (global_options.session_free_flight_realism_suppress_ai_fire)
+
+
+
+
+
+
+
+
+
+
 
 
 #define set_global_session_campaign_realism_infinite_weapons(VALUE) (global_options.session_campaign_realism_infinite_weapons = (VALUE))
@@ -1034,69 +1034,69 @@ extern global_options_data
 
 
 
-#define set_global_current_language(VALUE) (global_options.current_language = (VALUE))
-#define get_global_current_language() (global_options.current_language)
 
 
 
 
 
-extern void initialise_global_options_data (void);
-
-extern void set_global_gunship_type (gunship_types type);
-
-extern void set_global_hud_colour (hud_colours colour);
-
-extern void set_global_graphics_device_selection_guid ( GUID *guid );
-
-extern void save_global_options_data (void);
-
-extern void load_global_options_data (void);
-/*
-extern const char *get_localisation_text (game_text_translation_type *list, int button_id);
-
-extern int get_localisation_x_position (game_text_translation_type *list, int button_id);
-
-extern int get_localisation_y_position (game_text_translation_type *list, int button_id);
-
-extern int get_localisation_x_size (game_text_translation_type *list, int button_id);
-
-extern int get_localisation_y_size (game_text_translation_type *list, int button_id);
-*/
-
-
-
-
-#define UI_ATTR_LOCALISATION_TEXT(LIST, TYPE) UI_ATTR_TEXT (get_localisation_text ((LIST), (TYPE)))
-
-#define UI_ATTR_LOCALISATION_POSITION(LIST, TYPE) UI_ATTR_POSITION (get_localisation_x_position ((LIST), (TYPE)), get_localisation_y_position ((LIST), (TYPE)))
-
-#define UI_ATTR_LOCALISATION_SIZE(LIST, TYPE) UI_ATTR_SIZE (get_localisation_x_size ((LIST), (TYPE)), get_localisation_y_size ((LIST), (TYPE)))
-
-
-
-
-////Moje 030521 Added Blackhawk 030612 Hind 030816 AH64A and KA50
-
-#define get_apache_havoc_gunship() (new_gunship[get_global_gunship_type ()] == 0)
-
-#define get_comanche_hokum_gunship() (new_gunship[get_global_gunship_type ()] != 0)
-
-#define ARRAY_LENGTH(array) (sizeof(array) / sizeof(array[0]))
 
 
 
 
 
-// Casm 21DEC07
 
-extern char psd_theme[];
 
-// Casm 20MAY12 Cloud puffs
-extern int
-	number_of_cloud_puffs_colours;
-extern real_colour
-	*cloud_puffs_colours;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

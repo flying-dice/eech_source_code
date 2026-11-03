@@ -70,33 +70,33 @@
 
 
 
-#define DEBUG_MODULE 0
 
 
 
 
 
-void (*fn_set_local_entity_raw_attitude_matrix[NUM_ENTITY_TYPES]) (entity *en, matrix3x3 attitude);
-
-void (*fn_set_local_entity_attitude_matrix[NUM_ENTITY_TYPES]) (entity *en, matrix3x3 attitude);
-
-void (*fn_set_client_server_entity_attitude_matrix[NUM_ENTITY_TYPES][NUM_COMMS_MODEL_TYPES]) (entity *en, matrix3x3 attitude);
-
-void (*fn_get_local_entity_attitude_matrix[NUM_ENTITY_TYPES]) (entity *en, matrix3x3 attitude);
-
-matrix3x3 *(*fn_get_local_entity_attitude_matrix_ptr[NUM_ENTITY_TYPES]) (entity *en);
 
 
 
 
 
-void (*fn_set_local_entity_raw_attitude_angles[NUM_ENTITY_TYPES]) (entity *en, float heading, float pitch, float roll);
 
-void (*fn_set_local_entity_attitude_angles[NUM_ENTITY_TYPES]) (entity *en, float heading, float pitch, float roll);
 
-void (*fn_set_client_server_entity_attitude_angles[NUM_ENTITY_TYPES][NUM_COMMS_MODEL_TYPES]) (entity *en, float heading, float pitch, float roll);
 
-void (*fn_get_local_entity_attitude_angles[NUM_ENTITY_TYPES]) (entity *en, float *heading, float *pitch, float *roll);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

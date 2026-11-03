@@ -73,7 +73,7 @@ struct AIRCRAFT_DATA
 		*easy_display_name;
 
 	object_3d_index_numbers
-		default_3d_shape;
+
 
 	gunship_types
 		gunship_type;
@@ -93,7 +93,7 @@ struct AIRCRAFT_DATA
 		default_weapon_type;
 
 	target_symbol_types
-		target_symbol_type;
+
 
 	target_priority_types
 		target_priority_type;
@@ -105,40 +105,40 @@ struct AIRCRAFT_DATA
 		threat_type;
 
 	view_categories
-		view_category;
+
 
 	view_types
-		view_type;
+
 
 	int
-		map_icon,
+
 		armor_level;
 
 	float
-		centre_of_gravity_to_ground_distance,
-		centre_of_gravity_to_ground_distance_destroyed,
-		chase_view_min_distance,
-		chase_view_max_distance,
-		chase_view_min_distance_test,
-		chase_view_max_distance_test,
+
+
+
+
+
+
 		cruise_velocity,
 		cruise_altitude,
 		attack_altitude,
-		destroyed_bank_offset,
-		destroyed_pitch_offset,
-		fuselage_angle,
-		liftoff_velocity,
-		main_rotor_shaft_angle,
-		main_rotor_direction,
-		main_rotor_blade_droop_angle,
-		propellor_direction,
+
+
+
+
+
+
+
+
 		max_turn_rate,
-		max_roll,
-		max_vertical_turn_allowance,
-		avoidance_radius,
-		g_max,
-		power_output,
-		tail_rotor_direction,
+
+
+
+
+
+
 		recon_radius,
 		target_scan_delay,
 		air_scan_range,
@@ -151,9 +151,9 @@ struct AIRCRAFT_DATA
 		// Xhit: added "number_of_main_rotors" for downwash effect. (030328) 
 		// The reason why it is a float is because that for some reason all integer values are packed
 		// where float can be choosen not to be packed. 
-		number_of_main_rotors,
+
 		// Xhit: added "main_rotor_radius" for downwash effect. (030328) 
-		main_rotor_radius;
+
 	int
 		initial_damage_level;
 
@@ -165,9 +165,9 @@ struct AIRCRAFT_DATA
 		points_value			: 12;
 
 	sound_sample_indices
-		continuous_sound_effect_index,
-		wind_up_sound_effect_index,
-		wind_down_sound_effect_index;
+
+
+
 };
 
 typedef struct AIRCRAFT_DATA aircraft_data;

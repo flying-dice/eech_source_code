@@ -76,13 +76,13 @@ struct WEAPON_DATA
 		*weapon_loading_name_text;
 
 	object_3d_index_numbers
-		default_3d_shape;
+
 
 	weapon_guidance_types
 		guidance_type;
 
 	weapon_aiming_types
-		aiming_type;
+
 
 	weapon_decoy_types
 		decoy_type;
@@ -94,68 +94,68 @@ struct WEAPON_DATA
 		threat_type;
 
 	entity_sub_types
-		launch_sound_effect_sub_type;
+
 
 	sound_sample_indices
-		interior_launch_sound_effect,
-		exterior_launch_sound_effect,
-		continuous_sound_effect;
+
+
+
 
 	int
-		weapon_selected_cpg_speech,
-		weapon_low_cpg_speech,
-		weapon_out_cpg_speech,
-		weapon_launched_cpg_speech,
-		weapon_launched_wingman_speech,
+
+
+
+
+
 		report_ammo_low_count;
 
 	int
-		gun_shake,
+
 		damage_capability,
 		armor_penetration_capability,
-		smoke_trail_type,
-		acquire_parent_forward_velocity,
-		ignore_gravity,
-		survive_ground_impact,
-		in_flight_collision_check,
-		viewable_weapon,
-		boresight_weapon,					// meaningful for featured helicopters only
+
+
+
+
+
+
+
 		flight_profile_or_self_destr,		// for Hellfire, Vikhr and self destruction weapons
-		tracer_color;
+
 
 	unsigned int
 		weapon_class;
 
 	float
-		start_weight,								// kilogrammes
-		final_weight,								// kilogrammes
+
+
 		min_range,							// metres
 		max_range,							// metres
 		effective_range,					// metres
 		circular_error_probable,			// max range error/max range
-		muzzle_velocity,              // meters/second
-		muzzle_velocity_max_error,		// meters/second
+
+
 		cruise_velocity,					// meters/second
-		g_max,                        // g
+
 		boost_time,                    // seconds
-		cruise_time,                  // seconds
-		cruise_time_max_error,        // seconds
-		inhibit_time,						// seconds
+
+
+
 		burst_duration,					// seconds
 		rate_of_fire,						// rounds/minute
 		reload_time,						// seconds
-		max_launch_angle_error,			// radians
-		max_seeker_limit,				// cos of angle
+
+
 		drag_coefficient,                    // projectile drag, used for calculating deceleration
-		inverse_rate_of_fire,           // 1.0 / rate_of_fire
-		flightpath_deviation,			// meters
-		boost_power,					// newton * s (kilogrammes * m / s^2)
-		sustain_power,					// newton * s (kilogrammes * m / s^2)
-		sustain_time,					// seconds
-		diameter,						// meters
+
+
+
+
+
+
 		detonation_radius,				// meters
 		rearming_time,					// seconds
-		tracer_fire_time,					// seconds
+
 		max_altitude;					// meters
 };
 
