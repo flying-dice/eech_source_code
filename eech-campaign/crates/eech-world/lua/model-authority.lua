@@ -54,7 +54,8 @@
 --   offsets_changed    (a CHANGED-host control, healthy; needs offsets=1) every scene's offset is answered with the constant 1.5, 2.5, -4.5. Covered only when the held words and the consumer's
 --                      three coordinates are that constant and differ from what the reference host answered.
 --   offsets_withheld   the first offset question is answered `refused`: the engine must stop on `[model-provider:target_point_offset.refused]`, with no fallback to the original construction
---   offsets_bad_nan    the first offset is a NaN bit pattern: `[model-provider:target_point_offset.value]`
+--   offsets_bad_nan    the first offset is a NaN bit pattern: `[model-provider:target_point_offset.answer]` ("p: not finite"). The Lua bridge decodes every bit pattern and refuses a non-finite one at the
+--                      transport boundary, before the C code sees a value; the C code's own `[model-provider:target_point_offset.value]` check is the backstop for a provider that bypasses the bridge
 --   offsets_bad_name   the first answer echoes another scene's name: `[model-provider:target_point_offset.identity]`
 --   offsets_bad_end    the first answer is `end` (the question has no cursor): `[model-provider:target_point_offset.answer]`
 -- A bad_* mode whose precondition the run did not reach (for the triangle ones: no triangle question of the matching kind was asked) is reported `UNREACHED` and fails the run,
@@ -412,7 +413,7 @@ local triangle_markers = { decline = "[model-provider:triangle.callback]", refus
 	bad_absent = "[model-provider:triangle.answer]", bad_end_absent = "[model-provider:triangle.answer]", bad_found_declared_absent = "[model-provider:triangle.answer]",
 	bad_end_declared_absent = "[model-provider:triangle.answer]" }
 local metadata_markers = { object_withheld = "[model-provider:object.absent]", animation_withheld = "[model-provider:animation.absent]" }
-local offset_markers = { offsets_withheld = "[model-provider:target_point_offset.refused]", offsets_bad_nan = "[model-provider:target_point_offset.value]",
+local offset_markers = { offsets_withheld = "[model-provider:target_point_offset.refused]", offsets_bad_nan = "[model-provider:target_point_offset.answer]",
 	offsets_bad_name = "[model-provider:target_point_offset.identity]", offsets_bad_end = "[model-provider:target_point_offset.answer]" }
 local expected_marker = boot_markers [mode] or triangle_markers [mode] or metadata_markers [mode] or offset_markers [mode]
 

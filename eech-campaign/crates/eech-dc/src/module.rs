@@ -5061,7 +5061,7 @@ mod tests {
     fn a_target_point_offset_that_is_withheld_malformed_or_of_the_wrong_kind_stops_with_its_marker() -> Test {
         let lua = Lua::new();
         // each answer is chosen by the scene: 1 refused, 2 an end (the question has no cursor), 3 an absent, 4 two numbers, 5 a non-finite number, 6 four numbers, 7 no name,
-        // 8 a name with a NUL, 9 a route node answered to this question, 10 text that is not three bit patterns
+        // 8 a name with a NUL, 9 a route node answered to this question, 10 text that is not three bit patterns, 11 a NaN bit pattern (refused by the bridge's decoder as `.answer`, not finite)
         let mut provider = model_under_test(
             &lua,
             "return function (op, scene)
@@ -5075,6 +5075,7 @@ mod tests {
                if scene == 7 then return { result = 'offset', p = { 1, 2, 3 } } end
                if scene == 8 then return { result = 'offset', name = 'A\\0B', p = { 1, 2, 3 } } end
                if scene == 9 then return { result = 'node', name = n, p = { 1, 2, 3 } } end
+               if scene == 11 then return { result = 'offset', name = n, p = '0x7fc00000,0x00000000,0x00000000' } end
                return { result = 'offset', name = n, p = '1,2,3' }
              end",
         )?;
@@ -5084,10 +5085,13 @@ mod tests {
             refused.contains("[model-provider:target_point_offset.refused]") && refused.contains("no such model"),
             "{refused}"
         );
-        for scene in 2..=10 {
+        for scene in 2..=11 {
             let error = offset(scene).err().ok_or("accepted")?;
             assert!(error.contains("[model-provider:target_point_offset.answer]"), "scene {scene}: {error}");
         }
+        // a NaN bit pattern is named as such, at the transport boundary
+        let nan = offset(11).err().ok_or("accepted")?;
+        assert!(nan.contains("p: not finite"), "{nan}");
         Ok(())
     }
 

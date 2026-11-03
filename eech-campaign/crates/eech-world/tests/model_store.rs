@@ -3030,7 +3030,7 @@ package.preload["eech_dc"] = function ()
 					if answer.result == "refused" then error ("eech: [model-provider:target_point_offset.refused] " .. tostring (answer.reason), 0) end
 					if answer.result ~= "offset" then error ("eech: [model-provider:target_point_offset.answer] result must be offset or refused", 0) end
 					if answer.name ~= host.model ("scene", scene).name then error ("eech: [model-provider:target_point_offset.identity] the host named another scene", 0) end
-					if string.find (answer.p, "0x7fc", 1, true) then error ("eech: [model-provider:target_point_offset.value] the offset is not finite", 0) end
+					if string.find (answer.p, "0x7fc", 1, true) then error ("eech: [model-provider:target_point_offset.answer] p: not finite", 0) end
 					held [scene] = host.args.ignore == "1" and host.model ("target_point_offset", scene).p or answer.p
 				end
 			end
@@ -3297,7 +3297,7 @@ fn the_held_target_offsets_are_the_hosts_a_changed_host_moves_them_and_the_direc
 fn a_withheld_or_malformed_target_offset_answer_stops_the_engine_by_name_and_nothing_falls_back() {
     for (mode, marker) in [
         ("offsets_withheld", "[model-provider:target_point_offset.refused]"),
-        ("offsets_bad_nan", "[model-provider:target_point_offset.value]"),
+        ("offsets_bad_nan", "[model-provider:target_point_offset.answer]"),
         ("offsets_bad_name", "[model-provider:target_point_offset.identity]"),
         ("offsets_bad_end", "[model-provider:target_point_offset.answer]"),
     ] {
