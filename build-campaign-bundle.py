@@ -2,11 +2,10 @@
 """Concatenate the retained campaign source into campaign-bundle.txt and
 campaign-bundle-appendix.txt.
 
-The appendix file holds retained files whose campaign relevance is less
-obvious: weapon loadout tables, attack-guide tactics, save/load and comms
-receivers kept for their campaign side effects, start-up and option
-plumbing, formation and map-grid utilities, and fragments restored from
-UI and gunship code. Everything else goes in the main bundle.
+The appendix file holds per-item reference data tables that matter to
+weapon loadouts and damage but not to running the campaign: the
+per-unit weapon loadout tables, the weapon database and the per-3D-
+object armour and importance table. Everything else goes in the main bundle.
 
 Deterministic: files are the tracked *.c / *.h sources (git ls-files),
 ordered by byte-wise path. Each file is preceded by a path marker line.
@@ -28,20 +27,9 @@ SUFFIXES = (".c", ".h")
 
 S = "aphavoc/source/"
 APPENDIX = [re.compile(p) for p in (
-    S + r"entity/mobile/weapon/configs/",       # weapon loadout tables
-    S + r"entity/fixed/fx_objdb\.c$",          # per-3D-object importance/armour table
-    S + r"entity/special/guide/(aa_attck|ag_attck|gd_attck|gd_cover)\.[ch]$",  # attack tactics
-    S + r"entity/system/en_comms/",              # comms receivers, load-time rebuilds
-    S + r"comms/",
-    S + r"entity/special/(keysite/ks_pack|bridge/br_pack)\.c$",  # load-time campaign rules
-    S + r"gameflow/",                            # start-up sequencing
-    S + r"(flight|cmndline|eechini|global|project)\.[ch]$",  # main loop, options
-    S + r"misc/(tags|msg_out|tod)\.[ch]$",
-    S + r"entity/system/en_types/en_forms\.[ch]$",
-    S + r"entity/system/en_main/en_world\.[ch]$",
-    S + r"entity/en_misc/",
-    S + r"(ui_menu|gunships)/",                  # fragments restored from UI/cockpit code
-    r"^modules/",                                # random-number macros
+    S + r"entity/mobile/weapon/configs/",   # per-unit weapon loadouts
+    S + r"entity/mobile/weapon/wn_dbase\.c$",  # weapon database
+    S + r"entity/fixed/fx_objdb\.c$",       # per-3D-object armour/importance
 )]
 
 
