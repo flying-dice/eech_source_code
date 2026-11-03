@@ -17,7 +17,8 @@
     "RNG/input group closed independently 25f64cd4 (original-C1c30/checkerebcb): both initializer passes draw the CRT stream and reseed before outside consumers; bounded boot claim only.",
     "Initializer cutover 9b916ac650 (production source and comparer P2 cleared by the same independent reviewer): ordinary initialise_target_point_offsets asks TARGET_POINT_OFFSET for all valid scene slots per invocation, seeker limits once, invalid scene zero; healthy/changed/withheld/bad-name actuals and the exact retained short Lebanon comparison (native/controller/prepost 0, 84 payloads, ACMI/observations/metrics equal) are recorded; no full40/all8 claim.",
     "c37d02a77 corrects only the diagnostic non-finite expectation (.answer marker); production C/Rust identical to 9b916ac650. The original initializer with the feature API present runs one frame and asks zero host offsets (expected capability RED, UNREACHED), which is not a pass.",
-    "Getter routing (working tree, then one commit): staged-tree probe shows th3=1 with no active find_object_3d_sub_object / get_3d_sub_object_world_viewpoint / sin_heading rotation in host builds and the original body in the two original-fixture builds; focused eech-dc 54, model_target_point 27, model_store 62, characterization 53, fmt and strict clippy (default and three fixtures) pass. Source and tests only: no native run."
+    "Getter routing (working tree, then one commit): staged-tree probe shows th3=1 with no active find_object_3d_sub_object / get_3d_sub_object_world_viewpoint / sin_heading rotation in host builds and the original body in the two original-fixture builds; focused eech-dc 54, model_target_point 27, model_store 62, characterization 53, fmt and strict clippy (default and three fixtures) pass. Source and tests only: no native run.",
+    "Initializer finite source/actual review95f97d0 CLOSED/no findings; all eight authority executions/seven controls and all3 complete short outputs are verified. Safe reports published; live-query8118389a96 source is separate and native validation remains pending."
   ],
   "blockers": [
     {
@@ -41,11 +42,11 @@
   "acceptance": [
     {
       "gate": "Production physical offset initialization uses host data and old solver path is absent",
-      "complete": false
+      "complete": true
     },
     {
       "gate": "Changed/withheld host authority and direct guidance consumer exercised",
-      "complete": false
+      "complete": true
     },
     {
       "gate": "Established scenario and required complete byte-identical regression pass",
