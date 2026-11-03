@@ -1,0 +1,77 @@
+{
+  "created_utc": "2026-11-02T16:26:07.551758+00:00",
+  "actual_runtime_source": "e9d77de8dab85b1b1f504051a8b8ad9fb4c909a1",
+  "corrected_source_under_validation": "bce0c3514be13ee4bbc3a571387132989f74e3c6",
+  "actual_native_exit": 0,
+  "actual_controller_exit": 0,
+  "full_pre_post_inputs": [
+    0,
+    0
+  ],
+  "verified_payloads": 83,
+  "profile": "four-feature modelhost/route/envfixture/envobserver",
+  "old_original_trace": "D:\\EECH-Migration-Evidence\\parent-play-original-native8e-driver1fb-20261101\\unarmed\\environment.jsonl",
+  "candidate_trace": "D:\\EECH-Migration-Evidence\\model-integrated-focused-actual-e9d77de8da-20261102\\env-unarmed\\environment.jsonl",
+  "complete_literal_bytes_equal_including_endings": true,
+  "bytes": 5191384,
+  "rows": 17283,
+  "sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+  "controller_sha256": "8dd55b89cf2287415bb26a7cd8f7454990888591420700ed3d9401fe50df965b",
+  "actual_native_completed_utc": "2026-11-02T16:23:41.549472+00:00",
+  "source_delta": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/lua/model-animation-characterization.lua",
+    "eech-campaign/crates/eech-world/lua/model-authority.lua",
+    "eech-campaign/crates/eech-world/lua/model-horizon-control.lua",
+    "eech-campaign/crates/eech-world/lua/route-characterization.lua",
+    "eech-campaign/crates/eech-world/tests/env_ambient_authority.rs",
+    "eech-campaign/crates/eech-world/tests/env_lightning_queue.rs",
+    "eech-campaign/crates/eech-world/tests/env_play_resumed_parent.rs",
+    "eech-campaign/crates/eech-world/tests/env_rotor_sounds.rs",
+    "eech-campaign/crates/eech-world/tests/env_sector_authority.rs",
+    "eech-campaign/crates/eech-world/tests/env_sector_characterization.rs",
+    "eech-campaign/crates/eech-world/tests/env_sound_characterization.rs",
+    "eech-campaign/crates/eech-world/tests/env_sound_handle.rs",
+    "eech-campaign/crates/eech-world/tests/env_sound_handle_guard.rs",
+    "eech-campaign/crates/eech-world/tests/env_sound_init.rs",
+    "eech-campaign/crates/eech-world/tests/env_sound_lifetime.rs",
+    "eech-campaign/crates/eech-world/tests/env_sound_native_guard.rs",
+    "eech-campaign/crates/eech-world/tests/env_sound_route.rs",
+    "eech-campaign/crates/eech-world/tests/env_sound_wide_children.rs",
+    "eech-campaign/crates/eech-world/tests/env_wind_authority.rs",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+    "eech-campaign/crates/eech-world/tests/model_animation_characterization.rs",
+    "eech-campaign/crates/eech-world/tests/model_horizon_control.rs",
+    "eech-campaign/crates/eech-world/tests/model_store.rs",
+    "eech-campaign/crates/eech-world/tests/route_characterization.rs"
+  ],
+  "four_changed_runtime_drivers": [
+    {
+      "path": "eech-campaign/crates/eech-world/lua/model-animation-characterization.lua",
+      "old_sha256": "5357398e5fd30affa008ba10cad3de23f5688e4df3427e058b6a8f0cf3b0ee76",
+      "new_sha256": "3c21d3708f5cfd17416c0d49faed5c96fe414bbe9a100cc9364f06a5f05bfa45",
+      "only_single_required_environment_field_added": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/model-authority.lua",
+      "old_sha256": "6f442c4ade40690c6b03c7712ad74866e8851b4f135fe2f1f90167e530a69c2e",
+      "new_sha256": "0932c108f028e01e722a1d5345d91545523184053d5e00a8158d3cef4ef06e67",
+      "only_single_required_environment_field_added": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/model-horizon-control.lua",
+      "old_sha256": "c9e5ba7df996b70570327045fa6be3e9d7724f25a3a8b6307aff4241cba989a0",
+      "new_sha256": "975d0591cfa70e5ae3fc754a3b9c930abf0c5d8514bfaa1d0888026eeb95f3a1",
+      "only_single_required_environment_field_added": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/route-characterization.lua",
+      "old_sha256": "33c67030443ceb17adcea18a8b95d9248e361c30645f1d4173cafafca4ae0e95",
+      "new_sha256": "8a10ac6e8a49879c1440afc084be6a8f81b9373a2c763204be80e4ff2f0819c4",
+      "only_single_required_environment_field_added": true
+    }
+  ],
+  "all_other_tracked_entries_and_modes_exact": true,
+  "unchanged_executed_environment_and_campaign_drivers": true,
+  "scope": "NEW integrated e9 unarmed120 control after required reference profile/model provider; entire stream literally equals retained parent and closed78 trace, no normalization. Corrected bce changes only tests/STATUS and four UNEXECUTED model/route boot configs. Runtime C/Rust/Cargo/kernel/env/campaign inputs unchanged; e9 actual NOT relabelled as newsource native. Newbce G/L/build/test/CI/fullshipping stillrequired. No full callerFP/visual/wholeTask50/D3 acceptance."
+}

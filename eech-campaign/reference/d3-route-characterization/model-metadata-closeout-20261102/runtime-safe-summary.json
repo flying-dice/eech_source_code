@@ -1,0 +1,187 @@
+{
+  "source": "5515993fdc2fc0a28029723896b0228a5fe68f20",
+  "created_utc": "2026-11-02T15:39:40.441491+00:00",
+  "cases": [
+    {
+      "case": "georgia",
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 59,
+      "completed_utc": "2026-11-02T15:36:26.974331+00:00",
+      "controller_sha256": "eb2cbde1f45d33bb5e91009739053104fbd2a235d690d1a6664599cabfd4c8b2"
+    },
+    {
+      "case": "lebanon",
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 59,
+      "completed_utc": "2026-11-02T15:36:26.326765+00:00",
+      "controller_sha256": "1138b24d9e7218a91d65f98c7b6d86011cf03f473fb82973d49782d17a0927fb"
+    },
+    {
+      "case": "residency",
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 59,
+      "completed_utc": "2026-11-02T15:38:06.412792+00:00",
+      "controller_sha256": "674b2c97342733bc16faa7ee78422b8cf5d86f230a5b5fb1bace219f8bc0ec99"
+    },
+    {
+      "case": "object-withheld",
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 59,
+      "completed_utc": "2026-11-02T15:38:02.051909+00:00",
+      "controller_sha256": "953fad05c68c3abf4a230ecf9e5fb496bf7602c9ccd9d71f6dae888a91839372"
+    },
+    {
+      "case": "animation-withheld",
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 59,
+      "completed_utc": "2026-11-02T15:38:18.961738+00:00",
+      "controller_sha256": "ffae60d1cec0264f3f4250b8161295d28606cf35c63458f97ff3164c99749844"
+    },
+    {
+      "case": "animation-changed",
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 59,
+      "completed_utc": "2026-11-02T15:38:22.999998+00:00",
+      "controller_sha256": "f764c58060189622391dbc2ee12dbd18d8c187c74ebb00e8dcd6ac23ac963de3"
+    },
+    {
+      "case": "short-recording",
+      "actual_controller_exit": 0,
+      "actual_native_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 59,
+      "completed_utc": "2026-11-02T15:38:40.620389+00:00",
+      "controller_sha256": "35f0a67c5c251241fe4dda58ac18b5cf3a02176ee415516e2140f1fc66cf6d2d"
+    }
+  ],
+  "all_seven_controllers_and_natives_exit0": true,
+  "all_fourteen_full_retail_pre_post_checks_exit0": true,
+  "literal_original_lists_report": "R:\\d3-evidence\\model-L2-literal-lists-5515993fdc-20261102.json",
+  "literal_original_lists_report_sha256": "c494c411042f5b76bcadc65aef7c7ac00a664f9df008e89d9977b510650fb6b8",
+  "complete_bounded_campaign_comparison": [
+    {
+      "file": "recording.acmi",
+      "original_path": "R:\\d3-evidence\\model-reference-profile-recording-80fd62ea4-20261030\\recording.acmi",
+      "candidate_path": "D:\\EECH-Migration-Evidence\\model-L2-actual-5515993fdc-20261102\\short-recording\\recording.acmi",
+      "bytes": 230871,
+      "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+      "complete_literal_equal_including_endings": true
+    },
+    {
+      "file": "observations.jsonl",
+      "original_path": "R:\\d3-evidence\\model-reference-profile-recording-80fd62ea4-20261030\\observations.jsonl",
+      "candidate_path": "D:\\EECH-Migration-Evidence\\model-L2-actual-5515993fdc-20261102\\short-recording\\observations.jsonl",
+      "bytes": 1553674,
+      "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+      "complete_literal_equal_including_endings": true
+    },
+    {
+      "file": "metrics.json",
+      "original_path": "R:\\d3-evidence\\model-reference-profile-recording-80fd62ea4-20261030\\metrics.json",
+      "candidate_path": "D:\\EECH-Migration-Evidence\\model-L2-actual-5515993fdc-20261102\\short-recording\\metrics.json",
+      "bytes": 7477,
+      "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+      "complete_literal_equal_including_endings": true
+    }
+  ],
+  "configuration": "hours0.001/record1/record_every10/observe_every1/observe_supply1; campaign defaultsseed1/frame100ms; combined route+model-host fixture, not ordinary shipping",
+  "residency": {
+    "event": "residency",
+    "faces": 0,
+    "metadata_rows": 9715,
+    "pass": true,
+    "point_refs": 0,
+    "points": 0,
+    "rows": 11442,
+    "surface_points": 0
+  },
+  "metadata": {
+    "animation_asked": 376,
+    "animation_ends": 144,
+    "animation_names": 232,
+    "event": "metadata",
+    "objects_absent": 15240,
+    "objects_asked": 41549,
+    "objects_found": 26309,
+    "pass": true,
+    "rows_confirmed": 16593,
+    "rows_filled": 9716,
+    "rows_replaced": 1
+  },
+  "horizon_cache": {
+    "cached": 32,
+    "event": "horizon_cache",
+    "pass": true,
+    "uncached": 0
+  },
+  "scope": "Finite L2 metadata ownership/compatibility evidence; named fatal caught means control succeeds, not successful object/animation/horizon response. Changed digit-list membership is observed; campaign ID-number RNG consequences are source-characterized, not a new causal runtime claim. No visual inspection/full shipping/wholeTask50/D3 acceptance. Linux/finalindependentreview still separate.",
+  "private_complete_audit_sha256": "845076ba15e0517fe425a8daaa5c976d98de6e3c08560fd824c908c4ed9ef8e9",
+  "publication_scope": "Safe summary created from the retained complete private audit; not a literal copy of that whole audit. Raw lists, retail assets, native output streams and binaries stay private.",
+  "negative_controls": [
+    {
+      "event": "boot_failed",
+      "mode": "object_withheld",
+      "stage": "boot",
+      "expected_marker": "[model-provider:object.absent]",
+      "matched": true,
+      "tripped": true
+    },
+    {
+      "event": "boot_failed",
+      "mode": "animation_withheld",
+      "stage": "boot",
+      "expected_marker": "[model-provider:animation.absent]",
+      "matched": true,
+      "tripped": true
+    }
+  ],
+  "changed_animation_control": {
+    "mode": "animation_dropped",
+    "scene": 2782,
+    "definition": 1,
+    "consequence": true,
+    "digit_animation": true,
+    "final_status": "empty",
+    "final_count": 0
+  },
+  "healthy_original_count": 3,
+  "healthy_row_literal_original_equal": true,
+  "horizon_named_reader_refusal": {
+    "refused": true,
+    "matched": true,
+    "primary": "runtime error: eech: EECH fatal error: host model: [model-provider:object.geometry] add_3d_horizon_image (an uncached horizon image: no pre-processed .bin of the object's point count for this image) is a legacy visual / display reader of a model's point, face, face-point-reference or surface-point buffer, which the hosted campaign no longer holds and does not serve (no renderer, cockpit display or HUD is supported)"
+  }
+}

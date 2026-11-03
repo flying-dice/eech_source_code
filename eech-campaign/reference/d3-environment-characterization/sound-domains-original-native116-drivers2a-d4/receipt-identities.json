@@ -1,0 +1,156 @@
+[
+  {
+    "private_original": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-4\\controller.json",
+    "private_original_sha256": "1b619c77f63c1cba49bbd0fdeb19e3af2789af58e88aa575da75bc8cd8425ba8",
+    "published": "case-4-controller.json",
+    "published_sha256": "d6e41246c77abcf85eebbf5a42e8e805ef1e492149753b82d13219b2ba3fbbf6",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-5\\controller.json",
+    "private_original_sha256": "5092c64141f63818e4fae1d7b4c561c78fc70bcc57f6a5ce115b541cbc91384b",
+    "published": "case-5-controller.json",
+    "published_sha256": "81a158829e827a66ca516be67964ecbd8a51c6c559bf2f2c5543fd19338b8c6d",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-6\\controller.json",
+    "private_original_sha256": "f1a123a06363628ae687f9cea7217d9b79b622ba5f3a13a9f1a00232b15a7802",
+    "published": "case-6-controller.json",
+    "published_sha256": "d1ca7e75e33a02d476ec59bce042be176161ccf47ff952b245549912776a5435",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-7\\controller.json",
+    "private_original_sha256": "459a0b597445c9c166f309af33c64f42cda028eda5bbf3fc48b00b01f0463139",
+    "published": "case-7-controller.json",
+    "published_sha256": "a028beae744c4ea8adcdc15ad4ce90fab979d9f555d24c76e0036c47880e010e",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-8\\controller.json",
+    "private_original_sha256": "be7e385aad6aac90a52cbe7c6b762713b7a5726d3274e162ca2b86efa95e8c60",
+    "published": "case-8-controller.json",
+    "published_sha256": "e2f6de1313eec578393ff49b9c937da10fc9b3b322972f2aad9883c5d973e85f",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-original-sound-domain-controls-d4cebb76d-20261031\\case-9\\controller.json",
+    "private_original_sha256": "e768c19cdfa066151098e0bd3b26360a9acafb85490935fc7c489f119274c0fb",
+    "published": "case-9-controller.json",
+    "published_sha256": "177cd00781477a8a30e0efc136962420571e9af05cca2c9e204c95b05c71ff18",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-original-sound-domain-controls-d4cebb76d-20261031\\case-10\\controller.json",
+    "private_original_sha256": "3959fbded8067dbfc5703bb33d7733093afef95983c149040215914728894ca2",
+    "published": "case-10-controller.json",
+    "published_sha256": "64fc0a9fbbe14c954e83cba34b714fbeb0c98e42e51be3ab9d246bb178f96338",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-9\\controller.json",
+    "private_original_sha256": "027cf9dc869efbf0d1822880098750d2c0ec84d4b530abb4fa9401fa3e887c43",
+    "published": "failed-initial-case-9-controller.json",
+    "published_sha256": "ca869fd0cf94bb01e18852c7c976b4c9a5706a3f55d6ca70dc158f23819ebe9d",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\controller.json",
+    "private_original_sha256": "4de57111ea61805003ad74984cf37dc694205bcfffd08aae809abca71578b3ba",
+    "published": "initial-aggregate-controller.json",
+    "published_sha256": "9ddba50bfa1a3900c9381244b4f4d4df4f56a727c6dbf929f5462ef49441ac29",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-original-sound-domain-controls-d4cebb76d-20261031\\controller.json",
+    "private_original_sha256": "f092c063b793259c83dcfe5e56fdbbabf0d3e539826dea8e0200a4b81d857418",
+    "published": "recovery-aggregate-controller.json",
+    "published_sha256": "bc084b47e267dff412f1d68df5abf6858a0e5463926130b4ae3a853d1a364009",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\original-sound-domain-combined-native116-drivers2a-d4-20261031.json",
+    "private_original_sha256": "5b888f83e16a1e436797d5b09b95661b827e74c7c3a1fa702b357657b640ce9b",
+    "published": "combined-observations-safe.json",
+    "published_sha256": "5e138f4c607383c71ac9c658e8c9f9c6257276fc9a2ccbf93555f82ebe21d64a",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\original-sound-native116ffd5fb-driver-2a4139830-equivalence-20261031.json",
+    "private_original_sha256": "3462a0b034cd362bb82eec2b31e3f248a05938a742c8b57f137bbf687d928579",
+    "published": "original-sound-native116ffd5fb-driver-2a4139830-equivalence-20261031.json",
+    "published_sha256": "628090afc4777495c3387a177be79123e757dba8bcf7adcd1ba5d26a36c5eff6",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\original-sound-native116ffd5fb-driver-d4cebb76d-equivalence-20261031.json",
+    "private_original_sha256": "d0db717c002ef15da236595e91dd53c7631a5f7fe2d95cc232d961bc3fa56496",
+    "published": "original-sound-native116ffd5fb-driver-d4cebb76d-equivalence-20261031.json",
+    "published_sha256": "9d11b2d8b0f99284aafdce05ff326f545be2951c06d3d7efcb560bb5d3954bef",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-sound-entity-original-116ffd5fb-windows-20261031-completion.json",
+    "private_original_sha256": "5d3b877f2671cf8da372d301f3a357f2d0b746660ee984d89c459a99776e8b6b",
+    "published": "environment-sound-entity-original-116ffd5fb-windows-20261031-completion.json",
+    "published_sha256": "3363f0db2ac7fbd7677ad092a816ad64e19f342cd1ae2e13e689f98af700ccdf",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-sound-entity-original-116ffd5fb-linux-20261031-completion.json",
+    "private_original_sha256": "be497068eb703578c28226f03e52aa403b35236c5df5985d6462aa234338a381",
+    "published": "environment-sound-entity-original-116ffd5fb-linux-20261031-completion.json",
+    "published_sha256": "316052c2d7ad183e1e1a9faaaafbe27b5c6af478584ca8e60109bb7a0fff2d0e",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-sound-entity-original-2a4139830-linux-20261031-completion.json",
+    "private_original_sha256": "e689e614a340e62d6797bc18806ff72ccbefccb1fa6f8b6cc08174344ae5ad50",
+    "published": "environment-sound-entity-original-2a4139830-linux-20261031-completion.json",
+    "published_sha256": "da8c112d5034afa6b53edb9984f28b7fe7b04213cd7416e451153aa594120178",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-sound-entity-original-d4cebb76d-linux-20261031-completion.json",
+    "private_original_sha256": "387d091c864bb35fbac0c28e2818b78a93639321a93c4866841cd491289a17a2",
+    "published": "environment-sound-entity-original-d4cebb76d-linux-20261031-completion.json",
+    "published_sha256": "c40e308f91cdaaecccd5c8829396df00a48a6de636702b388358d947bf144c2d",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\independent-environment-original-sound-domain-source-review-bcb7142d4-20261031.json",
+    "private_original_sha256": "5fcc60a4b36e626e5c4da682c7b17f10b0ba165465902009fe52033a3b1fd5f6",
+    "published": "independent-environment-original-sound-domain-source-review-bcb7142d4-20261031.json",
+    "published_sha256": "d45ed7c54950c3ac5291e4de0e5e095236db5f02367c1d9b2f9f3eda08a10caf",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\independent-environment-original-sound-domain-source-review-116ffd5fb-20261031.json",
+    "private_original_sha256": "08724f3c44f11ff6ca5b89ee0083b2453ae801fcd4881f12a52292224ed35664",
+    "published": "independent-environment-original-sound-domain-source-review-116ffd5fb-20261031.json",
+    "published_sha256": "9d0c591334812010524b601175911d05a456755eebfa018b36a363ec01b8aab0",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\independent-environment-original-sound-domain-source-review-2a4139830-20261031.json",
+    "private_original_sha256": "903d4227f42ec50ad0aeecc457cf7b1575a79c29c2831c568358d815031ce37f",
+    "published": "independent-environment-original-sound-domain-source-review-2a4139830-20261031.json",
+    "published_sha256": "af35bc592995163d5d5409e6bffe11d6a2cf3237b88b8d5df563d8462ac00b12",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\independent-environment-original-sound-pause-isolation-source-review-d4cebb76d-20261031.json",
+    "private_original_sha256": "31e18c5325f87ac83bc0528c0fb21b29f4e4978157a1fa32116ed0738e9316fe",
+    "published": "independent-environment-original-sound-pause-isolation-source-review-d4cebb76d-20261031.json",
+    "published_sha256": "4b82502d7de9d74f9c87fc3e39888993bf211ff5639e2f19099c0b458f76cbb8",
+    "scope": "Safe metadata LF publication: allocation slot IDs removed and repeated event-name lists collapsed. Private complete raw files are untouched."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\independent-environment-original-sound-domain-final-actual-review-native116-drivers2a-d4-20261031.json",
+    "private_original_sha256": "89c26171dc9ec62080647db6a9b1b88b627837cb2bf32de694ce3bd902caa3d2",
+    "published": "independent-environment-original-sound-domain-final-actual-review-native116-drivers2a-d4-20261031.json",
+    "published_sha256": "185ba8afb8f7e5a0f4b0e801adee40f52d4a7ebd21ac0af55912e79979f598c5",
+    "scope": "Safe final actual review; LF metadata publication, no raw measured bytes changed"
+  }
+]

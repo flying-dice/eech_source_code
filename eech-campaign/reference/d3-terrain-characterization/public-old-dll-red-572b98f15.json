@@ -1,0 +1,164 @@
+{
+  "scope": "Bounded public host-Lua -> actual originalDLL controls; explicit hybrid and0.1s/oneframe, no wholecampaign/Tacview acceptance",
+  "hybrid": {
+    "scope": "Explicit test-only hybrid: new6f host and Lua with immutable olda8 DLL. Not a shipping bundle and not relabelled as single-source build.",
+    "host_source": "6f13beae1a0b7b1da7bc42c4b1e68e14f19a50d7",
+    "dll_source": "a8effa9f3213c595c4d38f7a00e6a1b845cc1f6d",
+    "files": [
+      {
+        "file": "eech_dc.dll",
+        "bytes": 17918014,
+        "sha256": "c34b258b5cd5d507f42a836161eb4bf1ae6a3bb9f7a4282db80a0b3c989ce119"
+      },
+      {
+        "file": "eech-world.exe",
+        "bytes": 2754457,
+        "sha256": "297a89f80d0aa10b312ae4137491bb6be4e2f3144cf7be1ac016aa99e14c27e1"
+      },
+      {
+        "file": "lua.dll",
+        "bytes": 615397,
+        "sha256": "7b2ec3f3fd174f6b65a2159ee46dc8e9102624a350d978e16ddf4396d7c2be0b"
+      }
+    ]
+  },
+  "script_source": "572b98f15928d7ca4d5677f9db3a9aa9179c8d35",
+  "script_sha256": "9627dfbd2c1ca2e30f7a89c2d7771ebe56264c4eb57fe442d80d3d04bb4c33dd",
+  "cases": [
+    {
+      "mode": "reference",
+      "native_record": {
+        "status": "completed",
+        "kind": "Public terrain provider case; explicit test-only6fhost/a8DLL hybrid for RED",
+        "mode": "reference",
+        "arguments": "R:/d3-evidence/terrain-provider-red-hybrid-6f13beae1/terrain-provider-572b98f15.lua root=R:/d3-evidence/provider-red-roots/reference scenario=lebanon_retail seconds=0.1 frame_ms=100 mode=reference out=R:/d3-evidence/provider-red-572b98f15/reference/summary.jsonl",
+        "binary": "R:\\d3-evidence\\terrain-provider-red-hybrid-6f13beae1\\eech-world.exe",
+        "script": "R:/d3-evidence/terrain-provider-red-hybrid-6f13beae1/terrain-provider-572b98f15.lua",
+        "script_sha256": "9627dfbd2c1ca2e30f7a89c2d7771ebe56264c4eb57fe442d80d3d04bb4c33dd",
+        "actual_native_exit": 1,
+        "pid": 24424,
+        "created_utc": "2026-10-29T10:52:58.4345637Z",
+        "completed_utc": "2026-10-29T10:53:05.0877250Z"
+      },
+      "summary": [
+        {
+          "event": "summary",
+          "failure": "",
+          "fast_calls": 0,
+          "frames_completed": 1,
+          "frames_requested": 1,
+          "los_terrain_count": 1164,
+          "los_terrain_sum": "232000.902",
+          "malformed_sent": false,
+          "map_calls": 0,
+          "mode": "reference",
+          "placed_count": 1444,
+          "placed_sum": "759892.264",
+          "point_calls": 0
+        }
+      ],
+      "classification": "Meaningful new-contract RED on original unmoved DLL; no setup/frame failure in healthy control",
+      "reason": "Healthy boot/frame and public output completed, then final script assertion rejects providerunused. Reason tied to measured counts and audited assertion path; primary Rust text may be interleaved/overwritten by Cstderr.",
+      "log_sha256": "9cb6df87b8012d70d72db3240fbe93b55cf60e625e639ecd9357bccc248c4663"
+    },
+    {
+      "mode": "raised",
+      "native_record": {
+        "status": "completed",
+        "kind": "Public terrain provider case; explicit test-only6fhost/a8DLL hybrid for RED",
+        "mode": "raised",
+        "arguments": "R:/d3-evidence/terrain-provider-red-hybrid-6f13beae1/terrain-provider-572b98f15.lua root=R:/d3-evidence/provider-red-roots/raised scenario=lebanon_retail seconds=0.1 frame_ms=100 mode=raised out=R:/d3-evidence/provider-red-572b98f15/raised/summary.jsonl",
+        "binary": "R:\\d3-evidence\\terrain-provider-red-hybrid-6f13beae1\\eech-world.exe",
+        "script": "R:/d3-evidence/terrain-provider-red-hybrid-6f13beae1/terrain-provider-572b98f15.lua",
+        "script_sha256": "9627dfbd2c1ca2e30f7a89c2d7771ebe56264c4eb57fe442d80d3d04bb4c33dd",
+        "actual_native_exit": 1,
+        "pid": 22848,
+        "created_utc": "2026-10-29T10:52:58.4346150Z",
+        "completed_utc": "2026-10-29T10:53:05.0824242Z"
+      },
+      "summary": [
+        {
+          "event": "summary",
+          "failure": "",
+          "fast_calls": 0,
+          "frames_completed": 1,
+          "frames_requested": 1,
+          "los_terrain_count": 1164,
+          "los_terrain_sum": "232000.902",
+          "malformed_sent": false,
+          "map_calls": 0,
+          "mode": "raised",
+          "placed_count": 1444,
+          "placed_sum": "759892.264",
+          "point_calls": 0
+        }
+      ],
+      "classification": "Meaningful new-contract RED on original unmoved DLL; no setup/frame failure in healthy control",
+      "reason": "Healthy boot/frame and public output completed, then final script assertion rejects providerunused. Reason tied to measured counts and audited assertion path; primary Rust text may be interleaved/overwritten by Cstderr.",
+      "log_sha256": "6d895a6897c83a3c881d83a13bf4553c07b57d9ffce027816d0f25143337094e"
+    },
+    {
+      "mode": "missing",
+      "native_record": {
+        "status": "completed",
+        "kind": "Public terrain provider case; explicit test-only6fhost/a8DLL hybrid for RED",
+        "mode": "missing",
+        "arguments": "R:/d3-evidence/terrain-provider-red-hybrid-6f13beae1/terrain-provider-572b98f15.lua root=R:/d3-evidence/provider-red-roots/missing scenario=lebanon_retail seconds=0.1 frame_ms=100 mode=missing out=R:/d3-evidence/provider-red-572b98f15/missing/summary.jsonl",
+        "binary": "R:\\d3-evidence\\terrain-provider-red-hybrid-6f13beae1\\eech-world.exe",
+        "script": "R:/d3-evidence/terrain-provider-red-hybrid-6f13beae1/terrain-provider-572b98f15.lua",
+        "script_sha256": "9627dfbd2c1ca2e30f7a89c2d7771ebe56264c4eb57fe442d80d3d04bb4c33dd",
+        "actual_native_exit": 1,
+        "pid": 4596,
+        "created_utc": "2026-10-29T10:52:58.4345623Z",
+        "completed_utc": "2026-10-29T10:53:04.9032666Z"
+      },
+      "summary": [],
+      "classification": "Meaningful new-contract RED on original unmoved DLL; no setup/frame failure in healthy control",
+      "reason": "Actual primary log states campaign booted without terrain provider; script rejects missing new contract.",
+      "log_sha256": "ae0d8bde9b15abb8eefd98444670dbf50ddbff3e06d93192728cc3d04540985c"
+    }
+  ],
+  "all_three_pre_inputs": [
+    {
+      "case": "reference",
+      "actual_exit": 0
+    },
+    {
+      "case": "raised",
+      "actual_exit": 0
+    },
+    {
+      "case": "missing",
+      "actual_exit": 0
+    }
+  ],
+  "all_three_post_inputs": [
+    {
+      "case": "reference",
+      "actual_exit": 0
+    },
+    {
+      "case": "raised",
+      "actual_exit": 0
+    },
+    {
+      "case": "missing",
+      "actual_exit": 0
+    }
+  ],
+  "source_kernel_unchanged_6f_to572": true,
+  "local_guards": {
+    "actual_exit": 0,
+    "completed_utc": "2026-10-29T10:57:39.0928837Z",
+    "source": "7eae2424b78570a31719aa7df2a67a1e602ae139",
+    "scope": "Actual Windows realLua5.1 embedded real-script driver guards; no campaign/DLL/retail behavior claim",
+    "failed_export_first": "Inline WSL-shell export exited1 mkdir emptyargument; no native ran. File-based export succeeds separately."
+  },
+  "local_backend": {
+    "actual_exit": 0,
+    "completed_utc": "2026-10-29T10:55:09.9292748Z",
+    "source": "572b98f15928d7ca4d5677f9db3a9aa9179c8d35",
+    "test": "terrain_backend",
+    "scope": "Actual Windows focused synthetic kernel or realLua5.1 driver controls; not campaign or retail acceptance"
+  }
+}

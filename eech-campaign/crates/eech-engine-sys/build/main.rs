@@ -97,6 +97,125 @@ fn main() {
         write_if_changed(&tree.join(file), &patched);
     }
 
+    // 1a0. EEDCS-50 (D3): the host-owned model data. The four model accessors of the 3d module ask the host (patches.rs, MODEL_HOST_PATCHES). The ONE build that keeps
+    //      the original accessors is feature model-fixture, whose purpose is to ask them what they answer; it has no host, and the two model features exclude each other.
+    let model_fixture = env::var_os("CARGO_FEATURE_MODEL_FIXTURE").is_some();
+    assert!(
+        !(model_fixture && env::var_os("CARGO_FEATURE_MODEL_HOST_FIXTURE").is_some()),
+        "features model-fixture (the original accessors) and model-host-fixture (the host's) exclude each other"
+    );
+    if !model_fixture {
+        for file in patches::model_host_files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let text: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = patches::apply_model_host(file, &text).chars().map(|c| c as u32 as u8).collect();
+            write_if_changed(&staged, &patched);
+        }
+    }
+
+    // 1a0b. EEDCS-52 (D3): the host-owned target-point OFFSETS and QUERIES. initialise_target_point_offsets asks the host for each scene's local offset and get_local_entity_target_point for its chain, world and fixed positions (patches.rs, TARGET_POINT_HOST_PATCHES) in every
+    //      build that has a host model. The builds that keep the ORIGINAL initialiser on purpose are feature target-point-fixture (the original characterisation, whose observer hooks
+    //      are inside the original body) and feature model-fixture (the original accessors, no host).
+    if !model_fixture && env::var_os("CARGO_FEATURE_TARGET_POINT_FIXTURE").is_none() {
+        for file in patches::target_point_host_files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let text: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = patches::apply_target_point_host(file, &text).chars().map(|c| c as u32 as u8).collect();
+            write_if_changed(&staged, &patched);
+        }
+    }
+
+    // 1a1. EEDCS-50 (D3): the host-owned ROUTE data. The airfield route parser takes its nodes and line faces from the host (patches.rs, ROUTE_HOST_PATCHES) in every build that has
+    //      a host model. The builds that keep the ORIGINAL parser on purpose are feature model-fixture (the original accessors, no host) and feature route-original (the original
+    //      route characterisation: the observer of the unmoved parser).
+    let original_route = model_fixture || env::var_os("CARGO_FEATURE_ROUTE_ORIGINAL").is_some();
+    assert!(
+        !(original_route && env::var_os("CARGO_FEATURE_MODEL_HOST_FIXTURE").is_some() && !model_fixture),
+        "feature route-original keeps the original route parser and cannot be combined with model-host-fixture, which diagnoses the host-owned model data"
+    );
+    if !original_route {
+        for file in patches::route_host_files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let text: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = patches::apply_route_host(file, &text).chars().map(|c| c as u32 as u8).collect();
+            write_if_changed(&staged, &patched);
+        }
+        // 1a2. EEDCS-50 (D3): the loader detachment (patches.rs, LOADER_HOST_PATCHES). With the route parser on the host, the common and custom loaders keep no point,
+        //      polygon face, face-point-reference or surface-point buffer; the same two original-keeping builds (model-fixture, route-original) read them, so they keep the original loader.
+        for file in patches::loader_host_files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let text: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = patches::apply_loader_host(file, &text).chars().map(|c| c as u32 as u8).collect();
+            write_if_changed(&staged, &patched);
+        }
+        // 1a3. EEDCS-50 (D3, L2): the model-file METADATA loaders (patches.rs, LOADER_META_PATCHES). The common and custom model-file loaders no longer parse a model file: the host is
+        //      asked for the object count, for the metadata of every object a scene names (by scene, role and cursor) and for the animation references of a custom scene. Applied to the
+        //      staged text LOADER_HOST_PATCHES produced, in the same builds (model-fixture and route-original keep the original loaders).
+        for file in patches::loader_meta_files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let text: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = patches::apply_loader_meta(file, &text).chars().map(|c| c as u32 as u8).collect();
+            write_if_changed(&staged, &patched);
+        }
+        // 1a4. TEST-ONLY (feature model-host-fixture, EEDCS-50 D3 L2): observation hooks at the real stages of the scenes' texture animation lists (patches.rs, HOST_ANIM_FIXTURE_PATCHES),
+        //      so the host profile's animation rows report the allocation, reads and fills that happened. With the feature off the staged files are the shipping ones.
+        if env::var_os("CARGO_FEATURE_MODEL_HOST_FIXTURE").is_some() {
+            for file in patches::host_anim_fixture_files() {
+                let staged = tree.join(file);
+                let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+                let text: String = bytes.iter().map(|&b| b as char).collect();
+                let patched: Vec<u8> = patches::apply_host_anim_fixture(file, &text).chars().map(|c| c as u32 as u8).collect();
+                write_if_changed(&staged, &patched);
+            }
+        }
+    }
+
+    // 1a. TEST-ONLY (feature model-fixture, EEDCS-50): observation hooks in the staged model loader, on top of the shipping patches above (patches.rs,
+    //     MODEL_FIXTURE_PATCHES). With the feature off the staged files are exactly the shipping ones: step 1 rewrote them from the original and the
+    //     shipping patches this run.
+    if env::var_os("CARGO_FEATURE_MODEL_FIXTURE").is_some() {
+        for file in patches::model_fixture_files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let text: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = patches::apply_model_fixture(file, &text).chars().map(|c| c as u32 as u8).collect();
+            write_if_changed(&staged, &patched);
+        }
+    }
+
+    // 1a2. TEST-ONLY (feature route-fixture, EEDCS-50 D3): observation hooks in the staged ORIGINAL airfield route parser (routegen.c) and its route-object lookup
+    //      (popread.c), patches.rs ROUTE_FIXTURE_PATCHES. Neither file has a shipping patch; with the feature off the staged files are exactly the shipping ones.
+    if env::var_os("CARGO_FEATURE_ROUTE_FIXTURE").is_some() {
+        for file in patches::route_fixture_files(original_route) {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let text: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = patches::apply_route_fixture(file, &text, original_route)
+                .chars()
+                .map(|c| c as u32 as u8)
+                .collect();
+            write_if_changed(&staged, &patched);
+        }
+    }
+
+    // 1a3. TEST-ONLY (feature target-point-fixture, EEDCS-52 D3): observation hooks in the staged ORIGINAL get_local_entity_target_point (en_maths.c), initialise_target_point_offsets
+    //      (wn_dbase.c) and the two campaign callers that reach the query (weapon.c, wn_move.c), patches.rs TARGET_POINT_FIXTURE_PATCHES. None of the four files has a shipping
+    //      patch (random.c also gets the one srand announcement); with the feature off the staged files are exactly the shipping ones.
+    if env::var_os("CARGO_FEATURE_TARGET_POINT_FIXTURE").is_some() {
+        for file in patches::target_point_fixture_files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let text: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = patches::apply_target_point_fixture(file, &text).chars().map(|c| c as u32 as u8).collect();
+            write_if_changed(&staged, &patched);
+        }
+    }
+
     // 1b. TEST-ONLY red build (feature dependent-fixture-old-guard): the staged copy of rv_hostmv.c gets the boolean apply guard
     //     EEDCS-40 replaced by a depth counter. The source tree and the shipping build are untouched.
     if env::var_os("CARGO_FEATURE_DEPENDENT_FIXTURE_OLD_GUARD").is_some() {
@@ -150,6 +269,8 @@ fn main() {
         .define("EECH_CAMPAIGN_HOST_ARRIVALS", None)
         .define("EECH_CAMPAIGN_HOST_MOVEMENT", None)
         .define("EECH_CAMPAIGN_HOST_LOS", None)
+        .define("EECH_CAMPAIGN_HOST_TERRAIN", None)
+        .define("EECH_CAMPAIGN_HOST_ENV", None)
         .opt_level_str(&opt)
         .debug(true)
         .pic(true)
@@ -178,6 +299,9 @@ fn main() {
     if env::var_os("CARGO_FEATURE_SENSOR_FIXTURE").is_some() {
         build.define("EECH_SENSOR_FIXTURE", None);
     }
+    if env::var_os("CARGO_FEATURE_TERRAIN_FIXTURE").is_some() {
+        build.define("EECH_TERRAIN_FIXTURE", None);
+    }
     if env::var_os("CARGO_FEATURE_AIM_FIXTURE").is_some() {
         build.define("EECH_AIM_FIXTURE", None);
     }
@@ -186,6 +310,39 @@ fn main() {
     }
     if env::var_os("CARGO_FEATURE_COLLISION_FIXTURE").is_some() {
         build.define("EECH_COLLISION_FIXTURE", None);
+    } else {
+        // EEDCS-49 (D3): get_line_of_sight_collision_tree asks the host (mb_hostterrain.h, TREE_BEGIN and TREE_TERRAIN; en_cllsn.c). The ONE build that keeps the original tree
+        // solver is feature collision-fixture, the original characterisation, whose observer hooks are inside the original body.
+        build.define("EECH_CAMPAIGN_HOST_TREE", None);
+    }
+    if env::var_os("CARGO_FEATURE_MODEL_FIXTURE").is_some() {
+        build.define("EECH_MODEL_FIXTURE", None);
+    } else {
+        // EEDCS-50 (D3): the campaign asks the host for model data (mb_hostmodel.h)
+        build.define("EECH_CAMPAIGN_HOST_MODEL", None);
+    }
+    if env::var_os("CARGO_FEATURE_MODEL_HOST_FIXTURE").is_some() {
+        build.define("EECH_MODEL_HOST_FIXTURE", None);
+    }
+    if env::var_os("CARGO_FEATURE_FPU_TEST_SUPPORT").is_some() {
+        build.define("EECH_FPU_TEST_SUPPORT", None);
+    }
+    if env::var_os("CARGO_FEATURE_ENV_FIXTURE").is_some() {
+        build.define("EECH_ENV_FIXTURE", None);
+    }
+    if env::var_os("CARGO_FEATURE_ENV_OBSERVER").is_some() {
+        build.define("EECH_ENV_OBSERVER", None);
+    }
+    if env::var_os("CARGO_FEATURE_GROUND_FIXTURE").is_some() {
+        build.define("EECH_GROUND_FIXTURE", None);
+    }
+    if env::var_os("CARGO_FEATURE_ROUTE_FIXTURE").is_some() {
+        build.define("EECH_ROUTE_FIXTURE", None);
+    }
+    if env::var_os("CARGO_FEATURE_TARGET_POINT_FIXTURE").is_some() {
+        build.define("EECH_TARGET_POINT_FIXTURE", None);
+        // EEDCS-52: every rand () of this build is counted (csrc/eech_tp_rand.h renames it; the real call happens once, in place); no other build includes the header
+        build.flag("-include").flag(manifest.join("csrc/eech_tp_rand.h").to_str().unwrap());
     }
     if windows {
         build.flag("-include").flag(manifest.join("csrc/eech_win32_names.h").to_str().unwrap());

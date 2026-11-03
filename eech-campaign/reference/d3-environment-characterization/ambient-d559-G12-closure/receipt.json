@@ -1,0 +1,48 @@
+{
+  "source": "d559c38592405afcabc172ec876a4fdfa7f9687b",
+  "scope": "G12fixture-only correction source/real16-17-20/guards/bothstrict/current9CI/independentreview closed. Production/G11 exactf6, numeric/FP/fullpackage receipts reused under prior sourceproof. No changed-host amplitude/audio/player/render/Tacview/fullshipping/Task51/D3acceptance. No retail assets/raw coordinates copied.",
+  "entries": [
+    {
+      "file": "Windows-build-completion.json",
+      "original_private": "R:\\d3-evidence\\environment-sound-host-d559c3859-windows-20261031-completion.json",
+      "original_SHA256": "1236e9081fe655a788a87f82de13072277bbc34502a71d8c4e5bd7e39e28102e",
+      "retained_Git_LF_SHA256": "c6da09681e53fb2b671611bb070f05bc46b3e40174385a5e85a998c798f6c6bf"
+    },
+    {
+      "file": "Linux-guards-both-strict-completion.json",
+      "original_private": "R:\\d3-evidence\\environment-sound-host-d559c3859-linux-20261031-completion.json",
+      "original_SHA256": "59678f48300b8cff7c3a9618d218c824750ae4d871e31af53d2f72e6689cb42c",
+      "retained_Git_LF_SHA256": "62aed1733cdd92eeb1174d15152a741224ed79ab85971bf422bdecec4c25af5a"
+    },
+    {
+      "file": "real-wide-controller.json",
+      "original_private": "R:\\d3-evidence\\environment-sound-wide-d559c3859-real-fixed-20261031\\controller.json",
+      "original_SHA256": "37a22d7a436367111b7e27561e74d80a7a4908e6f6dfafb0d3fa0ecea21b07be",
+      "retained_Git_LF_SHA256": "aa80ea35e81caa115f2a97b59bfafa72376a40ec0a21afb0d51c00302b52e7ba"
+    },
+    {
+      "file": "real-wide-summary.json",
+      "original_private": "R:\\d3-evidence\\environment-sound-G12-d559-real-control-summary-20261031.json",
+      "original_SHA256": "e5ad20ce4d38a62748f35e038c90de812d2d29c06f807403e39e2e13360856b7",
+      "retained_Git_LF_SHA256": "861f72ee6f535a4ba60ad17d8c20d5169cef37f2dc8b62c4ee899318c5b23c26"
+    },
+    {
+      "file": "independent-source-and-real-control-review.json",
+      "original_private": "R:\\d3-evidence\\independent-environment-G12-correction-review-d559c3859-20261031.json",
+      "original_SHA256": "4cbd6867393c961cf79f93da596dd55cc7d69d577bb68ba91d4c7b269cf236c6",
+      "retained_Git_LF_SHA256": "a3f1d8653dd1428f858aff6da7f537bb1b0681f6fada33de05ac57c0726d19bd"
+    },
+    {
+      "file": "current-CI.json",
+      "original_private": "R:\\d3-evidence\\current-CI-d559c3859-20261031.json",
+      "original_SHA256": "ad6334eb4856b3f84eb09579ed7e3e6893bf7587fadf250c3316e0af44e8b881",
+      "retained_Git_LF_SHA256": "ad6334eb4856b3f84eb09579ed7e3e6893bf7587fadf250c3316e0af44e8b881"
+    },
+    {
+      "file": "ledger92-preservation.json",
+      "original_private": "R:\\d3-evidence\\ledger-ambient-G12-v92-preservation-20261031.json",
+      "original_SHA256": "7686a6ffca56ad68eb95f53e61f493696dfc598b07259331a308dccfc5f88304",
+      "retained_Git_LF_SHA256": "7686a6ffca56ad68eb95f53e61f493696dfc598b07259331a308dccfc5f88304"
+    }
+  ]
+}

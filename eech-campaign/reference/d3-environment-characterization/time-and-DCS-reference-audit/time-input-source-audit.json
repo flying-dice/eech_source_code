@@ -1,0 +1,88 @@
+{
+  "scope": "Bounded read-only source/dataflow audit of existing frame/time/weather path, not a complete time-service inventory, code move or Task51/D3 acceptance.",
+  "source": "e3439025ac8217f651d68105d8dd3e81c14b4c73",
+  "read_frozen_source": "a1002fb8d1381cace7fa76bf404b78335ac85486",
+  "files": [
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "git_blob": "d128bc1be656bec7bf0b29eed691a0c0fc41b75c",
+      "read_frozen_file_sha256": "0bd9b287383f11ff30178094d5c87b0933c7ecd62e0dd5b06bfd5a95bc540341"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "git_blob": "3c340aeed0e91067a3d3752722dfdb1484800ab1",
+      "read_frozen_file_sha256": "90d9a71390752282e45ea9f18b60f2a2c1ec6c3ac40c6aff0fc9086cfc1db106"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "git_blob": "e1942158a5ee22568cbc05642fc02f671019dbc0",
+      "read_frozen_file_sha256": "7fe83d37599ce568797ed06ade429aa63fc46b0f7d8fb917b93243e8edaaa94d"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_log.c",
+      "git_blob": "46157254256b21a142c94b7b2aff8d0730d7757f",
+      "read_frozen_file_sha256": "d375ba2781e687f4e2d10ff502ae22bc234ac20749a6f2f6d1eba3b60b54080b"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_win32.c",
+      "git_blob": "2c59d5afd24ffbc9dc964397d0a03653b02c7d4d",
+      "read_frozen_file_sha256": "018eb52de818c39c639116e83d2d7f7458ef38e1bf9a275e57d34bc71af004bc"
+    },
+    {
+      "path": "modules/system/time.c",
+      "git_blob": "6f9110c1d935b4abf80c92a0c36dae9c15ab74a3",
+      "read_frozen_file_sha256": "9d25618d2c3dc55bd08240da31b4c7ce029d2a9df2bfa1faa00162f4a2062e5b"
+    },
+    {
+      "path": "aphavoc/source/entity/special/session/ss_updt.c",
+      "git_blob": "c7aa8cadf94f272b0acd81a579052ddc73309788",
+      "read_frozen_file_sha256": "265855d209a81e359cfc47cff437b09c2d396c077b42dd5a94657b11a1219cf7"
+    },
+    {
+      "path": "aphavoc/source/entity/special/session/ss_hostenv.c",
+      "git_blob": "58374607fd11b08981f6a9e9aa25a15b0948b024",
+      "read_frozen_file_sha256": "eb6b4c9db66f055606f9be7f4af3db6e985c71de3cd2aa13e6c48b46530db360"
+    }
+  ],
+  "facts": [
+    {
+      "ref": "eech-campaign/crates/eech-dc/src/module.rs:2136",
+      "fact": "Public Lua engine:frame accepts milliseconds:u32 and forwards caller time to Engine.frame."
+    },
+    {
+      "ref": "eech-campaign/crates/eech-engine/src/lib.rs:4673",
+      "fact": "Engine.frame passes milliseconds unchanged to native eech_engine_frame with installed callbacks."
+    },
+    {
+      "ref": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c:330",
+      "fact": "Native frame runs entity/update/timer work first, then advances headless milliseconds and calls set_delta_time. Original previous-frame delta phase is deliberately preserved."
+    },
+    {
+      "ref": "eech-campaign/crates/eech-engine-sys/csrc/eech_log.c:11",
+      "fact": "A uint32 simulated_ms mirror is read, advanced by caller milliseconds and set from configuration; these operations sample no wall clock."
+    },
+    {
+      "ref": "eech-campaign/crates/eech-engine-sys/csrc/eech_win32.c:933",
+      "fact": "timeGetTime delegates to the simulated millisecond mirror."
+    },
+    {
+      "ref": "modules/system/time.c:117",
+      "fact": "Reset delta begins at0.1. set_delta_time computes the float millisecond difference/1000 with original zero-delta and locked-rate behavior. No timing semantics changed."
+    },
+    {
+      "ref": "aphavoc/source/entity/special/session/ss_hostenv.c:391",
+      "fact": "Physical weather request.delta reads get_delta_time at its original point before clock advance, then host field solver consumes that delta."
+    },
+    {
+      "ref": "aphavoc/source/entity/special/session/ss_updt.c:81",
+      "fact": "Campaign elapsed/time-of-day acceleration, skip-night/day-segment and resync/scheduling semantics remain campaign-owned; do not move them merely because they concern time."
+    }
+  ],
+  "reuse": "Closed original observer variable-frame/init/entropy/phase evidence native765/driver235 and independent390d2c review stays at its own identity; no rerun/new runtime claim.",
+  "pending": [
+    "Reconcile remaining required physical absolute/delta time consumers as effects/services move.",
+    "Justified candidate variable-frame physical/observer comparison after production cutovers against retained originals; no repeated original handover runs.",
+    "Verify targetDCS time API or explicit workaround; no liveM6 operation claimed."
+  ],
+  "created_utc": "2026-10-31T12:45:31.785014+00:00"
+}

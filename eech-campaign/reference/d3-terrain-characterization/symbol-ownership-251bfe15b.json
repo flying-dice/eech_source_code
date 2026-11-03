@@ -1,0 +1,51 @@
+{
+  "source": "251bfe15b4f1a21c3cdd987db9dbf416be508287",
+  "scope": "Actual shipping binary/object ownership audit, not runtime/fullD3 acceptance",
+  "old_point_triangle_and_scratch_symbols_in_DLL": [],
+  "point_query_owner": [
+    "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/f6fc6cb7fd4fea60-mb_hostterrain.o:0000000000000000 T get_3d_terrain_point_data"
+  ],
+  "fast_query_owner": [
+    "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/f6fc6cb7fd4fea60-mb_hostterrain.o:0000000000000000 T get_3d_terrain_fast_elevation"
+  ],
+  "shared_value_cache_owner": [
+    "/target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/f6fc6cb7fd4fea60-mb_hostterrain.o:0000000000000000 d system_point_data"
+  ],
+  "host_numeric_point_solver_in_world": true,
+  "original_legacy_terrsel_load_generation_helpers_still_present": [
+    ".pdata$check_coastal_river_intersection",
+    ".pdata$display_terrain_simple_elevation_statistics",
+    ".pdata$generate_terrain_simple_elevation",
+    ".pdata$initialise_terrain_simple_elevation",
+    ".pdata$load_terrain_simple_elevation",
+    ".pdata$save_terrain_simple_elevation",
+    ".pdata$unload_terrain_simple_elevation_grid",
+    ".text$check_coastal_river_intersection",
+    ".text$display_terrain_simple_elevation_statistics",
+    ".text$generate_terrain_simple_elevation",
+    ".text$initialise_terrain_simple_elevation",
+    ".text$load_terrain_simple_elevation",
+    ".text$save_terrain_simple_elevation",
+    ".text$unload_terrain_simple_elevation_grid",
+    ".xdata$check_coastal_river_intersection",
+    ".xdata$display_terrain_simple_elevation_statistics",
+    ".xdata$generate_terrain_simple_elevation",
+    ".xdata$initialise_terrain_simple_elevation",
+    ".xdata$load_terrain_simple_elevation",
+    ".xdata$save_terrain_simple_elevation",
+    ".xdata$unload_terrain_simple_elevation_grid",
+    "check_coastal_river_intersection",
+    "display_terrain_simple_elevation_statistics",
+    "generate_terrain_simple_elevation",
+    "initialise_terrain_simple_elevation",
+    "load_terrain_simple_elevation",
+    "save_terrain_simple_elevation",
+    "unload_terrain_simple_elevation_grid"
+  ],
+  "limits": "Native loader/legacy grid generation and G2/G3 data remain transitional D3 coupling. New client shared value-cache symbol is legitimate; no blanket system_point_data absence claim. Source251has open4P2/1P3 findings.",
+  "raw_symbol_tables": {
+    "production-terrain-251bfe15b-object-symbols.txt": "27a6c55a722ab3db8e332692c963e41afef9484a44f5270f4e703c61effde2ed",
+    "production-terrain-251bfe15b-dll-symbols.txt": "4f93710ddda5bdb2ba56959053a6bf9d980befa37a16b618cf1dc91a5181302f",
+    "production-terrain-251bfe15b-world-symbols.txt": "1923b23acd67a52d1578fba3c2369c32e6bd50946517208ab230ed21c9009890"
+  }
+}

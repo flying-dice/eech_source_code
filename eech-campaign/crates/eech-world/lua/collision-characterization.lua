@@ -1026,11 +1026,17 @@ end
 
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
+-- the reference host's arithmetic profile, selected right after the installation is prepared and before the boot (src/reference_arithmetic.rs); the original tree and entity solvers run inside the module's own entry and do not read it
+host.use_reference_arithmetic ()
+-- the integrated module (Tasks 47, 50, 51) is booted with the host's terrain, model and environment providers exactly as lua/campaign.lua does, and the original-profile tree and entity
+-- solvers of this fixture (feature collision-fixture, EEDCS-49) read the HOST-backed terrain and models, not the original ones: the record and fold rows of this driver are the host-terrain
+-- profile (see eech_collision_fixture.c) and its physical words are the ones comparable with the original-terrain evidence
 local engine = dc.boot {
 	install_root = root, map = scenario.map, campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache",
 	seed = 1, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
 	supply_reached = host.supply_reached,
 	line_of_sight = host.line_of_sight,
+	terrain = host.terrain_provider (root, scenario.map), environment = host.env_provider (), model = host.model,
 	sense = host.sense, aim = host.aim,
 }
 do

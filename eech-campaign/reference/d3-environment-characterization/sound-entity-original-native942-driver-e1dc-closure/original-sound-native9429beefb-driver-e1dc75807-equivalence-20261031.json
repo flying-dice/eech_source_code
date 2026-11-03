@@ -1,0 +1,20 @@
+{
+  "native_source": "9429beefb9a8e143b648e01c390075882e6e6361",
+  "driver_source": "e1dc758074fba7fa8a4af99604ceecb85cf20483",
+  "changed_files": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+    "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+    "eech-campaign/crates/eech-world/tests/env_sound_lifetime.rs",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+    "eech-campaign/docs/d3-sound-lifetime.md"
+  ],
+  "C_Rust_production_and_build_inputs_byte_identical": true,
+  "current_script_sha256": {
+    "env-characterization.lua": "a63f7617cd4030a6c4ab7a90470dbdc867002d22b04bbfd5a47cfa332a7aaed0",
+    "env-sound-lifetime.lua": "f6d1641f7254ec1f4e89b2df25753994e6cceb81a5b86b768e91854d5f23852a"
+  },
+  "native_validation_source": "9429beefb9a8e143b648e01c390075882e6e6361",
+  "native_validation_actual_gate": "R:\\d3-evidence\\environment-sound-entity-original-9429beefb-linux-20261031-completion.json",
+  "scope": "New revision changes only two Lua report validators/tests/docs. PhysicalC, observer/fixtureC and everyRustproduction/Cargo/buildinput are BYTEIDENTICAL to tested942native. Use new pinned script override per run; keep actualnative942 metadata and all55originalpayloadhashes unchanged. NewcurrentWorldprotocol/fmt/strict checks are additional, not a relabeled942 run."
+}

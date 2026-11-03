@@ -1,0 +1,133 @@
+{
+  "created_utc": "2026-11-02T19:48:29.788334+00:00",
+  "task": "EEDCS-52",
+  "epic": "EEDCS-21",
+  "scope": "Finite ORIGINAL diagnostic boot census and reached branch1 slice only. No physical host-query extraction or all-branch/Task52/Task50/D3 acceptance. No Tacview/full-pack/FPU-equivalence claim.",
+  "source": "2f7445c4d7ad43cc88e91e1e1f0e8d5932a05e8b",
+  "earlier_complete_original_source": "7af39eca7384425c3d2f093def531d1b41df3a0b",
+  "gates": {
+    "default_and_target_point_fixture_package_commands_exit0": true,
+    "driver_guards_each": 23,
+    "fmt_and_both_strict_exit0": true,
+    "windows_fixture_build_exit0": true,
+    "build_queue_completed_utc": "2026-11-02T19:40:33.617272+00:00"
+  },
+  "cases": [
+    {
+      "scenario": "georgia_retail",
+      "source": "2f7445c4d7ad43cc88e91e1e1f0e8d5932a05e8b",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "all_pre_post_input_manifests_exit0": true,
+      "all84_payloads_and_clean_snapshot_unchanged": true,
+      "done": {
+        "boot_calls": 1,
+        "branches_reached": "1",
+        "census_complete": true,
+        "complete": true,
+        "event": "done",
+        "events": 1,
+        "frames": 36,
+        "generations": 2,
+        "malformed": false,
+        "natural_queries_reached": true,
+        "queries": 0,
+        "queries_whole": true,
+        "total_calls": 1
+      },
+      "full_diagnostic_jsonl_bytes": 2109072,
+      "full_diagnostic_jsonl_sha256": "eb9ddf2b24b947a4da833311ebf0411316e733a8c36b071e0661db619d0bde15",
+      "full_diagnostic_jsonl_literal_equal_to7af": true,
+      "per_pass_raw_products": [
+        {
+          "generation": 0,
+          "boot_text_bytes": 522093,
+          "boot_text_sha256": "8fde232992a03a66b1cb9d68b057a75083c26377eee47a298557b8968846a5ae",
+          "end_text_sha256": "8fde232992a03a66b1cb9d68b057a75083c26377eee47a298557b8968846a5ae",
+          "raw_text_before_after_equal": true
+        },
+        {
+          "generation": 1,
+          "boot_text_bytes": 522093,
+          "boot_text_sha256": "00e6cccc03d4e802d99679cf19c9c71643c5b185cf5a29962bf10ae3d956e3e1",
+          "end_text_sha256": "00e6cccc03d4e802d99679cf19c9c71643c5b185cf5a29962bf10ae3d956e3e1",
+          "raw_text_before_after_equal": true
+        }
+      ],
+      "each_pass_rows": 3026,
+      "each_pass_counts": {
+        "sub_object": 587,
+        "bbox": 2438,
+        "invalid_zero": 1
+      },
+      "query_viewpoint_changed_count": 1,
+      "query_generations": [
+        1
+      ],
+      "private_raw_directory": "D:\\EECH-Migration-Evidence\\target-point-original-actual-2f7445c4d7-20261102\\georgia"
+    },
+    {
+      "scenario": "lebanon_retail",
+      "source": "2f7445c4d7ad43cc88e91e1e1f0e8d5932a05e8b",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "all_pre_post_input_manifests_exit0": true,
+      "all84_payloads_and_clean_snapshot_unchanged": true,
+      "done": {
+        "boot_calls": 1,
+        "branches_reached": "1",
+        "census_complete": true,
+        "complete": true,
+        "event": "done",
+        "events": 217,
+        "frames": 36,
+        "generations": 2,
+        "malformed": false,
+        "natural_queries_reached": true,
+        "queries": 216,
+        "queries_whole": true,
+        "total_calls": 217
+      },
+      "full_diagnostic_jsonl_bytes": 2262589,
+      "full_diagnostic_jsonl_sha256": "db8a5da7da29288e1e09adb61a634ffcb092cfd121b1fc1813c70eb9f21be407",
+      "full_diagnostic_jsonl_literal_equal_to7af": true,
+      "per_pass_raw_products": [
+        {
+          "generation": 0,
+          "boot_text_bytes": 522093,
+          "boot_text_sha256": "8fde232992a03a66b1cb9d68b057a75083c26377eee47a298557b8968846a5ae",
+          "end_text_sha256": "8fde232992a03a66b1cb9d68b057a75083c26377eee47a298557b8968846a5ae",
+          "raw_text_before_after_equal": true
+        },
+        {
+          "generation": 1,
+          "boot_text_bytes": 522093,
+          "boot_text_sha256": "00e6cccc03d4e802d99679cf19c9c71643c5b185cf5a29962bf10ae3d956e3e1",
+          "end_text_sha256": "00e6cccc03d4e802d99679cf19c9c71643c5b185cf5a29962bf10ae3d956e3e1",
+          "raw_text_before_after_equal": true
+        }
+      ],
+      "each_pass_rows": 3026,
+      "each_pass_counts": {
+        "sub_object": 587,
+        "bbox": 2438,
+        "invalid_zero": 1
+      },
+      "query_viewpoint_changed_count": 3,
+      "query_generations": [
+        1
+      ],
+      "private_raw_directory": "D:\\EECH-Migration-Evidence\\target-point-original-actual-2f7445c4d7-20261102\\lebanon"
+    }
+  ],
+  "independent_review_sha256": "1ef9ff3b9d58ba713440e5e66ed948818408e2a805fe045e41d975b5486f6ba6",
+  "known_unmeasured": [
+    "branches2/3/4 and their subcases",
+    "gd_attck direct offset-table consumer",
+    "physical host authority and refusal",
+    "preservation of complete ordinary campaign recordings after extraction"
+  ],
+  "preserved_failures": "73 driver clock/protocol failure; d1 two-pass boot census failure; 7c synthetic partial-report collision; failed logs retained privately, not relabelled. Lost d1 first-pass words remain unavailable.",
+  "next": "New controlled-original probe source34a is building separately. Its review has a finite live-list cohort-safety finding under investigation; no new probe actual or all-case coverage claim.",
+  "delivery_dependency": "Task50 PR110 bce ordinary40/all8 still running; PR112 remains draft and stacked. Accepted Task51/a42 reused. D4/D5 unstarted."
+}

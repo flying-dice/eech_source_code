@@ -1,0 +1,167 @@
+{
+  "review": "Focused host route workspace/progress correction and completed actual evidence",
+  "source": {
+    "head": "50e7f9d8578c7d283b6a47f01a0e2d09e24cfd2f",
+    "base": "def6a9bdec11e5f8a27451d8057162a34f340693",
+    "frozen_repository": "D:\\EECH-Migration-Evidence\\route-host-50e7f9d85",
+    "diff_sha256": "c754afe29a355e4299f733d5422865190a2932da095036fb8d3176384d49ad02",
+    "changed_git_blob_sha256": {
+      "STATUS.md": "1f095292c90067de5e228a59422077cc07709305b57f5c224284ec7fff341228",
+      "aphavoc/source/entity/mobile/mb_hostmodel.c": "e97f8a7bc962ed3c0a1faf3d54568a24f5a9804a8cafbdeaaa29b97fbadba97d",
+      "eech-campaign/crates/eech-engine-sys/build/patches.rs": "e88a4f0b30acb1e3ed5c467ee186da4efa8481c4fa71354d97d149e9f6dfc877",
+      "eech-campaign/docs/m5-route-characterization.md": "73b4b709e590131addd01824e1fb68092028c5b8912f8bfb54e6fa107b1a072a"
+    }
+  },
+  "prior_report": {
+    "path": "R:/d3-evidence/independent-model-host-route-source-actual-def6a9bde-20261101.json",
+    "sha256": "63027184fff24cd2d2d774aaef1a4d19d089320eff3658b621db3300e041b293"
+  },
+  "scope": "Only new workspace/progress guards and cleanup, plus the supplied completed actual/comparator/helper evidence. Unchanged ABI, store, lookup order, catalogue, decode kernel and original reviews are reused. No reviewer builds/tests/native executions/source mutations or nested agents.",
+  "findings": [
+    {
+      "id": "ENV-HOST-ROUTE-BOUNDARY-2",
+      "priority": "P1",
+      "title": "End-slot matching can still write past the starting-node table when swapping the primary tree",
+      "locations": [
+        "aphavoc/source/ai/faction/routegen.c:955",
+        "aphavoc/source/ai/faction/routegen.c:985",
+        "aphavoc/source/ai/faction/routegen.c:1164",
+        "aphavoc/source/ai/faction/routegen.c:1184",
+        "aphavoc/source/ai/faction/routegen.c:1188",
+        "eech-campaign/crates/eech-engine-sys/build/patches.rs:H13-route-end-slot-match-passes"
+      ],
+      "evidence": "The new start/link capacity and loop guards do not guard swap_waypoint_nodes final resolved indices. match_end_slots can select node_index 0 for a swap when host-supplied positions place another same-depth leaf at the requested slot. On different trees, swap_waypoint_nodes ascends to their roots, then searches waypoint_starting_nodes from index 1. A selected primary root at index 0 is not found. With 24 valid starts, the search returns 24; the existing ASSERT is the only check before writing waypoint_starting_nodes[24]. The new outer 4096-pass limit is reached after this unsafe write and cannot protect it.",
+      "source_only_shape": "A bounded 24-tree forest, each with a same-depth leaf, fits the new start/link limits and makes progress normally. A primary branch identifies the first tree. Host-controlled leaf positions can cause end-slot matching to exchange the index-0 leaf with another tree. This is a source-backed counterexample, not a native execution or retail-data claim.",
+      "required_change": "Validate each resolved root-swap index against the actual starting-node count and array capacity before ASSERT and before either write, with a named host-route refusal. Preserve valid original matching order and policy; do not silently skip or redirect index 0. Keep any corresponding common-parent child-index writes subject to a proven lookup-success condition or a named prewrite check. Add only a bounded corrected-source guard control; never run this shape on the known-unsafe old or 50e native.",
+      "impact": "Residual of the same untrusted topology/workspace boundary; prevents finite production-route slice closure."
+    }
+  ],
+  "source_review_no_blocking_findings": false,
+  "finite_slice_closed": false,
+  "source_corrections_verified": {
+    "starts_and_links": "Named checks are before start-table ASSERT/write and before both child/parent writes. Node/face scalar and storage checks remain unchanged.",
+    "progress": "Primary and remaining passes compare their own monotonically decreasing remaining counts. set_node_indices starts fresh on every invocation, including calls from end-slot swaps. Each per-depth loop uses a separate phase. A no-progress pass refuses before a repeated pass.",
+    "matching_work_limit": "4096 is explicitly a newly supported work limit, not a mathematical bound derived from the original matching algorithm. No accepted baseline is excused if it reaches the limit.",
+    "start_reads": "Zero starts and an unresolved primary-start index are checked before the corresponding reads/swap.",
+    "cleanup_P2_closed": true,
+    "cleanup": "Hosted unused bounds/max/scale setup removed; original-profile patch bypass retained. campaign_model_route_probe definition is now EECH_MODEL_HOST_FIXTURE-only and its body is unchanged. No default-symbol nm absence is claimed.",
+    "unchanged_components": "Only STATUS, mb_hostmodel.c, staged patches and route documentation differ from def6. Provider/store/kernel/ABI/public FP harness and all other tracked entries/modes are unchanged."
+  },
+  "actual_verification": {
+    "builds": {
+      "windows_combined_route_and_model_fixture": {
+        "actual_exit": 0,
+        "completed_utc": "2026-11-01T20:28:48.690181Z",
+        "scope": "Two declared standard-builder line adaptations; no shipping-flag claim"
+      },
+      "linux": {
+        "actual_exit": 0,
+        "completed_utc": "2026-11-01T20:34:51.374743Z",
+        "package_passes_default": 562,
+        "package_passes_combined": 562,
+        "failures": 0,
+        "result_rows_each": 23,
+        "fmt_and_both_strict": 0
+      }
+    },
+    "corrected_captures": {
+      "native_source": "50e7f9d8578c7d283b6a47f01a0e2d09e24cfd2f",
+      "actual_native_and_controller_exits": 0,
+      "controls": 4,
+      "full_input_checks": 8,
+      "unchanged_payloads_each": 57,
+      "georgia": {
+        "calls": 704,
+        "nodes_index_and_float_words_equal_to_FCE": 21116,
+        "ordered_resolved_faces_equal": 17467,
+        "literal_graph_rows_equal_including_endings": 87869,
+        "complete_repeat_bytes": 10337109,
+        "sha256": "53b9ddc61e962003081fb577def24f8b2f4ef2f71a28a488c180b319257e01f8"
+      },
+      "lebanon": {
+        "calls": 528,
+        "nodes_index_and_float_words_equal_to_FCE": 15783,
+        "ordered_resolved_faces_equal": 13175,
+        "literal_graph_rows_equal_including_endings": 65965,
+        "complete_repeat_bytes": 7758545,
+        "sha256": "7de455637bda01ded949366ddf5969b9f07eff7b4d21abf1ca1a79f20258d08f"
+      },
+      "complete_repeats_literal_equal": true,
+      "unmeasured_bounds_absent": true,
+      "whole_cross_profile_files_equal": false,
+      "limits": "No raw-short/surface/local invention. Selected semantic fields compare exactly; graph cohorts compare literally with endings. Earlier 8b zero-bounds captures remain defect-bearing, unchanged and distinct."
+    },
+    "topology_controls": {
+      "native_source": "50e7f9d8578c7d283b6a47f01a0e2d09e24cfd2f",
+      "native_exit_each": 1,
+      "controller_exit_each": 0,
+      "controls": 4,
+      "full_input_checks": 8,
+      "unchanged_payloads_each": 57,
+      "observed_guards": [
+        "25th start in 24-entry table",
+        "25th child in 24-entry table",
+        "primary pass with 2 nodes left and no progress",
+        "remaining pass with 3 nodes left and no progress"
+      ],
+      "complete_synthetic_topology_delivered": true,
+      "queries_after_complete_each": 0,
+      "helper_hardpins_corrected_50e_source": true,
+      "old_unsafe_native_executed": false,
+      "limits": "No postfatal engine/buffer inspection. Parent capacity, empty routes, node-index/per-depth progress, match limit and the new residual swap case are not measured controls."
+    },
+    "bounded_ordinary_campaign": {
+      "native_source": "50e7f9d8578c7d283b6a47f01a0e2d09e24cfd2f",
+      "native_and_controller_exit": 0,
+      "full_input_checks": 2,
+      "unchanged_payloads": 57,
+      "three_complete_artifacts_literal_equal_to_retained_80fd": true,
+      "recording_bytes": 230871,
+      "observations_bytes": 1553674,
+      "metrics_bytes": 7477,
+      "endings_included": true,
+      "failed_first_attempt_retained": "First launch native0/controller1/post-input1 omitted explicit output paths and added campaign.acmi. It remains failed; fresh corrected launch used retained exact output arguments, with no exclusions or baseline change."
+    },
+    "reused_authority": {
+      "source": "8b4562edbfdf6cc2b066ba50afe87b5495e05945",
+      "scope": "Prior independently checked shift of 15783 node-Z words changes 3020 actual Core positions; three scalar/callback named stops have no provider queries after injection. Not relabelled 50e and not topology safety."
+    },
+    "full_fp": {
+      "source": "def6a9bdec11e5f8a27451d8057162a34f340693",
+      "native_controllers": 5,
+      "native_and_controller_exit_each": 0,
+      "full_input_checks": 10,
+      "unchanged_payloads_each": 57,
+      "measured_entries": 16,
+      "counter_entries": 8,
+      "route_entries": 8,
+      "route_successes": 4,
+      "route_refusals": 4,
+      "all_four_rounding_controls": true,
+      "raw_x87_control_status_and_mxcsr_before_after_literal_equal": true,
+      "actual_route_found_before_measurement": true,
+      "limits": "Finite def6 public counters/route-probe entry only, including refusals; not 50e parser/topology-guard/boot FP proof, not full public/caller FP equivalence."
+    }
+  },
+  "evidence_sha256": {
+    "model-host-route-source-50e7f9d85-20261101.json": "3d137804ea4ced73f3ea524c7aea367908707836d5946a7e1dee04cb4344b785",
+    "model-host-route-first-cohort-compare-50e7f9d85-20261101.json": "663c61cbb9aa82221a59bd2e696d12e99ecb89159152e157ca694b7a76ea67e0",
+    "model-host-route-complete-repeats-50e7f9d85-20261101.json": "3628d9bc19fc27a84f7f7847a46427dfc83a9ea97e5441fcbd111b28fdba3cc7",
+    "model-host-route-topology-guards-actual-50e7f9d85-20261101.json": "8ac592dbbb0edcc8c29dc9c413cd99617fca15fe90a5c9906a0631a490307ce3",
+    "model-host-route-short-byte-compare-50e7f9d85-v80-20261101.json": "e93e9ead3f10cbbd21359e26d628a61990d86b4be875b2995fdd37d755ea82d8",
+    "model-host-route-full-fp-def6a9bde-20261101.json": "7ac2a0c7be066861c0f12f74104411872105dc66ada430fa518df2fc46a6b540",
+    "compare-host-route-cohorts-50e7f9d85-20261101.py": "33a80d280fea21a9219277a393666f57fbd7abc3414f9f43ddc9bf5f13a50f11",
+    "audit-host-route-topology-guards-50e7f9d85-20261101.py": "9e99b3d80127a1fd40afce0ef043f9443129f5892a301afbfd16bd2c8f1cf073",
+    "host-route-topology-controls-20261101.lua": "4c793621acf105c14d339f02b42956cd76f3bd0c2a93f6e3b70cb9c95226c405",
+    "run-host-route-topology-control-20261101.py": "c24c0b271c3a520d204b38ce7e2b0247cd3a22a6f7cc7a240a7db3a28079e7a4",
+    "audit-host-route-full-fp-def6a9bde-20261101.py": "5716dce1bff0810f7618847e74818f2b64f53e691d69251be6cf30ebf4e0062f",
+    "model-host-route-50e7f9d85-linux-20261101-completion.json": "f33abe4c2cef15d8ab795c683c125c65e8a569c4a615adb98bb1a5943de34da9",
+    "model-host-route-50e7f9d85-windows-20261101-completion.json": "19ef32f2f2f8cabaf10da827ebb6308ba3d05b223f1cb42fcfa72806934a45ae"
+  },
+  "next_unmet_gate": "One finite prewrite swap-index correction and appropriately scoped corrected-source guard evidence. Current successful captures and four named refusals are useful but cannot prove this missing boundary safe.",
+  "limits": [
+    "No raw scene, geometry, graph, retail coordinates or private identity values are reproduced here.",
+    "No geometry-loader detachment, hierarchy/viewpoint/device/muzzle/targetpoint or Task49 collision acceptance.",
+    "No whole Task50, Task51, D3, full shipping forty-check/eight-file, visual/Tacview, normal merge or delivery closure."
+  ]
+}

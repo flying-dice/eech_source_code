@@ -1,0 +1,55 @@
+{
+  "source": "ba4f5d42a85a63e6f5467da692018349eb9da0ec",
+  "previous_source": "2020436ce160ac3762f00f7ee8290f4e6247bce3",
+  "scope": "Read-only exact byte comparison; diagnostic envelope count additions classified; neither report rewritten or normalized. Not Tacview/campaign acceptance.",
+  "cases": [
+    {
+      "case": "georgia",
+      "rows": 3357,
+      "all_physical_scene_triangle_and_other_rows_byte_identical": true,
+      "only_changed_row": {
+        "line": 3352,
+        "event": "compare",
+        "added_fields": {
+          "original_catalogue_scenes": 3025,
+          "original_geometry_scenes": 11
+        },
+        "byte_delta": 63
+      },
+      "new_raw_sha256": "ed3503b12227fec13cadd2d56b62296cdb08e5bd2e5b76f0ac61db776fc59317",
+      "new_raw_bytes": 1278336
+    },
+    {
+      "case": "lebanon",
+      "rows": 3357,
+      "all_physical_scene_triangle_and_other_rows_byte_identical": true,
+      "only_changed_row": {
+        "line": 3352,
+        "event": "compare",
+        "added_fields": {
+          "original_catalogue_scenes": 3025,
+          "original_geometry_scenes": 11
+        },
+        "byte_delta": 63
+      },
+      "new_raw_sha256": "ed3503b12227fec13cadd2d56b62296cdb08e5bd2e5b76f0ac61db776fc59317",
+      "new_raw_bytes": 1278336
+    },
+    {
+      "case": "lebanon-repeat",
+      "rows": 3357,
+      "all_physical_scene_triangle_and_other_rows_byte_identical": true,
+      "only_changed_row": {
+        "line": 3352,
+        "event": "compare",
+        "added_fields": {
+          "original_catalogue_scenes": 3025,
+          "original_geometry_scenes": 11
+        },
+        "byte_delta": 63
+      },
+      "new_raw_sha256": "ed3503b12227fec13cadd2d56b62296cdb08e5bd2e5b76f0ac61db776fc59317",
+      "new_raw_bytes": 1278336
+    }
+  ]
+}

@@ -1,0 +1,298 @@
+{
+  "review_kind": "independent combined source correctness, clean-code, boundary-safety and actual retained-original parity review of the NEW host-only target-point geometry prototype",
+  "reviewed_utc": "2026-11-02T22:01:34.428428+00:00",
+  "source": {
+    "head": "0cb7b991453b2c13aba1266cdee44abd9be8d7eb",
+    "base": "ca048937995da98138bddcdcc66752520b683f33",
+    "snapshot": "D:/EECH-Migration-Evidence/target-point-original-0cb7b99145",
+    "full_index_binary_diff_sha256": "d8b378eeb11da4c7c672ab1cd7d99d29841db70f7180c1190b85ae6bb2c819a8",
+    "changed_entries": [
+      {
+        "path": "STATUS.md",
+        "bytes": 925917,
+        "sha256": "0cc5cb396129a9ec300101b50e99e622f57d41075cff7133bfd245fdc326996e",
+        "mode": "100644"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/model_step.c",
+        "bytes": 32812,
+        "sha256": "8f1ae4cfea10b6fc93ffa8b4b4646edcdcc441818b7d4d73cd6df74c58847d5a",
+        "mode": "100644"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+        "bytes": 72896,
+        "sha256": "55c19f989f4df34c4f64598f30cc77eca097dd4fa0f0e3f500f814d7c012475f",
+        "mode": "100644"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/models.rs",
+        "bytes": 147216,
+        "sha256": "431d3a860420e1a0883d213e4cbfe95d510e10933ea9c79f7cfe5d580f45adaa",
+        "mode": "100644"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+        "bytes": 33169,
+        "sha256": "22472e1060be393d73db6e10105664c5812adfb8576a5d3cf6569dda9d4a0dc1",
+        "mode": "100644"
+      },
+      {
+        "path": "eech-campaign/docs/d3-target-point-characterization.md",
+        "bytes": 46501,
+        "sha256": "8a91eeb15fd73950ab5355a127ae50a7c5c1ce80385efa285b298da559ba2c54",
+        "mode": "100644"
+      }
+    ],
+    "change_scope": "Six paths only. No Core source, engine/sys ABI, callback structure, original query/initializer/caller body, Cargo configuration, build flags, regression baseline or retained oracle changes.",
+    "kernel_component_identity": "model_step.c at corrected0cb7 is whole-byte exact83df5b8714; the pre-existing base kernel file is an exact prefix of it. Later corrections change the new API empty-slot semantics/comparison, fixtures, a mechanical Rust type alias and prose, not the added arithmetic."
+  },
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "finite_declared_state_host_numeric_parity_slice_closed": true,
+  "Core_query_or_initializer_cutover_accepted": false,
+  "Task52_delivery_accepted": false,
+  "source_review": [
+    {
+      "area": "Original operation order and precision",
+      "evidence": "The new bbox body retains the original float sum followed by double0.5, double0.0 max and float assignment. The new world body retains ancestor order, component scaling before the row-vector transform, position accumulation, cumulative scale update, heading/-pitch/-roll matrix construction and sub_attitude*attitude multiplication. Matrix expressions match the original non-OGRE functions. No normalization or rule fix was introduced.",
+      "locations": [
+        "eech-world/csrc/model_step.c:665-817",
+        "modules/3d/3dobjdb.c:3428",
+        "aphavoc/source/entity/mobile/weapon/wn_dbase.c:6748",
+        "modules/maths/matrix.c:436,492"
+      ]
+    },
+    {
+      "area": "First-match semantic identity",
+      "evidence": "The existing route lookup now exposes the selected NODE as well as its object. Scene-level records win first; nested records retain original file/depth-first order. This preserves identity when nodes use the same object geometry. Parent reconstruction follows that node back to the scene root; no private Core pointer or layout crosses into Lua.",
+      "locations": [
+        "eech-world/src/models.rs:2422-2580",
+        "modules/3d/3dsubobj.c:132,826"
+      ]
+    },
+    {
+      "area": "Memory and bounded traversal",
+      "evidence": "Rust owns all immutable node/pose vectors throughout the synchronous FFI call, checks node identities and parent uniqueness/cycles, and caps the composed path at256. C checks pointers, node count, path length and every path index before arithmetic; its outputs are separate3/9-float locals. Node repr(C) reuses the existing size check. Integer range checks precede store access; no new mutation/fallback world or raw public pointer is introduced."
+    },
+    {
+      "area": "FPU boundary",
+      "evidence": "Both new numeric entries use the existing per-call environment guard with non-inlined arithmetic bodies, require declared masked x87/SSE state, set RTZ, and restore caller state before returning an answer or refusal. The new synthetic tests exercise reported FP control/MXCSR readback and answer stability across four rounding modes, plus an unmasked-exception refusal. This is not a new full public Core-callback/x87-status proof and does not relabel older model FP probes as measurements of these entries."
+    },
+    {
+      "area": "Complete empty slot versus unknown installation/phase",
+      "evidence": "Original initialization visits every in-domain catalogue slot, including slots no file defined. A COMPLETE store now gives the original zero bounding-box offset and NoTargetPoint for such a slot, with bbox provenance distinct from scene0 invalid_zero. Inventory-only stores refuse nonzero-scene target-point questions, missing/corrupt required files still fail loading, and outside-catalogue scenes remain argument errors. Loader strictness is unchanged. The comparer tests actual bounds equality without treating the independent loaded diagnostic as a numerical mismatch."
+    },
+    {
+      "area": "Fixture and test integrity",
+      "evidence": "The malformed tiny common-object header lost one erroneous extra word. Exact synthetic boxes now straddle the origin while retaining negative-y clamp and positive-y cases, matching original origin-inclusive scene bounds. No retained retail oracle/golden changed. WorldViewpoint is a Rust-only type alias. New tests distinguish invalid scene, genuine empty slot, last valid index, inventory-only state and missing required installation files."
+    },
+    {
+      "area": "Diagnostic scope",
+      "evidence": "The comparer consumes retained offset/query records, counts every recorded row, and reports mismatches/refusals explicitly; it is not a replacement for the original capture validator. Root checks exact denominators against already-closed original captures. World replay uses recorded vp_after position3 and row-major attitude9 with declared scale1/keyframe0. Only resulting POSITION is compared with the original query result; returned child attitude has source/synthetic support rather than a retail attitude oracle."
+    }
+  ],
+  "actual_builds": {
+    "linux": {
+      "source": "0cb7b991453b2c13aba1266cdee44abd9be8d7eb",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-02T21:56:39.551656+00:00",
+      "set_e_commands": "fmt, focused target-point test, default three-package tests, target-point-fixture three-package tests, BOTH all-target Clippy -D warnings",
+      "new_target_point_result_rows": [
+        {
+          "passed": 13,
+          "failed": 0
+        },
+        {
+          "passed": 13,
+          "failed": 0
+        },
+        {
+          "passed": 13,
+          "failed": 0
+        }
+      ],
+      "strict_dev_completions": 2
+    },
+    "windows": {
+      "source": "0cb7b991453b2c13aba1266cdee44abd9be8d7eb",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-02T21:50:02.149263+00:00",
+      "builder": "unchanged tools/build-windows.sh",
+      "profile": "ORDINARY build; actual command and BUILD-INFO contain no fixture banner",
+      "build_info_sha256": "9efb6b801e8500cdde7b7dea1c5b61e768b18cb158e4e962ae6e0c8f92445288",
+      "all84_payloads_independently_rehashed": true
+    },
+    "current_all_hosted_CI_success_claimed": false
+  },
+  "actual_read_only_parity": {
+    "controller": {
+      "path": "D:/EECH-Migration-Evidence/target-point-host-retained-parity-0cb7b99145-20261102/controller.json",
+      "bytes": 9587,
+      "sha256": "1f373db4b0dd10f3778286b98db1dec651d6642e1a93bcda91c598b8d35e43ba"
+    },
+    "actual_controller_exit": 0,
+    "completed_utc": "2026-11-02T21:56:50.665945+00:00",
+    "actual_host_executable_exits": [
+      0,
+      0
+    ],
+    "cases": [
+      {
+        "scenario": "georgia",
+        "host_executable_exit": 0,
+        "manifest_exits": [
+          0,
+          0
+        ],
+        "files_each_manifest": 1174,
+        "comparison": {
+          "branch1_matched": 1,
+          "branch1_mismatches": 0,
+          "branch1_queries": 1,
+          "branch1_refused": 0,
+          "event": "comparison",
+          "offset_bbox": 9752,
+          "offset_events": 4,
+          "offset_invalid_zero": 4,
+          "offset_mismatches": 0,
+          "offset_rows": 12104,
+          "offset_rows_compared": 12104,
+          "offset_rows_not_recorded": 0,
+          "offset_sub_object": 2348,
+          "other_branch_queries": 0,
+          "queries": 1,
+          "state": "keyframe0"
+        },
+        "private_result_identity": {
+          "path": "D:/EECH-Migration-Evidence/target-point-host-retained-parity-0cb7b99145-20261102/georgia/comparison.jsonl",
+          "bytes": 377,
+          "sha256": "2d720e78a6551abececfb86eb1ddf0cbd54a5884235a8087b2ba74ffbf72e61d"
+        },
+        "retained_oracle_sha256": "18cae7af7c3c0fe77298c4536a0d9b6ba99a3f5433fd1faa3af5c4564a4fa05e",
+        "differences_count": 0
+      },
+      {
+        "scenario": "lebanon",
+        "host_executable_exit": 0,
+        "manifest_exits": [
+          0,
+          0
+        ],
+        "files_each_manifest": 1179,
+        "comparison": {
+          "branch1_matched": 217,
+          "branch1_mismatches": 0,
+          "branch1_queries": 217,
+          "branch1_refused": 0,
+          "event": "comparison",
+          "offset_bbox": 9752,
+          "offset_events": 4,
+          "offset_invalid_zero": 4,
+          "offset_mismatches": 0,
+          "offset_rows": 12104,
+          "offset_rows_compared": 12104,
+          "offset_rows_not_recorded": 0,
+          "offset_sub_object": 2348,
+          "other_branch_queries": 0,
+          "queries": 217,
+          "state": "keyframe0"
+        },
+        "private_result_identity": {
+          "path": "D:/EECH-Migration-Evidence/target-point-host-retained-parity-0cb7b99145-20261102/lebanon/comparison.jsonl",
+          "bytes": 383,
+          "sha256": "8de17536df0707d87b7eea5bf615aa79a449420fd8bd5b08d111f9913e94c2b3"
+        },
+        "retained_oracle_sha256": "9758e676a6ce5a1999fcfb625944485e4a52cbef68d43eab3491838580eaa1f8",
+        "differences_count": 0
+      }
+    ],
+    "all24208_local_offset_rows_compared": true,
+    "all218_retained_world_point_positions_exact": true,
+    "no_unrecorded_or_skipped_offset_rows": true,
+    "all_offset_mismatch_conditions_zero": true,
+    "all_branch1_mismatches_and_refusals_zero": true,
+    "independent_verification": "Verified complete private comparison JSONL files (exactly comparison+done/listed0 per map), all original catalogue denominators/states/index ranges from the retained raw JSONL, all218 original branch1 records, expected source/oracle hashes, all84 ordinary payload hashes, unchanged script hash, clean immutable Git snapshot and all four full reference input lists/byte totals/combined digests. The script requests no eech_dc load or campaign boot."
+  },
+  "preserved_failures_and_identity_limits": [
+    "83df5b8714 Linux focused12/12 failed before numerical tests could run because the newly written synthetic common-object file had a malformed header; this did not establish a physical kernel red. Working-tree repair tests at e191 were provisional; corrected clean0cb7 results above are the accepted current gate.",
+    "Old83 retail HOST executable stages both exited0 and input checks passed, but the outer parity controller exited1 with1504 mismatch CONDITIONS per map. The loaded diagnostic and API refusal could each count the same row, and its listed differences were capped. That failed gate remains unchanged; full corrected12104/12104 comparison with zero remaining conditions, not inference from the cap, closes the issue.",
+    "An inherited fixture label in the earlier83 generated receipt is not the build profile. Actual unchanged ordinary builder invocation and its BUILD-INFO are authoritative. Corrected0cb7 uses the ordinary build explicitly.",
+    "No retained original campaign was rerun. The host-only diagnostic reads the same sealed5e original JSONL products and unchanged retail models. No original input, expected word, tolerance, row or baseline was rewritten or skipped."
+  ],
+  "documentation_scope": {
+    "count_typo_corrected_at": "74eb68eeb49873be8994ee2d61cf22151ad8be4e",
+    "correct_counts": "Georgia1 / Lebanon217, not17 per map",
+    "scope_note": "The constructor statement is a FUTURE cutover requirement, as Root clarified; it is not evidence of current ownership transfer. Original Core construction/query/initializer code still runs unchanged. Root noted a future-tense publication wording clarification; this report accepts only the numeric prototype and does not certify that pending publication text or imported reference copies."
+  },
+  "reuse": [
+    {
+      "review_sha256": "1ef9ff3b9d58ba713440e5e66ed948818408e2a805fe045e41d975b5486f6ba6",
+      "scope": "Original generation/census and natural branch1 observer; source/capture validity reused, not re-reviewed."
+    },
+    {
+      "review_sha256": "315d7efe8343d8a395751810bc424992d88292c6e85fb9c7c26aba6cb3bb625a",
+      "scope": "Finite original read-only controlled branch3 cases; unchanged and not rerun."
+    },
+    {
+      "review_sha256": "d04b481172b71f1d26a3cc4a037352d225e6564b454e100c0ee3645382d6e6f2",
+      "scope": "Original setup/fallback characterization. Its measured5e default products provide the retained oracle here; no new original coverage is inferred."
+    }
+  ],
+  "limitations_and_next_gates": [
+    "OUTPUT parity under keyframe0 and main relative scale1 does NOT prove live sub-object joints/animations or root scale actually had that state. Their values were not captured by this retained oracle. Matched points cannot identify hidden joint state; mismatches require separate data/arithmetic/state classification.",
+    "Retail proof covers local offset words/provenance/bounds and returned world-point POSITION only. Returned child-attitude words have source and exact synthetic-test support; no retail child-attitude oracle is claimed.",
+    "This is the host geometry component for local offsets and keyframe0 sub-object world points. Entity-specific fixed-object heading/no-horizontal/zero-heading handling, all live-state inputs, Core query/initializer routing and atomic answer application are not ported or accepted here.",
+    "Constructor-related rand() effects remain a source-backed cutover concern, not a measured stream result. Removing Core initialization must preserve any observable draw effect or establish its irrelevance; no physical constructor work may be silently retained in Core as a substitute for host ownership. The guidance/seeker POLICY remains Core.",
+    "The direct gd_attck local-offset consumer, host authority/refusal through the real Core route, any new full caller-FP/numerical-domain/other-toolchain proof, complete shipping40/all8, visual/Tacview, Task52/Task50 delivery and wholeD3 acceptance remain separate.",
+    "The newer original-input observer WIP is excluded. No reviewer builds, tests, native executions, source edits, cache/VM/daemon/auth/app operations or nested agents were performed; only this new report was written."
+  ],
+  "evidence_identities": [
+    {
+      "path": "R:/d3-evidence/target-point-empty-slot-clean-validation-20261102-completion.json",
+      "bytes": 2128,
+      "sha256": "f8bdd0c6963997995b7f2c54d301750cba9a5925bf318592647c157190539a67"
+    },
+    {
+      "path": "R:/d3-evidence/target-point-original-0cb7b99145-linux-20261102-completion.json",
+      "bytes": 604,
+      "sha256": "dae5cb55f5769c17c587cec8b9c2cc6f70c878a7409c6c6c5a3fb98e88821c9e"
+    },
+    {
+      "path": "R:/d3-evidence/target-point-original-0cb7b99145-linux-20261102.log",
+      "bytes": 490040,
+      "sha256": "1aaa1a4385314dce6b57cc025165995958aae928e7a451f269afa221dc7fd6d7"
+    },
+    {
+      "path": "R:/d3-evidence/target-point-original-0cb7b99145-windows-20261102-completion.json",
+      "bytes": 648,
+      "sha256": "3d00b236d649a6e453a9067f760b16f1cd499a197bf47cfbe7506308e3a215c1"
+    },
+    {
+      "path": "R:/d3-evidence/build-target-point-original-0cb7b99145-linux-20261102.sh",
+      "bytes": 1189,
+      "sha256": "44bdaf0e321a21cdb0f4737cde36e7081ff74bc6a7c843b34694285af9962bae"
+    },
+    {
+      "path": "R:/d3-evidence/build-target-point-original-0cb7b99145-windows-20261102.sh",
+      "bytes": 465,
+      "sha256": "566970eeb264e2ee179d49958475a99dd49619910ebcd25493aba24129ed27a5"
+    },
+    {
+      "path": "R:/d3-evidence/run-target-point-host-retained-parity-20261102.py",
+      "bytes": 5518,
+      "sha256": "8a150a040e1ecd20499b6d8e63bf61bbe3294feafd251b2f7b2cf4229cfb4ecf"
+    },
+    {
+      "path": "R:/d3-evidence/target-point-host-retained-parity-20261102.lua",
+      "bytes": 636,
+      "sha256": "74820fe558b4dde8fafef159657566882bc89033b3fd0f6a4be275a1b85d3b8a"
+    },
+    {
+      "path": "R:/d3-evidence/target-point-host-parity-0cb7-results-20261102.json",
+      "bytes": 5861,
+      "sha256": "ecc893bd558b629c822ce6bd4b57bd6d21897588067bce6ce6dd58152412d39f"
+    }
+  ],
+  "report_safety": "Counts, hashes, source references and bounded semantic outcomes only. No raw model table, geometry, coordinates, entity/allocation identities, native pointers, seeds or binaries are reproduced."
+}

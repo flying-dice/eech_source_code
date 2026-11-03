@@ -1,0 +1,40 @@
+{
+  "review_kind": "Narrow two-unused-test-constant deletion only; prior99c2 clear source reused",
+  "source": {
+    "head": "06de242ae9b4050873207925d79a7a2e58be0c87",
+    "base": "99c2a64aeac8ac35619c69d51af2f2a0637fb3e8",
+    "frozen_clean_repo": "D:/EECH-Migration-Evidence/rd-06de242ae",
+    "head_clean_verified": true,
+    "changed_path": "eech-campaign/crates/eech-world/tests/env_rotor_sounds.rs",
+    "diff_sha256": "fa34900d699d7908edbf6fc7dec5bbb72cea74dcff7f521def65af67e6243cd7",
+    "old_guard_sha256": "39755adea0712de9247bba71bd5928504b824c8b63d1aceb9f18912b385598d7",
+    "new_guard_sha256": "a53752a75de38a3d6086ce88188f8e65666d6c5dab63a8142b1fbc143b6465fd",
+    "new_guard_bytes": 50546
+  },
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "facts": [
+    "The exact new source equals the old guard bytes with only the TURBINE1_KID and APU_KID declaration lines removed. Each identifier occurred only once in the old file: neither was used by a test.",
+    "No assertion, helper, fixture input, case count, expected word, parser, driver behavior or lint suppression changed. Coherent real35/34 subtype scenarios continue to use their existing literals and helper arguments.",
+    "Every other tracked entry/mode is exact99c2, including all production/native C/Rust/ABI/build/observer/fixture, Lua, prose and accepted reference blobs. The unchanged99c2 source/driver review is carried forward, not repeated.",
+    "Both canonical overlay files equal their declared06de Git blobs. Driver SHA stays c02df5dbf4b951bc6c3ed1728325e8a0d29cc195ddc37ac5abf59e72f0f4519e; guard SHA is a53752a75de38a3d6086ce88188f8e65666d6c5dab63a8142b1fbc143b6465fd. Frozen e544 native identity stays separate from effective06de test artifacts/external Lua."
+  ],
+  "identity_proof": {
+    "unchanged_other_entries": 8647,
+    "exact_tree_records_equal": true,
+    "tree_records_sha256": "98c7e39ee98e3d6c2faad8d1b73b562be465f4dcd2abec1a6de3e2f016c49622",
+    "manifest": "D:/EECH-Migration-Evidence/rotor-final-driver-overlay-06de242ae-20261101/manifest.json",
+    "manifest_sha256": "d86298eec44bd4f664489e693a1ea712a5be8e76e7b4676e78e5c550553a3274",
+    "prior_report": "R:/d3-evidence/independent-environment-original-rotor-sounds-residual-source-review-99c2a64ae-20261101.json",
+    "prior_report_sha256": "5d35ebefa872d5a0be4b5938da76d115db5e1234bed5970fac03cede5e5d34e3"
+  },
+  "context_not_reaudited_or_inferred": [
+    "Root reported corrected99guards0 on Linux/Windows and meaningful old-a2c missing-after red101; then strict failed exactly these two unused test constants, observer strict not reached. Those results remain distinctly identified and are not relabelled06de.",
+    "New06de targeted guards/both strict are running/pending, not accepted by this source review.",
+    "Root reported completed legacy unarmed e544 diagnostic0 with full5191384B/17283-row exact reference equality and bothinputs0/all67payloads. This new actual result is not reaudited in the tiny lint pass and does not supply rotor output-bit/transparency or ownership acceptance; no duplicate unarmed run requested."
+  ],
+  "limitations": [
+    "Source gate only; original rotor capture and three-way12AI/15FD output/standard-fenv comparisons, actual guard/strict/currentCI, physical extraction, shipping/Tacview, Task51/D3 and normal delivery remain separate.",
+    "No repeated source/kernel audit, compile/build/test/native run, product edit, cache/auth/external write or nested agent. Only this canonical private LF report is written."
+  ]
+}

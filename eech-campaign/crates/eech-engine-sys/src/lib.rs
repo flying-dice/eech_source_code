@@ -48,6 +48,8 @@ pub struct eech_engine_config {
     pub campaign_filename: *const c_char,
     pub gunship_type: c_int,
     pub random_seed: u32,
+    /// nonzero: the session is in winter (the global season the original reads when it picks the terrain files, set before the terrain loads)
+    pub winter: c_int,
     pub arguments: *const *const c_char,
 }
 
@@ -1115,6 +1117,446 @@ extern "C" {
 pub type eech_aim_callback =
     unsafe extern "C" fn(step: *const eech_aim_step, result: *mut eech_aim_result, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
 
+/// Host-owned collision-model data (aphavoc/.../mb_hostmodel.h): the operations, the triangle results and the largest error text.
+pub const EECH_MODEL_ERROR_MAX: usize = 512;
+pub const EECH_MODEL_NAME_MAX: usize = 127;
+pub const EECH_MODEL_CATALOGUE: c_int = 1;
+pub const EECH_MODEL_SCENE: c_int = 2;
+pub const EECH_MODEL_TRIANGLE: c_int = 3;
+pub const EECH_MODEL_ROUTE_NODE: c_int = 4;
+pub const EECH_MODEL_ROUTE_FACE: c_int = 5;
+pub const EECH_MODEL_OBJECT_TABLE: c_int = 6;
+pub const EECH_MODEL_OBJECT: c_int = 7;
+pub const EECH_MODEL_ANIMATION: c_int = 8;
+pub const EECH_MODEL_CUSTOM_OBJECT: c_int = 9;
+pub const EECH_MODEL_CUSTOM_ORDER: c_int = 10;
+pub const EECH_MODEL_TARGET_POINT_OFFSET: c_int = 11;
+pub const EECH_MODEL_TARGET_POINT_CHAIN: c_int = 12;
+pub const EECH_MODEL_TARGET_POINT_WORLD: c_int = 13;
+pub const EECH_MODEL_TARGET_POINT_FIXED: c_int = 14;
+/// the deepest sub-object chain the target-point transport carries, and the floats of the largest pose (15 + 9 * chain, rounded up)
+pub const EECH_MODEL_CHAIN_MAX: usize = 8;
+pub const EECH_MODEL_POSE_MAX: usize = 96;
+pub const EECH_MODEL_ANIMATION_NAME_MAX: usize = 127;
+pub const EECH_MODEL_TRIANGLE_FOUND: c_int = 1;
+pub const EECH_MODEL_TRIANGLE_END: c_int = 2;
+pub const EECH_MODEL_TRIANGLE_ABSENT: c_int = 3;
+
+/// One question about the host's models (campaign_model_request).
+#[repr(C)]
+pub struct eech_model_request {
+    pub op: c_int,
+    pub scene: c_int,
+    pub depth: c_int,
+    /// ROUTE_NODE and ROUTE_FACE: the route's sub-object kind (the scene is `scene`, the cursor `depth`)
+    pub kind: c_int,
+    /// OBJECT: the role the object has in `scene` (0 main, 1 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object); `depth` is the cursor
+    pub role: c_int,
+    /// which definition of the scene is meant: OBJECT, the n-th record of the scene database; CUSTOM_OBJECT and ANIMATION, the position of the custom scene file in the walk the
+    /// campaign announced (CUSTOM_ORDER)
+    pub definition: c_int,
+    /// CUSTOM_ORDER: the name of the directory under OBJECTS that holds the custom scene file (NUL-terminated)
+    pub key: [c_char; EECH_MODEL_NAME_MAX + 1],
+    /// TARGET_POINT_WORLD and TARGET_POINT_FIXED: how many floats of `pose` are meaningful
+    pub pose_count: c_int,
+    pub pose: [f32; EECH_MODEL_POSE_MAX],
+}
+
+/// The host's answer (campaign_model_reply); only the fields of the asked operation are meaningful.
+#[repr(C)]
+pub struct eech_model_reply {
+    pub scene_count: c_int,
+    /// 0 or 1: the host has a model for the scene
+    pub loaded: c_int,
+    /// 0 or 1: that model has a collider (only a loaded scene has one)
+    pub collider: c_int,
+    pub radius: f32,
+    pub bounding_box: [f32; 6],
+    pub bounding_box_without_lines: [f32; 6],
+    /// the scene's compiled name (NUL-terminated; empty for the invalid index 0): the public scene identity echo
+    pub name: [c_char; EECH_MODEL_NAME_MAX + 1],
+    pub result: c_int,
+    pub points: [f32; 9],
+    /// ROUTE_FACE: the two node indices the face joins, the surface's colour (red, green, blue) and its polygon bit (0 or 1)
+    pub route_point: [c_int; 2],
+    pub route_colour: [c_int; 3],
+    pub route_polygons: c_int,
+    /// OBJECT_TABLE: the number of objects the common database holds
+    pub object_count: c_int,
+    /// OBJECT (FOUND): points, faces, surfaces, point normals, lighting normals, culling normals offset
+    pub object_counts: [c_int; 6],
+    pub object_radius: f32,
+    /// the bounding box then the second bounding box, each `xmin xmax ymin ymax zmin zmax`
+    pub object_bounds: [f32; 12],
+    /// ANIMATION (FOUND): the logical name of the texture animation
+    pub animation_name: [c_char; EECH_MODEL_ANIMATION_NAME_MAX + 1],
+    /// TARGET_POINT_CHAIN (FOUND): the levels of the chain and the sibling position of the first TARGET_POINT sub-object at each, topmost first
+    pub chain_length: c_int,
+    pub chain_offsets: [c_int; EECH_MODEL_CHAIN_MAX],
+}
+
+pub type eech_model_callback =
+    unsafe extern "C" fn(request: *const eech_model_request, reply: *mut eech_model_reply, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
+/// Host-owned terrain (aphavoc/.../mb_hostterrain.h): the longest hint, in bytes without the terminator, and the three operations.
+pub const EECH_TERRAIN_HINT_MAX: usize = 127;
+pub const EECH_TERRAIN_ERROR_MAX: usize = 512;
+pub const EECH_TERRAIN_MAP: c_int = 1;
+pub const EECH_TERRAIN_POINT: c_int = 2;
+pub const EECH_TERRAIN_FAST: c_int = 3;
+/// The ground-contact operations (EEDCS-48): above ground, below ground, and the segment-against-ground search.
+pub const EECH_TERRAIN_GROUND_ABOVE: c_int = 4;
+pub const EECH_TERRAIN_GROUND_BELOW: c_int = 5;
+pub const EECH_TERRAIN_GROUND_IMPACT: c_int = 6;
+/// The SECTOR operation (EEDCS-51): the surface enumeration of the sector that holds a position, with the original's return value and the complete scratch by value.
+pub const EECH_TERRAIN_SECTOR: c_int = 7;
+pub const EECH_TERRAIN_AMBIENT: c_int = 8;
+/// TREE_BEGIN and TREE_TERRAIN (EEDCS-49, D3): the host-owned tree segment query and the campaign's terrain answer to it; the reply states and the ends an elevation is wanted for
+pub const EECH_TERRAIN_TREE_BEGIN: c_int = 9;
+pub const EECH_TERRAIN_TREE_TERRAIN: c_int = 10;
+pub const EECH_TERRAIN_TREE_DONE: c_int = 1;
+pub const EECH_TERRAIN_TREE_NEED_TERRAIN: c_int = 2;
+pub const EECH_TERRAIN_TREE_END_OLD: c_int = 0;
+pub const EECH_TERRAIN_TREE_END_NEW: c_int = 1;
+/// The most children one AMBIENT question carries (`CAMPAIGN_TERRAIN_AMBIENT_MAX`) and the number of ambient classes (`CAMPAIGN_TERRAIN_AMBIENT_CLASSES`: sea, jungle, amb1 to amb4).
+pub const EECH_TERRAIN_AMBIENT_MAX: usize = 16;
+pub const EECH_TERRAIN_AMBIENT_CLASSES: c_int = 6;
+/// The room of a SECTOR reply's flags (`CAMPAIGN_TERRAIN_FLAGS_MAX`): `EECH_TERRAIN_TYPE_COUNT` characters `0` or `1` and a terminator, zero-padded.
+pub const EECH_TERRAIN_FLAGS_MAX: usize = 64;
+/// The number of EECH terrain types (`TERRAIN_TYPE_LAST` in modules/3d/terrain/terrtype.h): a surface type answer is in `0..EECH_TERRAIN_TYPE_COUNT`.
+pub const EECH_TERRAIN_TYPE_COUNT: c_int = 62;
+
+#[repr(C)]
+pub struct eech_terrain_request {
+    pub op: c_int,
+    /// the season the campaign was loaded in, on every request (nonzero: winter)
+    pub winter: c_int,
+    pub x: f32,
+    pub z: f32,
+    pub hint: [c_char; EECH_TERRAIN_HINT_MAX + 1],
+    /// AMBIENT: whether the cockpit is the point and the number of children
+    pub ambient_in_cockpit: c_int,
+    pub ambient_count: c_int,
+    /// AMBIENT: the point's radar altitude and the frame delta
+    pub ambient_alt: f32,
+    pub ambient_delta: f32,
+    /// AMBIENT: for each child, its class and its previous amplification
+    pub ambient_class: [c_int; EECH_TERRAIN_AMBIENT_MAX],
+    pub ambient_previous: [f32; EECH_TERRAIN_AMBIENT_MAX],
+    /// GROUND_ABOVE and GROUND_BELOW: the position is (x, y, z); GROUND_IMPACT: the above endpoint is (x, y, z) and `below` the below endpoint
+    pub y: f32,
+    pub below: [f32; 3],
+    /// GROUND_*: the campaign's world-map area (min_x, min_z, max_x, max_z): campaign geography, not the terrain's extents
+    pub world: [f32; 4],
+    /// TREE_BEGIN: the old and new position and the caller's initial intercept point and face normal, each as the 32-bit patterns of its three floats; the two flags (0 or 1)
+    pub tree_old: [u32; 3],
+    pub tree_new: [u32; 3],
+    pub tree_point: [u32; 3],
+    pub tree_normal: [u32; 3],
+    pub tree_ignore_forest_edge_trees: c_int,
+    pub tree_skip_tree_top_test: c_int,
+    /// TREE_TERRAIN: the elevation pattern the campaign read
+    pub tree_elevation: u32,
+}
+
+#[repr(C)]
+pub struct eech_terrain_reply {
+    pub sector_x_max: c_int,
+    pub sector_z_max: c_int,
+    pub fast_width: c_int,
+    pub fast_height: c_int,
+    pub min_x: f32,
+    pub min_z: f32,
+    pub max_x: f32,
+    pub max_z: f32,
+    pub min_height: f32,
+    pub max_height: f32,
+    pub scaled_height_difference: f32,
+    pub elevation: f32,
+    pub last_elevation: f32,
+    pub normal: [f32; 3],
+    pub kind: c_int,
+    /// POINT: nonzero when the record holds a surface after this reply (independent of the hint)
+    pub stored: c_int,
+    pub hint: [c_char; EECH_TERRAIN_HINT_MAX + 1],
+    /// SECTOR: the original's return value (1 + the surface transitions)
+    pub sector_returned: c_int,
+    /// SECTOR: one `0` or `1` per terrain type, then the terminator
+    pub sector_flags: [c_char; EECH_TERRAIN_FLAGS_MAX],
+    /// AMBIENT: the new amplification of each child of the request, in its order
+    pub ambient_amplitude: [f32; EECH_TERRAIN_AMBIENT_MAX],
+    /// GROUND_ABOVE and GROUND_BELOW: the predicate, and whether the answer read the terrain (the record above is meaningful only then); each 0 or 1
+    pub answer: c_int,
+    pub queried: c_int,
+    /// GROUND_IMPACT: the endpoints after the original's correction and the impact point (the record above is the final read's)
+    pub above: [f32; 3],
+    pub below: [f32; 3],
+    pub impact: [f32; 3],
+    /// TREE_BEGIN and TREE_TERRAIN: the state (`EECH_TERRAIN_TREE_DONE` or `EECH_TERRAIN_TREE_NEED_TERRAIN`); NEED_TERRAIN: the end (`EECH_TERRAIN_TREE_END_*`) and the patterns of x and z;
+    /// DONE: whether a tree was hit and the patterns of the final intercept point and face normal
+    pub tree_state: c_int,
+    pub tree_end: c_int,
+    pub tree_hit: c_int,
+    pub tree_x: u32,
+    pub tree_z: u32,
+    pub tree_result_point: [u32; 3],
+    pub tree_result_normal: [u32; 3],
+}
+
+pub type eech_terrain_callback = unsafe extern "C" fn(
+    request: *const eech_terrain_request,
+    reply: *mut eech_terrain_reply,
+    error: *mut c_char,
+    error_size: usize,
+    user: *mut c_void,
+) -> c_int;
+
+/// Host-owned weather and wind field (aphavoc/.../ss_hostenv.h): the counts of the field's floats and integers, the error buffer, the draws of an initialisation and the operations.
+pub const EECH_ENV_FLOATS: usize = 23;
+pub const EECH_ENV_INTS: usize = 5;
+pub const EECH_ENV_DRAWS: usize = 10;
+pub const EECH_ENV_ERROR_MAX: usize = 512;
+pub const EECH_ENV_IMPORT: c_int = 1;
+pub const EECH_ENV_EXPORT: c_int = 2;
+pub const EECH_ENV_INIT_RANDOM: c_int = 3;
+pub const EECH_ENV_INIT_FIXED: c_int = 4;
+pub const EECH_ENV_WEATHER: c_int = 5;
+pub const EECH_ENV_WIND: c_int = 6;
+pub const EECH_ENV_GUST: c_int = 7;
+pub const EECH_ENV_STEP: c_int = 8;
+pub const EECH_ENV_AMBIENT: c_int = 9;
+pub const EECH_ENV_LIGHTNING_ADD: c_int = 10;
+pub const EECH_ENV_LIGHTNING_UPDATE: c_int = 11;
+pub const EECH_ENV_SOUND_LIFETIME_INIT: c_int = 12;
+pub const EECH_ENV_SOUND_LIFETIME_UPDATE: c_int = 13;
+pub const EECH_ENV_SOUND_PAUSE_RESUME: c_int = 14;
+pub const EECH_ENV_ROTOR_SOUND: c_int = 15;
+/// ROTOR_SOUND: the logical channels (`CAMPAIGN_ROTOR_CHANNEL_*`: looping, slap, turbine 1, turbine 2, APU, winding), the pause and resume requests a reply may hold, the player roles and the write mask bits.
+pub const EECH_ROTOR_CHANNELS: usize = 6;
+pub const EECH_ROTOR_ACTIONS: usize = 8;
+pub const EECH_ROTOR_PLAYER_AI: c_int = 0;
+pub const EECH_ROTOR_PLAYER_LOCAL: c_int = 1;
+pub const EECH_ROTOR_PLAYER_REMOTE: c_int = 2;
+pub const EECH_ROTOR_CHANNEL_LOOPING: c_int = 0;
+pub const EECH_ROTOR_CHANNEL_SLAP: c_int = 1;
+pub const EECH_ROTOR_CHANNEL_TURBINE1: c_int = 2;
+pub const EECH_ROTOR_CHANNEL_TURBINE2: c_int = 3;
+pub const EECH_ROTOR_CHANNEL_APU: c_int = 4;
+pub const EECH_ROTOR_CHANNEL_WINDING: c_int = 5;
+pub const EECH_ROTOR_WRITE_AMPLIFICATION: c_int = 1;
+pub const EECH_ROTOR_WRITE_PITCH: c_int = 2;
+/// The samples of one sound effect's sequence that cross the boundary by value (`CAMPAIGN_SOUND_SAMPLES`).
+pub const EECH_SOUND_SAMPLES: usize = 16;
+/// The host's decisions for a sound effect's update (`CAMPAIGN_SOUND_ACTION_*`).
+pub const EECH_SOUND_ACTION_NONE: c_int = 0;
+pub const EECH_SOUND_ACTION_KILL: c_int = 1;
+pub const EECH_SOUND_ACTION_UNLINK: c_int = 2;
+/// The slots of the physical lightning queue (`CAMPAIGN_LIGHTNING_SLOTS`).
+pub const EECH_LIGHTNING_SLOTS: usize = 32;
+/// The number of EECH weather modes (`WEATHERMODE_LAST`): a mode is in `0..EECH_ENV_MODE_COUNT`.
+pub const EECH_ENV_MODE_COUNT: c_int = 5;
+
+/// One slot of the physical lightning queue by value, field for field as campaign_lightning_strike.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct eech_lightning_strike {
+    pub in_use: c_int,
+    pub kind: c_int,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub time_started: f32,
+    pub time_length: f32,
+    pub current_frame_number: c_int,
+}
+
+/// The physical field, field for field as campaign_env_state (the order of the floats and of the integers is the enums of ss_hostenv.h).
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct eech_env_state {
+    pub f: [f32; EECH_ENV_FLOATS],
+    pub n: [c_int; EECH_ENV_INTS],
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct eech_env_request {
+    pub op: c_int,
+    /// the season is winter (the global season the original reads at each weather question)
+    pub winter: c_int,
+    pub state: eech_env_state,
+    pub draw: [f64; EECH_ENV_DRAWS],
+    pub init_config: [f32; 6],
+    pub map: [f32; 6],
+    pub fixed_mode: c_int,
+    pub x: f32,
+    pub z: f32,
+    pub want_vector: c_int,
+    pub phase: f32,
+    pub delta: f32,
+    pub server: c_int,
+    pub in_cockpit: c_int,
+    pub have_camera: c_int,
+    pub camera: [f32; 3],
+    pub have_draw: c_int,
+    pub lightning_draw: f64,
+    /// AMBIENT (with `x`, `z` and `in_cockpit`): the point's height, its radar altitude and the cloud base height
+    pub ambient_y: f32,
+    pub ambient_alt: f32,
+    pub ambient_cloud_base: f32,
+    /// LIGHTNING_ADD (with `x`, `z`): the strike type and length, whether an active 3D environment exists and its time of day; LIGHTNING_UPDATE: the time of day and,
+    /// once the host has asked for it, the strike animation frame count
+    pub lightning_type: c_int,
+    pub lightning_length: f32,
+    pub lightning_environment_active: c_int,
+    pub lightning_time_of_day: f32,
+    pub lightning_have_frames: c_int,
+    pub lightning_frames: c_int,
+    /// SOUND_LIFETIME_INIT: whether the effect loops, whether it is MUSIC, the sequence's sample count and each sample's descriptor rate and size by value; SOUND_LIFETIME_UPDATE (with `sound_looping`): the routine,
+    /// the validity, whether it holds a handle and, once the host has asked, whether that handle is playing, the frame delta and the stored lifetime and valid lifetime
+    pub sound_looping: c_int,
+    pub sound_music: c_int,
+    pub sound_count: c_int,
+    pub sound_rate: [c_int; EECH_SOUND_SAMPLES],
+    pub sound_size: [c_int; EECH_SOUND_SAMPLES],
+    pub sound_server: c_int,
+    pub sound_valid: c_int,
+    pub sound_has_handle: c_int,
+    pub sound_have_playing: c_int,
+    pub sound_playing: c_int,
+    pub sound_delta: f32,
+    pub sound_lifetime: f32,
+    pub sound_valid_lifetime: f32,
+    /// SOUND_PAUSE_RESUME (with `sound_valid` and `sound_valid_lifetime`): whether it is a resume (else a pause), whether the effect is in the update list and the delay a pause carries
+    pub sound_resume: c_int,
+    pub sound_member: c_int,
+    pub sound_delay: f32,
+    /// ROTOR_SOUND: the player role (`EECH_ROTOR_PLAYER_*`), the stored main rotor rpm, whether a flight model is current (global) and its acceleration vector, and the left, right and APU rpm (zero unless the role is local
+    /// and a flight model exists)
+    pub rotor_player: c_int,
+    pub rotor_have_flight_model: c_int,
+    pub rotor_rpm: f32,
+    pub rotor_acceleration: [f32; 3],
+    pub rotor_left_rpm: f32,
+    pub rotor_right_rpm: f32,
+    pub rotor_apu_rpm: f32,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct eech_env_reply {
+    pub state: eech_env_state,
+    pub current_mode: c_int,
+    pub target_mode: c_int,
+    pub simple_mode: c_int,
+    pub transitional_state: f32,
+    pub speed: f32,
+    pub vector: [f32; 3],
+    pub modulation: f32,
+    pub need_draw: c_int,
+    pub expired: c_int,
+    pub strike: [f32; 3],
+    pub new_timer: f32,
+    /// AMBIENT: rain light, rain heavy, wind light, wind heavy
+    pub ambient_levels: [f32; 4],
+    /// LIGHTNING_ADD: the slot filled (-1: none); LIGHTNING_UPDATE: the host needs the frame count; both: the whole queue after the operation
+    pub lightning_slot: c_int,
+    pub lightning_need_frames: c_int,
+    pub lightning_queue: [eech_lightning_strike; EECH_LIGHTNING_SLOTS],
+    /// SOUND_LIFETIME_INIT: the lifetime; SOUND_LIFETIME_UPDATE: the lifetime and valid lifetime after the update, whether a valid effect's lifetime went below zero, the decision, or that the host needs to know
+    /// whether the handle is still playing (nothing changed)
+    pub sound_lifetime: f32,
+    pub sound_valid_lifetime: f32,
+    pub sound_expired: c_int,
+    pub sound_action: c_int,
+    pub sound_need_playing: c_int,
+    /// SOUND_PAUSE_RESUME: whether the call changed the effect, its validity (and, in `sound_valid_lifetime`, valid lifetime) after the call, whether its parent is asked to play and whether it is put back in the update list
+    pub sound_changed: c_int,
+    pub sound_valid: c_int,
+    pub sound_play: c_int,
+    pub sound_relink: c_int,
+    /// ROTOR_SOUND: for each channel the write mask and the two levels; then the ordered pause and resume requests (resume flag, channel, the delay a pause carries)
+    pub rotor_write: [c_int; EECH_ROTOR_CHANNELS],
+    pub rotor_amplification: [f32; EECH_ROTOR_CHANNELS],
+    pub rotor_pitch: [f32; EECH_ROTOR_CHANNELS],
+    pub rotor_action_count: c_int,
+    pub rotor_action_resume: [c_int; EECH_ROTOR_ACTIONS],
+    pub rotor_action_channel: [c_int; EECH_ROTOR_ACTIONS],
+    pub rotor_action_delay: [f32; EECH_ROTOR_ACTIONS],
+}
+
+impl Default for eech_env_state {
+    fn default() -> Self {
+        // SAFETY: plain numbers; zero is a valid value of every field
+        unsafe { std::mem::zeroed() }
+    }
+}
+
+impl Default for eech_env_request {
+    fn default() -> Self {
+        // SAFETY: plain numbers; zero is a valid value of every field
+        unsafe { std::mem::zeroed() }
+    }
+}
+
+impl Default for eech_env_reply {
+    fn default() -> Self {
+        // SAFETY: plain numbers; zero is a valid value of every field
+        unsafe { std::mem::zeroed() }
+    }
+}
+
+pub type eech_environment_callback =
+    unsafe extern "C" fn(request: *const eech_env_request, reply: *mut eech_env_reply, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
+
+/// The host-owned physical sample metadata exchange (ss_hostenv.h campaign_sound_catalogue_request): plain data owned by the C caller for the callback.
+#[repr(C)]
+pub struct eech_sound_catalogue_request {
+    pub slots: c_int,
+    pub count: c_int,
+    pub index: *const c_int,
+    pub name: *const *const c_char,
+}
+
+#[repr(C)]
+pub struct eech_sound_catalogue_reply {
+    pub header_present: c_int,
+    pub header_count: c_int,
+    pub rate: *mut c_int,
+    pub original_rate: *mut c_int,
+    pub matched: *mut c_int,
+    pub size: *mut c_int,
+}
+
+pub type eech_sound_catalogue_callback = unsafe extern "C" fn(
+    request: *const eech_sound_catalogue_request,
+    reply: *mut eech_sound_catalogue_reply,
+    error: *mut c_char,
+    error_size: usize,
+    user: *mut c_void,
+) -> c_int;
+
+/// The host-owned physical sound backend availability exchange (ss_hostenv.h campaign_sound_backend_request): plain integers, owned by the C caller for the callback.
+#[repr(C)]
+pub struct eech_sound_backend_request {
+    pub phase: c_int,
+    pub no_sound: c_int,
+    pub dedicated: c_int,
+    pub load_samples: c_int,
+}
+
+#[repr(C)]
+pub struct eech_sound_backend_reply {
+    pub available: c_int,
+}
+
+pub type eech_sound_backend_callback = unsafe extern "C" fn(
+    request: *const eech_sound_backend_request,
+    reply: *mut eech_sound_backend_reply,
+    error: *mut c_char,
+    error_size: usize,
+    user: *mut c_void,
+) -> c_int;
+
 #[repr(C)]
 pub struct eech_engine_host {
     pub bind_mobile: Option<eech_bind_mobile_callback>,
@@ -1124,6 +1566,11 @@ pub struct eech_engine_host {
     pub line_of_sight: Option<eech_line_of_sight_callback>,
     pub sense: Option<eech_sense_callback>,
     pub aim: Option<eech_aim_callback>,
+    pub model: Option<eech_model_callback>,
+    pub terrain: Option<eech_terrain_callback>,
+    pub environment: Option<eech_environment_callback>,
+    pub sound_catalogue: Option<eech_sound_catalogue_callback>,
+    pub sound_backend: Option<eech_sound_backend_callback>,
     pub user: *mut c_void,
 }
 
@@ -1323,11 +1770,41 @@ extern "C" {
         -> c_int;
 }
 
+// TEST-ONLY (feature env-fixture, EEDCS-51): one case of the original session environment characterisation; see csrc/eech_env_fixture.c.
+#[cfg(feature = "env-fixture")]
+extern "C" {
+    pub fn eech_engine_env_case(group: c_int, index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+}
+
+// TEST-ONLY (feature env-observer, EEDCS-51): the read-only observer of the original environment; see csrc/eech_env_observer.c.
+#[cfg(feature = "env-observer")]
+extern "C" {
+    pub fn eech_engine_env_observer_arm(on: c_int) -> c_int;
+    pub fn eech_engine_env_observer_report(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_env_observer_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
+    // the helicopter rotor sound probe (ENV_FXR): armed only by its own call, drained in pages
+    pub fn eech_engine_env_rotor_arm(on: c_int) -> c_int;
+    pub fn eech_engine_env_rotor_report(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_env_rotor_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
+    // the resumed-parent playback probe (ENV_FXP): armed only by its own call, drained in pages
+    pub fn eech_engine_env_play_arm(on: c_int) -> c_int;
+    pub fn eech_engine_env_play_report(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_env_play_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
+}
+
 #[cfg(feature = "sensor-fixture")]
 extern "C" {
     pub fn eech_engine_sensor_trace(text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_sensor_trace_reset() -> c_int;
     pub fn eech_engine_sensor_probe(text: *mut c_char, capacity: c_int, host: *const eech_engine_host) -> c_int;
+}
+
+#[cfg(feature = "terrain-fixture")]
+extern "C" {
+    pub fn eech_engine_terrain_trace(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_terrain_trace_reset() -> c_int;
+    pub fn eech_engine_terrain_probe(seed: u32, count: c_int, emit: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_terrain_face_probe(x: f32, z: f32, text: *mut c_char, capacity: c_int) -> c_int;
 }
 
 #[cfg(feature = "weapon-fixture")]
@@ -1388,6 +1865,26 @@ extern "C" {
     pub fn eech_engine_collision_trace_read(kind: c_int, offset: c_int, count: c_int, text: *mut c_char, capacity: c_int, total: *mut c_int) -> c_int;
 }
 
+#[cfg(feature = "ground-fixture")]
+extern "C" {
+    pub fn eech_engine_ground_probe(seed: u32, points: c_int, impacts: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+}
+
+#[cfg(feature = "route-fixture")]
+extern "C" {
+    pub fn eech_engine_route_summary(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_route_call(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+}
+
+#[cfg(feature = "target-point-fixture")]
+extern "C" {
+    pub fn eech_engine_target_point_summary(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_target_point_offsets(generation: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_target_point_event(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_target_point_probe(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_target_point_setup(text: *mut c_char, capacity: c_int) -> c_int;
+}
+
 #[cfg(feature = "aim-fixture")]
 extern "C" {
     pub fn eech_engine_aim_trace(text: *mut c_char, capacity: c_int) -> c_int;
@@ -1409,6 +1906,37 @@ extern "C" {
         capacity: c_int,
         host: *const eech_engine_host,
     ) -> c_int;
+}
+
+// TEST SUPPORT (feature fpu-test-support): see csrc/eech_fpu_test.c.
+#[cfg(feature = "fpu-test-support")]
+extern "C" {
+    pub fn eech_test_enter_toward_zero() -> c_int;
+    pub fn eech_test_leave_toward_zero() -> c_int;
+}
+
+// TEST-ONLY (feature model-host-fixture, EEDCS-50 D3): the host-model counters and the overwrite of the campaign's own model arrays; see csrc/eech_model_host_fixture.c.
+#[cfg(feature = "model-host-fixture")]
+extern "C" {
+    pub fn eech_engine_model_host_counters(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_host_animations(first: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_host_poison() -> c_int;
+    pub fn eech_engine_model_host_target_offsets(first: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_host_attack_consumer(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_host_target_queries(mutate: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_host_probe(scene: c_int, depth: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_host_horizon_refusal(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_host_fpu(kind: c_int, scene: c_int, depth: c_int, rounding: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+}
+
+// TEST-ONLY (feature model-fixture, EEDCS-50): read-only questions to the original model accessors; see csrc/eech_model_fixture.c.
+#[cfg(feature = "model-fixture")]
+extern "C" {
+    pub fn eech_engine_model_summary(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_catalogue(first: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_geometry(scene: c_int, first_depth: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_state(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_animations(first: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
 }
 
 // The tumble draws are the only doubles in the step. They stay its last field, so the double's alignment (4 or 8 by

@@ -1,0 +1,48 @@
+{
+  "scope": "Witness-only reds, NOT production physics failures or acceptedauthority. 8d0Linux+actualWindowsguards9PASS1FAIL101 at ancillary syntheticblankline errorformat; fullconfigured7mode no native/0PRE7POST0. SeparateDIAGNOSTIC firstrealreferencecontrol publictest101 at realreverse order vsinventedforward,1PRE1POST0/51payloads/newcopiedLua exact. New084test-onlyP2 actual101 accepts28of28damagedrecords after healthycontrol; no compiler/setupfailure, oldancillarytest/strict/nativeNOTRUN in targetedphase. All production/G11/native exactd559; numerical/FP/fullpackages/G12 evidence reused.",
+  "new_protocol_red": {
+    "actual_exit": 101,
+    "total_damages": 28,
+    "accepted_damages": 28,
+    "assertion": "28 of 28 genuinely damaged witness records were ACCEPTED",
+    "log_original_SHA256": "abb2ee35e053a92a2a266dc2b537af9175d06172fe3de50004dbaf41a1ddac16"
+  },
+  "entries": [
+    {
+      "file": "8d0-independent-source-review.json",
+      "original_private": "R:\\d3-evidence\\independent-environment-ambient-authority-source-review-8d0c7bb69-20261031.json",
+      "original_SHA256": "e07e3f371113e5c431e7c918046bd2c8c9f5d4480c0f6255d20ce5287f9d086f",
+      "retained_Git_LF_SHA256": "348aa8b9f52271fa28dc99b3eca9653a4d3431bbbfad00d7cdd51ec97dd44b10"
+    },
+    {
+      "file": "8d0-Linux-initial-guard-failure.json",
+      "original_private": "R:\\d3-evidence\\environment-ambient-judge-8d0c7bb69-linux-20261031-completion.json",
+      "original_SHA256": "731a32155f5c8b811d08a9f7ddf3ba3ca458cd398e35a2fd05b7c3826241e3d0",
+      "retained_Git_LF_SHA256": "7904ac487a25ba9f1061b03912b36b490c26a55fbcb24819eb530976a5ba52bc"
+    },
+    {
+      "file": "8d0-Windows-judge-export.json",
+      "original_private": "R:\\d3-evidence\\environment-ambient-judge-8d0c7bb69-windows-20261031-completion.json",
+      "original_SHA256": "35ee86508bf0a2b31f6d4005e78e17ab53c28ad8d8db4d79e6be9b20de2f2bfc",
+      "retained_Git_LF_SHA256": "db548abd9f82f1fb723077a7a875f2b384fad49d1412d0d4af50205dbe9faa6b"
+    },
+    {
+      "file": "8d0-Windows-guard-before-public-failure.json",
+      "original_private": "R:\\d3-evidence\\environment-ambient-seven-modes-controller-8d0c7bb69-20261031\\receipt.json",
+      "original_SHA256": "5790749f8a8ab28f8cb0f82efc49f327c4e5837c8a431adb12d2cb83a44fa12e",
+      "retained_Git_LF_SHA256": "ef38f59fd42db7a6d83d4af0f7d84ba522e1bc652c66030182fb403e35479a65"
+    },
+    {
+      "file": "8d0-first-real-control-order-red.json",
+      "original_private": "R:\\d3-evidence\\environment-ambient-first-real-control-diagnostic-controller-8d0c7bb69-20261031\\receipt.json",
+      "original_SHA256": "9f1280c199ccac151c1aa05dc2984e79d5ffee54de19d52c481bfc63fecfcc12",
+      "retained_Git_LF_SHA256": "6a6dbd619abbbae4b0acb0b46fa3108a2292c0186a97250bc4653c74f3222376"
+    },
+    {
+      "file": "084-targeted-protocol-red-completion.json",
+      "original_private": "R:\\d3-evidence\\environment-ambient-judge-084e1de34-linux-20261031-completion.json",
+      "original_SHA256": "95e6a09f80b94c2d60ce7f8e8414cf26587609c637d385c5855ceb8404643624",
+      "retained_Git_LF_SHA256": "7d35623c15255b06293310d6af82a8b62c89f6ed71b51fb9bb60837dc5fa9fc2"
+    }
+  ]
+}

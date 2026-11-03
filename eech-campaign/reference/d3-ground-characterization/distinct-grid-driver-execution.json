@@ -1,0 +1,13 @@
+{
+  "completed_utc": "2026-10-29T14:38:47.2336004Z",
+  "scope": "Actual Linux host/Lua5.1 corrected distinct-grid driver tests and affected Clippy; not original C query acceptance",
+  "working_tree": true,
+  "source_base": "9e607637f750e2a08d0cb6c36d79709a68296d15",
+  "tested_path_sha256": {
+    "eech-campaign/crates/eech-world/lua/ground-characterization.lua": "d0616a43467c539d3de3ce06cafb581e8767f98c3bfd985400dafd8d3ab7df22",
+    "eech-campaign/crates/eech-world/tests/lua/ground-caller.lua": "462b7ddfa81bcc52fd0c38eec897aea56f342bf5de1f248f744001a898b201b2",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "a5351b94ff108bdca352e1fd03f41cc320e961cc8d36950e60a3f413e2b069f8",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_ground_fixture.c": "9f3d2492766c90d84e72a9681ce1eb8ca4108a36bd4832ad54599a3424008878"
+  },
+  "actual_exit": 0
+}

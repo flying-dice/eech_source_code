@@ -1,0 +1,31 @@
+{
+  "checked_utc": "2026-11-03T01:30:50.679370+00:00",
+  "native_source": "fc6388ffc4bb56a93bfd490e10724d7ace6f00db",
+  "diagnostic_source": "c70716b1a34bfd612ede484bf44510dae69af2b6",
+  "changed_paths": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "eech-campaign/crates/eech-world/lua/model-authority.lua",
+    "eech-campaign/crates/eech-world/tests/model_store.rs",
+    "eech-campaign/docs/d3-target-point-characterization.md"
+  ],
+  "other_tracked_modes_blobs_exact": true,
+  "unchanged_entries": 8974,
+  "literal_wrapper_files": [
+    {
+      "path": "eech-campaign/crates/eech-world/lua/model-authority.lua",
+      "blob": "84b6889d93b9417e5778d126e53cb03b660c49fd",
+      "sha256": "bd6ac08064b7f6a2ef93d7c0a5f1311a3e437f746c3f04afe2517a0c09b56c8f",
+      "bytes": 88692
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/json-lines.lua",
+      "blob": "a3dc1df5dba22767f6d63bda72a63f2da45b250f",
+      "sha256": "8b8b367ae1026548f39bf4561aa57604044ca5c128e4a9c10ece29fcd9f7fb99",
+      "bytes": 3318
+    }
+  ],
+  "all_native_C_Rust_build_inputs_exact": true,
+  "ordinary811_evidence_reuse_chain": "811-to-fc6388 scope proof plus this Lua/test/docs-only delta; native binaries retain actual original build identities.",
+  "build_claim": "No rebuild; same correctedfc native and84 verified payloads, explicit external Git-blob Lua."
+}

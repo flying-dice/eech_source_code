@@ -1,0 +1,86 @@
+{
+  "created_utc": "2026-11-01T11:08:07.759639+00:00",
+  "original_native": "e54423b5c17b4386c099240ea02158ec525c05f7",
+  "original_Lua": "06de242ae9b4050873207925d79a7a2e58be0c87",
+  "candidate_native": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+  "cases": [
+    {
+      "name": "ai-sweep",
+      "calls": 12,
+      "original_sweep_raw_bytes": 9049,
+      "candidate_sweep_raw_bytes": 9059,
+      "whole_sweep_raw_equal": false,
+      "complete_input_and_output_word_rows_equal": true,
+      "original_physical_rows_sha256": "8d09799df09630220650c6f0e3b059896b2d94fe75a31afa38aaa730be358c3b",
+      "candidate_physical_rows_sha256": "8d09799df09630220650c6f0e3b059896b2d94fe75a31afa38aaa730be358c3b",
+      "original_complete_probe_bytes": 25345950,
+      "candidate_complete_probe_bytes": 25345950,
+      "complete_probe_inputs_actions_child_before_after_including_endings_equal": true,
+      "original_probe_sha256": "0b6230f930d83b38f4e9934b6912154c435b0ac8cf980d76c6cde976bddd5f68",
+      "candidate_probe_sha256": "0b6230f930d83b38f4e9934b6912154c435b0ac8cf980d76c6cde976bddd5f68",
+      "standard_fenv_rows_equal": false,
+      "all_fenv_differences": [
+        {
+          "original": "env-rotor-fp i=0 round_before=3072 round_after=3072 excepts=2",
+          "candidate": "env-rotor-fp i=0 round_before=3072 round_after=3072 excepts=22"
+        },
+        {
+          "original": "env-rotor-fp i=1 round_before=3072 round_after=3072 excepts=2",
+          "candidate": "env-rotor-fp i=1 round_before=3072 round_after=3072 excepts=22"
+        },
+        {
+          "original": "env-rotor-fp i=2 round_before=3072 round_after=3072 excepts=2",
+          "candidate": "env-rotor-fp i=2 round_before=3072 round_after=3072 excepts=22"
+        },
+        {
+          "original": "env-rotor-fp i=3 round_before=3072 round_after=3072 excepts=2",
+          "candidate": "env-rotor-fp i=3 round_before=3072 round_after=3072 excepts=22"
+        },
+        {
+          "original": "env-rotor-fp i=5 round_before=3072 round_after=3072 excepts=2",
+          "candidate": "env-rotor-fp i=5 round_before=3072 round_after=3072 excepts=22"
+        },
+        {
+          "original": "env-rotor-fp i=7 round_before=3072 round_after=3072 excepts=2",
+          "candidate": "env-rotor-fp i=7 round_before=3072 round_after=3072 excepts=22"
+        },
+        {
+          "original": "env-rotor-fp i=8 round_before=3072 round_after=3072 excepts=2",
+          "candidate": "env-rotor-fp i=8 round_before=3072 round_after=3072 excepts=22"
+        },
+        {
+          "original": "env-rotor-fp i=9 round_before=3072 round_after=3072 excepts=2",
+          "candidate": "env-rotor-fp i=9 round_before=3072 round_after=3072 excepts=22"
+        },
+        {
+          "original": "env-rotor-fp i=10 round_before=3072 round_after=3072 excepts=2",
+          "candidate": "env-rotor-fp i=10 round_before=3072 round_after=3072 excepts=22"
+        },
+        {
+          "original": "env-rotor-fp i=11 round_before=3072 round_after=3072 excepts=2",
+          "candidate": "env-rotor-fp i=11 round_before=3072 round_after=3072 excepts=22"
+        }
+      ]
+    },
+    {
+      "name": "fd-sweep",
+      "calls": 15,
+      "original_sweep_raw_bytes": 11261,
+      "candidate_sweep_raw_bytes": 11261,
+      "whole_sweep_raw_equal": true,
+      "complete_input_and_output_word_rows_equal": true,
+      "original_physical_rows_sha256": "05051822ac088ebbbefaed36a101459fbd0def26c52b5445347b0be0c6ea3874",
+      "candidate_physical_rows_sha256": "05051822ac088ebbbefaed36a101459fbd0def26c52b5445347b0be0c6ea3874",
+      "original_complete_probe_bytes": 25351236,
+      "candidate_complete_probe_bytes": 25351236,
+      "complete_probe_inputs_actions_child_before_after_including_endings_equal": true,
+      "original_probe_sha256": "c030680b0d56a678cc78fb611847672dbe9a2e7df568fbd3a1bf45148c6da337",
+      "candidate_probe_sha256": "c030680b0d56a678cc78fb611847672dbe9a2e7df568fbd3a1bf45148c6da337",
+      "standard_fenv_rows_equal": true,
+      "all_fenv_differences": []
+    }
+  ],
+  "physical_conformance": true,
+  "actual_exit": 0,
+  "scope": "Complete two candidate controlled runs only. All12AI/15FD storedwords and complete probe natural10s+controlled inputs/actions/children compared with original inclendings. Standard-fenv differences are fully retained and PENDING source-backed investigation/independent review, never normalized or accepted by this physical comparator. Natural120/unarmed120/publicauthority/shipping remain separate."
+}

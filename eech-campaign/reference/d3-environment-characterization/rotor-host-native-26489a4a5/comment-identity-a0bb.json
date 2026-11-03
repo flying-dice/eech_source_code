@@ -1,0 +1,29 @@
+{
+  "created_utc": "2026-11-01T11:08:02.140198+00:00",
+  "measured_native_source": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+  "new_comment_publication_source": "a0bb76d2c2ba61841c92095e55cc9de764fc8b7c",
+  "changed_paths": [
+    {
+      "path": "STATUS.md",
+      "old_sha256": "0c9169c8221f2576528046c67c151b3e84c310899c9599ae45f727ad1dd094a2",
+      "new_sha256": "bae760ba263ac5678b6d43076caba1ddfe6e2032bec67c6d888c32430e2cc683"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/env_ref.c",
+      "old_sha256": "b536099bee27f136a369d0fe0ec2b987aa177d746252815e1f9e80db0c764d21",
+      "new_sha256": "4fb9dd4f8913b585aed72d341e6600d93f43e1a54db00fbca70b6c92b4c2127a"
+    },
+    {
+      "path": "eech-campaign/docs/d3-sound-lifetime.md",
+      "old_sha256": "fe492b34047f7d36ec2963f5b75bcfd8707837da1107b6cb781d8ffc50358f43",
+      "new_sha256": "be516ee0ff6a5f009f424cef411a19a462dd36d313a91edf57d21fe847cd1d02"
+    }
+  ],
+  "all_other_tracked_entries_and_modes_unchanged": true,
+  "kernel_noncomment_bytes_exact": true,
+  "kernel_noncomment_sha256": "76ab03667c902f86519bf12eb6be4bbcef3ab2f25e205f7621c66981d688ad36",
+  "archive": "D:\\EECH-Migration-Evidence\\host-rotor-comment-source-a0bb76d2c-20261101",
+  "archive_scope": "Three changed Git blobs only, not a full source snapshot or new binary build.",
+  "actual_exit": 0,
+  "scope": "One factual C-comment qualification plus STATUS/docs. All executable C bytes outside lexical comments are EXACT264. Actual native BUILDINFO remains264 and no new runtime binary identity is claimed. Same independent comment/actual review and applicable latest-head CI remain separate gates."
+}

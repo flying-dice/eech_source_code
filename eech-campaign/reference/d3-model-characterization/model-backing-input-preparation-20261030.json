@@ -1,0 +1,78 @@
+{
+  "state": "terminal",
+  "scope": "Fresh private input copies and manifest verification only; no native executable or campaign launched",
+  "controller_pid": 22472,
+  "started_utc": "2026-10-30T01:13:11.921283+00:00",
+  "roots": "R:\\d3-evidence\\model-backing-original-roots-20261030",
+  "source": "R:\\eech-regression-20261025\\roots",
+  "results": [
+    {
+      "case": "georgia",
+      "source": "R:\\eech-regression-20261025\\roots\\georgia",
+      "root": "R:\\d3-evidence\\model-backing-original-roots-20261030\\georgia",
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\model-review-source-f9c6a1e4c\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\model-backing-original-roots-20261030\\georgia",
+        "--compare",
+        "R:\\d3-evidence\\model-review-source-f9c6a1e4c\\eech-campaign\\reference\\m4-s3-mutation\\inputs-georgia.json",
+        "--output",
+        "R:\\d3-evidence\\model-backing-input-preparation-20261030\\georgia-manifest.json"
+      ],
+      "manifest_pid": 23616,
+      "actual_exit": 0,
+      "files": 1174,
+      "bytes": 142522166,
+      "combined_sha256": "d373bc4262464da87532b8128d396358f0003bc2e9e51e8fa92cf0a6e2b50de2"
+    },
+    {
+      "case": "lebanon",
+      "source": "R:\\eech-regression-20261025\\roots\\lebanon",
+      "root": "R:\\d3-evidence\\model-backing-original-roots-20261030\\lebanon",
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\model-review-source-f9c6a1e4c\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\model-backing-original-roots-20261030\\lebanon",
+        "--compare",
+        "R:\\d3-evidence\\model-review-source-f9c6a1e4c\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\model-backing-input-preparation-20261030\\lebanon-manifest.json"
+      ],
+      "manifest_pid": 6176,
+      "actual_exit": 0,
+      "files": 1179,
+      "bytes": 102239559,
+      "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09"
+    },
+    {
+      "case": "lebanon-repeat",
+      "source": "R:\\eech-regression-20261025\\roots\\lebanon-repeat",
+      "root": "R:\\d3-evidence\\model-backing-original-roots-20261030\\lebanon-repeat",
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\model-review-source-f9c6a1e4c\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\model-backing-original-roots-20261030\\lebanon-repeat",
+        "--compare",
+        "R:\\d3-evidence\\model-review-source-f9c6a1e4c\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\model-backing-input-preparation-20261030\\lebanon-repeat-manifest.json"
+      ],
+      "manifest_pid": 20740,
+      "actual_exit": 0,
+      "files": 1179,
+      "bytes": 102239559,
+      "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09"
+    }
+  ],
+  "actual_exit": 0,
+  "completed_utc": "2026-10-30T01:13:18.155404+00:00"
+}

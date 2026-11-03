@@ -1,0 +1,18 @@
+{
+  "source": "b2e55b18b556d04bc1512a1553a8e1b859347c36",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-sector-original-b2e55b18b-linux-20261031.sh"
+  ],
+  "pid": 10884,
+  "controller_pid": 23724,
+  "state": "terminal",
+  "started_utc": "2026-10-31T12:32:16.952508+00:00",
+  "scope": "Original sector characterization linux build/new harness guards only; no retail facts yet, no production cutover or shipping acceptance",
+  "actual_exit": 101,
+  "completed_utc": "2026-10-31T12:35:33.749651+00:00"
+}

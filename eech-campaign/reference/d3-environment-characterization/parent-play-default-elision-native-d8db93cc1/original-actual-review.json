@@ -1,0 +1,200 @@
+{
+  "schema": "independent-original-parent-play-actual-review-v1",
+  "reviewer": "/root/d3_environment_review",
+  "source": {
+    "tested_native": "8e90ab42e41102fb5045a64e7c46f88b7df8048e",
+    "tested_external_driver": "6aec433636ffffe2a913e886f86333a0e983d8a8",
+    "external_driver_sha256": "4a77db2c57292c8ca2ce0aec993b0e8211a07197fed3f3b23637440ba8dfb6c6",
+    "measured_guard_source": "6aec433636ffffe2a913e886f86333a0e983d8a8",
+    "lint_alias_source": "d4634ebd20335e170764d3da716143ddc91885d2"
+  },
+  "scope": "One new actual-characterization/auditor pass plus the tiny alias/prose delta. Closed C/protocol/rotor/publication reviews reused. No reviewer builds, tests, native runs, source edits or nested agents.",
+  "findings": [],
+  "original_parent_play_characterization_closed": true,
+  "finite_scope": "Original non-SESSION resumed-parent range/dispatch on this named hosted-baseline reference artifact: one Lebanon1200-frame run, six controlled steps on real FW/AI-helicopter cohorts, a deliberate live recording consumer and the reused complete unarmed control.",
+  "core_evidence": {
+    "three_recovery_controls": "All three actual native/controller exits0; six complete pre/post input checks0;69 native payloads and the explicit driver unchanged. Natural completes2026-11-01T12:35:48.399155Z. No acceptance from launch, partial bytes or collection alone.",
+    "natural": {
+      "requested_frames": 1200,
+      "frame_ms": 100,
+      "nominal_seconds": 120,
+      "phase0_calls": 140,
+      "calls_by_type": {
+        "routed_vehicle_23": 106,
+        "helicopter_14": 32,
+        "fixed_wing_10": 2
+      },
+      "default_calls": 140,
+      "nondefault_calls": 0,
+      "postboot_census_entries": 38,
+      "postboot_nondefault_types": [
+        32
+      ],
+      "case18_censuses": 1201,
+      "observed_census_changes_after_initial": 0,
+      "final_total": 140,
+      "final_drained": 140,
+      "pending": 0,
+      "dropped": 0,
+      "bad_points": 0,
+      "defaults_taken_anchor": 2
+    },
+    "controlled": [
+      {
+        "mode": "fixture",
+        "steps": 6,
+        "probe_calls": 9,
+        "matching_children": [
+          1,
+          2
+        ],
+        "total_sound_children": [
+          2,
+          23
+        ],
+        "pause_resume_returns": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "all_state_digest_probe_and_consumer_joins": "PASS"
+      },
+      {
+        "mode": "overload",
+        "steps": 6,
+        "probe_calls": 9,
+        "matching_children": [
+          1,
+          2
+        ],
+        "total_sound_children": [
+          2,
+          23
+        ],
+        "pause_resume_returns": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "all_state_digest_probe_and_consumer_joins": "PASS"
+      }
+    ],
+    "controlled_observations": "Each real FW parent has one matching ENGINE_LOOPING1 child; AI helicopter has two matching ROTOR_LOOPING children. Before every controlled pair the matching children are invalid/unlinked with zero lifetime words; pause returns0, resume returns1 or2 and makes validity/member1. All three declared viewpoints are exercised per target. Observed range words are00000000/451c4000/469c4000 (source-declared axis offsets0/2500/20000), not a general range oracle or an audibility/culling test.",
+    "restoration": "Independently recomputed every available before/resumed FNV from actual child words and counts and checked the step/probe/receiver sequence. Paused and restored digests equal before; C state-restored and whole-viewpoint memcmp indicators are1 at every step. Shared seed words match before/after and each joined call. Final entity/local allocation indices are reported unchanged; this is not full heap identity.",
+    "FP": "Every controlled pair records round_before==round_after==3072 and exception mask hexadecimal0x02. Entry flags/rounding cleanup is source-supported by the closed C correction; the serialized data does not provide an independent full post-cleanup CPU environment readback. No full x87/MXCSR or natural-run FP equivalence is claimed.",
+    "live_overload": "Case20 temporarily installs2 recording entries. Inside census lists10,14,32; all9 probe calls identify non-default, and all9 contiguous receiver records match exact type/range words. Entries return to the pre-case census containing only32. The same9 calls are default in case19. This demonstrates sensitivity to a live test consumer, not successful real audio/backend delivery.",
+    "unarmed_reuse": "Previously verified single unarmed native8e control is reused without another campaign: complete5,191,384B/17,283rows SHA48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d exact original including endings, actualnative/controller0 and2 input checks0. It used unchanged env-characterization.lua, not the parent-play wrapper."
+  },
+  "audit_assessment": {
+    "root_audit_sha256": "59ac9615a273fe9fa92e1706a9ad0a2a233e4c73146c1d1016628168e7a836e9",
+    "method": "Reviewed the read-only audit helper; independently verified the terminal child/stage exits, its complete artifact hashes, all input-reference manifests, current69 payload hashes and external-script pre/post identity. Independently joined every controlled step/state/call/receiver record and the full natural frame/census/sequence/counter data. Root's dataset-specific counts are actual facts, not replacement physical goldens.",
+    "initial_census_counter_note": "derived.census_changes=1 counts the initial census observation. It is not one later runtime table change. All1201 ordinary censuses list only type32; the deliberate inside-overload census is separate.",
+    "failure_history": "Initial three1fb boot-witness controls remain actualnative/controller1 before frames/cases and consumed, not green. Accepted evidence is three new successful recoveries plus one reused successful unarmed run:4 successes/8 successful input checks. Including historical failures there are7 distinct campaigns and14 input checks; no original or successful scenario rerun merely for handover."
+  },
+  "tiny_alias_source": {
+    "head": "d4634ebd20335e170764d3da716143ddc91885d2",
+    "base": "6aec433636ffffe2a913e886f86333a0e983d8a8",
+    "source_review_no_blocking_findings": true,
+    "change": "Exactly the local Refusal tuple alias plus STATUS/docs. All7 cases, values and assertions remain unchanged; the explicit static lifetimes match their string literals. Lua/native/production bytes remain exact. No lint suppression or runtime relabelling.",
+    "CI": "Exact6aec has8 successful jobs and one strict type_complexity failure, with tests passing. The alias addresses that test-only diagnostic at source level; d463 current campaign CI remains pending at the evidence cut. No unobserved strict or latest-head green result is inferred.",
+    "changed_paths": [
+      "STATUS.md",
+      "eech-campaign/crates/eech-world/tests/env_play_resumed_parent.rs",
+      "eech-campaign/docs/d3-sound-lifetime.md"
+    ],
+    "diff_sha256": "923c6c5af82eebaf63d9ca4d773ce02e0d68e4750a49b27044bf2a2bff619c42",
+    "all_other_entries_modes_identical": true
+  },
+  "TL_implications": [
+    "The measured current FW, AI-helicopter and routed-vehicle resumed-parent calls reach the true captured default no-op. This supports the proposed bounded default-entry-only disposition without another original measure.",
+    "For a future removal, test the actual entry against the true static default before any range calculation or live dispatch. A present-but-unrequested SoundEffect32 override is legal; an actually requested non-default entry should produce the explicit named unsupported-path failure rather than silently discarding it. Such refusal is not positive live-backend support.",
+    "Preserve Core child/type selection, validity/relink/count order, SESSION behavior and network consequences. Preserve and classify changed probe/range/FP diagnostics honestly; do not recalculate an unused legacy range merely to fake old observer equality.",
+    "This is not global dormancy, all-family/public-caller coverage or removal approval. Source review of the next actual implementation remains separate."
+  ],
+  "limits": [
+    "Natural coverage is one nominal120-second Lebanon reference-host scenario; routed vehicles have natural calls but no controlled state/receiver fixture here. Other parent families, player/network/lifecycle combinations and real device/backend delivery are not proved.",
+    "Default-reset census0 is distinct from the postboot table with SoundEffect32 override. No natural call reaches that override; table presence alone proves neither liveness nor unreachability.",
+    "Paused/restored raw word arrays are not emitted, so their restoration evidence is C readback flags/digests plus source, not an independently reconstructed full array. Only controlled shared seed-word stability is claimed, not complete natural/libc RNG-state equality.",
+    "No physical behavior has been removed or hosted by this characterization. No full audio, physical time, terrain/spatial/model, shipping40/all8/Tacview, wholeTask51/D3, current-final-CI or normal-delivery acceptance."
+  ],
+  "created_utc": "2026-11-01T12:41:20.766006+00:00",
+  "evidence": [
+    {
+      "path": "R:\\d3-evidence\\parent-play-original-actual-native8e-driver6aec-20261101.json",
+      "bytes": 24680,
+      "sha256": "59ac9615a273fe9fa92e1706a9ad0a2a233e4c73146c1d1016628168e7a836e9"
+    },
+    {
+      "path": "R:\\d3-evidence\\audit-parent-play-original-native8e-driver6aec-20261101.py",
+      "bytes": 4908,
+      "sha256": "4c52dbb8f48185b82e25bde56f7c6615c85d047c8b8ded61714984e56b925b1f"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\parent-play-boot-recovery-native8e-driver6aec-20261101\\controller.json",
+      "bytes": 5888,
+      "sha256": "d55bd6442edeb3941206e00693162affff9035c649399fa266c1502f6d9c406b"
+    },
+    {
+      "path": "R:\\d3-evidence\\parent-play-unarmed-complete-native8e-comparison-20261101.json",
+      "bytes": 1370,
+      "sha256": "67b54a354a26ea95f84f2969a864ba2c009b6218161659c410d493ba9929fc2a"
+    },
+    {
+      "path": "R:\\d3-evidence\\independent-environment-original-parent-play-boot-correction-6aec43363-20261101.json",
+      "bytes": 10084,
+      "sha256": "fe9e9d4dd0f952af000cf4df8da0d82726f482b933ed7ccb264582e4259116be"
+    },
+    {
+      "path": "R:\\d3-evidence\\parent-play-protocol-source-d4634ebd2-20261101.json",
+      "bytes": 1987,
+      "sha256": "4789070f4c6899abddffb4d79a306354817e6db6338f7103023f817ab0b16ae9"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\pc-8e90ab42e\\eech-campaign\\target\\env-observer\\original-parent-play-corrected-8e90ab42e\\BUILD-INFO.txt",
+      "bytes": 7020,
+      "sha256": "e5f49292a1f5a35e92418d2b3f904e6731415d62a96f244aabb1691c83a4a26b"
+    }
+  ]
+}

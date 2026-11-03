@@ -1,0 +1,20 @@
+{
+  "test_driver_source": "e05bf775fc9c00ffed2de998ca94b865f7b99053",
+  "unguarded_production_source": "6711d5f11804537255d08e5c355f329796cca657",
+  "all_production_C_Rust_ABI_providers_and_default_Lua_unchanged": true,
+  "allowed_changed_paths": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-dc/src/module.rs",
+    "eech-campaign/crates/eech-world/lua/env-sector-authority.lua",
+    "eech-campaign/crates/eech-world/tests/env_sector_authority.rs",
+    "eech-campaign/crates/eech-world/tests/terrain_sector.rs",
+    "eech-campaign/docs/d3-environment-sector-surface.md",
+    "eech-campaign/reference/d3-environment-characterization/sector-host-6711-first-review/first-default-comparison.json",
+    "eech-campaign/reference/d3-environment-characterization/sector-host-6711-first-review/linux-pipeline-completion.json",
+    "eech-campaign/reference/d3-environment-characterization/sector-host-6711-first-review/receipt.json",
+    "eech-campaign/reference/d3-environment-characterization/sector-host-6711-first-review/source-review.json",
+    "eech-campaign/reference/d3-environment-characterization/sector-host-6711-first-review/windows-pipeline-completion.json"
+  ],
+  "exception": "Only cfg(test) module unit code may differ; actual production prefix byte-equal.",
+  "scope": "Focused actualFP red regression against unchanged unsafe6711kernel; newobserverdriverguards are bookkeeping, not actualhostauthority."
+}

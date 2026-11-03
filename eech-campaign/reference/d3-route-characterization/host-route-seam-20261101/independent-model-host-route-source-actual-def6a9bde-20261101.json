@@ -1,0 +1,160 @@
+{
+  "review": "Independent production host route-data source and existing actual-evidence review",
+  "source": {
+    "head": "def6a9bdec11e5f8a27451d8057162a34f340693",
+    "base": "fce1f1dfaa0423a844399eb7789db9935ae94e91",
+    "existing_measured_native_source": "8b4562edbfdf6cc2b066ba50afe87b5495e05945",
+    "frozen_repository": "D:\\EECH-Migration-Evidence\\route-host-def6a9bde",
+    "diff_sha256": "24689689af06728739d41d7abd7654466710ac8f52262cfe9ddff41fe741ed45",
+    "changed_file_count": 35,
+    "changed_git_blob_sha256": {
+      "STATUS.md": "a80427e4a55dd1051c48b5155fd8247eacfab8a9155638102a6a42d71b8be272",
+      "aphavoc/source/entity/mobile/mb_hostmodel.c": "990e8bf66ae1411128365bfc625d3406498cc655e654ecc655f97c9d60896001",
+      "aphavoc/source/entity/mobile/mb_hostmodel.h": "9682d2a7782177b455a8fc58f4ba65ed15584b9406767eab024d6bcd307b1b88",
+      "eech-campaign/crates/eech-dc/Cargo.toml": "cf2536e80bc934e59fae71365fc6aaca8551105b51da78712768a20880a61034",
+      "eech-campaign/crates/eech-dc/src/module.rs": "381f893a2d3e303d54f9a8f1620e749475b4f799fad5b9f701870433aa8ed977",
+      "eech-campaign/crates/eech-engine-sys/Cargo.toml": "d95cd535795dd0b083b0448ddb1bb0fccb9ff12a5dae89508be182f0921c2c1d",
+      "eech-campaign/crates/eech-engine-sys/build/main.rs": "d9b6d74a45480e21b846841b038623cce7533b7df8b2ea2f0fc1c63cb7e60c4b",
+      "eech-campaign/crates/eech-engine-sys/build/patches.rs": "d3261849912bf66c5be0bc94494ba1a909d0970935258beaba05d45673fac553",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_model_host_fixture.c": "821b4276cd6e21e33ae2f4da34471c8283db5627c49b9255844fbac8e647246d",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_route_fixture.c": "254fea52eb3c0882fa78fd9133726f9a84328f537b089d3667278f47a3e47e0a",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_route_hooks.h": "c308ed5db9c36201b4c11b9b7fd9a8ab14404f7941aa0b548d04e705cda970b1",
+      "eech-campaign/crates/eech-engine-sys/src/lib.rs": "5e13cf1934e56c52f26a72ec51d4fc11a29ebd69ec4db07070747a4715de2ff3",
+      "eech-campaign/crates/eech-engine/Cargo.toml": "b33907aae9d4c9f37378af74c4b3a43dd0e2829b3ef54f937aae9b7ab83caceb",
+      "eech-campaign/crates/eech-engine/src/lib.rs": "c9975dcd2e6803af455c8a53a6321f1b20dbfcdc8706a1a511de6eeceaf72c9a",
+      "eech-campaign/crates/eech-world/csrc/model_step.c": "644977033b055afdf37c32cd0658cf6064de3937a3366d7042bef9bdb8746c98",
+      "eech-campaign/crates/eech-world/data/subobject-names.txt": "aa406c4b25c3923111150f5929ef8628a61ecfd2e56a06bd4c05e48468893dd9",
+      "eech-campaign/crates/eech-world/lua/model-authority.lua": "5774f8c8f35a7e112644f33d712967b7f1e8eb102fa58bef09e7fc863fd85c35",
+      "eech-campaign/crates/eech-world/lua/route-characterization.lua": "33c67030443ceb17adcea18a8b95d9248e361c30645f1d4173cafafca4ae0e95",
+      "eech-campaign/crates/eech-world/src/model_host.rs": "d18986c70bcd3facd63d8697c16fe484df2509e4f4c8bea8b587fd0dc11601d5",
+      "eech-campaign/crates/eech-world/src/models.rs": "cc583de8b19a56e182c1aef8e1cb128cf447f89966816e2c87c7652220e128b3",
+      "eech-campaign/crates/eech-world/tests/model_route.rs": "78c11ec0fad355e5f89302cd84283d3656192cedaa88e6f3c295de804c371599",
+      "eech-campaign/crates/eech-world/tests/route_characterization.rs": "2a73e82fb9abcfb077f573f78680ce9fc3aca46cb5b5ece92ab9f249f0d63b27",
+      "eech-campaign/docs/m5-model-host-authority.md": "877b8ed9235e13649dfc14d7015cae4471e479d32a63193550b5bd744c566380",
+      "eech-campaign/docs/m5-route-characterization.md": "e43890b4791c3654025d4d7169998b522b188e639771caf7116550427b600f3b",
+      "eech-campaign/reference/d3-route-characterization/original-route-closeout-fce-20261101/.gitattributes": "8b09d1726d88fe7e2f82d36ed9b4b85336f2b4993a584ac03ec659bb3a278fe7",
+      "eech-campaign/reference/d3-route-characterization/original-route-closeout-fce-20261101/README.md": "943be9025c5cfd76c7b0ffac1c7395488b433b1283faea8604b86c36b58f3f63",
+      "eech-campaign/reference/d3-route-characterization/original-route-closeout-fce-20261101/independent-model-original-route-complete-actual-fce1f1dfa-20261101.json": "b9122e133664715b011262f0bd5b6b8310741cfee6ae0ffb1201dc3ee3cb04cf",
+      "eech-campaign/reference/d3-route-characterization/original-route-closeout-fce-20261101/independent-model-original-route-first-incomplete-actual-d10-20261101.json": "1695440b83f9dd318bb04b7b3bd6fbe4c31a3001bd3f6a82a228dd87e4c959e4",
+      "eech-campaign/reference/d3-route-characterization/original-route-closeout-fce-20261101/independent-model-route-single-read-source-fce1f1dfa-20261101.json": "721d67c8c351fc020d044198d856623b071591b987f7e9c1e4910a2eadb383d9",
+      "eech-campaign/reference/d3-route-characterization/original-route-closeout-fce-20261101/manifest.json": "395044599ea27f433a1bde38aeb1a026c65e0b13358bc7e8491e2b802fca2499",
+      "eech-campaign/reference/d3-route-characterization/original-route-closeout-fce-20261101/model-original-route-complete-fce1f1dfa-20261101.json": "da3cc93d54d76bbe80108550ef1fa04ff3d75bc98dfffbee85e4f19be387797f",
+      "eech-campaign/reference/d3-route-characterization/original-route-closeout-fce-20261101/model-original-route-first-incomplete-d10dd8cc0-20261101.json": "77401027b892d19d2f71e649d60560d377661c280e391ba7b23d3c4756eaafbf",
+      "eech-campaign/reference/d3-route-characterization/original-route-closeout-fce-20261101/model-route-observer-transparency-d10-v80-20261101.json": "acf8e6de1eca47916d19fd40b3922c800f338480382b85728d1d3924ac218fa4",
+      "eech-campaign/reference/d3-route-characterization/route-host-extraction-focused-checks-20261101.txt": "a3906a6776a2826beafc415043498ba89f7225d0c1b9db37d04d06c44c86a25e",
+      "eech-campaign/tools/build-windows-route-fixture.sh": "eb1e8f188a92c2bcf135ccfd8aaa0dfd1f2a9ccb56263ef8244aeb305aaa6b34"
+    }
+  },
+  "scope": "One consolidated new-source correctness, clean-code, boundary-safety, existing 8b actual/comparator/authority and safe-publication pass. Closed original geometry/kernel/FP reviews are reused. No builds, tests, native executions, source changes or unsafe malformed-topology executions by this reviewer.",
+  "findings": [
+    {
+      "id": "ENV-HOST-ROUTE-BOUNDARY-1",
+      "priority": "P1",
+      "title": "Shape-valid host topology can overflow Core graph workspaces or prevent progress",
+      "locations": [
+        "aphavoc/source/entity/mobile/mb_hostmodel.c:527",
+        "aphavoc/source/ai/faction/routegen.c:372",
+        "aphavoc/source/ai/faction/routegen.c:398",
+        "aphavoc/source/ai/faction/routegen.c:473",
+        "aphavoc/source/ai/faction/routegen.c:504",
+        "aphavoc/source/ai/faction/routegen.c:569",
+        "aphavoc/source/ai/faction/routegen.c:709",
+        "aphavoc/source/ai/faction/routegen.c:855",
+        "aphavoc/source/ai/faction/routegen.c:940"
+      ],
+      "evidence": "campaign_model_route_object bounds node/face counts, finite coordinates, endpoint indices, colour and polygon domains, then hands the topology to the original graph policy. The latter has 24-entry starting-node and per-node link workspaces, assertion-only or unchecked writes, and loops without a refusal/progress bound. Those constraints are not implied by the new scalar checks.",
+      "source_only_counterexamples": [
+        "Two finite nodes and one green edge can supply primary nodes without a black starting node and leave the primary-node loop without progress.",
+        "Thirteen disjoint black edges on 26 nodes can supply 26 starting nodes to a 24-entry workspace.",
+        "A black edge followed by 25 green children of its reached node can write child index 24 of a 24-entry child workspace."
+      ],
+      "required_change": "Guard actual Core workspace writes, indices and capacity, and require bounded progress/termination with a named refusal before unsafe writes or campaign consequences. Preserve valid original graph policy, order and results. Do not add a parallel graph solver, broaden scalar tolerances, or execute these malformed shapes on the known-unsafe old native.",
+      "gate": "Blocking production host route boundary; existing healthy retail and scalar-refusal controls do not establish topology safety."
+    },
+    {
+      "id": "ENV-HOST-ROUTE-CLEANUP-1",
+      "priority": "P2",
+      "title": "Remove obsolete hosted scale setup and keep the test probe out of default production",
+      "locations": [
+        "eech-campaign/crates/eech-engine-sys/build/patches.rs:H5-route-node-from-host",
+        "aphavoc/source/entity/mobile/mb_hostmodel.c:486",
+        "aphavoc/source/entity/mobile/mb_hostmodel.h"
+      ],
+      "evidence": "H5 substitutes host positions but leaves the now-unused xmax/ymax/zmax declarations and bounds/scale preparation in staged Core. campaign_model_route_probe is described as test-only and its caller is fixture-gated, but its declaration/definition are not guarded by EECH_MODEL_HOST_FIXTURE and therefore compile into ordinary hosted production.",
+      "required_change": "Remove only obsolete hosted decode setup while retaining original-profile behavior, and gate the test-only probe declaration/definition with the actual fixture feature. No new general-purpose framework is needed."
+    }
+  ],
+  "source_review_no_blocking_findings": false,
+  "finite_host_route_slice_closed": false,
+  "source_checks": {
+    "abi_and_bootstrap": "C/Rust layouts, operation 4/5 routing, kind/name echo, callback ownership and integer ingress are coherent in the reviewed delta. No private pointer is exposed through the public request.",
+    "data_lookup": "The 560-name generated catalogue matches original declarations. Scene-owned indices precede the original depth-first hierarchy order. All 28 staged caller sites preserve semantic keys and single evaluation.",
+    "staging_and_physical_scope": "All host node/face replies are staged before Core route processing. Host decode follows the original float expressions and existing FP guard. Ordered packing is bounded by storage counts. Geometry arrays and loaders remain present; there is no loader detachment or second route fallback claim.",
+    "remaining_safety": "Scalar and storage checks do not prove safe graph-policy topology, capacity or progress; ENV-HOST-ROUTE-BOUNDARY-1 is required."
+  },
+  "existing_actual_evidence": {
+    "source_identity": "8b4562edbfdf6cc2b066ba50afe87b5495e05945",
+    "cohort_receipt": "R:/d3-evidence/model-host-route-first-cohort-compare-8b4562edb-20261101.json",
+    "comparison_helper": "R:/d3-evidence/compare-host-route-cohorts-8b4562edb-20261101.py",
+    "independently_verified": {
+      "georgia": {
+        "calls": 704,
+        "matching_node_words_and_indices": 21116,
+        "matching_ordered_resolved_faces": 17467,
+        "literal_matching_graph_rows_including_endings": 87869
+      },
+      "lebanon": {
+        "calls": 528,
+        "matching_node_words_and_indices": 15783,
+        "matching_ordered_resolved_faces": 13175,
+        "literal_matching_graph_rows_including_endings": 65965
+      },
+      "native_and_controller_exits": 0,
+      "full_pre_post_input_checks": 4,
+      "unchanged_payloads_per_control": 57
+    },
+    "whole_cross_profile_files_equal": false,
+    "intentional_schema_differences": "Host profile omits original raw-short/surface/local representation and uses different lookup keys. Original raw files are retained unchanged.",
+    "observer_defect": "Every 8b host call emitted zero route bounds that were not measured. Those captures remain defect-bearing and are not evidence of measured model bounds or an accepted complete candidate observer profile. def6 source suppresses host-profile bounds and the driver rejects such rows; original FCE schema is preserved. Corrected captures/repeats have not been reviewed here.",
+    "authority_receipt": "R:/d3-evidence/model-host-route-authority-controls-8b4562edb-20261101.json",
+    "authority_helper": "R:/d3-evidence/audit-host-route-authority-8b4562edb-20261101.py",
+    "authority_verified": {
+      "controls": 4,
+      "controllers_exit_zero": 4,
+      "full_pre_post_input_checks": 8,
+      "unchanged_payloads_per_control": 57,
+      "expected_negative_native_exit_one": 3,
+      "negative_provider_queries_after_injection": 0,
+      "shifted_node_z_words": 15783,
+      "changed_actual_core_per_depth_positions": 3020,
+      "x_y_words_unchanged": true,
+      "final_link_start_rows_literal_unchanged": true
+    },
+    "authority_boundaries": [
+      "route_node.callback",
+      "route_node.answer",
+      "route.face"
+    ],
+    "authority_limit": "Useful bounded authority and scalar-refusal evidence at unchanged 8b production source; it does not close topology safety, observer truth, loader detachment or a def6 measured-profile gate.",
+    "source_mapping": "Production store/kernel/provider/staged patches remain exact 8b. Later observer/schema and two cfg(test) mut changes are distinct; the 8b binary is not relabelled def6."
+  },
+  "publication_review": {
+    "folder": "eech-campaign/reference/d3-route-characterization/original-route-closeout-fce-20261101",
+    "literal_json_copies": 6,
+    "all_git_blob_bytes_and_hashes_match_private_originals": true,
+    "scoped_json_text_preservation": true,
+    "privacy_findings": [],
+    "scope": "Finite original-route evidence only. No private raw geometry, scene assets, graph recordings, pointers, binaries or retail files are published. Earlier failed/incomplete D10 evidence remains failed."
+  },
+  "new_receipts_not_adjudicated_in_this_report": [
+    "R:/d3-evidence/model-host-route-full-fp-def6a9bde-20261101.json"
+  ],
+  "pending_actuals": "Parent reports def6 Windows combined and Linux default/combined/fmt/strict completion and new 16-entry route FP receipt. These new results are not used to override the blocking source finding. Corrected complete captures/repeats are not accepted here.",
+  "next_unmet_gate": "One finite source correction batch for the actual workspace/progress boundary and cleanup, followed by appropriately scoped corrected-source safety checks and corrected observer captures/FP review. Do not run unsafe malformed inputs on old binaries. No new original campaign rerun is required merely for handover.",
+  "limitations": [
+    "No full public/caller FP equivalence is inferred from matching output words.",
+    "No model loader, custom/common geometry, hierarchy/viewpoint/device/muzzle/targetpoint detachment or broader model service acceptance.",
+    "No Task50, Task51, D3, shipping forty-check/eight-complete-file, Tacview, normal-merge or delivery acceptance.",
+    "Only counts, hashes and source locations are reported; private raw scene/geometry values remain outside this report."
+  ]
+}

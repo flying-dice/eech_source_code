@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "pid": 15924,
+  "when_utc": "2026-11-02T07:08:52.219365+00:00",
+  "native_cwd": "D:\\EECH-Migration-Evidence\\shipping-environment-production-78fe5efdb-20261101-1626",
+  "runner": "D:\\EECH-Migration-Evidence\\nb-78fe5efdb\\eech-campaign\\tools\\regression-pack.py",
+  "arguments": [
+    "--georgia",
+    "D:\\EECH-Migration-Evidence\\environment-shipping-roots-20261101-1620\\georgia",
+    "--lebanon",
+    "D:\\EECH-Migration-Evidence\\environment-shipping-roots-20261101-1620\\lebanon",
+    "--lebanon-repeat",
+    "D:\\EECH-Migration-Evidence\\environment-shipping-roots-20261101-1620\\lebanon-repeat",
+    "--bin",
+    "D:\\EECH-Migration-Evidence\\nb-78fe5efdb\\eech-campaign\\target\\windows-environment-production-78fe5efdb",
+    "--out",
+    "D:\\EECH-Migration-Evidence\\shipping-environment-production-78fe5efdb-20261101-1626"
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,16 @@
+{
+  "utc": "2026-10-30T03:39:43.296171+00:00",
+  "args": [
+    "R:\\d3-evidence\\model-handoff-source-ea1953b6c\\eech-campaign\\target\\windows-model-handoff-ea1953b6c\\eech-world.exe",
+    "R:\\d3-evidence\\model-handoff-source-ea1953b6c\\eech-campaign\\target\\windows-model-handoff-ea1953b6c\\lua\\json-lines-check.lua",
+    "out=R:/d3-evidence/model-json-writer-tiny-diagnostic-ea1953b6c-20261030/rows.jsonl"
+  ],
+  "actual_native_exit": 0,
+  "scope": "Real shipped Lua writer in actual Windows host; no campaign/DLL/bootstrap/retail run",
+  "number_row": "{\"big\":1099511627776,\"event\":\"numbers\",\"fraction\":1.5,\"negative\":-3,\"no\":false,\"tiny\":9.9999999999999995e-21,\"yes\":true,\"zero\":0}",
+  "python_json_tiny_hex": "0x1.79ca10c924223p-67",
+  "expected_literal_hex": "0x1.79ca10c924223p-67",
+  "python_json_exact": true,
+  "linux_test_consumer": "serde_json Value::as_f64 differed by one ULP; original failure retained",
+  "rows": 7
+}

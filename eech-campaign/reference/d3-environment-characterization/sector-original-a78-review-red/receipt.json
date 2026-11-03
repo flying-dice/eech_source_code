@@ -1,0 +1,11 @@
+{
+  "source": "a78b6ab3c2512288c91ceed907379e9fda9ccf34",
+  "scope": "Actual compile-red reproduction of new test-only group10 C literal syntax defect, not an original retail run/product acceptance",
+  "linux_four_driver_functions": 0,
+  "linux_native_compile_actual_exit": 101,
+  "linux_strict": "NOT_REACHED",
+  "windows_fixture_build_actual_exit": 1,
+  "review_sha256": "f23a1f5398ecfea98d1241bcbac1cef0793802e03cec71661cadaaf906527797",
+  "compiler_diagnostic": "eech_env_fixture.c:1308-1309: missing terminating quote character; literal source newline inside error string",
+  "new_fix": "One C string newline escaped; no algorithm, production, golden or baseline change. Correction not built yet."
+}

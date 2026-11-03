@@ -1,0 +1,233 @@
+{
+  "review": "Independent bounded final actual/auditor/safe-publication review",
+  "created_utc": "2026-10-31T23:13:05.413137+00:00",
+  "source": {
+    "head": "e5020587153e1922acdc412598c4920501988a9a",
+    "tested_native": "e5020587153e1922acdc412598c4920501988a9a",
+    "tested_driver": "e5020587153e1922acdc412598c4920501988a9a",
+    "source_review_reused_sha256": "0c30b9a625e98e5d62c5931931767bd2642f1728e154d69b38007944ae0b6264",
+    "working_diff_scope": "Only proposed STATUS/docs and the new 12-file safe evidence directory; runtime source remains pinned."
+  },
+  "findings": [],
+  "finite_host_sound_lifetime_slice_closed": true,
+  "inspected_facts": {
+    "defaults": {
+      "native_and_controller_exit0": 11,
+      "input_checks0": 22,
+      "whole_raw_files_including_endings_equal": 11,
+      "natural_bytes": 5191384,
+      "natural_rows": 17283,
+      "natural_sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+      "method": "Independently compared every complete candidate/original raw byte stream and comparison hashes; no normalization, baseline or tolerance changes."
+    },
+    "ownership": {
+      "controls": 7,
+      "input_checks0": 14,
+      "aggregate_actual_exit": 0,
+      "old_capability_red": {
+        "native_source": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+        "delegate_source": "d4cebb76dd2980ac078dc15f07fcd381439a9229",
+        "native_and_controller_actual_exit": 1,
+        "requests": 0,
+        "calls": 3,
+        "kills": 1,
+        "complete_original_case4_bytes_equal": true
+      },
+      "healthy": {
+        "requests": 3,
+        "complete_original_case4_bytes_equal": true
+      },
+      "changed": {
+        "requests": 3,
+        "actual_creation_and_three_post_update_lifetime_words": [
+          "40a00000",
+          "40a00000",
+          "40a00000",
+          "40a00000"
+        ],
+        "calls": 3,
+        "kills": 0
+      },
+      "changed_init": {
+        "boot_requests_forwarded": 4764,
+        "fixture_requests": 1,
+        "actual_creation_lifetime_word": "3e800000"
+      },
+      "refusals": {
+        "withheld": "sound_lifetime_update.callback",
+        "malformed": "sound_lifetime_update.answer",
+        "withheld_init": "sound_lifetime_init.callback",
+        "each": "One selected fixture request, exact engine_failure/case, completed false and no result; witness native/controller0 represents expected refusal, not completed physics."
+      }
+    },
+    "identities": {
+      "controls_checked": 18,
+      "input_manifests_independently_matched_to_frozen_references": 36,
+      "candidate_payload_hashes_checked": 56,
+      "old_capability_payload_hashes_checked": 55,
+      "checks": "BUILD-INFO source/profile/hash inventory, each executable path/controller exit, raw SHA, override/wrapper/delegate before/after SHA and recorded authority output agree. Real changed per-child words and end restoration records corroborate summaries."
+    },
+    "execution_gates": {
+      "windows_actual_exit": 0,
+      "linux_actual_exit": 0,
+      "linux_scope": "Affected full default/observer package tests and both strict profiles; Root execution receipts/logs inspected, reviewer ran no builds/tests.",
+      "exact_e502_CI_jobs_success": 9,
+      "prior_402_CI": "Two i686 failures101 and seven successes remain distinct; both exact-e502 i686 jobs now success with retained decoded logs."
+    },
+    "recovery": {
+      "initial_parent_pid": 25520,
+      "initial_actual_exit": 1,
+      "initial_child_stages": 0,
+      "cause": "Live receipt JSON read/write race; matching traceback retained.",
+      "separate_recovery_pid": 8124,
+      "recovery_actual_exit": 0,
+      "retry": "At most 50 JSONDecodeError/PermissionError read attempts at 0.1s for one live receipt read; does not catch or convert failed terminal gates.",
+      "controls_not_rerun": "Recovery launches ownership once after terminal default conformance, then auditor; initial parent launched no ownership child."
+    },
+    "publication": {
+      "files_reviewed": 12,
+      "derived_json_files": 10,
+      "private_and_public_hashes_verified": true,
+      "all_ten_decoded_JSON_values_identical": true,
+      "scope": "LF metadata serialization only. Inspected all proposed safe JSON/README and new STATUS/docs text; no measured position/retail input arrays/allocation IDs copied. Original and publication hashes remain separate.",
+      "actual_review_pending_text": "Accurate at review; future report/closure edits require their own identity and are not included here.",
+      "first_d1_WIP_gap": "Original overwritten raw log remains unavailable; retained excerpt/tool results are partial, not a complete raw log."
+    }
+  },
+  "limitations": [
+    "Finite characterized duration/lifetime host boundary only; no whole sound, audible/device/player/render/frame/Tacview/general DCS or shipping acceptance.",
+    "Startup canonical PC64/RZ correspondence remains an unmeasured assumption; conformance and caller-state evidence do not measure original startup control.",
+    "Core metadata/asset proxy, backend status/handles, heap/list consequences, pause/resume, independent destroy/network, pitch/amplitude, physical time and required terrain/spatial/model responsibilities remain required D3 work.",
+    "Full40/all8 complete recordings, current final CI/delivery/normal merges and whole Task51/D3 remain open; D4/D5 unstarted. Exact-e502 nine-job success is not a future documentation-head CI claim.",
+    "Prior source reviews and original controls reused; no unchanged production source re-review, tests/runs/process changes, agents or external publication performed."
+  ],
+  "evidence": [
+    {
+      "path": "R:\\d3-evidence\\host-sound-lifetime-combined-e50205871-20261031.json",
+      "sha256": "f387e395d139a270d7ae22c46781b0903c544001e323985e636b0cf3f694c690"
+    },
+    {
+      "path": "R:\\d3-evidence\\audit-host-sound-lifetime-controls-20261031.py",
+      "sha256": "bac35cd20c17e521c4d66b3083f4f78668023947981c20efb0dc970cfa52a921"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-host-sound-lifetime-defaults-e50205871-20261031\\controller.json",
+      "sha256": "38fa9a2f267da2205c826faf9ce23802f31b8496423a062354e46168a493669c"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-host-sound-lifetime-defaults-e50205871-20261031\\complete-raw-comparison.json",
+      "sha256": "59f75bc6540baaef36c3f6f798e5560fe603ad65b911eb8afe3403ed8e77af3c"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-host-sound-authority-e50205871-20261031\\controller.json",
+      "sha256": "2c7865bffc4c2fbf4769bff479138558788b06a6d4299c9704cfaf72812b36d0"
+    },
+    {
+      "path": "R:\\d3-evidence\\run-host-sound-authority-after-gates-20261031.py",
+      "sha256": "b7ff87dc8e26b952141c5062b3b89945f7c300f138ac4d3265949b5a317e8e52"
+    },
+    {
+      "path": "R:\\d3-evidence\\run-host-sound-lifetime-control-20261031.py",
+      "sha256": "9ad6eca079dccc7e0f78ef52594b400f3dfc19faccdc87cfb85f101135dfd8e8"
+    },
+    {
+      "path": "R:\\d3-evidence\\host-sound-remaining-controls-e50205871-20261031.json",
+      "sha256": "c9a5608993c0f22dabf9f46816f5f26ee5a6e1cb8fdbdff9a0f44676b2e849a2"
+    },
+    {
+      "path": "R:\\d3-evidence\\host-sound-remaining-e50205871-20261031.outer.err",
+      "sha256": "f333bc26d05aa76e6a57b042162cf71a6cbce33522c48f7badf96b50513bd415"
+    },
+    {
+      "path": "R:\\d3-evidence\\host-sound-remaining-controls-recovery-e50205871-20261031.json",
+      "sha256": "b727ecdd1f17b4a096b685cff11aee4d0c42ecfd4d34228dfafb15ac648555a5"
+    },
+    {
+      "path": "R:\\d3-evidence\\run-host-sound-e502-remaining-controls-recovery-20261031.py",
+      "sha256": "9cc75fa5a49d362aa789dce9c233e9ffc703cc2a31a2c4428ea9f1dcd5e2af66"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-host-sound-lifetime-e50205871-windows-20261031-completion.json",
+      "sha256": "d2667f4ca2db60dad519afbe45df772a7869a9416d8c93b6f4d66caed0460a28"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-host-sound-lifetime-e50205871-linux-20261031-completion.json",
+      "sha256": "64165dbae6fa66f02ac9c4523b8115a8e9209a55b65773a1231537c93daaf6b7"
+    },
+    {
+      "path": "R:\\d3-evidence\\current-CI-e50205871-20261031.json",
+      "sha256": "2c0380ece650c79a344c4ed3545b43566a956b00a5c48749402fe778cb858287"
+    },
+    {
+      "path": "R:\\d3-evidence\\current-CI-402ba4410-20261031.json",
+      "sha256": "b4191bd30602bd438f51cb3c7e4b6ce24c47f6131f36e050762b3ff797ec7584"
+    },
+    {
+      "path": "R:\\d3-evidence\\independent-environment-host-sound-lifetime-source-review-e50205871-20261031.json",
+      "sha256": "0c30b9a625e98e5d62c5931931767bd2642f1728e154d69b38007944ae0b6264"
+    }
+  ],
+  "proposed_publication_identity": {
+    "directory": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-host-lifetime-native-e502",
+    "files": [
+      {
+        "name": "complete-raw-comparison.json",
+        "sha256": "902ba97ccf9f693d4ba4bcc1cb76a7fc32f2696235e4e1d770da2d1eee0ca4b7"
+      },
+      {
+        "name": "current-CI-402ba4410-20261031.json",
+        "sha256": "b4191bd30602bd438f51cb3c7e4b6ce24c47f6131f36e050762b3ff797ec7584"
+      },
+      {
+        "name": "current-CI-e50205871-20261031.json",
+        "sha256": "2c0380ece650c79a344c4ed3545b43566a956b00a5c48749402fe778cb858287"
+      },
+      {
+        "name": "environment-host-sound-lifetime-e50205871-linux-20261031-completion.json",
+        "sha256": "78f9b48613be989eeac9771c03c2349e539d507d2e3e0b8cdcbb4f9916be65b9"
+      },
+      {
+        "name": "environment-host-sound-lifetime-e50205871-windows-20261031-completion.json",
+        "sha256": "6e017ab7093c6aa961a12c30bb0b298412c3df453fd9e3e34b78c1c54e5a6f56"
+      },
+      {
+        "name": "host-sound-lifetime-combined-e50205871-20261031.json",
+        "sha256": "4bc7e21b07d67c4759d458c4d666631fb6fcf27c20e558ac21ffe939588c3ee2"
+      },
+      {
+        "name": "host-sound-remaining-controls-e50205871-20261031.json",
+        "sha256": "edba585aed5d8f003f428f9b22c12fa8bd9ad652ded6ec1f0893e720e9127509"
+      },
+      {
+        "name": "host-sound-remaining-controls-recovery-e50205871-20261031.json",
+        "sha256": "6b170de281b68822c16b3256464e008ccb4c163d7f74a26fc8c5435fe1ab8e22"
+      },
+      {
+        "name": "independent-environment-host-sound-lifetime-source-review-402ba4410-20261031.json",
+        "sha256": "328cf21734f1a02e792a95e93832d6fe6a86efe21b0411dbf479c13c0fe13c14"
+      },
+      {
+        "name": "independent-environment-host-sound-lifetime-source-review-e50205871-20261031.json",
+        "sha256": "0b527d19e14b957c389b86e6b0c43271beab5726ca9cff167470a51a48e5024e"
+      },
+      {
+        "name": "README.md",
+        "sha256": "0ba6930c2520ef9940b2ae9f8ceac46a1509ae00a25021b16de60632c67062cc"
+      },
+      {
+        "name": "receipt-identities.json",
+        "sha256": "9eb322b1b9c91369b6012fa80cd09fbd19ba2a7b9ad3a44ae272133e29269e19"
+      }
+    ],
+    "docs": [
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\STATUS.md",
+        "sha256": "996bcffd5c25e42d2032d7df1d316469226b348f833dbdcb1ea06d5b70f8e501"
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\docs\\d3-sound-lifetime.md",
+        "sha256": "9160af9ecdb36bc7987061cad0481b2649a80605303807e6528b3f95fe7934f8"
+      }
+    ]
+  }
+}

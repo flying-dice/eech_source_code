@@ -1,0 +1,17 @@
+{
+  "judge_source": "05b474e88e15e37ea6c7d06ea70d330419f7a2ee",
+  "native_source": "14192c6e292864e573acc8fd8eed94e94f12ce03",
+  "actual_Windows_guard_exit": 101,
+  "guard_functions_passed": 13,
+  "guard_functions_failed": 1,
+  "failure": "Windows cmd/ping descendant holds pipes after directCMDkill; measured29.337829s against2secondwall/25secondsafetybound. Newunacceptedfixture, notcampaignfailure.",
+  "actual_public_test": "NOT_STARTED",
+  "actual_pre_input_checks": 0,
+  "actual_post_input_checks": 5,
+  "all_five_post_inputs_exit": 0,
+  "retail_roots": "UNUSED, no nativeprocesslaunched",
+  "old_receipt_all_ten_prepost_boolean": "Incorrect vacuous all(empty) TRUE. Original failedreceipt preserved; thisaudit supersedesonlythatclaim. V2requiresexact5PRE+5POST.",
+  "old_processes": "22940controller/6384guard/pingdescendants verifiedABSENTCIM13:44:36UTC beforeanyrecovery.",
+  "scope": "ActualfailedWindowsbookkeepinggate; no realhostsectorauthority/acceptance.",
+  "created_utc": "2026-10-31T13:46:47.233388+00:00"
+}

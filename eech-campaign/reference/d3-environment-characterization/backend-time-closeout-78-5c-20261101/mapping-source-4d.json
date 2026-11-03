@@ -1,0 +1,105 @@
+{
+  "review": "Independent documentation-only D3 time/DCS mapping review",
+  "created_utc": "2026-11-01T16:32:29.353965+00:00",
+  "source": {
+    "publication_head": "4d84bb3355cc630f17f8efcf7fac95f424c1c109",
+    "physical_source_and_native": "78fe5efdb5cbaff904e3b645d680acbd7776597d",
+    "diff_sha256": "8734da8983d5168c6c5b8f31451cadac011435225a8bb2301791b070a4736792",
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "git_blob_sha256": "56fdcd976734e797c195a9014f609e8f887a6da5ef2a09718751ca2bdd3c8f92"
+      },
+      {
+        "path": "eech-campaign/docs/d3-environment-time-DCS-mapping.md",
+        "git_blob_sha256": "e7e1bbc9d1381ee47c43689861eb62e4959edc81d857cb6e1299e4eea39bea6d"
+      }
+    ],
+    "all_other_tracked_entries_and_modes_exact78": true,
+    "inspected_source_hashes": [
+      {
+        "path": "modules/system/time.c",
+        "git_blob_sha256": "9d25618d2c3dc55bd08240da31b4c7ce029d2a9df2bfa1faa00162f4a2062e5b"
+      },
+      {
+        "path": "aphavoc/source/entity/special/update/up_update.c",
+        "git_blob_sha256": "d44780fb0439f645a4c4a0821f48ecaaadd949bf030dad1ce106dda1b3eb7125"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+        "git_blob_sha256": "00839c7dd14d20748fc9ca092f3e75306648a846b1d85238ab237dc18241bc44"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_log.c",
+        "git_blob_sha256": "d375ba2781e687f4e2d10ff502ae22bc234ac20749a6f2f6d1eba3b60b54080b"
+      },
+      {
+        "path": "eech-campaign/crates/eech-dc/src/module.rs",
+        "git_blob_sha256": "32af7c43987af906fe7160f190de519eb1aef8c596b8520a072671dc43e1b838"
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_hostenv.c",
+        "git_blob_sha256": "78836c8cd5b9a335778670129f2179597b1c2006a53ee38d9bf481fc05201919"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/env_ref.c",
+        "git_blob_sha256": "4fb9dd4f8913b585aed72d341e6600d93f43e1a54db00fbca70b6c92b4c2127a"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/weapon/wn_move.c",
+        "git_blob_sha256": "f9533500b7f6d10d93ebb3209b3bec15aabb07d478adb17099cf231226f7cc5b"
+      },
+      {
+        "path": "aphavoc/source/gunships/avionics/common/co_eo.c",
+        "git_blob_sha256": "3dcb5d00f5996feadbaab5df159a5254482f51e42f1e3c626549dbb23dd0727c"
+      }
+    ]
+  },
+  "scope": "One two-path new doc correctness/boundary/plan pass. Prior462d/696/e582 time, acd/033 sound and earlier three-primary-declaration reviews reused. No implementation, active-worktree edit, build/test/native rerun, live DCS check or external write.",
+  "findings": [
+    {
+      "id": "D3-MAPPING-1",
+      "priority": "P2",
+      "location": "eech-campaign/docs/d3-environment-time-DCS-mapping.md:53",
+      "title": "Keep tested time coverage separate from the supported input domain",
+      "evidence": "The proposed time table says the adapter never feeds a value outside what the closed cases covered without a new reviewed case. Those cases sampled100/250/50ms; they do not establish an exclusive accepted domain. The existing public API accepts u32 milliseconds and the new prose otherwise correctly describes elapsed model-time conversion with fractional carry. Turning coverage into an input prohibition can introduce undocumented quantization/stall/scheduling changes.",
+      "required_correction": "State the sampled evidence limit without changing the API domain. Define any future DCS adapter cadence, conversion range, overflow/stall and refusal policy separately as an explicit design decision with appropriate validation; do not derive a new campaign restriction solely from these three tested values."
+    },
+    {
+      "id": "D3-MAPPING-2",
+      "priority": "P2",
+      "location": "eech-campaign/docs/d3-environment-time-DCS-mapping.md:132",
+      "title": "Remove unsupported wind determinism and validation claims",
+      "evidence": "The pinned declaration calls getWind steady/excluding turbulence; it does not prove time invariance, no internal randomness, deterministic sampling or campaign replay reproducibility. Current ss_hostenv wind validation only requires finite speed and, when requested, three finite vector components. The Lua/Rust bridge also validates shape/exact numeric representation, not a scalar/vector norm relationship; its existing test explicitly accepts speed3 with vector{1,0,-2}. The document incorrectly labels mutual consistency as a current Core source-enforced property.",
+      "required_correction": "Qualify steady-wind selection as a proposal, not reproducibility proof. Describe the current finiteness/shape checks exactly. Define scalar/vector coherence, sample altitude/point, turbulence and temporal sampling as the DCS provider mapping responsibilities/open design choices; do not add new Core validation or change accepted reference words merely to match this document."
+    }
+  ],
+  "documentation_review_no_blocking_findings": false,
+  "weather_mapping_row_closed": false,
+  "bounded_clear_facts": [
+    "The old weather ownership reversal is corrected: host independently owns/evolves the reference field and Core holds its compatibility mirror. Source time ownership/manual writer/seed epoch/phase statements are substantially supported, with the stated unlocked substeps and cache/history limits. Say updates derive from the previous outer delta rather than implying every entity sees the unsplit delta.",
+    "The new generated env.export.ts blob/SHA matches its receipt and document, including version marker2.9.29.27468. It supplies a data shape only. Earlier three declarations remain reused at their verified hashes; no numeric weather enum/runtime/readability behavior is established.",
+    "The authored paired static weather concept is explicitly different from observed DCS precipitation. Equality comparisons avoid decoding unknown numeric flags, random local weather/different fixed mode/import mismatches are proposed refusals, and dynamic detection and authored-versus-DCS divergence are disclosed. This is a viable bounded workaround concept, not an implemented or completed provider contract.",
+    "Reference init_fixed sets the global local_weather_model flag false, mode/target equal and transition status0. Automatic weather strikes are in the local branch. The reference step still evolves wind outside that branch: a custom DCS step/frozen carrier policy must not be confused with unchanged init_fixed/reference evolution.",
+    "The sound section preserves actual78 versus documentation4d identities and retains loader/Core-policy limits. Its pending status is a historical author checkpoint and must be updated from the separate033 actual report when delivery status is refreshed, without relabelling native78."
+  ],
+  "remaining_M5_design_information": [
+    "Fix the selected-point policy for the existing WIND{x,z} request: no altitude is transmitted. Choose a supported sampling altitude/profile restriction or an explicitly reviewed contract change; do not describe a caller altitude as available today. State scalar speed versus vertical/horizontal vector treatment and when values are sampled/cached. DCS native confirmation is an M6 check, but the design choice itself remains M5 work.",
+    "Specify the complete static-provider import/initialization/export/step carrier profile and rejection boundary, including how accepted session defaults become the authored state before derived answers and what happens to wind/gust/ambient/lightning fields. init_fixed alone does not freeze wind; current import is an acknowledgement, not a returned replacement-state payload. This can be a concise design contract, not a new framework or implemented schema.",
+    "Relate authored thresholds, wind/gust and ambient answers to the same selected DCS wind observation, or explicitly declare which compatibility data drives each. Keep source-bound exact equality/type/key validation and unsupported static/dynamic conditions distinct from a guarantee that DCS precipitation matches the authored mode.",
+    "A captured mission, numeric enum interpretation and live env.mission behavior are not fabricated. If the chosen workaround intentionally needs no decoding, retain its explicit scope and runtime validation checks; the placeholder file is not captured evidence and does not close the remaining mapping choices."
+  ],
+  "consumer_scope_qualification": "Treat named wind/weather users as source readers with route qualifications, not proof each runs in the supported public headless frame. The inspected wn_move wind read is in the host weapon-step lookup bridge and is not dismissed as classic-only. Smoke/speech/render/cockpit/EO readers require their own existing caller dispositions; this doc adds no global liveness or dormancy result and should label inventory versus reached/required. No new whole-corpus inventory is requested.",
+  "pinned_new_primary": {
+    "receipt_sha256": "b8461ec36be678a06c89d8620303531d2d0be39070a326811a9d642bf4c8bc3d",
+    "path": "packages/tslua-dcs-mission-types/src/exports/env.export.ts",
+    "commit": "1179554fcafcef92d71313336cc09500febf8245",
+    "blob": "d54858e384e84c1dc63706d2cbaeae108c9aed65",
+    "sha256": "c25a9d32468c89721a95d64c9ec2aca53013f2b89657e161ab41ceb09bd6c8db",
+    "identity_verified_locally": true
+  },
+  "limits": [
+    "Two material documentation findings remain; no source/runtime regression is inferred. M5 call/workaround planning is not implementation or native DCS execution.",
+    "No new time-domain/product, live audio/UI product, global weather consistency, full physical-time service, Task51/D3/49/50, shipping40/all8/Tacview, final CI or normal-delivery acceptance. Running shipping78 pack is outside this review."
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "state": "terminal",
+  "actual_exit": 0,
+  "verified_utc": "2026-11-01T06:59:16.664708+00:00",
+  "original_orchestrator_actual_exit": 1,
+  "original_native_actual_exit": 1,
+  "original_controller_preserved": true,
+  "original_aggregate_failure": "Root checker searched stderr for underscore JSON verdict; actual stderr intentionally uses hyphen human marker. Native correctly emitted expected legacy capability red; complete authority JSON is authoritative.",
+  "actual_legacy_verdict": {
+    "altered": 0,
+    "base_errors": 0,
+    "completed": true,
+    "delegate": "R:/d3-evidence/md-witness-final-0960-20261101/eech-campaign/crates/eech-world/lua/env-sound-init-host.lua",
+    "delegate_ran": true,
+    "forwarded_other_requests": 4768,
+    "mode": "healthy",
+    "op": "sound_backend",
+    "requests": 0,
+    "source": "host.env_provider wrapper on the public path",
+    "verdict": "sound_backend_host_capability_missing",
+    "withdrawals": 0
+  },
+  "validated_gate": {
+    "backend": "1",
+    "dedicated": "0",
+    "effects_begin": "1",
+    "effects_end": "1",
+    "enabled_backend": "0",
+    "enabled_before": "0",
+    "enabled_exit": "0",
+    "event": "env-sndinit-boot",
+    "exited": "1",
+    "filled": "1",
+    "header_count": "0",
+    "initialised_backend": "0",
+    "initialised_before": "0",
+    "load": "0",
+    "matched": "0",
+    "missed": "0",
+    "n": "0",
+    "no_sound": "0",
+    "open_false": "0",
+    "open_true": "0",
+    "raw": "env-sndinit-boot n=0 no_sound=0 dedicated=0 enabled_before=0 initialised_before=0 effects_begin=1 filled=1 effects_end=1 open_true=0 open_false=0 header_count=0 matched=0 missed=0 backend=1 enabled_backend=0 initialised_backend=0 load=0 skipped=0 exited=1 enabled_exit=0",
+    "scope": "case",
+    "skipped": "0"
+  },
+  "all_six_executed_case_outcomes_expected": true,
+  "native_rerun": false,
+  "remaining_unstarted_cases": [
+    "old-original-capability",
+    "flag-skipped-not-applicable"
+  ],
+  "retained_hashes": {
+    "native.log": "5511397ee0780a36b48f85e8097b1b03c4bbe082eb0f942d1693c58e42d61b99",
+    "environment.jsonl": "448d2a0d40ff2ad0da50812b5e1d85e905f93e8bf39aad5c62f16e4807af2e13",
+    "environment.jsonl.authority.jsonl": "2e954268a39f75987f83fbdd36a1e2931761850d1928ebe143193976951caeca",
+    "environment.jsonl.case15.raw": "ce159ab05f250545d302669981701f94b00f9fa8a3f98b093410361b63a26281"
+  }
+}

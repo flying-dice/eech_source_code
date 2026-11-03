@@ -1,0 +1,422 @@
+{
+  "source": "c88e479c7307148d6fb33fd496988dd7e8712d70",
+  "created_utc": "2026-11-01T21:37:23.871151+00:00",
+  "cached_branch_source_sha256": "19d7668b237b00870e5b2f54c679bd8c6346960a2bbb3148246194709d5002e0",
+  "cached_branch_references_true_point_count_but_none_of_detached_buffers": true,
+  "results": [
+    {
+      "case": "georgia",
+      "source_literal_call_count": 32,
+      "unique_existing_cache_files": 28,
+      "all_headers_positive_and_lengths_match_colour_records": true,
+      "all_source_TGA_files_absent": true,
+      "files": [
+        {
+          "relative_bin": "3ddata/horizon/dry12am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "45c02582f32aa1d4a667a0f4cd7478318fbdda468089f17bca8faa8ad07f2f01",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/dry12pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "e36b3a3542dc00d8acbc53407bea2589659baee4301b2d3733f75f8416b23b08",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/dry3pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "95647c10cc75763644682a1c03ce62dca897f7063220568a07d77c6503acbef7",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/dry6am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "e6a7c03d0aa48ec0ec5f8c34e93a655910e7f78d414bf25b60778db2e1c64051",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/dry6pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "06cb25dee04422bd58b72092a951c9784545865ebf7b2fd18f79e0f329587483",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/dry9am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "59096830ed3fe7f14c15672058d8e4944cbc974461cb6c3c90a521007e97c9f9",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/dry9pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "c511491bb6cf2f90e7a5547f7a5d4458fc7de2a2860d2569e7f7f1e5b2a071c0",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/hr12am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "0f42e1f6c70ba706ae487aee6382fa5b3a2eb83eeabd9f66cbf3a44efe51221e",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/hr12pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "a157beabdce8ece02bd8ca4e7cf98596812b1dcf0dde695969b5760a1b669a0e",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/hr3pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "bb2bbee39b5fa15c37d631183476df51984445c5e66dd3d0a850b217117b9bb9",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/hr6am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "6dce57c79715dd01273e7370d8ef3cba7903b786123643f855a5d4303d8033b2",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/hr6pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "8b7f22f0dbdc69fbd25a879360a9afb3315a41b8a231bd5c08c93c855d34c285",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/hr9am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "bc902570f197086629e270f14fd5c38a7256ac4bce871587880cc23afe464bf0",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/hr9pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "c655569218e9a39b3b4febf1fb1e5f784d79a534d13cbca82cd1cb50b322405d",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/lr12am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "8498fe456a0664779b10444e9771d9756a04a6afb373d26d0451a42068ff97ff",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/lr12pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "288bfdd6c99a923efe781f20f14e7aad33317b3a42626e283f305b97a75765e8",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/lr3pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "55db800e28f355caff939d1988c0c05966942f58bee22f3e1eedcad3ea42b7b9",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/lr6am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "0254bea763506b64d2cd36aa1e0239a1448985b27f27adbc653abcf5d8f7c826",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/lr6pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "5840d21d65e7476635d487b0c8bc6284e43ef6dcfc6fdd2ff550d324c2d2d18a",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/lr9am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "dd1512ad34cb67a871bb07dc5e8f52635c559873be9482d8d885d9fabc34364f",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/lr9pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "6ee69082eba8153143ba24b8df4e00390f40996f5e5ddb537d8b8eef058a0f99",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/snow12am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "5d12a34e17719a91c1cd6abce87957a5308ae78955f28d0d636d0748aa640f5f",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/snow12pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "32a6d37d2b6d56bf3984ba743b50ae3600e5dd18387f0f9b7672639ee3d3fefa",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/snow3pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "7dab949074e9d7eb1641fc91c56e584cd9a921fc40167f65927c9eba6d7ac3ab",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/snow6am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "9f7d4621414fc643f509f668d126bad5a252d5b828a2182e7ba7a6f65c0e424a",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/snow6pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "de0104b5c67a0287e0b24bf7af9f3876faa0fbc76ca1db6ca4e3a306276ada47",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/snow9am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "55a0083766850cbb8122dd8dfa8877458b7d7754c6241e79b542d98ce3f34f64",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/snow9pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "11eff7829a42dda542f82f6de129fb6d4d28958de9273825b11c1571730169a6",
+          "tga_present": false
+        }
+      ]
+    },
+    {
+      "case": "lebanon",
+      "source_literal_call_count": 32,
+      "unique_existing_cache_files": 28,
+      "all_headers_positive_and_lengths_match_colour_records": true,
+      "all_source_TGA_files_absent": true,
+      "files": [
+        {
+          "relative_bin": "3ddata/horizon/dry12am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "45c02582f32aa1d4a667a0f4cd7478318fbdda468089f17bca8faa8ad07f2f01",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/dry12pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "e36b3a3542dc00d8acbc53407bea2589659baee4301b2d3733f75f8416b23b08",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/dry3pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "95647c10cc75763644682a1c03ce62dca897f7063220568a07d77c6503acbef7",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/dry6am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "e6a7c03d0aa48ec0ec5f8c34e93a655910e7f78d414bf25b60778db2e1c64051",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/dry6pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "06cb25dee04422bd58b72092a951c9784545865ebf7b2fd18f79e0f329587483",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/dry9am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "59096830ed3fe7f14c15672058d8e4944cbc974461cb6c3c90a521007e97c9f9",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/dry9pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "c511491bb6cf2f90e7a5547f7a5d4458fc7de2a2860d2569e7f7f1e5b2a071c0",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/hr12am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "0f42e1f6c70ba706ae487aee6382fa5b3a2eb83eeabd9f66cbf3a44efe51221e",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/hr12pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "a157beabdce8ece02bd8ca4e7cf98596812b1dcf0dde695969b5760a1b669a0e",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/hr3pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "bb2bbee39b5fa15c37d631183476df51984445c5e66dd3d0a850b217117b9bb9",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/hr6am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "6dce57c79715dd01273e7370d8ef3cba7903b786123643f855a5d4303d8033b2",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/hr6pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "8b7f22f0dbdc69fbd25a879360a9afb3315a41b8a231bd5c08c93c855d34c285",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/hr9am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "bc902570f197086629e270f14fd5c38a7256ac4bce871587880cc23afe464bf0",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/hr9pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "c655569218e9a39b3b4febf1fb1e5f784d79a534d13cbca82cd1cb50b322405d",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/lr12am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "8498fe456a0664779b10444e9771d9756a04a6afb373d26d0451a42068ff97ff",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/lr12pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "288bfdd6c99a923efe781f20f14e7aad33317b3a42626e283f305b97a75765e8",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/lr3pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "55db800e28f355caff939d1988c0c05966942f58bee22f3e1eedcad3ea42b7b9",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/lr6am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "0254bea763506b64d2cd36aa1e0239a1448985b27f27adbc653abcf5d8f7c826",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/lr6pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "5840d21d65e7476635d487b0c8bc6284e43ef6dcfc6fdd2ff550d324c2d2d18a",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/lr9am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "dd1512ad34cb67a871bb07dc5e8f52635c559873be9482d8d885d9fabc34364f",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/lr9pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "6ee69082eba8153143ba24b8df4e00390f40996f5e5ddb537d8b8eef058a0f99",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/snow12am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "5d12a34e17719a91c1cd6abce87957a5308ae78955f28d0d636d0748aa640f5f",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/snow12pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "32a6d37d2b6d56bf3984ba743b50ae3600e5dd18387f0f9b7672639ee3d3fefa",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/snow3pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "7dab949074e9d7eb1641fc91c56e584cd9a921fc40167f65927c9eba6d7ac3ab",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/snow6am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "9f7d4621414fc643f509f668d126bad5a252d5b828a2182e7ba7a6f65c0e424a",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/snow6pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "de0104b5c67a0287e0b24bf7af9f3876faa0fbc76ca1db6ca4e3a306276ada47",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/snow9am.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "55a0083766850cbb8122dd8dfa8877458b7d7754c6241e79b542d98ce3f34f64",
+          "tga_present": false
+        },
+        {
+          "relative_bin": "3ddata/horizon/snow9pm.bin",
+          "point_count_header": 705,
+          "bytes": 2828,
+          "sha256": "11eff7829a42dda542f82f6de129fb6d4d28958de9273825b11c1571730169a6",
+          "tga_present": false
+        }
+      ]
+    }
+  ],
+  "scope": "READONLY source+verifiedretailfile evidence, NOT a new native run/visualpixelcomparison. Cached branch uses colour/fog metadata andtruecounts, rawpointdecode only!binary_loaded. Supports preserving originalcached branch and namedunsupporteduncachedvisualrefusal insteadofnewunrequiredmainpointservice. Candidateboot/cached-counter/readerguardactuals stillrequired. No filesmodified, nocacheoverride orTGA deletion.",
+  "retained_original_boots": "Existingclosedoriginal FCE/828/80fd controls reused atOWNsourceidentity; sourcepresencealone notnewruntimecoverage.",
+  "Task50_complete": false,
+  "D3_complete": false
+}

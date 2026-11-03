@@ -1,0 +1,193 @@
+{
+  "review": "Independent complete original route actual characterization and row-comparison audit",
+  "date_utc": "2026-11-01T19:09:12.698387+00:00",
+  "source": {
+    "native_and_embedded_Lua": "fce1f1dfaa0423a844399eb7789db9935ae94e91",
+    "fixture_profile": "route-fixture, Windows reference artifact",
+    "source_review": "independent-model-route-single-read-source-fce1f1dfa-20261101.json",
+    "source_review_sha256": "721d67c8c351fc020d044198d856623b071591b987f7e9c1e4910a2eadb383d9",
+    "build_info_sha256": "19f44651a6af566728ad74c0273d50e9bb779c62a8301b85408a2a230f01a9c5",
+    "dll_sha256": "fb040809e0de1e249364eaaace2a0997471ee0b320458bd91dcd2d7ff22caca0",
+    "world_exe_sha256": "bece4a168af439e948940edc3a28d97b78bffda4ca97a8036eb27a7dbd6eda43",
+    "all_four_actual_artifacts_bound_to_FCE": true
+  },
+  "findings": [],
+  "finite_original_route_characterization_closed": true,
+  "original_route_characterization_closed": true,
+  "closure_scope": "Exactly the original natural-boot route parser observations for verified Georgia and Lebanon, each with a complete repeat, on the existing hosted model/terrain baseline. No production route service or loader detachment.",
+  "cases": [
+    {
+      "case": "georgia",
+      "controls": [
+        {
+          "name": "georgia",
+          "source": "fce1f1dfaa0423a844399eb7789db9935ae94e91",
+          "controller_actual_exit": 0,
+          "native_actual_exit": 0,
+          "pre_post_input_exits": [
+            0,
+            0
+          ],
+          "input_files_each": 1174,
+          "input_bytes_each": 142522166,
+          "input_manifest_sha256": "8c08435614a8810022336af69dfe86eb32a3da556cd0e0f71093b8111619c058",
+          "pre_post_manifests_literal_equal": true,
+          "input_entries_equal_declared_reference": true,
+          "payloads_independently_rehashed": 57,
+          "controller_sha256": "03065087578e16baeff69155ec572387bf532641d0a0230af4b2b98db30a524e",
+          "native_log_sha256": "8e9f1b893a925b2aad79163932caa025ee008d79c1b8a99975dab5d156e024d1",
+          "json_sha256": "48a075af8e24592d69cdb3cf541be2b4122bd0ff2932ea042be21c4e57c1bec8"
+        },
+        {
+          "name": "georgia-repeat",
+          "source": "fce1f1dfaa0423a844399eb7789db9935ae94e91",
+          "controller_actual_exit": 0,
+          "native_actual_exit": 0,
+          "pre_post_input_exits": [
+            0,
+            0
+          ],
+          "input_files_each": 1174,
+          "input_bytes_each": 142522166,
+          "input_manifest_sha256": "8c08435614a8810022336af69dfe86eb32a3da556cd0e0f71093b8111619c058",
+          "pre_post_manifests_literal_equal": true,
+          "input_entries_equal_declared_reference": true,
+          "payloads_independently_rehashed": 57,
+          "controller_sha256": "c490b1914424fcc5306f898f93821b859cc6d87bd2b6be450036f5d02666e213",
+          "native_log_sha256": "49edf1c2cb6f201884aa1b88e7979a332162aba6f464cc79d9d365903b9932e7",
+          "json_sha256": "48a075af8e24592d69cdb3cf541be2b4122bd0ff2932ea042be21c4e57c1bec8"
+        }
+      ],
+      "calls_per_boot": 704,
+      "all_contexts_unique_and_complete": true,
+      "contexts_equal_calls": true,
+      "stale_or_loss_or_malformed_or_open_or_orphan_or_interrupted": 0,
+      "full_repeat_bytes_literal_equal": true,
+      "json_bytes_each": 12057836,
+      "json_rows_each": 708,
+      "raw_sha256": "48a075af8e24592d69cdb3cf541be2b4122bd0ff2932ea042be21c4e57c1bec8",
+      "old_D10_whole_file_equal": false,
+      "all_geometry_graph_rows_literal_equal_to_D10": 128564,
+      "literal_geometry_graph_row_bytes": 11568743,
+      "old_unique_semantic_keys_unchanged": 430,
+      "old_ambiguous_identities_resolved": 274
+    },
+    {
+      "case": "lebanon",
+      "controls": [
+        {
+          "name": "lebanon",
+          "source": "fce1f1dfaa0423a844399eb7789db9935ae94e91",
+          "controller_actual_exit": 0,
+          "native_actual_exit": 0,
+          "pre_post_input_exits": [
+            0,
+            0
+          ],
+          "input_files_each": 1179,
+          "input_bytes_each": 102239559,
+          "input_manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+          "pre_post_manifests_literal_equal": true,
+          "input_entries_equal_declared_reference": true,
+          "payloads_independently_rehashed": 57,
+          "controller_sha256": "8453809d5abf710f4434e2ff023050babd6148f8b1007a4ca88980ada746d7e0",
+          "native_log_sha256": "33b49b7428637e5c9063600b14e0a7f3b01a7a8901a8bc60f1cb0ce640debc53",
+          "json_sha256": "ec187d8203c82ab94888b45fca7a349e427194a2355386cf05439c321e260f63"
+        },
+        {
+          "name": "lebanon-repeat",
+          "source": "fce1f1dfaa0423a844399eb7789db9935ae94e91",
+          "controller_actual_exit": 0,
+          "native_actual_exit": 0,
+          "pre_post_input_exits": [
+            0,
+            0
+          ],
+          "input_files_each": 1179,
+          "input_bytes_each": 102239559,
+          "input_manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+          "pre_post_manifests_literal_equal": true,
+          "input_entries_equal_declared_reference": true,
+          "payloads_independently_rehashed": 57,
+          "controller_sha256": "5fe95a3067e2e435bf2d35764c95ab2bb1c9110b63455eb64585c8ba5618e260",
+          "native_log_sha256": "ebb94a7a4716f5cba17b6d0330a357b0ad4db6e84b750f2edf09b25fdce272bf",
+          "json_sha256": "ec187d8203c82ab94888b45fca7a349e427194a2355386cf05439c321e260f63"
+        }
+      ],
+      "calls_per_boot": 528,
+      "all_contexts_unique_and_complete": true,
+      "contexts_equal_calls": true,
+      "stale_or_loss_or_malformed_or_open_or_orphan_or_interrupted": 0,
+      "full_repeat_bytes_literal_equal": true,
+      "json_bytes_each": 9049962,
+      "json_rows_each": 532,
+      "raw_sha256": "ec187d8203c82ab94888b45fca7a349e427194a2355386cf05439c321e260f63",
+      "old_D10_whole_file_equal": false,
+      "all_geometry_graph_rows_literal_equal_to_D10": 96507,
+      "literal_geometry_graph_row_bytes": 8679506,
+      "old_unique_semantic_keys_unchanged": 394,
+      "old_ambiguous_identities_resolved": 134
+    }
+  ],
+  "independent_actual_verification": [
+    "All four terminal controllers identifyFCE, each has exactly pre/native/post stages with0/0/0 and controller0. Eight full input checks succeed; all pre/post manifests are byte-identical and complete input entries match their named retained reference manifests.",
+    "Rehashed all57 BUILD-INFO payload entries for every control; BUILD-INFO names cleanFCE and the embedded route driver bytes equal the committedFCE Git blob.",
+    "Read every JSON row and every native report: contiguous call indices; all unique keys join their found lookup, exact legacy/caller raw argument and semantic fields; contexts=calls and stale0; all calls ended, complete, uninterrupted, totals present and every loss counter0.",
+    "Checked all node/slot/face/final/link/start/depth/offset cohorts against native promises and pooled totals. This validates capture/consistency, without independently solving route geometry or route-planning policy.",
+    "Compared both COMPLETE JSON files with their scenario repeat, including full bytes/endings, not just parsed values or hashes. Both are literal-equal.",
+    "Compared each new per-call native geometry/graph suffix (all rows after route-call/route-identity) literally with the failedD10 capture, including endings. Counts and byte totals match the Root audit. Original files are untouched.",
+    "Checked declared metadata classification: all other route-call fields agree; oldunique lookup/key rows unchanged; oldambiguous -1/complete0 replaced with valid caller-selected keys/complete1. Summary pool/lookup lines are literal-equal; other old summary counters remain unchanged except incomplete_calls, with new contexts/stale fields and new completeness verdict. Header/boot events agree. Old/new whole files remain unequal."
+  ],
+  "auditor_review": {
+    "path": "R:/d3-evidence/audit-original-route-complete-fce-20261101.py",
+    "sha256": "f72db965e91d973d773c6cfbf5efacf96b4371d03c045f3e9ba51e01775dd6cb",
+    "report_sha256": "da3cc93d54d76bbe80108550ef1fa04ff3d75bc98dfffbee85e4f19be387797f",
+    "assessment": "Read-only comparison logic is consistent with the declared scope. It compares full repeat bytes and explicit native-row classes, retains oldwholefalse, and does not write/normalize any raw file or update a golden. Reviewer independently supplemented its pass/complete flags with full cohort, context, key and input-reference joins.",
+    "execution_claim": "Root-produced completed audit; reviewer did not execute its output-writing main or rerun any native control."
+  },
+  "earlier_failures_preserved": {
+    "source": "d10dd8cc0d2b9eb311c85f7b13796073c9cc78ad",
+    "native_and_controllers": [
+      1,
+      1
+    ],
+    "classification": "FAILED partial originals, unchanged; current successful captures do not relabel those runs.",
+    "prior_actual_review_sha256": "1695440b83f9dd318bb04b7b3bd6fbe4c31a3001bd3f6a82a228dd87e4c959e4",
+    "literal_row_comparison_is_not": "Normalization, whole-file equality, a baseline/tolerance update, or retroactive successful identity proof."
+  },
+  "build_and_test_context": {
+    "receipts": {
+      "model-route-fce1f1dfa-windows-20261101": {
+        "source": "fce1f1dfaa0423a844399eb7789db9935ae94e91",
+        "actual_exit": 0,
+        "completed_utc": "2026-11-01T19:02:34.407114+00:00",
+        "completion_sha256": "7f62da382b5516cead2fad81ab51eb3f799e110e7d635ce6a849fd5727916b4f",
+        "log_sha256": "3bb38422dab41ab9eefe6b88bae0891ee5a756c3e3ce6259782d4a87b2289857"
+      },
+      "model-route-c12551440-linux-20261101": {
+        "source": "c12551440ddd0c79d0de31a2883c29419e6cc795",
+        "actual_exit": 0,
+        "completed_utc": "2026-11-01T19:00:14.095462+00:00",
+        "completion_sha256": "cf1732701b64ce75846a6474ce8e12a875069d9bd0a98b890fce6e698c1152dd",
+        "log_sha256": "ad10924546a50bde5c9c17e44513e0872840c723fb22ad19d711ff99aea27f96"
+      }
+    },
+    "c125_linux_scope": "Retained22resultrows552passed/0failed from the combined model-host/ground/LOS/route release package suite, fmt and strict Clippy0 atC125; earlier9c default and feature suites545/0 each retain their own source. Conditional native/public skips are not new physical coverage.",
+    "FCE_scope": "Actual cleanFCE Windows route-fixture build0 and these four native controls. NoFCE Linux package rerun or alltarget CI result is claimed."
+  },
+  "bounded_visible_transparency": {
+    "source": "d10dd8cc0d2b9eb311c85f7b13796073c9cc78ad",
+    "retained_original_source": "80fd62ea48fc75aa9546c785f525be034abd16f8",
+    "audit_sha256": "acf8e6de1eca47916d19fd40b3922c800f338480382b85728d1d3924ac218fa4",
+    "independently_verified": "All three COMPLETE recording.acmi, observations.jsonl and metrics.json byte strings equal retained80fd files including endings and declared sizes/hashes. Native/controller0 and two input checks0 are retained underD10.",
+    "limit": "Prior bounded visible-effects evidence only; not a newFCE recording, all intermediates, full public FP/RNG, visual inspection or shipping40/all8 acceptance."
+  },
+  "remaining_limits": [
+    "Only routes actually parsed in these two natural boots are characterized; no allinstallation/allroute guarantee.",
+    "No wholesale original DLL claim: accepted host model/terrain integrations remain active; original route decoder and Core route-planning behavior are what is observed.",
+    "Per-route geometry/graph byte agreement provides bounded observed-value continuity, not full caller floating-point status, RNG or every execution-path equivalence.",
+    "Production route data/API/authority/cutover, raw loader detachment and remaining hierarchy/viewpoint/device/muzzle/target-point duties remain required work.",
+    "No Task50/Task51/wholeD3 closure, shipping40/all8, current final CI, normal delivery, audio/render or Tacview acceptance. Raw scene names, geometry/graph content and private pointers are omitted."
+  ],
+  "reviewer_actions": "Read-only Git/evidence/hash/count/byte-comparison analysis. No builds, tests, native/app execution, product edits, auth/cache changes or nested agents."
+}

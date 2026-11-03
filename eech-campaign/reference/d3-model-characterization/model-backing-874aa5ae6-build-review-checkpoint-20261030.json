@@ -1,0 +1,31 @@
+{
+  "updated_utc": "2026-10-30T01:50:20.745750+00:00",
+  "source": "874aa5ae683df489c5df7ef09948528ea2e2306d",
+  "snapshot": "R:\\d3-evidence\\model-backing-source-874aa5ae6",
+  "bin": "R:\\d3-evidence\\model-backing-source-874aa5ae6\\eech-campaign\\target\\model-fixture\\model-backing-874aa5ae6",
+  "windows_compile_actual_exit": 0,
+  "linux_isolated_cargo_test_actual_exit": 0,
+  "direct_linux_rust_test": {
+    "actual_exit": 0,
+    "passed": 1,
+    "failed": 0,
+    "command": "docker run --rm -v eech-linux-d3-collision-driver-5416adb3b-20261029:/target:ro sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51 /target/release/deps/model_walk-7eaebfa37e3bb363 --nocapture"
+  },
+  "bounded_synthetic_sanitizer": {
+    "actual_exit": 0,
+    "checks": 44,
+    "failures": 0,
+    "options": "abort_on_error=1:handle_segv=0:detect_leaks=0",
+    "initial_default_handler_attempt": "Repeated DEADLYSIGNAL without stack; exact diagnostic container intentionally stopped for runaway output. Unexplained; no blanket sanitizer pass."
+  },
+  "build_info_sha256": "62796458229d24f0837276513132a272e22e7c3d80a6d332eae0d55e140e38ae",
+  "verified_export_count": 44,
+  "review": "independent-original-model-backing-review-874aa5ae6-20261030.json",
+  "review_sha256": "0185df9b0748b448e0221e8721eadd82ff6ddcc36c2094052966407d7b1863a6",
+  "disposition": "CHANGES_REQUIRED",
+  "original_native_execution": "NOT RUN; held for surface provenance/pre-read gate correction and review",
+  "physical_accessor_bodies": "unchanged; host output is not the original oracle",
+  "next": "Observe SAME Sonnet20f8/High tool3360 PID9616 born2026-10-30T01:46:55.884766Z surface-backing correction. One coherent independent P2 at874 holds all new original fixture/accessor runs. After author terminal, inspect/format/freeze corrected source, affected controls/builds and one delta review of the correction. Only after closure run fresh verified three roots: catalogue/old6 positive215 calls preservation, then actual59custom/mixed gap measurements and host comparison. Do not re-review unchanged f9 host component. Full production/D3 remains required; original shipping59652 still live, no restart.",
+  "production_and_whole_D3": "INCOMPLETE; full original objective unchanged",
+  "latest_live_prefix": "live-prefix-coordinate-1156c8fbb-seventeenth-20261030.json; four nonempty equal prefixes only, no completed pack acceptance"
+}

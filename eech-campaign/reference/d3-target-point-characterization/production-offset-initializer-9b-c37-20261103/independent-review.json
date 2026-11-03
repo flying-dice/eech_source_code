@@ -1,0 +1,346 @@
+{
+  "schema": "independent-target-point-production-offset-initializer-review/v1",
+  "created_utc": "2026-11-03T00:10:49.130555+00:00",
+  "scope": "One combined correctness, clean-code, boundary-safety, changed-source and completed-actual review of production local-offset initialization. Includes comparer-P2 repair and the narrow diagnostic NaN correction. No reviewer edits/builds/tests/native runs, agents or cache/VM/auth operations.",
+  "decision": {
+    "status": "FINITE_PRODUCTION_OFFSET_INITIALIZER_SLICE_CLOSED",
+    "source_review_no_blocking_findings": true,
+    "findings": [],
+    "finite_initializer_and_authority_closed": true,
+    "TARGET_POINT_FIXED_COMPARER_1_closed": true,
+    "full_live_target_point_query_cutover_closed": false,
+    "Task52_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_or_merge_accepted": false
+  },
+  "source": {
+    "base": "e8d6c3047b0e6cb1fefcc56cdb9e9f2a3ae4875a",
+    "native_source": "9b916ac650400566edcd4a9b7247be1f789c029f",
+    "snapshot": "D:\\EECH-Migration-Evidence\\target-point-offset-production-9b916ac650",
+    "snapshot_actual_head_and_clean_status_verified": true,
+    "native_diff_binary_full_index_sha256": "af82bc9fcb82920f53f016ccfdd6fce536a9d1d40d9c9611bd45b5f0d0a7a7bc",
+    "native_changed_paths": [
+      {
+        "path": "STATUS.md",
+        "blob": "de54633cef004d613b3f8f61cb42501f2d4874d4",
+        "sha256": "c7a1180598ffa48119ab2916f84c50b4c93a73eb013907827a976f671ad6e2c8"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+        "blob": "03a8121ccadf1d246931635fa1f3f181aab0747a",
+        "sha256": "06e5142ca1fe182b4fc9399e6c46b1d5cb653596554b516b6cd4fd65acebacaa"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostmodel.h",
+        "blob": "9e18199cf0b28f80a2d14c3f669a3da34252cc1f",
+        "sha256": "263650865fa646e5b1c59bcf53e9f15a598c4bd87f4080035a868a18fbbaddca"
+      },
+      {
+        "path": "eech-campaign/crates/eech-dc/src/module.rs",
+        "blob": "4df4463813adcac9e04d9b455591a3f72bec2781",
+        "sha256": "b83742116db38d0811b41c6358d7a9f36cb82035f6b96db4c109f3e0b48cafee"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+        "blob": "f66359869228762172be4d16dd14733751ae9e62",
+        "sha256": "c93792525d42482c4937c7ac0243c8edcc82d05dc2442a29d6c69d66704194c6"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/build/patches.rs",
+        "blob": "e5e0ea8d87f294d490ca67bed458032de8f86a89",
+        "sha256": "294e4ef0197ab633f145c2a52137110b51a4cc0f8817e74da8b8196e41bf1935"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+        "blob": "a9c49920d71975f8314df95ebad52dc0295d6d65",
+        "sha256": "0c2660ce3f7408b04d98aff4349b3e79d7b1613af541e8cf9731e1a3c662689f"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h",
+        "blob": "444991527f2fca4a48b12cd557facc3a1aa5dad0",
+        "sha256": "be1ade4feb689cd405b444c490445412c2c0ddc95e90e82774a57f50543169b2"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_model_host_fixture.c",
+        "blob": "54322715a572971f35a756fdd50234327cea8d7c",
+        "sha256": "70ce08cff5dfd5fff7ad4188246b06b7b5fa9d156a2feabce2885d6b23fbc208"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+        "blob": "0dede8e5621e47c51896194a28aaf9a304bb5702",
+        "sha256": "272ce9979e6e93ebe473aeae875ab429cc2ea5622e8972a721183a1ec1a77a36"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "blob": "46f0dfa1629cdeae9abd4646b7990cb488d75921",
+        "sha256": "e7bbdc1a9fd987cd4723aba53c4ee52967f0994e7974fdd87b75885d17b2c596"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/model-authority.lua",
+        "blob": "c7444336d7f9d4ccbcbc784e304f6eaeb2e77a38",
+        "sha256": "ed3be08ee173ad69d5379972f4fbd6f3cd0fd0ad451a83be0fb9aca3e9f66dc0"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+        "blob": "beda80aeb25ff2bedeff6e520459ccc2bbad449b",
+        "sha256": "b452f2574c38541f48a0d4868cddbe9828c0e65ecd2dc2129483748d54975784"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/model_store.rs",
+        "blob": "c0ce912bf11a4b87a176db58bfe44a1ec382f73f",
+        "sha256": "6d39c2e8a97a7916c325e3c8814e2db67a65562bbb7a737f4db0bb5e1d159070"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+        "blob": "20f71a7972f71436b0f087128d419c9dab2282ce",
+        "sha256": "d73eefbf55d83f651e8f47cb742a6be49a54b8c6557b9f6ab3d3e22513efa265"
+      },
+      {
+        "path": "eech-campaign/docs/d3-target-point-characterization.md",
+        "blob": "3850667a76604110b04ad746ceb796678f27f76c",
+        "sha256": "79885024cf97c0dcd524a7fec360709a6607398f5e070c8c92d716cf6830dc1b"
+      },
+      {
+        "path": "eech-campaign/docs/m5-model-host-authority.md",
+        "blob": "cda0bb0017799526fb9c07d92b92c57775ac16e2",
+        "sha256": "f160f502554ef46abe0f921555d0dd178f1bb2de87621d8262f10a2b0212c07c"
+      }
+    ],
+    "diagnostic_source": "c37d02a77f83abf4a52fb6c111ba0f54dbd122f1",
+    "diagnostic_diff_binary_full_index_sha256": "9fdb400e1a3e2ea1dafbd53e33572f5af1dfe031611f83b865b69879bcf39eb6",
+    "diagnostic_changed_paths": [
+      {
+        "path": "STATUS.md",
+        "blob": "47edac24bf6d440a114717da687037496ac0b61c",
+        "sha256": "31378d3b3997ae100c9a9e49d5bb03bcebdcc3484811f1247e0b92565869ec50"
+      },
+      {
+        "path": "eech-campaign/crates/eech-dc/src/module.rs",
+        "blob": "d6ce1cf772c7ff496648679109bc00cf659cd3a0",
+        "sha256": "7f2217a9f319eb55066440d3c03347d020f5edf11d8e875592d8d515d98f598e"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/model-authority.lua",
+        "blob": "ecd6d0fcc8f4ecfd21bc5a9a57cfb7df7b811437",
+        "sha256": "544ecebeb40731a7efa52dbb56d08294091b56fb3b10b9b154831285c5b1e84a"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/model_store.rs",
+        "blob": "7530e797bd1cbea5980cebf1e823fe8197a700f5",
+        "sha256": "a37b4dea0dc76c2b399eaa747122b811dad63e0b1d33c5ed9145c21a3d7af4db"
+      },
+      {
+        "path": "eech-campaign/docs/d3-target-point-characterization.md",
+        "blob": "3dac954744243e0f78932a27ea2726769f3645ef",
+        "sha256": "5c633003402c80e0f203c5215249b30539c4f79375e5231e96883cbc4f143cc8"
+      }
+    ],
+    "other_tracked_entries_modes_exact_9b_to_c37": 8971,
+    "production_module_prefix_exact": true,
+    "production_module_prefix_sha256": "81a2daa6b7397ee5f8eae1325f9ed8fb8389a7067b78a9a893c09390c8ce46fa",
+    "engine_NUL_count": 1,
+    "engine_NUL_offset_unchanged": 42530,
+    "engine_common_prefix_bytes_to_base": 66401,
+    "engine_prefix_note": "New model-host-fixture declarations/methods are inserted after this common prefix, so no claim that the earlier entire75458-byte observer-era prefix is unchanged. Original statements are retained; the NUL is preserved.",
+    "external_corrected_wrapper_literal_Gitblob_sha256": "544ecebeb40731a7efa52dbb56d08294091b56fb3b10b9b154831285c5b1e84a"
+  },
+  "source_assessment": [
+    "TH1/TH2 are strict count-checked staging patches. Ordinary hosted builds exclude the old constructor/search/viewpoint/bbox/destructor initializer body under #if0. Only the declared model-fixture and target-point-fixture original profiles retain it; neither is a production fallback.",
+    "The replacement keeps the original initialized-objects assertion, seeker policy first and once per invocation, invalid-scene zero, and ascending scene order. The two actual boot invocations are not deduplicated. Physical local-offset production is supplied by the host.",
+    "Semantic TARGET_POINT_OFFSET appends an operation without changing request/reply layout. Host ModelStore derives the offset independently; exact f32-word transport preserves tiny/signed-zero values, genuine empty catalogue slots answer zero, and missing/invalid data refuses. Core name/result/finite checks precede writing three scene-cache coordinates. No old-solver fallback exists.",
+    "Per-reply staging and fatal engine poisoning prevent usable partial-state continuation. No afterfatal cache inspection/restoration is claimed. Pointer borrows are synchronous and bounded; names are bounded/NUL-checked.",
+    "The feature-only real guidance probe checks heap membership, typed non-null live-mobile data, shape range and zero velocity, chooses a guided weapon, then calls the unchanged direct consumer on its stationary/guided return path. It reads all three LOCAL offset coordinates, with no ballistic/lead calculation or entity mutation; unavailable is not coverage.",
+    "The comparer P2 is closed in the same batch: absent case/offset becomes explicit missing input; unknown labels and malformed words error. Path/input validation can no longer silently switch off. Existing valid-row oracles are retained.",
+    "c37 changes only the diagnostic expected NaN marker, faithful stand-in/tests and prose. Lua model_hex already rejected nonfinite bits as target_point_offset.answer before the C target_point_offset.value backstop. Production behavior is unchanged.",
+    "Public single-boot seeker/seed order is retained. The closed measured reseeds justify removing initializer constructor draws for those invocations; compiled UI/client reinitialization callers are not a claim of all-runtime/global CRT equivalence."
+  ],
+  "authority_actual": {
+    "native_source": "9b916ac650400566edcd4a9b7247be1f789c029f",
+    "corrected_nan_diagnostic_source": "c37d02a77f83abf4a52fb6c111ba0f54dbd122f1",
+    "executions_including_failed_nan": 8,
+    "unique_control_cases": 7,
+    "full_pre_post_input_checks": 16,
+    "all_full_reference_input_lists_counts_bytes_combined_hashes_exact": true,
+    "payloads_per_case": 84,
+    "all_current_profile_payload_hashes_independently_verified": true,
+    "healthy_and_changed_questions_each": 6050,
+    "sampled_held_triples_each": 3,
+    "held_equal_provider_replies": true,
+    "changed_values_differ_from_reference": true,
+    "real_consumer_all_three_words_equal_cache_and_move": true,
+    "same_selected_consumer_identity_across_healthy_changed": true,
+    "named_refusal_controls": "Withheld/refused, bad name/identity, bad end/answer and corrected NaN/answer p:notfinite all stop at boot with matched/tripped true. Their raw files each contain only boot_failed; no afterpoison receiver/cache/cleanup measurement.",
+    "original_control": "Distinct original-initializer feature profile booted and ran one frame, held its original cache, asked zero target-offset provider questions and correctly failed native/controller1 UNREACHED. The fixture API existed: this is genuine producer-authority absence, not setup/API absence.",
+    "cases": [
+      {
+        "case": "reference",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "controller_sha256": "203fa2c9799493ca15380de6d97c09ba5c50e819b8adde68faf047306dfc2be5",
+        "raw_json_sha256": "a3dc5796f275048f10eae26e1f46032b46cc66c81657b552dbd865c3e4b84a2d",
+        "verdict": "accepted finite control"
+      },
+      {
+        "case": "offsets_changed",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "controller_sha256": "bda830d1a27e2685aeb8506a776149de0516c402a69d18adc0cd27ec7b925a64",
+        "raw_json_sha256": "c6436a0cb17a9b386a57a378d69054f7d7ee9d2b9b065f59130b2f2331991309",
+        "verdict": "accepted finite control"
+      },
+      {
+        "case": "offsets_withheld",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "controller_sha256": "f0223dd082301d0a623d25a49c42ead10d82889e23781bbc905af77a7095ff3e",
+        "raw_json_sha256": "bb74d3dc98d73fc0fa3d72d8976190130f6695a9795188639bf0516dab089027",
+        "verdict": "accepted finite control"
+      },
+      {
+        "case": "offsets_bad_name",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "controller_sha256": "ea373e0626361ae352ecafed50c28e950ab1defcd13b633adc5f226e4a18d034",
+        "raw_json_sha256": "1b4fc41f975a188d13c3de5c48d55b17a4ea4cdd2596a702ab75662cb7981787",
+        "verdict": "accepted finite control"
+      },
+      {
+        "case": "offsets_bad_nan",
+        "native_exit": 1,
+        "controller_exit": 1,
+        "controller_sha256": "84c03b01921195e6e05b28f070db72b06866571a8bf313fabf3481a5eba49ab8",
+        "raw_json_sha256": "5e3ae85631e22c9c7d7ce06aa8e756e62c20c017f11a895709d7385ddf344ce5",
+        "verdict": "retained failed witness, not accepted"
+      },
+      {
+        "case": "offsets_bad_end",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "controller_sha256": "1bf708c3777f0a86a6bdecf83ac8e4cd9d2183d32496dc64e0cb80a6c55c7b02",
+        "raw_json_sha256": "d6dc6b8fa31851c1501557251c65283221222cd9a9ce0575a25dadd727ffa40a",
+        "verdict": "accepted finite control"
+      },
+      {
+        "case": "original-initializer-capability-red",
+        "native_exit": 1,
+        "controller_exit": 1,
+        "controller_sha256": "cb0b33eab82a94fa7cfc9e92679393c278c9b9bdc98a50f04db4adac5f3b9abe",
+        "raw_json_sha256": "71bfb7e29823845dd96edd0d6b277dd933794236092b480fd955a13a5b5c3863",
+        "verdict": "expected original-initializer authority absence"
+      },
+      {
+        "case": "corrected_nan",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "controller_sha256": "fc9e856c2ba35fcdb2ebd4486aa52e46b4615525d183a5e9198bcca861c61929",
+        "raw_json_sha256": "e01de870653e0925242049c638520bc7ba8e9f8f4f0a6c37d1189c39b9a7e336",
+        "verdict": "accepted finite control"
+      }
+    ],
+    "profile_build_infos": {
+      "D:\\EECH-Migration-Evidence\\target-point-offset-production-9b916ac650\\eech-campaign\\target\\model-host-fixture\\target-point-offsets-9b916ac650": {
+        "build_info_sha256": "63fb50c550b82a836e48618ca8bf00d271eee09355c476af0ea4d4f237cecffd",
+        "payloads": 84
+      },
+      "D:\\EECH-Migration-Evidence\\target-point-offset-production-9b916ac650\\eech-campaign\\target\\model-host-fixture\\original-target-point-offsets-9b916ac650": {
+        "build_info_sha256": "3aa18105d562dcd37da1862c748e95027d8042aab95fbf65ca40c91abf41c513",
+        "payloads": 84
+      },
+      "D:\\EECH-Migration-Evidence\\target-point-offset-production-9b916ac650\\eech-campaign\\target\\windows-target-point-offsets-9b916ac650": {
+        "build_info_sha256": "ba4fba7013e55fd2884d3a17bf9a3ee397fb5950fe50fb3bc1980fa51c89b8f2",
+        "payloads": 84
+      }
+    }
+  },
+  "ordinary_short": {
+    "native_source": "9b916ac650400566edcd4a9b7247be1f789c029f",
+    "profile": "ordinary repository Windows build",
+    "arguments": "Retained exact0.001hour campaign.lua scenario, explicit ACMI/observe paths, record_every10, observe_every1 and supply observations; no duration/baseline changes.",
+    "native_controller_pre_post_all_zero": true,
+    "full_input_checks": 2,
+    "all84_payloads_and_input_lists_verified": true,
+    "controller_sha256": "7e96eba246ad5990065630b8d4d7621a2351e322954b6ad9a3ac893299a53908",
+    "comparison_sha256": "65053faa35b59623ef7c41f6b971a506e10e87b4d67eafba6eeebf653af7ebef",
+    "complete_files_literal_equal_including_endings": [
+      {
+        "file": "recording.acmi",
+        "bytes": 230871,
+        "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d"
+      },
+      {
+        "file": "observations.jsonl",
+        "bytes": 1553674,
+        "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc"
+      },
+      {
+        "file": "metrics.json",
+        "bytes": 7477,
+        "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4"
+      }
+    ],
+    "baseline": "retained80fd artifacts, not rerun or normalized",
+    "full40_all8_claimed": false
+  },
+  "builds": {
+    "native_source": "9b916ac650400566edcd4a9b7247be1f789c029f",
+    "linux_completion_sha256": "28cb0b60c6a52375710c5d1a985bcf1217cd766b56752f58d163dc3bac972975",
+    "linux_log_sha256": "10340af93c75430bad73313a597cfa2fb6d5b5fc0efed9fb6ff005d6aab7ae89",
+    "linux_actual_exit": 0,
+    "linux_scope": "set-e script: dc lib, default packages, model-host-fixture+los-fixture packages, fmt, both all-target strict gates. Both final strict completions inspected; no invented aggregate test count.",
+    "windows_completion_sha256": "99ae83d894e73ae801ea3a5d17a700aca5b5bf7d4b10d4e17edc595bf98bbbf7",
+    "windows_actual_exit": 0,
+    "windows_profiles": [
+      {
+        "profile": "ordinary",
+        "actual_exit": 0,
+        "completed_utc": "2026-11-03T00:01:25.492251+00:00"
+      },
+      {
+        "profile": "host-fixture",
+        "actual_exit": 0,
+        "completed_utc": "2026-11-03T00:03:03.659207+00:00"
+      },
+      {
+        "profile": "original-control",
+        "actual_exit": 0,
+        "completed_utc": "2026-11-03T00:05:15.981980+00:00"
+      }
+    ],
+    "windows_scope": "Ordinary unmodified builder; host fixture; declared original-initializer three-feature control, sequential on the declared cache.",
+    "c37_working_tree_log_sha256": "84aa2a4130ba428af1f21bdd7a75c310954258c04c5d08f428610a440b75ca2d",
+    "c37_working_tree_checks": "dc lib50/model_store59/model_target_point23/fmt/default strict recorded zero. Supplementary WT provenance, not a new nativeC build.",
+    "current_all_CI_claimed": false
+  },
+  "preserved_history": [
+    "Initial23:41 build receipts have no known actual exit. Root interruption audit records old PIDs/handles absent and no build-cache containers; resumed00:01 controllers are separate measured terminal0, not retrospective old success.",
+    "The initial outer authority checker incorrectly expected summary for existing boot_failed refusals. Its failed queue remains; a read-only retained-result audit corrected classification without rerunning those native controls.",
+    "First NaN witness remains native/controller1 and matchedfalse: production refused at answer/p:notfinite while Lua expected value. A fresh corrected diagnostic on unchanged9b native now matches/native0. The duplicate adds no distinct coverage.",
+    "Original-initializer capability control remains expected native/controller1, not a green shipping run or whole-original-engine acceptance."
+  ],
+  "receipt_hashes": {
+    "provenance.json": "ee22847352d2dca76252758cc58d66ebdbc69515ee5c642ac1eb780f4093343f",
+    "target-point-offset-build-interruption-audit-20261103.json": "ce4e9c33813137f906334bbbcfc8785e0c6ec60d1b235b2eef5e652b5045680e",
+    "target-point-offset-retained-controls-audit-20261103.json": "14865545ce8ae4bafad9c139788141471f65ae0b7f7a842bbd8a96f93c5f7555",
+    "queue.json": "3aa3ae5596570322e53fbec562fc4bc7be0cf646cccceff566d1a7f8447d02c9"
+  },
+  "reused_closed_evidence": [
+    {
+      "sha256": "25f64cd419d3e420bbd8398545229a1c19ff6355f8b7a69a0295c691d70915de",
+      "scope": "Original input/RNG native1c30/checkerebcb, not repeated."
+    },
+    {
+      "sha256": "4c6dde8cea33c8a79abe005d6d47fe7176fcf340a030bf4aa6756d55e63e7794",
+      "scope": "Host local/keyframe-zero numeric prototype at its own identity."
+    },
+    {
+      "sha256": "4aacc10460ffbb98bed3fde4ba2cee45cd1c055fb8ccaca726ace8eaf95d5767",
+      "scope": "Fixed kernel valid-row parity; comparer P2 source-closed here."
+    }
+  ],
+  "limits_and_next_gate": [
+    "Finite closure covers production local-offset initialization, host-answer authority, direct guidance three-coordinate consumption and bounded ordinary short conformance only. Live get_local_entity_target_point physical queries, four branches and instance-VP effects remain Core and are the next bounded production step.",
+    "Actual healthy/changed evidence samples three held triples and one real consumer per run; catalogue-wide copying and invocation policy order are source-backed, not a new full cache dump.",
+    "No new full public FPU, arbitrary live joint/root-scale, all-thread/global CRT, visual/liveDCS/Tacview, full40/all8 shipping, Task52 merge, Task50 dependency or wholeD3 acceptance.",
+    "Next query routing must move physical transforms to the host while preserving Core seeker/selection/engagement/intercept/guidance policy and measured VP effects. Reuse accepted evidence at its own identities rather than optional new prototypes."
+  ]
+}

@@ -1,0 +1,221 @@
+{
+  "source": "6f13beae1a0b7b1da7bc42c4b1e68e14f19a50d7",
+  "scope": "Focused host terrain kernel validation and original fast oracle only; production DLL dispatch unchanged. Not public host authority or shipping/fullD3 acceptance.",
+  "fixture_build": {
+    "source": "6f13beae1a0b7b1da7bc42c4b1e68e14f19a50d7",
+    "actual_build_exit": 0,
+    "completed_utc": "2026-10-29T10:44:04.7897302Z",
+    "log": "R:/d3-evidence/build-backend-6f13beae1.log",
+    "volume": "eech-win-target-d3-terrain-backend-6f13beae1-20261029",
+    "scope": "Corrected backend fixture compile only; not shipping acceptance"
+  },
+  "fixture_build_info": "commit: 6f13beae1a0b7b1da7bc42c4b1e68e14f19a50d7\nuncommitted changes in the build inputs: 0 files\nimage: ",
+  "focused_test_build": {
+    "actual_exit": 0,
+    "completed_utc": "2026-10-29T10:43:30.5926956Z",
+    "source": "6f13beae1a0b7b1da7bc42c4b1e68e14f19a50d7",
+    "image": "sha256:e85fffa92157a399a49b93e617f50a306f98f8ede6e319fe408ef16f297e05e7",
+    "kind": "Focused Windows tests compile only, no native execution"
+  },
+  "focused_binaries": {
+    "terrain_backend.exe": {
+      "bytes": 2472865,
+      "sha256": "e253ca01c786daeda32ad9713f0dccbd97562479e04dbc7522f473288fa41795"
+    },
+    "terrain_conformance.exe": {
+      "bytes": 2622777,
+      "sha256": "8f46e1c3a38198030e0e7d6123f9294e3c24608c69cb0e613eac39059cec2724"
+    },
+    "lua.dll": {
+      "bytes": 615397,
+      "sha256": "7b2ec3f3fd174f6b65a2159ee46dc8e9102624a350d978e16ddf4396d7c2be0b"
+    }
+  },
+  "synthetic_tests": {
+    "actual_exit": 0,
+    "passed": 7,
+    "failed": 0
+  },
+  "retail_conformance": [
+    {
+      "map": "lebanon",
+      "actual_exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "oracle": "fast-original-6f13beae1-lebanon/trace.jsonl"
+    },
+    {
+      "map": "georgia",
+      "actual_exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "oracle": "fast-original-6f13beae1-georgia/trace.jsonl"
+    }
+  ],
+  "original_fast_oracles": {
+    "source": "6f13beae1a0b7b1da7bc42c4b1e68e14f19a50d7",
+    "scope": "Original new fast oracles; original point hashes/samples/counters unchanged. One explicitly classified diagnostic source-line shift per map. Not host conformance or full acceptance.",
+    "cases": [
+      {
+        "map": "lebanon",
+        "native": {
+          "status": "completed",
+          "when_utc": "2026-10-29T10:45:46.8381231Z",
+          "binary": "R:\\d3-evidence\\terrain-backend-source-6f13beae1\\eech-campaign\\target\\terrain-fixture\\backend-6f13beae1\\eech-world.exe",
+          "arguments": "R:/d3-evidence/terrain-backend-source-6f13beae1/eech-campaign/target/terrain-fixture/backend-6f13beae1/lua/terrain-characterization.lua root=R:/d3-evidence/backend-test-roots/lebanon scenario=lebanon_retail out=R:/d3-evidence/fast-original-6f13beae1-lebanon/trace.jsonl seconds=0 frame_ms=100 probe_at=0 probe_seed=1 probe_count=20000 emit=256",
+          "root": "R:/d3-evidence/backend-test-roots/lebanon",
+          "out": "R:/d3-evidence/fast-original-6f13beae1-lebanon",
+          "scenario": "lebanon_retail",
+          "kind": "D3 original terrain characterization: test-only fixture, not shipping pack acceptance",
+          "driver_sha256": "9312b426be22c13a6d947be8fd18dca9062eb1854ce32bb139aba2833efb6dd0",
+          "launcher_sha256": "6ed9b68e7800cb46025e2653331dde76bc6301a4f6c1e47824d92f35d1e94b9b",
+          "build_info_sha256": "f319ed2537981de5688c3eb082da7cd789d375b6cc42578d72e9db152fe7f8d2",
+          "actual_native_exit": 0,
+          "native_pid": 11076,
+          "created_utc": "2026-10-29T10:45:46.9700253Z",
+          "completed_utc": "2026-10-29T10:45:49.7315580Z"
+        },
+        "old_trace_sha256": "77bc406097492fae5551567571e52e1940a9ef6085fb8d18f074e0187a68c414",
+        "new_trace_sha256": "54fd31ee7dc05a033f4647c633c1b1928645d6ddb1e9392d05f614330d2136dc",
+        "old_rows": 384,
+        "unchanged_old_raw_rows": 383,
+        "source_diagnostic_only_delta": {
+          "old": {
+            "at": 0,
+            "calls": 20006,
+            "event": "terrain-site",
+            "fast_hit": 20006,
+            "file": "csrc/eech_terrain_fixture.c",
+            "hint_null": 20006,
+            "line": 558,
+            "not_found": 0,
+            "report": "probe",
+            "scope": "probe"
+          },
+          "new": {
+            "at": 0,
+            "calls": 20006,
+            "event": "terrain-site",
+            "fast_hit": 20006,
+            "file": "csrc/eech_terrain_fixture.c",
+            "hint_null": 20006,
+            "line": 585,
+            "not_found": 0,
+            "report": "probe",
+            "scope": "probe"
+          },
+          "verified_same_source_statement": "if (float_bits (get_3d_terrain_elevation (x, z)) != float_bits (fresh.result))"
+        },
+        "hashes": [
+          {
+            "at": 0,
+            "event": "terrain-probe-hash",
+            "primed": "42669569d4a35a25",
+            "report": "probe",
+            "sample": "5019c81ccaa3bf8d"
+          },
+          {
+            "at": 0,
+            "available": 1,
+            "count": 20006,
+            "event": "terrain-probe-fast-hash",
+            "fast": "dd2dcac1fe13b7c1",
+            "report": "probe"
+          }
+        ]
+      },
+      {
+        "map": "georgia",
+        "native": {
+          "status": "completed",
+          "when_utc": "2026-10-29T10:45:46.8373862Z",
+          "binary": "R:\\d3-evidence\\terrain-backend-source-6f13beae1\\eech-campaign\\target\\terrain-fixture\\backend-6f13beae1\\eech-world.exe",
+          "arguments": "R:/d3-evidence/terrain-backend-source-6f13beae1/eech-campaign/target/terrain-fixture/backend-6f13beae1/lua/terrain-characterization.lua root=R:/d3-evidence/backend-test-roots/georgia scenario=georgia_retail out=R:/d3-evidence/fast-original-6f13beae1-georgia/trace.jsonl seconds=0 frame_ms=100 probe_at=0 probe_seed=1 probe_count=20000 emit=256",
+          "root": "R:/d3-evidence/backend-test-roots/georgia",
+          "out": "R:/d3-evidence/fast-original-6f13beae1-georgia",
+          "scenario": "georgia_retail",
+          "kind": "D3 original terrain characterization: test-only fixture, not shipping pack acceptance",
+          "driver_sha256": "9312b426be22c13a6d947be8fd18dca9062eb1854ce32bb139aba2833efb6dd0",
+          "launcher_sha256": "6ed9b68e7800cb46025e2653331dde76bc6301a4f6c1e47824d92f35d1e94b9b",
+          "build_info_sha256": "f319ed2537981de5688c3eb082da7cd789d375b6cc42578d72e9db152fe7f8d2",
+          "actual_native_exit": 0,
+          "native_pid": 4208,
+          "created_utc": "2026-10-29T10:45:46.9700242Z",
+          "completed_utc": "2026-10-29T10:45:49.6738012Z"
+        },
+        "old_trace_sha256": "8a692c6390b78a7944e2bb013c5d36c88213d04fd259e0f0e85b423a356f1d4a",
+        "new_trace_sha256": "d172ea76cb4d2a7f2e8bf3cd771c113e4d80aaa6296a80532cc4181f5e668209",
+        "old_rows": 383,
+        "unchanged_old_raw_rows": 382,
+        "source_diagnostic_only_delta": {
+          "old": {
+            "at": 0,
+            "calls": 20006,
+            "event": "terrain-site",
+            "fast_hit": 20006,
+            "file": "csrc/eech_terrain_fixture.c",
+            "hint_null": 20006,
+            "line": 558,
+            "not_found": 0,
+            "report": "probe",
+            "scope": "probe"
+          },
+          "new": {
+            "at": 0,
+            "calls": 20006,
+            "event": "terrain-site",
+            "fast_hit": 20006,
+            "file": "csrc/eech_terrain_fixture.c",
+            "hint_null": 20006,
+            "line": 585,
+            "not_found": 0,
+            "report": "probe",
+            "scope": "probe"
+          },
+          "verified_same_source_statement": "if (float_bits (get_3d_terrain_elevation (x, z)) != float_bits (fresh.result))"
+        },
+        "hashes": [
+          {
+            "at": 0,
+            "event": "terrain-probe-hash",
+            "primed": "6f61a1158a8ab759",
+            "report": "probe",
+            "sample": "0199bfae4fbe4ff5"
+          },
+          {
+            "at": 0,
+            "available": 1,
+            "count": 20006,
+            "event": "terrain-probe-fast-hash",
+            "fast": "aa1179597dceabc4",
+            "report": "probe"
+          }
+        ]
+      }
+    ]
+  },
+  "inputs_post": {
+    "georgia": {
+      "files": 1174,
+      "combined_sha256": "d373bc4262464da87532b8128d396358f0003bc2e9e51e8fa92cf0a6e2b50de2",
+      "actual_manifest_exit": 0
+    },
+    "lebanon": {
+      "files": 1179,
+      "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "actual_manifest_exit": 0
+    }
+  },
+  "fixture_manifest_post": {
+    "files": 44,
+    "all_match": true,
+    "actual_checker_exit": 0
+  },
+  "limits": [
+    "One source-diagnostic line field shifts558to585 per original smoke; explicitly classified with unchanged raw files and all other old rows exact.",
+    "Original fast probes use the DLL solver; conformance uses the separate host kernel.",
+    "No repeated600s original runs or acceptedD2 pack.",
+    "One Lua refusal-harness finding still under correction at this runtime source; no public provider authority claim.",
+    "Missing fast-grid generation remains open."
+  ]
+}

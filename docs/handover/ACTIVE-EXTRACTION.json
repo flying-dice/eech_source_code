@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "epic": "EEDCS-21",
+  "task": "EEDCS-49",
+  "pr": 109,
+  "authority": [
+    "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
+    "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
+  ],
+  "phase": "validation-pending",
+  "preparation_batches_without_cutover": 0,
+  "preparation_limit": 2,
+  "next_production_change": "IMPLEMENTED in source (the branch's Task52 merge commit, over 099aa09c2d): the ordinary get_line_of_sight_collision_tree asks the host. The tree slice only: the old physical scan/intersection solver is compiled out of every build but the explicit original profile (feature collision-fixture); tree_begin/tree_terrain are two more operations of the already required, process-kept terrain provider; the reference host drives the closed trees.rs kernel from host.terrain_provider with its own tree files and forest triangles from its model store (docs/d3-tree-collision-provider.md). Remaining Task49 production work after validation and review: entity/object collision (get_line_of_sight_collision_entity and its sector entity lists), a separate Task49 slice. Do not start another optional prototype, D4 or D5.",
+  "ready_evidence": [
+    "Closed preparation reused, not redone: original characterization (15054 queries / 29894 ordered terrain answers exact through the host library and real Lua; original raw unchanged, 47a4af0d1/b44d2c96f) and the host tree loader/kernel 8c452f197 (review 4258f1b94, FP state/refusal/lifetime controls).",
+    "Merge of the verified clean Task52 branch 099aa09c2dfeb77ca708214421e81113369a057e into the old Task49 head f2473817bced177b588878d6e416dcb4400f8bc2 (normal merge, no rebase/force); both sides' features, FFI, tests and history preserved.",
+    "Source: mb_hostterrain.{h,c} TREE_BEGIN/TREE_TERRAIN and campaign_terrain_tree_collision; en_cllsn.c hosted body under EECH_CAMPAIGN_HOST_TREE with the original body kept in the #else; eech-engine-sys structs; eech-engine TerrainQuery::TreeBegin/TreeTerrain and TerrainAnswer::Tree; eech-dc TREE_BRIDGE; eech-world tree_host.rs behind host.terrain_provider (and host.terrain_open for an installation-layout directory).",
+    "Focused checks in the pinned Linux image (evidence D:/EECH-Migration-Evidence/tree-host-routing-20261103-a/): fmt --check 0; strict clippy 0 for eech-engine-sys/eech-engine/eech-dc/eech-world --all-targets and for eech-dc --features collision-fixture and weapon-fixture; cargo test --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world 0 (57 result lines ok, including the tree_host_guard compile guard, the C-boundary bit-pattern tests, the Lua bridge tests, tree_host unit tests and the whole host_callbacks suite). NOT a native run.",
+    "Source-only: no native C was run, no Windows build, no retail data. The tree-authority witness (lua/tree-authority.lua) is written and loads (syntax guard) but has not been run.",
+    "Merge consequences handled: the original-profile fixture eech_collision_fixture.c now views the host-terrain record (the legacy sector/pointer words do not exist on this base; record rows are not comparable with 47a4af0d1 evidence, physical words are); collision-characterization.lua selects the reference arithmetic profile and boots with terrain/model/environment providers."
+  ],
+  "blockers": [
+    {
+      "id": "tree-native-authority-actual",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "Source and focused Linux checks pass; the hosted route has never been run natively. The tree-authority witness drives a REAL weapon launch through the public Lua -> native module -> terrain provider path.",
+      "missing_fact": "Native actuals: a Linux and a Windows weapon-fixture build of this exact source; tree-authority mode control (host asked, lookup order/pairing/hint self-assertions) and the seven altered modes, each actual exit recorded; forced_hit compared with the control.",
+      "next_fix": "Root freezes the clean source and runs the commands in docs/d3-tree-collision-provider.md; no extra diagnostic is needed."
+    },
+    {
+      "id": "forest-geometry-retail-source",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "The reference host derives ForestGeometry from the model store (scene OBJECT_3D_FOREST_TREE_OBJECT, depth 0..). Unit tests use a scripted source; no retail data was available here.",
+      "missing_fact": "That ModelStore::load of the retail installation reports Absent or End at depth 0 for the forest tree object (the retail fact the original capture recorded, tf-forest geometry 0). A Refused or no_scene answer would make the host refuse and the first tree question would stop the engine by name.",
+      "next_fix": "Visible in the first native control: a refusal names [terrain-provider:tree_begin.callback] with the model store's reason. Correct the host source only if it appears; do not assume 'absent'."
+    },
+    {
+      "id": "entity-object-collision",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "get_line_of_sight_collision_entity and the sector entity lists remain the campaign's (D5-adjacent coupling declared in mb_hostlos.h); the tree slice does not touch them.",
+      "missing_fact": "A characterised host contract for entity/object collision (Task49 proper) and its production routing.",
+      "next_fix": "The next bounded Task49 slice after this one is validated; not started here."
+    }
+  ],
+  "next_action": "validate-review",
+  "acceptance": [
+    {
+      "gate": "Production tree query asks the host and the old solver is absent from the ordinary module (compile guard)",
+      "complete": true
+    },
+    {
+      "gate": "Changed/withheld host authority and the lookup dialogue exercised natively (tree-authority control and seven modes)",
+      "complete": false
+    },
+    {
+      "gate": "Established scenario and required complete byte-identical regression pass (M4 pack, windows-retail v1)",
+      "complete": false
+    },
+    {
+      "gate": "Current independent review/checks and normal merge; Task52 and Task50 dependencies delivered",
+      "complete": false
+    },
+    {
+      "gate": "Complete Task49: entity/object collision host-owned, not merely the tree slice",
+      "complete": false
+    }
+  ],
+  "runtime_checkpoint": "R:/d3-evidence/D3-CURRENT.json",
+  "do_not_restart": "Task50 original bce pack and Task52 ordinary 811 pack: verify actual PID/birth/argv and receipts before any action; neither is touched by this task.",
+  "scope_limit": "Whole D3 / EEDCS-21 and full Task49 remain open. Do not start D4/D5 or resume the historical TypeScript port. Task49 stays stacked on the unaccepted Task52/PR112 and Task50/PR110 branches: no delivery ahead of them. The Task52 card is preserved as docs/handover/ACTIVE-EXTRACTION-EEDCS-52-20261103.json."
+}

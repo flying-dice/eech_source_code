@@ -1,0 +1,71 @@
+{
+  "created_utc": "2026-11-01T06:06:26.305983+00:00",
+  "state": "terminal",
+  "native_source": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+  "lua_source": "0960e22d1fc4cd6bf95373f839b5c49c72ec27d0",
+  "scope": "Complete unchanged diagnostic-off observation bytes plus explicit source-explained ORIGINAL-vs-HOSTED metadata report changes. No normalization, baseline modification, Tacview or shipping claim.",
+  "cases": [
+    {
+      "name": "probe",
+      "original_json_sha256": "a089e14f7238a1e579dae537fc6dedb6c8516016aace23dcfb39a2fedd9b72db",
+      "candidate_json_sha256": "19d7001af89083d9e61531bbb93474cadafe9785ff318778f737d43a4b6d0552",
+      "original_raw_sha256": "74401e0cb6bb973ed02a6d4b280bfc688aea72b53001f0935c4b88e6b18a5c43",
+      "candidate_raw_sha256": "1bb589f054bcb695e2afdfca7fd4cee198523972b7b6e2df84bf5bc948763aac",
+      "original_rows": 95,
+      "candidate_rows": 93,
+      "stable_complete_lines": 85,
+      "stable_complete_lines_byte_identical": true,
+      "whole_metadata_report_byte_identical": false,
+      "changes_disposed": "Core file operations/header state are0, host reply mirror added; raw byte count/path and derived field provenance change. All other complete lines byte-identical, including catalogue, constructor, backend, seed/entity fingerprints and result.",
+      "host_answer": {
+        "answers": "1",
+        "event": "env-sndinit-host-answer",
+        "header_count": "0",
+        "matched": "0",
+        "missed": "2069",
+        "n": "0",
+        "present": "0",
+        "raw": "env-sndinit-host-answer n=0 source=host_reply_mirror answers=1 present=0 header_count=0 matched=0 missed=2069",
+        "scope": "case",
+        "source": "host_reply_mirror"
+      }
+    },
+    {
+      "name": "header-present",
+      "original_json_sha256": "12365d8de42e96841f433296edc98a3904078ce6e584b2074247dc780f85c3a4",
+      "candidate_json_sha256": "756868cdd60812de0315d268a98f33d69a17db2747558ddd37a370aae5d5aa3e",
+      "original_raw_sha256": "d0783687994d943021cd37820c9059b8e07780f5630e6237d816c63b221ffbbb",
+      "candidate_raw_sha256": "b60aa1952d2a50868eb2acd33a4292583aff6ce095179d600a3836541e2dd7ae",
+      "original_rows": 81,
+      "candidate_rows": 78,
+      "stable_complete_lines": 70,
+      "stable_complete_lines_byte_identical": true,
+      "whole_metadata_report_byte_identical": false,
+      "changes_disposed": "Core file operations/header state are0, host reply mirror added; raw byte count/path and derived field provenance change. All other complete lines byte-identical, including catalogue, constructor, backend, seed/entity fingerprints and result.",
+      "host_answer": {
+        "answers": "1",
+        "event": "env-sndinit-host-answer",
+        "header_count": "7",
+        "matched": "4",
+        "missed": "2065",
+        "n": "0",
+        "present": "1",
+        "raw": "env-sndinit-host-answer n=0 source=host_reply_mirror answers=1 present=1 header_count=7 matched=4 missed=2065",
+        "scope": "case",
+        "source": "host_reply_mirror"
+      }
+    }
+  ],
+  "complete_observation_off": {
+    "original": "R:\\d3-evidence\\environment-original-sound-init-recovery-7574caa2c-20261101\\observer-off\\environment.jsonl",
+    "candidate": "R:\\d3-evidence\\metadata-default-controls-7c-native-0960-lua-20261101\\observer-off\\environment.jsonl",
+    "bytes": 5191384,
+    "rows": 17283,
+    "original_sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+    "candidate_sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+    "complete_bytes_and_endings_identical": true,
+    "partial_prefix_only": false
+  },
+  "actual_exit": 0,
+  "completed_utc": "2026-11-01T06:06:26.409845+00:00"
+}

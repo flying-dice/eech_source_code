@@ -1,0 +1,42 @@
+{
+  "current_checker_source": "d30e153e9116bcfbfa816c5752ef2492360ac33a",
+  "created_utc": "2026-11-01T23:02:04.686186+00:00",
+  "Linux_targeted_tests_passed": 10,
+  "Linux_targeted_tests_failed": 0,
+  "Linux_fmt_and_World_all_target_strict_exit": 0,
+  "Linux_actual_completion_utc": "2026-11-01T23:00:20.659441+00:00",
+  "Linux_completion_sha256": "21aacf88315bfe8a796834a89518672ae8b2b1e5dd48ea09e249e53b0a643cbf",
+  "Linux_log_sha256": "ac6af433a5e5854595ed6887af653a56f915473dea13de4cbf4852b1a49b2d9a",
+  "Windows_checker_replay_processes_passed": 12,
+  "original_C_capture_source": "a6cf70b672a6dab771048cc676e230b22ffa0972",
+  "original_broad_build_source": "4485ac3bc7aebc12aca934c7138c88f60ba93252",
+  "reports": [
+    {
+      "file": "model-animation-original-producer-source-d30e153e91-20261101.json",
+      "sha256": "58b9b5267396275e90b1e10518fa555ee5716759f8443eff7d03ca12445cffe1"
+    },
+    {
+      "file": "model-animation-original-actual-a6cf70b672-20261101.json",
+      "sha256": "0c67a25a1cb4a0c9c86218f683155b80478e156d4e6c04dc7dc6cff0b7f02a28"
+    },
+    {
+      "file": "model-animation-original-builds-4485ac3bc7-20261101.json",
+      "sha256": "b7af82c9d5236285c42dc78ebfec9612d8d425dd8a438eda6bbac248bd3a2bd2"
+    },
+    {
+      "file": "model-animation-checker-replay-d30e153e91-20261101.json",
+      "sha256": "3e577fa904d118d5aecc4d14ed49e90f96082f7d7e327336de9a9acb2f2a8705"
+    },
+    {
+      "file": "model-animation-d30-affected-command-recovery-20261101.json",
+      "sha256": "765df6f10cdbeb0653fcf6cb3bf750c48e25f54046997b22bf1d8b7f1e424ca8"
+    }
+  ],
+  "preserved_failures": [
+    "a6 original-feature Linux101 E0382 diagnosticRusttest partialmove, fixedborrow d30; actuala6Windows/natives remainvalid",
+    "Firstd30targetedhelper101 RootrequestedDCfeaturewhileonlyWorldselected; Worldstandalonehosthasnosuchfeature. No testsran; correctedv2 removesflag, oldlog/controller/code retained."
+  ],
+  "scope": "Corrected driver guard/test validation plus reuse of independentlyaudited original native metadata at own a6 identity and unchanged nineproducerblobs4485=a6=d30. Windowsreplay is standinengine/realLua, not newCboot or RustWindowsunit/FP-trap/fullFP coverage. No original828/routes/FPU/repeatboot rerun. No physicalmetadataownership/Task50/D3/shipping acceptance.",
+  "finite_original_animation_gate_closed": false,
+  "remaining_gate": "Same held independent source/actual review final."
+}

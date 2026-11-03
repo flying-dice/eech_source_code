@@ -1,0 +1,46 @@
+{
+  "schema": "d3-model-bounded-checkpoint/v1",
+  "production_source": "80fd62ea48fc75aa9546c785f525be034abd16f8",
+  "test_prose_recovery_source": "e48808f53a44260e78183fc0322b09cdd0ceb3f0",
+  "scope": "Bounded public model authority, caller-state preservation and reference-host byte restoration; not full shipping or D3 acceptance",
+  "production_rebuilt_for_test_prose_only_recovery": false,
+  "complete_bounded_recording_observation_metrics_byte_identical": true,
+  "actual_frame_calls": 35,
+  "final_elapsed_seconds": 3.49999737739563,
+  "full_x87_and_MXCSR_entries_measured": 16,
+  "authority_refusal_cases_passed": 9,
+  "affected_tests": {
+    "original_completed_suites": [
+      15,
+      2,
+      73,
+      237,
+      19
+    ],
+    "separate_recovery_completed_suites": [
+      27,
+      2,
+      8,
+      45
+    ],
+    "unique_passing_tests_across_retained_and_recovered_suites": 428,
+    "original_guard_failure_exit_preserved": 101,
+    "initial_wrong_shell_recovery_exit_preserved": 2,
+    "corrected_recovery_exit": 0,
+    "completion_utc": "2026-10-30T04:59:54.644943+00:00",
+    "format_default_and_feature_clippy": "all zero"
+  },
+  "independent_review_reports": {
+    "independent-reference-host-profile-closeout-e48808f53-20261030.json": "77edfac9d67c5ed20adf773daf16ac9a431f85d8bb9f7c59e5556c39ac7948de",
+    "independent-model-authority-and-recovery-review-80fd-e488-20261030.json": "bc8e0b70c8a4a69630d886c434ea6f95cade36798c75373fb76d26e0faa877ff",
+    "model-authority-matrix-80fd62ea4-validation-20261030.json": "bc0c069ee75887ee73d2048aaf4ca7ce36ffdf71f36948c25dd55f3bba6080e4"
+  },
+  "recovery_completion_sha256": "7d69b5a4e3e45c2dae876022667817f9067db0269e47d721c6a92248203f2b94",
+  "limits": [
+    "428 is across completed retained suites and the separately labelled recovery, not one uninterrupted run.",
+    "Task47 original pack remains running; no 40/40 or eight-complete-artifact claim.",
+    "No formal GitHub approval, normal merge, Task50 closure, visual Tacview inspection or D3 completion.",
+    "Required physical solvers, scans, transforms, loaders, hierarchy, devices, route data, environment and host time remain D3 work.",
+    "Retail assets, raw geometry, recordings, logs, binaries and caches remain outside Git."
+  ]
+}

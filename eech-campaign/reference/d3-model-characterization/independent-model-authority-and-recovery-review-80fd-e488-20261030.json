@@ -1,0 +1,187 @@
+{
+  "schema": "independent-model-authority-recovery-evidence/v1",
+  "reviewed_utc": "2026-10-30T05:10:56.315973+00:00",
+  "production_measured_head": "80fd62ea48fc75aa9546c785f525be034abd16f8",
+  "test_prose_recovery_head": "e48808f53a44260e78183fc0322b09cdd0ceb3f0",
+  "test_snapshot_clean_exact_before_after": true,
+  "scope": "New nine-mode public Lua/C authority evidence and terminal recovery only; closed profile source, bounded recording, 16-FPU-entry and model kernel reviews reused without repetition.",
+  "disposition": "BOUNDED_AUTHORITY_AND_RECOVERY_CLOSED",
+  "findings": [],
+  "assessments": [
+    "All nine actual native/controller/pre-input/post-input stages terminal zero with exact source, fixture BINF and argument binding. All strict JSON reports match aggregate/controller raw SHA and row counts. Expected refusals are caught by the witness and produce native zero; they are not labelled successful physical answers.",
+    "Six complete reference probe report strings are byte-identical after actual Core-array poison, including numeric words, return/write counts and pointer stability. Poison event and reviewed fixture implementation identify the overwritten arrays; claim is limited to these actual accessor probes and this bounded run.",
+    "Actual C reports contain all nine host-authored BIG triangle words, with return TRUE/writes9. Bounds-zero reports contain both all-zero bounds with stable pointers. Host absence changes the same known reference-collider scene8 TRUE/writes9 into FALSE/writes0. No private geometry equality gate is imposed on the altered provider.",
+    "Contradictory FOUND-without-collider and truncated point data fail at the requested probe with exact primary error, tripped flag and matched stage. Wrong catalogue name and missing provider fail at boot with specific identity/missing markers; boot-only rows are correctly handled separately from full-run summaries. No post-fatal buffer observation is claimed.",
+    "Recovery v2 is the same PID/controller previously pending, terminal zero at 04:59:54.644943 UTC. Actual selected suites 27/2/8/45 all pass, then both default and model-host/LOS-feature strict Clippy finish successfully. No additional native or Windows rebuild is invented for test/prose-only e488.",
+    "Initial wrong-shell recovery exit2 and original80fd guard exit101 remain failures in their own preserved records. Subsequent recovery is separately labelled; production remains80fd."
+  ],
+  "cases": [
+    {
+      "case": "reference",
+      "rows": 9,
+      "controller_native_pre_post_exits": 0,
+      "input_files": 1179,
+      "input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "outcome": "healthy altered/reference model",
+      "primary_stage": ""
+    },
+    {
+      "case": "poison",
+      "rows": 10,
+      "controller_native_pre_post_exits": 0,
+      "input_files": 1179,
+      "input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "outcome": "healthy altered/reference model",
+      "primary_stage": ""
+    },
+    {
+      "case": "inflate",
+      "rows": 9,
+      "controller_native_pre_post_exits": 0,
+      "input_files": 1179,
+      "input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "outcome": "healthy altered/reference model",
+      "primary_stage": ""
+    },
+    {
+      "case": "bounds_zero",
+      "rows": 4,
+      "controller_native_pre_post_exits": 0,
+      "input_files": 1179,
+      "input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "outcome": "healthy altered/reference model",
+      "primary_stage": ""
+    },
+    {
+      "case": "absent_all",
+      "rows": 4,
+      "controller_native_pre_post_exits": 0,
+      "input_files": 1179,
+      "input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "outcome": "healthy altered/reference model",
+      "primary_stage": ""
+    },
+    {
+      "case": "bad_found_declared_absent",
+      "rows": 3,
+      "controller_native_pre_post_exits": 0,
+      "input_files": 1179,
+      "input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "outcome": "matched probe refusal",
+      "primary_stage": "probe"
+    },
+    {
+      "case": "bad_count",
+      "rows": 3,
+      "controller_native_pre_post_exits": 0,
+      "input_files": 1179,
+      "input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "outcome": "matched probe refusal",
+      "primary_stage": "probe"
+    },
+    {
+      "case": "bad_name",
+      "rows": 1,
+      "controller_native_pre_post_exits": 0,
+      "input_files": 1179,
+      "input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "outcome": "matched boot refusal",
+      "primary_stage": "boot"
+    },
+    {
+      "case": "missing",
+      "rows": 1,
+      "controller_native_pre_post_exits": 0,
+      "input_files": 1179,
+      "input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "outcome": "matched boot refusal",
+      "primary_stage": "boot"
+    }
+  ],
+  "payloads": [
+    {
+      "directory": "R:\\d3-evidence\\model-handoff-source-80fd62ea4\\eech-campaign\\target\\model-host-fixture\\handoff-80fd62ea4",
+      "BINF_sha256": "54ff5c7cb4fe6dda3b7404367aa5a6a46a18e23d999e670302632b8fb6d78f58",
+      "entries_rehashed": 48
+    }
+  ],
+  "recovery": {
+    "actual_exit": 0,
+    "completed_utc": "2026-10-30T04:59:54.644943+00:00",
+    "pid": 25208,
+    "controller_pid": 22236,
+    "tests": {
+      "host_callbacks": 27,
+      "load_dc": 2,
+      "model_characterization": 8,
+      "model_store": 45
+    },
+    "format_check": 0,
+    "default_all_target_clippy": 0,
+    "model_host_LOS_feature_all_target_clippy": 0,
+    "first_wrong_shell_attempt_exit": 2,
+    "original80fd_guard_run_exit": 101
+  },
+  "reused_closed_review_sha256": "77edfac9d67c5ed20adf773daf16ac9a431f85d8bb9f7c59e5556c39ac7948de",
+  "evidence_sha256": {
+    "R:\\d3-evidence\\model-authority-matrix-reference-80fd62ea4-20261030\\controller.json": "04bd799e850d7ebe57c4e87bce7f05657d85517fba4ea7ced534ef8b4929d7bd",
+    "R:\\d3-evidence\\model-authority-matrix-reference-80fd62ea4-20261030\\model.jsonl": "664d83b6ca09bf085c127a5f0c403adde599c2983d00dd37956c00cc2a4af1a5",
+    "R:\\d3-evidence\\model-authority-matrix-reference-80fd62ea4-20261030\\native.log": "c3e8f692824909e94f40ae431b07845b9d9f8241294b6b43e8bfe73e33224672",
+    "R:\\d3-evidence\\model-authority-matrix-reference-80fd62ea4-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-authority-matrix-reference-80fd62ea4-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-authority-matrix-poison-80fd62ea4-20261030\\controller.json": "2b7339a8c323089a9e6c01663202a8ab79edadb7362732d759f7cf51043623cb",
+    "R:\\d3-evidence\\model-authority-matrix-poison-80fd62ea4-20261030\\model.jsonl": "3594785d021aa6596c97b67c977a168740f72ef99690a82049ca8fc034b76f1b",
+    "R:\\d3-evidence\\model-authority-matrix-poison-80fd62ea4-20261030\\native.log": "dad6d6179d3c254697a0712cff6149132c725cb6b32b6f06ae39e46aa0f753eb",
+    "R:\\d3-evidence\\model-authority-matrix-poison-80fd62ea4-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-authority-matrix-poison-80fd62ea4-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-authority-matrix-inflate-80fd62ea4-20261030\\controller.json": "d99d8e0aa556f942d6d5a1bc6e3ab2e7661492710d51f7ede7ae2d903732144d",
+    "R:\\d3-evidence\\model-authority-matrix-inflate-80fd62ea4-20261030\\model.jsonl": "47d694fb166b9194dea4135c7dd40ec1b5620d77333501a1ed2cabdf902d9abe",
+    "R:\\d3-evidence\\model-authority-matrix-inflate-80fd62ea4-20261030\\native.log": "b8090720505ac462e0612d215a2a170e7a1f1b8d2afe0f134d4dd190f46aa3c5",
+    "R:\\d3-evidence\\model-authority-matrix-inflate-80fd62ea4-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-authority-matrix-inflate-80fd62ea4-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-authority-matrix-bounds_zero-80fd62ea4-20261030\\controller.json": "d04f5fd149064b6b7def06bd88d07637ec8b32fe32986b95736c8e2fc78dc6de",
+    "R:\\d3-evidence\\model-authority-matrix-bounds_zero-80fd62ea4-20261030\\model.jsonl": "1fabc419ae04d9290f1d6b191fdbb7af0d9a9e81c2186fbf4d78fc87bf50d9d0",
+    "R:\\d3-evidence\\model-authority-matrix-bounds_zero-80fd62ea4-20261030\\native.log": "474f4b34eee5422bcaad0e72e388e69178ca0cdab2ef477a614760e213d8b1af",
+    "R:\\d3-evidence\\model-authority-matrix-bounds_zero-80fd62ea4-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-authority-matrix-bounds_zero-80fd62ea4-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-authority-matrix-absent_all-80fd62ea4-20261030\\controller.json": "8408adde483177471528fbd8b939df2e302dfedb48e08f2fd9bafe1f8d776195",
+    "R:\\d3-evidence\\model-authority-matrix-absent_all-80fd62ea4-20261030\\model.jsonl": "761581d93d0d098460ae764036d16fbd5fb7d42ebd9a619cd34b835acc048699",
+    "R:\\d3-evidence\\model-authority-matrix-absent_all-80fd62ea4-20261030\\native.log": "4d0a7b51c6acc46efb704bf089a013637f0ab5d2b63f72ea4da39c8c389e426c",
+    "R:\\d3-evidence\\model-authority-matrix-absent_all-80fd62ea4-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-authority-matrix-absent_all-80fd62ea4-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-authority-matrix-bad_found_declared_absent-80fd62ea4-20261030\\controller.json": "c8a680f8816ce57a2dd706b58ae352e1ea98304e3111f0f33b38f2b6fb4a6d95",
+    "R:\\d3-evidence\\model-authority-matrix-bad_found_declared_absent-80fd62ea4-20261030\\model.jsonl": "2d86b3aec755d32685dc1fc07aa884c915157aa88033cef26ce3e022d0282206",
+    "R:\\d3-evidence\\model-authority-matrix-bad_found_declared_absent-80fd62ea4-20261030\\native.log": "94aa2727ec722d81148340b734756b7eeb2ed95127908db9de02d9c5df5d70aa",
+    "R:\\d3-evidence\\model-authority-matrix-bad_found_declared_absent-80fd62ea4-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-authority-matrix-bad_found_declared_absent-80fd62ea4-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-authority-matrix-bad_count-80fd62ea4-20261030\\controller.json": "7cc74dc061ec25ee45217cdfff613e093f5d6c235313448bbfb82ceccbded383",
+    "R:\\d3-evidence\\model-authority-matrix-bad_count-80fd62ea4-20261030\\model.jsonl": "e1e964f7d22e6dd1cf325104b73ae493e9029058cd7f1144e064a9a5ace628d2",
+    "R:\\d3-evidence\\model-authority-matrix-bad_count-80fd62ea4-20261030\\native.log": "3bade138cab2ff9bb1df5825562b1bb8feb8a2991916e50975e81b6a685ab03e",
+    "R:\\d3-evidence\\model-authority-matrix-bad_count-80fd62ea4-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-authority-matrix-bad_count-80fd62ea4-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-authority-matrix-bad_name-80fd62ea4-20261030\\controller.json": "0da617c843ff4cfe664ebbd5114ec37afe213298a4518b5b1c0b040aa1105c97",
+    "R:\\d3-evidence\\model-authority-matrix-bad_name-80fd62ea4-20261030\\model.jsonl": "dda580c27e3c7a35bd4edf6bd3b565e6e1572dc7a8c343dfbda2efcd76b05c8c",
+    "R:\\d3-evidence\\model-authority-matrix-bad_name-80fd62ea4-20261030\\native.log": "5fe4f729597e1fba30b2fb764ff2402eac3ca16bab3957ec82277bc0ff2cc71a",
+    "R:\\d3-evidence\\model-authority-matrix-bad_name-80fd62ea4-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-authority-matrix-bad_name-80fd62ea4-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-authority-matrix-missing-80fd62ea4-20261030\\controller.json": "75851bc21ce414b9bd9fcc1e394ce0866bcb4debedf4439098b09640182e57c3",
+    "R:\\d3-evidence\\model-authority-matrix-missing-80fd62ea4-20261030\\model.jsonl": "d6429f16641f47c3478fb7006b35e3fce091f5fd1ea290fdfd19cd38d2c89e21",
+    "R:\\d3-evidence\\model-authority-matrix-missing-80fd62ea4-20261030\\native.log": "c9194aa780c9910d586617898638ea5e0ebcbb59bfd30e0b0a21a21f80334929",
+    "R:\\d3-evidence\\model-authority-matrix-missing-80fd62ea4-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-authority-matrix-missing-80fd62ea4-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-authority-matrix-80fd62ea4-validation-20261030.json": "bc0c069ee75887ee73d2048aaf4ca7ce36ffdf71f36948c25dd55f3bba6080e4",
+    "R:\\d3-evidence\\reference-profile-recovery-e48808f53-v2-20261030-completion.json": "7d69b5a4e3e45c2dae876022667817f9067db0269e47d721c6a92248203f2b94",
+    "R:\\d3-evidence\\reference-profile-recovery-e48808f53-v2-20261030.log": "8faf64a1cca15e008b60ab769ff55d548163ceaefec0a5cfc918816500ceaf05",
+    "R:\\d3-evidence\\reference-profile-recovery-e48808f53-20261030-completion.json": "23987835e13658ff9035bbd444b0420da871638039aae2289dcae53adb96472a",
+    "R:\\d3-evidence\\reference-profile-recovery-e48808f53-20261030.log": "03914fb804574091d9d1ca41c3486a5f0f3c19dd57ace5d2841f5f8e25fd3fb9",
+    "R:\\d3-evidence\\check-reference-profile-recovery-e48808f53-20261030.sh": "25fd12080da6d99d1fc4acb3eced25390769ec14dba5c26cc702bf6fe143618d",
+    "R:\\d3-evidence\\independent-reference-host-profile-closeout-e48808f53-20261030.json": "77edfac9d67c5ed20adf773daf16ac9a431f85d8bb9f7c59e5556c39ac7948de"
+  },
+  "review_setup": "Initial read-only summary inspection assumed every mode ended with a full summary and stopped at KeyError on boot-refusal rows. The verifier was corrected to inspect boot_failed rows separately; no files, native runs or source were modified. This was review setup, not a product/runtime failure.",
+  "limits": [
+    "Bounded public accessor data authority/refusal preparation only; not complete model production-loader removal, physical solver/scan/hierarchy extraction, Task50 delivery or whole-D3 acceptance.",
+    "No full accepted40/eight-artifact shipping, normal merge, formal GitHub approval, visual Tacview or DCS runtime claim.",
+    "Required D3 physical scans/transforms/solvers/loaders/hierarchy/model/entity/device/target-point/environment/time services remain open.",
+    "No reviewer builds/tests/native/campaign/process/cache/auth/Git mutations/external writes/nested agents; Task47 shipping untouched."
+  ]
+}

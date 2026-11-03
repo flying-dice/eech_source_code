@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "epic": "EEDCS-21",
+  "task": "EEDCS-52",
+  "pr": 112,
+  "authority": [
+    "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
+    "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
+  ],
+  "phase": "validation-review",
+  "preparation_batches_without_cutover": 0,
+  "preparation_limit": 2,
+  "next_production_change": "None pending in source for the finite Task52 target-point query slice: the ordinary initializer (9b916ac650) and getter routing (8118389a96) are implemented, with the corrected fixture/witness (fc6388ffc4) and the Lua/test-only host-ABSENT control (c70716b1a) completed natively (see STATUS and the live-query-authority-811-fc-c707-20261103 reference folder). Remaining Task52 work is validation and review: the final combined query report, the ordinary 8118389a96 full40/all8 pack and the Task50 dependency, current CI and the normal merge, then any remaining physical consumers. Root's next implementation after this finite slice is the required Task49 tree-query routing; it is not started in this card. Do not start another optional prototype, D4 or D5.",
+  "ready_evidence": [
+    "Original boot, controlled and fallback cases: 2f/C500/5e with closed reviews 1ef9/315d/d04b; the seven original query-case shapes are retained.",
+    "Host local/instance kernel0cb7 (24208 offsets, 218 positions) and fixed kernel00098 (72624 offsets, 654 instance positions, 12 fixed positions) are exact at keyframe 0 only; the instance method is NOT a live-pose oracle.",
+    "RNG/input group closed independently 25f64cd4 (original-C1c30/checkerebcb): both initializer passes draw the CRT stream and reseed before outside consumers; bounded boot claim only.",
+    "Initializer cutover 9b916ac650 (production source and comparer P2 cleared by the same independent reviewer): ordinary initialise_target_point_offsets asks TARGET_POINT_OFFSET for all valid scene slots per invocation, seeker limits once, invalid scene zero; healthy/changed/withheld/bad-name actuals and the exact retained short Lebanon comparison (native/controller/prepost 0, 84 payloads, ACMI/observations/metrics equal) are recorded; no full40/all8 claim.",
+    "c37d02a77 corrects only the diagnostic non-finite expectation (.answer marker); production C/Rust identical to 9b916ac650. The original initializer with the feature API present runs one frame and asks zero host offsets (expected capability RED, UNREACHED), which is not a pass.",
+    "Getter routing (working tree, then one commit): staged-tree probe shows th3=1 with no active find_object_3d_sub_object / get_3d_sub_object_world_viewpoint / sin_heading rotation in host builds and the original body in the two original-fixture builds; focused eech-dc 54, model_target_point 27, model_store 62, characterization 53, fmt and strict clippy (default and three fixtures) pass. Source and tests only: no native run.",
+    "Initializer finite source/actual review95f97d0 CLOSED/no findings; all eight authority executions/seven controls and all3 complete short outputs are verified. Safe reports published; live-query8118389a96 source is separate and native validation remains pending.",
+    "Review batch after 8118389a96 (source and focused checks only): fixture-path-bounds and six-row-witness-honesty corrected in fixture/Lua/tests/prose; production C/Rust unchanged; the 811 host-fixture authority controls were produced by the old fixture/script and must be repeated on the corrected build; the 811 ordinary short evidence is reusable by compilation scope (no new binary claimed). Chain limit 8 is an explicit refusal limit, not proven all-model support.",
+    "Remaining Task52 actual (Lua/test only over fc6388ffc4): control queries_chain_absent for a valid host ABSENT chain on an existing instance (four ABSENT rows, zero FOUND, legacy_same=0 accepted and counted as a host-vs-original difference, never faked); model_store 65, fmt and strict clippy 0. Root's one native run on the unchanged fc6388 model-host-fixture binary is pending; no new C build claimed.",
+    "Completed native actuals published (evidence only): corrected fc6388ffc4 Linux+Windows builds and the declared three-feature original control all actual 0 (no ordinary rebuild claimed); corrected 13-case authority queue actual 0 (reference found4/absent0/fixed4/fallback4, queries_changed, nine named refusals, late OOB mutate-only with two REFUSED rows, original getter expected capability RED exit 1, 26 pre/post manifests 0, 84 payloads each); ONE host-ABSENT boundary actual 0 (found0/absent4/fixed4/fallback4/refused0/legacyDiffers4); ordinary 8118389a96 short actual 0 all3 COMPLETE literal baseline-equal. Safe projection and scope proofs: eech-campaign/reference/d3-target-point-characterization/live-query-authority-811-fc-c707-20261103/."
+  ],
+  "blockers": [
+    {
+      "id": "rng-evidence",
+      "status": "closed",
+      "blocks_cutover": true,
+      "evidence": "Independent final 25f64cd419d3e420bbd8398545229a1c19ff6355f8b7a69a0295c691d70915de: original-C1c30/checkerebcb; 6 actuals, 12 inputs, 84 payloads, consecutive trace/reseed checks clear.",
+      "missing_fact": "Resolved for the finite reference-profile trace; the production initializer keeps its caller/seed policy and adds no dummy constructor or random padding.",
+      "next_fix": "None."
+    },
+    {
+      "id": "comparer-honesty",
+      "status": "closed",
+      "blocks_cutover": false,
+      "evidence": "Repaired in 9b916ac650 (branch-3 comparer requires a known case label and a well-formed offset or counts the row as missing its input); same independent reviewer cleared comparer P2.",
+      "missing_fact": "None.",
+      "next_fix": "None."
+    },
+    {
+      "id": "fixture-path-bounds",
+      "status": "closed",
+      "blocks_cutover": false,
+      "evidence": "Independent source review of 8118389a96/cc98114: eech_model_host_fixture.c tp_row's bounded legacy-selection walk sets inside=0 for an out-of-range positive host offset but only stores legacy_same=0 and continues; the later mutate loop and tp_pose_text walk the same offsets unchecked, before the production world-chain bounds guard. Fixture/diagnostic code only; no physical-kernel blocker identified. CLOSED against corrected fc6388ffc4: the same independent reviewer cleared the corrected source and joined the native late-OOB actual (queries_chain_offset_late: coherent unmutated call first, two REFUSED rows before sentinel/mutation/getter/pose read, per REFUSED row only; native/controller/pre-post 0, 84 payloads).",
+      "missing_fact": "None for the finite fixture-path witness.",
+      "next_fix": "None."
+    },
+    {
+      "id": "six-row-witness-honesty",
+      "status": "closed",
+      "blocks_cutover": false,
+      "evidence": "Independent source review: judge_queries in model-authority.lua requires six parsed rows but not the exact six unique case names in order; parse_rows ignores non-matching lines; event.scene is not joined to row.scene; the VP-write judgement is not the full expected meaning. CLOSED against corrected fc6388ffc4: the same reviewer cleared the corrected source (exact six named rows, joins, whole viewpoint verdict, measured restoration) and joined the 13 native actuals (reference found 4/absent 0/fixed 4/fallback 4) with no production-kernel blocker.",
+      "missing_fact": "None for the finite six-row witness.",
+      "next_fix": "None."
+    },
+    {
+      "id": "final-combined-query-review",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "The same independent reviewer cleared the corrected-fc source and c707 absence source and joined the 13 native actuals; the final combined report for the finite live-query slice (initializer separate, closed 95f97d0) was still being completed by Root/reviewer at publication.",
+      "missing_fact": "The final combined report and its literal copy, plus the absence actual join, are not yet available; no report is claimed here.",
+      "next_fix": "Root adds the literal final combined report to the reference folder when produced; do not write a substitute. Does not widen scope to whole Task52 or the shipping packs."
+    }
+  ],
+  "next_action": "validate-review",
+  "acceptance": [
+    {
+      "gate": "Production physical offset initialization uses host data and old solver path is absent",
+      "complete": true
+    },
+    {
+      "gate": "Changed/withheld host authority and direct guidance consumer exercised",
+      "complete": true
+    },
+    {
+      "gate": "Established scenario and required complete byte-identical regression pass",
+      "complete": false
+    },
+    {
+      "gate": "Current independent review/checks and normal merge; Task50 dependency delivered",
+      "complete": false
+    },
+    {
+      "gate": "Complete all Task52 physical target-point queries and offset consumers, not merely the initializer increment",
+      "complete": false
+    }
+  ],
+  "runtime_checkpoint": "R:/d3-evidence/D3-CURRENT.json",
+  "do_not_restart": "Task50 original bce pack; verify actual PID/birth/argv and receipts before any action.",
+  "scope_limit": "Whole D3 remains open. Do not start D4/D5 or resume the historical TypeScript port. Task52 stays stacked on unaccepted Task50/PR110 1fb; the ordinary 8118389a96 and Task50 bce full40/all8 packs are ACTIVE per Root and must not be stopped, restarted or touched; prefixes are PARTIAL only."
+}

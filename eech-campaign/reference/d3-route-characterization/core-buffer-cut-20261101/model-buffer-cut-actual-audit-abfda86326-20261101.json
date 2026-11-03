@@ -1,0 +1,195 @@
+{
+  "source": "abfda863267c9aa7d71ebc29b10f168d98c484aa",
+  "created_utc": "2026-11-01T22:30:23.014024+00:00",
+  "all_four_new_controls_pass": true,
+  "full_input_checks_passed": 8,
+  "payloads_each": 58,
+  "results": [
+    {
+      "case": "residency_horizon",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 58,
+      "controller_sha256": "4529a2d21976bb2b16f19c18bd6dbcb750622a1ae09162e09fe8ddb95d384c66",
+      "native_log_sha256": "89de961d237b72925238784dcb8fac9332aca42bac3dc7577a97e4f78e6db7a9",
+      "measured_residency": {
+        "event": "residency",
+        "faces": 0,
+        "metadata_rows": 10252,
+        "pass": true,
+        "point_refs": 0,
+        "points": 0,
+        "rows": 11442,
+        "surface_points": 0
+      },
+      "measured_cached_horizon": {
+        "cached": 32,
+        "event": "horizon_cache",
+        "pass": true,
+        "uncached": 0
+      },
+      "actual_primary": "runtime error: eech: EECH fatal error: host model: [model-provider:object.geometry] add_3d_horizon_image (an uncached horizon image: no pre-processed .bin of the object's point count for this image) is a legacy visual / display reader of a model's point, face, face-point-reference or surface-point buffer, which the hosted campaign no longer holds and does not serve (no renderer, cockpit display or HUD is supported)",
+      "expected_real_entry_fatal_caught_by_driver": true,
+      "process_zero_is_control_success_not_reader_success": true,
+      "all_three_counter_rows_literal_equal_prior_CCC": true,
+      "raw_sha256": "319321fd3abcd8c0d5b25206739238822df24707dce3170f1a371807e161ccac"
+    },
+    {
+      "case": "georgia",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 58,
+      "controller_sha256": "0870a38994df4a23ad371f5bf757bf0bb77268d09bd99bdcaae675989b582f04",
+      "native_log_sha256": "9f97df7d3f461de866ddbd3c41ce636afd62b08de96115f23b9bfbfbb8739de2",
+      "complete_bytes": 10337109,
+      "complete_sha256": "53b9ddc61e962003081fb577def24f8b2f4ef2f71a28a488c180b319257e01f8",
+      "all_complete_bytes_literal_equal_CCC_and_9e4": true,
+      "no_new_independent_repeat": true
+    },
+    {
+      "case": "lebanon",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 58,
+      "controller_sha256": "311b641f4ed57e2285d4ce71482b9588ecbd4ba2af91c4f702630490e5c03d20",
+      "native_log_sha256": "2210b413b66ecc78de8c1754cfb14dab91f18a44d41f6d44e0e0876d5634a83c",
+      "complete_bytes": 7758545,
+      "complete_sha256": "7de455637bda01ded949366ddf5969b9f07eff7b4d21abf1ca1a79f20258d08f",
+      "all_complete_bytes_literal_equal_CCC_and_9e4": true,
+      "no_new_independent_repeat": true
+    },
+    {
+      "case": "short-recording",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 58,
+      "controller_sha256": "0f97bb7e9a7eb8bda0d127dc5052cab982039314d7bef963055dd685128b1efc",
+      "native_log_sha256": "31c35e85d5292462a35496ed25cd383b7b6bba31c9c7715d7d900624104a5976",
+      "complete_short_comparison": [
+        {
+          "file": "recording.acmi",
+          "original_bytes": 230871,
+          "candidate_bytes": 230871,
+          "all_complete_bytes_equal": true,
+          "first_difference": null,
+          "original_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+          "candidate_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d"
+        },
+        {
+          "file": "observations.jsonl",
+          "original_bytes": 1553674,
+          "candidate_bytes": 1553674,
+          "all_complete_bytes_equal": true,
+          "first_difference": null,
+          "original_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+          "candidate_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc"
+        },
+        {
+          "file": "metrics.json",
+          "original_bytes": 7477,
+          "candidate_bytes": 7477,
+          "all_complete_bytes_equal": true,
+          "first_difference": null,
+          "original_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+          "candidate_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4"
+        }
+      ]
+    }
+  ],
+  "cohort_report": "model-buffer-cut-cohort-compare-abfda86326-v2-20261101.json",
+  "cohort_sha256": "9ef4be76a276229c12d09f684f187aa4550aa8444de372aa91525c0c4d197b57",
+  "unchanged_components_since_CCC": [
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_model_host_fixture.c",
+      "complete_blob_and_mode_equal_CCC": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "complete_blob_and_mode_equal_CCC": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "complete_blob_and_mode_equal_CCC": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/models.rs",
+      "complete_blob_and_mode_equal_CCC": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+      "complete_blob_and_mode_equal_CCC": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/model_step.c",
+      "complete_blob_and_mode_equal_CCC": true
+    }
+  ],
+  "reused_CCC_measurements": {
+    "source": "ccc452982aa2321ae8a76092e0ca92e2e1375b90",
+    "report": "model-buffer-cut-actual-audit-ccc452982a-20261101.json",
+    "report_sha256": "b3541841f961ac36fe7afcc3202af15cf5b79cd6e20e64ec7c56d79821a0ef80",
+    "scope": "Retained actual withheld-node no-fallback and four static-accessor probes with all four buffers absent; not rerun or relabelled as abf native results. Original sixteen def6 FPU controls and 828 cases retain own identities/limits."
+  },
+  "reused_IO_helper_contracts": {
+    "source": "0515642a98dbe8c43f90dc871781604cf9e16539",
+    "report": "model-loader-io-control-0515642a98-20261101.json",
+    "report_sha256": "3dd1c6c1d23ba3a22228dd77071835a0cb1a7f30c3d40ed1646fd59005bd9825",
+    "unchanged_literal_functions": [
+      {
+        "function": "campaign_model_loader_skip",
+        "literal_equal_measured051": true,
+        "sha256": "e1516c4555ccfff2d4c0aab4bc144a966517b470aa74b16e9b2276c0a5e47c77"
+      },
+      {
+        "function": "campaign_model_loader_short",
+        "literal_equal_measured051": true,
+        "sha256": "5e2552b993a55010ea28d6edfdd43e8b25c7d4ef2579f71ddbfcbbd09bdcbb35"
+      }
+    ],
+    "scope": "Eight actual Linux literal-helper contracts reused at measured051 source. New abf negative LE4 count refusal is reviewed source/canonical compile, not a fabricated integrated malformed-file native control."
+  },
+  "helpers": [
+    {
+      "path": "R:\\d3-evidence\\run-model-buffer-cut-control-abfda86326-20261101.py",
+      "sha256": "bdb77da0f4a47a362295bc1e91bc32cbd7cdf7ccef1f1e641a6a045174b78f6d"
+    },
+    {
+      "path": "R:\\d3-evidence\\run-model-buffer-cut-actual-abfda86326-20261101.py",
+      "sha256": "c0f3ad2644c873daabb3a72dd5a42c1ad9bca77c520656344ea01d07a5b3471a"
+    },
+    {
+      "path": "R:\\d3-evidence\\run-model-public-native-20261030.py",
+      "sha256": "5293bee29759d610a3771d5ee03712897121e1148ab8957394738e24c9658144"
+    },
+    {
+      "path": "R:\\d3-evidence\\compare-model-buffer-cut-cohorts-abfda86326-v2-20261101.py",
+      "sha256": "b210a87915e7a516c4bfae3fa7ee491f26da032e2cac3ccf9d299086eec84517"
+    },
+    {
+      "path": "R:\\d3-evidence\\audit-model-buffer-cut-short-byte-abfda86326-v2-20261101.py",
+      "sha256": "412bb202de39f3419ca9bb1dd4c23fb801c0658a442c6df102f8f9f937bf4229"
+    }
+  ],
+  "finite_slice_closed": false,
+  "Task50_complete": false,
+  "D3_complete": false,
+  "shipping_complete": false,
+  "remaining_gate": "Final abf Linux completion + same focused independent source/actual review; metadata/surface/normal/hierarchy loaders and remaining required D3 services still coupled.",
+  "scope": "Final corrected four-buffer cut, four new public-host/native controls. Complete G/L captures exact CCC and9e4; all declared original FCE node/ordered-edge/graph cohorts exact; bounded short3complete files exact80fd. Genuine cached32/uncached0 and real named uncached horizon refusal under stricter driver. No visual inspection/all828 new/fullFP new/fullshipping40/all8 or entire loader/Task50/D3 acceptance."
+}

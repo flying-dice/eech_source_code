@@ -1,0 +1,20 @@
+{
+  "source": "0515642a98dbe8c43f90dc871781604cf9e16539",
+  "created_utc": "2026-11-01T22:22:10.563665+00:00",
+  "actual_exit": 0,
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/d/EECH-Migration-Evidence/model-loader-io-control-0515642a98-20261101/run.sh"
+  ],
+  "source_path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+  "source_blob_sha256": "8fa08d7ede329af166ba15790e01a548667d731223bbb809731768ecb1f66ff5",
+  "extracted_functions_sha256": "ba99d4c920dbb1ed62e425b1f1a1f192687190407e88b101c9df8f110bc1cbe2",
+  "harness_sha256": "2041a1075ed653cab3fa68bf3024dea9dd32bca381baf51f0af19deaa6675617",
+  "log_sha256": "c6a15344e4f9cc25d548e41b3b8cf3269a689d699d956f74bb6aa45dbab3697f",
+  "raw": "D:\\EECH-Migration-Evidence\\model-loader-io-control-0515642a98-20261101",
+  "scope": "Eight finite checked-IO helper contracts using literal actual source, pinned Linux C compiler/libc; debug_fatal replaced only by capture/longjmp. Tests exact alignment and zero-length region, named short-file/domain/record-size refusals and polygon-short refusal helper. Not full parser/public-host/Windows malformed-file/native campaign coverage, not new model semantics or shipping acceptance."
+}

@@ -1,0 +1,11 @@
+commit: 8a5dad17208550831c796f37fbe9dde7f36caec5
+image: sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51
+target: Windows x64 release HOST collision-model component and tests; no campaign DLL built; not shipping campaign acceptance
+rustc: rustc 1.99.1 (58cf8f9c3 2026-10-13)
+cargo: cargo 1.99.1 (5f94df478 2026-08-27)
+55efe5411fd3f4ba63b1b586275b36c6b965ee9fe54acdf044eddd6b0e393496  model_store.exe
+37467445258dd3b81119be1625acf0d04001c4787ae701d72573eea3b9e13424  model_unit.exe
+6da213aa6d23ca3eb0c1dc9bada0950cd079677ecbdfbe594734cdf5d50ff764  eech-world.exe
+7b2ec3f3fd174f6b65a2159ee46dc8e9102624a350d978e16ddf4396d7c2be0b  lua.dll
+66b137122920362053ca867c4863bf341c848dd00246d8d3b5d1a930a1dc3018  lua/model-host-compare.lua
+2317174d4029cc025dca2aa564754a99d3db20ce88c7bddc6b20991aaf9641e9  build.log

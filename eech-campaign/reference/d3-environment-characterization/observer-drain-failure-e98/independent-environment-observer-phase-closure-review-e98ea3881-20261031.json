@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "reviewed_head": "e98ea3881b6bb76504e0e83ba9bfce947cab218e",
+  "base": "76533dd3ae836674c27704040d6ce1b6ed84f80d",
+  "snapshot": "R:\\d3-evidence\\environment-observer-source-e98ea3881",
+  "review_scope": "One narrow changed-delta correctness/clean-code/boundary review; no unchanged C/kernel or numerical sweep.",
+  "prior_report_sha256": "922b3ec06f504604fe3a5079050e6e32e6e31130f7b6fce2398fdac54347dfff",
+  "frozen_clean_before": true,
+  "frozen_clean_after": true,
+  "disposition": "RESIDUAL_P2_SOURCE_CLOSED_PENDING_VALIDATION_WITH_TEST_P3",
+  "findings": [
+    {
+      "id": "ENV-OBSERVER-ACCELERATION-POSITIVE",
+      "priority": "P3",
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "line": 2365,
+      "related_line": 2346,
+      "title": "Give the two-update positive its matching acceleration context",
+      "detail": "two_updates_in_frame adds a second TOD/sound update but its frame_begin still carries b=1. The original eech_engine.c frame loop uses that recorded count. The canned positive described as time acceleration is therefore not coherent with its own context, although the new per-update phase implementation supports multiple updates.",
+      "requested_change": "Emit b=2 for that synthetic frame and assert the captured acceleration. This is test-only; no C/kernel change, native replay or additional implementation lane is required."
+    }
+  ],
+  "prior_P2_disposition": {
+    "id": "ENV-OBSERVER-TRACE-COHERENCE",
+    "status": "SOURCE_CLOSED_PENDING_ACTUAL_VALIDATION",
+    "reasons": [
+      "Observed server lightning now requires all12 ordered events; any interrupted episode, including the former8-event false client form, is refused. Client shape remains unsupported.",
+      "Per-update state requires completed TOD before lightning/sound facts, rejects lightning after sound and a second episode in one update, and resets on a new TOD/frame boundary.",
+      "The parser-session block now ends immediately after its mandatory weather episode. Later rain0 requires its immediate fixed DRY call; nonzero rain with a following fixed call is refused. Corrected positives place tags after parser_session_end, and9 new negatives cover the residual cases.",
+      "Additional complete boot start/weather episodes remain allowed; the grammar does not force a single initialization group."
+    ]
+  },
+  "source_assessment": {
+    "C_Rust_production_exact_base": true,
+    "engine_C_exact_base_NUL1": true,
+    "changed_paths": [
+      "STATUS.md",
+      "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+      "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "eech-campaign/docs/d3-environment-observer.md"
+    ],
+    "sha256": {
+      "STATUS.md": "9bf40912f9e6b35bf1e93667d19842a1b7bd728b3777f2ec797ce0f471a5376c",
+      "eech-campaign/crates/eech-world/lua/env-characterization.lua": "389a38fb500f46e6505605c6bf3c1a50356bb5aed5eee5f17e12b5f9e87205f4",
+      "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "4f219bca91657a1bcd21be2c13ec2519a3fe9b576b1f5784f47fbe08c33f98ba",
+      "eech-campaign/docs/d3-environment-observer.md": "6cd1ceee0e59d0043a8ba5361369a6812031f5352571097d60583f5c4b9d6a8e"
+    },
+    "new_memory_or_numeric_blocker": false,
+    "conservative_tag_scope": "An independent setup fixed-weather call immediately after nonzero rain is indistinguishable and conservatively refused. This limitation is explicit, and the declared natural retail44-event boot has no rain tag; no broader initializer/client coverage is inferred."
+  },
+  "evidence_at_review": [
+    {
+      "kind": "linux",
+      "record": "R:\\d3-evidence\\environment-observer-guards-e98ea3881-linux-20261031-v2-completion.json",
+      "sha256": "62276afd3f06bb6f353328d20d881793ffbc6eb129c3e2c11e4f7ef449107126",
+      "state": "terminal",
+      "actual_exit": 0,
+      "meaning": "Only actual terminal results establish completed checks; Windows compile/export is distinct from native guards."
+    },
+    {
+      "kind": "windows",
+      "record": "R:\\d3-evidence\\environment-observer-guards-e98ea3881-windows-20261031-v2-completion.json",
+      "sha256": "84db6e88a1002b3146b190a672df26177f886abdcb1638d74712ef4f85f2f048",
+      "state": "terminal",
+      "actual_exit": 0,
+      "meaning": "Only actual terminal results establish completed checks; Windows compile/export is distinct from native guards."
+    }
+  ],
+  "bounded_execution_permission": {
+    "verdict": "ALLOW_CONDITIONAL_ON_BUILDS",
+    "scope": "Actual corrected native driver guards and corrected Lua against explicitly labelled unchanged765 observer module, then original observer/unhooked controls. Preserve both script and binary identities.",
+    "condition": "Keep raw reports, exact schedules, inputs, payloads and all refused/untriggered outcomes; do not claim current guard/native success from running records."
+  },
+  "limits": [
+    "No new source runtime or ON/OFF/noninterference result is supplied or claimed in this pass. Prior unhooked2804/old99 evidence remains labelled at its measured revisions.",
+    "Real-driver stand-ins test protocol, not physical weather/RNG results. Current P3 is confined to one synthetic positive context.",
+    "No formal GitHub approval, host extraction/authority, Task51, fullshipping/Tacview, normal merge or whole-D3 acceptance. Remaining environment/time/spatial/model/entity/hierarchy/solver-loader services stay within D3.",
+    "Active ground runs/processes/caches were untouched."
+  ],
+  "actions": "Read-only source/Git/retained check-record hashing; only this new canonical-LF report written. No builds/tests/native/process/auth/cache/Git mutations, source edits, external writes or nested agents.",
+  "created_utc": "2026-10-31T02:27:46.922098+00:00"
+}

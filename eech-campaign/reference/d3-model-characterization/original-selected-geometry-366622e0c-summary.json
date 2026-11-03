@@ -1,0 +1,1154 @@
+{
+  "source": "366622e0c08b2caaa5a5317f5197c0ee3d7050e9",
+  "scope": "Original selected retail triangles only; no host loader moved, no shipping/Task50/D3 acceptance",
+  "selected_scenes": [
+    8,
+    2643,
+    2543,
+    1213,
+    1424,
+    1426,
+    1241,
+    188,
+    1,
+    1412,
+    1165
+  ],
+  "controller_sha256": "0cf112e005a0b98ee19b0f4a1188f1a5853109e18df32c6407ad076051f4a22e",
+  "actual_exit": 0,
+  "verified_exports": 43,
+  "payloads_unchanged": true,
+  "results": [
+    {
+      "case": "georgia",
+      "pre_inputs": 0,
+      "actual_repository_runner_exit": 0,
+      "post_inputs": 0,
+      "not_run": false,
+      "native_zero_exit_recorded": true,
+      "raw_sha256": "8328df66199c682fa9d89253fc7c22b9191e60301e1371490c77532bb9c1e081",
+      "rows": 250,
+      "summary": [
+        {
+          "event": "model-summary",
+          "names": "compiled_enum",
+          "object_bytes": 144,
+          "page_scenes": 96,
+          "page_triangles": 256,
+          "raw_objects": 11442,
+          "scene_entry_bytes": 304,
+          "scene_last": 3026,
+          "surface_block": 52517,
+          "surface_bytes": 16
+        }
+      ],
+      "done": [
+        {
+          "event": "done",
+          "failures": 0
+        }
+      ],
+      "state_snapshots": [
+        {
+          "content": "64ec62e5ffdfc9c0",
+          "content_objects": 769,
+          "event": "model-state",
+          "phase": "before",
+          "pointers": "24df70945a6227bd",
+          "tables": "5c37700648085a0e"
+        },
+        {
+          "content": "64ec62e5ffdfc9c0",
+          "content_objects": 769,
+          "event": "model-state",
+          "phase": "after",
+          "pointers": "24df70945a6227bd",
+          "tables": "5c37700648085a0e"
+        }
+      ],
+      "state_unchanged": true,
+      "selected": [
+        {
+          "scene": 8,
+          "name": "MI24_HIND",
+          "status": "safe",
+          "uses": 60,
+          "use_types": "ENTITY_TYPE_HELICOPTER:60",
+          "original_calls": 24,
+          "original_true": 23,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1,
+            "9": 23
+          },
+          "ends": [
+            {
+              "depth": 23,
+              "event": "model-end",
+              "reason": "original_false",
+              "scene": 8
+            }
+          ],
+          "refusals": []
+        },
+        {
+          "scene": 2643,
+          "name": "KRIVAK_2",
+          "status": "safe",
+          "uses": 4,
+          "use_types": "ENTITY_TYPE_SHIP_VEHICLE:4",
+          "original_calls": 26,
+          "original_true": 25,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1,
+            "9": 25
+          },
+          "ends": [
+            {
+              "depth": 25,
+              "event": "model-end",
+              "reason": "original_false",
+              "scene": 2643
+            }
+          ],
+          "refusals": []
+        },
+        {
+          "scene": 2543,
+          "name": "KA_50",
+          "status": "safe",
+          "uses": 2,
+          "use_types": "ENTITY_TYPE_HELICOPTER:2",
+          "original_calls": 91,
+          "original_true": 90,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1,
+            "9": 90
+          },
+          "ends": [
+            {
+              "depth": 90,
+              "event": "model-end",
+              "reason": "original_false",
+              "scene": 2543
+            }
+          ],
+          "refusals": []
+        },
+        {
+          "scene": 1213,
+          "name": "OIL_FR_PIPE_MIDDLE",
+          "status": "safe",
+          "uses": 907,
+          "use_types": "ENTITY_TYPE_CITY_BUILDING:907",
+          "original_calls": 5,
+          "original_true": 4,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1,
+            "9": 4
+          },
+          "ends": [
+            {
+              "depth": 4,
+              "event": "model-end",
+              "reason": "original_false",
+              "scene": 1213
+            }
+          ],
+          "refusals": []
+        },
+        {
+          "scene": 1424,
+          "name": "LEBANON_HOUSING_FC_STONEBLOCK001_20X20",
+          "status": "safe",
+          "uses": 0,
+          "use_types": "-",
+          "original_calls": 27,
+          "original_true": 26,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1,
+            "9": 26
+          },
+          "ends": [
+            {
+              "depth": 26,
+              "event": "model-end",
+              "reason": "original_false",
+              "scene": 1424
+            }
+          ],
+          "refusals": []
+        },
+        {
+          "scene": 1426,
+          "name": "LEBANON_HOUSING_FC_STONEBLOCK002_20X20",
+          "status": "safe",
+          "uses": 0,
+          "use_types": "-",
+          "original_calls": 41,
+          "original_true": 40,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1,
+            "9": 40
+          },
+          "ends": [
+            {
+              "depth": 40,
+              "event": "model-end",
+              "reason": "original_false",
+              "scene": 1426
+            }
+          ],
+          "refusals": []
+        },
+        {
+          "scene": 1241,
+          "name": "PYLON",
+          "status": "absent",
+          "uses": 3616,
+          "use_types": "ENTITY_TYPE_PYLON:3616",
+          "original_calls": 1,
+          "original_true": 0,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1
+          },
+          "ends": [],
+          "refusals": []
+        },
+        {
+          "scene": 188,
+          "name": "FARP_MAT_GREY",
+          "status": "custom_object",
+          "uses": 364,
+          "use_types": "ENTITY_TYPE_SCENIC:364",
+          "original_calls": 0,
+          "original_true": 0,
+          "original_false": 0,
+          "writes_counts": {},
+          "ends": [],
+          "refusals": [
+            {
+              "detail": "-",
+              "event": "model-refused",
+              "scene": 188,
+              "status": "custom_object"
+            }
+          ]
+        },
+        {
+          "scene": 1,
+          "name": "AH64D_APACHE_LONGBOW",
+          "status": "custom_object",
+          "uses": 24,
+          "use_types": "ENTITY_TYPE_HELICOPTER:24",
+          "original_calls": 0,
+          "original_true": 0,
+          "original_false": 0,
+          "writes_counts": {},
+          "ends": [],
+          "refusals": [
+            {
+              "detail": "-",
+              "event": "model-refused",
+              "scene": 1,
+              "status": "custom_object"
+            }
+          ]
+        },
+        {
+          "scene": 1412,
+          "name": "LEBANON_HOUSING_FC_FRAMEBLOCK006_20X20",
+          "status": "face_mismatch",
+          "uses": 0,
+          "use_types": "-",
+          "original_calls": 0,
+          "original_true": 0,
+          "original_false": 0,
+          "writes_counts": {},
+          "ends": [],
+          "refusals": [
+            {
+              "detail": "-",
+              "event": "model-refused",
+              "scene": 1412,
+              "status": "face_mismatch"
+            }
+          ]
+        },
+        {
+          "scene": 1165,
+          "name": "OIL_FR_CYLINDER01_10X10",
+          "status": "face_mismatch",
+          "uses": 22,
+          "use_types": "ENTITY_TYPE_CITY_BUILDING:22",
+          "original_calls": 0,
+          "original_true": 0,
+          "original_false": 0,
+          "writes_counts": {},
+          "ends": [],
+          "refusals": [
+            {
+              "detail": "-",
+              "event": "model-refused",
+              "scene": 1165,
+              "status": "face_mismatch"
+            }
+          ]
+        }
+      ],
+      "semantic_sha256": "ec0dbccebd8ea6b13c51174977196ca38232382c99c83753668f9d099fe48bf7",
+      "capped": false,
+      "selection_complete": true
+    },
+    {
+      "case": "lebanon",
+      "pre_inputs": 0,
+      "actual_repository_runner_exit": 0,
+      "post_inputs": 0,
+      "not_run": false,
+      "native_zero_exit_recorded": true,
+      "raw_sha256": "e1d9cd97a0e698c469c88546e035ab37d37b7b1aa281e5af88476b24d0b7bab2",
+      "rows": 250,
+      "summary": [
+        {
+          "event": "model-summary",
+          "names": "compiled_enum",
+          "object_bytes": 144,
+          "page_scenes": 96,
+          "page_triangles": 256,
+          "raw_objects": 11442,
+          "scene_entry_bytes": 304,
+          "scene_last": 3026,
+          "surface_block": 52517,
+          "surface_bytes": 16
+        }
+      ],
+      "done": [
+        {
+          "event": "done",
+          "failures": 0
+        }
+      ],
+      "state_snapshots": [
+        {
+          "content": "64ec62e5ffdfc9c0",
+          "content_objects": 769,
+          "event": "model-state",
+          "phase": "before",
+          "pointers": "1f96eef1a06d0d6b",
+          "tables": "770c7e440c3fcb36"
+        },
+        {
+          "content": "64ec62e5ffdfc9c0",
+          "content_objects": 769,
+          "event": "model-state",
+          "phase": "after",
+          "pointers": "1f96eef1a06d0d6b",
+          "tables": "770c7e440c3fcb36"
+        }
+      ],
+      "state_unchanged": true,
+      "selected": [
+        {
+          "scene": 8,
+          "name": "MI24_HIND",
+          "status": "safe",
+          "uses": 18,
+          "use_types": "ENTITY_TYPE_HELICOPTER:18",
+          "original_calls": 24,
+          "original_true": 23,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1,
+            "9": 23
+          },
+          "ends": [
+            {
+              "depth": 23,
+              "event": "model-end",
+              "reason": "original_false",
+              "scene": 8
+            }
+          ],
+          "refusals": []
+        },
+        {
+          "scene": 2643,
+          "name": "KRIVAK_2",
+          "status": "safe",
+          "uses": 6,
+          "use_types": "ENTITY_TYPE_SHIP_VEHICLE:6",
+          "original_calls": 26,
+          "original_true": 25,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1,
+            "9": 25
+          },
+          "ends": [
+            {
+              "depth": 25,
+              "event": "model-end",
+              "reason": "original_false",
+              "scene": 2643
+            }
+          ],
+          "refusals": []
+        },
+        {
+          "scene": 2543,
+          "name": "KA_50",
+          "status": "safe",
+          "uses": 10,
+          "use_types": "ENTITY_TYPE_HELICOPTER:10",
+          "original_calls": 91,
+          "original_true": 90,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1,
+            "9": 90
+          },
+          "ends": [
+            {
+              "depth": 90,
+              "event": "model-end",
+              "reason": "original_false",
+              "scene": 2543
+            }
+          ],
+          "refusals": []
+        },
+        {
+          "scene": 1213,
+          "name": "OIL_FR_PIPE_MIDDLE",
+          "status": "safe",
+          "uses": 0,
+          "use_types": "-",
+          "original_calls": 5,
+          "original_true": 4,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1,
+            "9": 4
+          },
+          "ends": [
+            {
+              "depth": 4,
+              "event": "model-end",
+              "reason": "original_false",
+              "scene": 1213
+            }
+          ],
+          "refusals": []
+        },
+        {
+          "scene": 1424,
+          "name": "LEBANON_HOUSING_FC_STONEBLOCK001_20X20",
+          "status": "safe",
+          "uses": 2280,
+          "use_types": "ENTITY_TYPE_CITY_BUILDING:2280",
+          "original_calls": 27,
+          "original_true": 26,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1,
+            "9": 26
+          },
+          "ends": [
+            {
+              "depth": 26,
+              "event": "model-end",
+              "reason": "original_false",
+              "scene": 1424
+            }
+          ],
+          "refusals": []
+        },
+        {
+          "scene": 1426,
+          "name": "LEBANON_HOUSING_FC_STONEBLOCK002_20X20",
+          "status": "safe",
+          "uses": 2280,
+          "use_types": "ENTITY_TYPE_CITY_BUILDING:2280",
+          "original_calls": 41,
+          "original_true": 40,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1,
+            "9": 40
+          },
+          "ends": [
+            {
+              "depth": 40,
+              "event": "model-end",
+              "reason": "original_false",
+              "scene": 1426
+            }
+          ],
+          "refusals": []
+        },
+        {
+          "scene": 1241,
+          "name": "PYLON",
+          "status": "absent",
+          "uses": 2967,
+          "use_types": "ENTITY_TYPE_PYLON:2967",
+          "original_calls": 1,
+          "original_true": 0,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1
+          },
+          "ends": [],
+          "refusals": []
+        },
+        {
+          "scene": 188,
+          "name": "FARP_MAT_GREY",
+          "status": "custom_object",
+          "uses": 54,
+          "use_types": "ENTITY_TYPE_SCENIC:54",
+          "original_calls": 0,
+          "original_true": 0,
+          "original_false": 0,
+          "writes_counts": {},
+          "ends": [],
+          "refusals": [
+            {
+              "detail": "-",
+              "event": "model-refused",
+              "scene": 188,
+              "status": "custom_object"
+            }
+          ]
+        },
+        {
+          "scene": 1,
+          "name": "AH64D_APACHE_LONGBOW",
+          "status": "custom_object",
+          "uses": 16,
+          "use_types": "ENTITY_TYPE_HELICOPTER:16",
+          "original_calls": 0,
+          "original_true": 0,
+          "original_false": 0,
+          "writes_counts": {},
+          "ends": [],
+          "refusals": [
+            {
+              "detail": "-",
+              "event": "model-refused",
+              "scene": 1,
+              "status": "custom_object"
+            }
+          ]
+        },
+        {
+          "scene": 1412,
+          "name": "LEBANON_HOUSING_FC_FRAMEBLOCK006_20X20",
+          "status": "face_mismatch",
+          "uses": 813,
+          "use_types": "ENTITY_TYPE_CITY_BUILDING:813",
+          "original_calls": 0,
+          "original_true": 0,
+          "original_false": 0,
+          "writes_counts": {},
+          "ends": [],
+          "refusals": [
+            {
+              "detail": "-",
+              "event": "model-refused",
+              "scene": 1412,
+              "status": "face_mismatch"
+            }
+          ]
+        },
+        {
+          "scene": 1165,
+          "name": "OIL_FR_CYLINDER01_10X10",
+          "status": "face_mismatch",
+          "uses": 0,
+          "use_types": "-",
+          "original_calls": 0,
+          "original_true": 0,
+          "original_false": 0,
+          "writes_counts": {},
+          "ends": [],
+          "refusals": [
+            {
+              "detail": "-",
+              "event": "model-refused",
+              "scene": 1165,
+              "status": "face_mismatch"
+            }
+          ]
+        }
+      ],
+      "semantic_sha256": "ec0dbccebd8ea6b13c51174977196ca38232382c99c83753668f9d099fe48bf7",
+      "capped": false,
+      "selection_complete": true
+    },
+    {
+      "case": "lebanon-repeat",
+      "pre_inputs": 0,
+      "actual_repository_runner_exit": 0,
+      "post_inputs": 0,
+      "not_run": false,
+      "native_zero_exit_recorded": true,
+      "raw_sha256": "772cd1859c1aef4c7d085da7f8bb0ac458a2a70166b77e45b55482eef21fef8b",
+      "rows": 250,
+      "summary": [
+        {
+          "event": "model-summary",
+          "names": "compiled_enum",
+          "object_bytes": 144,
+          "page_scenes": 96,
+          "page_triangles": 256,
+          "raw_objects": 11442,
+          "scene_entry_bytes": 304,
+          "scene_last": 3026,
+          "surface_block": 52517,
+          "surface_bytes": 16
+        }
+      ],
+      "done": [
+        {
+          "event": "done",
+          "failures": 0
+        }
+      ],
+      "state_snapshots": [
+        {
+          "content": "64ec62e5ffdfc9c0",
+          "content_objects": 769,
+          "event": "model-state",
+          "phase": "before",
+          "pointers": "17b29e9c4d25cd41",
+          "tables": "e17c27ebe996da84"
+        },
+        {
+          "content": "64ec62e5ffdfc9c0",
+          "content_objects": 769,
+          "event": "model-state",
+          "phase": "after",
+          "pointers": "17b29e9c4d25cd41",
+          "tables": "e17c27ebe996da84"
+        }
+      ],
+      "state_unchanged": true,
+      "selected": [
+        {
+          "scene": 8,
+          "name": "MI24_HIND",
+          "status": "safe",
+          "uses": 18,
+          "use_types": "ENTITY_TYPE_HELICOPTER:18",
+          "original_calls": 24,
+          "original_true": 23,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1,
+            "9": 23
+          },
+          "ends": [
+            {
+              "depth": 23,
+              "event": "model-end",
+              "reason": "original_false",
+              "scene": 8
+            }
+          ],
+          "refusals": []
+        },
+        {
+          "scene": 2643,
+          "name": "KRIVAK_2",
+          "status": "safe",
+          "uses": 6,
+          "use_types": "ENTITY_TYPE_SHIP_VEHICLE:6",
+          "original_calls": 26,
+          "original_true": 25,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1,
+            "9": 25
+          },
+          "ends": [
+            {
+              "depth": 25,
+              "event": "model-end",
+              "reason": "original_false",
+              "scene": 2643
+            }
+          ],
+          "refusals": []
+        },
+        {
+          "scene": 2543,
+          "name": "KA_50",
+          "status": "safe",
+          "uses": 10,
+          "use_types": "ENTITY_TYPE_HELICOPTER:10",
+          "original_calls": 91,
+          "original_true": 90,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1,
+            "9": 90
+          },
+          "ends": [
+            {
+              "depth": 90,
+              "event": "model-end",
+              "reason": "original_false",
+              "scene": 2543
+            }
+          ],
+          "refusals": []
+        },
+        {
+          "scene": 1213,
+          "name": "OIL_FR_PIPE_MIDDLE",
+          "status": "safe",
+          "uses": 0,
+          "use_types": "-",
+          "original_calls": 5,
+          "original_true": 4,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1,
+            "9": 4
+          },
+          "ends": [
+            {
+              "depth": 4,
+              "event": "model-end",
+              "reason": "original_false",
+              "scene": 1213
+            }
+          ],
+          "refusals": []
+        },
+        {
+          "scene": 1424,
+          "name": "LEBANON_HOUSING_FC_STONEBLOCK001_20X20",
+          "status": "safe",
+          "uses": 2280,
+          "use_types": "ENTITY_TYPE_CITY_BUILDING:2280",
+          "original_calls": 27,
+          "original_true": 26,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1,
+            "9": 26
+          },
+          "ends": [
+            {
+              "depth": 26,
+              "event": "model-end",
+              "reason": "original_false",
+              "scene": 1424
+            }
+          ],
+          "refusals": []
+        },
+        {
+          "scene": 1426,
+          "name": "LEBANON_HOUSING_FC_STONEBLOCK002_20X20",
+          "status": "safe",
+          "uses": 2280,
+          "use_types": "ENTITY_TYPE_CITY_BUILDING:2280",
+          "original_calls": 41,
+          "original_true": 40,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1,
+            "9": 40
+          },
+          "ends": [
+            {
+              "depth": 40,
+              "event": "model-end",
+              "reason": "original_false",
+              "scene": 1426
+            }
+          ],
+          "refusals": []
+        },
+        {
+          "scene": 1241,
+          "name": "PYLON",
+          "status": "absent",
+          "uses": 2967,
+          "use_types": "ENTITY_TYPE_PYLON:2967",
+          "original_calls": 1,
+          "original_true": 0,
+          "original_false": 1,
+          "writes_counts": {
+            "0": 1
+          },
+          "ends": [],
+          "refusals": []
+        },
+        {
+          "scene": 188,
+          "name": "FARP_MAT_GREY",
+          "status": "custom_object",
+          "uses": 54,
+          "use_types": "ENTITY_TYPE_SCENIC:54",
+          "original_calls": 0,
+          "original_true": 0,
+          "original_false": 0,
+          "writes_counts": {},
+          "ends": [],
+          "refusals": [
+            {
+              "detail": "-",
+              "event": "model-refused",
+              "scene": 188,
+              "status": "custom_object"
+            }
+          ]
+        },
+        {
+          "scene": 1,
+          "name": "AH64D_APACHE_LONGBOW",
+          "status": "custom_object",
+          "uses": 16,
+          "use_types": "ENTITY_TYPE_HELICOPTER:16",
+          "original_calls": 0,
+          "original_true": 0,
+          "original_false": 0,
+          "writes_counts": {},
+          "ends": [],
+          "refusals": [
+            {
+              "detail": "-",
+              "event": "model-refused",
+              "scene": 1,
+              "status": "custom_object"
+            }
+          ]
+        },
+        {
+          "scene": 1412,
+          "name": "LEBANON_HOUSING_FC_FRAMEBLOCK006_20X20",
+          "status": "face_mismatch",
+          "uses": 813,
+          "use_types": "ENTITY_TYPE_CITY_BUILDING:813",
+          "original_calls": 0,
+          "original_true": 0,
+          "original_false": 0,
+          "writes_counts": {},
+          "ends": [],
+          "refusals": [
+            {
+              "detail": "-",
+              "event": "model-refused",
+              "scene": 1412,
+              "status": "face_mismatch"
+            }
+          ]
+        },
+        {
+          "scene": 1165,
+          "name": "OIL_FR_CYLINDER01_10X10",
+          "status": "face_mismatch",
+          "uses": 0,
+          "use_types": "-",
+          "original_calls": 0,
+          "original_true": 0,
+          "original_false": 0,
+          "writes_counts": {},
+          "ends": [],
+          "refusals": [
+            {
+              "detail": "-",
+              "event": "model-refused",
+              "scene": 1165,
+              "status": "face_mismatch"
+            }
+          ]
+        }
+      ],
+      "semantic_sha256": "ec0dbccebd8ea6b13c51174977196ca38232382c99c83753668f9d099fe48bf7",
+      "capped": false,
+      "selection_complete": true
+    }
+  ],
+  "semantic_geometry_rows_equal": true,
+  "comparison_scope": "Only geometry events serialized with sorted JSON keys; complete raw process files differ and remain immutable. No baseline normalization or cross-process table-pointer identity is claimed.",
+  "supplemental_public_controls": [
+    {
+      "directory": "model-original-366622e0c-boundary-controls-v2-20261029",
+      "controller_sha256": "a4d7a6d22859c88f400e649d10fc70f9d8a8f848152394644397cba97a522962",
+      "actual_exit": 0,
+      "actual_command_kind": "Direct frozen native executable with Root-owned private Lua control, not repository PowerShell runner",
+      "checks_passed": 27,
+      "near_integer_diagnostic": [],
+      "result": {
+        "case": "lebanon",
+        "pre_inputs": 0,
+        "actual_repository_runner_exit": 0,
+        "post_inputs": 0,
+        "not_run": false,
+        "native_zero_exit_recorded": true,
+        "private_control_script_sha256": "1bb9f67fef4280c45a0e9b797a58cf411a063d9127f1ab21620ed0871991f1e9",
+        "raw_sha256": "21329df4d3d559a99a4d1de73daf56370bc3d3c1c2bb8e6adb3507c051df469a",
+        "rows": 76,
+        "summary": [
+          {
+            "event": "model-summary",
+            "names": "compiled_enum",
+            "object_bytes": 144,
+            "page_scenes": 96,
+            "page_triangles": 256,
+            "raw_objects": 11442,
+            "scene_entry_bytes": 304,
+            "scene_last": 3026,
+            "surface_block": 52517,
+            "surface_bytes": 16
+          }
+        ],
+        "done": [
+          {
+            "event": "done",
+            "failures": 0
+          }
+        ],
+        "state_snapshots": [
+          {
+            "content": "64ec62e5ffdfc9c0",
+            "content_objects": 769,
+            "event": "model-state",
+            "phase": "before",
+            "pointers": "091b347081eae44f",
+            "tables": "34306b19b5b4c593"
+          },
+          {
+            "content": "64ec62e5ffdfc9c0",
+            "content_objects": 769,
+            "event": "model-state",
+            "phase": "after",
+            "pointers": "091b347081eae44f",
+            "tables": "34306b19b5b4c593"
+          }
+        ],
+        "state_unchanged": true,
+        "selected": [
+          {
+            "scene": 8,
+            "name": "MI24_HIND",
+            "status": "safe",
+            "uses": 18,
+            "use_types": "ENTITY_TYPE_HELICOPTER:18",
+            "original_calls": 24,
+            "original_true": 23,
+            "original_false": 1,
+            "writes_counts": {
+              "0": 1,
+              "9": 23
+            },
+            "ends": [
+              {
+                "depth": 23,
+                "event": "model-end",
+                "reason": "original_false",
+                "scene": 8
+              }
+            ],
+            "refusals": []
+          },
+          {
+            "scene": 1241,
+            "name": "PYLON",
+            "status": "absent",
+            "uses": 2967,
+            "use_types": "ENTITY_TYPE_PYLON:2967",
+            "original_calls": 1,
+            "original_true": 0,
+            "original_false": 1,
+            "writes_counts": {
+              "0": 1
+            },
+            "ends": [],
+            "refusals": []
+          }
+        ],
+        "semantic_sha256": "1929801aec90c0d3a28a6dcca83d888d89674fd711a4f969190d0c473fff1bb1",
+        "capped": false,
+        "selection_complete": true
+      }
+    },
+    {
+      "directory": "model-original-366622e0c-near-integer-diagnostic-20261029",
+      "controller_sha256": "39e939bf88d0ea6ba24b0986a5681b6a34cafd4ce1f71542dc84560ed57ee568",
+      "actual_exit": 0,
+      "actual_command_kind": "Direct frozen native executable with Root-owned private Lua control, not repository PowerShell runner",
+      "checks_passed": 27,
+      "near_integer_diagnostic": [
+        {
+          "event": "near-input",
+          "fractional": "true",
+          "lua_type": "number",
+          "text": "1.0000000000000002"
+        },
+        {
+          "accepted": "false",
+          "event": "near-argument",
+          "name": "scene"
+        },
+        {
+          "accepted": "false",
+          "event": "near-argument",
+          "name": "first_depth"
+        },
+        {
+          "accepted": "false",
+          "event": "near-argument",
+          "name": "count"
+        },
+        {
+          "accepted": "false",
+          "event": "near-argument",
+          "name": "catalogue_first"
+        },
+        {
+          "accepted": "false",
+          "event": "near-argument",
+          "name": "catalogue_count"
+        }
+      ],
+      "result": {
+        "case": "lebanon",
+        "pre_inputs": 0,
+        "actual_repository_runner_exit": 0,
+        "post_inputs": 0,
+        "not_run": false,
+        "native_zero_exit_recorded": true,
+        "private_control_script_sha256": "eed10320b33f6f797d3542e6c52fad5a54e0e296228e6eb5414f65f75b4bfed0",
+        "raw_sha256": "6b6bd2459c41032ee793ec4082ea0ef4b88006900a412853954171874c0067f0",
+        "rows": 82,
+        "summary": [
+          {
+            "event": "model-summary",
+            "names": "compiled_enum",
+            "object_bytes": 144,
+            "page_scenes": 96,
+            "page_triangles": 256,
+            "raw_objects": 11442,
+            "scene_entry_bytes": 304,
+            "scene_last": 3026,
+            "surface_block": 52517,
+            "surface_bytes": 16
+          }
+        ],
+        "done": [
+          {
+            "event": "done",
+            "failures": 0
+          }
+        ],
+        "state_snapshots": [
+          {
+            "content": "64ec62e5ffdfc9c0",
+            "content_objects": 769,
+            "event": "model-state",
+            "phase": "before",
+            "pointers": "2525ca73dc3405cd",
+            "tables": "f56a8a84756a0366"
+          },
+          {
+            "content": "64ec62e5ffdfc9c0",
+            "content_objects": 769,
+            "event": "model-state",
+            "phase": "after",
+            "pointers": "2525ca73dc3405cd",
+            "tables": "f56a8a84756a0366"
+          }
+        ],
+        "state_unchanged": true,
+        "selected": [
+          {
+            "scene": 8,
+            "name": "MI24_HIND",
+            "status": "safe",
+            "uses": 18,
+            "use_types": "ENTITY_TYPE_HELICOPTER:18",
+            "original_calls": 24,
+            "original_true": 23,
+            "original_false": 1,
+            "writes_counts": {
+              "0": 1,
+              "9": 23
+            },
+            "ends": [
+              {
+                "depth": 23,
+                "event": "model-end",
+                "reason": "original_false",
+                "scene": 8
+              }
+            ],
+            "refusals": []
+          },
+          {
+            "scene": 1241,
+            "name": "PYLON",
+            "status": "absent",
+            "uses": 2967,
+            "use_types": "ENTITY_TYPE_PYLON:2967",
+            "original_calls": 1,
+            "original_true": 0,
+            "original_false": 1,
+            "writes_counts": {
+              "0": 1
+            },
+            "ends": [],
+            "refusals": []
+          }
+        ],
+        "semantic_sha256": "1929801aec90c0d3a28a6dcca83d888d89674fd711a4f969190d0c473fff1bb1",
+        "capped": false,
+        "selection_complete": true
+      }
+    }
+  ],
+  "review": {
+    "disposition": "CHANGES_REQUIRED",
+    "finding_count": 1,
+    "finding": "MODEL-DRIVER-COMPLETENESS P2",
+    "report_sha256": "caf2df9a5b59aa8c0a2de739c9cf2dc49b284aa1d869e581d99a97cb5c8fbddb",
+    "scope": "Pinned366/e84 source and actual measurements. Retained data independently satisfies stronger correspondence checks and can be reused; new driver correction not reviewed yet.",
+    "no_host_loader_or_production_acceptance": true
+  },
+  "next": "Investigate active custom/mixed-surface model gaps; begin host-owned loader only after original-probe review, preserving all D3 responsibilities.",
+  "retained_failed_control_attempt": {
+    "directory": "model-original-366622e0c-boundary-controls-20261029",
+    "root_aggregate_exit": 1,
+    "native_and_pre_post_input_exits": 0,
+    "reason": "Root-owned supplemental control included raw error text via Lua %q; tab escaping was not strict JSON. Fresh v2 omits that optional error text; original scripts, raw files and failed controller are unchanged. This is not a fixture binary change."
+  },
+  "strict_retained_audit": {
+    "path": "model-original-366622e0c-retained-measurements-strict-audit-20261029.json",
+    "actual_exit": 0,
+    "scope": "Read-only audit, no new physical runs"
+  },
+  "corruption_red": {
+    "controller_sha256": "b35388ae914f0e3e7ed6caf79104ac3e87cf33bd8934865c97267770755de4dd",
+    "script_sha256": "e1e0908c094503ec81e93371e8807b51143ecd9135dce7ab0c17e774b2a52509",
+    "cases": [
+      "missing_triangles",
+      "duplicate_catalogue_id"
+    ],
+    "old_native_exit_each": 0,
+    "old_done_failures_each": 0,
+    "assessment_exit": 0,
+    "meaning": "Both actual driver defects reproduced; not product pass. Copied controller final geometry_semantic_equal is vacuous None equality, not comparison evidence."
+  }
+}

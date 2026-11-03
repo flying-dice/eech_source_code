@@ -1,0 +1,279 @@
+{
+  "schema": "independent-finite-source-actual-review/1",
+  "created_utc": "2026-11-02T16:42:07.660856+00:00",
+  "source": {
+    "head": "bce0c3514be13ee4bbc3a571387132989f74e3c6",
+    "merge_commit": "e9d77de8dab85b1b1f504051a8b8ad9fb4c909a1",
+    "merge_parents": [
+      "31320a8fddb77282de0785d68c0aa6dbf4b0e235",
+      "a42d86e758812d7aed75c1bb5f8dc09d4aea1544"
+    ],
+    "merge_base": "3fdbe6efd08864898a320373d04be79a24c1a374",
+    "snapshot": "D:\\EECH-Migration-Evidence\\model-integrated-bce0c3514b",
+    "clean": true,
+    "own_git_no_alternates": true,
+    "merge_vs_model_parent_binary_diff_sha256": "2aebbdd4d67e8656267a108bd47dce98c5db4308a321cde5c8af25338f434c7c",
+    "merge_vs_environment_parent_binary_diff_sha256": "8a87aa9285b62e8f66d3a1a84e5765872da442be663fa773cbc3bb099a347a2b",
+    "correction_binary_diff_sha256": "97714b22a51a729c3091f754cef08d131c1c9d885b1d6ee4512d85f60f9b54e5",
+    "selected_existing_source_file_hashes": [
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+        "sha256": "447f266fce57419296d6a6ed6136c5d7b6b11c80dca48b6d781195f206cb54fa",
+        "blob_and_mode": "100644 blob 999d29f5c019df66a018775d0d99e8e25503ecf4"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h",
+        "sha256": "b0d92ace2456abfb617cdc94988d386594c17e93d660f2a77d5029b7554213aa",
+        "blob_and_mode": "100644 blob c281efe0885fcd49c5ba48b800c1855707943c88"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+        "sha256": "614a921b96f0a14567e04fa60f40b21c82c2920c3abc597f0ad400c38f9cb3b5",
+        "blob_and_mode": "100644 blob 07d3bc905b3de21ab551318655bfcf129602f18a"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+        "sha256": "53106fd509e4f6fe3899aa63adca90af4740a8d9372145ece4c96b3005882672",
+        "blob_and_mode": "100644 blob bfa4ba065b0152ddbf47343b3b5368e660a9f00e"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/build/patches.rs",
+        "sha256": "5516b0f65c57336115045c6fb39172802548704fb4c5e1318f7a777c3f0799d1",
+        "blob_and_mode": "100644 blob b90f02ca77694e6693bb73dca1c12b117ca6c75e"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "sha256": "50b045700e707426d58bce149e9d3ec14bccb1e37bc47ca042aa46f136ec7302",
+        "blob_and_mode": "100644 blob 59471faf7304078bb7654ded10bb625ea352c157"
+      },
+      {
+        "path": "eech-campaign/crates/eech-dc/src/module.rs",
+        "sha256": "edb93d5e631e67aa4325b0cd8caadc6503bd9c12a8a4a0a0ac5269fb543c5ea8",
+        "blob_and_mode": "100644 blob 0c6123a2757335b025167da00ffbe1d057d34363"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/main.rs",
+        "sha256": "d2d63faf373106ab2cbc40c2be34502829b8019995cf5cb25c6cfe7db646091a",
+        "blob_and_mode": "100644 blob 2104f52994d1d58850869067b9e785ddbd52255f"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/model_step.c",
+        "sha256": "644977033b055afdf37c32cd0658cf6064de3937a3366d7042bef9bdb8746c98",
+        "blob_and_mode": "100644 blob cc0fc6d286e5221b0ea6d649cfaf150b6cb46018"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/env_ref.c",
+        "sha256": "4fb9dd4f8913b585aed72d341e6600d93f43e1a54db00fbca70b6c92b4c2127a",
+        "blob_and_mode": "100644 blob dbd55cab1f3aae36e0f46dd89de77e3699bc959c"
+      }
+    ]
+  },
+  "scope": "One combined review of the material model/environment merge, its bounded Lua/test integration corrections and new integrated default conformance. Reuses accepted finite model metadata and delivered environment evidence at their own identities. No new physics extraction, shipping acceptance or whole-D3 closure.",
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "finite_integration_checkpoint_closed": true,
+  "Task50_accepted": false,
+  "whole_D3_accepted": false,
+  "shipping_40_all8_accepted_for_this_candidate": false,
+  "source_review": [
+    "Compared resolution against both parents and reviewed actual remerge conflicts. C and repr(C) Rust host members agree: bind_mobile, observe_loss, supply_reached, move_vehicle, line_of_sight, sense, aim, model, terrain, environment, sound_catalogue, sound_backend, user. Required model/terrain/environment/catalogue boot checks are retained; original model-fixture exception is retained.",
+    "Both accepted ENTER/LEAVE installation and restoration responsibilities, model and environment/sound callbacks, C/Rust/Lua fixture families and feature propagation are present. Existing public C entry bodies equal an accepted parent except the intentionally combined boot requirement; no public entry from either parent is lost. This is source preservation, not a new exhaustive caller-FP measurement.",
+    "Existing model_step.c is byte-identical to the model parent; env_ref.c is byte-identical to the accepted environment parent; the entire model build/patches.rs is byte-identical to the model parent. Actual paths were existence-checked before comparison. Engine C retains its single embedded NUL at integrated offset42530.",
+    "Both output helpers remain separately registered. Accepted reference additions retain their parent objects; no old baseline, oracle, input, numerical flag or tolerance was edited by the integration.",
+    "Nineteen real environment clients now provide model and select the reference arithmetic profile immediately after preparation; source inventory is58 selecting clients plus the same two explicit diagnostics. Historical model-characterization remains frozen and is not represented as compatible with the new module."
+  ],
+  "closed_integration_findings": [
+    {
+      "group": "Scripted environment clients missing the new selector",
+      "disposition": "d6d708f76b4c7a7164a36fed1e74be890fd99e76 adds only faithful test collaborators in15 direct-Lua test files and selection order expectations. Physical and damaged-report assertions remain intact; fake collaborators answer no new physical question."
+    },
+    {
+      "group": "Linux queue positive generation and no-op corruptions under selected caller rounding",
+      "disposition": "352bafcfc6bbe3c82e41e877ca0db336fc26742d uses bounded32-bit exact doubling for bit weights, preserving masks and negative predicates. Corruptions must actually change their coherent input; no-op setup refusals cannot count as validator rejection. The failed e9 evidence proves mask text2 and changed accumulated time; no separate libm intermediate-bit experiment was performed by this reviewer."
+    },
+    {
+      "group": "Four live model/route clients missing required environment",
+      "disposition": "bdac2a8e4f15d3ad2fe74299ec11424ed866b2f9 adds exactly one environment factory field to animation, horizon, route and model-authority boot configurations. Three fresh-VM collaborators gain fail-if-queried factories; model_store uses the existing real host and validates environment after missing-model precedence. Historical original driver and intentional negative boot contracts remain unchanged."
+    },
+    {
+      "group": "Formatter checkpoint",
+      "disposition": "bce changes only formatting of two test assertions after the above corrections."
+    }
+  ],
+  "correction_identity": {
+    "changed_entries_and_modes_vs_merge": 25,
+    "runtime_delta": "Exactly four Lua boot configurations gain one literal environment = host.env_provider (), field; removing that single field reconstructs each e9 blob exactly. All other entries outside STATUS/tests are identical to e9, including C, Rust production source, Cargo/build inputs, environment and campaign drivers.",
+    "earlier_actuals_not_relabelled": true
+  },
+  "current_builds_and_checks": {
+    "linux": {
+      "source": "bce0c3514be13ee4bbc3a571387132989f74e3c6",
+      "actual_chain_exit": 0,
+      "completed_utc": "2026-11-02T16:34:51.533644Z",
+      "commands": "Sequential set-e script: formatter; default three-package release no-fail-fast suite; combined model-host/ground/LOS/route/env-fixture/env-observer suite; default and six-feature all-target Clippy -D warnings.",
+      "both_strict_completions_present": true,
+      "local_exact_test_counts_claimed": false,
+      "log_sha256": "f708319a18cddd7ff4c6dabf529e98ca980572d4b92243c37590b6d0c4899507",
+      "capture_limit": "Some early log output is interleaved/overwritten; exact local totals/release boundaries cannot be reconstructed reliably. Actual terminal0 and exact sequential set-e script support successful command exits. The earlier boundary-count audit failure and second filename setup failure remain retained, with no test/native rerun for logging alone."
+    },
+    "windows_ordinary": {
+      "actual_exit": 0,
+      "completed_utc": "2026-11-02T16:28:07.305043Z",
+      "build_info_sha256": "9c3a590a282f2f25129e128211998c1421f4b7be1c9226259bbdd03fe7d72628",
+      "payloads_rehashed": 83,
+      "actual_environment_observer_implementation_symbols": 0,
+      "unresolved_DirectSound_calls": 0,
+      "symbol_dump_hash_independently_joined": true
+    },
+    "windows_four_feature": {
+      "actual_exit": 0,
+      "completed_utc": "2026-11-02T16:31:58.227494Z",
+      "build_info_sha256": "b3e8da42a446fbaafb5f625fd2f75f55ae454e312d36dca139310e8c6a14e304",
+      "payloads_rehashed": 83,
+      "profile": "route-fixture/model-host-fixture/env-fixture/env-observer",
+      "builder_adaptations": "Two checked existing-builder feature/banner substitutions, explicitly not ordinary shipping."
+    },
+    "hosted_CI": {
+      "head": "bce0c3514be13ee4bbc3a571387132989f74e3c6",
+      "unique_completed_successful_jobs": 9,
+      "all_workflow_and_job_head_identities_checked": true
+    },
+    "preflight": {
+      "head": "bce0c3514be13ee4bbc3a571387132989f74e3c6",
+      "expected_checks": 40,
+      "three_input_checks_exit0": true,
+      "python": "3.12.14",
+      "campaign_results": false
+    }
+  },
+  "actual_default_conformance": {
+    "corrected_GL": {
+      "source": "bce0c3514be13ee4bbc3a571387132989f74e3c6",
+      "native_controls": 2,
+      "native_and_controller_exits": [
+        0,
+        0
+      ],
+      "full_pre_post_input_checks": 4,
+      "payloads_per_control": 83,
+      "all_payload_hashes_rechecked": true,
+      "per_map": {
+        "scenes": 3025,
+        "pages": 32,
+        "listed": 95,
+        "empty": 2742,
+        "absent": 188,
+        "ordered_entry_count": 510
+      },
+      "literal_comparison": "All3025 complete JSON anim rows including endings AND all3025 native anim lines contained in retained page text per map equal the original a6 captures. Full candidate files intentionally differ from originals; no normalization.",
+      "anim_row_cohort_sha256": "2ca558ad48e2500a3ff3acd42f6376320580243924a89851b0047b4d0a20e252",
+      "candidate_whole_file_hashes": [
+        "3ded7e830a95a399acc993d87c88d4f974c9e5254793f791657b94cd10c86816",
+        "85c9cb55e92d9dd46245c3d10bee577c1f21fed2f7f54e08e72e82fc5637c20d"
+      ]
+    },
+    "reused_integrated_e9_environment": {
+      "actual_runtime_source": "e9d77de8dab85b1b1f504051a8b8ad9fb4c909a1",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "completed_utc": "2026-11-02T16:23:41.549472Z",
+      "full_input_checks": 2,
+      "payloads_rehashed": 83,
+      "args": "seconds120/probes0/snapshot_frames1200/snapshot_every60/observer=on/queue=on/sound=on; rotor remains unarmed.",
+      "complete_bytes": 5191384,
+      "rows": 17283,
+      "sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+      "literal_equal_including_endings_to_retained_trace": true,
+      "reuse_basis": "All compiled source and this executed driver remain exact e9 at corrected bce; no duplicate run or relabel."
+    },
+    "reused_integrated_e9_ordinary_short": {
+      "actual_runtime_source": "e9d77de8dab85b1b1f504051a8b8ad9fb4c909a1",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "full_input_checks": 2,
+      "payloads_rehashed": 83,
+      "configuration": "hours0.001, seed1/default100ms, record1/record_every10/observe_every1/observe_supply1 and explicit output paths.",
+      "complete_files_literal_equal_to_retained80fd": true,
+      "files": [
+        {
+          "kind": "ACMI",
+          "bytes": 230871,
+          "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d"
+        },
+        {
+          "kind": "observations",
+          "bytes": 1553674,
+          "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc"
+        },
+        {
+          "kind": "metrics",
+          "bytes": 7477,
+          "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4"
+        }
+      ],
+      "reuse_basis": "All compiled source and campaign driver remain exact e9 at corrected bce; not full shipping/visual acceptance."
+    }
+  },
+  "caller_profile_actual": {
+    "report_sha256": "9746be437bbb89983e3612964aceb93046402412fcb86d4bc1134380ae510fa6",
+    "two_Windows_synthetic_prepare_only_controls_exit0": true,
+    "observed": "Old78 after_prepare ten-addition output equals e9 after explicit selection, 0.99999999999999978; e9 before/after_prepare stays0.99999999999999989. Both Windows power/mask outputs are2/00000003.",
+    "scope": "Supports retaining selectors for measured historical Windows arithmetic; Linux stand-in results alone do not establish old Windows caller rounding. No retail/campaign boot or complete MXCSR/x87 measurement in this tiny control."
+  },
+  "preserved_history": [
+    "e9 Linux chain actually101, including missing-selector collaborators and three host_callbacks queue failures; not green or retroactively changed.",
+    "First e9 four-feature Georgia/Lebanon actual native/controller1 stopped at missing environment before successful model capture, with four full input checks0; retained as failed attempts.",
+    "Initial prebuild long-path checkout failure and local repository-only core.longpaths repair remain setup history, not source/auth/global-config changes.",
+    "Build-audit parser/setup failures remain separate from successful original build/test terminal receipts.",
+    "Accepted original/L2/environment/FP/authority reports retain their actual original source identities; this report does not claim their old experiments were rerun."
+  ],
+  "evidence_receipts": [
+    {
+      "path": "R:\\d3-evidence\\model-integrated-freeze-bce0c3514b-20261102.json",
+      "sha256": "6bc694dc6e99ce59e3f9e927ecdbea119194aebfa6ff639b2e82b37adf68da55"
+    },
+    {
+      "path": "R:\\d3-evidence\\model-integrated-current-builds-bce0c3514b-20261102.json",
+      "sha256": "fff3fb30286f83bcaa88f3ba6e37bb46275a71a126c9044ce1b60804d6b5afc6"
+    },
+    {
+      "path": "R:\\d3-evidence\\model-integrated-bce0c3514b-linux-20261102-completion.json",
+      "sha256": "3672e4632cc98e5e879189bc359e239e30ac977733963a7c804bd999cd72bb06"
+    },
+    {
+      "path": "R:\\d3-evidence\\model-integrated-bce0c3514b-ordinary-20261102-completion.json",
+      "sha256": "9b741b808a7ebcb5168cc8bac771112c1e72a594879630a73b129de25f9b6f07"
+    },
+    {
+      "path": "R:\\d3-evidence\\model-integrated-bce0c3514b-windows-20261102-completion.json",
+      "sha256": "73e6df74893ebd00e322e7d9e32ffca9262089207e05c84aa0fd6edadea65973"
+    },
+    {
+      "path": "R:\\d3-evidence\\model-integrated-bce-build-audit-parser-failure-20261102.json",
+      "sha256": "10ab5a73b4ed6a84c8c159faec52f3ccc2f4955c8d790647e909307be4613d6a"
+    },
+    {
+      "path": "R:\\d3-evidence\\model-integrated-literal-lists-bce0c3514b-20261102.json",
+      "sha256": "c4506640a72d0a5b74612deaeb9b535c833e27a6e36f06f1503278c954034bd3"
+    },
+    {
+      "path": "R:\\d3-evidence\\model-integrated-CI-bce0c3514b-20261102.json",
+      "sha256": "2b3e4bdf6ebd83e826879bad7850dbf860292b6ea7d7b3e87cbe286e7bbd0824"
+    },
+    {
+      "path": "R:\\d3-evidence\\model-integrated-environment-scope-e9-v-bce-20261102.json",
+      "sha256": "66b6ae09ab9c66e3dbe93c56b034ce3ca0213f9519f6c84074e5d6b62a50a3e6"
+    },
+    {
+      "path": "R:\\d3-evidence\\model-integrated-ordinary-short-e9d77de8da-20261102.json",
+      "sha256": "4f973e73433d82ea3eb75b6549b2588c960352a5b1e237d936a1418e81ee3b79"
+    }
+  ],
+  "limits_and_next_unmet_gate": [
+    "This closes the finite integrated source/default-conformance checkpoint only. Full Task50 ordinary40/all8 shipping has not been measured by these focused controls; preflight is readiness only.",
+    "No new exhaustive authority/refusal, full caller-FP state, ID/RNG consequence, visual Tacview, audio/backend product, live DCS or M6 lifecycle acceptance is inferred.",
+    "Required hierarchy/viewpoint/device/muzzle/target-point responsibilities and Task49 collision remain whole-D3 work. Task50 normal delivery and whole-D3 acceptance remain separate.",
+    "No approval of a future safe-publication import, later source head, report self-copy or normal merge is implied."
+  ],
+  "reviewer_actions": "Read-only source/evidence inspection and independent byte/hash/row/identity checks; no builds, tests, native launches, source edits, nested agents, external writes or authentication changes. Only this new canonical report was written."
+}

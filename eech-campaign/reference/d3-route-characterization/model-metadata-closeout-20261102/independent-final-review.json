@@ -1,0 +1,297 @@
+{
+  "review": "Independent combined L2 physical model metadata changed-source, completed native evidence and helper review",
+  "source": {
+    "reviewed_head": "5515993fdc2fc0a28029723896b0228a5fe68f20",
+    "preceding_reviewed_base": "12a642d54e27fc8686f0584704be346a2f7e16fb",
+    "production_source_unchanged_since": "70fd673e06a23d6c351b2d112003f382bf830ad9",
+    "only_production_to_final_changes": [
+      "STATUS.md",
+      "eech-campaign/crates/eech-world/tests/model_custom_walk_source.rs"
+    ],
+    "base_to_final_diff_sha256": "8432942c169fc2dc01db820a9bb2762aa8ba6e448aa71dfaba7974d8147cf340",
+    "immutable_snapshot": "D:\\EECH-Migration-Evidence\\model-L2-metadata-5515993fdc",
+    "snapshot_clean": true,
+    "numerical_kernel_actual_path": "eech-campaign/crates/eech-world/csrc/model_step.c",
+    "numerical_kernel_whole_blob_and_mode_exact_abf": true,
+    "engine_c_nul_count": 1,
+    "engine_c_nul_offset": 40767
+  },
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "finite_L2_metadata_slice_closed": true,
+  "finite_model_file_metadata_cutover_closed": true,
+  "Task50_accepted": false,
+  "whole_D3_accepted": false,
+  "closed_findings": [
+    {
+      "prior": "ENV-MODEL-L2-1 / PHASE-1",
+      "disposition": "Base and each custom scene definition retain object facts captured at that read. Core announces its actual unsorted custom-file walk, verifies each opened scene/directory at its announced position, and queries that definition. Host inventory/base answers do not require any alternative sorted custom history; final store replays the announced order with original per-directory name-history resets."
+    },
+    {
+      "prior": "ENV-MODEL-L2-PHASE-2",
+      "disposition": "Host replace_object and Core reset retain culling_normals_offset, the field original read_object never assigns; typed carry checks reject disagreement. The distinguishing parser fixture uses nonzero previous values for a common row, a hex override and the first custom replacement, and distinguishes a fresh second row."
+    },
+    {
+      "prior": "ENV-MODEL-L2-ORDER-1",
+      "disposition": "One provider announcement is sequential, unique and bounded at 4096 entries before mutation. Its closed state is final; late, repeated-end, duplicate, out-of-sequence and domain errors are refused. Versioned wrappers and the C/Rust/Lua transport forward definition and directory fields."
+    },
+    {
+      "prior": "ENV-MODEL-L2-ORDER-2",
+      "disposition": "After the unchanged actual custom traversal, Core requires every announced position consumed and no outstanding read. Unsupported-version files consume explicit skip positions and claim no object read; the original version -1 through -3 conditional and skip body remain. The final test anchors the actual function definition, not its forward declaration, preserving the branch assertions."
+    },
+    {
+      "prior": "ENV-MODEL-L2-ORDER-3",
+      "disposition": "Inventory-first bootstrap reads no custom scene payload. A real-parser fixture distinguishes sorted-history room exhaustion from a fitting announced history. The provider pins its installation as an absolute path when selected and uses that path for replay, rather than re-reading mutable root text after native chdir. Final answers cannot fall back to a different order after failed replay."
+    },
+    {
+      "prior": "ENV-MODEL-L2-2",
+      "disposition": "Public animation answers carry truthful logical names, never file animation indices. The original Core add_new_animation/T2 policy resolves valid unknown names as before. Malformed text remains a refusal. Both corrected default retail list captures now literally match the retained originals."
+    },
+    {
+      "prior": "ENV-MODEL-L2-3 / 4",
+      "disposition": "Feature-only hooks record successful file reads, actual allocation/append/final pointer/count provenance before list entries are read or hashed. The strict four-row horizon grammar accounts for the ninth rows_replaced counter and current described rows as filled minus replaced. Unsupported backing is not labelled filled success."
+    },
+    {
+      "prior": "ENV-MODEL-L2-5 / 6",
+      "disposition": "FFI test initializers carry role, definition and bounded key fields; lint complexity uses aliases without suppression. Changed-animation controls require a reached change, final definition and observed final Core list, and fail when unreached/unavailable/ignored."
+    }
+  ],
+  "actual": {
+    "native_and_embedded_driver_source": "5515993fdc2fc0a28029723896b0228a5fe68f20",
+    "build_info_sha256": "62007cc8e0f0063f5a6fd9b51979378d842ea4fe151d4acd3db8253e53eddd28",
+    "payloads_currently_rehashed_exact": 59,
+    "cases": [
+      {
+        "case": "georgia",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "input_check_exits": [
+          0,
+          0
+        ],
+        "controller_sha256": "eb2cbde1f45d33bb5e91009739053104fbd2a235d690d1a6664599cabfd4c8b2"
+      },
+      {
+        "case": "lebanon",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "input_check_exits": [
+          0,
+          0
+        ],
+        "controller_sha256": "1138b24d9e7218a91d65f98c7b6d86011cf03f473fb82973d49782d17a0927fb"
+      },
+      {
+        "case": "residency",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "input_check_exits": [
+          0,
+          0
+        ],
+        "controller_sha256": "674b2c97342733bc16faa7ee78422b8cf5d86f230a5b5fb1bace219f8bc0ec99"
+      },
+      {
+        "case": "object-withheld",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "input_check_exits": [
+          0,
+          0
+        ],
+        "controller_sha256": "953fad05c68c3abf4a230ecf9e5fb496bf7602c9ccd9d71f6dae888a91839372"
+      },
+      {
+        "case": "animation-withheld",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "input_check_exits": [
+          0,
+          0
+        ],
+        "controller_sha256": "ffae60d1cec0264f3f4250b8161295d28606cf35c63458f97ff3164c99749844"
+      },
+      {
+        "case": "animation-changed",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "input_check_exits": [
+          0,
+          0
+        ],
+        "controller_sha256": "f764c58060189622391dbc2ee12dbd18d8c187c74ebb00e8dcd6ac23ac963de3"
+      },
+      {
+        "case": "short-recording",
+        "native_exit": 0,
+        "controller_exit": 0,
+        "input_check_exits": [
+          0,
+          0
+        ],
+        "controller_sha256": "35f0a67c5c251241fe4dda58ac18b5cf3a02176ee415516e2140f1fc66cf6d2d"
+      }
+    ],
+    "actual_native_runs": 7,
+    "full_pre_post_input_checks": 14,
+    "all_native_and_controller_exits": 0,
+    "scope": "Two default list captures; residency/real horizon refusal; two withheld-provider stops; one changed-list control; one complete bounded campaign. Fixture profile throughout, not ordinary shipping."
+  },
+  "default_list_conformance": {
+    "original_native": "a6cf70b672a6dab771048cc676e230b22ffa0972",
+    "candidate_native": "5515993fdc2fc0a28029723896b0228a5fe68f20",
+    "cases": 2,
+    "scene_rows_each": 3025,
+    "native_pages_each": 32,
+    "listed_each": 95,
+    "empty_each": 2742,
+    "absent_each": 188,
+    "ordered_entry_count_each": 510,
+    "verification": "Independently compared all complete anim JSON rows including endings and all native report anim lines literally against retained originals on each map; every row agrees. Whole JSON files differ and remain unchanged; page/envelope/digest identity is not relabelled as original equality.",
+    "raw_catalogues_not_in_this_report": true
+  },
+  "authority_and_residency": {
+    "object_withheld": "Actual primary Engine-owned object.absent boot fatal with tripped=true; the diagnostic catches the expected stop and exits0. No object response or fallback success is claimed.",
+    "animation_withheld": "Actual primary Engine-owned animation.absent boot fatal with tripped=true; the diagnostic catches the expected stop and exits0. No animation response or fallback success is claimed.",
+    "residency": {
+      "rows": 11442,
+      "nonzero_point_metadata_rows": 9715,
+      "points": 0,
+      "faces": 0,
+      "point_refs": 0,
+      "surface_points": 0,
+      "rows_filled": 9716,
+      "rows_replaced": 1,
+      "cached_horizon": 32,
+      "uncached_before_control": 0
+    },
+    "metadata_joins": "Independently verified asked=found+absent, found=filled+confirmed, animation asked=names+ends and current described rows=filled-replaced. metadata_rows remains the diagnostic nonzero-point count, not a fabricated claim every row is mirrored.",
+    "horizon": "Eight complete events, coherent counters/cache, then the real uncached add_3d_horizon_image reaches the exact Engine-owned object.geometry fatal before image I/O. Caught refusal is control success, not physical horizon success. Driver makes no post-poison queries.",
+    "changed_animation": {
+      "scene": 2782,
+      "definition": 1,
+      "healthy_member_count": 3,
+      "changed_member_count": 0,
+      "healthy_row_literal_original": true,
+      "change_reached_and_final_list_observed": true,
+      "limits": "This measures retained digit-animation list membership changing 3 to 0. No new causal campaign ID-number or RNG outcome is measured; that consumer remains source-characterized. No complete retail-derived list or private animation numbers are included here."
+    }
+  },
+  "complete_bounded_recording": {
+    "configuration": "hours0.001, seed1/default frame100ms, record1, record_every10, observe_every1, observe_supply1, explicit output paths; combined route+model-host fixture",
+    "baseline": "R:/d3-evidence/model-reference-profile-recording-80fd62ea4-20261030",
+    "verification": "Independently compared the complete three files byte for byte including endings and checked reported SHA-256/size; no normalization or original rerun.",
+    "files": [
+      {
+        "file": "recording.acmi",
+        "bytes": 230871,
+        "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d"
+      },
+      {
+        "file": "observations.jsonl",
+        "bytes": 1553674,
+        "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc"
+      },
+      {
+        "file": "metrics.json",
+        "bytes": 7477,
+        "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4"
+      }
+    ]
+  },
+  "builds_and_checks": {
+    "Windows_combined_fixture_actual_exit": 0,
+    "Windows_completed_utc": "2026-11-02T15:35:45.144940+00:00",
+    "Windows_builder": "Existing standard builder with exactly two source-count-checked feature/banner adaptations; labelled fixture, not a shipping artifact.",
+    "Linux_actual_exit": 0,
+    "Linux_completed_utc": "2026-11-02T15:41:32.722554+00:00",
+    "default_package_passed": 613,
+    "combined_package_passed": 613,
+    "failed_each": 0,
+    "summaries_each": 26,
+    "repo_fmt_exit": 0,
+    "default_all_target_strict_exit": 0,
+    "combined_all_target_strict_exit": 0,
+    "original_definition_guard": "Explicitly passed against mounted original source, no NOT CHECKED fallback in the retained canonical log.",
+    "exact_head_hosted_CI_completed_success": 9
+  },
+  "helpers": {
+    "allocation": "G/L use source-bound animation controller; residency uses source-bound horizon controller; three authority controls plus short campaign use the retained generic public-native controller. Their commands bind snapshot, binary, root, script, outputs and actual child exits.",
+    "assessment": "Read controller/auditor code and independently joined all seven controller/stage/hash fields to raw JSON outcomes, literal comparisons and current payloads. Expected caught Engine stops are kept distinct from native fatal process failure and from physical success.",
+    "source_hashes": [
+      {
+        "file": "run-model-L2-animation-native-20261102.py",
+        "sha256": "fac995754c2b25a7978b922b7ed0ae7f3fbb86cf3baa16976c7a034ca4244e4e"
+      },
+      {
+        "file": "run-model-L2-control-native-20261102.py",
+        "sha256": "b442aad5ce6c2fc70e66bb4ea602d2f745e310ab465d5afe6d3d2c535ce0c67a"
+      },
+      {
+        "file": "run-model-public-native-20261030.py",
+        "sha256": "5293bee29759d610a3771d5ee03712897121e1148ab8957394738e24c9658144"
+      },
+      {
+        "file": "audit-L2-551-runtime-20261102.py",
+        "sha256": "c8e20c0d88f875ad233a91175da6c4bf0f9615208176a5f46fc6554936fbdd38"
+      }
+    ]
+  },
+  "reused_evidence": {
+    "original_animation_review_sha256": "f8c302c726230afa1596773dc1054edd977c5a3418806c171a5735a6161fa7f5",
+    "four_buffer_review_sha256": "ee26b8960b4d0745efebb598fd8481e6f3270f66aca70a2392e76b19b70de848",
+    "finite_route_review_sha256": "35623e1ff3fbb6c841a2da43fda6c0d13b3488c04b285d87f1c2e56a93edd5c0",
+    "scope": "Each remains at its own actual source/runtime identity; no original, route or FP experiment was rerun merely for handover."
+  },
+  "history_preserved": [
+    "445 E0063 and both animation_name_unknown retail boot failures remain failed first attempts.",
+    "32b and12a completed list conformance stays at those sources; their strict failures and source blockers are not retroactively green.",
+    "70fd controller results that disappeared without receipts remain unavailable, not inferred failures or successes. Its definition-anchor source defect is corrected only at551.",
+    "Prior interim independent reports retain their original findings and hashes; this successor records their disposition without editing them."
+  ],
+  "limitations_and_next_gate": [
+    "Finite L2 model-file metadata ownership/compatibility and bounded authority/refusal are closed, not whole Task50, hierarchy or D3. Scene/hierarchy parsing, required viewpoint/device/muzzle/target-point services and Task49 collision work remain.",
+    "Core retains campaign object allocation/history/sharing policy, scene policy, animation-name/T2 decision and downstream consequences. This is not a renderer/full EECH UI product, live DCS or positive audio/device support.",
+    "No ordinary Task50 shipping40/all8, visual Tacview review, universal malformed-asset coverage, arbitrary provider lifecycle/M6 reload or all-caller/full-boot FP proof follows. Existing component FP evidence is reused only at its own identity; no new false whole-FP claim.",
+    "Synchronizing the accepted environment base into Task50 requires its own material-delta verification before ordinary Task50 shipping and normal delivery. Current551 hosted greens are not future-head greens.",
+    "No new publication is approved by this report; its contents are safe counts/hashes/limited membership facts. The complete private runtime audit and original row catalogue remain private and need an explicitly named safe projection for publication.",
+    "Reviewer performed no builds, tests, native executions, source edits, authentication changes, app writes or nested-agent work."
+  ],
+  "retained_receipt_identities": [
+    {
+      "file": "model-L2-freeze-5515993fdc-20261102.json",
+      "bytes": 451,
+      "sha256": "576a1e7acc06001e1cd9bc509bd98a8fe09d81350a27a84b99a9665048543c8f"
+    },
+    {
+      "file": "model-L2-build-audit-5515993fdc-20261102.json",
+      "bytes": 2536,
+      "sha256": "58f743004eea788a02bd233075b7e035156b77a38dd99fdef33c92e053fa6e36"
+    },
+    {
+      "file": "model-L2-runtime-audit-5515993fdc-20261102.json",
+      "bytes": 7846,
+      "sha256": "845076ba15e0517fe425a8daaa5c976d98de6e3c08560fd824c908c4ed9ef8e9"
+    },
+    {
+      "file": "model-L2-literal-lists-5515993fdc-20261102.json",
+      "bytes": 3075,
+      "sha256": "c494c411042f5b76bcadc65aef7c7ac00a664f9df008e89d9977b510650fb6b8"
+    },
+    {
+      "file": "model-L2-CI-5515993fdc-20261102.json",
+      "bytes": 28092,
+      "sha256": "1d63a75b9fc0570f12e5c683b1f900a1d8912c3b474126bbca364da450d3cfbe"
+    },
+    {
+      "file": "model-L2-5515993fdc-linux-20261102-completion.json",
+      "bytes": 655,
+      "sha256": "e0c098710ce31a2afcceaa4c877fd432178fd2689ad164d2499dc7872c0b9b7d"
+    },
+    {
+      "file": "model-L2-5515993fdc-windows-20261102-completion.json",
+      "bytes": 710,
+      "sha256": "e39425916b114d75dacc451b972ef13698a48c47a85142e875477a10e174ee68"
+    }
+  ]
+}

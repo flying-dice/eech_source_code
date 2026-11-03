@@ -1,0 +1,25 @@
+{
+  "kind": "Intentionally superseded partial old06 pack, never final-source acceptance",
+  "runner_status": "completed",
+  "actual_runner_exit": 1,
+  "post_inputs": [
+    {
+      "scenario": "georgia",
+      "actual_exit": 0
+    },
+    {
+      "scenario": "lebanon",
+      "actual_exit": 0
+    },
+    {
+      "scenario": "lebanon-repeat",
+      "actual_exit": 0
+    },
+    {
+      "scenario": "lebanon-internal",
+      "actual_exit": 0
+    }
+  ],
+  "all_post_inputs_equal": true,
+  "when_utc": "2026-10-29T16:13:56.240001+00:00"
+}

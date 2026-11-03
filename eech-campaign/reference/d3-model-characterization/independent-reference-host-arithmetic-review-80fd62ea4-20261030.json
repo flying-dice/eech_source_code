@@ -1,0 +1,291 @@
+{
+  "schema": "independent-reference-host-source-review/v1",
+  "reviewed_utc": "2026-10-30T04:44:36.086174+00:00",
+  "reviewed_head": "80fd62ea48fc75aa9546c785f525be034abd16f8",
+  "base": "3833c822d907e1088c3f34d067acea2dc33257c3",
+  "frozen_path": "R:\\d3-evidence\\model-handoff-source-80fd62ea4",
+  "tracked_clean_before_and_after": true,
+  "scope": "Only new reference-host arithmetic profile/31client phase wiring/guards/docs. Closed CoreMXCSR/kernel/f9/all828 evidence reused, not re-reviewed.",
+  "verdict": "SOURCE_SAFE_WITH_CHECKER_AND_DOCUMENTATION_CORRECTIONS_RUNTIME_PENDING",
+  "native_execution_safety": {
+    "verdict": "ALLOW_WITH_RECORDED_LIMITS_AFTER_SUCCESSFUL_BUILDS",
+    "allowed": [
+      "Exact-head bounded referencehost campaign+recordings/observations/metrics anddelegating framecount/finalclock audit againstold4bee.",
+      "ActualCore-generated-model bootstrap and retainedclient paths neededbyvalidation.",
+      "RawDLLmodel-authority(no profile) healthy andprovider-refused public entries/all4RCs/freshprocess perrefusal."
+    ],
+    "conditions": [
+      "Use actual successful exact-source Windows builds and recorded payload identities. Linux checker correction and subsequent checks remain required validation gates; the current Linux run is actual 101, not a pass. These test/documentation findings do not make the compiled profile unsafe for the listed bounded diagnostic native runs.",
+      "Require old4bee fullrawbytes AND35actualframes/finalclock3.49999737739563 onmatched boundedrecording, notmerelysampledstate/prefixequality.",
+      "Retain3833 36frame/byteREDimmutable; no outputfieldhacks, baseline/tolerancechange/normalization or callerRZworkaround hidingpublicFPgate.",
+      "Verify unchangedgenericDLL completecallerstate fromnonRZcallers; referenceprofilemustnotmaskthatdiagnostic.",
+      "Accepted40/full8/postinputs/currentCI/review/normalmerge remainseparate."
+    ]
+  },
+  "findings": [
+    {
+      "id": "REFERENCE-PROFILE-EVIDENCE-WORDING",
+      "priority": "P3",
+      "path": "eech-campaign/docs/m5-model-host-authority.md",
+      "line": 84,
+      "title": "Correct checkpoint-count wording",
+      "reason": "CurrentGit text83–84 says metrics differed in checkpoint count andlasttime. Closed actualdelta has2checkpointsinboth andonly/checkpoints/1/seconds3to4; actualFRAMEcount differs35to36.",
+      "correction": "Say finalcheckpointseconds andindependentlymeasuredframebudget/finalclock. Prose-only; no native/sourcegateblock or repeatedkernel/tests required."
+    },
+    {
+      "id": "REFERENCE-PROFILE-INVENTORY-GUARD",
+      "priority": "P3",
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "line": 2089,
+      "title": "Count executable phase statements rather than comment lines",
+      "reason": "Actual Linux run exits 101: host_callbacks has 26 passes and this one failure. The guard counts raw physical lines between preparation and selection; campaign.lua has two explanatory comment lines there. Actual selection phase is correct, and both the real-host arithmetic selection test and campaign-specific phase guard pass. Clippy was not reached.",
+      "correction": "Ignore blank and comment-only lines while continuing to reject intervening executable statements, as the adjacent campaign-specific guard already does. Rerun affected guards and the previously unreached checks on the corrected test source; no production profile change is required."
+    }
+  ],
+  "assessment": [
+    "Selector readscurrentthreadMXCSR and changesonlyRCmask0x6000toRZ. It usesvalidfourbyteASMmemoryoperands/readback; no pointerescapes, x87instruction orfloatingarithmetic inselector. Masks/stickyflags/FTZ/DAZ/reservedbits retainedfromoldword. Idempotence followsmapping/readback; unsupportedarch returnsnamederror, neverskip.",
+    "Profile isexplicit persistentreferencehostthread state untilprocessend, matchingone-script-perprocess. No startupchange or hiddenCoreoption. GenericDLL repairs completecallerstate andknowsnothing ofreferenceprofile; independentDCShostmayretainitsowncontext.",
+    "All31diffs individuallyinspected: addedcallimmediatelyafterfirstsuccessfulprepare, unchangedpriorargument/scenarioparsing/bootconfig. Two recordedlifecycleprepares captureexistingpcallboolean andselectonlyonsuccess; nostepstdoutrowadded. Allothernewclientchanges areselectionline/commentsonly.",
+    "Two explicitexceptions model-authority rawboundary diagnostic andclosedmodel-characterization oracle remainunchanged/noprofile. Standalonestore/comparison/otherhelpers do notprepareandselectnothing. GenericC/Rustbridge/store/kernel remainunchanged3833; embeddedNUL1preserved.",
+    "Newtests coverbitmapping,actualselector/readback/idempotence,realhostLua arithmeticdiscriminator before/afterselection, plusstaticcampaign/inventoryphaseguards. They distinguish runtimeeffectandphaseinventoryfromrecording/physicsproof; Windowsactualprofile/sourceequivalenceclaims awaitnativeevidence.",
+    "Profile phase matchesmeasureddependency: campaign parsesarguments/loadshelpers/scenario beforeprepare; subsequentboot/recorderprojection/framebudget/metrics now explicitlyrununderhistoricalSSE_RZwhilex87remainspriorstate. No per-coordinate/checkpoint roundingfix, solverfallback orphysicalpolicy migration.",
+    "Rootframeaudit35vs36proofread asnewsource-context evidence; previousrecording/FPUsemanticsclosed/reused. This review didnotexecuteproxy orrepeatmeasurements."
+  ],
+  "client_inventory": [
+    {
+      "script": "aim-characterization.lua",
+      "selection_line": 67,
+      "sha256": "11b32c56f83756bb2dc418322a21e759c68d02c503f4dcb00e9d19105e8fb3f5"
+    },
+    {
+      "script": "aim-lead-probe.lua",
+      "selection_line": 94,
+      "sha256": "38a80359f0b6455a9f0ba2a9ddc49c4b5c3b7b9f8cb8b1ca0c71534343427dff"
+    },
+    {
+      "script": "aim-person-case.lua",
+      "selection_line": 125,
+      "sha256": "edf7baf73c234d33b51c868c7fac8720216775660df5199526b5561ba75c1f9e"
+    },
+    {
+      "script": "aim-provider.lua",
+      "selection_line": 482,
+      "sha256": "dab523e561440b01329c34b595e5c482ebdf20d57c8a1ceb533399457b3504f4"
+    },
+    {
+      "script": "aircraft-arrivals.lua",
+      "selection_line": 18,
+      "sha256": "516f02aacd4aa1603766344384407e706cd517366e1fd597379e642f7eacc64e"
+    },
+    {
+      "script": "bridge-case.lua",
+      "selection_line": 101,
+      "sha256": "1d5eccff1dc533cf025ad1285975eb399d8c4362c664c53c835efd4f32269953"
+    },
+    {
+      "script": "campaign.lua",
+      "selection_line": 67,
+      "sha256": "c8b7b21d804a310b26b800804da711abf5e0486c191f636af5f3c539d122047b"
+    },
+    {
+      "script": "combat-case.lua",
+      "selection_line": 57,
+      "sha256": "938358ad63de96f1624fa14e54bec5c86a66d9615c831d9464dab13dab8ebad2"
+    },
+    {
+      "script": "combat-characterization.lua",
+      "selection_line": 41,
+      "sha256": "34fcc39b9d4b2dd4560ce4d068da7198026de222606b4a875190d934d2a5632a"
+    },
+    {
+      "script": "convoy-movement.lua",
+      "selection_line": 26,
+      "sha256": "0169c1bc70f669306ef3a6b6aa082f72304e1e9ac21362649bfd6d441cb016d9"
+    },
+    {
+      "script": "dependent-carry.lua",
+      "selection_line": 24,
+      "sha256": "33151d0563c263176a3472fbcdc46369a442691cdfff4cdafc4fad3abbac67b9"
+    },
+    {
+      "script": "dependent-fixture.lua",
+      "selection_line": 32,
+      "sha256": "816f5a6bf2d722dfd82de103c9bb3db8d9557d6d789e9456f33905e0b128ba7c"
+    },
+    {
+      "script": "fixed-wing-movement.lua",
+      "selection_line": 28,
+      "sha256": "331009d4a0ba7b9383b8be24b81c8a17dc9b3b46b575b8c17388acf4e5ca8d21"
+    },
+    {
+      "script": "helicopter-lifecycle.lua",
+      "selection_line": 44,
+      "sha256": "54f3fece8ee24ab432af0c4c34d5c9e4886ded880d84a4dac00e497231eb19d0"
+    },
+    {
+      "script": "helicopter-movement.lua",
+      "selection_line": 37,
+      "sha256": "a2be3cae686ab857bb0d85e6bbab9c8309bb45f73ec011586566c01a2fb63411"
+    },
+    {
+      "script": "host-identities-lifecycle.lua",
+      "selection_line": 39,
+      "sha256": "0253f55da29a947d563c34ed6ffe63ec6e04ef2a8acfcd13a12ad647f5dec47f"
+    },
+    {
+      "script": "host-identities.lua",
+      "selection_line": 23,
+      "sha256": "a48576124cc218a893b0231cd8c18191a55d11ace70fa33c10e47a2f09ae2698"
+    },
+    {
+      "script": "lifecycle.lua",
+      "selection_line": 39,
+      "sha256": "4719eee29f63889ec23c55676ef185d718a46fbc91301ff0f79dadc4f5eb93c8"
+    },
+    {
+      "script": "los-characterization.lua",
+      "selection_line": 73,
+      "sha256": "08fb8e8ff14574e17af6504c32cd2b7c637f57a3881bb53b8224b1f794ca2c8b"
+    },
+    {
+      "script": "los-controls.lua",
+      "selection_line": 39,
+      "sha256": "68b803ff7af3b7866b0237d9241cf3a34ad9e8e3d00d18b0b0eefe1bd5b1dfb0"
+    },
+    {
+      "script": "los-provider.lua",
+      "selection_line": 97,
+      "sha256": "1c69bb2d244452b59d6aec0e14891e817f5e391d1aabc9b438896877800772f6"
+    },
+    {
+      "script": "loss-all-family.lua",
+      "selection_line": 80,
+      "sha256": "234e39d2fcd804dd2c46fd969f179a087c4d84c9221b91993dbd9a0250448a55"
+    },
+    {
+      "script": "object-report-case.lua",
+      "selection_line": 104,
+      "sha256": "c22894212cf927641aed2854f75cf7c14d0f3a76127fc1148467f335006f0ca4"
+    },
+    {
+      "script": "remaining-arrivals.lua",
+      "selection_line": 27,
+      "sha256": "2f1f0d71382aaf7296cfcba097d10d1299fa4ffc515e527aed60ab58e688e2f7"
+    },
+    {
+      "script": "sense-provider.lua",
+      "selection_line": 137,
+      "sha256": "feb1e6b9c59dfe87f0aaef7a87e3b327748f1e6fe6f6f874d83b47629ac2a40f"
+    },
+    {
+      "script": "sensor-characterization.lua",
+      "selection_line": 93,
+      "sha256": "78300c6a05a5987d1f245bb054cbc270a9cb4ff12f860e7f0f674e604e31ed44"
+    },
+    {
+      "script": "supply-arrivals-lifecycle.lua",
+      "selection_line": 11,
+      "sha256": "60fa6f1c659921f24b53006fc4a60b24ceea1801b28743a87dfdceb38df1def8"
+    },
+    {
+      "script": "supply-arrivals.lua",
+      "selection_line": 13,
+      "sha256": "4594de421b9c8c4c408b2b0bd74fd5dec0f146d168cf5604baafa5bf1f3bef4d"
+    },
+    {
+      "script": "surface-movement.lua",
+      "selection_line": 30,
+      "sha256": "2cc55411b26bd20cd789fa0bdbb643bd80b439f6357d7cc9ae90e8bcbfbcad84"
+    },
+    {
+      "script": "weapon-case.lua",
+      "selection_line": 121,
+      "sha256": "0d5d7fcf6e66c34919061e7d9aeba2943e4d1a6723bc82c50448228a9a334316"
+    },
+    {
+      "script": "weapon-characterization.lua",
+      "selection_line": 89,
+      "sha256": "f77e3be2bf7c468dff3b264ad822dc70a15c119f09d2603289dc0adcaaabedba"
+    }
+  ],
+  "checks_at_time": {
+    "linux": {
+      "state": "terminal",
+      "actual_exit": 101,
+      "completion_sha256": "30b15baf26e513692df33bab15caba904a38387982f27fec315719bb067e9e14",
+      "log_sha256": "35b4a6996166f50768e534975780ab67cbef83e015be7d463a53ce3298259d0f",
+      "host_callbacks": {
+        "passed": 26,
+        "failed": 1,
+        "failed_test": "every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not",
+        "clippy": "NOT_REACHED",
+        "interpretation": "Checker false failure caused by explanatory comments; not a demonstrated production phase or numerical failure."
+      }
+    },
+    "windows": {
+      "state": "terminal",
+      "actual_exit": 0,
+      "completion_sha256": "1cf4d9937ea312bb6136386e316ddc76bef9452d08a334eb6ddfa94f8d677938",
+      "log_sha256": "c9321f4173cb3c12e7315c101546d16a53dc8f7567ef47643c167f48efd7b2da",
+      "interpretation": "Shipping compilation completed successfully; no new profile native runtime result was reviewed."
+    }
+  },
+  "source_sha256": {
+    "STATUS.md": "8c780fb0c0fa6c95d8432ae876b989e91e83c04944babf9fad5cb8bb2627aeeb",
+    "eech-campaign/crates/eech-world/lua/aim-characterization.lua": "11b32c56f83756bb2dc418322a21e759c68d02c503f4dcb00e9d19105e8fb3f5",
+    "eech-campaign/crates/eech-world/lua/aim-lead-probe.lua": "38a80359f0b6455a9f0ba2a9ddc49c4b5c3b7b9f8cb8b1ca0c71534343427dff",
+    "eech-campaign/crates/eech-world/lua/aim-person-case.lua": "edf7baf73c234d33b51c868c7fac8720216775660df5199526b5561ba75c1f9e",
+    "eech-campaign/crates/eech-world/lua/aim-provider.lua": "dab523e561440b01329c34b595e5c482ebdf20d57c8a1ceb533399457b3504f4",
+    "eech-campaign/crates/eech-world/lua/aircraft-arrivals.lua": "516f02aacd4aa1603766344384407e706cd517366e1fd597379e642f7eacc64e",
+    "eech-campaign/crates/eech-world/lua/bridge-case.lua": "1d5eccff1dc533cf025ad1285975eb399d8c4362c664c53c835efd4f32269953",
+    "eech-campaign/crates/eech-world/lua/campaign.lua": "c8b7b21d804a310b26b800804da711abf5e0486c191f636af5f3c539d122047b",
+    "eech-campaign/crates/eech-world/lua/combat-case.lua": "938358ad63de96f1624fa14e54bec5c86a66d9615c831d9464dab13dab8ebad2",
+    "eech-campaign/crates/eech-world/lua/combat-characterization.lua": "34fcc39b9d4b2dd4560ce4d068da7198026de222606b4a875190d934d2a5632a",
+    "eech-campaign/crates/eech-world/lua/convoy-movement.lua": "0169c1bc70f669306ef3a6b6aa082f72304e1e9ac21362649bfd6d441cb016d9",
+    "eech-campaign/crates/eech-world/lua/dependent-carry.lua": "33151d0563c263176a3472fbcdc46369a442691cdfff4cdafc4fad3abbac67b9",
+    "eech-campaign/crates/eech-world/lua/dependent-fixture.lua": "816f5a6bf2d722dfd82de103c9bb3db8d9557d6d789e9456f33905e0b128ba7c",
+    "eech-campaign/crates/eech-world/lua/fixed-wing-movement.lua": "331009d4a0ba7b9383b8be24b81c8a17dc9b3b46b575b8c17388acf4e5ca8d21",
+    "eech-campaign/crates/eech-world/lua/helicopter-lifecycle.lua": "54f3fece8ee24ab432af0c4c34d5c9e4886ded880d84a4dac00e497231eb19d0",
+    "eech-campaign/crates/eech-world/lua/helicopter-movement.lua": "a2be3cae686ab857bb0d85e6bbab9c8309bb45f73ec011586566c01a2fb63411",
+    "eech-campaign/crates/eech-world/lua/host-identities-lifecycle.lua": "0253f55da29a947d563c34ed6ffe63ec6e04ef2a8acfcd13a12ad647f5dec47f",
+    "eech-campaign/crates/eech-world/lua/host-identities.lua": "a48576124cc218a893b0231cd8c18191a55d11ace70fa33c10e47a2f09ae2698",
+    "eech-campaign/crates/eech-world/lua/lifecycle.lua": "4719eee29f63889ec23c55676ef185d718a46fbc91301ff0f79dadc4f5eb93c8",
+    "eech-campaign/crates/eech-world/lua/los-characterization.lua": "08fb8e8ff14574e17af6504c32cd2b7c637f57a3881bb53b8224b1f794ca2c8b",
+    "eech-campaign/crates/eech-world/lua/los-controls.lua": "68b803ff7af3b7866b0237d9241cf3a34ad9e8e3d00d18b0b0eefe1bd5b1dfb0",
+    "eech-campaign/crates/eech-world/lua/los-provider.lua": "1c69bb2d244452b59d6aec0e14891e817f5e391d1aabc9b438896877800772f6",
+    "eech-campaign/crates/eech-world/lua/loss-all-family.lua": "234e39d2fcd804dd2c46fd969f179a087c4d84c9221b91993dbd9a0250448a55",
+    "eech-campaign/crates/eech-world/lua/object-report-case.lua": "c22894212cf927641aed2854f75cf7c14d0f3a76127fc1148467f335006f0ca4",
+    "eech-campaign/crates/eech-world/lua/remaining-arrivals.lua": "2f1f0d71382aaf7296cfcba097d10d1299fa4ffc515e527aed60ab58e688e2f7",
+    "eech-campaign/crates/eech-world/lua/sense-provider.lua": "feb1e6b9c59dfe87f0aaef7a87e3b327748f1e6fe6f6f874d83b47629ac2a40f",
+    "eech-campaign/crates/eech-world/lua/sensor-characterization.lua": "78300c6a05a5987d1f245bb054cbc270a9cb4ff12f860e7f0f674e604e31ed44",
+    "eech-campaign/crates/eech-world/lua/supply-arrivals-lifecycle.lua": "60fa6f1c659921f24b53006fc4a60b24ceea1801b28743a87dfdceb38df1def8",
+    "eech-campaign/crates/eech-world/lua/supply-arrivals.lua": "4594de421b9c8c4c408b2b0bd74fd5dec0f146d168cf5604baafa5bf1f3bef4d",
+    "eech-campaign/crates/eech-world/lua/surface-movement.lua": "2cc55411b26bd20cd789fa0bdbb643bd80b439f6357d7cc9ae90e8bcbfbcad84",
+    "eech-campaign/crates/eech-world/lua/weapon-case.lua": "0d5d7fcf6e66c34919061e7d9aeba2943e4d1a6723bc82c50448228a9a334316",
+    "eech-campaign/crates/eech-world/lua/weapon-characterization.lua": "f77e3be2bf7c468dff3b264ad822dc70a15c119f09d2603289dc0adcaaabedba",
+    "eech-campaign/crates/eech-world/src/lib.rs": "2698c054d21339af1370176d4290e3c99009f03e34cc90af4711b9d2903779a0",
+    "eech-campaign/crates/eech-world/src/main.rs": "e66bcc4081dc4b4b530946793ca49499a5dae82c770e616a4c8ff908479c2b8b",
+    "eech-campaign/crates/eech-world/src/reference_arithmetic.rs": "b38e35fb95258108e05879869c97deacb2b085dcd114087d406383bcaa63cff1",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "85b3e9abb9d53c13d1f3941d3bb296600aa6c7c5e3ca95231c3fd8121e978a29",
+    "eech-campaign/docs/m5-model-host-authority.md": "0b918da7f3adc3034fbef0e4fe05d27a7832adec46dc79fe951a3ddc0c575481",
+    "eech-campaign/reference/d3-model-characterization/independent-model-mxcsr-and-fpu-guards-review-3833c822d-20261030.json": "112cbd2ba931203b301fbe6102c1aba1de84e8b67c648056f4a5e33ad8d26dd0",
+    "eech-campaign/reference/d3-model-characterization/independent-model-repaired-fpu-and-recording-review-3833c822d-20261030.json": "cae3899d6cda85bc7fc2c29db6d3afbbdbe052a6ce407c4cc8d60668ae7fe455",
+    "eech-campaign/reference/d3-model-characterization/model-3833c822d-full-fpu-green-and-byte-red-20261030.json": "f6520e0ae132ead7be54c64c529b9b9e2b12ee43fb70fa2a974c0f04fabeff2b",
+    "eech-campaign/reference/d3-model-characterization/model-campaign-frame-audit-20261030.lua": "bea76984abe3db9310bd0b92a696e8e952add78e15e0d3344d054f07973c9dc5",
+    "eech-campaign/reference/d3-model-characterization/model-frame-budget-4bee-versus-3833-20261030.json": "86feb6634ce1a0d819b866885928d8f61764f2de34dfa818f906bffd43f7dd03",
+    "eech-campaign/reference/d3-model-characterization/model-handoff-3833c822d-hostfixture-BUILD-INFO.txt": "38a826ee17bafa7a412628df9650cca04f5a93f9bc327ad0535efabd5d3ebea2",
+    "eech-campaign/reference/d3-model-characterization/model-handoff-3833c822d-shipping-BUILD-INFO.txt": "67603b18501648f818c02f41e98c00ee312f9b1263526dcaff7e1f502a0eb7e4",
+    "eech-campaign/reference/d3-model-characterization/model-native-fpu-red-tracker-checkpoint-20261030.json": "383506c6b1efecf69737e5c9ed0235fd9fee0134280ced11ff8c6007f9244985",
+    "eech-campaign/reference/d3-model-characterization/reference-numeric-profile-author-checkpoint-20261030.json": "7d8f468432d1e8b3f729dd0e508ee628df6d532748d4fd72feb017566a4782be"
+  },
+  "reused_evidence": {
+    "genericMXCSRsource": "112cbd2ba931203b301fbe6102c1aba1de84e8b67c648056f4a5e33ad8d26dd0",
+    "actualfullFPU_and_byteRED": "cae3899d6cda85bc7fc2c29db6d3afbbdbe052a6ce407c4cc8d60668ae7fe455",
+    "rootframeaudit_sha256": "ba85a1702ede81922d75594e9ab448fb3e2e9d14cfbf58ddc1301bfe68d1af72"
+  },
+  "review_setup": "Initial reportgenerator looked for checkpointcount wording ononephysicaldocline; linewrap splititacross83–84, yieldingStopIteration beforeanyreportwrite. Exactcurrentblobchecked, findingat84. This wasreviewsetup, notcode/nativefailure. Final read-only verification confirmed exact frozen HEAD and empty tracked/untracked status. The newly terminal Linux failure was incorporated before this report was finalized; no earlier draft hash was delivered as final.",
+  "limits": [
+    "No formalGitHubapproval,Task50/production/Tacview/fullshipping/wholeD3acceptance. Physicalsolvers/loaders/hierarchy/viewpoint/device/targetpoint/entity/environment/time remainfiniteD3.",
+    "No reviewer edits/builds/tests/native/campaign/process/auth/cache/Gitmutation/externalwrites/nestedagents. Task47shippinguntouched."
+  ]
+}

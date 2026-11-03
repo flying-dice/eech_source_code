@@ -1,0 +1,18 @@
+{
+  "source": "e05bf775fc9c00ffed2de998ca94b865f7b99053",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-sector-red-e05bf775f-linux-20261031.sh"
+  ],
+  "pid": 17148,
+  "controller_pid": 25368,
+  "state": "terminal",
+  "started_utc": "2026-10-31T13:15:32.482364+00:00",
+  "scope": "Newtest-only actualFP red against UNCHANGED6711production; observerguards separate. No product/authority/shipping acceptance.",
+  "actual_exit": 101,
+  "completed_utc": "2026-10-31T13:17:11.461010+00:00"
+}

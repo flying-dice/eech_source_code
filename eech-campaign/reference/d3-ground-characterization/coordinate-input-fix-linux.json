@@ -1,0 +1,57 @@
+{
+  "actual_exit": 0,
+  "completed_utc": "2026-10-29T16:00:07.2826764Z",
+  "scope": "Actual Linux terrain library tests, host callback guards, all-target host Clippy and formatting; working tree candidate",
+  "source_base": "4e8b9288a77bdef0b82974e38cdfa9705f989bba",
+  "terrain_file_sha256": "763316a9e3d192114cf8de6d00227d905b4c378975f923d1060ec9abf32bc1bd",
+  "terrain_library_executed": 6,
+  "terrain_library_passed": 6,
+  "host_callback_executed": 40,
+  "host_callback_passed": 40,
+  "all_target_host_clippy_exit": 0,
+  "format_check_exit": 0,
+  "note": "40 host callback guards are not the shipping40. Native candidate physical comparisons remain pending.",
+  "red_reproduction": {
+    "executed": 1,
+    "exit": 101,
+    "log": "coordinate-input-red-retry1.log"
+  },
+  "diagnostic_sources": [
+    {
+      "role": "original",
+      "source": "ad82c007b1c3ba553b6c5dcdfd16161dafd6d757",
+      "repo": "R:\\d3-evidence\\ground-trace-original-20261029",
+      "clean": true,
+      "no_alternates": true,
+      "script": "R:\\d3-evidence\\build-ground-case14-original.sh",
+      "script_sha256": "fdf878544ce945aef116e376733b547c2f67a5db49a9ad146a207e6bb5dd6587",
+      "volume": "eech-win-target-d3-ground-case14-original-20261029",
+      "bin": "R:\\d3-evidence\\ground-trace-original-20261029\\eech-campaign\\target\\ground-fixture\\trace-case14-original"
+    },
+    {
+      "role": "host",
+      "source": "80b64bd064b667a79d8b78f58f66e21f46782833",
+      "repo": "R:\\d3-evidence\\ground-trace-host-20261029",
+      "clean": true,
+      "no_alternates": true,
+      "script": "R:\\d3-evidence\\build-ground-case14-host.sh",
+      "script_sha256": "7c268bb718537290d2a2bcd45c3d0d5ed81f9ab0b66e3e4392e6abc8b4d38dbb",
+      "volume": "eech-win-target-d3-ground-case14-host-20261029",
+      "bin": "R:\\d3-evidence\\ground-trace-host-20261029\\eech-campaign\\target\\ground-fixture\\trace-case14-host"
+    }
+  ],
+  "diagnostic_native_evidence": {
+    "exits": [
+      0,
+      0
+    ],
+    "pre_and_post_inputs": [
+      0,
+      0
+    ],
+    "exact_prefix15_folds_reproduced": true,
+    "first_case": 14,
+    "observation": "Same case X/Z and predicate answers, different constructed pointY and terrain-height words. Its Z is smallest positive f32, which the old LuaValue reader erases. No accepted baseline/tolerance change.",
+    "causality": "Plausible directed-rounding mechanism; closure needs full candidate20k/5k/2 comparisons."
+  }
+}

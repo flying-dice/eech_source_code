@@ -10,6 +10,7 @@ mod crash;
 
 use eech_world::aim::{self, Aim};
 use eech_world::cmb;
+use eech_world::env;
 use eech_world::flight;
 use eech_world::los::{Los, LosRequest};
 use eech_world::movement::{
@@ -17,8 +18,11 @@ use eech_world::movement::{
     HelicopterEnd, HelicopterGuide, HelicopterPlan, HelicopterSteer, HelicopterStructure, HelicopterTerrainSample, HelicopterWaypointKind, Kind, Lifecycle,
     LifecycleMode, Movers, NavigationMember, Outcome, PersonBegin, PersonEnd, PersonFace, Pose, Request, ShipMove, Terrain,
 };
+use eech_world::output;
+use eech_world::reference_arithmetic;
 use eech_world::sense::{self, Sense};
 use eech_world::tacview::{ObjectInfo, Recorder};
+use eech_world::terrain;
 use eech_world::trees::{Endpoint as TreeEndpoint, ForestGeometry, TreeCollision, TreeMap, TreeRequest, TreeScene};
 use mlua::prelude::*;
 use std::cell::{Cell, RefCell};
@@ -1296,10 +1300,29 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
     host.set("args", args)?;
+    // the host's own terrain (EEDCS-47): host.terrain_open { terrain_dir = ... } loads a map and returns the provider for it
+    terrain::install(&lua, &host)?;
+    // the host's own physical weather and wind field (EEDCS-51): host.env_provider () makes a provider to give to dc.boot as environment = ...
+    env::install(&lua, &host)?;
+    // the host's diagnostic output primitive: host.output_create_new (path) creates a file exclusively (the operating system's create-new open) for drivers whose evidence must never overwrite or share a file
+    output::install(&lua, &host)?;
     host.set(
         "log",
         lua.create_function(|_, message: String| {
             eprintln!("[campaign] {message}");
+            Ok(())
+        })?,
+    )?;
+    // The reference host's own numerical profile (src/reference_arithmetic.rs): SSE round-toward-zero, selected by the script right after the campaign module's installation
+    // is prepared. A processor without an SSE control word, or a selection that does not take effect, is an error that ends the script.
+    host.set(
+        "use_reference_arithmetic",
+        lua.create_function(|_, ()| {
+            let selection = reference_arithmetic::select_sse_toward_zero().map_err(|e| LuaError::runtime(format!("host.use_reference_arithmetic: {e}")))?;
+            eprintln!(
+                "[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x{:08x} -> 0x{:08x}); the x87 environment is unchanged",
+                selection.before, selection.after
+            );
             Ok(())
         })?,
     )?;
@@ -2898,6 +2921,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             })?,
         )?;
     }
+    eech_world::model_host::register(&lua, &host)?;
+    eech_world::exclusive_output::register(&lua, &host)?;
     lua.globals().set("host", host)?;
 
     let source = std::fs::read_to_string(script)?;

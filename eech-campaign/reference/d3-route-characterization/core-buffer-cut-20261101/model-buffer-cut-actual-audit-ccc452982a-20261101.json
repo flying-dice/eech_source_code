@@ -1,0 +1,235 @@
+{
+  "source": "ccc452982aa2321ae8a76092e0ca92e2e1375b90",
+  "created_utc": "2026-11-01T22:02:24.820712+00:00",
+  "all_six_new_controls_pass": true,
+  "controllers_actual_exit_all_zero": true,
+  "full_input_checks_passed": 12,
+  "payloads_each": 58,
+  "results": [
+    {
+      "case": "residency_horizon",
+      "native_process_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 58,
+      "controller_sha256": "9a6483205e59afbb6f5ed47e17ec1cea829ec439b8d6c846f00e8340857dea64",
+      "native_log_sha256": "c736f9e526b6d59b8ab05cecfa60d891ef94d35d5ad63f78136871f0f0fad3f6",
+      "measured_residency": {
+        "event": "residency",
+        "faces": 0,
+        "metadata_rows": 10252,
+        "pass": true,
+        "point_refs": 0,
+        "points": 0,
+        "rows": 11442,
+        "surface_points": 0
+      },
+      "measured_boot_horizon_cache": {
+        "cached": 32,
+        "event": "horizon_cache",
+        "pass": true,
+        "uncached": 0
+      },
+      "actual_reader_primary_error": "runtime error: eech: EECH fatal error: host model: [model-provider:object.geometry] add_3d_horizon_image (an uncached horizon image: no pre-processed .bin of the object's point count for this image) is a legacy visual / display reader of a model's point, face, face-point-reference or surface-point buffer, which the hosted campaign no longer holds and does not serve (no renderer, cockpit display or HUD is supported)",
+      "expected_native_entry_fatal_caught_by_driver": true,
+      "process_zero_means_control_checks_pass_not_reader_success": true,
+      "raw_sha256": "79cf9476a416627e9bb13aacc8cbfeb8aaf41e12655888861342933c8aff9101"
+    },
+    {
+      "case": "georgia",
+      "native_process_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 58,
+      "controller_sha256": "6b11d638cdc0ec625464f0c3d17fcfe3c622757a6103a7755e9c24961d28d6c5",
+      "native_log_sha256": "21dcce4f6099b4c0c15099b0bcdd0ee5f3d6d9a66b63c476f9c6e87abbb76aef",
+      "complete_file_bytes": 10337109,
+      "complete_sha256": "53b9ddc61e962003081fb577def24f8b2f4ef2f71a28a488c180b319257e01f8",
+      "all_complete_bytes_literal_equal_prior9e4": true,
+      "prior_runtime_source": "9e4f3f9750bac1ce61bd8d1da98467397dd0dac5",
+      "prior_sha256": "53b9ddc61e962003081fb577def24f8b2f4ef2f71a28a488c180b319257e01f8",
+      "no_new_independent_repeat_run": true
+    },
+    {
+      "case": "lebanon",
+      "native_process_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 58,
+      "controller_sha256": "7e76266174f20fdf757b15985208f4d5014661c6c3b0989ffcb5bb718c701674",
+      "native_log_sha256": "755e5b64733e7370015fb3a7a11c234d98d301f402686cd68b392e147dae3b3e",
+      "complete_file_bytes": 7758545,
+      "complete_sha256": "7de455637bda01ded949366ddf5969b9f07eff7b4d21abf1ca1a79f20258d08f",
+      "all_complete_bytes_literal_equal_prior9e4": true,
+      "prior_runtime_source": "9e4f3f9750bac1ce61bd8d1da98467397dd0dac5",
+      "prior_sha256": "7de455637bda01ded949366ddf5969b9f07eff7b4d21abf1ca1a79f20258d08f",
+      "no_new_independent_repeat_run": true
+    },
+    {
+      "case": "short-recording",
+      "native_process_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 58,
+      "controller_sha256": "56eb0d00f127066ea391864628e8dfc68094175c5d01869b20c1449c83dea3be",
+      "native_log_sha256": "2f71239661c2bcab314aa14a165d97e9fb452308d92bb8261182706ff901212a",
+      "output_metadata": "Complete short files or accessor prefix comparisons recorded separatelybelow"
+    },
+    {
+      "case": "withhold_node",
+      "native_process_exit": 1,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 58,
+      "controller_sha256": "98e19f656894e2617c57a8e86b808f333e26e8a96562d94e5f3bd0f416c1e66e",
+      "native_log_sha256": "6c1697d65bdd7264d0f7b9d40b41a01df9c70d179e06634904fec4393580f6be",
+      "withhold_audit": {
+        "control": "withhold_node",
+        "driver_ok": false,
+        "event": "host_route_control",
+        "injected": 1,
+        "modified_replies": 1,
+        "primary_error": "route-characterization: boot failed: runtime error: eech: EECH fatal error: host model: [model-provider:route_node.callback] runtime error: deliberate withheld route node",
+        "queries": 3028,
+        "queries_after_injection": 0,
+        "route_face_queries": 0,
+        "route_node_queries": 1
+      },
+      "raw_sha256": "06dfa6d69dd5aa5b310cb15964942fe38dab74c98dd7955f99d646091626923c",
+      "scope": "New no-fallback refusal with Corebuffer cut; oldwholeauthoritymatrix notrerun"
+    },
+    {
+      "case": "accessor_probes",
+      "native_process_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 58,
+      "controller_sha256": "1632dee1b97242e061b5efb8d9c15f69e333c6b19a366b77b3992100b67398ae",
+      "native_log_sha256": "5df5e2de4f61c42091bdda461f755d0e2e15d14b2c0dfd8d98243475e12849b0",
+      "output_metadata": "Complete short files or accessor prefix comparisons recorded separatelybelow"
+    }
+  ],
+  "accessor_probes_after_buffer_removal": {
+    "cases": [
+      {
+        "scene": 8,
+        "depth": 0,
+        "old_scene_and_triangle_rows": 2,
+        "old_prefix_bytes_including_endings": 376,
+        "old_literal_prefix_equal": true,
+        "whole_report_equal": false,
+        "additional_diagnostic_tags": [
+          "model-host-route"
+        ],
+        "old_report_sha256": "86037066f09b2dd58d151c98f5875dcdaaf296d10cf53c521cbc9edb62b27770",
+        "new_report_sha256": "e8b78c0219ce9bdb12826f49cf3722513c490caae87423bf916eea304f8320f9"
+      },
+      {
+        "scene": 8,
+        "depth": 23,
+        "old_scene_and_triangle_rows": 2,
+        "old_prefix_bytes_including_endings": 276,
+        "old_literal_prefix_equal": true,
+        "whole_report_equal": false,
+        "additional_diagnostic_tags": [
+          "model-host-route"
+        ],
+        "old_report_sha256": "9df850c964dfd24d707d3f2e7801811a173d82783c5a7aba4b334e08faaf8cce",
+        "new_report_sha256": "4c878e8c2722bdc22c35b4f804f68ffefde55f815f25ae2d4a31754b90e3fccf"
+      },
+      {
+        "scene": 1241,
+        "depth": 0,
+        "old_scene_and_triangle_rows": 2,
+        "old_prefix_bytes_including_endings": 281,
+        "old_literal_prefix_equal": true,
+        "whole_report_equal": false,
+        "additional_diagnostic_tags": [
+          "model-host-route"
+        ],
+        "old_report_sha256": "b2e1f730aefaba0c5beb1c077d7dd3d6131ab1abeea9e39fd87e423fc22253ce",
+        "new_report_sha256": "835555863b2635f751e7da42e9723708559331dcdbcc73a60aeda425835993e1"
+      },
+      {
+        "scene": 1241,
+        "depth": 23,
+        "old_scene_and_triangle_rows": 2,
+        "old_prefix_bytes_including_endings": 282,
+        "old_literal_prefix_equal": true,
+        "whole_report_equal": false,
+        "additional_diagnostic_tags": [
+          "model-host-route"
+        ],
+        "old_report_sha256": "46d355cf0f216e84f30b955b73b381103f2f25c39736bfa65bedb18abfdce2bc",
+        "new_report_sha256": "7413b71c60ae705726f7793e9af407ce6d6911fe36b5e6b1d5e0cbfec405d764"
+      }
+    ],
+    "all_four_original_scene_and_triangle_prefixes_literal_equal": true,
+    "rows_preserved_literal": 8,
+    "new_route_diagnostic_rows_are_additional_not_normalized": 4,
+    "same_accessor_process_residency": [
+      11442,
+      10252,
+      0,
+      0,
+      0,
+      0
+    ],
+    "new_raw_report_sha256": "650ca82f655959ae54e321f036f26b2091910ae5da7fa2ea1e34ff8dd29119e5",
+    "old_raw_report_sha256": "55e4457fd09c3cb5230dbbf64971494d55d54e2201ee3d31bfa439930042fd0d",
+    "old_source": "80fd62ea48fc75aa9546c785f525be034abd16f8",
+    "configuration": "Same reference0.1second scenario and scenes8,1241/depths0,23; NEWrun fpu0 skipsunchangedoldfullFPmatrix. No all828 newconformance/fullFP/allbootclaim."
+  },
+  "presence_diagnostic": {
+    "prior147": 147,
+    "candidate147": 147,
+    "unchanged": true,
+    "reference": "model-integration-smoke-actual-e012569e0-20261101.json andactualold80fd rawcounter",
+    "scope": "PreexistingreferenceadapteronlyCorelegacyindex presence diagnostic, countedneverenforced. Condition doesnotreaddeletedbuffers. No resetting/hiding147 ornewregression claim."
+  },
+  "cohort_report": "model-buffer-cut-cohort-compare-ccc452982a-v2-20261101.json",
+  "short_report": "model-buffer-cut-short-byte-compare-ccc452982a-v80-v2-20261101.json",
+  "helpers": [
+    {
+      "path": "R:\\d3-evidence\\run-model-buffer-cut-control-ccc452982a-20261101.py",
+      "sha256": "f6613a470280b58c5d148e93d90f037837c311c6dab450cff5fca4fe9ed5d00c"
+    },
+    {
+      "path": "R:\\d3-evidence\\run-model-buffer-cut-actual-ccc452982a-20261101.py",
+      "sha256": "0eb05c3d6b66cc84e4f27876d3a18f7e29fca8bcc5ab1edf6bc4466076a45fd3"
+    },
+    {
+      "path": "R:\\d3-evidence\\run-model-public-native-20261030.py",
+      "sha256": "5293bee29759d610a3771d5ee03712897121e1148ab8957394738e24c9658144"
+    },
+    {
+      "path": "R:\\d3-evidence\\host-route-control-wrapper-20261101.lua",
+      "sha256": "09005047314cb1b49be46cc9179f2a83b8f962a3db6dba68a0129d826202f2ac"
+    }
+  ],
+  "preserved_checker_metadata_failures": "v1cohort checker wronglyrequired58payloads for57-payloadFCE original andfailedbeforecomparing/writingreport. v2 explicitlyrequiresold57/new58. Shortv1 hadcopiedfreshroot2058label; v2corrects2114, rawcontrolleralwayscorrect. No native/input/output reruns or expectation/tolerance edits.",
+  "remaining_gate": "ONEindependentnewsource+actualreview; physicalmetadata/surfaces/normals/hierarchy/49collision etc stillD3.",
+  "finite_slice_closed": false,
+  "Task50_complete": false,
+  "D3_complete": false,
+  "shipping_complete": false,
+  "scope": "Finite fourCoregeometrybuffer removal candidate, actualpublichostLua/native. Cachedvisualmetadata unchanged/32actualuses; REALuncachedreader stopsbeforeTGAIO. Defaultgeometryroutes andboundedshortbytes exact; withholdhostnode clearnofallback; fourknownaccessor probes stillhostvalueswithCorebuffersabsent. No visualpixelrenderinspection/newall828/allFP/fullshipping40/all8 orcompletecommon/custommetadata-loader detachment claim."
+}

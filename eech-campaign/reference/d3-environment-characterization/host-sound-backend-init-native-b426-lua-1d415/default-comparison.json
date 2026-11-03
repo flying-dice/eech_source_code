@@ -1,0 +1,64 @@
+{
+  "state": "terminal",
+  "created_utc": "2026-11-01T07:06:39.282830+00:00",
+  "native_source": "b4265e529cfa2bd6113993d404f60b5819a01b86",
+  "old_native_source": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+  "prior_audit": "backend-default-comparison-b4265e529-20261101.json retains actual1: initial classifier omitted result.branch annotation; source/diff inspected, no data rewritten",
+  "scope": "Three complete default controls. Exact observation-off byte equality and explicit source-classified backend diagnostic differences; no normalization, Tacview/shipping or positive-backend support claim.",
+  "cases": [
+    {
+      "name": "probe",
+      "original_json_sha256": "19d7001af89083d9e61531bbb93474cadafe9785ff318778f737d43a4b6d0552",
+      "candidate_json_sha256": "2a35ed3f1f184849761e5f5ecfd8ea9547cb31de6232b7a89f5294d218dbad72",
+      "candidate_raw_sha256": "ce688f8595aec01c57f1bbaaa19acfe07d430b5eda8483d63477e7fc1c7ebaa4",
+      "original_rows": 93,
+      "candidate_rows": 94,
+      "stable_complete_lines": 89,
+      "stable_complete_lines_bytes_and_endings_identical": true,
+      "whole_metadata_report_byte_identical": false,
+      "host_backend_answer": {
+        "answers": "1",
+        "available": "0",
+        "event": "env-sndinit-host-backend",
+        "n": "0",
+        "raw": "env-sndinit-host-backend n=0 source=host_reply_mirror answers=1 available=0",
+        "scope": "case",
+        "source": "host_reply_mirror"
+      },
+      "classified_changes": "Host-backend mirror row added; actual Core DirectSound calls/lastreturns0, no synthesized old call; derived AND result branch/provenance labels and rawreport bytes/path differ; other3COM rows are exact. All other complete rows exact, including catalogue/header mirror/constructor/seed/entity/gates."
+    },
+    {
+      "name": "header-present",
+      "original_json_sha256": "756868cdd60812de0315d268a98f33d69a17db2747558ddd37a370aae5d5aa3e",
+      "candidate_json_sha256": "39cb7356341d3ad60da490eb921e71eea003329210fcb86a6bfdc6ebbdc450ec",
+      "candidate_raw_sha256": "98964a57cca01b276e5959522c049ee92a79b1fcafebe242c97681259320282e",
+      "original_rows": 78,
+      "candidate_rows": 79,
+      "stable_complete_lines": 74,
+      "stable_complete_lines_bytes_and_endings_identical": true,
+      "whole_metadata_report_byte_identical": false,
+      "host_backend_answer": {
+        "answers": "1",
+        "available": "0",
+        "event": "env-sndinit-host-backend",
+        "n": "0",
+        "raw": "env-sndinit-host-backend n=0 source=host_reply_mirror answers=1 available=0",
+        "scope": "case",
+        "source": "host_reply_mirror"
+      },
+      "classified_changes": "Host-backend mirror row added; actual Core DirectSound calls/lastreturns0, no synthesized old call; derived AND result branch/provenance labels and rawreport bytes/path differ; other3COM rows are exact. All other complete rows exact, including catalogue/header mirror/constructor/seed/entity/gates."
+    }
+  ],
+  "complete_observation_off": {
+    "original": "R:\\d3-evidence\\metadata-default-controls-7c-native-0960-lua-20261101\\observer-off\\environment.jsonl",
+    "candidate": "D:\\EECH-Migration-Evidence\\backend-default-off-b4265e529-20261101-0649\\environment.jsonl",
+    "bytes": 5191384,
+    "rows": 17283,
+    "original_sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+    "candidate_sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+    "complete_bytes_and_endings_identical": true,
+    "partial_prefix_only": false
+  },
+  "actual_exit": 0,
+  "completed_utc": "2026-11-01T07:06:39.317076+00:00"
+}

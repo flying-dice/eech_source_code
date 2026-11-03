@@ -1,0 +1,173 @@
+{
+  "review_id": "ENV-SECTOR-CORRECTION-14192-20261031",
+  "reviewer": "Sole independent Codex reviewer, no nested agents",
+  "reviewed_utc": "2026-10-31T13:29:32.9670141Z",
+  "scope": "One combined correction-delta pass: e05 tests and P2 changes versus the two 6711 findings, then production guard and fixture corrections e05..14192. Unchanged production components and closed original evidence were not re-reviewed.",
+  "source": {
+    "finding_base": "6711d5f11804537255d08e5c355f329796cca657",
+    "test_phase": "e05bf775fc9c00ffed2de998ca94b865f7b99053",
+    "head": "14192c6e292864e573acc8fd8eed94e94f12ce03",
+    "tree": "7fe4ab4464d327e97795fa83919df6db6b2b78e5",
+    "frozen": "R:/d3-evidence/environment-sector-source-14192c6e2",
+    "clean": true,
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "blob": "00969c7ee014ecd245eb5b613988404077e032ed",
+        "sha256": "d4a804ea51ab479818e95e7a6dac4490c50f63d4e8bbb5d0a4b13a6090bbd523"
+      },
+      {
+        "path": "eech-campaign/crates/eech-dc/src/module.rs",
+        "blob": "5554d869fe3b29e8e50acb910fc190d3d6d42eb9",
+        "sha256": "09cd1d846509d86bb5b58682f09fb7f3ab85343bcd7eead77ae7b46212ce3236"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/terrain_ref.c",
+        "blob": "7e4e394f6c73fe03070b02e4fdc57f24035e4440",
+        "sha256": "1beeb08691775d1b0d66e0b91c3f89d6ec41afc010ad9c6c8dc4f248da4ded62"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/terrain_ref.h",
+        "blob": "f4cd12579bee36c1dd30afeef5f190e2bc852229",
+        "sha256": "93888f9b91e381700569fca9516785dd129be4eaebe66530b1f2f1d1dcc1ae3b"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sector-authority.lua",
+        "blob": "a62f17f3dcec705200aa7d94e35054f97894c924",
+        "sha256": "2c3456f9267ad121c003fc97520551ddc9ab2ff6c704d083a26cfe8f23e114ad"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/terrain.rs",
+        "blob": "f3850c4d7722136daa610225a547128bd9ea323b",
+        "sha256": "631983c223609613c84e3dbc090e36c12765e881cb998c900e51303befe0d61a"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sector_authority.rs",
+        "blob": "f66afe21d1a6d0b97d19d2e5cdf171dbdc70818d",
+        "sha256": "3dccb6d41fe638875030faac97cad3a07e2eb3f3fe7ab944ec43c742963e1d02"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/terrain_sector.rs",
+        "blob": "42981a2d89fcfc955103a46404d6242badd2a3dc",
+        "sha256": "e010bac727152c29a088f617329a022f834e6b929afed8d4b99eb5bb6bdd2dc6"
+      },
+      {
+        "path": "eech-campaign/docs/d3-environment-sector-surface.md",
+        "blob": "6f9ea89eb2ac4d295ac1430e77cab921113d1c78",
+        "sha256": "06b42afb76503f93a33fc81d15433743c74e0eaa264258498ecf9e4bd0898dd9"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-e05-actual-fp-red/completion.json",
+        "blob": "e361907bb2f96adf4a2ba0073c78e8a5f5ede862",
+        "sha256": "a3fc143103fe3ff90f684e0a713ff6cb00ebaddfd71f8c3ad7bd0c637fbd64a8"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-e05-actual-fp-red/production-equivalence.json",
+        "blob": "9bfe5d0987988ba72ce5e54c3b5f279b316072da",
+        "sha256": "398b55425bf0a392e0cb022c74ffec325c306762da682a44adb183d291919fec"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-e05-actual-fp-red/receipt.json",
+        "blob": "bba11b6005b2ac0460e48fd5ee5087e8fbca7f6f",
+        "sha256": "05fd422960c1c87bfaf7e1d6ba7e7bf5af96e610a336b0b64100b5f954e1b019"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-host-6711-first-review/first-default-comparison.json",
+        "blob": "65d58e76897aeffa0b0395e2e64d2eface010f76",
+        "sha256": "7f89408f18ebbbcce18327360d2a7382e23a4d02a2d54417a0eaa8a21b89264e"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-host-6711-first-review/linux-pipeline-completion.json",
+        "blob": "e36e13a3c560e09ad8687cb5671d1edeafd50ceb",
+        "sha256": "b8b5ef1c77bc04dc8fe75e5eeaff794784bb71f8a5f1d78cac07d8aa2f9356d7"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-host-6711-first-review/receipt.json",
+        "blob": "56b52b1d7b3b354de86c95158da6020fcffdf4ed",
+        "sha256": "c611145059834291c367fb77b5b968d6d97bf24b30a50a12e8b092d1c390e3f2"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-host-6711-first-review/source-review.json",
+        "blob": "e10af74da1b358c2de7d95f08a37e374b85dbd81",
+        "sha256": "0b992b869b9956039dd409582d3a0b7b4c808b092d35143cc2857cfb8a3a3e20"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-host-6711-first-review/windows-pipeline-completion.json",
+        "blob": "f54a3c09136e474a1418e49a5c5ef464c76958fb",
+        "sha256": "20f4e5d660857b5ab52a6f6aae0160cdd26141b57f520bf5cd3a6d460e1b6eb8"
+      }
+    ]
+  },
+  "prior_review": {
+    "path": "R:/d3-evidence/independent-environment-sector-host-source-review-6711d5f11-20261031.json",
+    "sha256": "06419e7bb9251a98bfc30952eceb5e5e2fb20f331f9b96f541061d71b8b480b5"
+  },
+  "closure_assessment": [
+    {
+      "finding": "ENV-SECTOR-HOST-1",
+      "source_status": "CLOSED IN REVIEWED SOURCE; target compiler/runtime proof remains pending",
+      "refs": [
+        "eech-campaign/crates/eech-world/csrc/terrain_ref.c:3706",
+        "eech-campaign/crates/eech-world/csrc/terrain_ref.c:3744",
+        "eech-campaign/crates/eech-world/csrc/terrain_ref.c:3780",
+        "eech-campaign/crates/eech-world/csrc/terrain_ref.c:3856",
+        "eech-campaign/crates/eech-world/src/terrain.rs:477"
+      ],
+      "facts": "Private ingress is now uint32 float bits, matching C header and Rust declaration/call. The wrapper saves x87 environment and whole MXCSR before validation, enters and checks round-toward-zero in both units, routes all arithmetic through a noninlined helper, stages flags/count/error, settles stores before restore, restores and reads full CW/SW/TW and MXCSR, and only then makes integer/copy outputs. All ordinary/refusal branches converge on restore. The finite exponent check is bitwise. No new fallback, lifetime or output-alias problem is present in the actual Rust caller, whose map and disjoint local buffers remain live for the synchronous call. No compiler scheduling or x87 assembly behavior is inferred as measured."
+    },
+    {
+      "finding": "ENV-SECTOR-HOST-2",
+      "source_status": "MAIN OBSERVER COMPLETENESS CORRECTED; one requested boot-frame reconciliation remains below",
+      "refs": [
+        "eech-campaign/crates/eech-world/lua/env-sector-authority.lua:169",
+        "eech-campaign/crates/eech-world/lua/env-sector-authority.lua:204",
+        "eech-campaign/crates/eech-world/tests/env_sector_authority.rs:145",
+        "eech-campaign/crates/eech-world/tests/env_sector_authority.rs:241",
+        "eech-campaign/crates/eech-world/tests/env_sector_authority.rs:393"
+      ],
+      "facts": "The driver drains the actual observer event grammar before reading the report, checks continuous numbering from boot_begin, adjacent sound halves and their shape, full report loss/cursor counters and pair-record reconciliation. Rust propagates all required counter parses and repeats report/counter checks. Stopped runs explicitly carry unavailable observer counters, and only named refusals may pass their judge; healthy changed runs now require authority.frames == authority.frames_wanted. Later scratch content is not falsely claimed compared: only the first record is judged."
+    }
+  ],
+  "new_test_assessment": {
+    "fp_matrix": "6144 calls over 16 accepted/refused cases, 4x4 independent RC pairs, two x87 precision choices, clear/set SSE sticky flags, supported FTZ/DAZ settings and three full x87 statuses. It compares full CW/SW/TW and MXCSR and same answers, with no masking. The file is byte-identical at e05 and14192: Git blob42981a2d89fcfc955103a46404d6242badd2a3dc. Scope is the public Rust host query; not the Lua conversion path or whole DLL.",
+    "fixture_corrections": "The completed-but-not-refused synthetic case now supplies the one pair required by its existing complete observer counters; the did-not-stop assertion remains. The observer rejection helper now separately requires the witness OBSERVER classification and the specific detail, while retaining witness_failure, no-authority-row and parse-failure assertions. Neither correction weakens the completeness contract.",
+    "compile_fix": "The bridge test replacen now uses string replacement arguments, correcting the reported Rust compile failure without changing production behavior."
+  },
+  "findings": [
+    {
+      "id": "ENV-SECTOR-CORRECTION-1",
+      "priority": "P2",
+      "title": "Reconcile the requested boot frame count before accepting healthy evidence",
+      "refs": [
+        "eech-campaign/crates/eech-world/tests/env_sector_authority.rs:203",
+        "eech-campaign/crates/eech-world/tests/env_sector_authority.rs:241",
+        "eech-campaign/crates/eech-world/tests/env_sector_authority.rs:277",
+        "eech-campaign/crates/eech-world/tests/env_sector_authority.rs:376",
+        "eech-campaign/crates/eech-world/tests/env_sector_authority.rs:394"
+      ],
+      "problem": "Facts::parse never reads boot.frames. Its frames_wanted and both judges use only the authority row. Consequently the requested boot count may be missing or disagree without any error. A current Synthetic::control with authority.frames=20 and authority.frames_wanted=20 passes parse and judge_control despite boot.frames=30: its 30 sound calls/requests satisfy the >=20 condition and all other checks remain satisfied. Editing boot.frames alone to 40 or omitting it is also ignored. This leaves the original requested boot/authority frame-completeness check unfinished.",
+      "impact": "The judge can accept a completed run against a rewritten requested count, so completion remains self-reported by the terminal row rather than tied to its configuration evidence. This is an evidence gate defect, not a demonstrated production short-run bug.",
+      "requested_change": "Parse boot.frames as a required valid whole count and require it to match authority.frames_wanted before constructing Facts, for healthy and stopped runs. Retain the completed frame equality checks and add finite mismatched/missing boot-count guards, including the authority.frames=frames_wanted=20 versus boot.frames=30 case. No production change or broader trace framework is needed.",
+      "support": "Direct source control-flow analysis only; reviewer did not execute the synthetic example."
+    }
+  ],
+  "documentation_note": {
+    "ref": "eech-campaign/docs/d3-environment-sector-surface.md:199",
+    "note": "The sentence saying every finite value and every subnormal is admitted and truncates to sector0 should say every finite subnormal. Source correctly preserves out-of-grid and huge finite-coordinate refusals. Minor wording correction, not a separate production finding."
+  },
+  "actual_evidence_read": {
+    "log": "R:/d3-evidence/environment-sector-red-e05bf775f-linux-20261031.log",
+    "log_sha256": "ef0b33dc4dc00db405d5e149be30c8a531acba2340d6f6c7a3d445394c8cd52f",
+    "completion": "R:/d3-evidence/environment-sector-red-e05bf775f-linux-20261031-completion.json",
+    "completion_sha256": "664d78b48ace6ac21a0b152c223445ceb0d17c28d718bee471680205cca9801a",
+    "observed": "Actual prior e05 controller terminal101 at13:17:11UTC. Focused FP test on unchanged6711 production failed:6144 calls and76 mismatch categories, MXCSR changes. Observer file11passed2failed, public path SKIPPED; two failures correspond to the corrected fixture/coherence assertions. This is red evidence, not corrected acceptance."
+  },
+  "runtime_state": "At review handoff Root had corrected Linux and Windows pipelines live; no corrected success or public runtime result supplied. Prior6711 three-root equality is reused as numeric-only evidence and does not prove caller FP preservation.",
+  "verdict": "CHANGES_REQUIRED for one finite residual P2 group; P1 corrected in source, runtime gates pending.",
+  "checks": "Read-only source/diff/hash inspection and git diff --check0. Only this JSON report was written. No compilers, tests, native experiments, Docker/process changes, external calls, source edits, authentication changes or public writes.",
+  "limitations": [
+    "Actual corrected compiler output, guard/6144-matrix results, applicable i686/Windows behavior and pre-save/post-restore generated instructions remain Root validation, not source-review acceptance.",
+    "Closed original-sector1408817f, wind843ec6, bounded inventoryf06419 and dd field/FP/oracle evidence are reused at their own identities. No unchanged original/kernel/observer census or runtime rerun.",
+    "Whole Task51/D3, remaining physical effects/time/terrain/spatial/model, full shipping/currentCI and normal merge gates remain open. D4/D5 are unstarted; live ground runs and all old partials remain preserved."
+  ]
+}

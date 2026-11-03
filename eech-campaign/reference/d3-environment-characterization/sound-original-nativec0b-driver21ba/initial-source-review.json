@@ -1,0 +1,194 @@
+{
+  "review_id": "ENV-SOUND-ORIGINAL-SOURCE-C0B6-20261031",
+  "reviewer": "Sole independent Codex reviewer; no nested agents",
+  "reviewed_utc": "2026-10-31T14:11:41.6817434Z",
+  "scope": "One combined correctness/clean-code/boundary review of NEW test-only original ambient characterization: fixture group11, Lua driver, Rust bookkeeping guards and sound doc. No production sound cutover, new runtime claim or unchanged kernel/original source re-review.",
+  "source": {
+    "base": "9c47b972aae4dc6640a09f6d9cc13d5f2de81db0",
+    "head": "c0b6c3386dae772eafcd456bc3620f0299bccb4f",
+    "tree": "72ebe91f8c10112fda1dc027d35e8ad734177b6d",
+    "repository": "R:/d3-evidence/environment-services-20261030",
+    "clean": true,
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "blob": "2da0187a636ba6caae466c2743763790206a0eff",
+        "sha256": "b4b214f417bfc8c59a1c1a48c31f8e42252c271abd9004e9e18ae908944c3a9f"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+        "blob": "a0911c0a7d1dd50b5933cb6a4cf215a4b0800dc8",
+        "sha256": "7e725e8fa9462af5a2f63599683f5d0c52dc0c28363130fc1499d91454225ee4"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-characterization.lua",
+        "blob": "beb0a971740a9927d5c01f8d8200bb8e90475cdc",
+        "sha256": "9971c862a5359bee87be9612cd0206cf57b9005341418d21ba91809316ed024a"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sound_characterization.rs",
+        "blob": "cc374cd99d0f671a12509cc58548a4c46b9eec68",
+        "sha256": "e930acbaf971a47475f069dc6eb724c7ec8efaec426ef289a7a8173e20b9bb1e"
+      },
+      {
+        "path": "eech-campaign/docs/d3-environment-sound-routine.md",
+        "blob": "7f113f1cf8ac43ac242ac5e37b190ebacc52cd8c",
+        "sha256": "aaa529da251f1b32273ff46f38c4f85078882b769a6aec2f811a2368bdee2b12"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-14192-native-9c47-judge-closure/Linux-judge-strict-completion.json",
+        "blob": "c4db3f9779d843781e3a035e98bcd6e7ee834d3f",
+        "sha256": "0e6b698e07eff362d8d19ee03f06721b022f002a929f3a8eb087615f79e30a24"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-14192-native-9c47-judge-closure/Windows-judge-build-completion.json",
+        "blob": "9da8995ff147b88a5c21d1d653943eeef3bd263d",
+        "sha256": "5102e62dfd8bd0b3b127da8d9054a1a6b07ac6260ccbdfda28966e0b7ee12082"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-14192-native-9c47-judge-closure/actual-evidence-review.json",
+        "blob": "a511d7fb092ea1f2a4c2517c5e466d0b51b77768",
+        "sha256": "1fa64affc0167601eb463c8d459df6b8ecf23e157f8b683d1813665976d09b96"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-14192-native-9c47-judge-closure/current-CI.json",
+        "blob": "dd2615c522373ff0687ff3dd01db980a079e5932",
+        "sha256": "f2c1ad54bb64258602fdc3f24eb6d5a84053d96e45b5fdd60772960efc4d2b0e"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-14192-native-9c47-judge-closure/default-three-root-comparison.json",
+        "blob": "d6a92f4a174467cf53db3acf046749223b1581b8",
+        "sha256": "98fd7d9c1b5fe52c858aae5bdee9d0c4b08dee9e6f63ae241a323f93eae67452"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-14192-native-9c47-judge-closure/five-mode-receipt.json",
+        "blob": "693db1f6c518de13c48a30ad3b7d147fbdd94561",
+        "sha256": "76996fd541b8fc1c98d4c8f4dd9e638c11f25655245e10a2681d0a4e939d4bb0"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-14192-native-9c47-judge-closure/five-mode-summary.json",
+        "blob": "51c74f0b6d1e69c98622c42c1ef9e36373916236",
+        "sha256": "b9b1e719b22f5ffc9150b97cf7b9eb3920805c4ed60bc5cf9dcb5a5de2aac12c"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-14192-native-9c47-judge-closure/hosted-full-FP-and-timeout.json",
+        "blob": "f7d90418b989d5b846a239cd71e61658651a845b",
+        "sha256": "c51f99ea09d66cb085381e651e03186496a88eb9fad70341730985e62fdf9089"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-14192-native-9c47-judge-closure/judge-native-equivalence.json",
+        "blob": "c5760639d06f2691ed92f683ad9da00f2151179b",
+        "sha256": "73e85bab7b68f5e06b4b5d35e36d8bba13b39218d80e991c53c2602baa6abaed"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-14192-native-9c47-judge-closure/judge-source-review.json",
+        "blob": "bd337247280269fa6e67eac2502d063f203a9bf5",
+        "sha256": "41a1cfaf8913fa41f17330cc54f0f69b2042ae684138e068859f2bb2142e8fae"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-14192-native-9c47-judge-closure/ledger-v90-preservation.json",
+        "blob": "5579e856017b7e9133a73da11ab3924e61929fc7",
+        "sha256": "9f78fc0539ee86759218545cc6f07ac50cf9efbf1cc8dc9829fb9c5079c9e978"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-14192-native-9c47-judge-closure/prior-Windows-timeout-failure-audit.json",
+        "blob": "cebbf861bf3eb76d43da7c4f7a0ff91a4c18e71b",
+        "sha256": "1baf6b7fbc964c4bc3fc5cabd116db8453000bed689b88fd290481be575e9870"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sector-14192-native-9c47-judge-closure/receipt.json",
+        "blob": "ec933b67726aa7c855d7386d00fd12b456a226b3",
+        "sha256": "7da12a6fa778cd6d8af9b971f123405e4b6deb2500d5c9da8b3158030fa51930"
+      }
+    ],
+    "unchanged_sound_body_blob": "c7aa8cadf94f272b0acd81a579052ddc73309788",
+    "unchanged_engine_c_blob": "e1942158a5ee22568cbc05642fc02f671019dbc0",
+    "new_fixture_nuls": 0
+  },
+  "inspected_facts": [
+    {
+      "refs": [
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:1242",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:1538",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:1755",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:2011"
+      ],
+      "fact": "Group11 is explicit-only and adds46finite cases. It calls the unchanged real update_session_sound_effects on the session and its child entities; no amplitude formula is reimplemented in the fixture or Rust judge. Existing production ABI/provider/default Lua and engine C are unchanged. Group0-10 output/census edits are comments plus the group upper range; no golden or tolerance changed."
+    },
+    {
+      "refs": [
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:1435",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:1836"
+      ],
+      "fact": "A bounded stride probe uses the actual loaded sector query and existing domain rejection before selecting surface-present/absent sites, restoring shared scratch afterward. Missing surfaces and missing cockpit gunship are explicit refusals, not fabricated observations. The original here is the unchanged sound body on the current hosted field/terrain baseline, not a whole unhooked original DLL."
+    },
+    {
+      "refs": [
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:1649",
+        "aphavoc/source/entity/special/camera/cm_float.c:196",
+        "aphavoc/source/entity/mobile/mb_hostterrain.c:228",
+        "modules/3d/clouds/clouds.c:284",
+        "aphavoc/source/entity/special/effect/soundeff/se_float.c:95"
+      ],
+      "fact": "The fixture camera and cached elevation control the real camera altitude getter; the cloud global controls the real cloud-height getter. Amp setters write the actual sound-effect fields. Field inputs are imported through the campaign sync point before invoking the unchanged routine; cockpit cases leave gunship position/altitude live and label that prerequisite."
+    },
+    {
+      "refs": [
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:1876",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:1889",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:1902",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:1923"
+      ],
+      "fact": "On ordinary returns, including body append/report failures, cleanup restores saved sound amplitudes, scratch, camera position/cached elevation, cloud base, cockpit flag and saved session/field/season/RNG/delta. Cleanup precedes the rc failure return and final end-row append. Original entity identities/list order and restored values are checked. This is bounded normal/error-return cleanup, not a guarantee that a native fatal longjmp can resume safely or preserve the engine."
+    },
+    {
+      "refs": [
+        "aphavoc/source/entity/special/session/ss_updt.c:823",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:1602"
+      ],
+      "fact": "For equal outdoor rain modes, the two successive attenuation assignments alias the same array entry and apply the altitude factor twice. The equal-heavy combined case at altitude20 exercises the actual behavior. No replacement once-only formula or amplitude expectation is imposed by the driver; measured words must remain authoritative."
+    },
+    {
+      "refs": [
+        "eech-campaign/crates/eech-world/tests/env_sound_characterization.rs:1",
+        "eech-campaign/docs/d3-environment-sound-routine.md",
+        "eech-campaign/crates/eech-engine-sys/sources.txt:405",
+        "eech-campaign/crates/eech-engine-sys/sources.txt:1000"
+      ],
+      "fact": "The four Rust tests exercise the real Lua driver with scripted rows and output failures; their sample words are bookkeeping data, not physics proof. Source includes the sound and renderer consumers; lack of headless speaker/renderer exercise is not dead-code/removal proof. Docs identify real speaker output, renderer/player, missing gunship/nonambient children and real frame order as limits or reused evidence."
+    }
+  ],
+  "findings": [
+    {
+      "id": "ENV-SOUND-ORIGINAL-1",
+      "priority": "P2",
+      "title": "Require complete, case-bound restoration and amplitude records before accepting characterization",
+      "refs": [
+        "eech-campaign/crates/eech-world/lua/env-sound-characterization.lua:102",
+        "eech-campaign/crates/eech-world/lua/env-sound-characterization.lua:179",
+        "eech-campaign/crates/eech-world/lua/env-sound-characterization.lua:196",
+        "eech-campaign/crates/eech-world/lua/env-sound-characterization.lua:202",
+        "eech-campaign/crates/eech-world/tests/env_sound_characterization.rs:77"
+      ],
+      "problem": "The answered-case restoration check compares e.fp_before to e.fp_after without requiring either field. Deleting both fingerprint tokens from the existing healthy scripted end row makes nil==nil and the case is still accepted as restored with a success summary. Session rows are collected by prefix with last-row-wins semantics: duplicates or a foreign case i are accepted, and the row i is never checked. Child amplitude words use %x+ rather than the real serializer eight-digit %08x, so a truncated post-call word can be accepted as an IEEE word. Current guards cover changed fingerprints and missing call/end rows, but miss these concrete incomplete/misassociated records.",
+      "impact": "The preparation gate can accept incomplete restoration evidence or attribute another case session row to this case, while claiming it rejected incomplete cases and preserved complete IEEE amplification observations. This is a witness integrity defect, not a demonstrated defect in the unchanged ambient routine.",
+      "requested_change": "Require both restoration fingerprints with their exact16hex-digit grammar before equality; require exactly one session row with the current case index and a valid0/1 session-unchanged field; require each sound-child word to have the actual8hex-digit grammar (preserve explicit na only for the declared nonsound case). Add finite real-driver controls that remove both fingerprints, duplicate/misindex the session row and truncate a post-call amplitude word, while retaining the existing genuine anomaly reporting and refused-case distinction. No amplitude oracle, extra trace framework or production change is required.",
+      "support": "Direct source control-flow analysis; no synthetic control or native runtime was executed by reviewer."
+    }
+  ],
+  "reuse": {
+    "sector_actual_review": "independent-environment-sector-actual-review-9c47b972a-20261031.json",
+    "sha256": "1fa64affc0167601eb463c8d459df6b8ecf23e157f8b683d1813665976d09b96",
+    "others": "Closed original observer, field/wind/kernel and original-sector evidence retained/reused at their own identities. New curated closure receipts and text-normalization provenance do not change those semantics or expand acceptance."
+  },
+  "validation": {
+    "reviewer": "Read-only source/diff/hash inspection and git diff --check0. Counted46case additions and0new fixtureNULs, verified sound body/engine C blobs unchanged. No tests/builds/compilers/native runs, Docker/process changes, external calls, source/auth/public edits. Only this private JSON report written.",
+    "runtime": "At final report handoff Root reports c0b Windows env-fixture native build actual0 at14:10:48.317887UTC; Linux fmt/new4driverguards/nativefixturebuild/affectedstrict actual0 at14:11:05.217012UTC. These were not run or independently re-audited by the reviewer and do not close the source finding. No original retail sound campaign has run; no amplitude baseline or cockpit/renderer/speaker coverage is accepted."
+  },
+  "verdict": "CHANGES_REQUIRED: one finite P2 witness-record completeness group. Fixture controls/ordinary cleanup are supported in the bounded inspected path; compiler and actual sociable characterization remain Root gates.",
+  "limitations": [
+    "No speaker output, render/player path, nonambient special effects, actual gunship presence, found surface coverage or retail amplitude result is established by this source-only pass. Refusals and prerequisites must remain reported honestly after actual execution.",
+    "A stable fingerprint here is a rendered environment-state hash, not the CPU floating-point environment; this review makes no new complete-FP claim for the legacy fixture/DLL.",
+    "Whole Task51/D3 remains open, including physical effects/time/remaining terrain/spatial/model and full shipping/currentCI/normal merge gates. D4/D5 unstarted; all prior failures/originals/partials/live ground runs preserved."
+  ]
+}

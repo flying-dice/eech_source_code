@@ -1,0 +1,50 @@
+{
+  "created_utc": "2026-11-02T16:14:39.494969+00:00",
+  "script_sha256": "5695aede7f600047929de8f218bf37d52c0b34518d9a556b0cfb0b09f245a2e3",
+  "cases": [
+    {
+      "name": "accepted78",
+      "source": "78fe5efdb5cbaff904e3b645d680acbd7776597d",
+      "pid": 24860,
+      "args": [
+        "D:\\EECH-Migration-Evidence\\nb-78fe5efdb\\eech-campaign\\target\\windows-environment-production-78fe5efdb\\eech-world.exe",
+        "R:\\d3-evidence\\integrated-caller-profile-probe-20261102.lua",
+        "root=D:/EECH-Migration-Evidence/model-integrated-caller-profile-probe-20261102-1612/accepted78-synthetic-root",
+        "select=0"
+      ],
+      "started_utc": "2026-11-02T16:14:38.245774+00:00",
+      "verified_payloads": 74,
+      "build_info_sha256": "98baeb069c2d57b64f1a409d60265fb0246997acc3d9abfaa5529dd56b999b56",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-02T16:14:38.781157+00:00",
+      "arithmetic_observations": [
+        "PROFILE phase=before power=2 mask=00000003 elapsed10=0.99999999999999989",
+        "PROFILE phase=after_prepare power=2 mask=00000003 elapsed10=0.99999999999999978"
+      ],
+      "stderr_sha256": "3a15f6044b434d2a544c25a492eadbb3c61cf30019dde066c2343288d8e2a4f5"
+    },
+    {
+      "name": "integratede9",
+      "source": "e9d77de8dab85b1b1f504051a8b8ad9fb4c909a1",
+      "pid": 9000,
+      "args": [
+        "D:\\EECH-Migration-Evidence\\model-integrated-e9d77de8da\\eech-campaign\\target\\windows-model-integrated-e9d77de8da\\eech-world.exe",
+        "R:\\d3-evidence\\integrated-caller-profile-probe-20261102.lua",
+        "root=D:/EECH-Migration-Evidence/model-integrated-caller-profile-probe-20261102-1612/integratede9-synthetic-root",
+        "select=1"
+      ],
+      "started_utc": "2026-11-02T16:14:38.987480+00:00",
+      "verified_payloads": 83,
+      "build_info_sha256": "f73860e08ac6ac0fdcda097f872a6b83dc8d78e9c3102a2965a66cc54b85b5da",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-02T16:14:39.483987+00:00",
+      "arithmetic_observations": [
+        "PROFILE phase=before power=2 mask=00000003 elapsed10=0.99999999999999989",
+        "PROFILE phase=after_prepare power=2 mask=00000003 elapsed10=0.99999999999999989",
+        "PROFILE phase=after_select power=2 mask=00000003 elapsed10=0.99999999999999978"
+      ],
+      "stderr_sha256": "034f967535117385e045c26ecab94442afc4636587105e212a6272536cb904dd"
+    }
+  ],
+  "scope": "NEW Windows caller arithmetic witness before/after prepare and explicit selection, not fullMXCSR/x87 preservation or campaign/retail/shipping evidence. Fresh synthetic-only roots; no campaign boot, old binaries/source/accepted raw outputs untouched. Linux scripted tests remain separate."
+}

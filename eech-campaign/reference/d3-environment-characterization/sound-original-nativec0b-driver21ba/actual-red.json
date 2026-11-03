@@ -1,0 +1,9 @@
+{
+  "source": "93bc520d1c8a909858e45247aac9cf7a748ef002",
+  "native_source": "c0b6c3386dae772eafcd456bc3620f0299bccb4f",
+  "actual_exit": 101,
+  "meaningful_assertion": "13 of23damaged witness records accepted, incl nil==nil missingfingerprints, duplicate/foreignsession and invalidboolean/width/na records.",
+  "native_and_driver_unchanged": true,
+  "raw_log_sha256": "7928dfbb940c0e8ca3b23e87b81f80bb0c829358a0a82730719bee72c0f4b99d",
+  "scope": "FiniteactualLua-driver protocol red. Not a nativephysicsfailure or retailresult. No amplitudecalculations/masks/acceptedbaselines changed."
+}

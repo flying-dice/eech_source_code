@@ -1,0 +1,134 @@
+{
+  "checked_utc": "2026-11-02T21:58:51.074131+00:00",
+  "measured_runtime": "0cb7b991453b2c13aba1266cdee44abd9be8d7eb",
+  "ordinary_windows_build": {
+    "commit_clean": true,
+    "builder": "unchanged tools/build-windows.sh",
+    "actual_exit": 0,
+    "verified_payloads": 84,
+    "build_info_sha256": "9efb6b801e8500cdde7b7dea1c5b61e768b18cb158e4e962ae6e0c8f92445288",
+    "image": "sha256:844e11bfba573ffe06a9eafef28055d38bff1d3bd42dc5547aa50baa8380757d",
+    "host_executable_sha256": "c0af2175dce22b1fed5fcd8918fa077a51b1ee66365e96a9aa9c401e9c1964a6"
+  },
+  "clean_gates": {
+    "focused_model_target_point": "13 passed / 0 failed",
+    "canonical_default_packages": 0,
+    "canonical_target_point_fixture_packages": 0,
+    "format_check": 0,
+    "both_all_target_strict_clippy": [
+      0,
+      0
+    ],
+    "proof": "Named pinned-image script uses set-e; actual controller0 requires every command0. Package commands do not replace required real-data/public-native authority tests."
+  },
+  "platform_builds": {
+    "linux": {
+      "actual_controller_exit": 0,
+      "completed_utc": "2026-11-02T21:56:39.551656+00:00",
+      "scope": "Task52 host numeric kernel: focused/default/target-point-fixture Linux tests, fmt and both strict checks",
+      "command": [
+        "wsl",
+        "-d",
+        "EECH-D2-Build",
+        "--",
+        "sh",
+        "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-target-point-original-0cb7b99145-linux-20261102.sh"
+      ],
+      "merged_log_sha256": "1aaa1a4385314dce6b57cc025165995958aae928e7a451f269afa221dc7fd6d7",
+      "exact_command_script_sha256": "44bdaf0e321a21cdb0f4737cde36e7081ff74bc6a7c843b34694285af9962bae"
+    },
+    "windows": {
+      "actual_controller_exit": 0,
+      "completed_utc": "2026-11-02T21:50:02.149263+00:00",
+      "scope": "Task52 host numeric kernel: ordinary unchanged tools/build-windows.sh clean Windows shipping-profile build; not yet shipping regression acceptance",
+      "command": [
+        "wsl",
+        "-d",
+        "EECH-D2-Build",
+        "--",
+        "sh",
+        "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-target-point-original-0cb7b99145-windows-20261102.sh"
+      ],
+      "merged_log_sha256": "635690346789425b14d21ae67e2043c16be5aa004239adb31df0380b27a7f3f5",
+      "exact_command_script_sha256": "566970eeb264e2ee179d49958475a99dd49619910ebcd25493aba24129ed27a5"
+    }
+  },
+  "read_only_host_parity_controller_exit": 0,
+  "read_only_script_sha256": "74820fe558b4dde8fafef159657566882bc89033b3fd0f6a4be275a1b85d3b8a",
+  "cases": [
+    {
+      "scenario": "georgia",
+      "actual_read_only_host_exit": 0,
+      "pre_and_post_retail_manifest_exits": [
+        0,
+        0
+      ],
+      "expected_original_JSONL_sha256": "18cae7af7c3c0fe77298c4536a0d9b6ba99a3f5433fd1faa3af5c4564a4fa05e",
+      "all_expected_counts_complete": true,
+      "report": {
+        "branch1_matched": 1,
+        "branch1_mismatches": 0,
+        "branch1_queries": 1,
+        "branch1_refused": 0,
+        "event": "comparison",
+        "offset_bbox": 9752,
+        "offset_events": 4,
+        "offset_invalid_zero": 4,
+        "offset_mismatches": 0,
+        "offset_rows": 12104,
+        "offset_rows_compared": 12104,
+        "offset_rows_not_recorded": 0,
+        "offset_sub_object": 2348,
+        "other_branch_queries": 0,
+        "queries": 1,
+        "state": "keyframe0"
+      },
+      "all84_payloads_original_oracle_and_read_only_script_unchanged": true,
+      "differences": []
+    },
+    {
+      "scenario": "lebanon",
+      "actual_read_only_host_exit": 0,
+      "pre_and_post_retail_manifest_exits": [
+        0,
+        0
+      ],
+      "expected_original_JSONL_sha256": "9758e676a6ce5a1999fcfb625944485e4a52cbef68d43eab3491838580eaa1f8",
+      "all_expected_counts_complete": true,
+      "report": {
+        "branch1_matched": 217,
+        "branch1_mismatches": 0,
+        "branch1_queries": 217,
+        "branch1_refused": 0,
+        "event": "comparison",
+        "offset_bbox": 9752,
+        "offset_events": 4,
+        "offset_invalid_zero": 4,
+        "offset_mismatches": 0,
+        "offset_rows": 12104,
+        "offset_rows_compared": 12104,
+        "offset_rows_not_recorded": 0,
+        "offset_sub_object": 2348,
+        "other_branch_queries": 0,
+        "queries": 217,
+        "state": "keyframe0"
+      },
+      "all84_payloads_original_oracle_and_read_only_script_unchanged": true,
+      "differences": []
+    }
+  ],
+  "all24208_recorded_local_offset_rows_and218_world_point_positions_bit_exact": true,
+  "prior83_failed_gate_preserved": {
+    "source": "83df5b871409171bd2dbd5376cc27c23b1e529ef",
+    "outer_exit": 1,
+    "offset_mismatch_conditions_per_map": 1504,
+    "classification": "Recognized valid-empty-slot refusal plus loaded diagnostic group fixed; full corrected comparison now has no remaining condition differences. Original failure remains retained."
+  },
+  "limits": [
+    "Host model_store reads retail assets independently; this diagnostic never loads eech_dc or boots a campaign.",
+    "Retail parity covers local offset words/provenance/bounds and returned world-point POSITION under declared keyframe0/mainScale1 replay inputs. Original oracle did not capture live joint transforms/root scale or returned child attitude.",
+    "Child attitude and the transformation chain have source/synthetic-test support only; no retail child-attitude oracle or arbitrary-live-state proof is claimed.",
+    "No Core query/initializer routing, host authority/refusal demonstration, new public full caller-FP proof, full shipping regression, task delivery or D3 acceptance. Original campaign/guidance/seeker policy and instance-VP writes remain Core.",
+    "All earlier failed attempts retained; accepted baselines/tolerances/retail inputs/scenarios/oracles unchanged."
+  ]
+}

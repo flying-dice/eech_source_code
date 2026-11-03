@@ -1,0 +1,42 @@
+{
+  "created_utc": "2026-11-02T15:48:43.175510+00:00",
+  "runtime_source": "5515993fdc2fc0a28029723896b0228a5fe68f20",
+  "reports": [
+    {
+      "file": "canonical-builds.json",
+      "bytes": 2536,
+      "sha256": "58f743004eea788a02bd233075b7e035156b77a38dd99fdef33c92e053fa6e36",
+      "private_original": "R:\\d3-evidence\\model-L2-build-audit-5515993fdc-20261102.json",
+      "literal_copy": true
+    },
+    {
+      "file": "runtime-safe-summary.json",
+      "bytes": 7166,
+      "sha256": "413c5a4cba60e0c711cc17a4c3d293a9cbafe0b8e26c19284885f44ebdf564bb",
+      "private_original": "R:\\d3-evidence\\model-L2-safe-runtime-summary-5515993fdc-20261102.json",
+      "literal_copy": true
+    },
+    {
+      "file": "literal-original-list-comparison.json",
+      "bytes": 3075,
+      "sha256": "c494c411042f5b76bcadc65aef7c7ac00a664f9df008e89d9977b510650fb6b8",
+      "private_original": "R:\\d3-evidence\\model-L2-literal-lists-5515993fdc-20261102.json",
+      "literal_copy": true
+    },
+    {
+      "file": "exact-source-ci.json",
+      "bytes": 28092,
+      "sha256": "1d63a75b9fc0570f12e5c683b1f900a1d8912c3b474126bbca364da450d3cfbe",
+      "private_original": "R:\\d3-evidence\\model-L2-CI-5515993fdc-20261102.json",
+      "literal_copy": true
+    },
+    {
+      "file": "independent-final-review.json",
+      "bytes": 16258,
+      "sha256": "1527b9187a350e6012a98504d584621f0e1b5e1db06677287048389dffeff3cb",
+      "private_original": "R:\\d3-evidence\\independent-model-L2-metadata-source-actual-5515993fdc-20261102.json",
+      "literal_copy": true
+    }
+  ],
+  "scope": "Five literal safe reports. Runtime safe summary is its own named/hashes-bound projection of private complete audit; raw catalogue/lists/retail assets/native streams/binaries remain private. No Task50 ordinaryshipping/normaldelivery/wholeD3 acceptance."
+}

@@ -1,0 +1,44 @@
+{
+  "source": "6711d5f11804537255d08e5c355f329796cca657",
+  "original_native_source": "b2e55b18b556d04bc1512a1553a8e1b859347c36",
+  "cases": [
+    {
+      "case": "georgia",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "payloads_verified_unchanged": 49,
+      "complete_raw_lines": 95,
+      "complete_raw_bytes_equal_original": true,
+      "candidate_sha256": "0c349fcdc6b82bb5552cf3875d2652038ee596e2edb4178aa1cd5ca8e93eac61",
+      "original_sha256": "0c349fcdc6b82bb5552cf3875d2652038ee596e2edb4178aa1cd5ca8e93eac61"
+    },
+    {
+      "case": "lebanon",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "payloads_verified_unchanged": 49,
+      "complete_raw_lines": 95,
+      "complete_raw_bytes_equal_original": true,
+      "candidate_sha256": "ac7700d86797bf72be7ad0b38fb8c4ef2b94dc46fcebed5131064e16cc86cec6",
+      "original_sha256": "ac7700d86797bf72be7ad0b38fb8c4ef2b94dc46fcebed5131064e16cc86cec6"
+    },
+    {
+      "case": "lebanon-repeat",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "payloads_verified_unchanged": 49,
+      "complete_raw_lines": 95,
+      "complete_raw_bytes_equal_original": true,
+      "candidate_sha256": "ac7700d86797bf72be7ad0b38fb8c4ef2b94dc46fcebed5131064e16cc86cec6",
+      "original_sha256": "ac7700d86797bf72be7ad0b38fb8c4ef2b94dc46fcebed5131064e16cc86cec6"
+    }
+  ],
+  "scope": "FIRST candidate numeric conformance ONLY. Known fullFP boundary and observer-evidence integrity findings OPEN, Rustlibtestcompile101. Not FP/authority/Tacview/shipping/Task51/D3 acceptance. No original rerun or baseline changes.",
+  "created_utc": "2026-10-31T13:07:19.018304+00:00"
+}

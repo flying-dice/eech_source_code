@@ -1,0 +1,364 @@
+{
+  "schema": "root-parent-play-needed-only-candidate-comparison-v1",
+  "state": "terminal",
+  "actual_exit": 0,
+  "created_utc": "2026-11-01T13:08:28.704225+00:00",
+  "candidate_native_source": "d8db93cc181a6980c00f9ec17967acf217645382",
+  "original_native_source": "8e90ab42e41102fb5045a64e7c46f88b7df8048e",
+  "original_external_driver_source": "6aec433636ffffe2a913e886f86333a0e983d8a8",
+  "cases": [
+    {
+      "mode": "natural",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "verified_payloads": 70,
+      "input_checks": [
+        {
+          "stage": "pre-inputs",
+          "actual_exit": 0
+        },
+        {
+          "stage": "post-inputs",
+          "actual_exit": 0
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\natural\\controller.json",
+          "bytes": 4828,
+          "sha256": "93fe113ae23b788db5bdd004ccd2efbcac1c13c9b0ca615ef1dc7b5b99719c29"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\natural\\environment.jsonl",
+          "bytes": 2402,
+          "sha256": "c1a999e3f40e481c321ab39792a4734b2b117a5d8e28c638c3e3fcdadbe72325"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\natural\\environment.jsonl.case.raw",
+          "bytes": 425242,
+          "sha256": "6c987f0970da30b553729ad1f69116e445e1be56cb10c3f0a8c64c7862e28661"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\natural\\environment.jsonl.play.raw",
+          "bytes": 39695,
+          "sha256": "b483947b7bb335b8513aabb0698a975707aefc8987c0d51e43929cd0653efd8b"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\natural\\native.log",
+          "bytes": 42623,
+          "sha256": "c54b87d17a327fe09783cdbf56b5d011b19ae66711fec8f6644a1d01605cdc7c"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\natural\\post-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\natural\\post-inputs.log",
+          "bytes": 306,
+          "sha256": "b20d2362479614f11457ff15e664f769a42186f878446dd3c19bdf33de375307"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\natural\\pre-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\natural\\pre-inputs.log",
+          "bytes": 306,
+          "sha256": "b20d2362479614f11457ff15e664f769a42186f878446dd3c19bdf33de375307"
+        }
+      ],
+      "derived": {
+        "census_after_boot_types": "32",
+        "census_changes": 1,
+        "census_final_types": "32",
+        "controlled_elided": 0,
+        "controlled_steps": 0,
+        "coverage_note": "natural coverage is only the phase 0 requests; the phase 1 requests are controlled world input and are not natural coverage; a table entry that is non-default but never requested is reported by the census and is not a request; the SESSION branch and every other playback entry point are not recorded; nothing here says any sound plays or that any family source is compiled or dormant",
+        "defaults_nondefault": 0,
+        "defaults_types": "",
+        "event": "derived",
+        "mode": "natural",
+        "natural_elided": 140,
+        "natural_elided_by_type": "10:2,14:32,23:106",
+        "overload_stopped_at_unsupported_boundary": false,
+        "protocol": 2,
+        "range_diagnostic": "removed: the candidate computes no range, so there is no range word to print and no zero stands for one",
+        "source": "the driver's join of the records above; not a measurement",
+        "targets_present": 0
+      },
+      "candidate_elided_records": 140,
+      "original_dispatch_records": 140,
+      "probe_has_no_fabricated_range_field": true,
+      "whole_play_raw_equal": false,
+      "all_request_identity_time_phase_entity_type_session_seed_fields_exact": true,
+      "whole_case_raw_equal": true,
+      "all_case_C_rows_equal_except_explicit_FP_diagnostics": true,
+      "FP_diagnostic_differences": [],
+      "scope_of_projection": "Request metadata only; default/range fields deliberately absent in candidate. Original and candidate full raw hashes retained. No full raw or full FP equality inferred."
+    },
+    {
+      "mode": "fixture",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "verified_payloads": 70,
+      "input_checks": [
+        {
+          "stage": "pre-inputs",
+          "actual_exit": 0
+        },
+        {
+          "stage": "post-inputs",
+          "actual_exit": 0
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\fixture\\controller.json",
+          "bytes": 4345,
+          "sha256": "ea3bb86dc4822e937bfa4b28c428fad02f8b2312490cf72717a3f5fa7ba370f6"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\fixture\\environment.jsonl",
+          "bytes": 1297,
+          "sha256": "3437a3c33d6d783fc5cefc9624eb00b41135d643f83c016b6f2f7b1b52feba63"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\fixture\\environment.jsonl.case.raw",
+          "bytes": 4134,
+          "sha256": "4baa09437581add9b1cd80a0f8bfd444a78c83aebee79df8576aab32a75dbc31"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\fixture\\environment.jsonl.play.raw",
+          "bytes": 1423,
+          "sha256": "71b5389cd1e0608bfecbeba27f705557633eebc693b42a956a3e898a9e9e4f44"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\fixture\\native.log",
+          "bytes": 42619,
+          "sha256": "f30934596872e83ff116e67a965c38584ad332d3d0f0ddb6ed697c04cf7471d3"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\fixture\\post-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\fixture\\post-inputs.log",
+          "bytes": 306,
+          "sha256": "2045c8ac82df847b4e9b88c6008f997dc966f182b59e3468f9585bc4815dc4e9"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\fixture\\pre-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\fixture\\pre-inputs.log",
+          "bytes": 306,
+          "sha256": "2045c8ac82df847b4e9b88c6008f997dc966f182b59e3468f9585bc4815dc4e9"
+        }
+      ],
+      "derived": {
+        "census_after_boot_types": "32",
+        "census_changes": 1,
+        "census_final_types": "32",
+        "controlled_elided": 9,
+        "controlled_steps": 6,
+        "coverage_note": "natural coverage is only the phase 0 requests; the phase 1 requests are controlled world input and are not natural coverage; a table entry that is non-default but never requested is reported by the census and is not a request; the SESSION branch and every other playback entry point are not recorded; nothing here says any sound plays or that any family source is compiled or dormant",
+        "defaults_nondefault": 0,
+        "defaults_types": "",
+        "event": "derived",
+        "mode": "fixture",
+        "natural_elided": 0,
+        "natural_elided_by_type": "",
+        "overload_stopped_at_unsupported_boundary": false,
+        "protocol": 2,
+        "range_diagnostic": "removed: the candidate computes no range, so there is no range word to print and no zero stands for one",
+        "source": "the driver's join of the records above; not a measurement",
+        "targets_present": 2
+      },
+      "candidate_elided_records": 9,
+      "original_dispatch_records": 9,
+      "probe_has_no_fabricated_range_field": true,
+      "whole_play_raw_equal": false,
+      "all_request_identity_time_phase_entity_type_session_seed_fields_exact": true,
+      "whole_case_raw_equal": true,
+      "all_case_C_rows_equal_except_explicit_FP_diagnostics": true,
+      "FP_diagnostic_differences": [],
+      "scope_of_projection": "Request metadata only; default/range fields deliberately absent in candidate. Original and candidate full raw hashes retained. No full raw or full FP equality inferred."
+    },
+    {
+      "mode": "overload",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "verified_payloads": 70,
+      "input_checks": [
+        {
+          "stage": "pre-inputs",
+          "actual_exit": 0
+        },
+        {
+          "stage": "post-inputs",
+          "actual_exit": 0
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\overload\\controller.json",
+          "bytes": 4379,
+          "sha256": "faf92d74a8198b55b41ff57019e56cff9976faf8982872c3f9c41f65073082df"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\overload\\environment.jsonl",
+          "bytes": 1927,
+          "sha256": "8cd3689a3a7a1b9733951a488478b1863ef3aa282f44c757f99c3fc6f4beb728"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\overload\\environment.jsonl.case.raw",
+          "bytes": 808,
+          "sha256": "b71ffe44a2f167334ad08118914781d6fff9cb7757f72ec1707fdac72c124c8e"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\overload\\environment.jsonl.play.raw",
+          "bytes": 476,
+          "sha256": "9f9e9b9d09004800ef881e3dc6a51c557ee1f58ad3cbc055667aefb2617544de"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\overload\\native.log",
+          "bytes": 43159,
+          "sha256": "efc19e2a65c858103fbc9662495f0dfd389c41d08de1f87c115f17194e5ad043"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\overload\\post-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\overload\\post-inputs.log",
+          "bytes": 307,
+          "sha256": "1060d11421bb596049adb47e753b86fd727b456358435bfb89c97089724c01b5"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\overload\\pre-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\overload\\pre-inputs.log",
+          "bytes": 307,
+          "sha256": "1060d11421bb596049adb47e753b86fd727b456358435bfb89c97089724c01b5"
+        }
+      ],
+      "derived": {
+        "census_after_boot_types": "32",
+        "census_changes": 1,
+        "census_final_types": "32",
+        "controlled_elided": 0,
+        "controlled_steps": 0,
+        "coverage_note": "natural coverage is only the phase 0 requests; the phase 1 requests are controlled world input and are not natural coverage; a table entry that is non-default but never requested is reported by the census and is not a request; the SESSION branch and every other playback entry point are not recorded; nothing here says any sound plays or that any family source is compiled or dormant",
+        "defaults_nondefault": 0,
+        "defaults_types": "",
+        "event": "derived",
+        "mode": "overload",
+        "natural_elided": 0,
+        "natural_elided_by_type": "",
+        "overload_stopped_at_unsupported_boundary": true,
+        "protocol": 2,
+        "range_diagnostic": "removed: the candidate computes no range, so there is no range word to print and no zero stands for one",
+        "source": "the driver's join of the records above; not a measurement",
+        "targets_present": 0
+      },
+      "candidate_elided_records": 0,
+      "original_dispatch_records": 9,
+      "probe_has_no_fabricated_range_field": true,
+      "whole_play_raw_equal": false,
+      "named_refusal": {
+        "boundary": "unsupported_live_playback",
+        "entity_type": 10,
+        "event": "overload_stopped",
+        "message": "runtime error: eech: EECH fatal error: host environment: [env-play:unsupported_live_playback] entity_type=10 entity_index=[private-runtime-slot]: the playback dispatch entry of the resumed parent is not the default no-op; live playback from a resumed parent is not supported (no range was computed and no playback function was called)",
+        "note": "from the engine's own fatal message and the order of the source, not a measurement of absence: the engine is poisoned, so no recorded call, census or restoration can be read after it"
+      },
+      "absence_qualification": "The fatal message and reviewed source order support stopping before physical range/dispatch. After poisoning no receiver/census/state can be read; empty records alone are not a measured zero-call/restoration proof."
+    },
+    {
+      "mode": "unarmed",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "verified_payloads": 70,
+      "input_checks": [
+        {
+          "stage": "pre-inputs",
+          "actual_exit": 0
+        },
+        {
+          "stage": "post-inputs",
+          "actual_exit": 0
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\unarmed\\controller.json",
+          "bytes": 348627,
+          "sha256": "554c978caa6622779244b9601fd0891a711340a2deff2b7df71036671b1e81c5"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\unarmed\\environment.jsonl",
+          "bytes": 5191384,
+          "sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\unarmed\\native.log",
+          "bytes": 42553,
+          "sha256": "1d3bd9e0046a4519e259a831f1d92702322ba45aef8ca0e3acd5e3f83ac8e4de"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\unarmed\\post-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\unarmed\\post-inputs.log",
+          "bytes": 306,
+          "sha256": "dcea5ede9d86f15de437eee2812b39bd868d33847f5511c794f3dc42d537be75"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\unarmed\\pre-inputs.json",
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\unarmed\\pre-inputs.log",
+          "bytes": 306,
+          "sha256": "dcea5ede9d86f15de437eee2812b39bd868d33847f5511c794f3dc42d537be75"
+        }
+      ],
+      "complete_unarmed_bytes": 5191384,
+      "complete_unarmed_rows": 17283,
+      "all_complete_bytes_including_endings_equal": true,
+      "original": {
+        "path": "D:\\EECH-Migration-Evidence\\parent-play-original-native8e-driver1fb-20261101\\unarmed\\environment.jsonl",
+        "bytes": 5191384,
+        "sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d"
+      },
+      "candidate": {
+        "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\unarmed\\environment.jsonl",
+        "bytes": 5191384,
+        "sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d"
+      }
+    }
+  ],
+  "scope": "Read-only complete candidate comparison. Default range/dispatch diagnostics intentionally removed and full raw remains different. All8 input checks and native exits explicit, unarmed full bytes exact, request metadata/Cstate comparisons qualified. Independent source+actual review and disposition of any FP diagnostics pending; not shipping40/all8/Tacview, all-family/fullFP/audio/wholeD3 acceptance.",
+  "publication_projection": {
+    "private_original_sha256": "a542e8a1f0b2b65d758ff6ed6234060731d0d72c2ff845db9e714abc64dc6b0e",
+    "removed_fields": [
+      "cases[mode=overload].named_refusal.entity_index"
+    ],
+    "redacted_fields": [
+      "cases[mode=overload].named_refusal.message: allocation-index token only"
+    ],
+    "scope": "This publication copy is a projection. Private complete acceptance receipt and recordings are unchanged; this projected JSON is not claimed byte-identical to the private receipt."
+  }
+}

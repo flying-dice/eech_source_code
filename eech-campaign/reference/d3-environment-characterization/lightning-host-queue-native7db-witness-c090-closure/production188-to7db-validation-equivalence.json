@@ -1,0 +1,12 @@
+{
+  "prior_source": "188ac8c494ea0c550850c5ec37500f43d4cc93f9",
+  "current_source": "7db2c6a91b4cd0a1fae2d8e20bfa169584618d24",
+  "changed_files": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+    "eech-campaign/docs/d3-lightning-queue.md"
+  ],
+  "production_C_Rust_build_inputs_unchanged": true,
+  "scope": "Reuse prior188 full affected-package default/observer tests and both all-target strict profiles ONLYafter actual0. New7db gates: fmt, changed natural lightning guards including4/6 catalogue refusal and incomplete-slot guard, currentworld all-target strict. New7db Windows ordinary build separately actual0. Actual retail/currentCI/review are separate gates."
+}

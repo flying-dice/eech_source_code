@@ -1,0 +1,340 @@
+{
+  "utc": "2026-10-30T04:54:05.107761+00:00",
+  "production_source": "80fd62ea48fc75aa9546c785f525be034abd16f8",
+  "windows_shipping_exit": 0,
+  "windows_diagnostic_exit": 0,
+  "payloads_each": 48,
+  "bounded_restoration": {
+    "utc": "2026-10-30T04:46:25.044021+00:00",
+    "source": "80fd62ea48fc75aa9546c785f525be034abd16f8",
+    "original_source": "4bee2cc8c95309e85b7503a87606b92e0d2594fe",
+    "scope": "Matchedbounded0.001h3.6srequest,actual35frames; notfullpackacceptance",
+    "rows": [
+      {
+        "file": "recording.acmi",
+        "old_bytes": 230871,
+        "new_bytes": 230871,
+        "byte_equal": true,
+        "audit_noninvasive": true,
+        "old_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+        "new_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+        "first_difference": null
+      },
+      {
+        "file": "observations.jsonl",
+        "old_bytes": 1553674,
+        "new_bytes": 1553674,
+        "byte_equal": true,
+        "audit_noninvasive": true,
+        "old_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+        "new_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+        "first_difference": null
+      },
+      {
+        "file": "metrics.json",
+        "old_bytes": 7477,
+        "new_bytes": 7477,
+        "byte_equal": true,
+        "audit_noninvasive": true,
+        "old_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+        "new_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+        "first_difference": null
+      }
+    ],
+    "actual_frame_audit": {
+      "actual_frame_calls": 35,
+      "final_elapsed_seconds": 3.49999737739563
+    },
+    "old_final_clock": 3.49999737739563,
+    "complete_match": true
+  },
+  "all_full_fpu_measured_exact": 16,
+  "actual_full_fpu_cases": [
+    {
+      "case": "reference",
+      "all_controller_native_prepost_exits": 0,
+      "measured": 8,
+      "full_words_exact": true,
+      "fpu_rows": [
+        {
+          "depth": 0,
+          "event": "fpu",
+          "fatal": "",
+          "judged": true,
+          "kind": 1,
+          "ok": true,
+          "report": "model-host-fpu kind=1 rounding=0 scene=8 depth=0 result=0 before_x87_control=0x037f before_x87_status=0x0034 before_mxcsr=0x00001fb5 after_x87_control=0x037f after_x87_status=0x0034 after_mxcsr=0x00001fb5 same_x87_control=1 same_x87_status=1 same_mxcsr=1\n",
+          "result": 0,
+          "rounding": 0,
+          "same_mxcsr": 1,
+          "same_x87_control": 1,
+          "same_x87_status": 1,
+          "scene": 8
+        },
+        {
+          "depth": 0,
+          "event": "fpu",
+          "fatal": "",
+          "judged": true,
+          "kind": 1,
+          "ok": true,
+          "report": "model-host-fpu kind=1 rounding=1 scene=8 depth=0 result=0 before_x87_control=0x077f before_x87_status=0x0034 before_mxcsr=0x00003fb5 after_x87_control=0x077f after_x87_status=0x0034 after_mxcsr=0x00003fb5 same_x87_control=1 same_x87_status=1 same_mxcsr=1\n",
+          "result": 0,
+          "rounding": 1,
+          "same_mxcsr": 1,
+          "same_x87_control": 1,
+          "same_x87_status": 1,
+          "scene": 8
+        },
+        {
+          "depth": 0,
+          "event": "fpu",
+          "fatal": "",
+          "judged": true,
+          "kind": 1,
+          "ok": true,
+          "report": "model-host-fpu kind=1 rounding=2 scene=8 depth=0 result=0 before_x87_control=0x0b7f before_x87_status=0x0034 before_mxcsr=0x00005fb5 after_x87_control=0x0b7f after_x87_status=0x0034 after_mxcsr=0x00005fb5 same_x87_control=1 same_x87_status=1 same_mxcsr=1\n",
+          "result": 0,
+          "rounding": 2,
+          "same_mxcsr": 1,
+          "same_x87_control": 1,
+          "same_x87_status": 1,
+          "scene": 8
+        },
+        {
+          "depth": 0,
+          "event": "fpu",
+          "fatal": "",
+          "judged": true,
+          "kind": 1,
+          "ok": true,
+          "report": "model-host-fpu kind=1 rounding=3 scene=8 depth=0 result=0 before_x87_control=0x0f7f before_x87_status=0x0034 before_mxcsr=0x00007fb5 after_x87_control=0x0f7f after_x87_status=0x0034 after_mxcsr=0x00007fb5 same_x87_control=1 same_x87_status=1 same_mxcsr=1\n",
+          "result": 0,
+          "rounding": 3,
+          "same_mxcsr": 1,
+          "same_x87_control": 1,
+          "same_x87_status": 1,
+          "scene": 8
+        },
+        {
+          "depth": 0,
+          "event": "fpu",
+          "fatal": "",
+          "judged": true,
+          "kind": 0,
+          "ok": true,
+          "report": "model-host-fpu kind=0 rounding=0 scene=8 depth=0 result=0 before_x87_control=0x037f before_x87_status=0x0034 before_mxcsr=0x00001fb5 after_x87_control=0x037f after_x87_status=0x0034 after_mxcsr=0x00001fb5 same_x87_control=1 same_x87_status=1 same_mxcsr=1\n",
+          "result": 0,
+          "rounding": 0,
+          "same_mxcsr": 1,
+          "same_x87_control": 1,
+          "same_x87_status": 1,
+          "scene": 8
+        },
+        {
+          "depth": 0,
+          "event": "fpu",
+          "fatal": "",
+          "judged": true,
+          "kind": 0,
+          "ok": true,
+          "report": "model-host-fpu kind=0 rounding=1 scene=8 depth=0 result=0 before_x87_control=0x077f before_x87_status=0x0034 before_mxcsr=0x00003fb5 after_x87_control=0x077f after_x87_status=0x0034 after_mxcsr=0x00003fb5 same_x87_control=1 same_x87_status=1 same_mxcsr=1\n",
+          "result": 0,
+          "rounding": 1,
+          "same_mxcsr": 1,
+          "same_x87_control": 1,
+          "same_x87_status": 1,
+          "scene": 8
+        },
+        {
+          "depth": 0,
+          "event": "fpu",
+          "fatal": "",
+          "judged": true,
+          "kind": 0,
+          "ok": true,
+          "report": "model-host-fpu kind=0 rounding=2 scene=8 depth=0 result=0 before_x87_control=0x0b7f before_x87_status=0x0034 before_mxcsr=0x00005fb5 after_x87_control=0x0b7f after_x87_status=0x0034 after_mxcsr=0x00005fb5 same_x87_control=1 same_x87_status=1 same_mxcsr=1\n",
+          "result": 0,
+          "rounding": 2,
+          "same_mxcsr": 1,
+          "same_x87_control": 1,
+          "same_x87_status": 1,
+          "scene": 8
+        },
+        {
+          "depth": 0,
+          "event": "fpu",
+          "fatal": "",
+          "judged": true,
+          "kind": 0,
+          "ok": true,
+          "report": "model-host-fpu kind=0 rounding=3 scene=8 depth=0 result=0 before_x87_control=0x0f7f before_x87_status=0x0034 before_mxcsr=0x00007fb5 after_x87_control=0x0f7f after_x87_status=0x0034 after_mxcsr=0x00007fb5 same_x87_control=1 same_x87_status=1 same_mxcsr=1\n",
+          "result": 0,
+          "rounding": 3,
+          "same_mxcsr": 1,
+          "same_x87_control": 1,
+          "same_x87_status": 1,
+          "scene": 8
+        }
+      ]
+    },
+    {
+      "case": "decline-0",
+      "all_controller_native_prepost_exits": 0,
+      "measured": 2,
+      "full_words_exact": true,
+      "fpu_rows": [
+        {
+          "depth": 0,
+          "event": "fpu",
+          "fatal": "",
+          "judged": true,
+          "kind": 1,
+          "ok": true,
+          "report": "model-host-fpu kind=1 rounding=0 scene=8 depth=0 result=0 before_x87_control=0x037f before_x87_status=0x0034 before_mxcsr=0x00001fb5 after_x87_control=0x037f after_x87_status=0x0034 after_mxcsr=0x00001fb5 same_x87_control=1 same_x87_status=1 same_mxcsr=1\n",
+          "result": 0,
+          "rounding": 0,
+          "same_mxcsr": 1,
+          "same_x87_control": 1,
+          "same_x87_status": 1,
+          "scene": 8
+        },
+        {
+          "depth": 0,
+          "event": "fpu",
+          "fatal": "host model: [model-provider:triangle.callback] runtime error: [string \"R:\\d3-evidence\\model-handoff-source-80fd62e...\"]:244: the host declines on purpose",
+          "judged": true,
+          "kind": 0,
+          "ok": true,
+          "report": "model-host-fpu kind=0 rounding=0 scene=8 depth=0 result=1 before_x87_control=0x037f before_x87_status=0x0034 before_mxcsr=0x00001fb5 after_x87_control=0x037f after_x87_status=0x0034 after_mxcsr=0x00001fb5 same_x87_control=1 same_x87_status=1 same_mxcsr=1\nmodel-host-fpu-fatal host model: [model-provider:triangle.callback] runtime error: [string \"R:\\d3-evidence\\model-handoff-source-80fd62e...\"]:244: the host declines on purpose\n",
+          "result": 1,
+          "rounding": 0,
+          "same_mxcsr": 1,
+          "same_x87_control": 1,
+          "same_x87_status": 1,
+          "scene": 8
+        }
+      ]
+    },
+    {
+      "case": "decline-1",
+      "all_controller_native_prepost_exits": 0,
+      "measured": 2,
+      "full_words_exact": true,
+      "fpu_rows": [
+        {
+          "depth": 0,
+          "event": "fpu",
+          "fatal": "",
+          "judged": true,
+          "kind": 1,
+          "ok": true,
+          "report": "model-host-fpu kind=1 rounding=1 scene=8 depth=0 result=0 before_x87_control=0x077f before_x87_status=0x0034 before_mxcsr=0x00003fb5 after_x87_control=0x077f after_x87_status=0x0034 after_mxcsr=0x00003fb5 same_x87_control=1 same_x87_status=1 same_mxcsr=1\n",
+          "result": 0,
+          "rounding": 1,
+          "same_mxcsr": 1,
+          "same_x87_control": 1,
+          "same_x87_status": 1,
+          "scene": 8
+        },
+        {
+          "depth": 0,
+          "event": "fpu",
+          "fatal": "host model: [model-provider:triangle.callback] runtime error: [string \"R:\\d3-evidence\\model-handoff-source-80fd62e...\"]:244: the host declines on purpose",
+          "judged": true,
+          "kind": 0,
+          "ok": true,
+          "report": "model-host-fpu kind=0 rounding=1 scene=8 depth=0 result=1 before_x87_control=0x077f before_x87_status=0x0034 before_mxcsr=0x00003fb5 after_x87_control=0x077f after_x87_status=0x0034 after_mxcsr=0x00003fb5 same_x87_control=1 same_x87_status=1 same_mxcsr=1\nmodel-host-fpu-fatal host model: [model-provider:triangle.callback] runtime error: [string \"R:\\d3-evidence\\model-handoff-source-80fd62e...\"]:244: the host declines on purpose\n",
+          "result": 1,
+          "rounding": 1,
+          "same_mxcsr": 1,
+          "same_x87_control": 1,
+          "same_x87_status": 1,
+          "scene": 8
+        }
+      ]
+    },
+    {
+      "case": "decline-2",
+      "all_controller_native_prepost_exits": 0,
+      "measured": 2,
+      "full_words_exact": true,
+      "fpu_rows": [
+        {
+          "depth": 0,
+          "event": "fpu",
+          "fatal": "",
+          "judged": true,
+          "kind": 1,
+          "ok": true,
+          "report": "model-host-fpu kind=1 rounding=2 scene=8 depth=0 result=0 before_x87_control=0x0b7f before_x87_status=0x0034 before_mxcsr=0x00005fb5 after_x87_control=0x0b7f after_x87_status=0x0034 after_mxcsr=0x00005fb5 same_x87_control=1 same_x87_status=1 same_mxcsr=1\n",
+          "result": 0,
+          "rounding": 2,
+          "same_mxcsr": 1,
+          "same_x87_control": 1,
+          "same_x87_status": 1,
+          "scene": 8
+        },
+        {
+          "depth": 0,
+          "event": "fpu",
+          "fatal": "host model: [model-provider:triangle.callback] runtime error: [string \"R:\\d3-evidence\\model-handoff-source-80fd62e...\"]:244: the host declines on purpose",
+          "judged": true,
+          "kind": 0,
+          "ok": true,
+          "report": "model-host-fpu kind=0 rounding=2 scene=8 depth=0 result=1 before_x87_control=0x0b7f before_x87_status=0x0034 before_mxcsr=0x00005fb5 after_x87_control=0x0b7f after_x87_status=0x0034 after_mxcsr=0x00005fb5 same_x87_control=1 same_x87_status=1 same_mxcsr=1\nmodel-host-fpu-fatal host model: [model-provider:triangle.callback] runtime error: [string \"R:\\d3-evidence\\model-handoff-source-80fd62e...\"]:244: the host declines on purpose\n",
+          "result": 1,
+          "rounding": 2,
+          "same_mxcsr": 1,
+          "same_x87_control": 1,
+          "same_x87_status": 1,
+          "scene": 8
+        }
+      ]
+    },
+    {
+      "case": "decline-3",
+      "all_controller_native_prepost_exits": 0,
+      "measured": 2,
+      "full_words_exact": true,
+      "fpu_rows": [
+        {
+          "depth": 0,
+          "event": "fpu",
+          "fatal": "",
+          "judged": true,
+          "kind": 1,
+          "ok": true,
+          "report": "model-host-fpu kind=1 rounding=3 scene=8 depth=0 result=0 before_x87_control=0x0f7f before_x87_status=0x0034 before_mxcsr=0x00007fb5 after_x87_control=0x0f7f after_x87_status=0x0034 after_mxcsr=0x00007fb5 same_x87_control=1 same_x87_status=1 same_mxcsr=1\n",
+          "result": 0,
+          "rounding": 3,
+          "same_mxcsr": 1,
+          "same_x87_control": 1,
+          "same_x87_status": 1,
+          "scene": 8
+        },
+        {
+          "depth": 0,
+          "event": "fpu",
+          "fatal": "host model: [model-provider:triangle.callback] runtime error: [string \"R:\\d3-evidence\\model-handoff-source-80fd62e...\"]:244: the host declines on purpose",
+          "judged": true,
+          "kind": 0,
+          "ok": true,
+          "report": "model-host-fpu kind=0 rounding=3 scene=8 depth=0 result=1 before_x87_control=0x0f7f before_x87_status=0x0034 before_mxcsr=0x00007fb5 after_x87_control=0x0f7f after_x87_status=0x0034 after_mxcsr=0x00007fb5 same_x87_control=1 same_x87_status=1 same_mxcsr=1\nmodel-host-fpu-fatal host model: [model-provider:triangle.callback] runtime error: [string \"R:\\d3-evidence\\model-handoff-source-80fd62e...\"]:244: the host declines on purpose\n",
+          "result": 1,
+          "rounding": 3,
+          "same_mxcsr": 1,
+          "same_x87_control": 1,
+          "same_x87_status": 1,
+          "scene": 8
+        }
+      ]
+    }
+  ],
+  "linux_original_exit": 101,
+  "linux_failure": "host_callbacks26of27: brittle inventory check counted explanatory comments; actual runtime/profile/phase guards pass, Clippy and later suites NOTREACHED. Original red retained.",
+  "source_review": "a41c60671469b043bffca9e0c737ad0d1d9348830ec4bb0fd3686b17a1c170bc",
+  "p3_corrections": "Comment/blank-insensitive source-inventory guard still rejects intervening executable statements; doc only finalcheckpointseconds changed, not count. No production files changed.",
+  "recovery_scope": "Failed host_callbacks plus unreached load_dc/model_characterization/model_store and Clippy only; no Windows/core/kernel/native rebuild requested for test/prose-only changes.",
+  "status": "BOUNDED_RAW_BYTES_35FRAMES_AND_FULL_FPU_CONFIRMED; TEST_PROSE_RECOVERY_PENDING; NOT_FULL_ACCEPTANCE"
+}

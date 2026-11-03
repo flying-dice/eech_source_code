@@ -1,0 +1,418 @@
+{
+  "source": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+  "workflow_runs": [
+    {
+      "id": 41299758236,
+      "name": "eech-core-ts",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 380,
+      "jobs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/41299758236/jobs",
+      "logs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/41299758236/logs",
+      "workflow_id": 364678585
+    },
+    {
+      "id": 41299758202,
+      "name": "eech-loss-structural",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 227,
+      "jobs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/41299758202/jobs",
+      "logs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/41299758202/logs",
+      "workflow_id": 391769320
+    },
+    {
+      "id": 41299758272,
+      "name": "eech-campaign",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 483,
+      "jobs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/41299758272/jobs",
+      "logs_url": "https://api.github.com/repos/flying-dice/eech_source_code/actions/runs/41299758272/logs",
+      "workflow_id": 367324141
+    }
+  ],
+  "campaign_jobs": [
+    {
+      "id": 124828079330,
+      "name": "evidence-selftest",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41299758272,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Evidence comparison selftest",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Host-identity retained hashes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Supply-arrival retained hashes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        }
+      ]
+    },
+    {
+      "id": 124828079429,
+      "name": "test (x86_64-unknown-linux-gnu)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41299758272,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Test",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Lints",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        }
+      ]
+    },
+    {
+      "id": 124828079486,
+      "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41299758272,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Test",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Lints",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 5
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        }
+      ]
+    },
+    {
+      "id": 124828079536,
+      "name": "windows-cross",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41299758272,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Lua 5.1.5 as lua.dll",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Test under Wine",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        }
+      ]
+    },
+    {
+      "id": 124828079537,
+      "name": "test (i686-unknown-linux-gnu)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41299758272,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Test",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Lints",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 5
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        }
+      ]
+    },
+    {
+      "id": 124828079553,
+      "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41299758272,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Test",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Lints",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 5
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        }
+      ]
+    },
+    {
+      "id": 124828079573,
+      "name": "dcs-probe-tools",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41299758272,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Lua 5.1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Syntax",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Self-test",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "SUPPLY arrival runner inputs",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        }
+      ]
+    }
+  ],
+  "total_jobs": 9,
+  "successful_jobs": 9,
+  "failed_jobs": 0,
+  "actual_status": "All three workflows and all nine jobs complete success. Strict x64 Lints success; both i686 variants and Windows/Wine numerical reds corrected without oracle/flag/target/tolerance changes.",
+  "diagnostic_receipts": [
+    "rotor-control-CI264-i686-job124828079537-20261101.json",
+    "rotor-control-CI264-i686-stack-job124828079553-20261101.json",
+    "rotor-control-CI264-windows-wine-job124828079536-20261101.json",
+    "rotor-control-CI264-linux-x64-label-opt2-job124828079486-20261101.json"
+  ],
+  "scope": "Normal push-triggered exact-head CI. Diagnostic 27 sweep plus261 natural kernel rows all match, complete1152variants/0restorationmismatches per target. EECH_C_OPT=2 job label does not prove WorldO2. Not new retail default/public authority, shipping/Tacview, normal delivery or wholeD3 acceptance."
+}

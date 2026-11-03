@@ -1,0 +1,45 @@
+{
+  "source": "abfda863267c9aa7d71ebc29b10f168d98c484aa",
+  "original_source": "80fd62ea48fc75aa9546c785f525be034abd16f8",
+  "created_utc": "2026-11-01T22:30:19.288433+00:00",
+  "controller_exit": 0,
+  "native_exit": 0,
+  "pre_post_inputs": [
+    0,
+    0
+  ],
+  "payloads": 58,
+  "all_three_complete_bytes_equal": true,
+  "files": [
+    {
+      "file": "recording.acmi",
+      "original_bytes": 230871,
+      "candidate_bytes": 230871,
+      "all_complete_bytes_equal": true,
+      "first_difference": null,
+      "original_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+      "candidate_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d"
+    },
+    {
+      "file": "observations.jsonl",
+      "original_bytes": 1553674,
+      "candidate_bytes": 1553674,
+      "all_complete_bytes_equal": true,
+      "first_difference": null,
+      "original_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+      "candidate_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc"
+    },
+    {
+      "file": "metrics.json",
+      "original_bytes": 7477,
+      "candidate_bytes": 7477,
+      "all_complete_bytes_equal": true,
+      "first_difference": null,
+      "original_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+      "candidate_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4"
+    }
+  ],
+  "configuration": "Exact retained bounded ordinary campaign flags: hours0.001/record1/record_every10/observe_every1/observe_supply1 and explicitacmi+observe paths; samecampaign.lua defaultsseed1/frame100ms, no baseline rerun.",
+  "preserved_failed_launch": "Old50e first launch failure retained independently; this corrected source uses newfresh2220 root and exactretainedoutput flags; actualcontroller command/root fields bind the run.",
+  "scope": "COMPLETE bounded ordinary campaign artifacts compared byteforbyte including endings, not visualTacview or ordinaryshipping40/all8. No Coreloader-removal, Task50/wholeD3 acceptance. Independentchangedsource+actualreview pending."
+}

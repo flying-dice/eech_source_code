@@ -1,0 +1,42 @@
+{
+  "source": "14192c6e292864e573acc8fd8eed94e94f12ce03",
+  "started_utc": "2026-10-31T13:33:58.234651+00:00",
+  "scope": "ACTUAL Windows unit processes. Asset-dependent skips are not retail/authority/shipping proof.",
+  "cases": [
+    {
+      "name": "terrain_sector",
+      "pid": 8224,
+      "args": [
+        "R:\\d3-evidence\\environment-sector-source-14192c6e2\\eech-campaign\\target\\windows-sector-extras-14192c6e2\\terrain_sector.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "sha256": "497f1a01c6c996651ec6ecd686062e07130b43bdee63ff00da6f2eb65710a10f",
+      "state": "terminal",
+      "actual_exit": 0,
+      "summaries": [
+        "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ]
+    },
+    {
+      "name": "env_sector_characterization",
+      "pid": 15080,
+      "args": [
+        "R:\\d3-evidence\\environment-sector-source-14192c6e2\\eech-campaign\\target\\windows-sector-extras-14192c6e2\\env_sector_characterization.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "sha256": "c5d7b84284bc614eb2ee00d7920749ec9fed4f52c573aba3e3d2607685e474aa",
+      "state": "terminal",
+      "actual_exit": 0,
+      "summaries": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+      ]
+    }
+  ],
+  "state": "terminal",
+  "controller_pid": 18828,
+  "verified_payloads": 49,
+  "completed_utc": "2026-10-31T13:33:58.940134+00:00",
+  "all_actual_unit_exits_zero": true
+}

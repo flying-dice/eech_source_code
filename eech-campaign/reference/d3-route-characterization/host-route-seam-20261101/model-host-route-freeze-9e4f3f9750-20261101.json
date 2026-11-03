@@ -1,0 +1,11 @@
+{
+  "source": "9e4f3f9750bac1ce61bd8d1da98467397dd0dac5",
+  "frozen": "D:\\EECH-Migration-Evidence\\route-host-9e4f3f9750",
+  "created_utc": "2026-11-01T20:58:39.298259+00:00",
+  "format_exit": 0,
+  "clone_actual_exit": 0,
+  "own_git": true,
+  "alternates": false,
+  "clean": true,
+  "scope": "Frozen pre-build source; new swap and consumer guards; comments-only9e4 parent11eda. Builds/native pending."
+}

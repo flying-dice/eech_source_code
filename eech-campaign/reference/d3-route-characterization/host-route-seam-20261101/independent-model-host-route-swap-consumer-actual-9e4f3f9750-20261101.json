@@ -1,0 +1,243 @@
+{
+  "review": "Focused route swap/consumer source and completed actual evidence, with current safe publication",
+  "source": {
+    "head": "9e4f3f9750bac1ce61bd8d1da98467397dd0dac5",
+    "base": "50e7f9d8578c7d283b6a47f01a0e2d09e24cfd2f",
+    "frozen_repository": "D:\\EECH-Migration-Evidence\\route-host-9e4f3f9750",
+    "diff_sha256": "e2b93057661451b30a4d097561d4e9390ef591830c7580516cf1725ce0e13a12",
+    "changed_git_blob_sha256": {
+      "STATUS.md": "4b5a65f9b83f85f4fe5247fcae0fc4434088c0b3dbd262d6cf6f635ed5d0258e",
+      "aphavoc/source/entity/mobile/mb_hostmodel.c": "785996628d6b4338266b0cdce0ddd60809d3f96c5eba2002f1ce73449a87e20a",
+      "eech-campaign/crates/eech-engine-sys/build/patches.rs": "5c65b06c9151892216645dddf1286f5136e63c2e6c11f65582bc44b20ba9375a",
+      "eech-campaign/docs/m5-route-characterization.md": "3df3b6fd1ca98c152a1d529d9d05b762c328587969ca37da395b9ad3933d9f48"
+    },
+    "status_only_successor": "6ce5c861430e6e1280424ba021fd66ca5f7a4ffd",
+    "successor_other_entries_and_modes_exact": true
+  },
+  "prior_report": {
+    "path": "R:/d3-evidence/independent-model-host-route-guard-actual-50e7f9d85-20261101.json",
+    "sha256": "583c29a2d09b5406d9ba976de665a855b22daac98b91a2e05be33a5a7841c2c2"
+  },
+  "scope": "One focused changed-source correctness, clean-code and boundary-safety follow-up, new Windows/Linux actuals and current safe metadata. Unchanged provider/store/kernel/ABI/names/order and prior originals are reused. No reviewer edits/builds/tests/native executions or nested agents.",
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "finite_slice_closed": true,
+  "finite_host_route_data_seam_closed": true,
+  "closed_findings": [
+    {
+      "id": "ENV-HOST-ROUTE-BOUNDARY-2",
+      "disposition": "Closed. Both root-swap indices are checked against logical count and physical capacity before ASSERT and before the first write. Same-parent indices start at -1 and both are checked before either child write. Valid original matching order and partner selection are retained."
+    }
+  ],
+  "new_consumer_boundary": {
+    "disposition": "All 205 fixed-offset route-position indexed expressions in popread.c, including WAYPOINT_ALTITUDE, now check table existence and 0 <= index < actual count before access and return the same index. No clamp, minimum-depth oracle or substitute data. The six troop component copies remain bounded by the table count. Original-profile staging remains unchanged.",
+    "actual_control": "A genuine three-node black/green route reaches the fixed-wing consumer and is refused at depth -1 of the actual three-entry table."
+  },
+  "source_limits": "Finite boundary review, not a proof of every malformed graph or all legacy consumers. Prior capacity/progress/reset checks and explicit 4096 matching work limit are reused at their documented contract. No parallel graph solver, fallback, golden, tolerance, flag or route-policy change.",
+  "actual_builds": {
+    "source": "9e4f3f9750bac1ce61bd8d1da98467397dd0dac5",
+    "windows_combined_fixture": {
+      "actual_exit": 0,
+      "completed_utc": "2026-11-01T21:02:20.910563Z",
+      "build_info_sha256": "bbc7fa894216bc27cf6eef035ce14b4698a51a5e63ea9ff4f874362441394a17",
+      "payloads": 57,
+      "standard_builder_adaptations": "Exactly two declared diagnostic feature/banner substitutions; not a shipping build"
+    },
+    "linux": {
+      "actual_exit": 0,
+      "completed_utc": "2026-11-01T21:08:29.378259Z",
+      "default_passed": 562,
+      "combined_passed": 562,
+      "failed": 0,
+      "result_rows_each": 23,
+      "includes_zero_doc_rows": true,
+      "sum_not_unique_coverage": true,
+      "fmt_default_strict_combined_strict": 0,
+      "completion_sha256": "ee50729b240241370f7ff89c51dc68d8c0f2a5db4a7642c35113876621e526b6",
+      "log_sha256": "6af9bff39c86c3a1f0db992ea54fe2f92818482abb02f58906f7fe9ab35b918c"
+    }
+  },
+  "actual_native_controls": {
+    "source": "9e4f3f9750bac1ce61bd8d1da98467397dd0dac5",
+    "distinct_controls": 5,
+    "controllers_exit_zero": 5,
+    "full_pre_post_input_checks_exit_zero": 10,
+    "payloads_rehashed_each": 57,
+    "healthy_native_exits_zero": 3,
+    "expected_negative_native_exits_one": 2,
+    "healthy_route_captures": {
+      "georgia": {
+        "calls": 704,
+        "complete_bytes": 10337109,
+        "sha256": "53b9ddc61e962003081fb577def24f8b2f4ef2f71a28a488c180b319257e01f8"
+      },
+      "lebanon": {
+        "calls": 528,
+        "complete_bytes": 7758545,
+        "sha256": "7de455637bda01ded949366ddf5969b9f07eff7b4d21abf1ca1a79f20258d08f"
+      },
+      "literal_equal_to_both_retained_50e_captures_including_endings": true,
+      "new_independent_repeat_claimed": false,
+      "no_unmeasured_bounds": true,
+      "FCE_cohorts": "Through complete equality to independently verified 50e files and the new comparator: all declared decoded node bit/index and ordered resolved face fields, plus literal Core graph rows, remain exact. Whole original/host profile files intentionally differ; no normalization."
+    },
+    "swap_primary": {
+      "native_exit": 1,
+      "controller_exit": 0,
+      "nodes": 96,
+      "edges": 72,
+      "provider_streams": 2,
+      "last_node_queries": 97,
+      "last_face_queries": 73,
+      "primary_marker": "[model-provider:route.swap]",
+      "observed_refusal": "Resolved root index 24 outside 24 logical/physical start entries",
+      "queries_after_final_supplied_swap_topology": 0,
+      "before_write_proof": "Guard placement in staged source, not postfatal memory inspection"
+    },
+    "short_positions": {
+      "native_exit": 1,
+      "controller_exit": 0,
+      "provider_streams": 31,
+      "last_node_queries": 4,
+      "last_face_queries": 3,
+      "primary_marker": "[model-provider:route.position]",
+      "observed_refusal": "Depth -1 of the actual three-entry position table",
+      "limit": "No postfatal engine query or memory inspection. The wrapper final-swap counter is not a general after-fatal query metric for this control."
+    },
+    "short_recording": {
+      "native_and_controller_exit": 0,
+      "complete_artifacts_literal_equal_to_retained_80fd": true,
+      "recording_bytes": 230871,
+      "observations_bytes": 1553674,
+      "metrics_bytes": 7477,
+      "endings_included": true,
+      "explicit_retained_output_arguments": true
+    },
+    "control_safety": "Controller hardpins corrected 9e4 source and checks clean BUILDINFO, payloads and source before launch. Known-unsafe old binaries were never given these new malformed shapes. No original/baseline rerun occurred."
+  },
+  "reused_evidence": {
+    "50e": "Earlier four named capacity/progress refusals and complete within-profile repeats remain at 50e identity.",
+    "8b": "Bounded host-Z authority and three scalar/callback refusals remain at 8b identity; its false zero-bounds captures remain defect-bearing.",
+    "def6": "Sixteen finite public entry/counter raw x87 control/status/MXCSR checks across four rounding controls, including four route refusals, remain def6 measurements. Unchanged probe/kernel/provider component reuse does not relabel these as 9e4 topology/boot or full public-FP proof.",
+    "failed_short_attempt": "Earlier 50e omitted-output-path native0/controller1/post-input1 remains failed and retained."
+  },
+  "publication": {
+    "state": "Prepared metadata only, not a committed-publication acceptance or delivery claim",
+    "folder": "R:\\d3-evidence\\model-geometry-20261029\\eech-campaign\\reference\\d3-route-characterization\\host-route-seam-20261101",
+    "literal_copies_verified_now": 14,
+    "manifest_sha256": "ae81c0edf0218251fce507d67dd3e4684058434fc150c0679b0fcbdc7f3186ce",
+    "literal_copy_records": [
+      {
+        "file": "model-host-route-source-9e4f3f9750-20261101.json",
+        "bytes": 1206,
+        "sha256": "9d86f1795e98333add71a366a7ad160b68e1f9dadbd3ac1b0f4a2fbbe44f4e82",
+        "literal_private_source": "R:\\d3-evidence\\model-host-route-source-9e4f3f9750-20261101.json"
+      },
+      {
+        "file": "model-host-route-freeze-9e4f3f9750-20261101.json",
+        "bytes": 416,
+        "sha256": "4f9d57f3c1f346fc6dc65f9359730d08348aeabcfbd57a16e9d0d19e8eac771d",
+        "literal_private_source": "R:\\d3-evidence\\model-host-route-freeze-9e4f3f9750-20261101.json"
+      },
+      {
+        "file": "model-host-route-first-cohort-compare-9e4f3f9750-20261101.json",
+        "bytes": 3948,
+        "sha256": "0fafdb3c1d6de8db28ddc1b4fb6209819c68687be5cee7bb42bec4bc3b05c655",
+        "literal_private_source": "R:\\d3-evidence\\model-host-route-first-cohort-compare-9e4f3f9750-20261101.json"
+      },
+      {
+        "file": "model-host-route-boundary-actual-9e4f3f9750-20261101.json",
+        "bytes": 7604,
+        "sha256": "def73d309eb3903fb0f409767f2c1092dd69a155752fdbc9bbe8cfbde4595385",
+        "literal_private_source": "R:\\d3-evidence\\model-host-route-boundary-actual-9e4f3f9750-20261101.json"
+      },
+      {
+        "file": "model-host-route-short-byte-compare-9e4f3f9750-v80-20261101.json",
+        "bytes": 2119,
+        "sha256": "b5a61067efda99e2829ad6ee1fd1ff6201956e2601036fd3f25d39d5121fb586",
+        "literal_private_source": "R:\\d3-evidence\\model-host-route-short-byte-compare-9e4f3f9750-v80-20261101.json"
+      },
+      {
+        "file": "model-host-route-first-cohort-compare-50e7f9d85-20261101.json",
+        "bytes": 3948,
+        "sha256": "663c61cbb9aa82221a59bd2e696d12e99ecb89159152e157ca694b7a76ea67e0",
+        "literal_private_source": "R:\\d3-evidence\\model-host-route-first-cohort-compare-50e7f9d85-20261101.json"
+      },
+      {
+        "file": "model-host-route-complete-repeats-50e7f9d85-20261101.json",
+        "bytes": 1327,
+        "sha256": "3628d9bc19fc27a84f7f7847a46427dfc83a9ea97e5441fcbd111b28fdba3cc7",
+        "literal_private_source": "R:\\d3-evidence\\model-host-route-complete-repeats-50e7f9d85-20261101.json"
+      },
+      {
+        "file": "model-host-route-topology-guards-actual-50e7f9d85-20261101.json",
+        "bytes": 5467,
+        "sha256": "8ac592dbbb0edcc8c29dc9c413cd99617fca15fe90a5c9906a0631a490307ce3",
+        "literal_private_source": "R:\\d3-evidence\\model-host-route-topology-guards-actual-50e7f9d85-20261101.json"
+      },
+      {
+        "file": "model-host-route-short-byte-compare-50e7f9d85-v80-20261101.json",
+        "bytes": 2259,
+        "sha256": "e93e9ead3f10cbbd21359e26d628a61990d86b4be875b2995fdd37d755ea82d8",
+        "literal_private_source": "R:\\d3-evidence\\model-host-route-short-byte-compare-50e7f9d85-v80-20261101.json"
+      },
+      {
+        "file": "model-host-route-authority-controls-8b4562edb-20261101.json",
+        "bytes": 5708,
+        "sha256": "899fc2898b9ff9d5a2b57937ff81e5b64c075dc516878494924a1591e3bb6dd2",
+        "literal_private_source": "R:\\d3-evidence\\model-host-route-authority-controls-8b4562edb-20261101.json"
+      },
+      {
+        "file": "model-host-route-full-fp-def6a9bde-20261101.json",
+        "bytes": 10485,
+        "sha256": "7ac2a0c7be066861c0f12f74104411872105dc66ada430fa518df2fc46a6b540",
+        "literal_private_source": "R:\\d3-evidence\\model-host-route-full-fp-def6a9bde-20261101.json"
+      },
+      {
+        "file": "independent-model-host-route-source-actual-def6a9bde-20261101.json",
+        "bytes": 14667,
+        "sha256": "63027184fff24cd2d2d774aaef1a4d19d089320eff3658b621db3300e041b293",
+        "literal_private_source": "R:\\d3-evidence\\independent-model-host-route-source-actual-def6a9bde-20261101.json"
+      },
+      {
+        "file": "independent-model-host-route-guard-actual-50e7f9d85-20261101.json",
+        "bytes": 11764,
+        "sha256": "583c29a2d09b5406d9ba976de665a855b22daac98b91a2e05be33a5a7841c2c2",
+        "literal_private_source": "R:\\d3-evidence\\independent-model-host-route-guard-actual-50e7f9d85-20261101.json"
+      },
+      {
+        "file": "model-host-route-builds-9e4f3f9750-20261101.json",
+        "bytes": 1488,
+        "sha256": "e7b6758e4fb1ea69021128371358baa2a2e636a5d2c456f43f53899486cd1334",
+        "literal_private_source": "R:\\d3-evidence\\model-host-route-builds-9e4f3f9750-20261101.json"
+      }
+    ],
+    "readme_sha256": "f024ef9c389dc1ac4ce82dc7872ec484ec32416b991957be2d800ee9ae0efe62",
+    "attributes_sha256": "d091f92092b90b850390a844af9a4a56b5a87f379cd6bda9e65b4f3daa45a37a",
+    "all_verified_copies_exact_private_bytes": true,
+    "readme_identity_scope_and_failure_history_correct": true,
+    "privacy_findings": [],
+    "privacy_scope": "Counts, hashes, source paths and bounded audit/error facts only; no raw retail geometry, graph recordings, scene assets, allocation IDs, pointers, credentials or binaries.",
+    "later_additions": "The final report self-copy and later manifest/commit verification are outside this authored report. Any later README or metadata changes require their own exact-byte mapping; no recursive review is implied."
+  },
+  "evidence_sha256": {
+    "model-host-route-boundary-actual-9e4f3f9750-20261101.json": "def73d309eb3903fb0f409767f2c1092dd69a155752fdbc9bbe8cfbde4595385",
+    "model-host-route-first-cohort-compare-9e4f3f9750-20261101.json": "0fafdb3c1d6de8db28ddc1b4fb6209819c68687be5cee7bb42bec4bc3b05c655",
+    "model-host-route-short-byte-compare-9e4f3f9750-v80-20261101.json": "b5a61067efda99e2829ad6ee1fd1ff6201956e2601036fd3f25d39d5121fb586",
+    "model-host-route-source-9e4f3f9750-20261101.json": "9d86f1795e98333add71a366a7ad160b68e1f9dadbd3ac1b0f4a2fbbe44f4e82",
+    "model-host-route-freeze-9e4f3f9750-20261101.json": "4f9d57f3c1f346fc6dc65f9359730d08348aeabcfbd57a16e9d0d19e8eac771d",
+    "model-host-route-builds-9e4f3f9750-20261101.json": "e7b6758e4fb1ea69021128371358baa2a2e636a5d2c456f43f53899486cd1334",
+    "audit-route-boundary-actual-9e4f3f9750-20261101.py": "da7db8320d38798c6f164a640b443ee08272cf7da48f701b3a465b891632d709",
+    "compare-host-route-cohorts-9e4f3f9750-20261101.py": "6953bce2c9af28829a3fd2f4699a2fe168832f84de23796b4e74b8827330d8a5",
+    "audit-host-route-short-byte-9e4f3f9750-20261101.py": "9bf7196febc5cef46ff63460856c99ec182c3aac19ac050dd8c0576f345c7b7f",
+    "audit-route-builds-9e4f3f9750-20261101.py": "ede0d9731be481f39e66a6538f90399824c0da7b27dc83a02b9ebfb2b52ec7f2",
+    "run-host-route-boundary-controls-9e4f3f9750-20261101.py": "4e39f27e4de90f85424a2f89a994b5d59c2163a376cb930ab5e12f565a66f04f",
+    "host-route-swap-and-position-controls-20261101.lua": "f566c80219321345b8caf05564b3cbf420545c806d79c3c41ffbadcf91a1752b"
+  },
+  "remaining_required_work": [
+    "Physical common/custom geometry loaders and required reader metadata remain coupled and require actual extraction.",
+    "Hierarchy, viewpoint, device, muzzle, target-point services and Task49 physical collision scans/transforms remain required D3 work.",
+    "Task50/Task51 whole acceptance, shipping forty checks/eight complete files, visual Tacview, all-boot/full public FP, current final CI and normal merge/delivery are not closed here."
+  ],
+  "conclusion": "No residual finding in the reviewed delta or verified finite actuals. The finite host route-data seam may proceed to the next required loader work. Whole Task50 and D3 remain open."
+}

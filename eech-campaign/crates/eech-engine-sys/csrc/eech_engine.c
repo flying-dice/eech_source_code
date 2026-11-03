@@ -16,6 +16,7 @@
 
 #define _GNU_SOURCE
 #include <fenv.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <sys/stat.h>
 
@@ -28,6 +29,10 @@
 #include "eech_engine.h"
 #include "eech_headless.h"
 #include "eech_synth3d.h"
+
+#ifdef EECH_ENV_OBSERVER
+#include "entity/special/session/ss_envfx.h"
+#endif
 
 extern void eech_run_exit_functions (void);
 
@@ -46,8 +51,37 @@ static enum engine_operation operation;
 /* ---------------------------------------------------------------------------------------------------------------------------- */
 /* entry discipline: FPU environment and fatal-error unwinding */
 
+/* The x87 environment is saved and restored with fegetenv/fesetenv, but that pair does NOT carry the caller's SSE control/status word on every supported toolchain (the MinGW
+ * sequence fegetenv, fesetround (FE_TOWARDZERO), fesetenv was measured returning an MXCSR whose rounding mode had become toward-zero). The complete MXCSR is therefore saved
+ * explicitly before anything changes and written back AFTER fesetenv on every exit that changed the state: the normal leave and the fatal (setjmp) return. Where there is no
+ * MXCSR to save (not x86) the pair is a no-op. The value is assigned once before setjmp and never changed afterwards, so it survives the longjmp. */
+#if defined(__x86_64__) || defined(__i386__)
+static inline uint32_t engine_read_mxcsr (void)
+{
+	uint32_t value = 0;
+	__asm__ __volatile__ ("stmxcsr %0" : "=m" (value));
+	return value;
+}
+
+static inline void engine_write_mxcsr (uint32_t value)
+{
+	__asm__ __volatile__ ("ldmxcsr %0" : : "m" (value));
+}
+#else
+static inline uint32_t engine_read_mxcsr (void)
+{
+	return 0;
+}
+
+static inline void engine_write_mxcsr (uint32_t value)
+{
+	(void) value;
+}
+#endif
+
 #define ENTER(OPERATION,HOST) \
 	fenv_t caller_fenv; \
+	uint32_t caller_mxcsr; \
 	jmp_buf fatal_jmp; \
 	jmp_buf *saved_target = eech_fatal_target; \
 	const struct eech_engine_host *entry_host = (HOST); \
@@ -57,6 +91,10 @@ static enum engine_operation operation;
 	campaign_los_host los_host; \
 	campaign_sense_host sense_host; \
 	campaign_aim_host aim_host; \
+	campaign_terrain_host terrain_host; \
+	campaign_env_host env_host; \
+	campaign_sound_catalogue_host catalogue_host; \
+	campaign_sound_backend_host backend_host; \
 	if (eech_engine_poisoned) \
 	{ \
 		return EECH_ENGINE_POISONED; \
@@ -79,12 +117,34 @@ static enum engine_operation operation;
 	sense_host.user = entry_host ? entry_host->user : NULL; \
 	aim_host.aim = entry_host ? entry_host->aim : NULL; \
 	aim_host.user = entry_host ? entry_host->user : NULL; \
+	campaign_model_host model_host; \
+	model_host.model = entry_host ? entry_host->model : NULL; \
+	model_host.user = entry_host ? entry_host->user : NULL; \
+	/* the model callback is refreshed by every entry that carries one and kept for the process (a NULL entry leaves it); the entry's user pointer is never retained: LEAVE does not clear it (mb_hostmodel.h) */ \
+	campaign_model_set_host (&model_host); \
+	terrain_host.terrain = entry_host ? entry_host->terrain : NULL; \
+	terrain_host.user = entry_host ? entry_host->user : NULL; \
+	env_host.environment = entry_host ? entry_host->environment : NULL; \
+	env_host.user = entry_host ? entry_host->user : NULL; \
+	catalogue_host.catalogue = entry_host ? entry_host->sound_catalogue : NULL; \
+	catalogue_host.user = entry_host ? entry_host->user : NULL; \
+	backend_host.backend = entry_host ? entry_host->sound_backend : NULL; \
+	backend_host.user = entry_host ? entry_host->user : NULL; \
 	campaign_roster_set_host (entry_host ? &roster_host : NULL); \
 	campaign_supply_arrival_set_host (entry_host ? &arrival_host : NULL); \
 	campaign_movement_set_host (entry_host ? &movement_host : NULL); \
 	campaign_los_set_host (entry_host ? &los_host : NULL); \
 	campaign_sense_set_host (entry_host ? &sense_host : NULL); \
 	campaign_aim_set_host (entry_host ? &aim_host : NULL); \
+	caller_mxcsr = engine_read_mxcsr (); \
+	/* the terrain host is installed by the first entry that carries one and kept for the process: LEAVE does not clear it */ \
+	campaign_terrain_set_host (&terrain_host); \
+	/* the environment host is installed by the first entry that carries one and kept for the process, like the terrain host: the field is asked about from every entry */ \
+	campaign_env_set_host (&env_host); \
+	/* the sample metadata host is installed the same way: it is asked once, at boot, but it is kept for the process like the environment host */ \
+	campaign_sound_catalogue_set_host (&catalogue_host); \
+	/* the sound backend host likewise: asked once, at boot, but kept for the process */ \
+	campaign_sound_backend_set_host (&backend_host); \
 	fegetenv (&caller_fenv); \
 	fesetround (FE_TOWARDZERO); \
 	eech_fatal_target = &fatal_jmp; \
@@ -99,6 +159,7 @@ static enum engine_operation operation;
 		operation = OPERATION_NONE; \
 		eech_fatal_target = saved_target; \
 		fesetenv (&caller_fenv); \
+		engine_write_mxcsr (caller_mxcsr); \
 		return EECH_ENGINE_FATAL; \
 	}
 
@@ -112,6 +173,7 @@ static enum engine_operation operation;
 	operation = OPERATION_NONE; \
 	eech_fatal_target = saved_target; \
 	fesetenv (&caller_fenv); \
+	engine_write_mxcsr (caller_mxcsr); \
 	return (RESULT)
 
 const char *eech_engine_fatal_message (void)
@@ -237,7 +299,14 @@ static void boot (const struct eech_engine_config *config)
 	session_cloud_puffs = command_line_cloud_puffs;
 	session_comms_packet_data_size = command_line_comms_packet_data_size;
 	set_valid_combat_zone (TRUE);
+	/* the season is read by load_3d_terrain_game_data when it picks the terrain files (terrdata.c); native sets it earlier (sparm_sc.c notify_session_parameters) */
+	if (config->winter)
+	{
+		set_global_season (SESSION_SEASON_WINTER);
+	}
 	load_3d_terrain_game_data ();
+	/* EEDCS-47: the extents and heights the core reads are the host's, before anything reads them */
+	campaign_terrain_install_map_facts ();
 	initialise_population_name_database ();
 	reinitialise_entity_system ();
 	campaign_roster_reset ();
@@ -275,7 +344,7 @@ int eech_engine_boot (const struct eech_engine_config *config, const struct eech
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || EECH_ENGINE_MODEL_MISSING (host) || !host->terrain || !host->environment || !host->sound_catalogue)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -294,8 +363,14 @@ int eech_engine_boot (const struct eech_engine_config *config, const struct eech
 	 * wall clock.
 	 */
 	eech_headless_set_time_ms (((config->random_seed - 1u) % 1000000u) * 1000u);
+#ifdef EECH_ENV_OBSERVER
+	ENV_FX (ENV_FX_BOOT_BEGIN, (int) config->random_seed, 0, eech_headless_time_ms (), 0, 0, 0, 0, 0)
+#endif
 	boot (config);
 	state = ENGINE_RUNNING;
+#ifdef EECH_ENV_OBSERVER
+	ENV_FX (ENV_FX_BOOT_END, 0, 0, eech_headless_time_ms (), 0, 0, 0, 0, 0)
+#endif
 	LEAVE (EECH_ENGINE_OK);
 }
 
@@ -303,6 +378,10 @@ int eech_engine_boot (const struct eech_engine_config *config, const struct eech
 static void frame (uint32_t milliseconds)
 {
 	int count = get_time_acceleration ();
+
+#ifdef EECH_ENV_OBSERVER
+	ENV_FX (ENV_FX_FRAME_BEGIN, (int) milliseconds, count, eech_headless_time_ms (), ENV_FXF (system_delta_time), 0, 0, 0, 0)
+#endif
 
 	if (count == 0)
 	{
@@ -332,6 +411,9 @@ static void frame (uint32_t milliseconds)
 	/* limit_frame_rate / set_delta_time: the host's clock */
 	eech_headless_advance_time_ms (milliseconds);
 	set_delta_time ();
+#ifdef EECH_ENV_OBSERVER
+	ENV_FX (ENV_FX_FRAME_END, 0, 0, eech_headless_time_ms (), ENV_FXF (system_delta_time), ENV_FXF (system_one_over_delta_time), 0, 0, 0)
+#endif
 	process_events ();
 }
 
@@ -342,7 +424,7 @@ int eech_engine_frame (uint32_t milliseconds, const struct eech_engine_host *hos
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || !host->terrain)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -382,7 +464,7 @@ int eech_engine_report_object (const struct eech_object_report *report, struct e
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!report || !receipt || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	if (!report || !receipt || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || !host->terrain)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -438,7 +520,7 @@ int eech_engine_structures (eech_structure_callback callback, void *user, int *c
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!callback || !count || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	if (!callback || !count || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || !host->terrain)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -780,7 +862,7 @@ int eech_engine_dependent_fixture (int op, int parent_id, int child_id, const do
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || !host->terrain)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -849,7 +931,7 @@ int eech_engine_loss_fixture (int entity_id, const struct eech_engine_host *host
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || !host->terrain)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -883,7 +965,7 @@ int eech_engine_loss_release (int entity_id, int *released, const struct eech_en
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!released || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	if (!released || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || !host->terrain)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -1219,11 +1301,92 @@ int eech_engine_sensor_probe (char *text, int capacity, const struct eech_engine
 		LEAVE (EECH_ENGINE_STATE);
 	}
 	/* the surface-to-air scan reaches the host-owned line of sight (EEDCS-42), so the probe needs the same complete host as a frame */
-	if (!text || (capacity <= 0) || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	if (!text || (capacity <= 0) || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || !host->terrain)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
 	if (eech_sensor_probe_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
+
+#ifdef EECH_TERRAIN_FIXTURE
+
+/*
+ * TEST-ONLY terrain surface characterisation (EEDCS-47): the run-wide trace of every terrain query the campaign's own update loop makes,
+ * and a read-only, deterministic probe sweep over the loaded map (eech_terrain_fixture.c). Both run inside the engine entry, so they see
+ * EECH's round-toward-zero mode as the campaign's own queries do. None of them constructs an entity or replaces a handler, and the probe
+ * restores the shared find-fast record. The report is text, `key=value` lines; nothing in it is an entity index or an address.
+ */
+extern int eech_terrain_trace_get (char *text, int capacity);
+extern void eech_terrain_trace_clear (void);
+extern int eech_terrain_probe_run (uint32_t seed, int count, int emit, char *text, int capacity);
+
+int eech_engine_terrain_trace (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_terrain_trace_get (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_terrain_trace_reset (void)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	eech_terrain_trace_clear ();
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_terrain_probe (uint32_t seed, int count, int emit, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || (count < 0) || (count > 200000) || (emit < 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_terrain_probe_run (seed, count, emit, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+extern int eech_terrain_face_probe_run (float x, float z, char *text, int capacity);
+
+int eech_engine_terrain_face_probe (float x, float z, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_terrain_face_probe_run (x, z, text, capacity) != 0)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -1532,6 +1695,551 @@ int eech_engine_wpn_case_launch (const char *launcher_id, const char *target_id,
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
 	if (eech_wpn_case_launch_run (launcher_id, target_id, weapon, salvo_count, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
+
+#ifdef EECH_MODEL_FIXTURE
+
+/*
+ * TEST-ONLY original collision-model characterisation (EEDCS-50): read-only questions to the original model accessors about the models the
+ * retail data loaded (eech_model_fixture.c). They run inside the engine entry, so they see EECH's round-toward-zero mode as the game's own
+ * calls do. None of them constructs an entity, replaces a table or draws a random number. The reports are text, `key=value` lines; nothing in
+ * them is an address, and floats are bit patterns. A report that does not fit `capacity` is refused, never cut short.
+ */
+extern int eech_model_summary_run (char *text, int capacity);
+extern int eech_model_catalogue_run (int first, int count, char *text, int capacity);
+extern int eech_model_geometry_run (int scene, int first_depth, int count, char *text, int capacity);
+extern int eech_model_state_run (char *text, int capacity);
+extern int eech_model_animation_run (int first, int count, char *text, int capacity);
+
+int eech_engine_model_summary (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_summary_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_catalogue (int first, int count, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_catalogue_run (first, count, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_geometry (int scene, int first_depth, int count, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_geometry_run (scene, first_depth, count, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_animations (int first, int count, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_animation_run (first, count, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_state (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_state_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+
+/*
+ * TEST-ONLY (EEDCS-50, D3; feature model-host-fixture): diagnostics of the host-owned model data (eech_model_host_fixture.c). They run inside the engine entry, so they see
+ * EECH's round-toward-zero mode as the campaign's own calls do, and a fatal error in the host's answer unwinds to the entry. They pass no host: the model host installed at
+ * boot answers. None draws a random number, advances time or touches an entity.
+ */
+extern int eech_model_host_counters_run (char *text, int capacity);
+extern int eech_model_host_poison_run (void);
+extern int eech_model_host_probe_run (int scene, int depth, char *text, int capacity);
+extern int eech_model_host_horizon_refusal_run (char *text, int capacity);
+extern int eech_model_host_animation_run (int first, int count, char *text, int capacity);
+extern int eech_model_host_target_offsets_run (int first, int count, char *text, int capacity);
+extern int eech_model_host_attack_consumer_run (char *text, int capacity);
+extern int eech_model_host_target_queries_run (int mutate, char *text, int capacity);
+
+int eech_engine_model_host_counters (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_host_counters_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_host_animations (int first, int count, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_host_animation_run (first, count, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_host_target_offsets (int first, int count, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_host_target_offsets_run (first, count, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_host_attack_consumer (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_host_attack_consumer_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_host_target_queries (int mutate, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || ((mutate != 0) && (mutate != 1)) || eech_model_host_target_queries_run (mutate, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_host_poison (void)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (eech_model_host_poison_run () != 0)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_host_probe (int scene, int depth, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_host_probe_run (scene, depth, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_host_horizon_refusal (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_host_horizon_refusal_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
+
+#ifdef EECH_ENV_FIXTURE
+/* TEST-ONLY (feature env-fixture, EEDCS-51): the ORIGINAL session environment, see eech_env_fixture.c. Group 0 census and 1 retail snapshot are read-only; groups 2.. are controlled witnesses
+   that restore everything they touch before they return. No host is given: the cases ask no physical question of a host. */
+extern int eech_env_case_run (int group, int index, char *text, int capacity);
+
+int eech_engine_env_case (int group, int index, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_env_case_run (group, index, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+#endif
+
+#ifdef EECH_ENV_OBSERVER
+/* TEST-ONLY (feature env-observer, EEDCS-51): the read-only observer of csrc/eech_env_observer.c. Arming is valid only BEFORE boot (arming after it would give incomplete evidence); turning it off is
+   always valid. The report and the events are read like the other test-only logs. */
+extern void eech_envobs_arm (int on);
+extern int eech_envobs_report (char *text, int capacity);
+extern int eech_envobs_events (char *text, int capacity, int *more);
+
+int eech_engine_env_observer_arm (int on)
+{
+	if (eech_engine_poisoned)
+	{
+		return EECH_ENGINE_POISONED;
+	}
+	if (on && (state != ENGINE_NEW))
+	{
+		return EECH_ENGINE_STATE;
+	}
+	eech_envobs_arm (on);
+	return EECH_ENGINE_OK;
+}
+
+int eech_engine_env_observer_report (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || (eech_envobs_report (text, capacity) != 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/* returns EECH_ENGINE_OK with `more` set to 1 while unread events remain */
+int eech_engine_env_observer_events (char *text, int capacity, int *more)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || !more || (eech_envobs_events (text, capacity, more) != 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/* the helicopter rotor sound probe (eech_env_observer.c ENV_FXR): its own arm, report and drained events; arming is valid only BEFORE boot, like the observer's */
+extern void eech_envobs_rotor_arm (int on);
+extern int eech_envobs_rotor_report (char *text, int capacity);
+extern int eech_envobs_rotor_events (char *text, int capacity, int *more);
+
+int eech_engine_env_rotor_arm (int on)
+{
+	if (eech_engine_poisoned)
+	{
+		return EECH_ENGINE_POISONED;
+	}
+	if (on && (state != ENGINE_NEW))
+	{
+		return EECH_ENGINE_STATE;
+	}
+	eech_envobs_rotor_arm (on);
+	return EECH_ENGINE_OK;
+}
+
+int eech_engine_env_rotor_report (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || (eech_envobs_rotor_report (text, capacity) != 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/* returns EECH_ENGINE_OK with `more` set to 1 while unread calls remain */
+int eech_engine_env_rotor_events (char *text, int capacity, int *more)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || !more || (eech_envobs_rotor_events (text, capacity, more) != 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/* the resumed-parent playback probe (eech_env_observer.c ENV_FXP): its own arm, report and drained events; arming is valid only BEFORE boot, like the others */
+extern void eech_envobs_play_arm (int on);
+extern int eech_envobs_play_report (char *text, int capacity);
+extern int eech_envobs_play_events (char *text, int capacity, int *more);
+
+int eech_engine_env_play_arm (int on)
+{
+	if (eech_engine_poisoned)
+	{
+		return EECH_ENGINE_POISONED;
+	}
+	if (on && (state != ENGINE_NEW))
+	{
+		return EECH_ENGINE_STATE;
+	}
+	eech_envobs_play_arm (on);
+	return EECH_ENGINE_OK;
+}
+
+int eech_engine_env_play_report (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || (eech_envobs_play_report (text, capacity) != 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/* returns EECH_ENGINE_OK with `more` set to 1 while unread calls remain */
+int eech_engine_env_play_events (char *text, int capacity, int *more)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || !more || (eech_envobs_play_events (text, capacity, more) != 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+#endif
+
+#ifdef EECH_GROUND_FIXTURE
+
+/*
+ * TEST-ONLY ground-contact characterisation (EEDCS-48): one read-only probe of the original point_above_ground, point_below_ground and
+ * get_ground_impact_point against the loaded terrain (eech_ground_fixture.c). It runs inside the engine entry, so it sees EECH's
+ * round-toward-zero mode as the campaign's own queries do, and it takes no host argument: none of the three asks a dialogue host. (In the host-terrain module their terrain reads go to the terrain provider that boot installed for the process.) It snapshots the shared
+ * terrain point record and writes it back byte for byte. The report is text, `key=value` lines; no pointer, address or entity index is in it.
+ * A request the probe refuses (a precondition) or whose report does not fit writes `ground-refused reason=...` and is a bad argument.
+ */
+extern int eech_ground_probe_run (uint32_t seed, int points, int impacts, char *text, int capacity);
+
+int eech_engine_ground_probe (uint32_t seed, int points, int impacts, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || (points < 0) || (points > 100000) || (impacts < 0) || (impacts > 100000) || (points + impacts <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_ground_probe_run (seed, points, impacts, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
+
+#ifdef EECH_ROUTE_FIXTURE
+
+/*
+ * TEST-ONLY (EEDCS-50, D3; feature route-fixture): the report of what the ORIGINAL airfield route parser read and produced during this process's campaign load
+ * (eech_route_fixture.c). Read-only: both entries pass no host, run inside the engine entry (EECH's round-toward-zero mode) and touch no campaign state.
+ */
+extern int eech_route_summary_run (char *text, int capacity);
+extern int eech_route_call_run (int index, char *text, int capacity);
+
+int eech_engine_route_summary (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_route_summary_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_route_call (int index, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || index < 0 || eech_route_call_run (index, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
+
+#ifdef EECH_TARGET_POINT_FIXTURE
+
+/*
+ * TEST-ONLY (EEDCS-52, D3; feature target-point-fixture): the report of what the ORIGINAL target-point query, its callers and the boot census of target_point_offsets[] did during this
+ * process (eech_tp_fixture.c). Read-only: the entries pass no host, run inside the engine entry (EECH's round-toward-zero mode) and touch no campaign state.
+ */
+extern int eech_tp_summary_run (char *text, int capacity);
+extern int eech_tp_offsets_run (int generation, char *text, int capacity);
+extern int eech_tp_event_run (int index, char *text, int capacity);
+
+int eech_engine_target_point_summary (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_tp_summary_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_target_point_offsets (int generation, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || generation < 0 || eech_tp_offsets_run (generation, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_target_point_event (int index, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || index < 0 || eech_tp_event_run (index, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/* TEST-ONLY (EEDCS-52): the controlled probe, once, after the boot: see eech_tp_fixture.c eech_tp_probe_run */
+extern int eech_tp_probe_run (char *text, int capacity);
+
+int eech_engine_target_point_probe (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_tp_probe_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/* TEST-ONLY (EEDCS-52): the setup probe, a separate opt-in mode, once, after the boot: see eech_tp_fixture.c eech_tp_setup_run */
+extern int eech_tp_setup_run (char *text, int capacity);
+
+int eech_engine_target_point_setup (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_tp_setup_run (text, capacity) != 0)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}

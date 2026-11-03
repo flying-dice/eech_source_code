@@ -1,0 +1,70 @@
+{
+  "commit": "9c47b972aae4dc6640a09f6d9cc13d5f2de81db0",
+  "all_nine_completed_success": true,
+  "jobs": [
+    {
+      "id": 124555500797,
+      "name": "dcs-probe-tools",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41207508244
+    },
+    {
+      "id": 124555500941,
+      "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41207508244
+    },
+    {
+      "id": 124555500953,
+      "name": "test (x86_64-unknown-linux-gnu)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41207508244
+    },
+    {
+      "id": 124555500965,
+      "name": "windows-cross",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41207508244
+    },
+    {
+      "id": 124555500974,
+      "name": "test (i686-unknown-linux-gnu)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41207508244
+    },
+    {
+      "id": 124555500980,
+      "name": "evidence-selftest",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41207508244
+    },
+    {
+      "id": 124555500997,
+      "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41207508244
+    },
+    {
+      "id": 124555500638,
+      "name": "Slice 1a historical equivalence",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41207508224
+    },
+    {
+      "id": 124555500785,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41207508202
+    }
+  ],
+  "scope": "All applicable current-head hosted jobs succeed. Separate from unbuilt originalambient worktree changes and fullshipping/Task51/D3 acceptance."
+}

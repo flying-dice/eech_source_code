@@ -1,0 +1,193 @@
+{
+  "review": "Independent final ground shipping actual-evidence/auditor/safe-publication review",
+  "created_utc": "2026-11-01T00:24:50.109948+00:00",
+  "source": {
+    "tested_runtime": "aafb21775f5d3523a30f148d23fbce588902025a",
+    "frozen_snapshot": "R:/d3-evidence/ground-production-source-aafb21775",
+    "tested_binary": "R:/d3-evidence/ground-production-source-aafb21775/eech-campaign/target/windows-ground-production-aafb21775",
+    "publication_head": "4c7a94f81c8325f5bbdaa75363bd70ae8b35f652",
+    "additional_reviewed_uncommitted_metadata": "ground-comparator-provenance-20261101.json",
+    "additional_metadata_sha256": "0bc648fd409139f9f1058b668dcc99bfd4383400d5cb424b50dea39e54038374",
+    "mapping": "Ordinary shipping binary remains aafb. Later e107 changes FP test code only; subsequent differences are metadata/reference/test-only, not a new shipping binary. Frozen aafb HEAD/clean status independently checked."
+  },
+  "findings": [],
+  "finite_ground_shipping_acceptance": true,
+  "task48_delivery_closed": false,
+  "whole_D3_closed": false,
+  "accepted_scope": "Finite production above/below-ground predicates and terrain-impact search extraction; prior closed source/FP/real-weapon authority reviews reused. Final Task48 delivery/CI/normal merge are separate.",
+  "inspected_facts": {
+    "completion": {
+      "pack_directory": "R:\\d3-evidence\\shipping-ground-aafb21775-recovery-pack-20261031-0945",
+      "runner_pid": 19032,
+      "actual_runner_exit": 0,
+      "completed_utc": "2026-11-01T00:13:42.528404+00:00",
+      "launcher_gate_passed": true,
+      "evidence": "Terminal run/completion receipts, full report, stdout REGRESSION PACK: PASS, reference summary and regression logs agree. This is a completed fresh-root recovery, not completion inferred from process disappearance."
+    },
+    "checks": {
+      "count": 40,
+      "exact_accepted_ID_set": true,
+      "all_statuses": "PASS",
+      "IDs": [
+        "blindspot.georgia_resupply",
+        "evidence.artifacts",
+        "evidence.checkers",
+        "evidence.manifests",
+        "evidence.reproduce.chains",
+        "evidence.reproduce.loss",
+        "evidence.reproduce.m2_check",
+        "evidence.reproduce.m3_check",
+        "governance.fixture",
+        "governance.lineage",
+        "inputs.georgia",
+        "inputs.lebanon",
+        "inputs.lebanon_repeat",
+        "lifecycle.bad_arguments",
+        "lifecycle.boot_twice",
+        "lifecycle.missing_campaign",
+        "lifecycle.missing_map",
+        "lifecycle.missing_root",
+        "lifecycle.no_reuse",
+        "reference.baseline",
+        "reference.loss_chain",
+        "reference.observation_check",
+        "reference.observed_equals_unobserved",
+        "reference.repeatable",
+        "reference.supply_chains",
+        "regress.georgia.exact",
+        "regress.georgia.expectations",
+        "regress.lebanon.exact",
+        "regress.lebanon.expectations.mechanics",
+        "regress.lebanon.expectations.resupply",
+        "retained.chains_report",
+        "retained.check_report",
+        "retained.loss_report",
+        "retained.observations",
+        "retained.recording",
+        "sensitivity.loss_chain_check",
+        "sensitivity.observation_check",
+        "sensitivity.s3_exact",
+        "sensitivity.s3_lebanon_expectation",
+        "sensitivity.supply_chain_check"
+      ],
+      "method": "Independently matched candidate IDs to preflight expected checks and accepted report, checked every status and PASS head; retained D2 comparison report also has the same complete40PASS set."
+    },
+    "complete_outputs": {
+      "baseline": "R:/d2-evidence/baseline-host-20261026-shortpath",
+      "accepted_D2_report_sha256": "0d6cadc4d1506686d6d6535459498c561bf70b4d2e9fbaff03c4600cffff1a97",
+      "count": 8,
+      "all_equal": true,
+      "scope": "Both complete Tacview recordings, both observation streams, both metrics files and Georgia/Lebanon regression JSON. Reviewer independently streamed both sides and compared every byte through EOF, then verified lengths/digests against comparison metadata. No prefix-only result or normalization.",
+      "comparator": "Existing skill compare_complete_packs.py inspected; Root actual comparator0/8equal recorded after the call with baseline/candidate/command/hash. The provenance receipt is explicitly not a rerun or separate retained subprocess stdout file.",
+      "configuration": "All four metric run objects show seed1,3 simulated hours,100ms frames, correct Georgia/Lebanon scenarios; baseline/scenario/tolerance definitions unchanged."
+    },
+    "identity": {
+      "payloads": 50,
+      "all_preflight_sizes_hashes_independently_verified": true,
+      "BUILD_INFO_sha256": "2f2ed4946c5c21b8ee00de956992af294a0a9c356a2a549d0c8397577dec550c",
+      "runner_sha256": "4dc08480b72722a7dfdae5dea319f61acc6414c4bdb29351982e1579393d66db",
+      "launcher_sha256": "dad4dbafcd2d6c057c7f306d2e8aefb233f1b788a18e3f58233a3a096ddef5b4",
+      "build": "Clean ordinary aafb build; no fixture marker. Actual command/roots/binary paths map to preflight and full report. Payload/runner/launcher and pack-record hashes match auditor/preflight.",
+      "publication_source_delta": "Inspected full path delta since runtime: production inputs unchanged; terrain_backend.rs FP-test recovery and metadata/reference changes only."
+    },
+    "inputs": {
+      "preflight_external_roots": 3,
+      "launcher_post_external_roots0": 3,
+      "fresh_final_post_checks0": 4,
+      "fresh_final_scope": "Georgia, Lebanon, independent Lebanon repeat and runner internal Lebanon copy; Root repository input-manifest.py comparisons with accepted references. Reviewer verified actual0 audit records, exact commands/reference hashes and retained IDENTICAL logs. No retail/native rerun by reviewer."
+    },
+    "auditor": "Read full helper; it requires actual completed runner/launcher, exact40PASS, eight full equal comparisons, all50 payloads/BUILDINFO/runner/launcher, fresh four input checks, permitted source delta and immutable pack-record identities. Independent checks corroborate its output. It grants no new source/authority/wholeD3 acceptance.",
+    "publication": {
+      "committed_files_reviewed": 7,
+      "additional_provenance_receipt_reviewed": 1,
+      "all_seven_published_private_artifact_copies_byte_identical": true,
+      "scope": "All proposed/pinned README, metadata JSON, auditor and STATUS/handoff claims inspected. No report contents, raw recordings, retail inputs or measured entity/model-position data copied into Git. Only private paths, commands, sizes/hashes/check identifiers and scoped facts.",
+      "future_append": "A later literal copy of this review/closure receipt and future publication-head CI are not pre-reviewed; source/content changes require their own appropriate checks."
+    },
+    "reused_and_retained": "Closed original/source/corrections/FP test-recovery/actualFP and real weapon-authority reports reused without reruns or source re-review. The earlier interrupted pack remains interrupted with unavailable original exits and retained partials; historical failed source/export/test evidence remains failed. Only this separately named fresh-root recovery has actual0."
+  },
+  "limitations": [
+    "Full byte comparison and existing structural checks are not new visual Tacview inspection. Established pack blind spots/evidence-only claims are unchanged.",
+    "Campaign geography/route policy/class mapping/consequences remain Core-owned. Required derived terrain/loaders, spatial/object scans/transforms/narrow phase, model hierarchy/viewpoints/devices/muzzles/target points/physical route data, environment/time and whole D3 remain open. D4/D5 unstarted.",
+    "Final publication-head CI, normal merge, Task48 delivery/workflow closure and wider Task51/D3 acceptance remain Root gates. No claim that this reviewed documentation head is a newly tested native.",
+    "Reviewer performed read-only file/byte/hash/metadata audits and wrote only this private LF report; no agents, experiments/tests/builds/native runs, cache/process/source/auth/external publication changes."
+  ],
+  "evidence": [
+    {
+      "path": "R:\\d3-evidence\\ground-completed-shipping-audit-20261101.json",
+      "sha256": "cb45594b9aa544a7a48a22150c21f22f8113972ab5d67d01e7fdf4ae9ce68c25"
+    },
+    {
+      "path": "R:\\d3-evidence\\audit-ground-completed-shipping-20261101.py",
+      "sha256": "d7fefc23991410f4b2cd52703dc30fb5c0d9a18c19434beca60a6a1f9669fd7b"
+    },
+    {
+      "path": "R:\\d3-evidence\\ground-aafb21775-complete-comparison-20261101.json",
+      "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+    },
+    {
+      "path": "R:\\d3-evidence\\ground-comparator-provenance-20261101.json",
+      "sha256": "0bc648fd409139f9f1058b668dcc99bfd4383400d5cb424b50dea39e54038374"
+    },
+    {
+      "path": "R:\\d3-evidence\\shipping-ground-aafb21775-recovery-pack-20261031-0945\\report.json",
+      "sha256": "9259938bf59578c084a12d7cd12132e26ee41a0d8d25ca38bc3b87d01bc2fda1"
+    },
+    {
+      "path": "R:\\d3-evidence\\shipping-ground-aafb21775-recovery-pack-20261031-0945\\run.json",
+      "sha256": "868b2d34d5c65ab41d717b6d9e4ac7be5a5eafe8542016e662f1c73712dea84d"
+    },
+    {
+      "path": "R:\\d3-evidence\\shipping-ground-aafb21775-recovery-pack-20261031-0945\\preflight.json",
+      "sha256": "65c17c8cbfc679c543f8f2f30d558bda0953c973bab82cede987c99b6f005924"
+    },
+    {
+      "path": "R:\\d3-evidence\\shipping-ground-aafb21775-recovery-pack-20261031-0945\\completion.json",
+      "sha256": "cba5bf7e524aa262797a61c2faaa00e7c73dc2e5c11b77ef2a353d160cdbb90a"
+    }
+  ],
+  "publication_identities": [
+    {
+      "file": "audit-ground-completed-shipping-20261101.py",
+      "sha256": "d7fefc23991410f4b2cd52703dc30fb5c0d9a18c19434beca60a6a1f9669fd7b"
+    },
+    {
+      "file": "completion.json",
+      "sha256": "cba5bf7e524aa262797a61c2faaa00e7c73dc2e5c11b77ef2a353d160cdbb90a"
+    },
+    {
+      "file": "ground-aafb21775-complete-comparison-20261101.json",
+      "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+    },
+    {
+      "file": "ground-comparator-provenance-20261101.json",
+      "sha256": "0bc648fd409139f9f1058b668dcc99bfd4383400d5cb424b50dea39e54038374"
+    },
+    {
+      "file": "ground-completed-shipping-audit-20261101.json",
+      "sha256": "cb45594b9aa544a7a48a22150c21f22f8113972ab5d67d01e7fdf4ae9ce68c25"
+    },
+    {
+      "file": "preflight.json",
+      "sha256": "65c17c8cbfc679c543f8f2f30d558bda0953c973bab82cede987c99b6f005924"
+    },
+    {
+      "file": "README.md",
+      "sha256": "bf34ca7080fedc0f7ed1bf737bb219ae7e57d70fa0361a1a98d8b63d79db5ef7"
+    },
+    {
+      "file": "run.json",
+      "sha256": "868b2d34d5c65ab41d717b6d9e4ac7be5a5eafe8542016e662f1c73712dea84d"
+    }
+  ],
+  "reviewed_document_identities": [
+    {
+      "path": "R:\\eech_source_code\\STATUS.md",
+      "sha256": "9126fa3a2b9f27ff8a3aff525e52cb617d4be6c1811360616ae133947f4d54ee"
+    },
+    {
+      "path": "R:\\eech_source_code\\eech-campaign\\docs\\m5-ground-production-handoff.md",
+      "sha256": "6c88459939833f5cb9b91f0dc0f1b863edcbca5725ab02eb4a36a35415b56e01"
+    }
+  ]
+}

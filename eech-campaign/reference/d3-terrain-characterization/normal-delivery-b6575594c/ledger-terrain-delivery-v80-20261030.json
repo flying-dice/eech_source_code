@@ -1,0 +1,10 @@
+{
+  "ledger": "14548994",
+  "version": "v:80",
+  "old_html_exact_prefix": true,
+  "five_reports_exact": true,
+  "append_exact_except_generated_local_ids": true,
+  "Task47": "Done via PR107 normal merge b6575594c114cf38c0206af24920e40f0e250b77; merged tree exact697ff",
+  "Task48": "Production implementation active; no build/runtime pass yet",
+  "Task51": "Guard preparation closed; physical extraction open"
+}

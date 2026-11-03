@@ -104,6 +104,20 @@ float
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef EECH_CAMPAIGN_HOST_TERRAIN
+
+// EEDCS-48 (D3 G2): in the headless campaign module the segment-against-ground search is the host's (mb_hostterrain.c carries the question and keeps the shared record,
+// the caller's buffers and the type -> class mapping); the original search below is not compiled into it
+
+extern terrain_classes campaign_terrain_ground_impact (vec3d *above_ground, vec3d *below_ground, vec3d *ground_impact_point);
+
+terrain_classes get_ground_impact_point (vec3d *above_ground, vec3d *below_ground, vec3d *ground_impact_point)
+{
+	return (campaign_terrain_ground_impact (above_ground, below_ground, ground_impact_point));
+}
+
+#else
+
 terrain_classes get_ground_impact_point (vec3d *above_ground, vec3d *below_ground, vec3d *ground_impact_point)
 {
 	float
@@ -169,6 +183,8 @@ terrain_classes get_ground_impact_point (vec3d *above_ground, vec3d *below_groun
 
 	return (get_terrain_type_class (get_3d_terrain_point_data_type (NULL)));
 }
+
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1772,6 +1788,43 @@ extern int eech_collision_tree_geometry_triangle (vec3d *points, int depth);
 #define TREE_QUERY_GEOMETRY_TRIANGLE(P,D) get_object_3d_collision_object_geometry_triangle (OBJECT_3D_FOREST_TREE_OBJECT, P, D)
 #endif
 
+#ifdef EECH_CAMPAIGN_HOST_TREE
+
+// EEDCS-49 (D3): in the headless campaign module the segment-against-forest search is the host's (mb_hostterrain.c carries the question: the host owns the tree data, the forest tree's collision
+// triangles, the sector scan, the tie rules and the intersection arithmetic, and asks this module for the two terrain elevations the original reads); the original search below is not compiled
+// into it.  The caller's buffers keep their original contract: their initial words go to the host and its final words come back, so a miss leaves them as the original did.  The explicit
+// original-characterisation profile (feature collision-fixture) keeps the original search below on purpose.
+
+extern int campaign_terrain_tree_collision (const vec3d *old_position, const vec3d *new_position, vec3d *intercept_point, vec3d *face_normal, int ignore_forest_edge_trees, int skip_tree_top_test);
+
+int get_line_of_sight_collision_tree
+(
+	vec3d *source_old_position,
+	vec3d *source_new_position,
+	vec3d *source_intercept_point,
+	vec3d *face_normal,
+	int ignore_forest_edge_trees,
+	int skip_tree_top_test
+)
+{
+	ASSERT (source_old_position);
+
+	ASSERT (source_new_position);
+
+	ASSERT (source_intercept_point);
+
+	ASSERT (face_normal);
+
+	if (draw_collision_boxes && (get_view_mode () == VIEW_MODE_EXTERNAL))
+	{
+		create_debug_3d_line (source_old_position, source_new_position, LOS_COLOUR, collision_box_lifetime);
+	}
+
+	return (campaign_terrain_tree_collision (source_old_position, source_new_position, source_intercept_point, face_normal, ignore_forest_edge_trees, skip_tree_top_test));
+}
+
+#else
+
 int get_line_of_sight_collision_tree
 (
 	vec3d *source_old_position,
@@ -2185,6 +2238,8 @@ int get_line_of_sight_collision_tree
 
 	return (hit_tree);
 }
+
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

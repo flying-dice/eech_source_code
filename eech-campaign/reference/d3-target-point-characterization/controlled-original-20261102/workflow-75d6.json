@@ -1,0 +1,52 @@
+{
+  "checked_utc": "2026-11-02T20:19:17.181Z",
+  "source": "75d6cb62a64ebe883d906d1b0f7f5bbb57bbe014",
+  "workflow_run": 41515961784,
+  "workflow_conclusion": "success",
+  "reported_latest_attempt_jobs": [
+    {
+      "id": 125520389656,
+      "name": "dcs-probe-tools",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 125520390073,
+      "name": "evidence-selftest",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 125520390120,
+      "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 125520390277,
+      "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 125520390301,
+      "name": "test (i686-unknown-linux-gnu)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 125520390324,
+      "name": "test (x86_64-unknown-linux-gnu)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 125520390552,
+      "name": "windows-cross",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "all_reported_jobs_success": true,
+  "scope": "Seven reported jobs for this PR-triggered workflow. Connector returns first job page only. No claim that this aggregates every PR check from every trigger/service, and no task/epic delivery acceptance."
+}

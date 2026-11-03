@@ -1,0 +1,14 @@
+{
+  "ledger": "14548994",
+  "version": 78,
+  "old_html_exact_prefix": true,
+  "all_five_epic_report_divs_exact": true,
+  "new_append_exact_after_generated_local_ids": true,
+  "production_source": "80fd62ea48fc75aa9546c785f525be034abd16f8",
+  "test_prose_source": "e48808f53a44260e78183fc0322b09cdd0ceb3f0",
+  "evidence_checkpoint": "60c71afb14b2373b2bf973a742fee4f2c9193f10",
+  "new_task": "EEDCS-51",
+  "scope": "bounded model evidence closed; required full D3 delivery and services remain open",
+  "jira_comment": "10873",
+  "pr110": "bounded validation section updated; Task50 and D3 remain open"
+}

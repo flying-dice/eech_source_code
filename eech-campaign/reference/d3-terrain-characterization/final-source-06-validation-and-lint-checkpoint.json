@@ -1,0 +1,114 @@
+{
+  "runtime_source": "06d42557843aba5728ffafae937451413115fb6c",
+  "task": "EEDCS-47",
+  "created_utc": "2026-10-29T13:21:53.7151295Z",
+  "shipping_build_actual_exit": 0,
+  "shipping_profile": "ordinary",
+  "shipping_image": "sha256:7a880aa5abe4086d504b12834ffc3f5cc549f9d03552433a0a328e288c3da470",
+  "dll_sha256": "c52bbb6c503eb1089e8e992539afc9060d5da93a3363b7b8094b3b170729440d",
+  "host_sha256": "fb597c3735a88e867b5aee73ca1324b11c1aac242922be94369baa40b314be3e",
+  "manifest_verified_entries": 45,
+  "focused_tests": [
+    {
+      "test": "terrain_backend",
+      "actual_exit": 0,
+      "source": "06d42557843aba5728ffafae937451413115fb6c",
+      "exe_sha256": "72477fc390e5b0c28d1d7b2ef77c504cbeb0718bbf985edf53b1ea0baa82e1cb",
+      "dll_sha256": null,
+      "completed_utc": "2026-10-29T13:02:13.2128304Z"
+    },
+    {
+      "test": "terrain_provider_harness",
+      "actual_exit": 0,
+      "source": "06d42557843aba5728ffafae937451413115fb6c",
+      "exe_sha256": "fab494db0a4d59da8d6cf8853270f7b0bafa4218230e18c4dc398e94a7165c92",
+      "dll_sha256": null,
+      "completed_utc": "2026-10-29T13:02:13.5719678Z"
+    },
+    {
+      "test": "terrain_has_face_harness",
+      "actual_exit": 0,
+      "source": "06d42557843aba5728ffafae937451413115fb6c",
+      "exe_sha256": "bde3aa761e244d954c1806f837295aedc45ede6746dedf45efdd98cf6f6226e5",
+      "dll_sha256": null,
+      "completed_utc": "2026-10-29T13:02:13.7124535Z"
+    },
+    {
+      "test": "terrain_boot_contract",
+      "actual_exit": 0,
+      "source": "06d42557843aba5728ffafae937451413115fb6c",
+      "exe_sha256": "f4d0367285e53f6c1bba4106dda708494f5d21738a07573293845d8fc4fb402b",
+      "dll_sha256": "c52bbb6c503eb1089e8e992539afc9060d5da93a3363b7b8094b3b170729440d",
+      "completed_utc": "2026-10-29T13:02:33.3709594Z"
+    }
+  ],
+  "complete_grid_comparisons": [
+    {
+      "actual_exit": 0,
+      "source": "06d42557843aba5728ffafae937451413115fb6c",
+      "output_sha256": "d3a707e8d21964b3f8df8d28f8d2a5afd88c0aa52e648fc3495a25aa6a26aa42",
+      "oracle_sha256": "d3a707e8d21964b3f8df8d28f8d2a5afd88c0aa52e648fc3495a25aa6a26aa42",
+      "completed_utc": "2026-10-29T13:02:14.7021882Z"
+    },
+    {
+      "actual_exit": 0,
+      "source": "06d42557843aba5728ffafae937451413115fb6c",
+      "output_sha256": "83ac8c715274a117cbbef80e4665065746a6b0bf77c1b50b8b1aa1dd45d9700c",
+      "oracle_sha256": "83ac8c715274a117cbbef80e4665065746a6b0bf77c1b50b8b1aa1dd45d9700c",
+      "completed_utc": "2026-10-29T13:02:16.4024151Z"
+    }
+  ],
+  "independent_source_review": "independent-final-delta-review-06d425578.json",
+  "later_working_source_correction": {
+    "module_all_library_tests": {
+      "scope": "ALL module13 library tests, including every terrain provider/refusal case; earlier terrain name filter selected only1 and was not sufficient for module scope",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T13:18:07.9900257Z"
+    },
+    "limits": "No new shipping runtime claimed for this follow-up; independent equivalence/delta review and currentCI pending. First local full Clippy101 from root-added explicit testpanic is retained; assertion guard corrected, retry0. Earlier terrain namefilter selected only1 module test; full13 suite separately run0.",
+    "code_file_hashes": {
+      "module": "cf9bff2834deeee91df597fbd62d82ea902c027d931175e90b27b7eff55f98b0",
+      "engine": "738c4bcbd269541d5f4b79461fac240746b048ef53d0a68a44a3d868483ab1c1"
+    },
+    "engine_terrain_tests": {
+      "actual_exit": 0,
+      "passed": 9
+    },
+    "production_change": "Private BridgeAnswer alias for EXACT existing five-Option tuple, no numerical/ABI/contract changes",
+    "other_changes": "Test-only refusal helper/case alias/literal syntax and status/evidence",
+    "full_workspace_linux_clippy": {
+      "actual_exit": 0,
+      "scope": "Actual FULL workspace strict Clippy, Linux default target as hosted CI; first run101 retained, root explicit test panic replaced with assertion guard; no lint suppression",
+      "completed_utc": "2026-10-29T13:21:10.1813217Z",
+      "image": "sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51"
+    }
+  },
+  "full_pack": {
+    "post_input_checks": "PENDING",
+    "seed": 1,
+    "sim_hours": 3,
+    "state": "RUNNING; NOT ACCEPTED",
+    "live_prefixes": "Onlypartial: both ACMI and observation prefixes match accepted bytes; firstliveaudit retained privately",
+    "complete_artifact_comparison": "PENDING",
+    "runner_creation_utc": "2026-10-29T13:03:32.911797Z",
+    "check_count": 40,
+    "native_pids": [
+      21112,
+      21948,
+      6588,
+      9768
+    ],
+    "runner_pid": 23548,
+    "controller_tool": 55606,
+    "frame_ms": 100,
+    "role": "candidate"
+  },
+  "ledger": {
+    "appendix_exact": true,
+    "all_report_wrappers_exact": true,
+    "version": 55,
+    "prior_html_exact": true,
+    "report_count": 5
+  },
+  "remaining": "Task47 finalpack/completeall8/currentCI/delta/evidence review/normalmerge, then ALL remaining whole-D3 groups; no D4/D5"
+}

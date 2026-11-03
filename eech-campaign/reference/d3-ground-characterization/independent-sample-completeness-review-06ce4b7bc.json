@@ -1,0 +1,50 @@
+{
+  "kind": "Independent focused Task48 sample-completeness source review",
+  "created_utc": "2026-10-29T14:26:30.765657+00:00",
+  "repository": "R:\\eech_source_code",
+  "base": "a14cbdda1d59fbe8a88bb7437e21a98f82052c04",
+  "head": "06ce4b7bcff6617c35f32e740bcb57c9c1cc1c19",
+  "clean_pinned_head_before_after": true,
+  "disposition": "Original cardinality/domain/duplicate counterexamples are corrected; one remaining P2 concerns forced sample coverage before any tag/type is saturated. No original C/physics, warm-sequence or legacy-comparison re-review performed; those source closures stand. Runtime tests remain unexecuted in this review.",
+  "findings": [
+    {
+      "id": "FORCED_SAMPLE_PREFIX_AND_GAPS",
+      "priority": "P2",
+      "file": "R:\\eech_source_code\\eech-campaign\\crates\\eech-world\\lua\\ground-characterization.lua",
+      "line": 324,
+      "title": "Reject missing cases while no already-seen tag/type is saturated",
+      "mechanism": "The new checker enforces first sample n=0, increasing unique IDs, class domains/caps and exact impact cardinality, but still permits missing samples that the C emitter necessarily emits. Point example: from the five-distinct-tags positive, drop n=1 (or n=2, or the last sample). Remaining samples are nonempty/increasing/in-range and all flags stay under counters, so they pass. With cap2, case1 must be sampled because at most one earlier case of its tag exists. Impact example: for five cases all type0 and cap4, replace sample IDs0,1,2,3 with0,2,3,4. Exact type0 cardinality4 and all current identity checks still pass, but case1 necessarily had to be sampled. The advertised complete sample set is therefore not yet enforced.",
+      "bounded_correction": "For each family track whether any already-observed tag/type has reached its quota. Before that happens, require contiguous case IDs with no gaps; the first min(case_count, quota) samples necessarily form a prefix. If the sample list ends before the case count and no class was saturated, reject the unfinished tail. Once a class is saturated, missing cases can legitimately belong to it, so do not invent unreported point-tag populations. Keep existing exact per-impact-type counts and per-class/domain/ordering checks.",
+      "controls": "Add real-script negatives dropping n1, a middle sample and the final sample before saturation; include the all-five-type0 ID replacement0,2,3,4. Add/retain positives with all-five-same-point-tag emitting only0,1 after saturation, one/zero cases, distributed tags/types, and existing binding/nonbinding caps. No RNG reimplementation is needed.",
+      "evidence_level": "Concrete source-path analysis of actual checker and emitter; no tests or Lua were executed by reviewer."
+    }
+  ],
+  "what_is_resolved": [
+    "Per-family duplicate/descending/out-of-range IDs are rejected; point samples cannot follow impact samples. Tags0..5/types0..7 and per-class quotas are checked.",
+    "Impact sample counts are checked per type against min(tally, quota), closing the prior one-sample-for-five-type0 counterexample. The collaborator now emits counts for distributed types plus a dedicated concentrated-type control.",
+    "Sampled inside/above/below/alias/warm boolean counts are bounded by their summary counts, and missing/zero families stay supported. Expanded exact-error controls remain actual-driver checks rather than solver substitutes."
+  ],
+  "clean_code_and_boundary": [
+    "New validation retains typed sample rows for checking and separate raw strings for exported bit-pattern fields. No new public C/Rust ABI, pointer exposure, allocation or physical rule change.",
+    "Validator derives counts from the declared emitter protocol and reported type tallies; it does not predict private RNG tags. The remaining inference above is a necessary property of bounded first-per-class sampling, not a request to mirror case generation.",
+    "Original C emitter exactly matches the previous reviewed bytes. Warm-state/physical-versus-legacy digest/source safety conclusions reused unchanged.",
+    "The new stand-in clearly declares modulo-selected test tags/types, emits bounded first-per-class samples, and has meaningful focused mutation controls for the implemented checks. Claimed61 negative cases are prepared source, not passed runtime evidence."
+  ],
+  "evidence_and_limits": [
+    "New static JSON records fmt/check/Lua parse/diffcheck0 only. Public a14 build completion actual0 is correctly labelled old a14 fixture compile with checker correction pending; it is not a06 native/oracle result.",
+    "No reviewer source edit, test/build/compiler/Lua/native run, process/cache action, delegation or external write. Pinned source reads/hash comparisons and this authorized private JSON only.",
+    "Root parallel corrected fixture build is not evaluated as completed; original native probes/oracles have not been supplied for this pass. No Task48/Task47/whole-D3 acceptance.",
+    "Task47 frozen06 campaigns/processes/caches remain untouched; no unchanged source/runtime review repeated."
+  ],
+  "unchanged_c_fixture_sha256": "bdc14a2b8ab74667866db3c2a027f97e9f4788114391e1d256321d42c9c894bf",
+  "changed_path_sha256": {
+    "STATUS.md": "f5ba36421d03a5f389f1ddddc4beb8dacd6201067e811ee5f727f6aad02e8e92",
+    "eech-campaign/crates/eech-world/lua/ground-characterization.lua": "905a15901aaee5346bfb077728ba805e97a11eae36debcabe5cf678d10e8f1f1",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "695a736b10f93b13c9a0665152f7cf4f6ebd41b23a5ac015c536d8795facef0b",
+    "eech-campaign/crates/eech-world/tests/lua/ground-caller.lua": "69385e121dddc5982bc1c97a41f4e08d6d0d41114077cf046a2d30a2f7b08c8d",
+    "eech-campaign/docs/m5-ground-characterization.md": "117e8d3403680f733f1ecb31f6f0217d882487a566ffbf39f9201e67efef3744",
+    "eech-campaign/reference/d3-ground-characterization/independent-original-corrections-review-a14cbdda1.json": "efa5c559938eaf8d2760023d10cc3dd7f3c69b835234c41f489ecca277c4639f",
+    "eech-campaign/reference/d3-ground-characterization/original-a14-build-completion.json": "0fa8ff524bedd1ba4c7c22c1966ebfd3c24ae967864eeae0646b549cc96041cc",
+    "eech-campaign/reference/d3-ground-characterization/sample-completeness-static.json": "bccef65534a9bd2164cd1577745ddc2581549ac8891b12946277c1e0d0a37a8e"
+  }
+}

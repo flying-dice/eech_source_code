@@ -1,0 +1,104 @@
+{
+  "judge_source": "8d0c7bb69ef3f8593ced7c443227aa6839ab15fa",
+  "native_source": "d559c38592405afcabc172ec876a4fdfa7f9687b",
+  "driver_sha256": "a32f411e30e8e64ab5e5583f699a5084ac9a6059d7f81373333e7a12fbebb1f5",
+  "judge_sha256": "24e1b7969e531e2643e308ec4cac0640995c9e9635b039470879a1cc882f51b3",
+  "production_inputs_equivalent": true,
+  "changed_paths": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/lua/env-ambient-authority.lua",
+    "eech-campaign/crates/eech-world/tests/env_ambient_authority.rs",
+    "eech-campaign/docs/d3-environment-sound-routine.md",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/Linux-guards-both-strict-completion.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/Windows-build-completion.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/current-CI.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/independent-source-and-real-control-review.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/ledger92-preservation.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/real-wide-controller.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/real-wide-summary.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/receipt.json"
+  ],
+  "controller_pid": 25416,
+  "state": "terminal",
+  "started_utc": "2026-10-31T15:59:39.137770+00:00",
+  "modes": [
+    "control"
+  ],
+  "roots": [
+    "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\1"
+  ],
+  "verified_payloads": 51,
+  "stages": [
+    {
+      "stage": "pre-inputs-control",
+      "pid": 21308,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-ambient-judge-source-8d0c7bb69\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\1",
+        "--compare",
+        "R:\\d3-evidence\\environment-ambient-judge-source-8d0c7bb69\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-ambient-first-real-control-diagnostic-controller-8d0c7bb69-20261031\\pre-inputs-control.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T15:59:39.146735+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T15:59:40.166031+00:00"
+    },
+    {
+      "stage": "actual-public-control-diagnostic",
+      "pid": 17676,
+      "args": [
+        "R:\\d3-evidence\\environment-ambient-judge-source-8d0c7bb69\\eech-campaign\\target\\windows-ambient-judge-8d0c7bb69\\env_ambient_authority.exe",
+        "--exact",
+        "the_host_decides_the_ambient_amplitudes_the_sound_children_hold_and_a_wrong_host_stops_the_campaign_at_the_ambient_boundary",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T15:59:40.178740+00:00",
+      "actual_exit": 101,
+      "completed_utc": "2026-10-31T15:59:44.203201+00:00"
+    },
+    {
+      "stage": "post-inputs-control",
+      "pid": 4656,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-ambient-judge-source-8d0c7bb69\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\1",
+        "--compare",
+        "R:\\d3-evidence\\environment-ambient-judge-source-8d0c7bb69\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-ambient-first-real-control-diagnostic-controller-8d0c7bb69-20261031\\post-inputs-control.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T15:59:44.213386+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T15:59:45.227247+00:00"
+    }
+  ],
+  "scope": "DIAGNOSTIC ONLY: known8d0guard9PASS1FAIL101 not bypassed for acceptance. Run ONE actualreferencecontrol to reproduce reviewer P1 order-rejection with unmodified exportedjudge/newLua plus retainedd559native. Expected realnative0 butjudge101 at actualreversedchildorder. Exactly1PRE+1POST. No authority/physicalfailure/shippingacceptance.",
+  "known_guard_red": "environment-ambient-seven-modes-controller-8d0c7bb69-20261031/actual-Windows-judge-guards.log actual101; not rerun or treated as passed",
+  "actual_public_test_exit": 101,
+  "error": null,
+  "pre_input_checks": 1,
+  "post_input_checks": 1,
+  "all_two_prepost_inputs_zero": true,
+  "all_payloads_still_match": true,
+  "completed_utc": "2026-10-31T15:59:45.281853+00:00",
+  "copied_driver_files": [
+    {
+      "path": "R:\\d3-evidence\\environment-ambient-first-real-control-diagnostic-8d0c7bb69-20261031\\env-ambient-authority.lua",
+      "sha256": "a32f411e30e8e64ab5e5583f699a5084ac9a6059d7f81373333e7a12fbebb1f5",
+      "exact_source": true
+    }
+  ]
+}

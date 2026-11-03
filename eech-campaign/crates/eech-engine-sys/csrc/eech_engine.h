@@ -20,6 +20,9 @@
 #include "entity/mobile/mb_hostsense.h"
 #include "entity/mobile/mb_hostaim.h"
 #include "entity/mobile/mb_hostobj.h"
+#include "entity/mobile/mb_hostmodel.h"
+#include "entity/mobile/mb_hostterrain.h"
+#include "entity/special/session/ss_hostenv.h"
 
 #define EECH_ENGINE_OK 0
 #define EECH_ENGINE_FATAL 1
@@ -38,6 +41,8 @@ struct eech_engine_config
 	/* GUNSHIP_TYPE_* of the (server) player; its side is the player's side */
 	int gunship_type;
 	uint32_t random_seed;
+	/* nonzero: the session is in winter (the global season the original reads when it picks the terrain files; set before the terrain loads) */
+	int winter;
 	/* extra EECH.INI-style command line arguments, NULL-terminated (may be NULL) */
 	const char *const *arguments;
 };
@@ -67,8 +72,13 @@ typedef campaign_movement_step eech_movement_step;
 typedef campaign_movement_result eech_movement_result;
 typedef campaign_move_vehicle_fn eech_move_vehicle_callback;
 typedef campaign_los_fn eech_line_of_sight_callback;
+typedef campaign_terrain_fn eech_terrain_callback;
+typedef campaign_env_fn eech_environment_callback;
+typedef campaign_sound_catalogue_fn eech_sound_catalogue_callback;
+typedef campaign_sound_backend_fn eech_sound_backend_callback;
 typedef campaign_sense_fn eech_sense_callback;
 typedef campaign_aim_fn eech_aim_callback;
+typedef campaign_model_fn eech_model_callback;
 
 struct eech_engine_host
 {
@@ -86,8 +96,25 @@ struct eech_engine_host
 	eech_sense_callback sense;
 	/* Called synchronously for each host-owned physical aiming or weapon-system-readiness exchange (mb_hostaim.h): the host owns where a launcher's weapon-system devices point and whether they are ready, and the lead and ballistic predictions they are aimed with (the reference host: EECH's own arithmetic and the ballistic tables it is given at boot; another host: its own model); the device viewpoint, the target point, the entity positions and speeds and the weapon figures sent with it are transitional mirrors. */
 	eech_aim_callback aim;
+	/* Called synchronously for every physical model question (mb_hostmodel.h): the catalogue and each scene's radius and bounds at boot, and each step of a collision-triangle cursor. Unlike the dialogue callbacks above it is kept for the rest of the process: every entry that carries one refreshes it, an entry without one leaves it, and the entry's `user` pointer (which names that entry's own context) is NEVER retained, so the callback is always called with a NULL `user` and must not depend on it (boot requires the callback, except in the original-characterisation build model-fixture, which keeps the original accessors and has no host), because the campaign asks about models from every entry. The host owns the physical models; there is no campaign fallback. */
+	eech_model_callback model;
+	/* Called synchronously for every physical terrain question (mb_hostterrain.h): the map facts, the surface at a point (elevation, normal, type, and the record's opaque hint) and the fast gridpost elevation. Unlike the dialogue callbacks above it is installed for the rest of the process by the first entry that carries it (boot requires it), because the campaign asks about terrain from every entry. The host owns the physical terrain; there is no campaign fallback. */
+	eech_terrain_callback terrain;
+	/* Called synchronously for every physical weather and wind question and for the physical update of the field (ss_hostenv.h): the host owns the weather and wind zones, their evolution, the gusts and the lightning timer; the campaign keeps the clock, the draws of the shared random word, the entity effects of a strike and every consequence. Installed for the rest of the process by the first entry that carries it (boot requires it); there is no campaign fallback. */
+	eech_environment_callback environment;
+	/* Called synchronously ONCE at boot (ss_hostenv.h campaign_sound_catalogue_request, snd_data.c): the host owns the physical sample metadata at initialisation: each named descriptor's rate and original rate and, from the host's own sound.hdr / sound.dat (its data root, presence and lookup), the length of the header's entry for it. Installed for the rest of the process by the first entry that carries it (boot requires it); there is no campaign fallback. */
+	eech_sound_catalogue_callback sound_catalogue;
+	/* Called synchronously ONCE at boot (ss_hostenv.h campaign_sound_backend_request, snd_init.c): the host owns the physical sound backend AVAILABILITY at initialisation. The request carries the phase, the two command line flags and whether the samples would be loaded; the reply is one flag. An answer of available is refused by name until the loader bodies and playback routes are the host's. Installed like the other hosts and kept for the process. */
+	eech_sound_backend_callback sound_backend;
 	void *user;
 };
+
+/* whether a hosted entry is missing the model callback that this build requires (see above) */
+#ifdef EECH_CAMPAIGN_HOST_MODEL
+#define EECH_ENGINE_MODEL_MISSING(HOST) (!(HOST)->model)
+#else
+#define EECH_ENGINE_MODEL_MISSING(HOST) 0
+#endif
 
 int eech_engine_boot (const struct eech_engine_config *config, const struct eech_engine_host *host);
 
@@ -324,6 +351,28 @@ int eech_engine_sensor_trace_reset (void);
 int eech_engine_sensor_probe (char *text, int capacity, const struct eech_engine_host *host);
 #endif
 
+#ifdef EECH_TERRAIN_FIXTURE
+/*
+ * TEST-ONLY (feature terrain-fixture, EEDCS-47): see eech_terrain_fixture.c. Not part of the shipping module.
+ * The report is `key=value` text lines: an order-dependent hash over every terrain query, the call counts (shared or private find-fast
+ * record, hint tried and hit, sector scans, no face found, clamped, Cuba flaw area), a surface-type histogram and a per-call-site table.
+ * Fails (bad argument) when the report does not fit `capacity`.
+ */
+/* The run-wide trace of every terrain query the campaign has made since boot or the last reset. */
+int eech_engine_terrain_trace (char *text, int capacity);
+int eech_engine_terrain_trace_reset (void);
+/*
+ * Runs the deterministic probe sweep over the loaded map (six fixed points, then `count` from the private generator seeded with `seed`),
+ * emitting the first `emit` samples (at most 256) in full; the run-wide trace and the shared find-fast record are left as found.
+ */
+int eech_engine_terrain_probe (uint32_t seed, int count, int emit, char *text, int capacity);
+/*
+ * The campaign's record predicate (get_3d_terrain_point_data_has_face, which the fixed-wing movement asks) through the real client queries at (x, z), on a private
+ * and on the shared record: fresh, after a query, after a second one, after clear. Only the host-terrain build has the predicate; elsewhere it fails (bad argument).
+ */
+int eech_engine_terrain_face_probe (float x, float z, char *text, int capacity);
+#endif
+
 #ifdef EECH_AIM_FIXTURE
 /*
  * TEST-ONLY (feature aim-fixture, EEDCS-44): see eech_aim_fixture.c. Not part of the shipping module.
@@ -339,6 +388,71 @@ int eech_engine_aim_person_case (const char *person_id, const char *target_id, c
 /* The campaign's own lead-and-ballistic function asked once for two host-identified entities with the caller's time-of-flight variable set to `sentinel`; the report says
    whether the variable still holds it. The host answers through the callbacks given. */
 int eech_engine_aim_lead_probe (const char *source_id, const char *target_id, int weapon, float sentinel, char *text, int capacity, const struct eech_engine_host *host);
+#endif
+
+#ifdef EECH_MODEL_FIXTURE
+/*
+ * TEST-ONLY (feature model-fixture, EEDCS-50): see eech_model_fixture.c. Not part of the shipping module.
+ * Read-only questions to the ORIGINAL model accessors. The reports are `key=value` text lines; floats are 0x%08x bit patterns; no address
+ * appears. Each fails (bad argument) on an out-of-range argument or when the report does not fit `capacity`. None needs a host.
+ */
+/* The table sizes the other entries are bounded by. */
+int eech_engine_model_summary (char *text, int capacity);
+/* One page of the scene catalogue: scenes first .. first+count-1 (count <= the summary's page_scenes), each with the original scene accessors' answers,
+   the collision-object metadata, the safety verdict of the original decoder and the number of loaded entities that use the scene. */
+int eech_engine_model_catalogue (int first, int count, char *text, int capacity);
+/* One page of the original collision-triangle accessor for one scene: depths first_depth .. first_depth+count-1 (count <= the summary's page_triangles),
+   one original call per depth, ascending, stopping at the first false. A scene the safety verdict refuses is reported refused and the original is not called. */
+int eech_engine_model_geometry (int scene, int first_depth, int count, char *text, int capacity);
+/* Hashes of every table these entries read (the scene table, the object table, the surface block, the addresses, the arrays the decoder reads). */
+int eech_engine_model_state (char *text, int capacity);
+/* One page of the scenes' FINAL texture animation lists as the original loader left them (EEDCS-50, D3), scenes `first ..= first + count - 1`: for each scene its disposition (listed,
+   empty, absent, or a named unsupported outcome), source, success flag, count, capacity, filled entries and the legacy animation ids in list order, read only where the loader hooks
+   show the array's backing. Read-only. Fails (bad argument) outside the page bounds or when the report does not fit `capacity`. */
+int eech_engine_model_animations (int first, int count, char *text, int capacity);
+#endif
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+/*
+ * TEST-ONLY (feature model-host-fixture, EEDCS-50 D3): see eech_model_host_fixture.c. Not part of the shipping module. They run inside the engine entry (round-toward-zero,
+ * a fatal error unwinding to the entry) and pass no host: the model host installed at boot is the one that answers.
+ */
+/* `key=value` text: how many catalogue, scene and triangle questions were asked of the host, how they were answered (found, end, absent) and how often the host's
+   bounds, bounds-without-lines and radius tables were read since boot. Fails (bad argument) when the report does not fit `capacity`. */
+int eech_engine_model_host_counters (char *text, int capacity);
+/* One page of the scenes' FINAL texture animation lists as the campaign holds them after the host-fed load (EEDCS-50, D3, L2), scenes `first ..= first + count - 1`, in the row grammar of
+   eech_engine_model_animations (the original observer) so the same driver reads and compares them. Read-only. Fails (bad argument) outside the page bounds or when the report does not
+   fit `capacity`. */
+int eech_engine_model_host_animations (int first, int count, char *text, int capacity);
+/* The host-authored target-point offsets as the campaign HOLDS them (EEDCS-52, D3): `model-host-offsets asked=N` (the TARGET_POINT_OFFSET questions asked of the host since boot) and one
+   `model-host-offset scene=S cache=0x..,0x..,0x..` row per scene `first ..= first + count - 1` (the float bit patterns of the private table the direct guidance consumer reads). Read-only.
+   Fails (bad argument) for scenes outside 1 .. OBJECT_3D_LAST - 1 or a report that does not fit `capacity`. */
+int eech_engine_model_host_target_offsets (int first, int count, char *text, int capacity);
+/* The direct guidance consumer (gd_attck.c calculate_attack_guide_intercept_point) called once for real on a live stationary mobile with a valid shape and a guided weapon: one
+   `model-host-consumer` row with the held offset, the consumer's three coordinates and their equality, or status=unavailable with its reason. Read-only apart from the call. */
+int eech_engine_model_host_attack_consumer (char *text, int capacity);
+/* The target-point QUERY called for real (EEDCS-52, D3): `get_local_entity_target_point` on the live entities the diagnostic picks (two vehicles with an instance, a vehicle with its instance
+   pointer set to NULL for the call, fixed structures with and without a horizontal cached offset, a fixed structure with the invalid shape for the call), the host questions counted around each
+   call, one `model-host-tp` row per case (`status=unavailable` with its reason when no entity exists). `mutate` = 1 changes the leaf sub-instance's live placement for the call of an instance whose
+   host-named chain exists, and restores it. Read-only apart from those restored changes. */
+int eech_engine_model_host_target_queries (int mutate, char *text, int capacity);
+/* Overwrites every array the ORIGINAL accessors read (the scene database's radius, bounds and collision object index) with values that make any read visible. */
+int eech_engine_model_host_poison (void);
+/* One scene's radius and bounds (asked twice: same address and bits) and one step of its collision-triangle cursor through the REAL public accessors, in the format of the
+   original fixture's rows (float bit patterns, the return, the number of the nine buffer words written, the rounding mode before and after). Fails (bad argument) for a scene
+   outside 1 .. OBJECT_3D_LAST - 1, a negative depth, or a report that does not fit `capacity`. A host that cannot answer stops the engine with its reason. */
+int eech_engine_model_host_probe (int scene, int depth, char *text, int capacity);
+/* An UNSUPPORTED legacy visual reader, called for real (EEDCS-50, D3 loader detachment): add_3d_horizon_image on the campaign's own horizon environment with a basename no installation
+   has. The real reader takes its uncached branch and the hosted engine stops by name ([model-provider:object.geometry]) before any image I/O or geometry read; that fatal error ends the
+   entry and the engine is then poisoned. OK means the reader did NOT stop. Bad argument when the horizon environment does not exist. */
+int eech_engine_model_host_horizon_refusal (char *text, int capacity);
+/* The COMPLETE outer floating-point state (x87 control and status words, MXCSR) around a real public entry, from the caller's side. NOT an engine entry: it is the caller. It sets
+   the requested rounding mode (0 nearest, 1 down, 2 up, 3 toward zero) in both units with every exception masked and nonzero exception flags in both, calls kind 0
+   (eech_engine_model_host_probe: the entry, the accessors, the host callback, the Lua provider and bridge; a host that cannot answer takes the entry's fatal path) or kind 1
+   (eech_engine_model_host_counters: the entry alone), reads the words back at once, reports before and after and whether each is identical, then restores the process's own
+   environment. It decides nothing and repairs nothing. Returns OK when it ran (the entry's own status is `result=` in the report); bad argument for an argument out of range, a
+   report that does not fit, or a target without these registers. */
+int eech_engine_model_host_fpu (int kind, int scene, int depth, int rounding, char *text, int capacity);
 #endif
 
 #ifdef EECH_WEAPON_FIXTURE
@@ -398,6 +512,80 @@ int eech_engine_collision_trace_read (int kind, int offset, int count, char *tex
  * model, the real table untouched), runs the unchanged original queries, restores everything and appends a col-geometry-witness row that states the restoration. See eech_collision_fixture.c.
  */
 int eech_engine_collision_geometry_arm (int on);
+#endif
+
+#ifdef EECH_ENV_FIXTURE
+/*
+ * TEST-ONLY (feature env-fixture, EEDCS-51): see eech_env_fixture.c. Not part of the shipping module.
+ * One call is one case, as `key=value` text lines. group 0 the census (case counts, enum values, constants, unsupported items), 1 the unmodified session environment with its original
+ * queries (read-only); 2 weather, 3 wind, 4 gust, 5 clock, 6 initialisers, 7 time-of-day update, 8 weather/wind update: controlled witnesses that restore everything they touch.
+ * Fails (bad argument, the reason in the text) for an unknown group or index or a report that does not fit `capacity`.
+ */
+int eech_engine_env_case (int group, int index, char *text, int capacity);
+#endif
+
+#ifdef EECH_ENV_OBSERVER
+/*
+ * TEST-ONLY (feature env-observer, EEDCS-51): see eech_env_observer.c. arm is valid only before boot (on) or at any time (off); the report and the events are read after boot.
+ * The events are drained incrementally: more is set to 1 while unread events remain. Not part of the shipping module.
+ */
+int eech_engine_env_observer_arm (int on);
+int eech_engine_env_observer_report (char *text, int capacity);
+int eech_engine_env_observer_events (char *text, int capacity, int *more);
+/*
+ * TEST-ONLY (feature env-observer, EEDCS-51, D3): the helicopter rotor sound probe (see eech_env_observer.c ENV_FXR). It is armed ONLY by its own arm call, valid before boot (on) or at any time (off); nothing else arms it
+ * and the observation-off stream is unchanged. The report states its counters and domain limits; the events are DRAINED in pages: `more` is set to 1 while stored calls remain unread, and the page is empty again once
+ * everything has been read. Not part of the shipping module.
+ */
+int eech_engine_env_rotor_arm (int on);
+int eech_engine_env_rotor_report (char *text, int capacity);
+int eech_engine_env_rotor_events (char *text, int capacity, int *more);
+
+/* TEST-ONLY (env-observer): the resumed-parent playback probe (ENV_FXP): armed only by its own call, before boot, and drained in pages */
+int eech_engine_env_play_arm (int on);
+int eech_engine_env_play_report (char *text, int capacity);
+int eech_engine_env_play_events (char *text, int capacity, int *more);
+#endif
+
+#ifdef EECH_GROUND_FIXTURE
+/*
+ * TEST-ONLY (feature ground-fixture, EEDCS-48): see eech_ground_fixture.c. Not part of the shipping module.
+ * One read-only probe of the original point_above_ground, point_below_ground and get_ground_impact_point against the loaded terrain: `points` point
+ * cases and `impacts` impact cases from a private generator seeded with `seed`. The report is `key=value` text lines: the call counts and outcomes, how
+ * often each call read the shared terrain point record, the impact checks, an order-dependent hash and bounded raw samples (float bit patterns). The shared
+ * record is restored byte for byte. It takes no host argument. In the original module the three read the DLL's terrain; in the host-terrain module
+ * (EECH_CAMPAIGN_HOST_TERRAIN) the three themselves are questions to the provider that boot installed for the process (ground_above, ground_below and ground_impact:
+ * the host decides them; the DLL holds no predicate, sector maximum or bisection behind them), and the report is the host-semantic
+ * profile (its own rows: ground-profile, ground-semantic-record, ground-semantic-hash), never the legacy ground-record and ground-hash. A refused probe (a precondition not held, a report that does not fit) writes `ground-refused reason=...`
+ * and fails as a bad argument; each of points and impacts is 0 to 100000, and not both 0.
+ */
+int eech_engine_ground_probe (uint32_t seed, int points, int impacts, char *text, int capacity);
+#endif
+
+#ifdef EECH_ROUTE_FIXTURE
+/*
+ * TEST-ONLY (feature route-fixture, EEDCS-50 D3): see eech_route_fixture.c. Not part of the shipping module.
+ * What the ORIGINAL airfield route parser read and produced while the campaign loaded, as `key=value` text lines. `eech_engine_route_summary` is the table sizes, the
+ * route-object lookups and a `route-complete` verdict; `eech_engine_route_call` is one recorded parser call by its zero-based index (decoded node bit patterns, line
+ * faces, final tables). Both are read-only and take no host. A report that does not fit, or an index not recorded, fails as a bad argument.
+ */
+int eech_engine_route_summary (char *text, int capacity);
+int eech_engine_route_call (int index, char *text, int capacity);
+#endif
+
+#ifdef EECH_TARGET_POINT_FIXTURE
+/*
+ * TEST-ONLY (feature target-point-fixture, EEDCS-52 D3): see eech_tp_fixture.c. Not part of the shipping module.
+ * What the ORIGINAL get_local_entity_target_point, the callers that reached it and the boot census of target_point_offsets[] did, as `key=value` text lines.
+ * `eech_engine_target_point_summary` is the counters, the branch and caller matrix, the case counts, the census totals and two verdicts (the census is whole; the query capture is whole);
+ * `eech_engine_target_point_offsets` is one row per model index of ONE kept census generation (an initialiser pass, by ordinal); `eech_engine_target_point_event` is one recorded query by its zero-based index. All are read-only and
+ * take no host. A report that does not fit, or an index not recorded, fails as a bad argument.
+ */
+int eech_engine_target_point_summary (char *text, int capacity);
+int eech_engine_target_point_offsets (int generation, char *text, int capacity);
+int eech_engine_target_point_event (int index, char *text, int capacity);
+int eech_engine_target_point_probe (char *text, int capacity);
+int eech_engine_target_point_setup (char *text, int capacity);
 #endif
 
 #endif

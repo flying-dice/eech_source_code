@@ -19,11 +19,31 @@ loss-fixture = ["eech-engine-sys/loss-fixture"]
 los-fixture = ["eech-engine-sys/los-fixture"]
 # TEST-ONLY (EEDCS-43): see eech-engine-sys.
 sensor-fixture = ["eech-engine-sys/sensor-fixture"]
+# TEST-ONLY (EEDCS-47): see eech-engine-sys.
+terrain-fixture = ["eech-engine-sys/terrain-fixture"]
 # TEST-ONLY (EEDCS-44): see eech-engine-sys.
 aim-fixture = ["eech-engine-sys/aim-fixture"]
 weapon-fixture = ["eech-engine-sys/weapon-fixture"]
 # TEST-ONLY (EEDCS-49): see eech-engine-sys.
 collision-fixture = ["eech-engine-sys/collision-fixture"]
+# TEST-ONLY (EEDCS-50): see eech-engine-sys.
+model-fixture = ["eech-engine-sys/model-fixture"]
+# TEST-ONLY (EEDCS-50 D3): see eech-engine-sys.
+model-host-fixture = ["eech-engine-sys/model-host-fixture"]
+# TEST SUPPORT (EEDCS-50, D3): see eech-engine-sys.
+fpu-test-support = ["eech-engine-sys/fpu-test-support"]
+# TEST-ONLY (EEDCS-51): see eech-engine-sys.
+env-fixture = ["eech-engine-sys/env-fixture"]
+# TEST-ONLY (EEDCS-51): see eech-engine-sys.
+env-observer = ["env-fixture", "eech-engine-sys/env-observer"]
+# TEST-ONLY (EEDCS-48): see eech-engine-sys.
+ground-fixture = ["eech-engine-sys/ground-fixture"]
+# TEST-ONLY (EEDCS-50, D3): see eech-engine-sys.
+route-fixture = ["eech-engine-sys/route-fixture"]
+# TEST-ONLY (EEDCS-50, D3): see eech-engine-sys.
+route-original = ["eech-engine-sys/route-original"]
+# TEST-ONLY (EEDCS-52, D3): see eech-engine-sys.
+target-point-fixture = ["eech-engine-sys/target-point-fixture"]
 
 [lints.rust]
 unsafe_op_in_unsafe_fn = "deny"

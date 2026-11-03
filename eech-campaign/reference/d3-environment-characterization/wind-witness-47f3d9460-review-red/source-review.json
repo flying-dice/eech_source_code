@@ -1,0 +1,65 @@
+{
+  "review": "ONE combined independent wind-authority witness source/evidence review; no agents, source edits, builds, Docker, process changes or experiments",
+  "created_utc": "2026-10-31T11:49:18.3211575Z",
+  "source": {
+    "path": "R:/d3-evidence/environment-wind-source-47f3d9460",
+    "head": "47f3d9460fcca0acc341a105b4193321ceca14fa",
+    "tree": "644c8bd37bfe2ae3b965f596f498a2d417264591",
+    "base": "dd5e7c4ce46339ebd5bd2ba0e3b0c09653955735",
+    "status": "Clean status; git diff --check base..HEAD exit 0",
+    "sha256": {
+      "eech-campaign/crates/eech-world/lua/env-wind-authority.lua": "5cb5bb9f588da2413ced56d393294655095597fd4e0f31cc0a2a9ffff843c1af",
+      "eech-campaign/crates/eech-world/tests/env_wind_authority.rs": "6594e338e145faf13bdab802a5bb7eb101246eaf1538a68f24d9fb41be0651ae"
+    }
+  },
+  "scope": "New Lua driver, entire Rust judge/guards/scripted-driver controls/public harness, new documentation and safe component receipts. Closed production field/ABI/FP/kernel/oracle reviews reused. Existing weapon-fixture serialization was consulted only to verify the new witness's actual input grammar and completeness assumptions; ground witness read only for bookkeeping provenance.",
+  "judgement": "CHANGES_REQUIRED for two related evidence-contract groups. Source preparation, fixture guard passes and prior component green do not establish public wind authority or Task 51/D3 acceptance.",
+  "findings": [
+    {
+      "id": "ENV-WIND-WITNESS-1",
+      "priority": "P1",
+      "title": "Parse the real prefixed birth-event grammar instead of rejecting every real launch",
+      "refs": [
+        "eech-campaign/crates/eech-world/tests/env_wind_authority.rs:229-246, 571-577, 998-1003",
+        "eech-campaign/crates/eech-world/lua/env-wind-authority.lua:223-230, 285-306",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_wpn_fixture.c:352-376, 980-984"
+      ],
+      "evidence": "Facts::parse requires raw.starts_with(\"kind=birth\"). The actual fixture log_event prefixes all returned lines with `wpn-ev seq=<N> ` before appending `kind=birth ...`. Lua preserves the whole e.raw unchanged in its birth row. Therefore every actual healthy launched birth is rejected as not its weapon's birth line. The synthetic and scripted-engine birth fixtures omit this real prefix, so their guards cannot catch the incompatibility.",
+      "requested_change": "Validate the actual tokenized event grammar, including birth kind and matching weapon identity, while retaining full original raw birth lines for equivalent-launch comparison. Update bookkeeping fixtures to include real `wpn-ev seq=...` lines and explicitly reject malformed prefixes/kinds/identities. No production change or golden rewrite is needed.",
+      "evidence_class": "Deterministic source/actual-serializer mismatch; no reviewer execution."
+    },
+    {
+      "id": "ENV-WIND-WITNESS-2",
+      "priority": "P2",
+      "title": "Establish that the frozen cohort is complete and registered before treating its terminals as authority evidence",
+      "refs": [
+        "eech-campaign/crates/eech-world/lua/env-wind-authority.lua:276-310, 314-329",
+        "eech-campaign/crates/eech-world/tests/env_wind_authority.rs:154-177, 206-246, 288-309",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_wpn_fixture.c:352-376, 940-944, 980-989, 1588-1595, 1755-1756, 1952-1980"
+      ],
+      "evidence": "The driver writes case_launch.births=#members from the rows it happened to receive; the judge compares that same derived count to the same cohort list. Neither validates it against the C launch report's independent births/creates counts or existing log/track-overflow status. The fixture can drop events once its finite log is full, emit kind=truncated, and emit w=-1 when track allocation fails. The driver accepts any tonumber(w), including -1, and the judge accepts finite negative terminal steps/distance/max_velocity plus a zero hexadecimal track. An unregistered sentinel can consequently stand for a cohort member or a partial observed launch for the full cohort. Event truncation/overflow is not a new hypothetical API: the existing fixture explicitly records it for comparators to refuse.",
+      "requested_change": "Require positive integral registered weapon identities; reject truncated/overflowed evidence using existing fixture/report information; compare frozen birth cardinality with the actual launch report before arming. Do not infer completeness solely from duplicate copies of observed-row counts. Extend the finite bookkeeping controls for dropped/truncated births and sentinel identity; no new physics, world trace or census framework is needed.",
+      "evidence_class": "Source-supported false-positive evidence path; not observed in the current retail runs, which remain Root's gate."
+    }
+  ],
+  "inspected_facts": [
+    "Driver delegates the real environment provider until the healthy launch call and immediate event drain complete, freezes identities/birth strings, then arms before another frame. It never changes the request table. Armed wind vector answers alone are altered; speed-only wind and other operations delegate unchanged. Changed values are finite exact singles (64,64,0,0) and recorded before reply/refusal.",
+    "Changed-wind judgement matches configuration, selection, full launch text/frame, cohort identities and full initial birth strings. It requires whole-cohort terminal cardinality, actual recorded vector traffic, every armed vector question altered, exact sent constants, changed complete flight facts, no changed member farther -x and at least one farther +x. No all-state/RNG/policy equivalence is established or claimed.",
+    "Refusal judgement requires a matched healthy launch, an armed sent vector alteration and the specific wind.callback or wind.answer marker, rejecting process/witness failures and healthy non-refusals. Lua clock stalls/budget exhaustion are hard witness failures; evidence-file write/flush/close errors propagate even after the authority row. Public runner requires process success and strict readable JSON before judgement.",
+    "Driver keeps later births and foreign terminals separate, records duplicate case terminals and requires one complete ten-field terminal per cohort member through the judge. Witness remains bounded to recorded cohort facts; global provider vector traffic is explicitly disclosed rather than attributed exclusively to that projectile.",
+    "Synthetic rows and scripted Lua collaborators are explicitly bookkeeping tests, not physics or public product proof. Missing executable/root configuration prints SKIPPED with product path NOT exercised. Actual fresh verified roots, DLL identity and all five public modes remain Root's gates; the harness itself does not verify retail manifests or canonical root uniqueness.",
+    "run_bounded drains child pipes while running, enforces a per-child wall cap and reports exit/error context. Public Windows mode processes use CREATE_NO_WINDOW. Existing standalone child controls test hanging and failing children. No unrelated process framework was added.",
+    "Git delta contains new test witness/docs/receipts only; no production C/Rust provider/ABI/boot/build/manifest change. Root's separate byte-equivalence audit remains its evidence, not a new production review here."
+  ],
+  "preserved_component_evidence": {
+    "path": "eech-campaign/reference/d3-environment-characterization/physical-dd5e7c4ce-component-gates",
+    "verification": "Independently verified normalized SHA256 and byte count for all seven payloads listed by receipt.json, including closed source review, Linux/Windows tests, numeric comparison, current CI, C-ABI isolation and ground live-prefix receipt.",
+    "scope": "Receipts explicitly identify dd component gates and ground prefixes as bounded/partial evidence. They do not accept wind authority, whole D3, all-state/Tacview or a completed full shipping pack. Old originals and partials remain preserved."
+  },
+  "limitations": [
+    "No 47f actual Linux new-target tests/Clippy, Windows weapon-fixture build/export or five public-mode runtime result was supplied by report cutoff. Root owns those running checks; no compilation/runtime success inferred.",
+    "The prefix mismatch will reject real data; the completeness finding concerns an accepted evidence failure path, not a claim that actual current retail traces overflowed. No failing experiment or hidden baseline change was manufactured.",
+    "No production edits, native experiments, builds, shared volumes, live process changes, authentication changes, external publication, fake approvals or merges performed. Frozen source remained clean; ground full pack and dd120 live runs untouched.",
+    "All previously closed field/FP/ABI/oracle reviews remain reused. WEATHER_DRAW.w0 retains its explicit diagnostic-semantic classification. Whole Task 51/D3 stays open with required effects/time/terrain/spatial/model coupling; campaign policy remains Core, D4/D5 unstarted. Existing user-authorized normal review/merge scope is unchanged."
+  ]
+}

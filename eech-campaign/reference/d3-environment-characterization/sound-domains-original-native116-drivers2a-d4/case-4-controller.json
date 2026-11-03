@@ -1,0 +1,95 @@
+{
+  "source": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+  "snapshot": "R:\\d3-evidence\\environment-sound-entity-original-source-116ffd5fb",
+  "binary": "R:\\d3-evidence\\environment-sound-entity-original-source-116ffd5fb\\eech-campaign\\target\\env-observer\\sound-entity-original-116ffd5fb",
+  "root": "R:\\d3-evidence\\environment-original-sound-domain-roots-20261031\\lebanon-domain-4",
+  "script": "env-sound-lifetime.lua",
+  "scenario": "lebanon_retail",
+  "controller_pid": 25304,
+  "state": "terminal",
+  "started_utc": "2026-10-31T21:38:44.492698+00:00",
+  "verified_payloads": 55,
+  "build_info_sha256": "45d3fd719abd0dab917d70000ca223a4720c536ebfae69b0e88a890b8fd7fd97",
+  "nonretail_models": false,
+  "stages": [
+    {
+      "stage": "pre-inputs",
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-sound-entity-original-source-116ffd5fb\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-original-sound-domain-roots-20261031\\lebanon-domain-4",
+        "--compare",
+        "R:\\d3-evidence\\environment-sound-entity-original-source-116ffd5fb\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-4\\pre-inputs.json"
+      ],
+      "pid": 11112,
+      "started_utc": "2026-10-31T21:38:44.502731+00:00",
+      "state": "terminal",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T21:38:48.922875+00:00"
+    },
+    {
+      "stage": "native",
+      "args": [
+        "R:\\d3-evidence\\environment-sound-entity-original-source-116ffd5fb\\eech-campaign\\target\\env-observer\\sound-entity-original-116ffd5fb\\eech-world.exe",
+        "R:\\d3-evidence\\environment-sound-entity-original-source-2a4139830\\eech-campaign\\crates\\eech-world\\lua\\env-sound-lifetime.lua",
+        "root=R:/d3-evidence/environment-original-sound-domain-roots-20261031/lebanon-domain-4",
+        "scenario=lebanon_retail",
+        "out=R:/d3-evidence/environment-original-sound-domain-controls-2a4139830-20261031/case-4/environment.jsonl",
+        "metrics=R:/d3-evidence/environment-original-sound-domain-controls-2a4139830-20261031/case-4/metrics.json",
+        "case=4"
+      ],
+      "pid": 12616,
+      "started_utc": "2026-10-31T21:38:49.052561+00:00",
+      "state": "terminal",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T21:38:52.921614+00:00"
+    },
+    {
+      "stage": "post-inputs",
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-sound-entity-original-source-116ffd5fb\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-original-sound-domain-roots-20261031\\lebanon-domain-4",
+        "--compare",
+        "R:\\d3-evidence\\environment-sound-entity-original-source-116ffd5fb\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-4\\post-inputs.json"
+      ],
+      "pid": 22488,
+      "started_utc": "2026-10-31T21:38:52.931588+00:00",
+      "state": "terminal",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T21:38:53.964446+00:00"
+    }
+  ],
+  "scope": "ORIGINAL physical sound entity/lifetime characterization before any move. Facts and observed outcomes only; no host sound authority, shipping/Tacview/Task51/D3 acceptance.",
+  "script_override": "R:\\d3-evidence\\environment-sound-entity-original-source-2a4139830\\eech-campaign\\crates\\eech-world\\lua\\env-sound-lifetime.lua",
+  "script_override_source": "2a4139830e2ec13617635c553a519d9be3015a2d",
+  "script_override_sha256": "09c2b6a783c067cc3b6695950d86c0ae70921826f9fa57fb65fe1190e11d167a",
+  "json_rows": 27,
+  "json_sha256": "16984dfebbcfa07a5f3e699ad29afe20cbb61768edc72bc5834b83f30b0fac58",
+  "actual_native_exit": 0,
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T21:38:54.014522+00:00",
+  "json_event_counts": {
+    "boot": 1,
+    "env-snd-plan": 1,
+    "env-snd-facts": 2,
+    "env-snd-unsupported": 5,
+    "env-snd-report": 2,
+    "env-sound": 1,
+    "env-sound-data-input": 3,
+    "env-sound-state": 4,
+    "env-snd": 6,
+    "env-sound-end": 1,
+    "result": 1
+  }
+}

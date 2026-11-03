@@ -1,0 +1,62 @@
+{
+  "when_utc": "2026-10-31T09:47:46.590091+00:00",
+  "scope": "CONFIRMED INTERRUPTED, not completed: original actual exits unavailable. Alloriginalrun/source/logs/roots untouched. No checker-only resume can complete missing3hours.",
+  "observed_relevant_processes": [],
+  "original_runner_record": {
+    "status": "running",
+    "pid": 20800,
+    "when_utc": "2026-10-31T01:31:27.977226+00:00",
+    "native_cwd": "R:\\d3-evidence\\shipping-ground-aafb21775-final-pack-20261031",
+    "runner": "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\regression-pack.py",
+    "arguments": [
+      "--georgia",
+      "R:\\d3-evidence\\ground-production-roots-20261030\\shipping-georgia",
+      "--lebanon",
+      "R:\\d3-evidence\\ground-production-roots-20261030\\shipping-lebanon",
+      "--lebanon-repeat",
+      "R:\\d3-evidence\\ground-production-roots-20261030\\shipping-lebanon-repeat",
+      "--bin",
+      "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\target\\windows-ground-production-aafb21775",
+      "--out",
+      "R:\\d3-evidence\\shipping-ground-aafb21775-final-pack-20261031"
+    ],
+    "exit_code": null
+  },
+  "pack_reports_exist": false,
+  "Claude_completion_exists": false,
+  "original_completion_exits": null,
+  "partial_flushed_recordings": [
+    {
+      "file": "reference\\run1\\recording.acmi",
+      "bytes": 12628033,
+      "prefix_equal": true,
+      "sha256": "c259cdcb50852693fca1416c05b4edbf56786ff649528c85816dc332e56913ba",
+      "last_write_utc": "2026-10-31T02:50:18.921225+00:00"
+    },
+    {
+      "file": "reference\\run1\\observations.jsonl",
+      "bytes": 7913472,
+      "prefix_equal": true,
+      "sha256": "c8200d1af0c3a968a9057b265749a7e364056bc188cdb7e2de47967683286378",
+      "last_write_utc": "2026-10-31T02:50:18.923229+00:00"
+    },
+    {
+      "file": "reference\\run2\\recording.acmi",
+      "bytes": 12652607,
+      "prefix_equal": true,
+      "sha256": "2c6ac42f5dc775c382fa5df8fc09fce3aa3db47e96053a337fcdcc46fe61830c",
+      "last_write_utc": "2026-10-31T02:50:21.928482+00:00"
+    },
+    {
+      "file": "reference\\run2\\observations.jsonl",
+      "bytes": 7913472,
+      "prefix_equal": true,
+      "sha256": "c8200d1af0c3a968a9057b265749a7e364056bc188cdb7e2de47967683286378",
+      "last_write_utc": "2026-10-31T02:50:13.247689+00:00"
+    }
+  ],
+  "source_partial_header_sha256": "cdfc515c21e6119f56a5e297c84097a42c543bebe810257dbfbdf3f092700288",
+  "local_Claude_context_exists": true,
+  "recovery": "Fresh3roots+separatepreflight+freshordinaryfullpack; sameimmutableaafbsource/binaries, no rebuild or baseline repeat. ResumeavailableSAMEClaudecontext/preservepartialheader. Hidden backgroundPythoncontrollers/PIDreceipts, neverassumeoldtoolhandleslive.",
+  "audit_setup_v1": "A first broadprocessfilter included the auditPythonitself andrefusedbeforewriting; v2excludesonlyitsownknownPID."
+}

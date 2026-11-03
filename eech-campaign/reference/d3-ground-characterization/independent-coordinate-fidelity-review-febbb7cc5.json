@@ -1,0 +1,107 @@
+{
+  "kind": "Independent focused coordinate fidelity/source and bounded diagnostic/fixed-native evidence review",
+  "created_utc": "2026-10-29T16:09:16.567213+00:00",
+  "repository": "R:\\d3-evidence\\ground-g1-compose",
+  "reviewed_base": "4e8b9288a77bdef0b82974e38cdfa9705f989bba",
+  "reviewed_code_commit": "4b204350079ebc8dbf2ae3460a848546cc57f320",
+  "reviewed_head": "febbb7cc57f41d66f752a696feb1f4447cbbcd32",
+  "workspace_identity": "Clean feb at source inspection. Root later committed metadata-only85ceff609cd45fce4862e482c60f54e1c33e7407 while report was being assembled; current production terrain bytes remain exact reviewed/tested bytes. New publication metadata is not covered as a separate publication acceptance.",
+  "disposition": "No actionable findings. Numeric-reader correction source accepted and bounded three-root fixed-native mismatch closed. Final-source shipping/current-CI/normal-delivery and whole-D3 gates remain pending.",
+  "findings": [],
+  "source_correctness_clean_code_boundary": [
+    "Lua helper reads request[field] once, including __index, and records its actual type and unchanged number. Typed f64 value retrieval bypasses the LuaValue near-integer coercion. Numeric strings and nonnumbers refuse before numeric retrieval.",
+    "Finite coordinates must still round-trip exactly through f32. Signed zero/subnormals/normal values preserve bits; finite nonexact doubles/overflow/underflow refuse. NaN/infinities are forwarded to unchanged operation-specific solver policy, not silently sanitized. No all-NaN-payload-bit or fast-acceptance claim.",
+    "Private reader/slot are cached once per Lua state and released with it. Safe mlua handles, no new raw pointer/FFI or campaign-private identity. Existing terrain C numeric/FPU/case/hash code is untouched.",
+    "Reentrancy by source inspection: getter/nested calls run before outer kind/is_number/value writes. Returning outer read overwrites relevant scratch before Rust reads populated plain-table fields; no caller code runs between read return and those accesses. Getter errors return before consuming stale slot. No mutable Rust cache borrow or C solver lock is held across getter execution. No separate executed nested-reentrancy test is claimed.",
+    "Production fix changes coordinate transport, not physical formulas or rounding policy. The earlier claim that tiny offsets must disappear is withdrawn; directed rounding may retain their effect. This is a substantive production reader change, not an erased alias."
+  ],
+  "local_test_evidence": {
+    "green": "Actual six Linux terrain library tests PASS0 (three new numeric tests plus existing three),40host_callbacks PASS0, all-target host Clippy/fmt0. Exact tested terrain SHA763316a9e3d192114cf8de6d00227d905b4c378975f923d1060ec9abf32bc1bd matches both code and metadata commits.",
+    "red": "Actual library test executed1/failure101: signed zero, smallest positive/negative subnormals and smallest normal arrived as0 for x/z. Earlier --bin selection ran0 tests and is separately retained as setup only.",
+    "limits": "Local tests establish strict numeric/exact-f32 contract and one stateful getter read. Actual engine FPU consequence is supported by the new native evidence, not assumed from Linux tests."
+  },
+  "diagnostic_evidence": {
+    "sources": [
+      "ad82c007b1c3ba553b6c5dcdfd16161dafd6d757",
+      "80b64bd064b667a79d8b78f58f66e21f46782833"
+    ],
+    "checked_source": "Each separate diagnostic repository contains identical14-line stderr instrumentation after all case queries/folds/counters/samples. Read-only locals/bit formatting, no additional terrain query/record write; no diagnostic instrumentation was introduced into the final production delta.",
+    "checked_artifacts": "Both native/controller0; pre/post logs IDENTICAL;43original/46host manifest entries independently rehashed without mismatch. Physical prefix15 folds independently equal retained uninstrumented reports per role.",
+    "observed": "Case14 X/Z and booleans agree; Z00000001 is smallest positive f32. Constructed pointY and terrain elevation differ. This alone was diagnostic, with directed-rounding causality initially an inference; fixed full-case conformance below closes the bounded mismatch."
+  },
+  "fixed_native_evidence": {
+    "actual_source": "febbb7cc57f41d66f752a696feb1f4447cbbcd32",
+    "build": "Clean feb test-only fixture build0;46manifest entries/BINF independently rehashed unchanged.",
+    "controller": "Original controller/completion actual0; all3native0/pre0/post0/unchanged-comparator0.",
+    "results": [
+      {
+        "scenario": "lebanon-repeat",
+        "actual_native_exit": 0,
+        "pre_inputs": 0,
+        "post_inputs": 0,
+        "comparison_exit": 0,
+        "physical_equal": true,
+        "cache_and_semantic_samples_equal": true,
+        "differences": [],
+        "raw_bytes": 39581,
+        "raw_sha256": "16e870fb3381b5739f065a7cff4ccdd68ea79a9ed1521d87108a00c2929682e5"
+      },
+      {
+        "scenario": "lebanon",
+        "actual_native_exit": 0,
+        "pre_inputs": 0,
+        "post_inputs": 0,
+        "comparison_exit": 0,
+        "physical_equal": true,
+        "cache_and_semantic_samples_equal": true,
+        "differences": [],
+        "raw_bytes": 39581,
+        "raw_sha256": "16e870fb3381b5739f065a7cff4ccdd68ea79a9ed1521d87108a00c2929682e5"
+      },
+      {
+        "scenario": "georgia",
+        "actual_native_exit": 0,
+        "pre_inputs": 0,
+        "post_inputs": 0,
+        "comparison_exit": 0,
+        "physical_equal": true,
+        "cache_and_semantic_samples_equal": true,
+        "differences": [],
+        "raw_bytes": 39559,
+        "raw_sha256": "0e6a9d7bc787c627922f69afc60cf40eadda24ab91d15710683738588b3861d7"
+      }
+    ],
+    "independent_comparison": "Strict119rows per candidate; every declared physical fold/counter/sample and common cache field compared per repeat directly with unchanged c119 originals. All58ground rows within each candidate repeat equal after repeat_index removal. Original legacy and candidate semantic diagnostic hashes remain intentionally separate.",
+    "complete_raw_repeat": "Lebanon pair39581bytes/SHA16e870fb3381b5739f065a7cff4ccdd68ea79a9ed1521d87108a00c2929682e5 byte-identical. Georgia39559bytes/SHA0e6a9d7bc787c627922f69afc60cf40eadda24ab91d15710683738588b3861d7.",
+    "causal_closure": "Only new production behavior is lossless coordinate reading. Fixed20kpoints/5kimpacts/2repeats across all3original roots exactly restores the measured original physical/common-cache behavior. No formula, map, baseline, oracle or tolerance change.",
+    "limits": "Bounded case conformance, not all possible inputs/generic worlds, full campaign/shipping equivalence, all-family coverage or visual evidence."
+  },
+  "comparator_scope": "Explicit physical fold/summary/sample field lists and common cache fields inspected. Profile-specific diagnostics are retained, never normalized into equality. Helper repeat validity relies on actual repeat flags; reviewer additionally compared complete actual per-repeat ground rows. No universal reusable-auditor completeness claim.",
+  "pending_gates": [
+    "Final ordinary shipping evidence must exercise the production coordinate fix or an independently proven exact final production equivalent. The old live06 pack cannot be relabelled final-source proof.",
+    "Applicable current CI, full artifact/input/build/source checks, final evidence review/normal merge and remaining D3 work. No formal GitHub APPROVED, Task47/Task48 delivery or whole-D3 acceptance claimed."
+  ],
+  "reviewer_limits": [
+    "Read-only source/artifact/hash/parse comparisons plus authorized private report. No source edits/builds/compiler/preprocessor/tests/Lua/native execution/process-cache actions/credentials/delegation/external writes.",
+    "All live builds and old06 campaigns untouched. Closed solver/fixture/G1/D2 source/evidence reused, not repeated unchanged.",
+    "Initial report-save guard noticed Root metadata head advance and stopped before writing; this final report explicitly preserves feb source scope."
+  ],
+  "changed_path_sha256": {
+    "STATUS.md": "57c22adb1e0cf5417cca430469449ebe38820d1437bfcc42a87e130248ae3578",
+    "eech-campaign/crates/eech-world/src/terrain.rs": "763316a9e3d192114cf8de6d00227d905b4c378975f923d1060ec9abf32bc1bd",
+    "eech-campaign/reference/d3-ground-characterization/coordinate-input-fix-linux.json": "3d18c7725887ca5e8efcd9901a361f73aa55ff777e0350521e461975dd979266"
+  },
+  "evidence_sha256": {
+    "ground-coordinate-green-working-completion.json": "8b2ea2ad15b8233e0008843eef3b6c997e66ce00ac90b0dfcebfea4ca555fff7",
+    "ground-coordinate-green-working.log": "3b3c9b6615cc2a0aff9c53edcc5d6a13aa4482a246be25a81fc029c22e2cb81e",
+    "coordinate-input-red-initial-attempt-classification.json": "3c294ad059dba0e56c5e6e3e4912a63f28a792e668ac1e63a98f02acf74e301b",
+    "coordinate-input-red-retry1-completion.json": "f1bb6b36eca60aed27d79d0e827c46806e38ca0a454ea5161a53b5f49b003e7a",
+    "coordinate-input-red-retry1.log": "7e55a5103af68a48131bf280ddb00f47ac070f6a070e63b5709d75876d87376f",
+    "ground-case14-trace-runs-20261029/controller.json": "09245c83a8736de383fbfca06a97b1be4f2eff22703d8d2c1c1f0895f13289e9",
+    "run-ground-case14-pair.py": "afa3d08a13c3966a12a0636ff7868f2a20d84b9730c2fb4fe6c78633b9327eb7",
+    "ground-coordinate-fixed-febbb7cc5-probes-completion.json": "e79d12cbb0daf15d4d132702adecfeedc0f21d08cc27bd387109c55b1e698a05",
+    "ground-coordinate-fixed-febbb7cc5-probes-20261029/controller.json": "1fae3a00df8bb7d2f8cdcbe96234bb4b0249460a8698a64edc95c1b68c3f99b8",
+    "compare-ground-original-host.py": "93b4aef72c97c54664a08cc32f16f4aa47166385e31b831e73b6e69c8f87d2bb",
+    "ground-coordinate-fixed-febbb7cc5-probes-20261029/build-verification.json": "09a9857b114b28a3dfdb62673d006e5b713820c43ab98082cae89800ed3a9f20"
+  }
+}

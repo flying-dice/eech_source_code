@@ -1,0 +1,21 @@
+{
+  "created_utc": "2026-11-01T21:21:43.133356+00:00",
+  "source": "9e4f3f9750bac1ce61bd8d1da98467397dd0dac5",
+  "base": "def6a9bdec11e5f8a27451d8057162a34f340693",
+  "corrected_actual_kernel_path": "eech-campaign/crates/eech-world/csrc/model_step.c",
+  "path_exists_in_both_commits_verified_cat_file": true,
+  "kernel_bytes_and_git_entry_mode_exact": true,
+  "kernel_sha256": "644977033b055afdf37c32cd0658cf6064de3937a3366d7042bef9bdb8746c98",
+  "git_tree_entry": "100644 blob cc0fc6d286e5221b0ea6d649cfaf150b6cb46018\teech-campaign/crates/eech-world/csrc/model_step.c",
+  "global_changed_paths": [
+    "STATUS.md",
+    "aphavoc/source/entity/mobile/mb_hostmodel.c",
+    "eech-campaign/crates/eech-engine-sys/build/patches.rs",
+    "eech-campaign/docs/m5-route-characterization.md"
+  ],
+  "correction_to_report": "model-host-route-source-9e4f3f9750-20261101.json previously listed eech-campaign/crates/eech-world/c/model_step.c, which does not exist. Git diff on an absent path returned0; that individual path check was insufficient. Original report is preserved. This new check explicitly proves the REAL csrc path exists in both named commits and its complete bytes/blob/mode are equal. The global diff also shows only the four declared paths changed, so no production kernel/provider/ABI source change was concealed.",
+  "runtime_scope": "No new run, no altered binary or result. Canonical builds/native/recordings and independent35623 remain at their own real9e4 identity. This corrects audit provenance, not numerical expectations.",
+  "finite_route_seam_review": "35623e1ff3fbb6c841a2da43fda6c0d13b3488c04b285d87f1c2e56a93edd5c0",
+  "Task50_complete": false,
+  "D3_complete": false
+}

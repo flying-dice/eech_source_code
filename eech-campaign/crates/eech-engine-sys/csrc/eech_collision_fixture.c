@@ -131,7 +131,6 @@
 #define FNV_PRIME 1099511628211ull
 
 #define SENTINEL_BITS 0x5a5a5a5au
-#define SENTINEL_SECTOR (-1)
 
 #define PER_CLASS 3
 #define POOL_MAX 1024
@@ -240,13 +239,16 @@ static terrain_3d_point_data *shared_record (void)
 	return (terrain_3d_point_data *) ((char *) get_3d_terrain_point_data_normal (NULL) - offsetof (terrain_3d_point_data, face_normal));
 }
 
+/*
+ * The shared record is the HOST-TERRAIN record on this base (EECH_CAMPAIGN_HOST_TERRAIN is defined in every build, mb_hostterrain.c): only the semantic values the host's last answer stored
+ * (last_elevation, terrain_type, face_normal), `face_stored` by value, and `hint`, the host's opaque bounded string, of which only whether it is empty is reported. The legacy sector,
+ * triangle and held-pointer words of the original terrain record do not exist here and are not invented, zeroed or substituted: the record rows and hashes of this fixture are the
+ * host-semantic profile and are NOT comparable with the ones the original-terrain builds reported (the physical words are). The hint is copied, compared and restored as bytes.
+ */
 static void make_sentinel (terrain_3d_point_data *sentinel)
 {
 	memset (sentinel, 0, sizeof (*sentinel));
-	sentinel->x_sector = SENTINEL_SECTOR;
-	sentinel->z_sector = SENTINEL_SECTOR;
 	sentinel->last_elevation = bits_float (SENTINEL_BITS);
-	sentinel->terrain_triangle_offset = SENTINEL_SECTOR;
 	sentinel->terrain_type = TERRAIN_TYPE_INVALID;
 }
 
@@ -254,7 +256,7 @@ struct col_record_view
 {
 	int touched;
 	uint32_t elevation_bits, normal_bits[3];
-	int type, x_sector, z_sector, triangle_offset, sector_held, face_held;
+	int type, face_stored, hint_present;
 };
 
 static void view_record (const terrain_3d_point_data *record, const terrain_3d_point_data *sentinel, struct col_record_view *view)
@@ -265,11 +267,8 @@ static void view_record (const terrain_3d_point_data *record, const terrain_3d_p
 	view->normal_bits[1] = float_bits (record->face_normal.y);
 	view->normal_bits[2] = float_bits (record->face_normal.z);
 	view->type = (int) record->terrain_type;
-	view->x_sector = record->x_sector;
-	view->z_sector = record->z_sector;
-	view->triangle_offset = record->terrain_triangle_offset;
-	view->sector_held = record->terrain_sector != NULL;
-	view->face_held = record->terrain_face != NULL;
+	view->face_stored = record->face_stored != 0;
+	view->hint_present = record->hint[0] != ' ';
 }
 
 static uint64_t record_words_hash (const terrain_3d_point_data *record)
@@ -282,10 +281,7 @@ static uint64_t record_words_hash (const terrain_3d_point_data *record)
 	hash = fold64 (hash, view.normal_bits[1]);
 	hash = fold64 (hash, view.normal_bits[2]);
 	hash = fold64 (hash, (uint32_t) view.type);
-	hash = fold64 (hash, (uint32_t) view.x_sector);
-	hash = fold64 (hash, (uint32_t) view.z_sector);
-	hash = fold64 (hash, (uint32_t) view.triangle_offset);
-	hash = fold64 (hash, (uint32_t) (view.sector_held | (view.face_held << 1)));
+	hash = fold64 (hash, (uint32_t) (view.face_stored | (view.hint_present << 1)));
 	return hash;
 }
 
@@ -410,10 +406,7 @@ static void lfold_view (struct col_probe *p, int group, const struct col_record_
 	lfold (p, group, view->normal_bits[1]);
 	lfold (p, group, view->normal_bits[2]);
 	lfold (p, group, (uint32_t) view->type);
-	lfold (p, group, (uint32_t) view->x_sector);
-	lfold (p, group, (uint32_t) view->z_sector);
-	lfold (p, group, (uint32_t) view->triangle_offset);
-	lfold (p, group, (uint32_t) (view->sector_held | (view->face_held << 1)));
+	lfold (p, group, (uint32_t) (view->face_stored | (view->hint_present << 1)));
 }
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */

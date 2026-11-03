@@ -1,0 +1,267 @@
+{
+  "schema": "independent-review/v1",
+  "task": "EEDCS-50 focused host-model corrections",
+  "reviewed_head": "8a5dad17208550831c796f37fbe9dde7f36caec5",
+  "reviewed_base": "2020436ce160ac3762f00f7ee8290f4e6247bce3",
+  "frozen_source": "R:/d3-evidence/model-review-source-8a5dad172",
+  "disposition": "CHANGES_REQUIRED",
+  "findings_count": {
+    "P2": 2,
+    "P3": 1
+  },
+  "scope": "One focused combined correctness, clean-code, bounds/ownership/I/O/FFI and truthful evidence pass on the four prior corrections plus new original_report validator/tests. Unchanged C numeric/FPU kernel, original366/driver309 and earlier components reused, not re-reviewed.",
+  "source_identity": {
+    "head_exact": true,
+    "final_status_porcelain_empty": true,
+    "reviewed_source_bytes_equal_pinned_git_blobs": true,
+    "kernel_unchanged_from202": true,
+    "setup_note": "One intermediate boolean cleanliness probe returned false without retaining its status text. Immediate literal git-status repeats were empty; all reviewed primary source bytes matched pinned Git blobs and final status remained empty. No source drift was established; no source mutation by reviewer."
+  },
+  "previous_findings": [
+    {
+      "id": "MODEL-NODE-PREALLOCATION",
+      "status": "PARTIALLY_RESOLVED",
+      "assessment": "The tiny INT_MAX and local truncated-child cases are correctly refused before resize; checked total arithmetic and try_reserve are improvements. The local remaining-byte bound is not a cumulative reservation budget and still permits depth-amplified allocations; see remaining finding."
+    },
+    {
+      "id": "MODEL-OVERRIDE-IO",
+      "status": "RESOLVED",
+      "assessment": "RealFs and the actual resolver/enumerator now propagate listing, entry and metadata failures with affected paths instead of silently dropping overrides. Missing optional OBJECTS remains valid, wrong-kind/vanished entries refuse. Five library controls exercise the real helper code through a minimal Fs boundary. The separate exact-match ambiguity contract discrepancy below is a P3, not a failure to propagate I/O."
+    },
+    {
+      "id": "MODEL-COMPARISON-COMPLETENESS",
+      "status": "PARTIALLY_RESOLVED",
+      "assessment": "The new envelope/body state machine rejects the four original corruptions and checks catalogue completeness, declared geometry group count, depths, call/terminal presence and successful original done/checks. Remaining fixture-gate/header and changed-word consistency holes still permit false comparison success; see remaining finding."
+    },
+    {
+      "id": "MODEL-SCENE-WIDTH",
+      "status": "RESOLVED",
+      "assessment": "Signed i64 scene bounds are now checked against the scene count before usize::try_from. Wide positive IDs cannot wrap to a valid scene. Regression values include32-bit boundaries; actual current native execution is x64, not claimed32-bit runtime."
+    }
+  ],
+  "findings": [
+    {
+      "id": "MODEL-NODE-CUMULATIVE-BUDGET",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/src/models.rs",
+      "line": 1092,
+      "related_lines": [
+        1114,
+        1128,
+        1132
+      ],
+      "title": "Charge all reserved sibling lists against one serialized-byte/node budget",
+      "reason": "Each sibling list checks n*minimum_record_bytes against the same remaining file tail, then allocates all n nodes before reading the first. A nested first-child chain can repeat that allocation at each of64 permitted levels while unread siblings from earlier levels still consume no bytes. The same padding can justify many allocations; the scene header node_budget may be INT_MAX and therefore does not bound it by the file. For example, a512MiB file can pass local binary96-byte checks for5million siblings at each level and allocate about320million52-byte Nodes (16.64GB) before the depth/truncation refusal. try_reserve only checks virtual reservation; resize writes the memory and can still exhaust/kill the process under overcommit.",
+      "bounded_correction": "Derive and charge a conservative cumulative node budget from serialized bytes/minimum record size, or reserve the bytes required by all pending siblings before accepting children. Check cumulative capacity/resource limits before allocation; retain valid node order and minimum-size boundary cases. Add a small/instrumented depth-amplification control proving reservations cannot exceed the conservative global budget. Do not execute unsafe multi-GB old allocation controls.",
+      "evidence": "Static correction-specific counterexample; no unsafe allocation was executed. Existing local tiny-file guards legitimately pass but do not cover this cumulative case."
+    },
+    {
+      "id": "MODEL-REPORT-GATE-CONSISTENCY",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/src/original_report.rs",
+      "line": 344,
+      "related_lines": [
+        223,
+        271,
+        305,
+        347
+      ],
+      "test_path": "eech-campaign/crates/eech-world/tests/model_store.rs",
+      "test_lines": [
+        939,
+        940,
+        1544,
+        1550
+      ],
+      "title": "Require fixture gate and write-count facts to agree with the report header/words",
+      "reason": "The validator accepts end_probe_unbacked/beyond_safe_bound when depth equals first+tris, without retaining/validating fan_bound/end_read_backed or stable per-scene header identity. Thus a safe backed scene can be ended at depth0 with zero calls using an invented gate marker. The original completeness false-green remains through this alternate terminal. Also writes is checked only for range/presence/word shape, not against the actual changed sentinel words.",
+      "actual_root_red": {
+        "controller": "host-model-forged-gate-8a5dad172-red-20261030/controller.json",
+        "aggregate_exit": 0,
+        "meaning": "Defect reproduction, not acceptance",
+        "both_forged_native_exits": [
+          0,
+          0
+        ],
+        "both_done_failures": 0,
+        "compared_original_calls": "215 healthy ->191 with all scene8 calls removed",
+        "unchanged_header": "scene8 fan_bound23/end_read_backed1",
+        "forged_terminals": [
+          "end_probe_unbacked depth0",
+          "beyond_safe_bound depth0"
+        ],
+        "inputs_original_payloads_unchanged": true
+      },
+      "test_validity": "The unbacked positive collaborator inherits fan_bound0/end_read_backed1 from page(), yet ends depth2 as unbacked. The false-partial-write positive says writes2 but words(3) changes all9 sentinel words. These do not satisfy the closed309 report contract, so they currently reinforce permissive validation rather than prove valid positive modes.",
+      "bounded_correction": "Retain finite known header/status/identity fields per group; enforce gate reason/depth versus fan_bound/end_read_backed exactly as the closed original Lua driver does, without rederiving geometry. Count changed words against0x7fc0a5a5 when writes>0. Repair positive collaborators to coherent headers/partial words and add forged-gate/changed-header/write-count negative controls through the actual comparator. Preserve legitimate partial writes, explicit refusal, capped/unbacked and catalogue-off modes.",
+      "reuse_limit": "The complete hash-pinned healthy inputs and current retail outputs remain valid independently inspected matches. No physical oracle/tolerance/raw needs rewriting or campaign rerun solely for this validator correction."
+    },
+    {
+      "id": "MODEL-RESOLVER-AMBIGUITY-CONTRACT",
+      "priority": "P3",
+      "path": "eech-campaign/crates/eech-world/src/models.rs",
+      "line": 348,
+      "related_lines": [
+        354,
+        355,
+        356
+      ],
+      "title": "Qualify exact-match precedence or enforce the documented ambiguity refusal",
+      "reason": "find_named documents that two case-only names are errors, but returns on an exact kind match before scanning for ambiguity. A.EEO plus a.eeo queried as A.EEO is accepted. The added ambiguity test queries a.EEO, neither exact spelling, and only checks the fallback branch.",
+      "bounded_correction": "Either explicitly document/test exact-match precedence and qualify the all-ambiguities-refused claim, or apply the same ambiguity check for exact matches. This does not affect the measured normal Windows retail roots."
+    }
+  ],
+  "actual_evidence_assessment": {
+    "source_history": "61a80 corrections had235 Linux library passes but integration E0308 setup compile failures (Linux/Windows). ba4 fixed test helpers and passed source/runtime checks except retained Clippy101.8a changes the remaining needless-borrow/ErrorOther lints and metadata; these failed checkpoints are retained, not relabelled.",
+    "linux8a": {
+      "actual_exit": 0,
+      "fmt": 0,
+      "library_tests": 235,
+      "including_actual_fs_controls": 5,
+      "model_store_integration_tests": 30,
+      "closed_model_characterization_tests": 8,
+      "all_target_clippy": 0,
+      "limits": "Counts include existing library tests; they are not235 new physics proofs."
+    },
+    "windows8a": {
+      "build_actual_exit": 0,
+      "actual_controller_exit": 0,
+      "library_tests": 235,
+      "integration_tests": 30,
+      "invalid_explicit_host_control_exit": 101,
+      "invalid_control_meaning": "Expected one-test strict override refusal,0 passed/1 failed; no fallback, controller0.",
+      "six_build_entries_independently_rehashed": true,
+      "build_info_sha256": "2fd4918df4988469d810f821c62028454ba4d84b9a80f0e78e34988fbab08916",
+      "payloads_unchanged": true
+    },
+    "retail": {
+      "actual_controller_exit": 0,
+      "all_three_repo_and_native_exits": 0,
+      "pre_post_inputs_all_three": 0,
+      "strict_rows_each": 3357,
+      "bytes_each": 1278336,
+      "whole_host_reports_identical_all_three": true,
+      "sha256": "ed3503b12227fec13cadd2d56b62296cdb08e5bd2e5b76f0ac61db776fc59317",
+      "full_bytes_exact_ba4_all_three": true,
+      "versus202": "Each file has exactly one differing raw line: compare line3352 adds original_catalogue_scenes3025 and original_geometry_scenes11 (+63 bytes). All3356 other raw lines, including line endings, are exact202. The changed row is otherwise semantically equal; no original normalized.",
+      "retained_measured_scope": "All3025 metadata/IDs and215 original calls (208 TRUE,6 end FALSE,1 absence), no named-ID skips, surface52517. Original reports/six payloads unchanged. Prior202 independent field/bit audit reused via exact row identity."
+    },
+    "four_original_report_controls": {
+      "old202_native_exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "new8a_native_exits": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "healthy_native_exit_both": 0,
+      "modes": [
+        "truncated-first-scene",
+        "duplicate-scene",
+        "missing-geometry-terminal",
+        "failed-original-done"
+      ],
+      "new_failures": "compare-refused/no done with specific contract errors",
+      "input_original_payload_and_mutation_hashes_unchanged": true,
+      "meaning": "These are successful bounded red/green controls for the original four cases; they do not cover the newly demonstrated forged-gate loophole."
+    },
+    "verification": "Read-only actual controller/log/raw/hash parsing and source inspection. Independently rehashed all six build entries and complete retail files, checked all3 8a/ba4 byte identities and one-line-only delta from202. Supplied tests/native/control/audit scripts were not executed by reviewer."
+  },
+  "limits": [
+    "Two prior P2 findings are fully closed, two remain partially resolved with correction-specific holes. No whole component closure until the finite remaining batch is corrected and affected controls verified.",
+    "The C numerical/FP kernel and prior original366/driver309 characterization are unchanged and reused. No new production authority or campaign DLL loader/dispatch removal is established.",
+    "59 original custom/mixed geometries still have no original triangle oracle; only six positive safe model geometries and one absence are measured. Other safe models have metadata, not exhaustive triangle coverage.",
+    "No formal GitHub approval, Task50 delivery, production/Tacview/shipping/full40/eight-artifact or whole-D3 acceptance. Hierarchy/viewpoint/device/target-point, entity collision, environment/time and physical solver/loader removal remain required D3 work.",
+    "Live Task47 shipping/process/cache data was outside this review and untouched. No32-bit runtime or unsafe old allocation RED was invented.",
+    "Parent may start a correction lane after this completed source sweep; no moving source was inspected. Only the new report was written; no source/build/test/native/process/cache/auth/Git/external mutation or nested agents."
+  ],
+  "source_identities": [
+    {
+      "path": "eech-campaign/crates/eech-world/src/models.rs",
+      "sha256": "1b88991d9d9525426a64be7d7683f523deab0c216579812c00c32d458d4cbdc1"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/original_report.rs",
+      "sha256": "ddd9650f4dfd07a822abc0822f799c07d84345933ebe24a33930a3abe7abf042"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+      "sha256": "29188a0c85420349e90a97566fcc406e00f911cf0153b8912feb66cd764a9b1d"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/lib.rs",
+      "sha256": "ce114ef17391622a42426bf2a0cc1c793bdab8cd6121f3bf2c1defe3ed595aa3"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/model_store.rs",
+      "sha256": "65e74cc36219f13f17a2aed1dcdd77d37d52adf0d5ad8099e0573a5ccec88dbb"
+    },
+    {
+      "path": "eech-campaign/docs/m5-model-host-store.md",
+      "sha256": "cb12cecd4e5222d88fdebfae1993f4991f9c7fd0f00b38c54602801fc7ea9e23"
+    }
+  ],
+  "evidence_identities": [
+    {
+      "path": "R:/d3-evidence/independent-host-model-component-review-2020436ce-20261030.json",
+      "sha256": "4f387a639e452c9942e89d693d4de0b7a2e7a914a34bf6c68dcd38626f48c613"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-8a5dad172-linux-20261030-completion.json",
+      "sha256": "490bc42a3031fa8e82d19056128ba1cdc4795b817501632388a0bd55dabf92d6"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-8a5dad172-linux-20261030.log",
+      "sha256": "8b0938bfc52affe1aeb3e707d24c9924fffd3da348d8bc4107c536875b62c9ea"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-8a5dad172-windows-20261030-completion.json",
+      "sha256": "2cf38d6468c79bd82a0f6f38010ba913ae5d912992fede70558d6e85c2647f62"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-8a5dad172-windows-tests-20261030/controller.json",
+      "sha256": "c33d64d2770cd9e85292e024c51fca804b6aee7c304cbda77859a817491e4644"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-8a5dad172-windows-tests-20261030/unit.log",
+      "sha256": "994d8f67cf23c97ffa21280e275aff761409f38de9543cb6722a572fd48241bc"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-8a5dad172-windows-tests-20261030/integration.log",
+      "sha256": "4c58d04399dc2117fceefa89c894ac9adfc8d43581194eecdbb81eaf3cfa4312"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-8a5dad172-windows-tests-20261030/invalid-host.log",
+      "sha256": "bd57a38e83345e433525373ef34123b5595baa77d0133b3d87daf9e368524146"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-8a5dad172-retail-20261030/controller.json",
+      "sha256": "b975e07b8efcdaa4bea85250c019b5ab979ddb3feb181891edb545acf2423a26"
+    },
+    {
+      "path": "R:/d3-evidence/host-model-report-controls-2020436ce-red-20261030/controller.json",
+      "sha256": "cb7358a91cb4c95ac918c477a0e00cf92f561972b5fb2d016d682e8c5c75ab35"
+    },
+    {
+      "path": "R:/d3-evidence/host-model-report-controls-8a5dad172-green-20261030/controller.json",
+      "sha256": "05b7fa6d8acc78d2dcf2db2a9bbacd8bbdc56081b5cacef8dd2cca19a475997f"
+    },
+    {
+      "path": "R:/d3-evidence/host-model-forged-gate-8a5dad172-red-20261030/controller.json",
+      "sha256": "b6a0e7f78dd06a59c38b2b62995b18297594c5b471220ec4e87877a69837517c"
+    },
+    {
+      "path": "R:/d3-evidence/host-model-ba4f5d42a-vs-2020436ce-report-byte-audit-20261030.json",
+      "sha256": "1918fe44717793a19efe2a20ee178e4be5315556953264b0d9f0b8f6c2610bd4"
+    }
+  ],
+  "original_review": {
+    "path": "R:/d3-evidence/independent-host-model-component-review-2020436ce-20261030.json",
+    "sha256": "4f387a639e452c9942e89d693d4de0b7a2e7a914a34bf6c68dcd38626f48c613"
+  }
+}

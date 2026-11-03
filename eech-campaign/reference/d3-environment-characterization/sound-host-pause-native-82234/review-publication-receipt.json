@@ -1,0 +1,9 @@
+{
+  "report": "independent-environment-host-pause-final-actual-review-82234a3a3-20261101.json",
+  "canonical_private_original_sha256": "e2e34e6d53f56d8dbd9a23df4f61eb8d9cad9537dea49d23c3b44b75731c3281",
+  "copied_sha256_before_git_normalization": "e2e34e6d53f56d8dbd9a23df4f61eb8d9cad9537dea49d23c3b44b75731c3281",
+  "reviewed_publication": "203c459788e53382b58b32388a88d689686990be",
+  "physical_source": "82234a3a3cb6d54fbbede7a2cf7939c965e353c3",
+  "finite_SESSION_host_pause_slice_closed": true,
+  "scope": "Literal report copy and factual closure added after review; additions are not represented as pre-reviewed. Code/binaries/driver/raw/oracles unchanged. No wholeTask51/D3 or shipping/Tacview/normaldelivery acceptance."
+}

@@ -1,0 +1,40 @@
+{
+  "scope": "Safe metadata/evidence only; no rawretail inputs, recording, coordinates or binaries. Measured native765 + explicitdriver235; executable productionbodies unchanged. Complete selected observedstate/raw-line equality is notwholecampaign/Tacview/shippingacceptance.",
+  "copied_files": [
+    {
+      "file": "independent-environment-observer-drain-fix-review-235290e0d-20261031.json",
+      "original_private_raw_sha256": "69d1f5533def00425e8ed4a50daaac1834c535f2a302326a1dcfc6b7ed1dae89",
+      "expected_git_LF_text_sha256": "69d1f5533def00425e8ed4a50daaac1834c535f2a302326a1dcfc6b7ed1dae89"
+    },
+    {
+      "file": "independent-environment-observer-actual-recovery-review-native765-driver235-20261031.json",
+      "original_private_raw_sha256": "390d2c417f5666649531b6523dfb98ae06a6d521601455b5a5451299d98364aa",
+      "expected_git_LF_text_sha256": "390d2c417f5666649531b6523dfb98ae06a6d521601455b5a5451299d98364aa"
+    },
+    {
+      "file": "environment-observer-recovery-complete-comparison-native765-driver235-20261031.json",
+      "original_private_raw_sha256": "59382b47de491e60d2a323b4a884fad943e480ac3dcdf824c1a9d1400f92739e",
+      "expected_git_LF_text_sha256": "09982d69fc2bb6c103cbfd4219486daa7555d9b7c09533ebbccb5d82304bf71c"
+    },
+    {
+      "file": "environment-observer-235-actual-Windows-guards-20261031.json",
+      "original_private_raw_sha256": "ba0f9ec46cee649dead366ebee3372bb7a8ffc2d73cb3528c8552c488719e9a2",
+      "expected_git_LF_text_sha256": "9b8025d5c8f27b56c381b2efa97171693dd1a7602503b67eba6a9390ac1bcda5"
+    },
+    {
+      "file": "environment-observer-guards-235290e0d-linux-20261031-v2-completion.json",
+      "original_private_raw_sha256": "a3bc32c398def4522c4b3dfe459c4e33329a9461b8305d7f85336b67e4049216",
+      "expected_git_LF_text_sha256": "5acd02aa6526690eae64f06b1a9338e31bf9b5a828aee37f7566736da5bdf344"
+    },
+    {
+      "file": "environment-observer-guards-235290e0d-windows-20261031-v2-completion.json",
+      "original_private_raw_sha256": "0204ef20aedda74cddb802950572557a75faf32d882c761433764b759eb5917f",
+      "expected_git_LF_text_sha256": "8cbca78e0d2d43c0de8d9470731ca1cc00e8aa378e232afefde23da0387aa1fc"
+    },
+    {
+      "file": "current-CI-235290e0d-20261031.json",
+      "original_private_raw_sha256": "12219e6c4c7e17238a46851a0447fe826072e70420a09639367b62ce19e6854e",
+      "expected_git_LF_text_sha256": "12219e6c4c7e17238a46851a0447fe826072e70420a09639367b62ce19e6854e"
+    }
+  ]
+}

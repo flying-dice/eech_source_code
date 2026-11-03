@@ -1,0 +1,36 @@
+{
+  "review": "ONE narrow independent new-delta review; no agents, source edits, builds, Docker, process changes or experiments",
+  "created_utc": "2026-10-31T12:15:35.6645509Z",
+  "source": {
+    "path": "R:/d3-evidence/environment-services-20261030",
+    "head": "585a53cd08775997f25bc81a8907bf1877f24e4c",
+    "tree": "ea4c6c0755ebcbada9f88c3e2c61453f9ebde85f",
+    "base": "53d9ddcf3bf3051b95e68e644a8a4b5883516891",
+    "status": "Clean working tree observed at start/end; git diff --check base..HEAD exit 0; Root states no writer active",
+    "delta": "Four test/docs files, 37 insertions and 2 deletions; no production C/Rust/ABI/provider/build/manifest change",
+    "sha256": {
+      "eech-campaign/crates/eech-world/lua/env-wind-authority.lua": "23cc7082275306209d2776a7a0c5cc15e5353e067e428dca9905ce43b5407e55",
+      "eech-campaign/crates/eech-world/tests/env_wind_authority.rs": "deed6525aa4f73bcc5c79ac8f2d81b45c4d7dde3764698d15458d21dbe7f760e"
+    }
+  },
+  "prior_finding": {
+    "id": "ENV-WIND-CORRECTION-1",
+    "review_sha256": "c8c62281430197e67008a2e964edf694b9a4e3865d6580c0c6dd41f16af2d21c",
+    "disposition": "CLOSED IN INSPECTED SOURCE"
+  },
+  "judgement": "NO_NEW_SOURCE_FINDINGS. This closes the launch-time unregistered-counter source residual only. Runtime wind-authority and full Task 51/D3 acceptance are separate pending gates.",
+  "findings": [],
+  "inspected_facts": [
+    "Lua now compares launch_trace.unregistered with trace_before.unregistered immediately after the other two launch loss checks and before case_launch/armed rows. A difference raises the existing hard witness failure with its count and pre-arm attribution; no provider alteration can be sent first.",
+    "All three stopped-run authority counters now use final_trace or launch_trace or trace_before. The latest available launch snapshot is preserved; final_trace_checked remains false after an expected engine guard, so a known launch snapshot is not presented as a measured final trace. No poisoned-engine trace query was added.",
+    "Scripted collaborator can now expose an unregistered count already present at launch independently from a later post-launch count. Existing final-run unregistered guards remain intact. New control and withheld scenarios require pre-arm failure; a malformed-speed scenario checks the literal count, pre-arm reason and absence of any wind_sent row. Refusal controls check final_trace_checked=false and the checked zero launch counter.",
+    "The correction uses existing trace vocabulary and hard-failure handling. It introduces no physical solver, world trace/census framework, safe API, campaign policy, RNG, arithmetic or numerical tolerance change. Earlier grammar, independent launch counts, positive identities, sentinel checks and public witness scope are unchanged.",
+    "Documentation accurately describes the source correction and distinguishes source53 Linux tests/strict success from the reported private Windows export-controller setup failure. It does not claim that the new source or real five-mode authority path has run."
+  ],
+  "limitations": [
+    "No 585 actual tests, Clippy, Windows export or public five-mode results were supplied at cutoff. Root owns new execution, current native/judge/embedded-script identities, copied script hash, verified fresh roots, payload/input checks and current CI.",
+    "Reported source53 Linux tests/strict 0 and successful Windows compilation with export-controller exit 1 were not rerun or independently re-read here. No product/compiler failure or pass is inferred from that private directory-creation error.",
+    "Only 53..585 new test/docs delta was reviewed. Previously closed field/production/kernel/FP/oracle reviews remain reused, without unchanged rereview or new census. No external publication, authentication change, fake approval or merge performed.",
+    "Whole Task 51/D3 stays open with required physical effects/time/terrain/spatial/model work and full shipping/current-CI/normal-delivery gates. Campaign policy remains Core; D4/D5 unstarted. Existing user-authorized normal review/merge scope is unchanged."
+  ]
+}
