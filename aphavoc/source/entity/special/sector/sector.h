@@ -162,18 +162,18 @@ extern int get_sector_task_type_count (entity *en, entity_sub_types task_type, e
 
 #include "sc_dstry.h"
 
-#include "sc_float.h"
+
 
 // JB 030311 VC rename source files
-#include "sc_secfuncs.h"
 
-#include "sc_int.h"
 
-#include "sc_list.h"
 
-#include "sc_msgs.h"
 
-#include "sc_pack.h"
+
+
+
+
+
 
 
 

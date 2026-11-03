@@ -148,29 +148,29 @@ typedef struct KEYSITE keysite;
 
 
 
-#include "ks_creat.h"
+
 
 #include "ks_dbase.h"
 
-#include "ks_dstry.h"
 
-#include "ks_float.h"
 
-#include "ks_funcs.h"
+
+
+
 
 #include "ks_int.h"
 
-#include "ks_list.h"
 
-#include "ks_msgs.h"
 
-#include "ks_pack.h"
 
-#include "ks_str.h"
 
-#include "ks_updt.h"
 
-#include "ks_vec3d.h"
+
+
+
+
+
+
 
 
 
@@ -220,13 +220,13 @@ extern int repair_client_server_entity_keysite (entity *en);
 
 extern int get_keysite_suitable_for_player (entity *keysite, entity *pilot);
 
-extern void dump_keysite_info (void);
+
 
 extern void validate_keysite_landing_site_heights (entity *keysite);
 
-extern void play_keysite_under_attack_speech (entity *en, entity *aggressor);
 
-extern void get_keysite_entity_mfd_display_name (entity *en, char *s);
+
+
 
 
 

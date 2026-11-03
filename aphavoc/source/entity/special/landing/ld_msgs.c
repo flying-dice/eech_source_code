@@ -2066,7 +2066,6 @@ static int response_to_waypoint_taken_off_reached (entity_messages message, enti
 
 
 
-#if LANDING_ROUTE_CHECK
 
 
 
@@ -2155,13 +2154,11 @@ static int response_to_waypoint_taken_off_reached (entity_messages message, enti
 
 
 
-#endif
 
 
 
 
 
-#if LANDING_ROUTE_CHECK
 
 
 
@@ -2184,13 +2181,11 @@ static int response_to_waypoint_taken_off_reached (entity_messages message, enti
 
 
 
-#endif
 
 
 
 
 
-#if LANDING_ROUTE_CHECK
 
 
 
@@ -2231,13 +2226,11 @@ static int response_to_waypoint_taken_off_reached (entity_messages message, enti
 
 
 
-#endif
 
 
 
 
 
-#if LANDING_ROUTE_CHECK
 
 
 
@@ -2276,13 +2269,11 @@ static int response_to_waypoint_taken_off_reached (entity_messages message, enti
 
 
 
-#endif
 
 
 
 
 
-#if LANDING_ROUTE_CHECK
 
 
 
@@ -2331,7 +2322,16 @@ static int response_to_waypoint_taken_off_reached (entity_messages message, enti
 
 
 
-#endif
+
+
+
+
+
+
+
+
+
+
 
 
 

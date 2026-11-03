@@ -223,7 +223,7 @@ extern void set_session_fixed_weather_mode (entity *en, weathermodes weather_mod
 
 extern void set_session_random_weather_mode (entity *en);
 
-extern float get_session_wind_velocity_at_point (vec3d *pos, vec3d *wind_velocity);
+
 
 extern void attach_session_sound_effects (entity *en);
 
@@ -233,25 +233,25 @@ extern int check_point_inside_population_area (vec3d *point);
 
 
 
-#include "ss_creat.h"
 
-#include "ss_dstry.h"
 
-#include "ss_float.h"
 
-#include "ss_funcs.h"
 
-#include "ss_int.h"
 
-#include "ss_list.h"
 
-#include "ss_msgs.h"
 
-#include "ss_pack.h"
 
-#include "ss_updt.h"
 
-#include "ss_vec3d.h"
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -158,7 +158,7 @@ extern float get_estimated_task_duration (entity *task);
 
 extern int validate_task_generation (entity_sides side, entity_sub_types sub_type);
 
-extern void display_task_generation_stats (entity *force_en);
+
 
 
 

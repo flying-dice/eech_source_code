@@ -110,17 +110,17 @@ extern void display_debug_kill_info (entity *victim, entity *aggressor);
 
 extern int weapon_damage_capability (entity *wpn, entity *target, float damage_modifier, entity_sub_types weapon_type, float velocity);
 
-extern void initialise_destroyed_object_database (void);
 
-extern void deinitialise_destroyed_object_database (void);
+
+
 
 extern object_3d_index_numbers get_3d_object_destroyed_object_index (object_3d_index_numbers index);
 
 extern object_3d_index_numbers get_3d_object_restored_object_index (object_3d_index_numbers index);
 
-extern int get_damage_debug_invulnerable_flag (void);
 
-extern int toggle_damage_debug_invulnerable_flag (void);
+
+
 
 
 

@@ -151,29 +151,29 @@ typedef struct VEHICLE vehicle;
 
 
 
-#include "vh_anim.h"
+
 
 #include "vh_dbase.h"
 
-#include "vh_float.h"
 
-#include "vh_funcs.h"
 
-#include "vh_int.h"
 
-#include "vh_list.h"
 
-#include "vh_msgs.h"
 
-#include "vh_pack.h"
 
-#include "vh_ptr.h"
 
-#include "vh_str.h"
+
+
+
+
+
+
+
+
 
 #include "vh_tgt.h"
 
-#include "vh_vec3d.h"
+
 
 #include "vh_wpn.h"
 
@@ -193,9 +193,9 @@ typedef struct VEHICLE vehicle;
 
 
 
-extern void play_vehicle_shot_at_speech (entity *victim, entity *aggressor);
 
-extern void play_vehicle_destroyed_speech (entity *victim, entity *aggressor);
+
+
 
 extern void assess_vehicle_damage_level (entity *en, int old_damage_level);
 

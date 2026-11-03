@@ -66,7 +66,7 @@
 
 extern void create_local_sector_entities (void);
 
-extern void overload_sector_create_functions (void);
+
 
 
 

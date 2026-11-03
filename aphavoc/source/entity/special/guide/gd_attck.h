@@ -66,7 +66,7 @@
 
 extern void initialise_attack_guide (entity *en);
 
-extern void calculate_attack_guide_intercept_point (entity *aggressor, entity *target, int selected_weapon, vec3d *ip);
+
 
 extern int attack_guide_find_best_weapon (entity *en);
 

@@ -84,31 +84,31 @@ typedef struct FIXED_WING fixed_wing;
 
 
 
-#include "fw_anim.h"
+
 
 #include "fw_creat.h"
 
-#include "fw_draw.h"
 
-#include "fw_dstry.h"
 
-#include "fw_float.h"
 
-#include "fw_funcs.h"
 
-#include "fw_int.h"
 
-#include "fw_list.h"
+
+
+
+
+
+
 
 #include "fw_move.h"
 
-#include "fw_msgs.h"
 
-#include "fw_pack.h"
 
-#include "fw_tgt.h"
 
-#include "fw_updt.h"
+
+
+
+
 
 
 

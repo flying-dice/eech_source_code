@@ -260,37 +260,37 @@ extern entity *(*fn_get_local_entity_child_pred[NUM_ENTITY_TYPES][NUM_LIST_TYPES
 
 
 
-extern void initialise_entity_list_default_functions (void);
+
 
 extern void insert_local_entity_into_parents_child_list (entity *en, list_types type, entity *parent, entity *pred);
 
-extern int local_entity_is_in_list(entity* en, list_types list, entity* search_object);
 
-extern void clear_local_entity_list(entity* en, list_types list);
+
+
 
 extern void delete_local_entity_from_parents_child_list (entity *en, list_types type);
 
 extern void unlink_local_entity_children (entity *en, list_types list);
 
-extern entity *get_local_entity_child_succ_circular (entity *en, list_types type);
 
-extern entity *get_local_entity_child_pred_circular (entity *en, list_types type);
 
-extern void pack_list_root (entity *en, list_types type, list_root *root);
 
-extern void unpack_list_root (entity *en, list_types type, list_root *root);
 
-extern void pack_list_link (entity *en, list_types type, list_link *link);
 
-extern void unpack_list_link (entity *en, list_types type, list_link *link);
 
-extern void pack_list_type (list_types type);
 
-extern list_types unpack_list_type (void);
+
+
+
+
+
+
+
+
 
 extern void set_client_server_entity_parent (entity *en, list_types type, entity *parent);
 
-extern int get_local_entity_list_size (entity *parent, list_types type);
+
 
 
 

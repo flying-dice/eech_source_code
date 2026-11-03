@@ -70,7 +70,7 @@ extern int engage_targets_in_sector (entity *group, int sx, int sz, unsigned int
 
 extern int engage_targets_in_area (entity *group, vec3d *target_point, float radius, unsigned int task_target_type, int expire);
 
-extern int debug_engage_targets_in_area (entity *group, vec3d *target_point, float radius, unsigned int target_type);
+
 
 extern int engage_targets_in_group (entity *group, entity *target_group, int expire);
 

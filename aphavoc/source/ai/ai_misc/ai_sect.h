@@ -66,7 +66,7 @@
 
 extern void initialise_ai_sectors (void);
 
-extern void reset_ai_sectors (void);
+
 
 
 

@@ -138,49 +138,6 @@ static void set_local_string (entity *en, string_types type, const char *s)
 
 
 
-#if SET_CLIENT_SERVER_REQUIRED
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#endif
-
-
-
-
-
-#if SET_CLIENT_SERVER_REQUIRED
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#endif
-
-
-
-
-
-#if SET_CLIENT_SERVER_REQUIRED
 
 
 
@@ -200,7 +157,50 @@ static void set_local_string (entity *en, string_types type, const char *s)
 
 
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

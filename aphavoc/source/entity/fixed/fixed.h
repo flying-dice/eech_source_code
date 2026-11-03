@@ -97,7 +97,7 @@ typedef struct FIXED_ fixed;
 
 
 
-extern void play_building_destroyed_speech (entity *building, entity *aggressor);
+
 
 extern void restore_local_fixed_entity (entity *en);
 
@@ -107,21 +107,21 @@ extern void restore_local_fixed_entity (entity *en);
 
 #include	"fx_dbase.h"
 
-#include	"fx_float.h"
 
-#include	"fx_funcs.h"
 
-#include	"fx_int.h"
 
-#include	"fx_list.h"
 
-#include	"fx_msgs.h"
 
-#include	"fx_pack.h"
 
-#include	"fx_str.h"
 
-#include	"fx_vec3d.h"
+
+
+
+
+
+
+
+
 
 #include	"fx_objdb.h"
 
@@ -129,17 +129,17 @@ extern void restore_local_fixed_entity (entity *en);
 
 
 
-#include "cbuild/cbuild.h"
 
-#include "city/city.h"
 
-#include "crater/crater.h"
 
-#include "object/object.h"
 
-#include "pylon/pylon.h"
 
-#include "scenic/scenic.h"
+
+
+
+
+
+
 
 #include "segment/segment.h"
 

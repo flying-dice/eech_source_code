@@ -199,15 +199,15 @@ extern const char *(*fn_get_local_entity_string[NUM_ENTITY_TYPES][NUM_STRING_TYP
 
 
 
-extern void initialise_entity_string_default_functions (void);
 
-extern void pack_string (entity *en, string_types type, const char *s);
 
-extern void unpack_string (entity *en, string_types type, char *s);
 
-extern void pack_string_type (string_types type);
 
-extern string_types unpack_string_type (void);
+
+
+
+
+
 
 
 

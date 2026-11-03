@@ -64,11 +64,11 @@
 
 
 
-#include "routegen.h"
+
 
 #include "popread.h"
 
-#include "briefing.h"
+
 
 #include "ai/ai_misc/ai_misc.h"
 

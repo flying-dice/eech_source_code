@@ -173,7 +173,7 @@ extern weapon_data
 
 
 
-extern void validate_weapon_database (void);
+
 
 
 
@@ -200,7 +200,7 @@ extern vec3d
 
 
 
-extern void initialise_target_point_offsets (void);
+
 
 
 

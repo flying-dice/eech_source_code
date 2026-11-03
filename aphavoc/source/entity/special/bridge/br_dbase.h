@@ -100,9 +100,9 @@ extern bridge_data
 
 
 
-extern void initialise_bridge_database();
 
-extern void deinitialise_bridge_database();
+
+
 
 
 

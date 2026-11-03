@@ -123,7 +123,7 @@ extern void normalise_surface_defence_imaps (void);
 
 
 
-extern void output_all_influence_maps (void);
+
 
 
 

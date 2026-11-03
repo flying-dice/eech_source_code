@@ -167,29 +167,29 @@ typedef enum
 
 
 
-#include "ac_anim.h"
+
 
 #include "ac_dbase.h"
 
-#include "ac_float.h"
 
-#include "ac_funcs.h"
 
-#include "ac_int.h"
 
-#include "ac_list.h"
 
-#include "ac_msgs.h"
 
-#include "ac_pack.h"
 
-#include "ac_ptr.h"
 
-#include "ac_str.h"
+
+
+
+
+
+
+
+
 
 #include "ac_tgt.h"
 
-#include "ac_vec3d.h"
+
 
 #include "ac_wpn.h"
 
@@ -213,21 +213,21 @@ extern aircraft_damage_types aircraft_critically_damaged (entity *en);
 
 extern void assess_aircraft_damage_level (entity *en, int old_damage_level, int new_damage_level);
 
-extern void play_aircraft_shot_at_speech (entity *victim, entity *aggressor);
 
-extern void play_aircraft_destroyed_speech (entity *victim, entity *aggressor);
 
-extern void play_aircraft_targeted_speech (entity *victim, entity *aggressor);
 
-extern void play_aircraft_flown_into_new_sector_speech (entity *en, entity *old_sector, entity *new_sector);
 
-extern void attach_aircraft_meta_smoke_lists (entity *en);
 
-extern void pack_aircraft_meta_smoke_lists (entity *en, pack_modes mode);
 
-extern void unpack_aircraft_meta_smoke_lists (entity *en, pack_modes mode);
 
-extern void assess_fixed_wing_damage_level (entity *en, int old_damage_level, int new_damage_level);
+
+
+
+
+
+
+
+
 
 extern void switch_aircraft_damaged_smoke (entity *en);
 

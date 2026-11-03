@@ -64,7 +64,7 @@
 
 
 
-extern void overload_regen_update_functions (void);
+
 
 extern entity *regen_update (entity *en);
 

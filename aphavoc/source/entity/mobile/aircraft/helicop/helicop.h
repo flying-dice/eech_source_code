@@ -145,7 +145,7 @@ extern void assign_entity_to_user (entity *en);
 
 extern void set_raw_gunship_entity (entity *en);
 
-extern void set_gunship_entity_to_external_view_entity (event *ev);
+
 
 extern void restore_helicopter_entity (entity *en);
 
@@ -153,13 +153,13 @@ extern void notify_gunship_entity_mission_completed (entity *en, entity *task);
 
 extern void notify_gunship_entity_mission_terminated (entity *en, entity *task);
 
-extern void create_helicopter_rotor_sound_effects (entity *en);
 
-extern void kill_helicopter_rotor_sound_effects (entity *en);
 
-extern void update_local_helicopter_rotor_sounds (entity *en);
 
-extern void play_helicopter_winding_rotor_sounds (entity *en, int direction, int engine_num);
+
+
+
+
 
 extern int get_local_entity_suitable_for_player (entity *en, entity *pilot);
 
@@ -179,33 +179,33 @@ extern int player_mission_logged(void);
 
 
 
-#include "hc_anim.h"
+
 
 #include "hc_creat.h"
 
-#include "hc_draw.h"
 
-#include "hc_dstry.h"
 
-#include "hc_float.h"
 
-#include "hc_funcs.h"
 
-#include "hc_int.h"
 
-#include "hc_list.h"
+
+
+
+
+
+
 
 #include "hc_move.h"
 
-#include "hc_msgs.h"
 
-#include "hc_pack.h"
 
-#include "hc_tgt.h"
 
-#include "hc_updt.h"
 
-#include "hc_vec3d.h"
+
+
+
+
+
 
 
 

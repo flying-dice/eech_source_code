@@ -211,9 +211,9 @@ extern const message_text_info_type
 
 
 
-extern void display_in_flight_messages (void);
 
-extern int message_text_type_send_string (message_text_types type);
+
+
 
 
 

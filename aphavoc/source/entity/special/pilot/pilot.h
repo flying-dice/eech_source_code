@@ -123,21 +123,21 @@ typedef struct CLIENT_PILOT_REQUEST_DATA client_pilot_request_data;
 
 
 
-#include "pi_creat.h"
 
-#include "pi_dstry.h"
 
-#include "pi_funcs.h"
 
-#include "pi_int.h"
 
-#include "pi_list.h"
 
-#include "pi_msgs.h"
 
-#include "pi_pack.h"
 
-#include "pi_str.h"
+
+
+
+
+
+
+
+
 
 
 
@@ -159,15 +159,15 @@ extern void initialise_pilot_high_score_table (void);
 
 extern int update_pilot_high_score_table (void);
 
-extern void draw_high_score_table (void);
 
-extern void draw_high_score_table_to_ui_object_list (ui_object *blue_list_object, ui_object *red_list_object);
 
-extern const char *get_high_score_table_entry (int index, int *side, int *kills);
 
-extern const char *get_high_score_table_first_name (void);
 
-extern void draw_special_restart_text (void);
+
+
+
+
+
 
 
 

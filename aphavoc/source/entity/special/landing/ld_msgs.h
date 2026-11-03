@@ -64,17 +64,17 @@
 
 
 
-extern void overload_landing_message_responses (void);
+
 
 #if LANDING_ROUTE_CHECK
 
-extern void destroy_debug_landing_route_check (void);
+
 
 extern void destroy_debug_entity_landing_route_check (entity *en);
 
-extern void pack_debug_entity_landing_locks (pack_modes mode);
 
-extern void unpack_debug_entity_landing_locks (pack_modes mode);
+
+
 
 
 

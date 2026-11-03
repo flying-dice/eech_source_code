@@ -117,27 +117,27 @@ typedef struct LANDING landing;
 
 
 
-#include "ld_creat.h"
 
-#include "ld_dstry.h"
 
-#include "ld_float.h"
 
-#include "ld_funcs.h"
 
-#include "ld_int.h"
 
-#include "ld_list.h"
+
+
+
+
+
+
 
 #include "ld_msgs.h"
 
-#include "ld_pack.h"
+
 
 #include "ld_str.h"
 
-#include "ld_updt.h"
 
-#include "ld_vec3d.h"
+
+
 
 
 
@@ -153,7 +153,7 @@ extern entity *get_local_group_member_landing_entity_from_keysite (entity *en);
 
 extern entity *get_local_group_member_landing_entity_from_task (entity *en);
 
-extern void validate_landing_entity_routes (entity *en);
+
 
 extern int check_available_landing_route_lock (entity *landing_en);
 
@@ -165,7 +165,7 @@ extern int check_landing_site_lock_clear (entity *landing_en, entity *en);
 
 extern void release_mobile_entity_landing_locks (entity *en);
 
-extern void play_landing_clear_for_takeoff_speech (entity *en);
+
 
 
 

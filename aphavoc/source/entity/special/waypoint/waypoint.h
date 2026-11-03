@@ -103,31 +103,31 @@ typedef struct WAYPOINT waypoint;
 
 #include	"wp_char.h"
 
-#include	"wp_creat.h"
+
 
 #include	"wp_dbase.h"
 
-#include	"wp_draw.h"
 
-#include	"wp_dstry.h"
 
-#include	"wp_float.h"
 
-#include	"wp_funcs.h"
 
-#include	"wp_int.h"
 
-#include	"wp_list.h"
 
-#include	"wp_msgs.h"
 
-#include	"wp_pack.h"
 
-#include	"wp_ptr.h"
 
-#include	"wp_str.h"
 
-#include	"wp_vec3d.h"
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -143,13 +143,13 @@ extern entity *get_local_entity_next_waypoint (entity *en);
 
 extern entity *get_local_entity_prev_waypoint (entity *en);
 
-extern void get_local_waypoint_formation_position_offset (int formation_position, entity *wp, vec3d *offset);
 
-extern void get_local_entity_formation_position_offset (entity *en, entity *wp, vec3d *offset);
+
+
 
 extern void get_local_waypoint_formation_position (int formation_position, entity *wp, vec3d *pos);
 
-extern void get_local_entity_formation_position (entity *en, entity *wp, vec3d *pos);
+
 
 extern void get_local_waypoint_simple_formation_position (int formation_position, vec3d *origin, int type, vec3d *pos);
 

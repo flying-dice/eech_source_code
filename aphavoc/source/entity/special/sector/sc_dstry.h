@@ -64,7 +64,7 @@
 
 
 
-extern void overload_sector_destroy_functions (void);
+
 
 extern void destroy_local_sector_entities (void);
 

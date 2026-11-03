@@ -72,7 +72,7 @@ extern void update_client_server_entity_waypoint_list_tags (entity *parent);
 
 extern char get_waypoint_sub_type_tag (entity_sub_types sub_type);
 
-extern void overload_waypoint_char_value_functions (void);
+
 
 
 

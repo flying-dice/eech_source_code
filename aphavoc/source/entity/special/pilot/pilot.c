@@ -66,7 +66,7 @@
 
 #include "project.h"
 
-#include "servlog.h" // Jabberwock Server log
+
 
 
 

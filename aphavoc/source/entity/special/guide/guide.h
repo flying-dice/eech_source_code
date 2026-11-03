@@ -218,33 +218,33 @@ typedef enum GUIDE_TERRAIN_FOLLOW_MODES guide_terrain_follow_modes;
 
 #include	"gd_cover.h"
 
-#include	"gd_creat.h"
+
 
 #include	"gd_dbase.h"
 
-#include	"gd_draw.h"
 
-#include	"gd_dstry.h"
 
-#include	"gd_float.h"
 
-#include	"gd_funcs.h"
 
-#include	"gd_int.h"
 
-#include	"gd_list.h"
 
-#include	"gd_msgs.h"
+
+
+
+
+
+
+
 
 #include	"gd_nav.h"
 
-#include	"gd_pack.h"
 
-#include	"gd_ptr.h"
 
-#include	"gd_updt.h"
 
-#include	"gd_vec3d.h"
+
+
+
+
 
 #include	"ag_attck.h"
 
@@ -288,7 +288,7 @@ extern void get_local_guide_entity_pointers (entity *en, entity **aggressor, ent
 
 extern int get_guide_required_heading (entity *en, entity *mobile, float *heading);
 
-extern int get_guide_required_pitch (entity *en, entity *mobile, float *pitch);
+
 
 extern int get_guide_criteria_valid (entity *en, guide_criteria_types type);
 

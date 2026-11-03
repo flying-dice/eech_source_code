@@ -64,7 +64,7 @@
 
 
 
-extern void overload_anti_aircraft_destroy_functions (void);
+
 
 extern void kill_local_restored_anti_aircraft_entity (entity *en);
 

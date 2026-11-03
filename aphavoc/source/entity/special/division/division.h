@@ -125,7 +125,7 @@ extern entity *create_new_division (entity_sub_types type, entity_sides side, en
 
 extern entity *add_group_to_division (entity *group, entity *known_division);
 
-extern void get_number_extension (int number, char *extension);
+
 
 extern int set_local_division_name (entity *en, char *s);
 
@@ -133,9 +133,9 @@ extern void initialise_division_database (void);
 
 extern void deinitialise_division_database (void);
 
-extern void pack_local_division_database (pack_modes mode);
 
-extern void unpack_local_division_database (pack_modes mode);
+
+
 
 extern void add_division_id_data (int side, int type, int count, int *number_list);
 
@@ -147,21 +147,21 @@ extern int get_next_free_division_id (int side, int type);
 
 #include "dv_dbase.h"
 
-#include "dv_creat.h"
 
-#include "dv_dstry.h"
 
-#include "dv_int.h"
 
-#include "dv_funcs.h"
 
-#include "dv_list.h"
 
-#include "dv_msgs.h"
 
-#include "dv_pack.h"
 
-#include "dv_str.h"
+
+
+
+
+
+
+
+
 
 
 

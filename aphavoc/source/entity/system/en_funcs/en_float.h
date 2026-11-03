@@ -367,7 +367,7 @@ extern void (*fn_set_client_server_entity_float_value[NUM_ENTITY_TYPES][NUM_FLOA
 
 
 
-extern float (*fn_get_local_entity_float_value[NUM_ENTITY_TYPES][NUM_FLOAT_TYPES]) (entity *en, float_types type);
+
 
 #define get_local_entity_float_value(EN,FLOAT_TYPE) (fn_get_local_entity_float_value[get_local_entity_type ((EN))][validate_float_type ((FLOAT_TYPE))] ((EN), (FLOAT_TYPE)))
 
@@ -375,15 +375,15 @@ extern float (*fn_get_local_entity_float_value[NUM_ENTITY_TYPES][NUM_FLOAT_TYPES
 
 
 
-extern void initialise_entity_float_value_default_functions (void);
 
-extern void pack_float_value (entity *en, float_types type, float value);
 
-extern float unpack_float_value (entity *en, float_types type);
 
-extern void pack_float_type (float_types type);
 
-extern float_types unpack_float_type (void);
+
+
+
+
+
 
 
 

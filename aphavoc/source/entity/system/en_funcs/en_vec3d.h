@@ -210,15 +210,15 @@ extern vec3d *(*fn_get_local_entity_vec3d_ptr[NUM_ENTITY_TYPES][NUM_VEC3D_TYPES]
 
 
 
-extern void initialise_entity_vec3d_default_functions (void);
 
-extern void pack_vec3d (entity *en, vec3d_types type, vec3d *v);
 
-extern void unpack_vec3d (entity *en, vec3d_types type, vec3d *v);
 
-extern void pack_vec3d_type (vec3d_types type);
 
-extern vec3d_types unpack_vec3d_type (void);
+
+
+
+
+
 
 extern float get_local_entity_vec3d_magnitude (entity *en, vec3d_types type);
 

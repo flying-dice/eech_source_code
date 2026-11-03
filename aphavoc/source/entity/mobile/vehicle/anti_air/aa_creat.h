@@ -64,7 +64,7 @@
 
 
 
-extern void overload_anti_aircraft_create_functions (void);
+
 
 extern entity *create_client_server_entity_anti_aircraft (int index, entity_sub_types sub_type, entity *group, vec3d *position);
 

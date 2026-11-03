@@ -152,7 +152,7 @@ extern void *(*fn_get_local_entity_ptr_value[NUM_ENTITY_TYPES][NUM_PTR_TYPES]) (
 
 
 
-extern void initialise_entity_ptr_value_default_functions (void);
+
 
 
 

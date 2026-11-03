@@ -72,7 +72,7 @@ extern void (*fn_update_client_server_entity[NUM_ENTITY_TYPES][NUM_COMMS_MODEL_T
 
 
 
-extern void initialise_entity_update_default_functions (void);
+
 
 
 

@@ -219,7 +219,7 @@ extern void initialise_formation_database (void);
 
 extern void initialise_formation_database_table (void);
 
-extern int add_formation_to_database (int formation_count, vec3d *site_positions);
+
 
 extern int get_formation_database_count (void);
 
@@ -233,7 +233,7 @@ extern const char *get_formation_name (formation_types formation);
 
 extern float get_formation_member_radius (formation_types form, int member_count);
 
-extern void get_formation_position (formation_types form, int index, vec3d *vec);
+
 
 
 

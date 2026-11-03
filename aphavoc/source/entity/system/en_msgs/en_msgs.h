@@ -184,13 +184,13 @@ extern const char
 
 extern int notify_local_entity (entity_messages message, entity *receiver, entity *sender, ...);
 
-extern void initialise_entity_message_responses (void);
 
 
 
 
 
-extern int (*message_responses[NUM_ENTITY_TYPES][NUM_ENTITY_MESSAGES]) (entity_messages message, entity *receiver, entity *sender, va_list pargs);
+
+
 
 
 

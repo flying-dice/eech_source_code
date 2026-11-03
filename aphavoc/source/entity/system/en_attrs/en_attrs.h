@@ -141,13 +141,13 @@ extern entity_attribute_data
 
 extern void set_local_entity_attributes (entity *en, char *pargs);
 
-extern void pack_entity_attributes (const char *buffer);
 
-extern int unpack_entity_attributes (char *buffer);
 
-extern void pack_entity_attribute (entity_attributes attr);
 
-extern entity_attributes unpack_entity_attribute (void);
+
+
+
+
 
 
 

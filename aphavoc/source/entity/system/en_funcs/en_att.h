@@ -136,15 +136,15 @@ extern void (*fn_get_local_entity_attitude_angles[NUM_ENTITY_TYPES]) (entity *en
 
 
 
-extern void initialise_entity_attitude_default_functions (void);
 
-extern void pack_attitude_matrix (entity *en, matrix3x3 attitude);
 
-extern void unpack_attitude_matrix (entity *en, matrix3x3 attitude);
 
-extern void pack_attitude_angles (entity *en, float heading, float pitch, float roll);
 
-extern void unpack_attitude_angles (entity *en, float *heading, float *pitch, float *roll);
+
+
+
+
+
 
 
 

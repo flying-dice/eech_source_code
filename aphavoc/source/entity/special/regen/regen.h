@@ -177,25 +177,25 @@ extern float
 
 
 
-#include "rg_creat.h"
 
-#include "rg_dstry.h"
 
-#include "rg_float.h"
 
-#include "rg_funcs.h"
+
+
+
+
 
 #include "rg_int.h"
 
-#include "rg_list.h"
 
-#include "rg_msgs.h"
 
-#include "rg_pack.h"
+
+
+
 
 #include "rg_updt.h"
 
-#include "rg_vec3d.h"
+
 
 
 

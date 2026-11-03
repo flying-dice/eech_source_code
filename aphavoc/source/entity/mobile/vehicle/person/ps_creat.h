@@ -64,7 +64,7 @@
 
 
 
-extern void overload_person_create_functions (void);
+
 
 extern entity *create_client_server_entity_person (int index, entity_sub_types sub_type, entity *group, vec3d *position);
 

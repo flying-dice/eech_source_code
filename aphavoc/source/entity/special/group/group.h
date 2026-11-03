@@ -264,31 +264,31 @@ typedef struct GROUP group;
 
 
 
-#include "gp_creat.h"
+
 
 #include "gp_dbase.h"
 
-#include "gp_dstry.h"
 
-#include "gp_int.h"
 
-#include "gp_float.h"
 
-#include "gp_funcs.h"
 
-#include "gp_list.h"
 
-#include "gp_msgs.h"
 
-#include "gp_pack.h"
 
-#include "gp_ptr.h"
 
-#include "gp_str.h"
 
-#include "gp_updt.h"
 
-#include "gp_vec3d.h"
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -332,7 +332,7 @@ extern int check_group_task_type_valid_members (entity *group, entity_sub_types 
 
 extern int group_task_specific_retaliation_checks (entity *group, entity *aggressor, int assisted);
 
-extern void initialise_group_callsign_database (void);
+
 
 extern int assign_group_callsign (entity *en);
 

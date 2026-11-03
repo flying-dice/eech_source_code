@@ -110,17 +110,17 @@ extern void (*fn_kill_client_server_entity[NUM_ENTITY_TYPES][NUM_COMMS_MODEL_TYP
 
 
 
-extern void initialise_entity_destroy_default_functions (void);
+
 
 extern void destroy_local_entity (entity *en);
 
-extern void destroy_local_entities (void);
+
 
 extern void destroy_local_entity_children (entity *en, list_types list);
 
 extern void destroy_client_server_entity_children (entity *en, list_types list);
 
-extern void destroy_local_only_entities (void);
+
 
 
 

@@ -206,45 +206,6 @@ static void set_local_float_value (entity *en, float_types type, float value)
 
 
 
-#if SET_CLIENT_SERVER_REQUIRED
-
-
-
-
-
-
-
-
-
-
-
-
-#endif
-
-
-
-
-
-#if SET_CLIENT_SERVER_REQUIRED
-
-
-
-
-
-
-
-
-
-
-
-
-#endif
-
-
-
-
-
-#if SET_CLIENT_SERVER_REQUIRED
 
 
 
@@ -262,7 +223,46 @@ static void set_local_float_value (entity *en, float_types type, float value)
 
 
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

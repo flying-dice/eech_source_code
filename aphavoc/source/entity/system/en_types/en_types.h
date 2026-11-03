@@ -433,13 +433,13 @@ extern entity_type_data
 
 
 
-extern void initialise_entity_type_names (void);
 
-extern void deinitialise_entity_type_names (void);
 
-extern void pack_entity_type (entity_types type);
 
-extern entity_types unpack_entity_type (void);
+
+
+
+
 
 
 
@@ -471,7 +471,7 @@ extern entity_types unpack_entity_type (void);
 
 #include "en_thrt.h"
 
-#include "en_view.h"
+
 
 #include "en_wp.h"
 

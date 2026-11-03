@@ -64,7 +64,7 @@
 
 
 
-extern void reset_guide_seek_cover_results (entity *en);
+
 
 extern int update_guide_seek_cover_results (entity *en);
 

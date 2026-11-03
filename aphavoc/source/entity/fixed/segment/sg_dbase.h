@@ -154,11 +154,11 @@ extern bridge_segment_data
 
 
 
-extern void initialise_segment_database();
 
-extern void deinitialise_segment_database();
 
-extern object_3d_index_numbers get_bridge_segment_damaged_object (entity *en, entity *pred, entity *succ);
+
+
+
 
 
 

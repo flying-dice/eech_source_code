@@ -96,23 +96,23 @@
 
 
 
-#include "system.h"
 
-#include "graphics.h"
 
-#include "maths.h"
 
-#include "misc.h"
 
-#include "multi.h"
 
-#include "userint2.h"
 
-#include "2d.h"
 
-#include "3d.h"
 
-#include "sound.h"
+
+
+
+
+
+
+
+
+
 
 
 
@@ -138,61 +138,61 @@
 
 #include "ai_extrn.h"
 
-#include "cmndline.h"
 
-#include "deinit.h"
 
-#include "flight.h"
 
-#include "game.h"
 
-#include "gfxfiles.h"
+
+
+
+
+
 
 #include "global.h"
 
-#include "init.h"
 
-#include "test.h"
+
+
 
 #include "update.h"
 
-#include "install.h"
-
-#include "cdmusic.h"
 
 
 
 
 
-#include "appsound/appsound.h"
 
-#include "comms/comms.h"
 
-#include "entity/entity.h"
+
+
+
+
+
+
 
 #include "ai/ai.h"
 
-#include "app3d/app3d.h"
 
-#include "events/events.h"
 
-#include "gameflow/gameflow.h"
 
-#include "gunships/gunships.h"
 
-#include "misc/miscell.h"
 
-#include "ui_menu/ui_menu.h"
 
-#include "eechini.h"  //VJ 030403
 
-#include "servlog.h" // Jabberwock 031119 Server log
 
-#include "wutcfg.h"   //VJ 030326
 
-#include "gwutcfg.h"   //VJ 040220
 
-#include "sharedmem.h"	// Retro 8Mar2005
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -215,7 +215,7 @@ extern char
 
 
 
-extern void set_registry_language_settings ( void );
+
 
 
 

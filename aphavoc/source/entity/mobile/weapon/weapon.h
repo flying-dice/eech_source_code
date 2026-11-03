@@ -1976,49 +1976,49 @@ typedef int weapon_kill_codes;
 
 #include "damage.h"
 
-#include "wn_anim.h"
 
-#include "wn_cllsn.h"
 
-#include "wn_creat.h"
+
+
+
 
 #include "wn_dbase.h"
 
-#include "wn_decoy.h"
 
-#include "wn_draw.h"
 
-#include "wn_dstry.h"
 
-#include "wn_float.h"
 
-#include "wn_funcs.h"
 
-#include "wn_int.h"
 
-#include "wn_list.h"
 
-#include "wn_load.h"
+
+
+
+
+
+
+
+
 
 #include "wn_misc.h"
 
-#include "wn_move.h"
 
-#include "wn_msgs.h"
 
-#include "wn_pack.h"
 
-#include "wn_selct.h"
 
-#include "wn_spch.h"
 
-#include "wn_str.h"
+
+
+
+
+
+
 
 #include "wn_tgt.h"
 
-#include "wn_updt.h"
 
-#include "wn_vec3d.h"
+
+
 
 
 
@@ -2028,19 +2028,19 @@ extern void load_local_entity_weapon_config (entity *en);
 
 extern int get_local_entity_weapon_available (entity *launcher, entity_sub_types weapon_sub_type);
 
-extern void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_type, int burst_size, viewpoint *vp);
+
 
 extern void update_entity_weapon_systems (entity *source);
 
-extern void animate_and_draw_entity_muzzle_flash_effect (entity *en);
+
 
 extern void update_entity_weapon_system_weapon_and_target_vectors (entity *launcher);
 
-extern int get_local_entity_selected_weapon_to_target_offsets (entity *launcher, float *heading_offset, float *pitch_offset);
 
-extern int get_local_entity_selected_weapon_viewpoint (entity *launcher, viewpoint *vp);
 
-extern void get_target_intercept_point (entity *source, entity *target, entity_sub_types weapon_sub_type, vec3d *intercept_point);
+
+
+
 
 extern int get_local_entity_weapon_ammunition_available (entity *launcher);
 
@@ -2048,11 +2048,11 @@ extern int get_local_entity_weapon_salvo_size (entity *launcher, entity_sub_type
 
 extern void suppress_ineffective_ship_weapons (entity *source, entity *target);
 
-extern void create_weapon_launched_sound_effects (entity *launcher, entity_sub_types weapon_sub_type);
 
-extern int guidance_type_can_use_point_lock(weapon_guidance_types type);
 
-extern unsigned get_number_of_pods_firing(entity* launcher, entity_sub_types weapon_type);
+
+
+
 
 extern int get_lead_and_ballistic_intercept_point_and_angle_of_projection (vec3d *pitch_device_position,entity_sub_types wpn_type,float parent_velocity,
 		entity *source,entity *target,vec3d *intercept_point,float *angle_of_projection,float *time_of_flight);

@@ -85,7 +85,7 @@ extern int
 
 
 
-extern void initialise_entity_create_default_functions (void);
+
 
 extern entity *create_local_entity (entity_types type, int index, ...);
 

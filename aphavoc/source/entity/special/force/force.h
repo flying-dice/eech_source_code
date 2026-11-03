@@ -117,25 +117,25 @@ typedef struct FORCE force;
 
 
 
-#include "fc_creat.h"
 
-#include "fc_dstry.h"
 
-#include "fc_float.h"
 
-#include "fc_funcs.h"
 
-#include "fc_int.h"
 
-#include "fc_list.h"
 
-#include "fc_msgs.h"
 
-#include "fc_pack.h"
 
-#include "fc_str.h"
 
-#include "fc_updt.h"
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -158,7 +158,7 @@ extern void add_to_force_info (entity *force_en, entity *new_en);
 
 extern void remove_from_force_info (entity *force_en, entity *new_en);
 
-extern int get_force_space (entity *force_en, force_info_catagories force_info_catagory);
+
 
 extern void replace_into_force_info (entity *force_en, entity *new_en);
 
@@ -172,9 +172,9 @@ extern void remove_group_type_from_force_info (entity *en, entity_sub_types grou
 
 extern int get_local_force_entity_group_count (entity *en, entity_sub_types group_type);
 
-extern void display_campaign_criteria_time_remaining (void);
 
-extern void set_display_campaign_timer_valid (int valid);
+
+
 
 
 

@@ -80,7 +80,7 @@ extern float
 
 
 
-extern terrain_classes get_ground_impact_point (vec3d *above_ground, vec3d *below_ground, vec3d *ground_impact_point);
+
 
 extern entity *get_line_of_sight_collision_entity
 (

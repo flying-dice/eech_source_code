@@ -94,27 +94,27 @@ typedef struct CARGO cargo;
 
 
 
-#include "cg_creat.h"
 
-#include "cg_draw.h"
 
-#include "cg_dstry.h"
 
-#include "cg_funcs.h"
 
-#include "cg_int.h"
 
-#include "cg_list.h"
 
-#include "cg_move.h"
 
-#include "cg_msgs.h"
 
-#include "cg_pack.h"
 
-#include "cg_ptr.h"
 
-#include "cg_updt.h"
+
+
+
+
+
+
+
+
+
+
+
 
 
 
