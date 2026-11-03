@@ -615,6 +615,10 @@ int eech_model_host_attack_consumer_run (char *text, int capacity)
      instance_none            a vehicle whose instance pointer is set to NULL for the call (not fixed): the original's no-instance, non-fixed fallback, restored after.
      fixed_a, fixed_b         the first fixed structures with a valid shape: one whose cached host offset has a horizontal part and one that has none, when both exist.
      fixed_invalid            a fixed structure whose shape is set to the invalid index for the call, restored after: the bit-for-bit position copy.
+   A host-named chain that does not lie inside the instance (a negative or too-large sibling position, a missing child array) is a named REFUSAL of the row (`status=refused
+   reason=chain_path_outside_instance`), made by the ONE bounded walk below before the sentinel, any change, the getter or any pose read; the row returns normally, nothing was touched, and
+   the production world-chain guard is never relied on to catch what this fixture would dereference first. Restoration is READ BACK on normal return (`restored=1` measured equal,
+   `0` measured different, `-1` nothing was changed); nothing here claims cleanup after a fatal unwind.
    `base` is the entity position as the getter reads it, `heading` the entity heading, `cache` the cached host offset of the shape, `result` the getter's answer, `chain`, `world` and
    `fixed` the questions asked of the host DURING the call. Nothing else is changed, no random number is drawn and no time advances. A case with no candidate is UNAVAILABLE with its
    reason, never a pass. */
@@ -644,9 +648,8 @@ static int tp_vehicle_instance_field (entity *en, object_3d_instance ***field)
 }
 
 /* the live placement as this diagnostic reads it: the root, then each level of the host's chain by walking the instance's own sub-instance arrays */
-static int tp_pose_text (object_3d_instance *inst, const int *offsets, int levels, char *out, int capacity)
+static int tp_pose_text (object_3d_instance *inst, object_3d_sub_instance *const *path, int levels, char *out, int capacity)
 {
-	object_3d_sub_instance *sub = inst->sub_objects;
 	int used = 0, i, level, n;
 	float words[15];
 
@@ -667,7 +670,7 @@ static int tp_pose_text (object_3d_instance *inst, const int *offsets, int level
 
 	for (level = 0; level < levels; level++)
 	{
-		object_3d_sub_instance *node = &sub[offsets[level]];
+		object_3d_sub_instance *node = path[level];
 		float level_words[9];
 
 		level_words[0] = node->relative_position.x;
@@ -686,8 +689,6 @@ static int tp_pose_text (object_3d_instance *inst, const int *offsets, int level
 			if ((n < 0) || (n >= capacity - used)) return 0;
 			used += n;
 		}
-
-		sub = node->sub_objects;
 	}
 
 	return 1;
@@ -701,10 +702,11 @@ static int tp_row (char *text, int capacity, int *used, const char *name, entity
 	matrix3x3 vp_attitude_saved;
 	long chain0 = campaign_model_counts.target_chain, world0 = campaign_model_counts.target_world, fixed0 = campaign_model_counts.target_fixed;
 	char base_text[80], result_text[80], cache_text[80], pose_text[2048], mutation[96];
-	int scene = 0, vp_written = -1, shape_saved = 0, pose_ok = 0, levels = 0, legacy_same = -1, offsets[CAMPAIGN_MODEL_CHAIN_MAX], n;
+	int scene = 0, vp_written = -1, restored = -1, shape_saved = 0, pose_ok = 0, levels = 0, legacy_same = -1, offsets[CAMPAIGN_MODEL_CHAIN_MAX], n;
 	float heading_value = 0.0f;
 	uint32_t heading_bits = 0;
-	object_3d_sub_instance *leaf = NULL;
+	object_3d_sub_instance *path[CAMPAIGN_MODEL_CHAIN_MAX], *leaf = NULL;
+	matrix3x3 entity_attitude;
 	vec3d leaf_position;
 	float leaf_heading;
 	vec3d leaf_scale;
@@ -738,34 +740,48 @@ static int tp_row (char *text, int capacity, int *used, const char *name, entity
 		/* the diagnostic's own ask raised the counter: the deltas are taken from the value after it */
 		chain0 = campaign_model_counts.target_chain;
 
-		/* The ORIGINAL's own selection as the oracle of the host's: the legacy depth-0 search for the first TARGET_POINT sub-object (compiled, not called by the campaign) reaches the same
-		   sub-instance as the walk down the positions the host named, or both find none. Only this diagnostic runs the legacy search. */
+		/* THE ONE BOUNDED WALK, a mandatory preflight. It follows the positions the host named down the instance's own sub-instance arrays, each checked against the scene database's counts,
+		   and records every node it reaches: the legacy comparison, the mutation and the pose read below use these nodes and never walk the offsets again. A path that is not inside the
+		   instance is a named refusal of the row, returned before the sentinel, any change, the getter or any pose read. */
 		{
 			object_3d_sub_object_search_data search;
 			object_3d_sub_instance *walk = inst->sub_objects, *reached = NULL;
 			object_3d_database_entry *entries = objects_3d_scene_database[scene].sub_objects;
-			int count = objects_3d_scene_database[scene].number_of_sub_objects, step, inside = 1, found;
+			int count = objects_3d_scene_database[scene].number_of_sub_objects, step, found;
 
 			search.search_depth = 0;
 			search.search_object = inst;
 			search.sub_object_index = OBJECT_3D_SUB_OBJECT_TARGET_POINT;
 			found = (find_object_3d_sub_object (&search) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND);
 
-			for (step = 0; (step < levels) && inside; step++)
+			for (step = 0; step < levels; step++)
 			{
 				if ((offsets[step] < 0) || (offsets[step] >= count) || (!walk) || (!entries))
 				{
-					inside = 0;
-					break;
+					n = snprintf (text + *used, (size_t) (capacity - *used),
+						"model-host-tp case=%s status=refused reason=chain_path_outside_instance scene=%d level=%d offset=%d levels=%d chain=%ld world=%ld fixed=%ld getter_called=0 vp_touched=0\n", name,
+						scene, step, offsets[step], levels, campaign_model_counts.target_chain - chain0, campaign_model_counts.target_world - world0,
+						campaign_model_counts.target_fixed - fixed0);
+
+					if ((n < 0) || (n >= capacity - *used))
+					{
+						return 1;
+					}
+
+					*used += n;
+					return 0;
 				}
 
 				reached = &walk[offsets[step]];
+				path[step] = reached;
 				count = entries[offsets[step]].number_of_sub_objects;
 				entries = entries[offsets[step]].sub_objects;
 				walk = reached->sub_objects;
 			}
 
-			legacy_same = inside && (found ? ((levels > 0) && (reached == search.result_sub_object)) : (levels == 0));
+			/* the ORIGINAL's own selection as the oracle of the host's: the legacy depth-0 search (compiled, not called by the campaign) reaches the same sub-instance as the walk, or both find none */
+			legacy_same = found ? ((levels > 0) && (reached == search.result_sub_object)) : (levels == 0);
+			leaf = reached;
 		}
 
 		vp_position_saved = inst->vp.position;
@@ -773,18 +789,20 @@ static int tp_row (char *text, int capacity, int *used, const char *name, entity
 		inst->vp.position.x = 12345.0f;
 		inst->vp.position.y = 23456.0f;
 		inst->vp.position.z = 34567.0f;
+		{
+			int row_index, column;
+
+			for (row_index = 0; row_index < 3; row_index++)
+			{
+				for (column = 0; column < 3; column++)
+				{
+					inst->vp.attitude[row_index][column] = 7777.0f;
+				}
+			}
+		}
 
 		if (mutate && (levels > 0))
 		{
-			object_3d_sub_instance *sub = inst->sub_objects;
-			int level;
-
-			for (level = 0; level < levels; level++)
-			{
-				leaf = &sub[offsets[level]];
-				sub = leaf->sub_objects;
-			}
-
 			leaf_position = leaf->relative_position;
 			leaf_heading = leaf->relative_heading;
 			leaf_scale = leaf->relative_scale;
@@ -792,6 +810,10 @@ static int tp_row (char *text, int capacity, int *used, const char *name, entity
 			leaf->relative_heading += 0.25f;
 			leaf->relative_scale.x *= 1.5f;
 			snprintf (mutation, sizeof (mutation), "x+1,heading+0.25,scale_x*1.5");
+		}
+		else
+		{
+			leaf = NULL;
 		}
 	}
 	else if (what == 1)
@@ -809,12 +831,30 @@ static int tp_row (char *text, int capacity, int *used, const char *name, entity
 
 	if (what == 0)
 	{
-		vp_written = (float_bits (inst->vp.position.x) == float_bits (base.x)) && (float_bits (inst->vp.position.y) == float_bits (base.y)) &&
+		/* the FULL meaning of "the getter wrote the instance viewpoint": position AND attitude are the entity's (written), both are still the sentinels (untouched), or one of each (partial) */
+		int position_written, position_untouched, attitude_written, attitude_untouched, row_index, column;
+
+		get_local_entity_attitude_matrix (en, entity_attitude);
+		position_written = (float_bits (inst->vp.position.x) == float_bits (base.x)) && (float_bits (inst->vp.position.y) == float_bits (base.y)) &&
 			(float_bits (inst->vp.position.z) == float_bits (base.z));
+		position_untouched = (float_bits (inst->vp.position.x) == float_bits (12345.0f)) && (float_bits (inst->vp.position.y) == float_bits (23456.0f)) &&
+			(float_bits (inst->vp.position.z) == float_bits (34567.0f));
+		attitude_written = (memcmp (inst->vp.attitude, entity_attitude, sizeof (entity_attitude)) == 0);
+		attitude_untouched = 1;
+
+		for (row_index = 0; row_index < 3; row_index++)
+		{
+			for (column = 0; column < 3; column++)
+			{
+				attitude_untouched = attitude_untouched && (float_bits (inst->vp.attitude[row_index][column]) == float_bits (7777.0f));
+			}
+		}
+
+		vp_written = (position_written && attitude_written) ? 1 : ((position_untouched && attitude_untouched) ? 0 : 2);
 
 		if (levels > 0)
 		{
-			pose_ok = tp_pose_text (inst, offsets, levels, pose_text, (int) sizeof (pose_text));
+			pose_ok = tp_pose_text (inst, path, levels, pose_text, (int) sizeof (pose_text));
 
 			if (!pose_ok)
 			{
@@ -832,14 +872,27 @@ static int tp_row (char *text, int capacity, int *used, const char *name, entity
 
 		inst->vp.position = vp_position_saved;
 		memcpy (inst->vp.attitude, vp_attitude_saved, sizeof (vp_attitude_saved));
+
+		/* READ BACK: the touched viewpoint and (when it was changed) the leaf hold exactly what they held before */
+		restored = (memcmp (&inst->vp.position, &vp_position_saved, sizeof (vp_position_saved)) == 0) && (memcmp (inst->vp.attitude, vp_attitude_saved, sizeof (vp_attitude_saved)) == 0);
+
+		if (leaf)
+		{
+			restored = restored && (float_bits (leaf->relative_position.x) == float_bits (leaf_position.x)) && (float_bits (leaf->relative_position.y) == float_bits (leaf_position.y)) &&
+				(float_bits (leaf->relative_position.z) == float_bits (leaf_position.z)) && (float_bits (leaf->relative_heading) == float_bits (leaf_heading)) &&
+				(float_bits (leaf->relative_scale.x) == float_bits (leaf_scale.x)) && (float_bits (leaf->relative_scale.y) == float_bits (leaf_scale.y)) &&
+				(float_bits (leaf->relative_scale.z) == float_bits (leaf_scale.z));
+		}
 	}
 	else if (what == 1)
 	{
 		*field = saved_instance;
+		restored = (*field == saved_instance);
 	}
 	else if (what == 3)
 	{
 		set_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE, shape_saved);
+		restored = ((int) get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE) == shape_saved);
 	}
 
 	tp_bits3 (base_text, sizeof (base_text), &base);
@@ -855,9 +908,9 @@ static int tp_row (char *text, int capacity, int *used, const char *name, entity
 	}
 
 	n = snprintf (text + *used, (size_t) (capacity - *used),
-		"model-host-tp case=%s status=called type=%d scene=%d base=%s heading=0x%08x cache=%s result=%s chain=%ld world=%ld fixed=%ld vp_written=%d levels=%d legacy_same=%d mutation=%s pose=%s\n", name,
+		"model-host-tp case=%s status=called type=%d scene=%d base=%s heading=0x%08x cache=%s result=%s chain=%ld world=%ld fixed=%ld vp_written=%d levels=%d legacy_same=%d restored=%d mutation=%s pose=%s\n", name,
 		(int) en->type, (what == 3) ? shape_saved : scene, base_text, heading_bits, cache_text, result_text, campaign_model_counts.target_chain - chain0,
-		campaign_model_counts.target_world - world0, campaign_model_counts.target_fixed - fixed0, vp_written, levels, legacy_same, mutation, pose_text);
+		campaign_model_counts.target_world - world0, campaign_model_counts.target_fixed - fixed0, vp_written, levels, legacy_same, restored, mutation, pose_text);
 
 	if ((n < 0) || (n >= capacity - *used))
 	{

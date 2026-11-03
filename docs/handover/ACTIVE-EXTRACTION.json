@@ -18,7 +18,8 @@
     "Initializer cutover 9b916ac650 (production source and comparer P2 cleared by the same independent reviewer): ordinary initialise_target_point_offsets asks TARGET_POINT_OFFSET for all valid scene slots per invocation, seeker limits once, invalid scene zero; healthy/changed/withheld/bad-name actuals and the exact retained short Lebanon comparison (native/controller/prepost 0, 84 payloads, ACMI/observations/metrics equal) are recorded; no full40/all8 claim.",
     "c37d02a77 corrects only the diagnostic non-finite expectation (.answer marker); production C/Rust identical to 9b916ac650. The original initializer with the feature API present runs one frame and asks zero host offsets (expected capability RED, UNREACHED), which is not a pass.",
     "Getter routing (working tree, then one commit): staged-tree probe shows th3=1 with no active find_object_3d_sub_object / get_3d_sub_object_world_viewpoint / sin_heading rotation in host builds and the original body in the two original-fixture builds; focused eech-dc 54, model_target_point 27, model_store 62, characterization 53, fmt and strict clippy (default and three fixtures) pass. Source and tests only: no native run.",
-    "Initializer finite source/actual review95f97d0 CLOSED/no findings; all eight authority executions/seven controls and all3 complete short outputs are verified. Safe reports published; live-query8118389a96 source is separate and native validation remains pending."
+    "Initializer finite source/actual review95f97d0 CLOSED/no findings; all eight authority executions/seven controls and all3 complete short outputs are verified. Safe reports published; live-query8118389a96 source is separate and native validation remains pending.",
+    "Review batch after 8118389a96 (source and focused checks only): fixture-path-bounds and six-row-witness-honesty corrected in fixture/Lua/tests/prose; production C/Rust unchanged; the 811 host-fixture authority controls were produced by the old fixture/script and must be repeated on the corrected build; the 811 ordinary short evidence is reusable by compilation scope (no new binary claimed). Chain limit 8 is an explicit refusal limit, not proven all-model support."
   ],
   "blockers": [
     {
@@ -36,6 +37,22 @@
       "evidence": "Repaired in 9b916ac650 (branch-3 comparer requires a known case label and a well-formed offset or counts the row as missing its input); same independent reviewer cleared comparer P2.",
       "missing_fact": "None.",
       "next_fix": "None."
+    },
+    {
+      "id": "fixture-path-bounds",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "Independent source review of 8118389a96/cc98114: eech_model_host_fixture.c tp_row's bounded legacy-selection walk sets inside=0 for an out-of-range positive host offset but only stores legacy_same=0 and continues; the later mutate loop and tp_pose_text walk the same offsets unchecked, before the production world-chain bounds guard. Fixture/diagnostic code only; no physical-kernel blocker identified.",
+      "missing_fact": "A positive out-of-range sibling offset armed only while model_host_target_queries(mutate=true) runs, after a coherent unmutated positive, must produce a named pre-mutation refusal before any sentinel, mutation, getter call or pose read. Not yet witnessed natively (Root's run after the fix).",
+      "next_fix": "CORRECTED IN SOURCE (this commit): one mandatory bounded preflight, named refusal chain_path_outside_instance before sentinel/mutation/getter/pose read, measured readback; new mode queries_chain_offset_late. Focused gate green (model_store 64, fmt, strict clippy x4). Stays OPEN until Root's native witness on a corrected model-host-fixture build and the reviewer's closure."
+    },
+    {
+      "id": "six-row-witness-honesty",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "Independent source review: judge_queries in model-authority.lua requires six parsed rows but not the exact six unique case names in order; parse_rows ignores non-matching lines; event.scene is not joined to row.scene; the VP-write judgement is not the full expected meaning.",
+      "missing_fact": "Finite six-row witness only: exact named rows once and in order, no ignored/duplicate/unknown fields or rows, known status and 0/1 count domains, scene and operation joins, own-chain/getter-chain coherence, full vp_written meaning.",
+      "next_fix": "CORRECTED IN SOURCE (this commit): judge_queries requires exactly six named rows once and in order in the C grammar with joins, whole viewpoint verdict and measured restoration; stand-in prints the full grammar with 17 negatives. Stays OPEN until the corrected build's native authority runs and the reviewer's closure."
     }
   ],
   "next_action": "production-cutover",

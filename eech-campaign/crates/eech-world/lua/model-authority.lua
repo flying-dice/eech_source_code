@@ -75,6 +75,15 @@
 --   queries_world_bad_nan / queries_fixed_bad_nan   the first position is a NaN bit pattern: `[model-provider:target_point_world|fixed.answer]` (the Lua bridge refuses it at the transport boundary)
 --   queries_chain_bad_name / queries_world_bad_name / queries_fixed_bad_name   the first answer echoes another scene's name: `[model-provider:target_point_*.identity]`
 --   queries_chain_too_deep   the first chain has nine levels: `[model-provider:target_point_chain.answer]`
+--   queries_chain_offset_late   (a FIXTURE-PATH control; healthy otherwise) the first level's sibling position of every chain the host names is answered 4000 (outside any instance) ONLY while
+--                      model_host_target_queries(mutate=true) runs, after a coherent unmutated call. The fixture's one bounded walk must refuse that row by name
+--                      (`status=refused reason=chain_path_outside_instance`) BEFORE the sentinel, the mutation, the getter or any pose read: no position or fixed question is asked for it, the own
+--                      chain question is the only one the provider sees, and the other rows are unaffected. A boot-only bad chain could not reach this phase. Covered only when at least one
+--                      row was refused this way; a run in which none was is UNREACHED.
+--   THE SIX-ROW WITNESS. The query report must be EXACTLY six lines in the C grammar (fields in the order C prints them, none missing, repeated or unknown, no stray text), named
+--   instance_a, instance_b, instance_none, fixed_horizontal, fixed_flat, fixed_invalid, once each and in that order; counts are 0 or 1, the viewpoint-write verdict is the full
+--   meaning (position AND attitude written, or neither), `restored` is a measured readback, and every provider event is joined to its row by operation, scene and order. This is a finite
+--   six-row witness, not a general parser.
 -- A bad_* mode whose precondition the run did not reach (for the triangle ones: no triangle question of the matching kind was asked) is reported `UNREACHED` and fails the run,
 -- never counted as covered.
 --
@@ -131,7 +140,7 @@ local modes = { reference = true, vanish = true, inflate = true, bounds_zero = t
 	bad_hex = true, bad_absent = true, bad_end_absent = true, bad_found_declared_absent = true, bad_end_declared_absent = true, object_withheld = true, animation_withheld = true,
 	animation_unknown = true, animation_dropped = true, offsets_changed = true, offsets_withheld = true, offsets_bad_nan = true, offsets_bad_name = true, offsets_bad_end = true,
 	queries_changed = true, queries_chain_withheld = true, queries_world_withheld = true, queries_fixed_withheld = true, queries_world_bad_nan = true, queries_fixed_bad_nan = true,
-	queries_chain_bad_name = true, queries_world_bad_name = true, queries_fixed_bad_name = true, queries_chain_too_deep = true }
+	queries_chain_bad_name = true, queries_world_bad_name = true, queries_fixed_bad_name = true, queries_chain_too_deep = true, queries_chain_offset_late = true }
 local scenarios = {
 	lebanon_retail = { map = "..\\common\\maps\\map5", campaign = "LEBANON.CHC" },
 	georgia_retail = { map = "..\\common\\maps\\map3", campaign = "GEORGIA.CHC" },
@@ -205,7 +214,7 @@ local fpu_roundings = whole_list (args.fpu_rounding or "0,1,2,3", "fpu_rounding"
 local fpu_scene = whole (args.fpu_scene or "1", "fpu_scene", 1, 2147483646)
 local fpu_depth = whole (args.fpu_depth or "0", "fpu_depth", 0, 2147483646)
 -- a refusing mode stops the engine at the refused entry, so only one initial rounding can be measured in it: decided now, before anything is written or booted
-local healthy_modes = { reference = true, vanish = true, inflate = true, bounds_zero = true, absent_all = true, offsets_changed = true, queries_changed = true }
+local healthy_modes = { reference = true, vanish = true, inflate = true, bounds_zero = true, absent_all = true, offsets_changed = true, queries_changed = true, queries_chain_offset_late = true }
 local boot_only_modes = { missing = true, bad_nil = true, bad_catalogue = true, bad_name = true, bad_scene_nan = true, bad_collider_unloaded = true, bad_scene0_loaded = true,
 	offsets_withheld = true, offsets_bad_nan = true, offsets_bad_name = true, offsets_bad_end = true }
 if fpu_requested and not healthy_modes [mode] then
@@ -233,6 +242,8 @@ local CHANGED_OFFSET = "0x3fc00000,0x40200000,0xc0900000"
 local CHANGED_WORLD = "0x40f00000,0x41080000,0xc1180000"
 local CHANGED_FIXED = "0x41380000,0x41480000,0xc1580000"
 -- the target-point questions in the order the provider was asked them, each with the pose text it received, the reference host's answer and the answer it handed back
+local LATE_OFFSET = 4000
+local late_armed = false
 local query_ops = { target_point_chain = true, target_point_world = true, target_point_fixed = true }
 local query_log, last_reference = {}, nil
 local replied = { catalogue = 0, scene = 0, triangle = 0, found = 0, ended = 0, absent = 0, refused = 0, other = 0 }
@@ -367,6 +378,17 @@ elseif string.sub (mode, 1, 8) == "queries_" then
 		if mode == "queries_changed" then
 			if op == "target_point_world" and answer.result == "world" then tripped = true return { result = "world", p = CHANGED_WORLD, name = answer.name } end
 			if op == "target_point_fixed" and answer.result == "fixed" then tripped = true return { result = "fixed", p = CHANGED_FIXED, name = answer.name } end
+			return answer
+		end
+		if mode == "queries_chain_offset_late" then
+			-- armed ONLY while the mutating call of the fixture runs: the first level's sibling position leaves the instance
+			if op == "target_point_chain" and late_armed and answer.result == "chain" then
+				local offsets = {}
+				for i, v in ipairs (answer.offsets) do offsets [i] = v end
+				offsets [1] = LATE_OFFSET
+				tripped = true
+				return { result = "chain", offsets = offsets, name = answer.name }
+			end
 			return answer
 		end
 		local spec = negative [mode]
@@ -777,21 +799,90 @@ end
 -- provider's own answer, reached by the questions the provider was asked in the order the native code asked them.
 
 local queries_problem
-local queries_rows, queries_found, queries_absent, queries_fixed, queries_fallback = 0, 0, 0, 0, 0
+local queries_rows, queries_found, queries_absent, queries_fixed, queries_fallback, queries_refused = 0, 0, 0, 0, 0, 0
 local function same_words (a, b) return type (a) == "string" and type (b) == "string" and string.lower (a) == string.lower (b) end
+
+-- the C grammar of the six rows, field by field in the order C prints them
+local EXPECTED_CASES = { "instance_a", "instance_b", "instance_none", "fixed_horizontal", "fixed_flat", "fixed_invalid" }
+local KEYS = {
+	called = { "case", "status", "type", "scene", "base", "heading", "cache", "result", "chain", "world", "fixed", "vp_written", "levels", "legacy_same", "restored", "mutation", "pose" },
+	refused = { "case", "status", "reason", "scene", "level", "offset", "levels", "chain", "world", "fixed", "getter_called", "vp_touched" },
+	unavailable = { "case", "status", "reason", "visited" },
+}
+local MUTATION_TEXT = "x+1,heading+0.25,scale_x*1.5"
+local function int (v) if type (v) == "string" and string.match (v, "^%-?%d+$") then return tonumber (v) end end
+local function hex_words (v, n)
+	if type (v) ~= "string" then return false end
+	local pattern = "^0x%x%x%x%x%x%x%x%x"
+	for _ = 2, n do pattern = pattern .. ",0x%x%x%x%x%x%x%x%x" end
+	return string.match (v, pattern .. "$") ~= nil
+end
+local function parse_line (line)
+	local case, status = string.match (line, "^model%-host%-tp case=(%S+) status=(%S+)")
+	if not case then return nil, "the query report has a line that is not a row: " .. string.sub (line, 1, 80) end
+	local keys = KEYS [status]
+	if not keys then return nil, string.format ("row %s has the unknown status %s", case, status) end
+	local row, parts, order = { line = line }, {}, 0
+	for key, value in string.gmatch (line, "([%w_]+)=(%S+)") do
+		order = order + 1
+		if row [key] ~= nil then return nil, string.format ("row %s repeats the field %s", case, key) end
+		if keys [order] ~= key then return nil, string.format ("row %s has the field %s where the grammar has %s", case, key, tostring (keys [order])) end
+		row [key] = value
+		parts [#parts + 1] = key .. "=" .. value
+	end
+	if order ~= #keys then return nil, string.format ("row %s has %d fields, the grammar has %d", case, order, #keys) end
+	if table.concat (parts, " ") ~= string.gsub (line, "^model%-host%-tp ", "") then return nil, string.format ("row %s has stray text", case) end
+	row.case, row.status = case, status
+	return row
+end
+local function check_domains (row)
+	local function bad (what) return string.format ("row %s: %s", row.case, what) end
+	if row.status == "unavailable" then
+		if row.reason == "" or int (row.visited) == nil then return bad ("an unavailable row without a reason and a visit count") end
+		return
+	end
+	local function in_set (name, ...)
+		local value = int (row [name])
+		for _, allowed in ipairs { ... } do if value == allowed then return true end end
+		return false, bad (name .. " is outside its domain: " .. tostring (row [name]))
+	end
+	if row.status == "refused" then
+		if row.reason ~= "chain_path_outside_instance" then return bad ("an unknown refusal " .. tostring (row.reason)) end
+		for _, name in ipairs { "scene", "level", "offset", "levels" } do if int (row [name]) == nil then return bad (name .. " is not a whole number") end end
+		for _, name in ipairs { "chain", "world", "fixed" } do local ok, why = in_set (name, 0, 1) if not ok then return why end end
+		if row.getter_called ~= "0" or row.vp_touched ~= "0" then return bad ("a refusal must report that the getter was not called and nothing was touched") end
+		return
+	end
+	for _, name in ipairs { "type", "scene" } do if int (row [name]) == nil then return bad (name .. " is not a whole number") end end
+	for _, name in ipairs { "chain", "world", "fixed" } do local ok, why = in_set (name, 0, 1) if not ok then return why end end
+	local ok, why = in_set ("vp_written", -1, 0, 1, 2) if not ok then return why end
+	ok, why = in_set ("legacy_same", -1, 0, 1) if not ok then return why end
+	ok, why = in_set ("restored", -1, 0, 1) if not ok then return why end
+	local levels = int (row.levels)
+	if levels == nil or levels < 0 or levels > 8 then return bad ("levels is outside 0..8: " .. tostring (row.levels)) end
+	if not hex_words (row.base, 3) or not hex_words (row.heading, 1) or not hex_words (row.result, 3) then return bad ("base, heading or result is not exact bit patterns") end
+	if row.cache ~= "-" and not hex_words (row.cache, 3) then return bad ("cache is neither - nor three bit patterns") end
+	if row.pose ~= "-" and not hex_words (row.pose, 15 + 9 * levels) then return bad ("pose is neither - nor 15 + 9 * levels bit patterns") end
+	if row.mutation ~= "-" and row.mutation ~= MUTATION_TEXT then return bad ("mutation is unknown: " .. tostring (row.mutation)) end
+end
 local function parse_rows (report)
+	local lines = {}
+	local text = tostring (report)
+	if string.sub (text, -1) ~= "\n" then return nil, "the query report does not end with a newline" end
+	for line in string.gmatch (text, "([^\n]*)\n") do lines [#lines + 1] = line end
+	-- the entity scan itself failed: one row, which is an unavailable observation, not a grammar fault
+	if #lines == 1 and string.match (lines [1], "^model%-host%-tp case=scan status=unavailable reason=%S+ visited=%d+$") then
+		return nil, "UNREACHED: the query entities could not be scanned (" .. tostring (string.match (lines [1], "reason=(%S+)")) .. "); the control is unavailable, not covered"
+	end
+	if #lines ~= #EXPECTED_CASES then return nil, string.format ("the query report has %d lines, not exactly %d", #lines, #EXPECTED_CASES) end
 	local rows = {}
-	for line in string.gmatch (tostring (report), "[^\n]+") do
-		local case, status = string.match (line, "^model%-host%-tp case=(%S+) status=(%S+)")
-		if case then
-			local row = { case = case, status = status, line = line }
-			if status == "called" then
-				for key, value in string.gmatch (line, "([%w_]+)=(%S+)") do row [key] = value end
-			else
-				row.reason = string.match (line, "reason=(%S+)")
-			end
-			rows [#rows + 1] = row
-		end
+	for i, line in ipairs (lines) do
+		local row, why = parse_line (line)
+		if not row then return nil, why end
+		if row.case ~= EXPECTED_CASES [i] then return nil, string.format ("row %d is %s where %s is expected once and in order", i, row.case, EXPECTED_CASES [i]) end
+		local domain = check_domains (row)
+		if domain then return nil, domain end
+		rows [i] = row
 	end
 	return rows
 end
@@ -801,87 +892,131 @@ local function horizontal (cache)
 	-- a float is zero if its magnitude bits are (the sign bit is the top bit of the word)
 	return tonumber (x, 16) % 0x80000000 ~= 0 or tonumber (z, 16) % 0x80000000 ~= 0
 end
+local function same_offsets (a, b)
+	if type (a) ~= "table" or type (b) ~= "table" then return a == nil and b == nil end
+	if #a ~= #b then return false end
+	for i = 1, #a do if a [i] ~= b [i] then return false end end
+	return true
+end
 local first_results, first_poses = {}, {}
 local mutate_start = 0
 local function judge_queries (mutate, report)
-	local rows = parse_rows (report)
+	local rows, grammar = parse_rows (report)
+	if not rows then return grammar end
 	local events = {}
 	for i = mutate_start + 1, #query_log do events [#events + 1] = query_log [i] end
 	local at = 1
-	local function take (op, count)
+	local function take (op, count, scene)
 		local taken = {}
 		for _ = 1, count do
 			local event = events [at]
 			if not event or event.op ~= op then return nil, string.format ("the native code asked a %s question the provider did not see next (the provider saw %s)", op, event and event.op or "nothing") end
+			if event.scene ~= scene then return nil, string.format ("the %s question the provider saw is for scene %s, not the row's scene %s", op, tostring (event.scene), tostring (scene)) end
 			taken [#taken + 1] = event
 			at = at + 1
 		end
 		return taken
 	end
-	if #rows ~= 6 then return string.format ("the query report has %d rows, not 6", #rows) end
 	for _, row in ipairs (rows) do
 		emit { event = "target_query", mutate = mutate, case = row.case, status = row.status, report = row.line }
-		if row.status ~= "called" then return string.format ("UNREACHED: query case %s could not be made (%s); the control is unavailable, not covered", row.case, tostring (row.reason)) end
-		local chain, world, fixed = tonumber (row.chain), tonumber (row.world), tonumber (row.fixed)
+		if row.status == "unavailable" then return string.format ("UNREACHED: query case %s could not be made (%s); the control is unavailable, not covered", row.case, tostring (row.reason)) end
+		local scene = int (row.scene)
 		local is_instance = row.case == "instance_a" or row.case == "instance_b"
+		local own
 		if is_instance then
 			-- the diagnostic's own chain question, asked before the call to place the change and read the pose
-			local own, why = take ("target_point_chain", 1)
-			if not own then return row.case .. ": " .. why end
+			local taken, why = take ("target_point_chain", 1, scene)
+			if not taken then return row.case .. ": " .. why end
+			own = taken [1]
 		end
-		local chain_events, why = take ("target_point_chain", chain)
-		if not chain_events then return row.case .. ": " .. why end
-		local world_events, why2 = take ("target_point_world", world)
-		if not world_events then return row.case .. ": " .. why2 end
-		local fixed_events, why3 = take ("target_point_fixed", fixed)
-		if not fixed_events then return row.case .. ": " .. why3 end
-		queries_rows = queries_rows + 1
-		if is_instance then
-			if chain ~= 1 or fixed ~= 0 then return string.format ("%s: an instance asked the host %d chain and %d fixed questions", row.case, chain, fixed) end
-			-- the original's own search (compiled in the diagnostic build only) reaches the sub-instance the host's chain does, or both find none
-			if row.legacy_same ~= "1" then return string.format ("%s: the chain the host named does not reach the sub-instance the original's search finds (legacy_same=%s)", row.case, tostring (row.legacy_same)) end
-			if world == 1 then
-				local event = world_events [1]
-				if tonumber (row.levels) < 1 or row.vp_written ~= "1" then return string.format ("%s: the host named a chain but the instance viewpoint was %s written (levels %s)", row.case, row.vp_written == "1" and "" or "NOT", row.levels) end
-				if chain_events [1].answer.result ~= "chain" then return row.case .. ": a position was asked after the host answered " .. tostring (chain_events [1].answer.result) end
-				if not same_words (row.result, event.answer.p) then return string.format ("%s: the getter returned %s but the host replied %s", row.case, row.result, tostring (event.answer.p)) end
-				if not same_words (row.pose, event.key) then return string.format ("%s: the host was sent %s but the live placement is %s", row.case, tostring (event.key), row.pose) end
-				if mode == "queries_changed" then
-					if not same_words (row.result, CHANGED_WORLD) or same_words (row.result, event.reference and event.reference.p) then
-						return string.format ("%s: the changed host position %s did not reach the getter (it returned %s; the reference host answered %s)", row.case, CHANGED_WORLD, row.result, tostring (event.reference and event.reference.p))
-					end
-				elseif mutate then
-					if same_words (row.result, first_results [row.case]) or same_words (row.pose, first_poses [row.case]) then
-						return string.format ("%s: the changed live placement (%s) did not move the host's answer or the pose it was sent", row.case, row.mutation)
-					end
-				else
-					first_results [row.case], first_poses [row.case] = row.result, row.pose
-				end
-				queries_found = queries_found + 1
-			else
-				-- the host named no chain: the entity position, bit for bit, and the instance viewpoint is NOT written
-				if chain_events [1].answer.result ~= "absent" then return string.format ("%s: no position was asked although the host answered %s", row.case, tostring (chain_events [1].answer.result)) end
-				if row.result ~= row.base or row.vp_written ~= "0" or tonumber (row.levels) ~= 0 then return string.format ("%s: with no target point the getter must return the entity position and not write the viewpoint (%s, written %s)", row.case, row.result, row.vp_written) end
-				queries_absent = queries_absent + 1
+		if row.status == "refused" then
+			-- only the late-offset witness, only in its mutating call, only for an instance row whose host chain was named, and only for the offset it armed
+			if mode ~= "queries_chain_offset_late" or not mutate or not is_instance then return string.format ("%s: the fixture refused the row (%s) where nothing was meant to be refused", row.case, row.reason) end
+			if own.answer.result ~= "chain" or int (row.level) ~= 0 or int (row.offset) ~= LATE_OFFSET or own.answer.offsets [1] ~= LATE_OFFSET or int (row.levels) ~= #own.answer.offsets then
+				return string.format ("%s: the refusal does not describe the chain the host was made to name (level %s, offset %s, levels %s)", row.case, row.level, row.offset, row.levels)
 			end
-		elseif row.case == "instance_none" or row.case == "fixed_invalid" then
-			if chain ~= 0 or world ~= 0 or fixed ~= 0 then return string.format ("%s: a fallback asked the host (%d chain, %d world, %d fixed)", row.case, chain, world, fixed) end
-			if row.result ~= row.base then return string.format ("%s: the fallback returned %s, not the entity position %s", row.case, row.result, row.base) end
-			queries_fallback = queries_fallback + 1
+			if int (row.chain) ~= 0 or int (row.world) ~= 0 or int (row.fixed) ~= 0 then return string.format ("%s: a refused row asked the host something during its (never made) getter call", row.case) end
+			queries_refused = queries_refused + 1
+			queries_rows = queries_rows + 1
 		else
-			if chain ~= 0 or world ~= 0 or fixed ~= 1 then return string.format ("%s: a fixed object asked the host %d chain, %d world and %d fixed questions", row.case, chain, world, fixed) end
-			local event = fixed_events [1]
-			local base_words = string.match (row.base, "^(.-)$")
-			local wants_heading = horizontal (row.cache)
-			if wants_heading == nil then return row.case .. ": the cached offset is not readable" end
-			if wants_heading ~= (row.case == "fixed_horizontal") then return string.format ("%s: the cached offset is %s a horizontal part", row.case, wants_heading and "with" or "without") end
-			local sent = wants_heading and (base_words .. "," .. row.heading) or base_words
-			if not same_words (event.key, sent) then return string.format ("%s: the host was sent %s, expected %s (the heading goes only with a horizontal cached offset)", row.case, tostring (event.key), sent) end
-			if not same_words (row.result, event.answer.p) then return string.format ("%s: the getter returned %s but the host replied %s", row.case, row.result, tostring (event.answer.p)) end
-			if mode == "queries_changed" and (not same_words (row.result, CHANGED_FIXED) or same_words (row.result, event.reference and event.reference.p)) then
-				return string.format ("%s: the changed host position %s did not reach the getter (it returned %s)", row.case, CHANGED_FIXED, row.result)
+			local chain, world, fixed = int (row.chain), int (row.world), int (row.fixed)
+			local chain_events, why = take ("target_point_chain", chain, scene)
+			if not chain_events then return row.case .. ": " .. why end
+			local world_events, why2 = take ("target_point_world", world, scene)
+			if not world_events then return row.case .. ": " .. why2 end
+			local fixed_events, why3 = take ("target_point_fixed", fixed, scene)
+			if not fixed_events then return row.case .. ": " .. why3 end
+			queries_rows = queries_rows + 1
+			local levels, vp, restored = int (row.levels), int (row.vp_written), int (row.restored)
+			local function must (condition, text) if not condition then return string.format ("%s: %s", row.case, text) end end
+			if is_instance then
+				if chain ~= 1 or fixed ~= 0 then return string.format ("%s: an instance asked the host %d chain and %d fixed questions", row.case, chain, fixed) end
+				-- the diagnostic's own chain question and the getter's own are the same question of the same host: they must have been answered alike
+				if own.answer.result ~= chain_events [1].answer.result or not same_offsets (own.answer.offsets, chain_events [1].answer.offsets) then
+					return string.format ("%s: the diagnostic's chain and the getter's chain differ, so the placement read is not the placement sent", row.case)
+				end
+				-- an out-of-range chain armed for this call must have been refused by the fixture's bounded walk, never gone on to the sentinel, the mutation, the getter or the pose read
+				if mode == "queries_chain_offset_late" and mutate and own.answer.result == "chain" and own.answer.offsets [1] == LATE_OFFSET then
+					return string.format ("%s: the fixture went on to use the out-of-range chain (sibling position %d) instead of refusing the row before touching anything", row.case, LATE_OFFSET)
+				end
+				-- the original's own search (compiled in the diagnostic build only) reaches the sub-instance the host's chain does, or both find none
+				if row.legacy_same ~= "1" then return string.format ("%s: the chain the host named does not reach the sub-instance the original's search finds (legacy_same=%s)", row.case, tostring (row.legacy_same)) end
+				if row.cache ~= "-" or row.restored ~= "1" then return string.format ("%s: an instance row must carry no cache and a measured restoration (cache %s, restored %s)", row.case, row.cache, row.restored) end
+				if world == 1 then
+					local event = world_events [1]
+					if own.answer.result ~= "chain" or levels ~= #own.answer.offsets or levels < 1 then return string.format ("%s: a position was asked but the host named %s levels (the row has %d)", row.case, tostring (own.answer.result), levels) end
+					if vp == 2 then return string.format ("%s: the instance viewpoint was only PARTLY written (position and attitude must both be)", row.case) end
+					if vp ~= 1 then return string.format ("%s: the host named a chain but the instance viewpoint was NOT written (levels %s)", row.case, row.levels) end
+					if row.pose == "-" then return row.case .. ": a position was asked but no live placement was read" end
+					if not same_words (row.result, event.answer.p) then return string.format ("%s: the getter returned %s but the host replied %s", row.case, row.result, tostring (event.answer.p)) end
+					local sent_words = select (2, string.gsub (tostring (event.key), ",", ",")) + 1
+					if sent_words ~= 15 + 9 * levels then return string.format ("%s: the host was sent %d floats, not 15 + 9 * %d", row.case, sent_words, levels) end
+					if not same_words (row.pose, event.key) then return string.format ("%s: the host was sent %s but the live placement is %s", row.case, tostring (event.key), row.pose) end
+					if (row.mutation ~= "-") ~= mutate then return string.format ("%s: the row reports mutation %s in the %s call", row.case, row.mutation, mutate and "mutating" or "unmutated") end
+					if mode == "queries_changed" then
+						if not same_words (row.result, CHANGED_WORLD) or same_words (row.result, event.reference and event.reference.p) then
+							return string.format ("%s: the changed host position %s did not reach the getter (it returned %s; the reference host answered %s)", row.case, CHANGED_WORLD, row.result, tostring (event.reference and event.reference.p))
+						end
+					elseif mutate then
+						if same_words (row.result, first_results [row.case]) or same_words (row.pose, first_poses [row.case]) then
+							return string.format ("%s: the changed live placement (%s) did not move the host's answer or the pose it was sent", row.case, row.mutation)
+						end
+					else
+						first_results [row.case], first_poses [row.case] = row.result, row.pose
+					end
+					queries_found = queries_found + 1
+				else
+					-- the host named no chain: the entity position, bit for bit, and the instance viewpoint is NOT written (neither position nor attitude)
+					if chain_events [1].answer.result ~= "absent" then return string.format ("%s: no position was asked although the host answered %s", row.case, tostring (chain_events [1].answer.result)) end
+					if row.result ~= row.base or vp ~= 0 or levels ~= 0 or row.pose ~= "-" or row.mutation ~= "-" then
+						return string.format ("%s: with no target point the getter must return the entity position and not write the viewpoint (%s, written %s)", row.case, row.result, row.vp_written)
+					end
+					queries_absent = queries_absent + 1
+				end
+			elseif row.case == "instance_none" or row.case == "fixed_invalid" then
+				if chain ~= 0 or world ~= 0 or fixed ~= 0 then return string.format ("%s: a fallback asked the host (%d chain, %d world, %d fixed)", row.case, chain, world, fixed) end
+				if row.result ~= row.base then return string.format ("%s: the fallback returned %s, not the entity position %s", row.case, row.result, row.base) end
+				local bad = must (vp == -1 and levels == 0 and row.legacy_same == "-1" and restored == 1 and row.cache == "-" and row.pose == "-" and row.mutation == "-",
+					"a fallback row must carry no viewpoint, chain or placement and a measured restoration of what it changed")
+				if bad then return bad end
+				queries_fallback = queries_fallback + 1
+			else
+				if chain ~= 0 or world ~= 0 or fixed ~= 1 then return string.format ("%s: a fixed object asked the host %d chain, %d world and %d fixed questions", row.case, chain, world, fixed) end
+				local bad = must (vp == -1 and levels == 0 and row.legacy_same == "-1" and restored == -1 and row.pose == "-" and row.mutation == "-" and row.cache ~= "-",
+					"a fixed row changes nothing: no viewpoint, chain, placement or restoration, and it carries the cached offset")
+				if bad then return bad end
+				local event = fixed_events [1]
+				local wants_heading = horizontal (row.cache)
+				if wants_heading == nil then return row.case .. ": the cached offset is not readable" end
+				if wants_heading ~= (row.case == "fixed_horizontal") then return string.format ("%s: the cached offset is %s a horizontal part", row.case, wants_heading and "with" or "without") end
+				local sent = wants_heading and (row.base .. "," .. row.heading) or row.base
+				if not same_words (event.key, sent) then return string.format ("%s: the host was sent %s, expected %s (the heading goes only with a horizontal cached offset)", row.case, tostring (event.key), sent) end
+				if not same_words (row.result, event.answer.p) then return string.format ("%s: the getter returned %s but the host replied %s", row.case, row.result, tostring (event.answer.p)) end
+				if mode == "queries_changed" and (not same_words (row.result, CHANGED_FIXED) or same_words (row.result, event.reference and event.reference.p)) then
+					return string.format ("%s: the changed host position %s did not reach the getter (it returned %s)", row.case, CHANGED_FIXED, row.result)
+				end
+				queries_fixed = queries_fixed + 1
 			end
-			queries_fixed = queries_fixed + 1
 		end
 	end
 	if at <= #events then return string.format ("the provider saw %d more target-point questions than the native code reported", #events - at + 1) end
@@ -895,7 +1030,10 @@ elseif queries_requested then
 	else
 		for _, mutate in ipairs { false, true } do
 			mutate_start = #query_log
+			-- the late offset is armed ONLY while the mutating call runs, after a coherent unmutated one
+			late_armed = mode == "queries_chain_offset_late" and mutate
 			local called, report = pcall (engine.model_host_target_queries, engine, mutate)
+			late_armed = false
 			if not called then
 				record_primary ("queries", first_line (report))
 				queries_problem = queries_problem or ("the target-point query failed: " .. first_line (report))
@@ -904,8 +1042,11 @@ elseif queries_requested then
 			queries_problem = queries_problem or judge_queries (mutate, report)
 			if queries_problem then break end
 		end
-		if not queries_problem and not primary and queries_found < 2 then
+		if not queries_problem and not primary and queries_found < (mode == "queries_chain_offset_late" and 1 or 2) then
 			queries_problem = string.format ("UNREACHED: only %d instance queries reached a host-named target point; the control is unavailable, not covered", queries_found)
+		end
+		if not queries_problem and mode == "queries_chain_offset_late" and queries_refused < 1 then
+			queries_problem = "UNREACHED: no row was refused by the fixture's bounded walk although the out-of-range chain was armed; the fixture phase was not exercised, the control is unavailable, not covered"
 		end
 	end
 end
@@ -928,7 +1069,7 @@ emit { event = "summary", mode = mode, frames = frames, frames_run = ran, failur
 	probes_requested = probes_requested, probes_ok = probes_ok, probes_failed = probes_failed,
 	progress_problem = progress_problem or "", los_problem = los_problem or "", probe_problem = probe_problem or "", fpu_requested = fpu_requested, fpu_expected_entries = fpu_expected_entries, fpu_rows = fpu_rows, fpu_measured = fpu_measured, fpu_unreached = fpu_unreached,
 	fpu_problem = fpu_problem or "", offsets_requested = offsets_requested, offsets_rows = offsets_rows, offsets_asked = offsets_asked, offsets_problem = offsets_problem or "",
-	queries_requested = queries_requested, queries_rows = queries_rows, queries_found = queries_found, queries_absent = queries_absent, queries_fixed = queries_fixed, queries_fallback = queries_fallback,
+	queries_requested = queries_requested, queries_rows = queries_rows, queries_found = queries_found, queries_absent = queries_absent, queries_fixed = queries_fixed, queries_fallback = queries_fallback, queries_refused = queries_refused,
 	queries_problem = queries_problem or "" }
 out.close ()
 io.stderr:write (string.format ("model-authority: mode=%s frames=%d/%d reference triangle=%d found=%d ended=%d absent=%d; replied found=%d ended=%d absent=%d; primary=%s\n", mode, ran, frames,

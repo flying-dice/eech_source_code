@@ -2996,8 +2996,12 @@ local swallow = host.args.swallow == "1"
 if host.args.fake_queries == "1" then
 	local real = host.model
 	local function name_of (scene) return real ("scene", scene).name end
+	local chain_asks = 0
 	host.model = function (op, scene, depth, kind, definition, key)
 		if op == "target_point_chain" then
+			chain_asks = chain_asks + 1
+			-- `fake_drift=1`: every second question about scene 2 is answered with another chain, so the diagnostic's own chain and the getter's differ
+			if scene == 2 and host.args.fake_drift == "1" and chain_asks % 2 == 0 then return { result = "chain", name = name_of (2), offsets = { 0, 0 } } end
 			if scene == 2 then return { result = "chain", name = name_of (2), offsets = { 0, 1 } } end
 			return { result = "absent", name = name_of (scene) }
 		elseif op == "target_point_world" then
@@ -3141,36 +3145,63 @@ package.preload["eech_dc"] = function ()
 			end
 			function engine:model_host_target_queries (mutate)
 				local lines = {}
+				local function scene_of (scene) return host.args.queries_wrong_scene == "1" and scene + 1 or scene end
 				local function row (case, f)
 					if host.args.queries_missing == case then
 						lines [#lines + 1] = string.format ("model-host-tp case=%s status=unavailable reason=no_such_entity visited=3", case)
 						return
 					end
-					lines [#lines + 1] = string.format ("model-host-tp case=%s status=called type=1 scene=%d base=%s heading=0x3f800000 cache=%s result=%s chain=%d world=%d fixed=%d vp_written=%d levels=%d legacy_same=%s mutation=%s pose=%s",
-						case, f.scene, BASE, f.cache or "-", f.result, f.chain or 0, f.world or 0, f.fixed or 0, f.vp_written or -1, f.levels or 0, host.args.queries_legacy == "differs" and "0" or "1", f.mutation or "-", f.pose or "-")
+					local mutation = f.mutation or "-"
+					if host.args.queries_mutation == "always" then mutation = "x+1,heading+0.25,scale_x*1.5" elseif host.args.queries_mutation == "never" then mutation = "-" end
+					lines [#lines + 1] = string.format ("model-host-tp case=%s status=called type=1 scene=%d base=%s heading=0x3f800000 cache=%s result=%s chain=%d world=%d fixed=%d vp_written=%d levels=%d legacy_same=%s restored=%d mutation=%s pose=%s",
+						case, scene_of (f.scene), BASE, f.cache or "-", f.result, f.chain or 0, f.world or 0, f.fixed or 0, f.vp_written or -1, f.levels or 0, f.legacy_same or "-1",
+						host.args.queries_restored == "no" and f.restored == 1 and 0 or (f.restored or -1), mutation, f.pose or "-")
 				end
 				for _, spec in ipairs { { "instance_a", 2 }, { "instance_b", 3 } } do
 					local case, scene = spec [1], spec [2]
-					native ("target_point_chain", scene)
-					local chain = native ("target_point_chain", scene)
-					if chain.result == "chain" then
-						local last = (mutate and host.args.queries_pose ~= "same") and "0x40a00000" or "0x3f800000"
-						local pose = ROOT_POSE .. "," .. level (ZERO) .. "," .. level (last)
-						local world = native ("target_point_world", scene, pose)
-						row (case, { scene = scene, result = host.args.queries_ignore == "1" and BASE or world.p, chain = 1, world = 1, vp_written = host.args.queries_vp == "no" and 0 or 1, levels = 2,
-							mutation = mutate and "x+1,heading+0.25,scale_x*1.5" or "-", pose = host.args.queries_pose == "wrong" and pose .. ",0x00000001" or pose })
+					local own = native ("target_point_chain", scene)
+					-- the ONE bounded walk is a mandatory preflight: a chain that is not inside the instance (here: a sibling position of 2 or more, or a negative one) is a named refusal of the row
+					local bad_level, bad_offset
+					if own.result == "chain" then
+						for i, o in ipairs (own.offsets) do if o < 0 or o >= 2 then bad_level, bad_offset = i - 1, o break end end
+					end
+					if bad_level and host.args.queries_preflight ~= "no" then
+						lines [#lines + 1] = string.format ("model-host-tp case=%s status=refused reason=chain_path_outside_instance scene=%d level=%d offset=%d levels=%d chain=0 world=0 fixed=0 getter_called=0 vp_touched=0",
+							case, scene_of (scene), bad_level, bad_offset, #own.offsets)
 					else
-						row (case, { scene = scene, result = BASE, chain = 1, vp_written = 0, levels = 0 })
+						local chain = native ("target_point_chain", scene)
+						if chain.result == "chain" then
+							local last = (mutate and host.args.queries_pose ~= "same") and "0x40a00000" or "0x3f800000"
+							local pose = ROOT_POSE .. "," .. level (ZERO) .. "," .. level (last)
+							local world = native ("target_point_world", scene, pose)
+							row (case, { scene = scene, result = host.args.queries_ignore == "1" and BASE or world.p, chain = 1, world = 1, vp_written = host.args.queries_vp == "no" and 0 or (host.args.queries_vp == "partial" and 2 or 1),
+								levels = 2, legacy_same = host.args.queries_legacy == "differs" and "0" or "1", restored = 1,
+								mutation = mutate and "x+1,heading+0.25,scale_x*1.5" or "-", pose = host.args.queries_pose == "wrong" and string.gsub (pose, ",0x%x+$", ",0x00000001") or pose })
+						else
+							row (case, { scene = scene, result = BASE, chain = 1, vp_written = 0, levels = 0, legacy_same = host.args.queries_legacy == "differs" and "0" or "1", restored = 1 })
+						end
 					end
 				end
 				local asks = host.args.queries_fallback_asks == "1"
 				if asks then native ("target_point_chain", 2) end
-				row ("instance_none", { scene = 2, result = BASE, chain = asks and 1 or 0 })
+				row ("instance_none", { scene = 2, result = BASE, chain = asks and 1 or 0, restored = 1 })
 				for _, spec in ipairs { { "fixed_horizontal", 9, "0x00000000,0x40000000,0x40400000", "," .. "0x3f800000" }, { "fixed_flat", 10, "0x00000000,0x40000000,0x00000000", host.args.queries_heading_always == "1" and ",0x3f800000" or "" } } do
 					local fixed = native ("target_point_fixed", spec [2], BASE .. spec [4])
-					row (spec [1], { scene = spec [2], cache = spec [3], result = host.args.queries_ignore == "1" and BASE or fixed.p, fixed = 1 })
+					row (spec [1], { scene = spec [2], cache = spec [3], result = host.args.queries_ignore == "1" and BASE or fixed.p, fixed = host.args.queries_report == "bad_domain" and 2 or 1 })
 				end
-				row ("fixed_invalid", { scene = 10, result = BASE })
+				row ("fixed_invalid", { scene = 10, result = BASE, restored = 1 })
+				-- `queries_report=` plays a report that breaks the six-row grammar in one way
+				local shape = host.args.queries_report
+				if shape == "duplicate" then lines [2] = lines [1]
+				elseif shape == "unknown" then lines [5] = string.gsub (lines [5], "case=fixed_flat", "case=fixed_other")
+				elseif shape == "extra" then lines [#lines + 1] = lines [1]
+				elseif shape == "noise" then table.insert (lines, 1, "noise from somewhere")
+				elseif shape == "stray" then lines [3] = lines [3] .. " junk"
+				elseif shape == "missing_field" then lines [1] = string.gsub (lines [1], " restored=%-?%d+", "")
+				elseif shape == "repeat_field" then lines [1] = lines [1] .. " pose=-"
+				elseif shape == "unknown_status" then lines [4] = string.gsub (lines [4], "status=called", "status=maybe")
+				elseif shape == "reorder" then lines [1], lines [2] = lines [2], lines [1]
+				elseif shape == "no_newline" then return table.concat (lines, "\n") end
 				return table.concat (lines, "\n") .. "\n"
 			end
 		end
@@ -3474,6 +3505,81 @@ fn a_getter_that_does_not_use_the_hosts_answer_or_the_live_placement_is_found_an
         let run = stand_in_run(&args, "healthy");
         assert!(!run.status.success() && run.stderr.contains(fragment), "{args:?}: {}", run.stderr);
     }
+}
+
+#[test]
+fn the_six_row_witness_is_exactly_six_named_rows_in_the_c_grammar_with_every_event_joined_to_its_row() {
+    // the faithful report passes (the healthy test above); each of these breaks the grammar, the row set, a domain, a join or the meaning of a field in ONE way
+    for (args, fragment) in [
+        (vec!["queries_report=duplicate"], "is instance_a where instance_b is expected once and in order"),
+        (vec!["queries_report=reorder"], "is instance_b where instance_a is expected once and in order"),
+        (vec!["queries_report=unknown"], "is fixed_other where fixed_flat is expected"),
+        (vec!["queries_report=extra"], "7 lines, not exactly 6"),
+        (vec!["queries_report=noise"], "7 lines, not exactly 6"),
+        (vec!["queries_report=stray"], "stray text"),
+        (vec!["queries_report=missing_field"], "where the grammar has restored"),
+        (vec!["queries_report=repeat_field"], "repeats the field pose"),
+        (vec!["queries_report=unknown_status"], "unknown status maybe"),
+        (vec!["queries_report=bad_domain"], "fixed is outside its domain"),
+        (vec!["queries_report=no_newline"], "does not end with a newline"),
+        // the event is joined to its row by scene and operation, in the order the native code asked
+        (vec!["queries_wrong_scene=1"], "is for scene"),
+        // the diagnostic's own chain and the getter's chain are the same question and must have been answered alike
+        (vec!["fake_drift=1"], "the diagnostic's chain and the getter's chain differ"),
+        // the viewpoint is written as a whole (position AND attitude) or not at all
+        (vec!["queries_vp=partial"], "only PARTLY written"),
+        // a restoration is a measured readback, not a claim
+        (vec!["queries_restored=no"], "a measured restoration"),
+        // the mutation belongs to the mutating call only
+        (vec!["queries_mutation=always"], "reports mutation"),
+        (vec!["queries_mutation=never"], "reports mutation"),
+    ] {
+        let run = queries_run(&args);
+        assert!(!run.status.success() && run.stderr.contains(fragment), "{args:?}: {}", run.stderr);
+    }
+}
+
+#[test]
+fn an_out_of_range_chain_armed_only_in_the_mutating_call_is_refused_by_the_fixture_before_it_touches_anything() {
+    // the witness: a coherent unmutated call first, then every chain the host names has its first sibling position moved outside the instance, only while the mutating call runs
+    let run = queries_run(&["mode=queries_chain_offset_late"]);
+    assert!(run.status.success(), "{}", run.stderr);
+    let summary = run.row("summary");
+    assert_eq!(summary["queries_refused"].as_i64(), Some(1), "{summary}");
+    assert_eq!(summary["queries_problem"].as_str(), Some(""));
+    let refused: Vec<Value> = run
+        .rows()
+        .into_iter()
+        .filter(|r| r["event"] == "target_query" && r["status"] == "refused")
+        .collect();
+    assert_eq!(refused.len(), 1);
+    assert_eq!(refused[0]["mutate"], true);
+    let text = refused[0]["report"].as_str().unwrap();
+    assert!(
+        text.contains("reason=chain_path_outside_instance") && text.contains("offset=4000") && text.contains("getter_called=0 vp_touched=0"),
+        "{text}"
+    );
+    // the unmutated call was coherent: no row of it is refused, and it reached a host-named target point
+    assert!(run
+        .rows()
+        .into_iter()
+        .filter(|r| r["event"] == "target_query" && r["mutate"] == false)
+        .all(|r| r["status"] == "called"));
+
+    // a fixture that does NOT preflight goes on to use the out-of-range chain: found, never covered
+    let run = queries_run(&["mode=queries_chain_offset_late", "queries_preflight=no"]);
+    assert!(
+        !run.status.success() && run.stderr.contains("the fixture went on to use the out-of-range chain"),
+        "{}",
+        run.stderr
+    );
+    // a refusal where nothing was armed is not coverage either: it happens in the healthy run only if the fixture invents one
+    // (the same script without the mode never arms the offset, so the healthy run has no refused row)
+    let run = queries_run(&[]);
+    assert_eq!(run.row("summary")["queries_refused"].as_i64(), Some(0));
+    // the mode needs the fixture observation, like every queries_ mode
+    let run = stand_in_run(&["mode=queries_chain_offset_late"], "healthy");
+    assert!(!run.status.success() && run.stderr.contains("queries=1"), "{}", run.stderr);
 }
 
 #[test]
