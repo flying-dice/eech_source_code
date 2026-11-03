@@ -169,32 +169,6 @@ static void update_server (entity *en)
 
 
 
-static void update_client (entity *en)
-{
-	ship_vehicle
-		*raw;
-
-	int
-		loop;
-
-	raw = (ship_vehicle *) get_local_entity_data (en);
-
-
-
-	raw->vh.sleep -= get_delta_time ();
-
-	raw->vh.sleep = max (raw->vh.sleep, 0.0f);
-
-	if (raw->vh.mob.alive && !vehicle_critically_damaged(en))
-	{
-
-
-
-		for (loop = 0; loop < get_entity_movement_iterations (); loop ++)
-		{
-
-			ship_vehicle_movement (en);
-		}
 
 
 
@@ -203,37 +177,63 @@ static void update_client (entity *en)
 
 
 
-		//
-		// ORDER IS CRITICAL
-		//
-
-		update_vehicle_weapon_system_ready (en);
-
-		update_entity_weapon_systems (en);
-
-		update_entity_weapon_system_weapon_and_target_vectors (en);
-
-		rearm_vehicle_weapons(en);
-		
-		//
-
-		
 
 
 
 
 
 
-	}
-	else if (!raw->vh.mob.alive) // do not sink ship until it burn out!
-	{
-		for (loop = 0; loop < get_entity_movement_iterations (); loop ++)
-		{
 
-			ship_vehicle_death_movement (en);
-		}
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -933,14 +933,14 @@ static void update_server (entity *en)
 
 
 
-static void update_client (entity *en)
-{
-	update_time_of_day (en);
 
-	update_transitional_weather (en);
 
-	update_session_sound_effects (en);
-}
+
+
+
+
+
+
 
 
 

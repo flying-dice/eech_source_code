@@ -245,91 +245,91 @@ int damage_client_server_entity (entity *en, entity *weapon, float damage_modifi
 
 
 
-void display_debug_kill_info (entity *victim, entity *aggressor)
-{
 
-	entity
-		*victim_task,
-		*aggressor_task;
 
-	const char
-		*desc1,
-		*desc2,
-		*victim_desc,
-		*aggressor_desc;
 
-	debug_colours
-		col;
 
-	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	//
-	// get task descriptions
-	//
 
-	// victim
 
-	victim_task = get_local_entity_primary_task (victim);
 
-	if (victim_task)
-	{
-		desc1 = get_local_entity_string (victim_task, STRING_TYPE_FULL_NAME);
-	}
-	else
-	{
-		desc1 = task_database [ENTITY_SUB_TYPE_TASK_NOTHING].full_name;
-	}
 
-	// aggressor
 
-	aggressor_task = get_local_entity_primary_task (aggressor);
 
-	if (aggressor_task)
-	{
-		desc2 = get_local_entity_string (aggressor_task, STRING_TYPE_FULL_NAME);
-	}
-	else
-	{
-		desc2 = task_database [ENTITY_SUB_TYPE_TASK_NOTHING].full_name;
-	}
 
-	//
-	// get mobile descriptions
-	//
 
-	// victim
 
-	victim_desc = get_local_entity_string (victim, STRING_TYPE_FULL_NAME);
 
-	ASSERT (victim_desc);
 
-	// aggressor
 
-	aggressor_desc = get_local_entity_string (aggressor, STRING_TYPE_FULL_NAME);
 
-	ASSERT (aggressor_desc);
 
-	//
 
-	if (get_local_entity_int_value (aggressor, INT_TYPE_SIDE) == ENTITY_SIDE_BLUE_FORCE)
-	{
-		col = DEBUG_COLOUR_BLUE;
-	}
-	else
-	{
-		col = DEBUG_COLOUR_RED;
-	}
 
-	debug_colour_log (col, "DAMAGE: %s (%d) doing %s - killed by %s (%d) doing %s",
-								victim_desc,
-								get_local_entity_index (victim),
-								desc1,
-								aggressor_desc,
-								get_local_entity_index (aggressor),
-								desc2);
 
-	ai_log ("(KILL) %s doing %s - killed by %s doing %s", victim_desc, desc1, aggressor_desc, desc2);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -486,128 +486,128 @@ int weapon_damage_capability (entity *wpn, entity *target, float damage_modifier
 
 #define DEBUG_NON_ENTRIES	0
 
-void initialise_destroyed_object_database (void)
-{
-	object_3d_index_numbers
-		normal_object,
-		destroyed_object;
-
-	const char
-		*normal_object_string;
-	char
-		*destroyed_object_string;
-
-	int
-		found_flag,
-		keyword_length;
-
-	keyword_length = strlen (DESTROYED_OBJECT_KEYWORD);
-
-	destroyed_object_table = (object_3d_index_numbers *) safe_malloc (sizeof (object_3d_index_numbers) * OBJECT_3D_LAST);
-
-	restored_object_table = (object_3d_index_numbers *) safe_malloc (sizeof (object_3d_index_numbers) * OBJECT_3D_LAST);
-
-	//
-	// set defaults
-	//
-
-	for (normal_object = 0; normal_object < OBJECT_3D_LAST; normal_object ++)
-	{
-		destroyed_object_table [normal_object] = normal_object;
-
-		restored_object_table [normal_object] = normal_object;
-	}
-
-	//
-	// search every 3d object for a destroyed counterpart
-	//
-
-	for (normal_object = 0; normal_object < OBJECT_3D_LAST; normal_object ++)
-	{
-		//
-		// construct search string
-		//
-
-		normal_object_string = object_3d_information_database [normal_object].name;
-
-		destroyed_object_string = (char *) malloc_fast_mem (strlen (normal_object_string) + keyword_length + 4);
-
-		strcpy (destroyed_object_string, normal_object_string);
-
-		strcat (destroyed_object_string, DESTROYED_OBJECT_KEYWORD);
-
-		//
-		// search database for new string
-		//
-
-		found_flag = FALSE;
-
-		for (destroyed_object = 0; destroyed_object < OBJECT_3D_LAST; destroyed_object ++)
-		{
-			if (strcmp (destroyed_object_string, object_3d_information_database [destroyed_object].name) == 0)
-			{
-				if (objects_3d_scene_database[destroyed_object].succeeded)
-				{
-					destroyed_object_table [normal_object] = destroyed_object;
-
-					restored_object_table [destroyed_object] = normal_object;
-
-					found_flag = TRUE;
-				}
-				else
-				{
-					debug_log("DAMAGE : Failed to load destroyed scene for %s", normal_object_string);
-				}
-
-				break;
-			}
-		}
-
-		#if DEBUG_NON_ENTRIES
-
-		if ((!found_flag) && (!strstr (normal_object_string, DESTROYED_OBJECT_KEYWORD)))
-		{
-			debug_log ("DAMAGE : No entry found for %s", normal_object_string);
-		}
-
-		#endif
-
-		free_mem (destroyed_object_string);
-	}
-}
 
 
 
 
 
-void deinitialise_destroyed_object_database (void)
-{
-	safe_free (destroyed_object_table);
-
-	safe_free (restored_object_table);
-}
 
 
 
 
 
-object_3d_index_numbers get_3d_object_destroyed_object_index (object_3d_index_numbers index)
-{
-	ASSERT ((index >= 0) && (index < OBJECT_3D_LAST));
-
-	return destroyed_object_table [index];
-}
 
 
 
 
 
-object_3d_index_numbers get_3d_object_restored_object_index (object_3d_index_numbers index)
-{
-	ASSERT ((index >= 0) && (index < OBJECT_3D_LAST));
 
-	return restored_object_table [index];
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -670,21 +670,21 @@ float get_player_damage_modifier (entity *en)
 
 
 
-int get_damage_debug_invulnerable_flag (void)
-{
-	return command_line_debug_damage_invulnerable;
-}
 
 
 
 
 
-int toggle_damage_debug_invulnerable_flag (void)
-{
-	command_line_debug_damage_invulnerable = !command_line_debug_damage_invulnerable;
 
-	return command_line_debug_damage_invulnerable;
-}
+
+
+
+
+
+
+
+
+
 
 
 

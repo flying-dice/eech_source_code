@@ -78,35 +78,35 @@
 
 
 
-static void update_propellors (entity *en)
-{
 
-	fixed_wing
-		*raw;
 
-	entity
-		*group;
 
-	raw = (fixed_wing *) get_local_entity_data (en);
 
-	group = get_local_entity_parent (en, LIST_TYPE_MEMBER);
 
-	ASSERT (group);
 
-	if (!in_flight_articulation_test)
-	{
-		if (get_local_entity_int_value (en, INT_TYPE_LANDED))
-		{
-			raw->propellor_rpm -= 5.0 * get_delta_time ();
-		}
-		else
-		{
-			raw->propellor_rpm += 5.0 * get_delta_time ();
-		}
-	}
 
-	raw->propellor_rpm = bound (raw->propellor_rpm, 0.0, 100.0);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -239,36 +239,6 @@ static void update_server (entity *en)
 
 
 
-static void update_client (entity *en)
-{
-	fixed_wing
-		*raw;
-
-	int
-		loop;
-
-	raw = (fixed_wing *) get_local_entity_data (en);
-
-
-
-	if (raw->ac.mob.alive)
-	{
-
-
-
-		for (loop = 0; loop < get_entity_movement_iterations (); loop ++)
-		{
-
-			if (!get_local_entity_int_value (en, INT_TYPE_LANDED))
-			{
-
-				ASSERT(point_inside_map_area(&raw->ac.mob.position));
-
-				get_3d_terrain_point_data (raw->ac.mob.position.x, raw->ac.mob.position.z, &raw->ac.terrain_info);
-			}
-
-			basic_fixed_wing_movement (en);
-		}
 
 
 
@@ -289,17 +259,6 @@ static void update_client (entity *en)
 
 
 
-		//
-		// ORDER IS CRITICAL
-		//
-
-		update_aircraft_weapon_system_ready (en);
-
-		update_entity_weapon_systems (en);
-
-		update_entity_weapon_system_weapon_and_target_vectors (en);
-
-		//
 
 
 
@@ -311,22 +270,63 @@ static void update_client (entity *en)
 
 
 
-	}
-	else
-	{
-		if (get_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE) == OPERATIONAL_STATE_DEAD)
-		{
-			raw->ac.death_timer += get_delta_time ();
-		}
-		else
-		{
-			for (loop = 0; loop < get_entity_movement_iterations (); loop ++)
-			{
-				basic_fixed_wing_death_movement (en);
-			}
-		}
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -78,28 +78,28 @@
 
 
 
-static void interpolate_entity_position (entity *en);
 
 
 
 
 
-static void update_rotors (entity *en)
-{
-	helicopter
-		*raw;
 
-	raw = (helicopter *) get_local_entity_data (en);
 
-	if (!get_local_entity_parent (en, LIST_TYPE_FOLLOWER))
-	{
-		raw->main_rotor_rpm -= 5.0 * get_delta_time ();
 
-		raw->main_rotor_rpm = bound (raw->main_rotor_rpm, 0.0, 100.0);
 
-		raw->tail_rotor_rpm = raw->main_rotor_rpm;
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -582,68 +582,31 @@ static void update_server (entity *en)
 
 
 
-static void update_client (entity *en)
-{
-	helicopter
-		*raw;
 
-	int
-		loop;
 
-	aircraft_damage_types
-		damage_type;
 
-	raw = (helicopter *) get_local_entity_data (en);
 
 
 
 
 
-	damage_type = aircraft_critically_damaged (en);
 
-	if (raw->ac.mob.alive)
-	{
-		switch (raw->player)
-		{
 
-			case ENTITY_PLAYER_AI:
 
-			{
 
 
 
-				for (loop = 0; loop < get_entity_movement_iterations (); loop ++)
-				{
 
-					if (get_local_entity_int_value (en, INT_TYPE_EJECTED) || raw->main_rotor_rpm < 50 && get_local_entity_int_value (en, INT_TYPE_AIRBORNE_AIRCRAFT))
-					{
 
-						helicopter_death_movement (en);
-					}
-					else
-					{
 
-						if (!get_local_entity_int_value (en, INT_TYPE_LANDED))
-						{
 
-							ASSERT(point_inside_map_area(&raw->ac.mob.position));
 
-							get_3d_terrain_point_data (raw->ac.mob.position.x, raw->ac.mob.position.z, &raw->ac.terrain_info);
-						}
 
-						helicopter_movement (en);
-					}
-				}
 
 
 
 
-				//
-				// ORDER IS CRITICAL
-				//
 
-				if (raw->ac.mob.alive)
-				{
 
 
 
@@ -652,217 +615,84 @@ static void update_client (entity *en)
 
 
 
-					update_aircraft_weapon_system_ready (en);
 
-					update_entity_weapon_systems (en);
 
-					update_entity_weapon_system_weapon_and_target_vectors (en);
-				}
 
-				//
 
 
-				break;
-			}
 
-			case ENTITY_PLAYER_LOCAL:
 
-			{
 
-				if (en != get_gunship_entity ())
-				{
 
-					//
-					// Client might be waiting for server to set old gunship to AI controlled.
-					//
 
-					return;
-				}
 
-				if (raw->invulnerable_timer > 0.0)
-				{
 
-					raw->invulnerable_timer -= get_delta_time ();
-				}
 
-				update_current_flight_dynamics_fuel_weight ();
 
-				if ((!fire_continuous_weapon) && (get_local_entity_sound_type_valid (en, weapon_database [raw->ac.selected_weapon].launch_sound_effect_sub_type)))
-				{
 
-				}
 
-				//helicopter_death_movement (en);
 
-				if ((!get_local_entity_int_value (en, INT_TYPE_AUTO_PILOT)) && (!get_local_entity_int_value (en, INT_TYPE_EJECTED)))
-				{
 
-					update_flight_dynamics ();
 
-					transmit_entity_comms_message (ENTITY_COMMS_UPDATE, en);
-				}
-				else
-				{
 
-					if (get_local_entity_int_value (en, INT_TYPE_LANDED))
-					{
 
-						if (get_local_entity_int_value (en, INT_TYPE_AUTO_PILOT))
-						{
 
-							set_current_flight_dynamics_rotor_brake (TRUE);
 
-							set_current_flight_dynamics_auto_pilot (FALSE);
 
-							current_flight_dynamics->input_data.collective.value = 0.0;
-						}
-					}
 
-					if ((damage_type == AIRCRAFT_DAMAGE_CRITICAL) || (get_local_entity_int_value (en, INT_TYPE_EJECTED)) || (get_local_entity_int_value (en, INT_TYPE_LANDED)))
-					{
 
-						set_current_flight_dynamics_auto_pilot (FALSE);
-					}
 
-					for (loop = 0; loop < get_entity_movement_iterations (); loop ++)
-					{
 
-						if (get_local_entity_int_value (en, INT_TYPE_EJECTED) || raw->main_rotor_rpm < 50 && get_local_entity_int_value (en, INT_TYPE_AIRBORNE_AIRCRAFT))
-						{
 
-							helicopter_death_movement (en);
-						}
-						else
-						{
 
-							if (!get_local_entity_int_value (en, INT_TYPE_LANDED))
-							{
 
-								ASSERT(point_inside_map_area(&raw->ac.mob.position));
 
-								get_3d_terrain_point_data (raw->ac.mob.position.x, raw->ac.mob.position.z, &raw->ac.terrain_info);
-							}
 
-							helicopter_movement (en);
 
-							if (get_local_entity_int_value (en, INT_TYPE_AUTO_PILOT))
-							{
 
-								set_dynamics_entity_values (get_gunship_entity ());
-							}
-						}
-					}
-				}
 
 
-				//
-				// ORDER IS CRITICAL
-				//
 
-				if (raw->ac.mob.alive)
-				{
 
 
 
 
 
 
-					update_aircraft_weapon_system_ready (en);
 
-					update_entity_weapon_systems (en);
 
-					update_entity_weapon_system_weapon_and_target_vectors (en);
 
-					update_avionics ();
 
-					update_cockpits ();
 
-					update_aircraft_decoy_release (en);
-				}
 
-				//
 
 
-				//
-				// Check if gunship has a task - if not then set gunship entity to NULL
-				//
 
-				if (!get_local_entity_parent (en, LIST_TYPE_FOLLOWER))
-				{
-					if (!get_local_entity_int_value (en, INT_TYPE_EJECTED))
-					{
-						if ((en == get_gunship_entity ()) && (get_game_type () != GAME_TYPE_FREE_FLIGHT)) // Jabberwock 040201 - but not in free flight
-						{
-							set_gunship_entity (NULL);
-						}
-					}
-				}
 
-				break;
-			}
 
-			case ENTITY_PLAYER_REMOTE:
 
-			{
 
-				//
-				// ORDER IS CRITICAL
-				//
 
-				if (raw->ac.mob.alive)
-				{
 
 
 
 
 
 
-					update_aircraft_weapon_system_ready (en);
 
-					update_entity_weapon_systems (en);
 
-					update_entity_weapon_system_weapon_and_target_vectors (en);
-				}
 
-				if ((get_local_entity_int_value (en, INT_TYPE_AUTO_PILOT)) || (get_local_entity_int_value (en, INT_TYPE_EJECTED)))
-				{
 
-					for (loop = 0; loop < get_entity_movement_iterations (); loop ++)
-					{
 
-						// no need for death_movement as if the remote_player is damaged it will default back to manual flight.
-						if (get_local_entity_int_value (en, INT_TYPE_EJECTED))
-						{
 
-							helicopter_death_movement (en);
-						}
-						else
-						{
 
-							if (!get_local_entity_int_value (en, INT_TYPE_LANDED))
-							{
 
-								ASSERT(point_inside_map_area(&raw->ac.mob.position));
 
-								get_3d_terrain_point_data (raw->ac.mob.position.x, raw->ac.mob.position.z, &raw->ac.terrain_info);
-							}
 
-							helicopter_movement (en);
-						}
-					}
-				}
-				else
-				{
 
-					interpolate_entity_position (en);
-				}
 
-				//
 
 
-				break;
-			}
-		}
 
 
 
@@ -877,112 +707,43 @@ static void update_client (entity *en)
 
 
 
-	}
-	else
-	{
-		if (get_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE) == OPERATIONAL_STATE_DEAD)
-		{
-			raw->ac.death_timer += get_delta_time ();
-		}
-		else
-		{
-			for (loop = 0; loop < get_entity_movement_iterations (); loop ++)
-			{
-				helicopter_death_movement (en);
-			}
-		}
-	}
-}
 
 
 
 
 
-void overload_helicopter_update_functions (void)
-{
-	fn_update_client_server_entity[ENTITY_TYPE_HELICOPTER][COMMS_MODEL_SERVER]  	= update_server;
 
-	fn_update_client_server_entity[ENTITY_TYPE_HELICOPTER][COMMS_MODEL_CLIENT]  	= update_client;
-}
 
 
 
 
 
-void reset_interpolation_timer (void)
-{
 
-	connection_list_type
-		*connection;
 
-	if (get_comms_model () == COMMS_MODEL_CLIENT)
-	{
 
-		connection = get_connection_list_item (get_server_id ());
 
-		if (connection)
-		{
 
-			connection->interpolation_time = get_system_time ();
-		}
-	}
-}
 
 
 
 
 
-void interpolate_entity_position (entity *en)
-{
 
-	vec3d
-		new_position,
-		*motion_vector,
-		*position;
 
-	connection_list_type
-		*connection;
 
-	float
-		delta_time;
 
-	if ((!command_line_comms_interpolate_gunships) || (get_local_entity_int_value (en, INT_TYPE_LANDED)))
-	{
 
-		return;
-	}
 
-	position = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
 
-	motion_vector = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_MOTION_VECTOR);
 
-	if (get_comms_model () == COMMS_MODEL_CLIENT)
-	{
 
-		connection = get_connection_list_item (get_server_id ());
-	}
-	else
-	{
 
-		connection = get_gunships_connection_list_item (en);
-	}
 
-	if (connection)
-	{
 
-		delta_time = (float) (get_system_time () - connection->interpolation_time) / TIME_1_SECOND;
 
-		new_position.x = position->x + motion_vector->x * delta_time;
-		new_position.y = position->y + motion_vector->y * delta_time;
-		new_position.z = position->z + motion_vector->z * delta_time;
 
-		set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &new_position);
 
-		if (get_comms_model () == COMMS_MODEL_SERVER)
-		{
 
-			connection->interpolation_time = get_system_time ();
-		}
 
 
 
@@ -995,8 +756,247 @@ void interpolate_entity_position (entity *en)
 
 
 
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

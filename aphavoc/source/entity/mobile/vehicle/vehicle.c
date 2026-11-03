@@ -86,167 +86,167 @@ static speech_instance_type
 
 
 
-void play_vehicle_shot_at_speech (entity *victim, entity *aggressor)
-{
-	entity_sides
-		victim_side,
-		aggressor_side;
-
-	int
-		val,
-		speech_index;
-
-	vec3d
-		*pos;
-
-	ASSERT (victim);
-
-	ASSERT (aggressor);
-
-	pos = get_local_entity_vec3d_ptr (victim, VEC3D_TYPE_POSITION);
-
-	ASSERT (pos);
-
-	victim_side = (entity_sides) get_local_entity_int_value (victim, INT_TYPE_SIDE);
-
-	aggressor_side = (entity_sides) get_local_entity_int_value (aggressor, INT_TYPE_SIDE);
-
-	if (aggressor_side == victim_side)
-	{
-		//
-		// FRIENDLY FIRE
-		//
 
 
-		//
-		// victims speech
-		//
-
-		
-
-		//
-		// Aggressors speech
-		//
 
 
-		if (get_local_entity_int_value (aggressor, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-		{
-			//
-			// PLAY_SPEECH (CPG)
-			//
-
-			if (rand16 () & 1)
-			{
-				speech_index = SPEECH_CPG_FRIENDLY_FIRE1;
-			}
-			else
-			{
-				speech_index = SPEECH_CPG_FRIENDLY_FIRE2;
-			}
-
-			play_client_server_cpg_message
-			(
-				aggressor,
-				1.0,
-				3.0,
-				SPEECH_CATEGORY_ATTACKING_TARGETS,
-				12.0,
-				speech_index
-			);
-		}
-	}
-	else
-	{
-
-		//
-		// victims speech
-		//
 
 
-		val = get_speech_random_value
-				(
-					vehicle_hit_comments,
-					num_vehicle_hit_comments [victim_side],
-					last_vehicle_hit_comment [victim_side]
-				);
-
-		speech_index = vehicle_hit_comments [val].speech_index;
-	
-		get_speech_sector_coordinates (pos);
-
-		// PLAY_SPEECH (GC)
-		//
-		// [GC Introduction],
-		// (We are pinned down by enemy fire) | (we are taking heavy fire, requesting ariel assistance)
-		// location
-
-		play_client_server_speech
-		(
-			get_session_entity (),
-			victim,
-			victim_side,
-			ENTITY_SUB_TYPE_EFFECT_SOUND_RADIO_MESSAGE,
-			SOUND_LOCALITY_RADIO,
-			0.0,
-			1.0,
-			45.0,
-			SPEECH_ORIGINATOR_GROUND_CONTROLLER,
-			SPEECH_CATEGORY_UNDER_ATTACK,
-			300.0,
-			SPEECH_ARRAY_GC_MESSAGES, SPEECH_GC_INTRODUCTION,
-			SPEECH_ARRAY_GC_MESSAGES, speech_index,
-			SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [0],
-			SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [1],
-			SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [2],
-			SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [3],
-			SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [4],
-			SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [5],
-			-1
-		);
 
 
-		//
-		// Aggressors speech
-		//
 
 
-		if (get_local_entity_int_value (aggressor, INT_TYPE_IDENTIFY_AIRCRAFT))
-		{
-			if (get_local_entity_int_value (aggressor, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-			{
-				//
-				// PLAY_SPEECH (CPG)
-				//
 
-				play_client_server_cpg_message
-				(
-					aggressor,
-					0.4,
-					3.0,
-					SPEECH_CATEGORY_ATTACKING_TARGETS,
-					12.0,
-					SPEECH_CPG_TARGET_HIT
-				);
-			}
-			else
-			{
-				//
-				// PLAY_SPEECH (WINGMAN)
-				//
 
-				play_client_server_wingman_message
-				(
-					aggressor,
-					0.4,
-					3.0,
-					SPEECH_CATEGORY_ATTACKING_TARGETS, 12.0,
-					SPEECH_INTRODUCTION_SOMETIMES,
-					SPEECH_ARRAY_WINGMAN_MESSAGES, SPEECH_WINGMAN_TARGET_HIT
-				);
-			}
-		}
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -278,114 +278,114 @@ static speech_instance_type
 
 
 
-void play_vehicle_destroyed_speech (entity *victim, entity *aggressor)
-{
-	entity_sides
-		victim_side,
-		aggressor_side;
 
-	int
-		val,
-		array_type,
-		speech_index;
 
-	ASSERT (victim);
 
-	ASSERT (aggressor);
 
-	victim_side = (entity_sides) get_local_entity_int_value (victim, INT_TYPE_SIDE);
 
-	aggressor_side = (entity_sides) get_local_entity_int_value (aggressor, INT_TYPE_SIDE);
 
-	if (victim_side == aggressor_side)
-	{
-		//
-		// FRIENDLY FIRE
-		//
 
-		if (get_local_entity_int_value (aggressor, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-		{
-			// PLAY_SPEECH (CPG)
-			//
-			// (Hold your fire, we're hitting friendlies) | (Cease fire, we're hitting our own guys)
 
-			if (rand16 () & 1)
-			{
-				speech_index = SPEECH_CPG_FRIENDLY_FIRE1;
-			}
-			else
-			{
-				speech_index = SPEECH_CPG_FRIENDLY_FIRE2;
-			}
 
-			play_client_server_cpg_message
-			(
-				aggressor,
-				1.0,
-				3.0,
-				SPEECH_CATEGORY_ATTACKING_TARGETS,
-				8.0,
-				speech_index
-			);
-		}
-	}
-	else
-	{
-		if (get_local_entity_int_value (aggressor, INT_TYPE_IDENTIFY_AIRCRAFT))
-		{
-			if (get_local_entity_int_value (aggressor, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-			{
-				// PLAY_SPEECH (CPG)
-				//
-				// (Target destroyed) | (Enemy armour destroyed) | (Good Kill) | etc
 
-				val = get_speech_random_value
-						(
-							vehicle_destroyed_cpg_comments,
-							num_vh_destroyed_cpg_comments [aggressor_side],
-							last_vh_destroyed_cpg_comment [aggressor_side]
-						);
 
-				speech_index = vehicle_destroyed_cpg_comments [val].speech_index;
-	
-				play_client_server_cpg_message
-				(
-					aggressor,
-					0.4,
-					3.0,
-					SPEECH_CATEGORY_ATTACKING_TARGETS, 10.0,
-					speech_index
-				);
-			}
-			else
-			{
-				// PLAY_SPEECH (WINGMAN)
-				//
-				// (Target destroyed) | (Enemy armour destroyed) | (Good Kill) | etc
 
-				val = get_speech_random_value
-						(
-							vehicle_destroyed_wingman_comments,
-							num_vh_destroyed_wingman_comments [aggressor_side],
-							last_vh_destroyed_wingman_comment [aggressor_side]
-						);
 
-				array_type = vehicle_destroyed_wingman_comments [val].array_type;
-				speech_index = vehicle_destroyed_wingman_comments [val].speech_index;
-	
-				play_client_server_wingman_message
-				(
-					aggressor,
-					0.4,
-					3.0,
-					SPEECH_CATEGORY_ATTACKING_TARGETS, 10.0,
-					vehicle_destroyed_wingman_comments [val].introduction,
-					(speech_array_types) array_type, speech_index
-				);
-			}
-		}
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

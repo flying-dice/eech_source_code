@@ -80,24 +80,24 @@
 
 
 
-int guidance_type_can_use_point_lock(weapon_guidance_types type)
-{
-	switch (type)
-	{
-	case WEAPON_GUIDANCE_TYPE_NONE:
-	case WEAPON_GUIDANCE_TYPE_PASSIVE_INFRA_RED:					// fire and forget
-	case WEAPON_GUIDANCE_TYPE_SEMI_ACTIVE_RADAR:					// illumination source
-	case WEAPON_GUIDANCE_TYPE_ACTIVE_LASER:							// fire and forget
-	case WEAPON_GUIDANCE_TYPE_ACTIVE_RADAR:							// fire and forget
-	default:
-		return FALSE;
-	case WEAPON_GUIDANCE_TYPE_SEMI_ACTIVE_LASER:					// illumination source
-	case WEAPON_GUIDANCE_TYPE_SEMI_ACTIVE_LASER_BEAM_RIDING:   // illumination source
-	case WEAPON_GUIDANCE_TYPE_RADIO_COMMAND:							// control source
-	case WEAPON_GUIDANCE_TYPE_WIRE_GUIDED:   						// control source
-		return TRUE;
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -192,42 +192,42 @@ void load_local_entity_weapon_config (entity *en)
 
 
 
-static int get_viewpoint_from_weapon(weapon_config_types config_type,
-	weapon_package_status *package_status, int package,
-	object_3d_instance* inst3d, viewpoint *vp,
-	object_3d_sub_object_search_data* search_weapon_system_heading,
-	object_3d_sub_object_search_data* search_weapon_system_pitch)
-{
-	search_weapon_system_heading->search_depth = weapon_config_database[config_type][package].heading_depth;
-	search_weapon_system_heading->search_object = inst3d;
-	search_weapon_system_heading->sub_object_index = OBJECT_3D_SUB_OBJECT_WEAPON_SYSTEM_HEADING;
 
-	if (find_object_3d_sub_object (search_weapon_system_heading) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
-	{
-		search_weapon_system_pitch->search_depth = weapon_config_database[config_type][package].pitch_depth;
-		search_weapon_system_pitch->sub_object_index = OBJECT_3D_SUB_OBJECT_WEAPON_SYSTEM_PITCH;
 
-		if (find_object_3d_sub_object_from_sub_object (search_weapon_system_heading, search_weapon_system_pitch) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
-		{
-			//
-			// get viewpoint of unrotated heading and pitch devices
-			//
 
-			search_weapon_system_heading->result_sub_object->relative_heading = 0.0;
-			search_weapon_system_pitch->result_sub_object->relative_pitch = 0.0;
 
-			get_3d_sub_object_world_viewpoint (search_weapon_system_pitch, vp);
 
-			// reset heading and pitch
-			search_weapon_system_heading->result_sub_object->relative_heading = package_status->weapon_system_heading;
-			search_weapon_system_pitch->result_sub_object->relative_pitch = -package_status->weapon_system_pitch;
 
-			return TRUE;
-		}
-	}
 
-	return FALSE;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -284,141 +284,47 @@ int get_local_entity_weapon_available (entity *launcher, entity_sub_types weapon
 
 
 
-int get_next_pylon_to_launch(entity_sub_types weapon_type, weapon_config_types config_type, weapon_package_status* package_status, int* number)
-{
-	int package, best_package = 0;
 
-	*number = 0;
 
-	for (package = 0; package < NUM_WEAPON_PACKAGES; package++)
-	{
-		if (weapon_config_database[config_type][package].sub_type != ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
-		{
-			ASSERT (package_status[package].number <= weapon_config_database[config_type][package].number);
 
-			if (weapon_config_database[config_type][package].sub_type == weapon_type)
-			{
-				if (!package_status[package].damaged)
-				{
-					if (package_status[package].number > *number)
-					{
-						*number = package_status[package].number;
 
-						best_package = package;
-					}
-				}
-			}
-		}
-	}
 
-	return best_package;
-}
 
 
 
 
 
-void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_type, int burst_size, viewpoint *vp)
-{
-	weapon_package_status
-		*package_status;
 
-	weapon_config_types
-		config_type;
 
-	int
-		found,
-		found_package,
-		found_package_number;
 
-	object_3d_instance
-		*inst3d;
 
-	object_3d_sub_object_search_data
-		search_weapon_system_heading,
-		search_weapon_system_pitch,
-		search_weapon_system_weapon,
-		search_weapon_system_muzzle;
 
-	muzzle_flash_types
-		muzzle_flash_type;
 
-	float
-		terrain_elevation;
 
-	ASSERT (launcher);
 
-	ASSERT (entity_sub_type_weapon_valid (weapon_sub_type));
 
-	ASSERT (weapon_sub_type != ENTITY_SUB_TYPE_WEAPON_NO_WEAPON);
 
-	ASSERT (vp);
 
-	ASSERT (burst_size > 0);
 
-	//
-	// set viewpoint to launcher origin
-	//
 
-	get_local_entity_vec3d (launcher, VEC3D_TYPE_POSITION, &vp->position);
 
-	get_local_entity_attitude_matrix (launcher, vp->attitude);
 
-	found = FALSE;
 
-	package_status = (weapon_package_status *) get_local_entity_ptr_value (launcher, PTR_TYPE_WEAPON_PACKAGE_STATUS_ARRAY);
 
-	if (package_status)
-	{
-		config_type = (weapon_config_types) get_local_entity_int_value (launcher, INT_TYPE_WEAPON_CONFIG_TYPE);
 
-		ASSERT (weapon_config_type_valid (config_type));
 
-		//
-		// find undamaged package with most weapons remaining
-		//
 
-		found_package = get_next_pylon_to_launch(weapon_sub_type, config_type, package_status, &found_package_number);
 
-		//
-		// detach weapon
-		//
-		if (found_package_number > 0)
-		{
-			inst3d = (object_3d_instance *) get_local_entity_ptr_value (launcher, PTR_TYPE_INSTANCE_3D_OBJECT);
 
-			ASSERT (inst3d);
 
-			//
-			// ensure that the 3D instance viewpoint is up to date (the object may not have been drawn)
-			//
 
-			memcpy (&inst3d->vp.position, &vp->position, sizeof (vec3d));
-			memcpy (&inst3d->vp.attitude, &vp->attitude, sizeof (matrix3x3));
 
-			search_weapon_system_heading.search_depth = weapon_config_database[config_type][found_package].heading_depth;
-			search_weapon_system_heading.search_object = inst3d;
-			search_weapon_system_heading.sub_object_index = OBJECT_3D_SUB_OBJECT_WEAPON_SYSTEM_HEADING;
 
-			if (find_object_3d_sub_object (&search_weapon_system_heading) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
-			{
-				search_weapon_system_pitch.search_depth = weapon_config_database[config_type][found_package].pitch_depth;
-				search_weapon_system_pitch.sub_object_index = OBJECT_3D_SUB_OBJECT_WEAPON_SYSTEM_PITCH;
 
-				if (find_object_3d_sub_object_from_sub_object (&search_weapon_system_heading, &search_weapon_system_pitch) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
-				{
-					unsigned weapon_device = FALSE;
 
-					search_weapon_system_weapon.search_depth = weapon_config_database[config_type][found_package].number - package_status[found_package].number;
-					search_weapon_system_weapon.sub_object_index = OBJECT_3D_SUB_OBJECT_WEAPON_SYSTEM_WEAPON;
 
-					if (find_object_3d_sub_object_from_sub_object (&search_weapon_system_pitch, &search_weapon_system_weapon) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
-					{
-						search_weapon_system_weapon.result_sub_object->visible_object = FALSE;
 
-						get_3d_sub_object_world_viewpoint (&search_weapon_system_weapon, vp);
 
-						weapon_device = TRUE;
 
 
 
@@ -434,133 +340,31 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 
 
 
-					}
 
-					search_weapon_system_muzzle.search_depth = weapon_config_database[config_type][found_package].muzzle_depth;
-					search_weapon_system_muzzle.sub_object_index = OBJECT_3D_SUB_OBJECT_WEAPON_SYSTEM_MUZZLE;
 
-					if (find_object_3d_sub_object_from_sub_object (&search_weapon_system_pitch, &search_weapon_system_muzzle) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
-					{
-						if (!weapon_device)
-							get_3d_sub_object_viewpoint (&search_weapon_system_muzzle, vp, TRUE);
 
 
-						//
-						// ADD AN OFFSET TO THE ROCKET LAUNCH POSITION
-						//
-						// This has been added for the Comanche and Hokum cockpits
-						// as the stub wing weapons are clearly visible from the cockpit.
-						//
-						// Ideally any values would have been added to the weapon database.
-						//
-						// The rotational firing order will be constant multi-player but the
-						// z-offset is not. This could have been accomplished by passing the
-						// weapon entity pointer and using its index as the random number
-						// seed.
-						//
 
 
-//						if (get_local_entity_int_value (launcher, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-//						{
-//							if (get_comanche_hokum_gunship ())
-//							{
-								switch (weapon_sub_type)
-								{
-									case ENTITY_SUB_TYPE_WEAPON_HYDRA70_M255:
-									case ENTITY_SUB_TYPE_WEAPON_HYDRA70_M261:
-									case ENTITY_SUB_TYPE_WEAPON_S5:
-									case ENTITY_SUB_TYPE_WEAPON_S8:
-									case ENTITY_SUB_TYPE_WEAPON_S13:
-									case ENTITY_SUB_TYPE_WEAPON_AIM92A_STINGER:
-									case ENTITY_SUB_TYPE_WEAPON_FIM92A_STINGER:
-									case ENTITY_SUB_TYPE_WEAPON_9K34_STRELA_3:
-									{
-										matrix3x3
-											m1,
-											m2;
 
-										float
-											roll,
-											length,
-											dz;
 
-										roll = ((float) package_status[found_package].number * rad (360.0)) / (float) weapon_config_database[config_type][found_package].number;
 
-										get_3d_transformation_matrix (m1, 0.0, 0.0, roll);
 
-										multiply_matrix3x3_matrix3x3 (m2, m1, vp->attitude);
 
-										memcpy (vp->attitude, m2, sizeof (matrix3x3));
 
-										vp->x += vp->xv.x * 0.1;
-										vp->y += vp->xv.y * 0.1;
-										vp->z += vp->xv.z * 0.1;
 
-										switch (weapon_sub_type)
-										{
-											case ENTITY_SUB_TYPE_WEAPON_HYDRA70_M255:
-											case ENTITY_SUB_TYPE_WEAPON_HYDRA70_M261:
-											{
-												length = 1.44;	// weapon length
 
-												break;
-											}
-											case ENTITY_SUB_TYPE_WEAPON_S8:
-											case ENTITY_SUB_TYPE_WEAPON_S5:
-											{
-												length = 1.65;	// weapon length
 
-												break;
-											}
-											case ENTITY_SUB_TYPE_WEAPON_S13:
-											{
-												length = 3.03;	// weapon length
 
-												break;
-											}
-											case ENTITY_SUB_TYPE_WEAPON_AIM92A_STINGER:
-											case ENTITY_SUB_TYPE_WEAPON_FIM92A_STINGER:
-											case ENTITY_SUB_TYPE_WEAPON_9K34_STRELA_3:
-											{
-												length = 1.5;
 
-												break;
-											}
-										}
 
-										dz = (length * 0.6) + (frand1 () * length * 0.5);
 
-										vp->x += vp->zv.x * dz;
-										vp->y += vp->zv.y * dz;
-										vp->z += vp->zv.z * dz;
 
-										break;
-									}
-								}
-//							}
-//						}
 
-						//
-						// muzzle flash effect
-						//
 
-						if (weapon_config_database[config_type][found_package].muzzle_flash_type != MUZZLE_FLASH_INVALID)
-						{
-							//
-							// do not interrupt an on-going animation
-							//
 
-							if (package_status[found_package].muzzle_flash_timer == 0.0)
-							{
-								muzzle_flash_type = weapon_config_database[config_type][found_package].muzzle_flash_type;
 
-								//
-								// lock timer for one frame by making value negative (ensures first animation frame is drawn)
-								//
 
-								package_status[found_package].muzzle_flash_timer = -muzzle_flash_animation_database[muzzle_flash_type].muzzle_flash_duration;
-							}
-						}
 
 
 
@@ -576,11 +380,6 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 
 
 
-					}
-					else
-					{
-						if (!weapon_device)
-							get_3d_sub_object_viewpoint (&search_weapon_system_pitch, vp, TRUE);
 
 
 
@@ -595,42 +394,13 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 
 
 
-					}
 
-					found = TRUE;
-				}
-			}
 
-			//
-			// update number of weapons
-			//
 
-			if (burst_size <= package_status[found_package].number)
-			{
-				package_status[found_package].number -= burst_size;
-			}
-			else
-			{
-				package_status[found_package].number = 0;
-			}
-		}
-	}
 
-	//
-	// if the position is outside of the map volume then reset the viewpoint to the launcher origin
-	//
 
-	if (found)
-	{
-		if (!point_inside_map_volume (&vp->position))
-		{
-			//
-			// the launcher origin must be on the map (else the position would debug fatal)
-			//
 
-			get_local_entity_vec3d (launcher, VEC3D_TYPE_POSITION, &vp->position);
 
-			get_local_entity_attitude_matrix (launcher, vp->attitude);
 
 
 
@@ -643,10 +413,6 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 
 
 
-		}
-	}
-	else
-	{
 
 
 
@@ -658,19 +424,10 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 
 
 
-	}
 
-	//
-	// ensure that the weapon is above ground
-	//
 
-	ASSERT(point_inside_map_area(&vp->position));
 
-	terrain_elevation = get_3d_terrain_elevation (vp->position.x, vp->position.z);
 
-	if (vp->position.y < terrain_elevation)
-	{
-		vp->position.y = terrain_elevation + 1.0;
 
 
 
@@ -684,8 +441,251 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 
 
 
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -697,55 +697,20 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 //
 
 
-static void get_intercept_point (vec3d *pitch_device_position, float weapon_velocity, entity *target, vec3d *intercept_point)
-{
-	int
-		number_of_iterations;
 
-	float
-		target_true_velocity,
-		velocity_ratio,
-		target_move_distance;
 
-	vec3d
-		target_position,
-		target_motion_vector;
 
-	ASSERT (pitch_device_position);
 
-	ASSERT (target);
 
-	ASSERT (intercept_point);
 
-	get_local_entity_target_point (target, intercept_point);
 
-	target_true_velocity = get_local_entity_vec3d_magnitude (target, VEC3D_TYPE_MOTION_VECTOR);
 
-	if ((weapon_velocity > 0.001) && (target_true_velocity > 0.001))
-	{
-		if (target_true_velocity < weapon_velocity)
-		{
-			velocity_ratio = target_true_velocity / weapon_velocity;
 
-			target_position = *intercept_point;
 
-			get_local_entity_vec3d (target, VEC3D_TYPE_MOTION_VECTOR, &target_motion_vector);
 
-			normalise_3d_vector (&target_motion_vector);
 
-			number_of_iterations = 3;
 
-			while (number_of_iterations--)
-			{
-				target_move_distance = get_3d_range (pitch_device_position, intercept_point) * velocity_ratio;
 
-				intercept_point->x = target_position.x + (target_motion_vector.x * target_move_distance);
-				intercept_point->y = target_position.y + (target_motion_vector.y * target_move_distance);
-				intercept_point->z = target_position.z + (target_motion_vector.z * target_move_distance);
-			}
-		}
-	}
-}
 
 
 
@@ -915,1757 +880,1792 @@ static void get_intercept_point (vec3d *pitch_device_position, float weapon_velo
 
 
 
-unsigned get_number_of_pods_firing(entity* launcher, entity_sub_types weapon_type)
-{
-	weapon_package_status *package_status = (weapon_package_status *) get_local_entity_ptr_value (launcher, PTR_TYPE_WEAPON_PACKAGE_STATUS_ARRAY);
-	weapon_config_types config_type = (weapon_config_types) get_local_entity_int_value(launcher, INT_TYPE_WEAPON_CONFIG_TYPE);
-	int package, number = 0;
 
-	for (package = 0; package < NUM_WEAPON_PACKAGES; package++)
-	{
-		if (weapon_config_database[config_type][package].sub_type != ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
-		{
-			ASSERT(package_status[package].number <= weapon_config_database[config_type][package].number);
 
-			if (weapon_config_database[config_type][package].sub_type == weapon_type)
-				if (!package_status[package].damaged && package_status[package].number > 0)
-					number++;
-		}
-	}
 
-	return number;
-}
 
 
 
 
 
-int get_lead_and_ballistic_intercept_point_and_angle_of_projection
-(
-	vec3d *pitch_device_position,
-	entity_sub_types wpn_type,
-	float parent_velocity,
-	entity *source,
-	entity *target,
-	vec3d *intercept_point,
-	float *angle_of_projection,
-	float *time_of_flight
-)
-{
-	int
-		airborne_target,
-		triangulate_range,
-		result,
-		number_of_iterations;
 
-	float
-		range,
-		target_move_distance;
 
-	vec3d
-		current_target_position,
-		new_intercept_point,
-		target_motion_vector;
 
-	ASSERT (pitch_device_position);
 
-	ASSERT (target);
 
-	ASSERT (intercept_point);
 
-	ASSERT (angle_of_projection);
 
-	result = FALSE;
 
-	*angle_of_projection = 0.0;
 
-	get_local_entity_target_point (target, &current_target_position);
-	*intercept_point = current_target_position;
 
-	airborne_target = get_local_entity_int_value (target, INT_TYPE_AIRBORNE_AIRCRAFT);
 
-	triangulate_range = (source == get_gunship_entity() && get_range_finder() == RANGEFINDER_TRIANGULATION);
-	if (triangulate_range)
-	{
-		range = get_triangulated_by_position_range(pitch_device_position, intercept_point);
-		if (range == -1.0)
-			range = 1000.0;  // use 1000 meters if unable to triangulate range
 
 
 
-	}
-	else
-		range = get_3d_range (pitch_device_position, intercept_point);
 
-	if (range < 0.001)
-		return FALSE;
 
-	// target point differs to position so test inside map area before terrain elevation check
 
-	if (point_inside_map_area (intercept_point))
-	{
-		float target_true_velocity = 0.0;
 
-		if (target)
-			target_true_velocity = get_local_entity_vec3d_magnitude (target, VEC3D_TYPE_MOTION_VECTOR);
 
 
 
 
 
-		if (target_true_velocity > 0.1)
-		{
-			// moving target
 
-			get_local_entity_vec3d (target, VEC3D_TYPE_MOTION_VECTOR, &target_motion_vector);
-			normalise_3d_vector_given_magnitude (&target_motion_vector, target_true_velocity);
-			new_intercept_point = *intercept_point;
 
-			// refine ballistic calulation
-			if (source == get_gunship_entity() || target_true_velocity > 200)
-				number_of_iterations = 5;
-			else
-				number_of_iterations = 3;
 
-			if (!get_ballistic_pitch_deflection(wpn_type, range, pitch_device_position->y - intercept_point->y, angle_of_projection, time_of_flight, number_of_iterations > 1, FALSE, parent_velocity))
-				return FALSE;
 
-			while (number_of_iterations > 0)
-			{
-				target_move_distance = (*time_of_flight + 0.5 * comms_weapon_lag_timing[0]) * target_true_velocity / pow(number_of_iterations, 0.5); // include comms_weapon_lag_time to compensate client's delay
 
-				new_intercept_point.x = current_target_position.x + (target_motion_vector.x * target_move_distance);
-				new_intercept_point.y = current_target_position.y + (target_motion_vector.y * target_move_distance);
-				new_intercept_point.z = current_target_position.z + (target_motion_vector.z * target_move_distance);
 
-				*intercept_point = new_intercept_point;
 
 
 
-				if (!point_inside_map_area (&new_intercept_point))
-					break;
 
-				if (triangulate_range)
-				{
-					range = get_triangulated_by_position_range(pitch_device_position, intercept_point);
-					if (range == -1.0)
-						range = 1000.0;  // use 200 meters if unable to triangulate range
-				}
-				else
-					range = get_3d_range (pitch_device_position, intercept_point);
 
-				if (number_of_iterations == 1)
-					range += 5 * sfrand1();
 
-				if (!get_ballistic_pitch_deflection(wpn_type, range, pitch_device_position->y - intercept_point->y, angle_of_projection, time_of_flight, number_of_iterations > 1, FALSE, parent_velocity))
-					return FALSE;
 
-				number_of_iterations--;
-			}
 
 
 
-		}
-		else
-		{
-			// stationary target
 
-			if (get_ballistic_pitch_deflection(wpn_type, range, pitch_device_position->y - intercept_point->y, angle_of_projection, time_of_flight, FALSE, FALSE, parent_velocity))
-			{
 
 
 
-			}
-			else
-				return FALSE;
-		}
-	}
-	else
-	{
-		//
-		// target off map
-		//
 
-		return get_angle_of_projection (pitch_device_position, intercept_point, parent_velocity, angle_of_projection);
-	}
 
 
 
 
 
-	return TRUE;
-}
 
 
 
 
-static int get_pitch_device_to_target_vector
-(
-	entity *source,
-	entity *target,
-	entity_sub_types weapon_sub_type,
-	vec3d *pitch_device_position,
-	vec3d *target_vector,
-	vec3d *intercept_point_vector,
-	float *intercept_point_range
-)
-{
-	int
-		result;
 
-	float
-		weapon_velocity,
-		dx,
-		dz,
-		heading,
-		pitch,
-		time_of_flight;
 
-	vec3d
-		*target_position,
-		intercept_point_position;
 
-	matrix3x3
-		m;
 
-	ASSERT (source);
-	ASSERT (target);
-	ASSERT (entity_sub_type_weapon_valid (weapon_sub_type));
-	ASSERT (pitch_device_position);
-	ASSERT (target_vector);
-	ASSERT (intercept_point_vector);
-	ASSERT (intercept_point_range);
 
-	result = FALSE;
 
-	intercept_point_vector->x = 0.0;
-	intercept_point_vector->y = 0.0;
-	intercept_point_vector->z = -1.0;
 
-	*intercept_point_range = 0.0;
 
-	target_position = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
 
-	target_vector->x = target_position->x - pitch_device_position->x;
-	target_vector->y = target_position->y - pitch_device_position->y;
-	target_vector->z = target_position->z - pitch_device_position->z;
 
-	normalise_3d_vector(target_vector);
 
-	switch (weapon_database[weapon_sub_type].aiming_type)
-	{
 
-		case WEAPON_AIMING_TYPE_NONE:
 
-		{
-			debug_fatal ("WEAPON_AIMING_TYPE_NONE invalid");
 
-			break;
-		}
 
-		case WEAPON_AIMING_TYPE_CALC_INTERCEPT_POINT: // guided weapons
 
-		{
-			if (get_local_entity_int_value (target, INT_TYPE_IDENTIFY_MOBILE))
-			{
-				weapon_velocity = weapon_database[weapon_sub_type].cruise_velocity;
 
-				if (weapon_database[weapon_sub_type].acquire_parent_forward_velocity)
-				{
-					weapon_velocity += get_local_entity_float_value (source, FLOAT_TYPE_VELOCITY);
-				}
 
-				get_intercept_point (pitch_device_position, weapon_velocity, target, &intercept_point_position);
-			}
-			else
-			{
-				get_local_entity_target_point (target, &intercept_point_position);
-			}
 
-			intercept_point_vector->x = intercept_point_position.x - pitch_device_position->x;
-			intercept_point_vector->y = intercept_point_position.y - pitch_device_position->y;
-			intercept_point_vector->z = intercept_point_position.z - pitch_device_position->z;
 
-			*intercept_point_range = get_3d_range (&intercept_point_position, pitch_device_position);
 
-			normalise_3d_vector (intercept_point_vector);
 
-			result = TRUE;
 
-			break;
-		}
 
-		case WEAPON_AIMING_TYPE_CALC_ANGLE_OF_PROJECTION: // unguided weapons
-		case WEAPON_AIMING_TYPE_CALC_LEAD_AND_BALLISTIC:
 
-		{
-			result = get_lead_and_ballistic_intercept_point_and_angle_of_projection (pitch_device_position, weapon_sub_type, weapon_database[weapon_sub_type].acquire_parent_forward_velocity * get_local_entity_float_value (source, FLOAT_TYPE_VELOCITY), source, target, &intercept_point_position, &pitch, &time_of_flight);
 
-			if (result)
-			{
-				dx = intercept_point_position.x - pitch_device_position->x;
-				dz = intercept_point_position.z - pitch_device_position->z;
 
-				heading = atan2 (dx, dz);
 
-				get_3d_transformation_matrix (m, heading, pitch, 0.0);
 
-				intercept_point_vector->x = m[2][0];
-				intercept_point_vector->y = m[2][1];
-				intercept_point_vector->z = m[2][2];
 
-				*intercept_point_range = get_3d_range (&intercept_point_position, pitch_device_position);
 
-				normalise_3d_vector (intercept_point_vector);
 
-#if DEBUG_WEAPON_VECTOR
-				if(intercept_point_range)
-				{
-					vec3d weapon_vector;
-					int i;
 
-					for(i = 0; i < 2; i++)
-					{
-						if (i)
-							weapon_vector = *intercept_point_vector;
-						else
-							get_local_entity_vec3d (source, VEC3D_TYPE_WEAPON_VECTOR, &weapon_vector);
 
-						weapon_vector = get_global_position_from_unit_vector(pitch_device_position, &weapon_vector, *intercept_point_range);
 
-						create_debug_3d_line (pitch_device_position, &weapon_vector, i ? sys_col_blue : sys_col_red, 0.0);
-					}
 
-					create_debug_3d_line (pitch_device_position, &intercept_point_position, sys_col_yellow, 0.0);
 
-					create_rotated_debug_3d_object (&intercept_point_position, rad (0.0), rad (0.0), rad (0.0), OBJECT_3D_INTERCEPT_POINT_RED, 0.0, 0.25);
-				}
-#endif
-			}
 
-			break;
-		}
-	}
 
-	return (result);
-}
 
 
 
 
 
-void update_entity_weapon_systems (entity *source)
-{
-	entity
-		*target;
 
-	entity_sub_types
-		selected_weapon;
 
-	weapon_package_status
-		*package_status;
 
-	weapon_config_types
-		config_type;
 
-	object_3d_instance
-		*inst3d;
 
-	object_3d_sub_object_search_data
-		search_weapon_system_heading,
-		search_weapon_system_pitch;
 
-	viewpoint
-		vp;
 
-	int
-		package,
-		located_heading_and_pitch_devices,
-		selected_weapon_system_ready;
 
-	unsigned int
-		selected_weapon_mask;
 
-	float
-		required_heading_offset,
-		required_pitch_offset,
-		delta_heading_offset,
-		delta_pitch_offset,
-		heading_rate_delta_time,
-		pitch_rate_delta_time,
-		new_heading_offset,
-		new_pitch_offset,
-		flat_range;
 
-	ASSERT (source);
 
-	//
-	// assume that the selected weapon system is ready
-	//
 
-	selected_weapon_system_ready = TRUE;
 
-	set_local_entity_int_value (source, INT_TYPE_SELECTED_WEAPON_SYSTEM_READY, TRUE);
 
 
 
-	package_status = (weapon_package_status *) get_local_entity_ptr_value (source, PTR_TYPE_WEAPON_PACKAGE_STATUS_ARRAY);
 
-	if (package_status)
-	{
 
 
-		config_type = (weapon_config_types) get_local_entity_int_value (source, INT_TYPE_WEAPON_CONFIG_TYPE);
 
-		ASSERT (weapon_config_type_valid (config_type));
 
-		if (config_type != WEAPON_CONFIG_TYPE_UNARMED)
-		{
-			selected_weapon = get_local_entity_int_value (source, INT_TYPE_SELECTED_WEAPON);
 
-			ASSERT (entity_sub_type_weapon_valid (selected_weapon));
 
 
 
-			inst3d = (object_3d_instance *) get_local_entity_ptr_value (source, PTR_TYPE_INSTANCE_3D_OBJECT);
 
-			ASSERT (inst3d);
 
-			get_local_entity_vec3d (source, VEC3D_TYPE_POSITION, (vec3d *) &inst3d->vp.position);
 
-			get_local_entity_attitude_matrix (source, inst3d->vp.attitude);
 
 
 
-			target = get_local_entity_parent (source, LIST_TYPE_TARGET);
 
 
-			//
-			// Open and close weapon system ready devices.
-			//
-			// If the selected weapon system needs to be opened then all weapons with weapon
-			// system ready devices are opened.
-			//
-			// Some attempt is made to prevent the weapon aiming code wrestling with the weapon
-			// system ready code but where there are shared heading and pitch devices this is
-			// not always possible.
-			//
 
-			{
-				int
-					found_weapon_system_ready_device,
-					make_selected_weapon_system_ready,
-					weapon_system_heading_returned,
-					weapon_system_pitch_returned;
 
-				//
-				// are there any weapon system ready devices? are any of these the selected weapon?
-				//
 
-				found_weapon_system_ready_device = FALSE;
 
-				make_selected_weapon_system_ready = FALSE;
 
-				for (package = 0; package < NUM_WEAPON_PACKAGES; package++)
-				{
-					if (weapon_config_database[config_type][package].sub_type != ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
-					{
-						if (weapon_config_database[config_type][package].make_weapon_system_ready)
-						{
-							found_weapon_system_ready_device = TRUE;
 
-							if (weapon_config_database[config_type][package].sub_type == selected_weapon)
-							{
-								make_selected_weapon_system_ready = TRUE;
-							}
-						}
-					}
-				}
 
-				//
-				// open and close weapon system ready devices
-				//
 
-				if (found_weapon_system_ready_device)
-				{
-					if (make_selected_weapon_system_ready)
-					{
-						//
-						// open all weapon system ready devices and get a true indication of their ready state
-						//
 
-						open_entity_weapon_system_ready (source);
 
-						selected_weapon_system_ready = get_local_entity_int_value (source, INT_TYPE_WEAPON_SYSTEM_READY);
 
-						//Magitek - animation processing for clients outside of server vision
-						if(get_comms_model () == COMMS_MODEL_SERVER)//server only
-						{
-							if (get_local_entity_int_value (source, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI && get_local_entity_int_value (source, INT_TYPE_PLAYER) != ENTITY_PLAYER_LOCAL)//don't animate self
-							{
-								animate_aircraft_weapon_system_ready(source);
-							}
-						}
 
-					}
-					else
-					{
-						//
-						// before closing all weapon system ready devices, return heading and pitch devices to their rest position
-						//
 
-						weapon_system_heading_returned = TRUE;
 
-						weapon_system_pitch_returned = TRUE;
 
-						for (package = 0; package < NUM_WEAPON_PACKAGES; package++)
-						{
-							if (weapon_config_database[config_type][package].sub_type != ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
-							{
-								if (weapon_config_database[config_type][package].make_weapon_system_ready)
-								{
-									//
-									// ignore shared devices
-									//
 
-									if (!weapon_config_database[config_type][package].heading_share_mask)
-									{
-										if (package_status[package].weapon_system_heading != 0.0)
-										{
-											weapon_system_heading_returned = FALSE;
-										}
-									}
 
-									if (!weapon_config_database[config_type][package].pitch_share_mask)
-									{
-										if (package_status[package].weapon_system_pitch != 0.0)
-										{
-											weapon_system_pitch_returned = FALSE;
-										}
-									}
-								}
-							}
-						}
 
-						if (weapon_system_heading_returned && weapon_system_pitch_returned)
-						{
-							close_entity_weapon_system_ready (source);
-						}
-					}
-				}
-			}
 
 
-			//
-			// selected weapons take priority in shared heading and pitch devices
-			//
 
-			{
-				unsigned int
-					mask;
 
-				selected_weapon_mask = 0;
 
-				mask = 1;
 
-				for (package = 0; package < NUM_WEAPON_PACKAGES; package++)
-				{
-					if (weapon_config_database[config_type][package].sub_type != ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
-					{
-						if (weapon_config_database[config_type][package].sub_type == selected_weapon)
-						{
-							if (package_status[package].number > 0)
-							{
-								selected_weapon_mask |= mask;
-							}
-						}
 
-						mask <<= 1;
-					}
-				}
-			}
 
 
-			//
-			// rotate and animate weapon systems
-			//
 
 
-			for (package = 0; package < NUM_WEAPON_PACKAGES; package++)
-			{
-				if (weapon_config_database[config_type][package].sub_type != ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
-				{
 
-					//
-					// rotate heading and pitch
-					//
 
 
-					if (weapon_config_database[config_type][package].rotate)
-					{
-						located_heading_and_pitch_devices = FALSE;
 
-						required_heading_offset = 0.0;
 
-						required_pitch_offset = 0.0;
 
-						if (weapon_config_database[config_type][package].sub_type == selected_weapon)
-						{
-							if (selected_weapon_system_ready)
-							{
-								if (package_status[package].number > 0)
-								{
-									if (get_local_entity_float_value (source, FLOAT_TYPE_VELOCITY) < weapon_config_database[config_type][package].rotate_inhibit_velocity)
-									{
-										if (target)
-										{
-											located_heading_and_pitch_devices =
-												get_viewpoint_from_weapon(config_type, &package_status[package], package, inst3d, &vp, &search_weapon_system_heading, &search_weapon_system_pitch);
 
-											if (!located_heading_and_pitch_devices)
-											{
-												debug_colour_log (DEBUG_COLOUR_AMBER, "Cannot locate device to rotate (name = %s, package = %d)", get_local_entity_string (source, STRING_TYPE_FULL_NAME), package);
 
-												return;
-											}
 
-											//
-											// get pitch device to target vector
-											//
-											// (using the unrotated pitch device position is not pin-point accurate but is close enough)
-											//
 
-											if (get_local_entity_int_value (source, INT_TYPE_WEAPON_AND_TARGET_VECTORS_VALID))
-											{
-												vec3d offset_vector;
-												float min_pitch = weapon_config_database[config_type][package].min_pitch_limit;
 
-												//
-												// get heading and pitch offsets
-												//
 
-												multiply_transpose_matrix3x3_vec3d (&offset_vector, vp.attitude, get_local_entity_vec3d_ptr (source, VEC3D_TYPE_WEAPON_TO_INTERCEPT_POINT_VECTOR));
 
-												required_heading_offset = atan2 (offset_vector.x, offset_vector.z);
-												required_heading_offset = bound
-												(
-													required_heading_offset,
-													weapon_config_database[config_type][package].min_heading_limit,
-													weapon_config_database[config_type][package].max_heading_limit
-												);
 
-												flat_range = sqrt ((offset_vector.x * offset_vector.x) + (offset_vector.z * offset_vector.z));
 
-												required_pitch_offset = atan2 (offset_vector.y, flat_range);
 
-												// fire ground launched missiles with slight climb angle to avoid missile hitting ground as often
-												if (weapon_database[selected_weapon].guidance_type != WEAPON_GUIDANCE_TYPE_NONE
-													&& (source->type == ENTITY_TYPE_ANTI_AIRCRAFT || source->type == ENTITY_TYPE_ROUTED_VEHICLE))
-												{
-													min_pitch = max(rad(10.0f), min_pitch);
-												}
 
-												required_pitch_offset = bound
-												(
-													required_pitch_offset,
-													min_pitch,
-													weapon_config_database[config_type][package].max_pitch_limit
-												);
-											}
-										}
-									}
-								}
-							}
-							else
-							{
-								//
-								// weapon system ready device is not ready, hold the current position
-								//
 
-								required_heading_offset = package_status[package].weapon_system_heading;
 
-								required_pitch_offset = package_status[package].weapon_system_pitch;
 
-								set_local_entity_int_value (source, INT_TYPE_SELECTED_WEAPON_SYSTEM_READY, FALSE);
-							}
 
-							// 050320 Jabberwock - Cannon tracking - major restructuring for MP
 
-							if (get_local_entity_int_value (source, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-							{
-								if (get_local_entity_int_value (source, INT_TYPE_PLAYER) == ENTITY_PLAYER_LOCAL) // Jabberwock 050128 Bug removed!
-								{
-									int use_eo_sight_for_direction = is_using_eo_system(command_line_cannontrack != 2);
 
-									// Mi-24's nose gun which doesn't have as good aiming devices as other helicopters
-									if (weapon_config_database[config_type][package].sub_type == ENTITY_SUB_TYPE_WEAPON_YAK_B_12P7MM_ROUND)
-									{
-										target = NULL;
-										// in EO view fire along EO line of sight
-										use_eo_sight_for_direction = target_acquisition_system != TARGET_ACQUISITION_SYSTEM_HMS && view_mode == VIEW_MODE_VIRTUAL_COCKPIT_PERISCOPE;
 
-										  // in HMS mode gun follows head, simulates co-pilot aiming
-										if (target_acquisition_system == TARGET_ACQUISITION_SYSTEM_HMS)
-										{
-											required_heading_offset = -pilot_head_heading;
-											required_pitch_offset = pilot_head_pitch;
-										}
-										else  // fire straight ahead, where the pilot has a sight
-										{
-											required_heading_offset = 0.0;
-											required_pitch_offset = 0.0;
-										}
-									}
-									else
-										switch (command_line_cannontrack)
-										{
-											case 1:
-											{
-												if (target_acquisition_system == TARGET_ACQUISITION_SYSTEM_OFF)
-												{
-													required_heading_offset = -pilot_head_heading;
-													required_pitch_offset = pilot_head_pitch;
-												}
-												break;
-											}
 
-											case 2:
-											{
-												if ((target_acquisition_system == TARGET_ACQUISITION_SYSTEM_IHADSS) || (target_acquisition_system == TARGET_ACQUISITION_SYSTEM_HIDSS) || (target_acquisition_system == TARGET_ACQUISITION_SYSTEM_HMS))
-												{
-													required_heading_offset = -pilot_head_heading;
-													required_pitch_offset = pilot_head_pitch;
-												}
-												break;
-											}
-										}
 
-									// slave to EO system if it is active (and doesn't have a target)
-									if (!target && use_eo_sight_for_direction)
-									{
-										vec3d* tracking_point = get_eo_tracking_point();
 
-										ASSERT(source == get_gunship_entity());
 
-										required_heading_offset = eo_azimuth;
-										required_pitch_offset = eo_elevation;
 
-										// if using point lock, then aim for that point
-										if (tracking_point && weapon_database[selected_weapon].aiming_type == WEAPON_AIMING_TYPE_CALC_LEAD_AND_BALLISTIC)
-										{
-											float pitch, dummy;
-											float height_diff;
-											float range;
 
 
 
 
 
-											// if we don't already have it we need to get the viewpoint of the weapon
-											if (!located_heading_and_pitch_devices)
-											{
-												located_heading_and_pitch_devices =
-													get_viewpoint_from_weapon(config_type, &package_status[package], package, inst3d, &vp, &search_weapon_system_heading, &search_weapon_system_pitch);
 
-												if (!located_heading_and_pitch_devices)
-													debug_fatal("Cannot locate device to rotate (name = %s, package = %d)", get_local_entity_string (source, STRING_TYPE_FULL_NAME), package);
-											}
 
-											height_diff = vp.position.y - tracking_point->y;
-											range = get_range_to_target();
 
-											if (range <= 0.0)
-												range = 1000.0;   // use 1000 meters if unable to determine range
 
-											// adjust weapon elevation for range
-											if (get_ballistic_pitch_deflection(selected_weapon, range, height_diff, &pitch, &dummy, FALSE, FALSE, weapon_database [selected_weapon].acquire_parent_forward_velocity * get_local_entity_float_value (source, FLOAT_TYPE_VELOCITY)))
-											{
-												matrix3x3 m;
-												float dx, dz;
-												float heading;
-												vec3d offset_vector, tracking_vector;
 
-												// get heading and pitch offsets
 
-												dx = tracking_point->x - vp.position.x;
-												dz = tracking_point->z - vp.position.z;
 
-												heading = atan2 (dx, dz);
 
-												// need to adjust for the gun's attitude, as the helicopter may not fly level all the time
-												get_3d_transformation_matrix (m, heading, pitch, 0.0);
 
-												tracking_vector.x = m[2][0];
-												tracking_vector.y = m[2][1];
-												tracking_vector.z = m[2][2];
 
-												multiply_transpose_matrix3x3_vec3d (&offset_vector, vp.attitude, &tracking_vector);
 
-												required_heading_offset = atan2 (offset_vector.x, offset_vector.z);
 
-												flat_range = sqrt ((offset_vector.x * offset_vector.x) + (offset_vector.z * offset_vector.z));
-												required_pitch_offset = atan2 (offset_vector.y, flat_range);
-											}
-										}
-									}
 
-									set_client_server_entity_float_value (source, FLOAT_TYPE_PLAYER_WEAPON_HEADING, required_heading_offset);
-									set_client_server_entity_float_value (source, FLOAT_TYPE_PLAYER_WEAPON_PITCH, required_pitch_offset);
-								}
-								else
-								{
-									if ((get_comms_model () == COMMS_MODEL_SERVER) && (get_local_entity_float_value (source, FLOAT_TYPE_PLAYER_WEAPON_HEADING) || get_local_entity_float_value (source, FLOAT_TYPE_PLAYER_WEAPON_PITCH)))
-									{
-										required_heading_offset = get_local_entity_float_value (source, FLOAT_TYPE_PLAYER_WEAPON_HEADING);
 
-										required_pitch_offset = get_local_entity_float_value (source, FLOAT_TYPE_PLAYER_WEAPON_PITCH);
-									}
-								}
-								required_heading_offset = bound
-								(
-									required_heading_offset,
-									weapon_config_database[config_type][package].min_heading_limit,
-									weapon_config_database[config_type][package].max_heading_limit
-								);
 
-								required_pitch_offset = bound
-								(
-									required_pitch_offset,
-									weapon_config_database[config_type][package].min_pitch_limit,
-									weapon_config_database[config_type][package].max_pitch_limit
-								);
 
-							}
-						// 050320 Jabberwock ends
-						}
 
-							//set_local_entity_int_value (source, INT_TYPE_SELECTED_WEAPON_SYSTEM_READY, FALSE);
 
 
-						if ((required_heading_offset != package_status[package].weapon_system_heading) || (required_pitch_offset != package_status[package].weapon_system_pitch))
-						{
-							if (!located_heading_and_pitch_devices)
-							{
-								search_weapon_system_heading.search_depth = weapon_config_database[config_type][package].heading_depth;
-								search_weapon_system_heading.search_object = inst3d;
-								search_weapon_system_heading.sub_object_index = OBJECT_3D_SUB_OBJECT_WEAPON_SYSTEM_HEADING;
 
-								if (find_object_3d_sub_object (&search_weapon_system_heading) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
-								{
-									search_weapon_system_pitch.search_depth = weapon_config_database[config_type][package].pitch_depth;
-									search_weapon_system_pitch.sub_object_index = OBJECT_3D_SUB_OBJECT_WEAPON_SYSTEM_PITCH;
 
-									if (find_object_3d_sub_object_from_sub_object (&search_weapon_system_heading, &search_weapon_system_pitch) != SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
-									{
-	//									debug_colour_log (DEBUG_COLOUR_AMBER, "Cannot locate pitch device to rotate (name = %s, package = %d)", get_local_entity_string (source, STRING_TYPE_FULL_NAME), package);
 
-										return;
-									}
-								}
-								else
-								{
-	//								debug_colour_log (DEBUG_COLOUR_AMBER, "Cannot locate heading device to rotate (name = %s, package = %d)", get_local_entity_string (source, STRING_TYPE_FULL_NAME), package);
 
-									return;
-								}
-							}
 
-							delta_heading_offset = required_heading_offset - package_status[package].weapon_system_heading;
 
-							if
-							(
-								(weapon_config_database[config_type][package].min_heading_limit == (float) rad (-180.0)) &&
-								(weapon_config_database[config_type][package].max_heading_limit == (float) rad (180.0))
-							)
-							{
-								if (delta_heading_offset > rad (180.0))
-								{
-									delta_heading_offset -= rad (360.0);
-								}
-								else if (delta_heading_offset < rad (-180.0))
-								{
-									delta_heading_offset += rad (360.0);
-								}
-							}
 
-							heading_rate_delta_time = weapon_config_database[config_type][package].heading_rate * get_delta_time ();
 
-							delta_heading_offset = bound (delta_heading_offset, -heading_rate_delta_time, heading_rate_delta_time);
 
-							new_heading_offset = package_status[package].weapon_system_heading + delta_heading_offset;
 
-							if (new_heading_offset > rad (180.0))
-							{
-								new_heading_offset -= rad (360);
-							}
-							else if (new_heading_offset < rad (-180.0))
-							{
-								new_heading_offset += rad (360);
-							}
 
 
 
-							delta_pitch_offset = required_pitch_offset - package_status[package].weapon_system_pitch;
 
-							pitch_rate_delta_time = weapon_config_database[config_type][package].pitch_rate * get_delta_time ();
 
-							delta_pitch_offset = bound (delta_pitch_offset, -pitch_rate_delta_time, pitch_rate_delta_time);
 
-							new_pitch_offset = package_status[package].weapon_system_pitch + delta_pitch_offset;
 
 
-							//
-							// shared heading devices arbitrate for control
-							//
 
 
-							if (weapon_config_database[config_type][package].heading_share_mask)
-							{
-								unsigned int
-									heading_share_mask,
-									mask;
 
-								int
-									i,
-									control_package;
 
-								heading_share_mask = weapon_config_database[config_type][package].heading_share_mask;
 
-								//
-								// selected weapon packages take priority
-								//
 
-								mask = selected_weapon_mask & heading_share_mask;
 
-								if (!mask)
-								{
-									mask = heading_share_mask;
-								}
 
-								ASSERT (mask);
 
-								//
-								// first shared package encountered takes control of the heading device
-								//
 
-								control_package = 0;
 
-								for (i = 0; i < NUM_WEAPON_PACKAGES; i++)
-								{
-									if (mask & 1)
-									{
-										break;
-									}
 
-									control_package++;
 
-									mask >>= 1;
-								}
 
-								ASSERT (control_package < NUM_WEAPON_PACKAGES);
 
-								//
-								// set heading value in all shared devices
-								//
 
-								if (package == control_package)
-								{
-									mask = 1;
 
-									for (i = 0; i < NUM_WEAPON_PACKAGES; i++)
-									{
-										if (weapon_config_database[config_type][i].number == 0)
-										{
-											break;
-										}
 
-										if (mask & heading_share_mask)
-										{
-											package_status[i].weapon_system_heading = new_heading_offset;
-										}
 
-										mask <<= 1;
-									}
 
-									search_weapon_system_heading.result_sub_object->relative_heading = new_heading_offset;
-								}
-							}
-							else
-							{
-								package_status[package].weapon_system_heading = new_heading_offset;
 
-								search_weapon_system_heading.result_sub_object->relative_heading = new_heading_offset;
-							}
 
 
-							//
-							// shared pitch devices arbitrate for control
-							//
 
 
-							if (weapon_config_database[config_type][package].pitch_share_mask)
-							{
-								unsigned int
-									pitch_share_mask,
-									mask;
 
-								int
-									i,
-									control_package;
 
-								pitch_share_mask = weapon_config_database[config_type][package].pitch_share_mask;
 
-								//
-								// selected weapon packages take priority
-								//
 
-								mask = selected_weapon_mask & pitch_share_mask;
 
-								if (!mask)
-								{
-									mask = pitch_share_mask;
-								}
 
-								ASSERT (mask);
 
-								//
-								// first shared package encountered takes control of the pitch device
-								//
 
-								control_package = 0;
 
-								for (i = 0; i < NUM_WEAPON_PACKAGES; i++)
-								{
-									if (mask & 1)
-									{
-										break;
-									}
 
-									control_package++;
 
-									mask >>= 1;
-								}
 
-								ASSERT (control_package < NUM_WEAPON_PACKAGES);
 
-								//
-								// set pitch value in all shared devices
-								//
 
-								if (package == control_package)
-								{
-									mask = 1;
 
-									for (i = 0; i < NUM_WEAPON_PACKAGES; i++)
-									{
-										if (weapon_config_database[config_type][i].number == 0)
-										{
-											break;
-										}
 
-										if (mask & pitch_share_mask)
-										{
-											package_status[i].weapon_system_pitch = new_pitch_offset;
-										}
 
-										mask <<= 1;
-									}
 
-									search_weapon_system_pitch.result_sub_object->relative_pitch = -new_pitch_offset;
-								}
-							}
-							else
-							{
-								package_status[package].weapon_system_pitch = new_pitch_offset;
 
-								search_weapon_system_pitch.result_sub_object->relative_pitch = -new_pitch_offset;
-							}
-						}
-					}
-				}
 
 
-				//
-				// update animations
-				//
 
 
-				if (weapon_config_database[config_type][package].muzzle_flash_type != MUZZLE_FLASH_INVALID)
-				{
-					if (package_status[package].muzzle_flash_timer > 0.0)
-					{
-						package_status[package].muzzle_flash_timer -= get_delta_time ();
 
-						if (package_status[package].muzzle_flash_timer < 0.0)
-						{
-							package_status[package].muzzle_flash_timer = 0.0;
-						}
-					}
-					else if (package_status[package].muzzle_flash_timer < 0.0)
-					{
-						//
-						// unlock timer
-						//
 
-						package_status[package].muzzle_flash_timer = -package_status[package].muzzle_flash_timer;
-					}
-				}
-			}
-		}
-	}
-}
 
 
 
 
 
-void animate_and_draw_entity_muzzle_flash_effect (entity *en)
-{
-	weapon_package_status
-		*package_status;
 
-	weapon_config_types
-		config_type;
 
-	int
-		package,
-		num_frames,
-		current_frame;
 
-	float
-		duration,
-		elapsed_time,
-		muzzle_rotation_angle;
 
-	object_3d_instance
-		*entity_inst3d,
-		*effect_inst3d;
 
-	object_3d_sub_object_search_data
-		search_weapon_system_heading,
-		search_weapon_system_pitch,
-		search_weapon_system_muzzle;
 
-	muzzle_flash_types
-		muzzle_flash_type;
 
-	texture_animation_indices
-		texture_animation_index;
 
-	if (!get_local_entity_int_value (en, INT_TYPE_ALIVE))
-	{
-		return;
-	}
 
-	package_status = (weapon_package_status *) get_local_entity_ptr_value (en, PTR_TYPE_WEAPON_PACKAGE_STATUS_ARRAY);
 
-	if (package_status)
-	{
-		config_type = (weapon_config_types) get_local_entity_int_value (en, INT_TYPE_WEAPON_CONFIG_TYPE);
 
-		ASSERT (weapon_config_type_valid (config_type));
 
-		entity_inst3d = (object_3d_instance *) get_local_entity_ptr_value (en, PTR_TYPE_INSTANCE_3D_OBJECT);
 
-		ASSERT (entity_inst3d);
 
-		for (package = 0; package < NUM_WEAPON_PACKAGES; package++)
-		{
-			if (weapon_config_database[config_type][package].sub_type != ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
-			{
-				if (weapon_config_database[config_type][package].muzzle_flash_type != MUZZLE_FLASH_INVALID)
-				{
-					if (package_status[package].muzzle_flash_timer != 0.0)
-					{
-						//
-						// unlock timer
-						//
 
-						if (package_status[package].muzzle_flash_timer < 0.0)
-						{
-							package_status[package].muzzle_flash_timer = -package_status[package].muzzle_flash_timer;
-						}
 
-						search_weapon_system_heading.search_depth = weapon_config_database[config_type][package].heading_depth;
-						search_weapon_system_heading.search_object = entity_inst3d;
-						search_weapon_system_heading.sub_object_index = OBJECT_3D_SUB_OBJECT_WEAPON_SYSTEM_HEADING;
 
-						if (find_object_3d_sub_object (&search_weapon_system_heading) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
-						{
-							search_weapon_system_pitch.search_depth = weapon_config_database[config_type][package].pitch_depth;
-							search_weapon_system_pitch.sub_object_index = OBJECT_3D_SUB_OBJECT_WEAPON_SYSTEM_PITCH;
 
-							if (find_object_3d_sub_object_from_sub_object (&search_weapon_system_heading, &search_weapon_system_pitch) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
-							{
-								search_weapon_system_muzzle.search_depth = weapon_config_database[config_type][package].muzzle_depth;
-								search_weapon_system_muzzle.sub_object_index = OBJECT_3D_SUB_OBJECT_WEAPON_SYSTEM_MUZZLE;
 
-								if (find_object_3d_sub_object_from_sub_object (&search_weapon_system_pitch, &search_weapon_system_muzzle) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
-								{
-									muzzle_flash_type = weapon_config_database[config_type][package].muzzle_flash_type;
 
-									effect_inst3d = construct_temporary_3d_object (muzzle_flash_animation_database[muzzle_flash_type].object_3d_index_number, TRUE);
 
-									if (effect_inst3d)
-									{
-										//
-										// ensure that the 3D instance viewpoint is up to date (the object may not have been drawn)
-										//
 
-										get_local_entity_vec3d (en, VEC3D_TYPE_POSITION, (vec3d *) &entity_inst3d->vp.position);
 
-										get_local_entity_attitude_matrix (en, entity_inst3d->vp.attitude);
 
-										memcpy(&effect_inst3d->vp, &entity_inst3d->vp, sizeof(viewpoint));
 
-										//
-										// viewpoint
-										//
 
-										get_3d_sub_object_viewpoint (&search_weapon_system_muzzle, (viewpoint *) &effect_inst3d->vp, TRUE);
 
-										//
-										// timing info
-										//
 
-										duration = muzzle_flash_animation_database[muzzle_flash_type].muzzle_flash_duration;
 
-										elapsed_time = duration - package_status[package].muzzle_flash_timer;
 
-										ASSERT (elapsed_time >= 0.0);
 
-										//
-										// animate texture 1
-										//
 
-										texture_animation_index = muzzle_flash_animation_database[muzzle_flash_type].texture_animation_index1;
 
-										if (texture_animation_index != TEXTURE_ANIMATION_INDEX_LAST)
-										{
-											num_frames = get_texture_animation_number_of_frames (texture_animation_index);
 
-											current_frame = (int) ((elapsed_time * num_frames) / duration);
 
-											set_texture_animation_frame_on_object (effect_inst3d, texture_animation_index, current_frame);
-										}
 
-										//
-										// animate texture 2
-										//
 
-										texture_animation_index = muzzle_flash_animation_database[muzzle_flash_type].texture_animation_index2;
 
-										if (texture_animation_index != TEXTURE_ANIMATION_INDEX_LAST)
-										{
-											num_frames = get_texture_animation_number_of_frames (texture_animation_index);
 
-											current_frame = (int) ((elapsed_time * num_frames) / duration);
 
-											set_texture_animation_frame_on_object (effect_inst3d, texture_animation_index, current_frame);
-										}
 
-										//
-										// draw
-										//
 
-#ifndef OGRE_EE
-										effect_inst3d->object_has_shadow = FALSE;
-#endif
-										effect_inst3d->relative_scale = *(vec3d *) &search_weapon_system_muzzle.result_sub_object->relative_scale;
 
-#ifndef OGRE_EE
-										insert_object_into_3d_scene (OBJECT_3D_DRAW_TYPE_OBJECT, effect_inst3d);
-#else
-										object_3d_draw (effect_inst3d);
-#endif
 
-										//
-										// rotate muzzle
-										//
 
-										muzzle_rotation_angle = weapon_config_database[config_type][package].muzzle_rotate_rate;
 
-										if (muzzle_rotation_angle != 0.0)
-										{
-											muzzle_rotation_angle *= get_delta_time ();
 
-											muzzle_rotation_angle += search_weapon_system_muzzle.result_sub_object->relative_roll;
 
-											muzzle_rotation_angle = wrap_angle (muzzle_rotation_angle);
 
-											search_weapon_system_muzzle.result_sub_object->relative_roll = muzzle_rotation_angle;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-}
 
 
 
 
 
-void update_entity_weapon_system_weapon_and_target_vectors (entity *launcher)
-{
-	weapon_package_status
-		*package_status;
 
-	entity_sub_types
-		weapon_sub_type;
 
-	weapon_config_types
-		config_type;
 
-	int
-		package,
-		found_package,
-		found_package_number;
 
-	object_3d_instance
-		*inst3d;
 
-	object_3d_sub_object_search_data
-		search_weapon_system_heading,
-		search_weapon_system_pitch;
 
-	viewpoint
-		vp;
 
-	vec3d
-		*weapon_vector_ptr,
-		*weapon_to_target_vector_ptr,
-		*weapon_to_intercept_point_vector_ptr;
 
-	float weapon_to_intercept_point_range;
 
-	entity
-		*target;
 
-	ASSERT (launcher);
-	ASSERT(launcher->type != ENTITY_TYPE_WEAPON);
 
-	weapon_vector_ptr = get_local_entity_vec3d_ptr (launcher, VEC3D_TYPE_WEAPON_VECTOR);
 
-	ASSERT (weapon_vector_ptr);
 
-	weapon_to_target_vector_ptr = get_local_entity_vec3d_ptr (launcher, VEC3D_TYPE_WEAPON_TO_TARGET_VECTOR);
 
-	ASSERT (weapon_to_target_vector_ptr);
 
-	weapon_to_intercept_point_vector_ptr = get_local_entity_vec3d_ptr (launcher, VEC3D_TYPE_WEAPON_TO_INTERCEPT_POINT_VECTOR);
 
-	ASSERT (weapon_to_intercept_point_vector_ptr);
 
-	//
-	// set default values (force 180 degree error)
-	//
 
-	set_local_entity_int_value (launcher, INT_TYPE_WEAPON_AND_TARGET_VECTORS_VALID, FALSE);
 
-	weapon_vector_ptr->x = 0.0;
-	weapon_vector_ptr->y = 0.0;
-	weapon_vector_ptr->z = 1.0;
 
-	weapon_to_target_vector_ptr->x = 0.0;
-	weapon_to_target_vector_ptr->y = 0.0;
-	weapon_to_target_vector_ptr->z = -1.0;
 
-	weapon_to_intercept_point_vector_ptr->x = 0.0;
-	weapon_to_intercept_point_vector_ptr->y = 0.0;
-	weapon_to_intercept_point_vector_ptr->z = -1.0;
 
-	weapon_to_intercept_point_range = 0.0;
 
-	package_status = (weapon_package_status *) get_local_entity_ptr_value (launcher, PTR_TYPE_WEAPON_PACKAGE_STATUS_ARRAY);
 
-	if (package_status)
-	{
-		weapon_sub_type = get_local_entity_int_value (launcher, INT_TYPE_SELECTED_WEAPON);
 
-		if (weapon_sub_type != ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
-		{
-			target = get_local_entity_parent (launcher, LIST_TYPE_TARGET);
 
-			if (target || get_local_entity_int_value(launcher, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-			{
-				config_type = (weapon_config_types) get_local_entity_int_value (launcher, INT_TYPE_WEAPON_CONFIG_TYPE);
 
-				//
-				// find undamaged package with most weapons remaining
-				//
 
-				found_package_number = 0;
 
-				for (package = 0; package < NUM_WEAPON_PACKAGES; package++)
-				{
-					if (weapon_config_database[config_type][package].sub_type != ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
-					{
-						if (weapon_config_database[config_type][package].sub_type == weapon_sub_type)
-						{
-							if (!package_status[package].damaged)
-							{
-								if (package_status[package].number > found_package_number)
-								{
-									found_package = package;
 
-									found_package_number = package_status[package].number;
-								}
-							}
-						}
-					}
-				}
 
-				if (found_package_number > 0)
-				{
-					inst3d = (object_3d_instance *) get_local_entity_ptr_value (launcher, PTR_TYPE_INSTANCE_3D_OBJECT);
 
-					ASSERT (inst3d);
 
-					//
-					// ensure that the 3D instance viewpoint is up to date (the object may not have been drawn)
-					//
 
-					get_local_entity_vec3d (launcher, VEC3D_TYPE_POSITION, (vec3d *) &inst3d->vp.position);
 
-					get_local_entity_attitude_matrix (launcher, inst3d->vp.attitude);
 
-					search_weapon_system_heading.search_depth = weapon_config_database[config_type][found_package].heading_depth;
-					search_weapon_system_heading.search_object = inst3d;
-					search_weapon_system_heading.sub_object_index = OBJECT_3D_SUB_OBJECT_WEAPON_SYSTEM_HEADING;
 
-					if (find_object_3d_sub_object (&search_weapon_system_heading) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
-					{
-						search_weapon_system_pitch.search_depth = weapon_config_database[config_type][found_package].pitch_depth;
-						search_weapon_system_pitch.sub_object_index = OBJECT_3D_SUB_OBJECT_WEAPON_SYSTEM_PITCH;
 
-						if (find_object_3d_sub_object_from_sub_object (&search_weapon_system_heading, &search_weapon_system_pitch) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
-						{
-							vec3d* tracking_point = NULL;
-							int tracking_point_valid = FALSE;
 
-							get_3d_sub_object_world_viewpoint (&search_weapon_system_pitch, &vp);
-							*weapon_vector_ptr = vp.zv;
 
-							if (get_local_entity_int_value(launcher, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-								tracking_point = get_local_entity_vec3d_ptr(launcher, VEC3D_TYPE_EO_TRACKING_POINT);
 
-							if (tracking_point)  // use get vector to EO tracking point, if any
-							{
-								ASSERT(get_local_entity_int_value(launcher, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI);  // only player aircraft have tracking point
 
-								if (eo_tracking_point_valid(tracking_point))
-								{
-									weapon_to_intercept_point_vector_ptr->x = tracking_point->x - vp.position.x;
-									weapon_to_intercept_point_vector_ptr->y = tracking_point->y - vp.position.y;
-									weapon_to_intercept_point_vector_ptr->z = tracking_point->z - vp.position.z;
 
-									tracking_point_valid = TRUE;
-									set_local_entity_int_value (launcher, INT_TYPE_WEAPON_AND_TARGET_VECTORS_VALID, TRUE);
-									weapon_to_intercept_point_range = get_3d_range(&vp.position, weapon_to_intercept_point_vector_ptr);
-									normalise_3d_vector (weapon_to_intercept_point_vector_ptr);
-								}
-							}
 
-							if (target && !tracking_point_valid)
-								set_local_entity_int_value (launcher, INT_TYPE_WEAPON_AND_TARGET_VECTORS_VALID, get_pitch_device_to_target_vector (launcher, target, weapon_sub_type, &vp.position, weapon_to_target_vector_ptr, weapon_to_intercept_point_vector_ptr, &weapon_to_intercept_point_range));
 
-							set_local_entity_float_value (launcher, FLOAT_TYPE_WEAPON_TO_INTERCEPT_POINT_RANGE, weapon_to_intercept_point_range);
-						}
-					}
-				}
-			}
-		}
-	}
-}
 
 
 
 
 
-int get_local_entity_selected_weapon_to_target_offsets (entity *launcher, float *heading_offset, float *pitch_offset)
-{
-	weapon_package_status
-		*package_status;
 
-	entity_sub_types
-		weapon_sub_type;
 
-	weapon_config_types
-		config_type;
 
-	int
-		result,
-		package,
-		found_package,
-		found_package_number;
 
-	float
-		flat_range,
-		weapon_to_intercept_point_range;
 
-	object_3d_instance
-		*inst3d;
 
-	object_3d_sub_object_search_data
-		search_weapon_system_heading,
-		search_weapon_system_pitch;
 
-	viewpoint
-		vp;
 
-	vec3d
-		weapon_to_target_vector,
-		weapon_to_intercept_point_vector,
-		offset_vector;
 
-	entity
-		*target;
 
-	ASSERT (launcher);
 
-	ASSERT (heading_offset);
 
-	ASSERT (pitch_offset);
 
-	result = FALSE;
 
-	package_status = (weapon_package_status *) get_local_entity_ptr_value (launcher, PTR_TYPE_WEAPON_PACKAGE_STATUS_ARRAY);
 
-	if (package_status)
-	{
-		weapon_sub_type = get_local_entity_int_value (launcher, INT_TYPE_SELECTED_WEAPON);
 
-		if (weapon_sub_type != ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
-		{
-			target = get_local_entity_parent (launcher, LIST_TYPE_TARGET);
 
-			if (target)
-			{
-				config_type = (weapon_config_types) get_local_entity_int_value (launcher, INT_TYPE_WEAPON_CONFIG_TYPE);
 
-				//
-				// find undamaged package with most weapons remaining
-				//
 
-				found_package_number = 0;
 
-				for (package = 0; package < NUM_WEAPON_PACKAGES; package++)
-				{
-					if (weapon_config_database[config_type][package].sub_type != ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
-					{
-						if (weapon_config_database[config_type][package].sub_type == weapon_sub_type)
-						{
-							if (!package_status[package].damaged)
-							{
-								if (package_status[package].number > found_package_number)
-								{
-									found_package = package;
 
-									found_package_number = package_status[package].number;
-								}
-							}
-						}
-					}
-				}
 
-				if (found_package_number > 0)
-				{
-					inst3d = (object_3d_instance *) get_local_entity_ptr_value (launcher, PTR_TYPE_INSTANCE_3D_OBJECT);
 
-					ASSERT (inst3d);
 
-					//
-					// ensure that the 3D instance viewpoint is up to date (the object may not have been drawn)
-					//
 
-					get_local_entity_vec3d (launcher, VEC3D_TYPE_POSITION, (vec3d *) &inst3d->vp.position);
 
-					get_local_entity_attitude_matrix (launcher, inst3d->vp.attitude);
 
-					search_weapon_system_heading.search_depth = weapon_config_database[config_type][found_package].heading_depth;
-					search_weapon_system_heading.search_object = inst3d;
-					search_weapon_system_heading.sub_object_index = OBJECT_3D_SUB_OBJECT_WEAPON_SYSTEM_HEADING;
 
-					if (find_object_3d_sub_object (&search_weapon_system_heading) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
-					{
-						search_weapon_system_pitch.search_depth = weapon_config_database[config_type][found_package].pitch_depth;
-						search_weapon_system_pitch.sub_object_index = OBJECT_3D_SUB_OBJECT_WEAPON_SYSTEM_PITCH;
 
-						if (find_object_3d_sub_object_from_sub_object (&search_weapon_system_heading, &search_weapon_system_pitch) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
-						{
-							get_3d_sub_object_world_viewpoint (&search_weapon_system_pitch, &vp);
 
-							if (get_pitch_device_to_target_vector (launcher, target, weapon_sub_type, &vp.position, &weapon_to_target_vector, &weapon_to_intercept_point_vector, &weapon_to_intercept_point_range))
-							{
-								multiply_transpose_matrix3x3_vec3d (&offset_vector, vp.attitude, &weapon_to_intercept_point_vector);
 
-								*heading_offset = atan2 (offset_vector.x, offset_vector.z);
 
-								flat_range = sqrt ((offset_vector.x * offset_vector.x) + (offset_vector.z * offset_vector.z));
 
-								*pitch_offset = atan2 (offset_vector.y, flat_range);
 
-								result = TRUE;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
 
-	return (result);
-}
 
 
 
 
 
-int get_local_entity_selected_weapon_viewpoint (entity *launcher, viewpoint *vp)
-{
-	weapon_package_status
-		*package_status;
 
-	entity_sub_types
-		weapon_sub_type;
 
-	weapon_config_types
-		config_type;
 
-	int
-		result,
-		package,
-		found_package,
-		found_package_number;
 
-	object_3d_instance
-		*inst3d;
 
-	object_3d_sub_object_search_data
-		search_weapon_system_heading,
-		search_weapon_system_pitch;
 
-	ASSERT (launcher);
 
-	ASSERT (vp);
 
-	result = FALSE;
 
-	package_status = (weapon_package_status *) get_local_entity_ptr_value (launcher, PTR_TYPE_WEAPON_PACKAGE_STATUS_ARRAY);
 
-	if (package_status)
-	{
-		weapon_sub_type = get_local_entity_int_value (launcher, INT_TYPE_SELECTED_WEAPON);
 
-		if (weapon_sub_type != ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
-		{
-			config_type = (weapon_config_types) get_local_entity_int_value (launcher, INT_TYPE_WEAPON_CONFIG_TYPE);
 
-			//
-			// find undamaged package with most weapons remaining
-			//
 
-			found_package_number = 0;
 
-			for (package = 0; package < NUM_WEAPON_PACKAGES; package++)
-			{
-				if (weapon_config_database[config_type][package].sub_type != ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
-				{
-					if (weapon_config_database[config_type][package].sub_type == weapon_sub_type)
-					{
-						if (!package_status[package].damaged)
-						{
-							if (package_status[package].number > found_package_number)
-							{
-								found_package = package;
 
-								found_package_number = package_status[package].number;
-							}
-						}
-					}
-				}
-			}
 
-			if (found_package_number > 0)
-			{
-				inst3d = (object_3d_instance *) get_local_entity_ptr_value (launcher, PTR_TYPE_INSTANCE_3D_OBJECT);
 
-				ASSERT (inst3d);
 
-				//
-				// ensure that the 3D instance viewpoint is up to date (the object may not have been drawn)
-				//
 
-				get_local_entity_vec3d (launcher, VEC3D_TYPE_POSITION, (vec3d *) &inst3d->vp.position);
 
-				get_local_entity_attitude_matrix (launcher, inst3d->vp.attitude);
 
-				search_weapon_system_heading.search_depth = weapon_config_database[config_type][found_package].heading_depth;
-				search_weapon_system_heading.search_object = inst3d;
-				search_weapon_system_heading.sub_object_index = OBJECT_3D_SUB_OBJECT_WEAPON_SYSTEM_HEADING;
 
-				if (find_object_3d_sub_object (&search_weapon_system_heading) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
-				{
-					search_weapon_system_pitch.search_depth = weapon_config_database[config_type][found_package].pitch_depth;
-					search_weapon_system_pitch.sub_object_index = OBJECT_3D_SUB_OBJECT_WEAPON_SYSTEM_PITCH;
 
-					if (find_object_3d_sub_object_from_sub_object (&search_weapon_system_heading, &search_weapon_system_pitch) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
-					{
-						get_3d_sub_object_viewpoint (&search_weapon_system_pitch, vp, FALSE);
 
-						result = TRUE;
-					}
-				}
-			}
-		}
-	}
 
-	return (result);
-}
 
 
 
 
 
-void get_target_intercept_point (entity *source, entity *target, entity_sub_types weapon_sub_type, vec3d *intercept_point)
-{
-	float
-		weapon_velocity;
 
-	vec3d
-		*source_position;
 
-	ASSERT (source);
 
-	ASSERT (target);
 
-	ASSERT (entity_sub_type_weapon_valid (weapon_sub_type));
 
-	ASSERT (intercept_point);
 
-	source_position = get_local_entity_vec3d_ptr (source, VEC3D_TYPE_POSITION);
 
-	if (weapon_sub_type != ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
-	{
-		weapon_velocity = weapon_database[weapon_sub_type].cruise_velocity;
 
-		if (weapon_database[weapon_sub_type].acquire_parent_forward_velocity)
-		{
-			weapon_velocity += get_local_entity_float_value (source, FLOAT_TYPE_VELOCITY);
-		}
-	}
-	else
-	{
-		weapon_velocity = 0.0;
-	}
 
-	get_intercept_point (source_position, weapon_velocity, target, intercept_point);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3083,125 +3083,125 @@ void suppress_ineffective_ship_weapons (entity *source, entity *target)
 
 
 
-void create_weapon_launched_sound_effects (entity *launcher, entity_sub_types weapon_sub_type)
-{
-	int
-		looping;
 
-	entity_sub_types
-		sound_effect_sub_type;
 
-	sound_sample_indices
-		launch_sound_effect;
 
-	vec3d
-		*position;
 
-	position = get_local_entity_vec3d_ptr (launcher, VEC3D_TYPE_POSITION);
 
-	//
-	// launch sounds
-	//
 
-	if (resume_client_server_continuous_weapon_sound_effect (launcher, weapon_sub_type))
-	{
-	}
-	else
-	{
-		sound_effect_sub_type = weapon_database[weapon_sub_type].launch_sound_effect_sub_type;
 
-		if (sound_effect_sub_type == ENTITY_SUB_TYPE_EFFECT_SOUND_MISC)
-		{
-			looping = FALSE;
-		}
-		else
-		{
-			looping = TRUE;
-		}
 
-		if (get_local_entity_int_value (launcher, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-		{
-			//
-			// interior sound
-			//
 
-			launch_sound_effect = weapon_database[weapon_sub_type].interior_launch_sound_effect;
 
-			if (launch_sound_effect != SOUND_SAMPLE_INDEX_NONE)
-			{
-				create_client_server_sound_effect_entity
-				(
-					launcher,
-					ENTITY_SIDE_NEUTRAL,
-					sound_effect_sub_type,
-					SOUND_CHANNEL_SOUND_EFFECT,
-					SOUND_LOCALITY_INTERIOR,
-					NULL,												// position
-					1.0,												// amplification
-					1.0,												// Werewolf pitch
-					TRUE,												// valid sound effect
-					looping,											// looping
-					1,													// sample count
-					&launch_sound_effect							// sample index list
-				);
-			}
 
-			//
-			// exterior sound
-			//
 
-			launch_sound_effect = weapon_database[weapon_sub_type].exterior_launch_sound_effect;
 
-			if (launch_sound_effect != SOUND_SAMPLE_INDEX_NONE)
-			{
-				create_client_server_sound_effect_entity
-				(
-					launcher,
-					ENTITY_SIDE_NEUTRAL,
-					sound_effect_sub_type,
-					SOUND_CHANNEL_SOUND_EFFECT,
-					SOUND_LOCALITY_EXTERIOR,
-					NULL,												// position
-					1.0,												// amplification
-					1.0,												// Werewolf pitch
-					TRUE,												// valid sound effect
-					looping,											// looping
-					1,													// sample count
-					&launch_sound_effect							// sample index list
-				);
-			}
-		}
-		else
-		{
-			//
-			// normal sound
-			//
 
-			launch_sound_effect = weapon_database[weapon_sub_type].exterior_launch_sound_effect;
 
-			if (launch_sound_effect != SOUND_SAMPLE_INDEX_NONE)
-			{
-				position = get_local_entity_vec3d_ptr (launcher, VEC3D_TYPE_POSITION);
 
-				create_client_server_sound_effect_entity
-				(
-					launcher,
-					ENTITY_SIDE_NEUTRAL,
-					sound_effect_sub_type,
-					SOUND_CHANNEL_SOUND_EFFECT,
-					SOUND_LOCALITY_ALL,
-					NULL,												// position
-					1.0,												// amplification
-					1.0,												// Werewolf pitch
-					TRUE,												// valid sound effect
-					looping,											// looping
-					1,													// sample count
-					&launch_sound_effect							// sample index list
-				);
-			}
-		}
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

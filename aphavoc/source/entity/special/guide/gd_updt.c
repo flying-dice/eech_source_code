@@ -113,17 +113,17 @@ static void update_server (entity *en)
 
 
 
-static void update_client (entity *en)
-{
-	if (!get_local_entity_first_child (en, LIST_TYPE_FOLLOWER))
-	{
-		//
-		// only update the guide if something is following it (may change)
-		//
-		
-		return;
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -644,32 +644,32 @@ entity *create_client_server_entity_helicopter (int index, entity_sub_types sub_
 
 
 
-void create_helicopter_cockpit_sound_effect (entity *en, entity_sub_types sub_type, sound_sample_indices sound_index)
-{
-	int
-		index;
 
-	index = sound_index;
 
-	if (index != SOUND_SAMPLE_INDEX_NONE)
-	{
-		create_client_server_sound_effect_entity
-		(
-			en,
-			(entity_sides) get_local_entity_int_value (en, INT_TYPE_SIDE),
-			sub_type,
-			SOUND_CHANNEL_SOUND_EFFECT,
-			SOUND_LOCALITY_INTERIOR,
-			NULL,												// position
-			1.0,												// amplification
-			1.0,												// Werewolf pitch
-			FALSE,											// valid sound effect
-			TRUE,												// looping
-			1,													// sample count
-			&index											// sample index list
-		);
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

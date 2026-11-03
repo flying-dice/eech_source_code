@@ -241,55 +241,6 @@ static void update_server (entity *en)
 
 
 
-static void update_client (entity *en)
-{
-	routed_vehicle
-		*raw;
-
-	int
-		loop;
-
-	raw = (routed_vehicle *) get_local_entity_data (en);
-
-	raw->vh.sleep -= get_delta_time ();
-
-	raw->vh.sleep = max (raw->vh.sleep, 0.0f);
-
-
-
-	if (raw->vh.mob.alive && !vehicle_critically_damaged(en))
-	{
-
-
-
-		for (loop = 0; loop < get_entity_movement_iterations (); loop ++)
-		{
-
-			routed_vehicle_movement (en);
-		}
-
-
-
-
-
-
-
-
-		//
-		// ORDER IS CRITICAL
-		//
-
-		update_vehicle_weapon_system_ready (en);
-
-		update_entity_weapon_systems (en);
-
-		update_entity_weapon_system_weapon_and_target_vectors (en);
-
-		rearm_vehicle_weapons(en);
-		
-		//
-
-		
 
 
 
@@ -299,26 +250,75 @@ static void update_client (entity *en)
 
 
 
-	}
-	else
-	{
-		if (get_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE) == OPERATIONAL_STATE_DEAD)
-		{
-			raw->vh.death_timer += get_delta_time ();
-		}
-		else
-		{
-			for (loop = 0; loop < get_entity_movement_iterations (); loop ++)
-			{
-				ASSERT(point_inside_map_area(&raw->vh.mob.position));
 
-				get_3d_terrain_point_data (raw->vh.mob.position.x, raw->vh.mob.position.z, &raw->vh.terrain_info);
 
-				routed_vehicle_death_movement (en);
-			}
-		}
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

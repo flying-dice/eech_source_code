@@ -6385,172 +6385,172 @@ weapon_data
 
 
 
-void validate_weapon_database (void)
-{
-	entity_sub_types
-		sub_type;
 
-	debug_log ("NUM_WEAPON_CONFIG_TYPES = %d", NUM_WEAPON_CONFIG_TYPES);
 
-	for (sub_type = ENTITY_SUB_TYPE_WEAPON_NO_WEAPON + 1; sub_type < NUM_ENTITY_SUB_TYPE_WEAPONS; sub_type++)
-	{
-		debug_assert (weapon_database[sub_type].full_name);
 
-		debug_log("weapon: %s", weapon_database[sub_type].full_name);
 
-		debug_assert (weapon_database[sub_type].hud_name);
 
-		debug_assert (weapon_database[sub_type].mfd_name);
 
-		debug_assert (weapon_database[sub_type].abbrev);
 
-		debug_assert (weapon_database[sub_type].weapon_loading_list_name);
 
-		debug_assert (weapon_database[sub_type].weapon_loading_name_text);
 
-		debug_assert (weapon_database[sub_type].default_3d_shape < OBJECT_3D_LAST);
 
-		debug_assert (weapon_database[sub_type].guidance_type >= 0);
 
-		debug_assert (weapon_database[sub_type].guidance_type < NUM_WEAPON_GUIDANCE_TYPES);
 
-		debug_assert (weapon_database[sub_type].aiming_type >= 0);
 
-		debug_assert (weapon_database[sub_type].aiming_type < NUM_WEAPON_AIMING_TYPES);
 
-		debug_assert (weapon_database[sub_type].decoy_type >= 0);
 
-		debug_assert (weapon_database[sub_type].decoy_type < NUM_WEAPON_DECOY_TYPES);
 
-		debug_assert (weapon_database[sub_type].warhead_type >= 0);
 
-		debug_assert (weapon_database[sub_type].warhead_type < NUM_WEAPON_WARHEAD_TYPES);
 
-		debug_assert (weapon_database[sub_type].threat_type >= 0);
 
-		debug_assert (weapon_database[sub_type].threat_type < NUM_THREAT_TYPES);
 
-		debug_assert (weapon_database[sub_type].interior_launch_sound_effect >= 0);
 
-		debug_assert (weapon_database[sub_type].exterior_launch_sound_effect >= 0);
 
-		debug_assert ((weapon_database[sub_type].gun_shake == FALSE) || (weapon_database[sub_type].gun_shake == TRUE));
 
-		debug_assert (weapon_database[sub_type].damage_capability >= 0);
 
-		debug_assert (weapon_database[sub_type].armor_penetration_capability >= 0);
 
-		debug_assert (weapon_database[sub_type].smoke_trail_type < NUM_META_SMOKE_LIST_TYPES);
 
-		debug_assert ((weapon_database[sub_type].acquire_parent_forward_velocity == FALSE) || (weapon_database[sub_type].acquire_parent_forward_velocity == TRUE));
 
-		debug_assert ((weapon_database[sub_type].ignore_gravity == FALSE) || (weapon_database[sub_type].ignore_gravity == TRUE));
 
-		debug_assert ((weapon_database[sub_type].survive_ground_impact == FALSE) || (weapon_database[sub_type].survive_ground_impact == TRUE));
 
-		debug_assert ((weapon_database[sub_type].in_flight_collision_check == FALSE) || (weapon_database[sub_type].in_flight_collision_check == TRUE));
 
-		debug_assert ((weapon_database[sub_type].viewable_weapon == FALSE) || (weapon_database[sub_type].viewable_weapon == TRUE));
 
-		debug_assert ((weapon_database[sub_type].boresight_weapon == FALSE) || (weapon_database[sub_type].boresight_weapon == TRUE));
 
-		debug_assert (weapon_database[sub_type].flight_profile_or_self_destr >= 0);
-		
-		debug_assert (weapon_database[sub_type].weapon_class != 0);
 
-		debug_assert (weapon_database[sub_type].start_weight >= 0.0);
 
-		debug_assert (weapon_database[sub_type].final_weight >= 0.0);
 
-		debug_assert (weapon_database[sub_type].min_range >= 0.0);
 
-		debug_assert (weapon_database[sub_type].max_range >= weapon_database[sub_type].min_range);
 
-		debug_assert (weapon_database[sub_type].circular_error_probable >= 0.0);
 
-		debug_assert (weapon_database[sub_type].muzzle_velocity >= 0.0);
 
-		debug_assert (weapon_database[sub_type].muzzle_velocity_max_error >= 0.0);
 
-		debug_assert (weapon_database[sub_type].cruise_velocity >= 0.0);
 
-		debug_assert (weapon_database[sub_type].muzzle_velocity <= weapon_database[sub_type].cruise_velocity);
 
-		debug_assert (weapon_database[sub_type].g_max >= 0.0);
 
-		debug_assert (weapon_database[sub_type].cruise_time >= 0.0);
 
-		debug_assert (weapon_database[sub_type].cruise_time <= MAX_CRUISE_TIME);
 
-		debug_assert (weapon_database[sub_type].cruise_time_max_error >= 0.0);
 
-		debug_assert (weapon_database[sub_type].inhibit_time <= weapon_database[sub_type].boost_time + weapon_database[sub_type].sustain_time);
 
-		debug_assert (weapon_database[sub_type].diameter >= 0.0);
-		
-		debug_assert (weapon_database[sub_type].tracer_color <= 5);
 
-		if (weapon_database[sub_type].rate_of_fire != FIRE_SINGLE_WEAPON)
-		{
-			debug_assert (weapon_database[sub_type].burst_duration > 0.0);
 
-			debug_assert (weapon_database[sub_type].rate_of_fire > 0.0);
 
-			debug_assert (weapon_database[sub_type].boost_time == 0.0);
 
-			debug_assert (weapon_database[sub_type].sustain_time == 0.0);
-		}
-		else
-		{
-//			debug_assert (weapon_database[sub_type].burst_duration == 0.0); // used for submunition quantity
 
-			debug_assert (weapon_database[sub_type].launch_sound_effect_sub_type == ENTITY_SUB_TYPE_EFFECT_SOUND_MISC);
 
-			debug_assert (weapon_database[sub_type].boost_time >= 0.0);
 
-			debug_assert (weapon_database[sub_type].sustain_time >= 0.0);
-		}
 
-		if (weapon_database[sub_type].sustain_time > 0.0)
-		{
-			debug_assert (weapon_database[sub_type].boost_time > 0.0);
 
-			debug_assert (weapon_database[sub_type].sustain_power > 0.0);
-		}
 
-		if ((weapon_database[sub_type].weapon_class & WEAPON_CLASS_SURFACE_TO_AIR) ||
-			 (weapon_database[sub_type].weapon_class & WEAPON_CLASS_SURFACE_TO_SURFACE))
-		{
-			debug_assert (weapon_database[sub_type].reload_time > 0.0);
-		}
-		else
-		{
-			debug_assert (weapon_database[sub_type].reload_time == 0.0);
-		}
 
-		debug_assert (weapon_database[sub_type].max_launch_angle_error >= 0.0);
 
-		debug_assert (weapon_database[sub_type].max_seeker_limit >= 0.0 && weapon_database[sub_type].max_seeker_limit <= 1.0);
-	}
-}
 
 
 
 
 
 
-static void calculate_seeker_limits_from_launch_angle(void)
-{
-	entity_sub_types
-		sub_type;
 
 
-	for (sub_type = ENTITY_SUB_TYPE_WEAPON_NO_WEAPON + 1; sub_type < NUM_ENTITY_SUB_TYPE_WEAPONS; sub_type++)
-	{
-		if (weapon_database[sub_type].max_seeker_limit == 0.0)
-			weapon_database[sub_type].max_seeker_limit = cos(weapon_database[sub_type].max_launch_angle_error + 0.2);
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -6745,66 +6745,6 @@ vec3d
 
 
 
-void initialise_target_point_offsets (void)
-{
-	object_3d_index_numbers
-		object_3d_index;
-
-	object_3d_instance
-		*inst3d;
-
-	object_3d_sub_object_search_data
-		search;
-
-	viewpoint
-		vp;
-
-	object_3d_bounds
-		*bounding_box;
-
-	debug_assert (get_3d_objects_initialised ());
-
-	calculate_seeker_limits_from_launch_angle();
-
-	target_point_offsets[OBJECT_3D_INVALID_OBJECT_INDEX].x = 0.0;
-	target_point_offsets[OBJECT_3D_INVALID_OBJECT_INDEX].y = 0.0;
-	target_point_offsets[OBJECT_3D_INVALID_OBJECT_INDEX].z = 0.0;
-
-	for (object_3d_index = OBJECT_3D_INVALID_OBJECT_INDEX + 1; object_3d_index < OBJECT_3D_LAST; object_3d_index++)
-	{
-		inst3d = construct_3d_object (object_3d_index);
-
-		debug_assert (inst3d);
-
-		inst3d->vp.position.x = 0.0;
-		inst3d->vp.position.y = 0.0;
-		inst3d->vp.position.z = 0.0;
-
-		get_identity_matrix3x3 (inst3d->vp.attitude);
-
-		search.search_depth = 0;
-		search.search_object = inst3d;
-		search.sub_object_index = OBJECT_3D_SUB_OBJECT_TARGET_POINT;
-
-		if (find_object_3d_sub_object (&search) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
-		{
-			get_3d_sub_object_world_viewpoint (&search, &vp);
-
-			target_point_offsets[object_3d_index] = vp.position;
-		}
-		else
-		{
-			if (command_line_target_point_check)
-			{
-				debug_colour_log (DEBUG_COLOUR_FOREST_GREEN, "Target point missing from 3D object: %s", object_3d_enumeration_names[object_3d_index]);
-			}
-
-			bounding_box = get_object_3d_bounding_box (object_3d_index);
-
-			target_point_offsets[object_3d_index].x = (bounding_box->xmin + bounding_box->xmax) * 0.5;
-			target_point_offsets[object_3d_index].y = max ((bounding_box->ymin + bounding_box->ymax) * 0.5, 0.0);
-			target_point_offsets[object_3d_index].z = (bounding_box->zmin + bounding_box->zmax) * 0.5;
-		}
 
 
 
@@ -6819,9 +6759,69 @@ void initialise_target_point_offsets (void)
 
 
 
-		destruct_3d_object (inst3d);
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -142,23 +142,6 @@
 
 
 
-static int response_to_collision (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-
-	entity
-		*force,
-		*enemy_force,
-		*aggressor;
-
-	int
-		total_damage_level;
-
-	aircraft_damage_types
-		old_damage_state,
-		new_damage_state;
-
-	float
-		damage_modifier;
 
 
 
@@ -166,95 +149,112 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 
 
 
-	damage_modifier = va_arg (pargs, double);
-
-	if (sender)
-	{
-		if (get_local_entity_type (sender) == ENTITY_TYPE_WEAPON)
-		{
-			aggressor = get_local_entity_parent (sender, LIST_TYPE_LAUNCHED_WEAPON);
-		}
-		else
-		{
-			aggressor = sender;
-		}
-	}
-	else
-	{
-		aggressor = NULL;
-	}
-
-	force = get_local_force_entity ((entity_sides) get_local_entity_int_value (receiver, INT_TYPE_SIDE));
-
-	enemy_force = get_local_force_entity (get_enemy_side (get_local_entity_int_value (receiver, INT_TYPE_SIDE)));
-
-	//
-	// assess damage
-	//
-
-	old_damage_state = aircraft_critically_damaged (receiver);
-
-	damage_client_server_entity (receiver, sender, damage_modifier);
-
-	total_damage_level = get_local_entity_int_value (receiver, INT_TYPE_DAMAGE_LEVEL);
-
-	new_damage_state = aircraft_critically_damaged (receiver);
 
 
-	//
-	// credit kill
-	//
 
 
-	if ((aggressor) && (old_damage_state == AIRCRAFT_DAMAGE_NONE) && (new_damage_state > AIRCRAFT_DAMAGE_NONE))
-	{
-		credit_client_server_mobile_kill (receiver, aggressor);
-	}
 
 
-	//
-	// Assess damage caused
-	//
 
 
-	if (total_damage_level <= 0)
-	{
-
-		notify_local_entity (ENTITY_MESSAGE_FORCE_DESTROYED, force, receiver, aggressor);
-
-		notify_local_entity (ENTITY_MESSAGE_FORCE_DESTROYED, enemy_force, receiver, aggressor);
-
-		kill_client_server_entity (receiver);
-
-		if (aggressor)
-		{
-
-		}
-	}
-	else
-	{
 
 
-		//
-		// SPECIAL_EFFECT_HOOK FOR GETTING_SHOT
-		//
 
 
-		if (aggressor)
-		{
-
-		}
 
 
-		//
-		//
 
 
-		//notify hit. ?
-	}
 
-	return (TRUE);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

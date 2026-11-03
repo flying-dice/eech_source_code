@@ -167,70 +167,70 @@ static void update_server (entity *en)
 
 
 
-static void update_client (entity *en)
-{
-	int
-		loop;
-
-	person
-		*raw;
-
-	raw = (person *) get_local_entity_data (en);
-
-
-
-	raw->vh.sleep -= get_delta_time ();
-
-	raw->vh.sleep = max (raw->vh.sleep, 0.0f);
-
-	if (raw->vh.mob.alive && !vehicle_critically_damaged(en))
-	{
-
-		//
-		// Update
-		//
-
-		for (loop = 0; loop < get_entity_movement_iterations (); loop ++)
-		{
-
-			person_movement (en);
-		}
-
-
-
-		update_person_animation (en);
 
 
 
 
-		//
-		// ORDER IS CRITICAL
-		//
 
-		update_vehicle_weapon_system_ready (en);
 
-		update_entity_weapon_systems (en);
 
-		update_entity_weapon_system_weapon_and_target_vectors (en);
 
-		if (get_local_entity_int_value (en, INT_TYPE_SELECTED_WEAPON) != ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
-			update_infantry_weapons(en, get_local_entity_int_value (en, INT_TYPE_SELECTED_WEAPON));
 
-		rearm_vehicle_weapons(en);
-		
-		//
 
-	}
-	else
-	{
-		update_person_animation (en);
 
-		if (get_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE) == OPERATIONAL_STATE_DEAD)
-		{
-			raw->vh.death_timer += get_delta_time ();
-		}
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

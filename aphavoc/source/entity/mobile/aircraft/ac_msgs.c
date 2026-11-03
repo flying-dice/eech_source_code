@@ -78,16 +78,6 @@
 
 
 
-static int response_to_articulate_undercarriage (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	vec3d
-		*position;
-
-	object_3d_instance
-		*inst3d;
-
-	sound_sample_indices
-		sample_index;
 
 
 
@@ -95,38 +85,48 @@ static int response_to_articulate_undercarriage (entity_messages message, entity
 
 
 
-	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	inst3d = (object_3d_instance *) get_local_entity_ptr_value (receiver, PTR_TYPE_INSTANCE_3D_OBJECT);
 
-	if (inst3d)
-	{
-		if (object_contains_sub_object_type (inst3d, OBJECT_3D_SUB_OBJECT_UNDERCARRIAGE, 0, NULL))
-		{
-			position = get_local_entity_vec3d_ptr (receiver, VEC3D_TYPE_POSITION);
 
-			sample_index = SOUND_SAMPLE_INDEX_UNDERCARRIAGE;
 
-			create_client_server_sound_effect_entity
-			(
-				receiver,
-				ENTITY_SIDE_NEUTRAL,
-				ENTITY_SUB_TYPE_EFFECT_SOUND_MISC,
-				SOUND_CHANNEL_SOUND_EFFECT,
-				SOUND_LOCALITY_ALL,
-				NULL, 											// position
-				1.0,												// amplification
-				1.0,												// Werewolf pitch
-				TRUE,												// valid sound effect
-				FALSE,											// looping
-				1,													// sample count
-				&sample_index									// sample index list
-			);
-		}
-	}
 
-	return (TRUE);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -400,8 +400,6 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 
 
 
-static int response_to_waypoint_lower_undercarriage_action (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
 
 
 
@@ -409,31 +407,6 @@ static int response_to_waypoint_lower_undercarriage_action (entity_messages mess
 
 
 
-	if (get_comms_model () == COMMS_MODEL_SERVER)
-	{
-		if (
-				(get_local_entity_int_value (receiver, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI) ||
-				(get_local_entity_int_value (receiver, INT_TYPE_AUTO_PILOT))
-			)
-		{
-			lower_client_server_entity_undercarriage (receiver);
-		}
-	}
-
-
-	//
-	//
-
-
-	return (TRUE);
-}
-
-
-
-
-
-static int response_to_waypoint_raise_undercarriage_reached (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
 
 
 
@@ -441,16 +414,43 @@ static int response_to_waypoint_raise_undercarriage_reached (entity_messages mes
 
 
 
-	if (get_comms_model () == COMMS_MODEL_SERVER)
-	{
-		if (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI)
-		{
-			raise_client_server_entity_undercarriage (receiver);
-		}
-	}
 
-	return (TRUE);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -91,54 +91,54 @@ static speech_instance_type
 
 
 
-void play_building_destroyed_speech (entity *building, entity *aggressor)
-{
-	int
-		val,
-		array_type,
-		speech_index;
 
-	entity_sides
-		aggressor_side;
 
-	ASSERT (aggressor);
 
-	if (get_local_entity_int_value (aggressor, INT_TYPE_IDENTIFY_AIRCRAFT))
-	{
-		// PLAY_SPEECH (WINGMAN/CPG)
-		//
-		// (There goes the neighbourhood) | (meeting adjourned) etc.
 
-		aggressor_side = (entity_sides) get_local_entity_int_value (aggressor, INT_TYPE_SIDE);
-		
-		val = get_speech_random_value
-				(
-					building_destroyed_cpg_comments,
-					num_building_destroyed_cpg_comments [aggressor_side],
-					last_building_destroyed_cpg_comment [aggressor_side]
-				);
 
-		array_type = building_destroyed_cpg_comments [val].array_type;
-		speech_index = building_destroyed_cpg_comments [val].speech_index;
 
-		if (get_local_entity_int_value (aggressor, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-		{
-			play_client_server_cpg_message (aggressor, 0.4, 4.0, SPEECH_CATEGORY_DESTROYED_TARGETS, 18.0, speech_index);
-		}
-		else
-		{
-			play_client_server_wingman_message
-			(
-				aggressor,
-				0.4,
-				4.0,
-				SPEECH_CATEGORY_DESTROYED_TARGETS, 18.0,
-				SPEECH_INTRODUCTION_SOMETIMES,
-				SPEECH_ARRAY_WINGMAN_MESSAGES, SPEECH_WINGMAN_TARGET_DESTROYED
-			);
-		}
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

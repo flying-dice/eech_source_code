@@ -78,201 +78,201 @@
 
 
 
-float mobile_terrain_adjust_waypoint_height (entity *en, vec3d *wp_pos, float min_height)
-{
-
-	float
-		range,
-		terrain_elevation;
-
-	vec3d
-		test_point,
-		wp_vec,
-		vector;
-
-	mobile
-		*raw;
-
-	raw = (mobile *) get_local_entity_data (en);
-
-	//
-	// find point in front of mobile
-	//
-	
-	test_point.x = raw->position.x + ((raw->velocity * 1.0 + 10.0) * raw->zv.x);
-	test_point.z = raw->position.z + ((raw->velocity * 1.0 + 10.0) * raw->zv.z);
-
-	terrain_elevation = get_3d_terrain_fast_elevation (test_point.x, test_point.z);
-
-	//
-	// check waypoint SHOULD be adjusted
-	//
-	
-	if (min_height == -1.0)
-	{
-		return terrain_elevation;
-	}
-
-	//
-	// get vector to waypoint
-	//
-	
-	wp_vec.x = wp_pos->x - raw->position.x;
-	wp_vec.y = 0.0;
-	wp_vec.z = wp_pos->z - raw->position.z;
-
-	range = sqrt ((wp_vec.x * wp_vec.x) + (wp_vec.z * wp_vec.z));
-
-//	if (range < (raw->velocity + 10.0))
-	if (range <= 1.0)
-	{
-
-		wp_pos->y = terrain_elevation + min_height;
-
-		return terrain_elevation;
-	}
-
-	//
-	// adjust waypoint height
-	//
-
-	test_point.y = terrain_elevation + min_height;
-
-	vector.x = test_point.x - raw->position.x;
-	vector.y = test_point.y - raw->position.y;
-	vector.z = test_point.z - raw->position.z;
-
-	if (normalise_any_3d_vector (&vector) != 0.0)
-	{
-		float
-			d,
-			h;
-
-		h = vector.y;
-
-		d = sqrt ((vector.x * vector.x) + (vector.z * vector.z));
-
-		//
-		// check condition for too little lateral velocity (caused jets to suspend themselves pointing down into the ground)
-		//
-
-		if (d > fabs (h))
-		{	
-
-			wp_pos->y = raw->position.y + (range * h / d);
-		}
-		else
-		{
-
-			if (get_local_entity_type (en) == ENTITY_TYPE_HELICOPTER)
-			{
-
-				wp_pos->y += (vector.y * range);
-			}
-			else
-			{
-
-				wp_pos->y = terrain_elevation + min_height;
-			}
-		}
-	}
-
-	return terrain_elevation;
-}
 
 
 
 
 
-void draw_mobile_entity_debug_info (entity *en)
-{
-	vec3d
-		*pos,
-		velocity_vector,
-		*target_pos,
-		line_pos;
-
-	entity
-		*guide,
-		*target;
-
-	mobile
-		*raw;
-
-	ASSERT (en);
-
-	raw = (mobile *) get_local_entity_data (en);
-	
-	pos = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
-
-	//
-	// draw guide vector
-	//
-
-	guide = get_local_entity_parent (en, LIST_TYPE_FOLLOWER);
-
-	if (guide)
-	{
-		draw_debug_guide_entity (guide);
-	}
-
-	//
-	// draw xv vector
-	//
-
-	line_pos.x = pos->x + (raw->xv.x * 20.0);
-	line_pos.y = pos->y + (raw->xv.y * 20.0);
-	line_pos.z = pos->z + (raw->xv.z * 20.0);
-
-	create_debug_3d_line (pos, &line_pos, sys_col_yellow, 0.0);
-
-	//
-	// draw zv vector
-	//
-
-	line_pos.x = pos->x + (raw->zv.x * 20.0);
-	line_pos.y = pos->y + (raw->zv.y * 20.0);
-	line_pos.z = pos->z + (raw->zv.z * 20.0);
-
-	create_debug_3d_line (pos, &line_pos, sys_col_green, 0.0);
-
-	//
-	// draw velocity vector
-	//
-
-	velocity_vector.x = pos->x + (raw->motion_vector.x * raw->velocity);
-	velocity_vector.y = pos->y + (raw->motion_vector.y * raw->velocity);
-	velocity_vector.z = pos->z + (raw->motion_vector.z * raw->velocity);
-
-	create_debug_3d_line (pos, &velocity_vector, sys_col_sky_blue, 0.0);
-
-	//
-	// draw target vector
-	//
-
-	target = get_local_entity_parent (en, LIST_TYPE_TARGET);
-
-	if (target)
-	{
-		target_pos = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
-
-		if (target_pos)
-		{
-			create_debug_3d_line (pos, target_pos, sys_col_dark_red, 0.0);
-		}
-	}
-}
 
 
 
 
 
-void update_mobile_sprite_light_timers (void)
-{
-	update_fixed_wing_sprite_light_timers ();
 
-	update_helicopter_sprite_light_timers ();
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -495,76 +495,76 @@ void credit_client_server_mobile_kill (entity *victim, entity *aggressor)
 
 #define DEATH_TIMER_SPECIAL_GAME_MULTIPLIER	0.1
 
-float calculate_mobile_death_timer_value (entity *en)
-{
-	vec3d
-		*pos,
-		*keysite_pos;
 
-	float
-		result,
-		range,
-		closest;
 
-	entity
-		*force,
-		*keysite;
 
-	//
-	// calculate timer based on proximity to nearest keysite
-	//
 
-	pos = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
 
-	closest = FLT_MAX;
 
-	ASSERT (get_session_entity ());
 
-	force = get_local_entity_first_child (get_session_entity (), LIST_TYPE_FORCE);
 
-	while (force)
-	{
-		keysite = get_local_entity_first_child (force, LIST_TYPE_KEYSITE_FORCE);
 
-		while (keysite)
-		{
-			keysite_pos = get_local_entity_vec3d_ptr (keysite, VEC3D_TYPE_POSITION);
 
-			range = get_sqr_2d_range (pos, keysite_pos);
 
-			if (range < closest)
-			{
-				closest = range;
-			}
 
-			keysite = get_local_entity_child_succ (keysite, LIST_TYPE_KEYSITE_FORCE);
-		}
 
-		force = get_local_entity_child_succ (force, LIST_TYPE_FORCE);
-	}
 
-	range = closest;
 
-	if (range <= MIN_DEATH_TIMER_RANGE)
-	{
-		result = MIN_DEATH_TIMER_VALUE;
-	}
-	else if (range >= MAX_DEATH_TIMER_RANGE)
-	{
-		result = MAX_DEATH_TIMER_VALUE;
-	}
-	else
-	{
-		float
-			temp;
 
-		temp = ((range - MIN_DEATH_TIMER_RANGE) / (MAX_DEATH_TIMER_RANGE / MIN_DEATH_TIMER_RANGE));
 
-		result = MIN_DEATH_TIMER_VALUE + ((MAX_DEATH_TIMER_VALUE - MIN_DEATH_TIMER_VALUE) * temp);
-	}
 
-	return result;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -922,73 +922,73 @@ int mobile_check_all_members_taken_off (entity *en)
 
 
 
-void play_mobile_under_attack_speech (entity *en, entity *aggressor)
-{
-	vec3d
-		*pos;
 
-	int
-		member_number,
-		speech_index;
 
-	entity
-		*group;
 
-	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	if (get_local_entity_int_value (en, INT_TYPE_IDENTIFY_AIRCRAFT))
-	{
-		if (get_local_entity_int_value (en, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI)
-		{
-			pos = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION); 
 
-			ASSERT (pos);
 
-			get_speech_sector_coordinates (pos);
 
-			if (get_local_entity_int_value (aggressor, INT_TYPE_IDENTIFY_AIRCRAFT))
-			{
-				speech_index = SPEECH_WINGMAN_UNDER_ATTACK_AIRCRAFT;
-			}
-			else
-			{
-				speech_index = SPEECH_WINGMAN_UNDER_ATTACK_ARMOUR;
-			}
 
-			group = get_local_entity_parent (en, LIST_TYPE_MEMBER);
 
-			member_number = get_local_entity_int_value (en, INT_TYPE_GROUP_MEMBER_NUMBER);
 
-			play_client_server_speech
-			(
-				get_session_entity (),
-				en,
-				(entity_sides) get_local_entity_int_value (en, INT_TYPE_SIDE),
-				ENTITY_SUB_TYPE_EFFECT_SOUND_RADIO_MESSAGE,
-				SOUND_LOCALITY_RADIO,
-				0.0,
-				0.7,
-				6.0,
-				get_wingman_speech_originator (en),
-				SPEECH_CATEGORY_UNDER_ATTACK,
-				15.0,
-				SPEECH_ARRAY_WINGMAN_MESSAGES, SPEECH_WINGMAN_INTRODUCTION,
-				SPEECH_ARRAY_CALLSIGNS, get_local_entity_int_value (group, INT_TYPE_GROUP_CALLSIGN),
-				SPEECH_ARRAY_NUMBERS, 1,
-				SPEECH_ARRAY_NUMBERS, member_number,
-				SPEECH_ARRAY_WINGMAN_MESSAGES, speech_index,
-				SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [0],
-				SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [1],
-				SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [2],
-				SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [3],
-				SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [4],
-				SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [5],
-				SPEECH_ARRAY_WINGMAN_MESSAGES, SPEECH_WINGMAN_REQUEST_ASSISTANCE,
-				-1
-			);
-		}
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

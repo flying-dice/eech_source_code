@@ -108,9 +108,9 @@ void update_server (entity *en)
 
 
 
-void update_client (entity *en)
-{
-}
+
+
+
 
 
 

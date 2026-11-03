@@ -166,274 +166,13 @@ static int response_to_link_child (entity_messages message, entity *receiver, en
 
 
 
-static int response_to_collision (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-
-	entity
-		*force,
-		*enemy_force,
-		*aggressor;
-
-	int
-		damage_caused,
-		total_damage_level;
-
-	aircraft_damage_types
-		old_damage_state,
-		new_damage_state;
-
-	float
-		damage_modifier;
-
-	ASSERT (receiver);
-
-	damage_modifier = va_arg (pargs, double);
-	
-	ASSERT(damage_modifier >= 0 && damage_modifier <= 1.0);
-
-
-
-
-
-
-
-
-	if (sender)
-	{
-		if (get_local_entity_type (sender) == ENTITY_TYPE_WEAPON)
-		{
-			aggressor = get_local_entity_parent (sender, LIST_TYPE_LAUNCHED_WEAPON);
-		}
-		else
-		{
-			aggressor = sender;
-		}
-	}
-	else
-	{
-		aggressor = NULL;
-	}
-
-	//
-	// Fix to stop helicopters from killing themselves through firing missiles into the ground...
-	//
-
-	if ((aggressor == receiver) && (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI))
-	{
-		return TRUE;
-	}
-
-	//
-	//
-	//
-
-	force = get_local_force_entity ((entity_sides) get_local_entity_int_value (receiver, INT_TYPE_SIDE));
-
-	enemy_force = get_local_force_entity (get_enemy_side (get_local_entity_int_value (receiver, INT_TYPE_SIDE)));
-
-	//
-	// assess damage
-	//
-
-	old_damage_state = aircraft_critically_damaged (receiver);
-
-	damage_caused = damage_client_server_entity (receiver, sender, damage_modifier);
-
-	total_damage_level = get_local_entity_int_value (receiver, INT_TYPE_DAMAGE_LEVEL);
-
-	new_damage_state = aircraft_critically_damaged (receiver);
-
-	if ((old_damage_state != AIRCRAFT_DAMAGE_CRITICAL) && (new_damage_state == AIRCRAFT_DAMAGE_CRITICAL))
-	{
-		if (aggressor)
-		{
-			//
-			// credit kill
-			//
-		
-			credit_client_server_mobile_kill (receiver, aggressor);
-/*	
-			//
-			// multiplayer pilot kills
-			//
-	
-			if (receiver != aggressor)
-			{
-				if (
-						(get_local_entity_int_value (receiver, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI) &&
-						(get_local_entity_int_value (aggressor, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-					)
-				{
-					entity
-						*pilot_en;
-	
-					int
-						score;
-	
-					pilot_en = get_local_entity_first_child (aggressor, LIST_TYPE_AIRCREW);
-	
-					while (pilot_en)
-					{
-						score = get_local_entity_int_value (pilot_en, INT_TYPE_KILLS);	
-	
-						if ((get_global_session_special_gametype() == SPECIAL_GAME_TYPE_COOPERATIVE) &&
-								(get_local_entity_int_value (receiver, INT_TYPE_SIDE) == get_local_entity_int_value (aggressor, INT_TYPE_SIDE)))
-						{
-							score -= 1;
-						}
-						else
-						{
-							score += 1;
-	
-							notify_local_entity (ENTITY_MESSAGE_FORCE_SPECIAL_KILL, enemy_force, receiver, score);
-						}
-	
-						set_client_server_entity_int_value (pilot_en, INT_TYPE_KILLS, score);
-	
-						pilot_en = get_local_entity_child_succ (pilot_en, LIST_TYPE_AIRCREW);
-					}
-				}
-			}
-*/
-		}
-	}
-
-
-	//
-	// Assess damage caused
-	//
-
-
-	if (total_damage_level <= 0)
-	{
-		ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
-
-		//
-		// if the player was shot down, record it in the log
-		//
-
-		if (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) == ENTITY_PLAYER_LOCAL)
-		{
-			// deaths moved to landing assessment - player dies upon hitting the ground with enough force
-//			inc_player_log_kills (get_global_gunship_side (), get_current_player_log (), receiver);
-
-			dynamics_kill_model (DYNAMICS_DESTROY_SHOT_DOWN, aggressor);
-		}
-		else if (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) == ENTITY_PLAYER_REMOTE)
-		{
-			transmit_entity_comms_message (ENTITY_COMMS_PLAYER_KILL, aggressor, receiver);
-
-			kill_client_server_entity (receiver);
-		}
-		else
-		{
-
-			kill_client_server_entity (receiver);
-		}
-
-		notify_local_entity (ENTITY_MESSAGE_FORCE_DESTROYED, force, receiver, aggressor); // should these be before kill ?
-
-		notify_local_entity (ENTITY_MESSAGE_FORCE_DESTROYED, enemy_force, receiver, aggressor);
-
-		//
-		// Play appropriate sound effects / speech
-		//
-
-		if (aggressor)
-		{
-
-		}
-	}
-	else
-	{
-		if (damage_caused > 0)
-		{
-			if (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-			{
-				//
-				// Damage users helicopter
-				//
-
-				damage_helicopter_via_damage_level (receiver, aggressor);
-
-				//
-				// damage avionics
-				//
-
-				if (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)	
-				{
-					if (damage_caused < 100.0)
-					{
-						damage_client_server_entity_avionics (receiver, GUNSHIP_DAMAGE_LEVEL_LIGHT);
-					}
-					else if (damage_caused < 300.0)
-					{
-						damage_client_server_entity_avionics (receiver, GUNSHIP_DAMAGE_LEVEL_MEDIUM);
-					}
-					else
-					{
-						damage_client_server_entity_avionics (receiver, GUNSHIP_DAMAGE_LEVEL_HEAVY);
-					}
-				}
-			}
-		}
-
-
-		//
-		// SPECIAL_EFFECT_HOOK FOR GETTING_SHOT
-		//
-
-
-		if (aggressor)
-		{
-
-		}
-
-
-		//
-		//
-
-
-		//notify hit. ?
-	}
-
-	//
-	// add force to players helicopters
-	//
-
-	if (damage_caused > 0.0)
-	{
-		switch (get_local_entity_int_value (receiver, INT_TYPE_PLAYER))
-		{
-			case ENTITY_PLAYER_LOCAL:
-			{
-				add_dynamic_explosion_force (get_local_entity_vec3d_ptr (sender, VEC3D_TYPE_POSITION), (float)damage_caused);
-	
-				break;
-			}
-			case ENTITY_PLAYER_REMOTE:
-			{
-				// send comms message
-	
-				break;
-			}
-		}
-	}
 
-	return (TRUE);
-}
 
 
 
 
 
-static int response_to_articulate_loading_doors (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	object_3d_instance
-		*inst3d;
 
-	sound_sample_indices
-		sound_sample_index;
 
 
 
@@ -441,84 +180,345 @@ static int response_to_articulate_loading_doors (entity_messages message, entity
 
 
 
-	inst3d = (object_3d_instance *) get_local_entity_ptr_value (receiver, PTR_TYPE_INSTANCE_3D_OBJECT);
 
-	if (inst3d)
-	{
-		if (object_contains_sub_object_type (inst3d, OBJECT_3D_SUB_OBJECT_LOADING_DOOR, 0, NULL))
-		{
-			sound_sample_index = SOUND_SAMPLE_INDEX_HELICOPTER_DOORS;
 
-			create_client_server_sound_effect_entity
-			(
-				receiver,
-				ENTITY_SIDE_NEUTRAL,
-				ENTITY_SUB_TYPE_EFFECT_SOUND_MISC,
-				SOUND_CHANNEL_SOUND_EFFECT,
-				SOUND_LOCALITY_ALL,
-				NULL,												// position
-				1.0,												// amplification
-				1.0,												// Werewolf pitch
-				TRUE,												// valid sound effect
-				FALSE,											// looping
-				1,													// sample count
-				&sound_sample_index							// sample index list
-			);
-		}
-	}
 
-	return (TRUE);
-}
 
 
 
 
 
-static int response_to_set_entity_position (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
 
-	vec3d
-		*position,
-		new_position,
-		delta_position,
-		*parent_position;
 
-	float
-		velocity,
-		en_heading,
-		heading;
 
-	helicopter
-		*raw;
 
-	raw = (helicopter *) get_local_entity_data (receiver);
 
-	position = va_arg (pargs, vec3d *);
 
-	heading = (float) va_arg (pargs, double);
 
-	en_heading = get_local_entity_float_value (receiver, FLOAT_TYPE_HEADING);
 
-	velocity = (float) va_arg (pargs, double);
 
-	parent_position = get_local_entity_vec3d_ptr (sender, VEC3D_TYPE_POSITION);
 
-	delta_position.x = raw->ac.mob.position.x - parent_position->x;
-	delta_position.y = raw->ac.mob.position.y - parent_position->y;
-	delta_position.z = raw->ac.mob.position.z - parent_position->z;
 
-	new_position.x = position->x + ((cos (heading - en_heading) * delta_position.x) + (sin (heading - en_heading) * delta_position.z));
-	new_position.y = position->y + delta_position.y;
-	new_position.z = position->z + ((cos (heading - en_heading) * delta_position.z) - (sin (heading - en_heading) * delta_position.x));
 
-	set_local_entity_vec3d (receiver, VEC3D_TYPE_POSITION, &new_position);
 
-	set_local_entity_float_value (receiver, FLOAT_TYPE_HEADING, heading);
 
-	set_local_entity_float_value (receiver, FLOAT_TYPE_VELOCITY, velocity);
 
-	return (TRUE);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
