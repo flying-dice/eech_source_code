@@ -1,5 +1,5 @@
 -- TEST-ONLY host-authority and refusal witness of the production TREE-collision handoff (EEDCS-49, D3). Needs a DLL built with the `weapon-fixture` feature (the controlled launch of
--- lua/weapon-case.lua) and an eech-world with `host.terrain_provider` and `host.output_create_new`.
+-- lua/weapon-case.lua) and an eech-world with `host.terrain_provider` and `host.create_exclusive`.
 --
 -- Boundary under test (the product path, not a private test of Rust or C): host-owned Lua -> the public native module -> the host's terrain provider -> back into a REAL weapon launched
 -- through the campaign's own launch call, whose hosted flight asks the campaign for the tree lookup after every entity test (wn_move.c CAMPAIGN_STEP_LOOKUP_TREES) and whose
@@ -40,7 +40,9 @@
 -- pending is `INCOMPLETE` and fails; it is never a pass. Terminals of weapons outside the cohort (natural activity of the war) are declared as foreign and are not attributed to the case; the
 -- provider's questions are NOT attributed to the case weapons either (the war's other weapons ask too), which is why the control relates them to the weapon step's own test counter.
 --
--- The evidence file is created exclusively (never truncated) and is closed on every path; the first error is the one raised. Exit 0 is the verdict.
+-- The evidence file is created exclusively (never truncated) with `host.create_exclusive`, whose handle observes the platform close (src/exclusive_output.rs; the older `host.output_create_new` only
+-- syncs and leaves the close to an unchecked drop, so it is not used). Everything that can fail after the creation (the terrain factory included) runs inside the owned close scope; the evidence is
+-- closed on every path and the first error is the one raised. Exit 0 is the verdict.
 --
 -- host.args: root, mode (default control), profile (default hosted), warmup (simulated seconds before the launch, default 30), settle (cap on the simulated seconds after it, default 120),
 --            frame_ms (default 100), out (JSON Lines path, must not exist)
@@ -166,8 +168,8 @@ if plan == nil then refuse ("unknown mode '" .. tostring (mode) .. "'") end
 if profile == "original" and mode ~= "control" then refuse ("profile=original runs only mode=control: no tree question reaches the provider to alter") end
 
 -- ---------------------------------------------------------------------------------------------------------------- the evidence file: created exclusively, every write, flush and close checked, closed on every path
-local create = host.output_create_new
-if type (create) ~= "function" then refuse ("this host has no host.output_create_new: the evidence cannot be created exclusively, and the witness does not fall back to a truncating open") end
+local create = host.create_exclusive
+if type (create) ~= "function" then refuse ("this host has no host.create_exclusive: the evidence cannot be created exclusively with a checked close, and the witness does not fall back to a truncating open") end
 local out, create_why = create (out_path)
 if not out then refuse ("OUTPUT FAILURE: creating " .. out_path .. " failed: " .. tostring (create_why) .. " (the evidence is created exclusively and never overwritten; nothing was run)") end
 
@@ -197,18 +199,69 @@ local function hard (message)
 end
 local function first_line (text) return (string.match (tostring (text), "[^\r\n]+") or tostring (text)) end
 
+-- ---------------------------------------------------------------------------------------------------------------- the grammar of the existing C emitters (eech_wpn_fixture.c)
+-- a whole number as the C side prints it (%d / %llu): optional minus, digits, nothing else (no fraction, exponent, nan or inf)
+local function whole (text)
+	if type (text) ~= "string" or not string.match (text, "^%-?%d+$") then return nil end
+	return tonumber (text)
+end
+-- a finite number as %.9g prints it: digits with an optional fraction and an optional signed exponent
+local function printed_number (text)
+	if type (text) ~= "string" then return nil end
+	if not (string.match (text, "^%-?%d+%.?%d*$") or string.match (text, "^%-?%d+%.?%d*e[%+%-]%d+$")) then return nil end
+	local value = tonumber (text)
+	if value == nil or value ~= value or value == huge or value == -huge then return nil end
+	return value
+end
+-- the first problem of a wpn-case-launch report against the emitter's schema and domains, or nil: launcher is a name, weapon / target links / counts are whole numbers (a link is 0 or 1), creates
+-- is a positive whole number, restored is -1 (the launcher's link was already the target: nothing changed, so the link before and after are the same) or 1 (restored); 0 is a failed restoration
+-- and nothing else is in the schema
+local function launch_report_problem (report, line, weapon)
+	local function bad (name) return "the launch report does not follow the wpn-case-launch schema (" .. name .. "): " .. line end
+	if type (report.launcher) ~= "string" or report.launcher == "" then return bad ("launcher") end
+	local number = {}
+	for _, name in ipairs { "weapon", "target_link_before", "target_link", "count_before", "count_after", "births", "creates", "restored" } do
+		number [name] = whole (report [name])
+		if number [name] == nil then
+			return report [name] == nil and bad ("missing " .. name) or ("the launch report field " .. name .. "=" .. tostring (report [name]) .. " is not a whole number: " .. line)
+		end
+	end
+	if number.weapon ~= weapon then return "the launch report says weapon=" .. number.weapon .. " but weapon " .. weapon .. " was launched: " .. line end
+	for _, name in ipairs { "target_link_before", "target_link" } do
+		if number [name] ~= 0 and number [name] ~= 1 then return "the launch report field " .. name .. "=" .. number [name] .. " is not 0 or 1: " .. line end
+	end
+	if number.count_before < 0 or number.count_after < 0 or number.births < 0 then return "the launch report has a negative count: " .. line end
+	if number.count_after > number.count_before then return "the launch report has count_after=" .. number.count_after .. " above count_before=" .. number.count_before .. ": " .. line end
+	if number.creates < 1 then return "the launch created no weapon (creates=" .. number.creates .. "): " .. line end
+	if number.restored == 0 then return "the launch could not restore the launcher's temporary target link (restored=0): " .. line end
+	if number.restored ~= -1 and number.restored ~= 1 then return "the launch report field restored=" .. number.restored .. " is not -1 or 1 (restored=0 is a failure, nothing else is in the schema): " .. line end
+	if number.restored == -1 and number.target_link_before ~= number.target_link then return "restored=-1 means the link was kept, but the link changed from " .. number.target_link_before .. " to " .. number.target_link .. ": " .. line end
+	return nil
+end
+-- the first problem of a weapon's terminal fact, or nil: every field the emitter writes for a registered weapon is present and in its grammar
+local function terminal_problem (e)
+	if whole (e.w) == nil or whole (e.w) < 0 then return "w" end
+	if type (e.type) ~= "string" or e.type == "" then return "type" end
+	if type (e.code) ~= "string" or e.code == "" or e.code == "invalid" then return "code" end
+	local steps = whole (e.steps)
+	if steps == nil or steps < 0 then return "steps" end
+	local x, y, z = string.match (type (e.pos) == "string" and e.pos or "", "^([^,]+),([^,]+),([^,]+)$")
+	if printed_number (x) == nil or printed_number (y) == nil or printed_number (z) == nil then return "pos" end
+	if printed_number (e.velocity) == nil then return "velocity" end
+	if printed_number (e.lifetime) == nil then return "lifetime" end
+	return nil
+end
+
 -- ---------------------------------------------------------------------------------------------------------------- the engine's own stop, recognised only by its anchored first line
 local FATAL = "^runtime error: eech: EECH fatal error: host terrain: %[terrain%-provider:([%w_%.]+)%] "
 local function engine_marker (err) return string.match (first_line (err), FATAL) end
 
 -- ---------------------------------------------------------------------------------------------------------------- the host's provider, counted, altered only when armed
-local factory = host.terrain_provider
-if type (factory) ~= "function" then refuse ("this host has no host.terrain_provider") end
 local armed = false
 local before, after = { point = 0, tree_begin = 0, tree_terrain = 0 }, { point = 0, tree_begin = 0, tree_terrain = 0 }
 local altered = { tree_begin = 0, tree_terrain = 0 }
 local map = "..\\common\\maps\\map5"
-local real = factory (root, map)
+local real -- the host's own provider, built inside the owned close scope (main)
 local handler_state = {}
 -- what the provider SEES after the launch: a tree query is a begin, then per NEED_TERRAIN one point read and one tree_terrain carrying that read's elevation pattern
 local queries, need_terrain_replies, done_replies = 0, 0, 0
@@ -283,6 +336,10 @@ end
 
 -- ---------------------------------------------------------------------------------------------------------------- the run
 local function main ()
+	-- every fallible setup step is inside the owned close scope: a missing or raising factory is a failure of the witness with the evidence closed
+	local factory = host.terrain_provider
+	if type (factory) ~= "function" then hard ("this host has no host.terrain_provider") end
+	real = factory (root, map)
 	local descriptors, order = {}, {}
 	local function bind_mobile (descriptor)
 		local id = host.bind_mobile (descriptor)
@@ -447,12 +504,11 @@ local function main ()
 			end
 		end
 		table.sort (members, function (a, b) return tonumber (a) < tonumber (b) end)
-		local births, creates, restored = tonumber (report.births or ""), tonumber (report.creates or ""), tonumber (report.restored or "")
-		if births == nil or creates == nil or restored == nil then hard ("the launch report lacks births, creates or restored: " .. first_line (launch_text)) end
+		local problem = launch_report_problem (report, first_line (launch_text), weapon)
+		if problem then hard (problem) end
+		local births = whole (report.births)
 		if #members < 1 then hard ("SETUP FAILURE: the launch logged no birth: the controlled cohort is empty") end
 		if births ~= #members then hard (string.format ("the launch report says births=%d but the launch logged %d birth events", births, #members)) end
-		if creates < 1 then hard ("the launch created no weapon (creates=" .. creates .. ")") end
-		if restored == 0 then hard ("the launch could not restore the launcher's temporary target link (restored=0)") end
 	end
 	emit { event = "case_launch", ok = launched and true or false, launcher = launcher, target = target, weapon = weapon, text = first_line (launch_text), births = #members }
 	emit { event = "cohort", size = #members, members = table.concat (members, ",") }
@@ -525,7 +581,8 @@ local function main ()
 	if #duplicates > 0 then return "a case weapon ended twice (" .. #duplicates .. " duplicate terminals)" end
 	for _, w in ipairs (members) do
 		local e = terminal_of [w]
-		if e.type == nil or e.code == nil or e.pos == nil then return "the terminal of case weapon " .. w .. " is incomplete: " .. e.raw end
+		local problem = terminal_problem (e)
+		if problem then return "the terminal of case weapon " .. w .. " is incomplete (field " .. problem .. " is missing or not in its grammar): " .. e.raw end
 	end
 	if profile == "original" then
 		if after.tree_begin ~= 0 then return "profile=original, but the host was asked " .. after.tree_begin .. " tree questions: the module is not the original" end

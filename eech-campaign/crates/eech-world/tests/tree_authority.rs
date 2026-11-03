@@ -84,12 +84,14 @@ host = {
 	aim = function () end,
 	env_provider = function () return function () return {} end end,
 	terrain_provider = function () return real_provider () end,
-	output_create_new = function ()
+	create_exclusive = function ()
 		if scenario.create_fails then return nil, "already exists" end
 		CREATED = true
 		return file
 	end,
 }
+if scenario.no_factory then host.terrain_provider = nil end
+if scenario.factory_throws then host.terrain_provider = function () error ("the terrain factory raised", 0) end end
 
 local FATAL = "runtime error: eech: EECH fatal error: host terrain: "
 package.preload.eech_dc = function ()
@@ -224,6 +226,31 @@ fn healthy(extra: &str) -> String {
     format!("after = {{ [1] = {{ {TERMINAL} }} }}{extra}")
 }
 
+/// The launch report of the real C emitter (eech_wpn_fixture.c wpn-case-launch), with single fields replaced: the coherent default is launcher/weapon 7 with three weapons in stock,
+/// the target linked by the launch (link 0 -> 1) and restored (1), one weapon created and one birth logged.
+fn report(changes: &str) -> String {
+    let mut fields: Vec<(String, String)> = [
+        ("launcher", "helicopter"),
+        ("weapon", "7"),
+        ("target_link_before", "0"),
+        ("target_link", "1"),
+        ("count_before", "3"),
+        ("count_after", "2"),
+        ("births", "1"),
+        ("creates", "1"),
+        ("restored", "1"),
+    ]
+    .iter()
+    .map(|(k, v)| (k.to_string(), v.to_string()))
+    .collect();
+    for change in changes.split_whitespace() {
+        let (key, value) = change.split_once('=').expect("key=value");
+        fields.iter_mut().find(|(k, _)| k == key).expect("a known field").1 = value.to_string();
+    }
+    let body: Vec<String> = fields.iter().map(|(k, v)| format!("{k}={v}")).collect();
+    format!("wpn-case-launch {}", body.join(" "))
+}
+
 fn error_of(driven: Driven) -> String {
     driven.result.expect_err("the run must fail")
 }
@@ -332,34 +359,25 @@ fn an_incomplete_empty_or_inconsistent_cohort_is_a_failure_and_never_a_pass() {
     let error = error_of(drive(&format!("{two}, {}", healthy("")), &[]));
     assert!(error.contains("INCOMPLETE") && error.contains("1 of 2"), "{error}");
     // no birth at all
+    let error = error_of(drive(&format!("births = {{}}, launch_report = '{}'", report("births=0")), &[]));
+    assert!(error.contains("the controlled cohort is empty"), "{error}");
+    // the launch report disagrees with the births the launch logged
+    let error = error_of(drive(&format!("launch_report = '{}', {}", report("births=2"), healthy("")), &[]));
+    assert!(error.contains("births=2 but the launch logged 1"), "{error}");
     let error = error_of(drive(
-        "births = {}, launch_report = 'wpn-case-launch launcher=helicopter weapon=7 births=0 creates=1 restored=1'",
+        &format!("launch_report = '{}', {}", report("").replace("births=1 ", ""), healthy("")),
         &[],
     ));
-    assert!(error.contains("the controlled cohort is empty"), "{error}");
-    // the launch report disagrees with the births the launch logged, or lacks a fact, or says the link was not restored
-    for (report, fragment) in [
-        (
-            "wpn-case-launch launcher=helicopter weapon=7 births=2 creates=1 restored=1",
-            "births=2 but the launch logged 1",
+    assert!(error.contains("schema"), "{error}");
+    let error = error_of(drive(
+        &format!(
+            "launch_report = 'something else {}', {}",
+            report("").replace("wpn-case-launch ", ""),
+            healthy("")
         ),
-        (
-            "wpn-case-launch launcher=helicopter weapon=7 births=1 restored=1",
-            "lacks births, creates or restored",
-        ),
-        (
-            "wpn-case-launch launcher=helicopter weapon=7 births=1 creates=0 restored=1",
-            "created no weapon",
-        ),
-        (
-            "wpn-case-launch launcher=helicopter weapon=7 births=1 creates=1 restored=0",
-            "restore the launcher's temporary target link",
-        ),
-        ("something else births=1 creates=1 restored=1", "not a wpn-case-launch line"),
-    ] {
-        let error = error_of(drive(&format!("launch_report = '{report}', {}", healthy("")), &[]));
-        assert!(error.contains(fragment), "{report}: {error}");
-    }
+        &[],
+    ));
+    assert!(error.contains("not a wpn-case-launch line"), "{error}");
     // a duplicate terminal and an incomplete one
     let error = error_of(drive(
         &format!("after = {{ [1] = {{ {TERMINAL}, \"kind=terminal w=5 type=gun code=target steps=41 pos=2,2,2 velocity=3 lifetime=4\" }} }}"),
@@ -371,6 +389,100 @@ fn an_incomplete_empty_or_inconsistent_cohort_is_a_failure_and_never_a_pass() {
         &[],
     ));
     assert!(error.contains("is incomplete"), "{error}");
+}
+
+#[test]
+fn the_launch_report_is_checked_against_the_schema_and_domains_of_the_real_emitter() {
+    // positive first: the coherent report, the previous link kept (restored=-1 is previous == target, no link change), and a restoration (1) both pass
+    for (changes, label) in [("", "restored"), ("restored=-1 target_link_before=1", "link kept: nothing to restore")] {
+        let driven = drive(&format!("launch_report = '{}', {}", report(changes), healthy("")), &[]);
+        let outcome = driven.result.clone();
+        assert!(outcome.is_ok(), "{label}: {outcome:?}\n{}", driven.rows);
+    }
+    // single faults: the restoration domain is -1 or 1 (0 is a failed restoration; 2, -2 and fractions are not in the schema), creates is a positive whole number, and the rest are the
+    // emitter's own fields in their own domains
+    for (changes, fragment) in [
+        ("restored=0", "restore the launcher's temporary target link"),
+        ("restored=2", "restored=2"),
+        ("restored=-2", "restored=-2"),
+        ("restored=1.5", "restored=1.5"),
+        ("restored=-1", "restored=-1 means the link was kept"),
+        ("creates=0", "creates"),
+        ("creates=-1", "creates"),
+        ("creates=1.5", "creates=1.5"),
+        ("creates=nan", "creates=nan"),
+        ("creates=1e0", "creates=1e0"),
+        ("births=1.0", "births=1.0"),
+        ("target_link=2", "target_link=2"),
+        ("target_link_before=-1", "target_link_before=-1"),
+        ("count_after=5", "count_after=5"),
+        ("count_before=1.5", "count_before=1.5"),
+        ("weapon=8", "weapon=8"),
+        ("launcher=", "launcher"),
+    ] {
+        let error = error_of(drive(&format!("launch_report = '{}', {}", report(changes), healthy("")), &[]));
+        assert!(error.contains(fragment), "{changes}: {error}");
+    }
+}
+
+#[test]
+fn a_terminal_needs_every_field_the_real_emitter_writes_in_its_own_grammar() {
+    // positive first: the complete terminal (existing healthy runs), with exponent and negative numbers in the emitter's %.9g form
+    let complete = "kind=terminal w=5 type=gun code=ground steps=40 pos=-1.5,1.23456789e+05,3 velocity=3e-05 lifetime=4";
+    let driven = drive(&format!("after = {{ [1] = {{ '{complete}' }} }}"), &[]);
+    let outcome = driven.result.clone();
+    assert!(outcome.is_ok(), "{outcome:?}\n{}", driven.rows);
+    // single faults: a field missing, or present and not in its domain
+    for (field, line) in [
+        ("steps", "kind=terminal w=5 type=gun code=ground pos=1,1,1 velocity=3 lifetime=4"),
+        ("velocity", "kind=terminal w=5 type=gun code=ground steps=40 pos=1,1,1 lifetime=4"),
+        ("lifetime", "kind=terminal w=5 type=gun code=ground steps=40 pos=1,1,1 velocity=3"),
+        ("steps", "kind=terminal w=5 type=gun code=ground steps=40.5 pos=1,1,1 velocity=3 lifetime=4"),
+        ("steps", "kind=terminal w=5 type=gun code=ground steps=-1 pos=1,1,1 velocity=3 lifetime=4"),
+        ("steps", "kind=terminal w=5 type=gun code=ground steps=nan pos=1,1,1 velocity=3 lifetime=4"),
+        ("velocity", "kind=terminal w=5 type=gun code=ground steps=40 pos=1,1,1 velocity=nan lifetime=4"),
+        ("velocity", "kind=terminal w=5 type=gun code=ground steps=40 pos=1,1,1 velocity=inf lifetime=4"),
+        ("lifetime", "kind=terminal w=5 type=gun code=ground steps=40 pos=1,1,1 velocity=3 lifetime=-nan"),
+        ("pos", "kind=terminal w=5 type=gun code=ground steps=40 pos=1,1 velocity=3 lifetime=4"),
+        ("pos", "kind=terminal w=5 type=gun code=ground steps=40 pos=1,1,nan velocity=3 lifetime=4"),
+        ("code", "kind=terminal w=5 type=gun code=invalid steps=40 pos=1,1,1 velocity=3 lifetime=4"),
+        ("type", "kind=terminal w=5 code=ground steps=40 pos=1,1,1 velocity=3 lifetime=4"),
+    ] {
+        let error = error_of(drive(&format!("after = {{ [1] = {{ '{line}' }} }}"), &[]));
+        assert!(error.contains("is incomplete") && error.contains(&format!("field {field} ")), "{line}: {error}");
+    }
+}
+
+#[test]
+fn all_fallible_setup_happens_inside_the_owned_close_scope_and_the_first_failure_is_kept() {
+    // positive first: the healthy run opens the evidence through the checked exclusive-create capability and closes it once
+    let driven = drive(&healthy(""), &[]);
+    assert!(driven.result.is_ok() && driven.created && driven.closed == 1);
+    // the witness asks for host.create_exclusive (the platform close is checked in src/exclusive_output.rs), not the older host.output_create_new
+    assert!(
+        SCRIPT.contains("host.create_exclusive") && !SCRIPT.contains("host.output_create_new ("),
+        "the witness must use host.create_exclusive"
+    );
+    // a host with no terrain factory, and one whose factory raises, fail AFTER the evidence was opened: it is closed once and the failure is the factory's
+    for (scenario, fragment) in [
+        ("no_factory = true", "no host.terrain_provider"),
+        ("factory_throws = true", "the terrain factory raised"),
+    ] {
+        let driven = drive(scenario, &[]);
+        let (created, closed) = (driven.created, driven.closed);
+        let error = error_of(driven);
+        assert!(error.contains(fragment), "{scenario}: {error}");
+        assert!(
+            created && closed == 1,
+            "{scenario}: the evidence was opened and must be closed exactly once (created {created}, closed {closed})"
+        );
+        // a close that fails too does not replace the first failure
+        let driven = drive(&format!("{scenario}, io_fail = {{ op = 'close' }}"), &[]);
+        let closed = driven.closed;
+        let error = error_of(driven);
+        assert!(error.contains(fragment) && !error.contains("closing"), "{scenario}: {error}");
+        assert_eq!(closed, 1);
+    }
 }
 
 #[test]
@@ -406,7 +518,8 @@ fn a_stalled_clock_and_every_output_failure_are_failures_and_the_first_error_is_
         late.rows
     );
     assert!(error_of(late).contains("STALLED CLOCK"));
-    // a write, a flush and (after the success row) a close that fails
+    // a write, a flush and (after the success row) a close that fails. These are MOCKED collaborator failures: they prove the witness checks and reports what the handle returns. That the
+    // platform close itself is observed and reported is established by the actual-file tests of src/exclusive_output.rs (`the_real_platform_close_reports_an_actual_close_failure`).
     for (op, at, fragment) in [
         ("write", 1, "OUTPUT FAILURE: writing"),
         ("write", 4, "OUTPUT FAILURE: writing"),

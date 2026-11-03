@@ -80,7 +80,7 @@ forest or ray-against-scenery call, and no host-data workaround (a versioned tre
 plan** here, and none is invented. Until one is named and pinned, a host that cannot answer `tree_begin` must **refuse it** (the reference refusal is the named
 `[terrain-provider:tree_begin.callback]` stop); it must NOT answer `done {hit=false}`: an unsupported physical query is unknown, not a measured or configured absence, and it would change the
 weapon's physical behaviour. The only legitimate absences are the reference host's measured ones (no tree files in the map, no forest triangles in the model). This stays open as required
-D3/Task49 mapping work and is not deferred to M6; live DCS behaviour checks remain M6. On a genuine miss the caller's own `point`/`normal` words must come back unchanged.
+D3/Task49 mapping work and is not deferred to M6; live DCS behaviour checks remain M6. A genuine tree MISS returns the actual FINAL words of the original contract: the caller's own `point`/`normal`, or what a failed attempt partly overwrote (a miss does not universally leave the buffers unchanged, and the closed host kernel reproduces the partial writes); a host must not zero, normalise or restore them.
 
 ## Required remaining scope beside entity/object collision (open, not started here)
 
@@ -96,11 +96,11 @@ tree force) and the renderer (`terrgeom.c`). Whether either is reachable in the 
 RNG disposition (a fact, not a removal): the engine seeds the shared stream before the terrain loads (`eech_engine.c` `set_random_number_seed`, which also `srand`s the CRT), the cloud block draws
 from that CRT stream, and the only other `set_random_number_seed` caller in the sources is the menu (`uisess_fn.c`); no reseed between the load and the first outside consumer was found in
 source. So the cloud draws are **not shown to be erased**; removing the block would change the stream every later consumer sees, which is a baseline-governed semantic change, and the existing
-`rng_unchanged` guard is not proof for the CRT stream (it may cover another stream). The tree loader and forest constructor themselves draw nothing (no `rand()` in them).
+`rng_unchanged` guard is not proof for the CRT stream (it may cover another stream). The tree loader's own text contains no `rand()`, but that is lexical, not transitive RNG proof: the forest constructor `construct_3d_object_by_name` (`3dobjid.c`) calls `construct_3d_object`, which in `3dobjdb.c` calls `skin_random`, and `skin_random` draws (`3dobjid.c`) when the object's `skin.animation >= 0`. The effective forest skin metadata, and so whether the constructor draws in the supported boot, is UNKNOWN until supported data, call and seed observations establish it. It belongs to the same loader/forest/cloud disposition below; no loader is deleted and no dummy draw is added on this account.
 
 The smallest bounded capture that would settle it, if the removal is wanted: for the supported scenarios (Lebanon map5, Georgia), the effective `session_cloud_puffs` and season at the boot
 `load_3d_terrain` and at the zone reload, the count of CRT `rand()` calls made inside `load_3d_terrain`, and whether a `srand` precedes the first consumer afterwards (the existing counting header
-`eech_tp_rand.h` renames every `rand()` of a build and is the existing way to count). If the cloud branch is not taken there are no draws and the block can go with no RNG effect; if draws
+`eech_tp_rand.h` renames every `rand()` of a build and is the existing way to count). The same capture must also show whether `construct_3d_object` for `FOREST_TREE_OBJECT` (and `CLOUD`) reaches `skin_random` (the object's effective `skin.animation`). If the cloud branch is not taken and the constructors draw nothing there are no draws and the block can go with no RNG effect; if draws
 happen and are not erased, removal is a semantic change for lead review, and dummy draws are not the answer. Required Task49/D3 work, OPEN.
 
 ## Checks and commands
@@ -109,7 +109,7 @@ Focused (pinned Linux image, cache `eech-linux-d3-collision-driver-5416adb3b-202
 `cargo test --locked -p eech-engine-sys --features tree-dialogue-check --test tree_dialogue` (the dialogue control), `cargo fmt --all -- --check`, strict clippy for the four crates and for
 `-p eech-dc` with `collision-fixture`, `weapon-fixture` and both. The compile guard is `eech-engine-sys/tests/tree_host_guard.rs`; the driver controls are `eech-world/tests/tree_authority.rs`.
 
-Native authority (Root), one fresh installation root and process per run, exit 0 is the verdict, evidence created exclusively (`out=` must not exist):
+Native authority (Root), one fresh installation root and process per run, exit 0 is the verdict, evidence created exclusively through `host.create_exclusive` (its handle observes the platform close; `out=` must not exist). The witness checks the launch report against the real emitter's schema (`restored` is -1 link kept or 1 restored, `creates` a positive whole number, whole-number counts) and every cohort terminal for all fields the emitter writes (type, code, steps, pos, velocity, lifetime) in their `%d`/`%.9g` grammar:
 
 * hosted module = `eech-dc --features weapon-fixture`: `eech-world lua/tree-authority.lua root=<install> mode=control out=<new.jsonl>`, then `mode=new_only`, `mode=forced_hit` (compare its terminal rows
   with the control) and the refusals `withheld_tree`, `bad_tree_state`, `bad_tree_word`, `done_not_boolean`, `new_then_old`, `old_twice`, `third_lookup`;
