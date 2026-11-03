@@ -14,7 +14,8 @@
 //! * The map facts the kernel reads (extents, sector counts, the height range the tree heights use) are the terrain's [`crate::terrain::Facts`], the same the campaign took at boot.
 //! * The tree files are those of the terrain directory. Both absent, or a header that differs from the terrain's sector counts, is the original's "no trees loaded" and an
 //!   ANSWER (the query still reads its elevations and misses); anything else wrong with them is a refusal.
-//! * The forest tree's collision triangles are walked from the host's model store (`OBJECT_3D_FOREST_TREE_OBJECT`, depth 0, 1, ... as the original returns them). A scene with
+//! * The forest tree's collision triangles are walked from the SAME finalized model store the campaign's model callbacks answer from (`FOREST_TREE_OBJECT`, the compiled semantic scene
+//!   name, depth 0, 1, ... as the original returns them), in the custom-file order the campaign announced: [`crate::model_host::ReferenceModel`]. No second store is loaded. A scene with
 //!   none at depth 0 is [`ForestGeometry::KnownAbsent`] (the retail facts); a model the store cannot show to be backed is a refusal, never "absent".
 //!
 //! # Bounds that are honest
@@ -23,15 +24,16 @@
 //!   is a DCS workaround; a DCS host that cannot answer refuses, and the campaign stops by name.
 //! * The scene is loaded once, by the first question, for the one map this provider serves.
 
-use crate::models::{scene_index_by_name, ErrorKind, ModelStore, Triangle};
+use crate::model_host::ReferenceModel;
+use crate::models::{scene_index_by_name, ModelStore, Triangle};
 use crate::terrain::Facts;
 use crate::trees::{Endpoint, ForestGeometry, TreeCollision, TreeMap, TreeRequest, TreeScene};
 use mlua::prelude::*;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-/// The scene whose collision triangles the tree query reads (`OBJECT_3D_FOREST_TREE_OBJECT`).
-pub const FOREST_TREE_SCENE: &str = "OBJECT_3D_FOREST_TREE_OBJECT";
+/// The scene whose collision triangles the tree query reads: the compiled semantic name of `OBJECT_3D_FOREST_TREE_OBJECT` (modules/3d/3dmodels.h `OBJECT_3D_INDEX (FOREST_TREE_OBJECT)`).
+pub const FOREST_TREE_SCENE: &str = "FOREST_TREE_OBJECT";
 /// How many triangles the host walks looking for the end of the forest object's list: a bound, not a format limit.
 const FOREST_WALK_CAP: i64 = 20_000;
 
@@ -76,12 +78,15 @@ pub fn forest_geometry_from_store(store: &ModelStore) -> Result<ForestGeometry, 
     Err(format!("the forest tree's collision triangles did not end within {FOREST_WALK_CAP}"))
 }
 
-/// The reference host's source: its model store, loaded from the installation on the first tree question.
-pub fn reference_forest_source(install_root: PathBuf) -> ForestSource {
-    Box::new(move || match ModelStore::load(&install_root) {
-        Ok(store) => forest_geometry_from_store(&store),
-        Err(e) if e.kind == ErrorKind::Missing => Err(format!("NOT RUN: model assets absent: {e}")),
-        Err(e) => Err(format!("model store refused: {e}")),
+/// The reference host's source: the finalized store of the model provider the campaign boots with (`host.model`), for this installation. A missing provider, one whose announced
+/// walk is not complete and another installation are refusals by name; nothing is loaded here.
+pub fn reference_forest_source(install_root: PathBuf, model: Option<ReferenceModel>) -> ForestSource {
+    Box::new(move || {
+        let model = model
+            .as_ref()
+            .ok_or("the host has no reference model provider (host.model) to take the forest tree's triangles from")?;
+        let store = model.announced_final_store(&install_root)?;
+        forest_geometry_from_store(&store)
     })
 }
 
@@ -102,10 +107,10 @@ impl TreeHost {
         }
     }
 
-    /// The reference host: the tree files of `terrain_dir` and the forest triangles of the model store of `install_root`.
+    /// The reference host: the tree files of `terrain_dir` and the forest triangles of the campaign's own final model store for `install_root`.
     #[must_use]
-    pub fn reference(install_root: PathBuf, terrain_dir: PathBuf) -> Self {
-        Self::new(terrain_dir, reference_forest_source(install_root))
+    pub fn reference(install_root: PathBuf, terrain_dir: PathBuf, model: Option<ReferenceModel>) -> Self {
+        Self::new(terrain_dir, reference_forest_source(install_root, model))
     }
 
     fn collision(&mut self, facts: &Facts) -> Result<&mut TreeCollision, String> {

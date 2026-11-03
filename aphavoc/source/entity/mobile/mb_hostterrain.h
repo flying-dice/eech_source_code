@@ -59,7 +59,7 @@
  *                 DONE (hit, the final point and normal words) or NEED_TERRAIN (which end, x and z).
  *   TREE_TERRAIN  the campaign's answer to NEED_TERRAIN: the elevation pattern.  The reply is again DONE or NEED_TERRAIN.
  *
- * A host asks at most two elevations (the old end, then the new end, each only when inside the map).  A reply is checked completely before the caller's buffers are written, and a
+ * A host asks for none, the old end only, the new end only (a segment that enters the map) or the old end and then the new end, each end at most once and only when it is inside the map.  A reply is checked completely before the caller's buffers are written, and a
  * missing provider, a refusal, a malformed reply or a third lookup stops the engine at the tree boundary: the campaign has NO tree solver to fall back to.  Equivalent absence (a map with no
  * tree files, or no forest triangles) is the host's to state and is an answer, not a refusal.
  *

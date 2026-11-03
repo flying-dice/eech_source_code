@@ -1,0 +1,320 @@
+{
+  "schema": "independent-finite-source-review-v1",
+  "reviewed_utc": "2026-11-03T02:20:40.344630+00:00",
+  "source": {
+    "commit": "eec18682f486b94ab92a020ed106bed64b3b0827",
+    "merge_parents": [
+      "f2473817bced177b588878d6e416dcb4400f8bc2",
+      "099aa09c2dfeb77ca708214421e81113369a057e"
+    ],
+    "access": "Immutable Git object reads in Task49 repository; active source not edited. No runtime source relabel.",
+    "source_files": [
+      {
+        "path": "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+        "mode": "100644",
+        "bytes": 69186,
+        "sha256": "6328459e7b790f0f5f798fee0991dd95290319e1029cca5ef8bd63265a690c69"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostterrain.c",
+        "mode": "100644",
+        "bytes": 23688,
+        "sha256": "1b1434255026ab53d695cb215e747277c2ddfdc66f59e980741dd978e43941fe"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostterrain.h",
+        "mode": "100644",
+        "bytes": 18253,
+        "sha256": "d72437fe1f192bcb9da3266565d6565aadd1490b99d89050115b0fdc82cf5f00"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/tree_host.rs",
+        "mode": "100644",
+        "bytes": 19440,
+        "sha256": "0482c35b3ee4e12c52ce5eac473ff7f7587619c49e9e717e8473221d2fbea555"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/terrain.rs",
+        "mode": "100644",
+        "bytes": 78290,
+        "sha256": "d324dc8199e55b4377960767d66e7beed872eb4bce0baafc9ac7532decaa68a8"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/tree-authority.lua",
+        "mode": "100644",
+        "bytes": 22502,
+        "sha256": "ae0b48e2aeae12e3ad5893b7e5121c7252e3b2cf581e63c270c9d4a707465d81"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+        "mode": "100644",
+        "bytes": 23410,
+        "sha256": "1ba5d14d449d11175eedc7436669fd57c42a119b792f8ff705ebe18070edd5c4"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+        "mode": "100644",
+        "bytes": 75704,
+        "sha256": "7e1a22f4ea5c171c3685c1a4aa3d58288b317df3aaf81af47c839b1f8b3a9178"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "mode": "100644",
+        "bytes": 644400,
+        "sha256": "27ff6177268299f05a1998b3825b004f3daef2c36d34fd1d9a5e7e481d58f9a5"
+      },
+      {
+        "path": "eech-campaign/crates/eech-dc/src/module.rs",
+        "mode": "100644",
+        "bytes": 423045,
+        "sha256": "39f73cad9dfed17ca61e8199c10298f08fcb56d7f425b5c8ffbdefdddb1c55b1"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_collision_fixture.c",
+        "mode": "100644",
+        "bytes": 96155,
+        "sha256": "7dbbc686c16962eacf68575465d6f6f07f317392728202021dda88686ae7ebb4"
+      },
+      {
+        "path": "eech-campaign/docs/d3-tree-collision-provider.md",
+        "mode": "100644",
+        "bytes": 8103,
+        "sha256": "40d607f518b026dc45b937aa47e69291ce420945f37cb70608b8972bce8ff47c"
+      }
+    ]
+  },
+  "scope": "One combined correctness, clean-code and boundary-safety review of new production TREE routing and necessary Task49/Task52 merge resolutions. Closed original collision/tree numeric/model/target-point slices reused without another source audit, build or native run.",
+  "decision": {
+    "verdict": "CHANGES_REQUIRED",
+    "source_review_no_blocking_findings": false,
+    "finite_tree_route_closed": false,
+    "native_launch_clearance": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_or_full_shipping_accepted": false
+  },
+  "findings": [
+    {
+      "id": "ENV-TREE-FOREST-IDENTITY-1",
+      "severity": "P1",
+      "title": "Forest geometry lookup has an impossible name and an independent custom-definition order",
+      "locations": [
+        "eech-campaign/crates/eech-world/src/tree_host.rs:34",
+        "eech-campaign/crates/eech-world/src/tree_host.rs:81",
+        "eech-campaign/crates/eech-world/src/models.rs:256",
+        "eech-campaign/crates/eech-world/src/models.rs:2329",
+        "eech-campaign/crates/eech-world/src/model_host.rs:915"
+      ],
+      "evidence": "The constant is OBJECT_3D_FOREST_TREE_OBJECT; the compiled semantic scene catalogue contains FOREST_TREE_OBJECT and scene_index_by_name delegates to exact byte equality. Therefore the production reference forest source necessarily refuses, regardless of retail availability. Separately, reference_forest_source calls ModelStore::load, which uses Custom::Sorted. The campaign model provider instead finalizes through load_in_order from the real announced unsorted custom walk. Definition replacement and per-directory shared-object history depend on that order.",
+      "consequence": "Fixing only the string still permits TREE triangles from a different final scene definition than the accepted campaign/model provider, or refusal due to an unrelated sorted custom parse. Neither is an equivalent absence.",
+      "minimum_correction": "Use the exact compiled semantic scene key and source forest geometry from the same finalized, pinned semantic model store/order, or prove the matching final definition/order explicitly. Do not silently create a separately sorted campaign geometry world. Preserve explicit Refused versus genuine Absent/End distinctions and the declared finite walk bound.",
+      "minimum_validation": "Focused real catalogue-key resolution and authoritative custom-order source/identity control, with a coherent order-sensitive positive before a mismatching-definition refusal. No repeat of old model characterization or unsafe original native is needed."
+    },
+    {
+      "id": "ENV-TREE-ENDPOINT-1",
+      "severity": "P1",
+      "title": "Adapter rejects the valid NEW-only original terrain lookup sequence",
+      "locations": [
+        "aphavoc/source/entity/mobile/mb_hostterrain.c:648",
+        "aphavoc/source/entity/mobile/mb_hostterrain.c:669",
+        "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c:1907",
+        "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c:1916",
+        "eech-campaign/crates/eech-world/lua/tree-authority.lua:132"
+      ],
+      "evidence": "The original independently tests whether OLD and NEW are inside the map. If OLD is outside and NEW inside, its first and only elevation lookup is NEW. The unchanged host kernel represents the same sequence. check_tree_reply currently insists lookups==0 implies OLD and lookups==1 implies NEW. The authority witness repeats that assumption.",
+      "consequence": "A valid original map-entry segment fatally stops at tree.lookups. Existing Rust bridge word tests bypass this C adapter and do not establish the missing endpoint case.",
+      "minimum_correction": "Track an ordered endpoint subsequence: none, OLD only, NEW only, OLD then NEW. Keep maximum two, reject duplicate endpoints, NEW then OLD and third requests, and preserve the exact actual shared-record read order. Update the witness to validate the same contract without inventing omitted lookups.",
+      "minimum_validation": "Focused boundary controls exercising all valid endpoint subsequences and meaningful duplicate/reversed/third negative sequences through the real adapter/helper, not merely an enum transport test. Keep original numeric expectations and caller-word behavior unchanged."
+    },
+    {
+      "id": "ENV-TREE-AUTHORITY-1",
+      "severity": "P2",
+      "title": "New native authority witness is not trap-safe or fail-closed for the stated evidence",
+      "locations": [
+        "eech-campaign/crates/eech-world/lua/tree-authority.lua:45",
+        "eech-campaign/crates/eech-world/lua/tree-authority.lua:80",
+        "eech-campaign/crates/eech-world/lua/tree-authority.lua:233",
+        "eech-campaign/crates/eech-world/lua/tree-authority.lua:289",
+        "eech-campaign/crates/eech-world/lua/tree-authority.lua:332",
+        "eech-campaign/crates/eech-world/lua/tree-authority.lua:362"
+      ],
+      "evidence": [
+        "bits_of uses 1/v for zero sign. Under the native enabled divide-by-zero trap state this is a hardware failure; the same class of Lua conversion defect was already measured and corrected in the rotor witness. The new script has only a syntax-load test, not an enabled-trap execution proof.",
+        "io.open(out,\"w\") can truncate existing evidence. Writes/flush and normal close are checked, but no owned close-on-all-error path covers boot/warmup/setup/provider errors.",
+        "run_step treats every non-witness Lua failure as an engine failure; the refusal verdict accepts a marker substring without checking the exact Engine-owned first-line prefix. state() swallows all query errors and may continue querying after an actual fatal error.",
+        "Normal control/forced_hit verdicts do not require a nonempty launch cohort, zero pending at the settle cap, one terminal per member, or launch-report restoration. Births/creates/restored are already supplied by the existing real launch report. Counters for duplicates/foreign events are emitted but do not enforce the promised cohort completion.",
+        "An Original profile failure solely because no tree_begin arrived also conflates an actually executed original tree call with no tree query reached. The existing weapon fixture exposes contact_trees_tests, which can distinguish real call coverage from UNREACHED."
+      ],
+      "minimum_correction": [
+        "Use exact trap-safe signed-zero/float-word conversion; do not mask caller traps, change the arithmetic profile, or weaken word comparison.",
+        "Use the existing exclusive checked-output facility with bounded guaranteed close on success/error, checked writes/flush/actual close, and no success after I/O failure. Do not build a generic framework.",
+        "Accept only the exact known Engine fatal first line and the unique intended marker; preserve callback versus answer causes and stop immediately on a fatal, with no postpoison census/query/cleanup claims.",
+        "Parse and join the real launch report with its emitted births/cohort, validate supported launcher/target prerequisites and truthful target-link restoration. Require a nonempty completed coherent cohort on successful normal runs; an explicit bounded incomplete/unavailable result is not a pass. Keep foreign natural activity visible rather than pretending all provider questions belong to the case.",
+        "Build the Original control with both weapon-fixture and collision-fixture, verify API presence and a real original tree-call counter delta before classifying a missing-host-route RED. A failure before the call remains setup/UNREACHED."
+      ],
+      "minimum_validation": "Run meaningful focused real-Lua coherent positives first, then one-fault clock/cohort/refusal/I/O controls and enabled-trap zero conversion. Use existing diagnostics for the actual call and restoration joins. Fresh native authority comes only after corrected source/build gates; no old unsafe native witness is required."
+    },
+    {
+      "id": "ENV-TREE-MAPPING-SCOPE-1",
+      "severity": "P2",
+      "title": "DCS plan permits unsupported physical queries as misses and omits required remaining loader scope",
+      "locations": [
+        "eech-campaign/docs/d3-tree-collision-provider.md:63",
+        "eech-campaign/docs/d3-tree-collision-provider.md:66",
+        "docs/handover/ACTIVE-EXTRACTION.json:13",
+        "docs/handover/ACTIVE-EXTRACTION.json:44",
+        "docs/handover/ACTIVE-EXTRACTION.json:67"
+      ],
+      "evidence": "The DCS section allows done{hit=false} when the host cannot test trees. That is an unknown/unsupported service, not a measured or configured legitimate absence, and changes weapon physical behavior. No pinned actual DCS query declaration or concrete compatible data workaround is supplied. The active card lists only entity/object collision as remaining Task49 production work although the supported boot still loads raw Core tree data and constructs visual/instance/cloud state.",
+      "minimum_correction": "Unknown DCS tree capability must remain an explicit unresolved required mapping or named refusal, not an accepted miss. Name a verified API or bounded host-data workaround before claiming a concrete provider plan; later live behavior checks alone are M6. Record Core tree loader/forest constructor and cloud-data/RNG disposition as required remaining Task49/D3 work alongside entity/object collision. Do not remove loops/draws or change campaign policy in this source-fix batch merely to manufacture conformance."
+    }
+  ],
+  "source_checks_without_additional_findings": [
+    "Ordinary build defines EECH_CAMPAIGN_HOST_TREE except explicit collision-fixture. The hosted get_line_of_sight_collision_tree has no sector scan/triangle/quad solver and keeps original argument/debug-line entry behavior. The original branch and its additive fixture macros remain separately compiled only by the declared profile.",
+    "TREE operations append after existing terrain operations; C uint32 arrays/int discriminators match repr(C) Rust request/reply order and the Rust enum-to-FFI mapping. Existing terrain, environment, model and target-point fields/features remain present. Replies are assembled in locals and caller point/normal buffers are copied only after the complete final shape is accepted.",
+    "The Lua TREE bridge enforces state, endpoint, boolean hit and exact word/triple syntax. Point and normal are transported as integer bit patterns, including arbitrary miss-buffer words; no blanket finite restriction is added to old output buffers.",
+    "C tree_query_open rejects nested queries. Host respond abandons a pending query on refused requests, and a new begin replaces its own pending host state. No asynchronous raw C pointer or callback-owned stack address is retained.",
+    "The merged Rust conflict files retain every named function from both parents in the inspected engine, sys, DC and host_callbacks files. Parent test counts are not coverage proof; no missing function was found. The engine C prefix through its one existing literal NUL remains byte-equal to accepted 099, at offset 42530.",
+    "Closed trees.rs and tree_step.c are whole-byte identical to first parent f2473817b. No kernel/oracle/tolerance/global numerical-flag correction is made or requested here.",
+    "Collision original diagnostic shared-record view was necessarily adapted to host-terrain face_stored/hint-presence semantics. Old legacy record/hash comparability is explicitly withdrawn, while old evidence stays immutable; this does not itself revalidate physical replay on the new profile."
+  ],
+  "remaining_loader_disposition": {
+    "entry_proof": "eech_engine.c307 calls load_3d_terrain_game_data; zone_sc.c216..245 calls unload_3d_terrain then load_3d_terrain. Both zone_sc.c and terrdata.c are actual sources.txt entries. No staged patch replaces load_3d_terrain, and no build OGRE_EE define excludes its non-OGRE blocks.",
+    "active_source": "terrdata.c694..803 maps tree_pos.sec/dat, reads dimensions, allocates sector arrays and associates raw tree pointers; 764..797 constructs FOREST_TREE_OBJECT where matching data is loaded. The subsequent non-OGRE block constructs CLOUD and conditionally allocates cloud sectors/data, with CRT draws/elevation reads controlled by session_cloud_puffs/season.",
+    "truthful_bound": "These are boot-reachable compiled responsibilities, not proven dormant from headless capability. This review does not claim every conditional allocation/draw ran on a new native. The new TREE solver route does not detach these loaders or determine their needed-only/RNG-preserving removal; whole Task49/D3 remains open."
+  },
+  "actual_checks_read_only": {
+    "kind": "Author working-tree Linux child command logs only; no clean Windows or native retail run supplied for eec. Reviewer executed none.",
+    "logs": [
+      {
+        "file": "s1.log",
+        "bytes": 349,
+        "sha256": "210a6acf17ef1b4734f0268242f4ffcb11f4ca22973d444deafce72a9faa1641",
+        "actual_child_markers": [
+          "ACTUAL cargo-test-no-run-engine exit=0"
+        ],
+        "test_result_rows": 0,
+        "passed_in_result_rows": 0,
+        "failed_in_result_rows": 0
+      },
+      {
+        "file": "s10.log",
+        "bytes": 1923,
+        "sha256": "0b38e8bdd79bbf154c1c501f9b96a86901bf8313d5f2272fffb661f995d6d648",
+        "actual_child_markers": [
+          "ACTUAL progress-check exit=0",
+          "ACTUAL progress-production-cutover exit=0"
+        ],
+        "test_result_rows": 0,
+        "passed_in_result_rows": 0,
+        "failed_in_result_rows": 0
+      },
+      {
+        "file": "s2.log",
+        "bytes": 5520,
+        "sha256": "e8f797fdec0e1f255f10e6e840ab3783dbd612aa0801a28d856f71a73d530c34",
+        "actual_child_markers": [
+          "ACTUAL engine-terrain-tree exit=0",
+          "ACTUAL dc-terrain-tree exit=101",
+          "ACTUAL world-lib-tree exit=0"
+        ],
+        "test_result_rows": 2,
+        "passed_in_result_rows": 33,
+        "failed_in_result_rows": 0
+      },
+      {
+        "file": "s3.log",
+        "bytes": 15128,
+        "sha256": "db90221ef08f8ac50e145092226f349774551df5b7c337b5770aa4486fbf4016",
+        "actual_child_markers": [
+          "ACTUAL dc-terrain-tree exit=0",
+          "ACTUAL world-tree-terrain-tests exit=0",
+          "ACTUAL world-host-callbacks-collision-ground exit=0"
+        ],
+        "test_result_rows": 7,
+        "passed_in_result_rows": 54,
+        "failed_in_result_rows": 0
+      },
+      {
+        "file": "s4.log",
+        "bytes": 21483,
+        "sha256": "74ae110f98d9840be0497e76430d863942b808d5fbc6db5644213da3844ef07c",
+        "actual_child_markers": [
+          "ACTUAL fmt-check exit=1",
+          "ACTUAL engine-sys-guard exit=0",
+          "ACTUAL world-tree-host exit=0"
+        ],
+        "test_result_rows": 2,
+        "passed_in_result_rows": 6,
+        "failed_in_result_rows": 0
+      },
+      {
+        "file": "s5.log",
+        "bytes": 48,
+        "sha256": "1f1400a48717acbe4d28189ba9656131eaca400564b5cbba420bdf81c04c983d",
+        "actual_child_markers": [
+          "ACTUAL fmt-write exit=0",
+          "ACTUAL fmt-check exit=0"
+        ],
+        "test_result_rows": 0,
+        "passed_in_result_rows": 0,
+        "failed_in_result_rows": 0
+      },
+      {
+        "file": "s6.log",
+        "bytes": 1047,
+        "sha256": "f7f0deb479188f634a3fc864ef9353efd8ccb51aace12dcfac4127cdbd6a9ff5",
+        "actual_child_markers": [
+          "ACTUAL clippy-default exit=0",
+          "ACTUAL clippy-dc-collision-fixture exit=0",
+          "ACTUAL clippy-dc-weapon-fixture exit=0"
+        ],
+        "test_result_rows": 0,
+        "passed_in_result_rows": 0,
+        "failed_in_result_rows": 0
+      },
+      {
+        "file": "s7.log",
+        "bytes": 129506,
+        "sha256": "14894b5c96cb2e52f27254aa324ed9487ba9fe84fecef3124a0d6a5b103a1461",
+        "actual_child_markers": [
+          "ACTUAL full-affected-crates exit=101"
+        ],
+        "test_result_rows": 31,
+        "passed_in_result_rows": 842,
+        "failed_in_result_rows": 1
+      },
+      {
+        "file": "s8.log",
+        "bytes": 8524,
+        "sha256": "92fb11f4f130942a7011bf25745020a3367289b1e98b09fb401b7f4f6d158e75",
+        "actual_child_markers": [
+          "ACTUAL fmt-check exit=0",
+          "ACTUAL host-callbacks-all exit=0"
+        ],
+        "test_result_rows": 1,
+        "passed_in_result_rows": 82,
+        "failed_in_result_rows": 0
+      },
+      {
+        "file": "s9.log",
+        "bytes": 256624,
+        "sha256": "eba309176d57947fb324c93d8ece6c8debffe15dec040692b6e0a8b8641af778",
+        "actual_child_markers": [
+          "ACTUAL fmt-check exit=0",
+          "ACTUAL clippy-default exit=0",
+          "ACTUAL clippy-dc-collision-fixture exit=0",
+          "ACTUAL full-affected-crates exit=0"
+        ],
+        "test_result_rows": 57,
+        "passed_in_result_rows": 1113,
+        "failed_in_result_rows": 0
+      }
+    ],
+    "final_working_tree_gates": "s5 fmt0; s6 strict default/collision-fixture/weapon-fixture0; s9 fmt0/default strict0/collision strict0/full four-package tests0. Last full test log has 57 result rows, 1113 passed and zero failed by mechanical summation; zero/conditional targets are not native branch coverage.",
+    "preserved_failures": "s2 DC tree test exit101, s4 fmt-check1, and s7 full-suite101 with 81/82 host_callbacks after missing collision-driver arithmetic selection are retained; later logs show corrected outcomes at their working-tree identities. No early failures are relabeled passes.",
+    "not_proved": "Final clean committed eec build provenance, native TREE authority/original capability RED, ordinary complete recording conformance, full caller x87/MXCSR status across the new bridge, and required remaining loader removal are not supplied by these Linux checks."
+  },
+  "next_unmet_gate": "One sole-author correction batch for the four consolidated groups, then inspect only changed bytes plus meaningful focused guards and fresh clean actual native authority/conformance evidence. No original numeric replay or old scenario rerun is required solely for handover. No native clearance on known incorrect eec source.",
+  "safe_report": "Counts, source hashes, semantic errors and static references only; no retail geometry, positions, raw transcripts, private pointers, allocation identities, credentials or binaries included.",
+  "review_execution": "No source edits, builds/tests/native execution, cache/VM/daemon/auth operations, app writes or subagents. This is a finite source pass; stop here for the same author correction."
+}

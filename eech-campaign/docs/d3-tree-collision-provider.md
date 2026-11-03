@@ -1,76 +1,117 @@
 # D3 tree segment collision: the host-owned query (EEDCS-49)
 
-Status: **production source implemented and focused-checked; no native run yet** (Root owns the native actuals). This is the *tree* slice of Task 49. It is not
-Task 49: `get_line_of_sight_collision_entity` (entity/object collision) is still the campaign's, and whole D3 / EEDCS-21 stay open.
+Status: **production source implemented and focused-checked on Linux; the independent source review of `eec18682f` returned CHANGES_REQUIRED (four groups) and this text describes the
+corrected source. The source-review gate stays OPEN until the same reviewer closes it.** No retail, Windows or native-campaign run exists yet (Root owns the native actuals; the C ABI
+controls below did run). This is the *tree* slice of Task 49. It is not Task 49: `get_line_of_sight_collision_entity` (entity/object collision), the raw Core tree loader, the
+forest-object constructor and the cloud block (below) are still the campaign's, and whole D3 / EEDCS-21 stay open.
 
 ## What changed
 
 `get_line_of_sight_collision_tree` (`aphavoc/source/entity/en_misc/en_maths/en_cllsn.c`) no longer scans sectors or intersects anything in the ordinary module. With
 `EECH_CAMPAIGN_HOST_TREE` (defined by `eech-engine-sys/build/main.rs` in every build except feature `collision-fixture`) it checks its arguments, keeps the debug line, and calls
-`campaign_terrain_tree_collision` (`mb_hostterrain.c`). That carries the question to the host's **terrain provider**, as two more operations of it:
+`campaign_terrain_tree_collision` (`mb_hostterrain.c`, whose dialogue is `mb_hosttree.h`). That carries the question to the host's **terrain provider**, as two more operations of it:
 
 | op | request (every float a 32-bit pattern, `0x` + 8 hex digits, three comma separated for a position) | reply |
 |---|---|---|
 | `tree_begin` | `old`, `new`, `point`, `normal` (the caller's own buffers' words), `ignore_forest_edge_trees`, `skip_tree_top_test`, `winter` | `{state='need_terrain', end='old'\|'new', x, z}` or `{state='done', hit, point, normal}` |
 | `tree_terrain` | `elevation` (pattern), `winter` | the same two |
 
-The campaign answers each `need_terrain` with the same call, in the same order and with the same shared-record side effect as the original (`get_3d_terrain_elevation`, which is
-itself host-backed since Task 47), at most twice (old end, then new end), and only writes the caller's `intercept_point` and `face_normal` after the whole reply is checked.
-Patterns, not numbers, cross the boundary because the caller's buffers can hold anything (the weapon step passes an uninitialised `face_normal`) and a miss must hand them back
-as the original left them: nothing is converted, normalised or zeroed.
+The campaign answers each `need_terrain` with the same call and the same shared-record side effect as the original (`get_3d_terrain_elevation`, which is itself host-backed since Task 47),
+and only writes the caller's `intercept_point` and `face_normal` after the whole reply is checked. **The original reads the OLD end only when the old end is inside the map and the NEW
+end only when the new end is**, so a query asks for none, OLD only, NEW only (a segment that enters the map), or OLD then NEW; an end is asked at most once and OLD never after NEW
+(marker `tree.lookups`). The first batch's dialogue accepted only none / OLD / OLD-then-NEW, so a NEW-only segment was a fatal stop (RED below).
+Patterns, not numbers, cross the boundary because the caller's buffers can hold anything (the weapon step passes an uninitialised `face_normal`) and a miss must hand them back as the
+original left them: nothing is converted, normalised or zeroed.
 
-Layers: C `mb_hostterrain.{h,c}` -> `eech-engine-sys` structs -> `eech-engine` `TerrainQuery::{TreeBegin,TreeTerrain}` / `TerrainAnswer::Tree` -> `eech-dc` Lua `TREE_BRIDGE` (shape
-checks, markers `tree_begin.callback|answer`, `tree_terrain.callback|answer`, C-side `tree.lookups|answer|query|request`) -> the host's Lua provider. **No new boot key and no new
+Layers: C `mb_hostterrain.{h,c}` + `mb_hosttree.h` -> `eech-engine-sys` structs -> `eech-engine` `TerrainQuery::{TreeBegin,TreeTerrain}` / `TerrainAnswer::Tree` -> `eech-dc` Lua `TREE_BRIDGE`
+(shape checks, markers `tree_begin.callback|answer`, `tree_terrain.callback|answer`, C-side `tree.lookups|answer|query|request`) -> the host's Lua provider. **No new boot key and no new
 callback:** the terrain provider is already required and process-kept.
 
 Reference host (`eech-world`): `src/tree_host.rs` drives the closed `trees.rs` loader/kernel (`csrc/tree_step.c`, unchanged) from `host.terrain_provider`:
 
 * map facts: the terrain's own `Facts` (extents, sector counts, height range) = the facts the campaign took at boot;
 * tree files: `tree_pos.sec/.dat` of the map's terrain directory (absent files or a header that differs from the terrain's sector counts are the original's "no trees loaded": an
-  answer, the query still reads its two elevations and misses);
-* forest tree collision triangles: walked from the host's **model store** (`OBJECT_3D_FOREST_TREE_OBJECT`, depth 0, 1, ...). None at depth 0 is `KnownAbsent` (retail); a model the
-  store cannot show to be backed (`Refused`) refuses the query, never "absent";
+  answer, the query still reads the elevations of the ends inside the map and misses);
+* forest tree collision triangles: walked from the **same finalized model store the campaign's own model callbacks answer from** (`host.model`'s provider, `model_host::ReferenceModel`),
+  scene `FOREST_TREE_OBJECT` (the compiled semantic name; `OBJECT_3D_FOREST_TREE_OBJECT` is the enumerator spelling and is no scene name), depth 0, 1, ... None at depth 0 is `KnownAbsent`
+  (retail); a model the store cannot show to be backed (`Refused`) refuses the query, never "absent". The store is used only once the campaign's custom-model walk announcement is
+  complete and the store was replayed (or verified) in that announced order (`walk_final`); a missing provider, a provider still being announced to, one that answered from a sorted image
+  because no walk was announced, a `host.model_provider(store)` provider (not registered) and another installation are each a refusal by name. No second loader, sorted order or cache exists;
 * loaded by the first tree question, once. `host.terrain_open` providers get a tree service only when the directory is `<root>/common/maps/map<N>/terrain`, otherwise a tree question is refused by name.
 
 ## Contract coverage (source facts, not a new diagnostic programme)
 
 | contract item | where it is held |
 |---|---|
-| old/new positions, initial point+normal words, two flags | `TREE_BEGIN` words; `eech-engine` and `eech-dc` tests assert signed zero / NaN patterns arrive unchanged both ways |
-| map/tree/forest geometry identity | host: terrain facts + terrain directory tree files + model store; census is available from `trees.rs` but **not surfaced** by the provider path (limitation) |
-| ordered endpoint lookups and their shared-record side effects | C adapter (old before new, <= 2, finite, `tree.lookups` marker otherwise); `lua/tree-authority.lua` control asserts order, one `point` read per lookup, `tree_terrain.elevation` == that read's pattern, and the second read carrying the first read's hint |
+| old/new positions, initial point+normal words, two flags | `TREE_BEGIN` words; `eech-engine`, `eech-dc` and the dialogue control assert signed zero / NaN patterns arrive unchanged both ways |
+| map/tree/forest geometry identity | host: terrain facts + terrain directory tree files + the campaign's own final model store; the tree census is available from `trees.rs` but **not surfaced** by the provider path (limitation) |
+| ordered endpoint lookups and their shared-record side effects | `mb_hosttree.h` (none / OLD / NEW / OLD then NEW; duplicate, reversal, unknown end and non-finite point stop at `tree.lookups`), exercised by `eech-engine-sys/tests/tree_dialogue.rs` through the REAL dialogue code bound to a scripted host; `lua/tree-authority.lua` asserts the same subsequences from what the provider sees, one `point` read per lookup at the asked coordinates, `tree_terrain.elevation` == that read's pattern, and the second read of a query carrying the first read's hint |
 | partial point/normal writes on misses, early exits, map-outside, scan order, tie rules, zero-axis masked FP, complete FP state/order | host kernel, closed and unchanged: `tree_conformance` (15054 original queries / 29894 ordered terrain answers exact; default and controlled original raw unchanged) |
 | consumers | the weapon step (`wn_move.c` `CAMPAIGN_STEP_LOOKUP_TREES`, flags FALSE,TRUE), avionics callers unchanged |
 | RNG | no draw, constructor or padding in the adapter or the host service |
-| cancellation / refusal | any refusal, malformed reply, third lookup, wrong end, missing provider or nested query is `debug_fatal` (the engine stops, named); the host drops a pending query on every refused request and a new `tree_begin` replaces any open one |
+| cancellation / refusal | any refusal, malformed reply, duplicate or reversed end, missing provider or nested query is `debug_fatal` (the engine stops, named); the host drops a pending query on every refused request and a new `tree_begin` replaces any open one |
 | equivalent absence vs missing/refused host | absence (no tree files, no forest triangles) is an *answer*; a missing provider or a refusal stops the engine by name |
+
+## Genuine RED / GREEN
+
+* NEW-only dialogue: with the first batch's logic (`lookups == 0` must be OLD) the isolated control `tree_dialogue` FAILED exactly on the two NEW-only cases (the dialogue stopped at
+  `tree.lookups`); with the subsequence rule it passes. Child exit codes are in the STATUS entry. The native NEW-only witness is `mode=new_only`.
+* Forest identity: with the first batch's constant `OBJECT_3D_FOREST_TREE_OBJECT` the compiled scene lookup returns nothing, so the production source could only refuse. The order-sensitive
+  control (a scene defined by two custom directories; the final scene is the last definition walked) shows the campaign's order and the sorted image giving different geometry.
 
 ## Remaining coupling (honest)
 
-* The two terrain elevations are still asked of the campaign's host-backed terrain (declared transitional, as for line of sight). A host that owns them answers `done` at `tree_begin` and is never asked.
+* The elevations of the ends inside the map are still asked of the campaign's host-backed terrain (declared transitional, as for line of sight). A host that owns them answers `done` at `tree_begin` and is never asked.
 * The debug *box* drawn from the solver's bounds (`draw_collision_boxes`, external view) is not carried; the debug line is. Headless modules never draw.
 * The tree slice does not touch entity/object collision (`get_line_of_sight_collision_entity`), the sector entity lists, or any consequence of a hit.
-* The forest geometry is a second load of the model store inside the host process at the first tree question (bounded, documented; not shared with `host.model`'s store).
 
 ## Original characterisation profile
 
-Feature `collision-fixture` (+ `weapon-fixture` etc. as before) is the **explicitly original** tree solver: `EECH_CAMPAIGN_HOST_TREE` is not defined and the fixture's
-observer hooks live inside the original body. Merged onto the host-terrain base it needed two honest changes, both labelled: (1) its shared terrain record view is now the
-host-semantic record (`face_stored`, `hint` empty-or-not) instead of the legacy sector/triangle/pointer words, which do not exist on this base; the record rows and hashes are **not comparable**
-with the original-terrain evidence at `47a4af0d1`/`b44d2c96f` (the physical words are); (2) `lua/collision-characterization.lua` now selects the reference arithmetic profile and boots with
-the terrain/model/environment providers like every other retained driver. Old evidence is preserved, not re-recorded.
+Feature `collision-fixture` is the **explicitly original** tree solver (the genuine Original control builds `eech-dc` with BOTH `weapon-fixture` and `collision-fixture`):
+`EECH_CAMPAIGN_HOST_TREE` is not defined and the fixture's observer hooks live inside the original body. Merged onto the host-terrain base it needed two honest changes, both labelled: (1) its shared
+terrain record view is now the host-semantic record (`face_stored`, `hint` empty-or-not) instead of the legacy sector/triangle/pointer words, which do not exist on this base; the record rows and
+hashes are **not comparable** with the original-terrain evidence at `47a4af0d1`/`b44d2c96f` (the physical words are); (2) `lua/collision-characterization.lua` now selects the reference arithmetic
+profile and boots with the terrain/model/environment providers like every other retained driver. Old evidence is preserved, not re-recorded.
 
-## DCS mapping (not executed live; M6)
+## DCS mapping: an UNRESOLVED REQUIRED mapping (not executed live)
 
-A DCS host implements `tree_begin`/`tree_terrain` from its own world. It has no `tree_pos` files: it may answer `done` at `tree_begin` from its own ray test against forest objects, or
-`done {hit=false}` *as an explicit host decision* when it cannot test trees. That is a degradation to be recorded as such (trees invisible to weapon steps), never a fabricated hit or a
-hidden fallback to the original solver. It must return the caller's own `point`/`normal` words on a miss. Nothing here claims that DCS can supply forest data or that live M6
-execution happened.
+No verified DCS query for forest or tree intersection is named. The pinned `tslua-dcs` declarations used for the target-point plan (`1179554fcafcef92d71313336cc09500febf8245`) name no tree,
+forest or ray-against-scenery call, and no host-data workaround (a versioned tree/forest dataset for the DCS map) has been defined from primary evidence. So there is **no concrete DCS provider
+plan** here, and none is invented. Until one is named and pinned, a host that cannot answer `tree_begin` must **refuse it** (the reference refusal is the named
+`[terrain-provider:tree_begin.callback]` stop); it must NOT answer `done {hit=false}`: an unsupported physical query is unknown, not a measured or configured absence, and it would change the
+weapon's physical behaviour. The only legitimate absences are the reference host's measured ones (no tree files in the map, no forest triangles in the model). This stays open as required
+D3/Task49 mapping work and is not deferred to M6; live DCS behaviour checks remain M6. On a genuine miss the caller's own `point`/`normal` words must come back unchanged.
+
+## Required remaining scope beside entity/object collision (open, not started here)
+
+The ordinary boot still loads and constructs the raw Core tree data, because those loaders are not detached by the tree solver route (reviewer entry proof: `eech_engine.c` calls
+`load_3d_terrain_game_data`; `zone_sc.c` unloads and reloads the terrain; both are in `sources.txt`; no staged patch replaces `load_3d_terrain`):
+
+* the raw tree loader (`terrdata.c` maps `tree_pos.sec/.dat`, allocates the sector arrays, associates raw tree pointers) and the `FOREST_TREE_OBJECT` construction;
+* the cloud block (`terrdata.c`, `#ifndef OGRE_EE`): `CLOUD` construction and, when `session_cloud_puffs > 1` or `== 1` and the season is not DESERT, per-sector allocation with CRT `rand()` draws.
+
+Other compiled consumers of the raw tree data exist besides the (now hosted-out) solver: `gunships/dynamics/common/co_force.c` (`get_terrain_3d_tree_sector_data`, the player's flight-dynamics
+tree force) and the renderer (`terrgeom.c`). Whether either is reachable in the supported headless boot has NOT been shown, so nothing is removed and nothing is called dormant.
+
+RNG disposition (a fact, not a removal): the engine seeds the shared stream before the terrain loads (`eech_engine.c` `set_random_number_seed`, which also `srand`s the CRT), the cloud block draws
+from that CRT stream, and the only other `set_random_number_seed` caller in the sources is the menu (`uisess_fn.c`); no reseed between the load and the first outside consumer was found in
+source. So the cloud draws are **not shown to be erased**; removing the block would change the stream every later consumer sees, which is a baseline-governed semantic change, and the existing
+`rng_unchanged` guard is not proof for the CRT stream (it may cover another stream). The tree loader and forest constructor themselves draw nothing (no `rand()` in them).
+
+The smallest bounded capture that would settle it, if the removal is wanted: for the supported scenarios (Lebanon map5, Georgia), the effective `session_cloud_puffs` and season at the boot
+`load_3d_terrain` and at the zone reload, the count of CRT `rand()` calls made inside `load_3d_terrain`, and whether a `srand` precedes the first consumer afterwards (the existing counting header
+`eech_tp_rand.h` renames every `rand()` of a build and is the existing way to count). If the cloud branch is not taken there are no draws and the block can go with no RNG effect; if draws
+happen and are not erased, removal is a semantic change for lead review, and dummy draws are not the answer. Required Task49/D3 work, OPEN.
 
 ## Checks and commands
 
-Focused (pinned Linux image, cache `eech-linux-d3-collision-driver-5416adb3b-20261029`): `cargo test --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world`, `cargo fmt --all -- --check`,
-`cargo clippy --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world --all-targets -- -D warnings` and the same for `-p eech-dc --features collision-fixture`. The compile guard is
-`eech-engine-sys/tests/tree_host_guard.rs`. Native authority (Root): build `eech-dc` with `--features weapon-fixture` (never `collision-fixture`) and run
-`eech-world lua/tree-authority.lua root=<install> mode=<control|forced_hit|withheld_tree|bad_tree_state|bad_tree_word|wrong_end_first|third_lookup|done_not_boolean> out=<jsonl>`;
-exit 0 is the verdict (it self-asserts; `forced_hit` is additionally compared with the control's terminal rows).
+Focused (pinned Linux image, cache `eech-linux-d3-collision-driver-5416adb3b-20261029`): `cargo test --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world`,
+`cargo test --locked -p eech-engine-sys --features tree-dialogue-check --test tree_dialogue` (the dialogue control), `cargo fmt --all -- --check`, strict clippy for the four crates and for
+`-p eech-dc` with `collision-fixture`, `weapon-fixture` and both. The compile guard is `eech-engine-sys/tests/tree_host_guard.rs`; the driver controls are `eech-world/tests/tree_authority.rs`.
+
+Native authority (Root), one fresh installation root and process per run, exit 0 is the verdict, evidence created exclusively (`out=` must not exist):
+
+* hosted module = `eech-dc --features weapon-fixture`: `eech-world lua/tree-authority.lua root=<install> mode=control out=<new.jsonl>`, then `mode=new_only`, `mode=forced_hit` (compare its terminal rows
+  with the control) and the refusals `withheld_tree`, `bad_tree_state`, `bad_tree_word`, `done_not_boolean`, `new_then_old`, `old_twice`, `third_lookup`;
+* Original control = `eech-dc --features weapon-fixture,collision-fixture`: `... profile=original mode=control`. It FAILS BY DESIGN with `CAPABILITY RED` when the weapon step made real tree tests
+  (`contact_trees_tests` rose), the fixture API is present and the host was asked nothing; anything else is `UNREACHED` (setup), not a red.

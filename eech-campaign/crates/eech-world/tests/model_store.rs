@@ -9,6 +9,7 @@ use eech_world::models::{
     compiled_animation_count, compiled_animation_name, compiled_scene_name, fp_state, old_last, scene_last, AnimationRef, ErrorKind, ModelStore, ObjectHeader,
     ObjectSource, QueryError, SceneSource, Triangle, ROLE_COLLISION, ROLE_MAIN,
 };
+use mlua::Lua;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -4096,4 +4097,120 @@ fn a_requested_floating_point_measurement_is_never_called_covered_when_the_refus
     let run = stand_in_run(&["fpu=1"], "nofpu");
     assert!(!run.status.success(), "{}", run.stderr);
     assert_eq!(run.row("summary")["fpu_unreached"].as_bool(), Some(true));
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// the forest tree's triangles come from the campaign's own final store (EEDCS-49): the exact semantic key, the announced order, the same installation
+
+/// The forest tree scene is defined by a custom file in BOTH directories, and the final scene is the LAST definition walked: directory A defines it with the 5 by 6 quad, directory B with
+/// the 7 by 8 one. The sorted order (A, B) leaves B's; the campaign's walk (B, A) leaves A's.
+fn forest_order_root() -> (Root, usize) {
+    let forest =
+        eech_world::models::scene_index_by_name(eech_world::tree_host::FOREST_TREE_SCENE).expect("the forest tree scene is a compiled semantic scene name");
+    let root = standard();
+    let mut turret = identity_quad();
+    turret.points = vec![[0, 0, 0], [7, 0, 0], [7, 8, 0], [0, 8, 0]];
+    let name = compiled_scene_name(forest).unwrap();
+    root.write(&format!("OBJECTS/A/{name}.ees"), &ees("Chassis"));
+    root.write("OBJECTS/A/chassis.eeo", &eeo(1, &chassis()));
+    root.write(&format!("OBJECTS/B/{name}.ees"), &ees("Turret"));
+    root.write("OBJECTS/B/turret.eeo", &eeo(1, &turret));
+    (root, forest)
+}
+
+#[test]
+fn the_forest_geometry_follows_the_order_the_campaign_walked_and_a_sorted_image_gives_another_answer() {
+    use eech_world::trees::ForestGeometry;
+    let (root, forest) = forest_order_root();
+    // the key is the compiled semantic name, not the enumerator's spelling
+    assert_eq!(compiled_scene_name(forest), Some("FOREST_TREE_OBJECT"));
+    assert!(eech_world::models::scene_index_by_name("OBJECT_3D_FOREST_TREE_OBJECT").is_none());
+    // the campaign's walk visited B before A: A's definition (the 5 by 6 quad, two triangles) is the final scene
+    let walked = ModelStore::load_in_order(&root.dir, &[(forest, "B".to_string()), (forest, "A".to_string())]).unwrap();
+    let geometry = eech_world::tree_host::forest_geometry_from_store(&walked).expect("the walked store backs the forest scene");
+    let ForestGeometry::Triangles(triangles) = &geometry else {
+        panic!("{geometry:?}")
+    };
+    assert_eq!(triangles.len(), 2);
+    assert_eq!(triangles[0][1], [5.0, 0.0, 0.0], "the chassis quad, the last definition of the campaign's walk");
+    // the sorted image leaves B's definition (the 7 by 8 quad): another answer to the same question, which is why it is never used
+    let sorted = root.load().unwrap();
+    let ForestGeometry::Triangles(sorted_triangles) = eech_world::tree_host::forest_geometry_from_store(&sorted).expect("the sorted store backs the scene too")
+    else {
+        panic!("the sorted store has triangles too")
+    };
+    assert_eq!(sorted_triangles[0][1], [7.0, 0.0, 0.0], "the turret quad");
+    assert_ne!(&sorted_triangles, triangles);
+}
+
+/// The reference provider in a real Lua state with the real store: registered by the host, announced to by a script that plays the campaign.
+fn model_provider_for(root: &Path) -> (Lua, mlua::Function) {
+    let lua = Lua::new();
+    let host = lua.create_table().unwrap();
+    let args = lua.create_table().unwrap();
+    args.set("root", root.to_str().unwrap()).unwrap();
+    host.set("args", args).unwrap();
+    eech_world::model_host::register(&lua, &host).unwrap();
+    let model: mlua::Function = host.get("model").unwrap();
+    (lua, model)
+}
+
+#[test]
+fn the_tree_services_forest_source_uses_the_same_store_only_after_the_announced_walk_is_final() {
+    use eech_world::model_host::ReferenceModel;
+    use eech_world::tree_host::reference_forest_source;
+    use eech_world::trees::ForestGeometry;
+    let (root, forest) = forest_order_root();
+    let (lua, model) = model_provider_for(&root.dir);
+    let view = ReferenceModel::from_lua(&lua).expect("the provider registers its view");
+    let ask = |step: (&str, Option<usize>, i64, i64, Option<&str>)| -> mlua::Result<mlua::Table> {
+        model.call((step.0, step.1, step.2, step.3, mlua::Value::Nil, step.4))
+    };
+    // before the campaign announced anything, and while it is announcing, no store is final
+    let error = view.announced_final_store(&root.dir).err().unwrap_or_default();
+    assert!(error.contains("not complete"), "{error}");
+    assert_eq!(
+        ask(("custom_order", Some(forest), 0, 0, Some("B"))).unwrap().get::<String>("result").unwrap(),
+        "found"
+    );
+    assert!(view.announced_final_store(&root.dir).err().unwrap_or_default().contains("not complete"));
+    assert!(reference_forest_source(root.dir.clone(), Some(view.clone()))()
+        .unwrap_err()
+        .contains("not complete"));
+    assert_eq!(
+        ask(("custom_order", Some(forest), 1, 0, Some("A"))).unwrap().get::<String>("result").unwrap(),
+        "found"
+    );
+    assert_eq!(ask(("custom_order", None, 2, 1, None)).unwrap().get::<String>("result").unwrap(), "end");
+    // the walk is final: the store is the one the campaign's model callbacks answer from, in the announced order
+    let store = view.announced_final_store(&root.dir).expect("the final store");
+    assert_eq!(store.custom_walk(), [(forest, "B".to_string()), (forest, "A".to_string())]);
+    let geometry = reference_forest_source(root.dir.clone(), Some(view.clone()))().expect("geometry from the final store");
+    assert!(
+        matches!(&geometry, ForestGeometry::Triangles(triangles) if triangles.len() == 2 && triangles[0][1] == [5.0, 0.0, 0.0]),
+        "{geometry:?}"
+    );
+    // another installation is not this provider's
+    let elsewhere = root.dir.parent().unwrap().to_path_buf();
+    assert!(view.announced_final_store(&elsewhere).err().unwrap_or_default().contains("must be the same"));
+    // no provider registered: a named refusal, and nothing is loaded
+    assert!(reference_forest_source(root.dir.clone(), None)()
+        .unwrap_err()
+        .contains("no reference model provider"));
+}
+
+#[test]
+fn a_provider_that_answered_from_a_sorted_image_because_no_walk_was_announced_gives_the_tree_service_nothing() {
+    use eech_world::model_host::ReferenceModel;
+    let (root, forest) = forest_order_root();
+    let (lua, model) = model_provider_for(&root.dir);
+    let view = ReferenceModel::from_lua(&lua).expect("the provider registers its view");
+    // a final question with no announcement is answered from the sorted order (a tool, not the campaign) ...
+    let answer: mlua::Table = model
+        .call(("scene", forest, mlua::Value::Nil, mlua::Value::Nil, mlua::Value::Nil, mlua::Value::Nil))
+        .unwrap();
+    assert!(answer.get::<bool>("loaded").unwrap());
+    // ... which is a full image, but not the campaign's: the tree service refuses it by name
+    let error = view.announced_final_store(&root.dir).err().unwrap_or_default();
+    assert!(error.contains("sorted or pre-announcement image is never used"), "{error}");
 }

@@ -7,34 +7,60 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "validation-pending",
+  "phase": "source-review-corrections",
   "preparation_batches_without_cutover": 0,
   "preparation_limit": 2,
-  "next_production_change": "IMPLEMENTED in source (the branch's Task52 merge commit, over 099aa09c2d): the ordinary get_line_of_sight_collision_tree asks the host. The tree slice only: the old physical scan/intersection solver is compiled out of every build but the explicit original profile (feature collision-fixture); tree_begin/tree_terrain are two more operations of the already required, process-kept terrain provider; the reference host drives the closed trees.rs kernel from host.terrain_provider with its own tree files and forest triangles from its model store (docs/d3-tree-collision-provider.md). Remaining Task49 production work after validation and review: entity/object collision (get_line_of_sight_collision_entity and its sector entity lists), a separate Task49 slice. Do not start another optional prototype, D4 or D5.",
+  "next_production_change": "CORRECTED in source, awaiting the SAME independent reviewer (the combined source pass of eec18682f returned CHANGES_REQUIRED, four groups, native_launch_clearance=false, report R:/d3-evidence/independent-tree-production-source-eec18682f4-20261103.json sha256 857cd81e600fd9ae70f2af2637860592fef0951ae45881188f8fa88e6c0b23dc). The ordinary get_line_of_sight_collision_tree asks the host (tree slice only): forest triangles now come from the campaign's own final announced-order model store under the exact key FOREST_TREE_OBJECT; the dialogue accepts none / OLD / NEW / OLD-then-NEW; the native authority witness is trap-safe and fail-closed and has a genuine Original profile; the DCS mapping is an unresolved required mapping with a named refusal. Remaining REQUIRED Task49/D3 production work after validation and review: entity/object collision (get_line_of_sight_collision_entity and its sector entity lists), the raw Core tree loader and FOREST_TREE_OBJECT constructor, and the cloud block with its CRT draws (docs/d3-tree-collision-provider.md). Do not start another optional prototype, D4 or D5.",
   "ready_evidence": [
     "Closed preparation reused, not redone: original characterization (15054 queries / 29894 ordered terrain answers exact through the host library and real Lua; original raw unchanged, 47a4af0d1/b44d2c96f) and the host tree loader/kernel 8c452f197 (review 4258f1b94, FP state/refusal/lifetime controls).",
     "Merge of the verified clean Task52 branch 099aa09c2dfeb77ca708214421e81113369a057e into the old Task49 head f2473817bced177b588878d6e416dcb4400f8bc2 (normal merge, no rebase/force); both sides' features, FFI, tests and history preserved.",
     "Source: mb_hostterrain.{h,c} TREE_BEGIN/TREE_TERRAIN and campaign_terrain_tree_collision; en_cllsn.c hosted body under EECH_CAMPAIGN_HOST_TREE with the original body kept in the #else; eech-engine-sys structs; eech-engine TerrainQuery::TreeBegin/TreeTerrain and TerrainAnswer::Tree; eech-dc TREE_BRIDGE; eech-world tree_host.rs behind host.terrain_provider (and host.terrain_open for an installation-layout directory).",
-    "Focused checks in the pinned Linux image (evidence D:/EECH-Migration-Evidence/tree-host-routing-20261103-a/): fmt --check 0; strict clippy 0 for eech-engine-sys/eech-engine/eech-dc/eech-world --all-targets and for eech-dc --features collision-fixture and weapon-fixture; cargo test --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world 0 (57 result lines ok, including the tree_host_guard compile guard, the C-boundary bit-pattern tests, the Lua bridge tests, tree_host unit tests and the whole host_callbacks suite). NOT a native run.",
-    "Source-only: no native C was run, no Windows build, no retail data. The tree-authority witness (lua/tree-authority.lua) is written and loads (syntax guard) but has not been run.",
-    "Merge consequences handled: the original-profile fixture eech_collision_fixture.c now views the host-terrain record (the legacy sector/pointer words do not exist on this base; record rows are not comparable with 47a4af0d1 evidence, physical words are); collision-characterization.lua selects the reference arithmetic profile and boots with terrain/model/environment providers."
+    "Merge consequences handled: the original-profile fixture eech_collision_fixture.c now views the host-terrain record (the legacy sector/pointer words do not exist on this base; record rows are not comparable with 47a4af0d1 evidence, physical words are); collision-characterization.lua selects the reference arithmetic profile and boots with terrain/model/environment providers.",
+    "Metadata-only normal merge of Task52 7ca36257cab6f4205c3e111b5414266a92fd7973 (final target-point reviews and DCS mapping; runtime identical to 099aa09c2) as its own commit 905bcd1f8; the Task52 card is refreshed from the 7ca36257 blob.",
+    "Reviewer CHANGES_REQUIRED of eec18682f (4 groups) is the required input of the correction batch: forest identity and one store; endpoint subsequences; safe and honest authority witness; DCS and scope truth. The report is retained literally under reference/d3-tree-collision-production/. It is not an acceptance.",
+    "Earlier Linux logs on eec18682f are retained, failures included: s2 DC tree test exit 101 (a moved Lua function), s4 fmt-check exit 1, s7 full-suite exit 101 (81/82 host_callbacks: the collision driver lacked the reference arithmetic selection), later s8 host_callbacks 82 pass exit 0 and s9 four-crate full tests exit 0 (57 result rows, 1113 tests). The C ABI tests (engine tests and model_walk-style isolated controls) did run; there was no retail data, native campaign or Windows build.",
+    "Correction batch evidence (D:/EECH-Migration-Evidence/tree-correction-20261103-c/): genuine RED for the NEW-only subsequence through the real dialogue code (mb_hosttree.h as first shipped, tree_dialogue exit 101, failing exactly the two NEW-only cases), GREEN after the subsequence rule (exit 0). Child exits and fingerprints are in STATUS."
   ],
   "blockers": [
+    {
+      "id": "tree-source-review",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "The same independent reviewer returned CHANGES_REQUIRED for eec18682f (ENV-TREE-FOREST-IDENTITY-1 P1, ENV-TREE-ENDPOINT-1 P1, ENV-TREE-AUTHORITY-1 P2, ENV-TREE-MAPPING-SCOPE-1 P2). The corrections are in the working source of the next commit; the author's own green tests do not close the gate.",
+      "missing_fact": "The same reviewer's clearance of the changed bytes and the focused guards. No native launch is cleared until then.",
+      "next_fix": "Return the corrected commit to the same reviewer; do not run native authority on a source the reviewer has not cleared."
+    },
     {
       "id": "tree-native-authority-actual",
       "status": "open",
       "blocks_cutover": false,
-      "evidence": "Source and focused Linux checks pass; the hosted route has never been run natively. The tree-authority witness drives a REAL weapon launch through the public Lua -> native module -> terrain provider path.",
-      "missing_fact": "Native actuals: a Linux and a Windows weapon-fixture build of this exact source; tree-authority mode control (host asked, lookup order/pairing/hint self-assertions) and the seven altered modes, each actual exit recorded; forced_hit compared with the control.",
-      "next_fix": "Root freezes the clean source and runs the commands in docs/d3-tree-collision-provider.md; no extra diagnostic is needed."
+      "evidence": "Source and focused Linux checks pass; the hosted route has never run natively. lua/tree-authority.lua drives a REAL weapon launch through the public Lua -> native module -> terrain provider path, with a hosted profile and an explicit Original profile.",
+      "missing_fact": "Native actuals after reviewer clearance: Linux and Windows weapon-fixture builds of the exact cleared source; tree-authority control, new_only, forced_hit and the seven refusals; the Original control on weapon-fixture+collision-fixture (CAPABILITY RED expected); each actual exit recorded.",
+      "next_fix": "Root freezes the cleared clean source and runs the commands in docs/d3-tree-collision-provider.md."
     },
     {
       "id": "forest-geometry-retail-source",
       "status": "open",
       "blocks_cutover": false,
-      "evidence": "The reference host derives ForestGeometry from the model store (scene OBJECT_3D_FOREST_TREE_OBJECT, depth 0..). Unit tests use a scripted source; no retail data was available here.",
-      "missing_fact": "That ModelStore::load of the retail installation reports Absent or End at depth 0 for the forest tree object (the retail fact the original capture recorded, tf-forest geometry 0). A Refused or no_scene answer would make the host refuse and the first tree question would stop the engine by name.",
-      "next_fix": "Visible in the first native control: a refusal names [terrain-provider:tree_begin.callback] with the model store's reason. Correct the host source only if it appears; do not assume 'absent'."
+      "evidence": "The reference host takes the forest triangles of scene FOREST_TREE_OBJECT from the campaign's own final announced-order model store (focused controls: a scene defined by two directories, the campaign's order versus the sorted image; before-finalization, sorted-image and wrong-root refusals). No retail data was available here.",
+      "missing_fact": "That the retail final store reports Absent or End at depth 0 for the forest tree object (the retail fact of the original capture, tf-forest geometry 0). Refused, no_scene or a pre-announcement store makes the host refuse and the first tree question stops the engine by name.",
+      "next_fix": "Visible in the first native control as a named refusal. Correct the host source only if it appears; do not assume 'absent'."
+    },
+    {
+      "id": "core-tree-loader-forest-cloud-rng",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "The ordinary boot still reaches load_3d_terrain (eech_engine.c, zone_sc.c reload): the raw tree loader and the FOREST_TREE_OBJECT constructor, then the CLOUD constructor and, when session_cloud_puffs > 1 or == 1 outside DESERT, per-sector CRT rand() draws. co_force.c (player flight tree force) and terrgeom.c (renderer) are other compiled consumers. The seed is set (eech_engine.c, which srands the CRT) before the load and no later reseed was found in source.",
+      "missing_fact": "For Lebanon map5 and Georgia: the effective session_cloud_puffs and season at the boot load and the zone reload, the number of CRT rand() calls made inside load_3d_terrain, whether a srand precedes the first outside consumer afterwards, and whether co_force.c/terrgeom.c are reachable in the supported headless boot. Unproven, so nothing was removed and nothing is called dormant.",
+      "next_fix": "Smallest bounded capture: count CRT rand() inside load_3d_terrain per supported scenario with the existing rand-counting header (eech_tp_rand.h) and read the effective flags; then remove the loader/constructor/cloud block for the hosted build (explicit Original profile retained) only if no draw is consumed or the removal is baseline-approved. Required Task49/D3 work; no dummy draws."
+    },
+    {
+      "id": "dcs-tree-capability-unresolved",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "The pinned tslua-dcs declarations used for the target-point plan name no tree, forest or scenery-ray query, and no bounded host-data workaround is defined from primary evidence. done{hit=false} for an unsupported query was withdrawn: an unknown service is not a measured absence.",
+      "missing_fact": "A verified DCS tree/forest query declaration, or a bounded versioned host dataset for the DCS map, named with its provenance. Until then a DCS host must refuse tree_begin by name.",
+      "next_fix": "Name the primary-evidenced API or dataset (required D3/Task49 mapping, not an M6 deferral); live behaviour checks remain M6."
     },
     {
       "id": "entity-object-collision",
@@ -45,14 +71,18 @@
       "next_fix": "The next bounded Task49 slice after this one is validated; not started here."
     }
   ],
-  "next_action": "validate-review",
+  "next_action": "fix-blocker",
   "acceptance": [
     {
       "gate": "Production tree query asks the host and the old solver is absent from the ordinary module (compile guard)",
       "complete": true
     },
     {
-      "gate": "Changed/withheld host authority and the lookup dialogue exercised natively (tree-authority control and seven modes)",
+      "gate": "Source review of the corrected tree route closed by the same independent reviewer",
+      "complete": false
+    },
+    {
+      "gate": "Changed/withheld host authority and the lookup dialogue exercised natively (tree-authority control, new_only, forced_hit, refusals; Original control RED)",
       "complete": false
     },
     {
@@ -64,7 +94,7 @@
       "complete": false
     },
     {
-      "gate": "Complete Task49: entity/object collision host-owned, not merely the tree slice",
+      "gate": "Complete Task49: entity/object collision host-owned; raw Core tree loader, forest constructor and cloud block disposition; not merely the tree slice",
       "complete": false
     }
   ],

@@ -611,79 +611,14 @@ void campaign_terrain_ambient (float x, float z, int in_cockpit, float alt, floa
 
 ////////////////////////////////////////
 //
-// the tree segment query (EEDCS-49, D3): see mb_hostterrain.h, TREE_BEGIN and TREE_TERRAIN
+// the tree segment query (EEDCS-49, D3): the dialogue is mb_hosttree.h, bound here to the real host callback and the real terrain call
 //
 ////////////////////////////////////////
 
-// the original asks for the elevation of the old end and then of the new end, each only inside the map: a third question is not the original's
-#define CAMPAIGN_TERRAIN_TREE_LOOKUPS_MAX 2
+#define CAMPAIGN_TREE_ASK(REQUEST,REPLY,WHAT) ask ((REQUEST), (REPLY), (WHAT))
+#define CAMPAIGN_TREE_ELEVATION(X,Z) get_3d_terrain_elevation ((X), (Z))
 
-static int tree_query_open;
-
-// the caller's floats are copied as bytes, never loaded as floating point values: a signed zero or a NaN in a buffer the caller never initialised reaches the host, and comes back, as it is
-static void tree_words_of (uint32_t *words, const vec3d *position)
-{
-	memcpy (&words[0], &position->x, sizeof (uint32_t));
-	memcpy (&words[1], &position->y, sizeof (uint32_t));
-	memcpy (&words[2], &position->z, sizeof (uint32_t));
-}
-
-static void tree_words_into (vec3d *position, const uint32_t *words)
-{
-	memcpy (&position->x, &words[0], sizeof (uint32_t));
-	memcpy (&position->y, &words[1], sizeof (uint32_t));
-	memcpy (&position->z, &words[2], sizeof (uint32_t));
-}
-
-static float tree_float_of (uint32_t word)
-{
-	float
-		value;
-
-	memcpy (&value, &word, sizeof (value));
-
-	return (value);
-}
-
-static void check_tree_reply (const campaign_terrain_reply *reply, int lookups)
-{
-	switch (reply->tree_state)
-	{
-		case CAMPAIGN_TERRAIN_TREE_DONE:
-		{
-			if ((reply->tree_hit != FALSE) && (reply->tree_hit != TRUE))
-			{
-				debug_fatal ("host terrain: [terrain-provider:tree.answer] the host answered a tree query DONE without a boolean hit");
-			}
-
-			break;
-		}
-		case CAMPAIGN_TERRAIN_TREE_NEED_TERRAIN:
-		{
-			// the order is the original's: the old end first, the new end second, never twice and never a third
-			if (lookups >= CAMPAIGN_TERRAIN_TREE_LOOKUPS_MAX)
-			{
-				debug_fatal ("host terrain: [terrain-provider:tree.lookups] the host asked for more than the %d terrain elevations a tree query reads", CAMPAIGN_TERRAIN_TREE_LOOKUPS_MAX);
-			}
-
-			if (reply->tree_end != ((lookups == 0) ? CAMPAIGN_TERRAIN_TREE_END_OLD : CAMPAIGN_TERRAIN_TREE_END_NEW))
-			{
-				debug_fatal ("host terrain: [terrain-provider:tree.lookups] the host asked for the elevation of end %d as lookup %d of a tree query", reply->tree_end, lookups + 1);
-			}
-
-			if (!isfinite (tree_float_of (reply->tree_x)) || !isfinite (tree_float_of (reply->tree_z)))
-			{
-				debug_fatal ("host terrain: [terrain-provider:tree.lookups] the host asked for the terrain elevation at a non-finite point");
-			}
-
-			break;
-		}
-		default:
-		{
-			debug_fatal ("host terrain: [terrain-provider:tree.answer] the host answered a tree query with the unknown state %d", reply->tree_state);
-		}
-	}
-}
+#include "mb_hosttree.h"
 
 int campaign_terrain_tree_collision
 (
@@ -695,73 +630,7 @@ int campaign_terrain_tree_collision
 	int skip_tree_top_test
 )
 {
-	campaign_terrain_request
-		request;
-
-	campaign_terrain_reply
-		reply;
-
-	float
-		elevation;
-
-	int
-		lookups;
-
-	ASSERT (old_position);
-
-	ASSERT (new_position);
-
-	ASSERT (intercept_point);
-
-	ASSERT (face_normal);
-
-	if (tree_query_open)
-	{
-		debug_fatal ("host terrain: [terrain-provider:tree.query] a tree query was started inside another");
-	}
-
-	tree_query_open = TRUE;
-
-	memset (&request, 0, sizeof (request));
-
-	request.op = CAMPAIGN_TERRAIN_TREE_BEGIN;
-	tree_words_of (request.tree_old, old_position);
-	tree_words_of (request.tree_new, new_position);
-	tree_words_of (request.tree_point, intercept_point);
-	tree_words_of (request.tree_normal, face_normal);
-	request.tree_ignore_forest_edge_trees = (ignore_forest_edge_trees != 0);
-	request.tree_skip_tree_top_test = (skip_tree_top_test != 0);
-
-	ask (&request, &reply, "tree begin");
-
-	check_tree_reply (&reply, 0);
-
-	lookups = 0;
-
-	while (reply.tree_state == CAMPAIGN_TERRAIN_TREE_NEED_TERRAIN)
-	{
-		// the campaign's half of the query: the same call, on the same host terrain and its shared record, that the original made at this point
-		elevation = get_3d_terrain_elevation (tree_float_of (reply.tree_x), tree_float_of (reply.tree_z));
-
-		lookups++;
-
-		memset (&request, 0, sizeof (request));
-
-		request.op = CAMPAIGN_TERRAIN_TREE_TERRAIN;
-		memcpy (&request.tree_elevation, &elevation, sizeof (uint32_t));
-
-		ask (&request, &reply, "tree terrain");
-
-		check_tree_reply (&reply, lookups);
-	}
-
-	// the whole answer is checked: only now are the caller's buffers written
-	tree_words_into (intercept_point, reply.tree_result_point);
-	tree_words_into (face_normal, reply.tree_result_normal);
-
-	tree_query_open = FALSE;
-
-	return (reply.tree_hit);
+	return (campaign_tree_dialogue (old_position, new_position, intercept_point, face_normal, ignore_forest_edge_trees, skip_tree_top_test));
 }
 
 #endif // EECH_CAMPAIGN_HOST_TERRAIN

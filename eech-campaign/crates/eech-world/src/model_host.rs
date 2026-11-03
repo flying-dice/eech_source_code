@@ -801,6 +801,53 @@ struct ProviderState {
     sorted_answers: bool,
     /// the full store is fixed (a script's own store): an announcement is verified against it, never replayed
     fixed: bool,
+    /// the full store is the CAMPAIGN'S: the walk it announced was complete and the store was replayed in that order (or the fixed store was verified against it). Only then is the
+    /// store an answer for something that must agree with the campaign's own model callbacks (the host's tree service reads the forest tree's triangles from it)
+    walk_final: bool,
+}
+
+/// The reference model provider's state as the host's other services may see it: a read-only view, held weakly, registered by `register` for the provider the script boots with
+/// (`host.model`). It exists so that a second service (the tree query's forest triangles, EEDCS-49) uses the SAME finalized store, in the order the campaign announced, instead of
+/// loading a second image in another order. It never loads, finalizes or announces anything.
+#[derive(Clone)]
+pub struct ReferenceModel(std::rc::Weak<RefCell<ProviderState>>);
+
+impl ReferenceModel {
+    /// The view registered by `register`, if it has run on this Lua state.
+    #[must_use]
+    pub fn from_lua(lua: &Lua) -> Option<Self> {
+        lua.app_data_ref::<Self>().map(|view| view.clone())
+    }
+
+    /// The store the campaign's own model callbacks answer from, for the installation `root`: only once the campaign's walk announcement is complete and the store is the one built
+    /// (or verified) for that order. A provider that has not been asked yet, one still being announced to, one that answered from a sorted image because no walk was announced, and
+    /// another installation are each a refusal by name; none of them loads or substitutes a store.
+    pub fn announced_final_store(&self, root: &Path) -> Result<Arc<ModelStore>, String> {
+        let state = self.0.upgrade().ok_or("the reference model provider no longer exists")?;
+        let state = state.try_borrow().map_err(|_| "the reference model provider is busy answering")?;
+        let pinned = state
+            .root
+            .as_ref()
+            .ok_or("the reference model provider has not chosen its installation: the campaign has asked it nothing yet")?;
+        let same = match (std::fs::canonicalize(pinned), std::fs::canonicalize(root)) {
+            (Ok(a), Ok(b)) => a == b,
+            _ => pinned == root,
+        };
+        if !same {
+            return Err(format!(
+                "the model provider serves the installation {} and the tree service {}: they must be the same",
+                pinned.display(),
+                root.display()
+            ));
+        }
+        if !state.walk_final {
+            return Err("the campaign's custom-model walk announcement is not complete: the model provider's store is not final (a sorted or pre-announcement image is never used)".into());
+        }
+        state
+            .full
+            .clone()
+            .ok_or_else(|| "the reference model provider holds no final store".to_string())
+    }
 }
 
 /// What the Lua provider function is called with: the operation, then the scene, the depth, the kind, the definition (each a number or nothing) and the directory name.
@@ -916,6 +963,7 @@ impl ProviderState {
                         .map_err(|e| LuaError::runtime(format!("[model-provider:custom_order.refused] the campaign's walk cannot be replayed: {e}")))?;
                     self.full = Some(Arc::new(replayed));
                 }
+                self.walk_final = true;
                 table.set("result", "end")?;
             }
         }
@@ -963,7 +1011,10 @@ pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
         announcement: WalkAnnouncement::default(),
         sorted_answers: false,
         fixed: false,
+        walk_final: false,
     }));
+    // the one provider a script boots with is visible to the host's other services as a read-only view (see ReferenceModel); `host.model_provider` stores are not registered
+    lua.set_app_data(ReferenceModel(Rc::downgrade(&state)));
     let lazy = lua.create_function(move |lua, provider_arguments: ProviderArguments| {
         let (operation, scene, depth, kind, definition, key) = provider_arguments;
         let scene = provider_number(scene, "scene", &operation)?;
@@ -1004,6 +1055,7 @@ pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
                 announcement: WalkAnnouncement::default(),
                 sorted_answers: false,
                 fixed: true,
+                walk_final: false,
             }));
             let inner = lua.create_function(move |lua, provider_arguments: ProviderArguments| {
                 let (operation, scene, depth, kind, definition, key) = provider_arguments;
