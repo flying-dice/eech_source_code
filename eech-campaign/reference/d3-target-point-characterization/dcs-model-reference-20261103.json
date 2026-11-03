@@ -1,0 +1,30 @@
+{
+  "retrieved_utc": "2026-11-03T01:43:42.409186+00:00",
+  "scope": "Pinned author-maintained API declarations only; Git blob identities independently verified from actual downloaded UTF8 bytes. No native DCS behavior, exhaustive API absence, dynamic joint service or TypeScript implementation claim. No credentials or retail assets.",
+  "files": [
+    {
+      "path": "packages/tslua-dcs-mission-types/src/Object.ts",
+      "commit": "1179554fcafcef92d71313336cc09500febf8245",
+      "git_blob": "3e4863261901fba73af2fda1b31f47ee034bd16d",
+      "sha256": "3dfb8e733f653cf771d0233739504219ba39f0f6fbb60e1593f4b582650b4036",
+      "bytes": 3982,
+      "url": "https://github.com/flying-dice/tslua-dcs/blob/1179554fcafcef92d71313336cc09500febf8245/packages/tslua-dcs-mission-types/src/Object.ts"
+    },
+    {
+      "path": "packages/tslua-dcs-mission-types/src/Unit.ts",
+      "commit": "1179554fcafcef92d71313336cc09500febf8245",
+      "git_blob": "98bd6a7f0a57b6039481a3d91e773cf355332987",
+      "sha256": "67cb202ec657c890c2924ace0cd31b2e05b7abaaa1fd0388178a9b9e7c416854",
+      "bytes": 18472,
+      "url": "https://github.com/flying-dice/tslua-dcs/blob/1179554fcafcef92d71313336cc09500febf8245/packages/tslua-dcs-mission-types/src/Unit.ts"
+    },
+    {
+      "path": "packages/tslua-dcs-mission-types/src/coord.ts",
+      "commit": "1179554fcafcef92d71313336cc09500febf8245",
+      "git_blob": "a83d6f2fbd1d7af3ae180bc473bbed1f26b22614",
+      "sha256": "fed5c1784921254f2e7565f39e4766074627a863e4fe8e9269a957327382cd60",
+      "bytes": 4464,
+      "url": "https://github.com/flying-dice/tslua-dcs/blob/1179554fcafcef92d71313336cc09500febf8245/packages/tslua-dcs-mission-types/src/coord.ts"
+    }
+  ]
+}
