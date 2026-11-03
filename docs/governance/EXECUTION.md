@@ -56,12 +56,8 @@ live state. The tracked card holds stable decisions; the checkpoint holds transi
 PIDs, paths and tool IDs. On this host the canonical checkpoint is
 `R:/d3-evidence/D3-CURRENT.json`, mirrored on D:.
 
-For the current Task52 the RNG-evidence group is closed and the offset initializer is cut over
-(`9b916ac650`: seeker policy once per invocation, all three host-authored local offsets
-for the direct guidance consumer). The next implementation is the host routing of
-`get_local_entity_target_point` (instance chain and live placement, fixed position), with its
-native authority run as Root's gate; it is not another optional characterization. Valid
-retained numeric evidence is not rerun for it, and the Task50 pack stays untouched.
+The current task, its next action and its open gates live in the active extraction card and the one
+current STATUS summary, not in this file; this file keeps only the enduring controls above.
 
 STATUS.md keeps ONE current summary, first in the file and dated; every later entry is
 history that keeps its own date and scope, and none of them is live state even if an

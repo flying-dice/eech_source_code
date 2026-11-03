@@ -1,0 +1,388 @@
+{
+  "purpose": "Safe projection of completed native actuals for the Task52 live-query slice; values are read from the private records named below, never typed. No raw model output, retail geometry, model data, binary or input root is copied.",
+  "publication_note": "Evidence/documentation only. This file is a derived projection, not a reviewed report and not an acceptance record. Whole Task52, the shipping packs, the Task50 dependency and whole D3 remain open.",
+  "private_records": {
+    "authority_queue": {
+      "path": "D:/EECH-Migration-Evidence/target-point-live-query-authority-corrected-fc6388ffc4-20261103/queue.json",
+      "sha256": "988f8b360f5c83b7707498624a859ed19f3fa5e0a380daef2a89ff3da25bacd0"
+    },
+    "absence_result": {
+      "path": "D:/EECH-Migration-Evidence/target-point-query-absence-c707-nativefc-20261103/result.json",
+      "sha256": "c859ec158a4e16292ed615d593557cb511da723a831e501cfa891bf62dca8fd3"
+    },
+    "linux_build_completion": {
+      "path": "R:/d3-evidence/target-point-live-query-corrected-fc6388ffc4-linux-20261103-completion.json",
+      "sha256": "d335c1aa7cd5521329dd411a5a14976de81eb30a98bd405dd017c466cda0b893"
+    },
+    "windows_build_completion": {
+      "path": "R:/d3-evidence/target-point-live-query-corrected-fc6388ffc4-windows-20261103-completion.json",
+      "sha256": "a4912bfa98ebb406e873329b94813035e681fc007db7869df70399c3362f8bd6"
+    }
+  },
+  "sources": {
+    "ordinary_runtime": "8118389a96d84ba3e4528967bbca973d5f2bd804",
+    "corrected_native_fixture": "fc6388ffc4bb56a93bfd490e10724d7ace6f00db",
+    "absence_literal_lua_blob_commit": "c70716b1a34bfd612ede484bf44510dae69af2b6",
+    "absence_native": "fc6388ffc4bb56a93bfd490e10724d7ace6f00db"
+  },
+  "corrected_builds": {
+    "linux_canonical": {
+      "state": "terminal",
+      "actual_exit": 0,
+      "scope": "Clean production default/model-host-fixture packages,fmts,BOTHstrict",
+      "profiles": [
+        {
+          "profile": "canonical",
+          "actual_exit": 0
+        }
+      ]
+    },
+    "windows": {
+      "state": "terminal",
+      "actual_exit": 0,
+      "scope": "Sequential sole Windows-cache owner: corrected repository host fixture and declared original-control three-feature adaptation; ordinary811 reused by scope proof, no new ordinary build claimed",
+      "profiles": [
+        {
+          "profile": "host-fixture",
+          "actual_exit": 0
+        },
+        {
+          "profile": "original-control",
+          "actual_exit": 0
+        }
+      ]
+    },
+    "ordinary_rebuild_claimed": false,
+    "note": "The ordinary 8118389a96 build is reused by the scope proofs below; no ordinary rebuild or relabel is claimed."
+  },
+  "corrected_native_authority_queue": {
+    "state": "terminal",
+    "actual_exit": 0,
+    "runs": [
+      {
+        "name": "reference",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "expected_exit": 0,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "payloads_unchanged": 84,
+        "verdict": "PASS",
+        "mode": "reference",
+        "summary": {
+          "queries_rows": 12,
+          "queries_found": 4,
+          "queries_absent": 0,
+          "queries_fixed": 4,
+          "queries_fallback": 4,
+          "queries_refused": 0,
+          "queries_problem": "",
+          "tripped": false,
+          "primary_matched": false,
+          "primary_stage": ""
+        }
+      },
+      {
+        "name": "queries_changed",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "expected_exit": 0,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "payloads_unchanged": 84,
+        "verdict": "PASS",
+        "mode": "queries_changed",
+        "summary": {
+          "queries_rows": 12,
+          "queries_found": 4,
+          "queries_absent": 0,
+          "queries_fixed": 4,
+          "queries_fallback": 4,
+          "queries_refused": 0,
+          "queries_problem": "",
+          "tripped": true,
+          "primary_matched": false,
+          "primary_stage": ""
+        }
+      },
+      {
+        "name": "queries_chain_offset_late",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "expected_exit": 0,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "payloads_unchanged": 84,
+        "verdict": "PASS_PER_REFUSED_ROW_PRE_MUTATION_BOUNDS; entry other cases may call getters/write",
+        "mode": "queries_chain_offset_late",
+        "summary": {
+          "queries_rows": 12,
+          "queries_found": 2,
+          "queries_absent": 0,
+          "queries_fixed": 4,
+          "queries_fallback": 4,
+          "queries_refused": 2,
+          "queries_problem": "",
+          "tripped": true,
+          "primary_matched": false,
+          "primary_stage": ""
+        }
+      },
+      {
+        "name": "queries_chain_withheld",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "expected_exit": 0,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "payloads_unchanged": 84,
+        "verdict": "PASS",
+        "mode": "queries_chain_withheld",
+        "summary": {
+          "tripped": true
+        }
+      },
+      {
+        "name": "queries_world_withheld",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "expected_exit": 0,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "payloads_unchanged": 84,
+        "verdict": "PASS",
+        "mode": "queries_world_withheld",
+        "summary": {
+          "tripped": true
+        }
+      },
+      {
+        "name": "queries_fixed_withheld",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "expected_exit": 0,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "payloads_unchanged": 84,
+        "verdict": "PASS",
+        "mode": "queries_fixed_withheld",
+        "summary": {
+          "queries_rows": 0,
+          "queries_found": 0,
+          "queries_absent": 0,
+          "queries_fixed": 0,
+          "queries_fallback": 0,
+          "queries_refused": 0,
+          "queries_problem": "the target-point query failed: runtime error: eech: EECH fatal error: host model: [model-provider:target_point_fixed.refused] the host cannot answer for scene 254: withheld on purpose",
+          "tripped": true,
+          "primary_matched": true,
+          "primary_stage": "queries"
+        },
+        "primary_message_head": "runtime error: eech: EECH fatal error: host model: [model-provider:target_point_fixed.refused] the host cannot answer for scene 254: withheld on purpose"
+      },
+      {
+        "name": "queries_world_bad_nan",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "expected_exit": 0,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "payloads_unchanged": 84,
+        "verdict": "PASS",
+        "mode": "queries_world_bad_nan",
+        "summary": {
+          "tripped": true
+        }
+      },
+      {
+        "name": "queries_fixed_bad_nan",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "expected_exit": 0,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "payloads_unchanged": 84,
+        "verdict": "PASS",
+        "mode": "queries_fixed_bad_nan",
+        "summary": {
+          "queries_rows": 0,
+          "queries_found": 0,
+          "queries_absent": 0,
+          "queries_fixed": 0,
+          "queries_fallback": 0,
+          "queries_refused": 0,
+          "queries_problem": "the target-point query failed: runtime error: eech: EECH fatal error: host model: [model-provider:target_point_fixed.answer] p: not finite",
+          "tripped": true,
+          "primary_matched": true,
+          "primary_stage": "queries"
+        },
+        "primary_message_head": "runtime error: eech: EECH fatal error: host model: [model-provider:target_point_fixed.answer] p: not finite"
+      },
+      {
+        "name": "queries_chain_bad_name",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "expected_exit": 0,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "payloads_unchanged": 84,
+        "verdict": "PASS",
+        "mode": "queries_chain_bad_name",
+        "summary": {
+          "tripped": true
+        }
+      },
+      {
+        "name": "queries_world_bad_name",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "expected_exit": 0,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "payloads_unchanged": 84,
+        "verdict": "PASS",
+        "mode": "queries_world_bad_name",
+        "summary": {
+          "tripped": true
+        }
+      },
+      {
+        "name": "queries_fixed_bad_name",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "expected_exit": 0,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "payloads_unchanged": 84,
+        "verdict": "PASS",
+        "mode": "queries_fixed_bad_name",
+        "summary": {
+          "queries_rows": 0,
+          "queries_found": 0,
+          "queries_absent": 0,
+          "queries_fixed": 0,
+          "queries_fallback": 0,
+          "queries_refused": 0,
+          "queries_problem": "the target-point query failed: runtime error: eech: EECH fatal error: host model: [model-provider:target_point_fixed.identity] the host named scene 254 \"RUSSIAN_HANGAR08_WRONG\" but the campaign names it \"RUSSIAN_HANGAR08\"",
+          "tripped": true,
+          "primary_matched": true,
+          "primary_stage": "queries"
+        },
+        "primary_message_head": "runtime error: eech: EECH fatal error: host model: [model-provider:target_point_fixed.identity] the host named scene 254 \"RUSSIAN_HANGAR08_WRONG\" but the campai"
+      },
+      {
+        "name": "queries_chain_too_deep",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "expected_exit": 0,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "payloads_unchanged": 84,
+        "verdict": "PASS",
+        "mode": "queries_chain_too_deep",
+        "summary": {
+          "tripped": true
+        }
+      },
+      {
+        "name": "original-changed-red",
+        "actual_native_exit": 1,
+        "actual_controller_exit": 1,
+        "expected_exit": 1,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "payloads_unchanged": 84,
+        "verdict": "EXPECTED_ORIGINAL_GETTER_CAPABILITY_RED; fixture API and realgetter reached, host world/fixed answer unused",
+        "mode": "queries_changed",
+        "summary": {
+          "queries_rows": 1,
+          "queries_found": 0,
+          "queries_absent": 0,
+          "queries_fixed": 0,
+          "queries_fallback": 0,
+          "queries_refused": 0,
+          "queries_problem": "instance_a: an instance asked the host 0 chain and 0 fixed questions",
+          "tripped": false,
+          "primary_matched": false,
+          "primary_stage": ""
+        }
+      }
+    ]
+  },
+  "absence_boundary_actual": {
+    "state": "terminal",
+    "actual_exit": 0,
+    "actual_native_exit": 0,
+    "actual_controller_exit": 0,
+    "pre_post_inputs_actual_exit": [
+      0,
+      0
+    ],
+    "payloads_unchanged": 84,
+    "mode": "queries_chain_absent",
+    "summary": {
+      "queries_rows": 12,
+      "queries_found": 0,
+      "queries_absent": 4,
+      "queries_fixed": 4,
+      "queries_fallback": 4,
+      "queries_refused": 0,
+      "queries_legacy_differs": 4,
+      "queries_problem": "",
+      "tripped": true,
+      "primary_matched": false,
+      "primary_stage": ""
+    },
+    "verdict": "PASS: four host-ABSENT instance calls; exact entity position, full viewpoint untouched, no world/fixed query, restored sentinel; intentional legacy difference counted4. Not natural retail absence."
+  },
+  "literal_copies_in_this_folder": {
+    "ordinary-811-to-fc6388-scope.json": {
+      "private_source": "R:/d3-evidence/target-point-live-query-811-to-fc6388-scope-20261103.json",
+      "sha256_of_source_bytes": "356ef87523e61f57f82c9436c52ece1b1766c9293e5540c55323243e29a9633e",
+      "bytes": 1920
+    },
+    "absence-c707-source-scope.json": {
+      "private_source": "D:/EECH-Migration-Evidence/target-point-query-absence-c707-nativefc-20261103/source-scope.json",
+      "sha256_of_source_bytes": "0d00940b9d9e35b10df0c1ed735f94f3f64f1a5324e409495c63ad7682452cc4",
+      "bytes": 1406
+    },
+    "ordinary-811-short-comparison.json": {
+      "private_source": "R:/d3-evidence/target-point-live-query-short-comparison-8118389a96-20261103.json",
+      "sha256_of_source_bytes": "c583a15da2f88c2a364b08cec0334ac94cae2ea419fd6fc2e9ce776e7ad9274c",
+      "bytes": 1777
+    }
+  },
+  "limits": [
+    "Per REFUSED row only: in queries_chain_offset_late the two refused rows return before the sentinel, mutation, getter and pose read; the other entry rows may call the getter and write.",
+    "The original-getter run exits 1 by design: with the fixture API present the real original getter is reached and the host world/fixed answer is unused. That is the expected capability RED, not a pass and not an unavailable control.",
+    "The ABSENT boundary is a deliberate host-versus-original difference (legacy_same=0 counted, never faked); it does not show that a retail model naturally lacks a target point.",
+    "The chain limit of eight is an explicit refusal limit, not support proven for every model from the retained depth-1 captures.",
+    "The ordinary short comparison is the exact retained 0.001 h Lebanon scenario with all three COMPLETE outputs literally equal; the full40/all8 packs are not complete and any prefix is PARTIAL only."
+  ]
+}

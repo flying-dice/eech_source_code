@@ -1,0 +1,27 @@
+{
+  "checked_utc": "2026-11-03T01:13:14.797275+00:00",
+  "ordinary_runtime_source": "8118389a96d84ba3e4528967bbca973d5f2bd804",
+  "corrected_fixture_diagnostic_source": "fc6388ffc4bb56a93bfd490e10724d7ace6f00db",
+  "changed_paths": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_model_host_fixture.c",
+    "eech-campaign/crates/eech-world/lua/model-authority.lua",
+    "eech-campaign/crates/eech-world/tests/model_store.rs",
+    "eech-campaign/docs/d3-target-point-characterization.md",
+    "eech-campaign/reference/d3-target-point-characterization/production-offset-initializer-9b-c37-20261103/README.md",
+    "eech-campaign/reference/d3-target-point-characterization/production-offset-initializer-9b-c37-20261103/independent-review.json",
+    "eech-campaign/reference/d3-target-point-characterization/production-offset-initializer-9b-c37-20261103/short-comparison.json"
+  ],
+  "all_other_tracked_modes_blobs_exact": true,
+  "unchanged_entries": 8970,
+  "fixture_changes_inside_model_host_feature_guard": true,
+  "fixture_outside_guard_prefix_suffix_exact": true,
+  "feature_definition_source_context": ", None);\n    }\n    if env::var_os(\"CARGO_FEATURE_MODEL_HOST_FIXTURE\").is_some() {\n        build.define(\"EECH_MODEL_HOST_FIXTURE\", None);\n    }",
+  "production_C_Rust_and_active_shipping_scripts_exact": true,
+  "ordinary_short_and_full_pack_reusable_by_input_scope": true,
+  "ordinary_binaries_not_rebuilt_or_relabelled": true,
+  "declared_three_feature_original_control_must_rebuild": true,
+  "scope": "Fixture/diagnostic/test/prose/prior-safe-evidence changes only. Ordinary source811/source/bin/payload identities remain explicit; corrected model-host and declared original profiles need fresh builds/actuals. Independent review still required; no full40/all8 acceptance.",
+  "feature_macro_only_when_model_host_fixture_enabled": true
+}

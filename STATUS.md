@@ -1,4 +1,28 @@
-# CURRENT — D3 Task 52 (EEDCS-52, draft PR112): the offset initializer is host-owned (`9b916ac650`, reviewed); `get_local_entity_target_point` is now routed to the host in source; NO native run of it yet (3 November 2026)
+# CURRENT — D3 Task 52 (EEDCS-52, draft PR112): production initializer and getter routing implemented; finite native actuals complete; final query review and everything below the finite slice still open (3 November 2026)
+
+**This is the ONE current summary. Every entry below it is dated history; none is live state, whatever its old heading said.** The recovery entry is `docs/handover/ACTIVE-EXTRACTION.json` (the card), this summary and `R:/d3-evidence/D3-CURRENT.json` (runtime checkpoint). Scope, authority and gates are the live M5 goal and the EEDCS-52 / EEDCS-21 records. Whole D3 stays open and D4/D5 are not started. Root's next implementation, after this finite slice, is the required Task49 tree-query routing; it is not started here.
+
+**Branch and stack.** `codex/d3-target-point-services`, stacked on the UNACCEPTED Task50 / PR110 `1fb`; accepted integration `581d32a` (process-only PR113) follows the accepted physical Task51 `a42d86e75`. Published source before this evidence-only publication: `c70716b1a34bfd612ede484bf44510dae69af2b6`.
+
+**What is implemented (source).** `9b916ac650`: the ordinary `initialise_target_point_offsets` is host-owned (seeker policy once per invocation, all three host-authored local offsets for the direct guidance consumer; reviewed and closed `95f97d0`). `8118389a96`: `get_local_entity_target_point` is routed to the host (chain, CURRENT placement, world position; fixed position with the heading observed only for a horizontal cached offset), with the old Core search, world-viewpoint solver and rotation not compiled there. `fc6388ffc4`: the fixture's one mandatory bounded chain preflight and the exact six-row witness (both independent-review findings corrected in source). `c70716b1a`: Lua/test-only `queries_chain_absent`. Production C/Rust are `8118389a96` throughout; later changes are fixture/Lua/test/prose only (scope proofs: `eech-campaign/reference/d3-target-point-characterization/live-query-authority-811-fc-c707-20261103/`).
+
+**Completed native actuals (all read from the private records; safe projection in the folder above).**
+- Corrected `fc6388ffc4` builds: Linux canonical and Windows corrected host fixture plus the declared three-feature original control, every one actual exit 0. No ordinary rebuild is claimed; the ordinary `8118389a96` source/binary identities stand.
+- Corrected 13-case authority queue, actual exit 0: reference found 4 / absent 0 / fixed 4 / fallback 4; `queries_changed` positive; nine named refusals each at its own marker; late out-of-range chain armed only in the mutating call after a coherent unmutated one, with two REFUSED rows returned before sentinel, mutation, getter and pose read (per REFUSED row only; other entry rows may call the getter and write); the original getter exits 1 as the EXPECTED capability RED (fixture API present, real getter reached). All 26 pre/post input manifests exit 0 and all 84 payloads unchanged in each run.
+- ONE host-ABSENT boundary actual (literal `c70716b1a` Lua on the same `fc6388ffc4` native, no new C build), actual 0: 12 rows, found 0 / absent 4 / fixed 4 / fallback 4 / refused 0, `legacy_same=0` counted 4; each of the four instance calls returns the entity position bit for bit, leaves the viewpoint untouched, asks no world or fixed question and restores the sentinel. A deliberate host-versus-original difference, NOT a natural retail absence.
+- Ordinary `8118389a96` exact 0.001 h Lebanon short run: actual 0, all three COMPLETE outputs literally baseline-equal (`R:/d3-evidence/target-point-live-query-short-comparison-8118389a96-20261103.json`). Not full40/all8.
+
+**Review state.** The same independent reviewer cleared the corrected-fc source (P1 and P2), joined the 13 native actuals with no production-kernel blocker, and cleared the c707 source. Its FINAL combined query report was still being completed at publication: it is not included and not claimed, and the card keeps it as a named open finite gate. The first-closed initializer review (`95f97d0`) is separate and unchanged.
+
+**Still open (do not read any of the above as these).** The ordinary `8118389a96` full40/all8 shipping pack (controller 23116, launcher 18976, runner 14348, natives 8744/14864/22732/21748 at `D:/EECH-Migration-Evidence/shipping-target-point-live-query-8118389a96-20261103-0102`) and the Task50 `bce` original pack (`D:/EECH-Migration-Evidence/shipping-model-integrated-bce0c3514b-20261102-164316`, original 6) were recorded ACTIVE by Root at publication; this publication did not touch or re-verify them, and any prefix is PARTIAL only. Completion of 40/all8, post inputs, current CI, the final combined review, the Task50 dependency and the normal merge are pending; whole Task52 (including the remaining physical consumers) and whole D3 are not complete.
+
+**Limits.** The chain limit of eight is an explicit refusal limit, not support proven for every model. The absent control proves the campaign's handling of a host ABSENT, nothing about retail models. Raw runtime outputs, retail geometry, models and binaries are private and never normalized.
+
+---
+
+# HISTORY — everything below is dated history, preserved as evidence; none of it is live state, and a heading that once said "current" is marked HISTORICAL
+
+# HISTORICAL (superseded 3 November 2026 by the CURRENT block above; previous CURRENT summary at `c70716b1a`) — D3 Task 52 (EEDCS-52, draft PR112): the offset initializer is host-owned (`9b916ac650`, reviewed); `get_local_entity_target_point` is now routed to the host in source; NO native run of it yet (3 November 2026)
 
 **This is the ONE current summary. Every entry below it is dated history; none is live state, whatever its old heading said.** The recovery entry is `docs/handover/ACTIVE-EXTRACTION.json` (the card), this summary and `R:/d3-evidence/D3-CURRENT.json` (runtime checkpoint). Scope, authority and gates are the live M5 goal and the EEDCS-52 / EEDCS-21 records; whole D3 stays open and D4/D5 are not started.
 
@@ -13,10 +37,6 @@
 **Remaining Task52 actual (3 November 2026; Lua and test only, no native run).** The corrected retail reference has found 4 / absent 0 / fixed 4 / fallback 4, so a valid host ABSENT chain on an existing instance is not natively covered. New control `queries_chain_absent` (`queries=1`): the provider answers a correctly named ABSENT to every instance chain question; covered only by four ABSENT rows (entity position bit for bit, viewpoint untouched, no world/fixed question, sentinel restored) and zero FOUND, with `legacy_same=0` an accepted, counted host-vs-original difference, never faked. Production C/Rust and the C fixture are exactly `fc6388ffc4`; `model_store` 65, fmt and default strict clippy 0 (`R:/d3-evidence/d3-tp-chain-absent-gate-wt-20261103-k.log`). Root runs it once on the unchanged `model-host-fixture` binary; details in characterization doc section 16. Shipping regression, the Task50 dependency and the normal merge remain open.
 
 **Next gate (Root's).** Build the ordinary and `model-host-fixture` natives from the committed source on fresh roots and run `model-authority.lua` with `queries=1` (healthy, `queries_changed`, the nine negative modes) against the retail installation, then the established deterministic scenario/shipping comparison against the retained baseline; the original control remains the retained `target-point-fixture` runs. Then the remaining Task52 physical consumers, the Task50 dependency and the normal review and merge. Preparation count is 0; the next action is `production-cutover` review and native validation, not another prototype.
-
----
-
-# HISTORY — everything below is dated history, preserved as evidence; none of it is live state, and a heading that once said "current" is marked HISTORICAL
 
 # D3 HISTORICAL (superseded; formerly headed "current") — target-point host numeric parity closed; production cutover still open (2 November 2026)
 
