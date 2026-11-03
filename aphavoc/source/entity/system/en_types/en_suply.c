@@ -338,47 +338,6 @@ void set_supply_heat_map_cargo_spot (entity *en, int x, int z, int value)
 
 
 
-void output_supply_heat_map (void)
-{
-	static int
-		limit = 10,
-		numzeros = 4,
-		count = 0;
-
-	char
-		filename[13],
-		temp_string[7];
-	
-	int
-		z;
-
-	// initialise filename & output map
-
-	sprintf (filename, "sm");
-
-	sprintf (temp_string, "%d.psd", count);
-	
-	if (count >= limit)
-	{
-		limit *= 10;
-		
-		numzeros--;
-	}
-
-	for (z = 0; z < numzeros; z++)
-	{
-		strcat (filename, "0");
-	}
-
-	strcat (filename, temp_string);
-
-
-	if (supply_heat_bitmap == NULL)
-	{
-		build_supply_heat_map ();
-	}
-				
-	write_psd_rgb_file (filename, NUM_MAP_X_SECTORS, NUM_MAP_Z_SECTORS, NUM_MAP_X_SECTORS * 3, supply_heat_bitmap);
 
 
 
@@ -386,9 +345,50 @@ void output_supply_heat_map (void)
 
 
 
-	count++;
 
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

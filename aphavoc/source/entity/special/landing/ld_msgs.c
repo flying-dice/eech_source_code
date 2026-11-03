@@ -1061,26 +1061,6 @@ static int response_to_reserve_landing_site (entity_messages message, entity *re
 
 
 
-static int response_to_set_entity_position (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-
-	float
-		velocity,
-		heading;
-
-	vec3d
-		*position;
-
-	entity
-		*task;
-
-	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
-
-	position = va_arg (pargs, vec3d *);
-
-	heading = (float) va_arg (pargs, double);
-
-	velocity = (float) va_arg (pargs, double);
 
 
 
@@ -1090,28 +1070,48 @@ static int response_to_set_entity_position (entity_messages message, entity *rec
 
 
 
-	//
-	// move tasks (landing, takeoff, landing_holding, takeoff_holding) before setting position (so children can calculate delta move)
-	//
 
-	task = get_local_entity_first_child (receiver, LIST_TYPE_ASSIGNED_TASK);
 
-	while (task)
-	{
 
-		notify_local_entity (ENTITY_MESSAGE_SET_ENTITY_POSITION, task, receiver, position, (double) heading, (double) velocity);
 
-		task = get_local_entity_child_succ (task, LIST_TYPE_ASSIGNED_TASK);
-	}
 
-	//
-	// Use full set_position function to keep sector data correct.
-	//
 
-	set_local_entity_vec3d (receiver, VEC3D_TYPE_POSITION, position);
 
-	return (TRUE);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2068,41 +2068,6 @@ static int response_to_waypoint_taken_off_reached (entity_messages message, enti
 
 #if LANDING_ROUTE_CHECK
 
-void debug_update_entity_landing_locks (entity *en, entity *landing, debug_landing_lock lock, int 	lock_flag)
-{
-
-	debug_landing_lock_type
-		*item;
-
-	item = debug_landing_lock_list;
-
-	while (item)
-	{
-
-		if (item->en == en)
-		{
-
-			break;
-		}
-
-		item = item->next;
-	}
-
-	if (!item)
-	{
-
-		item = (debug_landing_lock_type *) malloc_heap_mem (sizeof (debug_landing_lock_type));
-
-		memset (item, 0, sizeof (debug_landing_lock_type));
-
-		item->en = en;
-
-		item->next = debug_landing_lock_list;
-
-		debug_landing_lock_list = item;
-	}
-
-	item->landing_en = landing;
 
 
 
@@ -2116,73 +2081,79 @@ void debug_update_entity_landing_locks (entity *en, entity *landing, debug_landi
 
 
 
-	#if FATAL
-
-	if (item->locks [lock] == lock_flag)
-	{
-
-		int
-			loop;
-
-		entity
-			*keysite;
-
-		keysite = get_local_entity_parent (landing, LIST_TYPE_LANDING_SITE);
-
-		debug_log ("LD_MSGS: %s check %s:%s (%d) at landing %d %s %s",
-					entity_side_names [get_local_entity_int_value (en, INT_TYPE_SIDE)],
-					get_local_entity_type_name (en),
-					get_local_entity_string (en, STRING_TYPE_FULL_NAME),
-					get_local_entity_index (en),
-					get_local_entity_index (landing),
-					get_local_entity_string (keysite, STRING_TYPE_KEYSITE_NAME),
-					debug_landing_lock_unlock_names [lock_flag],
-					debug_landing_lock_names [lock]);
-
-		loop = 0;
-
-		for (loop = 0; loop < NUM_DEBUG_LANDING_LOCKS; loop ++)
-		{
-
-			debug_log ("LD_MSGS: locks %d", item->locks [loop]);
-		}
-
-		ASSERT (item->locks [lock] != lock_flag);
-	}
-
-	#endif
-
-	item->locks [lock] = lock_flag;
-}
-
-#endif
 
 
 
 
 
-#if LANDING_ROUTE_CHECK
 
-void destroy_debug_landing_route_check (void)
-{
-	debug_landing_lock_type
-		*destroy_item,
-		*item;
 
-	item = debug_landing_lock_list;
 
-	while (item)
-	{
 
-		destroy_item = item;
 
-		item = item->next;
 
-		free_mem (destroy_item);
-	}
 
-	debug_landing_lock_list = NULL;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #endif
 
@@ -2192,44 +2163,26 @@ void destroy_debug_landing_route_check (void)
 
 #if LANDING_ROUTE_CHECK
 
-void destroy_debug_entity_landing_route_check (entity *en)
-{
-	debug_landing_lock_type
-		*last_item,
-		*item;
 
-	item = debug_landing_lock_list;
 
-	last_item = NULL;
 
-	while (item)
-	{
 
-		if (item->en == en)
-		{
 
-			if (last_item)
-			{
 
-				last_item->next = item->next;
-			}
 
-			if (item == debug_landing_lock_list)
-			{
 
-				debug_landing_lock_list = item->next;
-			}
-	
-			free_mem (item);
 
-			return;
-		}
 
-		last_item = item;
 
-		item = item->next;
-	}
-}
+
+
+
+
+
+
+
+
+
 
 #endif
 
@@ -2239,27 +2192,6 @@ void destroy_debug_entity_landing_route_check (entity *en)
 
 #if LANDING_ROUTE_CHECK
 
-void pack_debug_entity_landing_locks (pack_modes mode)
-{
-
-	debug_landing_lock_type
-		*item;
-
-	if (mode != PACK_MODE_SERVER_SESSION)
-	{
-
-		return;
-	}
-
-	item = debug_landing_lock_list;
-
-	while (item)
-	{
-		pack_int_value (NULL, INT_TYPE_VALID, TRUE);
-
-		pack_entity_safe_ptr (item->en);
-
-		pack_entity_safe_ptr (item->landing_en);
 
 
 
@@ -2268,13 +2200,36 @@ void pack_debug_entity_landing_locks (pack_modes mode)
 
 
 
-		pack_int_value (NULL, INT_TYPE_VALUE, item->locks [DEBUG_LANDING_LOCK_RESERVE_LOCK]);
 
-		item = item->next;
-	}
 
-	pack_int_value (NULL, INT_TYPE_VALID, FALSE);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #endif
 
@@ -2284,35 +2239,6 @@ void pack_debug_entity_landing_locks (pack_modes mode)
 
 #if LANDING_ROUTE_CHECK
 
-void unpack_debug_entity_landing_locks (pack_modes mode)
-{
-
-	int
-		valid;
-
-	debug_landing_lock_type
-		*item;
-
-	if (mode != PACK_MODE_SERVER_SESSION)
-	{
-
-		return;
-	}
-
-	debug_landing_lock_list = NULL;
-
-	valid = unpack_int_value (NULL, INT_TYPE_VALID);
-
-	while (valid)
-	{
-
-		item = (debug_landing_lock_type *) malloc_heap_mem (sizeof (debug_landing_lock_type));
-
-		memset (item, 0, sizeof (debug_landing_lock_type));
-
-		item->en = (entity *) unpack_entity_safe_ptr ();
-
-		item->landing_en = (entity *) unpack_entity_safe_ptr ();
 
 
 
@@ -2321,15 +2247,89 @@ void unpack_debug_entity_landing_locks (pack_modes mode)
 
 
 
-		item->locks [DEBUG_LANDING_LOCK_RESERVE_LOCK] = unpack_int_value (NULL, INT_TYPE_VALUE);
 
-		item->next = debug_landing_lock_list;
 
-		debug_landing_lock_list = item;
 
-		valid = unpack_int_value (NULL, INT_TYPE_VALID);
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#endif
+
+
+
+
+
+#if LANDING_ROUTE_CHECK
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #endif
 

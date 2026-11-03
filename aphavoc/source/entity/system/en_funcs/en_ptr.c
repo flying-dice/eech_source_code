@@ -161,9 +161,9 @@ void *(*fn_get_local_entity_ptr_value[NUM_ENTITY_TYPES][NUM_PTR_TYPES]) (entity 
 
 
 
-static void default_set_entity_ptr_value (entity *en, ptr_types type, void *ptr)
-{
-}
+
+
+
 
 
 
@@ -193,22 +193,22 @@ static void *default_get_entity_ptr_value (entity *en, ptr_types type)
 
 
 
-void initialise_entity_ptr_value_default_functions (void)
-{
-	int
-		i,
-		j;
 
-	for (i = 0; i < NUM_ENTITY_TYPES; i++)
-	{
-		for (j = 0; j < NUM_PTR_TYPES; j++)
-		{
-			fn_set_local_entity_ptr_value[i][j] = default_set_entity_ptr_value;
 
-			fn_get_local_entity_ptr_value[i][j] = default_get_entity_ptr_value;
-		}
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

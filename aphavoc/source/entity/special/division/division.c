@@ -401,180 +401,180 @@ entity *add_group_to_division (entity *group, entity *specified_division)
 
 
 
-void get_number_extension (int number, char *extension)
-{
-	int
-		remainder;
-
-	ASSERT (extension);
-
-	remainder = (number / 10) % 10;
-
-	if (remainder == 1)
-	{
-		// (special case for 11th, 111th, 211th etc.)
-		sprintf (extension, "th");
-	}
-	else
-	{
-		remainder = number % 10;
-		
-		switch (remainder)
-		{
-			case 1:
-			{
-				sprintf (extension, "st");
-	
-				break;
-			}
-			case 2:
-			{
-				sprintf (extension, "nd");
-		
-				break;
-			}
-			case 3:
-			{
-				sprintf (extension, "rd");
-		
-				break;
-			}
-			default:
-			{
-				sprintf (extension, "th");
-		
-				break;
-			}
-		}
-	}
-}
 
 
 
 
 
-int set_local_division_name (entity *en, char *s)
-{
-	int
-		division_type,
-		division_id;
 
-	char
-		extension [10],
-		id_string [10];
 
-	entity
-		*group;
 
-	ASSERT (en);
 
-	ASSERT (s);
 
-	if (get_local_entity_type (en) == ENTITY_TYPE_DIVISION)
-	{
-		division_id = get_local_entity_int_value (en, INT_TYPE_DIVISION_ID);
-	}
-	else
-	{
-		ASSERT (get_local_entity_type (en) == ENTITY_TYPE_GROUP);
 
-		division_id = 1;
 
-		group = en;
 
-		while (get_local_entity_child_succ (group, LIST_TYPE_DIVISION))
-		{
-			division_id ++;
 
-			group = get_local_entity_child_succ (group, LIST_TYPE_DIVISION);
-		}
 
-		if (!get_local_entity_int_value (en, INT_TYPE_AIRCRAFT_GROUP))
-		{
-			set_local_entity_int_value (en, INT_TYPE_GROUP_CALLSIGN, division_id);
-		}
-	}
 
-	sprintf (id_string, "%d", division_id);
 
-	//
-	// Specify extension after number (bloody English language)
-	//	
 
-	get_number_extension (division_id, extension);
 
-	strcat (id_string, extension);
 
-	//
-	// Store result
-	//
-	
-	division_type = get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE);
-	
-	if (get_local_entity_type (en) == ENTITY_TYPE_DIVISION)
-	{
-		sprintf (s, division_database [division_type].full_name, id_string);
-	}
-	else
-	{
-		switch (group_database [division_type].platoon_id_type)
-		{
-			case PLATOON_ID_NONE:
-			{
-				sprintf (s, group_database [division_type].platoon_name);
 
-				break;
-			}
-			case PLATOON_ID_NUMBER:
-			{
-				sprintf (s, group_database [division_type].platoon_name, id_string);
 
-				break;
-			}
-			case PLATOON_ID_LETTER:
-			{
-				sprintf (s, group_database [division_type].platoon_name, ((division_id - 1) + 'A'));
 
-				break;
-			}
-			case PLATOON_ID_CALLSIGN:
-			{
-				strcpy (s, get_local_entity_string (en, STRING_TYPE_GROUP_CALLSIGN));
 
-				break;
-			}
-			case PLATOON_ID_KEYSITE:
-			{
-				entity
-					*keysite,
-					*division;
 
-				if (get_local_entity_type (en) == ENTITY_TYPE_GROUP)
-				{
-					division = get_local_entity_parent (en, LIST_TYPE_DIVISION);
-				}
-				else
-				{
-					division = en;
-				}
 
-				keysite = get_local_entity_parent (division, LIST_TYPE_DIVISION_HEADQUARTERS);
 
-				ASSERT (keysite);
-				
-				sprintf (s, group_database [division_type].platoon_name, get_local_entity_string (keysite, STRING_TYPE_KEYSITE_NAME));
 
-				break;
-			}
-			default:
-			{
-				debug_fatal ("Invalid Platoon Id Type %d", group_database [division_type].platoon_id_type);
-			}
-		}
-	}
 
-	return TRUE;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	
 
 
@@ -635,89 +635,89 @@ void deinitialise_division_database (void)
 
 
 
-void pack_local_division_database (pack_modes mode)
-{
-	int
-		side,
-		type,
-		loop,
-		count,
-		valid;
-
-	if (mode == PACK_MODE_SERVER_SESSION)
-	{
-		for (side = 0; side < NUM_ENTITY_SIDES; side ++)
-		{
-			for (type = 0; type < NUM_ENTITY_SUB_TYPE_DIVISIONS; type ++)
-			{
-				valid = division_id_database [side][type].valid;
-	
-				pack_int_value (NULL, INT_TYPE_VALID, valid);
-	
-				if (valid)
-				{
-					count = division_id_database [side][type].count;
-					
-					ASSERT(count > 0);			
-	
-					pack_int_value (NULL, INT_TYPE_COUNT, count);
-	
-					pack_int_value (NULL, INT_TYPE_COUNT, division_id_database [side][type].next);
-	
-					for (loop = 0; loop < count; loop ++)
-					{
-						pack_int_value (NULL, INT_TYPE_COUNT, division_id_database [side][type].number_list [loop]);
-					}
-				}
-			}
-		}
-	}
-}
 
 
 
 
 
-void unpack_local_division_database (pack_modes mode)
-{
-	int
-		side,
-		type,
-		loop,
-		count,
-		valid;
 
-	if (mode == PACK_MODE_SERVER_SESSION)
-	{
-		for (side = 0; side < NUM_ENTITY_SIDES; side ++)
-		{
-			for (type = 0; type < NUM_ENTITY_SUB_TYPE_DIVISIONS; type ++)
-			{
-				valid = unpack_int_value (NULL, INT_TYPE_VALID);
-	
-				division_id_database [side][type].valid = valid;
-	
-				if (valid)
-				{
-					count = unpack_int_value (NULL, INT_TYPE_COUNT);
-	
-					ASSERT (count > 0);
-	
-					division_id_database [side][type].count = count;
-	
-					division_id_database [side][type].next = unpack_int_value (NULL, INT_TYPE_COUNT);
-	
-					division_id_database [side][type].number_list = (int *) malloc_heap_mem (sizeof (int) * count);
-	
-					for (loop = 0; loop < count; loop ++)
-					{
-						division_id_database [side][type].number_list [loop] = unpack_int_value (NULL, INT_TYPE_COUNT);
-					}
-				}
-			}
-		}
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

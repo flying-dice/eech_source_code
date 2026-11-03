@@ -2109,34 +2109,34 @@ int (*fn_get_local_entity_int_value[NUM_ENTITY_TYPES][NUM_INT_TYPES]) (entity *e
 
 
 
-static void default_set_entity_int_value (entity *en, int_types type, int value)
-{
-}
 
 
 
 
 
-void debug_log_pack_overflow(const char* type, const char* name, unsigned int width, int value, float fvalue)
-{
-	debug_log("Overflow - type: %s, width %d, value: %d", name, width, value);
 
-	#ifdef DEBUG_PACK_OVERFLOW
-		if (!debug_pack_file)
-			debug_pack_file = fopen("debug-save-errors.txt","a");
-		if (!debug_pack_file)
-		{
-			const char* error_msg = strerror(errno);
-			debug_fatal ("Could not open debug errors file: %s", error_msg);
-			return;
-		}
 
-		ASSERT(debug_pack_file);
 
-		fprintf(debug_pack_file, "Overflow %s type: %s, width %d, int value: %d, float value: %f\n", type, name, width, value, fvalue);
-		fclose(debug_pack_file);
-	#endif
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*static void debug_log_pack(const char* string)
 {
@@ -2161,273 +2161,273 @@ void debug_log_pack_overflow(const char* type, const char* name, unsigned int wi
 
 
 
-static int default_get_entity_int_value (entity *en, int_types type)
-{
-	int
-		value;
 
-	switch (type)
-	{
 
-		case INT_TYPE_AIR_TO_AIR_WEAPON_CONFIG_TYPE:
 
-		{
-			value = WEAPON_CONFIG_TYPE_UNARMED;
 
-			break;
-		}
 
-		case INT_TYPE_AIR_TO_SURFACE_WEAPON_CONFIG_TYPE:
 
-		{
-			value = WEAPON_CONFIG_TYPE_UNARMED;
 
-			break;
-		}
 
-		case INT_TYPE_DAY_SEGMENT_TYPE:
 
-		{
-			value = DAY_SEGMENT_TYPE_DAY;
 
-			break;
-		}
 
-		case INT_TYPE_DEFAULT_3D_SHAPE:
 
-		{
-			value = OBJECT_3D_INVALID_OBJECT_INDEX;
 
-			break;
-		}
 
-		case INT_TYPE_DEFAULT_WEAPON_CONFIG_TYPE:
 
-		{
-			value = WEAPON_CONFIG_TYPE_UNARMED;
 
-			break;
-		}
 
-		case INT_TYPE_DEFAULT_WEAPON_TYPE:
 
-		{
-			value = ENTITY_SUB_TYPE_WEAPON_NO_WEAPON;
 
-			break;
-		}
 
-		case INT_TYPE_DIFFICULTY_LEVEL:
 
-		{
-			value = GAME_DIFFICULTY_INVALID;
 
-			break;
-		}
 
-		case INT_TYPE_ENTITY_SUB_TYPE:
 
-		{
-			value = ENTITY_SUB_TYPE_UNKNOWN;
 
-			break;
-		}
 
-		case INT_TYPE_FORCE:
 
-		{
-			value = ENTITY_FORCE_UNKNOWN;
 
-			break;
-		}
 
-		case INT_TYPE_GUNSHIP_TYPE:
 
-		{
-			value = GUNSHIP_TYPE_APACHE;
 
-			break;
-		}
 
-		case INT_TYPE_MAX_WEAPON_CONFIG_TYPE:
 
-		{
-			value = WEAPON_CONFIG_TYPE_UNARMED;
 
-			break;
-		}
 
-		case INT_TYPE_MIN_WEAPON_CONFIG_TYPE:
 
-		{
-			value = WEAPON_CONFIG_TYPE_UNARMED;
 
-			break;
-		}
 
-		case INT_TYPE_OBJECT_3D_SHAPE:
 
-		{
-			value = OBJECT_3D_INVALID_OBJECT_INDEX;
 
-			break;
-		}
 
-		case INT_TYPE_OPERATIONAL_STATE:
 
-		{
-			value = OPERATIONAL_STATE_UNKNOWN;
 
-			break;
-		}
 
-		case INT_TYPE_PLAYER:
 
-		{
-			value = ENTITY_PLAYER_AI;
 
-			break;
-		}
 
-		case INT_TYPE_SCOUT_WEAPON_CONFIG_TYPE:
 
-		{
-			value = WEAPON_CONFIG_TYPE_UNARMED;
 
-			break;
-		}
 
-		case INT_TYPE_SELECTED_WEAPON:
 
-		{
-			value = ENTITY_SUB_TYPE_WEAPON_NO_WEAPON;
 
-			break;
-		}
 
-		case INT_TYPE_SIDE:
 
-		{
-			value = ENTITY_SIDE_NEUTRAL;
 
-			break;
-		}
 
-		case INT_TYPE_STRATEGY:
 
-		{
-			value = STRATEGY_TYPE_ADVANCE;
 
-			break;
-		}
 
-		case INT_TYPE_TARGET_PRIORITY_TYPE:
 
-		{
-			value = TARGET_PRIORITY_UNKNOWN;
 
-			break;
-		}
 
-		case INT_TYPE_TARGET_SYMBOL_TYPE:
 
-		{
-			value = TARGET_SYMBOL_UNKNOWN;
 
-			break;
-		}
 
-		case INT_TYPE_TARGET_TYPE:
 
-		{
-			value = TARGET_TYPE_INVALID;
 
-			break;
-		}
 
-		case INT_TYPE_TARGET_WEATHER_MODE:
 
-		{
-			value = WEATHERMODE_INVALID;
 
-			break;
-		}
 
-		case INT_TYPE_THREAT_TYPE:
 
-		{
-			value = THREAT_TYPE_INVALID;
 
-			break;
-		}
 
-		case INT_TYPE_WEAPON_CONFIG_TYPE:
 
-		{
-			value = WEAPON_CONFIG_TYPE_UNARMED;
 
-			break;
-		}
 
-		case INT_TYPE_WEAPON_DECOY_TYPE:
 
-		{
-			value = WEAPON_DECOY_TYPE_NONE;
 
-			break;
-		}
 
-		case INT_TYPE_WEAPON_GUIDANCE_TYPE:
 
-		{
-			value = WEAPON_GUIDANCE_TYPE_NONE;
 
-			break;
-		}
 
-		case INT_TYPE_WEAPON_KILL_CODE:
 
-		{
-			value = WEAPON_KILL_CODE_OK;
 
-			break;
-		}
 
-		case INT_TYPE_WEAPON_SMOKE_TRAIL_TYPE:
 
-		{
-			value = ENTITY_SUB_TYPE_NONE;
 
-			break;
-		}
 
-		case INT_TYPE_X_SECTOR:
 
-		{
-			value = MIN_MAP_X_SECTOR;
 
-			break;
-		}
 
-		case INT_TYPE_Z_SECTOR:
 
-		{
-			value = MIN_MAP_Z_SECTOR;
 
-			break;
-		}
 
-		default:
 
-		{
-			value = 0;
 
-			break;
-		}
-	}
 
-	return (value);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
    The definition below is used to offer a compile time check for bits packing. It
@@ -2438,272 +2438,272 @@ static int default_get_entity_int_value (entity *en, int_types type)
     char l__array[((num_bits) < 32) && (((1 << (num_bits)) - (max_value)) > 0)]; l__array[0] = 0; \
 }
 
-void debug_check_pack_types (void)
-{
-	// arneh - june 2006
-	// If you get an assert in this function there is a enum which has more
-	// values than bits available for storing it.
-	// You can increase the number of bits by changing its corresponding
-	// value above.  But this makes this exe incompatible with previous
-	// save games.  So if you do it, check if there are any warnings for
-	// any other values as well (i.e. they're close to exceeding the limit)
-	// and change them at the same time, so that we won't have to change save
-	// format too often (you can find warnings in the debug log).  And remember
-	// to mention it in the release notes, and on the dev mailing list.
 
-	COMPILE_ASSERT_PACK(NUM_DAY_SEGMENT_TYPES, NUM_DAY_SEGMENT_TYPE_BITS, "Not enough bits, increase definition of second argument");
 
-	COMPILE_ASSERT_PACK(NUM_ENTITY_ATTRIBUTES, NUM_ENTITY_ATTRIBUTE_PACK_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_ENTITY_COMMS_MESSAGES, NUM_ENTITY_COMMS_MESSAGE_PACK_BITS, "Not enough bits, increase definition of second argument");
-    COMPILE_ASSERT_PACK(NUM_MESSAGE_CATEGORIES, NUM_RADIO_MESSAGE_TYPE_BITS, "Not enough bits, increase definition of second argument");
-    COMPILE_ASSERT_PACK(NUM_ENTITY_SUB_TYPE_FIXED, NUM_ENTITY_SUB_TYPE_FIXED_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_ENTITY_SUB_TYPE_WEAPON_BITS, NUM_ENTITY_SUB_TYPE_WEAPON_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_ENTITY_TYPES, NUM_ENTITY_TYPE_PACK_BITS, "Not enough bits, increase definition of second argument");
 
-	COMPILE_ASSERT_PACK(NUM_FLOAT_TYPES, NUM_FLOAT_TYPE_PACK_BITS, "Not enough bits, increase definition of second argument");
-	//COMPILE_ASSERT_PACK(NUM_FORMATION_TYPES, NUM_FORMATION_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_GROUP_MODE_TYPES, NUM_GROUP_MODE_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_GUIDE_CRITERIA_TYPES, NUM_GUIDE_CRITERIA_TYPE_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_GUIDE_POSITION_TYPES, NUM_GUIDE_POSITION_TYPE_BITS, !"Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_GUNSHIP_TYPES, NUM_GUNSHIP_TYPE_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_INT_TYPES, NUM_INT_TYPE_PACK_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_LIST_TYPES, NUM_LIST_TYPE_PACK_BITS, "Not enough bits, increase definition of second argument");
 
-	COMPILE_ASSERT_PACK(NUM_MESSAGE_TEXT_TYPES, NUM_MESSAGE_TEXT_TYPE_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_META_EXPLOSION_TYPES, NUM_META_EXPLOSION_TYPE_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_META_SMOKE_LIST_TYPES, NUM_META_SMOKE_LIST_TYPE_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_MOVEMENT_TYPES, NUM_MOVEMENT_TYPE_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_OPERATIONAL_STATE_TYPES, NUM_OPERATIONAL_STATE_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_POSITION_TYPES, NUM_POSITION_TYPE_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_RESUPPLY_SOURCE_TYPES, NUM_RESUPPLY_SOURCE_BITS, "Not enough bits, increase definition of second argument");
 
-	COMPILE_ASSERT_PACK(NUM_SOUND_CHANNEL_TYPES, NUM_SOUND_CHANNEL_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_SOUND_LOCALITY_TYPES, NUM_SOUND_LOCALITY_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_SPEECH_CATEGORY_TYPES, NUM_SPEECH_CATEGORY_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_STRING_TYPES, NUM_STRING_TYPE_PACK_BITS, "Not enough bits, increase definition of second argument");
 
-	COMPILE_ASSERT_PACK(NUM_TASK_COMPLETED_TYPES, NUM_TASK_COMPLETED_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_TASK_ROE_TYPES, NUM_TASK_ROE_TYPE_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_TASK_STATE_TYPES, NUM_TASK_STATE_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_TASK_TARGET_CLASS_TYPES, NUM_TASK_TARGET_CLASS_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_TASK_TARGET_SOURCE_TYPES, NUM_TASK_TARGET_SOURCE_BITS, "Not enough bits, increase definition of second argument");
-	//COMPILE_ASSERT_PACK(NUM_TASK_TARGET_TYPES, NUM_TASK_TARGET_TYPE_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_TASK_TERMINATED_TYPES, NUM_TASK_TERMINATED_BITS, "Not enough bits, increase definition of second argument");
 
-	COMPILE_ASSERT_PACK(NUM_VEC3D_TYPES, NUM_VEC3D_TYPE_PACK_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_WAYPOINT_REACHED_TYPES, NUM_WAYPOINT_REACHED_BITS, "Not enough bits, increase definition of second argument");
-	COMPILE_ASSERT_PACK(NUM_WEAPON_CONFIG_TYPES, NUM_WEAPON_CONFIG_TYPE_BITS, "Not enough bits, increase definition of second argument");
 
-    COMPILE_ASSERT_PACK(TEXTURE_ANIMATION_INDEX_LAST, NUM_ANIMATED_TEXTURE_BITS, "Not enough bits, increase definition of second argument");
-}
 
 
 
 
 
-void initialise_entity_int_value_default_functions (void)
-{
-	int
-		i,
-		j;
 
-	debug_check_pack_types();
 
-	for (i = 0; i < NUM_ENTITY_TYPES; i++)
-	{
-		for (j = 0; j < NUM_INT_TYPES; j++)
-		{
-			fn_set_local_entity_raw_int_value[i][j]									= default_set_entity_int_value;
 
-			fn_set_local_entity_int_value[i][j]											= default_set_entity_int_value;
 
-			fn_set_client_server_entity_int_value[i][j][COMMS_MODEL_SERVER]	= default_set_entity_int_value;
 
-			fn_set_client_server_entity_int_value[i][j][COMMS_MODEL_CLIENT]	= default_set_entity_int_value;
 
-			fn_get_local_entity_int_value[i][j]											= default_get_entity_int_value;
-		}
-	}
 
-	ASSERT(int_type_database[INT_TYPE_Z_SECTOR].name && strcmp(int_type_database[INT_TYPE_Z_SECTOR].name, "INT_TYPE_Z_SECTOR") == 0);  // if this fails then initialization order and defines differ in number!
-}
 
 
 
 
 
-void pack_int_value (entity *en, int_types type, int value)
-{
-	unsigned int pack_bits;
 
-	ASSERT ((type >= 0) && (type < NUM_INT_TYPES));
 
-	pack_bits = int_type_database[type].num_pack_bits;
-	ASSERT(pack_bits > 0 && pack_bits <= 32);
 
-	#if (DEBUG_MODULE_PACK_ONE || DEBUG_MODULE_PACK_ALL)
 
-	if (int_type_database[type].debug_pack)
-	{
-		debug_log_entity_args (ENTITY_DEBUG_PACK, ENTITY_DEBUG_INT_VALUE, en, type, value);
-	}
 
-	#endif
 
-	switch (int_type_database[type].pack_type)
-	{
 
-		case INT_PACK_TYPE_SIGNED:
 
-		{
-			int max_val = (1 << (pack_bits - 1)) - 1;
-			int min_val = -max_val - 1;
 
-			if (pack_bits < 32 && (value > max_val || value < min_val))
-			{
-				#ifdef DEBUG_PACK_OVERFLOW
-					debug_log_pack_overflow("signed int", get_int_type_name(type), pack_bits, value, 0.0);
-				#endif
 
-				if (value > 0)
-					value = max_val;
-				else
-					value = min_val;
 
-				ASSERT(!"Overflow when packing signed int type!");
-			}
 
-			pack_signed_data (value, pack_bits);
 
-			break;
-		}
 
-		case INT_PACK_TYPE_UNSIGNED:
 
-		{
-			if (pack_bits < 32 && value & (0xffffffff << pack_bits))
-			{
-				#ifdef DEBUG_PACK_OVERFLOW
-					debug_log_pack_overflow("unsigned int", get_int_type_name(type), pack_bits, value, 0.0);
-				#endif
 
-				value = (1 << pack_bits) - 1;
 
-				ASSERT(!"Overflow when packing unsigned int type!");
-			}
 
-			pack_unsigned_data (value, pack_bits);
 
-			break;
-		}
 
-		default:
 
-		{
-			debug_fatal ("Invalid int pack type = %d", int_type_database[type].pack_type);
 
-			break;
-		}
-	}
-}
 
 
 
 
 
-int unpack_int_value (entity *en, int_types type)
-{
-	int
-		value;
 
-	ASSERT ((type >= 0) && (type < NUM_INT_TYPES));
 
-	switch (int_type_database[type].pack_type)
-	{
 
-		case INT_PACK_TYPE_SIGNED:
 
-		{
-			value = unpack_signed_data (int_type_database[type].num_pack_bits);
 
-			break;
-		}
 
-		case INT_PACK_TYPE_UNSIGNED:
 
-		{
-			value = unpack_unsigned_data (int_type_database[type].num_pack_bits);
 
-			break;
-		}
 
-		default:
 
-		{
-			debug_fatal ("Invalid int pack type = %d", int_type_database[type].pack_type);
 
-			break;
-		}
-	}
 
-	#if (DEBUG_MODULE_PACK_ONE || DEBUG_MODULE_PACK_ALL)
 
-	if (int_type_database[type].debug_pack)
-	{
-		debug_log_entity_args (ENTITY_DEBUG_UNPACK, ENTITY_DEBUG_INT_VALUE, en, type, value);
-	}
 
-	#endif
 
-	return (value);
-}
 
 
 
 
 
-void pack_int_type (int_types type)
-{
-	ASSERT ((type >= 0) && (type < NUM_INT_TYPES));
 
-	#if (DEBUG_MODULE_PACK_ONE || DEBUG_MODULE_PACK_ALL)
 
-	if (int_type_database[type].debug_pack)
-	{
-		debug_log_entity_args (ENTITY_DEBUG_PACK, ENTITY_DEBUG_INT_TYPE, NULL, type);
-	}
 
-	#endif
 
-	ASSERT(!(type >> NUM_INT_TYPE_PACK_BITS));
 
-	pack_unsigned_data (type, NUM_INT_TYPE_PACK_BITS);
-}
 
 
 
 
 
-int_types unpack_int_type (void)
-{
-	int_types
-		type;
 
-	type = (int_types) unpack_unsigned_data (NUM_INT_TYPE_PACK_BITS);
 
-	ASSERT ((type >= 0) && (type < NUM_INT_TYPES));
 
-	#if (DEBUG_MODULE_PACK_ONE || DEBUG_MODULE_PACK_ALL)
 
-	if (int_type_database[type].debug_pack)
-	{
-		debug_log_entity_args (ENTITY_DEBUG_UNPACK, ENTITY_DEBUG_INT_TYPE, NULL, type);
-	}
 
-	#endif
 
-	return (type);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

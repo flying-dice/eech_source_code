@@ -200,29 +200,6 @@ static int response_to_link_parent (entity_messages message, entity *receiver, e
 
 
 
-static int response_to_set_entity_position (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-
-	vec3d
-		*position;
-
-	float
-		velocity,
-		heading;
-
-	entity
-		*wp;
-
-	task
-		*raw;
-
-	raw = (task *) get_local_entity_data (receiver);
-
-	position = va_arg (pargs, vec3d *);
-
-	heading = (float) va_arg (pargs, double);
-
-	velocity = (float) va_arg (pargs, double);
 
 
 
@@ -231,28 +208,51 @@ static int response_to_set_entity_position (entity_messages message, entity *rec
 
 
 
-	wp = raw->waypoint_root.first_child;
 
-	//
-	// notify all waypoints of movement, before setting position so children can calculate delta movement.
-	//
 
-	while (wp)
-	{
 
-		notify_local_entity (ENTITY_MESSAGE_SET_ENTITY_POSITION, wp, receiver, position, (double) heading, (double) velocity);
 
-		wp = get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT);
-	}
 
-	//
-	// actually set position
-	//
 
-	set_local_entity_vec3d (receiver, VEC3D_TYPE_POSITION, position);
 
-	return (TRUE);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

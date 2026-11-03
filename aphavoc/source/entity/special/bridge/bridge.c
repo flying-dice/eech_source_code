@@ -458,325 +458,112 @@ void create_local_bridge_entities (pack_modes pack_mode)
 
 
 
-float get_actual_bridge_length (vec3d *end1, vec3d *end2, entity_sub_types type, vec3d *actual_start, vec3d *actual_end, int *return_num_mid_sections)
-{
-	const bridge_data
-		*bridge_info;
 
-	float
-		mid_length,
-		start_length,
-		end_length,
-		raw_length,
-		actual_length,
-		mid_section_pattern_length;
 
-	int
-		element_loop,
-		num_mid_sections;
 
-	vec3d
-		raw_vector,
-		mid_point;
 
-	bridge_segment_types
-		segment_type;
 
-	ASSERT( ( type >= 0 ) && ( type < NUM_ENTITY_SUB_TYPE_BRIDGES ) );
 
-	bridge_info = &bridge_database[ type ];
 
-	//
-	// find the length of the mid section pattern
-	//
 
-	mid_section_pattern_length = 0.0;
 
-	for ( element_loop = 0 ; element_loop < bridge_info->num_elements_in_mid_section_pattern ; element_loop ++ )
-	{
-		segment_type = bridge_info->mid_section_type[ element_loop ];
 
-		mid_section_pattern_length += bridge_segment_length( segment_type );
-	}
 
-	ASSERT( mid_section_pattern_length > 0.0 );
 
-	//
-	// find the length between the two points
-	//
 
-	raw_vector.x = end2->x - end1->x;
-	raw_vector.y = end2->y - end1->y;
-	raw_vector.z = end2->z - end1->z;
 
-	mid_point.x = end1->x + ( raw_vector.x * 0.5 );
-	mid_point.y = end1->y + ( raw_vector.y * 0.5 );
-	mid_point.z = end1->z + ( raw_vector.z * 0.5 );
 
-	raw_length = normalise_3d_vector( &raw_vector );
 
-	//
-	// find the length left after the start and end sections are considered
-	//
 
-	start_length = bridge_segment_length( bridge_info->start_section_type );
 
-	end_length = bridge_segment_length( bridge_info->end_section_type );
 
-	mid_length = raw_length - ( start_length * 0.5 );
 
-	mid_length -= ( end_length * 0.5 );
 
-	if ( mid_length <= 0.0 )
-	{
-		num_mid_sections = 0;
-	}
-	else
-	{
-		num_mid_sections = (int)( mid_length / mid_section_pattern_length ) + 1;
-	}
 
-	actual_length = ( start_length * 0.5 ) + ( end_length * 0.5 ) + ( mid_section_pattern_length * num_mid_sections );
 
-	//
-	// find actual start and end points
-	//
 
-	if (actual_start)
-	{
-		actual_start->x = mid_point.x - ( raw_vector.x * ( actual_length * 0.5 ) );
-		actual_start->y = mid_point.y - ( raw_vector.y * ( actual_length * 0.5 ) );
-		actual_start->z = mid_point.z - ( raw_vector.z * ( actual_length * 0.5 ) );
-	}
 
-	if (actual_end)
-	{
-		actual_end->x = mid_point.x + ( raw_vector.x * ( actual_length * 0.5 ) );
-		actual_end->y = mid_point.y + ( raw_vector.y * ( actual_length * 0.5 ) );
-		actual_end->z = mid_point.z + ( raw_vector.z * ( actual_length * 0.5 ) );
-	}
 
-	if (return_num_mid_sections)
-	{
-		(*return_num_mid_sections) = num_mid_sections;
-	}
 
-	return actual_length;
-}
 
 
 
 
 
-entity_sub_types get_most_suitable_bridge_type (vec3d *end1, vec3d *end2, float largest_depth)
-{
-	entity_sub_types
-		type;
 
-	float
-		d,
-		span,
-		min_span,
-		max_span,
-		min_depth,
-		max_depth,
-		slope;
 
-	float
-		actual_span [NUM_ENTITY_SUB_TYPE_BRIDGES];
 
-	int
-		suitability [NUM_ENTITY_SUB_TYPE_BRIDGES];
 
-	int
-		num_suitable_types;
 
-	vec3d
-		v;
 
-	ASSERT (end1 && end2);
 
-	d = get_3d_range (end1, end2);
 
-	memset (suitability, 0, sizeof (int) * NUM_ENTITY_SUB_TYPE_BRIDGES);
 
-	num_suitable_types = 0;
 
-	//
-	// assess span length and warzone validity
-	//
 
-	for (type = 0; type < NUM_ENTITY_SUB_TYPE_BRIDGES; type ++)
-	{
-		if ((bridge_database [type].valid_bridge_type) && (valid_warzone_bridges [type]))
-		{
-			span = get_actual_bridge_length (end1, end2, type, NULL, NULL, NULL);
 
-			min_span = bridge_database [type].min_suitable_span;
-			max_span = bridge_database [type].max_suitable_span;
 
-			if ((span >= min_span) && (span <= max_span))
-			{
-				suitability [type] = TRUE;
 
-				num_suitable_types ++;
-			}
 
-			actual_span [type] = span;
-		}
-	}
 
-	if (num_suitable_types == 0)
-	{
 
 
 
 
 
 
-		return ENTITY_SUB_TYPE_BRIDGE_GIRDER;
-	}
 
-	//
-	// assess max distance down to water
-	//
 
-	for (type = 0; type < NUM_ENTITY_SUB_TYPE_BRIDGES; type ++)
-	{
-		if (!suitability [type])
-		{
-			continue;
-		}
 
-		min_depth = bridge_database [type].min_suitable_depth;
-		max_depth = bridge_database [type].max_suitable_depth;
 
-		if ((largest_depth < min_depth) || (largest_depth > max_depth))
-		{
-			suitability [type] = FALSE;
 
-			num_suitable_types --;
-		}
-	}
 
-	if (num_suitable_types == 0)
-	{
 
 
 
 
 
 
-		return ENTITY_SUB_TYPE_BRIDGE_GIRDER;
-	}
 
-	//
-	// assess bridge slope
-	//
 
-	v.x = end2->x - end1->x;
-	v.y = end2->y - end1->y;
-	v.z = end2->z - end1->z;
 
-	normalise_3d_vector (&v);
 
-	slope = fabs (asin (v.y));
 
-	for (type = 0; type < NUM_ENTITY_SUB_TYPE_BRIDGES; type ++)
-	{
-		if (!suitability [type])
-		{
-			continue;
-		}
 
-//		debug_log ("BRIDGE : %s max suitable slope = %f, actual slope = %f", entity_sub_type_bridge_names [type], deg (bridge_database [type].max_suitable_slope), deg (slope));
 
-		if (slope > bridge_database [type].max_suitable_slope)
-		{
-//			debug_log ("          Failed");
 
-			suitability [type] = FALSE;
 
-			num_suitable_types --;
-		}
-	}
 
-	if (num_suitable_types == 0)
-	{
 
 
 
 
 
 
-		return ENTITY_SUB_TYPE_BRIDGE_GIRDER;
-	}
 
-	//
-	// end of criteria checks
-	//
 
-	if (num_suitable_types == 1)
-	{
-		//
-		// trivial case
-		//
 
-		for (type = 0; type < NUM_ENTITY_SUB_TYPE_BRIDGES; type ++)
-		{
-			if (suitability [type])
-			{
 
 
 
 
 
 
-				return type;
-			}
-		}
 
-		debug_fatal ("BRIDGE: suitable type counter = %d, but no suitable types found", num_suitable_types);
-	}
-	else
-	{
-		//
-		// find best fit
-		//
 
-		float
-			span_difference,
-			best_span_difference;
 
-		int
-			best_type;
 
-		best_type = -1;
 
-		best_span_difference = FLT_MAX;
 
-		for (type = 0; type < NUM_ENTITY_SUB_TYPE_BRIDGES; type ++)
-		{
-			if (suitability [type])
-			{
-				span_difference = fabs (actual_span [type] - d);
 
-				if (span_difference < best_span_difference)
-				{
-					best_type = type;
 
-					best_span_difference = span_difference;
-				}
 
 
 
 
 
 
-			}
-		}
 
-		ASSERT (best_type != -1);
 
 
 
@@ -784,91 +571,304 @@ entity_sub_types get_most_suitable_bridge_type (vec3d *end1, vec3d *end2, float 
 
 
 
-		return best_type;
-	}
 
-	debug_fatal ("BRIDGE : No Valid Types Found");
 
-	return ENTITY_SUB_TYPE_BRIDGE_GIRDER;
-}
 
 
 
 
 
-float get_bridge_max_leg_height (vec3d *end1, vec3d *end2, entity_sub_types type)
-{
 
-	const bridge_data
-		*bridge_info;
 
-	float
-		start_length,
-		actual_length,
-		max_leg_height;
 
-	int
-		element_loop,
-		section_loop,
-		num_mid_sections;
 
-	vec3d
-		start,
-		end,
-		pos,
-		raw_vector;
 
-	bridge_segment_types
-		segment_type;
 
-	ASSERT( ( type >= 0 ) && ( type < NUM_ENTITY_SUB_TYPE_BRIDGES ) );
 
-	bridge_info = &bridge_database[ type ];
 
-	max_leg_height = 0.0;
 
-	//
-	// get adjusted start and end points
-	//
 
-	actual_length = get_actual_bridge_length (end1, end2, type, &start, &end, &num_mid_sections);
 
-	raw_vector.x = end2->x - end1->x;
-	raw_vector.y = end2->y - end1->y;
-	raw_vector.z = end2->z - end1->z;
 
-	normalise_3d_vector( &raw_vector );
 
-	start_length = bridge_segment_length( bridge_info->start_section_type );
 
-	pos.x = start.x + ( raw_vector.x * start_length * 0.5 );
-	pos.y = start.y + ( raw_vector.y * start_length * 0.5 );
-	pos.z = start.z + ( raw_vector.z * start_length * 0.5 );
 
-	for ( section_loop = 0 ; section_loop < num_mid_sections ; section_loop ++ )
-	{
 
-		for ( element_loop = 0 ; element_loop < bridge_info->num_elements_in_mid_section_pattern ; element_loop ++ )
-		{
 
-			segment_type = bridge_info->mid_section_type[ element_loop ];
 
-			pos.x += ( raw_vector.x * bridge_segment_length( segment_type ) * 0.5 );
-			pos.y += ( raw_vector.y * bridge_segment_length( segment_type ) * 0.5 );
-			pos.z += ( raw_vector.z * bridge_segment_length( segment_type ) * 0.5 );
 
-			ASSERT(point_inside_map_area(&pos));
-	
-			max_leg_height = max( max_leg_height, ( pos.y - get_3d_terrain_elevation( pos.x, pos.z ) ) );
 
-			pos.x += ( raw_vector.x * bridge_segment_length( segment_type ) * 0.5 );
-			pos.y += ( raw_vector.y * bridge_segment_length( segment_type ) * 0.5 );
-			pos.z += ( raw_vector.z * bridge_segment_length( segment_type ) * 0.5 );
-		}
-	}
 
-	return max_leg_height;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

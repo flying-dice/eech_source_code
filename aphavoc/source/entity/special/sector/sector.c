@@ -688,58 +688,58 @@ int get_sector_task_type_count (entity *en, entity_sub_types task_type, entity_s
 
 
 
-void play_sector_air_defences_sighted_speech (entity *en, entity *sector_en)
-{
-	if (get_local_entity_int_value (en, INT_TYPE_IDENTIFY_AIRCRAFT))
-	{
-		if (get_local_entity_int_value (en, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-		{
-			//
-			// PLAY_SPEECH (CPG)
-			//
-		}
-		else
-		{
-			//
-			// PLAY_SPEECH (WINGMAN)
-			//
-		}
-	}
-	else
-	{
-		//
-		// PLAY_SPEECH (GC)
-		//
-	}
-}
 
 
 
 
 
-void play_sector_keysite_sighted_speech (entity *en, entity *sector_en, entity *target_keysite)
-{
-	if (get_local_entity_int_value (en, INT_TYPE_IDENTIFY_AIRCRAFT))
-	{
-		if (get_local_entity_int_value (en, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
-		{
-			// PLAY_SPEECH (CPG)
-			//
-		}
-		else
-		{
-			//
-			// PLAY_SPEECH (WINGMAN)
-			//
-		}
-	}
-	else
-	{
-		//
-		// PLAY_SPEECH (GC)
-		//
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

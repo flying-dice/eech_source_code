@@ -592,350 +592,350 @@ void set_session_random_weather_mode (entity *en)
 
 
 
-float get_session_wind_velocity_at_point (vec3d *pos, vec3d *wind_velocity)
-{
-	float
-		r,
-		range,
-		wind_speed;
-
-	session
-		*raw;
-
-	ASSERT (get_session_entity ());
-
-	ASSERT (pos);
-
-	raw = (session *) get_local_entity_data (get_session_entity ());
-
-	if (raw->wind_effect_radius == 0.0)
-	{
-		//
-		// wind is calm all across the map
-		//
-
-		wind_speed = raw->wind_minimum_speed;
-	}
-	else
-	{
-		//
-		// there is some high wind somewhere on the map
-		//
-
-		range = get_approx_2d_range (pos, &raw->wind_effect_position);
-
-		if (range >= raw->wind_effect_radius)
-		{
-			//
-			// camera is in the calm zone
-			//
-
-			wind_speed = raw->wind_minimum_speed;
-		}
-		else
-		{
-			r = ((raw->wind_effect_radius - range) / raw->wind_effect_radius);
-
-			wind_speed = raw->wind_minimum_speed + ((raw->wind_maximum_speed - raw->wind_minimum_speed) * r);
-		}
-	}
-
-	wind_speed += (wind_speed * get_wind_gusting_modulation_value (raw->wind_gusting_value));
-
-	if (wind_velocity)
-	{
-		wind_velocity->x = raw->wind_direction_vector.x * wind_speed;
-		wind_velocity->y = 0.0;
-		wind_velocity->z = raw->wind_direction_vector.z * wind_speed;
-	}
-
-	return wind_speed;
-}
 
 
 
 
 
-void attach_session_sound_effects (entity *en)
-{
-	sound_sample_indices
-		sound_effect_index;
-
-	//
-	// light rain
-	//
-
-	sound_effect_index = SOUND_SAMPLE_INDEX_AMBIENT_LIGHT_RAIN;
-
-	create_local_sound_effect_entity
-	(
-		ENTITY_INDEX_DONT_CARE,
-		en,
-		ENTITY_SIDE_NEUTRAL,
-		ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_LIGHT_RAIN,
-		SOUND_CHANNEL_SOUND_EFFECT,
-		SOUND_LOCALITY_ALL,
-		NULL,												// position
-		0.0,												// amplification
-		1.0, //Werewolf pitch
-		TRUE,												// valid sound effect
-		TRUE,												// looping
-		1,													// sample count
-		&sound_effect_index							// sample index list
-	);
-
-	//
-	// heavy rain
-	//
-
-	sound_effect_index = SOUND_SAMPLE_INDEX_AMBIENT_HEAVY_RAIN;
-
-	create_local_sound_effect_entity
-	(
-		ENTITY_INDEX_DONT_CARE,
-		en,
-		ENTITY_SIDE_NEUTRAL,
-		ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_HEAVY_RAIN,
-		SOUND_CHANNEL_SOUND_EFFECT,
-		SOUND_LOCALITY_ALL,
-		NULL,												// position
-		0.0,												// amplification
-		1.0, //Werewolf pitch
-		TRUE,												// valid sound effect
-		TRUE,												// looping
-		1,													// sample count
-		&sound_effect_index							// sample index list
-	);
-
-	//
-	// light wind
-	//
-
-	sound_effect_index = SOUND_SAMPLE_INDEX_AMBIENT_LIGHT_WIND;
-
-	create_local_sound_effect_entity
-	(
-		ENTITY_INDEX_DONT_CARE,
-		en,
-		ENTITY_SIDE_NEUTRAL,
-		ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_LIGHT_WIND,
-		SOUND_CHANNEL_SOUND_EFFECT,
-		SOUND_LOCALITY_ALL,
-		NULL,												// position
-		0.0,												// amplification
-		1.0, //Werewolf pitch
-		TRUE,												// valid sound effect
-		TRUE,												// looping
-		1,													// sample count
-		&sound_effect_index							// sample index list
-	);
-
-	//
-	// heavy wind
-	//
-
-	sound_effect_index = SOUND_SAMPLE_INDEX_AMBIENT_HEAVY_WIND;
-
-	create_local_sound_effect_entity
-	(
-		ENTITY_INDEX_DONT_CARE,
-		en,
-		ENTITY_SIDE_NEUTRAL,
-		ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_HEAVY_WIND,
-		SOUND_CHANNEL_SOUND_EFFECT,
-		SOUND_LOCALITY_ALL,
-		NULL,												// position
-		0.0,												// amplification
-		1.0, //Werewolf pitch
-		TRUE,												// valid sound effect
-		TRUE,												// looping
-		1,													// sample count
-		&sound_effect_index							// sample index list
-	);
-
-	//
-	// sea
-	//
-
-	sound_effect_index = SOUND_SAMPLE_INDEX_AMBIENT_SEA;
-
-	create_local_sound_effect_entity
-	(
-		ENTITY_INDEX_DONT_CARE,
-		en,
-		ENTITY_SIDE_NEUTRAL,
-		ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_SEA,
-		SOUND_CHANNEL_SOUND_EFFECT,
-		SOUND_LOCALITY_ALL,
-		NULL,												// position
-		0.0,												// amplification
-		1.0, //Werewolf pitch
-		TRUE,												// valid sound effect
-		TRUE,												// looping
-		1,													// sample count
-		&sound_effect_index							// sample index list
-	);
-
-	//
-	// jungle
-	//
-
-	sound_effect_index = SOUND_SAMPLE_INDEX_AMBIENT_JUNGLE;
-
-	create_local_sound_effect_entity
-	(
-		ENTITY_INDEX_DONT_CARE,
-		en,
-		ENTITY_SIDE_NEUTRAL,
-		ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_JUNGLE,
-		SOUND_CHANNEL_SOUND_EFFECT,
-		SOUND_LOCALITY_ALL,
-		NULL,												// position
-		0.0,												// amplification
-		1.0, //Werewolf pitch
-		TRUE,												// valid sound effect
-		TRUE,												// looping
-		1,													// sample count
-		&sound_effect_index							       // sample index list
-
-	);
-
-	//
-	// Maverick's Ambiente sound mod
-	//
-
-	sound_effect_index = SOUND_SAMPLE_INDEX_AMB1;
-
-	create_local_sound_effect_entity
-	(
-		ENTITY_INDEX_DONT_CARE,
-		en,
-		ENTITY_SIDE_NEUTRAL,
-		ENTITY_SUB_TYPE_EFFECT_SOUND_AMB1,
-		SOUND_CHANNEL_SOUND_EFFECT,
-		SOUND_LOCALITY_ALL,
-		NULL,												// position
-		0.0,												// amplification
-		1.0, //Werewolf pitch
-		TRUE,												// valid sound effect
-		TRUE,												// looping
-		1,													// sample count
-		&sound_effect_index							        // sample index list
-	);
-
-    sound_effect_index = SOUND_SAMPLE_INDEX_AMB2;
-
-	create_local_sound_effect_entity
-	(
-		ENTITY_INDEX_DONT_CARE,
-		en,
-		ENTITY_SIDE_NEUTRAL,
-		ENTITY_SUB_TYPE_EFFECT_SOUND_AMB2,
-		SOUND_CHANNEL_SOUND_EFFECT,
-		SOUND_LOCALITY_ALL,
-		NULL,												// position
-		0.0,												// amplification
-		1.0, //Werewolf pitch
-		TRUE,												// valid sound effect
-		TRUE,												// looping
-		1,													// sample count
-		&sound_effect_index							        // sample index list
-	);
-
-    sound_effect_index = SOUND_SAMPLE_INDEX_AMB3;
-
-	create_local_sound_effect_entity
-	(
-		ENTITY_INDEX_DONT_CARE,
-		en,
-		ENTITY_SIDE_NEUTRAL,
-		ENTITY_SUB_TYPE_EFFECT_SOUND_AMB3,
-		SOUND_CHANNEL_SOUND_EFFECT,
-		SOUND_LOCALITY_ALL,
-		NULL,												// position
-		0.0,												// amplification
-		1.0, //Werewolf pitch
-		TRUE,												// valid sound effect
-		TRUE,												// looping
-		1,													// sample count
-		&sound_effect_index							        // sample index list
-    );
-
-    sound_effect_index = SOUND_SAMPLE_INDEX_AMB4;
-
-	create_local_sound_effect_entity
-	(
-		ENTITY_INDEX_DONT_CARE,
-		en,
-		ENTITY_SIDE_NEUTRAL,
-		ENTITY_SUB_TYPE_EFFECT_SOUND_AMB4,
-		SOUND_CHANNEL_SOUND_EFFECT,
-		SOUND_LOCALITY_ALL,
-		NULL,												// position
-		0.0,												// amplification
-		1.0, //Werewolf pitch
-		TRUE,												// valid sound effect
-		TRUE,												// looping
-		1,													// sample count
-		&sound_effect_index							        // sample index list
-	);
-}
 
 
 
 
 
-float get_wind_gusting_modulation_value (float wind_gusting_value)
-{
-	float
-		a,
-		b,
-		d,
-		low,
-		high,
-		val;
 
-	int
-		low_index,
-		high_index,
-		num_segments;
 
-	num_segments = WIND_GUSTING_SAMPLE_POINTS + 1;
 
-	val = wind_gusting_value * num_segments;
 
-	low = floor (val);
 
-	high = ceil (val);
 
-	d = val - low;
 
-	convert_float_to_int (low, &low_index);
-	convert_float_to_int (high, &high_index);
 
-	ASSERT ((low_index >= 0) && (low_index < num_segments));
-	ASSERT ((high_index >= 0) && (high_index <= num_segments));
 
-	if (low_index == 0)
-	{
-		a = 0.0;
-	}
-	else
-	{
-		a = wind_gust_modulation_amounts [low_index - 1];
-	}
 
-	if ((high_index == 0) || (high_index == num_segments))
-	{
-		b = 0.0;
-	}
-	else
-	{
-		b = wind_gust_modulation_amounts [high_index - 1];
-	}
 
-	return (a + (d * (b - a)));
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

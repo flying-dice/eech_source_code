@@ -144,102 +144,102 @@ void initialise_attack_guide (entity *en)
 
 
 
-void calculate_attack_guide_intercept_point (entity *aggressor, entity *target, int selected_weapon, vec3d *ip)
-{
-	float
-		time,
-		distance,
-		target_speed,
-		weapon_speed;
 
-	int
-		object_index;
 
-	ASSERT (aggressor);
 
-	ASSERT (target);
 
-	ASSERT (ip);
 
-	//
-	// Also uses target point NULL on the object to define offset
-	//
 
-	object_index = get_local_entity_int_value (target, INT_TYPE_OBJECT_3D_SHAPE);
 
-	if (object_index != OBJECT_3D_INVALID_OBJECT_INDEX)
-	{
-		ip->x = target_point_offsets [object_index].x;
-		ip->y = target_point_offsets [object_index].y;
-		ip->z = target_point_offsets [object_index].z;
-	}
-	else
-	{
-		ip->x = 0.0;
-		ip->y = 0.0;
-		ip->z = 0.0;
-	}
 
-	//
-	// check for simple case if target not moving
-	//
 
-	target_speed = get_local_entity_float_value (target, FLOAT_TYPE_VELOCITY);
 
-	//
-	// Assume distance between target and aggressor at fire position will be the weapons effective range
-	//
 
-	distance = weapon_database [selected_weapon].effective_range;
 
-	// adjust for weapon drop
-	if (weapon_database [selected_weapon].guidance_type == WEAPON_GUIDANCE_TYPE_NONE)
-	{
-		vec3d*
-			aggressor_pos = get_local_entity_vec3d_ptr (aggressor, VEC3D_TYPE_POSITION);
 
-		float
-			velocity = get_local_entity_float_value (aggressor, FLOAT_TYPE_CRUISE_VELOCITY),
-			burst_length = weapon_database[selected_weapon].burst_duration,
-			// use distance in the middle of the salve. First rounds will hit short, last long, but should bracket target nicely
-			mid_salvo_distance = distance - max(250.0, (0.5 * velocity * burst_length)),
-			aiming_pitch,
-			height_diff = aggressor_pos->y - ip->y,
-			// current pitch from aggressor to target, it won't be the same at firing point, but close enough
-			pitch = -atan(height_diff / get_2d_range(aggressor_pos, get_local_entity_vec3d_ptr(target, VEC3D_TYPE_POSITION))),
-			tof;
 
-		if (get_ballistic_pitch_deflection(selected_weapon, mid_salvo_distance, pitch, &aiming_pitch, &tof, FALSE, TRUE, weapon_database [selected_weapon].acquire_parent_forward_velocity * get_local_entity_float_value (aggressor, FLOAT_TYPE_VELOCITY)))
-		{
-			float
-				projectile_drop_angle = aiming_pitch - pitch,  // aiming pitch is absolute, but we need to figure out how much higher we need to aim
-				projectile_drop = tan(projectile_drop_angle) * mid_salvo_distance * cos(pitch);  // distance projectile will drop, so aim this much above target
 
-			ip->y += projectile_drop;
-		}
-	}
 
-	if (target_speed == 0.0)
-	{
-		return;
-	}
 
-	//
-	// Find time taken for weapon to travel this distance
-	//
 
-	weapon_speed = weapon_database [selected_weapon].cruise_velocity;
 
-	ASSERT (weapon_speed > 0.0);
 
-	time = distance / weapon_speed;
 
-	//
-	// calculate lead distance
-	//
 
-	ip->z += target_speed * time;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

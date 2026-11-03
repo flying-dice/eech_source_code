@@ -299,24 +299,6 @@ static int response_to_waypoint_pick_up_reached (entity_messages message, entity
 
 
 
-static int response_to_set_entity_position (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-
-	float
-		velocity,
-		heading;
-
-	vec3d
-		*position;
-
-	entity
-		*landing_en;
-
-	position = va_arg (pargs, vec3d *);
-
-	heading = (float) va_arg (pargs, double);
-
-	velocity = (float) va_arg (pargs, double);
 
 
 
@@ -325,28 +307,46 @@ static int response_to_set_entity_position (entity_messages message, entity *rec
 
 
 
-	//
-	// move landing entities
-	//
 
-	landing_en = get_local_entity_first_child (receiver, LIST_TYPE_LANDING_SITE);
 
-	while (landing_en)
-	{
 
-		notify_local_entity (ENTITY_MESSAGE_SET_ENTITY_POSITION, landing_en, receiver, position, (double) heading, (double) velocity);
 
-		landing_en = get_local_entity_child_succ (landing_en, LIST_TYPE_LANDING_SITE);
-	}
 
-	//
-	// Use full set_position function to keep sector data correct.
-	//
 
-	set_local_entity_vec3d (receiver, VEC3D_TYPE_POSITION, position);
 
-	return (TRUE);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

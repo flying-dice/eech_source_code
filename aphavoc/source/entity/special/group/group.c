@@ -1430,97 +1430,97 @@ int group_task_specific_retaliation_checks (entity *group, entity *aggressor, in
 
 
 
-void initialise_group_callsign_database (void)
-{
-
-	int
-		loop;
-
-	for (loop = 0; loop < NUM_GROUP_CALLSIGNS; loop ++)
-	{
-
-		memset (group_callsign_names [loop].side, 0, sizeof (char) * NUM_ENTITY_SIDES);
-	}
-}
 
 
 
 
 
-int assign_group_callsign (entity *en)
-{
-
-	int
-		start_position,
-		side,
-		index;
-
-	index = 0;
-
-	if (get_comms_model () != COMMS_MODEL_SERVER)
-	{
-
-		return index;
-	}
-
-	if (get_local_entity_int_value (en, INT_TYPE_AIRCRAFT_GROUP))
-	{
-
-		index = get_local_entity_index (en) % NUM_GROUP_CALLSIGNS;
-
-		start_position = index;
-
-		side = get_local_entity_int_value (en, INT_TYPE_SIDE);
-
-		while (group_callsign_names [index].side [side])
-		{
-
-			index = ( index + 1 ) % NUM_GROUP_CALLSIGNS;
-
-			if (index == start_position)
-			{
-
-				debug_log ("GROUP: WARNING: reusing group callsign %s for group %s", group_callsign_names [index].callsign, get_local_entity_string (en, STRING_TYPE_FULL_NAME));
-
-				break;
-			}
-		}
-
-		group_callsign_names [index].side [side] ++;
-	}
-
-	return index;
-}
 
 
 
 
 
-void free_group_callsign (entity *en)
-{
 
-	int
-		side,
-		index;
 
-	if (get_comms_model () != COMMS_MODEL_SERVER)
-	{
 
-		return;
-	}
 
-	if (get_local_entity_int_value (en, INT_TYPE_AIRCRAFT_GROUP))
-	{
 
-		side = get_local_entity_int_value (en, INT_TYPE_SIDE);
 
-		index = get_local_entity_int_value (en, INT_TYPE_GROUP_CALLSIGN);
 
-		ASSERT (group_callsign_names [index].side [side] > 0);
 
-		group_callsign_names [index].side [side] --;
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

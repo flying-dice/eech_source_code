@@ -326,120 +326,25 @@ entity *get_local_group_member_landing_entity_from_task (entity *en)
 
 
 
-void validate_landing_entity_routes (entity *en)
-{
-
-	entity_sides
-		side;
-
-	formation_type
-		*formation_data;
-
-	entity
-		*ts,
-		*ks,
-		*gd,
-		*gp,
-		*mb,
-		*wp,
-		*task;
-
-	unsigned int
-		landed_flags,
-		landing_flags,
-		takeoff_flags,
-		formation_position,
-		waypoint_formation,
-		landing_holding_flags;
 
-	landing
-		*raw;
 
-	raw = (landing *) get_local_entity_data (en);
 
-	side = (entity_sides) get_local_entity_int_value (get_local_entity_parent (en, LIST_TYPE_LANDING_SITE), INT_TYPE_SIDE);
 
-	if (((1 << raw->sub_type) & (DEBUG_LANDING_TYPE)) && (DEBUG_LANDING_SIDE & (1 << side)))
-	{
-	
 
-		//
-		// Check landing route locks are valid
-		//
 
-	
 
-		//
-		// LANDING ROUTE
-		//
 
-	
 
 
 
 
 
-	
-		task = get_local_landing_entity_task (en, ENTITY_SUB_TYPE_TASK_LANDING);
-	
-		wp = get_local_entity_first_child (task, LIST_TYPE_WAYPOINT);
-	
 
 
 
 
 
-	
-		//
-		// count up landing route
-		//
-	
-		// landing
-	
-		landing_flags = 0;
-	
-		waypoint_formation = get_local_entity_int_value (wp, INT_TYPE_WAYPOINT_FORMATION);
-	
-		formation_data = get_formation ((formation_types) waypoint_formation);
-	
-		while (wp)
-		{
-	
-			gd = get_local_entity_first_child (wp, LIST_TYPE_CURRENT_WAYPOINT);
 
-			while (gd)
-			{
-	
-				if (get_local_entity_type (gd) == ENTITY_TYPE_GUIDE)
-				{
-			
-					mb = get_local_entity_first_child (gd, LIST_TYPE_FOLLOWER);
-		
-					if (mb)
-					{
-		
-						if (get_local_entity_int_value (mb, INT_TYPE_IDENTIFY_MOBILE))
-						{
-				
-							if ((!get_local_entity_int_value (mb, INT_TYPE_LANDED)) && (get_local_entity_int_value (mb, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI))
-							{
-					
-								//
-								// check that landing mb has landing route locked
-								//
-					
-								formation_position = get_local_entity_int_value (mb, INT_TYPE_FORMATION_POSITION);
-					
-								formation_position %= formation_data->number_in_formation;
-					
-								#if FATAL
-		
-								ASSERT (!(landing_flags & (1 << formation_position)));
-		
-								#endif
-					
-								landing_flags |= 1 << formation_position;
-					
 
 
 
@@ -454,84 +359,22 @@ void validate_landing_entity_routes (entity *en)
 
 
 
-							}
-						}
-			
-						//mb = get_local_entity_child_succ (mb, LIST_TYPE_CURRENT_WAYPOINT);
-					}
-				}
 
-				gd = get_local_entity_child_succ (gd, LIST_TYPE_CURRENT_WAYPOINT);
-			}
-	
-			wp = get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT);
-		}
-	
 
 
 
 
 
-	
-		#if FATAL
 
-		ASSERT (raw->landing_lock == landing_flags);
 
-		#endif
-	
-		//
-		// Landed
-		//
 
-		ks = get_local_entity_parent (en, LIST_TYPE_LANDING_SITE);
-	
-		landed_flags = 0;
 
-		gp = get_local_entity_first_child (ks, LIST_TYPE_KEYSITE_GROUP);
 
-		while (gp)
-		{
 
-			if (group_database [get_local_entity_int_value (gp, INT_TYPE_ENTITY_SUB_TYPE)].default_landing_type == get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE))
-			{
-		
-				mb = get_local_entity_first_child (gp, LIST_TYPE_MEMBER);
-	
-				while (mb)
-				{
 
-					gd = get_local_entity_parent (mb, LIST_TYPE_FOLLOWER);
 
-					ts = NULL;
 
-					if (gd)
-					{
 
-						ts = get_local_entity_parent (gd, LIST_TYPE_GUIDE);
-					}
-		
-	  				// if no task or task == landing_task the entity has a lock on the landed_lock
-					if ((!ts) ||
-						(get_local_entity_int_value (ts, INT_TYPE_ENTITY_SUB_TYPE) == ENTITY_SUB_TYPE_TASK_LANDING) ||
-						(get_local_entity_parent (mb, LIST_TYPE_TAKEOFF_QUEUE)))
-					{
-			
-						//
-						// check that landed mb has landed lock
-						//
-				
-						formation_position = get_local_entity_int_value (mb, INT_TYPE_FORMATION_POSITION);
-				
-						formation_position %= raw->total_landing_sites;
-				
-						#if FATAL
-			
-						ASSERT (!(landed_flags & (1 << formation_position)));
-			
-						#endif
-				
-						landed_flags |= 1 << formation_position;
-				
 
 
 
@@ -540,70 +383,15 @@ void validate_landing_entity_routes (entity *en)
 
 
 
-					}
-	
-					mb = get_local_entity_child_succ (mb, LIST_TYPE_MEMBER);
-				}
-			}
-	
-			gp = get_local_entity_child_succ (gp, LIST_TYPE_KEYSITE_GROUP);
-		}
-	
 
 
 
 
 
-	
 
-		//
-		// LANDING_HOLDING ROUTE
-		//
 
-	
-		landing_holding_flags = 0;
-	
-		task = get_local_landing_entity_task (en, ENTITY_SUB_TYPE_TASK_LANDING_HOLDING);
-	
-		wp = get_local_entity_first_child (task, LIST_TYPE_WAYPOINT);
-	
-		while (wp)
-		{
 
-			gd = get_local_entity_first_child (wp, LIST_TYPE_CURRENT_WAYPOINT);
 
-			while (gd)
-			{
-	
-				if (get_local_entity_type (gd) == ENTITY_TYPE_GUIDE)
-				{
-			
-					mb = get_local_entity_first_child (gd, LIST_TYPE_FOLLOWER);
-			
-					if (mb)
-					{
-			
-						if (get_local_entity_int_value (mb, INT_TYPE_IDENTIFY_MOBILE))
-						{
-				
-							//
-							// check that landing mb has landing route locked
-							//
-				
-							formation_position = get_local_entity_int_value (mb, INT_TYPE_FORMATION_POSITION);
-				
-							formation_position %= raw->total_landing_sites;
-				
-							#if FATAL
-		
-							ASSERT (!(landing_holding_flags & (1 << formation_position)));
-		
-							ASSERT ((raw->landed_lock & (1 << formation_position)));
-		
-							#endif
-				
-							landing_holding_flags |= (1 << formation_position);
-				
 
 
 
@@ -612,95 +400,22 @@ void validate_landing_entity_routes (entity *en)
 
 
 
-						}
-			
-						//mb = get_local_entity_child_succ (mb, LIST_TYPE_CURRENT_WAYPOINT);
-					}
-				}
-	
-				gd = get_local_entity_child_succ (gd, LIST_TYPE_CURRENT_WAYPOINT);
-			}
-	
-			wp = get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT);
-		}
-	
 
 
 
 
 
-	
-		//
-		// ASSERT that landing members are the same as the ones that have locked the route
-		//
-	
-		#if FATAL
 
-		ASSERT (raw->landed_lock == (landed_flags | landing_holding_flags));
 
-		#endif
-	
 
-		//
-		// TAKEOFF ROUTE
-		//
 
-	
-		task = get_local_landing_entity_task (en, ENTITY_SUB_TYPE_TASK_TAKEOFF);
-	
-		wp = get_local_entity_first_child (task, LIST_TYPE_WAYPOINT);
-	
-		takeoff_flags = 0;
-	
 
 
 
 
 
-	
-		while (get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT))
-		{
-	
-			wp = get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT);
-		}
-	
-		formation_data = get_formation ((formation_types) get_local_entity_int_value (wp, INT_TYPE_WAYPOINT_FORMATION));
-	
-		wp = get_local_entity_first_child (task, LIST_TYPE_WAYPOINT);
-	
-		while (wp)
-		{
 
-			gd = get_local_entity_first_child (wp, LIST_TYPE_CURRENT_WAYPOINT);
 
-			while (gd)
-			{
-		
-				if (get_local_entity_type (gd) == ENTITY_TYPE_GUIDE)
-				{
-			
-					mb = get_local_entity_first_child (gd, LIST_TYPE_FOLLOWER);
-			
-					if (mb)
-					{
-			
-						if (get_local_entity_int_value (mb, INT_TYPE_IDENTIFY_MOBILE))
-						{
-					
-							//
-							// check that takingoff mb has takeoff route locked
-							//
-				
-							formation_position = get_local_entity_int_value (mb, INT_TYPE_FORMATION_POSITION);
-				
-							#if FATAL
-		
-							ASSERT (!(takeoff_flags & (1 << (formation_position % formation_data->number_in_formation))));
-		
-							#endif
-				
-							takeoff_flags |= (1 << (formation_position % formation_data->number_in_formation));
-				
 
 
 
@@ -709,39 +424,324 @@ void validate_landing_entity_routes (entity *en)
 
 
 
-						}
-			
-						//mb = get_local_entity_child_succ (mb, LIST_TYPE_CURRENT_WAYPOINT);
-					}
-				}
-		
-				gd = get_local_entity_child_succ (gd, LIST_TYPE_CURRENT_WAYPOINT);
-			}
-	
-			wp = get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT);
-		}
-	
-		//
-		// ASSERT that landing members are the same as the ones that have locked the route
-		//
-	
-		#if FATAL
 
-		ASSERT (raw->takeoff_lock == takeoff_flags);
 
-		#endif
-	
-		wp = get_local_entity_first_child (task, LIST_TYPE_WAYPOINT); // debug just to allow me to get to the line above in the debugger
-	
 
-	
 
 
 
 
 
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1043,44 +1043,44 @@ void release_mobile_entity_landing_locks (entity *en)
 
 
 
-void play_landing_clear_for_takeoff_speech (entity *en)
-{
-	entity
-		*group_en;
 
-	//
-	// PLAY_SPEECH (ATC)
-	//
 
-	ASSERT (en);
-	ASSERT (get_local_entity_int_value (en, INT_TYPE_IDENTIFY_AIRCRAFT));
 
-	group_en = get_local_entity_parent (en, LIST_TYPE_MEMBER);
 
-	ASSERT (group_en);
-	
-	play_client_server_speech
-	(
-		get_session_entity (),
-		en,
-		(entity_sides) get_local_entity_int_value (en, INT_TYPE_SIDE),
-		ENTITY_SUB_TYPE_EFFECT_SOUND_RADIO_MESSAGE,
-		SOUND_LOCALITY_RADIO,
-		0.0,
-		0.5,
-		12.0,
-		SPEECH_ORIGINATOR_AIR_TRAFFIC_CONTROLLER, 
-		SPEECH_CATEGORY_LANDING_TAKING_OFF, 16.0,
-		SPEECH_ARRAY_CALLSIGNS, get_local_entity_int_value (group_en, INT_TYPE_GROUP_CALLSIGN),
-		SPEECH_ARRAY_NUMBERS, 1,
-		SPEECH_ARRAY_NUMBERS, get_local_entity_int_value (en, INT_TYPE_GROUP_MEMBER_ID),
-		SPEECH_ARRAY_ATC_MESSAGES, SPEECH_ATC_INTRODUCTION,
-		SPEECH_ARRAY_ATC_MESSAGES, SPEECH_ATC_CLEAR_FOR_TAKEOFF1,
-		SPEECH_ARRAY_ATC_MESSAGES, SPEECH_ATC_WINDS,
-		SPEECH_ARRAY_ATC_MESSAGES, get_speech_atc_wind_speed (en),
-		-1
-	);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

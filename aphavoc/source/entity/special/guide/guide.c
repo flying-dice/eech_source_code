@@ -592,172 +592,172 @@ int set_guide_prev_waypoint (entity *en)
 
 
 
-void get_local_guide_position (entity *en, vec3d *pos)
-{
-	guide
-		*raw;
 
-	ASSERT (en);
 
-	ASSERT (pos);
 
-	raw = (guide *) get_local_entity_data (en);
-	
-	switch (raw->guide_position_type)
-	{
-		case GUIDE_POSITION_ABSOLUTE:
-		{
-			get_local_entity_vec3d (en, VEC3D_TYPE_POSITION, pos);
 
-			break;
-		}
 
-		case GUIDE_POSITION_WAYPOINT:
-		{
-			entity
-				*wp;
 
-			wp = get_local_entity_parent (en, LIST_TYPE_CURRENT_WAYPOINT);
 
-			ASSERT (wp);
-			
-			get_local_entity_vec3d (wp, VEC3D_TYPE_POSITION, pos);
 
-			break;
-		}
 
-		case GUIDE_POSITION_RELATIVE_WORLD_SPACE:
-		{
-			vec3d
-				*rel_pos,
-				*target_pos;
 
-			entity
-				*target;
 
-			rel_pos = &raw->position;
 
-			target = raw->position_entity;
-		
-			ASSERT (target);
 
-			target_pos = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
 
-			pos->x = target_pos->x + rel_pos->x;
-			pos->y = target_pos->y + rel_pos->y;
-			pos->z = target_pos->z + rel_pos->z;
 
-			break;
-		}
 
-		case GUIDE_POSITION_RELATIVE_OBJECT_SPACE:
-		{
-			vec3d
-				*rel_pos,
-				*target_pos;
 
-			entity
-				*target;
 
-			matrix3x3
-				m;
 
-			rel_pos = &raw->position;
 
-			target = raw->position_entity;
-		
-			ASSERT (target);
 
-			target_pos = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
 
-			if (check_zero_3d_vector (rel_pos))
-			{
-				*pos = *target_pos;
-			}
-			else
-			{	
-				get_local_entity_attitude_matrix (target, m);
 
-				pos->x = target_pos->x + ( ( rel_pos->x * m[0][0] ) + ( rel_pos->y * m[1][0] ) + ( rel_pos->z * m[2][0] ) );
-				pos->y = target_pos->y + ( ( rel_pos->x * m[0][1] ) + ( rel_pos->y * m[1][1] ) + ( rel_pos->z * m[2][1] ) );
-				pos->z = target_pos->z + ( ( rel_pos->x * m[0][2] ) + ( rel_pos->y * m[1][2] ) + ( rel_pos->z * m[2][2] ) );
-			}
 
-			break;
-		}
 
-		case GUIDE_POSITION_RELATIVE_CIRCULAR:
-		{
-			vec3d
-				*rel_pos,
-				*target_pos,
-				*aggressor_pos,
-				target_vec;
 
-			entity
-				*target,
-				*aggressor;
 
-			float
-				distance;
 
-			rel_pos = &raw->position;
 
-			target = raw->position_entity;
-		
-			ASSERT (target);
 
-			target_pos = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
 
-			//
-			// radius of circle stored in guide position z component
-			//
 
-			distance = rel_pos->z;
 
-			if (distance == 0.0)
-			{
-				*pos = *target_pos;
-			}
-			else
-			{
-				aggressor = get_local_entity_first_child (en, LIST_TYPE_FOLLOWER);
 
-				ASSERT (aggressor);
 
-				aggressor_pos = get_local_entity_vec3d_ptr (aggressor, VEC3D_TYPE_POSITION);
-				
-				target_vec.x = aggressor_pos->x - target_pos->x;
-				target_vec.y = 0.0;
-				target_vec.z = aggressor_pos->z - target_pos->z;
 
-				if (normalise_any_3d_vector (&target_vec) == 0.0)
-				{
-					//
-					// just in case aggressor is on top of target
-					//
-					
-					get_local_entity_vec3d (aggressor, VEC3D_TYPE_ZV, &target_vec);
 
-					target_vec.y = 0.0;
-				
-					normalise_3d_vector (&target_vec);
-				}
 
-				pos->x = target_pos->x + (target_vec.x * distance);
-				pos->y = target_pos->y;
-				pos->z = target_pos->z + (target_vec.z * distance);
-			}
 
-			break;
-		}
 
-		default:
-		{
-			debug_fatal ("GUIDE: Invalid guide position type (%d)", raw->guide_position_type);
-		}
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1145,224 +1145,224 @@ void get_local_guide_entity_pointers (entity *en, entity **aggressor, entity **w
 
 
 
-int get_guide_required_heading (entity *en, entity *mobile, float *heading)
-{
-	ASSERT (en);
-
-	ASSERT (mobile);
-
-	ASSERT (heading);
-
-	if (get_guide_criteria_valid (en, GUIDE_CRITERIA_HEADING))
-	{
-		entity
-			*current_waypoint,
-			*task,
-			*target;
-
-		current_waypoint = get_local_entity_parent (en, LIST_TYPE_CURRENT_WAYPOINT);
-	
-		ASSERT (current_waypoint);
-	
-		if (get_local_entity_int_value (current_waypoint, INT_TYPE_ENTITY_SUB_TYPE) == ENTITY_SUB_TYPE_WAYPOINT_TARGET)
-		{
-			//
-			// Target WP points towards target
-			//
-		
-			vec3d
-				*current_pos,
-				*target_pos,
-				target_vec;
-	
-			task = get_local_entity_parent (en, LIST_TYPE_GUIDE);
-	
-			ASSERT (task);
-	
-			target = get_local_entity_parent (task, LIST_TYPE_TASK_DEPENDENT);
-	
-			ASSERT (target);
-	
-			current_pos = get_local_entity_vec3d_ptr (mobile, VEC3D_TYPE_POSITION);
-			
-			target_pos = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
-
-			if ((target_pos) && (current_pos))
-			{
-				//
-				// SHOULD always be TRUE, but crash logs appear to show that this is not the case...
-				//
-				
-				target_vec.x = target_pos->x - current_pos->x;
-				target_vec.y = target_pos->y - current_pos->y;
-				target_vec.z = target_pos->z - current_pos->z;
-	
-				*heading = (atan2 (target_vec.x, target_vec.z));
-			}
-			else
-			{
-				//
-				// ... so use default heading specified in waypoint
-				//
-				
-				*heading = get_local_entity_float_value (current_waypoint, FLOAT_TYPE_HEADING);
-			}
-			
-			return TRUE;
-		}
-		else if (get_local_entity_int_value (current_waypoint, INT_TYPE_ENTITY_SUB_TYPE) == ENTITY_SUB_TYPE_WAYPOINT_PREPARE_FOR_INSERTION ||
-				get_local_entity_int_value (current_waypoint, INT_TYPE_ENTITY_SUB_TYPE) == ENTITY_SUB_TYPE_WAYPOINT_TROOP_INSERT) // do not change heading value before troops insertion
-		{
-			*heading = 0.0;
-			
-			return TRUE;
-		}
-		else
-		{
-			//
-			// Use heading value specified in waypoint
-			//
-						
-			*heading = get_local_entity_float_value (current_waypoint, FLOAT_TYPE_HEADING);
-	
-			return TRUE;
-		}
-	}
-
-	if (get_guide_criteria_valid (en, GUIDE_CRITERIA_WEAPON_VECTOR))
-	{
-		//
-		// assume weapon is forward facing (for now)
-		//
-
-		entity_sub_types
-			selected_weapon;
-
-		vec3d
-			weapon_vector,
-			weapon_to_intercept_point_vector,
-			perpendicular;
-
-		float
-			launch_angle_error;
-			
-		selected_weapon = get_local_entity_int_value (mobile, INT_TYPE_SELECTED_WEAPON);
-
-		if (selected_weapon == ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
-		{
-			debug_log ("GUIDE: no selectedweapon");
-			
-			return FALSE;
-		}
-
-		if (get_local_entity_int_value (mobile, INT_TYPE_WEAPON_AND_TARGET_VECTORS_VALID))
-		{
-			//
-			// get the heading difference between the weapon and the target
-			//
-	
-			get_local_entity_vec3d (mobile, VEC3D_TYPE_WEAPON_VECTOR, &weapon_vector);
-	
-			weapon_vector.y = 0.0;
-	
-			get_local_entity_vec3d (mobile, VEC3D_TYPE_WEAPON_TO_INTERCEPT_POINT_VECTOR, &weapon_to_intercept_point_vector);
-	
-			weapon_to_intercept_point_vector.y = 0.0;
-	
-			launch_angle_error = fabs (acos (get_3d_vector_dot_product (&weapon_vector, &weapon_to_intercept_point_vector)));
-	
-			//
-			// find the sign of the angle by dot product with the perpendicular
-			//
-	
-			perpendicular.x = weapon_vector.z;
-			perpendicular.y = 0.0;
-			perpendicular.z = -weapon_vector.x;
-	
-			if (get_3d_vector_dot_product (&perpendicular, &weapon_to_intercept_point_vector) < 0.0)
-			{
-				launch_angle_error = -launch_angle_error;
-			}
-	
-//			debug_filtered_log ("GUIDE: Delta Heading = %f", deg (launch_angle_error));
-	
-			*heading = (get_local_entity_float_value (mobile, FLOAT_TYPE_HEADING) + launch_angle_error);
-	
-			return TRUE;
-		}
-		else
-		{
-			debug_log ("GUIDE: W/T vector invalid for %s (%d)", get_local_entity_string (mobile, STRING_TYPE_FULL_NAME), get_local_entity_index (mobile));
-		}
-	}
-
-	return FALSE;
-}
 
 
 
 
 
-int get_guide_required_pitch (entity *en, entity *mobile, float *pitch)
-{
-	ASSERT (en);
 
-	ASSERT (mobile);
 
-	ASSERT (pitch);
 
-	if (get_guide_criteria_valid (en, GUIDE_CRITERIA_WEAPON_VECTOR))
-	{
-		//
-		// assume weapon is forward facing (for now)
-		//
 
-		entity_sub_types
-			selected_weapon;
 
-		vec3d
-			*weapon_vector,
-			*weapon_to_intercept_point_vector;
 
-		float
-			angle1,
-			angle2,
-			launch_angle_error;
-			
-		selected_weapon = get_local_entity_int_value (mobile, INT_TYPE_SELECTED_WEAPON);
 
-		ASSERT (selected_weapon != ENTITY_SUB_TYPE_WEAPON_NO_WEAPON);
 
-		if (get_local_entity_int_value (mobile, INT_TYPE_WEAPON_AND_TARGET_VECTORS_VALID))
-		{
-			//
-			// get the pitch difference between the weapon and the target
-			//
-	
-			weapon_vector = get_local_entity_vec3d_ptr (mobile, VEC3D_TYPE_WEAPON_VECTOR);
-	
-			weapon_to_intercept_point_vector = get_local_entity_vec3d_ptr (mobile, VEC3D_TYPE_WEAPON_TO_INTERCEPT_POINT_VECTOR);
-	
-			angle1 = asin (weapon_vector->y);
-	
-			angle2 = asin (weapon_to_intercept_point_vector->y);
-	
-			launch_angle_error = angle2 - angle1; 
-	
-//			debug_filtered_log ("GUIDE: Delta Pitch = %f", deg (launch_angle_error));
-	
-			*pitch = (get_local_entity_float_value (mobile, FLOAT_TYPE_PITCH) + launch_angle_error);
-	
-			return TRUE;
-		}
-		else
-		{
-			debug_log ("GUIDE: W/T vector invalid for %s (%d)", get_local_entity_string (mobile, STRING_TYPE_FULL_NAME), get_local_entity_index (mobile));
-		}
-	}
 
-	return FALSE;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

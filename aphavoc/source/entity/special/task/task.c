@@ -1554,85 +1554,85 @@ const char *get_task_objective_string (entity *en)
 
 
 
-void get_task_objective_mfd_display_string (entity *en, char *s)
-{
-	entity
-		*objective,
-		*sector;
 
-	entity_sub_types
-		task_type;
 
-	entity_sides
-		side;
 
-	task_objective_info_types
-		info;
 
-	vec3d
-		*pos;
 
-	ASSERT (s);
 
-	ASSERT (en);
 
-	objective = get_local_entity_parent (en, LIST_TYPE_TASK_DEPENDENT);
 
-	task_type = get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE);
 
-	info = (task_objective_info_types) task_database [task_type].task_objective_info;
 
-	sprintf (s, "Unknown");
 
-	//
-	// If No Objective, Or Task specified NONE, Return NULL...
-	//
 
-	if (!objective)
-	{
-		return;
-	}
 
-	if (info == TASK_OBJECTIVE_INFO_NONE)
-	{
-		return;
-	}
 
-	side = (entity_sides) get_local_entity_int_value (en, INT_TYPE_SIDE);
 
-	pos = get_local_entity_vec3d_ptr (objective, VEC3D_TYPE_POSITION);
 
-	ASSERT (pos);
 
-	sector = get_local_sector_entity (pos);
 
-	ASSERT (sector);
 
-	//
-	// If Objective (obj) NOT Hidden By Fog, OR obj ALWAYS KNOWN, OR (obj FOG-OF-WAR KNOWN AND sector fog level > threshold)
-	// Return Objective Name.....
-	//
-	
-	if ((info == TASK_OBJECTIVE_INFO_ALWAYS_KNOWN)
-										||
-		(!get_local_entity_int_value (objective, INT_TYPE_HIDDEN_BY_FOG_OF_WAR))
-										||
-		((info == TASK_OBJECTIVE_INFO_FOG_OF_WAR_KNOWN) && (get_sector_fog_of_war_value (sector, side) > 0.1)))
-	{
-		if (get_local_entity_type (objective) == ENTITY_TYPE_KEYSITE)
-		{
-			get_keysite_entity_mfd_display_name (objective, s);
-		}
-		else
-		{
-			sprintf (s, "%s", get_local_entity_string (objective, STRING_TYPE_FULL_NAME));
-		}
-	}
 
-	//
-	// Return 'Unknown'...
-	//
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

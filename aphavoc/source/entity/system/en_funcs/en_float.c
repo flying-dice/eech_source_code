@@ -1561,9 +1561,9 @@ float (*fn_get_local_entity_float_value[NUM_ENTITY_TYPES][NUM_FLOAT_TYPES]) (ent
 
 
 
-static void default_set_entity_float_value (entity *en, float_types type, float value)
-{
-}
+
+
+
 
 
 
@@ -1617,681 +1617,681 @@ static float default_get_entity_float_value (entity *en, float_types type)
 
 
 
-void initialise_entity_float_value_default_functions (void)
-{
-	int
-		i,
-		j;
-
-	for (i = 0; i < NUM_ENTITY_TYPES; i++)
-	{
-		for (j = 0; j < NUM_FLOAT_TYPES; j++)
-		{
-			fn_set_local_entity_raw_float_value[i][j]									= default_set_entity_float_value;
 
-			fn_set_local_entity_float_value[i][j]										= default_set_entity_float_value;
-
-			fn_set_client_server_entity_float_value[i][j][COMMS_MODEL_SERVER]	= default_set_entity_float_value;
 
-			fn_set_client_server_entity_float_value[i][j][COMMS_MODEL_CLIENT]	= default_set_entity_float_value;
-
-			fn_get_local_entity_float_value[i][j]										= default_get_entity_float_value;
-		}
-	}
-}
-
-
-
-
-
-void pack_float_value (entity *en, float_types type, float value)
-{
-	ASSERT ((type >= 0) && (type < NUM_FLOAT_TYPES));
-
-	switch (float_type_database[type].pack_type)
-	{
-
-		case FLOAT_PACK_TYPE_UNPACKED:
-
-		{
-			pack_unsigned_data (*(int *)&value, 32);
-
-			#if (DEBUG_MODULE_PACK_ONE || DEBUG_MODULE_PACK_ALL)
-
-			if (float_type_database[type].debug_pack)
-			{
-				debug_log_entity_args (ENTITY_DEBUG_PACK, ENTITY_DEBUG_FLOAT_VALUE, en, type, value);
-			}
-
-			#endif
-
-			break;
-		}
-
-		case FLOAT_PACK_TYPE_SIGNED_ANGLE:
-
-		{
-			int
-				i,
-				width;
-
-			ASSERT (float_type_database[type].pack_num_whole_bits == 3);
-
-			ASSERT
-			(
-				(float_type_database[type].pack_num_fractional_bits >= 0) &&
-				(float_type_database[type].pack_num_fractional_bits <= MAX_FRACTIONAL_BITS)
-			);
-
-			switch (float_type_database[type].pack_num_fractional_bits)
-			{
-				case 0: pack_float_0_fractional_bits (fmod (value, PI2), &i); break;
-				case 1: pack_float_1_fractional_bits (fmod (value, PI2), &i); break;
-				case 2: pack_float_2_fractional_bits (fmod (value, PI2), &i); break;
-				case 3: pack_float_3_fractional_bits (fmod (value, PI2), &i); break;
-				case 4: pack_float_4_fractional_bits (fmod (value, PI2), &i); break;
-				case 5: pack_float_5_fractional_bits (fmod (value, PI2), &i); break;
-				case 6: pack_float_6_fractional_bits (fmod (value, PI2), &i); break;
-				case 7: pack_float_7_fractional_bits (fmod (value, PI2), &i); break;
-				case 8: pack_float_8_fractional_bits (fmod (value, PI2), &i); break;
-				case 9: pack_float_9_fractional_bits (fmod (value, PI2), &i); break;
-				case 10: pack_float_10_fractional_bits (fmod (value, PI2), &i); break;
-				case 11: pack_float_11_fractional_bits (fmod (value, PI2), &i); break;
-			}
-
-			width = 1 + float_type_database[type].pack_num_whole_bits + float_type_database[type].pack_num_fractional_bits;
-
-			#if DEBUG_PACK_OVERFLOW
-			{
-				int max_val = (1 << (width - 1)) - 1;
-				int min_val = -max_val - 1;
-
-				if (width < 32 && (i > max_val || i < min_val))
-				{
-					#ifdef DEBUG_PACK_OVERFLOW
-						debug_log_pack_overflow("signed angle", get_float_type_name(type), width, i, value);
-					#endif
-					
-					if (i > 0)
-						i = max_val;
-					else
-						i = min_val;
-					
-					ASSERT(!"Overflow when packing signed float type!");
-				}
-			}
-			#endif
-
-			pack_signed_data (i, width);
-
-			#if (DEBUG_MODULE_PACK_ONE || DEBUG_MODULE_PACK_ALL)
-
-			if (float_type_database[type].debug_pack)
-			{
-				float
-					value;
-
-				//
-				// packed debug message to match unpacked debug message
-				//
-
-				switch (float_type_database[type].pack_num_fractional_bits)
-				{
-					case 0: value = unpack_float_0_fractional_bits (i); break;
-					case 1: value = unpack_float_1_fractional_bits (i); break;
-					case 2: value = unpack_float_2_fractional_bits (i); break;
-					case 3: value = unpack_float_3_fractional_bits (i); break;
-					case 4: value = unpack_float_4_fractional_bits (i); break;
-					case 5: value = unpack_float_5_fractional_bits (i); break;
-					case 6: value = unpack_float_6_fractional_bits (i); break;
-					case 7: value = unpack_float_7_fractional_bits (i); break;
-					case 8: value = unpack_float_8_fractional_bits (i); break;
-					case 9: value = unpack_float_9_fractional_bits (i); break;
-					case 10: value = unpack_float_10_fractional_bits (i); break;
-					case 11: value = unpack_float_11_fractional_bits (i); break;
-				}
-
-				debug_log_entity_args (ENTITY_DEBUG_PACK, ENTITY_DEBUG_FLOAT_VALUE, en, type, value);
-			}
-
-			#endif
-
-			break;
-		}
-
-		case FLOAT_PACK_TYPE_UNSIGNED_ANGLE:
-
-		{
-			int
-				i,
-				width;
-
-			ASSERT (value >= 0.0);
-
-			ASSERT (float_type_database[type].pack_num_whole_bits == 3);
-
-			ASSERT
-			(
-				(float_type_database[type].pack_num_fractional_bits >= 0) &&
-				(float_type_database[type].pack_num_fractional_bits <= MAX_FRACTIONAL_BITS)
-			);
-
-			switch (float_type_database[type].pack_num_fractional_bits)
-			{
-				case 0: pack_float_0_fractional_bits (fmod (value, PI2), &i); break;
-				case 1: pack_float_1_fractional_bits (fmod (value, PI2), &i); break;
-				case 2: pack_float_2_fractional_bits (fmod (value, PI2), &i); break;
-				case 3: pack_float_3_fractional_bits (fmod (value, PI2), &i); break;
-				case 4: pack_float_4_fractional_bits (fmod (value, PI2), &i); break;
-				case 5: pack_float_5_fractional_bits (fmod (value, PI2), &i); break;
-				case 6: pack_float_6_fractional_bits (fmod (value, PI2), &i); break;
-				case 7: pack_float_7_fractional_bits (fmod (value, PI2), &i); break;
-				case 8: pack_float_8_fractional_bits (fmod (value, PI2), &i); break;
-				case 9: pack_float_9_fractional_bits (fmod (value, PI2), &i); break;
-				case 10: pack_float_10_fractional_bits (fmod (value, PI2), &i); break;
-				case 11: pack_float_11_fractional_bits (fmod (value, PI2), &i); break;
-			}
-
-			width = float_type_database[type].pack_num_whole_bits + float_type_database[type].pack_num_fractional_bits;
-
-			#if DEBUG_PACK_OVERFLOW
-			{
-				int max_val = (1 << (width)) - 1;
-				int min_val = 0;
-
-				if (width < 32 && (i > max_val || i < min_val))
-				{
-					#if DEBUG_PACK_OVERFLOW
-						debug_log_pack_overflow("unsigned float angle", get_float_type_name(type), width, i, value);
-						debug_log("Overflow %s, min val %i, max val %i", get_local_entity_string (en, STRING_TYPE_FULL_NAME), min_val, max_val);
-					#endif
-					
-					if (i > 0)
-						i = max_val;
-					else
-						i = min_val;
-					
-					ASSERT(!"Overflow when packing unsigned float type!");
-				}
-			}
-			#endif
-			ASSERT(!(i >> width));
-
-			pack_unsigned_data (i, width);
-
-			#if (DEBUG_MODULE_PACK_ONE || DEBUG_MODULE_PACK_ALL)
-
-			if (float_type_database[type].debug_pack)
-			{
-				float
-					value;
-
-				//
-				// packed debug message to match unpacked debug message
-				//
-
-				switch (float_type_database[type].pack_num_fractional_bits)
-				{
-					case 0: value = unpack_float_0_fractional_bits (i); break;
-					case 1: value = unpack_float_1_fractional_bits (i); break;
-					case 2: value = unpack_float_2_fractional_bits (i); break;
-					case 3: value = unpack_float_3_fractional_bits (i); break;
-					case 4: value = unpack_float_4_fractional_bits (i); break;
-					case 5: value = unpack_float_5_fractional_bits (i); break;
-					case 6: value = unpack_float_6_fractional_bits (i); break;
-					case 7: value = unpack_float_7_fractional_bits (i); break;
-					case 8: value = unpack_float_8_fractional_bits (i); break;
-					case 9: value = unpack_float_9_fractional_bits (i); break;
-					case 10: value = unpack_float_10_fractional_bits (i); break;
-					case 11: value = unpack_float_11_fractional_bits (i); break;
-				}
-
-				debug_log_entity_args (ENTITY_DEBUG_PACK, ENTITY_DEBUG_FLOAT_VALUE, en, type, value);
-			}
-
-			#endif
-
-			break;
-		}
-
-		case FLOAT_PACK_TYPE_SIGNED_VALUE:
-
-		{
-			int
-				i,
-				width;
-
-			ASSERT
-			(
-				(float_type_database[type].pack_num_fractional_bits >= 0) &&
-				(float_type_database[type].pack_num_fractional_bits <= MAX_FRACTIONAL_BITS)
-			);
-
-			switch (float_type_database[type].pack_num_fractional_bits)
-			{
-				case 0: pack_float_0_fractional_bits (value, &i); break;
-				case 1: pack_float_1_fractional_bits (value, &i); break;
-				case 2: pack_float_2_fractional_bits (value, &i); break;
-				case 3: pack_float_3_fractional_bits (value, &i); break;
-				case 4: pack_float_4_fractional_bits (value, &i); break;
-				case 5: pack_float_5_fractional_bits (value, &i); break;
-				case 6: pack_float_6_fractional_bits (value, &i); break;
-				case 7: pack_float_7_fractional_bits (value, &i); break;
-				case 8: pack_float_8_fractional_bits (value, &i); break;
-				case 9: pack_float_9_fractional_bits (value, &i); break;
-				case 10: pack_float_10_fractional_bits (value, &i); break;
-				case 11: pack_float_11_fractional_bits (value, &i); break;
-			}
-
-			width = 1 + float_type_database[type].pack_num_whole_bits + float_type_database[type].pack_num_fractional_bits;
-
-			#if DEBUG_PACK_OVERFLOW
-			{
-				int max_val = (1 << (width - 1)) - 1;
-				int min_val = -max_val - 1;
-
-				if (width < 32 && (i > max_val || i < min_val))
-				{
-					#if DEBUG_PACK_OVERFLOW
-						debug_log_pack_overflow("signed float value", get_float_type_name(type), width, i, value);
-					#endif
-					
-					if (i > 0)
-						i = max_val;
-					else
-						i = min_val;
-					
-					ASSERT(!"Overflow when packing signed float type!");
-				}
-			}
-			#endif
-			
-			pack_signed_data (i, width);
-
-			#if (DEBUG_MODULE_PACK_ONE || DEBUG_MODULE_PACK_ALL)
-
-			if (float_type_database[type].debug_pack)
-			{
-				float
-					value;
-
-				//
-				// packed debug message to match unpacked debug message
-				//
-
-				switch (float_type_database[type].pack_num_fractional_bits)
-				{
-					case 0: value = unpack_float_0_fractional_bits (i); break;
-					case 1: value = unpack_float_1_fractional_bits (i); break;
-					case 2: value = unpack_float_2_fractional_bits (i); break;
-					case 3: value = unpack_float_3_fractional_bits (i); break;
-					case 4: value = unpack_float_4_fractional_bits (i); break;
-					case 5: value = unpack_float_5_fractional_bits (i); break;
-					case 6: value = unpack_float_6_fractional_bits (i); break;
-					case 7: value = unpack_float_7_fractional_bits (i); break;
-					case 8: value = unpack_float_8_fractional_bits (i); break;
-					case 9: value = unpack_float_9_fractional_bits (i); break;
-					case 10: value = unpack_float_10_fractional_bits (i); break;
-					case 11: value = unpack_float_11_fractional_bits (i); break;
-				}
-
-				debug_log_entity_args (ENTITY_DEBUG_PACK, ENTITY_DEBUG_FLOAT_VALUE, en, type, value);
-			}
-
-			#endif
-
-			break;
-		}
-
-		case FLOAT_PACK_TYPE_UNSIGNED_VALUE:
-
-		{
-			int
-				i,
-				width;
-
-			if (value < 0)
-			{
-				debug_log("signed float restricted, type %s", get_float_type_name(type));
-			}
-
-			ASSERT (value >= 0.0);
-
-			ASSERT
-			(
-				(float_type_database[type].pack_num_fractional_bits >= 0) &&
-				(float_type_database[type].pack_num_fractional_bits <= MAX_FRACTIONAL_BITS)
-			);
-
-			switch (float_type_database[type].pack_num_fractional_bits)
-			{
-				case 0: pack_float_0_fractional_bits (value, &i); break;
-				case 1: pack_float_1_fractional_bits (value, &i); break;
-				case 2: pack_float_2_fractional_bits (value, &i); break;
-				case 3: pack_float_3_fractional_bits (value, &i); break;
-				case 4: pack_float_4_fractional_bits (value, &i); break;
-				case 5: pack_float_5_fractional_bits (value, &i); break;
-				case 6: pack_float_6_fractional_bits (value, &i); break;
-				case 7: pack_float_7_fractional_bits (value, &i); break;
-				case 8: pack_float_8_fractional_bits (value, &i); break;
-				case 9: pack_float_9_fractional_bits (value, &i); break;
-				case 10: pack_float_10_fractional_bits (value, &i); break;
-				case 11: pack_float_11_fractional_bits (value, &i); break;
-			}
-
-			width = float_type_database[type].pack_num_whole_bits + float_type_database[type].pack_num_fractional_bits;
-
-			#if DEBUG_PACK_OVERFLOW
-			{
-				int max_val = (1 << (width)) - 1;
-				int min_val = 0;
-
-				if (width < 32 && (i > max_val || i < min_val))
-				{
-					#if DEBUG_PACK_OVERFLOW
-						debug_log_pack_overflow("unsigned float value", get_float_type_name(type), width, i, value);
-					#endif
-					
-					if (i > 0)
-						i = max_val;
-					else
-						i = min_val;
-					
-					ASSERT(!"Overflow when packing unsigned float type!");
-				}
-			}
-			#endif
-			ASSERT(!(i >> width));
-
-			pack_unsigned_data (i, width);
-
-			#if (DEBUG_MODULEPACK_ONE || DEBUG_MODULE_PACK_ALL)
-
-			if (float_type_database[type].debug_pack)
-			{
-				float
-					value;
-
-				//
-				// packed debug message to match unpacked debug message
-				//
-
-				switch (float_type_database[type].pack_num_fractional_bits)
-				{
-					case 0: value = unpack_float_0_fractional_bits (i); break;
-					case 1: value = unpack_float_1_fractional_bits (i); break;
-					case 2: value = unpack_float_2_fractional_bits (i); break;
-					case 3: value = unpack_float_3_fractional_bits (i); break;
-					case 4: value = unpack_float_4_fractional_bits (i); break;
-					case 5: value = unpack_float_5_fractional_bits (i); break;
-					case 6: value = unpack_float_6_fractional_bits (i); break;
-					case 7: value = unpack_float_7_fractional_bits (i); break;
-					case 8: value = unpack_float_8_fractional_bits (i); break;
-					case 9: value = unpack_float_9_fractional_bits (i); break;
-					case 10: value = unpack_float_10_fractional_bits (i); break;
-					case 11: value = unpack_float_11_fractional_bits (i); break;
-				}
-
-				debug_log_entity_args (ENTITY_DEBUG_PACK, ENTITY_DEBUG_FLOAT_VALUE, en, type, value);
-			}
-
-			#endif
-
-			break;
-		}
-
-		default:
-
-		{
-			debug_fatal ("Invalid float pack type = %d", float_type_database[type].pack_type);
-
-			break;
-		}
-	}
-}
-
-
-
-
-
-float unpack_float_value (entity *en, float_types type)
-{
-	float
-		value;
-
-	ASSERT ((type >= 0) && (type < NUM_FLOAT_TYPES));
-
-	switch (float_type_database[type].pack_type)
-	{
-
-		case FLOAT_PACK_TYPE_UNPACKED:
-
-		{
-			int
-				i;
-
-			i = unpack_unsigned_data (32);
-
-			value = *(float *)&i;
-
-			break;
-		}
-
-		case FLOAT_PACK_TYPE_SIGNED_ANGLE:
-
-		{
-			int
-				i,
-				width;
-
-			ASSERT (float_type_database[type].pack_num_whole_bits == 3);
-
-			ASSERT
-			(
-				(float_type_database[type].pack_num_fractional_bits >= 0) &&
-				(float_type_database[type].pack_num_fractional_bits <= MAX_FRACTIONAL_BITS)
-			);
-
-			width = float_type_database[type].pack_num_whole_bits + float_type_database[type].pack_num_fractional_bits;
-
-			i = unpack_signed_data (width + 1);
-
-			switch (float_type_database[type].pack_num_fractional_bits)
-			{
-				case 0: value = unpack_float_0_fractional_bits (i); break;
-				case 1: value = unpack_float_1_fractional_bits (i); break;
-				case 2: value = unpack_float_2_fractional_bits (i); break;
-				case 3: value = unpack_float_3_fractional_bits (i); break;
-				case 4: value = unpack_float_4_fractional_bits (i); break;
-				case 5: value = unpack_float_5_fractional_bits (i); break;
-				case 6: value = unpack_float_6_fractional_bits (i); break;
-				case 7: value = unpack_float_7_fractional_bits (i); break;
-				case 8: value = unpack_float_8_fractional_bits (i); break;
-				case 9: value = unpack_float_9_fractional_bits (i); break;
-				case 10: value = unpack_float_10_fractional_bits (i); break;
-				case 11: value = unpack_float_11_fractional_bits (i); break;
-			}
-
-			break;
-		}
-
-		case FLOAT_PACK_TYPE_UNSIGNED_ANGLE:
-
-		{
-			int
-				i,
-				width;
-
-			ASSERT (float_type_database[type].pack_num_whole_bits == 3);
-
-			ASSERT
-			(
-				(float_type_database[type].pack_num_fractional_bits >= 0) &&
-				(float_type_database[type].pack_num_fractional_bits <= MAX_FRACTIONAL_BITS)
-			);
-
-			width = float_type_database[type].pack_num_whole_bits + float_type_database[type].pack_num_fractional_bits;
-
-			i = unpack_unsigned_data (width);
-
-			switch (float_type_database[type].pack_num_fractional_bits)
-			{
-				case 0: value = unpack_float_0_fractional_bits (i); break;
-				case 1: value = unpack_float_1_fractional_bits (i); break;
-				case 2: value = unpack_float_2_fractional_bits (i); break;
-				case 3: value = unpack_float_3_fractional_bits (i); break;
-				case 4: value = unpack_float_4_fractional_bits (i); break;
-				case 5: value = unpack_float_5_fractional_bits (i); break;
-				case 6: value = unpack_float_6_fractional_bits (i); break;
-				case 7: value = unpack_float_7_fractional_bits (i); break;
-				case 8: value = unpack_float_8_fractional_bits (i); break;
-				case 9: value = unpack_float_9_fractional_bits (i); break;
-				case 10: value = unpack_float_10_fractional_bits (i); break;
-				case 11: value = unpack_float_11_fractional_bits (i); break;
-			}
-
-			break;
-		}
-
-		case FLOAT_PACK_TYPE_SIGNED_VALUE:
-
-		{
-			int
-				i,
-				width;
-
-			ASSERT
-			(
-				(float_type_database[type].pack_num_fractional_bits >= 0) &&
-				(float_type_database[type].pack_num_fractional_bits <= MAX_FRACTIONAL_BITS)
-			);
-
-			width = float_type_database[type].pack_num_whole_bits + float_type_database[type].pack_num_fractional_bits;
-
-			i = unpack_signed_data (width + 1);
-
-			switch (float_type_database[type].pack_num_fractional_bits)
-			{
-				case 0: value = unpack_float_0_fractional_bits (i); break;
-				case 1: value = unpack_float_1_fractional_bits (i); break;
-				case 2: value = unpack_float_2_fractional_bits (i); break;
-				case 3: value = unpack_float_3_fractional_bits (i); break;
-				case 4: value = unpack_float_4_fractional_bits (i); break;
-				case 5: value = unpack_float_5_fractional_bits (i); break;
-				case 6: value = unpack_float_6_fractional_bits (i); break;
-				case 7: value = unpack_float_7_fractional_bits (i); break;
-				case 8: value = unpack_float_8_fractional_bits (i); break;
-				case 9: value = unpack_float_9_fractional_bits (i); break;
-				case 10: value = unpack_float_10_fractional_bits (i); break;
-				case 11: value = unpack_float_11_fractional_bits (i); break;
-			}
-
-			break;
-		}
-
-		case FLOAT_PACK_TYPE_UNSIGNED_VALUE:
-
-		{
-			int
-				i,
-				width;
-
-			ASSERT
-			(
-				(float_type_database[type].pack_num_fractional_bits >= 0) &&
-				(float_type_database[type].pack_num_fractional_bits <= MAX_FRACTIONAL_BITS)
-			);
-
-			width = float_type_database[type].pack_num_whole_bits + float_type_database[type].pack_num_fractional_bits;
-
-			i = unpack_unsigned_data (width);
-
-			switch (float_type_database[type].pack_num_fractional_bits)
-			{
-				case 0: value = unpack_float_0_fractional_bits (i); break;
-				case 1: value = unpack_float_1_fractional_bits (i); break;
-				case 2: value = unpack_float_2_fractional_bits (i); break;
-				case 3: value = unpack_float_3_fractional_bits (i); break;
-				case 4: value = unpack_float_4_fractional_bits (i); break;
-				case 5: value = unpack_float_5_fractional_bits (i); break;
-				case 6: value = unpack_float_6_fractional_bits (i); break;
-				case 7: value = unpack_float_7_fractional_bits (i); break;
-				case 8: value = unpack_float_8_fractional_bits (i); break;
-				case 9: value = unpack_float_9_fractional_bits (i); break;
-				case 10: value = unpack_float_10_fractional_bits (i); break;
-				case 11: value = unpack_float_11_fractional_bits (i); break;
-			}
-
-			break;
-		}
-
-		default:
-
-		{
-			debug_fatal ("Invalid float pack type = %d", float_type_database[type].pack_type);
-
-			break;
-		}
-	}
-
-	#if (DEBUG_MODULE_PACK_ONE || DEBUG_MODULE_PACK_ALL)
-
-	if (float_type_database[type].debug_pack)
-	{
-		debug_log_entity_args (ENTITY_DEBUG_UNPACK, ENTITY_DEBUG_FLOAT_VALUE, en, type, value);
-	}
-
-	#endif
-
-	return (value);
-}
-
-
-
-
-
-void pack_float_type (float_types type)
-{
-	ASSERT ((type >= 0) && (type < NUM_FLOAT_TYPES));
-
-	#if (DEBUG_MODULE_PACK_ONE || DEBUG_MODULE_PACK_ALL)
-
-	if (float_type_database[type].debug_pack)
-	{
-		debug_log_entity_args (ENTITY_DEBUG_PACK, ENTITY_DEBUG_FLOAT_TYPE, NULL, type);
-	}
-
-	#endif
-
-	ASSERT(!(type >> NUM_FLOAT_TYPE_PACK_BITS));
-
-	pack_unsigned_data (type, NUM_FLOAT_TYPE_PACK_BITS);
-}
-
-
-
-
-
-float_types unpack_float_type (void)
-{
-	float_types
-		type;
-
-	type = (float_types) unpack_unsigned_data (NUM_FLOAT_TYPE_PACK_BITS);
-
-	ASSERT ((type >= 0) && (type < NUM_FLOAT_TYPES));
-
-	#if (DEBUG_MODULE_PACK_ONE || DEBUG_MODULE_PACK_ALL)
-
-	if (float_type_database[type].debug_pack)
-	{
-		debug_log_entity_args (ENTITY_DEBUG_UNPACK, ENTITY_DEBUG_FLOAT_TYPE, NULL, type);
-	}
-
-	#endif
-
-	return (type);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

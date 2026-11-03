@@ -1736,280 +1736,280 @@ int get_keysite_suitable_for_player (entity *keysite, entity *pilot)
 
 
 
-void dump_keysite_info (void)
-{
 
-	int
-		count;
 
-	float
-		hours,
-		minutes,
-		seconds;
 
-	entity
-		*ks,
-//		*mb,
-		*ts,
-		*force;
 
-	session
-		*raw;
 
-	FILE
-		*file_ptr;
 
-	char
-		buffer [32];
 
-	count = 0;
 
-	sprintf (buffer, "ks%d.txt", count);
 
-	while (file_exist (buffer))
-	{
 
-		count ++;
 
-		sprintf (buffer, "ks%d.txt", count);
-	}
 
-	file_ptr = fopen (buffer, "w");
 
-	if (!file_ptr)
-	{
 
-		return;
-	}
 
-	force = get_local_entity_first_child (get_session_entity (), LIST_TYPE_FORCE);
 
-	raw = (session *) get_local_entity_data (get_session_entity ());
 
-	get_digital_clock_values (raw->elapsed_time, &hours, &minutes, &seconds);
 
-	fprintf (file_ptr, "SESSION: %02f:%02f:%02f\n", hours, minutes, seconds);
 
-	while (force)
-	{
 
-		fprintf (file_ptr, "---------------------------------------------------------------------------------------------------------------------------\n");
-		fprintf (file_ptr, "FORCE %s\n", entity_side_names [get_local_entity_int_value (force, INT_TYPE_SIDE)]);
 
-		ks = get_local_entity_first_child (force, LIST_TYPE_KEYSITE_FORCE);
 
-		while (ks)
-		{
 
-			if ((!get_local_entity_int_value (ks, INT_TYPE_IN_USE)) || (!get_local_entity_int_value (ks, INT_TYPE_ALIVE)))
-			{
 
-				ks = get_local_entity_child_succ (ks, LIST_TYPE_KEYSITE_FORCE);
 
-				continue;
-			}
 
-			fprintf (file_ptr, "    --------------------------------------------------------------------------------------\n");
 
-			fprintf (file_ptr, "    Keysite %s %s (%d). In use %d, Alive %d\n",
-						get_local_entity_string (ks, STRING_TYPE_FULL_NAME),
-						get_local_entity_string (ks, STRING_TYPE_KEYSITE_NAME),
-						get_local_entity_index (ks),
-						get_local_entity_int_value (ks, INT_TYPE_IN_USE),
-						get_local_entity_int_value (ks, INT_TYPE_ALIVE));
 
-			fprintf (file_ptr, "        efficiency %02f, ammo %02f, fuel %02f\n",
-						get_local_entity_float_value (ks, FLOAT_TYPE_EFFICIENCY),
-						get_local_entity_float_value (ks, FLOAT_TYPE_AMMO_SUPPLY_LEVEL),
-						get_local_entity_float_value (ks, FLOAT_TYPE_FUEL_SUPPLY_LEVEL));
 
-			//
-			// Members
-			//
-/*
-			fprintf (file_ptr, "        ----------------------------------------------------\n");
 
-			fprintf (file_ptr, "        Members %d\n",
-						get_local_entity_list_size (ks, LIST_TYPE_KEYSITE_MEMBER));
 
-			mb = get_local_entity_first_child (ks, LIST_TYPE_KEYSITE_MEMBER);
 
-			while (mb)
-			{
 
-				fprintf (file_ptr, "            %s (%d) %s\n",
-							get_local_entity_string (mb, STRING_TYPE_FULL_NAME),
-							get_local_entity_index (mb),
-							operational_state_names [get_local_entity_int_value (mb, INT_TYPE_OPERATIONAL_STATE)]);
-	
-				mb = get_local_entity_child_succ (mb, LIST_TYPE_KEYSITE_MEMBER);
-			}
-*/
-			//
-			// Tasks
-			//
 
-			fprintf (file_ptr, "        ----------------------------------------------------\n");
 
-			fprintf (file_ptr, "        Tasks %d\n",
-						get_local_entity_list_size (ks, LIST_TYPE_UNASSIGNED_TASK));
 
-			ts = get_local_entity_first_child (ks, LIST_TYPE_UNASSIGNED_TASK);
 
-			while (ts)
-			{
 
-				fprintf (file_ptr, "            %s (%d)\n",
-							get_local_entity_string (ts, STRING_TYPE_FULL_NAME),
-							get_local_entity_index (ts));
-	
-				ts = get_local_entity_child_succ (ts, LIST_TYPE_UNASSIGNED_TASK);
-			}
 
-			ks = get_local_entity_child_succ (ks, LIST_TYPE_KEYSITE_FORCE);
-		}
 
-		force = get_local_entity_child_succ (force, LIST_TYPE_FORCE);
-	}
 
-	fclose (file_ptr);
-}
 
 
 
 
 
-void validate_keysite_landing_site_heights (entity *keysite)
-{
 
-	entity
-		*landing,
-		*task,
-		*waypoint;
 
-	vec3d
-		*keysite_position,
-		*waypoint_position;
 
-	float
-		terrain_elevation,
-		delta_height;
 
-	ASSERT (get_local_entity_type (keysite) == ENTITY_TYPE_KEYSITE);
 
-	keysite_position = get_local_entity_vec3d_ptr (keysite, VEC3D_TYPE_POSITION);
 
-	landing = get_local_entity_first_child (keysite, LIST_TYPE_LANDING_SITE);
 
-	while (landing)
-	{
 
-		task = get_local_landing_entity_task (landing, ENTITY_SUB_TYPE_TASK_LANDING);
 
-		ASSERT (task);
-	
-  		waypoint = get_local_entity_first_child (task, LIST_TYPE_WAYPOINT);
 
-		while (waypoint)
-		{
 
-			if (get_local_entity_int_value (waypoint, INT_TYPE_ENTITY_SUB_TYPE) == ENTITY_SUB_TYPE_WAYPOINT_LANDED)
-			{
 
-				waypoint_position = get_local_entity_vec3d_ptr (waypoint, VEC3D_TYPE_POSITION);
 
-				ASSERT(point_inside_map_area(waypoint_position));
-	
-				terrain_elevation = get_3d_terrain_elevation (waypoint_position->x, waypoint_position->z);
 
-				delta_height = waypoint_position->y - terrain_elevation;
 
-				if (fabs (delta_height) > KEYSITE_LANDING_SITE_TOLERANCE)
-				{
 
-					debug_log ("KEYSITE: WARNING: keysite %s (%d) landing site %s %d waypoint %d outside of height tolerance (delta %f, waypoint- y = %f, terrain elevation %f)",
-									get_local_entity_string (keysite, STRING_TYPE_KEYSITE_NAME), get_local_entity_index (keysite),
-									get_local_entity_string (landing, STRING_TYPE_FULL_NAME), get_local_entity_index (landing),
-									get_local_entity_index (waypoint),
-									delta_height, waypoint_position->y, terrain_elevation);
 
-					break;
-				}
-			}
 
-			waypoint = get_local_entity_child_succ (waypoint, LIST_TYPE_WAYPOINT);
-		}
 
-		landing = get_local_entity_child_succ (landing, LIST_TYPE_LANDING_SITE);
-	}
-}
 
 
 
 
 
-void play_keysite_under_attack_speech (entity *en, entity *aggressor)
-{
-	vec3d
-		*pos;
 
-	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	pos = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION); 
 
-	ASSERT (pos);
 
-	get_speech_sector_coordinates (pos);
 
-	play_client_server_speech
-	(
-		get_session_entity (),
-		en,
-		(entity_sides) get_local_entity_int_value (en, INT_TYPE_SIDE),
-		ENTITY_SUB_TYPE_EFFECT_SOUND_RADIO_MESSAGE,
-		SOUND_LOCALITY_RADIO,
-		0.0,
-		1.0,
-		20.0,
-		SPEECH_ORIGINATOR_FORWARD_AIR_CONTROLLER,
-		SPEECH_CATEGORY_UNDER_ATTACK,
-		45.0,
-		SPEECH_ARRAY_FAC_MESSAGES, SPEECH_FAC_INTRODUCTION,
-		SPEECH_ARRAY_FAC_MESSAGES, SPEECH_FAC_BASE_UNDER_ATTACK,
-		SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [0],
-		SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [1],
-		SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [2],
-		SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [3],
-		SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [4],
-		SPEECH_ARRAY_NUMBERS, speech_sector_coordinates [5],
-		-1
-	);
-}
 
 
 
 
 
-void get_keysite_entity_mfd_display_name (entity *en, char *s)
-{
-	entity_sub_types
-		sub_type;
 
-	ASSERT (s);
 
-	ASSERT (en);
 
-	sub_type = get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE);
 
-	if (keysite_database [sub_type].unique_name)
-	{
-		sprintf (s, "%s", get_local_entity_string (en, STRING_TYPE_KEYSITE_NAME));
-	}
-	else
-	{
-		sprintf (s, "%s %d", keysite_database [sub_type].short_name, get_local_entity_int_value (en, INT_TYPE_KEYSITE_ID)); 
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

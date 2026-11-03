@@ -183,85 +183,85 @@ void set_pilot_entity (entity *en)
 
 
 
-void send_pilot_joined_message (entity *en)
-{
-	int
-		player_count;
-
-	char
-		text [200];
-
-	//
-	// Client now joined in..... send system message to other players
-	//
-
-	player_count = get_session_pilot_count ();
-
-	if (player_count == 1)
-	{
-		sprintf (text, "%s %s - 1 %s",
-							get_local_entity_string (en, STRING_TYPE_PILOTS_NAME),
-							get_trans ("joined"),
-							get_trans ("player connected"));
-	}
-	else
-	{
-		sprintf (text, "%s %s - %d %s",
-							get_local_entity_string (en, STRING_TYPE_PILOTS_NAME),
-							get_trans ("joined"),
-							player_count,
-							get_trans ("players connected"));
-	}
-
-	send_text_message (en, NULL, MESSAGE_TEXT_SYSTEM_NEW_PILOT, text);
-
-	server_log (text); // Jabberwock Server log
-}
 
 
 
 
 
-void send_pilot_quit_message (entity *en)
-{
-	int
-		player_count;
 
-	char
-		text [200];
 
-	//
-	// Client now joined in..... send system message to other players
-	//
 
-	player_count = get_session_pilot_count () - 1;
 
-	if (player_count == 1)
-	{
-		sprintf (text, "%s %s - 1 %s",
-							get_local_entity_string (en, STRING_TYPE_PILOTS_NAME),
-							get_trans ("quit"),
-							get_trans ("player connected"));
-	}
-	else
-	{
-		sprintf (text, "%s %s - %d %s",
-							get_local_entity_string (en, STRING_TYPE_PILOTS_NAME),
-							get_trans ("quit"),
-							player_count,
-							get_trans ("players connected"));
-	}
 
-	send_text_message (en, NULL, MESSAGE_TEXT_SYSTEM_NEW_PILOT, text);
 
-	server_log (text); // Jabberwock Server log
 
-	if ((command_line_pause_server) && (player_count <= 1)) // 040220 Jabberwock Pause server, changed to <=1 by Werewolf
-	{
-		force_pause_acceleration();
-		server_log ("Server paused");
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // 040220 Jabberwock ends
 
 
@@ -401,10 +401,10 @@ int get_session_pilot_count (void)
 
 
 
-void initialise_pilot_high_score_table (void)
-{
-	memset (pilot_high_score_table, 0, sizeof (pilot_score_type) * NUM_TABLE_ENTRIES);
-}
+
+
+
+
 
 
 
@@ -428,148 +428,54 @@ entity *get_player_task (entity *en)
 
 
 
-int update_pilot_high_score_table (void)
-{
-	int
-		count,
-		num_pilots;
 
-	entity
-		*force_en,
-		*pilot_en;
 
-	pilot_score_type
-		*full_table;
 
-	//
-	// clear table
-	//
 
-	debug_log ("PILOT: Updating High Score Table");
 
-	initialise_pilot_high_score_table ();
 
-	num_pilots = 0;
 
-	//
-	// count up player pilots
-	//
 
-	ASSERT (get_session_entity ());
 
-	force_en = get_local_entity_first_child (get_session_entity (), LIST_TYPE_FORCE);
 
-	while (force_en)
-	{
-		pilot_en = get_local_entity_first_child (force_en, LIST_TYPE_PILOT);
 
-		while (pilot_en)
-		{
-			num_pilots ++;
 
-			pilot_en = get_local_entity_child_succ (pilot_en, LIST_TYPE_PILOT);
-		}
 
-		force_en = get_local_entity_child_succ (force_en, LIST_TYPE_FORCE);
-	}
 
-	if (num_pilots == 0)
-	{
-		return 0;
-	}
 
-	//
-	// create arrays of player pilots and their scores
-	//
 
-	full_table = (pilot_score_type *) malloc_fast_mem (sizeof (pilot_score_type) * num_pilots);
 
-	count = 0;
 
-	force_en = get_local_entity_first_child (get_session_entity (), LIST_TYPE_FORCE);
 
-	while (force_en)
-	{
-		pilot_en = get_local_entity_first_child (force_en, LIST_TYPE_PILOT);
 
-		while (pilot_en)
-		{
-			full_table [count].kills = get_local_entity_int_value (pilot_en, INT_TYPE_KILLS);
 
-			full_table [count].side = (entity_sides) get_local_entity_int_value (pilot_en, INT_TYPE_SIDE);
 
-			full_table [count].valid = TRUE;
 
-			strcpy (full_table [count].name, get_local_entity_string (pilot_en, STRING_TYPE_PILOTS_NAME));
 
-			debug_log ("PILOT: Adding %s (kills %d) to High Score Table", full_table [count].name, full_table [count].kills);
 
-			count ++;
 
-			pilot_en = get_local_entity_child_succ (pilot_en, LIST_TYPE_PILOT);
-		}
 
-		force_en = get_local_entity_child_succ (force_en, LIST_TYPE_FORCE);
-	}
 
-	ASSERT (count == num_pilots);
 
-	//
-	// quicksort the list
-	//
 
-   qs_table (full_table, 0, num_pilots - 1);
 
-	//
-	// add first n items to the high score table
-	//
 
-	count = min (num_pilots, NUM_TABLE_ENTRIES);
 
-	memcpy (pilot_high_score_table, full_table, sizeof (pilot_score_type) * count);
 
-	free_mem (full_table);
 
-	return count;
-}
 
 
 
 
 
-void qs_table (pilot_score_type *list, int left, int right)
-{
-   int
-      i, j, x;
 
-   pilot_score_type
-      temp;
 
-   i = left;
-   j = right;
 
-   x = list [(left + right) / 2].kills;
 
-   do
-   {
-      while (list [i].kills > x && i < right) i++;
-      while (x > list [j].kills && j > left) j--;
 
-      if (i <= j)
-      {
-         temp = list [i];
-         list [i] = list [j];
-         list [j] = temp;
 
-         i++;
-         j--;
-      }
 
-   } while (i <= j);
 
-   if (left < j) qs_table (list, left, j);
-   if (i < right) qs_table (list, i, right);
-}
 
 
 
@@ -647,101 +553,195 @@ void qs_table (pilot_score_type *list, int left, int right)
 
 
 
-void draw_high_score_table_to_ui_object_list (ui_object *blue_list_object, ui_object *red_list_object)
-{
 
-	char
-		buffer [256];
 
-	int
-		loop;
 
-	pilot_score_type
-		*item;
 
-	rgb_colour
-		*col;
 
-	ui_object
-		*list;
 
-	for (loop = 0; loop < NUM_TABLE_ENTRIES; loop ++)
-	{
-		item = &pilot_high_score_table [loop];
 
-		if (item->valid)
-		{
-			if (item->side == ENTITY_SIDE_BLUE_FORCE)
-			{
-				col = &ui_colour_blue;
 
-				list = blue_list_object;
-			}
-			else
-			{
-				col = &ui_colour_orange;
 
-				list = red_list_object;
-			}
 
-			sprintf (buffer, "%s: %d", item->name, item->kills);
 
-			add_to_pop_up_list (buffer, list, NULL, UI_LIST_NO_SELECTION, UI_FONT_ARIAL_14, *col);
-		}
-	}
-}
 
 
 
 
 
-const char *get_high_score_table_entry (int index, int *side, int *kills)
-{
-	pilot_score_type
-		*item;
 
-	ASSERT (side);
 
-	ASSERT (kills);
 
-	ASSERT ((index >= 0) && (index < NUM_TABLE_ENTRIES));
 
-	item = &pilot_high_score_table [index];
 
-	if (item->valid)
-	{
-		*side = item->side;
 
-		*kills = item->kills;
 
-		return item->name;
-	}
-	else
-	{
-		return NULL;
-	}
-}
 
 
 
 
 
-const char *get_high_score_table_first_name (void)
-{
-	pilot_score_type
-		*item;
 
-	item = &pilot_high_score_table [0];
 
-	if (item->valid)
-	{
-		return (item->name);
-	}
-	else
-	{
-		return NULL;
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

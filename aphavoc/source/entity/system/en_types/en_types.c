@@ -293,77 +293,77 @@ entity_type_data
 
 
 
-void initialise_entity_type_names (void)
-{
-
-	int
-		loop;
-
-	entity_type_names = (const char **) malloc_heap_mem (sizeof (const char *) * NUM_ENTITY_TYPES + 1);
-
-	for (loop = 0; loop < NUM_ENTITY_TYPES; loop ++)
-	{
-
-		entity_type_names [loop] = get_entity_type_name (loop);
-	}
-}
 
 
 
 
 
-void deinitialise_entity_type_names (void)
-{
-
-	free_mem ((void*)entity_type_names);
-}
 
 
 
 
 
-void pack_entity_type (entity_types type)
-{
-	ASSERT ((type >= 0) && (type < NUM_ENTITY_TYPES));
-
-	#if (DEBUG_MODULE_PACK_ONE || DEBUG_MODULE_PACK_ALL)
-
-	if (entity_type_database[type].debug_pack)
-	{
-		debug_log_entity_args (ENTITY_DEBUG_PACK, ENTITY_DEBUG_ENTITY_TYPE, NULL, type);
-	}
-
-	#endif
-
-	ASSERT(!(type >> NUM_ENTITY_TYPE_PACK_BITS));
-
-	pack_unsigned_data (type, NUM_ENTITY_TYPE_PACK_BITS);
-}
 
 
 
 
 
-entity_types unpack_entity_type (void)
-{
-	entity_types
-		type;
 
-	type = (entity_types) unpack_unsigned_data (NUM_ENTITY_TYPE_PACK_BITS);
 
-	ASSERT ((type >= 0) && (type < NUM_ENTITY_TYPES));
 
-	#if (DEBUG_MODULE_PACK_ONE || DEBUG_MODULE_PACK_ALL)
 
-	if (entity_type_database[type].debug_pack)
-	{
-		debug_log_entity_args (ENTITY_DEBUG_UNPACK, ENTITY_DEBUG_ENTITY_TYPE, NULL, type);
-	}
 
-	#endif
 
-	return (type);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

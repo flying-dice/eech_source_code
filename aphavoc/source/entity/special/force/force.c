@@ -414,8 +414,6 @@ int get_local_force_entity_group_count (entity *en, entity_sub_types group_type)
 
 
 
-void display_campaign_criteria_time_remaining (void)
-{
 
 
 
@@ -559,16 +557,18 @@ void display_campaign_criteria_time_remaining (void)
 
 
 
-}
 
 
 
 
 
-void set_display_campaign_timer_valid (int valid)
-{
-	display_timer_valid = valid;
-}
+
+
+
+
+
+
+
 
 
 

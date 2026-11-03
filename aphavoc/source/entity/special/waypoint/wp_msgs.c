@@ -166,48 +166,6 @@ static int response_to_unlink_parent (entity_messages message, entity *receiver,
 
 
 
-static int response_to_set_entity_position (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-
-	vec3d
-		*position,
-		wp_position,
-		delta_position,
-		*parent_position;
-
-	float
-		cos_heading,
-		sin_heading,
-		heading;
-
-	waypoint
-		*raw;
-
-	raw = (waypoint *) get_local_entity_data (receiver);
-	
-	position = va_arg (pargs, vec3d *);
-	
-	heading = (float) va_arg (pargs, double);
-
-	//
-	// Set position, only if relative to parent
-	//
-
-	if (raw->position_type == POSITION_TYPE_RELATIVE)
-	{
-
-		parent_position = get_local_entity_vec3d_ptr (sender, VEC3D_TYPE_POSITION);
-
-		delta_position.x = (raw->position.x - parent_position->x);
-		delta_position.y = (raw->position.y - parent_position->y);
-		delta_position.z = (raw->position.z - parent_position->z);
-
-		cos_heading = cos (heading - raw->heading);
-		sin_heading = sin (heading - raw->heading);
-
-		wp_position.x = position->x + (cos_heading * delta_position.x) + (sin_heading * delta_position.z);
-		wp_position.y = position->y + delta_position.y;
-		wp_position.z = position->z + (cos_heading * delta_position.z) - (sin_heading * delta_position.x);
 
 
 
@@ -217,13 +175,55 @@ static int response_to_set_entity_position (entity_messages message, entity *rec
 
 
 
-		set_local_entity_vec3d (receiver, VEC3D_TYPE_POSITION, &wp_position);
-	
-		set_local_entity_float_value (receiver, FLOAT_TYPE_HEADING, heading);
-	}
 
-	return (TRUE);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

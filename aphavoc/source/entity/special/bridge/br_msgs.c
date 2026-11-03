@@ -178,52 +178,52 @@ static int response_to_child_killed (entity_messages message, entity *receiver, 
 
 // N.B. This function called on both SERVER and CLIENT
 
-static int response_to_collision (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	entity
-		*pred,
-		*succ;
-
-	entity_sub_types
-		sub_type;
-
-	//
-	// Special case for bridge collision ( actual collision is handled by segments )
-	//
-	// This fn called by a segment when either of its neighbours have been killed, or it has been hit but not killed
-	//
-
-	sub_type = get_local_entity_int_value (sender, INT_TYPE_ENTITY_SUB_TYPE);
-
-	if (sub_type == ENTITY_SUB_TYPE_FIXED_BRIDGE_UNSUPPORTED_MID_SECTION)
-	{
-		if (get_local_entity_int_value (sender, INT_TYPE_ALIVE))
-		{
-			//
-			// Bridge section has nothing to support it, so kill it
-			//
-		
-			if (get_comms_model() == COMMS_MODEL_SERVER)
-			{
-				kill_client_server_entity (sender);
 
 
-			}
-		}
-	}
 
-	//
-	// change object shape ( depending on state of its neighbours )
-	//
 
-	pred = get_local_entity_child_pred (sender, LIST_TYPE_SEGMENT);
 
-	succ = get_local_entity_child_succ (sender, LIST_TYPE_SEGMENT);
 
-	set_local_entity_int_value (sender, INT_TYPE_OBJECT_3D_SHAPE, get_bridge_segment_damaged_object (sender, pred, succ));
 
-	return (TRUE);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
