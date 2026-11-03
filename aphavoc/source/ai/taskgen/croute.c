@@ -260,33 +260,33 @@ int create_generic_waypoint_route (entity *group, entity *task_en, entity *retur
 
 	ASSERT (task_en);
 
-	#if DEBUG_MODULE
-	if (debug_flag)
-	{
-	
-		debug_log ("CROUTE: ===================================================================================");
-	
-		debug_log ("CROUTE: Creating route for task %s (%d), movement type %s",
-						get_local_entity_string (task_en, STRING_TYPE_FULL_NAME),
-						get_local_entity_index (task_en),
-						movement_names [get_local_entity_int_value (task_en, INT_TYPE_MOVEMENT_TYPE)]);
-	
-	}
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	if (get_local_entity_first_child (task_en, LIST_TYPE_WAYPOINT))
 	{
 	
-		#if DEBUG_MODULE
-		if (debug_flag)
-		{
-	
-			debug_log ("CROUTE:     Task %s already has waypoint route", get_local_entity_string (task_en, STRING_TYPE_FULL_NAME));
-			
-			debug_log ("CROUTE: ===================================================================================");
-	
-		}
-		#endif
+
+
+
+
+
+
+
+
+
+
 	
 		return TRUE;
 	}
@@ -376,25 +376,25 @@ int create_generic_waypoint_route (entity *group, entity *task_en, entity *retur
 		last_specified_node = specified_route;
 	}
 
-	#if DEBUG_MODULE
-	if (debug_flag)
-	{
-	
-		debug_log ("CROUTE:   Route specified =");
-	
-		for (loop = 0; loop < route_length; loop ++)
-		{
-	
-			debug_log ("CROUTE:         Wp %d = %s %s %s [%f, %f, %f]",
-							loop,
-							entity_sub_type_waypoint_names [route_waypoint_types_ptr [loop]],
-							formation_names [route_formation_types_ptr [loop]],
-							((route_dependents_ptr [loop]) ? get_local_entity_string (route_dependents_ptr [loop], STRING_TYPE_FULL_NAME) : "None"),
-							route_points_ptr [loop].x, route_points_ptr [loop].y, route_points_ptr [loop].z);
-		}
-	
-	}
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	start_ptr = NULL;
 	stop_ptr = NULL;
@@ -446,13 +446,13 @@ int create_generic_waypoint_route (entity *group, entity *task_en, entity *retur
 
 		specified_route = new_node;
 	
-		#if DEBUG_MODULE
-		if (debug_flag)
-		{
-		
-			debug_log ("CROUTE:     Adding START waypoint at [%f, %f, %f]", new_node->position.x, new_node->position.y, new_node->position.z);
-		}
-		#endif
+
+
+
+
+
+
+
 
 		if (return_keysite)
 		{
@@ -509,16 +509,16 @@ int create_generic_waypoint_route (entity *group, entity *task_en, entity *retur
 
 			last_specified_node = new_node;
 	
-			#if DEBUG_MODULE
-			if (debug_flag)
-			{
-		
-				debug_log ("CROUTE:     Adding LAND waypoint at [%f, %f, %f] keysite %s (%d)",
-								new_node->position.x, new_node->position.y, new_node->position.z,
-								get_local_entity_string (return_keysite, STRING_TYPE_FULL_NAME), get_local_entity_index (return_keysite));
-		
-			}
-			#endif
+
+
+
+
+
+
+
+
+
+
 		}
 	}
 
@@ -538,16 +538,16 @@ int create_generic_waypoint_route (entity *group, entity *task_en, entity *retur
 		if (!generate_biased_vec3d_route (specified_route, &new_route, side, movement_type))
 		{
 	
-			#if DEBUG_MODULE
-			if (debug_flag)
-			{
-		
-				debug_log ("CROUTE:     ***** Cannot create route *****");
-			
-				debug_log ("CROUTE: ===================================================================================");
-		
-			}
-			#endif
+
+
+
+
+
+
+
+
+
+
 
 			destroy_fast_route (specified_route);
 	
@@ -623,14 +623,14 @@ int create_generic_waypoint_route (entity *group, entity *task_en, entity *retur
 		waypoint_pos->y = bound (waypoint_pos->y, 1, MAX_MAP_Y - 1);
 		waypoint_pos->z = bound (waypoint_pos->z, 1, MAX_MAP_Z - 1);
 
-		#if DEBUG_MODULE
-		if (debug_flag)
-		{
-		
-			debug_log ("CROUTE:     (N wp route) placing waypoint (count %d), at [%f, %f, %f]", node_count, waypoint_pos->x, waypoint_pos->y, waypoint_pos->z);
-	
-		}
-		#endif
+
+
+
+
+
+
+
+
 
 		ASSERT(point_inside_map_area(waypoint_pos));
 		
@@ -699,19 +699,19 @@ int create_generic_waypoint_route (entity *group, entity *task_en, entity *retur
 		if ((waypoint_pos->x == specified_route_ptr->position.x) && (waypoint_pos->z == specified_route_ptr->position.z))
 		{
 
-			#if DEBUG_MODULE
-			if (debug_flag)
-			{
-	
-				debug_log ("CROUTE:    Assigning waypoint %d (%d) to route. Type %s, formation %s, dependent %s",
-								node_count,
-								get_local_entity_index (wp),
-								waypoint_database [specified_route_ptr->type].full_name,
-								formation_names [specified_route_ptr->formation],
-								(specified_route_ptr->dependent) ? (get_local_entity_string (specified_route_ptr->dependent, STRING_TYPE_FULL_NAME)) : ("None"));
-	
-			}
-			#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 			set_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE, specified_route_ptr->type);
 
@@ -743,53 +743,53 @@ int create_generic_waypoint_route (entity *group, entity *task_en, entity *retur
 	
 	parser_task_waypoint_route (group, task_en);
 
-	#if DEBUG_MODULE
-	if (debug_flag)
-	{
 
-		vec3d
-			*pos;
 
-		entity
-			*wp;
 
-		debug_log ("CROUTE: -----------------------------------------------------------------------------------");
 
-		debug_log ("CROUTE: Task %s (%d) Final route created = ", get_local_entity_string (task_en, STRING_TYPE_FULL_NAME), get_local_entity_index (task_en));
 
-		wp = get_local_entity_first_child (task_en, LIST_TYPE_WAYPOINT);
 
-		while (wp)
-		{
 
-			if (get_local_entity_int_value (wp, INT_TYPE_POSITION_TYPE) == POSITION_TYPE_VIRTUAL)
-			{
-	
-				debug_log ("CROUTE:      waypoint %s (%d) at virtual position, formation %s, dependent on %s",
-								entity_sub_type_waypoint_names [get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE)],
-								get_local_entity_index (wp),
-								formation_names [get_local_entity_int_value (wp, INT_TYPE_WAYPOINT_FORMATION)],
-								(get_local_entity_parent (wp, LIST_TYPE_TASK_DEPENDENT)) ? (get_local_entity_string (get_local_entity_parent (wp, LIST_TYPE_TASK_DEPENDENT), STRING_TYPE_FULL_NAME)) : ("None"));
-			}
-			else
-			{
-	
-				pos = get_local_entity_vec3d_ptr (wp, VEC3D_TYPE_POSITION);
-	
-				debug_log ("CROUTE:      waypoint %s (%d) at [%f, %f, %f], formation %s, dependent %s",
-								entity_sub_type_waypoint_names [get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE)],
-								get_local_entity_index (wp),
-								pos->x, pos->y, pos->z,
-								formation_names [get_local_entity_int_value (wp, INT_TYPE_WAYPOINT_FORMATION)],
-								(get_local_entity_parent (wp, LIST_TYPE_TASK_DEPENDENT)) ? (get_local_entity_string (get_local_entity_parent (wp, LIST_TYPE_TASK_DEPENDENT), STRING_TYPE_FULL_NAME)) : ("None"));
-			}
 
-			wp = get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT);
-		}
 
-		debug_log ("CROUTE: ===================================================================================");
-	}
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 	//
@@ -943,13 +943,13 @@ void parser_task_waypoint_route (entity *group, entity *task)
 									next_pos->x, next_pos->y, next_pos->z);
 				}
 	
-				#if DEBUG_MODULE
-				if (debug_flag)
-				{
-	
-					debug_log ("CROUTE: PARSING WAYPOINT ROUTE.... spacing this_waypoint");
-				}
-				#endif
+
+
+
+
+
+
+
 	
 				set_local_entity_vec3d (this_wp, VEC3D_TYPE_POSITION, &new_pos);
 			}
@@ -1009,14 +1009,14 @@ void parser_task_waypoint_route (entity *group, entity *task)
 									next_next_pos->x, next_next_pos->y, next_next_pos->z);
 					}
 
-					#if DEBUG_MODULE
-					if (debug_flag)
-					{
-			
-						debug_log ("CROUTE: PARSING WAYPOINT ROUTE.... spacing next waypoint");
-				
-					}
-					#endif
+
+
+
+
+
+
+
+
 
 					bound_position_to_adjusted_map_volume (&new_pos);
 		
@@ -1045,13 +1045,13 @@ unsigned char generate_route_check_sum (route_node *route)
 
 	check_sum = 0;
 
-	#if DEBUG_MODULE
-	if (debug_flag)
-	{
 
-		debug_log ("CROUTE: Generating checksum");
-	}
-	#endif
+
+
+
+
+
+
 
 	// dont checksum start and end points because entities may be in slightly different positions due to pack/unpack
 
@@ -1064,40 +1064,40 @@ unsigned char generate_route_check_sum (route_node *route)
 		{
 	
 			check_sum += (int) route->position.x;
-			#if DEBUG_MODULE
-			if (debug_flag)
-			{
-				debug_log ("CROUTE:    after x %f = check_sum = %d", route->position.x, check_sum);
-			}
-			#endif
+
+
+
+
+
+
 
 			check_sum += (int) route->position.y;
-			#if DEBUG_MODULE
-			if (debug_flag)
-			{
-				debug_log ("CROUTE:    after y %f = check_sum = %d", route->position.y, check_sum);
-			}
-			#endif
+
+
+
+
+
+
 
 			check_sum += (int) route->position.z;
-			#if DEBUG_MODULE
-			if (debug_flag)
-			{
-				debug_log ("CROUTE:    after z %f = check_sum = %d", route->position.z, check_sum);
-			}
-			#endif
+
+
+
+
+
+
 
 			route = route->next;
 		}
 	}
 
-	#if DEBUG_MODULE
-	if (debug_flag)
-	{
 
-		debug_log ("CROUTE:    checksum %d", check_sum);
-	}
-	#endif
+
+
+
+
+
+
 
 	return check_sum;
 }
@@ -1421,13 +1421,13 @@ int get_best_point (vec3d *start, vec3d *end, vec3d *best_point, entity_sides si
   			// best so far
 			point_rating = get_route_point_rating (loop + 1.0, &test_point, side, movement_type);
 
-			#if DEBUG_MODULE
-			if (debug_flag)
-			{
 
-				debug_log ("GENROUTE: test point %f = %f, %f, %f... rating %f (best point %f)", loop, test_point.x, test_point.y, test_point.z, point_rating, best_point_rating);
-			}
-			#endif
+
+
+
+
+
+
 	
 			if (point_rating < best_point_rating)
 			{
@@ -1438,18 +1438,18 @@ int get_best_point (vec3d *start, vec3d *end, vec3d *best_point, entity_sides si
 			}
 		}
 
-		#if DEBUG_MODULE
-		if (debug_flag)
-		{
-	
-			debug_log ("GENROUTE: generating node at [%0.2f, %0.2f, %0.2f] between [%0.2f, %0.2f, %0.2f] and [%0.2f, %0.2f, %0.2f], range %f",
-							best_point->x, best_point->y, best_point->z,
-							ceil (start->x), ceil (start->y), ceil (start->z),
-							ceil (end->x), ceil (end->y), ceil (end->z),
-							get_2d_range (start, end));
-	
-		}
-		#endif
+
+
+
+
+
+
+
+
+
+
+
+
 
 		return TRUE;
 	}
@@ -1541,13 +1541,13 @@ float get_route_point_rating (float sample_number, vec3d *test_point, entity_sid
 				(range_bias * max (average_terrain_elevation, 1.0f)) +
 				(side_bias * max (average_terrain_elevation, 1.0f));
 
-	#if DEBUG_MODULE
-	if (debug_flag)
-	{
 
-		debug_log ("ROUTEGEN: point rating %f, elevation %f, range %f, side %f", rating, elevation, range_bias, side_bias);
-	}
-	#endif
+
+
+
+
+
+
 
 	return rating;
 }
@@ -1636,13 +1636,13 @@ void optimise_route (route_node *node, movement_types movement_type)
 
 			// delete node
 
-			#if DEBUG_MODULE
-			if (debug_flag)
-			{
-	
-				debug_log ("GENROUTE: removing node, within optimise tolerance");
-			}
-			#endif
+
+
+
+
+
+
+
 
 			prev_node->next = next_node;
 
@@ -1742,34 +1742,34 @@ route_node *temp_create_generic_waypoint_route (entity *group, entity *task_en, 
 
 	ASSERT (task_en);
 
-	#if DEBUG_MODULE
-	if (debug_flag)
-	{
-	
-		debug_log ("CROUTE: ===================================================================================");
-	
-		debug_log ("CROUTE: Creating route for task %s (%d), movement type %s",
-						get_local_entity_string (task_en, STRING_TYPE_FULL_NAME),
-						get_local_entity_index (task_en),
-						movement_names [get_local_entity_int_value (task_en, INT_TYPE_MOVEMENT_TYPE)]);
-	
-	}
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	reset_waypoint_tags ();
 
 	if (get_local_entity_first_child (task_en, LIST_TYPE_WAYPOINT))
 	{
 
-		#if DEBUG_MODULE
-		if (debug_flag)
-		{
 
-			debug_log ("CROUTE:     Task %s already has waypoint route", get_local_entity_string (task_en, STRING_TYPE_FULL_NAME));
-			
-			debug_log ("CROUTE: ===================================================================================");
-		}
-		#endif
+
+
+
+
+
+
+
+
 
 		return NULL;
 	}
@@ -1861,24 +1861,24 @@ route_node *temp_create_generic_waypoint_route (entity *group, entity *task_en, 
 		last_specified_node = specified_route;
 	}
 
-	#if DEBUG_MODULE
-	if (debug_flag)
-	{
-	
-		debug_log ("CROUTE:   Route specified =");
-	
-		for (loop = 0; loop < route_length; loop ++)
-		{
-	
-			debug_log ("CROUTE:         Wp %d = %s %s %s [%f, %f, %f]",
-							loop,
-							entity_sub_type_waypoint_names [route_waypoint_types_ptr [loop]],
-							formation_names [route_formation_types_ptr [loop]],
-							((route_dependents_ptr [loop]) ? get_local_entity_string (route_dependents_ptr [loop], STRING_TYPE_FULL_NAME) : "None"),
-							route_points_ptr [loop].x, route_points_ptr [loop].y, route_points_ptr [loop].z);
-		}
-	}
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	if (start_point_count > 0)
 	{
@@ -1917,13 +1917,13 @@ route_node *temp_create_generic_waypoint_route (entity *group, entity *task_en, 
 
 		specified_route = new_node;
 	
-		#if DEBUG_MODULE
-		if (debug_flag)
-		{
-	
-			debug_log ("CROUTE:     Adding START waypoint at [%f, %f, %f]", new_node->position.x, new_node->position.y, new_node->position.z);
-		}
-		#endif
+
+
+
+
+
+
+
 
 		if (return_keysite)
 		{
@@ -1967,16 +1967,16 @@ route_node *temp_create_generic_waypoint_route (entity *group, entity *task_en, 
 
 			last_specified_node = new_node;
 	
-			#if DEBUG_MODULE
-			if (debug_flag)
-			{
-	
-				debug_log ("CROUTE:     Adding LAND waypoint at [%f, %f, %f] keysite %s (%d)",
-							new_node->position.x, new_node->position.y, new_node->position.z,
-							get_local_entity_string (return_keysite, STRING_TYPE_FULL_NAME), get_local_entity_index (return_keysite));
-	
-			}
-			#endif
+
+
+
+
+
+
+
+
+
+
 		}
 	}
 
@@ -1996,16 +1996,16 @@ route_node *temp_create_generic_waypoint_route (entity *group, entity *task_en, 
 		if (!generate_biased_vec3d_route (specified_route, &new_route, side, movement_type))
 		{
 	
-			#if DEBUG_MODULE
-			if (debug_flag)
-			{
-		
-				debug_log ("CROUTE:     ***** Cannot create route *****");
-			
-				debug_log ("CROUTE: ===================================================================================");
-		
-			}
-			#endif
+
+
+
+
+
+
+
+
+
+
 
 			destroy_fast_route (specified_route);
 	

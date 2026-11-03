@@ -201,11 +201,11 @@ static entity *create_local (entity_types type, int index, char *pargs)
 
 	validate_local_create_entity_index (index);
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_CREATE, NULL, type, index);
 
-	#endif
+
+
+
 
 	en = get_free_entity (index);
 
@@ -269,10 +269,10 @@ static entity *create_local (entity_types type, int index, char *pargs)
 
 
 
-void overload_sector_create_functions (void)
-{
-	fn_create_local_entity[ENTITY_TYPE_SECTOR] = create_local;
-}
+
+
+
+
 
 
 

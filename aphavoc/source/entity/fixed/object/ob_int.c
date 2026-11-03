@@ -82,11 +82,11 @@ static void set_local_int_value (entity *en, int_types type, int value)
 	object
 		*raw;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_INT_VALUE, en, type, value);
 
-	#endif
+
+
+
 
 	raw = get_local_entity_data (en);
 
@@ -117,11 +117,11 @@ static void set_local_int_value (entity *en, int_types type, int value)
 
 static void set_remote_int_value (entity *en, int_types type, int value)
 {
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_INT_VALUE, en, type, value);
 
-	#endif
+
+
+
 
 	transmit_entity_comms_message (ENTITY_COMMS_INT_VALUE, en, type, value);
 }

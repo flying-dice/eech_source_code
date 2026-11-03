@@ -112,11 +112,11 @@ void basic_vehicle_movement (entity *en)
 	if (!get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT))
 	{
 
-		#if DEBUG_MODULE
 
-		debug_log ("AIRCRAFT MOVE: Entity with only 1 waypoint");
 
-		#endif
+
+
+
 
 		return;
 	}

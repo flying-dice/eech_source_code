@@ -87,13 +87,13 @@ static void destroy_local (entity *en)
 	//
 
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_DESTROY, en);
 
-	debug_log ("BR_DSTRY: destroying bridge %d", get_local_entity_index (en));
 
-	#endif
+
+
+
+
 
 	raw = (bridge *) get_local_entity_data (en);
 
@@ -136,11 +136,11 @@ static void destroy_local (entity *en)
 
 static void destroy_remote (entity *en)
 {
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_DESTROY, en);
 
-	#endif
+
+
+
 
 	transmit_entity_comms_message (ENTITY_COMMS_DESTROY, en);
 }
@@ -196,20 +196,20 @@ static void destroy_client (entity *en)
 
 
 
-void overload_bridge_destroy_functions (void)
-{
-	fn_destroy_local_entity						[ENTITY_TYPE_BRIDGE]									= destroy_local;
-	fn_destroy_client_server_entity			[ENTITY_TYPE_BRIDGE][COMMS_MODEL_SERVER]		= destroy_server;
-	fn_destroy_client_server_entity			[ENTITY_TYPE_BRIDGE][COMMS_MODEL_CLIENT]		= destroy_client;
 
-	fn_destroy_local_entity_family			[ENTITY_TYPE_BRIDGE]									= destroy_local;
-	fn_destroy_client_server_entity_family	[ENTITY_TYPE_BRIDGE][COMMS_MODEL_SERVER]		= destroy_server;
-	fn_destroy_client_server_entity_family	[ENTITY_TYPE_BRIDGE][COMMS_MODEL_CLIENT]		= destroy_client;
 
-	fn_kill_local_entity							[ENTITY_TYPE_BRIDGE]									= destroy_local;
-	fn_kill_client_server_entity				[ENTITY_TYPE_BRIDGE][COMMS_MODEL_SERVER]		= destroy_server;
-	fn_kill_client_server_entity				[ENTITY_TYPE_BRIDGE][COMMS_MODEL_CLIENT]		= destroy_client;
-}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

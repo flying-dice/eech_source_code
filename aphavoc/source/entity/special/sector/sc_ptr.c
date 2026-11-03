@@ -105,9 +105,9 @@ static void *get_local_ptr_value (entity *en, ptr_types type)
 
 
 
-void overload_sector_ptr_value_functions (void)
-{
-}
+
+
+
 
 
 

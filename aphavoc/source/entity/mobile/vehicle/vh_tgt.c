@@ -124,11 +124,11 @@ static int check_vehicle_target_scan_valid (entity *en)
 
 	if (!get_local_entity_int_value (group, INT_TYPE_ENGAGE_ENEMY))
 	{
-		#if DEBUG_MODULE
 
-		debug_log ("VH_TGT: group %s not allowed to engage enemy", entity_sub_type_group_names [get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE)]);
 
-		#endif
+
+
+
 
 		return FALSE;
 	}
@@ -174,9 +174,9 @@ void vehicle_target_scan (entity *en)
 	vec3d
 		*pos;
 
-#ifdef DEBUG
-	debug = DEBUG_MODULE && en == get_external_view_entity ();
-#endif
+
+
+
 
 	guide = get_local_entity_parent (en, LIST_TYPE_FOLLOWER);
 
@@ -511,9 +511,9 @@ entity *get_vehicle_surface_to_air_scan_group_targets (entity *source, int *targ
 
 		member = get_local_entity_child_succ (member, LIST_TYPE_MEMBER);
 
-#ifdef DEBUG
-		debug = DEBUG_MODULE && member == get_external_view_entity ();
-#endif
+
+
+
 	}
 
 	group = NULL;
@@ -846,9 +846,9 @@ entity *get_vehicle_surface_to_surface_scan_group_targets (entity *source, int *
 
 	*target_count = 0;
 
-#ifdef DEBUG
-	debug = DEBUG_MODULE && source == get_external_view_entity ();
-#endif
+
+
+
 
 	//
 	// find best scan range

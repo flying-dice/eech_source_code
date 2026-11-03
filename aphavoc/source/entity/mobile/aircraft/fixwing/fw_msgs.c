@@ -78,65 +78,65 @@
 
 
 
-#if DEBUG_MODULE
-
-static int response_to_link_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE
-
-static int response_to_unlink_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE
-
-// WARNING: THIS IS OVERLOADED AT AIRCRAFT LEVEL //
-
-static int response_to_link_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE
 
-// WARNING: THIS IS OVERLOADED AT AIRCRAFT LEVEL //
 
-static int response_to_unlink_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	return (TRUE);
-}
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -160,11 +160,11 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 	float
 		damage_modifier;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	damage_modifier = va_arg (pargs, double);
 
@@ -263,13 +263,13 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 static int response_to_waypoint_lift_off_reached (entity_messages message, entity *receiver, entity *sender, va_list pargs)
 {
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	debug_log ("FW_MSGS: switching to navigating state");
 
-	#endif
+
+
+
+
 
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
@@ -291,13 +291,13 @@ static int response_to_waypoint_lift_off_reached (entity_messages message, entit
 static int response_to_waypoint_start_up_reached (entity_messages message, entity *receiver, entity *sender, va_list pargs)
 {
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	debug_log ("FW_MSGS: switching to navigating state");
 
-	#endif
+
+
+
+
 
 	set_client_server_fixed_wing_afterburner_state (receiver, ON);
 
@@ -324,13 +324,13 @@ static int response_to_waypoint_start_up_reached (entity_messages message, entit
 static int response_to_waypoint_touch_down_reached (entity_messages message, entity *receiver, entity *sender, va_list pargs)
 {
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	debug_log ("FW_MSGS: switching to taxiing state");
 
-	#endif
+
+
+
+
 
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
@@ -352,11 +352,11 @@ static int response_to_waypoint_touch_down_reached (entity_messages message, ent
 			sound_sample_indices
 				sound_sample_index;
 
-			#if DEBUG_MODULE
 
-			debug_log_entity_message (message, receiver, sender, pargs);
 
-			#endif
+
+
+
 
 			position = get_local_entity_vec3d_ptr (receiver, VEC3D_TYPE_POSITION);
 
@@ -516,32 +516,32 @@ static int response_to_check_mobile_reached_guide (entity_messages message, enti
 
 
 
-void overload_fixed_wing_message_responses (void)
-{
-	overload_aircraft_message_responses (ENTITY_TYPE_FIXED_WING);
 
-	#if DEBUG_MODULE
 
-	message_responses[ENTITY_TYPE_FIXED_WING][ENTITY_MESSAGE_LINK_CHILD]		= response_to_link_child;
 
-	message_responses[ENTITY_TYPE_FIXED_WING][ENTITY_MESSAGE_UNLINK_CHILD]	= response_to_unlink_child;
 
-	message_responses[ENTITY_TYPE_FIXED_WING][ENTITY_MESSAGE_LINK_PARENT]	= response_to_link_parent;
 
-	message_responses[ENTITY_TYPE_FIXED_WING][ENTITY_MESSAGE_UNLINK_PARENT]	= response_to_unlink_parent;
 
-	#endif
 
-	message_responses[ENTITY_TYPE_FIXED_WING][ENTITY_MESSAGE_COLLISION]							= response_to_collision;
 
-	message_responses[ENTITY_TYPE_FIXED_WING][ENTITY_MESSAGE_WAYPOINT_LIFT_OFF_REACHED]		= response_to_waypoint_lift_off_reached;
 
-	message_responses[ENTITY_TYPE_FIXED_WING][ENTITY_MESSAGE_WAYPOINT_START_UP_REACHED]		= response_to_waypoint_start_up_reached;
 
-	message_responses[ENTITY_TYPE_FIXED_WING][ENTITY_MESSAGE_WAYPOINT_TOUCH_DOWN_REACHED]	= response_to_waypoint_touch_down_reached;
 
-	message_responses[ENTITY_TYPE_FIXED_WING][ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE]	= response_to_check_mobile_reached_guide;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -126,11 +126,11 @@ void load_local_entity_weapon_config (entity *en)
 
 		ASSERT (weapon_config_type_valid (config_type));
 
-		#if DEBUG_MODULE
 
-		debug_log ("Loading weapon config (entity = %d, config = %d)", get_local_entity_index (en), config_type);
 
-		#endif
+
+
+
 
 		for (package = 0; package < NUM_WEAPON_PACKAGES; package++)
 		{
@@ -420,20 +420,20 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 
 						weapon_device = TRUE;
 
-						#if DEBUG_MODULE
 
-						debug_log
-						(
-							"Detach weapon as WEAPON device (h = %d, p = %d, w = %d, x = %.2f, y = %.2f, z = %.2f)",
-							search_weapon_system_heading.search_depth,
-							search_weapon_system_pitch.search_depth,
-							search_weapon_system_weapon.search_depth,
-							vp->position.x,
-							vp->position.y,
-							vp->position.z
-						);
 
-						#endif
+
+
+
+
+
+
+
+
+
+
+
+
 					}
 
 					search_weapon_system_muzzle.search_depth = weapon_config_database[config_type][found_package].muzzle_depth;
@@ -562,39 +562,39 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 							}
 						}
 
-						#if DEBUG_MODULE
 
-						debug_log
-						(
-							"Detach weapon as MUZZLE device (h = %d, p = %d, m = %d, x = %.2f, y = %.2f, z = %.2f)",
-							search_weapon_system_heading.search_depth,
-							search_weapon_system_pitch.search_depth,
-							search_weapon_system_muzzle.search_depth,
-							vp->position.x,
-							vp->position.y,
-							vp->position.z
-						);
 
-						#endif
+
+
+
+
+
+
+
+
+
+
+
+
 					}
 					else
 					{
 						if (!weapon_device)
 							get_3d_sub_object_viewpoint (&search_weapon_system_pitch, vp, TRUE);
 
-						#if DEBUG_MODULE
 
-						debug_log
-						(
-							"Detach weapon as PITCH device (h = %d, p = %d, x = %.2f, y = %.2f, z = %.2f)",
-							search_weapon_system_heading.search_depth,
-							search_weapon_system_pitch.search_depth,
-							vp->position.x,
-							vp->position.y,
-							vp->position.z
-						);
 
-						#endif
+
+
+
+
+
+
+
+
+
+
+
 					}
 
 					found = TRUE;
@@ -632,32 +632,32 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 
 			get_local_entity_attitude_matrix (launcher, vp->attitude);
 
-			#if DEBUG_MODULE
 
-			debug_log
-			(
-				"Position outside map volume - detach weapon as ORIGIN device (x = %.2f, y = %.2f, z = %.2f)",
-				vp->position.x,
-				vp->position.y,
-				vp->position.z
-			);
 
-			#endif
+
+
+
+
+
+
+
+
+
 		}
 	}
 	else
 	{
-		#if DEBUG_MODULE
 
-		debug_log
-		(
-			"Detach weapon as ORIGIN device (x = %.2f, y = %.2f, z = %.2f)",
-			vp->position.x,
-			vp->position.y,
-			vp->position.z
-		);
 
-		#endif
+
+
+
+
+
+
+
+
+
 	}
 
 	//
@@ -672,18 +672,18 @@ void detach_local_entity_weapon (entity *launcher, entity_sub_types weapon_sub_t
 	{
 		vp->position.y = terrain_elevation + 1.0;
 
-		#if DEBUG_MODULE
 
-		debug_colour_log
-		(
-			DEBUG_COLOUR_RED,
-			"WARNING! Weapon below ground (repositioned above) (x = %.2f, y = %.2f, z = %.2f)",
-			vp->position.x,
-			vp->position.y,
-			vp->position.z
-		);
 
-		#endif
+
+
+
+
+
+
+
+
+
+
 	}
 }
 
@@ -751,165 +751,165 @@ static void get_intercept_point (vec3d *pitch_device_position, float weapon_velo
 
 
 
-#if 0
-static int get_ballistic_intercept_point_and_angle_of_projection
-(
-	vec3d *pitch_device_position,
-	float weapon_velocity,
-	entity *source,
-	entity *target,
-	vec3d *intercept_point,
-	float *angle_of_projection
-)
-{
-	int
-		airborne_target,
-		triangulate_range,
-		result,
-		number_of_iterations;
 
-	float
-		range,
-		new_pitch,
-		time_of_flight,
-		target_true_velocity,
-		target_move_distance;
 
-	vec3d
-		current_target_position,
-		new_intercept_point,
-		target_motion_vector;
 
-	ASSERT (pitch_device_position);
 
-	ASSERT (target);
 
-	ASSERT (intercept_point);
 
-	ASSERT (angle_of_projection);
 
-	result = FALSE;
 
-	*angle_of_projection = 0.0;
 
-	get_local_entity_target_point (target, &current_target_position);
-	*intercept_point = current_target_position;
 
-	airborne_target = get_local_entity_int_value (target, INT_TYPE_AIRBORNE_AIRCRAFT);
 
-	triangulate_range = (source == get_gunship_entity() && get_range_finder() == RANGEFINDER_TRIANGULATION);
-	if (triangulate_range)
-	{
-		range = get_triangulated_by_position_range(pitch_device_position, intercept_point);
-		if (range == -1.0)
-			range = 1000.0;  // use 1000 meters if unable to triangulate range
-		#if DEBUG_MODULE
-		debug_log("triangulated range: %.0f (real range: %.0f)", range, get_2d_range (pitch_device_position, intercept_point));
-		#endif
-	}
-	else
-		range = get_2d_range (pitch_device_position, intercept_point);
 
-	//
-	// target point differs to position so test inside map area before terrain elevation check
-	//
 
-	if (point_inside_map_area (intercept_point))
-	{
-		if (!airborne_target)
-			intercept_point->y = get_3d_terrain_elevation (intercept_point->x, intercept_point->z);
 
-		target_true_velocity = get_local_entity_vec3d_magnitude (target, VEC3D_TYPE_MOTION_VECTOR);
 
-		if (target_true_velocity > 0.001)
-		{
-			//
-			// moving target
-			//
 
-			get_local_entity_vec3d (target, VEC3D_TYPE_MOTION_VECTOR, &target_motion_vector);
 
-			normalise_3d_vector_given_magnitude (&target_motion_vector, target_true_velocity);
 
-			new_intercept_point = *intercept_point;
 
-			number_of_iterations = 3;
 
-			// refine ballistic calulation
-			while (number_of_iterations--)
-			{
-				if (get_angle_of_projection_with_range(pitch_device_position, &new_intercept_point, weapon_velocity, &new_pitch, range))
-				{
-					result = TRUE;
 
-					*angle_of_projection = new_pitch;
 
-					*intercept_point = new_intercept_point;
 
-					if (number_of_iterations > 0)
-					{
-						if (triangulate_range)
-						{
-							range = get_triangulated_by_position_range(pitch_device_position, intercept_point);
-							if (range == -1.0)
-								range = 1000.0;  // use 1000 meters if unable to triangulate range
-						}
-						else
-							range = get_2d_range (pitch_device_position, intercept_point);
 
-						if (airborne_target)
-							// no use calulating ballistic trajectory to point on ground at target's distance
-							time_of_flight = range / weapon_velocity;
-						else
-							time_of_flight = 2.0 * weapon_velocity * sin (new_pitch) * ONE_OVER_G;
 
-						target_move_distance = time_of_flight * target_true_velocity;
 
-						new_intercept_point.x = current_target_position.x + (target_motion_vector.x * target_move_distance);
-						new_intercept_point.y = current_target_position.y + (target_motion_vector.y * target_move_distance);
-						new_intercept_point.z = current_target_position.z + (target_motion_vector.z * target_move_distance);
 
-						#if DEBUG_MODULE
-						debug_log("intercept point range: %.0f, ToF: %.2f, position: (%.0f, %.0f, %.0f)", range, time_of_flight, new_intercept_point.x, new_intercept_point.z, new_intercept_point.y);
-						#endif
-						if (point_inside_map_area (&new_intercept_point))
-						{
-							if (!airborne_target)
-								new_intercept_point.y = get_3d_terrain_elevation (new_intercept_point.x, new_intercept_point.z);
-						}
-						else
-						{
-							break;
-						}
-					}
-				}
-				else
-				{
-					break;
-				}
-			}
-		}
-		else
-		{
-			//
-			// stationary target
-			//
 
-			result = get_angle_of_projection (pitch_device_position, intercept_point, weapon_velocity, angle_of_projection);
-		}
-	}
-	else
-	{
-		//
-		// target off map
-		//
 
-		result = get_angle_of_projection (pitch_device_position, intercept_point, weapon_velocity, angle_of_projection);
-	}
 
-	return (result);
-}
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -990,9 +990,9 @@ int get_lead_and_ballistic_intercept_point_and_angle_of_projection
 		range = get_triangulated_by_position_range(pitch_device_position, intercept_point);
 		if (range == -1.0)
 			range = 1000.0;  // use 1000 meters if unable to triangulate range
-		#if DEBUG_MODULE
-		debug_log("triangulated range: %.0f (real range: %.0f)", range, get_3d_range (pitch_device_position, intercept_point));
-		#endif
+
+
+
 	}
 	else
 		range = get_3d_range (pitch_device_position, intercept_point);
@@ -1009,9 +1009,9 @@ int get_lead_and_ballistic_intercept_point_and_angle_of_projection
 		if (target)
 			target_true_velocity = get_local_entity_vec3d_magnitude (target, VEC3D_TYPE_MOTION_VECTOR);
 
-		#if DEBUG_MODULE
-//		debug_log("Aiming at target %s moving at %.1f m/s", get_local_entity_string (target, STRING_TYPE_FULL_NAME), target_true_velocity);
-		#endif
+
+
+
 
 		if (target_true_velocity > 0.1)
 		{
@@ -1039,9 +1039,9 @@ int get_lead_and_ballistic_intercept_point_and_angle_of_projection
 				new_intercept_point.z = current_target_position.z + (target_motion_vector.z * target_move_distance);
 
 				*intercept_point = new_intercept_point;
-				#if DEBUG_MODULE
-					debug_log("intercept point range: %.0f, ToF: %.2f, position: (%.0f, %.0f, %.0f)", range, time_of_flight, new_intercept_point.x, new_intercept_point.z, new_intercept_point.y);
-				#endif
+
+
+
 				if (!point_inside_map_area (&new_intercept_point))
 					break;
 
@@ -1062,9 +1062,9 @@ int get_lead_and_ballistic_intercept_point_and_angle_of_projection
 
 				number_of_iterations--;
 			}
-			#if DEBUG_MODULE
-			debug_log("intercept point range: %.0f, ToF: %.2f, position: (%.0f, %.0f, %.0f)", range, time_of_flight, new_intercept_point.x, new_intercept_point.z, new_intercept_point.y);
-			#endif
+
+
+
 		}
 		else
 		{
@@ -1072,9 +1072,9 @@ int get_lead_and_ballistic_intercept_point_and_angle_of_projection
 
 			if (get_ballistic_pitch_deflection(wpn_type, range, pitch_device_position->y - intercept_point->y, angle_of_projection, time_of_flight, FALSE, FALSE, parent_velocity))
 			{
-				#if DEBUG_MODULE
-				debug_log("static point range: %.0f, ToF: %.2f, position: (%.0f, %.0f, %.0f)", range, time_of_flight, new_intercept_point.x, new_intercept_point.z, new_intercept_point.y);
-				#endif
+
+
+
 			}
 			else
 				return FALSE;
@@ -1089,9 +1089,9 @@ int get_lead_and_ballistic_intercept_point_and_angle_of_projection
 		return get_angle_of_projection (pitch_device_position, intercept_point, parent_velocity, angle_of_projection);
 	}
 
-	#if DEBUG_MODULE
-	create_rotated_debug_3d_object (intercept_point, rad (0.0), rad (0.0), rad (0.0), OBJECT_3D_INTERCEPT_POINT_RED, 0.0, 0.5);
-	#endif
+
+
+
 
 	return TRUE;
 }
@@ -1657,9 +1657,9 @@ void update_entity_weapon_systems (entity *source)
 											float height_diff;
 											float range;
 
-											#if DEBUG_MODULE
-											debug_log("Aiming for point lock at %.0f, %.0f,  %.0f", tracking_point->x, tracking_point->y, tracking_point->z);
-											#endif
+
+
+
 
 											// if we don't already have it we need to get the viewpoint of the weapon
 											if (!located_heading_and_pitch_devices)
@@ -2845,14 +2845,14 @@ void suppress_ineffective_ship_weapons (entity *source, entity *target)
 	viewpoint
 		vp;
 
-	#if DEBUG_MODULE_EFFECTIVE_SHIP_WEAPONS
 
-	rgb_colour
-		heading_line_colour,
-		min_heading_line_colour,
-		max_heading_line_colour;
 
-	#endif
+
+
+
+
+
+
 
 	ASSERT (source);
 
@@ -3000,72 +3000,72 @@ void suppress_ineffective_ship_weapons (entity *source, entity *target)
 					{
 						num_effective_weapons++;
 
-						#if DEBUG_MODULE_EFFECTIVE_SHIP_WEAPONS
 
-						heading_line_colour = sys_col_green;
-						min_heading_line_colour = sys_col_yellow;
-						max_heading_line_colour = sys_col_amber;
 
-						#endif
+
+
+
+
+
 					}
 					else
 					{
 						package_status[package].damaged = TRUE;
 
-						#if DEBUG_MODULE_EFFECTIVE_SHIP_WEAPONS
 
-						heading_line_colour = sys_col_red;
-						min_heading_line_colour = sys_col_cyan;
-						max_heading_line_colour = sys_col_magenta;
 
-						#endif
+
+
+
+
+
 					}
 
-					#if DEBUG_MODULE_EFFECTIVE_SHIP_WEAPONS
 
-					if (source == get_external_view_entity ())
-					{
-						float
-							heading;
 
-						vec3d
-							p2;
 
-						matrix3x3
-							m;
 
-						heading = get_heading_from_attitude_matrix (vp.attitude);
 
-						p2 = vp.position;
 
-						p2.x += vp.zv.x * 2000.0;
-						p2.y += vp.zv.y * 2000.0;
-						p2.z += vp.zv.z * 2000.0;
 
-						create_debug_3d_line (&vp.position, &p2, heading_line_colour, 0.0);
 
-						get_arbitrary_rotation_matrix (m, &vp.yv, heading + weapon_config_database[config_type][package].min_heading_limit);
 
-						p2 = vp.position;
 
-						p2.x += m[0][2] * 2000.0;
-						p2.y += m[1][2] * 2000.0;
-						p2.z += m[2][2] * 2000.0;
 
-						create_debug_3d_line (&vp.position, &p2, min_heading_line_colour, 0.0);
 
-						get_arbitrary_rotation_matrix (m, &vp.yv, heading + weapon_config_database[config_type][package].max_heading_limit);
 
-						p2 = vp.position;
 
-						p2.x += m[0][2] * 2000.0;
-						p2.y += m[1][2] * 2000.0;
-						p2.z += m[2][2] * 2000.0;
 
-						create_debug_3d_line (&vp.position, &p2, max_heading_line_colour, 0.0);
-					}
 
-					#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 				}
 			}
 		}

@@ -611,15 +611,15 @@ void deinitialise_division_database (void)
 		{
 			if (division_id_database [side][type].valid)
 			{
-				#if DEBUG_MODULE
 
-				debug_filtered_log ("SIDE %s - %s : Used %d / %d",
-											entity_side_short_names [side], 
-											entity_sub_type_division_names [type],
-											division_id_database [side][type].next,
-											division_id_database [side][type].count);
 
-				#endif
+
+
+
+
+
+
+
 
 				debug_assert (division_id_database [side][type].count > 0);
 

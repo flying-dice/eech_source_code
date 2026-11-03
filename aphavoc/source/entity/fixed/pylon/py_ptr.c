@@ -81,11 +81,11 @@ static void set_local_ptr_value (entity *en, ptr_types type, void *ptr)
 	pylon
 		*raw;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_PTR_VALUE, en, type, ptr);
 
-	#endif
+
+
+
 
 	raw = (pylon *) get_local_entity_data (en);
 
@@ -151,11 +151,11 @@ static void *get_local_ptr_value (entity *en, ptr_types type)
 
 
 
-void overload_pylon_ptr_value_functions (void)
-{
-	fn_set_local_entity_ptr_value[ENTITY_TYPE_PYLON][PTR_TYPE_SUCC] = set_local_ptr_value;
-	fn_get_local_entity_ptr_value[ENTITY_TYPE_PYLON][PTR_TYPE_SUCC] = get_local_ptr_value;
-}
+
+
+
+
+
 
 
 

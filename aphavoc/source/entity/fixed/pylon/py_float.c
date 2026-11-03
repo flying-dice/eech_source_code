@@ -113,10 +113,10 @@ static float get_local_float_value (entity *en, float_types type)
 
 
 
-void overload_pylon_float_value_functions (void)
-{
-	fn_get_local_entity_float_value		[ENTITY_TYPE_PYLON][FLOAT_TYPE_AVOIDANCE_RADIUS]	= get_local_float_value;
-}
+
+
+
+
 
 
 

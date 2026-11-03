@@ -115,10 +115,10 @@ static vec3d *get_local_vec3d_ptr (entity *en, vec3d_types type)
 
 
 
-void overload_bridge_vec3d_functions (void)
-{
-	fn_get_local_entity_vec3d_ptr	[ENTITY_TYPE_BRIDGE][VEC3D_TYPE_POSITION]			= get_local_vec3d_ptr;
-}
+
+
+
+
 
 
 

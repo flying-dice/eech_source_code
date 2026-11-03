@@ -102,11 +102,11 @@ static entity *create_local (entity_types type, int index, char *pargs)
 
 	validate_local_create_entity_index (index);
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_CREATE, NULL, type, index);
 
-	#endif
+
+
+
 
 	en = get_free_entity (index);
 
@@ -261,18 +261,18 @@ static entity *create_local (entity_types type, int index, char *pargs)
 			ENTITY_ATTR_END
 		);
 
-		#if DEBUG_MODULE
-		{
-			int
-				sx,
-				sz;
 
-			get_x_sector (sx, raw->position.x);
-			get_z_sector (sz, raw->position.z);
 
-			debug_log ("KS_CREAT: Side %s creating keysite %s (type %d) index %d at %f, %f (%d, %d)", entity_side_short_names [raw->side], raw->keysite_name, raw->sub_type, get_local_entity_index (en), raw->position.x, raw->position.z, sx, sz);
-		}
-		#endif
+
+
+
+
+
+
+
+
+
+
 	}
 
 	return (en);
@@ -286,11 +286,11 @@ static entity *create_remote (entity_types type, int index, char *pargs)
 {
 	validate_remote_create_entity_index (index);
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_CREATE, NULL, type, index);
 
-	#endif
+
+
+
 
 	transmit_entity_comms_message (ENTITY_COMMS_CREATE, NULL, type, index, pargs);
 
@@ -349,14 +349,14 @@ static entity *create_client (entity_types type, int index, char *pargs)
 
 
 
-void overload_keysite_create_functions (void)
-{
-	fn_create_local_entity[ENTITY_TYPE_KEYSITE]		  								= create_local;
 
-	fn_create_client_server_entity[ENTITY_TYPE_KEYSITE][COMMS_MODEL_SERVER]	= create_server;
 
-	fn_create_client_server_entity[ENTITY_TYPE_KEYSITE][COMMS_MODEL_CLIENT]	= create_client;
-}
+
+
+
+
+
+
 
 
 

@@ -141,11 +141,11 @@ static void update_time_of_day_resync (entity *en)
 
 		raw->time_of_day_resync = 0.0;
 
-		#if DEBUG_MODULE
 
-		debug_log ("SS_UPDT : Weather at %f, %f - radius %f", raw->weather_position.x, raw->weather_position.z, raw->weather_radius);
 
-		#endif
+
+
+
 	}
 }
 
@@ -186,11 +186,11 @@ void update_lightning_effect (entity *en)
 
 			new_time = LIGHTNING_EFFECT_MINIMUM_TIMER + ((LIGHTNING_EFFECT_MAXIMUM_TIMER - LIGHTNING_EFFECT_MINIMUM_TIMER) * frand1 ());
 
-			#if DEBUG_MODULES
 
-			debug_log ("SS_UPDT : Set lightning timer %.2f", new_time);
 
-			#endif
+
+
+
 
 			set_client_server_entity_float_value (en, FLOAT_TYPE_LIGHTNING_TIMER, new_time);
 		}
@@ -946,12 +946,12 @@ static void update_client (entity *en)
 
 
 
-void overload_session_update_functions (void)
-{
-	fn_update_client_server_entity[ENTITY_TYPE_SESSION][COMMS_MODEL_SERVER]	= update_server;
 
-	fn_update_client_server_entity[ENTITY_TYPE_SESSION][COMMS_MODEL_CLIENT]	= update_client;
-}
+
+
+
+
+
 
 
 

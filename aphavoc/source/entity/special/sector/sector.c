@@ -665,21 +665,21 @@ int get_sector_task_type_count (entity *en, entity_sub_types task_type, entity_s
 		task_en = get_local_entity_child_succ (task_en, LIST_TYPE_SECTOR_TASK);
 	}
 
-	#if DEBUG_MODULE
-	{
-		sector
-			*raw;
-			
-		raw = (sector *) get_local_entity_data (en);
-		
-		debug_log ("SECTOR : %d tasks of type %s in sector %d, %d",
-						count,
-						task_database [task_type].full_name,
-						raw->x_sector,
-						raw->z_sector
-					 );
-	}
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	return count;
 }

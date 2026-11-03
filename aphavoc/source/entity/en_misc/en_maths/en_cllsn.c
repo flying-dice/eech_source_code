@@ -1430,15 +1430,15 @@ entity *get_line_of_sight_collision_entity
 							}
 							else
 							{
-								#if DEBUG_MODULE_ENABLE_COLLISION_BOX_MISS
 
-								if (draw_collision_boxes && (get_view_mode () == VIEW_MODE_EXTERNAL))
-								{
-									draw_min_max_box (&source_min_position, &source_max_position, COLLISION_BOX_MISS_COLOUR);
-									draw_min_max_box (&target_min_position, &target_max_position, COLLISION_BOX_MISS_COLOUR);
-								}
 
-								#endif
+
+
+
+
+
+
+
 							}
 						}
 						else
@@ -1494,15 +1494,15 @@ entity *get_line_of_sight_collision_entity
 							}
 							else
 							{
-								#if DEBUG_MODULE_ENABLE_COLLISION_BOX_MISS
 
-								if (draw_collision_boxes && (get_view_mode () == VIEW_MODE_EXTERNAL))
-								{
-									draw_min_max_box (&source_min_position, &source_max_position, COLLISION_BOX_MISS_COLOUR);
-									draw_min_max_box (&target_min_position, &target_max_position, COLLISION_BOX_MISS_COLOUR);
-								}
 
-								#endif
+
+
+
+
+
+
+
 							}
 						}
 					}
@@ -1613,15 +1613,15 @@ entity *get_line_of_sight_collision_entity
 												}
 												else
 												{
-													#if DEBUG_MODULE_ENABLE_COLLISION_BOX_MISS
 
-													if (draw_collision_boxes && (get_view_mode () == VIEW_MODE_EXTERNAL))
-													{
-														draw_min_max_box (&source_min_position, &source_max_position, COLLISION_BOX_MISS_COLOUR);
-														draw_min_max_box (&target_min_position, &target_max_position, COLLISION_BOX_MISS_COLOUR);
-													}
 
-													#endif
+
+
+
+
+
+
+
 												}
 
 												building = get_local_entity_child_succ (building, LIST_TYPE_CITY_BUILDING);
@@ -1629,15 +1629,15 @@ entity *get_line_of_sight_collision_entity
 										}
 										else
 										{
-											#if DEBUG_MODULE_ENABLE_COLLISION_BOX_MISS
 
-											if (draw_collision_boxes && (get_view_mode () == VIEW_MODE_EXTERNAL))
-											{
-												draw_min_max_box (&source_min_position, &source_max_position, COLLISION_BOX_MISS_COLOUR);
-												draw_min_max_box (&target_min_position, &target_max_position, COLLISION_BOX_MISS_COLOUR);
-											}
 
-											#endif
+
+
+
+
+
+
+
 										}
 									}
 								}
@@ -1701,12 +1701,12 @@ entity *get_line_of_sight_collision_entity
 								{
 									if (draw_collision_boxes && (get_view_mode () == VIEW_MODE_EXTERNAL))
 									{
-										#if DEBUG_MODULE_ENABLE_COLLISION_BOX_MISS
 
-										draw_min_max_box (&source_min_position, &source_max_position, COLLISION_BOX_MISS_COLOUR);
-										draw_min_max_box (&target_min_position, &target_max_position, COLLISION_BOX_MISS_COLOUR);
 
-										#endif
+
+
+
+
 									}
 								}
 							}

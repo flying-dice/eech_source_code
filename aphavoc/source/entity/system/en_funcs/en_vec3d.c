@@ -490,24 +490,24 @@ void pack_vec3d (entity *en, vec3d_types type, vec3d *v)
 			// check packed position remains in the same sector
 			//
 
-			#ifdef DEBUG
-			{
-				int
-					x_sec1,
-					z_sec1,
-					x_sec2,
-					z_sec2;
 
-				get_x_sector (x_sec1, v->x);
-				get_z_sector (z_sec1, v->z);
 
-				get_x_sector (x_sec2, unpack_float_4_fractional_bits (ix));
-				get_z_sector (z_sec2, unpack_float_4_fractional_bits (iz));
 
-				ASSERT (x_sec1 == x_sec2);
-				ASSERT (z_sec1 == z_sec2);
-			}
-			#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 			break;
 		}

@@ -432,12 +432,12 @@ file_tags get_file_tag (char *line)
       }
    }
 
-	#if DEBUG_MODULE
 
-	//ASSERT ((current_tag > FILE_TAG_INVALID) && (current_tag < FILE_TAG_UNKNOWN));
-	debug_log ("FILE_TAG: get_file_tag = %s", tag_strings [current_tag]);
 
-	#endif
+
+
+
+
 
    return current_tag;
 }
@@ -519,11 +519,11 @@ file_tags get_next_file_tag (FILE *file_ptr)
    // Compare tag with enums
    //
 
-	#if DEBUG_MODULE
 
-	debug_log ("FILE_TAG: read in %s", line);
 
-	#endif
+
+
+
 
    if (c != EOF)
    {
@@ -548,12 +548,12 @@ file_tags get_next_file_tag (FILE *file_ptr)
 		current_tag = FILE_TAG_END;
 	}
 
-	#if DEBUG_MODULE
 
-	//ASSERT ((current_tag > FILE_TAG_INVALID) && (current_tag < FILE_TAG_UNKNOWN));
-	debug_log ("FILE_TAG: get_next_file_tag = %s", tag_strings [current_tag]);
 
-	#endif
+
+
+
+
 
    return current_tag;
 }
@@ -655,12 +655,12 @@ file_tags check_next_file_tag (FILE *file_ptr)
       fseek (file_ptr, -(strlen (line) + 3), SEEK_CUR);
    }
 
-	#if DEBUG_MODULE
 
-	//ASSERT ((current_tag > FILE_TAG_INVALID) && (current_tag < FILE_TAG_UNKNOWN));
-	debug_log ("FILE_TAG: check_next_file_tag = %s", tag_strings [current_tag]);
 
-	#endif
+
+
+
+
 
    return current_tag;
 }
@@ -704,11 +704,11 @@ int get_next_file_int (FILE *file_ptr)
 
 	number = atoi (text);
 
-	#if DEBUG_MODULE
 
-	debug_log ("FILE_TAG: get_next_file_int = %d", number);
 
-	#endif
+
+
+
 
 	return number;
 }
@@ -791,11 +791,11 @@ float get_next_file_float (FILE *file_ptr)
 		}
 	}
 
-	#if DEBUG_MODULE
 
-	debug_log ("FILE_TAG: get_next_file_float = %f", (result * sign));
 
-	#endif
+
+
+
 
 	return (result * sign);
 }
@@ -819,11 +819,11 @@ int get_next_file_string (FILE *file_ptr, char *buffer, int size)
 	
 		*ptr = '\0';
 
-		#if DEBUG_MODULE
 
-		debug_log ("FILE_TAG: get_next_file_string = %s, strlen (%d)", buffer, strlen (buffer));
 
-		#endif
+
+
+
 	
 		return TRUE;
 	}
@@ -861,11 +861,11 @@ int get_next_file_word (FILE *file_ptr, char *buffer, int size)
 		buffer[count++] = character;
 	}
 
-	#if DEBUG_MODULE
 
-	debug_log ("FILE_TAG: get_next_file_string = %s, strlen (%d)", buffer, strlen (buffer));
 
-	#endif
+
+
+
 
 	return TRUE;
 }
@@ -933,11 +933,11 @@ int get_next_file_enum (FILE *file_ptr, char *enum_strings [], int last_enum)
 		debug_fatal ("FILE_TAG: unrecognised tag %s", buffer);
 	}
 
-	#if DEBUG_MODULE
 
-	debug_log ("FILE_TAG: get_next_file_enum = %s (index = %d)", enum_strings [tag], tag);
 
-	#endif
+
+
+
 
 	return tag;
 }
@@ -995,11 +995,11 @@ void register_file_tag_variable (char *variable_name, int *variable)
 
 	new_variable->next = file_tag_variables;
 
-	#if DEBUG_MODULE
 
-	debug_log ("FILE_TAG: registered new variable %s to value %d", variable_name, *variable);
 
-	#endif
+
+
+
 
 	file_tag_variables = new_variable;
 }
@@ -1051,11 +1051,11 @@ void unregister_file_tag_variable (char *variable_name)
 			file_tag_variables = variable->next;
 		}
 
-		#if DEBUG_MODULE
 
-		debug_log ("FILE_TAG: unregistered variable %s", variable_name);
 
-		#endif
+
+
+
 	
 		if (variable->name)
 		{
@@ -1085,11 +1085,11 @@ int *get_file_tag_variable (char *variable_name)
 		if (strcmpi (variable_name, variable->name) == 0)
 		{
 
-			#if DEBUG_MODULE
 
-			debug_log ("FILE_TAG: get_file_tag_variable %s", variable_name);
 
-			#endif
+
+
+
 
 			return variable->variable;
 		}
@@ -1097,11 +1097,11 @@ int *get_file_tag_variable (char *variable_name)
 		variable = variable->next;
 	}
 
-	#if DEBUG_MODULE
 
-	debug_log ("FILE_TAG: get_file_tag_variable %s, not found", variable_name);
 
-	#endif
+
+
+
 
 	return NULL;
 }
@@ -1117,11 +1117,11 @@ int if_file_tag_variable (char *variable_name, char *operator, int value)
 		return_value,
 		*variable;
 
-	#if DEBUG_MODULE
 
-	debug_log ("FILE_TAG: IF %s %s %d", variable_name, operator, value);
 
-	#endif
+
+
+
 
 	return_value = FALSE;
 
@@ -1197,11 +1197,11 @@ int if_file_tag_operator (int value1, char *operator, int value2)
 		return_value;
 		//*variable;
 
-	#if DEBUG_MODULE
 
-	debug_log ("FILE_TAG: IF %d %s %d", value1, *operator, value2);
 
-	#endif
+
+
+
 
 	return_value = FALSE;
 
@@ -1273,11 +1273,11 @@ int set_file_tag_variable (char *variable_name, int value)
 	if (variable)
 	{
 
-		#if DEBUG_MODULE
 
-		debug_log ("FILE_TAG: set_file_tag_variable %s = %d", variable_name, value);
 
-		#endif
+
+
+
 
 		*variable = value;
 
@@ -1305,11 +1305,11 @@ int get_variable_id (char *variable_name)
 		if (strcmpi (variable_name, variable->name) == 0)
 		{
 
-			#if DEBUG_MODULE
 
-			debug_log ("FILE_TAG: get_variable_id %s = %d", variable_name, variable->id);
 
-			#endif
+
+
+
 
 			return variable->id;
 		}
@@ -1338,11 +1338,11 @@ char *get_variable_name (int id)
 		if (variable->id == id)
 		{
 
-			#if DEBUG_MODULE
 
-			debug_log ("FILE_TAG: get_variable_name id %d = %s", id, variable->name);
 
-			#endif
+
+
+
 
 			return variable->name;
 		}
@@ -1360,11 +1360,11 @@ char *get_variable_name (int id)
 int get_operator_id (char *name)
 {
 
-	#if DEBUG_MODULE
 
-	debug_log ("FILE_TAG: get_operator_id %c", name [0]);
 
-	#endif
+
+
+
 
 	switch (*name)
 	{
@@ -1397,11 +1397,11 @@ int get_operator_id (char *name)
 char get_operator_name (int id)
 {
 
-	#if DEBUG_MODULE
 
-	debug_log ("FILE_TAG: get_operator_name %d", id);
 
-	#endif
+
+
+
 
 	switch (id)
 	{

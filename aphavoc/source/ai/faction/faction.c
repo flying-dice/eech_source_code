@@ -123,11 +123,11 @@ void create_campaign (session_list_data_type *session)
 
    ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-   #if DEBUG_MODULE
 
-   debug_log ("FACTION: initialise faction");
 
-   #endif
+
+
+
 
 	initialise_division_database ();
 
@@ -164,11 +164,11 @@ void create_campaign (session_list_data_type *session)
 void destroy_campaign (void)
 {
 
-   #if DEBUG_MODULE
 
-   debug_log ("FACTION: deinitialise faction");
 
-   #endif
+
+
+
 
 	if (campaign_population_filename)
 	{
@@ -237,11 +237,11 @@ void create_faction (entity_sides side, int colour)
    static entity
       *this_force;
 
-   #if DEBUG_MODULE
 
-   debug_log ("FACTION: create faction for side %d", side);
 
-   #endif
+
+
+
 
    debug_assert (get_comms_model () == COMMS_MODEL_SERVER);
 
@@ -298,11 +298,11 @@ entity *create_landed_faction_members (entity *keysite, entity_sub_types member_
 	entity_sides
 		side;
 
-   #if DEBUG_MODULE
 
-   debug_log ("FACTION: create landed members type %d, sub type %d, number %d", member_type, group_type, number);
 
-   #endif
+
+
+
 
 	ASSERT (keysite);
 
@@ -463,11 +463,11 @@ entity *create_landed_faction_members (entity *keysite, entity_sub_types member_
 
 				set_local_entity_vec3d (member, VEC3D_TYPE_POSITION, &pos);
 
-				#if DEBUG_MODULE
 
-				debug_log ("FACTION: placing member %d (%s) at %f, %f, %f, formation_pos %d at keysite %s", member, get_local_entity_type_name (member), pos.x, pos.y, pos.z, formation_position, get_local_entity_string (keysite, STRING_TYPE_KEYSITE_NAME));
 
-				#endif
+
+
+
 
 				//
 				// Lock landing site for member and add to dependent list
@@ -735,11 +735,11 @@ entity *create_landed_faction_group (entity *keysite, entity_sub_types group_typ
 
 			set_local_entity_vec3d (member, VEC3D_TYPE_POSITION, &pos);
 
-			#if DEBUG_MODULE
 
-			debug_log ("FACTION: placing member %d (%s) at %f, %f, %f, formation_pos %d at keysite %s", get_local_entity_index (member), get_local_entity_type_name (member), pos.x, pos.y, pos.z, formation_position, get_local_entity_string (keysite, STRING_TYPE_KEYSITE_NAME));
 
-			#endif
+
+
+
 
 			//
 			// Lock landing site for member and add to dependent list
@@ -758,14 +758,14 @@ entity *create_landed_faction_group (entity *keysite, entity_sub_types group_typ
 	}
 	else
 	{
-		#ifdef DEBUG
 
-		debug_fatal ("FACTION: No landing entity for group type %s at %s (%d)",
-								group_database [group_type].full_name,
-								get_local_entity_string (keysite, STRING_TYPE_KEYSITE_NAME),
-								get_local_entity_index (keysite));
 
-		#endif
+
+
+
+
+
+
 	}
 
 	return NULL;
@@ -820,11 +820,11 @@ entity *create_landing_faction_members (entity *keysite, entity_sub_types member
 
 	ASSERT (get_game_status () == GAME_STATUS_INITIALISED);
 
-   #if DEBUG_MODULE
 
-   debug_log ("FACTION: create landing members type %d, sub type %d, number %d, at %s", member_type, group_type, number, get_local_entity_string (keysite, STRING_TYPE_KEYSITE_NAME));
 
-   #endif
+
+
+
 
 	force = get_local_entity_parent (keysite, LIST_TYPE_KEYSITE_FORCE);
 
@@ -884,11 +884,11 @@ entity *create_landing_faction_members (entity *keysite, entity_sub_types member
 				if (formation_position >= get_local_entity_int_value (landing_en, INT_TYPE_TOTAL_LANDING_SITES))
 				{
 
-					#if DEBUG_MODULE
 
-					debug_log ("FACTION: creation failed... can't lock landing/landed site");
 
-					#endif
+
+
+
 
 					return NULL;
 				}
@@ -939,11 +939,11 @@ entity *create_landing_faction_members (entity *keysite, entity_sub_types member
 					}
 				}
 
-				#if DEBUG_MODULE
 
-				debug_log ("FACTION: placing member type %d side %s formation pos %d at %f, %f, %f", member_type, entity_side_names [get_local_entity_int_value (keysite, INT_TYPE_SIDE)], formation_position, start_position->x, start_position->y, start_position->z);
 
-				#endif
+
+
+
 
 				member = create_mobile_member
 				(
@@ -1042,11 +1042,11 @@ entity *create_landing_faction_members (entity *keysite, entity_sub_types member
 		else
 		{
 
-			#if DEBUG_MODULE
 
-			debug_log ("FACTION: cant regen. Free %d, reserved %d", free_sites, get_local_entity_int_value (landing_en, INT_TYPE_RESERVED_LANDING_SITES));
 
-			#endif
+
+
+
 		}
 	}
 
@@ -1297,11 +1297,11 @@ entity *create_faction_members (entity *keysite, entity_sub_types group_type, fo
 
 			set_local_entity_vec3d (member, VEC3D_TYPE_POSITION, &pos);
 
-			#if DEBUG_MODULE
 
-			debug_log ("FACTION: create members type %d, sub type %d, number %d at %f, %f, %f, in formation %s", member_type, group_type, number, position->x, position->y, position->z, get_formation_name (formation));
 
-			#endif
+
+
+
 		}
 
 		//
@@ -1406,11 +1406,11 @@ void place_frontline_forces (entity *force, int force_size)
 			if (frontline_forces_data [road_nodes [node].links [node2].node].side == enemy_side)
 			{
 
-				#if DEBUG_MODULE
 
-				debug_log ("FACTION: marking node %d for PRIMARY FORCE PLACEMENT side %s (boundary node)", node, entity_side_names [side]);
 
-				#endif
+
+
+
 
 				frontline_forces_data [node].force_placement_type = FRONTLINE_FORCE_PRIMARY;
 
@@ -1449,11 +1449,11 @@ void place_frontline_forces (entity *force, int force_size)
 					(frontline_forces_data [secondary_node].force_placement_type == FRONTLINE_FORCE_NONE))
 				{
 
-					#if DEBUG_MODULE
 
-					debug_log ("FACTION: marking node %d for SECONDARY FORCE PLACEMENT side %s (supporting %d)", secondary_node, entity_side_names [side], node);
 
-					#endif
+
+
+
 
 					frontline_forces_data [secondary_node].force_placement_type = FRONTLINE_FORCE_SECONDARY;
 
@@ -1493,11 +1493,11 @@ void place_frontline_forces (entity *force, int force_size)
 					(frontline_forces_data [artillery_node].force_placement_type == FRONTLINE_FORCE_NONE))
 				{
 
-					#if DEBUG_MODULE
 
-					debug_log ("FACTION: marking node %d for ARTILLERY FORCE PLACEMENT side %s (supporting %d)", artillery_node, entity_side_names [side], node);
 
-					#endif
+
+
+
 
 					frontline_forces_data [artillery_node].force_placement_type = FRONTLINE_FORCE_ARTILLERY;
 
@@ -1530,11 +1530,11 @@ void place_frontline_forces (entity *force, int force_size)
 
 				if ((point_inside_adjusted_map_area (pos)) && (check_point_inside_population_area (pos)))
 				{
-					#if DEBUG_MODULE
 
-					debug_log ("FACTION: placing PRIMARY forces at node %d", node);
 
-					#endif
+
+
+
 
 //					number = rand16 () % max (1, (int) (road_nodes [node].safe_radius / 3.0));
 					number = (int)((road_nodes [node].safe_radius / 4.0) + (sfrand1 () * 2.0));
@@ -1569,11 +1569,11 @@ void place_frontline_forces (entity *force, int force_size)
 
 				if ((point_inside_adjusted_map_area (pos)) && (check_point_inside_population_area (pos)))
 				{
-					#if DEBUG_MODULE
 
-					debug_log ("FACTION: placing SECONDARY forces at node %d", node);
 
-					#endif
+
+
+
 
 //					number = rand16 () % max (1, (int) (road_nodes [node].safe_radius / 3.0));
 					number = (int)((road_nodes [node].safe_radius / 4.0) + (sfrand1 () * 2.0));
@@ -1615,11 +1615,11 @@ void place_frontline_forces (entity *force, int force_size)
 
 				if ((point_inside_adjusted_map_area (pos)) && (check_point_inside_population_area (pos)))
 				{
-					#if DEBUG_MODULE
 
-					debug_log ("FACTION: placing ARTILLERY forces at node %d", node);
 
-					#endif
+
+
+
 
 					if (mlrs_flag)
 					{

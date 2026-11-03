@@ -80,31 +80,31 @@
 
 
 
-#if DEBUG_MODULE >= 3
-
-static int response_to_link_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE >= 3
 
-static int response_to_unlink_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	return (TRUE);
-}
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -115,11 +115,11 @@ static int response_to_link_parent (entity_messages message, entity *receiver, e
 	list_types
 		type;
 
-	#if DEBUG_MODULE >= 3
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	type = va_arg (pargs, list_types);
 
@@ -143,11 +143,11 @@ static int response_to_unlink_parent (entity_messages message, entity *receiver,
 	list_types
 		type;
 
-	#if DEBUG_MODULE >= 3
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	type = va_arg (pargs, list_types);
 
@@ -209,13 +209,13 @@ static int response_to_set_entity_position (entity_messages message, entity *rec
 		wp_position.y = position->y + delta_position.y;
 		wp_position.z = position->z + (cos_heading * delta_position.z) - (sin_heading * delta_position.x);
 
-		#if DEBUG_MODULE
 
-		debug_log ("WP_MSGS: setting position, rel pos %f, %f, %f, heading %f, (delta pos %f, %f, %f, old heading %f)",
-						position->x, position->y, position->z, deg (heading),
-						delta_position.x, delta_position.y, delta_position.z, deg (raw->heading));
 
-		#endif
+
+
+
+
+
 
 		set_local_entity_vec3d (receiver, VEC3D_TYPE_POSITION, &wp_position);
 	
@@ -240,11 +240,11 @@ static int response_to_waypoint_action (entity_messages message, entity *receive
 	entity
 		*member;
 
-	#if DEBUG_MODULE >= 3
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
@@ -298,11 +298,11 @@ static int response_to_waypoint_reached (entity_messages message, entity *receiv
 		*group,
 		*member;
 
-	#if DEBUG_MODULE >= 3
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
@@ -448,26 +448,26 @@ static int response_to_waypoint_reached (entity_messages message, entity *receiv
 
 
 
-void overload_waypoint_message_responses (void)
-{
-	#if DEBUG_MODULE >= 2
 
-	message_responses[ENTITY_TYPE_WAYPOINT][ENTITY_MESSAGE_LINK_CHILD]				= response_to_link_child;
 
-	message_responses[ENTITY_TYPE_WAYPOINT][ENTITY_MESSAGE_UNLINK_CHILD]				= response_to_unlink_child;
 
-	#endif
 
-	message_responses[ENTITY_TYPE_WAYPOINT][ENTITY_MESSAGE_LINK_PARENT] 				= response_to_link_parent;
 
-	message_responses[ENTITY_TYPE_WAYPOINT][ENTITY_MESSAGE_UNLINK_PARENT]			= response_to_unlink_parent;
 
-	message_responses[ENTITY_TYPE_WAYPOINT][ENTITY_MESSAGE_SET_ENTITY_POSITION]	= response_to_set_entity_position;
 
-	message_responses[ENTITY_TYPE_WAYPOINT][ENTITY_MESSAGE_WAYPOINT_ACTION]			= response_to_waypoint_action;
 
-	message_responses[ENTITY_TYPE_WAYPOINT][ENTITY_MESSAGE_WAYPOINT_REACHED]		= response_to_waypoint_reached;
-}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

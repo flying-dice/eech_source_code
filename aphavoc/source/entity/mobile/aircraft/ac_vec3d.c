@@ -85,11 +85,11 @@ static void set_local_raw_vec3d (entity *en, vec3d_types type, vec3d *v)
 
    ASSERT (v);
 
-   #if DEBUG_MODULE
 
-   debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_VEC3D, en, type, v);
 
-   #endif
+
+
+
 
    raw = (aircraft *) get_local_entity_data (en);
 
@@ -125,11 +125,11 @@ static void set_local_vec3d (entity *en, vec3d_types type, vec3d *v)
 
    ASSERT (v);
 
-   #if DEBUG_MODULE
 
-   debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_VEC3D, en, type, v);
 
-   #endif
+
+
+
 
    raw = (aircraft *) get_local_entity_data (en);
 
@@ -172,11 +172,11 @@ static void set_local_vec3d (entity *en, vec3d_types type, vec3d *v)
 	
 				while (dependent)
 				{
-					#if DEBUG_MODULE_AIRCRAFT_POSITION_MESSAGE
-	
-					debug_log ("AIRCRAFT VEC3D: sending set entity position %f, %f, %f", raw->mob.position.x, raw->mob.position.y, raw->mob.position.z);
-	
-					#endif
+
+
+
+
+
 	
 					notify_local_entity (ENTITY_MESSAGE_SET_ENTITY_POSITION, dependent, en, v, (double) heading, (double) raw->mob.velocity);
 	
@@ -225,11 +225,11 @@ static void set_local_vec3d (entity *en, vec3d_types type, vec3d *v)
 
 			while (special_effect)
 			{
-				#if DEBUG_MODULE_AIRCRAFT_POSITION_MESSAGE
 
-				debug_log ("AIRCRAFT VEC3D: sending set entity position %f, %f, %f", raw->mob.position.x, raw->mob.position.y, raw->mob.position.z);
 
-				#endif
+
+
+
 
 				notify_local_entity (ENTITY_MESSAGE_SET_ENTITY_POSITION, special_effect, en, &raw->mob.position, (double) heading, (double) raw->mob.velocity);
 
@@ -277,57 +277,57 @@ static void set_local_vec3d (entity *en, vec3d_types type, vec3d *v)
 
 
 
-static void set_remote_vec3d (entity *en, vec3d_types type, vec3d *v)
-{
-   ASSERT (v);
-
-   #if DEBUG_MODULE
-
-   debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_VEC3D, en, type, v);
-
-   #endif
-
-   transmit_entity_comms_message (ENTITY_COMMS_VEC3D, en, type, v);
-}
 
 
 
 
 
-static void set_server_vec3d (entity *en, vec3d_types type, vec3d *v)
-{
-   ASSERT (v);
-
-   validate_client_server_local_fn ();
-
-   set_local_vec3d (en, type, v);
-
-   validate_client_server_remote_fn ();
-
-   set_remote_vec3d (en, type, v);
-}
 
 
 
 
 
-static void set_client_vec3d (entity *en, vec3d_types type, vec3d *v)
-{
-   ASSERT (v);
 
-   if (get_comms_data_flow () == COMMS_DATA_FLOW_TX)
-   {
-      validate_client_server_remote_fn ();
 
-      set_remote_vec3d (en, type, v);
-   }
-   else
-   {
-      validate_client_server_local_fn ();
 
-      set_local_vec3d (en, type, v);
-   }
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -468,37 +468,37 @@ static vec3d *get_local_vec3d_ptr (entity *en, vec3d_types type)
 
 
 
-void overload_aircraft_vec3d_functions (entity_types type)
-{
-	fn_set_local_entity_raw_vec3d			[type][VEC3D_TYPE_MOTION_VECTOR]								= set_local_vec3d;
-	fn_set_local_entity_vec3d				[type][VEC3D_TYPE_MOTION_VECTOR]								= set_local_vec3d;
-	fn_set_client_server_entity_vec3d	[type][VEC3D_TYPE_MOTION_VECTOR][COMMS_MODEL_SERVER]	= set_server_vec3d;
-	fn_set_client_server_entity_vec3d	[type][VEC3D_TYPE_MOTION_VECTOR][COMMS_MODEL_CLIENT]	= set_client_vec3d;
-	fn_get_local_entity_vec3d				[type][VEC3D_TYPE_MOTION_VECTOR]								= get_local_vec3d;
-	fn_get_local_entity_vec3d_ptr			[type][VEC3D_TYPE_MOTION_VECTOR]								= get_local_vec3d_ptr;
 
-	fn_set_local_entity_raw_vec3d			[type][VEC3D_TYPE_POSITION]									= set_local_raw_vec3d;
-	fn_set_local_entity_vec3d				[type][VEC3D_TYPE_POSITION]									= set_local_vec3d;
-	fn_set_client_server_entity_vec3d	[type][VEC3D_TYPE_POSITION][COMMS_MODEL_SERVER]			= set_server_vec3d;
-	fn_set_client_server_entity_vec3d	[type][VEC3D_TYPE_POSITION][COMMS_MODEL_CLIENT]			= set_client_vec3d;
-	fn_get_local_entity_vec3d				[type][VEC3D_TYPE_POSITION]							 		= get_local_vec3d;
-	fn_get_local_entity_vec3d_ptr			[type][VEC3D_TYPE_POSITION]									= get_local_vec3d_ptr;
 
-	fn_set_local_entity_raw_vec3d			[type][VEC3D_TYPE_WEAPON_TO_TARGET_VECTOR]  				= set_local_vec3d;
-	fn_set_local_entity_vec3d				[type][VEC3D_TYPE_WEAPON_TO_TARGET_VECTOR]  				= set_local_vec3d;
-	fn_get_local_entity_vec3d				[type][VEC3D_TYPE_WEAPON_TO_TARGET_VECTOR]  				= get_local_vec3d;
-	fn_get_local_entity_vec3d_ptr			[type][VEC3D_TYPE_WEAPON_TO_TARGET_VECTOR]  				= get_local_vec3d_ptr;
 
-	fn_set_local_entity_raw_vec3d			[type][VEC3D_TYPE_WEAPON_TO_INTERCEPT_POINT_VECTOR]  				= set_local_vec3d;
-	fn_set_local_entity_vec3d				[type][VEC3D_TYPE_WEAPON_TO_INTERCEPT_POINT_VECTOR]  				= set_local_vec3d;
-	fn_get_local_entity_vec3d				[type][VEC3D_TYPE_WEAPON_TO_INTERCEPT_POINT_VECTOR]  				= get_local_vec3d;
-	fn_get_local_entity_vec3d_ptr			[type][VEC3D_TYPE_WEAPON_TO_INTERCEPT_POINT_VECTOR]  				= get_local_vec3d_ptr;
 
-	fn_set_local_entity_raw_vec3d			[type][VEC3D_TYPE_WEAPON_VECTOR]								= set_local_vec3d;
-	fn_set_local_entity_vec3d				[type][VEC3D_TYPE_WEAPON_VECTOR]								= set_local_vec3d;
-	fn_get_local_entity_vec3d				[type][VEC3D_TYPE_WEAPON_VECTOR]								= get_local_vec3d;
-	fn_get_local_entity_vec3d_ptr			[type][VEC3D_TYPE_WEAPON_VECTOR]								= get_local_vec3d_ptr;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

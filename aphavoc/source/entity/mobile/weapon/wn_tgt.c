@@ -107,15 +107,15 @@ entity_sub_types get_best_weapon_for_target (entity *launcher, entity *target, u
 
 	ASSERT (criteria <= BEST_WEAPON_CRITERIA_ALL);
 
-#if DEBUG_MODULE
 
-	if (launcher == get_external_view_entity ())
-		debug_flag = DEBUG_MODULE;
-	if (get_gunship_entity())
-		if (launcher == (get_local_entity_parent (get_gunship_entity(), LIST_TYPE_TARGET)))
-			debug_flag = DEBUG_MODULE;
 
-#endif
+
+
+
+
+
+
+
 
 	// get list of weapons available on the launcher
 

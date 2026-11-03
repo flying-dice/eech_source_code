@@ -129,14 +129,14 @@ entity *create_client_server_guide_entity (entity *task_en, entity *first_waypoi
 
 	ASSERT (task_en);
 
-	#ifdef DEBUG
-	
-	if (valid_members == 0)
-	{
-		ASSERT (get_local_entity_int_value (task_en, INT_TYPE_ENTITY_SUB_TYPE) == ENTITY_SUB_TYPE_TASK_ENGAGE);
-	}
 
-	#endif
+
+
+
+
+
+
+
 
 	if (first_waypoint)
 	{
@@ -301,12 +301,12 @@ int check_guide_reached_waypoint (entity *en)
 			{
 				if (!notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, member, en))
 				{
-#if DEBUG_MODULE
-					if (member == get_external_view_entity ())
-					{
-						debug_log("GUIDE: check member reached");
-					}
-#endif
+
+
+
+
+
+
 					return FALSE;
 				}
 			}
@@ -322,12 +322,12 @@ int check_guide_reached_waypoint (entity *en)
 
 		if (!notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, leader, en))
 		{
-#if DEBUG_MODULE
-			if (leader == get_external_view_entity ())
-			{
-				debug_log("GUIDE: check leader reached");
-			}
-#endif
+
+
+
+
+
+
 			return FALSE;
 		}
 	}
@@ -382,12 +382,12 @@ int check_guide_waypoint_action_reached (entity *en)
 	
 	if (range > get_local_entity_waypoint_database_action_radius_value (wp, leader))
 	{
-#if DEBUG_MODULE
-		if (leader == get_external_view_entity ())
-		{
-			debug_log("GUIDE: check task leader reached action radius");
-		}
-#endif
+
+
+
+
+
+
 		return FALSE;
 	}
 		
@@ -770,19 +770,19 @@ void attach_group_member_to_guide_entity (entity *member, entity *guide)
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#ifdef DEBUG
-	{
-		int
-			valid_members,
-			member_number;
-			
-		valid_members = get_local_entity_int_value (guide, INT_TYPE_VALID_GUIDE_MEMBERS);
 
-		member_number = (1 << get_local_entity_int_value (member, INT_TYPE_GROUP_MEMBER_NUMBER));
 
-		ASSERT (valid_members & member_number);
-	}
-	#endif
+
+
+
+
+
+
+
+
+
+
+
 
 	//
 	// follower link
@@ -905,16 +905,16 @@ void delete_group_member_from_guide_entity (entity *member, entity *guide)
 
 		ASSERT (task);
 		
-		#if DEBUG_MODULE
 
-		debug_log ("GUIDE: Deleting %s (%d) from guide (%d) valid members zero - task %s (%d)",
-							get_local_entity_string (member, STRING_TYPE_FULL_NAME),
-							get_local_entity_index (member),
-							get_local_entity_index (guide),
-							get_local_entity_string (task, STRING_TYPE_FULL_NAME),
-							get_local_entity_index (task));
 
-		#endif
+
+
+
+
+
+
+
+
 
 		notify_local_entity (ENTITY_MESSAGE_TASK_TERMINATED, task, NULL, TASK_TERMINATED_GROUP_DESTROYED);
 	}
@@ -968,63 +968,63 @@ void delete_group_member_from_engage_guide (entity *member, entity *guide, int e
 
 
 
-void set_client_server_guide_entity_new_position (entity *en, vec3d *position, entity *position_entity)
-{
-	entity_sub_types
-		sub_type;
 
-	guide_position_types
-		position_type;
 
-	ASSERT (en);
 
-	ASSERT (position);
 
-	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	sub_type = get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE);
-			
-	//
-	// set new position type
-	//
-	
-	position_type = (guide_position_types) guide_database [sub_type].position_type;
 
-	set_client_server_entity_int_value (en, INT_TYPE_GUIDE_POSITION_TYPE, position_type);
 
-	//
-	// set new position
-	//
-		
-	if (guide_position_type_virtual [position_type])
-	{
-		//
-		// Virtual Position
-		//
-		
-		ASSERT (position_entity);
 
-		set_client_server_entity_vec3d (en, VEC3D_TYPE_RELATIVE_POSITION, position);
 
-		set_local_entity_ptr_value (en, PTR_TYPE_POSITION_ENTITY, position_entity);
 
-		transmit_entity_comms_message (ENTITY_COMMS_SET_GUIDE_POSITION_ENTITY, en, position_entity);
-	}
-	else
-	{
-		//
-		// Absolute Position
-		//
-		
-		ASSERT (!position_entity);
 
-		set_client_server_entity_vec3d (en, VEC3D_TYPE_POSITION, position);
 
-		set_local_entity_ptr_value (en, PTR_TYPE_POSITION_ENTITY, NULL);
 
-		transmit_entity_comms_message (ENTITY_COMMS_SET_GUIDE_POSITION_ENTITY, en, NULL);
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1404,28 +1404,28 @@ float get_guide_criteria_value (entity *en, guide_criteria_types type)
 
 
 
-void set_client_server_guide_criteria_valid (entity *en, guide_criteria_types type, int valid, float value)
-{
-	guide
-		*raw;
 
-	ASSERT (en);
 
-	ASSERT (type < NUM_GUIDE_CRITERIA_TYPES);
 
-	raw = (guide *) get_local_entity_data (en);
 
-	if ((raw->criteria [type].valid != valid) || (raw->criteria [type].value != value))
-	{
-		set_local_guide_criteria_valid (en, type, valid, value);
 
-		//
-		// transmit comms message
-		//
 
-		transmit_entity_comms_message (ENTITY_COMMS_SET_GUIDE_CRITERIA, en, type, valid, value);
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

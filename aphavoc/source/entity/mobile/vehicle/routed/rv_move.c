@@ -806,49 +806,49 @@ static void routed_vehicle_movement_get_waypoint_position (entity *en, vec3d *wp
 			sqr_range = ((wp_pos->x - raw->vh.mob.position.x) * (wp_pos->x - raw->vh.mob.position.x)) +
 							((wp_pos->z - raw->vh.mob.position.z) * (wp_pos->z - raw->vh.mob.position.z));
 
-			#if DEBUG_MODULE
 
-			if (get_external_view_entity () == en)
-			{
 
-				debug_log ("RV_MOVE: %s, %d at [%f, %f, %f] following sub_route %d, at [%f, %f, %f] sqr_range %f",
-								get_local_entity_string (en, STRING_TYPE_FULL_NAME),
-								get_local_entity_index (en),
-								raw->vh.mob.position.x,
-								raw->vh.mob.position.y,
-								raw->vh.mob.position.z,
-								raw->waypoint_next_index,
-								wp_pos->x, wp_pos->y, wp_pos->z,
-								sqr_range);
-			}
 
-			#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 			if (sqr_range < 6.0)
 			{
 
 				raw->sub_waypoint_count --;
 
-				#if DEBUG_MODULE
 
-				if (get_external_view_entity () == en)
-				{
 
-					debug_log ("RV_MOVE: reached sub_route waypoint");
-				}
 
-				#endif
+
+
+
+
+
+
 
 				if ((get_comms_model () == COMMS_MODEL_SERVER) && (raw->sub_waypoint_count & SUB_ROUTE_WAYPOINT_RESYNC_FREQUENCY))
 				{
 
 					transmit_entity_comms_message (ENTITY_COMMS_UPDATE, en);
 
-					#if DEBUG_MODULE
 
-					debug_log ("RV_MOVE: client server update position for en %s %d", get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_index (en));
 
-					#endif
+
+
+
 				}
 
 				if (raw->sub_waypoint_count > 0)
@@ -880,15 +880,15 @@ static void routed_vehicle_movement_get_waypoint_position (entity *en, vec3d *wp
 			vec3d
 				offset;
 
-			#if DEBUG_MODULE
 
-			debug_log ("RV_MOVE: warning... routed vehicle %s (%d) is moving between %d and %d and has no sub_route setup",
-							get_local_entity_string (en, STRING_TYPE_FULL_NAME),
-							get_local_entity_index (en),
-							get_local_entity_int_value (en, INT_TYPE_WAYPOINT_THIS_INDEX),
-							get_local_entity_int_value (en, INT_TYPE_WAYPOINT_NEXT_INDEX));
 
-			#endif
+
+
+
+
+
+
+
 
 			get_local_entity_vec3d (guide, VEC3D_TYPE_GUIDE_POSITION, wp_pos);
 

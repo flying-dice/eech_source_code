@@ -128,12 +128,12 @@ void attack_guide_move_six_reached (entity *en)
 	target = get_local_entity_parent (task, LIST_TYPE_TASK_DEPENDENT);
 	ASSERT(target);
 
-	#if DEBUG_MODULE
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_log("AA_ATTCK: attack_guide_move_six_reached");
-		}
-	#endif
+
+
+
+
+
+
 
 	if (get_local_entity_int_value (aggressor, INT_TYPE_WEAPONS_HOLD))
 	{
@@ -175,12 +175,12 @@ void attack_guide_move_circle_reached (entity *en)
 	target = get_local_entity_parent (task, LIST_TYPE_TASK_DEPENDENT);
 	ASSERT(target);
 
-	#if DEBUG_MODULE
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_log("AA_ATTCK: attack_guide_move_circle_reached");
-		}
-	#endif
+
+
+
+
+
+
 
 	if (get_local_entity_int_value (aggressor, INT_TYPE_WEAPONS_HOLD))
 	{
@@ -239,34 +239,34 @@ void attack_guide_fire_intercept_reached (entity *en)
 	
 	if (get_local_entity_int_value (aggressor, INT_TYPE_WEAPONS_HOLD))
 	{
-		#if DEBUG_MODULE
-			if (aggressor == get_external_view_entity ())
-			{
-				debug_log ("AA_ATTCK: Aborting attack - weapons hold (fire intercept)");
-			}
-		#endif
+
+
+
+
+
+
 
 		delete_group_member_from_engage_guide (aggressor, en, FALSE);
 
 		return;
 	}
 
-	#if DEBUG_MODULE
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_log("AA_ATTCK: attack_guide_fire_intercept_reached");
-		}
-	#endif
+
+
+
+
+
+
 
 	if (check_guided_missile_type_alive(aggressor))
 	{
-		#if DEBUG_MODULE
-			if (aggressor == get_external_view_entity ())
-			{
-				debug_log("AA_ATTCK: abort attack_guide_fire_intercept, another missile is still alive");
 
-			}
-		#endif
+
+
+
+
+
+
 
 		if (get_local_entity_type (aggressor) == ENTITY_TYPE_FIXED_WING)
 			set_attack_guide_move_six_position (en);
@@ -280,13 +280,13 @@ void attack_guide_fire_intercept_reached (entity *en)
 
 	if (get_2d_range (aggressor_pos, target_pos) < (0.5 + 0.5 * frand1()) * (get_local_entity_type (aggressor) == ENTITY_TYPE_FIXED_WING ? 300 : 200)) // too close, move back
 	{
-		#if DEBUG_MODULE
-			if (aggressor == get_external_view_entity ())
-			{
-				debug_log("AA_ATTCK: abort attack_guide_fire_intercept, too close to target");
 
-			}
-		#endif
+
+
+
+
+
+
 
 		if (get_local_entity_type (aggressor) == ENTITY_TYPE_FIXED_WING)
 			set_attack_guide_move_six_position (en);
@@ -485,12 +485,12 @@ void set_attack_guide_move_circle_position (entity *en)
 
 	position.y = max(get_3d_terrain_elevation (position.x, position.z) + get_local_entity_float_value (aggressor, FLOAT_TYPE_ATTACK_ALTITUDE), target_pos->y);
 	
-	#if DEBUG_MODULE
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_log("AA_ATTCK: set circle position");
-		}
-	#endif
+
+
+
+
+
+
 
 	set_client_server_guide_entity_new_position (en, &position, NULL);
 

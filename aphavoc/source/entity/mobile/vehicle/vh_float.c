@@ -91,11 +91,11 @@ static void set_local_float_value (entity *en, float_types type, float value)
 	vehicle
 		*raw;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_FLOAT_VALUE, en, type, value);
 
-	#endif
+
+
+
 
 	raw = (vehicle *) get_local_entity_data (en);
 
@@ -208,35 +208,16 @@ static void set_local_float_value (entity *en, float_types type, float value)
 
 #if SET_CLIENT_SERVER_REQUIRED
 
-static void set_remote_float_value (entity *en, float_types type, float value)
-{
-	#if DEBUG_MODULE
-
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_FLOAT_VALUE, en, type, value);
-
-	#endif
-
-	transmit_entity_comms_message (ENTITY_COMMS_FLOAT_VALUE, en, type, value);
-}
-
-#endif
 
 
 
 
 
-#if SET_CLIENT_SERVER_REQUIRED
 
-static void set_server_float_value (entity *en, float_types type, float value)
-{
-	validate_client_server_local_fn ();
 
-	set_local_float_value (en, type, value);
 
-	validate_client_server_remote_fn ();
 
-	set_remote_float_value (en, type, value);
-}
+
 
 #endif
 
@@ -246,21 +227,40 @@ static void set_server_float_value (entity *en, float_types type, float value)
 
 #if SET_CLIENT_SERVER_REQUIRED
 
-static void set_client_float_value (entity *en, float_types type, float value)
-{
-	if (get_comms_data_flow () == COMMS_DATA_FLOW_TX)
-	{
-		validate_client_server_remote_fn ();
 
-		set_remote_float_value (en, type, value);
-	}
-	else
-	{
-		validate_client_server_local_fn ();
 
-		set_local_float_value (en, type, value);
-	}
-}
+
+
+
+
+
+
+
+
+
+#endif
+
+
+
+
+
+#if SET_CLIENT_SERVER_REQUIRED
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #endif
 
@@ -589,116 +589,116 @@ static float get_local_float_value (entity *en, float_types type)
 
 
 
-void overload_vehicle_float_value_functions (entity_types type)
-{
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_AIR_SCAN_CEILING]	 			  							= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_AIR_SCAN_FLOOR]	 				  						= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_AIR_SCAN_RANGE]	 		  								= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_AMMO_ECONOMY]												= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_AXLE_LENGTH]		 		  								= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_CHASE_VIEW_MAX_DISTANCE]								= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_CHASE_VIEW_MAX_DISTANCE_TEST]							= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_CHASE_VIEW_MIN_DISTANCE]  								= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_CHASE_VIEW_MIN_DISTANCE_TEST]							= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_CRUISE_VELOCITY]		 									= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_DEATH_TIMER]												= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_DEATH_TIMER]												= set_local_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_DEATH_TIMER][COMMS_MODEL_SERVER]						= set_server_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_DEATH_TIMER][COMMS_MODEL_CLIENT]						= set_client_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_DEATH_TIMER]												= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_DISTANCE]													= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_DISTANCE]													= set_local_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_DISTANCE][COMMS_MODEL_SERVER]							= set_server_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_DISTANCE][COMMS_MODEL_CLIENT]							= set_client_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_DISTANCE]													= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_WEAPON_TO_INTERCEPT_POINT_RANGE]													= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_WEAPON_TO_INTERCEPT_POINT_RANGE]													= set_local_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_WEAPON_TO_INTERCEPT_POINT_RANGE][COMMS_MODEL_SERVER]							= set_server_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_WEAPON_TO_INTERCEPT_POINT_RANGE][COMMS_MODEL_CLIENT]							= set_client_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_WEAPON_TO_INTERCEPT_POINT_RANGE]													= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_FUEL_ECONOMY]												= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_LOADING_DOOR_STATE]										= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_LOADING_DOOR_STATE]										= set_local_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_LOADING_DOOR_STATE][COMMS_MODEL_SERVER]			= set_server_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_LOADING_DOOR_STATE][COMMS_MODEL_CLIENT]			= set_client_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_LOADING_DOOR_STATE]										= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_MAX_3D_OBJECT_VISUAL_RANGE]  							= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_MAX_ACCELERATION]						  					= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_MAX_TURN_RATE]	  						  					= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_POTENTIAL_AIR_THREAT]									= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_POTENTIAL_SURFACE_THREAT]	 							= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_POTENTIAL_SURFACE_TO_AIR_THREAT]	 					= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_POTENTIAL_SURFACE_TO_SURFACE_THREAT]				= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_POWER_OUTPUT]	 		  									= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_RADAR_ROTATION_STATE]									= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_RADAR_ROTATION_STATE]									= set_local_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_RADAR_ROTATION_STATE][COMMS_MODEL_SERVER]			= set_server_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_RADAR_ROTATION_STATE][COMMS_MODEL_CLIENT]			= set_client_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_RADAR_ROTATION_STATE]									= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_RECON_RADIUS]												= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_SLEEP]														= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_SLEEP]														= set_local_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_SLEEP][COMMS_MODEL_SERVER]								= set_server_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_SLEEP][COMMS_MODEL_CLIENT]								= set_client_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_SLEEP]														= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_SURFACE_SCAN_RANGE]	 									= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_TARGET_FIRE_TIMER]										= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_TARGET_FIRE_TIMER]										= set_local_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_TARGET_FIRE_TIMER]	 		  							= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_TARGET_PRIORITY_AIR_ATTACK]	  						= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_TARGET_PRIORITY_GROUND_ATTACK]						= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_TARGET_SCAN_DELAY]	 		  	  						= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_TARGET_SCAN_TIMER]										= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_TARGET_SCAN_TIMER]										= set_local_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_TARGET_SCAN_TIMER]	 		  							= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_TERRAIN_ELEVATION]	 		  	  						= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_VIEW_INTEREST_LEVEL]										= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_VIEW_INTEREST_LEVEL]										= set_local_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_VIEW_INTEREST_LEVEL]										= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_WEAPON_BURST_TIMER]										= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_WEAPON_BURST_TIMER]										= set_local_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_WEAPON_BURST_TIMER]										= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE]								= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE]								= set_local_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE]								= get_local_float_value;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

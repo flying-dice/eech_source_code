@@ -220,11 +220,11 @@ int set_entity_update_frame_rate (int frame_rate)
 
 	entity_update_delta_time = get_delta_time () / entity_update_iterations;
 
-	#if DEBUG_MODULE
 
-	debug_log ("UPDATE: requested frame rate %d, delta time %f, iterations %d, set_delta_time %f", frame_rate, get_delta_time (), entity_update_iterations, entity_update_delta_time);
 
-	#endif
+
+
+
 
 	set_manual_delta_time (entity_update_delta_time);
 

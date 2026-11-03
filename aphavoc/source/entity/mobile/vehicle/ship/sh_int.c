@@ -129,14 +129,14 @@ static int get_local_int_value (entity *en, int_types type)
 
 
 
-void overload_ship_vehicle_int_value_functions (void)
-{
-	fn_get_local_entity_int_value	[ENTITY_TYPE_SHIP_VEHICLE][INT_TYPE_IDENTIFY_SHIP_VEHICLE]	= get_local_int_value;
 
-	fn_get_local_entity_int_value	[ENTITY_TYPE_SHIP_VEHICLE][INT_TYPE_MOVEMENT_TYPE]				= get_local_int_value;
 
-	fn_get_local_entity_int_value	[ENTITY_TYPE_SHIP_VEHICLE][INT_TYPE_TASK_TARGET_TYPE]			= get_local_int_value;
-}
+
+
+
+
+
+
 
 
 

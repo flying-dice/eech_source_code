@@ -209,16 +209,16 @@ static void update_server (entity *en)
 								success_achieved_count++;
 							}
 
-							#if DEBUG_MODULE
 
-							debug_log ("FC_UPDT: Met Campaign criteria %s type %d, goal %d, count %d to %s",
-										campaign_criteria_names [this_campaign_criteria->criteria_type],
-										this_campaign_criteria->type,
-										this_campaign_criteria->goal,
-										this_campaign_criteria->count,
-										campaign_result_names [this_campaign_criteria->result]);
 
-							#endif
+
+
+
+
+
+
+
+
 						}
 					}
 
@@ -279,16 +279,16 @@ static void update_server (entity *en)
 								success_achieved_count++;
 							}
 
-							#if DEBUG_MODULE
 
-							debug_log ("FC_UPDT: Met Campaign criteria %s type %d, goal %d, count %d to %s",
-										campaign_criteria_names [this_campaign_criteria->criteria_type],
-										this_campaign_criteria->type,
-										this_campaign_criteria->goal,
-										this_campaign_criteria->count,
-										campaign_result_names [this_campaign_criteria->result]);
 
-							#endif
+
+
+
+
+
+
+
+
 						}
 					}
 
@@ -347,16 +347,16 @@ static void update_server (entity *en)
 
 						get_digital_clock_values (session_raw->elapsed_time_of_day, &elapsed_hours, &elapsed_minutes, &elapsed_seconds);
 
-						#if DEBUG_MODULE
 
-						debug_log ("FC_UPDT: Campaign criteria %s hours %02f, minutes %02f, seconds %02f to %s",
-											campaign_criteria_names [this_campaign_criteria->criteria_type],
-											this_campaign_criteria->hours - elapsed_hours,
-											this_campaign_criteria->minutes - elapsed_minutes,
-											this_campaign_criteria->seconds - elapsed_seconds,
-											campaign_result_names [this_campaign_criteria->result]);
 
-						#endif
+
+
+
+
+
+
+
+
 
 						if (session_raw->elapsed_days >= this_campaign_criteria->days)
 						{
@@ -440,11 +440,11 @@ static void update_server (entity *en)
 
 				*result_campaign_criteria->experience_variable += result_campaign_criteria->experience_points;
 
-				#if DEBUG_MODULE
 
-				debug_log ("FC_UPDT: awarding %d experience points", result_campaign_criteria->experience_points);
 
-				#endif
+
+
+
 			}
 
 			if (result_campaign_criteria->rank_variable)
@@ -452,11 +452,11 @@ static void update_server (entity *en)
 
 				*result_campaign_criteria->rank_variable += result_campaign_criteria->rank_points;
 
-				#if DEBUG_MODULE
 
-				debug_log ("FC_UPDT: awarding %d rank points", result_campaign_criteria->rank_points);
 
-				#endif
+
+
+
 			}
 
 			if (get_game_type () == GAME_TYPE_CAMPAIGN)
@@ -499,10 +499,10 @@ static void update_server (entity *en)
 
 
 
-void overload_force_update_functions (void)
-{
-	fn_update_client_server_entity[ENTITY_TYPE_FORCE][COMMS_MODEL_SERVER]  	= update_server;
-}
+
+
+
+
 
 
 

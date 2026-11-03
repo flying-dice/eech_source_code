@@ -113,61 +113,61 @@ void debug_update_entity_landing_locks (entity *en, entity *landing, debug_landi
 
 
 
-#if DEBUG_MODULE >= 2
-
-static int response_to_link_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE >= 2
-
-static int response_to_unlink_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE >= 2
-
-static int response_to_link_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE >= 2
 
-static int response_to_unlink_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	return (TRUE);
-}
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -203,11 +203,11 @@ static int response_to_landing_site_request (entity_messages message, entity *re
 
 	raw = (landing *) get_local_entity_data (receiver);
 
-	#if DEBUG_MODULE
 
-	debug_log ("LD_MSGS:%d (%s), landing request mb %d", get_local_entity_index (receiver), entity_sub_type_landing_names [raw->sub_type], get_local_entity_index (sender));
 
-	#endif
+
+
+
 
 	incoming_group = get_local_entity_parent (sender, LIST_TYPE_MEMBER);
 
@@ -217,11 +217,11 @@ static int response_to_landing_site_request (entity_messages message, entity *re
 	// Check for lock
 	//
 
-	#if DEBUG_MODULE
 
-	debug_log ("LD_MSGS:%d, landing entity locked", get_local_entity_index (receiver));
 
-	#endif
+
+
+
 
 	landing_task = get_local_landing_entity_task (receiver, ENTITY_SUB_TYPE_TASK_LANDING);
 
@@ -262,19 +262,19 @@ static int response_to_landing_site_request (entity_messages message, entity *re
 			set_client_server_entity_int_value (member, INT_TYPE_FORMATION_POSITION, formation_position);
 		}
 
-		#if DEBUG_MODULE
 
-		debug_log ("LD_MSGS:%d, setting formation position to %d", get_local_entity_index (receiver), formation_position);
 
-		#endif
+
+
+
 
 		formation_landing = formation_position % formation_data->number_in_formation;
 
-		#if DEBUG_MODULE
 
-		debug_log ("LD_MSGS:%d, formation_landing = %d, formation count = %d", get_local_entity_index (receiver), formation_landing, formation_data->number_in_formation);
 
-		#endif
+
+
+
 
 		landing_lock = get_local_entity_int_value (receiver, INT_TYPE_LANDING_LOCK);
 
@@ -309,11 +309,11 @@ static int response_to_landing_site_request (entity_messages message, entity *re
 
 			set_client_server_entity_int_value (member, INT_TYPE_OPERATIONAL_STATE, OPERATIONAL_STATE_LANDING_HOLDING);
 
-			#if DEBUG_MODULE
 
-			debug_log ("LD_MSGS:%d, inserting %s (%d) into landing holding route", get_local_entity_index (receiver), get_local_entity_string (member, STRING_TYPE_FULL_NAME), get_local_entity_index (member));
 
-			#endif
+
+
+
 
 			guide = create_client_server_guide_entity (holding_task, NULL, (1 << member_number));
 
@@ -391,11 +391,11 @@ static int response_to_landing_site_request (entity_messages message, entity *re
 			//
 			//
 	
-			#if DEBUG_MODULE
 
-			debug_log ("LD_MSGS:%d, inserting %d into landing route", get_local_entity_index (receiver), get_local_entity_index (member));
 
-			#endif
+
+
+
 
 			guide = create_client_server_guide_entity (landing_task, NULL, (1 << member_number));
 
@@ -500,46 +500,46 @@ static int response_to_lock_landing_route (entity_messages message, entity *rece
 
 	formation_landing %= formation_data->number_in_formation;
 
-	#if DEBUG_MODULE
 
-	if ((raw->landing_lock & (1 << formation_landing)))
-	{
 
-		#if FATAL
-		debug_fatal
-		#else
-		debug_log
-		#endif
-		("LD_MSGS:%d, type %s: INVALID: lock landing route by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-			get_local_entity_index (receiver),
-			entity_sub_type_landing_names [raw->sub_type],
-			get_local_entity_index (sender),
-			raw->total_landing_sites,
-			raw->free_landing_sites,
-			raw->reserved_landing_sites,
-			int_bit_count (raw->landing_lock),
-			int_bit_count (raw->landed_lock),
-			int_bit_count (raw->takeoff_lock));
-	}
-	else
-	{
 
-		#if LANDING_LOCK_USER_ONLY
-		if (sender == get_gunship_entity ())
-		#endif
-		debug_log ("LD_MSGS:BEFORE: %d, type %s: lock landing route by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-			get_local_entity_index (receiver),
-			entity_sub_type_landing_names [raw->sub_type],
-			get_local_entity_index (sender),
-			raw->total_landing_sites,
-			raw->free_landing_sites,
-			raw->reserved_landing_sites,
-			int_bit_count (raw->landing_lock),
-			int_bit_count (raw->landed_lock),
-			int_bit_count (raw->takeoff_lock));
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	#if FATAL
 
@@ -572,21 +572,21 @@ static int response_to_lock_landing_route (entity_messages message, entity *rece
 													//DEBUG_LANDING_LOCK_TAKEOFF_ROUTE_LOCK,
 													TRUE);
 
-	#if DEBUG_MODULE
-	#if LANDING_LOCK_USER_ONLY
-	if (sender == get_gunship_entity ())
-	#endif
-	debug_log ("LD_MSGS:AFTER : %d, type %s: lock landing route by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-			get_local_entity_index (receiver),
-			entity_sub_type_landing_names [raw->sub_type],
-			get_local_entity_index (sender),
-			raw->total_landing_sites,
-			raw->free_landing_sites,
-			raw->reserved_landing_sites,
-			int_bit_count (raw->landing_lock),
-			int_bit_count (raw->landed_lock),
-			int_bit_count (raw->takeoff_lock));
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	#endif
 												
 	return (TRUE);
@@ -617,49 +617,49 @@ static int response_to_lock_landing_site (entity_messages message, entity *recei
 
 	#endif
 	
-  	#if DEBUG_MODULE
-	#if LANDING_LOCK_USER_ONLY
-	if (sender == get_gunship_entity ())
-	#endif
-	debug_log ("LD_MSGS:BEFORE: %d, type %s: lock landing site by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-			get_local_entity_index (receiver),
-			entity_sub_type_landing_names [raw->sub_type],
-			get_local_entity_index (sender),
-			raw->total_landing_sites,
-			raw->free_landing_sites,
-			raw->reserved_landing_sites,
-			int_bit_count (raw->landing_lock),
-			int_bit_count (raw->landed_lock),
-			int_bit_count (raw->takeoff_lock));
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	raw->landed_lock |= 1 << formation_landing;
 
 	raw->free_landing_sites --;
 
-	#if DEBUG_MODULE
 
-	if (raw->free_landing_sites < 0)
-	{
-	
-		#if FATAL
-		debug_fatal
-		#else
-		debug_log
-		#endif
-		("LD_MSGS:%d, type %s: INVALID: lock landing site by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-			get_local_entity_index (receiver),
-			entity_sub_type_landing_names [raw->sub_type],
-			get_local_entity_index (sender),
-			raw->total_landing_sites,
-			raw->free_landing_sites,
-			raw->reserved_landing_sites,
-			int_bit_count (raw->landing_lock),
-			int_bit_count (raw->landed_lock),
-			int_bit_count (raw->takeoff_lock));
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	#if FATAL
 
@@ -690,21 +690,21 @@ static int response_to_lock_landing_site (entity_messages message, entity *recei
 													//DEBUG_LANDING_LOCK_TAKEOFF_ROUTE_LOCK,
 													TRUE);
 	
-	#if DEBUG_MODULE
-	#if LANDING_LOCK_USER_ONLY
-	if (sender == get_gunship_entity ())
-	#endif
-	debug_log ("LD_MSGS:AFTER : %d, type %s: lock landing site by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-			get_local_entity_index (receiver),
-			entity_sub_type_landing_names [raw->sub_type],
-			get_local_entity_index (sender),
-			raw->total_landing_sites,
-			raw->free_landing_sites,
-			raw->reserved_landing_sites,
-			int_bit_count (raw->landing_lock),
-			int_bit_count (raw->landed_lock),
-			int_bit_count (raw->takeoff_lock));
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	#endif
 
 	return (TRUE);
@@ -754,23 +754,23 @@ static int response_to_lock_takeoff_route (entity_messages message, entity *rece
 	if (!(raw->takeoff_lock & (1 << formation_takeoff)))
 	{
 	
-		#if DEBUG_MODULE
 
-		#if LANDING_LOCK_USER_ONLY
-		if (sender == get_gunship_entity ())
-		#endif
-		debug_log ("LD_MSGS:BEFORE: %d, type %s: lock takeoff route by %d(total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-			get_local_entity_index (receiver),
-			entity_sub_type_landing_names [raw->sub_type],
-			get_local_entity_index (sender),
-			raw->total_landing_sites,
-			raw->free_landing_sites,
-			raw->reserved_landing_sites,
-			int_bit_count (raw->landing_lock),
-			int_bit_count (raw->landed_lock),
-			int_bit_count (raw->takeoff_lock));
 
-		#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	
 		raw->takeoff_lock |= 1 << formation_takeoff;
 
@@ -864,31 +864,31 @@ static int response_to_lock_takeoff_route (entity_messages message, entity *rece
 													//DEBUG_LANDING_LOCK_LANDING_ROUTE_LOCK,
 													DEBUG_LANDING_LOCK_TAKEOFF_ROUTE_LOCK,
 													TRUE);
-		#if DEBUG_MODULE
-		#if LANDING_LOCK_USER_ONLY
-		if (sender == get_gunship_entity ())
-		#endif
-		debug_log ("LD_MSGS:AFTER : %d, type %s: lock takeoff route by %d(total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-			get_local_entity_index (receiver),
-			entity_sub_type_landing_names [raw->sub_type],
-			get_local_entity_index (sender),
-			raw->total_landing_sites,
-			raw->free_landing_sites,
-			raw->reserved_landing_sites,
-			int_bit_count (raw->landing_lock),
-			int_bit_count (raw->landed_lock),
-			int_bit_count (raw->takeoff_lock));
-		#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		#endif
 
 		return (TRUE);
 	}
 
-	#if DEBUG_MODULE
 
-	debug_log ("LD_MSGS:%d, Can't lock takeoff route for %d", get_local_entity_index (receiver), get_local_entity_index (sender));
 
-	#endif
+
+
+
 
 
 	//
@@ -962,49 +962,49 @@ static int response_to_reserve_landing_site (entity_messages message, entity *re
 
 	count = va_arg (pargs, int);
 	
-  	#if DEBUG_MODULE
 
-	#if LANDING_LOCK_USER_ONLY
-	if (sender == get_gunship_entity ())
-	#endif
-	debug_log ("LD_MSGS:BEFORE: %d, type %s: reserve landing by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-			get_local_entity_index (receiver),
-			entity_sub_type_landing_names [raw->sub_type],
-			get_local_entity_index (sender),
-			raw->total_landing_sites,
-			raw->free_landing_sites,
-			raw->reserved_landing_sites,
-			int_bit_count (raw->landing_lock),
-			int_bit_count (raw->landed_lock),
-			int_bit_count (raw->takeoff_lock));
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	raw->reserved_landing_sites += count;
 
-	#if DEBUG_MODULE
 
-	if (raw->reserved_landing_sites > raw->total_landing_sites)
-	{
-	
-		#if FATAL
-		debug_fatal
-		#else
-		debug_log
-		#endif
-		("LD_MSGS:%d, type %s: INVALID: reserve landing by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-			get_local_entity_index (receiver),
-			entity_sub_type_landing_names [raw->sub_type],
-			get_local_entity_index (sender),
-			raw->total_landing_sites,
-			raw->free_landing_sites,
-			raw->reserved_landing_sites,
-			int_bit_count (raw->landing_lock),
-			int_bit_count (raw->landed_lock),
-			int_bit_count (raw->takeoff_lock));
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	#if FATAL
 
@@ -1031,21 +1031,21 @@ static int response_to_reserve_landing_site (entity_messages message, entity *re
 														//DEBUG_LANDING_LOCK_TAKEOFF_ROUTE_LOCK,
 														TRUE);
 
-	#if DEBUG_MODULE
-	#if LANDING_LOCK_USER_ONLY
-	if (sender == get_gunship_entity ())
-	#endif
-	debug_log ("LD_MSGS:AFTER : %d, type %s: reserve landing by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-			get_local_entity_index (receiver),
-			entity_sub_type_landing_names [raw->sub_type],
-			get_local_entity_index (sender),
-			raw->total_landing_sites,
-			raw->free_landing_sites,
-			raw->reserved_landing_sites,
-			int_bit_count (raw->landing_lock),
-			int_bit_count (raw->landed_lock),
-			int_bit_count (raw->takeoff_lock));
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	}
 	#endif
 
@@ -1082,13 +1082,13 @@ static int response_to_set_entity_position (entity_messages message, entity *rec
 
 	velocity = (float) va_arg (pargs, double);
 
-	#if DEBUG_MODULE
-/*
-	debug_log ("LD_MSGS: %s, setting position %f, %f, %f, heading %f",
-					entity_sub_type_landing_names [get_local_entity_int_value (receiver, INT_TYPE_ENTITY_SUB_TYPE)],
-					position->x, position->y, position->z, heading);
-*/
-	#endif
+
+
+
+
+
+
+
 
 	//
 	// move tasks (landing, takeoff, landing_holding, takeoff_holding) before setting position (so children can calculate delta move)
@@ -1143,11 +1143,11 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE
 
-	debug_log ("LD_MSGS:%d, landing terminated %s (%d)", get_local_entity_index (receiver), get_local_entity_string (sender, STRING_TYPE_FULL_NAME), get_local_entity_index (sender));
 
-	#endif
+
+
+
 
 	incoming_group = get_local_entity_parent (sender, LIST_TYPE_MEMBER);
 
@@ -1242,18 +1242,18 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 
 					break;
 				}
-				#if DEBUG_MODULE
-				else
-				{
-	
-					debug_log ("LANDING_MSGS: Can't land holding member %s (%d), landing route still busy. member formation pos %d, landing formation %d, number in route formation %d",
-									get_local_entity_string (holding_member, STRING_TYPE_FULL_NAME),
-									get_local_entity_index (holding_member),
-									get_local_entity_int_value (holding_member, INT_TYPE_FORMATION_POSITION),
-									formation_landing,
-									formation_data->number_in_formation);
-				}
-				#endif
+
+
+
+
+
+
+
+
+
+
+
+
 
 				holding_member = get_local_entity_child_succ (holding_member, LIST_TYPE_FOLLOWER);
 			}
@@ -1280,11 +1280,11 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 
 		next_group = get_local_entity_parent (next_landing_member, LIST_TYPE_MEMBER);
 
-		#if DEBUG_MODULE
 
-		debug_log ("LD_MSGS:%d, inserting landing holding %s (%d: AI) into 1st landing route waypoint", get_local_entity_index (receiver), get_local_entity_string (next_landing_member, STRING_TYPE_FULL_NAME), get_local_entity_index (next_landing_member));
 
-		#endif
+
+
+
 	
 		//
 		// Lock landing route and set operational state
@@ -1418,11 +1418,11 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 		if (count == member_count)
 		{
 
-			#if DEBUG_MODULE
 
-			debug_log ("LD_MSGS: (counted) all group landed setting sleep and idle");
 
-			#endif
+
+
+
 
 			set_local_entity_float_value (incoming_group, FLOAT_TYPE_SLEEP, 15 * ONE_MINUTE);
 		}
@@ -1466,46 +1466,46 @@ static int response_to_unlock_landing_route (entity_messages message, entity *re
 
 	formation_landing %= formation_data->number_in_formation;
 
-	#if DEBUG_MODULE
 
-	if (!(raw->landing_lock & (1 << formation_landing)))
-	{
-	
-		#if FATAL
-		debug_fatal
-		#else
-		debug_log
-		#endif
-		("LD_MSGS:%d, type %s: INVALID: unlock landing route by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-			get_local_entity_index (receiver),
-			entity_sub_type_landing_names [raw->sub_type],
-			get_local_entity_index (sender),
-			raw->total_landing_sites,
-			raw->free_landing_sites,
-			raw->reserved_landing_sites,
-			int_bit_count (raw->landing_lock),
-			int_bit_count (raw->landed_lock),
-			int_bit_count (raw->takeoff_lock));
-	}
-	else
-	{
 
-		#if LANDING_LOCK_USER_ONLY
-		if (sender == get_gunship_entity ())
-		#endif
-		debug_log ("LD_MSGS:BEFORE: %d, type %s: unlock landing route by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-						get_local_entity_index (receiver),
-						entity_sub_type_landing_names [raw->sub_type],
-						get_local_entity_index (sender),
-						raw->total_landing_sites,
-						raw->free_landing_sites,
-						raw->reserved_landing_sites,
-						int_bit_count (raw->landing_lock),
-						int_bit_count (raw->landed_lock),
-						int_bit_count (raw->takeoff_lock));
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	#if FATAL
 
@@ -1540,21 +1540,21 @@ static int response_to_unlock_landing_route (entity_messages message, entity *re
 													//DEBUG_LANDING_LOCK_TAKEOFF_ROUTE_LOCK,
 													FALSE);
 
-	#if DEBUG_MODULE
-	#if LANDING_LOCK_USER_ONLY
-	if (sender == get_gunship_entity ())
-	#endif
-	debug_log ("LD_MSGS:AFTER : %d, type %s: unlock landing route by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-				get_local_entity_index (receiver),
-				entity_sub_type_landing_names [raw->sub_type],
-				get_local_entity_index (sender),
-				raw->total_landing_sites,
-				raw->free_landing_sites,
-				raw->reserved_landing_sites,
-				int_bit_count (raw->landing_lock),
-				int_bit_count (raw->landed_lock),
-				int_bit_count (raw->takeoff_lock));
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	#endif
 
 	return (TRUE);
@@ -1585,23 +1585,23 @@ static int response_to_unlock_landing_site (entity_messages message, entity *rec
 
 	#endif
 
-	#if DEBUG_MODULE
 
-	#if LANDING_LOCK_USER_ONLY
-	if (sender == get_gunship_entity ())
-	#endif
-	debug_log ("LD_MSGS:BEFORE: %d, type %s: unlock landing site by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-						get_local_entity_index (receiver),
-						entity_sub_type_landing_names [raw->sub_type],
-						get_local_entity_index (sender),
-						raw->total_landing_sites,
-						raw->free_landing_sites,
-						raw->reserved_landing_sites,
-						int_bit_count (raw->landing_lock),
-						int_bit_count (raw->landed_lock),
-						int_bit_count (raw->takeoff_lock));
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	formation_landing = ~(1 << formation_landing);
 
@@ -1609,29 +1609,29 @@ static int response_to_unlock_landing_site (entity_messages message, entity *rec
 
 	raw->free_landing_sites ++;
 
-	#if DEBUG_MODULE
 
-	if (raw->free_landing_sites > raw->total_landing_sites)
-	{
-	
-		#if FATAL
-		debug_fatal
-		#else
-		debug_log
-		#endif
-		("LD_MSGS:%d, type %s: INVALID: unlock landing site by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-			get_local_entity_index (receiver),
-			entity_sub_type_landing_names [raw->sub_type],
-			get_local_entity_index (sender),
-			raw->total_landing_sites,
-			raw->free_landing_sites,
-			raw->reserved_landing_sites,
-			int_bit_count (raw->landing_lock),
-			int_bit_count (raw->landed_lock),
-			int_bit_count (raw->takeoff_lock));
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	#if FATAL
 
@@ -1662,21 +1662,21 @@ static int response_to_unlock_landing_site (entity_messages message, entity *rec
 													//DEBUG_LANDING_LOCK_TAKEOFF_ROUTE_LOCK,
 													FALSE);
 
-	#if DEBUG_MODULE
-	#if LANDING_LOCK_USER_ONLY
-	if (sender == get_gunship_entity ())
-	#endif
-	debug_log ("LD_MSGS:AFTER : %d, type %s: unlock landing site by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-					get_local_entity_index (receiver),
-					entity_sub_type_landing_names [raw->sub_type],
-					get_local_entity_index (sender),
-					raw->total_landing_sites,
-					raw->free_landing_sites,
-					raw->reserved_landing_sites,
-					int_bit_count (raw->landing_lock),
-					int_bit_count (raw->landed_lock),
-					int_bit_count (raw->takeoff_lock));
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	#endif
 
 	return (TRUE);
@@ -1722,45 +1722,45 @@ static int response_to_unlock_takeoff_route (entity_messages message, entity *re
 
 	formation_takeoff %= formation_data->number_in_formation;
 
-	#if DEBUG_MODULE
 
-	if (!(raw->takeoff_lock & (1 << formation_takeoff)))
-	{
-	
-		#if FATAL
-		debug_fatal
-		#else
-		debug_log
-		#endif
-		("LD_MSGS:%d, type %s: INVALID: unlock takeoff route by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-			get_local_entity_index (receiver),
-			entity_sub_type_landing_names [raw->sub_type],
-			get_local_entity_index (sender),
-			raw->total_landing_sites,
-			raw->free_landing_sites,
-			raw->reserved_landing_sites,
-			int_bit_count (raw->landing_lock),
-			int_bit_count (raw->landed_lock),
-			int_bit_count (raw->takeoff_lock));
-	}
-	else
-	{
-		#if LANDING_LOCK_USER_ONLY
-		if (sender == get_gunship_entity ())
-		#endif
-		debug_log ("LD_MSGS:BEFORE: %d, type %s: unlock takeoff route by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-						get_local_entity_index (receiver),
-						entity_sub_type_landing_names [raw->sub_type],
-						get_local_entity_index (sender),
-						raw->total_landing_sites,
-						raw->free_landing_sites,
-						raw->reserved_landing_sites,
-						int_bit_count (raw->landing_lock),
-						int_bit_count (raw->landed_lock),
-						int_bit_count (raw->takeoff_lock));
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	#if FATAL
 
@@ -1795,21 +1795,21 @@ static int response_to_unlock_takeoff_route (entity_messages message, entity *re
 													DEBUG_LANDING_LOCK_TAKEOFF_ROUTE_LOCK,
 													FALSE);
 
-	#if DEBUG_MODULE
-	#if LANDING_LOCK_USER_ONLY
-	if (sender == get_gunship_entity ())
-	#endif
-	debug_log ("LD_MSGS:AFTER : %d, type %s: unlock takeoff route by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-						get_local_entity_index (receiver),
-						entity_sub_type_landing_names [raw->sub_type],
-						get_local_entity_index (sender),
-						raw->total_landing_sites,
-						raw->free_landing_sites,
-						raw->reserved_landing_sites,
-						int_bit_count (raw->landing_lock),
-						int_bit_count (raw->landed_lock),
-						int_bit_count (raw->takeoff_lock));
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	#endif
 
 	//
@@ -1892,46 +1892,46 @@ static int response_to_unreserve_landing_site (entity_messages message, entity *
 
 	count = va_arg (pargs, int);
 
-	#if DEBUG_MODULE
 
-	if (raw->reserved_landing_sites < 0)
-	{
-	
-		#if FATAL
-		debug_fatal
-		#else
-		debug_log
-		#endif
-		("LD_MSGS:%d, type %d: INVALID: unreserve landing by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-			get_local_entity_index (receiver),
-			entity_sub_type_landing_names [raw->sub_type],
-			get_local_entity_index (sender),
-			raw->total_landing_sites,
-			raw->free_landing_sites,
-			raw->reserved_landing_sites,
-			int_bit_count (raw->landing_lock),
-			int_bit_count (raw->landed_lock),
-			int_bit_count (raw->takeoff_lock));
-	}
-	else
-	{
-	
-		#if LANDING_LOCK_USER_ONLY
-		if (sender == get_gunship_entity ())
-		#endif
-		debug_log ("LD_MSGS:BEFORE: %d, type %d: unreserve landing by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-			get_local_entity_index (receiver),
-			entity_sub_type_landing_names [raw->sub_type],
-			get_local_entity_index (sender),
-			raw->total_landing_sites,
-			raw->free_landing_sites,
-			raw->reserved_landing_sites,
-			int_bit_count (raw->landing_lock),
-			int_bit_count (raw->landed_lock),
-			int_bit_count (raw->takeoff_lock));
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	raw->reserved_landing_sites -= count;
 
@@ -1964,21 +1964,21 @@ static int response_to_unreserve_landing_site (entity_messages message, entity *
 													//DEBUG_LANDING_LOCK_TAKEOFF_ROUTE_LOCK,
 													FALSE);
 	
-  	#if DEBUG_MODULE
-	#if LANDING_LOCK_USER_ONLY
-	if (sender == get_gunship_entity ())
-	#endif
-	debug_log ("LD_MSGS:AFTER : %d, type %d: unreserve landing by %d (total %d, free %d, reserved %d, landing %d, landed %d, takeoff %d)",
-			get_local_entity_index (receiver),
-			entity_sub_type_landing_names [raw->sub_type],
-			get_local_entity_index (sender),
-			raw->total_landing_sites,
-			raw->free_landing_sites,
-			raw->reserved_landing_sites,
-			int_bit_count (raw->landing_lock),
-			int_bit_count (raw->landed_lock),
-			int_bit_count (raw->takeoff_lock));
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	#endif
 
 	return (TRUE);
@@ -1996,18 +1996,18 @@ static int response_to_waypoint_taken_off_reached (entity_messages message, enti
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE
 
-	debug_log ("LD_MSGS:%d, member taken off mb %s %d", get_local_entity_index (receiver), get_local_entity_string (sender, STRING_TYPE_FULL_NAME), get_local_entity_index (sender));
 
-	#endif
+
+
+
 
 	// get takeoff group
-#if 0
-	task = get_local_landing_entity_task (receiver, ENTITY_SUB_TYPE_TASK_TAKEOFF);
 
-	set_local_landing_route_clear (task, sender);
-#endif
+
+
+
+
 	//
 	// Unlock takeoff
 	//
@@ -2021,46 +2021,46 @@ static int response_to_waypoint_taken_off_reached (entity_messages message, enti
 
 
 
-void overload_landing_message_responses (void)
-{
-	overload_mobile_message_responses (ENTITY_TYPE_LANDING);
 
-	#if DEBUG_MODULE >= 2
 
-	message_responses[ENTITY_TYPE_LANDING][ENTITY_MESSAGE_LINK_CHILD] 								= response_to_link_child;
 
-	message_responses[ENTITY_TYPE_LANDING][ENTITY_MESSAGE_UNLINK_CHILD]								= response_to_unlink_child;
 
-	message_responses[ENTITY_TYPE_LANDING][ENTITY_MESSAGE_LINK_PARENT]								= response_to_link_parent;
 
-	message_responses[ENTITY_TYPE_LANDING][ENTITY_MESSAGE_UNLINK_PARENT]								= response_to_unlink_parent;
 
-	#endif
 
-	message_responses[ENTITY_TYPE_LANDING][ENTITY_MESSAGE_LANDING_SITE_REQUEST]					= response_to_landing_site_request;
 
-	message_responses[ENTITY_TYPE_LANDING][ENTITY_MESSAGE_LOCK_LANDING_ROUTE]						= response_to_lock_landing_route;
 
-	message_responses[ENTITY_TYPE_LANDING][ENTITY_MESSAGE_LOCK_LANDING_SITE]						= response_to_lock_landing_site;
 
-	message_responses[ENTITY_TYPE_LANDING][ENTITY_MESSAGE_LOCK_TAKEOFF_ROUTE]						= response_to_lock_takeoff_route;
 
-	message_responses[ENTITY_TYPE_LANDING][ENTITY_MESSAGE_RESERVE_LANDING_SITE]					= response_to_reserve_landing_site;
 
-	message_responses[ENTITY_TYPE_LANDING][ENTITY_MESSAGE_SET_ENTITY_POSITION]						= response_to_set_entity_position;
 
-	message_responses[ENTITY_TYPE_LANDING][ENTITY_MESSAGE_TASK_TERMINATED]							= response_to_task_terminated;
 
-	message_responses[ENTITY_TYPE_LANDING][ENTITY_MESSAGE_UNLOCK_LANDING_ROUTE]					= response_to_unlock_landing_route;
 
-	message_responses[ENTITY_TYPE_LANDING][ENTITY_MESSAGE_UNLOCK_LANDING_SITE]						= response_to_unlock_landing_site;
 
-	message_responses[ENTITY_TYPE_LANDING][ENTITY_MESSAGE_UNLOCK_TAKEOFF_ROUTE]					= response_to_unlock_takeoff_route;
 
-	message_responses[ENTITY_TYPE_LANDING][ENTITY_MESSAGE_UNRESERVE_LANDING_SITE]					= response_to_unreserve_landing_site;
 
-	message_responses[ENTITY_TYPE_LANDING][ENTITY_MESSAGE_WAYPOINT_TAKEN_OFF_REACHED]			= response_to_waypoint_taken_off_reached;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2104,17 +2104,17 @@ void debug_update_entity_landing_locks (entity *en, entity *landing, debug_landi
 
 	item->landing_en = landing;
 
-	#if DEBUG_MODULE
 
-	debug_log ("LD_MSGS: %s check %s (%d) at landing %d %s %s",
-					entity_side_names [get_local_entity_int_value (en, INT_TYPE_SIDE)],
-					get_local_entity_type_name (en),
-					get_local_entity_index (en),
-					get_local_entity_index (landing),
-					debug_landing_lock_unlock_names [lock_flag],
-					debug_landing_lock_names [lock]);
 
-	#endif
+
+
+
+
+
+
+
+
+
 
 	#if FATAL
 
@@ -2261,12 +2261,12 @@ void pack_debug_entity_landing_locks (pack_modes mode)
 
 		pack_entity_safe_ptr (item->landing_en);
 
-	#if DEBUG_MODULE
-		debug_log ("LD_MSGS: packing landing lock for %s (%d) landing entity %d",
-						get_local_entity_string (item->en, STRING_TYPE_FULL_NAME),
-						get_local_entity_index (item->en),
-						get_local_entity_index (item->landing_en));
-	#endif
+
+
+
+
+
+
 
 		pack_int_value (NULL, INT_TYPE_VALUE, item->locks [DEBUG_LANDING_LOCK_RESERVE_LOCK]);
 
@@ -2314,12 +2314,12 @@ void unpack_debug_entity_landing_locks (pack_modes mode)
 
 		item->landing_en = (entity *) unpack_entity_safe_ptr ();
 
-	#if DEBUG_MODULE
-		debug_log ("LD_MSGS: unpacking landing lock for %s (%d) landing entity %d",
-						get_local_entity_string (item->en, STRING_TYPE_FULL_NAME),
-						get_local_entity_index (item->en),
-						get_local_entity_index (item->landing_en));
-	#endif
+
+
+
+
+
+
 
 		item->locks [DEBUG_LANDING_LOCK_RESERVE_LOCK] = unpack_int_value (NULL, INT_TYPE_VALUE);
 

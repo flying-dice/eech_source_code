@@ -81,11 +81,11 @@ static void set_local_float_value (entity *en, float_types type, float value)
 	session
 		*raw;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_FLOAT_VALUE, en, type, value);
 
-	#endif
+
+
+
 
 	raw = (session *) get_local_entity_data (en);
 
@@ -236,51 +236,51 @@ static void set_local_float_value (entity *en, float_types type, float value)
 
 
 
-static void set_remote_float_value (entity *en, float_types type, float value)
-{
-	#if DEBUG_MODULE
-
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_FLOAT_VALUE, en, type, value);
-
-	#endif
-
-	transmit_entity_comms_message (ENTITY_COMMS_FLOAT_VALUE, en, type, value);
-}
 
 
 
 
 
-static void set_server_float_value (entity *en, float_types type, float value)
-{
-	validate_client_server_local_fn ();
-
-	set_local_float_value (en, type, value);
-
-	validate_client_server_remote_fn ();
-
-	set_remote_float_value (en, type, value);
-}
 
 
 
 
 
-static void set_client_float_value (entity *en, float_types type, float value)
-{
-	if (get_comms_data_flow () == COMMS_DATA_FLOW_TX)
-	{
-		validate_client_server_remote_fn ();
 
-		set_remote_float_value (en, type, value);
-	}
-	else
-	{
-		validate_client_server_local_fn ();
 
-		set_local_float_value (en, type, value);
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -451,106 +451,106 @@ static float get_local_float_value (entity *en, float_types type)
 
 
 
-void overload_session_float_value_functions (void)
-{
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_SESSION][FLOAT_TYPE_ELAPSED_TIME]							= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_ELAPSED_TIME]						  	= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_ELAPSED_TIME][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_ELAPSED_TIME][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_ELAPSED_TIME]							= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_SESSION][FLOAT_TYPE_FOG_OF_WAR_MAXIMUM_VALUE]							= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_FOG_OF_WAR_MAXIMUM_VALUE]						  	= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_FOG_OF_WAR_MAXIMUM_VALUE][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_FOG_OF_WAR_MAXIMUM_VALUE][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_FOG_OF_WAR_MAXIMUM_VALUE]							= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_SESSION][FLOAT_TYPE_LIGHTNING_TIMER]								= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_LIGHTNING_TIMER]							  	= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_LIGHTNING_TIMER][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_LIGHTNING_TIMER][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_LIGHTNING_TIMER]								= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_X_MIN]								= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_X_MIN]							  	= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_X_MIN][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_X_MIN][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_X_MIN]								= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_X_MAX]								= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_X_MAX]							  	= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_X_MAX][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_X_MAX][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_X_MAX]								= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_Z_MIN]								= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_Z_MIN]							  	= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_Z_MIN][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_Z_MIN][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_Z_MIN]								= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_Z_MAX]								= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_Z_MAX]							  	= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_Z_MAX][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_Z_MAX][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_POPULATION_Z_MAX]								= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_SESSION][FLOAT_TYPE_START_TIME]								= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_START_TIME]							  	= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_START_TIME][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_START_TIME][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_START_TIME]								= get_local_float_value;
 
-	fn_get_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_TIME_OF_DAY]							= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_SESSION][FLOAT_TYPE_TIME_OF_DAY_ACCELERATION]						  		= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_TIME_OF_DAY_ACCELERATION]						 	 	= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_TIME_OF_DAY_ACCELERATION][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_TIME_OF_DAY_ACCELERATION][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_TIME_OF_DAY_ACCELERATION]								= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_SESSION][FLOAT_TYPE_WEATHER_MODE_TRANSITIONAL_PERIOD]							= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_WEATHER_MODE_TRANSITIONAL_PERIOD]							= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_WEATHER_MODE_TRANSITIONAL_PERIOD][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_WEATHER_MODE_TRANSITIONAL_PERIOD][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_WEATHER_MODE_TRANSITIONAL_PERIOD]							= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_SESSION][FLOAT_TYPE_WEATHER_MODE_TRANSITIONAL_STATUS]							= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_WEATHER_MODE_TRANSITIONAL_STATUS]							= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_WEATHER_MODE_TRANSITIONAL_STATUS][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_WEATHER_MODE_TRANSITIONAL_STATUS][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_WEATHER_MODE_TRANSITIONAL_STATUS]							= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_SESSION][FLOAT_TYPE_WEATHER_RADIUS]							= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_WEATHER_RADIUS]							= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_WEATHER_RADIUS][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_WEATHER_RADIUS][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_WEATHER_RADIUS]							= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_EFFECT_RADIUS]								= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_EFFECT_RADIUS]								= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_EFFECT_RADIUS][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_EFFECT_RADIUS][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_EFFECT_RADIUS]								= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_GUSTING_VALUE]								= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_GUSTING_VALUE]								= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_GUSTING_VALUE][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_GUSTING_VALUE][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_GUSTING_VALUE]								= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_MAXIMUM_SPEED]								= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_MAXIMUM_SPEED]								= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_MAXIMUM_SPEED][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_MAXIMUM_SPEED][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_MAXIMUM_SPEED]								= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_MINIMUM_SPEED]								= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_MINIMUM_SPEED]								= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_MINIMUM_SPEED][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_MINIMUM_SPEED][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_SESSION][FLOAT_TYPE_WIND_MINIMUM_SPEED]								= get_local_float_value;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

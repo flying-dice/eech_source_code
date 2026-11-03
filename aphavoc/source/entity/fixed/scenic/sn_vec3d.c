@@ -83,11 +83,11 @@ static void set_local_vec3d (entity *en, vec3d_types type, vec3d *v)
 
 	ASSERT (v);
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_VEC3D, en, type, v);
 
-	#endif
+
+
+
 
 	raw = get_local_entity_data (en);
 
@@ -121,11 +121,11 @@ static void set_remote_vec3d (entity *en, vec3d_types type, vec3d *v)
 {
 	ASSERT (v);
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_VEC3D, en, type, v);
 
-	#endif
+
+
+
 
 	transmit_entity_comms_message (ENTITY_COMMS_VEC3D, en, type, v);
 }

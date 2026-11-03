@@ -294,20 +294,20 @@ void process_game_initialisation_phases (void)
 
 				game_initialisation_phase = GAME_INITIALISATION_PHASE_SCENARIO;
 
-				#if DEBUG_MODULE
 
-				debug_log ("DEDICATE: set game_type to %d", command_line_game_initialisation_phase_game_type);
 
-				#endif
+
+
+
 			}
 			else
 			{
 
-				#if DEBUG_MODULE
 
-				debug_log ("DEDICATE: waiting for game_type");
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -518,11 +518,11 @@ void process_game_initialisation_phases (void)
 											// Invalid version file
 											//
 
-											#if DEBUG_MODULE
 
-											debug_log ( "GOT AN INVALID SAVED GAME" );
 
-											#endif
+
+
+
 
 											ui_object_destroy_list_items (session_info_list);
 
@@ -675,20 +675,20 @@ void process_game_initialisation_phases (void)
 					break;
 				}
 
-				#if DEBUG_MODULE
 
-				debug_log ("DEDICATE: set current_session to %s %s", session->data_path, session->filename);
 
-				#endif
+
+
+
 			}
 			else
 			{
 
-				#if DEBUG_MODULE
 
-				debug_log ("DEDICATE: waiting for current_session");
 
-				#endif
+
+
+
 
 				// Casm 07MAY2010 Unloading custom map textures here too
 				restore_default_textures ();
@@ -835,11 +835,11 @@ void process_game_initialisation_phases (void)
 				}
 			}
 
-			#if DEBUG_MODULE
 
-			debug_log ("DEDICATE: setup ...");
 
-			#endif
+
+
+
 
 			game_initialisation_phase = GAME_INITIALISATION_PHASE_GUNSHIP_TYPE;
 		}
@@ -917,20 +917,20 @@ void process_game_initialisation_phases (void)
 
 				game_initialisation_phase = GAME_INITIALISATION_PHASE_TRANSFERRING;
 
-				#if DEBUG_MODULE
 
-				debug_log ("DEDICATE: set side to %s", entity_side_names [get_global_gunship_side ()]);
 
-				#endif
+
+
+
 			}
 			else
 			{
 
-				#if DEBUG_MODULE
 
-				debug_log ("DEDICATE: waiting for side");
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -953,11 +953,11 @@ void process_game_initialisation_phases (void)
 				}
 			}
 
-			#if DEBUG_MODULE
 
-			debug_log ("DEDICATE: Transferring");
 
-			#endif
+
+
+
 
 			ui_set_user_function (NULL);
 

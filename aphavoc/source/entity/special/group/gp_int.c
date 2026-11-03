@@ -81,11 +81,11 @@ static void set_local_int_value (entity *en, int_types type, int value)
 	group
 		*raw;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_INT_VALUE, en, type, value);
 
-	#endif
+
+
+
 
 	raw = (group *) get_local_entity_data (en);
 
@@ -251,51 +251,51 @@ static void set_local_int_value (entity *en, int_types type, int value)
 
 
 
-static void set_remote_int_value (entity *en, int_types type, int value)
-{
-	#if DEBUG_MODULE
-
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_INT_VALUE, en, type, value);
-
-	#endif
-
-	transmit_entity_comms_message (ENTITY_COMMS_INT_VALUE, en, type, value);
-}
 
 
 
 
 
-static void set_server_int_value (entity *en, int_types type, int value)
-{
-	validate_client_server_local_fn ();
-
-	set_local_int_value (en, type, value);
-
-	validate_client_server_remote_fn ();
-
-	set_remote_int_value (en, type, value);
-}
 
 
 
 
 
-static void set_client_int_value (entity *en, int_types type, int value)
-{
-	if (get_comms_data_flow () == COMMS_DATA_FLOW_TX)
-	{
-		validate_client_server_remote_fn ();
 
-		set_remote_int_value (en, type, value);
-	}
-	else
-	{
-		validate_client_server_local_fn ();
 
-		set_local_int_value (en, type, value);
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -602,130 +602,130 @@ static int get_local_int_value (entity *en, int_types type)
 
 
 
-void overload_group_int_value_functions (void)
-{
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_AIR_ATTACK_STRENGTH]			= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_AIRCRAFT_GROUP]					= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_GROUP][INT_TYPE_ALIVE]								= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_ALIVE]								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_ALIVE][COMMS_MODEL_SERVER]	= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_ALIVE][COMMS_MODEL_CLIENT]	= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_ALIVE]								= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_DEFAULT_ENGAGE_ENEMY]						= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_DEFAULT_GROUP_LIST_TYPE]					= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_DIVISION_ID]									= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_GROUP][INT_TYPE_ENGAGE_ENEMY]								= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_ENGAGE_ENEMY]								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_ENGAGE_ENEMY][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_ENGAGE_ENEMY][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_ENGAGE_ENEMY]								= get_local_int_value;
-	
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_GROUP][INT_TYPE_ENTITY_SUB_TYPE]							= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_ENTITY_SUB_TYPE]							= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_ENTITY_SUB_TYPE][COMMS_MODEL_SERVER]	= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_ENTITY_SUB_TYPE][COMMS_MODEL_CLIENT]	= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_ENTITY_SUB_TYPE]							= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_FRONTLINE]									= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_GROUP_AMALGAMATE]								= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_GROUP][INT_TYPE_GROUP_CALLSIGN]									= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_GROUP_CALLSIGN]									= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_GROUP_CALLSIGN][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_GROUP_CALLSIGN][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_GROUP_CALLSIGN]									= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_GROUP_CATEGORY]									= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_GROUP_DEFAULT_FORMATION]						= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_GROUP][INT_TYPE_GROUP_FORMATION]								= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_GROUP_FORMATION]								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_GROUP_FORMATION][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_GROUP_FORMATION][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_GROUP_FORMATION]								= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_GROUP][INT_TYPE_GROUP_LIST_TYPE]								= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_GROUP_LIST_TYPE]								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_GROUP_LIST_TYPE][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_GROUP_LIST_TYPE][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_GROUP_LIST_TYPE]								= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_GROUP_MODE]									= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_HIDDEN_BY_FOG_OF_WAR]						= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_GROUP][INT_TYPE_KILLS]									= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_KILLS]									= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_KILLS][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_KILLS][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_KILLS]									= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_LOCAL_ONLY_GROUP]							= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_GROUP][INT_TYPE_LOSSES]								= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_LOSSES]								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_LOSSES][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_LOSSES][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_LOSSES]								= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_MAP_ICON]								= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_MAXIMUM_MEMBER_COUNT]				= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_GROUP][INT_TYPE_MEMBER_COUNT]								= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_MEMBER_COUNT]								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_MEMBER_COUNT][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_MEMBER_COUNT][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_MEMBER_COUNT]								= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_MOVEMENT_TYPE]								= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_GROUP][INT_TYPE_MULTIPLAYER_GROUP]								= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_MULTIPLAYER_GROUP]								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_MULTIPLAYER_GROUP][COMMS_MODEL_SERVER]	= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_MULTIPLAYER_GROUP][COMMS_MODEL_CLIENT]	= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_MULTIPLAYER_GROUP]								= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_MINIMUM_IDLE_COUNT]	 						= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_GROUP][INT_TYPE_ROUTE_NODE]									= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_ROUTE_NODE]									= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_ROUTE_NODE][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_ROUTE_NODE][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_ROUTE_NODE]									= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_REGISTRY_LIST_TYPE]						= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_RESUPPLY_SOURCE]							= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_GROUP][INT_TYPE_SIDE]											= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_SIDE]											= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_SIDE][COMMS_MODEL_SERVER]				= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_SIDE][COMMS_MODEL_CLIENT]				= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_SIDE]											= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_GROUP][INT_TYPE_UNIQUE_ID]									= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_UNIQUE_ID]									= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_UNIQUE_ID][COMMS_MODEL_SERVER]			= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_UNIQUE_ID][COMMS_MODEL_CLIENT]			= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_UNIQUE_ID]									= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_VEHICLE_GROUP]								= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_GROUP][INT_TYPE_VERBOSE_OPERATIONAL_STATE]											= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_VERBOSE_OPERATIONAL_STATE]											= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_VERBOSE_OPERATIONAL_STATE][COMMS_MODEL_SERVER]				= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_GROUP][INT_TYPE_VERBOSE_OPERATIONAL_STATE][COMMS_MODEL_CLIENT]				= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_GROUP][INT_TYPE_VERBOSE_OPERATIONAL_STATE]											= get_local_int_value;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

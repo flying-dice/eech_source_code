@@ -81,11 +81,11 @@ static void set_local_int_value (entity *en, int_types type, int value)
 	session
 		*raw;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_INT_VALUE, en, type, value);
 
-	#endif
+
+
+
 
 	raw = (session *) get_local_entity_data (en);
 
@@ -242,51 +242,51 @@ static void set_local_int_value (entity *en, int_types type, int value)
 
 
 
-static void set_remote_int_value (entity *en, int_types type, int value)
-{
-	#if DEBUG_MODULE
-
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_INT_VALUE, en, type, value);
-
-	#endif
-
-	transmit_entity_comms_message (ENTITY_COMMS_INT_VALUE, en, type, value);
-}
 
 
 
 
 
-static void set_server_int_value (entity *en, int_types type, int value)
-{
-	validate_client_server_local_fn ();
-
-	set_local_int_value (en, type, value);
-
-	validate_client_server_remote_fn ();
-
-	set_remote_int_value (en, type, value);
-}
 
 
 
 
 
-static void set_client_int_value (entity *en, int_types type, int value)
-{
-	if (get_comms_data_flow () == COMMS_DATA_FLOW_TX)
-	{
-		validate_client_server_remote_fn ();
 
-		set_remote_int_value (en, type, value);
-	}
-	else
-	{
-		validate_client_server_local_fn ();
 
-		set_local_int_value (en, type, value);
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -486,114 +486,114 @@ static int get_local_int_value (entity *en, int_types type)
 
 
 
-void overload_session_int_value_functions (void)
-{
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_SESSION][INT_TYPE_AUTO_ASSIGN_GUNSHIP]													= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_AUTO_ASSIGN_GUNSHIP]													= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_AUTO_ASSIGN_GUNSHIP][COMMS_MODEL_SERVER]						= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_AUTO_ASSIGN_GUNSHIP][COMMS_MODEL_CLIENT]						= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_AUTO_ASSIGN_GUNSHIP]													= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_SESSION][INT_TYPE_CAMPAIGN_MEDAL]													= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_CAMPAIGN_MEDAL]													= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_CAMPAIGN_MEDAL][COMMS_MODEL_SERVER]						= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_CAMPAIGN_MEDAL][COMMS_MODEL_CLIENT]						= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_CAMPAIGN_MEDAL]													= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_SESSION][INT_TYPE_CAMPAIGN_REQUIRES_APACHE_HAVOC]													= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_CAMPAIGN_REQUIRES_APACHE_HAVOC]													= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_CAMPAIGN_REQUIRES_APACHE_HAVOC][COMMS_MODEL_SERVER]						= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_CAMPAIGN_REQUIRES_APACHE_HAVOC][COMMS_MODEL_CLIENT]						= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_CAMPAIGN_REQUIRES_APACHE_HAVOC]													= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_SESSION][INT_TYPE_CHEATS_ENABLED]									= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_CHEATS_ENABLED]									= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_CHEATS_ENABLED][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_CHEATS_ENABLED][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_CHEATS_ENABLED]									= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_DAY]													= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_DAY_SEGMENT_TYPE]								= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_SESSION][INT_TYPE_INFINITE_FUEL]				 					= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_INFINITE_FUEL]					  				= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_INFINITE_FUEL][COMMS_MODEL_SERVER]			= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_INFINITE_FUEL][COMMS_MODEL_CLIENT]			= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_INFINITE_FUEL]							  		= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_SESSION][INT_TYPE_INFINITE_WEAPONS]								= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_INFINITE_WEAPONS]								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_INFINITE_WEAPONS][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_INFINITE_WEAPONS][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_INFINITE_WEAPONS]								= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_SESSION][INT_TYPE_INVULNERABLE_FROM_COLLISIONS]										= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_INVULNERABLE_FROM_COLLISIONS]										= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_INVULNERABLE_FROM_COLLISIONS][COMMS_MODEL_SERVER]			= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_INVULNERABLE_FROM_COLLISIONS][COMMS_MODEL_CLIENT]			= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_INVULNERABLE_FROM_COLLISIONS]										= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_SESSION][INT_TYPE_INVULNERABLE_FROM_WEAPONS]										= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_INVULNERABLE_FROM_WEAPONS]										= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_INVULNERABLE_FROM_WEAPONS][COMMS_MODEL_SERVER]			= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_INVULNERABLE_FROM_WEAPONS][COMMS_MODEL_CLIENT]			= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_INVULNERABLE_FROM_WEAPONS]										= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_SESSION][INT_TYPE_LOCAL_WEATHER_MODEL]							= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_LOCAL_WEATHER_MODEL]							= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_LOCAL_WEATHER_MODEL][COMMS_MODEL_SERVER]	= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_LOCAL_WEATHER_MODEL][COMMS_MODEL_CLIENT]	= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_LOCAL_WEATHER_MODEL]							= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_SESSION][INT_TYPE_SESSION_COMPLETE]								= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_SESSION_COMPLETE]								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_SESSION_COMPLETE][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_SESSION_COMPLETE][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_SESSION_COMPLETE]								= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_SESSION][INT_TYPE_SKIP_NIGHT_TIME]									= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_SKIP_NIGHT_TIME]									= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_SKIP_NIGHT_TIME][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_SKIP_NIGHT_TIME][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_SKIP_NIGHT_TIME]									= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_SESSION][INT_TYPE_SUPPRESS_AI_FIRE]								= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_SUPPRESS_AI_FIRE]								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_SUPPRESS_AI_FIRE][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_SUPPRESS_AI_FIRE][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_SUPPRESS_AI_FIRE]								= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_SESSION][INT_TYPE_TARGET_WEATHER_MODE]							= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_TARGET_WEATHER_MODE]							= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_TARGET_WEATHER_MODE][COMMS_MODEL_SERVER]	= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_TARGET_WEATHER_MODE][COMMS_MODEL_CLIENT]	= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_TARGET_WEATHER_MODE]							= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_SESSION][INT_TYPE_VERSION_NUMBER]									= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_VERSION_NUMBER]									= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_VERSION_NUMBER][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_VERSION_NUMBER][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_VERSION_NUMBER]									= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_SESSION][INT_TYPE_WEATHER_INCREASING]								= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_WEATHER_INCREASING]								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_WEATHER_INCREASING][COMMS_MODEL_SERVER]	= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_WEATHER_INCREASING][COMMS_MODEL_CLIENT]	= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_WEATHER_INCREASING]								= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_SESSION][INT_TYPE_WEATHER_MODE]										= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_WEATHER_MODE]										= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_WEATHER_MODE][COMMS_MODEL_SERVER]			= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_WEATHER_MODE][COMMS_MODEL_CLIENT]			= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_WEATHER_MODE]										= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_SESSION][INT_TYPE_WIND_INCREASING]									= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_WIND_INCREASING]									= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_WIND_INCREASING][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_SESSION][INT_TYPE_WIND_INCREASING][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_SESSION][INT_TYPE_WIND_INCREASING]									= get_local_int_value;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

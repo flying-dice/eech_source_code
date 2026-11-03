@@ -137,12 +137,12 @@ static void update_client (entity *en)
 
 
 
-void overload_weapon_update_functions (void)
-{
-	fn_update_client_server_entity[ENTITY_TYPE_WEAPON][COMMS_MODEL_SERVER]	= update_server;
 
-	fn_update_client_server_entity[ENTITY_TYPE_WEAPON][COMMS_MODEL_CLIENT]  = update_client;
-}
+
+
+
+
+
 
 
 

@@ -128,9 +128,9 @@ static void update_fuel_weight (entity *en)
 		raw->fuel_supply_level = 10.0;
 		/*kill_client_server_entity (en);
 
-		#if DEBUG_MODULE || DEBUG_SUPPLY
-		debug_log ("HC_UPDT: %s out of fuel", get_local_entity_string (en, STRING_TYPE_FULL_NAME));
-		#endif*/
+
+
+
 	}
 	
 	// 20 MINS FUEL RESERVE RETURN HOME
@@ -189,9 +189,9 @@ static void update_fuel_weight (entity *en)
 							if (current_wp == wp || !get_local_entity_child_pred (current_wp, LIST_TYPE_WAYPOINT) || get_local_entity_child_pred (current_wp, LIST_TYPE_WAYPOINT) == wp)
 								break;
 
-							#if DEBUG_MODULE
-							debug_log ("HC_UPDT: %s low fuel, task %s cancelled", get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_string (task, STRING_TYPE_FULL_NAME));
-							#endif
+
+
+
 
 							group_return_to_base (group);
 							break;
@@ -491,11 +491,11 @@ static void update_server (entity *en)
 						}
 					}
 
-					#if DEBUG_MODULE
 
-					debug_log ("HC_UPDT: SERVER: moving client %d using AUTO PILOT", get_local_entity_index (en));
 
-					#endif
+
+
+
 				}
 				else
 				{
@@ -984,17 +984,17 @@ void interpolate_entity_position (entity *en)
 			connection->interpolation_time = get_system_time ();
 		}
 
-		#if DEBUG_MODULE
 
-		debug_log ("SERVER: interpolating entity %s (%d) old [%f, %f, %f], new [%f, %f, %f], motion_vector [%f, %f, %f], deltatime %f",
-						get_local_entity_string (en, STRING_TYPE_FULL_NAME),
-						get_local_entity_index (en),
-						position->x, position->y, position->z,
-						new_position.x, new_position.y, new_position.z,
-						motion_vector->x, motion_vector->y, motion_vector->z,
-						delta_time);
 
-		#endif
+
+
+
+
+
+
+
+
+
 	}
 }
 

@@ -240,26 +240,26 @@ void initialise_group_task_array (void)
 		}
 	}
 
-	#if DEBUG_MODULE
 
-	for (task = 0; task < NUM_ENTITY_SUB_TYPE_TASKS; task ++)
-	{
-		debug_filtered_log ("TASK %s", task_database [task].full_name);
-		debug_filtered_log ("=========================");
 
-		for (group = 0; group < NUM_ENTITY_SUB_TYPE_GROUPS; group ++)
-		{
-			if (group_task_array [group][task] > 0.0)
-			{
-				debug_filtered_log ("%s (%f)", group_database [group].full_name, group_task_array [group][task]);
-			}
-		}
 
-		debug_filtered_log ("");
-		debug_filtered_log ("");
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 

@@ -435,17 +435,17 @@ void assess_vehicle_damage_level (entity *en, int old_damage_level)
 		old_percent_damaged = (100.0 * (float)old_damage_level) / initial_damage;
 		new_percent_damaged = (100.0 * (float)raw->damage_level) / initial_damage;
 
-		#if DEBUG_MODULE
-			debug_log("VEHICLE: old damage %f, new damage %f", old_percent_damaged, new_percent_damaged);
-		#endif
+
+
+
 
 		// create smoke effect
 
 		if(new_percent_damaged < VEHICLE_CRITICAL_DAMAGE_LEVEL && old_percent_damaged >= VEHICLE_CRITICAL_DAMAGE_LEVEL)
 		{
-			#if DEBUG_MODULE
-				debug_log("VEHICLE: creating damaged smoke for %s", vehicle_database[raw->mob.sub_type].full_name);
-			#endif
+
+
+
 
 			if (get_local_entity_int_value (en, INT_TYPE_EXPLOSIVE_POWER) > 2)
 			{

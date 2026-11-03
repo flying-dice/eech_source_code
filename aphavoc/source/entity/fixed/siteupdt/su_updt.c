@@ -131,12 +131,12 @@ static void update_client (entity *en)
 
 
 
-void overload_site_updatable_update_functions (void)
-{
-	fn_update_client_server_entity[ENTITY_TYPE_SITE_UPDATABLE][COMMS_MODEL_SERVER]	= update_server;
 
-	fn_update_client_server_entity[ENTITY_TYPE_SITE_UPDATABLE][COMMS_MODEL_CLIENT]	= update_client;
-}
+
+
+
+
+
 
 
 

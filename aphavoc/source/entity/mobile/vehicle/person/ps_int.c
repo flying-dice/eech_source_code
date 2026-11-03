@@ -81,11 +81,11 @@ static void set_local_int_value (entity *en, int_types type, int value)
 	person
 		*raw;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_INT_VALUE, en, type, value);
 
-	#endif
+
+
+
 
 	raw = (person *) get_local_entity_data (en);
 
@@ -108,11 +108,11 @@ static void set_local_int_value (entity *en, int_types type, int value)
 
 static void set_remote_int_value (entity *en, int_types type, int value)
 {
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_INT_VALUE, en, type, value);
 
-	#endif
+
+
+
 
 	transmit_entity_comms_message (ENTITY_COMMS_INT_VALUE, en, type, value);
 }
@@ -201,13 +201,13 @@ static int get_local_int_value (entity *en, int_types type)
 
 
 
-void overload_person_int_value_functions (void)
-{
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_PERSON][INT_TYPE_MOVEMENT_TYPE]									= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_PERSON][INT_TYPE_TASK_TARGET_TYPE]								= get_local_int_value;
-}
+
+
+
+
+
 
 
 

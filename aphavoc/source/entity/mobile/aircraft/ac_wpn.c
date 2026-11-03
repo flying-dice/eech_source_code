@@ -188,13 +188,13 @@ aircraft_fire_result aircraft_fire_weapon (entity *en, unsigned int check_flags,
 
 	get_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &en_pos);
 
-	#if DEBUG_MODULE
-		if (en == get_external_view_entity ())
-			debug_flag = TRUE;
-		if (get_gunship_entity())
-			if (en == (get_local_entity_parent (get_gunship_entity(), LIST_TYPE_TARGET)))
-				debug_flag = TRUE;
-	#endif
+
+
+
+
+
+
+
 
 	if (raw->weapon_launch_delay)
 	{
@@ -416,13 +416,13 @@ void update_aircraft_weapon_fire (entity *en)
 
 	get_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &en_pos);
 
-	#if DEBUG_MODULE
-		if (en == get_external_view_entity ())
-			debug_flag = TRUE;
-		if (get_gunship_entity())
-			if (en == (get_local_entity_parent (get_gunship_entity(), LIST_TYPE_TARGET)))
-				debug_flag = TRUE;
-	#endif
+
+
+
+
+
+
+
 
 while(TRUE)
 {
@@ -694,15 +694,15 @@ int aircraft_select_best_weapon (entity *en, entity *target)
 
 		if (weapon_type == ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
 		{
-			#if DEBUG_MODULE
 
-			debug_log ("VH_WPN: %s (%d) Aborting engage task - no suitable weapon for %s (%d)",
-										get_local_entity_string (en, STRING_TYPE_FULL_NAME),
-										get_local_entity_index (en),
-										get_local_entity_string (target, STRING_TYPE_FULL_NAME),
-										get_local_entity_index (target));
 
-			#endif
+
+
+
+
+
+
+
 
 			guide = get_local_entity_parent (en, LIST_TYPE_FOLLOWER);
 
@@ -764,14 +764,14 @@ void update_aircraft_decoy_release (entity *en)
 
 	ASSERT (en);
 
-	#ifdef DEBUG
 
-	if (get_comms_model () == COMMS_MODEL_CLIENT)
-	{
-		ASSERT (en == get_gunship_entity ());
-	}
 
-	#endif
+
+
+
+
+
+
 
 	raw = (aircraft *) get_local_entity_data (en);
 

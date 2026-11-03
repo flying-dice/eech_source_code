@@ -280,11 +280,11 @@ entity *get_closest_free_landing_site (entity_sub_types sub_type, entity *force,
 		
 							range = get_approx_2d_range (landing_pos, pos);
 	
-							#if DEBUG_MODULE
-	
-							debug_log ("AI_MISC: assessing keysite %s range %f", get_local_entity_string (current_keysite, STRING_TYPE_KEYSITE_NAME), range);
-	
-							#endif
+
+
+
+
+
 		
 							if (range <= min_range)
 							{
@@ -611,15 +611,15 @@ int validate_landing_route (entity *route_task)
 
 	keysite_en = get_local_entity_parent (landing_en, LIST_TYPE_LANDING_SITE);
 
-	#if DEBUG_MODULE
 
-	debug_log ("Route Parsing: Keysite %s, landing %s, side %s, route %s",
-					get_local_entity_string (keysite_en, STRING_TYPE_KEYSITE_NAME),
-					entity_sub_type_landing_names [get_local_entity_int_value (landing_en, INT_TYPE_ENTITY_SUB_TYPE)],
-					entity_side_names [get_local_entity_int_value (keysite_en, INT_TYPE_SIDE)],
-					entity_sub_type_task_names [get_local_entity_int_value (route_task, INT_TYPE_ENTITY_SUB_TYPE)]);
 
-	#endif
+
+
+
+
+
+
+
 
 	switch (get_local_entity_int_value (route_task, INT_TYPE_ENTITY_SUB_TYPE))
 	{
@@ -1007,11 +1007,11 @@ int validate_landing_route (entity *route_task)
 		}
 	}
 
-	#if DEBUG_MODULE
 
-	debug_log ("Landing Route Parsing Complete");
 
-	#endif
+
+
+
 
 	return TRUE;
 }

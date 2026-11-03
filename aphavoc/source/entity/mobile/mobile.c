@@ -798,14 +798,14 @@ int mobile_check_all_members_taken_off (entity *en)
 		// Allow group to engage
 		//
 
-		#ifdef DEBUG
 
-		if (get_local_entity_int_value (group, INT_TYPE_AIRCRAFT_GROUP))
-		{
-			ASSERT (get_local_entity_int_value (group, INT_TYPE_ENGAGE_ENEMY) == FALSE);		// should be FALSE at this point
-		}
 
-		#endif
+
+
+
+
+
+
 		
 		set_local_entity_int_value (group, INT_TYPE_ENGAGE_ENEMY, get_local_entity_int_value (group, INT_TYPE_DEFAULT_ENGAGE_ENEMY));
 
@@ -852,11 +852,11 @@ int mobile_check_all_members_taken_off (entity *en)
 
 			destroy_client_server_entity (current_guide);
 
-			#if DEBUG_MODULE
 
-			debug_log ("MOBILE: moving member %s (%d) onto task waypoint list", get_local_entity_string (member, STRING_TYPE_FULL_NAME), get_local_entity_index (member));
 
-			#endif
+
+
+
 
 			attach_group_member_to_guide_entity (member, new_guide);
 
@@ -882,11 +882,11 @@ int mobile_check_all_members_taken_off (entity *en)
 		// place member into holding route
 		//
 
-		#if DEBUG_MODULE
 
-		debug_log ("MOBILE: placing member %s (%d) into holding route", get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_index (en));
 
-		#endif
+
+
+
 
 		//
 		// remove from takeoff task (assumes mobile is the only guide follower) 

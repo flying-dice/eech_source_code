@@ -209,11 +209,11 @@ void pack_ship_meta_smoke_lists (entity *en, pack_modes mode)
 
 		if (inst3d)
 		{
-			#if DEBUG_MODULE
 
-			debug_log ("SHIP : Packing smoke for %s ( %d )", vehicle_database [get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE)].full_name, en);
 
-			#endif
+
+
+
 
 			item = 0;
 
@@ -263,11 +263,11 @@ void pack_ship_meta_smoke_lists (entity *en, pack_modes mode)
 									{
 										pack_entity_safe_index (get_local_entity_index (special_effect));
 	
-										#if DEBUG_MODULE
-	
-										debug_log ("SHIP : Index %d = %d", packed_indices, get_local_entity_index (special_effect));
-	
-										#endif
+
+
+
+
+
 	
 										packed_indices ++;
 
@@ -323,11 +323,11 @@ void unpack_ship_meta_smoke_lists (entity *en, pack_modes mode)
 
 		if (inst3d)
 		{
-			#if DEBUG_MODULE
 
-			debug_log ("SHIP : Unpacking smoke for %s ( %d )", vehicle_database [get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE)].full_name, en);
 
-			#endif
+
+
+
 
 			item = 0;
 
@@ -370,11 +370,11 @@ void unpack_ship_meta_smoke_lists (entity *en, pack_modes mode)
 										entity_index_list [loop] = unpack_entity_safe_index ();
 									}
 
-									#if DEBUG_MODULE
 
-									debug_log ("ROUTED : Index %d = %d", loop, entity_index_list [loop]);
 
-									#endif
+
+
+
 								}
 
 								//attach_local_meta_smoke_lists_to_object (en, type, attachment_point, entity_index_list);

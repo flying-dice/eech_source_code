@@ -413,14 +413,14 @@ void update_keysite_cargo (entity *en, float cargo_level, entity_sub_types sub_t
 
 				destroy_client_server_entity_family (destroy_cargo);
 
-				#if DEBUG_MODULE || DEBUG_SUPPLY
 
-				debug_log ("KEYSITE: SUPPLY_INFO: destroying cargo %s at keysite %s (%d)",
-							entity_sub_type_cargo_names [sub_type],
-							get_local_entity_string (en, STRING_TYPE_KEYSITE_NAME),
-							get_local_entity_index (en));
 
-				#endif
+
+
+
+
+
+
 
 				continue;
 			}
@@ -441,14 +441,14 @@ void update_keysite_cargo (entity *en, float cargo_level, entity_sub_types sub_t
 		while (temp_cargo_level > cargo_size)
 		{
 	
-			#if DEBUG_MODULE || DEBUG_SUPPLY
 
-			debug_log ("KEYSITE: SUPPLY_INFO: creating cargo %s for keysite %s (%d)",
-							entity_sub_type_cargo_names [sub_type],
-							get_local_entity_string (en, STRING_TYPE_KEYSITE_NAME),
-							get_local_entity_index (en));
 
-			#endif
+
+
+
+
+
+
 		
 			create_client_server_entity
 			(
@@ -555,11 +555,11 @@ void initialise_keysite_farp_enable (entity *force)
 
 				set_local_entity_int_value (keysite, INT_TYPE_KEYSITE_USABLE_STATE, KEYSITE_STATE_USABLE);
 
-				#if DEBUG_MODULE
-	
-				debug_log ("KEYSITE: building FARP side %s, at %d, %d", entity_side_names [force_side], loop_x, loop_z);
 
-				#endif
+
+
+
+
 			}
 		}
 
@@ -676,11 +676,11 @@ int add_local_entity_importance_to_keysite (entity *en, entity *keysite_en)
 		
 				raw->keysite_maximum_strength += value;
 		
-				#if DEBUG_MODULE
 
-				debug_log ("KEYSITE: %s added %s, new strength (%.2f / %.2f)", raw->keysite_name, get_local_entity_string (en, STRING_TYPE_LONG_DISPLAY_NAME), raw->keysite_strength, raw->keysite_maximum_strength);
 
-				#endif
+
+
+
 
 				return TRUE;
 			}
@@ -718,11 +718,11 @@ int restore_local_entity_importance_to_keysite (entity *en, entity *keysite_en)
 		
 				raw->keysite_strength += value;
 		
-				#if DEBUG_MODULE
 
-				debug_log ("KEYSITE: %s restored %s, new strength (%.2f / %.2f)", raw->keysite_name, get_local_entity_string (en, STRING_TYPE_LONG_DISPLAY_NAME), raw->keysite_strength, raw->keysite_maximum_strength);
 
-				#endif
+
+
+
 
 				return TRUE;
 			}

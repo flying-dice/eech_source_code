@@ -122,20 +122,20 @@ void update_fixed_wing_crate_dropping (entity *en)
 					// go round again
 					//
 	
-					#if DEBUG_MODULE
-	
-					debug_log ("FIXWING: SUPPLY_INFO: aircraft not ready to drop crates");
-	
-					#endif
+
+
+
+
+
 				}
 				else
 				{
 	
-					#if DEBUG_MODULE
-	
-					debug_log ("FIXWING: SUPPLY_INFO: aircraft dropping crate");
-	
-					#endif
+
+
+
+
+
 				}
 			}
 		}

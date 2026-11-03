@@ -177,16 +177,16 @@ void helicopter_movement (entity *en)
 	helicopter
 		*raw;
 
-	#ifdef DEBUG
 
-	if (en == get_external_view_entity ())
-	{
 
-		// Put breakpoint here to debug external-view-entity
-		raw = NULL;
-	}
 
-	#endif
+
+
+
+
+
+
+
 
 	raw = (helicopter *) get_local_entity_data (en);
 
@@ -294,13 +294,13 @@ void helicopter_movement (entity *en)
 	if (get_3d_vector_magnitude(&wp_vec) > 1.1 * max_vel) // limit absolute velocity value
 		normalise_3d_vector_given_magnitude(&wp_vec, get_3d_vector_magnitude(&wp_vec) / (1.1 * max_vel));
 
-	#if DEBUG_MODULE
 
-	wp_pos.y = height;
 
-	 debug_visuals (en, &wp_pos, 0);
 
-	#endif
+
+
+
+
 
 	//
 	//
@@ -965,19 +965,19 @@ int helicopter_crash_movement (entity *en)
 	// Stop Aircraft ?
 	//
 
-	#if DEBUG_MODULE > 1
 
-	if (en == get_external_view_entity ())
-	{
-		float
-			slope;
 
-		slope = acos (face_normal->y);
 
-		debug_log ("SLOPE %f - SPEED %f (dx %f, dy %f, dz %f)", deg (slope), speed, dx, dy, dz);
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
 
 	if (speed < 1.0)
 	{
@@ -1455,16 +1455,16 @@ float helicopter_movement_get_desired_pitch (entity *en, vec3d *model_motion_vec
 		pitch += get_local_entity_float_value (en, FLOAT_TYPE_MAIN_ROTOR_SHAFT_ANGLE);
 	}
 
-	#if DEBUG_MODULE > 1
 
-	if (en == get_external_view_entity ())
-	{
-		float aircraft_pitch = get_local_entity_float_value(en, FLOAT_TYPE_PITCH);
 
-		debug_log ("HC_MOVE: movement pitch %f, targeting_pitch %f, AC pitch %f", deg(pitch), deg(targeting_pitch), deg(aircraft_pitch));
-	}
 
-	#endif
+
+
+
+
+
+
+
 
 	return bound(targeting_pitch ? get_local_entity_float_value(en, FLOAT_TYPE_PITCH) + targeting_pitch : pitch, - HELICOPTER_MAX_PITCH, HELICOPTER_MAX_PITCH);
 }
@@ -1619,14 +1619,14 @@ float helicopter_movement_structure_avoidance (entity *en)
 			{
 				max_height = max (max_height, get_local_entity_float_value (structure, FLOAT_TYPE_FIXED_STRUCTURE_HEIGHT));
 
-				#if DEBUG_MODULE > 1
 
-				if (en == get_external_view_entity ())
-				{
-					debug_log ("%s - Max height %f", object_3d_enumeration_names [get_local_entity_int_value (structure, INT_TYPE_OBJECT_3D_SHAPE)], max_height);
-				}
 
-				#endif
+
+
+
+
+
+
 			}
 		}
 
@@ -1903,20 +1903,20 @@ void helicopter_adjust_waypoint_position_with_los (entity *en, vec3d *wp_pos)
 
 	hc = get_local_entity_first_child (group, LIST_TYPE_MEMBER);
 
-	#if 0
-	{
-		rgb_colour
-			los_colour;
 
-		los_colour.r = 0.0;
-		los_colour.g = 0.0;
-		los_colour.b = 255.0;
-		los_colour.a = 255.0;
 
-		// vertical line to wp
-		create_debug_3d_line (en_pos, wp_pos, los_colour, 0.001);
-	}
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
 
 	closest_range = ((500.0 * METRE) * (500.0 * METRE));
 
@@ -1974,20 +1974,20 @@ void helicopter_adjust_waypoint_position_with_los (entity *en, vec3d *wp_pos)
 		wp_pos->y = new_pos.y;
 		wp_pos->z = new_pos.z;
 
-		#if 0
-		{
-			rgb_colour
-				los_colour;
 
-			los_colour.r = 255.0;
-			los_colour.g = 0.0;
-			los_colour.b = 0.0;
-			los_colour.a = 255.0;
 
-			// vertical line to wp
-			create_debug_3d_line (en_pos, wp_pos, los_colour, 0.001);
-		}
-		#endif
+
+
+
+
+
+
+
+
+
+
+
+
 	}
 }
 	

@@ -78,11 +78,11 @@
 
 
 
-#if DEBUG_MODULE
 
-static void debug_output_force_order_of_battle (entity *force);
 
-#endif
+
+
+
 
 
 
@@ -710,11 +710,11 @@ void initialise_order_of_battle (void)
 
 		assign_remaining_groups_to_divisions (force);
 
-		#if DEBUG_MODULE
 
-		debug_output_force_order_of_battle (force);
 
-		#endif
+
+
+
 
 		force = get_local_entity_child_succ (force, LIST_TYPE_FORCE);
 	}
@@ -724,83 +724,83 @@ void initialise_order_of_battle (void)
 
 
 
-#if DEBUG_MODULE
-
-static void debug_output_division (entity *en)
-{
-	int
-		sub_type,
-		id;
-
-	entity
-		*next,
-		*hq;
-
-	ASSERT (en);
-
-	if (get_local_entity_type (en) == ENTITY_TYPE_GROUP)
-	{
-		debug_filtered_log ("%s (%s %d)", get_local_entity_string (en, STRING_TYPE_DIVISION_NAME), get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_index (en));
-	}
-	else
-	{
-		next = get_local_entity_first_child (en, LIST_TYPE_DIVISION);
-
-		if (next)
-		{
-			id = get_local_entity_int_value (en, INT_TYPE_DIVISION_ID);
-
-			sub_type = get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE);
-
-			hq = get_local_entity_parent (en, LIST_TYPE_DIVISION_HEADQUARTERS);
-
-			if (hq)
-			{
-				debug_filtered_log ("%s (@ %s)", get_local_entity_string (en, STRING_TYPE_DIVISION_NAME), get_local_entity_string (hq, STRING_TYPE_KEYSITE_NAME));
-			}
-			else
-			{
-				debug_filtered_log ("%s", get_local_entity_string (en, STRING_TYPE_DIVISION_NAME));
-			}
-
-			while (next)
-			{
-				debug_output_division (next);
-
-				next = get_local_entity_child_succ (next, LIST_TYPE_DIVISION);
-			}
-		}
-	}
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE
 
-void debug_output_force_order_of_battle (entity *force)
-{
-	entity
-		*en;
 
-	ASSERT (force);
 
-	debug_filtered_log ("%s", entity_side_names [get_local_entity_int_value (force, INT_TYPE_SIDE)]);
 
-	en = get_local_entity_first_child (force, LIST_TYPE_DIVISION);
 
-	while (en)
-	{
-		debug_output_division (en);
 
-		en = get_local_entity_child_succ (en, LIST_TYPE_DIVISION);
-	}
-}
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

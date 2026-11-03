@@ -130,11 +130,11 @@ void initialise_ai_sector_exposure (void)
 		}
 	}
 
-	#if DEBUG_MODULE
 
-	debug_log ("AI_SECT: Terrain min height %d, max height %d", min_terrain_height, max_terrain_height);
 
-	#endif
+
+
+
 
 	//
 	// exposure is the average delta height of the 4 sectors in an ai sector. Roughly scaled to 0 -> 255
@@ -162,11 +162,11 @@ void initialise_ai_sector_exposure (void)
 
 			delta_value = bound (delta_value, 0, 255);
 
-			#if DEBUG_MODULE
 
-			debug_log ("AI_SECT: sector %d, %d exposure level = %d, delta value = %d", x, z, value, delta_value);
 
-			#endif
+
+
+
 
 			sector = get_local_raw_sector_entity (x, z);
 

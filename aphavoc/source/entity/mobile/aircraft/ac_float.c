@@ -91,11 +91,11 @@ static void set_local_float_value (entity *en, float_types type, float value)
 	aircraft
 		*raw;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_FLOAT_VALUE, en, type, value);
 
-	#endif
+
+
+
 
 	raw = (aircraft *) get_local_entity_data (en);
 
@@ -216,35 +216,16 @@ static void set_local_float_value (entity *en, float_types type, float value)
 
 #if SET_CLIENT_SERVER_REQUIRED
 
-static void set_remote_float_value (entity *en, float_types type, float value)
-{
-	#if DEBUG_MODULE
-
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_FLOAT_VALUE, en, type, value);
-
-	#endif
-
-	transmit_entity_comms_message (ENTITY_COMMS_FLOAT_VALUE, en, type, value);
-}
-
-#endif
 
 
 
 
 
-#if SET_CLIENT_SERVER_REQUIRED
 
-static void set_server_float_value (entity *en, float_types type, float value)
-{
-	validate_client_server_local_fn ();
 
-	set_local_float_value (en, type, value);
 
-	validate_client_server_remote_fn ();
 
-	set_remote_float_value (en, type, value);
-}
+
 
 #endif
 
@@ -254,21 +235,40 @@ static void set_server_float_value (entity *en, float_types type, float value)
 
 #if SET_CLIENT_SERVER_REQUIRED
 
-static void set_client_float_value (entity *en, float_types type, float value)
-{
-	if (get_comms_data_flow () == COMMS_DATA_FLOW_TX)
-	{
-		validate_client_server_remote_fn ();
 
-		set_remote_float_value (en, type, value);
-	}
-	else
-	{
-		validate_client_server_local_fn ();
 
-		set_local_float_value (en, type, value);
-	}
-}
+
+
+
+
+
+
+
+
+
+#endif
+
+
+
+
+
+#if SET_CLIENT_SERVER_REQUIRED
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #endif
 
@@ -709,150 +709,150 @@ static float get_local_float_value (entity *en, float_types type)
 
 
 
-void overload_aircraft_float_value_functions (entity_types type)
-{
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_AIR_RADAR_CONTACT_TIMEOUT]								= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_AIR_RADAR_CONTACT_TIMEOUT]								= set_local_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_AIR_RADAR_CONTACT_TIMEOUT]								= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_AIR_SCAN_RANGE] 											= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_AMMO_ECONOMY]												= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_ATTACK_ALTITUDE]											= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_AVOIDANCE_RADIUS]											= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_CARGO_DOOR_STATE]											= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_CARGO_DOOR_STATE]											= set_local_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_CARGO_DOOR_STATE][COMMS_MODEL_SERVER]				= set_server_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_CARGO_DOOR_STATE][COMMS_MODEL_CLIENT]				= set_client_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_CARGO_DOOR_STATE]											= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE]				= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_CHASE_VIEW_MAX_DISTANCE]								= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_CHASE_VIEW_MAX_DISTANCE_TEST]							= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_CHASE_VIEW_MIN_DISTANCE]								= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_CHASE_VIEW_MIN_DISTANCE_TEST]							= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_CRUISE_ALTITUDE]											= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_CRUISE_VELOCITY]											= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_DEATH_TIMER]												= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_DEATH_TIMER]												= set_local_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_DEATH_TIMER][COMMS_MODEL_SERVER]						= set_server_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_DEATH_TIMER][COMMS_MODEL_CLIENT]						= set_client_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_DEATH_TIMER]												= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_DISTANCE]													= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_DISTANCE]													= set_local_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_DISTANCE][COMMS_MODEL_SERVER]							= set_server_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_DISTANCE][COMMS_MODEL_CLIENT]							= set_client_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_DISTANCE]													= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_WEAPON_TO_INTERCEPT_POINT_RANGE]													= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_WEAPON_TO_INTERCEPT_POINT_RANGE]													= set_local_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_WEAPON_TO_INTERCEPT_POINT_RANGE][COMMS_MODEL_SERVER]							= set_server_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_WEAPON_TO_INTERCEPT_POINT_RANGE][COMMS_MODEL_CLIENT]							= set_client_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_WEAPON_TO_INTERCEPT_POINT_RANGE]													= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_FUEL_DEFAULT_WEIGHT]										= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_FUEL_ECONOMY]												= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_FUSELAGE_ANGLE]											= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_LOADING_DOOR_STATE]										= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_LOADING_DOOR_STATE]										= set_local_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_LOADING_DOOR_STATE][COMMS_MODEL_SERVER]			= set_server_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_LOADING_DOOR_STATE][COMMS_MODEL_CLIENT]			= set_client_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_LOADING_DOOR_STATE]										= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_MAIN_ROTOR_DIRECTION]									= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_MAIN_ROTOR_BLADE_DROOP_ANGLE]							= get_local_float_value;
 
-	// Xhit added following function for downwash effect 030328
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_MAIN_ROTOR_RADIUS]									= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_MAIN_ROTOR_SHAFT_ANGLE]									= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_MAX_3D_OBJECT_VISUAL_RANGE]							= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_MAX_TURN_RATE]												= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_MAX_ROLL]													= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_MAX_VERTICAL_TURN_ALLOWANCE]							= get_local_float_value;
 
-	// Xhit added following function for downwash effect 030328
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_NUMBER_OF_MAIN_ROTORS]									= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_POTENTIAL_AIR_THREAT]									= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_POTENTIAL_AIR_TO_AIR_THREAT]							= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_POTENTIAL_AIR_TO_SURFACE_THREAT]	  					= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_POTENTIAL_SURFACE_THREAT]	  							= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_PROPELLOR_DIRECTION]										= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_RADAR_ALTITUDE]											= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_RECON_RADIUS]												= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value  		[type][FLOAT_TYPE_RUDDER_STATE]												= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_RUDDER_STATE]												= set_local_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_RUDDER_STATE][COMMS_MODEL_SERVER]					= set_server_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_RUDDER_STATE][COMMS_MODEL_CLIENT]					= set_client_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_RUDDER_STATE]												= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_SURFACE_SCAN_RANGE]		 								= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_TAIL_ROTOR_DIRECTION]									= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_TARGET_PRIORITY_AIR_ATTACK]	  						= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_TARGET_PRIORITY_GROUND_ATTACK]						= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_TARGET_SCAN_DELAY]	 		  	  						= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_TARGET_SCAN_TIMER]	 		  	  						= get_local_float_value;
 
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_TERRAIN_ELEVATION]	 		  	  						= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value  		[type][FLOAT_TYPE_UNDERCARRIAGE_STATE]										= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_UNDERCARRIAGE_STATE]										= set_local_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_UNDERCARRIAGE_STATE][COMMS_MODEL_SERVER]			= set_server_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_UNDERCARRIAGE_STATE][COMMS_MODEL_CLIENT]			= set_client_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_UNDERCARRIAGE_STATE]										= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_VIEW_INTEREST_LEVEL]										= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_VIEW_INTEREST_LEVEL]										= set_local_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_VIEW_INTEREST_LEVEL]										= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_WEAPON_BURST_TIMER]										= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_WEAPON_BURST_TIMER]										= set_local_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_WEAPON_BURST_TIMER]										= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value  		[type][FLOAT_TYPE_WEAPON_LAUNCH_DELAY]												= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_WEAPON_LAUNCH_DELAY]												= set_local_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_WEAPON_LAUNCH_DELAY][COMMS_MODEL_SERVER]					= set_server_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_WEAPON_LAUNCH_DELAY][COMMS_MODEL_CLIENT]					= set_client_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_WEAPON_LAUNCH_DELAY]												= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[type][FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE]								= set_local_float_value;
-	fn_set_local_entity_float_value				[type][FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE]								= set_local_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[type][FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[type][FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE]								= get_local_float_value;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

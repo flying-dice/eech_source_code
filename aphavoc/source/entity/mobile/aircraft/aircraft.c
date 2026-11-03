@@ -245,9 +245,9 @@ void switch_aircraft_damaged_smoke (entity *en)
 
 	damage_level = aircraft_critically_damaged(en);
 	
-	#if DEBUG_MODULE
-		debug_log("AIRCRAFT: switching damaged smoke for %s, damage_level %i, high_speed %i", aircraft_database [get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE)].full_name, damage_level, high_speed);
-	#endif
+
+
+
 		
 	if (get_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE) != OPERATIONAL_STATE_DEAD)
 	{
@@ -292,9 +292,9 @@ void assess_aircraft_damage_level (entity *en, int old_damage_level, int new_dam
 	old_percent_damaged = (100.0 * (float)old_damage_level) / initial_damage;
 	new_percent_damaged = (100.0 * (float)new_damage_level) / initial_damage;
 
-	#if DEBUG_MODULE
-		debug_log("AIRCRAFT: %s old damage %f, new damage %f", aircraft_database [get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE)].full_name, old_percent_damaged, new_percent_damaged);
-	#endif
+
+
+
 		
 	// Eject Pilot(s)
 
@@ -325,9 +325,9 @@ void assess_aircraft_damage_level (entity *en, int old_damage_level, int new_dam
 				{
 					task = get_local_entity_parent (guide, LIST_TYPE_GUIDE);
 
-					#if DEBUG_MODULE
-					debug_log("TASK PRIORITY %f", task->task_data->task_priority);
-					#endif
+
+
+
 					if (task->task_data->task_priority <= 5.0)
 						group_return_to_base (group);
 				}

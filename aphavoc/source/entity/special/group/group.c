@@ -297,32 +297,32 @@ int assess_group_task_locality_factor (entity *group_en, entity *task_en, float 
 
 	eta = distance / cruise_speed;
 
-	#if DEBUG_MODULE
 
-	debug_log ("GROUP: en %s (%d) task %s (%d), speed = %f, distance = %f. ETA = %f sec, expire time %f sec",
-					get_local_entity_string (member, STRING_TYPE_FULL_NAME),
-					get_local_entity_index (member),
-					get_local_entity_string (task_en, STRING_TYPE_FULL_NAME),
-					get_local_entity_index (task_en),
-					cruise_speed,
-					distance,
-					eta,
-					get_local_entity_float_value (task_en, FLOAT_TYPE_EXPIRE_TIMER));
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
 
 	if (eta > get_local_entity_float_value (task_en, FLOAT_TYPE_EXPIRE_TIMER))
 	{
 
-		#if DEBUG_MODULE
 
-		debug_log ("GROUP: task %s (%d) group %s (%d), rejected, too far away.",
-					get_local_entity_string (task_en, STRING_TYPE_FULL_NAME),
-					get_local_entity_index (task_en),
-					get_local_entity_string (group_en, STRING_TYPE_FULL_NAME),
-					get_local_entity_index (group_en));
 
-		#endif
+
+
+
+
+
+
+
 
 		return FALSE;
 	}
@@ -356,11 +356,11 @@ entity *get_group_at_road_node (int node)
 			if ((get_local_entity_int_value (group, INT_TYPE_ROUTE_NODE) == node) &&
 				(get_local_entity_int_value (group, INT_TYPE_ALIVE)))
 			{
-				#if DEBUG_MODULE
 
-				debug_log ("GP_MSGS: found retreat group %d side %s at node %d", group, entity_side_names [get_local_entity_int_value (group, INT_TYPE_SIDE)], node);
 
-				#endif
+
+
+
 
 				return group;
 			}
@@ -422,47 +422,47 @@ int amalgamate_groups (entity *receiving_group, entity *donating_group)
 	if ((donating_group_count + receiving_group_count) <= group_database [group_type].maximum_member_count)
 	{
 
-		#ifdef DEBUG
 
-		//#if DEBUG_MODULE
 
-		if ((get_local_entity_parent (donating_group, LIST_TYPE_KEYSITE_GROUP)) && (get_local_entity_parent (receiving_group, LIST_TYPE_KEYSITE_GROUP)))
-		{
 
-			ASSERT (get_local_entity_type (get_local_entity_parent (donating_group, LIST_TYPE_KEYSITE_GROUP)) == get_local_entity_type (get_local_entity_parent (receiving_group, LIST_TYPE_KEYSITE_GROUP)));
-		}
 
-		debug_log ("GROUP: amalgamating group %s %d (count %d) with group %s %d (count %d)",
-							entity_sub_type_group_names [group_type], get_local_entity_index (donating_group), donating_group_count,
-							entity_sub_type_group_names [group_type], get_local_entity_index (receiving_group), receiving_group_count);
 
-		member = get_local_entity_first_child (donating_group, LIST_TYPE_MEMBER);
 
-		while (member)
-		{
 
-			debug_log ("GROUP:	donating group member %s (%d)", get_local_entity_string (member, STRING_TYPE_FULL_NAME), get_local_entity_index (member));
 
-			ASSERT (get_local_entity_int_value (member, INT_TYPE_OPERATIONAL_STATE) == OPERATIONAL_STATE_LANDED);
 
-			member = get_local_entity_child_succ (member, LIST_TYPE_MEMBER);
-		}
 
-		member = get_local_entity_first_child (receiving_group, LIST_TYPE_MEMBER);
 
-		while (member)
-		{
 
-			debug_log ("GROUP:	receiving group member %s (%d)", get_local_entity_string (member, STRING_TYPE_FULL_NAME), get_local_entity_index (member));
 
-			ASSERT (get_local_entity_int_value (member, INT_TYPE_OPERATIONAL_STATE) == OPERATIONAL_STATE_LANDED);
 
-			member = get_local_entity_child_succ (member, LIST_TYPE_MEMBER);
-		}
 
-		//#endif
 
-		#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		member = get_local_entity_first_child (donating_group, LIST_TYPE_MEMBER);
 
@@ -508,45 +508,45 @@ int amalgamate_groups (entity *receiving_group, entity *donating_group)
 
 		kill_client_server_group_entity (donating_group);
 
-		#ifdef DEBUG
-		{
 
-			vec3d
-				*pos1,
-				*test_pos;
 
-			float
-				amalgamate_max_range = 10 * KILOMETRE;
 
-			member = get_local_entity_first_child (receiving_group, LIST_TYPE_MEMBER);
 
-			ASSERT (member);
-	
-			pos1 = get_local_entity_vec3d_ptr (member, VEC3D_TYPE_POSITION);
-	
-			member = get_local_entity_child_succ (member, LIST_TYPE_MEMBER);
 
-			while (member)
-			{
-	
-				test_pos = get_local_entity_vec3d_ptr (member, VEC3D_TYPE_POSITION);
 
-				if (get_2d_range (pos1, test_pos) > amalgamate_max_range)
-				{
 
-					debug_log ("GROUP: WARNING: Amalgamated group with members (%s (%d) and %s (%d)) %f apart -------------------------",
-									get_local_entity_string (get_local_entity_first_child (receiving_group, LIST_TYPE_MEMBER), STRING_TYPE_FULL_NAME),
-									get_local_entity_index (get_local_entity_first_child (receiving_group, LIST_TYPE_MEMBER)),
-									get_local_entity_string (member, STRING_TYPE_FULL_NAME),
-									get_local_entity_index (member),
-									get_2d_range (pos1, test_pos));
-				}
 
-				member = get_local_entity_child_succ (member, LIST_TYPE_MEMBER);
-			}
-	
-		}
-		#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		return TRUE;
 	}
@@ -644,11 +644,11 @@ void assess_group_supplies (entity *en)
 
 			force = get_local_force_entity ((entity_sides) get_local_entity_int_value (en, INT_TYPE_SIDE));
 
-			#if DEBUG_MODULE || DEBUG_SUPPLY
 
-			debug_log ("GROUP: SUPPLY_INFO: ground group %s low on ammo, requesting Supply mission", get_local_entity_string (en, STRING_TYPE_FULL_NAME));
 
-			#endif
+
+
+
 
 			notify_local_entity (ENTITY_MESSAGE_FORCE_LOW_ON_SUPPLIES, force, en, ENTITY_SUB_TYPE_CARGO_AMMO);
 		}
@@ -657,11 +657,11 @@ void assess_group_supplies (entity *en)
 
 			force = get_local_force_entity ((entity_sides) get_local_entity_int_value (en, INT_TYPE_SIDE));
 
-			#if DEBUG_MODULE || DEBUG_SUPPLY
 
-			debug_log ("GROUP: SUPPLY_INFO: ground group %s low on fuel, requesting Supply mission", get_local_entity_string (en, STRING_TYPE_FULL_NAME));
 
-			#endif
+
+
+
 
 			notify_local_entity (ENTITY_MESSAGE_FORCE_LOW_ON_SUPPLIES, force, en, ENTITY_SUB_TYPE_CARGO_FUEL);
 		}
@@ -703,18 +703,18 @@ void assess_group_supplies (entity *en)
 
 				set_client_server_entity_float_value (en, FLOAT_TYPE_AMMO_SUPPLY_LEVEL, raw->supplies.ammo_supply_level + required);
 
-				#if DEBUG_MODULE || DEBUG_SUPPLY
 
-				debug_log ("GROUP: SUPPLY_INFO: Air group %s members landed, rearming group (now ammo = %f, fuel = %f) from keysite %s (%d) (now ammo = %f, fuel = %f)",
-							get_local_entity_string (en, STRING_TYPE_FULL_NAME),
-							get_local_entity_float_value (en, FLOAT_TYPE_AMMO_SUPPLY_LEVEL),
-							get_local_entity_float_value (en, FLOAT_TYPE_FUEL_SUPPLY_LEVEL),
-							get_local_entity_string (keysite, STRING_TYPE_FULL_NAME),
-							get_local_entity_index (keysite),
-							get_local_entity_float_value (keysite, FLOAT_TYPE_AMMO_SUPPLY_LEVEL),
-							get_local_entity_float_value (keysite, FLOAT_TYPE_FUEL_SUPPLY_LEVEL));
 
-				#endif
+
+
+
+
+
+
+
+
+
+
 			}
 
 			if (raw->supplies.fuel_supply_level < 100.0)
@@ -745,18 +745,18 @@ void assess_group_supplies (entity *en)
 
 				set_client_server_entity_float_value (en, FLOAT_TYPE_FUEL_SUPPLY_LEVEL, raw->supplies.fuel_supply_level + required);
 
-				#if DEBUG_MODULE || DEBUG_SUPPLY
 
-				debug_log ("GROUP: SUPPLY_INFO: Air group %s members landed, refueling group (now ammo = %f, fuel = %f) from keysite %s (%d) (now ammo = %f, fuel = %f)",
-							get_local_entity_string (en, STRING_TYPE_FULL_NAME),
-							get_local_entity_float_value (en, FLOAT_TYPE_AMMO_SUPPLY_LEVEL),
-							get_local_entity_float_value (en, FLOAT_TYPE_FUEL_SUPPLY_LEVEL),
-							get_local_entity_string (keysite, STRING_TYPE_FULL_NAME),
-							get_local_entity_index (keysite),
-							get_local_entity_float_value (keysite, FLOAT_TYPE_AMMO_SUPPLY_LEVEL),
-							get_local_entity_float_value (keysite, FLOAT_TYPE_FUEL_SUPPLY_LEVEL));
 
-				#endif
+
+
+
+
+
+
+
+
+
+
 			}
 		}
 	}

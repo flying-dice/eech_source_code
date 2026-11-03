@@ -117,15 +117,15 @@ void update_vehicle_weapon_fire (entity *en)
 
 	target = raw->mob.target_link.parent;
 
-	#if DEBUG_MODULE
 
-	if (en == get_external_view_entity ())
-		debug_flag = DEBUG_MODULE;
-	if (get_gunship_entity())
-		if (en == (get_local_entity_parent (get_gunship_entity(), LIST_TYPE_TARGET)))
-			debug_flag = DEBUG_MODULE;
 
-	#endif
+
+
+
+
+
+
+
 
 while(TRUE)
 {
@@ -458,15 +458,15 @@ int vehicle_select_best_weapon (entity *en, entity *target)
 
 		if (weapon_type == ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
 		{
-			#if DEBUG_MODULE
 
-			debug_log ("VH_WPN: %s (%d) Aborting engage task - no suitable weapon for %s (%d)",
-										get_local_entity_string (en, STRING_TYPE_FULL_NAME),
-										get_local_entity_index (en),
-										get_local_entity_string (target, STRING_TYPE_FULL_NAME),
-										get_local_entity_index (target));
 
-			#endif
+
+
+
+
+
+
+
 
 			guide = get_local_entity_parent (en, LIST_TYPE_FOLLOWER);
 
@@ -752,10 +752,10 @@ void rearm_vehicle_weapons(entity *en)
 					{
 						package_status[package].rearming_timer = get_local_entity_rearming_sleep_time (group, weapon_config_database[config_type][package].sub_type);
 
-						#if DEBUG_MODULE || DEBUG_SUPPLY
-							debug_log("VH_WPN: %s / %s will be rearmed for %.1f seconds", 
-									get_local_entity_string (en, STRING_TYPE_FULL_NAME), weapon_database[weapon_config_database[config_type][package].sub_type].full_name, package_status[package].rearming_timer);
-						#endif
+
+
+
+
 					}
 					else
 						package_status[package].rearming_timer = max(0.0f, package_status[package].rearming_timer - get_delta_time());
@@ -769,9 +769,9 @@ void rearm_vehicle_weapons(entity *en)
 						
 						package_status[package].number = weapon_config_database[config_type][package].number;
 
-						#if DEBUG_MODULE || DEBUG_SUPPLY
-							debug_log("VH_WPN: %s / %s is rearmed, group ammo level %f percents", get_local_entity_string (en, STRING_TYPE_FULL_NAME), weapon_database[weapon_config_database[config_type][package].sub_type].full_name, ammo);
-						#endif
+
+
+
 					}
 				}
 			}

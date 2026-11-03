@@ -76,61 +76,61 @@
 
 
 
-#if DEBUG_MODULE 
-
-static int response_to_link_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE
-
-static int response_to_unlink_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE
-
-static int response_to_link_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE
 
-static int response_to_unlink_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	return (TRUE);
-}
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -141,11 +141,11 @@ static int response_to_waypoint_action (entity_messages message, entity *receive
 	entity
 		*current_wp;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
@@ -171,11 +171,11 @@ static int response_to_waypoint_action (entity_messages message, entity *receive
 static int response_to_waypoint_reached (entity_messages message, entity *receiver, entity *sender, va_list pargs)
 {
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
@@ -330,11 +330,11 @@ static int response_to_task_completed (entity_messages message, entity *receiver
 	task_terminated_types
 		task_terminated;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
@@ -365,11 +365,11 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 	task_terminated_types
 		task_terminated;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
@@ -422,11 +422,11 @@ static int response_to_group_killed (entity_messages message, entity *receiver, 
 	int
 		task_type;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
@@ -460,30 +460,30 @@ static int response_to_group_killed (entity_messages message, entity *receiver, 
 
 
 
-void overload_guide_message_responses (void)
-{
-	#if DEBUG_MODULE 
 
-	message_responses[ENTITY_TYPE_GUIDE][ENTITY_MESSAGE_LINK_CHILD]				= response_to_link_child;
 
-	message_responses[ENTITY_TYPE_GUIDE][ENTITY_MESSAGE_UNLINK_CHILD]				= response_to_unlink_child;
 
-	message_responses[ENTITY_TYPE_GUIDE][ENTITY_MESSAGE_LINK_PARENT] 				= response_to_link_parent;
 
-	message_responses[ENTITY_TYPE_GUIDE][ENTITY_MESSAGE_UNLINK_PARENT]			= response_to_unlink_parent;
 
-	#endif
 
-	message_responses[ENTITY_TYPE_GUIDE][ENTITY_MESSAGE_WAYPOINT_ACTION]			= response_to_waypoint_action;
 
-	message_responses[ENTITY_TYPE_GUIDE][ENTITY_MESSAGE_WAYPOINT_REACHED]		= response_to_waypoint_reached;
 
-	message_responses[ENTITY_TYPE_GUIDE][ENTITY_MESSAGE_TASK_TERMINATED]			= response_to_task_terminated;
 
-	message_responses[ENTITY_TYPE_GUIDE][ENTITY_MESSAGE_TASK_COMPLETED]			= response_to_task_completed;
 
-	message_responses[ENTITY_TYPE_GUIDE][ENTITY_MESSAGE_GROUP_KILLED]				= response_to_group_killed;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

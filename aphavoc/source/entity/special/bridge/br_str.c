@@ -108,10 +108,10 @@ static const char *get_local_string (entity *en, string_types type)
 
 
 
-void overload_bridge_string_functions (void)
-{
-	fn_get_local_entity_string	[ENTITY_TYPE_BRIDGE][STRING_TYPE_FULL_NAME]		= get_local_string;
-}
+
+
+
+
 
 
 

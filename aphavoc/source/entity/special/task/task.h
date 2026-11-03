@@ -223,11 +223,11 @@ extern entity *get_local_entity_primary_task (entity *en);
 
 extern entity *find_most_suitable_keysite_for_task (entity_sub_types task_type, entity_sides side, vec3d *pos, int check_capacity);
 
-#ifdef DEBUG
 
-extern void validate_task_entity (entity *en);
 
-#endif
+
+
+
 
 extern void add_kill_to_task (entity *task_en, entity *victim, entity *aggressor);
 

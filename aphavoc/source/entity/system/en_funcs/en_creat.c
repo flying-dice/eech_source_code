@@ -223,70 +223,70 @@ entity *create_local_entity (entity_types type, int index, ...)
 		debug_fatal ("EN_CREATE: CREATE_LOCAL_ENTITY : unable to create entity %s. Limit of %d reached", get_entity_type_name (type), number_of_entities);
 	}
 
-	#if DEBUG_MODULE
-	{
 
-		static int
-			reported_segment = FALSE,
-			reported_city_building = FALSE,
-			reported_sector = FALSE;
-	
-		switch (get_local_entity_type (en))
-		{
 
-			case ENTITY_TYPE_SEGMENT:
-			case ENTITY_TYPE_SECTOR:
-			case ENTITY_TYPE_CITY_BUILDING:
-			{
-	
-				if (get_local_entity_type (en) == ENTITY_TYPE_SEGMENT)
-				{
-		
-					if (reported_segment)
-					{
-		
-						break;
-					}
-		
-					reported_segment = TRUE;
-				}
-	
-				if (get_local_entity_type (en) == ENTITY_TYPE_SECTOR)
-				{
-		
-					if (reported_sector)
-					{
-		
-						break;
-					}
-		
-					reported_sector = TRUE;
-				}
-	
-				if (get_local_entity_type (en) == ENTITY_TYPE_CITY_BUILDING)
-				{
-		
-					if (reported_city_building)
-					{
-		
-						break;
-					}
-		
-					reported_city_building = TRUE;
-				}
-			}
 
-			default:
-			{
-	
-				debug_log ("EN_CREAT : Created %s (index %d), sub_type %d", entity_type_names [type], get_local_entity_index (en), get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE));
-	
-				break;
-			} 
-		}
-	
-	}
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	return (en);
 }
@@ -359,28 +359,28 @@ entity *create_client_server_entity (entity_types type, int index, ...)
 		debug_fatal ("EN_CREATE: CREATE_CLIENT_SERVER_ENTITY : unable to create entity %s. Limit of %d reached", get_entity_type_name (type), number_of_entities);
 	}
 
-	#if DEBUG_MODULE
 
-	switch (get_local_entity_type (en))
-	{
 
-		case ENTITY_TYPE_SEGMENT:
-		case ENTITY_TYPE_SECTOR:
-		case ENTITY_TYPE_CITY_BUILDING:
-		{
 
-			break;
-		}
-		default:
-		{
 
-			debug_log ("EN_CREAT : CS Created %s (index %d), sub_type %d", entity_type_names [type], get_local_entity_index (en), get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE));
 
-			break;
-		} 
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	return (en);
 }

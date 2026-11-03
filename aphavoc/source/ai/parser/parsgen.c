@@ -433,11 +433,11 @@ int parser_campaign_file (const char *filename, int *offset)
 
 				set_local_entity_int_value (get_session_entity (), INT_TYPE_AUTO_ASSIGN_GUNSHIP, flag);
 
-				#if DEBUG_MODULE
 
-				debug_log ("PARSER: auto assign gunship = %d", flag);
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -647,11 +647,11 @@ int parser_campaign_file (const char *filename, int *offset)
 					value4,
 					type;
 
-				#if DEBUG_MODULE
 
-				debug_log ("PARSER: reading campaign trigger");
 
-				#endif
+
+
+
 
 				type = get_next_file_enum (file_ptr, campaign_trigger_names, NUM_CAMPAIGN_TRIGGER_TYPES);
 
@@ -1239,11 +1239,11 @@ int parser_campaign_file (const char *filename, int *offset)
 
 					create_faction ((entity_sides) faction_side, colour);
 
-					#if DEBUG_MODULE
 
-					debug_log ("PARSER: loading campaign populate: faction id %d, colour %d", faction_side, colour);
 
-					#endif
+
+
+
 				}
 
 				//
@@ -1384,11 +1384,11 @@ int parser_campaign_file (const char *filename, int *offset)
 
 					raw->task_generation [this_type].valid = valid;
 
-					#if DEBUG_MODULE
 
-					debug_log ("PARSER: campaign load : setting %s force %s task generation to ", entity_side_names [get_local_entity_int_value (get_parser_force (), INT_TYPE_SIDE)], entity_sub_type_task_names [this_type], duration, frequency, urgency);
 
-					#endif
+
+
+
 				}
 
 				break;
@@ -1425,11 +1425,11 @@ int parser_campaign_file (const char *filename, int *offset)
 
 					force_raw->force_info_reserve_hardware [hardware_type] = count;
 
-					#if DEBUG_MODULE
 
-					debug_log ("PARSER: %s reserve %d", force_info_catagory_names [hardware_type], count);
 
-					#endif
+
+
+
 				}
 
 				break;
@@ -1485,14 +1485,14 @@ int parser_campaign_file (const char *filename, int *offset)
 
 //				create_frontline (get_parser_force ());
 
-				#if DEBUG_MODULE
 
-				debug_log ("PARSER: campaign load: faction side %s, colour %s, attitude %s",
-								entity_side_names [faction_side],
-								sys_colour_names [colour],
-								entity_force_attitude_names [attitude]);
 
-				#endif
+
+
+
+
+
+
 
 				break;
 			}
@@ -1711,11 +1711,11 @@ int parser_campaign_file (const char *filename, int *offset)
 
 				keysite_fuel_supplies = get_next_file_float (file_ptr);
 
-				#if DEBUG_MODULE
 
-				debug_log ("PARSER: campaign load: keysite type %s, ammo %f fuel %f", entity_sub_type_keysite_names [keysite_type], keysite_ammo_supplies, keysite_fuel_supplies);
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -1797,11 +1797,11 @@ int parser_campaign_file (const char *filename, int *offset)
 							if (get_local_entity_int_value (get_parser_keysite (), INT_TYPE_LANDING_TYPES) != required_landing_types)
 							{
 
-								#if DEBUG_MODULE
 
-								debug_log ("PARSER: warning ! keysite landing types not fully used");
 
-								#endif
+
+
+
 							}
 
 							//
@@ -1858,11 +1858,11 @@ int parser_campaign_file (const char *filename, int *offset)
 
 						member = get_local_entity_first_child (group, LIST_TYPE_MEMBER);
 
-						#if DEBUG_MODULE
 
-						debug_log ("PARSER: campaign load: create members, keysite %d, group type %d, entity type %d, member type %d, count %d", get_parser_keysite (), group_type, member_type, count);
 
-						#endif
+
+
+
 					}
 				}
 
@@ -1920,11 +1920,11 @@ int parser_campaign_file (const char *filename, int *offset)
 							if (get_local_entity_int_value (get_parser_keysite (), INT_TYPE_LANDING_TYPES) != required_landing_types)
 							{
 
-								#if DEBUG_MODULE
 
-								debug_log ("PARSER: warning ! keysite landing types not fully used");
 
-								#endif
+
+
+
 							}
 
 							//
@@ -1951,15 +1951,15 @@ int parser_campaign_file (const char *filename, int *offset)
 
 				group = create_landed_faction_group (get_parser_keysite (), group_type, (formation_component_types) formation_component_type);
 
-				#if DEBUG_MODULE
 
-				debug_log ("PARSER: campaign load: create group, keysite %d, formation component type %s, entity type %d, member type %d, count %d",
-				get_parser_keysite (),
-				formation_component_names [formation_component_type],
-				member_type,
-				count);
 
-				#endif
+
+
+
+
+
+
+
 
 				break;
 			}
@@ -2176,11 +2176,11 @@ int parser_campaign_file (const char *filename, int *offset)
 
 				version = get_next_file_int (file_ptr);
 
-				#if DEBUG_MODULE
 
-				debug_log ("PARSGEN: version number %d", version);
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -2195,11 +2195,11 @@ int parser_campaign_file (const char *filename, int *offset)
 				//VJ 051227 use set and get global season here
 				set_global_season( season );
 
-				#if DEBUG_MODULE
 
-				debug_log ("PARSGEN: season %d", get_global_season() );
 
-				#endif
+
+
+
 
 
 				break;
@@ -2342,11 +2342,11 @@ void add_campaign_trigger (campaign_trigger type, int value1, int value2, int va
 
 	campaign_trigger_head = new_campaign_trigger;
 
-	#if DEBUG_MODULE
 
-	debug_log ("FORCE: Campaign trigger %s, value1 = %d value2 = %d value3 = %d value4 = %d, result %s", campaign_trigger_names [trigger_type], value1, value2, value3, value4, campaign_trigger_result_names [result]);
 
-	#endif
+
+
+
 }
 
 

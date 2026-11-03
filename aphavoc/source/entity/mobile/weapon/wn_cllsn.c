@@ -422,9 +422,9 @@ float get_local_entity_armour_thickness (entity *target, entity *weapon)
 		
 		armor_thickness *= result;
 		
-		#if DEBUG_MODULE
-		debug_log("WN_COLLSN: armor: side %f, top %f, front %f, result %f, armour_thickness %f", impact_vector.x, impact_vector.y, impact_vector.z, result, armor_thickness);
-		#endif
+
+
+
 	}
 	
 //	{

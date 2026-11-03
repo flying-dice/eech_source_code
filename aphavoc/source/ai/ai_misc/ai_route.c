@@ -142,11 +142,11 @@ void initialise_route_data (void)
 
 	deinitialise_route_data ();
 
-   #if DEBUG_MODULE
 
-   debug_log ("ROUTE: Initialise ");
 
-   #endif
+
+
+
 
 	road_nodes_loaded = FALSE;
 
@@ -177,11 +177,11 @@ void load_route_data (void)
 void deinitialise_route_data (void)
 {
 
-   #if DEBUG_MODULE
 
-   debug_log ("ROUTE: Deinitialise");
 
-   #endif
+
+
+
 
 	deinitialise_road_route_data ();
 }
@@ -293,11 +293,11 @@ void deinitialise_road_route_data (void)
 void read_road_route_data (void)
 {
 
-	#if DEBUG_MODULE
 
-	debug_log ("AI_ROUTE: loading road node database");
 
-	#endif
+
+
+
 
    if (read_road_route_node_data ("ROADS"))
 	{
@@ -442,32 +442,32 @@ static int read_road_route_node_data (char *name)
 	
 			number_of_road_nodes --;
 
-			#if DEBUG_MODULE >= 2
-			{
 
-				int
-					loop,
-					loop2;
-	
-				//
-				// debug check for duplicate link descriptions
-				//
-	
-				for (loop = 0; loop < new_node->number_of_links; loop ++)
-				{
-	
-					for (loop2 = 0; loop2 < new_node->number_of_links; loop2 ++)
-					{
-	
-						if ((loop != loop2) && (new_node->links [loop].node == new_node->links [loop2].node))
-						{
-	
-							debug_log ("ROUTE: CHECK DUPLICATE ROUTE DESCRIPTION BETWEEN %d AND %d", new_node->node, new_node->links [loop].node);
-						}
-					}
-				}
-			}
-			#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 			new_node ++;
 		}
@@ -478,58 +478,58 @@ static int read_road_route_node_data (char *name)
 		// debug check for duplicate link descriptions
 		//
 
-		#if 0
-		for (loop = 0; loop < total_number_of_road_nodes; loop ++)
-		{
 
-			count = 0;
 
-			other_count = 0;
 
-			for (loop2 = 0; loop2 < road_nodes [loop].number_of_links; loop2 ++)
-			{
 
-				for (loop3 = 0; loop3 < road_nodes [loop].number_of_links; loop3 ++)
-				{
 
-					if ((loop2 != loop3) && (road_nodes [loop].links [loop2].node == road_nodes [loop].links [loop3].node))
-					{
 
-						count ++;
 
-						other_count = 0;
 
-						for (loop4 = 0; loop4 < road_nodes [road_nodes [loop].links [loop2].node].number_of_links; loop4 ++)
-						{
 
-							if (road_nodes [road_nodes [loop].links [loop2].node].links [loop4].node == road_nodes [loop].node)
-							{
 
-								if (road_nodes [road_nodes [loop].links [loop2].node].node != road_nodes [loop].node)
-								{
 
-									other_count ++;
-								}
-							}
-						}
-					}
-				}
-			}
 
-			if (count != other_count)
-			{
 
-				duplicate_count += 2;
 
-				#if DEBUG_MODULE
 
-				debug_log ("ROUTE: DUPLICATE ROUTE DESCRIPTION IN NODE %d, dup = %d", road_nodes [loop].node, duplicate_count);
 
-				#endif
-			}
-		}
 
-		#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		return TRUE;
 	}
@@ -1005,59 +1005,59 @@ node_link_data *get_road_sub_route (int node1, int node2, int *count, node_link_
 
 	*count = 0;
 
-	#if 0
 
-	debug_log ("AI_ROUTE: Warning ! Null sub route between %d and %d", node1, node2);
 
-	debug_log ("      node %d links to :", node1);
 
-	for (loop = 0; loop < road_nodes [node1].number_of_links; loop ++)
-	{
 
-		debug_log ("      node %d %f km", road_nodes [node1].links [loop].node, road_nodes [node1].links [loop].cost);
-	}
 
-	for (loop = 0; loop < total_road_node_link_count; loop ++)
-	{
 
-		if (road_node_link_positions [loop].source == node1)
-		{
 
-			debug_log ("      found link for %d to %d", node1, road_node_link_positions [loop].destination);
-		}
 
-		if (road_node_link_positions [loop].destination == node1)
-		{
 
-			debug_log ("      found link for %d to %d", road_node_link_positions [loop].source, node1);
-		}
-	}
 
-	debug_log ("      node %d links to :", node2);
 
-	for (loop = 0; loop < road_nodes [node2].number_of_links; loop ++)
-	{
 
-		debug_log ("      node %d %f km", road_nodes [node2].links [loop].node, road_nodes [node2].links [loop].cost);
-	}
 
-	for (loop = 0; loop < total_road_node_link_count; loop ++)
-	{
 
-		if (road_node_link_positions [loop].source == node2)
-		{
 
-			debug_log ("      found link for %d to %d", node2, road_node_link_positions [loop].destination);
-		}
 
-		if (road_node_link_positions [loop].destination == node2)
-		{
 
-			debug_log ("      found link for %d to %d", road_node_link_positions [loop].source, node2);
-		}
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	return NULL;
 }
@@ -1250,11 +1250,11 @@ void set_route_node_data_filename (char **route_node_data_filename, const char *
 
 	strcpy (*route_node_data_filename, filename);
 
-	#if DEBUG_MODULE
 
-	debug_log ("AI_ROUTE: setting database(%d) filename to %s", *route_node_data_filename, filename);
 
-	#endif
+
+
+
 }
 
 

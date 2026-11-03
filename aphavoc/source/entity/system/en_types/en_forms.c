@@ -305,11 +305,11 @@ void initialise_formation_database (void)
 
 					loop = 0;
 
-  					#if DEBUG_MODULE
 
-					debug_log ("EN_FORMS: loading formation %s", formation_names [new_formation->formation]);
 
-					#endif
+
+
+
 
 					while (loop < count)
 					{
@@ -325,11 +325,11 @@ void initialise_formation_database (void)
 						new_formation->sites [loop].y = y;
 						new_formation->sites [loop].z = z;
 
-						#if DEBUG_MODULE
 
-						debug_log ("	adding site %f, %f, %f", x, y, z);
 
-						#endif
+
+
+
 
 						loop ++;
 					}
@@ -751,11 +751,11 @@ void initialise_formation_component_database (void)
 
 					loop = 0;
 
-					#if DEBUG_MODULE
 
-					debug_log ("EN_FORMS: loading formation components %s, formation %s", formation_component_names [new_formation_component->formation_component], formation_names [new_formation_component->formation]);
 
-					#endif
+
+
+
 
 					while (loop < count * 2)
 					{
@@ -770,9 +770,9 @@ void initialise_formation_component_database (void)
 
 								type = get_next_file_enum (file_ptr, entity_sub_type_vehicle_names, NUM_ENTITY_SUB_TYPE_VEHICLES);
 
-								#if DEBUG_MODULE
-								debug_log ("	adding component %d %s", loop, entity_sub_type_vehicle_names [type]);
-								#endif
+
+
+
 
 								break;
 							}
@@ -784,9 +784,9 @@ void initialise_formation_component_database (void)
 
 								type = get_next_file_enum (file_ptr, entity_sub_type_aircraft_names, NUM_ENTITY_SUB_TYPE_AIRCRAFT);
 
-								#if DEBUG_MODULE
-								debug_log ("	adding component %d %s", loop, entity_sub_type_aircraft_names [type]);
-								#endif
+
+
+
 
 								break;
 							}

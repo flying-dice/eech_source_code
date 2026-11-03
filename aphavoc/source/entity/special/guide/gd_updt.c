@@ -80,11 +80,11 @@ static void update_server (entity *en)
 {
 	ASSERT (en);
 
-	#ifdef DEBUG
 
-	validate_local_guide_entity (en);
 
-	#endif
+
+
+
 
 	if (!get_local_entity_first_child (en, LIST_TYPE_FOLLOWER))
 	{
@@ -129,12 +129,12 @@ static void update_client (entity *en)
 
 
 
-void overload_guide_update_functions (void)
-{
-	fn_update_client_server_entity[ENTITY_TYPE_GUIDE][COMMS_MODEL_SERVER]  	= update_server;
 
-	fn_update_client_server_entity[ENTITY_TYPE_GUIDE][COMMS_MODEL_CLIENT]  	= update_client;
-}
+
+
+
+
+
 
 
 

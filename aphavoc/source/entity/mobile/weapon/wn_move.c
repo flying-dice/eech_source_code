@@ -347,11 +347,11 @@ static void move_guided_weapon (entity *en, vec3d *new_position, vec3d *intercep
 	//
 
 
-	#if DEBUG_MODULE
 
-	create_rotated_debug_3d_object (intercept_point, rad (0.0), rad (0.0), rad (0.0), OBJECT_3D_INTERCEPT_POINT_RED, 0.0, DEBUG_3D_OBJECT_SCALE);
 
-	#endif
+
+
+
 
 	// adjust for high trajectory
 
@@ -497,9 +497,9 @@ static void move_guided_weapon (entity *en, vec3d *new_position, vec3d *intercep
 
 	if (length < 1.0)
 	{
-		#if DEBUG_MODULE
-			debug_log("%s too close to target, hit counts", weapon_database[raw->mob.sub_type].full_name);
-		#endif
+
+
+
 
 		raw->kill_code = WEAPON_KILL_CODE_HIT_TARGET;
 
@@ -528,9 +528,9 @@ static void move_guided_weapon (entity *en, vec3d *new_position, vec3d *intercep
 				if (current_life_time > weapon_database[raw->mob.sub_type].inhibit_time && weapon_database[raw->mob.sub_type].detonation_radius >= length)  // weapon will detonate if armed and close enough to target
 				{
 
-					#if DEBUG_MODULE
-						debug_log("%s overshot airborne target (%0.1f degrees, limit %.2f, range %.2f, detonation radius %.2f", weapon_database[raw->mob.sub_type].full_name, deg(acos(cos_turn_demand)), deg(acos(weapon_database[raw->mob.sub_type].max_seeker_limit)), length, weapon_database[raw->mob.sub_type].detonation_radius);
-					#endif
+
+
+
 
 					raw->kill_code = WEAPON_KILL_CODE_OVERSHOT_TARGET;
 
@@ -841,9 +841,9 @@ static void check_guidance_source (weapon *raw, entity *en, int laser_guided)
 
 			if (get_local_entity_int_value (raw->launched_weapon_link.parent, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
 			{
-				#if DEBUG_MODULE
-//				debug_log("Finding parent's target (parent: %p, parent type %s", raw->launched_weapon_link.parent, entity_type_names[raw->launched_weapon_link.parent->type]);
-				#endif
+
+
+
 
 				// no target if no laser designation
 				if (laser_guided && !get_local_entity_int_value(raw->launched_weapon_link.parent, INT_TYPE_LASER_ON))
@@ -1004,9 +1004,9 @@ void weapon_movement (entity *en)
 		
 		raw->decoy_timer = 0;
 	
-		#if DEBUG_MODULE > 1
-			debug_log("Weapon timer is reached");
-		#endif
+
+
+
 
 		return;
 	}
@@ -1018,9 +1018,9 @@ void weapon_movement (entity *en)
 		else
 			raw->kill_code = WEAPON_KILL_CODE_EXHAUSTED;
 		
-		#if DEBUG_MODULE
-			debug_log("Weapon destroyed due to time exceeded");
-		#endif
+
+
+
 
 		return;
 	}
@@ -1039,11 +1039,11 @@ void weapon_movement (entity *en)
 		raw->mob.motion_vector.y = 0.0;
 		raw->mob.motion_vector.z = 0.0;
 
-		#if DEBUG_MODULE
 
-		create_vectored_debug_3d_object (&new_position, &raw->mob.zv, OBJECT_3D_VECTOR_GREEN, 0.0, DEBUG_3D_OBJECT_SCALE);
 
-		#endif
+
+
+
 
 		return;
 	}
@@ -1349,14 +1349,14 @@ void weapon_movement (entity *en)
 
 						insert_local_entity_into_parents_child_list (en, LIST_TYPE_TARGET, hit_target, NULL);
 
-						#if DEBUG_MODULE
-							debug_log("%s target switched", weapon_database[raw->mob.sub_type].full_name);
-						#endif
+
+
+
 					}
 
-					#if DEBUG_MODULE
-						debug_log("%s hit target", weapon_database[raw->mob.sub_type].full_name);
-					#endif
+
+
+
 
 					raw->kill_code = WEAPON_KILL_CODE_HIT_TARGET;
 				}
@@ -1364,9 +1364,9 @@ void weapon_movement (entity *en)
 				{
 					if (collision_test_weapon_with_trees (&old_position, &new_position))
 					{
-						#if DEBUG_MODULE
-							debug_log("%s collision with trees", weapon_database[raw->mob.sub_type].full_name);
-						#endif
+
+
+
 
 						raw->kill_code = WEAPON_KILL_CODE_SELF_DESTRUCT;
 					}
@@ -1561,20 +1561,20 @@ void weapon_movement (entity *en)
 	//
 
 
-	#if DEBUG_MODULE
 
-	if (raw->weapon_lifetime > 0.0)
-	{
-		create_debug_3d_line (&old_position, &new_position, sys_col_red, 30.0);
-	}
-	else
-	{
-		create_debug_3d_line (&old_position, &new_position, sys_col_yellow, 30.0);
-	}
 
-	create_vectored_debug_3d_object (&new_position, &raw->mob.zv, OBJECT_3D_VECTOR_GREEN, 0.0, DEBUG_3D_OBJECT_SCALE);
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
 }
 
 
@@ -2156,9 +2156,9 @@ int get_ballistic_pitch_deflection(entity_sub_types wpn_type, float range, float
 	range_error = range - (range_index * RANGE_STEP);
 	range_delta = 1.0 - (range_error / RANGE_STEP);   // normalize to [0..1]
 
-	#if DEBUG_MODULE > 1
-	debug_log("WN_MOVE: simple range: %.0f (%.0f) closeness: %.02f, height_difference: %.0f", range, range_index*RANGE_STEP, range_delta, height_diff_or_pitch);
-	#endif
+
+
+
 
 	// refine drop_compensation - do it several times because as we adjust
 	// cannon pitch we have to use a different ballistics table.  Do it a few
@@ -2213,9 +2213,9 @@ int get_ballistic_pitch_deflection(entity_sub_types wpn_type, float range, float
 			drop_compensation[l] = (range_delta * pitch_compensation[0].drop_angle) + ((1 - range_delta) * pitch_compensation[1].drop_angle);
 			time[l] = (range_delta * pitch_compensation[0].flight_time) + ((1 - range_delta) * pitch_compensation[1].flight_time);
 
-			#if DEBUG_MODULE > 1
-				debug_log("velocity_test: %f, velocity_multiplier %.2f, range: %.0f, pitch %.3f, drop: %.3f, time %.2f", (float)k * VELOCITY_TEST_STEP, velocity_multiplier, range, deg(straight_pitch), deg(drop_compensation[l]), time[l]);
-			#endif
+
+
+
 		}
 		
 		l++;
@@ -2224,9 +2224,9 @@ int get_ballistic_pitch_deflection(entity_sub_types wpn_type, float range, float
 	*aiming_pitch = drop_compensation[0] * velocity_multiplier + drop_compensation[1] * (1 - velocity_multiplier);
 	*time_of_flight = time[0] * velocity_multiplier + time[1] * (1 - velocity_multiplier);
 
-	#if DEBUG_MODULE > 1
-		debug_log("result pitch %.3f, time %.2f", deg(*aiming_pitch), *time_of_flight);
-	#endif
+
+
+
 
 	if (!fixed_pitch)
 		*aiming_pitch += straight_pitch; // get absolute angle only if straight_pitch wasn't given

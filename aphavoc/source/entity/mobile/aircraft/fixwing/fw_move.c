@@ -300,14 +300,14 @@ void fixed_wing_attain_waypoint (entity *en, vec3d *wp_vec, vec3d *vel)
 		//continue along current motion vector until waypoint can be reached
 		*wp_vec = *vel;
 
-		#if DEBUG_MODULE
 
-			if (en == get_external_view_entity ())
-			{
-				debug_filtered_log ("UTAW: %s %d", entity_sub_type_aircraft_names[raw->ac.mob.sub_type], get_local_entity_index(en));
-			}
 
-		#endif
+
+
+
+
+
+
 
 	}
 
@@ -895,13 +895,13 @@ void fixed_wing_land_jet (entity *en, vec3d *new_pos)
 	//velocity
 	delta_vel = (wp_vel - raw->ac.mob.velocity);
 
-#if 0
-	//make braking less immediate
-	if (fabs (delta_vel) > 10.0)
-	{
-		delta_vel = sign (delta_vel) * 5.0;
-	}
-#endif
+
+
+
+
+
+
+
 
 	raw->ac.mob.velocity += delta_vel;
 
@@ -1061,12 +1061,12 @@ void fixed_wing_taxi(entity *en, vec3d *current_pos, vec3d *dist, vec3d *new_pos
 
 		new_heading = current_heading + (delta_heading * get_entity_movement_delta_time ());
 
-	#if DEBUG_MODULE
-		if (en == get_external_view_entity ())
-		{
-			debug_log ("current heading %f, desired heading %f, delta_heading %f", current_heading, desired_heading, delta_heading);
-		}
-	#endif
+
+
+
+
+
+
 
 	current_pitch = get_pitch_from_attitude_matrix (raw->ac.mob.attitude);
 
@@ -1085,13 +1085,13 @@ void fixed_wing_taxi(entity *en, vec3d *current_pos, vec3d *dist, vec3d *new_pos
 	dist->y = 0.0;
 	dist->z = min (raw->ac.mob.velocity * raw->ac.mob.zv.z * get_entity_movement_delta_time (), fabs (wp_vec.z));
 
-	#if DEBUG_MODULE
-		if (en == get_external_view_entity ())
-		{
-			debug_log ("current heading %d, desired heading %d, delta_heading %f, dist %f, %f, %f, vel %f",
-				current_heading, desired_heading, delta_heading, dist->x, dist->y, dist->z, raw->ac.mob.velocity);
-		}
-	#endif
+
+
+
+
+
+
+
 
 	new_pos->x = current_pos->x + dist->x;
 	new_pos->y = current_pos->y + dist->y;
@@ -1416,115 +1416,115 @@ void fixed_wing_movement_get_waypoint_position (entity *en, vec3d *wp_pos)
 
 static void fixed_wing_movement_avoid_enemy_fire (entity *en, vec3d *wp_pos)
 {
-#if 0
-	entity
-		*guide,
-		*persuer,
-		*aggressor;
-
-	float
-		d,
-		velocity,
-		guide_distance,
-		aggressor_distance,
-		evasion_distance;
-
-	vec3d
-		*xv,
-		*yv,
-		*pos,
-		*aggressor_pos;
-
-	ASSERT (en);
-
-	ASSERT (wp_pos);
-
-	if (!get_local_entity_int_value (en, INT_TYPE_AIRBORNE_AIRCRAFT))
-	{
-		return;
-	}
-
-	debug_filtered_log ("I am here!");
 
 
-	guide = get_local_entity_parent (en, LIST_TYPE_FOLLOWER);
 
-	ASSERT (guide);
 
-	if (!get_local_entity_int_value (guide, INT_TYPE_EVADE_FIRE))
-	{
-		return;
-	}
 
-	//
-	// see if something is shooting at the aircraft
-	//
 
-	persuer = get_local_entity_first_child (en, LIST_TYPE_TARGET);
 
-	while (persuer)
-	{
-		if (get_local_entity_type (persuer) == ENTITY_TYPE_WEAPON)
-		{
-			break;
-		}
 
-		persuer = get_local_entity_child_succ (persuer, LIST_TYPE_TARGET);
-	}
 
-	if (!persuer)
-	{
-		return;
-	}
 
-	aggressor = get_local_entity_parent (persuer, LIST_TYPE_LAUNCHED_WEAPON);
 
-	if (!aggressor)
-	{
-		return;
-	}
 
-	//
-	// find distances
-	//
 
-	pos = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
 
-	aggressor_pos = get_local_entity_vec3d_ptr (aggressor, VEC3D_TYPE_POSITION);
 
-	aggressor_distance = get_3d_range (pos, aggressor_pos);
 
-	velocity = get_local_entity_float_value (en, FLOAT_TYPE_VELOCITY);
 
-	ASSERT (velocity > 0.0);
 
-	guide_distance = get_local_entity_float_value (en, FLOAT_TYPE_DISTANCE);
 
-	d = frac (aggressor_distance / velocity) * 2.0 * PI;
 
-	//
-	// find evasion distance = (sin (d) * guide_distance * C) / velocity;
-	//
-	// if we make the maximum deflection, C, equal to half the aircraft's velocity, the divide cancels...
-	//
 
-	evasion_distance = (sin (d) * guide_distance * 0.5);
 
-	xv = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_XV);
 
-	wp_pos->x += (xv->x * evasion_distance);
-	wp_pos->z += (xv->z * evasion_distance);
 
-	//
-	// vertical (barrel roll)
-	//
 
-	evasion_distance = (cos (d) * guide_distance * 0.5);
 
-	yv = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_YV);
 
-	wp_pos->y += (yv->y * evasion_distance);
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 
@@ -1577,11 +1577,11 @@ void basic_fixed_wing_movement (entity *en)
 
 	if (!guide)
 	{
-		#if DEBUG
 
-		debug_fatal ("FW_MOVE: Entity %s (%d) has no current guide", get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_index (en));
 
-		#endif
+
+
+
 
 		return;
 	}
@@ -1840,11 +1840,11 @@ void basic_fixed_wing_movement_absolute (entity *en)
 
 	if (!guide)
 	{
-		#if DEBUG
 
-		debug_fatal ("FW_MOVE: Entity %s (%d) has no current guide", get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_index (en));
 
-		#endif
+
+
+
 
 		return;
 	}
@@ -1949,13 +1949,13 @@ void basic_fixed_wing_movement_absolute (entity *en)
 		dist.y = 0.0;
 		dist.z = min (raw->ac.mob.velocity * raw->ac.mob.zv.z * get_entity_movement_delta_time (), fabs (wp_vec.z));
 
-		#if DEBUG_MODULE
-			if (en == get_external_view_entity ())
-			{
-				debug_log ("current heading %f, desired heading %f, delta_heading %f, dist %f, %f, %f, sqr_range %f, vel %f",
-					current_heading, desired_heading, delta_heading, dist.x, dist.y, dist.z, sqr_range, raw->ac.mob.velocity);
-			}
-		#endif
+
+
+
+
+
+
+
 
 		new_pos.x = current_pos->x + dist.x;
 		new_pos.y = current_pos->y + dist.y;
@@ -2053,11 +2053,11 @@ void basic_fixed_wing_movement_absolute (entity *en)
 
 		delta_heading = bound (delta_heading, -max_turn_rate, max_turn_rate);
 
-		#if DEBUG_MODULE
 
-			draw_aircraft_turn_radius (en);
 
-		#endif
+
+
+
 
 		//
 		// update position
@@ -2750,49 +2750,49 @@ void clear_fixed_wing_velocity (entity *en)
 
 void draw_aircraft_turn_radius (entity *en)
 {
-#if 0
-	float
-		heading,
-		max_turn_radius,
-		wp_radius;
 
-	vec3d
-		test_point,
-		*wp_pos;
 
-	aircraft
-		*raw;
 
-	raw = get_local_entity_data (en);
 
-	heading = get_heading_from_attitude_matrix (raw->mob.attitude);
 
-	wp_pos = get_local_entity_vec3d_ptr (raw->waypoint_root.first_child, VEC3D_TYPE_POSITION);
 
-	create_vectored_debug_3d_object (wp_pos, (vec3d *) raw->mob.attitude [1], OBJECT_3D_RED_ARROW, 0, 2.0);
 
-	max_turn_radius = (raw->mob.velocity * raw->mob.velocity) / aircraft_database [raw->mob.sub_type].g_max;
 
-	wp_radius = get_local_entity_float_value (raw->waypoint_root.first_child, FLOAT_TYPE_RADIUS);
 
-	// draw RHS
 
-	test_point = raw->mob.position;
 
-	test_point.x += (max_turn_radius + wp_radius) * cos (heading);
-	test_point.z -= (max_turn_radius + wp_radius) * sin (heading);
 
-	draw_debug_circle_line (&test_point, max_turn_radius);
 
-	// draw LHS
 
-	test_point = raw->mob.position;
 
-	test_point.x -= (max_turn_radius + wp_radius) * cos (heading);
-	test_point.z += (max_turn_radius + wp_radius) * sin (heading);
 
-	draw_debug_circle_line (&test_point, max_turn_radius);
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 

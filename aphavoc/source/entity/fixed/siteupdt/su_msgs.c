@@ -87,11 +87,11 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 	float
 		damage_modifier;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	damage_modifier = va_arg (pargs, double);
 
@@ -159,11 +159,11 @@ static int response_to_articulate_loading_doors (entity_messages message, entity
 	vec3d
 		*position;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
@@ -196,86 +196,86 @@ static int response_to_articulate_loading_doors (entity_messages message, entity
 
 
 
-#if DEBUG_MODULE
-
-static int response_to_link_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE
-
-static int response_to_unlink_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE
-
-static int response_to_link_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE
-
-static int response_to_unlink_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-void overload_site_updatable_message_responses (void)
-{
-	overload_fixed_message_responses (ENTITY_TYPE_SITE_UPDATABLE);
 
-	message_responses[ENTITY_TYPE_SITE_UPDATABLE][ENTITY_MESSAGE_COLLISION]						= response_to_collision;
 
-	message_responses[ENTITY_TYPE_SITE_UPDATABLE][ENTITY_MESSAGE_ARTICULATE_LOADING_DOORS]	= response_to_articulate_loading_doors;
 
-	#if DEBUG_MODULE
 
-	message_responses[ENTITY_TYPE_SITE_UPDATABLE][ENTITY_MESSAGE_LINK_CHILD]		= response_to_link_child;
 
-	message_responses[ENTITY_TYPE_SITE_UPDATABLE][ENTITY_MESSAGE_UNLINK_CHILD]		= response_to_unlink_child;
 
-	message_responses[ENTITY_TYPE_SITE_UPDATABLE][ENTITY_MESSAGE_LINK_PARENT]		= response_to_link_parent;
 
-	message_responses[ENTITY_TYPE_SITE_UPDATABLE][ENTITY_MESSAGE_UNLINK_PARENT]	= response_to_unlink_parent;
 
-	#endif
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -79,22 +79,22 @@
 static int response_to_link_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
 {
 
-	#if DEBUG_MODULE
 
-	list_types
-		list_type;
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	list_type = va_arg (pargs, list_types);
 
-	if (list_type == LIST_TYPE_AIR_TASK)
-	{
 
-		debug_log ("KS_MSGS: adding task %s %d to keysite %s %d", entity_sub_type_task_names [get_local_entity_int_value (sender, INT_TYPE_ENTITY_SUB_TYPE)], sender, get_local_entity_string (receiver, STRING_TYPE_KEYSITE_NAME), receiver);
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
+
 
 	return (TRUE);
 }
@@ -106,23 +106,23 @@ static int response_to_link_child (entity_messages message, entity *receiver, en
 static int response_to_unlink_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
 {
 
-	#if DEBUG_MODULE
-
-	list_types
-		list_type;
-
-	debug_log_entity_message (message, receiver, sender, pargs);
 
 
-	list_type = va_arg (pargs, list_types);
 
-	if (list_type == LIST_TYPE_AIR_TASK)
-	{
 
-		debug_log ("KS_MSGS: removing task %s %d to keysite %s %d", entity_sub_type_task_names [get_local_entity_int_value (sender, INT_TYPE_ENTITY_SUB_TYPE)], sender, get_local_entity_string (receiver, STRING_TYPE_KEYSITE_NAME), receiver);
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
 
 	return (TRUE);
 }
@@ -131,31 +131,31 @@ static int response_to_unlink_child (entity_messages message, entity *receiver, 
 
 
 
-#if DEBUG_MODULE
-
-static int response_to_link_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE
 
-static int response_to_unlink_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	return (TRUE);
-}
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -210,16 +210,16 @@ static int response_to_waypoint_drop_off_reached (entity_messages message, entit
 
 	cargo = va_arg (pargs, entity *);
 
-	#if DEBUG_MODULE || DEBUG_SUPPLY
 
-	debug_log ("KS_MSGS: SUPPLY_INFO: %s has been dropped off at keysite %s (%d) by %s (%d)",
-					entity_sub_type_cargo_names [get_local_entity_int_value (cargo, INT_TYPE_ENTITY_SUB_TYPE)],
-					get_local_entity_string (receiver, STRING_TYPE_FULL_NAME),
-					get_local_entity_index (receiver),
-					get_local_entity_string (sender, STRING_TYPE_FULL_NAME),
-					get_local_entity_index (sender));
 
-	#endif
+
+
+
+
+
+
+
+
 
 	switch (get_local_entity_int_value (cargo, INT_TYPE_ENTITY_SUB_TYPE))
 	{
@@ -261,16 +261,16 @@ static int response_to_waypoint_pick_up_reached (entity_messages message, entity
 
 	cargo = va_arg (pargs, entity *);
 
-	#if DEBUG_MODULE || DEBUG_SUPPLY
 
-	debug_log ("KS_MSGS: SUPPLY_INFO: %s has been picked up from keysite %s (%d) by %s (%d)",
-					entity_sub_type_cargo_names [get_local_entity_int_value (cargo, INT_TYPE_ENTITY_SUB_TYPE)],
-					get_local_entity_string (receiver, STRING_TYPE_FULL_NAME),
-					get_local_entity_index (receiver),
-					get_local_entity_string (sender, STRING_TYPE_FULL_NAME),
-					get_local_entity_index (sender));
 
-	#endif
+
+
+
+
+
+
+
+
 
 	switch (get_local_entity_int_value (cargo, INT_TYPE_ENTITY_SUB_TYPE))
 	{
@@ -318,12 +318,12 @@ static int response_to_set_entity_position (entity_messages message, entity *rec
 
 	velocity = (float) va_arg (pargs, double);
 
-	#if DEBUG_MODULE
 
-	debug_log ("KS_MSGS: setting position %f, %f, %f, heading %f",
-					position->x, position->y, position->z, heading);
 
-	#endif
+
+
+
+
 
 	//
 	// move landing entities
@@ -352,30 +352,30 @@ static int response_to_set_entity_position (entity_messages message, entity *rec
 
 
 
-void overload_keysite_message_responses (void)
-{
-	overload_fixed_message_responses (ENTITY_TYPE_KEYSITE);
 
-	#if DEBUG_MODULE
 
-	message_responses[ENTITY_TYPE_KEYSITE][ENTITY_MESSAGE_LINK_PARENT]						= response_to_link_parent;
 
-	message_responses[ENTITY_TYPE_KEYSITE][ENTITY_MESSAGE_UNLINK_PARENT]						= response_to_unlink_parent;
 
-	#endif
 
-	message_responses[ENTITY_TYPE_KEYSITE][ENTITY_MESSAGE_LINK_CHILD]							= response_to_link_child;
 
-	message_responses[ENTITY_TYPE_KEYSITE][ENTITY_MESSAGE_UNLINK_CHILD]						= response_to_unlink_child;
 
-	message_responses[ENTITY_TYPE_KEYSITE][ENTITY_MESSAGE_TASK_COMPLETED]					= response_to_task_completed;
 
-	message_responses[ENTITY_TYPE_KEYSITE][ENTITY_MESSAGE_WAYPOINT_DROP_OFF_REACHED]		= response_to_waypoint_drop_off_reached;
 
-	message_responses[ENTITY_TYPE_KEYSITE][ENTITY_MESSAGE_WAYPOINT_PICK_UP_REACHED]		= response_to_waypoint_pick_up_reached;
 
-	message_responses[ENTITY_TYPE_KEYSITE][ENTITY_MESSAGE_SET_ENTITY_POSITION]				= response_to_set_entity_position;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

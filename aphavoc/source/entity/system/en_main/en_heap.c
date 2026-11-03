@@ -172,21 +172,21 @@ static void check_no_local_entities_in_use (void)
 	{
 		debug_colour_log (DEBUG_COLOUR_RED, "WARNING! Entities still in use");
 
-		#if DEBUG_MODULE
-		{
-			entity
-				*en;
 
-			en = first_used_local_entity;
 
-			while (en)
-			{
-				debug_log ("->ENTITY: %s (index = %d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				en = get_local_entity_succ (en);
-			}
-		}
-		#endif
+
+
+
+
+
+
+
+
+
+
+
+
 	}
 }
 
@@ -200,21 +200,21 @@ static void check_no_entities_in_use (void)
 	{
 		debug_colour_log (DEBUG_COLOUR_RED, "WARNING! Entities still in use");
 
-		#if DEBUG_MODULE
-		{
-			entity
-				*en;
 
-			en = first_used_entity;
 
-			while (en)
-			{
-				debug_log ("->ENTITY: %s (index = %d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				en = get_local_entity_succ (en);
-			}
-		}
-		#endif
+
+
+
+
+
+
+
+
+
+
+
+
 	}
 }
 

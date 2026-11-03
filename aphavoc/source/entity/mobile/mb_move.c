@@ -95,11 +95,11 @@ void set_entity_movement_frame_rate (int frame_rate)
 
 	entity_movement_delta_time = get_delta_time () / entity_movement_iterations;
 
-	#if DEBUG_MODULE
 
-	debug_log ("MB_MOVE: requested frame rate %d, delta time %f, iterations %d, set_delta_time %f", frame_rate, get_delta_time (), entity_movement_iterations, entity_movement_delta_time);
 
-	#endif
+
+
+
 }
 
 

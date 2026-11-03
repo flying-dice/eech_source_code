@@ -92,11 +92,11 @@ static entity *create_local (entity_types type, int index, char *pargs)
 
 	validate_local_create_entity_index (index);
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_CREATE, NULL, type, index);
 
-	#endif
+
+
+
 
 	en = get_free_entity (index);
 
@@ -210,11 +210,11 @@ static entity *create_remote (entity_types type, int index, char *pargs)
 {
 	validate_remote_create_entity_index (index);
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_CREATE, NULL, type, index);
 
-	#endif
+
+
+
 
 	transmit_entity_comms_message (ENTITY_COMMS_CREATE, NULL, type, index, pargs);
 
@@ -273,14 +273,14 @@ static entity *create_client (entity_types type, int index, char *pargs)
 
 
 
-void overload_city_building_create_functions (void)
-{
-	fn_create_local_entity[ENTITY_TYPE_CITY_BUILDING]		  								= create_local;
 
-	fn_create_client_server_entity[ENTITY_TYPE_CITY_BUILDING][COMMS_MODEL_SERVER]	= create_server;
 
-	fn_create_client_server_entity[ENTITY_TYPE_CITY_BUILDING][COMMS_MODEL_CLIENT]	= create_client;
-}
+
+
+
+
+
+
 
 
 

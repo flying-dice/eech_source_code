@@ -278,11 +278,11 @@ void initialise_population_name_database (void)
 
 				new_city->zoom = get_next_file_float (file_ptr) * (1.0 * KILOMETRE);
 
-				#if DEBUG_MODULE
 
-				debug_log ("AI_DBASE: new city name %s at %f, %f", new_city->name, new_city->x, new_city->z);
 
-				#endif
+
+
+
 
 				break;
 			}

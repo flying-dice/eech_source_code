@@ -244,84 +244,84 @@ entity *get_local_group_member_landing_entity_from_task (entity *en)
 
 
 
-#if 0
-void set_local_landing_route_clear (entity *task, entity *en)
-{
 
-	formation_type
-		*formation_data;
 
-	entity
-		*wp;
 
-	unsigned int
-		formation_position,
-		formation_check,
-		wp_value;
 
-	ASSERT (en);
 
-	ASSERT (task);
 
-	//
-	// Clear landing route for this member
-	//
 
-	wp = get_local_entity_first_child (task, LIST_TYPE_WAYPOINT);
 
-	// get members group position, not'ed.
 
-	formation_position = get_local_entity_int_value (en, INT_TYPE_FORMATION_POSITION);
-	
-	// Clear members flag in waypoint route
 
-	#if DEBUG_MODULE
 
-	debug_log ("LANDING: clearing %s route for %s (%d: index %d) pos %d", get_local_entity_string (task, STRING_TYPE_FULL_NAME), get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_index (en), get_local_entity_index (en), formation_position);
 
-	#endif
 
-	while (wp)
-	{
 
-		formation_data = get_formation (get_local_entity_int_value (wp, INT_TYPE_WAYPOINT_FORMATION));
 
-		formation_check = formation_position % formation_data->number_in_formation;
-	
-		formation_check = ~(1 << formation_check);
 
-		// members reached
 
-		wp_value = get_local_entity_int_value (wp, INT_TYPE_MEMBERS_REACHED);
 
-		wp_value &= formation_check;
 
-		set_local_entity_int_value (wp, INT_TYPE_MEMBERS_REACHED, wp_value);
 
-		// members waiting
 
-		wp_value = get_local_entity_int_value (wp, INT_TYPE_MEMBERS_WAITING);
 
-		wp_value &= formation_position;
 
-		set_local_entity_int_value (wp, INT_TYPE_MEMBERS_WAITING, wp_value);
 
-		// members pursuing
 
-		wp_value = get_local_entity_int_value (wp, INT_TYPE_MEMBERS_PURSUING);
 
-		wp_value &= formation_position;
 
-		set_local_entity_int_value (wp, INT_TYPE_MEMBERS_PURSUING, wp_value);
 
-		//
-		//
-		//
-	
-		wp = get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT);
-	}
-}
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -374,21 +374,21 @@ void validate_landing_entity_routes (entity *en)
 		//
 
 	
-		#if DEBUG_MODULE
-	
-		debug_log ("LANDING: -------------------- checking routes for %s, (%d) --------------------------", entity_sub_type_landing_names [raw->sub_type], get_local_entity_index (en));
-	
-		#endif
+
+
+
+
+
 	
 		task = get_local_landing_entity_task (en, ENTITY_SUB_TYPE_TASK_LANDING);
 	
 		wp = get_local_entity_first_child (task, LIST_TYPE_WAYPOINT);
 	
-		#if DEBUG_MODULE
-	
-		debug_log ("LANDING: Landing route lock = %d, landed route lock = %d", raw->landing_lock, raw->landed_lock);
-	
-		#endif
+
+
+
+
+
 	
 		//
 		// count up landing route
@@ -440,20 +440,20 @@ void validate_landing_entity_routes (entity *en)
 					
 								landing_flags |= 1 << formation_position;
 					
-								#if DEBUG_MODULE
-				
-								#if LANDING_LOCK_USER_ONLY
-								if (mb == get_gunship_entity ())
-								#endif
-								debug_log ("LANDING: member %s (%d) has lock on landing route (formation %s). Position %d, route position %d, state %s",
-											entity_type_names [mb->type],
-											get_local_entity_index (mb),
-											get_formation_name (waypoint_formation),
-											get_local_entity_int_value (mb, INT_TYPE_FORMATION_POSITION),
-											1 << formation_position,
-											operational_state_names [get_local_entity_int_value (mb, INT_TYPE_OPERATIONAL_STATE)]);
-				
-								#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 							}
 						}
 			
@@ -467,11 +467,11 @@ void validate_landing_entity_routes (entity *en)
 			wp = get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT);
 		}
 	
-		#if DEBUG_MODULE
-	
-		debug_log ("LANDING: members on landing route = %d", landing_flags);
-	
-		#endif
+
+
+
+
+
 	
 		#if FATAL
 
@@ -532,14 +532,14 @@ void validate_landing_entity_routes (entity *en)
 				
 						landed_flags |= 1 << formation_position;
 				
-						#if DEBUG_MODULE
-			
-						#if LANDING_LOCK_USER_ONLY
-						if (mb == get_gunship_entity ())
-						#endif
-						debug_log ("LANDING: member %s (%d) has lock on landed lock. Position %d, landed position %d", entity_type_names [mb->type], get_local_entity_index (mb), get_local_entity_int_value (mb, INT_TYPE_FORMATION_POSITION), 1 << formation_position);
-			
-						#endif
+
+
+
+
+
+
+
+
 					}
 	
 					mb = get_local_entity_child_succ (mb, LIST_TYPE_MEMBER);
@@ -549,11 +549,11 @@ void validate_landing_entity_routes (entity *en)
 			gp = get_local_entity_child_succ (gp, LIST_TYPE_KEYSITE_GROUP);
 		}
 	
-		#if DEBUG_MODULE
-	
-		debug_log ("LANDING: members on landed lock = %d", landed_flags);
-	
-		#endif
+
+
+
+
+
 	
 
 		//
@@ -604,14 +604,14 @@ void validate_landing_entity_routes (entity *en)
 				
 							landing_holding_flags |= (1 << formation_position);
 				
-							#if DEBUG_MODULE
-				
-							#if LANDING_LOCK_USER_ONLY
-							if (mb == get_gunship_entity ())
-							#endif
-							debug_log ("LANDING: holding member %s (%d) has lock on landing holding route. Position %d, route position %d", entity_type_names [mb->type], get_local_entity_index (mb), get_local_entity_int_value (mb, INT_TYPE_FORMATION_POSITION), 1 << formation_position);
-				
-							#endif
+
+
+
+
+
+
+
+
 						}
 			
 						//mb = get_local_entity_child_succ (mb, LIST_TYPE_CURRENT_WAYPOINT);
@@ -624,11 +624,11 @@ void validate_landing_entity_routes (entity *en)
 			wp = get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT);
 		}
 	
-		#if DEBUG_MODULE
-	
-		debug_log ("LANDING: members on landing holding route= %d", landing_holding_flags);
-	
-		#endif
+
+
+
+
+
 	
 		//
 		// ASSERT that landing members are the same as the ones that have locked the route
@@ -652,11 +652,11 @@ void validate_landing_entity_routes (entity *en)
 	
 		takeoff_flags = 0;
 	
-		#if DEBUG_MODULE
-	
-		debug_log ("LANDING: takeoff route lock = %d", raw->takeoff_lock);
-	
-		#endif
+
+
+
+
+
 	
 		while (get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT))
 		{
@@ -701,14 +701,14 @@ void validate_landing_entity_routes (entity *en)
 				
 							takeoff_flags |= (1 << (formation_position % formation_data->number_in_formation));
 				
-							#if DEBUG_MODULE
-				
-							#if LANDING_LOCK_USER_ONLY
-							if (mb == get_gunship_entity ())
-							#endif
-							debug_log ("LANDING: member %s (%d) has lock on takeoff route. Position %d, route position %d", entity_type_names [mb->type], get_local_entity_index (mb), formation_position, (1 << (formation_position % formation_data->number_in_formation)));
-				
-							#endif
+
+
+
+
+
+
+
+
 						}
 			
 						//mb = get_local_entity_child_succ (mb, LIST_TYPE_CURRENT_WAYPOINT);
@@ -735,11 +735,11 @@ void validate_landing_entity_routes (entity *en)
 	
 
 	
-		#if DEBUG_MODULE
-	
-		debug_log ("LANDING: ----------------------------------------------------------------------------");
-	
-		#endif
+
+
+
+
+
 	}
 }
 
@@ -876,11 +876,11 @@ void release_mobile_entity_landing_locks (entity *en)
 	int
 		landing_flag;
 
-	#if DEBUG_MODULE
 
-	debug_log ("LANDING: ***** releasing landing locks for entity %s (%d)", get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_index (en));
 
-	#endif
+
+
+
 
 	landing_flag = FALSE;
 
@@ -900,11 +900,11 @@ void release_mobile_entity_landing_locks (entity *en)
 			{
 				case ENTITY_SUB_TYPE_TASK_LANDING:
 				{
-					#if DEBUG_MODULE
 
-					debug_log ("LANDING: %s was landing, freeing landed site and landing route", get_local_entity_string (en, STRING_TYPE_FULL_NAME));
 
-					#endif
+
+
+
 
 					landing_en = get_local_entity_parent (task, LIST_TYPE_ASSIGNED_TASK);
 
@@ -918,11 +918,11 @@ void release_mobile_entity_landing_locks (entity *en)
 				case ENTITY_SUB_TYPE_TASK_LANDING_HOLDING:
 				{
 
-					#if DEBUG_MODULE
 
-					debug_log ("LANDING: %s was landing holding, freeing landed site", get_local_entity_string (en, STRING_TYPE_FULL_NAME));
 
-					#endif
+
+
+
 
 					landing_flag = TRUE;
 
@@ -931,11 +931,11 @@ void release_mobile_entity_landing_locks (entity *en)
 
 				case ENTITY_SUB_TYPE_TASK_TAKEOFF:
 				{
-					#if DEBUG_MODULE
 
-					debug_log ("LANDING: %s was taking off, freeing takeoff route", get_local_entity_string (en, STRING_TYPE_FULL_NAME));
 
-					#endif
+
+
+
 
 					landing_en = get_local_entity_parent (task, LIST_TYPE_ASSIGNED_TASK);
 
@@ -952,15 +952,15 @@ void release_mobile_entity_landing_locks (entity *en)
 					{
 						landing_en = get_local_entity_landing_entity (keysite, group_database [get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE)].default_landing_type);
 	
-						#if DEBUG_MODULE
-	
-						debug_log ("LANDING: %s (%d) had a reservation at %d (landing %d), freeing it",
-										get_local_entity_string (en, STRING_TYPE_FULL_NAME),
-										get_local_entity_index (en),
-										get_local_entity_index (keysite),
-										get_local_entity_index (landing_en));
-	
-						#endif
+
+
+
+
+
+
+
+
+
 										
 						// unreserve landing lock
 				
@@ -1000,11 +1000,11 @@ void release_mobile_entity_landing_locks (entity *en)
 
 			ASSERT (get_local_entity_type (keysite) == ENTITY_TYPE_FORCE);
 
-			#if DEBUG_MODULE
 
-			debug_log ("LANDING: %s. Not unlocking", get_local_entity_string (en, STRING_TYPE_FULL_NAME));
 
-			#endif
+
+
+
 
 			return;
 		}
@@ -1013,11 +1013,11 @@ void release_mobile_entity_landing_locks (entity *en)
 
 		ASSERT (landing_en);
 
-		#if DEBUG_MODULE
 
-		debug_log ("LANDING: %s was landed, freeing landed site", get_local_entity_string (en, STRING_TYPE_FULL_NAME));
 
-		#endif
+
+
+
 
 		notify_local_entity (ENTITY_MESSAGE_UNLOCK_LANDING_SITE, landing_en, en);
 	}

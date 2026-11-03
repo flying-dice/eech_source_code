@@ -110,54 +110,54 @@ static void update_server (entity *en)
 			kill_client_server_entity (en);
 	}
 
-	#if DEBUG_MODULE
-	// debug
-	{
 
-		entity
-			*group;
 
-		group = get_local_entity_parent (en, LIST_TYPE_MEMBER);
 
-		if (group)
-		{
 
-			if (group_database [get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE)].frontline_flag)
-			{
 
-				if (get_local_entity_parent (group, LIST_TYPE_KEYSITE_GROUP))
-				{
 
-					if (get_local_entity_type (get_local_entity_parent (group, LIST_TYPE_KEYSITE_GROUP)) == ENTITY_TYPE_KEYSITE)
-					{
 
-						if (get_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE) != OPERATIONAL_STATE_LANDED)
-						{
 
-							entity
-								*task;
 
-							task = get_local_entity_current_task (en);
 
-							if (task)
-							{
 
-								if ((get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE) != ENTITY_SUB_TYPE_TASK_LANDING) &&
-									(get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE) != ENTITY_SUB_TYPE_TASK_TAKEOFF) &&
-									(get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE) != ENTITY_SUB_TYPE_TASK_TAKEOFF_HOLDING))
-								{
 
-									debug_fatal ("GP_UPDAT: frontline entity %s, %d connected to KEYSITE", get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_index (en));
-								}
-							}
-						}
-					}
-				}
-			}
-		}
 
-	}
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	// debug
 
 	if (raw->vh.mob.alive && !vehicle_critically_damaged(en))
@@ -324,12 +324,12 @@ static void update_client (entity *en)
 
 
 
-void overload_routed_vehicle_update_functions (void)
-{
-	fn_update_client_server_entity[ENTITY_TYPE_ROUTED_VEHICLE][COMMS_MODEL_SERVER]	= update_server;
 
-	fn_update_client_server_entity[ENTITY_TYPE_ROUTED_VEHICLE][COMMS_MODEL_CLIENT]	= update_client;
-}
+
+
+
+
+
 
 
 

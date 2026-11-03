@@ -82,31 +82,31 @@
 
 
 
-#if DEBUG_MODULE >= 2
-
-static int response_to_link_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE >= 2
 
-static int response_to_unlink_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	return (TRUE);
-}
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -120,11 +120,11 @@ static int response_to_link_parent (entity_messages message, entity *receiver, e
 	entity_sub_types
 		sub_type;
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	//
 	// notify campaign screen
@@ -184,17 +184,17 @@ static int response_to_link_parent (entity_messages message, entity *receiver, e
 
 
 
-#if DEBUG_MODULE >= 2
 
-static int response_to_unlink_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	return (TRUE);
-}
 
-#endif
+
+
+
+
+
+
+
 
 
 
@@ -224,12 +224,12 @@ static int response_to_set_entity_position (entity_messages message, entity *rec
 
 	velocity = (float) va_arg (pargs, double);
 
-	#if DEBUG_MODULE
 
-	debug_log ("TS_MSGS: setting position %f, %f, %f, heading %f",
-					position->x, position->y, position->z, heading);
 
-	#endif
+
+
+
+
 
 	wp = raw->waypoint_root.first_child;
 
@@ -274,11 +274,11 @@ static int response_to_task_completed (entity_messages message, entity *receiver
 	task_completed_types
 		task_completed;
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
@@ -406,11 +406,11 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 	task_terminated_types
 		task_terminated;
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
@@ -441,14 +441,14 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 
 	task_terminated = va_arg (pargs, task_terminated_types);
 
-	#if DEBUG_MODULE
 
-	debug_log ("TS_MSGS: task terminated %s (%d) %s",
-					get_local_entity_string (receiver, STRING_TYPE_FULL_NAME),
-					get_local_entity_index (receiver),
-					task_terminated_names [task_terminated]);
 
-	#endif
+
+
+
+
+
+
 
 	raw->task_terminated = task_terminated;
 
@@ -524,27 +524,27 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 
 
 
-void overload_task_message_responses (void)
-{
 
-	#if DEBUG_MODULE >= 2
 
-	message_responses[ENTITY_TYPE_TASK][ENTITY_MESSAGE_LINK_CHILD] 						= response_to_link_child;
 
-	message_responses[ENTITY_TYPE_TASK][ENTITY_MESSAGE_UNLINK_CHILD]						= response_to_unlink_child;
 
-	message_responses[ENTITY_TYPE_TASK][ENTITY_MESSAGE_UNLINK_PARENT]						= response_to_unlink_parent;
 
-	#endif
 
-	message_responses[ENTITY_TYPE_TASK][ENTITY_MESSAGE_LINK_PARENT]						= response_to_link_parent;
 
-	message_responses[ENTITY_TYPE_TASK][ENTITY_MESSAGE_SET_ENTITY_POSITION]				= response_to_set_entity_position;
 
-	message_responses[ENTITY_TYPE_TASK][ENTITY_MESSAGE_TASK_COMPLETED] 					= response_to_task_completed;
 
-	message_responses[ENTITY_TYPE_TASK][ENTITY_MESSAGE_TASK_TERMINATED] 					= response_to_task_terminated;
-}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

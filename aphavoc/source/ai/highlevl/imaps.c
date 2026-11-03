@@ -245,41 +245,41 @@ static void normalise_inlfuence_map (float *original, unsigned char *output, int
 
 
 
-#ifdef DEBUG
-/*
-static void invert_inlfuence_map (unsigned char *output, int xsize, int zsize)
-{
-	int
-		z,
-		z2;
 
-	unsigned char
-		*temp;
 
-	ASSERT (output);
 
-	temp = malloc_fast_mem (xsize);
 
-	//
-	// Invert
-	//
 
-	for (z = 0; z < zsize; z++)
-	{
-		z2 = (zsize - z) - 1;
 
-		if (z != z2)
-		{
-			memcpy (temp, &output [z * xsize], xsize);
-		
-			memcpy (&output [z * xsize], &output [z2 * xsize], xsize);
-		
-			memcpy (&output [z2 * xsize], temp, xsize);
-		}
-	}
-}
-*/
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -318,11 +318,11 @@ static float update_sector_side (int sx, int sz, entity_sides side, int in_use, 
 			raw->sector_side [side] -= scale;
 		}
 	
-		#if DEBUG_MODULE
-	
-		debug_log ("IMAPS: %d, %d (%s) setting side value to %f", sx, sz, entity_side_names [side], raw->sector_side [side]);
-	
-		#endif
+
+
+
+
+
 	}
 
 	return raw->sector_side [side];
@@ -367,18 +367,18 @@ void update_imap_sector_side (entity *en, int in_use)
 		get_x_sector (sx, pos->x);
 		get_z_sector (sz, pos->z);
 	
-		#if DEBUG_MODULE
 
-		if (get_local_entity_type (en) == ENTITY_TYPE_KEYSITE)
-		{
-			debug_log ("IMAPS: Updating sector side for %s at %d, %d (IN USE : %d)", get_local_entity_string (en, STRING_TYPE_KEYSITE_NAME), sx, sz, in_use);
-		}
-		else
-		{
-			debug_log ("IMAPS: Updating sector side for %s at %d, %d (IN USE : %d)", get_local_entity_string (en, STRING_TYPE_FULL_NAME), sx, sz, in_use);
-		}
 
-		#endif
+
+
+
+
+
+
+
+
+
+
 
 		for (z = MIN_MAP_Z_SECTOR; z <= MAX_MAP_Z_SECTOR ; z ++)
 		{
@@ -437,11 +437,11 @@ static float update_sector_importance_level (int sx, int sz, entity_sides side, 
 			raw->importance_level [side] -= scale;
 		}
 	
-		#if DEBUG_MODULE
-	
-		debug_log ("IMAPS: %d, %d (%s) setting importance level to %f", sx, sz, entity_side_names [side], raw->importance_level [side]);
-	
-		#endif
+
+
+
+
+
 	}
 
 	return raw->importance_level [side];
@@ -496,11 +496,11 @@ void update_imap_importance_level (entity *en, int in_use)
 		get_x_sector (sx, pos->x);
 		get_z_sector (sz, pos->z);
 	
-		#if DEBUG_MODULE
 
-		debug_log ("IMAPS: Updating sector importance for %s at %d, %d (IN USE : %d)", get_local_entity_string (en, STRING_TYPE_KEYSITE_NAME), sx, sz, in_use);
 
-		#endif
+
+
+
 
 		for (z = -sector_radius; z <= sector_radius; z ++)
 		{
@@ -601,11 +601,11 @@ static float update_sector_distance_to_friendly_base (int sx, int sz, entity_sid
 	{
 		raw->distance_to_friendly_base [side] = max (raw->distance_to_friendly_base [side], scale);
 	
-		#if DEBUG_MODULE
-	
-		debug_log ("IMAPS: %d, %d (%s) setting distance_to_friendly_base to %f", sx, sz, entity_side_names [side], raw->distance_to_friendly_base [side]);
-	
-		#endif
+
+
+
+
+
 	}
 
 	return raw->distance_to_friendly_base [side];
@@ -654,11 +654,11 @@ void update_keysite_distance_to_friendly_base (entity *en, entity_sides side)
 		get_x_sector (sx, pos->x);
 		get_z_sector (sz, pos->z);
 	
-		#if DEBUG_MODULE
 
-		debug_log ("IMAPS: Updating sector base distance for %s at %d, %d (IN USE : %d)", get_local_entity_string (en, STRING_TYPE_KEYSITE_NAME), sx, sz, in_use);
 
-		#endif
+
+
+
 
 		for (z = -sector_radius; z <= sector_radius; z ++)
 		{
@@ -827,11 +827,11 @@ static float update_sector_surface_to_air_defence_level (int sx, int sz, entity_
 			raw->surface_to_air_defence_level [side] -= scale;
 		}
 	
-		#if DEBUG_MODULE
-	
-		debug_log ("IMAPS: %d, %d (%s) setting S-A level to %f", sx, sz, entity_side_names [side], raw->surface_to_air_defence_level [side]);
-	
-		#endif
+
+
+
+
+
 	}
 
 	return raw->surface_to_air_defence_level [side];
@@ -878,11 +878,11 @@ void update_imap_surface_to_air_defence_level (entity *en, entity *sector, int i
 		sx = get_local_entity_int_value (sector, INT_TYPE_X_SECTOR);
 		sz = get_local_entity_int_value (sector, INT_TYPE_Z_SECTOR);
 	
-		#if DEBUG_MODULE
 
-		debug_log ("IMAPS: Updating sector S-A for %s at %d, %d (IN USE %d)", get_local_entity_string (en, STRING_TYPE_SHORT_DISPLAY_NAME), sx, sz, in_use);
 
-		#endif
+
+
+
 
 		for (z = -sector_radius; z <= sector_radius; z ++)
 		{
@@ -992,11 +992,11 @@ static float update_sector_surface_to_surface_defence_level (int sx, int sz, ent
 			raw->surface_to_surface_defence_level [side] -= scale;
 		}
 	
-		#if DEBUG_MODULE
-	
-		debug_log ("IMAPS: %d, %d (%s) setting S-S level to %f", sx, sz, entity_side_names [side], raw->surface_to_surface_defence_level [side]);
-	
-		#endif
+
+
+
+
+
 	}
 
 	return raw->surface_to_surface_defence_level [side];
@@ -1043,11 +1043,11 @@ void update_imap_surface_to_surface_defence_level (entity *en, entity *sector, i
 		sx = get_local_entity_int_value (sector, INT_TYPE_X_SECTOR);
 		sz = get_local_entity_int_value (sector, INT_TYPE_Z_SECTOR);
 	
-		#if DEBUG_MODULE
 
-		debug_log ("IMAPS: Updating sector S-S for %s at %d, %d (IN USE %d)", get_local_entity_string (en, STRING_TYPE_SHORT_DISPLAY_NAME), sx, sz, in_use);
 
-		#endif
+
+
+
 
 		for (z = -sector_radius; z <= sector_radius; z ++)
 		{
@@ -1130,81 +1130,81 @@ void normalise_surface_defence_imaps (void)
 
 static void output_sector_side_influence_map (const char *filename)
 {
-	#ifdef DEBUG
 
-	int
-		z,
-		sx,
-		sz,
-		temp;
 
-	entity
-		*sec;
 
-	sector
-		*raw;
 
-	unsigned char
-		*output;
 
-	rgb_colour
-		col;
 
-	float
-		val,
-		ratio,
-		total;
 
-	ASSERT (filename);
 
-	output = (unsigned char*) safe_malloc (NUM_MAP_X_SECTORS * NUM_MAP_Z_SECTORS * 3);
 
-	memset (output, 0, (NUM_MAP_X_SECTORS * NUM_MAP_Z_SECTORS * 3));
-				
-	for (sz = 0; sz < NUM_MAP_Z_SECTORS; sz++)
-	{
-		for (sx = 0; sx < NUM_MAP_X_SECTORS; sx++)
-		{
-			sec = get_local_raw_sector_entity (sx, sz);
 
-			ASSERT (sec);
 
-			raw = (sector*) get_local_entity_data (sec);
 
-			total = raw->sector_side [ENTITY_SIDE_BLUE_FORCE] + raw->sector_side [ENTITY_SIDE_RED_FORCE];
 
-			ASSERT (total > 0.0);
 
-			ratio = raw->sector_side [ENTITY_SIDE_BLUE_FORCE] / total;
 
-			ratio = bound (ratio, 0.0, 1.0);
 
-			// red
-			val = 255.0 * (1.0 - ratio);
-			convert_float_to_int (val, &temp);
-			col.r = temp;
 
-			// green
-			col.g = 0;
 
-			// blue
-			val = 255.0 * ratio;
-			convert_float_to_int (val, &temp);
-			col.b = temp;
 
-			z = (NUM_MAP_Z_SECTORS - sz) - 1;
 
-			output [(z * NUM_MAP_X_SECTORS * 3) + (sx * 3)] = col.r;
-			output [(z * NUM_MAP_X_SECTORS * 3) + (sx * 3) + 1] = col.g;
-			output [(z * NUM_MAP_X_SECTORS * 3) + (sx * 3) + 2] = col.b;
-		}
-	}
 
-	write_psd_rgb_file (filename, NUM_MAP_X_SECTORS, NUM_MAP_Z_SECTORS, NUM_MAP_X_SECTORS * 3, output);
 
-	safe_free (output);
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 
@@ -1213,71 +1213,71 @@ static void output_sector_side_influence_map (const char *filename)
 
 static void output_sector_side_normalised_influence_map (const char *filename)
 {
-	#ifdef DEBUG
 
-	int
-		z,
-		sx,
-		sz;
 
-	entity
-		*sec;
 
-	unsigned char
-		*output;
 
-	rgb_colour
-		*col;
 
-	ASSERT (filename);
 
-	output = (unsigned char*) safe_malloc (NUM_MAP_X_SECTORS * NUM_MAP_Z_SECTORS * 3);
 
-	memset (output, 0, (NUM_MAP_X_SECTORS * NUM_MAP_Z_SECTORS * 3));
-				
-	for (sz = 0; sz < NUM_MAP_Z_SECTORS; sz++)
-	{
-		for (sx = 0; sx < NUM_MAP_X_SECTORS; sx++)
-		{
-			sec = get_local_raw_sector_entity (sx, sz);
 
-			ASSERT (sec);
 
-			switch (get_local_entity_int_value (sec, INT_TYPE_SECTOR_SIDE))
-			{
-				case ENTITY_SIDE_BLUE_FORCE:
-				{
-					col = &sys_col_blue;
 
-					break;
-				}
-				case ENTITY_SIDE_RED_FORCE:
-				{
-					col = &sys_col_red;
 
-					break;
-				}
-				default:
-				{
-					col = &sys_col_black;
 
-					break;
-				}
-			}
 
-			z = (NUM_MAP_Z_SECTORS - sz) - 1;
 
-			output [(z * NUM_MAP_X_SECTORS * 3) + (sx * 3)] = col->r;
-			output [(z * NUM_MAP_X_SECTORS * 3) + (sx * 3) + 1] = col->g;
-			output [(z * NUM_MAP_X_SECTORS * 3) + (sx * 3) + 2] = col->b;
-		}
-	}
 
-	write_psd_rgb_file (filename, NUM_MAP_X_SECTORS, NUM_MAP_Z_SECTORS, NUM_MAP_X_SECTORS * 3, output);
 
-	safe_free (output);
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 
@@ -1286,60 +1286,60 @@ static void output_sector_side_normalised_influence_map (const char *filename)
 
 static void output_sector_fog_of_war_influence_map (entity_sides side, const char *filename)
 {
-	#ifdef DEBUG
 
-	int
-		z,
-		sx,
-		sz,
-		fog;
 
-	entity
-		*sec;
 
-	unsigned char
-		*output;
 
-	float
-		val,
-		max_fog;
 
-	ASSERT (filename);
 
-	if (get_comms_model () != COMMS_MODEL_SERVER)
-	{
-		return;
-	}
 
-	max_fog = get_local_entity_float_value (get_session_entity (), FLOAT_TYPE_FOG_OF_WAR_MAXIMUM_VALUE);
 
-	output = (unsigned char*) safe_malloc (NUM_MAP_X_SECTORS * NUM_MAP_Z_SECTORS);
 
-	memset (output, 0, (NUM_MAP_X_SECTORS * NUM_MAP_Z_SECTORS));
-				
-	for (sz = 0; sz < NUM_MAP_Z_SECTORS; sz++)
-	{
-		for (sx = 0; sx < NUM_MAP_X_SECTORS; sx++)
-		{
-			sec = get_local_raw_sector_entity (sx, sz);
 
-			ASSERT (sec);
 
-			val = (255.0 * get_sector_fog_of_war_value (sec, side)) / max_fog;
 
-			convert_float_to_int (val, &fog);
 
-			z = (NUM_MAP_Z_SECTORS - sz) - 1;
 
-			output [(z * NUM_MAP_X_SECTORS) + sx] = fog;
-		}
-	}
 
-	write_psd_greyscale (filename, NUM_MAP_X_SECTORS, NUM_MAP_Z_SECTORS, NUM_MAP_X_SECTORS, output);
 
-	safe_free (output);
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 
@@ -1348,26 +1348,26 @@ static void output_sector_fog_of_war_influence_map (entity_sides side, const cha
 
 static void output_sector_surface_to_air_influence_map (entity_sides side, const char *filename)
 {
-	#ifdef DEBUG
 
-	ASSERT (filename);
 
-	if (get_comms_model () != COMMS_MODEL_SERVER)
-	{
-		return;
-	}
 
-	ASSERT (imaps [IMAP_AIR_DEFENCE]);
 
-	ASSERT (imaps [IMAP_AIR_DEFENCE][side]);
 
-//	invert_inlfuence_map (imaps [IMAP_AIR_DEFENCE][side], NUM_MAP_X_SECTORS, NUM_MAP_Z_SECTORS);
 
-	write_psd_greyscale (filename, NUM_MAP_X_SECTORS, NUM_MAP_Z_SECTORS, NUM_MAP_X_SECTORS, imaps [IMAP_AIR_DEFENCE][side]);
 
-//	invert_inlfuence_map (imaps [IMAP_AIR_DEFENCE][side], NUM_MAP_X_SECTORS, NUM_MAP_Z_SECTORS);
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 
@@ -1376,26 +1376,26 @@ static void output_sector_surface_to_air_influence_map (entity_sides side, const
 
 static void output_sector_surface_to_surface_influence_map (entity_sides side, const char *filename)
 {
-	#ifdef DEBUG
 
-	ASSERT (filename);
 
-	if (get_comms_model () != COMMS_MODEL_SERVER)
-	{
-		return;
-	}
 
-	ASSERT (imaps [IMAP_SURFACE_DEFENCE]);
 
-	ASSERT (imaps [IMAP_SURFACE_DEFENCE][side]);
 
-//	invert_inlfuence_map (imaps [IMAP_SURFACE_DEFENCE][side], NUM_MAP_X_SECTORS, NUM_MAP_Z_SECTORS);
 
-	write_psd_greyscale (filename, NUM_MAP_X_SECTORS, NUM_MAP_Z_SECTORS, NUM_MAP_X_SECTORS, imaps [IMAP_SURFACE_DEFENCE][side]);
 
-//	invert_inlfuence_map (imaps [IMAP_SURFACE_DEFENCE][side], NUM_MAP_X_SECTORS, NUM_MAP_Z_SECTORS);
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 
@@ -1404,26 +1404,26 @@ static void output_sector_surface_to_surface_influence_map (entity_sides side, c
 
 static void output_sector_importance_influence_map (entity_sides side, const char *filename)
 {
-	#ifdef DEBUG
 
-	ASSERT (filename);
 
-	if (get_comms_model () != COMMS_MODEL_SERVER)
-	{
-		return;
-	}
 
-	ASSERT (imaps [IMAP_IMPORTANCE]);
 
-	ASSERT (imaps [IMAP_IMPORTANCE][side]);
 
-//	invert_inlfuence_map (imaps [IMAP_IMPORTANCE][side], NUM_MAP_X_SECTORS, NUM_MAP_Z_SECTORS);
 
-	write_psd_greyscale (filename, NUM_MAP_X_SECTORS, NUM_MAP_Z_SECTORS, NUM_MAP_X_SECTORS, imaps [IMAP_IMPORTANCE][side]);
 
-//	invert_inlfuence_map (imaps [IMAP_IMPORTANCE][side], NUM_MAP_X_SECTORS, NUM_MAP_Z_SECTORS);
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 
@@ -1432,26 +1432,26 @@ static void output_sector_importance_influence_map (entity_sides side, const cha
 
 static void output_sector_distance_to_friendly_base_influence_map (entity_sides side, const char *filename)
 {
-	#ifdef DEBUG
 
-	ASSERT (filename);
 
-	if (get_comms_model () != COMMS_MODEL_SERVER)
-	{
-		return;
-	}
 
-	ASSERT (imaps [IMAP_BASE_DISTANCE]);
 
-	ASSERT (imaps [IMAP_BASE_DISTANCE][side]);
 
-//	invert_inlfuence_map (imaps [IMAP_BASE_DISTANCE][side], NUM_MAP_X_SECTORS, NUM_MAP_Z_SECTORS);
 
-	write_psd_greyscale (filename, NUM_MAP_X_SECTORS, NUM_MAP_Z_SECTORS, NUM_MAP_X_SECTORS, imaps [IMAP_BASE_DISTANCE][side]);
 
-//	invert_inlfuence_map (imaps [IMAP_BASE_DISTANCE][side], NUM_MAP_X_SECTORS, NUM_MAP_Z_SECTORS);
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 

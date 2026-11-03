@@ -162,11 +162,11 @@ void initialise_air_to_ground_attack_guide (entity *en, entity *aggressor, entit
 		// Entity is not capable of destroying the target
 		//
 
-		#ifdef DEBUG
 
-		debug_fatal ("Entity %s incapable of destroying %s", get_local_entity_string (aggressor, STRING_TYPE_FULL_NAME), get_local_entity_string (target, STRING_TYPE_FULL_NAME));
 
-		#endif
+
+
+
 
 		return;
 	}
@@ -423,21 +423,21 @@ void attack_guide_fire_reached (entity *en)
 	target = get_local_entity_parent (task, LIST_TYPE_TASK_DEPENDENT);
 	ASSERT(target);
 
-	#if DEBUG_MODULE
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_log("AG_ATTCK: attack_guide_fire_reached");
-		}
-	#endif
+
+
+
+
+
+
 	
 	if (check_guided_missile_type_alive(aggressor))
 	{
-	#if DEBUG_MODULE
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_log("AG_ATTCK: abort attack_guide_fire, another missile is still alive");
-		}
-	#endif
+
+
+
+
+
+
 
 		if (get_local_entity_ptr_value (en, PTR_TYPE_TASK_LEADER))
 		{
@@ -452,12 +452,12 @@ void attack_guide_fire_reached (entity *en)
 
 	if (get_2d_range (get_local_entity_vec3d_ptr (aggressor, VEC3D_TYPE_POSITION), get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION)) < (0.5 + 0.5 * frand1()) * (get_local_entity_type (aggressor) == ENTITY_TYPE_FIXED_WING ? 500.0 : 100.0)) // too close, move back
 	{
-		#if DEBUG_MODULE
-			if (aggressor == get_external_view_entity ())
-			{
-				debug_log("AG_ATTCK: abort attack_guide_fire, too close to target");
-			}
-		#endif
+
+
+
+
+
+
 
 		if (get_local_entity_ptr_value (en, PTR_TYPE_TASK_LEADER))
 		{
@@ -669,21 +669,21 @@ void attack_guide_hasty_fire_reached (entity *en)
 
 	ASSERT (target);
 
-	#if DEBUG_MODULE
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_log("AG_ATTCK: attack_guide_hasty_fire_reached");
-		}
-	#endif
+
+
+
+
+
+
 	
 	if (check_guided_missile_type_alive(aggressor))
 	{
-		#if DEBUG_MODULE
-			if (aggressor == get_external_view_entity ())
-			{
-				debug_log("AG_ATTCK: abort hasty_fire, another missile is still alive");
-			}
-		#endif
+
+
+
+
+
+
 
 		if (get_local_entity_ptr_value (en, PTR_TYPE_TASK_LEADER))
 			set_attack_guide_seek_cover_position (en);
@@ -958,14 +958,14 @@ void set_attack_guide_approach_position (entity *en)
 
 	set_client_server_entity_float_value (en, FLOAT_TYPE_VELOCITY, get_local_entity_float_value (aggressor, FLOAT_TYPE_CRUISE_VELOCITY));
 
-	#if DEBUG_MODULE
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_log("AG_ATTCK: set_attack_guide_approach_position");
-			position.y += 2;
-			debug_visuals(aggressor, &position, 30);
-		}
-	#endif
+
+
+
+
+
+
+
+
 
 }
 
@@ -1015,14 +1015,14 @@ void set_attack_guide_seek_cover_position (entity *en)
 
 		set_client_server_guide_entity_new_position (en, &position, NULL);
 
-		#if DEBUG_MODULE
-			if (aggressor == get_external_view_entity ())
-			{
-				debug_log("AG_ATTCK: set_attack_guide_seek_cover_position");
-				position.y += 2;
-				debug_visuals(aggressor, &position, 30);
-			}
-		#endif
+
+
+
+
+
+
+
+
 
 	}
 
@@ -1187,14 +1187,14 @@ void set_attack_guide_fly_to_cover_position (entity *en)
 
 	set_client_server_guide_entity_new_position (en, position, NULL);
 
-	#if DEBUG_MODULE
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_log("AG_ATTCK: set_attack_guide_fly_to_cover_position");
-			position->y += 2;
-			debug_visuals(aggressor, position, 30);
-		}
-	#endif
+
+
+
+
+
+
+
+
 
 	set_client_server_guide_criteria_valid (en, GUIDE_CRITERIA_ALTITUDE, FALSE, 0.0);
 
@@ -1261,14 +1261,14 @@ void set_attack_guide_take_cover_position (entity *en)
 
 	set_client_server_guide_entity_new_position (en, position, NULL);
 
-	#if DEBUG_MODULE
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_log("AG_ATTCK: set_attack_guide_take_cover_position");
-			position->y += 2;
-			debug_visuals(aggressor, position, 30);
-		}
-	#endif
+
+
+
+
+
+
+
+
 
 	set_client_server_entity_float_value (en, FLOAT_TYPE_VELOCITY, get_local_entity_float_value (aggressor, FLOAT_TYPE_CRUISE_VELOCITY));
 
@@ -1386,14 +1386,14 @@ void set_attack_guide_climb_position (entity *en)
 
 	set_client_server_guide_criteria_valid (en, GUIDE_CRITERIA_RADIUS, TRUE, 1000);
 
-	#if DEBUG_MODULE
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_log("AG_ATTCK: set_attack_guide_climb_position");
-			position.y += 2;
-			debug_visuals(aggressor, &position, 30);
-		}
-	#endif
+
+
+
+
+
+
+
+
 }
 
 
@@ -1460,14 +1460,14 @@ void set_attack_guide_dive_position (entity *en)
 	bound_position_to_map_volume (&position);
 	set_client_server_guide_entity_new_position (en, &position, NULL);
 
-	#if DEBUG_MODULE
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_log("AG_ATTCK: set_attack_guide_dive_position");
-			position.y += 2;
-			debug_visuals(aggressor, &position, 30);
-		}
-	#endif
+
+
+
+
+
+
+
+
 
 	set_client_server_entity_float_value (en, FLOAT_TYPE_VELOCITY, get_local_entity_float_value (aggressor, FLOAT_TYPE_VELOCITY));
 
@@ -1572,14 +1572,14 @@ void set_attack_guide_fire_position (entity *en)
 
 			set_client_server_guide_entity_new_position (en, &position, NULL);
 
-			#if DEBUG_MODULE
-				if (aggressor == get_external_view_entity ())
-				{
-					debug_log("AG_ATTCK: set_attack_guide_fire_position");
-					position.y += 2;
-					debug_visuals(aggressor, &position, 30);
-				}
-			#endif
+
+
+
+
+
+
+
+
 
 			set_client_server_entity_float_value (en, FLOAT_TYPE_VELOCITY, get_local_entity_float_value (aggressor, FLOAT_TYPE_VELOCITY));
 
@@ -1723,14 +1723,14 @@ void set_attack_guide_disengage_position (entity *en)
 
 	set_client_server_guide_entity_new_position (en, &position, NULL);
 
-	#if DEBUG_MODULE
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_log("AG_ATTCK: set_attack_guide_disengage_position");
-			position.y += 2;
-			debug_visuals(aggressor, &position, 30);
-		}
-	#endif
+
+
+
+
+
+
+
+
 
 
 	set_client_server_entity_float_value (en, FLOAT_TYPE_VELOCITY, get_local_entity_float_value (aggressor, FLOAT_TYPE_VELOCITY));
@@ -1891,14 +1891,14 @@ void set_attack_guide_egress_position (entity *en)
 
 	set_client_server_guide_entity_new_position (en, &position, NULL);
 
-	#if DEBUG_MODULE
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_log("AG_ATTCK: set_attack_guide_egress_position");
-			position.y += 2;
-			debug_visuals(aggressor, &position, 30);
-		}
-	#endif
+
+
+
+
+
+
+
+
 
 	set_client_server_entity_float_value (en, FLOAT_TYPE_VELOCITY, get_local_entity_float_value (aggressor, FLOAT_TYPE_VELOCITY));
 
@@ -1946,14 +1946,14 @@ void set_attack_guide_hasty_fire_position (entity *en)
 
 	set_client_server_guide_entity_new_position (en, &position, NULL);
 
-	#if DEBUG_MODULE
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_log("AG_ATTCK: set_attack_guide_hasty_fire_position");
-			position.y += 2;
-			debug_visuals(aggressor, &position, 30);
-		}
-	#endif
+
+
+
+
+
+
+
+
 
 	//
 	// change guide reached criteria
@@ -2005,14 +2005,14 @@ void set_attack_guide_hasty_take_cover_position (entity *en)
 
 	set_client_server_guide_entity_new_position (en, &position, NULL);
 
-	#if DEBUG_MODULE
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_log("AG_ATTCK: set_attack_guide_hasty_take_cover_position");
-			position.y += 2;
-			debug_visuals(aggressor, &position, 30);
-		}
-	#endif
+
+
+
+
+
+
+
+
 
 	set_client_server_entity_float_value (en, FLOAT_TYPE_VELOCITY, get_local_entity_float_value (aggressor, FLOAT_TYPE_CRUISE_VELOCITY));
 

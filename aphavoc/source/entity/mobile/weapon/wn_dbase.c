@@ -6806,18 +6806,18 @@ void initialise_target_point_offsets (void)
 			target_point_offsets[object_3d_index].z = (bounding_box->zmin + bounding_box->zmax) * 0.5;
 		}
 
-		#if DEBUG_MODULE_DISPLAY_TARGET_POINT_OFFSETS
 
-		debug_log
-		(
-			"Target point offset for %s: x = %.2f, y = %.2f, z = %.2f",
-			object_3d_enumeration_names[object_3d_index],
-			target_point_offsets[object_3d_index].x,
-			target_point_offsets[object_3d_index].y,
-			target_point_offsets[object_3d_index].z
-		);
 
-		#endif
+
+
+
+
+
+
+
+
+
+
 
 		destruct_3d_object (inst3d);
 	}

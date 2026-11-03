@@ -238,11 +238,11 @@ void initialise_comms (void)
 {
 	int i;
 	
-	#if DEBUG_MODULE >= 1
 
-	debug_log ("COMMS : Initialise comms");
 
-	#endif
+
+
+
 
 	direct_play_set_comms_mode (DIRECT_PLAY_COMMS_MODE_NONE);
 
@@ -280,11 +280,11 @@ void reset_comms_data (void)
 	
 	int i;
 
-	#if DEBUG_MODULE >= 1
 
-	debug_log ("COMMS : reset comms data");
 
-	#endif
+
+
+
 
 	for (i = 0; i < 3; i++)
 		comms_weapon_lag_timing[i] = 0.0;
@@ -365,11 +365,11 @@ void reset_comms_data (void)
 void initialise_comms_debug (void)
 {
 
-	#if DEBUG_MODULE
 
-	debug_log ("COMMS : initialise comms debug to level %d", DEBUG_MODULE);
 
-	#endif
+
+
+
 
 	#if COMMS_STATS
 
@@ -528,11 +528,11 @@ void send_packet (DPID player_id, packet_types type, unsigned char *data, int si
 
 		send_group_frame_id ++;
 
-		#if DEBUG_MODULE >= 1
 
-		debug_log ("COMMS: Sending group Data (type %d) (frame %d) size = %d, player id = %d", type, frame_id, size, player_id);
 
-		#endif
+
+
+
 	}
 	else
 	{
@@ -544,22 +544,22 @@ void send_packet (DPID player_id, packet_types type, unsigned char *data, int si
 
 			connection->send_personal_frame_id ++;
 
-			#if DEBUG_MODULE >= 1
 
-			debug_log ("COMMS: Sending Personal Data (type %d) (frame %d) size = %d, player id = %d", type, frame_id, size, player_id);
 
-			#endif
+
+
+
 		}
 		else
 		{
 
 			frame_id = 0;
 
-			#if DEBUG_MODULE >= 1
 
-			debug_log ("COMMS: Sending Personal Data (type %d) (frame %d no connection!) size = %d, player id = %d", type, frame_id, size, player_id);
 
-			#endif
+
+
+
 		}
 	}
 
@@ -679,11 +679,11 @@ void send_packet (DPID player_id, packet_types type, unsigned char *data, int si
 
 		#endif
 
-		#if DEBUG_MODULE >= 2
 
-		debug_log ("COMMS:      packet %d of %d, size %d", packet_counter, new_packet->number_of_packets, send_size);
 
-		#endif
+
+
+
 
 		size -= send_size;
 
@@ -790,11 +790,11 @@ void receive_packets (void)
 			if (get_comms_model () == COMMS_MODEL_SERVER)
 			{
 
-				#if DEBUG_MODULE >= 1
 
-				debug_log ("COMMS: received packet from unknown connection : registering");
 
-				#endif
+
+
+
 
 				connection = register_connection (new_receive_packet->player_id);
 			}
@@ -808,22 +808,22 @@ void receive_packets (void)
 				if (new_receive_packet->type == PACKET_TYPE_SESSION_INFO)
 				{
 
-					#if DEBUG_MODULE >= 1
 
-					debug_log ("COMMS: received packet from unknown connection : registering server");
 
-					#endif
+
+
+
 
 					connection = register_connection (new_receive_packet->player_id);
 				}
 				else
 				{
 
-					#if DEBUG_MODULE >= 1
 
-					debug_log ("COMMS: received packet from unknown connection : ignoring");
 
-					#endif
+
+
+
 
 					return;
 				}
@@ -832,11 +832,11 @@ void receive_packets (void)
 
 		send_type = get_packet_send_type (new_receive_packet);
 
-		#if DEBUG_MODULE >= 1
 
-		debug_log ("COMMS: received %s packet for frame %d, packet_id =%d, type = %d, size %d, player_id = %d", send_type_names [send_type], new_receive_packet->frame_id, new_receive_packet->packet_id, new_receive_packet->type, new_receive_packet->data_size, new_receive_packet->player_id);
 
-		#endif
+
+
+
 
 		//
 		// do checksum check
@@ -919,11 +919,11 @@ void receive_packets (void)
 		else
 		{
 
-			#if DEBUG_MODULE >= 2
 
-			debug_log ("COMMS: already received %s packet for frame %d, packet_id =%d, type = %d, size %d, player_id = %d", send_type_names [send_type], new_receive_packet->frame_id, new_receive_packet->packet_id, new_receive_packet->type, new_receive_packet->data_size, new_receive_packet->player_id);
 
-			#endif
+
+
+
 		}
 
 		//
@@ -966,15 +966,15 @@ void receive_packets (void)
 
 				fclose (fp);
 */
-				#if DEBUG_MODULE >= 2
 
-				debug_log ("COMMS: removing rerequest for %s packet frame %d, packet %d from list and setting time to %d",
-								send_type_names [rerequest_packet->send_type],
-								new_receive_packet->frame_id,
-								new_receive_packet->packet_id,
-								rerequest_packet->received_time);
 
-				#endif
+
+
+
+
+
+
+
 
 				stub_packet->received_time = rerequest_packet->received_time;
 
@@ -1066,11 +1066,11 @@ int process_packet_list (send_types send_type, connection_list_type *connection,
 		packet_list = &received_personal_packets;
 	}
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("COMMS: Checking for %s packets for id %d, frame %d", send_type_names [send_type], connection->connection_id, *frame_ptr);
 
-	#endif
+
+
+
 
 	this_packet = get_stub_packet_for_frame (send_type, connection->connection_id, *frame_ptr, 1);
 
@@ -1116,16 +1116,16 @@ int process_packet_list (send_types send_type, connection_list_type *connection,
 			if ((get_system_time () - closest_packet->received_time) > (command_line_comms_packet_resend_timer * TIME_1_SECOND))
 			{
 
-				#if DEBUG_MODULE >= 1
 
-				debug_log ("COMMS: WAITING FOR %s FRAME %d, closest packet (%d %d) arrived %f seconds ago (None have arrived)",
-								send_type_names [send_type],
-								*frame_ptr,
-								closest_packet->packet->frame_id,
-								closest_packet->packet->packet_id,
-								(float) (get_system_time () - closest_packet->received_time) / TIME_1_SECOND);
 
-				#endif
+
+
+
+
+
+
+
+
 
 				request_resend_packet (connection, *frame_ptr, 1, closest_packet->received_time, send_type);
 			}
@@ -1134,20 +1134,20 @@ int process_packet_list (send_types send_type, connection_list_type *connection,
 		return PACKET_TYPE_INVALID;
 	}
 
-	#if DEBUG_MODULE >= 2
 
-	if (send_type == SEND_TYPE_GROUP)
-	{
 
-		debug_log ("COMMS: Process GROUP packet list");
-	}
-	else
-	{
 
-		debug_log ("COMMS: Process PERSONAL packet list");
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
+
 
 	*player_id = this_packet->packet->player_id;
 
@@ -1164,11 +1164,11 @@ int process_packet_list (send_types send_type, connection_list_type *connection,
 	if (received_flag == this_packet->packet->number_of_packets)
 	{
 
-		#if DEBUG_MODULE >= 2
 
-		debug_log ("COMMS: received all %s packets for frame %d (total = %d)", send_type_names [send_type], frame_id, received_flag);
 
-		#endif
+
+
+
 
 		connection->packet_rerequested = 0;
 
@@ -1191,11 +1191,11 @@ int process_packet_list (send_types send_type, connection_list_type *connection,
 
 			predicted_size = ((this_packet->packet->packet_id - 1) * session_comms_packet_data_size) + this_packet->packet->data_size;
 
-			#if DEBUG_MODULE >= 3
 
-			debug_log ("COMMS: predicted data size = %d, buffer = %d", predicted_size, connection->connection_receive_buffer_size);
 
-			#endif
+
+
+
 
 			#if COMMS_STATS
 
@@ -1226,11 +1226,11 @@ int process_packet_list (send_types send_type, connection_list_type *connection,
 
 				connection->connection_receive_buffer_size *= 2;
 
-				#if DEBUG_MODULE
 
-				debug_log ("COMMS:     Connection receive buffer too small, mallocing %d", connection->connection_receive_buffer_size);
 
-				#endif
+
+
+
 			}
 
 			temp_char = (unsigned char *) this_packet->packet;
@@ -1239,11 +1239,11 @@ int process_packet_list (send_types send_type, connection_list_type *connection,
 
 			data_ptr_offset += this_packet->packet->data_size;
 
-			#if DEBUG_MODULE >= 3
 
-			debug_log ("COMMS:     Processing %s packet frame_id = %d, packet_id %d, size %d, player %d", send_type_names [this_packet->send_type], this_packet->packet->frame_id, this_packet->packet->packet_id, this_packet->packet->data_size, this_packet->packet->player_id);
 
-			#endif
+
+
+
 
 			remove_stub_packet_from_receive_list (send_type, this_packet);
 
@@ -1252,32 +1252,32 @@ int process_packet_list (send_types send_type, connection_list_type *connection,
 			this_packet = NULL;
 		}
 
-		#if DEBUG_MODULE
 
-		debug_log ("COMMS:   Processing %s packets frame_id = %d, (total %d packets) size %d, player %d",
-						send_type_names [send_type],
-						frame_id,
-						connection->number_of_packets,
-						predicted_size,
-						*player_id);
 
-		#endif
+
+
+
+
+
+
+
+
 
 		*data = connection->connection_receive_buffer;
 
 		*size = connection->size;
 
-		#if DEBUG_MODULE
 
-		connection->av_packet_size_received = (((connection->av_packet_size_received * connection->num_packets_received) + *size) / ++ connection->num_packets_received);
 
-		if (*size > connection->max_packet_size_received)
-		{
 
-			connection->max_packet_size_received = *size;
-		}
 
-		#endif
+
+
+
+
+
+
+
 
 		(*frame_ptr) ++;
 
@@ -1288,11 +1288,11 @@ int process_packet_list (send_types send_type, connection_list_type *connection,
 
 		// some of the packets have arrived for this frame, is it time to re-request the others ?
 
-		#if DEBUG_MODULE >= 2
 
-		debug_log ("COMMS: only received %d %s packets for frame %d out of %d", received_flag, send_type_names [this_packet->send_type], this_packet->packet->frame_id, this_packet->packet->number_of_packets);
 
-		#endif
+
+
+
 
 		//
 		// Find the closest packet in this frame
@@ -1338,17 +1338,17 @@ int process_packet_list (send_types send_type, connection_list_type *connection,
 					if (!(get_stub_packet_for_frame (send_type, connection->connection_id, *frame_ptr, loop)))
 					{
 
-						#if DEBUG_MODULE
 
-						debug_log ("COMMS: WAITING FOR %s FRAME %d packet %d, closest packet (%d %d) arrived %f seconds ago (Some have arrived)",
-										send_type_names [send_type],
-										*frame_ptr,
-										loop,
-										closest_packet->packet->frame_id,
-										closest_packet->packet->packet_id,
-										(float) (get_system_time () - closest_packet->received_time) / TIME_1_SECOND);
 
-						#endif
+
+
+
+
+
+
+
+
+
 
 						request_resend_packet (connection, *frame_ptr, loop, closest_packet->received_time, send_type);
 					}
@@ -1544,11 +1544,11 @@ void request_resend_packet (connection_list_type *connection, int frame_id, int 
 			else
 			{
 
-				#if DEBUG_MODULE
 
-				debug_log ("COMMS: rerequest for frame %d packet %d already exists, waiting... (waited %f so far)", frame_id, packet_id, (float) (get_system_time () - new_stub_packet->actual_time) / TIME_1_SECOND);
 
-				#endif
+
+
+
 			}
 
 			return;
@@ -1603,15 +1603,15 @@ void request_resend_packet (connection_list_type *connection, int frame_id, int 
 
 	add_stub_packet_to_list (&rerequest_packet_list, new_stub_packet);
 
-	#if DEBUG_MODULE
 
-	debug_log ("COMMS:     rerequest %s frame %d, packet %d, time %d, added to rerequest list",
-					send_type_names [send_type],
-					frame_id,
-					packet_id,
-					get_system_time ());
 
-	#endif
+
+
+
+
+
+
+
 }
 
 
@@ -1689,41 +1689,41 @@ stub_packet_type *resend_packet (DPID player_id, int frame_id, int packet_id, se
 		}
 	}
 
-	#if DEBUG_MODULE >= 2
-	{
 
-		char
-			buffer [30],
-			buffer2 [1024];
 
-		strcpy (buffer2, "->");
 
-		stub_packet = resend_packet_list;
 
-		while (stub_packet)
-		{
 
-			sprintf (buffer, "(%d:%d:%d)", stub_packet->packet->player_id, stub_packet->packet->frame_id, stub_packet->packet->packet_id);
 
-			if ((strlen (buffer2) + strlen (buffer)) > 1020)
-			{
 
-				strcat (buffer2, "...");
 
-				break;
-			}
 
-			strcat (buffer2, buffer);
 
-			stub_packet = stub_packet->next;
-		}
 
-		debug_log ("COMMS: RESEND LIST");
 
-		debug_log (buffer2);
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	return NULL;
 }
@@ -1739,11 +1739,11 @@ void free_connection_packets (DPID connection_id)
 		*destroy_packet,
 		*packet;
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("COMMS: Removing connection %d packets from list", connection_id);
 
-	#endif
+
+
+
 
 	//
 	// Free group packets for connection
@@ -1797,11 +1797,11 @@ void free_connection_packets (DPID connection_id)
 void free_stub_packet (stub_packet_type *stub_packet)
 {
 
-	#if DEBUG_MODULE >= 3
 
-	debug_log ("COMMS: Free packet");
 
-	#endif
+
+
+
 
 	if (stub_packet->packet)
 	{
@@ -1835,29 +1835,29 @@ void add_stub_packet_to_list (stub_packet_type **list, stub_packet_type *packet)
 
 	*list = packet;
 
-	#if DEBUG_MODULE >= 3
-	{
 
-		stub_packet_type
-			*current_packet;
 
-		int
-			count = 0;
 
-		current_packet = *list;
 
-		while (current_packet)
-		{
 
-			count ++;
 
-			current_packet = current_packet->next;
-		}
 
-		debug_log ("COMMS: Add Stub Packet, count = %d", count);
 
-	}
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 
@@ -1967,11 +1967,11 @@ int count_packets_for_frame (stub_packet_type *packet_list, int player_id, int f
 
 		checklist = malloc_heap_mem (sizeof (char) * checklist_size);
 
-		#if DEBUG_MODULE
 
-		debug_log ("COMMS: resizing checklist array to %d", checklist_size);
 
-		#endif
+
+
+
 	}
 
 	memset (checklist, 0, checklist_size);
@@ -2009,11 +2009,11 @@ int count_packets_for_frame (stub_packet_type *packet_list, int player_id, int f
 				else
 				{
 
-					#if DEBUG_MODULE
 
-					debug_log ("COMMS: not counting packet twice %d %d", frame_id, stub_packet->packet->packet_id);
 
-					#endif
+
+
+
 				}
 			}
 		}
@@ -2021,11 +2021,11 @@ int count_packets_for_frame (stub_packet_type *packet_list, int player_id, int f
 		stub_packet = stub_packet->next;
 	}
 
-	#if DEBUG_MODULE
 
-	debug_log ("COMMS: received %d packets for frame %d", packet_count, frame_id);
 
-	#endif
+
+
+
 
 	return packet_count;
 }
@@ -2047,11 +2047,11 @@ void update_resend_packet_list (int packet_limit)
 	if (resend_packet_list_counter >= packet_limit)
 	{
 
-		#if DEBUG_MODULE >= 2
 
-		debug_log ("COMMS: resend packet list > %d", packet_limit);
 
-		#endif
+
+
+
 
 		packet = resend_packet_list;
 
@@ -2076,40 +2076,40 @@ void update_resend_packet_list (int packet_limit)
 		}
 	}
 
-	#if DEBUG_MODULE >= 4
-	{
 
-		char
-			buffer [10],
-			buffer2 [256];
 
-		strcpy (buffer2, "->");
 
-		packet = resend_packet_list;
 
-		while (packet)
-		{
 
-			sprintf (buffer, "%d:", packet->packet->frame_id);
 
-			if ((strlen (buffer2) + strlen (buffer)) > 253)
-			{
 
-				strcat (buffer2, "...");
 
-				break;
-			}
 
-			strcat (buffer2, buffer);
 
-			packet = packet->next;
-		}
 
-		debug_log ("COMMS: RESEND LIST %d", packet_limit);
 
-		debug_log (buffer2);
-	}
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 

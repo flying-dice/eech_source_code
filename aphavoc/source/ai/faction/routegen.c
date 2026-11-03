@@ -976,44 +976,44 @@ void match_end_slots ( int tree_depth, int number_of_matching_slots, vec3d *slot
 						if ( other_node != number_of_waypoint_nodes )
 						{
 
-							#if DEBUG_MODULE
 
-							debug_log ( "Swapping nodes %d and %d", node, other_node );
 
-							#endif
+
+
+
 
 							swap_waypoint_nodes ( node, other_node );
 
 							finished = FALSE;
 						}
 
-						#if DEBUG_MODULE
-
-						else
-						{
-
-							debug_log ( "CANT FIND A NODE TO SWAP!!!!! %f, %f, %f", slots[count].x, slots[count].y, slots[count].z );
-
-							for ( other_node = 0; other_node < number_of_waypoint_nodes; other_node++ )
-							{
 
 
-								if ( waypoint_nodes[other_node].tree_depth == tree_depth )
-								{
-
-									debug_log ( "NODE: %f, %f, %f",
-														waypoint_nodes[other_node].position.x,
-														waypoint_nodes[other_node].position.y,
-														waypoint_nodes[other_node].position.z );
 
 
-								}
-							}
 
-							debug_fatal ( "ERROR" );
-						}
 
-						#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 					}
 				}
 			}

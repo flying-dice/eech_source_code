@@ -226,10 +226,10 @@ static void update_server (entity *en)
 
 
 
-void overload_keysite_update_functions (void)
-{
-	fn_update_client_server_entity[ENTITY_TYPE_KEYSITE][COMMS_MODEL_SERVER]  	= update_server;
-}
+
+
+
+
 
 
 

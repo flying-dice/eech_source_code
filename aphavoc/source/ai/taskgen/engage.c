@@ -113,13 +113,13 @@ entity *create_engage_task (entity *group, entity *objective, entity *originator
 
 	ASSERT (objective);
 
-	#if DEBUG_MODULE
-	
-	debug_log ("ENGAGE: Trying to engage against %s (%d)",
-									get_local_entity_string (objective, STRING_TYPE_FULL_NAME),
-									get_local_entity_index (objective));
 
-	#endif
+
+
+
+
+
+
 
 	ASSERT ((get_local_entity_int_value (objective, INT_TYPE_IDENTIFY_AIRCRAFT)) ||
 				(get_local_entity_int_value (objective, INT_TYPE_IDENTIFY_VEHICLE)) ||
@@ -176,13 +176,13 @@ entity *create_engage_task (entity *group, entity *objective, entity *originator
 									pos, objective, ENTITY_SUB_TYPE_WAYPOINT_TARGET, original_formation,
 									&terminator_point, NULL, NUM_ENTITY_SUB_TYPE_WAYPOINTS, FORMATION_NONE);
 
-	#if DEBUG_MODULE
-	
-	debug_log ("ENGAGE: Created Engage task against %s (%d)",
-									get_local_entity_string (objective, STRING_TYPE_FULL_NAME),
-									get_local_entity_index (objective));
 
-	#endif
+
+
+
+
+
+
 
 	return new_task;
 }
@@ -553,11 +553,11 @@ int engage_targets_in_group (entity *group, entity *target_group, int expire)
 			{
 				if (member == objective)
 				{
-					#if DEBUG_MODULE
 
-					debug_log ("ENGAGE.C: engage task already exists");
 
-					#endif
+
+
+
 
 					if (!get_local_entity_int_value (member, INT_TYPE_IDENTIFY_VEHICLE))
 						return FALSE;
@@ -587,11 +587,11 @@ int engage_targets_in_group (entity *group, entity *target_group, int expire)
 			{
 				assign_task_to_group (group, new_task, TASK_ASSIGN_NO_MEMBERS);
 
-				#if DEBUG_MODULE
 
-				debug_log ("ENGAGE.C: engage task assigned to member");
 
-				#endif
+
+
+
 			}
 		}
 
@@ -604,21 +604,21 @@ int engage_targets_in_group (entity *group, entity *target_group, int expire)
 
 	if (assign_engage_tasks_to_group (group, TASK_ASSIGN_ALL_MEMBERS) != TASK_ASSIGN_ALL_MEMBERS)
 	{
-		#if DEBUG_MODULE
 
-		debug_log ("ENGAGE.C: engage task created");
 
-		#endif
+
+
+
 
 		return TRUE;
 	}
 	else
 	{
-		#if DEBUG_MODULE
 
-		debug_log ("ENGAGE.C: engage task create fail");
 
-		#endif
+
+
+
 
 		return FALSE;
 	}
@@ -865,13 +865,13 @@ unsigned int assign_engage_tasks_to_group (entity *group, unsigned int valid_mem
 		guide = get_local_entity_child_succ (guide, LIST_TYPE_GUIDE_STACK);
 	}
 
-	#if DEBUG_MODULE
 
-	debug_log ("ENGAGE: ==========================");
-	
-	debug_log ("ENGAGE: %d suitable tasks", task_count);
 
-	#endif
+
+
+
+
+
 
 	if (task_count == 0)
 	{
@@ -892,11 +892,11 @@ unsigned int assign_engage_tasks_to_group (entity *group, unsigned int valid_mem
 	priority = (float *) malloc_fast_mem (sizeof (float) * task_count);
 	assigned_count = (int *) malloc_fast_mem (sizeof (int) * task_count);
 
-	#if DEBUG_MODULE
 
-	debug_log ("ENGAGE: ======RAW LIST======");
 
-	#endif
+
+
+
 
 	single_member = NULL;
 	// check if we have a single member, if so assign that member to single_member
@@ -944,11 +944,11 @@ unsigned int assign_engage_tasks_to_group (entity *group, unsigned int valid_mem
 				
 				if (abort_task)
 				{
-					#if DEBUG_MODULE
 
-					debug_log ("ENGAGE: skipping dead target");
 
-					#endif
+
+
+
 				
 					/* cause game crash /thealx/
 					notify_local_entity (ENTITY_MESSAGE_TASK_TERMINATED, task, group, TASK_TERMINATED_ABORTED);
@@ -994,11 +994,11 @@ unsigned int assign_engage_tasks_to_group (entity *group, unsigned int valid_mem
 						priority [loop] = max(0.0, priority [loop] - 0.1);
 				}
 				
-				#if DEBUG_MODULE
 
-				debug_log ("ENGAGE: (%d) Target : %s, Priority %f", loop, get_local_entity_string (target, STRING_TYPE_FULL_NAME), priority [loop]);
 
-				#endif
+
+
+
 
 				loop ++;
 			}
@@ -1015,20 +1015,20 @@ unsigned int assign_engage_tasks_to_group (entity *group, unsigned int valid_mem
 
 	quicksort_entity_list (guide_list, task_count, priority);
 
-	#if DEBUG_MODULE
 
-	debug_log ("ENGAGE: ======SORTED======");
 
-	for (loop = 0; loop < task_count; loop ++)
-	{
-		task = get_local_entity_parent (guide_list [loop], LIST_TYPE_GUIDE);
 
-		target = get_local_entity_parent (task, LIST_TYPE_TASK_DEPENDENT);
 
-		debug_log ("ENGAGE: (%d) Target : %s (%d), Priority %f", loop, get_local_entity_string (target, STRING_TYPE_FULL_NAME), get_local_entity_index (target), priority [loop]);
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
 
 	//
 	// consider other entities attacking the same targets
@@ -1157,23 +1157,23 @@ unsigned int assign_engage_tasks_to_group (entity *group, unsigned int valid_mem
 				
 							assigned_count [best_guide] ++;
 			
-							#if DEBUG_MODULE
-						
-							debug_log ("ENGAGE: Assigning %s (%d) to target %s (%d)",
-											get_local_entity_string (member, STRING_TYPE_FULL_NAME), get_local_entity_index (member),
-											get_local_entity_string (target, STRING_TYPE_FULL_NAME), get_local_entity_index (target));
-		
-							#endif
+
+
+
+
+
+
+
 						}
 					}
 					else
 					{
-						#if DEBUG_MODULE
-						
-						debug_log ("ENGAGE: Couldn't assign %s (%d) to engage task",
-										get_local_entity_string (member, STRING_TYPE_FULL_NAME), get_local_entity_index (member));
-		
-						#endif
+
+
+
+
+
+
 					}
 				}
 			}

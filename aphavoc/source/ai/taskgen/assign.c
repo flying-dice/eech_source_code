@@ -83,11 +83,11 @@
 
 
 
-#ifdef DEBUG
 
-static void dump_guide_stack (entity *group);
 
-#endif
+
+
+
 
 
 
@@ -280,16 +280,16 @@ void assign_keysite_tasks (entity *keysite, task_category_types category)
 			}
 			else
 			{
-				#if DEBUG_MODULE
-	
-				debug_log ("ASSIGN: not assigning group %s (%d) to task %s (%d) from keysite %s",
-								entity_sub_type_group_names [get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE)],
-								get_local_entity_index (group),
-								entity_sub_type_task_names [task_type],
-								get_local_entity_index (task),
-								get_local_entity_string (keysite, STRING_TYPE_KEYSITE_NAME));
-	
-				#endif
+
+
+
+
+
+
+
+
+
+
 			}
 		}
 	}
@@ -665,63 +665,63 @@ entity *push_task_onto_group_task_stack (entity *group, entity *task, unsigned i
 	list_types
 		list_type;
 
-	#ifdef DEBUG
-	
-	unsigned int
-		total_members,
-		member_number;
 
-	#endif
+
+
+
+
+
+
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
 	ASSERT (group);
 
-	#ifdef DEBUG
 
-	total_members = 0;
 
-	//
-	// Check not already on stack
-	//
 
-	guide = get_local_entity_first_child (task, LIST_TYPE_GUIDE);
 
-	while (guide)
-	{
-		if (get_local_entity_parent (guide, LIST_TYPE_GUIDE_STACK) == group)
-		{
-			member_number = get_local_entity_int_value (guide, INT_TYPE_VALID_GUIDE_MEMBERS);
 
-			total_members |= member_number;
-		}
 
-		guide = get_local_entity_child_succ (guide, LIST_TYPE_GUIDE);
-	}
 
-	//
-	// A TASK may be on the stack many times, but any one member should not have the same task duplicated
-	// e.g. ENGAGE tasks may be duplicated many times, but their guide "valid_members" should all be exclusive
-	//
 
-	if (valid_members & total_members)
-	{
-		debug_filtered_log ("Trying to assign task %s (%d) to group %s - members %d",
-										get_local_entity_string (task, STRING_TYPE_FULL_NAME),
-										get_local_entity_index (task),
-										get_local_entity_string (group, STRING_TYPE_FULL_NAME),
-										valid_members);
 
-		debug_filtered_log ("");
 
-		dump_guide_stack (group);
 
-		debug_fatal ("ASSIGN: Task %s already on Group %s guide stack",
-								get_local_entity_string (task, STRING_TYPE_FULL_NAME),
-								get_local_entity_string (group, STRING_TYPE_FULL_NAME));
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	//
 	// create guide entity for task
@@ -825,11 +825,11 @@ int assign_task_to_group (entity *group, entity *task_en, unsigned int valid_mem
 		case ENTITY_SUB_TYPE_TASK_TAKEOFF:
 		case ENTITY_SUB_TYPE_TASK_TAKEOFF_HOLDING:
 		{
-			#ifdef DEBUG
 
-			debug_fatal ("ASSIGN: Invalid task type (%s) for assign_task_to_group", get_local_entity_string (task_en, STRING_TYPE_FULL_NAME));
 
-			#endif
+
+
+
 
 			return FALSE;
 		}
@@ -926,15 +926,15 @@ int assign_task_to_group (entity *group, entity *task_en, unsigned int valid_mem
 
 	if (create_generic_waypoint_route (group, task_en, end_keysite, NULL, NULL, NULL, 0))
 	{
-		#if DEBUG_MODULE
 
-		debug_log ("ASSIGN: group %s (%d) assigned to task %s (%d)",
-							get_local_entity_string (group, STRING_TYPE_FULL_NAME),
-							get_local_entity_index (group),
-							get_local_entity_string (task_en, STRING_TYPE_FULL_NAME),
-							get_local_entity_index (task_en));
 
-		#endif
+
+
+
+
+
+
+
 
 		//
 		// Assign task
@@ -1184,17 +1184,17 @@ int assign_new_task_to_group_member (entity *group, entity *member, entity *task
 	// ensure member was actually assigned to a new task (not always the desired task - e.g. in the case of when aircraft need to takeoff first)
 	//
 
-	#ifdef DEBUG
 
-	current_guide = get_local_entity_parent (member, LIST_TYPE_FOLLOWER);
 
-	ASSERT (current_guide);
 
-	current_task = get_local_entity_parent (current_guide, LIST_TYPE_GUIDE);
 
-	ASSERT (current_task);
 
-	#endif
+
+
+
+
+
+
 
 	return TRUE;
 }
@@ -1244,36 +1244,36 @@ void respond_to_player_task_assign_request (entity *pilot, entity *task, entity 
 
 
 
-#ifdef DEBUG
 
-void dump_guide_stack (entity *group)
-{
-	entity
-		*guide,
-		*task;
 
-	debug_filtered_log ("GUIDE STACK:-");
-	debug_filtered_log ("-------------");
 
-	guide = get_local_entity_first_child (group, LIST_TYPE_GUIDE_STACK);
 
-	while (guide)
-	{
-		task = get_local_entity_parent (guide, LIST_TYPE_GUIDE);
 
-		ASSERT (task);
 
-		debug_filtered_log ("Task %s (%d) - Guide (%d) - Valid Members %d",
-									get_local_entity_string (task, STRING_TYPE_FULL_NAME),
-									get_local_entity_index (task),
-									get_local_entity_index (guide),
-									get_local_entity_int_value (guide, INT_TYPE_VALID_GUIDE_MEMBERS));
 
-		guide = get_local_entity_child_succ (guide, LIST_TYPE_GUIDE_STACK);
-	}
-}
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1308,9 +1308,9 @@ int check_group_members_awake (entity *group)
 
 // PLACE TROOPS INSIDE HELICOPTER
 void prepare_helicopter_for_task(entity *en, entity *task, entity *group) {
-	#if DEBUG_MODULE || DEBUG_SUPPLY
-	debug_log ("task assigned to helicopter: %s", get_local_entity_string (task, STRING_TYPE_FULL_NAME));
-	#endif
+
+
+
 
 	if (get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE) == ENTITY_SUB_TYPE_TASK_TROOP_INSERTION)
 	{

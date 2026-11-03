@@ -92,11 +92,11 @@ static entity *create_local (entity_types type, int index, char *pargs)
 
 	validate_local_create_entity_index (index);
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_CREATE, NULL, type, index);
 
-	#endif
+
+
+
 
 	en = get_free_entity (index);
 
@@ -171,16 +171,16 @@ static entity *create_local (entity_types type, int index, char *pargs)
 
 		insert_local_entity_into_parents_child_list (en, LIST_TYPE_PILOT, raw->pilot_link.parent, raw->pilot_link.child_pred);
 
-		#if DEBUG_MODULE
 
-		debug_log ("PI_CREAT: creating pilot %s (%s %s) index %d in helicopter %s",
-						raw->pilots_name,
-						entity_sub_type_pilot_names [raw->sub_type],
-						pilot_rank_names [raw->rank],
-						get_local_entity_index (en),
-						entity_sub_type_aircraft_names [get_local_entity_int_value (raw->aircrew_link.parent, INT_TYPE_ENTITY_SUB_TYPE)]);
 
-		#endif
+
+
+
+
+
+
+
+
 	}
 
 	return (en);
@@ -194,11 +194,11 @@ static entity *create_remote (entity_types type, int index, char *pargs)
 {
 	validate_remote_create_entity_index (index);
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_CREATE, NULL, type, index);
 
-	#endif
+
+
+
 
 	transmit_entity_comms_message (ENTITY_COMMS_CREATE, NULL, type, index, pargs);
 
@@ -257,14 +257,14 @@ static entity *create_client (entity_types type, int index, char *pargs)
 
 
 
-void overload_pilot_create_functions (void)
-{
-	fn_create_local_entity[ENTITY_TYPE_PILOT]											= create_local;
 
-	fn_create_client_server_entity[ENTITY_TYPE_PILOT][COMMS_MODEL_SERVER]	= create_server;
 
-	fn_create_client_server_entity[ENTITY_TYPE_PILOT][COMMS_MODEL_CLIENT]	= create_client;
-}
+
+
+
+
+
+
 
 
 

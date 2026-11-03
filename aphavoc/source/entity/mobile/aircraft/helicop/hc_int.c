@@ -83,11 +83,11 @@ static void set_local_int_value (entity *en, int_types type, int value)
 
 	ASSERT (en);
 	
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_INT_VALUE, en, type, value);
 
-	#endif
+
+
+
 
 	raw = (helicopter *) get_local_entity_data (en);
 
@@ -330,56 +330,56 @@ static void set_local_int_value (entity *en, int_types type, int value)
 
 
 
-static void set_remote_int_value (entity *en, int_types type, int value)
-{
-	#if DEBUG_MODULE
-
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_INT_VALUE, en, type, value);
-
-	#endif
-	ASSERT (en);
-
-	transmit_entity_comms_message (ENTITY_COMMS_INT_VALUE, en, type, value);
-}
 
 
 
 
 
-static void set_server_int_value (entity *en, int_types type, int value)
-{
-	ASSERT (en);
-
-	validate_client_server_local_fn ();
-
-	set_local_int_value (en, type, value);
-
-	validate_client_server_remote_fn ();
-
-	set_remote_int_value (en, type, value);
-}
 
 
 
 
 
-static void set_client_int_value (entity *en, int_types type, int value)
-{
-	ASSERT (en);
 
-	if (get_comms_data_flow () == COMMS_DATA_FLOW_TX)
-	{
-		validate_client_server_remote_fn ();
 
-		set_remote_int_value (en, type, value);
-	}
-	else
-	{
-		validate_client_server_local_fn ();
 
-		set_local_int_value (en, type, value);
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -658,114 +658,114 @@ static int get_local_int_value (entity *en, int_types type)
 
 
 
-void overload_helicopter_int_value_functions (void)
-{
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_HELICOPTER][INT_TYPE_AUTO_PILOT]												= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_AUTO_PILOT]												= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_AUTO_PILOT][COMMS_MODEL_SERVER]						= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_AUTO_PILOT][COMMS_MODEL_CLIENT]						= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_AUTO_PILOT]												= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_HELICOPTER][INT_TYPE_HELICOPTER_DAMAGE_FLAGS]								= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_HELICOPTER_DAMAGE_FLAGS]								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_HELICOPTER_DAMAGE_FLAGS][COMMS_MODEL_SERVER]	= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_HELICOPTER_DAMAGE_FLAGS][COMMS_MODEL_CLIENT]	= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_HELICOPTER_DAMAGE_FLAGS]				  				= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_HELICOPTER][INT_TYPE_HELICOPTER_WEAPON_DAMAGE_FLAGS]								= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_HELICOPTER_WEAPON_DAMAGE_FLAGS]								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_HELICOPTER_WEAPON_DAMAGE_FLAGS][COMMS_MODEL_SERVER]	= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_HELICOPTER_WEAPON_DAMAGE_FLAGS][COMMS_MODEL_CLIENT]	= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_HELICOPTER_WEAPON_DAMAGE_FLAGS]				  				= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_IDENTIFY_HELICOPTER]		 							= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_INVULNERABLE_FROM_COLLISIONS]		 							= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_INVULNERABLE_FROM_WEAPONS]		 							= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_HELICOPTER][INT_TYPE_INFRA_RED_JAMMER_ON]									= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_INFRA_RED_JAMMER_ON]									= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_INFRA_RED_JAMMER_ON][COMMS_MODEL_SERVER]			= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_INFRA_RED_JAMMER_ON][COMMS_MODEL_CLIENT]			= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_INFRA_RED_JAMMER_ON]									= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_LANDED_ON_CARRIER]										= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_HELICOPTER][INT_TYPE_LASER_ON]													= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_LASER_ON]			  										= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_LASER_ON][COMMS_MODEL_SERVER]						= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_LASER_ON][COMMS_MODEL_CLIENT]  						= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_LASER_ON]			  										= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_HELICOPTER][INT_TYPE_LOCK_ON_AFTER_LAUNCH]									= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_LOCK_ON_AFTER_LAUNCH]									= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_LOCK_ON_AFTER_LAUNCH][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_LOCK_ON_AFTER_LAUNCH][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_LOCK_ON_AFTER_LAUNCH]									= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_HELICOPTER][INT_TYPE_LOS_TO_TARGET]											= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_LOS_TO_TARGET]			  								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_LOS_TO_TARGET][COMMS_MODEL_SERVER]					= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_LOS_TO_TARGET][COMMS_MODEL_CLIENT]  				= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_LOS_TO_TARGET]			  								= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_HELICOPTER][INT_TYPE_MAIN_ROTOR_DAMAGED]										= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_MAIN_ROTOR_DAMAGED]										= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_MAIN_ROTOR_DAMAGED][COMMS_MODEL_SERVER]			= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_MAIN_ROTOR_DAMAGED][COMMS_MODEL_CLIENT]			= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_MAIN_ROTOR_DAMAGED]										= get_local_int_value;
 
-	fn_set_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_OPERATIONAL_STATE]										= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_OPERATIONAL_STATE][COMMS_MODEL_SERVER]			= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_OPERATIONAL_STATE][COMMS_MODEL_CLIENT]			= set_client_int_value;
 
-	fn_set_local_entity_raw_int_value  		[ENTITY_TYPE_HELICOPTER][INT_TYPE_PLAYER]							 							= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_PLAYER]						  								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_PLAYER][COMMS_MODEL_SERVER]							= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_PLAYER][COMMS_MODEL_CLIENT]							= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_PLAYER]														= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_HELICOPTER][INT_TYPE_POSITION_HOLD]											= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_POSITION_HOLD]											= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_POSITION_HOLD][COMMS_MODEL_SERVER]					= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_POSITION_HOLD][COMMS_MODEL_CLIENT]					= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_POSITION_HOLD]											= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_HELICOPTER][INT_TYPE_RADAR_JAMMER_ON]											= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_RADAR_JAMMER_ON]											= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_RADAR_JAMMER_ON][COMMS_MODEL_SERVER]				= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_RADAR_JAMMER_ON][COMMS_MODEL_CLIENT]				= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_RADAR_JAMMER_ON]											= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_HELICOPTER][INT_TYPE_RADAR_ON]													= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_RADAR_ON]			  										= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_RADAR_ON][COMMS_MODEL_SERVER]						= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_RADAR_ON][COMMS_MODEL_CLIENT]  						= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_RADAR_ON]			  										= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_HELICOPTER][INT_TYPE_TAIL_ROTOR_DAMAGED]										= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_TAIL_ROTOR_DAMAGED]										= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_TAIL_ROTOR_DAMAGED][COMMS_MODEL_SERVER]			= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_TAIL_ROTOR_DAMAGED][COMMS_MODEL_CLIENT]			= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_TAIL_ROTOR_DAMAGED]										= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_TASK_TARGET_TYPE]	 									= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_HELICOPTER][INT_TYPE_TIMER]														= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_TIMER]														= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_TIMER][COMMS_MODEL_SERVER]							= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_TIMER][COMMS_MODEL_CLIENT]							= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_TIMER]														= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_ARMOR_LEVEL] 								= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_HELICOPTER][INT_TYPE_WEAPONS_HOLD]												= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_WEAPONS_HOLD]												= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_WEAPONS_HOLD][COMMS_MODEL_SERVER]					= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_HELICOPTER][INT_TYPE_WEAPONS_HOLD][COMMS_MODEL_CLIENT]					= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_HELICOPTER][INT_TYPE_WEAPONS_HOLD]												= get_local_int_value;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

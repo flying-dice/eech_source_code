@@ -186,13 +186,13 @@ void start_high_level_ai ()
 	
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
-		#ifdef DEBUG
 
-		ai_log_file = safe_fopen (AI_LOG_FILENAME, "w");
 
-		fclose (ai_log_file);
 
-		#endif
+
+
+
+
 
 		//
 		// initialise influence maps
@@ -546,11 +546,11 @@ void create_advance_and_retreat_tasks (void)
 				{
 					if (notify_local_entity (ENTITY_MESSAGE_GROUND_FORCE_ADVANCE, group, NULL, best_node))
 					{
-						#if DEBUG_MODULE
-	
-						debug_filtered_log ("HIGHLEVL: Created Advance for %s (Rating %f -> %f)", get_local_entity_string (group, STRING_TYPE_FULL_NAME), target_rating [loop], best_rating);
 
-						#endif
+
+
+
+
 
 						ai_log ("(TASK) Side %s : Created Advance for %s (Rating %f -> %f)", entity_side_short_names [side], get_local_entity_string (group, STRING_TYPE_FULL_NAME), target_rating [loop], best_rating);
 
@@ -682,20 +682,20 @@ void create_bai_tasks (void)
 	
 								max_rating = 7.0;
 	
-								#if DEBUG_MODULE
-	
-								ai_log ("(TASK) %s BAI (%d) Group %s : IMP %.4f - AIR %.4f - SUR %.4f - DIST %.4f (Total %.3f / %.3f)",
-												entity_side_short_names [this_side],
-												count,
-												get_local_entity_string (group, STRING_TYPE_FULL_NAME),
-												importance_rating,
-												air_defence_rating,
-												surface_defence_rating,
-												base_distance_rating,
-												rating,
-												max_rating);
-	
-								#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	
 								//
 								// Store
@@ -922,20 +922,20 @@ void create_cas_tasks (void)
 	
 								max_rating = 6.0;
 	
-								#if DEBUG_MODULE
-	
-								ai_log ("(TASK) %s CAS (%d) Group %s : IMP %.4f - AIR %.4f - SUR %.4f - DIST %.4f (Total %.3f / %.3f)",
-												entity_side_short_names [this_side],
-												count,
-												get_local_entity_string (group, STRING_TYPE_FULL_NAME),
-												importance_rating,
-												air_defence_rating,
-												surface_defence_rating,
-												base_distance_rating,
-												rating,
-												max_rating);
-	
-								#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	
 								//
 								// Store

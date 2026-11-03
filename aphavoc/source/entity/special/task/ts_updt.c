@@ -83,11 +83,11 @@ static void update_server (entity *en)
 
 	raw = (task *) get_local_entity_data (en);
 
-	#ifdef DEBUG
 
-	validate_task_entity (en);
 
-	#endif
+
+
+
 
 	//
 	// Unassigned tasks terminated if expire time
@@ -110,11 +110,11 @@ static void update_server (entity *en)
 				{
 					raw->expire_timer = 0.0;
 		
-					#if DEBUG_MODULE
 
-					debug_log ("TS_UPDT: UNASSIGNED task %d type %s expired", get_local_entity_index (en), entity_sub_type_task_names [raw->sub_type]);
 
-					#endif
+
+
+
 
 					notify_local_entity (ENTITY_MESSAGE_TASK_TERMINATED, en, en, TASK_TERMINATED_EXPIRE_TIME_REACHED);
 				}
@@ -129,18 +129,18 @@ static void update_server (entity *en)
 			// Only decrement the stop timer if the task requires it (i.e. non-zero stop timer)
 			//
 
-			#ifdef DEBUG
 
-			//
-			//
-			//
 
-			if (task_database [raw->sub_type].primary_task)
-			{
-				ASSERT (raw->expire_timer == 0.0);
-			}
 
-			#endif
+
+
+
+
+
+
+
+
+
 			
 			if (raw->stop_timer > 0.0)
 			{
@@ -150,11 +150,11 @@ static void update_server (entity *en)
 				{
 					raw->stop_timer = 0.0;
 
-					#if DEBUG_MODULE
 
-					debug_log ("TS_UPDT: ASSIGNED task %d type %s reached stop time", get_local_entity_index (en), entity_sub_type_task_names [raw->sub_type]);
 
-					#endif
+
+
+
 
 					notify_local_entity (ENTITY_MESSAGE_TASK_COMPLETED, en, en, TASK_TERMINATED_STOP_TIME_REACHED);
 				}
@@ -179,11 +179,11 @@ static void update_server (entity *en)
 				{
 					raw->expire_timer = 0.0;
 		
-					#if DEBUG_MODULE
-	
-					debug_log ("TS_UPDT: COMPLETED task %d type %s expired", get_local_entity_index (en), entity_sub_type_task_names [raw->sub_type]);
-	
-					#endif
+
+
+
+
+
 	
 					//
 					// Destroy task
@@ -251,12 +251,12 @@ static void update_client (entity *en)
 
 
 
-void overload_task_update_functions (void)
-{
-	fn_update_client_server_entity[ENTITY_TYPE_TASK][COMMS_MODEL_SERVER]  	= update_server;
 
-	fn_update_client_server_entity[ENTITY_TYPE_TASK][COMMS_MODEL_CLIENT]  	= update_client;
-}
+
+
+
+
+
 
 
 

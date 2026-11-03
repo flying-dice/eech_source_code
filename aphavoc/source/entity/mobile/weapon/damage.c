@@ -231,11 +231,11 @@ int damage_client_server_entity (entity *en, entity *weapon, float damage_modifi
 
 		set_client_server_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL, damage_level);
 
-		#if DEBUG_MODULE
 
-		debug_log ("DAMAGE: %s hit = %d , new damage level = %d", get_local_entity_string (en, STRING_TYPE_FULL_NAME), damage_capability, damage_level);
 
-		#endif
+
+
+
 	}
 
 	return damage_capability;
@@ -407,10 +407,10 @@ int weapon_damage_capability (entity *wpn, entity *target, float damage_modifier
 	{
 		result = (int) (damage_capability * random_modifier * velocity);
 
-		#if DEBUG_MODULE
-			debug_log("DAMAGE: DIRECT HIT - weapon penetration %.1f, target armor %.1f, damage_modifier %.4f, random modifier %.4f, damage %d", 
-					weapon_armor_penetration_capability, target_armor_thickness, damage_modifier, random_modifier, result);
-		#endif
+
+
+
+
 		
 	}
 	else if (high_explosive)
@@ -422,10 +422,10 @@ int weapon_damage_capability (entity *wpn, entity *target, float damage_modifier
 		
 		result = (int) (damage_capability * damage_modifier * armor_modifier * random_modifier);
 
-		#if DEBUG_MODULE
-			debug_log("DAMAGE: SPLASH DAMAGE - weapon penetration %.1f, target armor %.1f, damage_modifier %.4f, armor modifier %.4f, random modifier %.4f, damage %d", 
-					weapon_armor_penetration_capability, target_armor_thickness, damage_modifier, armor_modifier, random_modifier, result);
-		#endif
+
+
+
+
 
 	}
 	

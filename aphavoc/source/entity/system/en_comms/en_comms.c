@@ -524,11 +524,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_vec3d (en, VEC3D_TYPE_POSITION, pos);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending add planner waypoint at %f, %f, %f", pos->x, pos->y, pos->z);
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -544,11 +544,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (en);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending advise transmit recon");
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -577,11 +577,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_attitude_angles (en, heading, pitch, roll);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending attitude angle for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -604,11 +604,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_attitude_matrix (en, *attitude);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending attitude matrix for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -640,11 +640,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_int_value (en, INT_TYPE_SESSION_COMPLETE, complete);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending campaign completed by %s", entity_side_names [side]);
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -669,11 +669,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_int_value (en, INT_TYPE_SIDE, side);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending captured keysite for %s", entity_side_names [side]);
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -703,11 +703,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_char_value (en, type, value);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending char for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -742,11 +742,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_attributes (buffer);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending create for %s (index %d)", entity_type_names [type], index);
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -798,20 +798,20 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 				pack_entity_safe_index (index);
 			}
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			if (parent)
-			{
 
-				debug_log ("EN_COMMS: sending create meta explosion for %s (%d)", entity_type_names [parent->type], get_local_entity_index (parent));
-			}
-			else
-			{
 
-				debug_log ("EN_COMMS: sending create meta explosion");
-			}
 
-			#endif
+
+
+
+
+
+
+
+
+
+
 
 			break;
 		}
@@ -884,20 +884,20 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 				pack_entity_safe_index (index);
 			}
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			if (parent)
-			{
 
-				debug_log ("EN_COMMS: sending create meta smoke ( spec pos ) for %s (%d)", entity_type_names [parent->type], get_local_entity_index (parent));
-			}
-			else
-			{
 
-				debug_log ("EN_COMMS: sending create meta smoke");
-			}
 
-			#endif
+
+
+
+
+
+
+
+
+
+
 
 			break;
 		}
@@ -952,20 +952,20 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 				pack_entity_safe_index (index);
 			}
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			if (parent)
-			{
 
-				debug_log ("EN_COMMS: sending create meta smoke ( sub pos ) for %s (%d)", entity_type_names [parent->type], get_local_entity_index (parent));
-			}
-			else
-			{
 
-				debug_log ("EN_COMMS: sending create meta smoke");
-			}
 
-			#endif
+
+
+
+
+
+
+
+
+
+
 
 			break;
 		}
@@ -1057,11 +1057,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 				pack_int_value (en, INT_TYPE_SOUND_EFFECT_INDEX, index);
 			}
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending create sound effect for %s (%d)", entity_type_names [parent->type], get_local_entity_index (parent));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -1159,11 +1159,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 				wp = get_local_entity_child_succ (wp, LIST_TYPE_WAYPOINT);
 			}
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending create waypoint route for %s (%d) check_sum %d", get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_index (en), check_sum);
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -1281,11 +1281,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 				}
 			}
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending create weapon %s for %s (%d)", entity_sub_type_weapon_names [weapon_sub_type], entity_type_names [launcher->type], get_local_entity_index (launcher));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -1318,11 +1318,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_int_value (en, INT_TYPE_VALID, random);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending damage helicopter dynamics %d for %s (%d)", damage, get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -1350,11 +1350,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_int_value (en, INT_TYPE_HELICOPTER_DAMAGE_LEVEL, damage_level);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending damage helicopter avionics %d for %s (%d)", damage_level, get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -1389,19 +1389,19 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_int_value (en, INT_TYPE_WEAPON_PACKAGE_DAMAGED, weapon_package_damaged);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log
-			(
-				"EN_COMMS: sending damage weapon package for %s (%d), heading_depth = %d, weapon_sub_type = %d, damaged = %d",
-				get_local_entity_string (en, STRING_TYPE_FULL_NAME),
-				get_local_entity_index (en),
-				weapon_package_heading_depth,
-				weapon_sub_type,
-				weapon_package_damaged
-			);
 
-			#endif
+
+
+
+
+
+
+
+
+
+
+
 
 			break;
 		}
@@ -1419,22 +1419,22 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (en);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			switch(message)
-			{
-				case ENTITY_COMMS_DESTROY:
-					debug_log ("EN_COMMS: sending destroy entity %s index %d", get_local_entity_type_name (en), get_local_entity_index (en));
-					break;
-				case ENTITY_COMMS_DESTROY_FAMILY:
-					debug_log ("EN_COMMS: sending destroy entity family %s index %d", get_local_entity_type_name (en), get_local_entity_index (en));
-					break;
-				case ENTITY_COMMS_DESTROY_LOCAL_FAMILY:
-					debug_log ("EN_COMMS: sending destroy local entity family %s index %d", get_local_entity_type_name (en), get_local_entity_index (en));
-					break;
-			}
 
-			#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 			break;
 		}
@@ -1482,20 +1482,20 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 			{
 				set_local_entity_float_value (en, type, value);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: sending fast_track float value %s = %f for %s (%d)", float_type_database [type].name, value, get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 			}
 
 			#endif
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending float value %s = %f for %s (%d)", float_type_database [type].name, value, get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -1531,20 +1531,20 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 			{
 				set_local_entity_int_value (en, type, value);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: sending fast_track int value %s = %d for %s (%d)", int_type_database [type].name, value, get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 			}
 
 			#endif
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending int value %s = %d for %s (%d)", int_type_database [type].name, value, get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -1560,11 +1560,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (en);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending kill for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -1587,11 +1587,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (victim);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending mobile kill for %s (%d)", get_local_entity_type_name (victim), get_local_entity_index (victim));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -1617,11 +1617,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (wp);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending mobile land for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -1637,11 +1637,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (en);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending mobile takeoff for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -1664,11 +1664,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_vec3d (en, VEC3D_TYPE_POSITION, pos);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending move planner_waypoint for %s (%d) to %f, %f, %f", get_local_entity_type_name (en), get_local_entity_index (en), pos->x, pos->y, pos->z);
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -1698,11 +1698,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_float_value (en, FLOAT_TYPE_VALID_EFFECT_LIFETIME, delay);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending pause sound type %s for %s (%d)", entity_sub_type_effect_names [type], get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -1725,11 +1725,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, weapon_sub_type);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending pause weapon sound type for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -1768,11 +1768,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 				pack_string (en, STRING_TYPE_PILOT_MESSAGE, message);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: sending communication message %s", message);
 
-				#endif
+
+
+
 			}
 			else
 			{
@@ -1891,11 +1891,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_int_value (en, INT_TYPE_SPEECH_INDEX, speech_index);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending play cpg message for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -1918,11 +1918,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_int_value (en, INT_TYPE_SPEECH_INDEX, speech_index);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending play warning message for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -1948,11 +1948,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (victim);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending player kill for %s (%d)", get_local_entity_type_name (victim), get_local_entity_index (victim));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2044,11 +2044,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_int_value (en, INT_TYPE_RADIO_MESSAGE_VALUE, message_value);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending radio message for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2066,11 +2066,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (en);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending Repair AA Group for (%d)", get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2088,11 +2088,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (en);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending Repair Bridge for (%d)", get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2117,13 +2117,13 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (destination);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending request target list from %s (%d) to %s (%d)",
-							get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_index (en),
-							get_local_entity_string (destination, STRING_TYPE_FULL_NAME), get_local_entity_index (destination));
 
-			#endif
+
+
+
+
+
 
 			break;
 		}
@@ -2153,11 +2153,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_int_value (en, INT_TYPE_OPERATIONAL_STATE, operational_state);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending restore entity for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2173,11 +2173,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (en);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending restore entity for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2200,11 +2200,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_int_value (en, INT_TYPE_ENTITY_SUB_TYPE, type);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending resume sound type %s for %s (%d)", entity_sub_type_effect_names [type], get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2229,11 +2229,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_int_value (en, INT_TYPE_WAYPOINT_NEXT_INDEX, raw->waypoint_next_index);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending routed_vehicle %d route between %d and %d", get_local_entity_index (en), raw->waypoint_this_index, raw->waypoint_next_index);
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2265,13 +2265,13 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			target_count = va_arg (pargs, int);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending %d targets from %s (%d) to %s (%d)", target_count,
-							get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_index (en),
-							get_local_entity_string (destination, STRING_TYPE_FULL_NAME), get_local_entity_index (destination));
 
-			#endif
+
+
+
+
+
 
 			ASSERT (target_count > 0);
 
@@ -2300,11 +2300,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (en);
 
-			#if DEBUG_MODULE
 
-			debug_log ("EN_COMMS: sending set external view entity to %s (%d)", get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2343,11 +2343,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_float_value (en, FLOAT_TYPE_GUIDE_CRITERIA_VALUE, value);
 
-			#if DEBUG_MODULE
 
-			debug_log ("EN_COMMS: sending set guide criteria for %d", get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2374,11 +2374,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (position_entity);
 
-			#if DEBUG_MODULE
 
-			debug_log ("EN_COMMS: sending set guide position entity for %d", get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2448,11 +2448,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (raw->return_keysite);
 
-			#if DEBUG_MODULE
 
-			debug_log ("EN_COMMS: sending set task pointers entity %s %d", get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2479,11 +2479,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (wp);
 
-			#if DEBUG_MODULE
 
-			debug_log ("EN_COMMS: sending set waypoint");
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2513,11 +2513,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_string (en, type, s);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending string %s for %s (%d)", s, get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2552,24 +2552,24 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_list_type (type2);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			if (parent)
-			{
 
-				debug_log ("EN_COMMS: sending switch list for %s (%d) list %s to list %s (parent %s (%d))",
-							get_local_entity_type_name (en), get_local_entity_index (en), get_list_type_name (type1),
-							get_list_type_name (type2), get_local_entity_type_name (parent), get_local_entity_index (parent));
-			}
-			else
-			{
 
-				debug_log ("EN_COMMS: sending switch list for %s (%d) list %s to list %s (parent NULL)",
-							get_local_entity_type_name (en), get_local_entity_index (en), get_list_type_name (type1),
-							get_list_type_name (type2));
-			}
 
-			#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 			break;
 		}
@@ -2599,11 +2599,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (parent);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending switch parent for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2762,11 +2762,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_local_entity_data (en, PACK_MODE_UPDATE_ENTITY);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending update for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2780,11 +2780,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (en);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending update fog of war");
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2807,11 +2807,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_int_value (en, INT_TYPE_IN_USE, in_use);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending update sector side for %s (%d) - in use %d", get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_index (en), in_use);
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2825,11 +2825,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (en);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending update sector side count");
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2859,11 +2859,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_vec3d (en, type, v);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending vec3d for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2880,11 +2880,11 @@ void transmit_entity_comms_message (entity_comms_messages message, entity *en, .
 
 			pack_entity_safe_ptr (en);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("EN_COMMS: sending zero velocity for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -2964,11 +2964,11 @@ void process_received_entity_comms_messages (void)
 
 				unpack_vec3d (wp, VEC3D_TYPE_POSITION, &pos);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received add planner waypoint at %f, %f, %f", pos.x, pos.y, pos.z);
 
-				#endif
+
+
+
 
 				create_stack_attributes = force_local_entity_create_stack_attributes;
 
@@ -2989,11 +2989,11 @@ void process_received_entity_comms_messages (void)
 
 				en = unpack_entity_safe_ptr ();
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received advise transmit recon");
 
-				#endif
+
+
+
 
 				if (en == get_gunship_entity ())
 				{
@@ -3020,11 +3020,11 @@ void process_received_entity_comms_messages (void)
 
 				set_client_server_entity_attitude_angles (en, heading, pitch, roll);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received attitude angle for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -3044,11 +3044,11 @@ void process_received_entity_comms_messages (void)
 
 				set_client_server_entity_attitude_matrix (en, attitude);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received attitude matrix for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -3077,11 +3077,11 @@ void process_received_entity_comms_messages (void)
 
 				campaign_completed (side, complete);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received campaign completed by %s", entity_side_names [side]);
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -3105,11 +3105,11 @@ void process_received_entity_comms_messages (void)
 
 				change_local_keysite_building_sides (en, side);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received captured keysite for %s", entity_side_names [side]);
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -3134,11 +3134,11 @@ void process_received_entity_comms_messages (void)
 
 				set_client_server_entity_char_value (en, type, value);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received char for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -3163,11 +3163,11 @@ void process_received_entity_comms_messages (void)
 
 				create_client_server_entity (type, index, attribute_buffer);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received create for %s (index %d)", entity_type_names [type], index);
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -3208,20 +3208,20 @@ void process_received_entity_comms_messages (void)
 
 				free_mem (entity_index_list);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				if (parent)
-				{
 
-					debug_log ("EN_COMMS: received create meta explosion for %s (%d)", entity_type_names [parent->type], get_local_entity_index (parent));
-				}
-				else
-				{
 
-					debug_log ("EN_COMMS: received create meta explosion");
-				}
 
-				#endif
+
+
+
+
+
+
+
+
+
+
 
 				break;
 			}
@@ -3269,20 +3269,20 @@ void process_received_entity_comms_messages (void)
 
 				free_mem (entity_index_list);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				if (parent)
-				{
 
-					debug_log ("EN_COMMS: received create smoke list ( spec offset ) for %s (%d)", entity_type_names [parent->type], get_local_entity_index (parent));
-				}
-				else
-				{
 
-					debug_log ("EN_COMMS: received create smoke list ( sub offset )");
-				}
 
-				#endif
+
+
+
+
+
+
+
+
+
+
 
 				break;
 			}
@@ -3324,20 +3324,20 @@ void process_received_entity_comms_messages (void)
 
 				free_mem (entity_index_list);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				if (parent)
-				{
 
-					debug_log ("EN_COMMS: received create smoke list ( spec offset ) for %s (%d)", entity_type_names [parent->type], get_local_entity_index (parent));
-				}
-				else
-				{
 
-					debug_log ("EN_COMMS: received create smoke list ( sub offset )");
-				}
 
-				#endif
+
+
+
+
+
+
+
+
+
+
 
 				break;
 			}
@@ -3440,11 +3440,11 @@ void process_received_entity_comms_messages (void)
 
 				free_mem (sample_index_list);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received create sound effect for %s (%d)", entity_type_names [parent->type], get_local_entity_index (parent));
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -3522,11 +3522,11 @@ void process_received_entity_comms_messages (void)
 
 				free_mem (waypoint_indices);
 	
-				#if DEBUG_MODULE_MESSAGE_TEXT
-	
-				debug_log ("EN_COMMS: received create waypoint route for %s (%d) check_sum %d", get_local_entity_string (task, STRING_TYPE_FULL_NAME), get_local_entity_index (task), check_sum);
-	
-				#endif
+
+
+
+
+
 	
 				break;
 			}
@@ -3635,11 +3635,11 @@ void process_received_entity_comms_messages (void)
 					free_mem (smoke_trail_indices);
 				}
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received create weapon %s for %s (%d)", entity_sub_type_weapon_names [weapon_sub_type], entity_type_names [launcher->type], get_local_entity_index (launcher));
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -3675,11 +3675,11 @@ void process_received_entity_comms_messages (void)
 
 					dynamics_damage_model (damage, random);
 
-					#if DEBUG_MODULE_MESSAGE_TEXT
 
-					debug_log ("EN_COMMS: received damage helicopter dynamics %d for %s (%d)", damage, get_local_entity_type_name (en), get_local_entity_index (en));
 
-					#endif
+
+
+
 				}
 
 				break;
@@ -3704,11 +3704,11 @@ void process_received_entity_comms_messages (void)
 				{
 					damage_gunship (damage_level);
 
-					#if DEBUG_MODULE_MESSAGE_TEXT
 
-					debug_log ("EN_COMMS: received damage helicopter avionics %d for %s (%d)", damage_level, get_local_entity_type_name (en), get_local_entity_index (en));
 
-					#endif
+
+
+
 				}
 
 				break;
@@ -3737,19 +3737,19 @@ void process_received_entity_comms_messages (void)
 
 				weapon_package_damaged = unpack_int_value (en, INT_TYPE_WEAPON_PACKAGE_DAMAGED);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log
-				(
-					"EN_COMMS: receiving damage weapon package for %s (%d), heading_depth = %d, weapon_sub_type = %d, damaged = %d",
-					get_local_entity_string (en, STRING_TYPE_FULL_NAME),
-					get_local_entity_index (en),
-					weapon_package_heading_depth,
-					weapon_sub_type,
-					weapon_package_damaged
-				);
 
-				#endif
+
+
+
+
+
+
+
+
+
+
+
 
 				set_client_server_entity_weapon_damage (en, weapon_package_heading_depth, weapon_sub_type, weapon_package_damaged);
 
@@ -3764,11 +3764,11 @@ void process_received_entity_comms_messages (void)
 
 				en = unpack_entity_safe_ptr ();
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received destroy entity %s index %d", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				destroy_client_server_entity (en);
 
@@ -3783,11 +3783,11 @@ void process_received_entity_comms_messages (void)
 
 				en = unpack_entity_safe_ptr ();
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received destroy entity family %s index %d", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				destroy_client_server_entity_family (en);
 
@@ -3802,11 +3802,11 @@ void process_received_entity_comms_messages (void)
 
 				en = unpack_entity_safe_ptr ();
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received destroy local entity family %s index %d", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				destroy_local_entity_family (en);
 
@@ -3843,32 +3843,32 @@ void process_received_entity_comms_messages (void)
 
 				if ((float_type_database[type].fast_track) && (get_comms_model () == COMMS_MODEL_CLIENT) && (en == get_gunship_entity ()))
 				{
-					#if DEBUG_MODULE_MESSAGE_TEXT
 
-					debug_log ("EN_COMMS: ignore received fast_track float %s = %f for %s (%d)", float_type_database [type].name, value, get_local_entity_type_name (en), get_local_entity_index (en));
 
-					#endif
+
+
+
 				}
 				else
 				{
 					set_client_server_entity_float_value (en, type, value);
 
-					#if DEBUG_MODULE_MESSAGE_TEXT
 
-					debug_log ("EN_COMMS: received float %s = %f for %s (%d)", float_type_database [type].name, value, get_local_entity_type_name (en), get_local_entity_index (en));
 
-					#endif
+
+
+
 				}
 
 				#else
 
 				set_client_server_entity_float_value (en, type, value);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received float %s = %f for %s (%d)", float_type_database [type].name, value, get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				#endif
 
@@ -3897,32 +3897,32 @@ void process_received_entity_comms_messages (void)
 
 				if ((int_type_database[type].fast_track) && (get_comms_model () == COMMS_MODEL_CLIENT) && (en == get_gunship_entity ()))
 				{
-					#if DEBUG_MODULE_MESSAGE_TEXT
 
-					debug_log ("EN_COMMS: ignore received fast_track int value %s = %d for %s (%d)", int_type_database [type].name, value, get_local_entity_type_name (en), get_local_entity_index (en));
 
-					#endif
+
+
+
 				}
 				else
 				{
 					set_client_server_entity_int_value (en, type, value);
 
-					#if DEBUG_MODULE_MESSAGE_TEXT
 
-					debug_log ("EN_COMMS: received int value %s = %d for %s (%d)", int_type_database [type].name, value, get_local_entity_type_name (en), get_local_entity_index (en));
 
-					#endif
+
+
+
 				}
 
 				#else
 
 				set_client_server_entity_int_value (en, type, value);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received int value %s = %d for %s (%d)", int_type_database [type].name, value, get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				#endif
 
@@ -3940,11 +3940,11 @@ void process_received_entity_comms_messages (void)
 
 				en = unpack_entity_safe_ptr ();
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received kill for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				create_stack_attributes = force_local_entity_create_stack_attributes;
 
@@ -3968,11 +3968,11 @@ void process_received_entity_comms_messages (void)
 
 				victim = unpack_entity_safe_ptr ();
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received mobile kill for %s (%d)", get_local_entity_type_name (victim), get_local_entity_index (victim));
 
-				#endif
+
+
+
 
 				ASSERT (get_local_entity_type (en) == ENTITY_TYPE_FORCE);
 	
@@ -3994,11 +3994,11 @@ void process_received_entity_comms_messages (void)
 
 				insert_local_entity_into_parents_child_list (en, LIST_TYPE_CURRENT_WAYPOINT, wp, NULL);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received mobile land for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				set_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE, OPERATIONAL_STATE_LANDED);
 
@@ -4055,11 +4055,11 @@ void process_received_entity_comms_messages (void)
 					}
 				}
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received mobile takeoff for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -4080,11 +4080,11 @@ void process_received_entity_comms_messages (void)
 
 				unpack_vec3d (wp, VEC3D_TYPE_POSITION, &pos);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received move planner waypoint for %s (%d) to %f, %f, %f", get_local_entity_type_name (wp), get_local_entity_index (wp), pos.x, pos.y, pos.z);
 
-				#endif
+
+
+
 
 				set_client_server_entity_vec3d (wp, VEC3D_TYPE_POSITION, &pos);
 
@@ -4095,11 +4095,11 @@ void process_received_entity_comms_messages (void)
 
 //					set_client_server_mobile_internal_waypoint (member, wp);
 
-					#if DEBUG_MODULE_MESSAGE_TEXT
 
-					debug_log ("EN_COMMS:     setting internal waypoint for %s (%d) to %f, %f, %f", get_local_entity_type_name (member), get_local_entity_index (member), pos.x, pos.y, pos.z);
 
-					#endif
+
+
+
 
 					member = get_local_entity_child_succ (member, LIST_TYPE_CURRENT_WAYPOINT);
 				}
@@ -4133,11 +4133,11 @@ void process_received_entity_comms_messages (void)
 
 				pause_local_entity_sound_type (en, type, delay);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received pause sound type for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -4163,11 +4163,11 @@ void process_received_entity_comms_messages (void)
 
 				pause_local_continuous_weapon_sound_effect (en, weapon_sub_type);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received pause weapon sound type for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -4202,11 +4202,11 @@ void process_received_entity_comms_messages (void)
 
 					string = message;
 
-					#if DEBUG_MODULE_MESSAGE_TEXT
 
-					debug_log ("EN_COMMS: received communication message %s", message);
 
-					#endif
+
+
+
 				}
 				else
 				{
@@ -4450,11 +4450,11 @@ void process_received_entity_comms_messages (void)
 
 				speech_index = unpack_int_value (en, INT_TYPE_SPEECH_INDEX);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received play cpg message for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				if (get_comms_model () == COMMS_MODEL_SERVER)
 				{
@@ -4479,11 +4479,11 @@ void process_received_entity_comms_messages (void)
 
 				speech_index = unpack_int_value (en, INT_TYPE_SPEECH_INDEX);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received play warning message for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				if (get_comms_model () == COMMS_MODEL_SERVER)
 				{
@@ -4504,11 +4504,11 @@ void process_received_entity_comms_messages (void)
 
 				victim = unpack_entity_safe_ptr ();
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received player kill for %s (%d)", get_local_entity_type_name (victim), get_local_entity_index (victim));
 
-				#endif
+
+
+
 
 				if ((get_local_entity_int_value (victim, INT_TYPE_PLAYER) == ENTITY_PLAYER_LOCAL) ||
 					((aggressor) && (get_local_entity_int_value (aggressor, INT_TYPE_PLAYER) == ENTITY_PLAYER_LOCAL)))
@@ -4621,11 +4621,11 @@ void process_received_entity_comms_messages (void)
 
 				set_force_local_entity_create_stack_attributes (create_stack_attributes);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received radio message for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -4646,11 +4646,11 @@ void process_received_entity_comms_messages (void)
 
 				ASSERT (get_local_entity_type (en) == ENTITY_TYPE_GROUP);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: Received Repair AA Group for (%d)", get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -4671,11 +4671,11 @@ void process_received_entity_comms_messages (void)
 
 				ASSERT (get_local_entity_type (en) == ENTITY_TYPE_BRIDGE);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: Received Repair Bridge for (%d)", get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				repair_local_bridge_entity (en);
 
@@ -4701,13 +4701,13 @@ void process_received_entity_comms_messages (void)
 
 				ASSERT (destination);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received request target list from %s (%d) to %s (%d)",
-								get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_index (en),
-								get_local_entity_string (destination, STRING_TYPE_FULL_NAME), get_local_entity_index (destination));
 
-				#endif
+
+
+
+
+
 
 				if (destination == get_gunship_entity ())
 				{
@@ -4784,11 +4784,11 @@ void process_received_entity_comms_messages (void)
 					restore_helicopter_entity (en);
 				}
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received restore entity for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -4803,11 +4803,11 @@ void process_received_entity_comms_messages (void)
 
 				restore_local_fixed_entity (en);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received restore entity for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -4833,11 +4833,11 @@ void process_received_entity_comms_messages (void)
 
 				resume_local_entity_sound_type (en, type);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received resume sound type for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -4897,11 +4897,11 @@ void process_received_entity_comms_messages (void)
 						raw->sub_route = sub_route_node;
 					}
 	
-					#if DEBUG_MODULE_MESSAGE_TEXT
-	
-					debug_log ("EN_COMMS: received routed_vehicle %d route between %d and %d", get_local_entity_index (mb), raw->waypoint_this_index, raw->waypoint_next_index);
-	
-					#endif
+
+
+
+
+
 	
 					mb = get_local_entity_child_succ (mb, LIST_TYPE_MEMBER);
 				}
@@ -4935,13 +4935,13 @@ void process_received_entity_comms_messages (void)
 
 				target_count = unpack_int_value (en, INT_TYPE_HAND_OFF_TARGET_COUNT);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received %d targets from %s (%d) to %s (%d)", target_count,
-								get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_index (en),
-								get_local_entity_string (destination, STRING_TYPE_FULL_NAME), get_local_entity_index (destination));
 
-				#endif
+
+
+
+
+
 
 				ASSERT (target_count > 0);
 
@@ -4994,11 +4994,11 @@ void process_received_entity_comms_messages (void)
 
 				ASSERT (en);
 
-				#if DEBUG_MODULE
 
-				debug_log ("EN_COMMS: sending set external view entity to %s (%d)", get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				set_external_view_entity (en);
 
@@ -5036,11 +5036,11 @@ void process_received_entity_comms_messages (void)
 	
 				value = unpack_float_value (en, FLOAT_TYPE_GUIDE_CRITERIA_VALUE);
 	
-				#if DEBUG_MODULE
-	
-				debug_log ("EN_COMMS: received set guide criteria for %d", get_local_entity_index (en));
-	
-				#endif
+
+
+
+
+
 	
 				set_local_guide_criteria_valid (en, (guide_criteria_types) type, valid, value);
 
@@ -5068,11 +5068,11 @@ void process_received_entity_comms_messages (void)
 	
 				position_entity = unpack_entity_safe_ptr ();
 
-				#if DEBUG_MODULE
-	
-				debug_log ("EN_COMMS: received set guide position entity for %d", get_local_entity_index (en));
-	
-				#endif
+
+
+
+
+
 	
 				set_local_entity_ptr_value (en, PTR_TYPE_POSITION_ENTITY, position_entity);
 
@@ -5154,11 +5154,11 @@ void process_received_entity_comms_messages (void)
 	
 				raw->return_keysite = unpack_entity_safe_ptr ();
 	
-				#if DEBUG_MODULE
-	
-				debug_log ("EN_COMMS: received set task pointers entity %s %d", get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_index (en));
-	
-				#endif
+
+
+
+
+
 	
 				break;
 			}
@@ -5184,11 +5184,11 @@ void process_received_entity_comms_messages (void)
 
 				ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-				#if DEBUG_MODULE
-	
-				debug_log ("EN_COMMS: received set waypoint");
-	
-				#endif
+
+
+
+
+
 	
 				set_guide_new_waypoint (en, wp);
 
@@ -5215,11 +5215,11 @@ void process_received_entity_comms_messages (void)
 
 				set_client_server_entity_string (en, type, s);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received string %s for %s (%d)", s, get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -5248,25 +5248,25 @@ void process_received_entity_comms_messages (void)
 				if (parent)
 				{
 
-					#if DEBUG_MODULE_MESSAGE_TEXT
 
-					debug_log ("EN_COMMS: received switch list for %s (%d) list %s to list %s (parent %s (%d))",
-								get_local_entity_type_name (en), get_local_entity_index (en), get_list_type_name (type1),
-								get_list_type_name (type2), get_local_entity_type_name (parent), get_local_entity_index (en));
 
-					#endif
+
+
+
+
+
 
 					insert_local_entity_into_parents_child_list (en, type2, parent, NULL);
 				}
 				else
 				{
 
-					#if DEBUG_MODULE_MESSAGE_TEXT
 
-					debug_log ("EN_COMMS: received switch list for %s (%d) list %s to no list",
-								get_local_entity_type_name (en), get_local_entity_index (en), get_list_type_name (type1));
 
-					#endif
+
+
+
+
 				}
 
 				break;
@@ -5304,13 +5304,13 @@ void process_received_entity_comms_messages (void)
 					}
 				}
 */
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received switch list %s parent for %s (%d)",
-								get_list_type_name (type),
-								get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
+
+
 
 				break;
 			}
@@ -5480,11 +5480,11 @@ void process_received_entity_comms_messages (void)
 
 				unpack_client_server_entity_data (en);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received update for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -5497,11 +5497,11 @@ void process_received_entity_comms_messages (void)
 
 				en = unpack_entity_safe_ptr ();
 	
-				#if DEBUG_MODULE_MESSAGE_TEXT
-	
-				debug_log ("EN_COMMS: received update fog of war");
-	
-				#endif
+
+
+
+
+
 	
 				update_sector_fog_of_war ();
 
@@ -5523,11 +5523,11 @@ void process_received_entity_comms_messages (void)
 
 				update_imap_sector_side (en, in_use);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received update sector side for %s (%d) - in_use", get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_index (en), in_use);
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -5540,11 +5540,11 @@ void process_received_entity_comms_messages (void)
 
 				en = unpack_entity_safe_ptr ();
 	
-				#if DEBUG_MODULE_MESSAGE_TEXT
-	
-				debug_log ("EN_COMMS: received update sector side count");
-	
-				#endif
+
+
+
+
+
 	
 				update_sector_side_count ();
 
@@ -5571,11 +5571,11 @@ void process_received_entity_comms_messages (void)
 
 				set_client_server_entity_vec3d (en, type, &v);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received vec3d for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -5590,11 +5590,11 @@ void process_received_entity_comms_messages (void)
 
 				set_local_entity_float_value (en, FLOAT_TYPE_DESIRED_VELOCITY, 0.0);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received zero desired velocity for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				break;
 			}
@@ -5609,11 +5609,11 @@ void process_received_entity_comms_messages (void)
 
 				set_local_entity_float_value (en, FLOAT_TYPE_VELOCITY, 0.0);
 
-				#if DEBUG_MODULE_MESSAGE_TEXT
 
-				debug_log ("EN_COMMS: received zero velocity for %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en));
 
-				#endif
+
+
+
 
 				break;
 			}

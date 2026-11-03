@@ -90,11 +90,11 @@ static void destroy_local (entity *en)
 	//
 
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_DESTROY, en);
 
-	#endif
+
+
+
 
 	raw = (cargo *) get_local_entity_data (en);
 
@@ -157,11 +157,11 @@ static void destroy_local (entity *en)
 
 static void destroy_remote (entity *en)
 {
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_DESTROY, en);
 
-	#endif
+
+
+
 
 	transmit_entity_comms_message (ENTITY_COMMS_DESTROY, en);
 }
@@ -241,11 +241,11 @@ static void destroy_server_family (entity *en)
 
 static void destroy_client_family (entity *en)
 {
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_DESTROY_FAMILY, en);
 
-	#endif
+
+
+
 
 	transmit_entity_comms_message (ENTITY_COMMS_DESTROY_FAMILY, en);
 }
@@ -270,11 +270,11 @@ static void kill_local (entity *en)
 	//
 
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_KILL, en);
 
-	#endif
+
+
+
 
 	raw = (cargo *) get_local_entity_data (en);
 
@@ -313,11 +313,11 @@ static void kill_local (entity *en)
 			if (destroy_task->type == ENTITY_TYPE_TASK)
 			{
 
-				#if DEBUG_MODULE
 
-				debug_log ("FW_DSTRY: killing cargo, notifying task %s complete", entity_sub_type_task_names [get_local_entity_int_value (destroy_task, INT_TYPE_ENTITY_SUB_TYPE)]);
 
-				#endif
+
+
+
 
 				notify_local_entity (ENTITY_MESSAGE_TASK_COMPLETED, destroy_task, en, TASK_TERMINATED_OBJECTIVE_MESSAGE);
 			}
@@ -377,11 +377,11 @@ static void kill_local (entity *en)
 
 static void kill_remote (entity *en)
 {
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_KILL, en);
 
-	#endif
+
+
+
 
 	transmit_entity_comms_message (ENTITY_COMMS_KILL, en);
 }
@@ -437,20 +437,20 @@ static void kill_client (entity *en)
 
 
 
-void overload_cargo_destroy_functions (void)
-{
-	fn_destroy_local_entity						[ENTITY_TYPE_CARGO]		  					= destroy_local;
-	fn_destroy_client_server_entity			[ENTITY_TYPE_CARGO][COMMS_MODEL_SERVER]	= destroy_server;
-	fn_destroy_client_server_entity			[ENTITY_TYPE_CARGO][COMMS_MODEL_CLIENT]	= destroy_client;
 
-	fn_destroy_local_entity_family			[ENTITY_TYPE_CARGO]		  	  			  	= destroy_local_family;
-	fn_destroy_client_server_entity_family	[ENTITY_TYPE_CARGO][COMMS_MODEL_SERVER]	= destroy_server_family;
-	fn_destroy_client_server_entity_family	[ENTITY_TYPE_CARGO][COMMS_MODEL_CLIENT]	= destroy_client_family;
 
-	fn_kill_local_entity							[ENTITY_TYPE_CARGO]		  	  			  	= kill_local;
-	fn_kill_client_server_entity				[ENTITY_TYPE_CARGO][COMMS_MODEL_SERVER]	= kill_server;
-	fn_kill_client_server_entity				[ENTITY_TYPE_CARGO][COMMS_MODEL_CLIENT]	= kill_client;
-}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -122,14 +122,14 @@ static void set_fixed_3d_object_database_item (object_3d_index_numbers object_in
 		ASSERT (importance == IMPORTANCE_NONE);
 	}
 
-	#if DEBUG_MODULE
-	
-	if (fixed_3d_object_database [object_index].valid_entry)
-	{
-		debug_filtered_log ("FX_OBJDB: WARNING Object %s already defined", object_3d_information_database [object_index].name);
-	}
 
-	#endif
+
+
+
+
+
+
+
 
 	//
 	// set values
@@ -181,33 +181,33 @@ static void set_fixed_3d_object_database_item (object_3d_index_numbers object_in
 
 void report_non_entries_in_fixed_3d_object_database (void)
 {
-	#if DEBUG_MODULE
 
-	int
-		loop;
 
-	const char
-		*s;
 
-	for (loop = OBJECT_3D_INVALID_OBJECT_INDEX + 1; loop < OBJECT_3D_LAST; loop ++)
-	{
-		if (!fixed_3d_object_database [loop].valid_entry)
-		{
-			if (fixed_3d_object_database [loop].keysite_object)
-			{
-				s = object_3d_information_database [loop].name;
-	
-				if ((strstr (s, "DESTROYED")) || (strstr (s, "BRIDGE")))
-				{
-					continue;
-				}
-	
-				debug_filtered_log ("FX_OBJDB : No Entry for %s", s);
-			}
-		}
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 

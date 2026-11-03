@@ -209,11 +209,11 @@ entity *create_bridge( vec3d *end1, vec3d *end2, int start_node, int end_node, e
 
 	bridge_info = &bridge_database[ type ];
 
-	#if DEBUG_MODULE
 
-	debug_log ("BRIDGE : Creating Bridge type %s between nodes %d and %d ( max leg height = %.2f )", entity_sub_type_bridge_names [type], start_node, end_node, max_leg_height);
 
-	#endif
+
+
+
 
 	//
 	// get adjusted start and end points
@@ -447,11 +447,11 @@ void create_local_bridge_entities (pack_modes pack_mode)
 
 	safe_fclose (fp);
 
-	#if DEBUG_MODULE
 
-	debug_log ("BR_CREAT: creating bridge: Start entity %d", get_local_entity_index (first_bridge_entity));
 
-	#endif
+
+
+
 }
 
 
@@ -628,11 +628,11 @@ entity_sub_types get_most_suitable_bridge_type (vec3d *end1, vec3d *end2, float 
 
 	if (num_suitable_types == 0)
 	{
-		#if DEBUG_MODULE
 
-		debug_log ("BRIDGE : NO SUITABLE TYPE FOUND ( span = %f )", d);
 
-		#endif
+
+
+
 
 		return ENTITY_SUB_TYPE_BRIDGE_GIRDER;
 	}
@@ -661,11 +661,11 @@ entity_sub_types get_most_suitable_bridge_type (vec3d *end1, vec3d *end2, float 
 
 	if (num_suitable_types == 0)
 	{
-		#if DEBUG_MODULE
 
-		debug_log ("BRIDGE : NO SUITABLE TYPE FOUND ( span = %f, depth = %f )", d, largest_depth);
 
-		#endif
+
+
+
 
 		return ENTITY_SUB_TYPE_BRIDGE_GIRDER;
 	}
@@ -703,11 +703,11 @@ entity_sub_types get_most_suitable_bridge_type (vec3d *end1, vec3d *end2, float 
 
 	if (num_suitable_types == 0)
 	{
-		#if DEBUG_MODULE
 
-		debug_log ("BRIDGE : NO SUITABLE TYPE FOUND ( span = %f, depth = %f, slope = %f )", d, largest_depth, deg (slope));
 
-		#endif
+
+
+
 
 		return ENTITY_SUB_TYPE_BRIDGE_GIRDER;
 	}
@@ -726,11 +726,11 @@ entity_sub_types get_most_suitable_bridge_type (vec3d *end1, vec3d *end2, float 
 		{
 			if (suitability [type])
 			{
-				#if DEBUG_MODULE
 
-				debug_log ("BRIDGE : Single suitable type ( %s )", entity_sub_type_bridge_names [type]);
 
-				#endif
+
+
+
 
 				return type;
 			}
@@ -768,21 +768,21 @@ entity_sub_types get_most_suitable_bridge_type (vec3d *end1, vec3d *end2, float 
 					best_span_difference = span_difference;
 				}
 
-				#if DEBUG_MODULE
 
-				debug_log ("BRIDGE : Multiple suitable types ( %s ) - sd = %f", entity_sub_type_bridge_names [type], span_difference);
 
-				#endif
+
+
+
 			}
 		}
 
 		ASSERT (best_type != -1);
 
-		#if DEBUG_MODULE
 
-		debug_log ("BRIDGE : Best type ( %s ) - sd = %f", entity_sub_type_bridge_names [best_type], best_span_difference);
 
-		#endif
+
+
+
 
 		return best_type;
 	}

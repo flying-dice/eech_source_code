@@ -95,11 +95,11 @@ static int response_to_link_child (entity_messages message, entity *receiver, en
 	list_types
 		list_type;
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	raw = (group *) get_local_entity_data (receiver);
 
@@ -113,17 +113,17 @@ static int response_to_link_child (entity_messages message, entity *receiver, en
 
 			raw->member_count ++;
 
-			#if DEBUG_MODULE
-			{
-	
-				int
-					count;
 
-				count = get_local_group_member_count (receiver);
-	
-				ASSERT (count == raw->member_count);
-			}
-			#endif
+
+
+
+
+
+
+
+
+
+
 
 			if (get_local_entity_int_value (sender, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI)
 			{
@@ -180,11 +180,11 @@ static int response_to_unlink_child (entity_messages message, entity *receiver, 
 	list_types
 		list_type;
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	raw = (group *) get_local_entity_data (receiver);
 
@@ -250,11 +250,11 @@ static int response_to_link_parent (entity_messages message, entity *receiver, e
 	list_types
 		list_type;
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	raw = (group *) get_local_entity_data (receiver);
 
@@ -277,16 +277,16 @@ static int response_to_link_parent (entity_messages message, entity *receiver, e
 
 
 
-#if DEBUG_MODULE >= 2
 
-static int response_to_unlink_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	return (TRUE);
-}
 
-#endif
+
+
+
+
+
+
+
 
 
 
@@ -439,11 +439,11 @@ static int response_to_ground_force_advance (entity_messages message, entity *re
 	if ((get_local_entity_int_value (receiver, INT_TYPE_GROUP_MODE) == GROUP_MODE_BUSY) || (!check_group_members_awake (receiver)))
 	{
 
-		#if DEBUG_MODULE
 
-		debug_log ("GP_MSGS: group %d busy or sleeping", get_local_entity_index (receiver));
 
-		#endif
+
+
+
 
 		return FALSE;
 	}
@@ -456,11 +456,11 @@ static int response_to_ground_force_advance (entity_messages message, entity *re
 
 	allied_force = get_local_force_entity ((entity_sides) group_raw->side);
 
-	#if DEBUG_MODULE
 
-	debug_log ("GP_MSGS: looking to advance from %d to %d group %d side %s", current_node, advance_node, receiver, entity_side_names [group_raw->side]);
 
-	#endif
+
+
+
 
 	//
 	// Locate group at advance node (might not be one)
@@ -488,22 +488,22 @@ static int response_to_ground_force_advance (entity_messages message, entity *re
 		if (get_local_entity_int_value (group_occupying_node, INT_TYPE_SIDE) == get_enemy_side (group_raw->side))
 		{
 
-			#if DEBUG_MODULE
 
-			debug_log ("GP_MSGS: telling group %d side %s at node %d to retreat", group_occupying_node, entity_side_names [get_local_entity_int_value (group_occupying_node, INT_TYPE_SIDE)], advance_node);
 
-			#endif
+
+
+
 
 			success_flag = notify_local_entity (ENTITY_MESSAGE_GROUND_FORCE_RETREAT, group_occupying_node, receiver, current_node);
 		}
 		else
 		{
 
-			#if DEBUG_MODULE
 
-			debug_log ("GP_MSGS: aborting group %d advance from %d because enemy (allied group?) can't retreat from %d", receiver, current_node, group_occupying_node);
 
-			#endif
+
+
+
 
 			success_flag = FALSE;
 		}
@@ -519,30 +519,30 @@ static int response_to_ground_force_advance (entity_messages message, entity *re
 		entity
 			*new_task;
 
-		#if DEBUG_MODULE
 
-		if (get_local_entity_parent (receiver, LIST_TYPE_KEYSITE_GROUP))
-		{
 
-			if (get_local_entity_type (get_local_entity_parent (receiver, LIST_TYPE_KEYSITE_GROUP)) == ENTITY_TYPE_KEYSITE)
-			{
 
-				debug_log ("GP_MSGS: regen'd group taking off");
-			}
-		}
 
-		#endif
+
+
+
+
+
+
+
+
+
 
 		new_task = create_ground_force_task (ENTITY_SUB_TYPE_TASK_ADVANCE, receiver, current_node, advance_node, task_database [ENTITY_SUB_TYPE_TASK_ADVANCE].task_priority, NULL, NULL);
 
 		if (new_task)
 		{
 
-			#if DEBUG_MODULE
 
-			debug_log ("GP_MSGS: creating advance task for group %d, side %s to node %d", receiver, entity_side_names [group_raw->side], advance_node);
 
-			#endif
+
+
+
 		
 			if (!assign_primary_task_to_group (receiver, new_task))
 			{
@@ -615,11 +615,11 @@ static int response_to_ground_force_advance (entity_messages message, entity *re
 			for (loop = 0; loop < road_nodes [current_node].number_of_links; loop ++)
 			{
 
-				#if DEBUG_MODULE
 
-				debug_log ("GP_MSGS: looking for support group to node %d", current_node);
 
-				#endif
+
+
+
 
 				if (road_nodes [road_nodes [current_node].links [loop].node].side_occupying == group_raw->side)
 				{
@@ -656,11 +656,11 @@ static int response_to_ground_force_advance (entity_messages message, entity *re
 							// found node now find group
 							//
 		
-							#if DEBUG_MODULE
-		
-							debug_log ("GP_MSGS: found support group at node %d (warmth advancing %d, supporting %d)", road_nodes [current_node].links [loop].node, advancing_warmth, supporting_warmth);
-		
-							#endif
+
+
+
+
+
 	
 							group = get_group_at_road_node (road_nodes [current_node].links [loop].node);
 		
@@ -669,11 +669,11 @@ static int response_to_ground_force_advance (entity_messages message, entity *re
 		
 								notify_local_entity (ENTITY_MESSAGE_GROUND_FORCE_ADVANCE, group, receiver, current_node);
 		
-								#if DEBUG_MODULE
-		
-								debug_log ("GP_MSGS: notifying support group %d to advance to node %d", group, current_node);
-		
-								#endif
+
+
+
+
+
 		
 								return TRUE;
 							}
@@ -698,11 +698,11 @@ static int response_to_ground_force_advance (entity_messages message, entity *re
 
 		group_raw->route_node = current_node;
 
-		#if DEBUG_MODULE
 
-		debug_log ("GP_MSGS: aborting advance from %d to %d", current_node, advance_node);
 
-		#endif
+
+
+
 
 		if (group_occupying_node)
 		{
@@ -788,11 +788,11 @@ static int response_to_ground_force_retreat (entity_messages message, entity *re
 				if (get_road_link_breaks (retreat_node, current_node) == 0)
 				{
 		
-					#if DEBUG_MODULE
-		
-					debug_log ("GP_MSGS: Trying to retreat to node %d", retreat_node);
-		
-					#endif
+
+
+
+
+
 		
 					//
 					// Locate group at retreat node (might not be one)
@@ -820,22 +820,22 @@ static int response_to_ground_force_retreat (entity_messages message, entity *re
 						if (get_local_entity_int_value (group_occupying_node, INT_TYPE_SIDE) == group_raw->side)
 						{
 				
-							#if DEBUG_MODULE
-		
-							debug_log ("GP_MSGS: telling group %d side %s to retreat from node %d", group_occupying_node, entity_side_names [get_local_entity_int_value (group_occupying_node, INT_TYPE_SIDE)], retreat_node);
-		
-							#endif
+
+
+
+
+
 				
 							success_flag = notify_local_entity (ENTITY_MESSAGE_GROUND_FORCE_RETREAT, group_occupying_node, receiver, current_node);
 						}
 						else
 						{
 		
-							#if DEBUG_MODULE
-		
-							debug_log ("GP_MSGS: aborting retreat. Side %s, sleep %f", entity_side_names [group_raw->side], group_raw->sleep);
-		
-							#endif
+
+
+
+
+
 				
 							success_flag = FALSE;
 						}
@@ -852,11 +852,11 @@ static int response_to_ground_force_retreat (entity_messages message, entity *re
 						if (new_task)
 						{
 				
-							#if DEBUG_MODULE
-		
-							debug_log ("GP_MSGS: creating retreat task for group %d side %s from %d to %d", receiver, entity_side_names [group_raw->side], current_node, retreat_node);
-		
-							#endif
+
+
+
+
+
 		
 							if (assign_primary_task_to_group (receiver, new_task))
 							{
@@ -945,11 +945,11 @@ static int response_to_ground_force_retreat (entity_messages message, entity *re
 				
 						group_raw->route_node = current_node;
 				
-						#if DEBUG_MODULE
-		
-						debug_log ("GP_MSGS: aborting retreat from %d to %d", current_node, retreat_node);
-		
-						#endif
+
+
+
+
+
 					}
 				}
 			}
@@ -976,11 +976,11 @@ static int response_to_task_completed (entity_messages message, entity *receiver
 	int
 		speech_index;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
@@ -1148,12 +1148,12 @@ static int response_to_task_completed (entity_messages message, entity *receiver
 	if (get_local_entity_int_value (task, INT_TYPE_VISIBLE_TASK))
 	{
 		send_text_message (receiver, task, MESSAGE_TEXT_SYSTEM_TASK_COMPLETED, NULL);
-#if 0
-		ai_log ("(TASK) %s mission %s by %s",
-					get_local_entity_string (task, STRING_TYPE_SHORT_DISPLAY_NAME),
-					task_debrief_result_names [get_local_entity_int_value (task, INT_TYPE_TASK_COMPLETED)],
-					get_local_entity_string (receiver, STRING_TYPE_FULL_NAME));
-#endif
+
+
+
+
+
+
 	}
 
 	//
@@ -1389,35 +1389,35 @@ static int response_to_mobile_killed (entity_messages message, entity *receiver,
 
 
 
-void overload_group_message_responses (void)
-{
 
-	message_responses[ENTITY_TYPE_GROUP][ENTITY_MESSAGE_LINK_CHILD] 					= response_to_link_child;
 
-	message_responses[ENTITY_TYPE_GROUP][ENTITY_MESSAGE_UNLINK_CHILD]					= response_to_unlink_child;
 
-	message_responses[ENTITY_TYPE_GROUP][ENTITY_MESSAGE_LINK_PARENT]					= response_to_link_parent;
 
-	#if DEBUG_MODULE >= 2
 
-	message_responses[ENTITY_TYPE_GROUP][ENTITY_MESSAGE_UNLINK_PARENT]				= response_to_unlink_parent;
 
-	#endif
 
-	message_responses[ENTITY_TYPE_GROUP][ENTITY_MESSAGE_ENTITY_FIRED_AT]				= response_to_entity_fired_at;
 
-	message_responses[ENTITY_TYPE_GROUP][ENTITY_MESSAGE_ENTITY_TARGETED]				= response_to_entity_targeted;
 
-	message_responses[ENTITY_TYPE_GROUP][ENTITY_MESSAGE_GROUND_FORCE_ADVANCE]		= response_to_ground_force_advance;
 
-	message_responses[ENTITY_TYPE_GROUP][ENTITY_MESSAGE_GROUND_FORCE_RETREAT]		= response_to_ground_force_retreat;
 
-	message_responses[ENTITY_TYPE_GROUP][ENTITY_MESSAGE_TASK_COMPLETED]				= response_to_task_completed;
 
-	message_responses[ENTITY_TYPE_GROUP][ENTITY_MESSAGE_TASK_TERMINATED]				= response_to_task_terminated;
 
-	message_responses[ENTITY_TYPE_GROUP][ENTITY_MESSAGE_MOBILE_KILLED]				= response_to_mobile_killed;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

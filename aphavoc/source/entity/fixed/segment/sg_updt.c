@@ -165,12 +165,12 @@ static void update_server (entity *en)
 
 
 
-void overload_segment_update_functions (void)
-{
-	fn_update_client_server_entity[ENTITY_TYPE_SEGMENT][COMMS_MODEL_SERVER]	= update_server;
 
-	fn_update_client_server_entity[ENTITY_TYPE_SEGMENT][COMMS_MODEL_CLIENT]	= update_server;
-}
+
+
+
+
+
 
 
 

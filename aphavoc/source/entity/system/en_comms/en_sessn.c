@@ -203,13 +203,13 @@ int pack_session (unsigned char *buffer, int *buffer_size, pack_modes mode)
 		packed_data_size,
 		pack_buffer_overflow;
 
-	#if DEBUG_MODULE
 
-	int
-		pack_size,
-		last_pack_size;
 
-	#endif
+
+
+
+
+
 
 	ASSERT (buffer);
 
@@ -223,13 +223,13 @@ int pack_session (unsigned char *buffer, int *buffer_size, pack_modes mode)
 
 	#endif
 
-	#if DEBUG_MODULE_PACK_ALL
 
-	debug_log (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-	debug_log ("PACK SESSION: buffer_size = %d", *buffer_size);
-	debug_log (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 
-	#endif
+
+
+
+
+
 
 	open_pack_buffer (buffer, *buffer_size);
 
@@ -243,13 +243,13 @@ int pack_session (unsigned char *buffer, int *buffer_size, pack_modes mode)
 	// Unlink all killed "local_only" entities from lists. Just
 	//
 
-	#if DEBUG_MODULE
 
-	debug_log ("EN_SESSN: starting to pack current_pack_buffer_bit_size = %d", get_current_pack_buffer_bit_size ());
 
-	memset (entity_pack_size_array, 0, sizeof (entity_pack_size_type) * NUM_ENTITY_TYPES);
 
-	#endif
+
+
+
+
 
 	//
 	// pack sector entities first
@@ -257,11 +257,11 @@ int pack_session (unsigned char *buffer, int *buffer_size, pack_modes mode)
 
 	pack_local_sector_data (mode);
 
-	#if DEBUG_MODULE
 
-	debug_log ("EN_SESSN: current_pack_buffer_bit_size = %d, after sector", get_current_pack_buffer_bit_size ());
 
-	#endif
+
+
+
 
 	//
 	// pack pylon entities
@@ -269,11 +269,11 @@ int pack_session (unsigned char *buffer, int *buffer_size, pack_modes mode)
 
 	pack_local_pylon_data (mode);
 
-	#if DEBUG_MODULE
 
-	debug_log ("EN_SESSN: current_pack_buffer_bit_size = %d, after pylon", get_current_pack_buffer_bit_size ());
 
-	#endif
+
+
+
 
 	//
 	// pack segment entities
@@ -293,11 +293,11 @@ int pack_session (unsigned char *buffer, int *buffer_size, pack_modes mode)
 
 	pack_local_session_data (mode);
 
-	#if DEBUG_MODULE
 
-	debug_log ("EN_SESSN: current_pack_buffer_bit_size = %d, after session", get_current_pack_buffer_bit_size ());
 
-	#endif
+
+
+
 	
 	en = get_local_entity_first_child (get_session_entity (), LIST_TYPE_FORCE);
 
@@ -308,11 +308,11 @@ int pack_session (unsigned char *buffer, int *buffer_size, pack_modes mode)
 		en = get_local_entity_child_succ (en, LIST_TYPE_FORCE);
 	}
 
-	#if DEBUG_MODULE
 
-	debug_log ("EN_SESSN: current_pack_buffer_bit_size = %d, after force", get_current_pack_buffer_bit_size ());
 
-	#endif
+
+
+
 	
 	//
 	// pack remaining entities
@@ -320,31 +320,31 @@ int pack_session (unsigned char *buffer, int *buffer_size, pack_modes mode)
 
 	en = get_local_entity_list ();
 
-	#if DEBUG_MODULE
 
-	debug_log ("EN_SESSN: current_pack_buffer_bit_size = %d, after segment", get_current_pack_buffer_bit_size ());
 
-	last_pack_size = get_current_pack_buffer_bit_size ();
 
-	#endif
+
+
+
+
 
 	while (en)
 	{
 		pack_local_entity_data (en, mode);
 
-		#if DEBUG_MODULE
 
-		debug_log ("EN_SESSN: packing entity %s index %d, pack_buffer_size %d", get_local_entity_type_name (en), get_local_entity_index (en), get_current_pack_buffer_bit_size () / 8);
 
-		pack_size = get_current_pack_buffer_bit_size () - last_pack_size;
 
-		last_pack_size = get_current_pack_buffer_bit_size ();
 
-		entity_pack_size_array [en->type].count ++;
 
-		entity_pack_size_array [en->type].size += pack_size;
 
-		#endif
+
+
+
+
+
+
+
 
 		en = get_local_entity_succ (en);
 	}
@@ -355,11 +355,11 @@ int pack_session (unsigned char *buffer, int *buffer_size, pack_modes mode)
 
 	pack_entity_type (ENTITY_TYPE_UNKNOWN);
 
-	#if DEBUG_MODULE
 
-	debug_log ("EN_SESSN: current_pack_buffer_bit_size = %d, after session_data", get_current_pack_buffer_bit_size ());
 
-	#endif
+
+
+
 
 	//
 	// pack other entity data
@@ -367,67 +367,67 @@ int pack_session (unsigned char *buffer, int *buffer_size, pack_modes mode)
 
 	pack_local_keysite_data (mode);
 
-	#if DEBUG_MODULE
 
-	debug_log ("EN_SESSN: current_pack_buffer_bit_size = %d, after keysite", get_current_pack_buffer_bit_size ());
 
-	#endif
+
+
+
 
 	pack_local_regen_data (mode);
 
-	#if DEBUG_MODULE
 
-	debug_log ("EN_SESSN: current_pack_buffer_bit_size = %d, after regen", get_current_pack_buffer_bit_size ());
 
-	#endif
+
+
+
 
 	pack_local_city_building_data (mode);
 
-	#if DEBUG_MODULE
 
-	debug_log ("EN_SESSN: current_pack_buffer_bit_size = %d, after city_building", get_current_pack_buffer_bit_size ());
 
-	#endif
+
+
+
 
 	pack_local_scenic_data (mode);
 
-	#if DEBUG_MODULE
 
-	debug_log ("EN_SESSN: current_pack_buffer_bit_size = %d, after scenic", get_current_pack_buffer_bit_size ());
 
-	#endif
+
+
+
 
 	pack_local_site_data (mode);
 
-	#if DEBUG_MODULE
 
-	debug_log ("EN_SESSN: current_pack_buffer_bit_size = %d, after site", get_current_pack_buffer_bit_size ());
 
-	#endif
+
+
+
 
 	pack_local_site_updatable_data (mode);
 
-	#if DEBUG_MODULE
 
-	debug_log ("EN_SESSN: current_pack_buffer_bit_size = %d, after site_updatable", get_current_pack_buffer_bit_size ());
 
-	#endif
+
+
+
 
 	pack_local_anti_aircraft_data (mode);
 
-	#if DEBUG_MODULE
 
-	debug_log ("EN_SESSN: current_pack_buffer_bit_size = %d, after anti_aircraft", get_current_pack_buffer_bit_size ());
 
-	#endif
+
+
+
 
 	pack_local_group_data (mode);
 
-	#if DEBUG_MODULE
 
-	debug_log ("EN_SESSN: current_pack_buffer_bit_size = %d, after local groups", get_current_pack_buffer_bit_size ());
 
-	#endif
+
+
+
 
 	pack_local_division_database (mode);
 
@@ -445,14 +445,14 @@ int pack_session (unsigned char *buffer, int *buffer_size, pack_modes mode)
 
 	packed_data_size = close_pack_buffer ();
 
-	#if DEBUG_MODULE_PACK_ALL
 
-	debug_log (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-	debug_log ("PACK SESSION: packed_data_size = %d", packed_data_size);
-	debug_log ("PACK SESSION: pack_buffer_overflow = %d", pack_buffer_overflow);
-	debug_log (">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 
-	#endif
+
+
+
+
+
+
 
 	*buffer_size = packed_data_size;
 
@@ -462,26 +462,26 @@ int pack_session (unsigned char *buffer, int *buffer_size, pack_modes mode)
 
 	#endif
 
-	#if DEBUG_MODULE
-	{
 
-	int
-		loop;
 
-		for (loop = 0; loop < NUM_ENTITY_TYPES; loop ++)
-		{
 
-			if (entity_pack_size_array [loop].size)
-			{
-		
-				debug_log ("EN_SESSN: %d bytes (%f each) for %d entity %s",
-								entity_pack_size_array [loop].size / 8,
-								(float) (entity_pack_size_array [loop].size / 8) / entity_pack_size_array [loop].count,
-								entity_pack_size_array [loop].count, entity_type_names [loop]);
-			}
-		}
-	}
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	//
 	//
@@ -519,13 +519,13 @@ int unpack_session (unsigned char *buffer, int buffer_size, pack_modes mode)
 
 	set_comms_data_flow (COMMS_DATA_FLOW_RX);
 
-	#if DEBUG_MODULE_PACK_ALL
 
-	debug_log ("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-	debug_log ("UNPACK SESSION: buffer_size = %d", buffer_size);
-	debug_log ("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 
-	#endif
+
+
+
+
+
 
 
 	set_gunship_screen_progress_message (GUNSHIPS_SCREEN_GENERATING_CAMPAIGN_TEXT);
@@ -613,11 +613,11 @@ int unpack_session (unsigned char *buffer, int buffer_size, pack_modes mode)
 		update_gunships_screen_progress_indicator ();
 
 
-		#if DEBUG_MODULE
 
-		debug_log ("EN_SESSN: unpacking %s", entity_type_database [type].name);
 
-		#endif
+
+
+
 
 		unpack_local_entity_data (NULL, type, mode);
 
@@ -724,13 +724,13 @@ int unpack_session (unsigned char *buffer, int buffer_size, pack_modes mode)
 
 	validate_local_group_data ();
 
-	#if DEBUG_MODULE_PACK_ALL
 
-	debug_log ("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-	debug_log ("UNPACK SESSION: unpack_buffer_overflow = %d", unpack_buffer_overflow);
-	debug_log ("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 
-	#endif
+
+
+
+
+
 
 	set_comms_data_flow (COMMS_DATA_FLOW_TX);
 
@@ -844,18 +844,18 @@ int register_entity_list_link_for_post_unpack_validation (struct ENTITY *en, int
 
 	entity_list_link_validation = new_entity_list;
 
-	#if DEBUG_MODULE
-	{
 
-		entity
-			*parent;
 
-		debug_log ("EN_SESSN: registering entity %s (%d) for link list %s validation", get_local_entity_type_name (en), get_local_entity_index (en), get_list_type_name (list_type));
 
-		parent = get_local_entity_parent (en, list_type);
 
-	}
-	#endif
+
+
+
+
+
+
+
+
 
 	return TRUE;
 }
@@ -880,17 +880,17 @@ int register_entity_list_root_for_post_unpack_validation (struct ENTITY *en, int
 
 	entity_list_root_validation = new_entity_list;
 
-	#if DEBUG_MODULE
-	{
 
-		entity
-			*first_child;
 
-		debug_log ("EN_SESSN: registering entity %s (%d) for list root %s validation", get_local_entity_type_name (en), get_local_entity_index (en), get_list_type_name (list_type));
 
-		first_child = get_local_entity_first_child (en, list_type);
-	}
-	#endif
+
+
+
+
+
+
+
+
 
 	return TRUE;
 }
@@ -971,11 +971,11 @@ void process_entity_list_link_validation (void)
 
 					ASSERT (get_local_entity_child_pred (succ, this_entity_list->list_type) == NULL);
 
-					#if DEBUG_MODULE
 
-					debug_log ("EN_SESSN: LIST_REPAIRING: en %s (%d), list %s child_pred not set. Setting to %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en), get_list_type_name (this_entity_list->list_type), get_local_entity_type_name (succ), get_local_entity_index (succ));
 
-					#endif
+
+
+
 
 					set_local_entity_child_pred (succ, this_entity_list->list_type, en);
 
@@ -984,11 +984,11 @@ void process_entity_list_link_validation (void)
 
 						set_local_entity_parent (succ, this_entity_list->list_type, parent);
 
-						#if DEBUG_MODULE
 
-						debug_log ("EN_SESSN: LIST_REPAIRING: en %s (%d), list %s parent not set. Setting to %s (%d)", get_local_entity_type_name (succ), get_local_entity_index (succ), get_list_type_name (this_entity_list->list_type), get_local_entity_type_name (parent), get_local_entity_index (parent));
 
-						#endif
+
+
+
 					}
 				}
 			}
@@ -1010,22 +1010,22 @@ void process_entity_list_link_validation (void)
 
 					set_local_entity_child_succ (pred, this_entity_list->list_type, en);
 
-					#if DEBUG_MODULE
 
-					debug_log ("EN_SESSN: LIST_REPAIRING: en %s (%d), list %s child_succ not set. Setting to %s (%d)", get_local_entity_type_name (en), get_local_entity_index (en), get_list_type_name (this_entity_list->list_type), get_local_entity_type_name (pred), get_local_entity_index (pred));
 
-					#endif
+
+
+
 
 					if (get_local_entity_parent (pred, this_entity_list->list_type) == NULL)
 					{
 
 						set_local_entity_parent (pred, this_entity_list->list_type, parent);
 
-						#if DEBUG_MODULE
 
-						debug_log ("EN_SESSN: LIST_REPAIRING: en %s (%d), list %s parent not set. Setting to %s (%d)", get_local_entity_type_name (pred), get_local_entity_index (pred), get_list_type_name (this_entity_list->list_type), get_local_entity_type_name (parent), get_local_entity_index (parent));
 
-						#endif
+
+
+
 					}
 				}
 			}
@@ -1047,11 +1047,11 @@ void process_entity_list_link_validation (void)
 
 			set_local_entity_first_child (parent, this_entity_list->list_type, last_en);
 
-			#if DEBUG_MODULE
 
-			debug_log ("EN_SESSN: LIST_REPAIRING: en %s (%d), list %s first_child not set. Setting to %s (%d)", get_local_entity_type_name (parent), get_local_entity_index (parent), get_list_type_name (this_entity_list->list_type), get_local_entity_type_name (last_en), get_local_entity_index (last_en));
 
-			#endif
+
+
+
 		}
 
 
@@ -1089,11 +1089,11 @@ void process_entity_list_root_validation (void)
 		if (!first_child)
 		{
 
-			#if DEBUG_MODULE
 
-			debug_log ("EN_SESSN: LIST_REPAIRING: can't repair en %s (%d), list %s", get_local_entity_type_name (en), get_local_entity_index (en), get_list_type_name (this_entity_list->list_type));
 
-			#endif
+
+
+
 
 			continue;
 		}
@@ -1111,20 +1111,20 @@ void process_entity_list_root_validation (void)
 
 			set_local_entity_parent (first_child, this_entity_list->list_type, en);
 
-			#if DEBUG_MODULE
 
-			debug_log ("EN_SESSN: LIST_REPAIRING: en %s (%d), list %s parent not set. Setting to %s (%d)", get_local_entity_type_name (first_child), get_local_entity_index (first_child), get_list_type_name (this_entity_list->list_type), get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 		}
 		else
 		{
 
-			#if DEBUG_MODULE
 
-			debug_log ("EN_SESSN: LIST_REPAIRING: no repair needed. en %s (%d), list %s parent is set to %s (%d)", get_local_entity_type_name (first_child), get_local_entity_index (first_child), get_list_type_name (this_entity_list->list_type), get_local_entity_type_name (en), get_local_entity_index (en));
 
-			#endif
+
+
+
 		}
 
 
@@ -1194,16 +1194,16 @@ void repair_landing_entity_locks (pack_modes mode)
 		
 								ASSERT (landing);
 		
-								#if DEBUG_MODULE
-		
-								debug_log ("EN_SESSN: LOCK_REPAIRING: %s landing lock for %s (%d) locks (total %d, free %d, landing %d, landed %d takeoff %d)", get_local_entity_string (keysite, STRING_TYPE_KEYSITE_NAME), get_local_entity_type_name (en), get_local_entity_index (en),
-								get_local_entity_int_value (landing, INT_TYPE_TOTAL_LANDING_SITES),
-								get_local_entity_int_value (landing, INT_TYPE_FREE_LANDING_SITES),
-								get_local_entity_int_value (landing, INT_TYPE_LANDING_LOCK),
-								get_local_entity_int_value (landing, INT_TYPE_LANDED_LOCK),
-								get_local_entity_int_value (landing, INT_TYPE_TAKEOFF_LOCK));
-		
-								#endif
+
+
+
+
+
+
+
+
+
+
 		
 								notify_local_entity (ENTITY_MESSAGE_LOCK_LANDING_ROUTE, landing, en);
 		
@@ -1231,16 +1231,16 @@ void repair_landing_entity_locks (pack_modes mode)
 		
 								keysite = get_local_entity_parent (landing, LIST_TYPE_LANDING_SITE);
 	
-								#if DEBUG_MODULE
-		
-								debug_log ("EN_SESSN: LOCK_REPAIRING: %s takeoff lock for %s (%d) total %d, free %d, locks (landing %d, landed %d takeoff %d)", get_local_entity_string (keysite, STRING_TYPE_KEYSITE_NAME), get_local_entity_type_name (en), get_local_entity_index (en),
-									get_local_entity_int_value (landing, INT_TYPE_TOTAL_LANDING_SITES),
-									get_local_entity_int_value (landing, INT_TYPE_FREE_LANDING_SITES),
-									get_local_entity_int_value (landing, INT_TYPE_LANDING_LOCK),
-									get_local_entity_int_value (landing, INT_TYPE_LANDED_LOCK),
-									get_local_entity_int_value (landing, INT_TYPE_TAKEOFF_LOCK));
-		
-								#endif
+
+
+
+
+
+
+
+
+
+
 			
 								notify_local_entity (ENTITY_MESSAGE_LOCK_TAKEOFF_ROUTE, landing, en);
 	
@@ -1268,11 +1268,11 @@ void repair_landing_entity_locks (pack_modes mode)
 			
 						ASSERT (get_local_entity_type (keysite) == ENTITY_TYPE_FORCE);
 			
-						#if DEBUG_MODULE
-			
-						debug_log ("LANDING: %s. Not repairing locks", get_local_entity_string (en, STRING_TYPE_FULL_NAME));
-			
-						#endif
+
+
+
+
+
 
 					}
 					else
@@ -1280,16 +1280,16 @@ void repair_landing_entity_locks (pack_modes mode)
 		
 						landing = get_local_entity_landing_entity (keysite, group_database [get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE)].default_landing_type);
 		
-						#if DEBUG_MODULE
-		
-						debug_log ("EN_SESSN: LOCK_REPAIRING: %s landed site lock for %s (%d) total %d, free %d, locks (landing %d, landed %d takeoff %d)", get_local_entity_string (keysite, STRING_TYPE_KEYSITE_NAME), get_local_entity_type_name (en), get_local_entity_index (en),
-							get_local_entity_int_value (landing, INT_TYPE_TOTAL_LANDING_SITES),
-							get_local_entity_int_value (landing, INT_TYPE_FREE_LANDING_SITES),
-							get_local_entity_int_value (landing, INT_TYPE_LANDING_LOCK),
-							get_local_entity_int_value (landing, INT_TYPE_LANDED_LOCK),
-							get_local_entity_int_value (landing, INT_TYPE_TAKEOFF_LOCK));
-		
-						#endif
+
+
+
+
+
+
+
+
+
+
 			
 						notify_local_entity (ENTITY_MESSAGE_LOCK_LANDING_SITE, landing, en);
 					}

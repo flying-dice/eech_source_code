@@ -81,11 +81,11 @@ static void set_local_float_value (entity *en, float_types type, float value)
 	ship_vehicle
 		*raw;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_FLOAT_VALUE, en, type, value);
 
-	#endif
+
+
+
 
 	raw = (ship_vehicle *) get_local_entity_data (en);
 
@@ -108,11 +108,11 @@ static void set_local_float_value (entity *en, float_types type, float value)
 
 static void set_remote_float_value (entity *en, float_types type, float value)
 {
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_FLOAT_VALUE, en, type, value);
 
-	#endif
+
+
+
 
 	transmit_entity_comms_message (ENTITY_COMMS_FLOAT_VALUE, en, type, value);
 }
@@ -217,12 +217,12 @@ static float get_local_float_value (entity *en, float_types type)
 
 
 
-void overload_ship_vehicle_float_value_functions (void)
-{
 
-	fn_get_local_entity_float_value				[ENTITY_TYPE_SHIP_VEHICLE][FLOAT_TYPE_AVOIDANCE_RADIUS]								= get_local_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_SHIP_VEHICLE][FLOAT_TYPE_FIXED_STRUCTURE_HEIGHT]						= get_local_float_value;
-}
+
+
+
+
+
 
 
 

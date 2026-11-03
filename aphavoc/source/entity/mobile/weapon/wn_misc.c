@@ -357,46 +357,46 @@ void set_local_entity_weapon_damage (entity *en, int heading_depth, entity_sub_t
 
 
 
-void set_client_server_entity_weapon_damage (entity *en, int heading_depth, entity_sub_types weapon_sub_type, int damage)
-{
-	ASSERT (en);
-
-	if (get_comms_model () == COMMS_MODEL_SERVER)
-	{
-
-		//
-		// SERVER/TX and SERVER/RX
-		//
 
 
-		set_local_entity_weapon_damage (en, heading_depth, weapon_sub_type, damage);
-
-		transmit_entity_comms_message (ENTITY_COMMS_DAMAGE_WEAPON_PACKAGE, en, heading_depth, weapon_sub_type, damage);
-	}
-	else
-	{
-		if (get_comms_data_flow () == COMMS_DATA_FLOW_TX)
-		{
-
-			//
-			// CLIENT/TX
-			//
 
 
-			transmit_entity_comms_message (ENTITY_COMMS_DAMAGE_WEAPON_PACKAGE, en, heading_depth, weapon_sub_type, damage);
-		}
-		else
-		{
-
-			//
-			// CLIENT/RX
-			//
 
 
-			set_local_entity_weapon_damage (en, heading_depth, weapon_sub_type, damage);
-		}
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

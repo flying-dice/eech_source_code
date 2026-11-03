@@ -83,11 +83,11 @@ static int response_to_link_child (entity_messages message, entity *receiver, en
 
 	list_type = va_arg (pargs, list_types);
 
-	#if DEBUG_MODULE > 1
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	switch (list_type)
 	{
@@ -117,50 +117,50 @@ static int response_to_link_child (entity_messages message, entity *receiver, en
 
 
 
-#if DEBUG_MODULE > 1
-
-static int response_to_unlink_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE > 1
-
-// WARNING: THIS IS OVERLOADED AT AIRCRAFT LEVEL //
-
-static int response_to_link_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE > 1
 
-// WARNING: THIS IS OVERLOADED AT AIRCRAFT LEVEL //
 
-static int response_to_unlink_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	return (TRUE);
-}
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -191,12 +191,12 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 	
 	ASSERT(damage_modifier >= 0 && damage_modifier <= 1.0);
 
-	#if DEBUG_MODULE > 1
 
-	// IMPORTANT: this muct come after we read va_arg, or it will clobber it!
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
+
 
 	if (sender)
 	{
@@ -435,11 +435,11 @@ static int response_to_articulate_loading_doors (entity_messages message, entity
 	sound_sample_indices
 		sound_sample_index;
 
-	#if DEBUG_MODULE > 1
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	inst3d = (object_3d_instance *) get_local_entity_ptr_value (receiver, PTR_TYPE_INSTANCE_3D_OBJECT);
 
@@ -603,12 +603,12 @@ static int response_to_check_mobile_reached_guide (entity_messages message, enti
 	
 			if (range > get_guide_criteria_value (sender, GUIDE_CRITERIA_RADIUS))
 			{
-#if DEBUG_MODULE
-				if (receiver == get_external_view_entity ())
-				{
-					debug_log("HC_MSGS: GUIDE_CRITERIA_RADIUS CHECK FAILED");
-				}
-#endif
+
+
+
+
+
+
 				return FALSE;
 			}
 		}
@@ -645,12 +645,12 @@ static int response_to_check_mobile_reached_guide (entity_messages message, enti
 		
 				if (fabs (range) > get_guide_criteria_value (sender, GUIDE_CRITERIA_ALTITUDE))
 				{
-#if DEBUG_MODULE
-					if (receiver == get_external_view_entity ())
-					{
-						debug_log("HC_MSGS: GUIDE_CRITERIA_ALTITUDE CHECK FAILED");
-					}
-#endif
+
+
+
+
+
+
 					return FALSE;
 				}
 			}
@@ -686,12 +686,12 @@ static int response_to_check_mobile_reached_guide (entity_messages message, enti
 		
 				if (fabs (delta_heading) > get_guide_criteria_value (sender, GUIDE_CRITERIA_HEADING))
 				{
-#if DEBUG_MODULE
-					if (receiver == get_external_view_entity ())
-					{
-						debug_log("HC_MSGS: GUIDE_CRITERIA_HEADING CHECK FAILED");
-					}
-#endif
+
+
+
+
+
+
 					return FALSE;
 				}
 			}
@@ -742,12 +742,12 @@ static int response_to_check_mobile_reached_guide (entity_messages message, enti
 
 					if (fabs (launch_angle_error) > pow(frand1(), 6) * weapon_database[selected_weapon].max_launch_angle_error)
 					{
-#if DEBUG_MODULE
-						if (receiver == get_external_view_entity ())
-						{
-							debug_log("HC_MSGS: GUIDE_CRITERIA_WEAPON_VECTOR CHECK FAILED");
-						}
-#endif
+
+
+
+
+
+
 						return FALSE;
 					}
 				}
@@ -796,30 +796,30 @@ static int response_to_check_mobile_reached_guide (entity_messages message, enti
 
 
 
-void overload_helicopter_message_responses (void)
-{
-	overload_aircraft_message_responses (ENTITY_TYPE_HELICOPTER);
 
-	message_responses[ENTITY_TYPE_HELICOPTER][ENTITY_MESSAGE_LINK_CHILD]							= response_to_link_child;
 
-	#if DEBUG_MODULE > 1
 
-	message_responses[ENTITY_TYPE_HELICOPTER][ENTITY_MESSAGE_UNLINK_CHILD]						= response_to_unlink_child;
 
-	message_responses[ENTITY_TYPE_HELICOPTER][ENTITY_MESSAGE_LINK_PARENT]						= response_to_link_parent;
 
-	message_responses[ENTITY_TYPE_HELICOPTER][ENTITY_MESSAGE_UNLINK_PARENT]						= response_to_unlink_parent;
 
-	#endif
 
-	message_responses[ENTITY_TYPE_HELICOPTER][ENTITY_MESSAGE_COLLISION]							= response_to_collision;
 
-	message_responses[ENTITY_TYPE_HELICOPTER][ENTITY_MESSAGE_ARTICULATE_LOADING_DOORS]		= response_to_articulate_loading_doors;
 
-	message_responses[ENTITY_TYPE_HELICOPTER][ENTITY_MESSAGE_SET_ENTITY_POSITION]				= response_to_set_entity_position;
 
-	message_responses[ENTITY_TYPE_HELICOPTER][ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE]	= response_to_check_mobile_reached_guide;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

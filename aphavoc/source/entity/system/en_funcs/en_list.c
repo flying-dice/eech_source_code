@@ -430,36 +430,36 @@ void insert_local_entity_into_parents_child_list (entity *en, list_types type, e
 
 	ASSERT (pred != parent);
 
-	#ifdef DEBUG
 
-	#if DEBUG_MODULE_VALIDATE_LISTS
-	{
-		entity
-			*item,
-			*current_parent;
 
-		current_parent = get_local_entity_parent (en, type);
 
-		// current_parent should ideally always be NULL, but isn't always do to the way ENTITY_ATTR_PARENT works when creating entities
 
-		if (current_parent)
-		{
-			item = get_local_entity_first_child (current_parent, type);
-	
-			while (item)
-			{
-				if (item == en)
-				{
-					debug_fatal ("Entity already in list (entity type = %s, list type = %s)", get_entity_type_name (get_local_entity_type (en)), get_list_type_name (type));
-				}
-	
-				item = get_local_entity_child_succ (item, type);
-			}
-		}
-	}
-	#endif
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	if (pred)
 	{
@@ -838,56 +838,56 @@ list_types unpack_list_type (void)
 
 
 
-void set_client_server_entity_parent (entity *en, list_types type, entity *parent)
-{
-	ASSERT (en);
-
-	if (get_comms_model () == COMMS_MODEL_SERVER)
-	{
-
-		//
-		// SERVER/TX and SERVER/RX
-		//
 
 
-		delete_local_entity_from_parents_child_list (en, type);
-
-		if (parent)
-		{
-			insert_local_entity_into_parents_child_list (en, type, parent, NULL);
-		}
-
-		transmit_entity_comms_message (ENTITY_COMMS_SWITCH_PARENT, en, type, parent);
-	}
-	else
-	{
-		if (get_comms_data_flow () == COMMS_DATA_FLOW_TX)
-		{
-
-			//
-			// CLIENT/TX
-			//
 
 
-			transmit_entity_comms_message (ENTITY_COMMS_SWITCH_PARENT, en, type, parent);
-		}
-		else
-		{
-
-			//
-			// CLIENT/RX
-			//
 
 
-			delete_local_entity_from_parents_child_list (en, type);
 
-			if (parent)
-			{
-				insert_local_entity_into_parents_child_list (en, type, parent, NULL);
-			}
-		}
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

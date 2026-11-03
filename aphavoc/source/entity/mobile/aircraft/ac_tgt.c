@@ -122,11 +122,11 @@ static int check_aircraft_target_scan_valid (entity *en)
 
 	if (!get_local_entity_int_value (group, INT_TYPE_ENGAGE_ENEMY))
 	{
-		#if DEBUG_MODULE
 
-		debug_log ("AC_TGT: group %s not allowed to engage enemy", get_local_entity_string_value (group, STRING_TYPE_FULL_NAME));
 
-		#endif
+
+
+
 
 		return FALSE;
 	}
@@ -137,11 +137,11 @@ static int check_aircraft_target_scan_valid (entity *en)
 
 	if (!get_local_entity_int_value (en, INT_TYPE_AIRBORNE_AIRCRAFT))
 	{
-		#if DEBUG_MODULE
 
-		debug_log ("AC_TGT: entity %s not allowed to engage enemy, its not airborne", get_local_entity_string (en, STRING_TYPE_FULL_NAME));
 
-		#endif
+
+
+
 
 		return FALSE;
 	}
@@ -255,11 +255,11 @@ void aircraft_target_scan (entity *en)
 			{
 				ai_log ("AC_TGT: %s doing %s Scanned %d air targets", get_local_entity_string (en, STRING_TYPE_FULL_NAME), get_local_entity_string (task, STRING_TYPE_FULL_NAME), target_count);
 
-				#if DEBUG_MODULE
-	
-				debug_log ("AC_TGT: %s(%d) Scanned %d air group targets", entity_type_names [en->type], en, target_count);
-	
-				#endif
+
+
+
+
+
 	
 
 				//
@@ -288,22 +288,22 @@ void aircraft_target_scan (entity *en)
 			// Just notify force entity of targets
 			//
 
-			#if DEBUG_MODULE
 
-			debug_log ("AC_TGT: %s(%d) Scanning ground", entity_type_names [en->type], en);
 
-			#endif
+
+
+
 
 			target_group = get_aircraft_air_to_surface_scan_group_targets (en, &target_count);
 
 			if ((target_group) && (target_count > 0))
 			{
 	
-				#if DEBUG_MODULE
-	
-				debug_log ("AC_TGT: %s(%d) Scanned %d ground group targets %s", entity_type_names [en->type], en, target_count, entity_sub_type_group_names [get_local_entity_int_value (tgt, INT_TYPE_ENTITY_SUB_TYPE)]);
-	
-				#endif
+
+
+
+
+
 
 
 				//

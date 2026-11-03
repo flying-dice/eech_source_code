@@ -285,11 +285,11 @@ void initialise_briefing_parser (void)
 				task_briefing_database [task_type].debriefing_text_partial_count = 0;
 				task_briefing_database [task_type].debriefing_text_failure_count = 0;
 
-				#if DEBUG_MODULE
 
-				debug_log ("BRIEFING: reading in Briefing text for mission %s", entity_sub_type_task_names [task_type]);
 
-				#endif
+
+
+
 
 				//
 				// Briefing text
@@ -324,11 +324,11 @@ void initialise_briefing_parser (void)
 								task_briefing_database [task_type].briefing_text1 [task_briefing_database [task_type].briefing_text1_count] = string_to_utf8 (temp_buffer);
 							}
 
-							#if DEBUG_MODULE
 
-							debug_log ("BRIEFING: 		text1 (count %d) :- %s", task_briefing_database [task_type].briefing_text1_count, task_briefing_database [task_type].briefing_text1 [task_briefing_database [task_type].briefing_text1_count]);
 
-							#endif
+
+
+
 
 							task_briefing_database [task_type].briefing_text1_count ++;
 
@@ -352,11 +352,11 @@ void initialise_briefing_parser (void)
 								task_briefing_database [task_type].briefing_text2 [task_briefing_database [task_type].briefing_text2_count] = string_to_utf8 (temp_buffer);
 							}
 
-							#if DEBUG_MODULE
 
-							debug_log ("BRIEFING: 		text2 (count %d) :- %s", task_briefing_database [task_type].briefing_text2_count, task_briefing_database [task_type].briefing_text2 [task_briefing_database [task_type].briefing_text2_count]);
 
-							#endif
+
+
+
 
 							task_briefing_database [task_type].briefing_text2_count ++;
 
@@ -380,11 +380,11 @@ void initialise_briefing_parser (void)
 								task_briefing_database [task_type].briefing_text3 [task_briefing_database [task_type].briefing_text3_count] = string_to_utf8 (temp_buffer);
 							}
 
-							#if DEBUG_MODULE
 
-							debug_log ("BRIEFING: 		text3 (count %d) :- %s", task_briefing_database [task_type].briefing_text3_count, task_briefing_database [task_type].briefing_text3 [task_briefing_database [task_type].briefing_text3_count]);
 
-							#endif
+
+
+
 
 							task_briefing_database [task_type].briefing_text3_count ++;
 
@@ -435,11 +435,11 @@ void initialise_briefing_parser (void)
 								task_briefing_database [task_type].debriefing_text_success [task_briefing_database [task_type].debriefing_text_success_count] = string_to_utf8 (temp_buffer);
 							}
 
-							#if DEBUG_MODULE
 
-							debug_log ("BRIEFING: 		text_success (count %d) :- %s", task_briefing_database [task_type].debriefing_text_success_count, task_briefing_database [task_type].debriefing_text_success [task_briefing_database [task_type].debriefing_text_success_count]);
 
-							#endif
+
+
+
 
 							task_briefing_database [task_type].debriefing_text_success_count ++;
 
@@ -463,11 +463,11 @@ void initialise_briefing_parser (void)
 								task_briefing_database [task_type].debriefing_text_partial [task_briefing_database [task_type].debriefing_text_partial_count] = string_to_utf8 (temp_buffer);
 							}
 
-							#if DEBUG_MODULE
 
-							debug_log ("BRIEFING: 		text_partial (count %d) :- %s", task_briefing_database [task_type].debriefing_text_partial_count, task_briefing_database [task_type].debriefing_text_partial [task_briefing_database [task_type].debriefing_text_partial_count]);
 
-							#endif
+
+
+
 
 							task_briefing_database [task_type].debriefing_text_partial_count ++;
 
@@ -491,11 +491,11 @@ void initialise_briefing_parser (void)
 								task_briefing_database [task_type].debriefing_text_failure [task_briefing_database [task_type].debriefing_text_failure_count] = string_to_utf8 (temp_buffer);
 							}
 
-							#if DEBUG_MODULE
 
-							debug_log ("BRIEFING: 		text_failure (count %d) :- %s", task_briefing_database [task_type].debriefing_text_failure_count, task_briefing_database [task_type].debriefing_text_failure [task_briefing_database [task_type].debriefing_text_failure_count]);
 
-							#endif
+
+
+
 
 							task_briefing_database [task_type].debriefing_text_failure_count ++;
 
@@ -1330,11 +1330,11 @@ int get_briefing_text (entity *task, char *text1, char *text2, char *text3)
 			build_substitution_info (task, NUM_MEDAL_TYPES, NUM_PILOT_RANKS, task_briefing->briefing_text3 [text3_choice], text3);
 		}
 
-		#if DEBUG_MODULE
 
-		debug_log ("BRIEFING: using %d, %d, %d for text choice", text1_choice, text2_choice, text3_choice);
 
-		#endif
+
+
+
 
 		return TRUE;
 	}

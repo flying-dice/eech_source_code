@@ -1067,12 +1067,12 @@ entity *find_most_suitable_keysite_for_task (entity_sub_types task_type, entity_
 
 	ASSERT (task_landing_types > 0);
 
-	#if DEBUG_MODULE
 
-	debug_log ("-------------------------------------");
-	debug_log ("Task: %s", task_database [task_type].full_name);
 
-	#endif
+
+
+
+
 
 	//
 	// Find closest keysite with lowest task count and most suitable groups
@@ -1104,11 +1104,11 @@ entity *find_most_suitable_keysite_for_task (entity_sub_types task_type, entity_
 					{
 						score = 0.0;
 
-						#if DEBUG_MODULE
 
-						debug_log ("Keysite: %s", get_local_entity_string (keysite, STRING_TYPE_KEYSITE_NAME));
 
-						#endif
+
+
+
 
 						//
 						// bias keysites with more groups suitable for this type
@@ -1141,11 +1141,11 @@ entity *find_most_suitable_keysite_for_task (entity_sub_types task_type, entity_
 								group = get_local_entity_child_succ (group, LIST_TYPE_KEYSITE_GROUP);
 							}
 		
-							#if DEBUG_MODULE
-	
-							debug_log ("Group Score: %f", score);
-	
-							#endif
+
+
+
+
+
 						}
 						else
 						{
@@ -1170,11 +1170,11 @@ entity *find_most_suitable_keysite_for_task (entity_sub_types task_type, entity_
 			
 						range = get_approx_2d_range (keysite_pos, pos);
 
-						#if DEBUG_MODULE
 
-						debug_log ("Actual Range: %f", range);
 
-						#endif
+
+
+
 
 						if (range >= max_range)
 						{
@@ -1187,11 +1187,11 @@ entity *find_most_suitable_keysite_for_task (entity_sub_types task_type, entity_
 
 						score *= 2.0 * (x * x * x * x);
 
-						#if DEBUG_MODULE
 
-						debug_log ("Range: %f (new score %f)", range, score);
 
-						#endif
+
+
+
 
 						//
 						// bias keysites with less tasks of this type
@@ -1211,11 +1211,11 @@ entity *find_most_suitable_keysite_for_task (entity_sub_types task_type, entity_
 							ts = get_local_entity_child_succ (ts, LIST_TYPE_UNASSIGNED_TASK);
 						}
 
-						#if DEBUG_MODULE
 
-						debug_log ("Actual Task count: %f", task_count);
 
-						#endif
+
+
+
 
 						task_count = 1.0 - (task_count * KEYSITE_TASK_COUNT_BIAS);
 
@@ -1223,11 +1223,11 @@ entity *find_most_suitable_keysite_for_task (entity_sub_types task_type, entity_
 
 						score *= task_count;
 
-						#if DEBUG_MODULE
 
-						debug_log ("Task bias: %f (new score %f)", task_count, score);
 
-						#endif
+
+
+
 
 						//
 						// Less suitable if out-of-action / repairing
@@ -1242,11 +1242,11 @@ entity *find_most_suitable_keysite_for_task (entity_sub_types task_type, entity_
 						// Check if best keysite
 						//
 		
-						#if DEBUG_MODULE
 
-						debug_log ("Final Score %f", score);
 
-						#endif
+
+
+
 
 						if (score > best_score)
 						{
@@ -1254,19 +1254,19 @@ entity *find_most_suitable_keysite_for_task (entity_sub_types task_type, entity_
 		
 							best_score = score;
 
-							#if DEBUG_MODULE
 
-							debug_log ("!!** BEST SO FAR**!!");
 
-							#endif
+
+
+
 						}
 					}
 
-					#if DEBUG_MODULE
 
-					debug_log ("                         ");
 
-					#endif
+
+
+
 				}
 			}
 		}
@@ -1281,64 +1281,64 @@ entity *find_most_suitable_keysite_for_task (entity_sub_types task_type, entity_
 
 
 
-#ifdef DEBUG
 
-void validate_task_entity (entity *en)
-{
-	entity_sub_types
-		task_type;
-	task
-		*raw;
-	
-	ASSERT (en);
 
-	raw = (task *) get_local_entity_data (en);
 
-	task_type = get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE);
 
-	//
-	// Check certain tasks have objective
-	//
 
-	switch (task_type)
-	{
-		case ENTITY_SUB_TYPE_TASK_ENGAGE:
-		{
-			if(!get_local_entity_parent (en, LIST_TYPE_TASK_DEPENDENT)) // target destroyed already, terminate task
-				switch (raw->task_state)
-				{
-					case TASK_STATE_COMPLETED:
-					case TASK_STATE_UNASSIGNED:
-					{
-						raw->expire_timer = 0.0001;
 
-						break;
-					}
 
-					case TASK_STATE_ASSIGNED:
-					{
-						raw->stop_timer = 0.0001;
 
-						break;
-					}
 
-				}
 
-			break;
-		}
-		case ENTITY_SUB_TYPE_TASK_ESCORT:
-		{
-			if (!get_local_entity_int_value (en, INT_TYPE_TASK_COMPLETED))
-			{
-				ASSERT (get_local_entity_parent (en, LIST_TYPE_TASK_DEPENDENT));
-			}
 
-			break;
-		}
-	}
-}
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

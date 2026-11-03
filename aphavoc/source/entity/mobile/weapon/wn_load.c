@@ -1222,16 +1222,16 @@ static weapon_config_types get_weapon_config (gunship_types gunship_type, const 
 
 static void get_weapons_from_weapon_config (gunship_types gunship_type, weapon_config_types weapon_config_type, entity_sub_types current_weapon[NUM_WEAPON_LOADING_HARDPOINT_TYPES] )
 {
-#ifdef DEBUG
 
-	const aircraft_data
-		*ac_data;
 
-	weapon_config_types
-		min_weapon_config_type,
-		max_weapon_config_type;
 
-#endif
+
+
+
+
+
+
+
 
 	const weapon_loading_gunship_type
 		*wlgt;
@@ -1244,27 +1244,27 @@ static void get_weapons_from_weapon_config (gunship_types gunship_type, weapon_c
 		hardpoint;
 
 
-#ifdef DEBUG
 
-	ASSERT (gunship_type >= 0 && gunship_type < NUM_GUNSHIP_TYPES);
 
-	ac_data = &aircraft_database[gunship_sub_types[gunship_type]];
 
-	ASSERT (ac_data->gunship_type == gunship_type);
 
-	min_weapon_config_type = ac_data->min_weapon_config_type;
-	max_weapon_config_type = ac_data->max_weapon_config_type;
 
-	ASSERT
-	(
-		(weapon_config_type == WEAPON_CONFIG_TYPE_UNARMED) ||
-		(
-			(weapon_config_type >= min_weapon_config_type) &&
-			(weapon_config_type <= max_weapon_config_type)
-		)
-	);
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	wlgt = &weapon_loading_gunship_database[gunship_type];
 
@@ -1396,11 +1396,11 @@ void weapon_loading_set_current_hardpoint_weapon (gunship_types gunship_type, we
 		{
 			hardpoint_data->current_weapon_index = loop;
 
-			#if DEBUG_MODULE
 
-			debug_log ("WN_LOAD : Hardpoint %d - weapon type ( %s )", hardpoint, entity_sub_type_weapon_names [weapon_type]);
 
-			#endif
+
+
+
 
 			return;
 		}

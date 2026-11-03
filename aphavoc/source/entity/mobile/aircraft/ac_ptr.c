@@ -81,11 +81,11 @@ static void set_local_ptr_value (entity *en, ptr_types type, void *ptr)
 	aircraft
 		*raw;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_PTR_VALUE, en, type, ptr);
 
-	#endif
+
+
+
 
 	raw = (aircraft *) get_local_entity_data (en);
 
@@ -184,20 +184,20 @@ static void *get_local_ptr_value (entity *en, ptr_types type)
 
 
 
-void overload_aircraft_ptr_value_functions (entity_types type)
-{
 
-	fn_get_local_entity_ptr_value				[type][PTR_TYPE_INSTANCE_3D_OBJECT]								= get_local_ptr_value;
 
-	fn_set_local_entity_ptr_value				[type][PTR_TYPE_SOUND_EFFECT_DATA]								= set_local_ptr_value;
-	fn_get_local_entity_ptr_value				[type][PTR_TYPE_SOUND_EFFECT_DATA]								= get_local_ptr_value;
 
-	fn_get_local_entity_ptr_value				[type][PTR_TYPE_TERRAIN_FACE_NORMAL]							= get_local_ptr_value;
 
-	fn_get_local_entity_ptr_value				[type][PTR_TYPE_TERRAIN_INFO]										= get_local_ptr_value;
 
-	fn_get_local_entity_ptr_value				[type][PTR_TYPE_WEAPON_PACKAGE_STATUS_ARRAY]					= get_local_ptr_value;
-}
+
+
+
+
+
+
+
+
+
 
 
 

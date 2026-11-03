@@ -85,10 +85,10 @@
 entity
 	*pilot_entity = NULL;
 
-#if 0
-static float
-	flash_timer = 0.0;
-#endif
+
+
+
+
 
 
 
@@ -575,73 +575,73 @@ void qs_table (pilot_score_type *list, int left, int right)
 
 
 
-#if 0
-void draw_high_score_table (void)
-{
 
-	char
-		buffer [256];
 
-	int
-		loop,
-		length;
 
-	screen
-		*old_active_screen;
 
-	pilot_score_type
-		*item;
 
-	old_active_screen = get_active_screen ();
 
-	set_active_screen ( video_screen );
 
-	if ( lock_screen ( active_screen ) )
-	{
-		//
-		// draw leaderboard
-		//
 
-		for (loop = 0; loop < NUM_TABLE_ENTRIES; loop ++)
-		{
-			item = &pilot_high_score_table [loop];
 
-			if (item->valid)
-			{
-				set_ui_font_type (UI_FONT_ARIAL_14);
 
-				if (item->side == ENTITY_SIDE_BLUE_FORCE)
-				{
-					set_ui_font_colour (ui_colour_blue);
-				}
-				else
-				{
-					set_ui_font_colour (ui_colour_orange);
-				}
 
-				length = ui_get_string_length (item->name);
 
-				sprintf (buffer, "%s : %d", item->name, item->kills);
 
-				// print text assuming game-exit overlay is 640x480 centred in the screen whatever res.
-				ui_display_text (buffer, get_integer_screen_x_mid () - length, iy_640_480 + 180 + (loop * (ui_get_font_height () + 1)));
-			}
-		}
 
-		//
-		// update flash timer
-		//
 
-		flash_timer += (FLASH_RATE * get_delta_time ());
 
-		flash_timer = frac (flash_timer);
 
-		unlock_screen ( active_screen );
-	}
 
-	set_active_screen ( old_active_screen );
-}
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -747,50 +747,50 @@ const char *get_high_score_table_first_name (void)
 
 
 
-#if 0
-void draw_special_restart_text (void)
-{
-	char
-		buffer [64];
 
-	int
-		string_length;
 
-	float
-		x;
 
-	//
-	// display game name
-	//
 
-	if (current_game_session)
-	{
-		sprintf (buffer, "%s", current_game_session->title);
-		string_length = ui_get_string_length ( buffer );
 
-		x = get_integer_screen_x_mid () - (string_length / 2);
 
-		ui_display_text (buffer, x, 73 + iy_640_480);
-	}
 
-	//
-	// display flashing message
-	//
 
-	if (flash_timer < 0.666)
-	{
-		set_ui_font_type (UI_FONT_ARIAL_14);
 
-		set_ui_font_colour (ui_colour_yellow);
 
-		sprintf ( buffer, get_trans ("PRESS SPACE") );
 
-		string_length = ui_get_string_length (buffer);
 
-		ui_display_text (buffer, get_integer_screen_x_mid () - (string_length / 2), 420 + iy_640_480);
-	}
-}
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

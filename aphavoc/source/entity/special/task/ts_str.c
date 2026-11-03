@@ -85,11 +85,11 @@ static void set_local_string (entity *en, string_types type, char *s)
 
 	ASSERT (s);
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_STRING, en, type, s);
 
-	#endif
+
+
+
 
 	raw = (task *) get_local_entity_data (en);
 
@@ -118,11 +118,11 @@ static void set_remote_string (entity *en, string_types type, char *s)
 {
 	ASSERT (s);
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_STRING, en, type, s);
 
-	#endif
+
+
+
 
 	transmit_entity_comms_message (ENTITY_COMMS_STRING, en, type, s);
 }
@@ -225,12 +225,12 @@ static const char *get_local_string (entity *en, string_types type)
 
 
 
-void overload_task_string_functions (void)
-{
-	fn_get_local_entity_string[ENTITY_TYPE_TASK][STRING_TYPE_FULL_NAME] 				= get_local_string;
 
-	fn_get_local_entity_string[ENTITY_TYPE_TASK][STRING_TYPE_SHORT_DISPLAY_NAME] 	= get_local_string;
-}
+
+
+
+
+
 
 
 

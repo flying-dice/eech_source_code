@@ -33,16 +33,16 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-#if 0
-		if (buf[0x86] == 0xA2 && buf[0xC8] == 0x2F && buf[0xC9] == 0x0B && buf[0xCA] == 0x55)
-		{
-			buf[0x86] = 0x82;
-			buf[0xC8] = 0x00;
-			buf[0xC9] = 0x00;
-			buf[0xCA] = 0x00;
-		}
-		else
-#endif
+
+
+
+
+
+
+
+
+
+
 		{
 			printf("Unexpected header in %s\n", argv[1]);
 			return -4;

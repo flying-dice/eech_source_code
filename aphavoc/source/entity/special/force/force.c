@@ -158,12 +158,12 @@ void add_force_campaign_critiera (entity *force_en, campaign_trigger criteria_ty
 
 	force_raw->campaign_criteria = new_campaign_criteria;
 
-	#if DEBUG_MODULE
 
-	debug_log ("FORCE: Campaign Criteria %s, value1 = %d value2 = %d value3 = %d value4 = %d, result %s", campaign_criteria_names [criteria_type],
-								 value1, value2, value3, value4, campaign_result_names [result]);
 
-	#endif
+
+
+
+
 }
 */
 
@@ -416,149 +416,149 @@ int get_local_force_entity_group_count (entity *en, entity_sub_types group_type)
 
 void display_campaign_criteria_time_remaining (void)
 {
-#if 0
-	entity
-		*force_en;
 
-	force
-		*force_raw;
 
-	//session
-		//*session_raw;
 
-	//campaign_criteria_type
-		//*this_campaign_criteria;
 
-	//float
-		//elapsed_hours,
-		//elapsed_minutes,
-		//elapsed_seconds;
 
-	//int
-		//remaining_hours,
-		//remaining_minutes,
-		//remaining_seconds;
 
-	//int
-		//x, y;
 
-	//char
-		//s [20];
 
-	//
-	// display count down timer until campaign completiion (NOT "tour of duty" timer)
-	//
 
-	//
-	// currently used only for special games, so I have tailored it to suit :-
-	// only displays minutes and seconds,
-	// doesn't display on the clients until after first time-of-day resync
-	//
 
-	if ((get_game_type () != GAME_TYPE_SPECIAL) && (get_game_type () != GAME_TYPE_MAGAZINE_DEMO))
-	{
 
-		return;
-	}
 
-	ASSERT (get_session_entity ());
 
-	force_en = get_local_force_entity (get_global_gunship_side ());
 
-	ASSERT (force_en);
 
-	force_raw = (force *) get_local_entity_data (force_en);
-/*
-	this_campaign_criteria = force_raw->campaign_criteria;
 
-	while (this_campaign_criteria)
-	{
-		if (this_campaign_criteria->criteria_type == CAMPAIGN_CRITERIA_TIME_DURATION)
-		{
-			break;
-		}
 
-		this_campaign_criteria = this_campaign_criteria->next;
-	}
 
-	if (this_campaign_criteria)
-	{
-		if (this_campaign_criteria->valid)
-		{
-			session_raw = (force *) get_local_entity_data (get_session_entity ());
 
-			//
-			// clients don't display until AFTER first resync (otherwise time will be wrong)
-			//
 
-			if (get_comms_model () == COMMS_MODEL_CLIENT)
-			{
-				if (!display_timer_valid)
-				{
-					return;
-				}
-			}
 
-			//
-			// get time remaining 
-			//
 
-			get_digital_clock_values (session_raw->elapsed_time_of_day, &elapsed_hours, &elapsed_minutes, &elapsed_seconds);
 
-			remaining_seconds = (this_campaign_criteria->days - session_raw->elapsed_days) * ONE_DAY;
 
-			remaining_seconds += (this_campaign_criteria->hours - elapsed_hours) * ONE_HOUR;
 
-			remaining_seconds += (this_campaign_criteria->minutes - elapsed_minutes) * ONE_MINUTE;
 
-			remaining_seconds += (this_campaign_criteria->seconds - elapsed_seconds) * ONE_SECOND;
 
-			if ((remaining_seconds > 0.0) && (remaining_seconds < ONE_HOUR))
-			{
-				if (remaining_seconds < ONE_MINUTE)
-				{
-					if (remaining_seconds < 10.0)
-					{
-						//
-						// flash if < 10 seconds
-						//
-					
-						if (frac (session_raw->elapsed_time_of_day) < 0.5)
-						{
-							return;
-						}
-					}
 
-					set_ui_font (UI_FONT_ADS_15_ORANGE);
-				}
-				else
-				{
-					set_ui_font (UI_FONT_ADS_15_WHITE);
-				}
 
-				get_digital_clock_int_values (remaining_seconds, &remaining_hours, &remaining_minutes, &remaining_seconds);
 
-				if (lock_screen (active_screen))
-				{
-					set_full_screen_viewport ();
 
-					sprintf (s, "T-%02d:%02d", remaining_minutes, remaining_seconds);
 
-					// string WAS right-justified, but looked bad due to proportional fonts changing the width every second !
-//					x = get_screen_width (active_screen) - ui_get_string_length (s);
-					x = get_screen_width (active_screen) - 62;
 
-					y = ui_get_font_height () + 2;
 
-					ui_display_text (s, x, y);
 
-					unlock_screen (active_screen);
-				}
-			}
-		}
-	}
-	*/
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 

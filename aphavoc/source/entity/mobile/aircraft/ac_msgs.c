@@ -89,11 +89,11 @@ static int response_to_articulate_undercarriage (entity_messages message, entity
 	sound_sample_indices
 		sample_index;
 
-	#if DEBUG_MODULE
 
-	//debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
@@ -132,31 +132,31 @@ static int response_to_articulate_undercarriage (entity_messages message, entity
 
 
 
-#if DEBUG_MODULE
-
-static int response_to_link_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE
 
-static int response_to_unlink_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	return (TRUE);
-}
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -167,11 +167,11 @@ static int response_to_link_parent (entity_messages message, entity *receiver, e
 	list_types
 		list_type;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	list_type = va_arg (pargs, list_types);
 
@@ -253,11 +253,11 @@ static int response_to_unlink_parent (entity_messages message, entity *receiver,
 	list_types
 		list_type;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	list_type = va_arg (pargs, list_types);
 
@@ -303,11 +303,11 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 
 	raw = (aircraft *) get_local_entity_data (receiver);
 
-	#if DEBUG_MODULE_MESSAGE_TEXT
 
-	debug_log ("AIRCRAFT MSGS: received task terminated, ac %s made safe", entity_sub_type_aircraft_names [raw->mob.sub_type]);
 
-	#endif
+
+
+
 
 	debug_assert (raw->member_link.parent);
 
@@ -332,11 +332,11 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 		{
 			ASSERT (landing_en);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("AC_MSGS: mobile was on a %s route, unlocking route and landing site", entity_sub_type_task_names [get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE)]);
 
-			#endif
+
+
+
 
 			if (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI)
 			{
@@ -353,11 +353,11 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 		{
 			ASSERT (landing_en);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("AC_MSGS: mobile was on a %s route, unlocking route", entity_sub_type_task_names [get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE)]);
 
-			#endif
+
+
+
 
 			notify_local_entity (ENTITY_MESSAGE_UNLOCK_TAKEOFF_ROUTE, landing_en, receiver);
 
@@ -368,11 +368,11 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 		{
 			ASSERT (landing_en);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("AC_MSGS: mobile was on a %s route, locking route and landing site", entity_sub_type_task_names [get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE)]);
 
-			#endif
+
+
+
 
 			notify_local_entity (ENTITY_MESSAGE_UNLOCK_LANDING_SITE, landing_en, receiver);
 
@@ -383,11 +383,11 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 		{
 			ASSERT (landing_en);
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("AC_MSGS: mobile was on a %s route, no route to unlock", entity_sub_type_task_names [get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE)]);
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -403,11 +403,11 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 static int response_to_waypoint_lower_undercarriage_action (entity_messages message, entity *receiver, entity *sender, va_list pargs)
 {
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
@@ -435,11 +435,11 @@ static int response_to_waypoint_lower_undercarriage_action (entity_messages mess
 static int response_to_waypoint_raise_undercarriage_reached (entity_messages message, entity *receiver, entity *sender, va_list pargs)
 {
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
@@ -523,32 +523,32 @@ static int response_to_guide_cover_position_reached (entity_messages message, en
 
 
 
-void overload_aircraft_message_responses (entity_types type)
-{
-	overload_mobile_message_responses (type);
 
-	message_responses[ENTITY_TYPE_HELICOPTER][ENTITY_MESSAGE_ARTICULATE_UNDERCARRIAGE]	= response_to_articulate_undercarriage;
 
-	#if DEBUG_MODULE
 
-	message_responses[type][ENTITY_MESSAGE_LINK_CHILD] 									= response_to_link_child;
 
-	message_responses[type][ENTITY_MESSAGE_UNLINK_CHILD]									= response_to_unlink_child;
 
-	#endif
 
-	message_responses[type][ENTITY_MESSAGE_LINK_PARENT]									= response_to_link_parent;
 
-	message_responses[type][ENTITY_MESSAGE_UNLINK_PARENT]									= response_to_unlink_parent;
 
-	message_responses[type][ENTITY_MESSAGE_TASK_TERMINATED]								= response_to_task_terminated;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_LOWER_UNDERCARRIAGE_ACTION]	= response_to_waypoint_lower_undercarriage_action;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_RAISE_UNDERCARRIAGE_REACHED]	= response_to_waypoint_raise_undercarriage_reached;
 
-	message_responses[type][ENTITY_MESSAGE_GUIDE_COVER_POSITION_REACHED]				= response_to_guide_cover_position_reached;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

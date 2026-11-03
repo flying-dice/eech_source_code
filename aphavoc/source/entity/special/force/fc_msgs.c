@@ -81,61 +81,61 @@
 
 
 
-#if DEBUG_MODULE >= 2
-
-static int response_to_link_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE >= 2
-
-static int response_to_unlink_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE >= 2
-
-static int response_to_link_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE >= 2
 
-static int response_to_unlink_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	return (TRUE);
-}
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -355,11 +355,11 @@ static int response_to_entity_fired_at (entity_messages message, entity *receive
 static int response_to_force_armour_advancing (entity_messages message, entity *receiver, entity *sender, va_list pargs)
 {
 
-	#if DEBUG_MODULE
-	
-	debug_log ("FC_MSGS: allied armour is advancing");
 
-	#endif
+
+
+
+
 
 	return (TRUE);
 }
@@ -382,11 +382,11 @@ static int response_to_force_armour_resisting (entity_messages message, entity *
 
 	enemy_entity = va_arg (pargs, entity *);
 
-	#if DEBUG_MODULE
-	
-	debug_log ("FC_MSGS: allied armour is resisting");
 
-	#endif
+
+
+
+
 
 
 
@@ -478,11 +478,11 @@ static int response_to_force_armour_retreating (entity_messages message, entity 
 
 	enemy_entity = va_arg (pargs, entity *);
 
-	#if DEBUG_MODULE
 
-	debug_log ("FC_MSGS: allied armour is retreating");
 
-	#endif
+
+
+
 
 	return (TRUE);
 }
@@ -494,11 +494,11 @@ static int response_to_force_armour_retreating (entity_messages message, entity 
 static int response_to_force_armour_stuck (entity_messages message, entity *receiver, entity *sender, va_list pargs)
 {
 
-	#if DEBUG_MODULE
-	
-	debug_log ("FC_MSGS: allied armour is stuck at node");
 
-	#endif
+
+
+
+
 
 	return (TRUE);
 }
@@ -534,11 +534,11 @@ static int response_to_force_destroyed (entity_messages message, entity *receive
 
 	force_raw = (force *) get_local_entity_data (receiver);
 
-	#if DEBUG_MODULE
-	
-	debug_log ("FC_MSGS(%s): allied entity %s destroyed", entity_side_names [get_local_entity_int_value (receiver, INT_TYPE_SIDE)], entity_type_names [sender->type]);
 
-	#endif
+
+
+
+
 
 	enemy_entity = va_arg (pargs, entity *);
 
@@ -597,11 +597,11 @@ static int response_to_force_entered_sector (entity_messages message, entity *re
 
 	side = get_local_entity_int_value (receiver, INT_TYPE_SIDE);
 
-	#if DEBUG_MODULE
-		
-	debug_log ("FC_MSGS(%s): allied entity %s entered enemy sector", entity_side_names [side], get_local_entity_string (sender, STRING_TYPE_FULL_NAME));
-	
-	#endif
+
+
+
+
+
 	
 	return (TRUE);
 }
@@ -625,11 +625,11 @@ static int response_to_force_inefficient_keysite (entity_messages message, entit
 		return (FALSE);
 	}
 
-	#if DEBUG_MODULE
 
-	debug_log ("FC_MSGS: allied keysite %s inefficient", get_local_entity_string (sender, STRING_TYPE_KEYSITE_NAME));
 
-	#endif
+
+
+
 	
 
 /*
@@ -702,17 +702,17 @@ static int response_to_force_low_on_supplies (entity_messages message, entity *r
 
 	sub_type = va_arg (pargs, entity_sub_types);
 
-	#if DEBUG_MODULE || DEBUG_SUPPLY
 
-	debug_log ("FC_MSGS(%s): SUPPLY_INFO: allied keysite/group %s (%d) low on %s supplies (ammo = %f, fuel = %f)",
-					entity_side_names [get_local_entity_int_value (receiver, INT_TYPE_SIDE)],
-					get_local_entity_string (sender, STRING_TYPE_FULL_NAME),
-					get_local_entity_index (sender),
-					entity_sub_type_cargo_names [sub_type],
-					get_local_entity_float_value (sender, FLOAT_TYPE_AMMO_SUPPLY_LEVEL),
-					get_local_entity_float_value (sender, FLOAT_TYPE_FUEL_SUPPLY_LEVEL));
 
-	#endif
+
+
+
+
+
+
+
+
+
 
 
 	// ensure no other task is already taking care of this supply requirement
@@ -833,11 +833,11 @@ static int response_to_force_low_on_supplies (entity_messages message, entity *r
 			if (factory_actual_range > 75 * KILOMETRE)
 			{
 
-				#if DEBUG_MODULE || DEBUG_SUPPLY
 
-				debug_log ("FC_MSGS: SUPPLY_INFO: keysite/group %s too far to re-supply %s.... ", get_local_entity_string (factory, STRING_TYPE_KEYSITE_NAME), get_local_entity_string (sender, STRING_TYPE_FULL_NAME));
 
-				#endif
+
+
+
 		
 				return (FALSE);
 			}
@@ -847,45 +847,45 @@ static int response_to_force_low_on_supplies (entity_messages message, entity *r
 
 			task = create_supply_task (sender, factory, cargo, movement_type, task_database [ENTITY_SUB_TYPE_TASK_SUPPLY].task_priority, NULL, NULL);
 	
-			#if DEBUG_MODULE || DEBUG_SUPPLY
 
-			if (task)
-			{
-		
-				debug_log ("FC_MSGS(%s): SUPPLY_INFO: creating %s (%d) pick up and drop off task for keysite %s (%d), range %f",
-								entity_side_names [get_local_entity_int_value (receiver, INT_TYPE_SIDE)],
-								movement_names [movement_type],
-								get_local_entity_index (task),
-								get_local_entity_string (sender, STRING_TYPE_FULL_NAME),
-								get_local_entity_index (sender),
-								factory_actual_range);
-			}
-	
-			#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		}
 		else
 		{
 	
-			#if DEBUG_MODULE || DEBUG_SUPPLY
-	
-			debug_log ("FC_MSGS(%s): SUPPLY_INFO: cannot locate cargo at factory to supply keysite %s",
-							entity_side_names [get_local_entity_int_value (receiver, INT_TYPE_SIDE)],
-							get_local_entity_string (sender, STRING_TYPE_FULL_NAME));
-							//entity_sub_type_keysite_names [get_local_entity_int_value (sender, INT_TYPE_ENTITY_SUB_TYPE)]);
-	
-			#endif
+
+
+
+
+
+
+
+
 		}
 	}
 	else
 	{
 
-		#if DEBUG_MODULE || DEBUG_SUPPLY
 
-		debug_log ("FC_MSGS(%s): SUPPLY_INFO: cannot locate factory to supply keysite %s",
-						entity_side_names [get_local_entity_int_value (receiver, INT_TYPE_SIDE)],
-						get_local_entity_string (sender, STRING_TYPE_FULL_NAME));
 
-		#endif
+
+
+
+
+
 	}
 
 	return (TRUE);
@@ -916,11 +916,11 @@ static int response_to_force_special_kill (entity_messages message, entity *rece
 
 	kills = va_arg (pargs, int);
 
-	#if DEBUG_MODULE
-	
-	debug_log ("FC_MSGS(%s): entity %s destroyed - aggressor kills = %d", entity_side_names [get_local_entity_int_value (receiver, INT_TYPE_SIDE)], get_local_entity_string (sender, STRING_TYPE_FULL_NAME), kills);
 
-	#endif
+
+
+
+
 /*
 	criteria = CAMPAIGN_CRITERIA_SPECIAL_KILLS;
 
@@ -949,17 +949,17 @@ static int response_to_force_vacant_farp (entity_messages message, entity *recei
 		return (FALSE);
 	}
 
-	#if DEBUG_MODULE
-	{
 
-		vec3d
-			*pos;
 
-		pos = get_local_entity_vec3d_ptr (sender, VEC3D_TYPE_POSITION);
 
-		debug_log ("FC_MSGS(%s): vacant keysite %s at %f, %f", entity_side_names [get_local_entity_int_value (receiver, INT_TYPE_SIDE)], get_local_entity_string (sender, STRING_TYPE_KEYSITE_NAME), pos->x, pos->z);
-	}
-	#endif
+
+
+
+
+
+
+
+
 
 	this_side = (entity_sides) get_local_entity_int_value (receiver, INT_TYPE_SIDE);
 
@@ -1004,11 +1004,11 @@ static int response_to_force_waypoint_reached (entity_messages message, entity *
 */
 
 	
-	#if DEBUG_MODULE
-		
-	debug_log ("FC_MSGS(%s): force %s reached", entity_side_names [get_local_entity_int_value (receiver, INT_TYPE_SIDE)], entity_sub_type_waypoint_names [sub_type]);
-	
-	#endif
+
+
+
+
+
 
 	return (TRUE);
 }
@@ -1154,11 +1154,11 @@ static int response_to_request_assistance (entity_messages message, entity *rece
 				
 												range = get_sqr_2d_range (pos, group_pos);
 				
-												#if DEBUG_MODULE
-				
-												debug_log ("FC_MSGS: found possible group for persuer %s, group %s (range = %.2f)", get_local_entity_string (target, STRING_TYPE_FULL_NAME), get_local_entity_string (group, STRING_TYPE_FULL_NAME), sqrt (range));
-				
-												#endif
+
+
+
+
+
 				
 												max_range = group_database [group_type].ai_stats.movement_speed * REQUEST_ASSISTANCE_RANGE_MULTIPLIER;
 				
@@ -1227,25 +1227,25 @@ static int response_to_task_created (entity_messages message, entity *receiver, 
 	if (objective)
 	{
 	
-		#if DEBUG_MODULE
-			
-		debug_log ("FC_MSGS(%s): enemy created task %s objective %s",
-						entity_side_names [get_local_entity_int_value (receiver, INT_TYPE_SIDE)],
-						entity_sub_type_task_names [get_local_entity_int_value (sender, INT_TYPE_ENTITY_SUB_TYPE)],
-						entity_type_names [objective->type]);
-		
-		#endif
+
+
+
+
+
+
+
+
 	}
 	else
 	{
 	
-		#if DEBUG_MODULE
-			
-		debug_log ("FC_MSGS(%s): enemy created task %s",
-						entity_side_names [get_local_entity_int_value (receiver, INT_TYPE_SIDE)],
-						entity_sub_type_task_names [get_local_entity_int_value (sender, INT_TYPE_ENTITY_SUB_TYPE)]);
-		
-		#endif
+
+
+
+
+
+
+
 	}
 
 	return (TRUE);
@@ -1295,11 +1295,11 @@ static int response_to_task_completed (entity_messages message, entity *receiver
 
 	ASSERT (task_database [sub_type].primary_task);
 
-	#if DEBUG_MODULE
-		
-	debug_log ("FC_MSGS(%s): force %s complete", entity_side_names [get_local_entity_int_value (receiver, INT_TYPE_SIDE)], entity_sub_type_task_names [sub_type]);
-	
-	#endif
+
+
+
+
+
 
 	//
 	// Create reactionary tasks
@@ -1331,54 +1331,54 @@ static int response_to_task_completed (entity_messages message, entity *receiver
 
 
 
-void overload_force_message_responses (void)
-{
-	#if DEBUG_MODULE >= 2
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_LINK_CHILD] 										= response_to_link_child;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_UNLINK_CHILD]										= response_to_unlink_child;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_LINK_PARENT]										= response_to_link_parent;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_UNLINK_PARENT]									= response_to_unlink_parent;
 
-	#endif
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_CHECK_CAMPAIGN_OBJECTIVES]					= response_to_check_campaign_objectives;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_ENTITY_FIRED_AT]									= response_to_entity_fired_at;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_FORCE_ARMOUR_ADVANCING]						= response_to_force_armour_advancing;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_FORCE_ARMOUR_RESISTING]						= response_to_force_armour_resisting;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_FORCE_ARMOUR_RETREATING]						= response_to_force_armour_retreating;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_FORCE_ARMOUR_STUCK]								= response_to_force_armour_stuck;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_FORCE_DESTROYED]									= response_to_force_destroyed;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_FORCE_ENTERED_SECTOR]							= response_to_force_entered_sector;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_FORCE_INEFFICIENT_KEYSITE]					= response_to_force_inefficient_keysite;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_FORCE_LOW_ON_SUPPLIES]							= response_to_force_low_on_supplies;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_FORCE_SPECIAL_KILL]								= response_to_force_special_kill;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_FORCE_VACANT_FARP] 								= response_to_force_vacant_farp;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_FORCE_WAYPOINT_REACHED]						= response_to_force_waypoint_reached;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_REQUEST_ASSISTANCE]								= response_to_request_assistance;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_TASK_CREATED]										= response_to_task_created;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_TASK_ASSIGNED] 									= response_to_task_assigned;
 
-	message_responses[ENTITY_TYPE_FORCE][ENTITY_MESSAGE_TASK_COMPLETED] 									= response_to_task_completed;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

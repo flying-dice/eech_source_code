@@ -81,11 +81,11 @@ static void set_local_float_value (entity *en, float_types type, float value)
 	keysite
 		*raw;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_FLOAT_VALUE, en, type, value);
 
-	#endif
+
+
+
 
 	raw = (keysite *) get_local_entity_data (en);
 
@@ -170,51 +170,51 @@ static void set_local_float_value (entity *en, float_types type, float value)
 
 
 
-static void set_remote_float_value (entity *en, float_types type, float value)
-{
-	#if DEBUG_MODULE
-
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_FLOAT_VALUE, en, type, value);
-
-	#endif
-
-	transmit_entity_comms_message (ENTITY_COMMS_FLOAT_VALUE, en, type, value);
-}
 
 
 
 
 
-static void set_server_float_value (entity *en, float_types type, float value)
-{
-	validate_client_server_local_fn ();
-
-	set_local_float_value (en, type, value);
-
-	validate_client_server_remote_fn ();
-
-	set_remote_float_value (en, type, value);
-}
 
 
 
 
 
-static void set_client_float_value (entity *en, float_types type, float value)
-{
-	if (get_comms_data_flow () == COMMS_DATA_FLOW_TX)
-	{
-		validate_client_server_remote_fn ();
 
-		set_remote_float_value (en, type, value);
-	}
-	else
-	{
-		validate_client_server_local_fn ();
 
-		set_local_float_value (en, type, value);
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -362,63 +362,63 @@ static float get_local_float_value (entity *en, float_types type)
 
 
 
-void overload_keysite_float_value_functions (void)
-{
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_AMMO_SUPPLY_LEVEL]							= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_AMMO_SUPPLY_LEVEL]							= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_AMMO_SUPPLY_LEVEL][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_AMMO_SUPPLY_LEVEL][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_AMMO_SUPPLY_LEVEL]							= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_ASSIGN_TIMER]									= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_ASSIGN_TIMER]									= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_ASSIGN_TIMER][COMMS_MODEL_SERVER]		= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_ASSIGN_TIMER][COMMS_MODEL_CLIENT]		= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_ASSIGN_TIMER]									= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_ASSIST_TIMER]									= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_ASSIST_TIMER]									= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_ASSIST_TIMER][COMMS_MODEL_SERVER]		= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_ASSIST_TIMER][COMMS_MODEL_CLIENT]		= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_ASSIST_TIMER]									= get_local_float_value;
 
-	fn_get_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_EFFICIENCY]										= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_FUEL_SUPPLY_LEVEL]							= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_FUEL_SUPPLY_LEVEL]							= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_FUEL_SUPPLY_LEVEL][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_FUEL_SUPPLY_LEVEL][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_FUEL_SUPPLY_LEVEL]							= get_local_float_value;
 
-	fn_get_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_KEYSITE_IMPORTANCE]							= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_KEYSITE_MAXIMUM_STRENGTH]					= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_KEYSITE_MAXIMUM_STRENGTH]					= set_local_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_KEYSITE_MAXIMUM_STRENGTH]					= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_KEYSITE_STRENGTH]								= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_KEYSITE_STRENGTH]								= set_local_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_KEYSITE_STRENGTH]								= get_local_float_value;
 
-	fn_get_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_MINIMUM_EFFICIENCY]							= get_local_float_value;
 
-	fn_get_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_RECON_DISTANCE]							= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_REPAIR_TIMER]								= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_REPAIR_TIMER]								= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_REPAIR_TIMER][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_REPAIR_TIMER][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_REPAIR_TIMER]								= get_local_float_value;
 
-	fn_get_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_SECTOR_SIDE_MAX_VALUE]		= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_SLEEP]							= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_SLEEP]							= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_SLEEP][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_SLEEP][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_KEYSITE][FLOAT_TYPE_SLEEP]							= get_local_float_value;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

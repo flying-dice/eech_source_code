@@ -95,23 +95,23 @@ static int set_regen_queue_size (regen_management_element *m1, int size);
 
 
 
-#if DEBUG_MODULE
-
-static void output_regen_data (int side, int regen_type);
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE
 
-static int regen_ac_debug[NUM_ENTITY_SUB_TYPE_AIRCRAFT];
 
-static int regen_vh_debug[NUM_ENTITY_SUB_TYPE_VEHICLES];
 
-#endif
+
+
+
+
+
+
+
+
+
 
 
 
@@ -187,10 +187,10 @@ static void update_server (entity *en)
 
 
 
-void overload_regen_update_functions (void)
-{
-	fn_update_client_server_entity[ENTITY_TYPE_REGEN][COMMS_MODEL_SERVER]  	= update_server;
-}
+
+
+
+
 
 
 
@@ -266,11 +266,11 @@ entity *regen_update (entity *en)
 
 	if ((!get_local_entity_int_value (building, INT_TYPE_ALIVE)) || (get_local_entity_int_value (keysite, INT_TYPE_KEYSITE_USABLE_STATE) != KEYSITE_STATE_USABLE))
 	{
-		#if DEBUG_MODULE
 
-		debug_log ("RG_UPDT: keysite %s too damaged to regen", get_local_entity_string (keysite, STRING_TYPE_KEYSITE_NAME));
 
-		#endif
+
+
+
 
 		return NULL;
 	}
@@ -296,13 +296,13 @@ entity *regen_update (entity *en)
 		return NULL;
 	}
 
-	#if DEBUG_MODULE
 
-	debug_log ("RG_UPDT: Trying to Regen %s Sub Type %d at %s - reserve count %d",
-								get_entity_type_name (e1->type), e1->sub_type,
-								get_local_entity_string (keysite, STRING_TYPE_KEYSITE_NAME), reserve_count);
 
-	#endif
+
+
+
+
+
 
 	//
 	// Don't regen if PLAYER landed there
@@ -322,11 +322,11 @@ entity *regen_update (entity *en)
 
 				if (get_local_entity_int_value (member, INT_TYPE_LANDED))
 				{
-					#if DEBUG_MODULE
 
-					debug_log ("RG_UPDT: PLAYER landed at keysite %s, can't regen", get_local_entity_string (keysite, STRING_TYPE_KEYSITE_NAME));
 
-					#endif
+
+
+
 
 					return NULL;
 				}
@@ -354,11 +354,11 @@ entity *regen_update (entity *en)
 			case ENTITY_SUB_TYPE_REGEN_PEOPLE:
 			{
 
-				#if DEBUG_MODULE
 
-				debug_log ("RG_UPDT: Stopping Regening People - wrong warzone");
 
-				#endif
+
+
+
 
 				return NULL;
 			}
@@ -369,11 +369,11 @@ entity *regen_update (entity *en)
 				if (group_database [group_type].default_landing_type == ENTITY_SUB_TYPE_LANDING_FIXED_WING_TRANSPORT)
 				{
 
-					#if DEBUG_MODULE
 
-					debug_log ("RG_UPDT: Stopping Regening Transport aircraft - wrong warzone");
 
-					#endif
+
+
+
 
 					return NULL;
 				}
@@ -538,33 +538,33 @@ entity *regen_update (entity *en)
 			}
 			//#endif
 
-			#if DEBUG_MODULE
-			switch (e1->type)
-			{
-				case ENTITY_TYPE_FIXED_WING:
-				case ENTITY_TYPE_HELICOPTER:
-				{
-					ASSERT (regen_ac_debug[e1->sub_type] > 0);
 
-					break;
-				}
 
-				case ENTITY_TYPE_ROUTED_VEHICLE:
-				case ENTITY_TYPE_SHIP_VEHICLE:
-				case ENTITY_TYPE_PERSON:
-				{
-					ASSERT (regen_vh_debug[e1->sub_type] > 0);
 
-					break;
-				}
 
-				default:
-				{
-					debug_fatal ("RG_UPDT: Unknown entity type for debug");
-				}
 
-			}
-			#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 			// update markers
 			regen_queue_use ((entity_sides) raw->side, (raw->sub_type));
@@ -574,15 +574,15 @@ entity *regen_update (entity *en)
 	}
 	else
 	{
-		#if DEBUG_MODULE >= 2
 
-		debug_log ("RG_UPDT: not creating anything at keysite %s free landing sites %d, reserved %d, lock %d",
-						get_local_entity_string (keysite, STRING_TYPE_KEYSITE_NAME),
-						get_local_entity_int_value (landing, INT_TYPE_FREE_LANDING_SITES),
-						get_local_entity_int_value (landing, INT_TYPE_RESERVED_LANDING_SITES),
-						check_available_landing_route_lock (landing));
 
-		#endif
+
+
+
+
+
+
+
 	}
 
 	return NULL;
@@ -670,52 +670,52 @@ void add_entity_to_regen_queue (entity_sides side, entity_types type, entity_sub
 	regen_type = get_regen_sub_type (e1.type);
 
 
-#if DEBUG_MODULE
 
-	switch (e1.type)
-	{
-		case ENTITY_TYPE_FIXED_WING:
-		{
-			regen_ac_debug[e1.sub_type] = 1;
 
-			break;
-		}
 
-		case ENTITY_TYPE_HELICOPTER:
-		{
-			regen_ac_debug[e1.sub_type] = 1;
 
-			break;
-		}
 
-		case ENTITY_TYPE_ROUTED_VEHICLE:
-		{
-			regen_vh_debug[e1.sub_type] = 1;
 
-			break;
-		}
 
-		case ENTITY_TYPE_SHIP_VEHICLE:
-		{
-			regen_vh_debug[e1.sub_type] = 1;
 
-			break;
-		}
 
-		case ENTITY_TYPE_PERSON:
-		{
-			regen_vh_debug[e1.sub_type] = 1;
 
-			break;
-		}
 
-		default:
-		{
-			debug_fatal ("RG_UPDT: Unknown entity type");
-		}
-	}
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	// insert entity into regen queue
 	regen_queue_insert (side, regen_type, &e1);
@@ -799,17 +799,17 @@ void regen_queue_insert (entity_sides side, int regen_type, regen_list_element *
 
 	ASSERT ((m1->count >= 0) && (m1->count <= m1->size));
 /*
-	#if DEBUG_MODULE
 
-	debug_log ("INSERTED: Type:%3d Sub:%3d Group:%3d side:%2d",
-									e1->type,
-									e1->sub_type,
-									e1->group,
-									side);
 
-	output_regen_data (side, regen_type);
 
-	#endif
+
+
+
+
+
+
+
+
 	*/
 }
 
@@ -831,14 +831,14 @@ void regen_queue_use (entity_sides side, int regen_type)
 
 	ASSERT ((m1->count > 0) && (m1->count <= m1->size));
 /*
-	#if DEBUG_MODULE
 
-		debug_log ("REGENED: Type:%d Subtype:%d Group:%d Side:%d",
-									e1->type,
-									e1->sub_type,
-									e1->group,
-									side);
-	#endif
+
+
+
+
+
+
+
 */
 	// clear the element in the reqen queue - not really neccesary... but good form
 
@@ -860,11 +860,11 @@ void regen_queue_use (entity_sides side, int regen_type)
 
 	m1->count --;
 
-	#if DEBUG_MODULE
 
-	output_regen_data (side, regen_type);
 
-	#endif
+
+
+
 }
 
 
@@ -975,15 +975,15 @@ int increment_regen_queue_size (entity_sides side, entity_types type, int shift)
 
 	e1 = &regen_queue [side][regen_type][m1->front];
 
-	#if DEBUG_MODULE
 
-	debug_log ("Growing Regen Queue %s - Type %s by %d", entity_side_short_names [side], entity_sub_type_regen_names [regen_type], shift);
 
-	debug_log ("OLD LIST:");
 
-	output_regen_data (side, regen_type);
 
-	#endif
+
+
+
+
+
 
 	// copy old queue
 
@@ -1040,13 +1040,13 @@ int increment_regen_queue_size (entity_sides side, entity_types type, int shift)
 	safe_free (regen_queue[side][regen_type]);
 	regen_queue[side][regen_type] = temp;
 
-	#if DEBUG_MODULE
 
-	debug_log ("NEW LIST:");
 
-	output_regen_data (side, regen_type);
 
-	#endif
+
+
+
+
 
 	return new_size;
 }
@@ -1055,44 +1055,44 @@ int increment_regen_queue_size (entity_sides side, entity_types type, int shift)
 
 
 
-#if DEBUG_MODULE
 
-void output_regen_data (int side, int regen_type)
-{
-	regen_list_element
-		*e1;
 
-	regen_management_element
-		*m1;
 
-	int
-		i;
 
-	//debug_log ("Regen Data %s - Type %s", entity_side_short_names [side], entity_sub_type_regen_names [regen_type]);
 
-	m1 = &regen_manager [side][regen_type];
 
-/*
-	debug_log ("f:%3d   c:%3d   s:%3d",
-									m1->front,
-									m1->count,
-									m1->size);
-*/
-	for (i = 0; i < m1->size; i++)
-	{
-		e1 = &regen_queue [side][regen_type][i];
-/*
-		debug_log ("type:%d subtype:%d group:%d side:%d count:%d",
-									e1->type,
-									e1->sub_type,
-									e1->group,
-									side,
-									i);
-*/
-	}
-}
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

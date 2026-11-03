@@ -81,11 +81,11 @@ static void set_local_int_value (entity *en, int_types type, int value)
    task
       *raw;
 
-   #if DEBUG_MODULE
 
-   debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_INT_VALUE, en, type, value);
 
-   #endif
+
+
+
 
    raw = (task *) get_local_entity_data (en);
 
@@ -242,51 +242,51 @@ static void set_local_int_value (entity *en, int_types type, int value)
 
 
 
-static void set_remote_int_value (entity *en, int_types type, int value)
-{
-   #if DEBUG_MODULE
-
-   debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_INT_VALUE, en, type, value);
-
-   #endif
-
-   transmit_entity_comms_message (ENTITY_COMMS_INT_VALUE, en, type, value);
-}
 
 
 
 
 
-static void set_server_int_value (entity *en, int_types type, int value)
-{
-   validate_client_server_local_fn ();
-
-   set_local_int_value (en, type, value);
-
-   validate_client_server_remote_fn ();
-
-   set_remote_int_value (en, type, value);
-}
 
 
 
 
 
-static void set_client_int_value (entity *en, int_types type, int value)
-{
-   if (get_comms_data_flow () == COMMS_DATA_FLOW_TX)
-   {
-      validate_client_server_remote_fn ();
 
-      set_remote_int_value (en, type, value);
-   }
-   else
-   {
-      validate_client_server_local_fn ();
 
-      set_local_int_value (en, type, value);
-   }
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -617,150 +617,150 @@ static int get_local_int_value (entity *en, int_types type)
 
 
 
-void overload_task_int_value_functions (void)
-{
-   fn_get_local_entity_int_value          [ENTITY_TYPE_TASK][INT_TYPE_ASSESS_LANDING]                  		= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_TASK][INT_TYPE_AWARDED_MEDALS]								= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_AWARDED_MEDALS]								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_AWARDED_MEDALS][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_AWARDED_MEDALS][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_AWARDED_MEDALS]								= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_TASK][INT_TYPE_AWARDED_PROMOTION]								= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_AWARDED_PROMOTION]								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_AWARDED_PROMOTION][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_AWARDED_PROMOTION][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_AWARDED_PROMOTION]								= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_TASK][INT_TYPE_CRITICAL_TASK]								= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_CRITICAL_TASK]								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_CRITICAL_TASK][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_CRITICAL_TASK][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_CRITICAL_TASK]								= get_local_int_value;
 
-	fn_get_local_entity_int_value          [ENTITY_TYPE_TASK][INT_TYPE_DEFAULT_ENGAGE_ENEMY]             		= get_local_int_value;
 
-   fn_get_local_entity_int_value          [ENTITY_TYPE_TASK][INT_TYPE_DELAY_TASK_ASSIGNMENT]            		= get_local_int_value;
 
-   fn_set_local_entity_raw_int_value      [ENTITY_TYPE_TASK][INT_TYPE_ENTITY_SUB_TYPE]                      = set_local_int_value;
-   fn_set_local_entity_int_value          [ENTITY_TYPE_TASK][INT_TYPE_ENTITY_SUB_TYPE]                      = set_local_int_value;
-   fn_set_client_server_entity_int_value  [ENTITY_TYPE_TASK][INT_TYPE_ENTITY_SUB_TYPE][COMMS_MODEL_SERVER]  = set_server_int_value;
-   fn_set_client_server_entity_int_value  [ENTITY_TYPE_TASK][INT_TYPE_ENTITY_SUB_TYPE][COMMS_MODEL_CLIENT]  = set_client_int_value;
-   fn_get_local_entity_int_value          [ENTITY_TYPE_TASK][INT_TYPE_ENTITY_SUB_TYPE]                  		= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_TASK][INT_TYPE_KILLS]									= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_KILLS]									= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_KILLS][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_KILLS][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_KILLS]									= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_TASK][INT_TYPE_LOSSES]									= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_LOSSES]									= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_LOSSES][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_LOSSES][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_LOSSES]									= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_MAP_ICON]								= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_MINIMUM_MEMBER_COUNT]				= get_local_int_value;
 
-   fn_set_local_entity_raw_int_value      [ENTITY_TYPE_TASK][INT_TYPE_MOVEMENT_TYPE]                      		= set_local_int_value;
-   fn_set_local_entity_int_value          [ENTITY_TYPE_TASK][INT_TYPE_MOVEMENT_TYPE]                      		= set_local_int_value;
-   fn_set_client_server_entity_int_value  [ENTITY_TYPE_TASK][INT_TYPE_MOVEMENT_TYPE][COMMS_MODEL_SERVER] 		= set_server_int_value;
-   fn_set_client_server_entity_int_value  [ENTITY_TYPE_TASK][INT_TYPE_MOVEMENT_TYPE][COMMS_MODEL_CLIENT] 		= set_client_int_value;
-   fn_get_local_entity_int_value          [ENTITY_TYPE_TASK][INT_TYPE_MOVEMENT_TYPE]                  			= get_local_int_value;
 
-   fn_get_local_entity_int_value          [ENTITY_TYPE_TASK][INT_TYPE_PERFORM_DEBRIEF]                  			= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_TASK][INT_TYPE_PLAYER_TASK]										= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_PLAYER_TASK]										= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_PLAYER_TASK][COMMS_MODEL_SERVER]			= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_PLAYER_TASK][COMMS_MODEL_CLIENT]			= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_PLAYER_TASK]										= get_local_int_value;
 
-   fn_get_local_entity_int_value          [ENTITY_TYPE_TASK][INT_TYPE_POINTS_VALUE] 					    		= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_PRIMARY_TASK]										= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_TASK][INT_TYPE_ROUTE_CHECK_SUM]									= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_ROUTE_CHECK_SUM]									= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_ROUTE_CHECK_SUM][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_ROUTE_CHECK_SUM][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_ROUTE_CHECK_SUM]									= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_TASK][INT_TYPE_ROUTE_LENGTH]									= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_ROUTE_LENGTH]									= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_ROUTE_LENGTH][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_ROUTE_LENGTH][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_ROUTE_LENGTH]									= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_RULES_OF_ENGAGEMENT]						= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_TASK][INT_TYPE_SIDE]											= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_SIDE]											= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_SIDE][COMMS_MODEL_SERVER]					= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_SIDE][COMMS_MODEL_CLIENT]					= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_SIDE]											= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_SOLO_TASK]										= get_local_int_value;
 
-   fn_get_local_entity_int_value          [ENTITY_TYPE_TASK][INT_TYPE_TASK_CATEGORY]                  		= get_local_int_value;
 
-   fn_set_local_entity_raw_int_value      [ENTITY_TYPE_TASK][INT_TYPE_TASK_COMPLETED]                     	= set_local_int_value;
-   fn_set_local_entity_int_value          [ENTITY_TYPE_TASK][INT_TYPE_TASK_COMPLETED]                     	= set_local_int_value;
-   fn_set_client_server_entity_int_value  [ENTITY_TYPE_TASK][INT_TYPE_TASK_COMPLETED][COMMS_MODEL_SERVER] 	= set_server_int_value;
-   fn_set_client_server_entity_int_value  [ENTITY_TYPE_TASK][INT_TYPE_TASK_COMPLETED][COMMS_MODEL_CLIENT] 	= set_client_int_value;
-   fn_get_local_entity_int_value          [ENTITY_TYPE_TASK][INT_TYPE_TASK_COMPLETED]                  		= get_local_int_value;
 
-   fn_set_local_entity_raw_int_value      [ENTITY_TYPE_TASK][INT_TYPE_TASK_DIFFICULTY]                      = set_local_int_value;
-   fn_set_local_entity_int_value          [ENTITY_TYPE_TASK][INT_TYPE_TASK_DIFFICULTY]                      = set_local_int_value;
-   fn_set_client_server_entity_int_value  [ENTITY_TYPE_TASK][INT_TYPE_TASK_DIFFICULTY][COMMS_MODEL_SERVER]  = set_server_int_value;
-   fn_set_client_server_entity_int_value  [ENTITY_TYPE_TASK][INT_TYPE_TASK_DIFFICULTY][COMMS_MODEL_CLIENT]  = set_client_int_value;
-   fn_get_local_entity_int_value          [ENTITY_TYPE_TASK][INT_TYPE_TASK_DIFFICULTY]                  		= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_TASK][INT_TYPE_TASK_ID]										= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_TASK_ID]										= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_TASK_ID][COMMS_MODEL_SERVER]				= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_TASK_ID][COMMS_MODEL_CLIENT]				= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_TASK_ID]										= get_local_int_value;
 
-   fn_get_local_entity_int_value          [ENTITY_TYPE_TASK][INT_TYPE_TASK_OBJECTIVE_PREVIEW_TYPE]     		= get_local_int_value;
 
-   fn_get_local_entity_int_value          [ENTITY_TYPE_TASK][INT_TYPE_TASK_PASS_PERCENTAGE_PARTIAL]     		= get_local_int_value;
 
-   fn_get_local_entity_int_value          [ENTITY_TYPE_TASK][INT_TYPE_TASK_PASS_PERCENTAGE_SUCCESS]     		= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_TASK_ROUTE_SEARCH]							= get_local_int_value;
 
-   fn_set_local_entity_raw_int_value      [ENTITY_TYPE_TASK][INT_TYPE_TASK_SCORE]                     		= set_local_int_value;
-   fn_set_local_entity_int_value          [ENTITY_TYPE_TASK][INT_TYPE_TASK_SCORE]                     		= set_local_int_value;
-   fn_set_client_server_entity_int_value  [ENTITY_TYPE_TASK][INT_TYPE_TASK_SCORE][COMMS_MODEL_SERVER] 		= set_server_int_value;
-   fn_set_client_server_entity_int_value  [ENTITY_TYPE_TASK][INT_TYPE_TASK_SCORE][COMMS_MODEL_CLIENT] 		= set_client_int_value;
-   fn_get_local_entity_int_value          [ENTITY_TYPE_TASK][INT_TYPE_TASK_SCORE]                  			= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_TASK][INT_TYPE_TASK_STATE]									= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_TASK_STATE]									= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_TASK_STATE][COMMS_MODEL_SERVER]			= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_TASK_STATE][COMMS_MODEL_CLIENT]			= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_TASK_STATE]									= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_TASK_TARGET_CLASS]									= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_TASK_TARGET_SOURCE]									= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_TASK_TARGET_TYPE]									= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[ENTITY_TYPE_TASK][INT_TYPE_TASK_TERMINATED]										= set_local_int_value;
-	fn_set_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_TASK_TERMINATED]										= set_local_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_TASK_TERMINATED][COMMS_MODEL_SERVER]			= set_server_int_value;
-	fn_set_client_server_entity_int_value	[ENTITY_TYPE_TASK][INT_TYPE_TASK_TERMINATED][COMMS_MODEL_CLIENT]			= set_client_int_value;
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_TASK_TERMINATED]										= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_VISIBLE_TASK]											= get_local_int_value;
 
-	fn_get_local_entity_int_value				[ENTITY_TYPE_TASK][INT_TYPE_WAIT_FOR_END_TASK]									= get_local_int_value;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

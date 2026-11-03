@@ -78,31 +78,31 @@
 
 
 
-#if DEBUG_MODULE
-
-static int response_to_link_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE
 
-static int response_to_unlink_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	return (TRUE);
-}
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -114,11 +114,11 @@ static int response_to_link_parent (entity_messages message, entity *receiver, e
 	list_types
 		list_type;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	list_type = va_arg (pargs, list_types);
 
@@ -189,11 +189,11 @@ static int response_to_unlink_parent (entity_messages message, entity *receiver,
 	list_types
 		list_type;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	list_type = va_arg (pargs, list_types);
 
@@ -238,11 +238,11 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 
 	raw = (vehicle *) get_local_entity_data (receiver);
 
-	#if DEBUG_MODULE_MESSAGE_TEXT
 
-	debug_log ("VEHICLE MSGS: received task terminated, vh %s made safe", entity_sub_type_vehicle_names [raw->mob.sub_type]);
 
-	#endif
+
+
+
 
 	debug_assert (raw->member_link.parent);
 
@@ -269,11 +269,11 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 		case ENTITY_SUB_TYPE_TASK_LANDING:
 		{
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("VH_MSGS: mobile was on a %s route, unlocking route and landing site", entity_sub_type_task_names [get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE)]);
 
-			#endif
+
+
+
 
 			notify_local_entity (ENTITY_MESSAGE_UNLOCK_LANDING_ROUTE, landing_en, receiver);
 
@@ -285,11 +285,11 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 		case ENTITY_SUB_TYPE_TASK_TAKEOFF:
 		{
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("VH_MSGS: mobile was on a %s route, unlocking route", entity_sub_type_task_names [get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE)]);
 
-			#endif
+
+
+
 
 			notify_local_entity (ENTITY_MESSAGE_UNLOCK_TAKEOFF_ROUTE, landing_en, receiver);
 
@@ -299,11 +299,11 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 		case ENTITY_SUB_TYPE_TASK_LANDING_HOLDING:
 		{
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("VH_MSGS: mobile was on a %s route, locking route and landing site", entity_sub_type_task_names [get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE)]);
 
-			#endif
+
+
+
 
 			notify_local_entity (ENTITY_MESSAGE_UNLOCK_LANDING_SITE, landing_en, receiver);
 
@@ -313,11 +313,11 @@ static int response_to_task_terminated (entity_messages message, entity *receive
 		case ENTITY_SUB_TYPE_TASK_TAKEOFF_HOLDING:
 		{
 
-			#if DEBUG_MODULE_MESSAGE_TEXT
 
-			debug_log ("VH_MSGS: mobile was on a %s route, no route to unlock", entity_sub_type_task_names [get_local_entity_int_value (task, INT_TYPE_ENTITY_SUB_TYPE)]);
 
-			#endif
+
+
+
 
 			break;
 		}
@@ -398,26 +398,26 @@ static int response_to_check_mobile_reached_guide (entity_messages message, enti
 
 
 
-void overload_vehicle_message_responses (entity_types type)
-{
-	overload_mobile_message_responses (type);
 
-	#if DEBUG_MODULE
 
-	message_responses[type][ENTITY_MESSAGE_LINK_CHILD] 							= response_to_link_child;
 
-	message_responses[type][ENTITY_MESSAGE_UNLINK_CHILD]							= response_to_unlink_child;
 
-	#endif
 
-	message_responses[type][ENTITY_MESSAGE_LINK_PARENT]							= response_to_link_parent;
 
-	message_responses[type][ENTITY_MESSAGE_UNLINK_PARENT]							= response_to_unlink_parent;
 
-	message_responses[type][ENTITY_MESSAGE_TASK_TERMINATED]						= response_to_task_terminated;
 
-	message_responses[type][ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE]		= response_to_check_mobile_reached_guide;
-}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

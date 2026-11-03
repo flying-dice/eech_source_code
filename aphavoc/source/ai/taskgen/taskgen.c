@@ -177,24 +177,24 @@ entity *create_task
 		return NULL;
 	}
 
-   #if DEBUG_MODULE >= 2
 
-	if (sub_type == ENTITY_SUB_TYPE_TASK_ENGAGE)
-	{
 
-		if (task_objective)
-		{
 
-			debug_log ("TASK GENERATION: create task type %s, movement_type %s, objective %s", entity_sub_type_task_names [sub_type], movement_names [movement_type], entity_type_names [task_objective->type]);
-		}
-		else
-		{
 
-			debug_log ("TASK GENERATION: create task type %s, movement_type %s, objective NULL", entity_sub_type_task_names [sub_type], movement_names [movement_type]);
-		}
-	}
 
-   #endif
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 	//
@@ -246,20 +246,20 @@ entity *create_task
 
 		route_formation_type_list [route_length] = formation_type;
 
-		#if DEBUG_MODULE >= 2
 
-		if (dependent)
-		{
 
-			debug_log ("	pos %d = %f, %f, %f, dep %s", route_length + 1, position->x, position->y, position->z, entity_type_names [dependent->type]);
-		}
-		else
-		{
 
-			debug_log ("	pos %d = %f, %f, %f", route_length + 1, position->x, position->y, position->z);
-		}
 
-		#endif
+
+
+
+
+
+
+
+
+
+
 
 		route_length ++;
 
@@ -470,11 +470,11 @@ entity *create_anti_ship_strike_task (entity_sides side, entity *target, entity 
 	// Create strike task
 	//
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("TASKGEN: creating side %d anti-ship strike task to keysite %s ", side, get_local_entity_string (target, STRING_TYPE_KEYSITE_NAME));
 
-	#endif
+
+
+
 
 	if (!get_task_start_keysite (ENTITY_SUB_TYPE_TASK_ANTI_SHIP_STRIKE, side, pos, &start_ks))
 	{
@@ -542,11 +542,11 @@ entity *create_bai_task (entity_sides side, entity *target_group, entity *origin
 	// Create BAI task
 	//
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("TASKGEN: creating side %d BAI task to %s (%d)", side, get_local_entity_string (target_group, STRING_TYPE_FULL_NAME), get_local_entity_index (target_group));
 
-	#endif
+
+
+
 
 	start_pos = get_local_entity_vec3d_ptr (target_group, VEC3D_TYPE_POSITION);
 
@@ -665,14 +665,14 @@ entity *create_barcap_task (entity_sides side, entity *this_keysite, entity *ori
 	cap_position_list [3].y += 0.0;
 	cap_position_list [3].z += (sin_angle * cap_distance);
 
-	#if DEBUG_MODULE
-	
-	debug_log ("TASKGEN: cap pos %f, %f, %f", cap_position_list [0].x, cap_position_list [0].y, cap_position_list [0].z);
-	debug_log ("TASKGEN: cap pos %f, %f, %f", cap_position_list [1].x, cap_position_list [1].y, cap_position_list [1].z);
-	debug_log ("TASKGEN: cap pos %f, %f, %f", cap_position_list [2].x, cap_position_list [2].y, cap_position_list [2].z);
-	debug_log ("TASKGEN: cap pos %f, %f, %f", cap_position_list [3].x, cap_position_list [3].y, cap_position_list [3].z);
 
-	#endif
+
+
+
+
+
+
+
 
 	//
 	// create task
@@ -733,11 +733,11 @@ entity *create_bda_task (entity_sides side, entity *objective, entity *originato
 
 	debug_assert (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("TASKGEN: creating side %d BDA task to %s (%d)", side, get_local_entity_string (objective, STRING_TYPE_FULL_NAME), get_local_entity_index (objective));
 
-	#endif
+
+
+
 
 	ASSERT (objective);
 
@@ -852,14 +852,14 @@ entity *create_cap_task (entity_sides side, entity *this_keysite, entity *origin
 
 	bound_position_to_adjusted_map_area (&cap_position_list [3]);
 
-	#if DEBUG_MODULE
-	
-	debug_log ("TASKGEN: cap pos %f, %f, %f", cap_position_list [0].x, cap_position_list [0].y, cap_position_list [0].z);
-	debug_log ("TASKGEN: cap pos %f, %f, %f", cap_position_list [1].x, cap_position_list [1].y, cap_position_list [1].z);
-	debug_log ("TASKGEN: cap pos %f, %f, %f", cap_position_list [2].x, cap_position_list [2].y, cap_position_list [2].z);
-	debug_log ("TASKGEN: cap pos %f, %f, %f", cap_position_list [3].x, cap_position_list [3].y, cap_position_list [3].z);
 
-	#endif
+
+
+
+
+
+
+
 
 	//
 	// create task
@@ -925,11 +925,11 @@ entity *create_close_air_support_task (entity_sides side, entity *target_group, 
 	// Create C.A.S. task
 	//
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("TASKGEN: creating side %d Close Air Support task to %s (%d)", side, get_local_entity_string (target_group, STRING_TYPE_FULL_NAME), get_local_entity_index (target_group));
 
-	#endif
+
+
+
 
 	start_pos = get_local_entity_vec3d_ptr (target_group, VEC3D_TYPE_POSITION);
 
@@ -999,11 +999,11 @@ entity *create_coastal_patrol_task (entity_sides side, vec3d *source_position, v
 	start_ks = start_keysite;
 	end_ks = end_keysite;
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("TASKGEN: creating side %d Coastal patrol task", side);
 
-	#endif
+
+
+
 
 	if (!get_task_start_keysite (ENTITY_SUB_TYPE_TASK_COASTAL_PATROL, side, source_position, &start_ks))
 	{
@@ -1071,11 +1071,11 @@ entity *create_escort_task (entity *group, int critical, float priority, entity 
 	start_ks = start_keysite;
 	end_ks = end_keysite;
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("TASKGEN: creating side %d Escort task", side);
 
-	#endif
+
+
+
 
 	if (!get_task_start_keysite (ENTITY_SUB_TYPE_TASK_ESCORT, side, start, &start_ks))
 	{
@@ -1169,11 +1169,11 @@ entity *create_ground_force_task (entity_sub_types type, entity *group, int from
 	start_ks = start_keysite;
 	end_ks = end_keysite;
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("TASKGEN: creating side %d Ground force task", side);
 
-	#endif
+
+
+
 
 	if (!get_task_start_keysite (type, side, start, &start_ks))
 	{
@@ -1246,11 +1246,11 @@ entity *create_ground_strike_task (entity_sides side, entity *target, entity *or
 	start_ks = start_keysite;
 	end_ks = end_keysite;
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("TASKGEN: creating side %d Ground strike task", side);
 
-	#endif
+
+
+
 
 	if (!get_task_start_keysite (ENTITY_SUB_TYPE_TASK_GROUND_STRIKE, side, pos, &start_ks))
 	{
@@ -1262,11 +1262,11 @@ entity *create_ground_strike_task (entity_sides side, entity *target, entity *or
 	// Create strike task
 	//
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("TASKGEN: creating side %d ground strike task to keysite %s ", side, get_local_entity_string (target, STRING_TYPE_KEYSITE_NAME));
 
-	#endif
+
+
+
 
 	expire_time = 40 * ONE_MINUTE;
 
@@ -1332,11 +1332,11 @@ entity *create_oca_strike_task (entity_sides side, entity *target, entity *origi
 	// Create strike task
 	//
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("TASKGEN: creating side %d oca strike task to keysite %s ", side, get_local_entity_string (target, STRING_TYPE_KEYSITE_NAME));
 
-	#endif
+
+
+
 
 	if (!get_task_start_keysite (ENTITY_SUB_TYPE_TASK_OCA_STRIKE, side, pos, &start_ks))
 	{
@@ -1396,11 +1396,11 @@ entity *create_oca_sweep_task (entity_sides side, entity *target, entity *origin
 	// Create sweep task
 	//
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("TASKGEN: creating side %d oca sweep task to keysite %s ", side, get_local_entity_string (target, STRING_TYPE_KEYSITE_NAME));
 
-	#endif
+
+
+
 
 	if (!get_task_start_keysite (ENTITY_SUB_TYPE_TASK_OCA_SWEEP, side, pos, &start_ks))
 	{
@@ -1456,11 +1456,11 @@ entity *create_recon_task (entity_sides side, entity *objective, entity *origina
 
 	debug_assert (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("TASKGEN: creating side %d recon task to %s (%d)", side, get_local_entity_string (objective, STRING_TYPE_FULL_NAME), get_local_entity_index (objective));
 
-	#endif
+
+
+
 
 	if (!get_task_start_keysite (ENTITY_SUB_TYPE_TASK_RECON, side, pos, &start_ks))
 	{
@@ -1513,11 +1513,11 @@ entity *create_repair_task (entity_sides side, vec3d *pos, entity *objective, fl
 	start_ks = start_keysite;
 	end_ks = end_keysite;
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("TASKGEN: creating side %d repair task to keysite %s ", side, get_local_entity_string (objective, STRING_TYPE_KEYSITE_NAME));
 
-	#endif
+
+
+
 
 	if (!get_task_start_keysite (ENTITY_SUB_TYPE_TASK_REPAIR, side, pos, &start_ks) || start_ks == objective)
 	{
@@ -1578,11 +1578,11 @@ entity *create_sead_task (entity_sides side, entity *target, entity *originator,
 	start_ks = start_keysite;
 	end_ks = end_keysite;
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("TASKGEN: creating side %d SEAD task to keysite %s ", side, get_local_entity_string (target, STRING_TYPE_KEYSITE_NAME));
 
-	#endif
+
+
+
 
 	if (!get_task_start_keysite (ENTITY_SUB_TYPE_TASK_SEAD, side, start_pos, &start_ks))
 	{
@@ -1667,11 +1667,11 @@ entity *create_supply_task (entity *requester, entity *supplier, entity *cargo, 
 	start_ks = start_keysite;
 	end_ks = end_keysite;
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("TASKGEN: creating side %d Supply task to keysite %s ", side, get_local_entity_string (requester, STRING_TYPE_KEYSITE_NAME));
 
-	#endif
+
+
+
 
 	if (!get_task_start_keysite (ENTITY_SUB_TYPE_TASK_SUPPLY, side, start, &start_ks) || start_ks == requester)
 	{
@@ -1714,14 +1714,14 @@ entity *create_supply_task (entity *requester, entity *supplier, entity *cargo, 
 
 	set_local_entity_float_value (new_task, FLOAT_TYPE_TASK_USER_DATA, get_local_entity_int_value (cargo, INT_TYPE_ENTITY_SUB_TYPE));
 
-	#if DEBUG_MODULE || DEBUG_SUPPLY
 
-	debug_log ("TASKGEN: SUPPLY_INFO: create SUPPLY, movement_type %s from %s to %s",
-					movement_names [movement_type],
-					get_local_entity_string (supplier, STRING_TYPE_KEYSITE_NAME),
-					get_local_entity_string (requester, STRING_TYPE_FULL_NAME));
 
-	#endif
+
+
+
+
+
+
 
 	return new_task;
 }
@@ -1761,11 +1761,11 @@ entity *create_transfer_task (entity_sides side, entity_sub_types task_type, flo
 	// create task
 	//
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("TASKGEN: creating side %d Transfer task to keysite %s", side, get_local_entity_string (end_keysite, STRING_TYPE_KEYSITE_NAME));
 
-	#endif
+
+
+
 
 	if (!get_task_start_keysite (task_type, side, keysite_position, &start_ks) || (start_ks == end_keysite) && !emergency)
 	{
@@ -1828,12 +1828,12 @@ entity *create_troop_insertion_task (entity_sides side, entity *destination_keys
 	// Create troop insertion task
 	//
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("TASKGEN: creating side %d troop insertion task to keysite %s %f, %f, %f", side, get_local_entity_string (destination_keysite, STRING_TYPE_KEYSITE_NAME),
-					destination_position.x, destination_position.y, destination_position.z);
 
-	#endif
+
+
+
+
 
 	get_keysite_troop_dropoff_position (destination_keysite, &destination_position, &heading);
 
@@ -1868,9 +1868,9 @@ entity *create_troop_insertion_task (entity_sides side, entity *destination_keys
 	
 		destination_position.y = get_3d_terrain_elevation (destination_position.x, destination_position.z);
 		
-#if DEBUG_MODULE
-		create_vectored_debug_3d_object (&destination_position, &destination_position, OBJECT_3D_SPHERICAL_TEST, 120.0, 5.0);
-#endif
+
+
+
 	}
 
 	destination_position_in_air = destination_position;
@@ -1980,10 +1980,10 @@ entity *create_troop_movement_capture_task (entity_sides side, vec3d *start_pos,
 			new_route [loop].y = get_3d_terrain_elevation(new_route [loop].x, new_route [loop].z);
 			new_route_wp_type [loop] = loop < count ? ENTITY_SUB_TYPE_WAYPOINT_NAVIGATION : ENTITY_SUB_TYPE_WAYPOINT_TROOP_PUTDOWN_POINT;
 
-#if DEBUG_MODULE
-			if(new_route_wp_type [loop] == ENTITY_SUB_TYPE_WAYPOINT_TROOP_PUTDOWN_POINT)
-				create_vectored_debug_3d_object (&new_route [loop], &new_route [loop], OBJECT_3D_SPHERICAL_TEST, 20.0, 1.0);
-#endif
+
+
+
+
 		}
 	}
 	else
@@ -2000,9 +2000,9 @@ entity *create_troop_movement_capture_task (entity_sides side, vec3d *start_pos,
 	ASSERT(point_inside_map_area(&new_route [loop]));
 	new_route [loop].y = get_3d_terrain_elevation(new_route [loop].x, new_route [loop].z);
 
-#if DEBUG_MODULE
-	create_vectored_debug_3d_object (&new_route [loop], &new_route [loop], OBJECT_3D_SPHERICAL_TEST, 120.0, 10.0);
-#endif
+
+
+
 
 	loop++;
 	
@@ -2129,9 +2129,9 @@ entity *create_troop_movement_patrol_task (entity_sides side, vec3d *start_pos, 
 
 				new_route [loop].y = get_3d_terrain_elevation (new_route [loop].x, new_route [loop].z);
 
-#if DEBUG_MODULE
-				create_vectored_debug_3d_object (&new_route [loop], &new_route [loop], OBJECT_3D_SPHERICAL_TEST, 120.0, 10.0);
-#endif
+
+
+
 
 				new_route_wp_type [loop] = ENTITY_SUB_TYPE_WAYPOINT_TAXI;
 
@@ -2158,9 +2158,9 @@ entity *create_troop_movement_patrol_task (entity_sides side, vec3d *start_pos, 
 
 			new_route [loop].y = get_3d_terrain_elevation (new_route [loop].x, new_route [loop].z);
 
-#if DEBUG_MODULE
-			create_vectored_debug_3d_object (&new_route [loop], &new_route [loop], OBJECT_3D_SPHERICAL_TEST, 120.0, 10.0);
-#endif
+
+
+
 
 			new_route_wp_type [loop] = ENTITY_SUB_TYPE_WAYPOINT_TAXI;
 		}			
@@ -2240,11 +2240,11 @@ entity *create_user_task (entity *en, entity_sub_types task_type, vec3d *start_p
 	start_ks = start_keysite;
 	end_ks = end_keysite;
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log ("TASKGEN: creating side %d User task", side);
 
-	#endif
+
+
+
 
 	if (!get_task_start_keysite (task_type, side, start_pos, &start_ks))
 	{
@@ -2374,62 +2374,62 @@ int validate_task_generation (entity_sides side, entity_sub_types sub_type)
 {
 	return TRUE;
 
-	#if 0
 
-	entity
-		*this_force;
 
-	force
-		*raw;
 
-	#if TASK_SAFE_LIMIT
-	{
 
-		int
-			task_count;
 
-		entity
-			*task;
 
-		task_count = 0;
 
-		task = get_local_entity_first_child (get_session_entity (), task_database [sub_type].list_type);
 
-		while (task)
-		{
 
-			task_count ++;
 
-			task = task->task_data->task_link.child_succ;
-		}
 
-		if (task_count > TASK_SAFE_LIMIT)
-		{
 
-			debug_log ("TASKGEN: WARNING ! CURRENTLY %d %s TASKS ALIVE", task_count, entity_sub_type_task_names [sub_type]);
 
-			return FALSE;
-		}
-	}
-	#endif
 
-	this_force = get_local_force_entity (side);
 
-	if (this_force)
-	{
 
-		raw = get_local_entity_data (this_force);
 
-		if (raw->task_generation [sub_type].valid)
-		{
 
-			return TRUE;
-		}
-	}
 
-	return FALSE;
 
-	#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 
@@ -2603,11 +2603,11 @@ int get_task_start_keysite (entity_sub_types sub_type, entity_sides side, vec3d 
 
 			if (!*start_keysite)
 			{
-				#if DEBUG_MODULE >= 2
 
-				debug_log ("TASKGEN: No suitable keysite found - abort task creation");
 
-				#endif
+
+
+
 
 				return FALSE;
 			}

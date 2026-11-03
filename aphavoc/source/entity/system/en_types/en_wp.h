@@ -100,62 +100,62 @@ typedef enum WAYPOINT_REACHED_TYPES waypoint_reached_types;
 
 
 
-#if 0
-enum WAYPOINT_CRITERIA_TYPES
-{
-
-	WAYPOINT_CRITERIA_NONE						= 0,
-	WAYPOINT_CRITERIA_TIME						= 1,
-	WAYPOINT_CRITERIA_DELTA_TIME				= 2,
-	WAYPOINT_CRITERIA_MIN_RADIUS				= 4,
-	WAYPOINT_CRITERIA_MAX_RADIUS				= 8,
-	WAYPOINT_CRITERIA_HEADING					= 16,
-	WAYPOINT_CRITERIA_ALTITUDE					= 32,
-	WAYPOINT_CRITERIA_VELOCITY					= 64,
-	WAYPOINT_CRITERIA_RADIUS_OR_FLY_PAST	= 128,
-	WAYPOINT_CRITERIA_TRANSMIT_DATA			= 256,
-
-	//
-	// LAST_TO_REACH must be last valid criteria.
-	//
-
-	WAYPOINT_CRITERIA_LAST_TO_REACH			= 512,
-	NUM_WAYPOINT_CRITERIA_TYPES				= 1024
-};
-
-typedef enum WAYPOINT_CRITERIA_TYPES waypoint_criteria_types;
 
 
 
 
 
-struct WAYPOINT_CRITERIA
-{
-
-	unsigned short int
-		criteria_flags;
-
-	int
-		time,
-		delta_time,
-		timer,
-		reached_counter;
-
-	float
-		radius,
-		heading,
-		altitude,
-		velocity;
-};
-
-typedef struct WAYPOINT_CRITERIA waypoint_criteria;
 
 
 
 
 
-extern const char *waypoint_criteria_names [];
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

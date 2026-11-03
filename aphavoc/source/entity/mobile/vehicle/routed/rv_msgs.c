@@ -95,11 +95,11 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 	float
 		damage_modifier;
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	damage_modifier = va_arg (pargs, double);
 
@@ -180,65 +180,65 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 
 
 
-#if DEBUG_MODULE >= 2
-
-static int response_to_link_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE >= 2
-
-static int response_to_unlink_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE >= 2
-
-// WARNING: THIS IS OVERLOADED AT VEHICLE LEVEL //
-
-static int response_to_link_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE >= 2
 
-// WARNING: THIS IS OVERLOADED AT VEHICLE LEVEL //
 
-static int response_to_unlink_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	return (TRUE);
-}
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -286,11 +286,11 @@ static int response_to_waypoint_reverse_convoy_reached (entity_messages message,
 
 	raw = (routed_vehicle *) get_local_entity_data (receiver);
 
-	#if DEBUG_MODULE
 
-	debug_log ("RV_MSGS: reverse convoy waypoint reached by %d", receiver);
 
-	#endif
+
+
+
 
 	//
 	// Reverse order of formation to make them fill the landed formation safely.
@@ -336,28 +336,28 @@ static int response_to_waypoint_reverse_convoy_reached (entity_messages message,
 
 
 
-void overload_routed_vehicle_message_responses (void)
-{
-	overload_vehicle_message_responses (ENTITY_TYPE_ROUTED_VEHICLE);
 
-	message_responses[ENTITY_TYPE_ROUTED_VEHICLE][ENTITY_MESSAGE_COLLISION] 								= response_to_collision;
 
-	#if DEBUG_MODULE >= 2
 
-	message_responses[ENTITY_TYPE_ROUTED_VEHICLE][ENTITY_MESSAGE_LINK_CHILD]								= response_to_link_child;
 
-	message_responses[ENTITY_TYPE_ROUTED_VEHICLE][ENTITY_MESSAGE_UNLINK_CHILD]								= response_to_unlink_child;
 
-	message_responses[ENTITY_TYPE_ROUTED_VEHICLE][ENTITY_MESSAGE_LINK_PARENT]								= response_to_link_parent;
 
-	message_responses[ENTITY_TYPE_ROUTED_VEHICLE][ENTITY_MESSAGE_UNLINK_PARENT]							= response_to_unlink_parent;
 
-	#endif
 
-	message_responses[ENTITY_TYPE_ROUTED_VEHICLE][ENTITY_MESSAGE_SET_ENTITY_POSITION]					= response_to_set_entity_position;
 
-	message_responses[ENTITY_TYPE_ROUTED_VEHICLE][ENTITY_MESSAGE_WAYPOINT_REVERSE_CONVOY_REACHED]	= response_to_waypoint_reverse_convoy_reached;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

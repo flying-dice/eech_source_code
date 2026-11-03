@@ -81,11 +81,11 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 	weapon
 		*raw;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	raw = (weapon *) get_local_entity_data (receiver);
 
@@ -106,11 +106,11 @@ static int response_to_decoy_active (entity_messages message, entity *receiver, 
 	weapon_decoy_types
 		decoy_type;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
@@ -186,11 +186,11 @@ static int response_to_decoy_active (entity_messages message, entity *receiver, 
 
 static int response_to_decoy_expired (entity_messages message, entity *receiver, entity *sender, va_list pargs)
 {
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	ASSERT (sender);
 
@@ -209,46 +209,46 @@ static int response_to_decoy_expired (entity_messages message, entity *receiver,
 
 
 
-#if DEBUG_MODULE
-
-static int response_to_link_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE
-
-static int response_to_unlink_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE
 
-static int response_to_link_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	return (TRUE);
-}
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -265,11 +265,11 @@ static int response_to_unlink_parent (entity_messages message, entity *receiver,
 	vec3d
 		target_position;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	raw = (weapon *) get_local_entity_data (receiver);
 
@@ -315,28 +315,28 @@ static int response_to_unlink_parent (entity_messages message, entity *receiver,
 
 
 
-void overload_weapon_message_responses (void)
-{
-	overload_mobile_message_responses (ENTITY_TYPE_WEAPON);
 
-	message_responses[ENTITY_TYPE_WEAPON][ENTITY_MESSAGE_COLLISION]		= response_to_collision;
 
-	message_responses[ENTITY_TYPE_WEAPON][ENTITY_MESSAGE_DECOY_ACTIVE]	= response_to_decoy_active;
 
-	message_responses[ENTITY_TYPE_WEAPON][ENTITY_MESSAGE_DECOY_EXPIRED]	= response_to_decoy_expired;
 
-	#if DEBUG_MODULE
 
-	message_responses[ENTITY_TYPE_WEAPON][ENTITY_MESSAGE_LINK_CHILD]		= response_to_link_child;
 
-	message_responses[ENTITY_TYPE_WEAPON][ENTITY_MESSAGE_UNLINK_CHILD]	= response_to_unlink_child;
 
-	message_responses[ENTITY_TYPE_WEAPON][ENTITY_MESSAGE_LINK_PARENT]		= response_to_link_parent;
 
-	#endif
 
-	message_responses[ENTITY_TYPE_WEAPON][ENTITY_MESSAGE_UNLINK_PARENT]	= response_to_unlink_parent;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

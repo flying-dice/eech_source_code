@@ -81,11 +81,11 @@ static void set_local_float_value (entity *en, float_types type, float value)
 	helicopter
 		*raw;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_FLOAT_VALUE, en, type, value);
 
-	#endif
+
+
+
 
 	raw = (helicopter *) get_local_entity_data (en);
 
@@ -190,51 +190,51 @@ static void set_local_float_value (entity *en, float_types type, float value)
 
 
 
-static void set_remote_float_value (entity *en, float_types type, float value)
-{
-	#if DEBUG_MODULE
-
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_FLOAT_VALUE, en, type, value);
-
-	#endif
-
-	transmit_entity_comms_message (ENTITY_COMMS_FLOAT_VALUE, en, type, value);
-}
 
 
 
 
 
-static void set_server_float_value (entity *en, float_types type, float value)
-{
-	validate_client_server_local_fn ();
-
-	set_local_float_value (en, type, value);
-
-	validate_client_server_remote_fn ();
-
-	set_remote_float_value (en, type, value);
-}
 
 
 
 
 
-static void set_client_float_value (entity *en, float_types type, float value)
-{
-	if (get_comms_data_flow () == COMMS_DATA_FLOW_TX)
-	{
-		validate_client_server_remote_fn ();
 
-		set_remote_float_value (en, type, value);
-	}
-	else
-	{
-		validate_client_server_local_fn ();
 
-		set_local_float_value (en, type, value);
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -372,72 +372,72 @@ static float get_local_float_value (entity *en, float_types type)
 
 
 
-void overload_helicopter_float_value_functions (void)
-{
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_FUEL_SUPPLY_LEVEL]					 		= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_FUEL_SUPPLY_LEVEL]							= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_FUEL_SUPPLY_LEVEL][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_FUEL_SUPPLY_LEVEL][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_FUEL_SUPPLY_LEVEL]						  	= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_INVULNERABLE_TIMER]					 		= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_INVULNERABLE_TIMER]							= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_INVULNERABLE_TIMER][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_INVULNERABLE_TIMER][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_INVULNERABLE_TIMER]						  	= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_BLADE_CONING_ANGLE]					 		= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_BLADE_CONING_ANGLE]							= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_BLADE_CONING_ANGLE][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_BLADE_CONING_ANGLE][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_BLADE_CONING_ANGLE]						  	= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_PITCH]					 			= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_PITCH]								= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_PITCH][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_PITCH][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_PITCH]						  		= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_ROLL]					 			= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_ROLL]								= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_ROLL][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_ROLL][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_ROLL]						  		= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_RPM]				 				= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_RPM]								= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_RPM][COMMS_MODEL_SERVER]		= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_RPM][COMMS_MODEL_CLIENT]		= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_RPM]					  			= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_SPIN_UP_TIMER]				 				= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_SPIN_UP_TIMER]								= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_SPIN_UP_TIMER][COMMS_MODEL_SERVER]	= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_SPIN_UP_TIMER][COMMS_MODEL_CLIENT]	= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_MAIN_ROTOR_SPIN_UP_TIMER]					  			= get_local_float_value;
 
-	fn_get_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_RADAR_STEALTH_FACTOR]  						= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_TAIL_ROTOR_RPM]					 			= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_TAIL_ROTOR_RPM]								= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_TAIL_ROTOR_RPM][COMMS_MODEL_SERVER]		= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_TAIL_ROTOR_RPM][COMMS_MODEL_CLIENT]		= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_TAIL_ROTOR_RPM]					  			= get_local_float_value;
-	
-	// Jabberwock 050310 MP Cannon bug
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_PLAYER_WEAPON_HEADING]					 			= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_PLAYER_WEAPON_HEADING]								= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_PLAYER_WEAPON_HEADING][COMMS_MODEL_SERVER]		= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_PLAYER_WEAPON_HEADING][COMMS_MODEL_CLIENT]		= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_PLAYER_WEAPON_HEADING]					  			= get_local_float_value;
 
-	fn_set_local_entity_raw_float_value			[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_PLAYER_WEAPON_PITCH]					 			= set_local_float_value;
-	fn_set_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_PLAYER_WEAPON_PITCH]								= set_local_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_PLAYER_WEAPON_PITCH][COMMS_MODEL_SERVER]		= set_server_float_value;
-	fn_set_client_server_entity_float_value	[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_PLAYER_WEAPON_PITCH][COMMS_MODEL_CLIENT]		= set_client_float_value;
-	fn_get_local_entity_float_value				[ENTITY_TYPE_HELICOPTER][FLOAT_TYPE_PLAYER_WEAPON_PITCH]					  			= get_local_float_value;
-	// Jabberwock 050310 ends
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

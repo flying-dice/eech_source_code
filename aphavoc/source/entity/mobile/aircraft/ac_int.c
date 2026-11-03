@@ -81,11 +81,11 @@ static void set_local_raw_int_value (entity *en, int_types type, int value)
 	aircraft
 		*raw;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_INT_VALUE, en, type, value);
 
-	#endif
+
+
+
 
 	raw = (aircraft *) get_local_entity_data (en);
 
@@ -127,11 +127,11 @@ static void set_local_int_value (entity *en, int_types type, int value)
 	aircraft
 		*raw;
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_INT_VALUE, en, type, value);
 
-	#endif
+
+
+
 
 	raw = (aircraft *) get_local_entity_data (en);
 
@@ -345,51 +345,51 @@ static void set_local_int_value (entity *en, int_types type, int value)
 
 
 
-static void set_remote_int_value (entity *en, int_types type, int value)
-{
-	#if DEBUG_MODULE
-
-	debug_log_entity_args (ENTITY_DEBUG_REMOTE, ENTITY_DEBUG_INT_VALUE, en, type, value);
-
-	#endif
-
-	transmit_entity_comms_message (ENTITY_COMMS_INT_VALUE, en, type, value);
-}
 
 
 
 
 
-static void set_server_int_value (entity *en, int_types type, int value)
-{
-	validate_client_server_local_fn ();
-
-	set_local_int_value (en, type, value);
-
-	validate_client_server_remote_fn ();
-
-	set_remote_int_value (en, type, value);
-}
 
 
 
 
 
-static void set_client_int_value (entity *en, int_types type, int value)
-{
-	if (get_comms_data_flow () == COMMS_DATA_FLOW_TX)
-	{
-		validate_client_server_remote_fn ();
 
-		set_remote_int_value (en, type, value);
-	}
-	else
-	{
-		validate_client_server_local_fn ();
 
-		set_local_int_value (en, type, value);
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1122,170 +1122,170 @@ static int get_local_int_value (entity *en, int_types type)
 
 
 
-void overload_aircraft_int_value_functions (entity_types type)
-{
-	fn_get_local_entity_int_value				[type][INT_TYPE_AIR_TO_AIR_WEAPON_CONFIG_TYPE]				= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_AIR_TO_SURFACE_WEAPON_CONFIG_TYPE]			= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_AIRBORNE_AIRCRAFT]								= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_COLLISION_TEST_MOBILE]							= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[type][INT_TYPE_CPG_IDENTIFIED]									= set_local_int_value;
-	fn_set_local_entity_int_value				[type][INT_TYPE_CPG_IDENTIFIED]									= set_local_int_value;
-	fn_get_local_entity_int_value				[type][INT_TYPE_CPG_IDENTIFIED]									= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[type][INT_TYPE_DAMAGE_LEVEL]										= set_local_int_value;
-	fn_set_local_entity_int_value				[type][INT_TYPE_DAMAGE_LEVEL]										= set_local_int_value;
-	fn_set_client_server_entity_int_value	[type][INT_TYPE_DAMAGE_LEVEL][COMMS_MODEL_SERVER]			= set_server_int_value;
-	fn_set_client_server_entity_int_value	[type][INT_TYPE_DAMAGE_LEVEL][COMMS_MODEL_CLIENT]			= set_client_int_value;
-	fn_get_local_entity_int_value				[type][INT_TYPE_DAMAGE_LEVEL]										= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_DEFAULT_3D_SHAPE]								= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_DEFAULT_WEAPON_CONFIG_TYPE]					= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_DEFAULT_WEAPON_TYPE]							= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_DESTROYED_3D_SHAPE]								= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[type][INT_TYPE_EJECTED]											= set_local_int_value;
-	fn_set_local_entity_int_value				[type][INT_TYPE_EJECTED]											= set_local_int_value;
-	fn_set_client_server_entity_int_value	[type][INT_TYPE_EJECTED][COMMS_MODEL_SERVER]					= set_server_int_value;
-	fn_set_client_server_entity_int_value	[type][INT_TYPE_EJECTED][COMMS_MODEL_CLIENT]					= set_client_int_value;
-	fn_get_local_entity_int_value				[type][INT_TYPE_EJECTED]											= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[type][INT_TYPE_TROOPS_ONBOARD]											= set_local_int_value;
-	fn_set_local_entity_int_value				[type][INT_TYPE_TROOPS_ONBOARD]											= set_local_int_value;
-	fn_set_client_server_entity_int_value	[type][INT_TYPE_TROOPS_ONBOARD][COMMS_MODEL_SERVER]					= set_server_int_value;
-	fn_set_client_server_entity_int_value	[type][INT_TYPE_TROOPS_ONBOARD][COMMS_MODEL_CLIENT]					= set_client_int_value;
-	fn_get_local_entity_int_value				[type][INT_TYPE_TROOPS_ONBOARD]											= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_ENGAGE_ENEMY]										= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_EXPLOSIVE_POWER]									= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_EXPLOSIVE_QUALITY]								= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_FORCE]												= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_FORCE_INFO_CATAGORY]							= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value  		[type][INT_TYPE_FORMATION_POSITION]								= set_local_int_value;
-	fn_set_local_entity_int_value				[type][INT_TYPE_FORMATION_POSITION]								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[type][INT_TYPE_FORMATION_POSITION][COMMS_MODEL_SERVER]	= set_server_int_value;
-	fn_set_client_server_entity_int_value	[type][INT_TYPE_FORMATION_POSITION][COMMS_MODEL_CLIENT]	= set_client_int_value;
-	fn_get_local_entity_int_value				[type][INT_TYPE_FORMATION_POSITION]								= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_GROUP_LEADER]										= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_GROUP_MEMBER_ID]									= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[type][INT_TYPE_GROUP_MEMBER_NUMBER]							= set_local_int_value;
-	fn_set_local_entity_int_value				[type][INT_TYPE_GROUP_MEMBER_NUMBER]							= set_local_int_value;
-	fn_set_client_server_entity_int_value	[type][INT_TYPE_GROUP_MEMBER_NUMBER][COMMS_MODEL_SERVER]	= set_server_int_value;
-	fn_set_client_server_entity_int_value	[type][INT_TYPE_GROUP_MEMBER_NUMBER][COMMS_MODEL_CLIENT]	= set_client_int_value;
-	fn_get_local_entity_int_value				[type][INT_TYPE_GROUP_MEMBER_NUMBER]							= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_GROUP_MEMBER_STATE]								= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[type][INT_TYPE_GUNSHIP_RADAR_LOS_CLEAR]						= set_local_int_value;
-	fn_set_local_entity_int_value				[type][INT_TYPE_GUNSHIP_RADAR_LOS_CLEAR]						= set_local_int_value;
-	fn_get_local_entity_int_value				[type][INT_TYPE_GUNSHIP_RADAR_LOS_CLEAR]						= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_GUNSHIP_TYPE]										= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_IDENTIFY_AIRCRAFT]								= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[type][INT_TYPE_ID_NUMBER]											= set_local_int_value;
-	fn_set_local_entity_int_value				[type][INT_TYPE_ID_NUMBER]											= set_local_int_value;
-	fn_get_local_entity_int_value				[type][INT_TYPE_ID_NUMBER]											= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[type][INT_TYPE_ID_NUMBER_SIGNIFICANT_DIGITS]				= set_local_int_value;
-	fn_set_local_entity_int_value				[type][INT_TYPE_ID_NUMBER_SIGNIFICANT_DIGITS]				= set_local_int_value;
-	fn_get_local_entity_int_value				[type][INT_TYPE_ID_NUMBER_SIGNIFICANT_DIGITS]				= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_INITIAL_DAMAGE_LEVEL]							= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_LANDED]												= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[type][INT_TYPE_LIGHTS_ON]											= set_local_raw_int_value;
-	fn_set_local_entity_int_value				[type][INT_TYPE_LIGHTS_ON]											= set_local_int_value;
-	fn_set_client_server_entity_int_value	[type][INT_TYPE_LIGHTS_ON][COMMS_MODEL_SERVER]				= set_server_int_value;
-	fn_set_client_server_entity_int_value	[type][INT_TYPE_LIGHTS_ON][COMMS_MODEL_CLIENT]				= set_client_int_value;
-	fn_get_local_entity_int_value				[type][INT_TYPE_LIGHTS_ON]											= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_MAP_ICON]											= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_MAX_WEAPON_CONFIG_TYPE]						= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_MIN_WEAPON_CONFIG_TYPE]						= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_MOBILE_MOVING]									= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_MOVEMENT_TYPE]									= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[type][INT_TYPE_OBJECT_3D_SHAPE]									= set_local_int_value;
-	fn_set_local_entity_int_value				[type][INT_TYPE_OBJECT_3D_SHAPE]									= set_local_int_value;
-	fn_get_local_entity_int_value				[type][INT_TYPE_OBJECT_3D_SHAPE]									= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_OFFENSIVE_CAPABILITY]							= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[type][INT_TYPE_OPERATIONAL_STATE]								= set_local_int_value;
-	fn_set_local_entity_int_value				[type][INT_TYPE_OPERATIONAL_STATE]								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[type][INT_TYPE_OPERATIONAL_STATE][COMMS_MODEL_SERVER]	= set_server_int_value;
-	fn_set_client_server_entity_int_value	[type][INT_TYPE_OPERATIONAL_STATE][COMMS_MODEL_CLIENT]	= set_client_int_value;
-	fn_get_local_entity_int_value				[type][INT_TYPE_OPERATIONAL_STATE]								= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_PLAYER_CONTROLLABLE]	 						= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_POINTS_VALUE]										= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_SCOUT_WEAPON_CONFIG_TYPE]						= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[type][INT_TYPE_SELECTED_WEAPON]									= set_local_raw_int_value;
-	fn_set_local_entity_int_value				[type][INT_TYPE_SELECTED_WEAPON]									= set_local_int_value;
-	fn_set_client_server_entity_int_value	[type][INT_TYPE_SELECTED_WEAPON][COMMS_MODEL_SERVER]		= set_server_int_value;
-	fn_set_client_server_entity_int_value	[type][INT_TYPE_SELECTED_WEAPON][COMMS_MODEL_CLIENT]		= set_client_int_value;
-	fn_get_local_entity_int_value				[type][INT_TYPE_SELECTED_WEAPON]									= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[type][INT_TYPE_SELECTED_WEAPON_SYSTEM_READY]  				= set_local_int_value;
-	fn_set_local_entity_int_value				[type][INT_TYPE_SELECTED_WEAPON_SYSTEM_READY]				= set_local_int_value;
-	fn_get_local_entity_int_value				[type][INT_TYPE_SELECTED_WEAPON_SYSTEM_READY]				= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_TARGET_PRIORITY_TYPE]							= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_TARGET_SYMBOL_TYPE]								= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_TARGET_TYPE]										= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_TASK_LEADER]										= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_TASK_TARGET_TYPE]								= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_THREAT_TYPE]										= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_TRACK_ENTITY_ON_MAP]							= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_VIEW_CATEGORY]									= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_VIEW_TYPE]											= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_VIEWABLE]											= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[type][INT_TYPE_WEAPON_AND_TARGET_VECTORS_VALID]  			= set_local_int_value;
-	fn_set_local_entity_int_value				[type][INT_TYPE_WEAPON_AND_TARGET_VECTORS_VALID]			= set_local_int_value;
-	fn_get_local_entity_int_value				[type][INT_TYPE_WEAPON_AND_TARGET_VECTORS_VALID]			= get_local_int_value;
 
-	fn_set_local_entity_raw_int_value		[type][INT_TYPE_WEAPON_CONFIG_TYPE]								= set_local_raw_int_value;
-	fn_set_local_entity_int_value				[type][INT_TYPE_WEAPON_CONFIG_TYPE]								= set_local_int_value;
-	fn_set_client_server_entity_int_value	[type][INT_TYPE_WEAPON_CONFIG_TYPE][COMMS_MODEL_SERVER]	= set_server_int_value;
-	fn_set_client_server_entity_int_value	[type][INT_TYPE_WEAPON_CONFIG_TYPE][COMMS_MODEL_CLIENT]	= set_client_int_value;
-	fn_get_local_entity_int_value				[type][INT_TYPE_WEAPON_CONFIG_TYPE]								= get_local_int_value;
 
-	fn_get_local_entity_int_value				[type][INT_TYPE_WEAPON_SYSTEM_READY]							= get_local_int_value;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

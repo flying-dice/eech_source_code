@@ -106,15 +106,15 @@ float get_local_entity_rearming_sleep_time (entity *group, int weapon_type)
 
 	sleep_time = base_time * ( -(MAX_REARMING_TIME_SCALING_FACTOR - 1.0) / 100.0 * get_local_entity_float_value (group, FLOAT_TYPE_AMMO_SUPPLY_LEVEL) + MAX_REARMING_TIME_SCALING_FACTOR);
 
-	#if DEBUG_MODULE || DEBUG_SUPPLY
 
-	debug_log ("EN_SUPLY: SUPPLY_INFO: group %s rearming sleep time = %f (normal_time = %f, supply level = %f)",
-					get_local_entity_string (group, STRING_TYPE_FULL_NAME),
-					sleep_time,
-					base_time,
-					get_local_entity_float_value (group, FLOAT_TYPE_AMMO_SUPPLY_LEVEL));
 
-	#endif
+
+
+
+
+
+
+
 
 	return sleep_time;
 }
@@ -134,15 +134,15 @@ float get_local_entity_refueling_sleep_time (entity *group)
 
 	sleep_time *= -(((MAX_REFUELING_TIME_SCALING_FACTOR - 1.0) / 100.0) * get_local_entity_float_value (group, FLOAT_TYPE_FUEL_SUPPLY_LEVEL)) + MAX_REARMING_TIME_SCALING_FACTOR;
 
-	#if DEBUG_MODULE || DEBUG_SUPPLY
 
-	debug_log ("EN_SUPLY: SUPPLY_INFO: group %s refueling sleep time = %f (normal_time = %f, supply level = %f)",
-					get_local_entity_string (group, STRING_TYPE_FULL_NAME),
-					sleep_time,
-					get_local_entity_float_value (group, FLOAT_TYPE_REARMING_TIME),
-					get_local_entity_float_value (group, FLOAT_TYPE_FUEL_SUPPLY_LEVEL));
 
-	#endif
+
+
+
+
+
+
+
 
 	return sleep_time;
 }
@@ -173,11 +173,11 @@ void build_supply_heat_map (void)
 		supply_heat_map = (unsigned char *) malloc_heap_mem (sizeof (unsigned char) * (NUM_MAP_X_SECTORS * NUM_MAP_Z_SECTORS));
 	}
 
-	#if DEBUG_MODULE
 
-		debug_log ("EN_SUPLY: building supply heat map");
 
-	#endif
+
+
+
 
 	memset (supply_heat_map, 0, sizeof (unsigned char) * (NUM_MAP_X_SECTORS * NUM_MAP_Z_SECTORS));
 
@@ -380,11 +380,11 @@ void output_supply_heat_map (void)
 				
 	write_psd_rgb_file (filename, NUM_MAP_X_SECTORS, NUM_MAP_Z_SECTORS, NUM_MAP_X_SECTORS * 3, supply_heat_bitmap);
 
-	#if DEBUG_MODULE
 
-		debug_log ("EN_SUPLY: generating supply heat map psd no. %d", count);
 
-	#endif
+
+
+
 
 	count++;
 

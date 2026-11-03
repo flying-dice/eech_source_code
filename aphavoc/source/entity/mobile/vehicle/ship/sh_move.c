@@ -300,11 +300,11 @@ void ship_vehicle_movement (entity *en)
 
 	sqr_range = ((wp_vec.x * wp_vec.x) + (wp_vec.z * wp_vec.z));
 
-	#if DEBUG_MODULE
 
-	create_vectored_debug_3d_object (&wp_pos, (vec3d *) &raw->vh.mob.attitude [1], OBJECT_3D_RED_ARROW, 0, 0.20);
 
-	#endif
+
+
+
 	
 	// ????
 	if (fabs (sqr_range) < 1 * CENTIMETRE)
@@ -346,22 +346,22 @@ void ship_vehicle_movement (entity *en)
 
 			// wp behind ship
 	
-			#if DEBUG_MODULE
-		
-			debug_log ("SH_MOVE: ship cannot reach wp at vel %f m/s (max v %f), range %f, g %f", raw->vh.mob.velocity, v, range, vehicle_database [raw->vh.mob.sub_type].g_max);
 
-			#endif
+
+
+
+
 
 			new_velocity = bound (v, 0.0, get_local_entity_float_value (guide, FLOAT_TYPE_VELOCITY));
 		}
 		else
 		{
 	
-			#if DEBUG_MODULE
-		
-			debug_log ("SH_MOVE: ship can reach wp at vel %f m/s (max v %f), range %f, g %f", raw->vh.mob.velocity, v, range, vehicle_database [raw->vh.mob.sub_type].g_max);
 
-			#endif
+
+
+
+
 
 			new_velocity = get_local_entity_float_value (guide, FLOAT_TYPE_VELOCITY);
 		}

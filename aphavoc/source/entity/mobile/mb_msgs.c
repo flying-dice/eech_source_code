@@ -97,61 +97,61 @@ static entity* get_destination_keysite (entity *group, entity_sides side, entity
 
 
 
-#if DEBUG_MODULE >= 2
-
-static int response_to_link_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE >= 2
-
-static int response_to_unlink_child (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE >= 2
-
-static int response_to_link_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
-
-	return (TRUE);
-}
-
-#endif
 
 
 
 
 
-#if DEBUG_MODULE >= 2
 
-static int response_to_unlink_parent (entity_messages message, entity *receiver, entity *sender, va_list pargs)
-{
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	return (TRUE);
-}
 
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -173,11 +173,11 @@ static int response_to_task_assigned (entity_messages message, entity *receiver,
 	int
 		task_type;
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	ASSERT (sender);
 
@@ -286,14 +286,14 @@ static int response_to_task_assigned (entity_messages message, entity *receiver,
 								}
 							}
 
-							#if DEBUG_MODULE
 
-							debug_log ("MB_MSGS: Task %s : Mobile %s task target is %d",
-											get_local_entity_string (sender, STRING_TYPE_FULL_NAME),
-											get_local_entity_string (receiver, STRING_TYPE_FULL_NAME),
-											get_local_entity_int_value (sender, INT_TYPE_TASK_TARGET_CLASS));
 
-							#endif
+
+
+
+
+
+
 						}
 					}
 				}
@@ -304,27 +304,27 @@ static int response_to_task_assigned (entity_messages message, entity *receiver,
 	
 				if (notify_local_entity (ENTITY_MESSAGE_LOCK_TAKEOFF_ROUTE, landing_en, receiver))
 				{
-					#if DEBUG_MODULE
-	
-					debug_log ("MB_MSGS: Task %s : Mobile %s (%d) takeoff route locked",
-									get_local_entity_string (sender, STRING_TYPE_FULL_NAME),
-									get_local_entity_string (receiver, STRING_TYPE_FULL_NAME),
-									get_local_entity_index (receiver));
 
-					#endif
+
+
+
+
+
+
+
 	
 					insert_mobile_into_takeoff_route (receiver, landing_en);
 				}
 				else
 				{
-					#if DEBUG_MODULE
-	
-					debug_log ("MB_MSGS: Task %s : Mobile %s (%d) can't lock takeoff route",
-									get_local_entity_string (sender, STRING_TYPE_FULL_NAME),
-									get_local_entity_string (receiver, STRING_TYPE_FULL_NAME),
-									get_local_entity_index (receiver));
-	
-					#endif
+
+
+
+
+
+
+
+
 	
 					//
 					// insert mobile into takeoff queue
@@ -372,18 +372,18 @@ static int response_to_task_assigned (entity_messages message, entity *receiver,
 		case OPERATIONAL_STATE_LANDING_HOLDING:
 		{
 
-			#if DEBUG_MODULE
 
-			if (receiver == get_external_view_entity ())
-			{
-				
-				debug_log ("MB_MSGS: not assigning landing/holding mobile %s (%d, group %d)",
-							get_local_entity_string (receiver, STRING_TYPE_FULL_NAME),
-							get_local_entity_safe_index (receiver),
-							get_local_entity_index (get_local_entity_parent (receiver, LIST_TYPE_MEMBER)));
-			}
 
-			#endif
+
+
+
+
+
+
+
+
+
+
 
 			break;
 		}
@@ -405,18 +405,18 @@ static int response_to_task_assigned (entity_messages message, entity *receiver,
 		default:
 		{
 
-			#if DEBUG_MODULE
 
-			if (receiver == get_external_view_entity ())
-			{
-				
-				debug_log ("MB_MSGS: assign non-landed mobile %s (%d, group %d)",
-							get_local_entity_string (receiver, STRING_TYPE_FULL_NAME),
-							get_local_entity_safe_index (receiver),
-							get_local_entity_index (get_local_entity_parent (receiver, LIST_TYPE_MEMBER)));
-			}
 
-			#endif
+
+
+
+
+
+
+
+
+
+
 
 
 			//
@@ -470,11 +470,11 @@ static int response_to_waypoint_approach_reached (entity_messages message, entit
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	open_client_server_entity_flaps (receiver);
 
@@ -543,11 +543,11 @@ static int response_to_waypoint_attack_action (entity_messages message, entity *
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	raw = (mobile *) get_local_entity_data (receiver);
 
@@ -706,11 +706,11 @@ static int response_to_waypoint_convoy_reached (entity_messages message, entity 
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	group_count = 0;
 	
@@ -759,15 +759,15 @@ static int response_to_waypoint_convoy_reached (entity_messages message, entity 
 		mb = get_local_entity_child_succ (mb, LIST_TYPE_MEMBER);
 	}
 
-	#if DEBUG_MODULE
-	
-	if (receiver == get_external_view_entity ())
-	{
-			
-		debug_log ("MB_MSGS: convoy waypoint reached mb %d (gp %d), formation pos %d setting sleep to %f, distance %f", get_local_entity_safe_index (receiver), get_local_entity_safe_index (group), get_local_entity_int_value (receiver, INT_TYPE_FORMATION_POSITION), sleep, distance);
-	}
 
-	#endif
+
+
+
+
+
+
+
+
 
 	return (TRUE);
 }
@@ -800,20 +800,20 @@ static int response_to_waypoint_defend_reached (entity_messages message, entity 
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
 
-	#if DEBUG_MODULE
 
-	if (receiver == get_external_view_entity ())
-	{
-		debug_log ("MB_MSGS: defend waypoint reached mb %d", get_local_entity_safe_index (receiver));
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
 
 	raw = (mobile *) get_local_entity_data (receiver);
 
@@ -879,17 +879,17 @@ static int response_to_waypoint_defend_reached (entity_messages message, entity 
 
 		set_client_server_entity_vec3d (member, VEC3D_TYPE_POSITION, &new_pos);
 
-		#if DEBUG_MODULE || DEBUG_SUPPLY
 
-		debug_log ("MB_MSGS: SUPPLY_INFO: Ground force defending: reducing group %s (%d) fuel level for %s (%d) to %f, sleeping for %f",
-						get_local_entity_string (group, STRING_TYPE_FULL_NAME),
-						get_local_entity_index (group),
-						get_local_entity_string (member, STRING_TYPE_FULL_NAME),
-						get_local_entity_index (member),
-						fuel,
-						sleep);
 
-		#endif
+
+
+
+
+
+
+
+
+
 
 		member = get_local_entity_child_succ (member, LIST_TYPE_MEMBER);
 	}
@@ -918,11 +918,11 @@ static int response_to_waypoint_drop_off_reached (entity_messages message, entit
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	cargo = get_local_entity_first_child (receiver, LIST_TYPE_MOVEMENT_DEPENDENT);
 
@@ -942,11 +942,11 @@ static int response_to_waypoint_drop_off_reached (entity_messages message, entit
 	
 					delete_local_entity_from_parents_child_list (cargo, LIST_TYPE_MOVEMENT_DEPENDENT);
 	
-					#if DEBUG_MODULE
-	
-					debug_log ("MB_MSGS: SUPPLY_INFO: removing cargo %s from %s movement_dependent list", entity_sub_type_cargo_names [get_local_entity_int_value (cargo, INT_TYPE_ENTITY_SUB_TYPE)], entity_type_names [get_local_entity_type (receiver)]);
-	
-					#endif
+
+
+
+
+
 		
 					insert_local_entity_into_parents_child_list (cargo, LIST_TYPE_CARGO, requester, NULL);
 		
@@ -954,11 +954,11 @@ static int response_to_waypoint_drop_off_reached (entity_messages message, entit
 		
 					transmit_entity_comms_message (ENTITY_COMMS_SWITCH_LIST, cargo, LIST_TYPE_MOVEMENT_DEPENDENT, requester, LIST_TYPE_CARGO);
 	
-					#if DEBUG_MODULE || DEBUG_SUPPLY
-		
-					debug_log ("MB_MSGS: SUPPLY_INFO: Drop_Off reached... inserting cargo %s into %s cargo list", entity_sub_type_cargo_names [get_local_entity_int_value (cargo, INT_TYPE_ENTITY_SUB_TYPE)], get_local_entity_string (requester, STRING_TYPE_KEYSITE_NAME));
-		
-					#endif
+
+
+
+
+
 				}
 				else
 				{
@@ -983,11 +983,11 @@ static int response_to_waypoint_drop_off_reached (entity_messages message, entit
 
 						set_client_server_entity_float_value (requester, FLOAT_TYPE_AMMO_SUPPLY_LEVEL, level);
 		
-						#if DEBUG_MODULE || DEBUG_SUPPLY
 
-						debug_log ("MB_MSGS: SUPPLY_INFO: Drop_Off reached... increasing group ammo to %f", level);
 
-						#endif
+
+
+
 					}
 					else if (get_local_entity_int_value (cargo, INT_TYPE_ENTITY_SUB_TYPE) == ENTITY_SUB_TYPE_CARGO_FUEL)
 					{
@@ -1000,31 +1000,31 @@ static int response_to_waypoint_drop_off_reached (entity_messages message, entit
 
 						set_client_server_entity_float_value (requester, FLOAT_TYPE_FUEL_SUPPLY_LEVEL, level);
 		
-						#if DEBUG_MODULE || DEBUG_SUPPLY
 
-						debug_log ("MB_MSGS: SUPPLY_INFO: Drop_Off reached... increasing group fuel to %f", level);
 
-						#endif
+
+
+
 					}
 					else
 					{
 		
-						#if DEBUG_MODULE || DEBUG_SUPPLY
-			
-						debug_log ("MB_MSGS: SUPPLY_INFO: invalid cargo type for group");
-			
-						#endif
+
+
+
+
+
 					}
 				}
 			}
 			else
 			{
 
-				#if DEBUG_MODULE || DEBUG_SUPPLY
 
-				debug_log ("MB_MSGS: SUPPLY_INFO: Reached Dropoff but no keysite to deliever to.");
 
-				#endif
+
+
+
 			}
 		}
 
@@ -1052,20 +1052,20 @@ static int response_to_waypoint_drop_off_reached (entity_messages message, entit
 				// go round again
 				//
 
-				#if DEBUG_MODULE
 
-				debug_log ("MB_MSGS: SUPPLY_INFO: aircraft not ready to drop crates");
 
-				#endif
+
+
+
 			}
 			else
 			{
 
-				#if DEBUG_MODULE
 
-				debug_log ("MB_MSGS: SUPPLY_INFO: aircraft dropping crate");
 
-				#endif
+
+
+
 			}
 		}
 
@@ -1099,11 +1099,11 @@ static int response_to_waypoint_finish_drop_off_reached (entity_messages message
 	entity
 		*task;
 
-	#if DEBUG_MODULE
 
-	debug_log ("MB_MSGS: FINSIH_DROP_OFF REACHED. closing cargo doors");
 
-	#endif
+
+
+
 		
 	close_client_server_entity_cargo_doors (receiver);
 
@@ -1140,11 +1140,11 @@ static int response_to_waypoint_land_reached (entity_messages message, entity *r
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	raw = (mobile *) get_local_entity_data (receiver);
 
@@ -1330,11 +1330,11 @@ static int response_to_waypoint_landed_reached (entity_messages message, entity 
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	raw = (mobile *) get_local_entity_data (receiver);
 
@@ -1441,18 +1441,18 @@ static int response_to_waypoint_landed_reached (entity_messages message, entity 
 		//sleep = ONE_MINUTE * ((-0.02 * (ammo + fuel)) + 5.0);
 		set_client_server_entity_float_value (receiver, FLOAT_TYPE_SLEEP, sleep);
 
-		#if DEBUG_MODULE || DEBUG_SUPPLY
 
-		debug_log ("MB_MSGS: SUPPLY_INFO: member %s (%d) landed and refuelled/rearmed at %s (%d). Group supplies now ammo = %f, fuel = %f, sleeping for %f",
-						get_local_entity_string (receiver, STRING_TYPE_FULL_NAME),
-						get_local_entity_index (receiver),
-						get_local_entity_string (keysite, STRING_TYPE_FULL_NAME),
-						get_local_entity_index (keysite),
-						get_local_entity_float_value (group, FLOAT_TYPE_AMMO_SUPPLY_LEVEL),
-						get_local_entity_float_value (group, FLOAT_TYPE_FUEL_SUPPLY_LEVEL),
-						sleep);
 
-		#endif
+
+
+
+
+
+
+
+
+
+
 
 		assess_group_supplies (group);
 	}
@@ -1580,11 +1580,11 @@ static int response_to_waypoint_loop_reached (entity_messages message, entity *r
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	//
 	// delete mobile from current waypoint and insert on first wp
@@ -1626,11 +1626,11 @@ static int response_to_waypoint_navigation_reached (entity_messages message, ent
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	group = get_local_entity_parent (receiver, LIST_TYPE_MEMBER);
 
@@ -1688,11 +1688,11 @@ static int response_to_waypoint_sub_route_navigation_reached (entity_messages me
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	if (get_local_entity_int_value (get_session_entity (), INT_TYPE_DAY_SEGMENT_TYPE) == DAY_SEGMENT_TYPE_NIGHT)
 	{
@@ -1713,35 +1713,35 @@ static int response_to_waypoint_sub_route_navigation_reached (entity_messages me
 	// Setup sub_route points. NB: ONLY the leader does this
 	//
 
-	#if DEBUG_MODULE
 
-	debug_log ("MB_MSGS: sub_route navigation waypoint reached by %s (%d)",
-					get_local_entity_string (receiver, STRING_TYPE_FULL_NAME),
-					get_local_entity_index (receiver),
-					get_local_entity_int_value (sender, INT_TYPE_ROUTE_NODE));
 
-	#endif
+
+
+
+
+
+
 
 	succ_wp = get_local_entity_child_succ (sender, LIST_TYPE_WAYPOINT);
 
 	from_node = get_local_entity_int_value (sender, INT_TYPE_ROUTE_NODE);
 
-	#if DEBUG_MODULE
 
-	debug_log ("MB_MSGS: travelling from node %d", from_node);
 
-	#endif
+
+
+
 
 	if (succ_wp)
 	{
 
 		to_node = get_local_entity_int_value (succ_wp, INT_TYPE_ROUTE_NODE);
 
-		#if DEBUG_MODULE
 
-		debug_log ("MB_MSGS: travelling to node %d", to_node);
 
-		#endif
+
+
+
 
 		sub_route_node = get_road_sub_route (from_node, to_node, &count, NULL);
 
@@ -1764,15 +1764,15 @@ static int response_to_waypoint_sub_route_navigation_reached (entity_messages me
 				set_local_entity_int_value (mb, INT_TYPE_SUB_WAYPOINT_COUNT, count);
 				raw->sub_route = sub_route_node;
 
-				#if DEBUG_MODULE
 
-				debug_log ("MB_MSGS: SET-UP sub_route for leader entity %s, %d between %d and %d",
-						get_local_entity_string (mb, STRING_TYPE_FULL_NAME),
-						get_local_entity_index (mb),
-						from_node,
-						to_node);
 
-				#endif
+
+
+
+
+
+
+
 
 				mb = get_local_entity_child_succ (mb, LIST_TYPE_MEMBER);
 			}
@@ -1807,11 +1807,11 @@ static int response_to_waypoint_prepare_for_drop_off_reached (entity_messages me
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 
 	//
@@ -1832,11 +1832,11 @@ static int response_to_waypoint_prepare_for_drop_off_reached (entity_messages me
 	
 			set_client_server_entity_int_value (mb, INT_TYPE_SELECTED_WEAPON, ENTITY_SUB_TYPE_WEAPON_CRATE);
 
-			#if DEBUG_MODULE
-	
-			debug_log ("MB_MSGS: %s (%d) reached prepare_for_drop_off, selecting crate_weapon", get_local_entity_string (mb, STRING_TYPE_FULL_NAME), get_local_entity_index (mb));
 
-			#endif
+
+
+
+
 		}
 	
 		mb = get_local_entity_child_succ (mb, LIST_TYPE_MEMBER);
@@ -1866,11 +1866,11 @@ static int response_to_waypoint_pick_up_reached (entity_messages message, entity
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	keysite = get_local_entity_parent (sender, LIST_TYPE_TASK_DEPENDENT);
 
@@ -1908,11 +1908,11 @@ static int response_to_waypoint_pick_up_reached (entity_messages message, entity
 
 	set_local_entity_float_value (receiver, FLOAT_TYPE_VIEW_INTEREST_LEVEL, DEFAULT_VIEW_INTEREST_LEVEL);
 
-	#if DEBUG_MODULE
 
-	debug_log ("MB_MSGS: inserting cargo %s into %s movement_dependent list", entity_sub_type_cargo_names [get_local_entity_int_value (cargo, INT_TYPE_ENTITY_SUB_TYPE)], entity_type_names [get_local_entity_type (receiver)]);
 
-	#endif
+
+
+
 
 
 	//
@@ -1940,11 +1940,11 @@ static int response_to_waypoint_recon_action (entity_messages message, entity *r
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	if (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI)
 	{
@@ -1994,11 +1994,11 @@ static int response_to_waypoint_recon_reached (entity_messages message, entity *
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	side = get_local_entity_int_value (receiver, INT_TYPE_SIDE);
 
@@ -2112,11 +2112,11 @@ static int response_to_waypoint_taken_off_reached (entity_messages message, enti
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	raw = (mobile *) get_local_entity_data (receiver);
 
@@ -2198,11 +2198,11 @@ static int response_to_waypoint_taxi_reached (entity_messages message, entity *r
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	close_client_server_entity_airbrakes (receiver);
 
@@ -2393,11 +2393,11 @@ static int response_to_waypoint_troop_insert_reached (entity_messages message, e
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	group = get_local_entity_parent (receiver, LIST_TYPE_MEMBER);
 
@@ -2473,15 +2473,15 @@ static int response_to_waypoint_troop_insert_reached (entity_messages message, e
 				{
 					if (!assign_task_to_group (infantry_group, new_task, TASK_ASSIGN_ALL_MEMBERS))
 					{
-						#ifdef DEBUG
 
-						breakout (NULL);
 
-						assign_task_to_group (infantry_group, new_task, TASK_ASSIGN_ALL_MEMBERS);
 
-						debug_fatal ("MB_MSGS: can't assign person to its task");
 
-						#endif
+
+
+
+
+
 					}
 					else
 					{
@@ -2668,11 +2668,11 @@ static int response_to_waypoint_troop_pickup_point_end_reached (entity_messages 
 	// now destroy troops
 	//
 
-	#if DEBUG_MODULE
 
-	debug_log ("MB_MSGS: Troop pickup point reached destroying troops");
 
-	#endif
+
+
+
 
 	mb = get_local_entity_first_child (group, LIST_TYPE_MEMBER);
 
@@ -2746,11 +2746,11 @@ static int response_to_waypoint_prepare_for_insertion_reached (entity_messages m
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	#if DEBUG_MODULE >= 2
 
-	debug_log_entity_message (message, receiver, sender, pargs);
 
-	#endif
+
+
+
 
 	group = get_local_entity_parent (receiver, LIST_TYPE_MEMBER);
 	
@@ -2762,11 +2762,11 @@ static int response_to_waypoint_prepare_for_insertion_reached (entity_messages m
 	{
 		lower_client_server_entity_undercarriage (receiver);
 
-		#if DEBUG_MODULE
 
-		debug_log ("MB_MSGS: %s (%d) reached prepare_for_insertion", get_local_entity_string (mb, STRING_TYPE_FULL_NAME), get_local_entity_index (mb));
 
-		#endif
+
+
+
 	
 		mb = get_local_entity_child_succ (mb, LIST_TYPE_MEMBER);
 	}
@@ -2882,72 +2882,72 @@ entity* get_destination_keysite (entity *group, entity_sides side, entity *task)
 
 
 
-void overload_mobile_message_responses (entity_types type)
-{
-	#if DEBUG_MODULE >= 2
 
-	message_responses[type][ENTITY_MESSAGE_LINK_CHILD] 										= response_to_link_child;
 
-	message_responses[type][ENTITY_MESSAGE_UNLINK_CHILD]										= response_to_unlink_child;
 
-	message_responses[type][ENTITY_MESSAGE_LINK_PARENT]										= response_to_link_parent;
 
-	message_responses[type][ENTITY_MESSAGE_UNLINK_PARENT]										= response_to_unlink_parent;
 
-	#endif
 
-	message_responses[type][ENTITY_MESSAGE_TASK_ASSIGNED]										= response_to_task_assigned;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_APPROACH_REACHED]						= response_to_waypoint_approach_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_ATTACK_ACTION]							= response_to_waypoint_attack_action;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_CONVOY_REACHED]						= response_to_waypoint_convoy_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_DEFEND_REACHED]						= response_to_waypoint_defend_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_DROP_OFF_REACHED]						= response_to_waypoint_drop_off_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_FINISH_DROP_OFF_REACHED]			= response_to_waypoint_finish_drop_off_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_LAND_REACHED]							= response_to_waypoint_land_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_LANDED_REACHED]						= response_to_waypoint_landed_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_LOOP_REACHED]							= response_to_waypoint_loop_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_NAVIGATION_REACHED]					= response_to_waypoint_navigation_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_SUB_ROUTE_NAVIGATION_REACHED]		= response_to_waypoint_sub_route_navigation_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_PREPARE_FOR_DROP_OFF_REACHED]		= response_to_waypoint_prepare_for_drop_off_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_PICK_UP_REACHED]						= response_to_waypoint_pick_up_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_RECON_ACTION]							= response_to_waypoint_recon_action;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_RECON_REACHED]							= response_to_waypoint_recon_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_REPAIR_REACHED]						= response_to_waypoint_repair_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_TAKEN_OFF_REACHED]					= response_to_waypoint_taken_off_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_TAXI_REACHED]							= response_to_waypoint_taxi_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_TROOP_CAPTURE_REACHED]				= response_to_waypoint_troop_capture_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_TROOP_DEFEND_REACHED]				= response_to_waypoint_troop_defend_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_TROOP_INSERT_REACHED]				= response_to_waypoint_troop_insert_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_TROOP_PICKUP_POINT_END_REACHED]	= response_to_waypoint_troop_pickup_point_end_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_TROOP_PICKUP_POINT_START_REACHED]= response_to_waypoint_troop_pickup_point_start_reached;
 
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_TROOP_PUTDOWN_POINT_REACHED]		= response_to_waypoint_troop_putdown_point_reached;
-	
-	message_responses[type][ENTITY_MESSAGE_WAYPOINT_PREPARE_FOR_INSERTION_REACHED]		= response_to_waypoint_prepare_for_insertion_reached;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -341,11 +341,11 @@ static int
 void read_sector_side_file ( const char *sides_filename )
 {
 
-	#if DEBUG_MODULE
 
-	debug_log ( "READING IN SIDE DATA" );
 
-	#endif
+
+
+
 
 	if ( sides_filename )
 	{
@@ -658,11 +658,11 @@ void read_population_placement_file ( const char *placement_filename )
 	// First the city block templates
 	//
 
-	#if DEBUG_MODULE
 
-	debug_log ( "Starting to build cities" );
 
-	#endif
+
+
+
 
 	read_population_templates ( fp );
 
@@ -670,11 +670,11 @@ void read_population_placement_file ( const char *placement_filename )
 	// Next the actual placement of the templates
 	//
 
-	#if DEBUG_MODULE
 
-	debug_log ( "Placing the templates" );
 
-	#endif
+
+
+
 
 	read_population_city_placements ( fp );
 
@@ -706,11 +706,11 @@ void read_population_placement_file ( const char *placement_filename )
 		}
 	}
 
-	#if DEBUG_MODULE
 
-	debug_log ( "Finished building cities" );
 
-	#endif
+
+
+
 
 	//
 	// Next the airfield placements
@@ -728,11 +728,11 @@ void read_population_placement_file ( const char *placement_filename )
 
 	read_population_sam_placements ( fp );
 
-	#if DEBUG_MODULE
 
-	debug_log ( "Finished airport placement" );
 
-	#endif
+
+
+
 
 	fclose ( fp );
 
@@ -777,11 +777,11 @@ void read_population_templates ( FILE *fp )
 		char
 			object_name[256];
 
-		#if DEBUG_MODULE
 
-		debug_log ( "Template: %d", count );
 
-		#endif
+
+
+
 
 		temporary_templates[count].approximation_object = OBJECT_3D_INVALID_OBJECT_INDEX;
 
@@ -883,20 +883,20 @@ void read_population_templates ( FILE *fp )
 				if ( objects[object_count].object_index != OBJECT_3D_INVALID_OBJECT_INDEX )
 				{
 
-					#if DEBUG_MODULE
 
-					debug_log ( "3D Object: %s", object_3d_enumeration_names[ objects[object_count].object_index ] );
 
-					#endif
+
+
+
 				}
 				else
 				{
 
-					#if DEBUG_MODULE
 
-					debug_log ( "3D Object: %s ( was %s ) ", object_3d_enumeration_names[ objects[object_count].object_index ], object_name );
 
-					#endif
+
+
+
 				}
 
 				ASSERT ( objects[object_count].object_index < OBJECT_3D_LAST );
@@ -1515,11 +1515,11 @@ void read_population_airfield_placements ( FILE *fp )
 	// Read in the airfields themselves
 	//
 
-	#if DEBUG_MODULE
 
-	debug_log ( "Starting airport placement" );
 
-	#endif
+
+
+
 
 	for ( count = 0; count < number_of_instances; count++ )
 	{
@@ -1615,11 +1615,11 @@ void read_population_airfield_placements ( FILE *fp )
 				case OBJECT_3D_RUSSIAN_AIRPORT13:
 				{
 
-					#if DEBUG_MODULE
 
-					debug_log ( "Placing main airport at %f, %f", x, z );
 
-					#endif
+
+
+
 
 					keysite_sub_type = ENTITY_SUB_TYPE_KEYSITE_AIRBASE;
 
@@ -1654,11 +1654,11 @@ void read_population_airfield_placements ( FILE *fp )
 				case OBJECT_3D_RUSSIAN_FARP13:
 				{
 
-					#if DEBUG_MODULE
 
-					debug_log ( "Placing FARP at %f, %f", x, z );
 
-					#endif
+
+
+
 
 					keysite_sub_type = ENTITY_SUB_TYPE_KEYSITE_FARP;
 
@@ -1718,22 +1718,22 @@ void read_population_airfield_placements ( FILE *fp )
 					if ( side == ENTITY_SIDE_RED_FORCE )
 					{
 
-						#if DEBUG_MODULE
 
-						debug_log ( "Placing a kiev keysite" );
 
-						#endif
+
+
+
 
 						object_index = OBJECT_3D_KIEV_CLASS;
 					}
 					else if ( side == ENTITY_SIDE_BLUE_FORCE )
 					{
 
-						#if DEBUG_MODULE
 
-						debug_log ( "Placing a tarawa keysite" );
 
-						#endif
+
+
+
 
 						object_index = OBJECT_3D_TARAWA;
 					}
@@ -2116,12 +2116,12 @@ void read_population_airfield_placements ( FILE *fp )
 
 				// debug_log used to generate POPNAME.DAT. just replace the - with newlines....
 
-				#if DEBUG_MODULE
 
-				debug_log ("POPREAD: POPNAME.DAT (%s) :NAME %s-:POPULATION_TYPE KEYSITE-:POSITION %.0f %.0f-:ZOOM 0. (FW %d)(HC %d)(RV %d)(SH %d)(T-FW %d)(PPL %d)",
-							entity_side_names [keysite_side], airfield_name, position.x, position.z, fixed_wing_flag, helicopter_flag, routed_vehicle_flag, ship_flag, transport_flag, people_flag);
 
-				#endif
+
+
+
+
 
 				//
 				// Check all the landing site are on flat land
@@ -2154,11 +2154,11 @@ void read_population_sam_placements ( FILE *fp )
 
 	fread ( &number_of_instances, sizeof ( int ), 1, fp );
 
-	#if DEBUG_MODULE
 
-	debug_log ( "reading in %d aaa/sam placements", number_of_instances );
 
-	#endif
+
+
+
 
 	for ( count = 0; count < number_of_instances; count++ )
 	{
@@ -4089,11 +4089,11 @@ void insert_airfield_buildings ( int side, object_3d_instance *instance )
 			else
 			{
 
-				#if DEBUG_MODULE
 
-				debug_log ("POPREAD: WARNING: trying to create REGEN %s but keysite doesn't support that landing type", entity_sub_type_regen_names [regeneration_sub_type]);
 
-				#endif
+
+
+
 			}
 		}
 		else
@@ -4303,22 +4303,22 @@ static const char *get_keysite_name (float x, float z, entity_sides *side)
 	if (best_item)
 	{
 
-		#if DEBUG_MODULE
 
-		debug_log ("AI_DBASE: closest city to %f, %f is (%s) at %f, %f (range %f) side %s", x, z, best_item->name, best_item->x, best_item->z, best_range, entity_side_names [*side]);
 
-		#endif
+
+
+
 
 		return best_item->name;
 	}
 	else
 	{
 
-		#if DEBUG_MODULE
 
-		debug_log ("AI_DBASE: no match to closest city at %f, %f side %s", x, z, entity_side_names [*side]);
 
-		#endif
+
+
+
 	}
 
 	return NULL;

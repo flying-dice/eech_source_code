@@ -87,11 +87,11 @@ static void destroy_local (entity *en)
 	//
 
 
-	#if DEBUG_MODULE
 
-	debug_log_entity_args (ENTITY_DEBUG_LOCAL, ENTITY_DEBUG_DESTROY, en);
 
-	#endif
+
+
+
 
 	raw = (update *) get_local_entity_data (en);
 
@@ -134,14 +134,14 @@ static void destroy_local (entity *en)
 
 
 
-void overload_update_destroy_functions (void)
-{
-	fn_destroy_local_entity				[ENTITY_TYPE_UPDATE]	= destroy_local;
 
-	fn_destroy_local_entity_family	[ENTITY_TYPE_UPDATE]	= destroy_local;
 
-	fn_kill_local_entity					[ENTITY_TYPE_UPDATE]	= destroy_local;
-}
+
+
+
+
+
+
 
 
 

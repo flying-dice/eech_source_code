@@ -417,18 +417,18 @@ static unsigned char assess_cover_position (entity *en, entity *aggressor, entit
 
 	result = 0;
 
-	#if DEBUG_MODULE
 
-	if (cover_structure)
-	{
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_filtered_log ("*************************************");
-			debug_filtered_log ("GD_COVER: Checking %s (%s)", get_local_entity_string (cover_structure, STRING_TYPE_FULL_NAME), object_3d_enumeration_names[get_local_entity_int_value (cover_structure, INT_TYPE_OBJECT_3D_SHAPE)]);
-		}
-	}
 
-	#endif
+
+
+
+
+
+
+
+
+
+
 
 	//
 	// check position is within map boundaries (TRIVIAL REJECTION)
@@ -436,14 +436,14 @@ static unsigned char assess_cover_position (entity *en, entity *aggressor, entit
 
 	if (!point_inside_map_area (cover_pos))
 	{
-		#if DEBUG_MODULE
 
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_filtered_log ("	- REJECTED (point outside map area)");
-		}
 
-		#endif
+
+
+
+
+
+
 
 		return result;
 	}
@@ -488,14 +488,14 @@ static unsigned char assess_cover_position (entity *en, entity *aggressor, entit
 
 	if (get_3d_unit_vector_dot_product (&ta_vec, &tc_vec) < 0.0)
 	{
-		#if DEBUG_MODULE
 
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_filtered_log ("	- REJECTED (fly past target)");
-		}
 
-		#endif
+
+
+
+
+
+
 
 		return result;
 	}
@@ -521,14 +521,14 @@ static unsigned char assess_cover_position (entity *en, entity *aggressor, entit
 
 	if ((tc_range < weapon_min_range) || (tc_range > weapon_max_range))
 	{
-		#if DEBUG_MODULE
 
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_filtered_log ("	- REJECTED (out of weapon range)");
-		}
 
-		#endif
+
+
+
+
+
+
 
 		return result;
 	}
@@ -571,14 +571,14 @@ static unsigned char assess_cover_position (entity *en, entity *aggressor, entit
 
 		if (object_height < (GUIDE_COVER_ALTITUDE + (0.666 * aggressor_height)))
 		{
-			#if DEBUG_MODULE
 
-			if (aggressor == get_external_view_entity ())
-			{
-				debug_filtered_log ("	- REJECTED (structure too short - %f / %f)", object_height, (GUIDE_COVER_ALTITUDE + (0.666 * aggressor_height)));
-			}
 
-			#endif
+
+
+
+
+
+
 
 			return result;
 		}
@@ -640,14 +640,14 @@ static unsigned char assess_cover_position (entity *en, entity *aggressor, entit
 
 		if ((wmax < aggressor_width) || ((-wmin) < aggressor_width))
 		{
-			#if DEBUG_MODULE
 
-			if (aggressor == get_external_view_entity ())
-			{
-				debug_filtered_log ("	- REJECTED (structure too narrow - %f / %f)", fabs (check_point.x), aggressor_width);
-			}
 
-			#endif
+
+
+
+
+
+
 
 			return result;
 		}
@@ -702,17 +702,17 @@ static unsigned char assess_cover_position (entity *en, entity *aggressor, entit
 
 						distance = get_2d_range (&member_pos, cover_pos);
 
-						#if DEBUG_MODULE
 
-						if (aggressor == get_external_view_entity ())
-						{
-							debug_filtered_log ("%s (%d) hiding %f metres from cover pos",
-													get_local_entity_string (member, STRING_TYPE_FULL_NAME),
-													get_local_entity_index (member),
-													distance);
-						}
 
-						#endif
+
+
+
+
+
+
+
+
+
 
 						//
 						// subtract the aggressors radius
@@ -734,14 +734,14 @@ static unsigned char assess_cover_position (entity *en, entity *aggressor, entit
 						// if distance < 0 then the two members would clash
 						//
 						
-						#if DEBUG_MODULE
 
-						if (aggressor == get_external_view_entity ())
-						{
-							debug_filtered_log ("-  adjusted distance %f", distance);
-						}
 
-						#endif
+
+
+
+
+
+
 
 						if (distance < 0.0)
 						{
@@ -761,14 +761,14 @@ static unsigned char assess_cover_position (entity *en, entity *aggressor, entit
 
 	if (check_position_line_of_sight (aggressor, target, cover_pos, target_pos, MOBILE_LOS_CHECK_ALL))
 	{
-		#if DEBUG_MODULE
 
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_filtered_log ("	- REJECTED (no LOS at cover position)");
-		}
 
-		#endif
+
+
+
+
+
+
 
 		return result;
 	}
@@ -821,14 +821,14 @@ static unsigned char assess_cover_position (entity *en, entity *aggressor, entit
 
 	if (altitude >= MAX_LOS_ALTITUDE)
 	{
-		#if DEBUG_MODULE
 
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_filtered_log ("	- REJECTED (no LOS until max altitude)");
-		}
 
-		#endif
+
+
+
+
+
+
 
 		return result;
 	}
@@ -899,14 +899,14 @@ static unsigned char assess_cover_position (entity *en, entity *aggressor, entit
 					
 							if (get_3d_vector_cube_cube_intersect (&aggressor_min, &aggressor_max, &object_min, &object_max))
 							{	
-								#if DEBUG_MODULE
-		
-								if (aggressor == get_external_view_entity ())
-								{
-									debug_filtered_log ("	- REJECTED (object placed at cover position)");
-								}
-	
-								#endif
+
+
+
+
+
+
+
+
 		
 								return result;
 							}
@@ -946,14 +946,14 @@ static unsigned char assess_cover_position (entity *en, entity *aggressor, entit
 		set_local_entity_vec3d (aggressor, VEC3D_TYPE_COVER_POSITION, cover_pos);
 	}
 
-	#if DEBUG_MODULE
 
-	if (aggressor == get_external_view_entity ())
-	{
-		debug_filtered_log ("	- ACCEPTED");
-	}
 
-	#endif
+
+
+
+
+
+
 
 	return result;
 }
@@ -1177,27 +1177,27 @@ int update_guide_seek_cover_fixed_structure_search (entity *en)
 	
 		score = assess_cover_position (en, aggressor, target, &cover_pos, structure);
 
-		#if DEBUG_MODULE
 
-		if (aggressor == get_external_view_entity ())
-		{
-			vec3d
-				*aggressor_pos;
-	
-			debug_filtered_log ("GD_COVER: (%d - %d) Checking %s (%d) SCORE %d",
-										 raw->current_seek_cover_result.search_mode,
-										 count,
-										 get_local_entity_type_name (structure),
-										 get_local_entity_index (structure),
-										 score);
-	
-			aggressor_pos = get_local_entity_vec3d_ptr (aggressor, VEC3D_TYPE_POSITION);
-	
-			create_debug_3d_line (aggressor_pos, &cover_pos, sys_col_amber, 2.0);
 
-			create_debug_3d_line (aggressor_pos, target_pos, sys_col_red, 0.0);
-		}
-		#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	}
 
 	//
@@ -1206,14 +1206,14 @@ int update_guide_seek_cover_fixed_structure_search (entity *en)
 
 	if ((!structure) || (raw->current_seek_cover_result.count == (SEEK_COUNT_LIMIT - 1)))
 	{
-		#if DEBUG_MODULE
 
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_filtered_log ("GD_COVER: (%d) ---------------------------", raw->current_seek_cover_result.search_mode);
-		}
 
-		#endif
+
+
+
+
+
+
 
 		if (raw->current_seek_cover_result.sector)
 		{
@@ -1485,20 +1485,20 @@ int update_guide_seek_cover_forest_search (entity *en)
 		
 		score = assess_cover_position (en, aggressor, target, &cover_pos, NULL);
 	
-		#if DEBUG_MODULE
 
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_filtered_log ("GD_COVER: (%d - %d) SCORE %d",
-										 raw->current_seek_cover_result.search_mode,
-										 count,
-										 score);
-		
-			create_debug_3d_line (aggressor_pos, &cover_pos, sys_col_ultramarine, 2.0);
 
-			create_debug_3d_line (aggressor_pos, target_pos, sys_col_red, 0.0);
-		}
-		#endif
+
+
+
+
+
+
+
+
+
+
+
+
 
 		check_count ++;
 
@@ -1624,36 +1624,36 @@ int update_guide_seek_cover_default_terrain_search (entity *en)
 		
 		score = assess_cover_position (en, aggressor, target, &cover_pos, NULL);
 	
-		#if DEBUG_MODULE
 
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_filtered_log ("GD_COVER: (%d - %d) Checking distance %f angle %f SCORE %d",
-										raw->current_seek_cover_result.search_mode,
-										count,
-										distance,
-										deg (theta),
-										score);
-		
-			create_debug_3d_line (target_pos, &cover_pos, sys_col_dark_blue, 10.0);
 
-			create_debug_3d_line (aggressor_pos, target_pos, sys_col_red, 0.0);
-		}	
-		#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	}
 	
 	count ++;
 
 	if (count >= min (MAX_RADIAL_CHECKS, SEEK_COUNT_LIMIT))
 	{
-		#if DEBUG_MODULE
 
-		if (aggressor == get_external_view_entity ())
-		{
-			debug_filtered_log ("GD_COVER: (%d) ---------------------------", raw->current_seek_cover_result.search_mode);
-		}
 
-		#endif
+
+
+
+
+
+
 
 		set_guide_seek_cover_next_search_mode (en);
 
@@ -1697,14 +1697,14 @@ int update_guide_seek_cover_current_position_search (entity *en)
 
 	score = assess_cover_position (en, aggressor, target, aggressor_pos, NULL);
 
-	#if DEBUG_MODULE
 
-	if (aggressor == get_external_view_entity ())
-	{
-		debug_filtered_log ("GD_COVER: (Current Position) SCORE %d", score);
-	}
 
-	#endif
+
+
+
+
+
+
 
 	return TRUE;
 }
