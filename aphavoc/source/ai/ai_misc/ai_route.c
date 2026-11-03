@@ -290,8 +290,6 @@ void deinitialise_road_route_data (void)
 
 
 
-void read_road_route_data (void)
-{
 
 
 
@@ -299,19 +297,21 @@ void read_road_route_data (void)
 
 
 
-   if (read_road_route_node_data ("ROADS"))
-	{
-	   read_road_route_node_positions ("ROADS");
 
-   	read_road_route_node_link_positions ("ROADS");
-	}
-	else if (read_road_route_node_data ("ROADDATA"))
-	{
-	   read_road_route_node_positions ("ROADDATA");
 
-   	read_road_route_node_link_positions ("ROADDATA");
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -328,119 +328,38 @@ void read_road_route_data (void)
 //			}
 //
 
-static int read_road_route_node_data (char *name)
-{
 
-	unsigned int
-		loop;
 
-	int
-		value;
 
-	float
-		fvalue;
 
-   FILE
-      *file_ptr;
 
-   int
-      number_of_road_nodes;
 
-   node_data
-      *new_node;
 
-	char
-		filename [1024];
 
-	ASSERT (get_valid_current_game_session ());
 
-	sprintf (filename, "%s\\route\\%s%s", current_game_session->data_path, name, ROUTE_NODE_DATA_EXTENSION);
 
-	if (file_exist (filename))
-	{
-	
-		file_ptr = safe_fopen (filename, "rb");
-	
-		duplicate_count = 0;
-	
-		//
-		// malloc array of number of road_nodes
-		//
 
-		// read map sizes
-		safe_fread (&fvalue, 4, 1, file_ptr);
-		safe_fread (&fvalue, 4, 1, file_ptr);
 
-		safe_fread (&total_number_of_road_nodes, 4, 1, file_ptr);
 
-		number_of_road_nodes = total_number_of_road_nodes;
 
-		if (number_of_road_nodes == 0)
-		{
 
-			fclose (file_ptr);
 
-			return FALSE;
-		}
 
-		road_nodes = (node_data *) malloc_heap_mem (sizeof (node_data) * number_of_road_nodes);
 
-		memset (road_nodes, 0, sizeof (node_data) * number_of_road_nodes);
 
-		#if AI_DEBUG
-	
-		ai_memory_counter ++;
-	
-		#endif
 
-		new_node = road_nodes;
 
-		total_road_node_link_count = 0;
 
-		while (number_of_road_nodes)
-		{
 
-			safe_fread (&value, 4, 1, file_ptr);
-			new_node->node = value;
 
-			#if SAFE_RADIUS
-				
-			safe_fread (&value, 4, 1, file_ptr);
-//			new_node->safe_radius = value;
 
-			#endif
 
-			// override - DL
-			new_node->safe_radius = 28;
-				
-			safe_fread (&value, 4, 1, file_ptr);
-			new_node->number_of_links = value;
 
-			new_node->visited = MAX_ROUTE_LENGTH;
-	
-			new_node->links = (link_data *) malloc_heap_mem (sizeof (link_data) * ((new_node->number_of_links) + 1));
 
-			memset (new_node->links, 0, sizeof (link_data) * ((new_node->number_of_links) + 1));
-	
-			#if AI_DEBUG
-		
-			ai_memory_counter ++;
-		
-			#endif
 
-			for (loop = 0; loop < new_node->number_of_links; loop ++)
-			{
 
-				safe_fread (&value, 4, 1, file_ptr);
-				new_node->links [loop].node = value;
 
-				safe_fread (&value, 4, 1, file_ptr);
-				new_node->links [loop].cost = value;
 
-				new_node->links [loop].breaks = 0;
-			}
-	
-			number_of_road_nodes --;
 
 
 
@@ -469,14 +388,8 @@ static int read_road_route_node_data (char *name)
 
 
 
-			new_node ++;
-		}
 
-		fclose (file_ptr);
 
-		//
-		// debug check for duplicate link descriptions
-		//
 
 
 
@@ -531,11 +444,98 @@ static int read_road_route_node_data (char *name)
 
 
 
-		return TRUE;
-	}
 
-	return FALSE;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -548,85 +548,85 @@ static int read_road_route_node_data (char *name)
 // list of vec3d positions
 //
 
-static int read_road_route_node_positions (char *name)
-{
 
-   FILE
-      *file_ptr;
 
-   int
-      number_of_road_nodes;
 
-	char
-		filename [1024];
 
-	ASSERT (get_valid_current_game_session ());
 
-	sprintf (filename, "%s\\route\\%s%s", current_game_session->data_path, name, ROUTE_NODE_POSITIONS_EXTENSION);
 
-	ASSERT (file_exist (filename));
 
-	file_ptr = safe_fopen (filename, "rb");
 
-	safe_fread (&number_of_road_nodes, 4, 1, file_ptr);
 
-	ASSERT (number_of_road_nodes == total_number_of_road_nodes);
 
-	if (number_of_road_nodes == 0)
-	{
 
-		fclose (file_ptr);
 
-		return FALSE;
-	}
 
-	road_node_positions = (vec3d *) malloc_heap_mem (sizeof (vec3d) * number_of_road_nodes);
 
-	memset (road_node_positions, 0, sizeof (vec3d) * number_of_road_nodes);
 
-	#if AI_DEBUG
 
-	ai_memory_counter ++;
 
-	#endif
 
-	safe_fread (road_node_positions, sizeof (vec3d) * number_of_road_nodes, 1, file_ptr);
 
-	fclose (file_ptr);
 
-	#if CHECK_ROUTE_NODE_HEIGHT
-	{
 
-		int
-			loop;
 
-		float
-			terrain_elevation;
 
-		for (loop = 0; loop < number_of_road_nodes; loop ++)
-		{
-			ASSERT(point_inside_map_area(&road_node_positions [loop]));
 
-			terrain_elevation = get_3d_terrain_elevation (road_node_positions [loop].x, road_node_positions [loop].z);
 
-			if (terrain_elevation > road_node_positions [loop].y)
-			{
 
-				debug_log ("AI_ROUTE: warning, road node %d below terrain", loop);
-			}
-			else if (terrain_elevation < road_node_positions [loop].y)
-			{
 
-				debug_log ("AI_ROUTE: warning, road node %d above terrain", loop);
-			}
 
-			road_node_positions [loop].y = terrain_elevation;
-		}
-	}
-	#endif
 
-	return TRUE;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -641,144 +641,144 @@ static int read_road_route_node_positions (char *name)
 // List of node_link_data for each position and cost.
 //
 
-static int read_road_route_node_link_positions (char *name)
-{
 
-   FILE
-      *file_ptr;
 
-   int
-		value,
-		loop,
-      count;
 
-   node_link_data
-      *new_link;
 
-	char
-		filename [1024];
 
-	ASSERT (get_valid_current_game_session ());
 
-	sprintf (filename, "%s\\route\\%s%s", current_game_session->data_path, name, ROUTE_NODE_LINK_POSITION_DATA_EXTENSION);
 
-	ASSERT (file_exist (filename));
 
-	file_ptr = safe_fopen (filename, "rb");
 
-	//
-	// read in number of links
-	//
 
-	safe_fread (&total_road_node_link_count, 4, 1, file_ptr);
 
-	if (total_road_node_link_count == 0)
-	{
 
-		fclose (file_ptr);
 
-		return FALSE;
-	}
 
-	road_node_link_positions = (node_link_data *) malloc_heap_mem (sizeof (node_link_data) * total_road_node_link_count);
 
-	memset (road_node_link_positions, 0, sizeof (node_link_data) * total_road_node_link_count);
 
-	#if AI_DEBUG
 
-	ai_memory_counter ++;
 
-	#endif
 
-	new_link = road_node_link_positions;
 
-	count = total_road_node_link_count;
 
-	#if AI_DEBUG
 
-	debug_log ("ROUTE: node link count %d", total_road_node_link_count);
 
-	#endif
 
-	while (count)
-	{
 
-		safe_fread (&value, 4, 1, file_ptr);
-		new_link->source = value;
-			
-		safe_fread (&value, 4, 1, file_ptr);
-		new_link->destination = value;
 
-		safe_fread (&value, 4, 1, file_ptr);
-		new_link->path_type = value;
 
-		safe_fread (&value, 4, 1, file_ptr);
-		new_link->number_of_links = value;
 
-		if (new_link->number_of_links > 0)
-		{
 
-			new_link->link_positions = (vec3d *) malloc_heap_mem (sizeof (vec3d) * (new_link->number_of_links + 2));
-	
-			#if AI_DEBUG
-		
-			ai_memory_counter ++;
-		
-			#endif
-	
-			safe_fread (&new_link->link_positions [1], sizeof (vec3d) * new_link->number_of_links, 1, file_ptr);
 
-			new_link->link_positions [0] = road_node_positions [new_link->source];
-			new_link->link_positions [new_link->number_of_links + 1] = road_node_positions [new_link->destination];
 
-			new_link->number_of_links += 2;
-		}
 
-		//
-		// Safeguard to keep link road road_nodes on map
-		//
 
-		for (loop = 0; loop < new_link->number_of_links; loop ++)
-		{
 
-			new_link->link_positions [loop].x = bound (new_link->link_positions [loop].x, 0, MAX_MAP_X);
 
-			new_link->link_positions [loop].z = bound (new_link->link_positions [loop].z, 0, MAX_MAP_Z);
 
-			#if CHECK_ROUTE_NODE_HEIGHT
-			{
-				float
-					terrain_elevation;
 
-				ASSERT(point_inside_map_area(&new_link->link_positions [loop]));
 
-				terrain_elevation = get_3d_terrain_elevation (new_link->link_positions [loop].x, new_link->link_positions [loop].z);
-	
-				if (terrain_elevation > new_link->link_positions [loop].y)
-				{
-	
-					debug_log ("AI_ROUTE: warning, between node %d and %d (sub_node %d) below terrain", new_link->source, new_link->destination, loop);
-				}
-				else if (terrain_elevation < new_link->link_positions [loop].y)
-				{
-	
-					debug_log ("AI_ROUTE: warning, between node %d and %d (sub_node %d) above terrain", new_link->source, new_link->destination, loop);
-				}
-			}
-			#endif
-		}
 
-		new_link ++;
 
-		count --;
-	}
 
-	fclose (file_ptr);
 
-	road_nodes_loaded = TRUE;
 
-	return TRUE;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

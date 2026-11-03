@@ -2541,40 +2541,40 @@ float get_estimated_task_duration (entity *task_en)
 
 
 
-void display_task_generation_stats (entity *force_en)
-{
-	int
-		loop;
-
-	force
-		*force_raw;
-
-	//suppress_debug_log_timing_info (TRUE);
-
-	force_raw = (force *)get_local_entity_data (force_en);
-
-	debug_log ("======================================================================================");
-	debug_log ("TASK GENERATION STATISTICS");
-	debug_log ("======================================================================================");
-
-	debug_log (" %s: created	completed failed,	total_created", entity_side_names [force_raw->side]);
-
-	for (loop = 0; loop < NUM_ENTITY_SUB_TYPE_TASKS; loop ++)
-	{
 
 
-		debug_log ("				%d			%d				%d				%d  %s",
-						force_raw->task_generation [loop].created,
-						force_raw->task_generation [loop].completed,
-						force_raw->task_generation [loop].failed,
-						force_raw->task_generation [loop].created,
-						entity_sub_type_task_names [loop]);
-	}
 
-	debug_log ("======================================================================================");
 
-	//suppress_debug_log_timing_info (FALSE);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

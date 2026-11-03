@@ -114,23 +114,23 @@
 
 #include "sound.h"
 
-#ifdef OGRE_EE
-// FIXME
-#define screen void
-#define display_device void
 
-#define read_joystick_values(x)
-#define play_ffb_weapon_effect(x, y)
 
-#define create_user_texture_screen(A, B, C, D) NULL
-#define create_system_texture_screen(A, B, C, D) NULL
-#define create_user_3dvisual_texture_screen(A, B, C) NULL
-#define destroy_screen(X)
-#define lock_screen(X) 1
-#define unlock_screen(X)
-#define get_screen_of_system_texture(X) NULL
-#define set_block(A, B, C, D, E)
-#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

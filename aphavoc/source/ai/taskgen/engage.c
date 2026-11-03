@@ -394,119 +394,119 @@ int engage_targets_in_area (entity *group, vec3d *target_point, float radius, un
 
 
 
-int debug_engage_targets_in_area (entity *group, vec3d *target_point, float radius, unsigned int target_type)
-{
-	//
-	// Engages all targets in area, regardless of side 
-	//
 
-	int
-		sx,
-		sz,
-		min_sector_x,
-		max_sector_x,
-		min_sector_z,
-		max_sector_z;
 
-	entity
-		*new_task,
-		*objective,
-		*target_sector;
 
-	entity_sides
-		side;
 
-	sector
-		*raw;
 
-	float
-		range,
-		temp_x,
-		temp_z;
 
-	vec3d
-		*pos;
 
-	new_task = NULL;
 
-	temp_x = target_point->x - radius;
-	temp_z = target_point->z - radius;
 
-	get_x_sector (min_sector_x, temp_x);
-	get_z_sector (min_sector_z, temp_z);
 
-	temp_x = target_point->x + radius;
-	temp_z = target_point->z + radius;
 
-	get_x_sector (max_sector_x, temp_x);
-	get_z_sector (max_sector_z, temp_z);
 
-	min_sector_x = bound (min_sector_x, MIN_MAP_X_SECTOR, MAX_MAP_X_SECTOR);
-	max_sector_x = bound (max_sector_x, MIN_MAP_X_SECTOR, MAX_MAP_X_SECTOR);
 
-	min_sector_z = bound (min_sector_z, MIN_MAP_Z_SECTOR, MAX_MAP_Z_SECTOR);
-	max_sector_z = bound (max_sector_z, MIN_MAP_Z_SECTOR, MAX_MAP_Z_SECTOR);
 
-	side = (entity_sides) get_local_entity_int_value (group, INT_TYPE_SIDE);
 
-	for (sz = min_sector_z; sz <= max_sector_z; sz ++)
-	{
-		for (sx = min_sector_x; sx <= max_sector_x; sx ++)
-		{
-			target_sector = get_local_raw_sector_entity (sx, sz);
 
-			raw = (sector *) get_local_entity_data (target_sector);
 
-			//
-			// search for viable targets
-			//
 
-			objective = raw->sector_root.first_child;
 
-			while (objective)
-			{
-				//
-				// criteria for target is that it is a valid target, and not in your group
-				//
 
-				if (get_local_entity_int_value (objective, INT_TYPE_TARGET_TYPE) == target_type)
-				{
-					if (get_local_entity_int_value (objective, INT_TYPE_ALIVE))
-					{
-						if ((!get_local_entity_int_value (objective, INT_TYPE_IDENTIFY_MOBILE)) || (get_local_entity_parent (objective, LIST_TYPE_MEMBER) != group))
-						{
-							pos = get_local_entity_vec3d_ptr (objective, VEC3D_TYPE_POSITION);
-	
-							range = get_approx_2d_range (target_point, pos);
-	
-							if (range <= radius)
-							{
-	
-								new_task = create_engage_task (group, objective, group, FALSE);
-	
-								if (new_task)
-								{
-									assign_task_to_group (group, new_task, TASK_ASSIGN_NO_MEMBERS);
-								}
-							}
-						}
-					}
-				}
 
-				objective = get_local_entity_child_succ (objective, LIST_TYPE_SECTOR);
-			}
-		}
-	}
 
-	if (assign_engage_tasks_to_group (group, TASK_ASSIGN_ALL_MEMBERS) != TASK_ASSIGN_ALL_MEMBERS)
-	{
-		return TRUE;
-	}
-	else
-	{
-		return FALSE;
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

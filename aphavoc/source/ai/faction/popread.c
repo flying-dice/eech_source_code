@@ -216,7 +216,7 @@ static void read_population_sam_placements ( FILE *fp );
 
 static unsigned int get_waypoint_inhangar_bits ( route_waypoint_position *waypoint, object_3d_instance *inst3d );
 
-#ifndef OGRE_EE
+
 static object_3d_database_entry * get_airfield_waypoint_route_object ( object_3d_instance *instance, object_3d_sub_object_index_numbers index );
 
 static void insert_airport_fixedwing_routes ( int entity_subtype, vec3d *position, object_3d_database_entry *landing, object_3d_database_entry *takeoff );
@@ -230,21 +230,21 @@ static void insert_airport_ship_routes ( vec3d *position, object_3d_database_ent
 static void insert_airport_general_takeoff_landing_routes ( int entity_subtype, vec3d *position, object_3d_database_entry *landing_route, object_3d_database_entry *takeoff_route );
 
 static void insert_airport_holding_routes ( vec3d *position, object_3d_database_entry *landing_holding_route, object_3d_database_entry *takeoff_holding_route );
-#else
-static unsigned get_airfield_waypoint_route_object ( object_3d_instance *instance, object_3d_sub_object_index_numbers index );
 
-static void insert_airport_fixedwing_routes ( int entity_subtype, vec3d *position, unsigned landing, unsigned takeoff );
 
-static void insert_airport_helicopter_routes ( vec3d *position, unsigned landing, unsigned takeoff, unsigned landing_holding, unsigned takeoff_holding );
 
-static void insert_airport_routed_vehicles_routes ( vec3d *position, unsigned landing, unsigned takeoff );
 
-static void insert_airport_ship_routes ( vec3d *position, unsigned landing, unsigned takeoff );
 
-static void insert_airport_general_takeoff_landing_routes ( int entity_subtype, vec3d *position, unsigned landing_route, unsigned takeoff_route );
 
-static void insert_airport_holding_routes ( vec3d *position, unsigned landing_holding_route, unsigned takeoff_holding_route );
-#endif
+
+
+
+
+
+
+
+
+
 
 static void create_airfield_waypoint ( entity_sub_types type, vec3d *waypoint_world_pos, int formation_index, float altitude );
 
@@ -1497,7 +1497,7 @@ void read_population_airfield_placements ( FILE *fp )
 
 	fread ( &number_of_instances, sizeof ( int ), 1, fp );
 
-#ifndef OGRE_EE
+
 	//
 	// Initialise the terrain object system
 	//
@@ -1509,7 +1509,7 @@ void read_population_airfield_placements ( FILE *fp )
 
 		set_number_of_terrain_objects ( number_of_instances );
 	}
-#endif
+
 
 	//
 	// Read in the airfields themselves
@@ -1578,19 +1578,19 @@ void read_population_airfield_placements ( FILE *fp )
 			current_airport_inst3d->vp.position.y = y;
 			current_airport_inst3d->vp.position.z = z;
 
-#ifndef OGRE_EE
+
 			current_airport_inst3d->object_has_shadow = FALSE;
 			current_airport_inst3d->object_internal_lighting = FALSE;
-#endif
+
 
 			get_3d_transformation_matrix ( current_airport_inst3d->vp.attitude, 0.0, 0.0, 0.0 );
 
 			insert_3d_object_into_terrain ( current_airport_inst3d );
 
-#ifdef OGRE_EE
-			destruct_3d_object ( current_airport_inst3d );
-			current_airport_inst3d = NULL;
-#endif
+
+
+
+
 		}
 		else
 		{
@@ -1754,9 +1754,9 @@ void read_population_airfield_placements ( FILE *fp )
 			current_airport_inst3d->vp.position.y = y+0.05;
 			current_airport_inst3d->vp.position.z = z;
 
-#ifndef OGRE_EE
+
 			current_airport_inst3d->object_has_shadow = FALSE;
-#endif
+
 
 			get_3d_transformation_matrix ( current_airport_inst3d->vp.attitude, 0.0, 0.0, 0.0 );
 
@@ -1787,9 +1787,9 @@ void read_population_airfield_placements ( FILE *fp )
 			if ( keysite_sub_type != ENTITY_SUB_TYPE_KEYSITE_ANCHORAGE )
 			{
 
-#ifndef OGRE_EE
+
 				current_airport_inst3d->object_internal_lighting = TRUE;
-#endif
+
 
 				insert_3d_object_into_terrain ( current_airport_inst3d );
 			}
@@ -1828,19 +1828,19 @@ void read_population_airfield_placements ( FILE *fp )
 				entity_sides
 					keysite_side;
 
-#ifndef OGRE_EE
+
 				object_3d_database_entry
 					*landing_route,
 					*takeoff_route,
 					*landing_holding_route,
 					*takeoff_holding_route;
-#else
-				unsigned
-					landing_route,
-					takeoff_route,
-					landing_holding_route,
-					takeoff_holding_route;
-#endif
+
+
+
+
+
+
+
 
 				position.x = x;
 				position.y = y;
@@ -2130,13 +2130,13 @@ void read_population_airfield_placements ( FILE *fp )
 				validate_keysite_landing_site_heights (keysite);
 			}
 
-#ifdef OGRE_EE
-			if ( current_airport_inst3d )
-			{
-				destruct_3d_object ( current_airport_inst3d );
-				current_airport_inst3d = NULL;
-			}
-#endif
+
+
+
+
+
+
+
 		}
 	}
 }
@@ -2215,1726 +2215,1726 @@ void read_population_sam_placements ( FILE *fp )
 
 
 
-void validate_airport_links ( object_3d_index_numbers object_index )
-{
-
-	object_3d_instance
-		*current_airport_inst3d;
-
-#ifndef OGRE_EE
-	object_3d_database_entry
-		*fixedwing_landing_route,
-		*fixedwing_takeoff_route,
-		*helicopter_landing_route,
-		*helicopter_takeoff_route,
-		*vehicle_landing_route,
-		*vehicle_takeoff_route,
-		*ship_landing_route,
-		*ship_takeoff_route,
-		*fixedwing_landing_holding_route,
-		*fixedwing_takeoff_holding_route,
-		*helicopter_landing_holding_route,
-		*helicopter_takeoff_holding_route,
-		*vehicle_landing_holding_route,
-		*vehicle_takeoff_holding_route,
-		*ship_landing_holding_route,
-		*ship_takeoff_holding_route;
-#else
-	unsigned
-		fixedwing_landing_route,
-		fixedwing_takeoff_route,
-		helicopter_landing_route,
-		helicopter_takeoff_route,
-		vehicle_landing_route,
-		vehicle_takeoff_route,
-		ship_landing_route,
-		ship_takeoff_route,
-		fixedwing_landing_holding_route,
-		fixedwing_takeoff_holding_route,
-		helicopter_landing_holding_route,
-		helicopter_takeoff_holding_route,
-		vehicle_landing_holding_route,
-		vehicle_takeoff_holding_route,
-		ship_landing_holding_route,
-		ship_takeoff_holding_route;
-#endif
-
-	current_airport_inst3d = construct_3d_object ( object_index );
-
-	//
-	// Get pointers to the waypoint route objects
-	//
-
-	fixedwing_landing_route = get_airfield_waypoint_route_object ( current_airport_inst3d, OBJECT_3D_SUB_OBJECT_FIXED_WING_LANDING_ROUTE );
-	fixedwing_takeoff_route = get_airfield_waypoint_route_object ( current_airport_inst3d, OBJECT_3D_SUB_OBJECT_FIXED_WING_TAKEOFF_ROUTE );
-
-	helicopter_landing_route = get_airfield_waypoint_route_object ( current_airport_inst3d, OBJECT_3D_SUB_OBJECT_HELI_LANDING_ROUTE );
-	helicopter_takeoff_route = get_airfield_waypoint_route_object ( current_airport_inst3d, OBJECT_3D_SUB_OBJECT_HELI_TAKEOFF_ROUTE );
-
-	vehicle_landing_route = get_airfield_waypoint_route_object ( current_airport_inst3d, OBJECT_3D_SUB_OBJECT_ROUTED_VEHICLE_LANDING_ROUTE );
-	vehicle_takeoff_route = get_airfield_waypoint_route_object ( current_airport_inst3d, OBJECT_3D_SUB_OBJECT_ROUTED_VEHICLE_TAKEOFF_ROUTE );
-
-	ship_landing_route = get_airfield_waypoint_route_object ( current_airport_inst3d, OBJECT_3D_SUB_OBJECT_SHIP_LANDING_ROUTE );
-	ship_takeoff_route = get_airfield_waypoint_route_object ( current_airport_inst3d, OBJECT_3D_SUB_OBJECT_SHIP_TAKEOFF_ROUTE );
-
-	fixedwing_landing_holding_route = get_airfield_waypoint_route_object ( current_airport_inst3d, OBJECT_3D_SUB_OBJECT_FIXED_WING_LANDING_HOLDING_ROUTE );
-	fixedwing_takeoff_holding_route = get_airfield_waypoint_route_object ( current_airport_inst3d, OBJECT_3D_SUB_OBJECT_FIXED_WING_TAKEOFF_HOLDING_ROUTE );
-
-	helicopter_landing_holding_route = get_airfield_waypoint_route_object ( current_airport_inst3d, OBJECT_3D_SUB_OBJECT_HELI_LANDING_HOLDING_ROUTE );
-	helicopter_takeoff_holding_route = get_airfield_waypoint_route_object ( current_airport_inst3d, OBJECT_3D_SUB_OBJECT_HELI_TAKEOFF_HOLDING_ROUTE );
 
-	vehicle_landing_holding_route = get_airfield_waypoint_route_object ( current_airport_inst3d, OBJECT_3D_SUB_OBJECT_ROUTED_VEHICLE_LANDING_HOLDING_ROUTE );
-	vehicle_takeoff_holding_route = get_airfield_waypoint_route_object ( current_airport_inst3d, OBJECT_3D_SUB_OBJECT_ROUTED_VEHICLE_TAKEOFF_HOLDING_ROUTE );
-
-	ship_landing_holding_route = get_airfield_waypoint_route_object ( current_airport_inst3d, OBJECT_3D_SUB_OBJECT_SHIP_LANDING_HOLDING_ROUTE );
-	ship_takeoff_holding_route = get_airfield_waypoint_route_object ( current_airport_inst3d, OBJECT_3D_SUB_OBJECT_SHIP_TAKEOFF_HOLDING_ROUTE );
-
-	//
-	// Create keysite,
-	//
-
-	{
 
-		int
-			total_landing_sites;
 
-		int
-			current_route_waypoint_offset,
-			raw_object_index,
-			number_of_matching_slots,
-			slot_count;
 
-		vec3d
-			*matching_slots;
 
 
-		//
-		// Insert FIXEDWING waypoint routes into keysite.
-		//
 
-		if ( ( fixedwing_landing_route ) && ( fixedwing_takeoff_route ) )
-		{
 
-			//
-			// Insert the landing routes
-			//
 
-#ifndef OGRE_EE
-			raw_object_index = fixedwing_landing_route->index;
-#else
-			raw_object_index = fixedwing_landing_route;
-#endif
 
-			parse_waypoint_routes_from_object ( raw_object_index, 0, NULL );
 
-			current_route_waypoint_offset = number_of_route_waypoint_positions - 1;
 
-			total_landing_sites = route_waypoint_positions[current_route_waypoint_offset].number_of_positions;
 
-			number_of_matching_slots = total_landing_sites;
 
-			matching_slots = ( vec3d * ) safe_malloc ( sizeof ( vec3d ) * number_of_matching_slots );
 
-			memcpy ( matching_slots, route_waypoint_positions[current_route_waypoint_offset].offsets, ( sizeof ( vec3d ) * number_of_matching_slots ) );
 
-			for ( slot_count = 0; slot_count < number_of_matching_slots; slot_count++ )
-			{
 
-				matching_slots[slot_count].x += route_waypoint_positions[current_route_waypoint_offset].position.x;
-				matching_slots[slot_count].y += route_waypoint_positions[current_route_waypoint_offset].position.y;
-				matching_slots[slot_count].z += route_waypoint_positions[current_route_waypoint_offset].position.z;
-			}
 
-			destroy_routegen_waypoint_routes ();
 
-			//
-			// Insert the takeoff routes
-			//
 
-#ifndef OGRE_EE
-			raw_object_index = fixedwing_takeoff_route->index;
-#else
-			raw_object_index = fixedwing_takeoff_route;
-#endif
 
-			parse_waypoint_routes_from_object ( raw_object_index, number_of_matching_slots, matching_slots );
 
-			destroy_routegen_waypoint_routes ();
 
-			//
-			// Insert the holding loops for fixed wing takeoff & landing.
-			//
 
-			if ( ( fixedwing_landing_holding_route ) && ( fixedwing_takeoff_holding_route ) )
-			{
 
-				//
-				// Insert the landing holding routes
-				//
 
-#ifndef OGRE_EE
-				raw_object_index = fixedwing_landing_holding_route->index;
-#else
-				raw_object_index = fixedwing_landing_holding_route;
-#endif
 
-				parse_waypoint_routes_from_object ( raw_object_index, 0, NULL );
 
-				destroy_routegen_waypoint_routes ();
 
-				//
-				// Insert the takeoff holding routes
-				//
 
-#ifndef OGRE_EE
-				raw_object_index = fixedwing_takeoff_holding_route->index;
-#else
-				raw_object_index = fixedwing_takeoff_holding_route;
-#endif
 
-				parse_waypoint_routes_from_object ( raw_object_index, 0, NULL );
 
-				destroy_routegen_waypoint_routes ();
-			}
 
-			if ( matching_slots )
-			{
 
-				safe_free ( matching_slots );
 
-				matching_slots = NULL;
-			}
-		}
 
-		//
-		// Insert HELICOPTER waypoint routes into keysite.
-		//
 
-		if ( ( helicopter_landing_route ) && ( helicopter_takeoff_route ) )
-		{
 
-			//
-			// Insert the landing routes
-			//
 
-#ifndef OGRE_EE
-			raw_object_index = helicopter_landing_route->index;
-#else
-			raw_object_index = helicopter_landing_route;
-#endif
 
-			parse_waypoint_routes_from_object ( raw_object_index, 0, NULL );
 
-			current_route_waypoint_offset = number_of_route_waypoint_positions - 1;
 
-			total_landing_sites = route_waypoint_positions[current_route_waypoint_offset].number_of_positions;
 
-			number_of_matching_slots = total_landing_sites;
 
-			matching_slots = ( vec3d * ) safe_malloc ( sizeof ( vec3d ) * number_of_matching_slots );
 
-			memcpy ( matching_slots, route_waypoint_positions[current_route_waypoint_offset].offsets, ( sizeof ( vec3d ) * number_of_matching_slots ) );
 
-			for ( slot_count = 0; slot_count < number_of_matching_slots; slot_count++ )
-			{
 
-				matching_slots[slot_count].x += route_waypoint_positions[current_route_waypoint_offset].position.x;
-				matching_slots[slot_count].y += route_waypoint_positions[current_route_waypoint_offset].position.y;
-				matching_slots[slot_count].z += route_waypoint_positions[current_route_waypoint_offset].position.z;
-			}
 
-			destroy_routegen_waypoint_routes ();
 
-			//
-			// Insert the takeoff routes
-			//
 
-#ifndef OGRE_EE
-			raw_object_index = helicopter_takeoff_route->index;
-#else
-			raw_object_index = helicopter_takeoff_route;
-#endif
 
-			parse_waypoint_routes_from_object ( raw_object_index, number_of_matching_slots, matching_slots );
 
-			destroy_routegen_waypoint_routes ();
 
-			//
-			// Insert the holding loops for helicopter takeoff & landing.
-			//
 
-			if ( ( helicopter_landing_holding_route ) && ( helicopter_takeoff_holding_route ) )
-			{
 
-				//
-				// Insert the landing holding routes
-				//
 
-#ifndef OGRE_EE
-				raw_object_index = helicopter_landing_holding_route->index;
-#else
-				raw_object_index = helicopter_landing_holding_route;
-#endif
 
-				parse_waypoint_routes_from_object ( raw_object_index, 0, NULL );
 
-				destroy_routegen_waypoint_routes ();
 
-				//
-				// Insert the takeoff holding routes
-				//
 
-#ifndef OGRE_EE
-				raw_object_index = helicopter_takeoff_holding_route->index;
-#else
-				raw_object_index = helicopter_takeoff_holding_route;
-#endif
 
-				parse_waypoint_routes_from_object ( raw_object_index, 0, NULL );
 
-				destroy_routegen_waypoint_routes ();
-			}
 
-			if ( matching_slots )
-			{
 
-				safe_free ( matching_slots );
 
-				matching_slots = NULL;
-			}
-		}
 
-		//
-		// Insert ROUTED VEHICLE waypoint routes into keysite.
-		//
 
-		if ( ( vehicle_landing_route ) && ( vehicle_takeoff_route ) )
-		{
 
-			//
-			// Insert the landing routes
-			//
 
-#ifndef OGRE_EE
-			raw_object_index = vehicle_landing_route->index;
-#else
-			raw_object_index = vehicle_landing_route;
-#endif
 
-			parse_waypoint_routes_from_object ( raw_object_index, 0, NULL );
 
-			current_route_waypoint_offset = number_of_route_waypoint_positions - 1;
 
-			total_landing_sites = route_waypoint_positions[current_route_waypoint_offset].number_of_positions;
 
-			number_of_matching_slots = total_landing_sites;
 
-			matching_slots = ( vec3d * ) safe_malloc ( sizeof ( vec3d ) * number_of_matching_slots );
 
-			memcpy ( matching_slots, route_waypoint_positions[current_route_waypoint_offset].offsets, ( sizeof ( vec3d ) * number_of_matching_slots ) );
 
-			for ( slot_count = 0; slot_count < number_of_matching_slots; slot_count++ )
-			{
 
-				matching_slots[slot_count].x += route_waypoint_positions[current_route_waypoint_offset].position.x;
-				matching_slots[slot_count].y += route_waypoint_positions[current_route_waypoint_offset].position.y;
-				matching_slots[slot_count].z += route_waypoint_positions[current_route_waypoint_offset].position.z;
-			}
 
-			destroy_routegen_waypoint_routes ();
 
-			//
-			// Insert the takeoff routes
-			//
 
-#ifndef OGRE_EE
-			raw_object_index = vehicle_takeoff_route->index;
-#else
-			raw_object_index = vehicle_takeoff_route;
-#endif
 
-			parse_waypoint_routes_from_object ( raw_object_index, number_of_matching_slots, matching_slots );
 
-			destroy_routegen_waypoint_routes ();
 
-			//
-			// Insert the holding loops
-			//
 
-			if ( ( vehicle_landing_holding_route ) && ( vehicle_takeoff_holding_route ) )
-			{
 
-				//
-				// Insert the landing holding routes
-				//
 
-#ifndef OGRE_EE
-				raw_object_index = vehicle_landing_holding_route->index;
-#else
-				raw_object_index = vehicle_landing_holding_route;
-#endif
 
-				parse_waypoint_routes_from_object ( raw_object_index, 0, NULL );
 
-				destroy_routegen_waypoint_routes ();
 
-				//
-				// Insert the takeoff holding routes
-				//
 
-#ifndef OGRE_EE
-				raw_object_index = vehicle_takeoff_holding_route->index;
-#else
-				raw_object_index = vehicle_takeoff_holding_route;
-#endif
 
-				parse_waypoint_routes_from_object ( raw_object_index, 0, NULL );
 
-				destroy_routegen_waypoint_routes ();
-			}
 
-			if ( matching_slots )
-			{
 
-				safe_free ( matching_slots );
 
-				matching_slots = NULL;
-			}
-		}
 
-		//
-		// Insert SHIP waypoint routes into keysite.
-		//
 
-		if ( ( ship_landing_route ) && ( ship_takeoff_route ) )
-		{
 
-			//
-			// Insert the landing routes
-			//
 
-#ifndef OGRE_EE
-			raw_object_index = ship_landing_route->index;
-#else
-			raw_object_index = ship_landing_route;
-#endif
 
-			parse_waypoint_routes_from_object ( raw_object_index, 0, NULL );
 
-			current_route_waypoint_offset = number_of_route_waypoint_positions - 1;
 
-			total_landing_sites = route_waypoint_positions[current_route_waypoint_offset].number_of_positions;
 
-			number_of_matching_slots = total_landing_sites;
 
-			matching_slots = ( vec3d * ) safe_malloc ( sizeof ( vec3d ) * number_of_matching_slots );
 
-			memcpy ( matching_slots, route_waypoint_positions[current_route_waypoint_offset].offsets, ( sizeof ( vec3d ) * number_of_matching_slots ) );
 
-			for ( slot_count = 0; slot_count < number_of_matching_slots; slot_count++ )
-			{
 
-				matching_slots[slot_count].x += route_waypoint_positions[current_route_waypoint_offset].position.x;
-				matching_slots[slot_count].y += route_waypoint_positions[current_route_waypoint_offset].position.y;
-				matching_slots[slot_count].z += route_waypoint_positions[current_route_waypoint_offset].position.z;
-			}
 
-			destroy_routegen_waypoint_routes ();
 
-			//
-			// Insert the takeoff routes
-			//
 
-#ifndef OGRE_EE
-			raw_object_index = ship_takeoff_route->index;
-#else
-			raw_object_index = ship_takeoff_route;
-#endif
 
-			parse_waypoint_routes_from_object ( raw_object_index, number_of_matching_slots, matching_slots );
 
-			destroy_routegen_waypoint_routes ();
 
-			//
-			// Insert the holding loops
-			//
 
-			if ( ( ship_landing_holding_route ) && ( ship_takeoff_holding_route ) )
-			{
 
-				//
-				// Insert the landing holding routes
-				//
 
-#ifndef OGRE_EE
-				raw_object_index = ship_landing_holding_route->index;
-#else
-				raw_object_index = ship_landing_holding_route;
-#endif
 
-				parse_waypoint_routes_from_object ( raw_object_index, 0, NULL );
 
-				destroy_routegen_waypoint_routes ();
 
-				//
-				// Insert the takeoff holding routes
-				//
 
-#ifndef OGRE_EE
-				raw_object_index = ship_takeoff_holding_route->index;
-#else
-				raw_object_index = ship_takeoff_holding_route;
-#endif
 
-				parse_waypoint_routes_from_object ( raw_object_index, 0, NULL );
 
-				destroy_routegen_waypoint_routes ();
-			}
 
-			if ( matching_slots )
-			{
 
-				safe_free ( matching_slots );
 
-				matching_slots = NULL;
-			}
-		}
 
-		destruct_3d_object ( current_airport_inst3d );
-		current_airport_inst3d = NULL;
-	}
-}
 
 
 
 
 
-unsigned int get_waypoint_inhangar_bits ( route_waypoint_position *waypoint, object_3d_instance *inst3d )
-{
 
-	int
-		count,
-		object;
 
-	unsigned int
-		inhangar_bits;
 
-	object_3d_scene_database_entry
-		*scene_link,
-		*scene;
 
-	inhangar_bits = 0;
 
-	scene = &objects_3d_scene_database[inst3d->object_number];
 
-	ASSERT ( waypoint->number_of_positions < 32 );
 
-	for ( count = 0; count < waypoint->number_of_positions; count++ )
-	{
 
-		vec3d
-			waypoint_position;
 
-		waypoint_position.x = waypoint->position.x + waypoint->offsets[count].x;
-		waypoint_position.y = waypoint->position.y + waypoint->offsets[count].y;
-		waypoint_position.z = waypoint->position.z + waypoint->offsets[count].z;
 
-		for ( object = 0; object < scene->number_of_scene_link_objects; object++ )
-		{
 
-			object_3d_bounds
-				object_bounds;
 
-			scene_link = &objects_3d_scene_database[ scene->scene_link_objects[object].scene_index ];
 
-			object_bounds.xmin = scene_link->bounding_box2.xmin + scene->scene_link_objects[object].x;
-			object_bounds.xmax = scene_link->bounding_box2.xmax + scene->scene_link_objects[object].x;
-			object_bounds.zmin = scene_link->bounding_box2.zmin + scene->scene_link_objects[object].z;
-			object_bounds.zmax = scene_link->bounding_box2.zmax + scene->scene_link_objects[object].z;
 
-			if (	( ( waypoint_position.x >= object_bounds.xmin ) && ( waypoint_position.x <= object_bounds.xmax ) ) &&
-					( ( waypoint_position.z >= object_bounds.zmin ) && ( waypoint_position.z <= object_bounds.zmax ) ) )
-			{
 
-				//
-				// Set the in hangar bit
-				//
 
-				inhangar_bits |= ( 1 << count );
-			}
-		}
-	}
 
-	return ( inhangar_bits );
-}
 
 
 
 
 
-#ifndef OGRE_EE
-object_3d_database_entry * get_airfield_waypoint_route_object ( object_3d_instance *instance, object_3d_sub_object_index_numbers index )
-#else
-unsigned get_airfield_waypoint_route_object ( object_3d_instance *instance, object_3d_sub_object_index_numbers index )
-#endif
-{
 
-	object_3d_sub_object_search_data
-		search;
 
-	search.search_object = instance;
-	search.search_depth = 0;
-	search.sub_object_index = index;
 
-	if ( find_object_3d_sub_object ( &search ) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND )
-	{
 
-#ifndef OGRE_EE
-		return ( search.object_scene );
-#else
-		return ogre_scene_get_object ( &search.search_object->vp, search.result_sub_object - search.search_object->vp.elements );
-#endif
-	}
-	else
-	{
 
-#ifndef OGRE_EE
-		return ( NULL );
-#else
-		return 0;
-#endif
-	}
-}
 
 
 
 
 
-#ifndef OGRE_EE
-void insert_airport_fixedwing_routes ( int entity_subtype, vec3d *position, object_3d_database_entry *landing_route, object_3d_database_entry *takeoff_route )
-#else
-void insert_airport_fixedwing_routes ( int entity_subtype, vec3d *position, unsigned landing_route, unsigned takeoff_route )
-#endif
-{
 
-	int
-		current_route_waypoint_offset,
-		raw_object_index,
-		number_of_matching_slots,
-		total_landing_sites,
-		slot_count,
-		formation_index;
 
-	vec3d
-		waypoint_world_pos,
-		*matching_slots,
-		*keysite_pos;
 
-	entity
-		*landing;
 
-	unsigned int
-		inhangar_flags;
 
-	//
-	// Insert the landing routes
-	//
 
-#ifndef OGRE_EE
-	raw_object_index = landing_route->index;
-#else
-	raw_object_index = landing_route;
-#endif
 
-	parse_waypoint_routes_from_object ( raw_object_index, 0, NULL );
 
-	current_route_waypoint_offset = number_of_route_waypoint_positions - 1;
 
-	total_landing_sites = route_waypoint_positions[current_route_waypoint_offset].number_of_positions;
 
-	number_of_matching_slots = total_landing_sites;
 
-	matching_slots = ( vec3d * ) safe_malloc ( sizeof ( vec3d ) * number_of_matching_slots );
 
-	memcpy ( matching_slots, route_waypoint_positions[current_route_waypoint_offset].offsets, ( sizeof ( vec3d ) * number_of_matching_slots ) );
 
-	for ( slot_count = 0; slot_count < number_of_matching_slots; slot_count++ )
-	{
 
-		matching_slots[slot_count].x += route_waypoint_positions[current_route_waypoint_offset].position.x;
-		matching_slots[slot_count].y += route_waypoint_positions[current_route_waypoint_offset].position.y;
-		matching_slots[slot_count].z += route_waypoint_positions[current_route_waypoint_offset].position.z;
-	}
 
-	keysite_pos = get_local_entity_vec3d_ptr ( get_parser_keysite (), VEC3D_TYPE_POSITION );
 
-	landing =	create_local_entity
-					(
-						ENTITY_TYPE_LANDING,
-						ENTITY_INDEX_DONT_CARE,
-						ENTITY_ATTR_PARENT ( LIST_TYPE_LANDING_SITE, get_parser_keysite () ),
-						ENTITY_ATTR_VEC3D ( VEC3D_TYPE_POSITION, keysite_pos->x, keysite_pos->y, keysite_pos->z ),
-						ENTITY_ATTR_INT_VALUE ( INT_TYPE_ENTITY_SUB_TYPE, entity_subtype ),
-						ENTITY_ATTR_INT_VALUE ( INT_TYPE_TOTAL_LANDING_SITES, total_landing_sites ),
-						ENTITY_ATTR_END
-					);
 
-	// update keysites landing types
-	{
 
-		unsigned int
-			landing_types;
 
-		landing_types = get_local_entity_int_value (get_parser_keysite (), INT_TYPE_LANDING_TYPES);
 
-		ASSERT (!(landing_types & 1 << get_local_entity_int_value (landing, INT_TYPE_ENTITY_SUB_TYPE)));
 
-		landing_types |= 1 << get_local_entity_int_value (landing, INT_TYPE_ENTITY_SUB_TYPE);
 
-		set_local_entity_int_value (get_parser_keysite (), INT_TYPE_LANDING_TYPES, landing_types);
-	}
 
-	set_parser_landing ( landing );
 
-	set_parser_route ( get_local_landing_entity_task ( get_parser_landing (), ENTITY_SUB_TYPE_TASK_LANDING ) );
 
-	{
 
-		//
-		// Landed waypoint
-		//
 
-		waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-		waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-		waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-		inhangar_flags = get_waypoint_inhangar_bits ( &route_waypoint_positions[current_route_waypoint_offset], current_airport_inst3d );
 
-		set_local_entity_int_value (landing, INT_TYPE_INSIDE_HANGAR, inhangar_flags);
 
-		formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																		route_waypoint_positions[current_route_waypoint_offset].offsets );
 
-		create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_LANDED, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
 
-		current_route_waypoint_offset--;
 
-		for ( ; current_route_waypoint_offset > 3; current_route_waypoint_offset-- )
-		{
 
-			//
-			// Taxi-ing waypoints
-			//
 
-			waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-			waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-			waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-			formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																			route_waypoint_positions[current_route_waypoint_offset].offsets );
-			create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_TAXI, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-		}
 
-		//
-		// Touchdown waypoint
-		//
 
-		waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-		waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-		waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-		formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																		route_waypoint_positions[current_route_waypoint_offset].offsets );
-		create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_TOUCH_DOWN, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
 
-		current_route_waypoint_offset--;
 
-		//
-		// Lower undercarriage waypoint
-		//
 
-		waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-		waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-		waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-		formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																		route_waypoint_positions[current_route_waypoint_offset].offsets );
-		create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_LOWER_UNDERCARRIAGE, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
 
-		current_route_waypoint_offset--;
 
-		//
-		// Approach waypoint
-		//
 
-		waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-		waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-		waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-		formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																		route_waypoint_positions[current_route_waypoint_offset].offsets );
-		create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_APPROACH, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
 
-		//
-		// Approach waypoint
-		//
 
-		waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-		waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-		waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-		formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																		route_waypoint_positions[current_route_waypoint_offset].offsets );
-		create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_APPROACH, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-	}
 
-	destroy_routegen_waypoint_routes ();
 
-	//
-	// Insert the takeoff routes
-	//
 
-#ifndef OGRE_EE
-	raw_object_index = takeoff_route->index;
-#else
-	raw_object_index = takeoff_route;
-#endif
 
-	parse_waypoint_routes_from_object ( raw_object_index, number_of_matching_slots, matching_slots );
 
-	current_route_waypoint_offset = 0;
 
-	set_parser_route ( get_local_landing_entity_task ( get_parser_landing (), ENTITY_SUB_TYPE_TASK_TAKEOFF ) );
 
-	{
 
-		//
-		// Taken off waypoint
-		//
 
-		waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-		waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-		waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-		formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																		route_waypoint_positions[current_route_waypoint_offset].offsets );
-		create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_TAKEN_OFF, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-		current_route_waypoint_offset++;
 
-		//
-		// Raise undercarriage waypoint
-		//
 
-		waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-		waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-		waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-		formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																		route_waypoint_positions[current_route_waypoint_offset].offsets );
-		create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_RAISE_UNDERCARRIAGE, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-		current_route_waypoint_offset++;
 
-		//
-		// Lift off waypoint
-		//
 
-		waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-		waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-		waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-		formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																		route_waypoint_positions[current_route_waypoint_offset].offsets );
-		create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_LIFT_OFF, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-		current_route_waypoint_offset++;
 
-		//
-		// Start up waypoint
-		//
 
-		waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-		waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-		waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-		formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																		route_waypoint_positions[current_route_waypoint_offset].offsets );
-		create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_START_UP, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-		current_route_waypoint_offset++;
 
-		for ( ; current_route_waypoint_offset < number_of_route_waypoint_positions; current_route_waypoint_offset++ )
-		{
 
-			//
-			// Taxi-ing waypoints
-			//
 
-			waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-			waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-			waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-			formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																			route_waypoint_positions[current_route_waypoint_offset].offsets );
-			create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_TAXI, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-		}
-	}
 
-	destroy_routegen_waypoint_routes ();
 
-	if ( matching_slots )
-	{
 
-		safe_free ( matching_slots );
 
-		matching_slots = NULL;
-	}
-}
 
 
 
 
 
-#ifndef OGRE_EE
-void insert_airport_helicopter_routes ( vec3d *position, object_3d_database_entry *landing_route, object_3d_database_entry *takeoff_route, object_3d_database_entry *landing_holding_route, object_3d_database_entry *takeoff_holding_route )
-#else
-void insert_airport_helicopter_routes ( vec3d *position, unsigned landing_route, unsigned takeoff_route, unsigned landing_holding_route, unsigned takeoff_holding_route )
-#endif
-{
 
-	int
-		current_route_waypoint_offset,
-		raw_object_index,
-		number_of_matching_slots,
-		total_landing_sites,
-		slot_count,
-		formation_index,
-		offset_index;
 
-	vec3d
-		waypoint_world_pos,
-		*matching_slots,
-		*keysite_pos;
 
-	entity
-		*landing;
 
-	unsigned int
-		inhangar_flags;
 
-	float
-		terrain_height,
-		height_offset;
 
-	//
-	// Insert the landing routes
-	//
 
-#ifndef OGRE_EE
-	raw_object_index = landing_route->index;
-#else
-	raw_object_index = landing_route;
-#endif
 
-	parse_waypoint_routes_from_object ( raw_object_index, 0, NULL );
 
-	current_route_waypoint_offset = number_of_route_waypoint_positions - 1;
 
-	total_landing_sites = route_waypoint_positions[current_route_waypoint_offset].number_of_positions;
 
-	number_of_matching_slots = total_landing_sites;
 
-	matching_slots = ( vec3d * ) safe_malloc ( sizeof ( vec3d ) * number_of_matching_slots );
 
-	memcpy ( matching_slots, route_waypoint_positions[current_route_waypoint_offset].offsets, ( sizeof ( vec3d ) * number_of_matching_slots ) );
 
-	for ( slot_count = 0; slot_count < number_of_matching_slots; slot_count++ )
-	{
 
-		matching_slots[slot_count].x += route_waypoint_positions[current_route_waypoint_offset].position.x;
-		matching_slots[slot_count].y += route_waypoint_positions[current_route_waypoint_offset].position.y;
-		matching_slots[slot_count].z += route_waypoint_positions[current_route_waypoint_offset].position.z;
-	}
 
-	keysite_pos = get_local_entity_vec3d_ptr ( get_parser_keysite (), VEC3D_TYPE_POSITION );
 
-	landing =	create_local_entity
-					(
-						ENTITY_TYPE_LANDING,
-						ENTITY_INDEX_DONT_CARE,
-						ENTITY_ATTR_PARENT ( LIST_TYPE_LANDING_SITE, get_parser_keysite () ),
-						ENTITY_ATTR_VEC3D ( VEC3D_TYPE_POSITION, keysite_pos->x, keysite_pos->y, keysite_pos->z ),
-						ENTITY_ATTR_INT_VALUE ( INT_TYPE_ENTITY_SUB_TYPE, ENTITY_SUB_TYPE_LANDING_HELICOPTER ),
-						ENTITY_ATTR_INT_VALUE ( INT_TYPE_TOTAL_LANDING_SITES, total_landing_sites ),
-						ENTITY_ATTR_END
-					);
 
-	// update keysites landing types
-	{
 
-		unsigned int
-			landing_types;
 
-		landing_types = get_local_entity_int_value (get_parser_keysite (), INT_TYPE_LANDING_TYPES);
 
-		ASSERT (!(landing_types & 1 << get_local_entity_int_value (landing, INT_TYPE_ENTITY_SUB_TYPE)));
 
-		landing_types |= 1 << get_local_entity_int_value (landing, INT_TYPE_ENTITY_SUB_TYPE);
 
-		set_local_entity_int_value (get_parser_keysite (), INT_TYPE_LANDING_TYPES, landing_types);
-	}
 
-	set_parser_landing ( landing );
 
-	set_parser_route ( get_local_landing_entity_task ( get_parser_landing (), ENTITY_SUB_TYPE_TASK_LANDING ) );
 
-	{
 
-		//
-		// Landed waypoint
-		//
 
-		waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-		waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-		waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-		ASSERT(point_inside_map_area(&waypoint_world_pos));
 
-		height_offset = 0;
 
-		for ( offset_index = 0; offset_index < route_waypoint_positions[current_route_waypoint_offset].number_of_positions; offset_index++ )
-		{
 
-			{
-				vec3d pos;
-				pos.x = waypoint_world_pos.x + route_waypoint_positions[current_route_waypoint_offset].offsets[offset_index].x;
-				pos.y = 0;
-				pos.z = waypoint_world_pos.z + route_waypoint_positions[current_route_waypoint_offset].offsets[offset_index].z;
 
-				ASSERT(point_inside_map_area(&pos));
-			}
 
-			terrain_height = get_3d_terrain_point_data ( waypoint_world_pos.x + route_waypoint_positions[current_route_waypoint_offset].offsets[offset_index].x,
-																		waypoint_world_pos.z + route_waypoint_positions[current_route_waypoint_offset].offsets[offset_index].z, NULL );
 
-			if ( terrain_height > position->y )
-			{
 
-				height_offset = max ( height_offset, ( terrain_height - position->y ) );
-			}
-		}
 
-		waypoint_world_pos.y += height_offset;
 
-//VJ FARP bug, date: 18-mar-03
 
-// ensure the waypoint elevation (y coord) is at the terrain elevation or higher (because ships are 20m above sealevel)
-// and add 10 cm to the elevation to ensure the aircraft touch the ground when landing,
-// this seems to trigger a change of status
-		ASSERT(point_inside_map_area(&waypoint_world_pos));
-		waypoint_world_pos.y = max(waypoint_world_pos.y,get_3d_terrain_point_data (waypoint_world_pos.x,waypoint_world_pos.z, NULL ));
-		waypoint_world_pos.y += 0.1;
-//VJ FARP bug, date: 18-mar-03, end
 
-		inhangar_flags = get_waypoint_inhangar_bits ( &route_waypoint_positions[current_route_waypoint_offset], current_airport_inst3d );
 
-		formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																		route_waypoint_positions[current_route_waypoint_offset].offsets );
 
-		create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_LANDED, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
 
-		current_route_waypoint_offset--;
 
-		for ( ; current_route_waypoint_offset >= 0; current_route_waypoint_offset-- )
-		{
 
-			//
-			// Taxi-ing waypoints
-			//
 
-			waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-			waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-			waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-			height_offset = 0;
 
-			for ( offset_index = 0; offset_index < route_waypoint_positions[current_route_waypoint_offset].number_of_positions; offset_index++ )
-			{
-				{
-					vec3d pos;
-					pos.x = waypoint_world_pos.x + route_waypoint_positions[current_route_waypoint_offset].offsets[offset_index].x;
-					pos.y = 0;
-					pos.z = waypoint_world_pos.z + route_waypoint_positions[current_route_waypoint_offset].offsets[offset_index].z;
 
-					ASSERT(point_inside_map_area(&pos));
-				}
 
-				terrain_height = get_3d_terrain_point_data ( waypoint_world_pos.x + route_waypoint_positions[current_route_waypoint_offset].offsets[offset_index].x,
-																			waypoint_world_pos.z + route_waypoint_positions[current_route_waypoint_offset].offsets[offset_index].z, NULL );
 
-				if ( terrain_height > position->y )
-				{
 
-					height_offset = max ( height_offset, ( terrain_height - position->y ) );
-				}
-			}
 
-			waypoint_world_pos.y += height_offset;
 
-			formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																			route_waypoint_positions[current_route_waypoint_offset].offsets );
 
-//			if ( current_route_waypoint_offset == 1 )
-			if ( current_route_waypoint_offset == (number_of_route_waypoint_positions - 2))
-			{
 
-				create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_LOWER_UNDERCARRIAGE, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-			}
-			else
-			{
 
-				create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_TAXI, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-			}
-		}
-	}
 
-	destroy_routegen_waypoint_routes ();
 
-	//
-	// Insert the takeoff routes
-	//
 
-#ifndef OGRE_EE
-	raw_object_index = takeoff_route->index;
-#else
-	raw_object_index = takeoff_route;
-#endif
 
-	parse_waypoint_routes_from_object ( raw_object_index, number_of_matching_slots, matching_slots );
 
-	current_route_waypoint_offset = 0;
 
-	set_parser_route ( get_local_landing_entity_task ( get_parser_landing (), ENTITY_SUB_TYPE_TASK_TAKEOFF ) );
 
-	{
 
-		waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-		waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-		waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-		height_offset = 0;
 
-		for ( offset_index = 0; offset_index < route_waypoint_positions[current_route_waypoint_offset].number_of_positions; offset_index++ )
-		{
-			{
-				vec3d pos;
-				pos.x = waypoint_world_pos.x + route_waypoint_positions[current_route_waypoint_offset].offsets[offset_index].x;
-				pos.y = 0;
-				pos.z = waypoint_world_pos.z + route_waypoint_positions[current_route_waypoint_offset].offsets[offset_index].z;
 
-				ASSERT(point_inside_map_area(&pos));
-			}
 
-			terrain_height = get_3d_terrain_point_data ( waypoint_world_pos.x + route_waypoint_positions[current_route_waypoint_offset].offsets[offset_index].x,
-																		waypoint_world_pos.z + route_waypoint_positions[current_route_waypoint_offset].offsets[offset_index].z, NULL );
 
-			if ( terrain_height > position->y )
-			{
 
-				height_offset = max ( height_offset, ( terrain_height - position->y ) );
-			}
-		}
 
-		waypoint_world_pos.y += height_offset;
 
-		//
-		// Taken off waypoint
-		//
 
-		formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																		route_waypoint_positions[current_route_waypoint_offset].offsets );
 
-		create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_TAKEN_OFF, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
 
-		current_route_waypoint_offset++;
 
-		for ( ; current_route_waypoint_offset < number_of_route_waypoint_positions; current_route_waypoint_offset++ )
-		{
 
-			//
-			// Taxi-ing waypoints
-			//
 
-			waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-			waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-			waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-			height_offset = 0;
 
-			for ( offset_index = 0; offset_index < route_waypoint_positions[current_route_waypoint_offset].number_of_positions; offset_index++ )
-			{
-				{
-					vec3d pos;
-					pos.x = waypoint_world_pos.x + route_waypoint_positions[current_route_waypoint_offset].offsets[offset_index].x;
-					pos.y = 0;
-					pos.z = waypoint_world_pos.z + route_waypoint_positions[current_route_waypoint_offset].offsets[offset_index].z;
 
-					ASSERT(point_inside_map_area(&pos));
-				}
 
-				terrain_height = get_3d_terrain_point_data ( waypoint_world_pos.x + route_waypoint_positions[current_route_waypoint_offset].offsets[offset_index].x,
-																			waypoint_world_pos.z + route_waypoint_positions[current_route_waypoint_offset].offsets[offset_index].z, NULL );
 
-				if ( terrain_height > position->y )
-				{
 
-					height_offset = max ( height_offset, ( terrain_height - position->y ) );
-				}
-			}
 
-			waypoint_world_pos.y += height_offset;
 
-			formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																			route_waypoint_positions[current_route_waypoint_offset].offsets );
 
-			if ( current_route_waypoint_offset == ( number_of_route_waypoint_positions - 2 ) )
-			{
 
-				create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_RAISE_UNDERCARRIAGE, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-			}
-			else
-			{
 
-				create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_TAXI, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-			}
-		}
-	}
 
-	destroy_routegen_waypoint_routes ();
 
-	//
-	// Insert the holding loops for helicopter takeoff & landing.
-	//
 
-	if ( ( landing_holding_route ) && ( takeoff_holding_route ) )
-	{
 
-		double
-			average_x,
-			average_y,
-			average_z;
 
-		//
-		// Insert the landing holding routes
-		//
 
-#ifndef OGRE_EE
-		raw_object_index = landing_holding_route->index;
-#else
-		raw_object_index = landing_holding_route;
-#endif
 
-		parse_waypoint_routes_from_object ( raw_object_index, 0, NULL );
 
-		set_parser_route ( get_local_landing_entity_task ( get_parser_landing (), ENTITY_SUB_TYPE_TASK_LANDING_HOLDING ) );
 
-		{
 
-			//
-			// Figure out the average position so we can expand the holding patterns
-			//
 
-			current_route_waypoint_offset = 0;
 
-			average_x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-			average_y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-			average_z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-			current_route_waypoint_offset++;
 
-			for ( ; current_route_waypoint_offset < number_of_route_waypoint_positions; current_route_waypoint_offset++ )
-			{
 
-				average_x += position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-				average_y += position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-				average_z += position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
-			}
 
-			average_x /= number_of_route_waypoint_positions;
-			average_y /= number_of_route_waypoint_positions;
-			average_z /= number_of_route_waypoint_positions;
 
-			//
-			// Loop waypoint
-			//
 
-			current_route_waypoint_offset = 0;
 
-			waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-			waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-			waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-			waypoint_world_pos.x += ( waypoint_world_pos.x - average_x ) * 3;
-			waypoint_world_pos.y += ( waypoint_world_pos.y - average_y ) * 3;
-			waypoint_world_pos.z += ( waypoint_world_pos.z - average_z ) * 3;
 
-			formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																			route_waypoint_positions[current_route_waypoint_offset].offsets );
-			create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_HOLDING_LOOP, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-			current_route_waypoint_offset++;
 
-			for ( ; current_route_waypoint_offset < number_of_route_waypoint_positions; current_route_waypoint_offset++ )
-			{
 
-				//
-				// Navigation waypoints
-				//
 
-				waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-				waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-				waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-				waypoint_world_pos.x += ( waypoint_world_pos.x - average_x ) * 3;
-				waypoint_world_pos.y += ( waypoint_world_pos.y - average_y ) * 3;
-				waypoint_world_pos.z += ( waypoint_world_pos.z - average_z ) * 3;
 
-				formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																				route_waypoint_positions[current_route_waypoint_offset].offsets );
-				create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_HOLDING, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-			}
-		}
 
-		destroy_routegen_waypoint_routes ();
 
-		//
-		// Insert the takeoff holding routes
-		//
 
-#ifndef OGRE_EE
-		raw_object_index = takeoff_holding_route->index;
-#else
-		raw_object_index = takeoff_holding_route;
-#endif
 
-		parse_waypoint_routes_from_object ( raw_object_index, 0, NULL );
 
-		set_parser_route ( get_local_landing_entity_task ( get_parser_landing (), ENTITY_SUB_TYPE_TASK_TAKEOFF_HOLDING ) );
 
-		{
 
-			//
-			// Figure out the average position so we can expand the holding patterns
-			//
 
-			current_route_waypoint_offset = 0;
 
-			average_x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-			average_y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-			average_z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-			current_route_waypoint_offset++;
 
-			for ( ; current_route_waypoint_offset < number_of_route_waypoint_positions; current_route_waypoint_offset++ )
-			{
 
-				average_x += position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-				average_y += position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-				average_z += position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
-			}
 
-			average_x /= number_of_route_waypoint_positions;
-			average_y /= number_of_route_waypoint_positions;
-			average_z /= number_of_route_waypoint_positions;
 
-			//
-			// Loop waypoint
-			//
 
-			current_route_waypoint_offset = 0;
 
-			waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-			waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-			waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-			waypoint_world_pos.x += ( waypoint_world_pos.x - average_x ) * 3;
-			waypoint_world_pos.y += ( waypoint_world_pos.y - average_y ) * 3;
-			waypoint_world_pos.z += ( waypoint_world_pos.z - average_z ) * 3;
 
-			formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																			route_waypoint_positions[current_route_waypoint_offset].offsets );
-			create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_HOLDING_LOOP, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-			current_route_waypoint_offset++;
 
-			for ( ; current_route_waypoint_offset < number_of_route_waypoint_positions; current_route_waypoint_offset++ )
-			{
 
-				//
-				// Navigation waypoints
-				//
 
-				waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-				waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-				waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-				waypoint_world_pos.x += ( waypoint_world_pos.x - average_x ) * 3;
-				waypoint_world_pos.y += ( waypoint_world_pos.y - average_y ) * 3;
-				waypoint_world_pos.z += ( waypoint_world_pos.z - average_z ) * 3;
 
-				formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																				route_waypoint_positions[current_route_waypoint_offset].offsets );
-				create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_HOLDING, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-			}
-		}
 
-		destroy_routegen_waypoint_routes ();
-	}
 
-	if ( matching_slots )
-	{
 
-		safe_free ( matching_slots );
 
-		matching_slots = NULL;
-	}
-}
 
 
 
 
 
-#ifndef OGRE_EE
-void insert_airport_general_takeoff_landing_routes ( int entity_subtype, vec3d *position, object_3d_database_entry *landing_route, object_3d_database_entry *takeoff_route )
-#else
-void insert_airport_general_takeoff_landing_routes ( int entity_subtype, vec3d *position, unsigned landing_route, unsigned takeoff_route )
-#endif
-{
 
-	int
-		current_route_waypoint_offset,
-		raw_object_index,
-		number_of_matching_slots,
-		total_landing_sites,
-		slot_count,
-		formation_index;
 
-	vec3d
-		waypoint_world_pos,
-		*matching_slots,
-		*keysite_pos;
 
-	entity
-		*landing;
 
-	//
-	// Insert the landing routes
-	//
 
-#ifndef OGRE_EE
-	raw_object_index = landing_route->index;
-#else
-	raw_object_index = landing_route;
-#endif
 
-	parse_waypoint_routes_from_object ( raw_object_index, 0, NULL );
 
-	current_route_waypoint_offset = number_of_route_waypoint_positions - 1;
 
-	total_landing_sites = route_waypoint_positions[current_route_waypoint_offset].number_of_positions;
 
-	number_of_matching_slots = total_landing_sites;
 
-	matching_slots = ( vec3d * ) safe_malloc ( sizeof ( vec3d ) * number_of_matching_slots );
 
-	memcpy ( matching_slots, route_waypoint_positions[current_route_waypoint_offset].offsets, ( sizeof ( vec3d ) * number_of_matching_slots ) );
 
-	for ( slot_count = 0; slot_count < number_of_matching_slots; slot_count++ )
-	{
 
-		matching_slots[slot_count].x += route_waypoint_positions[current_route_waypoint_offset].position.x;
-		matching_slots[slot_count].y += route_waypoint_positions[current_route_waypoint_offset].position.y;
-		matching_slots[slot_count].z += route_waypoint_positions[current_route_waypoint_offset].position.z;
-	}
 
-	keysite_pos = get_local_entity_vec3d_ptr ( get_parser_keysite (), VEC3D_TYPE_POSITION );
 
-	landing =	create_local_entity
-					(
-						ENTITY_TYPE_LANDING,
-						ENTITY_INDEX_DONT_CARE,
-						ENTITY_ATTR_PARENT ( LIST_TYPE_LANDING_SITE, get_parser_keysite () ),
-						ENTITY_ATTR_VEC3D ( VEC3D_TYPE_POSITION, keysite_pos->x, keysite_pos->y, keysite_pos->z ),
-						ENTITY_ATTR_INT_VALUE ( INT_TYPE_ENTITY_SUB_TYPE, entity_subtype ),
-						ENTITY_ATTR_INT_VALUE ( INT_TYPE_TOTAL_LANDING_SITES, total_landing_sites ),
-						ENTITY_ATTR_END
-					);
 
-	// update keysites landing types
-	{
 
-		unsigned int
-			landing_types;
 
-		landing_types = get_local_entity_int_value (get_parser_keysite (), INT_TYPE_LANDING_TYPES);
 
-		ASSERT (!(landing_types & 1 << get_local_entity_int_value (landing, INT_TYPE_ENTITY_SUB_TYPE)));
 
-		landing_types |= 1 << get_local_entity_int_value (landing, INT_TYPE_ENTITY_SUB_TYPE);
 
-		set_local_entity_int_value (get_parser_keysite (), INT_TYPE_LANDING_TYPES, landing_types);
-	}
 
-	set_parser_landing ( landing );
 
-	set_parser_route ( get_local_landing_entity_task ( get_parser_landing (), ENTITY_SUB_TYPE_TASK_LANDING ) );
 
-	{
 
-		//
-		// Landed waypoint
-		//
 
-		waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-		waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-		waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-		formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																		route_waypoint_positions[current_route_waypoint_offset].offsets );
 
-		create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_LANDED, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
 
-		current_route_waypoint_offset--;
 
-		for ( ; current_route_waypoint_offset > 0; current_route_waypoint_offset-- )
-		{
 
-			//
-			// Taxi-ing waypoints
-			//
 
-			waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-			waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-			waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-			formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																			route_waypoint_positions[current_route_waypoint_offset].offsets );
-			create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_NAVIGATION, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-		}
-	}
 
-	destroy_routegen_waypoint_routes ();
 
-	//
-	// Insert the takeoff routes
-	//
 
-#ifndef OGRE_EE
-	raw_object_index = takeoff_route->index;
-#else
-	raw_object_index = takeoff_route;
-#endif
 
-	parse_waypoint_routes_from_object ( raw_object_index, number_of_matching_slots, matching_slots );
 
-	current_route_waypoint_offset = 0;
 
-	set_parser_route ( get_local_landing_entity_task ( get_parser_landing (), ENTITY_SUB_TYPE_TASK_TAKEOFF ) );
 
-	{
 
-		//
-		// Taken off waypoint
-		//
 
-		waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-		waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-		waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-		formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																		route_waypoint_positions[current_route_waypoint_offset].offsets );
-		create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_TAKEN_OFF, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-		current_route_waypoint_offset++;
 
-		for ( ; current_route_waypoint_offset < number_of_route_waypoint_positions; current_route_waypoint_offset++ )
-		{
 
-			//
-			// Taxi-ing waypoints
-			//
 
-			waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-			waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-			waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-			formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																			route_waypoint_positions[current_route_waypoint_offset].offsets );
-			create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_NAVIGATION, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-		}
-	}
 
-	destroy_routegen_waypoint_routes ();
 
-	if ( matching_slots )
-	{
 
-		safe_free ( matching_slots );
 
-		matching_slots = NULL;
-	}
-}
 
 
 
 
 
-#ifndef OGRE_EE
-void insert_airport_holding_routes ( vec3d *position, object_3d_database_entry *landing_holding_route, object_3d_database_entry *takeoff_holding_route )
-#else
-void insert_airport_holding_routes ( vec3d *position, unsigned landing_holding_route, unsigned takeoff_holding_route )
-#endif
-{
 
-	int
-		current_route_waypoint_offset,
-		raw_object_index,
-		formation_index;
 
-	vec3d
-		waypoint_world_pos;
 
-	//
-	// Insert the holding loops
-	//
 
-	if ( ( landing_holding_route ) && ( takeoff_holding_route ) )
-	{
 
-		//
-		// Insert the landing holding routes
-		//
 
-#ifndef OGRE_EE
-		raw_object_index = landing_holding_route->index;
-#else
-		raw_object_index = landing_holding_route;
-#endif
 
-		parse_waypoint_routes_from_object ( raw_object_index, 0, NULL );
 
-		current_route_waypoint_offset = 0;
 
-		set_parser_route ( get_local_landing_entity_task ( get_parser_landing (), ENTITY_SUB_TYPE_TASK_LANDING_HOLDING ) );
 
-		{
 
-			//
-			// Loop waypoint
-			//
 
-			waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-			waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-			waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-			formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																			route_waypoint_positions[current_route_waypoint_offset].offsets );
-			create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_HOLDING_LOOP, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-			current_route_waypoint_offset++;
 
-			for ( ; current_route_waypoint_offset < number_of_route_waypoint_positions; current_route_waypoint_offset++ )
-			{
 
-				//
-				// Navigation waypoints
-				//
 
-				waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-				waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-				waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-				formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																				route_waypoint_positions[current_route_waypoint_offset].offsets );
-				create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_HOLDING, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-			}
-		}
 
-		destroy_routegen_waypoint_routes ();
 
-		//
-		// Insert the takeoff holding routes
-		//
 
-#ifndef OGRE_EE
-		raw_object_index = takeoff_holding_route->index;
-#else
-		raw_object_index = takeoff_holding_route;
-#endif
 
-		parse_waypoint_routes_from_object ( raw_object_index, 0, NULL );
 
-		current_route_waypoint_offset = 0;
 
-		set_parser_route ( get_local_landing_entity_task ( get_parser_landing (), ENTITY_SUB_TYPE_TASK_TAKEOFF_HOLDING ) );
 
-		{
 
-			//
-			// Loop waypoint
-			//
 
-			waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-			waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-			waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-			formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																			route_waypoint_positions[current_route_waypoint_offset].offsets );
-			create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_HOLDING_LOOP, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-			current_route_waypoint_offset++;
 
-			for ( ; current_route_waypoint_offset < number_of_route_waypoint_positions; current_route_waypoint_offset++ )
-			{
 
-				//
-				// Navigation waypoints
-				//
 
-				waypoint_world_pos.x = position->x + route_waypoint_positions[current_route_waypoint_offset].position.x;
-				waypoint_world_pos.y = position->y + route_waypoint_positions[current_route_waypoint_offset].position.y;
-				waypoint_world_pos.z = position->z + route_waypoint_positions[current_route_waypoint_offset].position.z;
 
-				formation_index = add_formation_to_database ( route_waypoint_positions[current_route_waypoint_offset].number_of_positions,
-																				route_waypoint_positions[current_route_waypoint_offset].offsets );
-				create_airfield_waypoint ( ENTITY_SUB_TYPE_WAYPOINT_HOLDING, &waypoint_world_pos, formation_index, WAYPOINT_ALTITUDE );
-			}
-		}
 
-		destroy_routegen_waypoint_routes ();
-	}
-}
 
 
 
 
 
-void create_airfield_waypoint ( entity_sub_types type, vec3d *waypoint_world_pos, int formation_index, float altitude )
-{
 
-	entity
-		*wp;
 
-	wp = create_local_entity
-	(
-		ENTITY_TYPE_WAYPOINT,
-		ENTITY_INDEX_DONT_CARE,
-		ENTITY_ATTR_PARENT ( LIST_TYPE_WAYPOINT, get_parser_route () ),
-		ENTITY_ATTR_INT_VALUE ( INT_TYPE_ENTITY_SUB_TYPE, type ),
-		ENTITY_ATTR_INT_VALUE ( INT_TYPE_WAYPOINT_FORMATION, formation_index ),
-		ENTITY_ATTR_INT_VALUE ( INT_TYPE_POSITION_TYPE, POSITION_TYPE_RELATIVE ),
-		ENTITY_ATTR_FLOAT_VALUE ( FLOAT_TYPE_ALTITUDE, altitude ),
-		ENTITY_ATTR_VEC3D ( VEC3D_TYPE_POSITION, waypoint_world_pos->x, waypoint_world_pos->y, waypoint_world_pos->z ),
-		ENTITY_ATTR_PTR_VALUE ( PTR_TYPE_POSITION_ENTITY, NULL),
-		ENTITY_ATTR_END
-	);
 
 
-	update_gunships_screen_progress_indicator ();
 
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4328,306 +4328,306 @@ static const char *get_keysite_name (float x, float z, entity_sides *side)
 
 
 
-void initialise_object_3d_troop_landing_routes ( void )
-{
 
-	int
-		count;
 
-	if ( !object_3d_troop_routes )
-	{
 
-		object_3d_troop_routes = ( troop_landing_route_information * ) safe_malloc ( sizeof ( troop_landing_route_information ) * OBJECT_3D_LAST );
 
-		for ( count = 0; count < OBJECT_3D_LAST; count++ )
-		{
 
-			object_3d_troop_routes[count].number_of_landing_route_nodes = 0;
-			object_3d_troop_routes[count].landing_route = NULL;
 
-			object_3d_troop_routes[count].number_of_takeoff_route_nodes = 0;
-			object_3d_troop_routes[count].takeoff_route = NULL;
 
-			object_3d_troop_routes[count].landing_position_valid = FALSE;
-		}
-	}
-}
 
 
 
 
 
-int get_object_3d_troop_landing_route ( int object_index, vec3d **route )
-{
 
-	object_3d_sub_object_search_data
-		search;
 
-	object_3d_instance
-		*object;
 
-	initialise_object_3d_troop_landing_routes ();
 
-	if ( object_index == OBJECT_3D_INVALID_OBJECT_INDEX )
-	{
 
-		return ( 0 );
-	}
 
-//	if ( !object_3d_troop_routes[object_index].landing_route )
-	{
 
-		object = construct_3d_object ( object_index );
 
-		//
-		// Construct the landing route
-		//
 
-		search.search_object = object;
-		search.search_depth = 0;
-		search.sub_object_index = OBJECT_3D_SUB_OBJECT_WAYPOINT_ROUTES;
 
-		if ( find_object_3d_sub_object ( &search ) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND )
-		{
 
-#ifndef OGRE_EE
-			object_3d_database_entry
-				*route;
-#else
-			unsigned
-				route;
-#endif
 
-			route = get_airfield_waypoint_route_object ( object, OBJECT_3D_SUB_OBJECT_TROOP_LANDING_ROUTE );
 
-			if ( route )
-			{
 
-				int
-					count;
 
-#ifndef OGRE_EE
-				parse_waypoint_routes_from_object ( route->index, 0, NULL );
-#else
-				parse_waypoint_routes_from_object ( route, 0, NULL );
-#endif
 
-				object_3d_troop_routes[object_index].landing_route = ( vec3d * ) safe_malloc ( sizeof ( vec3d ) * number_of_route_waypoint_positions );
 
-				object_3d_troop_routes[object_index].number_of_landing_route_nodes = number_of_route_waypoint_positions;
 
-				for ( count = 0; count < number_of_route_waypoint_positions; count++ )
-				{
 
-					object_3d_troop_routes[object_index].landing_route[count].x = route_waypoint_positions[count].position.x;
-					object_3d_troop_routes[object_index].landing_route[count].y = route_waypoint_positions[count].position.y;
-					object_3d_troop_routes[object_index].landing_route[count].z = route_waypoint_positions[count].position.z;
-				}
-			}
-		}
 
-		destruct_3d_object ( object );
-	}
 
-	*route = object_3d_troop_routes[object_index].landing_route;
 
-	return ( object_3d_troop_routes[object_index].number_of_landing_route_nodes );
-}
 
 
 
 
 
-int get_object_3d_troop_takeoff_route ( int object_index, vec3d **route )
-{
 
-	object_3d_sub_object_search_data
-		search;
 
-	object_3d_instance
-		*object;
 
-	initialise_object_3d_troop_landing_routes ();
 
-	if ( object_index == OBJECT_3D_INVALID_OBJECT_INDEX )
-	{
 
-		return ( 0 );
-	}
 
-//	if ( !object_3d_troop_routes[object_index].takeoff_route )
-	{
 
-		object = construct_3d_object ( object_index );
 
-		//
-		// Construct the takeoff route
-		//
 
-		search.search_object = object;
-		search.search_depth = 0;
-		search.sub_object_index = OBJECT_3D_SUB_OBJECT_WAYPOINT_ROUTES;
 
-		if ( find_object_3d_sub_object ( &search ) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND )
-		{
 
-#ifndef OGRE_EE
-			object_3d_database_entry
-				*route;
-#else
-			unsigned
-				route;
-#endif
 
-			route = get_airfield_waypoint_route_object ( object, OBJECT_3D_SUB_OBJECT_TROOP_TAKEOFF_ROUTE );
 
-			if ( route )
-			{
 
-				int
-					count;
 
-#ifndef OGRE_EE
-				parse_waypoint_routes_from_object ( route->index, 0, NULL );
-#else
-				parse_waypoint_routes_from_object ( route, 0, NULL );
-#endif
 
-				object_3d_troop_routes[object_index].takeoff_route = ( vec3d * ) safe_malloc ( sizeof ( vec3d ) * number_of_route_waypoint_positions );
 
-				object_3d_troop_routes[object_index].number_of_takeoff_route_nodes = number_of_route_waypoint_positions;
 
-				for ( count = 0; count < number_of_route_waypoint_positions; count++ )
-				{
 
-					object_3d_troop_routes[object_index].takeoff_route[count].x = route_waypoint_positions[count].position.x;
-					object_3d_troop_routes[object_index].takeoff_route[count].y = route_waypoint_positions[count].position.y;
-					object_3d_troop_routes[object_index].takeoff_route[count].z = route_waypoint_positions[count].position.z;
-				}
-			}
-		}
 
-		destruct_3d_object ( object );
-	}
 
-	*route = object_3d_troop_routes[object_index].takeoff_route;
 
-	return ( object_3d_troop_routes[object_index].number_of_takeoff_route_nodes );
-}
 
 
 
 
 
-int get_object_3d_troop_landing_position_and_heading ( int object_index, vec3d *position, float *heading )
-{
 
-	object_3d_sub_object_search_data
-		search;
 
-	object_3d_instance
-		*object;
 
-	int
-		count;
 
-	if ( !object_3d_troop_routes )
-	{
 
-		object_3d_troop_routes = ( troop_landing_route_information * ) safe_malloc ( sizeof ( troop_landing_route_information ) * OBJECT_3D_LAST );
 
-		for ( count = 0; count < OBJECT_3D_LAST; count++ )
-		{
 
-			object_3d_troop_routes[count].landing_position_valid = FALSE;
 
-			object_3d_troop_routes[count].number_of_landing_route_nodes = 0;
-			object_3d_troop_routes[count].landing_route = NULL;
 
-			object_3d_troop_routes[count].number_of_takeoff_route_nodes = 0;
-			object_3d_troop_routes[count].takeoff_route = NULL;
-		}
-	}
 
-	if ( object_index == OBJECT_3D_INVALID_OBJECT_INDEX )
-	{
 
-		position->x = 0;
-		position->y = 0;
-		position->z = 0;
 
-		*heading = 0.0;
 
-		return ( FALSE );
-	}
 
-	if ( !object_3d_troop_routes[object_index].landing_position_valid )
-	{
 
-		object_3d_troop_routes[object_index].landing_position.x = 0;
-		object_3d_troop_routes[object_index].landing_position.y = 0;
-		object_3d_troop_routes[object_index].landing_position.z = 0;
-		object_3d_troop_routes[object_index].heading = 0;
-		object_3d_troop_routes[object_index].landing_position_valid = TRUE;
 
-		object = construct_3d_object ( object_index );
 
-		//
-		// Construct the landing route
-		//
 
-		search.search_object = object;
-		search.search_depth = 0;
-		search.sub_object_index = OBJECT_3D_SUB_OBJECT_WAYPOINT_ROUTES;
 
-		if ( find_object_3d_sub_object ( &search ) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND )
-		{
 
-#ifndef OGRE_EE
-			object_3d_database_entry
-				*troop_lz;
 
-			troop_lz = get_airfield_waypoint_route_object ( object, OBJECT_3D_SUB_OBJECT_TROOP_LZ );
 
-			if ( troop_lz )
-			{
 
-				object_3d_troop_routes[object_index].landing_position.x = troop_lz->keyframes[0].x;
-				object_3d_troop_routes[object_index].landing_position.y = troop_lz->keyframes[0].y;
-				object_3d_troop_routes[object_index].landing_position.z = troop_lz->keyframes[0].z;
-				object_3d_troop_routes[object_index].heading = troop_lz->keyframes[0].heading;
-			}
-#else
-			unsigned
-				troop_lz_index;
-			struct OgreGameObjectSceneElement
-				*troop_lz;
 
-			troop_lz_index = get_airfield_waypoint_route_object ( object, OBJECT_3D_SUB_OBJECT_TROOP_LZ );
-			troop_lz = troop_lz_index ? &object->vp.elements[troop_lz_index] : NULL;
 
-			if ( troop_lz )
-			{
 
-				object_3d_troop_routes[object_index].landing_position.x = troop_lz->relative_position.x;
-				object_3d_troop_routes[object_index].landing_position.y = troop_lz->relative_position.y;
-				object_3d_troop_routes[object_index].landing_position.z = troop_lz->relative_position.z;
-				object_3d_troop_routes[object_index].heading = troop_lz->relative_heading;
-			}
-#endif
-		}
 
-		destruct_3d_object ( object );
-	}
 
-	position->x = object_3d_troop_routes[object_index].landing_position.x;
-	position->y = object_3d_troop_routes[object_index].landing_position.y;
-	position->z = object_3d_troop_routes[object_index].landing_position.z;
 
-	*heading =  ( object_3d_troop_routes[object_index].heading );
 
-	return ( TRUE );
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

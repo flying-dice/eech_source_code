@@ -1128,8 +1128,6 @@ void normalise_surface_defence_imaps (void)
 
 
 
-static void output_sector_side_influence_map (const char *filename)
-{
 
 
 
@@ -1205,14 +1203,11 @@ static void output_sector_side_influence_map (const char *filename)
 
 
 
-}
 
 
 
 
 
-static void output_sector_side_normalised_influence_map (const char *filename)
-{
 
 
 
@@ -1278,14 +1273,11 @@ static void output_sector_side_normalised_influence_map (const char *filename)
 
 
 
-}
 
 
 
 
 
-static void output_sector_fog_of_war_influence_map (entity_sides side, const char *filename)
-{
 
 
 
@@ -1340,14 +1332,11 @@ static void output_sector_fog_of_war_influence_map (entity_sides side, const cha
 
 
 
-}
 
 
 
 
 
-static void output_sector_surface_to_air_influence_map (entity_sides side, const char *filename)
-{
 
 
 
@@ -1368,14 +1357,11 @@ static void output_sector_surface_to_air_influence_map (entity_sides side, const
 
 
 
-}
 
 
 
 
 
-static void output_sector_surface_to_surface_influence_map (entity_sides side, const char *filename)
-{
 
 
 
@@ -1396,14 +1382,11 @@ static void output_sector_surface_to_surface_influence_map (entity_sides side, c
 
 
 
-}
 
 
 
 
 
-static void output_sector_importance_influence_map (entity_sides side, const char *filename)
-{
 
 
 
@@ -1424,14 +1407,11 @@ static void output_sector_importance_influence_map (entity_sides side, const cha
 
 
 
-}
 
 
 
 
 
-static void output_sector_distance_to_friendly_base_influence_map (entity_sides side, const char *filename)
-{
 
 
 
@@ -1452,35 +1432,55 @@ static void output_sector_distance_to_friendly_base_influence_map (entity_sides 
 
 
 
-}
 
 
 
 
 
-void output_all_influence_maps (void)
-{
-	debug_colour_log (DEBUG_COLOUR_RED, "OUTPUT INFLUENCE MAPS");
 
-	output_sector_side_influence_map ("IM_SIDE.PSD");
 
-	output_sector_side_normalised_influence_map ("IM_SIDE2.PSD");
 
-	output_sector_fog_of_war_influence_map (ENTITY_SIDE_RED_FORCE, "IM_FOGR.PSD");
-	output_sector_fog_of_war_influence_map (ENTITY_SIDE_BLUE_FORCE, "IM_FOGB.PSD");
 
-	output_sector_surface_to_air_influence_map (ENTITY_SIDE_RED_FORCE, "IM_AIRR.PSD");
-	output_sector_surface_to_air_influence_map (ENTITY_SIDE_BLUE_FORCE, "IM_AIRB.PSD");
 
-	output_sector_surface_to_surface_influence_map (ENTITY_SIDE_RED_FORCE, "IM_SURFR.PSD");
-	output_sector_surface_to_surface_influence_map (ENTITY_SIDE_BLUE_FORCE, "IM_SURFB.PSD");
 
-	output_sector_importance_influence_map (ENTITY_SIDE_RED_FORCE, "IM_IMPR.PSD");
-	output_sector_importance_influence_map (ENTITY_SIDE_BLUE_FORCE, "IM_IMPB.PSD");
 
-	output_sector_distance_to_friendly_base_influence_map (ENTITY_SIDE_RED_FORCE, "IM_BASER.PSD");
-	output_sector_distance_to_friendly_base_influence_map (ENTITY_SIDE_BLUE_FORCE, "IM_BASEB.PSD");
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

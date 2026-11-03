@@ -132,110 +132,110 @@ void process_message_attack_pfz(entity *en, entity *wingman);
 
 
 
-message_log_type *get_message_log (int index)
-{
-	ASSERT ((index >= 0) && (index < num_messages));
-
-	return &message_log [index];
-}
 
 
 
 
 
-int get_message_log_number_of_messages (void)
-{
-	return num_messages;
-}
 
 
 
 
 
-message_log_type *get_current_display_message (void)
-{
-	if (current_message == -1)
-	{
-		return NULL;
-	}
-	else
-	{
-		return &message_log [current_message];
-	}
-}
 
 
 
 
 
-void initialise_message_log (void)
-{
-	if (message_log)
-		deinitialise_message_log();
-
-	num_messages = 0;
-
-	max_messages = 0;
-
-	clear_in_flight_received_message ();
-
-	message_side_colour [ENTITY_SIDE_NEUTRAL] = sys_col_white;
-
-	message_side_colour [ENTITY_SIDE_BLUE_FORCE].r = 60;
-	message_side_colour [ENTITY_SIDE_BLUE_FORCE].g = 78;
-	message_side_colour [ENTITY_SIDE_BLUE_FORCE].b = 255;
-	message_side_colour [ENTITY_SIDE_BLUE_FORCE].a = 255;
-
-	message_side_colour [ENTITY_SIDE_RED_FORCE].r = 255;
-	message_side_colour [ENTITY_SIDE_RED_FORCE].g = 20;
-	message_side_colour [ENTITY_SIDE_RED_FORCE].b = 0;
-	message_side_colour [ENTITY_SIDE_RED_FORCE].a = 255;
-}
 
 
 
 
 
-void deinitialise_message_log (void)
-{
-	message_log_type
-		*log;
-
-	int
-		loop;
-
-	if (message_log)
-	{
-		for (loop = 0; loop < num_messages; loop ++)
-		{
-			log = &message_log [loop];
-
-			ASSERT (log);
-
-			if (log->string)
-			{
-				free_mem (log->string);
-			}
-		}
-
-		free_mem (message_log);
-
-		message_log = NULL;
-	}
-
-	clear_in_flight_received_message ();
-}
 
 
 
 
 
-void clear_in_flight_received_message (void)
-{
-	current_message_timer = 0.0;
 
-	current_message = -1;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -397,466 +397,466 @@ static int message_intended_for_recipient (entity *sender, entity *target, messa
 
 
 
-static entity *format_incoming_message (message_log_type *message, entity *sender, entity *target, char *raw_string)
-{
-	message_text_types
-		type;
 
-	const char
-		*pilot_name,
-		*flight_name;
-	char
-		temp_string [512];
 
-	entity
-		*group,
-		*gunship,
-		*subject,
-		*objective;
 
-	vec3d
-		*pos;
 
-	int
-		side,
-		enemy_side,
-		member_id;
 
-	ASSERT (message);
 
-	temp_string [0] = 0;
 
-	type = message->type;
 
-	message->position.x = -1;
-	message->position.y = -1;
-	message->position.z = -1;
 
-	message->colour = message_side_colour [ENTITY_SIDE_NEUTRAL];
 
-	pos = NULL;
 
-	subject = NULL;
 
-	side = get_local_entity_int_value (get_pilot_entity (), INT_TYPE_SIDE);
 
-	enemy_side = get_enemy_side (side);
 
-	//
-	// format text
-	//
 
-	switch (type)
-	{
-		case MESSAGE_TEXT_PILOT_STRING:
-		case MESSAGE_TEXT_WINGMAN_STRING:
-		case MESSAGE_TEXT_SHORT_WINGMAN_STRING:
-		case MESSAGE_TEXT_LOCAL_MESSAGE:
-		{
-			ASSERT (sender);
 
-			ASSERT (raw_string);
 
-			if (type == MESSAGE_TEXT_LOCAL_MESSAGE)
-			{
-				pilot_name = NULL;
-				gunship = sender;
-			}
-			else
-			{
-				pilot_name = get_local_entity_string (sender, STRING_TYPE_PILOTS_NAME);
-				gunship = get_local_entity_parent (sender, LIST_TYPE_AIRCREW);
-			}
 
-			if (gunship)
-			{
-				group = get_local_entity_parent (gunship, LIST_TYPE_MEMBER);
 
-				if (group)
-				{
-					flight_name = get_local_entity_string (group, STRING_TYPE_GROUP_CALLSIGN);
-					member_id = get_local_entity_int_value (gunship, INT_TYPE_GROUP_MEMBER_ID);
 
-					if (pilot_name)
-						sprintf (temp_string, "%s (%s 1-%d): %s", pilot_name, flight_name, member_id, raw_string);
-					else
-						sprintf (temp_string, "%s 1-%d: %s", flight_name, member_id, raw_string);
 
-					get_local_entity_vec3d (gunship, VEC3D_TYPE_POSITION, &(message->position));
 
-					break;
-				}
-			}
 
-			sprintf (temp_string, "%s : %s", pilot_name, raw_string);
 
-			message->colour = message_side_colour [ENTITY_SIDE_NEUTRAL];
 
-			break;
-		}
 
-		case MESSAGE_WINGMAN_STATUS_REPORT:
-		{
-			group = get_local_entity_parent (sender, LIST_TYPE_MEMBER);
 
-			ASSERT(get_local_entity_type(sender) == ENTITY_TYPE_HELICOPTER);
 
-			// callsign
-			if (group)
-			{
-				flight_name = get_local_entity_string (group, STRING_TYPE_GROUP_CALLSIGN);
 
-				member_id = get_local_entity_int_value (sender, INT_TYPE_GROUP_MEMBER_ID);
 
-				sprintf (temp_string, "%s 1-%d: ", flight_name, member_id);
 
-				get_local_entity_vec3d (sender, VEC3D_TYPE_POSITION, &(message->position));
-			}
-			else
-				temp_string[0] = '\0';
 
-			// weapons
-			{
-				weapon_count weapon_load[10];
-				unsigned i, not_first = FALSE;
 
-				get_local_entity_weapon_load(sender, weapon_load, 10);
 
-				for (i=0; weapon_load[i].weapon_type != ENTITY_SUB_TYPE_WEAPON_NO_WEAPON; i++)
-				{
-					if (weapon_load[i].weapon_type != ENTITY_SUB_TYPE_WEAPON_CHAFF
-						&& weapon_load[i].weapon_type != ENTITY_SUB_TYPE_WEAPON_FLARE
-						&& weapon_load[i].count > 0)
-					{
-						snprintf (temp_string, 511, "%s%s %s %d ",
-							temp_string, (not_first ? "," : ""),
-							weapon_database[weapon_load[i].weapon_type].hud_name, weapon_load[i].count);
 
-						not_first = TRUE;
-					}
-				}
 
-			}
 
-			// damage
-			{
-				helicopter
-					*raw;
 
-				int
-					percent_damaged;
 
-				char
-					*damage;
 
-				raw = (helicopter *) get_local_entity_data (sender);
-				percent_damaged = (100 * raw->ac.damage_level) / aircraft_database[raw->ac.mob.sub_type].initial_damage_level;
 
-				if (percent_damaged == 100)
-					damage = "No damage";
-				else if (percent_damaged > 75)
-					damage = "Slight damage";
-				else if (percent_damaged > 50)
-					damage = "Moderate damage";
-				else if (percent_damaged > 25)
-					damage = "Heavy damage";
-				else
-					damage = "Critical damage";
 
-				snprintf (temp_string, 511, "%s, %s", temp_string, damage);
-			}
 
-			message->colour = message_side_colour [ENTITY_SIDE_NEUTRAL];
 
-			break;
-		}
 
-		case MESSAGE_TEXT_SYSTEM_ENTITY_KILLED:
-		{
-			ASSERT (sender);
 
-			ASSERT (target);
 
-			ASSERT (raw_string == NULL);
 
-			sprintf (temp_string, "%s %s %s", get_local_entity_string (target, STRING_TYPE_FULL_NAME), get_trans ("destroyed by"), get_local_entity_string (sender, STRING_TYPE_FULL_NAME));
 
-			get_local_entity_vec3d (target, VEC3D_TYPE_POSITION, &(message->position));
 
-			if (get_local_entity_int_value (target, INT_TYPE_SIDE) == side)
-			{
-				message->colour = message_side_colour [enemy_side];
-			}
-			else
-			{
-				message->colour = message_side_colour [side];
-			}
 
-			subject = target;
 
-			break;
-		}
 
-		case MESSAGE_TEXT_SYSTEM_ENTITY_UNDER_ATTACK:
-		{
-			ASSERT (sender);
 
-			ASSERT (target);
 
-			ASSERT (raw_string == NULL);
 
-			ASSERT ((get_local_entity_type (target) == ENTITY_TYPE_GROUP) || (get_local_entity_type (target) == ENTITY_TYPE_KEYSITE));
 
-			if (get_local_entity_type (target) == ENTITY_TYPE_GROUP)
-			{
-				entity
-					*division;
 
-				division = get_local_entity_parent (target, LIST_TYPE_DIVISION);
 
-				ASSERT (division);
 
-				sprintf (temp_string, "%s, %s %s %s",
-							get_local_entity_string (target, STRING_TYPE_DIVISION_NAME),
-							get_local_entity_string (division, STRING_TYPE_DIVISION_NAME),
-							get_trans ("under attack by"),
-							get_trans (get_local_entity_string (sender, STRING_TYPE_FULL_NAME)));
-			}
-			else if (get_local_entity_type (target) == ENTITY_TYPE_KEYSITE)
-			{
-				sprintf (temp_string, "%s %s %s", get_local_entity_string (target, STRING_TYPE_KEYSITE_NAME), get_trans ("under attack by"), get_local_entity_string (sender, STRING_TYPE_FULL_NAME));
-			}
-			else
-			{
-				sprintf (temp_string, "%s %s %s", get_local_entity_string (target, STRING_TYPE_FULL_NAME), get_trans ("under attack by"), get_local_entity_string (sender, STRING_TYPE_FULL_NAME));
-			}
 
-			pos = get_local_entity_vec3d_ptr (sender, VEC3D_TYPE_POSITION);
 
-			ASSERT (pos);
 
-			message->position = *pos;
 
-			ASSERT (get_local_entity_int_value (target, INT_TYPE_SIDE) == side);
 
-			message->colour = message_side_colour [enemy_side];
 
-			subject = sender;
 
-			break;
-		}
 
-		case MESSAGE_TEXT_SYSTEM_RECON_DATA:
-		{
-			ASSERT (target);
 
-			ASSERT (raw_string);
 
-			sprintf (temp_string, "%s", raw_string);
 
-			if (sender)
-			{
-				pos = get_local_entity_vec3d_ptr (sender, VEC3D_TYPE_POSITION);
 
-				subject = sender;
-			}
-			else
-			{
-				pos = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
 
-				subject = target;
-			}
 
-			ASSERT (pos);
 
-			message->position = *pos;
 
-			ASSERT (get_local_entity_int_value (target, INT_TYPE_SIDE) == side);
 
-			message->colour = message_side_colour [side];
 
-			break;
-		}
 
-		case MESSAGE_TEXT_SYSTEM_TASK_COMPLETED:
-		{
-			ASSERT (sender);		// sender is the group
 
-			ASSERT (target);		// target is the task
 
-			ASSERT (raw_string == NULL);
 
-			sprintf (temp_string, "%s %s %s %s",
-											get_trans (get_local_entity_string (target, STRING_TYPE_SHORT_DISPLAY_NAME)),
-											get_trans (task_debrief_result_names [get_local_entity_int_value (target, INT_TYPE_TASK_COMPLETED)]),
-											get_trans ("by"),
-											get_trans (get_local_entity_string (sender, STRING_TYPE_FULL_NAME)));
 
-			objective = get_local_entity_parent (target, LIST_TYPE_TASK_DEPENDENT);
 
-			if (objective)
-			{
-				pos = get_local_entity_vec3d_ptr (objective, VEC3D_TYPE_POSITION);
 
-				subject = objective;
-			}
-			else
-			{
-				pos = get_local_entity_vec3d_ptr (sender, VEC3D_TYPE_POSITION);
 
-				subject = sender;
-			}
 
-			if (pos)
-			{
-				message->position = *pos;
-			}
 
-			ASSERT (get_local_entity_int_value (sender, INT_TYPE_SIDE) == side);
 
-			message->colour = message_side_colour [side];
 
-			break;
-		}
 
-		case MESSAGE_TEXT_SYSTEM_KEYSITE_CAPTURED:
-		{
-			ASSERT (sender);		// sender is the keysite
 
-			ASSERT (raw_string == NULL);
 
-			sprintf (temp_string, "%s %s %s",
-							get_local_entity_string (sender, STRING_TYPE_KEYSITE_NAME),
-							get_trans ("captured by"),
-							entity_side_short_names [get_local_entity_int_value (sender, INT_TYPE_SIDE)]);
 
-			get_local_entity_vec3d (sender, VEC3D_TYPE_POSITION, &(message->position));
 
-			if (get_local_entity_int_value (sender, INT_TYPE_SIDE) == side)
-			{
-				message->colour = message_side_colour [side];
-			}
-			else
-			{
-				message->colour = message_side_colour [enemy_side];
-			}
 
-			subject = sender;
 
-			break;
-		}
 
-		case MESSAGE_TEXT_SYSTEM_KEYSITE_DESTROYED:
-		{
-			ASSERT (sender);		// sender is the keysite
 
-			ASSERT (raw_string == NULL);
 
-			sprintf (temp_string, "%s %s", get_local_entity_string (sender, STRING_TYPE_KEYSITE_NAME), get_trans ("destroyed"));
 
-			get_local_entity_vec3d (sender, VEC3D_TYPE_POSITION, &(message->position));
 
-			if (get_local_entity_int_value (sender, INT_TYPE_SIDE) == side)
-			{
-				message->colour = message_side_colour [enemy_side];
-			}
-			else
-			{
-				message->colour = message_side_colour [side];
-			}
 
-			subject = sender;
 
-			break;
-		}
 
-		default:
-		{
-			ASSERT (raw_string);
 
-			strcpy (temp_string, raw_string);
 
-			message->colour = message_side_colour [ENTITY_SIDE_NEUTRAL];
 
-			break;
-		}
-	}
 
-	ASSERT (strlen (temp_string) > 0);
 
-	message->string = (char *) malloc_heap_mem (strlen (temp_string) + 4);
 
-	strcpy (message->string, temp_string);
 
-	return subject;
-}
 
 
 
 
 
-static void set_message_objective_view_interest_level (entity *sender, entity *target, message_text_types type)
-{
-	entity
-		*en;
 
-	switch (type)
-	{
-		case MESSAGE_TEXT_SYSTEM_ENTITY_KILLED:
-		{
-			//
-			// Show victim + aggressor
-			//
 
-			set_local_entity_float_value (sender, FLOAT_TYPE_VIEW_INTEREST_LEVEL, DEFAULT_VIEW_INTEREST_LEVEL);
-			set_local_entity_float_value (target, FLOAT_TYPE_VIEW_INTEREST_LEVEL, DEFAULT_VIEW_INTEREST_LEVEL);
 
-			break;
-		}
-		case MESSAGE_TEXT_SYSTEM_ENTITY_UNDER_ATTACK:
-		{
-			//
-			// Show victim (target is a group) + aggressor
-			//
 
-			if (get_local_entity_type (target) == ENTITY_TYPE_GROUP)
-			{
-				en = (entity *) get_local_entity_ptr_value (target, PTR_TYPE_GROUP_LEADER);
 
-				if (en)
-				{
-					set_local_entity_float_value (en, FLOAT_TYPE_VIEW_INTEREST_LEVEL, DEFAULT_VIEW_INTEREST_LEVEL);
-				}
-			}
 
-			set_local_entity_float_value (sender, FLOAT_TYPE_VIEW_INTEREST_LEVEL, DEFAULT_VIEW_INTEREST_LEVEL);
 
-			break;
-		}
 
-		case MESSAGE_TEXT_SYSTEM_TASK_COMPLETED:
-		{
-			//
-			// Show group leader (sender is a group)
-			//
 
-			en = (entity *) get_local_entity_ptr_value (sender, PTR_TYPE_GROUP_LEADER);
 
-			if (en)
-			{
-				set_local_entity_float_value (en, FLOAT_TYPE_VIEW_INTEREST_LEVEL, DEFAULT_VIEW_INTEREST_LEVEL);
-			}
 
-			break;
-		}
 
-		case MESSAGE_TEXT_SYSTEM_KEYSITE_CAPTURED:
-		case MESSAGE_TEXT_SYSTEM_KEYSITE_DESTROYED:
-		{
-			break;
-		}
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -947,16 +947,16 @@ void set_incoming_message (entity *sender, entity *target, message_text_types ty
 
 
 
-void display_last_received_message (event *arg)
-{
-	if (message_log)
-	{
-		if (current_message == -1)
-		{
-			set_new_display_message (num_messages - 1);
-		}
-	}
-}
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1171,224 +1171,224 @@ void process_radio_message (entity *en, message_categories type, int value)
 
 
 
-void play_client_server_radio_message_response (entity *en, int speech_index, float priority, float expire_time)
-{
-	if (get_local_entity_int_value (en, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI)
-	{
-		play_client_server_wingman_message
-		(
-			en,
-			priority,
-			expire_time,
-			SPEECH_CATEGORY_RADIO_RESPONSE, -1.0,
-			SPEECH_INTRODUCTION_ALWAYS,
-			SPEECH_ARRAY_WINGMAN_MESSAGES, speech_index
-		);
-	}
-}
 
 
 
 
 
-static void play_radio_message_affirmative_response (entity *en, int speech_index, float priority, float expire_time)
-{
-	int
-		index;
-
-	static int
-		val = 0;
-
-	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
-
-	index = speech_index;
-
-	switch (val)
-	{
-		case 1:
-		{
-			index = SPEECH_WINGMAN_AFFIRMATIVE;
-
-			break;
-		}
-		case 3:
-		{
-			index = SPEECH_WINGMAN_ACKNOWLEDGE;
-
-			break;
-		}
-	}
-
-	val += (rand16 () & 0x03);
-
-	if (val > 3) val = 0;
-
-	play_client_server_radio_message_response (en, index, priority, expire_time);
-}
 
 
 
 
 
-static void play_client_server_radio_message_affirmative_response (entity *en, int speech_index, float priority, float expire_time)
-{
-	entity
-		*sender;
-
-	ASSERT (en);
-
-	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
-
-	if (get_local_entity_type (en) == ENTITY_TYPE_GROUP)
-	{
-		//
-		// if the message was to the whole flight group, select a non-player member to make the response
-		//
-
-		if (group_wingman_cycle_forwards)
-		{
-			//
-			// forward through w/m list
-			//
-
-			sender = get_local_entity_first_child (en, LIST_TYPE_MEMBER);
-
-			while (sender)
-			{
-				play_radio_message_affirmative_response (sender, speech_index, priority, expire_time);
-
-				sender = get_local_entity_child_succ (sender, LIST_TYPE_MEMBER);
-			}
-
-			group_wingman_cycle_forwards = FALSE;
-		}
-		else
-		{
-			//
-			// backward through w/m list
-			//
-
-			sender = get_local_entity_first_child (en, LIST_TYPE_MEMBER);
-
-			while (get_local_entity_child_succ (sender, LIST_TYPE_MEMBER))
-			{
-				sender = get_local_entity_child_succ (sender, LIST_TYPE_MEMBER);
-			}
-
-			while (sender)
-			{
-				play_radio_message_affirmative_response (sender, speech_index, priority, expire_time);
-
-				sender = get_local_entity_child_pred (sender, LIST_TYPE_MEMBER);
-			}
-
-			group_wingman_cycle_forwards = TRUE;
-		}
-	}
-	else
-	{
-		//
-		// only play speech if the responder is AI controlled
-		//
-
-		play_radio_message_affirmative_response (en, speech_index, priority, expire_time);
-	}
-}
 
 
 
 
 
-static void play_radio_message_negative_response (entity *en, int speech_index, float priority, float expire_time)
-{
-	int
-		index;
-
-	static int
-		flag = FALSE;
-
-	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
-
-	index = speech_index;
-
-	if (flag)
-	{
-		index = SPEECH_WINGMAN_NEGATIVE;
-	}
-
-	flag = !flag;
-
-	play_client_server_radio_message_response (en, index, priority, expire_time);
-}
 
 
 
 
 
-static void play_client_server_radio_message_negative_response (entity *en, int speech_index, float priority, float expire_time)
-{
-	entity
-		*sender;
 
-	ASSERT (en);
 
-	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
 
-	if (get_local_entity_type (en) == ENTITY_TYPE_GROUP)
-	{
-		//
-		// if the message was to the whole flight group, select a non-player member to make the response
-		//
 
-		if (group_wingman_cycle_forwards)
-		{
-			//
-			// forward through w/m list
-			//
 
-			sender = get_local_entity_first_child (en, LIST_TYPE_MEMBER);
 
-			while (sender)
-			{
-				play_radio_message_negative_response (sender, speech_index, priority, expire_time);
 
-				sender = get_local_entity_child_succ (sender, LIST_TYPE_MEMBER);
-			}
 
-			group_wingman_cycle_forwards = FALSE;
-		}
-		else
-		{
-			//
-			// backward through w/m list
-			//
 
-			sender = get_local_entity_first_child (en, LIST_TYPE_MEMBER);
 
-			while (get_local_entity_child_succ (sender, LIST_TYPE_MEMBER))
-			{
-				sender = get_local_entity_child_succ (sender, LIST_TYPE_MEMBER);
-			}
 
-			while (sender)
-			{
-				play_radio_message_negative_response (sender, speech_index, priority, expire_time);
 
-				sender = get_local_entity_child_pred (sender, LIST_TYPE_MEMBER);
-			}
 
-			group_wingman_cycle_forwards = TRUE;
-		}
-	}
-	else
-	{
-		//
-		// only play speech if the responder is AI controlled
-		//
 
-		play_radio_message_negative_response (en, speech_index, priority, expire_time);
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2341,307 +2341,307 @@ void process_message_request_assistance (entity *en)
 
 
 
-int get_incoming_in_flight_message_flag (void)
-{
-	return (current_message != -1);
-}
 
 
 
 
 
-void display_in_flight_incoming_messages (void)
-{
-	int
-		hours,
-		minutes,
-		seconds;
 
-	char
-		*s;
 
-	message_log_type
-		*log;
 
-	if (command_line_disable_message_text)
-		return;
 
-	//
-	// Don't display message if status message active
-	//
 
-	if (get_status_message_displayed ())
-	{
-		return;
-	}
 
-	//
-	// Display current message
-	//
 
-	log = get_current_display_message ();
 
-	if (log)
-	{
-		ASSERT (message_log);
 
-		ASSERT (num_messages > 0);
 
-		ASSERT (current_message_timer > 0.0);
 
-		ASSERT (log->string);
 
-		//
-		// Don't display message if in-flight intelligence messages are disabled
-		//
 
-		if (!get_global_display_in_flight_intelligence_messages ())
-		{
-			if ((log->type != MESSAGE_TEXT_PILOT_STRING) && (log->type != MESSAGE_TEXT_WINGMAN_STRING))
-			{
-				return;
-			}
-		}
 
-		set_ui_font_type (UI_FONT_ARIAL_16);
 
-		set_ui_font_colour (log->colour);
 
-		get_digital_clock_int_values (log->time_of_day, &hours, &minutes, &seconds);
 
-		s = (char *) malloc_fast_mem (strlen (log->string) + 20);
 
-		sprintf (s, "[%02d:%02d] %s", hours, minutes, log->string);
 
-		ui_display_text (s, 2, 2);
 
-		free_mem (s);
-	}
-}
 
 
 
 
 
-void update_message_log (void)
-{
-	if (current_message != -1)
-	{
-		ASSERT (message_log);
 
-		ASSERT (num_messages > 0);
 
-		ASSERT (current_message_timer > 0.0);
 
-		if (get_time_acceleration () != TIME_ACCELERATION_PAUSE)
-		{
-			current_message_timer -= get_delta_time ();
 
-			if (current_message_timer <= 0.0)
-			{
-				set_new_display_message (current_message + 1);
-			}
-		}
-	}
-}
 
 
 
 
 
-void set_new_display_message (int index)
-{
-	message_log_type
-		*log;
 
-	if ((index >= num_messages) || (index < 0))
-	{
-		current_message = -1;
 
-		current_message_timer = 0.0;
-	}
-	else
-	{
-		current_message = index;
 
-		log = &message_log [current_message];
 
-		ASSERT (log);
-		ASSERT (log->type < NUM_MESSAGE_TEXT_TYPES);
 
-		current_message_timer = message_text_info [log->type].display_time;
 
-		ASSERT (current_message_timer > 0.0);
 
-		if (point_inside_map_area (&(log->position)))
-		{
-			add_map_event (MAP_EVENT_LOG_EVENT, log->position.x, log->position.z, current_message_timer);
-		}
-	}
-}
 
 
 
 
 
-void pack_local_message_log (pack_modes mode)
-{
-	int
-		loop,
-		index,
-		num_packed_messages;
 
-	message_log_type
-		*log;
 
-   ASSERT ((mode >= 0) && (mode < NUM_PACK_MODES));
 
-   switch (mode)
-   {
 
-      case PACK_MODE_SERVER_SESSION:
-      case PACK_MODE_CLIENT_SESSION:
 
-		{
-			num_packed_messages = min (num_messages, MAX_LOG_DISPLAY_MESSAGES);
 
-			pack_int_value (NULL, INT_TYPE_VALUE, num_packed_messages);
-			pack_int_value (NULL, INT_TYPE_VALUE, current_message);
 
-			for (loop = 0; loop < num_packed_messages; loop ++)
-			{
-				index = (num_messages - loop) - 1;
 
-				log = &message_log [index];
 
-				ASSERT (log);
 
-				pack_int_value (NULL, INT_TYPE_VALUE, log->type);
 
-				pack_int_value (NULL, INT_TYPE_DAY, log->day);
 
-				pack_float_value (NULL, FLOAT_TYPE_TIME_OF_DAY, log->time_of_day);
 
-				if (point_inside_map_volume (&(log->position)))
-				{
-					pack_int_value (NULL, INT_TYPE_VALID, TRUE);
 
-					pack_vec3d (NULL, VEC3D_TYPE_POSITION, &(log->position));
-				}
-				else
-				{
-					pack_int_value (NULL, INT_TYPE_VALID, FALSE);
-				}
 
-				pack_int_value (NULL, INT_TYPE_COLOUR_RED, log->colour.r);
-				pack_int_value (NULL, INT_TYPE_COLOUR_GREEN, log->colour.g);
-				pack_int_value (NULL, INT_TYPE_COLOUR_BLUE, log->colour.b);
 
-				ASSERT (log->string);
 
-	         pack_string (NULL, STRING_TYPE_PILOT_MESSAGE, log->string);
-			}
 
-			break;
-		}
-	}
-}
 
 
 
 
 
-void unpack_local_message_log (pack_modes mode)
-{
-	int
-		loop,
-		index,
-		length;
 
-	message_log_type
-		*log;
 
-	static char
-		s [STRING_TYPE_MESSAGE_LENGTH + 4];
 
-   ASSERT ((mode >= 0) && (mode < NUM_PACK_MODES));
 
-   switch (mode)
-   {
 
-      case PACK_MODE_SERVER_SESSION:
-      case PACK_MODE_CLIENT_SESSION:
 
-		{
-			deinitialise_message_log ();
 
-			num_messages = unpack_int_value (NULL, INT_TYPE_VALUE);
-			current_message = unpack_int_value (NULL, INT_TYPE_VALUE);
 
-			if (current_message >= 0)
-			{
-				current_message = num_messages - 1;
-			}
 
-			max_messages = num_messages;
 
-			if (max_messages > 0)
-			{
-				debug_log("*** allocating message_log");
-				message_log = (message_log_type *) malloc_heap_mem (sizeof (message_log_type) * max_messages);
 
-				for (loop = 0; loop < num_messages; loop ++)
-				{
-					index = (num_messages - loop) - 1;
 
-					log = &message_log [index];
 
-					ASSERT (log);
 
-					log->type = (message_text_types) unpack_int_value (NULL, INT_TYPE_VALUE);
 
-					log->day = unpack_int_value (NULL, INT_TYPE_DAY);
 
-					log->time_of_day = unpack_float_value (NULL, FLOAT_TYPE_TIME_OF_DAY);
 
-					if (unpack_int_value (NULL, INT_TYPE_VALID))
-					{
-						unpack_vec3d (NULL, VEC3D_TYPE_POSITION, &(log->position));
-					}
-					else
-					{
-						log->position.x = -1;
-						log->position.y = -1;
-						log->position.z = -1;
-					}
 
-					log->colour.r = unpack_int_value (NULL, INT_TYPE_COLOUR_RED);
-					log->colour.g = unpack_int_value (NULL, INT_TYPE_COLOUR_GREEN);
-					log->colour.b = unpack_int_value (NULL, INT_TYPE_COLOUR_BLUE);
-					log->colour.a = 255;
 
-					unpack_string (NULL, STRING_TYPE_PILOT_MESSAGE, s);
 
-					length = strlen (s);
 
-					ASSERT (length <= STRING_TYPE_MESSAGE_LENGTH);
 
-					log->string = (char *) malloc_heap_mem (length + 4);
 
-					strcpy (log->string, s);
-				}
-			}
-			else
-			{
-				ASSERT (num_messages == 0);
-			}
 
-			set_new_display_message (current_message);
 
-			break;
-		}
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

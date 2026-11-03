@@ -2817,552 +2817,552 @@ int calulate_operator (int value1, char *operator_name, int value2)
 
 
 
-void debug_parser_message (int tag, FILE *file_ptr)
-{
 
-	char
-		event_name [64],
-		operator_name [64],
-		variable_name [64];
 
-	int
-		value1,
-		//value2,
-		//offset,
-		original_file_offset;
 
-	original_file_offset = ftell (file_ptr);
 
-	switch (tag)
-	{
 
-		case FILE_TAG_START:
-		{
 
-			parser_debug_log ("START");
 
-			break;
-		}
 
-		case FILE_TAG_ECHO_MESSAGE:
-		{
 
-			char
-				message [128];
 
-			get_next_file_string (file_ptr, message, sizeof (message));
 
-			parser_debug_log ("%s (format : %s message) found %s", application_tag_strings [tag], application_tag_strings [tag], message);
 
-			break;
-		}
 
-		case FILE_TAG_END_CAMPAIGN:
-		{
 
-			value1 = get_next_file_enum (file_ptr, campaign_result_names, NUM_CAMPAIGN_RESULT_TYPES);
 
-			parser_debug_log ("%s (format : %s result) found %s", application_tag_strings [tag], application_tag_strings [tag], campaign_result_names [value1]);
 
-			break;
-		}
 
-		case FILE_TAG_WHILE:
-		{
 
-			parser_debug_log ("%s (format : %s condition, SCRIPT, END_WHILE)", application_tag_strings [tag], application_tag_strings [tag]);
 
-			while (tag = check_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG))
-			{
 
-				if (tag == FILE_TAG_END_WHILE)
-				{
 
-					break;
-				}
 
-				parser_debug_log ("			script = tag %s", application_tag_strings [tag]);
 
-				tag = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
-			}
 
-			parser_debug_log ("END_WHILE");
 
-			break;
-		}
 
-		case FILE_TAG_END_WHILE:
-		{
 
-			parser_debug_log ("%s evaluating condition", application_tag_strings [tag]);
-			parser_debug_log ("");
 
-			break;
-		}
 
-		case FILE_TAG_CALCULATE:
-		{
 
-			parser_debug_log ("%s (format : %s value1 operator value2)", application_tag_strings [tag], application_tag_strings [tag]);
 
-			break;
-		}
 
-		case FILE_TAG_IF:
-		{
 
-			parser_debug_log ("%s (format : %s value1 operator value2)", application_tag_strings [tag], application_tag_strings [tag]);
 
-			break;
-		}
 
-		case FILE_TAG_ELSE:
-		{
 
-			parser_debug_log ("");
 
-			break;
-		}
 
-		case FILE_TAG_ENDIF:
-		{
 
-			parser_debug_log ("");
 
-			break;
-		}
 
-		case FILE_TAG_CREATE_VARIABLE:
-		{
 
-			parser_debug_log ("");
 
-			get_next_file_word (file_ptr, variable_name, sizeof (variable_name));
 
-			parser_debug_log ("%s (format : %s name value) : %s", application_tag_strings [tag], application_tag_strings [tag], variable_name);
 
-			break;
-		}
 
-		case FILE_TAG_CALL:
-		{
 
-			parser_debug_log ("%s (format : %s :SCRIPT)", application_tag_strings [tag], application_tag_strings [tag]);
 
-			break;
-		}
 
-		case FILE_TAG_EVENT:
-		{
 
-			get_next_file_word (file_ptr, event_name, sizeof (event_name));
 
-			parser_debug_log ("%s (format : %s name) = %s", application_tag_strings [tag], application_tag_strings [tag], event_name);
 
-			break;
-		}
 
-		case FILE_TAG_CREATE_EVENT:
-		{
 
-			parser_debug_log ("");
 
-			get_next_file_word (file_ptr, event_name, sizeof (event_name));
 
-			parser_debug_log ("%s (format : %s name) = %s", application_tag_strings [tag], application_tag_strings [tag], event_name);
 
-			break;
-		}
 
-		case FILE_TAG_CREATE_TRIGGER:
-		{
 
-			int
-				result,
-				value1,
-				value2,
-				value3,
-				value4,
-				type;
 
-			parser_debug_log ("");
 
-			parser_debug_log ("%s (format : %s TRIGGER)", application_tag_strings [tag], application_tag_strings [tag]);
 
-			type = get_next_file_enum (file_ptr, campaign_trigger_names, NUM_CAMPAIGN_TRIGGER_TYPES);
 
-			value1 = 0;
-			value2 = 0;
-			value3 = 0;
-			value4 = 0;
 
-			switch (type)
-			{
 
-				case CAMPAIGN_TRIGGER_BALANCE_OF_POWER:
-				{
 
-					// side
-					result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
-					value1 = get_next_file_int (file_ptr);
 
-					// goal
-					result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
-					value2 = get_next_file_int (file_ptr);
 
-					// event
-					result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
-					get_next_file_word (file_ptr, event_name, sizeof (event_name));
 
-					parser_debug_log ("%s (format : %s :SIDE side :GOAL goal :EVENT event_name) = %d, %d, %s",
-									campaign_trigger_names [type], campaign_trigger_names [type], value1, value2, event_name);
 
-					break;
-				}
 
-				case CAMPAIGN_TRIGGER_TASK_COMPLETED:
-				case CAMPAIGN_TRIGGER_TASK_FAILED:
-				case CAMPAIGN_TRIGGER_OBJECT_DESTROYED:
-				case CAMPAIGN_TRIGGER_OBJECT_FIRED:
-				case CAMPAIGN_TRIGGER_OBJECT_TARGETED:
-				case CAMPAIGN_TRIGGER_INEFFICIENT_KEYSITE:
-				case CAMPAIGN_TRIGGER_WAYPOINT_REACHED:
-				case CAMPAIGN_TRIGGER_SECTOR_WON:
-				case CAMPAIGN_TRIGGER_SECTOR_LOST:
-				case CAMPAIGN_TRIGGER_SECTOR_REACHED:
-				{
 
-					// side
-					result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
-					value1 = get_next_file_int (file_ptr);
 
-					// event
-					result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
-					get_next_file_word (file_ptr, event_name, sizeof (event_name));
 
-					parser_debug_log ("%s (format : %s :SIDE side :EVENT event_name) = %d, %s",
-									campaign_trigger_names [type], campaign_trigger_names [type], value1, event_name);
 
-					break;
-				}
 
-				case CAMPAIGN_TRIGGER_TIME_DURATION:
-				{
 
-					// days
-					result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
-					value1 = get_next_file_int (file_ptr);
 
-					// hours
-					result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
-					value2 = get_next_file_int (file_ptr);
 
-					// minutes
-					result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
-					value3 = get_next_file_int (file_ptr);
 
-					// seconds
-					result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
-					value4 = get_next_file_int (file_ptr);
 
-					// event
-					result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
-					get_next_file_word (file_ptr, event_name, sizeof (event_name));
 
-					parser_debug_log ("%s (format : %s :DAYS days :HOURS hours :MINUTES minutes :SECONDS seconds :EVENT event_name) = %d, %d, %d, %d, %s",
-									campaign_trigger_names [type], campaign_trigger_names [type], value1, value2, value3, value4, event_name);
 
-					break;
-				}
 
-				case CAMPAIGN_TRIGGER_VARIABLE_CONDITION:
-				{
 
-					// if
-					result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
-					ASSERT (result == FILE_TAG_IF);
 
-					// variable_name
-					get_next_file_word (file_ptr, variable_name, sizeof (variable_name));
-					value1 = get_variable_id (variable_name);
 
-					// operator
-					get_next_file_word (file_ptr, operator_name, sizeof (operator_name));
-					value2 = get_operator_id (operator_name);
 
-					// value
-					value3 = get_next_file_int (file_ptr);
 
-					// event
-					result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
-					get_next_file_word (file_ptr, event_name, sizeof (event_name));
 
-					parser_debug_log ("%s (format : %s :IF variable_name operator value :EVENT event) = %s, %s, %d, %s",
-									campaign_trigger_names [type], campaign_trigger_names [type], variable_name, &operator_name [0], value3, event_name);
 
-					break;
-				}
 
-				case CAMPAIGN_TRIGGER_RANDOM:
-				{
 
-					// value
-					result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
-					value1 = get_next_file_int (file_ptr);
 
-					// event
-					result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
-					get_next_file_word (file_ptr, event_name, sizeof (event_name));
 
-					parser_debug_log ("%s (format : %s range :EVENT event) = %d, %s",
-									campaign_trigger_names [type], campaign_trigger_names [type], value1, event_name);
 
-					break;
-				}
-			}
 
-			break;
-		}
 
-		case FILE_TAG_SET_EVENT_TRIGGERED:
-		{
 
-			int
-				result;
 
-			campaign_event_type
-				*event;
 
-			get_next_file_word (file_ptr, event_name, sizeof (event_name));
 
-			event = get_campaign_event (event_name);
 
-			result = get_next_file_tag (file_ptr, application_tag_strings, FILE_TAG_APPLICATION_LAST_TAG);
-			ASSERT (result == FILE_TAG_VALUE);
 
-			value1 = get_next_file_int (file_ptr);
 
-			if (!event)
-			{
 
-				parser_debug_log ("Unknown event %s", event_name);
 
-				debug_fatal ("PARSGEN: unknown event %s", event_name);
-			}
-			else
-			{
 
-				parser_debug_log ("%s (format : %s event_name flag) = %s, %d",
-							application_tag_strings [tag], application_tag_strings [tag], event_name, value1);
-			}
 
-			break;
-		}
 
-		case FILE_TAG_SET_VARIABLE:
-		{
 
-			get_next_file_word (file_ptr, variable_name, sizeof (variable_name));
 
-			parser_debug_log ("%s (format : %s variable_name :SCRIPT) = %s",
-							application_tag_strings [tag], application_tag_strings [tag], variable_name);
 
-			break;
-		}
 
-		case FILE_TAG_VALUE:
-		{
 
-			value1 = get_next_file_int (file_ptr);
 
-			parser_debug_log ("%s (format : %s value) = %d",
-							application_tag_strings [tag], application_tag_strings [tag], value1);
 
-			break;
-		}
 
-		case FILE_TAG_VARIABLE:
-		{
 
-			get_next_file_word (file_ptr, variable_name, sizeof (variable_name));
 
-			parser_debug_log ("%s (format : %s variable_name) = %s",
-							application_tag_strings [tag], application_tag_strings [tag], variable_name);
 
-			break;
-		}
-/*
-		case FILE_TAG_CREATE_TASK:
-		case FILE_TAG_CREATE_GROUP:
-		case FILE_TAG_CREATE_MEMBERS:
-		{
 
-			parser_debug_log ("");
 
-			parser_debug_log ("%s (format : %s :TYPE type :SIDE side :WAYPOINTS x, y, z ...)",
-							application_tag_strings [tag], application_tag_strings [tag]);
 
-			break;
-		}
-*/
-		case FILE_TAG_END:
-		case FILE_TAG_END_EVENT:
-		{
 
-			parser_debug_log ("");
 
-			break;
-		}
 
 
-// OLD PARSER
 
 
-		case FILE_TAG_CAMPAIGN_DATA:
-		case FILE_TAG_START_BASE:
-		case FILE_TAG_AUTO_ASSIGN_GUNSHIP:
-		case FILE_TAG_TASK_GENERATION:
-		case FILE_TAG_HARDWARE_RESERVES:
-		case FILE_TAG_TITLE:
-		case FILE_TAG_FACTION:
-		case FILE_TAG_ATTITUDE:
-		case FILE_TAG_REGEN_FREQUENCY:
-		case FILE_TAG_FRONTLINE_FORCES:
-		{
 
-			parser_debug_log ("placing frontline forces");
 
-			break;
-		}
-		case FILE_TAG_KEYSITE:
-		{
 
-			parser_debug_log ("creating keysite");
 
-			break;
-		}
 
-		case FILE_TAG_CREATE_MEMBERS:
-		{
 
-			parser_debug_log ("creating member");
 
-			break;
-		}
 
-		case FILE_TAG_CREATE_GROUP:
-		{
 
-			parser_debug_log ("creating group");
 
-			break;
-		}
 
-		case FILE_TAG_CREATE_TASK:
-		{
 
-			parser_debug_log ("creating task");
 
-			break;
-		}
 
-		case FILE_TAG_SAVED_CAMPAIGN:
-		{
 
-			parser_debug_log ("loading saved campaign");
 
-			break;
-		}
 
 
-// OLD PARSER
 
 
-		default:
-		{
 
-			parser_debug_log ("unknown TAG");
-		}
-	}
 
-	fseek (file_ptr, original_file_offset, SEEK_SET);
-}
 
 
 
 
 
-void parser_debug_log (char *msg, ...)
-{
 
-	FILE
-		*file_ptr;
 
-	static char
-		buffer [1000];
 
-	va_list
-		args;
 
-	file_ptr = fopen ("parser.log", "a");
 
-	if (file_ptr)
-	{
 
-		va_start (args, msg);
 
-		vsprintf (buffer, msg, args);
 
-		va_end (args);
 
-		fwrite (buffer, 1, strlen (buffer), file_ptr);
 
-		fwrite ("\n", 1, 1, file_ptr);
 
-		fclose (file_ptr);
 
-		debug_filtered_log (buffer);
-	}
-}
 
 
 
 
 
-void parser_debug_fatal (char *msg, ...)
-{
 
-	FILE
-		*file_ptr;
 
-	static char
-		buffer [1000];
 
-	va_list
-		args;
 
-	file_ptr = fopen ("parser.log", "a");
 
-	if (file_ptr)
-	{
-		sprintf (buffer, "***************************** FATAL ******************************");
-		fwrite (buffer, 1, strlen (buffer), file_ptr);
 
-		va_start (args, msg);
 
-		vsprintf (buffer, msg, args);
 
-		va_end (args);
 
-		fwrite (buffer, 1, strlen (buffer), file_ptr);
 
-		fwrite ("\n", 1, 1, file_ptr);
 
-		fclose (file_ptr);
 
-		exit (1);
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

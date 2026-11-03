@@ -253,15 +253,15 @@ void reinitialise_ai_system (void)
 
 
 
-void reinitialise_ai_debug (void)
-{
 
-	#if LANDING_ROUTE_CHECK
 
-	destroy_debug_landing_route_check ();
 
-	#endif
-}
+
+
+
+
+
+
 
 
 
