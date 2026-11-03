@@ -1134,6 +1134,7 @@ pub const EECH_MODEL_TARGET_POINT_OFFSET: c_int = 11;
 pub const EECH_MODEL_TARGET_POINT_CHAIN: c_int = 12;
 pub const EECH_MODEL_TARGET_POINT_WORLD: c_int = 13;
 pub const EECH_MODEL_TARGET_POINT_FIXED: c_int = 14;
+pub const EECH_MODEL_ENTITY_COLLISION: c_int = 15;
 /// the deepest sub-object chain the target-point transport carries, and the floats of the largest pose (15 + 9 * chain, rounded up)
 pub const EECH_MODEL_CHAIN_MAX: usize = 8;
 pub const EECH_MODEL_POSE_MAX: usize = 96;

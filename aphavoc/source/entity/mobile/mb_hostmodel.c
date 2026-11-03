@@ -61,6 +61,8 @@ struct campaign_model_counters
 	long target_offset;
 	/* TARGET_POINT_CHAIN, _WORLD and _FIXED questions asked of the host (EEDCS-52); read by the target-point query diagnostic */
 	long target_chain, target_world, target_fixed;
+	/* ENTITY_COLLISION questions asked of the host (EEDCS-49) and the hits and misses the native code ACCEPTED */
+	long entity_collision, entity_hit, entity_miss;
 };
 
 struct campaign_model_counters campaign_model_counts;
@@ -1832,6 +1834,65 @@ void campaign_model_route_primary_start (int index, int starts)
 	{
 		debug_fatal ("host model: [model-provider:route.start] no start node of the route of scene %d kind %d is on a green line face", route_current->scene, route_current->kind);
 	}
+}
+
+// One collision candidate against the segment (mb_hostmodel.h, ENTITY_COLLISION; EEDCS-49, D3). The campaign has already decided that the candidate is collidable, moving or
+// stationary, within the broad-phase radius test, and has derived its live pose; the host does the physical work. The caller's intercept point and normal go to the host as inputs
+// and the host's final words come back whether or not there was a hit, because the original's intersection helpers leave partial writes on a miss.
+int campaign_model_entity_collision (int scene, const float *segment_old, const float *segment_new, const float *candidate, int candidate_count, float *point, float *normal)
+{
+	campaign_model_request
+		request;
+
+	campaign_model_reply
+		reply;
+
+	require_scene (scene, FALSE, "an entity collision test");
+
+	if ((candidate_count != CAMPAIGN_MODEL_ENTITY_STATIONARY_POSE - 12) && (candidate_count != CAMPAIGN_MODEL_ENTITY_MOVING_POSE - 12))
+	{
+		debug_fatal ("host model: [model-provider:entity_collision.pose] a pose of %d candidate floats was given for scene %d", candidate_count, scene);
+	}
+
+	memset (&request, 0, sizeof (request));
+	request.op = CAMPAIGN_MODEL_ENTITY_COLLISION;
+	request.scene = scene;
+	request.pose_count = 12 + candidate_count;
+	memcpy (&request.pose[0], segment_old, 3 * sizeof (float));
+	memcpy (&request.pose[3], segment_new, 3 * sizeof (float));
+	memcpy (&request.pose[6], point, 3 * sizeof (float));
+	memcpy (&request.pose[9], normal, 3 * sizeof (float));
+	memcpy (&request.pose[12], candidate, candidate_count * sizeof (float));
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.entity_collision++;
+#endif
+
+	ask (&request, &reply, "entity collision");
+
+	check_target_point_identity (&reply, scene, "entity_collision");
+
+	if ((reply.result != CAMPAIGN_MODEL_TRIANGLE_FOUND) && (reply.result != CAMPAIGN_MODEL_TRIANGLE_END))
+	{
+		debug_fatal ("host model: [model-provider:entity_collision.result] the host answered neither a hit nor a miss for scene %d (result %d)", scene, reply.result);
+	}
+
+	// the final words are copied exactly as the host left them: a word the original never wrote stays the caller's own, and none of them is required to be finite
+	memcpy (point, &reply.points[0], 3 * sizeof (float));
+	memcpy (normal, &reply.points[3], 3 * sizeof (float));
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	if (reply.result == CAMPAIGN_MODEL_TRIANGLE_FOUND)
+	{
+		campaign_model_counts.entity_hit++;
+	}
+	else
+	{
+		campaign_model_counts.entity_miss++;
+	}
+#endif
+
+	return (reply.result == CAMPAIGN_MODEL_TRIANGLE_FOUND);
 }
 
 #ifdef EECH_MODEL_HOST_FIXTURE

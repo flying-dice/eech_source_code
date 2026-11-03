@@ -324,6 +324,11 @@ fn main() {
         // EEDCS-50 (D3): the campaign asks the host for model data (mb_hostmodel.h)
         build.define("EECH_CAMPAIGN_HOST_MODEL", None);
     }
+    // EEDCS-49 (D3): the narrow phase of get_line_of_sight_collision_entity asks the host (mb_hostmodel.h, ENTITY_COLLISION; en_cllsn.c). It needs the host model operations, so it is
+    // defined where they are, and the ONE build that keeps the original entity solver besides the model fixtures is feature collision-fixture, the original characterisation.
+    if env::var_os("CARGO_FEATURE_COLLISION_FIXTURE").is_none() && env::var_os("CARGO_FEATURE_MODEL_FIXTURE").is_none() {
+        build.define("EECH_CAMPAIGN_HOST_ENTITY", None);
+    }
     if env::var_os("CARGO_FEATURE_MODEL_HOST_FIXTURE").is_some() {
         build.define("EECH_MODEL_HOST_FIXTURE", None);
     }

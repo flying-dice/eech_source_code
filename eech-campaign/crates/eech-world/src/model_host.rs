@@ -17,6 +17,7 @@
 //!
 //! No pointer, offset or legacy layout reaches Lua; the store is immutable and shared (`Arc`), so a value a script keeps never refers into it. Arguments are whole
 //! numbers within range or the call is refused before the store is touched. A missing asset is reported as `NOT RUN`, never as a pass.
+use crate::entity_host;
 use crate::models::{
     compiled_scene_name, hex_list, scene_index_by_name, scene_last, AnimationRef, CustomWalk, ErrorKind, FixedPath, FixedTarget, ModelStore, ObjectHeader,
     ObjectSource, OffsetSource, RouteFace, RouteNode, SceneSource, TargetPointChain, TargetPointLocal, TargetPointWorld, Triangle, CUSTOM_WALK_MAX,
@@ -461,6 +462,36 @@ fn transport_pose(text: Option<&str>, operation: &str, count_ok: impl Fn(usize) 
         return Err(bad(&format!("has {} floats, which this question does not take", words.len())));
     }
     Ok(words)
+}
+
+/// The reference host's answer to an entity collision question (`get_line_of_sight_collision_entity`'s narrow phase, EEDCS-49): whether the segment meets the scene at the pose the campaign
+/// derived, and the final intercept point and normal words (written whether or not it hit). The store and the kernel do the physical work; a refusal of either is a refusal here, never a miss.
+fn entity_collision_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaResult<LuaTable> {
+    let operation = q.operation.as_str();
+    let fail = |message: String| LuaError::runtime(format!("[model-provider:{operation}.request] {message}"));
+    if q.depth.is_some() || q.kind.is_some() || q.definition.is_some() {
+        return Err(fail("an entity collision question has no depth, kind or definition".into()));
+    }
+    let scene = q.scene.ok_or_else(|| fail("an entity collision question needs a scene".into()))?;
+    if scene < 1 {
+        return Err(fail(format!("scene {scene} is not a scene a candidate can have")));
+    }
+    let words = transport_pose(q.key.as_deref(), operation, |n| {
+        n == entity_host::STATIONARY_POSE || n == entity_host::MOVING_POSE
+    })?;
+    let table = lua.create_table()?;
+    table.set("name", usize::try_from(scene).ok().and_then(compiled_scene_name).unwrap_or(""))?;
+    match entity_host::collide_in_store(store, scene, &words) {
+        Ok(test) => {
+            table.set("result", if test.hit { "hit" } else { "miss" })?;
+            table.set("p", hex_list(&test.words))?;
+        }
+        Err(reason) => {
+            table.set("result", "refused")?;
+            table.set("reason", reason)?;
+        }
+    }
+    Ok(table)
 }
 
 /// The reference host's answer to a target-point question of a live instance or a fixed object (`get_local_entity_target_point`, EEDCS-52): which sub-object (the chain), where it is
@@ -975,6 +1006,11 @@ impl ProviderState {
         let operation = q.operation.as_str();
         match operation {
             "custom_order" => self.custom_order(lua, current, q.scene, q.depth, q.kind, q.key),
+            // whether the segment meets one collision candidate (EEDCS-49): the host's own narrow phase over the final store; the candidate's pose arrives in the text place
+            "entity_collision" => {
+                let store = self.final_store(current)?;
+                entity_collision_answer(lua, &store, &q)
+            }
             // the target-point queries of a live instance or a fixed object (EEDCS-52): the campaign's current placement arrives in the text place
             "target_point_chain" | "target_point_world" | "target_point_fixed" => {
                 let store = self.final_store(current)?;

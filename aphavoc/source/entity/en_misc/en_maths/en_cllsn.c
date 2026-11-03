@@ -331,6 +331,9 @@ static void draw_min_max_box (vec3d *min_position, vec3d *max_position, rgb_colo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// the face wrappers serve the original solvers only (the entity narrow phase and the tree query); neither is compiled into the hosted module
+#if !defined(EECH_CAMPAIGN_HOST_ENTITY) || !defined(EECH_CAMPAIGN_HOST_TREE)
+
 static int get_3d_line_triangle_face_intersection
 (
 	vec3d *source_old_position,
@@ -436,9 +439,163 @@ static int get_3d_line_quad_face_intersection
 	return (FALSE);
 }
 
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+
+// EEDCS-49 (D3): in the headless campaign module the physical test of a segment against ONE collision candidate is the host's (mb_hostmodel.h, ENTITY_COLLISION): the transform of the
+// model's collision triangles or bounding box into the world, the sweep positions tested for a moving candidate, the face order and the intersection arithmetic. The campaign keeps what is
+// its own: which candidates are visited and in what order (get_line_of_sight_collision_entity below, unchanged), the broad-phase radius test, and the candidate's live pose, derived below
+// from the entity state in the original's order (a terrain-aligned fixed object's placement included, so the terrain question it asks keeps its place). The caller's intercept point and face
+// normal go to the host and its final words come back whether or not the segment hits, as the original's intersection helpers left them. The original arithmetic below is not compiled into it;
+// the explicit original-characterisation profile (feature collision-fixture) keeps it.
+
+extern int campaign_model_entity_collision (int scene, const float *segment_old, const float *segment_new, const float *candidate, int candidate_count, float *point, float *normal);
+
+static int accurate_stationary_bounding_box_collision_test
+(
+	entity *target,
+	vec3d *source_old_position,
+	vec3d *source_new_position,
+	object_3d_index_numbers index_3d_object,
+	object_3d_bounds *bounding_box,
+	vec3d *source_intercept_point,
+	vec3d *face_normal
+)
+{
+	float
+		heading,
+		candidate [12];
+
+	vec3d
+		*position,
+		terrain_face_normal;
+
+	matrix3x3
+		attitude;
+
+	ASSERT (target);
+
+	ASSERT (source_old_position);
+
+	ASSERT (source_new_position);
+
+	ASSERT ((index_3d_object > OBJECT_3D_INVALID_OBJECT_INDEX) && (index_3d_object < OBJECT_3D_LAST));
+
+	ASSERT (bounding_box);
+
+	ASSERT (source_intercept_point);
+
+	ASSERT (face_normal);
+
+	//
+	// get target position and attitude
+	//
+
+	if (get_local_entity_int_value (target, INT_TYPE_COLLISION_TEST_MOBILE))
+	{
+		position = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
+
+		get_local_entity_attitude_matrix (target, attitude);
+	}
+	else if (get_local_entity_int_value (target, INT_TYPE_COLLISION_TEST_FIXED))
+	{
+		ASSERT (get_local_entity_type (target) != ENTITY_TYPE_CITY);
+
+		position = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
+
+		heading = get_local_entity_float_value (target, FLOAT_TYPE_HEADING);
+
+		if (get_local_entity_int_value (target, INT_TYPE_ALIGN_WITH_TERRAIN))
+		{
+			get_3d_terrain_face_normal (&terrain_face_normal, position->x, position->z);
+
+			get_3d_transformation_matrix_from_face_normal_and_heading (attitude, &terrain_face_normal, heading);
+		}
+		else
+		{
+			get_3d_transformation_matrix (attitude, heading, 0.0, 0.0);
+		}
+	}
+	else
+	{
+		debug_fatal ("Invalid target (type = %s)", get_local_entity_type_name (target));
+	}
+
+	candidate [0] = position->x;
+	candidate [1] = position->y;
+	candidate [2] = position->z;
+
+	memcpy (&candidate [3], attitude, 9 * sizeof (float));
+
+	return (campaign_model_entity_collision (index_3d_object, &source_old_position->x, &source_new_position->x, candidate, 12, &source_intercept_point->x, &face_normal->x));
+}
+
+static int accurate_moving_bounding_box_collision_test
+(
+	entity *target,
+	vec3d *source_old_position,
+	vec3d *source_new_position,
+	vec3d *target_old_position,
+	vec3d *target_new_position,
+	object_3d_index_numbers index_3d_object,
+	object_3d_bounds *bounding_box,
+	vec3d *source_intercept_point,
+	vec3d *face_normal
+)
+{
+	float
+		candidate [16];
+
+	matrix3x3
+		*attitude;
+
+	ASSERT (target);
+
+	ASSERT (source_old_position);
+
+	ASSERT (source_new_position);
+
+	ASSERT (target_old_position);
+
+	ASSERT (target_new_position);
+
+	ASSERT ((index_3d_object > OBJECT_3D_INVALID_OBJECT_INDEX) && (index_3d_object < OBJECT_3D_LAST));
+
+	ASSERT (bounding_box);
+
+	ASSERT (source_intercept_point);
+
+	ASSERT (face_normal);
+
+	ASSERT (get_local_entity_int_value (target, INT_TYPE_COLLISION_TEST_MOBILE));
+
+	attitude = get_local_entity_attitude_matrix_ptr (target);
+
+	//
+	// the host decides which sweep positions are required from the candidate's speed and its own body length
+	//
+
+	candidate [0] = target_old_position->x;
+	candidate [1] = target_old_position->y;
+	candidate [2] = target_old_position->z;
+
+	candidate [3] = target_new_position->x;
+	candidate [4] = target_new_position->y;
+	candidate [5] = target_new_position->z;
+
+	memcpy (&candidate [6], attitude, 9 * sizeof (float));
+
+	candidate [15] = get_local_entity_vec3d_magnitude (target, VEC3D_TYPE_MOTION_VECTOR);
+
+	return (campaign_model_entity_collision (index_3d_object, &source_old_position->x, &source_new_position->x, candidate, 16, &source_intercept_point->x, &face_normal->x));
+}
+
+#else
 
 static int accurate_stationary_bounding_box_collision_test
 (
@@ -1130,6 +1287,8 @@ static int accurate_moving_bounding_box_collision_test
 
 	return (FALSE);
 }
+
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

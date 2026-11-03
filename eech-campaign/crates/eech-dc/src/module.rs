@@ -3860,6 +3860,12 @@ fn gunship(name: &str) -> LuaResult<Gunship> {
 ///   "target_point_fixed"  a shape index (never 0) and, in the sixth place, three bit patterns (the entity position the original copied) and, only when the cached host offset has a horizontal
 ///                 part, a fourth (the heading). Returns `{ result = "fixed", p = {three}, name = text }` or `{ result = "refused", reason }` (a heading needed and not given is a refusal).
 ///
+///   "entity_collision"  a scene index (never 0) and, in the sixth place (the text), 24 (a STATIONARY candidate) or 28 (a MOVING one) comma-separated bit patterns: the segment's old end (3)
+///                 and new end (3), the intercept point (3) and face normal (3) the caller holds, then the candidate's position (3) and attitude (9, row-major), or its old position (3), new
+///                 position (3), attitude (9) and speed (1). Returns `{ result = "hit" or "miss", p = {six}, name = text }`: whether the segment meets the scene's collision triangles (its
+///                 bounding box without lines when it has none) at that pose, and the FINAL intercept point (3) and normal (3) as bit patterns, written whether or not it hit (a miss can leave
+///                 partial writes, as the original did), or `{ result = "refused", reason }`. `name` is the scene's compiled name (an echo).
+///
 ///   "object_table"  no scene, no depth. Returns `{ result = "table", objects = n }`: how many objects the host's common database holds (the campaign's room for custom objects is its own).
 ///   "object"     a scene index, a cursor (`depth`, never negative: the approximation or the sub-object) and, in the fourth place, the ROLE the object has in the scene (0 main, 1
 ///                 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object). Returns `{ result = "object", name = text, counts = {six whole numbers within 0..65535:
@@ -4034,6 +4040,18 @@ return function(op, scene, depth, kind, definition, key)
 		end
 		return 'chain', concat(parts, ' '), nil, nil, nil, nil, nil, name
 	end
+	if op == 'entity_collision' then
+		local name, result = a.name, a.result
+		if result == 'refused' then
+			local reason = a.reason
+			return 'refused', type(reason) == 'string' and reason:sub(1, 200) or ''
+		end
+		if type(name) ~= 'string' or #name > 127 or find(name, ' ', 1, true) then return nil, 'name must be text of at most 127 bytes without a NUL' end
+		if result ~= 'hit' and result ~= 'miss' then return nil, 'result must be hit, miss or refused' end
+		local p, why = list(a.p, 6)
+		if not p then return nil, 'p ' .. why end
+		return result, p, nil, nil, nil, nil, nil, name
+	end
 	if op == 'target_point_world' or op == 'target_point_fixed' then
 		local name, result = a.name, a.result
 		if result == 'refused' then
@@ -4104,23 +4122,38 @@ end
 
 /// One bit pattern (`0x` and eight hexadecimal digits) as the finite float it names.
 fn model_hex(text: &str, what: &str, operation: &str) -> Result<f32, String> {
+    let number = model_bits(text, what, operation)?;
+    if number.is_finite() {
+        Ok(number)
+    } else {
+        Err(format!("[model-provider:{operation}.answer] {what}: not finite"))
+    }
+}
+
+/// One bit pattern (`0x` and eight hexadecimal digits) as the float it names, whatever the pattern: a word the campaign handed to the host and the host gives back untouched (the intercept
+/// point and normal of an entity collision question) is the caller's own, and the original left such a word as it found it, a non-finite one included.
+fn model_bits(text: &str, what: &str, operation: &str) -> Result<f32, String> {
     let malformed = |why: &str| format!("[model-provider:{operation}.answer] {what}: {why}");
     let digits = text
         .strip_prefix("0x")
         .filter(|digits| digits.len() == 8 && digits.bytes().all(|byte| byte.is_ascii_hexdigit()))
         .ok_or_else(|| malformed("a bit pattern is 0x and eight hexadecimal digits"))?;
     let bits = u32::from_str_radix(digits, 16).map_err(|_| malformed("not a bit pattern"))?;
-    let number = f32::from_bits(bits);
-    if number.is_finite() {
-        Ok(number)
-    } else {
-        Err(malformed("not finite"))
-    }
+    Ok(f32::from_bits(bits))
 }
 
 /// Exactly N floats from the bridge's text for a list: `n:` and N numbers at 17 digits separated by spaces, or `s:` and N bit patterns separated by commas. Nothing is
 /// collected: the N slots are filled one token at a time and a further token is an error, so no input can make this allocate more than N floats.
 fn bridged_floats<const N: usize>(pair: &str, what: &str, operation: &str) -> Result<[f32; N], String> {
+    bridged_list(pair, what, operation, false)
+}
+
+/// As `bridged_floats`, but every bit pattern of the `s:` form is accepted, the non-finite ones too (see `model_bits`). The `n:` form is numbers and stays finite.
+fn bridged_words<const N: usize>(pair: &str, what: &str, operation: &str) -> Result<[f32; N], String> {
+    bridged_list(pair, what, operation, true)
+}
+
+fn bridged_list<const N: usize>(pair: &str, what: &str, operation: &str, any_bits: bool) -> Result<[f32; N], String> {
     let malformed = |why: &str| format!("[model-provider:{operation}.answer] {what}: {why}");
     let mut out = [0.0_f32; N];
     match pair.split_once(':') {
@@ -4140,7 +4173,12 @@ fn bridged_floats<const N: usize>(pair: &str, what: &str, operation: &str) -> Re
         Some(("s", patterns)) => {
             let mut parts = patterns.split(',');
             for slot in out.iter_mut() {
-                *slot = model_hex(parts.next().ok_or_else(|| malformed("too few bit patterns"))?, what, operation)?;
+                let pattern = parts.next().ok_or_else(|| malformed("too few bit patterns"))?;
+                *slot = if any_bits {
+                    model_bits(pattern, what, operation)?
+                } else {
+                    model_hex(pattern, what, operation)?
+                };
             }
             if parts.next().is_some() {
                 return Err(malformed("more bit patterns than expected"));
@@ -4174,6 +4212,8 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
         // the campaign's current placement crosses as exact bit patterns in the text place
         ModelQuery::TargetPointWorld { scene, pose } => ("target_point_world", Some(scene), None, None, None, Some(pose_text(&pose))),
         ModelQuery::TargetPointFixed { scene, pose } => ("target_point_fixed", Some(scene), None, None, None, Some(pose_text(&pose))),
+        // the segment, the caller's intercept point and normal and the candidate's pose cross as exact bit patterns in the text place (24 floats: stationary, 28: moving)
+        ModelQuery::EntityCollision { scene, pose } => ("entity_collision", Some(scene), None, None, None, Some(pose_text(&pose))),
         // the fourth place carries the role the object has in the scene
         ModelQuery::Object {
             scene,
@@ -4380,16 +4420,25 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
             scene_name: g.ok_or_else(missing)?,
             offsets: None,
         }),
+        (ModelQuery::EntityCollision { .. }, "hit" | "miss") => Ok(ModelAnswer::EntityCollision {
+            scene_name: g.ok_or_else(missing)?,
+            hit: tag == "hit",
+            words: bridged_words::<6>(&a.ok_or_else(missing)?, "p", operation)?,
+        }),
         (ModelQuery::TargetPointWorld { .. }, "world") | (ModelQuery::TargetPointFixed { .. }, "fixed") => Ok(ModelAnswer::TargetPointPosition {
             scene_name: g.ok_or_else(missing)?,
             position: bridged_floats::<3>(&a.ok_or_else(missing)?, "p", operation)?,
         }),
-        (ModelQuery::TargetPointChain { scene } | ModelQuery::TargetPointWorld { scene, .. } | ModelQuery::TargetPointFixed { scene, .. }, "refused") => {
-            Err(format!(
-                "[model-provider:{operation}.refused] the host cannot answer for scene {scene}: {}",
-                a.unwrap_or_default()
-            ))
-        }
+        (
+            ModelQuery::TargetPointChain { scene }
+            | ModelQuery::TargetPointWorld { scene, .. }
+            | ModelQuery::TargetPointFixed { scene, .. }
+            | ModelQuery::EntityCollision { scene, .. },
+            "refused",
+        ) => Err(format!(
+            "[model-provider:{operation}.refused] the host cannot answer for scene {scene}: {}",
+            a.unwrap_or_default()
+        )),
         (ModelQuery::RouteNode { scene, kind, index } | ModelQuery::RouteFace { scene, kind, index }, "refused") => Err(format!(
             "[model-provider:{operation}.refused] the host cannot answer for scene {scene} kind {kind} cursor {index}: {}",
             a.unwrap_or_default()
@@ -5424,6 +5473,71 @@ mod tests {
         for scene in 2..=9 {
             let error = chain(scene).err().ok_or("accepted")?;
             assert!(error.contains("[model-provider:target_point_chain.answer]"), "scene {scene}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn an_entity_collision_question_reaches_the_provider_as_exact_bits_and_the_final_words_come_back_as_exact_bits() -> Test {
+        let lua = Lua::new();
+        // the provider answers a hit for a stationary pose (24 words) and a miss for a moving one (28): the six words it gives back are the caller's own intercept point and normal
+        // (words 6 to 11 of the pose), so a negative zero, a subnormal, a signalling NaN pattern and an infinity must survive both crossings, and neither tag may be read as the other
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               assert (op == 'entity_collision' and depth == nil and kind == nil and definition == nil)
+               local words = {}
+               for word in key:gmatch ('[^,]+') do words[#words + 1] = word end
+               local result = (#words == 24) and 'hit' or 'miss'
+               local given = {}
+               for i = 7, 12 do given[#given + 1] = words[i] end
+               return { result = result, name = 'CANDIDATE', p = table.concat (given, ',') }
+             end",
+        )?;
+        let weird = [-0.0_f32, f32::from_bits(1), 1234.5, f32::from_bits(0x7fa0_0001), f32::INFINITY, -1.0];
+        let pose = |count: usize| -> Vec<u32> {
+            let mut words: Vec<u32> = (0..6).map(|i| (i as f32 + 0.25).to_bits()).collect();
+            words.extend(weird.map(f32::to_bits));
+            words.extend((0..count - 12).map(|i| (i as f32 + 0.5).to_bits()));
+            words
+        };
+        for (count, expected_hit) in [(24, true), (28, false)] {
+            let ModelAnswer::EntityCollision { scene_name, hit, words } = ask(&mut provider, ModelQuery::EntityCollision { scene: 7, pose: pose(count) })?
+            else {
+                return Err("not an entity collision answer".into());
+            };
+            assert_eq!(scene_name, "CANDIDATE");
+            assert_eq!(hit, expected_hit, "{count} words");
+            assert_eq!(bits(words), bits(weird));
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn an_entity_collision_answer_that_is_refused_short_unnamed_or_of_the_wrong_kind_stops_with_its_marker() -> Test {
+        let lua = Lua::new();
+        // each answer is chosen by the scene: 1 refused, 2 five words, 3 no name, 4 a name with a NUL, 5 the answer of a target point question, 6 a triangle's end
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene)
+               local n = 'SCENE'
+               if scene == 1 then return { result = 'refused', reason = 'no such model' } end
+               if scene == 2 then return { result = 'hit', name = n, p = { 1, 2, 3, 4, 5 } } end
+               if scene == 3 then return { result = 'miss', p = { 1, 2, 3, 4, 5, 6 } } end
+               if scene == 4 then return { result = 'hit', name = 'A\0B', p = { 1, 2, 3, 4, 5, 6 } } end
+               if scene == 5 then return { result = 'world', name = n, p = { 1, 2, 3, 4, 5, 6 } } end
+               return { result = 'end', name = n, p = { 1, 2, 3, 4, 5, 6 } }
+             end",
+        )?;
+        let mut collide = |scene: i32| ask(&mut provider, ModelQuery::EntityCollision { scene, pose: vec![0; 24] });
+        let refused = collide(1).err().ok_or("accepted")?;
+        assert!(
+            refused.contains("[model-provider:entity_collision.refused]") && refused.contains("no such model"),
+            "{refused}"
+        );
+        for scene in 2..=6 {
+            let error = collide(scene).err().ok_or("accepted")?;
+            assert!(error.contains("[model-provider:entity_collision.answer]"), "scene {scene}: {error}");
         }
         Ok(())
     }

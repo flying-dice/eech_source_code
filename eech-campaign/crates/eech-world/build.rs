@@ -20,6 +20,7 @@ fn main() {
         "expire_step.c",
         "los_step.c",
         "tree_step.c",
+        "entity_step.c",
         "sense_step.c",
         "aim_step.c",
         "wn_flight.c",
@@ -45,6 +46,7 @@ fn main() {
         .file("csrc/expire_step.c")
         .file("csrc/los_step.c")
         .file("csrc/tree_step.c")
+        .file("csrc/entity_step.c")
         .file("csrc/sense_step.c")
         .file("csrc/aim_step.c")
         .file("csrc/wn_flight.c")

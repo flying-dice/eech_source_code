@@ -100,6 +100,23 @@
  *              Every reply echoes the scene's compiled name and must be FOUND (CHAIN also ABSENT) with finite floats; a refusal, a malformed or non-finite answer, an END or a missing
  *              provider stops the engine with the host's reason. There is NO fallback to the original sub-object search, world-viewpoint solver or fixed rotation.
  *
+ *   ENTITY_COLLISION   whether a line segment meets ONE collision candidate (EEDCS-49, D3): the narrow phase of get_line_of_sight_collision_entity (en_cllsn.c). The host owns the
+ *              physical work: the transform of the scene's collision triangles (or, for a scene with none, of its bounding box without lines) into the world under the pose, the
+ *              choice of the sweep positions of a moving candidate to test (its speed against its body length), the order of the faces and the intersection arithmetic. The
+ *              campaign keeps what is its own and sends it: WHICH candidates and in what order (the sector scan, the exclusions, the broad-phase radius test and the tests that
+ *              decide whether a candidate is collidable, moving or stationary), the candidate's live pose derived from its entity state in the original's order (a fixed object's
+ *              terrain-aligned placement included, so the terrain questions it asks keep their order), the hit decision's consequences and the returned entity.
+ *              `scene` is the candidate's scene (never 0). `pose_count` is 24 (a STATIONARY candidate) or 28 (a MOVING one) and the floats of `pose` are, in order: the segment's old
+ *              end (3) and new end (3), the intercept point (3) and the face normal (3) the caller holds, then
+ *                stationary: the position (3) and the attitude (9, row-major);
+ *                moving:     the old position (3), the new position (3), the attitude (9) and the speed (1, the magnitude of the candidate's motion vector).
+ *              The intercept point and normal are INPUTS as well as outputs: the original's intersection helpers write them before they know whether the segment hits, so a miss
+ *              can leave a written point and normal. The reply carries the final point (3) and normal (3) in the first six words of `points`, whether or not there was a hit, and
+ *              the campaign copies them back exactly as the original left them. `result` is FOUND for a hit and END for a miss; the reply echoes the scene's compiled name. A
+ *              refusal, a malformed answer, any other result or a missing provider stops the engine with the host's reason; a miss is never invented for a question the host could
+ *              not answer. There is NO fallback to the original arithmetic in the hosted module; the explicit original-characterisation profile (feature collision-fixture) keeps it.
+ *              The model's data is the host's final announced-order store, the same one the other operations read; no second store is loaded for the question.
+ *
  * The bounds and the radius are copied once, at boot, into immutable tables owned by this module (host-authored data, valid for the life of the process and never
  * written again). Callers hold the bounds pointer across loop iterations, so it must be stable; a rotating cache would not be. The tables are a snapshot of the host's
  * answers, not an authority of the campaign's own.
@@ -137,7 +154,8 @@ enum campaign_model_op
 	CAMPAIGN_MODEL_TARGET_POINT_OFFSET,
 	CAMPAIGN_MODEL_TARGET_POINT_CHAIN,
 	CAMPAIGN_MODEL_TARGET_POINT_WORLD,
-	CAMPAIGN_MODEL_TARGET_POINT_FIXED
+	CAMPAIGN_MODEL_TARGET_POINT_FIXED,
+	CAMPAIGN_MODEL_ENTITY_COLLISION
 };
 
 enum campaign_model_object_role
@@ -151,6 +169,10 @@ enum campaign_model_object_role
 
 /* the longest animation name (without the terminator) a reply may carry */
 #define CAMPAIGN_MODEL_ANIMATION_NAME_MAX 127
+
+/* ENTITY_COLLISION: the floats of a stationary and of a moving candidate's pose (see the operations above) */
+#define CAMPAIGN_MODEL_ENTITY_STATIONARY_POSE 24
+#define CAMPAIGN_MODEL_ENTITY_MOVING_POSE 28
 
 /* TARGET_POINT_*: the deepest sub-object chain the transport carries, and the floats of the largest pose (15 + 9 * CAMPAIGN_MODEL_CHAIN_MAX, rounded up) */
 #define CAMPAIGN_MODEL_CHAIN_MAX 8
@@ -179,7 +201,7 @@ typedef struct campaign_model_request
 	int definition;
 	/* CUSTOM_ORDER: the name of the directory under OBJECTS that holds the custom scene file (NUL-terminated) */
 	char key[CAMPAIGN_MODEL_NAME_MAX + 1];
-	/* TARGET_POINT_WORLD and TARGET_POINT_FIXED: the number of floats in `pose` (see the operations above) */
+	/* TARGET_POINT_WORLD, TARGET_POINT_FIXED and ENTITY_COLLISION: the number of floats in `pose` (see the operations above) */
 	int pose_count;
 	float pose[CAMPAIGN_MODEL_POSE_MAX];
 } campaign_model_request;
@@ -240,5 +262,10 @@ void campaign_model_set_host (const campaign_model_host *host);
    per scene-database load, at the end of initialise_3d_objects (the staged build patch), so a missing provider, a catalogue that disagrees or a malformed scene stops the
    boot. The campaign's own scene arrays are not read for acceptance. */
 void campaign_model_install_scenes (void);
+
+/* ENTITY_COLLISION: asks the host whether the segment meets one candidate. `candidate` has `candidate_count` floats, 12 (stationary: position, attitude) or 16 (moving: old position, new
+   position, attitude, speed); the request's pose is the segment's two ends, `point` and `normal`, then these (see above). The host's final point and normal words are written back to `point`
+   and `normal` whether or not there was a hit. Returns TRUE for a hit. */
+int campaign_model_entity_collision (int scene, const float *segment_old, const float *segment_new, const float *candidate, int candidate_count, float *point, float *normal);
 
 #endif
