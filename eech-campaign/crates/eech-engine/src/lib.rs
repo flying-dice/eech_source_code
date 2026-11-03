@@ -1101,6 +1101,13 @@ pub enum ModelQuery {
     /// a scene's LOCAL target-point offset (EEDCS-52): the three coordinates `initialise_target_point_offsets` used to compute by constructing the scene. Never asked for the
     /// invalid scene 0, whose entry is the campaign's own zero
     TargetPointOffset { scene: i32 },
+    /// which sub-object of the instance's scene is the first TARGET_POINT (EEDCS-52): the host names the chain, the campaign does not search for it. Scene 0 (the invalid index) is asked
+    TargetPointChain { scene: i32 },
+    /// the world position of that sub-object for the campaign's CURRENT placement: the instance's world position (3), attitude (9, row-major) and relative scale (3), then for each level
+    /// of the chain the host named the live relative position (3), heading, pitch, roll and relative scale (3), all as exact float bit patterns
+    TargetPointWorld { scene: i32, pose: Vec<u32> },
+    /// a FIXED object's target point: the entity position the original had copied (3) and, only when the cached host offset has a horizontal part, the heading (1), as bit patterns
+    TargetPointFixed { scene: i32, pose: Vec<u32> },
     /// one step of the campaign's ANNOUNCEMENT of the order in which it walks the custom scene files: file number `position` is the scene `scene`'s file in the directory named
     /// `key`; or (`end`) the walk is over and has `position` files. The campaign's definitions are then named by their position in that walk.
     CustomOrder { scene: i32, position: i32, end: bool, key: String },
@@ -1218,6 +1225,16 @@ pub enum ModelAnswer {
         scene_name: String,
         offset: [f32; 3],
     },
+    /// the chain the host names for a scene: the sibling position of the first TARGET_POINT sub-object at each level, topmost first (1 to 8 levels), or `None` when the scene has none
+    TargetPointChain {
+        scene_name: String,
+        offsets: Option<Vec<i32>>,
+    },
+    /// a target point's world position (exact `f32` values), for either a live instance or a fixed object, with the scene's compiled name (the echo)
+    TargetPointPosition {
+        scene_name: String,
+        position: [f32; 3],
+    },
 }
 
 /// The host's model provider. It is installed once, at boot, and is the only source of the campaign's collision-model answers: the campaign no longer compiles the code that
@@ -1287,6 +1304,25 @@ unsafe extern "C" fn model_callback(
                 },
             ),
             sys::EECH_MODEL_TARGET_POINT_OFFSET => ("target_point_offset", ModelQuery::TargetPointOffset { scene: source.scene }),
+            sys::EECH_MODEL_TARGET_POINT_CHAIN => ("target_point_chain", ModelQuery::TargetPointChain { scene: source.scene }),
+            sys::EECH_MODEL_TARGET_POINT_WORLD | sys::EECH_MODEL_TARGET_POINT_FIXED => {
+                let world = source.op == sys::EECH_MODEL_TARGET_POINT_WORLD;
+                let operation = if world { "target_point_world" } else { "target_point_fixed" };
+                // the pose is the campaign's own packaging: a count outside the array is a malformed request, never read past the array
+                let count = usize::try_from(source.pose_count)
+                    .ok()
+                    .filter(|count| *count <= sys::EECH_MODEL_POSE_MAX)
+                    .ok_or_else(|| format!("[model-provider:{operation}.request] the pose has {} floats", source.pose_count))?;
+                let pose = source.pose[..count].iter().map(|float| float.to_bits()).collect();
+                (
+                    operation,
+                    if world {
+                        ModelQuery::TargetPointWorld { scene: source.scene, pose }
+                    } else {
+                        ModelQuery::TargetPointFixed { scene: source.scene, pose }
+                    },
+                )
+            }
             sys::EECH_MODEL_OBJECT_TABLE => ("object_table", ModelQuery::ObjectTable),
             sys::EECH_MODEL_OBJECT | sys::EECH_MODEL_CUSTOM_OBJECT => (
                 "object",
@@ -1396,6 +1432,29 @@ unsafe extern "C" fn model_callback(
                 reply.result = sys::EECH_MODEL_TRIANGLE_FOUND;
                 reply.points[..3].copy_from_slice(&offset);
             }
+            ("target_point_chain", ModelAnswer::TargetPointChain { scene_name, offsets }) => {
+                put_name(&mut reply, &scene_name, "target_point_chain")?;
+                match offsets {
+                    None => reply.result = sys::EECH_MODEL_TRIANGLE_ABSENT,
+                    Some(offsets) => {
+                        if offsets.is_empty() || offsets.len() > sys::EECH_MODEL_CHAIN_MAX {
+                            return Err(format!(
+                                "[model-provider:target_point_chain.answer] a chain has 1 to {} levels, got {}",
+                                sys::EECH_MODEL_CHAIN_MAX,
+                                offsets.len()
+                            ));
+                        }
+                        reply.result = sys::EECH_MODEL_TRIANGLE_FOUND;
+                        reply.chain_length = offsets.len() as c_int;
+                        reply.chain_offsets[..offsets.len()].copy_from_slice(&offsets);
+                    }
+                }
+            }
+            (operation @ ("target_point_world" | "target_point_fixed"), ModelAnswer::TargetPointPosition { scene_name, position }) => {
+                put_name(&mut reply, &scene_name, operation)?;
+                reply.result = sys::EECH_MODEL_TRIANGLE_FOUND;
+                reply.points[..3].copy_from_slice(&position);
+            }
             ("object_table", ModelAnswer::ObjectTable { objects }) => reply.object_count = objects,
             ("custom_order", ModelAnswer::CustomOrder(step)) => {
                 reply.result = match step {
@@ -1450,6 +1509,8 @@ unsafe extern "C" fn model_callback(
                     ModelAnswer::Animation { .. } => "an animation step",
                     ModelAnswer::CustomOrder(_) => "a walk announcement step",
                     ModelAnswer::TargetPointOffset { .. } => "a target point offset",
+                    ModelAnswer::TargetPointChain { .. } => "a target point chain",
+                    ModelAnswer::TargetPointPosition { .. } => "a target point position",
                 };
                 return Err(format!(
                     "[model-provider:{operation}.answer] the provider answered a {operation} question with {given}"
@@ -6427,6 +6488,15 @@ impl Engine {
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 
+    /// TEST-ONLY (feature `model-host-fixture`, EEDCS-52 D3): the target-point query (`get_local_entity_target_point`) called for real on live entities, with the host questions it asked
+    /// counted around each call (one `model-host-tp` row per case). `mutate` changes the leaf sub-instance's live placement for the call of an instance whose host-named chain exists (and
+    /// restores it). Read-only apart from those restored changes.
+    #[cfg(feature = "model-host-fixture")]
+    pub fn model_host_target_queries(&self, mutate: bool) -> Result<String, EngineError> {
+        // SAFETY: the buffer outlives the call and the capacity passed is its length.
+        Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_host_target_queries(i32::from(mutate), text, capacity) })
+    }
+
     /// TEST-ONLY (feature `model-fixture`, EEDCS-50): the table sizes and page bounds of the model questions.
     #[cfg(feature = "model-fixture")]
     pub fn model_summary(&self) -> Result<String, EngineError> {
@@ -10669,6 +10739,8 @@ mod tests {
             role: 0,
             definition: 0,
             key: [0; sys::EECH_MODEL_NAME_MAX + 1],
+            pose_count: 0,
+            pose: [0.0; sys::EECH_MODEL_POSE_MAX],
         }
     }
 
@@ -10682,6 +10754,8 @@ mod tests {
             role,
             definition,
             key: [0; sys::EECH_MODEL_NAME_MAX + 1],
+            pose_count: 0,
+            pose: [0.0; sys::EECH_MODEL_POSE_MAX],
         }
     }
 
@@ -10947,6 +11021,8 @@ mod tests {
             role: request.role,
             definition: request.definition,
             key: request.key,
+            pose_count: request.pose_count,
+            pose: request.pose,
         }
     }
 

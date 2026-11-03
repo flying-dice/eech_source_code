@@ -8,31 +8,33 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
   "phase": "production-cutover",
-  "preparation_batches_without_cutover": 5,
+  "preparation_batches_without_cutover": 0,
   "preparation_limit": 2,
-  "next_production_change": "Replace initialise_target_point_offsets geometry construction/search/bbox computation with the existing host ModelStore local-offset service. Keep seeker policy once per invocation and all three host-authored offset coordinates for gd_attck. Remove dummy Core constructor work; preserve the measured RNG/reseed and VP contracts.",
+  "next_production_change": "IMPLEMENTED IN SOURCE (this commit, unvalidated natively): get_local_entity_target_point routed to the host in ordinary and model-host-fixture builds (TH3/TH4; instance chain from the host, CURRENT main scale and live joint placements serialised for the host's world solve, fixed position from the host with the heading observed only for a horizontal cached offset; old Core search, world-viewpoint solver and rotation not compiled there). NEXT: Root's native model-authority runs (queries=1, queries_changed and the nine negative modes) on fresh builds, then the established deterministic scenario/shipping comparison. No further target-point query remains in Core by source reading; do not start another prototype.",
   "ready_evidence": [
-    "Original boot, controlled and fallback cases: 2f/C500/5e with closed reviews 1ef9/315d/d04b.",
-    "Host local/instance kernel0cb7: 24208 offset rows and218 positions exact; closed independent4c6dde8c; safe publication648ec9883.",
-    "Host fixed kernel00098: 72624 offsets,654 instance positions,12 fixed positions exact; independent4aacc104 verifies valid rows; comparer-only correction remains.",
-    "Original-input9519: six natives/controllers0,12 manifests0,84 payloads each. Interim89c49d89 preserves measured inputs/reseeds but withholds RNG acceptance."
+    "Original boot, controlled and fallback cases: 2f/C500/5e with closed reviews 1ef9/315d/d04b; the seven original query-case shapes are retained.",
+    "Host local/instance kernel0cb7 (24208 offsets, 218 positions) and fixed kernel00098 (72624 offsets, 654 instance positions, 12 fixed positions) are exact at keyframe 0 only; the instance method is NOT a live-pose oracle.",
+    "RNG/input group closed independently 25f64cd4 (original-C1c30/checkerebcb): both initializer passes draw the CRT stream and reseed before outside consumers; bounded boot claim only.",
+    "Initializer cutover 9b916ac650 (production source and comparer P2 cleared by the same independent reviewer): ordinary initialise_target_point_offsets asks TARGET_POINT_OFFSET for all valid scene slots per invocation, seeker limits once, invalid scene zero; healthy/changed/withheld/bad-name actuals and the exact retained short Lebanon comparison (native/controller/prepost 0, 84 payloads, ACMI/observations/metrics equal) are recorded; no full40/all8 claim.",
+    "c37d02a77 corrects only the diagnostic non-finite expectation (.answer marker); production C/Rust identical to 9b916ac650. The original initializer with the feature API present runs one frame and asks zero host offsets (expected capability RED, UNREACHED), which is not a pass.",
+    "Getter routing (working tree, then one commit): staged-tree probe shows th3=1 with no active find_object_3d_sub_object / get_3d_sub_object_world_viewpoint / sin_heading rotation in host builds and the original body in the two original-fixture builds; focused eech-dc 54, model_target_point 27, model_store 62, characterization 53, fmt and strict clippy (default and three fixtures) pass. Source and tests only: no native run."
   ],
   "blockers": [
     {
       "id": "rng-evidence",
       "status": "closed",
       "blocks_cutover": true,
-      "evidence": "Independent final25f64cd419d3e420bbd8398545229a1c19ff6355f8b7a69a0295c691d70915de: original-C1c30/checkerebcb; all6actuals/12inputs/84payloads, consecutive trace/reseed checks clear.",
-      "missing_fact": "Resolved for the finite reference-profile trace; preserve actual initializer caller/seed policy in production.",
-      "next_fix": "None for this closed group; proceed to host offset initialization."
+      "evidence": "Independent final 25f64cd419d3e420bbd8398545229a1c19ff6355f8b7a69a0295c691d70915de: original-C1c30/checkerebcb; 6 actuals, 12 inputs, 84 payloads, consecutive trace/reseed checks clear.",
+      "missing_fact": "Resolved for the finite reference-profile trace; the production initializer keeps its caller/seed policy and adds no dummy constructor or random padding.",
+      "next_fix": "None."
     },
     {
       "id": "comparer-honesty",
-      "status": "open",
+      "status": "closed",
       "blocks_cutover": false,
-      "evidence": "Independent fixed-kernel4aacc104: valid retained rows are verified; missing/bad recorded offset or unknown case must not silently count matched.",
-      "missing_fact": "No new physical measurement; make the diagnostic reject or explicitly count missing inputs.",
-      "next_fix": "Repair in the same bounded production-offset implementation batch; retain the verified valid numeric evidence."
+      "evidence": "Repaired in 9b916ac650 (branch-3 comparer requires a known case label and a well-formed offset or counts the row as missing its input); same independent reviewer cleared comparer P2.",
+      "missing_fact": "None.",
+      "next_fix": "None."
     }
   ],
   "next_action": "production-cutover",
@@ -60,5 +62,5 @@
   ],
   "runtime_checkpoint": "R:/d3-evidence/D3-CURRENT.json",
   "do_not_restart": "Task50 original bce pack; verify actual PID/birth/argv and receipts before any action.",
-  "scope_limit": "Whole D3 remains open. Do not start D4/D5 or resume the historical TypeScript port."
+  "scope_limit": "Whole D3 remains open. Do not start D4/D5 or resume the historical TypeScript port. Task52 stays stacked on unaccepted Task50/PR110 1fb; the original bce full40/all8 pack is live and protected."
 }

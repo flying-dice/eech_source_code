@@ -431,6 +431,11 @@ int eech_engine_model_host_target_offsets (int first, int count, char *text, int
 /* The direct guidance consumer (gd_attck.c calculate_attack_guide_intercept_point) called once for real on a live stationary mobile with a valid shape and a guided weapon: one
    `model-host-consumer` row with the held offset, the consumer's three coordinates and their equality, or status=unavailable with its reason. Read-only apart from the call. */
 int eech_engine_model_host_attack_consumer (char *text, int capacity);
+/* The target-point QUERY called for real (EEDCS-52, D3): `get_local_entity_target_point` on the live entities the diagnostic picks (two vehicles with an instance, a vehicle with its instance
+   pointer set to NULL for the call, fixed structures with and without a horizontal cached offset, a fixed structure with the invalid shape for the call), the host questions counted around each
+   call, one `model-host-tp` row per case (`status=unavailable` with its reason when no entity exists). `mutate` = 1 changes the leaf sub-instance's live placement for the call of an instance whose
+   host-named chain exists, and restores it. Read-only apart from those restored changes. */
+int eech_engine_model_host_target_queries (int mutate, char *text, int capacity);
 /* Overwrites every array the ORIGINAL accessors read (the scene database's radius, bounds and collision object index) with values that make any read visible. */
 int eech_engine_model_host_poison (void);
 /* One scene's radius and bounds (asked twice: same address and bits) and one step of its collision-triangle cursor through the REAL public accessors, in the format of the

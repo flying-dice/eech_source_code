@@ -114,7 +114,7 @@ fn main() {
         }
     }
 
-    // 1a0b. EEDCS-52 (D3): the host-owned target-point OFFSETS. initialise_target_point_offsets asks the host for each scene's local offset (patches.rs, TARGET_POINT_HOST_PATCHES) in every
+    // 1a0b. EEDCS-52 (D3): the host-owned target-point OFFSETS and QUERIES. initialise_target_point_offsets asks the host for each scene's local offset and get_local_entity_target_point for its chain, world and fixed positions (patches.rs, TARGET_POINT_HOST_PATCHES) in every
     //      build that has a host model. The builds that keep the ORIGINAL initialiser on purpose are feature target-point-fixture (the original characterisation, whose observer hooks
     //      are inside the original body) and feature model-fixture (the original accessors, no host).
     if !model_fixture && env::var_os("CARGO_FEATURE_TARGET_POINT_FIXTURE").is_none() {

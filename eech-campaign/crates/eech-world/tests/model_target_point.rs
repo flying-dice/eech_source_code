@@ -7,10 +7,10 @@
 //! on), the bounding-box centre fallback with its y clamp, the invalid scene's zero, and the difference between an answer, a true absence and a refusal. Every position
 //! below is chosen so that the arithmetic is exact (whole numbers, scales of 1 and 2, permutation matrices); the sin / cos of a non-trivial angle is not asserted here, and
 //! neither is anything about the retail data: what the retail scenes answer is the Root's comparison with the retained original census and queries (the host Lua
-//! `compare_target_points`), never these tests. Only the state `keyframe0` is exercised; a live instance's moved sub-objects are not claimed.
+//! `compare_target_points`), never these tests. `target_point_world` answers the `keyframe0` state; `target_point_live` applies the placement a campaign supplies (the arithmetic of a moved sub-instance, from whole numbers), and what a retail instance holds at any moment is the Root's native actual, not these tests.
 use eech_world::models::{
     compiled_scene_name, compiled_subobject_name, fp_state, old_last, scene_last, subobject_last, FixedPath, FixedTarget, ModelStore, OffsetSource, QueryError,
-    TargetPointLocal, TargetPointWorld,
+    TargetPointChain, TargetPointLocal, TargetPointWorld,
 };
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -1137,4 +1137,149 @@ fn a_branch_three_row_without_a_known_case_or_a_well_formed_offset_is_never_coun
     )
     .exec()
     .expect("a missing or malformed case or offset is counted or refused, never matched");
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// get_local_entity_target_point routed to the host (EEDCS-52, D3): the chain the host names, the world position for the campaign's CURRENT placement, and a fixed object's position
+
+#[test]
+fn the_chain_names_the_first_target_point_sub_object_by_its_sibling_position_at_each_level() {
+    let (_root, store) = standard();
+    // scene 1: the scene's own record names top-level 1 (the later sibling) and wins over top-level 0's record
+    assert_eq!(store.target_point_chain(1).unwrap(), TargetPointChain::Found(vec![1]));
+    // scene 2: depth first, a three-deep chain through the first children
+    assert_eq!(store.target_point_chain(2).unwrap(), TargetPointChain::Found(vec![0, 0, 0]));
+    // scene 3: a parent and its child
+    assert_eq!(store.target_point_chain(3).unwrap(), TargetPointChain::Found(vec![0, 0]));
+    assert_eq!(store.target_point_chain(4).unwrap(), TargetPointChain::Found(vec![0]));
+    // no TARGET_POINT record (a main object only, sub-objects of another kind, an empty slot) and the invalid scene have no chain: the original's "not found" branch
+    for scene in [0, 5, 6, 7, 8] {
+        assert_eq!(store.target_point_chain(scene).unwrap(), TargetPointChain::NoTargetPoint, "scene {scene}");
+    }
+    // a scene outside the catalogue is a request error, never a chain
+    assert!(store.target_point_chain(-1).is_err());
+    assert!(store.target_point_chain(scene_last() as i64).is_err());
+}
+
+#[test]
+fn the_world_position_follows_the_live_placement_the_campaign_gives_not_keyframe_zero() {
+    let (_root, store) = standard();
+    let (origin, scale) = (bits3([0.0, 0.0, 0.0]), bits3([1.0, 1.0, 1.0]));
+    let identity = bits9(IDENTITY);
+    // keyframe 0 of scene 3 as the campaign would hold it on a fresh instance: the parent at (1,0,0) scale 2, its child at (0,2,0)
+    let parent = bits9([1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 2.0]);
+    let child = bits9(at(0.0, 2.0, 0.0));
+    let fresh = store.target_point_live(3, origin, identity, scale, &[parent, child]).unwrap();
+    let keyframe_zero = store.target_point_world(3, origin, identity, scale).unwrap();
+    assert_eq!(fresh, keyframe_zero, "a live placement equal to keyframe 0 gives the keyframe-0 answer");
+    let TargetPointWorld::Found { position, .. } = fresh else {
+        panic!("no target point")
+    };
+    assert_eq!(floats(position), [1.0, 4.0, 0.0]);
+    let moved = |placements: &[[u32; 9]], position: [u32; 3], scale: [u32; 3]| match store.target_point_live(3, position, identity, scale, placements).unwrap()
+    {
+        TargetPointWorld::Found { position, .. } => floats(position),
+        other => panic!("{other:?}"),
+    };
+    // the child has moved: (0,5,0) under the parent's scale 2 is (0,10,0), plus the parent's (1,0,0)
+    assert_eq!(moved(&[parent, bits9(at(0.0, 5.0, 0.0))], origin, scale), [1.0, 10.0, 0.0]);
+    // the parent's live scale is 3 now: the child's (0,2,0) is tripled
+    assert_eq!(
+        moved(&[bits9([1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 3.0, 3.0]), child], origin, scale),
+        [1.0, 6.0, 0.0]
+    );
+    // the main object's own relative scale is 2 and its world position (10,20,30): both reach the answer
+    assert_eq!(moved(&[parent, child], bits3([10.0, 20.0, 30.0]), bits3([2.0, 2.0, 2.0])), [12.0, 28.0, 30.0]);
+    // a placement for another number of levels than the chain has is a refusal, never padded or cut
+    for wrong in [vec![], vec![parent], vec![parent, child, child]] {
+        assert_eq!(
+            store.target_point_live(3, origin, identity, scale, &wrong).unwrap(),
+            TargetPointWorld::Refused("live_chain_length_differs"),
+            "{} levels",
+            wrong.len()
+        );
+    }
+    // a scene with no TARGET_POINT is not a position, whatever placement is given
+    assert_eq!(
+        store.target_point_live(5, origin, identity, scale, &[]).unwrap(),
+        TargetPointWorld::NoTargetPoint
+    );
+}
+
+#[test]
+fn the_provider_answers_the_chain_the_world_position_and_a_fixed_position_and_refuses_what_it_cannot() {
+    let (root, _store) = standard();
+    let lua = lua_with_store(&root.dir);
+    for (name, scene) in [("NAME0", 0), ("NAME3", 3), ("NAME5", 5), ("NAME9", 9), ("NAME10", 10)] {
+        lua.globals().set(name, compiled_scene_name(scene).unwrap_or("")).unwrap();
+    }
+    lua.load(
+        r#"
+        local provider = host.model_provider (host.model_store (ROOT))
+        -- the chain: sibling positions, topmost first; none for a scene without a target point and for the invalid scene
+        local a = provider ("target_point_chain", 3)
+        assert (a.result == "chain" and #a.offsets == 2 and a.offsets [1] == 0 and a.offsets [2] == 0 and a.name == NAME3, tostring (a.result))
+        a = provider ("target_point_chain", 5)
+        assert (a.result == "absent" and a.name == NAME5)
+        a = provider ("target_point_chain", 0)
+        assert (a.result == "absent" and a.name == NAME0)
+        assert (not pcall (provider, "target_point_chain", 3, 1))
+        assert (not pcall (provider, "target_point_chain", 3, nil, nil, nil, "0x00000000"))
+        assert (not pcall (provider, "target_point_chain", nil))
+        -- the world position for the placement given: scene 3 at keyframe 0 is (1,4,0); the child moved to (0,5,0) is (1,10,0)
+        local root = "0x00000000,0x00000000,0x00000000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000,0x3f800000,0x3f800000,0x3f800000"
+        local parent = "0x3f800000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x40000000,0x40000000,0x40000000"
+        a = provider ("target_point_world", 3, nil, nil, nil, root .. "," .. parent .. ",0x00000000,0x40000000,0x00000000,0x00000000,0x00000000,0x00000000,0x3f800000,0x3f800000,0x3f800000")
+        assert (a.result == "world" and a.p == "0x3f800000,0x40800000,0x00000000" and a.name == NAME3, tostring (a.p))
+        a = provider ("target_point_world", 3, nil, nil, nil, root .. "," .. parent .. ",0x00000000,0x40a00000,0x00000000,0x00000000,0x00000000,0x00000000,0x3f800000,0x3f800000,0x3f800000")
+        assert (a.p == "0x3f800000,0x41200000,0x00000000", tostring (a.p))
+        -- a level count that is not the chain's is the host's refusal as an answer, not a number; a scene with no target point likewise
+        a = provider ("target_point_world", 3, nil, nil, nil, root .. "," .. parent .. ",0x00000000,0x40000000,0x00000000,0x00000000,0x00000000,0x00000000,0x3f800000,0x3f800000,0x3f800000,0x00000000,0x40000000,0x00000000,0x00000000,0x00000000,0x00000000,0x3f800000,0x3f800000,0x3f800000")
+        assert (a.result == "refused" and a.reason == "live_chain_length_differs", tostring (a.reason))
+        a = provider ("target_point_world", 5, nil, nil, nil, root .. "," .. parent)
+        assert (a.result == "refused" and a.reason == "no_target_point", tostring (a.reason))
+        -- a pose that is not whole levels of exact bit patterns is a malformed request
+        assert (not pcall (provider, "target_point_world", 3, nil, nil, nil, root .. ",0x00000000"))
+        assert (not pcall (provider, "target_point_world", 3, nil, nil, nil, "1,2,3"))
+        assert (not pcall (provider, "target_point_world", 3, nil, nil, nil, nil))
+        assert (not pcall (provider, "target_point_world", 3, 1, nil, nil, root .. "," .. parent))
+        -- a fixed object: scene 9's offset is (0,2,0), no horizontal part, so three words are enough and y gains 2 (50 + 2 = 52, the position's x and z untouched)
+        a = provider ("target_point_fixed", 9, nil, nil, nil, "0x42c80000,0x42480000,0xc1a00000")
+        assert (a.result == "fixed" and a.p == "0x42c80000,0x42500000,0xc1a00000" and a.name == NAME9, tostring (a.p))
+        -- scene 10's offset (0,1,3) has a horizontal part: a heading is needed, and a missing one is a refusal naming it (nothing is defaulted)
+        a = provider ("target_point_fixed", 10, nil, nil, nil, "0x42c80000,0x42480000,0xc1a00000")
+        assert (a.result == "refused" and a.reason == "heading_missing", tostring (a.reason))
+        -- a zero heading is the legacy quirk: x and z are not added, y still is (50 + 1 = 51)
+        a = provider ("target_point_fixed", 10, nil, nil, nil, "0x42c80000,0x42480000,0xc1a00000,0x00000000")
+        assert (a.result == "fixed" and a.p == "0x42c80000,0x424c0000,0xc1a00000" and a.name == NAME10, tostring (a.p))
+        -- the invalid shape's position copy is the campaign's own, and a pose of another size is malformed
+        assert (not pcall (provider, "target_point_fixed", 0, nil, nil, nil, "0x42c80000,0x42480000,0xc1a00000"))
+        assert (not pcall (provider, "target_point_fixed", 9, nil, nil, nil, "0x42c80000,0x42480000"))
+        assert (not pcall (provider, "target_point_fixed", 9, nil, nil, nil, nil))
+        "#,
+    )
+    .exec()
+    .expect("the provider's target point answers");
+}
+
+#[test]
+fn a_nonzero_heading_rotates_the_fixed_offset_with_the_originals_arithmetic_through_the_provider() {
+    let (root, store) = standard();
+    let lua = lua_with_store(&root.dir);
+    // scene 10 (offset (0,1,3)) at heading 1 radian over the position (100,50,-20): the host's own store gives the words the provider must hand over
+    let heading = 1.0f32.to_bits();
+    let base = bits3([100.0, 50.0, -20.0]);
+    let FixedTarget::Offset { result, path } = store.target_point_fixed(10, base, Some(heading)).unwrap() else {
+        panic!("no fixed answer")
+    };
+    assert_eq!(path, FixedPath::Rotated);
+    lua.globals()
+        .set("POSE", format!("0x{:08x},0x{:08x},0x{:08x},0x{:08x}", base[0], base[1], base[2], heading))
+        .unwrap();
+    lua.globals()
+        .set("WORDS", format!("0x{:08x},0x{:08x},0x{:08x}", result[0], result[1], result[2]))
+        .unwrap();
+    lua.load(r#"assert (host.model_provider (host.model_store (ROOT)) ("target_point_fixed", 10, nil, nil, nil, POSE).p == WORDS)"#)
+        .exec()
+        .expect("the provider hands over the store's rotated words");
 }

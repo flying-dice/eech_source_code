@@ -2990,6 +2990,24 @@ local standin = host.args.standin or "healthy"
 -- when this engine asks the provider a triangle question the way the campaign does: never, at boot, in the second frame, or in the first requested probe
 local ask = host.args.ask or "never"
 local swallow = host.args.swallow == "1"
+
+-- `fake_queries=1` plays the reference host's answers to the three target-point questions (the synthetic installation has no target point of its own): scene 2 has a two-level chain,
+-- every other scene none; a position is the pose's own words, so that a different placement is a different answer
+if host.args.fake_queries == "1" then
+	local real = host.model
+	local function name_of (scene) return real ("scene", scene).name end
+	host.model = function (op, scene, depth, kind, definition, key)
+		if op == "target_point_chain" then
+			if scene == 2 then return { result = "chain", name = name_of (2), offsets = { 0, 1 } } end
+			return { result = "absent", name = name_of (scene) }
+		elseif op == "target_point_world" then
+			return { result = "world", name = name_of (scene), p = "0x3f800000,0x40000000," .. key:match ("(0x%x+)$") }
+		elseif op == "target_point_fixed" then
+			return { result = "fixed", name = name_of (scene), p = key:match ("^([^,]+,[^,]+,[^,]+)") }
+		end
+		return real (op, scene, depth, kind, definition, key)
+	end
+end
 local unrelated = host.args.unrelated == "1"
 
 -- the native stop on a provider refusal: the engine turns the provider's error (or a `refused` answer) into an error carrying the provider's marker. `swallow=1` plays an
@@ -3097,6 +3115,63 @@ package.preload["eech_dc"] = function ()
 				local cache = held [2] or "0x00000000,0x00000000,0x00000000"
 				local consumer = host.args.consumer == "other" and "0x3f800000,0x3f800000,0x3f800000" or cache
 				return string.format ("model-host-consumer status=called scene=2 entity_type=1 weapon=4 cache=%s consumer=%s equal=%d\n", cache, consumer, consumer == cache and 1 or 0)
+			end
+		end
+		-- `engine_queries=core` plays get_local_entity_target_point on six live entities: the questions it asks the provider, in order, and the row it reports for each. The native stops
+		-- are the marker texts the module raises (the Lua bridge refuses a non-finite position or a ninth level; the C code checks the name). The `queries_*` arguments play engines that
+		-- do something else: `ignore` returns the entity position instead of the host's answer, `pose=same` sends the keyframe-0 pose whatever the live placement, `vp=no` does not write the
+		-- viewpoint, `fallback_asks` asks the host in a fallback, `heading_always` sends a heading with a cached offset that has no horizontal part, `missing=<case>` has no such entity.
+		if (host.args.engine_queries or "none") == "core" and (host.args.queries_fixture or "yes") == "yes" then
+			local ZERO = "0x00000000"
+			local ROOT_POSE = table.concat ({ "0x41200000", "0x41a00000", "0x41f00000", "0x3f800000", ZERO, ZERO, ZERO, "0x3f800000", ZERO, ZERO, ZERO, "0x3f800000", "0x3f800000", "0x3f800000", "0x3f800000" }, ",")
+			local function level (last) return table.concat ({ "0x3f800000", ZERO, ZERO, ZERO, ZERO, ZERO, "0x40000000", "0x40000000", last }, ",") end
+			local BASE = "0x42c80000,0x42480000,0xc1a00000"
+			local function native (op, scene, key)
+				local a = config.model (op, scene, nil, nil, nil, key)
+				if type (a) ~= "table" then error ("eech: [model-provider:" .. op .. ".answer] the provider returned no table", 0) end
+				if a.result == "refused" then error ("eech: [model-provider:" .. op .. ".refused] " .. tostring (a.reason), 0) end
+				if a.name ~= host.model ("scene", scene).name then error ("eech: [model-provider:" .. op .. ".identity] the host named another scene", 0) end
+				if op == "target_point_chain" then
+					if a.result == "absent" then return a end
+					if a.result ~= "chain" or type (a.offsets) ~= "table" or a.offsets [9] ~= nil then error ("eech: [model-provider:" .. op .. ".answer] a chain has one to eight levels", 0) end
+				else
+					if a.result ~= (op == "target_point_world" and "world" or "fixed") or string.find (a.p, "0x7fc", 1, true) then error ("eech: [model-provider:" .. op .. ".answer] p: not finite", 0) end
+				end
+				return a
+			end
+			function engine:model_host_target_queries (mutate)
+				local lines = {}
+				local function row (case, f)
+					if host.args.queries_missing == case then
+						lines [#lines + 1] = string.format ("model-host-tp case=%s status=unavailable reason=no_such_entity visited=3", case)
+						return
+					end
+					lines [#lines + 1] = string.format ("model-host-tp case=%s status=called type=1 scene=%d base=%s heading=0x3f800000 cache=%s result=%s chain=%d world=%d fixed=%d vp_written=%d levels=%d legacy_same=%s mutation=%s pose=%s",
+						case, f.scene, BASE, f.cache or "-", f.result, f.chain or 0, f.world or 0, f.fixed or 0, f.vp_written or -1, f.levels or 0, host.args.queries_legacy == "differs" and "0" or "1", f.mutation or "-", f.pose or "-")
+				end
+				for _, spec in ipairs { { "instance_a", 2 }, { "instance_b", 3 } } do
+					local case, scene = spec [1], spec [2]
+					native ("target_point_chain", scene)
+					local chain = native ("target_point_chain", scene)
+					if chain.result == "chain" then
+						local last = (mutate and host.args.queries_pose ~= "same") and "0x40a00000" or "0x3f800000"
+						local pose = ROOT_POSE .. "," .. level (ZERO) .. "," .. level (last)
+						local world = native ("target_point_world", scene, pose)
+						row (case, { scene = scene, result = host.args.queries_ignore == "1" and BASE or world.p, chain = 1, world = 1, vp_written = host.args.queries_vp == "no" and 0 or 1, levels = 2,
+							mutation = mutate and "x+1,heading+0.25,scale_x*1.5" or "-", pose = host.args.queries_pose == "wrong" and pose .. ",0x00000001" or pose })
+					else
+						row (case, { scene = scene, result = BASE, chain = 1, vp_written = 0, levels = 0 })
+					end
+				end
+				local asks = host.args.queries_fallback_asks == "1"
+				if asks then native ("target_point_chain", 2) end
+				row ("instance_none", { scene = 2, result = BASE, chain = asks and 1 or 0 })
+				for _, spec in ipairs { { "fixed_horizontal", 9, "0x00000000,0x40000000,0x40400000", "," .. "0x3f800000" }, { "fixed_flat", 10, "0x00000000,0x40000000,0x00000000", host.args.queries_heading_always == "1" and ",0x3f800000" or "" } } do
+					local fixed = native ("target_point_fixed", spec [2], BASE .. spec [4])
+					row (spec [1], { scene = spec [2], cache = spec [3], result = host.args.queries_ignore == "1" and BASE or fixed.p, fixed = 1 })
+				end
+				row ("fixed_invalid", { scene = 10, result = BASE })
+				return table.concat (lines, "\n") .. "\n"
 			end
 		end
 		function engine:model_host_probe (scene, depth)
@@ -3312,6 +3387,123 @@ fn a_withheld_or_malformed_target_offset_answer_stops_the_engine_by_name_and_not
         assert!(boot["error"].as_str().unwrap().contains(marker), "{boot}");
         // the answer was never asked for: UNREACHED, not coverage
         let run = stand_in_run(&[&format!("mode={mode}"), "engine_offsets=none"], "healthy");
+        assert!(!run.status.success() && run.stderr.contains("UNREACHED"), "{mode}: {}", run.stderr);
+    }
+}
+
+// The target-point query controls (EEDCS-52, D3): get_local_entity_target_point asks the host which sub-object, where it is for the live placement, and a fixed object's position. What is
+// tested here is the script's own bookkeeping and verdict against a stand-in engine; that the native code does the same is the model-host-fixture DLL's run.
+const CHANGED_WORLD: &str = "0x40f00000,0x41080000,0xc1180000";
+const CHANGED_FIXED: &str = "0x41380000,0x41480000,0xc1580000";
+const QUERIES: [&str; 3] = ["engine_queries=core", "fake_queries=1", "queries=1"];
+
+fn queries_run(extra: &[&str]) -> ScriptRun {
+    let mut args: Vec<&str> = QUERIES.to_vec();
+    args.extend(extra);
+    stand_in_run(&args, "healthy")
+}
+
+#[test]
+fn the_getter_results_are_the_hosts_answers_the_live_placement_moves_them_and_a_changed_host_reaches_the_getter() {
+    let run = queries_run(&[]);
+    assert!(run.status.success(), "{}", run.stderr);
+    let rows: Vec<Value> = run.rows().into_iter().filter(|r| r["event"] == "target_query").collect();
+    assert_eq!(rows.len(), 12, "six cases, as the world has them and with the leaf placement changed");
+    assert!(rows.iter().all(|r| r["status"] == "called"));
+    let summary = run.row("summary");
+    assert_eq!(
+        (
+            summary["queries_rows"].as_i64(),
+            summary["queries_found"].as_i64(),
+            summary["queries_absent"].as_i64(),
+            summary["queries_fixed"].as_i64(),
+            summary["queries_fallback"].as_i64(),
+            summary["queries_problem"].as_str()
+        ),
+        (Some(12), Some(2), Some(2), Some(4), Some(4), Some(""))
+    );
+
+    // a changed host: the world and fixed positions are constants, and the getter returned exactly them where it asked
+    let run = queries_run(&["mode=queries_changed"]);
+    assert!(run.status.success(), "{}", run.stderr);
+    for row in run.rows().into_iter().filter(|r| r["event"] == "target_query") {
+        let text = row["report"].as_str().unwrap();
+        if text.contains("world=1") {
+            assert!(text.contains(&format!("result={CHANGED_WORLD} ")), "{text}");
+        }
+        if text.contains("fixed=1") {
+            assert!(text.contains(&format!("result={CHANGED_FIXED} ")), "{text}");
+        }
+    }
+}
+
+#[test]
+fn a_getter_that_does_not_use_the_hosts_answer_or_the_live_placement_is_found_and_nothing_unreached_is_covered() {
+    for (args, fragment) in [
+        // an engine that asks and then returns the entity position (it computed the point itself)
+        (vec!["queries_ignore=1"], "the getter returned"),
+        (vec!["mode=queries_changed", "queries_ignore=1"], "the getter returned"),
+        // an engine that sends the keyframe-0 placement whatever the live one is: the changed placement moves nothing
+        (vec!["queries_pose=same"], "did not move the host's answer"),
+        // the pose the host was sent is not the live placement the diagnostic read
+        (vec!["queries_pose=wrong"], "the host was sent"),
+        // the chain the host named is not the sub-instance the original's own search reaches
+        (vec!["queries_legacy=differs"], "does not reach the sub-instance the original's search finds"),
+        // the viewpoint is written only when the host named a chain
+        (vec!["queries_vp=no"], "NOT written"),
+        // a fallback that asks the host, and a heading sent where the cached offset has no horizontal part
+        (vec!["queries_fallback_asks=1"], "a fallback asked the host"),
+        (vec!["queries_heading_always=1"], "the heading goes only with a horizontal cached offset"),
+        // a case with no live entity is unavailable, never covered
+        (vec!["queries_missing=fixed_horizontal"], "UNREACHED: query case fixed_horizontal"),
+        (vec!["queries_missing=instance_a"], "UNREACHED: query case instance_a"),
+        // a DLL without the fixture entry, and a run that asks nothing
+        (vec!["queries_fixture=no"], "model-host-fixture"),
+    ] {
+        let run = queries_run(&args);
+        assert!(!run.status.success() && run.stderr.contains(fragment), "{args:?}: {}", run.stderr);
+    }
+    let run = stand_in_run(&["fake_queries=1", "queries=1"], "healthy");
+    assert!(!run.status.success() && run.stderr.contains("model-host-fixture"), "{}", run.stderr);
+    // the arguments: the controls read their consequence from the getter's results
+    for (args, fragment) in [
+        (vec!["mode=queries_changed"], "queries=1"),
+        (vec!["mode=queries_world_withheld"], "queries=1"),
+        (vec!["queries=2"], "queries"),
+    ] {
+        let run = stand_in_run(&args, "healthy");
+        assert!(!run.status.success() && run.stderr.contains(fragment), "{args:?}: {}", run.stderr);
+    }
+}
+
+#[test]
+fn a_withheld_or_malformed_target_point_answer_stops_the_engine_by_name_and_nothing_falls_back() {
+    for (mode, marker) in [
+        ("queries_chain_withheld", "[model-provider:target_point_chain.refused]"),
+        ("queries_world_withheld", "[model-provider:target_point_world.refused]"),
+        ("queries_fixed_withheld", "[model-provider:target_point_fixed.refused]"),
+        ("queries_world_bad_nan", "[model-provider:target_point_world.answer]"),
+        ("queries_fixed_bad_nan", "[model-provider:target_point_fixed.answer]"),
+        ("queries_chain_bad_name", "[model-provider:target_point_chain.identity]"),
+        ("queries_world_bad_name", "[model-provider:target_point_world.identity]"),
+        ("queries_fixed_bad_name", "[model-provider:target_point_fixed.identity]"),
+        ("queries_chain_too_deep", "[model-provider:target_point_chain.answer]"),
+    ] {
+        let run = queries_run(&[&format!("mode={mode}")]);
+        assert!(run.status.success(), "{mode}: the stop was not recognised\n{}", run.stderr);
+        let summary = run.row("summary");
+        assert_eq!(
+            (
+                summary["primary_stage"].as_str(),
+                summary["primary_matched"].as_bool(),
+                summary["tripped"].as_bool()
+            ),
+            (Some("queries"), Some(true), Some(true)),
+            "{mode}"
+        );
+        assert!(summary["primary_message"].as_str().unwrap().contains(marker), "{mode}: {summary}");
+        // the answer was never asked for: UNREACHED, not coverage
+        let run = stand_in_run(&[&format!("mode={mode}"), "queries=1", "fake_queries=1"], "healthy");
         assert!(!run.status.success() && run.stderr.contains("UNREACHED"), "{mode}: {}", run.stderr);
     }
 }

@@ -1803,6 +1803,7 @@ extern int eech_model_host_horizon_refusal_run (char *text, int capacity);
 extern int eech_model_host_animation_run (int first, int count, char *text, int capacity);
 extern int eech_model_host_target_offsets_run (int first, int count, char *text, int capacity);
 extern int eech_model_host_attack_consumer_run (char *text, int capacity);
+extern int eech_model_host_target_queries_run (int mutate, char *text, int capacity);
 
 int eech_engine_model_host_counters (char *text, int capacity)
 {
@@ -1854,6 +1855,20 @@ int eech_engine_model_host_attack_consumer (char *text, int capacity)
 		LEAVE (EECH_ENGINE_STATE);
 	}
 	if (!text || (capacity <= 0) || eech_model_host_attack_consumer_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_host_target_queries (int mutate, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || ((mutate != 0) && (mutate != 1)) || eech_model_host_target_queries_run (mutate, text, capacity) != 0)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}

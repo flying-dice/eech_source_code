@@ -56,9 +56,16 @@ live state. The tracked card holds stable decisions; the checkpoint holds transi
 PIDs, paths and tool IDs. On this host the canonical checkpoint is
 `R:/d3-evidence/D3-CURRENT.json`, mirrored on D:.
 
-For the current Task52, finish the existing RNG-evidence correction and clearance;
-the next implementation is **host offset initialization**, not another optional
-characterization. Keep seeker policy once per initializer invocation and direct
-guidance consumption of all three host-authored local offset coordinates. The
-current comparer-only finding is repaired in that bounded implementation batch;
-independently verified valid numeric rows are not discarded or rerun for it.
+For the current Task52 the RNG-evidence group is closed and the offset initializer is cut over
+(`9b916ac650`: seeker policy once per invocation, all three host-authored local offsets
+for the direct guidance consumer). The next implementation is the host routing of
+`get_local_entity_target_point` (instance chain and live placement, fixed position), with its
+native authority run as Root's gate; it is not another optional characterization. Valid
+retained numeric evidence is not rerun for it, and the Task50 pack stays untouched.
+
+STATUS.md keeps ONE current summary, first in the file and dated; every later entry is
+history that keeps its own date and scope, and none of them is live state even if an
+older heading once said "current". A fresh context reads the active card, that summary
+and the runtime checkpoint, and opens an older entry only for the evidence of the next
+unmet gate. When the state changes, replace the top summary and demote it to history
+instead of adding a second "current" heading.

@@ -1131,6 +1131,12 @@ pub const EECH_MODEL_ANIMATION: c_int = 8;
 pub const EECH_MODEL_CUSTOM_OBJECT: c_int = 9;
 pub const EECH_MODEL_CUSTOM_ORDER: c_int = 10;
 pub const EECH_MODEL_TARGET_POINT_OFFSET: c_int = 11;
+pub const EECH_MODEL_TARGET_POINT_CHAIN: c_int = 12;
+pub const EECH_MODEL_TARGET_POINT_WORLD: c_int = 13;
+pub const EECH_MODEL_TARGET_POINT_FIXED: c_int = 14;
+/// the deepest sub-object chain the target-point transport carries, and the floats of the largest pose (15 + 9 * chain, rounded up)
+pub const EECH_MODEL_CHAIN_MAX: usize = 8;
+pub const EECH_MODEL_POSE_MAX: usize = 96;
 pub const EECH_MODEL_ANIMATION_NAME_MAX: usize = 127;
 pub const EECH_MODEL_TRIANGLE_FOUND: c_int = 1;
 pub const EECH_MODEL_TRIANGLE_END: c_int = 2;
@@ -1151,6 +1157,9 @@ pub struct eech_model_request {
     pub definition: c_int,
     /// CUSTOM_ORDER: the name of the directory under OBJECTS that holds the custom scene file (NUL-terminated)
     pub key: [c_char; EECH_MODEL_NAME_MAX + 1],
+    /// TARGET_POINT_WORLD and TARGET_POINT_FIXED: how many floats of `pose` are meaningful
+    pub pose_count: c_int,
+    pub pose: [f32; EECH_MODEL_POSE_MAX],
 }
 
 /// The host's answer (campaign_model_reply); only the fields of the asked operation are meaningful.
@@ -1181,6 +1190,9 @@ pub struct eech_model_reply {
     pub object_bounds: [f32; 12],
     /// ANIMATION (FOUND): the logical name of the texture animation
     pub animation_name: [c_char; EECH_MODEL_ANIMATION_NAME_MAX + 1],
+    /// TARGET_POINT_CHAIN (FOUND): the levels of the chain and the sibling position of the first TARGET_POINT sub-object at each, topmost first
+    pub chain_length: c_int,
+    pub chain_offsets: [c_int; EECH_MODEL_CHAIN_MAX],
 }
 
 pub type eech_model_callback =
@@ -1878,6 +1890,7 @@ extern "C" {
     pub fn eech_engine_model_host_poison() -> c_int;
     pub fn eech_engine_model_host_target_offsets(first: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_model_host_attack_consumer(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_host_target_queries(mutate: c_int, text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_model_host_probe(scene: c_int, depth: c_int, text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_model_host_horizon_refusal(text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_model_host_fpu(kind: c_int, scene: c_int, depth: c_int, rounding: c_int, text: *mut c_char, capacity: c_int) -> c_int;

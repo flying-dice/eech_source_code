@@ -59,6 +59,8 @@ struct campaign_model_counters
 	long presence_checked, presence_mismatches;
 	/* TARGET_POINT_OFFSET questions asked of the host (EEDCS-52); read by the target-offset diagnostic, not by the counters line */
 	long target_offset;
+	/* TARGET_POINT_CHAIN, _WORLD and _FIXED questions asked of the host (EEDCS-52); read by the target-point query diagnostic */
+	long target_chain, target_world, target_fixed;
 };
 
 struct campaign_model_counters campaign_model_counts;
@@ -252,6 +254,222 @@ void campaign_model_target_point_offset (int scene, vec3d *offset)
 	offset->x = reply.points[0];
 	offset->y = reply.points[1];
 	offset->z = reply.points[2];
+}
+
+// The three host questions behind get_local_entity_target_point (mb_hostmodel.h, TARGET_POINT_CHAIN / _WORLD / _FIXED; EEDCS-52, D3). They carry no policy: the caller (en_maths.c) decides
+// which of its branches applies and what to do with the answer; these functions only package the current facts the host needs, ask, and refuse anything but a well-formed reply.
+static void check_target_point_identity (const campaign_model_reply *reply, int scene, const char *what)
+{
+	const char
+		*expected;
+
+	expected = object_3d_scene_names[scene] ? object_3d_scene_names[scene] : "";
+
+	if ((memchr (reply->name, '\0', sizeof (reply->name)) == NULL) || (strcmp (reply->name, expected) != 0))
+	{
+		debug_fatal ("host model: [model-provider:%s.identity] the host named scene %d \"%.60s\" but the campaign names it \"%.60s\"", what, scene, reply->name, expected);
+	}
+}
+
+static void take_target_point_position (const campaign_model_reply *reply, int scene, const char *what, vec3d *world)
+{
+	check_target_point_identity (reply, scene, what);
+
+	if (reply->result != CAMPAIGN_MODEL_TRIANGLE_FOUND)
+	{
+		debug_fatal ("host model: [model-provider:%s.result] the host gave no target point for scene %d (result %d)", what, scene, reply->result);
+	}
+
+	if (!all_finite (reply->points, 3))
+	{
+		debug_fatal ("host model: [model-provider:%s.value] the host's target point for scene %d is not finite", what, scene);
+	}
+
+	world->x = reply->points[0];
+	world->y = reply->points[1];
+	world->z = reply->points[2];
+}
+
+// The levels of the chain the host names for an instance's scene, 0 when the scene has no TARGET_POINT sub-object (the original's "not found" branch). The scene may be the
+// invalid index 0 (an instance of it has no sub-objects; the host says so).
+int campaign_model_target_point_chain (int scene, int *offsets)
+{
+	campaign_model_request
+		request;
+
+	campaign_model_reply
+		reply;
+
+	int
+		level;
+
+	require_scene (scene, TRUE, "a target point chain");
+
+	memset (&request, 0, sizeof (request));
+	request.op = CAMPAIGN_MODEL_TARGET_POINT_CHAIN;
+	request.scene = scene;
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.target_chain++;
+#endif
+
+	ask (&request, &reply, "target point chain");
+
+	check_target_point_identity (&reply, scene, "target_point_chain");
+
+	if (reply.result == CAMPAIGN_MODEL_TRIANGLE_ABSENT)
+	{
+		return 0;
+	}
+
+	if (reply.result != CAMPAIGN_MODEL_TRIANGLE_FOUND)
+	{
+		debug_fatal ("host model: [model-provider:target_point_chain.result] the host gave no target point chain for scene %d (result %d)", scene, reply.result);
+	}
+
+	if ((reply.chain_length < 1) || (reply.chain_length > CAMPAIGN_MODEL_CHAIN_MAX))
+	{
+		debug_fatal ("host model: [model-provider:target_point_chain.chain] the host's chain for scene %d has %d levels, outside 1 to %d", scene, reply.chain_length, CAMPAIGN_MODEL_CHAIN_MAX);
+	}
+
+	for (level = 0; level < reply.chain_length; level++)
+	{
+		if (reply.chain_offsets[level] < 0)
+		{
+			debug_fatal ("host model: [model-provider:target_point_chain.chain] the host's chain for scene %d has a negative position at level %d", scene, level);
+		}
+
+		offsets[level] = reply.chain_offsets[level];
+	}
+
+	return reply.chain_length;
+}
+
+// The world position of the target point the host named. The host needs the CURRENT placement, which the campaign alone holds: the instance's world position, attitude and relative
+// scale, and the live relative position, heading, pitch, roll and scale of each sub-instance along the chain. They are read here, exactly as the original's world-viewpoint walk
+// reads them, and sent as plain floats; the host does the arithmetic. The legacy tree is walked only along the positions the host named, and its own counts (in the scene database)
+// are checked so that a chain the instance does not have stops the engine instead of reading outside it; nothing is searched.
+void campaign_model_target_point_world (object_3d_instance *instance, const int *offsets, int levels, vec3d *world)
+{
+	campaign_model_request
+		request;
+
+	campaign_model_reply
+		reply;
+
+	object_3d_sub_instance
+		*sub_instances,
+		*node;
+
+	object_3d_database_entry
+		*scenes;
+
+	int
+		scene,
+		level,
+		count,
+		at;
+
+	float
+		*pose;
+
+	scene = instance->object_number;
+
+	require_scene (scene, TRUE, "a target point world position");
+
+	if ((levels < 1) || (levels > CAMPAIGN_MODEL_CHAIN_MAX))
+	{
+		debug_fatal ("host model: [model-provider:target_point_world.chain] a chain of %d levels was given for scene %d", levels, scene);
+	}
+
+	memset (&request, 0, sizeof (request));
+	request.op = CAMPAIGN_MODEL_TARGET_POINT_WORLD;
+	request.scene = scene;
+	request.pose_count = 15 + (9 * levels);
+
+	pose = request.pose;
+	pose[0] = instance->vp.position.x;
+	pose[1] = instance->vp.position.y;
+	pose[2] = instance->vp.position.z;
+	memcpy (&pose[3], instance->vp.attitude, 9 * sizeof (float));
+	pose[12] = instance->relative_scale.x;
+	pose[13] = instance->relative_scale.y;
+	pose[14] = instance->relative_scale.z;
+	pose += 15;
+
+	sub_instances = instance->sub_objects;
+	scenes = objects_3d_scene_database[scene].sub_objects;
+	count = objects_3d_scene_database[scene].number_of_sub_objects;
+
+	for (level = 0; level < levels; level++)
+	{
+		at = offsets[level];
+
+		if ((at < 0) || (at >= count) || (!sub_instances) || (!scenes))
+		{
+			debug_fatal ("host model: [model-provider:target_point_world.chain] the host's chain for scene %d names position %d at level %d, which the instance does not have", scene, at, level);
+		}
+
+		node = &sub_instances[at];
+
+		pose[0] = node->relative_position.x;
+		pose[1] = node->relative_position.y;
+		pose[2] = node->relative_position.z;
+		pose[3] = node->relative_heading;
+		pose[4] = node->relative_pitch;
+		pose[5] = node->relative_roll;
+		pose[6] = node->relative_scale.x;
+		pose[7] = node->relative_scale.y;
+		pose[8] = node->relative_scale.z;
+		pose += 9;
+
+		count = scenes[at].number_of_sub_objects;
+		scenes = scenes[at].sub_objects;
+		sub_instances = node->sub_objects;
+	}
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.target_world++;
+#endif
+
+	ask (&request, &reply, "target point world position");
+
+	take_target_point_position (&reply, scene, "target_point_world", world);
+}
+
+// A fixed object's target point: the position the caller already copied, and the heading only when the caller read it (it does so when the shape's cached host offset has a
+// horizontal part, as the original did). The shape is a valid (non-zero) scene; the caller keeps the invalid shape's bit-for-bit position copy.
+void campaign_model_target_point_fixed (int shape, const vec3d *position, const float *heading, vec3d *world)
+{
+	campaign_model_request
+		request;
+
+	campaign_model_reply
+		reply;
+
+	require_scene (shape, FALSE, "a fixed target point");
+
+	memset (&request, 0, sizeof (request));
+	request.op = CAMPAIGN_MODEL_TARGET_POINT_FIXED;
+	request.scene = shape;
+	request.pose[0] = position->x;
+	request.pose[1] = position->y;
+	request.pose[2] = position->z;
+	request.pose_count = 3;
+
+	if (heading)
+	{
+		request.pose[3] = *heading;
+		request.pose_count = 4;
+	}
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.target_fixed++;
+#endif
+
+	ask (&request, &reply, "fixed target point");
+
+	take_target_point_position (&reply, shape, "target_point_fixed", world);
 }
 
 struct OBJECT_3D_BOUNDS *campaign_model_bounding_box (int scene)

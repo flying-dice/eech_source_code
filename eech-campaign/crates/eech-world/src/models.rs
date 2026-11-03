@@ -2172,6 +2172,18 @@ pub enum TargetPointWorld {
     Refused(&'static str),
 }
 
+/// The deepest sub-object chain the target-point transport carries (`CAMPAIGN_MODEL_CHAIN_MAX`, mb_hostmodel.h).
+pub const TARGET_POINT_CHAIN_MAX: usize = 8;
+
+/// The host's answer to which sub-object of a scene is its first TARGET_POINT: the sibling position at each level, topmost first (what the campaign needs to read the live placement of
+/// those sub-instances), the statement that the scene has none (the original's second branch), or a refusal. A refusal is never a chain.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TargetPointChain {
+    Found(Vec<i32>),
+    NoTargetPoint,
+    Refused(&'static str),
+}
+
 /// The host's answer for a FIXED object's target point (the original's no-instance path, branch 3 of `get_local_entity_target_point`, or its position-copy fallback for the invalid
 /// shape): the three result float bit patterns, and which way the original's own tests went. A refusal is never a number.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -2562,7 +2574,17 @@ impl ModelStore {
 
     /// The world viewpoint of the scene's first TARGET_POINT sub-object, for a main object at `position` / `attitude` (row-major 3x3) / `scale`, in keyframe-0 state.
     /// `Ok(None)` when the scene has no such sub-object.
-    fn target_point_viewpoint(&self, scene: usize, position: [f32; 3], attitude: [f32; 9], scale: [f32; 3]) -> Result<Option<WorldViewpoint>, &'static str> {
+    ///
+    /// `live` is the CURRENT placement of each node along the chain (relative position, heading, pitch, roll, relative scale: the order of a keyframe), which the campaign holds and the
+    /// store cannot; `None` is the keyframe-0 state of a fresh instance. A live placement for a different number of levels than the chain has is refused, never padded or cut.
+    fn target_point_viewpoint(
+        &self,
+        scene: usize,
+        position: [f32; 3],
+        attitude: [f32; 9],
+        scale: [f32; 3],
+        live: Option<&[[f32; 9]]>,
+    ) -> Result<Option<WorldViewpoint>, &'static str> {
         let Some(kind) = target_point_kind() else {
             return Err("target_point_kind_not_compiled");
         };
@@ -2571,7 +2593,7 @@ impl ModelStore {
         };
         let path = self.node_path(scene, at)?;
         let sub = &self.scenes[scene].sub.nodes;
-        let chain: Vec<Node> = path
+        let mut chain: Vec<Node> = path
             .iter()
             .map(|&i| Node {
                 object: sub[i].object,
@@ -2581,6 +2603,14 @@ impl ModelStore {
                 keyframe: sub[i].keyframe,
             })
             .collect();
+        if let Some(live) = live {
+            if live.len() != chain.len() {
+                return Err("live_chain_length_differs");
+            }
+            for (node, placement) in chain.iter_mut().zip(live) {
+                node.keyframe = *placement;
+            }
+        }
         let indices: Vec<i32> = (0..chain.len() as i32).collect();
         let (mut out_position, mut out_attitude) = ([0.0f32; 3], [0.0f32; 9]);
         // SAFETY: every pointer is to a live local or vector of the size the kernel documents (node_count nodes, path_length indices, 3, 9 and 3 floats in, 3 and 9 out).
@@ -2623,7 +2653,7 @@ impl ModelStore {
             return Ok(TargetPointLocal::Refused("custom_definitions_not_loaded"));
         }
         const IDENTITY: [f32; 9] = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
-        match self.target_point_viewpoint(id, [0.0; 3], IDENTITY, [1.0; 3]) {
+        match self.target_point_viewpoint(id, [0.0; 3], IDENTITY, [1.0; 3], None) {
             Err(why) => return Ok(TargetPointLocal::Refused(why)),
             Ok(Some((position, _))) => {
                 return Ok(TargetPointLocal::Offset {
@@ -2660,7 +2690,7 @@ impl ModelStore {
         let position = position.map(float);
         let attitude = attitude.map(float);
         let scale = scale.map(float);
-        Ok(match self.target_point_viewpoint(id, position, attitude, scale) {
+        Ok(match self.target_point_viewpoint(id, position, attitude, scale, None) {
             Err(why) => TargetPointWorld::Refused(why),
             Ok(None) => TargetPointWorld::NoTargetPoint,
             Ok(Some((p, a))) => TargetPointWorld::Found {
@@ -2668,6 +2698,76 @@ impl ModelStore {
                 attitude: a.map(f32::to_bits),
             },
         })
+    }
+
+    /// The chain of the scene's first TARGET_POINT sub-object, as the sibling position at each level (topmost first): what the campaign needs to read the live placement of exactly those
+    /// sub-instances. Scene 0 (the invalid scene) has no sub-objects. A store that never read the custom files cannot say, and a chain deeper than the transport carries is refused.
+    pub fn target_point_chain(&self, scene: i64) -> Result<TargetPointChain, QueryError> {
+        if scene == 0 {
+            return Ok(TargetPointChain::NoTargetPoint);
+        }
+        let id = self.check_scene(scene)?;
+        if self.inventory_only {
+            return Ok(TargetPointChain::Refused("custom_definitions_not_loaded"));
+        }
+        let Some(kind) = target_point_kind() else {
+            return Ok(TargetPointChain::Refused("target_point_kind_not_compiled"));
+        };
+        let at = match self.route_node_index(id, kind) {
+            Err(why) => return Ok(TargetPointChain::Refused(why)),
+            Ok(None) => return Ok(TargetPointChain::NoTargetPoint),
+            Ok(Some(at)) => at,
+        };
+        let path = match self.node_path(id, at) {
+            Err(why) => return Ok(TargetPointChain::Refused(why)),
+            Ok(path) => path,
+        };
+        if path.len() > TARGET_POINT_CHAIN_MAX {
+            return Ok(TargetPointChain::Refused("sub_object_chain_too_deep_for_transport"));
+        }
+        let sub = &self.scenes[id].sub;
+        let mut offsets = Vec::with_capacity(path.len());
+        for (level, &node) in path.iter().enumerate() {
+            let (first, count) = match level.checked_sub(1) {
+                None => (sub.top_first, sub.top_count),
+                Some(parent) => (sub.nodes[path[parent]].first_child, sub.nodes[path[parent]].child_count),
+            };
+            let offset = node as i64 - first as i64;
+            if offset < 0 || offset >= count as i64 || offset > i32::MAX as i64 {
+                return Ok(TargetPointChain::Refused("sub_object_offset_outside"));
+            }
+            offsets.push(offset as i32);
+        }
+        Ok(TargetPointChain::Found(offsets))
+    }
+
+    /// The INSTANCE-world target point of `scene` for the campaign's CURRENT placement: the main object's world `position`, row-major `attitude` and relative `scale`, and the live placement of
+    /// each node of the chain `target_point_chain` names (relative position, heading, pitch, roll, relative scale, as float bit patterns). The arithmetic is the world-viewpoint kernel's, over
+    /// the placement given instead of keyframe 0. No legacy structure crosses. A scene with no TARGET_POINT, or a placement for a different chain length, is not a position.
+    pub fn target_point_live(
+        &self,
+        scene: i64,
+        position: [u32; 3],
+        attitude: [u32; 9],
+        scale: [u32; 3],
+        live: &[[u32; 9]],
+    ) -> Result<TargetPointWorld, QueryError> {
+        let id = self.check_scene(scene)?;
+        if self.inventory_only {
+            return Ok(TargetPointWorld::Refused("custom_definitions_not_loaded"));
+        }
+        let float = |bits: u32| f32::from_bits(bits);
+        let live: Vec<[f32; 9]> = live.iter().map(|placement| placement.map(float)).collect();
+        Ok(
+            match self.target_point_viewpoint(id, position.map(float), attitude.map(float), scale.map(float), Some(&live)) {
+                Err(why) => TargetPointWorld::Refused(why),
+                Ok(None) => TargetPointWorld::NoTargetPoint,
+                Ok(Some((p, a))) => TargetPointWorld::Found {
+                    position: p.map(f32::to_bits),
+                    attitude: a.map(f32::to_bits),
+                },
+            },
+        )
     }
 
     /// The target point of a FIXED object, `get_local_entity_target_point` branch 3, from the entity position the original had copied (`base`, float bit patterns) and the heading

@@ -58,6 +58,23 @@
 --                      transport boundary, before the C code sees a value; the C code's own `[model-provider:target_point_offset.value]` check is the backstop for a provider that bypasses the bridge
 --   offsets_bad_name   the first answer echoes another scene's name: `[model-provider:target_point_offset.identity]`
 --   offsets_bad_end    the first answer is `end` (the question has no cursor): `[model-provider:target_point_offset.answer]`
+-- THE TARGET-POINT QUERY CONTROLS (EEDCS-52, D3: get_local_entity_target_point asks the host WHICH sub-object is the target point of a live instance (`target_point_chain`), WHERE it is for
+--   the campaign's CURRENT placement (`target_point_world`: the instance's viewpoint and relative scale and the live relative position, heading, pitch, roll and scale of each sub-instance
+--   along the chain, as bit patterns in the `key` place) and a fixed object's position (`target_point_fixed`); the old sub-object search, world-viewpoint solver and fixed rotation are not
+--   compiled). Asked by the campaign's own update loop in the frames, and for real by the diagnostic below:
+--   queries=1          after the frames, call the REAL getter on live entities with the DLL's model_host_target_queries, once as the world has them and once with the leaf sub-instance's live
+--                      placement changed (restored after): two vehicles with an instance, a vehicle with its instance pointer NULL for the call, fixed structures with and without a horizontal
+--                      cached offset, and a fixed structure with the invalid shape for the call. Covered only when every question the native code asked is the provider's, each result is
+--                      EXACTLY the host's reply (and the pose the host received is the live placement the diagnostic read), an instance whose chain the host named wrote its viewpoint and a
+--                      refused-to-name one did not, the fallbacks asked the host nothing and returned the entity position bit for bit, and the changed placement moved the host's answer. A
+--                      DLL without the fixture, or a case with no live entity, is UNAVAILABLE and fails the run, never counted as covered.
+--   queries_changed    (a CHANGED-host control, healthy; needs queries=1) every world answer is 7.5, 8.5, -9.5 and every fixed answer 11.5, 12.5, -13.5. Covered only when the getter returned exactly
+--                      those words and they differ from what the reference host answered.
+--   queries_chain_withheld / queries_world_withheld / queries_fixed_withheld   the first question of that kind is answered `refused`: the engine must stop on
+--                      `[model-provider:target_point_chain|world|fixed.refused]`, with no fallback to the original search, solver or rotation
+--   queries_world_bad_nan / queries_fixed_bad_nan   the first position is a NaN bit pattern: `[model-provider:target_point_world|fixed.answer]` (the Lua bridge refuses it at the transport boundary)
+--   queries_chain_bad_name / queries_world_bad_name / queries_fixed_bad_name   the first answer echoes another scene's name: `[model-provider:target_point_*.identity]`
+--   queries_chain_too_deep   the first chain has nine levels: `[model-provider:target_point_chain.answer]`
 -- A bad_* mode whose precondition the run did not reach (for the triangle ones: no triangle question of the matching kind was asked) is reported `UNREACHED` and fails the run,
 -- never counted as covered.
 --
@@ -112,7 +129,9 @@ local args = host.args
 local modes = { reference = true, vanish = true, inflate = true, bounds_zero = true, absent_all = true, missing = true, decline = true, refused = true, bad_nil = true,
 	bad_catalogue = true, bad_name = true, bad_scene_nan = true, bad_collider_unloaded = true, bad_scene0_loaded = true, bad_kind = true, bad_nan = true, bad_count = true,
 	bad_hex = true, bad_absent = true, bad_end_absent = true, bad_found_declared_absent = true, bad_end_declared_absent = true, object_withheld = true, animation_withheld = true,
-	animation_unknown = true, animation_dropped = true, offsets_changed = true, offsets_withheld = true, offsets_bad_nan = true, offsets_bad_name = true, offsets_bad_end = true }
+	animation_unknown = true, animation_dropped = true, offsets_changed = true, offsets_withheld = true, offsets_bad_nan = true, offsets_bad_name = true, offsets_bad_end = true,
+	queries_changed = true, queries_chain_withheld = true, queries_world_withheld = true, queries_fixed_withheld = true, queries_world_bad_nan = true, queries_fixed_bad_nan = true,
+	queries_chain_bad_name = true, queries_world_bad_name = true, queries_fixed_bad_name = true, queries_chain_too_deep = true }
 local scenarios = {
 	lebanon_retail = { map = "..\\common\\maps\\map5", campaign = "LEBANON.CHC" },
 	georgia_retail = { map = "..\\common\\maps\\map3", campaign = "GEORGIA.CHC" },
@@ -180,11 +199,13 @@ local offsets_requested = whole (args.offsets or "0", "offsets", 0, 1) == 1
 local offset_scenes = whole_list (args.offset_scenes or (offsets_requested and "1,2,3" or nil), "offset_scenes", 1, 2147483646, 64, true)
 if args.offset_scenes and not offsets_requested then fail_args ("offset_scenes without offsets=1") end
 if mode == "offsets_changed" and not offsets_requested then fail_args ("offsets_changed needs offsets=1: its consequence is read from the held offsets") end
+local queries_requested = whole (args.queries or "0", "queries", 0, 1) == 1
+if string.sub (mode, 1, 8) == "queries_" and not queries_requested then fail_args (mode .. " needs queries=1: its consequence is read from the getter's results") end
 local fpu_roundings = whole_list (args.fpu_rounding or "0,1,2,3", "fpu_rounding", 0, 3, 4, true)
 local fpu_scene = whole (args.fpu_scene or "1", "fpu_scene", 1, 2147483646)
 local fpu_depth = whole (args.fpu_depth or "0", "fpu_depth", 0, 2147483646)
 -- a refusing mode stops the engine at the refused entry, so only one initial rounding can be measured in it: decided now, before anything is written or booted
-local healthy_modes = { reference = true, vanish = true, inflate = true, bounds_zero = true, absent_all = true, offsets_changed = true }
+local healthy_modes = { reference = true, vanish = true, inflate = true, bounds_zero = true, absent_all = true, offsets_changed = true, queries_changed = true }
 local boot_only_modes = { missing = true, bad_nil = true, bad_catalogue = true, bad_name = true, bad_scene_nan = true, bad_collider_unloaded = true, bad_scene0_loaded = true,
 	offsets_withheld = true, offsets_bad_nan = true, offsets_bad_name = true, offsets_bad_end = true }
 if fpu_requested and not healthy_modes [mode] then
@@ -209,6 +230,11 @@ local function first_line (e) return (tostring (e):gsub ("\n.*", "")) end
 local reference_counts = { catalogue = 0, scene = 0, triangle = 0, found = 0, ended = 0, absent = 0, refused = 0, target_point_offset = 0 }
 local reference_offset, replied_offset = {}, {}
 local CHANGED_OFFSET = "0x3fc00000,0x40200000,0xc0900000"
+local CHANGED_WORLD = "0x40f00000,0x41080000,0xc1180000"
+local CHANGED_FIXED = "0x41380000,0x41480000,0xc1580000"
+-- the target-point questions in the order the provider was asked them, each with the pose text it received, the reference host's answer and the answer it handed back
+local query_ops = { target_point_chain = true, target_point_world = true, target_point_fixed = true }
+local query_log, last_reference = {}, nil
 local replied = { catalogue = 0, scene = 0, triangle = 0, found = 0, ended = 0, absent = 0, refused = 0, other = 0 }
 local tripped = false
 local changed -- the one change a changed-host control made: { scene, definition, replaced }
@@ -221,6 +247,7 @@ local function counted (op, scene, depth, kind, definition, key)
 		animation_final_definition [scene] = math.max (animation_final_definition [scene] or 0, definition)
 	end
 	local answer = reference (op, scene, depth, kind, definition, key)
+	if query_ops [op] then last_reference = answer end
 	if op == "target_point_offset" and type (answer) == "table" and answer.result == "offset" then reference_offset [scene] = answer.p end
 	if op == "triangle" then
 		if answer.result == "triangle" then reference_counts.found = reference_counts.found + 1
@@ -321,6 +348,32 @@ elseif mode == "offsets_withheld" or mode == "offsets_bad_nan" or mode == "offse
 		end
 		return { result = "end", name = answer.name }
 	end
+elseif string.sub (mode, 1, 8) == "queries_" then
+	-- a target-point question is answered as the mode says (the first of its kind for a negative mode); everything else is the reference host's answer
+	local negative = {
+		queries_chain_withheld = { op = "target_point_chain", answer = function () return { result = "refused", reason = "withheld on purpose" } end },
+		queries_world_withheld = { op = "target_point_world", answer = function () return { result = "refused", reason = "withheld on purpose" } end },
+		queries_fixed_withheld = { op = "target_point_fixed", answer = function () return { result = "refused", reason = "withheld on purpose" } end },
+		queries_world_bad_nan = { op = "target_point_world", answer = function (a) return { result = "world", p = "0x7fc00000,0x00000000,0x00000000", name = a.name } end },
+		queries_fixed_bad_nan = { op = "target_point_fixed", answer = function (a) return { result = "fixed", p = "0x7fc00000,0x00000000,0x00000000", name = a.name } end },
+		queries_chain_bad_name = { op = "target_point_chain", answer = function (a) return { result = a.result, offsets = a.offsets, name = a.name .. "_WRONG" } end },
+		queries_world_bad_name = { op = "target_point_world", answer = function (a) return { result = a.result, p = a.p, name = a.name .. "_WRONG" } end },
+		queries_fixed_bad_name = { op = "target_point_fixed", answer = function (a) return { result = a.result, p = a.p, name = a.name .. "_WRONG" } end },
+		queries_chain_too_deep = { op = "target_point_chain", answer = function (a) return { result = "chain", offsets = { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, name = a.name } end },
+	}
+	provider = function (op, scene, depth, kind, definition, key)
+		local answer = counted (op, scene, depth, kind, definition, key)
+		if not query_ops [op] then return answer end
+		if mode == "queries_changed" then
+			if op == "target_point_world" and answer.result == "world" then tripped = true return { result = "world", p = CHANGED_WORLD, name = answer.name } end
+			if op == "target_point_fixed" and answer.result == "fixed" then tripped = true return { result = "fixed", p = CHANGED_FIXED, name = answer.name } end
+			return answer
+		end
+		local spec = negative [mode]
+		if op ~= spec.op or tripped then return answer end
+		tripped = true
+		return spec.answer (answer)
+	end
 elseif mode == "missing" then
 	provider = nil
 elseif mode == "decline" then
@@ -388,6 +441,7 @@ local function replying (inner)
 			else
 				replied [op] = (replied [op] or 0) + 1
 				if op == "target_point_offset" and answer.result == "offset" then replied_offset [scene] = answer.p end
+				if query_ops [op] then query_log [#query_log + 1] = { op = op, scene = scene, key = key, reference = last_reference, answer = answer } end
 			end
 		else
 			replied.other = replied.other + 1
@@ -415,7 +469,12 @@ local triangle_markers = { decline = "[model-provider:triangle.callback]", refus
 local metadata_markers = { object_withheld = "[model-provider:object.absent]", animation_withheld = "[model-provider:animation.absent]" }
 local offset_markers = { offsets_withheld = "[model-provider:target_point_offset.refused]", offsets_bad_nan = "[model-provider:target_point_offset.answer]",
 	offsets_bad_name = "[model-provider:target_point_offset.identity]", offsets_bad_end = "[model-provider:target_point_offset.answer]" }
-local expected_marker = boot_markers [mode] or triangle_markers [mode] or metadata_markers [mode] or offset_markers [mode]
+local query_markers = { queries_chain_withheld = "[model-provider:target_point_chain.refused]", queries_world_withheld = "[model-provider:target_point_world.refused]",
+	queries_fixed_withheld = "[model-provider:target_point_fixed.refused]", queries_world_bad_nan = "[model-provider:target_point_world.answer]",
+	queries_fixed_bad_nan = "[model-provider:target_point_fixed.answer]", queries_chain_bad_name = "[model-provider:target_point_chain.identity]",
+	queries_world_bad_name = "[model-provider:target_point_world.identity]", queries_fixed_bad_name = "[model-provider:target_point_fixed.identity]",
+	queries_chain_too_deep = "[model-provider:target_point_chain.answer]" }
+local expected_marker = boot_markers [mode] or triangle_markers [mode] or metadata_markers [mode] or offset_markers [mode] or query_markers [mode]
 
 local function matches (message) return expected_marker ~= nil and string.find (message, expected_marker, 1, true) ~= nil end
 
@@ -713,6 +772,144 @@ elseif offsets_requested then
 	end
 end
 
+-- ---------------------------------------------------------------------------------------------------------------------------------
+-- the target-point QUERY (queries=1): the REAL getter on live entities, twice (as the world has them, then with the leaf sub-instance's placement changed). Every row must be the
+-- provider's own answer, reached by the questions the provider was asked in the order the native code asked them.
+
+local queries_problem
+local queries_rows, queries_found, queries_absent, queries_fixed, queries_fallback = 0, 0, 0, 0, 0
+local function same_words (a, b) return type (a) == "string" and type (b) == "string" and string.lower (a) == string.lower (b) end
+local function parse_rows (report)
+	local rows = {}
+	for line in string.gmatch (tostring (report), "[^\n]+") do
+		local case, status = string.match (line, "^model%-host%-tp case=(%S+) status=(%S+)")
+		if case then
+			local row = { case = case, status = status, line = line }
+			if status == "called" then
+				for key, value in string.gmatch (line, "([%w_]+)=(%S+)") do row [key] = value end
+			else
+				row.reason = string.match (line, "reason=(%S+)")
+			end
+			rows [#rows + 1] = row
+		end
+	end
+	return rows
+end
+local function horizontal (cache)
+	local x, z = string.match (cache or "", "^0x(%x+),0x%x+,0x(%x+)$")
+	if not x then return nil end
+	-- a float is zero if its magnitude bits are (the sign bit is the top bit of the word)
+	return tonumber (x, 16) % 0x80000000 ~= 0 or tonumber (z, 16) % 0x80000000 ~= 0
+end
+local first_results, first_poses = {}, {}
+local mutate_start = 0
+local function judge_queries (mutate, report)
+	local rows = parse_rows (report)
+	local events = {}
+	for i = mutate_start + 1, #query_log do events [#events + 1] = query_log [i] end
+	local at = 1
+	local function take (op, count)
+		local taken = {}
+		for _ = 1, count do
+			local event = events [at]
+			if not event or event.op ~= op then return nil, string.format ("the native code asked a %s question the provider did not see next (the provider saw %s)", op, event and event.op or "nothing") end
+			taken [#taken + 1] = event
+			at = at + 1
+		end
+		return taken
+	end
+	if #rows ~= 6 then return string.format ("the query report has %d rows, not 6", #rows) end
+	for _, row in ipairs (rows) do
+		emit { event = "target_query", mutate = mutate, case = row.case, status = row.status, report = row.line }
+		if row.status ~= "called" then return string.format ("UNREACHED: query case %s could not be made (%s); the control is unavailable, not covered", row.case, tostring (row.reason)) end
+		local chain, world, fixed = tonumber (row.chain), tonumber (row.world), tonumber (row.fixed)
+		local is_instance = row.case == "instance_a" or row.case == "instance_b"
+		if is_instance then
+			-- the diagnostic's own chain question, asked before the call to place the change and read the pose
+			local own, why = take ("target_point_chain", 1)
+			if not own then return row.case .. ": " .. why end
+		end
+		local chain_events, why = take ("target_point_chain", chain)
+		if not chain_events then return row.case .. ": " .. why end
+		local world_events, why2 = take ("target_point_world", world)
+		if not world_events then return row.case .. ": " .. why2 end
+		local fixed_events, why3 = take ("target_point_fixed", fixed)
+		if not fixed_events then return row.case .. ": " .. why3 end
+		queries_rows = queries_rows + 1
+		if is_instance then
+			if chain ~= 1 or fixed ~= 0 then return string.format ("%s: an instance asked the host %d chain and %d fixed questions", row.case, chain, fixed) end
+			-- the original's own search (compiled in the diagnostic build only) reaches the sub-instance the host's chain does, or both find none
+			if row.legacy_same ~= "1" then return string.format ("%s: the chain the host named does not reach the sub-instance the original's search finds (legacy_same=%s)", row.case, tostring (row.legacy_same)) end
+			if world == 1 then
+				local event = world_events [1]
+				if tonumber (row.levels) < 1 or row.vp_written ~= "1" then return string.format ("%s: the host named a chain but the instance viewpoint was %s written (levels %s)", row.case, row.vp_written == "1" and "" or "NOT", row.levels) end
+				if chain_events [1].answer.result ~= "chain" then return row.case .. ": a position was asked after the host answered " .. tostring (chain_events [1].answer.result) end
+				if not same_words (row.result, event.answer.p) then return string.format ("%s: the getter returned %s but the host replied %s", row.case, row.result, tostring (event.answer.p)) end
+				if not same_words (row.pose, event.key) then return string.format ("%s: the host was sent %s but the live placement is %s", row.case, tostring (event.key), row.pose) end
+				if mode == "queries_changed" then
+					if not same_words (row.result, CHANGED_WORLD) or same_words (row.result, event.reference and event.reference.p) then
+						return string.format ("%s: the changed host position %s did not reach the getter (it returned %s; the reference host answered %s)", row.case, CHANGED_WORLD, row.result, tostring (event.reference and event.reference.p))
+					end
+				elseif mutate then
+					if same_words (row.result, first_results [row.case]) or same_words (row.pose, first_poses [row.case]) then
+						return string.format ("%s: the changed live placement (%s) did not move the host's answer or the pose it was sent", row.case, row.mutation)
+					end
+				else
+					first_results [row.case], first_poses [row.case] = row.result, row.pose
+				end
+				queries_found = queries_found + 1
+			else
+				-- the host named no chain: the entity position, bit for bit, and the instance viewpoint is NOT written
+				if chain_events [1].answer.result ~= "absent" then return string.format ("%s: no position was asked although the host answered %s", row.case, tostring (chain_events [1].answer.result)) end
+				if row.result ~= row.base or row.vp_written ~= "0" or tonumber (row.levels) ~= 0 then return string.format ("%s: with no target point the getter must return the entity position and not write the viewpoint (%s, written %s)", row.case, row.result, row.vp_written) end
+				queries_absent = queries_absent + 1
+			end
+		elseif row.case == "instance_none" or row.case == "fixed_invalid" then
+			if chain ~= 0 or world ~= 0 or fixed ~= 0 then return string.format ("%s: a fallback asked the host (%d chain, %d world, %d fixed)", row.case, chain, world, fixed) end
+			if row.result ~= row.base then return string.format ("%s: the fallback returned %s, not the entity position %s", row.case, row.result, row.base) end
+			queries_fallback = queries_fallback + 1
+		else
+			if chain ~= 0 or world ~= 0 or fixed ~= 1 then return string.format ("%s: a fixed object asked the host %d chain, %d world and %d fixed questions", row.case, chain, world, fixed) end
+			local event = fixed_events [1]
+			local base_words = string.match (row.base, "^(.-)$")
+			local wants_heading = horizontal (row.cache)
+			if wants_heading == nil then return row.case .. ": the cached offset is not readable" end
+			if wants_heading ~= (row.case == "fixed_horizontal") then return string.format ("%s: the cached offset is %s a horizontal part", row.case, wants_heading and "with" or "without") end
+			local sent = wants_heading and (base_words .. "," .. row.heading) or base_words
+			if not same_words (event.key, sent) then return string.format ("%s: the host was sent %s, expected %s (the heading goes only with a horizontal cached offset)", row.case, tostring (event.key), sent) end
+			if not same_words (row.result, event.answer.p) then return string.format ("%s: the getter returned %s but the host replied %s", row.case, row.result, tostring (event.answer.p)) end
+			if mode == "queries_changed" and (not same_words (row.result, CHANGED_FIXED) or same_words (row.result, event.reference and event.reference.p)) then
+				return string.format ("%s: the changed host position %s did not reach the getter (it returned %s)", row.case, CHANGED_FIXED, row.result)
+			end
+			queries_fixed = queries_fixed + 1
+		end
+	end
+	if at <= #events then return string.format ("the provider saw %d more target-point questions than the native code reported", #events - at + 1) end
+end
+
+if queries_requested and primary then
+	queries_problem = "UNREACHED: the requested target-point query observation was not made: the run's primary failure at the " .. primary.stage .. " stage came first (" .. primary.message .. "); the control is unavailable, not covered"
+elseif queries_requested then
+	if type (engine.model_host_target_queries) ~= "function" then
+		queries_problem = "queries=1 needs a DLL built with the model-host-fixture feature: unavailable, not covered"
+	else
+		for _, mutate in ipairs { false, true } do
+			mutate_start = #query_log
+			local called, report = pcall (engine.model_host_target_queries, engine, mutate)
+			if not called then
+				record_primary ("queries", first_line (report))
+				queries_problem = queries_problem or ("the target-point query failed: " .. first_line (report))
+				break
+			end
+			queries_problem = queries_problem or judge_queries (mutate, report)
+			if queries_problem then break end
+		end
+		if not queries_problem and not primary and queries_found < 2 then
+			queries_problem = string.format ("UNREACHED: only %d instance queries reached a host-named target point; the control is unavailable, not covered", queries_found)
+		end
+	end
+end
+
 local native_counters = ""
 if has_fixture and not primary then
 	local counters_ok, counters = pcall (engine.model_host_counters, engine)
@@ -730,7 +927,9 @@ emit { event = "summary", mode = mode, frames = frames, frames_run = ran, failur
 	los_requested = los_requested, los_hash = los and los.hash or "", los_lookup_hash = los and los.lookup_hash or "", los_visible = los and los.visible or -1,
 	probes_requested = probes_requested, probes_ok = probes_ok, probes_failed = probes_failed,
 	progress_problem = progress_problem or "", los_problem = los_problem or "", probe_problem = probe_problem or "", fpu_requested = fpu_requested, fpu_expected_entries = fpu_expected_entries, fpu_rows = fpu_rows, fpu_measured = fpu_measured, fpu_unreached = fpu_unreached,
-	fpu_problem = fpu_problem or "", offsets_requested = offsets_requested, offsets_rows = offsets_rows, offsets_asked = offsets_asked, offsets_problem = offsets_problem or "" }
+	fpu_problem = fpu_problem or "", offsets_requested = offsets_requested, offsets_rows = offsets_rows, offsets_asked = offsets_asked, offsets_problem = offsets_problem or "",
+	queries_requested = queries_requested, queries_rows = queries_rows, queries_found = queries_found, queries_absent = queries_absent, queries_fixed = queries_fixed, queries_fallback = queries_fallback,
+	queries_problem = queries_problem or "" }
 out.close ()
 io.stderr:write (string.format ("model-authority: mode=%s frames=%d/%d reference triangle=%d found=%d ended=%d absent=%d; replied found=%d ended=%d absent=%d; primary=%s\n", mode, ran, frames,
 	reference_counts.triangle, reference_counts.found, reference_counts.ended, reference_counts.absent, replied.found, replied.ended, replied.absent,
@@ -769,3 +968,4 @@ if los_problem then error (los_problem, 0) end
 if probe_problem then error (probe_problem, 0) end
 if fpu_problem then error (fpu_problem, 0) end
 if offsets_problem then error (offsets_problem, 0) end
+if queries_problem then error (queries_problem, 0) end

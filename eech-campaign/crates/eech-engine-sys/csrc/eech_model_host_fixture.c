@@ -39,6 +39,7 @@ struct campaign_model_counters
 	long catalogue, scene, triangle, found, end, absent, bounds_reads, bounds_without_lines_reads, radius_reads;
 	long presence_checked, presence_mismatches;
 	long target_offset;
+	long target_chain, target_world, target_fixed;
 };
 
 extern struct campaign_model_counters campaign_model_counts;
@@ -46,6 +47,8 @@ extern void campaign_model_poison_arrays (void);
 extern void campaign_model_core_residency (int *rows, int *metadata_rows, int *points, int *faces, int *point_refs, int *surface_points);
 extern void campaign_model_core_horizon (int *cached, int *uncached);
 extern void campaign_model_core_metadata (long *values);
+extern int campaign_object_is_structure (int entity_type);
+extern int campaign_model_target_point_chain (int scene, int *offsets);
 
 static uint32_t float_bits (float value)
 {
@@ -601,6 +604,341 @@ int eech_model_host_attack_consumer_run (char *text, int capacity)
 		float_bits (ip.z), equal);
 
 	return ((n < 0) || (n >= capacity)) ? 1 : 0;
+}
+
+/* The target-point QUERY, called for real on real entities (EEDCS-52, D3): `get_local_entity_target_point` (en_maths.c) on the live entities this diagnostic picks, with the host questions
+   it asked counted around each call. Cases, each one row `model-host-tp case=... status=called|unavailable`:
+     instance_a, instance_b   the first two live vehicles with an instance (any outcome: the counters say whether the host named a chain and was asked for a position). The instance
+                              viewpoint is first set to a sentinel and read after the call, so `vp_written` shows whether the getter wrote it (it writes only when the host named a chain). When `mutate`
+                              is set and the host named a chain, the leaf sub-instance's live relative position, heading and scale are changed for the call and restored after it, and `pose` is the
+                              placement as this diagnostic itself read it from the live tree (the root pose, then each level of the chain), for the script to compare with what the host was sent.
+     instance_none            a vehicle whose instance pointer is set to NULL for the call (not fixed): the original's no-instance, non-fixed fallback, restored after.
+     fixed_a, fixed_b         the first fixed structures with a valid shape: one whose cached host offset has a horizontal part and one that has none, when both exist.
+     fixed_invalid            a fixed structure whose shape is set to the invalid index for the call, restored after: the bit-for-bit position copy.
+   `base` is the entity position as the getter reads it, `heading` the entity heading, `cache` the cached host offset of the shape, `result` the getter's answer, `chain`, `world` and
+   `fixed` the questions asked of the host DURING the call. Nothing else is changed, no random number is drawn and no time advances. A case with no candidate is UNAVAILABLE with its
+   reason, never a pass. */
+static void tp_bits3 (char *out, size_t capacity, const vec3d *v)
+{
+	snprintf (out, capacity, "0x%08x,0x%08x,0x%08x", float_bits (v->x), float_bits (v->y), float_bits (v->z));
+}
+
+static int tp_vehicle_instance_field (entity *en, object_3d_instance ***field)
+{
+	void *data = get_local_entity_data (en);
+
+	switch ((int) en->type)
+	{
+		case ENTITY_TYPE_ANTI_AIRCRAFT:
+		case ENTITY_TYPE_ROUTED_VEHICLE:
+		case ENTITY_TYPE_SHIP_VEHICLE:
+		{
+			*field = &((vehicle *) data)->inst3d;
+			return 1;
+		}
+		default:
+		{
+			return 0;
+		}
+	}
+}
+
+/* the live placement as this diagnostic reads it: the root, then each level of the host's chain by walking the instance's own sub-instance arrays */
+static int tp_pose_text (object_3d_instance *inst, const int *offsets, int levels, char *out, int capacity)
+{
+	object_3d_sub_instance *sub = inst->sub_objects;
+	int used = 0, i, level, n;
+	float words[15];
+
+	words[0] = inst->vp.position.x;
+	words[1] = inst->vp.position.y;
+	words[2] = inst->vp.position.z;
+	memcpy (&words[3], inst->vp.attitude, 9 * sizeof (float));
+	words[12] = inst->relative_scale.x;
+	words[13] = inst->relative_scale.y;
+	words[14] = inst->relative_scale.z;
+
+	for (i = 0; i < 15; i++)
+	{
+		n = snprintf (out + used, (size_t) (capacity - used), "%s0x%08x", i ? "," : "", float_bits (words[i]));
+		if ((n < 0) || (n >= capacity - used)) return 0;
+		used += n;
+	}
+
+	for (level = 0; level < levels; level++)
+	{
+		object_3d_sub_instance *node = &sub[offsets[level]];
+		float level_words[9];
+
+		level_words[0] = node->relative_position.x;
+		level_words[1] = node->relative_position.y;
+		level_words[2] = node->relative_position.z;
+		level_words[3] = node->relative_heading;
+		level_words[4] = node->relative_pitch;
+		level_words[5] = node->relative_roll;
+		level_words[6] = node->relative_scale.x;
+		level_words[7] = node->relative_scale.y;
+		level_words[8] = node->relative_scale.z;
+
+		for (i = 0; i < 9; i++)
+		{
+			n = snprintf (out + used, (size_t) (capacity - used), ",0x%08x", float_bits (level_words[i]));
+			if ((n < 0) || (n >= capacity - used)) return 0;
+			used += n;
+		}
+
+		sub = node->sub_objects;
+	}
+
+	return 1;
+}
+
+static int tp_row (char *text, int capacity, int *used, const char *name, entity *en, int mutate, int what)
+{
+	/* what: 0 a vehicle's own instance, 1 the instance pointer set to NULL, 2 a fixed structure as it is, 3 a fixed structure with the invalid shape */
+	object_3d_instance **field = NULL, *inst = NULL, *saved_instance = NULL;
+	vec3d base, result, vp_position_saved;
+	matrix3x3 vp_attitude_saved;
+	long chain0 = campaign_model_counts.target_chain, world0 = campaign_model_counts.target_world, fixed0 = campaign_model_counts.target_fixed;
+	char base_text[80], result_text[80], cache_text[80], pose_text[2048], mutation[96];
+	int scene = 0, vp_written = -1, shape_saved = 0, pose_ok = 0, levels = 0, legacy_same = -1, offsets[CAMPAIGN_MODEL_CHAIN_MAX], n;
+	float heading_value = 0.0f;
+	uint32_t heading_bits = 0;
+	object_3d_sub_instance *leaf = NULL;
+	vec3d leaf_position;
+	float leaf_heading;
+	vec3d leaf_scale;
+
+	pose_text[0] = '-';
+	pose_text[1] = '\0';
+	mutation[0] = '-';
+	mutation[1] = '\0';
+	memset (&result, 0, sizeof (result));
+
+	if (what <= 1)
+	{
+		tp_vehicle_instance_field (en, &field);
+		saved_instance = *field;
+		inst = saved_instance;
+		scene = inst->object_number;
+	}
+	else
+	{
+		scene = (int) get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE);
+	}
+
+	get_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &base);
+	heading_value = get_local_entity_float_value (en, FLOAT_TYPE_HEADING);
+	heading_bits = float_bits (heading_value);
+
+	if (what == 0)
+	{
+		/* the host's chain, asked by this diagnostic itself (not counted in the deltas below), to place the mutation and to read the live pose independently */
+		levels = campaign_model_target_point_chain (scene, offsets);
+		/* the diagnostic's own ask raised the counter: the deltas are taken from the value after it */
+		chain0 = campaign_model_counts.target_chain;
+
+		/* The ORIGINAL's own selection as the oracle of the host's: the legacy depth-0 search for the first TARGET_POINT sub-object (compiled, not called by the campaign) reaches the same
+		   sub-instance as the walk down the positions the host named, or both find none. Only this diagnostic runs the legacy search. */
+		{
+			object_3d_sub_object_search_data search;
+			object_3d_sub_instance *walk = inst->sub_objects, *reached = NULL;
+			object_3d_database_entry *entries = objects_3d_scene_database[scene].sub_objects;
+			int count = objects_3d_scene_database[scene].number_of_sub_objects, step, inside = 1, found;
+
+			search.search_depth = 0;
+			search.search_object = inst;
+			search.sub_object_index = OBJECT_3D_SUB_OBJECT_TARGET_POINT;
+			found = (find_object_3d_sub_object (&search) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND);
+
+			for (step = 0; (step < levels) && inside; step++)
+			{
+				if ((offsets[step] < 0) || (offsets[step] >= count) || (!walk) || (!entries))
+				{
+					inside = 0;
+					break;
+				}
+
+				reached = &walk[offsets[step]];
+				count = entries[offsets[step]].number_of_sub_objects;
+				entries = entries[offsets[step]].sub_objects;
+				walk = reached->sub_objects;
+			}
+
+			legacy_same = inside && (found ? ((levels > 0) && (reached == search.result_sub_object)) : (levels == 0));
+		}
+
+		vp_position_saved = inst->vp.position;
+		memcpy (vp_attitude_saved, inst->vp.attitude, sizeof (vp_attitude_saved));
+		inst->vp.position.x = 12345.0f;
+		inst->vp.position.y = 23456.0f;
+		inst->vp.position.z = 34567.0f;
+
+		if (mutate && (levels > 0))
+		{
+			object_3d_sub_instance *sub = inst->sub_objects;
+			int level;
+
+			for (level = 0; level < levels; level++)
+			{
+				leaf = &sub[offsets[level]];
+				sub = leaf->sub_objects;
+			}
+
+			leaf_position = leaf->relative_position;
+			leaf_heading = leaf->relative_heading;
+			leaf_scale = leaf->relative_scale;
+			leaf->relative_position.x += 1.0f;
+			leaf->relative_heading += 0.25f;
+			leaf->relative_scale.x *= 1.5f;
+			snprintf (mutation, sizeof (mutation), "x+1,heading+0.25,scale_x*1.5");
+		}
+	}
+	else if (what == 1)
+	{
+		*field = NULL;
+	}
+	else if (what == 3)
+	{
+		shape_saved = scene;
+		set_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE, OBJECT_3D_INVALID_OBJECT_INDEX);
+	}
+
+	memset (&result, 0, sizeof (result));
+	get_local_entity_target_point (en, &result);
+
+	if (what == 0)
+	{
+		vp_written = (float_bits (inst->vp.position.x) == float_bits (base.x)) && (float_bits (inst->vp.position.y) == float_bits (base.y)) &&
+			(float_bits (inst->vp.position.z) == float_bits (base.z));
+
+		if (levels > 0)
+		{
+			pose_ok = tp_pose_text (inst, offsets, levels, pose_text, (int) sizeof (pose_text));
+
+			if (!pose_ok)
+			{
+				pose_text[0] = '-';
+				pose_text[1] = '\0';
+			}
+		}
+
+		if (leaf)
+		{
+			leaf->relative_position = leaf_position;
+			leaf->relative_heading = leaf_heading;
+			leaf->relative_scale = leaf_scale;
+		}
+
+		inst->vp.position = vp_position_saved;
+		memcpy (inst->vp.attitude, vp_attitude_saved, sizeof (vp_attitude_saved));
+	}
+	else if (what == 1)
+	{
+		*field = saved_instance;
+	}
+	else if (what == 3)
+	{
+		set_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE, shape_saved);
+	}
+
+	tp_bits3 (base_text, sizeof (base_text), &base);
+	tp_bits3 (result_text, sizeof (result_text), &result);
+
+	if ((what == 2) && (scene > OBJECT_3D_INVALID_OBJECT_INDEX) && (scene < OBJECT_3D_LAST))
+	{
+		tp_bits3 (cache_text, sizeof (cache_text), &target_point_offsets[scene]);
+	}
+	else
+	{
+		snprintf (cache_text, sizeof (cache_text), "-");
+	}
+
+	n = snprintf (text + *used, (size_t) (capacity - *used),
+		"model-host-tp case=%s status=called type=%d scene=%d base=%s heading=0x%08x cache=%s result=%s chain=%ld world=%ld fixed=%ld vp_written=%d levels=%d legacy_same=%d mutation=%s pose=%s\n", name,
+		(int) en->type, (what == 3) ? shape_saved : scene, base_text, heading_bits, cache_text, result_text, campaign_model_counts.target_chain - chain0,
+		campaign_model_counts.target_world - world0, campaign_model_counts.target_fixed - fixed0, vp_written, levels, legacy_same, mutation, pose_text);
+
+	if ((n < 0) || (n >= capacity - *used))
+	{
+		return 1;
+	}
+
+	*used += n;
+	return 0;
+}
+
+int eech_model_host_target_queries_run (int mutate, char *text, int capacity)
+{
+	entity *en;
+	entity *vehicle_a = NULL, *vehicle_b = NULL, *fixed_horizontal = NULL, *fixed_flat = NULL;
+	int visited = 0, used = 0, n;
+
+	for (en = get_local_entity_list (); en;)
+	{
+		int type;
+		object_3d_instance **field;
+
+		if ((visited >= number_of_entities) || !host_heap_slot (en))
+		{
+			n = snprintf (text, (size_t) capacity, "model-host-tp case=scan status=unavailable reason=entity_list_not_trusted visited=%d\n", visited);
+			return ((n < 0) || (n >= capacity)) ? 1 : 0;
+		}
+
+		visited++;
+		type = (int) en->type;
+
+		if (get_local_entity_data (en))
+		{
+			if (tp_vehicle_instance_field (en, &field))
+			{
+				if (*field)
+				{
+					if (!vehicle_a) vehicle_a = en;
+					else if (!vehicle_b) vehicle_b = en;
+				}
+			}
+			else if (campaign_object_is_structure (type) && get_local_entity_int_value (en, INT_TYPE_IDENTIFY_FIXED) && !get_local_entity_ptr_value (en, PTR_TYPE_INSTANCE_3D_OBJECT))
+			{
+				int shape = (int) get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE);
+
+				if ((shape > OBJECT_3D_INVALID_OBJECT_INDEX) && (shape < OBJECT_3D_LAST))
+				{
+					int horizontal = ((float_bits (target_point_offsets[shape].x) & 0x7fffffffu) != 0) || ((float_bits (target_point_offsets[shape].z) & 0x7fffffffu) != 0);
+
+					if (horizontal && !fixed_horizontal) fixed_horizontal = en;
+					else if (!horizontal && !fixed_flat) fixed_flat = en;
+				}
+			}
+		}
+
+		en = get_local_entity_succ (en);
+	}
+
+	used = 0;
+	text[0] = '\0';
+
+#define TP_CASE(NAME, ENTITY, WHAT, REASON) \
+	if (ENTITY) \
+	{ \
+		if (tp_row (text, capacity, &used, NAME, ENTITY, mutate, WHAT)) return 1; \
+	} \
+	else \
+	{ \
+		n = snprintf (text + used, (size_t) (capacity - used), "model-host-tp case=%s status=unavailable reason=%s visited=%d\n", NAME, REASON, visited); \
+		if ((n < 0) || (n >= capacity - used)) return 1; \
+		used += n; \
+	}
+
+	TP_CASE ("instance_a", vehicle_a, 0, "no_vehicle_with_an_instance")
+	TP_CASE ("instance_b", vehicle_b, 0, "no_second_vehicle_with_an_instance")
+	TP_CASE ("instance_none", vehicle_a, 1, "no_vehicle_with_an_instance")
+	TP_CASE ("fixed_horizontal", fixed_horizontal, 2, "no_fixed_structure_with_a_horizontal_offset")
+	TP_CASE ("fixed_flat", fixed_flat, 2, "no_fixed_structure_without_a_horizontal_offset")
+	TP_CASE ("fixed_invalid", fixed_flat ? fixed_flat : fixed_horizontal, 3, "no_fixed_structure")
+#undef TP_CASE
+
+	return 0;
 }
 
 int eech_model_host_poison_run (void)

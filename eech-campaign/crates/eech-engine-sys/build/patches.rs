@@ -2399,7 +2399,7 @@ pub fn target_point_fixture_files() -> Vec<&'static str> {
     files
 }
 
-/// Patches of the host-owned target-point OFFSETS (EEDCS-52, D3), applied by main.rs unless the build keeps the ORIGINAL initialiser on purpose: feature target-point-fixture (the
+/// Patches of the host-owned target-point OFFSETS and QUERIES (EEDCS-52, D3: TH1/TH2 the offset initialiser, TH3/TH4 `get_local_entity_target_point`), applied by main.rs unless the build keeps the ORIGINAL initialiser on purpose: feature target-point-fixture (the
 /// original characterisation, whose observer hooks sit inside the original body, TARGET_POINT_FIXTURE_PATCHES) or feature model-fixture (the original accessors, no host).
 /// `initialise_target_point_offsets` used to construct an instance of every scene, search it for a TARGET_POINT sub-object, take its world position or the centre of the scene's
 /// bounding box, and destruct it. The host owns that physical work: the replacement asks it for the three LOCAL coordinates of each scene (campaign_model_target_point_offset,
@@ -2422,6 +2422,100 @@ pub const TARGET_POINT_HOST_PATCHES: &[Patch] = &[
         why: "closes the #if 0 opened by TH1 at the end of the original initialiser (this text occurs once, at the end of that function)",
         original: "\t\tdestruct_3d_object (inst3d);\n\t}\n}\n",
         replacement: "\t\tdestruct_3d_object (inst3d);\n\t}\n}\n#endif /* EECH headless (D3) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/en_misc/en_maths/en_maths.c",
+        id: "TH3-target-point-from-host",
+        why: "get_local_entity_target_point searched the entity's instance for a TARGET_POINT sub-object, solved its world viewpoint and, for a fixed object, rotated the cached offset itself. The host owns that physical work: the function keeps the campaign's branches, fallbacks, state write and read order and asks the host for the chain, the world position and the fixed position. The original body follows inside #if 0.",
+        original: "void get_local_entity_target_point (entity *en, vec3d *target_point)\n{\n",
+        replacement: r#"extern int campaign_model_target_point_chain ( int scene, int *offsets ); /* EECH headless (D3) */
+extern void campaign_model_target_point_world ( object_3d_instance *instance, const int *offsets, int levels, vec3d *world );
+extern void campaign_model_target_point_fixed ( int shape, const vec3d *position, const float *heading, vec3d *world );
+
+void get_local_entity_target_point (entity *en, vec3d *target_point)
+{
+	object_3d_instance
+		*inst3d;
+
+	object_3d_index_numbers
+		index;
+
+	int
+		levels,
+		offsets[8];
+
+	float
+		heading;
+
+	ASSERT (en);
+
+	ASSERT (target_point);
+
+	inst3d = (object_3d_instance *) get_local_entity_ptr_value (en, PTR_TYPE_INSTANCE_3D_OBJECT);
+
+	if (inst3d)
+	{
+		//
+		// the host names the first TARGET_POINT sub-object of the instance's scene (none: the entity position, and the instance viewpoint is NOT written)
+		//
+
+		levels = campaign_model_target_point_chain (inst3d->object_number, offsets);
+
+		if (levels > 0)
+		{
+			get_local_entity_vec3d (en, VEC3D_TYPE_POSITION, (vec3d *) &inst3d->vp.position);
+
+			get_local_entity_attitude_matrix (en, inst3d->vp.attitude);
+
+			campaign_model_target_point_world (inst3d, offsets, levels, target_point);
+		}
+		else
+		{
+			get_local_entity_vec3d (en, VEC3D_TYPE_POSITION, target_point);
+		}
+	}
+	else
+	{
+		get_local_entity_vec3d (en, VEC3D_TYPE_POSITION, target_point);
+
+		//
+		// if this is a fixed object then the host adds the target point offset (rotated by heading, assume flat ground); the heading is read only when the cached host offset has a horizontal part
+		//
+
+		if (get_local_entity_int_value (en, INT_TYPE_IDENTIFY_FIXED))
+		{
+			index = get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE);
+
+			if (index != OBJECT_3D_INVALID_OBJECT_INDEX)
+			{
+				if ((target_point_offsets[index].x != 0.0) || (target_point_offsets[index].z != 0.0))
+				{
+					heading = get_local_entity_float_value (en, FLOAT_TYPE_HEADING);
+
+					campaign_model_target_point_fixed (index, target_point, &heading, target_point);
+				}
+				else
+				{
+					campaign_model_target_point_fixed (index, target_point, NULL, target_point);
+				}
+			}
+		}
+	}
+}
+
+#if 0 /* EECH headless (D3): the original sub-object search, world-viewpoint solver and fixed rotation are not compiled; see mb_hostmodel.h, TARGET_POINT_CHAIN / _WORLD / _FIXED */
+void get_local_entity_target_point (entity *en, vec3d *target_point)
+{
+"#,
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/en_misc/en_maths/en_maths.c",
+        id: "TH4-original-target-point-ends",
+        why: "closes the #if 0 opened by TH3 at the end of the original get_local_entity_target_point (this text occurs once, at the end of that function)",
+        original: "\t\t\t\ttarget_point->y += target_point_offsets[index].y;\n\t\t\t}\n\t\t}\n\t}\n}\n",
+        replacement: "\t\t\t\ttarget_point->y += target_point_offsets[index].y;\n\t\t\t}\n\t\t}\n\t}\n}\n#endif /* EECH headless (D3) */\n",
         count: 1,
     },
 ];

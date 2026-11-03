@@ -3162,6 +3162,11 @@ impl LuaUserData for LuaEngine {
             let count = model_int(&count, "count", 1, eech_engine::MODEL_PAGE_SCENES)?;
             this.engine.model_host_target_offsets(first, count).map_err(lua_error)
         });
+        // TEST-ONLY (feature `model-host-fixture`, EEDCS-52 D3): the target-point query called for real on live entities; `mutate` changes a leaf's live placement for the call
+        #[cfg(feature = "model-host-fixture")]
+        methods.add_method("model_host_target_queries", |_, this, mutate: bool| {
+            this.engine.model_host_target_queries(mutate).map_err(lua_error)
+        });
         #[cfg(feature = "model-host-fixture")]
         methods.add_method("model_host_attack_consumer", |_, this, ()| {
             this.engine.model_host_attack_consumer().map_err(lua_error)
@@ -3679,6 +3684,15 @@ fn gunship(name: &str) -> LuaResult<Gunship> {
 ///                 clamped at zero; a scene no file defines is a valid slot and answers the zero offset), or `{ result = "refused", reason }`. `name` is the scene's compiled name (an echo).
 ///                 There is no `end` or `absent` answer: the campaign copies the three coordinates and asks again at every initialiser invocation.
 ///
+///   "target_point_chain"  a scene index (the instance's scene; 0 is asked too). Returns `{ result = "chain", offsets = {one to eight whole numbers 0..65535}, name = text }`: the position of the
+///                 scene's first TARGET_POINT sub-object among its siblings at each level, topmost level first (the host names the chain, the campaign does not search), or `{ result = "absent", name }`
+///                 when the scene has none, or `{ result = "refused", reason }`.
+///   "target_point_world"  a scene index and, in the sixth place (the text), the campaign's CURRENT placement as `15 + 9 * levels` comma-separated bit patterns: the instance's world position
+///                 (3), attitude (9, row-major) and relative scale (3), then for each level of the chain just named the live relative position (3), heading, pitch, roll and relative scale (3).
+///                 Returns `{ result = "world", p = {three}, name = text }`: the world position of that sub-object, or `{ result = "refused", reason }` (a level count that is not the chain's is a refusal).
+///   "target_point_fixed"  a shape index (never 0) and, in the sixth place, three bit patterns (the entity position the original copied) and, only when the cached host offset has a horizontal
+///                 part, a fourth (the heading). Returns `{ result = "fixed", p = {three}, name = text }` or `{ result = "refused", reason }` (a heading needed and not given is a refusal).
+///
 ///   "object_table"  no scene, no depth. Returns `{ result = "table", objects = n }`: how many objects the host's common database holds (the campaign's room for custom objects is its own).
 ///   "object"     a scene index, a cursor (`depth`, never negative: the approximation or the sub-object) and, in the fourth place, the ROLE the object has in the scene (0 main, 1
 ///                 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object). Returns `{ result = "object", name = text, counts = {six whole numbers within 0..65535:
@@ -3827,6 +3841,45 @@ return function(op, scene, depth, kind, definition, key)
 		if not p then return nil, 'p ' .. why end
 		return 'offset', p, nil, nil, nil, nil, nil, name
 	end
+	if op == 'target_point_chain' then
+		local name, result = a.name, a.result
+		if result == 'refused' then
+			local reason = a.reason
+			return 'refused', type(reason) == 'string' and reason:sub(1, 200) or ''
+		end
+		if type(name) ~= 'string' or #name > 127 or find(name, '\0', 1, true) then return nil, 'name must be text of at most 127 bytes without a NUL' end
+		if result == 'absent' then return 'absent', nil, nil, nil, nil, nil, nil, name end
+		if result ~= 'chain' then return nil, 'result must be chain, absent or refused' end
+		local offsets = a.offsets
+		if type(offsets) ~= 'table' then return nil, 'offsets must be a table of one to eight whole numbers' end
+		local parts, seen = {}, 0
+		for i = 1, 8 do
+			if offsets[i] == nil then break end
+			parts[i] = ranged(offsets[i], 65535)
+			if not parts[i] then return nil, 'offsets element ' .. i .. ' must be a whole number within 0..65535' end
+			seen = seen + 1
+		end
+		if seen < 1 then return nil, 'offsets must have one to eight elements' end
+		local keys = 0
+		for k in next, offsets do
+			keys = keys + 1
+			if keys > seen or type(k) ~= 'number' or k < 1 or k > seen or k ~= floor(k) then return nil, 'offsets has a key outside 1..' .. seen end
+		end
+		return 'chain', concat(parts, ' '), nil, nil, nil, nil, nil, name
+	end
+	if op == 'target_point_world' or op == 'target_point_fixed' then
+		local name, result = a.name, a.result
+		if result == 'refused' then
+			local reason = a.reason
+			return 'refused', type(reason) == 'string' and reason:sub(1, 200) or ''
+		end
+		if type(name) ~= 'string' or #name > 127 or find(name, '\0', 1, true) then return nil, 'name must be text of at most 127 bytes without a NUL' end
+		local expected = op == 'target_point_world' and 'world' or 'fixed'
+		if result ~= expected then return nil, 'result must be ' .. expected .. ' or refused' end
+		local p, why = list(a.p, 3)
+		if not p then return nil, 'p ' .. why end
+		return expected, p, nil, nil, nil, nil, nil, name
+	end
 	if op == 'route_node' or op == 'route_face' then
 		local name, result = a.name, a.result
 		if type(name) ~= 'string' or #name > 127 or find(name, '\0', 1, true) then return nil, 'name must be text of at most 127 bytes without a NUL' end
@@ -3936,6 +3989,11 @@ fn bridged_float(pair: &str, what: &str, operation: &str) -> Result<f32, String>
     bridged_floats::<1>(pair, what, operation).map(|[value]| value)
 }
 
+/// The campaign's floats as the text the provider receives: eight-digit bit patterns separated by commas (a value is never rounded on its way to the host).
+fn pose_text(pose: &[u32]) -> String {
+    pose.iter().map(|bits| format!("0x{bits:08x}")).collect::<Vec<_>>().join(",")
+}
+
 fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, String> {
     let (operation, scene, depth, kind, definition, key) = match query.clone() {
         ModelQuery::Catalogue => ("catalogue", None, None, None, None, None),
@@ -3945,6 +4003,10 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
         ModelQuery::RouteFace { scene, kind, index } => ("route_face", Some(scene), Some(index), Some(kind), None, None),
         ModelQuery::ObjectTable => ("object_table", None, None, None, None, None),
         ModelQuery::TargetPointOffset { scene } => ("target_point_offset", Some(scene), None, None, None, None),
+        ModelQuery::TargetPointChain { scene } => ("target_point_chain", Some(scene), None, None, None, None),
+        // the campaign's current placement crosses as exact bit patterns in the text place
+        ModelQuery::TargetPointWorld { scene, pose } => ("target_point_world", Some(scene), None, None, None, Some(pose_text(&pose))),
+        ModelQuery::TargetPointFixed { scene, pose } => ("target_point_fixed", Some(scene), None, None, None, Some(pose_text(&pose))),
         // the fourth place carries the role the object has in the scene
         ModelQuery::Object {
             scene,
@@ -4127,6 +4189,40 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
             "[model-provider:target_point_offset.refused] the host cannot answer for scene {scene}: {}",
             a.unwrap_or_default()
         )),
+        (ModelQuery::TargetPointChain { .. }, "chain") => {
+            // the bridge has already checked one to eight whole numbers; the count is bounded again here so that no input can make this allocate more
+            let offsets = a
+                .ok_or_else(missing)?
+                .split(' ')
+                .take(9)
+                .map(|token| {
+                    token
+                        .parse::<i32>()
+                        .map_err(|_| format!("[model-provider:{operation}.answer] offsets is out of range"))
+                })
+                .collect::<Result<Vec<_>, _>>()?;
+            if offsets.is_empty() || offsets.len() > 8 {
+                return Err(format!("[model-provider:{operation}.answer] a chain has one to eight levels"));
+            }
+            Ok(ModelAnswer::TargetPointChain {
+                scene_name: g.ok_or_else(missing)?,
+                offsets: Some(offsets),
+            })
+        }
+        (ModelQuery::TargetPointChain { .. }, "absent") => Ok(ModelAnswer::TargetPointChain {
+            scene_name: g.ok_or_else(missing)?,
+            offsets: None,
+        }),
+        (ModelQuery::TargetPointWorld { .. }, "world") | (ModelQuery::TargetPointFixed { .. }, "fixed") => Ok(ModelAnswer::TargetPointPosition {
+            scene_name: g.ok_or_else(missing)?,
+            position: bridged_floats::<3>(&a.ok_or_else(missing)?, "p", operation)?,
+        }),
+        (ModelQuery::TargetPointChain { scene } | ModelQuery::TargetPointWorld { scene, .. } | ModelQuery::TargetPointFixed { scene, .. }, "refused") => {
+            Err(format!(
+                "[model-provider:{operation}.refused] the host cannot answer for scene {scene}: {}",
+                a.unwrap_or_default()
+            ))
+        }
         (ModelQuery::RouteNode { scene, kind, index } | ModelQuery::RouteFace { scene, kind, index }, "refused") => Err(format!(
             "[model-provider:{operation}.refused] the host cannot answer for scene {scene} kind {kind} cursor {index}: {}",
             a.unwrap_or_default()
@@ -5092,6 +5188,167 @@ mod tests {
         // a NaN bit pattern is named as such, at the transport boundary
         let nan = offset(11).err().ok_or("accepted")?;
         assert!(nan.contains("p: not finite"), "{nan}");
+        Ok(())
+    }
+
+    #[test]
+    fn a_target_point_chain_crosses_as_sibling_positions_or_an_absence_with_the_scenes_name() -> Test {
+        let lua = Lua::new();
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene)
+               if scene == 5 then return { result = 'chain', name = 'SCENE_FIVE', offsets = { 0, 3, 65535 } } end
+               if scene == 6 then return { result = 'chain', name = 'SCENE_SIX', offsets = { 1, 2, 3, 4, 5, 6, 7, 8 } } end
+               if scene == 0 then return { result = 'absent', name = '' } end
+               return { result = 'absent', name = 'NO_TARGET_POINT' }
+             end",
+        )?;
+        assert_eq!(
+            ask(&mut provider, ModelQuery::TargetPointChain { scene: 5 })?,
+            ModelAnswer::TargetPointChain {
+                scene_name: "SCENE_FIVE".into(),
+                offsets: Some(vec![0, 3, 65535])
+            }
+        );
+        let ModelAnswer::TargetPointChain { offsets: Some(offsets), .. } = ask(&mut provider, ModelQuery::TargetPointChain { scene: 6 })? else {
+            return Err("not a chain".into());
+        };
+        assert_eq!(offsets, vec![1, 2, 3, 4, 5, 6, 7, 8]);
+        assert_eq!(
+            ask(&mut provider, ModelQuery::TargetPointChain { scene: 7 })?,
+            ModelAnswer::TargetPointChain {
+                scene_name: "NO_TARGET_POINT".into(),
+                offsets: None
+            }
+        );
+        // the invalid scene is asked too, and absent is its answer
+        assert!(matches!(
+            ask(&mut provider, ModelQuery::TargetPointChain { scene: 0 })?,
+            ModelAnswer::TargetPointChain { offsets: None, .. }
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn a_target_point_chain_that_is_withheld_too_deep_empty_fractional_or_of_the_wrong_kind_stops_with_its_marker() -> Test {
+        let lua = Lua::new();
+        // each answer is chosen by the scene: 1 refused, 2 nine levels, 3 none, 4 a fractional number, 5 a negative number, 6 a hole, 7 no name, 8 a world answer, 9 a bit pattern
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene)
+               local n = 'SCENE'
+               if scene == 1 then return { result = 'refused', reason = 'no such model' } end
+               if scene == 2 then return { result = 'chain', name = n, offsets = { 0, 0, 0, 0, 0, 0, 0, 0, 0 } } end
+               if scene == 3 then return { result = 'chain', name = n, offsets = {} } end
+               if scene == 4 then return { result = 'chain', name = n, offsets = { 0.5 } } end
+               if scene == 5 then return { result = 'chain', name = n, offsets = { -1 } } end
+               if scene == 6 then return { result = 'chain', name = n, offsets = { [1] = 0, [3] = 2 } } end
+               if scene == 7 then return { result = 'chain', offsets = { 0 } } end
+               if scene == 8 then return { result = 'world', name = n, p = { 1, 2, 3 } } end
+               return { result = 'chain', name = n, offsets = '0x00000000' }
+             end",
+        )?;
+        let mut chain = |scene: i32| ask(&mut provider, ModelQuery::TargetPointChain { scene });
+        let refused = chain(1).err().ok_or("accepted")?;
+        assert!(
+            refused.contains("[model-provider:target_point_chain.refused]") && refused.contains("no such model"),
+            "{refused}"
+        );
+        for scene in 2..=9 {
+            let error = chain(scene).err().ok_or("accepted")?;
+            assert!(error.contains("[model-provider:target_point_chain.answer]"), "scene {scene}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_target_point_pose_reaches_the_provider_as_exact_bits_and_the_position_comes_back_as_exact_bits() -> Test {
+        let lua = Lua::new();
+        // the provider hands back the first three words of the pose it received (the root position of a world question, the base of a fixed one): a negative zero, a subnormal and an
+        // ordinary number must survive both crossings
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               assert (depth == nil and kind == nil and definition == nil)
+               local first = key:match ('^([^,]+,[^,]+,[^,]+)')
+               if op == 'target_point_world' then return { result = 'world', name = 'WORLD', p = first } end
+               return { result = 'fixed', name = 'FIXED', p = first }
+             end",
+        )?;
+        let pose = |first: [f32; 3], rest: usize| -> Vec<u32> {
+            let mut words: Vec<u32> = first.map(f32::to_bits).to_vec();
+            words.extend((0..rest).map(|i| (i as f32 + 0.5).to_bits()));
+            words
+        };
+        let weird = [-0.0_f32, f32::from_bits(1), 1234.5];
+        let ModelAnswer::TargetPointPosition { scene_name, position } = ask(
+            &mut provider,
+            ModelQuery::TargetPointWorld {
+                scene: 3,
+                pose: pose(weird, 12 + 18),
+            },
+        )?
+        else {
+            return Err("not a position".into());
+        };
+        assert_eq!(scene_name, "WORLD");
+        assert_eq!(bits(position), bits(weird));
+        for rest in [0, 1] {
+            let ModelAnswer::TargetPointPosition { scene_name, position } = ask(
+                &mut provider,
+                ModelQuery::TargetPointFixed {
+                    scene: 4,
+                    pose: pose(weird, rest),
+                },
+            )?
+            else {
+                return Err("not a position".into());
+            };
+            assert_eq!(scene_name, "FIXED");
+            assert_eq!(bits(position), bits(weird));
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_target_point_position_that_is_withheld_non_finite_or_of_the_wrong_kind_stops_with_its_marker() -> Test {
+        let lua = Lua::new();
+        // each answer is chosen by the scene: 1 refused, 2 a NaN, 3 two numbers, 4 an answer of the other kind, 5 no name, 6 a name with a NUL, 7 a chain answer
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene)
+               local kind = op == 'target_point_world' and 'world' or 'fixed'
+               local other = op == 'target_point_world' and 'fixed' or 'world'
+               local n = 'SCENE'
+               if scene == 1 then return { result = 'refused', reason = 'no such model' } end
+               if scene == 2 then return { result = kind, name = n, p = { 1, 0 / 0, 3 } } end
+               if scene == 3 then return { result = kind, name = n, p = { 1, 2 } } end
+               if scene == 4 then return { result = other, name = n, p = { 1, 2, 3 } } end
+               if scene == 5 then return { result = kind, p = { 1, 2, 3 } } end
+               if scene == 6 then return { result = kind, name = 'A\\0B', p = { 1, 2, 3 } } end
+               return { result = 'chain', name = n, offsets = { 0 } }
+             end",
+        )?;
+        for world in [true, false] {
+            let label = if world { "target_point_world" } else { "target_point_fixed" };
+            let mut question = |scene: i32| {
+                let query = if world {
+                    ModelQuery::TargetPointWorld { scene, pose: vec![0; 24] }
+                } else {
+                    ModelQuery::TargetPointFixed { scene, pose: vec![0; 3] }
+                };
+                ask(&mut provider, query)
+            };
+            let refused = question(1).err().ok_or("accepted")?;
+            assert!(
+                refused.contains(&format!("[model-provider:{label}.refused]")) && refused.contains("no such model"),
+                "{refused}"
+            );
+            for scene in 2..=7 {
+                let error = question(scene).err().ok_or("accepted")?;
+                assert!(error.contains(&format!("[model-provider:{label}.answer]")), "{label} scene {scene}: {error}");
+            }
+        }
         Ok(())
     }
 

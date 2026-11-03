@@ -11,11 +11,16 @@
 //!   store:target_point_fixed (shape, base, heading?)  a FIXED object's target point (branch 3) from the entity position words and, only where the original reads it, the heading
 //!   store:compare_target_points (path)    the retained target-point observer report (its JSON Lines) against this store: every local offset row, every branch-1 and branch-3 query
 //!
+//! The provider (`host.model`, `host.model_provider`) also answers the three questions behind `get_local_entity_target_point` (EEDCS-52): `target_point_chain` (the sibling positions of
+//! the first TARGET_POINT sub-object, topmost first, or absent), `target_point_world` (its world position for the CURRENT placement the campaign sends in the text place) and
+//! `target_point_fixed` (a fixed object's position); `ModelStore::target_point_chain` and `ModelStore::target_point_live` are the store behind them.
+//!
 //! No pointer, offset or legacy layout reaches Lua; the store is immutable and shared (`Arc`), so a value a script keeps never refers into it. Arguments are whole
 //! numbers within range or the call is refused before the store is touched. A missing asset is reported as `NOT RUN`, never as a pass.
 use crate::models::{
     compiled_scene_name, hex_list, scene_index_by_name, scene_last, AnimationRef, CustomWalk, ErrorKind, FixedPath, FixedTarget, ModelStore, ObjectHeader,
-    ObjectSource, OffsetSource, RouteFace, RouteNode, SceneSource, TargetPointLocal, TargetPointWorld, Triangle, CUSTOM_WALK_MAX, TARGET_POINT_STATE,
+    ObjectSource, OffsetSource, RouteFace, RouteNode, SceneSource, TargetPointChain, TargetPointLocal, TargetPointWorld, Triangle, CUSTOM_WALK_MAX,
+    TARGET_POINT_CHAIN_MAX, TARGET_POINT_STATE,
 };
 use crate::original_report;
 use mlua::prelude::*;
@@ -437,6 +442,109 @@ fn provider_number(value: Option<LuaValue>, name: &str, operation: &str) -> LuaR
     }
 }
 
+/// The campaign's floats from the provider's text: `count_ok` says which counts are allowed, each token is `0x` and eight hexadecimal digits (exact bit patterns, any value).
+fn transport_pose(text: Option<&str>, operation: &str, count_ok: impl Fn(usize) -> bool) -> LuaResult<Vec<u32>> {
+    let bad = |why: &str| LuaError::runtime(format!("[model-provider:{operation}.request] the pose {why}"));
+    let text = text.ok_or_else(|| bad("is missing"))?;
+    let mut words = Vec::new();
+    for token in text.split(',') {
+        let digits = token
+            .strip_prefix("0x")
+            .filter(|digits| digits.len() == 8)
+            .ok_or_else(|| bad("must be 0x and eight hexadecimal digits per float"))?;
+        words.push(u32::from_str_radix(digits, 16).map_err(|_| bad("must be 0x and eight hexadecimal digits per float"))?);
+        if words.len() > 15 + 9 * TARGET_POINT_CHAIN_MAX {
+            return Err(bad("is longer than the transport carries"));
+        }
+    }
+    if !count_ok(words.len()) {
+        return Err(bad(&format!("has {} floats, which this question does not take", words.len())));
+    }
+    Ok(words)
+}
+
+/// The reference host's answer to a target-point question of a live instance or a fixed object (`get_local_entity_target_point`, EEDCS-52): which sub-object (the chain), where it is
+/// for the campaign's CURRENT placement (the world position) and a fixed object's target point. The store does the physical work; a refusal of the store is a refusal here, never a number.
+fn target_point_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaResult<LuaTable> {
+    let operation = q.operation.as_str();
+    let fail = |message: String| LuaError::runtime(format!("[model-provider:{operation}.request] {message}"));
+    if q.depth.is_some() || q.kind.is_some() || q.definition.is_some() {
+        return Err(fail("a target point question has no depth, kind or definition".into()));
+    }
+    let scene = q.scene.ok_or_else(|| fail("a target point question needs a scene".into()))?;
+    let table = lua.create_table()?;
+    let name = usize::try_from(scene).ok().and_then(compiled_scene_name).unwrap_or("");
+    table.set("name", name)?;
+    let refuse = |table: &LuaTable, reason: &str| -> LuaResult<()> {
+        table.set("result", "refused")?;
+        table.set("reason", reason)
+    };
+    match operation {
+        "target_point_chain" => {
+            if q.key.is_some() {
+                return Err(fail("a chain question has no pose".into()));
+            }
+            if scene < 0 {
+                return Err(fail(format!("scene {scene} is not a scene")));
+            }
+            match store.target_point_chain(scene).map_err(|e| fail(e.to_string()))? {
+                TargetPointChain::Found(offsets) => {
+                    table.set("result", "chain")?;
+                    table.set("offsets", lua.create_sequence_from(offsets)?)?;
+                }
+                TargetPointChain::NoTargetPoint => table.set("result", "absent")?,
+                TargetPointChain::Refused(reason) => refuse(&table, reason)?,
+            }
+        }
+        "target_point_world" => {
+            // the instance's position (3), attitude (9) and relative scale (3), then nine floats for each level of the chain
+            let words = transport_pose(q.key.as_deref(), operation, |n| n >= 24 && (n - 15) % 9 == 0)?;
+            let take = |from: usize, count: usize| -> Vec<u32> { words[from..from + count].to_vec() };
+            let (position, attitude, scale) = (take(0, 3), take(3, 9), take(12, 3));
+            // whole levels only: the count was checked above, so no float is left over
+            let (levels, _) = words[15..].as_chunks::<9>();
+            let live: Vec<[u32; 9]> = levels.to_vec();
+            let result = store.target_point_live(
+                scene,
+                [position[0], position[1], position[2]],
+                <[u32; 9]>::try_from(attitude.as_slice()).map_err(|_| fail("the attitude is not nine floats".into()))?,
+                [scale[0], scale[1], scale[2]],
+                &live,
+            );
+            match result.map_err(|e| fail(e.to_string()))? {
+                TargetPointWorld::Found { position, .. } => {
+                    table.set("result", "world")?;
+                    table.set("p", hex_list(&position))?;
+                }
+                // the campaign asks for a position only after the host named a chain: a scene with none is a disagreement, not an answer
+                TargetPointWorld::NoTargetPoint => refuse(&table, "no_target_point")?,
+                TargetPointWorld::Refused(reason) => refuse(&table, reason)?,
+            }
+        }
+        _ => {
+            // the position the campaign copied (3) and, only when its cached offset has a horizontal part, the heading (1)
+            let words = transport_pose(q.key.as_deref(), operation, |n| n == 3 || n == 4)?;
+            if scene < 1 {
+                return Err(fail(format!(
+                    "scene {scene} has no fixed target point: the invalid shape's position copy is the campaign's own"
+                )));
+            }
+            let heading = words.get(3).copied();
+            match store
+                .target_point_fixed(scene, [words[0], words[1], words[2]], heading)
+                .map_err(|e| fail(e.to_string()))?
+            {
+                FixedTarget::Offset { result, .. } | FixedTarget::PositionCopy { result } => {
+                    table.set("result", "fixed")?;
+                    table.set("p", hex_list(&result))?;
+                }
+                FixedTarget::Refused(reason) => refuse(&table, reason)?,
+            }
+        }
+    }
+    Ok(table)
+}
+
 /// The reference host's answer to one model question of the campaign (aphavoc/.../mb_hostmodel.h; the Lua contract is `call_model` in eech-dc/src/module.rs): the host's own
 /// store, answered with the original accessors' numbers as exact bit patterns. Scene 0 is the null scene (the invalid object index): the zeroed entry the original kept for
 /// it, which the campaign asks for like any other.
@@ -819,6 +927,11 @@ impl ProviderState {
         let operation = q.operation.as_str();
         match operation {
             "custom_order" => self.custom_order(lua, current, q.scene, q.depth, q.kind, q.key),
+            // the target-point queries of a live instance or a fixed object (EEDCS-52): the campaign's current placement arrives in the text place
+            "target_point_chain" | "target_point_world" | "target_point_fixed" => {
+                let store = self.final_store(current)?;
+                target_point_answer(lua, &store, &q)
+            }
             // the database's own questions: independent of how the custom scene files are read
             "object_table" | "object" => {
                 let store = self.base(current)?;
