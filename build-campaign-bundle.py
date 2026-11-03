@@ -1,21 +1,52 @@
 #!/usr/bin/env python3
-"""Concatenate the retained campaign source into campaign-bundle.txt.
+"""Concatenate the retained campaign source into campaign-bundle.txt and
+campaign-bundle-appendix.txt.
+
+The appendix file holds retained files whose campaign relevance is less
+obvious: weapon loadout tables, attack-guide tactics, save/load and comms
+receivers kept for their campaign side effects, start-up and option
+plumbing, formation and map-grid utilities, and fragments restored from
+UI and gunship code. Everything else goes in the main bundle.
 
 Deterministic: files are the tracked *.c / *.h sources (git ls-files),
 ordered by byte-wise path. Each file is preceded by a path marker line.
 Empty and whitespace-only lines are dropped; every other line is copied
 byte for byte (only a trailing CR of a CRLF line ending is removed).
 
-Usage: python3 build-campaign-bundle.py [output]   (default: campaign-bundle.txt)
+Usage: python3 build-campaign-bundle.py [output [appendix_output]]
 """
 
 import os
+import re
 import subprocess
 import sys
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "campaign-bundle.txt")
+APPENDIX_OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(ROOT, "campaign-bundle-appendix.txt")
 SUFFIXES = (".c", ".h")
+
+S = "aphavoc/source/"
+APPENDIX = [re.compile(p) for p in (
+    S + r"entity/mobile/weapon/configs/",       # weapon loadout tables
+    S + r"entity/fixed/fx_objdb\.c$",          # per-3D-object importance/armour table
+    S + r"entity/special/guide/(aa_attck|ag_attck|gd_attck|gd_cover)\.[ch]$",  # attack tactics
+    S + r"entity/system/en_comms/",              # comms receivers, load-time rebuilds
+    S + r"comms/",
+    S + r"entity/special/(keysite/ks_pack|bridge/br_pack)\.c$",  # load-time campaign rules
+    S + r"gameflow/",                            # start-up sequencing
+    S + r"(flight|cmndline|eechini|global|project)\.[ch]$",  # main loop, options
+    S + r"misc/(tags|msg_out|tod)\.[ch]$",
+    S + r"entity/system/en_types/en_forms\.[ch]$",
+    S + r"entity/system/en_main/en_world\.[ch]$",
+    S + r"entity/en_misc/",
+    S + r"(ui_menu|gunships)/",                  # fragments restored from UI/cockpit code
+    r"^modules/",                                # random-number macros
+)]
+
+
+def is_appendix(path):
+    return any(p.search(path) for p in APPENDIX)
 
 
 def source_files():
@@ -25,9 +56,9 @@ def source_files():
     return sorted(paths, key=lambda p: p.encode("utf-8"))
 
 
-def main():
+def write_bundle(paths, out):
     chunks = []
-    for path in source_files():
+    for path in paths:
         with open(os.path.join(ROOT, path), "rb") as f:
             data = f.read()
         lines = [l[:-1] if l.endswith(b"\r") else l for l in data.split(b"\n")]
@@ -36,8 +67,14 @@ def main():
             continue
         chunks.append(b"=== " + path.encode("utf-8") + b" ===")
         chunks.extend(kept)
-    with open(OUT, "wb") as f:
+    with open(out, "wb") as f:
         f.write(b"\n".join(chunks) + b"\n")
+
+
+def main():
+    paths = source_files()
+    write_bundle([p for p in paths if not is_appendix(p)], OUT)
+    write_bundle([p for p in paths if is_appendix(p)], APPENDIX_OUT)
 
 
 if __name__ == "__main__":
