@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05T12:57:25.189836+00:00",
+  "review": "Independent narrow changed-material correctness, clean-code and boundary-safety review of the NEED_PLACEMENT eligibility correction",
+  "source": {
+    "commit": "9f25fba47c919c218f31aa0442787aceb3b7e71a",
+    "runtime_commit": "1ccc9e2ed86206a28b591fdfab1d4ca0192a6200",
+    "parent_runtime": "fb3163f283ded50fce320c7640b5282b3a68e3bc",
+    "metadata_predecessor": "6db5f5306f0d2c881f16623c9924c14262f7acba",
+    "repository": "R:/d3-evidence/collision-characterization-20261029",
+    "correction_paths": [
+      "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+      "eech-campaign/docs/d3-entity-collision-provider.md"
+    ],
+    "metadata_only_paths_after_runtime": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json",
+      "eech-campaign/reference/d3-entity-collision/entity-placement-correction-direct-gate-20261105.json",
+      "eech-campaign/reference/d3-entity-collision/independent-entity-candidate-correction-source-6db5-runtimefb316-20261105.json"
+    ],
+    "runtime_blobs_and_modes_unchanged_runtime_to_head": true,
+    "scope": "Only the new eligibility predicate, its actual shared C controls, threshold and explanatory comments were reviewed. Kernel, Rust provider/ABI/schema/features, narrowphase and TREE conclusions are reused without a sweep."
+  },
+  "decision": {
+    "status": "SOURCE_CLEAR_FOR_PLANNED_NATIVE_VALIDATION",
+    "native_launch_clearance": true,
+    "source_review_no_blocking_findings": true,
+    "findings": [],
+    "closed_findings": [
+      "ENV-ENTITY-CANDIDATE-PRECONDITION-1",
+      "ENV-ENTITY-CANDIDATE-REPLY-1"
+    ],
+    "candidate_native_authority_or_conformance_closed": false,
+    "whole_Task49_or_D3_accepted": false
+  },
+  "closure_basis": [
+    "NEED_PLACEMENT now requires a nonzero scene, placement not already supplied, and one of three eligible roles: mobile, a building under a passed city, or an ordinary fixed candidate whose fixed-stage facts establish that role. The ordinary fixed predicate excludes a city, directly listed city building and unflagged entity. Scene validity is still checked by the surrounding dialogue before the new predicate.",
+    "The legitimate city-child branch remains eligible without FIXED_GIVEN because its collision flags are intentionally fetched during placement. Ordinary scene-less SKIP and NEED_FIXED are unchanged, preserving the corrected no-model skip contract. No radius, height or collision arithmetic is reintroduced into Core.",
+    "Validation occurs in the shared production dialogue before campaign_offer_candidate dispatches any placement getter. Actual shared-offer negative controls assert exact getter-log prefixes for city, direct building, unflagged and scene-less fixed/mobile/city-child cases, with no heading/align/attitude reads and no narrowphase call after refusal.",
+    "Exchange-level positives cover mobile, ordinary fixed and city-child roles before malformed-role negatives. The direct-building-with-scene negative discriminates role validation independently of the scene0 check. The existing repeated-placement and placement-before-fixed-stage checks remain.",
+    "The corrected pointer/raw-word finite classifier and entity_candidate.identity label remain as verified in the parent follow-up; this predicate correction does not change closed narrowphase output buffers, original arithmetic or profile selection."
+  ],
+  "retained_focused_actuals": {
+    "directory": "D:\\EECH-Migration-Evidence\\entity-placement-fix-20261105-a",
+    "final_direct_steps": [
+      {
+        "name": "fmt_check",
+        "child_exit": 0
+      },
+      {
+        "name": "dialogue",
+        "child_exit": 0
+      },
+      {
+        "name": "guard",
+        "child_exit": 0
+      },
+      {
+        "name": "build_weapon_fixture",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy_engine_sys",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy_engine_sys_entity_dialogue",
+        "child_exit": 0
+      }
+    ],
+    "wrapper_container_exit": 0,
+    "test_summaries": {
+      "actual_shared_C_dialogue_tests_passed": 1,
+      "minimum_expectations_asserted": 245,
+      "source_guard_tests_passed": 5
+    },
+    "log": {
+      "bytes": 1523,
+      "sha256": "1f634925664fba2cff2db3c9d3d80da505d0193140db122c861e3edce1a85d61"
+    },
+    "source_receipts": {
+      "bytes_each": 466347,
+      "literal_equal": true,
+      "sha256": "95be9473c77d027ceb129132445516edcf866f2f61c972e1f17c5147e02c630c",
+      "rows": 2916,
+      "raw_column_sha256": "02a3a58c142c1f535722411797a118b51df5b78890bc447eb3761b0eca5c9232",
+      "filtered_column_sha256": "5e83a41e4410ede3ea91a40a782755ed3aa7af3b0205ce5fb0d67098892bbbdc",
+      "qualification": "Raw working bytes and clean-filter Git identities remain separate; existing CRLF qualifications are retained, with no source or accepted recording normalized."
+    },
+    "scope": "Focused current-source formatting, compiled actual C offer/dialogue, source guards, weapon-fixture compile and two eech-engine-sys strict configurations. The parent full16/1183-passed/65-row result belongs to fb316 only and is not relabeled as current-head execution.",
+    "meaningful_parent_red": {
+      "cargo_dialogue_exit": 101,
+      "wrapper_container_exit": 0,
+      "log_sha256": "e838ca77c066f789781e4e29e192b01deb1e410c1c962bc8a620bb18fff83b75",
+      "qualification": "The retained parent control demonstrates the missing role/precondition refusals; coherent positives precede negatives. The receipt explicitly qualifies the one offer-level unflagged case that stopped later by accident; its exchange-level case is the discriminating red."
+    },
+    "selected_mutants": [
+      {
+        "name": "no-scene-requirement",
+        "cargo_dialogue_exit": 101,
+        "wrapper_container_exit": 0,
+        "log_sha256": "fc7f90435161aba27858b4a18e5678943facf59d11b965373ba9e8aec24074ee"
+      },
+      {
+        "name": "direct-building-role-accepted",
+        "cargo_dialogue_exit": 101,
+        "wrapper_container_exit": 0,
+        "log_sha256": "c0184d847e93cb64ab2d83a339399aace07df94b149e0f7e63db7d11f659ac29"
+      },
+      {
+        "name": "city-child-needs-fixed-facts",
+        "cargo_dialogue_exit": 101,
+        "wrapper_container_exit": 0,
+        "log_sha256": "dae2b40e5c45fb88f842ed249781ea4c10cc1b55ece2315c539465c45e754686"
+      }
+    ],
+    "header_restored_literal_equal_current_commit": true,
+    "surviving_mutant_preserved": {
+      "name": "city-accepted",
+      "cargo_dialogue_exit": 0,
+      "wrapper_container_exit": 0,
+      "log_sha256": "0ef59f13cd4fb0b529432e148c191a6f4c68121e57c821a14eb6b5fcf77938a9",
+      "interpretation": "It survived because the mandatory scene0 rejection already excludes a city. It is not represented as a failing mutant. The replacement direct-building-with-scene case separates the role check and fails when that role is accepted."
+    },
+    "prepass_collection": "The /d versus /mnt/d prepass output collection is retained separately with its recovery receipt and is excluded from this final acceptance basis. The final named Windows directory/log and direct exits above are the evidence used."
+  },
+  "status_and_limits": [
+    "Current STATUS/card correctly identify source1ccc and a narrow Linux validation scope with native work still pending. This report closes the source P2 and authorizes Root to proceed with planned corrected Windows and bounded native validation; it does not turn pending native facts into results.",
+    "Next actual gates remain the ordinary exact retained short against80fd with wall time, followed by changed/withheld ENTITY_CANDIDATE public authority at explicit source/profile/Lua identities. No new full war is requested for this predicate.",
+    "Prior parent tests, old stationary authority, TREE and Task50/52 delivery/shipping conclusions retain their original identities. No repeated closed review, moving-native parity, new caller-FP/RNG or visual/Tacview claim is made.",
+    "All required remaining enumeration/sector-window/list/roster/live-pose ownership, raw loader/forest/cloud, hierarchy/device/rotor/smoke consumers, host identities and DCS mapping remain open. Whole Task49/D3, eventual complete full-pack acceptance and delivery are not granted here."
+  ],
+  "review_operations": "Read exact changed Git source and retained focused logs/receipts only; wrote this new canonical-LF safe report. No source edits, builds, tests, native/war launches, cache/VM/process actions, nested agents or external application writes.",
+  "publication_safety": "Source/contract descriptions, counts and hashes only; no retail geometry, coordinates, model catalogue, allocation indices or raw pointers."
+}

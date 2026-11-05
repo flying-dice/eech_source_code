@@ -1,4 +1,21 @@
-# CURRENT — D3 Task49: the ONE P2 residual (NEED_PLACEMENT legality) is corrected in the shared C predicate; Linux-checked on a NARROW scope; same-reviewer check of this fix only is next (5 November 2026)
+# CURRENT — D3 Task49: ENTITY_CANDIDATE source is CLEAR for planned native validation (same reviewer, findings=[]); Root's builds of `1ccc9e2ed` are running; the public changed/withheld authority witness is the next finite fact (5 November 2026)
+
+This is the ONE current summary; dated entries below are history. Read the active card and `R:/d3-evidence/D3-CURRENT.json` (Root is its sole writer). The SAME independent reviewer's final report
+(`independent-entity-candidate-placement-source-9f25-runtime1ccc-20261105.json`, LF, SHA-256 `673c0d9306e049fd64a669467651e9e1b3670174e3516431d574f5f7900a2022`) is `SOURCE_CLEAR_FOR_PLANNED_NATIVE_VALIDATION`, `findings=[]`, `native_launch_clearance=true`, for runtime
+`1ccc9e2ed86206a28b591fdfab1d4ca0192a6200` (metadata head `9f25fba47`): ENV-ENTITY-CANDIDATE-PRECONDITION-1 and ENV-ENTITY-CANDIDATE-REPLY-1 are closed. Scope of that clearance: the NEED_PLACEMENT eligibility predicate, its shared C controls and the earlier
+corrections, with the kernel, Rust provider/ABI/schema/features, narrow phase and TREE reused at their own identities. **It is not** candidate native authority or conformance, the ordinary short, whole Task 49, the full pack or D3.
+
+**Literal records, never relabelled.** The two earlier CHANGES_REQUIRED reports stay literal at their own identities: `1a64667b…3302` (source `42054567a`) and `e525d881…340d` (source `6db5f5306`); this report does not rewrite them.
+Evidence scopes: the parent `fb3163f28` full matrix (16 steps all 0, 1183 tests, 65 result rows) is PARENT evidence only; the `1ccc9e2ed` validation is the NARROW one (formatting, the real shared C dialogue control with 245 expectations,
+the 5-test source guard, a weapon-fixture build and two strict `eech-engine-sys` clippy runs, all direct exit 0, RED against the parent, three mutants RED). Closed and not to be redone: narrow phase `1ab8b6a2`, finite stationary
+authority `ae1ea9be`, TREE `7ad1a698`, Task 50 and Task 52.
+
+**Next finite fact.** The ACTUAL public `ENTITY_CANDIDATE` changed/withheld authority (host Lua to the real hosted `weapon-fixture` module, the real operation, the native scan, services and narrow phase, and a real weapon cohort).
+It is a TEST-ONLY Lua witness extending `entity-authority.lua`, written in the next commit; Root runs ONE healthy unmodified control first on the frozen `1ccc9e2ed86206a28b591fdfab1d4ca0192a6200` binaries. Still REQUIRED and open: the ordinary exact short against `80fd`
+with wall time, the enumeration of candidates (sector window, list order, exclusions), roster and live pose, raw tree/forest/cloud, hierarchy, devices, muzzles, rotor damage, smoke, host identities, the DCS mappings, the moving public
+path, whole Task 49, the full 40/all8 pack and D3. No baseline, tolerance, input, seed, frame or duration change.
+
+# HISTORICAL (superseded 5 November 2026 by the CURRENT block above; the placement-legality fix, before the source clearance) — D3 Task49: the ONE P2 residual (NEED_PLACEMENT legality) is corrected in the shared C predicate; Linux-checked on a NARROW scope; same-reviewer check of this fix only is next (5 November 2026)
 
 This is the ONE current summary; dated entries below are history. Read the active card and `R:/d3-evidence/D3-CURRENT.json` (Root is its sole writer). The independent follow-up of `6db5f5306` (runtime `fb3163f28`) closed
 ENV-ENTITY-CANDIDATE-PRECONDITION-1 and the pointer classifier and identity label, and left ONE P2: `check_candidate_reply` accepted `NEED_PLACEMENT` for a known city, a direct city building, an unflagged entity or a scene-less
