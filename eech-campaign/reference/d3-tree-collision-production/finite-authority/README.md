@@ -1,6 +1,6 @@
 # D3 tree collision (EEDCS-49): finite TREE query-handoff and authority closure (safe publication)
 
-Published 5 November 2026 from `R:/d3-evidence/tree-finite-publication-ready-20261103/` (`PUBLICATION-MANIFEST.json`, copied unchanged). These are safe counts, markers, source/build/log
+Published 5 November 2026 from `R:/d3-evidence/tree-finite-publication-ready-20261103/` (`PUBLICATION-MANIFEST.json` is the source file with its line endings made LF; its content is unchanged and its per-file hashes are those of the source files). These are safe counts, markers, source/build/log
 hashes and terminal-signature hashes only: no raw retail coordinates, geometry, controller data, pointers or binaries. The older `CHANGES_REQUIRED` and `UNREACHED` records one
 folder up are preserved and are not replaced by these.
 
