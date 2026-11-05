@@ -1,0 +1,45 @@
+{
+  "source": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+  "snapshot": "D:\\EECH-Migration-Evidence\\canonical-pose-production-ea2b23481",
+  "candidate": "D:\\EECH-Migration-Evidence\\canonical-pose-ordinary-short-ea2b23481-20261105",
+  "baseline": "R:\\d3-evidence\\model-reference-profile-recording-80fd62ea4-20261030",
+  "native_actual_exit": 0,
+  "controller_actual_exit": 0,
+  "pre_post_inputs_actual_exit": [
+    0,
+    0
+  ],
+  "payloads_unchanged": 88,
+  "files": [
+    {
+      "file": "recording.acmi",
+      "baseline_bytes": 230871,
+      "candidate_bytes": 230871,
+      "baseline_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+      "candidate_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+      "literal_complete_equal": true,
+      "first_difference": null
+    },
+    {
+      "file": "observations.jsonl",
+      "baseline_bytes": 1553674,
+      "candidate_bytes": 1553674,
+      "baseline_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+      "candidate_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+      "literal_complete_equal": true,
+      "first_difference": null
+    },
+    {
+      "file": "metrics.json",
+      "baseline_bytes": 7477,
+      "candidate_bytes": 7477,
+      "baseline_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+      "candidate_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+      "literal_complete_equal": true,
+      "first_difference": null
+    }
+  ],
+  "all_three_complete_literal_equal": true,
+  "native_wall_seconds": 9.961623,
+  "scope": "Complete retained ordinary short only; no fullpack or authority acceptance"
+}

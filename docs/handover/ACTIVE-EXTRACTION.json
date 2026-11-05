@@ -7,7 +7,7 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "Corrected f310 source cleared for Windows/native validation; native authority and full Task49/D3 acceptance remain required.",
+  "phase": "Canonical pose default actuals verified;3COMPLETEordinaryfiles literal80fd; firstmoving UNREACHED, correct physical encounter precondition before next probe.",
   "preparation_batches_without_cutover": 0,
   "preparation_limit": 2,
   "next_production_change": "Root joins the SAME reviewer for one confirmation pass of ENV-ENTITY-POSE-DOMAIN-1 and ENV-ENTITY-POSE-FLAG-VALIDATION-1 on frozen f3107332b (UNREVIEWED, focused Linux only); on clearance Root selects the final matrix, builds, the ordinary short against 80fd, ONE healthy control, then the host-side moving_control/terrain_lift sequence in docs/d3-entity-collision-provider.md; this lane resumes only for concrete findings or native actuals.",
@@ -43,7 +43,8 @@
     "Pose observer corrected runtime1f9a/meta369: same reviewer d801 source clear, no blocking findings, ONLY planned ordinary+hosted Windows/ordinary short/ONE healthy characterization. Safe pose-observer-source/ literal report/binding/freeze.18direct0/container0/8rows462tests/C356; parent16/1220 remainsparent.2919POSTgate/commit maps/2916RAWGit+3Lua qualifications separate3Core; NO final pre-gate map. Clean immutable Windowsfreeze1f9a/buildsstarted; no newnative/Tacview/poseauthority.",
     "Host-record CUTOVER (UNREVIEWED, focused Linux; reference/d3-entity-collision/entity-host-record-cutover-focused-20261105.json): canonical vector for every kind (seed, placement, solver, ROUTED_VECTOR, ship, lifecycle), the mobile candidate decision from the SAME Movers record with a real RED/GREEN provider test, ENTITY_POSE as the conformance assertion, named refusals, host-side witness modes; four-crate check, the real C dialogue control (361) and the focused targets all direct exit 0; lua blob abc5cf0d9dda2747bf48bdccc8b545854a304cd1. Observer actuals dc7b published at 88e457c78. Not claimed: any native result for these bytes, the moving path, unreached writers and states, Task49, D3.",
     "Observer1f9a actualdc7b closed/published88e (all8Gitentriesverified), not later4f790 acceptance. Same-reviewer4f790 source4d2f CHANGES_REQUIRED; two named blockers nowcutover gates. Preliminary13direct0/512/C361 retained; NO finalmatrix/Windows/native. Exactreport in host-pose-source-review/.",
-    "ea2b corrected-source clearance by SAME reviewer 0a00c32fa7d607677451385574276389c8d2b59de425ff1a733e22436a021569; Rootf31015pass/1testlintFAILretained; ea2b targetedfmt/2classifier/strictclippy0, production/Cunchanged; bothsnapshots2920rawGitexact/beforeafterequal. Windows/native/moving/full40all8/currentCI/review/merge and wholeD3 remain REQUIRED."
+    "ea2b corrected-source clearance by SAME reviewer 0a00c32fa7d607677451385574276389c8d2b59de425ff1a733e22436a021569; Rootf31015pass/1testlintFAILretained; ea2b targetedfmt/2classifier/strictclippy0, production/Cunchanged; bothsnapshots2920rawGitexact/beforeafterequal. Windows/native/moving/full40all8/currentCI/review/merge and wholeD3 remain REQUIRED.",
+    "SAMEactualreview8a64: bothWindows0/2x88, ordinary3COMPLETEliteral80fd, healthyheld6091/0mismatches/20physicalfields inclsignature equalparent; movingA actual1 UNREACHED target0questions despite actualmovingselected, noB/Original/tuning. Safe host-pose-first-actuals/."
   ],
   "blockers": [
     {
@@ -156,7 +157,7 @@
       "blocks_cutover": false,
       "evidence": "Source 4f790b712871561c2b04c3d3173ad7ad51ee8a24 (UNREVIEWED, frozen) moves the mobile candidate decision and the legacy vector into the ONE Movers record. The observer actuals closed the characterisation of the reached recorded kind-1 domain only.",
       "missing_fact": "Review of these bytes, the ordinary + hosted native builds, the ordinary short against the three 80fd files, ONE healthy control (and the host-side modes after it); then a legitimately reached MOVING candidate (candidate_need_updated and moving counters positive) for the moving public path; the disposition of every unreached state (no identity, unrecorded, retired, wreck) and writer.",
-      "next_fix": "Root joins the same reviewer and selects the final checks; this lane resumes for one batch of concrete findings.",
+      "next_fix": "Source-trace real muzzle/aim/contact before moving query: existing immediate target-link launch did not aim at the selected moving target. ONE bounded witness correction using actual campaign-engagement/host callbacks, preserve natural control and all source/other ownership gates; moving/positive effect still REQUIRED.",
       "public_proof_added": "f3107332b: hosted moving_control and terrain_lift modes (scripted driver controls only); the moving/positive physical-effect public proof is NOT yet run and is still required."
     },
     {
@@ -184,7 +185,7 @@
       "closure_scope": "Corrected-source/normal supported server lifecycle only; public moving/physical effects, unresolved writers and whole Task49/D3 remain required."
     }
   ],
-  "next_action": "validate",
+  "next_action": "fix-blocker",
   "acceptance": [
     {
       "gate": "Production tree query asks the host and the old solver is absent from the ordinary module (compile guard)",
