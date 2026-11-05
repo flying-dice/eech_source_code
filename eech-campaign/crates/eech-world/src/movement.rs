@@ -16,8 +16,10 @@
 //! pending step is the host's; the record does not change until it ends, and no
 //! other request is accepted for that man meanwhile.
 
+use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::os::raw::c_int;
+use std::rc::Rc;
 
 extern "C" {
     fn eech_convoy_step(
@@ -1419,6 +1421,46 @@ enum CrashStage {
     },
 }
 
+/// The words the campaign read from a mobile candidate (ENTITY_POSE, an OBSERVATION): its position and motion vector, read for every mobile candidate, and from the placement stage its attitude.
+#[derive(Clone, Copy, Debug)]
+pub struct ObservedWords {
+    pub position: [f32; 3],
+    pub motion: [f32; 3],
+    pub attitude: Option<[f32; 9]>,
+}
+
+/// How the host's registry sees an identity the campaign offered for observation.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Observation {
+    /// the host keeps a record of the identity: its kind and the bits of `OBSERVED_*` that say how the campaign's words differ from it
+    Recorded { kind: Kind, difference: u32 },
+    /// the host issued the identity to a member it keeps no movement record for
+    Unrecorded,
+    /// the host retired the identity
+    Retired,
+    /// the host never issued the identity
+    Unknown,
+}
+
+/// The campaign's position is not bit for bit the record's.
+pub const OBSERVED_POSITION: u32 = 1;
+/// The campaign's attitude is not bit for bit the record's (stage 1 only).
+pub const OBSERVED_ATTITUDE: u32 = 2;
+/// The host holds a motion vector for the record and the campaign's is not bit for bit it.
+pub const OBSERVED_MOTION: u32 = 4;
+/// The host holds NO motion vector for the record.
+pub const OBSERVED_NO_HELD_MOTION: u32 = 8;
+/// The campaign's motion vector is not the record's attitude row 2 times the record's speed (the original's vehicle formula, from the HOST's record).
+pub const OBSERVED_FORMULA: u32 = 16;
+
+fn bits_differ(ours: &[f32], theirs: &[f32]) -> bool {
+    ours.iter().zip(theirs).any(|(a, b)| a.to_bits() != b.to_bits())
+}
+
+/// The registry the host's other services see: the ONE `Movers` the movement callbacks step, shared by handle (no copy of any record is made).
+#[derive(Clone)]
+pub struct SharedMovers(pub Rc<RefCell<Movers>>);
+
 /// The host's registry of the physical mobiles it issued identities to. An id is live (with a record, or issued by a link
 /// that made no creation request) until the campaign reports the physical incarnation freed, then retired for good: the host
 /// never answers a retired id and never issues it again.
@@ -1511,6 +1553,40 @@ impl Movers {
             },
         );
         Ok(())
+    }
+
+    /// OBSERVE an identity against the words the campaign read from the mobile (ENTITY_POSE). Read-only, and nothing in the registry or the answer depends on the result: it says whether the host
+    /// keeps a record of `host_id` and how the campaign's words compare with it, bit for bit. The motion vector the host HOLDS is an aircraft's retained one or a wreck's vehicle vector;
+    /// every other record holds none (the campaign derives a live vehicle's from its attitude and speed), which is reported rather than assumed.
+    pub fn observe(&self, host_id: &str, words: &ObservedWords) -> Observation {
+        let Some(record) = self.mobiles.get(host_id) else {
+            return if self.unrecorded.contains(host_id) {
+                Observation::Unrecorded
+            } else if self.retired.contains(host_id) {
+                Observation::Retired
+            } else {
+                Observation::Unknown
+            };
+        };
+        let mut difference = 0;
+        if bits_differ(&words.position, &record.pose.position) {
+            difference |= OBSERVED_POSITION;
+        }
+        if words.attitude.is_some_and(|attitude| bits_differ(&attitude, &record.pose.attitude)) {
+            difference |= OBSERVED_ATTITUDE;
+        }
+        match record.motion_vector.or(record.vehicle_vector) {
+            Some(held) if bits_differ(&words.motion, &held) => difference |= OBSERVED_MOTION,
+            Some(_) => {}
+            None => difference |= OBSERVED_NO_HELD_MOTION,
+        }
+        let speed = record.pose.velocity;
+        let attitude = &record.pose.attitude;
+        let formula = [attitude[6] * speed, attitude[7] * speed, attitude[8] * speed];
+        if bits_differ(&words.motion, &formula) {
+            difference |= OBSERVED_FORMULA;
+        }
+        Observation::Recorded { kind: record.kind, difference }
     }
 
     /// The guidance answer the last [`Movers::step`] produced (a plan or guide request), if any; taken once.
@@ -6808,5 +6884,165 @@ mod tests {
             .step("v", begun.pose, Request::HelicopterGuidedEnd(follower_steer(&begun, Some("l"))))
             .unwrap();
         assert!((ended.angles[0] - heading_of(&leader_turned(0.4))).abs() < 1.0e-5, "{}", ended.angles[0]);
+    }
+
+    fn words(position: [f32; 3], motion: [f32; 3], attitude: Option<[f32; 9]>) -> ObservedWords {
+        ObservedWords { position, motion, attitude }
+    }
+
+    fn moving_pose(velocity: f32) -> Pose {
+        Pose {
+            position: [1.0, 2.0, 3.0],
+            velocity,
+            attitude: LEVEL,
+        }
+    }
+
+    #[test]
+    fn an_observation_compares_the_campaigns_words_with_the_hosts_record_bit_for_bit() {
+        // a routed vehicle: the host holds no motion vector for it (the campaign derives a live vehicle's from its attitude and speed), which is REPORTED, and the original's formula is computed from the
+        // HOST's record (attitude row 2 times its speed)
+        let movers = movers(Kind::Routed, moving_pose(5.0));
+        let record = |words: &ObservedWords| match movers.observe("v", words) {
+            Observation::Recorded { kind, difference } => (kind, difference),
+            other => panic!("{other:?}"),
+        };
+        let same = words([1.0, 2.0, 3.0], [0.0, 0.0, 5.0], None);
+        assert_eq!(record(&same), (Kind::Routed, OBSERVED_NO_HELD_MOTION));
+        assert_eq!(
+            record(&ObservedWords { attitude: Some(LEVEL), ..same }),
+            (Kind::Routed, OBSERVED_NO_HELD_MOTION)
+        );
+        // one ulp, a signed zero and a NaN payload are differences: the comparison is of bits
+        let ulp = f32::from_bits(1.0f32.to_bits() + 1);
+        assert_eq!(
+            record(&words([ulp, 2.0, 3.0], [0.0, 0.0, 5.0], None)).1,
+            OBSERVED_NO_HELD_MOTION | OBSERVED_POSITION
+        );
+        let zeroed = Pose {
+            position: [0.0, 0.0, 0.0],
+            ..moving_pose(5.0)
+        };
+        let mut at_zero = Movers::default();
+        at_zero.bind("z", Kind::Routed, zeroed, None, None).unwrap();
+        let negative_zero = words([-0.0, 0.0, 0.0], [0.0, 0.0, 5.0], None);
+        assert_eq!(
+            at_zero.observe("z", &negative_zero),
+            Observation::Recorded {
+                kind: Kind::Routed,
+                difference: OBSERVED_NO_HELD_MOTION | OBSERVED_POSITION
+            }
+        );
+        // an attitude is compared only when the placement stage supplies one
+        let mut turned = LEVEL;
+        turned[1] = 1.0e-7;
+        assert_eq!(
+            record(&ObservedWords {
+                attitude: Some(turned),
+                ..same
+            })
+            .1,
+            OBSERVED_NO_HELD_MOTION | OBSERVED_ATTITUDE
+        );
+        // a motion vector that is not the formula's is a difference of the formula (the vehicle has none held)
+        assert_eq!(
+            record(&words([1.0, 2.0, 3.0], [0.0, 0.0, 4.0], None)).1,
+            OBSERVED_NO_HELD_MOTION | OBSERVED_FORMULA
+        );
+        let nan = f32::from_bits(0x7fa0_0001);
+        assert_eq!(
+            record(&words([1.0, 2.0, nan], [0.0, 0.0, 5.0], None)).1,
+            OBSERVED_NO_HELD_MOTION | OBSERVED_POSITION
+        );
+    }
+
+    #[test]
+    fn an_observation_of_an_aircraft_compares_the_motion_vector_the_host_holds() {
+        // a fixed-wing record holds the vector it was seeded with and every placement adopts; the formula (attitude row 2 times a speed of zero) says nothing about it
+        let mut movers = movers(Kind::FixedWing, pose(1.0, 3.0));
+        let held = words([1.0, 0.0, 3.0], [0.0, 0.0, 100.0], None);
+        assert_eq!(
+            movers.observe("v", &held),
+            Observation::Recorded {
+                kind: Kind::FixedWing,
+                difference: OBSERVED_FORMULA
+            }
+        );
+        let other = words([1.0, 0.0, 3.0], [0.0, 0.0, 99.0], None);
+        assert_eq!(
+            movers.observe("v", &other),
+            Observation::Recorded {
+                kind: Kind::FixedWing,
+                difference: OBSERVED_MOTION | OBSERVED_FORMULA
+            }
+        );
+        // a placement is the campaign's explicit write: the host adopts the vector, and the observation follows the record
+        movers
+            .step(
+                "v",
+                pose(1.0, 3.0),
+                Request::Place {
+                    motion_vector: [0.0, 0.0, 99.0],
+                },
+            )
+            .unwrap();
+        assert_eq!(
+            movers.observe("v", &other),
+            Observation::Recorded {
+                kind: Kind::FixedWing,
+                difference: OBSERVED_FORMULA
+            }
+        );
+        // a wreck's vehicle vector is a held vector too
+        let mut wreck = movers_for_wreck();
+        assert_eq!(
+            wreck.observe("w", &words([1.0, 2.0, 3.0], [0.0, 0.0, 5.0], None)),
+            Observation::Recorded {
+                kind: Kind::Routed,
+                difference: OBSERVED_MOTION
+            }
+        );
+        wreck.mobiles.get_mut("w").unwrap().vehicle_vector = Some([0.0, 0.0, 5.0]);
+        assert_eq!(
+            wreck.observe("w", &words([1.0, 2.0, 3.0], [0.0, 0.0, 5.0], None)),
+            Observation::Recorded {
+                kind: Kind::Routed,
+                difference: 0
+            }
+        );
+    }
+
+    fn movers_for_wreck() -> Movers {
+        let mut wreck = Movers::default();
+        wreck.bind("w", Kind::Routed, moving_pose(5.0), None, None).unwrap();
+        wreck.mobiles.get_mut("w").unwrap().vehicle_vector = Some([1.0, 1.0, 1.0]);
+        wreck
+    }
+
+    #[test]
+    fn an_observation_classifies_every_identity_and_changes_nothing() {
+        let mut movers = movers(Kind::Routed, moving_pose(5.0));
+        movers.issue("u").unwrap();
+        movers.bind("gone", Kind::Routed, moving_pose(5.0), None, None).unwrap();
+        movers.retire("gone").unwrap();
+        movers.retire("u").unwrap();
+        movers.issue("unrecorded").unwrap();
+        let same = words([1.0, 2.0, 3.0], [0.0, 0.0, 5.0], None);
+        assert_eq!(movers.observe("unrecorded", &same), Observation::Unrecorded);
+        assert_eq!(movers.observe("gone", &same), Observation::Retired);
+        assert_eq!(movers.observe("u", &same), Observation::Retired);
+        assert_eq!(movers.observe("nobody", &same), Observation::Unknown);
+        // the words never reach the record: a deliberately different set is observed as different, and the next step still finds the record exactly as it was
+        let moved = words([9.0, 9.0, 9.0], [9.0, 9.0, 9.0], Some([9.0; 9]));
+        assert!(
+            matches!(movers.observe("v", &moved), Observation::Recorded { difference, .. } if difference & (OBSERVED_POSITION | OBSERVED_ATTITUDE) == (OBSERVED_POSITION | OBSERVED_ATTITUDE))
+        );
+        let outcome = movers.step("v", moving_pose(5.0), Request::Stop).unwrap();
+        assert_eq!(outcome.pose.position, [1.0, 2.0, 3.0]);
+        // and the record's own step is what the observation sees afterwards: the host record decides what is different
+        assert!(matches!(movers.observe("v", &same), Observation::Recorded { difference, .. } if difference & OBSERVED_POSITION == 0));
+        let stepped = movers.step("v", outcome.pose, Request::Advance(advance([100.0, 0.0, 3.0]))).unwrap();
+        assert_ne!(stepped.pose.position, [1.0, 2.0, 3.0]);
+        assert!(matches!(movers.observe("v", &same), Observation::Recorded { difference, .. } if difference & OBSERVED_POSITION != 0));
     }
 }

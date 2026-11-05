@@ -29,9 +29,35 @@
  *   CAMPAIGN_OFFER_UPDATED (E)                  the destructive UPDATED getter
  *   CAMPAIGN_OFFER_TERRAIN_NORMAL (X, Z, OUT)   the terrain's face normal at a point (the terrain question and its effects)
  *   CAMPAIGN_OFFER_DELTA_TIME ()                the frame time
+ *   CAMPAIGN_OFFER_TYPE (E), CAMPAIGN_OFFER_ALIVE (E)   the entity's type and whether it is alive, and
+ *   CAMPAIGN_OFFER_HOST_ID (E)                  its semantic host identity (NULL when the roster has none): the ENTITY_POSE observation of a mobile candidate (mb_hostmodel.h)
+ *
+ * The ENTITY_POSE observations of a mobile candidate (the position and motion vector the original read, and the attitude when the broad phase passed) are asked BESIDE those reads: they add
+ * no read the original did not make, skip nothing, and no decision depends on the answer.
  */
 #ifndef MB_HOSTOFFER_H
 #define MB_HOSTOFFER_H
+
+// The observation of a mobile candidate's words (mb_hostmodel.h, ENTITY_POSE): the position and motion vector, and for STAGE_PLACEMENT the attitude, exactly as they were read into `facts`. The
+// answer is observed by the host; nothing here depends on it.
+static void campaign_offer_observe_pose (int stage, CAMPAIGN_OFFER_ENTITY *target, const float *facts)
+{
+	float
+		words [CAMPAIGN_MODEL_POSE_FACTS];
+
+	memset (words, 0, sizeof (words));
+
+	memcpy (&words [0], &facts [CAMPAIGN_CANDIDATE_POSITION], 3 * sizeof (float));
+
+	memcpy (&words [3], &facts [CAMPAIGN_CANDIDATE_MOTION], 3 * sizeof (float));
+
+	if (stage == CAMPAIGN_POSE_STAGE_PLACEMENT)
+	{
+		memcpy (&words [6], &facts [CAMPAIGN_CANDIDATE_ATTITUDE], 9 * sizeof (float));
+	}
+
+	campaign_model_entity_pose (stage, (int) CAMPAIGN_OFFER_TYPE (target), (CAMPAIGN_OFFER_ALIVE (target) != 0), CAMPAIGN_OFFER_HOST_ID (target), words);
+}
 
 // Offers one candidate to the host. `of_city` is TRUE for a building listed under a city whose box the host reported as met (the host does not apply the sector skip to it again).
 // `source_old` and `source_new` are the segment's ends (three floats each) and `point` and `normal` the caller's outputs (neither read nor sent here). Returns the entity that was hit, with
@@ -105,6 +131,8 @@ static CAMPAIGN_OFFER_ENTITY *campaign_offer_candidate
 			CAMPAIGN_OFFER_POSITION (target, &facts [CAMPAIGN_CANDIDATE_POSITION]);
 
 			CAMPAIGN_OFFER_MOTION (target, &facts [CAMPAIGN_CANDIDATE_MOTION]);
+
+			campaign_offer_observe_pose (CAMPAIGN_POSE_STAGE_OFFER, target, facts);
 		}
 	}
 
@@ -191,6 +219,11 @@ static CAMPAIGN_OFFER_ENTITY *campaign_offer_candidate
 				if (facts [CAMPAIGN_CANDIDATE_MOBILE] != 0.0f)
 				{
 					CAMPAIGN_OFFER_ATTITUDE (target, &facts [CAMPAIGN_CANDIDATE_ATTITUDE]);
+
+					if (!of_city)
+					{
+						campaign_offer_observe_pose (CAMPAIGN_POSE_STAGE_PLACEMENT, target, facts);
+					}
 				}
 				else if (facts [CAMPAIGN_CANDIDATE_FIXED] != 0.0f)
 				{

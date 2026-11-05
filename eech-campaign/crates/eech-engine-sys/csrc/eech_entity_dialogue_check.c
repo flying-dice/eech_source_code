@@ -15,6 +15,10 @@
  * OFFER (mb_hostoffer.h, the very code en_cllsn.c runs) over scripted entities that log every getter in order: a candidate the host skips is read for nothing the original did not read, a direct
  * city building needs no scene, the destructive UPDATED getter and the terrain question are performed once and only when named.
  *
+ * It also covers the ENTITY_POSE OBSERVATION (mb_hostmodel.h, fifth slice): the offer asks it beside the original's reads (the position and motion of a mobile candidate; its attitude when the broad phase
+ * passed), with the candidate's type, its alive flag and its semantic host identity, and NO decision, read, count or order of the candidate dialogue depends on the answer (the scripted pose host is
+ * kept apart from the candidate queue, so every earlier expectation is checked unchanged). The shape of the answer is checked completely and a malformed one stops the engine by marker.
+ *
  * eech_entity_dialogue_check_run returns the number of failed expectations (0: all held) and writes one line per failure; *checks is the number of expectations made.
  */
 
@@ -76,6 +80,11 @@ static float scan_seen[64][4];
 static int scan_seen_count;
 static struct scripted_answer answer;
 static campaign_model_request seen;
+/* the ENTITY_POSE observations the campaign asked (kept apart from `seen` and `asks`, which describe the candidate dialogue), and the scripted host's answer to them: by default a recorded identity
+   (record kind 1, no differences) for a named candidate and "no identity" for an unnamed one, unless a script overrides the answer */
+static campaign_model_request pose_seen[8];
+static int pose_asks;
+static int pose_override, pose_state, pose_kind, pose_mask;
 static int asks;
 static int refuse_the_exchange;
 
@@ -96,6 +105,39 @@ static void debug_fatal (const char *format, ...)
 static void scripted_ask (campaign_model_request *request, campaign_model_reply *reply)
 {
 	memset (reply, 0, sizeof (*reply));
+
+	if (request->op == CAMPAIGN_MODEL_ENTITY_POSE)
+	{
+		if (pose_asks < 8)
+		{
+			pose_seen[pose_asks] = *request;
+		}
+
+		pose_asks++;
+
+		if (refuse_the_exchange)
+		{
+			debug_fatal ("host model: [model-provider:callback] the scripted host refused");
+		}
+
+		if (pose_override)
+		{
+			reply->candidate_state = pose_state;
+			reply->candidate_count = pose_kind;
+			reply->write_mask = pose_mask;
+		}
+		else if (request->key[0] != 0)
+		{
+			reply->candidate_state = CAMPAIGN_MODEL_POSE_RECORDED;
+			reply->candidate_count = 1;
+		}
+		else
+		{
+			reply->candidate_state = CAMPAIGN_MODEL_POSE_NO_ID;
+		}
+
+		return;
+	}
 
 	seen = *request;
 	asks++;
@@ -186,6 +228,7 @@ static void scripted_candidate_identity (const campaign_model_reply *reply, int 
 #define CAMPAIGN_ENTITY_IDENTITY(REPLY,SCENE) scripted_identity ((REPLY), (SCENE))
 #define CAMPAIGN_ENTITY_CANDIDATE_ASK(REQUEST,REPLY) scripted_ask ((REQUEST), (REPLY))
 #define CAMPAIGN_ENTITY_SCAN_ASK(REQUEST,REPLY) scripted_ask ((REQUEST), (REPLY))
+#define CAMPAIGN_ENTITY_POSE_ASK(REQUEST,REPLY) scripted_ask ((REQUEST), (REPLY))
 #define CAMPAIGN_ENTITY_CANDIDATE_IDENTITY(REPLY,SCENE) scripted_candidate_identity ((REPLY), (SCENE))
 
 #include "entity/mobile/mb_hostentity.h"
@@ -487,6 +530,9 @@ static void expect_candidate_refusal (struct tc *t, const char *label, const cha
 struct sentity
 {
 	int mobile, fixed, city, city_building, shape, align, updated;
+	/* the observation's reads (not logged in `reads`: they are the additions of the fifth slice, and the original's reads are what that log describes) */
+	int type, alive;
+	const char *host_id;
 	float position[3], motion[3], attitude[9], heading, box_min[3], box_max[3];
 	struct sentity *first_building, *next_building;
 	/* a sector list (the scan's cursor serves it): the sector's tallest structure and first child, an entry's successor and predecessor */
@@ -543,10 +589,19 @@ static void so_terrain_normal (float x, float z, float *out) { read_log ('N'); o
 #define CAMPAIGN_OFFER_UPDATED(E) so_updated (E)
 #define CAMPAIGN_OFFER_TERRAIN_NORMAL(X,Z,OUT) so_terrain_normal ((X), (Z), (OUT))
 #define CAMPAIGN_OFFER_DELTA_TIME() 0.0625f
+#define CAMPAIGN_OFFER_TYPE(E) ((E)->type)
+#define CAMPAIGN_OFFER_ALIVE(E) ((E)->alive)
+#define CAMPAIGN_OFFER_HOST_ID(E) ((E)->host_id)
 
 /* the campaign's two host calls, bound to the REAL candidate exchange (with its complete reply check) and to a recording narrow phase */
 #define campaign_model_entity_candidate check_model_entity_candidate
 #define campaign_model_entity_collision check_model_entity_collision
+#define campaign_model_entity_pose check_model_entity_pose
+
+static int check_model_entity_pose (int stage, int entity_type, int alive, const char *host_id, const float *words)
+{
+	return (campaign_entity_pose_exchange (stage, entity_type, alive, host_id, words));
+}
 
 static int check_model_entity_candidate (int scene, const float *facts, float *pose, int *pose_count)
 {
@@ -572,6 +627,7 @@ static int check_model_entity_collision (int scene, const float *segment_old, co
 
 #undef campaign_model_entity_candidate
 #undef campaign_model_entity_collision
+#undef campaign_model_entity_pose
 
 /* ---- the host's cursor over scripted sector lists: the campaign's scan driver (mb_hostscan.h) bound to a 3 x 3 map whose lists log every getter ---- */
 
@@ -675,9 +731,40 @@ static struct sentity make_entity (int mobile, int fixed, int shape)
 	e.motion[0] = 5.0f;
 	e.heading = 0.5f;
 	memcpy (e.attitude, identity, sizeof (identity));
+	e.type = 3;
+	e.alive = 1;
 
 	return (e);
 }
+
+static void pose_reset (void)
+{
+	memset (pose_seen, 0, sizeof (pose_seen));
+	pose_asks = 0;
+	pose_override = 0;
+	pose_state = 0;
+	pose_kind = 0;
+	pose_mask = 0;
+}
+
+/* the words an observation carried, as the bits they were read as */
+static int pose_words_are (const campaign_model_request *q, const float *position, const float *motion, const float *attitude)
+{
+	float expected[CAMPAIGN_MODEL_POSE_FACTS];
+
+	memset (expected, 0, sizeof (expected));
+	memcpy (&expected[0], position, 3 * sizeof (float));
+	memcpy (&expected[3], motion, 3 * sizeof (float));
+
+	if (attitude)
+	{
+		memcpy (&expected[6], attitude, 9 * sizeof (float));
+	}
+
+	return ((q->pose_count == CAMPAIGN_MODEL_POSE_FACTS) && (memcmp (q->pose, expected, sizeof (expected)) == 0));
+}
+
+static void pose_cases (struct tc *t);
 
 static void offer_cases (struct tc *t)
 {
@@ -823,6 +910,193 @@ static void offer_cases (struct tc *t)
 	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
 	o = offer (&e, FALSE, 1000.0f);
 	EXPECT (t, o.stopped && strstr (fatal_text, "entity_candidate.state") != NULL && strcmp (reads, "MSPV") == 0);
+}
+
+/* ---- ENTITY_POSE: the observation beside the original's reads ---- */
+
+static void pose_cases (struct tc *t)
+{
+	struct sentity e, b1;
+	struct offer_outcome o;
+	char long_id[200];
+
+	/* a named mobile candidate the host skips: ONE observation, asked at the offer with the words the original read (position, motion), nothing else, beside the original's reads */
+	e = make_entity (TRUE, FALSE, 7);
+	e.type = 4;
+	e.alive = 1;
+	e.host_id = "eech-world:12";
+	e.position[1] = 2.0f;
+	e.position[2] = -3.5f;
+	e.motion[1] = 0.25f;
+	pose_reset ();
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+	o = offer (&e, FALSE, -500.0f);
+	EXPECT (t, !o.stopped && o.hit == NULL && strcmp (reads, "MSPV") == 0 && asks == 1 && pose_asks == 1);
+	EXPECT (t, pose_seen[0].op == CAMPAIGN_MODEL_ENTITY_POSE && pose_seen[0].scene == 0 && pose_seen[0].depth == CAMPAIGN_POSE_STAGE_OFFER && pose_seen[0].kind == 4 && pose_seen[0].definition == 1);
+	EXPECT (t, strcmp (pose_seen[0].key, "eech-world:12") == 0 && pose_words_are (&pose_seen[0], e.position, e.motion, NULL));
+
+	/* a moving mobile candidate through the whole dialogue: the offer observation, then the placement observation with the attitude the original read; the decisions, reads, counts and the hit are exactly
+	   those without the observation (see offer_cases) */
+	e.updated = TRUE;
+	e.alive = 0;
+	e.attitude[2] = 0.5f;
+	pose_reset ();
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_UPDATED, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_TEST, 16);
+	collision_hit = TRUE;
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, !o.stopped && o.hit == &e && strcmp (reads, "MSPVUA") == 0 && asks == 3 && collision_calls == 1 && pose_asks == 2);
+	EXPECT (t, pose_seen[0].depth == CAMPAIGN_POSE_STAGE_OFFER && pose_seen[0].definition == 0 && pose_words_are (&pose_seen[0], e.position, e.motion, NULL));
+	EXPECT (t, pose_seen[1].depth == CAMPAIGN_POSE_STAGE_PLACEMENT && pose_seen[1].kind == 4 && strcmp (pose_seen[1].key, "eech-world:12") == 0 && pose_words_are (&pose_seen[1], e.position, e.motion, e.attitude));
+	collision_hit = FALSE;
+
+	/* a candidate that is not mobile is never observed: a skipped fixed one, a fixed one tested, and a city with its buildings */
+	e = make_entity (FALSE, TRUE, 9);
+	e.align = TRUE;
+	e.host_id = "eech-world:3";
+	pose_reset ();
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_NORMAL, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_TEST, 12);
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, !o.stopped && strcmp (reads, "MFCGSPHLN") == 0 && asks == 4 && pose_asks == 0);
+	e = make_entity (FALSE, TRUE, 0);
+	e.city = TRUE;
+	b1 = make_entity (FALSE, TRUE, 3);
+	b1.host_id = "eech-world:4";
+	e.first_building = &b1;
+	pose_reset ();
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_BUILDINGS, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, !o.stopped && o.hit == NULL && pose_asks == 0);
+
+	/* a building listed under a city is a candidate of its city, never an observed mobile: even when its collision flags read as mobile during the placement, and it has an identity, no observation is asked */
+	e = make_entity (FALSE, TRUE, 0);
+	e.city = TRUE;
+	b1 = make_entity (TRUE, FALSE, 3);
+	b1.host_id = "eech-world:5";
+	e.first_building = &b1;
+	pose_reset ();
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_BUILDINGS, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_TEST, 16);
+	collision_hit = TRUE;
+	o = offer (&e, FALSE, 1000.0f);
+	collision_hit = FALSE;
+	EXPECT (t, !o.stopped && o.hit == &b1 && collision_calls == 1 && pose_asks == 0);
+
+	/* a candidate the campaign has no identity for: the observation says so by an empty key, and the host's "no identity" is the only class that fits it */
+	e = make_entity (TRUE, FALSE, 7);
+	pose_reset ();
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+	o = offer (&e, FALSE, -500.0f);
+	EXPECT (t, !o.stopped && pose_asks == 1 && pose_seen[0].key[0] == 0);
+	pose_override = TRUE;
+	pose_state = CAMPAIGN_MODEL_POSE_RECORDED;
+	pose_kind = 1;
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+	o = offer (&e, FALSE, -500.0f);
+	EXPECT (t, o.stopped && strstr (fatal_text, "entity_pose.state") != NULL && asks == 0);
+
+	/* NOTHING DECIDES FROM THE ANSWER: whatever the host says about the identity (unknown, retired, unrecorded, a record that differs in every way), the offer's decisions, reads, counts and hit are those of the
+	   dialogue without it */
+	{
+		static const int classes[5][3] = {
+			{ CAMPAIGN_MODEL_POSE_UNKNOWN, 0, 0 }, { CAMPAIGN_MODEL_POSE_RETIRED, 0, 0 }, { CAMPAIGN_MODEL_POSE_UNRECORDED, 0, 0 },
+			{ CAMPAIGN_MODEL_POSE_RECORDED, 5, 31 }, { CAMPAIGN_MODEL_POSE_RECORDED, 1, 0 } };
+		int i;
+
+		e = make_entity (TRUE, FALSE, 7);
+		e.type = 4;
+		e.host_id = "eech-world:12";
+		e.updated = TRUE;
+
+		for (i = 0; i < 5; i++)
+		{
+			pose_reset ();
+			pose_override = TRUE;
+			pose_state = classes[i][0];
+			pose_kind = classes[i][1];
+			pose_mask = classes[i][2];
+			queue_reset ();
+			queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_UPDATED, 0);
+			queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+			queue_state (CAMPAIGN_MODEL_CANDIDATE_TEST, 16);
+			collision_hit = TRUE;
+			o = offer (&e, FALSE, 1000.0f);
+			EXPECT (t, !o.stopped && o.hit == &e && strcmp (reads, "MSPVUA") == 0 && asks == 3 && collision_calls == 1 && pose_asks == 2);
+			collision_hit = FALSE;
+		}
+	}
+
+	/* the answer's shape, checked completely before anything else is asked: a class outside the five, a record kind or a difference mask outside the contract, a class that has no record carrying one, and
+	   a record of no kind. Each stops the engine by marker, and no candidate question was asked */
+	{
+		static const int bad[10][3] = {
+			{ 0, 0, 0 }, { 6, 0, 0 }, { CAMPAIGN_MODEL_POSE_RECORDED, 6, 0 }, { CAMPAIGN_MODEL_POSE_RECORDED, -1, 0 }, { CAMPAIGN_MODEL_POSE_RECORDED, 1, 32 },
+			{ CAMPAIGN_MODEL_POSE_RECORDED, 1, -1 }, { CAMPAIGN_MODEL_POSE_UNKNOWN, 2, 0 }, { CAMPAIGN_MODEL_POSE_RETIRED, 0, 4 }, { CAMPAIGN_MODEL_POSE_RECORDED, 0, 0 },
+			{ CAMPAIGN_MODEL_POSE_NO_ID, 0, 0 } };
+		static const char *marker[10] = {
+			"entity_pose.state", "entity_pose.state", "entity_pose.answer", "entity_pose.answer", "entity_pose.answer",
+			"entity_pose.answer", "entity_pose.answer", "entity_pose.answer", "entity_pose.answer", "entity_pose.state" };
+		int i;
+
+		e = make_entity (TRUE, FALSE, 7);
+		e.host_id = "eech-world:12";
+
+		for (i = 0; i < 10; i++)
+		{
+			pose_reset ();
+			pose_override = TRUE;
+			pose_state = bad[i][0];
+			pose_kind = bad[i][1];
+			pose_mask = bad[i][2];
+			queue_reset ();
+			queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+			o = offer (&e, FALSE, -500.0f);
+			EXPECT (t, o.stopped && strstr (fatal_text, marker[i]) != NULL && asks == 0 && pose_asks == 1);
+		}
+	}
+
+	/* an identity the request cannot carry is not asked and decides nothing; the longest one that fits is carried whole */
+	memset (long_id, 'x', sizeof (long_id));
+	long_id[128] = ' ';
+	e = make_entity (TRUE, FALSE, 7);
+	e.host_id = long_id;
+	pose_reset ();
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+	o = offer (&e, FALSE, -500.0f);
+	EXPECT (t, !o.stopped && o.hit == NULL && asks == 1 && pose_asks == 0);
+	long_id[127] = ' ';
+	pose_reset ();
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+	o = offer (&e, FALSE, -500.0f);
+	EXPECT (t, !o.stopped && asks == 1 && pose_asks == 1 && strlen (pose_seen[0].key) == 127);
+
+	/* a host that refuses stops the engine by the callback marker, before any candidate question */
+	e = make_entity (TRUE, FALSE, 7);
+	e.host_id = "eech-world:12";
+	pose_reset ();
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+	refuse_the_exchange = TRUE;
+	o = offer (&e, FALSE, -500.0f);
+	refuse_the_exchange = FALSE;
+	EXPECT (t, o.stopped && strstr (fatal_text, "callback") != NULL && pose_asks == 1);
 }
 
 static void scan_cases (struct tc *t);
@@ -1058,6 +1332,8 @@ static void candidate_cases (struct tc *t)
 	expect_candidate_refusal (t, "a city with a scene of its own", "entity_candidate.request", 7, more, __LINE__);
 
 	offer_cases (t);
+
+	pose_cases (t);
 
 	scan_cases (t);
 }

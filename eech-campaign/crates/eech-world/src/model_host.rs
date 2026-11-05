@@ -23,6 +23,7 @@ use crate::models::{
     ObjectSource, OffsetSource, RouteFace, RouteNode, SceneSource, TargetPointChain, TargetPointLocal, TargetPointWorld, Triangle, CUSTOM_WALK_MAX,
     TARGET_POINT_CHAIN_MAX, TARGET_POINT_STATE,
 };
+use crate::movement;
 use crate::original_report;
 use mlua::prelude::*;
 use serde_json::Value;
@@ -492,6 +493,81 @@ fn entity_collision_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaRe
             table.set("reason", reason)?;
         }
     }
+    Ok(table)
+}
+
+/// The reference host's answer to an ENTITY_POSE observation: the class of the identity in the ONE `Movers` registry the movement callbacks step (shared by handle, never copied), the kind of its record
+/// and the bits of how the campaign's words differ from it. It reads, compares and reports; it creates no record, adopts no word and refuses nothing a valid observation can contain. A host
+/// that keeps no movers (a script that never bound a mobile) classifies every identity as `unknown`, which is what it is.
+fn entity_pose_answer(lua: &Lua, q: &Question) -> LuaResult<LuaTable> {
+    let operation = q.operation.as_str();
+    let fail = |message: String| LuaError::runtime(format!("[model-provider:{operation}.request] {message}"));
+    if q.scene != Some(0) {
+        return Err(fail("an entity pose question has scene 0".into()));
+    }
+    let stage = q.depth.ok_or_else(|| fail("an entity pose question needs its stage".into()))?;
+    if !(0..=1).contains(&stage) {
+        return Err(fail(format!("stage {stage} is neither the offer (0) nor the placement (1)")));
+    }
+    if q.kind.is_none() || !matches!(q.definition, Some(0 | 1)) {
+        return Err(fail("an entity pose question needs the entity's type and whether it is alive (0 or 1)".into()));
+    }
+    let text = q.key.as_deref().ok_or_else(|| fail("the words are missing".into()))?;
+    // the words are fifteen fixed-width patterns; a host identity, when there is one, follows a single space (it may hold any text, so it is everything after that space)
+    const WORDS_TEXT: usize = 15 * 10 + 14;
+    let (pattern_text, host_id) = match text.get(WORDS_TEXT..) {
+        Some("") => (text, ""),
+        Some(rest) => (
+            &text[..WORDS_TEXT],
+            rest.strip_prefix(' ')
+                .ok_or_else(|| fail("the host identity does not follow the words after a single space".into()))?,
+        ),
+        None => (text, ""),
+    };
+    let words = transport_pose(Some(pattern_text), operation, |n| n == 15)?;
+    let float = |index: usize| f32::from_bits(words[index]);
+    let observed = movement::ObservedWords {
+        position: [float(0), float(1), float(2)],
+        motion: [float(3), float(4), float(5)],
+        attitude: (stage == 1).then(|| std::array::from_fn(|i| float(6 + i))),
+    };
+    let table = lua.create_table()?;
+    let (result, kind, difference) = if host_id.is_empty() {
+        ("no_id", 0, 0)
+    } else {
+        // `try_borrow`: a registry that is being stepped is never read through a second borrow
+        let observation = match lua.app_data_ref::<movement::SharedMovers>() {
+            None => movement::Observation::Unknown,
+            Some(shared) => shared
+                .0
+                .try_borrow()
+                .map_err(|_| {
+                    LuaError::runtime(format!(
+                        "[model-provider:{operation}.busy] the movement registry was being stepped while a mobile was observed"
+                    ))
+                })?
+                .observe(host_id, &observed),
+        };
+        match observation {
+            movement::Observation::Recorded { kind, difference } => (
+                "recorded",
+                match kind {
+                    movement::Kind::Routed => 1,
+                    movement::Kind::Ship => 2,
+                    movement::Kind::Person => 3,
+                    movement::Kind::FixedWing => 4,
+                    movement::Kind::Helicopter => 5,
+                },
+                difference,
+            ),
+            movement::Observation::Unrecorded => ("unrecorded", 0, 0),
+            movement::Observation::Retired => ("retired", 0, 0),
+            movement::Observation::Unknown => ("unknown", 0, 0),
+        }
+    };
+    table.set("result", result)?;
+    table.set("kind", kind)?;
+    table.set("difference", difference)?;
     Ok(table)
 }
 
@@ -1092,6 +1168,8 @@ impl ProviderState {
             }
             // the enumeration of the scan (EEDCS-49): the facts arrive in the text place and no model is read
             "entity_scan" => entity_scan_answer(lua, &q),
+            // an OBSERVATION of a mobile candidate against the host's record of its identity (EEDCS-49): no model is read and nothing decides from the answer
+            "entity_pose" => entity_pose_answer(lua, &q),
             // what the host decides about one candidate of the scan (EEDCS-49): the facts arrive in the text place
             "entity_candidate" => {
                 let store = self.final_store(current)?;

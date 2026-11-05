@@ -81,6 +81,20 @@
 --   bad_scan_cursor       the first armed real FIRST is answered with a fractional sector x (0.5), the real z:  [model-provider:entity_scan.cursor]
 -- `control` stays the NATURAL healthy control (nothing altered, no configured secondary input); it now also requires a positive scan, candidate and narrow-phase chain. The earlier modes keep their own meaning.
 --
+-- THE ENTITY_POSE OBSERVATION (fifth slice; mb_hostmodel.h ENTITY_POSE, 15 words). Beside the reads the original made, the shipped offer of a MOBILE candidate asks the host to OBSERVE it against the host's own record of its
+-- semantic host identity (the one Movers registry the movement callbacks step): nothing decides from the answer and no entity, count or order of the dialogue depends on it. The request is scene 0, depth the stage (0 the
+-- offer: the position and motion vector the original read; 1 the placement: those and the attitude), kind the entity's TYPE, definition whether it is alive (0 or 1), and the text place of exactly 15 comma-separated
+-- 0x%08x patterns, then (when the roster has an identity) one space and the HOST IDENTITY. A real reply is { result, kind, difference }: result is recorded, unrecorded, retired, unknown or no_id (no_id exactly when the
+-- question named no identity), kind the record's kind (0 none; 1 routed vehicle, 2 ship, 3 person, 4 fixed-wing, 5 helicopter), difference the bits 0..31 of how the campaign's words compare with the record: 1 position, 2 attitude,
+-- 4 motion against a held vector, 8 no motion vector held, 16 motion against the record's attitude row 2 times its speed. A class that is not `recorded` carries kind 0 and difference 0. The wrapper counts the ARMED
+-- observations by stage and class and keeps a HISTOGRAM of (stage, entity type, alive, class, kind, difference): that histogram is the characterisation of the collaborator contract (which mobile offers have an
+-- identity and a record, whether the campaign's mirror agrees with the record, whether the vehicle motion vector is the record's formula, whether anything outside the host's steps writes a pose). It is OBSERVED, never
+-- asserted: the natural control only requires that it was reached (a positive count) and that every question and reply is well formed. Counts are global to the war (no weapon identity).
+--
+--   withheld_pose         the provider raises on the first armed observation:                                    [model-provider:entity_pose.callback]
+--   bad_pose_answer       the first armed observation is answered kind 6 (outside the five kinds):              [model-provider:entity_pose.answer]
+--   bad_pose_state        the first armed observation that NAMED an identity is answered no_id:                  [model-provider:entity_pose.state]
+--
 -- THE CONTROLLED VIEW INPUT. See tree-authority.lua: the existing protocol's VIEW_WEAPON lookup answer (mb_hostaim.h, answered r0 by wn_move.c, f[7] in Lua) is set to 1 by an aim delegate over the
 -- unmodified host.aim on every armed weapon_step request, hosted and Original alike. It is a CONFIGURED, GLOBAL-while-armed diagnostic input (the protocol carries no weapon identity, so natural
 -- weapons are affected too), not a camera, not a per-weapon identity and not an entity call; the entity lookup, the questions and the counters stay measured. A run in which it never reached a
@@ -228,6 +242,17 @@ MODES.bad_scan_cursor = {
 	scan = function (_, real) return { result = "first", p = "0x3f000000," .. string.match (real.p, "^[^,]+,([^,]+)$") } end,
 	eligible_scan = function (_, real) return real.result == "first" end, once = true, marker = "entity_scan.cursor",
 }
+-- the ENTITY_POSE modes (see the header): the observation is never altered in any other mode, and these refuse by marker
+MODES.withheld_pose = { pose = function () error ("the host withholds its pose observation", 0) end, once = true, marker = "entity_pose.callback" }
+MODES.bad_pose_answer = {
+	-- a record kind outside the five
+	pose = function () return { result = "recorded", kind = 6, difference = 0 } end, once = true, marker = "entity_pose.answer",
+}
+MODES.bad_pose_state = {
+	-- "no identity" for a question that named one
+	pose = function () return { result = "no_id", kind = 0, difference = 0 } end,
+	eligible_pose = function (parsed) return parsed.named end, once = true, marker = "entity_pose.state",
+}
 local plan = MODES [mode]
 if plan == nil then refuse ("unknown mode '" .. tostring (mode) .. "'") end
 if profile == "original" and mode ~= "control" then refuse ("profile=original runs only mode=control: no entity_collision question reaches the provider to alter") end
@@ -325,10 +350,14 @@ local function engine_marker (err) return string.match (first_line (err), FATAL)
 -- ---------------------------------------------------------------------------------------------------------------- the host's model provider, counted, altered only when armed
 local armed = false
 local reference -- the host's own model provider (host.model), resolved inside the owned close scope (main)
-local before, after = { entity = 0, other = 0, candidate = 0, scan = 0 }, { entity = 0, other = 0, candidate = 0, scan = 0 }
+local before, after = { entity = 0, other = 0, candidate = 0, scan = 0, pose = 0 }, { entity = 0, other = 0, candidate = 0, scan = 0, pose = 0 }
 local altered = 0
 local cand_altered, cand_skipped = 0, 0
 local scan_altered, scan_none_answered = 0, 0
+local pose_altered = 0
+-- the armed pose observations by stage and by the class the REAL host answered, the ones that named an identity, and the histogram of (stage, entity type, alive, class, kind, difference)
+local pose = { total = 0, stage_offer = 0, stage_placement = 0, named = 0, recorded = 0, unrecorded = 0, retired = 0, unknown = 0, no_id = 0 }
+local pose_histogram = {}
 -- the armed scan questions by phase, and the REAL answers they got
 local scan = { total = 0, phase_begin = 0, phase_entry = 0, phase_end = 0, phase_resolved = 0, excluded = 0, first = 0, next = 0, offer = 0, done_none = 0, done_hit = 0 }
 -- the armed candidate questions and the REAL answers they got
@@ -458,6 +487,75 @@ local function scan_question (scene, depth, kind, definition, key)
 	if type (answer) == "table" and answer.result == "done_none" then scan_none_answered = scan_none_answered + 1 end
 	return answer
 end
+-- the pose request as the contract states it: scene 0, the stage (0 or 1) in depth, the entity's type in kind, whether it is alive (0 or 1) in definition, and the text place of 15 patterns followed, when the
+-- campaign has an identity for the candidate, by one space and the identity
+local WORDS_TEXT = 15 * 10 + 14
+local function parse_pose_request (scene, depth, kind, definition, key)
+	if scene ~= 0 then return nil, "scene " .. tostring (scene) end
+	if depth ~= 0 and depth ~= 1 then return nil, "stage " .. tostring (depth) end
+	if not finite (kind) or kind ~= math.floor (kind) then return nil, "entity type " .. tostring (kind) end
+	if definition ~= 0 and definition ~= 1 then return nil, "alive " .. tostring (definition) end
+	if type (key) ~= "string" then return nil, "no words text" end
+	local text, host_id = key, ""
+	if #key > WORDS_TEXT then
+		if string.sub (key, WORDS_TEXT + 1, WORDS_TEXT + 1) ~= " " then return nil, "the identity does not follow the words after one space" end
+		text, host_id = string.sub (key, 1, WORDS_TEXT), string.sub (key, WORDS_TEXT + 2)
+	end
+	if words_of_text (text, 15) == nil then return nil, "the words are not 15 comma separated 0x%08x patterns" end
+	return { stage = depth, entity_type = kind, alive = definition, host_id = host_id, named = host_id ~= "" }
+end
+local POSE_CLASSES = { recorded = true, unrecorded = true, retired = true, unknown = true, no_id = true }
+-- the first problem of a REAL pose reply against the contract, or nil: one of the five classes, a kind of 0..5 and a difference of 0..31 (whole numbers), nothing but a record carries either, a record has a kind, and
+-- no_id exactly when the question named no identity
+local function pose_reply_problem (answer, parsed)
+	if type (answer) ~= "table" then return "the reply is not a table" end
+	if not POSE_CLASSES [answer.result] then return "result " .. tostring (answer.result) end
+	local kind, difference = answer.kind, answer.difference
+	if not finite (kind) or kind ~= math.floor (kind) or kind < 0 or kind > 5 then return "kind " .. tostring (kind) end
+	if not finite (difference) or difference ~= math.floor (difference) or difference < 0 or difference > 31 then return "difference " .. tostring (difference) end
+	if answer.result ~= "recorded" and (kind ~= 0 or difference ~= 0) then return "a kind or difference with " .. answer.result end
+	if answer.result == "recorded" and kind == 0 then return "a record of no kind" end
+	if parsed and (answer.result == "no_id") == parsed.named then return "the class " .. answer.result .. " for a question that " .. (parsed.named and "named" or "did not name") .. " an identity" end
+	return nil
+end
+local function pose_question (scene, depth, kind, definition, key)
+	local parsed, why = parse_pose_request (scene, depth, kind, definition, key)
+	if parsed then
+		pose.total = pose.total + 1
+		if parsed.stage == 0 then pose.stage_offer = pose.stage_offer + 1 else pose.stage_placement = pose.stage_placement + 1 end
+		if parsed.named then pose.named = pose.named + 1 end
+	else
+		faults.request = faults.request + 1
+		first_fault = first_fault or ("pose request: " .. why)
+	end
+	local real = reference ("entity_pose", scene, depth, kind, definition, key)
+	local problem = pose_reply_problem (real, parsed)
+	if problem then
+		faults.reply = faults.reply + 1
+		first_fault = first_fault or ("pose reply: " .. problem)
+	else
+		pose [real.result] = pose [real.result] + 1
+		if parsed then
+			local bucket = string.format ("%d:%d:%d:%s:%d:%d", parsed.stage, parsed.entity_type, parsed.alive, real.result, real.kind, real.difference)
+			pose_histogram [bucket] = (pose_histogram [bucket] or 0) + 1
+		end
+	end
+	if plan.pose == nil then return real end
+	-- an altered answer is formed only from a well-formed question and real reply (a witness failure raised here would come back carrying the callback marker the refusal mode credits)
+	if parsed == nil or problem then return real end
+	if plan.eligible_pose and not plan.eligible_pose (parsed, real) then return real end
+	if plan.once and pose_altered >= 1 then return real end
+	pose_altered = pose_altered + 1
+	return plan.pose (parsed, real)
+end
+local function pose_histogram_text ()
+	local keys = {}
+	for bucket in pairs (pose_histogram) do keys [#keys + 1] = bucket end
+	table.sort (keys)
+	local parts = {}
+	for _, bucket in ipairs (keys) do parts [#parts + 1] = bucket .. "=" .. pose_histogram [bucket] end
+	return table.concat (parts, ";")
+end
 local function candidate_question (scene, depth, kind, definition, key)
 	local parsed, why = parse_candidate_request (scene, depth, kind, definition, key)
 	if parsed then
@@ -491,9 +589,11 @@ local function model (op, scene, depth, kind, definition, key)
 	if op == "entity_collision" then counts.entity = counts.entity + 1
 	elseif op == "entity_candidate" then counts.candidate = counts.candidate + 1
 	elseif op == "entity_scan" then counts.scan = counts.scan + 1
+	elseif op == "entity_pose" then counts.pose = counts.pose + 1
 	else counts.other = counts.other + 1 end
 	-- the armed candidate questions are counted and classified; every other operation, and every question before the launch, is the host's own answer, returned unchanged
 	if op == "entity_scan" and armed then return scan_question (scene, depth, kind, definition, key) end
+	if op == "entity_pose" and armed then return pose_question (scene, depth, kind, definition, key) end
 	if op == "entity_candidate" and armed then return candidate_question (scene, depth, kind, definition, key) end
 	if op ~= "entity_collision" or not armed then return reference (op, scene, depth, kind, definition, key) end
 	local parsed, why = parse_request (scene, depth, kind, definition, key)
@@ -830,6 +930,9 @@ local function main ()
 		scan_before = before.scan, scan_after = after.scan, scan_phase_begin = scan.phase_begin, scan_phase_entry = scan.phase_entry, scan_phase_end = scan.phase_end,
 		scan_phase_resolved = scan.phase_resolved, scan_excluded = scan.excluded, scan_first = scan.first, scan_next = scan.next, scan_offer = scan.offer,
 		scan_done_none = scan.done_none, scan_done_hit = scan.done_hit, scan_altered = scan_altered, scan_answered_done_none = scan_none_answered,
+		pose_before = before.pose, pose_after = after.pose, pose_stage_offer = pose.stage_offer, pose_stage_placement = pose.stage_placement, pose_named = pose.named,
+		pose_recorded = pose.recorded, pose_unrecorded = pose.unrecorded, pose_retired = pose.retired, pose_unknown = pose.unknown, pose_no_id = pose.no_id,
+		pose_altered = pose_altered, pose_histogram = pose_histogram_text (),
 		secondary_input = plan.paired and "entity_collision_answered_hit_mask_63_at_the_request_old_end_whenever_asked_in_both_paired_modes_configured_not_natural" or "",
 		request_faults = faults.request, reply_faults = faults.reply, first_fault = first_fault or "",
 		cohort_signature = table.concat (signature_parts, ";"),
@@ -842,7 +945,7 @@ local function main ()
 		-- a refusal mode: the engine must have stopped, at this marker, at an armed entity question the provider altered
 		if failure == nil then return "mode " .. mode .. " completed: the engine did not stop at " .. plan.marker end
 		if failure.marker ~= plan.marker then return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "], not at [model-provider:" .. plan.marker .. "]: " .. failure.line end
-		if altered + cand_altered + scan_altered < 1 then return "mode " .. mode .. " stopped without the provider having altered an entity answer: " .. failure.line end
+		if altered + cand_altered + scan_altered + pose_altered < 1 then return "mode " .. mode .. " stopped without the provider having altered an entity answer: " .. failure.line end
 		if view.applied < 1 then return "mode " .. mode .. " stopped, but the controlled view input never reached a weapon step: the stop is not at an entity question of the configured flight" end
 		return nil
 	end
@@ -862,7 +965,7 @@ local function main ()
 	-- the ACTUAL caller was reached: the weapon step's entity lookup was made (the fixture's own counter, not the provider's)
 	if any_tests_delta < 1 then return "UNREACHED: the weapon step made no entity-collision test (contact_any_tests did not rise): the actual entity caller was not reached" end
 	if profile == "original" then
-		if after.entity ~= 0 or after.candidate ~= 0 or after.scan ~= 0 then return "profile=original, but the host was asked " .. after.entity .. " entity_collision, " .. after.candidate .. " entity_candidate and " .. after.scan .. " entity_scan questions: the module is not the original" end
+		if after.entity ~= 0 or after.candidate ~= 0 or after.scan ~= 0 or after.pose ~= 0 then return "profile=original, but the host was asked " .. after.entity .. " entity_collision, " .. after.candidate .. " entity_candidate, " .. after.scan .. " entity_scan and " .. after.pose .. " entity_pose questions: the module is not the original" end
 		return "CAPABILITY RED (expected for the original profile): the entity-collision caller ran (contact_any_tests +" .. any_tests_delta .. ", contact_any_hits +" .. any_hits_delta .. ", fixture API present) and the host was asked no entity_collision question, no entity_candidate question and no entity_scan question"
 	end
 	-- the route is the host's: a candidate that passed the (campaign) broad phase asks the host. None at all is a setup that never reached the narrow phase
@@ -873,10 +976,13 @@ local function main ()
 	if seen.stationary + seen.moving ~= after.entity then return string.format ("the provider counted %d entity questions but classified %d", after.entity, seen.stationary + seen.moving) end
 	if cand.total ~= after.candidate then return string.format ("the provider counted %d candidate questions but classified %d", after.candidate, cand.total) end
 	if scan.total ~= after.scan then return string.format ("the provider counted %d scan questions but classified %d", after.scan, scan.total) end
+	if pose.total ~= after.pose then return string.format ("the provider counted %d pose questions but classified %d", after.pose, pose.total) end
 	if mode == "control" then
 		if altered ~= 0 or cand_altered ~= 0 or scan_altered ~= 0 then return "the control altered an answer" end
 		-- the natural chain: the enumeration offered candidates and a candidate reached the narrow phase
 		if scan.offer < 1 then return "UNREACHED: the real enumeration offered no entry (" .. scan.offer .. " offers), so no candidate dialogue followed from it" end
+		-- the observation is characterisation, not an expectation: it must have been REACHED (a mobile candidate was offered), and every question and reply was well formed (checked above)
+		if pose.total < 1 then return "UNREACHED: the real enumeration offered " .. scan.offer .. " entries but no mobile candidate was offered, so the host was asked no entity_pose question and the mobile collaborator contract was not observed" end
 		-- every weapon-step entity hit is one narrow-phase hit of the host (the hosted line of sight asks too, so the host may report more)
 		if seen.real_hit < any_hits_delta then return string.format ("the weapon step counted %d entity hits but the host's narrow phase reported only %d", any_hits_delta, seen.real_hit) end
 		return nil
@@ -891,7 +997,7 @@ local function main ()
 	elseif mode == "scan_none" then
 		-- the variant: every scan was a valid empty enumeration, so no candidate dialogue, no narrow phase and no entity hit may follow
 		if scan_altered ~= after.scan or scan_none_answered ~= after.scan then return string.format ("scan_none answered %d empty enumerations of %d scan questions", scan_none_answered, after.scan) end
-		if after.candidate ~= 0 or after.entity ~= 0 or altered ~= 0 or cand_altered ~= 0 then return string.format ("scan_none: the host was still asked %d entity_candidate and %d entity_collision questions after every enumeration was empty", after.candidate, after.entity) end
+		if after.candidate ~= 0 or after.entity ~= 0 or after.pose ~= 0 or altered ~= 0 or cand_altered ~= 0 then return string.format ("scan_none: the host was still asked %d entity_candidate, %d entity_collision and %d entity_pose questions after every enumeration was empty", after.candidate, after.entity, after.pose) end
 		if any_hits_delta ~= 0 then return string.format ("scan_none: the weapon step still counted %d entity hits although every enumeration was empty", any_hits_delta) end
 		return nil
 	end

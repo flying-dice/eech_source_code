@@ -1151,6 +1151,15 @@ pub const EECH_MODEL_SCAN_NEXT: c_int = 2;
 pub const EECH_MODEL_SCAN_OFFER: c_int = 3;
 pub const EECH_MODEL_SCAN_DONE_NONE: c_int = 4;
 pub const EECH_MODEL_SCAN_DONE_HIT: c_int = 5;
+/// ENTITY_POSE (EEDCS-49): an OBSERVATION of a mobile candidate's pose against the host's record of its identity (`depth` the stage, `kind` the entity's type, `definition` whether it is alive, `key` its
+/// host identity, 15 floats of `pose`); the answer's `candidate_state` is the class, `candidate_count` the kind of the host's record and `write_mask` the differences. Nothing decides from it
+pub const EECH_MODEL_ENTITY_POSE: c_int = 18;
+pub const EECH_MODEL_POSE_FACTS: usize = 15;
+pub const EECH_MODEL_POSE_RECORDED: c_int = 1;
+pub const EECH_MODEL_POSE_UNRECORDED: c_int = 2;
+pub const EECH_MODEL_POSE_RETIRED: c_int = 3;
+pub const EECH_MODEL_POSE_UNKNOWN: c_int = 4;
+pub const EECH_MODEL_POSE_NO_ID: c_int = 5;
 /// the floats of the narrow-phase pose a TEST answer carries (a stationary candidate's 12, a moving one's 16)
 pub const EECH_MODEL_CANDIDATE_POSE_MAX: usize = 16;
 /// the deepest sub-object chain the target-point transport carries, and the floats of the largest pose (15 + 9 * chain, rounded up)

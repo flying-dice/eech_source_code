@@ -19,6 +19,7 @@
  *   CAMPAIGN_ENTITY_CANDIDATE_ASK (request, reply)  the same exchange for an ENTITY_CANDIDATE question (it may be counted separately)
  *   CAMPAIGN_ENTITY_CANDIDATE_IDENTITY (reply, scene)  the same identity check for an ENTITY_CANDIDATE reply, which names its own operation (entity_candidate.identity)
  *   CAMPAIGN_ENTITY_SCAN_ASK (request, reply)  the same exchange for an ENTITY_SCAN question (it may be counted separately)
+ *   CAMPAIGN_ENTITY_POSE_ASK (request, reply)  the same exchange for an ENTITY_POSE observation (it may be counted separately)
  *
  * The same header holds the campaign's half of the host's per-candidate decisions (ENTITY_CANDIDATE, mb_hostmodel.h): the facts layout, the exchange and the complete check of the host's
  * decision against the facts it was given.  It reads no entity: the caller (en_cllsn.c) fills the facts from the entity it visits and performs the two services the host may ask for.
@@ -446,6 +447,81 @@ static int campaign_entity_scan_exchange (const float *facts, float *cursor)
 
 		cursor [1] = reply.candidate [1];
 	}
+
+	return (reply.candidate_state);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// ENTITY_POSE (EEDCS-49, D3, fifth slice): an OBSERVATION of a mobile candidate's pose against the host's record of its identity. Nothing decides from the answer; only its shape is checked.
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Everything about an observation's answer that can be malformed. `named` is whether the question carried a host identity. The answer is never used for a decision, but a host that answers
+// with a class, a kind or a difference mask outside the contract is a host that cannot be trusted to observe, and stops the engine by marker.
+static void check_pose_reply (const campaign_model_reply *reply, int named)
+{
+	if ((reply->candidate_state < CAMPAIGN_MODEL_POSE_RECORDED) || (reply->candidate_state > CAMPAIGN_MODEL_POSE_NO_ID))
+	{
+		debug_fatal ("host model: [model-provider:entity_pose.state] the host classified a candidate as %d, which is not one of the five", reply->candidate_state);
+	}
+
+	if ((reply->candidate_state == CAMPAIGN_MODEL_POSE_NO_ID) == named)
+	{
+		debug_fatal ("host model: [model-provider:entity_pose.state] the host classified a candidate as %d, which contradicts the question (identity named: %d)", reply->candidate_state, named);
+	}
+
+	if ((reply->candidate_count < 0) || (reply->candidate_count > 5) || (reply->write_mask < 0) || (reply->write_mask > 31))
+	{
+		debug_fatal ("host model: [model-provider:entity_pose.answer] the host's record kind %d or difference mask %d is outside 0 to 5 and 0 to 31", reply->candidate_count, reply->write_mask);
+	}
+
+	if ((reply->candidate_state != CAMPAIGN_MODEL_POSE_RECORDED) && ((reply->candidate_count != 0) || (reply->write_mask != 0)))
+	{
+		debug_fatal ("host model: [model-provider:entity_pose.answer] the host gave a record kind %d and differences %d for class %d, which has no record", reply->candidate_count, reply->write_mask, reply->candidate_state);
+	}
+
+	if ((reply->candidate_state == CAMPAIGN_MODEL_POSE_RECORDED) && (reply->candidate_count == 0))
+	{
+		debug_fatal ("host model: [model-provider:entity_pose.answer] the host reports a record of no kind");
+	}
+}
+
+// One observation: `words` are CAMPAIGN_MODEL_POSE_FACTS floats (see mb_hostmodel.h), sent as the bytes the entity held. Returns the class the host answered, or 0 when the identity is too long to
+// carry (it is then not asked).
+static int campaign_entity_pose_exchange (int stage, int entity_type, int alive, const char *host_id, const float *words)
+{
+	campaign_model_request
+		request;
+
+	campaign_model_reply
+		reply;
+
+	size_t
+		length;
+
+	length = (host_id != NULL) ? strlen (host_id) : 0;
+
+	if (length > CAMPAIGN_MODEL_POSE_HOST_ID_MAX)
+	{
+		return (0);
+	}
+
+	memset (&request, 0, sizeof (request));
+	request.op = CAMPAIGN_MODEL_ENTITY_POSE;
+	request.scene = 0;
+	request.depth = stage;
+	request.kind = entity_type;
+	request.definition = alive;
+	request.pose_count = CAMPAIGN_MODEL_POSE_FACTS;
+	memcpy (&request.pose [0], words, CAMPAIGN_MODEL_POSE_FACTS * sizeof (float));
+
+	if (length > 0)
+	{
+		memcpy (request.key, host_id, length);
+	}
+
+	CAMPAIGN_ENTITY_POSE_ASK (&request, &reply);
+
+	check_pose_reply (&reply, (length > 0));
 
 	return (reply.candidate_state);
 }

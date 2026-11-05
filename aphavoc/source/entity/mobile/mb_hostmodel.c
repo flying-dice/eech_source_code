@@ -66,6 +66,8 @@ struct campaign_model_counters
 	long entity_collision, entity_hit, entity_miss;
 	/* ENTITY_CANDIDATE questions asked of the host (EEDCS-49) and the states the native code ACCEPTED: skip, UPDATED asked, terrain normal asked, buildings, narrow phase required */
 	long entity_scan, scan_first, scan_next, scan_offer, scan_done;
+	/* ENTITY_POSE observations asked of the host (EEDCS-49), and the classes it answered: recorded, unrecorded, retired, unknown, no identity */
+	long entity_pose, pose_recorded, pose_unrecorded, pose_retired, pose_unknown, pose_no_id;
 	long entity_candidate, candidate_skip, candidate_updated, candidate_normal, candidate_buildings, candidate_test, candidate_fixed, candidate_placement;
 };
 
@@ -1865,6 +1867,12 @@ void campaign_model_route_primary_start (int index, int starts)
 #define CAMPAIGN_ENTITY_SCAN_ASK(REQUEST,REPLY) ask ((REQUEST), (REPLY), "entity scan")
 #endif
 
+#ifdef EECH_MODEL_HOST_FIXTURE
+#define CAMPAIGN_ENTITY_POSE_ASK(REQUEST,REPLY) do { campaign_model_counts.entity_pose++; ask ((REQUEST), (REPLY), "entity pose"); } while (0)
+#else
+#define CAMPAIGN_ENTITY_POSE_ASK(REQUEST,REPLY) ask ((REQUEST), (REPLY), "entity pose")
+#endif
+
 // the candidate's own identity label: a bad scene-name echo of an ENTITY_CANDIDATE reply is not an entity_collision refusal
 #define CAMPAIGN_ENTITY_CANDIDATE_IDENTITY(REPLY,SCENE) check_target_point_identity ((REPLY), (SCENE), "entity_candidate")
 
@@ -1889,6 +1897,57 @@ int campaign_model_entity_collision (int scene, const float *segment_old, const 
 #endif
 
 	return (hit);
+}
+
+// ENTITY_POSE (mb_hostmodel.h; EEDCS-49, D3, fifth slice): an observation of a mobile candidate's pose against the host's record of its identity. The dialogue is mb_hostentity.h; nothing decides from it.
+int campaign_model_entity_pose (int stage, int entity_type, int alive, const char *host_id, const float *words)
+{
+	int
+		state;
+
+	state = campaign_entity_pose_exchange (stage, entity_type, alive, host_id, words);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	switch (state)
+	{
+		case CAMPAIGN_MODEL_POSE_RECORDED:
+		{
+			campaign_model_counts.pose_recorded++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_POSE_UNRECORDED:
+		{
+			campaign_model_counts.pose_unrecorded++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_POSE_RETIRED:
+		{
+			campaign_model_counts.pose_retired++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_POSE_UNKNOWN:
+		{
+			campaign_model_counts.pose_unknown++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_POSE_NO_ID:
+		{
+			campaign_model_counts.pose_no_id++;
+
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+#endif
+
+	return (state);
 }
 
 // ENTITY_SCAN (mb_hostmodel.h; EEDCS-49, D3, fourth slice): the host's cursor over the campaign's lists. The dialogue is mb_hostentity.h.

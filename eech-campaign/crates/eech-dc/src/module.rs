@@ -4,9 +4,9 @@ use eech_engine::{
     AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, CandidateDecision, Engine, EngineConfig, EngineError,
     EnvProvider, EnvReply, EnvRequest, EnvState, Gunship, HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor,
     MemberDescriptor, ModelAnimation, ModelAnswer, ModelObject, ModelObjectFacts, ModelOrder, ModelProvider, ModelQuery, ModelRouteFace, ModelRouteNode,
-    ModelScene, ModelTriangle, MovementMode, MovementResult, MovementStep, ObjectReport, ScanDecision, SenseMessage, SenseReason, SenseReply, SenseScan,
-    SenseState, Side, SupplyReachDescriptor, TerrainAnswer, TerrainMapFacts, TerrainProvider, TerrainQuery, TerrainRecord, TreeEnd, TreeStep, VehiclePose,
-    WeaponFigures, EECH_ENV_AMBIENT, EECH_ENV_EXPORT, EECH_ENV_FLOATS, EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM,
+    ModelScene, ModelTriangle, MovementMode, MovementResult, MovementStep, ObjectReport, PoseClass, ScanDecision, SenseMessage, SenseReason, SenseReply,
+    SenseScan, SenseState, Side, SupplyReachDescriptor, TerrainAnswer, TerrainMapFacts, TerrainProvider, TerrainQuery, TerrainRecord, TreeEnd, TreeStep,
+    VehiclePose, WeaponFigures, EECH_ENV_AMBIENT, EECH_ENV_EXPORT, EECH_ENV_FLOATS, EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM,
     EECH_ENV_INTS, EECH_ENV_LIGHTNING_ADD, EECH_ENV_LIGHTNING_UPDATE, EECH_ENV_MODE_COUNT, EECH_ENV_ROTOR_SOUND, EECH_ENV_SOUND_LIFETIME_INIT,
     EECH_ENV_SOUND_LIFETIME_UPDATE, EECH_ENV_SOUND_PAUSE_RESUME, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND, EECH_LIGHTNING_SLOTS, EECH_ROTOR_ACTIONS,
     EECH_ROTOR_CHANNELS, EECH_ROTOR_PLAYER_AI, EECH_ROTOR_PLAYER_LOCAL, EECH_ROTOR_PLAYER_REMOTE, EECH_SOUND_SAMPLES,
@@ -3890,6 +3890,15 @@ fn gunship(name: &str) -> LuaResult<Gunship> {
 ///                 the current entry), `offer` (offer the current entry for its decisions and report whether it hit), `done_none` (the scan ends, no hit), `done_hit` (it ends with the entry offered last),
 ///                 or `refused` with `reason`.
 ///
+///   "entity_pose"  an OBSERVATION of a mobile candidate's pose (EEDCS-49, D3, fifth slice): scene 0, `depth` the stage (0 the offer: the position and motion vector the original read for every mobile
+///                 candidate; 1 the placement: those and the attitude, read when the broad phase passed), `kind` the entity's type, `definition` whether it is alive (0 or 1) and, in the sixth place (the text),
+///                 15 comma-separated bit patterns (the position (3), the motion vector (3), the attitude (9), zero for the words of a stage that was not read), then, when the roster has an identity for the
+///                 candidate, a space and its semantic HOST IDENTITY (the text of the identity `bind_mobile` issued). Returns `{ result, kind, difference }`: `result` is `recorded` (the host keeps a movement
+///                 record of the identity), `unrecorded` (it issued the identity to a member it keeps no record for), `retired`, `unknown` (it never issued it, or keeps no movers) or `no_id` (the candidate had
+///                 none), `kind` the record's kind (0 none, 1 routed vehicle, 2 ship, 3 person, 4 fixed-wing aircraft, 5 helicopter) and `difference` the bits (0..31) of how the words compare with the record:
+///                 1 position, 2 attitude, 4 motion against a held vector, 8 no held motion vector, 16 motion against the record's attitude row 2 times its speed. NOTHING DECIDES FROM THE ANSWER: it is
+///                 recorded and its shape is checked, and a candidate is offered, tested and skipped exactly as without it. `refused` stops the engine with the reason.
+///
 ///   "object_table"  no scene, no depth. Returns `{ result = "table", objects = n }`: how many objects the host's common database holds (the campaign's room for custom objects is its own).
 ///   "object"     a scene index, a cursor (`depth`, never negative: the approximation or the sub-object) and, in the fourth place, the ROLE the object has in the scene (0 main, 1
 ///                 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object). Returns `{ result = "object", name = text, counts = {six whole numbers within 0..65535:
@@ -4097,6 +4106,21 @@ return function(op, scene, depth, kind, definition, key)
 		if not p then return nil, 'p ' .. why end
 		return 'test', p, nil, nil, nil, nil, nil, name
 	end
+	if op == 'entity_pose' then
+		local result = a.result
+		if result == 'refused' then
+			local reason = a.reason
+			return 'refused', type(reason) == 'string' and reason:sub(1, 200) or ''
+		end
+		if result ~= 'recorded' and result ~= 'unrecorded' and result ~= 'retired' and result ~= 'unknown' and result ~= 'no_id' then
+			return nil, 'result must be recorded, unrecorded, retired, unknown, no_id or refused'
+		end
+		local record_kind = ranged(a.kind, 5)
+		if not record_kind then return nil, 'kind must be a whole number within 0..5' end
+		local difference = ranged(a.difference, 31)
+		if not difference then return nil, 'difference must be a whole number within 0..31' end
+		return result, record_kind, difference
+	end
 	if op == 'entity_scan' then
 		local result = a.result
 		if result == 'refused' then
@@ -4280,6 +4304,26 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
         ModelQuery::EntityCandidate { scene, facts } => ("entity_candidate", Some(scene), None, None, None, Some(pose_text(&facts))),
         // the facts of the enumeration cross as exact bit patterns in the text place (16 floats); the scene is 0
         ModelQuery::EntityScan { facts } => ("entity_scan", Some(0), None, None, None, Some(pose_text(&facts))),
+        // the words of an observation cross as exact bit patterns in the text place (15 floats), followed, when the candidate has one, by a space and its host identity; the stage, the entity's type and its
+        // alive flag are the depth, kind and definition places
+        ModelQuery::EntityPose {
+            stage,
+            entity_type,
+            alive,
+            host_id,
+            words,
+        } => (
+            "entity_pose",
+            Some(0),
+            Some(stage),
+            Some(entity_type),
+            Some(alive),
+            Some(if host_id.is_empty() {
+                pose_text(&words)
+            } else {
+                format!("{} {host_id}", pose_text(&words))
+            }),
+        ),
         // the fourth place carries the role the object has in the scene
         ModelQuery::Object {
             scene,
@@ -4540,6 +4584,28 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
             scene_name: g.ok_or_else(missing)?,
             position: bridged_floats::<3>(&a.ok_or_else(missing)?, "p", operation)?,
         }),
+        (ModelQuery::EntityPose { .. }, "recorded" | "unrecorded" | "retired" | "unknown" | "no_id") => {
+            let number = |text: Option<String>, what: &str| -> Result<u32, String> {
+                text.ok_or_else(missing)?
+                    .parse::<u32>()
+                    .map_err(|_| format!("[model-provider:{operation}.answer] {what} is out of range"))
+            };
+            Ok(ModelAnswer::EntityPose {
+                class: match tag.as_str() {
+                    "recorded" => PoseClass::Recorded,
+                    "unrecorded" => PoseClass::Unrecorded,
+                    "retired" => PoseClass::Retired,
+                    "unknown" => PoseClass::Unknown,
+                    _ => PoseClass::NoId,
+                },
+                kind: number(a, "kind")?,
+                difference: number(b, "difference")?,
+            })
+        }
+        (ModelQuery::EntityPose { .. }, "refused") => Err(format!(
+            "[model-provider:{operation}.refused] the host cannot observe the candidate: {}",
+            a.unwrap_or_default()
+        )),
         (ModelQuery::EntityScan { .. }, "refused") => Err(format!(
             "[model-provider:{operation}.refused] the host cannot answer the entity scan: {}",
             a.unwrap_or_default()
@@ -5748,6 +5814,103 @@ mod tests {
                 decision: ScanDecision::DoneHit
             }
         );
+        Ok(())
+    }
+
+    #[test]
+    fn an_entity_pose_question_carries_the_words_by_bit_pattern_and_the_identity_and_every_class_comes_back() -> Test {
+        let lua = Lua::new();
+        // the stage, the entity's type and the alive flag are the numbers; the text is the 15 patterns, then (when there is one) a space and the identity, which may hold any text. The provider picks the
+        // class by the last digit of the first pattern, and answers the kind and difference it was given in the second and third
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               assert (op == 'entity_pose' and scene == 0 and depth == 1 and kind == 4 and definition == 1)
+               local patterns, rest = key:sub (1, 164), key:sub (165)
+               local words = {}
+               for word in patterns:gmatch ('[^,]+') do words[#words + 1] = word end
+               assert (#words == 15, 'the words are 15 patterns')
+               assert (words[15] == '0x7fa0000e', 'the last word arrives as sent')
+               local pick = tonumber (words[1]:sub (-1))
+               local names = { [1] = 'recorded', [2] = 'unrecorded', [3] = 'retired', [4] = 'unknown', [5] = 'no_id' }
+               if rest ~= '' then assert (rest:sub (1, 1) == ' ' and rest:sub (2) == 'eech world:id', 'the identity follows one space') end
+               return { result = names[pick], kind = pick == 1 and 5 or 0, difference = pick == 1 and 21 or 0 }
+             end",
+        )?;
+        let mut ask_pose = |pick: u32, host_id: &str| {
+            let words: Vec<u32> = std::iter::once(0x7fa0_0000 + pick).chain((1..15).map(|at| 0x7fa0_0000 + at)).collect();
+            ask(
+                &mut provider,
+                ModelQuery::EntityPose {
+                    stage: 1,
+                    entity_type: 4,
+                    alive: 1,
+                    host_id: host_id.to_string(),
+                    words,
+                },
+            )
+        };
+        assert_eq!(
+            ask_pose(1, "eech world:id")?,
+            ModelAnswer::EntityPose {
+                class: PoseClass::Recorded,
+                kind: 5,
+                difference: 21
+            }
+        );
+        for (pick, class) in [
+            (2, PoseClass::Unrecorded),
+            (3, PoseClass::Retired),
+            (4, PoseClass::Unknown),
+            (5, PoseClass::NoId),
+        ] {
+            assert_eq!(
+                ask_pose(pick, if pick == 5 { "" } else { "eech world:id" })?,
+                ModelAnswer::EntityPose { class, kind: 0, difference: 0 }
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn an_entity_pose_answer_that_is_refused_malformed_or_out_of_range_stops_with_its_marker() -> Test {
+        let lua = Lua::new();
+        // the last digit of the first pattern picks the answer: 1 a refusal, 2 an unknown result, 3 a kind of 6, 4 a difference of 32, 5 no kind, 6 a fractional difference, 7 a negative kind
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               local pick = tonumber (key:match ('^0x%x%x%x%x%x%x%x(%x)'))
+               if pick == 1 then return { result = 'refused', reason = 'no movers' } end
+               if pick == 2 then return { result = 'perhaps', kind = 0, difference = 0 } end
+               if pick == 3 then return { result = 'recorded', kind = 6, difference = 0 } end
+               if pick == 4 then return { result = 'recorded', kind = 1, difference = 32 } end
+               if pick == 5 then return { result = 'recorded', difference = 0 } end
+               if pick == 6 then return { result = 'recorded', kind = 1, difference = 0.5 } end
+               return { result = 'recorded', kind = -1, difference = 0 }
+             end",
+        )?;
+        let mut decide = |pick: u32| {
+            let words: Vec<u32> = std::iter::once(pick).chain(std::iter::repeat_n(0, 14)).collect();
+            ask(
+                &mut provider,
+                ModelQuery::EntityPose {
+                    stage: 0,
+                    entity_type: 4,
+                    alive: 1,
+                    host_id: "eech-world:1".to_string(),
+                    words,
+                },
+            )
+        };
+        let refused = decide(1).err().ok_or("accepted")?;
+        assert!(
+            refused.contains("[model-provider:entity_pose.refused]") && refused.contains("no movers"),
+            "{refused}"
+        );
+        for pick in 2..=7 {
+            let error = decide(pick).err().ok_or("accepted")?;
+            assert!(error.contains("[model-provider:entity_pose.answer]"), "answer {pick}: {error}");
+        }
         Ok(())
     }
 

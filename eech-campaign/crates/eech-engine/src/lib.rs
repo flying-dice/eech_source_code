@@ -1135,6 +1135,16 @@ pub enum ModelQuery {
     /// the ENUMERATION of the entity scan (EEDCS-49, mb_hostmodel.h ENTITY_SCAN): the sector window, the traversal order, the exclusions and the first-hit end are the host's. `facts` are the 16 floats
     /// of the question as exact bit patterns (the segment, the campaign's world map, the phase and the cursor the host last gave, and what the campaign reports about the entry it served)
     EntityScan { facts: Vec<u32> },
+    /// an OBSERVATION of a mobile candidate's pose (EEDCS-49, mb_hostmodel.h ENTITY_POSE): the campaign names the candidate by its semantic host identity (`host_id`, empty when the roster has none) and
+    /// offers the words it read (`words`, 15 floats as exact bit patterns: the position (3), the motion vector (3) and, for `stage` 1 only, the attitude (9)), with the entity's type and whether it is alive.
+    /// The host reports its own record of the identity; NOTHING DECIDES FROM THE ANSWER
+    EntityPose {
+        stage: i32,
+        entity_type: i32,
+        alive: i32,
+        host_id: String,
+        words: Vec<u32>,
+    },
     /// a FIXED object's target point: the entity position the original had copied (3) and, only when the cached host offset has a horizontal part, the heading (1), as bit patterns
     TargetPointFixed { scene: i32, pose: Vec<u32> },
     /// one step of the campaign's ANNOUNCEMENT of the order in which it walks the custom scene files: file number `position` is the scene `scene`'s file in the directory named
@@ -1239,6 +1249,17 @@ pub enum ScanDecision {
     DoneHit,
 }
 
+/// How the host classifies the identity of a mobile candidate it was asked to observe (ENTITY_POSE): it keeps a record of it (`Recorded`), it issued the identity to a member it keeps no movement record for
+/// (`Unrecorded`), it retired it (`Retired`), it never issued it or keeps no movers (`Unknown`), or the campaign has no identity for the candidate (`NoId`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PoseClass {
+    Recorded,
+    Unrecorded,
+    Retired,
+    Unknown,
+    NoId,
+}
+
 /// The host's answer to a step of the campaign's walk announcement: it has that file, it has none, or (to the closing step) the announcement is accepted.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ModelOrder {
@@ -1303,6 +1324,13 @@ pub enum ModelAnswer {
     /// the host's decision about the enumeration of the entity scan
     EntityScan {
         decision: ScanDecision,
+    },
+    /// the host's observation of a mobile candidate's pose: the class, the kind of its record (0 none, 1 routed vehicle, 2 ship, 3 person, 4 fixed-wing aircraft, 5 helicopter) and the differences between
+    /// the campaign's words and the record (bit 0 position, 1 attitude, 2 motion against a held vector, 3 no held motion vector, 4 motion against the record's attitude row 2 times its speed)
+    EntityPose {
+        class: PoseClass,
+        kind: u32,
+        difference: u32,
     },
     /// a target point's world position (exact `f32` values), for either a live instance or a fixed object, with the scene's compiled name (the echo)
     TargetPointPosition {
@@ -1420,6 +1448,28 @@ unsafe extern "C" fn model_callback(
                     .ok_or_else(|| format!("[model-provider:entity_scan.request] the facts have {} floats", source.pose_count))?;
                 let facts = source.pose[..count].iter().map(|float| float.to_bits()).collect();
                 ("entity_scan", ModelQuery::EntityScan { facts })
+            }
+            sys::EECH_MODEL_ENTITY_POSE => {
+                let count = usize::try_from(source.pose_count)
+                    .ok()
+                    .filter(|count| *count == sys::EECH_MODEL_POSE_FACTS)
+                    .ok_or_else(|| format!("[model-provider:entity_pose.request] the words have {} floats", source.pose_count))?;
+                let Some(length) = source.key.iter().position(|c| *c == 0) else {
+                    return Err("[model-provider:entity_pose.request] the host identity is not NUL-terminated".to_string());
+                };
+                let bytes: Vec<u8> = source.key[..length].iter().map(|c| *c as u8).collect();
+                let host_id = String::from_utf8(bytes).map_err(|_| "[model-provider:entity_pose.request] the host identity is not text".to_string())?;
+                let words = source.pose[..count].iter().map(|float| float.to_bits()).collect();
+                (
+                    "entity_pose",
+                    ModelQuery::EntityPose {
+                        stage: source.depth,
+                        entity_type: source.kind,
+                        alive: source.definition,
+                        host_id,
+                        words,
+                    },
+                )
             }
             sys::EECH_MODEL_OBJECT_TABLE => ("object_table", ModelQuery::ObjectTable),
             sys::EECH_MODEL_OBJECT | sys::EECH_MODEL_CUSTOM_OBJECT => (
@@ -1597,6 +1647,23 @@ unsafe extern "C" fn model_callback(
                     ScanDecision::DoneHit => sys::EECH_MODEL_SCAN_DONE_HIT,
                 };
             }
+            ("entity_pose", ModelAnswer::EntityPose { class, kind, difference }) => {
+                // the shape is the contract's: a kind outside the five and a mask outside the five bits are refused here, before the campaign sees them
+                if kind > 5 || difference > 31 {
+                    return Err(format!(
+                        "[model-provider:entity_pose.answer] the record kind {kind} or the difference mask {difference} is outside 0 to 5 and 0 to 31"
+                    ));
+                }
+                reply.candidate_state = match class {
+                    PoseClass::Recorded => sys::EECH_MODEL_POSE_RECORDED,
+                    PoseClass::Unrecorded => sys::EECH_MODEL_POSE_UNRECORDED,
+                    PoseClass::Retired => sys::EECH_MODEL_POSE_RETIRED,
+                    PoseClass::Unknown => sys::EECH_MODEL_POSE_UNKNOWN,
+                    PoseClass::NoId => sys::EECH_MODEL_POSE_NO_ID,
+                };
+                reply.candidate_count = kind as c_int;
+                reply.write_mask = difference as c_int;
+            }
             (operation @ ("target_point_world" | "target_point_fixed"), ModelAnswer::TargetPointPosition { scene_name, position }) => {
                 put_name(&mut reply, &scene_name, operation)?;
                 reply.result = sys::EECH_MODEL_TRIANGLE_FOUND;
@@ -1661,6 +1728,7 @@ unsafe extern "C" fn model_callback(
                     ModelAnswer::EntityCollision { .. } => "an entity collision answer",
                     ModelAnswer::EntityCandidate { .. } => "an entity candidate decision",
                     ModelAnswer::EntityScan { .. } => "an entity scan decision",
+                    ModelAnswer::EntityPose { .. } => "an entity pose observation",
                 };
                 return Err(format!(
                     "[model-provider:{operation}.answer] the provider answered a {operation} question with {given}"
@@ -11422,6 +11490,116 @@ mod tests {
         request.pose_count = 16;
         let (code, _, error) = model_crossing(Some(Box::new(|_| Err("[model-provider:entity_scan.refused] no host".to_string()))), request);
         assert_ne!(code, 0, "a refusal is never the end of a scan");
+        assert!(error.contains("no host"), "{error}");
+    }
+
+    fn pose_request(stage: c_int, entity_type: c_int, alive: c_int, host_id: &str) -> sys::eech_model_request {
+        let mut request = model_request(sys::EECH_MODEL_ENTITY_POSE, 0, stage);
+        request.kind = entity_type;
+        request.definition = alive;
+        request.pose_count = 15;
+        for (at, slot) in request.pose.iter_mut().take(15).enumerate() {
+            *slot = f32::from_bits(0x7fa0_0001 + at as u32);
+        }
+        for (slot, byte) in request.key.iter_mut().zip(host_id.bytes()) {
+            *slot = byte as c_char;
+        }
+        request
+    }
+
+    #[test]
+    fn the_model_callback_carries_an_entity_pose_observation_and_every_class_exactly() {
+        // the question is the 15 words bit for bit (a signalling NaN and its neighbours included: nothing is loaded as a value), the stage, the entity's type, whether it is alive and the host identity;
+        // each class crosses with the kind of the record and the difference bits
+        for (class, state) in [
+            (PoseClass::Recorded, sys::EECH_MODEL_POSE_RECORDED),
+            (PoseClass::Unrecorded, sys::EECH_MODEL_POSE_UNRECORDED),
+            (PoseClass::Retired, sys::EECH_MODEL_POSE_RETIRED),
+            (PoseClass::Unknown, sys::EECH_MODEL_POSE_UNKNOWN),
+            (PoseClass::NoId, sys::EECH_MODEL_POSE_NO_ID),
+        ] {
+            for (stage, host_id) in [(0, "eech-world:12"), (1, ""), (1, "id with a space")] {
+                let request = pose_request(stage, 4, 1, host_id);
+                let expected: Vec<u32> = (0..15).map(|at| 0x7fa0_0001 + at).collect();
+                let seen = std::rc::Rc::new(std::cell::RefCell::new(None));
+                let record = std::rc::Rc::clone(&seen);
+                let (code, reply, error) = model_crossing(
+                    Some(Box::new(move |query| match query {
+                        ModelQuery::EntityPose {
+                            stage,
+                            entity_type,
+                            alive,
+                            host_id,
+                            words,
+                        } => {
+                            *record.borrow_mut() = Some((stage, entity_type, alive, host_id, words));
+                            Ok(ModelAnswer::EntityPose {
+                                class,
+                                kind: 5,
+                                difference: 21,
+                            })
+                        }
+                        other => Err(format!("unexpected {other:?}")),
+                    })),
+                    request,
+                );
+                assert_eq!(code, 0, "{class:?}: {error}");
+                assert_eq!(
+                    seen.borrow().clone(),
+                    Some((stage, 4, 1, host_id.to_string(), expected)),
+                    "{class:?} {host_id:?}: everything arrives as the campaign sent it"
+                );
+                assert_eq!((reply.candidate_state, reply.candidate_count, reply.write_mask), (state, 5, 21), "{class:?}");
+            }
+        }
+    }
+
+    #[test]
+    fn the_model_callback_refuses_an_entity_pose_question_of_another_size_or_identity_and_an_answer_of_another_kind_or_range() {
+        for count in [0, 6, 14, 16, 44, 96] {
+            let mut request = pose_request(0, 4, 1, "eech-world:1");
+            request.pose_count = count;
+            let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
+            assert_ne!(code, 0, "{count} floats were accepted");
+            assert!(error.contains("[model-provider:entity_pose.request]"), "{count} floats: {error}");
+        }
+        // an identity that is not NUL-terminated within the field, and one that is not text
+        let mut request = pose_request(0, 4, 1, "");
+        request.key = [b'x' as c_char; sys::EECH_MODEL_NAME_MAX + 1];
+        let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
+        assert_ne!(code, 0);
+        assert!(error.contains("[model-provider:entity_pose.request]") && error.contains("NUL"), "{error}");
+        let mut request = pose_request(0, 4, 1, "");
+        request.key[0] = 0xffu8 as c_char;
+        let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
+        assert_ne!(code, 0);
+        assert!(error.contains("[model-provider:entity_pose.request]") && error.contains("not text"), "{error}");
+        // an answer of another kind, a kind outside the five and a difference mask outside the five bits
+        let (code, _, error) = model_crossing(
+            Some(Box::new(|_| Ok(ModelAnswer::Triangle(ModelTriangle::End)))),
+            pose_request(0, 4, 1, "eech-world:1"),
+        );
+        assert_ne!(code, 0);
+        assert!(error.contains("[model-provider:entity_pose.answer]"), "{error}");
+        for (kind, difference) in [(6, 0), (0, 32), (u32::MAX, 0), (0, u32::MAX)] {
+            let (code, _, error) = model_crossing(
+                Some(Box::new(move |_| {
+                    Ok(ModelAnswer::EntityPose {
+                        class: PoseClass::Recorded,
+                        kind,
+                        difference,
+                    })
+                })),
+                pose_request(0, 4, 1, "eech-world:1"),
+            );
+            assert_ne!(code, 0, "kind {kind} difference {difference} was accepted");
+            assert!(error.contains("[model-provider:entity_pose.answer]"), "{error}");
+        }
+        let (code, _, error) = model_crossing(
+            Some(Box::new(|_| Err("[model-provider:entity_pose.refused] no host".to_string()))),
+            pose_request(0, 4, 1, "eech-world:1"),
+        );
+        assert_ne!(code, 0, "a refusal is never an observation");
         assert!(error.contains("no host"), "{error}");
     }
 

@@ -20,6 +20,7 @@ AIM_LOG, CALLER_MUTATED, ORIGINAL = {}, false, nil
 MODEL_LOG, DELEGATION_BROKEN, ENTITY_LOG, LAUNCH = {}, {}, {}, nil
 CAND_LOG, CAND_POS = {}, 0
 SCAN_LOG = {}
+POSE_LOG = {}
 local function deep_copy (value)
 	if type (value) ~= "table" then return value end
 	local copy = {}
@@ -113,6 +114,19 @@ local function reference (op, scene, depth, kind, definition, key)
 		if bad == "name" then answer.name = "SECTOR" end
 		if bad == "first_one_pattern" and answer.result == "first" then answer.p = ZERO end
 		SCAN_LOG [#SCAN_LOG + 1] = { phase = phase, result = answer.result, key = key }
+	elseif op == "entity_pose" then
+		-- the REAL observation of a mobile candidate: `recorded` (a routed vehicle's record, no motion vector held) for a named identity and `no_id` for an unnamed one, unless the scenario says otherwise
+		if scenario.real_pose_error then error ("the real provider refuses", 0) end
+		local named = #key > 164
+		local result = named and (scenario.pose_class or "recorded") or "no_id"
+		local recorded = result == "recorded"
+		answer = { result = result, kind = recorded and (scenario.pose_kind or 1) or 0, difference = recorded and (scenario.pose_difference or 8) or 0 }
+		local bad = scenario.bad_real_pose
+		if bad == "state" then answer.result = "perhaps" end
+		if bad == "kind" then answer.kind = 6 end
+		if bad == "no_id_for_named" then answer = { result = "no_id", kind = 0, difference = 0 } end
+		if bad == "kind_for_unrecorded" then answer = { result = "unknown", kind = 1, difference = 0 } end
+		POSE_LOG [#POSE_LOG + 1] = { stage = depth, entity_type = kind, alive = definition, result = answer.result, key = key }
 	elseif op == "entity_candidate" then
 		-- the REAL candidate answers of one dialogue, in the scenario's order (a scan that offers one mobile candidate and is told to test it, by default); the name is the scene's
 		CAND_POS = CAND_POS + 1
@@ -229,6 +243,25 @@ package.preload.eech_dc = function ()
 			-- non-mobile one with scene 0 until the fixed facts are read), the seven states, the name echo and the legality of each state against the facts. True: the narrow phase is required
 			local STATES = { skip = true, need_updated = true, need_fixed = true, need_placement = true, need_normal = true, buildings = true, test = true }
 			local altering = { candidate_skip = true, withheld_candidate = true, bad_candidate_state = true, bad_candidate_identity = true }
+			-- the campaign's OBSERVATION of a mobile candidate (mb_hostentity.h ENTITY_POSE, asked beside the original's reads): the stage, the entity's type (4), alive, the 15 words and the identity of the
+			-- scripted member; the reply's shape is checked as the shared C checks it, and NOTHING of the dialogue depends on the answer
+			local pose_altering = { withheld_pose = true, bad_pose_answer = true, bad_pose_state = true }
+			local POSE_RESULTS = { recorded = true, unrecorded = true, retired = true, unknown = true, no_id = true }
+			local function pose_observe (stage)
+				if scenario.no_pose_questions then return end
+				local words = {}
+				for index = 1, 15 do words [index] = ZERO end
+				words [1], words [2], words [3] = OLD_W [1], OLD_W [2], OLD_W [3]
+				if stage == 1 then for index = 7, 15 do words [index] = "0x3f800000" end end
+				local key = table.concat (words, ",") .. (scenario.unnamed_pose and "" or " eech-world:1")
+				if scenario.bad_pose_request == "count" then key = string.match (key, "^(.*),[^,]+$") or key end
+				local ok, answer = ask_model ("entity_pose", 0, stage, 4, 1, key, not pose_altering [MODE])
+				if not ok then stop ("entity_pose.callback", tostring (answer)) end
+				if type (answer) ~= "table" or not POSE_RESULTS [answer.result] then stop ("entity_pose.state", "class") end
+				if type (answer.kind) ~= "number" or answer.kind < 0 or answer.kind > 5 or type (answer.difference) ~= "number" or answer.difference < 0 or answer.difference > 31 then stop ("entity_pose.answer", "range") end
+				if (answer.result == "no_id") == (not scenario.unnamed_pose) then stop ("entity_pose.state", "contradicts the question") end
+				if answer.result ~= "recorded" and (answer.kind ~= 0 or answer.difference ~= 0) then stop ("entity_pose.answer", "carries a record") end
+			end
 			local function candidate_dialogue ()
 				if scenario.no_candidate_questions then return true end
 				local mobile = not scenario.fixed_candidate
@@ -238,6 +271,7 @@ package.preload.eech_dc = function ()
 				words [1], words [2], words [3] = OLD_W [1], OLD_W [2], OLD_W [3]
 				words [4], words [5], words [6] = NEW_W [1], NEW_W [2], NEW_W [3]
 				if mobile then words [7] = "0x3f800000" end
+				if mobile then pose_observe (0) end
 				CAND_POS = 0
 				for _ = 1, 8 do
 					local key = table.concat (words, ",")
@@ -257,6 +291,7 @@ package.preload.eech_dc = function ()
 					elseif result == "need_placement" then
 						if words [44] ~= ZERO or scene == 0 then stop ("entity_candidate.state", "placement asked of a candidate that cannot need it") end
 						words [44], words [23] = "0x3f800000", "0x3f800000"
+						if mobile then pose_observe (1) end
 					elseif result == "need_normal" then
 						if words [24] ~= ZERO or words [44] == ZERO or words [23] == ZERO or mobile then stop ("entity_candidate.state", "normal asked of a candidate that cannot need it") end
 						words [24] = "0x3f800000"
@@ -302,6 +337,8 @@ package.preload.eech_dc = function ()
 				if answer.result == "done_none" then
 					-- a (wrong) campaign that offers an entry although the host ended the scan
 					if scenario.ignore_none then offer () end
+					-- a campaign that observes a mobile although the host ended the scan (no candidate question follows): the observation alone must fail the empty-enumeration variant
+					if scenario.pose_after_none then pose_observe (0) end
 					return
 				end
 				-- the cursor: two whole numbers inside the map; the scripted map has the one sector (0, 0), so only zero words are valid (a fractional or other word is the exchange's or the campaign's cursor refusal)
@@ -426,6 +463,8 @@ struct Driven {
     candidate_log: Vec<(i64, String, String)>,
     /// (phase pattern, result) of every scan question the REAL provider answered
     scan_log: Vec<(String, String)>,
+    /// (stage, entity type, alive, result, key) of every pose observation the REAL provider answered
+    pose_log: Vec<(i64, i64, i64, String, String)>,
 }
 
 /// Runs the real driver once. `scenario` is the inside of the Lua table the collaborators read; `args` are the driver's own arguments.
@@ -452,6 +491,7 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
     let launch: Option<mlua::Table> = globals.get("LAUNCH").expect("the launch");
     let candidates: mlua::Table = globals.get("CAND_LOG").expect("the candidate log");
     let scans: mlua::Table = globals.get("SCAN_LOG").expect("the scan log");
+    let poses: mlua::Table = globals.get("POSE_LOG").expect("the pose log");
     Driven {
         result,
         rows: written.concat(),
@@ -484,6 +524,19 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
             })
             .collect(),
         launch: launch.map(|t| (t.get("launcher").unwrap(), t.get("target").unwrap(), t.get("weapon").unwrap())),
+        pose_log: poses
+            .sequence_values::<mlua::Table>()
+            .map(|entry| {
+                let entry = entry.expect("a pose log entry");
+                (
+                    entry.get::<i64>("stage").unwrap(),
+                    entry.get::<i64>("entity_type").unwrap(),
+                    entry.get::<i64>("alive").unwrap(),
+                    entry.get::<String>("result").unwrap(),
+                    entry.get::<String>("key").unwrap(),
+                )
+            })
+            .collect(),
         scan_log: scans
             .sequence_values::<mlua::Table>()
             .map(|entry| {
@@ -1098,7 +1151,10 @@ fn the_natural_control_counts_the_actual_candidate_questions_and_classifies_the_
     assert!(driven.delegation_broken.is_empty(), "{:?}", driven.delegation_broken);
     // a staged dialogue of a non-mobile candidate: scene 0 first, a scene once its fixed facts were read, every state counted
     let (driven, row) = candidate_row(STAGED, "control");
-    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    // no MOBILE candidate was offered, so the observation of the mobile collaborator contract was never reached: the control is UNREACHED for that fact and says so, while every candidate state is still counted
+    let error = driven.result.clone().expect_err("the run must fail");
+    assert!(error.contains("UNREACHED") && error.contains("asked no entity_pose question"), "{error}");
+    assert_eq!(row["pose_after"], 0);
     assert_eq!(row["candidate_after"], 4);
     for (field, expected) in [
         ("candidate_need_fixed", 1),
@@ -1316,7 +1372,7 @@ fn the_original_profile_has_the_api_and_the_real_caller_lookups_but_no_candidate
     );
     // an Original module that nevertheless asked the host a candidate question is not the original
     let error = error_of(drive(&healthy(", fixture_api = true"), &original));
-    assert!(error.contains("entity_scan questions: the module is not the original"), "{error}");
+    assert!(error.contains("entity_pose questions: the module is not the original"), "{error}");
     // the paired and candidate modes are hosted-profile modes only
     for mode in [
         "candidate_real",
@@ -1501,7 +1557,7 @@ fn the_empty_enumeration_variant_changes_the_cohort_by_preventing_every_candidat
     // a campaign that goes on to offer an entry although the host ended the scan is a failure, not a pass
     let error = error_of(drive(&healthy(", ignore_none = true"), &[("mode", "scan_none")]));
     assert!(
-        error.contains("still asked 1 entity_candidate and 1 entity_collision questions after every enumeration was empty"),
+        error.contains("still asked 1 entity_candidate, 1 entity_collision and 1 entity_pose questions after every enumeration was empty"),
         "{error}"
     );
     // no scan question at all is UNREACHED for the variant too
@@ -1602,7 +1658,7 @@ fn the_original_profile_has_the_api_and_the_real_caller_lookups_but_no_scan_cand
     );
     // a module that asked the host a scan question is not the original
     let error = error_of(drive(&healthy(", fixture_api = true"), &original));
-    assert!(error.contains("entity_scan questions: the module is not the original"), "{error}");
+    assert!(error.contains("entity_pose questions: the module is not the original"), "{error}");
     // a missing fixture API and a caller that never ran are UNREACHED, never a red
     assert!(error_of(drive(&healthy(", original_tests = true"), &original)).contains("collision-fixture API"));
     assert!(error_of(drive(&healthy(", fixture_api = true, no_entity_tests = true"), &original)).contains("contact_any_tests did not rise"));
@@ -1620,4 +1676,193 @@ fn the_scan_modes_close_the_evidence_with_a_checked_close_and_a_failing_close_is
     let driven = drive(&healthy(", io_fail = { op = 'close' }"), &[("mode", "scan_none")]);
     assert_eq!(driven.closed, 1);
     assert!(error_of(driven).contains("OUTPUT FAILURE"), "the close failure is raised");
+}
+
+// ---- ENTITY_POSE through the witness (EEDCS-49, D3, fifth slice): the observation of a mobile candidate is counted by stage and class, never altered outside its refusal modes, and never asserted ----
+
+fn pose_row(extra: &str, mode: &str) -> (Driven, Value) {
+    let driven = drive(&healthy(extra), &[("mode", mode)]);
+    let row = authority(&driven);
+    (driven, row)
+}
+
+#[test]
+fn the_natural_control_counts_the_pose_observations_by_stage_and_class_and_keeps_the_histogram_with_nothing_altered() {
+    let (driven, row) = pose_row("", "control");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    // one walk: the mobile candidate is observed once, at the offer, with a named identity, and the real answer is a recorded routed vehicle with no held motion vector (difference 8)
+    assert_eq!((row["pose_before"].clone(), row["pose_after"].clone()), (Value::from(0), Value::from(1)));
+    for (field, expected) in [
+        ("pose_stage_offer", 1),
+        ("pose_stage_placement", 0),
+        ("pose_named", 1),
+        ("pose_recorded", 1),
+        ("pose_unrecorded", 0),
+        ("pose_retired", 0),
+        ("pose_unknown", 0),
+        ("pose_no_id", 0),
+        ("pose_altered", 0),
+    ] {
+        assert_eq!(row[field], expected, "{field}");
+    }
+    assert_eq!(
+        row["pose_histogram"], "0:4:1:recorded:1:8=1",
+        "stage, the entity's type, alive, class, record kind and difference"
+    );
+    assert_eq!(driven.pose_log.len(), 1);
+    let (stage, entity_type, alive, result, key) = &driven.pose_log[0];
+    assert_eq!((*stage, *entity_type, *alive, result.as_str()), (0, 4, 1, "recorded"));
+    assert!(
+        key.ends_with(" eech-world:1") && key.len() > 164,
+        "the 15 patterns and the identity after one space: {key}"
+    );
+    assert!(driven.delegation_broken.is_empty(), "{:?}", driven.delegation_broken);
+    // the placement stage is a second observation, with the attitude
+    let (driven, row) = pose_row(", candidate_sequence = { 'need_placement', 'test' }", "control");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(
+        (row["pose_after"].clone(), row["pose_stage_offer"].clone(), row["pose_stage_placement"].clone()),
+        (Value::from(2), Value::from(1), Value::from(1))
+    );
+    assert_eq!(row["pose_histogram"], "0:4:1:recorded:1:8=1;1:4:1:recorded:1:8=1");
+    // three walks, three observations
+    let (driven, row) = pose_row(", questions = 3", "control");
+    assert!(driven.result.is_ok(), "{:?}", driven.result);
+    assert_eq!(row["pose_after"], 3);
+    assert_eq!(row["pose_histogram"], "0:4:1:recorded:1:8=3");
+    // a class that is not a record, a record of another kind and another difference are OBSERVED and carried into the evidence, never asserted: the control still completes
+    for (extra, class, histogram) in [
+        (", pose_class = 'unknown'", "pose_unknown", "0:4:1:unknown:0:0=1"),
+        (", pose_class = 'unrecorded'", "pose_unrecorded", "0:4:1:unrecorded:0:0=1"),
+        (", pose_class = 'retired'", "pose_retired", "0:4:1:retired:0:0=1"),
+        (", pose_kind = 4, pose_difference = 29", "pose_recorded", "0:4:1:recorded:4:29=1"),
+        (", unnamed_pose = true", "pose_no_id", "0:4:1:no_id:0:0=1"),
+    ] {
+        let (driven, row) = pose_row(extra, "control");
+        assert!(driven.result.is_ok(), "{extra}: {:?}\n{}", driven.result, driven.rows);
+        assert_eq!(row[class], 1, "{extra}");
+        assert_eq!(row["pose_histogram"], histogram, "{extra}");
+        assert_eq!(row["pose_named"], if extra.contains("unnamed") { 0 } else { 1 }, "{extra}");
+    }
+}
+
+#[test]
+fn zero_pose_questions_is_unreached_and_a_malformed_pose_request_or_real_reply_is_counted_and_never_credited() {
+    // the enumeration, the candidate dialogue and the narrow phase all happened but no observation reached the host: the mobile collaborator contract was not observed
+    let driven = drive(&healthy(", no_pose_questions = true"), &[]);
+    let row = authority(&driven);
+    assert_eq!(
+        (row["pose_after"].clone(), row["candidate_after"].clone(), row["entity_after"].clone()),
+        (Value::from(0), Value::from(1), Value::from(1))
+    );
+    let error = error_of(driven);
+    assert!(error.contains("UNREACHED") && error.contains("asked no entity_pose question"), "{error}");
+    // a request that is not 15 patterns is counted
+    let row = authority(&drive(&healthy(", bad_pose_request = 'count', unnamed_pose = true"), &[]));
+    assert!(row["request_faults"].as_i64().unwrap() >= 1, "{row}");
+    assert!(row["first_fault"].as_str().unwrap().starts_with("pose request:"), "{row}");
+    // real replies that break the grammar are counted at the question
+    for bad in ["state", "kind", "no_id_for_named", "kind_for_unrecorded"] {
+        let driven = drive(&healthy(&format!(", bad_real_pose = '{bad}'")), &[]);
+        let row = authority(&driven);
+        assert!(row["reply_faults"].as_i64().unwrap() >= 1, "{bad}: {row}");
+        assert!(row["first_fault"].as_str().unwrap().starts_with("pose reply:"), "{bad}: {row}");
+        assert!(driven.result.is_err(), "{bad}: a malformed real reply is never a pass");
+    }
+    // the host itself refusing is the callback marker of the engine's stop, never a pass
+    let driven = drive(&healthy(", real_pose_error = true"), &[]);
+    assert!(driven.result.is_err(), "a provider that raises is never a pass");
+}
+
+#[test]
+fn a_withheld_or_malformed_pose_answer_counts_only_at_the_anchored_engine_stop_with_its_exact_pose_marker_and_nothing_is_asked_afterwards() {
+    for (mode, marker) in [
+        ("withheld_pose", "entity_pose.callback"),
+        ("bad_pose_answer", "entity_pose.answer"),
+        ("bad_pose_state", "entity_pose.state"),
+    ] {
+        let driven = drive(&healthy(""), &[("mode", mode)]);
+        let outcome = driven.result.clone();
+        assert!(outcome.is_ok(), "{mode}: {outcome:?}\n{}", driven.rows);
+        let row = authority(&driven);
+        assert_eq!(row["completed"], false, "{mode}");
+        assert_eq!(
+            row["failure_marker"], marker,
+            "{mode}: the pose's own marker, never the candidate's, the scan's or the narrow phase's"
+        );
+        assert_eq!(
+            (
+                row["pose_altered"].clone(),
+                row["scan_altered"].clone(),
+                row["candidate_altered"].clone(),
+                row["altered"].clone()
+            ),
+            (Value::from(1), Value::from(0), Value::from(0), Value::from(0)),
+            "{mode}"
+        );
+        assert_eq!(
+            (row["pose_after"].clone(), row["pose_stage_offer"].clone()),
+            (Value::from(1), Value::from(1)),
+            "{mode}: the first armed observation, and nothing after the fatal"
+        );
+        assert_eq!(
+            (row["candidate_after"].clone(), row["entity_after"].clone()),
+            (Value::from(0), Value::from(0)),
+            "{mode}: the observation is asked before the candidate's first question, so nothing downstream"
+        );
+        assert_eq!(row["case_weapons_pending"], -1, "{mode}: the cohort is not counted after the stop");
+        assert_eq!(row["contact_any_tests_delta"], -1, "{mode}: no counter is read from a stopped engine");
+        assert_eq!(row["contact_any_hits_delta"], -1, "{mode}: unknown stays unknown");
+    }
+    // the old markers are not credited to a pose mode, and a witness failure cannot pose as the host withholding an answer
+    for old in ["entity_candidate.callback", "entity_scan.callback", "entity_collision.callback"] {
+        let error = error_of(drive(
+            &healthy(&format!(", engine_stop = {{ after = 1, marker = '{old}' }}")),
+            &[("mode", "withheld_pose")],
+        ));
+        assert!(
+            error.contains(&format!("stopped at [model-provider:{old}], not at [model-provider:entity_pose.callback]")),
+            "{old}: {error}"
+        );
+    }
+    for scenario in [
+        "engine_stop = { after = 1, marker = 'entity_pose.callback', text_only = true }",
+        "engine_stop = { after = 1, marker = 'x', wrapper = 'eech: EECH fatal error: host model: [model-provider:entity_pose.callback] x' }",
+    ] {
+        let error = error_of(drive(&healthy(&format!(", {scenario}")), &[("mode", "withheld_pose")]));
+        assert!(error.contains("an unrecognised failure, not the engine's known fatal"), "{scenario}: {error}");
+    }
+    // a stop at the pose's own marker that the provider did not cause is not credited, and a flight that never asks the host completes without the stop: a failure
+    let error = error_of(drive(
+        &healthy(", engine_stop = { after = 1, marker = 'entity_pose.callback' }"),
+        &[("mode", "withheld_pose")],
+    ));
+    assert!(error.contains("without the provider having altered"), "{error}");
+    let error = error_of(drive(&healthy(", no_pose_questions = true"), &[("mode", "withheld_pose")]));
+    assert!(error.contains("the engine did not stop at entity_pose.callback"), "{error}");
+    // "no identity" is altered only for a question that NAMED one: an unnamed observation is not the eligible question, so the mode completes without its stop
+    let error = error_of(drive(&healthy(", unnamed_pose = true"), &[("mode", "bad_pose_state")]));
+    assert!(error.contains("the engine did not stop at entity_pose.state"), "{error}");
+}
+
+#[test]
+fn the_pose_observation_follows_the_scan_the_empty_enumeration_prevents_it_and_the_original_profile_asks_none() {
+    // the paired control reaches the candidate dialogue and therefore the observation; the empty enumeration prevents every downstream question, the observation included
+    let (driven, row) = scan_row("", "scan_real");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(row["pose_after"], 1, "the paired control observes the mobile candidate");
+    let (driven, row) = scan_row("", "scan_none");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(row["pose_after"], 0, "no candidate was offered, so nothing was observed");
+    // a campaign that observes a mobile after the host ended the scan, with no candidate or narrow-phase question, is a failure of the variant on the observation alone
+    let error = error_of(drive(&healthy(", pose_after_none = true"), &[("mode", "scan_none")]));
+    assert!(
+        error.contains("still asked 0 entity_candidate, 0 entity_collision and 1 entity_pose questions after every enumeration was empty"),
+        "{error}"
+    );
+    // the Original profile (the fixture API and the real caller, no hosted module) asks the host nothing
+    let driven = drive(&healthy(", fixture_api = true, original_tests = true"), &[("profile", "original")]);
+    let row = authority(&driven);
+    assert_eq!(row["pose_after"], 0);
+    assert_eq!(row["pose_before"], 0);
 }

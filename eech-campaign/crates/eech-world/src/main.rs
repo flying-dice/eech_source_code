@@ -1334,6 +1334,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let next_host_id = Rc::new(Cell::new(1_u64));
     // The host's physical record of each alive ground vehicle, ship and infantryman, keyed by the identity issued below.
     let movers = Rc::new(RefCell::new(Movers::default()));
+    // the model provider observes the same registry (ENTITY_POSE): shared by handle, not copied
+    lua.set_app_data(eech_world::movement::SharedMovers(movers.clone()));
     {
         let next_host_id = next_host_id.clone();
         let movers = movers.clone();

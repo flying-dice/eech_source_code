@@ -485,6 +485,9 @@ extern int campaign_model_entity_collision (int scene, const float *segment_old,
 #define CAMPAIGN_OFFER_UPDATED(E) get_local_entity_int_value ((E), INT_TYPE_UPDATED)
 #define CAMPAIGN_OFFER_TERRAIN_NORMAL(X,Z,OUT) do { vec3d offer_normal; get_3d_terrain_face_normal (&offer_normal, (X), (Z)); memcpy ((OUT), &offer_normal, sizeof (vec3d)); } while (0)
 #define CAMPAIGN_OFFER_DELTA_TIME() get_delta_time ()
+#define CAMPAIGN_OFFER_TYPE(E) get_local_entity_type ((E))
+#define CAMPAIGN_OFFER_ALIVE(E) get_local_entity_int_value ((E), INT_TYPE_ALIVE)
+#define CAMPAIGN_OFFER_HOST_ID(E) campaign_roster_host_id ((E))
 
 #include "entity/mobile/mb_hostoffer.h"
 

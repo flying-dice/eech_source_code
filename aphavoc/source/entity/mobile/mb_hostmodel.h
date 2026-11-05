@@ -168,6 +168,12 @@
  *              index crosses: an entry is named by the host's cursor only. A state the phase does not allow (an excluded entry offered, a resolved hit continued, a served entry that is not offered or
  *              skipped, a cursor that is not whole numbers inside the map), a refusal, a missing provider or a scan that does not end in a bounded number of questions stops the engine by marker.
  *
+ *   ENTITY_POSE        an OBSERVATION of the live pose of a mobile candidate (EEDCS-49, D3, fifth slice; see campaign_model_pose_class above): the campaign names the candidate by its semantic host
+ *              identity and offers the words it read, and the host reports whether it keeps a physical record of that identity (the one its movement steps use) and how the words compare with it.
+ *              It exists to characterise the collaborator contract (which mobile offers have an identity and a record, and whether the campaign's mirror, its vehicle motion vector and its writes
+ *              outside the host's steps agree with the record) BEFORE a candidate's pose is taken from the host. It changes no decision, no read the original made and no order: it is asked
+ *              beside the original's reads, nothing is skipped or reordered for it, and no entity pointer, index or heap layout crosses.
+ *
  * The bounds and the radius are copied once, at boot, into immutable tables owned by this module (host-authored data, valid for the life of the process and never
  * written again). Callers hold the bounds pointer across loop iterations, so it must be stable; a rotating cache would not be. The tables are a snapshot of the host's
  * answers, not an authority of the campaign's own.
@@ -208,7 +214,51 @@ enum campaign_model_op
 	CAMPAIGN_MODEL_TARGET_POINT_FIXED,
 	CAMPAIGN_MODEL_ENTITY_COLLISION,
 	CAMPAIGN_MODEL_ENTITY_CANDIDATE,
-	CAMPAIGN_MODEL_ENTITY_SCAN
+	CAMPAIGN_MODEL_ENTITY_SCAN,
+	CAMPAIGN_MODEL_ENTITY_POSE
+};
+
+/* ENTITY_POSE (EEDCS-49, D3, fifth slice; an OBSERVATION): the words the campaign read from a mobile candidate, offered to the host beside the candidate's semantic host identity, and what the host
+   makes of them. `pose_count` is 15: the position (3) and the motion vector (3) (STAGE_OFFER, read for every mobile candidate as the original read them), or those and the attitude (9) (STAGE_PLACEMENT,
+   read when the broad phase passed); the words of a stage that was not read are zero. `depth` is the stage, `kind` the entity's type, `definition` whether it is alive (0 or 1), `key` its host identity
+   (empty when the roster has none). The reply: `candidate_state` the class (campaign_model_pose_class), `candidate_count` the kind of the host's record (0 none, 1 routed vehicle, 2 ship, 3 person,
+   4 fixed-wing aircraft, 5 helicopter) and `write_mask` the differences (campaign_model_pose_difference bits). NOTHING DECIDES FROM THE ANSWER: it is recorded and its shape checked, no physical
+   result depends on it, and a candidate is offered, tested and skipped exactly as without it. */
+#define CAMPAIGN_MODEL_POSE_FACTS 15
+#define CAMPAIGN_MODEL_POSE_HOST_ID_MAX 127
+
+enum campaign_model_pose_stage
+{
+	CAMPAIGN_POSE_STAGE_OFFER = 0,
+	CAMPAIGN_POSE_STAGE_PLACEMENT
+};
+
+enum campaign_model_pose_class
+{
+	/* the host holds a record of the identity: the differences say how it compares with the campaign's words */
+	CAMPAIGN_MODEL_POSE_RECORDED = 1,
+	/* the host issued the identity to a member it keeps no movement record for */
+	CAMPAIGN_MODEL_POSE_UNRECORDED,
+	/* the host retired the identity */
+	CAMPAIGN_MODEL_POSE_RETIRED,
+	/* the host never issued the identity (or does not keep movers at all) */
+	CAMPAIGN_MODEL_POSE_UNKNOWN,
+	/* the campaign has no identity for the candidate */
+	CAMPAIGN_MODEL_POSE_NO_ID
+};
+
+enum campaign_model_pose_difference
+{
+	/* the campaign's position is not bit for bit the host record's */
+	CAMPAIGN_POSE_DIFFERS_POSITION = 1,
+	/* the campaign's attitude is not bit for bit the host record's (STAGE_PLACEMENT only) */
+	CAMPAIGN_POSE_DIFFERS_ATTITUDE = 2,
+	/* the host holds a motion vector for the record and the campaign's is not bit for bit it */
+	CAMPAIGN_POSE_DIFFERS_MOTION = 4,
+	/* the host holds NO motion vector for the record (every kind but an aircraft, and a vehicle that is not a wreck) */
+	CAMPAIGN_POSE_NO_HELD_MOTION = 8,
+	/* the campaign's motion vector is not the record's attitude row 2 times the record's speed (the original's vehicle formula, computed from the HOST's record) */
+	CAMPAIGN_POSE_DIFFERS_FORMULA = 16
 };
 
 /* ENTITY_SCAN: the floats of the question, where each is, its phases and the states of the answer (the cursor is `candidate[0..2]` of the reply) */
@@ -405,5 +455,10 @@ int campaign_model_entity_candidate (int scene, const float *facts, float *pose,
 /* ENTITY_SCAN: asks the host what to do next in the enumeration of the scan from `facts` (CAMPAIGN_MODEL_SCAN_FACTS floats, see above). The reply is checked completely; the returned state is a
    campaign_model_scan_state and, for FIRST, `cursor` receives the two sector indices (whole numbers inside the map). */
 int campaign_model_entity_scan (const float *facts, float *cursor);
+
+/* ENTITY_POSE: offers the host the words of a mobile candidate (`words`, CAMPAIGN_MODEL_POSE_FACTS floats, see above) beside its `host_id` (NULL or empty when the campaign has none) and returns the class
+   of the host's answer (campaign_model_pose_class). The reply's shape is checked completely and the answer is observed, never decided from. A host identity too long for the request is not asked
+   (CAMPAIGN_MODEL_POSE_HOST_ID_MAX bytes) and returns 0. */
+int campaign_model_entity_pose (int stage, int entity_type, int alive, const char *host_id, const float *words);
 
 #endif
