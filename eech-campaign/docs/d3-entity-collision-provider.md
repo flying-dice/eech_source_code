@@ -1,6 +1,6 @@
 # D3 entity/object collision: the host-owned narrow phase (EEDCS-49, second slice)
 
-3 November 2026, status refreshed 5 November 2026. **The narrow phase is native-validated for the FINITE STATIONARY handoff only (corrected source `f153`/`7ead`; [`finite-authority/`](../reference/d3-entity-collision/finite-authority/README.md)); the moving public path, the physical scan and Task 49 are NOT accepted.** The body below is the dated 3 to 5 November account; its statements about runs are updated in place where they have since changed. This is the
+3 November 2026, status refreshed 5 November 2026; the third slice (the per-candidate decisions, see "The scan") was added the same day as SOURCE and Linux checks only. **The narrow phase is native-validated for the FINITE STATIONARY handoff only (corrected source `f153`/`7ead`; [`finite-authority/`](../reference/d3-entity-collision/finite-authority/README.md)); the moving public path, the physical scan and Task 49 are NOT accepted.** The body below is the dated 3 to 5 November account; its statements about runs are updated in place where they have since changed. This is the
 *entity/object* slice of Task 49 (the tree slice is [d3-tree-collision-provider.md](d3-tree-collision-provider.md)). It is not Task 49 and not D3.
 
 ## What `get_line_of_sight_collision_entity` is, from source
@@ -16,9 +16,10 @@ Inputs and where they come from (all measured or read, none assumed):
 | Input | Source | Owner after this slice |
 |---|---|---|
 | segment ends, excluded source/target (the caller's point/normal buffers are outputs and are never read) | callers (`mb_hostlos.c`, `mb_tgt.c`, `wn_move.c` COLLISION lookup, gunship avionics/`co_force.c`) | campaign (unchanged) |
-| sector window, sector lists, tail-first order, exclusion, `TALLEST_STRUCTURE_HEIGHT` skip, city box, mobile/fixed/moving classification, the broad-phase radius test | campaign entities and the host-authored radius table | **campaign, declared transitional coupling** |
-| moving sweep ends (`UPDATED` flag, motion vector, `get_delta_time`) | campaign entity state; the destructive `UPDATED` getter keeps its place because the scan is untouched | campaign |
-| stationary placement (position, heading, terrain-aligned normal) | campaign entity state and the terrain question `get_3d_terrain_face_normal`, asked only when the broad phase passed, as before | campaign (derived in the original's order) |
+| sector window, sector lists, tail-first order, the source/target exclusion, that an entity with neither collision flag is never offered | campaign entities (the sector lists ARE the campaign's membership) | **campaign, declared transitional coupling** |
+| `TALLEST_STRUCTURE_HEIGHT` skip, mobile/fixed/city branch, moving classification, the broad-phase box of radius + 10 m (the host's radius table), the city's height-then-xz box, a building listed directly in a sector | the facts the campaign reads, and the host's model data | **host (third slice, moved)** |
+| moving sweep ends (from the `UPDATED` answer, motion vector, `get_delta_time`) | the host decides from facts; the destructive `UPDATED` getter is performed by the campaign exactly when the host names it | **host decides, campaign performs the getter** |
+| stationary placement (position, heading, terrain-aligned normal) | the host derives the placement; the terrain question `get_3d_terrain_face_normal` is asked by the campaign when the host names it, once the broad phase passed | **host decides, campaign performs the terrain question** |
 | the model: collision triangles (one depth at a time), bounding box without lines | the host's final announced-order `ModelStore` (Task 50) | host |
 | transform of the model into the world, which sweep positions a moving candidate tests (speed against body length), face order, intersection arithmetic, partial writes | `accurate_stationary_bounding_box_collision_test`, `accurate_moving_bounding_box_collision_test`, `vector.c` | **host (moved)** |
 
@@ -36,6 +37,40 @@ The reference host answers with `csrc/entity_step.c` (the original expression fo
 line in each, which records the assignment of the point and changes no arithmetic; a test compares the two copies with those lines removed) driven by `src/entity_host.rs`, which, as
 the tree kernel does, requires every floating-point exception masked, runs under round-toward-zero and hands the caller's complete state back. The model data is the *same* final store
 the other model operations read: no second loader or cache.
+
+## The scan: the per-candidate decisions (third slice, 5 November 2026; source and Linux checks only)
+
+`get_line_of_sight_collision_entity` in the ordinary module (`EECH_CAMPAIGN_HOST_ENTITY`) no longer decides anything about a candidate. The campaign walks the sector window and each sector list from the tail,
+skips the source and the target, and **offers** every entity that has a collision flag (`offer_candidate_to_host`, `en_cllsn.c`). The host decides (`ENTITY_CANDIDATE`, `mb_hostmodel.h`; the reference host is
+`csrc/entity_candidate_step.c`, the original's expressions): the sector's tallest-structure skip of everything that is not mobile, the branch (mobile first; then the fixed flag, a city, a building listed
+directly in a sector, any other), whether a mobile candidate is moving (`|motion|^2 > 1`), a moving candidate's sweep ends, the broad-phase box of the scene's radius + 10 m with its strict boundaries, a
+city's height-then-xz box and a stationary fixed candidate's placement. The question carries 42 facts (layout in `mb_hostmodel.h`); the answer is one of five states.
+
+| state | meaning | what the campaign does |
+|---|---|---|
+| `SKIP` | nothing more for this candidate | continues with the next one |
+| `NEED_UPDATED` | a moving mobile candidate needs the `UPDATED` answer | performs the destructive getter, once, and asks again with fact 20 |
+| `NEED_NORMAL` | a terrain-aligned fixed candidate passed the broad phase | asks the terrain for the face normal at its position (the terrain question and its shared-record effects, at the place the original asked it) and asks again |
+| `BUILDINGS` | a city's box is met | offers the city's buildings in its list order, each as a building under the city (no second sector skip); the first hit ends the scan |
+| `TEST` | the narrow phase is required, with the pose (12 or 16 floats) | sends the existing `ENTITY_COLLISION` question with that pose; a hit returns the candidate, a miss continues, and the partial writes are the narrow phase's |
+
+The question is a pure function of its facts: nothing is kept between questions, so the decision is the one the original made in a single pass, and a candidate that needs a service is simply asked again with the answer.
+Every reply is checked completely (`mb_hostentity.h`, `check_candidate_reply`): a state the facts do not allow (`NEED_UPDATED` for a candidate that is not mobile or already has the flag, `NEED_NORMAL` for one that
+does not align or already has the normal, `BUILDINGS` for a non-city), a pose of another size or with a non-finite float, another scene's name, a city that is given a scene and a refusal stop the engine by marker;
+a refusal is never a skip. **No entity identity crosses**: a candidate is named only by the order the campaign offers it, and the host holds no roster or state.
+
+**What the campaign reads for the facts** is valid for every entity the original reached the same branch for: the collision flags (mobile first, fixed only of what is not mobile); for a mobile candidate its shape,
+position, motion vector and attitude; for a city its position, bounding box and whether it has a first building; for any other fixed candidate its shape, position, heading and align-with-terrain flag. All are plain
+getters; the only getters with effects (`UPDATED`, the terrain normal) are performed on the host's request. A candidate with an invalid shape is refused by name at its offer, where the original asserted at its test; the
+characterisation's census refuses such worlds up front, so no retail world is expected to reach it. The debug drawing of the collision boxes (`draw_collision_boxes`) is not carried in the hosted module.
+
+**Evidence (Linux, pinned image; nothing native).** `tests/entity_candidate_host.rs` (8 tests): a contract for each branch; and a DIFFERENTIAL of the whole scan, the original's control flow and arithmetic transcribed from
+the source against the same scan driven by the host's decisions as `offer_candidate_to_host` drives them, over 400 generated worlds with six segments each (quarter-unit coordinates so boundary equalities occur): both
+must return the same entity and the SAME TRANSCRIPT of `UPDATED` reads, terrain questions and narrow-phase poses, bit for bit, in the same order. Five mutants of the kernel (the moving test `>=`, the `UPDATED`
+meaning inverted, the sector skip `>=`, a strict broad-phase comparison, a strict city height comparison) each fail it (exit 101) and the file was restored byte for byte. The isolated C control
+(`eech_entity_dialogue_check.c`, 170 expectations) exercises the campaign's REAL half of the dialogue (`mb_hostentity.h`) against a scripted host: the 42 facts sent bit for bit, the five states, the pose, and each
+refusal by marker. The campaign's scan loop itself (`en_cllsn.c`) is C that needs the engine and is exercised natively only: the Rust transcription of it in the differential is a model, not that code. The compile guard
+(`entity_host_guard`) shows the ordinary module holds none of the original's decisions and the original profile keeps all of them.
 
 ## The output contract (review finding ENV-ENTITY-CALLER-BUFFER-1)
 
@@ -62,15 +97,19 @@ protocol.
 
 ## What did NOT move (declared, required, not hidden)
 
-This first slice is the **narrow phase** only. It is not whole entity/object collision, and nothing below is optional or dormant.
+The narrow phase (first slice) and the per-candidate decisions (third slice) have moved. It is still not whole entity/object collision, and nothing below is optional or dormant.
 
-* **Core sector traversal and the physical broad phase stay in Core and are still required to move.** The sector window of the segment, the sector entity lists, the tail-first
-  order, the exclusions of the source and target, the `TALLEST_STRUCTURE_HEIGHT` skip, the radius + 10 m broad-phase test, the city-level box and the classification of a candidate
-  (collidable mobile or fixed, moving or stationary) are a physical scan over campaign-held entity state. So are the live pose derivation and its side effects: the destructive
-  `UPDATED` getter (it ANDs the whole flag word, so it is a real query side effect whose order matters), the motion vector and delta time of a moving sweep, and a terrain-aligned fixed
-  object's `get_3d_terrain_face_normal` (it writes the shared terrain point record, and is asked only after the broad phase passed). They keep their place because the scan was not
-  touched. Moving them needs the host to hold, or be told, the live collidable roster (poses, scales, child state) with those side effects accounted for: that is the next Task 49 / D3 work
-  and needs a characterised contract, not a guess. **The entity/object collision responsibility is not finished.**
+* **The enumeration of candidates stays in Core and is still required to move: the sector window of the segment, the sector lists and their order, the exclusions of the source and target, and the reads of
+  each entity's own state.** The concrete missing fact is where the order comes from. The first hit ends the scan and a farther object in an earlier-scanned sector wins over a nearer one, so the result
+  depends on (x outer, z inner) sector order and on each list's insertion history (mobiles tend to sit at the head and are visited last). That history is campaign state; the host has no copy of it, no
+  entity identity crosses, and a host-held roster would be a second authoritative physical store that must follow every position write, sector relink and release (the campaign mutates positions, the
+  `UPDATED` flags and the sector membership continuously). A bounded way to move the enumeration is a host-held roster mirror with a stated synchronisation contract, or a host-driven cursor over the campaign's
+  lists; both need the roster's semantic identities and the live pose of every collidable, which are the REQUIRED live-pose/roster work, not guessed here. The window's 150 m widening and the clamp to the map
+  edges are arithmetic over the campaign's map constants and have no effect except to prune the enumeration (an entity beyond them cannot pass a radius + 10 m box unless its radius exceeds 140 m: not shown
+  here), so they move with the enumeration. **The entity/object collision responsibility is not finished.**
+* **The reads of an entity's state.** The facts are copied from the entity by the campaign (flags, shape, position, motion vector, attitude, heading, align flag, a city's box and first building), and the two
+  getters that have effects of their own (the destructive `UPDATED` getter, which ANDs the whole flag word, and `get_3d_terrain_face_normal`, which writes the shared terrain point record) are performed by the
+  campaign when the host names them. They keep their place and order exactly; they leave only with the roster.
 * **Callers.** The hosted line-of-sight module `mb_hostlos.c`, the weapon-step collision lookup `wn_move.c` and the original-LOS caller `mb_tgt.c` call the unchanged function. The
   gunship avionics (`co_eo.c`, `co_hms.c`, `co_radar.c`) and `co_force.c` (which also reads `normal`) are compiled and call it too. **Whether the gunship callers are reachable from the
   supported headless runtime is unproved here, so no dormancy exclusion is made**: each stays a consumer of the same function and of the same host-asked narrow phase.

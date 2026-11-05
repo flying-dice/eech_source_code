@@ -9,6 +9,10 @@
  * are outputs, not inputs.  Where the platform has memory protection the buffers are placed on pages that cannot be read: a dialogue that read, loaded, copied or forwarded a word
  * of a buffer the original had not assigned would fault.  Elsewhere the same cases run on ordinary buffers and the request is compared across two different buffer contents.
  *
+ * The same control covers the campaign's half of the host's per-candidate decisions (ENTITY_CANDIDATE, mb_hostentity.h): what is sent (the 42 facts, bit for bit, in the order of
+ * mb_hostmodel.h), what is accepted (each of the five states, the narrow phase pose of 12 or 16 floats, a city's empty name) and what stops the engine (a state the facts do not allow, a pose
+ * of another size or with a non-finite float, another scene's name, a city with a scene, a refusal).
+ *
  * eech_entity_dialogue_check_run returns the number of failed expectations (0: all held) and writes one line per failure; *checks is the number of expectations made.
  */
 
@@ -45,6 +49,15 @@ struct scripted_answer
 	const char *name;
 };
 
+struct scripted_candidate
+{
+	int state;
+	int count;
+	uint32_t pose[16];
+	const char *name;
+};
+
+static struct scripted_candidate decision;
 static struct scripted_answer answer;
 static campaign_model_request seen;
 static int asks;
@@ -76,6 +89,16 @@ static void scripted_ask (campaign_model_request *request, campaign_model_reply 
 		debug_fatal ("host model: [model-provider:callback] the scripted host refused");
 	}
 
+	if (request->op == CAMPAIGN_MODEL_ENTITY_CANDIDATE)
+	{
+		reply->candidate_state = decision.state;
+		reply->candidate_count = decision.count;
+		memcpy (reply->candidate, decision.pose, sizeof (decision.pose));
+		strncpy (reply->name, decision.name, sizeof (reply->name) - 1);
+
+		return;
+	}
+
 	reply->result = answer.result;
 	reply->write_mask = answer.write_mask;
 	memcpy (reply->points, answer.words, sizeof (answer.words));
@@ -101,6 +124,7 @@ static void scripted_identity (const campaign_model_reply *reply, int scene)
 #define CAMPAIGN_ENTITY_REQUIRE_SCENE(SCENE) scripted_scene (SCENE)
 #define CAMPAIGN_ENTITY_ASK(REQUEST,REPLY) scripted_ask ((REQUEST), (REPLY))
 #define CAMPAIGN_ENTITY_IDENTITY(REPLY,SCENE) scripted_identity ((REPLY), (SCENE))
+#define CAMPAIGN_ENTITY_CANDIDATE_ASK(REQUEST,REPLY) scripted_ask ((REQUEST), (REPLY))
 
 #include "entity/mobile/mb_hostentity.h"
 
@@ -312,6 +336,217 @@ static void expect_refusal (struct tc *t, const char *label, const char *marker,
 	buffer_free (&normal);
 }
 
+
+/* ---- ENTITY_CANDIDATE ---- */
+
+static void script_candidate (int state, int count, const char *name)
+{
+	int i;
+
+	memset (&decision, 0, sizeof (decision));
+	decision.state = state;
+	decision.count = count;
+	decision.name = name;
+
+	for (i = 0; i < count; i++)
+	{
+		/* a signed zero, a subnormal and ordinary numbers: all finite, all exact */
+		static const uint32_t finite[4] = { 0x80000000u, 0x00000001u, 0x3f800000u, 0xc2c80000u };
+
+		decision.pose[i] = finite[i % 4];
+	}
+}
+
+/* the facts of a candidate of one kind: odd but finite words everywhere, then the flags that make the kind */
+static void make_facts (float *facts, int mobile, int fixed, int city, int has_buildings, int of_city, int align)
+{
+	int i;
+
+	for (i = 0; i < CAMPAIGN_MODEL_CANDIDATE_FACTS; i++)
+	{
+		facts[i] = (float) i + 0.25f;
+	}
+
+	facts[CAMPAIGN_CANDIDATE_MOBILE] = (float) mobile;
+	facts[CAMPAIGN_CANDIDATE_FIXED] = (float) fixed;
+	facts[CAMPAIGN_CANDIDATE_CITY] = (float) city;
+	facts[CAMPAIGN_CANDIDATE_CITY_BUILDING] = 0.0f;
+	facts[CAMPAIGN_CANDIDATE_OF_CITY] = (float) of_city;
+	facts[CAMPAIGN_CANDIDATE_HAS_BUILDINGS] = (float) has_buildings;
+	facts[CAMPAIGN_CANDIDATE_UPDATED] = 0.0f;
+	facts[CAMPAIGN_CANDIDATE_ALIGN] = (float) align;
+	facts[CAMPAIGN_CANDIDATE_NORMAL_GIVEN] = 0.0f;
+}
+
+struct candidate_outcome
+{
+	int stopped, state, pose_count;
+	float pose[16];
+};
+
+static struct candidate_outcome ask_candidate (int scene, const float *facts)
+{
+	struct candidate_outcome o;
+
+	memset (&o, 0, sizeof (o));
+	fatal_text[0] = '\0';
+	asks = 0;
+
+	if (setjmp (fatal_jump) == 0)
+	{
+		o.state = campaign_entity_candidate_exchange (scene, facts, o.pose, &o.pose_count);
+	}
+	else
+	{
+		o.stopped = TRUE;
+	}
+
+	return (o);
+}
+
+static void expect_candidate_refusal (struct tc *t, const char *label, const char *marker, int scene, const float *facts, int line)
+{
+	struct candidate_outcome o = ask_candidate (scene, facts);
+	char what[160];
+
+	snprintf (what, sizeof (what), "%s: stopped", label);
+	tc_expect (t, o.stopped, what, line);
+	snprintf (what, sizeof (what), "%s: stopped at %s (said: %.80s)", label, marker, fatal_text);
+	tc_expect (t, strstr (fatal_text, marker) != NULL, what, line);
+	snprintf (what, sizeof (what), "%s: no pose was handed over", label);
+	tc_expect (t, o.pose_count == 0, what, line);
+}
+
+static void candidate_cases (struct tc *t)
+{
+	float facts[CAMPAIGN_MODEL_CANDIDATE_FACTS], more[CAMPAIGN_MODEL_CANDIDATE_FACTS];
+	struct candidate_outcome o;
+	int i, same;
+
+	/* the question: exactly the 42 facts, bit for bit, in the layout the header names, for the scene, and nothing else */
+	make_facts (facts, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE);
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0, SCENE_NAME);
+	memset (&seen, 0x7e, sizeof (seen));
+	o = ask_candidate (7, facts);
+	EXPECT (t, !o.stopped && o.state == CAMPAIGN_MODEL_CANDIDATE_SKIP && o.pose_count == 0 && asks == 1);
+	EXPECT (t, seen.op == CAMPAIGN_MODEL_ENTITY_CANDIDATE && seen.scene == 7 && seen.pose_count == CAMPAIGN_MODEL_CANDIDATE_FACTS);
+	same = TRUE;
+	for (i = 0; i < CAMPAIGN_MODEL_CANDIDATE_FACTS; i++)
+	{
+		same = same && (memcmp (&seen.pose[i], &facts[i], sizeof (float)) == 0);
+	}
+	EXPECT (t, same);
+
+	/* each state the facts allow is accepted, and only TEST carries a pose */
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_NEED_UPDATED, 0, SCENE_NAME);
+	o = ask_candidate (7, facts);
+	EXPECT (t, !o.stopped && o.state == CAMPAIGN_MODEL_CANDIDATE_NEED_UPDATED && o.pose_count == 0);
+
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_TEST, 16, SCENE_NAME);
+	o = ask_candidate (7, facts);
+	EXPECT (t, !o.stopped && o.state == CAMPAIGN_MODEL_CANDIDATE_TEST && o.pose_count == 16);
+	same = TRUE;
+	for (i = 0; i < 16; i++)
+	{
+		same = same && (memcmp (&o.pose[i], &decision.pose[i], sizeof (float)) == 0);
+	}
+	EXPECT (t, same);
+
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_TEST, 12, SCENE_NAME);
+	o = ask_candidate (7, facts);
+	EXPECT (t, !o.stopped && o.state == CAMPAIGN_MODEL_CANDIDATE_TEST && o.pose_count == 12);
+
+	/* a stationary fixed candidate aligned with the terrain may ask for the face normal, once */
+	make_facts (more, FALSE, TRUE, FALSE, FALSE, FALSE, TRUE);
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_NEED_NORMAL, 0, SCENE_NAME);
+	o = ask_candidate (7, more);
+	EXPECT (t, !o.stopped && o.state == CAMPAIGN_MODEL_CANDIDATE_NEED_NORMAL);
+
+	/* a city has no scene of its own: scene 0 and an empty name; its buildings are named only when it has one */
+	make_facts (more, FALSE, TRUE, TRUE, TRUE, FALSE, FALSE);
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_BUILDINGS, 0, "");
+	o = ask_candidate (0, more);
+	EXPECT (t, !o.stopped && o.state == CAMPAIGN_MODEL_CANDIDATE_BUILDINGS && seen.scene == 0);
+
+	/* a building listed under a city may be moving only if it is mobile: a stationary pose of 12 is fine for any */
+	make_facts (more, FALSE, TRUE, FALSE, FALSE, TRUE, FALSE);
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_TEST, 12, SCENE_NAME);
+	o = ask_candidate (9, more);
+	EXPECT (t, !o.stopped && o.state == CAMPAIGN_MODEL_CANDIDATE_TEST && o.pose_count == 12);
+
+	/* refusals: each stops the engine with its marker and hands nothing over */
+	make_facts (facts, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE);
+
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0, SCENE_NAME);
+	refuse_the_exchange = TRUE;
+	expect_candidate_refusal (t, "the host refuses the exchange", "model-provider:callback", 7, facts, __LINE__);
+	refuse_the_exchange = FALSE;
+
+	expect_candidate_refusal (t, "scene 0 for a candidate that is not a city", "scene.index", 0, facts, __LINE__);
+	expect_candidate_refusal (t, "a scene beyond the catalogue", "scene.index", SCENES, facts, __LINE__);
+
+	script_candidate (0, 0, SCENE_NAME);
+	expect_candidate_refusal (t, "state 0", "entity_candidate.state", 7, facts, __LINE__);
+	script_candidate (6, 0, SCENE_NAME);
+	expect_candidate_refusal (t, "state 6", "entity_candidate.state", 7, facts, __LINE__);
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_SKIP, 12, SCENE_NAME);
+	expect_candidate_refusal (t, "a skip that carries a pose", "entity_candidate.pose", 7, facts, __LINE__);
+
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0, "OTHER");
+	expect_candidate_refusal (t, "another scene's name", "entity_collision.identity", 7, facts, __LINE__);
+
+	/* the UPDATED flag is asked of a mobile candidate once: not of a fixed one, not of a building under a city, not again */
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_NEED_UPDATED, 0, SCENE_NAME);
+	make_facts (more, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE);
+	expect_candidate_refusal (t, "UPDATED asked of a fixed candidate", "entity_candidate.state", 7, more, __LINE__);
+	make_facts (more, TRUE, FALSE, FALSE, FALSE, TRUE, FALSE);
+	expect_candidate_refusal (t, "UPDATED asked of a building under a city", "entity_candidate.state", 7, more, __LINE__);
+	make_facts (more, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE);
+	more[CAMPAIGN_CANDIDATE_UPDATED] = 2.0f;
+	expect_candidate_refusal (t, "UPDATED asked again", "entity_candidate.state", 7, more, __LINE__);
+
+	/* the terrain's face normal is asked of a fixed candidate that aligns with the terrain, once */
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_NEED_NORMAL, 0, SCENE_NAME);
+	make_facts (more, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE);
+	expect_candidate_refusal (t, "a normal asked of a candidate that does not align", "entity_candidate.state", 7, more, __LINE__);
+	make_facts (more, FALSE, TRUE, FALSE, FALSE, FALSE, TRUE);
+	more[CAMPAIGN_CANDIDATE_NORMAL_GIVEN] = 1.0f;
+	expect_candidate_refusal (t, "a normal asked again", "entity_candidate.state", 7, more, __LINE__);
+	make_facts (more, TRUE, FALSE, FALSE, FALSE, FALSE, TRUE);
+	expect_candidate_refusal (t, "a normal asked of a mobile candidate", "entity_candidate.state", 7, more, __LINE__);
+
+	/* buildings are named only for a city that has one */
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_BUILDINGS, 0, SCENE_NAME);
+	make_facts (more, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE);
+	expect_candidate_refusal (t, "buildings named for a candidate that is not a city", "entity_candidate.state", 7, more, __LINE__);
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_BUILDINGS, 0, "");
+	make_facts (more, FALSE, TRUE, TRUE, FALSE, FALSE, FALSE);
+	expect_candidate_refusal (t, "buildings named for a city without one", "entity_candidate.state", 0, more, __LINE__);
+
+	/* the pose of a test: 12 or 16 finite floats, 16 only for a mobile candidate */
+	make_facts (facts, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE);
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_TEST, 13, SCENE_NAME);
+	expect_candidate_refusal (t, "a pose of 13 floats", "entity_candidate.pose", 7, facts, __LINE__);
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_TEST, 0, SCENE_NAME);
+	expect_candidate_refusal (t, "a test without a pose", "entity_candidate.pose", 7, facts, __LINE__);
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_TEST, 16, SCENE_NAME);
+	decision.pose[9] = 0x7f800000u;
+	expect_candidate_refusal (t, "an infinite float in the pose", "entity_candidate.pose", 7, facts, __LINE__);
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_TEST, 12, SCENE_NAME);
+	decision.pose[0] = 0x7fc00000u;
+	expect_candidate_refusal (t, "a NaN in the pose", "entity_candidate.pose", 7, facts, __LINE__);
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_TEST, 16, SCENE_NAME);
+	make_facts (more, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE);
+	expect_candidate_refusal (t, "a moving pose for a candidate that is not mobile", "entity_candidate.pose", 7, more, __LINE__);
+
+	/* a city with a scene, and a city that the host names */
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0, "");
+	make_facts (more, FALSE, TRUE, TRUE, TRUE, FALSE, FALSE);
+	expect_candidate_refusal (t, "a city with a scene of its own", "entity_candidate.request", 7, more, __LINE__);
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0, SCENE_NAME);
+	expect_candidate_refusal (t, "a city the host names", "entity_candidate.identity", 0, more, __LINE__);
+}
+
 int eech_entity_dialogue_check_run (char *text, int capacity, int *checks)
 {
 	struct tc t;
@@ -479,6 +714,8 @@ int eech_entity_dialogue_check_run (char *text, int capacity, int *checks)
 	script_masked (CAMPAIGN_MODEL_TRIANGLE_FOUND, CAMPAIGN_ENTITY_EVERYTHING_WRITTEN);
 	answer.write_mask = 0x3b;
 	expect_refusal (&t, "a point with one component missing", "entity_collision.write_mask", 7, 12, __LINE__);
+
+	candidate_cases (&t);
 
 	if (checks)
 	{

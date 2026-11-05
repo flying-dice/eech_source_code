@@ -447,152 +447,222 @@ static int get_3d_line_quad_face_intersection
 
 #ifdef EECH_CAMPAIGN_HOST_ENTITY
 
-// EEDCS-49 (D3): in the headless campaign module the physical test of a segment against ONE collision candidate is the host's (mb_hostmodel.h, ENTITY_COLLISION): the transform of the
-// model's collision triangles or bounding box into the world, the sweep positions tested for a moving candidate, the face order and the intersection arithmetic. The campaign keeps what is
-// its own: which candidates are visited and in what order (get_line_of_sight_collision_entity below, unchanged), the broad-phase radius test, and the candidate's live pose, derived below
-// from the entity state in the original's order (a terrain-aligned fixed object's placement included, so the terrain question it asks keeps its place). The caller's intercept point and face
-// normal go to the host and its final words come back whether or not the segment hits, as the original's intersection helpers left them. The original arithmetic below is not compiled into it;
-// the explicit original-characterisation profile (feature collision-fixture) keeps it.
+// EEDCS-49 (D3): in the headless campaign module the physical decisions of get_line_of_sight_collision_entity are the host's (mb_hostmodel.h, ENTITY_CANDIDATE and ENTITY_COLLISION). For each
+// candidate the campaign OFFERS, the host decides everything the original decided from the candidate's state: the tallest-structure skip of a sector, which branch applies, whether a mobile
+// candidate is moving, the sweep ends from the UPDATED answer and the frame time, the broad-phase box of radius + 10 m (the radius is the host's own model data), a city's box, and a
+// stationary fixed candidate's live pose; and the transform and intersection of the narrow phase (the candidate pose the host derived is what ENTITY_COLLISION is then asked about). The
+// caller's intercept point and face normal go to neither and their final words come back, whether or not the segment hits, as the original's intersection helpers left them. The original
+// arithmetic is not compiled into it; the explicit original-characterisation profile (feature collision-fixture) keeps it.
+//
+// What the campaign keeps, declared and required to move: WHICH candidates are offered and in what order (the sector window of the segment, the sector lists scanned from the tail, the exclusion
+// of the source and the target, and that an entity with neither collision flag is never offered: the sector lists and the entities' live state are the campaign's), the reads of the entity's own
+// state the host is given as facts, the two services with effects of their own that the host names when it needs them (the destructive UPDATED getter and the terrain face-normal question, each
+// performed exactly once, at the place the original performed it) and the consequences of a hit. The debug drawing of the collision boxes (draw_collision_boxes) is not carried: the host owns
+// the boxes, and the headless campaign has no external view.
+
+#include "entity/mobile/mb_hostmodel.h"
 
 extern int campaign_model_entity_collision (int scene, const float *segment_old, const float *segment_new, const float *candidate, int candidate_count, float *point, float *normal);
 
-static int accurate_stationary_bounding_box_collision_test
+// Offers one candidate to the host. `of_city` is TRUE for a building listed under a city whose box the host reported as met (the host does not apply the sector skip to it again). Returns the
+// entity that was hit, with the intercept point and face normal written as the original left them, or NULL.
+static entity *offer_candidate_to_host
 (
 	entity *target,
+	int of_city,
+	float sector_tallest_structure_height,
 	vec3d *source_old_position,
 	vec3d *source_new_position,
-	object_3d_index_numbers index_3d_object,
-	object_3d_bounds *bounding_box,
 	vec3d *source_intercept_point,
 	vec3d *face_normal
 )
 {
 	float
-		heading,
-		candidate [12];
+		facts [CAMPAIGN_MODEL_CANDIDATE_FACTS],
+		pose [CAMPAIGN_MODEL_CANDIDATE_POSE_MAX];
+
+	int
+		mobile,
+		fixed,
+		scene,
+		state,
+		pose_count;
 
 	vec3d
 		*position,
+		*motion_vector,
+		bounding_box_min,
+		bounding_box_max,
 		terrain_face_normal;
 
 	matrix3x3
 		attitude;
 
+	entity
+		*building,
+		*hit;
+
 	ASSERT (target);
 
-	ASSERT (source_old_position);
+	memset (facts, 0, sizeof (facts));
 
-	ASSERT (source_new_position);
+	facts [CAMPAIGN_CANDIDATE_SEGMENT_OLD + 0] = source_old_position->x;
+	facts [CAMPAIGN_CANDIDATE_SEGMENT_OLD + 1] = source_old_position->y;
+	facts [CAMPAIGN_CANDIDATE_SEGMENT_OLD + 2] = source_old_position->z;
 
-	ASSERT ((index_3d_object > OBJECT_3D_INVALID_OBJECT_INDEX) && (index_3d_object < OBJECT_3D_LAST));
-
-	ASSERT (bounding_box);
-
-	ASSERT (source_intercept_point);
-
-	ASSERT (face_normal);
+	facts [CAMPAIGN_CANDIDATE_SEGMENT_NEW + 0] = source_new_position->x;
+	facts [CAMPAIGN_CANDIDATE_SEGMENT_NEW + 1] = source_new_position->y;
+	facts [CAMPAIGN_CANDIDATE_SEGMENT_NEW + 2] = source_new_position->z;
 
 	//
-	// get target position and attitude
+	// the collision flags, read in the original's order: the mobile flag, and the fixed flag only of what is not mobile
 	//
 
-	if (get_local_entity_int_value (target, INT_TYPE_COLLISION_TEST_MOBILE))
+	mobile = (get_local_entity_int_value (target, INT_TYPE_COLLISION_TEST_MOBILE) != 0);
+
+	fixed = FALSE;
+
+	if (!mobile)
 	{
+		fixed = (get_local_entity_int_value (target, INT_TYPE_COLLISION_TEST_FIXED) != 0);
+	}
+
+	if ((!of_city) && (!mobile) && (!fixed))
+	{
+		// neither flag: the original did nothing with the entity, and it is not offered
+		return (NULL);
+	}
+
+	facts [CAMPAIGN_CANDIDATE_MOBILE] = (float) mobile;
+
+	facts [CAMPAIGN_CANDIDATE_FIXED] = (float) fixed;
+
+	facts [CAMPAIGN_CANDIDATE_OF_CITY] = (float) of_city;
+
+	facts [CAMPAIGN_CANDIDATE_TALLEST] = sector_tallest_structure_height;
+
+	facts [CAMPAIGN_CANDIDATE_DELTA_TIME] = get_delta_time ();
+
+	scene = 0;
+
+	position = NULL;
+
+	if (mobile)
+	{
+		scene = get_local_entity_int_value (target, INT_TYPE_OBJECT_3D_SHAPE);
+
 		position = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
+
+		motion_vector = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_MOTION_VECTOR);
 
 		get_local_entity_attitude_matrix (target, attitude);
+
+		memcpy (&facts [CAMPAIGN_CANDIDATE_MOTION], motion_vector, sizeof (vec3d));
+
+		memcpy (&facts [CAMPAIGN_CANDIDATE_ATTITUDE], attitude, 9 * sizeof (float));
 	}
-	else if (get_local_entity_int_value (target, INT_TYPE_COLLISION_TEST_FIXED))
+	else if ((!of_city) && (get_local_entity_type (target) == ENTITY_TYPE_CITY))
 	{
-		ASSERT (get_local_entity_type (target) != ENTITY_TYPE_CITY);
+		building = get_local_entity_first_child (target, LIST_TYPE_CITY_BUILDING);
+
+		facts [CAMPAIGN_CANDIDATE_CITY] = 1.0;
+
+		facts [CAMPAIGN_CANDIDATE_HAS_BUILDINGS] = (building != NULL);
 
 		position = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
 
-		heading = get_local_entity_float_value (target, FLOAT_TYPE_HEADING);
-
-		if (get_local_entity_int_value (target, INT_TYPE_ALIGN_WITH_TERRAIN))
+		if (building)
 		{
-			get_3d_terrain_face_normal (&terrain_face_normal, position->x, position->z);
+			get_local_entity_vec3d (target, VEC3D_TYPE_BOUNDING_BOX_MIN, &bounding_box_min);
+			get_local_entity_vec3d (target, VEC3D_TYPE_BOUNDING_BOX_MAX, &bounding_box_max);
 
-			get_3d_transformation_matrix_from_face_normal_and_heading (attitude, &terrain_face_normal, heading);
+			memcpy (&facts [CAMPAIGN_CANDIDATE_BOX_MIN], &bounding_box_min, sizeof (vec3d));
+			memcpy (&facts [CAMPAIGN_CANDIDATE_BOX_MAX], &bounding_box_max, sizeof (vec3d));
 		}
-		else
-		{
-			get_3d_transformation_matrix (attitude, heading, 0.0, 0.0);
-		}
+	}
+	else if ((!of_city) && (get_local_entity_type (target) == ENTITY_TYPE_CITY_BUILDING))
+	{
+		// a building listed directly in a sector: the host skips it, and there is nothing to read
+		facts [CAMPAIGN_CANDIDATE_CITY_BUILDING] = 1.0;
+
+		position = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
 	}
 	else
 	{
-		debug_fatal ("Invalid target (type = %s)", get_local_entity_type_name (target));
+		scene = get_local_entity_int_value (target, INT_TYPE_OBJECT_3D_SHAPE);
+
+		position = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
+
+		facts [CAMPAIGN_CANDIDATE_HEADING] = get_local_entity_float_value (target, FLOAT_TYPE_HEADING);
+
+		facts [CAMPAIGN_CANDIDATE_ALIGN] = (get_local_entity_int_value (target, INT_TYPE_ALIGN_WITH_TERRAIN) != 0);
 	}
 
-	candidate [0] = position->x;
-	candidate [1] = position->y;
-	candidate [2] = position->z;
+	memcpy (&facts [CAMPAIGN_CANDIDATE_POSITION], position, sizeof (vec3d));
 
-	memcpy (&candidate [3], attitude, 9 * sizeof (float));
+	for (;;)
+	{
+		state = campaign_model_entity_candidate (scene, facts, pose, &pose_count);
 
-	return (campaign_model_entity_collision (index_3d_object, &source_old_position->x, &source_new_position->x, candidate, 12, &source_intercept_point->x, &face_normal->x));
-}
+		switch (state)
+		{
+			case CAMPAIGN_MODEL_CANDIDATE_SKIP:
+			{
+				return (NULL);
+			}
+			case CAMPAIGN_MODEL_CANDIDATE_NEED_UPDATED:
+			{
+				// the destructive getter, once, exactly when the host needs it (the original read it for every moving candidate it visited)
 
-static int accurate_moving_bounding_box_collision_test
-(
-	entity *target,
-	vec3d *source_old_position,
-	vec3d *source_new_position,
-	vec3d *target_old_position,
-	vec3d *target_new_position,
-	object_3d_index_numbers index_3d_object,
-	object_3d_bounds *bounding_box,
-	vec3d *source_intercept_point,
-	vec3d *face_normal
-)
-{
-	float
-		candidate [16];
+				facts [CAMPAIGN_CANDIDATE_UPDATED] = get_local_entity_int_value (target, INT_TYPE_UPDATED) ? 2.0 : 1.0;
 
-	matrix3x3
-		*attitude;
+				break;
+			}
+			case CAMPAIGN_MODEL_CANDIDATE_NEED_NORMAL:
+			{
+				// the terrain question of a terrain-aligned fixed object, asked once the broad phase has passed, as the original asked it
 
-	ASSERT (target);
+				get_3d_terrain_face_normal (&terrain_face_normal, position->x, position->z);
 
-	ASSERT (source_old_position);
+				facts [CAMPAIGN_CANDIDATE_NORMAL_GIVEN] = 1.0;
 
-	ASSERT (source_new_position);
+				memcpy (&facts [CAMPAIGN_CANDIDATE_NORMAL], &terrain_face_normal, sizeof (vec3d));
 
-	ASSERT (target_old_position);
+				break;
+			}
+			case CAMPAIGN_MODEL_CANDIDATE_BUILDINGS:
+			{
+				// the city's box is met: its buildings, in the campaign's list order, the first one that is hit ends the scan
 
-	ASSERT (target_new_position);
+				building = get_local_entity_first_child (target, LIST_TYPE_CITY_BUILDING);
 
-	ASSERT ((index_3d_object > OBJECT_3D_INVALID_OBJECT_INDEX) && (index_3d_object < OBJECT_3D_LAST));
+				while (building)
+				{
+					hit = offer_candidate_to_host (building, TRUE, sector_tallest_structure_height, source_old_position, source_new_position, source_intercept_point, face_normal);
 
-	ASSERT (bounding_box);
+					if (hit)
+					{
+						return (hit);
+					}
 
-	ASSERT (source_intercept_point);
+					building = get_local_entity_child_succ (building, LIST_TYPE_CITY_BUILDING);
+				}
 
-	ASSERT (face_normal);
+				return (NULL);
+			}
+			default:
+			{
+				// the narrow phase, at the pose the host derived
 
-	ASSERT (get_local_entity_int_value (target, INT_TYPE_COLLISION_TEST_MOBILE));
+				if (campaign_model_entity_collision (scene, &source_old_position->x, &source_new_position->x, pose, pose_count, &source_intercept_point->x, &face_normal->x))
+				{
+					return (target);
+				}
 
-	attitude = get_local_entity_attitude_matrix_ptr (target);
-
-	//
-	// the host decides which sweep positions are required from the candidate's speed and its own body length
-	//
-
-	candidate [0] = target_old_position->x;
-	candidate [1] = target_old_position->y;
-	candidate [2] = target_old_position->z;
-
-	candidate [3] = target_new_position->x;
-	candidate [4] = target_new_position->y;
-	candidate [5] = target_new_position->z;
-
-	memcpy (&candidate [6], attitude, 9 * sizeof (float));
-
-	candidate [15] = get_local_entity_vec3d_magnitude (target, VEC3D_TYPE_MOTION_VECTOR);
-
-	return (campaign_model_entity_collision (index_3d_object, &source_old_position->x, &source_new_position->x, candidate, 16, &source_intercept_point->x, &face_normal->x));
+				return (NULL);
+			}
+		}
+	}
 }
 
 #else
@@ -1361,6 +1431,14 @@ entity *get_line_of_sight_collision_entity
 	object_3d_bounds
 		*bounding_box;
 
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+	float
+		sector_tallest_structure_height;
+
+	entity
+		*hit;
+#endif
+
 	ASSERT (source_old_position);
 
 	ASSERT (source_new_position);
@@ -1429,6 +1507,65 @@ entity *get_line_of_sight_collision_entity
 	// sector scan
 	//
 	////////////////////////////////////////
+
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+
+	//
+	// scan: the campaign walks the sectors and their lists in the original's order and offers each candidate to the host, which decides (offer_candidate_to_host above)
+	//
+
+	for (x_sector = x_sector_min; x_sector <= x_sector_max; x_sector++)
+	{
+		for (z_sector = z_sector_min; z_sector <= z_sector_max; z_sector++)
+		{
+			sector = get_local_raw_sector_entity (x_sector, z_sector);
+
+			sector_tallest_structure_height = get_local_entity_float_value (sector, FLOAT_TYPE_TALLEST_STRUCTURE_HEIGHT);
+
+			//
+			// search sector list backwards so that static objects are checked before mobile objects
+			//
+			// (mobile objects tend to be at the start of the list as they are dynamic)
+			//
+
+			target = get_local_entity_first_child (sector, LIST_TYPE_SECTOR);
+
+			if (target)
+			{
+				target_succ = get_local_entity_child_succ (target, LIST_TYPE_SECTOR);
+
+				while (target_succ)
+				{
+					target = target_succ;
+
+					target_succ = get_local_entity_child_succ (target, LIST_TYPE_SECTOR);
+				}
+			}
+
+			while (target)
+			{
+				if ((target != los_source) && (target != los_target))
+				{
+					hit = offer_candidate_to_host (target, FALSE, sector_tallest_structure_height, source_old_position, source_new_position, source_intercept_point, face_normal);
+
+					if (hit)
+					{
+						return (hit);
+					}
+				}
+
+				//
+				// search list backwards
+				//
+
+				target = get_local_entity_child_pred (target, LIST_TYPE_SECTOR);
+			}
+		}
+	}
+
+	return (NULL);
+
+#else
 
 	//
 	// scan
@@ -1899,6 +2036,8 @@ entity *get_line_of_sight_collision_entity
 	}
 
 	return (NULL);
+
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -3,15 +3,16 @@
 //!
 //! # What moved, what did not
 //!
-//! The campaign's `accurate_stationary_bounding_box_collision_test` and `accurate_moving_bounding_box_collision_test` no longer transform the model or intersect anything in
-//! the hosted module: they derive the candidate's live pose from the entity (in the original's order, including a terrain-aligned fixed object's placement) and ask the host
-//! through the model callback's `ENTITY_COLLISION` operation (`mb_hostmodel.h`). This module answers it with the model data of the host's own final announced-order
+//! The campaign's `accurate_stationary_bounding_box_collision_test` and `accurate_moving_bounding_box_collision_test` no longer exist in the hosted module, and nothing about a candidate is
+//! decided there. FIRST the campaign offers each flagged candidate with the facts it read from the entity and the host decides (`candidate`, below: the third slice, the model callback's
+//! `ENTITY_CANDIDATE` operation); WHEN the host says the narrow phase is required it hands back the candidate's pose and the campaign asks `ENTITY_COLLISION` (`mb_hostmodel.h`). This module
+//! answers the second question with the model data of the host's own final announced-order
 //! [`ModelStore`], the same store the other model operations read: the scene's collision triangles one depth at a time (the original's cursor, so the first triangle that is hit
 //! ends the test and later triangles are never read) or, for a scene with none, the corners of its bounding box without lines.
 //!
-//! The campaign still owns WHICH candidates are visited and in what order (the sector scan, the exclusions, the broad-phase radius test) and the candidate state the pose is
-//! derived from. That is declared transitional coupling: the sector lists and the entities' live state are the campaign's until the physical roster and broad phase move too.
-//! Nothing here claims they have.
+//! The campaign still owns WHICH candidates are offered and in what order (the sector window, the sector lists and their insertion history, the exclusions) and the reads of the entity
+//! state the facts are made of, and it performs the two getters that have effects of their own when the host names them. That is declared transitional coupling: the sector lists and the
+//! entities' live state are the campaign's until the physical roster moves too (a host-held roster would be a second authoritative store). Nothing here claims it has.
 //!
 //! # Exactness
 //!
@@ -153,4 +154,128 @@ pub fn collide_in_store(store: &ModelStore, scene: i64, pose: &[u32]) -> Result<
         )),
         Err(e) => Err(e.to_string()),
     })
+}
+
+/// The floats of an `ENTITY_CANDIDATE` question: the facts the campaign reads from the candidate it is visiting (`csrc/entity_candidate_step.c` lists them), and of the narrow-phase pose the
+/// host answers a `TEST` with.
+pub const CANDIDATE_FACTS: usize = 42;
+pub const CANDIDATE_STATIONARY_POSE: usize = 12;
+pub const CANDIDATE_MOVING_POSE: usize = 16;
+
+/// What the host decided about one candidate (`csrc/entity_candidate_step.c`). `NeedUpdated` and `NeedNormal` ask the campaign for a service that has effects of its own, and the
+/// question is then asked again with the answer filled in; `Buildings` says a city's box is met, so its buildings are offered one by one; `Test` carries the candidate's pose for the
+/// narrow phase.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CandidateState {
+    Skip,
+    NeedUpdated,
+    NeedNormal,
+    Buildings,
+    Test,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CandidateStep {
+    pub state: CandidateState,
+    /// the narrow phase's candidate pose (words): 12 or 16 for `Test`, empty otherwise
+    pub pose: Vec<u32>,
+}
+
+extern "C" {
+    fn eech_entity_candidate(facts: *const f32, radius: f32, candidate: *mut f32, candidate_count: *mut c_int) -> c_int;
+}
+
+const CANDIDATE_SKIP: c_int = 1;
+const CANDIDATE_NEED_UPDATED: c_int = 2;
+const CANDIDATE_NEED_NORMAL: c_int = 3;
+const CANDIDATE_BUILDINGS: c_int = 4;
+const CANDIDATE_TEST: c_int = 5;
+const CANDIDATE_INVALID_TARGET: c_int = -1;
+
+/// The facts of a candidate that are flags or states, and the values each may have: the collision flags, the city facts and the role (6 to 11), the UPDATED state (20), the align flag and
+/// the normal-given flag (22, 23). Anything else is a malformed question, never a default.
+fn check_candidate_facts(facts: &[f32]) -> Result<(), String> {
+    if facts.len() != CANDIDATE_FACTS {
+        return Err(format!("an entity candidate question has {CANDIDATE_FACTS} floats, not {}", facts.len()));
+    }
+    if let Some(at) = facts.iter().position(|value| !value.is_finite()) {
+        return Err(format!("fact {at} of an entity candidate question is not a finite number"));
+    }
+    for at in [6, 7, 8, 9, 10, 11, 22, 23] {
+        if facts[at] != 0.0 && facts[at] != 1.0 {
+            return Err(format!("fact {at} of an entity candidate question is a flag and must be 0 or 1"));
+        }
+    }
+    if ![0.0, 1.0, 2.0].contains(&facts[20]) {
+        return Err("fact 20 of an entity candidate question is the UPDATED state and must be 0, 1 or 2".into());
+    }
+    if facts[8] == 1.0 && facts[9] == 1.0 {
+        return Err("an entity candidate cannot be both a city and a city building".into());
+    }
+    if facts[10] == 1.0 && facts[8] == 1.0 {
+        return Err("a building listed under a city cannot be a city".into());
+    }
+    Ok(())
+}
+
+/// The host's decision about one candidate, from the campaign's facts and the radius of the candidate's scene (words). The decision is the original's, run under round-toward-zero with the
+/// caller's complete floating-point state saved and restored, as the narrow phase's is.
+pub fn candidate(facts: &[u32], radius: u32) -> Result<CandidateStep, String> {
+    let facts: Vec<f32> = facts.iter().map(|word| f32::from_bits(*word)).collect();
+    check_candidate_facts(&facts)?;
+    let radius = f32::from_bits(radius);
+    if !radius.is_finite() {
+        return Err("the radius of the candidate's scene is not a finite number".into());
+    }
+    let state = fp_state()?;
+    if state.x87_masks != 63 || state.sse_masks != 63 {
+        return Err(format!(
+            "the entity candidate kernel requires every floating-point exception masked in both units (x87 {}, SSE {})",
+            state.x87_masks, state.sse_masks
+        ));
+    }
+    let mut pose = [0.0f32; CANDIDATE_MOVING_POSE];
+    let mut count: c_int = 0;
+    let decided = {
+        let _original_arithmetic = ScopedRounding::set(Rounding::Zero)?;
+        // SAFETY: `facts` has the 42 floats the kernel reads, `pose` has room for 16 and `count` is one int.
+        unsafe { eech_entity_candidate(facts.as_ptr(), radius, pose.as_mut_ptr(), &mut count) }
+    };
+    let after = fp_state()?;
+    if after != state {
+        return Err("the entity candidate kernel did not hand back the caller's floating-point state".into());
+    }
+    let step = |state, pose: Vec<u32>| Ok(CandidateStep { state, pose });
+    match decided {
+        CANDIDATE_SKIP => step(CandidateState::Skip, Vec::new()),
+        CANDIDATE_NEED_UPDATED => step(CandidateState::NeedUpdated, Vec::new()),
+        CANDIDATE_NEED_NORMAL => step(CandidateState::NeedNormal, Vec::new()),
+        CANDIDATE_BUILDINGS => step(CandidateState::Buildings, Vec::new()),
+        CANDIDATE_TEST => match count {
+            12 | 16 => step(CandidateState::Test, pose[..count as usize].iter().map(|value| value.to_bits()).collect()),
+            other => Err(format!("the entity candidate kernel gave a pose of {other} floats")),
+        },
+        CANDIDATE_INVALID_TARGET => Err("an entity candidate that is neither mobile nor fixed reached its pose (the original's `Invalid target`)".into()),
+        other => Err(format!("the entity candidate kernel answered {other}")),
+    }
+}
+
+/// The decision over the host's final store: the radius is the scene's own (a city has no scene of its own and is decided without one), and a scene the store does not have loaded is a
+/// refusal.
+pub fn candidate_in_store(store: &ModelStore, scene: i64, facts: &[u32]) -> Result<CandidateStep, String> {
+    let is_city = facts.get(8).map(|word| f32::from_bits(*word) == 1.0).unwrap_or(false);
+    if is_city {
+        if scene != 0 {
+            return Err(format!("a city is decided without a scene of its own, not scene {scene}"));
+        }
+        return candidate(facts, 0.0f32.to_bits());
+    }
+    if scene < 1 {
+        return Err(format!("scene {scene} is not a scene a candidate can have"));
+    }
+    let view = store.scene(scene).map_err(|e| e.to_string())?;
+    if !view.loaded {
+        return Err(format!("scene {scene} is not loaded in the host's model store"));
+    }
+    candidate(facts, view.radius)
 }

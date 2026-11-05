@@ -1,10 +1,10 @@
 //! The Lua surface of the module.
 
 use eech_engine::{
-    AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, EnvProvider, EnvReply,
-    EnvRequest, EnvState, Gunship, HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor,
-    ModelAnimation, ModelAnswer, ModelObject, ModelObjectFacts, ModelOrder, ModelProvider, ModelQuery, ModelRouteFace, ModelRouteNode, ModelScene,
-    ModelTriangle, MovementMode, MovementResult, MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side,
+    AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, CandidateDecision, Engine, EngineConfig, EngineError,
+    EnvProvider, EnvReply, EnvRequest, EnvState, Gunship, HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor,
+    MemberDescriptor, ModelAnimation, ModelAnswer, ModelObject, ModelObjectFacts, ModelOrder, ModelProvider, ModelQuery, ModelRouteFace, ModelRouteNode,
+    ModelScene, ModelTriangle, MovementMode, MovementResult, MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side,
     SupplyReachDescriptor, TerrainAnswer, TerrainMapFacts, TerrainProvider, TerrainQuery, TerrainRecord, TreeEnd, TreeStep, VehiclePose, WeaponFigures,
     EECH_ENV_AMBIENT, EECH_ENV_EXPORT, EECH_ENV_FLOATS, EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM, EECH_ENV_INTS,
     EECH_ENV_LIGHTNING_ADD, EECH_ENV_LIGHTNING_UPDATE, EECH_ENV_MODE_COUNT, EECH_ENV_ROTOR_SOUND, EECH_ENV_SOUND_LIFETIME_INIT, EECH_ENV_SOUND_LIFETIME_UPDATE,
@@ -3867,6 +3867,18 @@ fn gunship(name: &str) -> LuaResult<Gunship> {
 ///                 components the original's arithmetic assigned (it assigns the whole normal first and the whole point only after a plane crossing, so a miss can have assigned the normal or
 ///                 both) and `p` holds their computed words as bit patterns (zero for the others), or `{ result = "refused", reason }`. `name` is the scene's compiled name (an echo).
 ///
+///   "entity_candidate"  what the host decides about ONE candidate of the entity scan (EEDCS-49, D3, third slice): a scene index (never 0, except 0 for a city, which has no scene of its own)
+///                 and, in the sixth place (the text), 42 comma-separated bit patterns, the FACTS the campaign read from the entity it is visiting, in this order: the segment's old end (3) and
+///                 new end (3), the collision-test-mobile flag, the collision-test-fixed flag, the entity is a city, the entity is a city building, the candidate is a building listed
+///                 under a city whose box was met, the city has a first building (each exactly 0 or 1), the sector's tallest structure height, the position (3), the motion vector (3), the
+///                 frame time, the UPDATED answer (0 not asked, 1 false, 2 true), the heading, the align-with-terrain flag, the terrain face normal given (0 or 1), that normal (3), the attitude
+///                 (9, row-major) and the city's bounding box min (3) and max (3). Returns `{ result, name = text }` and, for `test`, `p`: `result` is `skip` (nothing more to do for the
+///                 candidate), `need_updated` (the campaign performs its UPDATED getter, which has an effect of its own, and asks again with fact 20 filled in), `need_normal` (the
+///                 campaign asks the terrain for the face normal at the candidate's position and asks again with facts 23 to 26 filled in), `buildings` (a city's box is met; its buildings
+///                 are offered one by one in the campaign's list order), `test` with `p` the 12 (stationary: position (3), attitude (9)) or 16 (moving: old position (3), new position (3),
+///                 attitude (9), speed) floats of the narrow phase's pose, which the campaign then sends with `entity_collision`, or `refused` with `reason`. `name` is the scene's compiled
+///                 name (an echo; empty for a city).
+///
 ///   "object_table"  no scene, no depth. Returns `{ result = "table", objects = n }`: how many objects the host's common database holds (the campaign's room for custom objects is its own).
 ///   "object"     a scene index, a cursor (`depth`, never negative: the approximation or the sub-object) and, in the fourth place, the ROLE the object has in the scene (0 main, 1
 ///                 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object). Returns `{ result = "object", name = text, counts = {six whole numbers within 0..65535:
@@ -4055,6 +4067,25 @@ return function(op, scene, depth, kind, definition, key)
 		if not mask then return nil, 'mask must be a whole number within 0..63' end
 		return result, p, mask, nil, nil, nil, nil, name
 	end
+	if op == 'entity_candidate' then
+		local name, result = a.name, a.result
+		if result == 'refused' then
+			local reason = a.reason
+			return 'refused', type(reason) == 'string' and reason:sub(1, 200) or ''
+		end
+		if type(name) ~= 'string' or #name > 127 or find(name, ' ', 1, true) then return nil, 'name must be text of at most 127 bytes without a NUL' end
+		if result == 'skip' or result == 'need_updated' or result == 'need_normal' or result == 'buildings' then
+			if a.p ~= nil then return nil, 'p is only for test' end
+			return result, nil, nil, nil, nil, nil, nil, name
+		end
+		if result ~= 'test' then return nil, 'result must be skip, need_updated, need_normal, buildings, test or refused' end
+		local given = a.p
+		local count = type(given) == 'string' and (#given + 1) / 11 or type(given) == 'table' and #given or nil
+		if count ~= 12 and count ~= 16 then return nil, 'p must be 12 or 16 floats' end
+		local p, why = list(given, count)
+		if not p then return nil, 'p ' .. why end
+		return 'test', p, nil, nil, nil, nil, nil, name
+	end
 	if op == 'target_point_world' or op == 'target_point_fixed' then
 		local name, result = a.name, a.result
 		if result == 'refused' then
@@ -4217,6 +4248,8 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
         ModelQuery::TargetPointFixed { scene, pose } => ("target_point_fixed", Some(scene), None, None, None, Some(pose_text(&pose))),
         // the segment and the candidate's pose cross as exact bit patterns in the text place (18 floats: stationary, 22: moving); the caller's intercept point and normal are outputs and do not cross
         ModelQuery::EntityCollision { scene, pose } => ("entity_collision", Some(scene), None, None, None, Some(pose_text(&pose))),
+        // the facts of one candidate of the entity scan cross as exact bit patterns in the text place (42 floats); the scene is 0 for a city
+        ModelQuery::EntityCandidate { scene, facts } => ("entity_candidate", Some(scene), None, None, None, Some(pose_text(&facts))),
         // the fourth place carries the role the object has in the scene
         ModelQuery::Object {
             scene,
@@ -4432,6 +4465,29 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
                 .map_err(|_| format!("[model-provider:{operation}.answer] the write mask is out of range"))?,
             words: bridged_words::<6>(&a.ok_or_else(missing)?, "p", operation)?,
         }),
+        (ModelQuery::EntityCandidate { .. }, "skip" | "need_updated" | "need_normal" | "buildings") => Ok(ModelAnswer::EntityCandidate {
+            scene_name: g.ok_or_else(missing)?,
+            decision: match tag.as_str() {
+                "skip" => CandidateDecision::Skip,
+                "need_updated" => CandidateDecision::NeedUpdated,
+                "need_normal" => CandidateDecision::NeedNormal,
+                _ => CandidateDecision::Buildings,
+            },
+        }),
+        (ModelQuery::EntityCandidate { .. }, "test") => {
+            // the bridge has already checked that the list holds exactly 12 or 16 floats; the count is read from the text and bounded again here
+            let text = a.ok_or_else(missing)?;
+            let count = text.split_once(':').map_or(0, |(_, rest)| rest.split([' ', ',']).count());
+            let pose = match count {
+                12 => bridged_floats::<12>(&text, "p", operation)?.to_vec(),
+                16 => bridged_floats::<16>(&text, "p", operation)?.to_vec(),
+                other => return Err(format!("[model-provider:{operation}.answer] a candidate pose has 12 or 16 floats, not {other}")),
+            };
+            Ok(ModelAnswer::EntityCandidate {
+                scene_name: g.ok_or_else(missing)?,
+                decision: CandidateDecision::Test(pose),
+            })
+        }
         (ModelQuery::TargetPointWorld { .. }, "world") | (ModelQuery::TargetPointFixed { .. }, "fixed") => Ok(ModelAnswer::TargetPointPosition {
             scene_name: g.ok_or_else(missing)?,
             position: bridged_floats::<3>(&a.ok_or_else(missing)?, "p", operation)?,
@@ -4440,7 +4496,8 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
             ModelQuery::TargetPointChain { scene }
             | ModelQuery::TargetPointWorld { scene, .. }
             | ModelQuery::TargetPointFixed { scene, .. }
-            | ModelQuery::EntityCollision { scene, .. },
+            | ModelQuery::EntityCollision { scene, .. }
+            | ModelQuery::EntityCandidate { scene, .. },
             "refused",
         ) => Err(format!(
             "[model-provider:{operation}.refused] the host cannot answer for scene {scene}: {}",
@@ -5532,6 +5589,93 @@ mod tests {
             "a miss that assigned only the normal is not read as a hit or as a full write"
         );
         assert_eq!(bits(words), bits([0.0, 0.0, 0.0, weird[3], weird[4], weird[5]]));
+        Ok(())
+    }
+
+    #[test]
+    fn an_entity_candidate_question_carries_the_facts_by_bit_pattern_and_every_decision_comes_back_with_its_state_and_exact_pose() -> Test {
+        let lua = Lua::new();
+        // the scene picks the decision: 1 skip, 2 need_updated, 3 need_normal, 4 buildings (a city: no name), 5 a test with the first 12 facts as the pose, 6 a test with the first 16
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               assert (op == 'entity_candidate' and depth == nil and kind == nil and definition == nil)
+               local words = {}
+               for word in key:gmatch ('[^,]+') do words[#words + 1] = word end
+               assert (#words == 42, 'the facts are 42 patterns')
+               local function first (n) return table.concat (words, ',', 1, n) end
+               local names = { 'skip', 'need_updated', 'need_normal', 'buildings' }
+               if scene >= 1 and scene <= 4 then return { result = names[scene], name = scene == 4 and '' or 'CANDIDATE' } end
+               return { result = 'test', name = 'CANDIDATE', p = first (scene == 5 and 12 or 16) }
+             end",
+        )?;
+        // finite words with a negative zero and a subnormal, which must survive both crossings
+        let facts: Vec<u32> = [-0.0_f32, f32::from_bits(1), 1234.5, -1.0, 0.0, 2.5]
+            .iter()
+            .cycle()
+            .take(42)
+            .map(|float| float.to_bits())
+            .collect();
+        let decide = |provider: &mut ModelProvider, scene: i32| ask(provider, ModelQuery::EntityCandidate { scene, facts: facts.clone() });
+        for (scene, expected) in [
+            (1, CandidateDecision::Skip),
+            (2, CandidateDecision::NeedUpdated),
+            (3, CandidateDecision::NeedNormal),
+            (4, CandidateDecision::Buildings),
+        ] {
+            let ModelAnswer::EntityCandidate { decision, scene_name } = decide(&mut provider, scene)? else {
+                return Err("not an entity candidate decision".into());
+            };
+            assert_eq!(decision, expected);
+            assert_eq!(scene_name, if scene == 4 { "" } else { "CANDIDATE" }, "the scene's name, and none for a city");
+        }
+        for (scene, count) in [(5, 12_usize), (6, 16)] {
+            let ModelAnswer::EntityCandidate {
+                decision: CandidateDecision::Test(pose),
+                ..
+            } = decide(&mut provider, scene)?
+            else {
+                return Err("not a test decision".into());
+            };
+            assert_eq!(pose.len(), count);
+            assert_eq!(
+                pose.iter().map(|float| float.to_bits()).collect::<Vec<u32>>(),
+                facts.iter().take(count).copied().collect::<Vec<u32>>(),
+                "the pose crosses exactly: a negative zero and a subnormal included"
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn an_entity_candidate_answer_that_is_refused_malformed_unnamed_or_of_the_wrong_kind_stops_with_its_marker() -> Test {
+        let lua = Lua::new();
+        // the scene picks the answer: 1 a refusal, 2 a skip that carries a pose, 3 a test of 13 floats, 4 an unknown result, 5 an unnamed skip, 6 a test with a non-finite float,
+        // 7 a test with no pose, 8 a name with a NUL
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene)
+               local zeros = function (n) return string.rep ('0x00000000,', n):sub (1, -2) end
+               if scene == 1 then return { result = 'refused', reason = 'no such model' } end
+               if scene == 2 then return { result = 'skip', name = 'CANDIDATE', p = zeros (12) } end
+               if scene == 3 then return { result = 'test', name = 'CANDIDATE', p = zeros (13) } end
+               if scene == 4 then return { result = 'perhaps', name = 'CANDIDATE' } end
+               if scene == 5 then return { result = 'skip' } end
+               if scene == 6 then return { result = 'test', name = 'CANDIDATE', p = '0x7f800000,' .. zeros (11) } end
+               if scene == 7 then return { result = 'test', name = 'CANDIDATE' } end
+               return { result = 'skip', name = 'A\\0B' }
+             end",
+        )?;
+        let mut decide = |scene: i32| ask(&mut provider, ModelQuery::EntityCandidate { scene, facts: vec![0; 42] });
+        let refused = decide(1).err().ok_or("accepted")?;
+        assert!(
+            refused.contains("[model-provider:entity_candidate.refused]") && refused.contains("no such model"),
+            "{refused}"
+        );
+        for scene in [2, 3, 4, 5, 6, 7, 8] {
+            let error = decide(scene).err().ok_or("accepted")?;
+            assert!(error.contains("[model-provider:entity_candidate.answer]"), "scene {scene}: {error}");
+        }
         Ok(())
     }
 

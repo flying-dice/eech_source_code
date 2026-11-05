@@ -1,10 +1,12 @@
-//! Compile guard of the host-owned entity collision narrow phase (EEDCS-49, D3): the ordinary module must not compile or execute the original physical entity test.
+//! Compile guard of the host-owned entity collision scan (EEDCS-49, D3): the ordinary module must not compile or execute the original physical entity test or its per-candidate decisions.
 //!
-//! `en_cllsn.c` has two bodies for `accurate_stationary_bounding_box_collision_test` and `accurate_moving_bounding_box_collision_test`. The hosted one (`EECH_CAMPAIGN_HOST_ENTITY`)
-//! derives the candidate's pose from the entity and asks the host through `campaign_model_entity_collision`; the original one (the model transform, the sweep positions, the face
-//! order and the intersections) stays in the `#else` branch for the explicit original-characterisation profile, feature `collision-fixture`, and for the model fixtures whose
-//! model arrays are the original's. The build script defines the macro in every other build. This test reads the two texts, so a change that moves the original arithmetic out of the
-//! `#else` branch, drops the macro from the ordinary build or defines it for the original profile fails here, before any native run.
+//! `en_cllsn.c` has two bodies for the narrow phase (`accurate_stationary_bounding_box_collision_test` and `accurate_moving_bounding_box_collision_test`) and two for the scan loop of
+//! `get_line_of_sight_collision_entity`. The hosted ones (`EECH_CAMPAIGN_HOST_ENTITY`) offer each candidate to the host (`campaign_model_entity_candidate`), which decides its branch,
+//! its sweep, its broad phase and its pose, and carry the narrow phase to the host through `campaign_model_entity_collision`; the original ones (the model transform, the sweep
+//! positions, the face order, the intersections, the classification, the broad phase and the pose derivation) stay in the `#else` branches for the explicit original-characterisation
+//! profile, feature `collision-fixture`, and for the model fixtures whose model arrays are the original's. The build script defines the macro in every other build. This test reads the
+//! texts, so a change that moves the original arithmetic or decisions out of the `#else` branches, drops the macro from the ordinary build or defines it for the original profile fails
+//! here, before any native run.
 //!
 //! It is a guard of the build selection, not a proof of behaviour: that is the host kernel's contract tests (eech-world `entity_collision_host`) and the native comparison.
 
@@ -59,8 +61,64 @@ fn the_ordinary_entity_narrow_phase_has_no_physical_solver_and_the_original_prof
         "the original profile's narrow phase must not route to the host"
     );
     for function in ["accurate_stationary_bounding_box_collision_test", "accurate_moving_bounding_box_collision_test"] {
-        assert!(hosted.contains(function) && original.contains(function), "both branches define {function}");
+        assert!(
+            original.contains(function) && !hosted.contains(function),
+            "only the original profile defines {function}: the hosted pose and decisions are the host's"
+        );
     }
+}
+
+/// What only the original scan decides itself: the classification of a candidate, its sweep, the broad phase and the sector skip.
+const ORIGINAL_DECISIONS: [&str; 6] = [
+    "sqr_velocity",
+    "ignore_all_fixed_entities_in_sector",
+    "get_object_3d_radius",
+    "target_min_position",
+    "get_local_entity_vec3d_magnitude",
+    "get_3d_transformation_matrix_from_face_normal_and_heading",
+];
+
+#[test]
+fn the_ordinary_entity_scan_asks_the_host_to_decide_each_candidate_and_the_original_profile_keeps_its_own_decisions() {
+    let source = read("../../../aphavoc/source/entity/en_misc/en_maths/en_cllsn.c");
+    let (hosted, original) = branches(&source);
+    for name in ORIGINAL_DECISIONS {
+        assert!(
+            !hosted.contains(name),
+            "the hosted entity scan mentions {name}: the decisions must be the host's"
+        );
+    }
+    assert!(
+        hosted.contains("campaign_model_entity_candidate"),
+        "the hosted scan must ask the host about each candidate"
+    );
+    assert!(
+        hosted.contains("offer_candidate_to_host") && !original.contains("offer_candidate_to_host"),
+        "only the hosted module offers candidates to the host"
+    );
+    // the scan loop of get_line_of_sight_collision_entity: its own pair of branches, after the declarations'
+    let function = source.find("entity *get_line_of_sight_collision_entity").expect("the scan function");
+    let body = &source[function..];
+    let first = body.find("#ifdef EECH_CAMPAIGN_HOST_ENTITY").expect("the hosted declarations");
+    let loop_start = first + body[first + 1..].find("#ifdef EECH_CAMPAIGN_HOST_ENTITY").expect("the hosted scan loop") + 1;
+    let otherwise = loop_start + body[loop_start..].find("\n#else\n").expect("the original scan loop");
+    let end = otherwise + body[otherwise..].find("\n#endif\n").expect("the end of the scan branches");
+    let (hosted_loop, original_loop) = (&body[loop_start..otherwise], &body[otherwise..end]);
+    for name in ORIGINAL_DECISIONS.iter().take(4) {
+        assert!(!hosted_loop.contains(name), "the hosted scan loop mentions {name}");
+        assert!(
+            original_loop.contains(name),
+            "the original scan loop lost {name}: the characterisation fixture would no longer observe the unmoved decisions"
+        );
+    }
+    assert!(
+        hosted_loop.contains("offer_candidate_to_host") && !original_loop.contains("offer_candidate_to_host"),
+        "the hosted scan walks the sector lists and offers"
+    );
+    assert!(
+        original_loop.contains("accurate_moving_bounding_box_collision_test"),
+        "the original scan still reaches its own narrow phase"
+    );
 }
 
 #[test]

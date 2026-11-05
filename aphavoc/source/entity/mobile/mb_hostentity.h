@@ -16,6 +16,10 @@
  *   CAMPAIGN_ENTITY_REQUIRE_SCENE (scene)       stops the engine unless `scene` is a scene a candidate can have
  *   CAMPAIGN_ENTITY_ASK (request, reply)         one host exchange, which stops the engine on a missing provider or a refusal
  *   CAMPAIGN_ENTITY_IDENTITY (reply, scene)      stops the engine unless the reply names the campaign's own name for `scene`
+ *   CAMPAIGN_ENTITY_CANDIDATE_ASK (request, reply)  the same exchange for an ENTITY_CANDIDATE question (it may be counted separately)
+ *
+ * The same header holds the campaign's half of the host's per-candidate decisions (ENTITY_CANDIDATE, mb_hostmodel.h): the facts layout, the exchange and the complete check of the host's
+ * decision against the facts it was given.  It reads no entity: the caller (en_cllsn.c) fills the facts from the entity it visits and performs the two services the host may ask for.
  */
 #ifndef MB_HOSTENTITY_H
 #define MB_HOSTENTITY_H
@@ -137,6 +141,152 @@ static int campaign_entity_collision_exchange
 	}
 
 	return (reply.result == CAMPAIGN_MODEL_TRIANGLE_FOUND);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// ENTITY_CANDIDATE (EEDCS-49, D3, third slice): the exchange. The facts are laid out as in mb_hostmodel.h (CAMPAIGN_CANDIDATE_*).
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// whether a float is a finite number, read as bytes (an infinity or a NaN has every exponent bit set)
+static int candidate_word_is_finite (float value)
+{
+	uint32_t
+		word;
+
+	memcpy (&word, &value, sizeof (word));
+
+	return ((word & 0x7f800000u) != 0x7f800000u);
+}
+
+// Everything about a decision that can be wrong given the facts it answers, before any of it is used.
+static void check_candidate_reply (const campaign_model_reply *reply, int scene, const float *facts)
+{
+	int
+		state,
+		count,
+		index;
+
+	state = reply->candidate_state;
+
+	count = reply->candidate_count;
+
+	if ((state < CAMPAIGN_MODEL_CANDIDATE_SKIP) || (state > CAMPAIGN_MODEL_CANDIDATE_TEST))
+	{
+		debug_fatal ("host model: [model-provider:entity_candidate.state] the host decided state %d for scene %d, which is not one of the five", state, scene);
+	}
+
+	if ((state != CAMPAIGN_MODEL_CANDIDATE_TEST) && (count != 0))
+	{
+		debug_fatal ("host model: [model-provider:entity_candidate.pose] the host gave a pose of %d floats for scene %d with state %d, which carries none", count, scene, state);
+	}
+
+	if (state == CAMPAIGN_MODEL_CANDIDATE_NEED_UPDATED)
+	{
+		if ((facts [CAMPAIGN_CANDIDATE_MOBILE] == 0.0f) || (facts [CAMPAIGN_CANDIDATE_OF_CITY] != 0.0f) || (facts [CAMPAIGN_CANDIDATE_UPDATED] != 0.0f))
+		{
+			debug_fatal ("host model: [model-provider:entity_candidate.state] the host asked for the UPDATED flag of scene %d, which is not a mobile candidate whose flag was not asked yet", scene);
+		}
+	}
+
+	if (state == CAMPAIGN_MODEL_CANDIDATE_NEED_NORMAL)
+	{
+		if ((facts [CAMPAIGN_CANDIDATE_ALIGN] == 0.0f) || (facts [CAMPAIGN_CANDIDATE_NORMAL_GIVEN] != 0.0f) || (facts [CAMPAIGN_CANDIDATE_MOBILE] != 0.0f) || (facts [CAMPAIGN_CANDIDATE_FIXED] == 0.0f))
+		{
+			debug_fatal ("host model: [model-provider:entity_candidate.state] the host asked for the terrain face normal of scene %d, which is not a fixed candidate aligned with the terrain whose normal was not given yet", scene);
+		}
+	}
+
+	if (state == CAMPAIGN_MODEL_CANDIDATE_BUILDINGS)
+	{
+		if ((facts [CAMPAIGN_CANDIDATE_CITY] == 0.0f) || (facts [CAMPAIGN_CANDIDATE_HAS_BUILDINGS] == 0.0f))
+		{
+			debug_fatal ("host model: [model-provider:entity_candidate.state] the host named buildings for scene %d, which is not a city with a first building", scene);
+		}
+	}
+
+	if (state == CAMPAIGN_MODEL_CANDIDATE_TEST)
+	{
+		// a moving candidate has a pose of 16 floats and every other 12; only a mobile candidate can be moving
+		if ((count != 12) && (count != 16))
+		{
+			debug_fatal ("host model: [model-provider:entity_candidate.pose] the host gave a pose of %d floats for scene %d: a stationary candidate has 12 and a moving one 16", count, scene);
+		}
+
+		if ((count == 16) && (facts [CAMPAIGN_CANDIDATE_MOBILE] == 0.0f))
+		{
+			debug_fatal ("host model: [model-provider:entity_candidate.pose] the host gave a moving pose for scene %d, which is not a mobile candidate", scene);
+		}
+
+		for (index = 0; index < count; index++)
+		{
+			if (!candidate_word_is_finite (reply->candidate [index]))
+			{
+				debug_fatal ("host model: [model-provider:entity_candidate.pose] float %d of the pose the host gave for scene %d is not a finite number", index, scene);
+			}
+		}
+	}
+}
+
+// One question about one candidate: the facts in, the host's checked decision out. `scene` is the candidate's scene, and 0 for a city. Returns a campaign_model_candidate_state and, for TEST,
+// the narrow phase's pose in `pose` (`*pose_count` floats).
+static int campaign_entity_candidate_exchange (int scene, const float *facts, float *pose, int *pose_count)
+{
+	campaign_model_request
+		request;
+
+	campaign_model_reply
+		reply;
+
+	int
+		index;
+
+	if (facts [CAMPAIGN_CANDIDATE_CITY] != 0.0f)
+	{
+		if (scene != 0)
+		{
+			debug_fatal ("host model: [model-provider:entity_candidate.request] a city has no scene of its own, but scene %d was named", scene);
+		}
+	}
+	else
+	{
+		CAMPAIGN_ENTITY_REQUIRE_SCENE (scene);
+	}
+
+	memset (&request, 0, sizeof (request));
+	request.op = CAMPAIGN_MODEL_ENTITY_CANDIDATE;
+	request.scene = scene;
+	request.pose_count = CAMPAIGN_MODEL_CANDIDATE_FACTS;
+	memcpy (&request.pose [0], facts, CAMPAIGN_MODEL_CANDIDATE_FACTS * sizeof (float));
+
+	CAMPAIGN_ENTITY_CANDIDATE_ASK (&request, &reply);
+
+	if (facts [CAMPAIGN_CANDIDATE_CITY] != 0.0f)
+	{
+		if (reply.name [0] != 0)
+		{
+			debug_fatal ("host model: [model-provider:entity_candidate.identity] the host named a city \"%.60s\", which has no scene", reply.name);
+		}
+	}
+	else
+	{
+		CAMPAIGN_ENTITY_IDENTITY (&reply, scene);
+	}
+
+	check_candidate_reply (&reply, scene, facts);
+
+	*pose_count = 0;
+
+	if (reply.candidate_state == CAMPAIGN_MODEL_CANDIDATE_TEST)
+	{
+		for (index = 0; index < reply.candidate_count; index++)
+		{
+			pose [index] = reply.candidate [index];
+		}
+
+		*pose_count = reply.candidate_count;
+	}
+
+	return (reply.candidate_state);
 }
 
 #endif

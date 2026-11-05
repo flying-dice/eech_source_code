@@ -64,6 +64,8 @@ struct campaign_model_counters
 	long target_chain, target_world, target_fixed;
 	/* ENTITY_COLLISION questions asked of the host (EEDCS-49) and the hits and misses the native code ACCEPTED */
 	long entity_collision, entity_hit, entity_miss;
+	/* ENTITY_CANDIDATE questions asked of the host (EEDCS-49) and the states the native code ACCEPTED: skip, UPDATED asked, terrain normal asked, buildings, narrow phase required */
+	long entity_candidate, candidate_skip, candidate_updated, candidate_normal, candidate_buildings, candidate_test;
 };
 
 struct campaign_model_counters campaign_model_counts;
@@ -1850,6 +1852,12 @@ void campaign_model_route_primary_start (int index, int starts)
 
 #define CAMPAIGN_ENTITY_IDENTITY(REPLY,SCENE) check_target_point_identity ((REPLY), (SCENE), "entity_collision")
 
+#ifdef EECH_MODEL_HOST_FIXTURE
+#define CAMPAIGN_ENTITY_CANDIDATE_ASK(REQUEST,REPLY) do { campaign_model_counts.entity_candidate++; ask ((REQUEST), (REPLY), "entity candidate"); } while (0)
+#else
+#define CAMPAIGN_ENTITY_CANDIDATE_ASK(REQUEST,REPLY) ask ((REQUEST), (REPLY), "entity candidate")
+#endif
+
 #include "mb_hostentity.h"
 
 int campaign_model_entity_collision (int scene, const float *segment_old, const float *segment_new, const float *candidate, int candidate_count, float *point, float *normal)
@@ -1871,6 +1879,53 @@ int campaign_model_entity_collision (int scene, const float *segment_old, const 
 #endif
 
 	return (hit);
+}
+
+// ENTITY_CANDIDATE (mb_hostmodel.h; EEDCS-49, D3, third slice): what the host decides about one candidate of the scan. The dialogue is mb_hostentity.h; the facts are read by the caller.
+int campaign_model_entity_candidate (int scene, const float *facts, float *pose, int *pose_count)
+{
+	int
+		state;
+
+	state = campaign_entity_candidate_exchange (scene, facts, pose, pose_count);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	switch (state)
+	{
+		case CAMPAIGN_MODEL_CANDIDATE_SKIP:
+		{
+			campaign_model_counts.candidate_skip++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_CANDIDATE_NEED_UPDATED:
+		{
+			campaign_model_counts.candidate_updated++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_CANDIDATE_NEED_NORMAL:
+		{
+			campaign_model_counts.candidate_normal++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_CANDIDATE_BUILDINGS:
+		{
+			campaign_model_counts.candidate_buildings++;
+
+			break;
+		}
+		default:
+		{
+			campaign_model_counts.candidate_test++;
+
+			break;
+		}
+	}
+#endif
+
+	return (state);
 }
 
 #ifdef EECH_MODEL_HOST_FIXTURE

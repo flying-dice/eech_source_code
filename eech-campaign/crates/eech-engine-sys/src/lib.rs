@@ -1135,6 +1135,15 @@ pub const EECH_MODEL_TARGET_POINT_CHAIN: c_int = 12;
 pub const EECH_MODEL_TARGET_POINT_WORLD: c_int = 13;
 pub const EECH_MODEL_TARGET_POINT_FIXED: c_int = 14;
 pub const EECH_MODEL_ENTITY_COLLISION: c_int = 15;
+/// ENTITY_CANDIDATE (EEDCS-49): what the host decides about one candidate of the scan, and the states of its answer (`candidate_state`)
+pub const EECH_MODEL_ENTITY_CANDIDATE: c_int = 16;
+pub const EECH_MODEL_CANDIDATE_SKIP: c_int = 1;
+pub const EECH_MODEL_CANDIDATE_NEED_UPDATED: c_int = 2;
+pub const EECH_MODEL_CANDIDATE_NEED_NORMAL: c_int = 3;
+pub const EECH_MODEL_CANDIDATE_BUILDINGS: c_int = 4;
+pub const EECH_MODEL_CANDIDATE_TEST: c_int = 5;
+/// the floats of the narrow-phase pose a TEST answer carries (a stationary candidate's 12, a moving one's 16)
+pub const EECH_MODEL_CANDIDATE_POSE_MAX: usize = 16;
 /// the deepest sub-object chain the target-point transport carries, and the floats of the largest pose (15 + 9 * chain, rounded up)
 pub const EECH_MODEL_CHAIN_MAX: usize = 8;
 pub const EECH_MODEL_POSE_MAX: usize = 96;
@@ -1196,6 +1205,10 @@ pub struct eech_model_reply {
     pub chain_offsets: [c_int; EECH_MODEL_CHAIN_MAX],
     /// ENTITY_COLLISION: which components of the intercept point (bits 0 to 2) and face normal (bits 3 to 5) the original's arithmetic assigned; `points` holds their words
     pub write_mask: c_int,
+    /// ENTITY_CANDIDATE: the state the host decided (EECH_MODEL_CANDIDATE_*) and, for TEST, the narrow-phase pose it derived (`candidate_count` floats of `candidate`)
+    pub candidate_state: c_int,
+    pub candidate_count: c_int,
+    pub candidate: [f32; EECH_MODEL_CANDIDATE_POSE_MAX],
 }
 
 pub type eech_model_callback =

@@ -121,6 +121,28 @@
  *              arithmetic in the hosted module; the explicit original-characterisation profile (feature collision-fixture) keeps it. The model's data is the host's final announced-order
  *              store, the same one the other operations read; no second store is loaded for the question.
  *
+ *   ENTITY_CANDIDATE   what the host decides about ONE candidate of the scan, BEFORE its narrow phase (EEDCS-49, D3, third slice): the per-candidate decisions of
+ *              get_line_of_sight_collision_entity (en_cllsn.c) are the host's. The campaign keeps WHICH candidates are offered and in what order (the sector lists, the exclusions of the
+ *              source and the target, and that an entity with neither collision flag is never offered), the reads of the entity's own state (its flags and type, position, motion
+ *              vector, heading, attitude, a city's box and first building), the two services that have effects of their own and the consequences of a hit. The host decides: whether
+ *              a non-mobile candidate is skipped because the sector's tallest structure is below the segment, which branch applies (mobile first, then fixed: a city, a building listed
+ *              directly in a sector, any other), whether a mobile candidate is MOVING (the square of its motion vector above one), its sweep ends from the UPDATED answer and the frame
+ *              time, the broad-phase box of the scene's radius + 10 m, the city's height-then-xz box, and a stationary fixed candidate's live pose from its heading or its terrain-aligned
+ *              face normal. The host's own model data supplies the radius (the scene is the candidate's `scene`; a city has none and is sent with scene 0).
+ *              `pose_count` is 42 and the floats of `pose` are the FACTS, in order: the segment's old end (3) and new end (3); the collision-test-mobile flag, the collision-test-fixed flag,
+ *              the entity is a city, the entity is a city building, the candidate is a building listed under a city whose box was met, the city has a first building (each exactly 0 or 1);
+ *              the sector's tallest structure height; the position (3), the motion vector (3), the frame time; the UPDATED answer (0 not asked, 1 false, 2 true); the heading, the
+ *              align-with-terrain flag, the terrain face normal given (0 or 1) and that normal (3); the attitude (9, row-major); the city's bounding box min (3) and max (3). Facts that do
+ *              not apply to the candidate are zero. The host answers a `candidate_state`: SKIP (nothing more to do for the candidate), NEED_UPDATED (the campaign performs its UPDATED
+ *              getter, which clears the entity's flag, exactly once and only when the host names it, and asks again with the fact filled in), NEED_NORMAL (the campaign asks the terrain for
+ *              the face normal at the candidate's position, which has the effects of the terrain question, and asks again with the normal filled in), BUILDINGS (a city's box is met: the
+ *              campaign offers its buildings one by one in its list order, each as a building listed under the city, which is not skipped by the sector's tallest structure again), or
+ *              TEST with the narrow phase's candidate pose in `candidate` (`candidate_count` floats: 12 for a stationary candidate, 16 for a moving one), which the campaign then sends with
+ *              ENTITY_COLLISION. The question is a pure function of its facts: no state is kept between questions, so the decision is the one the original made in one pass. The reply echoes the
+ *              scene's compiled name (empty for a city). A refusal, a state the facts do not allow (NEED_UPDATED for a candidate that is not mobile or has the answer already, NEED_NORMAL
+ *              for one that does not align with the terrain or has the normal, BUILDINGS for a non-city, a pose of another size or of non-finite floats), a malformed or non-finite fact or
+ *              a missing provider stops the engine with the host's reason; nothing is invented. No entity identity crosses: a candidate is named only by the order the campaign offers it.
+ *
  * The bounds and the radius are copied once, at boot, into immutable tables owned by this module (host-authored data, valid for the life of the process and never
  * written again). Callers hold the bounds pointer across loop iterations, so it must be stable; a rotating cache would not be. The tables are a snapshot of the host's
  * answers, not an authority of the campaign's own.
@@ -159,8 +181,44 @@ enum campaign_model_op
 	CAMPAIGN_MODEL_TARGET_POINT_CHAIN,
 	CAMPAIGN_MODEL_TARGET_POINT_WORLD,
 	CAMPAIGN_MODEL_TARGET_POINT_FIXED,
-	CAMPAIGN_MODEL_ENTITY_COLLISION
+	CAMPAIGN_MODEL_ENTITY_COLLISION,
+	CAMPAIGN_MODEL_ENTITY_CANDIDATE
 };
+
+/* ENTITY_CANDIDATE: the floats of the question (the facts) and the states of the answer */
+#define CAMPAIGN_MODEL_CANDIDATE_FACTS 42
+#define CAMPAIGN_MODEL_CANDIDATE_POSE_MAX 16
+
+enum campaign_model_candidate_state
+{
+	CAMPAIGN_MODEL_CANDIDATE_SKIP = 1,
+	CAMPAIGN_MODEL_CANDIDATE_NEED_UPDATED,
+	CAMPAIGN_MODEL_CANDIDATE_NEED_NORMAL,
+	CAMPAIGN_MODEL_CANDIDATE_BUILDINGS,
+	CAMPAIGN_MODEL_CANDIDATE_TEST
+};
+
+/* ENTITY_CANDIDATE: where each fact is in the question (the layout described with the operation) */
+#define CAMPAIGN_CANDIDATE_SEGMENT_OLD 0
+#define CAMPAIGN_CANDIDATE_SEGMENT_NEW 3
+#define CAMPAIGN_CANDIDATE_MOBILE 6
+#define CAMPAIGN_CANDIDATE_FIXED 7
+#define CAMPAIGN_CANDIDATE_CITY 8
+#define CAMPAIGN_CANDIDATE_CITY_BUILDING 9
+#define CAMPAIGN_CANDIDATE_OF_CITY 10
+#define CAMPAIGN_CANDIDATE_HAS_BUILDINGS 11
+#define CAMPAIGN_CANDIDATE_TALLEST 12
+#define CAMPAIGN_CANDIDATE_POSITION 13
+#define CAMPAIGN_CANDIDATE_MOTION 16
+#define CAMPAIGN_CANDIDATE_DELTA_TIME 19
+#define CAMPAIGN_CANDIDATE_UPDATED 20
+#define CAMPAIGN_CANDIDATE_HEADING 21
+#define CAMPAIGN_CANDIDATE_ALIGN 22
+#define CAMPAIGN_CANDIDATE_NORMAL_GIVEN 23
+#define CAMPAIGN_CANDIDATE_NORMAL 24
+#define CAMPAIGN_CANDIDATE_ATTITUDE 27
+#define CAMPAIGN_CANDIDATE_BOX_MIN 36
+#define CAMPAIGN_CANDIDATE_BOX_MAX 39
 
 enum campaign_model_object_role
 {
@@ -244,6 +302,10 @@ typedef struct campaign_model_reply
 	int chain_offsets[CAMPAIGN_MODEL_CHAIN_MAX];
 	/* ENTITY_COLLISION: which components of the intercept point (bits 0 to 2) and face normal (bits 3 to 5) the original's arithmetic assigned; `points` holds their words */
 	int write_mask;
+	/* ENTITY_CANDIDATE: the state the host decided (campaign_model_candidate_state) and, for TEST, the narrow phase's pose it derived: `candidate_count` floats of `candidate` */
+	int candidate_state;
+	int candidate_count;
+	float candidate[CAMPAIGN_MODEL_CANDIDATE_POSE_MAX];
 } campaign_model_reply;
 
 typedef int (*campaign_model_fn)
@@ -273,5 +335,10 @@ void campaign_model_install_scenes (void);
    position, attitude, speed); the request's pose is the segment's two ends then these (see above). `point` and `normal` are OUTPUTS: they are not read and not sent, and only the components
    the host reports the original's arithmetic assigned are written (normal first), after the whole reply has been checked. Returns TRUE for a hit. */
 int campaign_model_entity_collision (int scene, const float *segment_old, const float *segment_new, const float *candidate, int candidate_count, float *point, float *normal);
+
+/* ENTITY_CANDIDATE: asks the host what it decides about one candidate from `facts` (CAMPAIGN_MODEL_CANDIDATE_FACTS floats, see above; `scene` is the candidate's scene, 0 for a city). The reply is
+   checked completely; the returned state is a campaign_model_candidate_state and, for TEST, `pose` receives the `*pose_count` floats of the narrow phase's candidate pose (room for
+   CAMPAIGN_MODEL_CANDIDATE_POSE_MAX). */
+int campaign_model_entity_candidate (int scene, const float *facts, float *pose, int *pose_count);
 
 #endif

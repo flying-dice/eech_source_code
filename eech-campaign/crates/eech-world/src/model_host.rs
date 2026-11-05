@@ -495,6 +495,45 @@ fn entity_collision_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaRe
     Ok(table)
 }
 
+/// The reference host's answer to an entity candidate question (`get_line_of_sight_collision_entity`'s per-candidate decisions, EEDCS-49): what the host decided about the candidate the
+/// campaign is visiting, from the facts it read. `skip`, `need_updated` (the campaign performs its destructive UPDATED getter and asks again), `need_normal` (the campaign asks the
+/// terrain for the face normal and asks again), `buildings` (a city's box is met) or `test` with the narrow phase's candidate pose. The decision is the original's, the radius the scene's own.
+fn entity_candidate_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaResult<LuaTable> {
+    let operation = q.operation.as_str();
+    let fail = |message: String| LuaError::runtime(format!("[model-provider:{operation}.request] {message}"));
+    if q.depth.is_some() || q.kind.is_some() || q.definition.is_some() {
+        return Err(fail("an entity candidate question has no depth, kind or definition".into()));
+    }
+    let scene = q
+        .scene
+        .ok_or_else(|| fail("an entity candidate question needs a scene (0 for a city)".into()))?;
+    let words = transport_pose(q.key.as_deref(), operation, |n| n == entity_host::CANDIDATE_FACTS)?;
+    let table = lua.create_table()?;
+    table.set("name", usize::try_from(scene).ok().and_then(compiled_scene_name).unwrap_or(""))?;
+    match entity_host::candidate_in_store(store, scene, &words) {
+        Ok(step) => {
+            table.set(
+                "result",
+                match step.state {
+                    entity_host::CandidateState::Skip => "skip",
+                    entity_host::CandidateState::NeedUpdated => "need_updated",
+                    entity_host::CandidateState::NeedNormal => "need_normal",
+                    entity_host::CandidateState::Buildings => "buildings",
+                    entity_host::CandidateState::Test => "test",
+                },
+            )?;
+            if step.state == entity_host::CandidateState::Test {
+                table.set("p", hex_list(&step.pose))?;
+            }
+        }
+        Err(reason) => {
+            table.set("result", "refused")?;
+            table.set("reason", reason)?;
+        }
+    }
+    Ok(table)
+}
+
 /// The reference host's answer to a target-point question of a live instance or a fixed object (`get_local_entity_target_point`, EEDCS-52): which sub-object (the chain), where it is
 /// for the campaign's CURRENT placement (the world position) and a fixed object's target point. The store does the physical work; a refusal of the store is a refusal here, never a number.
 fn target_point_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaResult<LuaTable> {
@@ -1011,6 +1050,11 @@ impl ProviderState {
             "entity_collision" => {
                 let store = self.final_store(current)?;
                 entity_collision_answer(lua, &store, &q)
+            }
+            // what the host decides about one candidate of the scan (EEDCS-49): the facts arrive in the text place
+            "entity_candidate" => {
+                let store = self.final_store(current)?;
+                entity_candidate_answer(lua, &store, &q)
             }
             // the target-point queries of a live instance or a fixed object (EEDCS-52): the campaign's current placement arrives in the text place
             "target_point_chain" | "target_point_world" | "target_point_fixed" => {
