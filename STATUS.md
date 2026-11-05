@@ -1,4 +1,32 @@
-# CURRENT — D3 Task49: the entity scan's per-candidate decisions are the host's (source and Linux checks only; nothing native); Root's build and ordinary short are next (5 November 2026)
+# CURRENT — D3 Task49: the entity candidate cutover is CORRECTED in source for both findings of the independent source review (Linux-checked only; nothing native); same-reviewer clearance is next (5 November 2026)
+
+This is the ONE current summary; dated entries below are history. Read the active card and `R:/d3-evidence/D3-CURRENT.json` (Root is its sole writer). The independent source review of `42054567a` (runtime `2d1a16273`) is
+CHANGES_REQUIRED, `native_launch_clearance=false`; its literal report (LF, SHA-256 `1a64667bf072a63a21a56f80225b8cc1da2d0a3026b7983e5e07baa21fcc3302`) is published unchanged in
+`eech-campaign/reference/d3-entity-collision/`. Nothing of `2d1a16273` was ever launched natively. Both finding groups are corrected in ONE batch, frozen source `fb3163f283ded50fce320c7640b5282b3a68e3bc`.
+
+**ENV-ENTITY-CANDIDATE-PRECONDITION-1 (P1).** The candidate facts are STAGED in the order the original needed them. The first question carries the segment, the mobile flag, the sector's tallest structure height and, for a mobile
+candidate, its shape, position and motion vector; a candidate that is not mobile in a sector below the segment is skipped there (the host's decision), so its fixed flag, shape, position, heading and align flag are never read, a
+direct city building needs no scene, and no model is looked up. The host asks for the next stage only when the branch reaches it (`NEED_FIXED`, then `NEED_PLACEMENT` once the broad phase passed, then `NEED_NORMAL`,
+`NEED_UPDATED` as before). The scene's radius (the host's own model data) is looked up only by a branch that reaches its broad phase and a scene it cannot give then is a refusal by name, never a default or a miss. The
+campaign's offer is now `aphavoc/source/entity/mobile/mb_hostoffer.h`, shared by `en_cllsn.c` (real getters) and the C control (scripted entities that log every getter), so the control tests the code that runs. 44 facts, 7 states.
+
+**ENV-ENTITY-CANDIDATE-REPLY-1 (P2).** (a) The finite classifier takes a pointer and reads the raw word: no untrusted float is passed or loaded before it is refused; signalling and quiet NaN and both infinities are refused cases.
+(b) The candidate has its own `entity_candidate.identity` label; the closed narrow phase keeps `entity_collision.identity`. The reply is checked completely before any pose is used.
+
+**Evidence (Linux, pinned image, direct child exits).** REDs through the existing actual collaborators before the correction: the real provider and a real `ModelStore` refused a direct city building ("scene 0 is not a scene a
+candidate can have"), and the real shared C exchange stopped it at `scene.index`. After: `all 16 steps exit 0 (1183 tests passed, 0 failed, 65 result rows; fmt, model_walk, tree and entity dialogue controls, five fixture builds, eight strict clippy runs)`; positive-first C control (216 expectations) driving the real offer and exchange; the same cases through provider and store;
+a differential over 400 worlds x 6 segments that now includes entities with no usable scene (equal entity and transcript, refusals included); five mutants RED (exit 101, files restored byte for byte). Safe record
+`eech-campaign/reference/d3-entity-collision/entity-candidate-correction-direct-gate-20261105.json`. The first final gate failed on one lint in the new test (retained) and was fixed.
+
+**Next.** The SAME reviewer checks the CHANGED material only (staged facts and the offer header, the lazy radius, the classifier, the identity label, the new tests), not closed evidence. Then Root: corrected Windows build, the ordinary
+exact short against `80fd` WITH wall time (one or more questions per candidate is a material cost: `NEED_FIXED` and `NEED_PLACEMENT` add questions only for candidates that reach those stages), then the still-unwritten
+`ENTITY_CANDIDATE` changed/withheld witness. No native result exists for any of it.
+
+**Still coupled in Core and REQUIRED.** The enumeration of candidates (sector window, sector lists and their insertion order, exclusions: the order is observable and has no host copy), the entity-state reads, the two effectful
+getters, the moving public path (not measured), hierarchy, devices, muzzles, rotor damage, smoke, host identities, the raw tree loader, forest and cloud block, the DCS mappings. All ten whole-D3 requirements persist; Task 49 and
+D3 are not complete; D4/D5 and TypeScript are not started. No baseline, tolerance, input, seed, frame or duration change.
+
+# HISTORICAL (superseded 5 November 2026 by the CURRENT block above; the first entity candidate cutover, source-rejected) — D3 Task49: the entity scan's per-candidate decisions are the host's (source and Linux checks only; nothing native); Root's build and ordinary short are next (5 November 2026)
 
 This is the ONE current summary; dated entries below are history. Read the active card and `R:/d3-evidence/D3-CURRENT.json` (Root is its sole writer). Closed and not to be redone: the corrected narrow phase `f153`/`7ead`,
 the finite stationary ENTITY_COLLISION authority on native `7ead34d09` (same reviewer, `FINITE_STATIONARY_ENTITY_HANDOFF_AUTHORITY_VERIFIED`; safe record
