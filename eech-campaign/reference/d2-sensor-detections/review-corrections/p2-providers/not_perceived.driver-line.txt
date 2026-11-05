@@ -1,0 +1,2 @@
+aracterization-baseline-20261026/out/p2-providers/root-not_perceived\common\graphics\ui\cohokum\map\fflogbar.psd
+sense-provider: mode=not_perceived begin=17047 candidate=324946 draw=0 signature=0 end=17047 accept=0 reject=324946 weapon_births=176 losses=1 candidates/not_perceived by scan: air_to_air=6245/6245 air_to_surface=312160/312160 surface_to_air=520/520 surface_to_surface=6021/6021 failure=none

@@ -1,0 +1,47 @@
+{
+  "scope": "Safe assertions/hashes/reviews only; no raw retail coordinates/assets/binaries/recordings",
+  "measured_source": "02ccf06cc0afcd8632fb5924a2117b1ebbbdd3b1",
+  "receipts": {
+    "validation.json": {
+      "private_source": "R:\\d3-evidence\\ground-production-02ccf06cc-validation-20261031.json",
+      "private_raw_sha256": "87265297da50f32b6524c39fff9a7029543ef2e9f354d4f125acb318d07ae0cb",
+      "Git_LF_sha256": "b20cb643c27b12f7b5c119ce464ebb23153f2cee6eaa67c117f334e1d664fd7c"
+    },
+    "independent-source-review.json": {
+      "private_source": "R:\\d3-evidence\\independent-ground-production-source-review-02ccf06cc-20261031.json",
+      "private_raw_sha256": "76f52b1bd8b33d15bf07d10a9c8ce8d64625b701c1b023e25bfa551fcb3ab730",
+      "Git_LF_sha256": "76f52b1bd8b33d15bf07d10a9c8ce8d64625b701c1b023e25bfa551fcb3ab730"
+    },
+    "finite-conformance.json": {
+      "private_source": "R:\\d3-evidence\\ground-production-conformance-02ccf06cc-20261031\\controller.json",
+      "private_raw_sha256": "e835adc8101c0824da2aa8f4cf76abd04078016081c421305f003a93d97e5651",
+      "Git_LF_sha256": "9f329615a30bcbf502af67f9e017e87b15a0368f13e51d1a4c0e038d2c551700"
+    },
+    "actual-Windows-public.json": {
+      "private_source": "R:\\d3-evidence\\ground-production-public-02ccf06cc-20261031\\controller.json",
+      "private_raw_sha256": "237658b3189f91ad145771f614f831a36803f5759ce5cb381117fcf6b98348ed",
+      "Git_LF_sha256": "e9e57d0d447073cc7c157f3aff19fdb933f7155bffad32ae9e900b4a855477e1"
+    },
+    "linux-completion.json": {
+      "private_source": "R:\\d3-evidence\\ground-production-02ccf06cc-linux-20261031-completion.json",
+      "private_raw_sha256": "136755ebd6720595328bc4a328167830744d16e764c275a46a94d75f574e5b3a",
+      "Git_LF_sha256": "3e1ffae74e415b3ccf1eb267a69a77bd32e9e2b67798882d37e90403a02bcacb"
+    },
+    "Windows-original-controller-completion.json": {
+      "private_source": "R:\\d3-evidence\\ground-production-02ccf06cc-windows-20261031-completion.json",
+      "private_raw_sha256": "0228e75110b952f59764602f5d34b4e5deb730c375b5f1ea48ebaa3028f58a25",
+      "Git_LF_sha256": "9acacef9ffedd306545670df2976cecda9f3e4e94dc7838c8d963446ef5ca04c"
+    },
+    "Windows-export-only-recovery-completion.json": {
+      "private_source": "R:\\d3-evidence\\ground-production-02ccf06cc-export-recovery-20261031-completion.json",
+      "private_raw_sha256": "e37321a47967c8b3aa954ec883bbae68a4c9dab80b057a062a059a6779c967ff",
+      "Git_LF_sha256": "301690d077ccb92e842fee5f32c1246e9bb76778557857a80a9d4c8dc8f3116b"
+    },
+    "ledger81-preservation.json": {
+      "private_source": "R:\\d3-evidence\\ledger-ground-candidate-v81-20261031.json",
+      "private_raw_sha256": "6b6d4f74e2f55863d5278b423810df7decc16645cf5190232a30e636848731ee",
+      "Git_LF_sha256": "6b6d4f74e2f55863d5278b423810df7decc16645cf5190232a30e636848731ee"
+    }
+  },
+  "current_corrections": "Five P2 groups under active sole Sonnet correction; no acceptance"
+}

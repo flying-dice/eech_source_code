@@ -1,0 +1,4 @@
+Lua 5.1 lua_Debug bytes written: 316
+exit=0
+8a228b5437520bc8dda3e77aac7bb7f81c10d23f0747adbcbafe95647533b755 *lua.dll
+9abbee772003faa5a8c72833b405c0cfe89b36f081c93845a32b62061a6bf633 *lua-debug-layout.exe

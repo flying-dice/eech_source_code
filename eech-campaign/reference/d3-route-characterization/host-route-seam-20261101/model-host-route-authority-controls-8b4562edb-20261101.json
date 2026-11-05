@@ -1,0 +1,130 @@
+{
+  "created_utc": "2026-11-01T19:55:29.440251+00:00",
+  "candidate_source": "8b4562edbfdf6cc2b066ba50afe87b5495e05945",
+  "all_four_finite_control_assertions_pass": true,
+  "authority": {
+    "changed_host_node_z_fields": 15783,
+    "all_x_y_bit_fields_equal": true,
+    "actual_Core_per_depth_position_rows_changed": 3020,
+    "Core_position_rows_compared": 3020,
+    "other_Core_row_changes": {
+      "route-position": 3020,
+      "route-offset": 786,
+      "route-slot": 1365,
+      "route-final": 0,
+      "route-link": 0,
+      "route-start": 0
+    },
+    "baseline_rerun": false,
+    "comparison_reference": "Retained first candidate8b Lebanon, original8b hostpositions unchanged"
+  },
+  "results": [
+    {
+      "control": "withhold_node",
+      "controller_exit": 0,
+      "native_exit": 1,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads_rehashed": 57,
+      "actual_wrapper_audit": {
+        "control": "withhold_node",
+        "driver_ok": false,
+        "event": "host_route_control",
+        "injected": 1,
+        "modified_replies": 1,
+        "primary_error": "route-characterization: boot failed: runtime error: eech: EECH fatal error: host model: [model-provider:route_node.callback] runtime error: deliberate withheld route node",
+        "queries": 3028,
+        "queries_after_injection": 0,
+        "route_face_queries": 0,
+        "route_node_queries": 1
+      },
+      "controller_sha256": "5bd9a19f2ae82e8a159a40ece50617ae0e7bc796aeebd90e473ec91a36eec5dc",
+      "native_log_sha256": "75dff7c7f46c1d52e6671f1482339355e9b47de34953ab0b344242a5156d5e07",
+      "raw_routes_sha256": "770e25c7c670b446c0aa1ebf04d7b0c4b4d87887fc2812a6c6e208750338d246"
+    },
+    {
+      "control": "bad_node",
+      "controller_exit": 0,
+      "native_exit": 1,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads_rehashed": 57,
+      "actual_wrapper_audit": {
+        "control": "bad_node",
+        "driver_ok": false,
+        "event": "host_route_control",
+        "injected": 1,
+        "modified_replies": 1,
+        "primary_error": "route-characterization: boot failed: runtime error: eech: EECH fatal error: host model: [model-provider:route_node.answer] p: not finite",
+        "queries": 3028,
+        "queries_after_injection": 0,
+        "route_face_queries": 0,
+        "route_node_queries": 1
+      },
+      "controller_sha256": "9a473907cf247377fedf28ef8864ba67977dab04c75dd31631bf52ec69462073",
+      "native_log_sha256": "bf159cb288a1b807aee412a0d866506060f9714e94022b6c8e29e90a53d5c01f",
+      "raw_routes_sha256": "107b8b48ccf7a8f6bd448eb5a0eaa7b6e6b877de5743673126e9505904971b3f"
+    },
+    {
+      "control": "bad_face",
+      "controller_exit": 0,
+      "native_exit": 1,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads_rehashed": 57,
+      "actual_wrapper_audit": {
+        "control": "bad_face",
+        "driver_ok": false,
+        "event": "host_route_control",
+        "injected": 1,
+        "modified_replies": 1,
+        "primary_error": "route-characterization: boot failed: runtime error: eech: EECH fatal error: host model: [model-provider:route.face] the host's line face 0 of scene 46 kind 76 is outside its route's 74 nodes or the colour / polygon domain",
+        "queries": 3103,
+        "queries_after_injection": 0,
+        "route_face_queries": 1,
+        "route_node_queries": 75
+      },
+      "controller_sha256": "207cca8c04e63274cb2eb6a7a3a27b31ca18136d313257ea7208c2c4a3d25940",
+      "native_log_sha256": "936b309cfc22ccc88a7d46bc018f6df4d305b4de93bd0c47187cd61701526594",
+      "raw_routes_sha256": "79c1343c59b67e5fe4d5b8c61e2892382a977536fff96aa26d0ef93eb7e8329a"
+    },
+    {
+      "control": "shift_z",
+      "controller_exit": 0,
+      "native_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads_rehashed": 57,
+      "actual_wrapper_audit": {
+        "control": "shift_z",
+        "driver_ok": true,
+        "event": "host_route_control",
+        "injected": 1,
+        "modified_replies": 15783,
+        "primary_error": "",
+        "queries": 33041,
+        "queries_after_injection": 0,
+        "route_face_queries": 13703,
+        "route_node_queries": 16311
+      },
+      "controller_sha256": "12b5d0be4765bb3e44bcaf6f39bd2fc45bd9fd7d5971de1aa0b831f2fda005d4",
+      "native_log_sha256": "bf724fa3bfe1602a8f7b7a07b61047acea62646eba16dabfab58c28423718af6",
+      "raw_routes_sha256": "ea0e4a5945e3b78d07d9282f6455d4910d3b5e7896003d2166d8b70698119858"
+    }
+  ],
+  "private_wrapper": {
+    "path": "R:/d3-evidence/host-route-control-wrapper-20261101.lua",
+    "sha256": "09005047314cb1b49be46cc9179f2a83b8f962a3db6dba68a0129d826202f2ac",
+    "controller": "R:/d3-evidence/run-host-route-control-20261101.py",
+    "controller_sha256": "73c4770c9072adddf22b366783670e02c91548c983d032c855e73031bdb01142"
+  },
+  "limits": "Four finite actual public host-Lua/native controls. Native refusal exits1 are expected and retained; controllers0 verify exact requested primary marker and zero further provider queries. Hostshift changes actual Core per-depth positions; counters alone not authority proof. Core geometry arrays are STILL present, not poisoned/removed; no loader detachment proof. 8b captures retain independently found zero-bounds observer defect; no measured-bounds/wholeprofile acceptance or normalized files. Production sources unchanged in subsequent test-only closure correction; future reuse requires exactsource audit. No complete source review, fullFP, Tacview, shipping40/all8 or Task50/D3 acceptance."
+}

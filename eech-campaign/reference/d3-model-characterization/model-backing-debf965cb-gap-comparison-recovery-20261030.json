@@ -1,0 +1,2013 @@
+{
+  "source": "debf965cbff9346a2ada3e2cfb6691b572dba059",
+  "actual_recovery_exit": 0,
+  "when_utc": "2026-10-30T02:08:35.667980+00:00",
+  "results": [
+    {
+      "case": "georgia",
+      "native_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "raw_sha256": "7fc2c3b9fb2695cd7982ae16413a362bd6781516c621f55472221e819f143dd2",
+      "rows": 4998,
+      "selected": [
+        {
+          "scene": 1,
+          "name": "AH64D_APACHE_LONGBOW",
+          "calls": 55,
+          "true": 54,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 54
+          }
+        },
+        {
+          "scene": 2,
+          "name": "UH60_BLACKHAWK",
+          "calls": 42,
+          "true": 41,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 41
+          }
+        },
+        {
+          "scene": 6,
+          "name": "MI28N_HAVOC",
+          "calls": 95,
+          "true": 94,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 94
+          }
+        },
+        {
+          "scene": 187,
+          "name": "FARP_MAT",
+          "calls": 7,
+          "true": 6,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 6
+          }
+        },
+        {
+          "scene": 188,
+          "name": "FARP_MAT_GREY",
+          "calls": 7,
+          "true": 6,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 6
+          }
+        },
+        {
+          "scene": 320,
+          "name": "CONCRETE_ARCH_BRIDGE_END",
+          "calls": 14,
+          "true": 13,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 13
+          }
+        },
+        {
+          "scene": 321,
+          "name": "CONCRETE_ARCH_BRIDGE_END_DAMAGE_1",
+          "calls": 15,
+          "true": 14,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 14
+          }
+        },
+        {
+          "scene": 322,
+          "name": "CONCRETE_ARCH_BRIDGE_START",
+          "calls": 14,
+          "true": 13,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 13
+          }
+        },
+        {
+          "scene": 323,
+          "name": "CONCRETE_ARCH_BRIDGE_START_DAMAGE_1",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 480,
+          "name": "CULTURAL_FC_GOVTOFFICE001_60M",
+          "calls": 29,
+          "true": 28,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 28
+          }
+        },
+        {
+          "scene": 1165,
+          "name": "OIL_FR_CYLINDER01_10X10",
+          "calls": 10,
+          "true": 9,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 9
+          }
+        },
+        {
+          "scene": 1403,
+          "name": "LEBANON_HOUSING_FC_FRAMEBLOCK001_20X20_DESTROYED",
+          "calls": 46,
+          "true": 45,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 45
+          }
+        },
+        {
+          "scene": 1407,
+          "name": "LEBANON_HOUSING_FC_FRAMEBLOCK003_20X20_DESTROYED",
+          "calls": 41,
+          "true": 40,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 40
+          }
+        },
+        {
+          "scene": 1409,
+          "name": "LEBANON_HOUSING_FC_FRAMEBLOCK004_20X20_DESTROYED",
+          "calls": 39,
+          "true": 38,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 38
+          }
+        },
+        {
+          "scene": 1412,
+          "name": "LEBANON_HOUSING_FC_FRAMEBLOCK006_20X20",
+          "calls": 34,
+          "true": 33,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 33
+          }
+        },
+        {
+          "scene": 1425,
+          "name": "LEBANON_HOUSING_FC_STONEBLOCK001_20X20_DESTROYED",
+          "calls": 45,
+          "true": 44,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 44
+          }
+        },
+        {
+          "scene": 1429,
+          "name": "LEBANON_HOUSING_FC_STONEBLOCK003_20X20_DESTROYED",
+          "calls": 43,
+          "true": 42,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 42
+          }
+        },
+        {
+          "scene": 1459,
+          "name": "LEBANON_HOUSING_FC_TOWERBLOCK004_20X20_DESTROYED",
+          "calls": 44,
+          "true": 43,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 43
+          }
+        },
+        {
+          "scene": 1476,
+          "name": "LEBANON_INDUSTRY_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 1478,
+          "name": "LEBANON_INDUSTRY_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1485,
+          "name": "LEBANON_INDUSTRY_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1502,
+          "name": "LEBANON_KEY_INDUSTRY_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 1504,
+          "name": "LEBANON_KEY_INDUSTRY_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1509,
+          "name": "LEBANON_KEY_INDUSTRY_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1526,
+          "name": "LEBANON_KEY_MILITARY_FC_GOVTOFFICE001_60M",
+          "calls": 29,
+          "true": 28,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 28
+          }
+        },
+        {
+          "scene": 1528,
+          "name": "LEBANON_KEY_MILITARY_FC_GOVTOFFICE002_60M",
+          "calls": 29,
+          "true": 28,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 28
+          }
+        },
+        {
+          "scene": 1530,
+          "name": "LEBANON_KEY_MILITARY_FC_GOVTOFFICE003_60M",
+          "calls": 29,
+          "true": 28,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 28
+          }
+        },
+        {
+          "scene": 1589,
+          "name": "LEBANON_KEY_OIL_FC_CYLINDER01_20X20_DESTROYED",
+          "calls": 37,
+          "true": 36,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 36
+          }
+        },
+        {
+          "scene": 1631,
+          "name": "LEBANON_KEY_OIL_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 1633,
+          "name": "LEBANON_KEY_OIL_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1640,
+          "name": "LEBANON_KEY_OIL_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1898,
+          "name": "TAIWAN_HOUSING_FC_FRAMEBLOCK001_20X20_DESTROYED",
+          "calls": 46,
+          "true": 45,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 45
+          }
+        },
+        {
+          "scene": 1902,
+          "name": "TAIWAN_HOUSING_FC_FRAMEBLOCK003_20X20_DESTROYED",
+          "calls": 41,
+          "true": 40,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 40
+          }
+        },
+        {
+          "scene": 1904,
+          "name": "TAIWAN_HOUSING_FC_FRAMEBLOCK004_20X20_DESTROYED",
+          "calls": 39,
+          "true": 38,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 38
+          }
+        },
+        {
+          "scene": 1907,
+          "name": "TAIWAN_HOUSING_FC_FRAMEBLOCK006_20X20",
+          "calls": 35,
+          "true": 34,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 34
+          }
+        },
+        {
+          "scene": 1926,
+          "name": "TAIWAN_HOUSING_FC_TOWERBLOCK004_20X20_DESTROYED",
+          "calls": 39,
+          "true": 38,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 38
+          }
+        },
+        {
+          "scene": 1943,
+          "name": "TAIWAN_INDUSTRY_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 1945,
+          "name": "TAIWAN_INDUSTRY_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1952,
+          "name": "TAIWAN_INDUSTRY_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1969,
+          "name": "TAIWAN_KEY_INDUSTRY_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 1971,
+          "name": "TAIWAN_KEY_INDUSTRY_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1976,
+          "name": "TAIWAN_KEY_INDUSTRY_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 2083,
+          "name": "TAIWAN_KEY_OIL_FC_CYLINDER01_20X20_DESTROYED",
+          "calls": 37,
+          "true": 36,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 36
+          }
+        },
+        {
+          "scene": 2125,
+          "name": "TAIWAN_KEY_OIL_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 2127,
+          "name": "TAIWAN_KEY_OIL_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 2134,
+          "name": "TAIWAN_KEY_OIL_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 2331,
+          "name": "Y_KEY_MILITARY_FC_FENCE20M",
+          "calls": 7,
+          "true": 6,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 6
+          }
+        },
+        {
+          "scene": 2332,
+          "name": "Y_KEY_MILITARY_FC_FENCE40M",
+          "calls": 13,
+          "true": 12,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 12
+          }
+        },
+        {
+          "scene": 2333,
+          "name": "Y_KEY_MILITARY_FC_FENCE80M",
+          "calls": 7,
+          "true": 6,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 6
+          }
+        },
+        {
+          "scene": 2334,
+          "name": "Y_KEY_MILITARY_EX_FENCE11M",
+          "calls": 9,
+          "true": 8,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 8
+          }
+        },
+        {
+          "scene": 2351,
+          "name": "YEMEN_KEY_OIL_FC_CYLINDER01_20X20_DESTROYED",
+          "calls": 37,
+          "true": 36,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 36
+          }
+        },
+        {
+          "scene": 2393,
+          "name": "YEMEN_KEY_OIL_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 2395,
+          "name": "YEMEN_KEY_OIL_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 2402,
+          "name": "YEMEN_KEY_OIL_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 2535,
+          "name": "AH1_T",
+          "calls": 69,
+          "true": 68,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 68
+          }
+        },
+        {
+          "scene": 2537,
+          "name": "AH1_W",
+          "calls": 69,
+          "true": 68,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 68
+          }
+        },
+        {
+          "scene": 2545,
+          "name": "KA_52",
+          "calls": 91,
+          "true": 90,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 90
+          }
+        },
+        {
+          "scene": 2550,
+          "name": "OH58D",
+          "calls": 38,
+          "true": 37,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 37
+          }
+        },
+        {
+          "scene": 2782,
+          "name": "AH1Z",
+          "calls": 73,
+          "true": 72,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 72
+          }
+        }
+      ],
+      "scenes": 59,
+      "original_calls": 1721,
+      "original_true": 1662,
+      "original_false": 59,
+      "catalogue_rows_byte_unchanged": true,
+      "before_after_state_unchanged": true,
+      "triangle_rows_sha256": "b521f722fbb03c4d09d1a7599723484fa571f04352d0e5d7a2b995b774fb96a2"
+    },
+    {
+      "case": "lebanon",
+      "native_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "raw_sha256": "61e207237620932c4f71fddfabf01ef1340dfee2866a4d3a8045350cacd07434",
+      "rows": 4998,
+      "selected": [
+        {
+          "scene": 1,
+          "name": "AH64D_APACHE_LONGBOW",
+          "calls": 55,
+          "true": 54,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 54
+          }
+        },
+        {
+          "scene": 2,
+          "name": "UH60_BLACKHAWK",
+          "calls": 42,
+          "true": 41,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 41
+          }
+        },
+        {
+          "scene": 6,
+          "name": "MI28N_HAVOC",
+          "calls": 95,
+          "true": 94,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 94
+          }
+        },
+        {
+          "scene": 187,
+          "name": "FARP_MAT",
+          "calls": 7,
+          "true": 6,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 6
+          }
+        },
+        {
+          "scene": 188,
+          "name": "FARP_MAT_GREY",
+          "calls": 7,
+          "true": 6,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 6
+          }
+        },
+        {
+          "scene": 320,
+          "name": "CONCRETE_ARCH_BRIDGE_END",
+          "calls": 14,
+          "true": 13,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 13
+          }
+        },
+        {
+          "scene": 321,
+          "name": "CONCRETE_ARCH_BRIDGE_END_DAMAGE_1",
+          "calls": 15,
+          "true": 14,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 14
+          }
+        },
+        {
+          "scene": 322,
+          "name": "CONCRETE_ARCH_BRIDGE_START",
+          "calls": 14,
+          "true": 13,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 13
+          }
+        },
+        {
+          "scene": 323,
+          "name": "CONCRETE_ARCH_BRIDGE_START_DAMAGE_1",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 480,
+          "name": "CULTURAL_FC_GOVTOFFICE001_60M",
+          "calls": 29,
+          "true": 28,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 28
+          }
+        },
+        {
+          "scene": 1165,
+          "name": "OIL_FR_CYLINDER01_10X10",
+          "calls": 10,
+          "true": 9,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 9
+          }
+        },
+        {
+          "scene": 1403,
+          "name": "LEBANON_HOUSING_FC_FRAMEBLOCK001_20X20_DESTROYED",
+          "calls": 46,
+          "true": 45,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 45
+          }
+        },
+        {
+          "scene": 1407,
+          "name": "LEBANON_HOUSING_FC_FRAMEBLOCK003_20X20_DESTROYED",
+          "calls": 41,
+          "true": 40,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 40
+          }
+        },
+        {
+          "scene": 1409,
+          "name": "LEBANON_HOUSING_FC_FRAMEBLOCK004_20X20_DESTROYED",
+          "calls": 39,
+          "true": 38,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 38
+          }
+        },
+        {
+          "scene": 1412,
+          "name": "LEBANON_HOUSING_FC_FRAMEBLOCK006_20X20",
+          "calls": 34,
+          "true": 33,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 33
+          }
+        },
+        {
+          "scene": 1425,
+          "name": "LEBANON_HOUSING_FC_STONEBLOCK001_20X20_DESTROYED",
+          "calls": 45,
+          "true": 44,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 44
+          }
+        },
+        {
+          "scene": 1429,
+          "name": "LEBANON_HOUSING_FC_STONEBLOCK003_20X20_DESTROYED",
+          "calls": 43,
+          "true": 42,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 42
+          }
+        },
+        {
+          "scene": 1459,
+          "name": "LEBANON_HOUSING_FC_TOWERBLOCK004_20X20_DESTROYED",
+          "calls": 44,
+          "true": 43,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 43
+          }
+        },
+        {
+          "scene": 1476,
+          "name": "LEBANON_INDUSTRY_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 1478,
+          "name": "LEBANON_INDUSTRY_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1485,
+          "name": "LEBANON_INDUSTRY_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1502,
+          "name": "LEBANON_KEY_INDUSTRY_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 1504,
+          "name": "LEBANON_KEY_INDUSTRY_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1509,
+          "name": "LEBANON_KEY_INDUSTRY_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1526,
+          "name": "LEBANON_KEY_MILITARY_FC_GOVTOFFICE001_60M",
+          "calls": 29,
+          "true": 28,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 28
+          }
+        },
+        {
+          "scene": 1528,
+          "name": "LEBANON_KEY_MILITARY_FC_GOVTOFFICE002_60M",
+          "calls": 29,
+          "true": 28,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 28
+          }
+        },
+        {
+          "scene": 1530,
+          "name": "LEBANON_KEY_MILITARY_FC_GOVTOFFICE003_60M",
+          "calls": 29,
+          "true": 28,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 28
+          }
+        },
+        {
+          "scene": 1589,
+          "name": "LEBANON_KEY_OIL_FC_CYLINDER01_20X20_DESTROYED",
+          "calls": 37,
+          "true": 36,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 36
+          }
+        },
+        {
+          "scene": 1631,
+          "name": "LEBANON_KEY_OIL_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 1633,
+          "name": "LEBANON_KEY_OIL_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1640,
+          "name": "LEBANON_KEY_OIL_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1898,
+          "name": "TAIWAN_HOUSING_FC_FRAMEBLOCK001_20X20_DESTROYED",
+          "calls": 46,
+          "true": 45,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 45
+          }
+        },
+        {
+          "scene": 1902,
+          "name": "TAIWAN_HOUSING_FC_FRAMEBLOCK003_20X20_DESTROYED",
+          "calls": 41,
+          "true": 40,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 40
+          }
+        },
+        {
+          "scene": 1904,
+          "name": "TAIWAN_HOUSING_FC_FRAMEBLOCK004_20X20_DESTROYED",
+          "calls": 39,
+          "true": 38,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 38
+          }
+        },
+        {
+          "scene": 1907,
+          "name": "TAIWAN_HOUSING_FC_FRAMEBLOCK006_20X20",
+          "calls": 35,
+          "true": 34,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 34
+          }
+        },
+        {
+          "scene": 1926,
+          "name": "TAIWAN_HOUSING_FC_TOWERBLOCK004_20X20_DESTROYED",
+          "calls": 39,
+          "true": 38,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 38
+          }
+        },
+        {
+          "scene": 1943,
+          "name": "TAIWAN_INDUSTRY_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 1945,
+          "name": "TAIWAN_INDUSTRY_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1952,
+          "name": "TAIWAN_INDUSTRY_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1969,
+          "name": "TAIWAN_KEY_INDUSTRY_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 1971,
+          "name": "TAIWAN_KEY_INDUSTRY_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1976,
+          "name": "TAIWAN_KEY_INDUSTRY_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 2083,
+          "name": "TAIWAN_KEY_OIL_FC_CYLINDER01_20X20_DESTROYED",
+          "calls": 37,
+          "true": 36,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 36
+          }
+        },
+        {
+          "scene": 2125,
+          "name": "TAIWAN_KEY_OIL_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 2127,
+          "name": "TAIWAN_KEY_OIL_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 2134,
+          "name": "TAIWAN_KEY_OIL_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 2331,
+          "name": "Y_KEY_MILITARY_FC_FENCE20M",
+          "calls": 7,
+          "true": 6,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 6
+          }
+        },
+        {
+          "scene": 2332,
+          "name": "Y_KEY_MILITARY_FC_FENCE40M",
+          "calls": 13,
+          "true": 12,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 12
+          }
+        },
+        {
+          "scene": 2333,
+          "name": "Y_KEY_MILITARY_FC_FENCE80M",
+          "calls": 7,
+          "true": 6,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 6
+          }
+        },
+        {
+          "scene": 2334,
+          "name": "Y_KEY_MILITARY_EX_FENCE11M",
+          "calls": 9,
+          "true": 8,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 8
+          }
+        },
+        {
+          "scene": 2351,
+          "name": "YEMEN_KEY_OIL_FC_CYLINDER01_20X20_DESTROYED",
+          "calls": 37,
+          "true": 36,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 36
+          }
+        },
+        {
+          "scene": 2393,
+          "name": "YEMEN_KEY_OIL_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 2395,
+          "name": "YEMEN_KEY_OIL_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 2402,
+          "name": "YEMEN_KEY_OIL_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 2535,
+          "name": "AH1_T",
+          "calls": 69,
+          "true": 68,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 68
+          }
+        },
+        {
+          "scene": 2537,
+          "name": "AH1_W",
+          "calls": 69,
+          "true": 68,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 68
+          }
+        },
+        {
+          "scene": 2545,
+          "name": "KA_52",
+          "calls": 91,
+          "true": 90,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 90
+          }
+        },
+        {
+          "scene": 2550,
+          "name": "OH58D",
+          "calls": 38,
+          "true": 37,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 37
+          }
+        },
+        {
+          "scene": 2782,
+          "name": "AH1Z",
+          "calls": 73,
+          "true": 72,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 72
+          }
+        }
+      ],
+      "scenes": 59,
+      "original_calls": 1721,
+      "original_true": 1662,
+      "original_false": 59,
+      "catalogue_rows_byte_unchanged": true,
+      "before_after_state_unchanged": true,
+      "triangle_rows_sha256": "b521f722fbb03c4d09d1a7599723484fa571f04352d0e5d7a2b995b774fb96a2"
+    },
+    {
+      "case": "lebanon-repeat",
+      "native_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "raw_sha256": "15dcca30f59924fc5118c8dbed32c57da38f07777bd43e86ada2879dbb8a9b31",
+      "rows": 4998,
+      "selected": [
+        {
+          "scene": 1,
+          "name": "AH64D_APACHE_LONGBOW",
+          "calls": 55,
+          "true": 54,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 54
+          }
+        },
+        {
+          "scene": 2,
+          "name": "UH60_BLACKHAWK",
+          "calls": 42,
+          "true": 41,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 41
+          }
+        },
+        {
+          "scene": 6,
+          "name": "MI28N_HAVOC",
+          "calls": 95,
+          "true": 94,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 94
+          }
+        },
+        {
+          "scene": 187,
+          "name": "FARP_MAT",
+          "calls": 7,
+          "true": 6,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 6
+          }
+        },
+        {
+          "scene": 188,
+          "name": "FARP_MAT_GREY",
+          "calls": 7,
+          "true": 6,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 6
+          }
+        },
+        {
+          "scene": 320,
+          "name": "CONCRETE_ARCH_BRIDGE_END",
+          "calls": 14,
+          "true": 13,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 13
+          }
+        },
+        {
+          "scene": 321,
+          "name": "CONCRETE_ARCH_BRIDGE_END_DAMAGE_1",
+          "calls": 15,
+          "true": 14,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 14
+          }
+        },
+        {
+          "scene": 322,
+          "name": "CONCRETE_ARCH_BRIDGE_START",
+          "calls": 14,
+          "true": 13,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 13
+          }
+        },
+        {
+          "scene": 323,
+          "name": "CONCRETE_ARCH_BRIDGE_START_DAMAGE_1",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 480,
+          "name": "CULTURAL_FC_GOVTOFFICE001_60M",
+          "calls": 29,
+          "true": 28,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 28
+          }
+        },
+        {
+          "scene": 1165,
+          "name": "OIL_FR_CYLINDER01_10X10",
+          "calls": 10,
+          "true": 9,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 9
+          }
+        },
+        {
+          "scene": 1403,
+          "name": "LEBANON_HOUSING_FC_FRAMEBLOCK001_20X20_DESTROYED",
+          "calls": 46,
+          "true": 45,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 45
+          }
+        },
+        {
+          "scene": 1407,
+          "name": "LEBANON_HOUSING_FC_FRAMEBLOCK003_20X20_DESTROYED",
+          "calls": 41,
+          "true": 40,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 40
+          }
+        },
+        {
+          "scene": 1409,
+          "name": "LEBANON_HOUSING_FC_FRAMEBLOCK004_20X20_DESTROYED",
+          "calls": 39,
+          "true": 38,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 38
+          }
+        },
+        {
+          "scene": 1412,
+          "name": "LEBANON_HOUSING_FC_FRAMEBLOCK006_20X20",
+          "calls": 34,
+          "true": 33,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 33
+          }
+        },
+        {
+          "scene": 1425,
+          "name": "LEBANON_HOUSING_FC_STONEBLOCK001_20X20_DESTROYED",
+          "calls": 45,
+          "true": 44,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 44
+          }
+        },
+        {
+          "scene": 1429,
+          "name": "LEBANON_HOUSING_FC_STONEBLOCK003_20X20_DESTROYED",
+          "calls": 43,
+          "true": 42,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 42
+          }
+        },
+        {
+          "scene": 1459,
+          "name": "LEBANON_HOUSING_FC_TOWERBLOCK004_20X20_DESTROYED",
+          "calls": 44,
+          "true": 43,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 43
+          }
+        },
+        {
+          "scene": 1476,
+          "name": "LEBANON_INDUSTRY_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 1478,
+          "name": "LEBANON_INDUSTRY_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1485,
+          "name": "LEBANON_INDUSTRY_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1502,
+          "name": "LEBANON_KEY_INDUSTRY_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 1504,
+          "name": "LEBANON_KEY_INDUSTRY_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1509,
+          "name": "LEBANON_KEY_INDUSTRY_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1526,
+          "name": "LEBANON_KEY_MILITARY_FC_GOVTOFFICE001_60M",
+          "calls": 29,
+          "true": 28,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 28
+          }
+        },
+        {
+          "scene": 1528,
+          "name": "LEBANON_KEY_MILITARY_FC_GOVTOFFICE002_60M",
+          "calls": 29,
+          "true": 28,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 28
+          }
+        },
+        {
+          "scene": 1530,
+          "name": "LEBANON_KEY_MILITARY_FC_GOVTOFFICE003_60M",
+          "calls": 29,
+          "true": 28,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 28
+          }
+        },
+        {
+          "scene": 1589,
+          "name": "LEBANON_KEY_OIL_FC_CYLINDER01_20X20_DESTROYED",
+          "calls": 37,
+          "true": 36,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 36
+          }
+        },
+        {
+          "scene": 1631,
+          "name": "LEBANON_KEY_OIL_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 1633,
+          "name": "LEBANON_KEY_OIL_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1640,
+          "name": "LEBANON_KEY_OIL_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1898,
+          "name": "TAIWAN_HOUSING_FC_FRAMEBLOCK001_20X20_DESTROYED",
+          "calls": 46,
+          "true": 45,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 45
+          }
+        },
+        {
+          "scene": 1902,
+          "name": "TAIWAN_HOUSING_FC_FRAMEBLOCK003_20X20_DESTROYED",
+          "calls": 41,
+          "true": 40,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 40
+          }
+        },
+        {
+          "scene": 1904,
+          "name": "TAIWAN_HOUSING_FC_FRAMEBLOCK004_20X20_DESTROYED",
+          "calls": 39,
+          "true": 38,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 38
+          }
+        },
+        {
+          "scene": 1907,
+          "name": "TAIWAN_HOUSING_FC_FRAMEBLOCK006_20X20",
+          "calls": 35,
+          "true": 34,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 34
+          }
+        },
+        {
+          "scene": 1926,
+          "name": "TAIWAN_HOUSING_FC_TOWERBLOCK004_20X20_DESTROYED",
+          "calls": 39,
+          "true": 38,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 38
+          }
+        },
+        {
+          "scene": 1943,
+          "name": "TAIWAN_INDUSTRY_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 1945,
+          "name": "TAIWAN_INDUSTRY_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1952,
+          "name": "TAIWAN_INDUSTRY_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1969,
+          "name": "TAIWAN_KEY_INDUSTRY_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 1971,
+          "name": "TAIWAN_KEY_INDUSTRY_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 1976,
+          "name": "TAIWAN_KEY_INDUSTRY_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 2083,
+          "name": "TAIWAN_KEY_OIL_FC_CYLINDER01_20X20_DESTROYED",
+          "calls": 37,
+          "true": 36,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 36
+          }
+        },
+        {
+          "scene": 2125,
+          "name": "TAIWAN_KEY_OIL_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 2127,
+          "name": "TAIWAN_KEY_OIL_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 2134,
+          "name": "TAIWAN_KEY_OIL_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 2331,
+          "name": "Y_KEY_MILITARY_FC_FENCE20M",
+          "calls": 7,
+          "true": 6,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 6
+          }
+        },
+        {
+          "scene": 2332,
+          "name": "Y_KEY_MILITARY_FC_FENCE40M",
+          "calls": 13,
+          "true": 12,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 12
+          }
+        },
+        {
+          "scene": 2333,
+          "name": "Y_KEY_MILITARY_FC_FENCE80M",
+          "calls": 7,
+          "true": 6,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 6
+          }
+        },
+        {
+          "scene": 2334,
+          "name": "Y_KEY_MILITARY_EX_FENCE11M",
+          "calls": 9,
+          "true": 8,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 8
+          }
+        },
+        {
+          "scene": 2351,
+          "name": "YEMEN_KEY_OIL_FC_CYLINDER01_20X20_DESTROYED",
+          "calls": 37,
+          "true": 36,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 36
+          }
+        },
+        {
+          "scene": 2393,
+          "name": "YEMEN_KEY_OIL_FC_SHED003_10M_3X1",
+          "calls": 16,
+          "true": 15,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 15
+          }
+        },
+        {
+          "scene": 2395,
+          "name": "YEMEN_KEY_OIL_FC_SHED003_5M",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 2402,
+          "name": "YEMEN_KEY_OIL_FC_TANK004_10M_2X1_DESTROYED",
+          "calls": 17,
+          "true": 16,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 16
+          }
+        },
+        {
+          "scene": 2535,
+          "name": "AH1_T",
+          "calls": 69,
+          "true": 68,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 68
+          }
+        },
+        {
+          "scene": 2537,
+          "name": "AH1_W",
+          "calls": 69,
+          "true": 68,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 68
+          }
+        },
+        {
+          "scene": 2545,
+          "name": "KA_52",
+          "calls": 91,
+          "true": 90,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 90
+          }
+        },
+        {
+          "scene": 2550,
+          "name": "OH58D",
+          "calls": 38,
+          "true": 37,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 37
+          }
+        },
+        {
+          "scene": 2782,
+          "name": "AH1Z",
+          "calls": 73,
+          "true": 72,
+          "false": 1,
+          "writes": {
+            "0": 1,
+            "9": 72
+          }
+        }
+      ],
+      "scenes": 59,
+      "original_calls": 1721,
+      "original_true": 1662,
+      "original_false": 59,
+      "catalogue_rows_byte_unchanged": true,
+      "before_after_state_unchanged": true,
+      "triangle_rows_sha256": "b521f722fbb03c4d09d1a7599723484fa571f04352d0e5d7a2b995b774fb96a2"
+    }
+  ],
+  "original_controller_exit": 1,
+  "original_controller_error": "Root aggregation expected scene on model-tri; protocol carries scene in the preceding model-geometry header",
+  "recovery": "Read-only; original controller failure and native0/post-inputs0 are separately retained. No native re-run or raw normalization.",
+  "original_answers": "Actual original calls until observed FALSE; fan_bound was a safety limit, never a substituted expected answer",
+  "triangle_rows_byte_identical_across_three_roots": true,
+  "verified_payloads_unchanged": 44,
+  "host_comparison": "NOT YET RUN against these new59 measurements",
+  "production_and_D3": "INCOMPLETE"
+}

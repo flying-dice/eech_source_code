@@ -1,0 +1,656 @@
+{
+  "review_utc": "2026-10-28T09:42:03.628302+00:00",
+  "reviewer": "single independent Codex /root/d2_los_review",
+  "base": "511156c1c9a0cffa37f4364646cb7d9a1d222a3e",
+  "reviewed_sha": "0400af4465b80f5441a3fa5c1257810f11d74310",
+  "head_before": "0400af4465b80f5441a3fa5c1257810f11d74310",
+  "clean_before": true,
+  "head_after": "0400af4465b80f5441a3fa5c1257810f11d74310",
+  "clean_after": true,
+  "scope": "ONE combined new impact/blast correctness, clean-code and boundary-safety pass. No unchanged timed/real/Task45 source review, agents, edits, tests, builds or native launches.",
+  "disposition": "Three actionable P2s (host traversal authority and two evidence-helper/probe issues), one grouped P3 scope/numeric wording correction. No further reference arithmetic/ABI defect identified; native integration remains unproved.",
+  "findings": [
+    {
+      "id": "BLAST-ORDER",
+      "priority": "P2",
+      "title": "Leave sector traversal order with the host",
+      "locations": [
+        {
+          "path": "C:/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d2-sensor-detections/aphavoc/source/entity/mobile/mb_hostaim.c",
+          "line": 1458,
+          "end_line": 1465
+        }
+      ],
+      "mechanism": "The DLL only accepts successive sector starts in increasing (sz,sx) row order. A healthy host that visits sector(2,1) then previously unvisited(1,1), e.g. near-to-far or reverse-order exposure, fatals at1459. This retains the reference physical traversal rule in core despite the request contract claiming host ownership of walk order. The sample own-model only walks one sector, so existing generic tests do not expose it.",
+      "bounded_correction": "Keep reference row order in cmb_step.c. Validate map bounds, duplicates/continuations/progress independently of row order in core (e.g. bounded visited-sector tracking plus existing round limit). Add actual production-driver positive control for two fresh sectors in non-reference order, alongside repeated-sector/stale-window negatives; retain reference differential equality."
+    },
+    {
+      "id": "BLAST-RADIUS-PROBE",
+      "priority": "P2",
+      "title": "Avoid masking the radius-change refusal with stale echo data",
+      "locations": [
+        {
+          "path": "C:/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d2-sensor-detections/eech-campaign/crates/eech-world/lua/aim-malformed.lua",
+          "line": 48,
+          "end_line": 51
+        },
+        {
+          "path": "C:/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d2-sensor-detections/aphavoc/source/entity/mobile/mb_hostaim.c",
+          "line": 461,
+          "end_line": 466
+        }
+      ],
+      "mechanism": "bad_blast_radius changes answer.radius but leaves reference answer.echo events at their old radius. In fixture mode an examined candidate yields f[1]=oldradius, so validate_result rejects malformed blast echo before the per-blast changed-radius check at1433. Concrete case: echo=true, capability400/radius20, window with one city-building candidate at range30; mutation gives radius21 and echo radius20. Existing Lua test uses echo=false and misses this. This is an intended-refusal witness defect, not evidence the guard itself is absent.",
+      "bounded_correction": "For this malformed mode omit the optional echo (or otherwise isolate a consistent diagnostic envelope), so the changed-radius guard is the genuine primary refusal. Add echo-enabled provider plus production-bridge coverage. Document actual trigger: a supplied window and positive radius suffice; no reached object/second sector is required."
+    },
+    {
+      "id": "BLAST-MUTATION-STATUS",
+      "priority": "P2",
+      "title": "Do not count mutant build failures or timeouts as detected behavior",
+      "locations": [
+        {
+          "path": "C:/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d2-sensor-detections/eech-campaign/reference/d2-combat-characterization/c-checks/mutate-blast-checks.sh",
+          "line": 34,
+          "end_line": 36
+        },
+        {
+          "path": "C:/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d2-sensor-detections/eech-campaign/reference/d2-combat-characterization/c-checks/mutate-blast-differential.sh",
+          "line": 37,
+          "end_line": 39
+        }
+      ],
+      "mechanism": "Both build_and_run helpers return99 on compile failure, and their callers count ANY nonzero as CAUGHT. timeout124/signal exits are likewise green catches. After an unmutated control succeeds, a mutant that never compiles/runs can therefore contribute to CAUGHT=10/MISSED=0 and outer0, contrary to the claimed behavioral detection. Current retained mutants all exit1, so this does not reclassify those logs as compile failures.",
+      "bounded_correction": "Record compile/run statuses separately, require successful compilation and the intended assertion/differential/sanitizer outcome, and fail the controller on build/setup/timeout failures. Preserve actual logs. Add bounded compile-failure/timeout controls proving they cannot count as caught, while retaining current valid mutation results."
+    },
+    {
+      "id": "BLAST-SCOPE-DOCS",
+      "priority": "P3",
+      "title": "Keep remaining structure ownership in D2 and correct the generic numeric comment",
+      "locations": [
+        {
+          "path": "C:/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d2-sensor-detections/eech-campaign/docs/m5-combat-extraction.md",
+          "line": 321,
+          "end_line": 322
+        },
+        {
+          "path": "C:/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d2-sensor-detections/eech-campaign/crates/eech-world/lua/own-weapon.lua",
+          "line": 145,
+          "end_line": 146
+        }
+      ],
+      "mechanism": "The scoped handles correctly correlate only objects from the current offered window; they do not support a host-owned persistent structure world or unoffered objects. Calling that remaining requirement D5 registration conflicts with the explicit R3/D2 responsibility, even though the final Still open section retains R3. Also own-weapon.lua says ordinary double modifiers are refused as inexact, but the DC number reader uses nearest_f32 and accepts finite representable doubles. Quantization is this sample model choice, not an API requirement.",
+      "bounded_correction": "Describe current cut as authoritative impact/blast math over a transitional mirror and keep persistent structure ownership/report correlation as explicit next D2 work, without requiring its implementation in this bounded fix. Remove the D5 deferral and false double-rejection explanation; optional chosen quantization may remain unchanged."
+    }
+  ],
+  "source_conclusions": [
+    "Host C kernel owns kill-code physical plan, radius, reference sector rectangle/walk selection, range/strictzero-and-radius comparisons, modifier and nested rocket pow threshold. No authoritative private DLL formula or reference-kernel fallback remains in moved paths.",
+    "Campaign applies crater/direct hit/blasts in original order; land remains deliberately two blasts; target exclusion is an opaque identity fact, not pointer crossing. Varargs collision modifiers remain promoted float-to-double as original.",
+    "Driver keeps each window-to-private-object mapping locally and accepts only handles in current window. Handles monotonically renewed and no pointer/index/layout/seed crosses. After applying one action it re-reads successor on original private pointer and refreshes window, discarding prefetched future facts.",
+    "Nested notifications happen after host answer/echo consumed; per-walk request/object arrays are stack-local. Existing current-host callback scope and synchronous exception handling unchanged.",
+    "Shared C/Rust request/result layouts and kernel RawImpact/RawBlast declarations match by inspection, all actual new repr(C) attributes standalone. No remaining swallowed repr(C) doc-comment join found. New payloads use c_int/f32, not platform-sizedlong/usize. Existing ABI/enum layout assertions expanded and pass in retained Cargo logs; no32-bit Windows native build claimed.",
+    "Lua tables/mandatory reply fields, finite numeric conversion and buffers bounded; copy_echo refactor preserves capacity/null checks. nearest_f32 handles normal finite Lua double modifiers.",
+    "Physical radius/order observations of the reference are replayed through reference-only optional echo; generic no-echo hosts are not fully observed by this fixture and cannot establish equivalent candidate hashes merely by replying.",
+    "The window adapter is intentionally limited to offered sector objects and safe known-type fields. Current cut does NOT provide persistent host-owned static-world identity/state; that is still next D2/R3 work, along with physical factual reports. Bridge characterization must precede bridge physical extraction."
+  ],
+  "existing_evidence": {
+    "logs": [
+      {
+        "file": "blast-checks-2.log",
+        "sha256": "33f93cf747bc8da35f6584849af15f32a90990b8c9e00f4278ef9cf3a7af74a1",
+        "markers": [
+          "SANITIZER_PROBE_COMPILE_EXIT=0",
+          "SANITIZER_PROBE_RUN_EXIT=0",
+          "COMPILE_EXIT=0",
+          "54 checks, 0 failures",
+          "RUN_EXIT=0",
+          "DOCKER_EXIT=0"
+        ]
+      },
+      {
+        "file": "blast-mutation-2.log",
+        "sha256": "19131c8dd3ce2e5303634ee6ffb469d158115a0d6ae0f4cf9576b9165210cd46",
+        "markers": [
+          "54 checks, 0 failures",
+          "CONTROL_EXIT=0",
+          "54 checks, 1 failures",
+          "54 checks, 1 failures",
+          "54 checks, 1 failures",
+          "54 checks, 1 failures",
+          "54 checks, 1 failures",
+          "54 checks, 1 failures",
+          "54 checks, 1 failures",
+          "54 checks, 1 failures",
+          "54 checks, 1 failures",
+          "CAUGHT=10 MISSED=0",
+          "DOCKER_EXIT=0"
+        ]
+      },
+      {
+        "file": "blast-differential-2.log",
+        "sha256": "f1f11543da3644cde89e3b6054cf10dcf89ac69bbc46dc9dffa5af103cc7f073",
+        "markers": [
+          "SANITIZER_PROBE_COMPILE_EXIT=0",
+          "SANITIZER_PROBE_RUN_EXIT=0",
+          "COMPILE_EXIT=0",
+          "scenarios 6000, events 255003, candidates 94445, collisions 53647, rockets destroyed 1467, weapons in range 11737, effects on the lists 26593, zero radius 424, objects exactly one radius away 1105, failures 0",
+          "RUN_EXIT=0",
+          "DOCKER_EXIT=0"
+        ]
+      },
+      {
+        "file": "blast-differential-mutation-2.log",
+        "sha256": "249c0d6a76e40f77ae56240a5a1c789107be46092fe98842e1c1d2af7f146890",
+        "markers": [
+          "scenarios 6000, events 255003, candidates 94445, collisions 53647, rockets destroyed 1467, weapons in range 11737, effects on the lists 26593, zero radius 424, objects exactly one radius away 1105, fa",
+          "CONTROL_EXIT=0",
+          "CAUGHT=10 MISSED=0",
+          "DOCKER_EXIT=0"
+        ]
+      },
+      {
+        "file": "cargo-test-impact-final2.log",
+        "sha256": "dfa7a8bea190e3421ae3e6b29dcade32d7c35c6c4ce92d329db0700a27ac2184",
+        "markers": [
+          "RUSTUP_ADD_EXIT=0",
+          "test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+          "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+          "test result: ok. 61 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+          "test result: ok. 223 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s",
+          "test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.57s",
+          "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s",
+          "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+          "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+          "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+          "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+          "CARGO_EXIT=0",
+          "DOCKER_EXIT=0"
+        ]
+      },
+      {
+        "file": "clippy-impact-final-default.log",
+        "sha256": "5c535c29c7eae75b7b521d7c0492dc7af6b8ba2cf7a5287b9c2f47a948e50552",
+        "markers": [
+          "RUSTUP_ADD_EXIT=0",
+          "CARGO_EXIT=0",
+          "DOCKER_EXIT=0"
+        ]
+      },
+      {
+        "file": "clippy-impact-final-fixture.log",
+        "sha256": "dc3825564aa6034870e7e0043177ba6490ea8a471128c77b3d1ec7e7eb08798a",
+        "markers": [
+          "RUSTUP_ADD_EXIT=0",
+          "CARGO_EXIT=0",
+          "DOCKER_EXIT=0"
+        ]
+      },
+      {
+        "file": "fmt-impact-final.log",
+        "sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+        "markers": [
+          "RUSTUP_ADD_EXIT=0",
+          "FMT_EXIT=0",
+          "DOCKER_EXIT=0"
+        ]
+      },
+      {
+        "file": "health-checks-impact.log",
+        "sha256": "22412c8d0de37d2b8218df86955cefe16ee6af22c448e0d71945b686aec3ef3d",
+        "markers": [
+          "SANITIZER_PROBE_COMPILE_EXIT=0",
+          "SANITIZER_PROBE_RUN_EXIT=0",
+          "COMPILE_EXIT=0",
+          "HEALTH_CHECKS=ok: 59 checks, 0 failures",
+          "RUN_EXIT=0",
+          "DOCKER_EXIT=0"
+        ]
+      },
+      {
+        "file": "damage-checks-impact.log",
+        "sha256": "ef72f9f5606668849a9132786d4694da260333307731c46d602bcad6cd3f43c6",
+        "markers": [
+          "SANITIZER_PROBE_COMPILE_EXIT=0",
+          "SANITIZER_PROBE_RUN_EXIT=0",
+          "COMPILE_EXIT=0",
+          "DAMAGE_CHECKS=ok: 66 checks, 0 failures",
+          "RUN_EXIT=0",
+          "DOCKER_EXIT=0"
+        ]
+      },
+      {
+        "file": "forecast-checks-impact.log",
+        "sha256": "4cf35c5a41b1d2c4bca2917c364c6a757f88aa5666b893ad246fdb9320808e2e",
+        "markers": [
+          "SANITIZER_PROBE_COMPILE_EXIT=0",
+          "SANITIZER_PROBE_RUN_EXIT=0",
+          "COMPILE_EXIT=0",
+          "FORECAST_CHECKS=ok: 25 checks, 0 failures",
+          "RUN_EXIT=0",
+          "DOCKER_EXIT=0"
+        ]
+      },
+      {
+        "file": "syntax-impact-1.log",
+        "sha256": "9b065e2933cbd218ef3040804e29764b7cfd62d9830f8b3786401ce57f1421b1",
+        "markers": [
+          "SYNTAX_EXIT=0"
+        ]
+      },
+      {
+        "file": "syntax-impact-layout.log",
+        "sha256": "940cd447c2a98050bfa7447af8d8fd1499928dc2d3d8e34db55cc04bf89c5d23",
+        "markers": [
+          "SYNTAX_EXIT=0"
+        ]
+      },
+      {
+        "file": "strict-preprocess-impact-1.log",
+        "sha256": "43c3cbd9a93267774a40509ea82ccd0ca4ec1a2616a946cfedb4bb9333309cb5",
+        "markers": [
+          "STRICT_EXIT=0"
+        ]
+      }
+    ],
+    "differential": "6000 fake worlds,255003events,94445candidates,53647collisions,1467intercepts,26593list effects,424zero-radius and1105exact-boundaryobjects; failures0 under retained ASAN/UBSAN probe/compile/run/Docker0.",
+    "differential_limits": "Original walk transcribed over fake linked lists and compared to actual mb_hostaim driver+actual host C kernel with fake adapter/apply. Does not exercise production engine allocation/getters/notification handlers, Windows integration or all FPU/runtime conditions.",
+    "guards": "54production Cbridge checks0; prior HEALTH59/DAMAGE66/FORECAST25 pass against changed bridge.",
+    "mutation_limits": "Current20mutants genuinely report runtime1, including one explicit UBSAN out-of-bounds after sector-bound guard removal; no current99/124 reclassified as pass. Helper false-pass paths remain finding.",
+    "rust_tests_passed_suites": [
+      7,
+      2,
+      61,
+      223,
+      19,
+      14,
+      2
+    ],
+    "retained_failures": "Earlier failed Cguard/assertion, missed differential mutation, sed delimiter, Lua-newline test, Clippy and fmt attempts are retained distinctly; final green markers inspected, not invented.",
+    "no_new_checks_executed_by_reviewer": true
+  },
+  "pending_gates": [
+    "Source corrections and bounded static evidence for new deltas only.",
+    "Fresh immutable Windows fixture build, all export/source/input identities.",
+    "Default600/900 and retained original controlled SITE/SU/centred witnesses with unchanged measurement scope.",
+    "Actual native host authority and specifically triggered refusal cases; generic own-model evidence must use real core/world consequences, not reference echoes alone.",
+    "Original bridge characterization before bridge physics, R3persistent structure-world ownership/reporting, physical factual reports and whole D2audit.",
+    "FullTask46 shipping40/all8/post3/currentCI/normal delivery remain separate; Task45 final completed-pack proof not part of this review."
+  ],
+  "pinned_changed_files": [
+    {
+      "path": "STATUS.md",
+      "checkout_bytes": 33504,
+      "checkout_sha256": "92adf3a6d8fa663ebb8c7261be12b99829856984e26081bdbb48467f98be6225",
+      "canonical_git_blob": "b7a6536cb20fbcc554b888a4cf09c3ae2e927e7a",
+      "canonical_sha256": "7f4981da073091032f9cefa4f163323652771782bc36e820c4ee70955f9d52a3",
+      "checkout_bytes_equal_blob": false
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_cmbfx.h",
+      "checkout_bytes": 8151,
+      "checkout_sha256": "422a199eedef1bab871c12ed414f66afc0ad57f6bbbf01fc7d1feeb7fcfaaa7b",
+      "canonical_git_blob": "91ee4ad22de5c6169acbab3cd3d14e0f7bf3f95f",
+      "canonical_sha256": "422a199eedef1bab871c12ed414f66afc0ad57f6bbbf01fc7d1feeb7fcfaaa7b",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostaim.c",
+      "checkout_bytes": 57462,
+      "checkout_sha256": "cb6b3f72198d44627743e3af5ff5d6997b26f9a007ea556d36c9b8d33d8ce161",
+      "canonical_git_blob": "82c92ba72c0068b24d0d3b2de9c8094d20cf7221",
+      "canonical_sha256": "cb6b3f72198d44627743e3af5ff5d6997b26f9a007ea556d36c9b8d33d8ce161",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostaim.h",
+      "checkout_bytes": 52020,
+      "checkout_sha256": "77db85760a5298e6532c5f10e9ee8bbecfb57f0b439176f91d9d98035c406572",
+      "canonical_git_blob": "c9323c1425d98ba9bcb27f4368311d3d3f38d787",
+      "canonical_sha256": "77db85760a5298e6532c5f10e9ee8bbecfb57f0b439176f91d9d98035c406572",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "aphavoc/source/entity/special/effect/explosn/explosn.c",
+      "checkout_bytes": 42534,
+      "checkout_sha256": "67962fe619471c97f05f919045f8c5fc13fbe28febfd8ce246d7527cc7c49e36",
+      "canonical_git_blob": "9fac88872ebe2fe643eeedbddf889d5fef4d4909",
+      "canonical_sha256": "67962fe619471c97f05f919045f8c5fc13fbe28febfd8ce246d7527cc7c49e36",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "checkout_bytes": 127673,
+      "checkout_sha256": "dc85cdf855b77c3f5fc2532144f139362c49e6bd2f1136b7bcc3e20c55b8eee0",
+      "canonical_git_blob": "81bf1708d21ba78972c0a2e9be54ec260e3c4ddd",
+      "canonical_sha256": "dc85cdf855b77c3f5fc2532144f139362c49e6bd2f1136b7bcc3e20c55b8eee0",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_aim_layout.c",
+      "checkout_bytes": 5026,
+      "checkout_sha256": "e9c8b4fea4b18fdd02b189966bb4b29a73b379a7e6d390cdae9849ab559a66b3",
+      "canonical_git_blob": "2a50e795b154525a4636a2093b952bbaac50e1c1",
+      "canonical_sha256": "e9c8b4fea4b18fdd02b189966bb4b29a73b379a7e6d390cdae9849ab559a66b3",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_fixture.c",
+      "checkout_bytes": 36985,
+      "checkout_sha256": "c03ff88e9cee4dc1e59f2a996014daa14b4da4acb583c43d44c03281b33281e0",
+      "canonical_git_blob": "3ef7e51ed682d2bdbe80f54f692b78d4e9d560e0",
+      "canonical_sha256": "c03ff88e9cee4dc1e59f2a996014daa14b4da4acb583c43d44c03281b33281e0",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "checkout_bytes": 44930,
+      "checkout_sha256": "eed4f0c0ab9d60c1a7bec31a12c31f9af9fa08457115b4e0937c7ac0f550d011",
+      "canonical_git_blob": "47eb5dbc3b02271199d9d951662ecfc7ffb32676",
+      "canonical_sha256": "eed4f0c0ab9d60c1a7bec31a12c31f9af9fa08457115b4e0937c7ac0f550d011",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "checkout_bytes": 346397,
+      "checkout_sha256": "3cf463d27952a2f6173231ec20b817cc756f6c731a063cada520b7b4169bdeca",
+      "canonical_git_blob": "7f3baa7ed8dc3e621e14f34f18ab1b749238fda8",
+      "canonical_sha256": "3cf463d27952a2f6173231ec20b817cc756f6c731a063cada520b7b4169bdeca",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/cmb_step.c",
+      "checkout_bytes": 31406,
+      "checkout_sha256": "1dca57d41fa625fef60cedd7d282ff6b85775f38f2ec7ef89cc240c49869b9a4",
+      "canonical_git_blob": "328759bc6f2ccf5d6f65e8ae5317852d7b933c4f",
+      "canonical_sha256": "1dca57d41fa625fef60cedd7d282ff6b85775f38f2ec7ef89cc240c49869b9a4",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/aim-malformed.lua",
+      "checkout_bytes": 10192,
+      "checkout_sha256": "3af902aa3804a8336cb1f7719d49f94355108c7bb8a5aa101fa5f8a5ac2f7592",
+      "canonical_git_blob": "d79a1bf166bfab932d2c4caf303172a58edcae1f",
+      "canonical_sha256": "3af902aa3804a8336cb1f7719d49f94355108c7bb8a5aa101fa5f8a5ac2f7592",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/aim-provider.lua",
+      "checkout_bytes": 35806,
+      "checkout_sha256": "9bf6c9ed46d43c57f0e7eb288f7d1acfa939151d5d1742fb6798707564bbd615",
+      "canonical_git_blob": "429defad3262adc0f818d4c2fe1aae50f8757dce",
+      "canonical_sha256": "9bf6c9ed46d43c57f0e7eb288f7d1acfa939151d5d1742fb6798707564bbd615",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/own-weapon.lua",
+      "checkout_bytes": 11226,
+      "checkout_sha256": "a4d08d892b80b464411599b1ef5fb1103446d4d0e9895170fa50799c69f7f04d",
+      "canonical_git_blob": "241e07b5d8225d981c5bb2ccad05d846208fce11",
+      "canonical_sha256": "a4d08d892b80b464411599b1ef5fb1103446d4d0e9895170fa50799c69f7f04d",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/cmb.rs",
+      "checkout_bytes": 80178,
+      "checkout_sha256": "819709075212ff103d5c396cc7442987d702dd258e7779877c3db4ed97cbbe94",
+      "canonical_git_blob": "53b4bcadda77888200a843eeb2a23af245f1ee9d",
+      "canonical_sha256": "819709075212ff103d5c396cc7442987d702dd258e7779877c3db4ed97cbbe94",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/main.rs",
+      "checkout_bytes": 169344,
+      "checkout_sha256": "b21b30930c9a444f5f654a49e8afbec2d999761f3ca3c4e319b557978f499dfc",
+      "canonical_git_blob": "53c7e90f53dd246fcb53d0f762ff260182674b00",
+      "canonical_sha256": "b21b30930c9a444f5f654a49e8afbec2d999761f3ca3c4e319b557978f499dfc",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "checkout_bytes": 101101,
+      "checkout_sha256": "418c1ee3d74e89d9d716a24cd6b89a67b6b591ef15aa5132d8583144e915c907",
+      "canonical_git_blob": "b93b29bdb07ba492cf175e3f306fedeecfe0fd26",
+      "canonical_sha256": "418c1ee3d74e89d9d716a24cd6b89a67b6b591ef15aa5132d8583144e915c907",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/docs/m5-combat-extraction.md",
+      "checkout_bytes": 50414,
+      "checkout_sha256": "edae162d097d1c7e38800c1b7f643496e6269f090d319c5e928778e51e93d04c",
+      "canonical_git_blob": "2757eaa119c68b6a0238c9b3360850b0263bed5b",
+      "canonical_sha256": "edae162d097d1c7e38800c1b7f643496e6269f090d319c5e928778e51e93d04c",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/README.md",
+      "checkout_bytes": 33295,
+      "checkout_sha256": "c3cec98802afe025a84b3f28b1cfb2d16fb340d21664dbd51766e1692b4bbf4b",
+      "canonical_git_blob": "0f5751a16ef945325e6e55ebe1ca7e9a74e99f61",
+      "canonical_sha256": "c3cec98802afe025a84b3f28b1cfb2d16fb340d21664dbd51766e1692b4bbf4b",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/blast_checks.c",
+      "checkout_bytes": 27909,
+      "checkout_sha256": "482b7b6ba1579efbb648ccc4e0bfc97fcbde7a3ce35d8a4c9a5dc5df349e75c5",
+      "canonical_git_blob": "c01c427e1eb617cf50f0cb0e3616827ce28f9c98",
+      "canonical_sha256": "482b7b6ba1579efbb648ccc4e0bfc97fcbde7a3ce35d8a4c9a5dc5df349e75c5",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/blast_differential.c",
+      "checkout_bytes": 21536,
+      "checkout_sha256": "414aebd07117fa73965608894c2454204a3bc62529c81b859445580843c2fca0",
+      "canonical_git_blob": "433272c9c60efc3b72840cbf060ec66b3bec073b",
+      "canonical_sha256": "414aebd07117fa73965608894c2454204a3bc62529c81b859445580843c2fca0",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/mutate-blast-checks.sh",
+      "checkout_bytes": 3074,
+      "checkout_sha256": "3b78c5d4625240e6f9b10ba08ee7e256d8e875ddcf23dfe9314f3e7bb0037288",
+      "canonical_git_blob": "741b92f9da550bef3c36830caf87680d3f41bc5f",
+      "canonical_sha256": "3b78c5d4625240e6f9b10ba08ee7e256d8e875ddcf23dfe9314f3e7bb0037288",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/mutate-blast-differential.sh",
+      "checkout_bytes": 3639,
+      "checkout_sha256": "8441ab43688cab682a6c24b44c3aeb739f4ae7403719bcaaa518e80d9e8e3e23",
+      "canonical_git_blob": "ce179e3fe9df65be3f6bf7e71c79dc77b18669f7",
+      "canonical_sha256": "8441ab43688cab682a6c24b44c3aeb739f4ae7403719bcaaa518e80d9e8e3e23",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/run-blast-checks.sh",
+      "checkout_bytes": 2011,
+      "checkout_sha256": "054b5cb0dba876b342913e7d4fc0029623f283030be48e7f986b968699dec94d",
+      "canonical_git_blob": "f0e41ce68f6a92347118848bd48cd73bc7de75f3",
+      "canonical_sha256": "054b5cb0dba876b342913e7d4fc0029623f283030be48e7f986b968699dec94d",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/run-blast-differential.sh",
+      "checkout_bytes": 2162,
+      "checkout_sha256": "9639f83861ecd83b2b1aec45b0082dd01e6a1bcf6538bdd66ad1b2285dda1622",
+      "canonical_git_blob": "5ac6ae45b78272f5fc76c6f78c36986a1b5f3d19",
+      "canonical_sha256": "9639f83861ecd83b2b1aec45b0082dd01e6a1bcf6538bdd66ad1b2285dda1622",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/blast-checks-1-failed-one-check.log",
+      "checkout_bytes": 4391,
+      "checkout_sha256": "1644c1b648d7f0ce07f46891f8cfa2112e846e9860e1af86c28dc45f90275493",
+      "canonical_git_blob": "9b547ec4d52fc9936031a96e92b7ba16c62cf2ba",
+      "canonical_sha256": "1644c1b648d7f0ce07f46891f8cfa2112e846e9860e1af86c28dc45f90275493",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/blast-checks-2.log",
+      "checkout_bytes": 4148,
+      "checkout_sha256": "33f93cf747bc8da35f6584849af15f32a90990b8c9e00f4278ef9cf3a7af74a1",
+      "canonical_git_blob": "0d0df3e3cbb72d27203a3dccda845c48445effdd",
+      "canonical_sha256": "33f93cf747bc8da35f6584849af15f32a90990b8c9e00f4278ef9cf3a7af74a1",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/blast-differential-1.log",
+      "checkout_bytes": 824,
+      "checkout_sha256": "2a8c90cb6806dda08933acb2931499312cf9367a5bf0d15376c1ff1e92e2ddae",
+      "canonical_git_blob": "fde238b50eb71e0b3123b4dc5f56ee7457bff92f",
+      "canonical_sha256": "2a8c90cb6806dda08933acb2931499312cf9367a5bf0d15376c1ff1e92e2ddae",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/blast-differential-2.log",
+      "checkout_bytes": 412,
+      "checkout_sha256": "f1f11543da3644cde89e3b6054cf10dcf89ac69bbc46dc9dffa5af103cc7f073",
+      "canonical_git_blob": "7954e281cc5275c1d185ed5099eae02fbfc6cb9d",
+      "canonical_sha256": "f1f11543da3644cde89e3b6054cf10dcf89ac69bbc46dc9dffa5af103cc7f073",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/blast-differential-mutation-1-failed-one-missed.log",
+      "checkout_bytes": 2347,
+      "checkout_sha256": "9989eb3b4c66f2b04931a8a1ec4dbfe33f71cf2472210e65f8eb93e93d64bd7f",
+      "canonical_git_blob": "2283e8744cc1d2e9b1a1b2287f4456c8e3526909",
+      "canonical_sha256": "9989eb3b4c66f2b04931a8a1ec4dbfe33f71cf2472210e65f8eb93e93d64bd7f",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/blast-differential-mutation-2.log",
+      "checkout_bytes": 2143,
+      "checkout_sha256": "249c0d6a76e40f77ae56240a5a1c789107be46092fe98842e1c1d2af7f146890",
+      "canonical_git_blob": "158ccb8fd4d1eabeeb3f73924f6d2fc248b1369f",
+      "canonical_sha256": "249c0d6a76e40f77ae56240a5a1c789107be46092fe98842e1c1d2af7f146890",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/blast-mutation-1-failed-sed-delimiter.log",
+      "checkout_bytes": 1194,
+      "checkout_sha256": "3147f7c6f90e4355c565ad1877bd6284cede491cdf65933c435ee3547fafbbdb",
+      "canonical_git_blob": "9c205ee60b10cbbb441d48a72f69b0fc0aefa510",
+      "canonical_sha256": "3147f7c6f90e4355c565ad1877bd6284cede491cdf65933c435ee3547fafbbdb",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/blast-mutation-2.log",
+      "checkout_bytes": 1192,
+      "checkout_sha256": "19131c8dd3ce2e5303634ee6ffb469d158115a0d6ae0f4cf9576b9165210cd46",
+      "canonical_git_blob": "a8143b9c0a4fe768bf722c65e9419a1a50283a3f",
+      "canonical_sha256": "19131c8dd3ce2e5303634ee6ffb469d158115a0d6ae0f4cf9576b9165210cd46",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-impact-1-failed-lua-newline.log",
+      "checkout_bytes": 34319,
+      "checkout_sha256": "70653859e484e3caaa690022dfbcb3f084c46aa8cb36bc12617e2bceda9fe662",
+      "canonical_git_blob": "b6781600ef56e9c2163b6b1a0da62d0d2776f134",
+      "canonical_sha256": "70653859e484e3caaa690022dfbcb3f084c46aa8cb36bc12617e2bceda9fe662",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-impact-final2.log",
+      "checkout_bytes": 33744,
+      "checkout_sha256": "dfa7a8bea190e3421ae3e6b29dcade32d7c35c6c4ce92d329db0700a27ac2184",
+      "canonical_git_blob": "d7d0cad361bc3f0ee939406ed7abeca7fa3436fc",
+      "canonical_sha256": "dfa7a8bea190e3421ae3e6b29dcade32d7c35c6c4ce92d329db0700a27ac2184",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-impact-default-failed-1.log",
+      "checkout_bytes": 2845,
+      "checkout_sha256": "e0feac6590c29a09706a75144cff2d54d5f07e0b1810c27c753258901a834105",
+      "canonical_git_blob": "66710279ddf9a1b24d3be403a2cae9c97a127b9c",
+      "canonical_sha256": "e0feac6590c29a09706a75144cff2d54d5f07e0b1810c27c753258901a834105",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-impact-final-default.log",
+      "checkout_bytes": 284,
+      "checkout_sha256": "5c535c29c7eae75b7b521d7c0492dc7af6b8ba2cf7a5287b9c2f47a948e50552",
+      "canonical_git_blob": "3bd17f81dcb16cf0851b13bc945e9ab995c75bde",
+      "canonical_sha256": "5c535c29c7eae75b7b521d7c0492dc7af6b8ba2cf7a5287b9c2f47a948e50552",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-impact-final-fixture.log",
+      "checkout_bytes": 284,
+      "checkout_sha256": "dc3825564aa6034870e7e0043177ba6490ea8a471128c77b3d1ec7e7eb08798a",
+      "canonical_git_blob": "db63fbd387c7b027bbcbab97d102c57d0d00b13c",
+      "canonical_sha256": "dc3825564aa6034870e7e0043177ba6490ea8a471128c77b3d1ec7e7eb08798a",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-impact-fixture-failed-1.log",
+      "checkout_bytes": 2709,
+      "checkout_sha256": "c2634dc2972bc8e687d7027d169bfbf49f1f65c8f291bde2f75853b7431dd7fb",
+      "canonical_git_blob": "ef0e5663c6965a876f4f8fceb6adbc959ed180be",
+      "canonical_sha256": "c2634dc2972bc8e687d7027d169bfbf49f1f65c8f291bde2f75853b7431dd7fb",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/damage-checks-impact.log",
+      "checkout_bytes": 3965,
+      "checkout_sha256": "ef72f9f5606668849a9132786d4694da260333307731c46d602bcad6cd3f43c6",
+      "canonical_git_blob": "43eb5a322873e89553a5f8285e171581b8920781",
+      "canonical_sha256": "ef72f9f5606668849a9132786d4694da260333307731c46d602bcad6cd3f43c6",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/fmt-impact-final-failed-layout.log",
+      "checkout_bytes": 601,
+      "checkout_sha256": "9f36cc94f4a85d0750a681b98db12e4cbce277d99726214073371d401cebc858",
+      "canonical_git_blob": "2cac6cab26fa0bedf6a2412394cc333b2ca30095",
+      "canonical_sha256": "9f36cc94f4a85d0750a681b98db12e4cbce277d99726214073371d401cebc858",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/fmt-impact-final.log",
+      "checkout_bytes": 43,
+      "checkout_sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+      "canonical_git_blob": "fb443baa65a38fe198b61549de69630e8a4fb6fb",
+      "canonical_sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/forecast-checks-impact.log",
+      "checkout_bytes": 1691,
+      "checkout_sha256": "4cf35c5a41b1d2c4bca2917c364c6a757f88aa5666b893ad246fdb9320808e2e",
+      "canonical_git_blob": "8235c61b62330decc40ac7a529c1606736619679",
+      "canonical_sha256": "4cf35c5a41b1d2c4bca2917c364c6a757f88aa5666b893ad246fdb9320808e2e",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/health-checks-impact.log",
+      "checkout_bytes": 3476,
+      "checkout_sha256": "22412c8d0de37d2b8218df86955cefe16ee6af22c448e0d71945b686aec3ef3d",
+      "canonical_git_blob": "e2263a4e371b3765b30fb23531f831bb3fe70316",
+      "canonical_sha256": "22412c8d0de37d2b8218df86955cefe16ee6af22c448e0d71945b686aec3ef3d",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/strict-preprocess-impact-1.log",
+      "checkout_bytes": 10345,
+      "checkout_sha256": "43c3cbd9a93267774a40509ea82ccd0ca4ec1a2616a946cfedb4bb9333309cb5",
+      "canonical_git_blob": "c89c48b28719e4c20cb5bccb11f2a6d1efc72f88",
+      "canonical_sha256": "43c3cbd9a93267774a40509ea82ccd0ca4ec1a2616a946cfedb4bb9333309cb5",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/syntax-impact-1.log",
+      "checkout_bytes": 4367,
+      "checkout_sha256": "9b065e2933cbd218ef3040804e29764b7cfd62d9830f8b3786401ce57f1421b1",
+      "canonical_git_blob": "0538d5e1b50ea4ed41be0f7697654e86408d1daa",
+      "canonical_sha256": "9b065e2933cbd218ef3040804e29764b7cfd62d9830f8b3786401ce57f1421b1",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/syntax-impact-layout.log",
+      "checkout_bytes": 205,
+      "checkout_sha256": "940cd447c2a98050bfa7447af8d8fd1499928dc2d3d8e34db55cc04bf89c5d23",
+      "canonical_git_blob": "854ffc3f90e80f27f3b6a62c2fcfc1a69e6f89df",
+      "canonical_sha256": "940cd447c2a98050bfa7447af8d8fd1499928dc2d3d8e34db55cc04bf89c5d23",
+      "checkout_bytes_equal_blob": true
+    }
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "when_utc": "2026-10-28T10:06:50.121955+00:00",
+  "source": "e0a42825bcfad8280aa861879fdd9a0e561cdda3",
+  "comparison": {
+    "when_utc": "2026-10-28T10:05:52.831647+00:00",
+    "source": "e0a42825bcfad8280aa861879fdd9a0e561cdda3",
+    "actual_driver_exits": {
+      "46887": 0,
+      "55785": 0,
+      "89390": 0,
+      "84285": 0
+    },
+    "scope": "Four complete focused trace comparisons, not fullpack or all39 physical-family coverage",
+    "records": [
+      {
+        "name": "impact-controlled-01",
+        "baseline": "timed-controlled-02",
+        "candidate_bytes": 403523,
+        "baseline_bytes": 403523,
+        "candidate_sha256": "61c252a9e9d34be4e26ccac79d86e97c0dae1912dd205331733724d2ef135b4a",
+        "baseline_sha256": "61c252a9e9d34be4e26ccac79d86e97c0dae1912dd205331733724d2ef135b4a",
+        "complete_byte_identical": true,
+        "run_record": {
+          "status": "completed",
+          "when_utc": "2026-10-28T10:01:09.8293508Z",
+          "binary": "R:\\d2-evidence\\combat-impact-source-e0a42825b\\eech-campaign\\target\\weapon-fixture\\combat-impact-e0a42825b\\eech-world.exe",
+          "arguments": "R:/d2-evidence/combat-impact-source-e0a42825b/eech-campaign/target/weapon-fixture/combat-impact-e0a42825b/lua/combat-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/impact-controlled-01 out=R:/d2-evidence/combat-characterization-20261028/out/impact-controlled-01/trace.jsonl warmup=60 frame_ms=100 timed_seconds=20",
+          "root": "R:/d2-evidence/combat-characterization-20261028/roots/impact-controlled-01",
+          "out": "R:/d2-evidence/combat-characterization-20261028/out/impact-controlled-01",
+          "kind": "Impact/blast candidate controlled combat witness; precondition done is not physical-path coverage; not extraction/fullpack acceptance",
+          "actual_native_exit": 0,
+          "native_pid": 22512,
+          "created_utc": "2026-10-28T10:01:09.9583882Z",
+          "completed_utc": "2026-10-28T10:04:06.6751981Z"
+        }
+      },
+      {
+        "name": "impact-site-01",
+        "baseline": "real-damage-site-01",
+        "candidate_bytes": 113688,
+        "baseline_bytes": 113688,
+        "candidate_sha256": "102e90ea2a55caca71e24ab58ce2b0005080f99df19b32fef0280882f50071ee",
+        "baseline_sha256": "102e90ea2a55caca71e24ab58ce2b0005080f99df19b32fef0280882f50071ee",
+        "complete_byte_identical": true,
+        "run_record": {
+          "status": "completed",
+          "when_utc": "2026-10-28T10:01:49.5706204Z",
+          "binary": "R:\\d2-evidence\\combat-impact-source-e0a42825b\\eech-campaign\\target\\weapon-fixture\\combat-impact-e0a42825b\\eech-world.exe",
+          "arguments": "R:/d2-evidence/combat-impact-source-e0a42825b/eech-campaign/target/weapon-fixture/combat-impact-e0a42825b/lua/combat-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/impact-site-01 out=R:/d2-evidence/combat-characterization-20261028/out/impact-site-01/trace.jsonl warmup=60 frame_ms=100 timed_seconds=0 kinds=SITE control=OBJECT",
+          "root": "R:/d2-evidence/combat-characterization-20261028/roots/impact-site-01",
+          "out": "R:/d2-evidence/combat-characterization-20261028/out/impact-site-01",
+          "kind": "Impact/blast candidate controlled combat witness; precondition done is not physical-path coverage; not extraction/fullpack acceptance",
+          "actual_native_exit": 0,
+          "native_pid": 22548,
+          "created_utc": "2026-10-28T10:01:49.5844495Z",
+          "completed_utc": "2026-10-28T10:03:44.5373844Z"
+        }
+      },
+      {
+        "name": "impact-site-updatable-01",
+        "baseline": "real-damage-site-updatable-01",
+        "candidate_bytes": 116036,
+        "baseline_bytes": 116036,
+        "candidate_sha256": "e3f324a264d912e48a991de769508656ba5b5d6e30d0447e21a7fd1c74644c1e",
+        "baseline_sha256": "e3f324a264d912e48a991de769508656ba5b5d6e30d0447e21a7fd1c74644c1e",
+        "complete_byte_identical": true,
+        "run_record": {
+          "status": "completed",
+          "when_utc": "2026-10-28T10:01:48.2058940Z",
+          "binary": "R:\\d2-evidence\\combat-impact-source-e0a42825b\\eech-campaign\\target\\weapon-fixture\\combat-impact-e0a42825b\\eech-world.exe",
+          "arguments": "R:/d2-evidence/combat-impact-source-e0a42825b/eech-campaign/target/weapon-fixture/combat-impact-e0a42825b/lua/combat-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/impact-site-updatable-01 out=R:/d2-evidence/combat-characterization-20261028/out/impact-site-updatable-01/trace.jsonl warmup=60 frame_ms=100 timed_seconds=0 kinds=SITE_UPDATABLE control=OBJECT",
+          "root": "R:/d2-evidence/combat-characterization-20261028/roots/impact-site-updatable-01",
+          "out": "R:/d2-evidence/combat-characterization-20261028/out/impact-site-updatable-01",
+          "kind": "Impact/blast candidate controlled combat witness; precondition done is not physical-path coverage; not extraction/fullpack acceptance",
+          "actual_native_exit": 0,
+          "native_pid": 10468,
+          "created_utc": "2026-10-28T10:01:48.2219952Z",
+          "completed_utc": "2026-10-28T10:03:43.7248999Z"
+        }
+      },
+      {
+        "name": "impact-centred-solid-01",
+        "baseline": "centred-solid-candidate-01",
+        "candidate_bytes": 94973,
+        "baseline_bytes": 94973,
+        "candidate_sha256": "b2c6c63beb6e6726f4e30dd26bb2cac5c9a7c83b511f63231486a56ad6fcd155",
+        "baseline_sha256": "b2c6c63beb6e6726f4e30dd26bb2cac5c9a7c83b511f63231486a56ad6fcd155",
+        "complete_byte_identical": true,
+        "run_record": {
+          "status": "completed",
+          "when_utc": "2026-10-28T10:01:48.1821638Z",
+          "binary": "R:\\d2-evidence\\combat-impact-source-e0a42825b\\eech-campaign\\target\\weapon-fixture\\combat-impact-e0a42825b\\eech-world.exe",
+          "arguments": "R:/d2-evidence/combat-characterization-20261028/centred-solid-diagnostic/centred-solid-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/impact-centred-solid-01 out=R:/d2-evidence/combat-characterization-20261028/out/impact-centred-solid-01/trace.jsonl warmup=60 frame_ms=100 timed_seconds=0 kinds=ROUTED_VEHICLE control=OBJECT",
+          "root": "R:/d2-evidence/combat-characterization-20261028/roots/impact-centred-solid-01",
+          "out": "R:/d2-evidence/combat-characterization-20261028/out/impact-centred-solid-01",
+          "kind": "NEW centred-solid diagnostic preconditions, not baseline campaign; direct HIT_TARGET at zero separation should preserve original no-damage result and exact diagnostic bits",
+          "actual_native_exit": 0,
+          "native_pid": 19344,
+          "created_utc": "2026-10-28T10:01:48.1982822Z",
+          "completed_utc": "2026-10-28T10:03:43.1826877Z"
+        }
+      }
+    ],
+    "passed": true,
+    "remaining": "Post-inputs/build/semantic audit and independent runtime review"
+  },
+  "semantic": [
+    {
+      "name": "impact-controlled-01",
+      "cases": 39,
+      "done": 10,
+      "valid_refusals": 29,
+      "trusted": 79,
+      "contiguous_events": 74,
+      "scope": "Same complete raw trace as retained previous runtime; coverage limited to its genuinely reached paths, not all13 health-bearing families"
+    },
+    {
+      "name": "impact-site-01",
+      "cases": 9,
+      "done": 9,
+      "valid_refusals": 0,
+      "trusted": 19,
+      "contiguous_events": 31,
+      "scope": "Same complete raw trace as retained previous runtime; coverage limited to its genuinely reached paths, not all13 health-bearing families"
+    },
+    {
+      "name": "impact-site-updatable-01",
+      "cases": 9,
+      "done": 9,
+      "valid_refusals": 0,
+      "trusted": 19,
+      "contiguous_events": 19,
+      "scope": "Same complete raw trace as retained previous runtime; coverage limited to its genuinely reached paths, not all13 health-bearing families"
+    },
+    {
+      "name": "impact-centred-solid-01",
+      "cases": 9,
+      "done": 9,
+      "valid_refusals": 0,
+      "trusted": 19,
+      "contiguous_events": 14,
+      "scope": "Same complete raw trace as retained previous runtime; coverage limited to its genuinely reached paths, not all13 health-bearing families"
+    }
+  ],
+  "post_inputs": [
+    {
+      "name": "impact-controlled-01",
+      "actual_exit": 0,
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-impact-controlled-01-post-inputs.log"
+    },
+    {
+      "name": "impact-site-01",
+      "actual_exit": 0,
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-impact-site-01-post-inputs.log"
+    },
+    {
+      "name": "impact-site-updatable-01",
+      "actual_exit": 0,
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-impact-site-updatable-01-post-inputs.log"
+    },
+    {
+      "name": "impact-centred-solid-01",
+      "actual_exit": 0,
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-impact-centred-solid-01-post-inputs.log"
+    }
+  ],
+  "exports_unchanged": 40,
+  "build_info_sha256": "3c3f23119bda091f16fb433c155afc64fa84c462bf0a2c4c485f47e6f00a2821",
+  "limits": [
+    "Fixture proof only; no fullpack acceptance.",
+    "Controlled39 includes29validlyrefused launches, not all39physical-path coverage.",
+    "Centredsolid preserves diagnostic bits/no-write behavior; no positivecapability or printedNaNpayload inference.",
+    "Sourcee0 retains originalbridge physics; no bridgecharacterization/hostauthority claimed."
+  ],
+  "remaining": "Combined independent NEW impact runtime review after other cohorts finish"
+}

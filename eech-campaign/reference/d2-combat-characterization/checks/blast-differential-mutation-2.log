@@ -1,0 +1,35 @@
+== control (unmutated copies)
+scenarios 6000, events 255003, candidates 94445, collisions 53647, rockets destroyed 1467, weapons in range 11737, effects on the lists 26593, zero radius 424, objects exactly one radius away 1105, fa
+CONTROL_EXIT=0
+== mutant: in_range_is_inclusive
+     first difference at event 2: original (2, 2, 43a66c5f) new (3, 1, 3f800000)
+MUTANT in_range_is_inclusive: CAUGHT (exit 1)
+== mutant: zero_range_counts
+     first difference at event 2: original (7, 0, 00000000) new (3, 4, 00000000)
+MUTANT zero_range_counts: CAUGHT (exit 1)
+== mutant: rocket_threshold
+     first difference at event 111: original (2, 16, 429d382c) new (4, 6, 3e992f34)
+MUTANT rocket_threshold: CAUGHT (exit 1)
+== mutant: rocket_needs_no_flag
+scenarios 5568, events 203502, candidates 78160, collisions 41831, rockets destroyed 475, weapons in range 8929, effects on the lists 20665, zero radius 424, objects exactly one radius away 1105, fail
+MUTANT rocket_needs_no_flag: CAUGHT (exit 1)
+== mutant: target_not_skipped
+     first difference at event 44: original (2, 103, 42cb5629) new (2, 83, 42a0df86)
+MUTANT target_not_skipped: CAUGHT (exit 1)
+== mutant: dead_objects_are_candidates
+     first difference at event 5: original (2, 28, 423bb543) new (2, 21, 43113d7b)
+MUTANT dead_objects_are_candidates: CAUGHT (exit 1)
+== mutant: sector_rows_wrong_order
+     first difference at event 22: original (2, 9, 42487613) new (2, 30, 4359c043)
+MUTANT sector_rows_wrong_order: CAUGHT (exit 1)
+== mutant: sector_rect_not_bounded
+scenarios 4543, events 110727, candidates 49381, collisions 18963, rockets destroyed 354, weapons in range 4188, effects on the lists 9438, zero radius 424, objects exactly one radius away 1105, failu
+MUTANT sector_rect_not_bounded: CAUGHT (exit 1)
+== mutant: weapon_sent_collision
+     first difference at event 57: original (2, 51, 42ee3e03) new (5, 48, 3f25e8c2)
+MUTANT weapon_sent_collision: CAUGHT (exit 1)
+== mutant: successor_after_stale_window
+     first difference at event 4: original (2, 39, 422f9776) new (2, 32, 42dc77d5)
+MUTANT successor_after_stale_window: CAUGHT (exit 1)
+CAUGHT=10 MISSED=0
+DOCKER_EXIT=0

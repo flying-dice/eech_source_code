@@ -1,0 +1,38 @@
+# timer.o, x86_64: red vs green
+disassembly: DIFFERS (87 changed lines)
+address-normalised diff:
+8d7
+< mov    %edx,%edx
+129c128
+< mov    %edi,%r9d
+---
+> mov    %rdx,%rcx
+131c130
+< mov    $0x0,%edi
+---
+> mov    $0x0,%r8d
+133c132
+< add    $0x1,%edi
+---
+> add    $0x1,%r8d
+135c134
+< cmp    $0x10,%edi
+---
+> cmp    $0x10,%r8d
+140,141c139
+< lea    0x1(%rdi),%ebx
+< mov    %edx,%ecx
+---
+> lea    0x1(%r8),%ebx
+144d141
+< mov    %r9d,%edi
+158c155
+< movslq %ebx,%rdi
+---
+> movslq %ebx,%r8
+160c157
+< movl   $0x1,(%rdx,%rdi,8)
+---
+> movl   $0x1,(%rdx,%r8,8)
+compiler commands differ only in paths:
+(identical)

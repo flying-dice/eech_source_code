@@ -1,0 +1,27 @@
+EEDCS-40 changed files (base 6e837440; head 263b48a4)
+M aphavoc/source/entity/mobile/aircraft/helicop/hc_msgs.c
+M aphavoc/source/entity/mobile/vehicle/anti_air/aa_msgs.c
+M aphavoc/source/entity/mobile/vehicle/person/ps_msgs.c
+M aphavoc/source/entity/mobile/vehicle/routed/rv_hostmv.c
+M aphavoc/source/entity/mobile/vehicle/routed/rv_hostmv.h
+M aphavoc/source/entity/mobile/vehicle/routed/rv_msgs.c
+M eech-campaign/crates/eech-engine-sys/src/lib.rs
+M eech-campaign/crates/eech-engine/src/lib.rs
+M eech-campaign/crates/eech-world/build.rs
+M eech-campaign/crates/eech-world/src/main.rs
+M eech-campaign/crates/eech-world/src/movement.rs
+M eech-campaign/crates/eech-world/tests/host_callbacks.rs
+A eech-campaign/crates/eech-world/csrc/dependent_step.c
+A eech-campaign/crates/eech-world/lua/dependent-carry.lua
+A eech-campaign/crates/eech-world/lua/dependent-fixture.lua
+M eech-campaign/crates/eech-dc/{Cargo.toml,src/module.rs} (gated test-only fixture method; features block before the lints table)
+M eech-campaign/crates/eech-engine-sys/{Cargo.toml,build/main.rs,csrc/eech_engine.c,csrc/eech_engine.h} (gated test-only driver, old-guard staged rewrite)
+A eech-campaign/reference/m5-dependent-positioning/native/fixture-{green,red-old-guard}.summary.txt
+A eech-campaign/reference/m5-dependent-positioning/native/candidate-normal.summary.txt
+A eech-campaign/docs/m5-dependent-positioning.md
+A eech-campaign/reference/m5-dependent-positioning/ (linux logs, dock.sh, self-review.md, changed-files.txt; dep-fmt-clippy.summary.txt replaces the raw clippy log, kept outside git)
+A eech-campaign/reference/m5-dependent-positioning/native/final-pack.summary.txt (completed pack, hashes, limits)
+M eech-campaign/reference/m5-dependent-positioning/native/candidate-normal.summary.txt (addendum only)
+M eech-campaign/reference/m5-dependent-positioning/self-review.md (publication-closeout delta)
+M eech-campaign/docs/m5-dependent-positioning.md (status, Final pack, pending list)
+Merge b83c9699 of PR98 ed38c8fb: CI workflow and docs only; no runtime path.

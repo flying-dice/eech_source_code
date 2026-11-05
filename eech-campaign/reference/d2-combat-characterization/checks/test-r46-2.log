@@ -1,0 +1,370 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.79s
+     Running unittests src/lib.rs (/target/debug/deps/eech_dc-7517415020ff4c68)
+
+running 3 tests
+test module::tests::an_explicit_zero_vector_and_zero_flags_are_accepted ... ok
+test module::tests::a_vehicle_lifecycle_answer_without_its_vector_is_an_error ... ok
+test module::tests::an_answer_that_decides_on_bits_must_carry_its_flags ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/lua_debug_layout.rs (/target/debug/deps/lua_debug_layout-8b15af8491936997)
+
+running 2 tests
+test lua_debug_holds_the_dcs_world_record ... ok
+test lua_debug_short_src_starts_where_dcs_world_writes_it ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/target/debug/deps/eech_engine-d30b0a6b4a0bad06)
+
+running 53 tests
+test tests::a_damage_request_carries_the_hit_by_value_takes_the_one_sample_and_the_hosts_answer_comes_back ... ok
+test tests::a_create_place_step_carries_the_constructor_inputs_across_the_callback ... ok
+test tests::a_damage_request_refuses_what_has_no_defined_answer_and_never_takes_a_lookup ... ok
+test tests::a_decoy_update_and_a_seduction_are_weapon_steps_with_their_own_kind_and_the_seductions_settings_cross_exactly ... ok
+test tests::a_dependent_carry_step_carries_the_parent_and_both_of_its_positions_across_the_callback ... ok
+test tests::a_dependent_carry_step_without_a_parent_or_with_a_non_finite_position_is_refused ... ok
+test tests::a_forecast_request_carries_its_figures_by_value_and_the_hosts_capability_comes_back ... ok
+test tests::a_forecast_refuses_what_has_no_defined_answer_and_never_takes_a_draw_or_a_lookup ... ok
+test tests::a_group_leaders_plan_does_not_read_the_member_list_and_an_invalid_list_is_refused_before_the_host_runs ... ok
+test tests::a_guided_end_step_names_the_leader_by_host_id_and_carries_the_steering_intent ... ok
+test tests::a_guide_step_with_bad_lists_is_refused_before_the_host_runs ... ok
+test tests::a_guide_step_carries_every_structure_of_the_sector_and_the_getter_returns_in_call_order ... ok
+test tests::a_leader_is_not_asked_for_what_it_never_reads ... ok
+test tests::a_lead_flight_time_travels_only_when_the_host_produced_one_and_only_a_lead_or_ballistic_answer_may_carry_it ... ok
+test tests::a_leader_the_roster_lacks_crosses_the_boundary_as_unresolved_in_flight_and_landing ... ok
+test tests::a_member_the_roster_lacks_crosses_the_boundary_as_unresolved_and_keeps_its_place ... ok
+test tests::a_non_finite_lifecycle_field_or_a_bad_flag_is_refused_before_the_host_runs ... ok
+test tests::a_person_face_step_carries_the_target_position_and_a_non_finite_target_is_refused ... ok
+test tests::a_placement_reads_the_placement_field_not_the_helicopter_step_field ... ok
+test tests::a_plan_step_carries_the_campaign_facts_and_the_other_members_host_ids_in_list_order_uncapped ... ok
+test tests::a_reacquisition_is_a_weapon_step_of_its_own_kind_that_names_the_decoy_and_can_take_neither_a_sample_nor_a_lookup_answer_it_did_not_ask_for ... ok
+test tests::a_release_request_carries_the_launchers_clock_and_the_hosts_gate_comes_back_even_when_it_refuses ... ok
+test tests::a_retire_step_crosses_the_callback_with_its_identity_and_no_terrain ... ok
+test tests::a_step_without_the_terrain_flag_carries_none_and_its_fields_are_not_read ... ok
+test tests::a_terrain_following_flight_step_carries_the_campaigns_observation_and_no_shaped_height ... ok
+test tests::a_weapon_step_carries_the_weapon_the_answers_so_far_and_the_samples_given_and_the_hosts_lookups_and_actions_come_back ... ok
+test tests::a_weapon_steps_collision_answers_are_kept_by_the_question_they_answer_so_the_host_may_choose_among_them ... ok
+test tests::a_terrain_observation_is_refused_on_any_other_mode_and_when_it_is_not_finite ... ok
+test tests::an_aim_draw_is_asked_for_only_by_a_vectors_or_lead_request_and_carries_a_raw_sample_in_range ... ok
+test tests::an_aim_animate_request_carries_the_weapons_parachute_and_the_hosts_state_comes_back_and_a_state_it_cannot_hold_never_reaches_the_host ... ok
+test tests::a_weapon_step_the_campaign_cannot_hold_never_reaches_the_host_and_an_answer_it_cannot_take_is_refused ... ok
+test tests::an_aim_figures_request_hands_the_host_one_weapons_figures_to_keep_and_a_weapon_that_is_not_one_never_reaches_it ... ok
+test tests::an_aim_echo_travels_in_order_and_one_that_does_not_fit_is_refused_not_cut_short ... ok
+test tests::an_aim_range_request_hands_the_host_a_guided_weapons_figures ... ok
+test tests::an_aim_request_with_a_non_finite_figure_or_an_unknown_mode_never_reaches_the_host_and_a_failing_host_stops_it ... ok
+test tests::an_aim_ready_update_carries_the_source_the_keyframe_and_the_time_and_returns_the_hosts_state_and_phase ... ok
+test tests::an_aim_table_echo_is_written_into_the_room_the_campaign_gave_and_never_past_it ... ok
+test tests::an_aim_vectors_request_carries_a_weapon_and_a_target_or_a_tracking_point_never_both ... ok
+test tests::an_aircraft_placement_carries_its_nonzero_vector_across_the_callback_boundary ... ok
+test tests::an_aim_table_request_hands_the_host_the_weapons_figures_and_no_cell_and_figures_that_cannot_be_a_weapon_never_reach_it ... ok
+test tests::an_expire_step_carries_the_wreck_timer_range_and_policy_and_answers_only_a_yes_or_no ... ok
+test tests::each_mode_answers_only_the_flags_it_defines ... ok
+test tests::flight_navigation_intent_crosses_the_callback_boundary_in_group_order ... ok
+test tests::every_lifecycle_mode_reads_the_helicopter_fields_and_carries_its_inputs ... ok
+test tests::invalid_flight_navigation_is_refused_at_the_boundary ... ok
+test tests::the_fixed_wing_lookahead_is_a_non_mutating_fixed_wing_step_the_host_answers_with_one_sample ... ok
+test tests::the_helicopter_step_modes_read_the_helicopter_vector_not_the_placement_field ... ok
+test tests::the_host_must_answer_the_fixed_wing_lookahead_with_exactly_one_sample_and_no_flags ... ok
+test tests::the_hosted_helicopter_modes_are_helicopter_steps_and_a_plan_and_the_end_announce_the_terrain ... ok
+test tests::the_landing_phase_carries_its_navigation_and_the_turn_intent_not_a_multiplier ... ok
+test tests::the_host_must_answer_the_plan_with_a_lookup_plan_and_the_guide_with_guidance_and_nothing_else_does ... ok
+test tests::the_rust_mirrors_of_the_aim_exchange_have_the_layout_the_campaign_compiled ... ok
+test tests::groups_beyond_thirty_two_cross_the_callback_boundary_whole_and_in_order ... ok
+
+test result: ok. 53 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (/target/debug/deps/eech_world-0f40cb7234c0dafb)
+
+running 211 tests
+test aim::tests::a_ballistic_request_without_the_weapons_table_is_refused_and_a_point_blank_one_has_no_solution ... ok
+test aim::tests::a_decoys_timer_runs_down_and_restarts_at_a_time_drawn_from_the_campaigns_stream_when_it_runs_out ... ok
+test aim::tests::a_contact_with_something_switches_the_weapon_to_it_and_ends_it ... ok
+test aim::tests::a_device_steps_at_most_its_rate_times_the_time_and_a_full_circle_device_takes_the_short_way_round ... ok
+test aim::tests::a_falling_crate_opens_its_parachute_in_phases_and_each_phase_resets_its_lifetime ... ok
+test aim::tests::a_free_round_flies_a_frame_by_the_figures_and_asks_only_for_the_world_it_meets ... ok
+test aim::tests::a_person_faces_the_bearing_to_the_target_in_the_horizontal_plane ... ok
+test aim::tests::a_guided_weapon_asks_for_the_target_and_its_spiral_takes_the_campaigns_random_samples_in_order ... ok
+test aim::tests::a_lead_request_for_a_target_at_the_device_has_no_solution_and_the_prediction_is_the_target_point ... ok
+test aim::tests::a_seeker_goes_for_a_decoy_only_when_the_sample_is_under_the_decoys_chance_and_the_decoy_is_of_the_seekers_kind ... ok
+test aim::tests::a_seeker_whose_decoy_expired_is_told_to_go_back_to_the_launcher_with_no_sample_and_no_lookup ... ok
+test aim::tests::a_shell_with_a_remote_fuze_is_set_from_the_lead_prediction_the_campaign_answers ... ok
+test aim::tests::a_semi_active_weapon_with_no_launcher_loses_its_target_and_flies_unguided ... ok
+test aim::tests::a_table_of_another_shape_than_the_model_indexes_is_refused_not_misread ... ok
+test aim::tests::a_step_the_host_cannot_run_is_refused_with_the_reason ... ok
+test aim::tests::a_weapon_leaves_its_launcher_with_the_launchers_velocity_the_muzzle_velocity_and_the_error_of_its_own_stream ... ok
+test aim::tests::a_weapon_that_did_not_move_asks_for_the_ground_under_its_point_once ... ok
+test aim::tests::a_weapon_that_leaves_the_map_is_put_on_its_edge_and_ends_without_asking_about_the_ground ... ok
+test aim::tests::a_weapon_whose_lifetime_has_run_out_is_over_before_it_moves ... ok
+test aim::tests::an_ejector_seat_opens_by_its_own_lifetimes_and_never_resets_them_and_a_weapon_with_no_parachute_has_nothing_to_animate ... ok
+test aim::tests::figures_that_cannot_be_a_weapon_are_refused_without_a_table ... ok
+test aim::tests::dispersion_rotates_the_launchers_attitude_by_two_samples_of_the_campaigns_stream_in_order ... ok
+test aim::tests::the_flight_time_of_a_lead_is_a_partial_output_that_the_model_never_invents ... ok
+test aim::tests::the_host_flies_the_weapon_by_the_figures_it_was_given ... ok
+test aim::tests::the_rate_of_fire_gate_lets_rounds_go_by_the_time_since_the_last_shot_and_hands_back_what_it_wrote ... ok
+test aim::tests::the_ready_keyframe_opens_holds_closes_and_wraps_as_the_original_did ... ok
+test aim::tests::the_required_offsets_are_the_bearing_of_the_intercept_vector_in_the_device_frame_within_its_limits ... ok
+test aim::tests::what_the_campaign_answers_about_the_ground_decides_how_the_weapon_ends ... ok
+test cmb::tests::a_conventional_munitions_weapon_takes_the_munitions_figures_scaled_by_the_burst ... ok
+test cmb::tests::a_high_explosive_hit_splashes_with_the_random_modifier_and_a_conventional_one_takes_the_munitions_figures ... ok
+test cmb::tests::a_hit_takes_the_campaigns_one_sample_and_it_sets_the_random_modifier ... ok
+test cmb::tests::a_hit_the_original_has_no_answer_for_is_refused ... ok
+test cmb::tests::a_non_explosive_weapon_is_scaled_by_the_velocity_argument_and_an_explosive_one_is_not ... ok
+test cmb::tests::a_player_target_is_scaled_by_the_players_setting_after_the_raw_capability ... ok
+test cmb::tests::a_question_the_original_has_no_answer_for_is_refused ... ok
+test cmb::tests::a_weapon_that_cannot_pierce_and_is_not_explosive_does_nothing ... ok
+test cmb::tests::a_weapon_that_pierces_the_armour_does_its_full_damage ... ok
+test cmb::tests::high_explosive_splash_follows_the_warhead_and_the_armour ... ok
+test cmb::tests::the_armour_a_hit_meets_follows_the_aspect_of_a_vehicle_or_an_aircraft ... ok
+test cmb::tests::the_health_a_hit_leaves_is_clamped_at_zero_and_classified_before_and_after ... ok
+test cmb::tests::the_players_invulnerability_stops_a_hit_before_its_sample_and_the_cheat_guard_stops_the_health ... ok
+test cmb::tests::the_players_setting_and_the_multiplayer_multiplier_scale_the_capability_after_the_arithmetic ... ok
+test los::tests::a_new_query_replaces_an_open_one ... ok
+test los::tests::a_sample_exactly_at_the_ray_height_does_not_block ... ok
+test los::tests::a_source_end_object_hit_blocks_at_any_distance ... ok
+test los::tests::a_vertical_ray_has_no_range_and_so_no_terrain_samples_and_zero_length_object_rays ... ok
+test los::tests::a_target_end_hit_blocks_only_beyond_12_m_of_the_target ... ok
+test los::tests::an_answer_after_the_query_is_done_is_refused ... ok
+test los::tests::an_answer_that_was_not_asked_for_is_refused_and_changes_nothing ... ok
+test los::tests::coarse_samples_start_at_the_source_every_200_m_and_end_before_the_target ... ok
+test los::tests::each_object_ray_is_at_most_200_m_long_from_its_own_end ... ok
+test los::tests::malformed_inputs_are_refused ... ok
+test los::tests::source_end_fine_terrain_is_at_most_seven_samples_of_40_m_from_the_source ... ok
+test los::tests::no_criteria_is_visible_without_asking_the_campaign_anything ... ok
+test los::tests::target_end_fine_terrain_walks_back_from_the_target_in_24_m_steps ... ok
+test los::tests::the_coarse_loop_runs_while_the_counter_is_above_one ... ok
+test los::tests::the_entity_form_lifts_a_vehicle_end_by_one_and_a_half_metres ... ok
+test los::tests::the_exclusion_distance_is_three_dimensional ... ok
+test los::tests::the_first_blocker_ends_the_query_and_later_samples_are_never_asked_for ... ok
+test los::tests::the_phases_come_in_the_original_order ... ok
+test los::tests::the_range_is_horizontal_but_the_steps_follow_the_three_dimensional_direction ... ok
+test los::tests::two_ends_at_the_same_point_behave_as_a_zero_range_ray ... ok
+test movement::tests::a_campaign_copy_the_host_did_not_make_is_refused ... ok
+test movement::tests::a_carry_the_host_cannot_vouch_for_is_refused_and_changes_nothing ... ok
+test movement::tests::a_child_and_a_grandchild_follow_a_parent_the_host_moved_and_stay_consistent ... ok
+test movement::tests::a_creation_for_an_unknown_or_retired_id_is_refused ... ok
+test movement::tests::a_creation_whose_height_overflows_changes_nothing ... ok
+test movement::tests::a_child_follows_a_parent_the_campaign_is_about_to_write ... ok
+test movement::tests::a_death_slide_decays_the_speed_and_lands_on_the_terrain_at_its_candidate ... ok
+test movement::tests::a_dying_rotor_winds_down_by_its_law_and_an_idle_one_linearly_by_the_frame_delta ... ok
+test movement::tests::a_fall_is_bound_to_the_map_volume ... ok
+test movement::tests::a_fall_returns_the_candidate_only_and_gravity_applies_the_vector_and_speed_afterwards ... ok
+test movement::tests::a_creation_with_a_non_finite_input_changes_nothing ... ok
+test movement::tests::a_follower_close_to_its_leader_takes_the_heading_of_the_hosts_record_of_that_leader ... ok
+test movement::tests::a_flight_step_with_unresolvable_navigation_is_refused_before_any_change ... ok
+test movement::tests::a_ground_following_person_stays_pending_until_the_terrain_is_given ... ok
+test movement::tests::a_ground_fall_stages_its_results_and_only_the_commit_applies_them ... ok
+test movement::tests::a_flying_aircraft_follows_its_motion_vector_and_scales_the_new_one_by_the_frame_delta ... ok
+test movement::tests::a_helicopter_child_is_carried_with_the_original_arithmetic ... ok
+test movement::tests::a_helicopter_end_without_a_begin_or_a_second_begin_is_refused_before_any_change ... ok
+test movement::tests::a_helicopter_is_bounded_to_the_map ... ok
+test movement::tests::a_held_absolute_flight_reads_neither_its_leader_nor_its_members ... ok
+test movement::tests::a_helicopter_is_never_bound_without_its_motion_vector ... ok
+test movement::tests::a_helicopter_turns_no_faster_than_its_turn_rate ... ok
+test movement::tests::a_hosted_step_runs_plan_guide_rotor_begin_and_steer_and_the_host_owns_the_demand ... ok
+test movement::tests::a_helicopter_turns_the_shortest_way_to_the_desired_heading ... ok
+test movement::tests::a_helicopter_mirror_that_differs_is_refused_and_nothing_moves ... ok
+test movement::tests::a_landing_aircraft_takes_the_waypoint_speed_at_once ... ok
+test movement::tests::a_legacy_end_after_a_hosted_begin_is_refused_by_the_pairing_guard_and_the_hosted_end_still_follows ... ok
+test movement::tests::a_landing_needs_its_leader_only_when_the_host_finds_it_facing_away ... ok
+test movement::tests::a_group_larger_than_thirty_two_is_flown_in_order_and_never_refused_for_its_count ... ok
+test movement::tests::a_hold_left_by_a_turn_around_needs_no_leader_until_it_lapses ... ok
+test movement::tests::a_lifecycle_request_needs_its_helicopter_and_no_open_helicopter_step ... ok
+test movement::tests::a_helicopter_reports_a_rotation_only_beyond_a_tenth_of_a_degree ... ok
+test movement::tests::a_live_id_is_never_bound_twice ... ok
+test movement::tests::a_minimum_height_of_minus_one_leaves_the_campaigns_guide_height ... ok
+test movement::tests::a_helicopter_step_is_two_phases_and_the_second_flies_from_the_vector_the_first_answered ... ok
+test movement::tests::a_mobile_is_created_once ... ok
+test movement::tests::a_mobile_retires_from_any_open_step ... ok
+test movement::tests::a_look_ahead_that_is_the_aircraft_itself_leaves_the_campaigns_guide_height ... ok
+test movement::tests::a_hovering_helicopter_has_not_moved ... ok
+test movement::tests::a_member_the_roster_lacks_is_refused_only_where_the_navigator_reads_it ... ok
+test movement::tests::a_navigating_flight_still_needs_its_leader_and_refuses_before_any_change ... ok
+test movement::tests::a_non_finite_terrain_input_is_refused ... ok
+test movement::tests::a_person_copy_the_host_did_not_make_is_refused_in_both_phases ... ok
+test movement::tests::a_person_face_for_another_kind_or_with_a_pose_the_host_did_not_make_is_refused ... ok
+test movement::tests::a_pending_death_slide_refuses_everything_but_its_decay_and_a_placement ... ok
+test movement::tests::a_person_without_terrain_follow_moves_in_one_step ... ok
+test movement::tests::a_pending_person_step_refuses_every_other_request_and_survives_the_refusals ... ok
+test aim::tests::the_generated_table_follows_the_figures_a_host_is_given ... ok
+test movement::tests::a_refused_unrelated_request_keeps_the_open_step_while_a_valid_one_or_a_gate_ends_it ... ok
+test movement::tests::a_person_never_overshoots_the_waypoint_and_a_stopped_man_only_turns ... ok
+test movement::tests::a_request_for_another_kind_or_an_unsupported_one_is_refused ... ok
+test movement::tests::a_retired_id_is_never_reused ... ok
+test movement::tests::a_person_with_a_target_is_turned_by_the_host_to_face_it ... ok
+test movement::tests::a_rotor_or_vector_mirror_that_differs_is_refused_and_nothing_is_stored ... ok
+test movement::tests::a_refused_expiry_changes_nothing_and_a_retired_wreck_is_never_answered ... ok
+test movement::tests::a_refused_guide_changes_nothing_and_a_repeated_guide_does_not_discard_the_open_step ... ok
+test movement::tests::a_refused_terrain_changes_nothing_in_the_dispatched_step ... ok
+test movement::tests::a_settle_needs_the_contact_of_its_own_candidate_and_consumes_it ... ok
+test movement::tests::a_ship_accelerates_ahead_and_uses_the_frame_delta_only_for_the_motion_vector ... ok
+test movement::tests::a_ship_turns_at_its_g_limited_rate_towards_a_waypoint_abeam ... ok
+test movement::tests::a_ship_ends_when_it_has_sunk_half_its_diagonal_under_the_waterline ... ok
+test movement::tests::a_ship_is_bounded_by_the_map_volume ... ok
+test movement::tests::a_step_without_terrain_keeps_the_campaigns_waypoint_untouched ... ok
+test movement::tests::a_ship_nearly_on_its_waypoint_still_turns_by_the_x_offset ... ok
+test movement::tests::a_retired_mobile_answers_no_later_step ... ok
+test movement::tests::a_successful_placement_ends_the_open_step_and_a_refused_one_keeps_it ... ok
+test movement::tests::a_taxiing_aircraft_accelerates_on_the_ground_and_keeps_to_the_terrain ... ok
+test movement::tests::a_task_leader_is_always_turned_around_but_a_follower_only_beyond_fifteen_hundred_metres ... ok
+test movement::tests::a_terrain_sampled_somewhere_other_than_the_hosts_look_ahead_is_refused ... ok
+test movement::tests::a_vehicle_on_its_waypoint_is_not_moved ... ok
+test movement::tests::a_step_ended_early_by_a_gate_leaves_no_pending_phase_and_no_guidance_to_reuse ... ok
+test movement::tests::a_vehicle_vector_is_claimed_once_and_only_live_movement_releases_it ... ok
+test movement::tests::a_water_fall_splashes_and_a_deep_one_sinks_with_nothing_left_to_move ... ok
+test movement::tests::a_wing_crash_slide_keeps_its_post_slope_speed_through_the_clear_and_commits_the_staged_candidate ... ok
+test movement::tests::a_tumble_forms_its_draws_in_double_as_the_original_expression_does ... ok
+test movement::tests::a_wing_death_attitude_checks_the_campaigns_gate_and_mirrors_and_then_commits_the_candidate ... ok
+test movement::tests::a_wreck_ages_by_the_frame_and_ends_only_on_a_gated_frame_past_the_ranges_threshold ... ok
+test movement::tests::accelerates_towards_the_waypoint_and_keeps_its_own_record ... ok
+test movement::tests::an_aircraft_creation_seeds_the_motion_vector_its_steps_are_checked_against ... ok
+test movement::tests::an_aircraft_needs_a_motion_vector_seed_and_no_other_kind_takes_one ... ok
+test movement::tests::an_aircraft_whose_campaign_copy_differs_from_the_record_is_refused ... ok
+test movement::tests::an_aircraft_whose_only_difference_is_the_campaign_motion_vector_is_refused_before_the_host_moves ... ok
+test movement::tests::an_alive_rotor_spins_up_and_only_the_campaigns_gate_holds_the_step_and_counts_the_timer_down ... ok
+test movement::tests::an_expiry_the_gate_cannot_convert_is_refused_before_anything_is_kept ... ok
+test movement::tests::an_id_issued_without_a_creation_request_retires_cleanly ... ok
+test movement::tests::an_impact_shoves_along_the_attitudes_x_axis_and_the_next_step_mirrors_the_answer ... ok
+test movement::tests::an_occupied_helicopter_restarts_its_timer_and_anti_air_never_ends ... ok
+test movement::tests::an_open_fall_keeps_its_order_and_refuses_every_other_step ... ok
+test movement::tests::an_unknown_host_id_is_an_error ... ok
+test movement::tests::base_a_child_pose_the_campaign_wrote_during_its_parents_step_is_a_write_the_host_never_saw ... ok
+test movement::tests::crash_end_needs_a_crash_begin_whatever_candidate_a_fall_left ... ok
+test movement::tests::crash_end_settles_to_the_ground_stops_on_the_post_friction_speed_and_adds_the_slope_push ... ok
+test movement::tests::ending_a_person_step_that_was_not_begun_is_an_error ... ok
+test movement::tests::only_a_helicopter_is_bound_with_a_rotor_state_and_it_must_be_finite ... ok
+test movement::tests::members_are_resolved_from_host_records_only_where_the_guidance_reads_them ... ok
+test movement::tests::other_aircraft_steer_a_flight_step_from_the_host_records_not_from_the_campaign ... ok
+test movement::tests::placing_a_helicopter_adopts_the_campaign_motion_vector ... ok
+test movement::tests::placing_a_ship_a_person_or_an_aircraft_adopts_the_campaign_pose ... ok
+test movement::tests::placing_an_aircraft_adopts_the_campaign_motion_vector_and_other_kinds_ignore_it ... ok
+test movement::tests::placing_adopts_the_campaign_pose_and_stopping_zeroes_the_speed ... ok
+test movement::tests::solid_ground_and_a_river_settle_to_the_fresh_cg_height ... ok
+test movement::tests::terrain_samples_set_the_required_height_and_a_wrong_answer_leaves_the_plan_to_be_corrected ... ok
+test movement::tests::rotor_set_adopts_the_campaigns_rotor_and_the_old_mirror_is_then_refused ... ok
+test movement::tests::the_cannon_intent_holds_the_turn_for_a_quarter_second_at_the_waypoint_speed ... ok
+test movement::tests::the_absolute_flight_integrates_from_the_attitude_before_its_turn_and_never_reports_rotation ... ok
+test movement::tests::the_crash_slide_is_two_open_phases_and_returns_the_vector_before_it_is_cleared ... ok
+test movement::tests::the_decay_and_the_sink_turn_the_attitude_the_host_holds_and_the_dll_cannot_set_it ... ok
+test movement::tests::the_facing_away_hold_and_multiplier_persist_across_steps ... ok
+test movement::tests::the_floor_clamp_stops_the_climb_after_the_speed_was_taken ... ok
+test movement::tests::the_formation_site_and_the_centre_of_gravity_are_added_after_the_adjustment_in_single_precision ... ok
+test movement::tests::the_host_answers_the_physical_height_from_the_base_and_the_cg_offset ... ok
+test movement::tests::the_host_builds_the_placement_attitude_on_flat_ground ... ok
+test movement::tests::the_host_climbs_to_the_terrain_when_the_look_ahead_height_is_inside_the_range ... ok
+test movement::tests::the_host_finds_an_aircraft_facing_away_from_its_waypoint_and_flies_the_turn_around ... ok
+test movement::tests::the_host_folds_the_recorded_getter_returns_as_the_original_max_macro_selects_them ... ok
+test movement::tests::the_host_ignores_the_height_the_campaign_supplied_and_keeps_its_horizontal_waypoint ... ok
+test movement::tests::the_host_plans_the_lookups_far_to_near_and_none_without_terrain_following ... ok
+test movement::tests::the_host_sets_the_target_height_when_the_look_ahead_is_steeper_than_it_is_far ... ok
+test movement::tests::the_host_sets_the_target_height_when_the_waypoint_is_within_a_metre ... ok
+test movement::tests::the_hosted_requests_belong_to_helicopters_and_the_answer_is_cleared_each_step ... ok
+test movement::tests::the_keysite_range_is_asked_for_only_on_a_gated_frame_and_the_ask_changes_nothing ... ok
+test movement::tests::the_lookahead_point_follows_the_hosts_pose_not_the_campaigns ... ok
+test movement::tests::the_leader_is_resolved_only_where_the_heading_follows_it_and_a_refusal_keeps_the_step_open ... ok
+test movement::tests::the_lookahead_query_is_for_fixed_wing_subjects_only ... ok
+test movement::tests::the_lookahead_query_answers_the_hosts_own_point_and_changes_nothing ... ok
+test movement::tests::the_map_volume_bounds_the_position ... ok
+test movement::tests::the_members_of_a_group_leader_and_a_task_leaders_missing_leader_are_not_read ... ok
+test movement::tests::the_next_step_flies_from_the_vector_the_host_answered ... ok
+test movement::tests::the_other_aircrafts_host_positions_decide_the_avoidance_not_anything_the_campaign_sends ... ok
+test movement::tests::the_retained_contact_altitude_buries_and_the_fresh_cg_only_sets_the_final_height_over_a_splash_place ... ok
+test movement::tests::the_shaped_height_not_the_campaigns_reaches_the_flight ... ok
+test movement::tests::the_terrain_face_and_the_fuselage_angle_shape_the_host_attitude ... ok
+test movement::tests::the_phases_are_ordered_and_a_stale_or_unchecked_guidance_cannot_begin ... ok
+test movement::tests::the_threshold_follows_the_squared_range_to_the_nearest_keysite ... ok
+test movement::tests::the_vehicle_steps_belong_to_their_own_kinds ... ok
+test movement::tests::turning_towards_a_waypoint_reports_the_rotation ... ok
+test sense::tests::a_close_target_cannot_lower_the_floor_below_a_tenth_and_a_player_scales_it_by_the_difficulty ... ok
+test sense::tests::a_helicopters_stealth_factor_follows_its_configuration_and_scales_the_surface_to_air_limit ... ok
+test sense::tests::air_to_surface_compares_the_planar_squared_range_with_the_squared_scan_range ... ok
+test sense::tests::an_aircraft_scan_scales_the_squared_range_and_a_switched_off_emitter_closes_it_by_ten_percent ... ok
+test sense::tests::messages_that_do_not_fit_the_state_are_refused ... ok
+test sense::tests::surface_to_surface_uses_the_approximate_three_dimensional_range ... ok
+test sense::tests::the_altitude_envelope_reaches_the_sources_altitude_above_the_group_ceiling ... ok
+test sense::tests::the_surface_to_air_floor_is_lowered_by_every_candidate_asked_about_and_never_restored ... ok
+test sense::tests::the_tolerance_limit_is_floor_times_one_plus_half_the_draw_and_comes_after_the_altitude_test ... ok
+test tacview::tests::writes_a_well_formed_acmi ... ok
+test aim::tests::the_host_generates_the_table_from_the_figures_in_the_shape_the_model_indexes_and_repeats_it_bit_for_bit ... ok
+test movement::tests::the_tumble_step_hands_the_helper_the_draws_it_received_in_double ... ok
+test movement::tests::the_wing_death_attitude_forms_its_roll_draw_in_double_end_to_end ... ok
+
+test result: ok. 211 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src/main.rs (/target/debug/deps/eech_world-6d3d64805f053272)
+
+running 19 tests
+test exact_number_tests::a_fixed_wing_phase_must_be_exactly_one_of_the_four_integers ... ok
+test exact_number_tests::narrowing_picks_the_nearest_f32_at_the_edges ... ok
+test exact_number_tests::a_missing_wrong_shaped_or_non_finite_field_is_refused_by_name ... ok
+test exact_number_tests::the_value_read_loses_what_the_exact_read_keeps ... ok
+test supply_reached_tests::fixed_wing_ignores_helicopter_altitude_and_heading ... ok
+test supply_reached_tests::follower_requires_the_last_to_reach_criterion ... ok
+test supply_reached_tests::action_and_recon_queries ... ok
+test supply_reached_tests::fixed_wing_physical_boundaries ... ok
+test supply_reached_tests::helicopter_missing_target_is_reported_only_where_the_original_asserts ... ok
+test supply_reached_tests::helicopter_leader_altitude_and_heading_gates ... ok
+test supply_reached_tests::radius_arrival_keeps_the_same_physical_boundaries ... ok
+test supply_reached_tests::standard_forms_match_the_legacy_expressions_bit_for_bit ... ok
+test supply_reached_tests::helicopter_physical_boundaries ... ok
+test supply_reached_tests::helicopter_required_heading_follows_the_original_source_rules ... ok
+test supply_reached_tests::weapon_angle_is_reported_only_when_the_rule_applies ... ok
+test supply_reached_tests::vehicle_kinds_share_landed_radius_and_altitude_without_a_cog_term ... ok
+test exact_number_tests::a_double_read_keeps_every_bit_a_float_read_would_narrow ... ok
+test exact_number_tests::a_scalar_and_an_array_keep_every_bit_under_either_rounding_mode ... ok
+test exact_number_tests::a_double_keeps_every_bit_under_round_toward_zero_when_it_is_read_in_exact_steps ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.64s
+
+     Running tests/host_callbacks.rs (/target/debug/deps/host_callbacks-679efb2691b2cd51)
+
+running 14 tests
+test a_dependent_carry_round_trips_through_lua_and_refuses_what_the_host_did_not_move ... ok
+test sense_round_trips_through_lua_and_refuses_what_it_was_not_asked ... ok
+test line_of_sight_round_trips_through_lua_and_refuses_what_it_was_not_asked ... ok
+test a_failing_host_callback_returns_its_error_to_pcall ... ok
+test move_vehicle_refuses_an_unknown_id_a_foreign_pose_and_an_unknown_mode ... ok
+test the_hosted_helicopter_plan_guide_and_abandon_round_trip_through_lua ... ok
+test the_case_deltas_keep_every_indexed_report_row_apart ... ok
+test the_case_carrier_is_one_that_can_afford_the_plan ... ok
+test the_case_caller_takes_the_affordable_alternate_class_of_its_role ... ok
+test the_case_caller_follows_the_live_ammunition_when_a_launch_spends_several_rounds ... ok
+test the_combat_report_keeps_every_hash_a_string_and_the_script_finds_its_report_module_beside_it ... ok
+test aim_round_trips_through_lua_and_refuses_what_it_was_not_asked ... ok
+test the_provider_and_the_controlled_witness_find_the_model_files_beside_them_when_the_binary_runs_them_as_the_main_script ... ok
+test every_shipped_lua_script_parses_under_the_hosts_lua ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+
+     Running tests/load_dc.rs (/target/debug/deps/load_dc-12ec7137439e6953)
+
+running 2 tests
+test require_loads_the_dc_dll ... ok
+test a_failing_dc_callback_returns_its_error_to_pcall ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests eech_dc
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests eech_engine
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests eech_world
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+CARGO_EXIT=0
+DOCKER_EXIT=0

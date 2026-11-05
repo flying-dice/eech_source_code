@@ -1,0 +1,170 @@
+{
+  "schema": 1,
+  "review_kind": "single focused changed-delta correctness/clean-code/boundary/source plus new unhooked evidence review",
+  "reviewed_head": "76533dd3ae836674c27704040d6ce1b6ed84f80d",
+  "base": "2804ca4f7a323493e5bb8f3ba5452958aef9a160",
+  "snapshot": "R:\\d3-evidence\\environment-observer-source-76533dd3a",
+  "prior_report": {
+    "path": "R:\\d3-evidence\\independent-environment-observer-source-review-2804ca4f7-20261031.json",
+    "sha256": "db7e7d5cb5d8157103a20d85d77878b677a80c10ae0fe907913556b85602fb16"
+  },
+  "frozen_clean_before": true,
+  "frozen_clean_after": true,
+  "disposition": "CHANGES_REQUIRED_RESIDUAL_TRACE_COHERENCE_P2",
+  "findings": [
+    {
+      "id": "ENV-OBSERVER-TRACE-COHERENCE",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+      "line": 782,
+      "related_locations": [
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+          "line": 721
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+          "line": 787
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+          "line": 2306
+        }
+      ],
+      "title": "Complete the remaining source/emitter correspondence of the new positive grammar",
+      "detail": "The added finite grammar substantially addresses the original missing-init/phase gap, but still certifies three impossible original histories. (1) It permits a lightning episode to end at step8, and the positive lightning_client_form emits server expired(a=1)/new_timer/timer_set plus strikes but omits both sound pairs. Actual ss_updt.c272-327 unconditionally makes both sound calls for that server expiry; a real client does not emit the first3 server timer events. (2) The weather-phase check requires only inside-frame/not-tod-open/not-facts-pending, so a complete episode before the first TOD or after its sound-fact pair still passes, contradicting update_server TOD->weather/lightning->sound order. (3) check_boot skip_free accepts rain/fixed tags inside the parser-session block; positive boot_with_tags emits rain1->fixed(DRY) before parser_session_end. Actual parsgen.c1209-1211 ends that block immediately after random-weather initialization; rain/wind tags are later cases, and only rain0 invokes fixed(DRY),1311-1318. These are malformed positive fixtures/false-completeness paths, not a demonstrated C or weather-numerical defect.",
+      "requested_change": "Require all12 observed server lightning events and turn the8-event form into a missing-sound negative; keep client unsupported unless its actual distinct shape is deliberately characterized. Track observable per-update TOD/weather/lightning/sound phase, rejecting moved episodes. Place coherent rain0/fixed and wind/tag alternatives at actual parser locations, add moved-tag and contradictory-rain negatives, and preserve arbitrary additional complete post-session weather/start episodes rather than forcing exactly one boot group. One finite Lua/test/doc correction is sufficient; do not change original calls or formulas."
+    }
+  ],
+  "prior_finding_dispositions": [
+    {
+      "id": "ENV-OBSERVER-TRACE-COHERENCE",
+      "result": "SUBSTANTIALLY_ADDRESSED_WITH_FINITE_RESIDUAL_ABOVE",
+      "positive_changes": "Mandatory start/weather initialization, ordered10draw episodes, flexible additional complete boot episodes, required boot/end order, schedule/clock/delta correspondence, TOD pairing/frame context, word-string transport, fixed capacity and counter conservation, coherent positive/negative approach added. Original allocation/RNG/numeric routines unchanged."
+    },
+    {
+      "id": "ENV-OBSERVER-OFF-EQUIVALENCE-WORDING",
+      "result": "SOURCE_CLOSED",
+      "reason": "Enums are behind EECH_ENV_OBSERVER and comments/documentation distinguish executable-body token preservation from diagnostic __LINE__ changes and full preprocessed text. Prior2804 feature-off proof remains labelled2804, not new765 proof."
+    },
+    {
+      "id": "ENV-OBSERVER-SEED-EVENT-TIMING",
+      "result": "SOURCE_CLOSED_PENDING_ACTUAL_OBSERVER_VALIDATION",
+      "reason": "eech_envobs_seed_set now supplies before as event rng and w0, with a as requested target; original assignment/srand/hook order unchanged. The pre-assignment semantics are explicitly documented."
+    }
+  ],
+  "source_assessment": {
+    "engine_C_unchanged_NUL1": true,
+    "no_new_memory_or_physical_numeric_defect_found": true,
+    "kernel_and_prior_C_instrumentation_review_reused": true,
+    "scope": "Only new grammar/header/seed-event diagnostics/tests/docs reviewed. No old original environment numerical/kernel sweep."
+  },
+  "source_sha256": {
+    "aphavoc/source/entity/special/session/ss_envfx.h": "742572b50ddb131beb6e637d2139c71eca891ba4dcbd0b6f309f90d8fb5960e7",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_env_observer.c": "cb02b999551e5a5b87716f496d90d5d492e507624ee480fde059d03c423fa4b5",
+    "eech-campaign/crates/eech-world/lua/env-characterization.lua": "06508a5f2fdd49cd08414de22041ae14454489f78e727daf474900a0bc06b746",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "734726c8d3dd7753373d62b1961df88aa5b68127a7658c3614ef73b14d573236",
+    "eech-campaign/docs/d3-environment-observer.md": "b0b1b3da0c5bc5f5102f3e6a75082f2df2b6f1f0099d8cccb0bc3cef8554799c",
+    "STATUS.md": "08a9fb2de73ada58dde91beb42586ff8f6cb63ede624f724ac8217d9dc67837c"
+  },
+  "new_retained_unhooked_controls": [
+    {
+      "case": "lebanon-fixed",
+      "source": "2804ca4f7a323493e5bb8f3ba5452958aef9a160",
+      "native_controller_and_pre_post_exits": 0,
+      "controller_sha256": "cf3c0b4b03767ab96f2d9246176e62dfbe0fe6cbf42d8b2b6d6d27bf90a17ad6",
+      "raw_sha256": "de74b58fccd23c81157fdca361fc501b0acc6292243ad72085b73c7ddabb54c8",
+      "strict_rows": 10850,
+      "frames": 1200,
+      "final_clock": 119.99835968017578,
+      "complete_field": false,
+      "complete_field_meaning": "Witness-set completeness only: probes0 deliberately leaves complete=false; not failed frame control.",
+      "payloads": {
+        "BUILD_INFO_sha256": "d3a42fdf3f203fe84301d93496c14749e7cc018d416f8b82de3caf4dc84e08ad",
+        "entries": 46,
+        "all_current_payloads_rehashed": true
+      }
+    },
+    {
+      "case": "lebanon-variable",
+      "source": "2804ca4f7a323493e5bb8f3ba5452958aef9a160",
+      "native_controller_and_pre_post_exits": 0,
+      "controller_sha256": "4f39c61e5050d660b58fd4b19b8e7b401b53c6da6f8ddcf5170acbbaf6f8dc6c",
+      "raw_sha256": "2e898ed821015922c7ede7732028a660927519d38c328ceccd0e47c5eae097e0",
+      "strict_rows": 8159,
+      "frames": 900,
+      "final_clock": 120.04883575439453,
+      "complete_field": false,
+      "complete_field_meaning": "Witness-set completeness only: probes0 deliberately leaves complete=false; not failed frame control.",
+      "payloads": {
+        "BUILD_INFO_sha256": "d3a42fdf3f203fe84301d93496c14749e7cc018d416f8b82de3caf4dc84e08ad",
+        "entries": 46,
+        "all_current_payloads_rehashed": true
+      }
+    },
+    {
+      "case": "georgia-variable",
+      "source": "2804ca4f7a323493e5bb8f3ba5452958aef9a160",
+      "native_controller_and_pre_post_exits": 0,
+      "controller_sha256": "d882558925566534c70a607d746fc2d021f3357ebdd79298c6dfa26b5f5498d9",
+      "raw_sha256": "703db73dcc09c377505869da0795086adf7823803129de58e40d9cf840422506",
+      "strict_rows": 8159,
+      "frames": 900,
+      "final_clock": 120.04883575439453,
+      "complete_field": false,
+      "complete_field_meaning": "Witness-set completeness only: probes0 deliberately leaves complete=false; not failed frame control.",
+      "payloads": {
+        "BUILD_INFO_sha256": "d3a42fdf3f203fe84301d93496c14749e7cc018d416f8b82de3caf4dc84e08ad",
+        "entries": 46,
+        "all_current_payloads_rehashed": true
+      }
+    }
+  ],
+  "independent_old99_raw_comparison": {
+    "before_source": "99352e331527e8aafb2961949536217eab7a8ecf",
+    "after_source": "2804ca4f7a323493e5bb8f3ba5452958aef9a160",
+    "before_raw_sha256": "aeadff94a52953950c8736545e66756ed7c58b17028746c6a74449f343ae7b2d",
+    "after_raw_sha256": "de74b58fccd23c81157fdca361fc501b0acc6292243ad72085b73c7ddabb54c8",
+    "selected_complete_raw_lines_including_endings_exact": 10830,
+    "snapshot_rows": 10827,
+    "campaign_rows": 2,
+    "run_rows": 1,
+    "comparison_proof_sha256": "f791f19f59e3456b21ee951a9cbbdc49d4fbb3a6a5976eb4d3ffe492f39d1bfd",
+    "scope": "Only declared selected physical/state/clock/campaign/run rows, not all whole-file bytes, metadata/census/coverage or recordings."
+  },
+  "new765_check_records": [
+    {
+      "kind": "linux",
+      "record": "R:\\d3-evidence\\environment-observer-76533dd3a-linux-20261031-process.json",
+      "sha256": "ab87477a3c78335732e10e15f42f1b10dc52d20e94b5aadc3aa6b8d1f009079d",
+      "state": "running",
+      "actual_exit": null,
+      "available_guard_summaries": [
+        "test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 24 filtered out; finished in 0.79s"
+      ],
+      "guard_meaning": "Stand-in protocol tests, not original physics; the positive-grammar flaw below still applies."
+    },
+    {
+      "kind": "windows",
+      "record": "R:\\d3-evidence\\environment-observer-76533dd3a-windows-20261031-completion.json",
+      "sha256": "57c39cfcffd0176087b72a90accf4ca126bdb5028b6fa8d4262fc216a8998dbe",
+      "state": "terminal",
+      "actual_exit": 0,
+      "available_guard_summaries": [],
+      "guard_meaning": "Stand-in protocol tests, not original physics; the positive-grammar flaw below still applies."
+    }
+  ],
+  "runtime_disposition": {
+    "new_observer_source_acceptance": "HOLD for residual grammar P2 and actual matching observer/noninterference results. No new765 observer native pass is supplied or inferred.",
+    "bounded_original_observation": "No C memory-safety or numerical-body blocker found; Root may retain fresh-process diagnostic measurements after builds. Stronger driver validation may reuse actual captured histories if they meet the corrected source grammar.",
+    "noninterference": "Unhooked2804 controls are valid feature-OFF anchors. They are not themselves the observer-enabled OFF/ON or current765 comparison, and no full shipping/recording claim is made."
+  },
+  "limits": [
+    "All3 unhooked controls are source2804/feature-OFF; fixed100ms preserves10830selected old99raw lines including endings, while variable schedule legitimately has900frames versus fixed1200. No raw normalization or artifact rewrite.",
+    "Observer fixed-buffer total-run capacity, sparse sound facts, no libc-state save/restore, client/pack/save/amplitude gaps remain as previously declared.",
+    "No source extraction/host authority, formal GitHub approval, currentCI/normal merge, Task51/fullshipping/Tacview or whole-D3 acceptance. Required remaining physical/spatial/environment/time/model/entity/hierarchy/solver-loader work stays within D3.",
+    "Ground fullpack/processes and caches remain untouched."
+  ],
+  "actions": "Read-only source/Git/JSON/log/hash inspection and this canonical-LF report only. No builds/tests/native/process/cache/auth/Git mutations, source edits, external writes or nested agents.",
+  "created_utc": "2026-10-31T02:21:00.982940+00:00"
+}

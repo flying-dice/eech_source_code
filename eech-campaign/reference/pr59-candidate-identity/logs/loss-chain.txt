@@ -1,0 +1,1 @@
+loss chain of aircraft 87568 (group 87567) at 1584.66: PASS

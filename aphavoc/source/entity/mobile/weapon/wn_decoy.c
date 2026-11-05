@@ -65,6 +65,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "project.h"
+#include "entity/mobile/mb_hostaim.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -76,128 +77,33 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float get_decoy_timer_start_value (weapon_decoy_types type)
+//
+// THE DECOY (EEDCS-45)
+//
+// A decoy's timer, and what a seeker locked on its launcher does when the decoy becomes active, are the host's (the timer restarts at a time drawn from the shared stream;
+// a seeker is drawn to a decoy by the decoy's kind, its own and a sample of the same stream).  The campaign keeps who is locked on whom (it tells those seekers that the
+// decoy became active), the player's difficulty (it goes in as a coefficient), and the link it makes when the host says a seeker goes for the decoy.
+//
+
+static void refuse_decoy_lookup (const campaign_aim_event *lookup, campaign_aim_event *answer, void *context)
 {
-	float
-		timer;
-
-	switch (type)
-	{
-		////////////////////////////////////////
-		case WEAPON_DECOY_TYPE_NONE:
-		////////////////////////////////////////
-		{
-			timer = 0.0;
-
-			break;
-		}
-		////////////////////////////////////////
-		case WEAPON_DECOY_TYPE_CHAFF:
-		////////////////////////////////////////
-		{
-			timer = 0.1;
-
-			break;
-		}
-		////////////////////////////////////////
-		case WEAPON_DECOY_TYPE_FLARE:
-		////////////////////////////////////////
-		{
-			timer = 0.1;
-
-			break;
-		}
-		////////////////////////////////////////
-		case WEAPON_DECOY_TYPE_SMOKE_GRENADE:
-		////////////////////////////////////////
-		{
-			timer = 3.0;
-
-			break;
-		}
-		////////////////////////////////////////
-		default:
-		////////////////////////////////////////
-		{
-			debug_fatal ("Invalid weapon decoy type = %d", type);
-
-			break;
-		}
-	}
-
-	return (timer);
+	debug_fatal ("host aim: the host asked a decoy request a lookup (kind %d) it does not take", lookup->kind);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-float get_decoy_timer_restart_value (weapon_decoy_types type)
+// the player's difficulty makes a decoy less effective (a setting of the campaign, given to the host as a figure; the AI has none)
+float get_decoy_difficulty_coefficient (entity *sender)
 {
 	float
-		timer;
+		coefficient;
 
-	switch (type)
-	{
-		////////////////////////////////////////
-		case WEAPON_DECOY_TYPE_NONE:
-		////////////////////////////////////////
-		{
-			timer = 0.0;
-
-			break;
-		}
-		////////////////////////////////////////
-		case WEAPON_DECOY_TYPE_CHAFF:
-		////////////////////////////////////////
-		{
-			timer = 0.4 + (frand1 () * 0.2);
-
-			break;
-		}
-		////////////////////////////////////////
-		case WEAPON_DECOY_TYPE_FLARE:
-		////////////////////////////////////////
-		{
-			timer = 0.4 + (frand1 () * 0.2);
-
-			break;
-		}
-		////////////////////////////////////////
-		case WEAPON_DECOY_TYPE_SMOKE_GRENADE:
-		////////////////////////////////////////
-		{
-			timer = 1.0 + (frand1 () * 0.5);
-
-			break;
-		}
-		////////////////////////////////////////
-		default:
-		////////////////////////////////////////
-		{
-			debug_fatal ("Invalid weapon decoy type = %d", type);
-
-			break;
-		}
-	}
-
-	return (timer);
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int get_weapon_locked_onto_decoy (weapon_decoy_types type, entity *sender)
-{
-	int
-		locked;
-	float coefficient = 1.0;
-	game_difficulty_settings difficulty;
+	game_difficulty_settings
+		difficulty;
 
 	entity
 		*launcher,
 		*pilot;
+
+	coefficient = 1.0;
 
 	// get game difficulty level (use player's own level)
 
@@ -223,56 +129,8 @@ int get_weapon_locked_onto_decoy (weapon_decoy_types type, entity *sender)
 		}
 	}
 
-	switch (type)
-	{
-		////////////////////////////////////////
-		case WEAPON_DECOY_TYPE_NONE:
-		////////////////////////////////////////
-		{
-			locked = FALSE;
-
-			break;
-		}
-		////////////////////////////////////////
-		case WEAPON_DECOY_TYPE_CHAFF:
-		////////////////////////////////////////
-		{
-			locked = frand1 () < (pow(0.2, coefficient) * command_line_chaff_effectiveness);
-
-			break;
-		}
-		////////////////////////////////////////
-		case WEAPON_DECOY_TYPE_FLARE:
-		////////////////////////////////////////
-		{
-			locked = frand1 () < (pow(0.2, coefficient) * command_line_flare_effectiveness);
-
-			break;
-		}
-		////////////////////////////////////////
-		case WEAPON_DECOY_TYPE_SMOKE_GRENADE:
-		////////////////////////////////////////
-		{
-			locked = frand1 () < (pow(0.2, coefficient) * command_line_smoke_effectiveness);
-
-			break;
-		}
-		////////////////////////////////////////
-		default:
-		////////////////////////////////////////
-		{
-			debug_fatal ("Invalid weapon decoy type = %d", type);
-
-			break;
-		}
-	}
-
-	return (locked);
+	return (coefficient);
 }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void update_decoy (entity *en)
 {
@@ -284,6 +142,15 @@ void update_decoy (entity *en)
 		*locked_on_weapon,
 		*succ;
 
+	campaign_aim_step
+		step;
+
+	campaign_aim_result
+		result;
+
+	int
+		i;
+
 	ASSERT (en);
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
@@ -292,87 +159,47 @@ void update_decoy (entity *en)
 
 	ASSERT (weapon_database[raw->mob.sub_type].decoy_type != WEAPON_DECOY_TYPE_NONE);
 
-	raw->decoy_timer -= get_delta_time ();
+	memset (&step, 0, sizeof (step));
 
-	if (raw->decoy_timer < 0.0)
+	step.mode = CAMPAIGN_AIM_WEAPON_DECOY;
+
+	step.weapon = raw->mob.sub_type;
+
+	step.delta_time = get_delta_time ();
+
+	step.weapon_state.decoy_timer = raw->decoy_timer;
+
+	step.weapon_state.server = TRUE;
+
+	result = campaign_aim_weapon_step (&step, refuse_decoy_lookup, NULL);
+
+	for (i = 0; i < result.action_count; i++)
 	{
-		raw->decoy_timer = get_decoy_timer_restart_value (weapon_database[raw->mob.sub_type].decoy_type);
-
-		launcher = get_local_entity_parent (en, LIST_TYPE_LAUNCHED_WEAPON);
-
-		if (launcher)
+		if (result.actions[i].kind != CAMPAIGN_STEP_ACTION_DECOY)
 		{
-			locked_on_weapon = get_local_entity_first_child (launcher, LIST_TYPE_TARGET);
+			debug_fatal ("host aim: a decoy update left an action of kind %d the campaign does not apply to a decoy", result.actions[i].kind);
+		}
 
-			while (locked_on_weapon)
+		raw->decoy_timer = result.actions[i].f[0];
+
+		if (result.actions[i].a)
+		{
+			launcher = get_local_entity_parent (en, LIST_TYPE_LAUNCHED_WEAPON);
+
+			if (launcher)
 			{
-				succ = get_local_entity_child_succ (locked_on_weapon, LIST_TYPE_TARGET);
+				locked_on_weapon = get_local_entity_first_child (launcher, LIST_TYPE_TARGET);
 
-				notify_local_entity (ENTITY_MESSAGE_DECOY_ACTIVE, locked_on_weapon, en);
+				while (locked_on_weapon)
+				{
+					succ = get_local_entity_child_succ (locked_on_weapon, LIST_TYPE_TARGET);
 
-				locked_on_weapon = succ;
+					notify_local_entity (ENTITY_MESSAGE_DECOY_ACTIVE, locked_on_weapon, en);
+
+					locked_on_weapon = succ;
+				}
 			}
 		}
-	}
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void get_smoke_grenade_distract_position (entity *weapon, entity *grenade, vec3d *distract_position)
-{
-	int
-		seed;
-
-	vec3d
-		grenade_position;
-
-	ASSERT (weapon);
-
-	ASSERT (grenade);
-
-	ASSERT (distract_position);
-
-	seed = get_client_server_entity_random_number_seed (weapon);
-
-	get_local_entity_vec3d (grenade, VEC3D_TYPE_POSITION, &grenade_position);
-
-	*distract_position = grenade_position;
-
-	distract_position->x += sfrand1x (&seed) * 50.0;
-	distract_position->z += sfrand1x (&seed) * 50.0;
-
-	if (point_inside_map_area (distract_position))
-	{
-		distract_position->y = get_3d_terrain_elevation (distract_position->x, distract_position->z);
-	}
-	else
-	{
-		*distract_position = grenade_position;
-	}
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void get_jammer_distract_position (entity *weapon, vec3d *target_position)
-{
-	int
-		seed;
-
-	ASSERT (weapon);
-
-	ASSERT (target_position);
-
-	seed = get_client_server_entity_random_number_seed (weapon);
-
-	if (frand1x (&seed) > 0.5)
-	{
-		target_position->x += sfrand1x (&seed) * 35.0;
-		target_position->y += sfrand1x (&seed) * 35.0;
-		target_position->z += sfrand1x (&seed) * 35.0;
 	}
 }
 

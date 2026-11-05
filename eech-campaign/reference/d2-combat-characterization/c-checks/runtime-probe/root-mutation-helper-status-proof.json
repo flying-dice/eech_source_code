@@ -1,0 +1,32 @@
+{
+  "scope": "Mutation-helper status correction only; no product code or campaigns",
+  "normal": {
+    "compile": 0,
+    "run": 1,
+    "Docker": 1,
+    "actual_outer": 1,
+    "expected_two_FAILs": [
+      "FAIL a slot freed and reused by an entity of the same kind and data is still reported destroyed: the generation, not the type and data, decides",
+      "FAIL and nothing was read from that slot after it was freed"
+    ],
+    "control_valid": true
+  },
+  "compile_negative": {
+    "compile": 1,
+    "run": "NOT_STARTED",
+    "Docker": 1,
+    "actual_outer": 1
+  },
+  "files": [
+    {
+      "file": "root-mutation-propagation-normal.log",
+      "bytes": 2415,
+      "sha256": "998ced7984a4e74d1e8e7dfa2b8bed216fe067dd6d1a21174b092f13fab438d3"
+    },
+    {
+      "file": "root-mutation-propagation-compile-negative.log",
+      "bytes": 288,
+      "sha256": "3c5f336bc97c2b165bceae1316a5afa3048e9fc5d770d905aae6f7e597e06271"
+    }
+  ]
+}

@@ -1,0 +1,223 @@
+{
+  "schema": "independent-source-review/v1",
+  "reviewed_utc": "2026-10-30T03:06:31.236316+00:00",
+  "reviewed_head": "de2c5b3c1942e77502a2eb056d0e1b39de230a07",
+  "base": "fa555bd2bb65dd1cb042c73044607c1546089240",
+  "frozen_path": "R:\\d3-evidence\\model-handoff-source-de2c5b3c1",
+  "tracked_clean_before_and_after": true,
+  "verdict": "CHANGES_REQUIRED",
+  "new_retail_handoff_execution": "HOLD_FOR_CORRECTIONS",
+  "findings": [
+    {
+      "id": "MODEL-PUBLIC-IDENTITY",
+      "priority": "P2",
+      "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "line": 146,
+      "related": [
+        "aphavoc/source/entity/mobile/mb_hostmodel.h:70",
+        "eech-campaign/crates/eech-dc/src/module.rs:2383"
+      ],
+      "title": "Remove private loader indices from the public model contract",
+      "reason": "SCENE.main_object/collision_object must equal objects_3d_scene_database[scene].index/collision_object_index. Those are legacy objects_3d_data numbering, not public scene IDs; independent/DCS model providers cannot choose their own model storage without replicating the private EECH loader layout. This is enforced even when all physical values are host-authored.",
+      "correction": "Correlate via public scene/schema identity and host-authored collider presence. Keep any raw-index comparison inside reference adapter/diagnostics, not campaign public acceptance. Update C/Rust/Lua fields and independent-provider controls accordingly."
+    },
+    {
+      "id": "MODEL-NUMBER-FIDELITY",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "line": 2297,
+      "related": [
+        "eech-campaign/crates/eech-dc/src/module.rs:2323",
+        "eech-campaign/patches/mlua-sys-0.6.8/src/lua51/compat.rs:185",
+        "eech-campaign/crates/eech-dc/src/module.rs:122"
+      ],
+      "title": "Read physical NUMBER values before mlua integer coercion",
+      "reason": "model_f32 receives LuaValue after table.get. Patched Lua5.1 lua_isinteger treats doubles within EPSILON of an integer as Integer, so tiny nonzero/subnormal values reach this function as Integer0 and negative-zero sign is lost. nearest_f32 cannot reconstruct the discarded bits. Existing exact_numbers in the same module explicitly avoids this seam. Explicit hex strings are not affected. Current tests cross already-created Rust f32 values, not this new Lua numeric path.",
+      "correction": "Use exact raw-Lua numeric extraction with strict number typing, one stateful getter read, retained hex support, signedzero/subnormal/inexact-double fidelity and documented deterministic nearest-single rounding. Add real public callback-crossing tests under engine round-toward-zero and caller-state checks; do not change physical kernel/oracles."
+    },
+    {
+      "id": "MODEL-FOUND-PRESENCE",
+      "priority": "P2",
+      "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "line": 241,
+      "title": "Reject a triangle contradicting the installed absence",
+      "reason": "FOUND checks finite points but never checks host_collision_object[scene]==-1, whereas END and ABSENT are checked against the installed catalogue. A provider can declare an absent model (e.g. scene1241) and return FOUND; C then writes the caller buffer and returnsTRUE despite its own absence declaration.",
+      "correction": "After replacing raw indices with public host-authored presence, reject FOUND for absent scenes before writing any caller word. Add an actual C/public callback contradiction control alongside END/ABSENT guards."
+    },
+    {
+      "id": "MODEL-EXACT-BOUNDED-LIST",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "line": 2313,
+      "related": [
+        "eech-campaign/crates/eech-dc/src/module.rs:2322"
+      ],
+      "title": "Bound malformed float text and enforce the exact indexed list",
+      "reason": "Comma text is collected into an unbounded Vec before6/9 length checking. Table parsing stops at the first nil and only reads throughN+1: valid1..N plus an extra value atN+2 is silently accepted, contrary to the documented exactN list. A malformed host answer can force needless allocation or hide an overlong/sparse indexed shape.",
+      "correction": "Bound text/token parsing atN+1 and validate the intended exact dense indexed shape, preserving single-read getter semantics. Add real Lua extra-after-hole/overlong text controls; valid exact lists and strings must remain accepted."
+    },
+    {
+      "id": "MODEL-WITNESS-PREFLIGHT",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/lua/model-authority.lua",
+      "line": 43,
+      "related": [
+        "eech-campaign/crates/eech-world/lua/model-authority.lua:211",
+        "eech-campaign/crates/eech-world/lua/model-authority.lua:252"
+      ],
+      "title": "Make requested authority probes finite and fail closed",
+      "reason": "Durations/frame_ms/sweeps/seed/probe lists are not strictly checked before output and boot. frame_ms=0 yields an infinite numeric-for bound when seconds>0 while frame(0) need not advance. Invalid list items can disappear through nil insertion. Separately a requested model_host_probe refusal is only emitted as ok=false: reference mode can finish healthy after all requested probes fail.",
+      "correction": "Validate finite bounded scheduling, integral positive frame_ms and bounded integral seed/sweep/scene/depth lists before output/prepare/boot; enforce finite frame/progress bounds. Propagate requested probe failures/missing results to failure/nonzero exit; add real-driver invalid/no-progress/refused-probe controls."
+    },
+    {
+      "id": "MODEL-WITNESS-JSON-IO",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/lua/model-authority.lua",
+      "line": 56,
+      "related": [
+        "eech-campaign/crates/eech-world/lua/model-authority.lua:253",
+        "eech-campaign/crates/eech-world/lua/model-provider-check.lua:11"
+      ],
+      "title": "Emit strict JSON and check every output operation",
+      "reason": "Lua5.1 string.format(%q) is Lua quoting, not JSON escaping. A healthy C probe report contains embedded newlines; quoted output can therefore be invalid JSON, and error control bytes have the same problem. write/flush/close results are ignored, allowing truncated/lost evidence with successful exit. Both new emitters use this pattern.",
+      "correction": "Use a strict control-byte JSON encoder and checked write/flush/close paths, preserving native output bytes rather than normalizing them. Exercise multiline probe text,0..31/quote/backslash/UTF8 errors and output-failure controls through the real scripts."
+    },
+    {
+      "id": "MODEL-INSTALL-WORDING",
+      "priority": "P3",
+      "path": "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "line": 97,
+      "related": [
+        "aphavoc/source/entity/mobile/mb_hostmodel.c:20",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c:82"
+      ],
+      "title": "Describe the actual callback retention and user lifetime",
+      "reason": "Install-once/first-entry wording implies later callbacks are ignored, but set_host overwrites current_host on every non-NULL callback, retaining its user pointer when later entries areNULL. Current Rust production is safe because model_callback ignores user and MODEL owns the provider for the process; the header should not imply an enforced C first-install guarantee.",
+      "correction": "Either enforce the stated first-install contract or document the actual refresh/retention behavior and callback-user lifetime requirement, distinguishing fixed Rust TLS provider from per-entry HostContext."
+    },
+    {
+      "id": "MODEL-COUNTER-WORDING",
+      "priority": "P3",
+      "path": "eech-campaign/crates/eech-world/lua/model-authority.lua",
+      "line": 78,
+      "title": "Distinguish reference answers from altered answers",
+      "reason": "counted increments found/ended/absent from the reference answer before vanish/inflate/bad_* wrappers replace that answer. Those fields therefore do not count the final altered model replies accepted by C, despite the what-the-provider-answered comment. Native fixture counters can supply the actual accepted counts.",
+      "correction": "Name/document these as reference-answer counters or count final replies separately. Keep native accepted counters and consequences distinct; do not infer authority from reference counts alone."
+    }
+  ],
+  "counts": {
+    "P2": 6,
+    "P3": 2
+  },
+  "source_sha256": {
+    "STATUS.md": "c10bcea25ecfc72c5a3d60230754695e8a65713162dae486b2fb0027f5305d32",
+    "aphavoc/source/entity/mobile/mb_hostmodel.c": "c0749175f745c9a7740ea3e05e2205dbc9ede670409ab53b386d92057220b923",
+    "aphavoc/source/entity/mobile/mb_hostmodel.h": "7f7b47bcdae752fbd1684ff3021bc150d3c5e5b60915237b73bda7735fbb1113",
+    "eech-campaign/crates/eech-dc/Cargo.toml": "fba0f36481502f18df20a37bb1f7b0f57fbfa36e9b3d484e479c8e3e93096ecf",
+    "eech-campaign/crates/eech-dc/src/lib.rs": "4a5556d3032372bf116e3333aec1ae575ab95245c57b1df08f93d38be921c2c6",
+    "eech-campaign/crates/eech-dc/src/module.rs": "efd32819b1379408317e500f101572a1aa0c3906ed15c07f6365501102cbb3f6",
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml": "068f93dc9bccaab81d760d1642c7bbad53c791a6e5563baab57f44b1fa6ecbc5",
+    "eech-campaign/crates/eech-engine-sys/build/main.rs": "6db15eea7f28818065aa9a22a6488cfa3588f07b798cf4b5568e312993119d42",
+    "eech-campaign/crates/eech-engine-sys/build/patches.rs": "738ae3b573ba1a5b799b8a8f7ee433648edfaa052c4d9509736872d3fae8cd08",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c": "88dc4d39e4bc1fa72148c87811c2ff59c5d50458c5d613e081aa1242d19b3376",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h": "38fff47fced4e0f0db549ff0f94895681a5750c763f16f6c34ce7d897a6bbd46",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_model_host_fixture.c": "4e59defcaece77003ef952cc51ffe8c01b5bb0b0db6d4399909851ac607965c0",
+    "eech-campaign/crates/eech-engine-sys/sources.txt": "248d7dea2d41efc2174063296c4c9b439157737e0d0ffeea52ac91f632d964ad",
+    "eech-campaign/crates/eech-engine-sys/src/lib.rs": "a74c459ed91feaa53ae7bccaf63219762943e43c2f0c037ccb7c3a4147e635f0",
+    "eech-campaign/crates/eech-engine/Cargo.toml": "514e895aed0ba7e930fdb64053b1189968168e97d543445ca4863ac1ad742d77",
+    "eech-campaign/crates/eech-engine/src/lib.rs": "6ef43b0becd558731bb0c6aebb9ccd302fc4b404401b70c602a9e6b8abfa4493",
+    "eech-campaign/crates/eech-world/lua/aim-characterization.lua": "bb395efa6c8b05277ec3683e0dbf30f45be676b80cdd76a57677ee8eb1c1e205",
+    "eech-campaign/crates/eech-world/lua/aim-lead-probe.lua": "fe01d84095d546be33e683322a7c0a630675470216316196f49c533f15509172",
+    "eech-campaign/crates/eech-world/lua/aim-person-case.lua": "22d4cdc925f4139d58103ca06913b799395d83bc15224161ce027b99a1b7df94",
+    "eech-campaign/crates/eech-world/lua/aim-provider.lua": "c1249c8e583c2233d0aac6da654b79bf31cf131f40f245c023c3b96afe18c6c7",
+    "eech-campaign/crates/eech-world/lua/aircraft-arrivals.lua": "8350858f18553aa9482f7a23ed736d6d56d0b51ab586183ec372d8d8ba88b54a",
+    "eech-campaign/crates/eech-world/lua/bridge-case.lua": "46cd7d8b9d3325a679c798ec61cfa8ddade42a2340ab499a1bf2eeb56ddb6b77",
+    "eech-campaign/crates/eech-world/lua/campaign.lua": "f68f9007caac2e8a623def462845f5b10b1f9469a14007d0e91a0597ae71bfce",
+    "eech-campaign/crates/eech-world/lua/combat-case.lua": "2125237ac7b1b9f3cbb25a6c97ab62bae316077fdcc4cfc06f3313c07e81d29f",
+    "eech-campaign/crates/eech-world/lua/combat-characterization.lua": "21f69fbb042ada44861ce8e3254ff93eddedf6f08c6d8173aafcfc0ba81b1f82",
+    "eech-campaign/crates/eech-world/lua/convoy-movement.lua": "9f3166db06f949ffa16d1b979cf27b5e3bad32f38deb21a0a002d30e5abef2de",
+    "eech-campaign/crates/eech-world/lua/dependent-carry.lua": "c719fcdd3109bf0dbe83021191187342219cc5921c8da75e52e3b2f6244cbcbd",
+    "eech-campaign/crates/eech-world/lua/dependent-fixture.lua": "33fd4fa3bebff8d0cf6695856721611487726d92bf15b1274f1ea986f95d1b71",
+    "eech-campaign/crates/eech-world/lua/fixed-wing-movement.lua": "135b1183ef56bd669f662ab47862c605b719ef0e55b65487fe1f4bb0ec4a1e50",
+    "eech-campaign/crates/eech-world/lua/helicopter-lifecycle.lua": "76ebf64dc73daf8265c8c00cc0cfc327fb477af591f4426bd23cfaf70b764309",
+    "eech-campaign/crates/eech-world/lua/helicopter-movement.lua": "a9fab2afca17b7bb6367996662c518701ce87d5d82b9f37ed6cb23a8ea764c54",
+    "eech-campaign/crates/eech-world/lua/host-identities-lifecycle.lua": "f5a0f7108a5e7a94a17979c59d70ef5aa2a593f43fe966fa3ce0022f89b9b2e0",
+    "eech-campaign/crates/eech-world/lua/host-identities.lua": "d43db5b71ca9b97c3accaeea8a618d81035d73cd46a52527a7c3635b7dc6025a",
+    "eech-campaign/crates/eech-world/lua/lifecycle.lua": "ed329beebd9d95c4584c4edd3d89a674f3971f0f1b4fc4b892cabde30fed9dfd",
+    "eech-campaign/crates/eech-world/lua/los-characterization.lua": "bc9465c6c9e72310f993bdc4fd00f1bb03c4b682f487d5b9b6aab6318d594334",
+    "eech-campaign/crates/eech-world/lua/los-controls.lua": "3d5e54f49050b201a25cc3e18c38dc9bdda72f4ffad9ce5f41b009fafba54a78",
+    "eech-campaign/crates/eech-world/lua/los-provider.lua": "ef5ec184db3f6ce52a7366d085e05c6b401eff1bd6e44297ec988a754d56c2f2",
+    "eech-campaign/crates/eech-world/lua/loss-all-family.lua": "6699034af6a0ef6cbdee7bd25bb25294256894d149311a1633afeab57a60f89b",
+    "eech-campaign/crates/eech-world/lua/model-authority.lua": "1f2450cef3042b0d0f3d325e2a9323e72b6ca6e13ff868851502261f55762411",
+    "eech-campaign/crates/eech-world/lua/model-provider-check.lua": "a80cbdc8910fcd96699004d100ef10efb0b85ccd93f5bc4ad1ce78af57b24698",
+    "eech-campaign/crates/eech-world/lua/object-report-case.lua": "1ffa7a03d841473f730784818e498bcea67409f287f0d3ee0ec55ce73f2f5962",
+    "eech-campaign/crates/eech-world/lua/remaining-arrivals.lua": "79dab9045b37d0327e7ad7718a7c98b04e5c52ccfc6393d7bc71624159769d84",
+    "eech-campaign/crates/eech-world/lua/sense-provider.lua": "5a7ac9fabf0a4980dadb91c56a0ad4b1d5cc3244935d55926e5839a30d1a89fe",
+    "eech-campaign/crates/eech-world/lua/sensor-characterization.lua": "f9c6caf397fc3bf958b43f6dfe9edd63c5e606ab6eda5235c98de00714951c24",
+    "eech-campaign/crates/eech-world/lua/supply-arrivals-lifecycle.lua": "14e667438d348b9930a643f57222b1376d7a4b76508cf8aab859b1108000ffa1",
+    "eech-campaign/crates/eech-world/lua/supply-arrivals.lua": "2e641878695b4ce394afd620e945890d7c4de18e0197411ac52dd4dc474be4cc",
+    "eech-campaign/crates/eech-world/lua/surface-movement.lua": "570bedf6ab4882b08d038ccfa5751fc9a5d54699d6f2d2b751896db192439db8",
+    "eech-campaign/crates/eech-world/lua/weapon-case.lua": "78c8615fcd2eddcdf15dc6457351ca1c8118c1e8162f713f89dae0ab9cb63a5f",
+    "eech-campaign/crates/eech-world/lua/weapon-characterization.lua": "519cfb44b4cbae02f75f089a26c0be2b627306b95122905fd4c4dce0674f2874",
+    "eech-campaign/crates/eech-world/src/model_host.rs": "b21da69610dde17e6a7838f51ac97f4330308d1a1182cfd517e720a46f90e626",
+    "eech-campaign/crates/eech-world/tests/model_store.rs": "ab5cdb6bde38fe37bd91591d0b90752ba70f4d11c730b9ffec50676f52a1354e",
+    "eech-campaign/docs/m5-model-characterization.md": "b88b1b5a46449007c2f10d2469c31c6d8df8ac43706ee51e300848a376c42dd9",
+    "eech-campaign/docs/m5-model-host-authority.md": "07479ef2904c09653320d7c71cb82b55c22632ee0cceaece142f5e26ce49e9c6",
+    "eech-campaign/docs/m5-model-host-store.md": "38ca4ce2ea698fbb58f17bab6cf1077996c763665be35754621bebcdbf7a260b",
+    "eech-campaign/tools/build-windows-model-host-fixture.sh": "949adda3a0f2cae5e72365baf8ffe11031ca56aa90247ed1f457ac055051934e"
+  },
+  "build_evidence": {
+    "linux": {
+      "completion_path": "R:\\d3-evidence\\model-handoff-de2c5b3c1-linux-20261030-completion.json",
+      "completion_sha256": "c194920475f12ec7c1fbe86ebe185c690aaefd15ba5c9da504976279739ff75c",
+      "log_sha256": "32d65f55dc3bdc8667b63d29cb2cc87988b6a11c86366399e68a0adb575a0058",
+      "actual_exit": 0,
+      "scope": "Affected package tests and Clippy; no retail/full campaign launched"
+    },
+    "windows": {
+      "completion_path": "R:\\d3-evidence\\model-handoff-de2c5b3c1-windows-20261030-completion.json",
+      "completion_sha256": "925a4257a5265bd2882aed111638150c510d187839287e6d622b429184ed3849",
+      "log_sha256": "fd439dd092bfb6e77483170a9e619882289aa79cd17741500b3f0b60ab71b249",
+      "actual_exit": 0,
+      "scope": "Shipping compile only"
+    }
+  },
+  "linux_actual_test_summaries": [
+    "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "test result: ok. 72 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+    "test result: ok. 235 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+    "test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s",
+    "test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s",
+    "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s",
+    "test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.90s",
+    "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+  ],
+  "windows_shipping_build_info_sha256": "95971dcfcbbbb5e0a6b75d6bda158473c876a6656c59ed9a2f190f9f77a3350e",
+  "windows_verified_file_manifest_entries": 46,
+  "assessment": {
+    "scope": "Entire55-path new public handoff and client/fixture/build/docs delta; prior f9 kernel/828model/provenance reviews reused, not repeated.",
+    "lifecycle": "No concrete current Rust freed-context path found: Engine::boot BOOTED.swap rejects a second boot before replacing MODEL, MODEL owns its FnMut/LuaFunction for process lifetime, and there is no Engine Drop clearing it. C retains current_host.user but Rust model_callback ignores it. C operation guard returnsSTATE before installing callbacks on reentry. Provider RefCell try_borrow and catch_unwind convert provider reentry/panic to errors; Rust callback returns to C before ask invokes debug_fatal/longjmp. Failed CString/boot paths consume the existing process-only boot allowance and retain provider, rather than permit rebootstrap. This is not an arbitrary multithreaded C-caller guarantee.",
+    "boundary_and_FFI": "C request int op/scene/depth and RustreprC match; reply C/Rust field order/types match (12-byte request and104-byte reply,4-byte alignment by source). Engine-host model function is added in matching C/Rust slot. No new compiled C-vs-Rust inner-offset conformance query exists in this delta; builds are diagnostic, not32bit execution proof. No native pointer goes into Lua.",
+    "buffers_and_order": "C triangle copies points only after successful FOUND finite validation; END/ABSENT do not touch caller buffer. New FIND/presence guard still required. Static per-scene bounds/radius storage keeps addresses stable, with no rotating cache or new numerical solver. Native probe snprintf capacity accounting is bounded and checks truncation before advancing used. Its same-address memcmp is not an independent temporal bit snapshot; source immutability supplies that property today.",
+    "feature_and_fallback": "Strict six model-host patches replace three scalar accessors and compile the original triangle body out, then install scenes at end of original loader. Shipping defaults to required model host; model-fixture keeps original accessor bodies and no provider, and model-host-fixture/model-fixture combination is rejected. NewC fixture included through existingcsrc enumeration and feature gates. No original accessor fallback found. One embeddedNUL in eech_engine.c preserved exactly in count.",
+    "client_wiring": "31existingLua boot configurations each add model=host.model only; newauthority/provider-check clients explicit. Public module boot rejects missing callback except original model-fixture.",
+    "tests_and_limits": "ActualLinux package tests passed (DC9,layout2,Engine72,World235/main19,host_callbacks24,load_dc2,oldmodel_characterization8,model_store37), fmt0 and all-target strictClippy0; Windows ordinaryshipping compile0/current manifest hashes match. These tests do not execute the new C authority fixture or prove synthetic campaign boot/retail public callback influence/refusal. New Ccallback tests exercise typedf32 exchange and C-style Rust callback, not Lua NUMBER extraction.",
+    "synthetic_dependencies": "ModelStore test installation/provider queries are healthy in unit/integration tests; this does not establish compatibility of eech_synth3d prepare_installation roots through actual new ordinaryshipping boot. Existing retained synthetic scenarios must be run and remain healthy with real provider; NOTRUN/missingassets is not acceptance. No unsupported scenario was disabled in this diff.",
+    "FPU_RNG": "No new RNG/clock query or solver arithmetic added to accessor adapters; host numerical kernel unchanged. ENTER still selects round-toward-zero; Lua numeric fidelity flaw above occurs before nearest_f32. No actual new public Lua numeric/full caller FP-state conformance or authority native execution has been supplied. Prior host kernel FP tests do not substitute for this new boundary.",
+    "remaining_D3": "Legacy loaders/hierarchy/subobject/viewpoint/device/targetpoint/line-route geometry and physical collision solvers remain core and explicitlyD3-open, not deferredtoD5. This is an intermediate data service, not finalM5boundary."
+  },
+  "reused_reviews": {
+    "all828": "independent-model-all-present-evidence-review-debf965cb-20261030.json/b8712c4bc6c0630e74eecea25bcec5bcdfd31a48d228f09483b46d4701037821",
+    "original_provenance": "independent-original-model-surface-review-debf965cb-20261030.json/873b66785ea6111ed97bf0f38ffb3dade62ef32b1bc2c64b7142d90fb6451740"
+  },
+  "limits": [
+    "No reviewer build/test/native/campaign/process/cache/auth/Git mutations or nestedagents. Only read-only inspection and this report write.",
+    "Source changes required; no formal GitHub approval, Task50Done, production/retail/Tacview/fullshipping/wholeD3 acceptance.",
+    "Rootcompile/test handles completed0; no newretail authority/poison/altered-host/refusal native launched. Original828conformance is reused only for unchanged host kernel/data, not claimed as evidence of new production dispatch.",
+    "Task47 same shipping run untouched; no restart or source-relabelling."
+  ]
+}

@@ -1,0 +1,30 @@
+Route observer caller-context correction: focused LOCAL checks of 1 November 2026 (Task50 / EEDCS-50, D3). WORKING-TREE checks on base 2ec202036, NOT a frozen clean-commit run, NOT a canonical build.
+Nothing here is a measurement of the original or a result for the route observer in the DLL; the reports used are invented C-shaped text. The corrected C observer and patches were NOT compiled or linked.
+
+Environment: WSL distro EECH-D2-Build, Docker image sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51, Cargo target volume eech-linux-d3-collision-driver-5416adb3b-20261029
+(checked free of containers before the run), registry volume eech-cargo, physical worktree under /mnt/c/.../d3-evidence/model-geometry-20261029. Only the Rust/Lua host crate eech-world was built.
+Exit statuses were captured INSIDE the container by a script that is mounted (-v <script>:/inner.sh) and run with `sh /inner.sh`, with controls in the same script: a passing cargo test printed
+exit 0 and `false` printed exit 1 (see the note appended to route-driver-focused-checks-20261101.txt about the earlier wrapper).
+
+WIP source hashes (SHA-256 of the working-tree files that were tested; the formatter ran first and the tests ran on the formatted files):
+   a5f469702ee284778a46aa1e8920ce576cf60b84c9129a8ddc616fe581c0663b*crates/eech-world/lua/route-characterization.lua
+   981b4e31acac46a018ae6583a06d7b763263f60c68a9ef6ff32674962c6c97ed*crates/eech-world/tests/route_characterization.rs
+   404b78dba31f0b6c724eecd07e828f65dc966f25570490413eab3e2edb55b3ad*crates/eech-engine-sys/csrc/eech_route_fixture.c
+   d1f4f477a76fa9bc19de89688f51cf77ea9ea536b010aa2a14d32b139218e5e0*crates/eech-engine-sys/csrc/eech_route_hooks.h
+   116b57efa897bdc9934d37042c3aa3ce5b4a6e2bdddce6c65885d129123d08e9*crates/eech-engine-sys/build/patches.rs
+   598dee40dfa7cb7ea86ab694f9ff0a8d59223467de670b2c188b067f836c4b9f*crates/eech-world/src/exclusive_output.rs
+   (the files below were also changed in this batch but are not unit-tested here: docs/m5-route-characterization.md, STATUS.md)
+
+Results (the mounted script's own output):
+   fmt:      cargo fmt --all --check                                                          exit 0
+   driver:   cargo test --release --locked -p eech-world --test route_characterization         exit 0: 16 passed, 0 failed
+             (the earlier 12 plus: two keys sharing one raw number are each unique and complete; four non-identity caller contexts are well-formed but incomplete and the other calls
+              are still read; a stale context makes the summary incomplete; nine damaged caller contexts and seven near-miss identity states are malformed; context-counter damage in the summary)
+   helper:   cargo test --release --locked -p eech-world --lib exclusive_output               exit 0: 7 passed, 0 failed
+   guard:    cargo test --release --locked -p eech-world --test host_callbacks every_reference_script    exit 0: 1 passed (the (37, 2) inventory)
+   clippy:   cargo clippy --locked -p eech-world --all-targets -- -D warnings                 exit 0 (0 error lines)
+   Raw logs (not committed): R:/d3-evidence/route-context-focused-20261101.log (first run; its exit lines are NOT reliable, see above; it shows one genuine failure: context-count damages placed
+   with the summary-only damages, though the join needs the calls, fixed by moving them to the summary/call disagreement test) and route-context-focused-v2-20261101.log (the run above).
+
+NOT run: the C observer, the staged patches R1..R8, the engine entries and the engine crates (no compile, no link); any Windows fixture build; any retail or native campaign run; the full default
+or feature-union suites. The caller-context patches R8 have not been applied to the real popread.c by any build in this batch.

@@ -1,0 +1,22 @@
+{
+  "source": "9e4f3f9750bac1ce61bd8d1da98467397dd0dac5",
+  "snapshot": "D:\\EECH-Migration-Evidence\\route-host-9e4f3f9750",
+  "clean_at_freeze": true,
+  "own_git_no_alternates": true,
+  "changed_paths_from_50e": [
+    "STATUS.md",
+    "aphavoc/source/entity/mobile/mb_hostmodel.c",
+    "eech-campaign/crates/eech-engine-sys/build/patches.rs",
+    "eech-campaign/docs/m5-route-characterization.md"
+  ],
+  "unchanged_from_def6_explicit_paths": [
+    "eech-campaign/crates/eech-world/src/models.rs",
+    "eech-campaign/crates/eech-world/c/model_step.c",
+    "aphavoc/source/entity/mobile/mb_hostmodel.h"
+  ],
+  "change_scope": "Source729 resolvedswapindex guards;11eda actual popread consumerindex guard all205 expressions;9e4 explanatory comments only. No runtime production route store/kernel/public ABI changes. Header and store/kernel exactdef6 verifiedbyGit; fullprovider/harness reuse requires independent component sourceaudit.",
+  "format_actual_exit": 0,
+  "canonical_builds": "RUNNING Linux25535 PID6820; Windows54990 PID22956 bothstarted20:58:48Z. No native yet.",
+  "source_does_not_establish_actual_acceptance": true,
+  "created_utc": "2026-11-01T20:59:49.341465+00:00"
+}

@@ -1,0 +1,223 @@
+{
+  "review_utc": "2026-10-28T08:24:42.895653+00:00",
+  "reviewer": "single independent Codex /root/d2_los_review",
+  "base": "366d5591430025173dbbae30c0378c1cf6b08894",
+  "reviewed_sha": "511156c1c9a0cffa37f4364646cb7d9a1d222a3e",
+  "head_before": "511156c1c9a0cffa37f4364646cb7d9a1d222a3e",
+  "clean_before": true,
+  "head_after": "511156c1c9a0cffa37f4364646cb7d9a1d222a3e",
+  "clean_after": true,
+  "scope": "One focused combined correctness/clean-code/boundary pass of new fixture callback-scope fix; no unchanged physical math review, edits, tests, builds or native launches.",
+  "disposition": "No findings. Missing fixture host scope source correction closed; fresh corrected C/Windows build and real controlled GREEN pending.",
+  "findings": [],
+  "verified_source_contract": [
+    "C entry/header/Rust FFI consistently append const eech_engine_host* after capacity; entry uses ENTER(OPERATION_OBSERVE,host), every exit remains LEAVE.",
+    "Engine::cmb_case_state uses existing with_host and all seven callbacks; stack callback context, string and zeroed output buffer live throughout synchronous call, then keep_case_reason preserves original report/error behavior.",
+    "DC binding clones seven existing Lua functions and forwards closures in same order as working cmb_case_act. No scenario/physical predicate/query bypass.",
+    "Existing ENTER rejects reentrancy before overwriting hosts; normal LEAVE and fatal setjmp return clear all callback tables, operation and fatal target, restore FPU. Existing callback panic containment unchanged.",
+    "No health/damage guard weakened, no solver fallback, no change to game/host kernel/observer trees.",
+    "All changed executable lines gated by weapon-fixture in C or Rust; remaining case-driver change is comment only."
+  ],
+  "hostless_fixture_entry_audit": [
+    "cmb_trace/cmb_events/wpn_trace/wpn_events only report or drain state.",
+    "wpn_case_kind/query read type/role/position/target/ammunition/definition facts, no health predicate/setter/forecast/damage call.",
+    "aim_person_query reads stored pose/state; person action and lead probe already host-scoped.",
+    "LOS/sensor/aim traces and resets report/reset fixture data.",
+    "Only fixture-side direct health setter/predicate caller found is eech_cmb_case_health_run, now reached through corrected entry; collision wrapper runs under host-scoped frame/action."
+  ],
+  "retained_native_red": {
+    "proof_sha256": "cd8c680efebf7ec485e9a7b8117d6aefd64e8cea176bc6f8c972c54ddad2b941",
+    "source": "366d5591430025173dbbae30c0378c1cf6b08894",
+    "actual_controller86637_exit": 1,
+    "actual_native_exit": 1,
+    "native_pid": 9724,
+    "trace_complete": false,
+    "trace_bytes": 363281,
+    "trace_sha256": "e28e9cbe18d6b0e380fcb46c82360f8d9925d787ea35fb46085a8a1956b1f7d4",
+    "first_failed_case": {
+      "ammo_after": -1,
+      "ammo_before": -1,
+      "done": false,
+      "event": "case",
+      "name": "timed_health_PERSON_declared_unreachable",
+      "ok": false,
+      "refused": false,
+      "text": "runtime error: eech: EECH fatal error: host aim: a health request needs a host aim callback stack traceback: \t[C]: in function 'cmb_case_state' \t[string \"R:/d2-evidence/combat-timed-source-366d5591...\"]:303: in function <[string \"R:/d2-evidence/combat-timed-source-366d5591...\"]:303> \t[C]: in function 'pcall' \t[string \"R:/d2-evidence/combat-timed-source-366d5591...\"]:121: in function 'run_case' \t[string \"R:/d2-evidence/combat-timed-source-366d5591...\"]:303: in main chunk "
+    },
+    "secondary_error": "Later cmb_trace poison is secondary to the primary missing-host fatal.",
+    "original_outputs_untouched": true
+  },
+  "existing_source_checks": [
+    {
+      "file": "fmt-c3-failed-first.log",
+      "sha256": "eb04cb2b5f5d89e291aa432fcb26a50272dc3092bc8b58a2450d793261e0eb20",
+      "markers": [
+        "RUSTUP_ADD_EXIT=0",
+        "FMT_EXIT=1",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "fmt-c3-fix.log",
+      "sha256": "b124c325297d43393c804bf6c88c72eb566198af4b69d3207c6e225e8bd65af4",
+      "markers": [
+        "RUSTUP_ADD_EXIT=0",
+        "FMT_FIX_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "fmt-c3.log",
+      "sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+      "markers": [
+        "RUSTUP_ADD_EXIT=0",
+        "FMT_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "clippy-c3-default.log",
+      "sha256": "ccc0473e536cb903e0d10d4528f4b70afd2e5e5a3ec5b3b3c6a579d4bdfef248",
+      "markers": [
+        "RUSTUP_ADD_EXIT=0",
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "clippy-c3-fixture.log",
+      "sha256": "00383e38c259105ca0b5eeae581e032aca20b1430e1f4fb292e01c984662b392",
+      "markers": [
+        "RUSTUP_ADD_EXIT=0",
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    }
+  ],
+  "evidence_limits": [
+    "Final FMT0 and default/fixture Clippy Cargo/Docker0 retained; first FMT1 remains failed despite its logging-wrapper Docker0.",
+    "No new actual game-C compile/native validation claimed. Clippy is not corrected ABI/link/build proof.",
+    "No mock added to manufacture engine-entry validation.",
+    "Feature-off and unaffected-path equivalence here are source semantics, not compiled object/binary identity. In-flight366 natural600/control900 never invoke cmb_case_state and remain witnesses of their own pinned366 binaries, never relabelled511."
+  ],
+  "pending_gates": [
+    "Fresh clean511 fixture C/Windows build plus complete export/BUILD-INFO manifest.",
+    "Same unchanged controlled script on fresh1179-verified root: actual native/controller GREEN with meaningful health/observer deltas.",
+    "Provider11 held until controlled gate; broader timed/native and wholeTask46/fullpack gates separate."
+  ],
+  "pinned_changed_files": [
+    {
+      "path": "STATUS.md",
+      "checkout_bytes": 32086,
+      "checkout_sha256": "73449c4d5f01d25afb4183e418ecb6ac31eac08d3af6a4b46fecd3b47f4ba7c9",
+      "canonical_git_blob": "1271710b33c9663e77acd0fd0617f2b42a3d7e70",
+      "canonical_sha256": "1f8dfbc0502c943bd7f55c2be16d749b682284368fab4c8769fbbffadab58298",
+      "checkout_bytes_equal_blob": false
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "checkout_bytes": 114110,
+      "checkout_sha256": "c4c9614c036d7f614c3d337f2d82c2372bbeb517abbcfaf8ddf61acfc983554e",
+      "canonical_git_blob": "c40af8f812d57a84db888444b5b04f4b6d350b18",
+      "canonical_sha256": "c4c9614c036d7f614c3d337f2d82c2372bbeb517abbcfaf8ddf61acfc983554e",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_case.c",
+      "checkout_bytes": 22881,
+      "checkout_sha256": "3ba5523ecf67a8350a05298b035296f7043aa936daa17a688a3f9d1a0b66e76c",
+      "canonical_git_blob": "47a4db4beae15fcafb4651402a6e779c52a93add",
+      "canonical_sha256": "3ba5523ecf67a8350a05298b035296f7043aa936daa17a688a3f9d1a0b66e76c",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "checkout_bytes": 52375,
+      "checkout_sha256": "23710380097ade92f834999156ea1578f91f3d6e3ebdf9dbe978f1eb4415a4bb",
+      "canonical_git_blob": "f3e8255148433670f5a38cb0e3d3a4ba47b58d82",
+      "canonical_sha256": "23710380097ade92f834999156ea1578f91f3d6e3ebdf9dbe978f1eb4415a4bb",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h",
+      "checkout_bytes": 17639,
+      "checkout_sha256": "d53f32c8ed86e4fee1836b1a5091c66a5b24a9c1aff032893a9f5caa46c30a9a",
+      "canonical_git_blob": "1a9a8580275a0ca74c785b7a1dcf939d4178ae39",
+      "canonical_sha256": "d53f32c8ed86e4fee1836b1a5091c66a5b24a9c1aff032893a9f5caa46c30a9a",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "checkout_bytes": 42471,
+      "checkout_sha256": "e0cc9843f5999eef18a121ec785f1daae4f55e3139208314cfe9dabd7f2ffdf0",
+      "canonical_git_blob": "d3d66b2eea510b5d1a3527052c5d6ced6bcf7313",
+      "canonical_sha256": "e0cc9843f5999eef18a121ec785f1daae4f55e3139208314cfe9dabd7f2ffdf0",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "checkout_bytes": 325473,
+      "checkout_sha256": "75bc1e5fc0dd86eb2d93c469048f04f14bbed3f02da3bdc34a25b5cb6044b074",
+      "canonical_git_blob": "fe581b6df24a7d69044d45df50b8f4fec20dc18e",
+      "canonical_sha256": "75bc1e5fc0dd86eb2d93c469048f04f14bbed3f02da3bdc34a25b5cb6044b074",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/docs/m5-combat-extraction.md",
+      "checkout_bytes": 38118,
+      "checkout_sha256": "2bae9510af936be37453a8846f810581f1c001284a9a5b207ea3aafd95d6e9f5",
+      "canonical_git_blob": "9b2a9ea84e3d73ade4d8b3f3c75d96a686147563",
+      "canonical_sha256": "2bae9510af936be37453a8846f810581f1c001284a9a5b207ea3aafd95d6e9f5",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/README.md",
+      "checkout_bytes": 32809,
+      "checkout_sha256": "cc34bfa977bcc8a53b1e51e1bee60a4c941ef2aa1df3d94a74949088cbe02c66",
+      "canonical_git_blob": "e362a7d41e48ca3af0c4cd09fa2316545cc4845b",
+      "canonical_sha256": "cc34bfa977bcc8a53b1e51e1bee60a4c941ef2aa1df3d94a74949088cbe02c66",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-c3-default.log",
+      "checkout_bytes": 365,
+      "checkout_sha256": "ccc0473e536cb903e0d10d4528f4b70afd2e5e5a3ec5b3b3c6a579d4bdfef248",
+      "canonical_git_blob": "345c9c1a805d43bbc1d666e6bcdd42eb31cb73ee",
+      "canonical_sha256": "ccc0473e536cb903e0d10d4528f4b70afd2e5e5a3ec5b3b3c6a579d4bdfef248",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-c3-fixture.log",
+      "checkout_bytes": 365,
+      "checkout_sha256": "00383e38c259105ca0b5eeae581e032aca20b1430e1f4fb292e01c984662b392",
+      "canonical_git_blob": "67b5a59931e17129e01313ae0b00b8da960b23b5",
+      "canonical_sha256": "00383e38c259105ca0b5eeae581e032aca20b1430e1f4fb292e01c984662b392",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/fmt-c3-failed-first.log",
+      "checkout_bytes": 3546,
+      "checkout_sha256": "eb04cb2b5f5d89e291aa432fcb26a50272dc3092bc8b58a2450d793261e0eb20",
+      "canonical_git_blob": "4eb23268c6f9f0d4ec16baf5d99cc4692cbb1fed",
+      "canonical_sha256": "eb04cb2b5f5d89e291aa432fcb26a50272dc3092bc8b58a2450d793261e0eb20",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/fmt-c3-fix.log",
+      "checkout_bytes": 47,
+      "checkout_sha256": "b124c325297d43393c804bf6c88c72eb566198af4b69d3207c6e225e8bd65af4",
+      "canonical_git_blob": "0440576237c2695add363d04eb55ec4e3083f490",
+      "canonical_sha256": "b124c325297d43393c804bf6c88c72eb566198af4b69d3207c6e225e8bd65af4",
+      "checkout_bytes_equal_blob": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/fmt-c3.log",
+      "checkout_bytes": 43,
+      "checkout_sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+      "canonical_git_blob": "fb443baa65a38fe198b61549de69630e8a4fb6fb",
+      "canonical_sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+      "checkout_bytes_equal_blob": true
+    }
+  ],
+  "pin_note": "All14 canonical Git blobs match. STATUS.md checkout has CRLF while Git blob has LF; recorded both hashes. All executable changed files byte-match blobs. First preservation attempt stopped on raw STATUS equality assertion before writing anything; canonical/path-aware verification resolved it."
+}

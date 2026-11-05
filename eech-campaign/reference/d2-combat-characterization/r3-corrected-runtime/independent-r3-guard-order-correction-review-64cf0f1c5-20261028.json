@@ -1,0 +1,284 @@
+{
+  "schema": "independent-focused-source-review/v1",
+  "reviewer": "/root/d2_los_review",
+  "created_utc": "2026-10-28T16:00:01.527858+00:00",
+  "base_sha": "30fbdfcbc222daf1d19ec1adcb81ab6613eb848b",
+  "reviewed_sha": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "repository": "R:\\d2-sensor-detections",
+  "scope": "Only guard-order, cached identity/report capacity safety, new instrumentation/mutation controls and corrected evidence wording in 30fb..64cf. Earlier source/runtime reviews reused, not repeated.",
+  "method": {
+    "source": "Pinned Git blobs and focused diff; worktree canonical blobs checked against all 17 changed paths.",
+    "read_only": true,
+    "executed_tests_builds_or_natives": false,
+    "implementation_mutations": false,
+    "only_write": "This independent private review JSON.",
+    "head_before_and_after": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+    "clean_before_and_after": true,
+    "diff_check_actual_exit": 0
+  },
+  "disposition": "PRODUCTION_P2_AND_PRIOR_WORDING_P3_RESOLVED; ONE_NEW_TEST_ONLY_P3_OPEN; NATIVE_ACCEPTANCE_PENDING",
+  "resolved": [
+    {
+      "id": "30fb-P2-pre-access-cache-report",
+      "evidence": [
+        "mb_hostobj.c:76-100 checks capacity/map and slot before entity access.",
+        "campaign_object_host_id:243 and campaign_object_identify:307 check before type, cache return or host query.",
+        "resolve_report_target:429 checks heap before record lookup; 442-447 bounds the stored index before get_local_entity_ptr; 464 checks a roster member before entity access.",
+        "campaign_object_structures:558 checks the map before walking the actual capacity."
+      ],
+      "assessment": "Required pre-dereference/cached/report guards are in production paths; NULL absence remains valid. No new shipping correctness or boundary defect found in this focused delta. No numeric, RNG, policy, allocation or DTO changes."
+    },
+    {
+      "id": "30fb-P3-evidence-wording",
+      "evidence": [
+        "m5-combat-extraction.md:709 does not claim first invalid index.",
+        "m5-combat-extraction.md:712 correctly states 2 MiB total map allocation.",
+        "m5-combat-extraction.md:719-722 and 755-760 distinguish guarded instrumentation from ASan observing the old physical invalid read."
+      ],
+      "assessment": "Earlier wording findings resolved; prior six real native failures remain explicitly unaccepted."
+    }
+  ],
+  "findings": [
+    {
+      "priority": "P3",
+      "id": "HARNESS-DUMMY-POINTER-SUBTRACTION",
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\c-checks\\object_checks.c",
+      "line": 56,
+      "related_lines": [
+        19,
+        25,
+        54,
+        63
+      ],
+      "title": "Handle the separate dummy object before computing a heap-array offset",
+      "mechanism": "fake_entity_at returns &fake_dummy for an out-of-capacity stored slot. In the old-30fb red report case, resolve_report_target follows stored slot 36 after the declared capacity becomes 20, then calls get_local_entity_type on that dummy. entity_outside subtracts fake_entities from fake_dummy, which is a distinct static object, not an element or one-past pointer of that allocated array. This is undefined C pointer subtraction even though the accessor avoids the physical invalid entity read.",
+      "consequence": "The test-only old-code red instrumentation is not fully defined C; ordinary ASan/UBSan success does not establish that this subtraction was valid. This is not a new production defect and does not negate the independently retained six native crashes or the corrected shipping guards.",
+      "bounded_correction": "Return outside immediately when en == &fake_dummy before any subtraction. Preserve the current raw logs and recompute the bounded green, same old-30fb red and mutation harness evidence with that defined instrumentation; no physical formula, baseline, campaign input or native rerun needed."
+    }
+  ],
+  "existing_evidence": {
+    "object-checks-12.log": {
+      "sha256": "d4eb1f514119f7d34d09446cabf91581e48a5edeba8e8e09b7adcf891fc4a964",
+      "bytes": 6842,
+      "terminal_markers": [
+        "SANITIZER_PROBE_COMPILE_EXIT=0",
+        "SANITIZER_PROBE_RUN_EXIT=0",
+        "COMPILE_EXIT=0",
+        "94 checks, 0 failures",
+        "RUN_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "object-checks-13-red-pre-guard-order-30fbdfcbc.log": {
+      "sha256": "2fe8a27e59668df69775fc8e1167914882ae724f5d15a16a5d216727577007b3",
+      "bytes": 6752,
+      "terminal_markers": [
+        "COMPILE_EXIT=0",
+        "94 checks, 12 failures",
+        "RUN_EXIT=1",
+        "DOCKER_EXIT=1"
+      ]
+    },
+    "object-mutation-8.log": {
+      "sha256": "946d3251804625d8ca1bec6ddf546039b79f5448a44322d61e2bc227c40c7ec1",
+      "bytes": 4153,
+      "terminal_markers": [
+        "94 checks, 15 failures",
+        "94 checks, 29 failures",
+        "94 checks, 3 failures",
+        "94 checks, 11 failures",
+        "94 checks, 11 failures",
+        "94 checks, 1 failures",
+        "CAUGHT=26 FAILED=0 SETUP_CONTROLS_AS_EXPECTED=2 SETUP_CONTROLS_WRONG=0 CONTROL_OK=1",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "cargo-test-r3d-1.log": {
+      "sha256": "4d127098324f3c864d8292cf0864468ab7d82bfae4c6ccbd4ac9a53af53b40fb",
+      "bytes": 40486,
+      "terminal_markers": [
+        "RUSTUP_ADD_EXIT=0",
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "cargo-test-r3d-fixture.log": {
+      "sha256": "730f80e964f5a81dae20daba543d7ae26df0552ccede9467248d30f5e9f77f3f",
+      "bytes": 36649,
+      "terminal_markers": [
+        "RUSTUP_ADD_EXIT=0",
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "fmt-r3d-check.log": {
+      "sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+      "bytes": 43,
+      "terminal_markers": [
+        "RUSTUP_ADD_EXIT=0",
+        "FMT_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "syntax-r3d.log": {
+      "sha256": "509041f0354c7a539ba6cfa213b362b4756e9b165af87d20535468e96d106045",
+      "bytes": 1927,
+      "terminal_markers": [
+        "SYNTAX_EXIT=0"
+      ]
+    }
+  },
+  "test_assessment": {
+    "green": "94 checks, 0 failures; RUN_EXIT=0 and DOCKER_EXIT=0 recorded.",
+    "old_red": "The same 94 assertions against old30fb record 12 failures with run/Docker1; exact dummy instrumentation caveat above.",
+    "mutants": "26 caught at successful compile/intended run failure; build-failure and timeout setup controls separately classified, not counted as catches.",
+    "failed_attempts": "Brace error and redundant-guard mutant-controller failure retained separately; not counted as green.",
+    "cargo_fmt_syntax": "Existing committed workspace/fixture Cargo, fmt and syntax final markers actual0 inspected; none rerun by reviewer. Rust unchanged; no claim of new Clippy run.",
+    "limits": "Stand-in links real registry/host bridge with fake heap/roster; does not run the full production roster binding, real Windows allocator or real report handlers. Restoring a fake declared capacity after longjmp is a harness no-side-effect assertion, not evidence that a poisoned native engine can resume."
+  },
+  "pending_gates": [
+    "Resolve test-only P3 with bounded source/control evidence under its new exact commit.",
+    "Fresh corrected clean Windows shipping build and all export/BINF/source identities.",
+    "The unchanged six02 shipping report cases remain unrun; none of the six failed f470 cases became accepted.",
+    "Corrected candidate final full40/full8/post3/final frame-cost/current CI/normal merge/whole-D2 audit remain pending.",
+    "Closed f470 natural600/bridgepair are reusable old-source physical-component compatibility only; never relabel them as current source or proof of structures/report API success."
+  ],
+  "source_pins": [
+    {
+      "path": "STATUS.md",
+      "git_blob": "243a1041fb70bf98fbdb96b159620b3b1674a6a4",
+      "git_sha256": "e33c2dd5e051cb97c3f22aec479ce1110e9f471390ab757f9c0412391e38b115",
+      "worktree_sha256": "e33c2dd5e051cb97c3f22aec479ce1110e9f471390ab757f9c0412391e38b115",
+      "git_bytes": 68323,
+      "canonical_worktree_matches": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostobj.c",
+      "git_blob": "b4f97df15f547f85af16829836f3bde941b6f980",
+      "git_sha256": "501aff24898d0b283514d4929cea752257ed139f184eb4d84aa8b20cb3a27f2f",
+      "worktree_sha256": "501aff24898d0b283514d4929cea752257ed139f184eb4d84aa8b20cb3a27f2f",
+      "git_bytes": 15041,
+      "canonical_worktree_matches": true
+    },
+    {
+      "path": "eech-campaign/docs/m5-combat-extraction.md",
+      "git_blob": "2b2a1aef362ea3ac34b44f384151aea6dc435dfd",
+      "git_sha256": "77fd58fe13cdd636a86c84ea77c5ea73c13d9f7915d97a2e01051f166039fa50",
+      "worktree_sha256": "77fd58fe13cdd636a86c84ea77c5ea73c13d9f7915d97a2e01051f166039fa50",
+      "git_bytes": 113033,
+      "canonical_worktree_matches": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/mutate-object-checks.sh",
+      "git_blob": "68a5863ea21633f8ce712a747ee2c50688b7f50c",
+      "git_sha256": "d6df59b09a52e9f43a2a870716c365c963f7e3651b67a773f461b18f7ebb9378",
+      "worktree_sha256": "d6df59b09a52e9f43a2a870716c365c963f7e3651b67a773f461b18f7ebb9378",
+      "git_bytes": 7410,
+      "canonical_worktree_matches": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/object-stub/project.h",
+      "git_blob": "13f2244a4a86651fc16226ddbca1557006b34d13",
+      "git_sha256": "aac470217cc38a3309bd721dbf41f6f97c16d15bbed11b85559dff9915d0fe73",
+      "worktree_sha256": "aac470217cc38a3309bd721dbf41f6f97c16d15bbed11b85559dff9915d0fe73",
+      "git_bytes": 3222,
+      "canonical_worktree_matches": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/object_checks.c",
+      "git_blob": "d2bce5962e531e8292da2027cbafdbab05e46d5f",
+      "git_sha256": "7e5b4a6121b482d5ba634edcc69fa6910797028e8360d5439b6e785415c1e93e",
+      "worktree_sha256": "7e5b4a6121b482d5ba634edcc69fa6910797028e8360d5439b6e785415c1e93e",
+      "git_bytes": 33514,
+      "canonical_worktree_matches": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-r3d-1.log",
+      "git_blob": "a7563086883e41640a6f0323ff73428eea311edb",
+      "git_sha256": "4d127098324f3c864d8292cf0864468ab7d82bfae4c6ccbd4ac9a53af53b40fb",
+      "worktree_sha256": "4d127098324f3c864d8292cf0864468ab7d82bfae4c6ccbd4ac9a53af53b40fb",
+      "git_bytes": 40486,
+      "canonical_worktree_matches": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-r3d-fixture.log",
+      "git_blob": "bff7fed0260092da73113ad9b04c8577d2f79197",
+      "git_sha256": "730f80e964f5a81dae20daba543d7ae26df0552ccede9467248d30f5e9f77f3f",
+      "worktree_sha256": "730f80e964f5a81dae20daba543d7ae26df0552ccede9467248d30f5e9f77f3f",
+      "git_bytes": 36649,
+      "canonical_worktree_matches": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/fmt-r3d-check.log",
+      "git_blob": "fb443baa65a38fe198b61549de69630e8a4fb6fb",
+      "git_sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+      "worktree_sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+      "git_bytes": 43,
+      "canonical_worktree_matches": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/object-checks-10.log",
+      "git_blob": "270568dbcf0e61353f5bbfef0afd32ba4401097d",
+      "git_sha256": "d4eb1f514119f7d34d09446cabf91581e48a5edeba8e8e09b7adcf891fc4a964",
+      "worktree_sha256": "d4eb1f514119f7d34d09446cabf91581e48a5edeba8e8e09b7adcf891fc4a964",
+      "git_bytes": 6842,
+      "canonical_worktree_matches": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/object-checks-11-red-pre-guard-order-30fbdfcbc.log",
+      "git_blob": "2271e444b1593ac7793012c269c73899e5341407",
+      "git_sha256": "2fe8a27e59668df69775fc8e1167914882ae724f5d15a16a5d216727577007b3",
+      "worktree_sha256": "2fe8a27e59668df69775fc8e1167914882ae724f5d15a16a5d216727577007b3",
+      "git_bytes": 6752,
+      "canonical_worktree_matches": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/object-checks-12.log",
+      "git_blob": "270568dbcf0e61353f5bbfef0afd32ba4401097d",
+      "git_sha256": "d4eb1f514119f7d34d09446cabf91581e48a5edeba8e8e09b7adcf891fc4a964",
+      "worktree_sha256": "d4eb1f514119f7d34d09446cabf91581e48a5edeba8e8e09b7adcf891fc4a964",
+      "git_bytes": 6842,
+      "canonical_worktree_matches": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/object-checks-13-red-pre-guard-order-30fbdfcbc.log",
+      "git_blob": "2271e444b1593ac7793012c269c73899e5341407",
+      "git_sha256": "2fe8a27e59668df69775fc8e1167914882ae724f5d15a16a5d216727577007b3",
+      "worktree_sha256": "2fe8a27e59668df69775fc8e1167914882ae724f5d15a16a5d216727577007b3",
+      "git_bytes": 6752,
+      "canonical_worktree_matches": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/object-checks-9-failed-brace-in-new-checks.log",
+      "git_blob": "8f2643a73a3930830df1e63d2834afd47629a99d",
+      "git_sha256": "be68ffb56aad6b40f15abe377647e4231486f78fdaed7279b7aff49392398f2a",
+      "worktree_sha256": "be68ffb56aad6b40f15abe377647e4231486f78fdaed7279b7aff49392398f2a",
+      "git_bytes": 1429,
+      "canonical_worktree_matches": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/object-mutation-7-failed-redundant-guard-mutant.log",
+      "git_blob": "ea90db85eef726ff5a87696aaa97f5ffc6ed5282",
+      "git_sha256": "4842d51fec0b35621f75b31472c27222fe1e4423cebbf1972af93eb3ebeff3a7",
+      "worktree_sha256": "4842d51fec0b35621f75b31472c27222fe1e4423cebbf1972af93eb3ebeff3a7",
+      "git_bytes": 4289,
+      "canonical_worktree_matches": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/object-mutation-8.log",
+      "git_blob": "494ccc8f5b9a75a68b96225816176c8b909893ba",
+      "git_sha256": "946d3251804625d8ca1bec6ddf546039b79f5448a44322d61e2bc227c40c7ec1",
+      "worktree_sha256": "946d3251804625d8ca1bec6ddf546039b79f5448a44322d61e2bc227c40c7ec1",
+      "git_bytes": 4153,
+      "canonical_worktree_matches": true
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/syntax-r3d.log",
+      "git_blob": "366eb35bca39f1502d9cb9e34a8a45ffc6312541",
+      "git_sha256": "509041f0354c7a539ba6cfa213b362b4756e9b165af87d20535468e96d106045",
+      "worktree_sha256": "509041f0354c7a539ba6cfa213b362b4756e9b165af87d20535468e96d106045",
+      "git_bytes": 1927,
+      "canonical_worktree_matches": true
+    }
+  ]
+}

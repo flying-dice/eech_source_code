@@ -1,0 +1,61 @@
+{
+  "when_utc": "2026-10-28T09:42:02.690207+00:00",
+  "results": [
+    {
+      "name": "timed-provider-reference-01",
+      "actual_exit": 0,
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-reference-01-post-inputs.log"
+    },
+    {
+      "name": "timed-provider-never-01",
+      "actual_exit": 0,
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-never-01-post-inputs.log"
+    },
+    {
+      "name": "timed-provider-fast-01",
+      "actual_exit": 0,
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-fast-01-post-inputs.log"
+    },
+    {
+      "name": "timed-provider-late-01",
+      "actual_exit": 0,
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-late-01-post-inputs.log"
+    },
+    {
+      "name": "timed-provider-generic-01",
+      "actual_exit": 0,
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-generic-01-post-inputs.log"
+    },
+    {
+      "name": "timed-provider-bad-class-01",
+      "actual_exit": 0,
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-bad-class-01-post-inputs.log"
+    },
+    {
+      "name": "timed-provider-bad-missing-01",
+      "actual_exit": 0,
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-bad-missing-01-post-inputs.log"
+    },
+    {
+      "name": "timed-provider-bad-classify-draw-01",
+      "actual_exit": 0,
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-bad-classify-draw-01-post-inputs.log"
+    },
+    {
+      "name": "timed-provider-bad-second-draw-01",
+      "actual_exit": 0,
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-bad-second-draw-01-post-inputs.log"
+    },
+    {
+      "name": "timed-provider-bad-ineligible-01",
+      "actual_exit": 0,
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-bad-ineligible-01-post-inputs.log"
+    },
+    {
+      "name": "timed-generic-person-01",
+      "actual_exit": 0,
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-generic-person-01-post-inputs.log"
+    }
+  ],
+  "all_match": true
+}

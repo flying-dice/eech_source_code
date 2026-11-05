@@ -1,0 +1,265 @@
+{
+ "note": "checker self-test (HELPER): derived copies only, no native campaign was run; originals hashed before and after",
+ "checker_sha256": "412084c7bd9b113d4ad601efb55099f70cd26a4ff7e67314fa44bcaf087dd0fb",
+ "input_hashes_before": {
+  "out/p2-t/trace.jsonl": "2c37fe5daaf9ad16d5a215321a138e129291ae4d7eddf6bdb0c01ef3ad735389",
+  "out/p2-c/trace.jsonl": "2ad4b8a2241424fb328b372c5a962ff01a90e37de34ddd878c87b1538ac3ea87",
+  "../aim-characterization-20261026/out/person-target/trace.jsonl": "7c5878b4597d637f92929c4006675be22728c3863694f34825701afe14cf3f94",
+  "../aim-characterization-20261026/out/person-control/trace.jsonl": "f7d614bf35631c2749b77eb0c4f24e0b1f4f8cc06e6117e56e76dd4f6e87dc12"
+ },
+ "input_hashes_after": {
+  "out/p2-t/trace.jsonl": "2c37fe5daaf9ad16d5a215321a138e129291ae4d7eddf6bdb0c01ef3ad735389",
+  "out/p2-c/trace.jsonl": "2ad4b8a2241424fb328b372c5a962ff01a90e37de34ddd878c87b1538ac3ea87",
+  "../aim-characterization-20261026/out/person-target/trace.jsonl": "7c5878b4597d637f92929c4006675be22728c3863694f34825701afe14cf3f94",
+  "../aim-characterization-20261026/out/person-control/trace.jsonl": "f7d614bf35631c2749b77eb0c4f24e0b1f4f8cc06e6117e56e76dd4f6e87dc12"
+ },
+ "inputs_unchanged": true,
+ "cases": [
+  {
+   "case": "genuine-target",
+   "expected_exit": 0,
+   "actual_exit": 0,
+   "ok": true,
+   "first_problem": ""
+  },
+  {
+   "case": "genuine-control",
+   "expected_exit": 0,
+   "actual_exit": 0,
+   "ok": true,
+   "first_problem": ""
+  },
+  {
+   "case": "empty-candidate",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "selftest-person-work\\empty-candidate.candidate.jsonl: no events"
+  },
+  {
+   "case": "empty-both-equal",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "selftest-person-work\\empty-both.jsonl: empty file"
+  },
+  {
+   "case": "prefix-candidate-half",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "candidate: the trace does not end in exactly one verdict (truncated or duplicated)"
+  },
+  {
+   "case": "prefix-both-same-prefix",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "candidate: the trace does not end in exactly one verdict (truncated or duplicated)"
+  },
+  {
+   "case": "prefix-original-half",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "original: the trace does not end in exactly one verdict (truncated or duplicated)"
+  },
+  {
+   "case": "missing-final-verdict",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "candidate: the trace does not end in exactly one verdict (truncated or duplicated)"
+  },
+  {
+   "case": "truncated-last-line",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "selftest-person-work\\truncated-last-line.candidate.jsonl: the last line is incomplete (no line end)"
+  },
+  {
+   "case": "malformed-json-line",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "selftest-person-work\\malformed-line.candidate.jsonl: line 51 is not JSON (Unterminated string starting at: line 1 column 45 (char 44))"
+  },
+  {
+   "case": "candidate-failed-verdict",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "candidate: the verdict is not a successful target verdict: {\"case\": \"target\", \"event\": \"verdict\", \"failed\": 1, \"frames\": 20, \"host_steps\": 60, \"step_modes\": [\"person_begin=20\", \"person_end=20\", \"perso"
+  },
+  {
+   "case": "identical-failed-original-both-sides",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "candidate: the verdict is not a successful target verdict: {\"case\": \"target\", \"event\": \"verdict\", \"failed\": 1, \"frames\": 20, \"host_steps\": 60, \"step_modes\": [\"person_begin=20\", \"person_end=20\", \"place"
+  },
+  {
+   "case": "candidate-check-not-ok",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "candidate: check not ok: \"target link set by the campaign's own call\""
+  },
+  {
+   "case": "unexpected-check-renamed",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "index 205: check 4 differs outside the whitelist: ((\"facing heading equals the bearing to the target computed here from the hook's own positions\", 'hook 0.327984422 independent 0.327984446'), (\"facing"
+  },
+  {
+   "case": "unexpected-check-detail-changed",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "index 204: check 3 differs outside the whitelist: (('facing hook fired', 'person_facing 20'), ('facing hook fired', 'person_facing 19'))"
+  },
+  {
+   "case": "whitelisted-check-name-altered",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "index 208: check 7 is not the whitelisted mapping: (('the host was asked to place the person (D1 campaign_movement_place) in most frames', '20 places in 20 frames'), ('the host was asked to turn the p"
+  },
+  {
+   "case": "whitelisted-check-detail-altered",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "index 208: check 7 is not the whitelisted mapping: (('the host was asked to place the person (D1 campaign_movement_place) in most frames', '20 places in 20 frames'), ('the host was asked to turn the p"
+  },
+  {
+   "case": "whitelisted-checks-swapped",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "index 208: check 7 is not the whitelisted mapping: (('the host was asked to place the person (D1 campaign_movement_place) in most frames', '20 places in 20 frames'), ('the host answered the facing of "
+  },
+  {
+   "case": "whitelisted-name-used-twice",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "index 209: check 8 is not the whitelisted mapping: (('the host adopted exactly the pose the campaign sent (place: attitude in == out)', ''), ('the host was asked to turn the person (person_face) in mo"
+  },
+  {
+   "case": "check-deleted",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "candidate: 10 checks, expected 11"
+  },
+  {
+   "case": "control-style-rename-on-first-check",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "index 202: check 1 differs outside the whitelist: ((\"target link set by the campaign's own call\", ''), ('a different check', ''))"
+  },
+  {
+   "case": "control-check-renamed",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "index 191: check 1 differs outside the whitelist: (('no target link in the control', ''), ('control: renamed', ''))"
+  },
+  {
+   "case": "frame-output-differs-in-last-digits",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "index 16: frame 10 breaks the face/place input-output mapping"
+  },
+  {
+   "case": "frame-input-chain-broken",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "index 12: frame 6 breaks the face/place input-output mapping"
+  },
+  {
+   "case": "first-frame-input-not-the-before-attitude",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "index 7: frame 1 breaks the face/place input-output mapping"
+  },
+  {
+   "case": "frame-missing",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "candidate: the frame events are not 1..20 in order"
+  },
+  {
+   "case": "frame-renumbered",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "candidate: the frame events are not 1..20 in order"
+  },
+  {
+   "case": "frame-heading-differs",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "index 10: frame 4 breaks the face/place input-output mapping"
+  },
+  {
+   "case": "control-has-a-facing",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "index 10: frame 5 breaks the face/place input-output mapping"
+  },
+  {
+   "case": "verdict-step-mode-not-renamed",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "index 213: the verdict differs beyond the step-mode name"
+  },
+  {
+   "case": "verdict-host-steps-changed",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "candidate: the verdict is not a successful target verdict: {\"case\": \"target\", \"event\": \"verdict\", \"failed\": 0, \"frames\": 20, \"host_steps\": 59, \"step_modes\": [\"person_begin=20\", \"person_end=20\", \"perso"
+  },
+  {
+   "case": "hook-hash-changed",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "index 29: aim-hash differs (no mapping applies)"
+  },
+  {
+   "case": "extra-event",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "the two traces do not have the same event types at every index"
+  },
+  {
+   "case": "target-candidate-against-control-original",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "candidate is the target case, original the control case"
+  },
+  {
+   "case": "control-candidate-against-target-original",
+   "expected_exit": 1,
+   "actual_exit": 1,
+   "ok": true,
+   "first_problem": "candidate is the control case, original the target case"
+  }
+ ],
+ "all_ok": true
+}

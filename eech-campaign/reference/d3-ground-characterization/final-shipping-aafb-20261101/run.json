@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "pid": 19032,
+  "when_utc": "2026-11-01T00:13:42.528404+00:00",
+  "native_cwd": "R:\\d3-evidence\\shipping-ground-aafb21775-recovery-pack-20261031-0945",
+  "runner": "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\regression-pack.py",
+  "arguments": [
+    "--georgia",
+    "R:\\d3-evidence\\ground-shipping-recovery-roots-20261031-0945\\georgia",
+    "--lebanon",
+    "R:\\d3-evidence\\ground-shipping-recovery-roots-20261031-0945\\lebanon",
+    "--lebanon-repeat",
+    "R:\\d3-evidence\\ground-shipping-recovery-roots-20261031-0945\\lebanon-repeat",
+    "--bin",
+    "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\target\\windows-ground-production-aafb21775",
+    "--out",
+    "R:\\d3-evidence\\shipping-ground-aafb21775-recovery-pack-20261031-0945"
+  ],
+  "exit_code": 0
+}

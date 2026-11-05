@@ -65,6 +65,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "project.h"
+#include "entity/mobile/mb_hostaim.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -98,13 +99,30 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void refuse_seduction_lookup (const campaign_aim_event *lookup, campaign_aim_event *answer, void *context)
+{
+	debug_fatal ("host aim: the host asked a seduction request a lookup (kind %d) it does not take", lookup->kind);
+}
+
+//
+// a decoy became active: whether the seeker goes for it is the host's (the decoy's kind, the seeker's and a sample of the shared stream); the campaign gives it the player's
+// difficulty and its effectiveness settings, and makes the link
+//
+
 static int response_to_decoy_active (entity_messages message, entity *receiver, entity *sender, va_list pargs)
 {
 	weapon
-		*raw;
+		*raw,
+		*decoy;
 
-	weapon_decoy_types
-		decoy_type;
+	campaign_aim_step
+		step;
+
+	campaign_aim_result
+		result;
+
+	int
+		i;
 
 	#if DEBUG_MODULE
 
@@ -116,64 +134,36 @@ static int response_to_decoy_active (entity_messages message, entity *receiver, 
 
 	raw = (weapon *) get_local_entity_data (receiver);
 
-	decoy_type = (weapon_decoy_types) get_local_entity_int_value (sender, INT_TYPE_WEAPON_DECOY_TYPE);
+	decoy = (weapon *) get_local_entity_data (sender);
 
-	if (get_weapon_locked_onto_decoy (decoy_type, sender))
+	memset (&step, 0, sizeof (step));
+
+	step.mode = CAMPAIGN_AIM_WEAPON_SEDUCE;
+
+	step.weapon = raw->mob.sub_type;
+
+	step.weapon_state.other_weapon = decoy->mob.sub_type;
+
+	step.weapon_state.coefficient = get_decoy_difficulty_coefficient (sender);
+
+	step.weapon_state.effectiveness[0] = command_line_chaff_effectiveness;
+	step.weapon_state.effectiveness[1] = command_line_flare_effectiveness;
+	step.weapon_state.effectiveness[2] = command_line_smoke_effectiveness;
+
+	step.weapon_state.server = TRUE;
+
+	result = campaign_aim_weapon_step (&step, refuse_seduction_lookup, NULL);
+
+	for (i = 0; i < result.action_count; i++)
 	{
-		switch (weapon_database[raw->mob.sub_type].guidance_type)
+		if (result.actions[i].kind != CAMPAIGN_STEP_ACTION_SEDUCE)
 		{
-			////////////////////////////////////////
-			case WEAPON_GUIDANCE_TYPE_NONE:
-			////////////////////////////////////////
-			{
-				break;
-			}
-			////////////////////////////////////////
-			case WEAPON_GUIDANCE_TYPE_SEMI_ACTIVE_RADAR:
-			case WEAPON_GUIDANCE_TYPE_ACTIVE_RADAR:
-			////////////////////////////////////////
-			{
-				if (decoy_type == WEAPON_DECOY_TYPE_CHAFF)
-				{
-					set_client_server_entity_parent (receiver, LIST_TYPE_TARGET, sender);
-				}
+			debug_fatal ("host aim: a seduction left an action of kind %d the campaign does not apply to a seeker", result.actions[i].kind);
+		}
 
-				break;
-			}
-			////////////////////////////////////////
-			case WEAPON_GUIDANCE_TYPE_PASSIVE_INFRA_RED:
-			////////////////////////////////////////
-			{
-				if (decoy_type == WEAPON_DECOY_TYPE_FLARE)
-				{
-					set_client_server_entity_parent (receiver, LIST_TYPE_TARGET, sender);
-				}
-
-				break;
-			}
-			////////////////////////////////////////
-			case WEAPON_GUIDANCE_TYPE_SEMI_ACTIVE_LASER:
-			case WEAPON_GUIDANCE_TYPE_SEMI_ACTIVE_LASER_BEAM_RIDING:
-			case WEAPON_GUIDANCE_TYPE_ACTIVE_LASER:
-			case WEAPON_GUIDANCE_TYPE_WIRE_GUIDED:
-			case WEAPON_GUIDANCE_TYPE_RADIO_COMMAND:
-			////////////////////////////////////////
-			{
-				if (decoy_type == WEAPON_DECOY_TYPE_SMOKE_GRENADE)
-				{
-					set_client_server_entity_parent (receiver, LIST_TYPE_TARGET, sender);
-				}
-
-				break;
-			}
-			////////////////////////////////////////
-			default:
-			////////////////////////////////////////
-			{
-				debug_fatal ("Invalid weapon guidance type = %d", weapon_database[raw->mob.sub_type].guidance_type);
-
-				break;
-			}
+		if (result.actions[i].b)
+		{
+			set_client_server_entity_parent (receiver, LIST_TYPE_TARGET, sender);
 		}
 	}
 
@@ -184,8 +174,32 @@ static int response_to_decoy_active (entity_messages message, entity *receiver, 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void refuse_reacquisition_lookup (const campaign_aim_event *lookup, campaign_aim_event *answer, void *context)
+{
+	debug_fatal ("host aim: the host asked a reacquisition request a lookup (kind %d) it does not take", lookup->kind);
+}
+
+//
+// the decoy a seeker was tracking expired (the message comes from the decoy's destruction, once for each seeker still linked to it, with the decoy's launcher as the sender):
+// whether the seeker goes back to the launcher is the host's.  The campaign unlinks it from the decoy whatever the answer is, so the decoy's destruction always makes progress,
+// and makes the link back when the host says so.  A missing or malformed answer stops the engine.
+//
+
 static int response_to_decoy_expired (entity_messages message, entity *receiver, entity *sender, va_list pargs)
 {
+	weapon
+		*raw,
+		*decoy_raw;
+
+	entity
+		*decoy;
+
+	campaign_aim_step
+		step;
+
+	campaign_aim_result
+		result;
+
 	#if DEBUG_MODULE
 
 	debug_log_entity_message (message, receiver, sender, pargs);
@@ -194,9 +208,40 @@ static int response_to_decoy_expired (entity_messages message, entity *receiver,
 
 	ASSERT (sender);
 
+	decoy = get_local_entity_parent (receiver, LIST_TYPE_TARGET);
+
+	ASSERT (decoy);
+
+	ASSERT (decoy->type == ENTITY_TYPE_WEAPON);
+
+	raw = (weapon *) get_local_entity_data (receiver);
+
+	decoy_raw = (weapon *) get_local_entity_data (decoy);
+
+	memset (&step, 0, sizeof (step));
+
+	step.mode = CAMPAIGN_AIM_WEAPON_REACQUIRE;
+
+	step.weapon = raw->mob.sub_type;
+
+	step.weapon_state.other_weapon = decoy_raw->mob.sub_type;
+
+	step.weapon_state.server = (get_comms_model () == COMMS_MODEL_SERVER);
+
+	result = campaign_aim_weapon_step (&step, refuse_reacquisition_lookup, NULL);
+
+	if ((result.action_count != 1) || (result.actions[0].kind != CAMPAIGN_STEP_ACTION_REACQUIRE))
+	{
+		debug_fatal ("host aim: a reacquisition left %d actions (the first of kind %d), not the one decision the campaign applies", result.action_count,
+			result.action_count ? result.actions[0].kind : 0);
+	}
+
 	delete_local_entity_from_parents_child_list (receiver, LIST_TYPE_TARGET);
 
-	insert_local_entity_into_parents_child_list (receiver, LIST_TYPE_TARGET, sender, NULL);
+	if (result.actions[0].a)
+	{
+		insert_local_entity_into_parents_child_list (receiver, LIST_TYPE_TARGET, sender, NULL);
+	}
 
 	//
 	// a comms message is not required as the unlinking will work on both client and server

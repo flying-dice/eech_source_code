@@ -1,0 +1,120 @@
+{
+  "campaign": {
+    "map": {
+      "sectors_x": 4,
+      "sectors_z": 4,
+      "sector_size": 8192
+    },
+    "session": "single-player",
+    "sides": [
+      "blue"
+    ],
+    "keysites": [
+      {
+        "name": "farp",
+        "kind": "FARP",
+        "side": "blue",
+        "position": {
+          "x": 8000,
+          "y": 0,
+          "z": 16000
+        },
+        "supplies": {
+          "ammo": 5,
+          "fuel": 100
+        }
+      },
+      {
+        "name": "factory",
+        "kind": "FACTORY",
+        "side": "blue",
+        "position": {
+          "x": 13000,
+          "y": 0,
+          "z": 16000
+        },
+        "supplies": {
+          "ammo": 35,
+          "fuel": 100
+        }
+      },
+      {
+        "name": "airbase",
+        "kind": "AIRBASE",
+        "side": "blue",
+        "position": {
+          "x": 22000,
+          "y": 0,
+          "z": 16000
+        },
+        "supplies": {
+          "ammo": 100,
+          "fuel": 100
+        },
+        "landing": [
+          "HELICOPTER"
+        ]
+      }
+    ],
+    "groups": [
+      {
+        "name": "lift",
+        "kind": "MEDIUM_LIFT_TRANSPORT_HELICOPTER",
+        "side": "blue",
+        "base": "airbase",
+        "supplies": {
+          "ammo": 100,
+          "fuel": 100
+        },
+        "members": [
+          {
+            "name": "lift-1",
+            "aircraft": "UH60_BLACK_HAWK"
+          },
+          {
+            "name": "lift-2",
+            "aircraft": "UH60_BLACK_HAWK"
+          }
+        ],
+        "registered": false
+      }
+    ]
+  },
+  "world": {
+    "positions": {
+      "lift-1": {
+        "x": 22000,
+        "y": 0,
+        "z": 16000
+      },
+      "lift-2": {
+        "x": 22010,
+        "y": 0,
+        "z": 16000
+      }
+    },
+    "objects": [
+      {
+        "model": 2698,
+        "bounds": {
+          "min": {
+            "x": -1,
+            "y": -0.5,
+            "z": -1.5
+          },
+          "max": {
+            "x": 1,
+            "y": 0.5,
+            "z": 1.5
+          }
+        }
+      }
+    ]
+  },
+  "frames": [
+    {
+      "delta": 0.5,
+      "count": 2600
+    }
+  ]
+}

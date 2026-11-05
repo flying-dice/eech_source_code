@@ -1,0 +1,390 @@
+{
+  "prepared_utc": "2026-10-28T09:50:32.211996+00:00",
+  "scope": "Explicit safe exact copies of independently reviewed timed evidence; full traces/recordings/retail/binaries remain private",
+  "files": [
+    {
+      "file": "root-timed-natural-01-completion.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-natural-01-completion.json",
+      "bytes": 15384,
+      "sha256": "a9a447dec6ca354617fae67d470fd85cc1ca7ad125e9fb77d45c5349b2306475"
+    },
+    {
+      "file": "root-timed-natural-01-audit.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-natural-01-audit.json",
+      "bytes": 14079,
+      "sha256": "53bfd2868ac528d1b999331735ce413873594156924011793936742d692f4fbd"
+    },
+    {
+      "file": "root-timed-natural-01-audit.log",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-natural-01-audit.log",
+      "bytes": 6313,
+      "sha256": "d6f4c5097c9e6f98594b60a23d8887e4af348e1d73cf09cde00eb7e7b37462c9"
+    },
+    {
+      "file": "root-timed-natural-01-post-inputs.log",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-natural-01-post-inputs.log",
+      "bytes": 305,
+      "sha256": "14c2d7d8d3ea813a4b2662b283ce8e5b3eef00f4c57ee1d2c4bd90dc6db7e8b2"
+    },
+    {
+      "file": "root-timed-natural-01-post-build.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-natural-01-post-build.json",
+      "bytes": 10913,
+      "sha256": "d1170596b2c7c6cca25377a13dd52439e90a27dd47c3268540eda736ecf63e1c"
+    },
+    {
+      "file": "independent-timed-natural600-runtime-review-20261028.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-natural600-runtime-review-20261028.json",
+      "bytes": 5393,
+      "sha256": "9026a19b027b281c41fe21116c45e17b3df4b1d10b1326f6d2a6fbd53d4a8db4"
+    },
+    {
+      "file": "root-timed-control-01-completion.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-control-01-completion.json",
+      "bytes": 3202,
+      "sha256": "c5d3a13c092e5c6d6a3d37b4838daf75bceadbfcefc1f047f4727b2f33dd2674"
+    },
+    {
+      "file": "root-timed-control-01-complete-comparison.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-control-01-complete-comparison.json",
+      "bytes": 1310,
+      "sha256": "656e18ba479a21fa264b75d836b6092b3e8ab60fa1d7706f1aa9efca5584064e"
+    },
+    {
+      "file": "root-timed-control-01-post-inputs.log",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-control-01-post-inputs.log",
+      "bytes": 305,
+      "sha256": "6b931ff70b287289e64dc5a1c3d294e75c0b8c4f4444e6f9f741786ab6281134"
+    },
+    {
+      "file": "root-timed-control-01-post-build.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-control-01-post-build.json",
+      "bytes": 10913,
+      "sha256": "54674009d738cdb3cfcddb1c9b9d36e14bda0730eebc1fbda7fcdd5d1b4a7fb2"
+    },
+    {
+      "file": "independent-timed-control900-runtime-review-20261028.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-control900-runtime-review-20261028.json",
+      "bytes": 4966,
+      "sha256": "ccb5e4a01ed1c5237568236012dcf9b5e61b237ac23c498b1c0f2606c5a61183"
+    },
+    {
+      "file": "root-timed-controlled-01-failure.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-controlled-01-failure.json",
+      "bytes": 2909,
+      "sha256": "cd8c680efebf7ec485e9a7b8117d6aefd64e8cea176bc6f8c972c54ddad2b941"
+    },
+    {
+      "file": "root-timed-controlled-02-completion.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-controlled-02-completion.json",
+      "bytes": 4931,
+      "sha256": "0b3aee4bd901118940eb16a4f2623a9faa9d6d915b0bf8255544b4634ce6d6e8"
+    },
+    {
+      "file": "root-timed-controlled-02-post-inputs.log",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-controlled-02-post-inputs.log",
+      "bytes": 314,
+      "sha256": "69e2fd693a480ae1ab0455670a8616ccc601adf27e1d5bc09fc807dbcfe3a55a"
+    },
+    {
+      "file": "root-timed-controlled-02-post-build.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-controlled-02-post-build.json",
+      "bytes": 10925,
+      "sha256": "2dc00a085ad9637f1bf9a15c0a9b3600be7f740fe871731df166cc7edc9161f8"
+    },
+    {
+      "file": "independent-timed-controlled-runtime-review-20261028.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-controlled-runtime-review-20261028.json",
+      "bytes": 5323,
+      "sha256": "dda6a5a3d06ebcd14e4e0dda3e46452e4fe3fe2609900ba378189f0573c7f7dd"
+    },
+    {
+      "file": "root-timed-scope-source-equivalence-511156c1c.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-scope-source-equivalence-511156c1c.json",
+      "bytes": 1362,
+      "sha256": "b1ccf857c26b27bcbf684fd19eecb802050d3cc1cec412298641b16a4c3fbff9"
+    },
+    {
+      "file": "independent-timed-fixture-scope-review-511156c1c-20261028.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-fixture-scope-review-511156c1c-20261028.json",
+      "bytes": 12014,
+      "sha256": "3aea7596d1236a7c4e3f581ab82f739e5ce6a68d1b65fa7df98ff43415f4eaee"
+    },
+    {
+      "file": "root-timed-aa-probe-plan.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-aa-probe-plan.json",
+      "bytes": 3009,
+      "sha256": "f36b2e2f6686b986d9907293dd42c40cf9f0b36b5d15b727c2a361abb047fb16"
+    },
+    {
+      "file": "timed-aa-probe.lua",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\timed-aa-probe.lua",
+      "bytes": 3484,
+      "sha256": "84c87c680eb789ea8339f8439b32e082fe444bd5d19fb4d02fe453bcbba53f6c"
+    },
+    {
+      "file": "run-timed-aa-probe.ps1",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\run-timed-aa-probe.ps1",
+      "bytes": 2573,
+      "sha256": "56b5f324e8b18e5ea988f11314e2cb29d043ad83d397119ffb68d0869b6f1993"
+    },
+    {
+      "file": "root-timed-aa-probes-completion.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-aa-probes-completion.json",
+      "bytes": 17171,
+      "sha256": "985ab227ed820a044b4c92dea21b3aeca8eda605e9b3e071f7195fef7be52eaa"
+    },
+    {
+      "file": "root-timed-aa-probes-post-build.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-aa-probes-post-build.json",
+      "bytes": 10925,
+      "sha256": "0233b2db119194ab7b1c40b6a9bbc70f52de5e59e89fb5b853c9cdcafe318df1"
+    },
+    {
+      "file": "independent-timed-aa-probe-plan-review-20261028.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-aa-probe-plan-review-20261028.json",
+      "bytes": 7058,
+      "sha256": "637211b63065bd3b1a395bc8bf8a7beffa0e2ff6d9f2d816a67e94a3f3f4d682"
+    },
+    {
+      "file": "independent-timed-aa-probes-runtime-review-20261028.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-aa-probes-runtime-review-20261028.json",
+      "bytes": 16206,
+      "sha256": "1be71741d6f3deb56108db81515adf0e3eabc288d5e993fb08941d3f92eab2e7"
+    },
+    {
+      "file": "root-timed-generic-person-probe-plan.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-generic-person-probe-plan.json",
+      "bytes": 2619,
+      "sha256": "62b88c91d2e2b428264e2dce031e654925477d116b072c18e7d31c7a0d34f977"
+    },
+    {
+      "file": "timed-generic-person-probe.lua",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\timed-generic-person-probe.lua",
+      "bytes": 3006,
+      "sha256": "13f15948e3dcac724a0cfcb8c577e307ce49b575e3ab7d29caaecec56ed4a412"
+    },
+    {
+      "file": "run-timed-generic-person-probe.ps1",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\run-timed-generic-person-probe.ps1",
+      "bytes": 2559,
+      "sha256": "2159d32cdeb1e7073274abe2af969c02534289c476c89fd95a7cc047ba880ce8"
+    },
+    {
+      "file": "root-timed-generic-person-probe-completion.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-generic-person-probe-completion.json",
+      "bytes": 6991,
+      "sha256": "41933debfb493629303823f28c01032c42df4a4d666d73a39e5d9c621c2055ec"
+    },
+    {
+      "file": "independent-timed-generic-person-plan-review-20261028.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-generic-person-plan-review-20261028.json",
+      "bytes": 7585,
+      "sha256": "8ed5e93b3bafcf1aa7c3b81657a75b01d8b4c19aa4bee8a1f23fecc356469b45"
+    },
+    {
+      "file": "root-timed-provider-partial-cohort-completion.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-partial-cohort-completion.json",
+      "bytes": 39736,
+      "sha256": "f0e37b8d170f4cb2c8478a2976a086182d75bd4f7cf73d797ab098370ca0a66b"
+    },
+    {
+      "file": "root-timed-provider-and-person-post-inputs.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-and-person-post-inputs.json",
+      "bytes": 2323,
+      "sha256": "b9e22cdc60e63b80f72da7f91628efef76c9947d8a4348bf70f297a249f4c8ac"
+    },
+    {
+      "file": "root-timed-provider-and-person-post-build.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-and-person-post-build.json",
+      "bytes": 10925,
+      "sha256": "f6825f5ff21a9deda4682855bb0da59e927cb903d25b21fd2bb8d924365eddbb"
+    },
+    {
+      "file": "timed-provider-queue.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\timed-provider-queue.json",
+      "bytes": 1723,
+      "sha256": "d17c0d00d4f32a7b949dcd6f191e4f10e50ea41207b1586092ee9e43475572b4"
+    },
+    {
+      "file": "run-timed-provider.ps1",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\run-timed-provider.ps1",
+      "bytes": 2243,
+      "sha256": "3b2c3be196cfb77227b1de039ebaa573463c1cf0cf78efd6a463ef884d5ecfa8"
+    },
+    {
+      "file": "run-timed-provider-queue.ps1",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\run-timed-provider-queue.ps1",
+      "bytes": 3570,
+      "sha256": "7a298d1e23a729acef31f654510a786d0d34df1593fac95df9eebaee3fc599e2"
+    },
+    {
+      "file": "root-timed-provider-corrected-driver-plan.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-corrected-driver-plan.json",
+      "bytes": 2924,
+      "sha256": "692906ff5082712727fe7e6aac8ac5ded4e961c4d7b497c9307627faf3bfb7f7"
+    },
+    {
+      "file": "independent-timed-provider-corrected-plan-review-20261028.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-provider-corrected-plan-review-20261028.json",
+      "bytes": 3252,
+      "sha256": "3f51d4d2b85aec3b46968b974bd64fb841e8c3a364fe07d845aefacaf0d9a5ac"
+    },
+    {
+      "file": "independent-timed-person-and-partial-provider-runtime-review-20261028.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-person-and-partial-provider-runtime-review-20261028.json",
+      "bytes": 13305,
+      "sha256": "5b7d838c82d0057352751d7d56294b6c359b72450e817469174ddaabfacea302"
+    },
+    {
+      "file": "BUILD-INFO-366.txt",
+      "original": "R:\\d2-evidence\\combat-timed-source-366d55914\\eech-campaign\\target\\weapon-fixture\\combat-timed-366d55914\\BUILD-INFO.txt",
+      "bytes": 4191,
+      "sha256": "953f7c2868de8bed8cb36ba4bceacd2c00c868e895a64709a919508e9fecb4d5"
+    },
+    {
+      "file": "BUILD-INFO-511.txt",
+      "original": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\BUILD-INFO.txt",
+      "bytes": 4191,
+      "sha256": "0e02acdda5cf7b6c1db53a90541b2bd56df92700d6fb3abb5cf60693794a19ea"
+    },
+    {
+      "file": "runs/timed-aa-never-01-run.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-aa-never-01\\run.json",
+      "bytes": 1467,
+      "sha256": "5a08cdb536e63fb26a02aa3c8dcb4236d417090facf4581770ac77b13ff04159"
+    },
+    {
+      "file": "summaries/timed-aa-never-01.jsonl",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-aa-never-01\\probe-summary.jsonl",
+      "bytes": 336,
+      "sha256": "86128ff5ab406ad9aa24e225b3ebf47c221f796f210ccf5bc08382b212d874c0"
+    },
+    {
+      "file": "runs/timed-aa-rate150-01-run.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-aa-rate150-01\\run.json",
+      "bytes": 1481,
+      "sha256": "dc78057510249e0fe1b71a801f17cf09c4d6aec18a91736df4c934b929b9323e"
+    },
+    {
+      "file": "summaries/timed-aa-rate150-01.jsonl",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-aa-rate150-01\\probe-summary.jsonl",
+      "bytes": 345,
+      "sha256": "655650a2d9aab2f2f79c70c21b80c3437f217e266779267d4235f13c570e7243"
+    },
+    {
+      "file": "runs/timed-aa-second-draw-01-run.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-aa-second-draw-01\\run.json",
+      "bytes": 1519,
+      "sha256": "0c75de3a9ed3b92a6679aaba11e17f839f20af2e55d1756f3991ca382e27ea5e"
+    },
+    {
+      "file": "summaries/timed-aa-second-draw-01.jsonl",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-aa-second-draw-01\\probe-summary.jsonl",
+      "bytes": 913,
+      "sha256": "e062ebb5d3c5d43feda57c19e5afa30d9c11238924b12960a892c2dfe1ff57ae"
+    },
+    {
+      "file": "runs/timed-aa-fatal-01-run.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-aa-fatal-01\\run.json",
+      "bytes": 1477,
+      "sha256": "25ec8cc656844edaa7f6a9308feb01133ea6099c2586e869cbbd4b87742c71d3"
+    },
+    {
+      "file": "summaries/timed-aa-fatal-01.jsonl",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-aa-fatal-01\\probe-summary.jsonl",
+      "bytes": 930,
+      "sha256": "eee8454506d84125898816081733e557656837efdba7daa9c7c3dbd72fe8b97b"
+    },
+    {
+      "file": "runs/timed-generic-person-01-run.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-generic-person-01\\run.json",
+      "bytes": 1540,
+      "sha256": "f276a5eaf615d1c81e849e2e66863658686bbc36feea4d10f92c9592f1f285ac"
+    },
+    {
+      "file": "summaries/timed-generic-person-01.jsonl",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-generic-person-01\\probe-summary.jsonl",
+      "bytes": 369,
+      "sha256": "654ee7c4f169b012e5fb26f7ffdea8c010b21729564d3abbcc4aae7ebb301b85"
+    },
+    {
+      "file": "summaries/timed-provider-reference-01.jsonl",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-reference-01\\summary.jsonl",
+      "bytes": 1320,
+      "sha256": "cd472b5faf8f4f3779b1884548c2fc4749540e8d2aa74d1ecb134ccaeff99ed0"
+    },
+    {
+      "file": "summaries/timed-provider-never-01.jsonl",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-never-01\\summary.jsonl",
+      "bytes": 1322,
+      "sha256": "6e0b5c5e69979bdcb4baef117bdeb46c9a7a4ec7b2850af1839d2d7ee2fe5344"
+    },
+    {
+      "file": "summaries/timed-provider-fast-01.jsonl",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-fast-01\\summary.jsonl",
+      "bytes": 1321,
+      "sha256": "be6bfdbe2c1d8aed683f8a6e599f21028b68f410fd5de96e3c60a3fa971942a0"
+    },
+    {
+      "file": "summaries/timed-provider-late-01.jsonl",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-late-01\\summary.jsonl",
+      "bytes": 1324,
+      "sha256": "777a952872b71c78bd5bcfe29fa05818640cc6cff1be676d49f1ee4b03e7431d"
+    },
+    {
+      "file": "summaries/timed-provider-generic-01.jsonl",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-generic-01\\summary.jsonl",
+      "bytes": 1324,
+      "sha256": "995903e881d168909fc70bcda6c9949bc47fa1063a6886cf765a8b64624ec6f5"
+    },
+    {
+      "file": "summaries/timed-provider-bad-class-01.jsonl",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-bad-class-01\\summary.jsonl",
+      "bytes": 1373,
+      "sha256": "62c5248149aadd1862c86e93be94089146d7a876e166d3a05c4c261af5f433fa"
+    },
+    {
+      "file": "summaries/timed-provider-bad-missing-01.jsonl",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-bad-missing-01\\summary.jsonl",
+      "bytes": 1363,
+      "sha256": "67cc4d3ac24250da966bb1eb7511d430245ceac58204a8729c1612bf1dcc5026"
+    },
+    {
+      "file": "summaries/timed-provider-bad-classify-draw-01.jsonl",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-bad-classify-draw-01\\summary.jsonl",
+      "bytes": 1366,
+      "sha256": "ec214344ec8e8066c03e78f81ec49c012d2f96c505a1277eb652450b91edf664"
+    },
+    {
+      "file": "summaries/timed-provider-bad-second-draw-01.jsonl",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-bad-second-draw-01\\summary.jsonl",
+      "bytes": 1333,
+      "sha256": "99548561ae9e88ee56d14f8726ffe9a92d515513e57502ddfc7b1341c08cf522"
+    },
+    {
+      "file": "failed-and-refusal-logs/timed-provider-bad-second-draw-01.log",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-bad-second-draw-01\\run.log",
+      "bytes": 45728,
+      "sha256": "1d6f2e763150aba7a62c820f8e9508f09d971cb808c12ec08cd3dc9cf06dc4e1"
+    },
+    {
+      "file": "summaries/timed-provider-bad-ineligible-01.jsonl",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-bad-ineligible-01\\summary.jsonl",
+      "bytes": 1386,
+      "sha256": "8ad48870d62da5f410445f82d05225bb703d4c74b590e8a11c48e764cf04a5d1"
+    },
+    {
+      "file": "failed-and-refusal-logs/timed-provider-bad-ineligible-01.log",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-bad-ineligible-01\\run.log",
+      "bytes": 45447,
+      "sha256": "7073bcac424d03c29049db0f93b2fe6dbc40d20f64fea6a40bd57c8be30668e2"
+    },
+    {
+      "file": "root-accepted45-composition.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-accepted45-composition.json",
+      "bytes": 14054,
+      "sha256": "d0f3709295d2e6622cb9ea8bac209a1a7ef73573827981024158b847e062b88e"
+    }
+  ]
+}

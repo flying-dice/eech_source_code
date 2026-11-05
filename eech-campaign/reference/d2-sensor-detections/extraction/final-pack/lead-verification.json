@@ -1,0 +1,22 @@
+{
+  "verified_utc": "2026-10-26T22:14:23.5708243Z",
+  "runtime_source": "a2a041fecf52e18cbc16b33f3dc75a9c9b245c9d",
+  "pr_head_before_evidence": "e7e46dcc2f00262bad4fd82987cd819159cc957d",
+  "runtime_tool_tree_comparison_actual_exit": 0,
+  "original_runner_exec": 89376,
+  "original_runner_observed_exit": 1,
+  "original_failed_check_count": 7,
+  "separate_full_postcheck_observed_exit": 0,
+  "new_complete_check_set_count": 40,
+  "all_new_checks_pass": true,
+  "complete_eight_artifact_comparator_actual_exit": 0,
+  "all_eight_complete_files_equal": true,
+  "post_input_actual_exits": {
+    "georgia": 0,
+    "lebanon_repeat": 0,
+    "lebanon": 0
+  },
+  "baseline_reused": "87915 actual0/40PASS; complete accepted D1 identity verified",
+  "baseline_or_tolerance_changed": false,
+  "limits": "Separate checker recovery, not an original-pack exit0. No new scenarios were run for recovery. No visual Tacview inspection."
+}

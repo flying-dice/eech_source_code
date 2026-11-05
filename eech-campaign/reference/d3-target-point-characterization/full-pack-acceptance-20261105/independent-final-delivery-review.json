@@ -1,0 +1,509 @@
+{
+  "schema": "independent-combined-complete-shipping-delivery-review-v1",
+  "reviewed_utc": "2026-11-05T08:50:25.873718+00:00",
+  "scope": "New completed ordinary full packs for previously source-reviewed Task50 model/environment integration and Task52 target-point extraction, plus publication/runtime/dependency delivery join. No closed finite source/kernel/authority review is reopened. This report is a safe append-only closeout of completed conformance gates.",
+  "decision": {
+    "findings": [],
+    "Task50_tested_full_shipping_acceptance_closed": true,
+    "Task52_tested_full_shipping_acceptance_closed": true,
+    "no_remaining_pack_conformance_blocker_for_normal_delivery": true,
+    "normal_Task50_delivery_may_proceed_subject_to_final_metadata_CI_and_merge_verification": true,
+    "normal_Task52_delivery_conditional_on_Task50_delivery_and_final_metadata_CI_and_merge_verification": true,
+    "Task50_delivery_already_complete": false,
+    "Task52_delivery_already_complete": false,
+    "whole_D3_or_remaining_hierarchy_accepted": false,
+    "new_GitHub_APPROVED_or_self_approval_created": false
+  },
+  "packs": [
+    {
+      "task": "EEDCS-50",
+      "measured_ordinary_source": "bce0c3514be13ee4bbc3a571387132989f74e3c6",
+      "published_head_before_final_metadata": "1fb023388ef2ca094db2eada4dc9b26c8d0c3de4",
+      "snapshot": "D:\\EECH-Migration-Evidence\\model-integrated-bce0c3514b",
+      "output": "D:\\EECH-Migration-Evidence\\shipping-model-integrated-bce0c3514b-20261102-164316",
+      "runner_actual_exit": 0,
+      "runner_completed_utc": "2026-11-03T08:50:01.897339+00:00",
+      "launcher_gate_passed": true,
+      "launcher_completion_utc": "2026-11-03T08:50:17.122322+00:00",
+      "report_verdict": "PASS",
+      "exact_accepted_checks_passed": 40,
+      "all_eight_complete_files_literal_equal": true,
+      "complete_output_bytes_per_pack": 406944869,
+      "preflight": {
+        "path": "D:/EECH-Migration-Evidence/shipping-model-integrated-bce0c3514b-20261102-164316/preflight.json",
+        "bytes": 16095,
+        "sha256": "14567c703629bb434f5b7400b52e3d0f658350073c256547283df0314467de9e"
+      },
+      "runner_completion": {
+        "path": "D:/EECH-Migration-Evidence/shipping-model-integrated-bce0c3514b-20261102-164316/run.json",
+        "bytes": 943,
+        "sha256": "108630418cc51a2ae201b721eb2a751e42395fc4f26001e090e5a281a1eb0494"
+      },
+      "launcher_completion": {
+        "path": "D:/EECH-Migration-Evidence/shipping-model-integrated-bce0c3514b-20261102-164316/completion.json",
+        "bytes": 853,
+        "sha256": "4af665351c1c5d1dece22154ab45b9cbb757fe55bc0df68d55694854a53391fe"
+      },
+      "report": {
+        "path": "D:/EECH-Migration-Evidence/shipping-model-integrated-bce0c3514b-20261102-164316/report.json",
+        "bytes": 39480,
+        "sha256": "6d60164569034d681d5b94d094ca225ee433ee30893dcf5d91a3da13fe290703"
+      },
+      "complete_comparison": {
+        "path": "R:/d3-evidence/model-integrated-complete-comparison-bce0c3514b-20261105.json",
+        "bytes": 3221,
+        "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+      },
+      "reverified_payloads": 83,
+      "BUILD_INFO": {
+        "bytes": 8297,
+        "sha256": "9c3a590a282f2f25129e128211998c1421f4b7be1c9226259bbdd03fe7d72628"
+      },
+      "runner_identity": {
+        "bytes": 37543,
+        "sha256": "4dc08480b72722a7dfdae5dea319f61acc6414c4bdb29351982e1579393d66db"
+      },
+      "accepted_report_identity": {
+        "bytes": 38767,
+        "sha256": "d7e89d6443197f756702631928725aa93ea7160bf06600167d696c2a74c6e99c"
+      },
+      "ordinary_profile": "x86_64-pc-windows-gnu release; clean build inputs; no FIXTURE BUILD banner",
+      "four_final_full_input_checks": [
+        {
+          "root": "georgia",
+          "actual_exit": 0,
+          "log": {
+            "path": "R:/d3-evidence/EEDCS-50-fullpack-final-input-georgia-20261105.log",
+            "bytes": 337,
+            "sha256": "0fbe637b67241c61d3bffa9aeafb97a60cad530616382da58201158df277c0ae"
+          }
+        },
+        {
+          "root": "lebanon",
+          "actual_exit": 0,
+          "log": {
+            "path": "R:/d3-evidence/EEDCS-50-fullpack-final-input-lebanon-20261105.log",
+            "bytes": 325,
+            "sha256": "84a3b4da0816d1229500586b276efcd1dace9a7744a82f97a0de1f15c243a56c"
+          }
+        },
+        {
+          "root": "lebanon_repeat",
+          "actual_exit": 0,
+          "log": {
+            "path": "R:/d3-evidence/EEDCS-50-fullpack-final-input-lebanon_repeat-20261105.log",
+            "bytes": 332,
+            "sha256": "5f1976b979bd8c6724c1849eac7926859d9afb95c1ada1502fffacaaa54335d3"
+          }
+        },
+        {
+          "root": "internal_lebanon_copy",
+          "actual_exit": 0,
+          "log": {
+            "path": "R:/d3-evidence/EEDCS-50-fullpack-final-input-internal_lebanon_copy-20261105.log",
+            "bytes": 346,
+            "sha256": "7b13f705c4b31417635b18b6daf232527373b04b6ff419b33f882998679dd12a"
+          }
+        }
+      ],
+      "independent_readonly_current_input_rehash": {
+        "roots": 4,
+        "listed_files_total": 4711,
+        "all_listed_file_sizes_and_sha256_match": true,
+        "includes_internal_lebanon_regress_copy": true
+      },
+      "current_recorded_CI": {
+        "head": "1fb023388ef2ca094db2eada4dc9b26c8d0c3de4",
+        "completed_success_jobs": 9,
+        "run_ids": [
+          41484751506,
+          41484751532,
+          41484751521
+        ],
+        "all_status_completed_conclusion_success": true,
+        "evidence_role": "Root supplied exact-head live readback; independently parsed/joined here, not a new reviewer API fetch."
+      }
+    },
+    {
+      "task": "EEDCS-52",
+      "measured_ordinary_source": "8118389a96d84ba3e4528967bbca973d5f2bd804",
+      "published_head_before_final_metadata": "7ca36257cab6f4205c3e111b5414266a92fd7973",
+      "snapshot": "D:\\EECH-Migration-Evidence\\target-point-live-query-production-8118389a96",
+      "output": "D:\\EECH-Migration-Evidence\\shipping-target-point-live-query-8118389a96-20261103-0102",
+      "runner_actual_exit": 0,
+      "runner_completed_utc": "2026-11-03T16:20:04.422785+00:00",
+      "launcher_gate_passed": true,
+      "launcher_completion_utc": "2026-11-03T16:20:19.371352+00:00",
+      "report_verdict": "PASS",
+      "exact_accepted_checks_passed": 40,
+      "all_eight_complete_files_literal_equal": true,
+      "complete_output_bytes_per_pack": 406944869,
+      "preflight": {
+        "path": "D:/EECH-Migration-Evidence/shipping-target-point-live-query-8118389a96-20261103-0102/preflight.json",
+        "bytes": 16318,
+        "sha256": "080ff75d752ef8f6c7a42a5365cf27820f46c91664eae2c917cf44b117480515"
+      },
+      "runner_completion": {
+        "path": "D:/EECH-Migration-Evidence/shipping-target-point-live-query-8118389a96-20261103-0102/run.json",
+        "bytes": 1020,
+        "sha256": "6c9bf8882417642b163beaf866887503527525c40496f8ed0734b18b05c13af3"
+      },
+      "launcher_completion": {
+        "path": "D:/EECH-Migration-Evidence/shipping-target-point-live-query-8118389a96-20261103-0102/completion.json",
+        "bytes": 868,
+        "sha256": "64c3df1a2e004327339dccf41e148fd12888255a069c12131ce0756d9b626968"
+      },
+      "report": {
+        "path": "D:/EECH-Migration-Evidence/shipping-target-point-live-query-8118389a96-20261103-0102/report.json",
+        "bytes": 39709,
+        "sha256": "2bfa8b1a4362d11b52055b1590e5043480e8ec1fb34a30ac43d8582c1c080fae"
+      },
+      "complete_comparison": {
+        "path": "R:/d3-evidence/target-point-complete-comparison-8118389a96-20261105.json",
+        "bytes": 3221,
+        "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+      },
+      "reverified_payloads": 84,
+      "BUILD_INFO": {
+        "bytes": 8403,
+        "sha256": "7150486825314c9e7fbcd211c41ef3f791f1c332af8316c66e3a3d6070a4e5b8"
+      },
+      "runner_identity": {
+        "bytes": 37543,
+        "sha256": "4dc08480b72722a7dfdae5dea319f61acc6414c4bdb29351982e1579393d66db"
+      },
+      "accepted_report_identity": {
+        "bytes": 38767,
+        "sha256": "d7e89d6443197f756702631928725aa93ea7160bf06600167d696c2a74c6e99c"
+      },
+      "ordinary_profile": "x86_64-pc-windows-gnu release; clean build inputs; no FIXTURE BUILD banner",
+      "four_final_full_input_checks": [
+        {
+          "root": "georgia",
+          "actual_exit": 0,
+          "log": {
+            "path": "R:/d3-evidence/EEDCS-52-fullpack-final-input-georgia-20261105.log",
+            "bytes": 364,
+            "sha256": "87113287aed2e19f0fdcf5428b91ea4325fb26571067d68b78c01b842ec74059"
+          }
+        },
+        {
+          "root": "lebanon",
+          "actual_exit": 0,
+          "log": {
+            "path": "R:/d3-evidence/EEDCS-52-fullpack-final-input-lebanon-20261105.log",
+            "bytes": 352,
+            "sha256": "20ef57bbfeeb2a722556bf0d664b85c814c8353d101e9b0d87946ac5ed388367"
+          }
+        },
+        {
+          "root": "lebanon_repeat",
+          "actual_exit": 0,
+          "log": {
+            "path": "R:/d3-evidence/EEDCS-52-fullpack-final-input-lebanon_repeat-20261105.log",
+            "bytes": 359,
+            "sha256": "7bcb3a5f482442d550cb00288da0ee597f51a5c68d8efa26edd9fdc6521f334d"
+          }
+        },
+        {
+          "root": "internal_lebanon_copy",
+          "actual_exit": 0,
+          "log": {
+            "path": "R:/d3-evidence/EEDCS-52-fullpack-final-input-internal_lebanon_copy-20261105.log",
+            "bytes": 369,
+            "sha256": "adb46b3cd3bf258a26a44e51c9370af20165ab4b98fcc1ac4c4c2826026001cd"
+          }
+        }
+      ],
+      "independent_readonly_current_input_rehash": {
+        "roots": 4,
+        "listed_files_total": 4711,
+        "all_listed_file_sizes_and_sha256_match": true,
+        "includes_internal_lebanon_regress_copy": true
+      },
+      "current_recorded_CI": {
+        "head": "7ca36257cab6f4205c3e111b5414266a92fd7973",
+        "completed_success_jobs": 8,
+        "run_ids": [
+          41561829982,
+          41561829988
+        ],
+        "all_status_completed_conclusion_success": true,
+        "evidence_role": "Root supplied exact-head live readback; independently parsed/joined here, not a new reviewer API fetch."
+      }
+    }
+  ],
+  "complete_file_comparison": {
+    "method": "Independent direct streaming equality of every baseline/candidate chunk to EOF, complete sizes and SHA256 checked, no normalization. Both packs compared separately against the same retained accepted baseline.",
+    "files_per_pack": [
+      {
+        "file": "reference/run1/recording.acmi",
+        "bytes": 117690861,
+        "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b",
+        "literal_complete_equal": true
+      },
+      {
+        "file": "reference/run1/observations.jsonl",
+        "bytes": 85716447,
+        "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf",
+        "literal_complete_equal": true
+      },
+      {
+        "file": "reference/run1/metrics.json",
+        "bytes": 35942,
+        "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587",
+        "literal_complete_equal": true
+      },
+      {
+        "file": "reference/run2/recording.acmi",
+        "bytes": 117690861,
+        "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b",
+        "literal_complete_equal": true
+      },
+      {
+        "file": "reference/run2/observations.jsonl",
+        "bytes": 85716447,
+        "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf",
+        "literal_complete_equal": true
+      },
+      {
+        "file": "reference/run2/metrics.json",
+        "bytes": 35942,
+        "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587",
+        "literal_complete_equal": true
+      },
+      {
+        "file": "regress/georgia_retail.json",
+        "bytes": 22427,
+        "sha256": "7427660511cf60c503d393f94021b51fef03723a629d6bc6987d497d93c9148d",
+        "literal_complete_equal": true
+      },
+      {
+        "file": "regress/lebanon_retail.json",
+        "bytes": 35942,
+        "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587",
+        "literal_complete_equal": true
+      }
+    ],
+    "total_complete_files_compared": 16,
+    "total_candidate_bytes_compared": 813889738,
+    "comparison_receipts_same_hash_explanation": "Both receipts contain the same relative-file names and identical baseline/candidate bytes/hashes, so their identical receipt SHA is expected. Distinct run/completion/report/source/root records and actual files were independently joined for each pack; two runs are not inferred from one receipt."
+  },
+  "acceptance_chain_checks": [
+    "Both original runner records say completed and actual exit0, with their own completion timestamps. Launcher records retain original_pack_exit0, exact expected-check set allPASS, all three original post-input exits0 and launcher_gate_passed=true. Runner stdout/report and completion chronology are not replaced by a later checker-only run.",
+    "The unchanged accepted report has exactly40 checks; both candidate check-key sets equal it and every check status isPASS. Retained/runtime tiers and original ordinary launch arguments are preserved. These are completed packs, not prefix comparisons or focused fixtures.",
+    "All83 Task50 and84 Task52 payload entries, BUILD-INFO, repository regression runner and accepted-report byte/hash identities were independently rehashed against the preflight seals. Both own-Git snapshots remain at their measured SHA with no tracked/untracked source changes (ignored build outputs retained); ordinary BUILD-INFO names clean release source without fixture banner.",
+    "The Root final-input helper uses direct subprocess return codes with one exclusive log per actual command, not shell-pipeline/echo status. Its eight final log hashes/exits0 were joined to the receipts. The reviewer separately read and rehashed every listed current retail file across four roots per pack, including the internal lebanon-regress copy:4711 files per pack,9422 total, with all sizes/SHA matching retained references.",
+    "No campaigns, builds or tests were restarted. No baseline, source, binaries, manifests, output bytes or accepted expectations were changed by this review. Complete Tacview/observations/metrics and regress files remain private."
+  ],
+  "source_publication_equivalence": {
+    "Task50": {
+      "measured": "bce0c3514be13ee4bbc3a571387132989f74e3c6",
+      "publication_head": "1fb023388ef2ca094db2eada4dc9b26c8d0c3de4",
+      "changed_paths": [
+        "STATUS.md",
+        "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/.gitattributes",
+        "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/README.md",
+        "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/current-build-gates.json",
+        "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/current-ci.json",
+        "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/current-original-list-comparison.json",
+        "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/environment-source-scope-e9-bce.json",
+        "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/independent-integration-review.json",
+        "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/manifest.json",
+        "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/ordinary-short-e9.json",
+        "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/shipping-launch.json",
+        "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/windows-caller-profile.json"
+      ],
+      "conclusion": "Only STATUS plus safe reference publication additions; all executable source/build/ordinary driver entries and modes exact. Literal published prior independent review equals private69cad050 report."
+    },
+    "Task52": {
+      "measured": "8118389a96d84ba3e4528967bbca973d5f2bd804",
+      "publication_head": "7ca36257cab6f4205c3e111b5414266a92fd7973",
+      "changed_paths": [
+        "STATUS.md",
+        "docs/governance/EXECUTION.md",
+        "docs/handover/ACTIVE-EXTRACTION.json",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_model_host_fixture.c",
+        "eech-campaign/crates/eech-world/lua/model-authority.lua",
+        "eech-campaign/crates/eech-world/tests/model_store.rs",
+        "eech-campaign/docs/d3-model-target-point-DCS-mapping.md",
+        "eech-campaign/docs/d3-target-point-characterization.md",
+        "eech-campaign/reference/d3-target-point-characterization/dcs-model-reference-20261103.json",
+        "eech-campaign/reference/d3-target-point-characterization/live-query-authority-811-fc-c707-20261103/README.md",
+        "eech-campaign/reference/d3-target-point-characterization/live-query-authority-811-fc-c707-20261103/absence-c707-source-scope.json",
+        "eech-campaign/reference/d3-target-point-characterization/live-query-authority-811-fc-c707-20261103/actual-results.json",
+        "eech-campaign/reference/d3-target-point-characterization/live-query-authority-811-fc-c707-20261103/dcs-mapping-independent-review.json",
+        "eech-campaign/reference/d3-target-point-characterization/live-query-authority-811-fc-c707-20261103/independent-review.json",
+        "eech-campaign/reference/d3-target-point-characterization/live-query-authority-811-fc-c707-20261103/ordinary-811-short-comparison.json",
+        "eech-campaign/reference/d3-target-point-characterization/live-query-authority-811-fc-c707-20261103/ordinary-811-to-fc6388-scope.json",
+        "eech-campaign/reference/d3-target-point-characterization/production-offset-initializer-9b-c37-20261103/README.md",
+        "eech-campaign/reference/d3-target-point-characterization/production-offset-initializer-9b-c37-20261103/independent-review.json",
+        "eech-campaign/reference/d3-target-point-characterization/production-offset-initializer-9b-c37-20261103/short-comparison.json"
+      ],
+      "conclusion": "Reviewed ordinary-profile runtime equivalence, not a claim that every source/payload byte is identical. The only changed production-tree C file is the previously reviewed MODEL_HOST_FIXTURE-only body, current bytes exactlyfc6388; ordinary guarded prefix/suffix and defining build context are covered by closeda1d6 scope. model-authority diagnostic bytes exactlyc707; remaining changes are its tests, process/docs/card and safe evidence. Ordinary C/Rust/ABI/build and active campaign driver behavior retain811 identity.",
+      "reused_scope_proof": {
+        "path": "R:/d3-evidence/target-point-live-query-811-to-fc6388-scope-20261103.json",
+        "bytes": 1920,
+        "sha256": "356ef87523e61f57f82c9436c52ece1b1766c9293e5540c55323243e29a9633e"
+      },
+      "current_fixture_equal_to_reviewed_fc": true,
+      "current_authority_Lua_equal_to_reviewed_c707": true
+    },
+    "prior_literal_review_readback": [
+      {
+        "slice": "Task50 integrated source/actual",
+        "sha256": "69cad05093958bcdfb7b1f2d602a9d5749e7794d7abf544da890c0124f06920f",
+        "published_blob_byte_equal": true
+      },
+      {
+        "slice": "Task52 finite live-query",
+        "sha256": "a1d6b37cb37466ebe4c31d2c2a7df8ad74171b697852c6677f3d897117e41a59",
+        "published_blob_byte_equal": true
+      },
+      {
+        "slice": "Task52 DCS mapping plan",
+        "sha256": "4bd013c90220d8d263fa67a6322f9ac60fde12c8b69ecdc1e41f60bcde570083",
+        "published_blob_byte_equal": true
+      }
+    ],
+    "closed_initializer_review_reused": {
+      "sha256": "95f97d0b7e33daf269d2f8bd3d35f11e2aa8f0d583c74f1fabd6812475e45ccd",
+      "no_repeat_review": true
+    }
+  },
+  "CI_and_dependency": {
+    "recorded_current_CI": {
+      "path": "R:/d3-evidence/D3-current-delivery-CI-20261105.json",
+      "bytes": 4048,
+      "sha256": "f0ea1c30849a9ac6bf46fbeec3deb6c71101b635670a7df7c2c47d5349805090"
+    },
+    "Task50_exact_head_jobs_success": 9,
+    "Task52_exact_head_jobs_success": 8,
+    "qualification": "These completed jobs are bound to1fb023388/7ca36257c. Final metadata publication creates new heads: applicable exact-head CI must be refreshed and resolved before actual normal merges; old successful jobs are not relabeled to future heads.",
+    "current_integration_from_Root_verified_remote": "581d32a716c46eb2b6999cac82d15284edbb5141",
+    "lineage": "Accepted Task51a42 is ancestor of Task50 publication1fb, and Task501fb is ancestor of Task527ca (independently checked). Process-only PR113 integration changes do not replace production evidence.",
+    "Task50_prospective_merge": {
+      "receipt": {
+        "path": "R:/d3-evidence/Task50-prospective-merge-runtime-scope-20261105.json",
+        "bytes": 2034,
+        "sha256": "68b594bda5caf078c9cd794ea50582d9dc45fa995bf968e585e02df54cbc0b0a"
+      },
+      "tree": "9b1edbb0d4d4265f9927163e2539cd2147418096",
+      "preview_actual_exit": 0,
+      "changed_metadata_or_process_paths": 17,
+      "independent_tree_diff_matches_receipt": true,
+      "production_compiled_inputs_and_ordinary_drivers_unchanged": true,
+      "is_actual_merge": false
+    },
+    "current_task_state": "Root reports Jira50/52 InProgress; this review does not assert Done or an actual PR merge. PR110 targets integration; PR112 is still stacked on Task50."
+  },
+  "prepared_final_publication": {
+    "scope": "Bounded precommit receipt/projection readback only. No report/Git approval is fabricated and no uncommitted file is called a Git blob.",
+    "folders": [
+      {
+        "task": "EEDCS-50",
+        "state": "PREPARED_OUTSIDE_WORKTREE_UNCOMMITTED",
+        "files": [
+          {
+            "path": "R:/d3-evidence/EEDCS-50-final-publication-ready-20261105/.gitattributes",
+            "bytes": 14,
+            "sha256": "ed0552c0c90dc66525615947b802a78c48a1bf76ef68886ec8679298594f2511"
+          },
+          {
+            "path": "R:/d3-evidence/EEDCS-50-final-publication-ready-20261105/complete-comparison.json",
+            "bytes": 3221,
+            "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+          },
+          {
+            "path": "R:/d3-evidence/EEDCS-50-final-publication-ready-20261105/current-ci-before-publication.json",
+            "bytes": 1833,
+            "sha256": "903cddb8b44872857de48270db543b241dfe260a338888ad5040bf66f1d9be78"
+          },
+          {
+            "path": "R:/d3-evidence/EEDCS-50-final-publication-ready-20261105/full-pack-audit.json",
+            "bytes": 2571,
+            "sha256": "c4de7c3f010a68f8cfc0620796c07ce00a336ed03072223710f25aaa2108b91d"
+          },
+          {
+            "path": "R:/d3-evidence/EEDCS-50-final-publication-ready-20261105/prospective-integration-runtime-scope.json",
+            "bytes": 2034,
+            "sha256": "68b594bda5caf078c9cd794ea50582d9dc45fa995bf968e585e02df54cbc0b0a"
+          },
+          {
+            "path": "R:/d3-evidence/EEDCS-50-final-publication-ready-20261105/README.md",
+            "bytes": 1950,
+            "sha256": "7d88b2574b12b163856267ff387c9f1386c0fd810242745e4207f45091ff2090"
+          }
+        ],
+        "selected_fields_match_original_receipts": true,
+        "historical_independent_review_pending_label_retained": true
+      },
+      {
+        "task": "EEDCS-52",
+        "state": "PREPARED_OUTSIDE_WORKTREE_UNCOMMITTED",
+        "files": [
+          {
+            "path": "R:/d3-evidence/EEDCS-52-final-publication-ready-20261105/.gitattributes",
+            "bytes": 14,
+            "sha256": "ed0552c0c90dc66525615947b802a78c48a1bf76ef68886ec8679298594f2511"
+          },
+          {
+            "path": "R:/d3-evidence/EEDCS-52-final-publication-ready-20261105/complete-comparison.json",
+            "bytes": 3221,
+            "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+          },
+          {
+            "path": "R:/d3-evidence/EEDCS-52-final-publication-ready-20261105/current-ci-before-publication.json",
+            "bytes": 1632,
+            "sha256": "085b25e5d8d248dfcdb38ed4943e7a8ca418acb9e8ca5c1dba5d3b979f38ad7a"
+          },
+          {
+            "path": "R:/d3-evidence/EEDCS-52-final-publication-ready-20261105/full-pack-audit.json",
+            "bytes": 2590,
+            "sha256": "bada9ab24e4fa9cd470889e0110af4c45a830837e0eb9b549e27efbe49718988"
+          },
+          {
+            "path": "R:/d3-evidence/EEDCS-52-final-publication-ready-20261105/README.md",
+            "bytes": 2032,
+            "sha256": "1d28766c84c986e29006457ac1486defd347bf09379a2781748fd4b02664c058"
+          }
+        ],
+        "selected_fields_match_original_receipts": true,
+        "historical_independent_review_pending_label_retained": true
+      }
+    ],
+    "fidelity": "Per-pack audit projections equal their private pack objects; complete-comparison copies are literal; CI-before-publication objects equal the corresponding supplied exact-head receipt. They contain counts/hashes/controlled paths, no retail geometry/pose catalogue or binaries. Historical PENDING labels remain literal history; append this final review and update CURRENT rather than editing them into retrospective approval.",
+    "lead_remaining_check": "Copy the exact authored LF report, verify staged/committed identities and metadata-only ordinary-source scope; preserve receipt/newline distinctions. No recursive review or war rerun is required solely to publish literal safe evidence."
+  },
+  "normal_delivery_conditions": [
+    "Finish the authorized safe metadata publication for Task50; verify exact staged/committed bytes, ordinary-runtime equivalence and applicable final-head CI. Complete the normal PR110 merge into the actual integration branch and verify the actual resulting commit/tree retains tested production inputs; the recorded preview is not delivery.",
+    "Then deliver Task52 after the Task50 dependency is actually merged: synchronize/retarget the stacked branch as needed, retain the reviewed ordinary811 versus fixturefc/diagnosticc707 distinction, verify actual merge/runtime scope and applicable final-head CI, and complete its normal merge. Pure metadata/process updates with verified ordinary equivalence do not by themselves require another pack.",
+    "Any material new executable/ordinary-input change falls outside this delivery equivalence and needs its affected validation. The lead already has autonomous normal-delivery authorization; this report creates no extra identity or permission question and no simulated GitHub APPROVED review.",
+    "After actual merges, update the authorized task/ledger records with exact merged identities and this evidence, preserving all required historical reports. Those external actions and readbacks were not performed by this reviewer."
+  ],
+  "limits": [
+    "These full packs close ordinary conformance for the named Task50/Task52 increments when combined with their already closed source, original-characterization and host-authority proofs. Byte equality alone is not newly claimed to establish physical ownership.",
+    "ACMI artifacts were generated, structurally checked through accepted pack checks and completely byte-compared. No new visual Tacview inspection is claimed.",
+    "No acceptance of remaining hierarchy/instance/device/muzzle/targetpoint-related coupling, collision/entity extraction, concrete outstanding DCS provider work, whole D3, D4/D5 or live DCS behavior is inferred. Current TREE7ad finite closure stays closed at its own source/actual identity, and entity implementation WIP is not reviewed here.",
+    "No new full caller-FPU/RNG or all-model/all-family physical proof is invented. Prior scope/failed/interrupted evidence remains unchanged. These completed bce/811 packs do not become shipping proof for later Task49 or other implementation changes."
+  ],
+  "evidence_helpers": {
+    "root_fullpack_audit": {
+      "path": "R:/d3-evidence/D3-completed-fullpacks-audit-20261105.json",
+      "bytes": 5019,
+      "sha256": "da8366817a1574c0b565a4990132d23d96e04ca914117193bc2481b53f3c47ff"
+    },
+    "root_auditor_source": {
+      "path": "R:/d3-evidence/audit-completed-D3-packs-20261105.py",
+      "bytes": 4775,
+      "sha256": "12f8db2e0746f25ce64652671b9b7335053f6180b61d7a56687fcc1315460ed4"
+    },
+    "baseline": "R:/d2-evidence/baseline-host-20261026-shortpath",
+    "accepted_report": {
+      "path": "R:/eech_source_code/eech-campaign/reference/m5-all-family-loss/final-pack/report.json",
+      "bytes": 38767,
+      "sha256": "d7e89d6443197f756702631928725aa93ea7160bf06600167d696c2a74c6e99c"
+    }
+  },
+  "review_execution": "Same sole independent reviewer; read-only actual artifact/controller/source-tree/log/hash checks. No campaign/build/test command, worktree/cache/root/process/auth/app mutation or nested agent. Live entity author was not touched. Only this new immutable safe canonical-LF report was written."
+}

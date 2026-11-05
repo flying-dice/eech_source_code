@@ -223,7 +223,7 @@ task_completed_types assess_task_completeness (entity *en, task_terminated_types
 
 				old_member_count = get_local_entity_float_value (en, FLOAT_TYPE_TASK_USER_DATA);
 
-				new_member_count = get_local_entity_int_value (objective, INT_TYPE_MEMBER_COUNT);
+				new_member_count = campaign_roster_group_member_count (objective);
 				
 				ASSERT (old_member_count > 0.0);
 
@@ -269,7 +269,7 @@ task_completed_types assess_task_completeness (entity *en, task_terminated_types
 
 			old_member_count = get_local_entity_float_value (en, FLOAT_TYPE_TASK_USER_DATA);
 
-			new_member_count = get_local_entity_int_value (objective, INT_TYPE_MEMBER_COUNT);
+			new_member_count = campaign_roster_group_member_count (objective);
 
 			ASSERT (old_member_count > 0.0);
 

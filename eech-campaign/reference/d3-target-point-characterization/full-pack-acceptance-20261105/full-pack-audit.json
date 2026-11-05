@@ -1,0 +1,66 @@
+{
+  "scope": "Completed ordinary full-pack acceptance evidence; independent review/current CI/dependency delivery/normal merge remain separate. No visual Tacview claim.",
+  "checked_utc": "2026-11-05T08:40:16.141696+00:00",
+  "pack": {
+    "task": "EEDCS-52",
+    "source": "8118389a96d84ba3e4528967bbca973d5f2bd804",
+    "snapshot": "D:\\EECH-Migration-Evidence\\target-point-live-query-production-8118389a96",
+    "output": "D:\\EECH-Migration-Evidence\\shipping-target-point-live-query-8118389a96-20261103-0102",
+    "runner_actual_exit": 0,
+    "completion": {
+      "bytes": 868,
+      "sha256": "64c3df1a2e004327339dccf41e148fd12888255a069c12131ce0756d9b626968",
+      "launcher_gate_passed": true
+    },
+    "report": {
+      "bytes": 39709,
+      "sha256": "2bfa8b1a4362d11b52055b1590e5043480e8ec1fb34a30ac43d8582c1c080fae"
+    },
+    "accepted_checks": 40,
+    "complete_files_literal_equal": 8,
+    "comparison": {
+      "path": "R:\\d3-evidence\\target-point-complete-comparison-8118389a96-20261105.json",
+      "bytes": 3221,
+      "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+    },
+    "current_payloads_verified": 84,
+    "current_BUILD_INFO_verified": true,
+    "source_clean_and_runner_accepted_report_unchanged": true,
+    "four_final_full_input_checks": [
+      {
+        "root": "georgia",
+        "actual_exit": 0,
+        "log": "R:\\d3-evidence\\EEDCS-52-fullpack-final-input-georgia-20261105.log",
+        "bytes": 364,
+        "sha256": "87113287aed2e19f0fdcf5428b91ea4325fb26571067d68b78c01b842ec74059"
+      },
+      {
+        "root": "lebanon",
+        "actual_exit": 0,
+        "log": "R:\\d3-evidence\\EEDCS-52-fullpack-final-input-lebanon-20261105.log",
+        "bytes": 352,
+        "sha256": "20ef57bbfeeb2a722556bf0d664b85c814c8353d101e9b0d87946ac5ed388367"
+      },
+      {
+        "root": "lebanon_repeat",
+        "actual_exit": 0,
+        "log": "R:\\d3-evidence\\EEDCS-52-fullpack-final-input-lebanon_repeat-20261105.log",
+        "bytes": 359,
+        "sha256": "7bcb3a5f482442d550cb00288da0ee597f51a5c68d8efa26edd9fdc6521f334d"
+      },
+      {
+        "root": "internal_lebanon_copy",
+        "actual_exit": 0,
+        "log": "R:\\d3-evidence\\EEDCS-52-fullpack-final-input-internal_lebanon_copy-20261105.log",
+        "bytes": 369,
+        "sha256": "adb46b3cd3bf258a26a44e51c9370af20165ab4b98fcc1ac4c4c2826026001cd"
+      }
+    ],
+    "no_baseline_or_runtime_mutation": true
+  },
+  "independent_review": {
+    "file": "independent-final-delivery-review.json",
+    "sha256": "3fdf0d9af0ef15ffdbe39607fea9330aa63488428ea673c50643fe6de937b979",
+    "scope": "Full-shipping join clear; Task50 actually delivered, final Task52 CI/normal merge pending."
+  }
+}

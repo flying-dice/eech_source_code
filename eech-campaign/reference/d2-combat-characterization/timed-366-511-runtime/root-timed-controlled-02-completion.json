@@ -1,0 +1,103 @@
+{
+  "when_utc": "2026-10-28T08:34:48.499175+00:00",
+  "source": "511156c1c9a0cffa37f4364646cb7d9a1d222a3e",
+  "actual_original_controller35484_exit": 0,
+  "actual_native_exit": 0,
+  "run_record": {
+    "status": "completed",
+    "when_utc": "2026-10-28T08:29:39.7986492Z",
+    "binary": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\eech-world.exe",
+    "arguments": "R:/d2-evidence/combat-timed-scope-source-511156c1c/eech-campaign/target/weapon-fixture/combat-timed-scope-511156c1c/lua/combat-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/timed-controlled-02 out=R:/d2-evidence/combat-characterization-20261028/out/timed-controlled-02/trace.jsonl warmup=60 frame_ms=100 timed_seconds=20",
+    "root": "R:/d2-evidence/combat-characterization-20261028/roots/timed-controlled-02",
+    "out": "R:/d2-evidence/combat-characterization-20261028/out/timed-controlled-02",
+    "kind": "Timed/critical candidate controlled combat witness; precondition done is not physical-path coverage; not extraction/fullpack acceptance",
+    "actual_native_exit": 0,
+    "native_pid": 24476,
+    "created_utc": "2026-10-28T08:29:39.9158646Z",
+    "completed_utc": "2026-10-28T08:32:32.5934964Z"
+  },
+  "baseline_source": "35c3d677758d7c0e7b664267c25508220412e4a5",
+  "baseline_run_record": {
+    "status": "completed",
+    "when_utc": "2026-10-28T05:28:33.8036938Z",
+    "binary": "R:\\d2-evidence\\combat-controlled-source-35c3d6777\\eech-campaign\\target\\weapon-fixture\\combat-controlled-35c3d6777\\eech-world.exe",
+    "arguments": "R:/d2-evidence/combat-controlled-source-35c3d6777/eech-campaign/target/weapon-fixture/combat-controlled-35c3d6777/lua/combat-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/controlled-original-02 out=R:/d2-evidence/combat-characterization-20261028/out/controlled-original-02/trace.jsonl warmup=60 frame_ms=100 timed_seconds=20",
+    "root": "R:/d2-evidence/combat-characterization-20261028/roots/controlled-original-02",
+    "out": "R:/d2-evidence/combat-characterization-20261028/out/controlled-original-02",
+    "kind": "Controlled ORIGINAL combat witness; precondition done is not physical-path coverage; not extraction/fullpack acceptance",
+    "actual_native_exit": 0,
+    "native_pid": 22756,
+    "created_utc": "2026-10-28T05:28:33.9185923Z",
+    "completed_utc": "2026-10-28T05:30:53.0938648Z"
+  },
+  "complete_raw_trace_bytes_equal": true,
+  "trace_bytes": 403523,
+  "trace_sha256": "61c252a9e9d34be4e26ccac79d86e97c0dae1912dd205331733724d2ef135b4a",
+  "case_count": 39,
+  "done": 10,
+  "valid_refused": 29,
+  "all_cases_ok": true,
+  "trusted_report_groups": 79,
+  "contiguous_events": 74,
+  "person_state_case": {
+    "ammo_after": -1,
+    "ammo_before": -1,
+    "done": true,
+    "event": "case",
+    "name": "timed_health_PERSON_declared_unreachable",
+    "ok": true,
+    "refused": false,
+    "text": "cmb-case-health kind=PERSON ordinal=0 live=138 found=1 eligible=0 reason=person_never_critical_in_source predicate=0 initial=3 before=3 set=-1 "
+  },
+  "aa20_timed_deltas": {
+    "1": {
+      "attempts": 34974,
+      "draws": 0,
+      "hits": 0,
+      "fatal": 0
+    },
+    "2": {
+      "attempts": 18291,
+      "draws": 0,
+      "hits": 0,
+      "fatal": 0
+    },
+    "3": {
+      "attempts": 28140,
+      "draws": 0,
+      "hits": 0,
+      "fatal": 0
+    },
+    "4": {
+      "attempts": 138489,
+      "draws": 201,
+      "hits": 41,
+      "fatal": 0
+    },
+    "5": {
+      "attempts": 91254,
+      "draws": 0,
+      "hits": 0,
+      "fatal": 0
+    },
+    "6": {
+      "attempts": 7236,
+      "draws": 0,
+      "hits": 0,
+      "fatal": 0
+    }
+  },
+  "post1179_input_actual_exit": 0,
+  "post40_export_verifier_actual_exit": 0,
+  "all40_exports_BUILD_INFO_unchanged": true,
+  "source_clean": true,
+  "red_preserved": "root-timed-controlled-01-failure.json:86637/native1 missinghostcallback/incomplete trace retained",
+  "scope": "Same unchanged controlled original35 scenario now GREEN through corrected real host callback scope; focused fixture only",
+  "retained_derived_audit_error": "Initial root derived assertion conflated201AA draws with all-world AA attempts during20simseconds; raw equality had already passed. Actual original/candidate attempts138489, draws201/hits41/fatal0. No product checker, baseline or tolerance changed.",
+  "limits": [
+    "10done/29validrefused does not prove all39physical paths or allentity-family damage/explosion coverage",
+    "PERSON defaultfalse/no timed bleed; AA201draws/41hits/0timedfatal, not nativefatalAA fire or helicopterselfhit",
+    "In-flight366natural600/control900 remain separately identified; no relabelled511runtime",
+    "Provider authority/refusal and ordinaryfull40/all8/post3/finalwholeD2 remain separate"
+  ]
+}

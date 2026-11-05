@@ -1,0 +1,10 @@
+{"event":"surface","exports":"boot:function name:string prepare_installation:function","module":"eech-dc 0.1.0"}
+{"event":"engine_index","name":"event","ok":true,"value":"nil"}
+{"event":"engine_index","name":"report","ok":true,"value":"nil"}
+{"event":"engine_index","name":"observe","ok":true,"value":"nil"}
+{"event":"engine_index","name":"on_event","ok":true,"value":"nil"}
+{"event":"engine_index","name":"host","ok":true,"value":"nil"}
+{"elapsed":1580.0631103516,"event":"diagnostics","frame":15804}
+{"elapsed":1590.0606689453,"event":"diagnostics","frame":15904}
+{"elapsed":1795.0106201172,"event":"diagnostics","frame":17954}
+{"elapsed":1799.6094970703,"event":"end","frames":18000,"observed":false,"unit_seen":false}

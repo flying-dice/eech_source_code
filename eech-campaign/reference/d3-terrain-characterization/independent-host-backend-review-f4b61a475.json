@@ -1,0 +1,318 @@
+{
+  "schema": "independent-review-v1",
+  "reviewed_utc": "2026-10-29T10:31:29.954528+00:00",
+  "base": "a8effa9f3213c595c4d38f7a00e6a1b845cc1f6d",
+  "head": "f4b61a475ee3032f45d8d29d098d122adbf7f337",
+  "repository": "R:\\d2-sensor-detections",
+  "scope": "One combined NEW host-terrain reader/kernel, safe Rust/unsafe C bridge, Lua provider harness, conformance helper and original-fast-oracle source review. Closed a8 driver/census/cache/fixture review reused. Root additionally requested a bounded original a8 R1-R5 completion audit during this pass.",
+  "disposition": "Changes requested:1 P1 and5 P2 grouped findings. No new backend/native/extraction acceptance. Original a8 bounded characterization/control evidence passes the checks stated below; it cannot clear these new-source defects.",
+  "findings": [
+    {
+      "id": "TERRAIN_BUILD",
+      "priority": "P1",
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\csrc\\terrain_ref.c",
+      "line_start": 1443,
+      "line_end": 1444,
+      "title": "Remove the unmatched preprocessor terminator",
+      "mechanism": "The copied function declaration is followed by #endif without an open #if. build.rs unconditionally compiles this file, blocking every eech-world build. Root compile-only checkpoint subsequently confirmed exactly this error with actual exit1.",
+      "bounded_correction": "Remove the stray terminator, then build the actual affected target; retain the failed log. No numerical change is required."
+    },
+    {
+      "id": "GEOMETRY_VIEWS",
+      "priority": "P2",
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\csrc\\terrain_ref.c",
+      "line_start": 2481,
+      "line_end": 2491,
+      "related_lines": [
+        2508,
+        2515,
+        2521
+      ],
+      "title": "Validate non-wrapping and aligned geometry views before pointer formation",
+      "mechanism": "On the supported i686/size_t32 target, a u32 offset near UINT32_MAX plus the span can wrap and pass the addition-based length comparisons. The subsequent geometry+offset pointer and face/reference reads are outside the allocation. Independently, odd offsets for typed xz/word-reference arrays pass and produce unaligned typed C reads. Current Windows shipping is x86_64; this does not mean a malformed retail file has been observed.",
+      "bounded_correction": "Use off<=buffer_length and required<=buffer_length-off (checked products) for every view, and reject misaligned views or copy/decode to suitably aligned owned storage. Exercise boundary/overflow offsets and odd xz/word-reference offsets against production reader code, including32-bit semantics."
+    },
+    {
+      "id": "GLOBAL_QUERY_RACE",
+      "priority": "P2",
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\src\\terrain.rs",
+      "line_start": 255,
+      "line_end": 268,
+      "related_paths": [
+        {
+          "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\csrc\\terrain_ref.c",
+          "lines": [
+            2602,
+            2611,
+            2719
+          ]
+        },
+        {
+          "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\src\\terrain.rs",
+          "lines": [
+            290,
+            296
+          ]
+        }
+      ],
+      "title": "Serialize the complete static C solver interval across independently created maps",
+      "mechanism": "The public safe Rust methods can be called on independently opened Terrain values in different threads. !Send on an individual raw-pointer value does not stop constructing one map per thread. C query/map/reference/diagnostic statics race, so one call can use the other allocation or stale pointers after its map drops. New conformance and forged-hint integration tests run concurrently by Cargo default and already expose this pattern. Documenting not thread safe does not make the safe Rust API sound.",
+      "bounded_correction": "Serialize every safe entry that uses these statics with one shared lock, or use thread-local/per-call C contexts. Cover concurrent independently loaded maps through real methods; preserve single-thread query arithmetic/order."
+    },
+    {
+      "id": "HINT_PROVENANCE",
+      "priority": "P2",
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\csrc\\terrain_ref.c",
+      "line_start": 2646,
+      "line_end": 2654,
+      "related_paths": [
+        {
+          "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\src\\terrain.rs",
+          "lines": [
+            321,
+            361
+          ]
+        },
+        {
+          "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\csrc\\terrain_ref.c",
+          "lines": [
+            2673,
+            2675,
+            2197
+          ]
+        }
+      ],
+      "title": "Bind opaque hints to their issuing map and protect the cached normal",
+      "mechanism": "The e1 hex codec is not an issuance check. A structurally valid hint with finite normal[0,0,0] is accepted and copied directly into the find-fast record; if its triangle contains the point, line2197 computes0/0 instead of refusing. A hint from another map with coincident sector/face/reference/type fields also passes. This contradicts the documented forged/stale-hint contract and can corrupt physical answers while remaining in-bounds.",
+      "bounded_correction": "Use an opaque per-map issued-record token or equivalent verifiable map/record provenance, preserving legitimate cached normal bits rather than sanitizing the solver result. Refuse altered finite normals and cross-map stale hints; exercise actual provider/decoder/query paths."
+    },
+    {
+      "id": "SWEEP_CARDINALITY",
+      "priority": "P2",
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\csrc\\terrain_ref.c",
+      "line_start": 2950,
+      "line_end": 2954,
+      "related_paths": [
+        {
+          "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\src\\terrain.rs",
+          "lines": [
+            290,
+            301
+          ]
+        }
+      ],
+      "title": "Restore bounded sweep counts and return only produced samples",
+      "mechanism": "The original fixture bounds count to200000; the new C sweep only checks count<0 and computes6+count first. count=INT_MAX wraps total negative under the configured-fwrapv and returns an empty successful report. Separately, Rust allocates and returns emit samples even if fewer than emit points exist: count0/emit256 returns6real samples plus250zero-initialized entries presented as samples.",
+      "bounded_correction": "Validate the original count range before computing total; size/truncate the result to min(emit,6+count), carrying the actual count explicitly if needed. Add small-count/large-emit and upper/overflow refusal cases against the production sweep."
+    },
+    {
+      "id": "PROVIDER_REFUSAL_PROOF",
+      "priority": "P2",
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\terrain-provider.lua",
+      "line_start": 143,
+      "line_end": 149,
+      "related_lines": [
+        156,
+        159,
+        170,
+        171
+      ],
+      "title": "Require the intended terrain refusal and report completed frames honestly",
+      "mechanism": "missing/bad_* treats any dc.boot failure as an expected success and returns normally. bad_* similarly accepts any engine.frame failure, even if the malformed point callback never ran. An unrelated boot/map/frame failure therefore falsely greens the terrain contract. The summary currently emits requested frames after an early failure, which also overstates completed work.",
+      "bounded_correction": "Require mode-specific primary terrain-provider errors plus actual malformed-point trigger evidence; reject unrelated/setup/poison-only failures. Track completed frames and requested maximum separately. Preserve intentional RED on the unmoved DLL."
+    }
+  ],
+  "source_assessment": {
+    "ownership": "The backend owns its own map bytes and C solver outside the DLL. Production DLL dispatch is unchanged; no authority handoff is claimed yet. Public Lua point/fast/map answers and opaque hints carry values, not raw addresses or legacy entity heap IDs. Campaign terrain class/suitability/route policy stays core.",
+    "arithmetic": "Read-only body comparison with6bbaa8197 terrelev.c found all8 triangle bodies equal after host-name/comment normalization. The query differs only by declared N1/N3 patches and host observation flags. Verified original Git file SHAef897d423c2d1a30bfec9cc9205c492a759020b5e0d85ee1d2a68d3df7311c9e. This is source comparison, not compiled bit equivalence. Fast interpolation expression/order matches terrsel.c; FE_TOWARDZERO setup/restoration is explicit but actual target conformance remains pending.",
+    "ffi": "C/Rust DTO field order and repr(C) reviewed: Facts/Hint/RawAnswer/SweepReport/SweepSample correspond by inspection. No compiled C/Rust size/alignment/offset proof was executed or supplied here. Terrain retains Vec allocations until after C close; no buffer lifetime issue was identified apart from the shared-static concurrency defect.",
+    "new_fast_oracle": "The original fast call is appended after the existing point operations at each sweep point, uses no game RNG or find-fast record, and is hashed separately. Existing point folds/order are retained by source inspection. Parser fast keys preserve hex strings. This new oracle has not compiled/run; original a8 traces contain no fast samples.",
+    "tests": "Real-map integration tests compare raw sample bit strings, ordered hashes and counters, with explicit private-data SKIPPED behavior and FAST ORACLE ABSENT disclosure. They directly test the host kernel, not the public campaign-provider handoff. Existing hint tests omit modified finite normals/cross-map provenance. No tests were launched by reviewer.",
+    "compatibility_limits": [
+      "Absent terrain.sim generation remains an explicit original behavior gap; must be resolved/dispositioned before full G1 acceptance.",
+      "Cuba/off-map, player/MP/save-restore and generic-host/native branches are not proven here.",
+      "Legacy loader/sector/tree/type-triangle/ground-impact and active device/subobject/target-point services remain D3 work, not D5 deferrals.",
+      "Cleared-shared-record conformance initialization differs from the original boot-left record; first-iteration/cache effects require actual comparison rather than an assumed equivalence."
+    ]
+  },
+  "original_a8_runtime_audit": {
+    "source": "a8effa9f3213c595c4d38f7a00e6a1b845cc1f6d",
+    "frozen_source": "R:/d3-evidence/terrain-original-source-a8effa9f3",
+    "frozen_head_and_clean_verified": true,
+    "native_records": [
+      {
+        "case": "r1-lebanon",
+        "bytes": 147009,
+        "sha256": "8d99032c14c69919a3cb97bec1908ee7f11a48f3be4cce7278a841bb1f15366e",
+        "frames": 6000,
+        "probes": 2,
+        "native_exit": 0
+      },
+      {
+        "case": "r2-lebanon-repeat",
+        "bytes": 147009,
+        "sha256": "8d99032c14c69919a3cb97bec1908ee7f11a48f3be4cce7278a841bb1f15366e",
+        "frames": 6000,
+        "probes": 2,
+        "native_exit": 0
+      },
+      {
+        "case": "r3-georgia",
+        "bytes": 142695,
+        "sha256": "67766061f7017091cb5dc8ca3d897ecf69a64b71a5fc425306ad2211744b3458",
+        "frames": 6000,
+        "probes": 2,
+        "native_exit": 0
+      },
+      {
+        "case": "r4-lebanon-no-probe",
+        "bytes": 22498,
+        "sha256": "9e328b654d85daf19a7efbda79e58ea9b5ccd1f00ca1ca6aa23b95cb2103ec46",
+        "frames": 6000,
+        "probes": 0,
+        "native_exit": 0
+      }
+    ],
+    "R1_R2_complete_bytes_equal": true,
+    "R1_R4_raw_boot_run_report_lines_equal": 137,
+    "all4_final_frames": 6000,
+    "all4_final_elapsed": 599.90252685547,
+    "measurement_checks": "Parsed every raw JSON line; single final run row, expected final probe counts, arithmetic terrain-call partitions and all emitted run-trace-untouched checks agree. These are bounded measurement/config checks, not a new whole-protocol auditor.",
+    "R5_complete_bytes": {
+      "recording.acmi": {
+        "bytes": 11363845,
+        "sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f"
+      },
+      "observations.jsonl": {
+        "bytes": 6629273,
+        "sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b"
+      },
+      "metrics.json": {
+        "bytes": 11777,
+        "sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474"
+      }
+    },
+    "R5_scope": "Independently rehashed/byte-compared all3 complete files to the retained verified D2 donor. Run records show completed/native0; Root completion contains original held-controller terminal0. No visual Tacview inspection,900s terrain census, benchmark or fullshipping40/all8 claim.",
+    "post_inputs": "Independently rehashed each manifest-listed input in all5 roots: four Lebanon roots1179 each; Georgia1174. All sizes/hashes match retained per-map reference manifests. Root post-input records/logs actual0 are consistent. This does not independently establish the historical donor input-root provenance.",
+    "post_build": "Rehashed all43 manifest file entries and BUILD-INFO against initial, postR1-R4 and postR5 manifests; all match. BINF03f79c2e85777a9d047035d44ab5cc355c07b9afceb6076d8291d2720598e773. Verified current frozen a8 clean source; actual runtime remains a8, never relabelled f4.",
+    "process_limit": "Native records and retained Root terminal evidence reviewed; reviewer did not own/wait those original processes. R1-R4 Root proof names terminal sessions and native records; R5 embeds original terminal0. No report-only replacement exit or new run is inferred.",
+    "limits": "These establish original repeatability and bounded observer/control purity only. Native backend, fast-oracle conformance, provider authority/refusals, full D3 extraction and delivery remain unproven."
+  },
+  "compile_checkpoint": {
+    "source": "f4b61a475ee3032f45d8d29d098d122adbf7f337",
+    "root_actual_exit": 1,
+    "primary": "csrc/terrain_ref.c:1444:2: error: #endif without #if",
+    "scope": "Root compile-only tool80222, no backend native execution. Reviewer did not invoke compiler/build."
+  },
+  "source_pins": [
+    {
+      "path": "R:\\d2-sensor-detections\\STATUS.md",
+      "git_blob_sha256": "b29522bd268324bebc9eb5c7f28f833dd4c40faae20690b47946923c32f50ec3"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\docs\\handover\\D3-SCOPE-AUDIT.md",
+      "git_blob_sha256": "8742bd78e8f659591c92a0ab6108854200fb54d96db9e700938bad79c73e6745"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-engine-sys\\csrc\\eech_terrain_fixture.c",
+      "git_blob_sha256": "a95c87f2c4293317004c0842c7e07dc7d82955cbeb45809087834044d61fff77"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\build.rs",
+      "git_blob_sha256": "daa99c200fd4dc29414f0d237c2915985577db76587a4b6c1efaceba886631d1"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\csrc\\terrain_ref.c",
+      "git_blob_sha256": "2640973e7543b98256cbae0b9c4691b613c67c385b8cb65162216fb8cf3c39aa"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\csrc\\terrain_ref.h",
+      "git_blob_sha256": "af780dcbda2639dc04e8a60a77d14518ec444fd6c96997a2ff469b4be137e8fd"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\terrain-characterization.lua",
+      "git_blob_sha256": "9312b426be22c13a6d947be8fd18dca9062eb1854ce32bb139aba2833efb6dd0"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\terrain-provider.lua",
+      "git_blob_sha256": "ddc8728fbafb00b8bb66c27b0ed2a7d9b4777f86eb7e97f36f1a04f32697f585"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\src\\lib.rs",
+      "git_blob_sha256": "c7186e811d922bd7bc6abeea3c42989722b816028f6ac560c281d6b0ebc1ecf1"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\src\\main.rs",
+      "git_blob_sha256": "c104e784a843613a41ad6213ff61aaf62aaa198c3033559e6e88cfb8c482b6e5"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\src\\terrain.rs",
+      "git_blob_sha256": "cbfc5fca6de9d25131d1cf7d836025384d597582167bfa05903bca19d7acff84"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\tests\\terrain_conformance.rs",
+      "git_blob_sha256": "ba188bd9071d7af35c7dc8849cb874ed5e509dc58cde797bcae61e93206bc27e"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\reference\\d3-terrain-characterization\\README.md",
+      "git_blob_sha256": "a656517d7f8b791a61979ddd99523c3725f5cda356c5dd65b61c5532b8676f8e"
+    }
+  ],
+  "evidence_pins": [
+    {
+      "path": "R:\\d3-evidence\\root-original-R1-R4-completion-a8effa9f3.json",
+      "sha256": "6d106fdc92646dff596d47b2b2337cd06aeb4bb93b6c45702e143f2b7e2e1a25"
+    },
+    {
+      "path": "R:\\d3-evidence\\root-original-R5-completion-a8effa9f3.json",
+      "sha256": "02561d94a18bed4631f9a5884e6a347402f5c70d30c9f0c3ae265c4dffc155bc"
+    },
+    {
+      "path": "R:\\d3-evidence\\original-R5-complete-artifact-comparison.json",
+      "sha256": "8cc625dc70495d0e2b5c643e437f9053e28e90e3c9e653ab9531144c2fe2976b"
+    },
+    {
+      "path": "R:\\d3-evidence\\original-a8effa9f3-build-manifest.json",
+      "sha256": "2e80fc84b64a9e076aeebcca650895db136eecd4197fbd9f9b4a60bb6eb3cfa2"
+    },
+    {
+      "path": "R:\\d3-evidence\\original-a8effa9f3-post-R1-R4-build.json",
+      "sha256": "8c668968cc143431f9171eddec226d7ebcbd9301638e69eedfa978458fd01854"
+    },
+    {
+      "path": "R:\\d3-evidence\\original-a8effa9f3-post-R5-build.json",
+      "sha256": "31f5bf3d40a46961968213793a38f6487d83c5bb9a62c3472b8b24aad1d5d30d"
+    },
+    {
+      "path": "R:\\d3-evidence\\root-clean-original-prebuild-a8effa9f3.json",
+      "sha256": "730fa332c49d87af401f39f9ca1b4efd8e4239fb1e9bfbdfbd6b104382a53389"
+    },
+    {
+      "path": "R:\\d3-evidence\\build-backend-f4b61a475-completion.json",
+      "sha256": "e151c4c45b7fe6f458a8ba558509eb08d6b43f35a3ef171ab3fe49b43af45ce5"
+    },
+    {
+      "path": "R:\\d3-evidence\\build-backend-f4b61a475.log",
+      "sha256": "2d6ac52dceaa885668f043b210133ce7dab3ef2ea30a3cb9582f3145150fb69e"
+    }
+  ],
+  "verification": {
+    "head_before_after": "f4b61a475ee3032f45d8d29d098d122adbf7f337",
+    "clean_at_start": true,
+    "pinned_diff_check_actual_exit": 0,
+    "end_status": [
+      " M STATUS.md",
+      " M docs/handover/D3-SCOPE-AUDIT.md",
+      " M eech-campaign/reference/d3-terrain-characterization/README.md",
+      "?? eech-campaign/reference/d3-terrain-characterization/original-controls-a8effa9f3.json"
+    ],
+    "end_status_disposition": "Root-only new completion metadata edits to3 prose files and untracked safe original-controls record appeared during the pinned pass. All new executable product files remain unchanged; review uses committed f4 blobs, not floating prose.",
+    "reviewer_actions": "Read-only source inspection, body comparison, raw/config/evidence and file hashing only. Requested private report is the sole write. No native, build, test, process modification, remote write or nested agent."
+  },
+  "next_bounded_corrections": [
+    "One sole implementation batch for the six findings, preserving original/raw/failed-build evidence.",
+    "Affected C/Rust/Lua bounds, concurrency, provenance, cardinality and refusal controls; actual compilation/layout checks after source corrections.",
+    "Fresh named corrected fixture and original fast samples, both-map conformance and actual public-provider RED before production handoff.",
+    "Then host dispatch/authority/refusal/default and final D3 completion gates under the finite scope; no baseline/tolerance changes."
+  ]
+}

@@ -65,6 +65,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "project.h"
+#include "entity/mobile/mb_aimfx.h"
 #include "../../../ai/taskgen/engage.h" // for CIWS
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -196,6 +197,7 @@ while(TRUE)
 
 	if (!raw->selected_weapon_system_ready)
 	{
+		AIM_FX_REJECT (EECH_AIM_SITE_VEHICLE_UPDATE, EECH_AIM_REJECT_NOT_READY)
 		if (debug_flag)
 		{
 			debug_log ("VH_WPN: Not Firing - Weapon system not ready");
@@ -274,6 +276,7 @@ while(TRUE)
 
 	if (!get_local_entity_int_value (en, INT_TYPE_WEAPON_AND_TARGET_VECTORS_VALID))
 	{
+		AIM_FX_REJECT (EECH_AIM_SITE_VEHICLE_UPDATE, EECH_AIM_REJECT_VECTORS_INVALID)
 		if (debug_flag)
 		{
 			debug_log ("VH_WPN: Not Firing - outside launch angle (1)");
@@ -296,8 +299,10 @@ while(TRUE)
 
 	launch_angle_error = acos (get_3d_unit_vector_dot_product (weapon_vector, weapon_to_intercept_point_vector));
 
+	AIM_FX_ANGLE (EECH_AIM_SITE_VEHICLE_UPDATE, en, launch_angle_error, weapon_database[raw->selected_weapon].max_launch_angle_error)
 	if (fabs (launch_angle_error) > weapon_database[raw->selected_weapon].max_launch_angle_error)
 	{
+		AIM_FX_REJECT (EECH_AIM_SITE_VEHICLE_UPDATE, EECH_AIM_REJECT_LAUNCH_ANGLE)
 		if (debug_flag)
 		{
 			debug_log ("VH_WPN: Not Firing - outside launch angle (%f > %f)", deg(fabs (launch_angle_error)), deg(weapon_database[raw->selected_weapon].max_launch_angle_error));

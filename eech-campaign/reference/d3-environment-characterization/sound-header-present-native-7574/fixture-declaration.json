@@ -1,0 +1,152 @@
+{
+ "stem": "original-sound-header-present-20261101-0400",
+ "scope": "CONTROLLED INPUT VARIATION of the original sound initialization: one valid sound.hdr and sound.dat under cohokum/audio of a private retail Lebanon root. Not retail audio, not a Tacview or full-pack claim; generated only from the frozen 7574caa2c enum and descriptor table.",
+ "source_snapshot": "R:\\d3-evidence\\environment-original-sound-init-source-7574caa2c",
+ "table_parse_proof": {
+  "measured_native_baseline": {
+   "slots": 2122,
+   "named": 2069,
+   "rate": 2069,
+   "orate": 2069,
+   "size": 0,
+   "digest": "6605372942e1ea2c"
+  },
+  "parsed_all_sizes_zero": {
+   "named": 2069,
+   "nonzero_size": 0,
+   "nonzero_rate": 2069,
+   "nonzero_orate": 2069,
+   "digest": "6605372942e1ea2c"
+  }
+ },
+ "named_table_entries": 2069,
+ "enum_slots": 2122,
+ "header_format": "little-endian int32 count; per record int32 sample_index, int32 data_offset, int32 data_length, int32 name_length (the NUL-terminated name INCLUDING the NUL), then the name bytes; names are `audio\\<table name>` exactly as snd_data.c sprintf builds them",
+ "records": [
+  {
+   "role": "matched, ZERO length",
+   "index": 93,
+   "offset": 0,
+   "length": 0,
+   "name": "audio\\thunder.pcm"
+  },
+  {
+   "role": "matched, nonzero length 96 (first of two records for this key and name)",
+   "index": 94,
+   "offset": 0,
+   "length": 96,
+   "name": "audio\\lstrike.pcm"
+  },
+  {
+   "role": "matched, nonzero length 40, key at or above 2069",
+   "index": 2087,
+   "offset": 96,
+   "length": 40,
+   "name": "audio\\ch46e_windup_ext.pcm"
+  },
+  {
+   "role": "matched, nonzero length 24",
+   "index": 2051,
+   "offset": 136,
+   "length": 24,
+   "name": "audio\\kiowa_windup_ext.pcm"
+  },
+  {
+   "role": "DUPLICATE key and name, different length 48: the original must keep the FIRST match (96)",
+   "index": 94,
+   "offset": 160,
+   "length": 48,
+   "name": "audio\\lstrike.pcm"
+  },
+  {
+   "role": "valid record whose name is in no descriptor: never matched",
+   "index": 2051,
+   "offset": 0,
+   "length": 16,
+   "name": "audio\\fixture-unmatched.pcm"
+  },
+  {
+   "role": "real name of a descriptor under ANOTHER sample index: the index does not match, so that descriptor stays unmatched",
+   "index": 2087,
+   "offset": 16,
+   "length": 16,
+   "name": "audio\\comanche_windup_ext.pcm"
+  }
+ ],
+ "data_bytes_rule": "byte i = (i * 7 + 13) & 0xff; size = max(offset + length) = 208, so every offset + length is covered",
+ "files": {
+  "sound.hdr": {
+   "bytes": 282,
+   "sha256": "3ac46b47a3f9193ec4cba83aecec7720252dce48a4232114f046a5d514aa3899"
+  },
+  "sound.dat": {
+   "bytes": 208,
+   "sha256": "3f9ee86fc9e493bfa7f1113a8e2a0b4a02f3dcfe74bfd2a12c072d1c41d49902"
+  }
+ },
+ "keys": {
+  "SOUND_SAMPLE_INDEX_AMBIENT_THUNDER": {
+   "key": 93,
+   "name": "thunder.pcm"
+  },
+  "SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING": {
+   "key": 94,
+   "name": "lstrike.pcm"
+  },
+  "SOUND_SAMPLE_INDEX_EXTERIOR_KIOWA_ROTOR_WIND_UP": {
+   "key": 2051,
+   "name": "kiowa_windup_ext.pcm"
+  },
+  "SOUND_SAMPLE_INDEX_EXTERIOR_CH46E_ROTOR_WIND_UP": {
+   "key": 2087,
+   "name": "ch46e_windup_ext.pcm"
+  },
+  "SOUND_SAMPLE_INDEX_EXTERIOR_COMANCHE_ROTOR_WIND_UP": {
+   "key": 1954,
+   "name": "comanche_windup_ext.pcm"
+  }
+ },
+ "expected": {
+  "header_count": 7,
+  "matched": 4,
+  "missed": 2065,
+  "nonzero_size": 3,
+  "catalogue_named": 2069,
+  "digest_filled": "6605372942e1ea2c",
+  "digest_end_and_report": "8c600fed7309b2fc",
+  "lightning_size": 96,
+  "thunder_size": 0,
+  "slot_sizes": {
+   "94": 96,
+   "2051": 24,
+   "2087": 40
+  },
+  "header_attempts": 2,
+  "data_attempts": 2,
+  "header_ok": 2,
+  "data_ok": 2,
+  "file_log_kinds": [
+   "header",
+   "data",
+   "header",
+   "data"
+  ],
+  "rule": "initialise_application_sound_effects tries file_exist(hdr), file_exist(dat), safe_fopen(hdr), safe_fopen(dat); each succeeds on the first, relative `audio\\...` path (the engine has chdir-ed into <root>/cohokum), so four attempts and no retry; the data file is opened but not read"
+ },
+ "carried_over_from_the_closed_header_absent_report": {
+  "no_sound": 0,
+  "dedicated_at_init": 0,
+  "dedicated_at_report": 1,
+  "backend_attempted": 1,
+  "directsoundcreate_calls": 1,
+  "directsoundcreate_return": "80004005",
+  "other_com_calls": 0,
+  "enabled_exit": 0,
+  "initialised_exit": 0,
+  "load": 0,
+  "load_side_calls": 1,
+  "note": "These are expectations carried from the header-absent measurement, not consequences of the fixture; a difference is a new finding to investigate, never something to tune away."
+ },
+ "seconds": 0,
+ "frame_ms": 100
+}

@@ -1,0 +1,14 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+error[E0599]: no variant, associated function, or constant named `Vehicle` found for enum `movement::Kind` in the current scope
+    --> crates/eech-world/src/movement.rs:5300:40
+     |
+ 312 | pub enum Kind {
+     | ------------- variant, associated function, or constant `Vehicle` not found for this enum
+...
+5300 |         let mut vehicle = movers(Kind::Vehicle, pose(0.0, 0.0));
+     |                                        ^^^^^^^ variant, associated function, or constant not found in `movement::Kind`
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `eech-world` (lib test) due to 1 previous error
+EXIT=101
+docker exit=101

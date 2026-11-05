@@ -1,0 +1,11 @@
+f353 audit on order_run_marker_after_its_whole_final_report: exit=0 STATUS=PASS
+NEW  audit on order_run_marker_after_its_whole_final_report: exit=1 STATUS=FAIL
+f353 audit on order_run_marker_moved_before_the_last_checkpoints: exit=1 STATUS=FAIL
+NEW  audit on order_run_marker_moved_before_the_last_checkpoints: exit=1 STATUS=FAIL
+f353 audit on order_row_between_run_marker_and_final_report: exit=1 STATUS=FAIL
+NEW  audit on order_row_between_run_marker_and_final_report: exit=1 STATUS=FAIL
+f353 audit on order_row_after_the_final_report: exit=1 STATUS=FAIL
+NEW  audit on order_row_after_the_final_report: exit=1 STATUS=FAIL
+f353 audit on order_foreign_row_between_a_checkpoint_marker_and_its_report: exit=0 STATUS=PASS
+NEW  audit on order_foreign_row_between_a_checkpoint_marker_and_its_report: exit=1 STATUS=FAIL
+f353 reader with line_max=-2: readline requests [-1], first read returned 8 bytes of a 10000-byte input (an unbounded request), rows 0

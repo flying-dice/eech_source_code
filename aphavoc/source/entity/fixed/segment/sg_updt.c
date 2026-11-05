@@ -66,6 +66,10 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_cmbfx.h"
+
+#include "entity/mobile/mb_hostaim.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -75,6 +79,13 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//
+// The update of a segment in the update list (EEDCS-46, R5).  What is PHYSICAL is the host's, asked at the point the original decided and with the facts as they are then (mb_hostaim.h BRIDGE):
+// whether the successor, and then (read after that notification) the predecessor, is told; whether the segment falls this frame and how far, the floor it is compared with, whether it lands, and whether it
+// leaves the list.  The campaign keeps the notifications themselves (a collision to the bridge, which can kill a neighbour), the position and list operations, the terrain read (a data service until D3),
+// the landing effect, and every hook of the fixture, which observes what was actually applied.
+//
 
 static void update_server (entity *en)
 {
@@ -89,11 +100,11 @@ static void update_server (entity *en)
 	vec3d
 		*pos;
 
-	float
-		terrain_height;
+	campaign_bridge_result
+		fall;
 
-	terrain_3d_point_data
-		terrain_info;
+	float
+		position [3];
 
 	//
 	// notify the segments neighbours as applicable
@@ -103,64 +114,65 @@ static void update_server (entity *en)
 
 	ASSERT (parent);
 
+	CMB_FX_BRIDGE (EECH_CMB_BRIDGE_SEGMENT_UPDATE, parent, en, 0, 0, 0.0f)
+
 	next_segment = get_local_entity_child_succ (en, LIST_TYPE_SEGMENT);
 
-	if (next_segment)
+	if (campaign_aim_bridge_neighbour (0, next_segment != NULL, (next_segment != NULL) ? get_local_entity_int_value (next_segment, INT_TYPE_ENTITY_SUB_TYPE) : 0, (next_segment != NULL) && get_local_entity_int_value (next_segment, INT_TYPE_ALIVE)))
 	{
 		notify_local_entity (ENTITY_MESSAGE_COLLISION, parent, next_segment);
 	}
 
 	prev_segment = get_local_entity_child_pred (en, LIST_TYPE_SEGMENT);
 
-	if (prev_segment)
+	if (campaign_aim_bridge_neighbour (1, prev_segment != NULL, (prev_segment != NULL) ? get_local_entity_int_value (prev_segment, INT_TYPE_ENTITY_SUB_TYPE) : 0, (prev_segment != NULL) && get_local_entity_int_value (prev_segment, INT_TYPE_ALIVE)))
 	{
 		notify_local_entity (ENTITY_MESSAGE_COLLISION, parent, prev_segment);
 	}
 
 	sub_type = get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE);
 
-	if (sub_type == ENTITY_SUB_TYPE_FIXED_BRIDGE_UNSUPPORTED_MID_SECTION)
+	pos = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
+
+	position [0] = pos->x;
+	position [1] = pos->y;
+	position [2] = pos->z;
+
+	//
+	// whether the segment drops to the floor ( removing it from the update list when it hits ), or ( supported ) is removed at once ( it was only put there in the first place so that its
+	// neighbours would be notified ) is the host's: the terrain under it is read for the host only if it asks
+	//
+
+	fall = campaign_aim_bridge_fall ((int) sub_type, position, get_delta_time (), campaign_segment_terrain, pos);
+
+	if (fall.fell)
 	{
-		//
-		// make the segment drop to the floor ( removing it from the update list when it hits )
-		//
-	
-		pos = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
-	
-		pos->y -= ( 10.0 * get_delta_time() );
-	
-		memset (&terrain_info, 0, sizeof (terrain_3d_point_data));
-	
-		ASSERT(point_inside_map_area(pos));
+		pos->y = fall.dropped_y;
 
-		terrain_height = get_3d_terrain_point_data (pos->x, pos->z, &terrain_info);
+		CMB_FX_BRIDGE (EECH_CMB_BRIDGE_FALL, parent, en, 0, 0, fall.floor_height)
 
-		if (get_terrain_type_class (terrain_info.terrain_type) == TERRAIN_CLASS_WATER)
+		if (fall.landed)
 		{
-			terrain_height -= 1.0;
-		}
-	
-		if ( pos->y <= terrain_height )
-		{
-			pos->y = terrain_height;
-	
-			delete_local_entity_from_parents_child_list (en, LIST_TYPE_UPDATE);
-	
-			if (get_comms_model () == COMMS_MODEL_SERVER)
-				create_client_server_collision_effect (pos, DYNAMICS_COLLISION_SURFACE_GROUND, 2);
+			pos->y = fall.landed_y;
+
+			CMB_FX_BRIDGE (EECH_CMB_BRIDGE_LANDED, parent, en, 0, 0, fall.floor_height)
 		}
 	}
-	else
+	else if (fall.remove)
 	{
-		//
-		// segment is supported, and so should be instantly removed from the update list
-		// ( only put there in the first place so that neighbours would be notified )
-		//
+		CMB_FX_BRIDGE (EECH_CMB_BRIDGE_SUPPORTED_REMOVED, parent, en, 0, 0, 0.0f)
+	}
 
+	if (fall.remove)
+	{
 		delete_local_entity_from_parents_child_list (en, LIST_TYPE_UPDATE);
 	}
-}
 
+	if (fall.landed && (get_comms_model () == COMMS_MODEL_SERVER))
+	{
+		create_client_server_collision_effect (pos, DYNAMICS_COLLISION_SURFACE_GROUND, 2);
+	}
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,0 +1,12 @@
+{
+  "source": "dd5e7c4ce46339ebd5bd2ba0e3b0c09653955735",
+  "all_native_prepost0": true,
+  "payloads": 46,
+  "complete10850rawlines_including_endings_equal_d4": true,
+  "all10849original993rawlines_including_endings_exact": true,
+  "one_additional_validation_metadata_row": true,
+  "sha256": "c4b35e155cf17ea95deabc118471d495159265740da6f4d43282dc7ecae92630",
+  "frame_count": 1200,
+  "elapsed_seconds": 119.99835968017578,
+  "scope": "Nominal120s/config, sameoriginalfloatclock/raw. completefalse=probeCOVERAGEwithprobes0. Notall-state/Tacview/shippingacceptance."
+}

@@ -1,0 +1,70 @@
+{
+  "schema": "independent-numerical-source-delta-review-v1",
+  "created_utc": "2026-11-01T10:59:52.128637+00:00",
+  "source": {
+    "head": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+    "base": "38b200b6c48bf81abca8e817caa9097c2a876a47",
+    "frozen_repository": "D:/EECH-Migration-Evidence/rn-26489a4a5",
+    "clean": true,
+    "diff_sha256": "71a6e73825a10562463fbee61681518b6b136e489798881a89faca2c608166d1",
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "base_sha256": "a38bd8bf31d85cc985feb0fd568e90bb7cdc92c70f4210898055cf66c2a04266",
+        "head_sha256": "0c9169c8221f2576528046c67c151b3e84c310899c9599ae45f727ad1dd094a2"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/env_ref.c",
+        "base_sha256": "e8162ceb55b517a5e790cb806eeb06cfb1dc57a7021e30bfed8191bc49872dc6",
+        "head_sha256": "b536099bee27f136a369d0fe0ec2b987aa177d746252815e1f9e80db0c764d21"
+      },
+      {
+        "path": "eech-campaign/docs/d3-sound-lifetime.md",
+        "base_sha256": "82edf32d928f04d040aa1fe6edfdc09a2a87965c4eb81662655cb3c368f2084a",
+        "head_sha256": "fe492b34047f7d36ec2963f5b75bcfd8707837da1107b6cb781d8ffc50358f43"
+      }
+    ],
+    "all_other_tracked_entries_and_modes_identical": true,
+    "root_identity_receipt": {
+      "path": "R:\\d3-evidence\\host-rotor-numeric-source-26489a4a5-20261101.json",
+      "sha256": "e01943a11f0197234e62b3c938c1204d9ccc6b7134110b35351652c670eca72a"
+    }
+  },
+  "scope": "One combined new-delta correctness, clean-code, boundary and provenance pass; prior actual38 review 9a3385f390a7cbf53903a4562d1356f0051407fb45527cefe98a80e4b8ffdee6 reused. No unchanged kernel/control review, builds, tests, native campaigns, source edits or nested agents.",
+  "numeric_implementation_source_has_blocking_findings": false,
+  "source_review_no_blocking_findings": false,
+  "source_decision": "The numerical statements implement the measured three-site correction requirements. One new factual source-comment finding remains; actual numerical acceptance is pending.",
+  "findings": [
+    {
+      "id": "ENV-HOST-ROTOR-NUMERIC-PROSE-1",
+      "priority": "P2",
+      "kind": "evidence attribution; no new numerical implementation defect identified",
+      "location": "eech-campaign/crates/eech-world/csrc/env_ref.c:2131-2133",
+      "problem": "The new shared explanation says the original AND unmodified control narrow at 'those assignments'. Actual38 U/c does spill the slap value early and match FD1, but U/c retains the first right-pitch quotient through bound-plus-0.6 and fails FD12, just as the kernel and S/c do. The preceding phrase couples both sites and incorrectly promotes U's FD1 observation to FD12.",
+      "evidence": "Both i686 actual38 records: FD12 right pitch3 U/c and S/c are 0x3f8e147b versus the accepted canonical original Win64 0x3f8e147a. U and S assembly have fdivs, bound, faddl without first-assignment fstps. S STAGE(11) follows the second assignment. STATUS's new explanation already distinguishes this correctly.",
+      "required_change": "Qualify the narrowing contract as the accepted original Win64/SSE behavior, and make U's measured earlier float spill specific to FD1. Preserve that U is a surrogate and does not establish FD12 narrowing. A comment-only correction needs explicit source identity mapping; no numerical code or oracle change is requested."
+    }
+  ],
+  "inspected_facts": [
+    "ROTOR_STORE_FLOAT evaluates its expression once into a function-local addressable volatile float, then reloads it into the destination. The macro has a scoped do/while body, no shared state, allocation, pointer exposure, new failure path or RNG operation.",
+    "Calls wrap the unchanged acc_force and first slap_amp expressions and the first left/right turbine-pitch divisions. This enforces the canonical f32 assignment boundaries before slap subtraction and before the subsequent turbine bound-plus-0.6. Left symmetry and acc_force narrowing follow the accepted Win64 float-assignment contract; current exact-target results must still establish all retained words.",
+    "The slap bound, looping-minus-slap, turbine bounds/additions, action order, masks and final output staging remain unchanged. This correction does not alter rotor_vector_magnitude or impose new numerical domains.",
+    "The local volatile double APU offset retains the original 0.2 value/type and occurs only on the original positive-APU branch. It prevents replacing the saturated bound-plus-offset with a pre-rounded float constant, so addition and final float assignment execute at runtime under the existing canonical scope.",
+    "All new floating operations are within the existing post-fp_save/fp_enter_canonical arithmetic scope. Integer ingress/egress, validation/refusal and full restoration code are byte-identical to38.",
+    "Header, oracle, controls, capture/build code, parser, target definitions, numerical flags, Core, ABI and every other tracked entry/mode are exact38. Existing oracles and assertions are not weakened.",
+    "STATUS and docs accurately label new source unbuilt/unrun at authoring, preserve older dd84 provenance, distinguish the U/S controls from oracles, and leave unmeasured other assignment/folding behavior and whole D3 open. Apart from the identified code-comment attribution, the new claims match the actual38 report."
+  ],
+  "actual_evidence_status": {
+    "selected_pinned_linux": "Root execution active at source review; no result inferred",
+    "selected_pinned_windows": "Root execution active at source review; no result inferred",
+    "exact_current_CI": "pending",
+    "numerical_P1_closed": false,
+    "same_pass_actual_supplement": "To be assessed from genuine terminal receipts and exact-target diagnostic output when supplied, without repeating this source review."
+  },
+  "limitations": [
+    "Source semantics do not prove emitted instructions or canonical words on all targets. In particular, the same exact 288 word/action rows, control captures and FP tests must establish the i686 FD1/FD12 and Wine FD7 corrections and reveal any other regressions.",
+    "No startup precision assumption is promoted to a measurement; no whole-public-caller FP equivalence is claimed.",
+    "No global flag, precision-mode, target, tolerance, golden or preferred physical-rule change is justified.",
+    "No whole rotor extraction, sound delivery, audio/backend, Tacview, shipping, normal merge, Task51 or D3 closure."
+  ]
+}

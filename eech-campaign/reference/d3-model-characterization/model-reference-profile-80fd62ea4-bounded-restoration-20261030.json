@@ -1,0 +1,44 @@
+{
+  "utc": "2026-10-30T04:46:25.044021+00:00",
+  "source": "80fd62ea48fc75aa9546c785f525be034abd16f8",
+  "original_source": "4bee2cc8c95309e85b7503a87606b92e0d2594fe",
+  "scope": "Matchedbounded0.001h3.6srequest,actual35frames; notfullpackacceptance",
+  "rows": [
+    {
+      "file": "recording.acmi",
+      "old_bytes": 230871,
+      "new_bytes": 230871,
+      "byte_equal": true,
+      "audit_noninvasive": true,
+      "old_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+      "new_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+      "first_difference": null
+    },
+    {
+      "file": "observations.jsonl",
+      "old_bytes": 1553674,
+      "new_bytes": 1553674,
+      "byte_equal": true,
+      "audit_noninvasive": true,
+      "old_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+      "new_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+      "first_difference": null
+    },
+    {
+      "file": "metrics.json",
+      "old_bytes": 7477,
+      "new_bytes": 7477,
+      "byte_equal": true,
+      "audit_noninvasive": true,
+      "old_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+      "new_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+      "first_difference": null
+    }
+  ],
+  "actual_frame_audit": {
+    "actual_frame_calls": 35,
+    "final_elapsed_seconds": 3.49999737739563
+  },
+  "old_final_clock": 3.49999737739563,
+  "complete_match": true
+}

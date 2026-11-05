@@ -1,0 +1,83 @@
+aphavoc/source/entity/mobile/weapon/damage.c: DIFFERS FROM THE BASELINE BY DESIGN (the forecast moved to the host); the difference of the capability functions only:
+--- /tmp/base.fn	2026-10-28 05:41:40.910868794 +0000
++++ /tmp/off.fn	2026-10-28 05:41:40.914868794 +0000
+@@ -1,3 +1,38 @@
++static int weapon_damage_forecast (entity *target, float damage_modifier, entity_sub_types weapon_type, float velocity)
++{
++ campaign_damage_figures
++  figures;
++ campaign_aim_result
++  result;
++ const weapon_data
++  *row;
++ int
++  not_ai;
++ float
++  player_modifier = 1.0;
++ if (!(target)) (write_debug_log ("target", "aphavoc/source/entity/mobile/weapon/damage.c", SOURCE_LINE));
++ row = &weapon_database[weapon_type];
++ figures.weapon_warhead = row->warhead_type;
++ if (row->warhead_type == WEAPON_WARHEAD_TYPE_CONVENTIONAL_MUNITIONS)
++ {
++  if ((weapon_type + 1) >= NUM_ENTITY_SUB_TYPE_WEAPONS)
++  {
++   debug_fatal ("DAMAGE: conventional munitions weapon %d has no munition entry after it in the database", weapon_type);
++  }
++  row = &weapon_database[weapon_type + 1];
++ }
++ figures.warhead = row->warhead_type;
++ figures.damage_capability = row->damage_capability;
++ figures.armor_penetration_capability = row->armor_penetration_capability;
++ figures.burst_duration = row->burst_duration;
++ not_ai = ((fn_get_local_entity_int_value[(((target))->type)][(((INT_TYPE_PLAYER)))] ((target), (int_types)(INT_TYPE_PLAYER))) != ENTITY_PLAYER_AI);
++ if (not_ai)
++ {
++  player_modifier = get_player_damage_modifier (target);
++ }
++ result = campaign_aim_forecast (weapon_type, &figures, (fn_get_local_entity_int_value[(((target))->type)][(((INT_TYPE_ARMOR_LEVEL)))] ((target), (int_types)(INT_TYPE_ARMOR_LEVEL))), not_ai, player_modifier, damage_modifier, velocity, 0);
++ return result.forecast_capability;
++}
+ int weapon_damage_capability (entity *wpn, entity *target, float damage_modifier, entity_sub_types weapon_type, float velocity)
+ {
+  int
+@@ -16,6 +51,10 @@
+  weapon
+   *raw;
+  if (!(target)) (write_debug_log ("target", "aphavoc/source/entity/mobile/weapon/damage.c", SOURCE_LINE));
++ if (!wpn)
++ {
++  return weapon_damage_forecast (target, damage_modifier, weapon_type, velocity);
++ }
+  switch (weapon_database[weapon_type].warhead_type)
+  {
+   case WEAPON_WARHEAD_TYPE_CONVENTIONAL_MUNITIONS:
+@@ -46,16 +85,6 @@
+    random_modifier = 0.75 + 0.5 * random_modifier;
+   }
+  }
+- else
+- {
+-  target_armor_thickness = (float) (fn_get_local_entity_int_value[(((target))->type)][(((INT_TYPE_ARMOR_LEVEL)))] ((target), (int_types)(INT_TYPE_ARMOR_LEVEL)));
+-  if (warhead_type >= WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_TANK &&
+-    warhead_type <= WEAPON_WARHEAD_TYPE_HIGH_EXPLOSIVE_ANTI_AIRCRAFT)
+-  {
+-   velocity = 1;
+-   high_explosive = 1;
+-  }
+- }
+  weapon_armor_penetration_capability = armor_penetration_capability * random_modifier * velocity;
+  if (weapon_armor_penetration_capability >= target_armor_thickness && damage_modifier < 0.01)
+  {
+aphavoc/source/entity/system/en_msgs/en_msgs.c: strict feature-off equivalence PASS (1266682 bytes preprocessed)
+aphavoc/source/entity/mobile/mb_msgs.c: strict feature-off equivalence PASS (1354631 bytes preprocessed)
+aphavoc/source/entity/special/effect/explosn/explosn.c: strict feature-off equivalence PASS (1294181 bytes preprocessed)
+aphavoc/source/entity/system/en_main/en_heap.c: strict feature-off equivalence PASS (1267744 bytes preprocessed)
+aphavoc/source/entity/fixed/fixed.c: strict feature-off equivalence PASS (1264890 bytes preprocessed)
+aphavoc/source/entity/mobile/aircraft/helicop/hc_updt.c: strict feature-off equivalence PASS (1284913 bytes preprocessed)
+aphavoc/source/entity/mobile/aircraft/fixwing/fw_updt.c: strict feature-off equivalence PASS (1268509 bytes preprocessed)
+aphavoc/source/entity/mobile/vehicle/person/ps_updt.c: strict feature-off equivalence PASS (1264892 bytes preprocessed)
+aphavoc/source/entity/mobile/vehicle/anti_air/aa_updt.c: strict feature-off equivalence PASS (1265803 bytes preprocessed)
+aphavoc/source/entity/mobile/vehicle/routed/rv_updt.c: strict feature-off equivalence PASS (1267323 bytes preprocessed)
+aphavoc/source/entity/mobile/vehicle/ship/sh_updt.c: strict feature-off equivalence PASS (1265084 bytes preprocessed)
+STRICT_EXIT=0
+OUTER=0

@@ -1,0 +1,30 @@
+The pack refuses to judge a build against inconsistent evidence (tools/regression-pack.py at 90acbacd, 2026-09-27T19:15:03+01:00).
+Each case changes one tracked file, runs the pack, and restores the file with git checkout.
+
+== 1. one retained report altered by a byte: printf ' ' >> reference/m3-supply-loss/loss-chain.json
+retained tier: artifacts, checkers, reproduction and sensitivity (no retail data) ...
+RETAINED EVIDENCE INCONSISTENT: the pack cannot judge a build against it
+FAIL: evidence.artifacts: reference/m3-supply-loss/loss-chain.json has SHA-256 cbb4869812aa, recorded ed02be8b5d6d
+REGRESSION PACK: FAIL (report: target\regression-pack\negative-1\report.md)
+exit 1
+
+== 2. a retained report missing (moved away), with runtime roots given: the runtime tier never starts
+retained tier: artifacts, checkers, reproduction and sensitivity (no retail data) ...
+RETAINED EVIDENCE INCONSISTENT: the pack cannot judge a build against it
+FAIL: evidence.artifacts: reference/lebanon-3h/check.json is missing
+REGRESSION PACK: FAIL (report: target\regression-pack\negative-2\report.md)
+exit 1
+
+== 3. a checker edited: echo '# x' >> tools/regress-compare.py
+retained tier: artifacts, checkers, reproduction and sensitivity (no retail data) ...
+RETAINED EVIDENCE INCONSISTENT: the pack cannot judge a build against it
+FAIL: evidence.checkers: tools/regress-compare.py differs from its recorded version (12e8f692)
+REGRESSION PACK: FAIL (report: target\regression-pack\negative-3\report.md)
+exit 1
+
+== 4. the pack's own runner edited: echo '# x' >> tools/regression-pack.py (at 23016c4f, 2026-09-27T22:44:09+01:00)
+retained tier: artifacts, checkers, reproduction and sensitivity (no retail data) ...
+RETAINED EVIDENCE INCONSISTENT: the pack cannot judge a build against it
+FAIL: evidence.checkers: tools/regression-pack.py differs from its recorded version (90acbacd (classifies the claims and gives the verdict; the retained runs used this version))
+REGRESSION PACK: FAIL (report: target\regression-pack\negative-4\report.md)
+exit 1

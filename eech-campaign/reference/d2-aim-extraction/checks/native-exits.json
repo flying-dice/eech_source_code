@@ -1,0 +1,223 @@
+[
+ {
+  "run": "c-a",
+  "log": [
+   "22:08:49 end c-a: script exit=0; exit 0 after 914 s",
+   "22:08:50 DONE c-a"
+  ]
+ },
+ {
+  "run": "c-b",
+  "log": [
+   "22:22:24 end c-b: script exit=0; exit 0 after 808 s",
+   "22:22:25 DONE c-b"
+  ]
+ },
+ {
+  "run": "c2-a",
+  "log": [
+   "22:37:38 end c2-a: script exit=0; exit 0 after 809 s",
+   "22:37:39 DONE c2-a"
+  ]
+ },
+ {
+  "run": "c2-b",
+  "log": [
+   "22:51:13 end c2-b: script exit=0; exit 0 after 808 s",
+   "22:51:13 DONE c2-b"
+  ]
+ },
+ {
+  "run": "o2-ab",
+  "log": []
+ },
+ {
+  "run": "o3-ab",
+  "log": [
+   "23:23:31 end o3-ab: native exit=0 after 1,260 s",
+   "23:23:32 DONE o3-ab exit=0"
+  ]
+ },
+ {
+  "run": "orig-pv-invalid",
+  "log": [
+   "00:02:20 end orig-pv-invalid: native exit=0 after 270 s",
+   "00:02:21 DONE orig-pv-invalid exit=0"
+  ]
+ },
+ {
+  "run": "orig-pv-ready_slow",
+  "log": [
+   "23:57:43 end orig-pv-ready_slow: native exit=0 after 270 s",
+   "23:57:44 DONE orig-pv-ready_slow exit=0"
+  ]
+ },
+ {
+  "run": "p-c",
+  "log": [
+   "21:52:58 end p-c: script exit=0; exit 0 after 24 s",
+   "21:52:59 DONE p-c exit=0"
+  ]
+ },
+ {
+  "run": "p-t",
+  "log": [
+   "21:52:22 end p-t: script exit=0; exit 0 after 39 s",
+   "21:52:24 DONE p-t exit=0"
+  ]
+ },
+ {
+  "run": "p-t2",
+  "log": [
+   "21:53:28 end p-t2: script exit=0; exit 0 after 23 s",
+   "21:53:29 DONE p-t2 exit=0"
+  ]
+ },
+ {
+  "run": "p2-c",
+  "log": [
+   "22:23:34 end p2-c: script exit=0; exit 0 after 20 s",
+   "22:23:35 DONE p2-c exit=0"
+  ]
+ },
+ {
+  "run": "p2-t",
+  "log": [
+   "22:23:08 end p2-t: script exit=0; exit 0 after 22 s",
+   "22:23:09 DONE p2-t exit=0"
+  ]
+ },
+ {
+  "run": "p2-t2",
+  "log": [
+   "22:24:02 end p2-t2: script exit=0; exit 0 after 21 s",
+   "22:24:03 DONE p2-t2 exit=0"
+  ]
+ },
+ {
+  "run": "pv-invalid",
+  "log": [
+   "23:47:40 end pv-invalid: native exit=0 after 348 s",
+   "23:47:41 DONE pv-invalid exit=0"
+  ]
+ },
+ {
+  "run": "pv-own_model",
+  "log": [
+   "23:53:07 end pv-own_model: native exit=0 after 320 s",
+   "23:53:08 DONE pv-own_model exit=0"
+  ]
+ },
+ {
+  "run": "pv-ready_slow",
+  "log": [
+   "23:35:42 end pv-ready_slow: native exit=0 after 362 s",
+   "23:35:43 DONE pv-ready_slow exit=0"
+  ]
+ },
+ {
+  "run": "pv-reference",
+  "log": [
+   "23:29:34 end pv-reference: native exit=0 after 356 s",
+   "23:29:35 DONE pv-reference exit=0"
+  ]
+ },
+ {
+  "run": "pv-step_slow",
+  "log": [
+   "23:41:45 end pv-step_slow: native exit=0 after 356 s",
+   "23:41:46 DONE pv-step_slow exit=0"
+  ]
+ },
+ {
+  "run": "ship-pv-bad_draw_for_ballistic",
+  "log": [
+   "00:09:01 end ship-pv-bad_draw_for_ballistic: native exit=1 after 341 s",
+   "00:09:02 DONE ship-pv-bad_draw_for_ballistic exit=1"
+  ]
+ },
+ {
+  "run": "ship-pv-bad_error",
+  "log": [
+   "00:10:08 end ship-pv-bad_error: native exit=0 after 3 s",
+   "00:10:09 DONE ship-pv-bad_error exit=0"
+  ]
+ },
+ {
+  "run": "ship-pv-bad_nan_vector",
+  "log": [
+   "00:03:14 end ship-pv-bad_nan_vector: native exit=0 after 3 s",
+   "00:03:15 DONE ship-pv-bad_nan_vector exit=0"
+  ]
+ },
+ {
+  "run": "ship-pv-bad_negative_range",
+  "log": [
+   "00:09:59 end ship-pv-bad_negative_range: native exit=0 after 3 s",
+   "00:10:00 DONE ship-pv-bad_negative_range exit=0"
+  ]
+ },
+ {
+  "run": "ship-pv-bad_nil",
+  "log": [
+   "00:02:36 end ship-pv-bad_nil: native exit=0 after 3 s",
+   "00:02:37 DONE ship-pv-bad_nil exit=0"
+  ]
+ },
+ {
+  "run": "ship-pv-bad_phase",
+  "log": [
+   "00:03:04 end ship-pv-bad_phase: native exit=0 after 3 s",
+   "00:03:05 DONE ship-pv-bad_phase exit=0"
+  ]
+ },
+ {
+  "run": "ship-pv-bad_ready_state",
+  "log": [
+   "00:02:55 end ship-pv-bad_ready_state: native exit=0 after 3 s",
+   "00:02:56 DONE ship-pv-bad_ready_state exit=0"
+  ]
+ },
+ {
+  "run": "ship-pv-bad_second_draw",
+  "log": [
+   "00:09:49 end ship-pv-bad_second_draw: native exit=0 after 41 s",
+   "00:09:50 DONE ship-pv-bad_second_draw exit=0"
+  ]
+ },
+ {
+  "run": "ship-pv-bad_state",
+  "log": [
+   "00:02:46 end ship-pv-bad_state: native exit=0 after 3 s",
+   "00:02:47 DONE ship-pv-bad_state exit=0"
+  ]
+ },
+ {
+  "run": "ship-pv-missing",
+  "log": [
+   "00:02:27 end ship-pv-missing: native exit=0 after 0 s",
+   "00:02:28 DONE ship-pv-missing exit=0"
+  ]
+ },
+ {
+  "run": "ship-pv-reference",
+  "log": [
+   "00:12:19 end ship-pv-reference: native exit=0 after 124 s",
+   "00:12:20 DONE ship-pv-reference exit=0"
+  ]
+ },
+ {
+  "run": "x1-a",
+  "log": [
+   "21:18:44 end x1-a: script exit=-1; exit -1 after 167 s",
+   "21:18:45 DONE x1-a"
+  ]
+ },
+ {
+  "run": "x2-a",
+  "log": [
+   "21:35:20 end x2-a: script exit=0; exit 0 after 867 s",
+   "21:35:21 DONE x2-a"
+  ]
+ }
+]

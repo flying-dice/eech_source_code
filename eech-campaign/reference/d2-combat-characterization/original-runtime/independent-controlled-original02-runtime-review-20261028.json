@@ -1,0 +1,128 @@
+{
+  "schema": "independent-bounded-runtime-review-v1",
+  "preserved_utc": "2026-10-28T05:48:09.5698550Z",
+  "reviewer": "/root/d2_los_review",
+  "disposition": "No new blocking evidence findings; original02 partial coverage accepted within stated limits; two bounded selector probes suitable to proceed.",
+  "scope": "Preservation of the completed independent original02 runtime evidence and proposed-selector review only; no new review, test, hash calculation, source edit, build or native launch performed to create this record.",
+  "frozen_source": {
+    "path": "R:/d2-evidence/combat-controlled-source-35c3d6777",
+    "sha": "35c3d677758d7c0e7b664267c25508220412e4a5",
+    "clean_before_and_after_completed_review": true,
+    "moving_forecast_checkout_not_reviewed": true
+  },
+  "evidence": {
+    "completion_record": "R:/d2-evidence/combat-characterization-20261028/root-controlled-original02-partial-completion.json",
+    "trace": "R:/d2-evidence/combat-characterization-20261028/out/controlled-original-02/trace.jsonl",
+    "trace_bytes": 403523,
+    "trace_sha256": "61c252a9e9d34be4e26ccac79d86e97c0dae1912dd205331733724d2ef135b4a",
+    "trace_json_rows": 2057,
+    "actual_native_pid": 22756,
+    "actual_native_exit_recorded": 0,
+    "original_controller_id": 26884,
+    "actual_original_controller_exit_recorded": 0,
+    "exit_evidence_limit": "Runtime was not launched or observed live by this reviewer; completed records and trusted root completion evidence were inspected.",
+    "cases": 39,
+    "done_preconditions": 10,
+    "normal_refusals": 29,
+    "argument_errors": 0,
+    "contiguous_events": 74,
+    "integrity_reports": 79,
+    "all_integrity_reports_trusted": true,
+    "elapsed_seconds": 80.19896697998
+  },
+  "preservation_verification": {
+    "performed_during_completed_pass": true,
+    "repeated_for_this_preservation": false,
+    "input_files_independently_rehashed": 1179,
+    "input_mismatches": 0,
+    "input_manifest": "R:/d2-evidence/combat-controlled-source-35c3d6777/eech-campaign/reference/lebanon-3h/inputs.json",
+    "input_bytes": 102239559,
+    "manifest_combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+    "exported_files_independently_rehashed": 40,
+    "export_mismatches": 0,
+    "build_info_independently_rehashed": true,
+    "build_info_sha256": "5cfa0a40a456bf7e914874233c2d902ca6af02f7338fa60fd7cf6b952295ec13",
+    "build_info_matches_post_build_record": true,
+    "post_build_record": "R:/d2-evidence/combat-characterization-20261028/root-controlled-original02-post-build.json",
+    "root_post_input_actual_exit_recorded": 0
+  },
+  "measured_physical_coverage": {
+    "weapon_backed_direct_damage_writes": 2,
+    "direct_receivers": "PERSON only",
+    "high_explosive_weapon": 20,
+    "high_explosive_launcher": "eech-world:3001",
+    "high_explosive_ammo_before": 1000,
+    "high_explosive_ammo_after_first_call": 995,
+    "second_role_class": "conventional; not solid_shot",
+    "conventional_weapon": 5,
+    "conventional_launcher": "eech-world:2716",
+    "conventional_ammo_before": 3100,
+    "conventional_ammo_after_first_call": 3093,
+    "each_direct_person_damage": 3,
+    "each_direct_person_fatal": true,
+    "weaponless_no_weapon_exits": 6,
+    "weaponless_kinds": [
+      "PERSON",
+      "PYLON",
+      "SCENIC",
+      "SITE",
+      "SITE_UPDATABLE",
+      "ROUTED_VEHICLE"
+    ],
+    "person_predicate": "Source-unreachable bleeding predicate queried without health change.",
+    "anti_aircraft_draws": 201,
+    "anti_aircraft_hits": 41,
+    "anti_aircraft_fatal": 0,
+    "anti_aircraft_timed_seconds": 20,
+    "controlled_explosions_launched": 0,
+    "new_fixed_kind_weapon_damage_writes": 0,
+    "natural_explosion_activity_limit": "Natural explosions during the AA interval do not count as controlled explosion coverage.",
+    "preconditions_are_not_physical_coverage": true
+  },
+  "refusal_disposition": {
+    "observed": "29 valid no-create outcomes retained ample ammunition; repeated calls before AA remained at simulated clock60.099273681641.",
+    "source_supported_lead": "ROF/last-shot time gate can refuse repeated calls before weapon creation.",
+    "proven_actual_branch": false,
+    "source_sites": [
+      "aphavoc/source/entity/mobile/weapon/wn_creat.c:686-702",
+      "eech-campaign/crates/eech-world/csrc/wn_flight.c:3203-3207",
+      "eech-campaign/crates/eech-world/csrc/wn_flight.c:3227-3237",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_win32.c:933-935"
+    ],
+    "limitation": "The combat trace does not identify the release answer/refusal branch. No established ROF diagnosis, ammunition-exhaustion diagnosis or product-physics failure is claimed."
+  },
+  "proposed_selectors": {
+    "approved_for_bounded_original_probing": true,
+    "arguments": [
+      "kinds=SITE control=OBJECT timed_seconds=0",
+      "kinds=SITE_UPDATABLE control=OBJECT timed_seconds=0"
+    ],
+    "requirements": [
+      "Separate fresh verified roots and fresh output directories.",
+      "Unchanged original35 binaries and Lua; retain existing original02 evidence.",
+      "Verify actual weapon_class and chosen_weapon_class rows; lower estimate makes earlier54/76 carriers eligible but does not guarantee their selection or successful physical coverage.",
+      "Judge coverage using actual per-case invocation/candidate/notification/damage deltas, not done=true."
+    ],
+    "estimate_with_object_absent": "Four HE launch calls and two solid-role launch calls per single living selected kind; plan is necessary round estimate, not affordability guarantee.",
+    "timed_zero_qualification": "PERSON predicate query and AA critical-health setter still execute; timed_seconds=0 advances no timed frames and does not suppress those preconditions.",
+    "receiver_qualification": "First living receiver can change after a fatal hit; direct/modifier cases are not guaranteed to target the same entity.",
+    "blast_qualification": "Placement/radius and actual notifications must be observed; HIT_TARGET intentionally excludes its linked target.",
+    "private_driver": "R:/d2-evidence/combat-characterization-20261028/run-controlled-original.ps1",
+    "driver_review": "Native exit propagation and overwrite refusal retained; optional selectors limited to uppercase letters/underscores/commas and do not edit original Lua.",
+    "historical_driver_copy": "R:/d2-evidence/combat-characterization-20261028/driver-history/run-controlled-original-before-selectors-20261028.ps1"
+  },
+  "subsequent_probe_status_at_preservation": {
+    "source": "Parent notification after this completed review, not independently inspected.",
+    "site_controller": 56485,
+    "site_native_pid": 23984,
+    "site_updatable_controller": 48136,
+    "site_updatable_native_pid": 4376,
+    "results": "Pending and unreviewed; no result or acceptance inferred."
+  },
+  "remaining_limits": [
+    "No all39 physical-coverage acceptance.",
+    "No physical damage extraction or shipping-delivery acceptance.",
+    "No new build, native scenario, source review or test performed for this preservation.",
+    "Prior unchanged source/evidence closures remain unchanged."
+  ]
+}

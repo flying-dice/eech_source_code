@@ -1,0 +1,15 @@
+{
+  "when_utc": "2026-10-28T12:48:04.986666+00:00",
+  "source": "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a",
+  "head": "636ef798a9368dfb3c55fe5c77d144009e7f3491",
+  "clone_original_exec": 92118,
+  "clone_actual_exit": 0,
+  "clean_before_build_launcher": true,
+  "no_alternates": true,
+  "clone_local_configs": "core.autocrlf=false/core.longpaths=true before checkout",
+  "author_original_exec": 10691,
+  "author_actual_exit": 0,
+  "author_pid23596_gone": true,
+  "source_parent": "8b5e73ae20b745b91436353a089dbe3704477acd correction;636 log-only trim",
+  "review": "Focused NEW P1/P2 correction + RootP3 metadata review NEXT; no native yet"
+}

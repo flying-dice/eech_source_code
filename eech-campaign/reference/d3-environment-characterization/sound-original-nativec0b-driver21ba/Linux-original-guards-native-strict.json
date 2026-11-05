@@ -1,0 +1,18 @@
+{
+  "source": "c0b6c3386dae772eafcd456bc3620f0299bccb4f",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-ambient-original-c0b6c3386-linux-20261031.sh"
+  ],
+  "pid": 11072,
+  "controller_pid": 23388,
+  "state": "terminal",
+  "started_utc": "2026-10-31T14:08:03.018665+00:00",
+  "scope": "Original ambient-sound characterization linux build/new harness guards only; no retail facts yet, no production cutover or shipping acceptance",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T14:11:05.217012+00:00"
+}

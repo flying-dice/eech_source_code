@@ -94,6 +94,49 @@ static void routed_vehicle_movement_get_waypoint_position (entity *en, vec3d *wp
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// zero the vehicle's speed; with the host owning the movement, the host zeroes it and the engine applies its answer
+
+static void routed_vehicle_movement_stop (entity *en, int client_server)
+{
+
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	float
+		velocity;
+
+	velocity = campaign_movement_stop (en);
+
+	campaign_movement_apply_begin ();
+
+	if (client_server)
+	{
+
+		set_client_server_entity_float_value (en, FLOAT_TYPE_VELOCITY, velocity);
+	}
+	else
+	{
+
+		set_local_entity_float_value (en, FLOAT_TYPE_VELOCITY, velocity);
+	}
+
+	campaign_movement_apply_end ();
+
+#else
+
+	if (client_server)
+	{
+
+		set_client_server_entity_float_value (en, FLOAT_TYPE_VELOCITY, 0.0);
+	}
+	else
+	{
+
+		set_local_entity_float_value (en, FLOAT_TYPE_VELOCITY, 0.0);
+	}
+
+#endif
+}
+
 void routed_vehicle_movement (entity *en)
 {
 
@@ -127,7 +170,7 @@ void routed_vehicle_movement (entity *en)
 		if (raw->vh.mob.velocity != 0.0)
 		{
 
-			set_local_entity_float_value (en, FLOAT_TYPE_VELOCITY, 0.0);
+			routed_vehicle_movement_stop (en, FALSE);
 		}
 
 		group = get_local_entity_parent (en, LIST_TYPE_MEMBER);
@@ -188,7 +231,7 @@ void routed_vehicle_movement (entity *en)
 			if (get_comms_model () == COMMS_MODEL_SERVER)
 			{
 
-				set_client_server_entity_float_value (en, FLOAT_TYPE_VELOCITY, 0.0);
+				routed_vehicle_movement_stop (en, TRUE);
 			}
 			else
 			{
@@ -222,7 +265,7 @@ void routed_vehicle_movement (entity *en)
 			if (get_comms_model () == COMMS_MODEL_SERVER)
 			{
 
-				set_client_server_entity_float_value (en, FLOAT_TYPE_VELOCITY, 0.0);
+				routed_vehicle_movement_stop (en, TRUE);
 			}
 			else
 			{
@@ -259,6 +302,14 @@ void routed_vehicle_movement (entity *en)
 		return;
 	}
 	//
+
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	// the host steps the vehicle (speed, attitude, position); the engine keeps the route and the waypoint
+
+	campaign_movement_move (en, guide, &wp_pos);
+
+#else
 
    wp_vec.x = wp_pos.x - raw->vh.mob.position.x;
    wp_vec.y = wp_pos.y - raw->vh.mob.position.y;
@@ -406,6 +457,8 @@ void routed_vehicle_movement (entity *en)
 	raw->vh.mob.motion_vector.x = raw->vh.mob.attitude [2][0] * raw->vh.mob.velocity;
 	raw->vh.mob.motion_vector.y = raw->vh.mob.attitude [2][1] * raw->vh.mob.velocity;
 	raw->vh.mob.motion_vector.z = raw->vh.mob.attitude [2][2] * raw->vh.mob.velocity;
+
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -465,6 +518,37 @@ void routed_vehicle_death_movement (entity *en)
 		return;
 	}
 
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	//
+	// host-owned wreck slide: the host holds the candidate, the campaign refreshes the terrain there, the host decays the
+	// speed, turns the heading and sets the position (EEDCS-37)
+	//
+
+	{
+		float
+			candidate_xz[2];
+
+		campaign_movement_require_hosted (en);
+
+		campaign_movement_vehicle_vector_seed (en);
+
+		campaign_movement_gv_death_candidate (en, get_entity_movement_delta_time (), candidate_xz);
+
+		new_pos.x = candidate_xz[0];
+		new_pos.z = candidate_xz[1];
+
+		ASSERT(point_inside_map_area(&new_pos));
+
+		get_3d_terrain_point_data (new_pos.x, new_pos.z, &raw->vh.terrain_info);
+
+		terrain_elevation = get_3d_terrain_point_data_elevation (&raw->vh.terrain_info);
+
+		campaign_movement_gv_death_decay (en, candidate_xz, terrain_elevation, get_local_entity_float_value (en, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE), get_entity_movement_delta_time (), FALSE);
+	}
+
+#else
+
 	//
 	// work out new position
 	//
@@ -515,6 +599,8 @@ void routed_vehicle_death_movement (entity *en)
 	//
 
 	set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &new_pos);
+
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -549,6 +635,119 @@ void routed_vehicle_falling_movement (entity *en)
 	old_terrain_elevation = get_3d_terrain_point_data_elevation (&raw->vh.terrain_info);
 
 	velocity = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_MOTION_VECTOR);
+
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	//
+	// host-owned fall: candidate, gravity and the settle arithmetic are the host's; terrain refresh, effects and DEAD stay
+	// here at the original boundaries and the speed then the position are committed last (EEDCS-37)
+	//
+
+	{
+		vec3d
+			settled;
+
+		int
+			flags,
+			water;
+
+		float
+			cg_to_ground,
+			bbox_diagonal;
+
+		campaign_movement_require_hosted (en);
+
+		campaign_movement_vehicle_vector_seed (en);
+
+		campaign_movement_gv_fall_candidate (en, get_entity_movement_delta_time (), &new_pos);
+
+		ASSERT(point_inside_map_area(&new_pos));
+
+		get_3d_terrain_point_data (new_pos.x, new_pos.z, &raw->vh.terrain_info);
+
+		campaign_movement_gv_fall_gravity (en, G, get_entity_movement_delta_time ());
+
+		terrain_elevation = get_3d_terrain_point_data_elevation (&raw->vh.terrain_info);
+
+		cg_to_ground = get_local_entity_float_value (en, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+
+		water = (get_terrain_type_class (get_3d_terrain_point_data_type (&raw->vh.terrain_info)) == TERRAIN_CLASS_WATER);
+
+		bbox_diagonal = 0.0;
+
+		if (water)
+		{
+			struct OBJECT_3D_BOUNDS
+				*bounding_box;
+
+			vec3d
+				d;
+
+			bounding_box = get_object_3d_bounding_box (get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE));
+
+			d.x = bounding_box->xmax - bounding_box->xmin;
+			d.y = bounding_box->ymax - bounding_box->ymin;
+			d.z = bounding_box->zmax - bounding_box->zmin;
+
+			bbox_diagonal = get_3d_vector_magnitude (&d);
+		}
+
+		flags = campaign_movement_gv_fall_settle (en, &new_pos, water, old_terrain_elevation, terrain_elevation, cg_to_ground, bbox_diagonal, &settled, &speed);
+
+		if (flags & 0x01)
+		{
+			if (water)
+			{
+				if (flags & 0x02)
+				{
+					if (get_comms_model() == COMMS_MODEL_SERVER)
+					{
+						vec3d
+							temp_pos;
+
+						temp_pos.x = settled.x;
+						temp_pos.y = terrain_elevation;
+						temp_pos.z = settled.z;
+
+						set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &temp_pos);
+
+						create_client_server_collision_effect (&temp_pos, DYNAMICS_COLLISION_SURFACE_WATER, 1);
+					}
+
+					clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_FIRE);
+				}
+
+				if (flags & 0x04)
+				{
+					campaign_movement_gv_fall_vector (en);
+
+					set_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE, OPERATIONAL_STATE_DEAD);
+				}
+			}
+			else
+			{
+				if (get_comms_model() == COMMS_MODEL_SERVER)
+				{
+					vec3d
+						temp_pos;
+
+					temp_pos.x = settled.x;
+					temp_pos.y = terrain_elevation;
+					temp_pos.z = settled.z;
+
+					set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &temp_pos);
+
+					create_client_server_collision_effect (&temp_pos, DYNAMICS_COLLISION_SURFACE_GROUND, 2);
+				}
+
+				campaign_movement_gv_fall_vector (en);
+			}
+		}
+
+		campaign_movement_gv_commit (en);
+	}
+
+#else
 
 	new_pos.x = pos->x + (velocity->x * get_entity_movement_delta_time());
 	new_pos.y = pos->y + (velocity->y * get_entity_movement_delta_time());
@@ -690,6 +889,8 @@ void routed_vehicle_falling_movement (entity *en)
 	//
 
 	set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &new_pos);
+
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -719,6 +920,22 @@ void routed_vehicle_impact_movement (entity *en)
 
 	seed = get_client_server_entity_random_number_seed(en);
 
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	//
+	// the draw stays here; the host adds the sideways push to its vector (EEDCS-37)
+	//
+
+	campaign_movement_require_hosted (en);
+
+	campaign_movement_vehicle_vector_seed (en);
+
+	speed = 4.0 * frand1x (&seed);
+
+	campaign_movement_gv_impact (en, speed);
+
+#else
+
 	speed = 4.0 * frand1x (&seed);
 
 	velocity = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_MOTION_VECTOR);
@@ -726,6 +943,8 @@ void routed_vehicle_impact_movement (entity *en)
 	velocity->x += (speed * raw->vh.mob.xv.x);
 
 	velocity->z += (speed * raw->vh.mob.xv.z);
+
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

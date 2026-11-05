@@ -1,0 +1,113 @@
+{
+  "reviewed_utc": "2026-10-28T10:40:33.194053+00:00",
+  "reviewer": "same independent Codex reviewer",
+  "scope": "Focused new181..bb zero-window Lua summary/test/doc/log correction only; no unchanged C/observer/physics or runtime re-review",
+  "base_sha": "181d957c08210a6684743a6cc41ffe53a5a1b3e3",
+  "source_sha_before": "bbfea21fcdb808162e246f1fd74c15a705ba2e54",
+  "source_sha_after": "bbfea21fcdb808162e246f1fd74c15a705ba2e54",
+  "status_before": "clean",
+  "status_after": "clean",
+  "findings": [],
+  "prior_finding": {
+    "BRIDGE-ZERO-WINDOW-SUMMARY": "RESOLVED: immediate after-failure state retained as initial last_state; zero valid frame budget now derives pending count from that actual state. Only actual cmb-bridge-segment rows count. No segment rows yields state_valid=false/in_update_at_end-1/landedfalse. Summary completion requires done+nonempty actual state+zero pending. Raw state/events remain available for native completeness audit."
+  },
+  "test_strength": "Actual shared Lua file under real host/main with stand-in engine. Existing zero-window edge now asserts pending1/landedfalse/statevalid; table controls cover zero/pending,3frame/pending,3frame/finished positive,3frame/empty and zero/empty. Exactlyone summary required; every JSON line parses strictly, previous filter_map removal prevents silent row loss. Retained old181 RED101 demonstrates same wrong0/true summary; corrected20host_callbacks pass. No native-physics claim from these controls.",
+  "existing_check_evidence": {
+    "bridge-summary-red.log": {
+      "sha256": "a7bad2d5d3a12540b7e8dc8c94c273ceafd0077cdf76472f5c9b9559d58a1262",
+      "verified_markers": [
+        "CARGO_EXIT=101",
+        "DOCKER_EXIT=101",
+        "in_update_at_end",
+        "landed_all"
+      ]
+    },
+    "cargo-test-summary.log": {
+      "sha256": "8aecb95bda41b0761f1d6a8ae0b15d6418d056ac9bbd3d4f7666cb8844558e0e",
+      "verified_markers": [
+        "20 passed; 0 failed",
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0",
+        "the_bridge_summary_counts_a_segment_as_finished_only_from_a_state_that_really_says_so ... ok",
+        "the_bridge_witness_accepts_an_explicit_valid_selector_and_the_edge_values_and_passes_them_on_exactly ... ok"
+      ]
+    },
+    "fmt-summary.log": {
+      "sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+      "verified_markers": [
+        "FMT_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "clippy-summary-default.log": {
+      "sha256": "1a87c322e1e8253c5c8a4032513770e5a7b6ec00d472fd27bec674e892bc47a4",
+      "verified_markers": [
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "clippy-summary-fixture.log": {
+      "sha256": "9a0dc347820edd97d8993f84e4ab28956c932b01706ce67e445a6081edca330c",
+      "verified_markers": [
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    }
+  },
+  "file_pins": [
+    {
+      "path": "eech-campaign/crates/eech-world/lua/bridge-case.lua",
+      "git_blob": "570cade352395beb0d870f94e75b548bab4323b8",
+      "raw_sha256": "7bac2fc65274ab737abe16d2e19f19e452780a1e38985221cdbb4bb8d481213a"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "git_blob": "fb902558147e4796e69147af7d17196dd49a992b",
+      "raw_sha256": "8ee9bfd9a2eddc14f2a23556c3a4add8efd8a3ba129a094d77791e3584d942e6"
+    },
+    {
+      "path": "eech-campaign/docs/m5-bridge-characterization.md",
+      "git_blob": "d38bdd02f216ccc4def5273e5f77e5e03add67ef",
+      "raw_sha256": "498869a36a3c6517e99f88922e6e086ca52def6c0e8a903df45a19696a4be005"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/bridge-summary-red.log",
+      "git_blob": "958e9be11cd12097e3e5ae3e8ae60990bf965046",
+      "raw_sha256": "a7bad2d5d3a12540b7e8dc8c94c273ceafd0077cdf76472f5c9b9559d58a1262"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-summary.log",
+      "git_blob": "3b6b535b6a07bb1caa0570f328c215de07613eda",
+      "raw_sha256": "8aecb95bda41b0761f1d6a8ae0b15d6418d056ac9bbd3d4f7666cb8844558e0e"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-summary-default.log",
+      "git_blob": "dab8616c6ff66a5ed62f85b159a26c30654a3cb9",
+      "raw_sha256": "1a87c322e1e8253c5c8a4032513770e5a7b6ec00d472fd27bec674e892bc47a4"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-summary-fixture.log",
+      "git_blob": "db40bb75dd8d7bbb51fd32a79579cdc6bf064103",
+      "raw_sha256": "9a0dc347820edd97d8993f84e4ab28956c932b01706ce67e445a6081edca330c"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/fmt-summary.log",
+      "git_blob": "fb443baa65a38fe198b61549de69630e8a4fb6fb",
+      "raw_sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196"
+    }
+  ],
+  "private_reply_sha256": "21354bd3971bf40ca440ba5b182752a5c5a2e04658a8b29893ec73bb862dc29a",
+  "limits": [
+    "All8 changed files canonicalize to pinned Git blobs. No C/header/Rust production/observer changes; unaffected181 Csyntax/preprocess evidence reused, not falsely called rerun.",
+    "Default5/100/12 and frame/state call sequence unchanged; source summary fix adds no simulation frame, mutation, callback or RNG operation.",
+    "state_valid only establishes that segment state rows were returned; full native audit must still verify correct bridge identity, complete cardinality, all JSON lines, exact ordered sequence, trusted/overflow and actual reached paths.",
+    "No source edits/builds/tests/native launches/agents during this review.",
+    "Original bridge witness still native-UNRUN; no R5physics extraction or wholeTask46D2 approval."
+  ],
+  "disposition": "Focused newP2 closed; no new change-specific findings. Original bridge native gate may proceed under existing frozen-source/input/build requirements.",
+  "remaining": [
+    "Fresh exactbbfixture build+manifest/input checks and actual original native/controller evidence.",
+    "Review actual preconditions/per-bridge states/eventorder/landings and reached-map deterministicrepeat before accepting original characterization.",
+    "R5physics,R3persistentstructureidentity/reportcorrelation,physicalreports and finalshippingwholeD2 gates remain."
+  ]
+}

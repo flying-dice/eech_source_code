@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_hostaim.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -218,9 +220,23 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 	// Fix to stop helicopters from killing themselves through firing missiles into the ground...
 	//
 
-	if ((aggressor == receiver) && (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI))
+	// (the eligibility of a hit that is the helicopter's own is the host's, EEDCS-46; the comparison of the two identities is the campaign's fact)
+
+	if (aggressor == receiver)
 	{
-		return TRUE;
+		campaign_health_request
+			request;
+
+		memset (&request, 0, sizeof (request));
+
+		request.op = CAMPAIGN_HEALTH_HIT_ELIGIBLE;
+		request.self_hit = TRUE;
+		request.target_not_ai = (get_local_entity_int_value (receiver, INT_TYPE_PLAYER) != ENTITY_PLAYER_AI);
+
+		if (!campaign_aim_health (receiver, &request).health.eligible)
+		{
+			return TRUE;
+		}
 	}
 
 	//
@@ -235,13 +251,19 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 	// assess damage
 	//
 
-	old_damage_state = aircraft_critically_damaged (receiver);
+	// the classes of the critical state before and after the hit are the host's answer (they are the values of aircraft_damage_types, checked in damage.c)
+	{
+		int
+			critical_before,
+			critical_after;
 
-	damage_caused = damage_client_server_entity (receiver, sender, damage_modifier);
+		damage_caused = damage_client_server_entity_assess (receiver, sender, damage_modifier, &critical_before, &critical_after);
+
+		old_damage_state = (aircraft_damage_types) critical_before;
+		new_damage_state = (aircraft_damage_types) critical_after;
+	}
 
 	total_damage_level = get_local_entity_int_value (receiver, INT_TYPE_DAMAGE_LEVEL);
-
-	new_damage_state = aircraft_critically_damaged (receiver);
 
 	if ((old_damage_state != AIRCRAFT_DAMAGE_CRITICAL) && (new_damage_state == AIRCRAFT_DAMAGE_CRITICAL))
 	{
@@ -500,6 +522,16 @@ static int response_to_set_entity_position (entity_messages message, entity *rec
 	en_heading = get_local_entity_float_value (receiver, FLOAT_TYPE_HEADING);
 
 	velocity = (float) va_arg (pargs, double);
+
+	#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	// EEDCS-40: a hosted dependent of a hosted parent is positioned by the host; otherwise the original code below runs
+	if (campaign_movement_dependent_carry (receiver, sender, position, heading, velocity))
+	{
+		return (TRUE);
+	}
+
+	#endif
 
 	parent_position = get_local_entity_vec3d_ptr (sender, VEC3D_TYPE_POSITION);
 

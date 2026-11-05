@@ -1,0 +1,6 @@
+19:37:15 copy fresh root R:\d2-evidence\aim-extraction-20261026\roots\lp-all2
+19:37:20 start lead probe lp-all2 mode=all bin=R:\d2-evidence\aim-extraction-20261026\probe-bin-c21852b09-lua-fixed
+19:37:20 arguments: R:/d2-evidence/aim-extraction-20261026/probe-bin-c21852b09-lua-fixed/lua/aim-lead-probe.lua root=R:/d2-evidence/aim-extraction-20261026/roots/lp-all2 scenario=lebanon_retail mode=all out=R:/d2-evidence/aim-extraction-20261026/out/lp-all2/trace.jsonl
+19:37:39 end lp-all2: native exit=0 after 19 s
+19:37:39 aim-lead-probe: mode=all failed=0
+19:37:40 DONE lp-all2 exit=0

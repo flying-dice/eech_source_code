@@ -1,0 +1,112 @@
+[
+  {
+    "private_original": "R:\\d3-evidence\\host-sound-lifetime-combined-e50205871-20261031.json",
+    "private_original_sha256": "f387e395d139a270d7ae22c46781b0903c544001e323985e636b0cf3f694c690",
+    "private_original_bytes": 21126,
+    "published": "host-sound-lifetime-combined-e50205871-20261031.json",
+    "published_sha256": "4bc7e21b07d67c4759d458c4d666631fb6fcf27c20e558ac21ffe939588c3ee2",
+    "published_bytes": 20535,
+    "decoded_json_values_identical": true,
+    "scope": "LF JSON metadata publication only; no measured raw outputs, baselines or tolerances changed"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-host-sound-lifetime-defaults-e50205871-20261031\\complete-raw-comparison.json",
+    "private_original_sha256": "59f75bc6540baaef36c3f6f798e5560fe603ad65b911eb8afe3403ed8e77af3c",
+    "private_original_bytes": 12613,
+    "published": "complete-raw-comparison.json",
+    "published_sha256": "902ba97ccf9f693d4ba4bcc1cb76a7fc32f2696235e4e1d770da2d1eee0ca4b7",
+    "published_bytes": 12287,
+    "decoded_json_values_identical": true,
+    "scope": "LF JSON metadata publication only; no measured raw outputs, baselines or tolerances changed"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\independent-environment-host-sound-lifetime-source-review-402ba4410-20261031.json",
+    "private_original_sha256": "0b5f468032d374c152c9005bd2bfb69a6651f073d67f160135342084003bf8cb",
+    "private_original_bytes": 5085,
+    "published": "independent-environment-host-sound-lifetime-source-review-402ba4410-20261031.json",
+    "published_sha256": "328cf21734f1a02e792a95e93832d6fe6a86efe21b0411dbf479c13c0fe13c14",
+    "published_bytes": 5045,
+    "decoded_json_values_identical": true,
+    "scope": "LF JSON metadata publication only; no measured raw outputs, baselines or tolerances changed"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\independent-environment-host-sound-lifetime-source-review-e50205871-20261031.json",
+    "private_original_sha256": "0c30b9a625e98e5d62c5931931767bd2642f1728e154d69b38007944ae0b6264",
+    "private_original_bytes": 8925,
+    "published": "independent-environment-host-sound-lifetime-source-review-e50205871-20261031.json",
+    "published_sha256": "0b527d19e14b957c389b86e6b0c43271beab5726ca9cff167470a51a48e5024e",
+    "published_bytes": 8790,
+    "decoded_json_values_identical": true,
+    "scope": "LF JSON metadata publication only; no measured raw outputs, baselines or tolerances changed"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\current-CI-402ba4410-20261031.json",
+    "private_original_sha256": "b4191bd30602bd438f51cb3c7e4b6ce24c47f6131f36e050762b3ff797ec7584",
+    "private_original_bytes": 16879,
+    "published": "current-CI-402ba4410-20261031.json",
+    "published_sha256": "b4191bd30602bd438f51cb3c7e4b6ce24c47f6131f36e050762b3ff797ec7584",
+    "published_bytes": 16879,
+    "decoded_json_values_identical": true,
+    "scope": "LF JSON metadata publication only; no measured raw outputs, baselines or tolerances changed"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\current-CI-e50205871-20261031.json",
+    "private_original_sha256": "2c0380ece650c79a344c4ed3545b43566a956b00a5c48749402fe778cb858287",
+    "private_original_bytes": 16921,
+    "published": "current-CI-e50205871-20261031.json",
+    "published_sha256": "2c0380ece650c79a344c4ed3545b43566a956b00a5c48749402fe778cb858287",
+    "published_bytes": 16921,
+    "decoded_json_values_identical": true,
+    "scope": "LF JSON metadata publication only; no measured raw outputs, baselines or tolerances changed"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-host-sound-lifetime-e50205871-windows-20261031-completion.json",
+    "private_original_sha256": "d2667f4ca2db60dad519afbe45df772a7869a9416d8c93b6f4d66caed0460a28",
+    "private_original_bytes": 723,
+    "published": "environment-host-sound-lifetime-e50205871-windows-20261031-completion.json",
+    "published_sha256": "6e017ab7093c6aa961a12c30bb0b298412c3df453fd9e3e34b78c1c54e5a6f56",
+    "published_bytes": 705,
+    "decoded_json_values_identical": true,
+    "scope": "LF JSON metadata publication only; no measured raw outputs, baselines or tolerances changed"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-host-sound-lifetime-e50205871-linux-20261031-completion.json",
+    "private_original_sha256": "64165dbae6fa66f02ac9c4523b8115a8e9209a55b65773a1231537c93daaf6b7",
+    "private_original_bytes": 719,
+    "published": "environment-host-sound-lifetime-e50205871-linux-20261031-completion.json",
+    "published_sha256": "78f9b48613be989eeac9771c03c2349e539d507d2e3e0b8cdcbb4f9916be65b9",
+    "published_bytes": 701,
+    "decoded_json_values_identical": true,
+    "scope": "LF JSON metadata publication only; no measured raw outputs, baselines or tolerances changed"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\host-sound-remaining-controls-e50205871-20261031.json",
+    "private_original_sha256": "c9a5608993c0f22dabf9f46816f5f26ee5a6e1cb8fdbdff9a0f44676b2e849a2",
+    "private_original_bytes": 446,
+    "published": "host-sound-remaining-controls-e50205871-20261031.json",
+    "published_sha256": "edba585aed5d8f003f428f9b22c12fa8bd9ad652ded6ec1f0893e720e9127509",
+    "published_bytes": 435,
+    "decoded_json_values_identical": true,
+    "scope": "LF JSON metadata publication only; no measured raw outputs, baselines or tolerances changed"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\host-sound-remaining-controls-recovery-e50205871-20261031.json",
+    "private_original_sha256": "b727ecdd1f17b4a096b685cff11aee4d0c42ecfd4d34228dfafb15ac648555a5",
+    "private_original_bytes": 2103,
+    "published": "host-sound-remaining-controls-recovery-e50205871-20261031.json",
+    "published_sha256": "6b170de281b68822c16b3256464e008ccb4c163d7f74a26fc8c5435fe1ab8e22",
+    "published_bytes": 2054,
+    "decoded_json_values_identical": true,
+    "scope": "LF JSON metadata publication only; no measured raw outputs, baselines or tolerances changed"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\independent-environment-host-sound-lifetime-final-actual-review-e50205871-20261031.json",
+    "private_original_sha256": "274444e811399bba8985b6b915b2a7bb540bd285b4999c8d079d2f5e51d72289",
+    "private_original_bytes": 11649,
+    "published": "independent-environment-host-sound-lifetime-final-actual-review-e50205871-20261031.json",
+    "published_sha256": "31831c668e70069aa6dc545305bbc4ecb18dd5091f62b4e1af11fb0636eaec18",
+    "published_bytes": 11416,
+    "decoded_json_values_identical": true,
+    "scope": "Literal final actual review metadata copied after the review; not a claim that report additions/future edits were pre-reviewed. No measured raw bytes changed."
+  }
+]

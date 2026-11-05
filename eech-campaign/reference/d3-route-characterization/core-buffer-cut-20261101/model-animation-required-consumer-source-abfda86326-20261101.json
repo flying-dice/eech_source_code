@@ -1,0 +1,30 @@
+{
+  "source": "abfda863267c9aa7d71ebc29b10f168d98c484aa",
+  "created_utc": "2026-11-01T22:33:38.189756+00:00",
+  "evidence_type": "source dataflow, no new runtime measurement",
+  "sources": [
+    {
+      "path": "aphavoc/source/entity/en_misc/en_anim/en_anim.c",
+      "sha256": "ad40ceb23bcdb7d1199737d7ac8e80ec4b36c7d89e9f49567fcc811e14ddda2d"
+    },
+    {
+      "path": "modules/3d/3danim.c",
+      "sha256": "705afd4041804099df37b8c3fa982ebc2002f9b8581191346e29ec91651023d8"
+    },
+    {
+      "path": "modules/3d/3dobjdb.c",
+      "sha256": "fc3e86ba9cffd570a9827bae817e425b6cad1c9df098b2090bbe3e3628ea2b19"
+    }
+  ],
+  "required_consumer": "set_local_entity_id_number, en_anim.c402..522",
+  "dataflow": "Nested set_texture_animation_frame_on_object calls test digit0..4 membership in actual scene texture_animations; found prefix selects significant_digits1..5 and id_modulo10..100000. Local entity seed -> rand16x mod id_modulo -> nonzero id_number; campaign INT_TYPE_ID_NUMBER and INT_TYPE_ID_NUMBER_SIGNIFICANT_DIGITS are written. Texture frame setters then write per-instance digit frames.",
+  "boundary": "Animation membership is factual model metadata consumed by campaign ID-number policy. Preserve true metadata/return semantics; campaign number generation and entity writes remain EECH_DC. A false empty list can change state; no blanket visual-only/dormant claim.",
+  "original_production": "3dobjdb.c add_animation/add_animation_object builds ordered dedup lists across original scene/main/approximation/subobject surfaces; common scene payload may provide initial list. Existing closed original observer does not capture final pointed arrays.",
+  "next": "Sole Sonnet next-original observer captures actual final scene lists with backing/strict completion; no production metadata API/removal until new original actuals.",
+  "not_claimed": [
+    "new native characterization",
+    "full lists already captured",
+    "host metadata authority already moved",
+    "Task50/D3 closure"
+  ]
+}

@@ -1,0 +1,2 @@
+eech: artwork not installed, substituting a 1xeech-world: fatal exception 0xc0000005 at 0x7ffdc34b26b2 (C:\WINDOWS\System32\msvcrt.dll + 0x626b2); access [0, 308]
+eech-world: call chain (offsets in C:\WINDOWS\System32\msvcrt.dll): +0xffff80023cbb0000

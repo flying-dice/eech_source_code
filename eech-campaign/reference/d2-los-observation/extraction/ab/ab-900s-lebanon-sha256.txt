@@ -1,0 +1,4 @@
+recording.acmi base=45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f cand=45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f bytes=11363845
+observations.jsonl base=430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b cand=430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b bytes=6629273
+metrics.json base=ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474 cand=ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474 bytes=11777
+baseline (supplied bundle bin, accepted a7934aa7 binaries) wall 09:54:20-10:12:26 = 18m06s; candidate (shipping, a7863a73f) 09:54:21-10:13:34 = 19m13s; same load, parallel.

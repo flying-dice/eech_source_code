@@ -1,0 +1,17 @@
+# SHA-256 of the b4399344 settled native build and witness script (build dir target/sm-settled, relative to eech-campaign/)
+  ac29398ee59401199ced6906892480cf535c5bce8a83d886683d3fddf6f95361  eech_dc.dll
+  648f9788c832ac3abe1a73eea94a0c0bdb841753b1f778f61f23434d549aa0c1  eech-world.exe
+  b224cb2eacdea06fcb7fe273979e660fbef0c1a9c65be53c7be9fc0a4571daca  lua.dll
+  c8bf510e8d0e976481f22fa7639b375c920c446de48f932c96fa1acabe215ab1  lua/aircraft-arrivals.lua
+  e5c04cc4aeb17d03fd680e95678aa02ac45c58464a8f27425d0923f8b04952b4  lua/campaign.lua
+  d83927a3edefb844c220c701b82a3dace7221a7b7cfbf235aeb09da7b061c8e5  lua/convoy-movement.lua
+  c292f4b07e2f320708ab0252b5394a3606a655dec212376dcfe6d2d3c2d22aa5  lua/host-identities-lifecycle.lua
+  a4f3ef6d5acf4051b84ca70958d84ae078b6090c73bffdb3692489fe9c4f5a8a  lua/host-identities.lua
+  16c7fb1b68d8e40f48149195502dee6518d6f66403dde9aefece57630411654a  lua/lifecycle.lua
+  dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053  lua/metrics.lua
+  68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701  lua/observations.lua
+  acb217ca604e73fea052f67231efcc40c9a3d9199bf88b31872f5b46cb09b718  lua/remaining-arrivals.lua
+  4b4805d1365b384ea9b056e59790c9112bc5e85838ff5d95fdf5cde0e2f96c3a  lua/supply-arrivals-lifecycle.lua
+  a84d9a0ce0c1c93ebf916eb2652e60c74ebf4dbca38f3448292e16dc9feaf21f  lua/supply-arrivals.lua
+  e5610fd442ca00e6c87e340fdc65ce2c8a46cd590ce14d0883d767711d6ae71f  lua/surface-movement.lua
+  3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b  recording.acmi (local only, both runs; equals the PR91 baseline)

@@ -1,0 +1,31 @@
+{
+  "actual_exit": 0,
+  "completed_utc": "2026-10-29T16:39:57.8697222Z",
+  "scope": "Working tree G2 host Linux build/library/vocabulary/lint; NO retail environment; skipped map checks are NOT conformance proof",
+  "hashes": [
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/terrain_ref.c",
+      "sha256": "84c4b12427b5272bf5bc27f1b8b15661d2df6e2821568aa0d9fbcb20f30ed2f6"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/terrain_ref.h",
+      "sha256": "e0947615ada6fcaa3f630e758456a050821653e1f7750900cb6eddb1333910d3"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/terrain.rs",
+      "sha256": "cf07089efd346f3ddb0183a36ceabab479d15c19c5b97fece636c183bc67dab2"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/ground_conformance.rs",
+      "sha256": "43c63e5246d0def59799ca26489a86aff236f5a7fba03b838285d94ab5c0b7cd"
+    }
+  ],
+  "actual_terrain_library_tests": 6,
+  "actual_vocabulary_tests": 1,
+  "retail_tests_skipped": 3,
+  "cargo_ground_test_functions_reported_ok": 4,
+  "host_all_target_clippy_exit": 0,
+  "format_exit": 0,
+  "limits": "No retail/G2 physical conformance, public handoff, shipping acceptance or independent source review yet. Production DLL dispatch unchanged.",
+  "portability_repair": "Repository-owned enum/database texts are embedded at compile time with verified include_str paths; no hand-written table/private data/runtime Docker source-root dependency."
+}

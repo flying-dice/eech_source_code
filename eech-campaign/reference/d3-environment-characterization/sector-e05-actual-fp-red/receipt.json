@@ -1,0 +1,23 @@
+{
+  "test_source": "e05bf775fc9c00ffed2de998ca94b865f7b99053",
+  "unguarded_production_source": "6711d5f11804537255d08e5c355f329796cca657",
+  "actual_controller_exit": 101,
+  "focused_FP_test_actual_exit": 101,
+  "focused_test_compiled_and_executed": true,
+  "focused_test_functions": 1,
+  "calls_checked": 6144,
+  "reported_state_change_categories": 76,
+  "no_status_mask": true,
+  "observed": "Linuxx86_64 MXCSR precision/underflow/denormal flags changed; no claimofactual32/x87failure. Answers remainedconsistentinthisrun.",
+  "examples": [
+    "fractional(1,1): MXCSR0x1f80->0x1fa0",
+    "subnormalbesidenormal: MXCSR0x1f80->0x1fb2"
+  ],
+  "observer_guards_actual_exit": 101,
+  "observer_functions_passed": 11,
+  "observer_functions_failed": 2,
+  "observer_failure_scope": "Syntheticcompletedrefusalhasrecordcountwithoutpair; expectederrorprefixadjacencytoodirect. Newstrictparser correctlyrefusesincoherentevidence.",
+  "public_authority": "SKIPPED without runtime environment; NOTexercised",
+  "next_production_fix": "Complete FPsave/canonical/restore withbitwiseprivateABI/stagedoutputs, no assertionmask/domainreduction; alsofinitebookkeepingrepairs. NewsourceUNBUILTuntilRootruns.",
+  "scope": "Actual red preserved, no FP/authority/shipping/Task51/D3acceptance"
+}

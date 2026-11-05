@@ -1,0 +1,10 @@
+{
+  "when_utc": "2026-10-28T07:57:34.8185282Z",
+  "volume": "eech-win-target-d2-combat-real-225ff4abd-20261028",
+  "all_real225_natives_complete": true,
+  "closed_runtime_reviews_present": true,
+  "container_count": 0,
+  "actual_remove_exit": 0,
+  "remove_output": "eech-win-target-d2-combat-real-225ff4abd-20261028",
+  "preserved": "Frozen source, exported binaries/all40 hashes/BINF, raw recordings/traces, roots, reports/reviews; R mapping and Docker daemon remain"
+}

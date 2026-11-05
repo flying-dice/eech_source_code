@@ -1,0 +1,13 @@
+{
+  "scope": "independent comparison of completed original sensor characterization reports only; no host extraction",
+  "probe_events": 75,
+  "no_probe_events": 75,
+  "complete_terminal_reports": true,
+  "v2_run_reports_identical": true,
+  "physical_hash_v1": "d60c462829c9714e",
+  "physical_hash_v2": "d60c462829c9714e",
+  "decision_hash_v1": "2611b04d99f5c689",
+  "decision_hash_v2": "2611b04d99f5c689",
+  "v1_v2_hashes_equal": true,
+  "passed": true
+}

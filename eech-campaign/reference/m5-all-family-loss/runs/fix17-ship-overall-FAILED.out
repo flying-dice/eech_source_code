@@ -1,0 +1,127 @@
+released	fixed_wing	eech-world:2693 released=0 then=campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+residual	fixed_wing	eech-world:2693 member_number=0 guide=task22,mask00000002,restricted guide=task22,mask00000001,restricted guide=task6,maskffffffff
+released	fixed_wing	eech-world:2692 released=0 then=campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+residual	fixed_wing	eech-world:2692 member_number=1 guide=task22,mask00000002,restricted guide=task22,mask00000001,restricted guide=task6,maskffffffff
+released	fixed_wing	eech-world:3076 released=0 then=campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+residual	fixed_wing	eech-world:3076 member_number=0 guide=task14,mask00000002,restricted guide=task13,mask00000001,restricted
+released	fixed_wing	eech-world:2777 released=5 then=campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+residual	fixed_wing	eech-world:2777 member_number=0 guide=task13,mask00000002,restricted guide=task13,mask00000001,restricted
+released	fixed_wing	eech-world:3062 released=0 then=campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+residual	fixed_wing	eech-world:3062 member_number=0 guide=task13,mask00000002,restricted guide=task13,mask00000001,restricted
+released	fixed_wing	eech-world:3061 released=0 then=campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+residual	fixed_wing	eech-world:3061 member_number=1 guide=task13,mask00000002,restricted guide=task13,mask00000001,restricted
+released	fixed_wing	eech-world:3085 released=2 then=campaign loss: WITHHOLD does not support a member with landing actions
+residual	fixed_wing	eech-world:3085 member_number=1 guide=task15,maskffffffff
+released	fixed_wing	eech-world:3011 released=14 then=campaign loss: WITHHOLD does not support a member with landing actions
+residual	fixed_wing	eech-world:3011 member_number=3 guide=task6,maskffffffff
+released	fixed_wing	eech-world:3075 released=0 then=campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+residual	fixed_wing	eech-world:3075 member_number=1 guide=task14,mask00000002,restricted guide=task13,mask00000001,restricted
+released	fixed_wing	eech-world:2775 released=5 then=campaign loss: WITHHOLD does not support a member with landing actions
+residual	fixed_wing	eech-world:2775 member_number=0 guide=task8,maskffffffff
+released	fixed_wing	eech-world:3012 released=8 then=campaign loss: WITHHOLD does not support a member with landing actions
+residual	fixed_wing	eech-world:3012 member_number=2 guide=task6,maskffffffff
+released	fixed_wing	eech-world:2774 released=1 then=campaign loss: WITHHOLD does not support a member with landing actions
+residual	fixed_wing	eech-world:2774 member_number=1 guide=task8,maskffffffff
+released	fixed_wing	eech-world:2776 released=9 then=campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+residual	fixed_wing	eech-world:2776 member_number=1 guide=task13,mask00000002,restricted guide=task13,mask00000001,restricted
+released	fixed_wing	eech-world:3014 released=12 then=campaign loss: WITHHOLD does not support a member with landing actions
+residual	fixed_wing	eech-world:3014 member_number=0 guide=task6,maskffffffff
+released	fixed_wing	eech-world:2695 released=8 then=campaign loss: WITHHOLD does not support a member with landing actions
+residual	fixed_wing	eech-world:2695 member_number=2 guide=task6,maskffffffff
+released	fixed_wing	eech-world:2697 released=2 then=campaign loss: WITHHOLD does not support a member with landing actions
+residual	fixed_wing	eech-world:2697 member_number=0 guide=task6,maskffffffff
+released	fixed_wing	eech-world:2694 released=1 then=campaign loss: WITHHOLD does not support a member with landing actions
+residual	fixed_wing	eech-world:2694 member_number=3 guide=task6,maskffffffff
+released	fixed_wing	eech-world:2696 released=1 then=campaign loss: WITHHOLD does not support a member with landing actions
+residual	fixed_wing	eech-world:2696 member_number=1 guide=task6,maskffffffff
+screened	fixed_wing	eech-world:2714:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2715:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2709:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2708:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2713:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2712:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2707:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2706:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2711:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2710:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3110:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2705:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3084:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2700:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3111:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3083:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2704:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2698:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2701:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2699:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2691:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3059:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3057:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3060:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2693:campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+screened	fixed_wing	eech-world:3058:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2772:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2690:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2770:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:2692:campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+screened	fixed_wing	eech-world:2773:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3076:campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+screened	fixed_wing	eech-world:2777:campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+screened	fixed_wing	eech-world:2771:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3062:campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+screened	fixed_wing	eech-world:3041:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3039:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3102:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3106:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3061:campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+screened	fixed_wing	eech-world:3042:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3040:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3100:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3104:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3101:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3103:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3105:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3099:campaign loss: WITHHOLD supports only an AI member that is not landed
+screened	fixed_wing	eech-world:3085:campaign loss: WITHHOLD does not support a member with landing actions
+screened	fixed_wing	eech-world:3086:campaign loss: WITHHOLD does not support a member with landing actions
+screened	fixed_wing	eech-world:3011:campaign loss: WITHHOLD does not support a member with landing actions
+screened	fixed_wing	eech-world:3075:campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+screened	fixed_wing	eech-world:2775:campaign loss: WITHHOLD does not support a member with landing actions
+screened	fixed_wing	eech-world:3012:campaign loss: WITHHOLD does not support a member with landing actions
+screened	fixed_wing	eech-world:2774:campaign loss: WITHHOLD does not support a member with landing actions
+screened	fixed_wing	eech-world:2776:campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+screened	fixed_wing	eech-world:3014:campaign loss: WITHHOLD does not support a member with landing actions
+screened	fixed_wing	eech-world:3018:campaign loss: WITHHOLD does not support a member with landing actions
+screened	fixed_wing	eech-world:2695:campaign loss: WITHHOLD does not support a member with landing actions
+screened	fixed_wing	eech-world:3017:campaign loss: WITHHOLD does not support a member with landing actions
+screened	fixed_wing	eech-world:2697:campaign loss: WITHHOLD does not support a member with landing actions
+screened	fixed_wing	eech-world:2694:campaign loss: WITHHOLD does not support a member with landing actions
+screened	fixed_wing	eech-world:2696:campaign loss: WITHHOLD does not support a member with landing actions
+unavailable	fixed_wing	no supported member in 0 tries, 63 screened out
+check	fixed_wing.available	FAIL	no withhold-supported member in 0 tries, 63 screened out
+released	ship	eech-world:2741 released=18 then=supported
+screened	ship	eech-world:3137:campaign loss: WITHHOLD supports only an AI member that is not landed
+withheld	ship	host_id=eech-world:2741 entity=83477 event=physical group_members=2 primary_task=nil keysite_m=403
+check	ship.observed_in_same_stack	pass	observe_loss ran inside the kill call
+check	ship.event_physical	pass	physical
+check	ship.entity_type	pass	28
+check	ship.left_group_at_once	pass	physical_present=true in_group=false
+wreck	ship	physical_present_at_once=true
+force_state	ship	withheld kill: losses+0 hardware[] regen[]
+check	ship.withheld_force_info_and_regen_unchanged	pass	losses+0 hardware[] regen[]
+note	ship	no forward control (group of 2 members at observe)
+settled	0 frames of 1000 ms (0.0 game minutes)
+wreck	ship	at_report physical_present=true in_group=false after 0 frames
+check	ship.still_out_of_group_before_report	pass
+force_state	ship	report: losses+1 hardware[6:-1] regen[]
+check	ship.report_applies_force_info_and_regen_once	pass	losses+1 hardware[6:-1] regen[]
+receipt	ship	group_losses=0>1 logical=2>1 physical_before=1 primary_losses=0>0 landing=0>0 expire=0 completed=0
+check	ship.group_losses_plus_one	pass
+check	ship.logical_members_held_until_report	pass	observe=2 forwarded=0 report_before=2
+check	ship.logical_members_minus_one	pass
+check	ship.physical_members_already_removed	pass	physical_before=1
+check	ship.primary_task_losses_unchanged	pass
+check	ship.no_landing_or_task_work	pass
+note	ship	group too small for the probe (2 members at observe)
+summary	fixed_wing=UNAVAILABLE ship=withheld+reported(present)
+result	fail

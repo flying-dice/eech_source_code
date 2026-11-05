@@ -1,0 +1,78 @@
+TEST_LINK_FLAGS=-fno-pie -no-pie
+SANITIZERS=-fsanitize=address,undefined -fno-sanitize-recover=undefined
+SANITIZER_PROBE_COMPILE_EXIT=0
+SANITIZER_PROBE_RUN_EXIT=0
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/blast_checks.c: In function 'host_aim_inner':
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/blast_checks.c:404:121: warning: '%s' directive output may be truncated writing up to 128 bytes into a region of size 121 [-Wformat-truncation=]
+  404 |                                 snprintf (result->blast.target_host_id, sizeof (result->blast.target_host_id), "another-%s", entry->host_id);
+      |                                                                                                                         ^~
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/blast_checks.c:404:33: note: 'snprintf' output between 9 and 137 bytes into a destination of size 129
+  404 |                                 snprintf (result->blast.target_host_id, sizeof (result->blast.target_host_id), "another-%s", entry->host_id);
+      |                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+COMPILE_EXIT=0
+ok   an impact is one question that takes no sample and reads no terrain unless the host asks
+ok   the kill code, the target facts and the position cross by value
+ok   the host's plan is returned whole
+ok   a host that needs the terrain is given it ONCE (read by the campaign on request) and is asked again with it
+ok   the terrain that takes no crater is given as it is
+ok   a host that plans no blast for a land hit gives none, and never asks for the terrain
+ok   a code the host does not know is reported as such (the campaign then stops with the original's message)
+ok   a crater on a terrain the campaign has not read is refused
+ok   three blasts are refused
+ok   a negative number of blasts is refused
+ok   a direct hit on a target there is none of is refused
+ok   leaving a target out of no blast is refused
+ok   a code that is not known cannot also plan a blast
+ok   a flag that is not a boolean is refused
+ok   a host that asks for the terrain a second time is refused (it is read once)
+ok   a failing host stops the engine with its reason
+ok   no host stops the engine at the first request
+ok   a request that says a target there is none of is alive is not sent
+ok   a host that ends the walk at once is asked once; the radius it computed is reported once, before and without any object, and no window is read
+ok   the explosion and the map's sector figures cross by value; the first request carries no window
+ok   the campaign acts on every object the host reaches, in the host's order (sector by sector, each list in order), and takes no sample
+ok   the action and the modifier are the host's
+ok   a window is supplied for every sector of the rectangle
+ok   a handle is positive and only grows within a blast (an object offered again after a notification has a new one)
+ok   an object a notification unlinked is never offered: the list continues as it is after the notification
+ok   and the same world, with no notification that changes it, offers all three (the control)
+ok   a list of twenty is offered as sixteen and then four, the second following the last handle of the first, and says where the list ends
+ok   an object in the second window is reached and the walk goes on after it
+ok   a rocket the host destroys is passed on as a destruction
+ok   an echo that was asked for reaches the observer before the campaign acts
+ok   and none is asked for in the shipping build
+ok   refused before it is applied: an object that is not in the window
+ok   refused before it is applied: another identity than the one the object was offered under
+ok   refused before it is applied: no identity for an object that was offered with one
+ok   refused before it is applied: a modifier above one
+ok   refused before it is applied: a modifier that is not a number
+ok   refused before it is applied: a negative modifier
+ok   refused before it is applied: a radius that changes within a blast
+ok   refused before it is applied: a negative radius
+ok   refused before it is applied: a radius that is not a number
+ok   refused before it is applied: a request for a sample of the random stream
+ok   refused before it is applied: a window of a sector outside the map
+ok   refused before it is applied: the start of the sector just walked asked again
+ok   refused before it is applied: the start of an earlier sector asked again
+ok   refused before it is applied: an action the campaign does not know
+ok   refused before it is applied: an echo nobody asked for
+ok   refused before it is applied: a window after a negative handle
+ok   refused before it is applied: an end of the walk that names an object
+ok   refused before it is applied: an identity beside an end of the walk
+ok   a healthy host that walks fresh sector (2, 1) and then fresh sector (1, 1) is accepted, and its objects are reached in ITS order
+ok   a walk from the far corner back to the near one and then the middle is accepted too
+ok   but the same fresh sector started a second time is refused, after the objects already reached were acted on
+ok   a host that walks more than 4096 fresh sectors is refused at the 4097th
+ok   with the echo on and a window of candidates (nothing reached, no second sector), a changed radius is refused as a changed radius and not as a malformed echo
+ok   a continuation after an object other than the last offered is refused
+ok   a continuation in another sector than the window's is refused
+ok   a destruction of an object the campaign does not know as a rocket is refused
+ok   an object reached before any window was supplied is refused
+ok   an echo event for an object that is not in the window is refused
+ok   a radius that is not a length is refused before the observer or any object
+ok   a failing host stops the engine with its reason
+ok   no host stops the engine at the first request
+ok   a map with a sector of no length is not sent
+63 checks, 0 failures
+RUN_EXIT=0
+DOCKER_EXIT=0

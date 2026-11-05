@@ -1,0 +1,19 @@
+{
+  "original_bytes": 2009115,
+  "candidate_bytes": 2009115,
+  "original_lines": 5762,
+  "candidate_lines": 5762,
+  "paired_differing_lines": 2,
+  "first_six": [
+    [
+      519,
+      "{\"event\":\"case_launch\",\"launcher\":\"eech-world:2\",\"ok\":false,\"target\":\"\",\"text\":\"runtime error: eech: bad argument: rejected by the engine stack traceback: \\t[C]: in ? \\t[C]: in function 'pcall' \\t[string \\\"R:/eech_source_code/eech-campaign/target/we...\\\"]:161: in function 'launch' \\t[string \\\"R:/eech_source_code/eech-campaign/target/we...\\\"]:240: in main chunk \",\"weapon\":11}",
+      "{\"event\":\"case_launch\",\"launcher\":\"eech-world:2\",\"ok\":false,\"target\":\"\",\"text\":\"runtime error: eech: bad argument: rejected by the engine stack traceback: \\t[C]: in ? \\t[C]: in function 'pcall' \\t[string \\\"R:/eech_source_code/eech-campaign/target/we...\\\"]:178: in function 'launch' \\t[string \\\"R:/eech_source_code/eech-campaign/target/we...\\\"]:257: in main chunk \",\"weapon\":11}"
+    ],
+    [
+      520,
+      "{\"detail\":\"runtime error: eech: bad argument: rejected by the engine\\nstack traceback:\\n\\t[C]: in ?\\n\\t[C]: in function 'pcall'\\n\\t[string \\\"R:/eech_source_code/eech-campaign/target/we...\\\"]:161: in function 'launch'\\n\\t[string \\\"R:/eech_source_code/eech-campaign/target/we...\\\"]:240: in main chunk\\n\",\"event\":\"check\",\"name\":\"rejects_unsupported_launcher\",\"ok\":true}",
+      "{\"detail\":\"runtime error: eech: bad argument: rejected by the engine\\nstack traceback:\\n\\t[C]: in ?\\n\\t[C]: in function 'pcall'\\n\\t[string \\\"R:/eech_source_code/eech-campaign/target/we...\\\"]:178: in function 'launch'\\n\\t[string \\\"R:/eech_source_code/eech-campaign/target/we...\\\"]:257: in main chunk\\n\",\"event\":\"check\",\"name\":\"rejects_unsupported_launcher\",\"ok\":true}"
+    ]
+  ]
+}

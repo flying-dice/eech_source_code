@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_hostaim.h"
+
 #define DEBUG_MODULE 0
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -391,35 +393,62 @@ void play_vehicle_destroyed_speech (entity *victim, entity *aggressor)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/* The critical class of a vehicle's health (EEDCS-46): the host's (mb_hostaim.h, HEALTH classify), from the stored level and the definition's initial level.  A person is never
+   critical.  Every reader of the class asks here: the damage handlers (through damage_client_server_entity_assess), the updates' mobility gates, the fire assessment. */
 int vehicle_critically_damaged (entity *en)
 {
 	vehicle
 		*raw;
 
-	int
-		percent_damaged;
+	campaign_health_request
+		request;
 
-	if (get_local_entity_type (en) == ENTITY_TYPE_PERSON)
-		return FALSE;
-	
 	raw = (vehicle *) get_local_entity_data (en);
 
-	percent_damaged = 100 * raw->damage_level / vehicle_database[raw->mob.sub_type].initial_damage_level;
+	memset (&request, 0, sizeof (request));
 
-	if (percent_damaged < VEHICLE_CRITICAL_DAMAGE_LEVEL)
-		return TRUE;
-	else
-		return FALSE;
+	request.op = CAMPAIGN_HEALTH_CLASSIFY;
+	request.critical_model = (get_local_entity_type (en) == ENTITY_TYPE_PERSON) ? CAMPAIGN_DAMAGE_CRITICAL_PERSON : CAMPAIGN_DAMAGE_CRITICAL_VEHICLE;
+	request.damage_level = raw->damage_level;
+	request.initial_damage_level = vehicle_database[raw->mob.sub_type].initial_damage_level;
+
+	return campaign_aim_health (en, &request).health.critical_class;
+}
+
+/* The frame's timed health roll of a vehicle (EEDCS-46): fire for a vehicle that can burn, bleeding for a person.  The host owns the eligibility (health, a vehicle that can burn,
+   the critical class: a person never), the campaign's ONE sample (taken only if eligible), the roll, the health a hit leaves and whether it is fatal; it also answers the critical class
+   of the health after the roll, which the update's next gate uses.  The caller keeps the observer's hooks, the setting of the health and the kill. */
+void vehicle_timed_health (entity *en, int damage_level, int explosive_quality, campaign_health_result *out)
+{
+	vehicle
+		*raw;
+
+	campaign_health_request
+		request;
+
+	raw = (vehicle *) get_local_entity_data (en);
+
+	memset (&request, 0, sizeof (request));
+
+	request.op = CAMPAIGN_HEALTH_TIMED;
+	request.critical_model = (get_local_entity_type (en) == ENTITY_TYPE_PERSON) ? CAMPAIGN_DAMAGE_CRITICAL_PERSON : CAMPAIGN_DAMAGE_CRITICAL_VEHICLE;
+	request.damage_level = damage_level;
+	request.initial_damage_level = vehicle_database[raw->mob.sub_type].initial_damage_level;
+	request.explosive = (explosive_quality & EXPLOSIVE_QUALITY_EXPLOSIVE) ? TRUE : FALSE;
+	request.flammable = (explosive_quality & EXPLOSIVE_QUALITY_FLAMMABLE) ? TRUE : FALSE;
+	request.delta_time = get_delta_time ();
+
+	*out = campaign_aim_health (en, &request).health;
 }
 
 void assess_vehicle_damage_level (entity *en, int old_damage_level)
 {
 	vehicle
 		*raw;
-	float
-		initial_damage,
-		old_percent_damaged,
-		new_percent_damaged;
+
+	campaign_health_request
+		request;
+
 	int
 		explosive_quality = get_local_entity_int_value (en, INT_TYPE_EXPLOSIVE_QUALITY);
 
@@ -430,18 +459,20 @@ void assess_vehicle_damage_level (entity *en, int old_damage_level)
 
 	if ((explosive_quality & EXPLOSIVE_QUALITY_EXPLOSIVE || explosive_quality & EXPLOSIVE_QUALITY_FLAMMABLE) && get_comms_model () == COMMS_MODEL_SERVER)
 	{
-		initial_damage = (float)(vehicle_database[raw->mob.sub_type].initial_damage_level);
+		// whether the change fell below the critical threshold is the host's (the original's float percentages); the fire, the sleep and the stop are the campaign's
+		memset (&request, 0, sizeof (request));
 
-		old_percent_damaged = (100.0 * (float)old_damage_level) / initial_damage;
-		new_percent_damaged = (100.0 * (float)raw->damage_level) / initial_damage;
-
-		#if DEBUG_MODULE
-			debug_log("VEHICLE: old damage %f, new damage %f", old_percent_damaged, new_percent_damaged);
-		#endif
+		request.op = CAMPAIGN_HEALTH_ASSESS;
+		request.critical_model = (get_local_entity_type (en) == ENTITY_TYPE_PERSON) ? CAMPAIGN_DAMAGE_CRITICAL_PERSON : CAMPAIGN_DAMAGE_CRITICAL_VEHICLE;
+		request.damage_level = raw->damage_level;
+		request.old_damage_level = old_damage_level;
+		request.initial_damage_level = vehicle_database[raw->mob.sub_type].initial_damage_level;
+		request.explosive = (explosive_quality & EXPLOSIVE_QUALITY_EXPLOSIVE) ? TRUE : FALSE;
+		request.flammable = (explosive_quality & EXPLOSIVE_QUALITY_FLAMMABLE) ? TRUE : FALSE;
 
 		// create smoke effect
 
-		if(new_percent_damaged < VEHICLE_CRITICAL_DAMAGE_LEVEL && old_percent_damaged >= VEHICLE_CRITICAL_DAMAGE_LEVEL)
+		if (campaign_aim_health (en, &request).health.crossed)
 		{
 			#if DEBUG_MODULE
 				debug_log("VEHICLE: creating damaged smoke for %s", vehicle_database[raw->mob.sub_type].full_name);
@@ -460,7 +491,7 @@ void assess_vehicle_damage_level (entity *en, int old_damage_level)
 
 			set_client_server_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE, OPERATIONAL_STATE_STOPPED);
 		}
-		
+
 		if (!raw->damage_level)
 			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_FIRE);
 	}

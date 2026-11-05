@@ -1,0 +1,48 @@
+   Compiling eech-dc v0.1.0 (E:\eech_source_code\.claude\worktrees\m5-helicopter-movement\eech-campaign\crates\eech-dc)
+   Compiling eech-sys v0.1.0 (E:\eech_source_code\.claude\worktrees\m5-helicopter-movement\eech-campaign\crates\eech-sys)
+   Compiling eech-engine-sys v0.1.0 (E:\eech_source_code\.claude\worktrees\m5-helicopter-movement\eech-campaign\crates\eech-engine-sys)
+   Compiling eech-world v0.1.0 (E:\eech_source_code\.claude\worktrees\m5-helicopter-movement\eech-campaign\crates\eech-world)
+    Checking eech-map v0.1.0 (E:\eech_source_code\.claude\worktrees\m5-helicopter-movement\eech-campaign\crates\eech-map)
+error: failed to run custom build command for `eech-engine-sys v0.1.0 (E:\eech_source_code\.claude\worktrees\m5-helicopter-movement\eech-campaign\crates\eech-engine-sys)`
+
+Caused by:
+  process didn't exit successfully: `E:\eech_source_code\.claude\worktrees\m5-helicopter-movement\eech-campaign\target\debug\build\eech-engine-sys-0630a2e59dd9b540\build-script-main` (exit code: 101)
+  --- stdout
+  cargo:rerun-if-env-changed=EECH_SOURCE_ROOT
+  cargo:rerun-if-env-changed=EECH_ENGINE_OPT
+  cargo:rerun-if-changed=build
+  cargo:rerun-if-changed=compat
+  cargo:rerun-if-changed=csrc
+  cargo:rerun-if-changed=sources.txt
+
+  --- stderr
+
+  thread 'main' (11676) panicked at crates\eech-engine-sys\build\main.rs:64:5:
+  eech-engine-sys: builds for Linux, and for Windows with MinGW-w64 (x86_64-pc-windows-gnu); not windows/msvc
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+warning: build failed, waiting for other jobs to finish...
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-std=gnu99'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-fno-strict-aliasing'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-fwrapv'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-ftrivial-auto-var-init=zero'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-std=gnu99'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-fno-strict-aliasing'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-fwrapv'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-ftrivial-auto-var-init=zero'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-std=gnu99'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-fno-strict-aliasing'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-fwrapv'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-ftrivial-auto-var-init=zero'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-std=gnu99'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-std=gnu99'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-std=gnu99'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-std=gnu99'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-fno-strict-aliasing'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-fwrapv'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-ftrivial-auto-var-init=zero'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-std=gnu99'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-std=gnu99'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-fno-strict-aliasing'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-fwrapv'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-ftrivial-auto-var-init=zero'
+warning: eech-world@0.1.0: cl : Command line warning D9002 : ignoring unknown option '-std=gnu99'

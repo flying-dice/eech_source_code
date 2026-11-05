@@ -1,0 +1,17 @@
+{
+  "scope": "Two exact completed source reviews; no Windows/native/fullD2 acceptance.",
+  "copies": [
+    {
+      "name": "initial-review.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-r3-structure-reports-source-review-aff4904fd-20261028.json",
+      "bytes": 53282,
+      "sha256": "d9d45a3febddcc37314eb9fc0808ba51624eef445e551b6fd4435d6a22034ba7"
+    },
+    {
+      "name": "correction-review.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-r3-correction-review-f4700bbab-20261028.json",
+      "bytes": 41863,
+      "sha256": "c398ba49d0ab85c7e063ab4addd3a0e5e6c8e94d9843253b9b28dffedffada94"
+    }
+  ]
+}

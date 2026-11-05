@@ -1,0 +1,503 @@
+{
+  "comparator": "tools/wpn-trace-compare.py",
+  "comparator_sha256": "8e57528b54fd0fa13878ddc52106b269514fcd21aadfb3c21f669129d495916a",
+  "repository_head_when_run": "0eb27a76c370351d71d57f9e6c071f24c54bfb56",
+  "python": "3.12.14",
+  "cases": [
+    {
+      "case": "RED control 1: two empty files",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "empty-a.jsonl",
+        "empty-b.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: controls-inputs\\empty-a.jsonl: empty, not a trace\n",
+      "ok": true
+    },
+    {
+      "case": "RED control 2: checkpoint snapshots without the final run report, scope checkpoint",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "checkpoints-only.jsonl",
+        "checkpoints-only.jsonl",
+        "--scope",
+        "checkpoint"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: controls-inputs\\checkpoints-only.jsonl: incomplete, the last event (line 3339) is not the terminal run report (event wpn-log, scope run); a truncated run does not qualify\n",
+      "ok": true
+    },
+    {
+      "case": "checkpoint snapshots only, --skip-samples does not weaken completion",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "checkpoints-only.jsonl",
+        "checkpoints-only.jsonl",
+        "--scope",
+        "checkpoint",
+        "--skip-samples"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: controls-inputs\\checkpoints-only.jsonl: incomplete, the last event (line 3339) is not the terminal run report (event wpn-log, scope run); a truncated run does not qualify\n",
+      "ok": true
+    },
+    {
+      "case": "RED control 3: a complete but inactive trace against itself",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "inactive.jsonl",
+        "inactive.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: controls-inputs\\inactive.jsonl: no birth_calls activity recorded (0 < 1); an inactive trace is not a characterisation\n",
+      "ok": true
+    },
+    {
+      "case": "a complete trace without table activity against itself",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "no-table-activity.jsonl",
+        "no-table-activity.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: controls-inputs\\no-table-activity.jsonl: no table_supplies activity recorded (0 < 1); an inactive trace is not a characterisation\n",
+      "ok": true
+    },
+    {
+      "case": "a complete trace without the run-wide hash",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "no-run-hash.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: controls-inputs\\no-run-hash.jsonl: the run report has no well-formed wpn-hash event\n",
+      "ok": true
+    },
+    {
+      "case": "a wrongly configured trace (60 s) against itself",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "wrong-seconds.jsonl",
+        "wrong-seconds.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: controls-inputs\\wrong-seconds.jsonl: wrongly configured: boot seconds is 60, expected 600\n",
+      "ok": true
+    },
+    {
+      "case": "a wrongly configured trace (seed 2) against itself",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "wrong-seed.jsonl",
+        "wrong-seed.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: controls-inputs\\wrong-seed.jsonl: wrongly configured: boot seed is 2, expected 1\n",
+      "ok": true
+    },
+    {
+      "case": "a wrongly configured trace (other scenario) against itself",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "wrong-scenario.jsonl",
+        "wrong-scenario.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: controls-inputs\\wrong-scenario.jsonl: wrongly configured: boot scenario is 'georgia_retail', expected 'lebanon_retail'\n",
+      "ok": true
+    },
+    {
+      "case": "a run that stopped one frame short of the endpoint (clock 599.9) against itself",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "endpoint-short.jsonl",
+        "endpoint-short.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: controls-inputs\\endpoint-short.jsonl: the run marker clock 599.9 is not the first clock reaching 600 s with 100 ms frames\n",
+      "ok": true
+    },
+    {
+      "case": "a run that ran past the first clock reaching the endpoint (650 s) against itself",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "endpoint-long.jsonl",
+        "endpoint-long.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: controls-inputs\\endpoint-long.jsonl: the run marker clock 650.0 is not the first clock reaching 600 s with 100 ms frames\n",
+      "ok": true
+    },
+    {
+      "case": "a run marker with a wrong frame count against itself",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "wrong-frame-count.jsonl",
+        "wrong-frame-count.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: controls-inputs\\wrong-frame-count.jsonl: the run marker frame count 6006 (expected_frames 6000) is not about 6000\n",
+      "ok": true
+    },
+    {
+      "case": "an ordered log with an overflow flag",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "log-overflow.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: controls-inputs\\log-overflow.jsonl: overflow (log 1, tables 0); the trace is incomplete\n",
+      "ok": true
+    },
+    {
+      "case": "fixture bookkeeping counter non-zero (terminal_unregistered 1)",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "bookkeeping-unregistered.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: controls-inputs\\bookkeeping-unregistered.jsonl: fixture bookkeeping counter terminal_unregistered is 1, not 0\n",
+      "ok": true
+    },
+    {
+      "case": "an ordered log with one event dropped",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "dropped-log-event.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: controls-inputs\\dropped-log-event.jsonl: ordered log incomplete: report events=6435 stored=6435 drained=6435, trace carries 6434 wpn-ev lines\n",
+      "ok": true
+    },
+    {
+      "case": "two complete traces of the same configuration, all scopes",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "trace.jsonl"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "10532 events in a, 10532 in b, scopes ['boot', 'checkpoint', 'log', 'run']: 0 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "a complete trace against itself, all scopes",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "trace.jsonl"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "10532 events in a, 10532 in b, scopes ['boot', 'checkpoint', 'log', 'run']: 0 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "a complete trace against itself, scope run",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "trace.jsonl",
+        "--scope",
+        "run"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "570 events in a, 570 in b, scopes ['run']: 0 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "a complete trace against itself, scope log",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "trace.jsonl",
+        "--scope",
+        "log"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "6447 events in a, 6447 in b, scopes ['log']: 0 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "a complete trace against itself, scope boot",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "trace.jsonl",
+        "--scope",
+        "boot"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "211 events in a, 211 in b, scopes ['boot']: 0 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "a complete trace against itself, scope checkpoint",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "trace.jsonl",
+        "--scope",
+        "checkpoint"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "3340 events in a, 3340 in b, scopes ['checkpoint']: 0 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "a complete trace against itself, --skip-samples",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "trace.jsonl",
+        "--skip-samples"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "10039 events in a, 10039 in b, scopes ['boot', 'checkpoint', 'log', 'run']: 0 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "changed value in a copy (run counter move_calls + 1)",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "changed-run-counter.jsonl"
+      ],
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "stdout": "difference at event 10011:\n  a: {\"at\": 600.00250244141, \"event\": \"wpn-counter\", \"name\": \"move_calls\", \"scope\": \"run\", \"value\": 342014}\n  b: {\"at\": 600.00250244141, \"event\": \"wpn-counter\", \"name\": \"move_calls\", \"scope\": \"run\", \"value\": 342015}\n10532 events in a, 10532 in b, scopes ['boot', 'checkpoint', 'log', 'run']: 1 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "changed run flight hash in a copy",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "changed-run-hash.jsonl"
+      ],
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "stdout": "difference at event 9974:\n  a: {\"at\": 600.00250244141, \"decision\": \"049071ebfc822718\", \"event\": \"wpn-hash\", \"flight\": \"be389d5e2f6e1c5c\", \"launch\": \"906ba8f8ec2fcc80\", \"scope\": \"run\", \"table\": \"77ed8877e2d2f252\", \"terminal\": \"c5afb6fe3b6017dc\"}\n  b: {\"at\": 600.00250244141, \"decision\": \"049071ebfc822718\", \"event\": \"wpn-hash\", \"flight\": \"0e389d5e2f6e1c5c\", \"launch\": \"906ba8f8ec2fcc80\", \"scope\": \"run\", \"table\": \"77ed8877e2d2f252\", \"terminal\": \"c5afb6fe3b6017dc\"}\n10532 events in a, 10532 in b, scopes ['boot', 'checkpoint', 'log', 'run']: 1 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "changed table row hash in a copy",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "changed-table-row.jsonl"
+      ],
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "stdout": "difference at event 10163:\n  a: {\"at\": 600.00250244141, \"cells\": 48450, \"dims\": \"5,85,57\", \"event\": \"wpn-table\", \"flights\": 83, \"full\": 67, \"hash\": \"80c5aacadf998a0a\", \"max_range\": 1100, \"name\": \"M16A2_M995_AP_5.56_mm\", \"nonfinite\": 0, \"nonzero\": 46480, \"scope\": \"run\", \"short\": 16, \"steps\": 17578, \"sub_type\": 1, \"supplied\": 1}\n  b: {\"at\": 600.00250244141, \"cells\": 48450, \"dims\": \"5,85,57\", \"event\": \"wpn-table\", \"flights\": 83, \"full\": 67, \"hash\": \"00c5aacadf998a0a\", \"max_range\": 1100, \"name\": \"M16A2_M995_AP_5.56_mm\", \"nonfinite\": 0, \"nonzero\": 46480, \"scope\": \"run\", \"short\": 16, \"steps\": 17578, \"sub_type\": 1, \"supplied\": 1}\n10532 events in a, 10532 in b, scopes ['boot', 'checkpoint', 'log', 'run']: 1 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "changed boot-report counter in a copy (table_cells + 1)",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "changed-boot-report.jsonl"
+      ],
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "stdout": "difference at event 8:\n  a: {\"at\": 0, \"event\": \"wpn-counter\", \"name\": \"table_cells\", \"scope\": \"boot\", \"value\": 12427000}\n  b: {\"at\": 0, \"event\": \"wpn-counter\", \"name\": \"table_cells\", \"scope\": \"boot\", \"value\": 12427001}\n10532 events in a, 10532 in b, scopes ['boot', 'checkpoint', 'log', 'run']: 1 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "changed ordered-log terminal event in a copy (distance + 1)",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "changed-log-event.jsonl"
+      ],
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "stdout": "difference at event 916:\n  a: {\"at\": 120, \"class\": 8, \"code\": \"hit_land\", \"distance\": 11302.1497, \"event\": \"wpn-ev\", \"kind\": \"terminal\", \"launcher\": \"ENTITY_TYPE_ROUTED_VEHICLE\", \"lifetime\": -20.7998753, \"max_velocity\": 828.867981, \"on_ground\": 0, \"paths\": 4010, \"phase\": 0, \"pos\": \"39671.2266,6.13937998,98379.5391\", \"scope\": \"log\", \"seq\": 401, \"steps\": 208, \"target\": \"ENTITY_TYPE_ROUTED_VEHICLE\", \"track\": \"d694698e004d85e8\", \"type\": \"2A65_3VOF96_HE_152mm\", \"velocity\": 373.993439, \"w\": 1, \"warhead\": 6}\n  b: {\"at\": 120, \"class\": 8, \"code\": \"hit_land\", \"distance\": 11303.1497, \"event\": \"wpn-ev\", \"kind\": \"terminal\", \"launcher\": \"ENTITY_TYPE_ROUTED_VEHICLE\", \"lifetime\": -20.7998753, \"max_velocity\": 828.867981, \"on_ground\": 0, \"paths\": 4010, \"phase\": 0, \"pos\": \"39671.2266,6.13937998,98379.5391\", \"scope\": \"log\", \"seq\": 401, \"steps\": 208, \"target\": \"ENTITY_TYPE_ROUTED_VEHICLE\", \"track\": \"d694698e004d85e8\", \"type\": \"2A65_3VOF96_HE_152mm\", \"velocity\": 373.993439, \"w\": 1, \"warhead\": 6}\n10532 events in a, 10532 in b, scopes ['boot', 'checkpoint', 'log', 'run']: 1 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "changed ordered-log event in a copy, scope run only (the log change is outside the selection)",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "changed-log-event.jsonl",
+        "--scope",
+        "run"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "570 events in a, 570 in b, scopes ['run']: 0 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "changed checkpoint counter in a copy (birth_calls + 1), all scopes",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "changed-checkpoint-counter.jsonl"
+      ],
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "stdout": "difference at event 543:\n  a: {\"at\": 60, \"event\": \"wpn-counter\", \"name\": \"birth_calls\", \"scope\": \"checkpoint\", \"value\": 106}\n  b: {\"at\": 60, \"event\": \"wpn-counter\", \"name\": \"birth_calls\", \"scope\": \"checkpoint\", \"value\": 107}\n10532 events in a, 10532 in b, scopes ['boot', 'checkpoint', 'log', 'run']: 1 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "changed checkpoint counter in a copy, scope run only (the checkpoint change is outside the selection)",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "changed-checkpoint-counter.jsonl",
+        "--scope",
+        "run"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "570 events in a, 570 in b, scopes ['run']: 0 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "changed value range in a copy (max + 1)",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "changed-run-range.jsonl"
+      ],
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "stdout": "difference at event 10073:\n  a: {\"at\": 600.00250244141, \"event\": \"wpn-range\", \"max\": 1107.57703, \"min\": 0.0203957502, \"n\": 1700, \"name\": \"birth_velocity\", \"scope\": \"run\"}\n  b: {\"at\": 600.00250244141, \"event\": \"wpn-range\", \"max\": 1108.57703, \"min\": 0.0203957502, \"n\": 1700, \"name\": \"birth_velocity\", \"scope\": \"run\"}\n10532 events in a, 10532 in b, scopes ['boot', 'checkpoint', 'log', 'run']: 1 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "truncated copy without the terminal event",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "truncated-no-terminal.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: controls-inputs\\truncated-no-terminal.jsonl: incomplete, the last event (line 10531) is not the terminal run report (event wpn-log, scope run); a truncated run does not qualify\n",
+      "ok": true
+    },
+    {
+      "case": "malformed line in a copy",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "malformed.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: controls-inputs\\malformed.jsonl: line 6 is not JSON (Expecting property name enclosed in double quotes: line 1 column 2 (char 1))\n",
+      "ok": true
+    },
+    {
+      "case": "missing file",
+      "command": [
+        "python",
+        "tools/wpn-trace-compare.py",
+        "trace.jsonl",
+        "controls-inputs\\does-not-exist.jsonl"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: controls-inputs\\does-not-exist.jsonl: cannot read (No such file or directory)\n",
+      "ok": true
+    }
+  ],
+  "all_ok": true
+}

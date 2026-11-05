@@ -92,6 +92,8 @@ static void set_local_attitude_matrix (entity *en, matrix3x3 attitude)
 	raw = (mobile *) get_local_entity_data (en);
 
 	memcpy (raw->attitude, attitude, sizeof (matrix3x3));
+
+	campaign_movement_place (en);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -198,6 +200,8 @@ static void set_local_attitude_angles (entity *en, float heading, float pitch, f
 	raw = (mobile *) get_local_entity_data (en);
 
 	get_3d_transformation_matrix (raw->attitude, heading, pitch, roll);
+
+	campaign_movement_place (en);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

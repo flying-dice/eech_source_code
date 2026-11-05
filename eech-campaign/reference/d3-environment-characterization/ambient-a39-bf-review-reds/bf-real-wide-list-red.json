@@ -1,0 +1,85 @@
+{
+  "source": "bf64653dee245027a5ac46ebe4ad201790639200",
+  "snapshot": "R:\\d3-evidence\\environment-sound-source-bf64653de",
+  "binary": "R:\\d3-evidence\\environment-sound-source-bf64653de\\eech-campaign\\target\\env-observer\\sound-bf64653de",
+  "root": "R:\\d3-evidence\\environment-sound-large-list-roots-20261031\\red",
+  "script": "env-sound-wide-children.lua",
+  "scenario": "lebanon_retail",
+  "controller_pid": 740,
+  "state": "terminal",
+  "started_utc": "2026-10-31T15:17:48.555120+00:00",
+  "verified_payloads": 51,
+  "build_info_sha256": "e6d7a2fced29b6d8bf51811536bb30de41daba84a9c276aa3d544b462fb89d77",
+  "nonretail_models": false,
+  "stages": [
+    {
+      "stage": "pre-inputs",
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-sound-source-bf64653de\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-sound-large-list-roots-20261031\\red",
+        "--compare",
+        "R:\\d3-evidence\\environment-sound-source-bf64653de\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-sound-wide-bf64653de-real-red-20261031\\pre-inputs.json"
+      ],
+      "pid": 20324,
+      "started_utc": "2026-10-31T15:17:48.565505+00:00",
+      "state": "terminal",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T15:17:49.572769+00:00"
+    },
+    {
+      "stage": "native",
+      "args": [
+        "R:\\d3-evidence\\environment-sound-source-bf64653de\\eech-campaign\\target\\env-observer\\sound-bf64653de\\eech-world.exe",
+        "R:\\d3-evidence\\environment-sound-source-bf64653de\\eech-campaign\\target\\env-observer\\sound-bf64653de\\lua\\env-sound-wide-children.lua",
+        "root=R:/d3-evidence/environment-sound-large-list-roots-20261031/red",
+        "scenario=lebanon_retail",
+        "out=R:/d3-evidence/environment-sound-wide-bf64653de-real-red-20261031/environment.jsonl",
+        "metrics=R:/d3-evidence/environment-sound-wide-bf64653de-real-red-20261031/metrics.json"
+      ],
+      "pid": 23608,
+      "started_utc": "2026-10-31T15:17:49.690767+00:00",
+      "state": "terminal",
+      "actual_exit": 1,
+      "completed_utc": "2026-10-31T15:17:53.554746+00:00"
+    },
+    {
+      "stage": "post-inputs",
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-sound-source-bf64653de\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-sound-large-list-roots-20261031\\red",
+        "--compare",
+        "R:\\d3-evidence\\environment-sound-source-bf64653de\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-sound-wide-bf64653de-real-red-20261031\\post-inputs.json"
+      ],
+      "pid": 12904,
+      "started_utc": "2026-10-31T15:17:53.567164+00:00",
+      "state": "terminal",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T15:17:54.565279+00:00"
+    }
+  ],
+  "scope": "Actualrealwide-listcontrol onfreshprocess/root. Newexplicitfixturegroup creates16/17/20terrainchildren viarealconstructor; alt140/delta0 mustHALVEeachownword. Olda39Core16cap expectedfail17. No originalheaprestoration/physics/audio/network/player/render/fullshippingclaim.",
+  "json_rows": 5,
+  "json_events": [
+    "boot",
+    "plan",
+    "unsupported",
+    "case",
+    "engine_failure"
+  ],
+  "json_sha256": "eccb519f014e818b3f60a524d0d395213f5c19dd26ef7a8dfbeeef3b9fca80eb",
+  "actual_native_exit": 1,
+  "actual_exit": 1,
+  "completed_utc": "2026-10-31T15:17:54.615885+00:00"
+}

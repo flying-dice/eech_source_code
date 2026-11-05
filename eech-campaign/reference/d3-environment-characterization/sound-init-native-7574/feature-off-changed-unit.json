@@ -1,0 +1,44 @@
+{
+  "source": "7574caa2ca87a2a44608a234fd1dd73136b8e4c0",
+  "base": "50a5504e6cacdcc20e290eab1b3db33a46ee843b",
+  "created_utc": "2026-11-01T03:23:41.130015+00:00",
+  "scope": "Only the changed test-only observer C translation unit, EECH_ENV_OBSERVER undefined. Same stdin source name and compiler; no normalization. No native runtime, whole-DLL, fixture-feature or shipping acceptance claim.",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "docker",
+    "run",
+    "--rm",
+    "-i",
+    "sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51",
+    "cc",
+    "-E",
+    "-P",
+    "-x",
+    "c",
+    "-"
+  ],
+  "stages": [
+    {
+      "label": "base",
+      "source": "50a5504e6cacdcc20e290eab1b3db33a46ee843b",
+      "actual_exit": 0,
+      "source_sha256": "5975e7ce0c5ff49a89b318d4b0b9a8a057ed8acefa816ab8ba44510b936547a4",
+      "preprocessed_bytes": 0,
+      "preprocessed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "candidate",
+      "source": "7574caa2ca87a2a44608a234fd1dd73136b8e4c0",
+      "actual_exit": 0,
+      "source_sha256": "cb5d4666df2f351872c7233209f966f24224c562858c58519fba8d0033625f31",
+      "preprocessed_bytes": 0,
+      "preprocessed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "raw_preprocessed_bytes_identical": true,
+  "both_empty": true,
+  "actual_exit": 0
+}

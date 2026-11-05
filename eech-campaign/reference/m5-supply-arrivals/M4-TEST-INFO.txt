@@ -1,0 +1,11 @@
+executable_source: 1578435b3557570635cccbcc416cf5fcb15d2076
+causal_test_source: 13846570326de9b0a536db60cc40d143c9f7a75f
+integrated_head: 4028c5a96510d7ef72d2e09c3fe36f3e7038ae88
+integrated_tree: 9e3bc4eb7545a6620f2c797039295fff801f53b9
+integration: a1bb723152365967773cd93d08e06bff76519927
+association: 13846570 changes only the causal Lua test and docs after the clean 1578435b executable build; integration a1bb7231 changes no C, Rust, Cargo manifest/lock, patch or maintained runtime Lua input relative to 13846570.
+sha256:
+  62d5ca194852dd8dcbab41ba782388adf6a3095decf4e5be0078d51495c24a8e  .\target\supply-arrivals-integrated-4028c5a9\eech_dc.dll
+  5a8be8a9affa5ab356f5fbc194b00b3441562bf00d748a73c199f47818708d5a  .\target\supply-arrivals-integrated-4028c5a9\eech-world.exe
+  137f2269dba5de20b08e06fd217f75ced9d464c098395e1d1cfceabcdbdbefec  .\target\supply-arrivals-integrated-4028c5a9\lua\supply-arrivals.lua
+  3b0cb3f76604d85f710bf9748ff56edfca8703324b6214b29b0c252463f7c1ed  .\target\supply-arrivals-integrated-4028c5a9\lua\supply-arrivals-lifecycle.lua

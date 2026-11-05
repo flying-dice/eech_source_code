@@ -1,0 +1,32 @@
+# Measured 2026-10-20T21:14:48Z on the Windows retail PC, at commit f3f43b89bb23f6e1c7fd468510f008cbfa6f3728, from eech-campaign/.
+# Local paths below are this PC's; the full run outputs are not retained (retail data).
+
+$ sha256sum E:/eech_source_code/.claude/worktrees/agent-a8d9022fc00a3cad2/eech-campaign/target/regression-pack/pr76-candidate/regress/georgia_retail.json E:/eech_source_code/.claude/worktrees/agent-a8d9022fc00a3cad2/eech-campaign/target/regression-pack/pr76-candidate/regress/lebanon_retail.json target/regression-pack/pr59-candidate/regress/georgia_retail.json target/regression-pack/pr59-candidate/regress/lebanon_retail.json
+7427660511cf60c503d393f94021b51fef03723a629d6bc6987d497d93c9148d *E:/eech_source_code/.claude/worktrees/agent-a8d9022fc00a3cad2/eech-campaign/target/regression-pack/pr76-candidate/regress/georgia_retail.json
+fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587 *E:/eech_source_code/.claude/worktrees/agent-a8d9022fc00a3cad2/eech-campaign/target/regression-pack/pr76-candidate/regress/lebanon_retail.json
+7427660511cf60c503d393f94021b51fef03723a629d6bc6987d497d93c9148d *target/regression-pack/pr59-candidate/regress/georgia_retail.json
+fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587 *target/regression-pack/pr59-candidate/regress/lebanon_retail.json
+exit 0
+
+$ python -I -c "import json,sys; [print(n, 'parsed-equal' if json.load(open(f'target/regression-pack/pr59-candidate/regress/{n}.json',encoding='utf-8'))==json.load(open(f'regression/windows/{n}.json',encoding='utf-8')) else 'PARSED DIFFER') for n in ('georgia_retail','lebanon_retail')]"
+georgia_retail parsed-equal
+lebanon_retail parsed-equal
+exit 0
+
+$ git fetch -q origin master; git rev-parse origin/master; git merge-base origin/master 65892de1; git merge-tree --write-tree origin/master 65892de1
+21c8c404f65331422e952b4855ab2361e760991f
+81ed32e88628939014ed7d740abe3c32916186e5
+4fb0dfa39adbe413fb9d513aa68e92385004cae9
+exit 0  (the status of git merge-tree: 0 clean, 1 conflicts)
+
+$ du -sh target/regression-pack/pr59-candidate | cut -f1
+750M
+exit 0
+
+$ find target/regression-pack/pr59-candidate -path '*/roots' -prune -o -type f -printf '%TY-%Tm-%TdT%TH:%TM:%.2TS %p\n' 2>/dev/null | sort | sed -n '1,3p;$p'
+2026-10-20T20:35:56 target/regression-pack/pr59-candidate/reference/BUILD-INFO.txt
+2026-10-20T21:10:37 target/regression-pack/pr59-candidate/retained/observations-m2.jsonl
+2026-10-20T21:10:37 target/regression-pack/pr59-candidate/retained/observations-m3.jsonl
+2026-10-20T21:33:32 target/regression-pack/pr59-candidate/report.md
+exit 0
+# Modification times are local time (BST = UTC+1). roots/ (copied retail files keeping their original times) is excluded; reference/BUILD-INFO.txt is copied from the build (built 20:35 BST) with its time kept. The first file the pack writes is 21:10:37 BST = 20:10:37 UTC and the last 21:33:32 BST = 20:33:32 UTC.

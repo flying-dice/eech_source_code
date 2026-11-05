@@ -1,0 +1,1 @@
+sense-provider: mode=bad_reason begin=2 candidate=0 draw=0 signature=0 end=1 accept=0 reject=0 weapon_births=0 losses=0 failure=runtime error: eech: EECH fatal error: host sense: host sense failed: sense result reason "because" is not range, range_adjusteech-world: process exit

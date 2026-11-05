@@ -1,0 +1,20 @@
+diag_selected	mode=hold host=eech-world:2696 selected_at=79.3 hold_seconds=142.0
+diag_steps	held=1421 moved=2 released_at=221.39999999999 ended_at=221.6
+census	routed	bound=456	moved_10m=0
+census	ship	bound=36	moved_10m=0
+census	person	bound=140	moved_10m=0
+census	fixed_wing	bound=91	moved_10m=9
+steps	fixed_wing:fixed_wing_move	6438
+steps	fixed_wing_phase:0	6438
+steps	person:person_begin	303240
+steps	person:person_end	302804
+steps	routed:move	161159
+steps	routed:stop	10
+ended_at	221.6
+select	hold
+host_id	eech-world:2696
+held_seconds	142.1
+held_steps	1421
+held_displacement	0.000
+displacement_after_release	0.030
+result	ok

@@ -1,0 +1,101 @@
+{
+  "scope": "These hashes identify private receipt originals and published LF text. Accepted/raw campaign recordings are neither exported nor modified.",
+  "files": [
+    {
+      "published_file": "independent-first-source-findings.json",
+      "retained_private_artifact": "independent-environment-host-lightning-queue-source-review-92e4da9fe-20261031.json",
+      "private_original_sha256": "d06d71536590ac42f0452e24c9cc036ed29783bd34a51cdb016e5c8c027019b0",
+      "published_LF_receipt_sha256": "c8d98367879526bf89856728d256b103a1d2da2a610fb7ff589e16d7ff57f049"
+    },
+    {
+      "published_file": "independent-catalogue-source-findings.json",
+      "retained_private_artifact": "independent-environment-host-lightning-queue-source-review-188ac8c49-20261031.json",
+      "private_original_sha256": "d840074a8c3e8aaedb2c83fa95489a1e9cb4bce217f89cb637736b1cba18ed8f",
+      "published_LF_receipt_sha256": "06653a3fcca1b74dfba586a58621591567cad85075be4d600550d5638deb428a"
+    },
+    {
+      "published_file": "independent-production-source-clear.json",
+      "retained_private_artifact": "independent-environment-host-lightning-queue-source-review-7db2c6a91-20261031.json",
+      "private_original_sha256": "454e0840b91c776e90fd4873e2e0964a5c753c5300a29de4dc31cc725dfa39e7",
+      "published_LF_receipt_sha256": "4e481360cac73d88a2685a06a7299ce90ab83a610f14f701554875e1acd2dcb8"
+    },
+    {
+      "published_file": "independent-witness-and-nine-actuals-review.json",
+      "retained_private_artifact": "independent-environment-host-lightning-queue-source-review-065e8e2df-20261031.json",
+      "private_original_sha256": "8ecc5dbfad310a1e390af374688635d70909ce575877b5755f1ab95b51e795d0",
+      "published_LF_receipt_sha256": "1920cbe0a99c6630ef69a2a3e63badee07c7eb248dfa6fc01def9d4593899022"
+    },
+    {
+      "published_file": "independent-final-source-clear.json",
+      "retained_private_artifact": "independent-environment-host-lightning-queue-source-review-c090664ec-20261031.json",
+      "private_original_sha256": "24bd94a248ba55304351842404c1038705f092c4edd49e1725f319f8060a8bad",
+      "published_LF_receipt_sha256": "3fdac76ac3693c369810ae8cfdaa1dbbaf3a928740c33cdaa915186cf184a624"
+    },
+    {
+      "published_file": "independent-final-two-actuals-review.json",
+      "retained_private_artifact": "independent-environment-host-lightning-queue-final-actual-review-native7db-driver-c090664ec-20261031.json",
+      "private_original_sha256": "384000ac666f2d68e2a117ad34169a5f03d2eff7db476bce9f861fc4af1eecb7",
+      "published_LF_receipt_sha256": "0eb289cfec33d842f496d0c3c1b377528af03db8809171b2b81a4fca4f486bb4"
+    },
+    {
+      "published_file": "independent-retail-model-origin-audit.json",
+      "retained_private_artifact": "independent-environment-lightning-case5-model-origin-audit-7db2c6a91-20261031.json",
+      "private_original_sha256": "88e3a658dc797bc049885c977a18f76dd5374499d023c0c14455fd1f1e54a863",
+      "published_LF_receipt_sha256": "eebf43a79cdd9a6854c44005f60925e47dd6aee67ea59677c1a630e52898b468"
+    },
+    {
+      "published_file": "strict-default-raw-comparison-FAILED.json",
+      "retained_private_artifact": "environment-host-lightning-queue-controls-7db2c6a91-20261031/comparison.json",
+      "private_original_sha256": "807f88cd0877b8467f0ba94303cf1c14aac99599a77fb7207701c599045c7276",
+      "published_LF_receipt_sha256": "3ce3cc96b69e5d56c8c8f76f17cf8412652a69e27b4c2ef0a51731964ec9d8b8"
+    },
+    {
+      "published_file": "exact-catalogue-only-classification-v2.json",
+      "retained_private_artifact": "queue-host-7db2-catalogue-extension-classification-v2-20261031.json",
+      "private_original_sha256": "e09600638d20d2ba5bdb8c06b59887236d322195f8122b7fb68bbcc74b37fc2f",
+      "published_LF_receipt_sha256": "c448743e92337b95cf940a298a5ff41b7187724a5303bfbd8d544979e6bb752f"
+    },
+    {
+      "published_file": "native7db-witness-c090-equivalence.json",
+      "retained_private_artifact": "queue-native7db-driver-c090664ec-equivalence-20261031.json",
+      "private_original_sha256": "3210b236b557f36307f98c35647b07cb28b3bf3b83d401b65398d46c78676f34",
+      "published_LF_receipt_sha256": "5cb2b9094ce7853b1f1856dc9c1f14b67caaced06d6856a9efe0a0acdd7c2264"
+    },
+    {
+      "published_file": "production188-to7db-validation-equivalence.json",
+      "retained_private_artifact": "queue-188-to-7db-validation-equivalence-20261031.json",
+      "private_original_sha256": "f512a843e4fd72fcaf3f22e34110241126a56a6e6b939e906e91d84a954b8537",
+      "published_LF_receipt_sha256": "4a6c0286a71606a42b2d16729453b7a9b9555bd05bee7b5a2347b338867e7bd2"
+    },
+    {
+      "published_file": "windows-native7db.json",
+      "retained_private_artifact": "environment-host-lightning-queue-7db2c6a91-windows-20261031-completion.json",
+      "private_original_sha256": "66ef7847689e3062fa2680db6813f7cc4933e63682ba746619bf8b79c66ee538",
+      "published_LF_receipt_sha256": "70427433e15c29925c96e566675cdc452d6d7e17131c10ae495452d0062b092b"
+    },
+    {
+      "published_file": "linux-full-188.json",
+      "retained_private_artifact": "environment-host-lightning-queue-188ac8c49-linux-20261031-completion.json",
+      "private_original_sha256": "7217752f78ade4370449f02d0fd573f3a14ae2f29393a3f18077192119c09a1c",
+      "published_LF_receipt_sha256": "1625bd3c9d80d0fde8ed63922a89e6826486cb58d639f9912947634bc9db48be"
+    },
+    {
+      "published_file": "linux-catalogue-guards7db.json",
+      "retained_private_artifact": "environment-host-lightning-queue-7db2c6a91-linux-20261031-completion.json",
+      "private_original_sha256": "e0efe8c165959f44874d61fb5a085835be5d76ca21d2a083e311153b383c2a6a",
+      "published_LF_receipt_sha256": "eb9476425c4ee4c9790317b08b60a7f06d1fec43b42be4128090dc12f4aed8df"
+    },
+    {
+      "published_file": "linux-eighteen-witness-guards065.json",
+      "retained_private_artifact": "queue-reply-frame-065e8e2df-linux-20261031-completion.json",
+      "private_original_sha256": "89e189f3fd16347b6937f607bcac15727b04e2f6b43dd198835396e7e6cbcd38",
+      "published_LF_receipt_sha256": "87a50b623c46b131fa9c2c3c25e9fccab67aadf8ff1449580fe9395490f99679"
+    },
+    {
+      "published_file": "hosted-CI-7db.json",
+      "retained_private_artifact": "current-CI-7db2c6a91-20261031.json",
+      "private_original_sha256": "248b4f8cd861794ee624b41565637fb99d7f42ec5a737f7092d3669954ae0835",
+      "published_LF_receipt_sha256": "261563d5178273c382d86d3531f464e9d8414cb676295d7551e4401d14cce0a5"
+    }
+  ]
+}

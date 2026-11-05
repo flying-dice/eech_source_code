@@ -1,0 +1,184 @@
+{
+ "recording": "out/w5-ab900/recording.acmi",
+ "observations": "out/w5-ab900/observations.jsonl",
+ "metrics": "out/w5-ab900/metrics.json",
+ "frames": 900,
+ "failures": 0,
+ "first_failures": [],
+ "time": {
+  "first_s": 1.0,
+  "last_s": 899.83,
+  "sample_interval_s": {
+   "min": 0.99,
+   "max": 1.0
+  },
+  "nominal_last_s": 900.0,
+  "session_clock_drift_s": -0.17
+ },
+ "counts": {
+  "declared air_defence": 689,
+  "declared fixed_wing": 94,
+  "declared ground_vehicle": 465,
+  "declared helicopter": 181,
+  "declared infantry": 140,
+  "declared keysite": 133,
+  "declared ship": 36,
+  "declared weapon": 447,
+  "gone weapon": 433,
+  "position comparisons": 27716
+ },
+ "max_deviation": {
+  "air_defence": {
+   "x": 0.008,
+   "y": 0.05,
+   "z": 0.009,
+   "heading_deg": 0.0
+  },
+  "fixed_wing": {
+   "x": 0.009,
+   "y": 0.05,
+   "z": 0.009,
+   "heading_deg": 0.05
+  },
+  "ground_vehicle": {
+   "x": 0.009,
+   "y": 0.35,
+   "z": 0.01,
+   "heading_deg": 0.05
+  },
+  "helicopter": {
+   "x": 0.39,
+   "y": 0.48,
+   "z": 0.479,
+   "heading_deg": 0.05
+  },
+  "infantry": {
+   "x": 0.466,
+   "y": 0.05,
+   "z": 0.5,
+   "heading_deg": 0.969
+  },
+  "keysite": {
+   "x": 0.007,
+   "y": 0.05,
+   "z": 0.007,
+   "heading_deg": 0.0
+  },
+  "ship": {
+   "x": 0.006,
+   "y": 0.05,
+   "z": 0.007,
+   "heading_deg": 0.0
+  },
+  "weapon": {
+   "x": 0.009,
+   "y": 0.05,
+   "z": 0.009,
+   "heading_deg": 0.05
+  }
+ },
+ "max_pitch_roll_difference_deg": {
+  "pitch": 5.12,
+  "roll": 16.01
+ },
+ "losses": {
+  "observations": {
+   "blue air_defence": 4,
+   "blue fixed_wing": 2,
+   "blue ground_vehicle": 24,
+   "blue helicopter": 11,
+   "blue ship": 2,
+   "red air_defence": 10,
+   "red fixed_wing": 4,
+   "red ground_vehicle": 19,
+   "red helicopter": 9
+  },
+  "recording": {
+   "blue air_defence": 4,
+   "blue fixed_wing": 2,
+   "blue ground_vehicle": 24,
+   "blue helicopter": 11,
+   "blue ship": 2,
+   "red air_defence": 10,
+   "red fixed_wing": 4,
+   "red ground_vehicle": 19,
+   "red helicopter": 9
+  },
+  "metrics": {
+   "blue air_defence": 4,
+   "blue fixed_wing": 2,
+   "blue ground_vehicle": 24,
+   "blue helicopter": 11,
+   "blue ship": 2,
+   "red air_defence": 10,
+   "red fixed_wing": 4,
+   "red ground_vehicle": 19,
+   "red helicopter": 9
+  }
+ },
+ "captures": {
+  "observations": {},
+  "recording": {},
+  "metrics": {}
+ },
+ "keysite_usable_changes": {
+  "usable -> out_of_action": 1
+ },
+ "keysite_state_vs_metrics": "identical at 900 s: 133 keysites, their usable states and mean supply",
+ "keysites_moved": 0,
+ "speed_flags": {
+  "helicopter MV-22 Osprey": 687,
+  "weapon AGM-114R Hellfire II": 1
+ },
+ "speed_flag_examples": {
+  "helicopter": [
+   {
+    "speed_m_s": 177,
+    "t": "285.98",
+    "eech_id": 83215,
+    "jump_m": 177
+   },
+   {
+    "speed_m_s": 177,
+    "t": "284.98",
+    "eech_id": 83215,
+    "jump_m": 177
+   },
+   {
+    "speed_m_s": 177,
+    "t": "283.98",
+    "eech_id": 83215,
+    "jump_m": 177
+   },
+   {
+    "speed_m_s": 177,
+    "t": "282.98",
+    "eech_id": 83215,
+    "jump_m": 177
+   },
+   {
+    "speed_m_s": 176,
+    "t": "281.98",
+    "eech_id": 83215,
+    "jump_m": 176
+   }
+  ],
+  "weapon": [
+   {
+    "speed_m_s": 4202,
+    "t": "520.92",
+    "eech_id": 98098,
+    "jump_m": 4202
+   }
+  ]
+ },
+ "speed_limits_m_s": {
+  "infantry": 20,
+  "ground_vehicle": 50,
+  "air_defence": 50,
+  "ship": 30,
+  "helicopter": 150,
+  "fixed_wing": 900,
+  "weapon": 1800
+ }
+}

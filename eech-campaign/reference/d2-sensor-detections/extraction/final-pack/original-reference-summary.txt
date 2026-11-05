@@ -1,0 +1,14 @@
+Reference scenario: retail Lebanon, 3 simulated hours (2026-10-26T16:39:16)
+commit: a2a041fecf52e18cbc16b33f3dc75a9c9b245c9d
+inputs, run 1: 
+inputs, run 2: 
+the two roots hold different inputs
+runs took 15,566 s
+run 1: observation check FAIL (run1\check.json)
+run 2: observation check FAIL (run2\check.json)
+run 1: Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases.
+run 2: Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases.
+recording.acmi: byte-identical in both runs (117,690,861 bytes, SHA-256 3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b)
+observations.jsonl: byte-identical in both runs (85,716,447 bytes, SHA-256 da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf)
+metrics.json: byte-identical in both runs (35,942 bytes, SHA-256 fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587)
+REFERENCE: FAIL

@@ -66,6 +66,10 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_cmbfx.h"
+
+#include "entity/mobile/mb_hostaim.h"
+
 #include "entity/tacview/tacview.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -198,18 +202,30 @@ static void update_server (entity *en)
 				write_tacview_unit_update(en, moved, rotated, FALSE);
 		}
 		
-		if (damage_type > AIRCRAFT_DAMAGE_NONE)
-			if (frand1() < pow((float)damage_type, 4) * get_delta_time())
+		CMB_FX_TIMED_BEGIN (EECH_CMB_TIMED_FIXED_WING)
+
+		// the host owns the eligibility (the reference host degrades an aircraft in a class above none), the sample, the roll, the health a hit leaves and whether it is fatal, and is
+		// asked at this point whatever the class (EEDCS-46)
+		{
+			campaign_health_result
+				timed;
+
+			aircraft_timed_health (en, damage_type, &timed);
+
+			if (timed.hit)
 			{
-				int damage_level = max(0, get_local_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL) - 1);
+				set_client_server_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL, timed.new_level);
 
-				set_client_server_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL, damage_level);
+				CMB_FX_TIMED_HIT (en, timed.new_level)
 
-				if (damage_level <= 0)
+				if (timed.fatal)
 					kill_client_server_entity (en);
 
 				return;
 			}
+		}
+
+		CMB_FX_TIMED_END ()
 	}
 	else
 	{
@@ -217,6 +233,18 @@ static void update_server (entity *en)
 
 		if (get_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE) == OPERATIONAL_STATE_DEAD)
 		{
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+			//
+			// host-owned lifetime (EEDCS-38): see rv_updt.c
+			//
+
+			campaign_movement_require_hosted (en);
+
+			if (campaign_movement_expire (en, &raw->ac.death_timer, get_delta_time (), 0))
+			{
+				destroy_client_server_entity_family (en);
+			}
+#else
 			raw->ac.death_timer += get_delta_time ();
 
 			if (!((int)(raw->ac.death_timer + 1) % 300))
@@ -224,6 +252,7 @@ static void update_server (entity *en)
 				{
 					destroy_client_server_entity_family (en);
 				}
+#endif
 		}
 		else
 		{

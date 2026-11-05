@@ -1,0 +1,318 @@
+{
+  "schema": "independent-source-review-v1",
+  "preserved_utc": "2026-10-28T05:56:16.337063+00:00",
+  "reviewer": "/root/d2_los_review",
+  "repo": "R:\\d2-sensor-detections",
+  "base": "35c3d677758d7c0e7b664267c25508220412e4a5",
+  "reviewed_sha": "91bc07e075ad4d58061d0304f3d90389997ee6bc",
+  "head_before": "91bc07e075ad4d58061d0304f3d90389997ee6bc",
+  "head_after": "91bc07e075ad4d58061d0304f3d90389997ee6bc",
+  "clean_before": true,
+  "clean_after": true,
+  "scope": "One combined correctness, clean-code and boundary-safety source review of NEW forecast diff only. Prior unchanged observer, aiming, weapon execution, real-damage, timed, blast and bridge source reviews were not repeated. No builds, tests, native scenarios, agents or remote writes performed. Existing retained tests and source read.",
+  "authority": {
+    "live_m5_page": "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
+    "live_m5_version": 3,
+    "live_migration_ledger": "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994",
+    "live_ledger_version": 41
+  },
+  "disposition": "No blocking source findings. Source closure only; runtime and delivery gates pending. Known minor retained-log whitespace issue is recorded below.",
+  "source_conclusions": {
+    "ownership": "weapon_damage_capability with NULL weapon returns the host forecast; C physical arithmetic is in eech-world csrc/cmb_step.c driven by cmb.rs through CAMPAIGN_AIM_FORECAST and public Lua. No private campaign solver or fallback executes for that path.",
+    "core_policy": "Selection, package/salvo/rate-of-fire comparison and campaign consequences remain core; core resolves weapon-definition relationship and reads target/player configuration.",
+    "numeric": "Compared against original null-weapon path: integer damage/penetration and float burst fields preserve source types; conventional next-entry figures and burst scaling, HE constants 4..7, velocity override, penetration comparison, pow/min ordering, integer casts and player scaling retained for defined original inputs. Kernel rejects non-finite/out-of-range conversion results; negative capability refused. Native bit equivalence remains pending.",
+    "rng": "Forecast is DONE-only. New wrapper calls ask_once directly; both campaign and translation layers refuse draws/lookups before any sample. Kernel has no RNG.",
+    "boundary": "Public request is by-value weapon/configuration/armour/player figures; no target entity pointer, heap index, seed or private layout crosses Lua. Healthy own-model can return a different nonnegative integer or zero without reference arithmetic or optional diagnostic echo.",
+    "abi": "C/Rust appended fields match on inspection. C layout probe and retained Rust layout test compare sizes and offsets; small host-kernel C/Rust input/output mirrors inspected. Signed32-bit Lua integer parsing/refusal retained. Actual Windows build still pending.",
+    "fixture": "Shipping echo request is off; fixture reference host returns one forecast event with original intermediate values, replayed through existing hooks in original hook order. Generic own host may omit echo and is explicitly unobserved for that forecast. No copied golden or legacy raw rewrite found.",
+    "unchanged_physics": "Diff leaves real-weapon arithmetic, health/timed/blast/bridge runtime paths unchanged except removal of the unreachable null branch behind the new forecast early return and necessary protocol/fixture glue.",
+    "build": "New host C kernel is included and watched by eech-world build.rs; new engine C layout probe is included by existing csrc enumeration/watch. No new shipping global compiler/sanitizer settings."
+  },
+  "retained_checks_read": {
+    "test-f46-2.log": {
+      "cargo_exit": 0,
+      "docker_exit": 0,
+      "engine_tests": 51,
+      "world_library_tests": 204,
+      "world_binary_tests": 19,
+      "host_callback_tests": 14,
+      "load_tests": 2,
+      "abi_layout_test_passed": true
+    },
+    "clippy-f46-2-default.log": {
+      "cargo_exit": 0,
+      "docker_exit": 0
+    },
+    "clippy-f46-2-fixture.log": {
+      "cargo_exit": 0,
+      "docker_exit": 0
+    },
+    "forecast-checks-2.log": {
+      "checks": 25,
+      "failures": 0,
+      "probe_compile_exit": 0,
+      "probe_run_exit": 0,
+      "compile_exit": 0,
+      "run_exit": 0,
+      "docker_exit": 0,
+      "scope": "Production mb_hostaim.c bridge linked against declared project stand-in; not full campaign/damage wrapper native proof."
+    },
+    "forecast-mutant-1.log": {
+      "checks": 25,
+      "failures": 7,
+      "run_exit": 1,
+      "docker_exit": 1,
+      "scope": "Retained explicit validation mutation; no campaign failure."
+    },
+    "kernel-mutant-1.log": {
+      "tests": 7,
+      "failures": 2,
+      "cargo_exit": 101,
+      "docker_exit": 101,
+      "scope": "Retained wrong-kernel-constants mutation; no campaign failure."
+    },
+    "strict-preprocess-47-2.log": {
+      "strict_exit": 0,
+      "outer": 0,
+      "scope": "Eleven other combat-hook C sources feature-OFF equal baseline; damage.c explicitly differs by forecast cut, not falsely called unchanged."
+    },
+    "syntax-check-47-1.log": {
+      "syntax_exit": 0,
+      "outer": 0,
+      "scope": "Listed real-header subset both feature modes; not whole-source native build."
+    },
+    "earlier_failures": "First forecast guard compile failure and first over-precise Rust test-literal Clippy failure retained; not relabeled successful."
+  },
+  "findings": [
+    {
+      "priority": 3,
+      "blocking_for_source": false,
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/forecast-checks-1.log",
+      "line": 30,
+      "issue": "git diff --check reports trailing whitespace in the retained compiler underline diagnostic.",
+      "observed_exit": 1,
+      "bounded_correction": "Preserve raw failed log bytes; apply appropriately scoped evidence whitespace metadata rather than trimming/reformatting the output.",
+      "provenance": "Independently confirmed after parent supplemental report."
+    }
+  ],
+  "pending_gates": [
+    "Fresh immutable clean Windows fixture/shipping build and identities.",
+    "Candidate original-equivalent natural600 six hashes/counters/574382 forecasts/ordered log comparison, preserving legacy blast COUNTER typing as declared schema difference.",
+    "Candidate900 physical-output control.",
+    "Public Lua path generic-host, changed-host forecast authority and genuine missing/malformed refusal runtime proof.",
+    "Default shipping full40 checks, all8 complete raw comparisons, post3 inputs, current CI and normal merge after accepted Task45 composition.",
+    "Remaining real damage/timed/blast/bridge extraction is outside this forecast-only source closure."
+  ],
+  "reviewed_files": [
+    {
+      "path": "STATUS.md",
+      "git_blob": "48b7366afc3c70f18372dbedf2d991f9ca706749",
+      "working_file_sha256": "98b6a3f49e29e1733fbc8d49935a0bd40140fbe75c6e887adde28cdb56d80857",
+      "bytes": 24693
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_cmbfx.h",
+      "git_blob": "56a00c76ed5666a43a3060aab150c5efbf99da9b",
+      "working_file_sha256": "27db80e416a93143d67b6e36a3ceb0c47a2567cdc2ef9b86370dba3c99491fa2",
+      "bytes": 7714
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostaim.c",
+      "git_blob": "2025d175d1c1cd7b0060c0cf3b7274bbb18b3695",
+      "working_file_sha256": "dac096ee7871cd25021bd060150d7bedb66f73b637cd6197298ea9cdb1dd7583",
+      "bytes": 28745
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostaim.h",
+      "git_blob": "9693bf22c8daedb2033311263c28de644302b75e",
+      "working_file_sha256": "a78b03a3d5e446adde980df9294d0e2cb277b8de29ff339cdd1b46b7161991cc",
+      "bytes": 30786
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/weapon/damage.c",
+      "git_blob": "36c81f9649b7506cba081582f9595db53401c78c",
+      "working_file_sha256": "90a077c4681321fa973c6a560322bed9ccb8b50bba42807e20aff77c2e95df3c",
+      "bytes": 25227
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "git_blob": "70aefb6ecc1750160e318e2c58cfd77d6cbf2ac2",
+      "working_file_sha256": "4fd6f0fee634c542f193f03c2faf5a80fff692daf780b4340368d2a84446f2a1",
+      "bytes": 102545
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_aim_layout.c",
+      "git_blob": "4bc0b2ee44957cd9f36364044f5767234bae6485",
+      "working_file_sha256": "90a82c458f10146fa4470d6275d675e8c86b568f9c34d75900a9f19bfaf77998",
+      "bytes": 1642
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_fixture.c",
+      "git_blob": "d969a04237d1c9e9d385aec5676c38f32272785b",
+      "working_file_sha256": "6e0a3f39c5faf71ad83d401ea80e87f281a46b5330fcd7a5747c20d266130638",
+      "bytes": 34683
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "git_blob": "e09e36dc974ee7940313014bf0403054d6832704",
+      "working_file_sha256": "65f61313961f23e79c332dd9d51d4a116dba4bfab7c6db8c94cae2008d416b61",
+      "bytes": 39975
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "git_blob": "da3d090e744ce1716a9645c83d2cc936416c8089",
+      "working_file_sha256": "e4b5188dfd0920a8c00f66e2e5bae8ba082ad9284b4d0b4c215c8d3c996a31de",
+      "bytes": 297372
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/build.rs",
+      "git_blob": "029910bd30758d1bbc2396377bacf2eb49c59c4c",
+      "working_file_sha256": "8dfd3fc3b906e279c79fdcc06adb43b85b8a01fadc24ffdc654240d346911e5c",
+      "bytes": 2321
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/cmb_step.c",
+      "git_blob": "18b23a8060e251cab1dac09585b0f274856c3637",
+      "working_file_sha256": "f70c0907478da9c67a7ba3231b1b305a71a89b05113bf87d90a723aabb5c543a",
+      "bytes": 5586
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/aim-malformed.lua",
+      "git_blob": "dba768ff9fdb1a3fc3224dbbac2dc1b75a9381f5",
+      "working_file_sha256": "85a6fd04125aea5d4e7dd096bf12406526a32af968f2bcfc785551c253e68ce5",
+      "bytes": 4927
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/aim-provider.lua",
+      "git_blob": "1c04cde55cfb1b93026f21342b6714bd748c8155",
+      "working_file_sha256": "0599aa1647a7f638bdbda32d6410c0ffbdb1ffc4a43ff26ddcb1eb6335183483",
+      "bytes": 20858
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/own-weapon.lua",
+      "git_blob": "27d3e6b172ed4b17645e5ef9caac88dc6f5c2ecc",
+      "working_file_sha256": "f5d3ee441a3cb61c9e1cd3be6843ae98fdadd1e4a7221acd681bce0f71a8a350",
+      "bytes": 5324
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/cmb.rs",
+      "git_blob": "96b9d7f1cfd0c680b5437f1d1213e650cd7fab5a",
+      "working_file_sha256": "33ef2c15ba17294672b2a14216bb62002731296be5452750a932e918385e2323",
+      "bytes": 12219
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/lib.rs",
+      "git_blob": "18ab2066a62c8287c966c40a01c36b8c9f2b5ee5",
+      "working_file_sha256": "b9fcb98142e61ce11aa5495869829e7b6f9d666b6949cfceeb39c764a81e6344",
+      "bytes": 214
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/main.rs",
+      "git_blob": "4672d6d00fa170121dd0d009d4c4754d5b7a73d4",
+      "working_file_sha256": "bf6680a61ae8b5ccb6d4240feb17f104e4fb0cafbd9a3d2bfc5afcca36887359",
+      "bytes": 152996
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "git_blob": "f352814e1eb64bfe507e857c2c3183534599be57",
+      "working_file_sha256": "f40ecadf640cab0029d38bab78f4e1ca32ce8fdc1515649094fbe4a65970df70",
+      "bytes": 77824
+    },
+    {
+      "path": "eech-campaign/docs/m5-combat-extraction.md",
+      "git_blob": "b6d44e6d1f48e39661cbf9ed8d05b265d8f324fd",
+      "working_file_sha256": "d870130f4a75aa46b5d43be1c60c3a31ccb3e838791ed10b805819a84c58a49f",
+      "bytes": 7621
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/README.md",
+      "git_blob": "e4c59f2c3475e7427993dc68948f9ad2fbeaa976",
+      "working_file_sha256": "05a38be6b6320b13a7b0dc597a10b0ae51fa38f43d0e7d7b0d31ac17ac5f73b5",
+      "bytes": 30367
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/forecast-stub/project.h",
+      "git_blob": "af20e9ca735b7d9c3860d635531c4fa6f9b5d114",
+      "working_file_sha256": "d5c0e4991a3d9e3de56dd89bacd2f029c8b8e25f1cef0c6dfdbe8bbe921416be",
+      "bytes": 824
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/forecast_checks.c",
+      "git_blob": "8503a2e2c960fc4ca9b4f573ae9e2450d3b78b5e",
+      "working_file_sha256": "3bca63abef97edf83420ad4ea6947e6ae1d85d1517a3dc719f503598c323b324",
+      "bytes": 10949
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/run-forecast-checks.sh",
+      "git_blob": "020de4344facee8b5e41137bd1749dd1dce0ef1e",
+      "working_file_sha256": "36f8b3a032c71229bd18936271c086cfa6ec8f913ee0f557018b1e8baf3b07a5",
+      "bytes": 2040
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-f46-1-default.log",
+      "git_blob": "b7b0e180e373e2df71ac5d92e2415b3714ca8d28",
+      "working_file_sha256": "3ad688c7151839d344dc5e376fc6a99d1c4a255fcbaa5202be5a9c1f469e395c",
+      "bytes": 1148
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-f46-2-default.log",
+      "git_blob": "304810e4924d319931d4c8065de769dcbdd58b36",
+      "working_file_sha256": "d46ecb99e438b4c93dcb73ea9b90f9c94b9c4a9c24f448e6dc922abede1ae00d",
+      "bytes": 651
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-f46-2-fixture.log",
+      "git_blob": "89dc1e17af93be61ba9b60ff0cdf4b29b53ae5c7",
+      "working_file_sha256": "36391f6858fc1a041a0aa915972df70a39cf76c095112caae01548b8df88b7af",
+      "bytes": 148
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/forecast-checks-1.log",
+      "git_blob": "c7237ef763b03c2e68bb90bf7b1540e51876c702",
+      "working_file_sha256": "093773c199ee4f1df3244e3588b14ae9ebde100fbbb5e4a359e3320b78a54d40",
+      "bytes": 2031
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/forecast-checks-2.log",
+      "git_blob": "8235c61b62330decc40ac7a529c1606736619679",
+      "working_file_sha256": "4cf35c5a41b1d2c4bca2917c364c6a757f88aa5666b893ad246fdb9320808e2e",
+      "bytes": 1691
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/forecast-mutant-1.log",
+      "git_blob": "1485842b5fd6a3685e115b3c919f4dbc3f62eff2",
+      "working_file_sha256": "f33bb719a833d81b3a05502d9d2a31d8aadaafa53f3898152148379586a90fce",
+      "bytes": 1695
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/kernel-mutant-1.log",
+      "git_blob": "774af684ac64e4a9c5e38d15bb6a6371d61d5cbb",
+      "working_file_sha256": "9bcac813a4fe1ed36ae263474d00d1a6f9a49834a3bf6634a2a49e2cc88973c2",
+      "bytes": 1999
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/strict-preprocess-47-1.log",
+      "git_blob": "c6b6bcec90911fb6d4552c0aadffd9cad924c9fa",
+      "working_file_sha256": "51c81b3b87ac7043a840b4be0b230b2cc4bc25e6d49c1351ba59d74bdefc2b26",
+      "bytes": 13384
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/strict-preprocess-47-2.log",
+      "git_blob": "6e72f898f439c1b9ca4d7f8b6942e7b7b6182a28",
+      "working_file_sha256": "d60b4c2b9feb4806b94ce764f7241d2c76e385327c8db47831c3c767ab9ca0ca",
+      "bytes": 4239
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/syntax-check-47-1.log",
+      "git_blob": "cc9910c1974ffdb510458310645d50e12555e5c7",
+      "working_file_sha256": "58b968653f78196621a93309ab5b8876b96742c701260f96cba9c64633780980",
+      "bytes": 2792
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/test-f46-2.log",
+      "git_blob": "ec7f130ff6ab8cda4c3b81a57f62ae8c9e32e39d",
+      "working_file_sha256": "166ab47742d840ee8ff9e92c9dba2ce3a987a8e745244648f61c23cf4504eea3",
+      "bytes": 30414
+    }
+  ]
+}

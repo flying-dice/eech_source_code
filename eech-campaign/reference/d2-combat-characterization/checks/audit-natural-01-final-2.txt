@@ -1,0 +1,48 @@
+PASS          [PROCESS] native process finished with exit 0
+PASS          [ARTIFACT] trace readable
+PASS          [ARTIFACT] boot configuration (seconds/frame_ms/checkpoint_every/seed)
+PASS          [ARTIFACT] checkpoints at exact multiples, in order, frames increasing
+PASS          [ARTIFACT] run event: end point reached, frames, checkpoints and configuration as booted
+PASS          [ARTIFACT] the run event is the last unscoped event and a final `run` report follows it
+PASS          [ARTIFACT] final report (scope run) present
+PASS          [ARTIFACT] six hashes (damage collision blast repair timed order) in every report are 16 lowercase hex digits written as strings
+PASS          [ARTIFACT] every cmb-kind counter is a number, except the declared legacy f41 `blast` decimal string
+PASS          [ARTIFACT] cmb-kind blast counter typing: LEGACY schema (decimal strings), accepted and declared
+PASS          [ARTIFACT] integrity in every report: trusted, no nesting overflow, unbalanced delivery, unknown identity, outside release or log overflow
+PASS          [ARTIFACT] damage_client_server_entity entries equal exits in every report
+PASS          [ARTIFACT] run-wide counters never decrease from one report to the next
+PASS          [ARTIFACT] event log sequence is contiguous from 1
+PASS          [ARTIFACT] every event is of a known kind
+PASS          [ARTIFACT] event drain times never go backwards
+PASS          [ARTIFACT] blast begin/end events pair up in order
+PASS          [ARTIFACT] each explosion event reports exactly the blasts that ran inside it
+PASS          [ARTIFACT] collision events == observed deliveries == sum of per-kind collisions (final report)
+PASS          [ARTIFACT] blast-begin events == blast calls (final report)
+PASS          [ARTIFACT] blast-end events == blast calls (final report)
+PASS          [ARTIFACT] explosion events == explosion invocations (final report)
+PASS          [ARTIFACT] repair events == repair writes (final report)
+PASS          [ARTIFACT] timed events == timed hits (final report)
+PASS          [ARTIFACT] cmb-log events == stored == drained == events read, overflow 0 (final report)
+
+COVERAGE (measured, run):
+  ANTI_AIRCRAFT   collisions=5 direct=5 blast=0 applied=5 fatal=5 candidates=2045 in_range=0 notified=0
+  CITY_BUILDING   collisions=70 direct=1 blast=69 applied=69 fatal=45 candidates=105876 in_range=69 notified=69
+  FIXED_WING      collisions=17 direct=16 blast=1 applied=17 fatal=0 candidates=1120 in_range=1 notified=1
+  HELICOPTER      collisions=48 direct=45 blast=3 applied=48 fatal=13 candidates=5853 in_range=3 notified=3
+  OBJECT          collisions=0 direct=0 blast=0 applied=0 fatal=0 candidates=0 in_range=0 notified=0
+  PERSON          collisions=0 direct=0 blast=0 applied=0 fatal=0 candidates=812 in_range=0 notified=0
+  PYLON           collisions=0 direct=0 blast=0 applied=0 fatal=0 candidates=3104 in_range=0 notified=0
+  ROUTED_VEHICLE  collisions=81 direct=20 blast=61 applied=78 fatal=30 candidates=5603 in_range=61 notified=61
+  SCENIC          collisions=0 direct=0 blast=0 applied=0 fatal=0 candidates=11020 in_range=0 notified=0
+  SEGMENT         collisions=8 direct=0 blast=8 applied=8 fatal=3 candidates=1908 in_range=8 notified=8
+  SHIP_VEHICLE    collisions=5 direct=5 blast=0 applied=5 fatal=0 candidates=439 in_range=0 notified=0
+  SITE            collisions=0 direct=0 blast=0 applied=0 fatal=0 candidates=4736 in_range=0 notified=0
+  SITE_UPDATABLE  collisions=0 direct=0 blast=0 applied=0 fatal=0 candidates=1004 in_range=0 notified=0
+  warheads: {"0": {"forecast": 13910, "penetrated": 0, "real": 0, "splash": 0}, "1": {"forecast": 62883, "penetrated": 0, "real": 0, "splash": 0}, "3": {"forecast": 65707, "penetrated": 45945, "real": 0, "splash": 0}, "4": {"forecast": 81613, "penetrated": 56906, "real": 49, "splash": 24756}, "5": {"forecast": 39485, "penetrated": 37506, "real": 88, "splash": 2067}, "6": {"forecast": 301306, "penetrated": 228282, "real": 97, "splash": 73121}, "7": {"forecast": 9478, "penetrated": 2344, "real": 0, "splash": 7134}}
+  kill codes in blasts: {"hit_land": 1964, "hit_target": 104, "overshot_target": 3, "self_destruct": 162}
+  timed: {"anti_aircraft_fire": {"attempts": 4134689, "draws": 0, "fatal": 0, "hits": 0}, "fixed_wing_fire": {"attempts": 546036, "draws": 210, "fatal": 1, "hits": 68}, "helicopter_fire": {"attempts": 1026989, "draws": 364, "fatal": 0, "hits": 43}, "person_bleeding": {"attempts": 833140, "draws": 0, "fatal": 0, "hits": 0}, "routed_vehicle_fire": {"attempts": 2740387, "draws": 506, "fatal": 1, "hits": 112}, "ship_vehicle_fire": {"attempts": 216036, "draws": 204, "fatal": 0, "hits": 37}}
+  repair: {"fixed_restore": 0, "other": 0, "resupply": 5, "zero_to_positive": 0}
+  special: {"blast_zero_radius": 160, "bridge_cargo_weapon_deliveries_counted_only": 31, "capability_draws": 234, "damage_exit_invulnerable": 0, "damage_exit_no_weapon": 0, "explosion_invocations": 1475, "explosions_with_repeated_blast": 982, "forecast_capability_calls": 574382, "multiplier_moved": 0, "none": 96555, "penetrated": 370983, "player_target": 0, "real_capability_calls": 234, "splash": 107078, "wrapped_collision_handlers_cumulative": 32}
+  UNREACHED: collision on OBJECT (never a blast candidate: no row in the report); collision on PERSON (blast candidates seen, none in range); collision on PYLON (blast candidates seen, none in range); collision on SCENIC (blast candidates seen, none in range); collision on SITE (blast candidates seen, none in range); collision on SITE_UPDATABLE (blast candidates seen, none in range); timed health loss: person_bleeding (attempts 833140, draws 0, hits 0); timed health loss: anti_aircraft_fire (attempts 4134689, draws 0, hits 0); a player-controlled target; a weapon whose multiplayer multiplier moved the damage; a collision with no weapon (the no-weapon exit); an invulnerable target; a rocket destroyed by a blast; a fixed-structure restore (D4 coupling)
+
+STATUS=PASS

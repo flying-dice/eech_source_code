@@ -1,0 +1,4 @@
+2026-10-28 01:29:00 start g1-pref (prov reference) bin=R:\eech_source_code\eech-campaign\target\weapon-fixture\e6c13864b: R:/eech_source_code/eech-campaign/target/weapon-fixture/e6c13864b/lua/aim-provider.lua root=R:/d2-evidence/weapon-characterization-20261027/roots/g1-pref scenario=lebanon_retail seconds=600 mode=reference out=R:/d2-evidence/weapon-characterization-20261027/out/g1-pref/summary.jsonl
+2026-10-28 01:29:00 end g1-pref : native exit=1 after 0 s
+2026-10-28 01:29:00 PLAN FAILED at g1-pref: exit 1; the remaining runs were NOT started (0 earlier runs exited 0)
+OUTER_EXIT=1

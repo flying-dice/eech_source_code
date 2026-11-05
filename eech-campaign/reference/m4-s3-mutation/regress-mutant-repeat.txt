@@ -1,0 +1,260 @@
+running georgia_retail and lebanon_retail for 3 simulated hours each ...
+runs took 1,278 s
+
+georgia_retail: 30 of 30 campaign expectations hold
+georgia_retail: 3.0 h, conclusion: none
+  blue sorties 113: TROOP_MOVEMENT_PATROL 26, ADVANCE 22, RECON 13, TRANSFER_HELICOPTER 13, GROUND_STRIKE 11, COMBAT_AIR_PATROL 6, ESCORT 5, CLOSE_AIR_SUPPORT 4, TROOP_INSERTION 3, TROOP_MOVEMENT_INSERT_CAPTURE 3, SEAD 2, BAI 2, BDA 2, REPAIR 1
+  blue aircraft sorties 137, weapons launched 1241
+  blue lost: air_defence 19, ground_vehicle 109, helicopter 51, infantry 38
+  blue spawned: infantry 46
+  blue captured: nothing
+  blue airbase      held 1 -> 1, ammo 100 -> 64, fuel 100 -> 28
+  blue farp         held 15 -> 14, ammo 100 -> 89.6, fuel 100 -> 92.1
+  red sorties 222: TROOP_MOVEMENT_PATROL 70, ADVANCE 21, TRANSFER_HELICOPTER 20, SUPPLY 17, TRANSFER_FIXED_WING 14, RECON 12, BAI 10, COMBAT_AIR_PATROL 10, GROUND_STRIKE 8, ESCORT 8, REPAIR 8, TROOP_MOVEMENT_INSERT_CAPTURE 6, RETREAT 4, CLOSE_AIR_SUPPORT 4, TROOP_INSERTION 4, SEAD 3, OCA_SWEEP 2, BDA 1
+  red aircraft sorties 265, weapons launched 608
+  red lost: air_defence 17, fixed_wing 6, ground_vehicle 67, helicopter 50, infantry 54
+  red spawned: infantry 76
+  red captured: {'KEYSITE_FARP': 1}
+  red airbase      held 11 -> 11, ammo 100 -> 46.8, fuel 100 -> 43.3
+  red farp         held 41 -> 42, ammo 100 -> 90.5, fuel 100 -> 92.6
+OUTSIDE tolerance of the baseline (--exact: not identical)
+  ok   1.0 h  supply    red KEYSITE_AIRBASE ammo                          83.5 -> 84.4
+  ok   1.0 h  supply    red KEYSITE_AIRBASE fuel                            64 -> 63.1
+  ok   2.0 h  sorties   blue fixed_wing BAI                                  1 -> 0
+  ok   2.0 h  sorties   blue fixed_wing CLOSE_AIR_SUPPORT                    2 -> 1
+  ok   2.0 h  sorties   blue fixed_wing ESCORT                               1 -> 2
+  ok   2.0 h  sorties   blue helicopter CLOSE_AIR_SUPPORT                    1 -> 2
+  ok   2.0 h  sorties   blue helicopter ESCORT                               3 -> 2
+  ok   2.0 h  sorties   blue helicopter TROOP_INSERTION                      2 -> 3
+  ok   2.0 h  sorties   blue infantry TROOP_MOVEMENT_INSERT_CAPTURE          1 -> 0
+  ok   2.0 h  sorties   red helicopter CLOSE_AIR_SUPPORT                     1 -> 2
+  ok   2.0 h  sorties   red helicopter REPAIR                                6 -> 7
+  ok   2.0 h  sorties   red helicopter SUPPLY                               13 -> 12
+  ok   2.0 h  sorties   red helicopter TRANSFER_HELICOPTER                  12 -> 11
+  ok   2.0 h  aircraft  red                                                197 -> 194
+FAIL   2.0 h  launched  blue                                               857 -> 1083
+  ok   2.0 h  launched  red                                                422 -> 433
+  ok   2.0 h  lost      blue air_defence                                    11 -> 10
+  ok   2.0 h  lost      blue ground_vehicle                                 86 -> 94
+  ok   2.0 h  lost      blue helicopter                                     40 -> 46
+  ok   2.0 h  lost      blue infantry                                       23 -> 24
+  ok   2.0 h  lost      red air_defence                                     14 -> 13
+  ok   2.0 h  lost      red fixed_wing                                       6 -> 4
+  ok   2.0 h  lost      red helicopter                                      46 -> 42
+  ok   2.0 h  lost      red infantry                                        46 -> 47
+  ok   2.0 h  spawned   blue infantry                                       22 -> 20
+  ok   2.0 h  spawned   red infantry                                        48 -> 44
+FAIL   2.0 h  resupplied red KEYSITE_AIRBASE ammo                             4 -> 0
+  ok   2.0 h  resupplied red KEYSITE_AIRBASE fuel                             2 -> 5
+  ok   2.0 h  supply    red KEYSITE_AIRBASE ammo                          66.1 -> 57.3
+  ok   2.0 h  supply    red KEYSITE_AIRBASE fuel                          39.2 -> 43.1
+  ok   2.0 h  alive     blue air_defence                                    27 -> 28
+  ok   2.0 h  alive     blue ground_vehicle                                141 -> 133
+  ok   2.0 h  alive     blue helicopter                                     30 -> 24
+  ok   2.0 h  alive     blue infantry                                       63 -> 60
+  ok   2.0 h  alive     red air_defence                                    262 -> 263
+  ok   2.0 h  alive     red fixed_wing                                      26 -> 28
+  ok   2.0 h  alive     red helicopter                                     198 -> 202
+  ok   2.0 h  alive     red infantry                                       210 -> 205
+  ok   3.0 h  sorties   blue fixed_wing BAI                                  1 -> 0
+  ok   3.0 h  sorties   blue fixed_wing CLOSE_AIR_SUPPORT                    2 -> 1
+  ok   3.0 h  sorties   blue fixed_wing COMBAT_AIR_PATROL                    1 -> 2
+  ok   3.0 h  sorties   blue fixed_wing GROUND_STRIKE                        3 -> 2
+  ok   3.0 h  sorties   blue fixed_wing SEAD                                 0 -> 1
+  ok   3.0 h  sorties   blue ground_vehicle RETREAT                          1 -> 0
+  ok   3.0 h  sorties   blue helicopter CLOSE_AIR_SUPPORT                    2 -> 3
+  ok   3.0 h  sorties   blue helicopter COMBAT_AIR_PATROL                    5 -> 4
+  ok   3.0 h  sorties   blue helicopter ESCORT                               5 -> 3
+  ok   3.0 h  sorties   blue helicopter TRANSFER_HELICOPTER                 14 -> 13
+  ok   3.0 h  sorties   blue helicopter TROOP_INSERTION                      4 -> 3
+  ok   3.0 h  sorties   blue infantry TROOP_MOVEMENT_PATROL                 27 -> 26
+  ok   3.0 h  sorties   red fixed_wing COMBAT_AIR_PATROL                     3 -> 2
+  ok   3.0 h  sorties   red fixed_wing TRANSFER_FIXED_WING                  15 -> 14
+  ok   3.0 h  sorties   red helicopter CLOSE_AIR_SUPPORT                     3 -> 4
+  ok   3.0 h  sorties   red helicopter GROUND_STRIKE                         5 -> 6
+  ok   3.0 h  sorties   red helicopter RECON                                13 -> 12
+  ok   3.0 h  sorties   red helicopter REPAIR                                7 -> 8
+  ok   3.0 h  sorties   red helicopter SUPPLY                               19 -> 17
+  ok   3.0 h  sorties   red helicopter TRANSFER_HELICOPTER                  18 -> 20
+  ok   3.0 h  sorties   red helicopter TROOP_INSERTION                       5 -> 4
+FAIL   3.0 h  sorties   red infantry TROOP_MOVEMENT_INSERT_CAPTURE          10 -> 6
+  ok   3.0 h  aircraft  blue                                               147 -> 137
+  ok   3.0 h  aircraft  red                                                271 -> 265
+  ok   3.0 h  launched  blue                                              1179 -> 1241
+  ok   3.0 h  launched  red                                                526 -> 608
+FAIL   3.0 h  lost      blue air_defence                                    13 -> 19
+  ok   3.0 h  lost      blue ground_vehicle                                102 -> 109
+FAIL   3.0 h  lost      blue helicopter                                     41 -> 51
+  ok   3.0 h  lost      blue infantry                                       40 -> 38
+  ok   3.0 h  lost      red air_defence                                     14 -> 17
+  ok   3.0 h  lost      red ground_vehicle                                  64 -> 67
+  ok   3.0 h  lost      red helicopter                                      49 -> 50
+  ok   3.0 h  lost      red infantry                                        65 -> 54
+FAIL   3.0 h  spawned   red infantry                                        96 -> 76
+  ok   3.0 h  captures  blue KEYSITE_FARP                                    1 -> 0
+FAIL   3.0 h  resupplied red KEYSITE_AIRBASE ammo                             6 -> 1
+FAIL   3.0 h  resupplied red KEYSITE_AIRBASE fuel                             5 -> 11
+  ok   3.0 h  resupplied red KEYSITE_FARP ammo                                1 -> 0
+  ok   3.0 h  keysites  blue KEYSITE_FARP                                   15 -> 14
+  ok   3.0 h  keysites  red KEYSITE_FARP                                    41 -> 42
+  ok   3.0 h  states    blue KEYSITE_FARP repairing                          1 -> 0
+  ok   3.0 h  states    red KEYSITE_FARP repairing                           2 -> 4
+  ok   3.0 h  states    red KEYSITE_FARP usable                             38 -> 37
+  ok   3.0 h  supply    blue KEYSITE_FARP ammo                            89.7 -> 89.6
+  ok   3.0 h  supply    blue KEYSITE_FARP fuel                            92.3 -> 92.1
+  ok   3.0 h  supply    red KEYSITE_AIRBASE ammo                          55.3 -> 46.8
+FAIL   3.0 h  supply    red KEYSITE_AIRBASE fuel                          28.2 -> 43.3
+  ok   3.0 h  supply    red KEYSITE_FARP ammo                             91.2 -> 90.5
+FAIL   3.0 h  alive     blue air_defence                                    25 -> 19
+  ok   3.0 h  alive     blue ground_vehicle                                125 -> 118
+FAIL   3.0 h  alive     blue helicopter                                     31 -> 19
+  ok   3.0 h  alive     blue infantry                                       70 -> 72
+  ok   3.0 h  alive     red air_defence                                    262 -> 259
+  ok   3.0 h  alive     red ground_vehicle                                 162 -> 159
+  ok   3.0 h  alive     red helicopter                                     193 -> 194
+  ok   3.0 h  alive     red infantry                                       239 -> 230
+georgia_retail: FAIL
+
+  EXPECTATION FAILED  airbases resupplied with ammo (0)
+lebanon_retail: 38 of 39 campaign expectations hold
+lebanon_retail: FAIL (campaign expectations)
+lebanon_retail: 3.0 h, conclusion: none
+  blue sorties 149: ADVANCE 29, TRANSFER_HELICOPTER 22, TROOP_MOVEMENT_PATROL 18, RECON 12, SUPPLY 10, COMBAT_AIR_PATROL 9, ESCORT 8, REPAIR 8, BAI 6, OCA_SWEEP 6, SEAD 6, GROUND_STRIKE 5, CLOSE_AIR_SUPPORT 4, OCA_STRIKE 3, TRANSFER_FIXED_WING 2, BDA 1
+  blue aircraft sorties 229, weapons launched 4165
+  blue lost: air_defence 59, fixed_wing 13, ground_vehicle 103, helicopter 73, infantry 17, ship 12
+  blue spawned: fixed_wing 8, ground_vehicle 20, helicopter 27, infantry 16
+  blue captured: nothing
+  blue airbase      held 4 -> 4, ammo 100 -> 59, fuel 100 -> 40.6
+  blue farp         held 5 -> 5, ammo 100 -> 71, fuel 100 -> 73.7
+  blue factory      held 3 -> 3, ammo 100 -> 100, fuel 100 -> 96.7
+  blue oil_refinery held 3 -> 3, ammo 100 -> 100, fuel 100 -> 100
+  red sorties 221: SUPPLY 45, TROOP_MOVEMENT_PATROL 25, RECON 23, TRANSFER_HELICOPTER 22, TRANSFER_FIXED_WING 18, ADVANCE 18, RETREAT 15, GROUND_STRIKE 12, BAI 10, OCA_SWEEP 8, REPAIR 8, CLOSE_AIR_SUPPORT 5, OCA_STRIKE 4, COMBAT_AIR_PATROL 3, BDA 2, SEAD 2, TROOP_INSERTION 1
+  red aircraft sorties 290, weapons launched 1951
+  red lost: air_defence 47, fixed_wing 26, ground_vehicle 86, helicopter 73, infantry 7
+  red spawned: fixed_wing 24, ground_vehicle 50, helicopter 51, infantry 4
+  red captured: nothing
+  red airbase      held 8 -> 8, ammo 100 -> 37, fuel 100 -> 44.9
+  red farp         held 6 -> 6, ammo 100 -> 89.3, fuel 100 -> 82.5
+  red factory      held 22 -> 22, ammo 100 -> 100, fuel 100 -> 96.4
+  red oil_refinery held 8 -> 8, ammo 100 -> 100, fuel 100 -> 100
+OUTSIDE tolerance of the baseline (--exact: not identical)
+  ok   2.0 h  sorties   blue helicopter ESCORT                               2 -> 3
+  ok   2.0 h  sorties   blue helicopter RECON                               12 -> 11
+  ok   2.0 h  sorties   blue helicopter TRANSFER_HELICOPTER                 15 -> 14
+  ok   2.0 h  sorties   red ground_vehicle RETREAT                           9 -> 10
+  ok   2.0 h  sorties   red helicopter COMBAT_AIR_PATROL                     1 -> 0
+  ok   2.0 h  sorties   red helicopter RECON                                20 -> 21
+  ok   2.0 h  sorties   red helicopter REPAIR                                5 -> 4
+  ok   2.0 h  sorties   red helicopter SUPPLY                               10 -> 11
+  ok   2.0 h  sorties   red helicopter TRANSFER_HELICOPTER                  15 -> 16
+  ok   2.0 h  sorties   red infantry TROOP_MOVEMENT_PATROL                  24 -> 23
+  ok   2.0 h  aircraft  blue                                               174 -> 170
+  ok   2.0 h  launched  blue                                              2985 -> 3073
+  ok   2.0 h  launched  red                                               1269 -> 1257
+  ok   2.0 h  lost      blue ground_vehicle                                 92 -> 89
+  ok   2.0 h  lost      blue helicopter                                     55 -> 57
+  ok   2.0 h  lost      red air_defence                                     47 -> 44
+  ok   2.0 h  lost      red fixed_wing                                      27 -> 22
+  ok   2.0 h  lost      red ground_vehicle                                  72 -> 73
+FAIL   2.0 h  lost      red infantry                                         6 -> 0
+  ok   2.0 h  spawned   blue fixed_wing                                      5 -> 4
+  ok   2.0 h  spawned   red fixed_wing                                      22 -> 20
+  ok   2.0 h  spawned   red ground_vehicle                                  40 -> 41
+FAIL   2.0 h  spawned   red infantry                                         4 -> 0
+  ok   2.0 h  resupplied red KEYSITE_AIRBASE ammo                             1 -> 0
+  ok   2.0 h  resupplied red KEYSITE_AIRBASE fuel                             6 -> 7
+  ok   2.0 h  states    blue KEYSITE_FARP out_of_action                      0 -> 1
+  ok   2.0 h  states    blue KEYSITE_FARP usable                             5 -> 4
+  ok   2.0 h  states    red KEYSITE_AIRBASE out_of_action                    1 -> 0
+  ok   2.0 h  states    red KEYSITE_AIRBASE repairing                        0 -> 1
+  ok   2.0 h  supply    blue KEYSITE_AIRBASE ammo                           71 -> 73.5
+  ok   2.0 h  supply    blue KEYSITE_AIRBASE fuel                           42 -> 39.5
+  ok   2.0 h  supply    red KEYSITE_AIRBASE ammo                          58.7 -> 48.7
+  ok   2.0 h  supply    red KEYSITE_AIRBASE fuel                            41 -> 53.5
+  ok   2.0 h  supply    red KEYSITE_FACTORY ammo                          99.6 -> 100
+  ok   2.0 h  supply    red KEYSITE_FACTORY fuel                           100 -> 99.5
+  ok   2.0 h  alive     blue fixed_wing                                     40 -> 39
+  ok   2.0 h  alive     blue ground_vehicle                                119 -> 122
+  ok   2.0 h  alive     blue helicopter                                     31 -> 29
+  ok   2.0 h  alive     red air_defence                                    492 -> 495
+  ok   2.0 h  alive     red fixed_wing                                      46 -> 49
+  ok   2.0 h  alive     red infantry                                        90 -> 92
+  ok   3.0 h  sorties   blue fixed_wing BAI                                  2 -> 3
+  ok   3.0 h  sorties   blue fixed_wing ESCORT                               3 -> 5
+  ok   3.0 h  sorties   blue fixed_wing GROUND_STRIKE                        3 -> 4
+  ok   3.0 h  sorties   blue fixed_wing OCA_STRIKE                           4 -> 3
+  ok   3.0 h  sorties   blue fixed_wing TRANSFER_FIXED_WING                  3 -> 2
+  ok   3.0 h  sorties   blue ground_vehicle ADVANCE                         34 -> 29
+  ok   3.0 h  sorties   blue helicopter BAI                                  2 -> 3
+  ok   3.0 h  sorties   blue helicopter BDA                                  0 -> 1
+  ok   3.0 h  sorties   blue helicopter COMBAT_AIR_PATROL                    5 -> 6
+  ok   3.0 h  sorties   blue helicopter GROUND_STRIKE                        3 -> 1
+  ok   3.0 h  sorties   blue helicopter TRANSFER_HELICOPTER                 21 -> 22
+  ok   3.0 h  sorties   blue helicopter TROOP_INSERTION                      1 -> 0
+  ok   3.0 h  sorties   blue infantry TROOP_MOVEMENT_PATROL                 17 -> 18
+  ok   3.0 h  sorties   red fixed_wing COMBAT_AIR_PATROL                     1 -> 3
+  ok   3.0 h  sorties   red fixed_wing ESCORT                                1 -> 0
+  ok   3.0 h  sorties   red fixed_wing GROUND_STRIKE                         2 -> 3
+  ok   3.0 h  sorties   red fixed_wing OCA_SWEEP                             9 -> 8
+  ok   3.0 h  sorties   red fixed_wing SUPPLY                               31 -> 29
+  ok   3.0 h  sorties   red fixed_wing TRANSFER_FIXED_WING                  17 -> 18
+FAIL   3.0 h  sorties   red ground_vehicle RETREAT                          10 -> 15
+FAIL   3.0 h  sorties   red helicopter BAI                                  10 -> 6
+  ok   3.0 h  sorties   red helicopter COMBAT_AIR_PATROL                     2 -> 0
+  ok   3.0 h  sorties   red helicopter ESCORT                                1 -> 0
+  ok   3.0 h  sorties   red helicopter GROUND_STRIKE                         7 -> 9
+  ok   3.0 h  sorties   red helicopter REPAIR                                7 -> 8
+  ok   3.0 h  sorties   red helicopter SUPPLY                               18 -> 16
+  ok   3.0 h  sorties   red helicopter TRANSFER_HELICOPTER                  23 -> 22
+  ok   3.0 h  aircraft  blue                                               225 -> 229
+  ok   3.0 h  aircraft  red                                                297 -> 290
+  ok   3.0 h  launched  blue                                              3837 -> 4165
+  ok   3.0 h  launched  red                                               1659 -> 1951
+  ok   3.0 h  lost      blue air_defence                                    64 -> 59
+FAIL   3.0 h  lost      blue fixed_wing                                     25 -> 13
+  ok   3.0 h  lost      blue ground_vehicle                                105 -> 103
+  ok   3.0 h  lost      blue helicopter                                     65 -> 73
+  ok   3.0 h  lost      blue infantry                                       14 -> 17
+  ok   3.0 h  lost      red air_defence                                     51 -> 47
+  ok   3.0 h  lost      red fixed_wing                                      27 -> 26
+  ok   3.0 h  lost      red ground_vehicle                                  88 -> 86
+  ok   3.0 h  lost      red infantry                                         6 -> 7
+  ok   3.0 h  spawned   blue fixed_wing                                     11 -> 8
+  ok   3.0 h  spawned   blue helicopter                                     26 -> 27
+FAIL   3.0 h  spawned   blue infantry                                        8 -> 16
+  ok   3.0 h  spawned   red fixed_wing                                      25 -> 24
+  ok   3.0 h  spawned   red helicopter                                      53 -> 51
+  ok   3.0 h  resupplied blue KEYSITE_AIRBASE fuel                            0 -> 1
+  ok   3.0 h  resupplied blue KEYSITE_MILITARY_BASE ammo                      1 -> 0
+  ok   3.0 h  resupplied red KEYSITE_AIRBASE ammo                             3 -> 0
+FAIL   3.0 h  resupplied red KEYSITE_AIRBASE fuel                             8 -> 12
+  ok   3.0 h  resupplied red KEYSITE_FARP fuel                                1 -> 0
+FAIL   3.0 h  resupplied red KEYSITE_MILITARY_BASE ammo                       6 -> 0
+FAIL   3.0 h  resupplied red KEYSITE_MILITARY_BASE fuel                       1 -> 5
+  ok   3.0 h  states    blue KEYSITE_AIRBASE repairing                       1 -> 0
+  ok   3.0 h  states    blue KEYSITE_AIRBASE usable                          3 -> 4
+  ok   3.0 h  states    red KEYSITE_FARP repairing                           0 -> 1
+  ok   3.0 h  states    red KEYSITE_FARP usable                              6 -> 5
+  ok   3.0 h  supply    blue KEYSITE_AIRBASE ammo                           54 -> 59
+FAIL   3.0 h  supply    blue KEYSITE_AIRBASE fuel                           21 -> 40.6
+  ok   3.0 h  supply    blue KEYSITE_FACTORY fuel                          100 -> 96.7
+  ok   3.0 h  supply    blue KEYSITE_MILITARY_BASE ammo                   74.9 -> 64
+  ok   3.0 h  supply    red KEYSITE_AIRBASE ammo                          43.3 -> 37
+  ok   3.0 h  supply    red KEYSITE_AIRBASE fuel                          32.3 -> 44.9
+  ok   3.0 h  supply    red KEYSITE_FACTORY ammo                          99.7 -> 100
+  ok   3.0 h  supply    red KEYSITE_FACTORY fuel                           100 -> 96.4
+  ok   3.0 h  supply    red KEYSITE_FARP ammo                             87.7 -> 89.3
+  ok   3.0 h  supply    red KEYSITE_FARP fuel                             95.5 -> 82.5
+FAIL   3.0 h  supply    red KEYSITE_MILITARY_BASE ammo                    84.9 -> 64
+  ok   3.0 h  supply    red KEYSITE_MILITARY_BASE fuel                    67.6 -> 81.3
+  ok   3.0 h  supply    red KEYSITE_POWER_STATION fuel                    65.6 -> 68.2
+  ok   3.0 h  alive     blue air_defence                                    86 -> 91
+FAIL   3.0 h  alive     blue fixed_wing                                     26 -> 35
+  ok   3.0 h  alive     blue ground_vehicle                                106 -> 108
+FAIL   3.0 h  alive     blue helicopter                                     27 -> 20
+  ok   3.0 h  alive     blue infantry                                       42 -> 47
+  ok   3.0 h  alive     red air_defence                                    488 -> 492
+  ok   3.0 h  alive     red ground_vehicle                                 225 -> 227
+  ok   3.0 h  alive     red helicopter                                      88 -> 86
+  ok   3.0 h  alive     red infantry                                        90 -> 89
+lebanon_retail: FAIL

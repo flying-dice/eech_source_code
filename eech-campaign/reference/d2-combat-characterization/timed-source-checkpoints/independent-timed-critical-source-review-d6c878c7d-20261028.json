@@ -1,0 +1,504 @@
+{
+  "review_utc": "2026-10-28T07:44:48.808331+00:00",
+  "reviewer": "single independent Codex reviewer /root/d2_los_review",
+  "base": "6811b136c20f42893372ec0d19418bf6f84b63a6",
+  "reviewed_sha": "d6c878c7d67c9da72eca1ba1ea8395a2e13bf43c",
+  "head_before": "d6c878c7d67c9da72eca1ba1ea8395a2e13bf43c",
+  "clean_before": true,
+  "head_after": "d6c878c7d67c9da72eca1ba1ea8395a2e13bf43c",
+  "clean_after": true,
+  "scope": "One combined correctness, clean-code and boundary-safety review of new timed/critical/self-hit extraction and necessary new tests/docs, plus exact private driver derivatives and proposed runtime plan. No unchanged225 arithmetic/source re-review.",
+  "disposition": "One P2 ownership finding and one grouped P3 documentation finding remain; no further new arithmetic, FFI/layout/lifetime or observer-order defect identified in this source pass.",
+  "findings": [
+    {
+      "id": "TIMED-OWNERSHIP",
+      "priority": "P2",
+      "title": "Keep timed physical eligibility in the host rather than the DLL draw gate",
+      "locations": [
+        {
+          "path": "C:/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d2-sensor-detections/aphavoc/source/entity/mobile/mb_hostaim.c",
+          "line": 374,
+          "end_line": 384
+        },
+        {
+          "path": "C:/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d2-sensor-detections/aphavoc/source/entity/mobile/aircraft/helicop/hc_updt.c",
+          "line": 325,
+          "end_line": 330
+        },
+        {
+          "path": "C:/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d2-sensor-detections/aphavoc/source/entity/mobile/aircraft/fixwing/fw_updt.c",
+          "line": 208,
+          "end_line": 213
+        }
+      ],
+      "mechanism": "The DLL fatally refuses a HEALTH/TIMED NEED_DRAW for every person, an aircraft with class zero, and a vehicle without burn flags or current health because the EECH reference did not draw for these. Both aircraft update sites also suppress TIMED entirely for class zero. These are the physical eligibility rules claimed as moved. A by-value host that legitimately models stochastic bleeding (PERSON, positive level, returns NEED_DRAW then eligible/rolled/hit and a lower level) is stopped before its one sample; an aircraft model cannot decide timed eligibility independently of classification. This is a host-authority/generic-host defect, not evidence of a wrong reference probability.",
+      "bounded_correction": "Keep these default eligibility rules in cmb_step.c, ask TIMED at the existing aircraft observer point even for class zero, and restrict the DLL to operation/shape, one-draw, consistency and safe-application validation. Preserve reference no-draw behavior and exact RNG position through host answers. Add production-bridge controls accepting a generic positive-health PERSON timed draw and a class-zero aircraft TIMED answer, while retaining non-TIMED draw, second-draw and inconsistent-answer refusals. Do not alter unchanged DAMAGE math/schema in this correction. Replace bad_health_person_draw with a genuinely invalid protocol case if that request is accepted; a reference-specific no-draw behavior is not itself malformed."
+    },
+    {
+      "id": "TIMED-DOCS",
+      "priority": "P3",
+      "title": "State the actual provider trigger and critical_late scope",
+      "locations": [
+        {
+          "path": "C:/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d2-sensor-detections/eech-campaign/docs/m5-combat-extraction.md",
+          "line": 231,
+          "end_line": 233
+        },
+        {
+          "path": "C:/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d2-sensor-detections/eech-campaign/crates/eech-world/lua/aim-provider.lua",
+          "line": 43,
+          "end_line": 46
+        },
+        {
+          "path": "C:/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d2-sensor-detections/eech-campaign/crates/eech-world/csrc/cmb_step.c",
+          "line": 20,
+          "end_line": 23
+        }
+      ],
+      "mechanism": "bad_health_hit_ineligible corrupts the first completed TIMED answer with eligible=false (aim-malformed.lua:32); it does not require a timed hit. Only bad_health_fatal at line33 requires hit=true. The step3 evidence text also says DAMAGE answers remain reference, but critical_late changes initial_damage_level for DAMAGE at aim-provider.lua:260-261, affecting its critical_before/after classifications. The kernel header still lists timed health rolls as not moved despite the new HEALTH implementation.",
+      "bounded_correction": "Describe the ineligible-answer and actual-hit triggers separately; declare critical_late changes HEALTH and DAMAGE critical classifications (while leaving capability arithmetic/reference forecasts intact); update the stale kernel remainder comment. These are prose/comment corrections without a native rerun."
+    }
+  ],
+  "reviewed_source_facts": [
+    "Reference host retains original integer percentage classification and separate float percentage assessments; no campaign percentage formulas remain in changed predicate functions.",
+    "Six timed call sites retain setter, timed-hit hook, fatal handling and aircraft early-return positions. Timed-hit observer finalizes the scope before aircraft return.",
+    "Original raw15-bit shared sample is passed by value, no seed, private pointer, entity layout or index added to HEALTH.",
+    "Public C/Rust request/result field order agrees and layout assertions include new sizes/offsets; Lua reply fields mandatory and boolean/integer parsing strict.",
+    "R1 searches cover server/client mobility, helicopter classification branches, smoke/speech, setter assessments and DAMAGE critical transition consumers; unrelated reporting percentage rules remain later scope.",
+    "Self-hit identity comparison stays private in core, and HEALTH is asked at original AI self-hit early-gate location; no native self-hit proof claimed."
+  ],
+  "existing_evidence_read": {
+    "health_guard": {
+      "checks": 54,
+      "failures": 0,
+      "compile_exit": 0,
+      "run_exit": 0,
+      "docker_exit": 0,
+      "log": "health-checks-h46.log"
+    },
+    "health_mutation": {
+      "checks": 54,
+      "failures": 6,
+      "run_exit": 1,
+      "docker_exit": 1,
+      "log": "health-mutant-1.log",
+      "limit": "Confirms the specified guards are exercised, but currently also locks in the reference-specific eligibility restriction identified above."
+    },
+    "damage_guard": {
+      "checks": 66,
+      "failures": 0,
+      "run_exit": 0,
+      "docker_exit": 0
+    },
+    "forecast_guard": {
+      "checks": 25,
+      "failures": 0,
+      "run_exit": 0,
+      "docker_exit": 0
+    },
+    "cargo_tests": {
+      "log": "test-h46-2.log",
+      "cargo_exit": 0,
+      "docker_exit": 0,
+      "suites_passed": [
+        5,
+        2,
+        56,
+        217,
+        19,
+        14,
+        2
+      ]
+    },
+    "clippy": {
+      "default": "clippy-h46-2-default.log",
+      "fixture": "clippy-h46-2-fixture.log",
+      "cargo_exit": 0,
+      "docker_exit": 0
+    },
+    "syntax": {
+      "log": "syntax-check-h46-2.log",
+      "successful_cases": 50,
+      "syntax_exit": 0,
+      "outer_exit": 0
+    },
+    "preprocess": {
+      "log": "strict-preprocess-49-2.log",
+      "unchanged_feature_off_equals_original_files": 5,
+      "explicit_expected_changed_files": 7,
+      "strict_exit": 0,
+      "outer_exit": 0,
+      "limit": "Not a claim that all twelve modified runtime sources remain original-equivalent after physical extraction."
+    },
+    "retained_failures": [
+      "clippy-h46-1-default.log CARGO/DOCKER101 (unwrap_err lint)",
+      "clippy-h46-1-fixture.log CARGO/DOCKER101 (same lint)",
+      "syntax-check-h46-1.log missing helper declarations SYNTAX1",
+      "strict-preprocess-49-1.log shell quoting failure masked OUTER0; not accepted as successful proof"
+    ]
+  },
+  "private_drivers": {
+    "derivation_record": "root-timed-driver-derivation.json",
+    "all_four_source_and_destination_sha256_verified": true,
+    "exact_declared_replacements_verified": true,
+    "status": "No new helper-specific execution/argument/status defect in the changed derivative bytes. Hidden launch, held native handle, fresh output and actual exit propagation retained. Existing parser result recorded, not rerun.",
+    "records": [
+      {
+        "source": "run-real-natural.ps1",
+        "destination": "run-timed-natural.ps1",
+        "source_sha256": "451a6924231fb2954bb6f0f4d3151450d4a04e67d44af3f0203ea7a0b9deb346",
+        "destination_sha256": "473010d85bd41a2a9eae59940a0161ef37291501743445940c083a42653b7bc2",
+        "changes": [
+          [
+            "Real-damage candidate combat witness",
+            "Timed/critical candidate combat witness"
+          ],
+          [
+            "REAL_DAMAGE_NATIVE_",
+            "TIMED_NATIVE_"
+          ]
+        ],
+        "scope": "Labels only, except provider whitelist; same native execution/held handle/exit/argv controls"
+      },
+      {
+        "source": "run-real-control.ps1",
+        "destination": "run-timed-control.ps1",
+        "source_sha256": "c83a938fe97adf322276686d623e1b1cee6056ae42bb32f84fff8a86c2af2362",
+        "destination_sha256": "400d6f0a6bd0302797282a5cadb94980529b0a4c044b6a7c20e5015a4faf9859",
+        "changes": [
+          [
+            "Real-damage candidate physical-output control",
+            "Timed/critical candidate physical-output control"
+          ],
+          [
+            "REAL_DAMAGE_CONTROL_NATIVE_",
+            "TIMED_CONTROL_NATIVE_"
+          ]
+        ],
+        "scope": "Labels only, except provider whitelist; same native execution/held handle/exit/argv controls"
+      },
+      {
+        "source": "run-real-controlled.ps1",
+        "destination": "run-timed-controlled.ps1",
+        "source_sha256": "2bfdcb4ac2ad838c25ace74ba38ce58dca718a46c1c0d3314bbce930803aa1ea",
+        "destination_sha256": "d577ebe6bf1095509168a26e3bc6933ca6099806963c388804b049602c55d87c",
+        "changes": [
+          [
+            "Real-damage candidate controlled combat witness",
+            "Timed/critical candidate controlled combat witness"
+          ],
+          [
+            "REAL_CONTROLLED_NATIVE_",
+            "TIMED_CONTROLLED_NATIVE_"
+          ]
+        ],
+        "scope": "Labels only, except provider whitelist; same native execution/held handle/exit/argv controls"
+      },
+      {
+        "source": "run-real-provider.ps1",
+        "destination": "run-timed-provider.ps1",
+        "source_sha256": "62975b6a3adbf86331d24f49f58b556ffd4c2f68633d6e8ed70bdb4851c41e2e",
+        "destination_sha256": "5767b658aa3d12d6bf3b6c59d5fd891c6b7b6497b4643d5d4fd599a548d8bc11",
+        "changes": [
+          [
+            "'reference','damage_none','bad_damage_level','bad_damage_draw_twice','bad_damage_exit','bad_damage_class','bad_damage_unwritten','bad_damage_missing'",
+            "'reference','timed_never','timed_fast','critical_late','selfhit_allowed','bad_health_class','bad_health_missing','bad_health_person_draw','bad_health_hit_ineligible','bad_health_fatal'"
+          ],
+          [
+            "Real-damage candidate public-path provider",
+            "Timed/critical candidate public-path provider"
+          ],
+          [
+            "REAL_PROVIDER_NATIVE_",
+            "TIMED_PROVIDER_NATIVE_"
+          ]
+        ],
+        "scope": "Labels only, except provider whitelist; same native execution/held handle/exit/argv controls"
+      }
+    ]
+  },
+  "proposed_runtime_plan": {
+    "disposition": "Suitable after corrected source closure, successful immutable build/manifest and fresh1179-input gates; all pending.",
+    "gates": [
+      "600 full corrected-schema raw comparison against forecast891; do not relabel f41 raw byte equality",
+      "900 complete3 known retained artifact comparisons; historical ab-base input provenance remains inferred",
+      "Unchanged original35 controlled39-case/20-second-AA comparison using actual health deltas/rejections; no all39 coverage claim",
+      "Matched180 reference/timed_never/timed_fast/critical_late with positive operation activity and completed endpoints; critical_late affects DAMAGE classifications too",
+      "Malformed cases require actual specific trigger/reason; update person-draw case following P2 rather than treating a healthy generic model as invalid",
+      "No selfhit_allowed native proof without an actual self-hit fixture; source/contract coverage only",
+      "Seven-native maximum and isolated roots per lead plan"
+    ]
+  },
+  "pending_limits": [
+    "No candidate Windows build or native scenario was launched by reviewer.",
+    "No corrected timed600/900/controlled/authority/refusal evidence exists in this review.",
+    "Remaining physical impact/blast/bridge/factual reporting and whole Task46/full40 acceptance are not closed.",
+    "Active real225900/provider and Task45 fullpack evidence are outside this source pass."
+  ],
+  "pinned_changed_files": [
+    {
+      "path": "STATUS.md",
+      "bytes": 30113,
+      "sha256": "4385b3e4ba48070c6dcd3dd507758fecd1c5e9e8498f2d89553283c7c42c5890",
+      "git_blob": "64cd260ad280c46b8bc4c006f6e0644bb183617c"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/aircraft.c",
+      "bytes": 25214,
+      "sha256": "5186ba1991acaf21484f6c0ce2dfecfe714a68f7fa203350abcbf89807dffaec",
+      "git_blob": "f65b1b4adbe6b36d2e5978d5814ddf69d4fbcac3"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/aircraft.h",
+      "bytes": 8445,
+      "sha256": "f95bf6c6085d8fed141855b07061fffceeef4a9879ee29154f23c757cb5ce722",
+      "git_blob": "eb7845668a5a9326152e277cc2bdc8d6da436e78"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/fixwing/fw_updt.c",
+      "bytes": 11086,
+      "sha256": "e22e55bd777f6acb28cb1b263ad0570355fda5d377cf68c0bf978232d2c4199e",
+      "git_blob": "60160e1bb07794b45970ab04b9116fd43cfc37bf"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/helicop/hc_msgs.c",
+      "bytes": 25075,
+      "sha256": "dcb9392089780caa1969b561b43255d0c7ed29b68c2b89fdbfc5d1b2e4b7123b",
+      "git_blob": "ac1ac4ceb400901bfba6abf13367c5f1d2f175f1"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/helicop/hc_updt.c",
+      "bytes": 29537,
+      "sha256": "455b19dd2259592bd96fa97ae95086b10bb24de8dd0575921637ef0326831b1c",
+      "git_blob": "f945cca843889f1e71fe4086d982a15c9a9772ad"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostaim.c",
+      "bytes": 43291,
+      "sha256": "386a00a19f731d2a09e0cb0dba4f19cd13a652c18dfc8fb3dfa0d7fa5145b2af",
+      "git_blob": "e3999dca06115ef751da3871e02534a21c1c34df"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostaim.h",
+      "bytes": 41270,
+      "sha256": "58533c3c5148b896453b2d07b6eb2393a2339d678796248f7d68af10fd695fd0",
+      "git_blob": "1d05e98bb3ce0c791f04b366b0c9d72566271bcc"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/vehicle/anti_air/aa_updt.c",
+      "bytes": 8557,
+      "sha256": "1b1d0290c3d30c66191d2b247afbe3cf50b56a904ecf2be9779c643192ecfe3a",
+      "git_blob": "7456fbbcbd67d84fbe1d65d3c653de6213044fc7"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/vehicle/person/ps_updt.c",
+      "bytes": 8857,
+      "sha256": "3cd32442b1a4110679c1eeba48f711daa0f14fbe991620beb047d71bc5d17481",
+      "git_blob": "d55628e6bbc16a04647507b780316ba83959650f"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/vehicle/routed/rv_updt.c",
+      "bytes": 11197,
+      "sha256": "1d47b376d5e3b70573d442c7bbb95b7ab7a92cc9a9b415150f978a2eb1fc9043",
+      "git_blob": "28c2d4c44b285afa2e2c9637c8965f2c1f8cc2c6"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/vehicle/ship/sh_updt.c",
+      "bytes": 8770,
+      "sha256": "a6e6f5d60abe993a56e1a8b070f5c9fe27347d4972fdaf9f0706b9f18ca84e54",
+      "git_blob": "14de9e1e68385702b16c992e5217e375240d4e07"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/vehicle/vehicle.c",
+      "bytes": 15960,
+      "sha256": "531043c69a95a9f06c7b67b9b5adeec75b929c1d5931ff060f2c0e0010eef74f",
+      "git_blob": "2b03161819acb4bca07cb409ec281ad37a9dc6ed"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/vehicle/vehicle.h",
+      "bytes": 7126,
+      "sha256": "45a2c1164b1eb576d85eb02afd67f31caa4a32910799ddba9e9c4e2a883d710e",
+      "git_blob": "83e62f91f921863aff749828222c33218a2ecf21"
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "bytes": 112638,
+      "sha256": "7f9c8b85933666a0d087b4b1ccd350710584b1ce9a4130b30da96d985cbaa33e",
+      "git_blob": "3ce89cd9088f953e44c3d2b47322e48713b4988c"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_aim_layout.c",
+      "bytes": 2959,
+      "sha256": "688485431956999e5e1510549f254291bd2895d9eded6f6262c6bab40beb6ec7",
+      "git_blob": "2b59a1d6f2eae1376c97fbc08ab8f1e417ad2c15"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "bytes": 42377,
+      "sha256": "3d15df9959550e2ff6c37dff46f31c64b3efea6954444fe7ffee43f5ef6b6082",
+      "git_blob": "02bc4006acaf596b9749602de435273f590ef160"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "bytes": 322464,
+      "sha256": "7cec704f3a38641dc81d6850628814122c49785526f1b4873dc73d4162d0c588",
+      "git_blob": "137458b032509e55d84de72924226e2ccb39ef0a"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/cmb_step.c",
+      "bytes": 20930,
+      "sha256": "e655271bd8c1f2f3b25a292560bde20c1b2fcb073b8fae9033edca961faaa612",
+      "git_blob": "dc092c589cd4f3b816f147dfccc81b9753d47e0b"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/aim-malformed.lua",
+      "bytes": 7192,
+      "sha256": "5e1724b2a16aea55102f8e5b7fe4c3e26cc185b3ea87db84d1f0db192cb5e898",
+      "git_blob": "1e33d90e1e11ccdc3de90c323d44b7bd8367f996"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/aim-provider.lua",
+      "bytes": 27779,
+      "sha256": "a077ca72d835f9346a84f80338357ac8606cd972c29decef5630f1efce72ec50",
+      "git_blob": "de3d281615b67c6f9cdacb6c5710d0197368021d"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/own-weapon.lua",
+      "bytes": 8135,
+      "sha256": "8676bb3ac9291ccd74ef8f750d2eeac684712db47d569f14111089b842c299a1",
+      "git_blob": "895b51b3af9a3b3818921f7666383fdb66da722c"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/cmb.rs",
+      "bytes": 53290,
+      "sha256": "4c7a4970790393fb947f26e37646bf1872eca2a6f7afaf15fe5bc68f49105a62",
+      "git_blob": "90518b7a72bb44030d4155530331f5b6e0f44234"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/main.rs",
+      "bytes": 161454,
+      "sha256": "f1b4785ec20a64ef33a395cf72845dca22199b7673e235040266e29d8df95e1a",
+      "git_blob": "9676249965f8582c77b30b7bc9c2667d73da51d0"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "bytes": 91669,
+      "sha256": "8b6d7ebcce80bfc69b3f0f80241a61e815bf365992399ce116beb5968047693f",
+      "git_blob": "b32d5c58df5ec52e5e159ccd201dc1e9b65c935a"
+    },
+    {
+      "path": "eech-campaign/docs/m5-combat-extraction.md",
+      "bytes": 30569,
+      "sha256": "e3eeecf74e71efc411a267df80c0f67b0c044c325429dbee43798d014e488d5f",
+      "git_blob": "c1fa4a9a0c51d431d07336ef46edeeed85f325f1"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/README.md",
+      "bytes": 32193,
+      "sha256": "84d1507471a437612aabc97b6cb64415b9e758011e0020489620e4477e4d5214",
+      "git_blob": "a8615ffc27a71aac4c2d9cb975b84123cbcae432"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/health_checks.c",
+      "bytes": 16558,
+      "sha256": "4a42e8f247e6801046ac0a607e2a3d3a1a05a76bcc785cabfd1b6f413004b8e3",
+      "git_blob": "71472d6bb5fb6747f72b994fbfb36921a2a0b599"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/run-health-checks.sh",
+      "bytes": 2020,
+      "sha256": "48ac7510ab9514db0bedb0249e4c013ebf3110074de8d9494533a4a12ddd9ccb",
+      "git_blob": "127c6d75c621c6f773970c8316a057ae436b7d1a"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-h46-1-default.log",
+      "bytes": 1080,
+      "sha256": "d095ecb251efaf8853c4c5e09b9d08added7dee120e40ee29e52277f399e8da3",
+      "git_blob": "6f582d25c637c8624b6af7552d460ddf01629ae9"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-h46-1-fixture.log",
+      "bytes": 944,
+      "sha256": "5f29bba8ebc1645dbebce3f8450cc38ce606df45f93f8f42d41ddfd55ce15bb4",
+      "git_blob": "dca95f14d3a1320b6a68501c1703cf36839c0527"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-h46-2-default.log",
+      "bytes": 428,
+      "sha256": "7e0acc8aa4f400f6f997a4bb1797b0eba23f52693213c5cc55c2c101c8718cc5",
+      "git_blob": "b1fc449629edd16c051b7be82c745ffcd80b6b2b"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-h46-2-fixture.log",
+      "bytes": 212,
+      "sha256": "2f977627669021a90992b1708457ace76ca956a8faaf1d67bcafabc71b4d841f",
+      "git_blob": "c78fe3a887020db47effa96d2ff24e8ef9e96740"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/damage-checks-h46.log",
+      "bytes": 3965,
+      "sha256": "ef72f9f5606668849a9132786d4694da260333307731c46d602bcad6cd3f43c6",
+      "git_blob": "43eb5a322873e89553a5f8285e171581b8920781"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/forecast-checks-h46.log",
+      "bytes": 1691,
+      "sha256": "4cf35c5a41b1d2c4bca2917c364c6a757f88aa5666b893ad246fdb9320808e2e",
+      "git_blob": "8235c61b62330decc40ac7a529c1606736619679"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/health-checks-1.log",
+      "bytes": 3063,
+      "sha256": "199b0874c639566dd10247749de8fe51edd04b0b442dfe75b79796cfcae9999e",
+      "git_blob": "3b8e4676182e814d437ded6961eeb146433c6670"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/health-checks-h46.log",
+      "bytes": 3063,
+      "sha256": "199b0874c639566dd10247749de8fe51edd04b0b442dfe75b79796cfcae9999e",
+      "git_blob": "3b8e4676182e814d437ded6961eeb146433c6670"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/health-mutant-1.log",
+      "bytes": 3067,
+      "sha256": "05057e0cd4fa520e6fd7d32634cb20f0e1a9d15022a7447b54c1e19963fdf9b9",
+      "git_blob": "2b09a2a9ec8caa72e9f6f3ace8ee45dceda82751"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/strict-preprocess-49-1.log",
+      "bytes": 1056,
+      "sha256": "53ecd95cda6c2341731395e082d887621f567cb0cef21e2d2612b2bb80c3e8fe",
+      "git_blob": "3875ad53429cfdabd978e9d6d241ac3e8062e1d0"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/strict-preprocess-49-2.log",
+      "bytes": 10133,
+      "sha256": "272c1d8d88ccd0c9b907b20812976b809b5c62d273bc3aa729e00153d40e9fa0",
+      "git_blob": "099ceec255f6742a48934bfb890a4346043687b8"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/syntax-check-h46-1.log",
+      "bytes": 9911,
+      "sha256": "69192eeec18d73f896e8e2371a705d3c07b37a5b8c7327d74b1959c3bda2e95e",
+      "git_blob": "3bcdba317f7bd10057fb0c780828929034fa7445"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/syntax-check-h46-2.log",
+      "bytes": 4375,
+      "sha256": "a98148210b5d6a862b93f9798bd1a74d099d781881edb9812901b4edecdd9444",
+      "git_blob": "f5db07c412a3e655178d1591c124fd56b2eed38b"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/test-h46-1.log",
+      "bytes": 32491,
+      "sha256": "2df7ba4fc819cd861db67f7c196299b5a366423f37d2dd2ebe93fda01d4faeae",
+      "git_blob": "a6e4be34091533c0df0616993e855914590442d9"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/test-h46-2.log",
+      "bytes": 32268,
+      "sha256": "7cbb07a83129442148bea363d2cda15603cfcfe3f0d46c7c8f5d1b8f32e1d697",
+      "git_blob": "9157c4b9a5144199c2dfd7871f0d815ad26668f7"
+    }
+  ]
+}

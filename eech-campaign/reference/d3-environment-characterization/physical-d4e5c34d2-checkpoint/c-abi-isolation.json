@@ -1,0 +1,42 @@
+{
+  "when_utc": "2026-10-31T11:12:15.452559+00:00",
+  "source": "d4e5c34d2b85e5ee6e9b98e2edd9b00e3c2505c4",
+  "actual_controller_exit": 1,
+  "cases": [
+    {
+      "bits": 32,
+      "actual_native_exit": 1,
+      "summary": {
+        "probe": "env_i686_c_abi_fp",
+        "event": "summary",
+        "cases": 24,
+        "run_a_differs": 0,
+        "run_b_differs": 16,
+        "run_c_float_copy_differs": 0,
+        "setup_or_expectation_failures": 0,
+        "exit_code": 1,
+        "meaning": "the C kernel env_ref_step returns with the caller's state changed (candidate 1)"
+      },
+      "probe_executable_sha256": "8ca5a7020e0f8e42400e031719b6bcd89d7770f63cd35fdd8f548b6fc6c7c69d"
+    },
+    {
+      "bits": 64,
+      "actual_native_exit": 0,
+      "summary": {
+        "probe": "env_i686_c_abi_fp",
+        "event": "summary",
+        "cases": 24,
+        "run_a_differs": 0,
+        "run_b_differs": 0,
+        "run_c_float_copy_differs": 0,
+        "setup_or_expectation_failures": 0,
+        "exit_code": 0,
+        "meaning": "the C kernel and the C call sequence leave the seeded state exact"
+      },
+      "probe_executable_sha256": "009149e3e0ea88ee89edb4e55b807c2e1f86fb900d48e59f6dd1866d456b6b3f"
+    }
+  ],
+  "attribution": "Measured C kernel/public C entry failure, not Rust-only glue. Argument-only A controls all exact. Actual32 assembly at34f5 FLD QWORD draw;34fc FSTP tolocal; fp_save call only357e. The by-value double is homed with x87 BEFOREguard capture. Postrestore floatarray+fieldcopies areintegerinstructions in thiscompiledentry. This compiler/source attribution is bounded to retainedactualassembly and states, not every compiler.",
+  "next": "Preserve full matrix/assertions and production arithmetic; investigate narrow private C ABI draw argument by pointer (RustField supplies samevalueaddress), capture firstfloatinginstruction vs fp_save in newactual32assembly. No baseline/tolerance/mode skip.",
+  "identity": "identity.json"
+}

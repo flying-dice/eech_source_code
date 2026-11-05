@@ -1,0 +1,8 @@
+binds	3432
+members	3432
+transfers	0
+reused_indices	0
+durable_removed	0
+duplicate_comparisons	5887596
+duplicate_scan_seconds	0.019000
+result	ok

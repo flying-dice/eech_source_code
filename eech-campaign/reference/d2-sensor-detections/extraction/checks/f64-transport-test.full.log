@@ -1,0 +1,10 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.57s
+     Running unittests src/main.rs (/target/debug/deps/eech_world-d0c61b663ad69298)
+
+running 1 test
+17-digit double reads that differ from the double under round-toward-zero: 4010 of 60000 (of the 32768 draws k / 32767: 3199)
+test exact_number_tests::a_double_keeps_every_bit_under_round_toward_zero_when_it_is_read_in_exact_steps ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.57s
+

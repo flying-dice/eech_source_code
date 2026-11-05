@@ -1,0 +1,21 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.40s
+     Running tests/host_callbacks.rs (/target/debug/deps/host_callbacks-01e380bfce0df75c)
+
+running 10 tests
+test sense_round_trips_through_lua_and_refuses_what_it_was_not_asked ... ok
+test line_of_sight_round_trips_through_lua_and_refuses_what_it_was_not_asked ... ok
+test move_vehicle_refuses_an_unknown_id_a_foreign_pose_and_an_unknown_mode ... ok
+test the_hosted_helicopter_plan_guide_and_abandon_round_trip_through_lua ... ok
+test a_dependent_carry_round_trips_through_lua_and_refuses_what_the_host_did_not_move ... ok
+test a_failing_host_callback_returns_its_error_to_pcall ... ok
+test the_combat_report_keeps_every_hash_a_string_and_the_script_finds_its_report_module_beside_it ... ok
+test the_provider_and_the_controlled_witness_find_the_model_files_beside_them_when_the_binary_runs_them_as_the_main_script ... ok
+test aim_round_trips_through_lua_and_refuses_what_it_was_not_asked ... ok
+test every_shipped_lua_script_parses_under_the_hosts_lua ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+CARGO_EXIT=0
+DOCKER_EXIT=0

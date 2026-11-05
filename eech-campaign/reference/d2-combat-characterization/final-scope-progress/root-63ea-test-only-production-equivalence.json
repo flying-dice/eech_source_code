@@ -1,0 +1,66 @@
+{
+  "when_utc": "2026-10-28T16:23:08.033827+00:00",
+  "frozen_runtime_source": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "candidate": "63ea6cfa480a2d6c2eeee91c6902179530320c2f",
+  "both_clean": true,
+  "coarse_frontiers": [
+    {
+      "path": "aphavoc",
+      "frozen": "62dfbb79d5298ead7040c5d4b190867e91c8d7ba",
+      "candidate": "62dfbb79d5298ead7040c5d4b190867e91c8d7ba",
+      "equal": true
+    },
+    {
+      "path": "modules",
+      "frozen": "cb40c4563825739137c59de394ed92ca9bf8ab9c",
+      "candidate": "cb40c4563825739137c59de394ed92ca9bf8ab9c",
+      "equal": true
+    },
+    {
+      "path": "eech-campaign/crates",
+      "frozen": "a6568e778fb27c39e9da7fa22d98a609224fc41b",
+      "candidate": "2c0681096a769c7f79a142561838c708a3272e82",
+      "equal": false
+    },
+    {
+      "path": "eech-campaign/tools",
+      "frozen": "28c9ac18eceeef0f794b2834f76e5a646d1d4fc1",
+      "candidate": "28c9ac18eceeef0f794b2834f76e5a646d1d4fc1",
+      "equal": true
+    },
+    {
+      "path": "eech-campaign/Cargo.toml",
+      "frozen": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+      "candidate": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+      "equal": true
+    },
+    {
+      "path": "eech-campaign/Cargo.lock",
+      "frozen": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+      "candidate": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+      "equal": true
+    },
+    {
+      "path": "eech-campaign/scenarios",
+      "frozen": "d9a521c0db9069d557a5d73b0c68f055f79e7baa",
+      "candidate": "d9a521c0db9069d557a5d73b0c68f055f79e7baa",
+      "equal": true
+    },
+    {
+      "path": "eech-campaign/regression",
+      "frozen": "090bd08a26859a8d1ce0907473e049142342aa75",
+      "candidate": "090bd08a26859a8d1ce0907473e049142342aa75",
+      "equal": true
+    }
+  ],
+  "all8_coarse_trees_equal": false,
+  "exact_crates_difference": [
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs"
+  ],
+  "production_compilation_inputs_unchanged": true,
+  "reason": "Only difference under crates is the integration-test target host_callbacks.rs; all production Rust/C/Lua/build/manifest/source units unchanged. Shipping command builds the two release product targets, not integration tests.",
+  "shipping_build_command": "cargo build --release --target x86_64-pc-windows-gnu -p eech-dc -p eech-world",
+  "shipping_build_script_sha256": "a8ed706aa8127617a3c32810a28be9330b744f22b3b4ed17d5c66229e8ff4cf7",
+  "build_info_identity_remains": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "limits": "No raw output normalized or baseline changed. Final frozen64cf native runs continue; corrected Windows test CI and finalhead validation remain required."
+}

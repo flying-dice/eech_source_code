@@ -1,0 +1,14 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.37s
+     Running tests/host_callbacks.rs (/target/debug/deps/host_callbacks-8cb91bce5a541db5)
+
+running 4 tests
+test move_vehicle_refuses_an_unknown_id_a_foreign_pose_and_an_unknown_mode ... ok
+test a_dependent_carry_round_trips_through_lua_and_refuses_what_the_host_did_not_move ... ok
+test a_failing_host_callback_returns_its_error_to_pcall ... ok
+test the_hosted_helicopter_plan_guide_and_abandon_round_trip_through_lua ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+EXIT=0
+docker exit=0

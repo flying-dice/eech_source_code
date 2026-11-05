@@ -1,0 +1,93 @@
+{
+  "schema": "independent-bounded-correction-review/v1",
+  "reviewed_utc": "2026-10-30T04:12:36.171776+00:00",
+  "reviewed_head": "3833c822d907e1088c3f34d067acea2dc33257c3",
+  "base": "4bee2cc8c95309e85b7503a87606b92e0d2594fe",
+  "frozen_path": "R:\\d3-evidence\\model-handoff-source-3833c822d",
+  "tracked_clean_before_and_after": true,
+  "scope": "Only new requested-FPU coverage guard, narrowing wording, measured MXCSR production-entry repair and related controls/docs. Closed model store/kernel/all828 conformance/source provenance not re-reviewed.",
+  "verdict": "SOURCE_CLOSED_RUNTIME_PENDING",
+  "findings": [],
+  "native_execution_safety": {
+    "verdict": "ALLOW_WITH_RECORDED_LIMITS_AFTER_SUCCESSFUL_BUILDS",
+    "allowed": [
+      "Exact-head bounded ordinaryshipping public handoff and actual Core-generated-model bootstrap.",
+      "Exact-head diagnostic fixture healthy public entries at all4initialRCs with nonzero flags and fullx87control/status+MXCSR comparison.",
+      "Provider-refused public entry at eachinitialRC in a separate fresh process, selecting oneRC and requiring expectedprimarymarker and exactly2eligible measurements (counters+refusedprobe).",
+      "Matched old4bee/repaired bounded ACMI/observations/metrics comparison on fresh identical verified inputs."
+    ],
+    "conditions": [
+      "Collect actual build exits, exact source identity and initial payload hashes; pending logs are not pass.",
+      "Measure actual successful AND refused public Centries, not only stand-in verdict or toolchain controls. Require allrequested eligible measurements and exact fullstate restoration.",
+      "Keep old4bee FPU failure and bounded recording immutable/labeled oldsource. Any repaired runtime evidence must identify3833or genuine later source and exact composed production inputs.",
+      "No assumption repair is simulation-invisible; byte-exact bounded artifacts and final accepted-baseline shipping gates remain mandatory. No RZcaller shim, baseline/tolerance change or normalization."
+    ]
+  },
+  "closed_items": [
+    {
+      "id": "MODEL-REQUESTED-FPU-COMPLETENESS",
+      "disposition": "SOURCE_CLOSED_AFFECTED_TESTS_PENDING",
+      "basis": "Pre-output guard forbidsFPU in boot-refusing modes and requires explicitsingleRC for refusing modes; healthymultiRC remainsallowed. Earlyboot primary withrequestedFPU returnsUNREACHED/nonzero; earlierframe/probe/LOS primary producesunreachedproblem. fpu_expected_entries/fpu_rows/fpu_measured distinguish requested, emitted andeligiblejudgedentries. Anycount shortfall propagatesfailure evenwhenexpectedrefusalitselfmatched. Newreal-script stand-ins cover thosecases and multiRC/none/preflight; they do not substitute for native measurements."
+    },
+    {
+      "id": "MODEL-NARROWING-WORDING",
+      "disposition": "CLOSED",
+      "basis": "Documents actual supportedRZ narrowing andcast-winning midpoint tie, explicitly disclaimsother-mode resultindependence. Helper/physicalmathunchanged."
+    },
+    {
+      "id": "MODEL-OUTER-MXCSR-RESTORE",
+      "disposition": "SOURCE_REPAIR_CLOSED_NATIVE_CONFIRMATION_PENDING",
+      "basis": "Architecture-guardedprivate uint32_tread/write use stmxcsr/ldmxcsr; ENTER capturescomplete callerMXCSR beforefegetenv/fesetround. Fatalsetjmp return andnormalLEAVE restoreit AFTERfesetenv. InternalRZandkernel unchanged. No repaired nativefullstate or recording claim yet."
+    }
+  ],
+  "source_assessment": [
+    "caller_mxcsr is a per-entry automatic initialized once before setjmp and never modified after it; it is not an indeterminate changed automatic on longjmp. caller_fenv likewise is captured before setjmp; private restore helpers do not alias/modify saved snapshots.",
+    "Both FP-mutating return paths restore full32bitMXCSR after Cfesetenv, preserving masks/status/RC/FTZ/DAZ rather than only repairingRC. Poisoned/reentrant operation refusals occur before capture/mutation and need no restore; argument/state LEAVEs afterENTER use the common restore.",
+    "New assembly operates on uint32_t memory operands; current supportedx86_64 Linux/MinGW hasMXCSR. Non-x86helpers are explicitno-ops and this review doesnotassert32bit/otherarchitecture execution coverage.",
+    "Ccallback ownership/userNULL, name/presence schema, buffer checks, retained-state rules and all hostkernel math remainunchanged. No solver fallback or callbackorder/RNG change introduced. SingleembeddedNULpreserved.",
+    "Newcoverage controls retain originalprimary stage/message while refusingunmetFPU. A measured state mismatch still fails evenwhenrefusalmarker iscorrect; an entryreturningSTATE/POISONED beforevalidrefusal isnotaccepted.",
+    "The native diagnostic harness itself is unchanged from source-safe4bee review, so the repair is observed by the same x87control/status/MXCSR comparator, not a weakened assertion.",
+    "No originalraw/golden/expectedphysical oracle/tolerance or referencehostrounding shim changed. Recording impact cannot be inferredfrom a minimaldiff."
+  ],
+  "checks_at_time": {
+    "linux": {
+      "state": "PENDING_AT_REVIEW",
+      "actual_exit": null,
+      "observed_log_bytes": 422,
+      "no_terminal_completion_file": true
+    },
+    "windows": {
+      "state": "PENDING_AT_REVIEW",
+      "actual_exit": null,
+      "observed_log_bytes": 0,
+      "no_terminal_completion_file": true
+    }
+  },
+  "source_sha256": {
+    "STATUS.md": "8cb257a3fc903f3b84f7cced9ffec7966cb2e446ada357183391e0303a606e3b",
+    "eech-campaign/crates/eech-dc/src/module.rs": "4836e44923ea3ed51dbd68686e9943b2ecd094524c6fab8fa45fa76ae06ced5c",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c": "58951ffeae1e5f654fa7206cb93eea3cd8191e994691bba8aa11cdffd41988a3",
+    "eech-campaign/crates/eech-world/lua/model-authority.lua": "f3bc3b4437d573679cdee330cdb02c49ac3bda4c16fa6ba0bbec1b488f16d080",
+    "eech-campaign/crates/eech-world/tests/model_store.rs": "7c1d1939337eadb9201cb8595813f733c1685fb25c6dca59e031afee92240099",
+    "eech-campaign/docs/m5-model-host-authority.md": "16354cfe1da6bfa62b3b1e493bf64e039a1e8008488f2d212c6c9e0539d0c2cf",
+    "eech-campaign/reference/d3-model-characterization/independent-model-handoff-validation-source-review-4bee2cc8c-20261030.json": "a34c0644948355944d5b0c5b620ef1dc1a1493855520f307eb7d362403d76d6a",
+    "eech-campaign/reference/d3-model-characterization/independent-model-outer-fpu-failure-assessment-4bee2cc8c-20261030.json": "be9dfe914ef0c624686256547f8b93db9922c0244f572b3b992c0db919255527",
+    "eech-campaign/reference/d3-model-characterization/ledger-model-native-fpu-red-v76-20261030.json": "10b949a6636bbe7ebd72d6fe06b18e650f1e01f2ed69f840ec5013e9768aa508",
+    "eech-campaign/reference/d3-model-characterization/model-handoff-4bee2cc8c-hostfixture-BUILD-INFO.txt": "ffd168143111ad275d20fa2328be06c6bdbf32cf31b5a9da4cb0ffb37151b7ac",
+    "eech-campaign/reference/d3-model-characterization/model-handoff-4bee2cc8c-native-validation-and-fpu-red-20261030.json": "799906d996a5a1a4647fb1dbb1ba14e058bce0b6a362a5a6fba65fec2ba4f9f0",
+    "eech-campaign/reference/d3-model-characterization/model-handoff-4bee2cc8c-shipping-BUILD-INFO.txt": "4a4e7bee0ec47746ed9e1905ef6911f7bffe816dfa2e5e055c7eaf2e2208d1de",
+    "eech-campaign/reference/d3-model-characterization/model-mingw-fenv-control-20261030.c": "238a6ffe0cf3c2e7f4877b7c161fa9c26db7bd792e6babee08c15c75c6a95b3a",
+    "eech-campaign/reference/d3-model-characterization/model-mingw-fenv-control-20261030.json": "5d974842abb337e88b10ae850b37f7d20f91a6721009328fbe3a623489de411b",
+    "eech-campaign/reference/d3-model-characterization/model-outer-mxcsr-repair-author-checkpoint-20261030.json": "a1cf3b2028a656c8eae6e85ca44487b23f51e968cf3351f6d6fb57c3e06e9c63"
+  },
+  "reused_reviews": {
+    "prior_guard_review": "a34c0644948355944d5b0c5b620ef1dc1a1493855520f307eb7d362403d76d6a",
+    "actual_red_assessment": "be9dfe914ef0c624686256547f8b93db9922c0244f572b3b992c0db919255527",
+    "all828": "b8712c4bc6c0630e74eecea25bcec5bcdfd31a48d228f09483b46d4701037821"
+  },
+  "limits": [
+    "SOURCEclosure permits the concrete bounded validation; it is not runtimeacceptance or formalGitHubapproval. Actualpostrepair publicFPU success/refusal4RC, syntheticbootstrap, influence/refusal and fullshipping/normalmerge gates remain.",
+    "Physical scans/transforms/collision solvers/loaders/hierarchy/viewpoints/devices/targetpoints/entity/environment/time services remainfiniteD3 work; Task50/wholeD3notDone.",
+    "No reviewer source edits/builds/tests/native/campaign/process/auth/cache/Gitmutations/externalwrites/nestedagents. Task47shippinguntouched."
+  ]
+}

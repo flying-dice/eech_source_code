@@ -138,7 +138,7 @@ static void destroy_local (entity *en)
 	// vehicle
 	//
 
-	unlink_local_entity_children (en, LIST_TYPE_TASK_DEPENDENT);
+	unlink_member_task_dependents (en);
 
 	unlink_local_entity_children (en, LIST_TYPE_LAUNCHED_WEAPON);
 
@@ -146,17 +146,17 @@ static void destroy_local (entity *en)
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_MOVEMENT_DEPENDENT);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_FOLLOWER);
+	unlink_member_from_guide (en);
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_DESIGNATED_TARGET); // Jabberwock 031107 Designated targets
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_GUNSHIP_TARGET);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_MEMBER);
+	unlink_member_from_group (en);
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_VIEW);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_TAKEOFF_QUEUE);
+	unlink_member_from_takeoff_queue (en);
 
 	//
 	// mobile
@@ -301,17 +301,15 @@ static void destroy_client_family (entity *en)
 static void kill_local (entity *en)
 {
 
-	int
-		losses;
-
 	entity
-		*task,
 		*group,
-		*keysite,
-		*destroy_task;
+		*keysite;
 
 	ship_vehicle
 		*raw;
+
+	campaign_loss_ticket
+		loss;
 
 	////////////////////////////////////////
 	//
@@ -336,6 +334,8 @@ static void kill_local (entity *en)
 
 	ASSERT (group);
 
+	campaign_roster_accept_physical_loss (en, group, &loss);
+
 	keysite = NULL;
 
 	if (tacview_is_logging())
@@ -345,7 +345,7 @@ static void kill_local (entity *en)
 	// update force info
 	//
 
-	remove_from_force_info (get_local_force_entity ((entity_sides) raw->vh.mob.side), en);
+	campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_FORCE_INFO);
 
 	////////////////////////////////////////
 	//
@@ -361,31 +361,13 @@ static void kill_local (entity *en)
 
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
-		task = get_local_entity_first_child (en, LIST_TYPE_TASK_DEPENDENT);
-
-		while (task)
-		{
-			destroy_task = task;
-
-			task = get_local_entity_child_succ (task, LIST_TYPE_TASK_DEPENDENT);
-
-			if (destroy_task->type == ENTITY_TYPE_TASK)
-			{
-				#if DEBUG_MODULE
-
-				debug_log ("SH_DSTRY: killing ship, notifying task %s complete", entity_sub_type_task_names [get_local_entity_int_value (destroy_task, INT_TYPE_ENTITY_SUB_TYPE)]);
-
-				#endif
-
-				notify_local_entity (ENTITY_MESSAGE_TASK_COMPLETED, destroy_task, en, TASK_TERMINATED_OBJECTIVE_MESSAGE);
-			}
-		}
+		campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_MEMBER_TASKS);
 
 		//
 		// Release landing lock (if any)
 		//
 
-		release_mobile_entity_landing_locks (en);
+		campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_LANDING);
 
 		////////////////////////////////////////
 		//
@@ -418,15 +400,15 @@ static void kill_local (entity *en)
 	// vehicle
 	//
 
-	unlink_local_entity_children (en, LIST_TYPE_TASK_DEPENDENT);
+	unlink_member_task_dependents (en);
 
 	unlink_local_entity_children (en, LIST_TYPE_MOVEMENT_DEPENDENT);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_MEMBER);
+	unlink_member_from_group (en);
 
 	delete_local_entity_from_parents_child_list (en, LIST_TYPE_MOVEMENT_DEPENDENT);
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_FOLLOWER);
+	unlink_member_from_guide (en);
 
 	// gunship_target_link
 
@@ -434,7 +416,7 @@ static void kill_local (entity *en)
 
 	// view_link
 
-	delete_local_entity_from_parents_child_list (en, LIST_TYPE_TAKEOFF_QUEUE);
+	unlink_member_from_takeoff_queue (en);
 
 	//
 	// mobile
@@ -483,26 +465,13 @@ static void kill_local (entity *en)
 	// group losses
 	//
 
-	losses = get_local_entity_int_value (group, INT_TYPE_LOSSES);
-
-	losses ++;
-
-	set_local_entity_int_value (group, INT_TYPE_LOSSES, losses);
+	campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_GROUP_LOSS);
 
 	//
 	// task losses
 	//
 
-	task = get_local_group_primary_task (group);
-
-	if (task)
-	{
-		losses = get_local_entity_int_value (task, INT_TYPE_LOSSES);
-
-		losses ++;
-
-		set_local_entity_int_value (task, INT_TYPE_LOSSES, losses);
-	}
+	campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_TASK_LOSS);
 
 	//
 	// Notify Campaign Screen
@@ -516,7 +485,7 @@ static void kill_local (entity *en)
 		// Notify the GROUP that the mobile has been killed  (N.B. must be done AFTER mobile is unlinked from member list)
 		//
 
-		notify_local_entity (ENTITY_MESSAGE_MOBILE_KILLED, group, en);
+		campaign_roster_loss_step (&loss, CAMPAIGN_LOSS_PHASE_MEMBER_KILLED);
 
 		//
 		// Kill the keysite if ship is the carrier (N.B. must be done AFTER ships alive flag cleared)

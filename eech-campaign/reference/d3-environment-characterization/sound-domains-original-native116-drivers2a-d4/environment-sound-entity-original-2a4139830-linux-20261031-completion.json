@@ -1,0 +1,18 @@
+{
+  "source": "2a4139830e2ec13617635c553a519d9be3015a2d",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-sound-entity-original-2a4139830-linux-20261031.sh"
+  ],
+  "pid": 15200,
+  "controller_pid": 19252,
+  "state": "terminal",
+  "started_utc": "2026-10-31T21:36:56.423767+00:00",
+  "scope": "Current Lua-only sound-domain metadata guards: fmt/all sound tests/World all-target strict. Actual safe116 native C/default+observer compile and Windows build reused ONLY with all C/production/build input byte identity and pinned new script. No physical/shipping/Task51/D3 acceptance.",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T21:38:37.598842+00:00"
+}

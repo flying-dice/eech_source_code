@@ -1,0 +1,42 @@
+== control (unmutated copy)
+47 checks, 0 failures
+CONTROL compile=0 run=0 class=PASSED
+== mutant: kill_needs_alive_and_server
+47 checks, 2 failures
+MUTANT kill_needs_alive_and_server: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: neighbour_must_be_present
+47 checks, 1 failures
+MUTANT neighbour_must_be_present: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: variant_range
+47 checks, 1 failures
+MUTANT variant_range: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: landed_needs_fell
+47 checks, 1 failures
+MUTANT landed_needs_fell: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: terrain_asked_once
+47 checks, 1 failures
+MUTANT terrain_asked_once: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: vehicle_must_be_living
+47 checks, 1 failures
+MUTANT vehicle_must_be_living: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: vehicles_sector_started_once
+47 checks, 1 failures
+MUTANT vehicles_sector_started_once: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: vehicles_sector_bound
+/tmp/m/mb_hostaim.c:1949:16: runtime error: index 4096 out of bounds for type 'int [4096]'
+MUTANT vehicles_sector_bound: CAUGHT class=CAUGHT_SANITIZER compile=0 run=1
+== mutant: vehicles_continuation_after
+47 checks, 1 failures
+MUTANT vehicles_continuation_after: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: fall_figures_finite
+47 checks, 1 failures
+MUTANT fall_figures_finite: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== setup control: cannot_compile
+/tmp/m/mb_hostaim.c:14:2: error: #error a copy that cannot compile
+   14 | #error a copy that cannot compile
+      |  ^~~~~
+SETUP CONTROL cannot_compile: class=BUILD_FAILURE as expected (compile=1 run=-), not a catch
+== setup control: never_ends
+SETUP CONTROL never_ends: class=TIMEOUT as expected (compile=0 run=124), not a catch
+CAUGHT=10 FAILED=0 SETUP_CONTROLS_AS_EXPECTED=2 SETUP_CONTROLS_WRONG=0 CONTROL_OK=1
+DOCKER_EXIT=0

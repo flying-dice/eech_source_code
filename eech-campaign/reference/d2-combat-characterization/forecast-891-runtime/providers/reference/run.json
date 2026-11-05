@@ -1,0 +1,14 @@
+{
+  "status": "completed",
+  "when_utc": "2026-10-28T06:05:11.2930815Z",
+  "binary": "R:\\d2-evidence\\combat-forecast-source-891c36d72\\eech-campaign\\target\\weapon-fixture\\combat-forecast-891c36d72\\eech-world.exe",
+  "arguments": "R:/d2-evidence/combat-forecast-source-891c36d72/eech-campaign/target/weapon-fixture/combat-forecast-891c36d72/lua/aim-provider.lua root=R:/d2-evidence/combat-characterization-20261028/roots/forecast-provider-reference-01 scenario=lebanon_retail seconds=180 frame_ms=100 mode=reference out=R:/d2-evidence/combat-characterization-20261028/out/forecast-provider-reference-01/summary.jsonl",
+  "root": "R:/d2-evidence/combat-characterization-20261028/roots/forecast-provider-reference-01",
+  "out": "R:/d2-evidence/combat-characterization-20261028/out/forecast-provider-reference-01",
+  "mode": "reference",
+  "kind": "Forecast candidate public-path provider; positive authority or expected refusal must be judged from actual summary, not native exit alone",
+  "actual_native_exit": 0,
+  "native_pid": 6736,
+  "created_utc": "2026-10-28T06:05:11.3042523Z",
+  "completed_utc": "2026-10-28T06:11:02.3956608Z"
+}

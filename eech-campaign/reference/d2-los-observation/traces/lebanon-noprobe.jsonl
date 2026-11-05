@@ -1,0 +1,2 @@
+{"count":500,"event":"boot","frame_ms":100,"scenario":"lebanon_retail","seconds":600,"seed":20261025}
+{"by_criteria":"1=53162/110712 31=7569/45869","calls":156581,"elapsed":599.90252685547,"event":"run_trace","frames":6000,"hash":"d97f59bb364bb253","probes":0,"skipped":0,"visible":60731}

@@ -1,0 +1,171 @@
+{
+  "review_id": "ENV-LIGHTNING-QUEUE-ORIGINAL-SOURCE-ACTUAL-A27-60E-20261031",
+  "reviewed_utc": "2026-10-31T17:49:18.1933065Z",
+  "reviewer": "Sole independent Codex reviewer; no nested agents",
+  "scope": "SAME finite review: a27-to15e residual fixes, mechanical15e-to60e diagnostic correction, corrected guard/build receipts, one new natural120s and four fresh primitive controls, preserved historical comparison red and missing equivalent currenthost prequeue control. No new source fleet, production handoff, reviewer build/run or new WIP review.",
+  "source": {
+    "repository": "R:/d3-evidence/environment-lightning-queue-original-source-60e5ee0bd",
+    "base": "a27f6ead2150fd4047c87a8eb7c5583f6a6d6c01",
+    "head": "60e5ee0bd60b6197d09705e7d388311885fd83ea",
+    "tree": "cfb59ad190fcc75050407d4291c52facfbeec53e",
+    "clean": true,
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "blob": "bbe02dbf68961841e93adeef0b8960bcd2e823b1",
+        "sha256": "cd5fe64b61d257c24d9dd636d4e2fd7442c3f8d0f7dc886d72d72bf93092411c"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-lightning-queue.lua",
+        "blob": "4ca60328d640b9de21ef31f9b39f7fdfc160deb2",
+        "sha256": "4378af4c393664abe0b856e4fe6e9f6a0054e9b46ad8b36c0c8e474dfe6d26e8"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_lightning_queue.rs",
+        "blob": "416f65ab3d71c29fb8653d9257dda1da6421ff24",
+        "sha256": "f6f4bd8f48b2d402773811a1266bc3df819d1ea8fede65db05090d56d44aed6b"
+      },
+      {
+        "path": "eech-campaign/docs/d3-lightning-queue.md",
+        "blob": "4beb3d39a787e6dc7843e78ed0c8f5b1bd7f73e5",
+        "sha256": "b8558184de976346e1ddf24ddca8e587f9c412f3c3e9f5350af30a42164e0140"
+      }
+    ],
+    "source_fix_head": "15e004fd43c15166f21327eadfb0cd13816cbf66"
+  },
+  "prior_review": {
+    "path": "R:/d3-evidence/independent-environment-lightning-queue-correction-source-review-a27f6ead2-20261031.json",
+    "sha256": "17803cfb7b5a9ef3b2cf344954e5ad95c90cb118987b56a5ea443239a17aa4a2",
+    "scope": "Reuse prior direct time memcpy, natural coherence and other original queue source facts; reopen only two narrow residual items."
+  },
+  "finding_closures": [
+    {
+      "id": "ENV-LIGHTNING-QUEUE-CORRECTION-1",
+      "disposition": "Corrected in source and corrected finite guards passed.",
+      "facts": "The primitive index0 report fields now use existing n count validator throughout. No new undefined type is introduced; healthy plan parsing can reach the existing complete-cohort, refusal and negative-record checks. All prior guards remain."
+    },
+    {
+      "id": "ENV-LIGHTNING-QUEUE-CORRECTION-2",
+      "disposition": "Corrected in source and corrected finite guards passed.",
+      "facts": "The case3 cross-add monotonic occupancy check and mask_previous state are removed. Current case/add ordinals, typed fields, per-step popcount, last-step/final-mask and complete after-slot cohorts remain. A new coherent lost-slot alternative requires successful reporting with every raw row preserved and no after-slot row when final mask is empty. It is a parser/bookkeeping control, not a physical queue expectation or measured native result."
+    }
+  ],
+  "ancillary": "60e changes only expected diagnostic w2 to x_w for the same corruption of both fields, plus docs/STATUS; no assertion/mutation/parser relaxation. Retained15e actual5pass/1fail101 was an earlier-field diagnostic mismatch, not a protocol or native failure. Corrected canonical Linux executed6primitivefunctions,15environment-filter,3lightning_queue-filter,and1exactnatural-negative test, all0; both strict phases and observer native compile0 at17:30:55.840972. All9current60eCI jobs successful. Old zero-selected,undefined-u,369protocol-red and gated-no-stages failures retained.",
+  "findings": [],
+  "provenance": {
+    "equivalence_receipt": "R:/d3-evidence/queue-native-a27-driver-60e5ee0bd-equivalence-20261031.json",
+    "equivalence_sha256": "a7d91568a27c58ece4a5db7a2847a43154ef957784dc75b712edf4fa3525cd2c",
+    "facts": "Explicit retaineda27 native/naturalLua with new60e primitive Lua override. NativeC/Rust/build/naturalLua exacta27; primitiveLua exact15e. Existing53nativepayloads unchanged; prequeuecontrol uses retainedd559 native51payloads, runtime/naturalLua source-equivalent12ca. No rebuilt-native-from60e claim.",
+    "primitive_lua_sha256": "4378af4c393664abe0b856e4fe6e9f6a0054e9b46ad8b36c0c8e474dfe6d26e8",
+    "observer_off_receipt": "R:/d3-evidence/queue-probe-15e004fd4-observer-off-source-token-proof-20261031.json",
+    "observer_off_sha256": "a09ea9cfad73443c8521164a12243e7563d1e423e2f56dde9a8987dc65ab5f46",
+    "observer_off_scope": "Selective source token proof including3dstrike.c only; not binary/runtime or whole-DLL identity.",
+    "probe_natural_lua_sha256": "1d6fffebd3425c0e96c5a9c7143d6bdf6e3b1da067c3f76c09117668fae4b637",
+    "currenthost_control_natural_lua_sha256": "71552fffac276394120a854d9bffdcfbf7a308587a6bd2c07627021283cebffa"
+  },
+  "execution": {
+    "status": "Finite original queue characterization closed; no host handoff/D3 delivery acceptance",
+    "receipts": [
+      {
+        "path": "R:/d3-evidence/environment-lightning-queue-original-nativea27-driver60e5ee0bd-20261031/controller.json",
+        "sha256": "58da8b39b09d5ecbc6045c0a68345f3107f81cbaba239f7d7ac58e1dc288a7bc"
+      },
+      {
+        "path": "R:/d3-evidence/environment-lightning-queue-original-nativea27-driver60e5ee0bd-20261031/comparison.json",
+        "sha256": "7edfc2562a13b9f9ece0c1c3ff6d3a6c1666b1d2f53d0ae3c96e36df76f7e065"
+      },
+      {
+        "path": "R:/d3-evidence/queue-historical-765-to-a27-observer-differences-20261031.json",
+        "sha256": "5f97429600fa8b1bf026bd72e00a16958614644cca04105a17e855c7af07b64c"
+      },
+      {
+        "path": "R:/d3-evidence/queue-currenthost-preprobe-d559-vs-a27-comparison-20261031.json",
+        "sha256": "10081bb96b6ae211c3e25d4489d955c708e384dbb4283876df79bc1d5f67b584"
+      },
+      {
+        "path": "R:/d3-evidence/queue-preprobe-currenthost-controller-20261031.json",
+        "sha256": "2282e1702531cc12a0cc7e9ea0f97f134a52cfa9d3c1b5cb11d78946782fbc20"
+      },
+      {
+        "path": "R:/d3-evidence/environment-queue-preprobe-currenthost-d559-20261031/controller.json",
+        "sha256": "7b18ea68280324764cca28461e3671fa41e5dd041352489662bbb5a431f1d326"
+      },
+      {
+        "path": "R:/d3-evidence/environment-lightning-queue-original-60e5ee0bd-linux-20261031-completion.json",
+        "sha256": "ce82e1b03337a7a664efe951c8e783114f01c20b4eb39eae230238fa128b9ad1"
+      },
+      {
+        "path": "R:/d3-evidence/environment-lightning-queue-original-a27f6ead2-windows-20261031-completion.json",
+        "sha256": "1b87908eaa8461a998c5e27b604a73e8fcdb9521ab43b83c571402de4443176c"
+      },
+      {
+        "path": "R:/d3-evidence/current-CI-60e5ee0bd-20261031.json",
+        "sha256": "41b3e5cc02240b95ad0cf557cea073c26b935fbc0aab0a6342f0467020869d58"
+      }
+    ],
+    "raw_files": [
+      {
+        "case": "natural",
+        "path": "R:\\d3-evidence\\environment-lightning-queue-original-nativea27-driver60e5ee0bd-20261031\\natural\\environment.jsonl",
+        "sha256": "3248f58461e40d76b9a8b19e6c827f901e54c4bf1ef314c162735ae03eb9d710"
+      },
+      {
+        "case": "primitive-1",
+        "path": "R:\\d3-evidence\\environment-lightning-queue-original-nativea27-driver60e5ee0bd-20261031\\primitive-1\\environment.jsonl",
+        "sha256": "bbd61178c4b0d113d072de3cfec42320284b81835713ade1721e6055f9a613f5"
+      },
+      {
+        "case": "primitive-2",
+        "path": "R:\\d3-evidence\\environment-lightning-queue-original-nativea27-driver60e5ee0bd-20261031\\primitive-2\\environment.jsonl",
+        "sha256": "929d0f151e8a9bf9615fdd75e2cfa50e877fed86c1a2d43b0797470409b744ff"
+      },
+      {
+        "case": "primitive-3",
+        "path": "R:\\d3-evidence\\environment-lightning-queue-original-nativea27-driver60e5ee0bd-20261031\\primitive-3\\environment.jsonl",
+        "sha256": "028abbfc794cce455247352bb586411e99631ef7862034bc3fcf93011e507d99"
+      },
+      {
+        "case": "primitive-4",
+        "path": "R:\\d3-evidence\\environment-lightning-queue-original-nativea27-driver60e5ee0bd-20261031\\primitive-4\\environment.jsonl",
+        "sha256": "d6ee22ef0bb6bd06b384f7b2d6a50bdb555df088bf9972b5247ac29d148d339f"
+      }
+    ],
+    "actual_measurements": "All5newnative/controller/pre/post stages0 with53payloads unchanged; ten input checks0. Extra equivalent currenthost control native/controller/pre/post0 with51payloads; two additional input checks0. Sources/packaged natural scripts and all four primitive override source/hashes independently checked; no root reused.",
+    "natural_observations": "FixedLebanon nominal120s:1200frames,119.99835968017578simseconds,run.complete=false because probes were not requested (not campaign-duration failure). Two lightning episodes,12ordered point records,4queued adds and4occupied final slots,update_calls0. First environment categories0-to1-to1, second1-to1-to1; main persists after initially absent active pointer. Captured queued words match final slot words; start times match the captured active-environment time; initial queue frames0. These are measured facts, not expected goldens.",
+    "primitive_observations": [
+      "1: NULL-active add left occupancy0,updates0; no after-slot row.",
+      "2: main-active add queued1; one complete after-slot row,updates0.",
+      "3:32occupied slots after32adds;33rd added none;32unique complete final slot rows.",
+      "4:CLOUD_BURST snapshots in-use1,1,0; two queue updates; final occupancy0. Forked texture-dependent aging/drawing/sound/player/render remain unmeasured."
+    ],
+    "currenthost_comparison": {
+      "baseline_native": "d559c38592405afcabc172ec876a4fdfa7f9687b",
+      "baseline_runtime_equivalent_prequeue": "12ca0f15f83a6301ac24455788096800345faad6",
+      "complete_currenthost_nonqueue_raw_including_endings_equal": true,
+      "rows_each": 17230,
+      "differences": 0,
+      "sha256_each": "e3b660d265b8d231d94a87e087e4d7967837767244e491edc9be2d15dda52f65",
+      "reviewer_check": "Independently read both complete byte streams, removing only the eight explicitly new queue event kinds from the probe output. All17230 remaining lines/endings are exactly the complete currenthost control. No value normalization, sorting, tolerance or accepted baseline replacement."
+    },
+    "historical_comparison": {
+      "whole_nonqueue_equal": false,
+      "rows_each": 17230,
+      "differences": 16,
+      "first_difference": 25,
+      "outer_original_controller_actual_exit": 1,
+      "cause": "Outer actual1 ONLY historical full-comparison step; all five measurement processes0. Independent row/key audit confirms every difference is boot weather_draw.w0 only, a1/3/4/5/6/8/9/10 twice. RNG/seq/flags/keys and other17214rawlines unchanged;10830selectedstate/campaign/runrows exact.",
+      "source_classification": "session.c666..706 hosted init logs rawdraw words;739..779 legacy branch logs derivedfield/angle. gitblame pins hostedhook to05b8caf82f at10:15:33, beforequeue. session.c blob c8c137a5843d155ce84e8df61cdc2e62bb54d022 identicald559/currentprobe. This is the preexisting field-move diagnostic distinction, not a new queue-induced physical change. Historical comparison remains FALSE; no rows rewritten/ignored for that result."
+    }
+  },
+  "limitations": [
+    "original_queue_characterization_closed=true applies only to this finite original queue on current hosted field/ambient baseline, source fixes and measured controls. It does not close a physical host queue handoff or all inputs/maps/targets.",
+    "No speaker/network/player/render/Tacview/whole-DLL/shipping claim. CPU-FP invisibility for arbitrary states is not established by raw equality; source read uses direct bitcopy and full original/FP evidence remains separately scoped.",
+    "Whole Task51/D3 remains open: effects/sound execution/time/remaining terrain/spatial/model, full shipping40/all8,currentreview/merges; D4/D5 unstarted. New d220 test-only capability WIP/pin is outside this review.",
+    "Reviewer performed read-only source/evidence/byte analysis and private report writing only. All prior failed/raw evidence retained; no raw retail coordinates/time/slot payload records reproduced here."
+  ],
+  "verdict": "Both residual findings closed; no new findings. Finite original queue characterization supported, with exact currenthost nonqueue transparency and explicit unchanged historical comparison red. No migration/host-handoff/fullshipping acceptance.",
+  "original_queue_characterization_closed": true,
+  "tested_native": "a27f6ead2150fd4047c87a8eb7c5583f6a6d6c01",
+  "tested_driver": "60e5ee0bd60b6197d09705e7d388311885fd83ea",
+  "currenthost_control_native": "d559c38592405afcabc172ec876a4fdfa7f9687b"
+}

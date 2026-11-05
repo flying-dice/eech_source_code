@@ -268,9 +268,20 @@ entity *create_landed_faction_members (entity *keysite, entity_sub_types member_
 {
    float
       fuselage_angle = 0,
+      cg_to_ground,
       heading,
       pitch,
       roll;
+
+   #ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+   float
+      host_angles[3];
+
+   vec3d
+      host_position;
+
+   #endif
 
    matrix3x3
       attitude;
@@ -439,7 +450,7 @@ entity *create_landed_faction_members (entity *keysite, entity_sub_types member_
 
 				fuselage_angle = get_local_entity_float_value (member, FLOAT_TYPE_FUSELAGE_ANGLE);
 
-				pos.y += get_local_entity_float_value (member, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+				cg_to_ground = get_local_entity_float_value (member, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
 
 				////////////////////////////////////////
 				//
@@ -451,17 +462,43 @@ entity *create_landed_faction_members (entity *keysite, entity_sub_types member_
 
 				get_3d_terrain_face_normal (&face_normal, pos.x, pos.z);
 
-				get_3d_transformation_matrix_from_face_normal_and_heading (attitude, &face_normal, heading);
+				#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
 
-				pitch = get_pitch_from_attitude_matrix (attitude);
+				// the terrain height (or anchorage level) is the campaign's input; the host adds the centre of gravity offset
 
-				pitch += fuselage_angle;
+				if (campaign_movement_create_place (member, &pos, cg_to_ground, heading, fuselage_angle, &face_normal, NULL, &host_position, host_angles))
+				{
+					// the host owns the initial physical state: the heap mirrors its answer
 
-				roll = get_roll_from_attitude_matrix (attitude);
+					campaign_movement_apply_begin ();
 
-				set_local_entity_attitude_angles (member, heading, pitch, roll);
+					set_local_entity_attitude_angles (member, host_angles[0], host_angles[1], host_angles[2]);
 
-				set_local_entity_vec3d (member, VEC3D_TYPE_POSITION, &pos);
+					set_local_entity_vec3d (member, VEC3D_TYPE_POSITION, &host_position);
+
+					campaign_movement_apply_end ();
+
+					pos = host_position;
+				}
+				else
+
+				#endif
+
+				{
+					pos.y += cg_to_ground;
+
+					get_3d_transformation_matrix_from_face_normal_and_heading (attitude, &face_normal, heading);
+
+					pitch = get_pitch_from_attitude_matrix (attitude);
+
+					pitch += fuselage_angle;
+
+					roll = get_roll_from_attitude_matrix (attitude);
+
+					set_local_entity_attitude_angles (member, heading, pitch, roll);
+
+					set_local_entity_vec3d (member, VEC3D_TYPE_POSITION, &pos);
+				}
 
 				#if DEBUG_MODULE
 
@@ -501,9 +538,20 @@ entity *create_landed_faction_group (entity *keysite, entity_sub_types group_typ
 
    float
       fuselage_angle = 0,
+      cg_to_ground,
       heading,
       pitch,
       roll;
+
+   #ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+   float
+      host_angles[3];
+
+   vec3d
+      host_position;
+
+   #endif
 
    matrix3x3
       attitude;
@@ -701,7 +749,7 @@ entity *create_landed_faction_group (entity *keysite, entity_sub_types group_typ
 
 			fuselage_angle = get_local_entity_float_value (member, FLOAT_TYPE_FUSELAGE_ANGLE);
 
-			pos.y += get_local_entity_float_value (member, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+			cg_to_ground = get_local_entity_float_value (member, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
 
 			////////////////////////////////////////
 			//
@@ -723,17 +771,43 @@ entity *create_landed_faction_group (entity *keysite, entity_sub_types group_typ
 
 			get_3d_terrain_face_normal (&face_normal, pos.x, pos.z);
 
-			get_3d_transformation_matrix_from_face_normal_and_heading (attitude, &face_normal, heading);
+			#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
 
-			pitch = get_pitch_from_attitude_matrix (attitude);
+			// the terrain height (or anchorage level) is the campaign's input; the host adds the centre of gravity offset
 
-			pitch += fuselage_angle;
+			if (campaign_movement_create_place (member, &pos, cg_to_ground, heading, fuselage_angle, &face_normal, NULL, &host_position, host_angles))
+			{
+				// the host owns the initial physical state: the heap mirrors its answer
 
-			roll = get_roll_from_attitude_matrix (attitude);
+				campaign_movement_apply_begin ();
 
-			set_local_entity_attitude_angles (member, heading, pitch, roll);
+				set_local_entity_attitude_angles (member, host_angles[0], host_angles[1], host_angles[2]);
 
-			set_local_entity_vec3d (member, VEC3D_TYPE_POSITION, &pos);
+				set_local_entity_vec3d (member, VEC3D_TYPE_POSITION, &host_position);
+
+				campaign_movement_apply_end ();
+
+				pos = host_position;
+			}
+			else
+
+			#endif
+
+			{
+				pos.y += cg_to_ground;
+
+				get_3d_transformation_matrix_from_face_normal_and_heading (attitude, &face_normal, heading);
+
+				pitch = get_pitch_from_attitude_matrix (attitude);
+
+				pitch += fuselage_angle;
+
+				roll = get_roll_from_attitude_matrix (attitude);
+
+				set_local_entity_attitude_angles (member, heading, pitch, roll);
+
+				set_local_entity_vec3d (member, VEC3D_TYPE_POSITION, &pos);
+			}
 
 			#if DEBUG_MODULE
 
@@ -783,6 +857,20 @@ entity *create_landing_faction_members (entity *keysite, entity_sub_types member
       heading,
       pitch,
       roll;
+
+   #ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+   float
+      cg_to_ground,
+      host_angles[3];
+
+   int
+      hosted_placement;
+
+   vec3d
+      host_position;
+
+   #endif
 
    matrix3x3
       attitude;
@@ -977,29 +1065,62 @@ entity *create_landing_faction_members (entity *keysite, entity_sub_types member
 
 				normal = get_3d_terrain_point_data_normal (&terrain_info);
 
-				get_3d_transformation_matrix_from_face_normal_and_heading (attitude, normal, heading);
+				#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
 
-				pitch = get_pitch_from_attitude_matrix (attitude);
+				// the start position is the campaign's input; the host adds the centre of gravity offset an aircraft needs
 
-				pitch += fuselage_angle;
-
-				roll = get_roll_from_attitude_matrix (attitude);
-
-				set_client_server_entity_attitude_angles (member, heading, pitch, roll);
-
-				member_pos = *start_position;
-
-				member_pos.y += get_local_entity_float_value (member, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
-
-				pos = *start_position;
+				cg_to_ground = 0.0;
 
 				if (get_local_entity_int_value (group, INT_TYPE_MOVEMENT_TYPE) == MOVEMENT_TYPE_AIR)
 				{
 
-					pos.y += aircraft_database [member_type].centre_of_gravity_to_ground_distance;
+					cg_to_ground = aircraft_database [member_type].centre_of_gravity_to_ground_distance;
 				}
 
-				set_client_server_entity_vec3d (member, VEC3D_TYPE_POSITION, &pos);
+				hosted_placement = campaign_movement_create_place (member, start_position, cg_to_ground, heading, fuselage_angle, normal, NULL, &host_position, host_angles);
+
+				if (hosted_placement)
+				{
+					// the host owns the initial physical state: the heap mirrors its answer
+
+					campaign_movement_apply_begin ();
+
+					set_client_server_entity_attitude_angles (member, host_angles[0], host_angles[1], host_angles[2]);
+
+					set_client_server_entity_vec3d (member, VEC3D_TYPE_POSITION, &host_position);
+
+					campaign_movement_apply_end ();
+				}
+
+				if (!hosted_placement)
+
+				#endif
+
+				{
+					get_3d_transformation_matrix_from_face_normal_and_heading (attitude, normal, heading);
+
+					pitch = get_pitch_from_attitude_matrix (attitude);
+
+					pitch += fuselage_angle;
+
+					roll = get_roll_from_attitude_matrix (attitude);
+
+					set_client_server_entity_attitude_angles (member, heading, pitch, roll);
+
+					member_pos = *start_position;
+
+					member_pos.y += get_local_entity_float_value (member, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+
+					pos = *start_position;
+
+					if (get_local_entity_int_value (group, INT_TYPE_MOVEMENT_TYPE) == MOVEMENT_TYPE_AIR)
+					{
+
+						pos.y += aircraft_database [member_type].centre_of_gravity_to_ground_distance;
+					}
+
+					set_client_server_entity_vec3d (member, VEC3D_TYPE_POSITION, &pos);
+				}
 
 				set_local_entity_float_value (member, FLOAT_TYPE_MAIN_ROTOR_RPM, 60.0);
 
@@ -1070,9 +1191,20 @@ entity *create_faction_members (entity *keysite, entity_sub_types group_type, fo
 		formation_radius,
 		radius,
       fuselage_angle,
+      cg_to_ground,
       heading,
       pitch,
       roll;
+
+   #ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+   float
+      host_angles[3];
+
+   vec3d
+      host_position;
+
+   #endif
 
    matrix3x3
       attitude;
@@ -1256,13 +1388,15 @@ entity *create_faction_members (entity *keysite, entity_sub_types group_type, fo
 
 			fuselage_angle = get_local_entity_float_value (member, FLOAT_TYPE_FUSELAGE_ANGLE);
 
+			cg_to_ground = 0.0;
+
 			if (place_at_ground_height)
 			{
 				ASSERT(point_inside_map_area(&pos));
 
 				pos.y = get_3d_terrain_elevation_and_face_normal (pos.x, pos.z, &face_normal, NULL);
 
-				pos.y += get_local_entity_float_value (member, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+				cg_to_ground = get_local_entity_float_value (member, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
 			}
 
 			////////////////////////////////////////
@@ -1281,21 +1415,60 @@ entity *create_faction_members (entity *keysite, entity_sub_types group_type, fo
 				heading = 0.0;
 			}
 
-			get_3d_transformation_matrix_from_face_normal_and_heading (attitude, &face_normal, heading);
+			#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
 
-			pitch = get_pitch_from_attitude_matrix (attitude);
+			if (campaign_movement_is_hosted (member))
+			{
+				if (!place_at_ground_height)
+				{
+					// the legacy path reads face_normal unset here (a defect); the host is given a flat normal instead
 
-			pitch += fuselage_angle;
+					face_normal.x = 0.0;
+					face_normal.y = 1.0;
+					face_normal.z = 0.0;
+				}
 
-			roll = get_roll_from_attitude_matrix (attitude);
+				// the terrain height under the formation spot is the campaign's input; the host adds the centre of gravity offset
 
-			set_local_entity_attitude_angles (member, heading, pitch, roll);
+				campaign_movement_create_place (member, &pos, cg_to_ground, heading, fuselage_angle, &face_normal, NULL, &host_position, host_angles);
 
-			//
-			// set position
-			//
+				// the host owns the initial physical state: the heap mirrors its answer
 
-			set_local_entity_vec3d (member, VEC3D_TYPE_POSITION, &pos);
+				campaign_movement_apply_begin ();
+
+				set_local_entity_attitude_angles (member, host_angles[0], host_angles[1], host_angles[2]);
+
+				//
+				// set position
+				//
+
+				set_local_entity_vec3d (member, VEC3D_TYPE_POSITION, &host_position);
+
+				campaign_movement_apply_end ();
+			}
+			else
+
+			#endif
+
+			{
+				pos.y += cg_to_ground;
+
+				get_3d_transformation_matrix_from_face_normal_and_heading (attitude, &face_normal, heading);
+
+				pitch = get_pitch_from_attitude_matrix (attitude);
+
+				pitch += fuselage_angle;
+
+				roll = get_roll_from_attitude_matrix (attitude);
+
+				set_local_entity_attitude_angles (member, heading, pitch, roll);
+
+				//
+				// set position
+				//
+
+				set_local_entity_vec3d (member, VEC3D_TYPE_POSITION, &pos);
+			}
 
 			#if DEBUG_MODULE
 

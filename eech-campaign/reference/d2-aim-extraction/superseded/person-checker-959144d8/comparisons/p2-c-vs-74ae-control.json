@@ -1,0 +1,15 @@
+{
+ "candidate": "out/p2-c/trace.jsonl",
+ "original": "../aim-characterization-20261026/out/person-control/trace.jsonl",
+ "events": [
+  194,
+  194
+ ],
+ "mapped": {
+  "frames_face_out_equals_place_out": 20,
+  "frames_face_in_present": 20,
+  "check_lines_renamed": 0
+ },
+ "problems": [],
+ "equal_under_the_mapping": true
+}

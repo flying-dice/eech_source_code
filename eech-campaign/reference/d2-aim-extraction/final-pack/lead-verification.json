@@ -1,0 +1,15 @@
+{
+  "when_utc": "2026-10-28T02:01:26.652349+00:00",
+  "runtime_source": "52206fef322dbb2f4db18620d44da1a57408ad7f",
+  "original_pack_actual_exit": 0,
+  "launcher_completion_passed": true,
+  "complete_artifact_comparator_actual_exit": 0,
+  "post_build_manifest_actual_exit": 0,
+  "post3_inputs_actual_exits": {
+    "georgia": 0,
+    "lebanon": 0,
+    "lebanon_repeat": 0
+  },
+  "source_unchanged_clean": true,
+  "remaining": "Independent final evidence review, exact-head CI and normal delivery; not a merge approval or whole-D2 closure"
+}

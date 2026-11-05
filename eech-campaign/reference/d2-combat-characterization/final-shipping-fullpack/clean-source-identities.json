@@ -1,0 +1,17 @@
+{
+  "observed_utc": "2026-10-28T23:55:26.072628+00:00",
+  "identities": [
+    {
+      "path": "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5",
+      "head": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+      "porcelain": "",
+      "clean": true
+    },
+    {
+      "path": "R:\\d2-sensor-detections",
+      "head": "daf3960d845def1b59d29c7fa1a07480f5936390",
+      "porcelain": "",
+      "clean": true
+    }
+  ]
+}

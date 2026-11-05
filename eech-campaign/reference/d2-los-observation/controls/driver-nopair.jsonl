@@ -1,0 +1,2 @@
+{"count":50,"event":"boot","frame_ms":100,"scenario":"lebanon_retail","seconds":5,"seed":20261025}
+{"at":1,"event":"probe_unavailable","frame":11,"reason":"no live opposed pair of supported mobiles"}

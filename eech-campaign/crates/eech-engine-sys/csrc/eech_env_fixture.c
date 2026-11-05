@@ -1,0 +1,5063 @@
+/*
+ * TEST-ONLY characterisation of the ORIGINAL session environment (EEDCS-51, first increment of D3). Compiled only with the `env-fixture` feature; never part of the shipping module.
+ * SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED: nothing in this file has been compiled or executed. It moves no physics and adds no campaign behaviour.
+ *
+ * HOST-OWNED FIELD (EECH_CAMPAIGN_HOST_ENV, EEDCS-51 production stage): when the module is built with the host-owned weather and wind field (ss_hostenv.h), the routines named below are the campaign's
+ * synchronous requests to the HOST, which runs the original arithmetic as its kernels, and the session record's physical fields are a read-only mirror of the host's field. The witnesses are unchanged
+ * in what they observe and print; they now reach the host's field through the campaign's own import (a witness pushes its synthetic input, a restore pushes the saved record back) and read it back
+ * through the campaign's own export (a snapshot or fingerprint re-reads the host first), so every number a case prints is still the original arithmetic's, now computed by the host. Against the original
+ * session code (no host field) the push and the re-read are no-ops and this file is the retained characterisation of the original.
+ *
+ * What it observes is the session entity's environment: the clock (start time, elapsed time, time of day, day, day segment), the weather (the local ring model or the global/fixed
+ * model, the simple half-transition choice) and the wind (the zone around a drifting centre, the gusts, the direction). Every number a case prints comes from the ORIGINAL routines
+ * (session.c, ss_updt.c, ss_int.c, ss_float.c, range.c, vector.c); this file only chooses inputs, calls them and prints the words they return. It never recomputes a result.
+ *
+ * Two kinds of line, never mixed:
+ *   kind=retail   the unmodified session as the booted campaign holds it (op 1, read-only). The queries in it are the original's, asked at fixed points of the live state.
+ *   kind=witness  a CONTROLLED synthetic case: the session fields the case names are set, the original routine is called, its answer is printed, and EVERY state the case touched
+ *                 is restored before return. The case ends with `env-witness-end restored=0|1 fp_before fp_after`, the fingerprint of the whole rendered environment state
+ *                 (session fields, season, the shared random seed, the frame delta, the camera position) before and after: restored=0 would be a defect of this fixture, never a result.
+ *
+ * Restored on every path that returns: the whole session record (memcpy), the map season, the shared generator's seed word (random_number_seed; the libc generator behind
+ * set_random_number_seed is never touched), and the frame delta. A path that leaves through the engine's fatal handler (longjmp) cannot restore anything and poisons the engine; every
+ * case is therefore domain-guarded so that no original ASSERT can fire (the wind gust must be in [0,1): the original asserts outside it, and the cases that would go there are
+ * REFUSED and printed as refused, never called).
+ *
+ * Float values are printed as their IEEE-754 words (%08x), so a signed zero, a neighbouring float or a rounding-mode effect is visible; decimal text is never the comparison key.
+ * The calls run inside the engine's entry discipline (round-toward-zero), exactly as a frame does; the case inputs derived here (ring thresholds and their neighbours) are computed in
+ * that same mode and printed as words, so a later run is compared on the identical input words.
+ *
+ * GROUP 10 (explicit only, never in the default run, the census or the 164-case oracle): the ORIGINAL terrain-sector surface enumeration get_terrain_3d_types_in_sector, which the sound routine
+ * calls every frame and which writes the shared scratch terrain_types_in_sector. It reports the original's return value (1 + the number of surface transitions, NOT the distinct flags), the complete
+ * scratch flags, the sector the original selected, the reset between calls and the interleave behaviour, over a finite sweep of real sector centres and boundary samples, and restores the scratch. A
+ * sample the original cannot be asked is rejected with its reason. See the comment before env_sector_case. AFTER THE HOST CUTOVER OF THIS QUERY (EEDCS-51; build define EECH_CAMPAIGN_HOST_TERRAIN) the
+ * function this group calls is the campaign's client of the HOST's sector enumeration (terrdata.c delegates to mb_hostterrain.c), so the same group, command and rows are the like-for-like comparison of the
+ * host's answers with the three-root original collection; the sample domain below still reads the campaign's own loaded sectors, only to reject what the original could not be asked.
+ *
+ * NOT witnessed here, and why (printed in the census as `env-unsupported`):
+ *   get_session_random_start_time_of_day  reseeds the shared AND the libc generators from the clock; the libc state cannot be saved or restored from here.
+ *   update_lightning_effect               creates strike and sound entities and draws the shared generator; the controlled update cases keep lightning_timer far from zero so it
+ *                                         never fires, and its natural firing is seen only through the real frames' `lightning_timer` and `rng` in the retail snapshots.
+ *   update_session_sound_effects          runs in every headless frame (a camera entity exists) and only sets sound amplitudes; it also writes the shared terrain_types_in_sector. (The census line
+ *                                         above is the default oracle and stays as it is; GROUP 11, explicit only, now characterises this routine: see env_sound_case.)
+ *   update_time_of_day_resync             runs in every headless server frame (comms transmit every minute); observed only as the `time_of_day_resync` counter.
+ *
+ * GROUP 11 (explicit only, never in the default run, the census or the 164-case oracle): the ORIGINAL ambient sound routine update_session_sound_effects (ss_updt.c, unchanged) on the real session,
+ * camera, terrain and the ten real ambient sound-effect children; per case it sets the controlled inputs, calls the routine, prints every child's amplification as IEEE words and restores
+ * everything. See the comment before env_sound_case. The only change to the default behaviour of this file is the group range check (the last group is now 12).
+ *
+ * GROUP 12 (explicit only, PROCESS-ISOLATED like group 9): a WIDE session child list -- additional terrain ambient sound children created with the real constructor, the real routine called on them. See
+ * the comment before env_wide_case.
+ */
+
+#ifdef EECH_ENV_FIXTURE
+
+#include <fenv.h>
+#include <math.h>
+#include <stdarg.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "project.h"
+
+#include "eech_engine.h"
+#include "eech_headless.h"
+
+/* exposed under this feature only, by the thin wrappers appended to session.c and ss_updt.c (the originals stay static there) */
+extern float eech_env_fixture_gust_modulation (float wind_gusting_value);
+extern void eech_env_fixture_update_time_of_day (entity *en);
+/* ss_updt.c, non-static there */
+extern void update_transitional_weather (entity *en);
+
+enum
+{
+	ENV_GROUP_CENSUS = 0,
+	ENV_GROUP_SNAPSHOT = 1,
+	ENV_GROUP_WEATHER = 2,
+	ENV_GROUP_WIND = 3,
+	ENV_GROUP_GUST = 4,
+	ENV_GROUP_TIME = 5,
+	ENV_GROUP_INIT = 6,
+	ENV_GROUP_UPDATE_TIME = 7,
+	ENV_GROUP_UPDATE_WEATHER = 8,
+	ENV_GROUP_CONTROLLED = 9,
+	ENV_GROUP_SECTOR = 10,
+	ENV_GROUP_SOUND = 11,
+	ENV_GROUP_WIDE = 12,
+	ENV_GROUP_LIGHTNING = 13,
+	ENV_GROUP_SOUND_LIFETIME = 14,
+	ENV_GROUP_LAST = 14
+};
+
+#define ENV_WEATHER_MAX 96
+#define ENV_WIND_MAX 48
+#define ENV_GUST_MAX 48
+#define ENV_TIME_MAX 48
+#define ENV_INIT_COUNT 7
+#define ENV_UPDATE_TIME_COUNT 10
+#define ENV_UPDATE_WEATHER_COUNT 16
+#define ENV_CONTROLLED_COUNT 2
+#define ENV_SCRATCH 12288
+
+#define ENV_FNV_OFFSET 14695981039346656037ull
+#define ENV_FNV_PRIME 1099511628211ull
+
+#define ENV_WORD(value) ((unsigned) float_bits ((float) (value)))
+#define ENV_EMIT(...) do { if (append (text, capacity, used, __VA_ARGS__) != 0) { return -1; } } while (0)
+
+static uint32_t float_bits (float value)
+{
+	uint32_t bits;
+
+	memcpy (&bits, &value, sizeof (bits));
+
+	return bits;
+}
+
+static int append (char *text, int capacity, int *used, const char *format, ...) __attribute__ ((format (printf, 4, 5)));
+
+static int append (char *text, int capacity, int *used, const char *format, ...)
+{
+	va_list args;
+	int n;
+
+	va_start (args, format);
+	n = vsnprintf (text + *used, (size_t) (capacity - *used), format, args);
+	va_end (args);
+
+	if (n < 0 || n >= capacity - *used)
+	{
+		return -1;
+	}
+
+	*used += n;
+
+	return 0;
+}
+
+static uint64_t env_hash_bytes (const char *text, int length)
+{
+	uint64_t h = ENV_FNV_OFFSET;
+	int i;
+
+	for (i = 0; i < length; i++)
+	{
+		h ^= (uint64_t) (unsigned char) text[i];
+		h *= ENV_FNV_PRIME;
+	}
+
+	return h;
+}
+
+static session *env_session_raw (void)
+{
+	return (session *) get_local_entity_data (get_session_entity ());
+}
+
+/* With the host-owned field (EECH_CAMPAIGN_HOST_ENV, ss_hostenv.h) the session record's physical fields are a read-only MIRROR of the host's field.  A witness that sets synthetic physical state
+   therefore PUSHES it to the host through the campaign's own import, so that the queries and the update that follow run against it; a restore pushes the saved record back; and a state read
+   (a snapshot, a fingerprint) first re-reads the host's field, so what is rendered and compared is the host's, not a stale copy.  Against the original session code (no host field) all three are
+   no-ops: the record IS the field. */
+#ifdef EECH_CAMPAIGN_HOST_ENV
+#include "entity/special/session/ss_hostenv.h"
+
+static void env_push (void)
+{
+	campaign_env_import ((struct SESSION *) env_session_raw ());
+}
+
+static void env_pull (void)
+{
+	campaign_env_refresh ((struct SESSION *) env_session_raw ());
+}
+#else
+static void env_push (void)
+{
+}
+
+static void env_pull (void)
+{
+}
+#endif
+
+/* the camera's position, or NULL when the headless build holds no camera entity (it does hold one at present: create_local of the session asserts it) */
+static vec3d *env_camera_position (void)
+{
+	entity *camera = get_camera_entity ();
+
+	return camera ? get_local_entity_vec3d_ptr (camera, VEC3D_TYPE_POSITION) : NULL;
+}
+
+/* the original asserts a gust outside [0,1); NaN fails both comparisons */
+static int env_gust_in_domain (float gust)
+{
+	return (gust >= 0.0f) && (gust < 1.0f);
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* the rendered environment state: its text is both the report and the input of the fingerprint */
+
+static int env_append_vec (char *text, int capacity, int *used, const char *name, const vec3d *v)
+{
+	ENV_EMIT (" %s_x_w=%08x %s_y_w=%08x %s_z_w=%08x", name, ENV_WORD (v->x), name, ENV_WORD (v->y), name, ENV_WORD (v->z));
+
+	return 0;
+}
+
+static int env_render_state (char *text, int capacity, int *used, const char *event, const char *tag)
+{
+	session *raw = env_session_raw ();
+	vec3d *cp = env_camera_position ();
+	int day = 0;
+	float tod = calculate_session_time_of_day (get_session_entity (), &day);
+
+	ENV_EMIT ("%s-time tag=%s start_time_w=%08x elapsed_time_w=%08x time_of_day_w=%08x day=%d day_segment_type=%d time_of_day_acceleration_w=%08x skip_night_time=%d time_of_day_resync_w=%08x\n",
+		event, tag, ENV_WORD (raw->start_time), ENV_WORD (raw->elapsed_time), ENV_WORD (tod), day + 1, (int) raw->day_segment_type, ENV_WORD (raw->time_of_day_acceleration), (int) raw->skip_night_time, ENV_WORD (raw->time_of_day_resync));
+	ENV_EMIT ("%s-weather tag=%s local_weather_model=%d weather_increasing=%d weather_radius_w=%08x weather_mode=%d target_weather_mode=%d transitional_status_w=%08x transitional_period_w=%08x lightning_timer_w=%08x",
+		event, tag, (int) raw->local_weather_model, (int) raw->weather_increasing, ENV_WORD (raw->weather_radius), (int) raw->weather_mode, (int) raw->target_weather_mode,
+		ENV_WORD (raw->weather_mode_transitional_status), ENV_WORD (raw->weather_mode_transitional_period), ENV_WORD (raw->lightning_timer));
+	if (env_append_vec (text, capacity, used, "weather_pos", &raw->weather_position) || env_append_vec (text, capacity, used, "weather_vel", &raw->weather_velocity))
+	{
+		return -1;
+	}
+	ENV_EMIT ("\n");
+	ENV_EMIT ("%s-wind tag=%s wind_increasing=%d wind_effect_radius_w=%08x gusting_value_w=%08x minimum_speed_w=%08x maximum_speed_w=%08x", event, tag, (int) raw->wind_increasing,
+		ENV_WORD (raw->wind_effect_radius), ENV_WORD (raw->wind_gusting_value), ENV_WORD (raw->wind_minimum_speed), ENV_WORD (raw->wind_maximum_speed));
+	if (env_append_vec (text, capacity, used, "direction", &raw->wind_direction_vector) || env_append_vec (text, capacity, used, "effect_pos", &raw->wind_effect_position)
+		|| env_append_vec (text, capacity, used, "effect_vel", &raw->wind_effect_velocity))
+	{
+		return -1;
+	}
+	ENV_EMIT ("\n");
+	ENV_EMIT ("%s-globals tag=%s season=%d rng=%d rng_w=%08x delta_time_w=%08x comms_model=%d in_cockpit=%d camera=%d", event, tag, (int) get_global_season (), random_number_seed, (unsigned) random_number_seed,
+		ENV_WORD (get_delta_time ()), (int) get_comms_model (), (int) in_cockpit, cp ? 1 : 0);
+	if (cp && env_append_vec (text, capacity, used, "camera", cp))
+	{
+		return -1;
+	}
+	ENV_EMIT ("\n");
+
+	return 0;
+}
+
+/* the fingerprint of the whole rendered state: what a witness must leave exactly as it found it */
+static uint64_t env_state_fingerprint (void)
+{
+	char scratch[ENV_SCRATCH];
+	int used = 0;
+
+	scratch[0] = '\0';
+
+	env_pull ();
+
+	if (env_render_state (scratch, ENV_SCRATCH, &used, "fp", "fp") != 0)
+	{
+		return 0;
+	}
+
+	return env_hash_bytes (scratch, used);
+}
+
+/* one original query at one point: the weather (all three outputs and the simple choice) and the wind (speed and vector), asked of the CURRENT session state */
+static int env_render_queries (char *text, int capacity, int *used, const char *event, const char *tag, const char *label, vec3d *pos)
+{
+	session *raw = env_session_raw ();
+	weathermodes cwm, twm, simple;
+	float ts;
+
+	get_session_weather_at_point (pos, &cwm, &twm, &ts);
+	simple = get_simple_session_weather_at_point (pos);
+
+	ENV_EMIT ("%s tag=%s point=%s x_w=%08x y_w=%08x z_w=%08x cwm=%d twm=%d ts_w=%08x simple=%d", event, tag, label, ENV_WORD (pos->x), ENV_WORD (pos->y), ENV_WORD (pos->z), (int) cwm, (int) twm, ENV_WORD (ts), (int) simple);
+
+	if (env_gust_in_domain (raw->wind_gusting_value))
+	{
+		vec3d wind;
+		float speed = get_session_wind_velocity_at_point (pos, &wind);
+
+		ENV_EMIT (" wind_speed_w=%08x wind_x_w=%08x wind_y_w=%08x wind_z_w=%08x\n", ENV_WORD (speed), ENV_WORD (wind.x), ENV_WORD (wind.y), ENV_WORD (wind.z));
+	}
+	else
+	{
+		ENV_EMIT (" wind=unavailable_gust_outside_0_1\n");
+	}
+
+	return 0;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* the finite case tables (built once, deterministically, under the engine's rounding mode) */
+
+struct env_weather_case
+{
+	int local, season, cwm, twm;
+	float radius, px, pz, ts;
+};
+
+struct env_wind_case
+{
+	float radius, wpx, wpz, minimum, maximum, gust, dx, dz, px, pz;
+};
+
+struct env_time_case
+{
+	int kind; /* 0 calculate (a = start, b = elapsed), 1 day segment of a, 2 the constants */
+	float a, b;
+};
+
+static struct env_weather_case env_weather_cases[ENV_WEATHER_MAX];
+static struct env_wind_case env_wind_cases[ENV_WIND_MAX];
+static float env_gust_cases[ENV_GUST_MAX];
+static int env_gust_refused[ENV_GUST_MAX];
+static struct env_time_case env_time_cases[ENV_TIME_MAX];
+static int env_weather_count, env_wind_count, env_gust_count, env_time_count;
+static int env_tables_built;
+
+static void env_add_ring (int season, float radius, float range)
+{
+	struct env_weather_case *c = &env_weather_cases[env_weather_count++];
+
+	memset (c, 0, sizeof (*c));
+	c->local = 1;
+	c->season = season;
+	c->radius = radius;
+	c->px = range;
+}
+
+static void env_add_global (int cwm, int twm, float ts)
+{
+	struct env_weather_case *c = &env_weather_cases[env_weather_count++];
+
+	memset (c, 0, sizeof (*c));
+	c->local = 0;
+	c->season = SESSION_SEASON_SUMMER;
+	c->cwm = cwm;
+	c->twm = twm;
+	c->ts = ts;
+	c->px = 123.0f;
+	c->pz = -456.0f;
+}
+
+static void env_add_wind (float radius, float wpx, float wpz, float minimum, float maximum, float gust, float dx, float dz, float px, float pz)
+{
+	struct env_wind_case *c = &env_wind_cases[env_wind_count++];
+
+	c->radius = radius;
+	c->wpx = wpx;
+	c->wpz = wpz;
+	c->minimum = minimum;
+	c->maximum = maximum;
+	c->gust = gust;
+	c->dx = dx;
+	c->dz = dz;
+	c->px = px;
+	c->pz = pz;
+}
+
+static void env_add_gust (float gust, int refused)
+{
+	env_gust_cases[env_gust_count] = gust;
+	env_gust_refused[env_gust_count] = refused;
+	env_gust_count++;
+}
+
+static void env_add_time (int kind, float a, float b)
+{
+	struct env_time_case *c = &env_time_cases[env_time_count++];
+
+	c->kind = kind;
+	c->a = a;
+	c->b = b;
+}
+
+static void env_build_tables (void)
+{
+	const float ring_radius = 30000.0f;
+	const float wind_zone_radius = 50000.0f;
+	float thresholds[3], ranges[16], wind_ranges[6];
+	int k, n = 0, season, i;
+	const int seasons[2] = { SESSION_SEASON_SUMMER, SESSION_SEASON_WINTER };
+	const int from[3] = { WEATHERMODE_DRY, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_SNOW };
+	const int to[3] = { WEATHERMODE_HEAVY_RAIN, WEATHERMODE_SNOW, WEATHERMODE_DRY };
+	float steps[6];
+
+	if (env_tables_built)
+	{
+		return;
+	}
+
+	/* weather, local model: the three ring edges of the original (0.333, 0.666 and 1.0 of the radius), the float below, at and above each, the centre, one point in each zone and one far outside */
+	thresholds[0] = (float) ((double) ring_radius * 0.333);
+	thresholds[1] = (float) ((double) ring_radius * 0.666);
+	thresholds[2] = ring_radius;
+	ranges[n++] = 0.0f;
+	for (k = 0; k < 3; k++)
+	{
+		ranges[n++] = nextafterf (thresholds[k], 0.0f);
+		ranges[n++] = thresholds[k];
+		ranges[n++] = nextafterf (thresholds[k], ring_radius * 4.0f);
+	}
+	ranges[n++] = ring_radius * 0.15f;
+	ranges[n++] = ring_radius * 0.5f;
+	ranges[n++] = ring_radius * 0.83f;
+	ranges[n++] = ring_radius * 2.0f;
+	for (season = 0; season < 2; season++)
+	{
+		for (i = 0; i < n; i++)
+		{
+			env_add_ring (seasons[season], ring_radius, ranges[i]);
+		}
+	}
+	/* a season that is neither summer nor winter must behave as summer (rain, not snow) */
+	env_add_ring (SESSION_SEASON_DESERT, ring_radius, ring_radius * 0.15f);
+	env_add_ring (SESSION_SEASON_DESERT, ring_radius, ring_radius * 0.5f);
+	env_add_ring (SESSION_SEASON_DESERT, ring_radius, ring_radius * 0.83f);
+	env_add_ring (SESSION_SEASON_DESERT, ring_radius, ring_radius * 2.0f);
+	/* radius zero: the original returns dry with transitional state 1.0 everywhere */
+	env_add_ring (SESSION_SEASON_SUMMER, 0.0f, 100.0f);
+	/* the approximate range is not the Euclidean one: a point with both offsets */
+	env_add_ring (SESSION_SEASON_SUMMER, ring_radius, 0.0f);
+	env_weather_cases[env_weather_count - 1].px = 3000.0f;
+	env_weather_cases[env_weather_count - 1].pz = 4000.0f;
+	env_add_ring (SESSION_SEASON_WINTER, ring_radius, 0.0f);
+	env_weather_cases[env_weather_count - 1].px = 3000.0f;
+	env_weather_cases[env_weather_count - 1].pz = 4000.0f;
+
+	/* weather, global/fixed model: the half-transition choice around 0.5 for mode pairs, and equal modes */
+	steps[0] = 0.0f;
+	steps[1] = 0.25f;
+	steps[2] = nextafterf (0.5f, 0.0f);
+	steps[3] = 0.5f;
+	steps[4] = 0.75f;
+	steps[5] = 1.0f;
+	for (k = 0; k < 3; k++)
+	{
+		for (i = 0; i < 6; i++)
+		{
+			env_add_global (from[k], to[k], steps[i]);
+		}
+	}
+	env_add_global (WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f);
+	env_add_global (WEATHERMODE_SNOW, WEATHERMODE_SNOW, 0.5f);
+
+	/* wind: inside, at and outside the zone radius (the float below and above the edge), zero radius, a zero minimum (signed zero), equal limits, reversed and zero directions, gusts */
+	wind_ranges[0] = 0.0f;
+	wind_ranges[1] = wind_zone_radius * 0.5f;
+	wind_ranges[2] = nextafterf (wind_zone_radius, 0.0f);
+	wind_ranges[3] = wind_zone_radius;
+	wind_ranges[4] = nextafterf (wind_zone_radius, wind_zone_radius * 4.0f);
+	wind_ranges[5] = wind_zone_radius * 2.0f;
+	for (i = 0; i < 6; i++)
+	{
+		env_add_wind (wind_zone_radius, 0.0f, 0.0f, DEFAULT_MIN_WIND_SPEED, DEFAULT_MAX_WIND_SPEED, 0.0f, 0.6f, 0.8f, wind_ranges[i], 0.0f);
+	}
+	for (i = 0; i < 6; i++)
+	{
+		env_add_wind (wind_zone_radius, 0.0f, 0.0f, DEFAULT_MIN_WIND_SPEED, DEFAULT_MAX_WIND_SPEED, 0.3f, 0.6f, 0.8f, wind_ranges[i], 0.0f);
+	}
+	env_add_wind (0.0f, 0.0f, 0.0f, DEFAULT_MIN_WIND_SPEED, DEFAULT_MAX_WIND_SPEED, 0.0f, 0.6f, 0.8f, 5000.0f, 0.0f);
+	env_add_wind (0.0f, 0.0f, 0.0f, DEFAULT_MIN_WIND_SPEED, DEFAULT_MAX_WIND_SPEED, 0.3f, 0.6f, 0.8f, 5000.0f, 0.0f);
+	env_add_wind (wind_zone_radius, 0.0f, 0.0f, 0.0f, DEFAULT_MAX_WIND_SPEED, 0.0f, -1.0f, 0.0f, wind_zone_radius * 2.0f, 0.0f);
+	env_add_wind (wind_zone_radius, 0.0f, 0.0f, 0.0f, DEFAULT_MAX_WIND_SPEED, 0.3f, -1.0f, 0.0f, wind_zone_radius * 2.0f, 0.0f);
+	env_add_wind (wind_zone_radius, 0.0f, 0.0f, 0.0f, DEFAULT_MAX_WIND_SPEED, 0.0f, -1.0f, 0.0f, wind_zone_radius * 0.5f, 0.0f);
+	env_add_wind (wind_zone_radius, 0.0f, 0.0f, 10.0f, 10.0f, 0.0f, 0.6f, 0.8f, wind_zone_radius * 0.5f, 0.0f);
+	env_add_wind (wind_zone_radius, 0.0f, 0.0f, DEFAULT_MIN_WIND_SPEED, DEFAULT_MAX_WIND_SPEED, 0.0f, -0.6f, -0.8f, wind_zone_radius * 0.5f, 0.0f);
+	env_add_wind (wind_zone_radius, 1000.0f, -2000.0f, DEFAULT_MIN_WIND_SPEED, DEFAULT_MAX_WIND_SPEED, 0.0f, 0.6f, 0.8f, 4000.0f, 2000.0f);
+	env_add_wind (wind_zone_radius, 0.0f, 0.0f, DEFAULT_MIN_WIND_SPEED, DEFAULT_MAX_WIND_SPEED, 0.0f, 0.0f, 0.0f, wind_zone_radius * 0.5f, 0.0f);
+
+	/* gust modulation: every sample boundary k/7 (the original has seven segments over [0,1)) with the float below and above, mid-segment points, signed zero and the float below 1 */
+	env_add_gust (0.0f, 0);
+	env_add_gust (nextafterf (0.0f, 1.0f), 0);
+	env_add_gust (-0.0f, 0);
+	for (k = 1; k < 7; k++)
+	{
+		float boundary = (float) ((double) k / 7.0);
+
+		env_add_gust (nextafterf (boundary, 0.0f), 0);
+		env_add_gust (boundary, 0);
+		env_add_gust (nextafterf (boundary, 1.0f), 0);
+	}
+	for (k = 0; k < 7; k++)
+	{
+		env_add_gust ((float) (((double) k + 0.5) / 7.0), 0);
+	}
+	env_add_gust (0.25f, 0);
+	env_add_gust (0.5f, 0);
+	env_add_gust (nextafterf (1.0f, 0.0f), 0);
+	/* outside [0,1) the original asserts: refused, never called */
+	env_add_gust (1.0f, 1);
+	env_add_gust (-0.5f, 1);
+
+	/* clock: day roll-over and the clamp of calculate_session_time_of_day, the day segment edges (6, 8, 18, 20 hours), and the constants */
+	env_add_time (0, 0.0f, 0.0f);
+	env_add_time (0, (float) (6.0 * ONE_HOUR), 0.0f);
+	env_add_time (0, (float) (ONE_DAY - 1.0), 0.0f);
+	env_add_time (0, (float) (ONE_DAY - 1.0), 1.0f);
+	env_add_time (0, (float) ONE_DAY, 0.0f);
+	env_add_time (0, (float) (2.0 * ONE_DAY + 5.0), 0.0f);
+	env_add_time (0, 50000.0f, 100000.0f);
+	env_add_time (0, 0.0f, -5.0f);
+	env_add_time (0, -0.0f, 0.0f);
+	env_add_time (0, 43200.0f, 43200.0f);
+	env_add_time (0, 0.0f, (float) (3.0 * ONE_DAY));
+	env_add_time (1, 0.0f, 0.0f);
+	for (k = 0; k < 4; k++)
+	{
+		static const double edges[4] = { 6.0, 8.0, 18.0, 20.0 };
+		float edge = (float) (edges[k] * ONE_HOUR);
+
+		env_add_time (1, nextafterf (edge, 0.0f), 0.0f);
+		env_add_time (1, edge, 0.0f);
+	}
+	env_add_time (1, nextafterf ((float) ONE_DAY, 0.0f), 0.0f);
+	env_add_time (2, 0.0f, 0.0f);
+
+	env_tables_built = 1;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* saved state: restored on every path that returns */
+
+struct env_saved_state
+{
+	session raw;
+	int season;
+	int rng;
+	float delta;
+};
+
+static void env_save_state (struct env_saved_state *s)
+{
+	env_pull ();
+	memcpy (&s->raw, env_session_raw (), sizeof (session));
+	s->season = (int) get_global_season ();
+	s->rng = random_number_seed;
+	s->delta = get_delta_time ();
+}
+
+static void env_restore_state (const struct env_saved_state *s)
+{
+	memcpy (env_session_raw (), &s->raw, sizeof (session));
+	env_push ();
+	set_global_season (s->season);
+	random_number_seed = s->rng;
+	system_delta_time = s->delta;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* the cases */
+
+static int env_census (char *text, int capacity, int *used)
+{
+	ENV_EMIT ("env-census version=1 session_bytes=%d weather_cases=%d wind_cases=%d gust_cases=%d time_cases=%d init_cases=%d update_time_cases=%d update_weather_cases=%d\n", (int) sizeof (session), env_weather_count,
+		env_wind_count, env_gust_count, env_time_count, ENV_INIT_COUNT, ENV_UPDATE_TIME_COUNT, ENV_UPDATE_WEATHER_COUNT);
+	ENV_EMIT ("env-census-enums dry=%d light_rain=%d heavy_rain=%d snow=%d season_summer=%d season_winter=%d season_desert=%d segment_dawn=%d segment_day=%d segment_dusk=%d segment_night=%d comms_server=%d\n",
+		(int) WEATHERMODE_DRY, (int) WEATHERMODE_LIGHT_RAIN, (int) WEATHERMODE_HEAVY_RAIN, (int) WEATHERMODE_SNOW, (int) SESSION_SEASON_SUMMER, (int) SESSION_SEASON_WINTER, (int) SESSION_SEASON_DESERT,
+		(int) DAY_SEGMENT_TYPE_DAWN, (int) DAY_SEGMENT_TYPE_DAY, (int) DAY_SEGMENT_TYPE_DUSK, (int) DAY_SEGMENT_TYPE_NIGHT, (int) COMMS_MODEL_SERVER);
+	ENV_EMIT ("env-census-constants min_weather_radius_w=%08x max_weather_radius_w=%08x weather_expansion_rate_w=%08x min_wind_radius_w=%08x max_wind_radius_w=%08x wind_expansion_rate_w=%08x wind_gust_frequency_w=%08x"
+		" session_resync_frequency_w=%08x default_min_wind_speed_w=%08x default_max_wind_speed_w=%08x one_hour_w=%08x one_day_w=%08x\n",
+		ENV_WORD (MIN_WEATHER_RADIUS), ENV_WORD (MAX_WEATHER_RADIUS), ENV_WORD (WEATHER_EXPANSION_RATE), ENV_WORD (MIN_WIND_RADIUS), ENV_WORD (MAX_WIND_RADIUS), ENV_WORD (WIND_EXPANSION_RATE), ENV_WORD (WIND_GUST_FREQUENCY), ENV_WORD (SESSION_RESYNC_FREQUENCY),
+		ENV_WORD (DEFAULT_MIN_WIND_SPEED), ENV_WORD (DEFAULT_MAX_WIND_SPEED), ENV_WORD (ONE_HOUR), ENV_WORD (ONE_DAY));
+	ENV_EMIT ("env-census-configured weather_rain_radius_min_w=%08x weather_rain_radius_max_w=%08x weather_rain_speed_w=%08x weather_wind_radius_min_w=%08x weather_wind_radius_max_w=%08x weather_wind_speed_w=%08x\n",
+		ENV_WORD (weather_rain_radius_min), ENV_WORD (weather_rain_radius_max), ENV_WORD (weather_rain_speed), ENV_WORD (weather_wind_radius_min), ENV_WORD (weather_wind_radius_max), ENV_WORD (weather_wind_speed));
+	ENV_EMIT ("env-census-map min_map_x_w=%08x max_map_x_w=%08x min_map_z_w=%08x max_map_z_w=%08x mid_map_x_w=%08x mid_map_z_w=%08x\n", ENV_WORD (MIN_MAP_X), ENV_WORD (MAX_MAP_X), ENV_WORD (MIN_MAP_Z), ENV_WORD (MAX_MAP_Z),
+		ENV_WORD (MID_MAP_X), ENV_WORD (MID_MAP_Z));
+	ENV_EMIT ("env-unsupported item=get_session_random_start_time_of_day reason=reseeds_the_shared_and_the_libc_generators_from_the_clock_and_the_libc_state_cannot_be_restored\n");
+	ENV_EMIT ("env-unsupported item=update_lightning_effect reason=creates_strike_and_sound_entities_and_draws_the_shared_generator_witnessed_only_through_real_frames_lightning_timer_and_rng\n");
+	ENV_EMIT ("env-unsupported item=update_session_sound_effects reason=runs_in_every_headless_frame_sets_sound_amplitudes_and_writes_terrain_types_in_sector_not_witnessed_apart_from_real_frames\n");
+	ENV_EMIT ("env-unsupported item=update_time_of_day_resync reason=runs_in_every_headless_server_frame_comms_transmit_each_minute_seen_only_as_the_time_of_day_resync_counter\n");
+	ENV_EMIT ("env-unsupported item=wind_gust_outside_0_1 reason=the_original_asserts_so_the_cases_there_are_refused_not_called\n");
+	ENV_EMIT ("env-unsupported item=session_state_loading_and_serialisation reason=ss_pack_and_ss_msgs_unpack_the_session_for_clients_and_saves_not_exercised_by_the_dedicated_server_run\n");
+
+	return 0;
+}
+
+static int env_snapshot (char *text, int capacity, int *used)
+{
+	session *raw = env_session_raw ();
+	vec3d *cp = env_camera_position ();
+	vec3d centre;
+	int start = *used;
+
+	env_pull ();
+
+	if (env_render_state (text, capacity, used, "env-state", "retail") != 0)
+	{
+		return -1;
+	}
+	ENV_EMIT ("env-state-fingerprint tag=retail fp=%016llx\n", (unsigned long long) env_hash_bytes (text + start, *used - start));
+	/* the same original queries, asked of the unmodified state at the points a consumer would ask: the camera (what the unmodified update uses), the map centre and the two drifting centres */
+	centre.x = MID_MAP_X;
+	centre.y = 0.0f;
+	centre.z = MID_MAP_Z;
+	if (cp && env_render_queries (text, capacity, used, "env-query", "retail", "camera", cp) != 0)
+	{
+		return -1;
+	}
+	if (env_render_queries (text, capacity, used, "env-query", "retail", "map_centre", &centre) != 0 || env_render_queries (text, capacity, used, "env-query", "retail", "weather_centre", &raw->weather_position) != 0
+		|| env_render_queries (text, capacity, used, "env-query", "retail", "wind_centre", &raw->wind_effect_position) != 0)
+	{
+		return -1;
+	}
+
+	return 0;
+}
+
+static void env_set_vec (vec3d *v, float x, float y, float z)
+{
+	v->x = x;
+	v->y = y;
+	v->z = z;
+}
+
+static int env_weather_case (int i, char *text, int capacity, int *used)
+{
+	const struct env_weather_case *c = &env_weather_cases[i];
+	session *raw = env_session_raw ();
+	vec3d pos;
+	float range;
+
+	set_global_season (c->season);
+	raw->local_weather_model = c->local;
+	raw->weather_radius = c->radius;
+	raw->weather_mode = (weathermodes) c->cwm;
+	raw->target_weather_mode = (weathermodes) c->twm;
+	raw->weather_mode_transitional_status = c->ts;
+	env_set_vec (&raw->weather_position, 0.0f, 0.0f, 0.0f);
+	env_push ();
+	env_set_vec (&pos, c->px, 0.0f, c->pz);
+	range = get_approx_2d_range (&pos, &raw->weather_position);
+
+	ENV_EMIT ("env-weather kind=witness i=%d model=%s season=%d radius_w=%08x in_cwm=%d in_twm=%d in_ts_w=%08x range_w=%08x\n", i, c->local ? "local" : "global", c->season, ENV_WORD (c->radius), c->cwm, c->twm, ENV_WORD (c->ts), ENV_WORD (range));
+
+	return env_render_queries (text, capacity, used, "env-weather-answer", "witness", "case", &pos);
+}
+
+static int env_wind_case (int i, char *text, int capacity, int *used)
+{
+	const struct env_wind_case *c = &env_wind_cases[i];
+	session *raw = env_session_raw ();
+	vec3d pos, wind, centre;
+	float speed, speed_null, modulation, range;
+
+	raw->wind_effect_radius = c->radius;
+	env_set_vec (&centre, c->wpx, 0.0f, c->wpz);
+	raw->wind_effect_position = centre;
+	raw->wind_minimum_speed = c->minimum;
+	raw->wind_maximum_speed = c->maximum;
+	raw->wind_gusting_value = c->gust;
+	env_set_vec (&raw->wind_direction_vector, c->dx, 0.0f, c->dz);
+	env_set_vec (&pos, c->px, 0.0f, c->pz);
+	env_set_vec (&wind, 7.0f, 7.0f, 7.0f);
+
+	if (!env_gust_in_domain (c->gust))
+	{
+		ENV_EMIT ("env-wind kind=witness i=%d refused=gust_outside_0_1\n", i);
+
+		return 0;
+	}
+
+	env_push ();
+
+	range = get_approx_2d_range (&pos, &centre);
+	speed = get_session_wind_velocity_at_point (&pos, &wind);
+	speed_null = get_session_wind_velocity_at_point (&pos, NULL);
+	modulation = eech_env_fixture_gust_modulation (c->gust);
+
+	ENV_EMIT ("env-wind kind=witness i=%d radius_w=%08x centre_x_w=%08x centre_z_w=%08x minimum_w=%08x maximum_w=%08x gust_w=%08x dir_x_w=%08x dir_z_w=%08x x_w=%08x z_w=%08x range_w=%08x modulation_w=%08x"
+		" speed_w=%08x vx_w=%08x vy_w=%08x vz_w=%08x null_speed_w=%08x null_same=%d\n", i, ENV_WORD (c->radius), ENV_WORD (c->wpx), ENV_WORD (c->wpz), ENV_WORD (c->minimum), ENV_WORD (c->maximum), ENV_WORD (c->gust), ENV_WORD (c->dx), ENV_WORD (c->dz), ENV_WORD (c->px),
+		ENV_WORD (c->pz), ENV_WORD (range), ENV_WORD (modulation), ENV_WORD (speed), ENV_WORD (wind.x), ENV_WORD (wind.y), ENV_WORD (wind.z), ENV_WORD (speed_null), float_bits (speed) == float_bits (speed_null));
+
+	return 0;
+}
+
+/* the gust modulation alone, and the speed it gives in a calm field (radius zero, limits 10 and 20) */
+static int env_gust_case (int i, char *text, int capacity, int *used)
+{
+	float gust = env_gust_cases[i];
+	session *raw = env_session_raw ();
+	vec3d wind;
+
+	if (env_gust_refused[i] || !env_gust_in_domain (gust))
+	{
+		ENV_EMIT ("env-gust kind=witness i=%d gust_w=%08x refused=original_asserts_outside_0_1\n", i, ENV_WORD (gust));
+
+		return 0;
+	}
+
+	raw->wind_effect_radius = 0.0f;
+	raw->wind_minimum_speed = 10.0f;
+	raw->wind_maximum_speed = 20.0f;
+	raw->wind_gusting_value = gust;
+	env_set_vec (&raw->wind_direction_vector, 1.0f, 0.0f, 0.0f);
+	env_push ();
+	env_set_vec (&wind, 0.0f, 0.0f, 0.0f);
+	{
+		vec3d pos;
+		float modulation, speed;
+
+		env_set_vec (&pos, 0.0f, 0.0f, 0.0f);
+		modulation = eech_env_fixture_gust_modulation (gust);
+		speed = get_session_wind_velocity_at_point (&pos, &wind);
+		ENV_EMIT ("env-gust kind=witness i=%d gust_w=%08x modulation_w=%08x calm_speed_w=%08x calm_vx_w=%08x\n", i, ENV_WORD (gust), ENV_WORD (modulation), ENV_WORD (speed), ENV_WORD (wind.x));
+	}
+
+	return 0;
+}
+
+static int env_time_case (int i, char *text, int capacity, int *used)
+{
+	const struct env_time_case *c = &env_time_cases[i];
+	session *raw = env_session_raw ();
+
+	if (c->kind == 0)
+	{
+		int day = -1, accessor_day;
+		float tod, accessor_tod;
+
+		raw->start_time = c->a;
+		raw->elapsed_time = c->b;
+		tod = calculate_session_time_of_day (get_session_entity (), &day);
+		accessor_tod = get_local_entity_float_value (get_session_entity (), FLOAT_TYPE_TIME_OF_DAY);
+		accessor_day = get_local_entity_int_value (get_session_entity (), INT_TYPE_DAY);
+		ENV_EMIT ("env-time kind=witness i=%d what=calculate start_w=%08x elapsed_w=%08x tod_w=%08x rolled_days=%d accessor_tod_w=%08x accessor_day=%d segment=%d\n", i, ENV_WORD (c->a), ENV_WORD (c->b), ENV_WORD (tod), day,
+			ENV_WORD (accessor_tod), accessor_day, (int) get_day_segment_type (tod));
+	}
+	else if (c->kind == 1)
+	{
+		ENV_EMIT ("env-time kind=witness i=%d what=segment tod_w=%08x segment=%d\n", i, ENV_WORD (c->a), (int) get_day_segment_type (c->a));
+	}
+	else
+	{
+		ENV_EMIT ("env-time kind=witness i=%d what=constants segment_time_dawn_w=%08x segment_time_day_w=%08x segment_time_dusk_w=%08x segment_time_night_w=%08x preset_dawn_w=%08x preset_midday_w=%08x"
+			" preset_afternoon_w=%08x preset_dusk_w=%08x preset_midnight_w=%08x\n", i, ENV_WORD (get_segment_time_of_day (DAY_SEGMENT_TYPE_DAWN)), ENV_WORD (get_segment_time_of_day (DAY_SEGMENT_TYPE_DAY)),
+			ENV_WORD (get_segment_time_of_day (DAY_SEGMENT_TYPE_DUSK)), ENV_WORD (get_segment_time_of_day (DAY_SEGMENT_TYPE_NIGHT)), ENV_WORD (get_session_preset_time_of_day (SESSION_TIME_DAWN)),
+			ENV_WORD (get_session_preset_time_of_day (SESSION_TIME_MIDDAY)), ENV_WORD (get_session_preset_time_of_day (SESSION_TIME_AFTERNOON)), ENV_WORD (get_session_preset_time_of_day (SESSION_TIME_DUSK)),
+			ENV_WORD (get_session_preset_time_of_day (SESSION_TIME_MIDNIGHT)));
+	}
+
+	return 0;
+}
+
+/* the ORIGINAL initialisers on the live session: the four fixed modes, and the random mode from three controlled generator seeds (the shared seed word is restored) */
+static int env_init_case (int i, char *text, int capacity, int *used)
+{
+	static const int modes[4] = { WEATHERMODE_DRY, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_HEAVY_RAIN, WEATHERMODE_SNOW };
+	static const int seeds[3] = { 1, 1234567, 20261030 };
+	entity *en = get_session_entity ();
+	vec3d a, b;
+
+	if (get_comms_model () != COMMS_MODEL_SERVER)
+	{
+		ENV_EMIT ("env-init kind=witness i=%d refused=the_original_initialisers_assert_the_server_comms_model comms_model=%d\n", i, (int) get_comms_model ());
+
+		return 0;
+	}
+
+	if (i < 4)
+	{
+		set_session_fixed_weather_mode (en, (weathermodes) modes[i]);
+		ENV_EMIT ("env-init kind=witness i=%d what=fixed mode=%d rng=%d\n", i, modes[i], random_number_seed);
+	}
+	else
+	{
+		random_number_seed = seeds[i - 4];
+		set_session_random_weather_mode (en);
+		ENV_EMIT ("env-init kind=witness i=%d what=random seed_in=%d rng=%d rng_w=%08x\n", i, seeds[i - 4], random_number_seed, (unsigned) random_number_seed);
+	}
+
+	if (env_render_state (text, capacity, used, "env-init-state", "witness") != 0)
+	{
+		return -1;
+	}
+	env_set_vec (&a, 0.0f, 0.0f, 0.0f);
+	env_set_vec (&b, MID_MAP_X, 0.0f, MID_MAP_Z);
+
+	if (env_render_queries (text, capacity, used, "env-init-query", "witness", "origin", &a) != 0)
+	{
+		return -1;
+	}
+
+	return env_render_queries (text, capacity, used, "env-init-query", "witness", "map_centre", &b);
+}
+
+/* the original update of the time of day on synthetic state (update_time_of_day, exposed under this feature) */
+static int env_update_time_case (int i, char *text, int capacity, int *used)
+{
+	static const char *const labels[ENV_UPDATE_TIME_COUNT] = { "midday_real_time", "midday_accelerated_60", "night_to_dawn_edge", "dawn_to_day_edge", "day_to_dusk_edge", "dusk_to_night_edge", "day_wrap",
+		"skip_night_after_dusk", "skip_night_before_dawn", "zero_delta" };
+	session *raw = env_session_raw ();
+	float start = 43200.0f, accel = 1.0f, delta = 0.1f;
+	int skip = 0, day_before = 0, day_after = 0;
+	float tod_before, tod_after;
+	char tag[48];
+
+	switch (i)
+	{
+		case 1: accel = 60.0f; break;
+		case 2: start = nextafterf ((float) (6.0 * ONE_HOUR), 0.0f); break;
+		case 3: start = nextafterf ((float) (8.0 * ONE_HOUR), 0.0f); break;
+		case 4: start = nextafterf ((float) (18.0 * ONE_HOUR), 0.0f); break;
+		case 5: start = nextafterf ((float) (20.0 * ONE_HOUR), 0.0f); break;
+		case 6: start = nextafterf ((float) ONE_DAY, 0.0f); break;
+		case 7: start = (float) (21.0 * ONE_HOUR); skip = 1; break;
+		case 8: start = (float) (1.0 * ONE_HOUR); skip = 1; break;
+		case 9: delta = 0.0f; break;
+		default: break;
+	}
+
+	raw->start_time = start;
+	raw->elapsed_time = 0.0f;
+	raw->time_of_day_acceleration = accel;
+	raw->skip_night_time = skip;
+	system_delta_time = delta;
+	tod_before = calculate_session_time_of_day (get_session_entity (), &day_before);
+	snprintf (tag, sizeof (tag), "before_%d", i);
+	ENV_EMIT ("env-update-time kind=witness i=%d label=%s delta_w=%08x accel_w=%08x skip_night=%d tod_before_w=%08x day_before=%d\n", i, labels[i], ENV_WORD (delta), ENV_WORD (accel), skip, ENV_WORD (tod_before), day_before + 1);
+	if (env_render_state (text, capacity, used, "env-update-time-state", tag) != 0)
+	{
+		return -1;
+	}
+	eech_env_fixture_update_time_of_day (get_session_entity ());
+	tod_after = calculate_session_time_of_day (get_session_entity (), &day_after);
+	snprintf (tag, sizeof (tag), "after_%d", i);
+	ENV_EMIT ("env-update-time-result kind=witness i=%d tod_after_w=%08x day_after=%d\n", i, ENV_WORD (tod_after), day_after + 1);
+
+	return env_render_state (text, capacity, used, "env-update-time-state", tag);
+}
+
+/* the original update of the weather and the wind on synthetic state (update_transitional_weather, non-static in ss_updt.c). Lightning is kept from firing (its timer is far from zero). */
+static int env_update_weather_case (int i, char *text, int capacity, int *used)
+{
+	static const char *const labels[ENV_UPDATE_WEATHER_COUNT] = { "local_interior", "local_radius_clamps_at_max", "local_radius_clamps_at_min", "local_bounce_min_x", "local_bounce_max_x", "local_bounce_min_z",
+		"local_bounce_max_z", "local_radius_zero", "global_transition_progress", "global_transition_completes", "global_steady", "gust_phase_wraps", "gust_phase_at_one", "wind_radius_clamps_at_max",
+		"wind_radius_clamps_at_min", "wind_bounce_min_x_and_max_z" };
+	session *raw = env_session_raw ();
+	vec3d *cp = env_camera_position ();
+	float span_x = MAX_MAP_X - MIN_MAP_X, span_z = MAX_MAP_Z - MIN_MAP_Z;
+	char tag[48];
+
+	if (in_cockpit || !cp || get_comms_model () != COMMS_MODEL_SERVER)
+	{
+		ENV_EMIT ("env-update-weather kind=witness i=%d refused=unavailable_in_cockpit_or_no_camera_or_not_server in_cockpit=%d camera=%d comms_model=%d\n", i, (int) in_cockpit, cp ? 1 : 0, (int) get_comms_model ());
+
+		return 0;
+	}
+
+	/* the base state: local model, interior centres, ordinary drift, lightning far away */
+	set_global_season (SESSION_SEASON_SUMMER);
+	raw->local_weather_model = 1;
+	raw->weather_radius = 30000.0f;
+	raw->weather_increasing = 1;
+	env_set_vec (&raw->weather_position, MIN_MAP_X + 0.4f * span_x, 0.0f, MIN_MAP_Z + 0.4f * span_z);
+	env_set_vec (&raw->weather_velocity, 100.0f, 0.0f, -50.0f);
+	raw->weather_mode = WEATHERMODE_DRY;
+	raw->target_weather_mode = WEATHERMODE_DRY;
+	raw->weather_mode_transitional_status = 0.0f;
+	raw->weather_mode_transitional_period = 60.0f;
+	raw->lightning_timer = 1.0e6f;
+	raw->wind_effect_radius = 40000.0f;
+	raw->wind_increasing = 1;
+	raw->wind_gusting_value = 0.5f;
+	env_set_vec (&raw->wind_effect_position, MIN_MAP_X + 0.7f * span_x, 0.0f, MIN_MAP_Z + 0.3f * span_z);
+	env_set_vec (&raw->wind_effect_velocity, -80.0f, 0.0f, 60.0f);
+	env_set_vec (&raw->wind_direction_vector, 0.0f, 0.0f, 1.0f);
+	system_delta_time = 0.1f;
+
+	switch (i)
+	{
+		case 1: raw->weather_radius = MAX_WEATHER_RADIUS - 5.0f; break;
+		case 2: raw->weather_radius = MIN_WEATHER_RADIUS + 5.0f; raw->weather_increasing = 0; break;
+		case 3: raw->weather_position.x = MIN_MAP_X + 1.0f; raw->weather_velocity.x = -100.0f; break;
+		case 4: raw->weather_position.x = MAX_MAP_X - 1.0f; raw->weather_velocity.x = 100.0f; break;
+		case 5: raw->weather_position.z = MIN_MAP_Z + 1.0f; raw->weather_velocity.z = -100.0f; break;
+		case 6: raw->weather_position.z = MAX_MAP_Z - 1.0f; raw->weather_velocity.z = 100.0f; break;
+		case 7: raw->weather_radius = 0.0f; raw->weather_mode = WEATHERMODE_HEAVY_RAIN; raw->target_weather_mode = WEATHERMODE_SNOW; break;
+		case 8: raw->local_weather_model = 0; raw->weather_mode = WEATHERMODE_DRY; raw->target_weather_mode = WEATHERMODE_HEAVY_RAIN; raw->weather_mode_transitional_status = 0.5f; break;
+		case 9: raw->local_weather_model = 0; raw->weather_mode = WEATHERMODE_DRY; raw->target_weather_mode = WEATHERMODE_HEAVY_RAIN; raw->weather_mode_transitional_status = 0.99999f; system_delta_time = 1.0f; break;
+		case 10: raw->local_weather_model = 0; raw->weather_mode = WEATHERMODE_LIGHT_RAIN; raw->target_weather_mode = WEATHERMODE_LIGHT_RAIN; raw->weather_mode_transitional_status = 0.7f; break;
+		case 11: raw->wind_gusting_value = 0.95f; system_delta_time = 1.0f; break;
+		case 12: raw->wind_gusting_value = 0.9f; system_delta_time = 1.0f; break;
+		case 13: raw->wind_effect_radius = MAX_WIND_RADIUS - 5.0f; break;
+		case 14: raw->wind_effect_radius = MIN_WIND_RADIUS + 5.0f; raw->wind_increasing = 0; break;
+		case 15: raw->wind_effect_position.x = MIN_MAP_X + 1.0f; raw->wind_effect_velocity.x = -100.0f; break;
+		default: break;
+	}
+	if (i == 15)
+	{
+		/* one case for the second wind edge as well: the z edge from the base's interior x */
+		raw->wind_effect_position.z = MAX_MAP_Z - 1.0f;
+		raw->wind_effect_velocity.z = 100.0f;
+	}
+
+	env_push ();
+
+	snprintf (tag, sizeof (tag), "before_%d", i);
+	ENV_EMIT ("env-update-weather kind=witness i=%d label=%s delta_w=%08x camera_dependent_fields=weather_mode,target_weather_mode,transitional_status_when_local_and_radius_nonzero camera=%d\n", i, labels[i],
+		ENV_WORD (get_delta_time ()), 1);
+	if (env_render_state (text, capacity, used, "env-update-weather-state", tag) != 0)
+	{
+		return -1;
+	}
+	update_transitional_weather (get_session_entity ());
+	snprintf (tag, sizeof (tag), "after_%d", i);
+
+	return env_render_state (text, capacity, used, "env-update-weather-state", tag);
+}
+
+/* group 9, EXPLICITLY NOT A WITNESS: a controlled-weather case of the ORIGINAL setters, for a fresh process. It changes the live session (the original's own setters, with physical inputs) and
+   restores NOTHING: no random draw, entity or libc state it causes could be put back, so the process is the isolation boundary and the report says `changed=1` and `process_isolated=required`. It
+   is never part of the default run, the census or the witness set. i=0 brings the next lightning strike forward (only if the weather is already the local model with a non-zero radius); i=1
+   first makes the weather the local model with the radius the original's own session defaults use (40 km), then does the same. */
+static int env_controlled_case (int i, char *text, int capacity, int *used)
+{
+	static const char *const what[ENV_CONTROLLED_COUNT] = { "lightning_due", "local_weather_on" };
+	entity *en = get_session_entity ();
+	session *raw = env_session_raw ();
+	int local_before = (int) raw->local_weather_model;
+	unsigned radius_before = ENV_WORD (raw->weather_radius), timer_before = ENV_WORD (raw->lightning_timer);
+
+	if (get_comms_model () != COMMS_MODEL_SERVER)
+	{
+		ENV_EMIT ("env-controlled kind=controlled i=%d what=%s refused=not_the_server comms_model=%d\n", i, what[i], (int) get_comms_model ());
+		ENV_EMIT ("env-controlled-end group=9 index=%d changed=0 process_isolated=required\n", i);
+
+		return 0;
+	}
+
+	if (i == 0 && (!local_before || raw->weather_radius == 0.0f))
+	{
+		ENV_EMIT ("env-controlled kind=controlled i=%d what=%s refused=weather_not_local_or_radius_zero local_weather_model=%d weather_radius_w=%08x\n", i, what[i], local_before, radius_before);
+		ENV_EMIT ("env-controlled-end group=9 index=%d changed=0 process_isolated=required\n", i);
+
+		return 0;
+	}
+
+	if (i == 1)
+	{
+		set_local_entity_int_value (en, INT_TYPE_LOCAL_WEATHER_MODEL, TRUE);
+		set_local_entity_float_value (en, FLOAT_TYPE_WEATHER_RADIUS, 40.0 * KILOMETRE);
+	}
+
+	set_local_entity_float_value (en, FLOAT_TYPE_LIGHTNING_TIMER, 0.5);
+
+	ENV_EMIT ("env-controlled kind=controlled i=%d what=%s local_before=%d radius_before_w=%08x timer_before_w=%08x local_after=%d radius_after_w=%08x timer_after_w=%08x\n", i, what[i], local_before,
+		radius_before, timer_before, (int) raw->local_weather_model, ENV_WORD (raw->weather_radius), ENV_WORD (raw->lightning_timer));
+	ENV_EMIT ("env-controlled-end group=9 index=%d changed=1 process_isolated=required\n", i);
+
+	return 0;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* group 10, READ-ONLY apart from a scratch it restores: the ORIGINAL terrain-sector surface enumeration that the sound routine calls every frame.
+
+   update_session_sound_effects (ss_updt.c) clamps the camera to the map and calls get_terrain_3d_types_in_sector (terrdata.c), which selects a sector, CLEARS the shared int array
+   terrain_types_in_sector, flags the sector's first surface and the surface of EVERY surface_change polygon, and returns 1 plus the NUMBER OF TRANSITIONS (the count of
+   surface_change flags walked) -- not the number of distinct flags. This group calls that original on real loaded sectors and reports what it returned and what it left. The observer's
+   existing hash of the same scratch inside a real frame is REUSED as it is; this group adds only the missing surface-enumeration semantics (the return value against the flags,
+   the reset between calls, the boundary samples).
+
+   Nothing here recomputes an answer: the return value and the flags are the original's. Per case the original is called four times (each after the scratch was filled with a different
+   sentinel, so a flag that survived would show; the second call repeats the first; an interleaved call on the reference sector sits between a call and its repeat) and the scratch is
+   put back byte for byte. A sample the original cannot be asked -- a sector outside the loaded grid (its index would address memory that is not a sector), a sector with no surface
+   table or no polygon table, a surface id that is not a terrain type (the original would index its scratch out of range) -- is REJECTED at the boundary with the reason, not called and not
+   repaired. The sector the original selects is the original's own (get_terrain_3d_sector, which truncates toward zero and sets the FPU rounding mode to zero, the engine's own mode).
+
+   Counts are kept apart on purpose: `returned` is the original's return value, `distinct_flags` is the number of scratch entries left set, `polygons` is the sector's raw polygon count.
+   The cases are a finite sweep of real sector centres, the corners and the middle of the loaded grid, boundary samples (the float below, at and above a sector's lower and upper edge in x
+   and in z) around three sectors, and the clamp limits the sound routine itself uses. Index 0 is the plan. */
+
+#define ENV_SECTOR_MAX 192
+#define ENV_SECTOR_SWEEP 48
+
+struct env_sector_case
+{
+	const char *label;
+	float x, z;
+};
+
+static struct env_sector_case env_sector_cases[ENV_SECTOR_MAX];
+static int env_sector_count;
+
+static void env_sector_add (const char *label, float x, float z)
+{
+	if (env_sector_count < ENV_SECTOR_MAX)
+	{
+		env_sector_cases[env_sector_count].label = label;
+		env_sector_cases[env_sector_count].x = x;
+		env_sector_cases[env_sector_count].z = z;
+		env_sector_count++;
+	}
+}
+
+static float env_sector_centre (int index)
+{
+	return ((float) index + 0.5f) * (float) TERRAIN_3D_SECTOR_SIDE_LENGTH;
+}
+
+static void env_sector_edges (int sx, int sz)
+{
+	float side = (float) TERRAIN_3D_SECTOR_SIDE_LENGTH;
+	float x0 = (float) sx * side, z0 = (float) sz * side;
+	float xc = env_sector_centre (sx), zc = env_sector_centre (sz);
+
+	env_sector_add ("x_below_lower_edge", nextafterf (x0, -HUGE_VALF), zc);
+	env_sector_add ("x_at_lower_edge", x0, zc);
+	env_sector_add ("x_above_lower_edge", nextafterf (x0, HUGE_VALF), zc);
+	env_sector_add ("x_below_upper_edge", nextafterf (x0 + side, -HUGE_VALF), zc);
+	env_sector_add ("x_at_upper_edge", x0 + side, zc);
+	env_sector_add ("z_below_lower_edge", xc, nextafterf (z0, -HUGE_VALF));
+	env_sector_add ("z_at_lower_edge", xc, z0);
+	env_sector_add ("z_above_lower_edge", xc, nextafterf (z0, HUGE_VALF));
+	env_sector_add ("z_below_upper_edge", xc, nextafterf (z0 + side, -HUGE_VALF));
+	env_sector_add ("z_at_upper_edge", xc, z0 + side);
+}
+
+static void env_sector_build (void)
+{
+	int xmax = terrain_3d_sector_x_max, zmax = terrain_3d_sector_z_max;
+	float side = (float) TERRAIN_3D_SECTOR_SIDE_LENGTH;
+	int total, step, k;
+
+	env_sector_count = 0;
+
+	if (!terrain_sectors || xmax < 1 || zmax < 1)
+	{
+		return;
+	}
+
+	total = xmax * zmax;
+	step = total / ENV_SECTOR_SWEEP + 1;
+
+	/* the first case is the interleave reference: the centre of the first sector */
+	env_sector_add ("sector_first", env_sector_centre (0), env_sector_centre (0));
+	env_sector_add ("sector_x_last", env_sector_centre (xmax - 1), env_sector_centre (0));
+	env_sector_add ("sector_z_last", env_sector_centre (0), env_sector_centre (zmax - 1));
+	env_sector_add ("sector_last", env_sector_centre (xmax - 1), env_sector_centre (zmax - 1));
+	env_sector_add ("sector_middle", env_sector_centre (xmax / 2), env_sector_centre (zmax / 2));
+
+	for (k = 0; k < ENV_SECTOR_SWEEP; k++)
+	{
+		int index = (k * step) % total;
+
+		env_sector_add ("sweep", env_sector_centre (index % xmax), env_sector_centre (index / xmax));
+	}
+
+	env_sector_edges (0, 0);
+	env_sector_edges (xmax / 2, zmax / 2);
+	env_sector_edges (xmax - 1, zmax - 1);
+
+	env_sector_add ("zero", 0.0f, 0.0f);
+	env_sector_add ("negative_zero", -0.0f, -0.0f);
+	env_sector_add ("minus_half_metre_truncates_toward_zero", -0.5f, -0.5f);
+	env_sector_add ("minus_one_sector", -side, env_sector_centre (0));
+	env_sector_add ("terrain_end_minus_1mm", (float) xmax * side - 0.001f, (float) zmax * side - 0.001f);
+	env_sector_add ("terrain_end", (float) xmax * side, (float) zmax * side);
+	env_sector_add ("sound_clamp_minimum", MIN_MAP_X, MIN_MAP_Z);
+	env_sector_add ("sound_clamp_middle", MID_MAP_X, MID_MAP_Z);
+	env_sector_add ("sound_clamp_maximum", MAX_MAP_X, MAX_MAP_Z);
+}
+
+/* NULL when the original can be asked about this point, else the reason it cannot (it would address memory that is not a sector, or index its scratch out of range) */
+static const char *env_sector_domain (float x, float z, int *sx, int *sz, int *polygons)
+{
+	const terrain_3d_sector *sector;
+	const terrain_3d_surface *surface;
+	const terrain_3d_face *polygon;
+	int count;
+
+	*sx = -1;
+	*sz = -1;
+	*polygons = -1;
+
+	if (!isfinite (x) || !isfinite (z))
+	{
+		return "not_finite";
+	}
+
+	/* the original's own sector selection (it truncates toward zero) */
+	get_terrain_3d_sector (x, z, sx, sz);
+
+	if (*sx < 0 || *sx >= terrain_3d_sector_x_max || *sz < 0 || *sz >= terrain_3d_sector_z_max)
+	{
+		return "sector_outside_the_loaded_grid";
+	}
+
+	sector = &terrain_sectors[*sz][*sx];
+	*polygons = (int) sector->number_of_polygons;
+
+	if (!sector->surface_changes)
+	{
+		return "no_surface_table";
+	}
+
+	if (sector->number_of_polygons > 0 && !sector->polygons)
+	{
+		return "no_polygon_table";
+	}
+
+	/* the same pointers the original walks, read only for the one thing that would be undefined behaviour in the original: a surface id outside its scratch */
+	surface = sector->surface_changes;
+	polygon = sector->polygons;
+
+	if ((int) surface->surface_id >= TERRAIN_TYPE_LAST)
+	{
+		return "surface_id_outside_the_terrain_types";
+	}
+
+	for (count = (int) sector->number_of_polygons; count > 0; count--)
+	{
+		if (polygon->surface_change)
+		{
+			surface++;
+
+			if ((int) surface->surface_id >= TERRAIN_TYPE_LAST)
+			{
+				return "surface_id_outside_the_terrain_types";
+			}
+		}
+
+		polygon++;
+	}
+
+	return NULL;
+}
+
+static void env_sector_fill (int value)
+{
+	int i;
+
+	for (i = 0; i < TERRAIN_TYPE_LAST; i++)
+	{
+		terrain_types_in_sector[i] = value;
+	}
+}
+
+static int env_sector_nonbinary (const int *flags)
+{
+	int i, n = 0;
+
+	for (i = 0; i < TERRAIN_TYPE_LAST; i++)
+	{
+		if (flags[i] != 0 && flags[i] != 1)
+		{
+			n++;
+		}
+	}
+
+	return n;
+}
+
+static int env_sector_distinct (const int *flags)
+{
+	int i, n = 0;
+
+	for (i = 0; i < TERRAIN_TYPE_LAST; i++)
+	{
+		if (flags[i] != 0)
+		{
+			n++;
+		}
+	}
+
+	return n;
+}
+
+static void env_sector_text (const int *flags, char *out)
+{
+	int i;
+
+	for (i = 0; i < TERRAIN_TYPE_LAST; i++)
+	{
+		out[i] = (flags[i] == 0) ? '0' : ((flags[i] == 1) ? '1' : '?');
+	}
+
+	out[TERRAIN_TYPE_LAST] = 0;
+}
+
+static int env_sector_case (int index, char *text, int capacity, int *used)
+{
+	int saved[TERRAIN_TYPE_LAST], first[TERRAIN_TYPE_LAST], second[TERRAIN_TYPE_LAST], third[TERRAIN_TYPE_LAST];
+	char flags[TERRAIN_TYPE_LAST + 1];
+	const struct env_sector_case *c;
+	const char *refused;
+	int sx, sz, polygons, rsx, rsz, rpolygons;
+	int returned, repeated, other = -1, again = -1, interleave_known;
+
+	env_sector_build ();
+
+	if (index == 0)
+	{
+		ENV_EMIT ("env-sector-plan version=1 terrain_loaded=%d sector_x_max=%d sector_z_max=%d side=%d terrain_types=%d cases=%d scratch_ints=%d map_min_x_w=%08x map_max_x_w=%08x map_min_z_w=%08x map_max_z_w=%08x"
+			" map_mid_x_w=%08x map_mid_z_w=%08x\n", terrain_sectors ? 1 : 0, terrain_3d_sector_x_max, terrain_3d_sector_z_max, (int) TERRAIN_3D_SECTOR_SIDE_LENGTH, (int) TERRAIN_TYPE_LAST, env_sector_count,
+			(int) (sizeof (terrain_types_in_sector) / sizeof (terrain_types_in_sector[0])), ENV_WORD (MIN_MAP_X), ENV_WORD (MAX_MAP_X), ENV_WORD (MIN_MAP_Z), ENV_WORD (MAX_MAP_Z), ENV_WORD (MID_MAP_X),
+			ENV_WORD (MID_MAP_Z));
+
+		return 0;
+	}
+
+	if (index < 1 || index > env_sector_count)
+	{
+		return -1;
+	}
+
+	c = &env_sector_cases[index - 1];
+
+	refused = env_sector_domain (c->x, c->z, &sx, &sz, &polygons);
+
+	if (refused)
+	{
+		ENV_EMIT ("env-sector kind=original i=%d label=%s x_w=%08x z_w=%08x sector_x=%d sector_z=%d polygons=%d refused=%s\n", index, c->label, ENV_WORD (c->x), ENV_WORD (c->z), sx, sz, polygons, refused);
+
+		return 0;
+	}
+
+	memcpy (saved, terrain_types_in_sector, sizeof (saved));
+
+	env_sector_fill (7);
+	returned = get_terrain_3d_types_in_sector (c->x, c->z);
+	memcpy (first, terrain_types_in_sector, sizeof (first));
+
+	env_sector_fill (9);
+	repeated = get_terrain_3d_types_in_sector (c->x, c->z);
+	memcpy (second, terrain_types_in_sector, sizeof (second));
+
+	/* an interleaved call on the first case's sector (when the original can be asked about it) between a call and its repeat */
+	interleave_known = env_sector_domain (env_sector_cases[0].x, env_sector_cases[0].z, &rsx, &rsz, &rpolygons) == NULL;
+
+	if (interleave_known)
+	{
+		other = get_terrain_3d_types_in_sector (env_sector_cases[0].x, env_sector_cases[0].z);
+		again = get_terrain_3d_types_in_sector (c->x, c->z);
+	}
+
+	memcpy (third, terrain_types_in_sector, sizeof (third));
+
+	memcpy (terrain_types_in_sector, saved, sizeof (saved));
+
+	env_sector_text (first, flags);
+
+	ENV_EMIT ("env-sector kind=original i=%d label=%s x_w=%08x z_w=%08x sector_x=%d sector_z=%d polygons=%d returned=%d distinct_flags=%d nonbinary=%d flags=%s repeated=%d repeat_equal=%d"
+		" sentinel_cleared=%d interleave=%s interleave_other_returned=%d interleave_returned=%d interleave_equal=%d restored=%d\n", index, c->label, ENV_WORD (c->x), ENV_WORD (c->z), sx, sz, polygons, returned,
+		env_sector_distinct (first), env_sector_nonbinary (first), flags, repeated, (repeated == returned) && (memcmp (first, second, sizeof (first)) == 0),
+		env_sector_nonbinary (first) == 0 && env_sector_nonbinary (second) == 0, interleave_known ? "done" : "na", other, again,
+		interleave_known ? ((again == returned) && (memcmp (first, third, sizeof (first)) == 0)) : -1, memcmp (terrain_types_in_sector, saved, sizeof (saved)) == 0);
+
+	return 0;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* group 11 (EEDCS-51, D3, the ORIGINAL ambient sound routine): explicit only, never part of the default run, the census or the 164-case oracle.
+
+   update_session_sound_effects (ss_updt.c, UNCHANGED in this change) runs in every server update. For the camera (or, with in_cockpit, the gunship) it computes
+     rain    the session weather at the point (current mode, target mode, transitional state) as per-mode levels, switched off above the cloud base and, outdoors, above 180 m of radar
+             altitude, attenuated outdoors by 1 - alt / 180;
+     wind    the session wind speed at the point against the session's minimum and maximum speed, as a light level and a heavy level (a piecewise function of r in [0,1]);
+     terrain the shared scratch terrain_types_in_sector of the sector under the camera clamped to the map (get_terrain_3d_types_in_sector, characterised by group 10 and already host-owned);
+   and then walks the session's LIST_TYPE_SPECIAL_EFFECT children and sets FLOAT_TYPE_AMPLIFICATION on the ten ambient sound children the campaign attaches at boot
+   (attach_session_sound_effects): rain and wind from the levels above, and for the six terrain children (sea, jungle = forest top, amb1 = river, amb2 = reservoir, amb3 / amb4 = altered
+   land 1 / 2) a smoothed value: the child's PREVIOUS amplification plus or minus 0.5 * the frame delta (up when its terrain type is flagged in the sector, down when not), bounded to
+   [0, 0.3], times bound (1 - alt / 280, 0, 1), times 0.75 in the cockpit; zero at or above 280 m. The value written is the scaled one and is read back next call, so consecutive calls compound.
+
+   WHAT THIS GROUP IS. The REAL unchanged routine is called on the REAL collaborating state of the booted campaign: the session entity and its ten real ambient sound-effect children, the real
+   camera entity, the real loaded terrain (and, in the host builds, the real host providers). Per case the group sets the controlled inputs the routine reads (named below), prints the original
+   queries the routine consumes at its point as an input echo, calls the routine once or several times and prints what the children hold afterwards, as IEEE words. It recomputes NOTHING:
+   every amplification word is the original's. The inputs it controls:
+     camera       position (x, y, z) -- the camera's cached terrain elevation is forced to 0 so the radar altitude is exactly y -- and the cloud base height (the shared global
+                  cloud_3d_base_height, which the full game sets to 6000 at render start-up: the headless run has no renderer, so it is set here and PRINTED, and put back);
+     session      the weather (global model: current / target mode and transitional state; or the local ring around a point at a fraction of its radius) and the wind (limits, zone radius
+                  and centre, gust phase), pushed to the host field with the campaign's own import in the host builds;
+     the frame    delta time; the children's initial amplification (the terrain children a controlled value, the rain and wind children a sentinel to show they are overwritten);
+     in_cockpit   only when the headless campaign holds a gunship entity (the routine then reads the gunship's live position and radar altitude, which are NOT moved).
+   The sector under the camera is chosen from the real loaded terrain by a bounded probe (at most ENV_SOUND_PROBES sectors, stride over the grid) with the ORIGINAL sector query: the first
+   sector whose scratch has each of the six sound-relevant surfaces set, and the first with none of them set. A surface the probe does not find makes its cases `refused`, with the reason.
+
+   WHAT IT DOES NOT SHOW (printed in the plan as `env-sound-unsupported`): the speaker output or any render of these children (the sound-effect update that plays them, se_snd.c, needs the
+   sound system; the headless build has none), the ALTERED_LAND3 reader of 3drain.c (render, dormant), the routine called through a real update_server (the observer's sound_facts, group 8's
+   frames and the sector driver's observer already establish that call, its place in the update order and the shared-RNG draw count of zero), and any non-ambient special-effect child of the
+   session (none exists at boot: the lightning strike sounds appear only after a strike, which is the lightning effect's area). Untouched children are checked where they exist: the whole child
+   list, in its order, is printed before and after each call.
+
+   Restored before every return: the session record (and the host field), the season, the shared random seed, the frame delta, the camera position and cached elevation, the cloud base,
+   in_cockpit, the terrain scratch and the amplification of every sound child. `env-sound-end` says restored=0|1 for the whole and for each part; 0 would be a defect of this fixture, never a
+   result. Index 0 is the plan. */
+
+extern void update_session_sound_effects (entity *en);
+extern float cloud_3d_base_height;
+
+#define ENV_SOUND_MAX 64
+#define ENV_SOUND_CHILDREN 32
+#define ENV_SOUND_PROBES 1024
+#define ENV_SOUND_CLOUD_BASE 6000.0f
+#define ENV_SOUND_SENTINEL 0.625f
+#define ENV_SOUND_RING_RADIUS 30000.0f
+#define ENV_SOUND_WIND_RADIUS 8192.0f
+#define ENV_SOUND_CLASSES 10
+
+enum
+{
+	ENV_SITE_ABSENT,
+	ENV_SITE_SEA,
+	ENV_SITE_FOREST_TOP,
+	ENV_SITE_RIVER,
+	ENV_SITE_RESERVOIR,
+	ENV_SITE_ALTERED_LAND1,
+	ENV_SITE_ALTERED_LAND2,
+	ENV_SITE_PROBED = 7, /* the number of sites the probe looks for */
+	ENV_SITE_OUTSIDE_HIGH = 7,
+	ENV_SITE_OUTSIDE_LOW = 8,
+	ENV_SITE_GUNSHIP = 9
+};
+
+struct env_sound_site
+{
+	int found, sx, sz;
+	float x, z;
+};
+
+struct env_sound_case
+{
+	const char *label;
+	int site, cloud, model, cwm, twm, cockpit, calls;
+	float alt, ts, ring, zone, gust, wmin, wmax, amp0, dt;
+};
+
+struct env_sound_child
+{
+	entity *en;
+	int sub_type, klass, is_sound;
+	float amp;
+};
+
+static struct env_sound_site env_sound_sites[ENV_SITE_PROBED];
+static struct env_sound_case env_sound_cases[ENV_SOUND_MAX];
+static int env_sound_count, env_sound_built;
+static int env_sound_probed;
+
+/* the ten ambient sound children, in the order of attach_session_sound_effects; 0 for any other child */
+static int env_sound_class (int sub_type)
+{
+	switch (sub_type)
+	{
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_LIGHT_RAIN: return 1;
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_HEAVY_RAIN: return 2;
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_LIGHT_WIND: return 3;
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_HEAVY_WIND: return 4;
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_SEA: return 5;
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_JUNGLE: return 6;
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB1: return 7;
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB2: return 8;
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB3: return 9;
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB4: return 10;
+		default: return 0;
+	}
+}
+
+static const char *env_sound_class_name (int klass)
+{
+	static const char *const names[ENV_SOUND_CLASSES + 1] = { "other", "light_rain", "heavy_rain", "light_wind", "heavy_wind", "sea", "jungle", "amb1", "amb2", "amb3", "amb4" };
+
+	return names[(klass >= 0 && klass <= ENV_SOUND_CLASSES) ? klass : 0];
+}
+
+/* the session's special-effect children in list order; -1 when there are more than the table holds */
+static int env_sound_children (struct env_sound_child *kids, int max)
+{
+	entity *spec = get_local_entity_first_child (get_session_entity (), LIST_TYPE_SPECIAL_EFFECT);
+	int n = 0;
+
+	while (spec)
+	{
+		if (n >= max)
+		{
+			return -1;
+		}
+
+		kids[n].en = spec;
+		kids[n].sub_type = get_local_entity_int_value (spec, INT_TYPE_ENTITY_SUB_TYPE);
+		kids[n].klass = env_sound_class (kids[n].sub_type);
+		kids[n].is_sound = get_local_entity_type (spec) == ENTITY_TYPE_SOUND_EFFECT;
+		kids[n].amp = kids[n].is_sound ? get_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION) : 0.0f;
+		n++;
+
+		spec = get_local_entity_child_succ (spec, LIST_TYPE_SPECIAL_EFFECT);
+	}
+
+	return n;
+}
+
+/* every one of the ten ambient classes exactly once */
+static int env_sound_complete (const struct env_sound_child *kids, int n)
+{
+	int seen[ENV_SOUND_CLASSES + 1], i;
+
+	memset (seen, 0, sizeof (seen));
+
+	for (i = 0; i < n; i++)
+	{
+		seen[kids[i].klass]++;
+	}
+
+	for (i = 1; i <= ENV_SOUND_CLASSES; i++)
+	{
+		if (seen[i] != 1)
+		{
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static int env_sound_print_children (char *text, int capacity, int *used, const char *key, const struct env_sound_child *kids, int n)
+{
+	int i;
+
+	ENV_EMIT (" %s=", key);
+
+	for (i = 0; i < n; i++)
+	{
+		if (kids[i].is_sound)
+		{
+			ENV_EMIT ("%s%d:%d:%s:%08x", i ? "," : "", i, kids[i].sub_type, env_sound_class_name (kids[i].klass), ENV_WORD (kids[i].amp));
+		}
+		else
+		{
+			ENV_EMIT ("%s%d:%d:%s:na", i ? "," : "", i, kids[i].sub_type, env_sound_class_name (kids[i].klass));
+		}
+	}
+
+	if (n == 0)
+	{
+		ENV_EMIT ("none");
+	}
+
+	return 0;
+}
+
+static int env_sound_flags_set (int terrain_type)
+{
+	return terrain_types_in_sector[terrain_type] != 0;
+}
+
+/* the first sector (over a bounded stride of the loaded grid) whose scratch has each sound-relevant surface set, and the first with none of them: asked of the ORIGINAL sector query at the
+   position the routine itself would pass it (the sector centre bounded to the map), with the scratch put back */
+static void env_sound_probe_sites (void)
+{
+	static const int types[ENV_SITE_PROBED] = { -1, TERRAIN_TYPE_SEA, TERRAIN_TYPE_FOREST_TOP, TERRAIN_TYPE_RIVER, TERRAIN_TYPE_RESERVOIR, TERRAIN_TYPE_ALTERED_LAND1, TERRAIN_TYPE_ALTERED_LAND2 };
+	int saved[TERRAIN_TYPE_LAST];
+	int xmax = terrain_3d_sector_x_max, zmax = terrain_3d_sector_z_max;
+	int total, step, k, i;
+
+	memset (env_sound_sites, 0, sizeof (env_sound_sites));
+	env_sound_probed = 0;
+
+	if (!terrain_sectors || xmax < 1 || zmax < 1)
+	{
+		return;
+	}
+
+	total = xmax * zmax;
+	step = total / ENV_SOUND_PROBES + 1;
+
+	memcpy (saved, terrain_types_in_sector, sizeof (saved));
+
+	for (k = 0; k < total; k += step)
+	{
+		float x = bound (env_sector_centre (k % xmax), MIN_MAP_X, MAX_MAP_X);
+		float z = bound (env_sector_centre (k / xmax), MIN_MAP_Z, MAX_MAP_Z);
+		int sx, sz, polygons, any = 0;
+
+		if (env_sector_domain (x, z, &sx, &sz, &polygons) != NULL)
+		{
+			continue;
+		}
+
+		get_terrain_3d_types_in_sector (x, z);
+		env_sound_probed++;
+
+		for (i = 1; i < ENV_SITE_PROBED; i++)
+		{
+			if (env_sound_flags_set (types[i]))
+			{
+				any = 1;
+
+				if (!env_sound_sites[i].found)
+				{
+					env_sound_sites[i].found = 1;
+					env_sound_sites[i].x = x;
+					env_sound_sites[i].z = z;
+					env_sound_sites[i].sx = sx;
+					env_sound_sites[i].sz = sz;
+				}
+			}
+		}
+
+		if (!any && !env_sound_sites[ENV_SITE_ABSENT].found)
+		{
+			env_sound_sites[ENV_SITE_ABSENT].found = 1;
+			env_sound_sites[ENV_SITE_ABSENT].x = x;
+			env_sound_sites[ENV_SITE_ABSENT].z = z;
+			env_sound_sites[ENV_SITE_ABSENT].sx = sx;
+			env_sound_sites[ENV_SITE_ABSENT].sz = sz;
+		}
+	}
+
+	memcpy (terrain_types_in_sector, saved, sizeof (saved));
+}
+
+/* one case: label, site, camera height, cloud base mode (0 6000, 1 equal to y, 2 just above y, 3 just below y), weather (model 0 global: current, target, transitional state; 1 local ring at
+   `ring` of its radius), wind (zone: fraction of the wind radius the camera is inside; negative: radius zero), gust, wind limits, the terrain children's initial amplification, frame delta,
+   number of calls, in_cockpit */
+static void env_sound_add (const char *label, int site, float alt, int cloud, int model, int cwm, int twm, float ts, float ring, float zone, float gust, float wmin, float wmax, float amp0, float dt,
+	int calls, int cockpit)
+{
+	struct env_sound_case *c;
+
+	if (env_sound_count >= ENV_SOUND_MAX)
+	{
+		return;
+	}
+
+	c = &env_sound_cases[env_sound_count++];
+	c->label = label;
+	c->site = site;
+	c->alt = alt;
+	c->cloud = cloud;
+	c->model = model;
+	c->cwm = cwm;
+	c->twm = twm;
+	c->ts = ts;
+	c->ring = ring;
+	c->zone = zone;
+	c->gust = gust;
+	c->wmin = wmin;
+	c->wmax = wmax;
+	c->amp0 = amp0;
+	c->dt = dt;
+	c->calls = calls;
+	c->cockpit = cockpit;
+}
+
+static void env_sound_build (void)
+{
+	const float below_180 = nextafterf (180.0f, 0.0f), below_280 = nextafterf (280.0f, 0.0f);
+	const float mn = DEFAULT_MIN_WIND_SPEED, mx = DEFAULT_MAX_WIND_SPEED;
+
+	if (env_sound_built)
+	{
+		return;
+	}
+
+	env_sound_built = 1;
+	env_sound_count = 0;
+	env_sound_probe_sites ();
+
+	/* rain: the weather at the point as per-mode levels (global model: the modes and the transitional state are the inputs; the wind is calm, the terrain absent) */
+	env_sound_add ("rain_dry_dry", ENV_SITE_ABSENT, 50.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_light_light_equal_modes", ENV_SITE_ABSENT, 0.0f, 0, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_LIGHT_RAIN, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_light_to_heavy_quarter", ENV_SITE_ABSENT, 0.0f, 0, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_HEAVY_RAIN, 0.25f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_heavy_to_light_three_quarters", ENV_SITE_ABSENT, 0.0f, 0, 0, WEATHERMODE_HEAVY_RAIN, WEATHERMODE_LIGHT_RAIN, 0.75f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_snow_to_light", ENV_SITE_ABSENT, 0.0f, 0, 0, WEATHERMODE_SNOW, WEATHERMODE_LIGHT_RAIN, 0.4f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_outdoor_altitude_90", ENV_SITE_ABSENT, 90.0f, 0, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_HEAVY_RAIN, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_altitude_just_below_180", ENV_SITE_ABSENT, below_180, 0, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_HEAVY_RAIN, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_altitude_exactly_180", ENV_SITE_ABSENT, 180.0f, 0, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_HEAVY_RAIN, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_altitude_250", ENV_SITE_ABSENT, 250.0f, 0, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_HEAVY_RAIN, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_cloud_base_equal_to_y", ENV_SITE_ABSENT, 50.0f, 1, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_HEAVY_RAIN, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_cloud_base_just_above_y", ENV_SITE_ABSENT, 50.0f, 2, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_HEAVY_RAIN, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_cloud_base_just_below_y", ENV_SITE_ABSENT, 50.0f, 3, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_HEAVY_RAIN, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_local_ring_inner", ENV_SITE_ABSENT, 10.0f, 0, 1, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.0f, 0.15f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_local_ring_middle", ENV_SITE_ABSENT, 10.0f, 0, 1, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.0f, 0.5f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_local_ring_outer", ENV_SITE_ABSENT, 10.0f, 0, 1, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.0f, 0.83f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_local_ring_outside", ENV_SITE_ABSENT, 10.0f, 0, 1, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.0f, 2.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_cockpit_gunship", ENV_SITE_GUNSHIP, 0.0f, 0, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_HEAVY_RAIN, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 1);
+
+	/* wind: the speed at the point against the session limits (dry, absent terrain); the camera is `zone` of the way into a wind zone of radius 8192 */
+	env_sound_add ("wind_calm_radius_zero", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("wind_at_zone_edge", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, 0.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("wind_quarter_into_zone", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, 0.25f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("wind_half_into_zone", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, 0.5f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("wind_three_quarters_into_zone", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, 0.75f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("wind_zone_centre", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, 1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("wind_gust_pushes_speed_past_maximum", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, 0.75f, 0.125f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("wind_equal_limits", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, 1.0f, 0.0f, 10.0f, 10.0f, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("wind_zero_minimum_half_into_zone", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, 0.5f, 0.0f, 0.0f, mx, 0.0f, 0.1f, 1, 0);
+
+	/* terrain: the smoothed children (previous value, plus or minus half the frame delta, bound to [0, 0.3], altitude factor, cockpit factor); dry weather, calm wind */
+	env_sound_add ("terrain_sea_rising_from_zero", ENV_SITE_SEA, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("terrain_sea_saturating_at_the_upper_bound", ENV_SITE_SEA, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.29f, 0.1f, 1, 0);
+	env_sound_add ("terrain_absent_falling", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.2f, 0.1f, 1, 0);
+	env_sound_add ("terrain_absent_falling_below_the_lower_bound", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.02f, 0.1f, 1, 0);
+	env_sound_add ("terrain_forest_top", ENV_SITE_FOREST_TOP, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+	env_sound_add ("terrain_river", ENV_SITE_RIVER, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+	env_sound_add ("terrain_reservoir", ENV_SITE_RESERVOIR, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+	env_sound_add ("terrain_altered_land1", ENV_SITE_ALTERED_LAND1, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+	env_sound_add ("terrain_altered_land2", ENV_SITE_ALTERED_LAND2, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+	env_sound_add ("terrain_altitude_just_below_280", ENV_SITE_SEA, below_280, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+	env_sound_add ("terrain_altitude_exactly_280", ENV_SITE_SEA, 280.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+	env_sound_add ("terrain_altitude_400", ENV_SITE_SEA, 400.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+	env_sound_add ("terrain_altitude_140_half_factor", ENV_SITE_SEA, 140.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.2f, 0.1f, 1, 0);
+	env_sound_add ("terrain_three_calls_the_scaled_value_is_fed_back", ENV_SITE_SEA, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 3, 0);
+	env_sound_add ("terrain_zero_frame_delta", ENV_SITE_SEA, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.2f, 0.0f, 1, 0);
+	env_sound_add ("terrain_one_second_frame_delta", ENV_SITE_SEA, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 1.0f, 1, 0);
+	env_sound_add ("terrain_cockpit_gunship", ENV_SITE_GUNSHIP, 0.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.2f, 0.1f, 1, 1);
+	env_sound_add ("camera_east_of_the_map_clamped", ENV_SITE_OUTSIDE_HIGH, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+	env_sound_add ("camera_west_of_the_map_clamped", ENV_SITE_OUTSIDE_LOW, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+
+	/* everything at once: heavy rain, wind half into the zone, the sea, two calls */
+	env_sound_add ("combined_heavy_rain_wind_sea_two_calls", ENV_SITE_SEA, 20.0f, 0, 0, WEATHERMODE_HEAVY_RAIN, WEATHERMODE_HEAVY_RAIN, 0.5f, 0.0f, 0.5f, 0.0f, mn, mx, 0.1f, 0.1f, 2, 0);
+}
+
+/* the original queries the routine consumes at its point, as an input echo (read-only) */
+static int env_sound_echo (char *text, int capacity, int *used, int cockpit, vec3d *pos, entity *source)
+{
+	session *raw = env_session_raw ();
+	weathermodes cwm, twm;
+	float ts, alt = get_local_entity_float_value (source, FLOAT_TYPE_RADAR_ALTITUDE);
+
+	get_session_weather_at_point (pos, &cwm, &twm, &ts);
+
+	ENV_EMIT (" source=%s x_w=%08x y_w=%08x z_w=%08x alt_w=%08x cwm=%d twm=%d ts_w=%08x", cockpit ? "gunship" : "camera", ENV_WORD (pos->x), ENV_WORD (pos->y), ENV_WORD (pos->z), ENV_WORD (alt), (int) cwm, (int) twm,
+		ENV_WORD (ts));
+
+	if (env_gust_in_domain (raw->wind_gusting_value))
+	{
+		float speed = get_session_wind_velocity_at_point (pos, NULL);
+		float range = get_approx_2d_range (pos, &raw->wind_effect_position);
+
+		ENV_EMIT (" wind_speed_w=%08x wind_range_w=%08x", ENV_WORD (speed), ENV_WORD (range));
+	}
+	else
+	{
+		ENV_EMIT (" wind_speed=unavailable_gust_outside_0_1");
+	}
+
+	return 0;
+}
+
+/* the mutation and the report of one case; the caller has saved everything and restores it whatever this returns */
+static int env_sound_body (const struct env_sound_case *c, int index, struct env_sound_child *kids, int n, char *text, int capacity, int *used)
+{
+	struct CAMERA *craw = (struct CAMERA *) get_local_entity_data (get_camera_entity ());
+	session *raw = env_session_raw ();
+	session before_raw;
+	vec3d *cp = env_camera_position ();
+	vec3d *source_pos;
+	entity *source;
+	float y, base;
+	int i, call, rng_first, scratch_flags_before[TERRAIN_TYPE_LAST];
+	char flags[TERRAIN_TYPE_LAST + 1];
+
+	set_global_season (SESSION_SEASON_SUMMER);
+	in_cockpit = c->cockpit;
+
+	if (c->site != ENV_SITE_GUNSHIP)
+	{
+		if (c->site == ENV_SITE_OUTSIDE_HIGH)
+		{
+			cp->x = MAX_MAP_X + 5000.0f;
+			cp->z = MID_MAP_Z;
+		}
+		else if (c->site == ENV_SITE_OUTSIDE_LOW)
+		{
+			cp->x = MIN_MAP_X - 5000.0f;
+			cp->z = MID_MAP_Z;
+		}
+		else
+		{
+			cp->x = env_sound_sites[c->site].x;
+			cp->z = env_sound_sites[c->site].z;
+		}
+
+		y = c->alt;
+		cp->y = y;
+		craw->terrain_info.last_elevation = 0.0f;
+		base = (c->cloud == 0) ? ENV_SOUND_CLOUD_BASE : ((c->cloud == 1) ? y : ((c->cloud == 2) ? nextafterf (y, HUGE_VALF) : nextafterf (y, -HUGE_VALF)));
+		cloud_3d_base_height = base;
+		source = get_camera_entity ();
+		source_pos = cp;
+	}
+	else
+	{
+		cloud_3d_base_height = ENV_SOUND_CLOUD_BASE;
+		source = get_gunship_entity ();
+		source_pos = get_local_entity_vec3d_ptr (source, VEC3D_TYPE_POSITION);
+	}
+
+	/* the session: the weather and the wind this case names */
+	if (c->model == 0)
+	{
+		raw->local_weather_model = 0;
+		raw->weather_radius = 0.0f;
+		env_set_vec (&raw->weather_position, 0.0f, 0.0f, 0.0f);
+	}
+	else
+	{
+		raw->local_weather_model = 1;
+		raw->weather_radius = ENV_SOUND_RING_RADIUS;
+		env_set_vec (&raw->weather_position, source_pos->x + c->ring * ENV_SOUND_RING_RADIUS, 0.0f, source_pos->z);
+	}
+
+	raw->weather_mode = (weathermodes) c->cwm;
+	raw->target_weather_mode = (weathermodes) c->twm;
+	raw->weather_mode_transitional_status = c->ts;
+	raw->wind_minimum_speed = c->wmin;
+	raw->wind_maximum_speed = c->wmax;
+	raw->wind_gusting_value = c->gust;
+	env_set_vec (&raw->wind_direction_vector, 0.0f, 0.0f, 1.0f);
+
+	if (c->zone < 0.0f)
+	{
+		raw->wind_effect_radius = 0.0f;
+		env_set_vec (&raw->wind_effect_position, 0.0f, 0.0f, 0.0f);
+	}
+	else
+	{
+		raw->wind_effect_radius = ENV_SOUND_WIND_RADIUS;
+		env_set_vec (&raw->wind_effect_position, source_pos->x + ENV_SOUND_WIND_RADIUS * (1.0f - c->zone), 0.0f, source_pos->z);
+	}
+
+	system_delta_time = c->dt;
+
+	/* the children: the terrain children start at the case's value, the rain and wind children at a sentinel (to show that they are overwritten); any other child is left alone */
+	for (i = 0; i < n; i++)
+	{
+		if (kids[i].is_sound && kids[i].klass >= 1)
+		{
+			set_local_entity_float_value (kids[i].en, FLOAT_TYPE_AMPLIFICATION, (kids[i].klass >= 5) ? c->amp0 : ENV_SOUND_SENTINEL);
+		}
+	}
+
+	env_push ();
+	memcpy (&before_raw, raw, sizeof (before_raw));
+
+	if (env_sound_children (kids, ENV_SOUND_CHILDREN) != n)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-sound kind=original i=%d label=%s site=%d site_found=%d site_sector_x=%d site_sector_z=%d cockpit=%d calls=%d want_alt_w=%08x want_zone_w=%08x gust_w=%08x min_w=%08x max_w=%08x amp0_w=%08x delta_w=%08x"
+		" cloud_mode=%d cloud_base_w=%08x model=%s ring_w=%08x in_cwm=%d in_twm=%d in_ts_w=%08x rng=%d", index, c->label, c->site, (c->site < ENV_SITE_PROBED) ? env_sound_sites[c->site].found : -1,
+		(c->site < ENV_SITE_PROBED) ? env_sound_sites[c->site].sx : -1, (c->site < ENV_SITE_PROBED) ? env_sound_sites[c->site].sz : -1, c->cockpit, c->calls, ENV_WORD (c->alt), ENV_WORD (c->zone), ENV_WORD (c->gust),
+		ENV_WORD (c->wmin), ENV_WORD (c->wmax), ENV_WORD (c->amp0), ENV_WORD (c->dt), c->cloud, ENV_WORD (cloud_3d_base_height), c->model ? "local" : "global", ENV_WORD (c->ring), c->cwm, c->twm, ENV_WORD (c->ts),
+		random_number_seed);
+
+	if (env_sound_echo (text, capacity, used, c->cockpit, source_pos, source) != 0)
+	{
+		return -1;
+	}
+
+	if (env_sound_print_children (text, capacity, used, "children_before", kids, n) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("\n");
+
+	rng_first = random_number_seed;
+
+	for (call = 1; call <= c->calls; call++)
+	{
+		update_session_sound_effects (get_session_entity ());
+
+		memcpy (scratch_flags_before, terrain_types_in_sector, sizeof (scratch_flags_before));
+		env_sector_text (scratch_flags_before, flags);
+
+		if (env_sound_children (kids, ENV_SOUND_CHILDREN) != n)
+		{
+			return -1;
+		}
+
+		ENV_EMIT ("env-sound-call i=%d call=%d rng=%d rng_unchanged=%d scratch_flags=%s", index, call, random_number_seed, random_number_seed == rng_first, flags);
+
+		if (env_sound_print_children (text, capacity, used, "children", kids, n) != 0)
+		{
+			return -1;
+		}
+
+		ENV_EMIT ("\n");
+	}
+
+	env_pull ();
+
+	ENV_EMIT ("env-sound-session i=%d session_unchanged_by_the_routine=%d\n", index, memcmp (&before_raw, raw, sizeof (before_raw)) == 0);
+
+	return 0;
+}
+
+static int env_sound_case (int index, char *text, int capacity, int *used)
+{
+	const struct env_sound_case *c;
+	struct env_saved_state saved;
+	struct env_sound_child kids[ENV_SOUND_CHILDREN], original[ENV_SOUND_CHILDREN], after[ENV_SOUND_CHILDREN];
+	struct CAMERA *craw;
+	int scratch_saved[TERRAIN_TYPE_LAST];
+	vec3d camera_saved;
+	float elevation_saved, cloud_saved;
+	int cockpit_saved, n, m, i, rc, children_restored, scratch_restored, camera_restored, cloud_restored, globals_restored;
+	uint64_t before_fp, after_fp;
+
+	env_sound_build ();
+
+	n = get_camera_entity () ? env_sound_children (original, ENV_SOUND_CHILDREN) : -2;
+
+	if (index == 0)
+	{
+		int s;
+
+		ENV_EMIT ("env-sound-plan version=1 cases=%d camera=%d gunship=%d in_cockpit=%d comms_model=%d children=%d complete=%d cloud_base_w=%08x probes=%d probe_limit=%d terrain_loaded=%d sector_x_max=%d sector_z_max=%d"
+			" map_min_x_w=%08x map_max_x_w=%08x map_min_z_w=%08x map_max_z_w=%08x delta_w=%08x terrain_types=%d rain_zero_altitude=180 terrain_zero_altitude=280\n", env_sound_count, get_camera_entity () ? 1 : 0, get_gunship_entity () ? 1 : 0,
+			(int) in_cockpit, (int) get_comms_model (), n, (n > 0) ? env_sound_complete (original, n) : 0, ENV_WORD (cloud_3d_base_height), env_sound_probed, ENV_SOUND_PROBES, terrain_sectors ? 1 : 0, terrain_3d_sector_x_max,
+			terrain_3d_sector_z_max, ENV_WORD (MIN_MAP_X), ENV_WORD (MAX_MAP_X), ENV_WORD (MIN_MAP_Z), ENV_WORD (MAX_MAP_Z), ENV_WORD (get_delta_time ()), (int) TERRAIN_TYPE_LAST);
+
+		for (s = 0; s < ENV_SITE_PROBED; s++)
+		{
+			ENV_EMIT ("env-sound-site site=%d found=%d x_w=%08x z_w=%08x sector_x=%d sector_z=%d\n", s, env_sound_sites[s].found, ENV_WORD (env_sound_sites[s].x), ENV_WORD (env_sound_sites[s].z), env_sound_sites[s].sx,
+				env_sound_sites[s].sz);
+		}
+
+		ENV_EMIT ("env-sound-children count=%d", n);
+
+		if (n >= 0 && env_sound_print_children (text, capacity, used, "order", original, n) != 0)
+		{
+			return -1;
+		}
+
+		ENV_EMIT ("\n");
+		ENV_EMIT ("env-sound-unsupported item=speaker_output_and_the_sound_effect_update reason=the_headless_build_has_no_sound_system_the_children_amplification_is_the_observable\n");
+		ENV_EMIT ("env-sound-unsupported item=terrain_altered_land3_reader_3drain reason=render_code_dormant_in_the_headless_campaign_not_inferred\n");
+		ENV_EMIT ("env-sound-unsupported item=non_ambient_special_effect_children reason=none_exists_at_boot_lightning_strike_sounds_appear_only_after_a_strike\n");
+		ENV_EMIT ("env-sound-unsupported item=cockpit_branch_without_a_gunship reason=the_routine_reads_the_gunship_entity_when_in_cockpit_and_the_dedicated_server_may_hold_none\n");
+
+		return 0;
+	}
+
+	if (index < 1 || index > env_sound_count)
+	{
+		return -1;
+	}
+
+	c = &env_sound_cases[index - 1];
+
+	if (n < 0 || !get_camera_entity ())
+	{
+		ENV_EMIT ("env-sound kind=original i=%d label=%s refused=%s\n", index, c->label, n == -2 ? "no_camera_entity" : "more_special_effect_children_than_the_fixture_table_holds");
+		ENV_EMIT ("env-sound-end i=%d restored=1 nothing_changed=1\n", index);
+
+		return 0;
+	}
+
+	if (!env_sound_complete (original, n))
+	{
+		ENV_EMIT ("env-sound kind=original i=%d label=%s refused=the_session_does_not_hold_each_of_the_ten_ambient_sound_children_exactly_once children=%d\n", index, c->label, n);
+		ENV_EMIT ("env-sound-end i=%d restored=1 nothing_changed=1\n", index);
+
+		return 0;
+	}
+
+	if (c->site < ENV_SITE_PROBED && !env_sound_sites[c->site].found)
+	{
+		ENV_EMIT ("env-sound kind=original i=%d label=%s site=%d refused=no_sector_with_that_surface_found_by_the_bounded_probe probed=%d\n", index, c->label, c->site, env_sound_probed);
+		ENV_EMIT ("env-sound-end i=%d restored=1 nothing_changed=1\n", index);
+
+		return 0;
+	}
+
+	if (c->cockpit && !get_gunship_entity ())
+	{
+		ENV_EMIT ("env-sound kind=original i=%d label=%s site=%d refused=no_gunship_entity_for_the_cockpit_branch\n", index, c->label, c->site);
+		ENV_EMIT ("env-sound-end i=%d restored=1 nothing_changed=1\n", index);
+
+		return 0;
+	}
+
+	if (!env_gust_in_domain (c->gust))
+	{
+		ENV_EMIT ("env-sound kind=original i=%d label=%s refused=gust_outside_0_1\n", index, c->label);
+		ENV_EMIT ("env-sound-end i=%d restored=1 nothing_changed=1\n", index);
+
+		return 0;
+	}
+
+	/* everything the case may touch is saved here and restored below, whatever the body returns */
+	craw = (struct CAMERA *) get_local_entity_data (get_camera_entity ());
+	before_fp = env_state_fingerprint ();
+	env_save_state (&saved);
+	memcpy (scratch_saved, terrain_types_in_sector, sizeof (scratch_saved));
+	camera_saved = *env_camera_position ();
+	elevation_saved = craw->terrain_info.last_elevation;
+	cloud_saved = cloud_3d_base_height;
+	cockpit_saved = in_cockpit;
+	memcpy (kids, original, sizeof (kids));
+
+	rc = env_sound_body (c, index, kids, n, text, capacity, used);
+
+	for (i = 0; i < n; i++)
+	{
+		if (original[i].is_sound)
+		{
+			set_local_entity_float_value (original[i].en, FLOAT_TYPE_AMPLIFICATION, original[i].amp);
+		}
+	}
+
+	memcpy (terrain_types_in_sector, scratch_saved, sizeof (scratch_saved));
+	*env_camera_position () = camera_saved;
+	craw->terrain_info.last_elevation = elevation_saved;
+	cloud_3d_base_height = cloud_saved;
+	in_cockpit = cockpit_saved;
+	env_restore_state (&saved);
+
+	after_fp = env_state_fingerprint ();
+	m = env_sound_children (after, ENV_SOUND_CHILDREN);
+	children_restored = (m == n);
+
+	for (i = 0; children_restored && i < n; i++)
+	{
+		children_restored = after[i].en == original[i].en && after[i].sub_type == original[i].sub_type && float_bits (after[i].amp) == float_bits (original[i].amp);
+	}
+
+	scratch_restored = memcmp (terrain_types_in_sector, scratch_saved, sizeof (scratch_saved)) == 0;
+	camera_restored = memcmp (env_camera_position (), &camera_saved, sizeof (camera_saved)) == 0 && float_bits (craw->terrain_info.last_elevation) == float_bits (elevation_saved);
+	cloud_restored = float_bits (cloud_3d_base_height) == float_bits (cloud_saved);
+	globals_restored = in_cockpit == cockpit_saved;
+
+	if (rc != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-sound-end i=%d restored=%d fp_before=%016llx fp_after=%016llx children_restored=%d scratch_restored=%d camera_restored=%d cloud_restored=%d in_cockpit_restored=%d\n", index,
+		before_fp == after_fp && children_restored && scratch_restored && camera_restored && cloud_restored && globals_restored, (unsigned long long) before_fp, (unsigned long long) after_fp, children_restored,
+		scratch_restored, camera_restored, cloud_restored, globals_restored);
+
+	return 0;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* group 12 (EEDCS-51, D3; EXPLICIT ONLY, never part of the default run, the census, the 164-case oracle or group 11): a WIDE session child list.
+
+   update_session_sound_effects walks the session's WHOLE special-effect child list. The campaign attaches ten ambient sound children at boot, but nothing in the game limits how many terrain
+   ambient sound children a session may hold: create_local_sound_effect_entity attaches the supplied subtype to the supplied parent with no count check, and the compiled comms receiver
+   (se_msgs.c) creates a received child through the same path. This group makes that real: it creates ADDITIONAL terrain ambient sound children with the REAL production constructor, exactly as
+   attach_session_sound_effects does (the same arguments, the same sample indices), cycling the six terrain classes so that duplicates of every class exist, gives every terrain child its own DISTINCT
+   previous amplitude (j + 1) / 128 in list order, and calls the REAL unchanged routine once with the camera at radar altitude 140 (real camera height 140 over its cached elevation 0: the altitude factor 1 - 140 / 280 is EXACTLY 0.5) outdoors and a frame delta of 0, so that a PROCESSED child holds exactly half its previous amplitude and a skipped one does not.
+
+   Case i creates children until the session holds the case's number of terrain ambient children (16, 17 and 20 -- the boundary of a transport bound a host protocol may have, one past it, and well
+   past it; the natural six count), so the cases are to be run IN ORDER in ONE fresh process. It prints the child list (position in the list, entity index, subtype, class, amplification word) before and
+   after the call. It computes and judges nothing: the driver compares what came back with what went in.
+
+   NOT A WITNESS, NOT RESTORED: creating entities changes the entity heap and the session's child list, and they cannot be put back from here (like group 9, the process is the isolation boundary: the report says
+   `changed=1 process_isolated=required heap_restored=0`). What IS put back: the session record and the host field EXCEPT the list roots and links the constructor changed (special_effect_root, force_root, update_link: restoring those would detach the new children and corrupt the lists, so they stay as the creation left them and the end row checks the list link by link and its identity with the list the routine ran on), the season, the shared seed, the frame delta, the camera position and cached elevation, the
+   cloud base, in_cockpit and the scratch. The children's amplifications are NOT restored. A routine that stops the engine (a fatal error) leaves nothing restored and poisons the process: the case then
+   reports no rows at all, the engine's error is the result. Speaker, network delivery, the player and the renderer are not exercised and not claimed. */
+
+#define ENV_WIDE_CASES 3
+
+static const int env_wide_targets[ENV_WIDE_CASES] = { 16, 17, 20 };
+
+/* the six terrain classes of group 11 (sea, jungle, amb1 to amb4): their entity sub types and sample indices, as attach_session_sound_effects uses them */
+static const int env_wide_sub_types[6] = { ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_SEA, ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_JUNGLE, ENTITY_SUB_TYPE_EFFECT_SOUND_AMB1, ENTITY_SUB_TYPE_EFFECT_SOUND_AMB2,
+	ENTITY_SUB_TYPE_EFFECT_SOUND_AMB3, ENTITY_SUB_TYPE_EFFECT_SOUND_AMB4 };
+
+static const int env_wide_samples[6] = { SOUND_SAMPLE_INDEX_AMBIENT_SEA, SOUND_SAMPLE_INDEX_AMBIENT_JUNGLE, SOUND_SAMPLE_INDEX_AMB1, SOUND_SAMPLE_INDEX_AMB2, SOUND_SAMPLE_INDEX_AMB3,
+	SOUND_SAMPLE_INDEX_AMB4 };
+
+static int env_wide_terrain_count (const struct env_sound_child *kids, int n)
+{
+	int i, count = 0;
+
+	for (i = 0; i < n; i++)
+	{
+		if (kids[i].klass >= 5)
+		{
+			count++;
+		}
+	}
+
+	return count;
+}
+
+/* each of the ten ambient classes at least once (a wide list holds duplicates) */
+static int env_wide_natural_present (const struct env_sound_child *kids, int n)
+{
+	int seen[ENV_SOUND_CLASSES + 1], i;
+
+	memset (seen, 0, sizeof (seen));
+
+	for (i = 0; i < n; i++)
+	{
+		seen[kids[i].klass]++;
+	}
+
+	for (i = 1; i <= ENV_SOUND_CLASSES; i++)
+	{
+		if (seen[i] < 1)
+		{
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static int env_wide_print (char *text, int capacity, int *used, const char *key, const struct env_sound_child *kids, int n)
+{
+	int i;
+
+	ENV_EMIT (" %s=", key);
+
+	for (i = 0; i < n; i++)
+	{
+		ENV_EMIT ("%s%d:%d:%d:%s:%08x", i ? "," : "", i, (int) get_local_entity_index (kids[i].en), kids[i].sub_type, env_sound_class_name (kids[i].klass), ENV_WORD (kids[i].amp));
+	}
+
+	return 0;
+}
+
+/* the mutation and the report of one case; the caller restores what it can whatever this returns */
+/* The topology of the session's special-effect child list, checked link by link: every child's parent is the session and its predecessor is the child walked before it (the first has none); NULL when it
+   holds, else the reason. The real constructor inserts each new child at the HEAD of the list and re-links the old first child, so this is what a cleanup that restored a stale list root would break. */
+static const char *env_wide_topology (void)
+{
+	entity *session_en = get_session_entity (), *spec = get_local_entity_first_child (session_en, LIST_TYPE_SPECIAL_EFFECT), *previous = NULL;
+	int walked = 0;
+
+	while (spec)
+	{
+		if (get_local_entity_parent (spec, LIST_TYPE_SPECIAL_EFFECT) != session_en)
+		{
+			return "a_child_of_the_list_has_another_parent";
+		}
+
+		if (get_local_entity_child_pred (spec, LIST_TYPE_SPECIAL_EFFECT) != previous)
+		{
+			return "a_child_of_the_list_has_a_predecessor_that_is_not_the_child_walked_before_it";
+		}
+
+		if (++walked > 4096)
+		{
+			return "the_list_does_not_end";
+		}
+
+		previous = spec;
+		spec = get_local_entity_child_succ (spec, LIST_TYPE_SPECIAL_EFFECT);
+	}
+
+	return NULL;
+}
+
+static int env_wide_body (int index, int target, struct env_sound_child *kids, int n, char *text, int capacity, int *used, int *n_post)
+{
+	struct CAMERA *craw = (struct CAMERA *) get_local_entity_data (get_camera_entity ());
+	vec3d *cp = env_camera_position ();
+	char ids[ENV_SOUND_CHILDREN * 8];
+	const char *topology;
+	int created = 0, ids_used = 0, terrain, terrain_before, terrain_index, i, rng_before;
+
+	ids[0] = '\0';
+	*n_post = -1;
+
+	terrain = env_wide_terrain_count (kids, n);
+	terrain_before = terrain;
+
+	/* the REAL constructor, as attach_session_sound_effects calls it: the session as parent, neutral side, the sound channel, all localities, no position, amplification 0, pitch 1, valid, looping, one sample */
+	while (terrain < target)
+	{
+		int klass = created % 6;
+		sound_sample_indices sample = (sound_sample_indices) env_wide_samples[klass];
+		entity *en = create_local_sound_effect_entity (ENTITY_INDEX_DONT_CARE, get_session_entity (), ENTITY_SIDE_NEUTRAL, (entity_sub_types) env_wide_sub_types[klass], SOUND_CHANNEL_SOUND_EFFECT,
+			SOUND_LOCALITY_ALL, NULL, 0.0, 1.0, TRUE, TRUE, 1, &sample);
+
+		if (!en)
+		{
+			ENV_EMIT ("env-wide kind=control i=%d refused=the_constructor_returned_no_entity created=%d\n", index, created);
+
+			return 0;
+		}
+
+		if (ids_used + 8 < (int) sizeof (ids))
+		{
+			ids_used += snprintf (ids + ids_used, sizeof (ids) - (size_t) ids_used, "%s%d", created ? "," : "", (int) get_local_entity_index (en));
+		}
+
+		created++;
+		terrain++;
+	}
+
+	n = env_sound_children (kids, ENV_SOUND_CHILDREN);
+
+	if (n < 0 || env_wide_terrain_count (kids, n) != target)
+	{
+		ENV_EMIT ("env-wide kind=control i=%d refused=the_list_does_not_hold_the_target_after_creating_the_children children=%d created=%d\n", index, n, created);
+
+		return 0;
+	}
+
+	topology = env_wide_topology ();
+
+	if (topology)
+	{
+		ENV_EMIT ("env-wide kind=control i=%d refused=the_list_topology_is_inconsistent_after_creating_the_children reason=%s children=%d created=%d\n", index, topology, n, created);
+
+		return 0;
+	}
+
+	*n_post = n;
+
+	/* every terrain child its own previous amplification, in list order; the rain and wind children the sentinel */
+	terrain_index = 0;
+
+	for (i = 0; i < n; i++)
+	{
+		if (kids[i].klass >= 5)
+		{
+			set_local_entity_float_value (kids[i].en, FLOAT_TYPE_AMPLIFICATION, (float) (terrain_index + 1) / 128.0f);
+			terrain_index++;
+		}
+		else if (kids[i].is_sound)
+		{
+			set_local_entity_float_value (kids[i].en, FLOAT_TYPE_AMPLIFICATION, ENV_SOUND_SENTINEL);
+		}
+	}
+
+	/* the controlled inputs: the camera at height 140 over its cached elevation 0, i.e. radar altitude 140 (read back and printed, 430c0000), outdoors, a frame delta of 0 */
+	set_global_season (SESSION_SEASON_SUMMER);
+	in_cockpit = 0;
+	cp->y = 140.0f;
+	craw->terrain_info.last_elevation = 0.0f;
+	cloud_3d_base_height = ENV_SOUND_CLOUD_BASE;
+	system_delta_time = 0.0f;
+
+	if (env_sound_children (kids, ENV_SOUND_CHILDREN) != n)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-wide kind=control i=%d target_terrain=%d terrain_before=%d created=%d children=%d terrain=%d created_ids=%s delta_w=%08x alt_w=%08x cockpit=0", index, target, terrain_before, created, n,
+		env_wide_terrain_count (kids, n), created ? ids : "none", ENV_WORD (get_delta_time ()), ENV_WORD (get_local_entity_float_value (get_camera_entity (), FLOAT_TYPE_RADAR_ALTITUDE)));
+
+	if (env_wide_print (text, capacity, used, "before", kids, n) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("\n");
+
+	rng_before = random_number_seed;
+
+	update_session_sound_effects (get_session_entity ());
+
+	if (env_sound_children (kids, ENV_SOUND_CHILDREN) != n)
+	{
+		return -1;
+	}
+
+	topology = env_wide_topology ();
+
+	ENV_EMIT ("env-wide-after i=%d rng_unchanged=%d topology=%s", index, random_number_seed == rng_before, topology ? topology : "ok");
+
+	if (env_wide_print (text, capacity, used, "children", kids, n) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("\n");
+
+	return 0;
+}
+
+static int env_wide_case (int index, char *text, int capacity, int *used)
+{
+	struct env_saved_state saved;
+	struct env_sound_child kids[ENV_SOUND_CHILDREN], after[ENV_SOUND_CHILDREN];
+	struct CAMERA *craw;
+	int scratch_saved[TERRAIN_TYPE_LAST];
+	vec3d camera_saved;
+	list_root keep_force, keep_effects;
+	list_link keep_update;
+	const char *topology;
+	float elevation_saved, cloud_saved;
+	int cockpit_saved, n, n_post = -1, after_n, preserved, terrain, rc, i, target;
+
+	n = get_camera_entity () ? env_sound_children (kids, ENV_SOUND_CHILDREN) : -2;
+
+	if (index == 0)
+	{
+		ENV_EMIT ("env-wide-plan version=1 cases=%d camera=%d children=%d natural_present=%d terrain_children=%d targets=", ENV_WIDE_CASES, get_camera_entity () ? 1 : 0, n, (n >= 0) ? env_wide_natural_present (kids, n) : 0,
+			(n >= 0) ? env_wide_terrain_count (kids, n) : -1);
+
+		for (i = 0; i < ENV_WIDE_CASES; i++)
+		{
+			ENV_EMIT ("%s%d", i ? "," : "", env_wide_targets[i]);
+		}
+
+		ENV_EMIT (" process_isolated=required\n");
+		ENV_EMIT ("env-wide-unsupported item=speaker_network_delivery_player_and_renderer reason=not_exercised_headless_not_claimed\n");
+
+		return 0;
+	}
+
+	if (index < 1 || index > ENV_WIDE_CASES)
+	{
+		return -1;
+	}
+
+	target = env_wide_targets[index - 1];
+
+	if (n < 0 || !env_wide_natural_present (kids, n))
+	{
+		ENV_EMIT ("env-wide kind=control i=%d refused=%s children=%d\n", index, n == -2 ? "no_camera_entity" : "the_session_does_not_hold_the_ambient_children_or_more_than_the_fixture_table_holds", n);
+		ENV_EMIT ("env-wide-end i=%d changed=0 process_isolated=required heap_restored=1 created=0\n", index);
+
+		return 0;
+	}
+
+	terrain = env_wide_terrain_count (kids, n);
+
+	if (terrain > target)
+	{
+		ENV_EMIT ("env-wide kind=control i=%d refused=the_session_already_holds_more_terrain_children_than_the_target_and_none_can_be_removed terrain=%d target=%d\n", index, terrain, target);
+		ENV_EMIT ("env-wide-end i=%d changed=0 process_isolated=required heap_restored=1 created=0\n", index);
+
+		return 0;
+	}
+
+	craw = (struct CAMERA *) get_local_entity_data (get_camera_entity ());
+	env_save_state (&saved);
+	memcpy (scratch_saved, terrain_types_in_sector, sizeof (scratch_saved));
+	camera_saved = *env_camera_position ();
+	elevation_saved = craw->terrain_info.last_elevation;
+	cloud_saved = cloud_3d_base_height;
+	cockpit_saved = in_cockpit;
+
+	rc = env_wide_body (index, target, kids, n, text, capacity, used, &n_post);
+
+	memcpy (terrain_types_in_sector, scratch_saved, sizeof (scratch_saved));
+	*env_camera_position () = camera_saved;
+	craw->terrain_info.last_elevation = elevation_saved;
+	cloud_3d_base_height = cloud_saved;
+	in_cockpit = cockpit_saved;
+
+	/* env_restore_state puts back the WHOLE session record as it was saved BEFORE the children were created. Most of that record is scalar, field and global state, which is what is to be restored; but the
+	   record also holds the roots and links of the lists the real constructor changed: it inserted each new sound child at the HEAD of the session's special-effect list (special_effect_root) and into the
+	   update list (update_link, and force_root is kept with them as list topology, not state). Restoring those would detach the new children and leave the entity links pointing at a list that no longer
+	   reaches them. They are therefore kept as the creation left them -- the children, the list and the heap are NOT restored, and the report says so -- and everything else is put back. */
+	keep_force = env_session_raw ()->force_root;
+	keep_effects = env_session_raw ()->special_effect_root;
+	keep_update = env_session_raw ()->update_link;
+	env_restore_state (&saved);
+	env_session_raw ()->force_root = keep_force;
+	env_session_raw ()->special_effect_root = keep_effects;
+	env_session_raw ()->update_link = keep_update;
+
+	if (rc != 0)
+	{
+		return -1;
+	}
+
+	/* after the cleanup: the list is the list the routine ran on (the same children, in the same places, checked link by link), so the next case starts from what this one left */
+	after_n = env_sound_children (after, ENV_SOUND_CHILDREN);
+	preserved = (n_post >= 0) && (after_n == n_post);
+
+	for (i = 0; preserved && i < n_post; i++)
+	{
+		preserved = after[i].en == kids[i].en;
+	}
+
+	topology = env_wide_topology ();
+
+	ENV_EMIT ("env-wide-end i=%d changed=1 process_isolated=required heap_restored=0 amplitudes_restored=0 session_camera_cloud_cockpit_scratch_restored=1 list_topology_after_cleanup=%s list_preserved=%d\n", index,
+		topology ? topology : "ok", preserved);
+
+	return 0;
+}
+
+#ifdef EECH_ENV_OBSERVER
+
+/*
+ * GROUP 13 (explicit only, never in the default run, the census or the witness set; needs the env-observer build, which holds the read-only accessor to the strike queue): the lightning strike QUEUE
+ * (modules/3d/3dstrike.c) that add_3d_lightning_strike writes and update_3d_lightning_strikes ages. TEST-ONLY, SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED.
+ *
+ *   index 0     the plan and the natural report: the state of the queue now, and the records of the lightning queue probe (ss_envfx.h ENV_FXQ, csrc/eech_env_observer.c) stored while the ORIGINAL
+ *               lightning routine ran in the frames. Read-only.
+ *   index 1..4  PRIMITIVE CONTROLS of add_3d_lightning_strike and update_3d_lightning_strikes themselves, PROCESS-ISOLATED (one case per process, from a queue that has not been written): the queue
+ *               cannot be put back, so a case refuses if the queue is not empty and says changed=1. They call the two original primitives with the active environment set by plain assignment
+ *               (restored afterwards); they are NOT the lightning routine, NOT a missing-host proof and do not exercise the routine's own switch to the main environment (the natural run does that):
+ *                 1 add_without_active_environment      active environment NULL: does the add queue anything?
+ *                 2 add_with_the_main_environment       active environment the main one: the slot, the position, the type, the start time (the main environment's time of day) and the length
+ *                 3 fill_the_queue_and_drop_the_next    one add more than the queue has slots for: what the last add does
+ *                 4 age_a_cloud_burst_by_the_time_of_day a CLOUD_BURST aged by update_3d_lightning_strikes at three times of day (the forked types read texture animations the headless build may not
+ *                 5 age_a_forked_strike_by_the_time_of_day the same with a FORKED_1 strike: aging it needs the strike animation's frame count, which only the texture animation table holds. Where the table is not loaded
+ *                                                       the engine STOPS with the named refusal [env-provider:lightning_update.model]; nothing is invented. A full retail boot loads it (the actual run of this
+ *                                                       candidate-only control completed: frame 0 inside the length, then the expiry); where it is loaded the rows are those of 4
+ *                                                       initialise and are NOT exercised, said below)
+ * A prerequisite that is absent (no main environment, a queue that is not empty) is REFUSED and printed; nothing is forced.
+ * In the hosted build (EECH_CAMPAIGN_HOST_ENV) the two primitives are the campaign's requests to the HOST's queue (ss_hostenv.h LIGHTNING_ADD / LIGHTNING_UPDATE) and the queue the rows show is the campaign's read-only MIRROR
+ * of the answer; the rows, their order and their grammar are the same as the original's.
+ */
+
+extern int eech_lightning_queue_view (int slot, unsigned int *words);
+extern unsigned int eech_lightning_update_calls;
+extern int eech_envobs_queue_report (char *text, int capacity, int *used);
+
+#define ENV_LQ_CASES 5
+
+static int env_lq_mask (unsigned int *mask, unsigned int *occupancy)
+{
+	unsigned int words[8];
+	int slot, slots = eech_lightning_queue_view (0, words);
+
+	*mask = 0;
+	*occupancy = 0;
+
+	if (slots < 1 || slots > 32)
+	{
+		return -1;
+	}
+
+	for (slot = 0; slot < slots; slot++)
+	{
+		eech_lightning_queue_view (slot, words);
+
+		if (words[0])
+		{
+			*mask |= ((unsigned int) 1) << slot;
+			(*occupancy)++;
+		}
+	}
+
+	return slots;
+}
+
+static int env_lq_active_state (void)
+{
+	return (active_3d_environment == NULL) ? 0 : ((active_3d_environment == main_3d_env) ? 1 : 2);
+}
+
+static int env_lq_slot (char *text, int capacity, int *used, const char *tag, int slot)
+{
+	unsigned int w[8];
+
+	if (eech_lightning_queue_view (slot, w) < 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-lightning-slot tag=%s slot=%d w0=%08x w1=%08x w2=%08x w3=%08x w4=%08x w5=%08x w6=%08x w7=%08x\n", tag, slot, w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7]);
+
+	return 0;
+}
+
+static int env_lq_slots_in_use (char *text, int capacity, int *used, const char *tag, int slots)
+{
+	unsigned int w[8];
+	int slot;
+
+	for (slot = 0; slot < slots; slot++)
+	{
+		eech_lightning_queue_view (slot, w);
+
+		if (w[0] && env_lq_slot (text, capacity, used, tag, slot) != 0)
+		{
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+static int env_lightning_case (int index, char *text, int capacity, int *used)
+{
+	static const char *const names[ENV_LQ_CASES] = { "add_without_active_environment", "add_with_the_main_environment", "fill_the_queue_and_drop_the_next", "age_a_cloud_burst_by_the_time_of_day", "age_a_forked_strike_by_the_time_of_day" };
+	unsigned int mask_before, occupancy_before, mask_after, occupancy_after;
+	env_3d *active_saved = active_3d_environment;
+	const char *refusal = NULL;
+	float tod_saved = 0.0f;
+	int slots, i, first = -1;
+
+	slots = env_lq_mask (&mask_before, &occupancy_before);
+
+	if (index == 0)
+	{
+		ENV_EMIT ("env-lightning-plan version=1 cases=%d main_present=%d active=%d queue_capacity=%d mask_w=%08x update_calls=%u process_isolated=required\n", ENV_LQ_CASES, main_3d_env != NULL, env_lq_active_state (), slots,
+			mask_before, eech_lightning_update_calls);
+		ENV_EMIT ("env-lightning-unsupported item=forked_strike_update reason=update_3d_lightning_strikes_reads_texture_animations_the_headless_build_may_not_initialise_not_exercised\n");
+		ENV_EMIT ("env-lightning-unsupported item=drawing_and_the_application_scene_update reason=not_exercised_headless_not_claimed\n");
+
+		return eech_envobs_queue_report (text, capacity, used);
+	}
+
+	if (index < 1 || index > ENV_LQ_CASES)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-lightning kind=control i=%d label=%s main_present=%d active_before=%d queue_capacity=%d mask_before_w=%08x occupancy_before=%u update_calls_before=%u\n", index, names[index - 1], main_3d_env != NULL, env_lq_active_state (), slots,
+		mask_before, occupancy_before, eech_lightning_update_calls);
+
+	if (slots < 1)
+	{
+		refusal = "the_queue_accessor_does_not_answer";
+	}
+	else if (mask_before != 0)
+	{
+		refusal = "the_queue_is_not_empty_a_control_needs_a_process_that_has_not_queued_a_strike";
+	}
+	else if (index >= 2 && main_3d_env == NULL)
+	{
+		refusal = "there_is_no_main_3d_environment_nothing_is_forced";
+	}
+
+	if (refusal)
+	{
+		ENV_EMIT ("env-lightning-end i=%d refused=%s changed=0 process_isolated=required\n", index, refusal);
+
+		return 0;
+	}
+
+	switch (index)
+	{
+		case 1:
+		{
+			active_3d_environment = NULL;
+			add_3d_lightning_strike (LIGHTNING_TYPE_CLOUD_BURST, 0.3f, 1500.0f, 2500.0f);
+			break;
+		}
+		case 2:
+		{
+			active_3d_environment = main_3d_env;
+			ENV_EMIT ("env-lightning-input tag=add main_time_w=%08x type=%d length_w=%08x x_w=%08x z_w=%08x\n", ENV_WORD (main_3d_env->time_of_day), (int) LIGHTNING_TYPE_CLOUD_BURST, ENV_WORD (0.3f), ENV_WORD (1500.0f),
+				ENV_WORD (2500.0f));
+			add_3d_lightning_strike (LIGHTNING_TYPE_CLOUD_BURST, 0.3f, 1500.0f, 2500.0f);
+			break;
+		}
+		case 3:
+		{
+			active_3d_environment = main_3d_env;
+
+			/* one add more than the queue has slots for; the step rows are the last add that fits and the one that cannot */
+			for (i = 0; i <= slots; i++)
+			{
+				add_3d_lightning_strike (LIGHTNING_TYPE_CLOUD_BURST, 0.3f, (float) (i + 1), 2500.0f);
+
+				if (i >= slots - 1)
+				{
+					env_lq_mask (&mask_after, &occupancy_after);
+					ENV_EMIT ("env-lightning-step i=%d add=%d mask_w=%08x occupancy=%u\n", index, i + 1, mask_after, occupancy_after);
+				}
+			}
+
+			break;
+		}
+		default:
+		{
+			tod_saved = main_3d_env->time_of_day;
+			active_3d_environment = main_3d_env;
+
+			set_3d_time_of_day (main_3d_env, 100.0f);
+			add_3d_lightning_strike ((index == 5) ? LIGHTNING_TYPE_FORKED_1 : LIGHTNING_TYPE_CLOUD_BURST, 0.3f, 1500.0f, 2500.0f);
+			env_lq_mask (&mask_after, &occupancy_after);
+
+			for (i = 0; i < slots; i++)
+			{
+				if (mask_after & (((unsigned int) 1) << i))
+				{
+					first = i;
+
+					break;
+				}
+			}
+
+			ENV_EMIT ("env-lightning-input tag=age added_at_w=%08x length_w=%08x inside_w=%08x after_the_end_w=%08x first_slot=%d\n", ENV_WORD (100.0f), ENV_WORD (0.3f), ENV_WORD (100.1f), ENV_WORD (100.5f), first);
+
+			if (first >= 0 && env_lq_slot (text, capacity, used, "added", first) != 0)
+			{
+				return -1;
+			}
+
+			set_3d_time_of_day (main_3d_env, 100.1f);
+			update_3d_lightning_strikes (main_3d_env);
+
+			if (first >= 0 && env_lq_slot (text, capacity, used, "aged_inside_the_length", first) != 0)
+			{
+				return -1;
+			}
+
+			set_3d_time_of_day (main_3d_env, 100.5f);
+			update_3d_lightning_strikes (main_3d_env);
+
+			if (first >= 0 && env_lq_slot (text, capacity, used, "aged_after_the_end", first) != 0)
+			{
+				return -1;
+			}
+
+			set_3d_time_of_day (main_3d_env, tod_saved);
+			break;
+		}
+	}
+
+	active_3d_environment = active_saved;
+	env_lq_mask (&mask_after, &occupancy_after);
+
+	if (env_lq_slots_in_use (text, capacity, used, "after", slots) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-lightning-end i=%d changed=1 mask_after_w=%08x occupancy_after=%u update_calls_after=%u active_restored=%d queue_restored=0 process_isolated=required\n", index, mask_after, occupancy_after,
+		eech_lightning_update_calls, active_3d_environment == active_saved);
+
+	return 0;
+}
+
+#endif
+
+#ifdef EECH_ENV_OBSERVER
+
+/*
+ * GROUP 14 (explicit only, never in the default run, the census or the witness set; needs the env-observer build): the ORIGINAL sound effect entities of the lightning routine, observed.
+ * TEST-ONLY, SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED. It moves nothing and decides nothing: every row is an OBSERVATION of what the original code did, not an expectation of what it should do.
+ *
+ *   index 0     the plan and the natural report: the facts of the sound database and of the sound system as this process holds them, and the records of the sound entity probe (ss_envfx.h ENV_FXE,
+ *               csrc/eech_env_observer.c) stored while the lightning routine created its two sound effect entities and the real update routines aged them in the frames. Read-only.
+ *   index 1..3  PROCESS-ISOLATED controls (one per process; the entity heap cannot be put back): they build ONE sound effect entity with the REAL constructor (create_local_sound_effect_entity, the one the
+ *               lightning routine passes through) with the lightning sample and the lightning's arguments, switch the probe's tracking on, and call the REAL compiled update routine through the entity
+ *               function table with the frame delta set to a value the control names (the delta is restored):
+ *                 1 server_branch_ages_then_expires   the server routine at a small delta and then, if the entity is still a sound effect, at a delta far beyond the lifetime (the lifetime is the sample data's and is never lengthened: the
+ *                                                     first call may already kill the entity, and then the second call is skipped and the report says calls=1 second_skipped=1)
+ *                 2 client_branch_ages_and_clamps     the client routine at a delta far beyond the lifetime, then at a small one: the lifetime is clamped, the entity is not killed
+ *                 3 playback_prerequisites            nothing is created: the facts of the sound database and the sound system, and the explicit statement that the branches that need a playback
+ *                                                     handle (a handle that is playing or is not) are NOT exercised
+ * The playback path (create_single_system_sound_effect and the system sound effect it returns) is never called here: whether a device exists is printed as a fact, and no handle is faked.
+ */
+
+extern void eech_envobs_sound_track (int on);
+extern int eech_envobs_sound_report (char *text, int capacity, int *used);
+extern int sound_system_initialised;
+extern int sound_system_paused;
+
+#define ENV_SND_CASES 3
+
+static int env_snd_facts (char *text, int capacity, int *used, const char *tag)
+{
+	const sound_effect_information *lightning = &application_sound_effects[SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING];
+	const sound_effect_information *thunder = &application_sound_effects[SOUND_SAMPLE_INDEX_AMBIENT_THUNDER];
+
+	ENV_EMIT ("env-snd-facts tag=%s comms=%d application_sound_system_enabled=%d sound_system_initialised=%d sound_system_paused=%d samples=%d lightning_rate=%d lightning_size=%d lightning_original_rate=%d"
+		" thunder_rate=%d thunder_size=%d thunder_original_rate=%d\n", tag, (int) get_comms_model (), (int) application_sound_system_enabled, sound_system_initialised, sound_system_paused,
+		number_of_application_sound_samples, lightning->rate, lightning->size, lightning->original_rate, thunder->rate, thunder->size, thunder->original_rate);
+
+	return 0;
+}
+
+static int env_snd_unsupported (char *text, int capacity, int *used)
+{
+	ENV_EMIT ("env-snd-unsupported item=playback_handle_branches reason=a_playing_or_idle_handle_needs_the_sound_system_device_never_called_here_and_never_faked\n");
+	ENV_EMIT ("env-snd-unsupported item=audible_network_player_delivery reason=not_exercised_headless_not_claimed\n");
+
+	return 0;
+}
+
+
+/*
+ * GROUP 14, indices 4..10: CONTROLLED-DATA cases (explicit only; observer build only; each PROCESS-ISOLATED, one per fresh process). TEST-ONLY, SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED.
+ * They are NOT the retail baseline: the retail descriptors measured size 0 (every natural sound entity started with lifetime 0 and expired with no handle on its first update), which covers none of the
+ * positive, sequence, cap, looping or invalid-effect domains of the ORIGINAL lifetime code. Each case therefore sets the sample DESCRIPTOR numbers (application_sound_effects[].rate and .size, plain ints; no audio
+ * is allocated) to named controlled values, builds the entity or entities with the REAL constructor and its normal flags, and calls the REAL compiled update routine of the entity function table, only while the
+ * entity is a live sound effect that is still a member of the update list (the condition under which the original update loop calls it at all; an invalid entity that has been unlinked is not called again).
+ * The descriptor numbers, the frame delta and the tracking switch are restored before anything is printed, so no return path leaves them changed. Every number printed is read from the stored fields by
+ * memcpy (no float is loaded by value); the end state of each call is read from the entity slot only while the slot is still a sound effect. Nothing here computes a lifetime: the rows are what the original did.
+ *
+ *   4 data_positive_server_ages_and_expires     lightning descriptor rate 4 size 20; server routine, three calls of delta 2.0
+ *   5 data_positive_client_clamps               the same entity data; client routine, three calls of delta 2.0
+ *   6 data_sequence_accumulates                 a two-sample sequence (rate 4 size 6, rate 2 size 5); no update
+ *   7 data_caps_nonmusic_and_music              rate 1 size 400 for an ordinary and for a MUSIC sound; no update (the original cap is 40 s and 300 s)
+ *   8 data_looping_server_and_client_not_aged   two LOOPING entities, one under each routine, three calls of delta 2.0 each
+ *   9 data_invalid_server_countdown_and_unlink  a valid entity made invalid by the REAL pause_local_entity_sound_type (delay 1.5), server routine, three calls of delta 1.0
+ *  10 data_invalid_client_countdown_and_unlink  the same under the client routine
+ * The children the real pause function can touch are counted and printed (the session's sound effects, and those of the paused sub type): in a fresh control process they are exactly the control's own entity.
+ * Nothing creates or fakes a playback handle: the branches that need one stay unsupported, with the follow-up printed.
+ */
+
+#define ENV_SND_DATA_FIRST 4
+#define ENV_SND_DATA_LAST 10
+#define ENV_SND_SNAPS 24
+
+struct env_snd_snap
+{
+	int ent, slot, tag, etype, data, sub, valid, looping, member, handle;
+	uint32_t life, vlife;
+};
+
+static void env_snd_snap_take (struct env_snd_snap *s, int ent, int tag, entity *en)
+{
+	sound_effect *raw;
+
+	memset (s, 0, sizeof (*s));
+
+	s->ent = ent;
+	s->tag = tag;
+	s->slot = get_local_entity_index (en);
+	s->etype = (int) get_local_entity_type (en);
+	s->data = get_local_entity_data (en) != NULL;
+
+	/* the slot is read further only while it is still a sound effect with data: a killed entity's data is freed */
+	if (s->etype == ENTITY_TYPE_SOUND_EFFECT && s->data)
+	{
+		raw = (sound_effect *) get_local_entity_data (en);
+
+		s->sub = (int) raw->eff.sub_type;
+		s->valid = (int) raw->valid_sound_effect;
+		s->looping = (int) raw->looping;
+		s->member = raw->eff.update_link.parent != NULL;
+		s->handle = raw->sound_effect_data != NULL;
+
+		memcpy (&s->life, &raw->effect_lifetime, sizeof (s->life));
+		memcpy (&s->vlife, &raw->valid_effect_lifetime, sizeof (s->vlife));
+	}
+}
+
+/* the free list of entity slots: the constructor takes the first free slot and dereferences the result, so every constructor call needs a slot that actually exists. Reads the list only. */
+static int env_snd_slots_free (int need)
+{
+	const entity *slot;
+	int count = 0;
+
+	for (slot = first_free_entity; slot && count < need; slot = slot->succ)
+	{
+		count++;
+	}
+
+	return count >= need;
+}
+
+static entity *env_snd_data_make (entity_sub_types sub, int looping, int count, sound_sample_indices *samples)
+{
+	if (!env_snd_slots_free (1))
+	{
+		return NULL;
+	}
+
+	return create_local_sound_effect_entity (ENTITY_INDEX_DONT_CARE, get_session_entity (), ENTITY_SIDE_NEUTRAL, sub, SOUND_CHANNEL_SOUND_EFFECT, SOUND_LOCALITY_ALL, NULL, 1.0f, 1.0f, TRUE, looping, count, samples);
+}
+
+/* the real routine of the function table, called while the entity is a live sound effect and a member of the update list; returns the calls made. Snapshots go to snaps[*n]. */
+static int env_snd_data_calls (struct env_snd_snap *snaps, int *n, int ent, entity *en, int server, float delta, int calls)
+{
+	void (*update) (entity *en) = fn_update_client_server_entity[ENTITY_TYPE_SOUND_EFFECT][server ? COMMS_MODEL_SERVER : COMMS_MODEL_CLIENT];
+	int k, made = 0;
+
+	for (k = 1; k <= calls; k++)
+	{
+		if (get_local_entity_type (en) != ENTITY_TYPE_SOUND_EFFECT || get_local_entity_data (en) == NULL || ((sound_effect *) get_local_entity_data (en))->eff.update_link.parent == NULL)
+		{
+			break;
+		}
+
+		system_delta_time = delta;
+		update (en);
+		made++;
+
+		env_snd_snap_take (&snaps[(*n)++], ent, k, en);
+	}
+
+	return made;
+}
+
+static int env_snd_data_case (int index, char *text, int capacity, int *used)
+{
+	static const char *const names[ENV_SND_DATA_LAST - ENV_SND_DATA_FIRST + 1] = {
+		"data_positive_server_ages_and_expires", "data_positive_client_clamps", "data_sequence_accumulates", "data_caps_nonmusic_and_music", "data_looping_server_and_client_not_aged",
+		"data_invalid_server_countdown_and_unlink", "data_invalid_client_countdown_and_unlink"
+	};
+	sound_effect_information *lightning = &application_sound_effects[SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING];
+	sound_effect_information *thunder = &application_sound_effects[SOUND_SAMPLE_INDEX_AMBIENT_THUNDER];
+	sound_sample_indices one = SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING;
+	sound_sample_indices two[2] = { SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING, SOUND_SAMPLE_INDEX_AMBIENT_THUNDER };
+	struct env_snd_snap snaps[ENV_SND_SNAPS];
+	entity *a = NULL, *b = NULL, *parent;
+	int saved_rate[2], saved_size[2], retail_rate[2], retail_size[2];
+	int n = 0, calls = 0, entities = 0, skipped = 0, paused = -1, children_sound = -1, children_type = -1, i, planned_entities = (index == 7 || index == 8) ? 2 : 1, short_of_slots;
+	int ctl_calls = 0, server = 1, descriptor_restored, delta_restored, planned, ctl_rate[2], ctl_size[2];
+	float saved_delta = system_delta_time, delta = 0.0f, delay = 0.0f;
+	entity_sub_types pause_sub = ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1;
+	const char *refusal = NULL;
+	entity *child;
+
+	ENV_EMIT ("env-sound kind=control i=%d label=%s comms=%d\n", index, names[index - ENV_SND_DATA_FIRST], (int) get_comms_model ());
+
+	if (env_snd_facts (text, capacity, used, "control") != 0 || env_snd_unsupported (text, capacity, used) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-snd-unsupported item=playing_or_idle_handle_after_expiry reason=needs_a_real_sound_system_device_and_the_play_path_no_handle_is_created_or_faked_follow_up_is_a_device_control_with_a_playing_and_an_idle_handle\n");
+
+	if (get_comms_model () != COMMS_MODEL_SERVER)
+	{
+		refusal = "the_process_is_not_the_server_so_the_server_kill_cannot_be_observed";
+	}
+	else if (!get_session_entity ())
+	{
+		refusal = "there_is_no_session_entity_to_parent_the_sound_effect";
+	}
+	else if (!env_snd_slots_free (planned_entities))
+	{
+		refusal = "there_is_no_free_entity_slot_for_the_real_constructor";
+	}
+
+	if (refusal)
+	{
+		ENV_EMIT ("env-sound-end i=%d refused=%s changed=0 process_isolated=required\n", index, refusal);
+
+		return 0;
+	}
+
+	parent = get_session_entity ();
+
+	/* the controlled data: the descriptors are restored below, before any row is printed */
+	saved_rate[0] = retail_rate[0] = lightning->rate;
+	saved_size[0] = retail_size[0] = lightning->size;
+	saved_rate[1] = retail_rate[1] = thunder->rate;
+	saved_size[1] = retail_size[1] = thunder->size;
+
+	switch (index)
+	{
+		case 4:
+		case 5:
+		{
+			lightning->rate = 4;
+			lightning->size = 20;
+			server = index == 4;
+			delta = 2.0f;
+			ctl_calls = 3;
+			break;
+		}
+		case 6:
+		{
+			lightning->rate = 4;
+			lightning->size = 6;
+			thunder->rate = 2;
+			thunder->size = 5;
+			break;
+		}
+		case 7:
+		{
+			lightning->rate = 1;
+			lightning->size = 400;
+			break;
+		}
+		case 8:
+		{
+			lightning->rate = 4;
+			lightning->size = 20;
+			delta = 2.0f;
+			ctl_calls = 3;
+			break;
+		}
+		default:
+		{
+			lightning->rate = 4;
+			lightning->size = 20;
+			server = index == 9;
+			delta = 1.0f;
+			delay = 1.5f;
+			ctl_calls = 3;
+			break;
+		}
+	}
+
+	eech_envobs_sound_track (1);
+
+	/* EVERY constructor call needs a slot that actually exists (the constructor takes the first free slot and dereferences the result): env_snd_data_make returns NULL, without calling the constructor, when
+	   none is left. The order of the allocations is the ordinary one. A control that is short of a slot stops where it is and the end row says so (planned_entities, short_of_slots). */
+	switch (index)
+	{
+		case 4:
+		case 5:
+		{
+			a = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, FALSE, 1, &one);
+
+			if (a)
+			{
+				env_snd_snap_take (&snaps[n++], 0, 0, a);
+				entities = 1;
+				calls += env_snd_data_calls (snaps, &n, 0, a, server, delta, ctl_calls);
+			}
+			break;
+		}
+		case 6:
+		{
+			a = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, FALSE, 2, two);
+
+			if (a)
+			{
+				env_snd_snap_take (&snaps[n++], 0, 0, a);
+				entities = 1;
+			}
+			break;
+		}
+		case 7:
+		{
+			a = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, FALSE, 1, &one);
+
+			if (a)
+			{
+				env_snd_snap_take (&snaps[n++], 0, 0, a);
+				entities = 1;
+				b = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MUSIC, FALSE, 1, &one);
+
+				if (b)
+				{
+					env_snd_snap_take (&snaps[n++], 1, 0, b);
+					entities = 2;
+				}
+			}
+			break;
+		}
+		case 8:
+		{
+			a = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, TRUE, 1, &one);
+
+			if (a)
+			{
+				env_snd_snap_take (&snaps[n++], 0, 0, a);
+				entities = 1;
+				b = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, TRUE, 1, &one);
+
+				if (b)
+				{
+					env_snd_snap_take (&snaps[n++], 1, 0, b);
+					entities = 2;
+				}
+
+				calls += env_snd_data_calls (snaps, &n, 0, a, 1, delta, ctl_calls);
+
+				if (b)
+				{
+					calls += env_snd_data_calls (snaps, &n, 1, b, 0, delta, ctl_calls);
+				}
+			}
+			break;
+		}
+		default:
+		{
+			a = env_snd_data_make (pause_sub, FALSE, 1, &one);
+
+			if (a)
+			{
+				entities = 1;
+				env_snd_snap_take (&snaps[n++], 0, 0, a);
+
+				/* the real pause function walks the session's special-effect children; what it can touch is counted first */
+				children_sound = 0;
+				children_type = 0;
+				for (child = get_local_entity_first_child (parent, LIST_TYPE_SPECIAL_EFFECT); child; child = get_local_entity_child_succ (child, LIST_TYPE_SPECIAL_EFFECT))
+				{
+					if (get_local_entity_type (child) == ENTITY_TYPE_SOUND_EFFECT)
+					{
+						children_sound++;
+
+						if (((sound_effect *) get_local_entity_data (child))->eff.sub_type == pause_sub)
+						{
+							children_type++;
+						}
+					}
+				}
+
+				paused = pause_local_entity_sound_type (parent, pause_sub, delay);
+				env_snd_snap_take (&snaps[n++], 0, 99, a);
+				calls += env_snd_data_calls (snaps, &n, 0, a, server, delta, ctl_calls);
+			}
+			break;
+		}
+	}
+
+	short_of_slots = entities < planned_entities;
+
+	planned = planned_entities * ctl_calls;
+	skipped = planned - calls;
+	ctl_rate[0] = lightning->rate;
+	ctl_size[0] = lightning->size;
+	ctl_rate[1] = thunder->rate;
+	ctl_size[1] = thunder->size;
+
+	eech_envobs_sound_track (0);
+
+	system_delta_time = saved_delta;
+	delta_restored = system_delta_time == saved_delta;
+
+	lightning->rate = saved_rate[0];
+	lightning->size = saved_size[0];
+	thunder->rate = saved_rate[1];
+	thunder->size = saved_size[1];
+	descriptor_restored = lightning->rate == retail_rate[0] && lightning->size == retail_size[0] && thunder->rate == retail_rate[1] && thunder->size == retail_size[1];
+
+	/* nothing below changes the process: only rows are written */
+	for (i = 0; i < 2; i++)
+	{
+		sound_effect_information *d = i ? thunder : lightning;
+		ENV_EMIT ("env-sound-data-input tag=descriptor sample=%d controlled_rate=%d controlled_size=%d retail_rate=%d retail_size=%d original_rate=%d\n", i ? (int) SOUND_SAMPLE_INDEX_AMBIENT_THUNDER : (int) SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING,
+			ctl_rate[i], ctl_size[i], retail_rate[i], retail_size[i], d->original_rate);
+	}
+
+	ENV_EMIT ("env-sound-data-input tag=deltas calls=%d delta_w=%08x\n", ctl_calls, ENV_WORD (delta));
+
+	if (index >= 9)
+	{
+		ENV_EMIT ("env-sound-pause sub=%d delay_w=%08x children_sound=%d children_of_type=%d returned=%d\n", (int) pause_sub, ENV_WORD (delay), children_sound, children_type, paused);
+	}
+
+	for (i = 0; i < n; i++)
+	{
+		const struct env_snd_snap *s = &snaps[i];
+
+		ENV_EMIT ("env-sound-state ent=%d slot=%d tag=%d etype=%d data=%d sub=%d valid=%d looping=%d member=%d handle=%d life_w=%08x vlife_w=%08x\n", s->ent, s->slot, s->tag, s->etype, s->data, s->sub, s->valid, s->looping, s->member,
+			s->handle, s->life, s->vlife);
+	}
+
+	if (eech_envobs_sound_report (text, capacity, used) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-sound-end i=%d changed=1 entities=%d planned_entities=%d short_of_slots=%d calls=%d skipped=%d descriptor_restored=%d delta_restored=%d process_isolated=required\n", index, entities, planned_entities, short_of_slots, calls, skipped, descriptor_restored, delta_restored);
+
+	return 0;
+}
+
+
+/*
+ * GROUP 14, indices 11..14: the ORIGINAL pause and resume of a sound type (soundeff.c pause_local_entity_sound_type and resume_local_entity_sound_type), observed (explicit only; observer build only; each
+ * PROCESS-ISOLATED, one per fresh process). TEST-ONLY, SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED. The baseline is the hosted field and sound-lifetime state of the current e502 build with these two routines
+ * ORIGINAL AND UNTOUCHED: it is not a wholly original DLL. Every call below is the real routine, called directly with the SESSION as the parent (the local routines, not the client/server variants that
+ * transmit over the network), in the order printed. The resume calls play_local_entity_sound on its parent, and for the session that is the default no-op of en_snd.c (no entity-type function is registered for
+ * the session), so the validity change and the update-list relink are observable WITHOUT a device or a playback handle; a resume on any other parent (the range calculation and the per-family playback) is NOT
+ * exercised here. Entities are built by the real constructor with a controlled descriptor (rate 4, size 20, restored), a valid non-looping lifetime and the sub types named below; the server update steps call
+ * the real update routine of the function table only while the entity is a live sound effect and a member of the update list.
+ *
+ *   11 pause_then_resume_while_still_linked        one effect: pause (delay 1.5), then resume: the validity round trip with the effect never unlinked
+ *   12 resume_after_the_unlink_and_updates_after   one effect: pause (1.5), three updates of delta 1.0 (the countdown and the unlink), the resume (the relink) and one more update
+ *   13 repeated_and_no_op_pause_and_resume_counts  one effect: resume of a valid effect, pause (1.5), a second pause (9.0), resume, a second resume
+ *   14 subtype_isolation_and_every_match           three effects (two of one sub type, one of another): a pause of a sub type nobody has, a pause of the first sub type, a resume of the second, a resume of the first
+ *
+ * Before and after each pause and resume the session's special-effect children are SCANNED (read only, bounded by the number of entities, the scan says whether it finished): how many sound children, how many of
+ * the sub type, how many of those valid, invalid and in the update list. The session already holds other sound children (the ambient sounds); they are of other sub types and a legitimate part of the totals. After
+ * every step every cohort effect is snapshotted (the words copied from the stored fields, nothing loaded as a float). Nothing here computes a result: the rows are what the original did.
+ * The effects stay as the original left them (the process is the isolation boundary): the end row restores and says so only for the descriptor, the delta and the tracking, and states entity_state_restored=0.
+ */
+
+#define ENV_SND_PAUSE_FIRST 11
+#define ENV_SND_PAUSE_LAST 14
+#define ENV_SND_STEPS 8
+#define ENV_SND_PAUSE_ENTITIES 3
+#define ENV_SND_STEP_PAUSE 1
+#define ENV_SND_STEP_RESUME 2
+#define ENV_SND_STEP_UPDATE 3
+
+struct env_snd_scan
+{
+	int total, of_type, valid_of_type, invalid_of_type, linked_of_type, complete;
+};
+
+struct env_snd_step
+{
+	int op, sub, returned, made;
+	float delay;
+	struct env_snd_scan before, after;
+};
+
+/* a read-only scan of the session's special-effect children; bounded by the number of entities (a longer list is a broken list, and the scan says it did not finish) */
+static void env_snd_scan_take (struct env_snd_scan *s, entity *parent, entity_sub_types type)
+{
+	entity *child;
+	int visited = 0;
+
+	memset (s, 0, sizeof (*s));
+
+	s->complete = 1;
+
+	for (child = get_local_entity_first_child (parent, LIST_TYPE_SPECIAL_EFFECT); child; child = get_local_entity_child_succ (child, LIST_TYPE_SPECIAL_EFFECT))
+	{
+		if (++visited > number_of_entities)
+		{
+			s->complete = 0;
+
+			break;
+		}
+
+		if (get_local_entity_type (child) == ENTITY_TYPE_SOUND_EFFECT)
+		{
+			sound_effect *raw = (sound_effect *) get_local_entity_data (child);
+
+			s->total++;
+
+			if (raw->eff.sub_type == type)
+			{
+				s->of_type++;
+
+				if (raw->valid_sound_effect)
+				{
+					s->valid_of_type++;
+				}
+				else
+				{
+					s->invalid_of_type++;
+				}
+
+				if (raw->eff.update_link.parent != NULL)
+				{
+					s->linked_of_type++;
+				}
+			}
+		}
+	}
+}
+
+static int env_snd_pause_case (int index, char *text, int capacity, int *used)
+{
+	static const char *const names[ENV_SND_PAUSE_LAST - ENV_SND_PAUSE_FIRST + 1] = {
+		"pause_then_resume_while_still_linked", "resume_after_the_unlink_and_updates_after", "repeated_and_no_op_pause_and_resume_counts", "subtype_isolation_and_every_match"
+	};
+	sound_effect_information *lightning = &application_sound_effects[SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING];
+	sound_sample_indices one = SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING;
+	const entity_sub_types sub_s = ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1, sub_t = ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING2, sub_v = ENTITY_SUB_TYPE_EFFECT_SOUND_APU_TURBINE;
+	struct env_snd_snap snaps[ENV_SND_SNAPS];
+	struct env_snd_step steps[ENV_SND_STEPS];
+	entity *ents[ENV_SND_PAUSE_ENTITIES];
+	entity_sub_types ent_sub[ENV_SND_PAUSE_ENTITIES];
+	entity *parent;
+	void (*update) (entity *en) = fn_update_client_server_entity[ENTITY_TYPE_SOUND_EFFECT][COMMS_MODEL_SERVER];
+	int saved_rate, saved_size, n = 0, entities = 0, planned_entities, step_count = 0, calls = 0, i, k, descriptor_restored, delta_restored;
+	float saved_delta = system_delta_time;
+	const char *refusal = NULL;
+
+	memset (steps, 0, sizeof (steps));
+	memset (ents, 0, sizeof (ents));
+
+	switch (index)
+	{
+		case 11:
+		{
+			planned_entities = 1;
+			ent_sub[0] = sub_s;
+			steps[0].op = ENV_SND_STEP_PAUSE; steps[0].sub = sub_s; steps[0].delay = 1.5f;
+			steps[1].op = ENV_SND_STEP_RESUME; steps[1].sub = sub_s;
+			step_count = 2;
+			break;
+		}
+		case 12:
+		{
+			planned_entities = 1;
+			ent_sub[0] = sub_s;
+			steps[0].op = ENV_SND_STEP_PAUSE; steps[0].sub = sub_s; steps[0].delay = 1.5f;
+			steps[1].op = ENV_SND_STEP_UPDATE;
+			steps[2].op = ENV_SND_STEP_UPDATE;
+			steps[3].op = ENV_SND_STEP_UPDATE;
+			steps[4].op = ENV_SND_STEP_RESUME; steps[4].sub = sub_s;
+			steps[5].op = ENV_SND_STEP_UPDATE;
+			step_count = 6;
+			break;
+		}
+		case 13:
+		{
+			planned_entities = 1;
+			ent_sub[0] = sub_s;
+			steps[0].op = ENV_SND_STEP_RESUME; steps[0].sub = sub_s;
+			steps[1].op = ENV_SND_STEP_PAUSE; steps[1].sub = sub_s; steps[1].delay = 1.5f;
+			steps[2].op = ENV_SND_STEP_PAUSE; steps[2].sub = sub_s; steps[2].delay = 9.0f;
+			steps[3].op = ENV_SND_STEP_RESUME; steps[3].sub = sub_s;
+			steps[4].op = ENV_SND_STEP_RESUME; steps[4].sub = sub_s;
+			step_count = 5;
+			break;
+		}
+		default:
+		{
+			planned_entities = 3;
+			ent_sub[0] = sub_s;
+			ent_sub[1] = sub_s;
+			ent_sub[2] = sub_t;
+			steps[0].op = ENV_SND_STEP_PAUSE; steps[0].sub = sub_v; steps[0].delay = 1.0f;
+			steps[1].op = ENV_SND_STEP_PAUSE; steps[1].sub = sub_s; steps[1].delay = 2.0f;
+			steps[2].op = ENV_SND_STEP_RESUME; steps[2].sub = sub_t;
+			steps[3].op = ENV_SND_STEP_RESUME; steps[3].sub = sub_s;
+			step_count = 4;
+			break;
+		}
+	}
+
+	ENV_EMIT ("env-sound kind=control i=%d label=%s comms=%d\n", index, names[index - ENV_SND_PAUSE_FIRST], (int) get_comms_model ());
+
+	if (env_snd_facts (text, capacity, used, "control") != 0 || env_snd_unsupported (text, capacity, used) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-snd-unsupported item=playing_or_idle_handle_after_expiry reason=needs_a_real_sound_system_device_and_the_play_path_no_handle_is_created_or_faked_follow_up_is_a_device_control_with_a_playing_and_an_idle_handle\n");
+	ENV_EMIT ("env-snd-unsupported item=resume_on_a_parent_other_than_the_session reason=the_range_calculation_and_the_per_family_playback_function_are_not_exercised_follow_up_is_a_control_on_an_aircraft_or_vehicle_parent_with_a_device\n");
+
+	if (get_comms_model () != COMMS_MODEL_SERVER)
+	{
+		refusal = "the_process_is_not_the_server_so_the_server_kill_cannot_be_observed";
+	}
+	else if (!get_session_entity ())
+	{
+		refusal = "there_is_no_session_entity_to_parent_the_sound_effect";
+	}
+	else if (!env_snd_slots_free (planned_entities))
+	{
+		refusal = "there_is_no_free_entity_slot_for_the_real_constructor";
+	}
+
+	if (refusal)
+	{
+		ENV_EMIT ("env-sound-end i=%d refused=%s changed=0 process_isolated=required\n", index, refusal);
+
+		return 0;
+	}
+
+	parent = get_session_entity ();
+
+	saved_rate = lightning->rate;
+	saved_size = lightning->size;
+
+	lightning->rate = 4;
+	lightning->size = 20;
+
+	eech_envobs_sound_track (1);
+
+	/* every constructor call is preflighted for a free slot; a control short of one stops where it is and says so */
+	for (i = 0; i < planned_entities; i++)
+	{
+		ents[i] = env_snd_data_make (ent_sub[i], FALSE, 1, &one);
+
+		if (!ents[i])
+		{
+			break;
+		}
+
+		env_snd_snap_take (&snaps[n++], i, 0, ents[i]);
+
+		entities++;
+	}
+
+	for (k = 0; (entities == planned_entities) && (k < step_count); k++)
+	{
+		struct env_snd_step *s = &steps[k];
+
+		if (s->op == ENV_SND_STEP_UPDATE)
+		{
+			/* the condition under which the original update loop calls the routine at all */
+			if (get_local_entity_type (ents[0]) == ENTITY_TYPE_SOUND_EFFECT && get_local_entity_data (ents[0]) != NULL && ((sound_effect *) get_local_entity_data (ents[0]))->eff.update_link.parent != NULL)
+			{
+				system_delta_time = 1.0f;
+				update (ents[0]);
+				s->made = 1;
+				calls++;
+			}
+		}
+		else
+		{
+			env_snd_scan_take (&s->before, parent, (entity_sub_types) s->sub);
+
+			s->returned = (s->op == ENV_SND_STEP_PAUSE) ? pause_local_entity_sound_type (parent, (entity_sub_types) s->sub, s->delay) : resume_local_entity_sound_type (parent, (entity_sub_types) s->sub);
+
+			env_snd_scan_take (&s->after, parent, (entity_sub_types) s->sub);
+		}
+
+		for (i = 0; i < entities; i++)
+		{
+			env_snd_snap_take (&snaps[n++], i, k + 1, ents[i]);
+		}
+	}
+
+	eech_envobs_sound_track (0);
+
+	system_delta_time = saved_delta;
+	delta_restored = system_delta_time == saved_delta;
+
+	lightning->rate = saved_rate;
+	lightning->size = saved_size;
+	descriptor_restored = lightning->rate == saved_rate && lightning->size == saved_size;
+
+	ENV_EMIT ("env-sound-data-input tag=descriptor sample=%d controlled_rate=4 controlled_size=20 retail_rate=%d retail_size=%d original_rate=%d\n", (int) SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING, saved_rate, saved_size, lightning->original_rate);
+
+	for (k = 0; (k < step_count) && (entities == planned_entities); k++)
+	{
+		const struct env_snd_step *s = &steps[k];
+
+		uint32_t delay_word;
+
+		memcpy (&delay_word, &s->delay, sizeof (delay_word));
+
+		ENV_EMIT ("env-sound-step n=%d op=%d sub=%d delay_w=%08x returned=%d made=%d\n", k + 1, s->op, s->sub, delay_word, s->returned, s->made);
+
+		if (s->op != ENV_SND_STEP_UPDATE)
+		{
+			ENV_EMIT ("env-sound-scan n=%d when=before total=%d of_type=%d valid_of_type=%d invalid_of_type=%d linked_of_type=%d complete=%d\n", k + 1, s->before.total, s->before.of_type, s->before.valid_of_type,
+				s->before.invalid_of_type, s->before.linked_of_type, s->before.complete);
+			ENV_EMIT ("env-sound-scan n=%d when=after total=%d of_type=%d valid_of_type=%d invalid_of_type=%d linked_of_type=%d complete=%d\n", k + 1, s->after.total, s->after.of_type, s->after.valid_of_type,
+				s->after.invalid_of_type, s->after.linked_of_type, s->after.complete);
+		}
+	}
+
+	for (i = 0; i < n; i++)
+	{
+		const struct env_snd_snap *s = &snaps[i];
+
+		ENV_EMIT ("env-sound-state ent=%d slot=%d tag=%d etype=%d data=%d sub=%d valid=%d looping=%d member=%d handle=%d life_w=%08x vlife_w=%08x\n", s->ent, s->slot, s->tag, s->etype, s->data, s->sub, s->valid,
+			s->looping, s->member, s->handle, s->life, s->vlife);
+	}
+
+	if (eech_envobs_sound_report (text, capacity, used) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-sound-end i=%d changed=1 entities=%d planned_entities=%d steps=%d calls=%d descriptor_restored=%d delta_restored=%d entity_state_restored=0 process_isolated=required\n", index, entities, planned_entities,
+		(entities == planned_entities) ? step_count : 0, calls, descriptor_restored, delta_restored);
+
+	return 0;
+}
+
+/*
+ * GROUP 14, indices 21 and 22: the status of a NON-NULL, buffer-absent, idle playback handle at a server expiry (EEDCS-51, D3; explicit only; observer build only; each PROCESS-ISOLATED, one per fresh process).
+ * TEST-ONLY, SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED. CHARACTERISATION ONLY: nothing is moved, removed or guarded, and no production, host-ABI or schema line changed.
+ *
+ * THE COUPLING. se_updt.c update_server (hosted block) hands the stored handle to campaign_sound_lifetime_update; when the effect has expired and the handle is not NULL the HOST asks whether the handle is playing and
+ * the campaign answers with host_handle_playing, which is the REAL compiled modules/sound/soundman.c get_system_sound_effect_playing: it clears effect->playing and returns FALSE when effect->sound_buffer is NULL (and
+ * only otherwise asks the DirectSound buffer). The host then says kill or not; a kill reaches se_dstry.c, which calls the REAL destroy_system_sound_effect (ASSERT used, release the buffer if any, clear used).
+ * The closed no-handle controls (cases 4 to 14) never reach that branch; cases 4 to 10 print it as unsupported. These two cases reach it WITHOUT a device.
+ *
+ * THE TEST-OWNED HANDLE. The real constructor create_single_system_sound_effect returns NULL in the headless process (sound_system_initialised is FALSE) and, when a buffer duplication fails, RELEASES the record, so
+ * the original never produces a used record whose buffer is absent: THIS RECORD IS CONTROLLED TEST STATE, NOT A BACKEND AND NOT AN ORIGINAL PRODUCT. It is the first element of the real, static, zero-initialised
+ * array current_system_sound_effects that soundman.c owns (so its address stays valid through every real call and through a fatal unwind, and nothing here ever frees it), filled as a real record would be (one sequenced
+ * sample, used = TRUE, sound_buffer = NULL) and no COM pointer, vtable, sentinel address, global status override or audio code exists. user_data is left NULL (the constructor stores the entity there; neither routine
+ * reads it). Case 22 starts the same record with playing = TRUE as a SENSITIVITY MARKER (the real getter writes the flag: a flag cleared afterwards is the MEASURED evidence that it wrote it, while that the host's question reached the getter at an expiry is only inferred from the source and the probe's expiry records); that is controlled test state too and
+ * says nothing about a real playing buffer, which cannot be made without a device and is NOT manufactured here.
+ *
+ *   21 handle_idle_buffer_absent_server_expiry         the handle's playing flag starts clear
+ *   22 handle_idle_buffer_absent_stale_playing_server_expiry   the handle's playing flag starts set
+ * Both: the lightning descriptor is set to rate 4 size 20 (as case 4; restored), ONE sound effect entity is built by the real constructor and given the handle, and the real server routine of the function table runs at
+ * delta 2.0 up to three times while the entity is a live sound effect in the update list (the delta is restored). The original tracking probe records the ordinary points, with the handle flag, so the report shows
+ * whether the expiry found an idle or a playing handle and whether the kill followed; the handle's own fields (used, playing, buffer absent) are read back before the calls, right after them (before the fixture touches anything) and after the cleanup has zeroed the record. Nothing
+ * here decides a result: the rows are what the original did (including, for a kill, what the real destroy did to the record).
+ *
+ * CLEANUP, on the NORMAL-RETURN path after the handle is installed: if the entity survived and still points at the handle it is DETACHED first; if the record is still in use the REAL destroy_system_sound_effect releases it
+ * (and the row says the fixture did, not the original); the record is then zeroed and its fields are read back AFTER the zeroing (`used_final`, `playing_final` and `buffer_null_final` of the cleanup row are the
+ * zeroed record, not the state the destroy left: the destroy clears `used` but not `playing`). Who released the record (the original's kill or the fixture) is decided from the snapshot taken right after the
+ * calls, before the fixture touches anything. The descriptor numbers and the frame delta are restored and the tracking switch is turned OFF (it was off before; this is a reset to off, not a restore of an
+ * unknown previous state) before any row is written, so a report that does not fit leaves nothing changed except the entity (which cannot be put back: the process is the isolation boundary and the end row
+ * says so). None of this runs on the FATAL path: a debug_fatal inside a real call (an invalid host answer, a failed assertion) unwinds out of the case, poisons the engine and ends the isolated process with the
+ * record still held by the static array and the entity, which is valid memory, and nothing is restored or inferred after it. Refusals come BEFORE any change: not the server, no session, no free entity slot, a
+ * sound system that IS initialised (the array might then belong to a device) or a handle slot already in use.
+ *
+ * WHAT THE REPORT CONTAINS. No pointer or address is printed. The rows are PRIVATE test evidence: they include the closed probe's own entity slot and type words (`slot=`, `entity=`) and the sound entity's
+ * position words (`px_w`, `py_w`, `pz_w`), the reused tracking rows of the original observer, which need a precise safe projection before anything is published to Git. The driver keeps the whole report in a
+ * private raw sidecar and writes summaries to its JSON rows.
+ */
+
+/*
+ * PROFILE ADAPTATION (source after 2e2fd548a; the comments above and below describe the cases 21 to 24 as the FROZEN 2e2fd548a native ran them, with the legacy sound backend linked, and those actual originals and their drivers are
+ * unchanged evidence). The Core no longer contains modules/sound: soundman.c, dsound.c, dirsound.c, dsound3d.c and soundhlp.c are replaced by appsound/snd_nobackend.c, whose handle functions refuse by name. So in THIS source:
+ *   - the typed test-owned record array below is defined here, TEST-ONLY (it used to be soundman.c's); it is one typed static record with no device, buffer, COM pointer or sentinel, and its address stays valid through a fatal unwind;
+ *   - there is no real get playing, destroy, set volume or play to run on it: a native handle operation is the named stop [env-sound:unsupported_native_handle], the valid-expiry status request is still the
+ *     named stop [env-sound:unsupported_handle_status], and the unlink or kill decision that would release a held handle is refused by the lifetime wrapper before anything is written;
+ *   - case 24 stops EARLIER than any handle operation: the hosted entry of se_snd.c play_local_sound (after the Core option, locality, radio and dead-effect gates, BEFORE the range, amplification, channel, canopy and interior mixing and the radio-noise entropy; that physical mixer is compiled only for the original game) refuses an effect that holds a handle, by the same name [env-sound:unsupported_native_handle]; the adapter's own refusals are only a backstop;
+ *   - the fixture releases the record ITSELF on the normal-return path (env_release_test_record clears it), because the Core has no destroy to call; `destroyed_by_original` can therefore no longer be 1.
+ * The cases keep their rows and refusals so a candidate run is comparable by rows to the original; their expected result against this source is the NAMED STOP, which a candidate driver (lua/env-sound-native-guard.lua) accepts
+ * only in the engine's strict fatal shape. Nothing else in this file changed.
+ */
+
+#define ENV_SND_HANDLE_FIRST 21
+#define ENV_SND_HANDLE_LAST 22
+
+static system_sound_effect current_system_sound_effects[1];
+
+/* the fixture's own release of the test-owned record (the Core has no native destroy): buffer absent, no longer in use */
+static void env_release_test_record (system_sound_effect *record)
+{
+	record->sound_buffer = NULL;
+	record->used = FALSE;
+}
+
+struct env_snd_handle_read
+{
+	int used, playing, buffer_null;
+};
+
+static void env_snd_handle_take (struct env_snd_handle_read *s, const system_sound_effect *handle)
+{
+	s->used = handle->used;
+	s->playing = handle->playing;
+	s->buffer_null = handle->sound_buffer == NULL;
+}
+
+static int env_snd_handle_case (int index, char *text, int capacity, int *used)
+{
+	static const char *const names[ENV_SND_HANDLE_LAST - ENV_SND_HANDLE_FIRST + 1] = { "handle_idle_buffer_absent_server_expiry", "handle_idle_buffer_absent_stale_playing_server_expiry" };
+	sound_effect_information *lightning = &application_sound_effects[SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING];
+	sound_sample_indices one = SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING;
+	system_sound_effect *handle = &current_system_sound_effects[0];
+	struct env_snd_snap snaps[ENV_SND_SNAPS];
+	struct env_snd_handle_read before, after, final;
+	sound_effect *raw;
+	entity *a = NULL;
+	int saved_rate = lightning->rate, saved_size = lightning->size, retail_rate = lightning->rate, retail_size = lightning->size;
+	int n = 0, calls = 0, installed = 0, live_after = 0, detached = 0, destroyed_by_fixture = 0, destroyed_by_original, i, descriptor_restored, delta_restored, short_of_slots, planned = 3;
+	int initial_playing = (index == ENV_SND_HANDLE_LAST);
+	float saved_delta = system_delta_time, delta = 2.0f;
+	uint32_t one_word = 0x3f800000u;
+	const char *refusal = NULL;
+
+	memset (&before, 0, sizeof (before));
+	memset (&after, 0, sizeof (after));
+	memset (&final, 0, sizeof (final));
+
+	ENV_EMIT ("env-sound kind=control i=%d label=%s comms=%d\n", index, names[index - ENV_SND_HANDLE_FIRST], (int) get_comms_model ());
+
+	if (env_snd_facts (text, capacity, used, "control") != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-snd-unsupported item=playing_handle_with_a_device_buffer reason=a_playing_buffer_needs_a_sound_system_device_never_created_here_and_never_faked_only_the_buffer_absent_idle_record_is_exercised\n");
+	ENV_EMIT ("env-snd-unsupported item=handle_made_by_the_original_constructor reason=the_headless_constructor_returns_no_handle_so_the_record_is_controlled_test_state_and_not_an_original_product\n");
+
+	if (get_comms_model () != COMMS_MODEL_SERVER)
+	{
+		refusal = "the_process_is_not_the_server_so_the_server_kill_cannot_be_observed";
+	}
+	else if (!get_session_entity ())
+	{
+		refusal = "there_is_no_session_entity_to_parent_the_sound_effect";
+	}
+	else if (sound_system_initialised)
+	{
+		refusal = "the_sound_system_is_initialised_so_the_handle_records_may_belong_to_a_device";
+	}
+	else if (current_system_sound_effects[0].used)
+	{
+		refusal = "the_test_owned_handle_record_is_already_in_use";
+	}
+	else if (!env_snd_slots_free (1))
+	{
+		refusal = "there_is_no_free_entity_slot_for_the_real_constructor";
+	}
+
+	if (refusal)
+	{
+		ENV_EMIT ("env-sound-end i=%d refused=%s changed=0 process_isolated=required\n", index, refusal);
+
+		return 0;
+	}
+
+	/* FROM HERE the entity cannot be put back (the process is the isolation boundary); on the normal-return path the descriptor and the delta are restored, the tracking switch is turned off and the handle record is released and
+	   zeroed before any row is written (a fatal unwind does none of that: it poisons the engine and ends the process) */
+	lightning->rate = 4;
+	lightning->size = 20;
+
+	eech_envobs_sound_track (1);
+
+	a = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, FALSE, 1, &one);
+
+	if (a)
+	{
+		memset (handle, 0, sizeof (*handle));
+
+		handle->number_of_sequenced_samples = 1;
+		handle->sound_sample_sequence[0].sound_sample_index = (int) SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING;
+		handle->playing = initial_playing;
+		memcpy (&handle->pitch, &one_word, sizeof (handle->pitch));
+		handle->sound_buffer = NULL;
+		handle->user_data = NULL;
+		handle->used = TRUE;
+
+		raw = (sound_effect *) get_local_entity_data (a);
+		raw->sound_effect_data = handle;
+		installed = 1;
+
+		env_snd_handle_take (&before, handle);
+		env_snd_snap_take (&snaps[n++], 0, 0, a);
+
+		/* the REAL server routine of the function table, while the entity is a live sound effect in the update list: it asks the host, the host asks the REAL get_system_sound_effect_playing, and a kill reaches the REAL destroy */
+		calls = env_snd_data_calls (snaps, &n, 0, a, 1, delta, planned);
+
+		env_snd_handle_take (&after, handle);
+
+		if (get_local_entity_type (a) == ENTITY_TYPE_SOUND_EFFECT && get_local_entity_data (a) != NULL)
+		{
+			live_after = 1;
+			raw = (sound_effect *) get_local_entity_data (a);
+
+			if (raw->sound_effect_data == handle)
+			{
+				raw->sound_effect_data = NULL;
+				detached = 1;
+			}
+		}
+
+		if (handle->used)
+		{
+			env_release_test_record (handle);
+			destroyed_by_fixture = 1;
+		}
+
+		memset (handle, 0, sizeof (*handle));
+
+		/* the ACTUAL final record: read back after the zeroing (the ownership facts above come from `after`, taken before the fixture touched anything) */
+		env_snd_handle_take (&final, handle);
+	}
+
+	destroyed_by_original = installed && !destroyed_by_fixture && after.used == 0;
+
+	eech_envobs_sound_track (0);
+
+	system_delta_time = saved_delta;
+	delta_restored = system_delta_time == saved_delta;
+
+	lightning->rate = saved_rate;
+	lightning->size = saved_size;
+	descriptor_restored = lightning->rate == retail_rate && lightning->size == retail_size;
+	short_of_slots = a == NULL;
+
+	/* nothing below changes the process: only rows are written */
+	ENV_EMIT ("env-handle-input tag=descriptor controlled_rate=4 controlled_size=20 retail_rate=%d retail_size=%d\n", retail_rate, retail_size);
+	ENV_EMIT ("env-handle-input tag=deltas calls=%d delta_w=%08x\n", planned, ENV_WORD (delta));
+	ENV_EMIT ("env-handle-input tag=record origin=test_owned_static_record built_by=fixture buffer=absent device=none user_data=none initial_used=1 initial_playing=%d\n", initial_playing);
+	ENV_EMIT ("env-handle-state tag=before installed=%d used=%d playing=%d buffer_null=%d\n", installed, before.used, before.playing, before.buffer_null);
+
+	for (i = 0; i < n; i++)
+	{
+		const struct env_snd_snap *s = &snaps[i];
+
+		ENV_EMIT ("env-sound-state ent=%d slot=%d tag=%d etype=%d data=%d sub=%d valid=%d looping=%d member=%d handle=%d life_w=%08x vlife_w=%08x\n", s->ent, s->slot, s->tag, s->etype, s->data, s->sub, s->valid, s->looping, s->member,
+			s->handle, s->life, s->vlife);
+	}
+
+	ENV_EMIT ("env-handle-state tag=after installed=%d used=%d playing=%d buffer_null=%d\n", installed, after.used, after.playing, after.buffer_null);
+	ENV_EMIT ("env-handle-cleanup installed=%d entity_live_after=%d detached=%d destroyed_by_original=%d destroyed_by_fixture=%d used_final=%d playing_final=%d buffer_null_final=%d\n", installed, live_after, detached,
+		destroyed_by_original, destroyed_by_fixture, final.used, final.playing, final.buffer_null);
+
+	if (eech_envobs_sound_report (text, capacity, used) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-sound-end i=%d changed=1 installed=%d entities=%d planned_entities=1 short_of_slots=%d calls=%d skipped=%d descriptor_restored=%d delta_restored=%d handle_released=%d process_isolated=required\n", index,
+		installed, a != NULL, short_of_slots, calls, planned - calls, descriptor_restored, delta_restored, installed ? (final.used == 0) : 1);
+
+	return 0;
+}
+
+/*
+ * GROUP 14, indices 23 and 24: two more ORIGINAL consumers of the SAME test-owned buffer-absent handle record as cases 21 and 22 (EEDCS-51, D3; explicit only; observer build only; each PROCESS-ISOLATED, one per fresh
+ * process). TEST-ONLY, SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED. CHARACTERISATION ONLY: nothing is moved, removed or guarded, and no production, host-ABI or schema line changed. Cases 21 and 22 reach only the VALID
+ * server expiry; these two reach the callers they cannot:
+ *
+ *   23 handle_invalid_server_unlink   an INVALID effect (the REAL pause_local_entity_sound_type on the session, delay 1.5, sub type ENGINE_LOOPING1) that holds the record, the REAL server routine of the function table at
+ *                                     delta 1.0 up to three times: se_updt.c's invalid branch (the host counts the valid lifetime down and says unlink) releases the handle with the REAL destroy_system_sound_effect, clears the
+ *                                     entity's handle and unlinks it from the update list. The status request of the valid expiry (the candidate's named stop) cannot be made here; the entity is not killed unless the original did.
+ *   24 handle_direct_playback         a LOOPING effect that holds the record, the REAL dispatch (play_local_entity_sound through fn_play_local_entity_sound, the overloaded se_snd.c play_local_sound) on the real child
+ *                                     at the legitimate session range 0.0 and the main viewpoint. The preconditions are the real flags: the sound effects option (saved, set TRUE through the real macro, restored), the
+ *                                     channel mute and the UI mute (read and printed). If the path reaches the handle it calls the REAL set volume, get playing and play bodies on the record; with a NULL buffer the DirectSound
+ *                                     entry points they then call are the headless null COM stubs (eech_com_null.c), so no pointer, vtable or device is involved. The record starts with THREE markers (playing = 1, paused = 1,
+ *                                     volume = -1) so the report shows how far the path got: a volume that changed means the set volume body ran; paused cleared means the play body ran, which is entered only when playing is
+ *                                     clear, so the stale playing marker was cleared first by the get playing body (a measurement of the flags, an inference of the call order from the source). A path that returns before them
+ *                                     (a flag, a range, a muted channel, a destroy) is reported as it is, never as a pass of the missing body. The scan (scan_local_entity_sounds) and the stop (stop_local_entity_sounds) are NOT
+ *                                     reached: the scan needs get_application_sound_system_status and the stop walks get_first_system_sound_effect, whose bound is the static count only initialise_sound_system sets (zero here), and
+ *                                     the fixture does not initialise the sound system.
+ *
+ * CASE 24 TRIPS ASSERTIONS ON PURPOSE. A buffer-absent record is controlled test state, NOT what the original constructor produces (it returns no handle here, and releases a record whose buffer failed): the real set volume,
+ * position, pitch and play bodies begin with ASSERT (effect->sound_buffer) and the dsound wrappers with ASSERT (dsound) and ASSERT (buffer), and all of those FAIL on this record. In the canonical (non DEBUG) build ASSERT is
+ * `if (!(E)) write_debug_log (...)`: a no-op unless the INI option debug_log (command_line_debug_log) is on, in which case modules/system/assert.c opens, appends to and fcloses a static FILE* WITHOUT clearing it, so the NEXT failed
+ * assertion would use a closed stream; in a DEBUG or DEBUG_ASSERT build ASSERT is process_assert, a debug_fatal on the first failure. The null COM entry points are ordinary E_FAIL functions (compat/eech_com.h declarations without
+ * prototypes, eech_com_null.c), so the DirectSound calls themselves cannot dereference the NULL buffer. Case 24 therefore REFUSES, before any change and with changed=0, when command_line_debug_log is set or the fixture is
+ * compiled with DEBUG or DEBUG_ASSERT (the fixture is built by the same cc::Build as soundman.c and assert.c; a refused case is UNAVAILABLE, never a pass). Nothing here changes the assertion subsystem, the logger, the option or the INI,
+ * and no assertion is suppressed. Case 23 trips none (its destroy asserts hold).
+ *
+ * The record, its memory ownership, the refusals before any change, the normal-return cleanup and the fatal-poison caveat are those of cases 21 and 22 (see above): the first element of the static array soundman.c owns,
+ * in use, NULL buffer, user_data NULL, filled before the calls; on the normal-return path an entity that survived is DETACHED first, a record still in use is released by the REAL destroy, the record is zeroed, the final readback is
+ * taken after the zeroing, the tracking is turned OFF and the descriptor, delta and the option flag are restored before any row. The entity cannot be put back (the process is the isolation boundary). The report is PRIVATE
+ * test evidence: it contains the probe's slot and entity words and the entity's position words and needs a safe projection before publication; no pointer is in it. Case 23 refuses BEFORE any change when the session
+ * already has a child of the paused sub type (the pause would then touch other real children); its report counts the cohort before and after.
+ */
+
+#define ENV_SND_ROUTE_FIRST 23
+#define ENV_SND_ROUTE_LAST 24
+#define ENV_ROUTE_RATE 22050
+
+struct env_route_read
+{
+	int used, playing, paused, volume, rate, looping, panning, buffer_null;
+	uint32_t pitch;
+};
+
+static void env_route_take (struct env_route_read *s, const system_sound_effect *record)
+{
+	s->used = record->used;
+	s->playing = record->playing;
+	s->paused = record->paused;
+	s->volume = record->volume;
+	s->rate = record->rate;
+	s->looping = record->looping;
+	s->panning = record->panning;
+	s->buffer_null = record->sound_buffer == NULL;
+	memcpy (&s->pitch, &record->pitch, sizeof (s->pitch));
+}
+
+/* the session's special-effect children: how many are sound effects and how many of the sub type (read only). Returns 1 only when the walk reached the end of the list within the number of entities and every sound effect child
+   had data; otherwise 0 and the counts are PARTIAL and must not be used (the real pause walks the same list without a bound). */
+static int env_route_cohort (entity *parent, entity_sub_types sub, int *sounds, int *of_type)
+{
+	entity *child;
+	sound_effect *raw;
+	int visited = 0;
+
+	*sounds = 0;
+	*of_type = 0;
+
+	for (child = get_local_entity_first_child (parent, LIST_TYPE_SPECIAL_EFFECT); child; child = get_local_entity_child_succ (child, LIST_TYPE_SPECIAL_EFFECT))
+	{
+		if (++visited > number_of_entities)
+		{
+			return 0;
+		}
+
+		if (get_local_entity_type (child) == ENTITY_TYPE_SOUND_EFFECT)
+		{
+			raw = (sound_effect *) get_local_entity_data (child);
+
+			if (raw == NULL)
+			{
+				return 0;
+			}
+
+			(*sounds)++;
+
+			if (raw->eff.sub_type == sub)
+			{
+				(*of_type)++;
+			}
+		}
+	}
+
+	return 1;
+}
+
+static int env_snd_route_case (int index, char *text, int capacity, int *used)
+{
+	static const char *const names[ENV_SND_ROUTE_LAST - ENV_SND_ROUTE_FIRST + 1] = { "handle_invalid_server_unlink", "handle_direct_playback" };
+	sound_effect_information *lightning = &application_sound_effects[SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING];
+	sound_sample_indices one = SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING;
+	system_sound_effect *handle = &current_system_sound_effects[0];
+	struct env_snd_snap snaps[ENV_SND_SNAPS];
+	struct env_route_read before, after, final;
+	sound_effect *raw;
+	entity *a = NULL, *parent = get_session_entity ();
+	const entity_sub_types pause_sub = ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1;
+	const int unlink_case = (index == ENV_SND_ROUTE_FIRST);
+	int saved_rate = lightning->rate, saved_size = lightning->size, retail_rate = lightning->rate, retail_size = lightning->size;
+	int saved_flag = get_global_sound_effects_enabled (), flag_restored = 1;
+	int n = 0, calls = 0, installed = 0, live_after = 0, detached = 0, destroyed_by_fixture = 0, destroyed_by_original, i, descriptor_restored, delta_restored, short_of_slots;
+	int planned = unlink_case ? 3 : 1, cohort_before = 0, children_sound = 0, children_type = 0, paused = -1, ignored = 0, complete_before = 1, complete_after = 1, pause_called = 0;
+	int debug_log_on = command_line_debug_log;
+	int ui_muted = ui_sounds_muted, channel_muted = get_sound_channel_muted (0), channel_volume = get_sound_channel_volume (0);
+	float saved_delta = system_delta_time, delta = 1.0f, delay = 1.5f, range = 0.0f;
+	uint32_t one_word = 0x3f800000u;
+	const char *refusal = NULL;
+
+	memset (&before, 0, sizeof (before));
+	memset (&after, 0, sizeof (after));
+	memset (&final, 0, sizeof (final));
+
+	ENV_EMIT ("env-sound kind=control i=%d label=%s comms=%d\n", index, names[index - ENV_SND_ROUTE_FIRST], (int) get_comms_model ());
+
+	if (env_snd_facts (text, capacity, used, "control") != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-snd-unsupported item=playing_handle_with_a_device_buffer reason=a_playing_buffer_needs_a_sound_system_device_never_created_here_and_never_faked_only_the_buffer_absent_idle_record_is_exercised\n");
+	ENV_EMIT ("env-snd-unsupported item=handle_made_by_the_original_constructor reason=the_headless_constructor_returns_no_handle_so_the_record_is_controlled_test_state_and_not_an_original_product\n");
+
+	if (parent)
+	{
+		complete_before = env_route_cohort (parent, pause_sub, &ignored, &cohort_before);
+	}
+
+	if (get_comms_model () != COMMS_MODEL_SERVER)
+	{
+		refusal = "the_process_is_not_the_server_so_the_server_routine_cannot_be_observed";
+	}
+	else if (!parent)
+	{
+		refusal = "there_is_no_session_entity_to_parent_the_sound_effect";
+	}
+	else if (sound_system_initialised)
+	{
+		refusal = "the_sound_system_is_initialised_so_the_handle_records_may_belong_to_a_device";
+	}
+	else if (current_system_sound_effects[0].used)
+	{
+		refusal = "the_test_owned_handle_record_is_already_in_use";
+	}
+	else if (!env_snd_slots_free (1))
+	{
+		refusal = "there_is_no_free_entity_slot_for_the_real_constructor";
+	}
+	else if (unlink_case && !complete_before)
+	{
+		refusal = "the_cohort_census_of_the_session_children_is_incomplete_or_invalid_so_the_pause_walk_cannot_be_bounded";
+	}
+	else if (unlink_case && cohort_before != 0)
+	{
+		refusal = "the_session_already_has_children_of_the_paused_sub_type_so_the_pause_would_touch_other_real_children";
+	}
+	else if (!unlink_case && debug_log_on)
+	{
+		refusal = "the_debug_log_option_is_on_so_the_intentional_failed_assertions_would_reach_the_assert_log_stream_that_assert_c_leaves_closed";
+	}
+#if defined(DEBUG) || defined(DEBUG_ASSERT)
+	else if (!unlink_case)
+	{
+		refusal = "assertions_are_fatal_in_this_build_so_the_intentional_failed_assertions_would_stop_the_engine";
+	}
+#endif
+
+	if (refusal)
+	{
+		ENV_EMIT ("env-sound-end i=%d refused=%s changed=0 process_isolated=required\n", index, refusal);
+
+		return 0;
+	}
+
+	/* FROM HERE the entity cannot be put back (the process is the isolation boundary); on the normal-return path the descriptor, the delta and the option flag are restored, the tracking is turned off and the
+	   record is released and zeroed before any row is written (a fatal unwind does none of that: it poisons the engine and ends the process) */
+	if (unlink_case)
+	{
+		lightning->rate = 4;
+		lightning->size = 20;
+	}
+	else
+	{
+		set_global_sound_effects_enabled (TRUE);
+	}
+
+	eech_envobs_sound_track (1);
+
+	a = env_snd_data_make (unlink_case ? pause_sub : ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, unlink_case ? FALSE : TRUE, 1, &one);
+
+	if (a)
+	{
+		memset (handle, 0, sizeof (*handle));
+
+		handle->number_of_sequenced_samples = 1;
+		handle->sound_sample_sequence[0].sound_sample_index = (int) SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING;
+		handle->rate = ENV_ROUTE_RATE;
+		handle->volume = -1;
+		handle->paused = TRUE;
+		handle->playing = unlink_case ? FALSE : TRUE;
+		handle->looping = unlink_case ? FALSE : TRUE;
+		memcpy (&handle->pitch, &one_word, sizeof (handle->pitch));
+		handle->sound_buffer = NULL;
+		handle->user_data = NULL;
+		handle->used = TRUE;
+
+		raw = (sound_effect *) get_local_entity_data (a);
+		raw->sound_effect_data = handle;
+		installed = 1;
+
+		env_route_take (&before, handle);
+		env_snd_snap_take (&snaps[n++], 0, 0, a);
+
+		if (unlink_case)
+		{
+			/* the cohort is counted again with the entity in place; the REAL pause on the session is made only when the census is complete and valid and the cohort is exactly our own effect (the real pause walks the list without
+			   a bound and would invalidate any other child of the sub type); then the REAL server routine, while the entity is a live member of the update list. A census that fails now (after the entity exists) leaves the
+			   pause and the calls unmade and the report says so; the normal-return cleanup below still releases the record. */
+			complete_after = env_route_cohort (parent, pause_sub, &children_sound, &children_type);
+
+			if (complete_after && children_type == 1)
+			{
+				paused = pause_local_entity_sound_type (parent, pause_sub, delay);
+				pause_called = 1;
+				env_snd_snap_take (&snaps[n++], 0, 99, a);
+				calls = env_snd_data_calls (snaps, &n, 0, a, 1, delta, planned);
+			}
+		}
+		else
+		{
+			/* the REAL dispatch on the real child at the session range 0.0 and the main viewpoint (what scan_local_entity_sounds passes for a session effect) */
+			play_local_entity_sound (a, &main_vp, range);
+			calls = 1;
+			env_snd_snap_take (&snaps[n++], 0, 1, a);
+		}
+
+		env_route_take (&after, handle);
+
+		if (get_local_entity_type (a) == ENTITY_TYPE_SOUND_EFFECT && get_local_entity_data (a) != NULL)
+		{
+			live_after = 1;
+			raw = (sound_effect *) get_local_entity_data (a);
+
+			if (raw->sound_effect_data == handle)
+			{
+				raw->sound_effect_data = NULL;
+				detached = 1;
+			}
+		}
+
+		if (handle->used)
+		{
+			env_release_test_record (handle);
+			destroyed_by_fixture = 1;
+		}
+
+		memset (handle, 0, sizeof (*handle));
+
+		/* the ACTUAL final record: read back after the zeroing (the ownership facts come from `after`, taken before the fixture touched anything) */
+		env_route_take (&final, handle);
+	}
+
+	destroyed_by_original = installed && !destroyed_by_fixture && after.used == 0;
+
+	eech_envobs_sound_track (0);
+
+	system_delta_time = saved_delta;
+	delta_restored = system_delta_time == saved_delta;
+
+	lightning->rate = saved_rate;
+	lightning->size = saved_size;
+	descriptor_restored = lightning->rate == retail_rate && lightning->size == retail_size;
+
+	set_global_sound_effects_enabled (saved_flag);
+	flag_restored = get_global_sound_effects_enabled () == saved_flag;
+	short_of_slots = a == NULL;
+
+	/* nothing below changes the process: only rows are written */
+	/* the selected sample is the one the real constructor was given (the variable `one`, whose address env_snd_data_make passed on): its key and its enum index are declared here so the probe records can be joined to the input */
+	ENV_EMIT ("env-route-input tag=descriptor controlled=%d controlled_rate=%d controlled_size=%d retail_rate=%d retail_size=%d sample_key=ambient_lightning sample=%d\n", unlink_case, unlink_case ? 4 : 0, unlink_case ? 20 : 0,
+		retail_rate, retail_size, (int) one);
+	ENV_EMIT ("env-route-input tag=flags effects_enabled_before=%d ui_muted=%d channel_muted=%d channel_volume=%d\n", saved_flag != 0, ui_muted, channel_muted, channel_volume);
+	if (!unlink_case)
+	{
+		/* the recorded prerequisite of the intentional failed assertions (see the comment above): the assertion mode of this build and the debug log option, both checked before any change */
+		ENV_EMIT ("env-route-input tag=assert mode=logging debug_log=%d\n", debug_log_on != 0);
+	}
+
+	ENV_EMIT ("env-route-input tag=record origin=test_owned_static_record built_by=fixture buffer=absent device=none user_data=none initial_used=1 initial_playing=%d initial_paused=1 initial_volume=-1 rate=%d looping=%d\n",
+		!unlink_case, ENV_ROUTE_RATE, !unlink_case);
+
+	if (unlink_case)
+	{
+		ENV_EMIT ("env-route-input tag=pause sub=%d delay_w=%08x cohort_before=%d complete_before=%d children_sound=%d children_of_type=%d complete_after=%d called=%d returned=%d\n", (int) pause_sub, ENV_WORD (delay),
+			cohort_before, complete_before, children_sound, children_type, complete_after, pause_called, paused);
+		ENV_EMIT ("env-route-input tag=deltas calls=%d delta_w=%08x\n", planned, ENV_WORD (delta));
+	}
+	else
+	{
+		ENV_EMIT ("env-route-input tag=play range_w=%08x viewpoint=main_vp\n", ENV_WORD (range));
+	}
+
+	ENV_EMIT ("env-route-record tag=before installed=%d used=%d playing=%d paused=%d volume=%d rate=%d looping=%d panning=%d buffer_null=%d pitch_w=%08x\n", installed, before.used, before.playing, before.paused,
+		before.volume, before.rate, before.looping, before.panning, before.buffer_null, (unsigned int) before.pitch);
+
+	for (i = 0; i < n; i++)
+	{
+		const struct env_snd_snap *s = &snaps[i];
+
+		ENV_EMIT ("env-sound-state ent=%d slot=%d tag=%d etype=%d data=%d sub=%d valid=%d looping=%d member=%d handle=%d life_w=%08x vlife_w=%08x\n", s->ent, s->slot, s->tag, s->etype, s->data, s->sub, s->valid, s->looping, s->member,
+			s->handle, s->life, s->vlife);
+	}
+
+	ENV_EMIT ("env-route-record tag=after installed=%d used=%d playing=%d paused=%d volume=%d rate=%d looping=%d panning=%d buffer_null=%d pitch_w=%08x\n", installed, after.used, after.playing, after.paused,
+		after.volume, after.rate, after.looping, after.panning, after.buffer_null, (unsigned int) after.pitch);
+	ENV_EMIT ("env-route-cleanup installed=%d entity_live_after=%d detached=%d destroyed_by_original=%d destroyed_by_fixture=%d used_final=%d playing_final=%d paused_final=%d volume_final=%d buffer_null_final=%d\n", installed,
+		live_after, detached, destroyed_by_original, destroyed_by_fixture, final.used, final.playing, final.paused, final.volume, final.buffer_null);
+
+	if (eech_envobs_sound_report (text, capacity, used) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-sound-end i=%d changed=1 installed=%d entities=%d planned_entities=1 short_of_slots=%d calls=%d skipped=%d descriptor_restored=%d delta_restored=%d flag_restored=%d handle_released=%d process_isolated=required\n", index,
+		installed, a != NULL, short_of_slots, calls, planned - calls, descriptor_restored, delta_restored, flag_restored, installed ? (final.used == 0) : 1);
+
+	return 0;
+}
+
+/*
+ * GROUP 14 index 15 (TEST-ONLY, SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED): the ORIGINAL initialisation of the application sound system and of the sound sample data, as it ran during this process's boot, and the
+ * descriptor reads the sound effect constructor made since. READ-ONLY and NOT process-isolated: it creates nothing, draws nothing, opens nothing, calls no initialiser again and restores nothing (there is nothing to restore).
+ * Every row is an OBSERVATION of what the original code did, not an expectation of what it should do; the facts the report cannot give are printed as `env-sndinit-unsupported`.
+ *
+ * The facts come from the sound initialisation probe (ss_envfx.h ENV_FXA, csrc/eech_env_observer.c), which is armed by nothing and records from process start: hooks in the original routines read the command line flags,
+ * the backend result, the header counts and the descriptor table; the attempts to open sound.hdr and sound.dat and the calls of the null DirectSound entry points are counted where they happen in the platform layer.
+ * An old native without these hooks has no such case (the index is refused). The report ends with the shared seed word and the next free entity indices read before and after the report: they must be equal.
+ */
+
+#define ENV_SND_INIT_CASE 15
+
+extern int random_number_seed;
+extern int eech_envobs_sndinit_report (char *text, int capacity, int *used);
+
+static int env_snd_init_case (char *text, int capacity, int *used)
+{
+	int rng_before = random_number_seed;
+	int entity_before = get_next_free_entity_index ();
+	int local_before = get_next_free_local_entity_index ();
+
+	ENV_EMIT ("env-sndinit-plan version=1 read_only=1 process_isolated=not_needed comms=%d\n", (int) get_comms_model ());
+
+	if (eech_envobs_sndinit_report (text, capacity, used) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-sndinit-unsupported item=positive_playing_backend reason=the_headless_build_has_only_the_null_directsound_entry_points_so_no_device_exists_no_handle_is_created_or_faked\n");
+	ENV_EMIT ("env-sndinit-unsupported item=second_initialisation reason=initialising_an_already_booted_library_again_would_rewind_state_so_the_first_and_only_boot_initialisation_is_the_observation\n");
+	ENV_EMIT ("env-sndinit-unsupported item=sample_data_loaded_by_the_original_loader reason=load_application_sound_samples_runs_only_after_a_successful_backend_initialisation_so_the_data_files_are_read_here_for_the_header_only\n");
+	ENV_EMIT ("env-sndinit-unsupported item=other_descriptor_consumers reason=a_static_census_of_the_compiled_readers_is_in_the_documentation_the_probe_counts_the_constructor_reads_only\n");
+	ENV_EMIT ("env-sndinit-fingerprint rng_before_w=%08x rng_after_w=%08x entity_before=%d entity_after=%d local_before=%d local_after=%d unchanged=%d\n", (unsigned int) rng_before, (unsigned int) random_number_seed,
+		entity_before, get_next_free_entity_index (), local_before, get_next_free_local_entity_index (),
+		(rng_before == random_number_seed) && (entity_before == get_next_free_entity_index ()) && (local_before == get_next_free_local_entity_index ()));
+	ENV_EMIT ("env-sndinit-end changed=0 read_only=1\n");
+
+	return 0;
+}
+
+static int env_snd_case (int index, char *text, int capacity, int *used)
+{
+	static const char *const names[ENV_SND_CASES] = { "server_branch_ages_then_expires", "client_branch_ages_and_clamps", "playback_prerequisites" };
+	sound_sample_indices sample = SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING;
+	void (*update) (entity *en);
+	entity *en;
+	float saved_delta = system_delta_time;
+	int calls = 0;
+	float first = 0.1f, second = 1.0e6f;
+	const char *refusal = NULL;
+
+	if (index == 0)
+	{
+		ENV_EMIT ("env-snd-plan version=1 cases=%d process_isolated=required\n", ENV_SND_CASES);
+
+		if (env_snd_facts (text, capacity, used, "plan") != 0 || env_snd_unsupported (text, capacity, used) != 0)
+		{
+			return -1;
+		}
+
+		return eech_envobs_sound_report (text, capacity, used);
+	}
+
+	if (index >= ENV_SND_PAUSE_FIRST && index <= ENV_SND_PAUSE_LAST)
+	{
+		return env_snd_pause_case (index, text, capacity, used);
+	}
+
+	if (index == ENV_SND_INIT_CASE)
+	{
+		return env_snd_init_case (text, capacity, used);
+	}
+
+	if (index >= ENV_SND_HANDLE_FIRST && index <= ENV_SND_HANDLE_LAST)
+	{
+		return env_snd_handle_case (index, text, capacity, used);
+	}
+
+	if (index >= ENV_SND_ROUTE_FIRST && index <= ENV_SND_ROUTE_LAST)
+	{
+		return env_snd_route_case (index, text, capacity, used);
+	}
+
+	if (index > ENV_SND_CASES && index <= ENV_SND_DATA_LAST)
+	{
+		return env_snd_data_case (index, text, capacity, used);
+	}
+
+	if (index < 1 || index > ENV_SND_CASES)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-sound kind=control i=%d label=%s comms=%d\n", index, names[index - 1], (int) get_comms_model ());
+
+	if (env_snd_facts (text, capacity, used, "control") != 0)
+	{
+		return -1;
+	}
+
+	if (index == 3)
+	{
+		if (env_snd_unsupported (text, capacity, used) != 0)
+		{
+			return -1;
+		}
+
+		ENV_EMIT ("env-sound-end i=%d changed=0 process_isolated=required\n", index);
+
+		return 0;
+	}
+
+	if (get_comms_model () != COMMS_MODEL_SERVER)
+	{
+		refusal = "the_process_is_not_the_server_so_the_server_kill_cannot_be_observed";
+	}
+	else if (!get_session_entity ())
+	{
+		refusal = "there_is_no_session_entity_to_parent_the_sound_effect";
+	}
+	else if (get_next_free_entity_index () == ENTITY_INDEX_DONT_CARE)
+	{
+		/* the constructor takes the first free entity slot and dereferences the result: with none it would fault, so the control is refused rather than run */
+		refusal = "there_is_no_free_entity_slot_for_the_real_constructor";
+	}
+
+	if (refusal)
+	{
+		ENV_EMIT ("env-sound-end i=%d refused=%s changed=0 process_isolated=required\n", index, refusal);
+
+		return 0;
+	}
+
+	/* every row that can fail to fit is written BEFORE the entity exists and the delta or the tracking is touched, so no return leaves either changed */
+	ENV_EMIT ("env-sound-input tag=deltas first_w=%08x second_w=%08x\n", ENV_WORD (first), ENV_WORD (second));
+
+	/* the REAL constructor, with the lightning routine's arguments (a valid, non-looping, single-sample, neutral sound effect of the lightning sample, at the parent's position) */
+	eech_envobs_sound_track (1);
+
+	en = create_local_sound_effect_entity (ENTITY_INDEX_DONT_CARE, get_session_entity (), ENTITY_SIDE_NEUTRAL, ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, SOUND_CHANNEL_SOUND_EFFECT, SOUND_LOCALITY_ALL, NULL, 1.0f, 1.0f, TRUE,
+		FALSE, 1, &sample);
+
+	/* the REAL update routine of the branch, through the entity function table, at each delta. The entity's own sample data sets its lifetime and nothing here lengthens it: the server routine may kill it at the FIRST
+	   call (a short or empty sample), and the kill frees the sound data and clears the slot's type and data. Only that stable slot is read to know whether the entity is still a sound effect; if it is not, the second
+	   call is not made (it would read the freed data) and the report says so. */
+	update = (index == 1) ? fn_update_client_server_entity[ENTITY_TYPE_SOUND_EFFECT][COMMS_MODEL_SERVER] : fn_update_client_server_entity[ENTITY_TYPE_SOUND_EFFECT][COMMS_MODEL_CLIENT];
+
+	system_delta_time = (index == 1) ? first : second;
+	update (en);
+	calls = 1;
+
+	if (get_local_entity_type (en) == ENTITY_TYPE_SOUND_EFFECT && get_local_entity_data (en) != NULL)
+	{
+		system_delta_time = (index == 1) ? second : first;
+		update (en);
+		calls = 2;
+	}
+
+	system_delta_time = saved_delta;
+
+	eech_envobs_sound_track (0);
+
+	if (eech_envobs_sound_report (text, capacity, used) != 0)
+	{
+		return -1;
+	}
+
+	/* the entity slot after the calls: its type and whether it still holds data (the server's kill releases it), and how many calls were made */
+	ENV_EMIT ("env-sound-end i=%d changed=1 calls=%d second_skipped=%d etype_after=%d data_after=%d delta_restored=%d process_isolated=required\n", index, calls, calls == 1, (int) get_local_entity_type (en),
+		get_local_entity_data (en) != NULL, system_delta_time == saved_delta);
+
+	return 0;
+}
+
+#endif
+
+static int env_case_count (int group)
+{
+	switch (group)
+	{
+		case ENV_GROUP_WEATHER: return env_weather_count;
+		case ENV_GROUP_WIND: return env_wind_count;
+		case ENV_GROUP_GUST: return env_gust_count;
+		case ENV_GROUP_TIME: return env_time_count;
+		case ENV_GROUP_INIT: return ENV_INIT_COUNT;
+		case ENV_GROUP_UPDATE_TIME: return ENV_UPDATE_TIME_COUNT;
+		case ENV_GROUP_UPDATE_WEATHER: return ENV_UPDATE_WEATHER_COUNT;
+		default: return 1;
+	}
+}
+
+/* the entry: group 0 census, 1 retail snapshot (both read-only), 2.. the controlled witnesses (one case per call). Returns 0, or non-zero with a reason line in `text` */
+/* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   THE HELICOPTER ROTOR SWEEP (cases 16 and 17 of group 14; EEDCS-51, D3). CONTROLLED WORLD INPUT, NOT NATURAL COVERAGE: the natural calls of update_local_helicopter_rotor_sounds are recorded by the rotor probe
+   (eech_env_observer.c ENV_FXR) during the ordinary frames; these two cases run the ORIGINAL function itself, from the fixture, on one real helicopter of the loaded campaign with chosen stored inputs, so that the
+   thresholds and branches the natural run cannot reach are exercised. Nothing here claims that any sound plays: no backend, device, voice or handle exists or is faked, and the result says nothing about audibility.
+
+   THE BASELINE. The routine is characterised atop the already hosted baseline (weather, wind, session, lifetime, catalogue and backend exchanges): the build is never made with the host environment disabled.
+
+   AVAILABLE WITH OR WITHOUT THE OBSERVER. The case compiles in an env-fixture build WITHOUT the env-observer feature, where the original routine has NO hook (the uninstrumented body), and prints the OUTPUT WORDS the call left in the
+   sound children (`env-rotor-out`) and the floating point control and status around it (`env-rotor-fp`), read by this fixture alone. The same inputs on the same helicopter must print the same rows in an instrumented build,
+   armed or not: that comparison, not any entropy or heap fingerprint, is the evidence that the hooks left the rotor's numerical output and floating point state alone. It re-implements no rotor arithmetic.
+
+   PROCESS-ISOLATED AND MUTATING, declared and not hidden. The original function pauses and resumes sound children and writes their amplification and pitch, and the pause and resume helpers may change a child's valid flag and its
+   links; the case does NOT restore the children, so it must run in a process of its own, after the natural capture. It restores the things it sets itself on EVERY path after the first change: the helicopter's stored main rotor rpm, its
+   player kind, the current flight dynamics pointer and the rotor probe's phase. The report is STAGED in a bounded local buffer and copied out only after that restoration, and the case refuses BEFORE any change when the caller's buffer
+   cannot hold the whole staged report, so a short buffer can never leave a changed global behind.
+
+   UNASSIGNED LOCALS OF THE ORIGINAL AND THE CANONICAL BUILD CONTRACT. In the unchanged original routine, for a LOCAL player with a flight model, `right_turbine_amp` is assigned only when the two engines are more than 1.0 apart and `apu_amp` only when the
+   APU rpm is above 0, but the child switch reads them for any TURBINE2 or APU child. At the LANGUAGE level those reads are uninitialised and not functions of the recorded inputs. The accepted canonical whole-engine build, however, compiles EVERY legacy unit
+   and every csrc unit (this fixture, the observer and helicop.c) with `-ftrivial-auto-var-init=zero` (eech-engine-sys/build/main.rs, the single cc::Build that all of them join), so in the ARTIFACTS this case runs the unassigned locals are zero by that
+   existing compile contract. The routine is not changed or initialised here and no flag is added. Every table shape is therefore EXECUTED, and a shape whose unassigned local is actually read by a child of this helicopter is labelled
+   `compiler_zero_init` (a compiler-compatibility case: the output depends on the build's zero-auto-init contract, not on the recorded inputs alone); a shape whose unassigned local no child reads is `undefined_not_consumed`; the rest are `defined`.
+   The contract is DECLARED by the build source, not detected at run time (`auto_var_init=declared_by_build_main_rs_zero` in the plan row); an observed value is a measurement of that build only, and outside GCC-family builds with the flag (an MSVC build, any build
+   without it) the language-level limitation stands and these rows are not an oracle.
+   Case 16 keeps the helicopter's own AI player kind and the absent flight model (the natural headless branch: every value is assigned). Case 17 is the player-LOCAL / flight-model branch with an OWNED zeroed record; the acceleration
+   vector is used by the original for every player kind when a flight model exists, the engine and APU words only for the LOCAL kind. That branch has never run headless and is optional. */
+
+#define ENV_SND_ROTOR_AI_CASE 16
+#define ENV_SND_ROTOR_FD_CASE 17
+#define ENV_ROTOR_STAGE 30720
+#define ENV_ROTOR_MAX_CHILDREN 32
+
+#ifdef EECH_ENV_OBSERVER
+extern int eech_envobs_rotor_is_armed (void);
+extern void eech_envobs_rotor_phase (int phase);
+#endif
+
+struct env_rotor_input
+{
+	unsigned int rpm, ax, ay, az, lrpm, rrpm, apu;
+	/* by inspection of the original: 1 when the engines are within 1.0 of each other (right_turbine_amp unassigned), 1 when the APU rpm is not above 0 (apu_amp unassigned) */
+	int right_unassigned, apu_unassigned;
+};
+
+/* IEEE single words: 0, 10, the neighbours and values of the 30 and 45 thresholds, the midpoint 37.5, 60, 100 and -10 */
+static const unsigned int env_rotor_ai_rpm[] = {
+	0x00000000u, 0x41200000u, 0x41EFFFFFu, 0x41F00000u, 0x41F00001u, 0x42160000u, 0x4233FFFFu, 0x42340000u, 0x42340001u, 0x42700000u, 0x42C80000u, 0xC1200000u
+};
+
+/* rpm, acceleration vector, left and right engine rpm, APU rpm, then the two unassigned flags.
+   DEFINED shapes (engines more than 1.0 apart AND APU above 0): full looping with zero acceleration; acceleration (3,4,0) (magnitude 5); the clamp (30,0,0) at 37.5 rpm; rpm exactly 30 with acceleration 15 (looping off, slap paused);
+   the left engine exactly 1.0 (paused) and one ulp above it (resumed) against a right engine of 60; the right engine at 0.5 (paused); a huge APU and a tiny one; a stopped left engine.
+   UNASSIGNED-LOCAL shapes (labelled `compiler_zero_init` on a helicopter with a TURBINE2 or APU child, and executed in every case): equal engines; engines exactly 1.0 apart; APU 0. */
+static const struct env_rotor_input env_rotor_fd_inputs[] = {
+	{ 0x42480000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x42480000u, 0x42700000u, 0x40A00000u, 0, 0 },
+	{ 0x42480000u, 0x40400000u, 0x40800000u, 0x00000000u, 0x42480000u, 0x42700000u, 0x40A00000u, 0, 0 },
+	{ 0x42160000u, 0x41F00000u, 0x00000000u, 0x00000000u, 0x42480000u, 0x42700000u, 0x40A00000u, 0, 0 },
+	{ 0x41F00000u, 0x41700000u, 0x00000000u, 0x00000000u, 0x42480000u, 0x42700000u, 0x41200000u, 0, 0 },
+	{ 0x42480000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x3F800000u, 0x42700000u, 0x40A00000u, 0, 0 },
+	{ 0x42480000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x3F800001u, 0x42700000u, 0x40A00000u, 0, 0 },
+	{ 0x42480000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x42480000u, 0x3F000000u, 0x40A00000u, 0, 0 },
+	{ 0x42480000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x42480000u, 0x42700000u, 0x43480000u, 0, 0 },
+	{ 0x42480000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x42480000u, 0x42700000u, 0x3F000000u, 0, 0 },
+	{ 0x42C80000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x42700000u, 0x40A00000u, 0, 0 },
+	{ 0x42480000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x42480000u, 0x42480000u, 0x40A00000u, 1, 0 },
+	{ 0x42480000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x42480000u, 0x424C0000u, 0x40A00000u, 1, 0 },
+	{ 0x42480000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x42480000u, 0x424C0001u, 0x00000000u, 0, 1 },
+	{ 0x42480000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x42480000u, 0x42700000u, 0x00000000u, 0, 1 },
+	{ 0x42480000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x42480000u, 0x42480000u, 0x00000000u, 1, 1 }
+};
+
+/* the owned flight dynamics record of case 17: static, zero initialised, and never freed */
+static dynamics_type env_rotor_owned_flight_dynamics;
+
+/* the first helicopter of the update list whose player kind is AI, that has at most ENV_ROTOR_MAX_CHILDREN special-effect children (the probe's per-call limit) and at least one sound effect child; the counts are reported */
+static entity *env_rotor_pick (int *children, int *sound, int *turbine2, int *apu)
+{
+	entity *en, *child;
+	int total, sounds, t2, a;
+
+	for (en = get_local_entity_first_child (get_update_entity (), LIST_TYPE_UPDATE); en; en = get_local_entity_child_succ (en, LIST_TYPE_UPDATE))
+	{
+		if (en->type == ENTITY_TYPE_HELICOPTER && ((helicopter *) get_local_entity_data (en))->player == ENTITY_PLAYER_AI)
+		{
+			total = sounds = t2 = a = 0;
+
+			for (child = get_local_entity_first_child (en, LIST_TYPE_SPECIAL_EFFECT); child; child = get_local_entity_child_succ (child, LIST_TYPE_SPECIAL_EFFECT))
+			{
+				total++;
+
+				if (child->type == ENTITY_TYPE_SOUND_EFFECT)
+				{
+					sounds++;
+
+					if (((sound_effect *) get_local_entity_data (child))->eff.sub_type == ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE2)
+					{
+						t2++;
+					}
+
+					if (((sound_effect *) get_local_entity_data (child))->eff.sub_type == ENTITY_SUB_TYPE_EFFECT_SOUND_APU_TURBINE)
+					{
+						a++;
+					}
+				}
+			}
+
+			if (sounds > 0 && total <= ENV_ROTOR_MAX_CHILDREN)
+			{
+				*children = total;
+				*sound = sounds;
+				*turbine2 = t2;
+				*apu = a;
+
+				return en;
+			}
+		}
+	}
+
+	return NULL;
+}
+
+/* the stored words of the helicopter's sound children, in walk order, as `sub:amp_w:pitch_w` (or `-`); read by the fixture alone, with memcpy, after a call */
+static void env_rotor_output_words (entity *en, char *kids, int size)
+{
+	entity *child;
+	int used = 0, first = 1;
+
+	kids[0] = '\0';
+
+	for (child = get_local_entity_first_child (en, LIST_TYPE_SPECIAL_EFFECT); child; child = get_local_entity_child_succ (child, LIST_TYPE_SPECIAL_EFFECT))
+	{
+		if (child->type == ENTITY_TYPE_SOUND_EFFECT)
+		{
+			const sound_effect *se = (const sound_effect *) get_local_entity_data (child);
+			unsigned int amp, pitch;
+
+			memcpy (&amp, &se->amplification, sizeof (amp));
+			memcpy (&pitch, &se->pitch, sizeof (pitch));
+
+			if (append (kids, size, &used, "%s%u:%08x:%08x", first ? "" : ",", (unsigned int) se->eff.sub_type, amp, pitch) != 0)
+			{
+				return;
+			}
+
+			first = 0;
+		}
+	}
+
+	if (first)
+	{
+		append (kids, size, &used, "-");
+	}
+}
+
+static int env_rotor_refuse (char *text, int capacity, int *used, const char *reason)
+{
+	ENV_EMIT ("env-rotor-refused reason=%s\n", reason);
+	ENV_EMIT ("env-rotor-end refused=1 mutating=0 calls=0 skipped=0\n");
+
+	return 0;
+}
+
+static int env_rotor_case (int index, char *text, int capacity, int *used)
+{
+	const int fd_branch = (index == ENV_SND_ROTOR_FD_CASE);
+	static char stage[ENV_ROTOR_STAGE];
+	char kids[1536];
+	int stage_used = 0, stage_failed = 0, instrumented = 0, armed = 0;
+	entity *en;
+	helicopter *raw;
+	dynamics_type *saved_fd;
+	unsigned int saved_rpm;
+	int saved_player, children = 0, sound = 0, turbine2 = 0, apu = 0, calls = 0, skipped = 0, i, count;
+	int rng_before = random_number_seed;
+	int entity_before = get_next_free_entity_index ();
+	int local_before = get_next_free_local_entity_index ();
+
+#define ENV_ROTOR_STAGE_ROW(...) do { if (append (stage, ENV_ROTOR_STAGE, &stage_used, __VA_ARGS__) != 0) { stage_failed = 1; } } while (0)
+
+	/* BEFORE ANY CHANGE: the caller's buffer must hold the whole staged report, or the case refuses and nothing is changed */
+	if (capacity - *used < ENV_ROTOR_STAGE)
+	{
+		return -1;
+	}
+
+	if (!get_session_entity () || !get_update_entity ())
+	{
+		return env_rotor_refuse (text, capacity, used, "no_session_or_update_entity");
+	}
+
+#ifdef EECH_ENV_OBSERVER
+	instrumented = 1;
+	armed = eech_envobs_rotor_is_armed ();
+#endif
+
+	if (current_flight_dynamics != NULL)
+	{
+		return env_rotor_refuse (text, capacity, used, "a_flight_model_is_already_current_so_the_headless_ai_branch_is_not_the_starting_state");
+	}
+
+	en = env_rotor_pick (&children, &sound, &turbine2, &apu);
+
+	if (en == NULL)
+	{
+		return env_rotor_refuse (text, capacity, used, "no_ai_helicopter_with_a_sound_effect_child_and_at_most_32_special_effect_children_in_the_update_list");
+	}
+
+	raw = (helicopter *) get_local_entity_data (en);
+	saved_fd = current_flight_dynamics;
+	saved_player = raw->player;
+	memcpy (&saved_rpm, &raw->main_rotor_rpm, sizeof (saved_rpm));
+
+	ENV_ROTOR_STAGE_ROW ("env-rotor-plan version=1 case=%s process_isolated=required mutating=1 natural=0 phase=1 restores=main_rotor_rpm,player,flight_dynamics_pointer,probe_phase children_restored=0 instrumented=%d probe_armed=%d auto_var_init=declared_by_build_main_rs_zero\n",
+		fd_branch ? "player_local_and_flight_model" : "ai_rpm_sweep", instrumented, armed);
+	ENV_ROTOR_STAGE_ROW ("env-rotor-entity ent=%d player=%d special_effect_children=%d sound_children=%d turbine2_children=%d apu_children=%d fd=0\n", get_local_entity_index (en), saved_player, children, sound, turbine2, apu);
+
+	count = fd_branch ? (int) (sizeof (env_rotor_fd_inputs) / sizeof (env_rotor_fd_inputs[0])) : (int) (sizeof (env_rotor_ai_rpm) / sizeof (env_rotor_ai_rpm[0]));
+
+	/* ---- from here the case changes the helicopter and the globals; no return until they are restored ---- */
+	if (fd_branch)
+	{
+		memset (&env_rotor_owned_flight_dynamics, 0, sizeof (env_rotor_owned_flight_dynamics));
+		raw->player = ENTITY_PLAYER_LOCAL;
+		current_flight_dynamics = &env_rotor_owned_flight_dynamics;
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		struct env_rotor_input in;
+		const char *class_;
+		fexcept_t saved_flags;
+		int round_before, round_after, excepts;
+
+		memset (&in, 0, sizeof (in));
+
+		if (fd_branch)
+		{
+			in = env_rotor_fd_inputs[i];
+		}
+		else
+		{
+			in.rpm = env_rotor_ai_rpm[i];
+		}
+
+		class_ = ((in.right_unassigned && turbine2 > 0) || (in.apu_unassigned && apu > 0)) ? "compiler_zero_init" : ((in.right_unassigned || in.apu_unassigned) ? "undefined_not_consumed" : "defined");
+
+		memcpy (&raw->main_rotor_rpm, &in.rpm, sizeof (in.rpm));
+
+		if (fd_branch)
+		{
+			memcpy (&env_rotor_owned_flight_dynamics.model_acceleration_vector.x, &in.ax, sizeof (in.ax));
+			memcpy (&env_rotor_owned_flight_dynamics.model_acceleration_vector.y, &in.ay, sizeof (in.ay));
+			memcpy (&env_rotor_owned_flight_dynamics.model_acceleration_vector.z, &in.az, sizeof (in.az));
+			memcpy (&env_rotor_owned_flight_dynamics.left_engine_n1_rpm.value, &in.lrpm, sizeof (in.lrpm));
+			memcpy (&env_rotor_owned_flight_dynamics.right_engine_n1_rpm.value, &in.rrpm, sizeof (in.rrpm));
+			memcpy (&env_rotor_owned_flight_dynamics.apu_rpm.value, &in.apu, sizeof (in.apu));
+		}
+
+		/* the floating point status flags are saved, cleared for the call, read after it and put back; the rounding mode is read before and after */
+		fegetexceptflag (&saved_flags, FE_ALL_EXCEPT);
+		feclearexcept (FE_ALL_EXCEPT);
+		round_before = fegetround ();
+#ifdef EECH_ENV_OBSERVER
+		eech_envobs_rotor_phase (1);
+#endif
+		update_local_helicopter_rotor_sounds (en);
+#ifdef EECH_ENV_OBSERVER
+		eech_envobs_rotor_phase (0);
+#endif
+		round_after = fegetround ();
+		excepts = fetestexcept (FE_ALL_EXCEPT);
+		fesetexceptflag (&saved_flags, FE_ALL_EXCEPT);
+		calls++;
+
+		env_rotor_output_words (en, kids, (int) sizeof (kids));
+
+		ENV_ROTOR_STAGE_ROW ("env-rotor-sweep i=%d rpm_w=%08x ax_w=%08x ay_w=%08x az_w=%08x lrpm_w=%08x rrpm_w=%08x apu_w=%08x class=%s\n", i, in.rpm, in.ax, in.ay, in.az, in.lrpm, in.rrpm, in.apu, class_);
+		ENV_ROTOR_STAGE_ROW ("env-rotor-out i=%d kids=%s\n", i, kids);
+		ENV_ROTOR_STAGE_ROW ("env-rotor-fp i=%d round_before=%d round_after=%d excepts=%x\n", i, round_before, round_after, excepts);
+	}
+
+	/* restore what the case itself set, on the only path out; the sound children are NOT restored (declared above) */
+	raw->player = saved_player;
+	current_flight_dynamics = saved_fd;
+	memcpy (&raw->main_rotor_rpm, &saved_rpm, sizeof (saved_rpm));
+#ifdef EECH_ENV_OBSERVER
+	eech_envobs_rotor_phase (0);
+#endif
+
+	ENV_ROTOR_STAGE_ROW ("env-rotor-fingerprint rng_before_w=%08x rng_after_w=%08x entity_before=%d entity_after=%d local_before=%d local_after=%d\n", (unsigned int) rng_before, (unsigned int) random_number_seed,
+		entity_before, get_next_free_entity_index (), local_before, get_next_free_local_entity_index ());
+	ENV_ROTOR_STAGE_ROW ("env-rotor-end refused=0 mutating=1 calls=%d skipped=%d\n", calls, skipped);
+
+#undef ENV_ROTOR_STAGE_ROW
+
+	/* the globals are restored: only now may the report be copied out, and a staging overflow (not expected: the domain is bounded) refuses the case */
+	if (stage_failed)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("%s", stage);
+
+	return 0;
+}
+
+/* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   THE RESUMED-PARENT PLAYBACK CHARACTERISATION (cases 18, 19 and 20 of group 14; EEDCS-51, D3). SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED. CHARACTERISATION ONLY: nothing here moves, removes or guards any
+   behavior, and none of it is part of the shipping module.
+
+   THE QUESTION. soundeff.c play_resumed_parent_sound, NON-SESSION branch: for a parent that is not the session the original takes the range from the main viewpoint to the parent's position
+   (get_approx_3d_range) and calls play_local_entity_sound (en, vp, range), which is fn_play_local_entity_sound[type] (en, vp, range). Which function that reaches, for which parent types, is a fact of the RUNNING
+   engine (en_snd.c sets every entry to a default no-op; a per-family overload may replace one; the per-family sources fw_snd.c, hc_snd.c, aa_snd.c, rv_snd.c and sh_snd.c are not in the compiled source list and their
+   overload calls are commented out in the family function tables, which is a reading of the source and not a measurement). The probe (ss_envfx.h ENV_FXP, eech_env_observer.c) records the table at the end of its
+   default initialisation and every non-session call; these cases add a census of the table at any moment (18) and a controlled exercise of the REAL collaborators (19, 20).
+
+   CASE 18 (read-only): the dispatch table census now, plus the entity type numbers the report needs to name types, and the probe's armed state. It changes nothing and draws nothing.
+
+   CASE 19 (PROCESS-ISOLATED and MUTATING, declared; restores what it sets): for a real FIXED-WING (a parent of the engine looping sound effects its constructor made) and a real AI HELICOPTER (a parent of the rotor looping
+   sound effect) found in the update list, and for each of three positions of the main viewpoint relative to the parent (coincident, a middle offset, an offset far outside any sound range: controlled INPUT offsets along
+   x, added once to the parent's position), it runs the original pause (delay 0.0) and then resume of one sub-type on the parent through the real pause_local_entity_sound_type and resume_local_entity_sound_type, which
+   ask the host (SOUND_PAUSE_RESUME) and, when it says so, call play_resumed_parent_sound. Whether the real children exist is REPORTED (a target without them is refused by name; nothing is synthesised). For every step
+   it prints the children's validity, update-list membership and lifetime words BEFORE the pair and AFTER the resume (the raw states) and an FNV digest of each of the four states (before, after the pause, after the resume, after the restoration), the returned counts, the number of calls the
+   probe saw (-1 without the observer), the shared seed word and the standard fenv rounding and exception flags around the pair, whether the main viewpoint and every child's validity, valid lifetime and update-list
+   membership are back as they were, and the dispatch entry's identity. The range itself is the probe's `range_w` of the call the ORIGINAL made: this fixture computes no range, no expected value and no oracle.
+   Positions are inputs (an offset word is printed, never a coordinate).
+
+   CASE 20 is case 19 with a deliberate, test-only RECORDING function installed in the dispatch entries of the fixed-wing and the helicopter type for the duration (it records the type and the range word it is given
+   and does nothing else; the saved entries are put back on the one path out, and their restoration is reported). It is the meaningful red of the characterisation: the census inside it and the probe's calls must
+   identify a LIVE non-default consumer, not a setup error. It exists in this fixture only.
+
+   The report is staged in a bounded local buffer and copied out after everything is restored; the case refuses BEFORE any change if the caller's buffer cannot hold it.
+
+   THE CANDIDATE (probe protocol version 2; the cases above are unchanged C). soundeff.c play_resumed_parent_sound no longer computes the range or calls the entry when the parent's entry is the table's default no-op: it
+   elides the request (the probe's `env-play-elided` row, counted in the same total, so a step's `calls` is its number of elided requests and carries no range), and for a parent whose entry is NOT that default it stops the
+   engine by name ([env-play:unsupported_live_playback]) before any range or playback call. So case 19 runs as before with elided requests, and case 20, whose recording function makes the fixed-wing and helicopter
+   entries non-default, ends at the FIRST request in the engine's fatal handler: the engine is poisoned, nothing is restored (the case is process-isolated) and no report text comes back; that fatal message is the
+   evidence, and a report that DID come back would mean the unsupported boundary was not reached. The recording function is therefore never given a call by a supported candidate. */
+
+#define ENV_PLAY_CENSUS_CASE 18
+#define ENV_PLAY_RUN_CASE 19
+#define ENV_PLAY_OVERLOAD_CASE 20
+#define ENV_PLAY_STAGE 16384
+#define ENV_PLAY_CHILDREN 8
+/* the most calls the recording function can be given: every matching child (at most ENV_PLAY_CHILDREN, which the preflight enforces before anything is changed) of the two targets, at the three positions, is resumed
+   at most once; 8 * 3 * 2 = 48.  A count beyond it cannot happen; if it ever did the case would mark its report incomplete instead of printing a prefix. */
+#define ENV_PLAY_RECORDS 48
+
+#ifdef EECH_ENV_OBSERVER
+extern int eech_envobs_play_census_line (char *text, int capacity, int *used, const char *tag);
+extern int eech_envobs_play_is_armed (void);
+extern void eech_envobs_play_phase (int phase);
+extern uint32_t eech_envobs_play_total (void);
+#endif
+
+struct env_play_child
+{
+	int valid, member;
+	uint32_t life, vlife;
+};
+
+struct env_play_state
+{
+	int total, matching, complete;
+	struct env_play_child child[ENV_PLAY_CHILDREN];
+};
+
+/* the sound effect children of `parent` (bounded by the number of entities, a longer list being a broken list), and for those of `sub` their validity, update-list membership and lifetime words */
+static void env_play_state_take (struct env_play_state *s, entity *parent, entity_sub_types sub)
+{
+	entity *child;
+	int visited = 0;
+
+	memset (s, 0, sizeof (*s));
+
+	/* `complete` is 1 only if the walk reached the end of the list; a state with more than ENV_PLAY_CHILDREN matching children keeps the first ENV_PLAY_CHILDREN, so it is complete only when matching fits */
+	s->complete = 1;
+
+	for (child = get_local_entity_first_child (parent, LIST_TYPE_SPECIAL_EFFECT); child; child = get_local_entity_child_succ (child, LIST_TYPE_SPECIAL_EFFECT))
+	{
+		if (++visited > number_of_entities)
+		{
+			s->complete = 0;
+
+			break;
+		}
+
+		if (get_local_entity_type (child) == ENTITY_TYPE_SOUND_EFFECT)
+		{
+			sound_effect *raw = (sound_effect *) get_local_entity_data (child);
+
+			s->total++;
+
+			if (raw->eff.sub_type == sub)
+			{
+				if (s->matching < ENV_PLAY_CHILDREN)
+				{
+					struct env_play_child *c = &s->child[s->matching];
+
+					c->valid = raw->valid_sound_effect != 0;
+					c->member = raw->eff.update_link.parent != NULL;
+
+					memcpy (&c->life, &raw->effect_lifetime, sizeof (c->life));
+					memcpy (&c->vlife, &raw->valid_effect_lifetime, sizeof (c->vlife));
+				}
+
+				s->matching++;
+			}
+		}
+	}
+
+	if (s->matching > ENV_PLAY_CHILDREN)
+	{
+		s->complete = 0;
+	}
+}
+
+static uint32_t env_play_mix (uint32_t h, uint32_t value)
+{
+	int b;
+
+	for (b = 0; b < 4; b++)
+	{
+		h ^= (value >> (8 * b)) & 0xffu;
+		h *= 16777619u;
+	}
+
+	return h;
+}
+
+/* FNV-1a over every word of the state */
+static uint32_t env_play_digest (const struct env_play_state *s)
+{
+	uint32_t h = 2166136261u;
+	int i;
+
+	h = env_play_mix (h, (uint32_t) s->total);
+	h = env_play_mix (h, (uint32_t) s->matching);
+	h = env_play_mix (h, (uint32_t) s->complete);
+
+	for (i = 0; i < s->matching && i < ENV_PLAY_CHILDREN; i++)
+	{
+		h = env_play_mix (h, (uint32_t) s->child[i].valid);
+		h = env_play_mix (h, (uint32_t) s->child[i].member);
+		h = env_play_mix (h, s->child[i].life);
+		h = env_play_mix (h, s->child[i].vlife);
+	}
+
+	return h;
+}
+
+static void env_play_state_text (char *text, int size, const struct env_play_state *s)
+{
+	int used = 0, i;
+
+	text[0] = '\0';
+
+	if (s->matching == 0)
+	{
+		append (text, size, &used, "-");
+
+		return;
+	}
+
+	for (i = 0; i < s->matching && i < ENV_PLAY_CHILDREN; i++)
+	{
+		if (append (text, size, &used, "%s%d:%d:%08x:%08x", (i == 0) ? "" : ",", s->child[i].valid, s->child[i].member, s->child[i].vlife, s->child[i].life) != 0)
+		{
+			return;
+		}
+	}
+}
+
+/* puts the validity, valid lifetime and update-list membership of the matching children back as `saved` has them (the effect lifetime is only compared); a sub-type with no children is a no-op */
+static void env_play_restore (entity *parent, entity_sub_types sub, const struct env_play_state *saved)
+{
+	entity *child;
+	int visited = 0, index = 0;
+
+	for (child = get_local_entity_first_child (parent, LIST_TYPE_SPECIAL_EFFECT); child; child = get_local_entity_child_succ (child, LIST_TYPE_SPECIAL_EFFECT))
+	{
+		if (++visited > number_of_entities)
+		{
+			break;
+		}
+
+		if (get_local_entity_type (child) == ENTITY_TYPE_SOUND_EFFECT && ((sound_effect *) get_local_entity_data (child))->eff.sub_type == sub)
+		{
+			if (index < ENV_PLAY_CHILDREN && index < saved->matching)
+			{
+				sound_effect *raw = (sound_effect *) get_local_entity_data (child);
+				const struct env_play_child *c = &saved->child[index];
+				int member = raw->eff.update_link.parent != NULL;
+
+				raw->valid_sound_effect = c->valid;
+
+				memcpy (&raw->valid_effect_lifetime, &c->vlife, sizeof (c->vlife));
+
+				if (member && !c->member)
+				{
+					delete_local_entity_from_parents_child_list (child, LIST_TYPE_UPDATE);
+				}
+				else if (!member && c->member)
+				{
+					insert_local_entity_into_parents_child_list (child, LIST_TYPE_UPDATE, get_update_entity (), NULL);
+				}
+			}
+
+			index++;
+		}
+	}
+}
+
+/* the first entity of the update list of type `etype` (an AI helicopter when `ai_only`) that has a sound effect child of sub-type `sub`; the counts of its special-effect children, sound effect children, children of `sub`
+   and children of `second` are reported (a prerequisite that is absent is reported, never created).  `status` is 0 when found, 1 when there is none (genuine absence) and 2 when the walk could not be completed within the
+   number of entities or the first candidate has more than ENV_PLAY_CHILDREN matching children: the fixture's rollback (state, digest, restore) covers at most ENV_PLAY_CHILDREN, so a larger cohort is REFUSED by the case
+   before anything is changed and never truncated into a restoration claim. */
+static entity *env_play_pick (int etype, int ai_only, entity_sub_types sub, entity_sub_types second, int *special, int *sound, int *matching, int *second_count, int *status)
+{
+	entity *en, *child;
+	int s, k, m, t, outer = 0, inner;
+
+	*status = 1;
+
+	for (en = get_local_entity_first_child (get_update_entity (), LIST_TYPE_UPDATE); en; en = get_local_entity_child_succ (en, LIST_TYPE_UPDATE))
+	{
+		if (++outer > number_of_entities)
+		{
+			*status = 2;
+
+			return NULL;
+		}
+
+		if (en->type != etype)
+		{
+			continue;
+		}
+
+		if (ai_only && ((helicopter *) get_local_entity_data (en))->player != ENTITY_PLAYER_AI)
+		{
+			continue;
+		}
+
+		s = k = m = t = inner = 0;
+
+		for (child = get_local_entity_first_child (en, LIST_TYPE_SPECIAL_EFFECT); child; child = get_local_entity_child_succ (child, LIST_TYPE_SPECIAL_EFFECT))
+		{
+			if (++inner > number_of_entities)
+			{
+				*status = 2;
+
+				return NULL;
+			}
+
+			s++;
+
+			if (child->type == ENTITY_TYPE_SOUND_EFFECT)
+			{
+				k++;
+
+				if (((sound_effect *) get_local_entity_data (child))->eff.sub_type == sub)
+				{
+					m++;
+				}
+
+				if (((sound_effect *) get_local_entity_data (child))->eff.sub_type == second)
+				{
+					t++;
+				}
+			}
+		}
+
+		if (m > 0)
+		{
+			*special = s;
+			*sound = k;
+			*matching = m;
+			*second_count = t;
+			*status = (m > ENV_PLAY_CHILDREN) ? 2 : 0;
+
+			return (m > ENV_PLAY_CHILDREN) ? NULL : en;
+		}
+	}
+
+	return NULL;
+}
+
+/* the deliberate test-only consumer of case 20: it records the type and the range word it is given and does nothing else */
+static unsigned int env_play_recorded;
+static unsigned int env_play_recorded_type[ENV_PLAY_RECORDS];
+static unsigned int env_play_recorded_range[ENV_PLAY_RECORDS];
+
+static void env_play_recording_overload (entity *en, viewpoint *vp, float range)
+{
+	(void) vp;
+
+	if (env_play_recorded < ENV_PLAY_RECORDS)
+	{
+		env_play_recorded_type[env_play_recorded] = (unsigned int) en->type;
+
+		memcpy (&env_play_recorded_range[env_play_recorded], &range, sizeof (range));
+	}
+
+	env_play_recorded++;
+}
+
+static int env_play_default_entry (int etype)
+{
+	return fn_play_local_entity_sound[etype] == fn_play_local_entity_sound[0];
+}
+
+static int env_play_census_case (char *text, int capacity, int *used)
+{
+	int armed = 0;
+
+#ifdef EECH_ENV_OBSERVER
+	armed = eech_envobs_play_is_armed ();
+#endif
+
+	ENV_EMIT ("env-play-plan version=1 case=census mutating=0 natural=1 probe=%s armed=%d\n", armed ? "present" : "absent_or_unarmed", armed);
+	ENV_EMIT ("env-play-types fixed_wing=%d helicopter=%d sound_effect=%d session=%d routed_vehicle=%d ship_vehicle=%d anti_aircraft=%d entries=%d\n", (int) ENTITY_TYPE_FIXED_WING, (int) ENTITY_TYPE_HELICOPTER,
+		(int) ENTITY_TYPE_SOUND_EFFECT, (int) ENTITY_TYPE_SESSION, (int) ENTITY_TYPE_ROUTED_VEHICLE, (int) ENTITY_TYPE_SHIP_VEHICLE, (int) ENTITY_TYPE_ANTI_AIRCRAFT, (int) NUM_ENTITY_TYPES);
+
+#ifdef EECH_ENV_OBSERVER
+	if (eech_envobs_play_census_line (text, capacity, used, "now") != 0)
+	{
+		return -1;
+	}
+#else
+	ENV_EMIT ("env-play-census tag=now entries=%d default=unknown nondefault=unknown types=- over=0 reason=the_build_has_no_observer\n", (int) NUM_ENTITY_TYPES);
+#endif
+
+	ENV_EMIT ("env-play-end case=census refused=0 mutating=0\n");
+
+	return 0;
+}
+
+static int env_play_refuse (char *text, int capacity, int *used, const char *reason)
+{
+	ENV_EMIT ("env-play-refused reason=%s\n", reason);
+	ENV_EMIT ("env-play-end case=run refused=1 mutating=0 steps=0\n");
+
+	return 0;
+}
+
+static int env_play_case (int index, char *text, int capacity, int *used)
+{
+	const int overload = (index == ENV_PLAY_OVERLOAD_CASE);
+	static char stage[ENV_PLAY_STAGE];
+	static const char *const position_names[3] = { "coincident", "middle", "outside" };
+	static const float position_offsets[3] = { 0.0f, 2500.0f, 20000.0f };
+	struct
+	{
+		const char *name;
+		int etype, ai_only, special, sound, matching, second_count;
+		entity_sub_types sub, second;
+		entity *en;
+		void (*saved) (entity *en, viewpoint *vp, float range);
+	} target[2] = {
+		{ "fixed_wing", ENTITY_TYPE_FIXED_WING, 0, 0, 0, 0, 0, ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1, ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING2, NULL, NULL },
+		{ "helicopter", ENTITY_TYPE_HELICOPTER, 1, 0, 0, 0, 0, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_LOOPING, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_SLAP, NULL, NULL }
+	};
+	int stage_used = 0, stage_failed = 0, instrumented = 0, armed = 0, steps = 0, found = 0, installed = 0, overload_restored = 1, domain_exceeded = 0, status, t, p, i;
+	int rng_start = random_number_seed;
+	int entity_before = get_next_free_entity_index ();
+	int local_before = get_next_free_local_entity_index ();
+
+#define ENV_PLAY_ROW(...) do { if (append (stage, ENV_PLAY_STAGE, &stage_used, __VA_ARGS__) != 0) { stage_failed = 1; } } while (0)
+
+	/* BEFORE ANY CHANGE: the caller's buffer must hold the whole staged report, or the case refuses and nothing is changed */
+	if (capacity - *used < ENV_PLAY_STAGE)
+	{
+		return -1;
+	}
+
+	if (!get_session_entity () || !get_update_entity ())
+	{
+		return env_play_refuse (text, capacity, used, "no_session_or_update_entity");
+	}
+
+#ifdef EECH_ENV_OBSERVER
+	instrumented = 1;
+	armed = eech_envobs_play_is_armed ();
+#endif
+
+	for (t = 0; t < 2; t++)
+	{
+		target[t].en = env_play_pick (target[t].etype, target[t].ai_only, target[t].sub, target[t].second, &target[t].special, &target[t].sound, &target[t].matching, &target[t].second_count, &status);
+
+		found += target[t].en != NULL;
+		domain_exceeded += (status == 2);
+	}
+
+	/* BEFORE ANY CHANGE: a cohort or a walk outside the rollback domain refuses the whole case, consistently (the other target is not run alone) */
+	if (domain_exceeded)
+	{
+		return env_play_refuse (text, capacity, used, "a_target_has_more_matching_children_than_the_eight_child_rollback_domain_or_a_scan_did_not_finish_nothing_was_changed");
+	}
+
+	ENV_PLAY_ROW ("env-play-plan version=1 case=%s process_isolated=required mutating=1 natural=0 phase=1 restores=main_vp,sound_child_valid,sound_child_valid_lifetime,update_list_membership,dispatch_entries instrumented=%d armed=%d overload=%d unit_offsets_w=%08x,%08x,%08x\n",
+		overload ? "overload" : "run", instrumented, armed, overload, ENV_WORD (position_offsets[0]), ENV_WORD (position_offsets[1]), ENV_WORD (position_offsets[2]));
+
+	for (t = 0; t < 2; t++)
+	{
+		if (target[t].en == NULL)
+		{
+			ENV_PLAY_ROW ("env-play-target kind=%s present=0 reason=no_such_entity_in_the_update_list_with_the_sound_effect_child_nothing_is_synthesised\n", target[t].name);
+		}
+		else
+		{
+			ENV_PLAY_ROW ("env-play-target kind=%s present=1 ent=%d etype=%d sub=%d special_effect_children=%d sound_children=%d matching_children=%d second_sub=%d second_children=%d default_entry=%d\n", target[t].name,
+				get_local_entity_index (target[t].en), (int) target[t].en->type, (int) target[t].sub, target[t].special, target[t].sound, target[t].matching, (int) target[t].second, target[t].second_count,
+				env_play_default_entry (target[t].etype));
+		}
+	}
+
+	if (found == 0)
+	{
+		return env_play_refuse (text, capacity, used, "neither_a_fixed_wing_nor_an_ai_helicopter_with_the_sound_effect_child_is_in_the_update_list");
+	}
+
+	/* FROM HERE EVERYTHING THE CASE CHANGES IS PUT BACK, on the one path out */
+#ifdef EECH_ENV_OBSERVER
+	eech_envobs_play_phase (1);
+#endif
+
+	if (overload)
+	{
+		for (t = 0; t < 2; t++)
+		{
+			target[t].saved = fn_play_local_entity_sound[target[t].etype];
+			fn_play_local_entity_sound[target[t].etype] = env_play_recording_overload;
+			installed++;
+		}
+
+		env_play_recorded = 0;
+
+#ifdef EECH_ENV_OBSERVER
+		if (eech_envobs_play_census_line (stage, ENV_PLAY_STAGE, &stage_used, "inside_overload") != 0)
+		{
+			stage_failed = 1;
+		}
+#endif
+	}
+
+	for (t = 0; t < 2; t++)
+	{
+		for (p = 0; p < 3 && target[t].en != NULL; p++)
+		{
+			entity *en = target[t].en;
+			viewpoint saved_vp = main_vp;
+			struct env_play_state before, paused, resumed, restored;
+			char before_text[512], resumed_text[512];
+			fexcept_t saved_flags;
+			vec3d *position = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
+			int pause_returned, resume_returned, round_entry, round_before, round_after, excepts, seed_before, seed_after, calls = -1, vp_restored, state_restored, default_entry;
+			uint32_t total_before = 0;
+
+			/* THE CALLER'S standard fenv environment (the exception flags and the rounding mode: not the x87 or SSE control words) is saved BEFORE anything is set up, so that the setup below (the float addition
+			   that places the viewpoint may raise a flag) is not mistaken for the caller's state, and it is put back at the one cleanup of the step. */
+			fegetexceptflag (&saved_flags, FE_ALL_EXCEPT);
+			round_entry = fegetround ();
+
+			env_play_state_take (&before, en, target[t].sub);
+
+			/* the cohort was bounded by the preflight; a state that is not complete now stops the step BEFORE any change, and the report is then refused as incomplete */
+			if (!before.complete)
+			{
+				stage_failed = 1;
+
+				continue;
+			}
+
+			/* the controlled INPUT: the main viewpoint is put at the parent's position plus an offset along x */
+			main_vp.position = *position;
+			main_vp.position.x += position_offsets[p];
+
+			default_entry = env_play_default_entry (target[t].etype);
+			seed_before = random_number_seed;
+
+			/* the measurement window of the original pair: its own flags, cleared here, are read below */
+			feclearexcept (FE_ALL_EXCEPT);
+			round_before = fegetround ();
+
+#ifdef EECH_ENV_OBSERVER
+			total_before = eech_envobs_play_total ();
+#endif
+
+			pause_returned = pause_local_entity_sound_type (en, target[t].sub, 0.0f);
+
+			env_play_state_take (&paused, en, target[t].sub);
+
+			resume_returned = resume_local_entity_sound_type (en, target[t].sub);
+
+#ifdef EECH_ENV_OBSERVER
+			calls = (int) (eech_envobs_play_total () - total_before);
+#endif
+			(void) total_before;
+
+			round_after = fegetround ();
+			excepts = fetestexcept (FE_ALL_EXCEPT);
+
+			/* the one cleanup of the floating-point environment: the caller's flags and rounding mode as they were at the entry of the step */
+			fesetexceptflag (&saved_flags, FE_ALL_EXCEPT);
+
+			if (fegetround () != round_entry)
+			{
+				fesetround (round_entry);
+			}
+
+			seed_after = random_number_seed;
+
+			env_play_state_take (&resumed, en, target[t].sub);
+
+			/* back as it was */
+			main_vp = saved_vp;
+			env_play_restore (en, target[t].sub, &before);
+			env_play_state_take (&restored, en, target[t].sub);
+
+			vp_restored = memcmp (&main_vp, &saved_vp, sizeof (main_vp)) == 0;
+			state_restored = restored.complete && env_play_digest (&restored) == env_play_digest (&before);
+
+			env_play_state_text (before_text, sizeof (before_text), &before);
+			env_play_state_text (resumed_text, sizeof (resumed_text), &resumed);
+
+			ENV_PLAY_ROW ("env-play-step kind=%s ent=%d etype=%d sub=%d pos=%s offset_w=%08x default_entry=%d pause_returned=%d resume_returned=%d calls=%d rng_before=%d rng_after=%d round_before=%d round_after=%d excepts=%x "
+				"digest_before=%08x digest_paused=%08x digest_resumed=%08x digest_restored=%08x vp_restored=%d state_restored=%d before=%s resumed=%s\n",
+				target[t].name, get_local_entity_index (en), (int) en->type, (int) target[t].sub, position_names[p], ENV_WORD (position_offsets[p]), default_entry, pause_returned, resume_returned, calls, seed_before,
+				seed_after, round_before, round_after, (unsigned int) excepts, env_play_digest (&before), env_play_digest (&paused), env_play_digest (&resumed), env_play_digest (&restored), vp_restored, state_restored,
+				before_text, resumed_text);
+
+			steps++;
+		}
+	}
+
+	if (overload)
+	{
+		for (t = 0; t < 2; t++)
+		{
+			fn_play_local_entity_sound[target[t].etype] = target[t].saved;
+			overload_restored = overload_restored && (fn_play_local_entity_sound[target[t].etype] == target[t].saved);
+		}
+
+		/* a count beyond the storage cannot happen (the preflight bounds the cohort); if it did, the report is marked incomplete and refused, never printed as a prefix */
+		if (env_play_recorded > ENV_PLAY_RECORDS)
+		{
+			stage_failed = 1;
+		}
+
+		for (i = 0; i < (int) env_play_recorded && i < ENV_PLAY_RECORDS; i++)
+		{
+			ENV_PLAY_ROW ("env-play-recorded n=%d type=%u range_w=%08x\n", i, env_play_recorded_type[i], env_play_recorded_range[i]);
+		}
+
+		ENV_PLAY_ROW ("env-play-overload installed=%d recorded=%u restored=%d\n", installed, env_play_recorded, overload_restored);
+	}
+
+#ifdef EECH_ENV_OBSERVER
+	eech_envobs_play_phase (0);
+#endif
+
+	ENV_PLAY_ROW ("env-play-end case=%s refused=0 mutating=1 steps=%d rng_start=%d rng_end=%d entity_index_unchanged=%d local_index_unchanged=%d stage_ok=%d\n", overload ? "overload" : "run", steps, rng_start, random_number_seed,
+		entity_before == get_next_free_entity_index (), local_before == get_next_free_local_entity_index (), !stage_failed);
+
+	if (stage_failed)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("%s", stage);
+
+	return 0;
+}
+
+int eech_env_case_run (int group, int index, char *text, int capacity)
+{
+	int used_value = 0, *used = &used_value;
+	struct env_saved_state saved;
+	uint64_t before, after;
+	int rc;
+
+	text[0] = '\0';
+	env_build_tables ();
+
+	if (!get_session_entity ())
+	{
+		append (text, capacity, used, "env-case-error reason=no_session_entity\n");
+
+		return -1;
+	}
+	if (group < ENV_GROUP_CENSUS || group > ENV_GROUP_LAST)
+	{
+		append (text, capacity, used, "env-case-error reason=group_out_of_range group=%d\n", group);
+
+		return -1;
+	}
+	if (group == ENV_GROUP_CENSUS || group == ENV_GROUP_SNAPSHOT)
+	{
+		/* read-only: nothing to restore */
+		if ((group == ENV_GROUP_CENSUS ? env_census (text, capacity, used) : env_snapshot (text, capacity, used)) != 0)
+		{
+			text[0] = 0;
+			used_value = 0;
+			append (text, capacity, used, "env-case-error reason=report_did_not_fit group=%d\n", group);
+
+			return -1;
+		}
+
+		return 0;
+	}
+	if (group == ENV_GROUP_CONTROLLED)
+	{
+		if (index < 0 || index >= ENV_CONTROLLED_COUNT || env_controlled_case (index, text, capacity, used) != 0)
+		{
+			text[0] = 0;
+			used_value = 0;
+			append (text, capacity, used, "env-case-error reason=controlled_case_refused group=9 index=%d\n", index);
+
+			return -1;
+		}
+
+		return 0;
+	}
+
+	if (group == ENV_GROUP_SECTOR)
+	{
+		/* explicit only (never part of the default run, the census or the witness set): it reads the loaded sectors and restores the one scratch it writes */
+		if (env_sector_case (index, text, capacity, used) != 0)
+		{
+			text[0] = 0;
+			used_value = 0;
+			append (text, capacity, used, "env-case-error reason=sector_case_refused group=10 index=%d\n", index);
+
+			return -1;
+		}
+
+		return 0;
+	}
+
+	if (group == ENV_GROUP_SOUND)
+	{
+		/* explicit only (never part of the default run, the census or the witness set): the case brackets its own save and restore (env_sound_case), whatever its body returns */
+		if (env_sound_case (index, text, capacity, used) != 0)
+		{
+			text[0] = 0;
+			used_value = 0;
+			append (text, capacity, used, "env-case-error reason=sound_case_refused_or_report_did_not_fit group=11 index=%d\n", index);
+
+			return -1;
+		}
+
+		return 0;
+	}
+
+	if (group == ENV_GROUP_WIDE)
+	{
+		/* explicit only; PROCESS-ISOLATED like group 9: it creates entities, which cannot be put back (see env_wide_case) */
+		if (env_wide_case (index, text, capacity, used) != 0)
+		{
+			text[0] = 0;
+			used_value = 0;
+			append (text, capacity, used, "env-case-error reason=wide_case_refused_or_report_did_not_fit group=12 index=%d\n", index);
+
+			return -1;
+		}
+
+		return 0;
+	}
+
+	if (group == ENV_GROUP_LIGHTNING)
+	{
+		/* explicit only; the cases 1 to 4 are PROCESS-ISOLATED (the strike queue cannot be put back, see env_lightning_case); needs the env-observer build */
+#ifdef EECH_ENV_OBSERVER
+		if (env_lightning_case (index, text, capacity, used) != 0)
+		{
+			text[0] = 0;
+			used_value = 0;
+			append (text, capacity, used, "env-case-error reason=lightning_case_refused_or_report_did_not_fit group=13 index=%d\n", index);
+
+			return -1;
+		}
+
+		return 0;
+#else
+		append (text, capacity, used, "env-case-error reason=lightning_queue_needs_the_env_observer_build group=13 index=%d\n", index);
+
+		return -1;
+#endif
+	}
+
+	if (group == ENV_GROUP_SOUND_LIFETIME && (index == ENV_SND_ROTOR_AI_CASE || index == ENV_SND_ROTOR_FD_CASE))
+	{
+		/* explicit only; PROCESS-ISOLATED and MUTATING (see env_rotor_case); available with or without the env-observer build, so the uninstrumented original body can be compared with the instrumented one */
+		if (env_rotor_case (index, text, capacity, used) != 0)
+		{
+			text[0] = 0;
+			used_value = 0;
+			append (text, capacity, used, "env-case-error reason=rotor_case_refused_or_report_did_not_fit group=14 index=%d\n", index);
+
+			return -1;
+		}
+
+		return 0;
+	}
+
+	if (group == ENV_GROUP_SOUND_LIFETIME && (index == ENV_PLAY_CENSUS_CASE || index == ENV_PLAY_RUN_CASE || index == ENV_PLAY_OVERLOAD_CASE))
+	{
+		/* explicit only; case 18 is read-only, cases 19 and 20 are PROCESS-ISOLATED and MUTATING but restore what they set (see env_play_case); available with or without the env-observer build */
+		if ((index == ENV_PLAY_CENSUS_CASE) ? env_play_census_case (text, capacity, used) : env_play_case (index, text, capacity, used))
+		{
+			text[0] = 0;
+			used_value = 0;
+			append (text, capacity, used, "env-case-error reason=play_case_refused_or_report_did_not_fit group=14 index=%d\n", index);
+
+			return -1;
+		}
+
+		return 0;
+	}
+
+	if (group == ENV_GROUP_SOUND_LIFETIME)
+	{
+		/* explicit only; the cases 1 and 2 are PROCESS-ISOLATED (they create an entity, which cannot be put back, see env_snd_case); needs the env-observer build */
+#ifdef EECH_ENV_OBSERVER
+		if (env_snd_case (index, text, capacity, used) != 0)
+		{
+			text[0] = 0;
+			used_value = 0;
+			append (text, capacity, used, "env-case-error reason=sound_lifetime_case_refused_or_report_did_not_fit group=14 index=%d\n", index);
+
+			return -1;
+		}
+
+		return 0;
+#else
+		append (text, capacity, used, "env-case-error reason=sound_lifetime_probe_needs_the_env_observer_build group=14 index=%d\n", index);
+
+		return -1;
+#endif
+	}
+
+	if (index < 0 || index >= env_case_count (group))
+	{
+		append (text, capacity, used, "env-case-error reason=index_out_of_range group=%d index=%d count=%d\n", group, index, env_case_count (group));
+
+		return -1;
+	}
+
+	before = env_state_fingerprint ();
+	env_save_state (&saved);
+	switch (group)
+	{
+		case ENV_GROUP_WEATHER: rc = env_weather_case (index, text, capacity, used); break;
+		case ENV_GROUP_WIND: rc = env_wind_case (index, text, capacity, used); break;
+		case ENV_GROUP_GUST: rc = env_gust_case (index, text, capacity, used); break;
+		case ENV_GROUP_TIME: rc = env_time_case (index, text, capacity, used); break;
+		case ENV_GROUP_INIT: rc = env_init_case (index, text, capacity, used); break;
+		case ENV_GROUP_UPDATE_TIME: rc = env_update_time_case (index, text, capacity, used); break;
+		default: rc = env_update_weather_case (index, text, capacity, used); break;
+	}
+	env_restore_state (&saved);
+	after = env_state_fingerprint ();
+
+	if (rc != 0)
+	{
+		/* the report did not fit: the state is restored and the case is refused, never truncated */
+		text[0] = '\0';
+		used_value = 0;
+		append (text, capacity, used, "env-case-error reason=report_did_not_fit group=%d index=%d restored=%d\n", group, index, before == after);
+
+		return -1;
+	}
+
+	if (append (text, capacity, used, "env-witness-end group=%d index=%d restored=%d fp_before=%016llx fp_after=%016llx\n", group, index, before == after, (unsigned long long) before, (unsigned long long) after) != 0)
+	{
+		return -1;
+	}
+
+	return 0;
+}
+
+#endif

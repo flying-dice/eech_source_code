@@ -1,0 +1,140 @@
+{
+  "review": "Independent first original route captures: intentionally failed completeness gate",
+  "date_utc": "2026-11-01T18:42:12.116243+00:00",
+  "source": {
+    "native_and_embedded_Lua": "d10dd8cc0d2b9eb311c85f7b13796073c9cc78ad",
+    "fixture_profile": "route-fixture",
+    "closed_source_review": "independent-model-original-route-residual-source-d10dd8cc0-20261101.json",
+    "closed_source_review_sha256": "5b4908a1c8f988d18bf5852ece349a87853bb946e897646234f00c091ba78253",
+    "current_test_prose_only_commit": "2ec2020363969078e9ef8b1331343cd6bf56bfd7",
+    "current_test_source_map_sha256": "b3df4abd771b07424055f459df4625b04183d4373b6e07fda5d1e5b7dd6bc8db",
+    "verified_current_delta": "Only cfg(test) assertion formatting in exclusive_output.rs plus proof date prose; production prefix byte-identical and all other Git entries/modes unchanged as independently checked from the committed delta. Native is never relabelled2ec; active later caller-context WIP excluded."
+  },
+  "scope": "One bounded actual-evidence audit of these first two completed original parser captures on the existing hosted model/terrain baseline. No production route cutover, repeated original run or new native execution.",
+  "findings": [],
+  "evidence_classification_consistent": true,
+  "complete_capture_gate_passed": false,
+  "original_route_characterization_closed": false,
+  "failed_partial_originals_preserved": true,
+  "results": [
+    {
+      "case": "georgia",
+      "source": "d10dd8cc0d2b9eb311c85f7b13796073c9cc78ad",
+      "controller_actual_exit": 1,
+      "native_actual_exit": 1,
+      "pre_post_input_exits": [
+        0,
+        0
+      ],
+      "input_files_each": 1174,
+      "input_bytes_each": 142522166,
+      "pre_post_manifest_literal_equal": true,
+      "input_entries_equal_declared_reference": true,
+      "payloads_independently_rehashed": 57,
+      "json_bytes": 12025813,
+      "json_rows": 708,
+      "json_sha256": "8aca9d901caea0d7152b3081cd804f8321127b29fb681bbcee2b558f8c447a98",
+      "calls": 704,
+      "identity_states": {
+        "unique": 430,
+        "ambiguous": 274
+      },
+      "complete_flags": {
+        "1": 430,
+        "0": 274
+      },
+      "incomplete_cause": "Exactly ambiguous semantic identity; every nonidentity native completeness condition joins.",
+      "cohort_row_counts": {
+        "slots": 1782,
+        "nodes": 21116,
+        "faces": 17467,
+        "finals": 21116,
+        "links": 34934,
+        "starts": 3649,
+        "depths": 3864,
+        "offsets": 21116
+      },
+      "done_complete": false,
+      "done_malformed": false,
+      "dropped_orphans_open_interrupted": 0,
+      "controller_sha256": "902f11a11809b3403ac262c6fbca498c469884aa54a7d48855b4c40c77d4a445",
+      "input_manifest_sha256": "8c08435614a8810022336af69dfe86eb32a3da556cd0e0f71093b8111619c058",
+      "native_log_sha256": "ff35b1bffe1140281480fec27436121cfc56831826775a648706f4770ce76209",
+      "build_info_sha256": "c4e11cae87adc6e153a18f1ffe148374d62f4744329cf91c52e9336c2d190dd7",
+      "dll_sha256": "0e7203c2439d1a1aeecec98aeff6fa410395c375484d89e410723666d45d8045",
+      "host_sha256": "05d2d7ed5acd60f7a2980f9f2c622baa55d01b3ca3f7ad689faaea93d53c5699",
+      "driver_sha256": "afe05a3ac5c571092aea14febb4e42fe2ee4518d553804e60aabbd5498cce446"
+    },
+    {
+      "case": "lebanon",
+      "source": "d10dd8cc0d2b9eb311c85f7b13796073c9cc78ad",
+      "controller_actual_exit": 1,
+      "native_actual_exit": 1,
+      "pre_post_input_exits": [
+        0,
+        0
+      ],
+      "input_files_each": 1179,
+      "input_bytes_each": 102239559,
+      "pre_post_manifest_literal_equal": true,
+      "input_entries_equal_declared_reference": true,
+      "payloads_independently_rehashed": 57,
+      "json_bytes": 9031446,
+      "json_rows": 532,
+      "json_sha256": "6ded9515022b988d275a2f7f96ab54f531ce0ace394c7271c4c7a01d2b6fb391",
+      "calls": 528,
+      "identity_states": {
+        "unique": 394,
+        "ambiguous": 134
+      },
+      "complete_flags": {
+        "1": 394,
+        "0": 134
+      },
+      "incomplete_cause": "Exactly ambiguous semantic identity; every nonidentity native completeness condition joins.",
+      "cohort_row_counts": {
+        "slots": 1365,
+        "nodes": 15783,
+        "faces": 13175,
+        "finals": 15783,
+        "links": 26350,
+        "starts": 2608,
+        "depths": 3020,
+        "offsets": 15783
+      },
+      "done_complete": false,
+      "done_malformed": false,
+      "dropped_orphans_open_interrupted": 0,
+      "controller_sha256": "e33969764f7ef27ee8bd629e5316f48dc6e4aa4752a687ea2ad44d48920c511e",
+      "input_manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "native_log_sha256": "46db29374879ceea189e3e788d51f0fc66d18595da87451514b124bc29c5f535",
+      "build_info_sha256": "c4e11cae87adc6e153a18f1ffe148374d62f4744329cf91c52e9336c2d190dd7",
+      "dll_sha256": "0e7203c2439d1a1aeecec98aeff6fa410395c375484d89e410723666d45d8045",
+      "host_sha256": "05d2d7ed5acd60f7a2980f9f2c622baa55d01b3ca3f7ad689faaea93d53c5699",
+      "driver_sha256": "afe05a3ac5c571092aea14febb4e42fe2ee4518d553804e60aabbd5498cce446"
+    }
+  ],
+  "independent_checks": [
+    "Read both terminal controllers and native logs: pre/native/post exits0/1/0, child controllers1, expected NOT COMPLETE error, no malformed event or poison-style engine stop. All recorded calls drained once as declared for well-formed-incomplete diagnosis.",
+    "Parsed every complete JSON row and each retained native report, verifying contiguous call indices, ended/uninterrupted calls, totals present and zero dropped records.",
+    "For every call, joined slots, raw/decoded node rows and final nodes to declared counts; face rows to expected surface face count; links to final parent/child counts and expected links; starts and depths to totals; offsets to each declared per-depth count. All pooled cohort totals reconcile with the summary.",
+    "Unique calls are exactly complete=1 and ambiguous calls exactly complete=0. No unknown call, capture-cap loss, orphan, open or interrupted call; summary incomplete totals and final failed verdict agree. This validates fail-closed observation, not the missing semantic association.",
+    "Rehashed all57 files named by BUILD-INFO for each run; native source and exact embedded driver agree withD10. Four full input verification stages succeed; pre/post manifests are literal-equal and their complete input entries equal the named frozen reference manifests."
+  ],
+  "retention_and_later_comparison": {
+    "disposition": "Retain every original file and exit unchanged as FAILED partial original evidence. The geometry/graph cohorts are bounded pre-context-fix observations, not accepted complete originals or semantic-keyed goldens.",
+    "allowed_future_check": "A separately declared diagnostic comparison can compare the original complete geometry/graph rows and their original line endings against new caller-context observer rows, using explicit call order/arguments and unchanged count cohorts. Preserve full original raw files and full comparison results; list intentional context/identity/summary changes separately.",
+    "prohibited_inferences": [
+      "Do not normalize or rewrite either failed raw file, alter a baseline/tolerance, relabel exit1 as0, or treat matched selected rows as whole-file equality.",
+      "Do not promote the unique subset into a complete all-route baseline, infer unobserved routes, or assume a caller-context fix preserves physical rows before actually comparing them."
+    ]
+  },
+  "minimum_unmet_gate": "A reviewed observer-only actual caller-context association must remove the semantic ambiguity without changing original parsing/math; then clean source/build/guard gates and genuinely new complete original captures at their own identities are required. No review of that active WIP was performed.",
+  "root_summary_sha256": "77401027b892d19d2f71e649d60560d377661c280e391ba7b23d3c4756eaafbf",
+  "limitations": [
+    "No full callerFP/RNG or compiler-spill transparency measurement in these controls. No independent mathematical decoder/oracle was introduced.",
+    "No host route service, loader detachment, all-route/all-family, rendering/audio, Tacview, shipping40/all8, Task50/Task51, current final CI, normal delivery or wholeD3 acceptance.",
+    "Raw semantic scene names, geometry words, route graphs and private retail rows are deliberately omitted from this report."
+  ],
+  "reviewer_actions": "Read-only source/evidence/hash and count analysis; no tests/builds/native/apps/auth/cache mutations/product edits or nested agents."
+}

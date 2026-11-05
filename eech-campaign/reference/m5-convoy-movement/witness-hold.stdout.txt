@@ -1,0 +1,12 @@
+diag_selected	mode=hold host=eech-world:3574 selected_at=156.6 hold_seconds=67.0 waypoint=4295047215
+diag_steps	held=671 moved=69 released_at=223.69999999999 advanced_to=4295047214 advanced_at=230.49999999999 lost_at=nil ended_at=230.6
+select	hold
+host_id	eech-world:3574
+held_seconds	67.1
+held_steps	671
+held_displacement	0.000
+displacement_after_release	41.916
+outcome_after_release	advanced
+waypoint_key_before_after	4295047215	4295047214
+advanced_after_release_seconds	6.8
+result	ok

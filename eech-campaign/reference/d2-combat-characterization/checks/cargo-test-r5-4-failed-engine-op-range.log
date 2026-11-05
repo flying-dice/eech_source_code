@@ -1,0 +1,169 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling aho-corasick v1.1.5
+   Compiling adler2 v2.0.1
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling simd-adler32 v0.3.10
+   Compiling crc32fast v1.5.2
+   Compiling thiserror v1.0.69
+   Compiling once_cell v1.21.4
+   Compiling getrandom v0.4.3
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+   Compiling which v4.4.2
+   Compiling crossbeam-utils v0.8.23
+   Compiling anyhow v1.0.104
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+   Compiling memmap2 v0.5.10
+   Compiling byteorder v1.5.0
+   Compiling protobuf-support v3.7.2
+   Compiling miniz_oxide v0.9.1
+   Compiling tempfile v3.27.0
+   Compiling protobuf v3.7.2
+   Compiling crossbeam-epoch v0.9.21
+   Compiling flate2 v1.1.10
+   Compiling crossbeam-deque v0.8.8
+   Compiling rayon-core v1.13.0
+   Compiling regex-automata v0.4.18
+   Compiling rayon v1.12.0
+   Compiling regex v1.13.1
+   Compiling eech-sys v0.1.0 (/src/eech-campaign/crates/eech-sys)
+   Compiling protobuf-parse v3.7.2
+   Compiling protobuf-codegen v3.7.2
+   Compiling osmpbf v0.3.8
+   Compiling eech-map v0.1.0 (/src/eech-campaign/crates/eech-map)
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+   Compiling eech-campaign v0.1.0 (/src/eech-campaign/crates/eech-campaign)
+   Compiling eech-harness v0.1.0 (/src/eech-campaign/crates/eech-harness)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6m 20s
+     Running unittests src/lib.rs (/target/debug/deps/eech_campaign-969d3ef7e7e6482f)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/campaign.rs (/target/debug/deps/campaign-30ac1a9ac44ccc64)
+
+running 11 tests
+test campaign_is_send ... ok
+test a_sequential_campaign_starts_from_a_clean_state ... ok
+test an_unknown_position_fails_loudly_and_poisons_the_campaign ... ok
+test a_server_replicates_what_changed ... ok
+test a_panicking_world_unwinds_in_rust_and_poisons_the_campaign ... ok
+test invalid_configurations_are_refused_before_the_campaign_starts ... ok
+test stale_and_foreign_ids_are_detected ... ok
+test one_campaign_per_process_and_campaigns_run_one_after_another ... ok
+test the_supply_chain_runs_from_keysite_consumption_to_the_assignment_boundary ... ok
+test unknown_object_bounds_fail_loudly ... ok
+test without_a_suitable_group_the_mission_waits_and_the_campaign_keeps_running ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src/lib.rs (/target/debug/deps/eech_dc-7517415020ff4c68)
+
+running 8 tests
+test module::tests::a_health_question_reaches_lua_by_value_and_its_answer_is_read_field_by_field ... ok
+test module::tests::an_impact_question_reaches_lua_by_value_and_its_plan_is_read_field_by_field ... ok
+test module::tests::a_damage_echo_of_raw_bit_halves_is_read_exactly_and_a_not_a_number_float_is_still_refused ... ok
+test module::tests::an_explicit_zero_vector_and_zero_flags_are_accepted ... ok
+test module::tests::a_vehicle_lifecycle_answer_without_its_vector_is_an_error ... ok
+test module::tests::an_answer_that_decides_on_bits_must_carry_its_flags ... ok
+test module::tests::a_blast_question_reaches_lua_by_value_and_the_walk_is_read_field_by_field ... ok
+test module::tests::a_bridge_question_reaches_lua_by_value_and_each_answer_is_read_field_by_field ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/lua_debug_layout.rs (/target/debug/deps/lua_debug_layout-8b15af8491936997)
+
+running 2 tests
+test lua_debug_holds_the_dcs_world_record ... ok
+test lua_debug_short_src_starts_where_dcs_world_writes_it ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/target/debug/deps/eech_engine-d30b0a6b4a0bad06)
+
+running 64 tests
+test tests::a_blast_question_carries_the_explosion_and_the_window_by_value_and_the_hosts_walk_comes_back ... ok
+test tests::a_blast_question_refuses_what_has_no_defined_answer_and_never_takes_a_sample ... ok
+test tests::a_bridge_vehicles_walk_carries_its_window_and_the_hosts_walk_comes_back ... ok
+test tests::a_bridge_question_refuses_what_has_no_defined_answer_and_never_takes_a_sample ... ok
+test tests::a_bridge_question_carries_the_facts_by_value_and_each_answer_comes_back_whole ... FAILED
+test tests::a_damage_echo_of_raw_bit_halves_reaches_the_campaigns_room_unchanged ... ok
+test tests::a_create_place_step_carries_the_constructor_inputs_across_the_callback ... ok
+test tests::a_damage_request_carries_the_hit_by_value_takes_the_one_sample_and_the_hosts_answer_comes_back ... ok
+test tests::a_damage_request_refuses_what_has_no_defined_answer_and_never_takes_a_lookup ... ok
+test tests::a_dependent_carry_step_carries_the_parent_and_both_of_its_positions_across_the_callback ... ok
+test tests::a_decoy_update_and_a_seduction_are_weapon_steps_with_their_own_kind_and_the_seductions_settings_cross_exactly ... ok
+test tests::a_forecast_request_carries_its_figures_by_value_and_the_hosts_capability_comes_back ... ok
+test tests::a_dependent_carry_step_without_a_parent_or_with_a_non_finite_position_is_refused ... ok
+test tests::a_generic_hosts_timed_roll_for_a_person_or_an_aircraft_in_no_class_crosses_the_engine_boundary ... ok
+test tests::a_forecast_refuses_what_has_no_defined_answer_and_never_takes_a_draw_or_a_lookup ... ok
+test tests::a_group_leaders_plan_does_not_read_the_member_list_and_an_invalid_list_is_refused_before_the_host_runs ... ok
+test tests::a_health_question_crosses_by_value_a_timed_roll_takes_its_one_sample_and_the_answer_comes_back ... ok
+test tests::a_guide_step_carries_every_structure_of_the_sector_and_the_getter_returns_in_call_order ... ok
+test tests::a_guided_end_step_names_the_leader_by_host_id_and_carries_the_steering_intent ... ok
+test tests::a_guide_step_with_bad_lists_is_refused_before_the_host_runs ... ok
+test tests::a_health_question_refuses_what_has_no_defined_answer_and_never_takes_a_lookup ... ok
+test tests::a_leader_the_roster_lacks_crosses_the_boundary_as_unresolved_in_flight_and_landing ... ok
+test tests::a_person_face_step_carries_the_target_position_and_a_non_finite_target_is_refused ... ok
+test tests::a_non_finite_lifecycle_field_or_a_bad_flag_is_refused_before_the_host_runs ... ok
+test tests::a_leader_is_not_asked_for_what_it_never_reads ... ok
+test tests::a_placement_reads_the_placement_field_not_the_helicopter_step_field ... ok
+test tests::a_lead_flight_time_travels_only_when_the_host_produced_one_and_only_a_lead_or_ballistic_answer_may_carry_it ... ok
+test tests::a_reacquisition_is_a_weapon_step_of_its_own_kind_that_names_the_decoy_and_can_take_neither_a_sample_nor_a_lookup_answer_it_did_not_ask_for ... ok
+test tests::a_release_request_carries_the_launchers_clock_and_the_hosts_gate_comes_back_even_when_it_refuses ... ok
+test tests::a_step_without_the_terrain_flag_carries_none_and_its_fields_are_not_read ... ok
+test tests::a_member_the_roster_lacks_crosses_the_boundary_as_unresolved_and_keeps_its_place ... ok
+test tests::a_terrain_following_flight_step_carries_the_campaigns_observation_and_no_shaped_height ... ok
+test tests::a_plan_step_carries_the_campaign_facts_and_the_other_members_host_ids_in_list_order_uncapped ... ok
+test tests::a_terrain_observation_is_refused_on_any_other_mode_and_when_it_is_not_finite ... ok
+test tests::a_retire_step_crosses_the_callback_with_its_identity_and_no_terrain ... ok
+test tests::a_weapon_step_carries_the_weapon_the_answers_so_far_and_the_samples_given_and_the_hosts_lookups_and_actions_come_back ... ok
+test tests::a_weapon_steps_collision_answers_are_kept_by_the_question_they_answer_so_the_host_may_choose_among_them ... ok
+test tests::an_aim_draw_is_asked_for_only_by_a_vectors_or_lead_request_and_carries_a_raw_sample_in_range ... ok
+test tests::an_aim_animate_request_carries_the_weapons_parachute_and_the_hosts_state_comes_back_and_a_state_it_cannot_hold_never_reaches_the_host ... ok
+test tests::an_aim_figures_request_hands_the_host_one_weapons_figures_to_keep_and_a_weapon_that_is_not_one_never_reaches_it ... ok
+test tests::an_aim_range_request_hands_the_host_a_guided_weapons_figures ... ok
+test tests::an_aim_echo_travels_in_order_and_one_that_does_not_fit_is_refused_not_cut_short ... ok
+test tests::an_aim_ready_update_carries_the_source_the_keyframe_and_the_time_and_returns_the_hosts_state_and_phase ... ok
+test tests::an_aim_request_with_a_non_finite_figure_or_an_unknown_mode_never_reaches_the_host_and_a_failing_host_stops_it ... ok
+test tests::a_weapon_step_the_campaign_cannot_hold_never_reaches_the_host_and_an_answer_it_cannot_take_is_refused ... ok
+test tests::an_aim_table_echo_is_written_into_the_room_the_campaign_gave_and_never_past_it ... ok
+test tests::an_aim_vectors_request_carries_a_weapon_and_a_target_or_a_tracking_point_never_both ... ok
+test tests::an_aircraft_placement_carries_its_nonzero_vector_across_the_callback_boundary ... ok
+test tests::an_aim_table_request_hands_the_host_the_weapons_figures_and_no_cell_and_figures_that_cannot_be_a_weapon_never_reach_it ... ok
+test tests::an_expire_step_carries_the_wreck_timer_range_and_policy_and_answers_only_a_yes_or_no ... ok
+test tests::an_impact_question_carries_the_kill_code_and_the_targets_facts_asks_for_the_terrain_once_and_the_plan_comes_back ... ok
+test tests::an_impact_question_refuses_what_has_no_defined_answer_and_never_takes_a_sample ... ok
+test tests::each_mode_answers_only_the_flags_it_defines ... ok
+test tests::flight_navigation_intent_crosses_the_callback_boundary_in_group_order ... ok
+test tests::every_lifecycle_mode_reads_the_helicopter_fields_and_carries_its_inputs ... ok
+test tests::invalid_flight_navigation_is_refused_at_the_boundary ... ok
+test tests::the_fixed_wing_lookahead_is_a_non_mutating_fixed_wing_step_the_host_answers_with_one_sample ... ok
+test tests::the_helicopter_step_modes_read_the_helicopter_vector_not_the_placement_field ... ok
+test tests::the_host_must_answer_the_fixed_wing_lookahead_with_exactly_one_sample_and_no_flags ... ok
+test tests::the_hosted_helicopter_modes_are_helicopter_steps_and_a_plan_and_the_end_announce_the_terrain ... ok
+test tests::the_landing_phase_carries_its_navigation_and_the_turn_intent_not_a_multiplier ... ok
+test tests::the_rust_mirrors_of_the_aim_exchange_have_the_layout_the_campaign_compiled ... ok
+test tests::the_host_must_answer_the_plan_with_a_lookup_plan_and_the_guide_with_guidance_and_nothing_else_does ... ok
+test tests::groups_beyond_thirty_two_cross_the_callback_boundary_whole_and_in_order ... ok
+
+failures:
+
+---- tests::a_bridge_question_carries_the_facts_by_value_and_each_answer_comes_back_whole stdout ----
+
+thread 'tests::a_bridge_question_carries_the_facts_by_value_and_each_answer_comes_back_whole' (7966) panicked at crates/eech-engine/src/lib.rs:7081:9:
+assertion `left == right` failed: aim received a bridge question with op 6 and segment length 0
+  left: (1, 0, 0)
+ right: (0, 3, 1)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tests::a_bridge_question_carries_the_facts_by_value_and_each_answer_comes_back_whole
+
+test result: FAILED. 63 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p eech-engine --lib`
+CARGO_EXIT=101
+DOCKER_EXIT=101

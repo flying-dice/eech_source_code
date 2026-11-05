@@ -1,0 +1,56 @@
+{
+  "created_utc": "2026-11-01T03:48:16.067118+00:00",
+  "physical_source": "7574caa2ca87a2a44608a234fd1dd73136b8e4c0",
+  "independent_actual_review_required": true,
+  "copied_originals": [
+    {
+      "file": "measured-original-init.json",
+      "original": "result.json",
+      "sha256": "9b98aa6aaee8799be501aebf276233eaef1d3255df7a8c9d7023340ba4fbcf0e",
+      "bytes": 25361
+    },
+    {
+      "file": "independent-source-correction-review.json",
+      "original": "independent-environment-original-sound-init-capacity-source-review-7574caa2c-20261101.json",
+      "sha256": "144e578209b5631e6d275341cdfd538fca8a195efb70cb39f83cf16e92139ef4",
+      "bytes": 9903
+    },
+    {
+      "file": "current-source-CI.json",
+      "original": "current-CI-7574caa2c-20261101.json",
+      "sha256": "b8b4c127284bca16894490539aba73fef481edaf6ee8c15c5796b083817b50e0",
+      "bytes": 15745
+    },
+    {
+      "file": "windows-output-primitive.json",
+      "original": "completion.json",
+      "sha256": "d2a6bb19e6fdfeebaa97854e3a1d08a1f7963ff7889cf124da3f187ad859a1e2",
+      "bytes": 1823
+    },
+    {
+      "file": "prior-failed-capture-and-successful-control.json",
+      "original": "original-sound-init-attempt1-failure-and-control-20261101.json",
+      "sha256": "b96147700b4d71ded0f6e7a3ac4d6ebb6536e41af3756a680c4207ced2881692",
+      "bytes": 2332
+    },
+    {
+      "file": "feature-off-changed-unit.json",
+      "original": "receipt.json",
+      "sha256": "106315f8b9e9fc9a0afdb5d02857d39aed4a781119a5c2b03a5242388504732b",
+      "bytes": 1477
+    },
+    {
+      "file": "audit-original-sound-init-recovery.py",
+      "original": "audit-original-sound-init-recovery-20261101.py",
+      "sha256": "2972f30de9e2ecdaff965ae26c89182bfb54ee69fb208fdc054bbc541c8552d0",
+      "bytes": 8322
+    },
+    {
+      "file": "auditor-execution.json",
+      "original": "completion.json",
+      "sha256": "d3725136531c6c799412128fba9f79d949edfb25abf48b72bb701ae63a25468e",
+      "bytes": 1198
+    }
+  ],
+  "scope": "Exact original receipt/auditor copies plus safe measured projection. Raw report, seed/entity indices, retail/binary/recording bytes excluded."
+}

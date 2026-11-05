@@ -1,0 +1,25 @@
+OK   [] aphavoc/source/entity/special/bridge/br_msgs.c
+     warnings: 7
+OK   [] aphavoc/source/entity/fixed/segment/sg_updt.c
+     warnings: 7
+OK   [] aphavoc/source/entity/fixed/segment/sg_dstry.c
+     warnings: 7
+OK   [] eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_fixture.c
+     warnings: 0
+OK   [] eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_case.c
+     warnings: 0
+OK   [] eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c
+     warnings: 1
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/special/bridge/br_msgs.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/fixed/segment/sg_updt.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] aphavoc/source/entity/fixed/segment/sg_dstry.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_fixture.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_case.c
+     warnings: 7
+OK   [-DEECH_WEAPON_FIXTURE] eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c
+     warnings: 1
+SYNTAX_EXIT=0

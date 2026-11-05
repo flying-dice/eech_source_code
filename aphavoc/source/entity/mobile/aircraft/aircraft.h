@@ -211,6 +211,11 @@ typedef enum
 
 extern aircraft_damage_types aircraft_critically_damaged (entity *en);
 
+struct campaign_health_result;
+
+// the frame's timed degradation roll of an aircraft in a class, answered by the host (EEDCS-46); see aircraft.c
+extern void aircraft_timed_health (entity *en, aircraft_damage_types damage_type, struct campaign_health_result *out);
+
 extern void assess_aircraft_damage_level (entity *en, int old_damage_level, int new_damage_level);
 
 extern void play_aircraft_shot_at_speech (entity *victim, entity *aggressor);

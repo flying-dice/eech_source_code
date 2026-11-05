@@ -1,0 +1,40 @@
+Diff in \\?\E:\eech_source_code\.claude\worktrees\m5-helicopter-movement\eech-campaign\crates\eech-engine\src\lib.rs:1472:
+         let mut move_vehicle = |request: MovementStep| {
+             let pose = request.pose;
+             seen = Some(request);
+-            Ok(MovementResult { pose, rotated: false, motion_vector: [0.0; 3], pending: false, moved: false })
++            Ok(MovementResult {
++                pose,
++                rotated: false,
++                motion_vector: [0.0; 3],
++                pending: false,
++                moved: false,
++            })
+         };
+         let mut context = HostContext {
+             bind_mobile: &mut bind_mobile,
+Diff in \\?\E:\eech_source_code\.claude\worktrees\m5-helicopter-movement\eech-campaign\crates\eech-engine\src\lib.rs:1483:
+         let mut result: sys::eech_movement_result = unsafe { std::mem::zeroed() };
+         let mut error = [0 as c_char; 256];
+         // SAFETY: every pointer is valid for the call; the context is the one the callback expects.
+-        let status = unsafe {
+-            move_vehicle::<_, _, _, _>(step, &mut result, error.as_mut_ptr(), error.len(), &mut context as *mut _ as *mut c_void)
+-        };
++        let status = unsafe { move_vehicle::<_, _, _, _>(step, &mut result, error.as_mut_ptr(), error.len(), &mut context as *mut _ as *mut c_void) };
+         assert_eq!(status, 0, "the callback refused the step");
+         seen.expect("the host was called")
+     }
+Diff in \\?\E:\eech_source_code\.claude\worktrees\m5-helicopter-movement\eech-campaign\crates\eech-world\src\movement.rs:1311:
+         assert_attitude(turned(-1.0, limit).pose.attitude, turned(-limit, 10.0).pose.attitude);
+         // a demand inside the limit is reached, not the limit
+         assert_attitude(turned(0.1, limit).pose.attitude, turned(0.1, 10.0).pose.attitude);
+-        assert!(turned(1.0, limit).pose.attitude.iter().zip(turned(1.0, 10.0).pose.attitude).any(|(a, b)| (a - b).abs() > 1.0e-3));
++        assert!(turned(1.0, limit)
++            .pose
++            .attitude
++            .iter()
++            .zip(turned(1.0, 10.0).pose.attitude)
++            .any(|(a, b)| (a - b).abs() > 1.0e-3));
+         // a zero limit does not turn at all
+         assert!(!turned(1.0, 0.0).rotated);
+     }

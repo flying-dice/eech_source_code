@@ -1,0 +1,12 @@
+module	eech-dc 0.1.0
+method	frame	function
+method	report_loss	function
+method	members	function
+method	objects	function
+method	loss_fixture	nil
+method	loss_state	nil
+method	loss_shape	nil
+method	loss_release	nil
+method	loss_group	nil
+method	dependent_fixture	nil
+exit=0

@@ -1,0 +1,8 @@
+OLD f353 helper OUTER exit=0
+COMPILE_EXIT=0
+RUN_EXIT=134
+DOCKER_EXIT=134
+OLD f353 helper with a forced compile failure OUTER exit=0
+COMPILE_EXIT=1
+RUN_EXIT=127
+DOCKER_EXIT=127

@@ -1,0 +1,33 @@
+{
+  "diagnostic_source": "c44173556165ed1522a36d06f681ab9ea20e5e5a",
+  "original_native_source": "366622e0c08b2caaa5a5317f5197c0ee3d7050e9",
+  "driver_sha256": "ffba01750612790d6268e8626e83bbd48179194f51a62138ef3f9ecd42051db9",
+  "actual_exit": 0,
+  "scope": "Exact original-byte comparison of selected catalogue and geometry JSONL rows, including line endings. Other whole-file diagnostic/state/check rows may differ; no full-recording comparison claimed. No raw original file rewritten or normalized.",
+  "results": [
+    {
+      "case": "georgia",
+      "new_raw_sha256": "b421e74ea483433ed9437b3143c68a12b76fb6d4a6f95b04c9371985dc3f0db7",
+      "catalogue_rows_original_bytes_exact": true,
+      "catalogue_rows_sha256": "5cab52a2c904a8d2f6b305e9ec6356e5225d0405021dace33768a095dd6bd85d",
+      "geometry_rows_original_bytes_exact": true,
+      "geometry_rows_sha256": "103f72eb2f7e31be523f0b46b92415e1c4acba2695e7e39c0d45f97f5b00aaac"
+    },
+    {
+      "case": "lebanon",
+      "new_raw_sha256": "77e52746321b9fad2be176297ebcff2a07fe6c19fd3ad14d5a7caf32db13f0f2",
+      "catalogue_rows_original_bytes_exact": true,
+      "catalogue_rows_sha256": "e1cfa7f2b0e7318ed6128fc75bda506a9ab72ccdfda24e0cd0311f1b92adef2d",
+      "geometry_rows_original_bytes_exact": true,
+      "geometry_rows_sha256": "103f72eb2f7e31be523f0b46b92415e1c4acba2695e7e39c0d45f97f5b00aaac"
+    },
+    {
+      "case": "lebanon-repeat",
+      "new_raw_sha256": "a2785ce74e9ab07c6d794d20edd7fd9cab09a4bc7827fb26b62cc1faba3bedb8",
+      "catalogue_rows_original_bytes_exact": true,
+      "catalogue_rows_sha256": "e1cfa7f2b0e7318ed6128fc75bda506a9ab72ccdfda24e0cd0311f1b92adef2d",
+      "geometry_rows_original_bytes_exact": true,
+      "geometry_rows_sha256": "103f72eb2f7e31be523f0b46b92415e1c4acba2695e7e39c0d45f97f5b00aaac"
+    }
+  ]
+}

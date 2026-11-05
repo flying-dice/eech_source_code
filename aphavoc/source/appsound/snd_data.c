@@ -66,6 +66,14 @@
 
 #include "project.h"
 
+#include "entity/special/session/ss_envfx.h"
+
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+#include "entity/special/session/ss_hostenv.h"
+
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2496,6 +2504,8 @@ static void load_from_file ( int sound_sample_index, int type, int rate, int siz
 void load_side_dependant_application_sound_samples ( entity_sides side )
 {
 
+	ENV_FXA (ENV_FXA_LOAD_SIDE, side, 0, 0, 0)
+
 	if ( application_sound_system_enabled )
 	{
 
@@ -2966,10 +2976,14 @@ int open_application_sound_file_system ( char *directory )
 
 		block_sound_sample_data_file = safe_fopen ( block_filename, "rb" );
 
+		ENV_FXA (ENV_FXA_OPEN_TRUE, number_of_blocked_sound_samples, 0, 0, 0)
+
 		return ( TRUE );
 	}
 	else
 	{
+
+		ENV_FXA (ENV_FXA_OPEN_FALSE, 0, 0, 0, 0)
 
 		return ( FALSE );
 	}
@@ -3082,12 +3096,144 @@ void destroy_application_sound_samples ( void )
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+//
+// EECH_CAMPAIGN_HOST_ENV (EEDCS-51, D3): the physical SAMPLE METADATA of the descriptors is the HOST's (aphavoc/source/entity/special/session/ss_hostenv.h campaign_sound_catalogue_request).  This campaign names its
+// descriptors (name, volume and ranges stay its table) and the host answers each one's rate and original rate and, from the host's own sound.hdr / sound.dat, whether its header has an entry and that entry's length.
+// The campaign opens, reads and parses no sound file here.
+//
+// THE LIVE CATALOGUE IS WRITTEN ONLY AFTER THE WHOLE ANSWER HAS BEEN CHECKED.  The request is built from the compiled table by reading it; the host is asked; campaign_sound_catalogue stops the engine on a refused
+// answer.  Nothing of application_sound_effects (not its names, ranges, rates or sizes) and not number_of_application_sound_samples is touched before that, so a refusal leaves the previous catalogue as it was.  Then the
+// array is cleared and rebuilt in the table's order, exactly as the original did, with the slots the table does not name left as the zero the clear leaves.
+//
+// DIAGNOSTICS (ss_envfx.h).  The campaign makes no file operation here, so it records none of the original's OPEN and MATCH/MISS points; it records ENV_FXA_HOST_ANSWER, the host's validated answer, which is a
+// MIRROR of what the host said and not an observation of anything the campaign did.  The campaign's own file attempts (eech_win32.c) and number_of_blocked_sound_samples stay what they are: 0.
+//
+
+static void initialise_application_sound_effects_from_host ( void )
+{
+	static int
+		slot[( sizeof ( application_sound_samples ) / sizeof ( sound_sample_information ) )],
+		rate[( sizeof ( application_sound_samples ) / sizeof ( sound_sample_information ) )],
+		original_rate[( sizeof ( application_sound_samples ) / sizeof ( sound_sample_information ) )],
+		matched[( sizeof ( application_sound_samples ) / sizeof ( sound_sample_information ) )],
+		size[( sizeof ( application_sound_samples ) / sizeof ( sound_sample_information ) )];
+
+	static const char
+		*name[( sizeof ( application_sound_samples ) / sizeof ( sound_sample_information ) )];
+
+	sound_effect_information
+		*item;
+
+	int
+		table_size,
+		count,
+		listed,
+		header_present,
+		header_count,
+		matched_count;
+
+	table_size = ( sizeof ( application_sound_samples ) / sizeof ( sound_sample_information ) );
+
+	//
+	// the request: a read of the compiled table, in its order
+	//
+
+	listed = 0;
+
+	for ( count = 0; count < table_size; count++ )
+	{
+
+		if (!application_sound_samples [count].name)
+		{
+
+			continue;
+		}
+
+		slot[listed] = application_sound_samples[count].sound_sample_index;
+		name[listed] = application_sound_samples[count].name;
+
+		listed++;
+	}
+
+	campaign_sound_catalogue ( NUM_SOUND_SAMPLE_INDICES, listed, slot, name, &header_present, &header_count, rate, original_rate, matched, size );
+
+	//
+	// the answer has been checked in full: only now is the live catalogue written, in the table's order
+	//
+
+	memset (application_sound_effects, 0, sizeof (sound_effect_information) * NUM_SOUND_SAMPLE_INDICES);
+
+	number_of_application_sound_samples = table_size;
+
+	listed = 0;
+
+	for ( count = 0; count < table_size; count++ )
+	{
+
+		if (!application_sound_samples [count].name)
+		{
+
+			continue;
+		}
+
+		item = &application_sound_effects [application_sound_samples[count].sound_sample_index];
+
+		item->name = application_sound_samples[count].name;
+		item->original_rate = original_rate[listed];
+		item->rate = rate[listed];
+		item->maximum_volume = application_sound_samples[count].maximum_volume;
+		item->minimum_sound_range = application_sound_samples[count].minimum_sound_range;
+		item->reference_sound_range = application_sound_samples[count].reference_sound_range;
+		item->maximum_sound_range = application_sound_samples[count].maximum_sound_range;
+
+		listed++;
+	}
+
+	ENV_FXA (ENV_FXA_DESCRIPTORS_FILLED, 0, 0, 0, 0)
+
+	matched_count = 0;
+
+	for ( count = 0; count < listed; count++ )
+	{
+
+		if ( matched[count] )
+		{
+
+			application_sound_effects[slot[count]].size = size[count];
+
+			matched_count++;
+		}
+	}
+
+	//
+	// the host's validated answer, as a mirror: whether its header was present, how many entries it holds, and how many of the campaign's descriptors it matched and missed
+	//
+
+	ENV_FXA (ENV_FXA_HOST_ANSWER, header_present, header_count, matched_count, listed - matched_count)
+}
+
+#endif
+
 void initialise_application_sound_effects ( void )
 {
 	sound_effect_information
 		*item;
 	int
 		count;
+
+	ENV_FXA (ENV_FXA_EFFECTS_BEGIN, 0, 0, 0, 0)
+
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+	initialise_application_sound_effects_from_host ();
+
+	ENV_FXA (ENV_FXA_EFFECTS_END, 0, 0, 0, 0)
+
+	return;
+
+#endif
 
 	memset (application_sound_effects, 0, sizeof (sound_effect_information) * NUM_SOUND_SAMPLE_INDICES);
 
@@ -3111,6 +3257,8 @@ void initialise_application_sound_effects ( void )
 		item->reference_sound_range = application_sound_samples[count].reference_sound_range;
 		item->maximum_sound_range = application_sound_samples[count].maximum_sound_range;
 	}
+
+	ENV_FXA (ENV_FXA_DESCRIPTORS_FILLED, 0, 0, 0, 0)
 
 	//
 	// Now read in the header stuff & set the size of the samples.
@@ -3139,18 +3287,24 @@ void initialise_application_sound_effects ( void )
 				{
 
 					application_sound_effects[application_sound_samples[count].sound_sample_index].size = blocked_sound_samples[sound_block_header_index].sound_data_length;
+
+					ENV_FXA (ENV_FXA_HEADER_MATCH, 0, 0, 0, 0)
 				}
 				else
 				{
 					#if DEBUG_MODULE
 					debug_log ( "Cannot find blocked sound sample info for %s", filename );
 					#endif
+
+					ENV_FXA (ENV_FXA_HEADER_MISS, 0, 0, 0, 0)
 				}
 			}
 		}
 
 		close_application_sound_file_system ();
 	}
+
+	ENV_FXA (ENV_FXA_EFFECTS_END, 0, 0, 0, 0)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

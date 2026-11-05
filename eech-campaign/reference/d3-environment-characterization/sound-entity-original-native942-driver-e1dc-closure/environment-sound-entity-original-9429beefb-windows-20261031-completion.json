@@ -1,0 +1,18 @@
+{
+  "source": "9429beefb9a8e143b648e01c390075882e6e6361",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-sound-entity-original-9429beefb-windows-20261031.sh"
+  ],
+  "pid": 9960,
+  "controller_pid": 25404,
+  "state": "terminal",
+  "started_utc": "2026-10-31T20:10:16.996723+00:00",
+  "scope": "Original physicalsound entity characterization windows ordinarybuild/affected-packagechecks; realretailconformance/authority/shipping acceptance separate",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T20:13:21.241864+00:00"
+}

@@ -1,0 +1,59 @@
+steps	contact/fixed_wing	1027
+steps	contact/helicopter	1865
+steps	crash_begin/helicopter	1188
+steps	crash_end/helicopter	1188
+steps	create_place/fixed_wing	94
+steps	create_place/helicopter	181
+steps	create_place/person	140
+steps	create_place/routed	1154
+steps	create_place/ship	36
+steps	expire/fixed_wing	8974
+steps	expire/helicopter	66975
+steps	expire/routed	167076
+steps	expire/ship	2877
+steps	fall/fixed_wing	503
+steps	fall/helicopter	423
+steps	fall_gravity/fixed_wing	503
+steps	fall_gravity/helicopter	423
+steps	fixed_wing_lookahead/fixed_wing	38646
+steps	fixed_wing_move/fixed_wing	151118
+steps	fw_crash_attitude/fixed_wing	21
+steps	fw_crash_candidate/fixed_wing	21
+steps	fw_crash_velocity/fixed_wing	21
+steps	fw_death_attitude/fixed_wing	503
+steps	fw_settle/fixed_wing	6
+steps	gv_death_candidate/routed	463
+steps	gv_death_decay/routed	463
+steps	gv_impact/routed	43
+steps	helicopter_guide/helicopter	293612
+steps	helicopter_guided_begin/helicopter	278612
+steps	helicopter_guided_end/helicopter	278612
+steps	helicopter_plan/helicopter	293612
+steps	impact/fixed_wing	6
+steps	impact/helicopter	20
+steps	move/routed	599487
+steps	person_begin/person	1252862
+steps	person_end/person	1233451
+steps	place/fixed_wing	36
+steps	place/helicopter	2389
+steps	place/person	138
+steps	place/routed	269
+steps	rotor_alive/helicopter	293612
+steps	rotor_down/helicopter	1611
+steps	rotor_idle/helicopter	1216372
+steps	rotor_set/helicopter	67
+steps	settle/helicopter	54
+steps	ship_sink/ship	2877
+steps	stop/routed	68
+steps	tumble/helicopter	423
+steps	vehicle_vector_seed/routed	506
+steps	vehicle_vector_seed/ship	2877
+carries	0
+refused	0
+nested	0
+place_after_carry	0
+worst_position_error	0.000000
+worst_helicopter_horizontal_error	0.000000
+worst_helicopter_height_error	0.000000
+ended_at	900.0
+result	no_carry

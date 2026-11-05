@@ -1,0 +1,30 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.71s
+     Running unittests src/lib.rs (/target/debug/deps/eech_engine-78418b2609a1a0bb)
+
+running 2 tests
+test tests::the_inner_layout_of_the_weapon_state_is_the_campaigns ... FAILED
+test tests::the_rust_mirrors_of_the_aim_exchange_have_the_layout_the_campaign_compiled ... ok
+
+failures:
+
+---- tests::the_inner_layout_of_the_weapon_state_is_the_campaigns stdout ----
+
+thread 'tests::the_inner_layout_of_the_weapon_state_is_the_campaigns' (203) panicked at crates/eech-engine/src/lib.rs:7270:9:
+assertion `left == right` failed
+  left: []
+ right: [108, 109]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tests::the_inner_layout_of_the_weapon_state_is_the_campaigns
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 63 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p eech-engine --lib`
+CARGO_EXIT=101
+DOCKER_EXIT=101

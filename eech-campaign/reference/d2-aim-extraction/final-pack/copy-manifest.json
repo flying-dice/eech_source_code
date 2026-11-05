@@ -1,0 +1,143 @@
+{
+  "when_utc": "2026-10-28T02:02:00.219293+00:00",
+  "files": [
+    {
+      "file": "report.json",
+      "source": "R:\\d2-evidence\\candidate-pack-aiming-52206fef3\\report.json",
+      "bytes": 39015,
+      "sha256": "5c741a283c642f7ae8a377e1cf22da44a0c97ae783da1152b26c10e763ca6814"
+    },
+    {
+      "file": "report.md",
+      "source": "R:\\d2-evidence\\candidate-pack-aiming-52206fef3\\report.md",
+      "bytes": 26091,
+      "sha256": "2b96fb0d2937b05ff61366ceaa0a55cf638092a9edb3992a94c5aa1e4f5e43dc"
+    },
+    {
+      "file": "run.json",
+      "source": "R:\\d2-evidence\\candidate-pack-aiming-52206fef3\\run.json",
+      "bytes": 761,
+      "sha256": "c0c772b41d490658be222496c569624fdd4ba6e4ccf836a60af347f1744d3892"
+    },
+    {
+      "file": "completion.json",
+      "source": "R:\\d2-evidence\\candidate-pack-aiming-52206fef3\\completion.json",
+      "bytes": 754,
+      "sha256": "b9ebc03893d0081390077f93340326e4f52b859865d8fab6d9c1bb08a1dd6ff6"
+    },
+    {
+      "file": "complete-comparison.json",
+      "source": "R:\\d2-evidence\\candidate-pack-aiming-52206fef3\\complete-comparison.json",
+      "bytes": 3221,
+      "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+    },
+    {
+      "file": "preflight.json",
+      "source": "R:\\d2-evidence\\candidate-pack-aiming-52206fef3\\preflight.json",
+      "bytes": 7826,
+      "sha256": "ba67c1fcf9b234ddaeaf04c5f9975387af31f737b40640d61c8d561d048d473b"
+    },
+    {
+      "file": "pack.stdout.log",
+      "source": "R:\\d2-evidence\\candidate-pack-aiming-52206fef3\\pack.stdout.log",
+      "bytes": 3431,
+      "sha256": "4ff78d11bfb51c64f32293ff6a3b57331c69a7158f81aef26591cbbdb0935366"
+    },
+    {
+      "file": "pack.stderr.log",
+      "source": "R:\\d2-evidence\\candidate-pack-aiming-52206fef3\\pack.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "python-resolver.log",
+      "source": "R:\\d2-evidence\\candidate-pack-aiming-52206fef3\\python-resolver.log",
+      "bytes": 222,
+      "sha256": "4b6c4a9fcb785204b48595054f72efe20967a3261b353c04bb9bef98370fdbc5"
+    },
+    {
+      "file": "pack-definition.log",
+      "source": "R:\\d2-evidence\\candidate-pack-aiming-52206fef3\\pack-definition.log",
+      "bytes": 1118,
+      "sha256": "bc9830dec219b011c99b8ab22c009875f7120c7953432091f77a887316e177ac"
+    },
+    {
+      "file": "preflight-inputs-georgia.log",
+      "source": "R:\\d2-evidence\\candidate-pack-aiming-52206fef3\\preflight-inputs-georgia.log",
+      "bytes": 301,
+      "sha256": "e4b5a28077dfe971626cfec4a401580510c84fd315771f070263c4828bf82634"
+    },
+    {
+      "file": "preflight-inputs-lebanon.log",
+      "source": "R:\\d2-evidence\\candidate-pack-aiming-52206fef3\\preflight-inputs-lebanon.log",
+      "bytes": 289,
+      "sha256": "194f13249a59261a8216eab458b0d3349c35ae15ca1fd7bbe768540032c26cd0"
+    },
+    {
+      "file": "preflight-inputs-lebanon_repeat.log",
+      "source": "R:\\d2-evidence\\candidate-pack-aiming-52206fef3\\preflight-inputs-lebanon_repeat.log",
+      "bytes": 296,
+      "sha256": "1c77e2256270c301f627da4ad205f590dac2fb425b781a42b71d3c8450221ed8"
+    },
+    {
+      "file": "post-inputs-georgia.log",
+      "source": "R:\\d2-evidence\\candidate-pack-aiming-52206fef3\\post-inputs-georgia.log",
+      "bytes": 301,
+      "sha256": "e4b5a28077dfe971626cfec4a401580510c84fd315771f070263c4828bf82634"
+    },
+    {
+      "file": "post-inputs-lebanon.log",
+      "source": "R:\\d2-evidence\\candidate-pack-aiming-52206fef3\\post-inputs-lebanon.log",
+      "bytes": 289,
+      "sha256": "194f13249a59261a8216eab458b0d3349c35ae15ca1fd7bbe768540032c26cd0"
+    },
+    {
+      "file": "post-inputs-lebanon_repeat.log",
+      "source": "R:\\d2-evidence\\candidate-pack-aiming-52206fef3\\post-inputs-lebanon_repeat.log",
+      "bytes": 296,
+      "sha256": "1c77e2256270c301f627da4ad205f590dac2fb425b781a42b71d3c8450221ed8"
+    },
+    {
+      "file": "lead-verification.json",
+      "source": "R:\\d2-evidence\\aiming-final-lead-verification-20261028.json",
+      "bytes": 554,
+      "sha256": "9a93474a43364861296271afe82a7995a0b42613bceddc8a594caecd2e1d87c7"
+    },
+    {
+      "file": "post-build-manifest.json",
+      "source": "R:\\d2-evidence\\aiming-final-post-build-manifest-20261028.json",
+      "bytes": 8261,
+      "sha256": "ade4d03fff1632d95bf2d5652a053cdf848f7828e24a7ea3b8af4cdfd8339cf4"
+    },
+    {
+      "file": "complete-comparator.log",
+      "source": "R:\\d2-evidence\\aiming-final-complete-comparator-20261028.log",
+      "bytes": 57,
+      "sha256": "0ea81c7f2c88932adfb1e16eb2bc06efd7b95c34328850b7bf26d1f65496b63d"
+    },
+    {
+      "file": "post-build-manifest.log",
+      "source": "R:\\d2-evidence\\aiming-final-post-build-manifest-20261028.log",
+      "bytes": 107,
+      "sha256": "61d909620bff987bf50dcbb9a81f258ab87c25edcd17c82dba7b1285a2d778f5"
+    },
+    {
+      "file": "BUILD-INFO.txt",
+      "source": "R:\\d2-evidence\\shipping-source-d2-aiming-52206fef3\\eech-campaign\\target\\windows-d2-aiming-final\\BUILD-INFO.txt",
+      "bytes": 3206,
+      "sha256": "93050850d045fdc2c4f7146da8750356c9afb44aca12d0f4eed3e0dc0c1a41fe"
+    },
+    {
+      "file": "launcher.py",
+      "source": "C:\\Users\\starscream\\.codex\\skills\\eech-regression\\scripts\\run_regression.py",
+      "bytes": 16973,
+      "sha256": "dad4dbafcd2d6c057c7f306d2e8aefb233f1b788a18e3f58233a3a096ddef5b4"
+    },
+    {
+      "file": "compare-complete-packs.py",
+      "source": "C:\\Users\\starscream\\.codex\\skills\\eech-regression\\scripts\\compare_complete_packs.py",
+      "bytes": 2670,
+      "sha256": "c7bb3ed6d21a532f888da01943e69228124c54999ecf81966b6fb28b29979ea6"
+    }
+  ]
+}

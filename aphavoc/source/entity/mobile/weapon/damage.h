@@ -106,6 +106,9 @@
 
 extern int damage_client_server_entity (entity *en, entity *weapon, float damage_modifier);
 
+// as damage_client_server_entity, and gives the classes of the critical state of the target before and after the hit (0 when the hit was not asked of the host; EEDCS-46)
+extern int damage_client_server_entity_assess (entity *en, entity *weapon, float damage_modifier, int *critical_before, int *critical_after);
+
 extern void display_debug_kill_info (entity *victim, entity *aggressor);
 
 extern int weapon_damage_capability (entity *wpn, entity *target, float damage_modifier, entity_sub_types weapon_type, float velocity);

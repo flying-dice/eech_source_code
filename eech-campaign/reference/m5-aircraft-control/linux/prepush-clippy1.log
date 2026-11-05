@@ -1,0 +1,207 @@
+info: downloading component clippy
+clippy 0.1.98 (48a229ceae 2026-09-01)
+   Compiling eech-sys v0.1.0 (/src/eech-campaign/crates/eech-sys)
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+    Checking eech-map v0.1.0 (/src/eech-campaign/crates/eech-map)
+    Checking eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+error: redundant closure
+    --> crates/eech-engine/src/lib.rs:2215:72
+     |
+2215 |                 guidance: (mode == MovementMode::HelicopterGuide).then(|| plan_guidance()),
+     |                                                                        ^^^^^^^^^^^^^^^^^^ help: replace the closure with the function itself: `plan_guidance`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#redundant_closure
+     = note: `-D clippy::redundant-closure` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::redundant_closure)]`
+
+error: used `unwrap()` on a `Result` value
+    --> crates/eech-engine/src/lib.rs:2303:76
+     |
+2303 |             let ids: Vec<std::ffi::CString> = members.iter().map(|(id, _)| std::ffi::CString::new(*id).unwrap()).collect();
+     |                                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is an `Err`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#unwrap_used
+     = note: requested on the command line with `-D clippy::unwrap-used`
+
+error: used `unwrap_err()` on a `Result` value
+    --> crates/eech-engine/src/lib.rs:2433:13
+     |
+2433 |             unsafe { navigation_from(&step) }.unwrap_err()
+     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is an `Ok`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#unwrap_used
+
+error: used `unwrap_err()` on a `Result` value
+    --> crates/eech-engine/src/lib.rs:2445:17
+     |
+2445 |         assert!(unsafe { navigation_from(&step) }.unwrap_err().contains("group member"));
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is an `Ok`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+    --> crates/eech-engine/src/lib.rs:2449:13
+     |
+2449 |             unsafe { navigation_from(&step) }.unwrap().3[1].host_id.as_ref().map(String::len),
+     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is an `Err`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+    --> crates/eech-engine/src/lib.rs:2456:17
+     |
+2456 |         assert!(unsafe { navigation_from(&step) }.unwrap().3[1].host_id.is_none(), "a null entry is unresolved");
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is an `Err`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#unwrap_used
+
+error: used `unwrap_err()` on a `Result` value
+    --> crates/eech-engine/src/lib.rs:2459:17
+     |
+2459 |         assert!(unsafe { navigation_from(&step) }.unwrap_err().contains("non-UTF-8"));
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is an `Ok`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#unwrap_used
+
+error: used `unwrap_err()` on a `Result` value
+    --> crates/eech-engine/src/lib.rs:2462:17
+     |
+2462 |         assert!(unsafe { navigation_from(&step) }.unwrap_err().contains("fw_member_radius"));
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is an `Ok`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#unwrap_used
+
+error: used `unwrap()` on a `Result` value
+    --> crates/eech-engine/src/lib.rs:2713:66
+     |
+2713 |         let names: Vec<std::ffi::CString> = (0..300).map(|index| std::ffi::CString::new(format!("m{index}")).unwrap()).collect();
+     |                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is an `Err`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#unwrap_used
+
+error: used `expect_err()` on a `Result` value
+    --> crates/eech-engine/src/lib.rs:2770:27
+     |
+2770 |             let message = outcome.expect_err("the step must be refused");
+     |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is an `Ok`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#expect_used
+     = note: requested on the command line with `-D clippy::expect-used`
+
+error: used `expect_err()` on a `Result` value
+    --> crates/eech-engine/src/lib.rs:2857:27
+     |
+2857 |             let message = outcome.expect_err("the step must be refused");
+     |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is an `Ok`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#expect_used
+
+error: used `expect_err()` on a `Result` value
+    --> crates/eech-engine/src/lib.rs:2995:17
+     |
+2995 |         assert!(missing.expect_err("refused").contains("did not return a lookup plan"));
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is an `Ok`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#expect_used
+
+error: used `expect_err()` on a `Result` value
+    --> crates/eech-engine/src/lib.rs:3004:17
+     |
+3004 |         assert!(too_many.expect_err("refused").contains("terrain samples"));
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is an `Ok`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#expect_used
+
+error: used `expect_err()` on a `Result` value
+    --> crates/eech-engine/src/lib.rs:3021:17
+     |
+3021 |         assert!(missing.expect_err("refused").contains("did not return guidance"));
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is an `Ok`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#expect_used
+
+error: used `expect_err()` on a `Result` value
+    --> crates/eech-engine/src/lib.rs:3045:21
+     |
+3045 |             assert!(stray.expect_err("refused").contains("a lookup plan"), "mode {mode}");
+     |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is an `Ok`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#expect_used
+
+error: used `expect_err()` on a `Result` value
+    --> crates/eech-engine/src/lib.rs:3059:21
+     |
+3059 |             assert!(stray.expect_err("refused").contains("guidance"), "mode {mode}");
+     |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is an `Ok`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#expect_used
+
+error: manual `RangeInclusive::contains` implementation
+   --> crates/eech-dc/src/module.rs:327:68
+    |
+327 |                 LuaValue::Number(count) if count.fract() == 0.0 && count >= 0.0 && count <= 1.0e6 => Some(count as usize),
+    |                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `(0.0..=1.0e6).contains(&count)`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#manual_range_contains
+    = note: `-D clippy::manual-range-contains` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::manual_range_contains)]`
+
+error: used `expect_err()` on a `Result` value
+    --> crates/eech-engine/src/lib.rs:3155:27
+     |
+3155 |             let message = outcome.expect_err("the step must be refused");
+     |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is an `Ok`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#expect_used
+
+error: used `expect_err()` on a `Result` value
+    --> crates/eech-engine/src/lib.rs:3209:17
+     |
+3209 |         assert!(missing.expect_err("refused").contains("did not return a lookup plan"));
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is an `Ok`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#expect_used
+
+error: used `expect_err()` on a `Result` value
+    --> crates/eech-engine/src/lib.rs:3219:21
+     |
+3219 |             assert!(wrong.expect_err("refused").contains("look-ahead"), "count {count}");
+     |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is an `Ok`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#expect_used
+
+error: used `expect_err()` on a `Result` value
+    --> crates/eech-engine/src/lib.rs:3247:17
+     |
+3247 |         assert!(stray.expect_err("refused").contains("a lookup plan"));
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is an `Ok`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#expect_used
+
+error: could not compile `eech-dc` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `eech-dc` (lib test) due to 1 previous error
+error: could not compile `eech-engine` (lib test) due to 20 previous errors
+EXIT=101
+docker exit=101

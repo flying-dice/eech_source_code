@@ -1,0 +1,18 @@
+{
+  "source": "8d0c7bb69ef3f8593ced7c443227aa6839ab15fa",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-ambient-judge-8d0c7bb69-windows-20261031.sh"
+  ],
+  "pid": 10104,
+  "controller_pid": 19508,
+  "state": "terminal",
+  "started_utc": "2026-10-31T15:56:39.608790+00:00",
+  "scope": "New amplitude judge/driver windows compile/guards/lint only; no retail native launched, public authority remains separate",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T15:57:46.412599+00:00"
+}

@@ -1,0 +1,14 @@
+{
+  "reviewer": "/root/d2_los_review, SAME independent reviewer",
+  "head": "f35388cee2d45c58cab25a31c8551c9397acb5a0",
+  "all24_pinned_hashes_match_before_after": true,
+  "closed": ["Original timed eligibility", "Complete weapon snapshots and overflow cleanup", "Pre-launch placement validation", "Missing-row rejection", "Bounded reading with valid limits", "Natural-only audit/precondition wording"],
+  "remaining": [
+    {"priority": "P2", "path": "eech-campaign/tools/combat-trace-audit.py", "line": 234, "issue": "Moving the unscoped run marker after its whole final report stillreturns0/PASS.", "fix": "Require final report after its run marker and add targeted actualtrace order control."},
+    {"priority": "P2", "path": "eech-campaign/tools/combat-trace-audit.py", "line": 84, "issue": "New --line-max=-2 causes readline(-1); small instrumented input confirmed unboundedrequest.", "fix": "Validate positive line limits and nonnegative total limits before any read, including shared reader entry."},
+    {"priority": "P2", "path": "eech-campaign/crates/eech-world/lua/combat-case.lua", "line": 91, "issue": "Flattened cmb-blast-kill counter keys omit code; later rows overwrite earlier kill-code calls, hiding a changed counter from case_delta.", "fix": "Include each indexed row identifier and test actual shared flattening with multiple kill codes."},
+    {"priority": "P2", "path": "eech-campaign/reference/d2-combat-characterization/c-checks/case-mutation-previous-driver.sh", "line": 11, "issue": "New mutation helper runs after compile failure and finalecho masks Docker/nonzero run status. Retainedcompile0/16failures/offmapabort is real, but no outer nonzero may be inferred.", "fix": "Capture compile status/skiprun onfailure/propagate Docker status; retain normalmutant and forcedcompilerfailure controls."}
+  ],
+  "new900_verified": "Sound within declared scope: all3completeartifacts independently byteequal retainedbaseline/all37exporthashesmatch/runrecordcompletednative0. Physical-outputpurityonly, notcombatcensus/visualinspection. Originalbaselinerootprovenanceinferred.",
+  "remaining_gates": "Focused NEWcorrections closure, clean named controlledfixture build/actualcase deltas, physicaldamage extraction/acceptance; controlled witness stillunbuilt/unrun. No builds/scenarioslaunchedinreview."
+}

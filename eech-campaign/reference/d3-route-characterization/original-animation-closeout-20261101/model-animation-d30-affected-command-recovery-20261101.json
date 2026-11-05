@@ -1,0 +1,10 @@
+{
+  "created_utc": "2026-11-01T23:00:01.330577+00:00",
+  "prior_actual_exit": 101,
+  "prior_process_terminal": true,
+  "prior_log": "model-animation-original-d30e153e91-linux-20261101.log",
+  "source_unchanged": "d30e153e9116bcfbfa816c5752ef2492360ac33a",
+  "cause": "Root selected only -p eech-world while requesting eech-dc/model-fixture; World has no DC dependency or that feature. No tests ran in the failed helper.",
+  "corrected_command_scope": "World-only corrected driver test and all-target Clippy need no DC feature; original C producer feature gates retained at4485/a6 own identities.",
+  "new_stem": "model-animation-original-d30e153e91-linux-affected-v2-20261101"
+}

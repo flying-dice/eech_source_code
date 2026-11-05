@@ -1,0 +1,32 @@
+{
+  "baseline": "R:/d2-evidence/los-characterization-baseline-20261026/out/ab-base",
+  "candidate": "R:/d2-evidence/combat-characterization-20261028/out/forecast-control-01",
+  "scope": "Complete artifact bytes only; native exits and configuration require separate verification",
+  "results": [
+    {
+      "file": "recording.acmi",
+      "baseline_bytes": 11363845,
+      "candidate_bytes": 11363845,
+      "baseline_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+      "candidate_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+      "matches": true
+    },
+    {
+      "file": "observations.jsonl",
+      "baseline_bytes": 6629273,
+      "candidate_bytes": 6629273,
+      "baseline_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+      "candidate_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+      "matches": true
+    },
+    {
+      "file": "metrics.json",
+      "baseline_bytes": 11777,
+      "candidate_bytes": 11777,
+      "baseline_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+      "candidate_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+      "matches": true
+    }
+  ],
+  "passed": true
+}

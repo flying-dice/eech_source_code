@@ -1,0 +1,14 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.16s
+     Running unittests src/lib.rs (/target/debug/deps/eech_engine-78418b2609a1a0bb)
+
+running 2 tests
+test tests::the_inner_layout_of_the_weapon_state_is_the_campaigns ... ok
+test tests::the_rust_mirrors_of_the_aim_exchange_have_the_layout_the_campaign_compiled ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 63 filtered out; finished in 0.00s
+
+CARGO_EXIT=0
+DOCKER_EXIT=0

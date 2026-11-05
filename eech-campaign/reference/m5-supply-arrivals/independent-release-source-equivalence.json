@@ -1,0 +1,15 @@
+{
+  "native_source": "1578435b3557570635cccbcc416cf5fcb15d2076",
+  "lint_head": "a352c126793e3d1a375af06473c6ae656a95ab00",
+  "changed_inputs": [
+    "eech-campaign/crates/eech-dc/lua5.1/README.md",
+    "eech-campaign/crates/eech-world/lua/supply-arrivals.lua",
+    "eech-campaign/crates/eech-world/src/main.rs"
+  ],
+  "moved_cfg_test_module_identical": true,
+  "production_host_source_identical_after_lint_and_blank_line_removal": true,
+  "normalized_host_source_sha256": "986d3350605bcc4999dd70bbf899e47f0ede57601a0ae37d632d2c2cb56c4c6e",
+  "scope": "source equivalence only; not a claim new PE bytes executed the retained M4 pack",
+  "retained_M4_exe_sha256": "5a8be8a9affa5ab356f5fbc194b00b3441562bf00d748a73c199f47818708d5a",
+  "retained_M4_DLL_sha256": "62d5ca194852dd8dcbab41ba782388adf6a3095decf4e5be0078d51495c24a8e"
+}

@@ -1,0 +1,47 @@
+{
+  "when_utc": "2026-10-28T16:08:42.541125+00:00",
+  "runtime_source": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "bin": "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\target\\windows-d2-combat-final-64cf0f1c5",
+  "root": "R:\\d2-evidence\\combat-characterization-20261028\\roots\\frame-cost-final-d2-900-01",
+  "script": "R:\\d2-evidence\\combat-characterization-20261028\\final-frame-64cf-lua\\campaign.lua",
+  "script_sha256": "31ebba83848f143dd42ca3ac7233230ac2c36eeaa63532c673ed75d124eb88df",
+  "shipping_campaign_sha256": "a50bf7952f2379f06cab8b18ed060fab20568e2768f405118c0b802b85069fcb",
+  "build_info_sha256": "3410ac4174a259e0ee211e4bb05361a819e1c1da54a300abe93968eff08e169d",
+  "checks": [
+    {
+      "command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\frame-cost-final-d2-900-01",
+        "--compare",
+        "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "actual_exit": 0,
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-pre-inputs.log",
+      "log_sha256": "7590a1ea1f3977551006791381b011adbd024d377b2503677956996e573c68fa"
+    },
+    {
+      "command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:/check-lua-syntax.py",
+        "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\target\\windows-d2-combat-final-64cf0f1c5\\lua.dll",
+        "R:\\d2-evidence\\combat-characterization-20261028\\final-frame-64cf-lua\\campaign.lua"
+      ],
+      "actual_exit": 0,
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-lua-syntax.log",
+      "log_sha256": "6bc9364224063eb9bb37255f7a695d64fc4e4817f6068a5914298f2bacf03a3a"
+    }
+  ],
+  "lua_dll_sha256": "aae318d583c251350442fcd58d0872df27002291de0b82414c3e35c7dfce20f8",
+  "reused_exact_dll_calibration": "R:\\d2-evidence\\combat-characterization-20261028\\root-finalshipping-lua-clock-calibration-f4700bbab.json",
+  "reused_calibration_sha256": "477dc16abe4f8b0da6360afbee08df5f1ca32d86f2d625794ba75d9ff0f817b0",
+  "calibration_scope": "Retained f470 calibration applies to exactly equal Lua DLL bytes; not relabelled as64cf measurement. os.clock advanced during idle, elapsed rather than CPU-only.",
+  "helper_review": "R:\\d2-evidence\\combat-characterization-20261028\\independent-final-frame-helpers-review-20261028.json",
+  "limits": "Prelaunch only.900s/9000frames/15windows; raw samples outside timed engine:frame span; record actual background load. No DCS scheduling budget, causal parent comparison or finalpack acceptance."
+}

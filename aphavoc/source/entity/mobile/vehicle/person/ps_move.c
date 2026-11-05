@@ -342,6 +342,31 @@ void person_movement (entity *en)
 
 	raw->person_animation_state = state + remainder;
 
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	// the host steps the man in two phases around the terrain sample, which stays with the engine's terrain
+
+	{
+		int
+			terrain_follow;
+
+		terrain_follow = ((state == PERSON_ANIM_WALK) || (state == PERSON_ANIM_RUN));
+
+		if (campaign_movement_person_begin (en, ps_vel, &wp_pos, terrain_follow, &new_pos))
+		{
+			float
+				elevation;
+
+			ASSERT (point_inside_map_area (&new_pos));
+
+			elevation = get_3d_terrain_elevation (new_pos.x, new_pos.z);
+
+			campaign_movement_person_end (en, elevation);
+		}
+	}
+
+#else
+
 	movement_distance = min (ps_vel * get_entity_movement_delta_time (), distance);
 
 	x_inc = normalised_wp_vec.x * movement_distance;
@@ -369,6 +394,8 @@ void person_movement (entity *en)
 	raw->vh.mob.motion_vector.x = x_inc / get_entity_movement_delta_time ();
 	raw->vh.mob.motion_vector.y = y_inc / get_entity_movement_delta_time ();
 	raw->vh.mob.motion_vector.z = z_inc / get_entity_movement_delta_time ();
+
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

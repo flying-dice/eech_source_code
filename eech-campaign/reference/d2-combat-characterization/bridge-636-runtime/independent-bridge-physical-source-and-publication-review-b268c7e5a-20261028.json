@@ -1,0 +1,503 @@
+{
+  "reviewed_utc": "2026-10-28T12:30:03.855565+00:00",
+  "reviewer": "same independent Codex reviewer",
+  "scope": "ONE combined NEW R5source correctness/clean-code/boundary review bb..b268 + finite Root nativeprobeplan + exactsafe publication integrity; no unchanged physicalsource/native semantic audit repeated",
+  "base_sha": "bbfea21fcdb808162e246f1fd74c15a705ba2e54",
+  "source_parent": "f5a360199b8e9b01a40f6530c79e9876b33f2a1f",
+  "reviewed_sha_before": "b268c7e5a0016898ba855a5316cc91c3fd5fa98e",
+  "reviewed_sha_after": "b268c7e5a0016898ba855a5316cc91c3fd5fa98e",
+  "source_status_before": "clean",
+  "source_status_after": "clean",
+  "findings": [
+    {
+      "id": "R5-WEAPON-STATE-C-LAYOUT",
+      "priority": "P1",
+      "file": "R:\\d2-evidence\\combat-bridge-host-source-b268c7e5a\\eech-campaign\\crates\\eech-engine-sys\\src\\lib.rs",
+      "lines": [
+        902,
+        904
+      ],
+      "title": "Restore the actual repr(C) attribute on the existing weapon state",
+      "mechanism": "New bridge declarations swallowed the previous #[repr(C)] into the weapon-state documentation line902. eech_weapon_state now has unspecified Rust layout while embedded in the C-layout eech_aim_step and read as campaign_weapon_state for existing WEAPON_STEP. A matching current size/outer offset does not establish C field ordering or preserve compiler/target ABI. This is a lost required FFI guarantee, not a claimed observed native crash.",
+      "bounded_correction": "Move #[repr(C)] to a standalone attribute before derive, and add C-vs-Rust inner weapon-state size/alignment/representative field-offset coverage alongside outer-layout tests. Restore the guarantee without changing physical formulas/protocol values. Do not call a same-size outer test proof of inner field order.",
+      "evidence": "Pinned source902..924; previousbb declaration had standalone repr(C). Current tests only check outer weapon_state offset. Fresh compile0 cannot establish unspecified Rust layout."
+    },
+    {
+      "id": "R5-DESTRUCTIVE-VEHICLE-CONTINUATION",
+      "priority": "P2",
+      "file": "R:\\d2-evidence\\combat-bridge-host-source-b268c7e5a\\aphavoc\\source\\entity\\mobile\\mb_hostaim.c",
+      "lines": [
+        2064,
+        2075
+      ],
+      "title": "Do not resume a sector walk through an entity released by the applied kill",
+      "mechanism": "VEHICLES accepts any offered readable/alive object, saves its private pointer, applies kill and always supplies after that same pointer. Production campaign_sector_window delegates blast_window, which offers WEAPON as readable/alive. sg_dstry vehicle_kill calls kill_client_server_entity; weapon kill is destroy_server/client (wn_dstry333..335), unlinksSECTOR203/freesraw215/set_free_entity217; en_heap506..508 sets UNKNOWN/null data. Subsequent blast_window after-path calls get_local_entity_child_succ on that released slot, producing invalid-list fatal or wrong association if reused, after a valid requested effect was already applied. Original reference only kills routed vehicles whose nodes survive, so its effect-order differential does not cover this newly allowed destructive target.",
+      "bounded_correction": "Choose explicit safe applicability or a private generation-aware continuation: refuse unsafe-to-resume targets BEFORE apply, or resume destructive targets using validated private continuation/generation and mutation-aware progress. Preserve routed-vehicle successor read AFTER its kill (not a blanket cached-successor rewrite). No public heap IDs, reference physical solver/filter fallback or touched old blast flow required. Add a test with a production-like readable living weapon whose kill releases/reuses the slot, or actual production-adapter guard, in addition to surviving RV/unlinked-successor cases.",
+      "related_actual_callers": [
+        {
+          "file": "R:\\d2-evidence\\combat-bridge-host-source-b268c7e5a\\aphavoc\\source\\entity\\fixed\\segment\\sg_dstry.c",
+          "function": "vehicle_kill -> kill_client_server_entity"
+        },
+        {
+          "file": "R:\\d2-evidence\\combat-bridge-host-source-b268c7e5a\\aphavoc\\source\\entity\\special\\effect\\explosn\\explosn.c",
+          "function": "campaign_sector_window -> blast_window; after -> child_succ; blast_readable includes weapon"
+        },
+        {
+          "file": "R:\\d2-evidence\\combat-bridge-host-source-b268c7e5a\\aphavoc\\source\\entity\\mobile\\weapon\\wn_dstry.c",
+          "lines": [
+            203,
+            215,
+            217,
+            333,
+            335
+          ]
+        },
+        {
+          "file": "R:\\d2-evidence\\combat-bridge-host-source-b268c7e5a\\aphavoc\\source\\entity\\system\\en_main\\en_heap.c",
+          "lines": [
+            506,
+            508
+          ]
+        }
+      ],
+      "scope": "Concrete NEW direct-destructive vehicle action. Older closed blast collision/INTERCEPT only changes kill state until update and is not re-reviewed or relabelled here."
+    },
+    {
+      "id": "R5-PUBLICATION-CRLF-WHITESPACE",
+      "priority": "P3",
+      "file": "R:\\d2-evidence\\combat-bridge-host-source-b268c7e5a\\eech-campaign\\reference\\d2-combat-characterization\\impact-bridge-original-runtime\\.gitattributes",
+      "lines": [
+        1
+      ],
+      "also_file": "R:\\d2-evidence\\combat-bridge-host-source-b268c7e5a\\eech-campaign\\reference\\d2-combat-characterization\\task45-parent-frame-cost\\.gitattributes",
+      "title": "Allow preserved CR-at-EOL in the two scoped evidence directories",
+      "mechanism": "Both attributes have only * -text. Exact original CRLF evidence is rightly preserved, but git diff --check bb..b268 actualexit2 reports4298 CR-at-EOL trailing whitespace notices over23 publication files; no product-source whitespace errors.",
+      "bounded_correction": "Use scoped * -text whitespace=cr-at-eol in these two directories (matching prior dossiers), retain all34 copied bytes/Git hashes and recheck. Do not normalize/trim evidence or broadly disable whitespace checks."
+    }
+  ],
+  "disposition": "R5 source/native-launch gate BLOCKED by P1 and P2; publication byte integrity sound, scopedP3 metadata correction required. No R5 native acceptance.",
+  "source_review": {
+    "all112_changed_files_canonical_git_pins_verified": true,
+    "runtime_file_pins": [
+      {
+        "path": "aphavoc/source/entity/fixed/segment/sg_dbase.c",
+        "git_blob": "bdb8736bb4815e4f4218a3cf2ce10ac3a091bb3a",
+        "raw_sha256": "7fe45d0791d5c8412725ec3b457f5fb08c312ddebb3a29fa9349121ddd11a7c9"
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/segment/sg_dbase.h",
+        "git_blob": "e0d729108eb8f0f21c9ca2dcd5c537d422f22cfd",
+        "raw_sha256": "95918b8a95791d019cd465874a045a94a4339d2c5e4dbd2a2584073033ff5da5"
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/segment/sg_dstry.c",
+        "git_blob": "afe0544e352da78847739cd254b9a6e49c1db3af",
+        "raw_sha256": "316ccf4771fcc4890851c1c0c9a46acaeb5e229bfe442250af469d2130a266d6"
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/segment/sg_pack.c",
+        "git_blob": "dda617bc54bca82b9ffaf7ecfa2dc4778b9ce107",
+        "raw_sha256": "f18ab0e0fbbc150e4d45d491ddc17bf9ff9e26a6ce71e68c06483164a285e9b9"
+      },
+      {
+        "path": "aphavoc/source/entity/fixed/segment/sg_updt.c",
+        "git_blob": "97950be1d6593866b3f906c2bb6f2d86d490c689",
+        "raw_sha256": "8180ef536239035e28deeb09dfca49edd89843f29872045e319db52937f976d2"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostaim.c",
+        "git_blob": "b5de320be9e612b89902664df659848762fd4c0c",
+        "raw_sha256": "58a85c9ea1feb6826c3fa19df4ea5dc859eb4cc2f414e0638c88dd655f8b505f"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostaim.h",
+        "git_blob": "c635d1d5450d21a1729ebba3ddb0d1e31626b725",
+        "raw_sha256": "39d2bd6577318be824c03d7cdc04f9cf18d09568fe2cc285fec0235deb02a56b"
+      },
+      {
+        "path": "aphavoc/source/entity/special/bridge/br_msgs.c",
+        "git_blob": "76df7d442aec0761a0a48aca03b818c4922760ac",
+        "raw_sha256": "c4eac14cc554f317f3da10de30ef5316d7763dd06d6916607f104f27db77aca4"
+      },
+      {
+        "path": "aphavoc/source/entity/special/effect/explosn/explosn.c",
+        "git_blob": "298d94ed47c2fde91a314f956b2570df8a6dbba9",
+        "raw_sha256": "3a70bc723fb888356a54ef8f9d23a0ffd67d41d6ec3154ded9d975ee0bea88a7"
+      },
+      {
+        "path": "aphavoc/source/entity/special/effect/explosn/explosn.h",
+        "git_blob": "300902f98d5ce528918de1222c61da9e1c91fa8c",
+        "raw_sha256": "3773992b5ad20f8d09bcd06e4bdb56f33890caa6239638db2748a7580a78b46e"
+      },
+      {
+        "path": "eech-campaign/crates/eech-dc/src/module.rs",
+        "git_blob": "e58a70121f1c701174b1900371880e7c449d5119",
+        "raw_sha256": "b2badf9982b7449ec7ebb536c4e0bdad3dddc5a6224a42556ca599bf5995f1cc"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_aim_layout.c",
+        "git_blob": "2fd433adacd70a2b9609873ff0006184ca1c74c7",
+        "raw_sha256": "3ef12037f666aab273e3041bd497c0aca70fecf42bc57ea59c8535c04901f6de"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+        "git_blob": "9c7d64171c3b6d27e39261e08de78205e7d33603",
+        "raw_sha256": "90d21a5f28414cbe855e6f0bd3c8f920c9e013367e142b75557848fee35d82c4"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "git_blob": "4e952527e19d3b2abeb3fe8079b31e1d60f13dde",
+        "raw_sha256": "6652f3f767a6fc499537c24dea0fd9f7c71b1c375996bcf55c7864d1070ba71e"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/cmb_step.c",
+        "git_blob": "f1f70b42ed5d75ccad277d8d4c887e553d9b1d22",
+        "raw_sha256": "ed3f74a332c39504e00e98d340095e395f4f4b55e8344982bdbacf89616b1db0"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/aim-malformed.lua",
+        "git_blob": "a6882b427cb9f5989e35767f2713cff03d9c9cfd",
+        "raw_sha256": "87ca2fdfec34ef29428665ff4f296802448cecf0f432a14b862732bd0af10f73"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/aim-provider.lua",
+        "git_blob": "504f939f4838cd0b3689008fd505ebc36c351765",
+        "raw_sha256": "92c2e85b92a68d4f0c8c502bdf0384a71d0adf4628c7a990681976e48035ea75"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/bridge-case.lua",
+        "git_blob": "2bac7d49dbc75175a553866bd2489d0433e4b06c",
+        "raw_sha256": "a92b0152a8606de635b829c8b92c9525e8476dd4bd9ef57140fead5ff8603eaf"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/own-weapon.lua",
+        "git_blob": "b0e57e09c602b39a7954daa4dab1d8dbba2ca0b3",
+        "raw_sha256": "00538561919fcf17f2103375ac5699d4786b94f0d1fe504f861806623f6d3fe8"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/cmb.rs",
+        "git_blob": "ae717b0bc58cb9d3562115909e701387b4c5925b",
+        "raw_sha256": "79ba4471bac7c4fe51eeb4f034d175f64b764e7c3f3c8f12e053acd9af4aad19"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/main.rs",
+        "git_blob": "fcc4ab4adb2a14f354abc76fe0a34b37744f2170",
+        "raw_sha256": "e0240343940b9948332dfba83b3fa28154282036b53247c10a81a167b0f933a8"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+        "git_blob": "16f1574a3062d8872f4a486ea74c1cf8ee482a9e",
+        "raw_sha256": "bc0f4d97eab8f0619bca73669625ced4e1c420ee9e16d851abafd05c0d793175"
+      }
+    ],
+    "ownership": "Reference Ckernel cmb_step.c owns KILL/SHAPE/NEIGHBOUR/FALL/REST/VEHICLES physical decisions outside DLL. Core switch maps hostvariant to assetdata; no authoritative formula/fallback remains in moved original callers. Campaign keeps kill/notifications/effects and route/repair/order/accounting consequences. R3persistent structure identity/report correlation and physicalreports explicitly NEXTD2.",
+    "original_order_and_math": "Inspected against bb originals: kill then shape; successor notification then refreshed predecessor; terrain x/z data only on demand; dropped_y applied thenfallhook thenlanded_y+hook/removal/effect. Reference double10.0*floatdt, waterminus1.0, root2f and approximate max+quarterrange/strictcomparison, scalar casts/sectordivision retained. No new shared RNGdraw; bridgeNEED_DRAW refused. Numeric differential is Linux transcribed-original/source proof, not Windows FPU/native equivalence.",
+    "public_boundary": "C/Rust/Lua byvalue facts, optionalterrain/currentwindow, finite fields/strictflags/opvalues/knownvariants, bounded windows16/sectors4096/rounds/handleoverflow, clear missing/malformed refusal. Neither pointers/private heap indices nor RNGseeds cross. Generic own.bridge uses no EECHtables/echo/reference solver. The two findings above remain despite these checks.",
+    "callers": "Shape helper br_msgs+sg_pack both host; unpack physical REST included; sg_updt notifications/fall included; sg_dstry vehiclewalk included. Private terrain adapter/data retained. No other actual unsupported-span decision found among remaining entity-code mentions (data/enums)."
+  },
+  "existing_source_evidence": {
+    "log_sha256": {
+      "cargo-test-r5-5.log": "d8d1dcc455a5c8fd1b99739b3849f64f17c177b0ab779282c8250432a55c0032",
+      "cargo-test-r5-fixture.log": "ecbf1eb9cbe477a6ec76c004fbce5ea6db265a3857ea5f79336613c950cc42cc",
+      "clippy-r5b-default.log": "423015f656d4f532803b501dd25dfe3cefe23d59dfc85de6a8901351e49baf42",
+      "clippy-r5b-fixture.log": "4208a31c107af410f6309f8ced88e62b771e4161953282d3570dcdb920f82ac4",
+      "fmt-r5-rest-check.log": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+      "bridge-checks-2.log": "09edad0336f0b12c2d2a5c1a1a61e999899d47d70c62e7a6634871e4b7fe0a6d",
+      "bridge-differential-4.log": "de9bc0f3e9531ec82ebd9d5e86d8cff560ccd7041072b18e2977eb2fe1834bdd",
+      "bridge-mutation-2.log": "8757e237f0cda72e81753893c5d39513d104fd1b2d77f7005fbd7549f6e19536",
+      "bridge-differential-mutation-4.log": "792c4e922e113e6783339c025b07d612b89e9ec0cfdb430006405a602678429b",
+      "blast-checks-r5b.log": "861d1469450a92357736c4b735b600dbcd76fb5ffc2a67294021611f6fdff036",
+      "blast-differential-r5b.log": "f1f11543da3644cde89e3b6054cf10dcf89ac69bbc46dc9dffa5af103cc7f073",
+      "damage-checks-r5b.log": "ef72f9f5606668849a9132786d4694da260333307731c46d602bcad6cd3f43c6",
+      "forecast-checks-r5b.log": "4cf35c5a41b1d2c4bca2917c364c6a757f88aa5666b893ad246fdb9320808e2e",
+      "health-checks-r5b.log": "22412c8d0de37d2b8218df86955cefe16ee6af22c448e0d71945b686aec3ef3d",
+      "syntax-r5-4.log": "509041f0354c7a539ba6cfa213b362b4756e9b165af87d20535468e96d106045",
+      "strict-preprocess-r5-2.log": "ac283b9642d10328006307f938d6c0224606501a779c429a31b2a6a444aca1b6"
+    },
+    "verified": "Workspace+fixture Cargo actual0; default+fixture Clippyactual0; fmt0; realCbridge57guards0;84036transcribed-original differential incl60000falls/20000rests/4000vehiclewalks0;12+12mutants eachcompiled0/runtime1 with separate compilefailure/no-run and timeout124 controls; blast60/6000world255003events,damage66,forecast25,health59rerun0; syntax22OKon/off.",
+    "feature_off": "Five bridge/segment preprocessed sources explicitly DIFFERbydesign with no fixturehooks, not blanket equivalent PASS. Full defaultnative/shipping remains required.",
+    "limits": "All checks were existing evidence read only. Fakeworld/transcribed originals do not prove fullgame destructive entity release or inner unspecified Rustlayout. Earlier anchor/staged-header/ASANharness/op-range/mutation-pattern failures retained, not green.",
+    "root_parallel_compile": "Compile-only frozenb268 build16635 reportedactual0 and read BUILD_ACTUAL_EXIT0; source defects unresolved, export/build identity remains superseded/unrun and cannot be accepted as corrected native."
+  },
+  "root_probe_plan": {
+    "disposition": "No additional plan/helper findings. Proceed only after correctedsource gate/newcleanbuild/allhash/preinput gates; b268 mustnotlaunch.",
+    "hashes": {
+      "bridge-provider-probe.lua": "73a0d5ca1ff873a789b22dde2b9df2a34d383ef8edb890f948b9a4091de35b7a",
+      "run-host-bridge.ps1": "59f52b2142beed54ae02a455962dfb08b671d16db4cd63b3614ef1733e759b76",
+      "run-bridge-control.ps1": "b5687029f25888eaa2ea51a3b539e3711e1c2b89f047356208102d0518362bf1",
+      "run-bridge-provider-probe.ps1": "ba5183f7864e55798d30ec7de5a703b7ecaab4f76ab5101ba9c2ede110903c5d"
+    },
+    "shape": "Seven fresh roots: default5/100/12/criterion0+repeat, ordinary900control, own and own_fall positives, nilresponse missing and variant99 bad_shape negatives. Heldprocesshandles/Hidden/actualnativeexits/freshoutput guards retained.",
+    "meaningful_acceptance": "Defaultcomplete raw equality to closedbb320598+actual0;900full3completebytes/posts. Positiveprovider actualcasepreconditions+appliedcorestate/events and relevantnonzero counters required, not broadbootrequestcount alone. own delegates genuinely to exportedown.bridge; own_fall only counts dt>0terrain-known fall calls. Nonbridgeanswers reference unchanged. Malformednil/variant99 mustgenuinelytrigger specificprimaryhostaimerror in actualsummary/log and expectednative1, not poison-only/finalassertion alone.",
+    "limits": "Alteredmodels notdefaultbytecomparisons. Missingmode returnsnilreply, notmissingcallbackregistration. own counters includeallbridgeops/boot and do notaloneprovefall/collapse; laternativeaudit required. RESTsaved-world/client/occupiedvehicle/genericdestructivecase not provenbyplannedfourproviders. No forcedgolden/tolerance/scenario changes."
+  },
+  "publication": {
+    "copies": [
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/root-impact-natural-01-completion.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-impact-natural-01-completion.json",
+        "bytes": 2950,
+        "sha256": "ad1944d44331fb8fff075a4601584f9037059d24f48ce284dedf3c7518909ef8",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/root-impact-four-focused-completion.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-impact-four-focused-completion.json",
+        "bytes": 9754,
+        "sha256": "6457a9675bf2892c88f3ab81426e95f8654226c9f1a60e3dcbbe33d119fa742f",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/root-impact-control-01-completion.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-impact-control-01-completion.json",
+        "bytes": 4061,
+        "sha256": "a62c1682a9fb5ab421e555ecb11ca02ce7b0a8ea4bb80cb3587f4c38cb1c59a6",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/root-impact-provider-all16-completion.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-impact-provider-all16-completion.json",
+        "bytes": 80675,
+        "sha256": "625a951817cf26d00c8ac51ad9d4dd5552cfc3f79050d299e5e0b3abd4ee4301",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/independent-impact-blast-source-review-0400af446-20261028.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-impact-blast-source-review-0400af446-20261028.json",
+        "bytes": 37163,
+        "sha256": "a7ebf6887f995b4cc25e4f67eda7f1bb81a75c56d6dc7dec25ef69a77601d746",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/independent-impact-blast-correction-and-timed-publication-review-e0a42825b-20261028.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-impact-blast-correction-and-timed-publication-review-e0a42825b-20261028.json",
+        "bytes": 42210,
+        "sha256": "103787b3c22506d7c13fcd0c3a4edf15d768084dee5f5f339cda4fc4f9725c58",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/independent-impact-initial-runtime-review-e0a42825b-20261028.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-impact-initial-runtime-review-e0a42825b-20261028.json",
+        "bytes": 16052,
+        "sha256": "33dff4e8bfb9b90b2a6950cb0c3dc7c0f043c06471afd88f16d32f3f9a5f502f",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/independent-impact-remaining-provider-runtime-review-20261028.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-impact-remaining-provider-runtime-review-20261028.json",
+        "bytes": 22131,
+        "sha256": "33641337df8963836b1a56eefce6a3946c90643e3fb108f2aef3c321a54ab337",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/root-original-bridge-pair-completion.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-original-bridge-pair-completion.json",
+        "bytes": 21749,
+        "sha256": "115c959ffe5cc2ce43195dc7ba991f7e373687c3c3528e94c6fd61f117ff94af",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/independent-original-bridge-fixture-source-review-e1ab9c560-20261028.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-original-bridge-fixture-source-review-e1ab9c560-20261028.json",
+        "bytes": 14071,
+        "sha256": "d14cb7e962003c647dc9c24a8eb0570a4c7528a112256668b2b8323bbba72efb",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/independent-original-bridge-fixture-correction-review-181d957c0-20261028.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-original-bridge-fixture-correction-review-181d957c0-20261028.json",
+        "bytes": 10392,
+        "sha256": "1d38a323915e6cd8c6a5269c2bfda8aeb45caf92ae4ba3ec1c111914020e41b7",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/independent-original-bridge-zero-window-correction-review-bbfea21fc-20261028.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-original-bridge-zero-window-correction-review-bbfea21fc-20261028.json",
+        "bytes": 6308,
+        "sha256": "2ab691bb17f2a0504d21097576343284aeb79355fdd0a5d79280f49be2579fdf",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/independent-original-bridge-runtime-and-impact900-review-20261028.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-original-bridge-runtime-and-impact900-review-20261028.json",
+        "bytes": 12195,
+        "sha256": "0a5b41ca80b3673be47f382dc8dbd4bdbb2beaa5071ad3c5698ed396d8272cf4",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/independent-original-bridge-auditor-phase-correction-review-20261028.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-original-bridge-auditor-phase-correction-review-20261028.json",
+        "bytes": 10432,
+        "sha256": "557282e0f9702caf292e21be246958b74475acba112ef5f88db2f876b6250b18",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/root-original-bridge-auditor-phase-red.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-original-bridge-auditor-phase-red.json",
+        "bytes": 3179,
+        "sha256": "6044f2ed9b248a4f1fe1d1ff9248dea574a9b10a3bfeaf52052e8d05a7f6011d",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/root-original-bridge-auditor-phase-fix.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-original-bridge-auditor-phase-fix.json",
+        "bytes": 5324,
+        "sha256": "ec7214e26be574284ea3259c4c73c984170f54d5184b82860b642840dc5ae5fd",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/root-original-bridge-auditor-controls.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-original-bridge-auditor-controls.json",
+        "bytes": 2916,
+        "sha256": "8ac3bccb635ce21930e466d4a5324b60e4fb062e47163efabb867668e4f807b2",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/root-clean-impact-e0a42825b-fixture-manifest.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-clean-impact-e0a42825b-fixture-manifest.json",
+        "bytes": 10915,
+        "sha256": "5d5afe7d99ebeb26d04974806573659276970bff82168c0f93430670ef4024ce",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/root-clean-original-bridge-bbfea21fc-fixture-manifest.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-clean-original-bridge-bbfea21fc-fixture-manifest.json",
+        "bytes": 11195,
+        "sha256": "f557f3783bcd638edf453999f9f2315993d84ada5cea9c7773836d9f6b194803",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/task45-parent-frame-cost/completion.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-frame-cost-task45-900-01-completion.json",
+        "bytes": 7342,
+        "sha256": "4e84a448376ba3d4f2484a38505381a8a820d8aefb6cdb7581ff54fca6ef8ddb",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/task45-parent-frame-cost/complete-comparison.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-frame-cost-task45-900-01-complete-comparison.json",
+        "bytes": 1318,
+        "sha256": "02555fde3f48cac1364928dc36aaa2dc807a96f772d0febe1e815c7c0669c747",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/task45-parent-frame-cost/post-build.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-frame-cost-task45-900-01-post-build.json",
+        "bytes": 9577,
+        "sha256": "e722e0cbd94f9ba77a832dcbdee235c79127d3efa229daef11e065f3d2c30441",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/task45-parent-frame-cost/post-inputs.log",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-frame-cost-task45-900-01-post-inputs.log",
+        "bytes": 319,
+        "sha256": "64db8e0aa852f0974a2ba6b3fcb9be08265a388e97e25c73897c1d288862b404",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/task45-parent-frame-cost/clock-calibration.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-frame-cost-task45-clock-calibration.json",
+        "bytes": 1133,
+        "sha256": "bc8573f860b8bdee6e16f4e3d0403d50d51cdde120659b6a39bd5dbe0bd0802c",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/task45-parent-frame-cost/independent-review.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-task45-native-frame-cost-review-20261028.json",
+        "bytes": 7002,
+        "sha256": "49a254c778e3e07f8a3c05509554a296ff3c4b528ab62cdc1c9afde7e86c1b20",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/task45-parent-frame-cost/frame-cost.jsonl",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\frame-cost-task45-900-01\\frame-cost.jsonl",
+        "bytes": 1543,
+        "sha256": "752a2d98235b321af4968c908f38e8db71b09c0066b171e1f35eb8c876fb2150",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/task45-parent-frame-cost/run.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\frame-cost-task45-900-01\\run.json",
+        "bytes": 1819,
+        "sha256": "731c79204734ae06a6d5d32330e4d75a6e8863ae0f1ea5da7c0e8a979761597b",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/task45-parent-frame-cost/prepare-frame-measurement.py",
+        "private_original": "R:\\d2-evidence\\prepare-frame-measurement.py",
+        "bytes": 4914,
+        "sha256": "17a20fa8e6c78e89fe3b66684ddd58f6597483ce77bd97ae1fd9ee8a8f62fb23",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/task45-parent-frame-cost/campaign-frame-cost.lua",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\frame-cost-task45-lua\\campaign-frame-cost.lua",
+        "bytes": 14607,
+        "sha256": "8bdc9cd8927265017af0a2548382475b4247fc07761aefc65ace659375e92046",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/task45-parent-frame-cost/campaign-frame-cost.source.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\frame-cost-task45-lua\\campaign-frame-cost.source.json",
+        "bytes": 1106,
+        "sha256": "57f1bd70e052fbbf34a6f8012c41c56168bc46c0b71847bf08ec495a9238c3b0",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/task45-parent-frame-cost/metrics.lua",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\frame-cost-task45-lua\\metrics.lua",
+        "bytes": 6903,
+        "sha256": "dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/task45-parent-frame-cost/observations.lua",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\frame-cost-task45-lua\\observations.lua",
+        "bytes": 7229,
+        "sha256": "68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/task45-parent-frame-cost/run-frame-cost.ps1",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\run-frame-cost.ps1",
+        "bytes": 2776,
+        "sha256": "9cc90470dfbf188ceaa26ea4a4c3c277251130763ac5ef6427ff943c758ae172",
+        "committed_git_exact": true
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/task45-parent-frame-cost/audit-frame-cost-task45.py",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\audit-frame-cost-task45.py",
+        "bytes": 4615,
+        "sha256": "c06c15acf6c3866f8b74bd06ed009b71b3046b693b8655dc88dfcb6b8b7f02f9",
+        "committed_git_exact": true
+      }
+    ],
+    "all34_private_worktree_committed_git_exact": true,
+    "source_parent_trees_unchanged": {
+      "aphavoc": "7b160750fb7967d950049f949be367842c62766b",
+      "modules": "cb40c4563825739137c59de394ed92ca9bf8ab9c",
+      "eech-campaign/crates": "4950025845344f522ffd87bd5682ffca312c0f83",
+      "eech-campaign/Cargo.toml": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+      "eech-campaign/Cargo.lock": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+      "eech-campaign/tools": "28c9ac18eceeef0f794b2834f76e5a646d1d4fc1",
+      "eech-campaign/regression": "090bd08a26859a8d1ce0907473e049142342aa75",
+      "eech-campaign/scenarios": "d9a521c0db9069d557a5d73b0c68f055f79e7baa"
+    },
+    "publication_proof_sha256": "ac564bc403f5cf8d12578185720d7d4cefcb5cd57497570a5067668b0b0d9f88",
+    "claims": "README/currentSTATUS distinguish closedimpacte0/originalbb/nativecosta137 from unacceptednewR5. Prior findings and closingreviews retained. CostRAMquantile/DCS/concurrency/baselineprovenance limits accurate; originalpending wording disclosedhistorical. Reused closedsemantic reviews, didnotrunauditors/nativeagain.",
+    "safety": "Explicit manifests19+15safe files, no retailassets/binaries/fullrawrecordings/CIMcommandline snapshot committed; only declaredREADME/attributes/manifests generated.",
+    "whitespace_check": {
+      "actual_exit": 2,
+      "CR_at_EOL_notices": 4298,
+      "affected_publication_files": 23,
+      "all_originalcopied_bytes_preserved": true
+    }
+  },
+  "private_clone_provenance": "Initialclone128 failed three long proof filenames; privateclone-only core.longpaths repair/knowncommittedcheckout recordedactual0 beforebuild, clean/noalternates. No author-source repair or ignoredexportidentity relabelled.",
+  "remaining": [
+    "One sole-author correction batch for P1/P2, then focused newdelta/sourcechecks/newimmutablebuild verification before native.",
+    "Root metadata-only scopedP3 correction preserving34copiedhashes.",
+    "Actual correcteddefaultbridgepair/900/generic/refusal native proof, then remainingR3structure/report physicalwork/finalshipping40all8post3/currentCI/independentreview/normalmerge/wholeD2audit.",
+    "No nestedagents/edits/tests/build/native launched by reviewer."
+  ]
+}

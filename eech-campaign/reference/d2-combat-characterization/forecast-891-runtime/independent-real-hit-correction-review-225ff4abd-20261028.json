@@ -1,0 +1,354 @@
+{
+  "schema": "independent-focused-source-and-plan-review-v1",
+  "preserved_utc": "2026-10-28T06:58:19.543510+00:00",
+  "reviewer": "/root/d2_los_review",
+  "repo": "R:\\d2-sensor-detections",
+  "base": "dc3113e4b5254ec5610e7e5eac1f61a8699a077a",
+  "reviewed_sha": "225ff4abd886f188e63e83d5d3c3b688f26d1a86",
+  "head_before": "225ff4abd886f188e63e83d5d3c3b688f26d1a86",
+  "head_after": "225ff4abd886f188e63e83d5d3c3b688f26d1a86",
+  "clean_before": true,
+  "clean_after": true,
+  "scope": "Focused combined correctness, clean-code and boundary-safety review ONLY of the twoP2/P3 corrections and necessary new diagnostic representation/test code, plus new private centred-solid probe/driver plan. No unchanged real arithmetic or forecast source rereview; no tests, builds, natives, agents or source edits. Private review record is the only write.",
+  "disposition": "Both prior P2s and P3 resolved on source and retained bounded-hop evidence. No new actionable findings. Proposed original-first probe plan suitable within qualifications; native diagnostic roundtrip and real-hit candidate runtime gates remain unrun/unaccepted.",
+  "prior_finding_disposition": [
+    {
+      "priority": 2,
+      "original": "Nonpositive capability writing health",
+      "status": "resolved",
+      "evidence": "Production mb_hostaim.c rejects written && capability<=0 before application. Valid unwritten zero/negative remain legal; positive capability need not mirror the reference subtraction. Retained production guard RED4 of57 and GREEN66 of66; no new test execution by reviewer."
+    },
+    {
+      "priority": 2,
+      "original": "Centred solid-hit NaN diagnostic rejected",
+      "status": "resolved_source",
+      "evidence": "Host encodes the four actual intermediate f32 bit patterns as eight exact high/low16-bit halves in f[4..11]; finite readable prefix remains separate. Campaign validates each half finite/integral/in[0,65535], reconstructs with unsigned shift/OR and memcpy, and observer consumes reconstructed values. No kernel arithmetic or physical request/result finite guard changed. Existing event layout unchanged. Retained real-kernel/Lua/DC-reader/engine-copy/C-validation-decoder checks cover separate hops, with RED before correction.",
+      "remaining_gate": "Actual original/corrected one-process native roundtrip still unrun; not inferred from bounded-hop tests."
+    },
+    {
+      "priority": 3,
+      "original": "Fatal AA hits wrongly called unreached",
+      "status": "resolved",
+      "evidence": "Docs now acknowledge five fatal AA collision hits and distinguish the unreached fatal timed-fire roll."
+    }
+  ],
+  "diagnostic_safety": {
+    "encoding": "u32::to_bits split into two integers<=65535, each exactly representable as f32 and Lua double; sign, payload, zero/denormal/infinity patterns preserved in integer halves.",
+    "decoding": "Unsigned high half shifted16 then OR low half; memcpy into float avoids aliasing. Compile-time float/unsigned sizing check and retained C pattern checks support current32-bit scalar/x64 target representation. Call sites use indices0..3 only.",
+    "validation": "Half range/integrality and existing all-finite echo-vector check precede fixture decoder; physical finite checks are not relaxed. Forecast echo format/validation unchanged.",
+    "observer": "Finite prefix is for readability only; observer decodes raw halves, so NaN is not replaced by a finite physics value or omitted from accounting. Generic no-echo remains valid.",
+    "limits": "No Windows native run or broader ABI/platform acceptance inferred from the retained tests."
+  },
+  "probe_plan": {
+    "directory": "R:\\d2-evidence\\combat-characterization-20261028\\centred-solid-diagnostic",
+    "template_source": "35c3d677758d7c0e7b664267c25508220412e4a5",
+    "template_sha256": "3de3505a64ed1f994edc21f825d38e9c568acb2310391d9642d2d3ecfeb9e264",
+    "variant_sha256": "f4a086759f6a5427df3e7b2e5ce52af72d258f591291091c4bb4ab223de91ae2",
+    "exact_variant_verification": "Exactly three declared one-occurrence functional replacements PLUS two diagnostic header-comment lines; no other byte changes.",
+    "dependencies": "All three helper files independently compared byte-for-byte with frozen35 originals and matched recorded hashes.",
+    "functional_changes": [
+      {
+        "before": "local exploder = chosen [1]",
+        "after": "local exploder = chosen [2]\nassert (exploder and exploder.class == \"solid_shot\", \"centred-solid diagnostic needs the selected solid-shot carrier, never an alternate warhead\")"
+      },
+      {
+        "before": "blast (kind, 5.0, KILL.HIT_LAND, c)",
+        "after": "blast (kind, 0.0, KILL.HIT_LAND, c)"
+      },
+      {
+        "before": "blast (kind, 5.0, KILL.HIT_TARGET, c)",
+        "after": "blast (kind, 0.0, KILL.HIT_TARGET, c)"
+      }
+    ],
+    "arguments": "warmup=60 frame_ms=100 timed_seconds=0 kinds=ROUTED_VEHICLE control=OBJECT",
+    "driver_sha256": "f694f89f8c258fa7613c5ecb1b788731d5f1de90bdef1f39c99efbd2f316e0db",
+    "driver": "Fresh output refusal; safe native path validation; Hidden process; held process handle; actual exit captured in run.json and propagated. Same private Lua path used for both original/candidate.",
+    "original_entrypoint": "Frozen35 C helper permits offset0 and places weapon at receiver position. HIT_TARGET directly notifies live linked target at modifier0 before the area-blast walk excludes that target.",
+    "approval": "Suitable bounded original-first characterization, then corrected225 on separate fresh verified root after build/identity gates. No baseline/tolerance/product-source change needed.",
+    "qualification": [
+      "Require actual original successful solid carrier/weapon, centred direct HIT_TARGET collision, capability0/unwritten and relevant diagnostic hashes before treating this edge as reached; candidate must use same private Lua bytes and equivalent fresh inputs.",
+      "The initial chosen-class assertion does not replace checking the actual later launcher/weapon and collision; retain/disposition any refusal or unavailable receiver as untriggered precondition, never a passing echo roundtrip.",
+      "First living receiver can change after earlier HE hits. Compare complete raw traces and intermediate measurement/hash evidence without requiring identity across different cases.",
+      "No timed frames are added, but PERSON predicate and AA health setter still execute.",
+      "The variant remains UNRUN; recorded Lua5.1 compile-only0 is not native coverage. Roots were not prepared or scenarios started by this reviewer."
+    ]
+  },
+  "findings": [],
+  "retained_check_markers": {
+    "damage-checks-red-2.log": [
+      "SANITIZER_PROBE_COMPILE_EXIT=0",
+      "SANITIZER_PROBE_RUN_EXIT=0",
+      "COMPILE_EXIT=0",
+      "DAMAGE_CHECKS=FAILED: 57 checks, 4 failures",
+      "RUN_EXIT=1",
+      "DOCKER_EXIT=1"
+    ],
+    "damage-checks-green-3.log": [
+      "SANITIZER_PROBE_COMPILE_EXIT=0",
+      "SANITIZER_PROBE_RUN_EXIT=0",
+      "COMPILE_EXIT=0",
+      "DAMAGE_CHECKS=ok: 66 checks, 0 failures",
+      "RUN_EXIT=0",
+      "DOCKER_EXIT=0"
+    ],
+    "damage-checks-final-c46.log": [
+      "SANITIZER_PROBE_COMPILE_EXIT=0",
+      "SANITIZER_PROBE_RUN_EXIT=0",
+      "COMPILE_EXIT=0",
+      "DAMAGE_CHECKS=ok: 66 checks, 0 failures",
+      "RUN_EXIT=0",
+      "DOCKER_EXIT=0"
+    ],
+    "damage-mutant-2.log": [
+      "SANITIZER_PROBE_COMPILE_EXIT=0",
+      "SANITIZER_PROBE_RUN_EXIT=0",
+      "COMPILE_EXIT=0",
+      "DAMAGE_CHECKS=FAILED: 66 checks, 8 failures",
+      "RUN_EXIT=1",
+      "DOCKER_EXIT=1"
+    ],
+    "echo-red-1.log": [
+      "Error: RuntimeError(\"[string \\\"/tmp/eech-world-aim-507.lua\\\"]:316: echo value 3 is a finite number: -nan\\nstack traceback:\\n\\t[C]: in ?\\n\\t[C]: in function 'assert'\\n\\t[string \\\"/tmp/eech-world-aim-507.lua\\\"]:316: in main chunk\")",
+      "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.02s",
+      "CARGO_EXIT=101",
+      "DOCKER_EXIT=101"
+    ],
+    "test-c46-2.log": [
+      "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "test result: ok. 54 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "test result: ok. 212 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s",
+      "test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.61s",
+      "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s",
+      "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "CARGO_EXIT=0",
+      "DOCKER_EXIT=0"
+    ],
+    "clippy-c46-3-default.log": [
+      "CARGO_EXIT=0",
+      "DOCKER_EXIT=0"
+    ],
+    "clippy-c46-3-fixture.log": [
+      "CARGO_EXIT=0",
+      "DOCKER_EXIT=0"
+    ],
+    "forecast-checks-c46.log": [
+      "SANITIZER_PROBE_COMPILE_EXIT=0",
+      "SANITIZER_PROBE_RUN_EXIT=0",
+      "COMPILE_EXIT=0",
+      "FORECAST_CHECKS=ok: 25 checks, 0 failures",
+      "RUN_EXIT=0",
+      "DOCKER_EXIT=0"
+    ],
+    "syntax-check-c46-2.log": [
+      "SYNTAX_EXIT=0",
+      "OUTER=0"
+    ]
+  },
+  "pending_gates": [
+    "Fresh frozen corrected Windows fixture/shipping builds and identities.",
+    "Original-first centred diagnostic, then same-script corrected candidate; one-process echo proof not yet available.",
+    "Real-hit candidate natural/controlled/default900 equivalence and public own/changed-host/malformed proof.",
+    "R1/R2/timed/blast/bridge/report responsibilities remain incomplete; no whole Task46/D2 closure.",
+    "Full40/all8/post3/currentCI/Task45 predecessor delivery/normal merge remain delivery gates; prior focused forecast closures stand."
+  ],
+  "changed_file_pins": [
+    {
+      "path": "STATUS.md",
+      "git_blob": "8c1ff62ee25c4ccc325bd676dea4d4e8a4723329",
+      "working_file_sha256": "59572e1132e6b2e2c38c3fb79e937e03890cc5818530bc53343049ff68829c60",
+      "bytes": 27570
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostaim.c",
+      "git_blob": "50f2446cd51d6cbe4925457f9349791b06274d53",
+      "working_file_sha256": "39416cb3615ecd58af68dca6ff920d8d0f0fcd288de50dcbcf74e3f9fb490a6e",
+      "bytes": 36762
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostaim.h",
+      "git_blob": "567e4ea3bffe0943b1fa44bf9f24a8d3a9da5f6b",
+      "working_file_sha256": "56579f23799276ad784950edc50e12e9af448be4d2bd2346bbfd7660e581d592",
+      "bytes": 37666
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "git_blob": "cffe75a004c2ffe962477f451e0b58f5f97df6b3",
+      "working_file_sha256": "86237b9c6991cba49bf477c5bfb4b353dc9a0060e15e25b75500412e723b0913",
+      "bytes": 107505
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_fixture.c",
+      "git_blob": "b1f68fd7e79887e78060de033c70bca754323ee9",
+      "working_file_sha256": "ee3a055a65d9dc54de097932b350a56490ab2111104a38739d5c04bb6b731045",
+      "bytes": 35738
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "git_blob": "d4b8c6093c78544a7797976d968fc786c81bc01b",
+      "working_file_sha256": "778f7200f82ec0e7e5eb4f603475220efdbd8384aeaae2d8f08e1029ca441078",
+      "bytes": 313345
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/cmb.rs",
+      "git_blob": "21385e4a65c1473d74df50cffc358b56dd5d8471",
+      "working_file_sha256": "6a0968b5d39d9717be65e71836feddacc38f107521d92b1690ec54617963be1b",
+      "bytes": 38901
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/main.rs",
+      "git_blob": "0d665b058a3e138e5706d1b21cf8e146c29667ed",
+      "working_file_sha256": "460648e98a57c6580810784b826fdf111c9dc7109af3d4a503a4e997ec5ed6b1",
+      "bytes": 158434
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "git_blob": "d6995daffc512bed19b1a1b1e424fcde76e74ad3",
+      "working_file_sha256": "0292f1c4d462eb67f35ef18d7508f735f089be3f62fa3a5e9e5c170b6dd54578",
+      "bytes": 85194
+    },
+    {
+      "path": "eech-campaign/docs/m5-combat-extraction.md",
+      "git_blob": "3f242f776817739133c2d19248d657b344dae40b",
+      "working_file_sha256": "d52c4cf25b5714fd8c89b458f3112278abcef8efa679f3c93a643d885c9e34d8",
+      "bytes": 21128
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/README.md",
+      "git_blob": "09d03a6ac63dc76e012c3d85f7bab69a6596467a",
+      "working_file_sha256": "1a7eb052190fe8694820f3146b49945ddd1efe2ed72f8452558513b7190b7ce2",
+      "bytes": 31387
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/damage_checks.c",
+      "git_blob": "2a6dc145ebb1c2c59b63e4b1d7e8d71b090a62f6",
+      "working_file_sha256": "29f8e6269ca909aafcbb062e66b58346db07c4789f89e850349b2c5f1bcf21c7",
+      "bytes": 22556
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-c46-1-default.log",
+      "git_blob": "f48db004e524051d69dd801914d1f039682b7221",
+      "working_file_sha256": "26da65e7dd55d40072bbe95eaaf1a52d33cc03b838241acef3d3d2961fb67071",
+      "bytes": 5521
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-c46-1-fixture.log",
+      "git_blob": "473185d3877f9d08e0f190fe5df30c2d458ca674",
+      "working_file_sha256": "21506d8bf3ff914ad19921532980b7a262ba402a64da8f249f193aa5ded1f7e3",
+      "bytes": 5451
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-c46-3-default.log",
+      "git_blob": "d7647bc5581639877a0d1d648483bb7b77bdef91",
+      "working_file_sha256": "7994402ed8497a600c98760b736c6bb1ce90975ff442701f72aefcfb1be61ea7",
+      "bytes": 365
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-c46-3-fixture.log",
+      "git_blob": "723efb7d54ed2ae8bbea135aa5a8d4528fe81497",
+      "working_file_sha256": "a37ddbf42081177c25f1180bfcba5c5edaab899404604b0fbe2503fe4dbff870",
+      "bytes": 365
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/damage-checks-final-c46.log",
+      "git_blob": "43eb5a322873e89553a5f8285e171581b8920781",
+      "working_file_sha256": "ef72f9f5606668849a9132786d4694da260333307731c46d602bcad6cd3f43c6",
+      "bytes": 3965
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/damage-checks-green-3.log",
+      "git_blob": "72fde75c195fd318597b726b97fac3fce2cad2ed",
+      "working_file_sha256": "f064026925fb9c4c572289419b3eb1a962b0b58515d23c7d020db1c501fbb622",
+      "bytes": 4350
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/damage-checks-red-2.log",
+      "git_blob": "e0bc2b24c3a336fcdf9e4c5caaea8c1737fffe16",
+      "working_file_sha256": "5c696f80ed857289f110391b43a1d9caa1fd6cd6386312192e90d01dd16df06d",
+      "bytes": 3405
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/damage-mutant-2.log",
+      "git_blob": "bbad04cca44f97120371f51134aa9f97806800cd",
+      "working_file_sha256": "fe7ffbbebcc64d3550b671f3e900f74ae43e7152c727b364ab529d622875ab0b",
+      "bytes": 4354
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/echo-red-1.log",
+      "git_blob": "f1f63ff82a2b5052ffd4230c5b0a87c6ea1818a8",
+      "working_file_sha256": "0ab9f6b63a7aaf5765609c0d01db8fc13393a5e8aff7d1f365ebad139e664c66",
+      "bytes": 1213
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/forecast-checks-4.log",
+      "git_blob": "412f6c0fa1b07ecdf36327b5115e14c76180a875",
+      "working_file_sha256": "620cd7db89387f467fcb68f8251441d3dc9d9ec2f0e4b187ffb8f6d3dbd1eed1",
+      "bytes": 2076
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/forecast-checks-c46.log",
+      "git_blob": "8235c61b62330decc40ac7a529c1606736619679",
+      "working_file_sha256": "4cf35c5a41b1d2c4bca2917c364c6a757f88aa5666b893ad246fdb9320808e2e",
+      "bytes": 1691
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/syntax-check-c46-1.log",
+      "git_blob": "25d86391bf3b8d2f94338514d2dba715043e5b90",
+      "working_file_sha256": "47d597522d9d3e0d1eb5cd5386484b3d0f72540e0b166657975ad02e5064eca0",
+      "bytes": 4041
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/syntax-check-c46-2.log",
+      "git_blob": "b83f059251408d7820a968a5dbccd9b357b43bf2",
+      "working_file_sha256": "706c696515f811cd85b6da6513a21ed724ac38a27b3b775a46813b04de1d6d55",
+      "bytes": 4041
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/test-c46-1.log",
+      "git_blob": "6abacd4334050e1f3f4829c22301a04d13dad095",
+      "working_file_sha256": "3f5d6fa98caaf04dedc85e2618f765637ed0bec6546387b77d3b170ff101d392",
+      "bytes": 31680
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/test-c46-2.log",
+      "git_blob": "a71dc14843f237ff1ec9793ef54c7b24e80910a6",
+      "working_file_sha256": "a7344dff9d8d41a9880ea4d43d1bf0f7383c9356998a48e9fb963b07b35d097b",
+      "bytes": 31610
+    }
+  ],
+  "private_probe_pins": [
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\centred-solid-diagnostic\\provenance.json",
+      "sha256": "8a0cc759f437175b864fc452e24b4860e6043337c542c21c128eeb9bd48009cf",
+      "bytes": 2782
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\run-centred-solid-diagnostic.ps1",
+      "sha256": "f694f89f8c258fa7613c5ecb1b788731d5f1de90bdef1f39c99efbd2f316e0db",
+      "bytes": 1981
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\centred-solid-diagnostic\\centred-solid-case.lua",
+      "sha256": "f4a086759f6a5427df3e7b2e5ce52af72d258f591291091c4bb4ab223de91ae2",
+      "bytes": 20877
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\centred-solid-diagnostic\\combat-counters.lua",
+      "sha256": "cf5a4c270240a06106ba7c2226f26e9857e380278a418f7453f1ae5ca724b900",
+      "bytes": 2213
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\centred-solid-diagnostic\\combat-plan.lua",
+      "sha256": "8c08f1f3cd4ec4ffe953edf4b39edae0c8588497d0d179ae8855f4e55b8224bd",
+      "bytes": 4303
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\centred-solid-diagnostic\\combat-report.lua",
+      "sha256": "5acc3856920a4259208426603dfdba9ab713073b185f1ca119e2b2c82f111a4e",
+      "bytes": 2976
+    }
+  ]
+}

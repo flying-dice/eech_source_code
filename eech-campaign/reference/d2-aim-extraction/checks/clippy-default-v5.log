@@ -1,0 +1,27 @@
+   Compiling cc v1.4.7
+    Checking rayon v1.12.0
+   Compiling regex-automata v0.4.18
+    Checking bstr v1.13.1
+   Compiling tempfile v3.27.0
+   Compiling mlua-sys v0.6.8 (/src/eech-campaign/patches/mlua-sys-0.6.8)
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+   Compiling which v4.4.2
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v1.0.69
+   Compiling mlua_derive v0.10.1
+   Compiling regex v1.13.1
+   Compiling eech-sys v0.1.0 (/src/eech-campaign/crates/eech-sys)
+   Compiling protobuf-support v3.7.2
+    Checking serde-value v0.7.0
+    Checking mlua v0.10.5
+   Compiling protobuf-parse v3.7.2
+   Compiling protobuf-codegen v3.7.2
+   Compiling osmpbf v0.3.8
+    Checking eech-map v0.1.0 (/src/eech-campaign/crates/eech-map)
+    Checking eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Checking eech-campaign v0.1.0 (/src/eech-campaign/crates/eech-campaign)
+    Checking eech-harness v0.1.0 (/src/eech-campaign/crates/eech-harness)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6m 17s
+CARGO_EXIT=0
+DOCKER_EXIT=0

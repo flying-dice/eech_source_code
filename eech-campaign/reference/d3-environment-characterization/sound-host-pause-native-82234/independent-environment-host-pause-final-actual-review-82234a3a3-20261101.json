@@ -1,0 +1,239 @@
+{
+  "review": "Independent finite host pause/resume actual/auditor/safe-publication review",
+  "created_utc": "2026-11-01T01:27:10.070374+00:00",
+  "source": {
+    "head": "82234a3a3cb6d54fbbede7a2cf7939c965e353c3",
+    "tested_native": "82234a3a3cb6d54fbbede7a2cf7939c965e353c3",
+    "publication_head": "203c459788e53382b58b32388a88d689686990be",
+    "publication_delta": "Only STATUS and safe metadata since physical822; no runtime or test source change/relabel.",
+    "source_review_reused_sha256": "0487a1cc8042a666fccf501030cc6426f00c1dd8902f1c9bc7446a440fda1422",
+    "accepted_delegate_source": "299bcf05128da68e85c8490025594f99969335b8",
+    "accepted_delegate_sha256": "7b1f3d491a200b7cd2fd18f217bb120fab43971be39ae6890186fc5ca074a24e"
+  },
+  "findings": [],
+  "finite_host_pause_slice_closed": true,
+  "whole_Task51_D3_closed": false,
+  "inspected_facts": {
+    "default_conformance": {
+      "controls": 15,
+      "native_controller_exits0": 15,
+      "input_checks0": 30,
+      "all_complete_raw_files_and_endings_equal": true,
+      "completed_utc": "2026-11-01T01:20:30.969123+00:00",
+      "natural_bytes": 5191384,
+      "natural_rows": 17283,
+      "natural_sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+      "method": "Independently required exact natural/cases1..14 set, bound original paths to closed e502 controls0..10 and original33native/299driver11..14, compared every full byte stream/endings and verified sizes/rows/hashes. No old original scenario rerun, normalization or baseline/tolerance change."
+    },
+    "authority": {
+      "controls": 7,
+      "aggregate_actual_exit": 0,
+      "completed_utc": "2026-11-01T01:12:50.106985+00:00",
+      "input_checks0": 14,
+      "old_capability_red": {
+        "native": "33c015557fb3fbc26592e20b143ada40ec155e1f",
+        "actual_native_and_controller_exit": 1,
+        "case": 12,
+        "completed": true,
+        "requests": 0,
+        "complete_original_case12_bytes_equal": true
+      },
+      "pause_healthy": {
+        "requests": 2,
+        "calls": 4,
+        "returns": "1,1",
+        "complete_original_case12_bytes_equal": true
+      },
+      "pause_changed": {
+        "requests": 2,
+        "altered": 1,
+        "case": 11,
+        "actual_after_pause_vlife_word": "40400000",
+        "caller_delay_seconds": 1.5,
+        "observed_valid_lifetime_seconds": 3,
+        "returns": "1,1"
+      },
+      "resume_changed": {
+        "requests": 2,
+        "altered": 1,
+        "case": 12,
+        "after_resume_valid": 1,
+        "after_resume_member": 0,
+        "calls": 3,
+        "all_seven_actual_effect_lifetime_words": [
+          "40a00000",
+          "40a00000",
+          "40a00000",
+          "40a00000",
+          "40a00000",
+          "40a00000",
+          "40a00000"
+        ],
+        "comparison": "Original case12 makes4 calls and its final effect lifetime is4; changed host answer leaves lifetime5, valid but unlinked, so last update is not made."
+      },
+      "refusals": {
+        "pause_withheld": {
+          "requests": 1,
+          "case": 11,
+          "marker": "[env-provider:sound_pause_resume.callback]"
+        },
+        "pause_malformed": {
+          "requests": 1,
+          "case": 11,
+          "marker": "[env-provider:sound_pause_resume.answer]"
+        },
+        "pause_incoherent": {
+          "requests": 3,
+          "altered": 1,
+          "case": 13,
+          "marker": "[env-provider:sound_pause_resume.answer]",
+          "reason_contains": "pause other than a valid effect"
+        },
+        "each": "Exactly one actual named engine_failure, no result, completed=false. Witness native/controller0 means expected refusal observed, not successful campaign completion."
+      },
+      "boot_scope": "All seven witnesses measure0 new-op boot requests; other requests forwarded unchanged. This is measured for these cases only, not a general traffic/performance claim."
+    },
+    "raw_semantic_joins": "Independently joined authority state_words to actual ent0 valid/member/vlife captures, life_words to actual life captures, calls to made step counts/result, and returns to only op1/2 pause/resume rows/result. Op3 update returned0 remains in raw evidence and is not silently removed or treated as a pause return. Old and healthy full case12 raw files equal original bytes.",
+    "identities": {
+      "controls_checked": 22,
+      "unique_control_roots": 22,
+      "pre_post_manifest_inputs_independently_matched_to_frozen_reference": 44,
+      "new_native_payloads_checked": 61,
+      "old_native_payloads_checked": 56,
+      "new_BUILD_INFO_sha256": "e1a809c024287954e7d709f3e046f36ef039b7279d9cf87cb935980280cdd8a2",
+      "old_BUILD_INFO_sha256": "4c11053a181c530deda3bd473e024a8d0daf27251e1ebcda2b5361b615a146a0",
+      "checks": "Exact source/build/profile and entire payload hashes, native command executable, script override/wrapper/delegate pre/post hashes, raw and authority hashes/records agree. Integrated five ground Lua additions account for61; no payload omitted or relaxed."
+    },
+    "canonical_gates": {
+      "immutable_windows_actual_exit": 0,
+      "windows_completed_utc": "2026-11-01T01:05:24.930123+00:00",
+      "immutable_linux_actual_exit": 0,
+      "linux_completed_utc": "2026-11-01T01:11:14.676440+00:00",
+      "linux_scope": "Full affected default and observer packages, both strict profiles; configured standard C optimization1, cdylib built/hash recorded before each test profile.",
+      "exact_runtime_CI_jobs_completed_success": 9,
+      "limit": "Root execution receipts/logs/current822 CI metadata inspected; no reviewer builds/tests/runs. This does not certify publication203c or a future delivery head CI."
+    },
+    "auditor_and_retained_failures": {
+      "v3_actual_exit": 0,
+      "method": "Read full v3 and complete-file comparator; independent checks corroborate gates, full manifests, raw/semantic assertions and safe projection.",
+      "v1": "Retained actual tool1: incorrectly hardcoded56 for new61. Original script SHA70b66c179fa254a28bcb88d7c821e8e9edd4cbbe23bc126df2a4c5457d83a79c verified.",
+      "v2": "Retained actual tool1: aggregated op3 returned0 into pause/resume-only returns; original script SHA37c4152d2a220bcf47fb1c212c9d52017d8ee29d901697dbea41876345da9038 verified.",
+      "preservation": "Both JSON failure receipts explicitly after-the-call Root-observed exits/output, not fabricated standalone process logs; no output audit JSON existed for failures. Corrections touched auditor metadata logic, not native/raw/baseline; successful controls were not rerun. Earlier WIP failures stay failed; OPT0 preexisting-cause attribution remains unverified. First historical soundd1 raw remains unavailable/partial only and oldd2/d3/c2tags untrusted."
+    },
+    "publication": {
+      "files_reviewed": 12,
+      "identity_listed_copies": 10,
+      "copies_verified_against_private_sources": true,
+      "actual_copy_hashes_byte_identical_in_this_tree": true,
+      "scope": "All safe JSON/README/auditor/comparator plus new STATUS text inspected. No raw strings, measured vectors/world positions, volatile entity/slotIDs, retail input arrays or binaries published. Raw receipt filename/bytes/hash and validity/member/timer/effect-lifetime semantic words are permitted and match private records.",
+      "pending_review_wording": "Accurate for prepared publication; subsequent literal report/closure additions are not pre-reviewed."
+    }
+  },
+  "limitations": [
+    "Finite SESSION-parent host pause/resume slice only. Source review establishes delegated play decisions; these actual SESSION cases use the real default no-op and do not measure audible/backend/non-session/per-family playback. No fake handle/device support inferred.",
+    "Private mirrors/list/heap adapters, metadata/assets/backend/device/non-session range/per-family, independent destroy/network/pitch/amplitude/time and required terrain/spatial/model remain D3 work; campaign policy/calendar/timers/scheduling stayCore.",
+    "No Task51 fullshipping40/all8COMPLETE Tacview/observations/metrics, visual Tacview, wholeD3 or normal-delivery acceptance. Separate accepted ground shipping evidence is not a shipping run of822. D4/D5 unstarted.",
+    "Closed822 source/material-merge review0487, originaldf22, lifetime2744 and acceptedgrounda29 reused without unchanged source/kernel re-review or old native experiments. Reviewer performed read-only audits and this private LF write only; no tests/builds/native/process/cache/auth/source/public mutations or agents."
+  ],
+  "evidence": [
+    {
+      "path": "R:\\d3-evidence\\environment-host-pause-defaults-82234a3a3-20261101\\controller.json",
+      "sha256": "121ed246c7bd68b9a37a67c8a31485f7ca0e4ac8fbed7d789f5db9f1a6dcf849"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-host-pause-defaults-82234a3a3-20261101\\complete-raw-comparison.json",
+      "sha256": "27d0e246698893e1a28cddf9a3e215f9665512181f3374faa08c9339582b7c7e"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-host-pause-authority-82234a3a3-20261101\\controller.json",
+      "sha256": "709f0a2782c385c16a157c570622577cbe1b44bb37dff1c79f0f9349c6d4ec41"
+    },
+    {
+      "path": "R:\\d3-evidence\\host-pause-combined-82234a3a3-20261101.json",
+      "sha256": "2b59a7e991aa313ccdab2e7da14f3e11dce28c1379715a8870a375c459f0eac2"
+    },
+    {
+      "path": "R:\\d3-evidence\\audit-host-pause-controls-v3-20261101.py",
+      "sha256": "b2c09681e397e06d4ac706925b29e21797a2b4d389c86773ab4aca85eaa93ba8"
+    },
+    {
+      "path": "R:\\d3-evidence\\compare-host-pause-defaults-20261101.py",
+      "sha256": "ffc25d3159deae6ff237abea9ea470bd07ecb86c17dfd6a742513709cb911cad"
+    },
+    {
+      "path": "R:\\d3-evidence\\host-pause-first-audit-payload-assumption-failure-20261101.json",
+      "sha256": "7e0c7195ee2a99c5ffc66bd895dd8ed768f1c5faca75b123fc3aa2309ab56ee4"
+    },
+    {
+      "path": "R:\\d3-evidence\\host-pause-second-audit-step-aggregation-failure-20261101.json",
+      "sha256": "65d9f1cb3f0092290005e790727ffb672c4b8fa00e9b9f732b3cba88d2e84985"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-host-sound-pause-82234a3a3-windows-20261101-completion.json",
+      "sha256": "eff354fad2b236f913155897fb1143baa93f53dd6b19214bdb62a789e1260d9f"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-host-sound-pause-82234a3a3-linux-20261101-completion.json",
+      "sha256": "098fb42cf905c74a238ad50cee260b6acf402d463010fccd1d7928976a1744a9"
+    },
+    {
+      "path": "R:\\d3-evidence\\current-CI-82234a3a3-20261101.json",
+      "sha256": "719566103d0b27102473c4811076625182fcca998a10243abd5e6d330cc3e870"
+    },
+    {
+      "path": "R:\\d3-evidence\\independent-environment-host-pause-integrated-source-review-82234a3a3-20261101.json",
+      "sha256": "0487a1cc8042a666fccf501030cc6426f00c1dd8902f1c9bc7446a440fda1422"
+    }
+  ],
+  "publication_identities": [
+    {
+      "file": "audit-host-pause-controls-v3-20261101.py",
+      "sha256": "b2c09681e397e06d4ac706925b29e21797a2b4d389c86773ab4aca85eaa93ba8"
+    },
+    {
+      "file": "compare-host-pause-defaults-20261101.py",
+      "sha256": "ffc25d3159deae6ff237abea9ea470bd07ecb86c17dfd6a742513709cb911cad"
+    },
+    {
+      "file": "complete-raw-comparison.json",
+      "sha256": "27d0e246698893e1a28cddf9a3e215f9665512181f3374faa08c9339582b7c7e"
+    },
+    {
+      "file": "current-CI-82234a3a3-20261101.json",
+      "sha256": "719566103d0b27102473c4811076625182fcca998a10243abd5e6d330cc3e870"
+    },
+    {
+      "file": "environment-host-sound-pause-82234a3a3-linux-20261101-completion.json",
+      "sha256": "098fb42cf905c74a238ad50cee260b6acf402d463010fccd1d7928976a1744a9"
+    },
+    {
+      "file": "environment-host-sound-pause-82234a3a3-windows-20261101-completion.json",
+      "sha256": "eff354fad2b236f913155897fb1143baa93f53dd6b19214bdb62a789e1260d9f"
+    },
+    {
+      "file": "host-pause-combined-82234a3a3-20261101.json",
+      "sha256": "2b59a7e991aa313ccdab2e7da14f3e11dce28c1379715a8870a375c459f0eac2"
+    },
+    {
+      "file": "host-pause-first-audit-payload-assumption-failure-20261101.json",
+      "sha256": "7e0c7195ee2a99c5ffc66bd895dd8ed768f1c5faca75b123fc3aa2309ab56ee4"
+    },
+    {
+      "file": "host-pause-second-audit-step-aggregation-failure-20261101.json",
+      "sha256": "65d9f1cb3f0092290005e790727ffb672c4b8fa00e9b9f732b3cba88d2e84985"
+    },
+    {
+      "file": "independent-environment-host-pause-integrated-source-review-82234a3a3-20261101.json",
+      "sha256": "0487a1cc8042a666fccf501030cc6426f00c1dd8902f1c9bc7446a440fda1422"
+    },
+    {
+      "file": "publication-identities.json",
+      "sha256": "74e9c0f5fe4535628bf8b5d1b95c855a8575f9089cdead52f0ee15729740bcb0"
+    },
+    {
+      "file": "README.md",
+      "sha256": "e14043c6bc5aa48b6dbd2307e3050be33c9f9e6c861a45781697ff36062c3abf"
+    }
+  ],
+  "STATUS_sha256": "743499db89e061470175c57a5124242d1afff2b7a4724d7e10c80984202787f9"
+}

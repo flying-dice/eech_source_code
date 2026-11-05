@@ -1,0 +1,18 @@
+{
+  "source": "6711d5f11804537255d08e5c355f329796cca657",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-sector-host-6711d5f11-windows-20261031.sh"
+  ],
+  "pid": 24284,
+  "controller_pid": 19400,
+  "state": "terminal",
+  "started_utc": "2026-10-31T12:59:54.700880+00:00",
+  "scope": "New host-sector windows affected builds/checks only; actual retail/authority/fullshipping acceptance separate",
+  "actual_exit": 101,
+  "completed_utc": "2026-10-31T13:03:56.185934+00:00"
+}

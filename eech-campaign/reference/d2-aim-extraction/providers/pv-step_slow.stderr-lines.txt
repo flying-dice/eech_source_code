@@ -1,0 +1,1 @@
+aim-provider: mode=step_slow ready_update=4741089 ready_command=1716633 required=43174 step=21944 vectors=46792 (valid 43317 invalid 0) lead=0 ballistic=0 intercept=0 need_draw=3475 ready_moving=273 weapon_births=177 losses=9 failure=none

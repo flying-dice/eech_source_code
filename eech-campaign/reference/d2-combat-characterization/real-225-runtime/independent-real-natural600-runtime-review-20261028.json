@@ -1,0 +1,132 @@
+{
+  "schema": "independent-bounded-runtime-review-v1",
+  "preserved_utc": "2026-10-28T07:35:49.741782+00:00",
+  "reviewer": "/root/d2_los_review",
+  "scope": "NEW completed real225 default600 evidence only. No unchanged source/forecast/provider/helper review, test, build, native launch or agents. Timed author checkout not accessed.",
+  "disposition": "No findings. Complete real225 natural600 raw trace equals separately accepted forecast891 raw trace, preserving the recorded physical measurements within existing coverage limits.",
+  "candidate_source": "225ff4abd886f188e63e83d5d3c3b688f26d1a86",
+  "frozen_source_clean": true,
+  "process": {
+    "original_controller": 37651,
+    "actual_original_controller_exit_recorded": 0,
+    "native_pid": 9716,
+    "actual_native_exit_recorded": 0,
+    "completed_utc": "2026-10-28T07:29:53.5288073Z",
+    "run_record_matches_completion": true,
+    "configuration": "R:/d2-evidence/combat-real-source-225ff4abd/eech-campaign/target/weapon-fixture/combat-real-225ff4abd/lua/combat-characterization.lua root=R:/d2-evidence/combat-characterization-20261028/roots/real-damage-natural-01 scenario=lebanon_retail seconds=600 frame_ms=100 checkpoint_every=60 out=R:/d2-evidence/combat-characterization-20261028/out/real-damage-natural-01/trace.jsonl",
+    "limit": "Completed records and trusted root actual controller exit inspected, not live execution by reviewer."
+  },
+  "trace": {
+    "reference": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-natural-01\\trace.jsonl",
+    "candidate": "R:\\d2-evidence\\combat-characterization-20261028\\out\\real-damage-natural-01\\trace.jsonl",
+    "bytes_each": 984994,
+    "sha256_each": "a90f687151df132dfad3496cd304f538e3f9c1e2b0ffbbdde3255adebba90c42",
+    "independent_complete_bytes_equal": true,
+    "json_rows": 6868,
+    "contiguous_events": 6440,
+    "sequence_1_through6440": true,
+    "trusted_report_groups": 12,
+    "hash_reports": 12,
+    "six_cumulative_hashes_counters_and_ordered_event_bytes_equal": true,
+    "run_marker": {
+      "checkpoints": 10,
+      "elapsed": 600.00250244141,
+      "event": "run",
+      "expected_frames": 6000,
+      "frame_ms": 100,
+      "frames": 6001,
+      "seconds": 600
+    },
+    "final_forecasts": 574382,
+    "final_real_capabilities": 234,
+    "final_capability_draws": 234,
+    "final_damage_entries": 234,
+    "final_damage_exit_done": 234,
+    "final_damage_writes": 230,
+    "proof_final_report_rows_equal_raw": true
+  },
+  "original_f41_relationship": {
+    "raw_whole_trace_equal": false,
+    "baseline_sha256": "da5ff65fba3892afb2b7e90c7d573384277e9596e26303c32e2a7b1459da9b77",
+    "declared_only_differences": 124,
+    "difference": "cmb-kind blast counter quoted decimal string -> numeric decimal, previously independently verified for forecast891. Real225 is fully byte-equal to that forecast891 trace.",
+    "limit": "Prior classifier/source/600 review not repeated; no f41 raw rewrite, normalization, tolerance or relabeling as raw equality."
+  },
+  "audit": {
+    "actual_exit_recorded": 0,
+    "corrected_schema": {
+      "cmb_kind_blast_counter": "number"
+    },
+    "status": "PASS",
+    "artifact_complete": true,
+    "process_done": true,
+    "checks_all_pass": true,
+    "check_count": 27,
+    "not_rerun": true
+  },
+  "preservation": {
+    "inputs_independently_rehashed": 1179,
+    "input_mismatches": 0,
+    "post_input_actual_exit_recorded": 0,
+    "exports_independently_rehashed": 40,
+    "export_mismatches": 0,
+    "initial_post_expected_export_maps_equal": true,
+    "build_info_sha256": "ca4525cdf197bfe166b3ee9f7d6b0151f3328c054e5bc75890028300e56c3599",
+    "build_info_matches_initial_post": true,
+    "post_export_verifier_actual_exit_recorded": 0
+  },
+  "findings": [],
+  "limits": [
+    "One seed/scenario and retained measurement coverage; no all13/player/MP/invulnerability/easy-armour or additional whole-path coverage claimed.",
+    "Wider real225 default900 and provider runtime proof remain separate active/pending gates; SITE/centred closures stand without repeat.",
+    "No performance acceptance inferred from deterministic measurements.",
+    "Timed/R1/R2/impact-blast/bridge/factual-report responsibilities and full40/all8/post3/currentCI/normal delivery remain separate; not whole Task46/D2 acceptance."
+  ],
+  "artifact_pins": [
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-real-damage-natural-01-completion.json",
+      "sha256": "b4ea3f23f7219c4c2c47f9a97116f902f76d9253e79f5255370c39add08d3690",
+      "bytes": 14748
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-real-damage-natural-01-audit.json",
+      "sha256": "6b853e4a4e51733899609361a0c7b854d398f43b5e925126355a718836a3283d",
+      "bytes": 14085
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-real-damage-natural-01-audit.log",
+      "sha256": "d6f4c5097c9e6f98594b60a23d8887e4af348e1d73cf09cde00eb7e7b37462c9",
+      "bytes": 6313
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-real-damage-natural-01-post-inputs.log",
+      "sha256": "5bce04208c380d51cbc7d3fcbda0d3b7787c6978c473638bb483614ab5832a06",
+      "bytes": 310
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-real-damage-natural-01-post-build.json",
+      "sha256": "2a0b1ccdc3fd1af2d1442623416c5b5bee291dffed03af640a6ef3860f644754",
+      "bytes": 10911
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-clean-real-225ff-fixture-manifest.json",
+      "sha256": "7d6df4b003459a32373e2f68d8ae929244adb3de71019253dce86d2295b2cad8",
+      "bytes": 10911
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\real-damage-natural-01\\run.json",
+      "sha256": "31e8c4406fdb378814301fc04417bb08812420e64461696bd136d2a4f0eb415e",
+      "bytes": 1065
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\real-damage-natural-01\\trace.jsonl",
+      "sha256": "a90f687151df132dfad3496cd304f538e3f9c1e2b0ffbbdde3255adebba90c42",
+      "bytes": 984994
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-natural-01\\trace.jsonl",
+      "sha256": "a90f687151df132dfad3496cd304f538e3f9c1e2b0ffbbdde3255adebba90c42",
+      "bytes": 984994
+    }
+  ]
+}

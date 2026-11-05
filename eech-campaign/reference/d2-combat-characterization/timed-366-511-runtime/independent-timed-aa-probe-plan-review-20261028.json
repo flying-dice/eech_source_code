@@ -1,0 +1,99 @@
+{
+  "review_utc": "2026-10-28T08:56:31.610943+00:00",
+  "reviewer": "single independent Codex /root/d2_los_review",
+  "scope": "One focused NEW private operational AA wrapper/driver/plan source review; no game/host math re-review, edits, tests, builds or native launches.",
+  "disposition": "No findings; suitable bounded probes after fresh input/build/capacity gates. Runtime outcomes and meaningful triggers remain pending.",
+  "plan_sha256": "f36b2e2f6686b986d9907293dd42c40cf9f0b36b5d15b727c2a361abb047fb16",
+  "files": [
+    {
+      "kind": "wrapper",
+      "file": "R:\\d2-evidence\\combat-characterization-20261028\\timed-aa-probe.lua",
+      "bytes": 3484,
+      "sha256": "84c87c680eb789ea8339f8439b32e082fe444bd5d19fb4d02fe453bcbba53f6c"
+    },
+    {
+      "kind": "driver",
+      "file": "R:\\d2-evidence\\combat-characterization-20261028\\run-timed-aa-probe.ps1",
+      "bytes": 2573,
+      "sha256": "56b5f324e8b18e5ea988f11314e2cb29d043ad83d397119ffb68d0869b6f1993"
+    },
+    {
+      "kind": "case_script",
+      "file": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\lua\\combat-case.lua",
+      "bytes": 20536,
+      "sha256": "3de3505a64ed1f994edc21f825d38e9c568acb2310391d9642d2d3ecfeb9e264"
+    },
+    {
+      "kind": "unchanged_frozen_dependency",
+      "file": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\lua\\combat-report.lua",
+      "bytes": 2976,
+      "sha256": "5acc3856920a4259208426603dfdba9ab713073b185f1ca119e2b2c82f111a4e"
+    },
+    {
+      "kind": "unchanged_frozen_dependency",
+      "file": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\lua\\combat-counters.lua",
+      "bytes": 2213,
+      "sha256": "cf5a4c270240a06106ba7c2226f26e9857e380278a418f7453f1ae5ca724b900"
+    },
+    {
+      "kind": "unchanged_frozen_dependency",
+      "file": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\lua\\combat-plan.lua",
+      "bytes": 4303,
+      "sha256": "8c08f1f3cd4ec4ffe953edf4b39edae0c8588497d0d179ae8855f4e55b8224bd"
+    },
+    {
+      "kind": "unchanged_frozen_dependency",
+      "file": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\lua\\aim-malformed.lua",
+      "bytes": 7641,
+      "sha256": "2f72688b4e7448241bfbed7df51a7a9c139d5120577f573b615be6e91a4a1fcf"
+    }
+  ],
+  "reason_for_probe": {
+    "completed_reference180_frames": 1801,
+    "timed_questions": 2846416,
+    "eligible_rolled_hit": [
+      0,
+      0,
+      0
+    ],
+    "all_existing_real225_reference_fields_equal": true,
+    "reference_summary_sha256": "cd472b5faf8f4f3779b1884548c2fc4749540e8d2aa74d1ecb134ccaeff99ed0",
+    "earliest_positive_natural600_report_at": 480,
+    "limit": "This is first sampled report with nonzero timed draw count, not the exact timestamp of first eligibility. Original11queue unchanged; untriggered modes must not pass."
+  },
+  "callback_binding": [
+    "Wrapper installs provider on host.aim before dofile(combat-case.lua). Frozen script captures host.aim in dc.boot at line60; real engine callbacks therefore see provider.",
+    "All non-HEALTH/TIMED steps forward to original unchanged. never clones only timed input flags/class; rate150 clones only timed delta_time*1.5. Actual campaign frame_ms100 and scripted20simulated-second window unchanged.",
+    "Malformed modes load exact frozen aim-malformed.lua and observe returned answers outside mutator, including corrupt answers; no reimplemented corruption formula.",
+    "host.aim global restored immediately after pcall. Engine retains its boot-time callback but wrapper performs no further engine operation and process then completes/errors; no assertion that existing engine callback is rebound."
+  ],
+  "primary_error_and_counters": [
+    "Flat numeric/boolean/string summary uses existing lossless JSON writer; no nested-table serialization remains.",
+    "draw_requests counts requested draw answers; requests_with_sample counts callback requests carrying a sample, not independently measured RNG state. eligible_answers/hit_answers are reported host replies, possibly deliberately invalid.",
+    "second_draw_requests increments only when a need_draw reply answers an already sampled timed step; inconsistent_fatal_answers checks hit reply fatal against reported new_level.",
+    "TIMED failure during after_steps engine:frame propagates from outside original run_case call pcall to outer wrapper pcall. Wrapper emits summary and rethrows, preserving expected actualnative1 for malformed cases.",
+    "Primary specific refusal must be found in raw trace/runlog/summary alongside corresponding corruption counter; secondary poisoned-engine error/nonzero alone never accepted."
+  ],
+  "baseline_reuse": {
+    "reference": "Closed corrected511controlled02/native24476/controller35484 actual0; full403523 bytes equal original35.",
+    "unchanged_case_sha256": "3de3505a64ed1f994edc21f825d38e9c568acb2310391d9642d2d3ecfeb9e264",
+    "same_conditions": "full39-case scenario, seed1, warmup60, actualframe100ms, timed_seconds20, fresh verified retailroot.",
+    "acceptance_required": [
+      "Verify complete pre-AA prefix bytes/physical measurements equal closed reference before claiming isolated AA effect; wrapper is active from boot and counters alone do not establish prefix.",
+      "Verify chosen AA critical14-percent precondition, window endpoints and actual AA timed deltas. Reference201draws41hits0fatal;138489 all-world AA attempts are distinct.",
+      "never changes eligibility AND sample consumption; rate150 changes host physical delta, not actual campaign clock. Future samples/trajectory may consequently differ.",
+      "Do not require full changed-run raw identity; compare reached activity/effects and preserve complete traces, report scopes, all39case dispositions and integrity.",
+      "No all39 physical coverage, fatalAA/selfhit or defaultTacview/fullpack claim."
+    ]
+  },
+  "driver_safety": [
+    "Fresh output refusal, safe native argument path guard, Hidden Start-Process, held native handle, actual exit recorded/returned. Wrapper and case hashes captured in run record.",
+    "Plan hashes independently match actual wrapper/driver/case bytes; separate frozen BUILD-INFO40/dependencies, post1179inputs and private-probe preservation remain required.",
+    "Four runs sequential within lead seven-native capacity; existing active queue unchanged. No runner changes or process interference proposed."
+  ],
+  "compile_parse_evidence": {
+    "source": "Plan records Lua5.1 compile-only valid0/invalid3/probe0 and root reports PSparse0; no compile/parse execution performed by reviewer.",
+    "limit": "Syntax checks are not generic-callback/native integration proof."
+  },
+  "pending": "No AAprobe native launched or judged by this review."
+}

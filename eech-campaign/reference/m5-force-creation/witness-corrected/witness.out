@@ -1,0 +1,13 @@
+map_value_bytes	19	..\common\maps\map5
+steps	place	225
+steps	create_place	1444
+create_place_answers	1444
+subject	eech-world:1
+subject_entity	8751
+subject_dll_input	21049.000,216.740,25771.250
+subject_host_answer	21299.000,216.740,25646.250
+subject_objects_position	21299.000,216.740,25646.250
+subject_answer_vs_input_m	279.508
+subject_objects_vs_answer_m	0.000
+control	checked=1443	matched_0.01m=1443	worst_m=0.0000
+result	ok

@@ -1,0 +1,27 @@
+{
+  "scope": "Finite actual original sectorhelper on presenthostedfieldbaseline. No frames/Tacview/cutover/shipping proof; raw flags/coords kept private.",
+  "source": "b2e55b18b556d04bc1512a1553a8e1b859347c36",
+  "three_native_exits": [
+    0,
+    0,
+    0
+  ],
+  "all_six_inputs_exit": 0,
+  "payloads_each": 48,
+  "original_samples_each": 92,
+  "answered_each": 88,
+  "out_of_grid_refused_each": 4,
+  "all_scratch_restored": true,
+  "anomalies_each": 0,
+  "lebanon_repeat_full_raw_equal": true,
+  "transition_count_vs_distinct": "Source semantics independent; no sampled retail case has different returned and distinct counts. Synthetic driver row separation is bookkeeping only, not physical coverage.",
+  "linux_native_compile": 0,
+  "linux_first_strict_actual_exit": 101,
+  "linux_strict_reason": "useless_vec in new driver guard at147; newtest-only arrayfix unbuilt, nativeC/Lua unchanged",
+  "windows_fixture_build": 0,
+  "whole_D3": "OPEN",
+  "corrected_guard_source": "a1002fb8d1381cace7fa76bf404b78335ac85486",
+  "corrected_fmt_four_functions_strict_actual_exit": 0,
+  "actual_evidence_review_sha256": "1408817f9a1ddf8875fb9f03505ef2251c5b5efe81e1ef8dd38b488a5de16200",
+  "next_gate": "Original characterization CLOSED bounded; next concretehostsector surface-querycutover, stillunimplemented. NoTask51/D3acceptance."
+}

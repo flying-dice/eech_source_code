@@ -1,0 +1,29 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.03s
+     Running tests/host_callbacks.rs (/target/debug/deps/host_callbacks-01e380bfce0df75c)
+
+running 1 test
+test the_case_carrier_is_one_that_can_afford_the_plan ... FAILED
+
+failures:
+
+---- the_case_carrier_is_one_that_can_afford_the_plan stdout ----
+
+thread 'the_case_carrier_is_one_that_can_afford_the_plan' (157) panicked at crates/eech-world/tests/host_callbacks.rs:827:5:
+exit status: 1
+
+Error: RuntimeError("[string \"/tmp/eech-world-combat-plan-156.lua\"]:13: the first affordable carrier: eech-world:2690 6\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'assert'\n\t[string \"/tmp/eech-world-combat-plan-156.lua\"]:13: in main chunk")
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    the_case_carrier_is_one_that_can_afford_the_plan
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p eech-world --test host_callbacks`
+CARGO_EXIT=101
+DOCKER_EXIT=101

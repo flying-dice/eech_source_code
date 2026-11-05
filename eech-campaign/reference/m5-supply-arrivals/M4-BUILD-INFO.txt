@@ -1,0 +1,20 @@
+commit: 1578435b3557570635cccbcc416cf5fcb15d2076
+uncommitted changes in the build inputs: 0 files
+image: sha256:bb10e44a20e9c6304b3a318902bcf0f8ec8175c162862240ce25c34bd7e562be
+rustc: rustc 1.98.1 (48a229cea 2026-09-01)
+cargo: cargo 1.98.1 (797e8a9bc 2026-08-05)
+mingw: gcc 12-posix, gcc-mingw-w64-x86-64-posix 12.2.0-14+deb12u1+25.2+b1
+lua.dll: Lua 5.1.5 (lua-5.1.5.tar.gz, SHA-256 checked in tools/Dockerfile)
+target: x86_64-pc-windows-gnu, release
+sha256:
+  62d5ca194852dd8dcbab41ba782388adf6a3095decf4e5be0078d51495c24a8e  eech_dc.dll
+  5a8be8a9affa5ab356f5fbc194b00b3441562bf00d748a73c199f47818708d5a  eech-world.exe
+  b224cb2eacdea06fcb7fe273979e660fbef0c1a9c65be53c7be9fc0a4571daca  lua.dll
+  223d46f5f33d777cd60d722140b1a30d36498f611b30f236f3d3f8485a46d1d1  lua/campaign.lua
+  09fe69481d82f234166e0c3a2ed984ebf10c460349cf51e4f6e8b556cd1a8a92  lua/host-identities-lifecycle.lua
+  6748f3cea895935bf5fb9237ef3c2cb42e2faf206515f05db99a5b34475eb754  lua/host-identities.lua
+  eff2a30e3065c0a456befb0b9a2bbe8d58408cba4c90861d8a63cd07f5f5528e  lua/lifecycle.lua
+  dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053  lua/metrics.lua
+  68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701  lua/observations.lua
+  3b0cb3f76604d85f710bf9748ff56edfca8703324b6214b29b0c252463f7c1ed  lua/supply-arrivals-lifecycle.lua
+  d9ba9f5459c44b55574bfb6eb2acf948e5a7d167e56caecb5828a6d1f64d03a8  lua/supply-arrivals.lua

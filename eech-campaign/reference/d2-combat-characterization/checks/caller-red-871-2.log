@@ -1,0 +1,50 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.51s
+     Running tests/host_callbacks.rs (/target/debug/deps/host_callbacks-01e380bfce0df75c)
+
+running 4 tests
+test the_case_deltas_keep_every_indexed_report_row_apart ... ok
+test the_case_carrier_is_one_that_can_afford_the_plan ... FAILED
+test the_case_caller_takes_the_affordable_alternate_class_of_its_role ... FAILED
+test the_case_caller_follows_the_live_ammunition_when_a_launch_spends_several_rounds ... FAILED
+
+failures:
+
+---- the_case_carrier_is_one_that_can_afford_the_plan stdout ----
+
+thread 'the_case_carrier_is_one_that_can_afford_the_plan' (161) panicked at crates/eech-world/tests/host_callbacks.rs:859:5:
+exit status: 1
+
+Error: RuntimeError("[string \"/tmp/eech-world-combat-plan-158.lua\"]:29: attempt to call field 'choose_class' (a nil value)\nstack traceback:\n\t[C]: in function 'choose_class'\n\t[string \"/tmp/eech-world-combat-plan-158.lua\"]:29: in main chunk")
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- the_case_caller_takes_the_affordable_alternate_class_of_its_role stdout ----
+
+thread 'the_case_caller_takes_the_affordable_alternate_class_of_its_role' (160) panicked at crates/eech-world/tests/host_callbacks.rs:975:5:
+a launch was refused for want of ammunition: LAUNCHES eech-world:2690:54 calls=10 refused=4 left=0
+LAUNCHES eech-world:2784:76 calls=6 refused=0 left=34
+CALLER_DONE
+
+
+---- the_case_caller_follows_the_live_ammunition_when_a_launch_spends_several_rounds stdout ----
+
+thread 'the_case_caller_follows_the_live_ammunition_when_a_launch_spends_several_rounds' (159) panicked at crates/eech-world/tests/host_callbacks.rs:1008:5:
+a launch was refused for want of ammunition: LAUNCHES eech-world:2690:54 calls=10 refused=8 left=2
+LAUNCHES eech-world:2784:76 calls=6 refused=0 left=16
+CALLER_DONE
+
+
+
+failures:
+    the_case_caller_follows_the_live_ammunition_when_a_launch_spends_several_rounds
+    the_case_caller_takes_the_affordable_alternate_class_of_its_role
+    the_case_carrier_is_one_that_can_afford_the_plan
+
+test result: FAILED. 1 passed; 3 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p eech-world --test host_callbacks`
+CARGO_EXIT=101
+DOCKER_EXIT=101

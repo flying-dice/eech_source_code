@@ -1,0 +1,37 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.42s
+     Running tests/host_callbacks.rs (/target/debug/deps/host_callbacks-01e380bfce0df75c)
+
+running 2 tests
+test the_bridge_witness_says_so_and_does_nothing_when_no_bridge_meets_the_first_collapse_criterion ... FAILED
+test the_bridge_witness_records_a_declared_failure_and_a_bounded_window_of_frames_in_order ... FAILED
+
+failures:
+
+---- the_bridge_witness_says_so_and_does_nothing_when_no_bridge_meets_the_first_collapse_criterion stdout ----
+
+thread 'the_bridge_witness_says_so_and_does_nothing_when_no_bridge_meets_the_first_collapse_criterion' (523) panicked at crates/eech-world/tests/host_callbacks.rs:1430:5:
+assertion `left == right` failed
+  left: String("no_bridge_with_a_segment_next_to_an_unsupported_span")
+ right: "no_bridge_meets_the_first_collapse_criterion"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- the_bridge_witness_records_a_declared_failure_and_a_bounded_window_of_frames_in_order stdout ----
+
+thread 'the_bridge_witness_records_a_declared_failure_and_a_bounded_window_of_frames_in_order' (522) panicked at crates/eech-world/tests/host_callbacks.rs:1404:5:
+assertion `left == right` failed: {"bridge":1,"done":true,"event":"bridge_case","reason":"","scenario":"lebanon_retail","segment":1,"text":"cmb-bridge-fail bridge=1 found=1 segments=3 index=1 criterion=0 done=1 bridge_alive=1 neighbour=2 neighbour_alive=1 first_collapse=1 armed=1 "}
+  left: (Some(true), Some(1), Some(1), None)
+ right: (Some(true), Some(1), Some(1), Some(true))
+
+
+failures:
+    the_bridge_witness_records_a_declared_failure_and_a_bounded_window_of_frames_in_order
+    the_bridge_witness_says_so_and_does_nothing_when_no_bridge_meets_the_first_collapse_criterion
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 16 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p eech-world --test host_callbacks`
+CARGO_EXIT=101
+DOCKER_EXIT=101

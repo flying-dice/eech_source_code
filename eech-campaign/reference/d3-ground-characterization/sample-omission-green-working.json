@@ -1,0 +1,20 @@
+{
+  "actual_native_exit": 1,
+  "scope": "GREEN for exact missing-n1 defect from old collaborator through new working-tree driver; not original C/physics validation",
+  "driver_sha256_before": "a083d5a0926eb9aa793f2849ada5cb9412337ff0efd98870f5f1b13f694624be",
+  "driver_working_tree": true,
+  "caller_sha256": "c11b34e608f34f8c2492970c364fd8014ca83c94f368ba609688b873b142fd9e",
+  "invalid_rows": 1,
+  "success_digest_rows": 0,
+  "driver_base": "06ce4b7bcff6617c35f32e740bcb57c9c1cc1c19",
+  "completed_utc": "2026-10-29T14:30:27.7997357Z",
+  "refusal": [
+    {
+      "error": "ground-characterization: ground-sample: point case 1 is not sampled, but no tag has reached 2 samples (the gap is cases 1 to 1)",
+      "event": "report_invalid",
+      "repeat_index": 1
+    }
+  ],
+  "driver_sha256_after": "a083d5a0926eb9aa793f2849ada5cb9412337ff0efd98870f5f1b13f694624be",
+  "native_source": "06ce4b7bcff6617c35f32e740bcb57c9c1cc1c19"
+}

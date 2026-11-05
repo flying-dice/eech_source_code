@@ -1,0 +1,64 @@
+commit: 9429beefb9a8e143b648e01c390075882e6e6361
+uncommitted changes in the build inputs: 0 files
+image: sha256:1bab3c3105df7c6746196f8abffe58dcaa2b137a9d90ad1385535a5705f34a14
+rustc: rustc 1.99.1 (58cf8f9c3 2026-10-13)
+cargo: cargo 1.99.1 (5f94df478 2026-08-27)
+mingw: gcc 12-posix, gcc-mingw-w64-x86-64-posix 12.2.0-14+deb12u1+25.2+b1
+lua.dll: Lua 5.1.5 (lua-5.1.5.tar.gz, SHA-256 checked in tools/Dockerfile)
+target: x86_64-pc-windows-gnu, release, FIXTURE BUILD (eech-dc/env-observer): test-only, not a shipping artifact
+sha256:
+  6e312d70e3809d357c852bd3aa85257a77e8fcff7c0968c4dcb43e58288adf71  eech_dc.dll
+  e2170f923fe043a0804c233f3e98c86c0fa9c51da83b15ad54cfe8747ba9b054  eech-world.exe
+  7b2ec3f3fd174f6b65a2159ee46dc8e9102624a350d978e16ddf4396d7c2be0b  lua.dll
+  f3b362edda9ee984d560db33e4a865d7f93a6a7e56eac724a864bd6e97734c16  lua/aim-characterization.lua
+  e9f5e77124900c56b663da1332e939489f414eb423005f75e3fa68ca677873f2  lua/aim-lead-probe.lua
+  1fa81d7ba056ef3b8ca74c848a3089a1bbdea36a355b9483d2c873353e470285  lua/aim-malformed.lua
+  85f6f5d2d609efcf60e257e9a1c49102c0acddc3fcdb4c4e0d8c6f6969a72d0b  lua/aim-person-case.lua
+  8e295e97f33a2cc19ec06c0a273c78a8d194a38dc336e7a66ad2dc357a16b113  lua/aim-provider.lua
+  ac61ba480bfdbdbe2d9f73db3523b5f0f9c40e6f4abbc092cc7c4d8104fe199e  lua/aircraft-arrivals.lua
+  af272c6ae4249aa190c48dfefb473e969016fbe4e10c9e873529e0e9dcd748b2  lua/bridge-case.lua
+  9ca2034c61ada7153f8a827f79a2919fcfff7df15b29b71b29649fa76d71f4c2  lua/campaign.lua
+  11acc83372cdc88e168ab33e011fdc17a26c6fabf739cfe17b60565644daab78  lua/combat-case.lua
+  7409b668077fe8a517d2c441941f78d0ef9d1d511975f596343b127d3863cde7  lua/combat-characterization.lua
+  cf5a4c270240a06106ba7c2226f26e9857e380278a418f7453f1ae5ca724b900  lua/combat-counters.lua
+  8c08f1f3cd4ec4ffe953edf4b39edae0c8588497d0d179ae8855f4e55b8224bd  lua/combat-plan.lua
+  5acc3856920a4259208426603dfdba9ab713073b185f1ca119e2b2c82f111a4e  lua/combat-report.lua
+  26707594d7279bc6efd4a530b6a264bcfde4525744867850c0718fe17dd05321  lua/convoy-movement.lua
+  0f401c445511b3b237d1e055ff6a0e881c2549cab4647e4b1b228cd0ac40578c  lua/dependent-carry.lua
+  1c9b15cf4b941220319b4cf4255f6b80978f388aa533ff2e06216b4f0dab0ffb  lua/dependent-fixture.lua
+  78f1bb65c63a6e83815dff90c3db85f78838df36063adb9696e58ca2230b7f75  lua/env-ambient-authority.lua
+  151f01feae8b67cd9fddbe26517118950578e48102ade62c065e98121fbea09e  lua/env-characterization.lua
+  9563e7429fc44e4a3edfef2b92df58558da271c12601fcb80ecaa6793e1b4a38  lua/env-lightning-host-witness.lua
+  487060e4a9f73fd138e4f05cff6d9ff0a40be6e31a71828f7c985d9c738c7eae  lua/env-lightning-queue.lua
+  2c3456f9267ad121c003fc97520551ddc9ab2ff6c704d083a26cfe8f23e114ad  lua/env-sector-authority.lua
+  88ddbae3a76bfc2d3f79ff37c31c25386d241413cfa4cbee1269e9fdb1034535  lua/env-sector-characterization.lua
+  45f3e3ada5eb8ac10e4e1c153f22fa07d63879a87f9d55bb3dbcea29006a2bdb  lua/env-sound-characterization.lua
+  0401e6acc97c31ad111d335c7c22f76b55b7dd117198801ae89223b930e0b815  lua/env-sound-lifetime.lua
+  f7abe22c2ac4dfe9ff46c44a811fe89cd1eecac34d8b07fa6d5e390a730e9f1a  lua/env-sound-wide-children.lua
+  23cc7082275306209d2776a7a0c5cc15e5353e067e428dca9905ce43b5407e55  lua/env-wind-authority.lua
+  2ecac052bd2de6f9e4e44c3362bc7b99d2969b5c086d851d31930397aa1602b0  lua/fixed-wing-movement.lua
+  4126f809a6cd20a8ad2923f8988f24a51de0d8bf9b2a74ca7cd865b0f1880466  lua/helicopter-lifecycle.lua
+  a914268ac63c204bf56702187602e1afe2b51695f0a8d9fefcc05d8ed4d68380  lua/helicopter-movement.lua
+  b412a17bc074ee80d5d1533ad0a209e1df888513410fac777620498e74ccd4fe  lua/host-identities-lifecycle.lua
+  10ce4d47313ed2a0e33a8a7e205f70052362ed0367402c78d8ed98aa745252f4  lua/host-identities.lua
+  ac81bbdbe8b1f6372e47ca024aae739851527d01b900275b5443783f3539985a  lua/lifecycle.lua
+  019a7399132640eff77cbfcaafc393df3aa6f187f6e3369a3cde054fb0f3d17e  lua/los-characterization.lua
+  5d6ccaf6cb3589dc3848a46d6d8727e35a5b5c074564c671d9f73fcef1d7bfd9  lua/los-controls.lua
+  4746806f72349f2f668dcb9848e188396c50c8818752f2a0fa1ad5119f3d31f0  lua/los-provider.lua
+  dc5a2f9bb405f183f18e37283f55419f44897e87f3a8bc6887b42cf3efde7cf3  lua/loss-all-family.lua
+  dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053  lua/metrics.lua
+  b9cf41a1e765d3c9ec37c5a9d31f071e42d54bb0016c2daa3ab7e9ab7ab4d78c  lua/object-report-case.lua
+  68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701  lua/observations.lua
+  1bfc0c23f29cd08fd899c098ad4e7c1c0be03722c69f743ecb5bfad5fca2d603  lua/own-model.lua
+  ca1c8487ed4c17feffdd5079b2eb070cf5606d10327f1fa5c123647de0289499  lua/own-weapon.lua
+  3eb2a4faadf31bdcc0889876c38c2cd7187962185d85ebbc09c057f5689a6f4a  lua/remaining-arrivals.lua
+  4828b460f5b9e557c6db91f260f45591b88e37ffddd36e32432bd7377efedd07  lua/sense-provider.lua
+  ada7bb8f2203adac7efc548740b6865d8cd266c8e2376772b1c9a1317536b346  lua/sensor-characterization.lua
+  7d08c6039fc7ca0c1bf92290995874d05573481daab2c46e3a06ef6dad997757  lua/supply-arrivals-lifecycle.lua
+  6d79e0cee83da931c16644a49848c9dffadb742c7e3c6f8fc229a6adb99f22e0  lua/supply-arrivals.lua
+  191f25eb18fb8c3c68268e53c88a75fd0b6a3313829ec3e514bece2d79c28e93  lua/surface-movement.lua
+  b5d4d2bf8dd5ebbb9cc0a66e39fe8d0aa0774b92da7e351222175dad0bd8b2ff  lua/terrain-characterization.lua
+  d4654f438b56f2eaf336026701e9499650391188709f219513c1ec0c10e01e31  lua/terrain-has-face.lua
+  a5f71994720f6be13347f74cac91f41b382e3c2e3fc58fb3949b412c28094cbd  lua/terrain-provider.lua
+  aa846c078607bdb2bf4e0abf258bc9a1d3e0d3e8bfac55157621efe4d3b73324  lua/weapon-case.lua
+  beeb9df9a4d04410f713d0d83d3191f33fe05f7e10ab9810c7591b337e0eaedc  lua/weapon-characterization.lua

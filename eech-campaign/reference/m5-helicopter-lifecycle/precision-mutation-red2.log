@@ -1,0 +1,25 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.42s
+     Running unittests src/lib.rs (/target/debug/deps/eech_world-75783a1018cec50e)
+
+running 2 tests
+test movement::tests::the_tumble_step_hands_the_helper_the_draws_it_received_in_double ... FAILED
+test movement::tests::a_tumble_forms_its_draws_in_double_as_the_original_expression_does ... ok
+
+failures:
+
+---- movement::tests::the_tumble_step_hands_the_helper_the_draws_it_received_in_double stdout ----
+
+thread 'movement::tests::the_tumble_step_hands_the_helper_the_draws_it_received_in_double' (157) panicked at crates/eech-world/src/movement.rs:2110:13:
+assertion `left == right` failed: draw 6: the step did not use the draws it was given
+  left: [1.0, 2.7484662e-5, -3.8350695e-6, -2.7484662e-5, 1.0, 1.05405594e-10, 3.8350695e-6, 0.0, 1.0]
+ right: [1.0, 2.7484664e-5, -3.8350695e-6, -2.7484664e-5, 1.0, 1.054056e-10, 3.8350695e-6, 0.0, 1.0]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    movement::tests::the_tumble_step_hands_the_helper_the_draws_it_received_in_double
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 55 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p eech-world --lib`

@@ -1,0 +1,12 @@
+{
+  "recorded_utc": "2026-10-28T06:08:00.2265232Z",
+  "reviewer": "/root/d2_los_review",
+  "scope": "New private provider driver and finite sequential five-case plan only; unchanged forecast source closure stands",
+  "disposition": "No helper or plan blockers",
+  "driver": "run-forecast-provider.ps1",
+  "reviewed_driver_sha256": "7ddf7608ad72bf5fe342ba5da2a5342641c5fc3bd17bc0bf42163c3b8c0dd505",
+  "observed_review": "Held process handle, actual wait/exit/return, Hidden, overwrite refusal and restricted modes/arguments; all5 preparation records input0/freshunused",
+  "gates": "Successful frozen build/all40 and preinputs before launches; root recorded those gates",
+  "runtime_criteria": "Matched180 reference/zero: completed duration, positive forecasts, returned capabilities and actual births/losses. Each malformed mode requires forecast-specific reason plus actualtrigger, not native0 alone;180 is maximum if refusal early.",
+  "no_review_native_or_build": true
+}

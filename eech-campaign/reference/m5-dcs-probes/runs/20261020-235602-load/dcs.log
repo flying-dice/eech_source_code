@@ -1,0 +1,516 @@
+=== Log opened UTC 2026-10-20 22:56:09
+2026-10-20 22:56:08.996 WARNING EDCORE (Main): hypervisor is active
+2026-10-20 22:56:08.996 WARNING EDCORE (Main): CPU HAS PARKED LOGICAL CORES (this can be a source of stuttering and reduced performance, especially on hybrid CPUs with P/E-cores)
+2026-10-20 22:56:10.426 INFO    EDCORE (Main): Platform Timer Resolution: 15.70ms
+2026-10-20 22:56:10.987 INFO    EDCORE (Main): Created boot pool: n:24
+2026-10-20 22:56:10.987 INFO    APP (Main): Command line: "D:\Program Files\Eagle Dynamics\DCS World OpenBeta\bin-mt\DCS.exe" -w DCS.M5Probe --no-launcher
+2026-10-20 22:56:10.988 INFO    APP (Main): DCS/2.9.29.27468 (x86_64; MT; Windows NT 10.0.26200)
+2026-10-20 22:56:10.988 INFO    APP (Main): Application revision: 267468
+2026-10-20 22:56:10.988 INFO    APP (Main): Renderer revision: 26305
+2026-10-20 22:56:10.988 INFO    APP (Main): Terrain revision: 27885
+2026-10-20 22:56:10.988 INFO    APP (Main): Build number: 559
+2026-10-20 22:56:10.988 INFO    APP (Main): CPU cores: 16, threads: 24, System RAM: 98068 MB, Pagefile: 6144 MB
+2026-10-20 22:56:10.988 INFO    DCS (Main): CPU info:
+system  affinity mask: 111111111111111111111111
+process affinity mask: 111111111111111111111111
+CPU: 13th Gen Intel(R) Core(TM) i7-13700K [1x L3 caches]
+CPU has uniform cache size 30 MB (per cache)
+CPU cores have different efficiency classes: [0-1]
+logical cores with efficiency class 1: {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
+logical cores with efficiency class 0: {16, 17, 18, 19, 20, 21, 22, 23}
+CPU cores have different performance classes: [0-2]
+logical cores with performance class 2: {8, 9, 10, 11}
+logical cores with performance class 1: {0, 1, 2, 3, 4, 5, 6, 7, 12, 13, 14, 15}
+logical cores with performance class 0: {16, 17, 18, 19, 20, 21, 22, 23}
+common cores: {4, 5, 6, 7, 12, 13, 14, 15}
+render cores: {8, 9, 10, 11, 0, 1, 2, 3}
+IO cores: {16, 17, 18, 19, 20, 21, 22, 23}
+unavailable cores: {}
+pause10: 0.034633 us (std dev: 0.172383)
+pause10: 1177 cycles (std dev: 5731.6)
+2026-10-20 22:56:13.063 INFO    ASYNCNET (Main): login was cancelled.
+2026-10-20 22:56:13.063 WARNING APP (Main): Login was cancelled, offline auth is not available.
+2026-10-20 22:56:13.131 INFO    EDCORE (Main): (dDispatcher)enterToState_:0
+2026-10-20 22:56:13.132 INFO    Dispatcher (Main): 2026/10/20 23:56 V2404051500
+2026-10-20 22:56:13.132 INFO    ASYNCNET (Main): ProtocolVersion: 428
+2026-10-20 22:56:13.132 INFO    ASYNCNET (Main): Adding LAN search interface 0: 127.0.0.1 "IPv4 Loopback"
+2026-10-20 22:56:13.132 INFO    ASYNCNET (Main): Adding LAN search interface 0: 255.255.255.255 "IPv4 Broadcast"
+2026-10-20 22:56:13.135 INFO    ED_SOUND (Main): Using driver: wasapi
+2026-10-20 22:56:13.140 INFO    ED_SOUND (Main): Found 4 available audio device(s):
+2026-10-20 22:56:13.140 INFO    ED_SOUND (Main):   0: ID: "{0.0.0.00000000}.{1ffa7700-a408-4e98-9811-f46b71711e69}", Name: "Digital Audio (S/PDIF) (High Definition Audio Device)"
+2026-10-20 22:56:13.140 INFO    ED_SOUND (Main):   1: ID: "{0.0.0.00000000}.{44f6e9a7-040a-420c-bba4-14e7136c276c}", Name: "Headphones (Arctis 7+)"
+2026-10-20 22:56:13.140 INFO    ED_SOUND (Main):   2: ID: "{0.0.0.00000000}.{7194cd5e-f7de-4134-a29f-b9815ef206fd}", Name: "LG ULTRAGEAR+ (NVIDIA High Definition Audio)"
+2026-10-20 22:56:13.140 INFO    ED_SOUND (Main):   3: ID: "{0.0.0.00000000}.{8cc2ca06-6f16-4206-aad6-9aa0349464e7}", Name: "Headphones (Oculus Virtual Audio Device)"
+2026-10-20 22:56:13.246 INFO    SOUND (Main): Added sound path: Sounds
+2026-10-20 22:56:13.286 INFO    SOUNDER (Main): Loaded 229 packed sounders.
+2026-10-20 22:56:13.289 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/dx11backend.dll
+2026-10-20 22:56:13.290 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/dxgui_edge_render.dll
+2026-10-20 22:56:13.290 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/edterrain4.dll
+2026-10-20 22:56:13.290 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-direct_output.dll
+2026-10-20 22:56:13.291 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-dxgui.dll
+2026-10-20 22:56:13.292 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-dxguiWin.dll
+2026-10-20 22:56:13.292 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-ED_demosceneAPI.dll
+2026-10-20 22:56:13.292 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-guid.dll
+2026-10-20 22:56:13.292 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-gui_axes_tune.dll
+2026-10-20 22:56:13.293 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-gui_demoscene.dll
+2026-10-20 22:56:13.293 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-gui_nodes_map.dll
+2026-10-20 22:56:13.293 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-gui_overlay.dll
+2026-10-20 22:56:13.294 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-gui_ruler.dll
+2026-10-20 22:56:13.294 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-gui_user_container.dll
+2026-10-20 22:56:13.295 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-gui_video_player.dll
+2026-10-20 22:56:13.295 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-gui_webview.dll
+2026-10-20 22:56:13.295 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-librs232.dll
+2026-10-20 22:56:13.296 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-magvar.dll
+2026-10-20 22:56:13.296 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-md5.dll
+2026-10-20 22:56:13.296 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-mime.dll
+2026-10-20 22:56:13.296 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-minizip.dll
+2026-10-20 22:56:13.297 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-MissionGenerator.dll
+2026-10-20 22:56:13.297 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-reg.dll
+2026-10-20 22:56:13.297 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-socket.dll
+2026-10-20 22:56:13.297 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-terrain.dll
+2026-10-20 22:56:13.297 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua-textutil.dll
+2026-10-20 22:56:13.297 INFO    Dispatcher (Main): InitLow
+2026-10-20 22:56:13.298 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/CockpitBase.dll
+2026-10-20 22:56:13.304 INFO    Dispatcher (Main): Loading installed modules...
+2026-10-20 22:56:13.917 ERROR   SECURITYCONTROL (Main): Can't load .\Mods\tech\WWII Units\dcs_module: not authorized
+2026-10-20 22:56:15.435 INFO    Scripting (Main): OBSOLETE mount_vfs_sound_path() used in ./CoreMods/aircraft/AJS37/entry.lua
+2026-10-20 22:56:15.491 INFO    Scripting (Main): OBSOLETE mount_vfs_sound_path() used in ./CoreMods/aircraft/C130J/entry.lua
+2026-10-20 22:56:15.537 INFO    Scripting (Main): OBSOLETE mount_vfs_sound_path() used in ./CoreMods/aircraft/F-4E/entry.lua
+2026-10-20 22:56:15.658 INFO    Scripting (Main): OBSOLETE mount_vfs_sound_path() used in ./CoreMods/aircraft/Hawk/Hawk.lua
+2026-10-20 22:56:15.708 ALERT   Scripting (Main): loadfile: no file './Mods/tech/WWII Units/entry.lua'
+2026-10-20 22:56:15.708 INFO    Scripting (Main): plugin 
+2026-10-20 22:56:15.728 INFO    Scripting (Main): PLUGINS START-------------------------------------------------
+2026-10-20 22:56:15.745 INFO    Scripting (Main): plugin: ColdWarAssetsPack unit replace BRDM-2
+2026-10-20 22:56:15.745 INFO    Scripting (Main): plugin: ColdWarAssetsPack unit replace Strela-1 9P31
+2026-10-20 22:56:15.748 INFO    Scripting (Main): plugin: Currenthill Assets Pack unit replace Mi-28N
+2026-10-20 22:56:15.748 INFO    Scripting (Main): plugin: Currenthill Assets Pack unit replace Tu-95MS
+2026-10-20 22:56:15.748 INFO    Scripting (Main): plugin: Currenthill Assets Pack unit replace T-90
+2026-10-20 22:56:15.749 INFO    Scripting (Main): plugin: Currenthill Assets Pack unit replace BMP-3
+2026-10-20 22:56:15.749 INFO    Scripting (Main): plugin: Currenthill Assets Pack unit replace ALBATROS
+2026-10-20 22:56:15.756 INFO    Scripting (Main): plugin: World War II PTO Units by Magnitude 3 LLC unit replace Type_3_80mm_AA
+2026-10-20 22:56:15.756 INFO    Scripting (Main): plugin: World War II PTO Units by Magnitude 3 LLC unit replace Type_88_75mm_AA
+2026-10-20 22:56:15.756 INFO    Scripting (Main): plugin: World War II PTO Units by Magnitude 3 LLC unit replace Type_94_Truck
+2026-10-20 22:56:15.756 INFO    Scripting (Main): plugin: World War II PTO Units by Magnitude 3 LLC unit replace Type_96_25mm_AA
+2026-10-20 22:56:15.756 INFO    Scripting (Main): plugin: World War II PTO Units by Magnitude 3 LLC unit replace Type_94_25mm_AA_Truck
+2026-10-20 22:56:15.756 INFO    Scripting (Main): plugin: World War II PTO Units by Magnitude 3 LLC unit replace Type_98_Ke_Ni
+2026-10-20 22:56:15.756 INFO    Scripting (Main): plugin: World War II PTO Units by Magnitude 3 LLC unit replace Type_98_So_Da
+2026-10-20 22:56:15.756 INFO    Scripting (Main): plugin: World War II PTO Units by Magnitude 3 LLC unit replace Type_89_I_Go
+2026-10-20 22:56:15.767 INFO    SOUND (22280): Added sound path: ./CoreMods/tech/Animals/Sounds
+2026-10-20 22:56:15.771 INFO    SOUND (22280): Added sound path: ./CoreMods/tech/ColdWarAssetsPack/Sounds
+2026-10-20 22:56:15.771 INFO    SOUNDER (22280): Loaded 9 packed sounders.
+2026-10-20 22:56:15.793 INFO    SOUND (22280): Added sound path: ./CoreMods/tech/Currenthill Assets Pack/Sounds
+2026-10-20 22:56:15.793 INFO    SOUNDER (22280): Loaded 56 packed sounders.
+2026-10-20 22:56:15.844 INFO    SOUND (22280): Added sound path: ./CoreMods/tech/HeavyMetalCore/Sounds
+2026-10-20 22:56:15.845 INFO    SOUNDER (22280): Loaded 14 packed sounders.
+2026-10-20 22:56:15.885 INFO    SOUND (22280): Added sound path: ./CoreMods/tech/Kuznecow/Sounds
+2026-10-20 22:56:15.885 INFO    SOUNDER (22280): Loaded 1 packed sounders.
+2026-10-20 22:56:15.889 INFO    SOUND (22280): Added sound path: ./CoreMods/tech/M3 WWII PTO units/Sounds
+2026-10-20 22:56:15.890 INFO    SOUNDER (22280): Loaded 8 packed sounders.
+2026-10-20 22:56:15.928 INFO    SOUND (22280): Added sound path: ./CoreMods/tech/SouthAtlanticAssets/Sounds
+2026-10-20 22:56:15.928 INFO    SOUNDER (22280): Loaded 15 packed sounders.
+2026-10-20 22:56:15.946 WARNING EDCORE (22280): Source coremods/tech/southatlanticassets/textures/vehicles is already mounted to the same mount /textures/.
+2026-10-20 22:56:15.952 INFO    SOUND (22280): Added sound path: ./CoreMods/tech/TechWeaponPack/Sounds
+2026-10-20 22:56:15.953 INFO    SOUNDER (22280): Loaded 80 packed sounders.
+2026-10-20 22:56:15.970 WARNING APP (Main): Not Authorized, auto-skipped: ./Mods/tech/CombinedArms
+2026-10-20 22:56:15.970 ERROR   Scripting (Main): plugin: SKIPPED 'Combined Arms by Eagle Dynamics': not authorized
+2026-10-20 22:56:15.973 ERROR   Scripting (Main): plugin: SKIPPED 'Supercarrier': not authorized
+2026-10-20 22:56:15.973 WARNING Scripting (Main): plugin: SKIPPED './Mods/tech/WWII Units': not supported
+2026-10-20 22:56:15.975 WARNING APP (Main): Not Authorized, auto-skipped: ./Mods/aircraft/A-10A
+2026-10-20 22:56:15.975 ERROR   Scripting (Main): plugin: SKIPPED 'A-10A by Eagle Dynamics': not authorized
+2026-10-20 22:56:15.977 WARNING APP (Main): Not Authorized, auto-skipped: ./Mods/aircraft/A-10C
+2026-10-20 22:56:15.977 ERROR   Scripting (Main): plugin: SKIPPED 'A-10C Warthog by Eagle Dynamics': not authorized
+2026-10-20 22:56:15.979 WARNING APP (Main): Not Authorized, auto-skipped: ./Mods/aircraft/F-15C
+2026-10-20 22:56:15.979 ERROR   Scripting (Main): plugin: SKIPPED 'F-15C': not authorized
+2026-10-20 22:56:15.981 ERROR   Scripting (Main): plugin: SKIPPED 'F-16C bl.50': not authorized
+2026-10-20 22:56:15.983 ERROR   Scripting (Main): plugin: SKIPPED 'F/A-18C': not authorized
+2026-10-20 22:56:15.985 WARNING APP (Main): Not Authorized, auto-skipped: ./Mods/aircraft/Ka-50
+2026-10-20 22:56:15.985 ERROR   Scripting (Main): plugin: SKIPPED 'Ka-50 Black Shark by Eagle Dynamics': not authorized
+2026-10-20 22:56:15.987 ERROR   Scripting (Main): plugin: SKIPPED 'MiG-29 Fulcrum by Eagle Dynamics': not authorized
+2026-10-20 22:56:15.989 WARNING APP (Main): Not Authorized, auto-skipped: ./Mods/aircraft/P-51D
+2026-10-20 22:56:15.989 ERROR   Scripting (Main): plugin: SKIPPED 'P-51D Mustang by Eagle Dynamics': not authorized
+2026-10-20 22:56:15.991 WARNING APP (Main): Not Authorized, auto-skipped: ./Mods/aircraft/SpitfireLFMkIX
+2026-10-20 22:56:15.991 ERROR   Scripting (Main): plugin: SKIPPED 'Spitfire LF Mk. IX by Eagle Dynamics': not authorized
+2026-10-20 22:56:15.993 WARNING APP (Main): Not Authorized, auto-skipped: ./Mods/aircraft/Su-25A
+2026-10-20 22:56:15.993 ERROR   Scripting (Main): plugin: SKIPPED 'Su-25A by Eagle Dynamics': not authorized
+2026-10-20 22:56:15.996 WARNING APP (Main): Not Authorized, auto-skipped: ./Mods/aircraft/Su-27
+2026-10-20 22:56:15.996 ERROR   Scripting (Main): plugin: SKIPPED 'Su-27 Flanker by Eagle Dynamics': not authorized
+2026-10-20 22:56:15.998 WARNING APP (Main): Not Authorized, auto-skipped: ./Mods/aircraft/Su-33
+2026-10-20 22:56:15.998 ERROR   Scripting (Main): plugin: SKIPPED 'Su-33 Flanker by Eagle Dynamics': not authorized
+2026-10-20 22:56:16.002 WARNING APP (Main): Not Authorized, auto-skipped: ./Mods/aircraft/Uh-1H
+2026-10-20 22:56:16.002 ERROR   Scripting (Main): plugin: SKIPPED 'UH-1H Huey by Belsimtek': not authorized
+2026-10-20 22:56:16.008 ERROR   Scripting (Main): plugin: SKIPPED 'Nevada': not authorized
+2026-10-20 22:56:16.010 ERROR   Scripting (Main): plugin: SKIPPED 'Normandy': not authorized
+2026-10-20 22:56:16.012 ERROR   Scripting (Main): plugin: SKIPPED 'PersianGulf': not authorized
+2026-10-20 22:56:16.077 INFO    Scripting (Main): PLUGINS DONE--------------------------------------------------
+2026-10-20 22:56:16.170 INFO    SOUND (22280): Added sound path: ./CoreMods/tech/USS_Nimitz/Sounds
+2026-10-20 22:56:16.170 INFO    SOUNDER (22280): Loaded 6 packed sounders.
+2026-10-20 22:56:16.247 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/AJS37/Sounds
+2026-10-20 22:56:16.257 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/AV8BNA/Sounds
+2026-10-20 22:56:16.262 INFO    SOUNDER (22280): Loaded 1 sounders.
+2026-10-20 22:56:16.263 WARNING EDCORE (22280): Source coremods/aircraft/av8bna/shapes is already mounted to the same mount /models/.
+2026-10-20 22:56:16.279 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/C-101/Sounds
+2026-10-20 22:56:16.306 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/C130J/Sounds
+2026-10-20 22:56:16.332 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/CH-47F/Sounds
+2026-10-20 22:56:16.342 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/ChinaAssetPack/Sounds
+2026-10-20 22:56:16.351 INFO    SOUNDER (22280): Loaded 16 sounders.
+2026-10-20 22:56:16.362 WARNING EDCORE (22280): Source coremods/aircraft/chinaassetpack/textures/vehicles/hq7 is already mounted to the same mount /textures/.
+2026-10-20 22:56:16.408 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/Christen Eagle II/Sounds
+2026-10-20 22:56:16.429 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/F-100D/Sounds
+2026-10-20 22:56:16.431 WARNING EDCORE (22280): Source coremods/aircraft/f-100d/shapes is already mounted to the same mount /models/.
+2026-10-20 22:56:16.460 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/F-15E/Sounds
+2026-10-20 22:56:16.522 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/F-4E/Sounds
+2026-10-20 22:56:16.626 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/F14/Sounds
+2026-10-20 22:56:16.638 INFO    SOUNDER (22280): Loaded 1 sounders.
+2026-10-20 22:56:16.715 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/F4U-1D/Sounds
+2026-10-20 22:56:16.816 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/I-16/Sounds
+2026-10-20 22:56:16.832 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/Ka-50/Sounds
+2026-10-20 22:56:16.877 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/La-7/Sounds
+2026-10-20 22:56:16.887 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/M-2000C/Sounds
+2026-10-20 22:56:16.933 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/MiG-21bis/Sounds
+2026-10-20 22:56:16.991 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/MiG-29-Fulcrum/Sounds
+2026-10-20 22:56:17.004 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/Mirage-F1/Sounds
+2026-10-20 22:56:17.112 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/OH-58D/Sounds
+2026-10-20 22:56:17.143 INFO    SOUND (22280): Added sound path: ./CoreMods/aircraft/SA342/Sounds
+2026-10-20 22:56:17.221 INFO    SOUND (22280): Added sound path: ./CoreMods/services/VoiceChat/Sounds
+2026-10-20 22:56:17.227 INFO    SOUND (22280): Added sound path: ./Mods/terrains/MarianaIslands/Sounds
+2026-10-20 22:56:17.856 INFO    APP (Main): options.graphics =
+{
+	['volumetricLights'] = 1;
+	['messagesFontScale'] = 1;
+	['forestDetailsFactor'] = 1;
+	['rainDroplets'] = 0;
+	['LensEffects'] = 3;
+	['heatBlr'] = 0;
+	['anisotropy'] = 4;
+	['water'] = 2;
+	['motionBlurAmount'] = 1;
+	['BlurFlatShadows'] = 0;
+	['visibRange'] = 'High';
+	['lights'] = 2;
+	['shadows'] = 2;
+	['MSAA'] = 1;
+	['canopyReflections'] = 1;
+	['ScreenshotExt'] = 'jpg';
+	['clutterMaxDistance'] = 0;
+	['cockpitGI'] = 1;
+	['terrainTextures'] = 'min';
+	['multiMonitorSetup'] = '1camera';
+	['outputGamma'] = 2.2;
+	['defaultFOV'] = 78;
+	['shadowTree'] = false;
+	['chimneySmokeDensity'] = 4;
+	['AA'] = 'OFF';
+	['SSS'] = 0;
+	['fullScreen'] = false;
+	['Sharpening'] = 0;
+	['DLSS_PerfQuality'] = 0;
+	['Scaling'] = 0.66;
+	['DOF'] = 0;
+	['clouds'] = 1;
+	['sceneryDetailsFactor'] = 1;
+	['Upscaling'] = 'OFF';
+	['flatTerrainShadows'] = 0;
+	['scaleGui'] = 1;
+	['useDeferredShading'] = 1;
+	['SSLR'] = 0;
+	['effects'] = 3;
+	['SSAO'] = 0;
+	['motionBlur'] = 0;
+	['sync'] = false;
+	['forestDistanceFactor'] = 0.5;
+	['textures'] = 0;
+	['secondaryShadows'] = 0;
+	['preloadRadius'] = 150000;
+	['civTraffic'] = '';
+};
+2026-10-20 22:56:17.860 INFO    Dispatcher (Main): Waiting for module resource mounts: 0.000s
+2026-10-20 22:56:17.861 INFO    VISUALIZER (Main): render thread initialization...
+2026-10-20 22:56:17.867 INFO    GRAPHICSVISTA (52840): renderer: 'dx11backend.dll'
+2026-10-20 22:56:17.977 INFO    DX11BACKEND (52840): DX11Renderer initialization (w:3840 h:2160 fullscrn:0 vsync:0 adapter:0 monitor:0 shaderErrors:1)
+2026-10-20 22:56:18.404 INFO    DX11BACKEND (52840): Driver Concurrent Creates - 1
+2026-10-20 22:56:18.404 INFO    DX11BACKEND (52840): Driver Command Lists - 1
+2026-10-20 22:56:18.473 INFO    DX11BACKEND (52840): NVIDIA API init OK
+2026-10-20 22:56:18.475 INFO    DX11BACKEND (52840): NVIDIA Display Driver Version 58157.r581_55
+2026-10-20 22:56:18.475 INFO    DX11BACKEND (52840): GPU count:1
+2026-10-20 22:56:18.513 INFO    DX11BACKEND (52840): commonPool: 48-128, cbPool: 4-14
+2026-10-20 22:56:18.513 INFO    DX11BACKEND (52840): samplerPool: 5-16
+2026-10-20 22:56:19.383 INFO    DX11BACKEND (52840): NVIDIA DLSS Minimum driver version was reported as : 470.0
+2026-10-20 22:56:19.383 INFO    METASHADER (52840): Init filesystem: D
+2026-10-20 22:56:19.391 INFO    DX11BACKEND (52840): DX11ShaderBinaries::loadCache bazar/shaders/fxo/fxo
+2026-10-20 22:56:21.011 INFO    DX11BACKEND (52840): DX11ShaderBinaries::loadCache done. Loaded 2626/2626.
+2026-10-20 22:56:21.025 INFO    DX11BACKEND (52840): DX11ShaderBinaries::loadCache %USERPROFILE%/saved games/dcs.m5probe/fxo
+2026-10-20 22:56:21.025 INFO    DX11BACKEND (52840): DX11ShaderBinaries::loadCache done. Loaded 0/0.
+2026-10-20 22:56:21.052 INFO    VISUALIZER (52840): SceneManager initialization
+2026-10-20 22:56:21.241 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/groundPuffComp.fx
+2026-10-20 22:56:23.865 WARNING LOG (22724): 3 duplicate message(s) skipped.
+2026-10-20 22:56:23.865 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/groundPuff.fx
+2026-10-20 22:56:23.945 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/groundPuffComp.fx
+2026-10-20 22:56:25.376 WARNING LOG (22724): 1 duplicate message(s) skipped.
+2026-10-20 22:56:25.376 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/ffx.fx
+2026-10-20 22:56:25.479 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/ffxComp.fx
+2026-10-20 22:56:26.240 WARNING LOG (22724): 1 duplicate message(s) skipped.
+2026-10-20 22:56:26.240 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/ffx.fx
+2026-10-20 22:56:26.318 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/ffxComp.fx
+2026-10-20 22:56:26.653 WARNING LOG (22724): 1 duplicate message(s) skipped.
+2026-10-20 22:56:26.653 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/groundPuffComp.fx
+2026-10-20 22:56:29.152 WARNING LOG (22724): 3 duplicate message(s) skipped.
+2026-10-20 22:56:29.152 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/ffxComp.fx
+2026-10-20 22:56:29.848 WARNING LOG (22724): 1 duplicate message(s) skipped.
+2026-10-20 22:56:29.848 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/GPUExplosion.fx
+2026-10-20 22:56:29.921 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/hedgehogExplosionComp.fx
+2026-10-20 22:56:30.596 WARNING LOG (22724): 1 duplicate message(s) skipped.
+2026-10-20 22:56:30.596 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/groundPuff.fx
+2026-10-20 22:56:30.716 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/cloud.fx
+2026-10-20 22:56:30.800 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/cloudComp.fx
+2026-10-20 22:56:31.214 WARNING LOG (22724): 1 duplicate message(s) skipped.
+2026-10-20 22:56:31.214 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/ffxComp.fx
+2026-10-20 22:56:31.472 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/steamCatapult.fx
+2026-10-20 22:56:31.561 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/steamCatapultComp.fx
+2026-10-20 22:56:31.894 WARNING LOG (22724): 1 duplicate message(s) skipped.
+2026-10-20 22:56:31.894 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/overwingVapor.fx
+2026-10-20 22:56:31.988 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/overwingVaporComp.fx
+2026-10-20 22:56:32.741 WARNING LOG (22724): 1 duplicate message(s) skipped.
+2026-10-20 22:56:32.741 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/ffx.fx
+2026-10-20 22:56:32.830 INFO    DX11BACKEND (52840): Compile shader: ParticleSystem2/ffxComp.fx
+2026-10-20 22:56:33.313 WARNING LOG (22724): 1 duplicate message(s) skipped.
+2026-10-20 22:56:33.313 ERROR_ONCE DX11BACKEND (29184): texture 'KevinWakePattern812x1024.dds' not found. Asked from ''
+2026-10-20 22:56:33.330 INFO    VISUALIZER (52840): DCSScene initialized
+2026-10-20 22:56:33.348 INFO    DX11BACKEND (52840): Compile shader: enlight/separateTransparent.fx
+2026-10-20 22:56:33.375 ALERT   DX11BACKEND (52840): Error: Can't find precompiled shader for effect enlight/separatetransparent.fx:DIRECTX11=true;USE_DCS_DEFERRED=1;.
+Recompilation process will take some time, please wait
+(this situation should not occur on end user PC, if there is no manual shader editing)
+2026-10-20 22:56:33.407 INFO    DX11BACKEND (52840): Compile shader: deferred/blurCompute.fx
+2026-10-20 22:56:34.730 WARNING LOG (22724): 23 duplicate message(s) skipped.
+2026-10-20 22:56:34.730 ERROR_ONCE DX11BACKEND (52840): render target 'mainDepthBuffer' not found
+2026-10-20 22:56:34.780 ERROR_ONCE DX11BACKEND (52840): render target 'uiTargetColor' not found
+2026-10-20 22:56:34.780 ERROR_ONCE DX11BACKEND (52840): render target 'uiTargetDepth' not found
+2026-10-20 22:56:34.780 INFO    VISUALIZER (52840): DCSSceneRenderer initialized
+2026-10-20 22:56:34.780 INFO    VISUALIZER (52840): SceneManager: render pool size:6
+2026-10-20 22:56:34.781 INFO    VISUALIZER (Main): render thread is initialized
+2026-10-20 22:56:34.818 INFO    INPUT (Main): created [Keyboard]
+2026-10-20 22:56:34.847 INFO    ED_SOUND (Main): Opening default audio device.
+2026-10-20 22:56:34.849 INFO    ED_SOUND (Main): Speaker layout: auto
+2026-10-20 22:56:34.851 INFO    ED_SOUND (Main): Driver reports 2 channels with mask 0x3
+2026-10-20 22:56:34.851 INFO    ED_SOUND (Main): Using 2 channels at 48000 Hz
+2026-10-20 22:56:34.851 INFO    ED_SOUND (Main): Channel layout: Headphones/Stereo
+2026-10-20 22:56:34.888 INFO    ED_SOUND (Main): Opening default audio device.
+2026-10-20 22:56:34.890 INFO    ED_SOUND (Main): Speaker layout: forced_stereo
+2026-10-20 22:56:34.890 INFO    ED_SOUND (Main): Driver reports 2 channels with mask 0x3
+2026-10-20 22:56:34.890 INFO    ED_SOUND (Main): Using 2 channels at 48000 Hz
+2026-10-20 22:56:34.890 INFO    ED_SOUND (Main): Channel layout: Headphones/Stereo
+2026-10-20 22:56:34.912 INFO    APP (Main): gDescription: "NVIDIA GeForce RTX 4090" gVendorId: 4318 gDeviceId: 9860 gMemory: 24142 MB
+2026-10-20 22:56:34.927 ERROR   EDOBJECTS (Main): SAB-100 already declared in shapes.txt
+2026-10-20 22:56:34.927 ERROR   EDOBJECTS (Main): Object HB_F4E_GBU15V1 with id=42 already declared in table BombTable
+2026-10-20 22:56:34.927 ERROR   EDOBJECTS (Main): Object FUEL TANK 200 GAL  (EMPTY) with id=3095 already declared in table ContainerTable
+2026-10-20 22:56:34.927 ERROR   EDOBJECTS (Main): Object FUEL TANK 275 GAL LEFT  (EMPTY) with id=3096 already declared in table ContainerTable
+2026-10-20 22:56:34.927 ERROR   EDOBJECTS (Main): Object FUEL TANK 275 GAL RIGHT  (EMPTY) with id=3097 already declared in table ContainerTable
+2026-10-20 22:56:34.927 ERROR   EDOBJECTS (Main): Object FUEL TANK 335 GAL LEFT  (EMPTY) with id=3098 already declared in table ContainerTable
+2026-10-20 22:56:34.927 ERROR   EDOBJECTS (Main): Object FUEL TANK 335 GAL RIGHT  (EMPTY) with id=3099 already declared in table ContainerTable
+2026-10-20 22:56:34.927 ERROR   EDOBJECTS (Main): Object FUEL TANK 450 GAL  (EMPTY) with id=3100 already declared in table ContainerTable
+2026-10-20 22:56:34.928 ERROR   EDOBJECTS (Main): Object FIM-92C STINGER with id=93 already declared in table MissileTable
+2026-10-20 22:56:34.928 ERROR   EDOBJECTS (Main): Object OH58D_FIM_92 with id=93 already declared in table MissileTable
+2026-10-20 22:56:36.305 ERROR   WORLDGENERAL (Main): Error: Unit [QF-4E]: Effect presets records are defined but empty.
+2026-10-20 22:56:36.308 ERROR   WORLDGENERAL (Main): Error: Unit [OH58D]: Asymmetrical wing configuration found.
+2026-10-20 22:56:36.308 WARNING LOG (22724): 2 duplicate message(s) skipped.
+2026-10-20 22:56:36.308 ERROR   WORLDGENERAL (Main): Error: Unit [CH-47Fbl1]: Effect presets records are defined but empty.
+2026-10-20 22:56:36.317 ERROR   WORLDGENERAL (Main): Error: Unit [F-4E-45MC]: Effect presets records are defined but empty.
+2026-10-20 22:56:36.319 ERROR   WORLDGENERAL (Main): AJS37 AI by Heatblur Simulations: Unexpected fires_pos index  12
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK83_MER_3x_AFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "{BRU-70A_2*GBU-54_SIDE_RIGHT}" (origin: "./CoreMods/aircraft/AV8BNA/WEAPONS/AV8BNA_Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "OH58D_Violet_Smoke_Grenade" (origin: "./CoreMods/aircraft/OH-58D/OH58D_Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "{FAB-500-M54-TU}" (origin: "./CoreMods/aircraft/MiG-21bis/Entry/Aw")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative weight of payload "{HB_A6E_M117_MER_4x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_M117_MER_4x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_TALD_MER_4x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK81_MER_4x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK81_MER_4x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_BDU45_MER_1x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK106_MER_6x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_BDU45_MER_2x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative weight of payload "{LAU-7_AIM-9M_Right}" (origin: "./CoreMods/aircraft/F-4E/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative weight of payload "{HB_A6E_M117_MER_4x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_M117_MER_4x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK82SE_MER_5x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK82_MER_2x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "{MAK79_BDU45B 3R}" (origin: "./CoreMods/aircraft/F14/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative weight of payload "{HB_F4E_M117_MER_5x}" (origin: "./CoreMods/aircraft/F-4E/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "OH58D_Green_Smoke_Grenade" (origin: "./CoreMods/aircraft/OH-58D/OH58D_Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_BDU45_MER_3x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_BDU45SE_MER_3x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK20_MER_3x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "{FAB-250-M54-TU}" (origin: "./CoreMods/aircraft/MiG-21bis/Entry/Aw")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative weight of payload "{HB_A6E_M117_MER_4x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.345 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_M117_MER_4x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{BRU-70A_2*GBU-54_SIDE_LEFT}" (origin: "./CoreMods/aircraft/AV8BNA/WEAPONS/AV8BNA_Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{OFAB-100-120-TU}" (origin: "./CoreMods/aircraft/MiG-21bis/Entry/Aw")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{MB339_MagicI}" (origin: "./CoreMods/aircraft/MB-339/Weapons/AirToAirMissiles.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK83_MER_2x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_BDU45SE_MER_5x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative weight of payload "{LAU-7_AIM-9M_Left}" (origin: "./CoreMods/aircraft/F-4E/Entry/Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_BDU45SE_MER_5x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK83_MER_3x_FWD}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK81_MER_3x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{MB339_MagicII}" (origin: "./CoreMods/aircraft/MB-339/Weapons/AirToAirMissiles.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK20_MER_4x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_BDU45SE_MER_6x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{FAB-500-M54}" (origin: "./CoreMods/aircraft/MiG-21bis/Entry/Aw")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK83_MER_2x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK82_MER_5x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{BETAB-500M}" (origin: "./CoreMods/aircraft/MiG-21bis/Entry/Aw")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_BDU45_MER_3x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{BRU-42_3*GBU-38}" (origin: "./CoreMods/aircraft/AV8BNA/WEAPONS/AV8BNA_Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{IAB-500}" (origin: "./CoreMods/aircraft/MiG-21bis/Entry/Aw")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK82SE_MER_2x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK81_MER_5x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_BDU45SE_MER_3x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK81_MER_5x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK82SE_MER_5x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{BRU-70A_2*GBU-38_SIDE_RIGHT}" (origin: "./CoreMods/aircraft/AV8BNA/WEAPONS/AV8BNA_Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_BDU45SE_MER_4x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_BDU45_MER_6x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.346 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_BDU45_MER_4x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK20_MER_4x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK82SE_MER_4x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{BRU-42_2*GBU-38_LEFT}" (origin: "./CoreMods/aircraft/AV8BNA/WEAPONS/AV8BNA_Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK20_MER_2x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK82_MER_3x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK82_MER_5x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_GBU12_MER_2x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK82SE_MER_3x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{FAB-500-TA}" (origin: "./CoreMods/aircraft/MiG-21bis/Entry/Aw")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_BDU45_MER_5x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_BDU45SE_MER_5x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_TALD_MER_2x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{FAB-250-M54}" (origin: "./CoreMods/aircraft/MiG-21bis/Entry/Aw")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK81_MER_6x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK20_MER_6x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_TALD_MER_2x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_BDU45SE_MER_2x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK76_MER_6x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{BRU-70A_2*GBU-54_RIGHT}" (origin: "./CoreMods/aircraft/AV8BNA/WEAPONS/AV8BNA_Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{ODAB-500PM}" (origin: "./CoreMods/aircraft/MiG-21bis/Entry/Aw")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_BDU45SE_MER_4x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "OH58D_White_Smoke_Grenade" (origin: "./CoreMods/aircraft/OH-58D/OH58D_Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "OH58D_Blue_Smoke_Grenade" (origin: "./CoreMods/aircraft/OH-58D/OH58D_Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "OH58D_Red_Smoke_Grenade" (origin: "./CoreMods/aircraft/OH-58D/OH58D_Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_BDU45_MER_4x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{RN-24}" (origin: "./CoreMods/aircraft/MiG-21bis/Entry/Aw")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{RN-28}" (origin: "./CoreMods/aircraft/MiG-21bis/Entry/Aw")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative weight of payload "{FAB-100-4}" (origin: "./CoreMods/aircraft/MiG-21bis/Entry/Aw")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{FAB-100-4}" (origin: "./CoreMods/aircraft/MiG-21bis/Entry/Aw")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_BDU45_MER_5x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK82_MER_4x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.347 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_GBU12_MER_2x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{BRU-70A_2*GBU-54_LEFT}" (origin: "./CoreMods/aircraft/AV8BNA/WEAPONS/AV8BNA_Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK81_MER_2x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{BETAB-500S}" (origin: "./CoreMods/aircraft/MiG-21bis/Entry/Aw")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK82_MER_6x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK82SE_MER_5x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{MAK79_BDU45B 3L}" (origin: "./CoreMods/aircraft/F14/Entry/Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{MAK79_BDU45B 4}" (origin: "./CoreMods/aircraft/F14/Entry/Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative weight of payload "{5F1C54C0-0ABD-4868-A883-B52FF9FCB422}" (origin: "Scripts/Database/db_weapons_data.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{BRU-42_2*GBU-38_RIGHT}" (origin: "./CoreMods/aircraft/AV8BNA/WEAPONS/AV8BNA_Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "OH58D_Yellow_Smoke_Grenade" (origin: "./CoreMods/aircraft/OH-58D/OH58D_Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK81_MER_3x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{BRU-70A_3*GBU-38}" (origin: "./CoreMods/aircraft/AV8BNA/WEAPONS/AV8BNA_Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_TALD_MER_2x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK82_MER_3x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{FAB-500-SL}" (origin: "./CoreMods/aircraft/MiG-21bis/Entry/Aw")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{CHAP_Kh555x6}" (origin: "./CoreMods/tech/Currenthill Assets Pack/Database/Weapons/CHAP_missiles.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK82_MER_4x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{CHAP_HOT3}" (origin: "./CoreMods/tech/Currenthill Assets Pack/Database/Weapons/CHAP_missiles.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK82SE_MER_6x}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative weight of payload "{6A367BB4-327F-4A04-8D9E-6D86BDC98E7E}" (origin: "Scripts/Database/db_weapons_data.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative weight of payload "{LAU-7_AIM-9L_Right}" (origin: "./CoreMods/aircraft/F-4E/Entry/Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative weight of payload "{LAU-7_AIM-9L_Left}" (origin: "./CoreMods/aircraft/F-4E/Entry/Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK82SE_MER_4x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK20_MER_5x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{BRU-70A_2*GBU-38_SIDE_LEFT}" (origin: "./CoreMods/aircraft/AV8BNA/WEAPONS/AV8BNA_Weapons.lua")
+2026-10-20 22:56:36.348 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK82SE_MER_3x_LEFT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.349 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK20_MER_5x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.349 ERROR   wInfo (Main): negative drag of payload "{BRU-70A_3*GBU-54}" (origin: "./CoreMods/aircraft/AV8BNA/WEAPONS/AV8BNA_Weapons.lua")
+2026-10-20 22:56:36.349 ERROR   wInfo (Main): negative drag of payload "{HB_A6E_MK20_MER_3x_RIGHT}" (origin: "./CoreMods/aircraft/A-6E/Entry/Weapons.lua")
+2026-10-20 22:56:36.349 ERROR   wInfo (Main): negative weight of payload "{E1AAE713-5FC3-4CAA-9FF5-3FDCFB899E33}" (origin: "Scripts/Database/db_weapons_data.lua")
+2026-10-20 22:56:36.349 INFO    WEATHER (Main): set fog: visibility:1  thickness:300.0
+2026-10-20 22:56:36.362 INFO    WorldPlugIns (Main): Waiting for immediate load to finish...
+2026-10-20 22:56:36.370 ERROR   EDCORE (Main): Failed to load D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/tech/SouthAtlanticAssets/bin/SouthAtlantic.dll: (127) The specified procedure could not be found.
+2026-10-20 22:56:36.370 INFO    WorldPlugIns (Main): loading "South_Atlantic_Assets": 0.007
+2026-10-20 22:56:36.376 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/A-6E/bin/HeatblurCore_A-6E.dll
+2026-10-20 22:56:36.386 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/A-6E/bin/HeatblurComponents_A-6E.dll
+2026-10-20 22:56:36.396 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/A-6E/bin/HeatblurDCSBase_A-6E.dll
+2026-10-20 22:56:36.401 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/A-6E/bin/A-6E-AI.dll
+2026-10-20 22:56:36.402 INFO    WorldPlugIns (Main): loading "A-6E AI by Heatblur Simulations": 0.031
+2026-10-20 22:56:36.407 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/AV8BNA/bin/AV8B_AI.dll
+2026-10-20 22:56:36.408 INFO    WorldPlugIns (Main): loading "AV-8B N/A AI by RAZBAM Sims": 0.006
+2026-10-20 22:56:36.413 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/C-101/bin/C101Core.dll
+2026-10-20 22:56:36.414 INFO    WorldPlugIns (Main): loading "C-101 Aviojet by AvioDev": 0.006
+2026-10-20 22:56:36.420 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/C130J/bin/C130J_Sounder.dll
+2026-10-20 22:56:36.421 INFO    WorldPlugIns (Main): loading "C-130J AI": 0.006
+2026-10-20 22:56:36.427 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/ChinaAssetPack/bin/CAP_AI.dll
+2026-10-20 22:56:36.434 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/ChinaAssetPack/bin/JF-17_AI.dll
+2026-10-20 22:56:36.435 INFO    WorldPlugIns (Main): loading "China Asset Pack by Deka Ironwork Simulations and Eagle Dynamics": 0.013
+2026-10-20 22:56:36.440 INFO    CE2_AI (Main): Loading CE AI
+2026-10-20 22:56:36.440 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/Christen Eagle II/bin/CE2_AI.dll
+2026-10-20 22:56:36.441 INFO    WorldPlugIns (Main): loading "Christen Eagle II AI by Magnitude 3 LLC": 0.006
+2026-10-20 22:56:36.446 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/F-100D/bin/F100_AI.dll
+2026-10-20 22:56:36.446 INFO    WorldPlugIns (Main): loading "F-100D AI by GrinnelliDesigns": 0.005
+2026-10-20 22:56:36.451 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/F-15E/bin/F15E_AI.dll
+2026-10-20 22:56:36.452 INFO    WorldPlugIns (Main): loading "F-15E AI by RAZBAM": 0.005
+2026-10-20 22:56:36.458 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/F-4E/bin/HeatblurCore_F-4E.dll
+2026-10-20 22:56:36.467 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/F-4E/bin/HeatblurComponents_F-4E.dll
+2026-10-20 22:56:36.475 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/F-4E/bin/HeatblurDCSBase_F-4E.dll
+2026-10-20 22:56:36.480 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/F-4E/bin/F-4E-AI.dll
+2026-10-20 22:56:36.481 INFO    WorldPlugIns (Main): loading "F-4E AI by Heatblur Simulations": 0.029
+2026-10-20 22:56:36.487 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/F14/bin/HeatblurCore_F14.dll
+2026-10-20 22:56:36.496 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/F14/bin/HeatblurComponents_F14.dll
+2026-10-20 22:56:36.505 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/F14/bin/HeatblurDCSBase_F14.dll
+2026-10-20 22:56:36.510 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/F14/bin/F14-AI.dll
+2026-10-20 22:56:36.510 INFO    WorldPlugIns (Main): loading "F-14B AI by Heatblur Simulations": 0.029
+2026-10-20 22:56:36.515 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/F4U-1D/bin/F4U_AI.dll
+2026-10-20 22:56:36.516 INFO    WorldPlugIns (Main): loading "F4U-1D AI by Magnitude 3 LLC": 0.005
+2026-10-20 22:56:36.521 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/M-2000C/bin/M2KC_AI.dll
+2026-10-20 22:56:36.521 INFO    WorldPlugIns (Main): loading "M-2000C AI by RAZBAM Sims": 0.005
+2026-10-20 22:56:36.526 INFO    MiG21_AI (Main): Loading Mig21 AI
+2026-10-20 22:56:36.526 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/MiG-21bis/bin/MiG21_AI.dll
+2026-10-20 22:56:36.527 INFO    WorldPlugIns (Main): loading "MiG-21Bis AI by Magnitude 3 LLC": 0.005
+2026-10-20 22:56:36.532 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/Mirage-F1/bin/MirageF1Core.dll
+2026-10-20 22:56:36.533 INFO    WorldPlugIns (Main): loading "Mirage F1 Assets by Aerges": 0.006
+2026-10-20 22:56:36.538 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/OH-58D/bin/OH58D_AI.dll
+2026-10-20 22:56:36.538 INFO    WorldPlugIns (Main): loading "OH58D AI by Polychop-Simulations": 0.005
+2026-10-20 22:56:36.543 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/aircraft/SA342/bin/SA342_ai.dll
+2026-10-20 22:56:36.544 INFO    WorldPlugIns (Main): loading "SA342 AI by Polychop-Simulations": 0.005
+2026-10-20 22:56:36.551 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/services/CaptoGlove/bin/edCaptoGlove.dll
+2026-10-20 22:56:36.552 INFO    WorldPlugIns (Main): loading "CaptoGloveSupport": 0.008
+2026-10-20 22:56:36.559 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/services/LeapMotion/bin/edLeapMotion.dll
+2026-10-20 22:56:36.560 INFO    WorldPlugIns (Main): loading "LeapMotionSupport": 0.007
+2026-10-20 22:56:36.568 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/services/SensoryxVRFree/bin/edSensoryxVRFree.dll
+2026-10-20 22:56:36.569 INFO    WorldPlugIns (Main): loading "SensoryxVRFreeSupport": 0.009
+2026-10-20 22:56:36.578 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/services/VoiceChat/bin/VoiceChat.dll
+2026-10-20 22:56:36.579 INFO    WorldPlugIns (Main): loading "VoiceChat": 0.009
+2026-10-20 22:56:36.679 ERROR   EDCORE (Main): Can't open file '%USERPROFILE%\Saved Games\DCS.M5Probe\Config\vc_options.json.' from fs
+2026-10-20 22:56:36.691 INFO    EDCORE (Main): Loaded D:/Program Files/Eagle Dynamics/DCS World OpenBeta/CoreMods/services/jsAvionics/bin/jsAvionics.dll
+2026-10-20 22:56:36.692 INFO    WorldPlugIns (Main): loading "jsAvionics": 0.012
+2026-10-20 22:56:36.692 INFO    WorldPlugIns (Main): Immediate load done.
+2026-10-20 22:56:36.712 INFO    Dispatcher (Main): Waiting for module resource mounts: 0.000s
+2026-10-20 22:56:36.735 INFO    EDCORE (Main): (dDispatcher)enterToState_:1
+2026-10-20 22:56:38.375 INFO    UIBASERENDERER (Main): Cannot load font [D:\Program Files\Eagle Dynamics\DCS World OpenBeta\dxgui\skins\fonts\]!
+2026-10-20 22:56:38.375 INFO    UIBASERENDERER (Main): Cannot create font [D:\Program Files\Eagle Dynamics\DCS World OpenBeta\dxgui\skins\fonts\] size 0!
+2026-10-20 22:56:39.856 INFO    APP (Main): Loaded D:\Program Files\Eagle Dynamics\DCS World OpenBeta\Scripts\Hooks\common.lua
+2026-10-20 22:56:39.856 INFO    APP (Main): Loaded D:\Program Files\Eagle Dynamics\DCS World OpenBeta\Scripts\Hooks\multiplayerCoalitionBlocker.lua
+2026-10-20 22:56:39.857 INFO    APP (Main): Loaded D:\Program Files\Eagle Dynamics\DCS World OpenBeta\Scripts\Hooks\multislot.lua
+2026-10-20 22:56:39.857 INFO    APP (Main): Loaded D:\Program Files\Eagle Dynamics\DCS World OpenBeta\Scripts\Hooks\voicechat.lua
+2026-10-20 22:56:39.858 INFO    APP (Main): Loaded D:\Program Files\Eagle Dynamics\DCS World OpenBeta\Scripts\Hooks\webGUI.lua
+2026-10-20 22:56:39.859 INFO    APP (Main): Loaded D:\Program Files\Eagle Dynamics\DCS World OpenBeta\Scripts\Hooks\webRTCwebSocket.lua
+2026-10-20 22:56:40.568 INFO    EECH_M5PROBE_HOOK (Main): loaded: mission=E:\eech-runs\dcs-probe\missions\probe-load.miz run_seconds=20 menu_timeout=240 writedir=%USERPROFILE%\Saved Games\DCS.M5Probe\
+2026-10-20 22:56:40.568 INFO    APP (Main): Loaded %USERPROFILE%\Saved Games\DCS.M5Probe\Scripts\Hooks\eech-m5probe-hook.lua
+2026-10-20 22:56:40.663 INFO    Dispatcher (Main): //=== END OF INIT ======================================//
+2026-10-20 22:56:40.663 INFO    EDCORE (Main): (dDispatcher)enterToState_:2
+2026-10-20 22:56:40.689 INFO    EDCORE (Main): (dDispatcher)enterToState_:3
+2026-10-20 22:57:21.891 INFO    APP (Main): Device unplugged: [HID] HID Keyboard Device
+2026-10-20 22:57:21.919 WARNING LOG (22724): 1 duplicate message(s) skipped.
+2026-10-20 22:57:21.919 INFO    APP (Main): Device unplugged: [HID] HID-compliant vendor-defined device
+2026-10-20 22:57:21.930 INFO    APP (Main): Device unplugged: [HID] Logitech Download Assistant
+2026-10-20 22:57:21.951 WARNING LOG (22724): 1 duplicate message(s) skipped.
+2026-10-20 22:57:21.951 INFO    APP (Main): Device unplugged: [HID] HID-compliant consumer control device
+2026-10-20 22:57:21.962 INFO    APP (Main): Device unplugged: [HID] HID-compliant device
+2026-10-20 22:57:21.972 INFO    APP (Main): Device unplugged: [HID] HID-compliant vendor-defined device

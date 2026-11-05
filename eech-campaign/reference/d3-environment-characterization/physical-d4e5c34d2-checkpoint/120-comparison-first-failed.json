@@ -1,0 +1,39 @@
+{
+  "source": "d4e5c34d2b85e5ee6e9b98e2edd9b00e3c2505c4",
+  "original": "99352e331527e8aafb2961949536217eab7a8ecf",
+  "when_utc": "2026-10-31T11:08:51.817837+00:00",
+  "scope": "COMPLETE120s observedstate/digests and probe noninterference, not wholecampaign/Tacview/shipping acceptance. Only one newvalidationmetadata row excluded in whole-old-line comparison; oldraw untouched.",
+  "rows": [
+    {
+      "mode": "control",
+      "all_native_prepost0": true,
+      "payloads": 46,
+      "original_lines": 10849,
+      "candidate_lines": 10850,
+      "additional_validation_metadata_rows": 1,
+      "all_original_raw_lines_including_endings_equal": true,
+      "first_difference_line": null,
+      "selected_original_rows": 10830,
+      "selected_candidate_rows": 10830,
+      "selected_raw_rows_including_endings_equal": true,
+      "original_sha256": "aeadff94a52953950c8736545e66756ed7c58b17028746c6a74449f343ae7b2d",
+      "candidate_sha256": "c4b35e155cf17ea95deabc118471d495159265740da6f4d43282dc7ecae92630"
+    },
+    {
+      "mode": "probe",
+      "all_native_prepost0": true,
+      "payloads": 46,
+      "original_lines": 11513,
+      "candidate_lines": 11514,
+      "additional_validation_metadata_rows": 1,
+      "all_original_raw_lines_including_endings_equal": true,
+      "first_difference_line": null,
+      "selected_original_rows": 10850,
+      "selected_candidate_rows": 10850,
+      "selected_raw_rows_including_endings_equal": true,
+      "original_sha256": "af638e8f6980078687aead46879527d6a6e0d4d64f4bb823931ec42ecda12f55",
+      "candidate_sha256": "d5674207463bd5a17e60040a06d10e32d14308c142052be7ccda89d2ead6c73e"
+    }
+  ],
+  "probe_control_selected_raw_equal": false
+}

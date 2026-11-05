@@ -1,0 +1,8 @@
+== volume a
+mb_hostsense raw-object c5150e131c91d680 disassembly dcab92547b870d33
+ac_tgt raw-object 06c9a1b5c978e951 disassembly 070e64055799c53d
+vh_tgt raw-object 9351c4b778703bbd disassembly be589b062ab21860
+== volume b
+mb_hostsense raw-object eda4817ae92b4a04 disassembly 8b34039bada4924a
+ac_tgt raw-object 06c9a1b5c978e951 disassembly 070e64055799c53d
+vh_tgt raw-object 9351c4b778703bbd disassembly be589b062ab21860

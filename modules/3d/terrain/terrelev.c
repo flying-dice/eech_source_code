@@ -78,6 +78,14 @@
 
 #include "terrain.h"
 
+//
+// EEDCS-47 (D3): in the headless campaign module (EECH_CAMPAIGN_HOST_TERRAIN) the physical terrain surface query is the host's. This original solver is
+// not compiled there: aphavoc/source/entity/mobile/mb_hostterrain.c implements this module's public queries by asking the host. The solver below is kept
+// whole for the original game build and as the reference text the host's kernel was taken from.
+//
+
+#ifndef EECH_CAMPAIGN_HOST_TERRAIN
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1202,12 +1210,25 @@ int point_inside_terrain_strip_byte_triangle ( const float x_offset, const float
 // if find_fast == NULL then the system find fast is used
 //
 
-#if (DEBUG_TERRAIN)
-float get_3d_terrain_point_data_ex ( float x, float z, terrain_3d_point_data *point_data, char *file, int line )
+#if (TERRAIN_CALL_SITES)
+float get_3d_terrain_point_data_ex ( float x, float z, terrain_3d_point_data *point_data, const char *file, int line )
 #else
 float get_3d_terrain_point_data ( float x, float z, terrain_3d_point_data *point_data )
 #endif
 {
+#if defined ( EECH_TERRAIN_FIXTURE )
+	//
+	// TEST-ONLY (EEDCS-47): what the fixture observes about this query.  Nothing below alters the query.
+	//
+	float
+		fixture_x = x,
+		fixture_z = z;
+
+	int
+		fixture_hint_null = ( point_data == NULL ),
+		fixture_fast_attempted = FALSE,
+		fixture_clamped = FALSE;
+#endif
 
 	int
 		x_sector,
@@ -1269,7 +1290,11 @@ float get_3d_terrain_point_data ( float x, float z, terrain_3d_point_data *point
 	
 		x = bound(x, terrain_3d_min_map_x + 0.0001f, terrain_3d_max_map_x - 0.0001f);
 		z = bound(z, terrain_3d_min_map_z + 0.0001f, terrain_3d_max_map_z - 0.0001f);
-		
+
+#if defined ( EECH_TERRAIN_FIXTURE )
+		fixture_clamped = TRUE;
+#endif
+
 	}
 
 	////////////////////////////////////////
@@ -1316,7 +1341,11 @@ float get_3d_terrain_point_data ( float x, float z, terrain_3d_point_data *point
 			terrain_sector = &terrain_sectors[z_sector][x_sector];
 
 			point_data->last_elevation = terrain_sector->maximum_height;
-		
+
+#if defined ( EECH_TERRAIN_FIXTURE )
+			eech_terrain_record ( file, line, fixture_x, fixture_z, fixture_hint_null, FALSE, FALSE, TRUE, fixture_clamped, TRUE, terrain_sector->minimum_height, point_data );
+#endif
+
 			return ( terrain_sector->minimum_height );
 		}
 	}
@@ -1354,6 +1383,10 @@ float get_3d_terrain_point_data ( float x, float z, terrain_3d_point_data *point
 
 		if ( ( x_sector == point_data->x_sector ) && ( z_sector == point_data->z_sector ) )
 		{
+
+#if defined ( EECH_TERRAIN_FIXTURE )
+			fixture_fast_attempted = TRUE;
+#endif
 
 			terrain_sector = point_data->terrain_sector;
 
@@ -2001,8 +2034,27 @@ float get_3d_terrain_point_data ( float x, float z, terrain_3d_point_data *point
 
 	point_data->last_elevation = terrain_elevation;
 
+#if defined ( EECH_TERRAIN_FIXTURE )
+	eech_terrain_record ( file, line, fixture_x, fixture_z, fixture_hint_null, fixture_fast_attempted, found_fast, found, fixture_clamped, FALSE, terrain_elevation, point_data );
+#endif
+
 	return ( terrain_elevation );
 }
+
+#if defined ( EECH_TERRAIN_FIXTURE )
+
+//
+// TEST-ONLY (EEDCS-47): the shared record that every query without a caller-supplied record reads and writes (the "system" find-fast
+// hint).  The fixture's probe saves and restores it so that a sweep leaves the campaign's own hint exactly as it found it.
+//
+
+terrain_3d_point_data *eech_terrain_system_point_data ( void )
+{
+
+	return ( &system_point_data );
+}
+
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2214,3 +2266,5 @@ void get_3d_terrain_last_normal ( vec3d *normal )
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#endif // EECH_CAMPAIGN_HOST_TERRAIN

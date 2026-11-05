@@ -257,6 +257,19 @@ int validate_local_guide_entity (entity *en)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static int check_mobile_reached_waypoint (entity *member, entity *guide)
+{
+	if (campaign_supply_arrival_is_target (guide))
+	{
+		return campaign_supply_arrival_check (member, guide);
+	}
+	if (campaign_radius_arrival_is_target (member, guide))
+	{
+		return campaign_radius_arrival_check (member, guide);
+	}
+	return notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, member, guide);
+}
+
 int check_guide_reached_waypoint (entity *en)
 {
 	entity
@@ -299,7 +312,7 @@ int check_guide_reached_waypoint (entity *en)
 
 			if (valid_members & member_number)
 			{
-				if (!notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, member, en))
+				if (!check_mobile_reached_waypoint (member, en))
 				{
 #if DEBUG_MODULE
 					if (member == get_external_view_entity ())
@@ -320,7 +333,7 @@ int check_guide_reached_waypoint (entity *en)
 		// check task leader reached
 		//
 
-		if (!notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, leader, en))
+		if (!check_mobile_reached_waypoint (leader, en))
 		{
 #if DEBUG_MODULE
 			if (leader == get_external_view_entity ())
@@ -378,6 +391,16 @@ int check_guide_waypoint_action_reached (entity *en)
 
 	ASSERT (wp);
 
+	/* SUPPLY state transfer is permitted only by the host-observed reached path. */
+	if (campaign_supply_arrival_is_target (en))
+	{
+		return FALSE;
+	}
+
+#ifdef EECH_CAMPAIGN_HOST_ARRIVALS
+	/* The host decides whether the leader is inside the action radius. */
+	return campaign_waypoint_action_reached (en, leader);
+#else
 	range = get_local_entity_float_value (leader, FLOAT_TYPE_DISTANCE);
 	
 	if (range > get_local_entity_waypoint_database_action_radius_value (wp, leader))
@@ -392,6 +415,7 @@ int check_guide_waypoint_action_reached (entity *en)
 	}
 		
 	return TRUE;
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -869,11 +893,24 @@ void attach_group_to_guide_entity (entity *group, entity *guide)
 
 void delete_group_member_from_guide_entity (entity *member, entity *guide)
 {
-	unsigned int
-		valid_members,
-		member_number;
-			
 	ASSERT (member);
+	ASSERT (guide);
+	delete_group_member_number_from_guide_entity
+	(
+		1 << get_local_entity_int_value (member, INT_TYPE_GROUP_MEMBER_NUMBER),
+		guide
+	);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void delete_group_member_number_from_guide_entity (unsigned int member_number, entity *guide)
+{
+	unsigned int
+		valid_members;
+			
 	ASSERT (guide);
 
 	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
@@ -882,8 +919,6 @@ void delete_group_member_from_guide_entity (entity *member, entity *guide)
 
 	ASSERT (valid_members != TASK_ASSIGN_ALL_MEMBERS);
 
-	member_number = (1 << get_local_entity_int_value (member, INT_TYPE_GROUP_MEMBER_NUMBER));
-	
 	ASSERT (valid_members & member_number);
 
 	//
@@ -907,9 +942,8 @@ void delete_group_member_from_guide_entity (entity *member, entity *guide)
 		
 		#if DEBUG_MODULE
 
-		debug_log ("GUIDE: Deleting %s (%d) from guide (%d) valid members zero - task %s (%d)",
-							get_local_entity_string (member, STRING_TYPE_FULL_NAME),
-							get_local_entity_index (member),
+		debug_log ("GUIDE: Deleting member mask %u from guide (%d) valid members zero - task %s (%d)",
+							member_number,
 							get_local_entity_index (guide),
 							get_local_entity_string (task, STRING_TYPE_FULL_NAME),
 							get_local_entity_index (task));

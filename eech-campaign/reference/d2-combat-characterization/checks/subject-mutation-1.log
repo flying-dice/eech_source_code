@@ -1,0 +1,29 @@
+== control (unmutated copy) damage_checks.c
+DAMAGE_CHECKS=ok: 70 checks, 0 failures
+CONTROL damage_checks.c compile=0 run=0 class=PASSED
+== control (unmutated copy) health_checks.c
+HEALTH_CHECKS=ok: 63 checks, 0 failures
+CONTROL health_checks.c compile=0 run=0 class=PASSED
+== control (unmutated copy) blast_checks.c
+67 checks, 0 failures
+CONTROL blast_checks.c compile=0 run=0 class=PASSED
+== mutant: damage_names_no_subject
+DAMAGE_CHECKS=FAILED: 70 checks, 2 failures
+MUTANT damage_names_no_subject: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: health_names_no_subject
+HEALTH_CHECKS=FAILED: 63 checks, 2 failures
+MUTANT health_names_no_subject: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: impact_names_no_target
+67 checks, 2 failures
+MUTANT impact_names_no_target: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: envelope_ignores_the_registry
+DAMAGE_CHECKS=FAILED: 70 checks, 2 failures
+MUTANT envelope_ignores_the_registry: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: envelope_ignores_the_registry_for_impact
+67 checks, 2 failures
+MUTANT envelope_ignores_the_registry_for_impact: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: envelope_length_unchecked
+HEALTH_CHECKS=FAILED: 63 checks, 1 failures
+MUTANT envelope_length_unchecked: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+CAUGHT=6 FAILED=0 CONTROLS_OK=3 CONTROLS_BAD=0
+DOCKER_EXIT=0

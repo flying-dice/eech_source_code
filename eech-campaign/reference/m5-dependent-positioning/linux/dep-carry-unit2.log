@@ -1,0 +1,17 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.25s
+     Running unittests src/lib.rs (/target/debug/deps/eech_world-75783a1018cec50e)
+
+running 8 tests
+test movement::tests::a_campaign_copy_the_host_did_not_make_is_refused ... ok
+test movement::tests::a_carry_the_host_cannot_vouch_for_is_refused_and_changes_nothing ... ok
+test movement::tests::a_child_follows_a_parent_the_campaign_is_about_to_write ... ok
+test movement::tests::a_child_and_a_grandchild_follow_a_parent_the_host_moved_and_stay_consistent ... ok
+test movement::tests::a_creation_for_an_unknown_or_retired_id_is_refused ... ok
+test movement::tests::a_creation_with_a_non_finite_input_changes_nothing ... ok
+test movement::tests::a_creation_whose_height_overflows_changes_nothing ... ok
+test movement::tests::a_helicopter_child_is_carried_with_the_original_arithmetic ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 128 filtered out; finished in 0.00s
+
+EXIT=0
+docker exit=0

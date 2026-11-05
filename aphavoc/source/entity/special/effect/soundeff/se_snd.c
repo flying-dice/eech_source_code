@@ -119,6 +119,8 @@ static void play_local_sound (entity *en, viewpoint *vp, float range)
 	sound_effect
 		*raw;
 
+	#ifndef EECH_CAMPAIGN_HOST_ENV
+
 	int
 		volume,
 		maximum_volume,
@@ -130,6 +132,8 @@ static void play_local_sound (entity *en, viewpoint *vp, float range)
 		minimum_sound_range,
 		reference_sound_range,
 		maximum_sound_range;
+
+	#endif
 
 	raw = (sound_effect *) get_local_entity_data (en);
 
@@ -246,6 +250,28 @@ static void play_local_sound (entity *en, viewpoint *vp, float range)
 
 		return;
 	}
+
+	#ifdef EECH_CAMPAIGN_HOST_ENV
+
+	//
+	// HOSTED CAMPAIGN: the physical playback request of this effect.  Everything below (the range attenuation, the amplification and its radio-noise entropy, the channel, canopy and interior mixing, the integer
+	// volume, and the create, set volume, position, pitch, status and play calls of the legacy sound backend) is the legacy PHYSICAL mixer and is not part of the campaign Core: it is compiled only for the
+	// original game (#else).  The Core policy gates above (the speech and effect options, the interior and exterior locality, the broken radio and the dead effect) are kept.
+	//
+	// An effect that holds a native handle is a live physical request the campaign cannot serve: it stops here, by name, BEFORE any range, volume, entropy or channel is computed, and nothing is queried, played,
+	// destroyed or changed.  An effect that holds none is an EMPTY request: with no backend the creators answer NULL (the supported answer, snd_nobackend.c), so the legacy body computed a volume and returned without
+	// creating, playing or storing anything, and the host decides audibility elsewhere; it returns here without computing it (the one observable difference is that the discarded volume no longer draws the
+	// radio-noise entropy, on a route the supported frame does not reach: the scan is gated by the host's availability, which is always FALSE, and the resumed session dispatch is the default no-op).
+	//
+
+	if (raw->sound_effect_data)
+	{
+		debug_fatal ("host environment: [env-sound:unsupported_native_handle] the campaign was asked to play a sound effect that holds a native playback handle; the legacy sound backend is not part of the campaign Core, so a live native handle is unsupported (nothing was computed, queried, played, destroyed or changed)");
+	}
+
+	return;
+
+	#else
 
 	//
 	// check if sound is within range
@@ -669,6 +695,8 @@ static void play_local_sound (entity *en, viewpoint *vp, float range)
 			set_local_entity_ptr_value (en, PTR_TYPE_SOUND_EFFECT_DATA, NULL);
 		}
 	}
+
+	#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

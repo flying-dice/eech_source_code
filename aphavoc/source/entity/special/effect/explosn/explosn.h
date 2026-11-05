@@ -152,6 +152,11 @@ extern void create_client_server_object_killed_explosion_effect (entity *en);
 
 extern void create_client_server_collision_effect (vec3d *pos, dynamics_collision_surface_types surface, unsigned power);
 
+struct campaign_blast_entry;
+
+// the objects of sector (sx, sz) following `after` (NULL: the start of its list), in list order, with the facts the host judges them by (mb_hostaim.h); see explosn.c
+extern int campaign_sector_window (int sx, int sz, const void *after, struct campaign_blast_entry *entries, void **objects, int max, int *end);
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

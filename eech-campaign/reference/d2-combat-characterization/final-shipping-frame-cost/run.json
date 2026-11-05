@@ -1,0 +1,17 @@
+{
+  "status": "completed",
+  "when_utc": "2026-10-28T16:08:46.8183090Z",
+  "binary": "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\target\\windows-d2-combat-final-64cf0f1c5\\eech-world.exe",
+  "arguments": "R:/d2-evidence/combat-characterization-20261028/final-frame-64cf-lua/campaign.lua root=R:/d2-evidence/combat-characterization-20261028/roots/frame-cost-final-d2-900-01 scenario=lebanon_retail hours=0.25 frame_ms=100 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/combat-characterization-20261028/out/frame-cost-final-d2-900-01/recording.acmi observe=R:/d2-evidence/combat-characterization-20261028/out/frame-cost-final-d2-900-01/observations.jsonl metrics=R:/d2-evidence/combat-characterization-20261028/out/frame-cost-final-d2-900-01/metrics.json observe_supply=0 frame_cost=R:/d2-evidence/combat-characterization-20261028/out/frame-cost-final-d2-900-01/frame-cost.jsonl",
+  "root": "R:/d2-evidence/combat-characterization-20261028/roots/frame-cost-final-d2-900-01",
+  "out": "R:/d2-evidence/combat-characterization-20261028/out/frame-cost-final-d2-900-01",
+  "script": "R:/d2-evidence/combat-characterization-20261028/final-frame-64cf-lua/campaign.lua",
+  "script_sha256": "31ebba83848f143dd42ca3ac7233230ac2c36eeaa63532c673ed75d124eb88df",
+  "build_info_sha256": "3410ac4174a259e0ee211e4bb05361a819e1c1da54a300abe93968eff08e169d",
+  "kind": "R4 observational shipping-script copy: timing ONLY engine:frame; no DCS scheduling/budget or final pack acceptance",
+  "resource_context": "Background process list captured separately; raw distributions do not prove causal benchmark attribution",
+  "actual_native_exit": 0,
+  "native_pid": 17720,
+  "created_utc": "2026-10-28T16:08:47.0545905Z",
+  "completed_utc": "2026-10-28T16:48:18.3018545Z"
+}

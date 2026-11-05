@@ -1,0 +1,4 @@
+    Checking eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.21s
+CARGO_EXIT=0
+DOCKER_EXIT=0

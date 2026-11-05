@@ -1,0 +1,12 @@
+[
+  {
+    "Algorithm": "SHA256",
+    "Hash": "DAEA0DDFE88824813C1160741565611AE43C759F09AC30B1F13B49A95ABFCAF0",
+    "Path": "E:\\eech-runs\\m5-host-boundary\\wip2\\bin\\eech_dc.dll"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "AE0B3BFF6D3BB33D0E287052A6E596EA381E7197DA22AB8FF619142D99AED4D3",
+    "Path": "E:\\eech-runs\\m5-host-boundary\\wip2\\bin\\eech-world.exe"
+  }
+]

@@ -1,0 +1,1 @@
+eech-world: call chain (offsets in C:\WINDOWS\System32\msvcrt.dll): +0xffff80023cbb0000

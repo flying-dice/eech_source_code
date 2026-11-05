@@ -1,0 +1,46 @@
+{
+ "fixture": "TEST FIXTURE for tools/baseline-governance.py: not an EECH campaign baseline, not behavioural evidence",
+ "head": {
+  "pack_revision": "fixture",
+  "build": {
+   "path": "fixture",
+   "files": {
+    "fixture-build": "1defd6014f489fd92cfc734d5c15089d4d3d917c2db08043e8733a538b9e9139"
+   },
+   "build_info": [
+    "governance fixture candidate"
+   ]
+  },
+  "baseline": {
+   "lineage": "fixture",
+   "version": "v1"
+  },
+  "verdict": "FAIL"
+ },
+ "checks": {
+  "fixture.exact": {
+   "status": "FAIL",
+   "detail": "value 1 -> 2"
+  },
+  "fixture.shape": {
+   "status": "PASS",
+   "detail": "one value"
+  }
+ },
+ "claims": [
+  {
+   "id": "FIXTURE.value",
+   "status": "FAIL - differs from the baseline",
+   "checks": [
+    "fixture.exact"
+   ]
+  },
+  {
+   "id": "FIXTURE.shape",
+   "status": "PASS - directly protected",
+   "checks": [
+    "fixture.shape"
+   ]
+  }
+ ]
+}

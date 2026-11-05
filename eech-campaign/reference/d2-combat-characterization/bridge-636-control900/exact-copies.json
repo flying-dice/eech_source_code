@@ -1,0 +1,42 @@
+{
+  "scope": "Six exact copies of CLOSED corrected636 default900 evidence; no R3 runtime, fullpack or D2 acceptance claim.",
+  "runtime_source": "636ef798a9368dfb3c55fe5c77d144009e7f3491",
+  "copies": [
+    {
+      "name": "completion.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-corrected636-bridge-control-01-completion.json",
+      "bytes": 4210,
+      "sha256": "19f1fa6affd0db7e6539797955157f32d77c92883c05d33ca426e83f0d6a7187"
+    },
+    {
+      "name": "complete-comparison.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-corrected636-bridge-control-01-complete-comparison.json",
+      "bytes": 1311,
+      "sha256": "397a97643d0dee0f5f7651c8919cbcd35687a5423cd31bf8db5146cc83ccb2f5"
+    },
+    {
+      "name": "post-build.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-corrected636-bridge-control-01-post-build.json",
+      "bytes": 11197,
+      "sha256": "f97d4d35a5f1a30113d174ed6c06ff05b17d1c9e602725ba3f6916d4842f3826"
+    },
+    {
+      "name": "post-inputs.log",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\root-corrected636-bridge-control-01-post-inputs.log",
+      "bytes": 317,
+      "sha256": "c489890b1199e980f2ef5888aa4657629edd42ec934194343979b759bacefc24"
+    },
+    {
+      "name": "independent-review.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-corrected636-bridge-control900-review-20261028.json",
+      "bytes": 18685,
+      "sha256": "6a8a15ff7fd1833f2f9db2827882d6c256201de5112a0906fdfdf51016282181"
+    },
+    {
+      "name": "run.json",
+      "source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\bridge-control-01\\run.json",
+      "bytes": 1595,
+      "sha256": "f47bd8990559a01a901506e4d83055a8411707ae677230e1dc2e006cc7c39ba1"
+    }
+  ]
+}

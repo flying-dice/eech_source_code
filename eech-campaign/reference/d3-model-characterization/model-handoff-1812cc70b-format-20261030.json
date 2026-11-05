@@ -1,0 +1,21 @@
+{
+  "utc": "2026-10-30T03:33:08.764650+00:00",
+  "image": "sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51",
+  "results": [
+    {
+      "stage": "check-before",
+      "exit": 1,
+      "bytes": 13888
+    },
+    {
+      "stage": "format",
+      "exit": 0,
+      "bytes": 0
+    },
+    {
+      "stage": "check-after",
+      "exit": 0,
+      "bytes": 0
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+scratch tree: 51ca46e22ec1ea62 mb_hostsense.c at start
+== OLD build/main.rs (the reviewed 37989fa5f)
+A1 first build: cargo exit 0, build script RERAN
+   staged mb_hostsense.c 51ca46e22ec1ea62  scratch 51ca46e22ec1ea62
+A2 after editing the original mb_hostsense.c: cargo exit 0, build script not-rerun
+   staged mb_hostsense.c 51ca46e22ec1ea62  scratch 463bc79ea3263d87   (equal = the edit reached the build)
+== NEW build/main.rs
+B1 first build with the new script: cargo exit 0, build script RERAN
+   staged mb_hostsense.c 463bc79ea3263d87  scratch 463bc79ea3263d87
+B2 nothing changed: cargo exit 0, build script not-rerun
+B3 after editing the original mb_hostsense.c: cargo exit 0, build script RERAN
+   staged mb_hostsense.c 8a58a0ca2bd811a3  scratch 8a58a0ca2bd811a3
+B4 after editing the original header mb_hostsense.h: cargo exit 0, build script RERAN
+   staged mb_hostsense.h d11b71d70c45d45c  scratch d11b71d70c45d45c
+B5 after editing modules/3d/textname.h (feeds the generated texture names): cargo exit 0, build script RERAN
+   staged textname.h c7f39713eb28b207  scratch c7f39713eb28b207
+B6 nothing changed again: cargo exit 0, build script not-rerun
+DOCKER_EXIT=0

@@ -1,0 +1,156 @@
+{"event":"boot","frame_ms":100,"scenario":"lebanon_retail","seconds":300}
+{"at":150,"elapsed":150.09622192383,"event":"probe","frame":1501}
+{"at":150,"decision":"ce09b4e000b34c17","event":"sensor-hash","physical":"b3858bc9331d1ed8","scope":"probe"}
+{"at":150,"calls":10,"candidates":0,"count_positive_null_group":0,"event":"sensor-fn","name":"air_to_air","nonnull":0,"replaced":0,"scanned":10,"scope":"probe","target_count_sum":0}
+{"accept":0,"altitude":0,"at":150,"event":"sensor-verdicts","line_of_sight":0,"name":"air_to_air","range":0,"range_adjusted":0,"scope":"probe","tolerance":0}
+{"airborne":811546,"at":150,"best_group":0,"dead":0,"event":"sensor-skips","identify":0,"name":"air_to_air","no_group":0,"scope":"probe","self":0,"side":51252,"target_type":0}
+{"adjusted_differs":0,"at":150,"emitter_off":0,"event":"sensor-edges","name":"air_to_air","player_candidates":0,"scope":"probe","stealth_not_one":0}
+{"at":150,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"air_to_air","scan_range_max":5000,"scan_range_min":5000,"scope":"probe","sector_cells_sum":17480,"sector_empty":0,"sector_whole_map":10}
+{"at":150,"calls":10,"candidates":0,"count_positive_null_group":0,"event":"sensor-fn","name":"air_to_surface","nonnull":0,"replaced":0,"scanned":10,"scope":"probe","target_count_sum":0}
+{"accept":0,"altitude":0,"at":150,"event":"sensor-verdicts","line_of_sight":0,"name":"air_to_surface","range":0,"range_adjusted":0,"scope":"probe","tolerance":0}
+{"airborne":32,"at":150,"best_group":0,"dead":0,"event":"sensor-skips","identify":805332,"name":"air_to_surface","no_group":2,"scope":"probe","self":0,"side":51252,"target_type":0}
+{"adjusted_differs":0,"at":150,"emitter_off":0,"event":"sensor-edges","name":"air_to_surface","player_candidates":0,"scope":"probe","stealth_not_one":0}
+{"at":150,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"air_to_surface","scan_range_max":4000,"scan_range_min":4000,"scope":"probe","sector_cells_sum":17480,"sector_empty":0,"sector_whole_map":10}
+{"at":150,"calls":555,"candidates":0,"count_positive_null_group":0,"event":"sensor-fn","name":"surface_to_air","nonnull":0,"replaced":0,"scanned":555,"scope":"probe","target_count_sum":0}
+{"accept":0,"altitude":0,"at":150,"event":"sensor-verdicts","line_of_sight":0,"name":"surface_to_air","range":0,"range_adjusted":0,"scope":"probe","tolerance":0}
+{"airborne":1165967,"at":150,"best_group":0,"dead":0,"event":"sensor-skips","identify":0,"name":"surface_to_air","no_group":0,"scope":"probe","self":555,"side":100,"target_type":0}
+{"adjusted_differs":0,"at":150,"emitter_off":0,"event":"sensor-edges","name":"surface_to_air","player_candidates":0,"scope":"probe","stealth_not_one":0}
+{"at":150,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"surface_to_air","scan_range_max":14000,"scan_range_min":2000,"scope":"probe","sector_cells_sum":7191,"sector_empty":0,"sector_whole_map":0}
+{"at":150,"calls":555,"candidates":0,"count_positive_null_group":19,"event":"sensor-fn","name":"surface_to_surface","nonnull":0,"replaced":0,"scanned":327,"scope":"probe","target_count_sum":309}
+{"accept":0,"altitude":0,"at":150,"event":"sensor-verdicts","line_of_sight":0,"name":"surface_to_surface","range":0,"range_adjusted":0,"scope":"probe","tolerance":0}
+{"airborne":72,"at":150,"best_group":0,"dead":0,"event":"sensor-skips","identify":253865,"name":"surface_to_surface","no_group":2,"scope":"probe","self":327,"side":7067,"target_type":0}
+{"adjusted_differs":0,"at":150,"emitter_off":0,"event":"sensor-edges","name":"surface_to_surface","player_candidates":0,"scope":"probe","stealth_not_one":0}
+{"at":150,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"surface_to_surface","scan_range_max":12000,"scan_range_min":300,"scope":"probe","sector_cells_sum":1633,"sector_empty":0,"sector_whole_map":0}
+{"at":150,"event":"sensor-host-verdicts","name":"air_to_air","not_perceived":32,"scope":"probe"}
+{"at":150,"event":"sensor-host-verdicts","name":"air_to_surface","not_perceived":6212,"scope":"probe"}
+{"at":150,"event":"sensor-host-verdicts","name":"surface_to_air","not_perceived":8,"scope":"probe"}
+{"at":150,"event":"sensor-host-verdicts","name":"surface_to_surface","not_perceived":309,"scope":"probe"}
+{"altitude_above_ceiling":0,"altitude_below_floor":0,"at":150,"difficulty_factors":0,"event":"sensor-surface-to-air","floor_cumulative_differs":0,"floor_ratio_min":2,"multi_candidate_calls":0,"scope":"probe"}
+{"at":150,"draw_max":0,"draw_min":0,"draws":0,"event":"sensor-tolerance","recompute_mismatch":0,"rejects":0,"scope":"probe","varies_within_call":0}
+{"at":150,"calls":35,"event":"sensor-kind","function":"surface_to_air","scanned":35,"scope":"probe","source":"ENTITY_TYPE_PERSON"}
+{"at":150,"calls":35,"event":"sensor-kind","function":"surface_to_surface","scanned":35,"scope":"probe","source":"ENTITY_TYPE_PERSON"}
+{"at":150,"calls":10,"event":"sensor-kind","function":"air_to_air","scanned":10,"scope":"probe","source":"ENTITY_TYPE_HELICOPTER"}
+{"at":150,"calls":10,"event":"sensor-kind","function":"air_to_surface","scanned":10,"scope":"probe","source":"ENTITY_TYPE_HELICOPTER"}
+{"at":150,"calls":48,"event":"sensor-kind","function":"surface_to_air","scanned":48,"scope":"probe","source":"ENTITY_TYPE_ROUTED_VEHICLE"}
+{"at":150,"calls":48,"event":"sensor-kind","function":"surface_to_surface","scanned":48,"scope":"probe","source":"ENTITY_TYPE_ROUTED_VEHICLE"}
+{"at":150,"calls":15,"event":"sensor-kind","function":"surface_to_air","scanned":15,"scope":"probe","source":"ENTITY_TYPE_SHIP_VEHICLE"}
+{"at":150,"calls":15,"event":"sensor-kind","function":"surface_to_surface","scanned":12,"scope":"probe","source":"ENTITY_TYPE_SHIP_VEHICLE"}
+{"at":150,"calls":457,"event":"sensor-kind","function":"surface_to_air","scanned":457,"scope":"probe","source":"ENTITY_TYPE_ANTI_AIRCRAFT"}
+{"at":150,"calls":457,"event":"sensor-kind","function":"surface_to_surface","scanned":232,"scope":"probe","source":"ENTITY_TYPE_ANTI_AIRCRAFT"}
+{"at":150,"event":"sensor-kinds","overflow":0,"rows":10,"scope":"probe"}
+{"at":150,"event":"sensor-sample","key":"air_to_air/host_not_perceived","scope":"probe","text":"source_x=27696.1953 source_y=278.848053 source_z=60312.8398 scan_range=5000 scan_range_squared=25000000 sector_x_min=0 sector_z_min=0 sector_x_max=37 sector_z_max=45 | "}
+{"at":150,"event":"sensor-sample","key":"air_to_air/host_not_perceived","scope":"probe","text":"source_x=27696.1953 source_y=278.848053 source_z=60312.8398 scan_range=5000 scan_range_squared=25000000 sector_x_min=0 sector_z_min=0 sector_x_max=37 sector_z_max=45 | "}
+{"at":150,"event":"sensor-sample","key":"air_to_surface/host_not_perceived","scope":"probe","text":"source_x=27696.1953 source_y=278.848053 source_z=60312.8398 scan_range=4000 scan_range_squared=16000000 sector_x_min=0 sector_z_min=0 sector_x_max=37 sector_z_max=45 | "}
+{"at":150,"event":"sensor-sample","key":"air_to_surface/host_not_perceived","scope":"probe","text":"source_x=27696.1953 source_y=278.848053 source_z=60312.8398 scan_range=4000 scan_range_squared=16000000 sector_x_min=0 sector_z_min=0 sector_x_max=37 sector_z_max=45 | "}
+{"at":150,"event":"sensor-sample","key":"surface_to_surface/host_not_perceived","scope":"probe","text":"source_x=34505.7305 source_y=749.537964 source_z=45939.0391 scan_range=5000 sector_x_min=7 sector_z_min=9 sector_x_max=9 sector_z_max=12 | "}
+{"at":150,"event":"sensor-sample","key":"surface_to_surface/host_not_perceived","scope":"probe","text":"source_x=34505.7305 source_y=749.537964 source_z=45939.0391 scan_range=5000 sector_x_min=7 sector_z_min=9 sector_x_max=9 sector_z_max=12 | "}
+{"at":150,"event":"sensor-sample","key":"surface_to_surface/count_without_group","scope":"probe","text":"source_x=34505.7305 source_y=749.537964 source_z=45939.0391 scan_range=5000 sector_x_min=7 sector_z_min=9 sector_x_max=9 sector_z_max=12 | target_count=2 best_group=none"}
+{"at":150,"event":"sensor-sample","key":"surface_to_air/host_not_perceived","scope":"probe","text":"source_x=109470.914 source_y=720.989136 source_z=60059.2695 scan_range=7500 scan_floor_initial=18 scan_ceiling=0 sector_x_min=24 sector_z_min=12 sector_x_max=28 sector_z_max=16 | "}
+{"at":150,"event":"sensor-sample","key":"surface_to_air/host_not_perceived","scope":"probe","text":"source_x=109470.914 source_y=720.989136 source_z=60059.2695 scan_range=7500 scan_floor_initial=18 scan_ceiling=0 sector_x_min=24 sector_z_min=12 sector_x_max=28 sector_z_max=16 | "}
+{"at":150,"event":"sensor-sample","key":"surface_to_surface/count_without_group","scope":"probe","text":"source_x=123904.57 source_y=637.978149 source_z=65018.0898 scan_range=5000 sector_x_min=29 sector_z_min=14 sector_x_max=31 sector_z_max=17 | target_count=11 best_group=none"}
+{"at":150,"count":10,"event":"sensor-samples","overflow":0,"scope":"probe"}
+{"aircraft":10,"aircraft_entities":265,"at":150,"event":"sensor-probe","player_aircraft":0,"scope":"probe","sources":565,"vehicles":555}
+{"at":150,"decision":"75ee4fddf5a098f2","event":"sensor-hash","physical":"68e5d1461a528376","scope":"run-at-probe"}
+{"at":150,"calls":40,"candidates":0,"count_positive_null_group":0,"event":"sensor-fn","name":"air_to_air","nonnull":0,"replaced":0,"scanned":40,"scope":"run-at-probe","target_count_sum":0}
+{"accept":0,"altitude":0,"at":150,"event":"sensor-verdicts","line_of_sight":0,"name":"air_to_air","range":0,"range_adjusted":0,"scope":"run-at-probe","tolerance":0}
+{"airborne":3320684,"at":150,"best_group":0,"dead":0,"event":"sensor-skips","identify":0,"name":"air_to_air","no_group":0,"scope":"run-at-probe","self":0,"side":144224,"target_type":0}
+{"adjusted_differs":0,"at":150,"emitter_off":0,"event":"sensor-edges","name":"air_to_air","player_candidates":0,"scope":"run-at-probe","stealth_not_one":0}
+{"at":150,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"air_to_air","scan_range_max":5000,"scan_range_min":5000,"scope":"run-at-probe","sector_cells_sum":69920,"sector_empty":0,"sector_whole_map":40}
+{"at":150,"calls":40,"candidates":0,"count_positive_null_group":0,"event":"sensor-fn","name":"air_to_surface","nonnull":0,"replaced":0,"scanned":40,"scope":"run-at-probe","target_count_sum":0}
+{"accept":0,"altitude":0,"at":150,"event":"sensor-verdicts","line_of_sight":0,"name":"air_to_surface","range":0,"range_adjusted":0,"scope":"run-at-probe","tolerance":0}
+{"airborne":176,"at":150,"best_group":0,"dead":0,"event":"sensor-skips","identify":3286948,"name":"air_to_surface","no_group":1,"scope":"run-at-probe","self":0,"side":144224,"target_type":0}
+{"adjusted_differs":0,"at":150,"emitter_off":0,"event":"sensor-edges","name":"air_to_surface","player_candidates":0,"scope":"run-at-probe","stealth_not_one":0}
+{"at":150,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"air_to_surface","scan_range_max":4000,"scan_range_min":4000,"scope":"run-at-probe","sector_cells_sum":69920,"sector_empty":0,"sector_whole_map":40}
+{"at":150,"calls":5075,"candidates":0,"count_positive_null_group":0,"event":"sensor-fn","name":"surface_to_air","nonnull":0,"replaced":0,"scanned":5075,"scope":"run-at-probe","target_count_sum":0}
+{"accept":0,"altitude":0,"at":150,"event":"sensor-verdicts","line_of_sight":0,"name":"surface_to_air","range":0,"range_adjusted":0,"scope":"run-at-probe","tolerance":0}
+{"airborne":11060516,"at":150,"best_group":0,"dead":0,"event":"sensor-skips","identify":0,"name":"surface_to_air","no_group":0,"scope":"run-at-probe","self":5075,"side":336,"target_type":0}
+{"adjusted_differs":0,"at":150,"emitter_off":0,"event":"sensor-edges","name":"surface_to_air","player_candidates":0,"scope":"run-at-probe","stealth_not_one":0}
+{"at":150,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"surface_to_air","scan_range_max":14000,"scan_range_min":2000,"scope":"run-at-probe","sector_cells_sum":71909,"sector_empty":0,"sector_whole_map":0}
+{"at":150,"calls":5075,"candidates":0,"count_positive_null_group":174,"event":"sensor-fn","name":"surface_to_surface","nonnull":0,"replaced":0,"scanned":3219,"scope":"run-at-probe","target_count_sum":3093}
+{"accept":0,"altitude":0,"at":150,"event":"sensor-verdicts","line_of_sight":0,"name":"surface_to_surface","range":0,"range_adjusted":0,"scope":"run-at-probe","tolerance":0}
+{"airborne":255,"at":150,"best_group":0,"dead":0,"event":"sensor-skips","identify":2387546,"name":"surface_to_surface","no_group":0,"scope":"run-at-probe","self":3219,"side":69717,"target_type":0}
+{"adjusted_differs":0,"at":150,"emitter_off":0,"event":"sensor-edges","name":"surface_to_surface","player_candidates":0,"scope":"run-at-probe","stealth_not_one":0}
+{"at":150,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"surface_to_surface","scan_range_max":12000,"scan_range_min":300,"scope":"run-at-probe","sector_cells_sum":16151,"sector_empty":0,"sector_whole_map":0}
+{"at":150,"event":"sensor-host-verdicts","name":"air_to_air","not_perceived":176,"scope":"run-at-probe"}
+{"at":150,"event":"sensor-host-verdicts","name":"air_to_surface","not_perceived":33735,"scope":"run-at-probe"}
+{"at":150,"event":"sensor-host-verdicts","name":"surface_to_air","not_perceived":24,"scope":"run-at-probe"}
+{"at":150,"event":"sensor-host-verdicts","name":"surface_to_surface","not_perceived":3093,"scope":"run-at-probe"}
+{"altitude_above_ceiling":0,"altitude_below_floor":0,"at":150,"difficulty_factors":0,"event":"sensor-surface-to-air","floor_cumulative_differs":0,"floor_ratio_min":2,"multi_candidate_calls":0,"scope":"run-at-probe"}
+{"at":150,"draw_max":0,"draw_min":0,"draws":0,"event":"sensor-tolerance","recompute_mismatch":0,"rejects":0,"scope":"run-at-probe","varies_within_call":0}
+{"at":150,"calls":395,"event":"sensor-kind","function":"surface_to_air","scanned":395,"scope":"run-at-probe","source":"ENTITY_TYPE_ROUTED_VEHICLE"}
+{"at":150,"calls":395,"event":"sensor-kind","function":"surface_to_surface","scanned":395,"scope":"run-at-probe","source":"ENTITY_TYPE_ROUTED_VEHICLE"}
+{"at":150,"calls":164,"event":"sensor-kind","function":"surface_to_air","scanned":164,"scope":"run-at-probe","source":"ENTITY_TYPE_SHIP_VEHICLE"}
+{"at":150,"calls":164,"event":"sensor-kind","function":"surface_to_surface","scanned":133,"scope":"run-at-probe","source":"ENTITY_TYPE_SHIP_VEHICLE"}
+{"at":150,"calls":4289,"event":"sensor-kind","function":"surface_to_air","scanned":4289,"scope":"run-at-probe","source":"ENTITY_TYPE_ANTI_AIRCRAFT"}
+{"at":150,"calls":4289,"event":"sensor-kind","function":"surface_to_surface","scanned":2464,"scope":"run-at-probe","source":"ENTITY_TYPE_ANTI_AIRCRAFT"}
+{"at":150,"calls":227,"event":"sensor-kind","function":"surface_to_air","scanned":227,"scope":"run-at-probe","source":"ENTITY_TYPE_PERSON"}
+{"at":150,"calls":227,"event":"sensor-kind","function":"surface_to_surface","scanned":227,"scope":"run-at-probe","source":"ENTITY_TYPE_PERSON"}
+{"at":150,"calls":40,"event":"sensor-kind","function":"air_to_air","scanned":40,"scope":"run-at-probe","source":"ENTITY_TYPE_HELICOPTER"}
+{"at":150,"calls":40,"event":"sensor-kind","function":"air_to_surface","scanned":40,"scope":"run-at-probe","source":"ENTITY_TYPE_HELICOPTER"}
+{"at":150,"event":"sensor-kinds","overflow":0,"rows":10,"scope":"run-at-probe"}
+{"at":150,"event":"sensor-sample","key":"surface_to_surface/host_not_perceived","scope":"run-at-probe","text":"source_x=34443.4766 source_y=758.184753 source_z=44612.332 scan_range=5000 sector_x_min=7 sector_z_min=9 sector_x_max=9 sector_z_max=12 | "}
+{"at":150,"event":"sensor-sample","key":"surface_to_surface/host_not_perceived","scope":"run-at-probe","text":"source_x=34443.4766 source_y=758.184753 source_z=44612.332 scan_range=5000 sector_x_min=7 sector_z_min=9 sector_x_max=9 sector_z_max=12 | "}
+{"at":150,"event":"sensor-sample","key":"surface_to_surface/count_without_group","scope":"run-at-probe","text":"source_x=34443.4766 source_y=758.184753 source_z=44612.332 scan_range=5000 sector_x_min=7 sector_z_min=9 sector_x_max=9 sector_z_max=12 | target_count=2 best_group=none"}
+{"at":150,"event":"sensor-sample","key":"surface_to_surface/count_without_group","scope":"run-at-probe","text":"source_x=123904.57 source_y=637.978149 source_z=65018.0898 scan_range=5000 sector_x_min=29 sector_z_min=14 sector_x_max=31 sector_z_max=17 | target_count=11 best_group=none"}
+{"at":150,"event":"sensor-sample","key":"surface_to_air/host_not_perceived","scope":"run-at-probe","text":"source_x=109470.914 source_y=720.989136 source_z=60059.2695 scan_range=7500 scan_floor_initial=18 scan_ceiling=0 sector_x_min=24 sector_z_min=12 sector_x_max=28 sector_z_max=16 | "}
+{"at":150,"event":"sensor-sample","key":"surface_to_air/host_not_perceived","scope":"run-at-probe","text":"source_x=109470.914 source_y=720.989136 source_z=60059.2695 scan_range=7500 scan_floor_initial=18 scan_ceiling=0 sector_x_min=24 sector_z_min=12 sector_x_max=28 sector_z_max=16 | "}
+{"at":150,"event":"sensor-sample","key":"air_to_air/host_not_perceived","scope":"run-at-probe","text":"source_x=100785.023 source_y=787.03418 source_z=51297.8906 scan_range=5000 scan_range_squared=25000000 sector_x_min=0 sector_z_min=0 sector_x_max=37 sector_z_max=45 | "}
+{"at":150,"event":"sensor-sample","key":"air_to_air/host_not_perceived","scope":"run-at-probe","text":"source_x=100785.023 source_y=787.03418 source_z=51297.8906 scan_range=5000 scan_range_squared=25000000 sector_x_min=0 sector_z_min=0 sector_x_max=37 sector_z_max=45 | "}
+{"at":150,"event":"sensor-sample","key":"air_to_surface/host_not_perceived","scope":"run-at-probe","text":"source_x=100785.023 source_y=787.03418 source_z=51297.8906 scan_range=4000 scan_range_squared=16000000 sector_x_min=0 sector_z_min=0 sector_x_max=37 sector_z_max=45 | "}
+{"at":150,"event":"sensor-sample","key":"air_to_surface/host_not_perceived","scope":"run-at-probe","text":"source_x=100785.023 source_y=787.03418 source_z=51297.8906 scan_range=4000 scan_range_squared=16000000 sector_x_min=0 sector_z_min=0 sector_x_max=37 sector_z_max=45 | "}
+{"at":150,"count":10,"event":"sensor-samples","overflow":0,"scope":"run-at-probe"}
+{"at":150,"event":"run_trace_untouched_by_probe","ok":true}
+{"elapsed":299.97579956055,"event":"run","frames":3000,"probes":1}
+{"at":299.97579956055,"decision":"7f28f34dd8e8fe41","event":"sensor-hash","physical":"75b88a72b869c069","scope":"run"}
+{"at":299.97579956055,"calls":474,"candidates":0,"count_positive_null_group":0,"event":"sensor-fn","name":"air_to_air","nonnull":0,"replaced":0,"scanned":474,"scope":"run","target_count_sum":0}
+{"accept":0,"altitude":0,"at":299.97579956055,"event":"sensor-verdicts","line_of_sight":0,"name":"air_to_air","range":0,"range_adjusted":0,"scope":"run","tolerance":0}
+{"airborne":37784197,"at":299.97579956055,"best_group":0,"dead":0,"event":"sensor-skips","identify":0,"name":"air_to_air","no_group":0,"scope":"run","self":0,"side":2253399,"target_type":0}
+{"adjusted_differs":0,"at":299.97579956055,"emitter_off":0,"event":"sensor-edges","name":"air_to_air","player_candidates":0,"scope":"run","stealth_not_one":0}
+{"at":299.97579956055,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"air_to_air","scan_range_max":80000,"scan_range_min":3000,"scope":"run","sector_cells_sum":821560,"sector_empty":4,"sector_whole_map":470}
+{"at":299.97579956055,"calls":474,"candidates":0,"count_positive_null_group":0,"event":"sensor-fn","name":"air_to_surface","nonnull":0,"replaced":0,"scanned":474,"scope":"run","target_count_sum":0}
+{"accept":0,"altitude":0,"at":299.97579956055,"event":"sensor-verdicts","line_of_sight":0,"name":"air_to_surface","range":0,"range_adjusted":0,"scope":"run","tolerance":0}
+{"airborne":6329,"at":299.97579956055,"best_group":0,"dead":0,"event":"sensor-skips","identify":37787142,"name":"air_to_surface","no_group":112,"scope":"run","self":0,"side":2276943,"target_type":0}
+{"adjusted_differs":0,"at":299.97579956055,"emitter_off":0,"event":"sensor-edges","name":"air_to_surface","player_candidates":0,"scope":"run","stealth_not_one":0}
+{"at":299.97579956055,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"air_to_surface","scan_range_max":8000,"scan_range_min":4000,"scope":"run","sector_cells_sum":828552,"sector_empty":0,"sector_whole_map":474}
+{"at":299.97579956055,"calls":9822,"candidates":0,"count_positive_null_group":0,"event":"sensor-fn","name":"surface_to_air","nonnull":0,"replaced":0,"scanned":9822,"scope":"run","target_count_sum":0}
+{"accept":0,"altitude":0,"at":299.97579956055,"event":"sensor-verdicts","line_of_sight":0,"name":"surface_to_air","range":0,"range_adjusted":0,"scope":"run","tolerance":0}
+{"airborne":21516252,"at":299.97579956055,"best_group":0,"dead":0,"event":"sensor-skips","identify":0,"name":"surface_to_air","no_group":0,"scope":"run","self":9822,"side":2643,"target_type":0}
+{"adjusted_differs":0,"at":299.97579956055,"emitter_off":0,"event":"sensor-edges","name":"surface_to_air","player_candidates":0,"scope":"run","stealth_not_one":0}
+{"at":299.97579956055,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"surface_to_air","scan_range_max":14000,"scan_range_min":2000,"scope":"run","sector_cells_sum":139200,"sector_empty":0,"sector_whole_map":0}
+{"at":299.97579956055,"calls":9822,"candidates":0,"count_positive_null_group":344,"event":"sensor-fn","name":"surface_to_surface","nonnull":0,"replaced":0,"scanned":6277,"scope":"run","target_count_sum":6021}
+{"accept":0,"altitude":0,"at":299.97579956055,"event":"sensor-verdicts","line_of_sight":0,"name":"surface_to_surface","range":0,"range_adjusted":0,"scope":"run","tolerance":0}
+{"airborne":1536,"at":299.97579956055,"best_group":0,"dead":0,"event":"sensor-skips","identify":4666160,"name":"surface_to_surface","no_group":22,"scope":"run","self":6277,"side":133938,"target_type":0}
+{"adjusted_differs":0,"at":299.97579956055,"emitter_off":0,"event":"sensor-edges","name":"surface_to_surface","player_candidates":0,"scope":"run","stealth_not_one":0}
+{"at":299.97579956055,"cos_max":0,"cos_min":0,"cos_outside_unit":0,"cos_values":0,"event":"sensor-geometry","name":"surface_to_surface","scan_range_max":12000,"scan_range_min":300,"scope":"run","sector_cells_sum":31214,"sector_empty":0,"sector_whole_map":0}
+{"at":299.97579956055,"event":"sensor-host-verdicts","name":"air_to_air","not_perceived":6245,"scope":"run"}
+{"at":299.97579956055,"event":"sensor-host-verdicts","name":"air_to_surface","not_perceived":312160,"scope":"run"}
+{"at":299.97579956055,"event":"sensor-host-verdicts","name":"surface_to_air","not_perceived":520,"scope":"run"}
+{"at":299.97579956055,"event":"sensor-host-verdicts","name":"surface_to_surface","not_perceived":6021,"scope":"run"}
+{"altitude_above_ceiling":0,"altitude_below_floor":0,"at":299.97579956055,"difficulty_factors":0,"event":"sensor-surface-to-air","floor_cumulative_differs":0,"floor_ratio_min":2,"multi_candidate_calls":0,"scope":"run"}
+{"at":299.97579956055,"draw_max":0,"draw_min":0,"draws":0,"event":"sensor-tolerance","recompute_mismatch":0,"rejects":0,"scope":"run","varies_within_call":0}
+{"at":299.97579956055,"calls":785,"event":"sensor-kind","function":"surface_to_air","scanned":785,"scope":"run","source":"ENTITY_TYPE_ROUTED_VEHICLE"}
+{"at":299.97579956055,"calls":785,"event":"sensor-kind","function":"surface_to_surface","scanned":774,"scope":"run","source":"ENTITY_TYPE_ROUTED_VEHICLE"}
+{"at":299.97579956055,"calls":316,"event":"sensor-kind","function":"surface_to_air","scanned":316,"scope":"run","source":"ENTITY_TYPE_SHIP_VEHICLE"}
+{"at":299.97579956055,"calls":316,"event":"sensor-kind","function":"surface_to_surface","scanned":253,"scope":"run","source":"ENTITY_TYPE_SHIP_VEHICLE"}
+{"at":299.97579956055,"calls":8230,"event":"sensor-kind","function":"surface_to_air","scanned":8230,"scope":"run","source":"ENTITY_TYPE_ANTI_AIRCRAFT"}
+{"at":299.97579956055,"calls":8230,"event":"sensor-kind","function":"surface_to_surface","scanned":4759,"scope":"run","source":"ENTITY_TYPE_ANTI_AIRCRAFT"}
+{"at":299.97579956055,"calls":491,"event":"sensor-kind","function":"surface_to_air","scanned":491,"scope":"run","source":"ENTITY_TYPE_PERSON"}
+{"at":299.97579956055,"calls":491,"event":"sensor-kind","function":"surface_to_surface","scanned":491,"scope":"run","source":"ENTITY_TYPE_PERSON"}
+{"at":299.97579956055,"calls":470,"event":"sensor-kind","function":"air_to_air","scanned":470,"scope":"run","source":"ENTITY_TYPE_HELICOPTER"}
+{"at":299.97579956055,"calls":470,"event":"sensor-kind","function":"air_to_surface","scanned":470,"scope":"run","source":"ENTITY_TYPE_HELICOPTER"}
+{"at":299.97579956055,"calls":4,"event":"sensor-kind","function":"air_to_air","scanned":4,"scope":"run","source":"ENTITY_TYPE_FIXED_WING"}
+{"at":299.97579956055,"calls":4,"event":"sensor-kind","function":"air_to_surface","scanned":4,"scope":"run","source":"ENTITY_TYPE_FIXED_WING"}
+{"at":299.97579956055,"event":"sensor-kinds","overflow":0,"rows":12,"scope":"run"}
+{"at":299.97579956055,"event":"sensor-sample","key":"surface_to_surface/host_not_perceived","scope":"run","text":"source_x=34443.4766 source_y=758.184753 source_z=44612.332 scan_range=5000 sector_x_min=7 sector_z_min=9 sector_x_max=9 sector_z_max=12 | "}
+{"at":299.97579956055,"event":"sensor-sample","key":"surface_to_surface/host_not_perceived","scope":"run","text":"source_x=34443.4766 source_y=758.184753 source_z=44612.332 scan_range=5000 sector_x_min=7 sector_z_min=9 sector_x_max=9 sector_z_max=12 | "}
+{"at":299.97579956055,"event":"sensor-sample","key":"surface_to_surface/count_without_group","scope":"run","text":"source_x=34443.4766 source_y=758.184753 source_z=44612.332 scan_range=5000 sector_x_min=7 sector_z_min=9 sector_x_max=9 sector_z_max=12 | target_count=2 best_group=none"}
+{"at":299.97579956055,"event":"sensor-sample","key":"surface_to_surface/count_without_group","scope":"run","text":"source_x=123904.57 source_y=637.978149 source_z=65018.0898 scan_range=5000 sector_x_min=29 sector_z_min=14 sector_x_max=31 sector_z_max=17 | target_count=11 best_group=none"}
+{"at":299.97579956055,"event":"sensor-sample","key":"surface_to_air/host_not_perceived","scope":"run","text":"source_x=109470.914 source_y=720.989136 source_z=60059.2695 scan_range=7500 scan_floor_initial=18 scan_ceiling=0 sector_x_min=24 sector_z_min=12 sector_x_max=28 sector_z_max=16 | "}
+{"at":299.97579956055,"event":"sensor-sample","key":"surface_to_air/host_not_perceived","scope":"run","text":"source_x=109470.914 source_y=720.989136 source_z=60059.2695 scan_range=7500 scan_floor_initial=18 scan_ceiling=0 sector_x_min=24 sector_z_min=12 sector_x_max=28 sector_z_max=16 | "}
+{"at":299.97579956055,"event":"sensor-sample","key":"air_to_air/host_not_perceived","scope":"run","text":"source_x=100785.023 source_y=787.03418 source_z=51297.8906 scan_range=5000 scan_range_squared=25000000 sector_x_min=0 sector_z_min=0 sector_x_max=37 sector_z_max=45 | "}
+{"at":299.97579956055,"event":"sensor-sample","key":"air_to_air/host_not_perceived","scope":"run","text":"source_x=100785.023 source_y=787.03418 source_z=51297.8906 scan_range=5000 scan_range_squared=25000000 sector_x_min=0 sector_z_min=0 sector_x_max=37 sector_z_max=45 | "}
+{"at":299.97579956055,"event":"sensor-sample","key":"air_to_surface/host_not_perceived","scope":"run","text":"source_x=100785.023 source_y=787.03418 source_z=51297.8906 scan_range=4000 scan_range_squared=16000000 sector_x_min=0 sector_z_min=0 sector_x_max=37 sector_z_max=45 | "}
+{"at":299.97579956055,"event":"sensor-sample","key":"air_to_surface/host_not_perceived","scope":"run","text":"source_x=100785.023 source_y=787.03418 source_z=51297.8906 scan_range=4000 scan_range_squared=16000000 sector_x_min=0 sector_z_min=0 sector_x_max=37 sector_z_max=45 | "}
+{"at":299.97579956055,"event":"sensor-sample","key":"air_to_air/sector_empty","scope":"run","text":"source_x=108685.211 source_y=1170.24316 source_z=184129.344 scan_range=80000 scan_range_squared=6.4e+09 sector_x_min=0 sector_z_min=0 sector_x_max=-524288 sector_z_max=-524288 | "}
+{"at":299.97579956055,"event":"sensor-sample","key":"air_to_air/sector_empty","scope":"run","text":"source_x=108584.766 source_y=1190.19421 source_z=184376.328 scan_range=80000 scan_range_squared=6.4e+09 sector_x_min=0 sector_z_min=0 sector_x_max=-524288 sector_z_max=-524288 | "}
+{"at":299.97579956055,"count":12,"event":"sensor-samples","overflow":0,"scope":"run"}

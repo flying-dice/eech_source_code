@@ -1,0 +1,71 @@
+TEST_LINK_FLAGS=-fno-pie -no-pie
+SANITIZERS=-fsanitize=address,undefined -fno-sanitize-recover=undefined
+SANITIZER_PROBE_COMPILE_EXIT=0
+SANITIZER_PROBE_RUN_EXIT=0
+COMPILE_EXIT=0
+ok   a classification is one question, takes no sample and returns the host's class
+ok   the model, the level and the initial level cross by value
+ok   a changed host gives another class, used as given
+ok   a vehicle given an aircraft's class is refused
+ok   an aircraft may be critical (2)
+ok   and not 3
+ok   a person is never critical
+ok   a fixed structure with no initial level is a legal question with class 0
+ok   a pure question answered with more than a class is refused
+ok   a vehicle that can burn crosses the threshold, and the change crosses by value
+ok   a vehicle that cannot burn crosses nothing
+ok   only an aircraft recovers
+ok   an aircraft crosses a threshold
+ok   and may recover and be in the health that ejects a crew
+ok   but not cross a threshold and recover in one change
+ok   a person that can burn is judged by the threshold arithmetic like any vehicle
+ok   an eligible target asks for its sample once: the campaign takes ONE and asks again
+ok   the host's roll, the health it leaves and the class after are what the campaign gets
+ok   the frame time and the burning flags cross by value
+ok   a host with a roll of its own that asks for no sample takes none
+ok   a second request for a sample is refused
+ok   a lookup is refused
+ok   a host's own stochastic bleeding for a person with health is accepted: it takes its ONE sample and its hit is returned
+ok   a host's own degradation of an aircraft in class 0 is accepted the same way
+ok   a host's own timed physics for a vehicle that cannot burn is accepted the same way
+ok   and for a vehicle with no health (a hit on none leaves none)
+ok   the reference host's answer for a person (ineligible, no sample, nothing changes) is accepted
+ok   a second sample is refused for a person as for anything
+ok   a classification may not ask for a sample
+ok   an assessment may not
+ok   a hit eligibility may not
+ok   an ineligible target (here not critical) takes no sample and is not changed
+ok   an ineligible target whose health changed is refused
+ok   an ineligible target that rolled is refused
+ok   a hit on an ineligible target is refused
+ok   the last point of health is fatal
+ok   a hit that leaves no health and is not fatal is refused
+ok   a hit that leaves health no lower is refused
+ok   a fatal hit that leaves health is refused
+ok   health below zero is refused
+ok   a roll that misses leaves the health as it was
+ok   a host that was given the sample and did not roll is refused
+ok   a roll that took no sample is refused
+ok   an aircraft in a class asks for its sample and degrades by one point
+ok   a self hit by an AI is refused by the host, with no sample
+ok   and allowed for a player
+ok   a host may not refuse a hit that is not the target's own
+ok   nor answer more than yes or no
+ok   a failing host stops the engine with its reason
+ok   no host: the engine stops with a clear message
+ok   op 0 never reaches the host
+ok   an op that does not exist
+ok   a model that does not exist
+ok   a flag that is not a boolean
+ok   a non-finite frame time
+ok   an aircraft class that does not exist
+ok   a classified health with no initial level
+ok   a timed roll for a fixed structure
+ok   an assessment divides by the initial level: none is refused
+ok   the identity of the object whose health it is crosses as the target of the envelope
+ok   an object with no identity carries none
+ok   a health fact with no subject carries none
+ok   an identity longer than the envelope holds is refused before the host is asked
+HEALTH_CHECKS=ok: 63 checks, 0 failures
+RUN_EXIT=0
+DOCKER_EXIT=0

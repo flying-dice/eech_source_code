@@ -1,0 +1,71 @@
+{
+  "source": "7db2c6a91b4cd0a1fae2d8e20bfa169584618d24",
+  "read_at_utc": "2026-10-31 19:08:24 UTC",
+  "scope": "Actual current-source GitHub hosted job states; no local retail/shipping acceptance inferred.",
+  "all_success": true,
+  "jobs": [
+    {
+      "id": 124627905608,
+      "run_id": 41231956844,
+      "name": "evidence-selftest",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124627905747,
+      "run_id": 41231956844,
+      "name": "test (x86_64-unknown-linux-gnu)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124627905824,
+      "run_id": 41231956844,
+      "name": "windows-cross",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124627905844,
+      "run_id": 41231956844,
+      "name": "dcs-probe-tools",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124627905878,
+      "run_id": 41231956844,
+      "name": "test (i686-unknown-linux-gnu)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124627905886,
+      "run_id": 41231956844,
+      "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124627905992,
+      "run_id": 41231956844,
+      "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124627850785,
+      "run_id": 41231956779,
+      "name": "Slice 1a historical equivalence",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124627851165,
+      "run_id": 41231956841,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ]
+}

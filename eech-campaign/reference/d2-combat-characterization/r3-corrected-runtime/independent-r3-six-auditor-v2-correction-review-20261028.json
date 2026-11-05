@@ -1,0 +1,107 @@
+{
+  "schema": "independent-focused-helper-review/v1",
+  "created_utc": "2026-10-28T16:08:48.602003+00:00",
+  "reviewer": "/root/d2_los_review",
+  "scope": "Only new v2 six-case auditor and in-memory controls; prior actual six64cf shipping results/source/inputs/build review reused, not repeated.",
+  "runtime_source": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "disposition": "V1_AUDITOR_P2_RESOLVED; NO_NEW_FINDINGS; SIX_ACTUAL_RUNTIME_RESULTS_REMAIN_BOUNDED_ACCEPTED",
+  "resolved": [
+    {
+      "id": "V1-CASE-ORDER-RECEIPT-P2",
+      "assessment": "driver_set requires length6 and exact expected set, hence duplicates/missing own cannot pass. validate_case requires exact ordered per-mode event sequence and named mode/config vs boot/run/actual command, receipt identity/type/rostered/killed and before/after health, summary actual-state correlation. These are the actual functions used by main and the controls."
+    }
+  ],
+  "findings": [],
+  "controls_review": {
+    "observed_parent_actual_process_exit": 0,
+    "six_actual_positive_cases": 6,
+    "in_memory_negative_controls": 10,
+    "negative_labels": [
+      "control-before-boot",
+      "after-before-receipt",
+      "missing-own-case",
+      "duplicate-case-hides-one-case",
+      "receipt-wrong-identity",
+      "receipt-wrong-before",
+      "receipt-wrong-after",
+      "summary-wrong-state",
+      "boot-wrong-mode",
+      "run-wrong-mode"
+    ],
+    "assessment": "Controls deep-copy complete case records and mutate only targeted evidence, invoke real validate_case/driver_set, catch only assertion rejection and fail if the corrupt case is accepted. No fake stand-in validator, native rerun, failure-field override or golden update. Missing/duplicate case controls exercise actual case-set function.",
+    "coverage_limit": "Focused controls of case completeness, sequence/config and receipt/summary correlation, not a claim of exhaustive adversarial JSON-schema/security validation."
+  },
+  "preservation": {
+    "v1_script_sha256": "471204245fa801f86f56fe32bbf6ace8e65f72cbfe3e08dcbf877b2ef2e40ec8",
+    "v1_proof_sha256": "3a9140ad1f6925e28b85bfe669550924e5cb501c165f42e378a9a06ce976f4e2",
+    "v1_script_and_proof_unchanged": true,
+    "v2_scenarios_exactly_equal_v1_scenarios": true,
+    "all_six_raw_hashes_unchanged_from_independent_runtime_review": [
+      {
+        "case": "object-report-site-none-02",
+        "trace_sha256": "daa020240bc903fe8b899c9db8e2ddf99114026198d0743620091f58571a79b5",
+        "bytes": 1476
+      },
+      {
+        "case": "object-report-site-damage-raise-02",
+        "trace_sha256": "8466b4bc093f72cc11e0b804e847f308db2a8ee7243514de2f1233a5dc9de6a5",
+        "bytes": 2017
+      },
+      {
+        "case": "object-report-site-destroy-duplicate-02",
+        "trace_sha256": "9d3ec992deb66eafeb6b0da0ba631be027695608a183e927fd26d181eb53027a",
+        "bytes": 1999
+      },
+      {
+        "case": "object-report-site-own-destroy-unknown-02",
+        "trace_sha256": "1e85f36d2054fbdc8afe13bc1e39ca046fb4908fd0289aae0cbb37d1a6c0cadf",
+        "bytes": 1985
+      },
+      {
+        "case": "object-report-segment-none-02",
+        "trace_sha256": "5f915e13b10ec975d39a4d0c318a8c4ee913e5b90babe2e07ce616f3fd9a338b",
+        "bytes": 1493
+      },
+      {
+        "case": "object-report-segment-destroy-02",
+        "trace_sha256": "d2ff658bb06630f440ac32003c7df99032ba537e12f89019a4ec41d424b65525",
+        "bytes": 1786
+      }
+    ],
+    "v2_explicitly_supersedes_v1_helper_only": true
+  },
+  "identities": [
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\audit-r3-64cf-six-v2.py",
+      "bytes": 9626,
+      "sha256": "6ffd3c0d6886ba474655408f15a309124208bc26d4a9d43d45ff85804950a016"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\check-r3-six-auditor-v2.py",
+      "bytes": 3481,
+      "sha256": "6c514600a69898c6ab0207eebb6ef548340043d3112c45dee34756447a7e188e"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-six-auditor-v2-controls.json",
+      "bytes": 2180,
+      "sha256": "d9db046bd261587058e54f76318e002111fad3976aaafde498914859f89f2d2e"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-64cf-six-report-completion-v2.json",
+      "bytes": 32688,
+      "sha256": "4936e7fc93e1c55e3dc65e15c62bead45a71baa7dd7b6828e617830db2476b05"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-r3-64cf-six-report-runtime-review-20261028.json",
+      "bytes": 8492,
+      "sha256": "b3f34540f3e0696f8b99bc9799bea02580697490e963e8187c210c1baa9543e0"
+    }
+  ],
+  "limits": [
+    "Actual64cf binaries remain64cf; a89a is proven unchanged runtime-frontier test-only source, never a relabelled build.",
+    "Reuse independent six-runtime report SHAb3f34540f3e0696f8b99bc9799bea02580697490e963e8187c210c1baa9543e0 for full raw/config/process/7074input/42export verification. No duplicated war/source audit.",
+    "Six controlled report/withhold/refusal cases only, identify-only generic model, site/segment mutation coverage; original f470 crashes remain retained failures.",
+    "No final full40/full8/post3/frame-cost/currentCI/normalmerge/whole-D2 acceptance.",
+    "No native/build/tests/source edits, agents, process or remote changes by reviewer. Only private independent report JSON written."
+  ]
+}

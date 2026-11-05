@@ -1,0 +1,29 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.56s
+     Running tests/host_callbacks.rs (/target/debug/deps/host_callbacks-01e380bfce0df75c)
+
+running 1 test
+test the_combat_report_keeps_every_hash_a_string_and_the_script_finds_its_report_module_beside_it ... FAILED
+
+failures:
+
+---- the_combat_report_keeps_every_hash_a_string_and_the_script_finds_its_report_module_beside_it stdout ----
+
+thread 'the_combat_report_keeps_every_hash_a_string_and_the_script_finds_its_report_module_beside_it' (537) panicked at crates/eech-world/tests/host_callbacks.rs:678:5:
+exit status: 1
+
+Error: RuntimeError("[string \"/tmp/eech-world-combat-report-536.lua\"]:13: missing \"timed\":\"0000000000000001\" in {\"at\":600,\"blast\":\"0000000000000255\",\"collision\":\"9007199254740993\",\"damage\":\"0123456789012345\",\"event\":\"cmb-hash\",\"order\":1.2345678901235e+19,\"repair\":\"1000000000000000\",\"scope\":\"run\",\"timed\":1}\n{\"at\":600,\"blast\":\"00000000000000ff\",\"collision\":\"ffffffffffffffff\",\"damage\":\"0123456789abcdef\",\"event\":\"cmb-hash\",\"order\":1,\"repair\":\"0000000000000000\",\"scope\":\"run\",\"timed\":0}\n{\"at\":600,\"depth_max\":2,\"depth_overflow\":0,\"event\":\"cmb-integrity\",\"scope\":\"run\",\"trusted\":1}\n{\"at\":600,\"collisions\":3,\"damage_sum\":5.5,\"event\":\"cmb-kind\",\"scope\":\"run\",\"type\":\"HELICOPTER\"}\n\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'assert'\n\t[string \"/tmp/eech-world-combat-report-536.lua\"]:13: in function 'has'\n\t[string \"/tmp/eech-world-combat-report-536.lua\"]:18: in main chunk")
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    the_combat_report_keeps_every_hash_a_string_and_the_script_finds_its_report_module_beside_it
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p eech-world --test host_callbacks`
+CARGO_EXIT=101
+DOCKER_EXIT=101

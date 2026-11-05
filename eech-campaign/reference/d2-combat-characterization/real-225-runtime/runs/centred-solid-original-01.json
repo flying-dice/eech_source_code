@@ -1,0 +1,13 @@
+{
+  "status": "completed",
+  "when_utc": "2026-10-28T07:00:32.7834680Z",
+  "binary": "R:\\d2-evidence\\combat-controlled-source-35c3d6777\\eech-campaign\\target\\weapon-fixture\\combat-controlled-35c3d6777\\eech-world.exe",
+  "arguments": "R:/d2-evidence/combat-characterization-20261028/centred-solid-diagnostic/centred-solid-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/centred-solid-original-01 out=R:/d2-evidence/combat-characterization-20261028/out/centred-solid-original-01/trace.jsonl warmup=60 frame_ms=100 timed_seconds=0 kinds=ROUTED_VEHICLE control=OBJECT",
+  "root": "R:/d2-evidence/combat-characterization-20261028/roots/centred-solid-original-01",
+  "out": "R:/d2-evidence/combat-characterization-20261028/out/centred-solid-original-01",
+  "kind": "NEW centred-solid diagnostic preconditions, not baseline campaign; direct HIT_TARGET at zero separation should preserve original no-damage result and exact diagnostic bits",
+  "actual_native_exit": 0,
+  "native_pid": 10076,
+  "created_utc": "2026-10-28T07:00:32.8907411Z",
+  "completed_utc": "2026-10-28T07:02:04.4217500Z"
+}

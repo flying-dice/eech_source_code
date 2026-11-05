@@ -1,0 +1,16 @@
+georgia_retail: 3.0 h, conclusion: none
+  blue sorties 120: TROOP_MOVEMENT_PATROL 27, ADVANCE 22, TRANSFER_HELICOPTER 14, RECON 13, GROUND_STRIKE 12, ESCORT 7, COMBAT_AIR_PATROL 6, CLOSE_AIR_SUPPORT 4, TROOP_INSERTION 4, BAI 3, TROOP_MOVEMENT_INSERT_CAPTURE 3, BDA 2, RETREAT 1, REPAIR 1, SEAD 1
+  blue aircraft sorties 147, weapons launched 1179
+  blue lost: air_defence 13, ground_vehicle 102, helicopter 41, infantry 40
+  blue spawned: infantry 46
+  blue captured: {'KEYSITE_FARP': 1}
+  blue airbase      held 1 -> 1, ammo 100 -> 64, fuel 100 -> 28
+  blue farp         held 15 -> 15, ammo 100 -> 89.7, fuel 100 -> 92.3
+  red sorties 227: TROOP_MOVEMENT_PATROL 70, ADVANCE 21, SUPPLY 19, TRANSFER_HELICOPTER 18, TRANSFER_FIXED_WING 15, RECON 13, COMBAT_AIR_PATROL 11, BAI 10, TROOP_MOVEMENT_INSERT_CAPTURE 10, ESCORT 8, GROUND_STRIKE 7, REPAIR 7, TROOP_INSERTION 5, RETREAT 4, CLOSE_AIR_SUPPORT 3, SEAD 3, OCA_SWEEP 2, BDA 1
+  red aircraft sorties 271, weapons launched 526
+  red lost: air_defence 14, fixed_wing 6, ground_vehicle 64, helicopter 49, infantry 65
+  red spawned: infantry 96
+  red captured: {'KEYSITE_FARP': 1}
+  red airbase      held 11 -> 11, ammo 100 -> 55.3, fuel 100 -> 28.2
+  red farp         held 41 -> 41, ammo 100 -> 91.2, fuel 100 -> 92.6
+IDENTICAL to the baseline

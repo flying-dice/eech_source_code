@@ -1,0 +1,160 @@
+scope run  at 599.90252685547  physical_hash 8d5afe5ea932338f  decision_hash 4e542d029ba7362a
+  vec_calls                                  9429480
+  vec_targeted                               113852
+  vec_player_without_target                  0
+  vec_tracking_valid                         0
+  vec_valid                                  112621
+  vec_invalid                                9316859
+  vec_stage_0                                0
+  vec_stage_1                                9297475
+  vec_stage_2                                18153
+  vec_stage_3                                1231
+  vec_stage_4                                0
+  vec_stage_5                                0
+  vec_stage_6                                112621
+  solve_calls                                112621
+  solve_outside_vector_update                0
+  solve_guided_mobile                        65020
+  solve_guided_static                        0
+  solve_angle_of_projection                  30681
+  solve_lead_and_ballistic                   16920
+  solve_true                                 112621
+  solve_false                                0
+  intercept_calls                            65020
+  intercept_outside_vector_update            0
+  intercept_iterated                         25489
+  intercept_weapon_not_moving                0
+  intercept_target_not_moving                39531
+  intercept_target_not_slower                0
+  lead_calls                                 47744
+  lead_outside_vector_update                 143
+  lead_true                                  47744
+  lead_false                                 0
+  lead_path_tiny_range                       0
+  lead_path_off_map                          0
+  lead_path_stationary                       40068
+  lead_path_moving                           7676
+  lead_moving_5_iterations                   1466
+  lead_moving_3_iterations                   6210
+  lead_iterations_run                        25960
+  lead_jitter_applied                        7676
+  lead_triangulated                          0
+  lead_rng_draws_0                           40068
+  lead_rng_draws_1                           7676
+  lead_rng_draws_more                        0
+  ballistic_calls                            73704
+  ballistic_outside_vector_update            858
+  ballistic_from_lead                        73704
+  ballistic_true                             73704
+  ballistic_false                            0
+  ballistic_simplified                       25960
+  ballistic_fixed_pitch                      0
+  ballistic_point_blank_zero_time            22
+  ws_calls                                   9429480
+  ws_no_package_status                       0
+  ws_unarmed                                 624419
+  ws_armed                                   8805061
+  ws_exit_no_viewpoint                       0
+  ws_exit_no_heading_device                  0
+  ws_exit_no_pitch_device                    0
+  ws_ready_device_found                      3412889
+  ws_make_selected_ready                     25322
+  ws_ready_true                              8804470
+  ws_ready_false                             591
+  ws_packages_rotating                       17842815
+  ws_required_located                        101131
+  ws_required_differs                        82645
+  ws_step_heading_short                      47547
+  ws_step_pitch_short                        1482
+  ws_step_heading_shared                     56874
+  ws_step_pitch_shared                       31904
+  ws_edge_climb_bump                         33430
+  ws_edge_hold_not_ready                     474
+  ws_edge_non_ai_player                      0
+  ws_edge_player_local                       0
+  ws_edge_point_lock                         0
+  angle_eval_aircraft_fire                   1242
+  angle_eval_aircraft_update                 25271
+  angle_eval_vehicle_update                  64367
+  reject_aircraft_fire_not_ready             0
+  reject_aircraft_fire_vectors_invalid       0
+  reject_aircraft_fire_launch_angle          1177
+  reject_aircraft_update_not_ready           0
+  reject_aircraft_update_vectors_invalid     916
+  reject_aircraft_update_launch_angle        14869
+  reject_vehicle_update_not_ready            450
+  reject_vehicle_update_vectors_invalid      2
+  reject_vehicle_update_launch_angle         14548
+  ready_update_aircraft                      1572774
+  ready_update_vehicle                       7856706
+  ready_state_start                          9403903
+  ready_state_opening                        591
+  ready_state_open                           24764
+  ready_state_closing                        222
+  ready_command_open                         25322
+  ready_command_close                        3387517
+  person_branch_entered                      0
+  person_branch_with_target_link             0
+  person_facing                              0
+  range vec_intercept_range            n=112621 min=5.34948969 max=42432.4453
+  range solve_intercept_range          n=112621 min=5.34948969 max=42432.4453
+  range lead_range                     n=47744 min=5.34948969 max=42432.4453
+  range lead_time_of_flight            n=47744 min=0.00697604055 max=66.085556
+  range lead_angle                     n=47744 min=-0.366454571 max=1.30683601
+  range ballistic_range                n=73704 min=3.55993891 max=42432.4453
+  range ballistic_parent_velocity      n=73704 min=-0.99597168 max=65.3024521
+  range ballistic_time_of_flight       n=73704 min=0 max=66.085556
+  range launch_angle_error             n=90880 min=0 max=3.12931252
+  range launch_angle_limit             n=90880 min=0.0174532924 max=1.57079625
+  range ws_step_heading                n=82645 min=-0.174532905 max=0.174532905
+  range person_heading                 n=0 min=0 max=0
+  range ready_state_after              n=9429480 min=0 max=3.99999905
+  kind ENTITY_TYPE_HELICOPTER   ready_update           calls 1026828 reached_devices 0 valid 0 steps 216
+  kind ENTITY_TYPE_HELICOPTER   weapon_system_update   calls 1026828 reached_devices 0 valid 0 steps 11664
+  kind ENTITY_TYPE_HELICOPTER   vector_update          calls 1026828 reached_devices 29644 valid 29644 steps 0
+  kind ENTITY_TYPE_ROUTED_VEHICLE ready_update           calls 2680192 reached_devices 0 valid 0 steps 387
+  kind ENTITY_TYPE_ROUTED_VEHICLE weapon_system_update   calls 2680192 reached_devices 0 valid 0 steps 24742
+  kind ENTITY_TYPE_ROUTED_VEHICLE vector_update          calls 2680192 reached_devices 47691 valid 47691 steps 0
+  kind ENTITY_TYPE_SHIP_VEHICLE ready_update           calls 215797 reached_devices 0 valid 0 steps 0
+  kind ENTITY_TYPE_SHIP_VEHICLE weapon_system_update   calls 215797 reached_devices 0 valid 0 steps 4153
+  kind ENTITY_TYPE_SHIP_VEHICLE vector_update          calls 215797 reached_devices 13595 valid 13595 steps 0
+  kind ENTITY_TYPE_FIXED_WING   ready_update           calls 545946 reached_devices 0 valid 0 steps 21
+  kind ENTITY_TYPE_FIXED_WING   weapon_system_update   calls 545946 reached_devices 0 valid 0 steps 0
+  kind ENTITY_TYPE_FIXED_WING   vector_update          calls 545946 reached_devices 9433 valid 9433 steps 0
+  kind ENTITY_TYPE_ANTI_AIRCRAFT ready_update           calls 4127717 reached_devices 0 valid 0 steps 189
+  kind ENTITY_TYPE_ANTI_AIRCRAFT weapon_system_update   calls 4127717 reached_devices 0 valid 0 steps 42086
+  kind ENTITY_TYPE_ANTI_AIRCRAFT vector_update          calls 4127717 reached_devices 12258 valid 12258 steps 0
+  kind ENTITY_TYPE_PERSON       ready_update           calls 833000 reached_devices 0 valid 0 steps 0
+  kind ENTITY_TYPE_PERSON       weapon_system_update   calls 833000 reached_devices 0 valid 0 steps 0
+  kind ENTITY_TYPE_PERSON       vector_update          calls 833000 reached_devices 0 valid 0 steps 0
+  weapon   70 BGM-71D_TOW-2                      guided_intercept     solves 11884 true 11884 leads 0 moving 0 ballistic 0
+  weapon   12 M256_M830A1_HEAT-MP-T_120mm        lead_and_ballistic   solves 11648 true 11648 leads 11648 moving 0 ballistic 11648
+  weapon   11 OTO_Melara_L/62_HE__76mm           angle_of_projection  solves 11654 true 11654 leads 11654 moving 0 ballistic 11654
+  weapon   34 2A65_3VOF96_HE_152mm               angle_of_projection  solves 13694 true 13694 leads 13694 moving 0 ballistic 13694
+  weapon   32 BM-21_9N51_HE_122mm_Rocket         angle_of_projection  solves 868 true 868 leads 868 moving 0 ballistic 868
+  weapon   13 M284_M795_HE_155mm                 angle_of_projection  solves 2570 true 2570 leads 2570 moving 2570 ballistic 10280
+  weapon   14 M26A1_M85_DPICM_227mm_Rocket       angle_of_projection  solves 1895 true 1895 leads 1895 moving 0 ballistic 1895
+  weapon   53 AGM-114R_Hellfire_II               guided_intercept     solves 17013 true 17013 leads 0 moving 0 ballistic 0
+  weapon   65 9K34_Strela-3                      guided_intercept     solves 254 true 254 leads 0 moving 0 ballistic 0
+  weapon   57 9A4172_Vikhr                       guided_intercept     solves 7994 true 7994 leads 0 moving 0 ballistic 0
+  weapon   61 MIM-72G_Chaparral                  guided_intercept     solves 1600 true 1600 leads 0 moving 0 ballistic 0
+  weapon    8 M242_M792_HEI-T_25mm               lead_and_ballistic   solves 1540 true 1540 leads 1540 moving 1540 ballistic 6316
+  weapon   62 FIM-92A_Stinger                    guided_intercept     solves 563 true 563 leads 0 moving 0 ballistic 0
+  weapon   56 9M120_Ataka-V                      guided_intercept     solves 2766 true 2766 leads 0 moving 0 ballistic 0
+  weapon   17 NSVT_BS_HEAT_12.7mm                lead_and_ballistic   solves 718 true 718 leads 718 moving 718 ballistic 2872
+  weapon   64 RIM-7M_Sea_Sparrow                 guided_intercept     solves 703 true 703 leads 0 moving 0 ballistic 0
+  weapon   60 Kh-29L                             guided_intercept     solves 4340 true 4340 leads 0 moving 0 ballistic 0
+  weapon   24 2A42_3UOF8_HE_30mm                 lead_and_ballistic   solves 1142 true 1142 leads 1142 moving 1142 ballistic 5196
+  weapon   66 9M333                              guided_intercept     solves 5219 true 5219 leads 0 moving 0 ballistic 0
+  weapon   67 9M311                              guided_intercept     solves 7258 true 7258 leads 0 moving 0 ballistic 0
+  weapon   55 AGM-65F_Maverick                   guided_intercept     solves 2562 true 2562 leads 0 moving 0 ballistic 0
+  weapon   22 2A38M_OFZT-30-Gsh_HE_30mm          lead_and_ballistic   solves 495 true 495 leads 495 moving 495 ballistic 2312
+  weapon   42 AIM-92A_Stinger                    guided_intercept     solves 333 true 333 leads 0 moving 0 ballistic 0
+  weapon    5 M61A1_CIWS_M56A3_HEI_20mm          lead_and_ballistic   solves 981 true 981 leads 1124 moving 1124 ballistic 6312
+  weapon    6 M197_M56A3_HEI_20mm                lead_and_ballistic   solves 309 true 309 leads 309 moving 0 ballistic 309
+  weapon   10 M230_M789_HEDP_30mm                lead_and_ballistic   solves 87 true 87 leads 87 moving 87 ballistic 348
+  weapon   44 AIM-120C_AMRAAM                    guided_intercept     solves 841 true 841 leads 0 moving 0 ballistic 0
+  weapon   54 AGM-65D_Maverick                   guided_intercept     solves 1690 true 1690 leads 0 moving 0 ballistic 0
+  aim-kinds {'overflow': 0, 'rows': 18}
+  aim-weapons {'overflow': 0, 'rows': 28}
+  aim-samples {'count': 50, 'overflow': 0}

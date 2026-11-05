@@ -1,0 +1,121 @@
+{
+  "source": "ba4f5d42a85a63e6f5467da692018349eb9da0ec",
+  "scope": "Actual four-finding correction runtime validation before final lint correction; not independent closure or delivery",
+  "linux": {
+    "fmt": 0,
+    "library_passed": 235,
+    "new_io_unit_controls_passed": 5,
+    "model_store_passed": 30,
+    "model_characterization_passed": 8,
+    "all_target_clippy_exit": 101,
+    "clippy_findings": {
+      "needless_borrow": 26,
+      "io_other_error_in_fs_test": 1
+    }
+  },
+  "windows": {
+    "build_exit": 0,
+    "library_passed": 235,
+    "model_store_passed": 30,
+    "invalid_override_native_exit": 101,
+    "invalid_override_expected_refusal": true,
+    "six_payloads_unchanged": true,
+    "build_info_sha256": "4b96d521ed47fa284e43bae61f0b484f5fb043a0d587d047d28226dcdaf493b7",
+    "test_controller_exit": 0
+  },
+  "retail": {
+    "controller_exit": 0,
+    "all_pre_post_and_runner_exits": [
+      [
+        "georgia",
+        0,
+        0,
+        0
+      ],
+      [
+        "lebanon",
+        0,
+        0,
+        0
+      ],
+      [
+        "lebanon-repeat",
+        0,
+        0,
+        0
+      ]
+    ],
+    "scene_records_compared_each": 3025,
+    "original_calls_compared_each": 215,
+    "mismatches": 0,
+    "raw_rows_each": 3357,
+    "raw_bytes_each": 1278336,
+    "raw_sha256_each": "ed3503b12227fec13cadd2d56b62296cdb08e5bd2e5b76f0ac61db776fc59317",
+    "payloads_unchanged": true,
+    "original_reports_unchanged": true
+  },
+  "report_controls": {
+    "controller_exit": 0,
+    "pre_inputs": 0,
+    "post_inputs": 0,
+    "original_unchanged": true,
+    "payloads_unchanged": true,
+    "mutations_unchanged": true,
+    "cases": [
+      {
+        "case": "healthy",
+        "input_sha256": "b421e74ea483433ed9437b3143c68a12b76fb6d4a6f95b04c9371985dc3f0db7",
+        "actual_native_runner_exit": 0,
+        "native_exit_recorded": true,
+        "done": [
+          {
+            "event": "done",
+            "failures": 0
+          }
+        ],
+        "comparison_refused": false,
+        "expected_outcome_observed": true
+      },
+      {
+        "case": "truncated-first-scene",
+        "input_sha256": "18c2ec4fc2c5a77ce50c4d48602c60d674be55b5ec01d698f996aa725b45c7f9",
+        "actual_native_runner_exit": 1,
+        "native_exit_recorded": true,
+        "done": [],
+        "comparison_refused": true,
+        "expected_outcome_observed": true
+      },
+      {
+        "case": "duplicate-scene",
+        "input_sha256": "8e44b3608b2cd648051caa864404521ff36d96d9dbc4a522482126ebb4152d6d",
+        "actual_native_runner_exit": 1,
+        "native_exit_recorded": true,
+        "done": [],
+        "comparison_refused": true,
+        "expected_outcome_observed": true
+      },
+      {
+        "case": "missing-geometry-terminal",
+        "input_sha256": "51b518d74ae20491d3a670c89090f524c48014d669f95371fccb024e8c4eff02",
+        "actual_native_runner_exit": 1,
+        "native_exit_recorded": true,
+        "done": [],
+        "comparison_refused": true,
+        "expected_outcome_observed": true
+      },
+      {
+        "case": "failed-original-done",
+        "input_sha256": "96d2cfc5ffe14d9e3bb029f484eea7f026ece41740857da5fd704ba4f4259e56",
+        "actual_native_runner_exit": 1,
+        "native_exit_recorded": true,
+        "done": [],
+        "comparison_refused": true,
+        "expected_outcome_observed": true
+      }
+    ]
+  },
+  "byte_audit": "host-model-ba4f5d42a-vs-2020436ce-report-byte-audit-20261030.json",
+  "byte_audit_conclusion": "Every physical scene/triangle row and every other row byte exact202 except compare diagnostic adds two validated envelope counts,63bytes. Reports retained unmodified.",
+  "retained_61a80_failure": "First source235Linux library pass, integration compilation8E0308 errors in helper; Windows compile same8. Fixed test-only in ba4. No61a80 integration/Clippy/Windows/retail pass claimed.",
+  "remaining": "Clippy correction active; one new-delta review required,59original geometry gaps/production handoff/wholeD3 remain."
+}

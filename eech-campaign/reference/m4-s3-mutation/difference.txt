@@ -1,0 +1,62 @@
+georgia_retail at 10770 s: 116 of 180 final metrics differ (control -> mutant)
+  resupplied   red KEYSITE_AIRBASE ammo                            6 -> 1
+  resupplied   red KEYSITE_AIRBASE fuel                            5 -> 11
+  resupplied   red KEYSITE_FARP ammo                               1 -> 0
+  supply       blue KEYSITE_FARP ammo                           89.7 -> 89.6
+  supply       blue KEYSITE_FARP fuel                           92.3 -> 92.1
+  supply       red KEYSITE_AIRBASE ammo                         55.3 -> 46.8
+  supply       red KEYSITE_AIRBASE fuel                         28.2 -> 43.3
+  supply       red KEYSITE_FARP ammo                            91.2 -> 90.5
+  sorties      red helicopter SUPPLY                              19 -> 17
+  sortie_members red helicopter SUPPLY                              38 -> 34
+  and 106 other metrics, largest first:
+  launched     blue M73 HE submunition                           249 -> 335
+  launched     blue Hydra 70 M255 HE                              86 -> 20
+  launched     red S-13OF HE                                      10 -> 40
+  launched     blue M26A1 M85 DPICM 227mm Rocket                 362 -> 386
+  sortie_members red infantry TROOP_MOVEMENT_INSERT_CAPTURE         60 -> 36
+  launched     blue AGM-114R Hellfire II                         219 -> 242
+  spawned      red infantry                                       96 -> 76
+  launched     red S-8KOM HEAT                                   244 -> 262
+  launched     blue FIM-92A Stinger                               15 -> 29
+  alive        blue helicopter                                    31 -> 19
+  lost         red infantry                                       65 -> 54
+  launched     blue AGM-65D Maverick                              25 -> 14
+lebanon_retail at 10770 s: 148 of 272 final metrics differ (control -> mutant)
+  resupplied   blue KEYSITE_AIRBASE fuel                           0 -> 1
+  resupplied   blue KEYSITE_MILITARY_BASE ammo                     1 -> 0
+  resupplied   red KEYSITE_AIRBASE ammo                            3 -> 0
+  resupplied   red KEYSITE_AIRBASE fuel                            8 -> 12
+  resupplied   red KEYSITE_FARP fuel                               1 -> 0
+  resupplied   red KEYSITE_MILITARY_BASE ammo                      6 -> 0
+  resupplied   red KEYSITE_MILITARY_BASE fuel                      1 -> 5
+  supply       blue KEYSITE_AIRBASE ammo                          54 -> 59
+  supply       blue KEYSITE_AIRBASE fuel                          21 -> 40.6
+  supply       blue KEYSITE_FACTORY fuel                         100 -> 96.7
+  supply       blue KEYSITE_MILITARY_BASE ammo                  74.9 -> 64
+  supply       red KEYSITE_AIRBASE ammo                         43.3 -> 37
+  supply       red KEYSITE_AIRBASE fuel                         32.3 -> 44.9
+  supply       red KEYSITE_FACTORY ammo                         99.7 -> 100
+  supply       red KEYSITE_FACTORY fuel                          100 -> 96.4
+  supply       red KEYSITE_FARP ammo                            87.7 -> 89.3
+  supply       red KEYSITE_FARP fuel                            95.5 -> 82.5
+  supply       red KEYSITE_MILITARY_BASE ammo                   84.9 -> 64
+  supply       red KEYSITE_MILITARY_BASE fuel                   67.6 -> 81.3
+  supply       red KEYSITE_POWER_STATION fuel                   65.6 -> 68.2
+  sorties      red fixed_wing SUPPLY                              31 -> 29
+  sorties      red helicopter SUPPLY                              18 -> 16
+  sortie_members red fixed_wing SUPPLY                              41 -> 37
+  sortie_members red helicopter SUPPLY                              28 -> 26
+  and 124 other metrics, largest first:
+  launched     blue M26A1 M85 DPICM 227mm Rocket                2020 -> 2390
+  launched     red S-8KOM HEAT                                   411 -> 551
+  launched     red BM-21 9N51 HE 122mm Rocket                    575 -> 695
+  launched     blue MIM-72G Chaparral                            528 -> 478
+  launched     red S-13OF HE                                      30 -> 68
+  sortie_members red ground_vehicle RETREAT                         62 -> 96
+  launched     red 9M311                                         233 -> 200
+  launched     blue AGM-65D Maverick                              99 -> 125
+  launched     blue FIM-92A Stinger                               87 -> 62
+  launched     blue Mk 40 FFAR M247 HEDP                           0 -> 24
+  launched     red 9M114 Shturm                                   42 -> 65
+  sortie_members blue ground_vehicle ADVANCE                       182 -> 163

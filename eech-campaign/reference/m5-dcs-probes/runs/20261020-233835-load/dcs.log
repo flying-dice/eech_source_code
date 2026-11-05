@@ -1,0 +1,30 @@
+=== Log opened UTC 2026-10-20 22:38:41
+2026-10-20 22:38:41.149 WARNING EDCORE (Main): hypervisor is active
+2026-10-20 22:38:41.149 WARNING EDCORE (Main): CPU HAS PARKED LOGICAL CORES (this can be a source of stuttering and reduced performance, especially on hybrid CPUs with P/E-cores)
+2026-10-20 22:38:42.612 INFO    EDCORE (Main): Platform Timer Resolution: 15.69ms
+2026-10-20 22:38:43.143 INFO    EDCORE (Main): Created boot pool: n:24
+2026-10-20 22:38:43.144 INFO    APP (Main): Command line: "D:\Program Files\Eagle Dynamics\DCS World OpenBeta\bin-mt\DCS.exe" -w DCS.M5Probe --no-launcher
+2026-10-20 22:38:43.144 INFO    APP (Main): DCS/2.9.29.27468 (x86_64; MT; Windows NT 10.0.26200)
+2026-10-20 22:38:43.144 INFO    APP (Main): Application revision: 267468
+2026-10-20 22:38:43.144 INFO    APP (Main): Renderer revision: 26305
+2026-10-20 22:38:43.144 INFO    APP (Main): Terrain revision: 27885
+2026-10-20 22:38:43.144 INFO    APP (Main): Build number: 559
+2026-10-20 22:38:43.144 INFO    APP (Main): CPU cores: 16, threads: 24, System RAM: 98068 MB, Pagefile: 6144 MB
+2026-10-20 22:38:43.144 INFO    DCS (Main): CPU info:
+system  affinity mask: 111111111111111111111111
+process affinity mask: 111111111111111111111111
+CPU: 13th Gen Intel(R) Core(TM) i7-13700K [1x L3 caches]
+CPU has uniform cache size 30 MB (per cache)
+CPU cores have different efficiency classes: [0-1]
+logical cores with efficiency class 1: {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
+logical cores with efficiency class 0: {16, 17, 18, 19, 20, 21, 22, 23}
+CPU cores have different performance classes: [0-2]
+logical cores with performance class 2: {8, 9, 10, 11}
+logical cores with performance class 1: {0, 1, 2, 3, 4, 5, 6, 7, 12, 13, 14, 15}
+logical cores with performance class 0: {16, 17, 18, 19, 20, 21, 22, 23}
+common cores: {4, 5, 6, 7, 12, 13, 14, 15}
+render cores: {8, 9, 10, 11, 0, 1, 2, 3}
+IO cores: {16, 17, 18, 19, 20, 21, 22, 23}
+unavailable cores: {}
+pause10: 0.033149 us (std dev: 0.162559)
+pause10: 1112 cycles (std dev: 5136.0)

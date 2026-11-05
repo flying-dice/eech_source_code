@@ -1,0 +1,106 @@
+screened	routed	eech-world:2925:campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+screened	routed	eech-world:3153:campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+screened	routed	eech-world:2927:campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+screened	routed	eech-world:2928:campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+screened	routed	eech-world:2926:campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+screened	routed	eech-world:3154:campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+screened	routed	eech-world:3155:campaign loss: WITHHOLD does not support a group with task dependents or restricted guides
+withheld	routed	host_id=eech-world:3391 entity=90076 event=physical group_members=4 primary_task=nil keysite_m=439
+check	routed.observed_in_same_stack	pass	observe_loss ran inside the kill call
+check	routed.event_physical	pass	physical
+check	routed.entity_type	pass	23
+check	routed.left_group_at_once	pass	physical_present=true in_group=false
+wreck	routed	physical_present_at_once=true
+force_state	routed	withheld kill: losses+0 hardware[] regen[]
+check	routed.withheld_force_info_and_regen_unchanged	pass	losses+0 hardware[] regen[]
+check	routed.forward_call	pass	nil
+check	routed.forward_same_stack	pass	forward
+check	routed.forward_withheld_member_still_counted	pass	count=4 expected=4
+force_state	routed	forward control kill: losses+1 hardware[4:-1] regen[2:wrapped count 5>5 front 2>3 size 5 last 23/4/15>23/12/18]
+check	routed.forward_applies_force_info_and_regen_once	pass	losses+1 hardware[4:-1] regen[2:wrapped count 5>5 front 2>3 size 5 last 23/4/15>23/12/18]
+check	routed.forward_left_group_at_once	pass	physical_present=true in_group=false
+withheld	anti_air	host_id=eech-world:2523 entity=82313 event=physical group_members=2 primary_task=nil keysite_m=141
+check	anti_air.observed_in_same_stack	pass	observe_loss ran inside the kill call
+check	anti_air.event_physical	pass	physical
+check	anti_air.entity_type	pass	1
+check	anti_air.left_group_at_once	pass	physical_present=true in_group=false
+wreck	anti_air	physical_present_at_once=true
+force_state	anti_air	withheld kill: losses+0 hardware[] regen[]
+check	anti_air.withheld_force_info_and_regen_unchanged	pass	losses+0 hardware[] regen[]
+note	anti_air	no forward control (group of 2 members at observe)
+withheld	person	host_id=eech-world:3513 entity=94747 event=physical group_members=4 primary_task=677 keysite_m=49
+check	person.observed_in_same_stack	pass	observe_loss ran inside the kill call
+check	person.event_physical	pass	physical
+check	person.entity_type	pass	19
+check	person.left_group_at_once	pass	physical_present=true in_group=false
+wreck	person	physical_present_at_once=true
+force_state	person	withheld kill: losses+0 hardware[] regen[]
+check	person.withheld_force_info_and_regen_unchanged	pass	losses+0 hardware[] regen[]
+check	person.forward_call	pass	nil
+check	person.forward_same_stack	pass	forward
+check	person.forward_withheld_member_still_counted	pass	count=4 expected=4
+force_state	person	forward control kill: losses+0 hardware[] regen[]
+check	person.forward_applies_force_info_and_regen_once	pass	losses+0 hardware[] regen[]
+check	person.forward_left_group_at_once	pass	physical_present=true in_group=false
+settled	0 frames of 1000 ms (0.0 game minutes)
+wreck	routed	at_report physical_present=true in_group=false after 0 frames
+check	routed.still_out_of_group_before_report	pass
+force_state	routed	report: losses+1 hardware[5:-1] regen[2:wrapped count 5>5 front 3>4 size 5 last 23/12/18>23/22/18]
+check	routed.report_applies_force_info_and_regen_once	pass	losses+1 hardware[5:-1] regen[2:wrapped count 5>5 front 3>4 size 5 last 23/12/18>23/22/18]
+receipt	routed	group_losses=1>2 logical=3>2 physical_before=2 primary_losses=0>0 landing=0>0 expire=0 completed=0
+check	routed.group_losses_plus_one	pass
+check	routed.logical_members_held_until_report	pass	observe=4 forwarded=1 report_before=3
+check	routed.logical_members_minus_one	pass
+check	routed.physical_members_already_removed	pass	physical_before=2
+check	routed.primary_task_losses_unchanged	pass
+check	routed.no_landing_or_task_work	pass
+check	routed.probe_call	pass	nil
+check	routed.probe_sees_both_decrements	pass	count=2 expected=2
+wreck	anti_air	at_report physical_present=true in_group=false after 0 frames
+check	anti_air.still_out_of_group_before_report	pass
+force_state	anti_air	report: losses+1 hardware[4:-1] regen[]
+check	anti_air.report_applies_force_info_and_regen_once	pass	losses+1 hardware[4:-1] regen[]
+receipt	anti_air	group_losses=0>1 logical=2>1 physical_before=1 primary_losses=0>0 landing=0>0 expire=0 completed=0
+check	anti_air.group_losses_plus_one	pass
+check	anti_air.logical_members_held_until_report	pass	observe=2 forwarded=0 report_before=2
+check	anti_air.logical_members_minus_one	pass
+check	anti_air.physical_members_already_removed	pass	physical_before=1
+check	anti_air.primary_task_losses_unchanged	pass
+check	anti_air.no_landing_or_task_work	pass
+note	anti_air	group too small for the probe (2 members at observe)
+wreck	person	at_report physical_present=true in_group=false after 0 frames
+check	person.still_out_of_group_before_report	pass
+force_state	person	report: losses+0 hardware[] regen[]
+check	person.report_applies_force_info_and_regen_once	pass	losses+0 hardware[] regen[]
+receipt	person	group_losses=1>2 logical=3>2 physical_before=2 primary_losses=0>0 landing=0>0 expire=0 completed=0
+check	person.group_losses_plus_one	pass
+check	person.logical_members_held_until_report	pass	observe=4 forwarded=1 report_before=3
+check	person.logical_members_minus_one	pass
+check	person.physical_members_already_removed	pass	physical_before=2
+check	person.primary_task_losses_unchanged	pass
+check	person.no_landing_or_task_work	pass
+check	person.probe_call	pass	nil
+check	person.probe_sees_both_decrements	pass	count=2 expected=2
+rejected	duplicate	host_id=eech-world:3513 message=runtime error: eech: EECH fatal error: campaign loss: loss for eech-world:3513 was already reported
+stack traceback:
+	[C]: in ?
+	[C]: in function 'pcall'
+	[string "loss-all-family.lua"]:184: in function 'raises'
+	[string "loss-all-family.lua"]:547: in main chunk
+
+check	reject.duplicate.raises	pass	runtime error: eech: EECH fatal error: campaign loss: loss for eech-world:3513 was already reported
+stack traceback:
+	[C]: in ?
+	[C]: in function 'pcall'
+	[string "loss-all-family.lua"]:184: in function 'raises'
+	[string "loss-all-family.lua"]:547: in main chunk
+
+note	engine after the rejected report: frame raises (runtime error: eech: the engine is poisoned by an earlier fatal error
+stack traceback:
+	[C]: in ?
+	[C]: in function 'pcall'
+	[string "loss-all-family.lua"]:184: in function 'raises'
+	[string "loss-all-family.lua"]:550: in main chunk
+)
+summary	routed=withheld+reported(present) anti_air=withheld+reported(present) person=withheld+reported(present) reject=duplicate
+result	ok

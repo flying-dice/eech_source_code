@@ -1,0 +1,40 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-sys v0.1.0 (/src/eech-campaign/crates/eech-sys)
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+    Checking eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Checking eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+error: very complex type used. Consider factoring parts into `type` definitions
+    --> crates/eech-engine/src/lib.rs:7523:22
+     |
+7523 |         let changes: [(&str, fn(&mut sys::eech_aim_step)); 4] = [
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#type_complexity
+     = note: `-D clippy::type-complexity` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::type_complexity)]`
+
+error: used `expect()` on an `Option` value
+    --> crates/eech-engine/src/lib.rs:7554:40
+     |
+7554 |         let ids: Vec<Option<String>> = blast.window.expect("window").entries.into_iter().map(|e| e.host_id).collect();
+     |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is `None`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#expect_used
+     = note: requested on the command line with `-D clippy::expect-used`
+
+error: used `expect()` on an `Option` value
+    --> crates/eech-engine/src/lib.rs:7614:20
+     |
+7614 |         assert_eq!(bridge.window.expect("window").entries[0].host_id.as_deref(), Some("veh-4"));
+     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is `None`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#expect_used
+
+error: could not compile `eech-engine` (lib test) due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...
+CARGO_EXIT=101
+DOCKER_EXIT=101

@@ -1,0 +1,4584 @@
+//! The host's own native callbacks fail through the same mlua error path as the DLL's
+//! (docs/m5-dcs-lua-abi.md): run the host binary on a script that makes host.log fail.
+use std::process::Command;
+
+const FAILING_HOST_LOG_SCRIPT: &str = "host.log('a good host callback')
+for _ = 1, 100 do
+  local ok, err = pcall(host.log, {})
+  assert(not ok, 'host.log accepted a table')
+  assert(tostring(err):find('string', 1, true), tostring(err))
+end
+collectgarbage('collect')
+print('HOST_LOG_ERRORS=100')
+";
+
+#[test]
+fn a_failing_host_callback_returns_its_error_to_pcall() {
+    let script = std::env::temp_dir().join(format!("eech-world-host-callbacks-{}.lua", std::process::id()));
+    std::fs::write(&script, FAILING_HOST_LOG_SCRIPT).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("HOST_LOG_ERRORS=100"), "{stdout}\n{stderr}");
+    assert!(stderr.contains("[campaign] a good host callback"), "{stderr}");
+}
+
+const MOVE_VEHICLE_SCRIPT: &str = "local pose = { position = { 0, 0, 0 }, velocity = 0, attitude = { 1, 0, 0, 0, 1, 0, 0, 0, 1 } }
+local id = host.bind_mobile({ member_key = 1, group_key = 1, entity_id = 1, entity_type = 1, sub_type = 1, side = 1, pose = pose, movement_kind = 1 })
+local function stop(host_id, from) return host.move_vehicle({ host_id = host_id, mode = 'stop', pose = from }) end
+assert(stop(id, pose).velocity == 0)
+local ok, err = pcall(stop, 'eech-world:999', pose)
+assert(not ok and tostring(err):find('unknown host id eech-world:999', 1, true), tostring(err))
+local moved = { position = { 1, 0, 0 }, velocity = 0, attitude = pose.attitude }
+ok, err = pcall(stop, id, moved)
+assert(not ok and tostring(err):find('differs from the host', 1, true), tostring(err))
+ok, err = pcall(host.move_vehicle, { host_id = id, mode = 'glide', pose = pose })
+assert(not ok and tostring(err):find('unknown mode glide', 1, true), tostring(err))
+local man = host.bind_mobile({ member_key = 2, group_key = 1, entity_id = 2, entity_type = 2, sub_type = 1, side = 1, pose = pose, movement_kind = 3 })
+local function step(host_id, mode, extra)
+  local request = { host_id = host_id, mode = mode, pose = pose }
+  for key, value in pairs(extra or {}) do request[key] = value end
+  return host.move_vehicle(request)
+end
+local begin = { delta_seconds = 0.1, ps_vel = 1.5, waypoint = { 10, 0, 0 }, terrain_follow = true }
+ok, err = pcall(step, id, 'ship_move', { delta_seconds = 0.1, frame_delta = 0.1, desired_velocity = 1, max_acceleration = 1, g_max = 1, waypoint = { 10, 0, 0 }, map_min = { -1e6, 0, -1e6 }, map_max = { 1e6, 0, 1e6 } })
+assert(not ok and tostring(err):find('is not a request for', 1, true), tostring(err))
+ok, err = pcall(step, id, 'person_begin', begin)
+assert(not ok and tostring(err):find('is not a request for', 1, true), tostring(err))
+ok, err = pcall(step, man, 'person_end', { elevation = 5 })
+assert(not ok and tostring(err):find('without a pending person_begin', 1, true), tostring(err))
+local advanced = step(man, 'person_begin', begin)
+assert(advanced.pending == true)
+ok, err = pcall(step, man, 'stop')
+assert(not ok and tostring(err):find('is not a request for', 1, true), tostring(err))
+ok, err = pcall(step, man, 'person_begin', begin)
+assert(not ok and tostring(err):find('while its person step is pending', 1, true), tostring(err))
+local settled = step(man, 'person_end', { elevation = 5 })
+assert(settled.pending == false and settled.position[2] > 5 and settled.position[2] < 5.1, tostring(settled.position[2]))
+print('MOVE_VEHICLE_ERRORS=3')
+print('SURFACE_MOVEMENT_ERRORS=5')
+";
+
+#[test]
+fn move_vehicle_refuses_an_unknown_id_a_foreign_pose_and_an_unknown_mode() {
+    let script = std::env::temp_dir().join(format!("eech-world-move-vehicle-{}.lua", std::process::id()));
+    std::fs::write(&script, MOVE_VEHICLE_SCRIPT).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("MOVE_VEHICLE_ERRORS=3"), "{stdout}\n{stderr}");
+}
+
+const HELICOPTER_HOSTED_SCRIPT: &str = "local pose = { position = { 5000, 0, 5000 }, velocity = 0, attitude = { 1, 0, 0, 0, 1, 0, 0, 0, 1 } }
+local function bind(key)
+  return host.bind_mobile({ member_key = key, group_key = 1, entity_id = key, entity_type = 5, sub_type = 1, side = 1, pose = pose, movement_kind = 5, motion_vector = { 0, 0, 100 }, rotor = { 100, 100, 0 } })
+end
+local leader, follower = bind(1), bind(2)
+local function step(host_id, mode, extra)
+  local request = { host_id = host_id, mode = mode, pose = pose }
+  for key, value in pairs(extra or {}) do request[key] = value end
+  return host.move_vehicle(request)
+end
+local function plan(members)
+  return { hc_plan_members = members, hc_group_leader = false, hc_task_leader = true, hc_task_leader_is_self = true, hc_position_hold = false,
+    terrain_follow = true, hc_terrain_follow_attack_altitude = false, hc_waypoint_kind = 1, hc_guide_altitude_valid = false,
+    waypoint = { 5000, 0, 6000 }, hc_waypoint_velocity = { 0, 0, 0 }, hc_distance = 1000, elevation = 0, hc_fuel_supply_level = 100,
+    hc_cruise_velocity = 50, power_output = 1, hc_cruise_altitude = 50, hc_attack_altitude = 30, hc_leader_radar_altitude = 0,
+    map_min = { -1e6, 0, -1e6 }, map_max = { 1e6, 0, 1e6 }, delta_seconds = 0.5, motion_vector_in = { 0, 0, 100 } }
+end
+-- a member the roster lacks travels as a table without a host id and is refused by position, not skipped
+local ok, err = pcall(step, follower, 'helicopter_plan', plan({ { host_id = leader }, {} }))
+assert(not ok and tostring(err):find('group member #1 names no host id', 1, true), tostring(err))
+local planned = step(follower, 'helicopter_plan', plan({ { host_id = leader } }))
+local query = planned.query
+assert(query and planned.guidance == nil, 'a plan answers the query only')
+assert(type(query.structure_scan) == 'boolean' or type(query.structure_scan) == 'number', type(query.structure_scan))
+assert(query.terrain_sample_count >= 1 and query.terrain_sample_count <= 2, query.terrain_sample_count)
+assert(#query.terrain_sample == 4 and #query.structure_position == 3)
+local function samples(count)
+  local list, running = {}, 0
+  for i = 1, count do
+    local first = 10 - 5 * (i - 1)
+    if running > first then list[i] = { first = first } else running = first; list[i] = { first = first, second = first } end
+  end
+  return list
+end
+-- a terrain-sample count that differs from the plan is refused and leaves the plan open
+ok, err = pcall(step, follower, 'helicopter_guide', { motion_vector_in = { 0, 0, 100 }, hc_structures = {}, hc_terrain_samples = samples(query.terrain_sample_count + 1) })
+assert(not ok and tostring(err):find('terrain samples answered', 1, true), tostring(err))
+local structures = { { position = { 5000, 0, 5500 }, avoidance_radius = 20, height = 15 } }
+local guided = step(follower, 'helicopter_guide', { motion_vector_in = { 0, 0, 100 }, hc_structures = structures, hc_terrain_samples = samples(query.terrain_sample_count) })
+local g = guided.guidance
+assert(g and guided.query == nil and type(g.lift) == 'number' and #g.wp_vec == 3 and #g.world_acceleration == 3 and #g.waypoint == 3, 'a guide answers the guidance only')
+-- abandoning the open step discards it: its guidance cannot be begun
+assert(step(follower, 'helicopter_abandon').pending == false)
+ok, err = pcall(step, follower, 'helicopter_guided_begin', { delta_seconds = 0.5, motion_vector_in = { 0, 0, 100 } })
+assert(not ok and tostring(err):find('without host guidance', 1, true), tostring(err))
+print('HELICOPTER_HOSTED_LUA=ok')
+";
+
+#[test]
+fn the_hosted_helicopter_plan_guide_and_abandon_round_trip_through_lua() {
+    let script = std::env::temp_dir().join(format!("eech-world-hc-hosted-{}.lua", std::process::id()));
+    std::fs::write(&script, HELICOPTER_HOSTED_SCRIPT).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("HELICOPTER_HOSTED_LUA=ok"), "{stdout}\n{stderr}");
+}
+
+const DEPENDENT_CARRY_SCRIPT: &str = "local level = { 1, 0, 0, 0, 1, 0, 0, 0, 1 }
+local function at(x, z) return { position = { x, 0, z }, velocity = 0, attitude = level } end
+local function bind(key, kind, x, z, extra)
+  local request = { member_key = key, group_key = 1, entity_id = key, entity_type = key, sub_type = 1, side = 1, pose = at(x, z), movement_kind = kind }
+  for name, value in pairs(extra or {}) do request[name] = value end
+  return host.bind_mobile(request)
+end
+local ship, child, grandchild = bind(1, 1, 0, 0), bind(2, 1, 10, 0), bind(3, 1, 20, 0)
+local function carry(host_id, pose, extra)
+  local request = { host_id = host_id, mode = 'dependent_carry', pose = pose, dc_helicopter = false, dc_heading = 0, dc_velocity = 0 }
+  for name, value in pairs(extra) do request[name] = value end
+  return host.move_vehicle(request)
+end
+local function from_parent(parent, old, new) return { dc_parent = parent, dc_parent_old = old, dc_parent_new = new } end
+-- the parent is written and placed after its dependents are told, so the host still holds its old position
+local moved = carry(child, at(10, 0), from_parent(ship, { 0, 0, 0 }, { 5, 0, 5 }))
+assert(moved.position[1] == 5 and moved.position[3] == 5, 'a routed child adopts the parent position')
+-- the host moved the child, so the grandchild (told with the child's old position) is carried from the child's new record
+local nested = carry(grandchild, at(20, 0), from_parent(child, { 10, 0, 0 }, { 5, 0, 5 }))
+assert(nested.position[1] == 5 and nested.position[3] == 5, 'a nested child adopts its parent position')
+-- the host's records now agree with what the campaign wrote: a later step is checked against the carried pose
+assert(host.move_vehicle({ host_id = child, mode = 'stop', pose = at(5, 5) }).velocity == 0)
+local function refused(fragment, host_id, pose, extra)
+  local ok, err = pcall(carry, host_id, pose, extra)
+  assert(not ok and tostring(err):find(fragment, 1, true), fragment .. ' / ' .. tostring(err))
+end
+refused('is the child itself', child, at(5, 5), from_parent(child, { 5, 5, 5 }, { 6, 5, 5 }))
+refused('is not a host id with a movement record', child, at(5, 5), from_parent('eech-world:999', { 0, 0, 0 }, { 1, 0, 0 }))
+refused('a move the host did not make', child, at(5, 5), from_parent(ship, { 9, 0, 9 }, { 1, 0, 0 }))
+refused('dc_parent_new must be 3 finite numbers', child, at(5, 5), from_parent(ship, { 0, 0, 0 }, { 0 / 0, 0, 0 }))
+refused('differs from the host', child, at(6, 5), from_parent(ship, { 0, 0, 0 }, { 6, 0, 5 }))
+refused('Lua nil to String', child, at(5, 5), { dc_parent_old = { 0, 0, 0 }, dc_parent_new = { 6, 0, 5 } })
+-- a helicopter child is turned by the parent's heading change and adopts its velocity; a routed child is not a helicopter shape
+local pilot = bind(4, 5, 100, 100, { motion_vector = { 0, 0, 100 }, rotor = { 100, 100, 0 } })
+local turned = carry(pilot, at(100, 100), { dc_parent = ship, dc_helicopter = true, dc_parent_old = { 0, 0, 0 }, dc_parent_new = { 6, 0, 5 }, dc_heading = 0, dc_velocity = 7 })
+assert(turned.velocity == 7 and #turned.attitude == 9, 'a helicopter child adopts the parent velocity and rebuilt attitude')
+assert(math.abs(turned.position[1] - 106) < 1e-4 and math.abs(turned.position[3] - 105) < 1e-4, turned.position[1] .. ',' .. turned.position[3])
+refused('is not a request for', child, at(5, 5), { dc_parent = ship, dc_helicopter = true, dc_parent_old = { 0, 0, 0 }, dc_parent_new = { 6, 0, 5 } })
+print('DEPENDENT_CARRY_LUA=ok')
+";
+
+#[test]
+fn a_dependent_carry_round_trips_through_lua_and_refuses_what_the_host_did_not_move() {
+    let script = std::env::temp_dir().join(format!("eech-world-dependent-carry-{}.lua", std::process::id()));
+    std::fs::write(&script, DEPENDENT_CARRY_SCRIPT).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("DEPENDENT_CARRY_LUA=ok"), "{stdout}\n{stderr}");
+}
+
+const LINE_OF_SIGHT_SCRIPT: &str = "local function begin(extra)
+  local step = { mode = 'begin', entity_form = false, criteria = 1, source_eye = false, target_eye = false, source_position = { 0, 100, 0 }, target_position = { 1000, 100, 0 } }
+  for key, value in pairs(extra or {}) do step[key] = value end
+  return host.line_of_sight(step)
+end
+local function refused(step, text)
+  local ok, err = pcall(host.line_of_sight, step)
+  assert(not ok and tostring(err):find(text, 1, true), text .. ' / ' .. tostring(err))
+end
+-- a clear ray: four coarse samples, asked one at a time, then the visibility
+local r = begin()
+assert(r.state == 'need_terrain' and r.phase == 1 and math.abs(r.point[1] - 200) < 0.01 and math.abs(r.point[2] - 100) < 0.01, 'first sample')
+for i = 2, 4 do
+  r = host.line_of_sight({ mode = 'terrain', elevation = 0 })
+  assert(r.state == 'need_terrain' and math.abs(r.point[1] - 200 * i) < 0.01, 'sample ' .. i)
+end
+r = host.line_of_sight({ mode = 'terrain', elevation = 0 })
+assert(r.state == 'done' and r.visible == true, 'clear')
+-- a blocked ray ends at the first blocker
+r = begin()
+r = host.line_of_sight({ mode = 'terrain', elevation = 150 })
+assert(r.state == 'done' and r.visible == false, 'blocked at the first sample')
+-- identities pass through by shape only: a source and a target id, and none
+r = begin({ criteria = 0, source_host_id = 'eech-world:1', target_host_id = 'eech-world:2' })
+assert(r.state == 'done' and r.visible == true)
+refused({ mode = 'begin', entity_form = false, criteria = 0, source_eye = false, target_eye = false, source_host_id = string.rep('x', 129), source_position = { 0, 0, 0 }, target_position = { 1, 0, 0 } }, 'source_host_id must be 1 to 128 bytes')
+refused({ mode = 'begin', entity_form = false, criteria = 0, source_eye = false, target_eye = false, target_host_id = '', source_position = { 0, 0, 0 }, target_position = { 1, 0, 0 } }, 'target_host_id must be 1 to 128 bytes')
+refused({ mode = 'begin', entity_form = false, criteria = 0, source_eye = false, target_eye = false, source_host_id = 5, source_position = { 0, 0, 0 }, target_position = { 1, 0, 0 } }, 'source_host_id must be a string')
+-- malformed requests
+refused({ mode = 'begin', entity_form = false, criteria = 32, source_eye = false, target_eye = false, source_position = { 0, 0, 0 }, target_position = { 1, 0, 0 } }, 'outside the five check bits')
+refused({ mode = 'begin', entity_form = false, criteria = 1, source_eye = 1, target_eye = false, source_position = { 0, 0, 0 }, target_position = { 1, 0, 0 } }, 'source_eye must be a boolean')
+refused({ mode = 'begin', entity_form = 'no', criteria = 1, source_eye = false, target_eye = false, source_position = { 0, 0, 0 }, target_position = { 1, 0, 0 } }, 'entity_form must be a boolean')
+refused({ mode = 'begin', entity_form = false, criteria = 1, source_eye = false, target_eye = false, source_position = { 0, 0 }, target_position = { 1, 0, 0 } }, 'source_position must be 3 finite numbers')
+refused({ mode = 'begin', entity_form = false, criteria = 1, source_eye = false, target_eye = false, source_position = { 0, 0, 0 / 0 }, target_position = { 1, 0, 0 } }, 'source_position must be 3 finite numbers')
+refused({ mode = 'begin', entity_form = false, criteria = 1.5, source_eye = false, target_eye = false, source_position = { 0, 0, 0 }, target_position = { 1, 0, 0 } }, 'criteria must be an integer')
+refused({ mode = 'glide' }, 'unknown mode')
+-- answers that were not asked for
+begin()
+refused({ mode = 'objects', hit = false }, 'none was asked for')
+refused({ mode = 'terrain', elevation = 1 / 0 }, 'elevation must be')
+r = host.line_of_sight({ mode = 'terrain', elevation = 0 })
+assert(r.state == 'need_terrain' and math.abs(r.point[1] - 400) < 0.01, 'the refused answers changed nothing')
+r = begin({ criteria = 0 })
+assert(r.state == 'done')
+refused({ mode = 'terrain', elevation = 0 }, 'no query open')
+refused({ mode = 'objects', hit = false }, 'no query open')
+-- object rays: a hit needs its point, a miss carries none, and the 12 m exclusion is the host's
+r = begin({ criteria = 16, target_position = { 1000, 0, 0 }, source_position = { 0, 0, 0 } })
+assert(r.state == 'need_objects' and r.phase == 5 and math.abs(r.from[1] - 1000) < 0.01 and math.abs(r.to[1] - 800) < 0.01, 'target-end ray')
+refused({ mode = 'objects', hit = true }, 'needs its collision point')
+refused({ mode = 'objects', hit = false, collision_point = { 0, 0, 0 } }, 'must not carry a collision point')
+refused({ mode = 'objects', hit = 'yes' }, 'hit must be a boolean')
+r = host.line_of_sight({ mode = 'objects', hit = true, collision_point = { 988, 0, 0 } })
+assert(r.state == 'done' and r.visible == true, 'a hit exactly 12 m from the target is excluded')
+r = begin({ criteria = 16, target_position = { 1000, 0, 0 }, source_position = { 0, 0, 0 } })
+r = host.line_of_sight({ mode = 'objects', hit = true, collision_point = { 987, 0, 0 } })
+assert(r.state == 'done' and r.visible == false, 'a hit 13 m from the target blocks')
+print('LINE_OF_SIGHT_HOST=ok')
+";
+
+#[test]
+fn line_of_sight_round_trips_through_lua_and_refuses_what_it_was_not_asked() {
+    let script = std::env::temp_dir().join(format!("eech-world-line-of-sight-{}.lua", std::process::id()));
+    std::fs::write(&script, LINE_OF_SIGHT_SCRIPT).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("LINE_OF_SIGHT_HOST=ok"), "{stdout}\n{stderr}");
+}
+
+const SENSE_SCRIPT: &str = "local function refused(step, text)
+  local ok, err = pcall(host.sense, step)
+  assert(not ok and tostring(err):find(text, 1, true), text .. ' / ' .. tostring(err))
+end
+local SRC = { 1000, 100, 2000 }
+-- a surface-to-air scan: the floor, the draw, the signature, the end, over the Lua boundary
+local r = host.sense({ mode = 'begin', scan = 'surface_to_air', source_position = SRC, scan_range = 6000, scan_ceiling = 6000, scan_floor = 18, source_host_id = 'eech-world:1' })
+assert(r.state == 'open' and r.echo and r.echo.ceiling == 6100, 'begin')
+r = host.sense({ mode = 'candidate', scan = 'surface_to_air', target_position = { 4000, 100, 2000 }, target_player = false, radar_altitude = 15, target_host_id = 'eech-world:2' })
+assert(r.state == 'need_draw' and r.target_range == 3000 and r.echo.floor == 9, 'the floor is lowered by the half-range candidate')
+r = host.sense({ mode = 'draw', draw = 0.0 })
+assert(r.state == 'need_signature' and r.echo.tolerance_limit == 9, 'the limit is floor * (1 + 0.5 * draw)')
+r = host.sense({ mode = 'signature', scan = 'surface_to_air', helicopter = { weapon_bay_closed = false, stub_wings_attached = true, undercarriage_up = false } })
+assert(r.state == 'accept' and r.target_range == 3000 and r.echo.stealth_factor == 1, 'accepted')
+-- the next candidate meets the lowered floor
+r = host.sense({ mode = 'candidate', scan = 'surface_to_air', target_position = { 7000, 100, 2000 }, target_player = false, radar_altitude = 8 })
+assert(r.state == 'reject' and r.reason == 'altitude' and r.echo.floor == 9, 'the floor stayed lowered')
+r = host.sense({ mode = 'end' })
+assert(r.state == 'closed', 'end')
+-- an aircraft scan rejects with its reason
+host.sense({ mode = 'begin', scan = 'air_to_surface', source_position = SRC, scan_range = 4000 })
+r = host.sense({ mode = 'candidate', scan = 'air_to_surface', target_position = { 5001, 0, 2000 }, target_player = false })
+assert(r.state == 'reject' and r.reason == 'range' and r.target_range > 16000000, 'out of range')
+host.sense({ mode = 'end' })
+-- malformed messages
+refused({ mode = 'glide' }, 'unknown mode')
+refused({ mode = 'begin', scan = 'sideways', source_position = SRC, scan_range = 1 }, 'unknown scan')
+refused({ mode = 'begin', scan = 'air_to_air', source_position = { 0, 0 }, scan_range = 1 }, 'source_position must be 3 finite numbers')
+refused({ mode = 'begin', scan = 'air_to_air', source_position = SRC, scan_range = 0 / 0 }, 'scan_range must be a finite number')
+refused({ mode = 'begin', scan = 'air_to_air', source_position = SRC, scan_range = 1, source_host_id = '' }, 'source_host_id must be 1 to 128 bytes')
+host.sense({ mode = 'begin', scan = 'surface_to_air', source_position = SRC, scan_range = 6000, scan_ceiling = 6000, scan_floor = 18 })
+refused({ mode = 'candidate', scan = 'surface_to_air', target_position = SRC, target_player = 1, radar_altitude = 1 }, 'target_player must be a boolean')
+refused({ mode = 'candidate', scan = 'surface_to_air', target_position = SRC, target_player = true, radar_altitude = 1 }, 'difficulty factor')
+refused({ mode = 'candidate', scan = 'surface_to_air', target_position = SRC, target_player = false, radar_altitude = 1 / 0 }, 'radar_altitude must be a finite number')
+refused({ mode = 'candidate', scan = 'air_to_air', target_position = SRC, target_player = false }, 'arrived in a scan of kind')
+refused({ mode = 'draw', draw = 0.5 }, 'none was asked for')
+refused({ mode = 'signature', scan = 'surface_to_air' }, 'none was asked for')
+host.sense({ mode = 'candidate', scan = 'surface_to_air', target_position = { 7000, 100, 2000 }, target_player = false, radar_altitude = 25 })
+refused({ mode = 'draw', draw = 1.5 }, 'draw')
+refused({ mode = 'signature', scan = 'surface_to_air', emitters = { radar_on = 1 } }, 'radar_on must be a boolean')
+r = host.sense({ mode = 'draw', draw = 1.0 })
+assert(r.state == 'reject' and r.reason == 'tolerance', 'the refused answers changed nothing')
+host.sense({ mode = 'end' })
+refused({ mode = 'end' }, 'none open')
+print('SENSE_HOST=ok')
+";
+
+#[test]
+fn sense_round_trips_through_lua_and_refuses_what_it_was_not_asked() {
+    let script = std::env::temp_dir().join(format!("eech-world-sense-{}.lua", std::process::id()));
+    std::fs::write(&script, SENSE_SCRIPT).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("SENSE_HOST=ok"), "{stdout}\n{stderr}");
+}
+
+const AIM_SCRIPT: &str = "local function refused(step, text)
+  local ok, err = pcall(host.aim, step)
+  assert(not ok and tostring(err):find(text, 1, true), text .. ' / ' .. tostring(err))
+end
+local function near(a, b) return math.abs(a - b) < 1e-6 end
+-- the weapon-system-ready keyframe: closed, commanded open, opening, open, commanded closed, closing, wrapped
+local r = host.aim({ mode = 'ready_command', source_host_id = 'eech-world:1', state = 0.0, open = true })
+assert(r.state == 'done' and r.ready_state == 1.0, 'commanded open from closed starts the opening')
+r = host.aim({ mode = 'ready_update', state = 1.0, rate = 0.5, delta_time = 0.5 })
+assert(r.state == 'done' and r.ready_state == 1.25 and r.phase == 1, 'opening advances by rate * time')
+r = host.aim({ mode = 'ready_update', state = 1.75, rate = 0.5, delta_time = 1.0 })
+assert(r.ready_state == 2.0 and r.phase == 1, 'opening ends at open')
+r = host.aim({ mode = 'ready_update', state = 2.0, rate = 0.5, delta_time = 1.0 })
+assert(r.ready_state == 2.0 and r.phase == 2, 'open holds')
+r = host.aim({ mode = 'ready_command', state = 2.0, open = false })
+assert(r.ready_state == 3.0, 'commanded closed from open starts the closing')
+r = host.aim({ mode = 'ready_update', state = 3.5, rate = 0.5, delta_time = 2.0 })
+assert(r.ready_state == 0.0 and r.phase == 3, 'closing wraps to closed')
+r = host.aim({ mode = 'ready_update', state = 0.0, rate = 0.5, delta_time = 1.0 })
+assert(r.ready_state == 0.0 and r.phase == 0, 'closed holds')
+-- the device step: nothing to reach, nothing taken
+r = host.aim({ mode = 'step', current_heading = 0.25, current_pitch = -0.1, required_heading = 0.25, required_pitch = -0.1, heading_min = -1, heading_max = 1, heading_rate = 1, pitch_rate = 1, delta_time = 0.1 })
+assert(r.state == 'done' and r.delta_heading == 0 and r.delta_pitch == 0 and r.new_heading == 0.25 and near(r.new_pitch, -0.1), 'a device at its required offsets stays')
+-- the offsets with no package limit (the HUD's) and of a gun aimed at a tracking point (the player's cannon tracking)
+local LEVEL = { 1, 0, 0, 0, 1, 0, 0, 0, 1 }
+r = host.aim({ mode = 'required', device_attitude = LEVEL, intercept_vector = { 1, 0, 0 }, unbounded = true })
+assert(r.state == 'done' and near(r.required_heading, math.pi / 2) and near(r.required_pitch, 0), 'unbounded offsets are the bearing as it is')
+r = host.aim({ mode = 'required', device_attitude = LEVEL, tracking = { device_position = { 0, 0, 0 }, point = { 100, 7, 0 }, pitch = 0 }, unbounded = true })
+assert(near(r.required_heading, math.pi / 2) and near(r.required_pitch, 0), 'a tracking point is aimed at in the horizontal plane, lowered by the ballistic pitch')
+refused({ mode = 'required', device_attitude = LEVEL, tracking = { device_position = { 0, 0, 0 }, point = { 1, 0, 1 }, pitch = 0 }, heading_min = -1, heading_max = 1, pitch_min = -1, pitch_max = 1, climb = false }, 'tracking request has no package limits')
+refused({ mode = 'required', device_attitude = LEVEL, intercept_vector = { 0, 0, 1 }, unbounded = 1 }, 'unbounded must be a boolean')
+-- the host generates its own ballistic table from the weapon's figures (no cell is sent), and a request for a weapon without one is refused
+local function gun(name) return { name = name, start_weight = 0.1, final_weight = 0.1, max_range = 1000, muzzle_velocity = 900, cruise_velocity = 900, g_max = 0, boost_time = 0, cruise_time = 4, inhibit_time = 0, drag_coefficient = 0.3, flightpath_deviation = 0, boost_power = 0, sustain_power = 0, sustain_time = 0, diameter = 0.02, max_altitude = 0, ignore_gravity = false, flight_profile_or_self_destr = 0, parachute_type = 0, weapon_class = 8, cruise_time_max_error = 0, detonation_radius = 0, max_seeker_limit = 0, max_launch_angle_error = 0, survive_ground_impact = 0, in_flight_collision_check = 0, guidance_type = 0, aiming_type = 3, decoy_type = 0, warhead_type = 3, hellfire_ii = 0, smoke_grenade = 0, submunition_count = 0, submunition_velocity_factor = 0, muzzle_velocity_max_error = 0, circular_error_probable = 0, rate_of_fire = 0, inverse_rate_of_fire = 0, acquire_forward = 0 } end
+r = host.aim({ mode = 'table', weapon = 7, figures = gun('test gun'), first = false, last = false, echo = false, echo_cells = 0 })
+assert(r.state == 'done' and r.echo_cells == nil and r.echo == nil, 'the table is generated and nothing comes back')
+-- with an echo (the test fixture build's) the host gives back its flights and the cells of the table it generated, in the model's shape
+r = host.aim({ mode = 'table', weapon = 9, figures = gun('echo gun'), first = false, last = false, echo = true, echo_cells = 5 * 85 * 52 * 2 })
+assert(r.state == 'done' and #r.echo_cells == 5 * 85 * 52 * 2 * 4, 'the echo carries every cell')
+assert(#r.echo == 83 and r.echo[1].kind == 'table_flight' and r.echo[1].a == 0 and r.echo[1].d > 0 and r.echo[1].f[2] == 52, 'one record per simulated flight')
+-- the lead's flight time is a partial output: sent when the prediction produced one, absent when it did not (it is never invented)
+local MAP = { map_min = { 0, 0, 0 }, map_max = { 100000, 100000, 100000 }, comms_weapon_lag = 0, source_gunship = false, echo = false }
+local function lead(device, point, parent_velocity)
+  local request = { mode = 'lead', weapon = 7, device_position = device, parent_velocity = parent_velocity, target = { position = point, point = point, motion_vector = { 0, 0, 0 }, mobile = true } }
+  for k, v in pairs(MAP) do request[k] = v end
+  return host.aim(request)
+end
+r = lead({ 0, 0, 0 }, { 500, 0, 0 }, 0)
+assert(r.state == 'done' and r.ok == true and type(r.time_of_flight) == 'number', 'a ballistic lookup produced a flight time')
+r = lead({ 198500, 0, 0 }, { 200000, 0, 0 }, 500)
+assert(r.state == 'done' and r.ok == true and r.time_of_flight == nil, 'the off-map success produces no flight time: it is absent, not zero')
+r = lead({ 10, 0, 10 }, { 10, 0, 10 }, 0)
+assert(r.state == 'done' and r.ok == false and r.time_of_flight == nil, 'a tiny range produces none')
+refused({ mode = 'ballistic', weapon = 8, range = 50, height_diff_or_pitch = 0, simplified = false, fixed_pitch = false, parent_velocity = 0 }, 'no ballistic table for weapon 8')
+refused({ mode = 'table', weapon = 7, first = false, last = false, echo = false }, 'figures must be a table')
+refused({ mode = 'table', weapon = 7, figures = gun(''), first = false, last = false, echo = false }, 'weapon name must be 1 to 63 bytes')
+refused({ mode = 'table', weapon = 0, figures = gun('test gun'), first = false, last = false, echo = false }, 'not a weapon')
+refused({ mode = 'table', weapon = 7, figures = gun('test gun'), first = 1, last = false, echo = false }, 'first must be a boolean')
+local rangeless = gun('rangeless gun') rangeless.max_range = 0
+refused({ mode = 'table', weapon = 7, figures = rangeless, first = false, last = false, echo = false }, 'range limit')
+local slow = gun('infinite gun') slow.drag_coefficient = 1 / 0
+refused({ mode = 'table', weapon = 7, figures = slow, first = false, last = false, echo = false }, 'drag_coefficient')
+-- the host keeps every weapon's figures and flies a weapon by them (the weapon step): a pass that needs the campaign's world stops and changes nothing, and is asked
+-- again with the answers; it ends with the weapon's state, attitude and position as ordered actions
+-- (a weapon that lives has a motor: the original's weight is defined for non-zero boost and sustain times)
+local flown = gun('flown gun')
+flown.start_weight, flown.final_weight, flown.diameter, flown.boost_time, flown.sustain_time, flown.boost_power, flown.sustain_power = 5, 5, 0.1, 1, 2, 1, 1
+r = host.aim({ mode = 'figures', weapon = 21, figures = flown })
+assert(r.state == 'done', 'the figures are kept')
+local function weapon_step(weapon)
+  return { mode = 'weapon_step', weapon = weapon, echo = false, delta_time = 0.1, system_time = 1000, position = { 0, 500, 0 }, attitude = LEVEL, motion_vector = { 0, 0, 0 }, velocity = 900, weapon_lifetime = 3.0, decoy_timer = 0,
+    missile_phase = 0, loal_mode = false, weapon_on_ground = false, parachute_status = 0, kill_code = 0, entity_samples = { 100, 200, 300, 400 }, has_launcher = false, has_target = false, server = true,
+    map_min = { -100000, -1000, -100000 }, map_max = { 100000, 10000, 100000 }, answers = {}, draws = {} }
+end
+local function fly(step, answer)
+  local answers, draws = {}, {}
+  for pass = 1, 20 do
+    local request = {}
+    for k, v in pairs(step) do request[k] = v end
+    request.answers, request.draws = answers, draws
+    local out = host.aim(request)
+    if out.state == 'done' then return out end
+    assert(out.state == 'need_lookup' and out.actions == nil and #out.lookups > 0, 'a step that is not done leaves no action: ' .. tostring(out.state))
+    for _, lookup in ipairs(out.lookups) do
+      local a = { kind = lookup.kind, a = lookup.a, b = lookup.b, c = lookup.c, d = lookup.d, f = { unpack(lookup.f) } }
+      for i = 7, 12 do a.f[i] = 0 end
+      answers[#answers + 1] = answer(a) or a
+    end
+  end
+  error('the step did not finish')
+end
+local function last(out, kind) local found for _, action in ipairs(out.actions) do if action.kind == kind then found = action end end return found end
+r = host.aim(weapon_step(21))
+assert(r.state == 'need_lookup' and r.actions == nil and #r.lookups >= 1, 'with nothing answered the step stops for lookups and leaves nothing')
+local out = fly(weapon_step(21), function() end)
+local state, position = last(out, 1), last(out, 5)
+assert(state.c == 0 and near(state.f[5], 2.9) and state.f[1] < 900 and state.f[1] > 800, 'a frame of free flight: no kill code, the lifetime run down by the frame, the speed drag-reduced')
+assert(near(position.f[1], 0) and near(position.f[2], 500) and position.f[3] > 80 and position.f[3] < 90, 'and the position moved along the heading')
+-- the ground the campaign answers for decides the contact: land ends the weapon where the impact lookup says
+out = fly(weapon_step(21), function(a)
+  if a.kind == 8 then a.f[7] = 1 elseif a.kind == 9 then a.f[7], a.f[8], a.f[9], a.f[10] = 3, 1, 2, 3 end
+end)
+state, position = last(out, 1), last(out, 5)
+assert(state.c == 3 and near(position.f[1], 1) and near(position.f[2], 2) and near(position.f[3], 3), 'a weapon over land ends at hit-land at the impact point')
+out = fly(weapon_step(21), function(a)
+  if a.kind == 8 then a.f[7] = 1 elseif a.kind == 9 then a.f[7], a.f[8], a.f[9], a.f[10] = 1, 1, 2, 3 end
+end)
+assert(last(out, 1).c == 4, 'and over water at hit-water')
+-- a weapon whose lifetime has run out is over before it moves, and asks the campaign nothing
+local expired = weapon_step(21) expired.weapon_lifetime = -4.0
+out = host.aim(expired)
+assert(out.state == 'done' and last(out, 1).c == 1 and last(out, 5) == nil and last(out, 4) == nil, 'an exhausted weapon leaves its state and no position')
+refused(weapon_step(22), 'holds no figures')
+-- the birth of a weapon: the velocity it leaves with, its lifetime and its attitude, from the pose the launcher let it go in
+local born = gun('born gun')
+born.start_weight, born.final_weight, born.diameter, born.boost_time, born.sustain_time, born.boost_power, born.sustain_power, born.muzzle_velocity, born.acquire_forward = 5, 5, 0.1, 1, 2, 1, 1, 900, 1
+host.aim({ mode = 'figures', weapon = 23, figures = born })
+local function birth(weapon) local request = weapon_step(weapon) request.mode = 'weapon_birth' request.submunition = false return request end
+out = fly(birth(23), function(a) if a.kind == 14 then a.f[7] = 100 end end)
+local started = last(out, 8)
+assert(near(started.f[1], 1000) and started.f[2] == 3 and started.f[3] == 0, 'a weapon leaves with its launcher velocity and its muzzle velocity, for its motor lifetime')
+assert(last(out, 2).f[5] == 1 and last(out, 2).f[9] == 1 and last(out, 2).f[1] == 1, 'at the attitude the launcher let it go in')
+refused(birth(24), 'holds no figures')
+bad = birth(23) bad.submunition = 1
+refused(bad, 'submunition must be a boolean')
+-- the release of a weapon: the rate-of-fire gate of a launcher
+local cannon = gun('rated gun') cannon.rate_of_fire, cannon.inverse_rate_of_fire = 600, 1 / 600
+host.aim({ mode = 'figures', weapon = 25, figures = cannon })
+r = host.aim({ mode = 'release', weapon = 25, delta_time = 0.1, current_time = 1000, last_shot = 0, not_ai = false })
+assert(r.state == 'done' and r.refuse == false and r.burst_size == 1 and r.last_shot == 1000, 'the first shot goes and starts the launcher clock')
+r = host.aim({ mode = 'release', weapon = 25, delta_time = 0.1, current_time = 1050, last_shot = 1000, not_ai = false })
+assert(r.refuse == true and r.last_shot == nil, 'too soon: nothing goes and nothing is written')
+r = host.aim({ mode = 'release', weapon = 25, delta_time = 0.1, current_time = 1300, last_shot = 1000, not_ai = false })
+assert(r.refuse == false and r.burst_size == 3 and r.last_shot == 1300, 'three rounds owed go together')
+r = host.aim({ mode = 'release', weapon = 25, delta_time = 0.1, current_time = 1300, not_ai = false })
+assert(r.refuse == false and r.burst_size == 1 and r.last_shot == nil, 'a launcher with no clock lets one round go')
+refused({ mode = 'release', weapon = 26, delta_time = 0.1, current_time = 1000, not_ai = false }, 'holds no figures')
+-- after the flight: a crate's parachute, a decoy's timer and a seeker's seduction
+local crate = gun('crate') crate.parachute_type = 2
+crate.start_weight, crate.final_weight, crate.boost_time, crate.sustain_time, crate.boost_power, crate.sustain_power = 5, 5, 1, 2, 1, 1
+host.aim({ mode = 'figures', weapon = 27, figures = crate })
+r = host.aim({ mode = 'animate', weapon = 27, parachute_status = 0, weapon_on_ground = false, weapon_lifetime = -0.6, motion_vector_y = -3.0 })
+assert(r.state == 'done' and r.parachute_status == 1 and near(r.weapon_lifetime, 0), 'a falling crate opens its parachute and resets its lifetime')
+r = host.aim({ mode = 'animate', weapon = 27, parachute_status = 3, weapon_on_ground = true, weapon_lifetime = -9, motion_vector_y = 0 })
+assert(r.parachute_status == 4 and r.weapon_lifetime == nil, 'on the ground it collapses and nothing else is written')
+refused({ mode = 'animate', weapon = 27, parachute_status = 9, weapon_on_ground = false, weapon_lifetime = 0, motion_vector_y = 0 }, 'parachute state')
+refused({ mode = 'animate', weapon = 28, parachute_status = 0, weapon_on_ground = false, weapon_lifetime = 0, motion_vector_y = 0 }, 'holds no figures')
+local chaff = gun('chaff') chaff.decoy_type = 1
+local seeker = gun('seeker') seeker.guidance_type = 2
+host.aim({ mode = 'figures', weapon = 29, figures = chaff })
+host.aim({ mode = 'figures', weapon = 30, figures = seeker })
+local function decoy_step(timer) local request = weapon_step(29) request.mode = 'weapon_decoy' request.decoy_timer = timer request.delta_time = 0.1 return request end
+r = host.aim(decoy_step(0.5))
+assert(r.state == 'done' and r.actions[1].kind == 9 and r.actions[1].a == 0 and near(r.actions[1].f[1], 0.4), 'a decoy running down takes no sample')
+assert(host.aim(decoy_step(0.05)).state == 'need_draw', 'and when it runs out it asks for one')
+local drawn = decoy_step(0.05) drawn.draws = { 32767 }
+r = host.aim(drawn)
+assert(r.state == 'done' and r.actions[1].a == 1 and near(r.actions[1].f[1], 0.6), 'the restart is 0.4 plus a fifth of the sample')
+local function seduce_step(sample) local request = weapon_step(30) request.mode = 'weapon_seduce' request.other_weapon = 29 request.coefficient = 1.0 request.effectiveness = { 0.5, 0.5, 1.0 } request.draws = sample and { sample } or {} return request end
+assert(host.aim(seduce_step(nil)).state == 'need_draw', 'a seeker asked about a decoy takes a sample')
+r = host.aim(seduce_step(1000))
+assert(r.state == 'done' and r.actions[1].kind == 10 and r.actions[1].a == 1 and r.actions[1].b == 1, 'a radar seeker drawn to chaff goes for it')
+r = host.aim(seduce_step(20000))
+assert(r.actions[1].a == 0 and r.actions[1].b == 0, 'a sample over the chance does not')
+bad = seduce_step(1000) bad.effectiveness = { 0.5, 0.5 }
+refused(bad, 'effectiveness must be 3 finite numbers')
+bad = seduce_step(1000) bad.other_weapon = 31
+refused(bad, 'holds no figures')
+local function reacquire_step() local request = weapon_step(30) request.mode = 'weapon_reacquire' request.other_weapon = 29 return request end
+r = host.aim(reacquire_step())
+assert(r.state == 'done' and #r.actions == 1 and r.actions[1].kind == 11 and r.actions[1].a == 1 and r.actions[1].b == 0, 'a seeker whose decoy expired goes back to the launcher')
+local sampled = reacquire_step() sampled.draws = { 5 }
+assert(host.aim(sampled).state == 'done', 'and the answer takes no sample')
+bad = reacquire_step() bad.other_weapon = 31
+refused(bad, 'holds no figures')
+bad = reacquire_step() bad.other_weapon = nil
+refused(bad, 'other_weapon must be an integer')
+local own_model = dofile('@LUA_DIR@/own-weapon.lua')
+r = own_model.weapon_reacquire(reacquire_step())
+assert(r.state == 'done' and #r.actions == 1 and r.actions[1].kind == 11 and r.actions[1].a == 0, 'a generic host may tell the seeker to drop the lock')
+refused({ mode = 'release', weapon = 25, delta_time = 0.1, current_time = 1000, not_ai = 1 }, 'not_ai must be a boolean')
+local bad = weapon_step(21) bad.entity_samples = { 1, 2, 3 }
+refused(bad, 'entity_samples must be 4 integers')
+bad = weapon_step(21) bad.position = { 0, 0 / 0, 0 }
+refused(bad, 'position')
+bad = weapon_step(21) bad.draws = { 40000 }
+refused(bad, 'outside [0, 32767]')
+bad = weapon_step(21) bad.answers = { { kind = 8, a = 0, b = 0, c = 0, d = 0, f = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } } }
+refused(bad, 'f must be 12')
+refused({ mode = 'figures', weapon = 0, figures = gun('no weapon') }, 'not a weapon')
+-- a host with a model of its own is not made to know its own question by an exactness it does not have: the module carries the arguments of a lookup as single
+-- precision, so the model asks about points on a grid that single precision carries exactly, and recognises the campaign's answer to them
+local own = dofile('@LUA_DIR@/own-weapon.lua')
+local function carried(x)
+  -- a number as the module carries it, through the host's own conversion: the wind lookup of a step is asked at the weapon's position
+  local probe = weapon_step(21) probe.position = { x, 500, 0 }
+  for _, lookup in ipairs(host.aim(probe).lookups) do if lookup.kind == 7 then return lookup.f[1] end end
+  error('no wind lookup')
+end
+local dt = carried(0.1)
+assert(dt ~= 0.1, 'a tenth is not a single-precision number')
+local moving = weapon_step(21) moving.position = { carried(1000), carried(500), 0 } moving.delta_time = dt moving.velocity = 300 moving.attitude = LEVEL
+local asked = own.weapon_step(moving)
+assert(asked.state == 'need_lookup' and #asked.lookups == 1, 'the model asks for the ground once')
+local ground = asked.lookups[1]
+for i = 1, 3 do assert(carried(ground.f[i]) == ground.f[i], 'what the model asks is what the module carries: ' .. tostring(ground.f[i])) end
+moving.answers = { { kind = ground.kind, a = 0, b = 0, c = 0, d = 0, f = { carried(ground.f[1]), carried(ground.f[2]), carried(ground.f[3]), 0, 0, 0, 0, 0, 0, 0, 0, 0 } } }
+assert(own.weapon_step(moving).state == 'done', 'and the model recognises the answer to it')
+-- the malformed providers: the overdraw provider asks for a sample at every pass of a weapon step (a legal draw is a continuation, not a refusal), the others corrupt the
+-- first answer of their kind once and let the reference host answer the rest
+local malformed = dofile('@LUA_DIR@/aim-malformed.lua')
+local passed = function(_, answer) return answer end
+local overdraw = malformed('bad_step_draw', host.aim, passed)
+for n = 0, 12 do
+  local request = weapon_step(21) request.draws = {} for i = 1, n do request.draws[i] = 100 end
+  assert(overdraw(request).state == 'need_draw', 'the overdraw provider never settles: ' .. n .. ' samples given')
+end
+local once = malformed('bad_step_state', host.aim, passed)
+assert(once(weapon_step(21)).state == 'later', 'the first weapon step is corrupted')
+assert(once(weapon_step(21)).state == 'need_lookup', 'and the reference host answers the rest')
+assert(malformed('bad_step_state', host.aim, passed)({ mode = 'ready_update', state = 1.0, rate = 0.5, delta_time = 0.5 }).state == 'done', 'a request of another kind is answered as the reference does')
+-- the decision providers corrupt the first decision of their kind, and only a decision (a seeker that has yet to draw a sample is not corrupted)
+local flagged = malformed('bad_decoy_flag', host.aim, passed)(decoy_step(0.5))
+assert(flagged.state == 'done' and flagged.actions[1].kind == 9 and flagged.actions[1].a == 2, 'a decoy decision that is neither 0 nor 1')
+local seduced = malformed('bad_seduce_flag', host.aim, passed)
+assert(seduced(seduce_step(nil)).state == 'need_draw', 'a seduction that asks for its sample is not yet a decision')
+flagged = seduced(seduce_step(1000))
+assert(flagged.state == 'done' and flagged.actions[1].kind == 10 and flagged.actions[1].b == 3, 'a seduction decision that is neither 0 nor 1')
+flagged = malformed('bad_reacquire_flag', host.aim, passed)(reacquire_step())
+assert(flagged.state == 'done' and flagged.actions[1].kind == 11 and flagged.actions[1].a == -1, 'a reacquisition decision that is neither 0 nor 1')
+flagged = malformed('bad_reacquire_none', host.aim, passed)(reacquire_step())
+assert(flagged.state == 'done' and #flagged.actions == 0, 'a reacquisition with no decision')
+local reacquirer = malformed('bad_reacquire_flag', host.aim, passed)
+assert(reacquirer(weapon_step(21)).state == 'need_lookup', 'a request of another kind is answered as the reference does')
+assert(reacquirer(reacquire_step()).actions[1].a == -1 and reacquirer(reacquire_step()).actions[1].a == 1, 'the first decision only')
+-- malformed requests
+refused({ mode = 'glide' }, 'unknown mode')
+refused({ mode = 'ready_update', state = 0 / 0, rate = 0.5, delta_time = 1 }, 'state must be a finite number')
+refused({ mode = 'ready_command', state = 0, open = 1 }, 'open must be a boolean')
+refused({ mode = 'ready_command', source_host_id = '', state = 0, open = true }, 'source_host_id must be 1 to 128 bytes')
+refused({ mode = 'required', device_attitude = { 1, 0, 0 }, intercept_vector = { 0, 0, 1 }, heading_min = -1, heading_max = 1, pitch_min = -1, pitch_max = 1, climb = false }, 'device_attitude must be 9 finite numbers')
+refused({ mode = 'lead', weapon = 7, device_position = { 0, 0, 0 }, parent_velocity = 0, target = { position = { 0, 0, 0 }, point = { 0, 0, 0 }, motion_vector = { 0, 0, 0 }, mobile = false }, map_min = { 0, 0, 0 }, map_max = { 1, 1, 1 }, comms_weapon_lag = 0, source_gunship = false, draw = 40000 }, 'draw must be an integer in [0, 32767]')
+-- the damage forecast (EEDCS-46): a pure question answered from the figures it is sent, with no draw.  The expected values are worked out by hand from the original
+-- expressions of weapon_damage_capability (the `wpn == NULL` path); the kernel's own tests are in src/cmb.rs
+local function forecast(over)
+  local request = { mode = 'forecast', weapon = 54, weapon_warhead = 5, warhead = 5, damage_capability = 100, armor_penetration_capability = 1, burst_duration = 0.0,
+    armour_level = 4, target_not_ai = false, player_modifier = 1.0, damage_modifier = 0.5, velocity = 1.0, echo = false }
+  for k, v in pairs(over or {}) do request[k] = v end
+  return request
+end
+r = host.aim(forecast())
+assert(r.state == 'done' and r.capability == 31 and r.echo == nil, 'dual-purpose splash against armour 4: 100 * (1 - 0.5^((2/3)^1.5)) = 31.4')
+r = host.aim(forecast({ echo = true }))
+local seen = r.echo[1]
+assert(r.capability == 31 and #r.echo == 1 and seen.kind == 'forecast' and seen.a == 2 and seen.b == 31 and seen.c == 5 and seen.d == 31, 'the echo is the original observer values in one event')
+assert(near(seen.f[1], 0.31429072) and seen.f[2] == 1 and seen.f[3] == 4 and seen.f[4] == 1, 'the modifier after the splash, the penetration, the armour thickness and the random modifier (1)')
+r = host.aim(forecast({ weapon_warhead = 3, warhead = 3, damage_capability = 12, armor_penetration_capability = 20, armour_level = 10, damage_modifier = 0.0 }))
+assert(r.capability == 12, 'a solid shot that pierces does its damage figure')
+r = host.aim(forecast({ weapon_warhead = 3, warhead = 3, damage_capability = 12, armor_penetration_capability = 5, armour_level = 10, damage_modifier = 0.0 }))
+assert(r.capability == 0, 'and one that cannot pierce does nothing')
+r = host.aim(forecast({ weapon_warhead = 3, warhead = 3, armor_penetration_capability = 50, armour_level = 10, damage_modifier = 0.0, target_not_ai = true, player_modifier = 0.33 }))
+assert(r.capability == 33, 'a player target is scaled by the setting after the arithmetic: 100 * 0.33')
+r = host.aim(forecast({ weapon_warhead = 8, warhead = 3, damage_capability = 30, burst_duration = 6.0, armor_penetration_capability = 50, armour_level = 10, damage_modifier = 0.0 }))
+assert(r.capability == 60, 'a conventional-munitions weapon takes the munition figures scaled by the burst: 30 * 6 / 3')
+refused(forecast({ armour_level = -1 }), 'below zero')
+refused(forecast({ weapon = 0 }), 'not a weapon')
+refused(forecast({ target_not_ai = 1 }), 'target_not_ai must be a boolean')
+refused(forecast({ echo = 1 }), 'echo must be a boolean')
+refused(forecast({ velocity = 0 / 0 }), 'velocity')
+refused(forecast({ damage_capability = 0, armour_level = 0 }), 'not an integer')
+local missing = forecast() missing.warhead = nil
+refused(missing, 'warhead must be an integer')
+-- a host with a model of its own answers the same question without any of that arithmetic, and a provider that corrupts the answer is told apart by the first one
+assert(own_model.forecast(forecast()).capability == 5 and own_model.forecast(forecast({ damage_capability = 0 })).capability == 0, 'the plain model: a damage figure does 5, none does nothing')
+assert(malformed('bad_forecast_negative', host.aim, passed)(forecast()).capability == -1, 'the first forecast answered with a negative capability')
+assert(malformed('bad_forecast_draw', host.aim, passed)(forecast()).state == 'need_draw', 'or with a request for a sample')
+assert(malformed('bad_forecast_fraction', host.aim, passed)(forecast()).capability == 1.5, 'or with a capability that is not an integer')
+local negative = malformed('bad_forecast_negative', host.aim, passed)
+assert(negative(forecast()).capability == -1 and negative(forecast()).capability == 31, 'the first only; the reference host answers the rest')
+-- the damage of a hit (EEDCS-46, a real weapon): the question is asked twice, the second time with the campaign's one sample; the answer is the whole of what the hit does.  The
+-- expected values are worked out by hand from the original expressions; the kernel's own tests are in src/cmb.rs
+local function hit(over)
+  local request = { mode = 'damage', weapon = 54, weapon_warhead = 3, warhead = 3, damage_capability = 12, armor_penetration_capability = 20, burst_duration = 0.0,
+    weapon_speed = 250.0, weapon_cruise_velocity = 250.0, damage_modifier = 0.0, armour_level = 10, armour_easy = false, armour_model = 0, armour_front = 0.0,
+    armour_rear = 0.0, armour_side = 0.0, weapon_position = { 0, 0, 0 }, target_position = { 0, 0, 0 }, target_attitude = { 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+    target_not_ai = false, player_modifier = 1.0, has_launcher = false, multiplier = 1, invulnerable = false, cheat_guard = false, damage_level = 50,
+    initial_damage_level = 100, critical_model = 0, echo = false }
+  for k, v in pairs(over or {}) do request[k] = v end
+  return request
+end
+r = host.aim(hit())
+assert(r.state == 'need_draw', 'the arithmetic asks for the campaign sample first')
+r = host.aim(hit({ draw = 0 }))
+assert(r.state == 'done' and r.exited == false and r.capability == 9 and r.written == true and r.new_level == 41 and r.critical_before == 0 and r.critical_after == 0 and r.bad_modifier == false and r.echo == nil,
+  'a solid shot that pierces, with the random modifier 0.75: 12 * 0.75 = 9 points off a health of 50')
+r = host.aim(hit({ draw = 0, echo = true }))
+assert(#r.echo == 1 and r.echo[1].kind == 'damage' and r.echo[1].a == 1 and r.echo[1].b == 9 and r.echo[1].c == 3 and r.echo[1].d == 9 and near(r.echo[1].f[4], 0.75), 'the original observer values in one event')
+r = host.aim(hit({ target_not_ai = true, invulnerable = true }))
+assert(r.state == 'done' and r.exited == true and r.capability == 0 and r.written == false and r.new_level == 50, 'an invulnerable player is not hit, and no sample was asked for')
+r = host.aim(hit({ draw = 0, target_not_ai = true, invulnerable = true, echo = true }))
+assert(r.exited == true and r.echo == nil, 'and a stopped hit echoes nothing')
+r = host.aim(hit({ draw = 0, critical_model = 1, damage_level = 23 }))
+assert(r.new_level == 14 and r.critical_before == 0 and r.critical_after == 1, 'a vehicle at 14 percent is critical (below 15)')
+r = host.aim(hit({ draw = 0, critical_model = 3, damage_level = 13 }))
+assert(r.new_level == 4 and r.critical_before == 1 and r.critical_after == 2, 'an aircraft goes from mortal (below 30) to critical (below 5)')
+r = host.aim(hit({ draw = 0, cheat_guard = true }))
+assert(r.capability == 9 and r.written == false and r.new_level == 50, 'the cheat guard keeps the health')
+r = host.aim(hit({ draw = 0, armour_model = 1, armour_front = 2.0, armour_rear = 0.5, armour_side = 1.0, weapon_position = { 0, 0, 100 }, echo = true }))
+assert(r.capability == 0 and r.echo[1].f[3] == 20, 'a vehicle hit from the front meets 10 * 2.0 and the penetration 15 does not go through it')
+-- a weapon at the target's own position has no direction: the aspect armour is not a number, the hit does nothing and writes nothing (the original's comparison with it is false), and the
+-- diagnostic echo of the fixture build still carries every intermediate value, as raw bits, with every number the reply holds finite
+local centred = host.aim(hit({ draw = 0, armour_model = 1, armour_front = 2.0, armour_rear = 0.5, armour_side = 1.0, echo = true }))
+assert(centred.state == 'done' and centred.capability == 0 and centred.written == false and centred.new_level == 50 and centred.exited == false, 'a centred solid hit does nothing and writes nothing')
+assert(#centred.echo == 1 and centred.echo[1].kind == 'damage' and centred.echo[1].a == 0 and centred.echo[1].b == 0 and centred.echo[1].c == 3 and centred.echo[1].d == 0, 'and is still echoed, with no arithmetic path')
+for i = 1, 12 do
+  local v = centred.echo[1].f[i]
+  assert(v == v and v ~= math.huge and v ~= -math.huge, 'echo value ' .. i .. ' is a finite number: ' .. tostring(v))
+end
+-- the armour (the third value; its halves are f[9], f[10]) is the quiet not-a-number of the aspect arithmetic, as raw bits; the random modifier 0.75 is 0x3F400000 (f[11], f[12])
+local armour_high = centred.echo[1].f[9]
+assert(armour_high >= 32704 and armour_high < 65536 and armour_high % 32768 >= 32704, 'the armour is a quiet NaN as raw bits: ' .. tostring(armour_high))
+assert(centred.echo[1].f[11] == 16192 and centred.echo[1].f[12] == 0, 'and the random modifier is 0.75 bit for bit')
+assert(centred.echo[1].f[3] == 0 and centred.echo[1].f[4] == 0.75, 'the readable copy of the value that is not finite is 0, and of a finite one the value')
+r = host.aim(hit({ draw = 0, target_not_ai = true, player_modifier = 0.33 }))
+assert(r.capability == 2 and r.new_level == 48, 'a player is scaled by the setting after the arithmetic: 9 * 0.33 = 2.97')
+local missing = hit({ draw = 0, target_not_ai = true }) missing.player_modifier = nil
+assert(host.aim(missing).bad_modifier == true, 'a player with no damage setting is reported for the campaign to stop on')
+refused(hit({ draw = 40000 }), 'draw')
+refused(hit({ weapon = 0 }), 'not a weapon')
+refused(hit({ armour_easy = 1 }), 'armour_easy must be a boolean')
+refused(hit({ initial_damage_level = 0, critical_model = 1 }), 'cannot be classified')
+refused(hit({ weapon_position = { 0, 0 / 0, 0 } }), 'position')
+refused(hit({ echo = 1 }), 'echo must be a boolean')
+local no_level = hit() no_level.damage_level = nil
+refused(no_level, 'damage_level must be an integer')
+-- a host with a model of its own answers the same question without any of that arithmetic or the sample, and a provider that corrupts the first answer is told apart by it
+r = own_model.damage(hit({ critical_model = 1, damage_level = 30 }))
+assert(r.capability == 10 and r.written == true and r.new_level == 20 and r.critical_before == 0 and r.critical_after == 1 and r.exited == false, 'the plain model: ten points, no sample')
+assert(own_model.damage(hit({ target_not_ai = true, invulnerable = true })).exited == true, 'and it honours the invulnerability')
+assert(own_model.damage(hit({ cheat_guard = true })).written == false, 'and the cheat guard')
+assert(malformed('bad_damage_level', host.aim, passed)(hit({ draw = 0 })).new_level == -1, 'the first hit answered with health below zero')
+assert(malformed('bad_damage_exit', host.aim, passed)(hit({ draw = 0 })).exited == true, 'or stopped by an invulnerability the target has not')
+assert(malformed('bad_damage_class', host.aim, passed)(hit({ draw = 0 })).critical_after == 5, 'or with a class the target cannot have')
+assert(malformed('bad_damage_unwritten', host.aim, passed)(hit({ draw = 0 })).written == false, 'or with health changed and not written')
+assert(malformed('bad_damage_missing', host.aim, passed)(hit({ draw = 0 })).capability == nil, 'or with a field missing')
+assert(malformed('bad_damage_draw_twice', host.aim, passed)(hit({ draw = 0 })).state == 'need_draw', 'or asking for a second sample')
+local armed = malformed('bad_damage_level', host.aim, passed)
+assert(armed(hit()).state == 'need_draw' and armed(hit({ draw = 0 })).new_level == -1 and armed(hit({ draw = 0 })).new_level == 41, 'the first completed hit only; the reference host answers the rest')
+-- the health questions that are not a hit (EEDCS-46): the reference host answers them by value; the values are worked out by hand from the original expressions (the kernel's own tests are in
+-- src/cmb.rs).  A timed roll asks for the campaign's one sample only when the target is eligible
+local function health(over)
+  local request = { mode = 'health', op = 'classify', critical_model = 1, damage_level = 14, initial_damage_level = 100, old_damage_level = 14, explosive = true, flammable = false,
+    delta_time = 0.1, aircraft_class = 0, self_hit = false, target_not_ai = false }
+  for k, v in pairs(over or {}) do request[k] = v end
+  return request
+end
+r = host.aim(health())
+assert(r.state == 'done' and r.critical_class == 1 and r.crossed == false and r.eligible == false and r.hit == false and r.new_level == 14, 'a vehicle at 14 percent is critical')
+assert(host.aim(health({ damage_level = 15 })).critical_class == 0 and host.aim(health({ critical_model = 2, damage_level = 0 })).critical_class == 0, 'at 15 it is not, and a person never is')
+assert(host.aim(health({ critical_model = 3, damage_level = 29 })).critical_class == 1 and host.aim(health({ critical_model = 3, damage_level = 4 })).critical_class == 2, 'an aircraft is mortal then critical')
+r = host.aim(health({ op = 'assess', old_damage_level = 16, damage_level = 14 }))
+assert(r.crossed == true and r.recovered == false and r.eject == false, 'a vehicle that can burn falls below 15 percent')
+assert(host.aim(health({ op = 'assess', old_damage_level = 16, damage_level = 14, explosive = false })).crossed == false, 'one that cannot burn does not')
+r = host.aim(health({ op = 'assess', critical_model = 3, initial_damage_level = 1000, old_damage_level = 60, damage_level = 30 }))
+assert(r.crossed == true and r.eject == true, 'an aircraft at 3 percent and 30 points: a threshold, and the health that ejects an AI crew')
+r = host.aim(health({ op = 'assess', critical_model = 3, initial_damage_level = 1000, old_damage_level = 290, damage_level = 310 }))
+assert(r.recovered == true and r.crossed == false, 'and recovery above 30 percent')
+assert(host.aim(health({ op = 'timed' })).state == 'need_draw', 'an eligible vehicle (critical, can burn, has health) asks for the sample')
+r = host.aim(health({ op = 'timed', draw = 6553 }))
+assert(r.state == 'done' and r.eligible == true and r.rolled == true and r.hit == true and r.new_level == 13 and r.fatal == false and r.critical_class == 1, 'the sample 6553 is under 2 * 0.1: a hit, one point less')
+r = host.aim(health({ op = 'timed', draw = 6554 }))
+assert(r.rolled == true and r.hit == false and r.new_level == 14, 'and 6554 is not')
+r = host.aim(health({ op = 'timed', damage_level = 1, draw = 0 }))
+assert(r.hit == true and r.new_level == 0 and r.fatal == true, 'the last point is fatal')
+r = host.aim(health({ op = 'timed', damage_level = 50 }))
+assert(r.state == 'done' and r.eligible == false and r.rolled == false and r.new_level == 50, 'a healthy vehicle is not eligible: no sample')
+r = host.aim(health({ op = 'timed', critical_model = 2, damage_level = 3 }))
+assert(r.state == 'done' and r.eligible == false and r.critical_class == 0, 'a person never bleeds: no sample whatever its health')
+r = host.aim(health({ op = 'timed', critical_model = 3, damage_level = 5, aircraft_class = 1 }))
+assert(r.state == 'need_draw', 'an aircraft in a class asks for the sample')
+assert(host.aim(health({ op = 'timed', critical_model = 3, damage_level = 5, aircraft_class = 1, draw = 3276 })).hit == true and host.aim(health({ op = 'timed', critical_model = 3, damage_level = 5, aircraft_class = 1, draw = 3277 })).hit == false, 'class 1 gives odds of 0.1 at a frame of 0.1 s')
+assert(host.aim(health({ op = 'timed', critical_model = 3, damage_level = 5, aircraft_class = 2, draw = 32767 })).hit == true, 'class 2 always hits, and the sample was taken')
+assert(host.aim(health({ op = 'timed', critical_model = 3, damage_level = 5, aircraft_class = 0 })).eligible == false, 'in no class: nothing')
+assert(host.aim(health({ op = 'hit_eligible', critical_model = 0, damage_level = 0, initial_damage_level = 0, self_hit = true })).eligible == false, 'an AI helicopter ignores its own hit')
+assert(host.aim(health({ op = 'hit_eligible', critical_model = 0, damage_level = 0, initial_damage_level = 0, self_hit = true, target_not_ai = true })).eligible == true, 'a player does not')
+refused(health({ op = 'timed', draw = 40000 }), 'draw')
+refused(health({ op = 'bleed' }), 'unknown health op')
+refused(health({ explosive = 1 }), 'explosive must be a boolean')
+refused(health({ delta_time = 0 / 0 }), 'delta_time')
+refused(health({ initial_damage_level = 0 }), 'cannot be answered')
+local no_class = health() no_class.critical_model = nil
+refused(no_class, 'critical_model must be an integer')
+-- a host with a model of its own answers the same questions without any of that arithmetic or the sample, and a provider that corrupts the first answer of its kind is told apart by it
+assert(own_model.health(health()).critical_class == 1 and own_model.health(health({ op = 'timed' })).eligible == false and own_model.health(health({ op = 'timed' })).rolled == false, 'the plain model: its own class, and nothing burns by itself')
+assert(own_model.health(health({ op = 'assess', old_damage_level = 50, damage_level = 20 })).crossed == true and own_model.health(health({ op = 'hit_eligible', self_hit = true })).eligible == true, 'its own crossing, and a unit may hurt itself')
+assert(malformed('bad_health_class', host.aim, passed)(health()).critical_class == 7, 'the first classification answered with a class no vehicle has')
+assert(malformed('bad_health_missing', host.aim, passed)(health()).critical_class == nil, 'or with the class missing')
+assert(malformed('bad_health_classify_draw', host.aim, passed)(health()).state == 'need_draw', 'or a sample asked for a classification, which is a pure question')
+assert(malformed('bad_health_second_draw', host.aim, passed)(health({ op = 'timed', draw = 6553 })).state == 'need_draw', 'or a second sample for a timed roll that has been given its one')
+local second = malformed('bad_health_second_draw', host.aim, passed)
+assert(second(health({ op = 'timed' })).state == 'need_draw' and second(health({ op = 'timed', draw = 6553 })).state == 'need_draw' and second(health({ op = 'timed', draw = 6553 })).state == 'done', 'the first only; the reference host asks for the sample first and the provider corrupts the answer to the given one')
+-- the reference host takes no sample for a person or an aircraft in no class (its eligibility, the host\'s), which the campaign accepts; a host with a model of its own may
+assert(host.aim(health({ op = 'timed', critical_model = 2, damage_level = 3 })).state == 'done' and host.aim(health({ op = 'timed', critical_model = 3, damage_level = 40, aircraft_class = 0 })).state == 'done', 'the reference host rolls for neither')
+assert(malformed('bad_health_hit_ineligible', host.aim, passed)(health({ op = 'timed', damage_level = 50 })).hit == true, 'or a hit on an ineligible target')
+assert(malformed('bad_health_fatal', host.aim, passed)(health({ op = 'timed', draw = 0 })).fatal == true, 'or a hit whose fatal flag disagrees with the health it leaves')
+local classified = malformed('bad_health_class', host.aim, passed)
+assert(classified(health()).critical_class == 7 and classified(health()).critical_class == 1, 'the first only; the reference host answers the rest')
+-- the impact dispatch and the area blast (EEDCS-46): the reference host answers them by value; the expected values are worked out by hand (the kernel's own tests are in src/cmb.rs)
+local function impact(over)
+  local request = { mode = 'impact', kill_code = 5, has_target = true, target_alive = true, position = { 250, 12, 750 } }
+  for k, v in pairs(over or {}) do request[k] = v end
+  return request
+end
+r = host.aim(impact())
+assert(r.state == 'done' and r.direct_hit == true and r.blasts == 1 and r.exclude_target == true and r.crater == false and r.invalid == false, 'a hit on the target: the direct hit, then one blast that leaves it out')
+r = host.aim(impact({ target_alive = false }))
+assert(r.direct_hit == false and r.blasts == 1 and r.exclude_target == true, 'a target that is dead gets no direct hit but is still left out')
+r = host.aim(impact({ kill_code = 3 }))
+assert(r.state == 'need_lookup' and r.need == 'terrain', 'a land hit needs the terrain at the impact point')
+r = host.aim(impact({ kill_code = 3, terrain_draws_crater = true }))
+assert(r.state == 'done' and r.crater == true and r.blasts == 2 and r.direct_hit == false, 'a land hit on terrain that takes a crater: the crater, then two blasts')
+assert(host.aim(impact({ kill_code = 3, terrain_draws_crater = false })).crater == false and host.aim(impact({ kill_code = 3, terrain_draws_crater = false })).blasts == 2, 'and on terrain that does not, two blasts and no crater')
+assert(host.aim(impact({ kill_code = 1 })).blasts == 0 and host.aim(impact({ kill_code = 2 })).blasts == 0 and host.aim(impact({ kill_code = 4 })).blasts == 0, 'a weapon that ran out, left the map or hit water blasts nothing')
+assert(host.aim(impact({ kill_code = 6 })).blasts == 1 and host.aim(impact({ kill_code = 7 })).blasts == 1 and host.aim(impact({ kill_code = 6 })).direct_hit == false, 'an overshot or self-destroyed weapon blasts once')
+assert(host.aim(impact({ kill_code = 0 })).invalid == true and host.aim(impact({ kill_code = 8 })).invalid == true, 'a code the dispatch does not know')
+refused(impact({ kill_code = 'x' }), 'kill_code')
+refused(impact({ terrain_draws_crater = 1 }), 'terrain_draws_crater must be a boolean')
+refused(impact({ has_target = 1 }), 'has_target must be a boolean')
+r = own_model.impact(impact({ kill_code = 3 }))
+assert(r.blasts == 1 and r.crater == false and r.state == 'done', 'a plain model blasts a land hit once, with no crater, and never asks for the terrain')
+assert(own_model.impact(impact({ kill_code = 5 })).direct_hit == true and own_model.impact(impact({ kill_code = 1 })).blasts == 0 and own_model.impact(impact({ kill_code = 9 })).invalid == true, 'its other deaths')
+assert(malformed('bad_impact_draw', host.aim, passed)(impact()).state == 'need_draw', 'a sample asked for an impact')
+local crater = malformed('bad_impact_crater', host.aim, passed)(impact({ kill_code = 3 }))
+assert(crater.state == 'done' and crater.crater == true, 'a crater on a terrain that has not been read')
+assert(malformed('bad_impact_blasts', host.aim, passed)(impact()).blasts == 3, 'or three blasts')
+local function blast(over)
+  local request = { mode = 'blast', position = { 250, 0, 250 }, damage_capability = 400, warhead_type = 7, has_target = false, sector_side_length = 100,
+    min_x_sector = 0, max_x_sector = 99, min_z_sector = 0, max_z_sector = 99, echo = false }
+  for k, v in pairs(over or {}) do request[k] = v end
+  return request
+end
+local function object(handle, kind, y, extra)
+  local o = { handle = handle, entity_type = kind, readable = true, alive = true, has_position = true, rocket = false, excluded = false, position = { 250, y, 250 } }
+  for k, v in pairs(extra or {}) do o[k] = v end
+  return o
+end
+local function window(objects, ends, sx, sz, after) return { sx = sx or 2, sz = sz or 2, after = after or 0, list_ends = ends, objects = objects } end
+r = host.aim(blast())
+assert(r.state == 'need_lookup' and r.radius == 20 and r.need.sx == 2 and r.need.sz == 2 and r.need.after == 0, 'capability 400 is a radius of 20 and, from (250, 250), the one sector 2, 2')
+r = host.aim(blast({ damage_capability = 0 }))
+assert(r.state == 'done' and r.radius == 0 and r.action == 'none', 'a capability of zero is a radius of zero: nothing to walk')
+r = host.aim(blast({ damage_capability = 10000 }))
+assert(r.need.sx == 1 and r.need.sz == 1 and r.radius == 100, 'capability 10000 is a radius of 100: sectors 1 to 3, from the first')
+r = host.aim(blast({ window = window({ object(1, 6, 0), object(2, 6, 10) }, true) }))
+assert(r.state == 'done' and r.action == 'collision' and r.handle == 2 and r.modifier == 0.5 and r.radius == 20, 'range 0 is never reached; 10 of 20 is a collision with the modifier 0.5')
+r = host.aim(blast({ echo = true, window = window({ object(1, 6, 0), object(2, 6, 10) }, true) }))
+assert(#r.echo == 2 and r.echo[1].kind == 'blast' and r.echo[1].a == 0 and r.echo[1].b == 0 and r.echo[2].a == 1 and r.echo[2].b == 1 and r.echo[2].f[1] == 10 and r.echo[2].f[2] == 20 and r.echo[2].f[3] == 0.5, 'the echo is the candidates examined, in order, with their range, radius and modifier')
+r = host.aim(blast({ window = window({ object(1, 6, 10, { excluded = true }), object(2, 3, 5), object(3, 6, 5, { alive = false }), object(4, 6, 20), object(5, 6, 5, { has_position = false }) }, true) }))
+assert(r.state == 'done' and r.action == 'none', 'the excluded target, a kind not examined, a dead object, one exactly at the radius and one with no position are not reached')
+r = host.aim(blast({ window = window({ object(5, 6, 30) }, false) }))
+assert(r.state == 'need_lookup' and r.need.sx == 2 and r.need.sz == 2 and r.need.after == 5, 'a list that did not end is continued after its last object')
+r = host.aim(blast({ damage_capability = 10000, window = window({}, true, 1, 1) }))
+assert(r.need.sx == 2 and r.need.sz == 1 and r.need.after == 0, 'the next sector of the row')
+r = host.aim(blast({ window = window({ object(3, 37, 5, { rocket = true }) }, true) }))
+assert(r.action == 'intercept' and r.handle == 3 and r.modifier == 0.25, 'a rocket a quarter of the radius from a high-explosive anti-aircraft blast is destroyed (1 - 0.25^1.54 = 0.88)')
+r = host.aim(blast({ window = window({ object(3, 37, 10, { rocket = true }) }, true) }))
+assert(r.action == 'none', 'and not at half the radius (1 - 0.5^1.54 = 0.66)')
+r = host.aim(blast({ window = window({ object(3, 37, 5) }, true) }))
+assert(r.action == 'none', 'a weapon that is not a rocket is examined and left alone')
+refused(blast({ window = window({}, true, 9, 9) }), 'cannot be answered')
+refused(blast({ damage_capability = -4 }), 'cannot be answered')
+refused(blast({ position = { 0 / 0, 0, 0 } }), 'position')
+refused(blast({ has_target = 0 }), 'has_target must be a boolean')
+local plain = own_model.blast(blast())
+assert(plain.state == 'need_lookup' and plain.radius == 30 and plain.need.sx == 2 and plain.need.sz == 2, 'a plain model: thirty metres, the sector of the explosion')
+r = own_model.blast(blast({ window = window({ object(1, 3, 10) }, true) }))
+assert(r.action == 'collision' and r.handle == 1 and r.modifier == 341 / 1024, 'it reaches an object of any kind that is alive and placed')
+assert(own_model.blast(blast({ window = window({ object(1, 3, 40) }, true) })).action == 'none', 'and none beyond its radius')
+assert(malformed('bad_blast_draw', host.aim, passed)(blast()).state == 'need_draw', 'a sample asked for a blast')
+assert(malformed('bad_blast_sector', host.aim, passed)(blast()).need.sx == 100, 'a window of a sector outside the map')
+assert(malformed('bad_blast_handle', host.aim, passed)(blast({ window = window({ object(1, 6, 10) }, true) })).handle == 99999, 'an object that is not in the window')
+assert(malformed('bad_blast_modifier', host.aim, passed)(blast({ window = window({ object(1, 6, 10) }, true) })).modifier == 2, 'a modifier above one')
+assert(malformed('bad_blast_rocket', host.aim, passed)(blast({ window = window({ object(1, 6, 10) }, true) })).action == 'intercept', 'a destruction of an object that is not a rocket')
+assert(malformed('bad_blast_radius', host.aim, passed)(blast({ window = window({ object(1, 6, 30) }, true) })).radius == 21, 'a radius that changes within a blast')
+local radius_echo = malformed('bad_blast_radius', host.aim, passed)(blast({ echo = true, window = window({ object(1, 6, 30) }, true) }))
+assert(radius_echo.radius == 21 and #radius_echo.echo == 1 and radius_echo.echo[1].f[2] == 21, 'with the echo on, the diagnostic envelope says the new radius too (a supplied window and a positive radius are all it needs), so the changed radius is the primary refusal')
+assert(host.aim(blast({ echo = true, window = window({ object(1, 6, 30) }, true) })).echo[1].f[2] == 20, 'and the unmodified reference says the old one')
+local again = malformed('bad_blast_repeat', host.aim, passed)(blast({ damage_capability = 10000, window = window({}, true, 1, 1) }))
+assert(again.need.sx == 1 and again.need.sz == 1 and again.need.after == 0, 'the start of a sector asked for again')
+-- the physical collapse of a bridge segment (EEDCS-46, R5): the reference host answers by value; the expected values are worked out by hand (the kernel's own tests are in src/cmb.rs)
+local function bridge(over)
+  local request = { mode = 'bridge', op = 'kill', segment_kind = 3, alive = true, server = true, pred_present = false, pred_alive = false, succ_present = false, succ_alive = false, which = 0,
+    neighbour_present = false, neighbour_kind = 0, neighbour_alive = false, position = { 250, 120, 250 }, delta_time = 0.1, segment_length = 10, sector_side_length = 100,
+    min_x_sector = 0, max_x_sector = 99, min_z_sector = 0, max_z_sector = 99 }
+  for k, v in pairs(over or {}) do request[k] = v end
+  return request
+end
+assert(host.aim(bridge()).kill == true, 'a living unsupported span of a server has nothing to hold it: it is killed')
+assert(host.aim(bridge({ alive = false })).kill == false and host.aim(bridge({ server = false })).kill == false and host.aim(bridge({ segment_kind = 2 })).kill == false, 'a dead one, a client and a supported one are not')
+r = host.aim(bridge({ op = 'shape', alive = true, pred_present = true, pred_alive = false, succ_present = true, succ_alive = true }))
+assert(r.state == 'done' and r.variant == 2, 'the predecessor is dead: variant 2')
+assert(host.aim(bridge({ op = 'shape', alive = false })).variant == 1 and host.aim(bridge({ op = 'shape', alive = true })).variant == 0, 'a dead segment is destroyed; one with no neighbour is normal')
+assert(host.aim(bridge({ op = 'shape', pred_present = true, pred_alive = true, succ_present = true, succ_alive = false })).variant == 3 and host.aim(bridge({ op = 'shape', pred_present = true, succ_present = true })).variant == 4, 'successor dead: 3; both dead: 4')
+assert(host.aim(bridge({ op = 'neighbour', neighbour_present = true })).notify == true and host.aim(bridge({ op = 'neighbour' })).notify == false, 'a neighbour is told if it is there')
+r = host.aim(bridge({ op = 'fall' }))
+assert(r.state == 'need_lookup' and r.need == 'terrain', 'an unsupported segment asks for the terrain under it')
+r = host.aim(bridge({ op = 'fall', terrain = { height = 100, water = false } }))
+assert(r.state == 'done' and r.fell == true and r.dropped_y == 119 and r.floor_height == 100 and r.landed == false and r.remove == false and r.landed_y == nil, 'from 120 a frame of 0.1 drops to 119, above a floor of 100')
+r = host.aim(bridge({ op = 'fall', position = { 250, 100.5, 250 }, terrain = { height = 100, water = false } }))
+assert(r.landed == true and r.remove == true and r.dropped_y == 99.5 and r.landed_y == 100, 'from 100.5 it lands at the floor and leaves the list')
+r = host.aim(bridge({ op = 'fall', position = { 250, 100.5, 250 }, terrain = { height = 100, water = true } }))
+assert(r.fell == true and r.landed == false and r.floor_height == 99, 'a water floor is a metre lower: still above it')
+r = host.aim(bridge({ op = 'fall', segment_kind = 2 }))
+assert(r.state == 'done' and r.fell == false and r.remove == true and r.dropped_y == nil, 'a supported segment leaves the list at once, with no terrain asked')
+r = host.aim(bridge({ op = 'rest', alive = false }))
+assert(r.state == 'need_lookup' and r.need == 'terrain', 'a dead unsupported segment asks for the terrain it rests on')
+r = host.aim(bridge({ op = 'rest', alive = false, terrain = { height = 100.25, water = false } }))
+assert(r.state == 'done' and r.landed == true and r.landed_y == 100.25 and r.fell == nil and r.remove == nil, 'it rests on the ground and has not fallen')
+r = host.aim(bridge({ op = 'rest', alive = false, terrain = { height = 100.25, water = true } }))
+assert(r.landed == true and r.landed_y == 99.25, 'a metre lower over water')
+r = host.aim(bridge({ op = 'rest', alive = true }))
+assert(r.state == 'done' and r.landed == false and r.landed_y == nil, 'a living segment stays where it was saved, with no terrain asked')
+r = host.aim(bridge({ op = 'rest', alive = false, segment_kind = 2 }))
+assert(r.state == 'done' and r.landed == false, 'a dead supported segment stays')
+r = host.aim(bridge({ op = 'vehicles' }))
+assert(r.state == 'need_lookup' and r.need.sx == 2 and r.need.sz == 2 and r.need.after == 0, 'the segment own sector is walked')
+local function vehicle(handle, offset, extra)
+  local o = { handle = handle, entity_type = 23, readable = true, alive = true, has_position = true, rocket = false, excluded = false, position = { 250 + offset, 5, 250 } }
+  for k, v in pairs(extra or {}) do o[k] = v end
+  return o
+end
+r = host.aim(bridge({ op = 'vehicles', position = { 250, 5, 250 }, window = { sx = 2, sz = 2, after = 0, list_ends = true, objects = { vehicle(1, 30), vehicle(2, 14, { alive = false }), vehicle(3, 13) } } }))
+assert(r.state == 'done' and r.action == 'act' and r.handle == 3, 'the first living vehicle inside 10 * root two by the approximate range is killed')
+r = host.aim(bridge({ op = 'vehicles', position = { 250, 5, 250 }, window = { sx = 2, sz = 2, after = 0, list_ends = true, objects = { vehicle(1, 15) } } }))
+assert(r.state == 'done' and r.action == 'none', 'one outside is not')
+assert(host.aim(bridge({ op = 'vehicles', segment_length = 0 })).action == 'none', 'a segment of no length walks nothing')
+refused(bridge({ op = 'sink' }), 'unknown bridge op')
+refused(bridge({ alive = 1 }), 'alive must be a boolean')
+refused(bridge({ position = { 0 / 0, 0, 0 } }), 'position')
+refused(bridge({ op = 'vehicles', window = { sx = 9, sz = 9, after = 0, list_ends = true, objects = {} } }), 'cannot be answered')
+-- a host with a model of its own answers the same questions from nothing of EECH's, and the provider that corrupts the first answer of its kind is told apart by it
+assert(own_model.bridge(bridge()).kill == false and own_model.bridge(bridge({ op = 'neighbour', neighbour_present = true })).notify == false, 'the plain model holds every span up and tells no neighbour')
+assert(own_model.bridge(bridge({ op = 'shape', alive = true, pred_present = true, pred_alive = false })).variant == 0 and own_model.bridge(bridge({ op = 'shape', alive = false })).variant == 1, 'and shapes a segment by itself alone')
+r = own_model.bridge(bridge({ op = 'fall', terrain = { height = 100, water = true }, position = { 250, 100.1, 250 } }))
+assert(r.fell == true and r.landed == true and r.landed_y == 100 and r.floor_height == 100, 'it falls at two metres a second to the height of the terrain (no water offset of its own)')
+assert(own_model.bridge(bridge({ op = 'vehicles' })).action == 'none', 'and kills no vehicle')
+r = own_model.bridge(bridge({ op = 'rest', alive = false, terrain = { height = 100, water = true } }))
+assert(r.landed == true and r.landed_y == 100 and own_model.bridge(bridge({ op = 'rest', alive = false })).need == 'terrain' and own_model.bridge(bridge({ op = 'rest', alive = true })).landed == false, 'its dead segments lie on the terrain, none moved if alive')
+assert(malformed('bad_bridge_draw', host.aim, passed)(bridge()).state == 'need_draw', 'a sample asked for a bridge question')
+assert(malformed('bad_bridge_kill_dead', host.aim, passed)(bridge({ alive = false })).kill == true, 'a dead segment killed')
+assert(malformed('bad_bridge_variant', host.aim, passed)(bridge({ op = 'shape' })).variant == 9, 'a shape variant that does not exist')
+assert(malformed('bad_bridge_notify_absent', host.aim, passed)(bridge({ op = 'neighbour' })).notify == true, 'a neighbour that is not there told')
+assert(malformed('bad_bridge_landed_not_fell', host.aim, passed)(bridge({ op = 'fall', segment_kind = 2 })).landed == true, 'a landing without a fall')
+local nonfinite = malformed('bad_bridge_nonfinite', host.aim, passed)(bridge({ op = 'fall', terrain = { height = 100, water = false } }))
+assert(nonfinite.dropped_y ~= nonfinite.dropped_y, 'a drop that is not a number')
+assert(malformed('bad_bridge_terrain_twice', host.aim, passed)(bridge({ op = 'fall', terrain = { height = 100, water = false } })).need == 'terrain', 'the terrain asked for again')
+local handle = malformed('bad_bridge_handle', host.aim, passed)(bridge({ op = 'vehicles', position = { 250, 5, 250 }, window = { sx = 2, sz = 2, after = 0, list_ends = true, objects = { vehicle(1, 3) } } }))
+local alive_moved = malformed('bad_bridge_rest_alive', host.aim, passed)(bridge({ op = 'rest', alive = true }))
+assert(alive_moved.landed == true and alive_moved.landed_y == 1, 'a living segment moved')
+local rest_nonfinite = malformed('bad_bridge_rest_nonfinite', host.aim, passed)(bridge({ op = 'rest', alive = false, terrain = { height = 100, water = false } }))
+assert(rest_nonfinite.landed_y ~= rest_nonfinite.landed_y, 'a resting height that is not a number')
+assert(handle.handle == 99999, 'an object that is not in the window')
+-- the identities of the physical objects that are not rostered mobiles (EEDCS-46, R3): the host issues one for a structure from its own count, an offered object carries the identity it was given, and the host repeats it for the object it reaches
+local function identify(over)
+  local request = { mode = 'identify', entity_type = 5, sub_type = 41, side = 2, alive = true, damage_level = 80, initial_damage_level = 100, position = { 100, 5, 250 }, serial = 1 }
+  for k, v in pairs(over or {}) do request[k] = v end
+  return request
+end
+r = host.aim(identify())
+assert(r.state == 'done' and r.host_id == 'eech-world:object:1', 'the reference host issues an identity from its own count')
+assert(host.aim(identify({ serial = 9 })).host_id == 'eech-world:object:2' and host.aim(identify({ serial = 9 })).host_id == 'eech-world:object:3', 'a new one each time, whatever the campaign sent')
+refused(identify({ position = { 0 / 0, 0, 0 } }), 'position')
+refused(identify({ alive = 1 }), 'alive must be a boolean')
+refused(identify({ serial = 'x' }), 'serial')
+r = host.aim(blast({ window = window({ object(1, 6, 0), object(2, 6, 10, { host_id = 'obj-2' }) }, true) }))
+assert(r.action == 'collision' and r.handle == 2 and r.host_id == 'obj-2', 'the identity the object was offered under is repeated for the object the blast reaches')
+r = host.aim(blast({ window = window({ object(1, 6, 10) }, true) }))
+assert(r.action == 'collision' and r.handle == 1 and r.host_id == nil, 'an object offered with none is repeated as none')
+r = host.aim(bridge({ op = 'vehicles', position = { 250, 5, 250 }, window = { sx = 2, sz = 2, after = 0, list_ends = true, objects = { vehicle(7, 3, { host_id = 'veh-7' }) } } }))
+assert(r.action == 'act' and r.handle == 7 and r.host_id == 'veh-7', 'and for the vehicle a collapse kills')
+r = own_model.blast(blast({ window = window({ object(1, 3, 10, { host_id = 'obj-1' }) }, true) }))
+assert(r.action == 'collision' and r.host_id == 'obj-1', 'a plain model repeats the identity too')
+r = own_model.identify(identify({ serial = 4 }))
+assert(r.state == 'done' and r.host_id == 'own-world/structure/4', 'a plain model issues its own kind of identity')
+assert(malformed('bad_identify_empty', host.aim, passed)(identify()).host_id == '', 'a provider that issues an empty identity')
+assert(#malformed('bad_identify_long', host.aim, passed)(identify()).host_id == 129, 'one that is too long')
+assert(malformed('bad_identify_missing', host.aim, passed)(identify()).host_id == nil, 'one that issues none')
+assert(malformed('bad_identify_control', host.aim, passed)(identify()).host_id:find('\\n', 1, true), 'one with a control character')
+assert(malformed('bad_identify_draw', host.aim, passed)(identify()).state == 'need_draw', 'one that asks for a sample')
+local repeating = malformed('bad_identify_repeat', host.aim, passed)
+local issued_first = repeating(identify()).host_id
+assert(repeating(identify()).host_id == issued_first, 'one that issues the same identity twice')
+assert(malformed('bad_blast_identity', host.aim, passed)(blast({ window = window({ object(2, 6, 10, { host_id = 'obj-2' }) }, true) })).host_id == 'x-obj-2', 'a blast answer with the identity of another object')
+assert(malformed('bad_blast_identity_missing', host.aim, passed)(blast({ window = window({ object(2, 6, 10, { host_id = 'obj-2' }) }, true) })).host_id == nil, 'and with none for an object offered with one')
+assert(malformed('bad_bridge_identity', host.aim, passed)(bridge({ op = 'vehicles', position = { 250, 5, 250 }, window = { sx = 2, sz = 2, after = 0, list_ends = true, objects = { vehicle(7, 3, { host_id = 'veh-7' }) } } })).host_id == 'x-veh-7', 'a vehicles answer with the identity of another object')
+-- the identity of the object a hit, a health fact and a weapon's death are about (EEDCS-46, R3): the reference host accepts it (the host's own, checked for shape) and answers exactly as it does without; a malformed one is refused
+local function same_answer(a, b)
+  for k, v in pairs(a) do if type(v) ~= 'table' and b[k] ~= v then return false end end
+  return true
+end
+for _, make in ipairs({ { 'damage', hit }, { 'health', health }, { 'impact', impact } }) do
+  local name, build = make[1], make[2]
+  local plain = host.aim(build())
+  local with = host.aim(build({ target_host_id = 'eech-world:object:5' }))
+  assert(same_answer(plain, with) and same_answer(with, plain), name .. ': the identity of the subject changes no answer')
+  refused(build({ target_host_id = 5 }), 'target_host_id must be a string')
+  refused(build({ target_host_id = string.rep('x', 129) }), 'target_host_id must be 1 to 128 bytes')
+  refused(build({ target_host_id = '' }), 'target_host_id must be 1 to 128 bytes')
+end
+print('AIM_HOST=ok')";
+
+#[test]
+fn aim_round_trips_through_lua_and_refuses_what_it_was_not_asked() {
+    let script = std::env::temp_dir().join(format!("eech-world-aim-{}.lua", std::process::id()));
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\\', "/");
+    std::fs::write(&script, AIM_SCRIPT.replace("@LUA_DIR@", &lua_dir)).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("AIM_HOST=ok"), "{stdout}\n{stderr}");
+}
+
+#[test]
+fn every_shipped_lua_script_parses_under_the_hosts_lua() {
+    let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("lua");
+    let lua = mlua::Lua::new();
+    let mut parsed = 0;
+    for entry in std::fs::read_dir(&directory).unwrap() {
+        let path = entry.unwrap().path();
+        if path.extension().is_some_and(|extension| extension == "lua") {
+            let source = std::fs::read(&path).unwrap();
+            lua.load(&source[..])
+                .set_name(path.display().to_string())
+                .into_function()
+                .unwrap_or_else(|error| panic!("{} does not parse: {error}", path.display()));
+            parsed += 1;
+        }
+    }
+    assert!(parsed >= 20, "only {parsed} scripts were found in {}", directory.display());
+}
+
+#[test]
+fn the_provider_and_the_controlled_witness_find_the_model_files_beside_them_when_the_binary_runs_them_as_the_main_script() {
+    // the binary names the main script's chunk by its path alone, so a script that looks for a file beside itself must accept a source with no leading '@'; the root does not
+    // exist, so each run ends at the boot, after it has read the model files it needs and before it flies anything
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\\', "/");
+    for (script, own_model) in [("aim-provider.lua", "mode=own_model"), ("weapon-case.lua", "aim_model=own_model")] {
+        let out = std::env::temp_dir().join(format!("eech-world-main-script-{}-{script}.out", std::process::id()));
+        let run = Command::new(env!("CARGO_BIN_EXE_eech-world"))
+            .arg(format!("{lua_dir}/{script}"))
+            .arg("root=/nonexistent-root-for-a-script-test")
+            .arg("scenario=lebanon_retail")
+            .arg(format!("out={}", out.display().to_string().replace('\\', "/")))
+            .arg(own_model)
+            .output()
+            .unwrap();
+        let _ = std::fs::remove_file(&out);
+        let text = format!("{}\n{}", String::from_utf8_lossy(&run.stdout), String::from_utf8_lossy(&run.stderr));
+        assert!(!text.contains("cannot open"), "{script} could not find a model file beside it: {text}");
+        assert!(!text.contains("own-model.lua"), "{script}: {text}");
+    }
+}
+
+// The combat report's six hashes are sixteen-digit strings. A hash of decimal digits only must not be read as a number (that would drop its leading zeros and, above 2^53,
+// its low digits): the test loads the SAME writer and parser the characterisation script uses (lua/combat-report.lua) with a synthetic report and reads what it wrote.
+const COMBAT_REPORT_SCRIPT: &str = r#"
+local make = dofile('@LUA_DIR@/combat-report.lua')
+local written = {}
+local sink = { write = function(_, text) written[#written + 1] = text end, flush = function() end }
+local writer = make(sink)
+writer.emit_report('run', 600, table.concat({
+  'cmb-hash damage=0123456789012345 collision=9007199254740993 blast=0000000000000255 repair=1000000000000000 timed=0000000000000001 order=12345678901234567890',
+  'cmb-hash damage=0123456789abcdef collision=ffffffffffffffff blast=00000000000000ff repair=0000000000000000 timed=0000000000000000 order=1',
+  'cmb-integrity depth_max=2 depth_overflow=0 trusted=1',
+  'cmb-kind type=HELICOPTER collisions=3 damage_sum=5.5',
+  -- the SAME word `blast` is a hash in cmb-hash (above) and a COUNTER in a cmb-kind row: its type follows the event, not the word
+  'cmb-kind type=CITY_BUILDING collisions=70 direct=1 blast=69 applied=69 candidates=105876',
+  'cmb-kind type=SEGMENT collisions=8 direct=0 blast=0000000000000008 applied=8',
+  'cmb-repair resupply=5 fixed_restore=0 other=0 zero_to_positive=0',
+  'cmb-timed kind=1 attempts=626574 draws=364 hits=43 fatal=0',
+  'cmb-ev seq=7 kind=timed type=1 receiver=ENTITY_TYPE_HELICOPTER draws=1 new_level=0',
+}, '\n'))
+local text = table.concat(written)
+local function has(fragment) assert(text:find(fragment, 1, true), 'missing ' .. fragment .. ' in ' .. text) end
+local function lacks(fragment) assert(not text:find(fragment, 1, true), 'unexpected ' .. fragment .. ' in ' .. text) end
+has('"damage":"0123456789012345"')
+has('"collision":"9007199254740993"')
+has('"blast":"0000000000000255"')
+has('"repair":"1000000000000000"')
+has('"timed":"0000000000000001"')
+has('"order":"12345678901234567890"')
+has('"timed":"0000000000000000"')
+has('"order":"1"')
+-- a count stays a number and a name stays a name
+has('"depth_max":2')
+has('"trusted":1')
+has('"collisions":3')
+has('"type":"HELICOPTER"')
+-- the counter named like a hash is a number in a cmb-kind row, and the hash named like a counter is a string in the cmb-hash line, in the same report
+has('"blast":69,')
+lacks('"blast":"69"')
+has('"blast":8,')
+has('"blast":"0000000000000255"')
+lacks('"blast":255')
+-- other counters stay numbers (including the ones that share a word with a hash key elsewhere) and a name that looks like one stays what the emitter wrote
+has('"resupply":5')
+has('"hits":43')
+has('"kind":"timed"')
+has('"type":1}')
+print('COMBAT_REPORT=ok')
+"#;
+
+#[test]
+fn the_combat_report_keeps_every_hash_a_string_and_the_script_finds_its_report_module_beside_it() {
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\\', "/");
+    let script = std::env::temp_dir().join(format!("eech-world-combat-report-{}.lua", std::process::id()));
+    std::fs::write(&script, COMBAT_REPORT_SCRIPT.replace("@LUA_DIR@", &lua_dir)).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("COMBAT_REPORT=ok"), "{stdout}\n{stderr}");
+
+    // run as the main script, the characterisation script finds the module beside it (its root does not exist, so it ends at the boot)
+    let out = std::env::temp_dir().join(format!("eech-world-combat-main-{}.jsonl", std::process::id()));
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world"))
+        .arg(format!("{lua_dir}/combat-characterization.lua"))
+        .arg("root=/nonexistent-root-for-a-script-test")
+        .arg(format!("out={}", out.display().to_string().replace('\\', "/")))
+        .output()
+        .unwrap();
+    let _ = std::fs::remove_file(&out);
+    let text = format!("{}\n{}", String::from_utf8_lossy(&run.stdout), String::from_utf8_lossy(&run.stderr));
+    assert!(!text.contains("combat-report.lua"), "the module was not found beside the script: {text}");
+}
+
+// The controlled witness reads what each case did as the deltas of the observer's counters between two reports. A report has INDEXED rows (a kill code, a warhead, an entity kind,
+// a timed roll's kind): each row's counter must keep its own key, or a later row overwrites an earlier one and a change disappears from the delta. The test loads the SAME
+// flatten-and-delta code the witness uses (lua/combat-counters.lua) with two reports that differ in ONE kill code's calls.
+const COMBAT_COUNTERS_SCRIPT: &str = r#"
+local counting = dofile('@LUA_DIR@/combat-counters.lua')
+local function report(code3, code7, warhead4, helicopter, timed4_draws)
+  return table.concat({
+    'cmb-hash damage=0123456789012345 collision=9007199254740993 blast=0000000000000255 repair=1000000000000000 timed=0000000000000001 order=12345678901234567890',
+    'cmb-blast calls=' .. (code3 + code7) .. ' zero_radius=70 candidates=134614 max_candidates=1519',
+    'cmb-blast-kill code=3 calls=' .. code3,
+    'cmb-blast-kill code=7 calls=' .. code7,
+    'cmb-warhead type=4 real=' .. warhead4 .. ' forecast=81613 penetrated=56906 splash=24756',
+    'cmb-warhead type=5 real=88 forecast=39485 penetrated=37506 splash=2067',
+    'cmb-kind type=ENTITY_TYPE_HELICOPTER collisions=' .. helicopter .. ' direct=45 blast=3 max_damage=17',
+    'cmb-kind type=ENTITY_TYPE_ROUTED_VEHICLE collisions=81 direct=20 blast=61 max_damage=500',
+    'cmb-timed kind=1 attempts=1026989 draws=364 hits=43 fatal=0',
+    'cmb-timed kind=4 attempts=4134689 draws=' .. timed4_draws .. ' hits=0 fatal=0',
+    'cmb-unobserved type=ENTITY_TYPE_BRIDGE deliveries=31 note=counted_only',
+  }, '\n')
+end
+local before = report(1054, 3, 49, 48, 0)
+local after = report(1056, 3, 50, 49, 7)
+
+-- each indexed row keeps its own raw value in the flattened counters (never a sum over the rows)
+local b, a = counting.counters(before), counting.counters(after)
+assert(a['cmb-blast-kill.code=3.calls'] == 1056 and a['cmb-blast-kill.code=7.calls'] == 3, 'both kill-code rows keep their own value')
+assert(a['cmb-blast-kill.calls'] == nil, 'no ambiguous key that a later kill-code row could overwrite')
+assert(a['cmb-warhead.type=4.real'] == 50 and a['cmb-warhead.type=5.real'] == 88)
+assert(a['cmb-kind.type=ENTITY_TYPE_HELICOPTER.collisions'] == 49 and a['cmb-kind.type=ENTITY_TYPE_ROUTED_VEHICLE.collisions'] == 81)
+assert(a['cmb-timed.kind=1.draws'] == 364 and a['cmb-timed.kind=4.draws'] == 7)
+assert(a['cmb-unobserved.type=ENTITY_TYPE_BRIDGE.deliveries'] == 31)
+assert(a['cmb-blast.calls'] == 1059 and b['cmb-blast.calls'] == 1057)
+
+-- the delta of a case that changed code 3 (and not the later code 7) shows code 3
+local d = counting.deltas(before, after)
+assert(d['cmb-blast-kill.code=3.calls'] == 2, 'the kill-code 3 change is visible: ' .. tostring(d['cmb-blast-kill.code=3.calls']))
+assert(d['cmb-blast-kill.code=7.calls'] == nil, 'the unchanged later kill-code row is not in the delta')
+assert(d['cmb-warhead.type=4.real'] == 1 and d['cmb-warhead.type=5.real'] == nil)
+assert(d['cmb-kind.type=ENTITY_TYPE_HELICOPTER.collisions'] == 1 and d['cmb-kind.type=ENTITY_TYPE_ROUTED_VEHICLE.collisions'] == nil)
+assert(d['cmb-timed.kind=4.draws'] == 7 and d['cmb-timed.kind=1.draws'] == nil)
+assert(d['cmb-blast.calls'] == 2)
+-- maxima are not counters; hashes are not counters; and nothing else moved
+assert(d['cmb-blast.max_candidates'] == nil and d['cmb-kind.type=ENTITY_TYPE_HELICOPTER.max_damage'] == nil)
+for k in pairs(d) do assert(not string.find(k, 'cmb-hash', 1, true), 'a hash is not a counter: ' .. k) end
+local n = 0
+for _ in pairs(d) do n = n + 1 end
+assert(n == 5, 'exactly the five changed counters: ' .. n)
+-- the reverse change (code 7 up, code 3 unchanged) is visible too, so neither row hides the other
+local d2 = counting.deltas(before, report(1054, 5, 49, 48, 0))
+assert(d2['cmb-blast-kill.code=7.calls'] == 2 and d2['cmb-blast-kill.code=3.calls'] == nil)
+print('COMBAT_COUNTERS=ok')
+"#;
+
+#[test]
+fn the_case_deltas_keep_every_indexed_report_row_apart() {
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\\', "/");
+    let script = std::env::temp_dir().join(format!("eech-world-combat-counters-{}.lua", std::process::id()));
+    std::fs::write(&script, COMBAT_COUNTERS_SCRIPT.replace("@LUA_DIR@", &lua_dir)).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("COMBAT_COUNTERS=ok"), "{stdout}\n{stderr}");
+}
+
+// The controlled witness spends its carrier's ammunition (a launch per case), and the first controlled original run took the FIRST launcher carrying each class whatever it held: the
+// high-explosive carrier launched six weapons and was then refused thirteen times. The test loads the SAME carrier choice the witness uses (lua/combat-plan.lua) with a synthetic
+// inventory shaped like the measured one (first carrier of the class holds six, a later one holds plenty).
+const COMBAT_PLAN_SCRIPT: &str = r#"
+local planning = dofile('@LUA_DIR@/combat-plan.lua')
+local function he(w) return w == 4 end
+local launchers = {
+  { id = 'eech-world:2690', inventory = { { weapon = 54, count = 6, warhead = 4 } } },
+  { id = 'eech-world:2700', inventory = { { weapon = 11, count = 2, warhead = 1 }, { weapon = 54, count = 40, warhead = 4 } } },
+  { id = 'eech-world:2784', inventory = { { weapon = 76, count = 12, warhead = 1 } } },
+}
+-- the plan: a direct hit and a blast-range collision per living kind, a land-hit explosion per kind and one hit on target
+assert(planning.need(0) == 0 and planning.need(1) == 4 and planning.need(7) == 22, 'need ' .. planning.need(7))
+-- a carrier that cannot afford the plan is passed over, even though it is first
+local id, weapon, warhead, count, shortfall = planning.choose(launchers, he, planning.need(7))
+assert(id == 'eech-world:2700' and weapon == 54 and warhead == 4 and count == 40 and shortfall == 0, 'the first affordable carrier: ' .. tostring(id) .. ' ' .. tostring(count))
+-- when the first one does afford it, it is kept (the choice is stable, in launcher order)
+id, weapon, _, count, shortfall = planning.choose(launchers, he, 6)
+assert(id == 'eech-world:2690' and count == 6 and shortfall == 0, 'the first carrier that affords the plan is kept')
+-- when none affords it, the one with the most ammunition is taken and the shortfall is reported, not hidden
+id, weapon, _, count, shortfall = planning.choose(launchers, he, 100)
+assert(id == 'eech-world:2700' and count == 40 and shortfall == 60, 'the richest carrier with the shortfall: ' .. tostring(shortfall))
+-- a class nobody carries is nothing
+assert(planning.choose(launchers, function(w) return w == 7 end, 4) == nil, 'no carrier for a class nobody holds')
+-- the solid class is chosen by its own warhead, and a carrier that holds both is read per weapon
+id, weapon, warhead, count, shortfall = planning.choose(launchers, function(w) return w == 1 end, 12)
+assert(id == 'eech-world:2784' and weapon == 76 and count == 12 and shortfall == 0)
+-- the class of a role: the first class that is not estimated short, else the one with the most ammunition
+local dual = { class = 'he_dual_purpose', count = 6, shortfall = 4 }
+local plain = { class = 'he_plain', count = 100, shortfall = 0 }
+local aa = { class = 'he_anti_aircraft', count = 30, shortfall = 0 }
+local c, why = planning.choose_class({ dual, plain, aa })
+assert(c == plain and why == 'first_affordable_alternate', 'the affordable alternate, not the preferred class that is short')
+c, why = planning.choose_class({ plain, dual })
+assert(c == plain and why == 'preferred', 'the preferred class when it is affordable')
+c, why = planning.choose_class({ { class = 'a', count = 3, shortfall = 7 }, { class = 'b', count = 5, shortfall = 5 }, { class = 'c', count = 5, shortfall = 5 } })
+assert(c.class == 'b' and why == 'none_affordable_most_ammunition', 'none affordable: the most ammunition, the first on a tie')
+assert(planning.choose_class({}) == nil, 'no class, no choice')
+-- the carrier a case launches from NOW is read from the live count and the rounds one launch cost
+local role = { { key = 'A', class = 'he_dual_purpose' }, { key = 'B', class = 'he_plain' } }
+local live = { A = 10, B = 100 }
+local debit = {}
+local function count(carrier) return live[carrier.key] end
+local p = planning.pick(role, count, debit)
+assert(p.key == 'A', 'the chosen carrier while it has ammunition')
+planning.note_debit(debit, p, 10, 6)
+assert(debit.A == 4, 'a salvo that spent four rounds is remembered: ' .. tostring(debit.A))
+planning.note_debit(debit, p, 6, 5)
+assert(debit.A == 4, 'a cheaper launch does not lower the learned cost')
+planning.note_debit(debit, p, 5, 5)
+planning.note_debit(debit, p, -1, 3)
+assert(debit.A == 4, 'a launch that spent nothing, or an unreadable count, changes nothing')
+live.A = 2
+p = planning.pick(role, count, debit)
+assert(p.key == 'B', 'two rounds left cannot pay four: the next carrier of the role')
+live.A, live.B = 0, 0
+assert(planning.pick(role, count, debit) == nil, 'no carrier with ammunition: nothing is picked (the case is not attempted)')
+live.A, live.B = -1, 3
+assert(planning.pick(role, count, debit).key == 'B', 'an unreadable count is not ammunition')
+print('COMBAT_PLAN=ok')
+"#;
+
+#[test]
+fn the_case_carrier_is_one_that_can_afford_the_plan() {
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\\', "/");
+    let script = std::env::temp_dir().join(format!("eech-world-combat-plan-{}.lua", std::process::id()));
+    std::fs::write(&script, COMBAT_PLAN_SCRIPT.replace("@LUA_DIR@", &lua_dir)).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("COMBAT_PLAN=ok"), "{stdout}\n{stderr}");
+}
+
+// CALLER-LEVEL test of the controlled witness's carrier choice (EEDCS-46, the 871 review): the REAL lua/combat-case.lua and its shared modules run against a small stand-in for the
+// engine (inventory, launch cost, refusal and the report texts only; the C driver and its guards are checked elsewhere). A launch spends `@DEBIT@` rounds (a salvo of weapons, each
+// spending its burst size), and one that cannot be afforded is refused (`refused=1`, ammunition unchanged), as the C driver reports it. Nothing here is the campaign's physics.
+const COMBAT_CASE_CALLER_SCRIPT: &str = r#"
+local LAUNCHERS = @LAUNCHERS@
+local DEBIT = @DEBIT@
+local ammo, launches, refused = {}, {}, {}
+for _, l in ipairs(LAUNCHERS) do for _, i in ipairs(l.items) do ammo[l.id .. ':' .. i.weapon] = i.count end end
+local time = 0
+local engine = {}
+function engine:clock() return { elapsed_seconds = time } end
+function engine:frame(ms) time = time + ms / 1000 end
+function engine:cmb_events() return '' end
+function engine:cmb_trace() return 'cmb-blast calls=0\n' end
+local LIVE = { ENTITY_TYPE_PERSON = 1, ENTITY_TYPE_PYLON = 1, ENTITY_TYPE_ROUTED_VEHICLE = 1 }
+function engine:cmb_case_state(op, kind, ordinal, percent)
+  if op == 0 then
+    local lines = {}
+    for _, k in ipairs({ 'ANTI_AIRCRAFT', 'OBJECT', 'PERSON', 'PYLON', 'ROUTED_VEHICLE', 'SCENIC', 'SITE', 'SITE_UPDATABLE' }) do
+      lines[#lines + 1] = 'cmb-case-census kind=ENTITY_TYPE_' .. k .. ' live=' .. (LIVE['ENTITY_TYPE_' .. k] or 0)
+    end
+    return table.concat(lines, '\n') .. '\n'
+  end
+  return 'cmb-case-health kind=' .. kind .. ' found=1 eligible=0\n'
+end
+function engine:wpn_case_query(id, w)
+  for _, l in ipairs(LAUNCHERS) do
+    if l.id == id then
+      for _, i in ipairs(l.items) do
+        if i.weapon == w then return 'wpn-case-state host_id=' .. id .. ' alive=1 weapon=' .. w .. ' weapon_count=' .. ammo[id .. ':' .. w] .. ' warhead=' .. i.warhead .. '\n' end
+      end
+      return 'wpn-case-state host_id=' .. id .. ' alive=1 weapon=' .. w .. ' weapon_count=0 warhead=-1\n'
+    end
+  end
+  error('no such launcher ' .. id)
+end
+function engine:cmb_case_act(op, kind, ordinal, launcher, weapon, amount, kill_code, weaponless)
+  if op == 1 and weaponless then
+    return 'cmb-case-collide kind=' .. kind .. ' ordinal=0 live=1 found=1 weapon=0 weaponless=1 launched=0 refused=0 modifier=0 level_before=1 alive_before=1 launch=none\n'
+  end
+  local key = launcher .. ':' .. weapon
+  launches[key] = (launches[key] or 0) + 1
+  local head = op == 1 and ('cmb-case-collide kind=' .. kind .. ' ordinal=0 live=1 found=1 weapon=' .. weapon .. ' weaponless=0') or ('cmb-case-blast kind=' .. kind .. ' ordinal=0 live=1 found=1 placed=1 weapon=' .. weapon .. ' kill_code=' .. kill_code .. ' offset=5')
+  if (ammo[key] or 0) < DEBIT then
+    refused[key] = (refused[key] or 0) + 1
+    return head .. ' launched=0 refused=1 launch=wpn-case-launch|ok\n'
+  end
+  ammo[key] = ammo[key] - DEBIT
+  return head .. ' launched=1 refused=0 launch=wpn-case-launch|ok\n'
+end
+local bound = 0
+host.bind_mobile = function() bound = bound + 1; return LAUNCHERS[bound].id end
+package.loaded['eech_dc'] = {
+  prepare_installation = function() end,
+  boot = function(cfg) for _ = 1, #LAUNCHERS do cfg.bind_mobile({}) end return engine end,
+}
+dofile('@LUA_DIR@/combat-case.lua')
+local keys = {}
+for k in pairs(launches) do keys[#keys + 1] = k end
+table.sort(keys)
+for _, k in ipairs(keys) do print('LAUNCHES ' .. k .. ' calls=' .. launches[k] .. ' refused=' .. (refused[k] or 0) .. ' left=' .. ammo[k]) end
+print('CALLER_DONE')
+"#;
+
+fn run_combat_case_caller(launchers: &str, debit: u32) -> (Vec<serde_json::Value>, String) {
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\u{5c}', "/");
+    let tag = format!("{}-{}", std::process::id(), debit);
+    let script = std::env::temp_dir().join(format!("eech-world-combat-caller-{tag}.lua"));
+    let out = std::env::temp_dir().join(format!("eech-world-combat-caller-{tag}.jsonl"));
+    let text = COMBAT_CASE_CALLER_SCRIPT
+        .replace("@LAUNCHERS@", launchers)
+        .replace("@DEBIT@", &debit.to_string())
+        .replace("@LUA_DIR@", &lua_dir);
+    std::fs::write(&script, text).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world"))
+        .arg(&script)
+        .arg("root=none")
+        .arg(format!("out={}", out.display().to_string().replace('\u{5c}', "/")))
+        .arg("warmup=1")
+        .output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout).to_string();
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    assert!(stdout.contains("CALLER_DONE"), "{stdout}\n{stderr}");
+    let rows: Vec<serde_json::Value> = std::fs::read_to_string(&out)
+        .unwrap()
+        .lines()
+        .map(|l| serde_json::from_str(l).unwrap())
+        .collect();
+    std::fs::remove_file(&out).unwrap();
+    (rows, stdout)
+}
+
+fn rows_of<'a>(rows: &'a [serde_json::Value], event: &str) -> Vec<&'a serde_json::Value> {
+    rows.iter().filter(|r| r["event"] == event).collect()
+}
+
+// the preferred high-explosive class (dual purpose) is held by a carrier of six rounds while a plain high-explosive carrier holds a hundred: the caller must keep the estimate through
+// the class choice and take the affordable alternate of the SAME role, instead of the first class and then thirteen refusals
+#[test]
+fn the_case_caller_takes_the_affordable_alternate_class_of_its_role() {
+    let launchers = "{ { id = 'eech-world:2690', items = { { weapon = 54, count = 6, warhead = 4 } } },\
+ { id = 'eech-world:2700', items = { { weapon = 55, count = 100, warhead = 5 } } },\
+ { id = 'eech-world:2784', items = { { weapon = 76, count = 40, warhead = 1 } } } }";
+    let (rows, stdout) = run_combat_case_caller(launchers, 1);
+    // BEHAVIOUR first: no launch the campaign refused for want of ammunition
+    assert!(
+        stdout.lines().filter(|l| l.starts_with("LAUNCHES")).all(|l| l.contains("refused=0")),
+        "a launch was refused for want of ammunition: {stdout}"
+    );
+    let chosen = rows_of(&rows, "chosen_weapon_class");
+    let he = chosen.iter().find(|r| r["role"] == "high_explosive").expect("a high explosive class is chosen");
+    assert_eq!(he["class"], "he_plain", "the affordable alternate, not the preferred class of six rounds: {he}");
+    assert_eq!(he["reason"], "first_affordable_alternate");
+    assert_eq!(he["preferred"], "he_dual_purpose");
+    assert_eq!(he["estimated_shortfall"], 0);
+    // the per-class rows keep the count and the estimated shortfall of the unaffordable class
+    let classes = rows_of(&rows, "weapon_class");
+    let dual = classes.iter().find(|r| r["class"] == "he_dual_purpose").unwrap();
+    assert_eq!(
+        (dual["count"].as_i64(), dual["planned"].as_i64(), dual["estimated_shortfall"].as_i64()),
+        (Some(6), Some(10), Some(4)),
+        "{dual}"
+    );
+    // no launch from the six-round carrier, no refusal, every launching case done
+    assert!(!stdout.contains("LAUNCHES eech-world:2690:54"), "{stdout}");
+    let cases = rows_of(&rows, "case");
+    assert!(cases.iter().all(|r| r["refused"] == false), "no refusal: {stdout}");
+    assert_eq!(cases.iter().filter(|r| r["done"] == true).count(), cases.len(), "every case done");
+    assert!(stdout.contains("LAUNCHES eech-world:2700:55 calls=10 refused=0 left=90"), "{stdout}");
+}
+
+// a launch spends a SALVO: here four rounds. A carrier of ten rounds is not estimated short of the ten launch calls of the plan, so it is chosen, but only two launches fit; the cases
+// must then pick the other carrier of the role from the LIVE count (and not be refused), and never launch from anything outside the role
+#[test]
+fn the_case_caller_follows_the_live_ammunition_when_a_launch_spends_several_rounds() {
+    let launchers = "{ { id = 'eech-world:2690', items = { { weapon = 54, count = 10, warhead = 4 } } },\
+ { id = 'eech-world:2700', items = { { weapon = 55, count = 100, warhead = 5 } } },\
+ { id = 'eech-world:2784', items = { { weapon = 76, count = 40, warhead = 1 } } },\
+ { id = 'eech-world:2800', items = { { weapon = 77, count = 500, warhead = 2 } } } }";
+    let (rows, stdout) = run_combat_case_caller(launchers, 4);
+    // BEHAVIOUR first: no launch the campaign refused for want of ammunition
+    assert!(
+        stdout.lines().filter(|l| l.starts_with("LAUNCHES")).all(|l| l.contains("refused=0")),
+        "a launch was refused for want of ammunition: {stdout}"
+    );
+    let chosen = rows_of(&rows, "chosen_weapon_class");
+    let he = chosen.iter().find(|r| r["role"] == "high_explosive").unwrap();
+    assert_eq!(he["class"], "he_dual_purpose", "ten rounds are not estimated short of ten launch calls: {he}");
+    assert_eq!(he["reason"], "preferred");
+    let changed = rows_of(&rows, "carrier_changed");
+    assert_eq!(
+        changed.len(),
+        1,
+        "exactly one change, once the live count (2) cannot pay the learned cost (4): {stdout}"
+    );
+    assert_eq!(
+        (changed[0]["from"].as_str(), changed[0]["to"].as_str()),
+        (Some("he_dual_purpose"), Some("he_plain"))
+    );
+    let cases = rows_of(&rows, "case");
+    assert!(cases.iter().all(|r| r["refused"] == false), "no case was refused: {stdout}");
+    // the cases record the ammunition they spent
+    let first = cases.iter().find(|r| r["name"].as_str().unwrap().ends_with("he_dual_purpose")).unwrap();
+    assert_eq!((first["ammo_before"].as_i64(), first["ammo_after"].as_i64()), (Some(10), Some(6)), "{first}");
+    assert!(stdout.contains("LAUNCHES eech-world:2690:54 calls=2 refused=0 left=2"), "{stdout}");
+    assert!(stdout.contains("LAUNCHES eech-world:2700:55 calls=8 refused=0 left=68"), "{stdout}");
+    // the carrier of an unrelated class (warhead 2, not part of any role) was never fired
+    assert!(!stdout.contains("eech-world:2800"), "{stdout}");
+}
+
+// The controlled bridge witness (EEDCS-46, R5; lua/bridge-case.lua) against a small stand-in for the engine: only its flow and its argument safety are checked here (the survey, the choice of a bridge by
+// the explicit criterion, the order of the operations, the frames recorded, the disarming, the plain statement that there was no suitable bridge, and that a malformed argument is refused BEFORE the
+// installation is prepared, the engine booted, a frame run or a segment killed); the C driver and the observer are compiled and checked elsewhere, and the original code's behaviour is the ROOT's
+// native run. The script under test is the real file, run by the real host's Lua. The stand-in notes every call it receives in a file (so that a refusal can be shown to have touched nothing) and stops
+// the process with an error after 3000 frames or 200 case calls, so that a script without a bound cannot hang a test; this is a proof of argument validation, not of native physics.
+const BRIDGE_CASE_CALLER_SCRIPT: &str = r#"
+local SURVEY = [==[@SURVEY@]==]
+-- the frame count from which the stand-in's segment has left the update list (-1: it never does); and whether the state it returns is empty
+local FINISH = @FINISH@
+local EMPTY = @EMPTY@
+local calls = {}
+local time = 0
+local frames = 0
+local function note(text)
+  local f = io.open('@TRACE@', 'a')
+  f:write(text, '\n')
+  f:close()
+end
+local engine = {}
+function engine:clock() return { elapsed_seconds = time } end
+function engine:frame(ms)
+  frames = frames + 1
+  if frames > 3000 then error('stand-in cap: more than 3000 frames were run') end
+  note('frame ' .. ms)
+  time = time + ms / 1000
+end
+function engine:cmb_events() return 'cmb-ev seq=1 kind=bridge-segment-update bridge=0 seg=1 of=3 sub=2 alive=0 shape=5 y=10 a=0 b=0 f=0\n' end
+function engine:cmb_trace() return 'cmb-blast calls=0\n' end
+function engine:cmb_case_bridge(op, ordinal, index, criterion)
+  if #calls > 200 then error('stand-in cap: more than 200 case calls') end
+  calls[#calls + 1] = op .. ':' .. ordinal .. ':' .. index .. ':' .. criterion
+  note('case ' .. op .. ':' .. ordinal .. ':' .. index .. ':' .. criterion)
+  if op == 0 then return SURVEY end
+  if op == 1 then
+    if EMPTY then return '' end
+    local pending = (FINISH >= 0 and frames >= FINISH) and 0 or 1
+    return 'cmb-bridge-state bridge=' .. ordinal .. ' alive=1 breaks=0\ncmb-bridge-segment bridge=' .. ordinal .. ' index=0 kind=E alive=1 in_update=' .. pending .. '\ncmb-bridge-segment bridge=' .. ordinal .. ' index=1 kind=S alive=0 in_update=0\n'
+  end
+  if op == 2 then return 'cmb-bridge-fail bridge=' .. ordinal .. ' found=1 segments=3 index=' .. (index < 0 and 1 or index) .. ' criterion=0 done=1 bridge_alive=1 neighbour=2 neighbour_alive=1 first_collapse=1 armed=1\n' end
+  return 'cmb-bridge-disarm armed=0\n'
+end
+package.loaded['eech_dc'] = {
+  prepare_installation = function() note('prepare') end,
+  boot = function() note('boot') return engine end,
+}
+dofile('@LUA_DIR@/bridge-case.lua')
+print('CALLS ' .. table.concat(calls, ' '))
+print('BRIDGE_CALLER_DONE')
+"#;
+
+struct BridgeRun {
+    status: std::process::ExitStatus,
+    stdout: String,
+    stderr: String,
+    trace: String,
+    out_exists: bool,
+    rows: Vec<serde_json::Value>,
+}
+
+fn run_bridge_case_raw(survey: &str, extra: &[&str], base: &[&str]) -> BridgeRun {
+    run_bridge_case_with(survey, extra, base, -1, false)
+}
+
+// `finish`: the frame count from which the stand-in's segment is out of the update list (-1: never); `empty`: the state the stand-in returns is empty
+fn run_bridge_case_with(survey: &str, extra: &[&str], base: &[&str], finish: i32, empty: bool) -> BridgeRun {
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\u{5c}', "/");
+    static COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let tag = format!("{}-{}", std::process::id(), COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst));
+    let script = std::env::temp_dir().join(format!("eech-world-bridge-caller-{tag}.lua"));
+    let out = std::env::temp_dir().join(format!("eech-world-bridge-caller-{tag}.jsonl"));
+    let trace = std::env::temp_dir().join(format!("eech-world-bridge-caller-{tag}.trace"));
+    let _ = std::fs::remove_file(&out);
+    let _ = std::fs::remove_file(&trace);
+    let text = BRIDGE_CASE_CALLER_SCRIPT
+        .replace("@SURVEY@", survey)
+        .replace("@FINISH@", &finish.to_string())
+        .replace("@EMPTY@", if empty { "true" } else { "false" })
+        .replace("@TRACE@", &trace.display().to_string().replace('\u{5c}', "/"))
+        .replace("@LUA_DIR@", &lua_dir);
+    std::fs::write(&script, text).unwrap();
+    let mut command = Command::new(env!("CARGO_BIN_EXE_eech-world"));
+    command
+        .arg(&script)
+        .arg("root=none")
+        .arg(format!("out={}", out.display().to_string().replace('\u{5c}', "/")));
+    // a base argument is replaced by an extra one of the same name (the host does not say which of two it keeps)
+    let key = |arg: &str| arg.split('=').next().unwrap_or_default().to_string();
+    let overridden: Vec<String> = extra.iter().map(|a| key(a)).collect();
+    for arg in base.iter().filter(|a| !overridden.contains(&key(a))).chain(extra) {
+        command.arg(arg);
+    }
+    let run = command.output().unwrap();
+    std::fs::remove_file(&script).unwrap();
+    let out_exists = out.exists();
+    let rows = if out_exists {
+        std::fs::read_to_string(&out)
+            .unwrap()
+            .lines()
+            // every line of the output must parse: a malformed row is a failure here, never silently dropped
+            .map(|l| serde_json::from_str(l).unwrap_or_else(|e| panic!("malformed output row {l:?}: {e}")))
+            .collect()
+    } else {
+        Vec::new()
+    };
+    let trace_text = std::fs::read_to_string(&trace).unwrap_or_default();
+    let _ = std::fs::remove_file(&out);
+    let _ = std::fs::remove_file(&trace);
+    BridgeRun {
+        status: run.status,
+        stdout: String::from_utf8_lossy(&run.stdout).to_string(),
+        stderr: String::from_utf8_lossy(&run.stderr).to_string(),
+        trace: trace_text,
+        out_exists,
+        rows,
+    }
+}
+
+const BRIDGE_BASE: [&str; 3] = ["warmup=0.2", "frame_ms=100", "window_seconds=0.25"];
+
+fn run_bridge_case_caller(survey: &str, extra: &[&str]) -> (Vec<serde_json::Value>, String) {
+    let run = run_bridge_case_raw(survey, extra, &BRIDGE_BASE);
+    assert!(run.status.success(), "{}\n{}\n{}", run.status, run.stdout, run.stderr);
+    assert!(
+        run.stdout.contains("BRIDGE_CASE_") || run.stdout.contains("BRIDGE_CALLER_DONE"),
+        "{}\n{}",
+        run.stdout,
+        run.stderr
+    );
+    (run.rows, run.stdout)
+}
+
+const BRIDGE_SURVEY_ONE: &str = "cmb-bridge-census bridges=2 routed_alive=3 repair_tasks=0 comms_server=1\n\
+cmb-bridge-survey bridge=0 sub_type=1 start=4 end=5 alive=1 breaks=0 segments=3 unsupported=0 first_candidate=-1 first_neighbour=-1 x=1 y=2 z=3 pattern=ESE\n\
+cmb-bridge-survey bridge=1 sub_type=2 start=6 end=7 alive=1 breaks=0 segments=3 unsupported=1 first_candidate=0 first_neighbour=2 x=1 y=2 z=3 pattern=ESU\n";
+
+#[test]
+fn the_bridge_witness_records_a_declared_failure_and_a_bounded_window_of_frames_in_order() {
+    let (rows, stdout) = run_bridge_case_caller(BRIDGE_SURVEY_ONE, &[]);
+    // the survey, then the state, the failure of the explicit choice (the first bridge with a candidate, the first segment by the criterion), the state after, three frames of state, and the disarming
+    assert!(
+        stdout.contains("CALLS 0:0:-1:0 1:1:-1:0 2:1:-1:0 1:1:-1:0 1:1:-1:0 1:1:-1:0 1:1:-1:0 3:0:-1:0"),
+        "{stdout}"
+    );
+    let case = rows.iter().find(|r| r["event"] == "bridge_case").unwrap();
+    assert_eq!(
+        (
+            case["done"].as_bool(),
+            case["bridge"].as_i64(),
+            case["segment"].as_i64(),
+            case["first_collapse"].as_bool()
+        ),
+        (Some(true), Some(1), Some(1), Some(true)),
+        "{case}"
+    );
+    let scopes: Vec<&str> = rows.iter().filter_map(|r| r["scope"].as_str()).collect();
+    for scope in [
+        "bridge:survey",
+        "bridge:before",
+        "bridge:after",
+        "frame:0:log",
+        "frame:1:state",
+        "frame:3:log",
+        "bridge:disarm",
+        "bridge:trace:before",
+        "bridge:trace:after",
+    ] {
+        assert!(scopes.contains(&scope), "{scope} missing: {scopes:?}");
+    }
+    assert!(!scopes.contains(&"frame:4:state"), "the window is bounded at three frames: {scopes:?}");
+    // the order: the failure is recorded before the first frame, and the disarming after the last
+    let position = |scope: &str| scopes.iter().position(|s| *s == scope).unwrap();
+    assert!(
+        position("bridge:before") < position("frame:0:log")
+            && position("frame:0:log") < position("frame:1:state")
+            && position("frame:3:log") < position("bridge:disarm")
+    );
+    let event = rows.iter().find(|r| r["scope"] == "frame:1:log" && r["event"] == "cmb-ev").unwrap();
+    assert_eq!(event["kind"], "bridge-segment-update");
+    // what the original did is COUNTED from the events and the last state, not read from `done`: four logs of one segment-update each, no landing, one segment still in the update list
+    let summary = rows.iter().find(|r| r["event"] == "bridge_summary").unwrap();
+    assert_eq!(summary["n_segment_update"], 4, "{summary}");
+    assert_eq!(
+        (
+            summary["in_update_at_end"].as_i64(),
+            summary["landed_all"].as_bool(),
+            summary["frames"].as_i64()
+        ),
+        (Some(1), Some(false), Some(3)),
+        "{summary}"
+    );
+    assert!(summary.get("n_landed").is_none(), "no landing was logged, so none is claimed: {summary}");
+}
+
+#[test]
+fn the_bridge_witness_says_so_and_does_nothing_when_no_bridge_meets_the_first_collapse_criterion() {
+    let survey = "cmb-bridge-census bridges=1 routed_alive=3 repair_tasks=0 comms_server=1\n\
+cmb-bridge-survey bridge=0 sub_type=1 start=4 end=5 alive=1 breaks=0 segments=3 unsupported=0 first_candidate=-1 first_neighbour=-1 x=1 y=2 z=3 pattern=ESE\n";
+    let (rows, stdout) = run_bridge_case_caller(survey, &[]);
+    assert!(
+        // the whole logical line (LF or CRLF, as the platform writes it): the survey was the only call
+        stdout.lines().any(|line| line == "CALLS 0:0:-1:0") && stdout.contains("BRIDGE_CASE_NOT_DONE"),
+        "only the survey was asked, and the script said it did nothing: {stdout}"
+    );
+    let case = rows.iter().find(|r| r["event"] == "bridge_case").unwrap();
+    assert_eq!(case["done"], false);
+    assert_eq!(case["reason"], "no_bridge_meets_the_first_collapse_criterion");
+    // and an explicit bridge that has none is not replaced by another
+    let (rows, stdout) = run_bridge_case_caller(BRIDGE_SURVEY_ONE, &["bridge=0"]);
+    let case = rows.iter().find(|r| r["event"] == "bridge_case").unwrap();
+    assert_eq!(case["done"], false, "{stdout}");
+    assert_eq!(case["reason"], "the_asked_bridge_does_not_meet_the_first_collapse_criterion");
+}
+
+#[test]
+fn the_bridge_witness_accepts_an_explicit_valid_selector_and_the_edge_values_and_passes_them_on_exactly() {
+    // an explicit bridge and segment are passed to the case as given; zero warmup and a zero window are valid (no frame at all)
+    let run = run_bridge_case_raw(
+        BRIDGE_SURVEY_ONE,
+        &["bridge=1", "segment=2", "frame_ms=50", "warmup=0", "window_seconds=0", "criterion=0"],
+        &[],
+    );
+    assert!(run.status.success(), "{}\n{}", run.stdout, run.stderr);
+    assert!(run.stdout.contains("CALLS 0:0:-1:0 1:1:-1:0 2:1:2:0 1:1:-1:0 3:0:-1:0"), "{}", run.stdout);
+    assert!(!run.trace.contains("frame"), "no frame was run: {}", run.trace);
+    // with no frame, the summary is read from the state right after the failure, in which the killed segment is still in the update list: nothing has landed, and it must not say so
+    let summary = bridge_summary(&run.rows);
+    assert_eq!(
+        (
+            summary["done"].as_bool(),
+            summary["frames"].as_i64(),
+            summary["in_update_at_end"].as_i64(),
+            summary["landed_all"].as_bool(),
+            summary["state_valid"].as_bool()
+        ),
+        (Some(true), Some(0), Some(1), Some(false), Some(true)),
+        "{summary}"
+    );
+    // the largest values the witness accepts (a frame of a second, ten minutes of both budgets within the frame limit)
+    let run = run_bridge_case_raw(
+        BRIDGE_SURVEY_ONE,
+        &["bridge=100000", "segment=255", "frame_ms=1000", "warmup=600", "window_seconds=600"],
+        &[],
+    );
+    assert!(run.status.success(), "{}\n{}", run.stdout, run.stderr);
+}
+
+// A malformed argument is refused BEFORE the output file is created, the installation prepared, the engine booted, a frame run or a segment killed, and is never turned into a default (the stand-in
+// stops a script that does not stop). `segment=abc` used to become the automatic choice and kill the first qualifying segment.
+#[test]
+fn the_bridge_witness_refuses_a_malformed_argument_before_anything_is_prepared_booted_run_or_killed() {
+    let cases: &[(&[&str], &str)] = &[
+        (&["frame_ms=0", "warmup=5"], "frame_ms"),
+        (&["frame_ms=-100"], "frame_ms"),
+        (&["frame_ms=100.5"], "frame_ms"),
+        (&["frame_ms=abc"], "frame_ms"),
+        (&["frame_ms="], "frame_ms"),
+        (&["frame_ms=1001"], "frame_ms"),
+        (&["frame_ms=10x"], "frame_ms"),
+        (&["warmup=-1"], "warmup"),
+        (&["warmup=nan"], "warmup"),
+        (&["warmup=inf"], "warmup"),
+        (&["warmup=1e3"], "warmup"),
+        (&["warmup=1e999"], "warmup"),
+        (&["warmup=0x10"], "warmup"),
+        (&["warmup=5s"], "warmup"),
+        (&["warmup=601"], "warmup"),
+        (&["warmup=abc"], "warmup"),
+        (&["window_seconds=-1"], "window_seconds"),
+        (&["window_seconds=nan"], "window_seconds"),
+        (&["window_seconds=inf"], "window_seconds"),
+        (&["window_seconds=100000"], "window_seconds"),
+        (&["window_seconds=12.5.1"], "window_seconds"),
+        (&["window_seconds=abc"], "window_seconds"),
+        (&["frame_ms=1", "window_seconds=600"], "frames"),
+        (&["frame_ms=1", "warmup=600"], "frames"),
+        (&["segment=abc"], "segment"),
+        (&["segment=-1"], "segment"),
+        (&["segment=1.5"], "segment"),
+        (&["segment=256"], "segment"),
+        (&["segment=99999999999999"], "segment"),
+        (&["segment="], "segment"),
+        (&["segment=1x"], "segment"),
+        (&["bridge=abc"], "bridge"),
+        (&["bridge=-1"], "bridge"),
+        (&["bridge=2.5"], "bridge"),
+        (&["bridge=100001"], "bridge"),
+        (&["bridge="], "bridge"),
+        (&["criterion=1"], "criterion"),
+        (&["criterion=abc"], "criterion"),
+        (&["criterion=0.0"], "criterion"),
+        (&["criterion=-0"], "criterion"),
+        (&["scenario=mars"], "scenario"),
+    ];
+    for (extra, name) in cases {
+        let run = run_bridge_case_raw(BRIDGE_SURVEY_ONE, extra, &BRIDGE_BASE);
+        assert!(!run.status.success(), "{extra:?} was accepted:\n{}\n{}", run.stdout, run.stderr);
+        assert!(
+            run.stderr.contains("bridge-case:") && run.stderr.contains(name),
+            "{extra:?}: the refusal does not name {name}: {}",
+            run.stderr
+        );
+        assert!(run.trace.is_empty(), "{extra:?}: something ran before the refusal: {}", run.trace);
+        assert!(!run.out_exists, "{extra:?}: the output file was created");
+        assert!(!run.stdout.contains("CALLS"), "{extra:?}: the script ran on: {}", run.stdout);
+    }
+}
+
+// The defect in its own words: an explicit segment that is not a number used to become the automatic choice, and the first qualifying segment of the first bridge was killed instead of the one asked
+// for. The stand-in records the case calls, so the kill (operation 2) is what must not happen.
+#[test]
+fn the_bridge_witness_never_turns_a_segment_that_is_not_a_number_into_the_automatic_choice() {
+    let run = run_bridge_case_raw(BRIDGE_SURVEY_ONE, &["segment=abc"], &BRIDGE_BASE);
+    assert!(
+        !run.trace.contains("case 2:"),
+        "a segment was killed for segment=abc (status {}):\n{}\n{}",
+        run.status,
+        run.trace,
+        run.stdout
+    );
+    assert!(!run.status.success() && run.stderr.contains("segment"), "{}\n{}", run.stdout, run.stderr);
+}
+
+// the one `bridge_summary` row of a run, found in the whole of its (fully parsed) output
+fn bridge_summary(rows: &[serde_json::Value]) -> &serde_json::Value {
+    let found: Vec<&serde_json::Value> = rows.iter().filter(|r| r["event"] == "bridge_summary").collect();
+    assert_eq!(found.len(), 1, "exactly one bridge_summary row: {rows:?}");
+    found[0]
+}
+
+// The summary says the decks are finished only when a state that was actually returned says so: a window of zero seconds, a window in which the segment is still in the update list, a window in which
+// it has left it (the positive control), and a state that came back empty (which is no state at all, and counts as nothing).
+#[test]
+fn the_bridge_summary_counts_a_segment_as_finished_only_from_a_state_that_really_says_so() {
+    let args = ["bridge=1", "frame_ms=100", "warmup=0"];
+    // window, finish after, empty state, then the expected frames, in_update_at_end, landed_all, state_valid
+    let cases: &[(&str, i32, bool, i64, i64, bool, bool)] = &[
+        ("window_seconds=0", 5, false, 0, 1, false, true),
+        ("window_seconds=0.3", -1, false, 3, 1, false, true),
+        ("window_seconds=0.3", 2, false, 3, 0, true, true),
+        ("window_seconds=0.3", -1, true, 3, -1, false, false),
+        ("window_seconds=0", -1, true, 0, -1, false, false),
+    ];
+    for (window, finish, empty, frames, pending, landed, valid) in cases {
+        let mut extra = args.to_vec();
+        extra.push(window);
+        let run = run_bridge_case_with(BRIDGE_SURVEY_ONE, &extra, &[], *finish, *empty);
+        assert!(run.status.success(), "{window} {finish} {empty}:\n{}\n{}", run.stdout, run.stderr);
+        let summary = bridge_summary(&run.rows);
+        assert_eq!(
+            (
+                summary["frames"].as_i64(),
+                summary["in_update_at_end"].as_i64(),
+                summary["landed_all"].as_bool(),
+                summary["state_valid"].as_bool()
+            ),
+            (Some(*frames), Some(*pending), Some(*landed), Some(*valid)),
+            "{window} finish {finish} empty {empty}: {summary}"
+        );
+    }
+}
+
+// The controlled object-report witness (EEDCS-46, R3; lua/object-report-case.lua) against a small stand-in for the engine: only its flow and its argument safety are checked here (the census, the choice of the
+// first alive structure of the kind, the report made once and by its identity, the bounded window, the state read afterwards, the control that ends the run, and that a malformed argument is refused BEFORE
+// the engine is booted).  Whether a real report changes the campaign's state is the native run's to show, through the real handlers.
+const OBJECT_CASE_CALLER_SCRIPT: &str = r#"
+local time = 0
+local function note(text)
+  local f = io.open('@TRACE@', 'a')
+  f:write(text, '\n')
+  f:close()
+end
+local structures = {
+  { host_id = 'obj-1', kind = 'pylon', sub_type = 2, side = 'neutral', alive = true, damage_level = 40, initial_damage_level = 40, position = { 1, 2, 3 } },
+  { host_id = 'obj-2', kind = 'site', sub_type = 5, side = 'blue', alive = false, damage_level = 0, initial_damage_level = 90, position = { 4, 5, 6 } },
+  { host_id = 'obj-3', kind = 'site', sub_type = 5, side = 'blue', alive = true, damage_level = 90, initial_damage_level = 90, position = { 7, 8, 9 } },
+  { host_id = 'obj-4', kind = 'site', sub_type = 6, side = 'red', alive = true, damage_level = 60, initial_damage_level = 60, position = { 7, 8, 9 } },
+}
+local engine = {}
+function engine:clock() return { elapsed_seconds = time } end
+function engine:frame(ms) time = time + ms / 1000 note('frame') end
+function engine:structures()
+  note('structures')
+  local copy = {}
+  for i, s in ipairs(structures) do
+    local c = {}
+    for k, v in pairs(s) do c[k] = v end
+    copy[i] = c
+  end
+  return copy
+end
+function engine:report_object(report)
+  local found
+  for _, s in ipairs(structures) do if s.host_id == report.host_id then found = s end end
+  if found == nil then error('host objects: the identity "' .. report.host_id .. '" was never issued', 0) end
+  if not found.alive then error('host objects: "' .. report.host_id .. '" is already destroyed: a fact is applied once', 0) end
+  local before = found.damage_level
+  if report.damage_level ~= nil then
+    if report.damage_level > before then error('host objects: a damage level of ' .. report.damage_level .. ' cannot be repaired by a report', 0) end
+    found.damage_level = report.damage_level
+  end
+  local killed = report.destroyed == true or (report.damage_level ~= nil and report.damage_level <= 0)
+  if killed then found.alive = false end
+  note('report ' .. report.host_id .. ' ' .. tostring(report.damage_level) .. ' ' .. tostring(report.destroyed))
+  return { entity_type = 5, rostered = false, damage_level_before = before, damage_level_after = found.damage_level, killed = killed }
+end
+package.loaded['eech_dc'] = {
+  prepare_installation = function() note('prepare') end,
+  boot = function() note('boot') return engine end,
+}
+dofile('@LUA_DIR@/object-report-case.lua')
+print('OBJECT_CALLER_DONE')
+"#;
+
+fn run_object_case(extra: &[&str]) -> (std::process::ExitStatus, String, String, String, Vec<serde_json::Value>) {
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\u{5c}', "/");
+    static COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let tag = format!("{}-{}", std::process::id(), COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst));
+    let script = std::env::temp_dir().join(format!("eech-world-object-caller-{tag}.lua"));
+    let out = std::env::temp_dir().join(format!("eech-world-object-caller-{tag}.jsonl"));
+    let trace = std::env::temp_dir().join(format!("eech-world-object-caller-{tag}.trace"));
+    let _ = std::fs::remove_file(&out);
+    let _ = std::fs::remove_file(&trace);
+    let text = OBJECT_CASE_CALLER_SCRIPT
+        .replace("@TRACE@", &trace.display().to_string().replace('\u{5c}', "/"))
+        .replace("@LUA_DIR@", &lua_dir);
+    std::fs::write(&script, text).unwrap();
+    let mut command = Command::new(env!("CARGO_BIN_EXE_eech-world"));
+    command
+        .arg(&script)
+        .arg("root=none")
+        .arg(format!("out={}", out.display().to_string().replace('\u{5c}', "/")))
+        .arg("warmup=0.2")
+        .arg("frame_ms=100")
+        .arg("window_seconds=0.25");
+    for arg in extra {
+        command.arg(arg);
+    }
+    let run = command.output().unwrap();
+    std::fs::remove_file(&script).unwrap();
+    let rows = if out.exists() {
+        std::fs::read_to_string(&out)
+            .unwrap()
+            .lines()
+            .map(|l| serde_json::from_str(l).unwrap_or_else(|e| panic!("malformed output row {l:?}: {e}")))
+            .collect()
+    } else {
+        Vec::new()
+    };
+    let trace_text = std::fs::read_to_string(&trace).unwrap_or_default();
+    let _ = std::fs::remove_file(&out);
+    let _ = std::fs::remove_file(&trace);
+    (
+        run.status,
+        String::from_utf8_lossy(&run.stdout).to_string(),
+        String::from_utf8_lossy(&run.stderr).to_string(),
+        trace_text,
+        rows,
+    )
+}
+
+#[test]
+fn the_object_witness_reports_a_destruction_by_identity_once_and_reads_the_state_afterwards() {
+    let (status, stdout, stderr, trace, rows) = run_object_case(&["kind=site", "report=destroyed"]);
+    assert!(status.success() && stdout.contains("OBJECT_CASE_DONE"), "{stdout}\n{stderr}");
+    let census = rows.iter().find(|r| r["event"] == "object_census").unwrap();
+    assert_eq!((census["structures"].as_i64(), census["duplicate_identities"].as_i64()), (Some(4), Some(0)));
+    // the first ALIVE structure of the kind: obj-2 is dead and is passed over
+    let before = rows.iter().find(|r| r["event"] == "object_before").unwrap();
+    assert_eq!((before["host_id"].as_str(), before["alive"].as_bool()), (Some("obj-3"), Some(true)));
+    assert_eq!(trace.matches("report obj-3 nil true").count(), 1, "{trace}");
+    assert_eq!(trace.matches("report ").count(), 1, "{trace}");
+    let receipt = rows.iter().find(|r| r["event"] == "object_receipt").unwrap();
+    assert_eq!(receipt["killed"].as_bool(), Some(true));
+    let summary = rows.iter().find(|r| r["event"] == "object_summary").unwrap();
+    assert_eq!(
+        (
+            summary["done"].as_bool(),
+            summary["changed"].as_bool(),
+            summary["alive_before"].as_bool(),
+            summary["alive_after"].as_bool()
+        ),
+        (Some(true), Some(true), Some(true), Some(false)),
+        "{summary}"
+    );
+    // the report is made before the window of frames, and the state is read after it
+    let first_report = trace.find("report obj-3").unwrap();
+    let first_frame_after = trace[first_report..].find("frame").unwrap();
+    assert!(first_frame_after > 0, "{trace}");
+    // the last logical line of the trace (LF or CRLF, as the platform writes it) is the state read
+    assert_eq!(trace.lines().last(), Some("structures"), "the state is read last: {trace}");
+}
+
+#[test]
+fn the_object_witness_with_no_report_is_the_control_that_changes_nothing() {
+    let (status, stdout, stderr, trace, rows) = run_object_case(&["kind=site", "report=none"]);
+    assert!(status.success(), "{stdout}\n{stderr}");
+    assert_eq!(trace.matches("report ").count(), 0, "a withheld report reports nothing: {trace}");
+    let summary = rows.iter().find(|r| r["event"] == "object_summary").unwrap();
+    assert_eq!(
+        (summary["changed"].as_bool(), summary["alive_after"].as_bool()),
+        (Some(false), Some(true)),
+        "{summary}"
+    );
+    assert!(rows.iter().all(|r| r["event"] != "object_receipt"));
+}
+
+#[test]
+fn the_object_witness_reports_a_damage_level_and_ends_a_run_with_the_control_that_must_be_refused() {
+    let (status, stdout, stderr, trace, rows) = run_object_case(&["kind=pylon", "report=damage", "level=15"]);
+    assert!(status.success(), "{stdout}\n{stderr}");
+    assert!(trace.contains("report obj-1 15 nil"), "{trace}");
+    let summary = rows.iter().find(|r| r["event"] == "object_summary").unwrap();
+    assert_eq!(
+        (
+            summary["damage_before"].as_i64(),
+            summary["damage_after"].as_i64(),
+            summary["alive_after"].as_bool()
+        ),
+        (Some(40), Some(15), Some(true)),
+        "{summary}"
+    );
+    // a default level is half the current one
+    let (_, _, _, trace, _) = run_object_case(&["kind=pylon", "report=damage"]);
+    assert!(trace.contains("report obj-1 20 nil"), "{trace}");
+    for (control, fragment) in [
+        ("unknown", "was never issued"),
+        ("duplicate", "already destroyed"),
+        ("raise", "cannot be repaired"),
+    ] {
+        let report = if control == "duplicate" {
+            "report=destroyed"
+        } else if control == "raise" {
+            "report=damage"
+        } else {
+            "report=destroyed"
+        };
+        let (status, stdout, stderr, _, rows) = run_object_case(&["kind=site", report, &format!("control={control}")]);
+        assert!(status.success(), "{control}: {stdout}\n{stderr}");
+        let row = rows
+            .iter()
+            .find(|r| r["event"] == "object_control")
+            .unwrap_or_else(|| panic!("{control}: no control row"));
+        assert_eq!(row["refused"].as_bool(), Some(true), "{control}: {row}");
+        assert!(row["error"].as_str().unwrap().contains(fragment), "{control}: {row}");
+        // the control is the last row: nothing is recorded after a refusal
+        assert_eq!(rows.last().unwrap()["event"], "object_control", "{control}");
+    }
+}
+
+#[test]
+fn the_object_witness_says_so_when_there_is_no_such_structure_and_refuses_a_malformed_argument_before_booting() {
+    let (status, _, _, trace, rows) = run_object_case(&["kind=scenic"]);
+    assert!(status.success(), "{trace}");
+    let summary = rows.iter().find(|r| r["event"] == "object_summary").unwrap();
+    assert_eq!(summary["done"].as_bool(), Some(false));
+    assert_eq!(trace.matches("report ").count(), 0, "nothing was reported: {trace}");
+    for (bad, what) in [
+        ("kind=bridge", "kind must be one of"),
+        ("report=heal", "report must be one of"),
+        ("control=stale", "control must be one of"),
+        ("level=-1", "level must be a whole number"),
+        ("index=1.5", "index must be a whole number"),
+        ("identity=magic", "identity must be one of"),
+    ] {
+        let (status, _, stderr, trace, rows) = run_object_case(&[bad]);
+        assert!(!status.success(), "{bad} was accepted");
+        assert!(stderr.contains(what), "{bad}: {stderr}");
+        assert!(trace.is_empty() && rows.is_empty(), "{bad}: the engine was booted or a row written: {trace}");
+    }
+    let (status, _, stderr, trace, _) = run_object_case(&["control=duplicate", "report=none"]);
+    assert!(
+        !status.success() && stderr.contains("control=duplicate needs report=destroyed") && trace.is_empty(),
+        "{stderr}"
+    );
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// the reference host's own arithmetic profile (src/reference_arithmetic.rs)
+
+// 1 + 0.75 ulp: the nearest double is 1 + ulp, round-toward-zero gives 1. The operands come from strings so that nothing is folded when the chunk is compiled.
+#[cfg(target_arch = "x86_64")]
+const REFERENCE_ARITHMETIC_SCRIPT: &str = "local one, part = tonumber('1'), tonumber('1.6653345369377348e-16')
+local function toward_zero() return one + part == one end
+print('BEFORE=' .. tostring(toward_zero()))
+host.use_reference_arithmetic()
+print('AFTER=' .. tostring(toward_zero()))
+host.use_reference_arithmetic()
+print('AGAIN=' .. tostring(toward_zero()))
+";
+
+#[cfg(target_arch = "x86_64")]
+#[test]
+fn the_reference_host_selects_sse_round_toward_zero_when_asked_and_not_before() {
+    let script = std::env::temp_dir().join(format!("eech-world-reference-arithmetic-{}.lua", std::process::id()));
+    std::fs::write(&script, REFERENCE_ARITHMETIC_SCRIPT).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    // the process starts in the processor's default (nearest): the host does not select the profile at start-up or while the script is parsed
+    assert!(stdout.contains("BEFORE=false"), "{stdout}\n{stderr}");
+    assert!(stdout.contains("AFTER=true"), "{stdout}\n{stderr}");
+    assert!(stdout.contains("AGAIN=true"), "{stdout}\n{stderr}");
+    assert!(
+        stderr.contains("[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x"),
+        "{stderr}"
+    );
+}
+
+#[test]
+fn the_shipped_campaign_script_selects_the_profile_once_between_preparing_the_installation_and_booting() {
+    let source = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/lua/campaign.lua")).unwrap();
+    let at = |needle: &str| source.find(needle).unwrap_or_else(|| panic!("campaign.lua has no {needle:?}"));
+    assert_eq!(
+        source.matches("host.use_reference_arithmetic").count(),
+        1,
+        "the profile is selected exactly once"
+    );
+    let parsed = at("local frame_ms = tonumber (args.frame_ms");
+    let prepared = at("dc.prepare_installation (root)");
+    let selected = at("host.use_reference_arithmetic ()");
+    let booted = at("dc.boot {");
+    // the script's own argument parsing keeps the process state it always had; the profile comes right after the installation is prepared and before everything that follows
+    assert!(
+        parsed < prepared && prepared < selected && selected < booted,
+        "{parsed} {prepared} {selected} {booted}"
+    );
+    assert!(
+        source[prepared..selected]
+            .lines()
+            .filter(|l| !l.trim().is_empty() && !l.trim_start().starts_with("--"))
+            .count()
+            == 1,
+        "nothing but the preparation runs before the selection"
+    );
+}
+
+// The two bounded diagnostics that deliberately stay in the caller's own context: model-authority.lua exposes the module's default-nearest and explicit four-rounding callers on the RAW public
+// boundary (selecting toward-zero for them would hide exactly the restoration it proves), and model-characterization.lua is the closed original-oracle driver (its hash and semantics are frozen).
+const WITHOUT_REFERENCE_PROFILE: [&str; 2] = ["model-authority.lua", "model-characterization.lua"];
+
+#[test]
+fn every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not() {
+    let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("lua");
+    let (mut with_profile, mut without_profile) = (0, 0);
+    for entry in std::fs::read_dir(&directory).unwrap() {
+        let path = entry.unwrap().path();
+        if path.extension().and_then(|e| e.to_str()) != Some("lua") {
+            continue;
+        }
+        let name = path.file_name().unwrap().to_str().unwrap().to_string();
+        let source = std::fs::read_to_string(&path).unwrap();
+        let selects = source.contains("host.use_reference_arithmetic");
+        if WITHOUT_REFERENCE_PROFILE.contains(&name.as_str()) {
+            assert!(!selects, "{name} must stay in the caller's own floating-point context");
+            without_profile += 1;
+            continue;
+        }
+        let Some(prepared) = source.find("dc.prepare_installation") else {
+            // a library or helper the clients load: it prepares and boots nothing, so it selects nothing
+            assert!(!selects, "{name} does not prepare an installation and must not select the profile");
+            continue;
+        };
+        // the first preparation is the phase boundary; every script's own argument and constant parsing is before it and keeps the process state it always had
+        let selected = source[prepared..]
+            .find("host.use_reference_arithmetic ()")
+            .unwrap_or_else(|| panic!("{name}: no reference arithmetic profile after the installation is prepared"))
+            + prepared;
+        if let Some(boot) = source[prepared..].find("dc.boot") {
+            assert!(selected < prepared + boot, "{name}: the profile must be selected before the first boot");
+        }
+        // one selection per script, immediately after the preparation: blank and comment lines between them do not count, but no executable
+        // statement may, except the guard of the recorded-step form (`if prepared then`, taken only when that step succeeded)
+        assert_eq!(source.matches("host.use_reference_arithmetic").count(), 1, "{name}");
+        let between: Vec<&str> = source[prepared..selected]
+            .lines()
+            .map(str::trim)
+            .filter(|l| !l.is_empty() && !l.starts_with("--"))
+            .collect();
+        assert!(
+            !between.is_empty() && between[1..].iter().all(|l| *l == "if prepared then"),
+            "{name}: an executable statement runs between the preparation and the profile: {between:?}"
+        );
+        with_profile += 1;
+    }
+    // 59 scripts select the profile: the 30 retained reference clients, the nineteen environment drivers (EEDCS-51: env-*.lua, which boot with the host model provider and select the profile at the integration of Tasks 50 and 51), the shipped campaign.lua, the five terrain/ground real-engine drivers
+    // (ground-authority, ground-characterization, terrain-characterization, terrain-has-face, terrain-provider), the original route observer (route-characterization), the loader-detachment control (model-horizon-control), the original scene animation-list observer (model-animation-characterization) and the original target-point observer (target-point-characterization, EEDCS-52);
+    // the two diagnostics left out on purpose are counted apart. Scripts that prepare no installation (for example model-provider-check.lua, which boots no engine) are in neither count.
+    assert_eq!((with_profile, without_profile), (59, 2));
+}
+
+// The environment characterisation driver (EEDCS-51, lua/env-characterization.lua) run as the host binary runs it, against a stand-in engine. The checks protect its CONTRACT: arguments refused before
+// anything runs, a genuine refusal without the fixture, a control run that asks for no witness, strings that stay strings, the emitted protocol checked for EVERY family (a marker-only, wrong-family,
+// incomplete, duplicated, mistyped, mis-identified or fingerprint-inconsistent report is refused), a bounded periodic schedule, and the portable wiring below. The stand-in answers well-formed
+// canned reports; nothing here says anything about the original code's weather, wind or clock. No retail input is used.
+//
+// PORTABILITY. The driver under test is embedded in this executable (include_str) and written to a per-run temporary directory, so a test executable cross-built in a container needs no source
+// tree beside it. The host binary is the ordinary Cargo one (CARGO_BIN_EXE_eech-world) unless EECH_WORLD_TEST_HOST names another: a native Windows run of a cross-built test sets it to the verified
+// host executable. A supplied value that is empty, relative, missing or not a file is REFUSED (the test panics naming it); it never falls back to the Cargo path, and a Cargo path that does not exist
+// here is refused with the same instruction rather than skipped.
+const ENV_DRIVER_LUA: &str = include_str!("../lua/env-characterization.lua");
+const ENV_HOST_OVERRIDE: &str = "EECH_WORLD_TEST_HOST";
+
+fn resolve_env_host(supplied: Option<std::ffi::OsString>, cargo_default: &str) -> Result<std::path::PathBuf, String> {
+    match supplied {
+        Some(value) => {
+            if value.to_string_lossy().trim().is_empty() {
+                return Err(format!("{ENV_HOST_OVERRIDE} is set but empty"));
+            }
+            let path = std::path::PathBuf::from(&value);
+            if !path.is_absolute() {
+                return Err(format!("{ENV_HOST_OVERRIDE}={} is not an absolute path", path.display()));
+            }
+            if !path.is_file() {
+                return Err(format!("{ENV_HOST_OVERRIDE}={} is not an existing file", path.display()));
+            }
+            Ok(path)
+        }
+        None => {
+            let path = std::path::PathBuf::from(cargo_default);
+            if path.is_file() {
+                Ok(path)
+            } else {
+                Err(format!(
+                    "the Cargo-built host {} does not exist here (a cross-built test executable?): set {ENV_HOST_OVERRIDE} to the verified eech-world executable",
+                    path.display()
+                ))
+            }
+        }
+    }
+}
+
+fn env_host() -> std::path::PathBuf {
+    resolve_env_host(std::env::var_os(ENV_HOST_OVERRIDE), env!("CARGO_BIN_EXE_eech-world")).unwrap_or_else(|why| panic!("{why}"))
+}
+
+#[test]
+fn the_environment_host_override_is_strict_and_never_falls_back() {
+    let real = std::env::current_exe().unwrap();
+    let real_text = real.display().to_string();
+    // no override: the Cargo path, if it is here
+    assert_eq!(resolve_env_host(None, &real_text).unwrap(), real);
+    assert!(resolve_env_host(None, "/no/such/eech-world").unwrap_err().contains(ENV_HOST_OVERRIDE));
+    // a valid override wins over any default
+    assert_eq!(resolve_env_host(Some(real.clone().into_os_string()), "/no/such/eech-world").unwrap(), real);
+    // an invalid override is refused even when the Cargo default is perfectly good
+    let temp = std::env::temp_dir();
+    let missing = temp.join("eech-world-no-such-host-executable");
+    for bad in [
+        std::ffi::OsString::new(),
+        std::ffi::OsString::from("   "),
+        std::ffi::OsString::from("eech-world"),
+        std::ffi::OsString::from("./eech-world"),
+        missing.clone().into_os_string(),
+        temp.clone().into_os_string(),
+    ] {
+        let why = resolve_env_host(Some(bad.clone()), &real_text).unwrap_err();
+        assert!(why.contains(ENV_HOST_OVERRIDE), "{bad:?}: {why}");
+    }
+}
+
+// the stand-in engine, in three parts: the clock and frames, the fixture's per-family reports, and the wiring. The mutations damage ONE report after it is made, so every other report stays well formed.
+const ENV_STAND_IN_BASE: &str = r#"
+local time = 0
+local JUMP = @JUMP@
+local frames = 0
+local obs_boot, obs_frame
+local function note(text)
+  local f = io.open('@TRACE@', 'a')
+  f:write(text, '\n')
+  f:close()
+end
+local engine = {}
+function engine:clock() return { elapsed_seconds = time } end
+function engine:frame(ms)
+  frames = frames + 1
+  if frames > 400 then error('stand-in cap: more than 400 frames') end
+  note('frame ' .. ms)
+  if obs_frame then obs_frame(ms) end
+  time = time + ms * JUMP / 1000
+end
+function engine:objects() return { { id = 1, kind = 'helicopter', sub_type = 2, side = 'blue', alive = true, position = { 1.5, 2.5, 3.5 }, heading = 0.5, pitch = 0, roll = 0, ammo = 0, fuel = 0 } } end
+"#;
+
+const ENV_STAND_IN_FIXTURE: &str = r#"
+local MUTATION = '@MUTATION@'
+local TARGET_GROUP = @TARGET_GROUP@
+local TARGET_INDEX = @TARGET_INDEX@
+local O = '3f800000'
+local FP = '0123456789abcdef'
+-- ' key=word ...' for the names given; 'name:word' picks the word
+local function ws(...)
+  local parts = {}
+  for _, k in ipairs({ ... }) do
+    local name, word = k:match('^(.-):(%x+)$')
+    parts[#parts + 1] = (name or k) .. '=' .. (word or O)
+  end
+  return table.concat(parts, ' ')
+end
+local function state(prefix, tag)
+  return prefix .. '-time tag=' .. tag .. ' ' .. ws('start_time_w', 'elapsed_time_w', 'time_of_day_w') .. ' day=1 day_segment_type=1 ' .. ws('time_of_day_acceleration_w') .. ' skip_night_time=0 ' .. ws('time_of_day_resync_w') .. '\n'
+    .. prefix .. '-weather tag=' .. tag .. ' local_weather_model=1 weather_increasing=1 ' .. ws('weather_radius_w') .. ' weather_mode=1 target_weather_mode=1 '
+    .. ws('transitional_status_w', 'transitional_period_w', 'lightning_timer_w', 'weather_pos_x_w', 'weather_pos_y_w', 'weather_pos_z_w', 'weather_vel_x_w', 'weather_vel_y_w', 'weather_vel_z_w') .. '\n'
+    .. prefix .. '-wind tag=' .. tag .. ' wind_increasing=0 ' .. ws('wind_effect_radius_w', 'gusting_value_w:3f000000', 'minimum_speed_w', 'maximum_speed_w', 'direction_x_w', 'direction_y_w', 'direction_z_w',
+      'effect_pos_x_w', 'effect_pos_y_w', 'effect_pos_z_w', 'effect_vel_x_w', 'effect_vel_y_w', 'effect_vel_z_w') .. '\n'
+    .. prefix .. '-globals tag=' .. tag .. ' season=2 rng=-5 ' .. ws('rng_w', 'delta_time_w') .. ' comms_model=1 in_cockpit=0 camera=1 ' .. ws('camera_x_w', 'camera_y_w', 'camera_z_w') .. '\n'
+end
+local function query(event, tag, point)
+  return event .. ' tag=' .. tag .. ' point=' .. point .. ' ' .. ws('x_w', 'y_w', 'z_w') .. ' cwm=1 twm=1 ' .. ws('ts_w') .. ' simple=1 ' .. ws('wind_speed_w', 'wind_x_w', 'wind_y_w', 'wind_z_w') .. '\n'
+end
+local function finish(group, index)
+  return 'env-witness-end group=' .. group .. ' index=' .. index .. ' restored=1 fp_before=' .. FP .. ' fp_after=' .. FP .. '\n'
+end
+-- ---- group 13, index 0: the lightning queue probe's report (csrc/eech_env_fixture.c env_lightning_case, csrc/eech_env_observer.c eech_envobs_queue_report). The number of lightning events is the
+-- number of episodes the stand-in observer wrote (LIGHTNING_EPISODES, counted by its lightning ()); the shape says what the stand-in's queue did with each add: ok (both queued), no_environment (nothing
+-- active, nothing queued) or full (every slot already in use, nothing queued). The numbers are canned; the ORDER, the grammar and the reconciliation with the observer's events are the real ones.
+-- The queue's slot masks are 32-bit integers. Their bit weights are built here by exact doubling from 1 (every power of two to 2^31 is a double, and the sum of two equal doubles of
+-- this size is exact in every rounding mode), not by the runtime exponentiation `2 ^ n`, which the C library computes and which the caller's rounding mode (the new Linux SSE
+-- round-toward-zero of the reference host) can make inexact: it rendered the second add's mask as 00000002 instead of 00000003. Division by a power of two is exact as well.
+local LQ_BIT = {}
+do
+  local weight = 1
+  for i = 0, 31 do
+    LQ_BIT[i] = weight
+    weight = weight + weight
+  end
+end
+local function lq_bit(i)
+  local weight = LQ_BIT[i]
+  if weight == nil then error('stand-in: the queue bit ' .. tostring(i) .. ' is outside 0..31', 0) end
+  return weight
+end
+local function lq_pop(m)
+  local count = 0
+  for i = 0, 31 do
+    if math.floor(m / lq_bit(i)) % 2 == 1 then count = count + 1 end
+  end
+  return count
+end
+local function lq_lowest_zero(m)
+  for i = 0, 31 do
+    if math.floor(m / lq_bit(i)) % 2 == 0 then return i end
+  end
+  return -1
+end
+-- one line of a report (the first that begins with `prefix`) rewritten by f; the rest of the text as it was
+local function lq_edit(t, prefix, f)
+  local start = t:find(prefix, 1, true)
+  local stop = t:find('\n', start, true)
+  return t:sub(1, start - 1) .. f(t:sub(start, stop - 1)) .. t:sub(stop)
+end
+local LQ_ZERO = 'w0=00000000 w1=00000000 w2=00000000 w3=00000000 w4=00000000 w5=00000000 w6=00000000 w7=00000000'
+local LQ_QUEUED = 'w0=00000001 w1=00000001 w2=44bb8000 w3=45bb8000 w4=451c4000 w5=00000000 w6=3e99999a w7=00000000'
+local function queue_report(events, shape)
+  local mask = shape == 'full' and 4294967295 or 0
+  local seq, records = 0, {}
+  local function record(ev, point, active, m, slot, words)
+    records[#records + 1] = string.format('env-lq seq=%d point=%d n=%d active=%d main=1 time_present=%d time_w=00000000 mask_w=%08x occupancy=%d slot=%d %s\n', seq, point, ev, active, active ~= 0 and 1 or 0, m, lq_pop(m), slot, words)
+    seq = seq + 1
+  end
+  for ev = 1, events do
+    local active = shape == 'no_environment' and 0 or 1
+    record(ev, 0, 0, mask, -1, LQ_ZERO)
+    for k = 1, 2 do
+      record(ev, 2 * k - 1, active, mask, -1, LQ_ZERO)
+      local slot = -1
+      if shape == 'ok' then
+        slot = lq_lowest_zero(mask)
+        mask = mask + lq_bit(slot)
+      end
+      record(ev, 2 * k, active, mask, slot, slot >= 0 and LQ_QUEUED or LQ_ZERO)
+    end
+    record(ev, 5, active, mask, -1, LQ_ZERO)
+  end
+  local text = string.format('env-lightning-plan version=1 cases=5 main_present=1 active=%d queue_capacity=32 mask_w=%08x update_calls=0 process_isolated=required\n', (events > 0 and shape ~= 'no_environment') and 1 or 0, mask)
+    .. 'env-lightning-unsupported item=forked_strike_update reason=update_3d_lightning_strikes_reads_texture_animations_not_exercised\n'
+    .. 'env-lightning-unsupported item=drawing_and_the_application_scene_update reason=not_exercised_headless_not_claimed\n'
+    .. string.format('env-lq-report armed=1 capacity=96 stored=%d dropped=0 overflow=0 lightning_events=%d update_calls=0 queue_capacity=32 final_mask_w=%08x final_occupancy=%d\n', #records, events, mask, lq_pop(mask))
+    .. table.concat(records)
+  for slot = 0, 31 do
+    if math.floor(mask / lq_bit(slot)) % 2 == 1 then text = text .. string.format('env-lq-slot slot=%d %s\n', slot, LQ_QUEUED) end
+  end
+  return text
+end
+-- ---- group 14, index 0: the sound entity probe's report (csrc/eech_env_fixture.c env_snd_case, csrc/eech_env_observer.c eech_envobs_sound_report). Two sound entities for the ONE lightning episode the stand-in observer
+-- writes (LIGHTNING_EPISODES, in the second frame, creations matched to its ordered sound_begin / sound_end events: entities 10 and 11, frame 2); the shape says how far the stand-in followed each: ok (created, one
+-- update, expired, killed: an early kill), long (three updates stored, the rest only counted by `upd`, then expired and killed), alive (three updates stored, five counted, never expired) or lost (only the first
+-- entity is tracked, the second creation is recorded and counted as untracked). The numbers are canned; the ORDER, the grammar and the reconciliation with the observer's events are the real ones.
+local SND_FACTS = 'comms=1 application_sound_system_enabled=0 sound_system_initialised=0 sound_system_paused=0 samples=300 lightning_rate=22050 lightning_size=88200 lightning_original_rate=22050 thunder_rate=22050 thunder_size=176400 thunder_original_rate=22050'
+local function snd_record(seq, point, n, tracked, frame, upd, handle)
+  return string.format('env-snd seq=%d point=%d n=%d tracked=%d frame=%d upd=%d entity=%d etype=25 sub=1 channel=1 locality=0 valid=1 looping=0 panning=0 seqcount=1 handle=%d session_parent=1 update_member=1 sample=12 rate=22050 size=88200 orate=22050 life_w=3fc00000 vlife_w=00000000 amp_w=3f800000 pitch_w=3f800000 px_w=00000000 py_w=00000000 pz_w=00000000 delta_w=3dcccccd\n', seq, point, n, tracked, frame, upd, 9 + n, handle)
+end
+local function sound_report(episodes, shape)
+  local steps = { { 0, 0, 2 }, { 1, 1, 3 }, { 2, 1, 4 }, { 5, 1, 4 } }
+  local per_entity, kills = 1, 1
+  if shape == 'long' then
+    steps = { { 0, 0, 2 }, { 1, 1, 3 }, { 1, 2, 4 }, { 1, 3, 5 }, { 2, 7, 9 }, { 5, 7, 9 } }
+    per_entity = 7
+  elseif shape == 'playing' then
+    -- the native capture rule: from the first playing-handle expiry (update 3, after the third entry) EVERY later update reaches an expiry branch and each is stored, 3 to 8 without a gap, the last update (8) in frame 10 of the run's 10 frames; the handle (steps' 4th
+    -- element) is there from the update that sees it. The device is not real: this is a canned protocol journal
+    steps = { { 0, 0, 2, 0 }, { 1, 1, 3, 0 }, { 1, 2, 4, 0 }, { 1, 3, 5, 1 }, { 4, 3, 5, 1 }, { 4, 4, 6, 1 }, { 4, 5, 7, 1 }, { 4, 6, 8, 1 }, { 4, 7, 9, 1 }, { 4, 8, 10, 1 } }
+    per_entity, kills = 8, 0
+  elseif shape == 'playing_gap' then
+    steps = { { 0, 0, 2, 0 }, { 1, 1, 3, 0 }, { 1, 2, 4, 0 }, { 1, 3, 5, 1 }, { 4, 3, 5, 1 }, { 4, 7, 9, 1 }, { 4, 8, 10, 1 } }
+    per_entity, kills = 8, 0
+  elseif shape == 'playing_skip' then
+    steps = { { 0, 0, 2, 0 }, { 1, 1, 3, 1 }, { 4, 1, 3, 1 }, { 1, 2, 4, 1 }, { 1, 3, 5, 1 }, { 4, 3, 5, 1 } }
+    per_entity, kills = 3, 0
+  elseif shape == 'alive' then
+    steps = { { 0, 0, 2 }, { 1, 1, 3 }, { 1, 2, 4 }, { 1, 3, 5 } }
+    per_entity, kills = 5, 0
+  end
+  local creations = episodes * 2
+  local followed = shape == 'lost' and episodes or creations
+  local records, seq = {}, 0
+  for e = 0, episodes - 1 do
+    for _, step in ipairs(steps) do
+      for n = 1, 2 do
+        if not (shape == 'lost' and n == 2 and step[1] ~= 0) then
+          records[#records + 1] = snd_record(seq, step[1], n, (shape == 'lost' and n == 2) and -1 or (2 * e + n - 1), step[3], step[2], step[4] or 0)
+          seq = seq + 1
+        end
+      end
+    end
+  end
+  return 'env-snd-plan version=1 cases=3 process_isolated=required\n'
+    .. 'env-snd-facts tag=plan ' .. SND_FACTS .. '\n'
+    .. 'env-snd-unsupported item=playback_handle_branches reason=a_reason\n'
+    .. 'env-snd-unsupported item=audible_network_player_delivery reason=another_reason\n'
+    .. string.format('env-snd-report armed=1 capacity=80 stored=%d dropped=0 overflow=0 creations=%d updates=%d kills=%d frames=%d tracked=%d open=0 track_all=0 untracked=%d\n', #records, creations, followed * per_entity, followed * kills, 10, followed, creations - followed)
+    .. table.concat(records)
+end
+local function report(group, index)
+  if group == 0 then
+    return 'env-census version=1 session_bytes=1024 weather_cases=2 wind_cases=2 gust_cases=2 time_cases=3 init_cases=2 update_time_cases=1 update_weather_cases=2\n'
+      .. 'env-census-enums dry=1 light_rain=2 heavy_rain=3 snow=4 season_summer=2 season_winter=3 season_desert=4 segment_dawn=0 segment_day=1 segment_dusk=2 segment_night=3 comms_server=1\n'
+      .. 'env-census-constants ' .. ws('min_weather_radius_w', 'max_weather_radius_w', 'weather_expansion_rate_w', 'min_wind_radius_w', 'max_wind_radius_w', 'wind_expansion_rate_w', 'wind_gust_frequency_w',
+        'session_resync_frequency_w', 'default_min_wind_speed_w', 'default_max_wind_speed_w', 'one_hour_w', 'one_day_w') .. '\n'
+      .. 'env-census-configured ' .. ws('weather_rain_radius_min_w', 'weather_rain_radius_max_w', 'weather_rain_speed_w', 'weather_wind_radius_min_w', 'weather_wind_radius_max_w', 'weather_wind_speed_w') .. '\n'
+      .. 'env-census-map ' .. ws('min_map_x_w', 'max_map_x_w', 'min_map_z_w', 'max_map_z_w', 'mid_map_x_w', 'mid_map_z_w') .. '\n'
+      .. 'env-unsupported item=get_session_random_start_time_of_day reason=a_reason\n'
+      .. 'env-unsupported item=update_lightning_effect reason=a_reason\n'
+      .. 'env-unsupported item=update_session_sound_effects reason=a_reason\n'
+      .. 'env-unsupported item=update_time_of_day_resync reason=a_reason\n'
+      .. 'env-unsupported item=wind_gust_outside_0_1 reason=a_reason\n'
+      .. 'env-unsupported item=session_state_loading_and_serialisation reason=a_reason\n'
+  end
+  if group == 1 then
+    return state('env-state', 'retail') .. 'env-state-fingerprint tag=retail fp=' .. FP .. '\n' .. query('env-query', 'retail', 'camera') .. query('env-query', 'retail', 'map_centre')
+      .. query('env-query', 'retail', 'weather_centre') .. query('env-query', 'retail', 'wind_centre')
+  end
+  if group == 2 then
+    return 'env-weather kind=witness i=' .. index .. ' model=local season=2 ' .. ws('radius_w') .. ' in_cwm=1 in_twm=1 ' .. ws('in_ts_w', 'range_w') .. '\n' .. query('env-weather-answer', 'witness', 'case') .. finish(group, index)
+  end
+  if group == 3 then
+    return 'env-wind kind=witness i=' .. index .. ' ' .. ws('radius_w', 'centre_x_w', 'centre_z_w', 'minimum_w', 'maximum_w', 'gust_w:3f000000', 'dir_x_w', 'dir_z_w', 'x_w', 'z_w', 'range_w', 'modulation_w',
+      'speed_w:00000000', 'vx_w', 'vy_w', 'vz_w', 'null_speed_w:00000000') .. ' null_same=1\n' .. finish(group, index)
+  end
+  if group == 4 then
+    if index == 1 then return 'env-gust kind=witness i=1 gust_w=3f800000 refused=original_asserts_outside_0_1\n' .. finish(group, index) end
+    return 'env-gust kind=witness i=' .. index .. ' ' .. ws('gust_w:3f000000', 'modulation_w', 'calm_speed_w', 'calm_vx_w') .. '\n' .. finish(group, index)
+  end
+  if group == 5 then
+    if index == 1 then return 'env-time kind=witness i=1 what=segment ' .. ws('tod_w') .. ' segment=1\n' .. finish(group, index) end
+    if index == 2 then
+      return 'env-time kind=witness i=2 what=constants ' .. ws('segment_time_dawn_w', 'segment_time_day_w', 'segment_time_dusk_w', 'segment_time_night_w', 'preset_dawn_w', 'preset_midday_w', 'preset_afternoon_w',
+        'preset_dusk_w', 'preset_midnight_w') .. '\n' .. finish(group, index)
+    end
+    return 'env-time kind=witness i=0 what=calculate ' .. ws('start_w', 'elapsed_w', 'tod_w') .. ' rolled_days=0 ' .. ws('accessor_tod_w') .. ' accessor_day=1 segment=1\n' .. finish(group, index)
+  end
+  if group == 6 then
+    local head = index == 0 and ('env-init kind=witness i=0 what=fixed mode=1 rng=-5\n') or ('env-init kind=witness i=1 what=random seed_in=1 rng=-5 rng_w=fffffffb\n')
+    return head .. state('env-init-state', 'witness') .. query('env-init-query', 'witness', 'origin') .. query('env-init-query', 'witness', 'map_centre') .. finish(group, index)
+  end
+  if group == 7 then
+    return 'env-update-time kind=witness i=0 label=midday_real_time ' .. ws('delta_w', 'accel_w') .. ' skip_night=0 ' .. ws('tod_before_w') .. ' day_before=1\n' .. state('env-update-time-state', 'before_0')
+      .. 'env-update-time-result kind=witness i=0 ' .. ws('tod_after_w') .. ' day_after=1\n' .. state('env-update-time-state', 'after_0') .. finish(group, index)
+  end
+  if group == 8 then
+    if index == 1 then
+      return 'env-update-weather kind=witness i=1 refused=unavailable_in_cockpit_or_no_camera_or_not_server in_cockpit=1 camera=1 comms_model=1\n' .. finish(group, index)
+    end
+    return 'env-update-weather kind=witness i=0 label=local_interior ' .. ws('delta_w') .. ' camera_dependent_fields=weather_mode,target_weather_mode,transitional_status_when_local_and_radius_nonzero camera=1\n'
+      .. state('env-update-weather-state', 'before_0') .. state('env-update-weather-state', 'after_0') .. finish(group, index)
+  end
+  if group == 9 then
+    if index == 0 then
+      return 'env-controlled kind=controlled i=0 what=lightning_due local_before=1 radius_before_w=47000000 timer_before_w=42700000 local_after=1 radius_after_w=47000000 timer_after_w=3f000000\n'
+        .. 'env-controlled-end group=9 index=0 changed=1 process_isolated=required\n'
+    end
+    return 'env-controlled kind=controlled i=1 what=local_weather_on local_before=0 radius_before_w=00000000 timer_before_w=42700000 local_after=1 radius_after_w=471c4000 timer_after_w=3f000000\n'
+      .. 'env-controlled-end group=9 index=1 changed=1 process_isolated=required\n'
+  end
+  if group == 13 and index == 0 then return queue_report(LIGHTNING_EPISODES or 0, 'ok') end
+  if group == 14 and index == 0 then return sound_report(LIGHTNING_EPISODES or 0, 'ok') end
+  error('stand-in: no such group ' .. group)
+end
+local mutations = {
+  -- the lightning queue probe's report (group 13, index 0): coherent alternatives (accepted) and damaged forms (refused)
+  queue_no_environment = function() return queue_report(LIGHTNING_EPISODES or 0, 'no_environment') end,
+  queue_full = function() return queue_report(LIGHTNING_EPISODES or 0, 'full') end,
+  queue_not_armed = function(t) return (t:gsub('env%-lq%-report armed=1', 'env-lq-report armed=0', 1)) end,
+  queue_dropped = function(t) return (t:gsub('dropped=0 overflow=0', 'dropped=2 overflow=1', 1)) end,
+  queue_record_missing = function(t) return (t:gsub('env%-lq seq=0 [^\n]*\n', '', 1)) end,
+  queue_seq_gap = function(t) return (t:gsub('env%-lq seq=3 ', 'env-lq seq=9 ', 1)) end,
+  queue_point_swapped = function(t) return (t:gsub('env%-lq seq=1 point=1 ', 'env-lq seq=1 point=2 ', 1)) end,
+  queue_occupancy_wrong = function(t) return (t:gsub(' occupancy=1 ', ' occupancy=5 ', 1)) end,
+  queue_slot_wrong = function(t) return (t:gsub('slot=1 w0=', 'slot=0 w0=', 1)) end,
+  queue_final_slot_missing = function(t) return (t:gsub('env%-lq%-slot slot=1 [^\n]*\n', '', 1)) end,
+  queue_unexpected_row = function(t) return t .. 'env-lq-extra x=1\n' end,
+  queue_out_of_order = function(t)
+    local line = t:match('env%-lq%-report [^\n]*\n')
+    return (t:gsub('env%-lq%-report [^\n]*\n', '', 1)) .. line
+  end,
+  queue_events_mismatch = function(t) return (t:gsub('lightning_events=1', 'lightning_events=2', 1)) end,
+  queue_wrong_plan = function(t) return (t:gsub('mask_w=00000003 update', 'mask_w=00000001 update', 1)) end,
+  queue_old_catalogue = function(t) return (t:gsub('cases=5', 'cases=4', 1)) end,
+  queue_future_catalogue = function(t) return (t:gsub('cases=5', 'cases=6', 1)) end,
+  queue_unsupported_missing = function(t) return (t:gsub('env%-lightning%-unsupported [^\n]*\n', '', 1)) end,
+  queue_phantom_event = function() return queue_report(1, 'ok') end,
+  queue_missing_event = function() return queue_report(0, 'ok') end,
+  -- DAMAGED slot cohorts and point records that are finite, parseable and genuinely incomplete or contradictory (the review of 7791eea3c, group 2); the ONE healthy report is `none`
+  queue_dup_slot = function(t) return (t:gsub('env%-lq%-slot slot=1 ', 'env-lq-slot slot=0 ', 1)) end,
+  queue_zero_queued_word = function(t) return lq_edit(t, 'env-lq seq=2 ', function(l) return (l:gsub('w0=00000001', 'w0=00000000', 1)) end) end,
+  queue_entry_before_gap = function(t) return lq_edit(t, 'env-lq seq=1 ', function(l) return (l:gsub('mask_w=00000000 occupancy=0', 'mask_w=00000004 occupancy=1', 1)) end) end,
+  queue_after1_before2_gap = function(t) return lq_edit(t, 'env-lq seq=3 ', function(l) return (l:gsub('mask_w=00000001 occupancy=1', 'mask_w=00000005 occupancy=2', 1)) end) end,
+  queue_after2_restored_gap = function(t) return lq_edit(t, 'env-lq seq=5 ', function(l) return (l:gsub('mask_w=00000003 occupancy=2', 'mask_w=00000007 occupancy=3', 1)) end) end,
+  queue_final_unrecorded_slot = function(t)
+    t = t:gsub('mask_w=00000003 update', 'mask_w=00000007 update', 1)
+    t = t:gsub('final_mask_w=00000003 final_occupancy=2', 'final_mask_w=00000007 final_occupancy=3', 1)
+    return t .. 'env-lq-slot slot=2 ' .. LQ_QUEUED .. '\n'
+  end,
+  queue_active_main_absent = function(t) return lq_edit(t, 'env-lq seq=1 ', function(l) return (l:gsub(' main=1 ', ' main=0 ', 1)) end) end,
+  queue_time_without_active = function(t) return lq_edit(t, 'env-lq seq=0 ', function(l) return (l:gsub('time_present=0 time_w=00000000', 'time_present=1 time_w=3f800000', 1)) end) end,
+  queue_active_out_of_domain = function(t) return lq_edit(t, 'env-lq seq=0 ', function(l) return (l:gsub(' active=0 ', ' active=3 ', 1)) end) end,
+  -- the sound entity probe's report (group 14, index 0): coherent alternatives (accepted) and damaged forms (refused)
+  sound_long = function() return sound_report(LIGHTNING_EPISODES or 0, 'long') end,
+  sound_alive = function() return sound_report(LIGHTNING_EPISODES or 0, 'alive') end,
+  sound_not_armed = function(t) return (t:gsub('env%-snd%-report armed=1', 'env-snd-report armed=0', 1)) end,
+  sound_dropped = function(t) return (t:gsub('dropped=0 overflow=0', 'dropped=3 overflow=1', 1)) end,
+  sound_record_missing = function(t) return (t:gsub('env%-snd seq=7 [^\n]*\n', '', 1)) end,
+  sound_seq_gap = function(t) return (t:gsub('env%-snd seq=3 ', 'env-snd seq=9 ', 1)) end,
+  sound_point_impossible = function(t) return (t:gsub('point=5 ', 'point=6 ', 1)) end,
+  sound_entity_changes = function(t) return (t:gsub('upd=1 entity=10 ', 'upd=1 entity=12 ', 1)) end,
+  sound_untracked_follower = function(t) return (t:gsub('point=1 n=1 tracked=0', 'point=1 n=1 tracked=-1', 1)) end,
+  sound_creation_twice = function(t) return (t:gsub('seq=2 point=1 n=1 tracked=0 frame=3 upd=1', 'seq=2 point=0 n=1 tracked=0 frame=3 upd=0', 1)) end,
+  sound_creation_outside_lightning = function(t) return (t:gsub('seq=0 point=0 n=1', 'seq=0 point=0 n=3', 1)) end,
+  sound_events_mismatch = function(t) return (t:gsub('creations=2', 'creations=4', 1)) end,
+  sound_phantom = function() return sound_report(1, 'ok') end,
+  sound_updates_fewer = function(t) return (t:gsub('updates=2', 'updates=1', 1)) end,
+  sound_kills_fewer = function(t) return (t:gsub('kills=2', 'kills=1', 1)) end,
+  sound_update_goes_down = function() return (sound_report(LIGHTNING_EPISODES or 0, 'long'):gsub('point=2 n=1 tracked=0 frame=9 upd=7', 'point=2 n=1 tracked=0 frame=9 upd=2', 1)) end,
+  sound_frame_back = function(t) return (t:gsub('seq=7 point=5 n=2 tracked=1 frame=4', 'seq=7 point=5 n=2 tracked=1 frame=0', 1)) end,
+  sound_unexpected_row = function(t) return t .. 'env-snd-extra x=1\n' end,
+  sound_out_of_order = function(t) return t .. 'env-snd-facts tag=plan ' .. SND_FACTS .. '\n' end,
+  sound_unsupported_missing = function(t) return (t:gsub('env%-snd%-unsupported [^\n]*\n', '', 1)) end,
+  -- the cohort and terminal-pair forms: a coherent early kill is the `ok` shape itself, a coherent tracking loss is `lost`; the damaged forms below are what the first grammar still accepted
+  sound_lost = function() return sound_report(LIGHTNING_EPISODES or 0, 'lost') end,
+  -- the residual counter forms (an expiry and a kill belong to the running update): an early kill whose records jump to update 4 with the total raised to match, a kill in another update than its expiry, and a handle that
+  -- keeps playing across the sampling gap (coherent, accepted)
+  sound_playing = function() return sound_report(LIGHTNING_EPISODES or 0, 'playing') end,
+  -- the playing-handle journal that is NOT coherent: the playing expiries of updates 4, 5, 6 and 8 are missing (the probe stores every expiry point), an entry after a playing expiry with no expiry of its own update,
+  -- a playing expiry that shows no handle, and an expiry that sees another handle than the entry of its own update
+  sound_playing_gap = function() return sound_report(LIGHTNING_EPISODES or 0, 'playing_gap') end,
+  sound_playing_skip = function() return sound_report(LIGHTNING_EPISODES or 0, 'playing_skip') end,
+  -- the tail forms of the complete playing journal: a hidden trailing update (the total says 18 where the stored expiry counters are exact at 8 each) and records one frame beyond the run's 10 frames
+  sound_playing_hidden_trailing = function() return (sound_report(LIGHTNING_EPISODES or 0, 'playing'):gsub('updates=16', 'updates=18', 1)) end,
+  sound_playing_frame_beyond = function() return (sound_report(LIGHTNING_EPISODES or 0, 'playing'):gsub('frame=10 upd=8', 'frame=11 upd=8')) end,
+  sound_playing_no_handle = function() return (sound_report(LIGHTNING_EPISODES or 0, 'playing'):gsub('(point=4 n=1[^\n]*)handle=1', '%1handle=0', 1)) end,
+  sound_expiry_other_handle = function() return (sound_report(LIGHTNING_EPISODES or 0, 'playing'):gsub('(point=1 n=1 tracked=0 frame=5 upd=3 [^\n]*)handle=1', '%1handle=0', 1)) end,
+  sound_early_jump = function(t) t = (t:gsub('frame=4 upd=1', 'frame=4 upd=4')); return (t:gsub('updates=2', 'updates=8', 1)) end,
+  sound_kill_other_update = function() local t = sound_report(LIGHTNING_EPISODES or 0, 'long'); t = (t:gsub('point=5 n=1 tracked=0 frame=9 upd=7', 'point=5 n=1 tracked=0 frame=9 upd=9', 1)); return (t:gsub('updates=14', 'updates=16', 1)) end,
+  sound_stranded_kill = function(t) t = (t:gsub('env%-snd seq=%d+ point=5 [^\n]*\n', '')); t = (t:gsub('stored=8', 'stored=6', 1)); return (t:gsub('kills=2', 'kills=0', 1)) end,
+  sound_counter_jump = function() return (sound_report(LIGHTNING_EPISODES or 0, 'long'):gsub('frame=3 upd=1 ', 'frame=3 upd=99 ', 1)) end,
+  sound_n_cohort = function(t) return (t:gsub('seq=1 point=0 n=2', 'seq=1 point=0 n=1', 1)) end,
+  sound_follower_n = function(t) return (t:gsub('seq=2 point=1 n=1', 'seq=2 point=1 n=2', 1)) end,
+  sound_creation_frame = function(t) return (t:gsub('seq=0 point=0 n=1 tracked=0 frame=2', 'seq=0 point=0 n=1 tracked=0 frame=1', 1)) end,
+  sound_creation_entity = function(t) return (t:gsub('seq=1 point=0 n=2 tracked=1 frame=2 upd=0 entity=11', 'seq=1 point=0 n=2 tracked=1 frame=2 upd=0 entity=40', 1)) end,
+  sound_untracked_hidden = function() return (sound_report(LIGHTNING_EPISODES or 0, 'lost'):gsub('untracked=1', 'untracked=0', 1)) end,
+  marker_only = function(t) return t:match('[^\n]*\n$') end,
+  wrong_family = function() return (report(2, 0):gsub('group=2', 'group=3')) end,
+  missing_field = function(t) return (t:gsub(' vz_w=%x+', '', 1)) end,
+  duplicate_field = function(t) return (t:gsub('gust_w=(%x+)', 'gust_w=%1 gust_w=00000000', 1)) end,
+  bad_word = function(t) return (t:gsub('speed_w=%x+', 'speed_w=3F80ABCD', 1)) end,
+  short_word = function(t) return (t:gsub('speed_w=%x+', 'speed_w=3f80', 1)) end,
+  fp_mismatch = function(t) return (t:gsub('fp_after=%x+', 'fp_after=fedcba9876543210')) end,
+  restored_zero = function(t) return (t:gsub('restored=1', 'restored=0')) end,
+  wrong_index = function(t) return (t:gsub('(env%-wind kind=witness i=)%d+', '%19')) end,
+  wrong_end_index = function(t) return (t:gsub('index=%d+', 'index=7')) end,
+  extra_row = function(t) return t:match('^[^\n]*\n') .. t end,
+  unknown_field = function(t) return (t:gsub('(env%-wind [^\n]*)\n', '%1 extra=1\n', 1)) end,
+  truncated = function(t) return t:sub(1, -2) end,
+  empty_line = function(t) return (t:gsub('\n', '\n\n', 1)) end,
+  gust_in_domain_refused = function(t) return (t:gsub('gust_w=%x+', 'gust_w=3f000000', 1)) end,
+  gust_out_of_domain_called = function(t) return (t:gsub('gust_w=%x+', 'gust_w=3f800000', 1)) end,
+  census_zero = function(t) return (t:gsub('weather_cases=%d+', 'weather_cases=0')) end,
+  census_huge = function(t) return (t:gsub('weather_cases=%d+', 'weather_cases=100000')) end,
+  census_enum = function(t) return (t:gsub('dry=1', 'dry=9')) end,
+  census_missing_unsupported = function(t) return (t:gsub('env%-unsupported item=session[^\n]*\n', '')) end,
+  snapshot_bad_fingerprint = function(t) return (t:gsub('fp=%x+', 'fp=abc')) end,
+  -- guard-context contradictions: each claims a branch the state printed in the same report cannot have taken
+  init_false_refusal = function() return 'env-init kind=witness i=1 refused=the_original_initialisers_assert_the_server_comms_model comms_model=1\n' .. finish(6, 1) end,
+  init_false_run = function(t) return (t:gsub('comms_model=1', 'comms_model=2')) end,
+  update_false_refusal = function(t) return (t:gsub('in_cockpit=1', 'in_cockpit=0')) end,
+  update_false_run = function(t) return (t:gsub('in_cockpit=0', 'in_cockpit=1')) end,
+  snapshot_false_unavailable = function(t) return (t:gsub('wind_speed_w=%x+ wind_x_w=%x+ wind_y_w=%x+ wind_z_w=%x+', 'wind=unavailable_gust_outside_0_1')) end,
+  snapshot_gust_outside_with_wind = function(t) return (t:gsub('gusting_value_w=%x+', 'gusting_value_w=3f800000')) end,
+  wind_flag_says_unequal = function(t) return (t:gsub('null_same=1', 'null_same=0')) end,
+  wind_flag_says_equal = function(t) return (t:gsub('null_speed_w=%x+', 'null_speed_w=3f800000')) end,
+  -- coherent ALTERNATIVE forms the emitter can print (accepted): unequal words with flag 0; a snapshot whose gust is outside [0,1) and so has no wind answers; refusals by each other guard;
+  -- a controlled update whose state shows a gust phase of 1.0 before it wraps (not a query context, so not judged)
+  wind_words_unequal_flag_zero = function(t) return ((t:gsub('null_speed_w=%x+', 'null_speed_w=3f800000'):gsub('null_same=1', 'null_same=0'))) end,
+  snapshot_gust_outside_no_wind = function(t) return ((t:gsub('gusting_value_w=%x+', 'gusting_value_w=3f800000'):gsub('wind_speed_w=%x+ wind_x_w=%x+ wind_y_w=%x+ wind_z_w=%x+', 'wind=unavailable_gust_outside_0_1'))) end,
+  -- the initialiser leaves the gust phase untouched, so its queries have no wind answers exactly when that phase is outside [0,1) (accepted), and the absence is refused when it is inside
+  init_gust_outside_no_wind = function(t) return ((t:gsub('gusting_value_w=%x+', 'gusting_value_w=3f800000'):gsub('wind_speed_w=%x+ wind_x_w=%x+ wind_y_w=%x+ wind_z_w=%x+', 'wind=unavailable_gust_outside_0_1'))) end,
+  init_false_unavailable = function(t) return (t:gsub('wind_speed_w=%x+ wind_x_w=%x+ wind_y_w=%x+ wind_z_w=%x+', 'wind=unavailable_gust_outside_0_1')) end,
+  init_refused_nonserver = function() return 'env-init kind=witness i=1 refused=the_original_initialisers_assert_the_server_comms_model comms_model=2\n' .. finish(6, 1) end,
+  update_refused_no_camera = function() return 'env-update-weather kind=witness i=0 refused=unavailable_in_cockpit_or_no_camera_or_not_server in_cockpit=0 camera=0 comms_model=1\n' .. finish(8, 0) end,
+  update_refused_nonserver = function() return 'env-update-weather kind=witness i=0 refused=unavailable_in_cockpit_or_no_camera_or_not_server in_cockpit=0 camera=1 comms_model=2\n' .. finish(8, 0) end,
+  update_state_gust_phase_one = function(t) return (t:gsub('gusting_value_w=%x+', 'gusting_value_w=3f800000')) end,
+  -- the controlled group: damaged forms (refused) and the other declared refusals (accepted)
+  ctl_refused_weather_but_local = function() return 'env-controlled kind=controlled i=0 what=lightning_due refused=weather_not_local_or_radius_zero local_weather_model=1 weather_radius_w=47000000\n' .. 'env-controlled-end group=9 index=0 changed=0 process_isolated=required\n' end,
+  ctl_refused_server_but_server = function() return 'env-controlled kind=controlled i=0 what=lightning_due refused=not_the_server comms_model=1\n' .. 'env-controlled-end group=9 index=0 changed=0 process_isolated=required\n' end,
+  ctl_wrong_timer = function(t) return (t:gsub('timer_after_w=%x+', 'timer_after_w=3f800000')) end,
+  ctl_wrong_what = function(t) return (t:gsub('what=lightning_due', 'what=local_weather_on')) end,
+  ctl_wrong_radius = function(t) return (t:gsub('radius_after_w=%x+', 'radius_after_w=3f800000')) end,
+  ctl_changed_says_zero = function(t) return (t:gsub('changed=1', 'changed=0')) end,
+  ctl_refused_nonlocal = function() return 'env-controlled kind=controlled i=0 what=lightning_due refused=weather_not_local_or_radius_zero local_weather_model=0 weather_radius_w=47000000\n' .. 'env-controlled-end group=9 index=0 changed=0 process_isolated=required\n' end,
+  ctl_refused_radius_zero = function() return 'env-controlled kind=controlled i=0 what=lightning_due refused=weather_not_local_or_radius_zero local_weather_model=1 weather_radius_w=80000000\n' .. 'env-controlled-end group=9 index=0 changed=0 process_isolated=required\n' end,
+  ctl_refused_nonserver = function() return 'env-controlled kind=controlled i=0 what=lightning_due refused=not_the_server comms_model=2\n' .. 'env-controlled-end group=9 index=0 changed=0 process_isolated=required\n' end,
+}
+function engine:env_case(group, index)
+  note('case ' .. group .. ':' .. index)
+  local text = report(group, index)
+  if MUTATION ~= 'none' and group == TARGET_GROUP and (TARGET_INDEX < 0 or index == TARGET_INDEX) then
+    local coherent = text
+    text = mutations[MUTATION](coherent)
+    -- a lightning queue corruption is only a test of the driver's refusal if it really changed the coherent report it was applied to (a text edit that matches nothing is a silent no-op);
+    -- every `queue_` form is applied to the queue report only, and each one differs from the healthy report of the shape it is run with. A no-op is therefore a stand-in error (the Rust side refuses to count it), never a refusal by the driver.
+    if MUTATION:sub(1, 6) == 'queue_' and text == coherent then error('stand-in: NO-OP MUTATION ' .. MUTATION .. ' left the coherent lightning queue report unchanged', 0) end
+  end
+  return text
+end
+"#;
+
+// the observer of the stand-in, in the form of the real boot (RECORDED natively at source 2804ca4f: 44 boot events with two weather episodes and two start-time episodes, then per frame frame_begin,
+// tod_begin, tod_end, two sound_facts rows, frame_end): the numbers are canned, the ORDER and the context are the real ones; the mutations damage the record in one way each
+const ENV_STAND_IN_OBSERVER: &str = r#"
+local OBS_MUTATION = '@OBS_MUTATION@'
+local pending, seq, updates, frame_no, clock = {}, 0, 0, 0, 0
+local delta = '3dcccccd'
+local Z = '00000000'
+local function h(n) return string.format('%08x', n % 4294967296) end
+local function ev(kind, a, b, rng, w0, w1, w2, w3, w4, w5)
+  if OBS_MUTATION == 'skip_seq' and seq == 2 then seq = seq + 1 end
+  rng = rng or 1
+  local rng_w = rng % 4294967296
+  if OBS_MUTATION == 'rng_mismatch' and seq == 3 then rng_w = rng_w + 1 end
+  pending[#pending + 1] = string.format('env-obs seq=%d kind=%d a=%d b=%d rng=%d rng_w=%08x w0=%s w1=%s w2=%s w3=%s w4=%s w5=%s\n', seq, kind, a or 0, b or 0, rng, rng_w,
+    w0 or Z, w1 or Z, w2 or Z, w3 or Z, w4 or Z, w5 or Z)
+  seq = seq + 1
+end
+-- initialise_random_number_generator: the clock value, then the seed set from it (zero becomes one); the event's rng is the word BEFORE the assignment
+local function reseed(before)
+  ev(4, 0, 0, before)
+  ev(3, OBS_MUTATION == 'boot_seed_mismatch' and 7 or 1, 0, before, h(before))
+end
+local function start_episode(before)
+  reseed(before)
+  ev(5, 0, 0, 1)
+  ev(6, 2, 0, 1103527590)
+  ev(7, 0, 0, -1770082073, h(0x46f89000))
+  ev(8, 0, 0, -1770082073, h(0x46f89000))
+end
+local function weather_episode(rng0)
+  ev(14, 0, 0, rng0)
+  for k = 1, 10 do
+    if not (OBS_MUTATION == 'boot_weather_short' and k == 10) then
+      local ordinal = (OBS_MUTATION == 'boot_weather_misordered' and k == 2) and 3 or k
+      ev(15, ordinal, (k == 2 or k == 7) and 1 or 0, 1000 + k, h(0x47000000 + k))
+    end
+  end
+  ev(16, 0, 0, 1010)
+end
+-- the boot as the real one runs it: the engine's reseed and boot seed, the loader's session (start time, session, weather), then the session setup options' weather and start time again
+obs_boot = function()
+  clock = 0
+  ev(OBS_MUTATION == 'not_armed' and 3 or 1, 1, 0, 1, h(clock))
+  reseed(1)
+  ev(3, OBS_MUTATION == 'boot_seed_wrong' and 9 or 1, 0, 1, h(1))
+  ev(10, 0, 0, 1)
+  if OBS_MUTATION ~= 'boot_no_start' then start_episode(1) end
+  ev(9, 1, 1, -1770082073, OBS_MUTATION == 'boot_session_start_mismatch' and h(0x46f89001) or h(0x46f89000), h(0x42700000), h(0x471c4000), h(0x471c4000), h(0x3f800000))
+  if OBS_MUTATION == 'boot_tag_in_session' then ev(12, 1, 0, 1010) end
+  if OBS_MUTATION ~= 'boot_no_weather' then weather_episode(-1770082073) end
+  if OBS_MUTATION == 'boot_tag_before_parser_end' then ev(12, 1, 0, 1010) end
+  ev(11, 0, 0, 1010)
+  -- the file's later tags (parsgen.c): rain tag 0 calls fixed weather DRY (mode 1), any other value calls nothing; the wind tag is only logged
+  if OBS_MUTATION == 'boot_with_tags' then
+    ev(12, 0, 0, 1010)
+    ev(17, 1, 0, 1010)
+    ev(13, 0, 0, 1010, h(0x3f800000))
+  end
+  if OBS_MUTATION == 'boot_rain1' then
+    ev(12, 1, 0, 1010)
+    ev(13, 0, 0, 1010, h(0x3f800000))
+  end
+  if OBS_MUTATION == 'boot_rain1_fixed' then
+    ev(12, 1, 0, 1010)
+    ev(17, 1, 0, 1010)
+  end
+  if OBS_MUTATION == 'boot_rain0_no_fixed' then ev(12, 0, 0, 1010) end
+  if OBS_MUTATION == 'boot_rain0_wrong_mode' then
+    ev(12, 0, 0, 1010)
+    ev(17, 2, 0, 1010)
+  end
+  if OBS_MUTATION ~= 'boot_single_group' then
+    weather_episode(836760821)
+    if OBS_MUTATION == 'boot_three_groups' then
+      weather_episode(7)
+      start_episode(1010)
+    end
+    start_episode(1010)
+  end
+  if OBS_MUTATION ~= 'boot_end_late' then ev(2, 0, 0, 1010, h(clock)) end
+end
+-- the twelve events of a lightning expiry; the last four are the server's sound entities
+local function lightning(with_sound)
+  LIGHTNING_EPISODES = (LIGHTNING_EPISODES or 0) + 1
+  ev(22, 1, 0, 2000, h(0xbd000000), delta)
+  if OBS_MUTATION == 'lightning_interrupted' then return end
+  if OBS_MUTATION == 'lightning_misordered' then
+    ev(24, 0, 0, 2001, h(0x42f00000))
+    return
+  end
+  ev(23, 0, 0, 2001, h(0x42f00000))
+  ev(24, 0, 0, 2001, OBS_MUTATION == 'lightning_timer_mismatch' and h(0x42f00001) or h(0x42f00000))
+  ev(25, 1, 0, 2001)
+  ev(26, 1, 0, 2001, h(0x47000000), h(0x47000001))
+  ev(27, 1, 0, 2002)
+  ev(26, 2, 0, 2002, OBS_MUTATION == 'lightning_strike_position' and h(0x47000009) or h(0x47000000), h(0x47000001))
+  ev(27, 2, 0, 2003)
+  if with_sound then
+    ev(28, 1, 0, 2003, h(10), h(20))
+    ev(29, 1, 0, 2004, h(11), h(21))
+    ev(28, 2, 0, 2004, h(11), h(21))
+    ev(29, 2, 0, 2005, h(12), h(22))
+  end
+end
+obs_frame = function(ms)
+  local m = OBS_MUTATION
+  local second = frame_no == 1
+  if m == 'tod_outside_frame' and second then
+    ev(20, 0, 0, 1010, Z, delta, h(0x3f800000))
+    ev(21, 0, 1, 1010)
+  end
+  ev(18, (m == 'frame_ms_mismatch' and second) and ms + 1 or ms, (m == 'two_updates_in_frame' and second) and 2 or 1, 1010, h((m == 'clock_gap' and second) and clock + 1 or clock), (m == 'delta_phase' and second) and '3dcccccd' or delta)
+  if m == 'unpaired_frame' and second then ev(18, ms, 1, 1010, h(clock), delta) end
+  if m == 'lightning_before_tod' and second then lightning(true) end
+  if m == 'facts_before_tod' and second then
+    ev(30, 0, 123, 1010, h(1), h(2), h(3), h(4), h(5), h(6))
+    ev(30, -1, 2, 1010, h(1), h(3))
+  end
+  ev(20, 0, 0, 1010, Z, (m == 'tod_delta' and second) and '3dcccccd' or delta, h(0x3f800000))
+  if m == 'lightning_inside_tod' and second then lightning(true) end
+  if not (m == 'tod_unpaired' and second) then ev(21, 0, 1, 1010, h(0x3dcccccd), h(0x46f89033)) end
+  if second and (m == 'lightning_episode' or m == 'lightning_timer_mismatch' or m == 'lightning_strike_position' or m == 'lightning_misordered' or m == 'lightning_interrupted') then
+    lightning(true)
+  end
+  if second and m == 'lightning_client_form' then lightning(false) end
+  ev(30, 0, 123, 1010, h(1), h(2), h(3), h(4), h(5), h(6))
+  if not (m == 'facts_unpaired' and second) then ev(30, -1, 2, 1010, h(1), h(3)) end
+  if m == 'lightning_after_facts' and second then lightning(true) end
+  -- a frame may run the session update more than once (time acceleration): the next update's time of day begins again
+  if m == 'two_updates_in_frame' and second then
+    ev(20, 0, 0, 1010, Z, delta, h(0x3f800000))
+    ev(21, 0, 1, 1010, h(0x3dcccccd), h(0x46f89033))
+    ev(30, 0, 123, 1010, h(1), h(2), h(3), h(4), h(5), h(6))
+    ev(30, -1, 2, 1010, h(1), h(3))
+    updates = updates + 1
+  end
+  clock = clock + ms
+  delta = '3dcccccc'
+  ev(19, 0, 0, 1010, h((m == 'frame_end_clock' and second) and clock + 1 or clock), delta, h(0x41200000))
+  updates = updates + 1
+  frame_no = frame_no + 1
+end
+local first_read = true
+function engine:env_observer_events()
+  local text = table.concat(pending)
+  pending = {}
+  if first_read and #text > 0 then
+    first_read = false
+    -- beyond the driver's bound: a stream longer than 16384 events of 170 bytes; a row wider than 170 bytes; more than 16384 rows
+    if OBS_MUTATION == 'oversized_stream' then text = text .. string.rep('x', 3000000) end
+    if OBS_MUTATION == 'too_long_row' then text = (text:gsub('\n', string.rep(' ', 200) .. '\n', 1)) end
+    if OBS_MUTATION == 'too_many_events' then text = text .. string.rep(text:match('^[^\n]*\n'), 16384) end
+  end
+  if OBS_MUTATION == 'bad_row' and #text > 0 then text = text:gsub('\n', ' extra=1\n', 1) end
+  return text
+end
+function engine:env_observer_report()
+  local m = OBS_MUTATION
+  local dropped = m == 'dropped' and 3 or 0
+  return string.format('env-obs-report armed=1 capacity=%d stored=%d read=%d dropped=%d overflow=%d next_seq=%d update_server=%d lightning_calls=%d sound_calls=%d resync_calls=0 weather_calls=%d sound_records=%d\n',
+    m == 'capacity_low' and 1 or 16384, seq, seq, dropped, dropped > 0 and 1 or 0, seq, updates + (m == 'count_mismatch' and 1 or 0), updates, updates,
+    updates + (m == 'weather_calls_mismatch' and 1 or 0), updates + (m == 'sound_records_mismatch' and 1 or 0))
+end
+"#;
+
+const ENV_STAND_IN_WIRING: &str = r#"
+package.loaded['eech_dc'] = {
+  prepare_installation = function() note('prepare') end,
+@ARM@  boot = function() note('boot') if obs_boot then obs_boot() end return engine end,
+}
+dofile('@DRIVER@')
+"#;
+
+struct EnvStandIn {
+    fixture: bool,
+    jump: f64,
+    mutation: &'static str,
+    group: i32,
+    index: i32,
+    // the module has the observer's arm function and the engine its readout (a build with the env-observer feature); the observer's own damage, if any
+    observer_module: bool,
+    observer_mutation: &'static str,
+}
+
+impl EnvStandIn {
+    const WELL_FORMED: EnvStandIn = EnvStandIn {
+        fixture: true,
+        jump: 1.0,
+        mutation: "none",
+        group: -1,
+        index: -1,
+        observer_module: false,
+        observer_mutation: "none",
+    };
+}
+
+struct EnvRun {
+    status: std::process::ExitStatus,
+    stderr: String,
+    trace: String,
+    out_exists: bool,
+    out_text: String,
+    rows: Vec<serde_json::Value>,
+}
+
+// a per-run temporary directory, removed when the run is over, however it ends
+struct EnvTempDir(std::path::PathBuf);
+
+impl Drop for EnvTempDir {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
+fn forward(path: &std::path::Path) -> String {
+    path.display().to_string().replace('\u{5c}', "/")
+}
+
+// the host runs for at most this long; a driver that does not finish is killed and the test fails (a loop that does not end is a failure, not a hang)
+const ENV_DRIVER_DEADLINE: std::time::Duration = std::time::Duration::from_secs(90);
+
+fn run_env_scenario(stand_in: &EnvStandIn, args: &[&str]) -> EnvRun {
+    static COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let tag = format!("{}-{}", std::process::id(), COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst));
+    let dir = EnvTempDir(std::env::temp_dir().join(format!("eech-world-env-driver-{tag}")));
+    std::fs::create_dir_all(&dir.0).unwrap();
+    let driver = dir.0.join("env-characterization.lua");
+    let script = dir.0.join("stand-in.lua");
+    let out = dir.0.join("out.jsonl");
+    let trace = dir.0.join("trace.txt");
+    std::fs::write(&driver, ENV_DRIVER_LUA).unwrap();
+    let mut text = String::from(ENV_STAND_IN_BASE);
+    if stand_in.fixture {
+        text.push_str(ENV_STAND_IN_FIXTURE);
+    }
+    if stand_in.observer_module {
+        text.push_str(ENV_STAND_IN_OBSERVER);
+    }
+    text.push_str(ENV_STAND_IN_WIRING);
+    let arm = if stand_in.observer_module {
+        "  env_observer_arm = function(on) note('arm ' .. tostring(on)) end,\n"
+    } else {
+        ""
+    };
+    let text = text
+        .replace("@ARM@", arm)
+        .replace("@OBS_MUTATION@", stand_in.observer_mutation)
+        .replace("@JUMP@", &format!("{}", stand_in.jump))
+        .replace("@MUTATION@", stand_in.mutation)
+        .replace("@TARGET_GROUP@", &stand_in.group.to_string())
+        .replace("@TARGET_INDEX@", &stand_in.index.to_string())
+        .replace("@TRACE@", &forward(&trace))
+        .replace("@DRIVER@", &forward(&driver));
+    std::fs::write(&script, text).unwrap();
+
+    let mut command = Command::new(env_host());
+    command.arg(&script).arg("root=none").arg(format!("out={}", forward(&out)));
+    // an argument given by the test replaces the same-named one of the defaults
+    let key = |arg: &str| arg.split('=').next().unwrap_or_default().to_string();
+    let defaults = ["seconds=1", "frame_ms=100", "snapshot_frames=2", "snapshot_every=0"];
+    let overridden: Vec<String> = args.iter().map(|a| key(a)).collect();
+    for arg in defaults
+        .iter()
+        .filter(|a| !overridden.contains(&key(a)) && !(key(a) == "frame_ms" && overridden.iter().any(|k| k == "frame_schedule")))
+        .chain(args.iter())
+    {
+        command.arg(arg);
+    }
+    command.stdout(std::process::Stdio::piped()).stderr(std::process::Stdio::piped());
+    let mut child = command.spawn().unwrap();
+    let started = std::time::Instant::now();
+    let status = loop {
+        if let Some(status) = child.try_wait().unwrap() {
+            break status;
+        }
+        if started.elapsed() > ENV_DRIVER_DEADLINE {
+            let _ = child.kill();
+            let _ = child.wait();
+            panic!("the environment driver did not finish within {ENV_DRIVER_DEADLINE:?} and was killed");
+        }
+        std::thread::sleep(std::time::Duration::from_millis(20));
+    };
+    let output = child.wait_with_output().unwrap();
+    let out_exists = out.exists();
+    let out_text = if out_exists { std::fs::read_to_string(&out).unwrap() } else { String::new() };
+    // every line must parse: a malformed row is a failure here, never silently dropped
+    let rows = out_text
+        .lines()
+        .map(|l| serde_json::from_str(l).unwrap_or_else(|e| panic!("malformed output row {l:?}: {e}")))
+        .collect();
+    let trace_text = std::fs::read_to_string(&trace).unwrap_or_default();
+    EnvRun {
+        status,
+        stderr: String::from_utf8_lossy(&output.stderr).to_string(),
+        trace: trace_text,
+        out_exists,
+        out_text,
+        rows,
+    }
+}
+
+fn run_env_driver(args: &[&str]) -> EnvRun {
+    run_env_scenario(&EnvStandIn::WELL_FORMED, args)
+}
+
+fn env_rows<'a>(rows: &'a [serde_json::Value], event: &str) -> Vec<&'a serde_json::Value> {
+    rows.iter().filter(|r| r["event"] == event).collect()
+}
+
+fn env_witness_calls(trace: &str) -> usize {
+    trace
+        .lines()
+        .filter(|l| l.starts_with("case ") && !l.starts_with("case 0:") && !l.starts_with("case 1:"))
+        .count()
+}
+
+#[test]
+fn the_environment_driver_refuses_a_malformed_argument_before_anything_is_prepared_booted_or_run() {
+    let cases: &[(&[&str], &str)] = &[
+        (&["frame_ms=0"], "frame_ms"),
+        (&["frame_ms=1001"], "frame_ms"),
+        (&["frame_ms=10.5"], "frame_ms"),
+        (&["seconds=-1"], "seconds"),
+        (&["seconds=1e3"], "seconds"),
+        (&["seconds=21601"], "seconds"),
+        (&["seconds=nan"], "seconds"),
+        (&["seed=0"], "seed"),
+        (&["seed=2147483648"], "seed"),
+        (&["seed=abc"], "seed"),
+        (&["probes=1025"], "probes"),
+        (&["probes=-1"], "probes"),
+        (&["probes="], "probes"),
+        (&["probe_at=2", "seconds=1"], "probe_at"),
+        (&["probe_at=x"], "probe_at"),
+        (&["snapshot_frames=2001"], "snapshot_frames"),
+        (&["snapshot_every=3601"], "snapshot_every"),
+        (&["snapshot_every=abc"], "snapshot_every"),
+        (&["scenario=mars"], "scenario"),
+        (&["frame_ms=1", "seconds=200"], "frames"),
+    ];
+    for (args, name) in cases {
+        let run = run_env_driver(args);
+        assert!(!run.status.success(), "{args:?} was accepted");
+        assert!(
+            run.stderr.contains("env-characterization:") && run.stderr.contains(name),
+            "{args:?}: the refusal does not name {name}: {}",
+            run.stderr
+        );
+        assert!(run.trace.is_empty(), "{args:?}: something ran before the refusal: {}", run.trace);
+        assert!(!run.out_exists, "{args:?}: the output file was created");
+    }
+}
+
+#[test]
+fn the_environment_driver_refuses_a_module_without_the_fixture_and_runs_no_frame() {
+    let run = run_env_scenario(
+        &EnvStandIn {
+            fixture: false,
+            ..EnvStandIn::WELL_FORMED
+        },
+        &["probes=3"],
+    );
+    assert!(
+        !run.status.success(),
+        "a module without the fixture was reported as measured:\n{}",
+        run.out_text
+    );
+    assert!(run.stderr.contains("env_case"), "{}", run.stderr);
+    assert_eq!(env_rows(&run.rows, "refusal").len(), 1, "{}", run.out_text);
+    assert!(env_rows(&run.rows, "run").is_empty(), "a refused run wrote a run row");
+    assert!(!run.trace.contains("frame"), "a frame ran without the fixture: {}", run.trace);
+}
+
+#[test]
+fn the_environment_driver_control_asks_for_no_witness_and_the_probe_run_keeps_words_as_strings_and_reports_its_coverage() {
+    let control = run_env_driver(&["probes=0"]);
+    assert!(control.status.success(), "{}\n{}", control.stderr, control.out_text);
+    assert_eq!(env_witness_calls(&control.trace), 0, "the control asked for a witness: {}", control.trace);
+    assert_eq!(env_rows(&control.rows, "boot")[0]["mode"], "control");
+
+    // 14 witness cases exist in the stand-in's census; the cap of 4 truncates, and the coverage row says so
+    let probe = run_env_driver(&["probes=4"]);
+    assert!(probe.status.success(), "{}\n{}", probe.stderr, probe.out_text);
+    assert_eq!(env_witness_calls(&probe.trace), 4, "{}", probe.trace);
+    let winds = env_rows(&probe.rows, "env-wind");
+    assert_eq!(winds.len(), 2);
+    // a float word that is all decimal digits, and the all-zero word, stay strings; a plain integer is a number
+    assert_eq!(winds[0]["speed_w"], "00000000");
+    assert_eq!(winds[0]["vx_w"], "3f800000");
+    let states = env_rows(&probe.rows, "env-state-globals");
+    assert!(
+        !states.is_empty() && states.iter().all(|r| r["rng"] == -5 && r["rng_w"] == "3f800000"),
+        "{states:?}"
+    );
+    let snapshots = env_rows(&probe.rows, "env-state-fingerprint");
+    assert!(snapshots.iter().all(|r| r["fp"] == "0123456789abcdef"), "{snapshots:?}");
+    let noninterference = env_rows(&probe.rows, "probe_noninterference");
+    assert_eq!(noninterference.len(), 1);
+    assert_eq!(noninterference[0]["retail_equal"], true);
+    let run = env_rows(&probe.rows, "run");
+    assert_eq!(run.len(), 1);
+    assert_eq!(run[0]["probes_run"], 4);
+    assert_eq!(run[0]["cases_available"], 14);
+    assert_eq!(run[0]["complete"], false);
+    let coverage = env_rows(&probe.rows, "coverage");
+    assert_eq!(coverage.len(), 7);
+    assert!(coverage.iter().any(|c| c["truncated"] == true));
+    assert!(probe.out_text.ends_with('\n'));
+}
+
+#[test]
+fn the_environment_driver_accepts_every_family_in_its_declared_form_including_the_genuine_refusals_and_counts_them() {
+    let run = run_env_driver(&["probes=512"]);
+    assert!(run.status.success(), "{}\n{}", run.stderr, run.out_text);
+    assert_eq!(env_witness_calls(&run.trace), 14, "{}", run.trace);
+    let summary = &env_rows(&run.rows, "run")[0];
+    assert_eq!(summary["complete"], true);
+    assert_eq!(summary["probes_run"], 14);
+    // the stand-in's gust case 1 and update-weather case 1 are refused in their declared forms: the report is accepted as such, and counted
+    let validation = &env_rows(&run.rows, "validation")[0];
+    assert_eq!(validation["witnesses"], 14);
+    assert_eq!(validation["refused_witnesses"], 2);
+    assert_eq!(env_rows(&run.rows, "env-gust").len(), 2);
+    assert_eq!(env_rows(&run.rows, "env-gust").iter().filter(|r| r.get("refused").is_some()).count(), 1);
+    assert_eq!(env_rows(&run.rows, "env-witness-end").iter().filter(|r| r["restored"] == 1).count(), 14);
+}
+
+#[test]
+fn the_environment_driver_refuses_every_report_that_is_not_the_fixtures_protocol() {
+    // (mutation, group, index of the damaged report, what the refusal must say). Every other report of the run is well formed, so only the damaged one can be the reason.
+    let cases: &[(&'static str, i32, i32, &str)] = &[
+        ("marker_only", 3, 0, "expected '"),
+        ("wrong_family", 3, 0, "expected 'env-wind'"),
+        ("missing_field", 3, 0, "fields"),
+        ("duplicate_field", 3, 0, "duplicate field"),
+        ("bad_word", 3, 0, "8-digit lowercase hex word"),
+        ("short_word", 3, 0, "8-digit lowercase hex word"),
+        ("fp_mismatch", 3, 0, "fingerprint changed"),
+        ("restored_zero", 3, 0, "restored"),
+        ("wrong_index", 3, 0, "for case i=9"),
+        ("wrong_end_index", 3, 0, "end marker is for group"),
+        ("extra_row", 3, 0, "expected '"),
+        ("unknown_field", 3, 0, "fields"),
+        ("truncated", 3, 0, "truncated"),
+        ("empty_line", 3, 0, "empty line"),
+        ("marker_only", 2, 0, "expected '"),
+        ("marker_only", 6, 1, "expected '"),
+        ("marker_only", 7, 0, "expected '"),
+        ("marker_only", 8, 0, "expected '"),
+        ("gust_in_domain_refused", 4, 1, "was refused"),
+        ("gust_out_of_domain_called", 4, 0, "reported as called"),
+        ("census_zero", 0, 0, "outside 1"),
+        ("census_huge", 0, 0, "outside 1"),
+        ("census_enum", 0, 0, "not a value the protocol allows"),
+        ("census_missing_unsupported", 0, 0, "is missing"),
+        ("snapshot_bad_fingerprint", 1, 0, "16-digit"),
+        ("marker_only", 1, 0, "expected '"),
+        // the printed guards: an impossible refusal hides the state rows, and an unavailable wind hides the answers, so each is judged by the context of the same report
+        ("init_false_refusal", 6, 1, "refused although comms_model equals"),
+        ("init_false_run", 6, 0, "ran although comms_model"),
+        ("update_false_refusal", 8, 1, "refused although in_cockpit=0, camera=1"),
+        ("update_false_run", 8, 0, "ran although in_cockpit"),
+        ("snapshot_false_unavailable", 1, 0, "says wind unavailable although"),
+        ("init_false_unavailable", 6, 0, "says wind unavailable although"),
+        ("snapshot_gust_outside_with_wind", 1, 0, "has a wind answer although"),
+        ("wind_flag_says_unequal", 3, 0, "null_same=0 contradicts"),
+        ("wind_flag_says_equal", 3, 0, "null_same=1 contradicts"),
+    ];
+    for (mutation, group, index, says) in cases {
+        let stand_in = EnvStandIn {
+            mutation,
+            group: *group,
+            index: *index,
+            ..EnvStandIn::WELL_FORMED
+        };
+        let run = run_env_scenario(&stand_in, &["probes=512"]);
+        let what = format!("{mutation} on group {group} index {index}");
+        assert!(!run.status.success(), "{what} was accepted:\n{}", run.out_text);
+        assert!(
+            run.stderr.contains("did not return the fixture's protocol") || run.stderr.contains("malformed report"),
+            "{what}: {}",
+            run.stderr
+        );
+        assert!(run.stderr.contains(*says), "{what}: the refusal does not say '{says}': {}", run.stderr);
+        assert_eq!(env_rows(&run.rows, "failure").len(), 1, "{what}: {}", run.out_text);
+        assert!(env_rows(&run.rows, "run").is_empty(), "{what}: a refused run reported a run row");
+        assert!(env_rows(&run.rows, "validation").is_empty(), "{what}: a refused run reported validation");
+    }
+}
+
+#[test]
+fn the_environment_driver_bounds_its_periodic_schedule_whatever_the_period_and_the_clock_jump() {
+    // a period of 1e-11 s and a clock that jumps 50 s in a frame: one snapshot per frame and no catch-up loop (the old loop needed about 5e12 steps per frame and never finished)
+    let jump = EnvStandIn {
+        jump: 500.0,
+        ..EnvStandIn::WELL_FORMED
+    };
+    let run = run_env_scenario(
+        &jump,
+        &["probes=0", "snapshot_frames=0", "snapshot_every=.00000000001", "seconds=1", "frame_ms=100"],
+    );
+    assert!(run.status.success(), "{}\n{}", run.stderr, run.out_text);
+    let periodic: Vec<_> = env_rows(&run.rows, "env-state-fingerprint")
+        .into_iter()
+        .filter(|r| r["scope"].as_str().unwrap_or("").starts_with("snapshot:periodic:"))
+        .collect();
+    assert_eq!(periodic.len(), 10, "{}", run.out_text);
+
+    // the ordinary schedule is unchanged: the clock moves 0.25 s a frame; every 0.5 s gives a snapshot at 0.5, 1.0, 1.5, 2.0, 2.5; every 0.25 s one after every frame; 0 none
+    let steady = EnvStandIn {
+        jump: 2.5,
+        ..EnvStandIn::WELL_FORMED
+    };
+    let scopes = |every: &str| -> Vec<String> {
+        let run = run_env_scenario(&steady, &["probes=0", "snapshot_frames=0", every, "seconds=1", "frame_ms=100"]);
+        assert!(run.status.success(), "{}\n{}", run.stderr, run.out_text);
+        env_rows(&run.rows, "env-state-fingerprint")
+            .into_iter()
+            .filter_map(|r| r["scope"].as_str().map(str::to_string))
+            .filter(|s| s.starts_with("snapshot:periodic:"))
+            .collect()
+    };
+    assert_eq!(
+        scopes("snapshot_every=0.5"),
+        [
+            "snapshot:periodic:0.500",
+            "snapshot:periodic:1.000",
+            "snapshot:periodic:1.500",
+            "snapshot:periodic:2.000",
+            "snapshot:periodic:2.500"
+        ]
+    );
+    assert_eq!(scopes("snapshot_every=0.25").len(), 10);
+    assert!(scopes("snapshot_every=0").is_empty());
+}
+
+#[test]
+fn the_environment_driver_accepts_the_coherent_alternative_forms_the_emitter_can_print() {
+    // (mutation, group, index, refused witnesses the run must then count). The well-formed stand-in refuses two witnesses (the gust and the update-weather case 1).
+    let cases: &[(&'static str, i32, i32, u64)] = &[
+        ("none", -1, -1, 2),
+        // the emitter's null_same is the equality of its own two words: unequal words with flag 0 are as coherent as equal words with flag 1
+        ("wind_words_unequal_flag_zero", 3, 0, 2),
+        // a snapshot whose gust is outside [0,1) has no wind answers (the emitter's own branch)
+        ("snapshot_gust_outside_no_wind", 1, 0, 2),
+        ("init_gust_outside_no_wind", 6, 0, 2),
+        // the initialiser and the weather update are refused by each guard that can hold
+        ("init_refused_nonserver", 6, 1, 3),
+        ("update_refused_no_camera", 8, 0, 3),
+        ("update_refused_nonserver", 8, 0, 3),
+        // a state record is not a query context: a gust phase of 1.0 before the wrap is accepted there
+        ("update_state_gust_phase_one", 8, 0, 2),
+    ];
+    for (mutation, group, index, refused) in cases {
+        let stand_in = EnvStandIn {
+            mutation,
+            group: *group,
+            index: *index,
+            ..EnvStandIn::WELL_FORMED
+        };
+        let run = run_env_scenario(&stand_in, &["probes=512"]);
+        let what = format!("{mutation} on group {group} index {index}");
+        assert!(run.status.success(), "{what} was refused: {}\n{}", run.stderr, run.out_text);
+        assert!(env_rows(&run.rows, "failure").is_empty(), "{what}: {}", run.out_text);
+        let validation = &env_rows(&run.rows, "validation")[0];
+        assert_eq!(validation["witnesses"], 14, "{what}");
+        assert_eq!(validation["refused_witnesses"], *refused, "{what}");
+        assert_eq!(env_rows(&run.rows, "run")[0]["complete"], true, "{what}");
+    }
+}
+
+// ---- the observer, the frame-time schedule and the controlled-weather case (EEDCS-51, second increment). The stand-in answers well-formed canned reports; these checks say nothing about the original
+// code's initialisation, entropy order, lightning or time phase. They protect the driver's contract with the observer: armed BEFORE boot, a record that is complete and in order, an OFF run that
+// differs only by the observer's own rows, and a refusal for every record that is incomplete, unpaired, mis-numbered or inconsistent.
+
+fn env_observer_args(extra: &[&'static str]) -> Vec<&'static str> {
+    let mut args = vec!["probes=0", "observer=on", "seconds=1", "frame_ms=100", "snapshot_frames=2"];
+    args.extend_from_slice(extra);
+    args
+}
+
+fn env_trace_lines(trace: &str) -> Vec<&str> {
+    trace.lines().collect()
+}
+
+// The ground-contact characterisation driver (EEDCS-48; lua/ground-characterization.lua) against a small stand-in for the engine: only its argument safety, its flow and its own checks of what the probe
+// returns are exercised here (the arguments refused BEFORE the engine is booted, the probe called with the asked seed and counts as often as asked, the control that does not probe, the report parsed into
+// events with hash words kept as text, a refused probe, a repeat that differs, a record not restored, a report that is not the one asked for, and a table of reports with ONE defect each: absent or malformed
+// record words, bare or short hash and physical-fold rows, missing or wrong counts, duplicate or unknown rows). The stand-in (tests/lua/ground-caller.lua, loaded with include_str! so no path is needed) writes a
+// complete well-formed report and measures nothing about the ground queries: whether the original ground queries behave as characterised is the native run's to show, with a DLL built with the
+// `ground-fixture` feature.
+const GROUND_CASE_CALLER_SCRIPT: &str = include_str!("lua/ground-caller.lua");
+
+// The ORIGINAL host and module: no terrain provider, the legacy record rows. Every ground test written for the original fixture runs in this profile, unchanged.
+fn run_ground_case(mode: &str, extra: &[&str]) -> (std::process::ExitStatus, String, String, String, Vec<serde_json::Value>) {
+    run_ground_case_as("legacy", mode, extra)
+}
+
+// `profile` is "legacy" (the original host, which has no terrain provider) or "semantic" (the G1 host, which has one: the stand-in replaces the real factory with a stub so that no
+// retail root is loaded, and the stub answers nothing). The stand-in writes the report of that profile.
+fn run_ground_case_as(profile: &str, mode: &str, extra: &[&str]) -> (std::process::ExitStatus, String, String, String, Vec<serde_json::Value>) {
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\u{5c}', "/");
+    static COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let tag = format!("{}-{}", std::process::id(), COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst));
+    let script = std::env::temp_dir().join(format!("eech-world-ground-caller-{tag}.lua"));
+    let out = std::env::temp_dir().join(format!("eech-world-ground-caller-{tag}.jsonl"));
+    let trace = std::env::temp_dir().join(format!("eech-world-ground-caller-{tag}.trace"));
+    let _ = std::fs::remove_file(&out);
+    let _ = std::fs::remove_file(&trace);
+    let text = GROUND_CASE_CALLER_SCRIPT
+        .replace("@MODE@", mode)
+        .replace("@PROFILE@", profile)
+        .replace("@TRACE@", &trace.display().to_string().replace('\u{5c}', "/"))
+        .replace("@LUA_DIR@", &lua_dir);
+    std::fs::write(&script, text).unwrap();
+    let mut command = Command::new(env!("CARGO_BIN_EXE_eech-world"));
+    command
+        .arg(&script)
+        .arg("root=none")
+        .arg(format!("out={}", out.display().to_string().replace('\u{5c}', "/")));
+    for arg in extra {
+        command.arg(arg);
+    }
+    let run = command.output().unwrap();
+    std::fs::remove_file(&script).unwrap();
+    let rows = if out.exists() {
+        std::fs::read_to_string(&out)
+            .unwrap()
+            .lines()
+            .map(|l| serde_json::from_str(l).unwrap_or_else(|e| panic!("malformed output row {l:?}: {e}")))
+            .collect()
+    } else {
+        Vec::new()
+    };
+    let trace_text = std::fs::read_to_string(&trace).unwrap_or_default();
+    let _ = std::fs::remove_file(&out);
+    let _ = std::fs::remove_file(&trace);
+    (
+        run.status,
+        String::from_utf8_lossy(&run.stdout).to_string(),
+        String::from_utf8_lossy(&run.stderr).to_string(),
+        trace_text,
+        rows,
+    )
+}
+
+// the digest the driver computes over the object list in id order (a modular polynomial hash), written out here from the stand-in's two objects
+fn ground_expected_digest() -> String {
+    let mut digest: u64 = 5381;
+    for byte in "1:ground_vehicle:red:false;2:helicopter:blue:true;".bytes() {
+        digest = (digest * 31 + u64::from(byte)) % 2_147_483_647;
+    }
+    format!("{digest:08x}")
+}
+
+#[test]
+fn the_ground_driver_probes_with_the_asked_seed_and_counts_as_often_as_asked_and_parses_the_report() {
+    let (status, stdout, stderr, trace, rows) = run_ground_case(
+        "ok",
+        &["points=40", "impacts=10", "seed=77", "repeats=3", "seconds=1", "after=1", "frame_ms=500"],
+    );
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!(trace.matches("probe 77 40 10").count(), 3, "{trace}");
+    assert_eq!(trace.matches("frame").count(), 4, "{trace}");
+    // two frames, then the probes, then two more frames, then nothing
+    let first_probe = trace.find("probe ").unwrap();
+    let last_probe = trace.rfind("probe ").unwrap();
+    assert_eq!(trace[..first_probe].matches("frame").count(), 2, "{trace}");
+    assert_eq!(trace[last_probe..].matches("frame").count(), 2, "{trace}");
+    assert_eq!(rows.iter().filter(|r| r["event"] == "ground-hash").count(), 3);
+    // a hash word of decimal digits stays text; a counter is a number
+    let hash = rows.iter().find(|r| r["event"] == "ground-hash").unwrap();
+    assert_eq!(hash["combined"].as_str(), Some("1234567890123456"), "{hash}");
+    // the physical fold is a row of its own, separate from the legacy fold, and every repeat records both
+    assert_eq!(rows.iter().filter(|r| r["event"] == "ground-physical").count(), 3);
+    let physical = rows.iter().find(|r| r["event"] == "ground-physical").unwrap();
+    assert_eq!(physical["combined"].as_str(), Some("fedcba9876543210"), "{physical}");
+    let record = rows.iter().find(|r| r["event"] == "ground-record").unwrap();
+    assert_eq!(
+        (record["words_before"].as_str(), record["words_after"].as_str(), record["restored"].as_i64()),
+        (Some("0123456789abcdef"), Some("0123456789abcdef"), Some(1)),
+        "{record}"
+    );
+    let sample = rows.iter().find(|r| r["event"] == "ground-sample").unwrap();
+    assert_eq!((sample["x"].as_str(), sample["y"].as_str()), (Some("40000000"), Some("3f800000")), "{sample}");
+    let above = rows.iter().find(|r| r["event"] == "ground-above").unwrap();
+    assert_eq!(above["cases"].as_i64(), Some(40), "{above}");
+    assert_eq!(rows.iter().filter(|r| r["event"] == "repeat_identical" && r["ok"] == true).count(), 2);
+    let digest = rows.iter().find(|r| r["event"] == "state_digest").unwrap();
+    assert_eq!(
+        (
+            digest["objects"].as_i64(),
+            digest["alive"].as_i64(),
+            digest["probed"].as_bool(),
+            digest["digest"].as_str()
+        ),
+        (Some(2), Some(1), Some(true), Some(ground_expected_digest().as_str())),
+        "{digest}"
+    );
+}
+
+#[test]
+fn the_ground_driver_control_does_not_probe_and_ends_with_the_same_digest() {
+    let (status, _, stderr, trace, rows) = run_ground_case("ok", &["probe=no", "seconds=1", "after=1", "frame_ms=500"]);
+    assert!(status.success(), "{stderr}");
+    assert_eq!(trace.matches("probe ").count(), 0, "the control must not probe: {trace}");
+    assert!(rows.iter().any(|r| r["event"] == "probe_skipped"));
+    assert!(
+        rows.iter().all(|r| !r["event"].as_str().unwrap_or("").starts_with("ground-")),
+        "no probe report in the control"
+    );
+    let digest = rows.iter().find(|r| r["event"] == "state_digest").unwrap();
+    assert_eq!(
+        (digest["probed"].as_bool(), digest["digest"].as_str()),
+        (Some(false), Some(ground_expected_digest().as_str())),
+        "{digest}"
+    );
+}
+
+#[test]
+fn the_ground_driver_refuses_a_malformed_argument_before_booting_or_writing_anything() {
+    for (bad, what) in [
+        (vec!["points=abc"], "points must be a whole number"),
+        (vec!["points=-1"], "points must be a whole number"),
+        (vec!["points=1.5"], "points must be a whole number"),
+        (vec!["points=100001"], "points must be a whole number from 0 to 100000"),
+        (vec!["impacts=1e3"], "impacts must be a whole number"),
+        (vec!["points=0", "impacts=0"], "there is nothing to probe"),
+        (vec!["seed=0"], "seed must be a whole number from 1"),
+        (vec!["seed=4294967296"], "seed must be a whole number from 1"),
+        (vec!["repeats=0"], "repeats must be a whole number from 1 to 5"),
+        (vec!["repeats=6"], "repeats must be a whole number from 1 to 5"),
+        (vec!["seconds=3601"], "seconds must be a whole number from 0 to 3600"),
+        (vec!["frame_ms=0"], "frame_ms must be a whole number from 1 to 1000"),
+        (vec!["frame_ms=1", "seconds=3600", "after=3600"], "the most this driver runs is"),
+        (vec!["scenario=nowhere"], "scenario must be lebanon_retail, georgia_retail or georgia"),
+        (vec!["probe=maybe"], "probe must be one of yes, no"),
+        (vec!["point=5"], "unknown argument 'point'"),
+    ] {
+        let (status, _, stderr, trace, rows) = run_ground_case("ok", &bad);
+        assert!(!status.success(), "{bad:?} was accepted");
+        assert!(stderr.contains(what), "{bad:?}: {stderr}");
+        assert!(trace.is_empty() && rows.is_empty(), "{bad:?}: the engine was booted or a row written: {trace}");
+    }
+}
+
+// REGRESSION: the driver wrote its JSON strings with Lua's %q, which is Lua source syntax: it leaves a tab (and every other control byte) raw and writes a newline as a backslash and a
+// real newline, so a refusal whose text held a traceback's tabs was an invalid JSONL row for a strict parser (a lenient reader accepted it). The stand-in refuses the probe with a text
+// that has a traceback's tabs and newlines, a quote, a backslash, every control byte 0 to 31 in order and UTF-8. `run_ground_case` parses EVERY row of the output with serde_json, which
+// refuses a raw control character inside a string, so reaching the assertions already proves each row is strict JSON; the refusal must also come back byte for byte.
+#[test]
+fn the_ground_driver_records_a_refusal_with_every_control_byte_as_strict_json_and_loses_none_of_it() {
+    let controls: String = (0u8..32).map(char::from).collect();
+    let expected =
+        format!("ground-refused reason=bad \"quoted\" back\\slash\n\tstack traceback:\n\t[C]: in function 'error'\n\tcontrols={controls} end \u{e9}");
+    let (status, stdout, stderr, trace, rows) = run_ground_case("refuse_controls", &["points=5", "impacts=5"]);
+    assert!(!status.success() && !stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert!(stderr.contains("the probe was refused"), "{stderr}");
+    let refused: Vec<_> = rows.iter().filter(|r| r["event"] == "probe_refused").collect();
+    assert_eq!(refused.len(), 1, "{rows:?}");
+    assert_eq!(
+        refused[0]["error"].as_str(),
+        Some(expected.as_str()),
+        "the refusal text must round-trip exactly"
+    );
+    assert_eq!(refused[0]["repeat_index"].as_i64(), Some(1));
+    assert!(rows.iter().any(|r| r["event"] == "boot"), "the boot row is still there and parsed");
+    assert!(rows.iter().all(|r| r["event"] != "state_digest"), "no digest after a refusal");
+    assert_eq!(trace.matches("probe ").count(), 1, "{trace}");
+}
+
+#[test]
+fn the_ground_driver_fails_on_a_refused_probe_and_on_a_repeat_that_differs() {
+    // an engine that refuses the probe: the refusal is recorded and the run fails, never a quiet success
+    let (status, stdout, stderr, trace, rows) = run_ground_case("refuse", &["points=5", "impacts=5"]);
+    assert!(!status.success() && !stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert!(stderr.contains("the probe was refused") && stderr.contains("no_terrain_loaded"), "{stderr}");
+    let refused = rows.iter().find(|r| r["event"] == "probe_refused").expect("the refusal is recorded");
+    assert!(refused["error"].as_str().unwrap().contains("no_terrain_loaded"), "{refused}");
+    assert!(rows.iter().all(|r| r["event"] != "state_digest"), "no digest after a refusal");
+    assert_eq!(trace.matches("probe ").count(), 1, "the run stops at the first refusal: {trace}");
+
+    // two well-formed reports that differ: the second is not the first, so the probe is not a pure function of its request
+    let (status, stdout, stderr, _, rows) = run_ground_case("differs_between_repeats", &["points=5", "impacts=5"]);
+    assert!(!status.success() && !stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    let message = "ground-characterization: repeat 2 differs from repeat 1: the probe is not a pure function of the seed and the loaded map";
+    assert!(stderr.contains(message), "{stderr}");
+    let same = rows.iter().find(|r| r["event"] == "repeat_identical").expect("the comparison is recorded");
+    assert_eq!(same["ok"].as_bool(), Some(false), "{same}");
+    assert!(rows.iter().all(|r| r["event"] != "state_digest"), "no digest after a repeat that differs");
+}
+
+#[test]
+fn the_ground_driver_accepts_a_complete_report_in_which_a_family_has_no_cases() {
+    // a valid report may have zero point cases or zero impact cases: that family folds nothing and reports zeros, and is not an error
+    for (args, empty_family) in [(["points=0", "impacts=5"], "above"), (["points=5", "impacts=0"], "impact")] {
+        let (status, stdout, stderr, _, rows) = run_ground_case("ok", &args);
+        assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{args:?}: {stdout}\n{stderr}");
+        for fold in ["ground-hash", "ground-physical"] {
+            let row = rows.iter().find(|r| r["event"] == fold).unwrap_or_else(|| panic!("{args:?}: no {fold} row"));
+            assert_eq!(row[empty_family].as_str(), Some("cbf29ce484222325"), "{args:?}: {row}");
+        }
+        assert!(rows.iter().any(|r| r["event"] == "state_digest"), "{args:?}");
+    }
+}
+
+// The number of `ground-sample` rows of one kind that the driver recorded.
+fn ground_samples(rows: &[serde_json::Value], kind: &str) -> usize {
+    rows.iter().filter(|r| r["event"] == "ground-sample" && r["kind"] == kind).count()
+}
+
+#[test]
+fn the_ground_driver_accepts_the_complete_sample_set_the_emitter_takes_when_the_caps_bind_and_when_they_do_not() {
+    // The driver records every repeat's report, so a sample count is a count per report only when ONE report is made: these runs ask for repeats=1.
+    // 40 cases of each kind: every point tag and every impact type has more cases than its cap, so the caps bind: 2 samples for each of 6 point tags
+    // and 4 for each of 8 impact types
+    let (status, stdout, stderr, _, rows) = run_ground_case("ok", &["points=40", "impacts=40", "repeats=1"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!((ground_samples(&rows, "point"), ground_samples(&rows, "impact")), (12, 32));
+    // the same run with the default two repeats records each report once: twice the rows, and each repeat holds exactly the one-report counts
+    let (status, stdout, stderr, _, rows) = run_ground_case("ok", &["points=40", "impacts=40"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!((ground_samples(&rows, "point"), ground_samples(&rows, "impact")), (24, 64));
+    for repeat in [1, 2] {
+        let in_repeat = |kind: &str| {
+            rows.iter()
+                .filter(|r| r["event"] == "ground-sample" && r["kind"] == kind && r["repeat_index"] == repeat)
+                .count()
+        };
+        assert_eq!((in_repeat("point"), in_repeat("impact")), (12, 32), "repeat {repeat}");
+    }
+    // 5 cases of each kind: no tag or type reaches its cap, so every case is sampled
+    let (status, stdout, stderr, _, rows) = run_ground_case("ok", &["points=5", "impacts=5", "repeats=1"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!((ground_samples(&rows, "point"), ground_samples(&rows, "impact")), (5, 5));
+    // all 5 impact cases of one type: the sample count is min(5, 4) = 4, not 1 (the short form of this report is refused above)
+    let (status, stdout, stderr, _, rows) = run_ground_case("impact_types_concentrated_complete", &["points=5", "impacts=5", "repeats=1"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!(ground_samples(&rows, "impact"), 4);
+    assert!(rows.iter().any(|r| r["event"] == "state_digest"));
+}
+
+// The message the driver refuses with: its own prefix and the reason.
+fn ground_refusal(reason: &str) -> String {
+    format!("ground-characterization: {reason}")
+}
+
+// Reports with ONE defect each, from the stand-in (tests/lua/ground-caller.lua), run through the REAL driver. Each must fail the run with exactly the named reason (not any error that happens to contain a
+// similar word), record it as `report_invalid` once, write no row of the rejected report, and write no success row: no `repeat_identical` and no `state_digest`. A measurement that is absent, of the wrong
+// type or width, or inconsistent with the request is never read as zero, as nil equal to nil, or as a pass.
+#[test]
+fn the_ground_driver_names_the_one_defect_in_a_report_and_writes_no_success_row() {
+    let counts: &[&str] = &["points=5", "impacts=5"];
+    let no_impacts: &[&str] = &["points=5", "impacts=0"];
+    let defects: [(&str, &[&str], &str); 65] = [
+        (
+            "unrestored",
+            counts,
+            "the probe did not restore the shared terrain record: restored=0 words 0123456789abcdef -> 0123456789abcdef",
+        ),
+        (
+            "words_differ",
+            counts,
+            "the probe did not restore the shared terrain record: restored=1 words 0123456789abcdef -> ffffffffffffffff",
+        ),
+        ("not_anchored", counts, "ground-record: anchored is 0, expected 1"),
+        (
+            "wrongheader",
+            counts,
+            "the report is for seed 20261029 points 6 impacts 5, not the 20261029 5 5 asked",
+        ),
+        ("record_words_absent", counts, "ground-record: words_before is missing"),
+        ("record_before_absent", counts, "ground-record: words_before is missing"),
+        (
+            "record_word_short",
+            counts,
+            "ground-record: words_after must be 16 lowercase hex digits, got 'abcd'",
+        ),
+        (
+            "record_word_upper",
+            counts,
+            "ground-record: words_before must be 16 lowercase hex digits, got '0123456789ABCDEF'",
+        ),
+        ("hash_bare", counts, "ground-hash: combined is missing"),
+        ("hash_missing_field", counts, "ground-hash: impact is missing"),
+        ("hash_short", counts, "ground-hash: below must be 16 lowercase hex digits, got '1'"),
+        ("hash_row_missing", counts, "the report has no ground-hash row"),
+        ("physical_bare", counts, "ground-physical: combined is missing"),
+        ("physical_missing_field", counts, "ground-physical: combined is missing"),
+        ("physical_missing_row", counts, "the report has no ground-physical row"),
+        ("count_missing", counts, "ground-above: warm_same is missing"),
+        ("count_wrong", counts, "ground-above: cases is 6, expected 5"),
+        ("count_hex", counts, "ground-below: cases must be a decimal count, got '0x5'"),
+        ("count_negative", counts, "ground-impact: cases must be a decimal count, got '-1'"),
+        ("count_float", counts, "ground-impact: a_corrected must be a decimal count, got '1.5'"),
+        ("impact_cases_wrong", counts, "ground-impact: cases is 4, expected 5"),
+        (
+            "classes_sum",
+            counts,
+            "ground-impact-classes: invalid + water + forest + land + other is 4, expected 5",
+        ),
+        ("types_sum", counts, "ground-impact-types: t0 .. t7 is 4, expected 5"),
+        ("family_sum", counts, "ground-below: true + false is 7, expected 5"),
+        ("warm_intact_short", counts, "ground-impact: warm_start_intact is 4, expected 5"),
+        ("warm_intact_point_short", counts, "ground-above: warm_start_intact is 4, expected 5"),
+        ("duplicate_row", counts, "the report has more than one ground-map row"),
+        ("unknown_row", counts, "the report has an unknown row 'ground-extra'"),
+        ("unexpected_key", counts, "ground-asserts: unexpected key bonus"),
+        ("bare_word", counts, "ground-map: 'oops' is not key=value"),
+        ("duplicate_key", counts, "ground-map: world_sectors_x appears twice"),
+        // the campaign grid and the terrain grid are two grids over one extent: every count present and positive, the extents they cover equal
+        ("map_old_schema", counts, "ground-map: world_sectors_x is missing"),
+        ("map_terrain_key_missing", counts, "ground-map: terrain_sectors_z is missing"),
+        ("map_zero_grid", counts, "ground-map: terrain_sector_side is 0, the map has no sectors"),
+        (
+            "map_extent_x_differs",
+            counts,
+            "ground-map: world extent in x (world_sectors_x * world_sector_side) is 12288, expected 14336",
+        ),
+        (
+            "map_extent_z_differs",
+            counts,
+            "ground-map: world extent in z (world_sectors_z * world_sector_side) is 8192, expected 10240",
+        ),
+        ("empty_fold", counts, "ground-hash: above is cbf29ce484222325 for 5 cases"),
+        ("full_fold", no_impacts, "ground-physical: impact is 3333333333333333 for 0 cases"),
+        ("sample_bad_hex", counts, "ground-sample: x must be 8 lowercase hex digits, got '4000'"),
+        ("sample_missing", counts, "ground-sample: 0 point samples for 5 point cases"),
+        ("sample_unknown_kind", counts, "ground-sample: kind must be point or impact, got 'rock'"),
+        ("sample_case_out_of_range", counts, "ground-sample: point sample names case 5 of 5"),
+        (
+            "sample_triple_short",
+            counts,
+            "ground-sample: pa must be three 8-digit lowercase hex words joined by commas, got '3f800000,40000000'",
+        ),
+        ("sample_flag", counts, "ground-sample: inside must be 0 or 1, got '2'"),
+        // case numbers of the samples: distinct, increasing, in range, case 0 always sampled; point samples before impact samples
+        ("sample_n_duplicate_point", counts, "ground-sample: point sample repeats case 0"),
+        ("sample_n_order_point", counts, "ground-sample: point sample case 2 follows case 4"),
+        (
+            "sample_first_not_zero_point",
+            counts,
+            "ground-sample: the first point sample names case 1, not case 0",
+        ),
+        ("sample_n_duplicate_impact", counts, "ground-sample: impact sample repeats case 0"),
+        (
+            "sample_first_not_zero_impact",
+            counts,
+            "ground-sample: the first impact sample names case 1, not case 0",
+        ),
+        ("sample_out_of_range_impact", counts, "ground-sample: impact sample names case 5 of 5"),
+        ("sample_point_after_impact", counts, "ground-sample: a point sample follows an impact sample"),
+        // tag and type domains, per-tag and per-type caps, and the exact count of impact samples per type: min(tally, cap)
+        ("sample_tag_domain", counts, "ground-sample: tag must be 0 to 5, got 6"),
+        ("sample_type_domain", counts, "ground-sample: type must be 0 to 7, got 8"),
+        ("sample_tag_cap", counts, "ground-sample: point samples of tag 0 is 3, more than 2"),
+        ("sample_type_cap", counts, "ground-sample: impact samples of type 0 is 5, more than 4"),
+        ("sample_type_omitted", counts, "ground-sample: impact samples of type 2 is 0, expected 1"),
+        ("sample_type_extra", counts, "ground-sample: impact samples of type 0 is 2, expected 1"),
+        (
+            "impact_types_concentrated_short",
+            counts,
+            "ground-sample: impact samples of type 0 is 1, expected 4",
+        ),
+        // sample values against the counters they are counted in
+        (
+            "sample_off_map_with_above",
+            counts,
+            "ground-sample: point sample at case 0 is off the map area but has above=1 above_touched=0",
+        ),
+        (
+            "sample_off_map_counter",
+            counts,
+            "ground-sample: point samples off the map area is 1, more than 0",
+        ),
+        (
+            "sample_inside_not_asked",
+            counts,
+            "ground-sample: point sample at case 0 is inside the map area but was not asked above",
+        ),
+        ("sample_above_counter", counts, "ground-sample: point samples with above=0 is 1, more than 0"),
+        ("sample_below_counter", counts, "ground-sample: point samples with below=1 is 1, more than 0"),
+        (
+            "sample_alias_counter",
+            counts,
+            "ground-sample: impact samples with alias_equal=0 is 1, more than 0",
+        ),
+        (
+            "sample_warm_counter",
+            counts,
+            "ground-sample: impact samples with warm_same=0 is 1, more than 0",
+        ),
+    ];
+    for (mode, args, reason) in defects {
+        assert_ground_defect(mode, args, reason);
+    }
+}
+
+// One report with one defect, through the real driver: the run fails with exactly the named reason, records it once as `report_invalid`, writes no row of the rejected
+// report and no success row (`repeat_identical`, `state_digest`), and stops at the first probe.
+fn assert_ground_defect(mode: &str, args: &[&str], reason: &str) {
+    assert_ground_defect_as("legacy", mode, args, reason);
+}
+
+fn assert_ground_defect_as(profile: &str, mode: &str, args: &[&str], reason: &str) {
+    let expected = ground_refusal(reason);
+    let (status, stdout, stderr, trace, rows) = run_ground_case_as(profile, mode, args);
+    assert!(
+        !status.success() && !stdout.contains("GROUND_CALLER_DONE"),
+        "{profile}/{mode}: accepted\n{stdout}\n{stderr}"
+    );
+    assert!(stderr.contains(&expected), "{mode}: expected {expected:?}, got {stderr}");
+    let invalid: Vec<_> = rows.iter().filter(|r| r["event"] == "report_invalid").collect();
+    assert_eq!(invalid.len(), 1, "{mode}: {rows:?}");
+    assert_eq!(invalid[0]["error"].as_str(), Some(expected.as_str()), "{mode}");
+    for success in ["repeat_identical", "state_digest"] {
+        assert!(rows.iter().all(|r| r["event"] != success), "{mode}: a {success} row follows a rejected report");
+    }
+    assert!(
+        rows.iter().all(|r| !r["event"].as_str().unwrap_or("").starts_with("ground-")),
+        "{mode}: a row of the rejected report was recorded"
+    );
+    assert_eq!(trace.matches("probe ").count(), 1, "{mode}: the run stops at the rejected report: {trace}");
+}
+
+// REGRESSION: the sample-completeness checks accepted a point or impact sample set with a case missing while no tag or type had reached its quota (the emitter samples every
+// case until a class is full), and trusted whatever quota the header named. Each report below has one such defect; the same driver accepts the legitimate omissions in the next test.
+#[test]
+fn the_ground_driver_refuses_a_skipped_sample_case_before_any_class_is_full_and_a_quota_the_emitter_does_not_take() {
+    let counts: &[&str] = &["points=5", "impacts=5"];
+    for (mode, reason) in [
+        // an interior case is missing (case 1, then case 2): no tag has two samples, so every case up to the last sample must be there
+        (
+            "sample_point_gap_n1",
+            "ground-sample: point case 1 is not sampled, but no tag has reached 2 samples (the gap is cases 1 to 1)",
+        ),
+        (
+            "sample_point_gap_n2",
+            "ground-sample: point case 2 is not sampled, but no tag has reached 2 samples (the gap is cases 2 to 2)",
+        ),
+        // the last case is missing: the samples stop short and no tag is full
+        (
+            "sample_point_tail_n4",
+            "ground-sample: point samples stop at case 3 of 5, but no tag has reached 2 samples (cases 4 to 4 are unsampled)",
+        ),
+        // a gap is not excused by a tag that fills up AFTER it
+        (
+            "points_gap_before_saturation",
+            "ground-sample: point case 1 is not sampled, but no tag has reached 2 samples (the gap is cases 1 to 1)",
+        ),
+        // all five impact cases are of type 0 and four samples are present (the exact per-type count passes), but case 1 is missing
+        (
+            "impact_concentrated_gap",
+            "ground-sample: impact case 1 is not sampled, but no type has reached 4 samples (the gap is cases 1 to 1)",
+        ),
+        // the quotas are the emitter's constants (2 and 4); a header cannot redefine which samples are required or permitted
+        ("header_sample_cap_zero", "ground-probe: samples_per_point_tag is 0, expected 2"),
+        ("header_point_quota_larger", "ground-probe: samples_per_point_tag is 3, expected 2"),
+        ("header_impact_quota_larger", "ground-probe: samples_per_impact_type is 8, expected 4"),
+    ] {
+        assert_ground_defect(mode, counts, reason);
+    }
+}
+
+// REGRESSION: the fixture once required the campaign's sector grid to equal the terrain's and refused every retail map (the campaign's sectors are larger than the
+// terrain's). The two grids are reported apart; only the extents they cover must agree.
+#[test]
+fn the_ground_driver_accepts_a_campaign_grid_that_differs_from_the_terrain_grid_and_the_same_grid() {
+    for (mode, world, terrain) in [("ok", "3x2 of 4096", "6x4 of 2048"), ("map_grids_same", "6x4 of 2048", "6x4 of 2048")] {
+        let (status, stdout, stderr, _, rows) = run_ground_case(mode, &["points=5", "impacts=5", "repeats=1"]);
+        assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{mode}: {stdout}\n{stderr}");
+        let map = rows
+            .iter()
+            .find(|r| r["event"] == "ground-map")
+            .unwrap_or_else(|| panic!("{mode}: no ground-map row"));
+        let grid = |side: &str, x: &str, z: &str| format!("{}x{} of {}", map[x], map[z], map[side]);
+        assert_eq!(grid("world_sector_side", "world_sectors_x", "world_sectors_z"), world, "{mode}: {map}");
+        assert_eq!(grid("terrain_sector_side", "terrain_sectors_x", "terrain_sectors_z"), terrain, "{mode}: {map}");
+        assert!(rows.iter().any(|r| r["event"] == "state_digest"), "{mode}");
+    }
+}
+
+#[test]
+fn the_ground_driver_accepts_the_omissions_the_emitter_makes_once_a_class_is_full_and_complete_small_runs() {
+    // zero and one case of a family, a family with every case sampled, and caps that bind: nothing is missing that the emitter would take
+    for args in [
+        ["points=1", "impacts=0"],
+        ["points=0", "impacts=1"],
+        ["points=1", "impacts=1"],
+        ["points=2", "impacts=3"],
+    ] {
+        let (status, stdout, stderr, _, rows) = run_ground_case("ok", &args);
+        assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{args:?}: {stdout}\n{stderr}");
+        assert!(rows.iter().any(|r| r["event"] == "state_digest"), "{args:?}");
+    }
+    // five point cases all of one tag: cases 0 and 1 are sampled, the tag is then full, so cases 2 to 4 are legitimately unsampled
+    let (status, stdout, stderr, _, rows) = run_ground_case("points_same_tag_saturated", &["points=5", "impacts=5", "repeats=1"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!(ground_samples(&rows, "point"), 2);
+    // tag 0 fills at case 1, so case 2 may belong to it; cases 3 and 4 then follow without a gap
+    let (status, stdout, stderr, _, rows) = run_ground_case("points_saturated_then_other_tags", &["points=5", "impacts=5", "repeats=1"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!(ground_samples(&rows, "point"), 4);
+}
+
+// THE TWO REPORT PROFILES (EEDCS-48 composed with G1). The original fixture reports the shared record's diagnostics in the legacy shape (ground-record, ground-hash: sector and triangle
+// indices, held pointers). Against the G1 module, whose record has none of those, it reports the host-semantic shape (ground-profile, ground-semantic-record, ground-semantic-hash) and
+// the driver boots the module with the host's terrain provider. The original profile stays supported exactly as the retained oracles were written; the two are never mixed. These tests
+// run the real driver against a stand-in that writes a report of the named profile; the provider factory is a stub (no retail root is loaded) and no physical answer is faked.
+fn trace_lines(trace: &str) -> Vec<&str> {
+    trace.lines().collect()
+}
+
+#[test]
+fn the_environment_observer_is_armed_before_boot_recorded_in_order_and_the_off_run_differs_only_by_its_rows() {
+    let module = EnvStandIn {
+        observer_module: true,
+        ..EnvStandIn::WELL_FORMED
+    };
+    let on = run_env_scenario(&module, &env_observer_args(&[]));
+    assert!(on.status.success(), "{}\n{}", on.stderr, on.out_text);
+    let lines = env_trace_lines(&on.trace);
+    let arm = lines.iter().position(|l| *l == "arm true").expect("the observer was never armed");
+    let boot = lines.iter().position(|l| *l == "boot").expect("the engine was never booted");
+    assert!(arm < boot, "the observer was armed after boot: {lines:?}");
+    // 44 boot events and six events a frame, numbered without a gap from 0; the words of an event stay strings (a digits-only hex word is not a decimal number)
+    let events = env_rows(&on.rows, "env-obs");
+    assert_eq!(events.len(), 44 + 10 * 6, "{}", on.out_text);
+    for (n, event) in events.iter().enumerate() {
+        assert_eq!(event["seq"], n as u64);
+        assert!((0..6).all(|k| event[format!("w{k}")].is_string()), "{event}");
+    }
+    assert_eq!(events[0]["kind_name"], "boot_begin");
+    assert_eq!(events[43]["kind_name"], "boot_end");
+    let summary = &env_rows(&on.rows, "observer_summary")[0];
+    assert_eq!(summary["events"], 104);
+    assert_eq!(summary["n_weather_draw"], 20);
+    assert_eq!(summary["n_start_reseed"], 2);
+    assert_eq!(summary["n_frame_begin"], 10);
+    assert_eq!(summary["n_tod_begin"], 10);
+    assert_eq!(summary["update_server"], 10);
+
+    // the same program with the observer off: not armed, no observer rows, and every other row (the initial, per-frame and final snapshots, the campaign rows and the clock) the same
+    let off = run_env_scenario(&module, &["probes=0", "observer=off", "seconds=1", "frame_ms=100", "snapshot_frames=2"]);
+    assert!(off.status.success(), "{}\n{}", off.stderr, off.out_text);
+    assert!(!env_trace_lines(&off.trace).iter().any(|l| l.starts_with("arm")), "{}", off.trace);
+    let strip = |rows: &[serde_json::Value]| -> Vec<serde_json::Value> {
+        rows.iter()
+            .filter(|r| !["env-obs", "env-obs-report", "observer_summary"].contains(&r["event"].as_str().unwrap_or("")))
+            .cloned()
+            .map(|mut r| {
+                if r["event"] == "boot" {
+                    r.as_object_mut().unwrap().remove("observer");
+                }
+                r
+            })
+            .collect()
+    };
+    assert_eq!(strip(&on.rows), strip(&off.rows));
+    assert!(env_rows(&off.rows, "env-obs").is_empty() && env_rows(&off.rows, "observer_summary").is_empty());
+}
+
+#[test]
+fn the_environment_observer_refuses_a_module_without_it_before_boot_and_every_incomplete_or_inconsistent_record() {
+    // a module built without the feature: refused BEFORE the engine is booted, with the genuine refusal row
+    let run = run_env_scenario(&EnvStandIn::WELL_FORMED, &env_observer_args(&[]));
+    assert!(!run.status.success(), "{}", run.out_text);
+    assert!(run.stderr.contains("env_observer_arm"), "{}", run.stderr);
+    assert_eq!(env_rows(&run.rows, "refusal").len(), 1, "{}", run.out_text);
+    assert!(!run.trace.contains("boot"), "the engine was booted without the observer: {}", run.trace);
+
+    let cases: &[(&'static str, &str)] = &[
+        ("skip_seq", "missing or repeated"),
+        ("not_armed", "was not armed before boot"),
+        ("dropped", "dropped 3 events"),
+        ("rng_mismatch", "are not one word"),
+        ("unpaired_frame", "began inside a frame"),
+        ("count_mismatch", "session updates"),
+        ("bad_row", "fields"),
+        // the boot: every mandatory episode and its order, the context between them
+        ("boot_no_weather", "expected weather_begin"),
+        ("boot_weather_misordered", "weather draw 3 where draw 2 was expected"),
+        ("boot_weather_short", "expected weather_draw, found weather_end"),
+        ("boot_no_start", "expected seed_source"),
+        ("boot_session_start_mismatch", "session_created carries the start time"),
+        ("boot_seed_mismatch", "does not follow the seed_source"),
+        ("boot_seed_wrong", "not the boot seed"),
+        ("boot_end_late", "frame event before boot_end"),
+        // the frames: the requested ms, the clock, the previous-delta phase, the update inside its frame
+        ("frame_ms_mismatch", "asks"),
+        ("clock_gap", "began at clock"),
+        ("frame_end_clock", "clock advanced to"),
+        ("delta_phase", "previous delta"),
+        ("tod_outside_frame", "outside a frame"),
+        ("tod_delta", "read the delta word"),
+        ("tod_unpaired", "outside a frame's sound update"),
+        ("facts_unpaired", "sound-fact pair was not completed"),
+        // the lightning episode, and the report's counts
+        ("lightning_interrupted", "interrupts the lightning episode after its step 1"),
+        ("lightning_misordered", "expected lightning_new_timer at step 2"),
+        ("lightning_timer_mismatch", "not the timer drawn"),
+        ("lightning_strike_position", "first strike's position"),
+        ("lightning_inside_tod", "outside the frame's weather update"),
+        // a server expiry makes both sound entities: the eight-event form is not a client's (which would not emit the first three server events) but an impossible server history
+        ("lightning_client_form", "interrupts the lightning episode after its step 8"),
+        ("lightning_before_tod", "before the update's time of day"),
+        ("lightning_after_facts", "after the update's sound facts"),
+        ("facts_before_tod", "sound facts before the update's time of day"),
+        // the tags are the file's later tags: not inside the session block, and rain tag 0 alone calls fixed weather DRY
+        ("boot_tag_in_session", "expected weather_begin, found rain_tag"),
+        ("boot_tag_before_parser_end", "expected parser_session_end, found rain_tag"),
+        ("boot_rain1_fixed", "is followed by a fixed weather"),
+        ("boot_rain0_no_fixed", "rain tag 0 must be followed"),
+        ("boot_rain0_wrong_mode", "rain tag 0 must be followed"),
+        ("capacity_low", "capacity"),
+        ("weather_calls_mismatch", "weather and"),
+        ("sound_records_mismatch", "sound records"),
+        // the observer stream's own bounds (the native capacity and line width), refused clearly and never truncated
+        ("oversized_stream", "exceeds the bound"),
+        ("too_long_row", "observer row of"),
+        ("too_many_events", "more than the observer's capacity"),
+    ];
+    for (mutation, says) in cases {
+        let stand_in = EnvStandIn {
+            observer_module: true,
+            observer_mutation: mutation,
+            ..EnvStandIn::WELL_FORMED
+        };
+        let run = run_env_scenario(&stand_in, &env_observer_args(&[]));
+        assert!(!run.status.success(), "{mutation} was accepted:\n{}", run.out_text);
+        assert!(run.stderr.contains(*says), "{mutation}: the refusal does not say '{says}': {}", run.stderr);
+        assert_eq!(env_rows(&run.rows, "failure").len(), 1, "{mutation}: {}", run.out_text);
+        assert!(env_rows(&run.rows, "run").is_empty(), "{mutation}: a refused run reported a run row");
+        assert!(
+            env_rows(&run.rows, "observer_summary").is_empty(),
+            "{mutation}: a refused run reported a summary"
+        );
+    }
+}
+
+#[test]
+fn the_environment_driver_runs_a_variable_frame_schedule_and_refuses_a_malformed_new_argument_before_anything_runs() {
+    // 100, 250 and 50 ms frames, cycled until a second has passed: 100 350 400 500 750 800 900 1150
+    let module = EnvStandIn {
+        observer_module: true,
+        ..EnvStandIn::WELL_FORMED
+    };
+    let run = run_env_scenario(
+        &module,
+        &["probes=0", "observer=on", "frame_schedule=100,250,50", "seconds=1", "snapshot_frames=0"],
+    );
+    assert!(run.status.success(), "{}\n{}", run.stderr, run.out_text);
+    let frames: Vec<&str> = run.trace.lines().filter(|l| l.starts_with("frame ")).collect();
+    assert_eq!(
+        frames,
+        [
+            "frame 100",
+            "frame 250",
+            "frame 50",
+            "frame 100",
+            "frame 250",
+            "frame 50",
+            "frame 100",
+            "frame 250"
+        ]
+    );
+    assert_eq!(env_rows(&run.rows, "boot")[0]["frame_schedule"], "100,250,50");
+    // the observer's frame_begin events carry the host's milliseconds, in the schedule's order
+    let begins: Vec<u64> = env_rows(&run.rows, "env-obs")
+        .iter()
+        .filter(|r| r["kind_name"] == "frame_begin")
+        .map(|r| r["a"].as_u64().unwrap())
+        .collect();
+    assert_eq!(begins, [100, 250, 50, 100, 250, 50, 100, 250]);
+
+    let cases: &[(&[&str], &str)] = &[
+        (&["observer=maybe"], "observer"),
+        (&["observer=on"], "probes"),
+        (&["queue=maybe"], "queue"),
+        (&["queue=on"], "observer"),
+        (&["sound=maybe"], "sound"),
+        (&["sound=on"], "observer"),
+        (&["controlled=thunder", "probes=0"], "controlled"),
+        (&["controlled=lightning_due"], "probes"),
+        (&["frame_schedule=100,,50"], "frame_schedule"),
+        (&["frame_schedule=0"], "frame_schedule"),
+        (&["frame_schedule=1001"], "frame_schedule"),
+        (&["frame_schedule=1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"], "frame_schedule"),
+        (&["frame_schedule=100,250", "frame_ms=50"], "frame_schedule"),
+        (&["frame_schedule=1", "seconds=200"], "frames"),
+    ];
+    for (args, name) in cases {
+        let run = run_env_scenario(&module, args);
+        assert!(!run.status.success(), "{args:?} was accepted");
+        assert!(
+            run.stderr.contains("env-characterization:") && run.stderr.contains(name),
+            "{args:?}: the refusal does not name {name}: {}",
+            run.stderr
+        );
+        assert!(run.trace.is_empty(), "{args:?}: something ran before the refusal: {}", run.trace);
+        assert!(!run.out_exists, "{args:?}: the output file was created");
+    }
+}
+
+#[test]
+fn the_environment_driver_runs_one_labelled_controlled_case_before_the_frames_and_judges_it_by_what_it_prints() {
+    for (name, index, radius) in [("lightning_due", 0, "47000000"), ("local_weather_on", 1, "471c4000")] {
+        let run = run_env_driver(&["probes=0", &format!("controlled={name}"), "seconds=1", "snapshot_frames=0"]);
+        assert!(run.status.success(), "{name}: {}\n{}", run.stderr, run.out_text);
+        let lines = env_trace_lines(&run.trace);
+        let initial = lines.iter().position(|l| *l == "case 1:0").unwrap();
+        let controlled = lines
+            .iter()
+            .position(|l| *l == format!("case 9:{index}"))
+            .expect("the controlled case was not asked");
+        let first_frame = lines.iter().position(|l| l.starts_with("frame ")).unwrap();
+        assert!(initial < controlled && controlled < first_frame, "{name}: {lines:?}");
+        assert_eq!(env_rows(&run.rows, "boot")[0]["controlled"], name);
+        let rows = env_rows(&run.rows, "env-controlled");
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0]["scope"], format!("controlled:{name}"));
+        assert_eq!(rows[0]["radius_after_w"], radius);
+        assert_eq!(rows[0]["timer_after_w"], "3f000000");
+        assert!(env_rows(&run.rows, "env-controlled-end")
+            .iter()
+            .all(|r| r["changed"] == 1 && r["process_isolated"] == "required"));
+        assert!(
+            run.rows.iter().any(|r| r["scope"] == "snapshot:controlled"),
+            "{name}: no snapshot after the controlled case"
+        );
+        assert_eq!(env_rows(&run.rows, "run").len(), 1);
+    }
+
+    // the other declared refusals are accepted when the printed context agrees with them
+    for mutation in ["ctl_refused_nonlocal", "ctl_refused_radius_zero", "ctl_refused_nonserver"] {
+        let stand_in = EnvStandIn {
+            mutation,
+            group: 9,
+            index: 0,
+            ..EnvStandIn::WELL_FORMED
+        };
+        let run = run_env_scenario(&stand_in, &["probes=0", "controlled=lightning_due", "seconds=1"]);
+        assert!(run.status.success(), "{mutation}: {}\n{}", run.stderr, run.out_text);
+    }
+
+    // and refused when it does not, or when the echo of the input is wrong
+    let cases: &[(&'static str, &str, i32, &str)] = &[
+        ("ctl_refused_weather_but_local", "lightning_due", 0, "printed weather is local"),
+        ("ctl_refused_server_but_server", "lightning_due", 0, "although comms_model equals"),
+        ("ctl_wrong_timer", "lightning_due", 0, "0.5 s input"),
+        ("ctl_wrong_what", "lightning_due", 0, "controlled row is for what"),
+        ("ctl_wrong_radius", "local_weather_on", 1, "40 km input radius"),
+        ("ctl_changed_says_zero", "lightning_due", 0, "protocol"),
+    ];
+    for (mutation, name, index, says) in cases {
+        let stand_in = EnvStandIn {
+            mutation,
+            group: 9,
+            index: *index,
+            ..EnvStandIn::WELL_FORMED
+        };
+        let run = run_env_scenario(&stand_in, &["probes=0", &format!("controlled={name}"), "seconds=1"]);
+        assert!(!run.status.success(), "{mutation} was accepted:\n{}", run.out_text);
+        assert!(run.stderr.contains(*says), "{mutation}: the refusal does not say '{says}': {}", run.stderr);
+        assert_eq!(env_rows(&run.rows, "failure").len(), 1, "{mutation}: {}", run.out_text);
+        assert!(env_rows(&run.rows, "run").is_empty(), "{mutation}: a refused run reported a run row");
+    }
+}
+
+#[test]
+fn the_environment_observer_accepts_the_coherent_forms_of_the_real_transcript_and_not_only_one_weather_group() {
+    // the real boot runs two weather episodes and two start-time episodes; one episode of each, a third pair and the optional tag and fixed-weather events are as coherent, and a lightning expiry
+    // with or without the server's sound entities is a complete episode. (Each form is a canned order, not a physical result.)
+    for mutation in [
+        "none",
+        "boot_single_group",
+        "boot_three_groups",
+        "boot_with_tags",
+        "boot_rain1",
+        "lightning_episode",
+        "two_updates_in_frame",
+    ] {
+        let stand_in = EnvStandIn {
+            observer_module: true,
+            observer_mutation: mutation,
+            ..EnvStandIn::WELL_FORMED
+        };
+        let run = run_env_scenario(&stand_in, &env_observer_args(&[]));
+        assert!(run.status.success(), "{mutation}: {}\n{}", run.stderr, run.out_text);
+        let summary = &env_rows(&run.rows, "observer_summary")[0];
+        assert_eq!(summary["n_frame_begin"], 10, "{mutation}");
+        let weather = match mutation {
+            "boot_single_group" => 10,
+            "boot_three_groups" => 30,
+            _ => 20,
+        };
+        assert_eq!(summary["n_weather_draw"], weather, "{mutation}");
+        let expiries = if mutation.starts_with("lightning") { 1 } else { 0 };
+        if mutation == "two_updates_in_frame" {
+            // the frame that runs two updates records the acceleration count 2, the others 1
+            let counts: Vec<u64> = env_rows(&run.rows, "env-obs")
+                .iter()
+                .filter(|r| r["kind_name"] == "frame_begin")
+                .map(|r| r["b"].as_u64().unwrap())
+                .collect();
+            assert_eq!(counts, [1, 2, 1, 1, 1, 1, 1, 1, 1, 1], "{mutation}");
+            assert_eq!(summary["n_tod_begin"], 11, "{mutation}");
+            assert_eq!(summary["update_server"], 11, "{mutation}");
+        }
+        assert_eq!(summary["n_lightning_expired"].as_u64().unwrap_or(0), expiries, "{mutation}");
+    }
+}
+
+#[test]
+fn the_environment_observer_accepts_a_stream_larger_than_one_fixture_buffer() {
+    // 200 frames: the drain at frame 200 returns 1,200 events, far more than one native 32 KiB chunk (the engine method concatenates the chunks). The first correction's bug was that this legitimate
+    // stream was held to the single-buffer limit of an ordinary fixture report.
+    let module = EnvStandIn {
+        observer_module: true,
+        ..EnvStandIn::WELL_FORMED
+    };
+    let run = run_env_scenario(&module, &["probes=0", "observer=on", "seconds=20", "frame_ms=100", "snapshot_frames=0"]);
+    assert!(run.status.success(), "{}\n{}", run.stderr, run.out_text);
+    let batch = run
+        .rows
+        .iter()
+        .filter(|r| r["event"] == "env-obs" && r["scope"] == "observer:frame:200")
+        .count();
+    assert_eq!(batch, 1200);
+    // every row is at least 100 bytes of native text, so the batch is more than 32,768 bytes
+    assert!(batch * 100 > 32 * 1024);
+    let summary = &env_rows(&run.rows, "observer_summary")[0];
+    assert_eq!(summary["events"], 44 + 200 * 6);
+    assert_eq!(summary["n_frame_begin"], 200);
+}
+
+// ---- the lightning strike queue probe (queue=on, EEDCS-51 D3). The stand-in answers canned reports of group 13 index 0 whose ORDER, grammar and reconciliation with the observer's own events are the real
+// ones; the numbers are canned. These checks protect the driver's contract with the probe: its rows are only APPENDED (every other row of the run is as it was), each add's outcome is DERIVED from the
+// masks the records hold, and a report that is incomplete, mis-numbered, out of order or at odds with the observer's events is refused. They say nothing about what the original queue does.
+
+const QUEUE_ROW_EVENTS: [&str; 8] = [
+    "env-lightning-plan",
+    "env-lightning-unsupported",
+    "env-lq-report",
+    "env-lq",
+    "env-lq-slot",
+    "lightning_queue_outcome",
+    "lightning_queue_environment",
+    "lightning_queue_summary",
+];
+
+// what the queue stand-in raises when a corruption left the coherent report unchanged: such a form tested nothing, and a refusal by it must not be counted as the driver's
+const QUEUE_NO_OP_MUTATION: &str = "NO-OP MUTATION";
+
+fn queue_stand_in(observer_mutation: &'static str, mutation: &'static str) -> EnvStandIn {
+    EnvStandIn {
+        mutation,
+        group: 13,
+        index: 0,
+        observer_module: true,
+        observer_mutation,
+        ..EnvStandIn::WELL_FORMED
+    }
+}
+
+fn queue_args() -> Vec<&'static str> {
+    env_observer_args(&["queue=on"])
+}
+
+#[test]
+fn the_lightning_queue_probe_only_appends_its_rows_and_derives_each_outcome_from_the_masks() {
+    let off = run_env_scenario(&queue_stand_in("lightning_episode", "none"), &env_observer_args(&[]));
+    assert!(off.status.success(), "{}\n{}", off.stderr, off.out_text);
+    assert!(
+        off.rows.iter().all(|r| !QUEUE_ROW_EVENTS.contains(&r["event"].as_str().unwrap_or_default())),
+        "queue=off wrote queue rows"
+    );
+    let on = run_env_scenario(&queue_stand_in("lightning_episode", "none"), &queue_args());
+    assert!(on.status.success(), "{}\n{}", on.stderr, on.out_text);
+    // every row the run wrote without the probe is the row it writes with it, in the same order, and the probe's rows are all that is added
+    let others: Vec<&serde_json::Value> = on
+        .rows
+        .iter()
+        .filter(|r| !QUEUE_ROW_EVENTS.contains(&r["event"].as_str().unwrap_or_default()))
+        .collect();
+    let before: Vec<&serde_json::Value> = off.rows.iter().collect();
+    assert_eq!(others, before, "the probe changed a row that was there without it");
+
+    // one lightning event: six records (the entry, the two adds with their before and after, the restore); both adds queued, in slots 0 and 1, and the words of the slot kept as strings
+    let records = env_rows(&on.rows, "env-lq");
+    assert_eq!(records.len(), 6);
+    assert_eq!(records[2]["mask_w"], "00000001");
+    assert_eq!(records[4]["mask_w"], "00000003");
+    assert_eq!(records[2]["w2"], "44bb8000");
+    let outcomes = env_rows(&on.rows, "lightning_queue_outcome");
+    assert_eq!(outcomes.len(), 2);
+    for (k, outcome) in outcomes.iter().enumerate() {
+        assert_eq!(outcome["outcome"], "queued");
+        assert_eq!(outcome["call"], (k + 1) as u64);
+        assert_eq!(outcome["slot"], k as u64);
+        assert_eq!(outcome["w2"], "44bb8000");
+    }
+    let environment = &env_rows(&on.rows, "lightning_queue_environment")[0];
+    assert_eq!(environment["entry_active"], 0);
+    assert_eq!(environment["before_first_add_active"], 1);
+    assert_eq!(environment["switched_to_main"], true);
+    assert_eq!(environment["restored_to_entry"], false);
+    let summary = &env_rows(&on.rows, "lightning_queue_summary")[0];
+    assert_eq!(summary["lightning_events"], 1);
+    assert_eq!(summary["records"], 6);
+    assert_eq!(summary["queued"], 2);
+    assert_eq!(summary["no_active_environment"], 0);
+    assert_eq!(summary["queue_full"], 0);
+    assert_eq!(summary["unexplained"], 0);
+    assert_eq!(summary["final_occupancy"], 2);
+    assert_eq!(summary["queue_capacity"], 32);
+    assert_eq!(env_rows(&on.rows, "env-lq-slot").len(), 2);
+
+    // a run with no lightning event is a complete record of nothing: no records, no slots, no outcomes
+    let quiet = run_env_scenario(&queue_stand_in("none", "none"), &queue_args());
+    assert!(quiet.status.success(), "{}\n{}", quiet.stderr, quiet.out_text);
+    assert!(env_rows(&quiet.rows, "env-lq").is_empty() && env_rows(&quiet.rows, "lightning_queue_outcome").is_empty());
+    assert_eq!(env_rows(&quiet.rows, "lightning_queue_summary")[0]["lightning_events"], 0);
+}
+
+#[test]
+fn the_lightning_queue_probe_reports_an_add_with_no_active_environment_and_an_add_to_a_full_queue_as_what_they_are() {
+    for (mutation, outcome, occupancy, slots) in [
+        ("queue_no_environment", "no_active_environment", 0u64, 0usize),
+        ("queue_full", "queue_full", 32, 32),
+    ] {
+        let run = run_env_scenario(&queue_stand_in("lightning_episode", mutation), &queue_args());
+        assert!(run.status.success(), "{mutation}: {}\n{}", run.stderr, run.out_text);
+        let outcomes = env_rows(&run.rows, "lightning_queue_outcome");
+        assert_eq!(outcomes.len(), 2, "{mutation}");
+        assert!(outcomes.iter().all(|o| o["outcome"] == outcome && o["slot"] == -1), "{mutation}: {outcomes:?}");
+        let summary = &env_rows(&run.rows, "lightning_queue_summary")[0];
+        assert_eq!(summary["queued"], 0, "{mutation}");
+        assert_eq!(summary["unexplained"], 0, "{mutation}");
+        assert_eq!(summary["final_occupancy"], occupancy, "{mutation}");
+        assert_eq!(env_rows(&run.rows, "env-lq-slot").len(), slots, "{mutation}");
+    }
+}
+
+#[test]
+fn a_lightning_queue_report_that_is_incomplete_out_of_order_or_at_odds_with_the_observer_is_refused() {
+    let cases: &[(&str, &str, &str)] = &[
+        ("lightning_episode", "queue_not_armed", "not armed"),
+        ("lightning_episode", "queue_dropped", "dropped"),
+        ("lightning_episode", "queue_record_missing", "probe stored"),
+        ("lightning_episode", "queue_events_mismatch", "probe stored"),
+        ("lightning_episode", "queue_seq_gap", "is not point 3"),
+        ("lightning_episode", "queue_point_swapped", "is not point 1"),
+        ("lightning_episode", "queue_occupancy_wrong", "has occupancy"),
+        ("lightning_episode", "queue_slot_wrong", "names slot"),
+        ("lightning_episode", "queue_final_slot_missing", "occupied slot rows"),
+        ("lightning_episode", "queue_unexpected_row", "unexpected row"),
+        ("lightning_episode", "queue_out_of_order", "out of order"),
+        ("lightning_episode", "queue_wrong_plan", "different queues"),
+        ("lightning_episode", "queue_old_catalogue", "the plan has 4 cases"),
+        ("lightning_episode", "queue_future_catalogue", "the plan has 6 cases"),
+        ("lightning_episode", "queue_unsupported_missing", "exactly one plan"),
+        // the probe holds an event the observer's stream does not, and the reverse
+        ("none", "queue_phantom_event", "observer stream holds"),
+        ("lightning_episode", "queue_missing_event", "observer stream holds"),
+    ];
+    for (observer_mutation, mutation, says) in cases {
+        let run = run_env_scenario(&queue_stand_in(observer_mutation, mutation), &queue_args());
+        assert!(
+            !run.stderr.contains(QUEUE_NO_OP_MUTATION),
+            "{mutation} changed nothing in the coherent report it corrupts:\n{}",
+            run.stderr
+        );
+        assert!(!run.status.success(), "{mutation} was accepted:\n{}", run.out_text);
+        assert!(
+            run.stderr.contains("env-characterization:") && run.stderr.contains(*says),
+            "{mutation}: the refusal does not say '{says}': {}",
+            run.stderr
+        );
+        assert_eq!(env_rows(&run.rows, "failure").len(), 1, "{mutation}: {}", run.out_text);
+        assert!(env_rows(&run.rows, "run").is_empty(), "{mutation}: a refused run reported a run row");
+    }
+}
+
+// ---- the sound entity probe (sound=on, EEDCS-51 D3). The stand-in answers canned reports of group 14 index 0 whose ORDER, grammar and reconciliation with the observer's own events are the real ones; the
+// numbers are canned. These checks protect the driver's contract with the probe: its rows are only APPENDED (every other row of the run is as it was), each tracked entity's chain is DERIVED from its
+// records (later updates are counted by `upd`, not stored), and a report that is incomplete, mis-numbered, out of order or at odds with the observer's events is refused. They say nothing about what the
+// original sound entities do.
+
+const SOUND_ROW_EVENTS: [&str; 7] = [
+    "env-snd-plan",
+    "env-snd-facts",
+    "env-snd-unsupported",
+    "env-snd-report",
+    "env-snd",
+    "sound_entity",
+    "sound_summary",
+];
+
+fn sound_stand_in(observer_mutation: &'static str, mutation: &'static str) -> EnvStandIn {
+    EnvStandIn {
+        mutation,
+        group: 14,
+        index: 0,
+        observer_module: true,
+        observer_mutation,
+        ..EnvStandIn::WELL_FORMED
+    }
+}
+
+fn sound_args() -> Vec<&'static str> {
+    env_observer_args(&["sound=on"])
+}
+
+#[test]
+fn the_sound_entity_probe_only_appends_its_rows_and_derives_each_chain_from_the_records() {
+    let off = run_env_scenario(&sound_stand_in("lightning_episode", "none"), &env_observer_args(&[]));
+    assert!(off.status.success(), "{}\n{}", off.stderr, off.out_text);
+    assert!(
+        off.rows.iter().all(|r| !SOUND_ROW_EVENTS.contains(&r["event"].as_str().unwrap_or_default())),
+        "sound=off wrote sound rows"
+    );
+    let on = run_env_scenario(&sound_stand_in("lightning_episode", "none"), &sound_args());
+    assert!(on.status.success(), "{}\n{}", on.stderr, on.out_text);
+    // every row the run wrote without the probe is the row it writes with it, in the same order, and the probe's rows are all that is added
+    let others: Vec<&serde_json::Value> = on
+        .rows
+        .iter()
+        .filter(|r| !SOUND_ROW_EVENTS.contains(&r["event"].as_str().unwrap_or_default()))
+        .collect();
+    let before: Vec<&serde_json::Value> = off.rows.iter().collect();
+    assert_eq!(others, before, "the probe changed a row that was there without it");
+
+    // one lightning event: two sound entities, each created, updated once, expired without a handle and killed; the words stay text
+    assert_eq!(env_rows(&on.rows, "env-snd").len(), 8);
+    assert_eq!(env_rows(&on.rows, "env-snd")[0]["life_w"], "3fc00000");
+    let entities = env_rows(&on.rows, "sound_entity");
+    assert_eq!(entities.len(), 2);
+    for (k, entity) in entities.iter().enumerate() {
+        assert_eq!(entity["tracked"], k as u64);
+        assert_eq!(entity["n"], (k + 1) as u64);
+        assert_eq!(entity["updates_at_last_record"], 1);
+        assert_eq!(entity["expiry"], "no_handle");
+        assert_eq!(entity["killed"], true);
+        assert_eq!(entity["handle_ever"], false);
+    }
+    let summary = &env_rows(&on.rows, "sound_summary")[0];
+    assert_eq!(summary["creations"], 2);
+    assert_eq!(summary["updates"], 2);
+    assert_eq!(summary["kills"], 2);
+    assert_eq!(summary["entities"], 2);
+    assert_eq!(summary["expired"], 2);
+    assert_eq!(summary["records"], 8);
+
+    // the queue probe and the sound probe together: each appends its own rows and neither changes the other's
+    let both = run_env_scenario(&sound_stand_in("lightning_episode", "none"), &env_observer_args(&["queue=on", "sound=on"]));
+    assert!(both.status.success(), "{}\n{}", both.stderr, both.out_text);
+    assert_eq!(env_rows(&both.rows, "lightning_queue_summary").len(), 1);
+    assert_eq!(env_rows(&both.rows, "sound_summary").len(), 1);
+
+    // a run with no lightning event is a complete record of nothing: no records, no entities
+    let quiet = run_env_scenario(&sound_stand_in("none", "none"), &sound_args());
+    assert!(quiet.status.success(), "{}\n{}", quiet.stderr, quiet.out_text);
+    assert!(env_rows(&quiet.rows, "env-snd").is_empty() && env_rows(&quiet.rows, "sound_entity").is_empty());
+    assert_eq!(env_rows(&quiet.rows, "sound_summary")[0]["creations"], 0);
+}
+
+#[test]
+fn the_sound_entity_probe_counts_the_updates_it_does_not_store_and_reports_an_entity_that_never_expired_as_that() {
+    // an entity updated seven times has its first three updates stored, then its expiry and kill at the seventh: the chain says seven
+    let long = run_env_scenario(&sound_stand_in("lightning_episode", "sound_long"), &sound_args());
+    assert!(long.status.success(), "{}\n{}", long.stderr, long.out_text);
+    for entity in env_rows(&long.rows, "sound_entity") {
+        assert_eq!(entity["updates_at_last_record"], 7);
+        assert_eq!(entity["updates_exact"], true, "a killed entity's count is its whole count");
+        assert_eq!(entity["expiry"], "no_handle");
+        assert_eq!(entity["killed"], true);
+    }
+    assert_eq!(env_rows(&long.rows, "sound_summary")[0]["updates"], 14);
+    // an entity that was still alive when the run ended: the last record is its third stored update, the probe counted five, and no expiry or kill is claimed
+    let alive = run_env_scenario(&sound_stand_in("lightning_episode", "sound_alive"), &sound_args());
+    assert!(alive.status.success(), "{}\n{}", alive.stderr, alive.out_text);
+    for entity in env_rows(&alive.rows, "sound_entity") {
+        assert_eq!(entity["updates_at_last_record"], 3);
+        assert_eq!(
+            entity["updates_exact"], false,
+            "three stored updates is a lower bound: a fourth would not be stored"
+        );
+        assert_eq!(entity["expiry"], "none");
+        assert_eq!(entity["killed"], false);
+    }
+    let summary = &env_rows(&alive.rows, "sound_summary")[0];
+    assert_eq!(summary["updates"], 10);
+    assert_eq!(summary["kills"], 0);
+    assert_eq!(summary["expired"], 0);
+    assert_eq!(summary["untracked_creations"], 0);
+    assert_eq!(summary["lifetimes_complete"], true);
+    // a handle that keeps playing: the playing-handle expiry of EVERY update from 3 to 8 is stored (the probe samples only entries and exits), never killed; after an observed expiry the last counter is EXACT even while alive
+    let playing = run_env_scenario(&sound_stand_in("lightning_episode", "sound_playing"), &sound_args());
+    assert!(playing.status.success(), "{}{}", playing.stderr, playing.out_text);
+    for entity in env_rows(&playing.rows, "sound_entity") {
+        assert_eq!(entity["updates_at_last_record"], 8);
+        assert_eq!(entity["updates_exact"], true);
+        assert_eq!(entity["expiry"], "playing_handle");
+        assert_eq!(entity["handle_ever"], true);
+        assert_eq!(entity["killed"], false);
+    }
+    // the scalar audit of this positive form against its records: 20 records (10 steps for each of 2 entities), 3 stored entries and 6 stored playing expiries (updates 3 to 8) each, updates 8 each and 16 in all,
+    // no kill, 10 frames in the run and every record inside them
+    let snd = env_rows(&playing.rows, "env-snd");
+    assert_eq!(snd.len(), 20);
+    for n in [1u64, 2] {
+        let of_n: Vec<_> = snd.iter().filter(|r| r["n"].as_u64() == Some(n)).collect();
+        assert_eq!(of_n.iter().filter(|r| r["point"].as_u64() == Some(1)).count(), 3);
+        let expiries: Vec<u64> = of_n
+            .iter()
+            .filter(|r| r["point"].as_u64() == Some(4))
+            .map(|r| r["upd"].as_u64().unwrap())
+            .collect();
+        assert_eq!(expiries, [3, 4, 5, 6, 7, 8]);
+        assert!(of_n.iter().all(|r| r["point"].as_u64() != Some(5)));
+    }
+    assert!(snd.iter().all(|r| r["frame"].as_u64().unwrap() <= 10));
+    let report = &env_rows(&playing.rows, "env-snd-report")[0];
+    for (key, value) in [
+        ("stored", 20u64),
+        ("creations", 2),
+        ("updates", 16),
+        ("kills", 0),
+        ("frames", 10),
+        ("tracked", 2),
+        ("untracked", 0),
+    ] {
+        assert_eq!(report[key].as_u64(), Some(value), "{key}");
+    }
+    assert_eq!(env_rows(&playing.rows, "sound_summary")[0]["updates"], 16);
+    // a creation the probe could not track is a creation, counted and classified: the run is NOT reported as a complete record of lifetimes
+    let lost = run_env_scenario(&sound_stand_in("lightning_episode", "sound_lost"), &sound_args());
+    assert!(lost.status.success(), "{}{}", lost.stderr, lost.out_text);
+    assert_eq!(env_rows(&lost.rows, "sound_entity").len(), 1);
+    assert_eq!(env_rows(&lost.rows, "sound_untracked")[0]["creations"], 1);
+    let summary = &env_rows(&lost.rows, "sound_summary")[0];
+    assert_eq!(summary["creations"], 2);
+    assert_eq!(summary["untracked_creations"], 1);
+    assert_eq!(summary["lifetimes_complete"], false);
+}
+
+#[test]
+fn a_sound_entity_report_that_is_incomplete_out_of_order_or_at_odds_with_the_observer_is_refused() {
+    let cases: &[(&str, &str, &str)] = &[
+        ("lightning_episode", "sound_not_armed", "not armed"),
+        ("lightning_episode", "sound_dropped", "dropped 3"),
+        ("lightning_episode", "sound_record_missing", "probe stored"),
+        ("lightning_episode", "sound_seq_gap", "has seq 9"),
+        ("lightning_episode", "sound_point_impossible", "cannot follow point 2"),
+        ("lightning_episode", "sound_entity_changes", "but tracked entity 0"),
+        ("lightning_episode", "sound_untracked_follower", "follows no tracked creation"),
+        ("lightning_episode", "sound_creation_twice", "twice"),
+        ("lightning_episode", "sound_creation_outside_lightning", "outside the lightning routine"),
+        ("lightning_episode", "sound_updates_fewer", "counted only 1"),
+        ("lightning_episode", "sound_kills_fewer", "counted 1 kills"),
+        ("lightning_episode", "sound_update_goes_down", "going down"),
+        ("lightning_episode", "sound_frame_back", "goes back in frames"),
+        ("lightning_episode", "sound_unexpected_row", "unexpected row"),
+        ("lightning_episode", "sound_out_of_order", "out of order"),
+        ("lightning_episode", "sound_unsupported_missing", "exactly one plan"),
+        // the cohort and terminal-pair forms
+        ("lightning_episode", "sound_stranded_kill", "no kill record after it"),
+        ("lightning_episode", "sound_counter_jump", "th stored entry of an update"),
+        ("lightning_episode", "sound_n_cohort", "the observer's pair is sound"),
+        ("lightning_episode", "sound_follower_n", "where its creation has"),
+        ("lightning_episode", "sound_creation_frame", "but the observer's pair is in frame"),
+        ("lightning_episode", "sound_creation_entity", "the observer saw entity"),
+        ("lightning_episode", "sound_untracked_hidden", "lost track of 0 creations"),
+        // the residual counter forms: an early kill may not jump past the entries that are mandatory, and a kill is in the update of its expiry
+        ("lightning_episode", "sound_early_jump", "mandatory entries have been stored"),
+        ("lightning_episode", "sound_kill_other_update", "expiry straight before it"),
+        // the playing-handle journal must be complete and its handle truthful
+        ("lightning_episode", "sound_playing_gap", "the playing-expiry updates have a gap"),
+        ("lightning_episode", "sound_playing_skip", "does not give the expiry of update"),
+        // the tail of the complete playing journal: nothing hidden after the last stored expiry, nothing outside the run's frames
+        (
+            "lightning_episode",
+            "sound_playing_hidden_trailing",
+            "every tracked entity's update count is exact",
+        ),
+        ("lightning_episode", "sound_playing_frame_beyond", "beyond the 10 frames"),
+        ("lightning_episode", "sound_playing_no_handle", "that shows none"),
+        (
+            "lightning_episode",
+            "sound_expiry_other_handle",
+            "another handle than the entry of its own update",
+        ),
+        // the probe holds creations the observer's stream does not, and the reverse
+        ("lightning_episode", "sound_events_mismatch", "observer stream holds"),
+        ("none", "sound_phantom", "observer stream holds"),
+    ];
+    for (observer_mutation, mutation, says) in cases {
+        let run = run_env_scenario(&sound_stand_in(observer_mutation, mutation), &sound_args());
+        assert!(!run.status.success(), "{mutation} was accepted:\n{}", run.out_text);
+        assert!(
+            run.stderr.contains("env-characterization:") && run.stderr.contains(*says),
+            "{mutation}: the refusal does not say '{says}': {}",
+            run.stderr
+        );
+        assert_eq!(env_rows(&run.rows, "failure").len(), 1, "{mutation}: {}", run.out_text);
+        assert!(env_rows(&run.rows, "run").is_empty(), "{mutation}: a refused run reported a run row");
+    }
+}
+
+// ---- RED PREP (independent source review of 7791eea3c, group 2: the queue report validators accept missing or contradictory slot evidence). The CURRENT driver and parsers are unchanged; this test is new and
+// is expected to FAIL on them, naming every genuinely damaged natural report they still accept. A report is damaged only if it is finite and parseable and its slot cohort or its point records are
+// incomplete or contradict one another; no form asks what the original queue DID (queued, no environment, full and unexplained observations stay facts, see the tests above).
+
+#[test]
+fn the_natural_queue_report_rejects_incomplete_slot_cohorts() {
+    // the healthy report of one lightning event must pass first, or the damaged ones would mean nothing
+    let healthy = run_env_scenario(&queue_stand_in("lightning_episode", "none"), &queue_args());
+    assert!(
+        healthy.status.success(),
+        "the healthy natural report is not accepted:\n{}\n{}",
+        healthy.stderr,
+        healthy.out_text
+    );
+
+    let damaged: [(&'static str, &str); 9] = [
+        ("queue_dup_slot", "the occupied slot rows name slot 0 twice and never slot 1 (the mask is 3)"),
+        ("queue_zero_queued_word", "an add reported as queued whose captured slot is not in use (w0 = 0)"),
+        ("queue_entry_before_gap", "the entry record's mask is not the first add's before mask"),
+        ("queue_after1_before2_gap", "the first add's after mask is not the second add's before mask"),
+        ("queue_after2_restored_gap", "the second add's after mask is not the restored record's mask"),
+        (
+            "queue_final_unrecorded_slot",
+            "a final occupied slot that no recorded add produced (the final mask differs from the last record's)",
+        ),
+        (
+            "queue_active_main_absent",
+            "the active environment is the main one but no main environment exists",
+        ),
+        ("queue_time_without_active", "a time word with no active environment"),
+        (
+            "queue_active_out_of_domain",
+            "an active-environment category that is not absent, the main one or another",
+        ),
+    ];
+    let mut accepted: Vec<String> = Vec::new();
+    for (mutation, what) in damaged {
+        let run = run_env_scenario(&queue_stand_in("lightning_episode", mutation), &queue_args());
+        assert!(
+            !run.stderr.contains(QUEUE_NO_OP_MUTATION),
+            "{mutation} changed nothing in the coherent report it corrupts:\n{}",
+            run.stderr
+        );
+        if run.status.success() {
+            accepted.push(format!("{mutation}: {what}"));
+        }
+    }
+    assert!(
+        accepted.is_empty(),
+        "{} of {} genuinely damaged natural queue reports were ACCEPTED (each should have been refused):\n  {}",
+        accepted.len(),
+        damaged.len(),
+        accepted.join("\n  ")
+    );
+}
+
+#[test]
+fn the_ground_driver_boots_the_g1_module_with_the_terrain_provider_and_accepts_the_host_semantic_report() {
+    let (status, stdout, stderr, trace, rows) = run_ground_case_as("semantic", "ok", &["points=5", "impacts=5", "repeats=1"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    // the provider factory is called once, with the map, and its result is what boot receives, as lua/campaign.lua does
+    let lines = trace_lines(&trace);
+    assert_eq!(lines.iter().filter(|l| l.starts_with("terrain-provider ")).count(), 1, "{trace}");
+    assert!(lines.contains(&"boot terrain=true"), "{trace}");
+    let at = |needle: &str| {
+        lines
+            .iter()
+            .position(|l| l.starts_with(needle))
+            .unwrap_or_else(|| panic!("no {needle} in {trace}"))
+    };
+    assert!(at("terrain-provider ") < at("boot terrain="), "the provider is made before boot: {trace}");
+    // the host-semantic rows, and none of the legacy ones
+    let event = |name: &str| rows.iter().filter(|r| r["event"] == name).count();
+    assert_eq!(
+        (
+            event("ground-profile"),
+            event("ground-semantic-record"),
+            event("ground-semantic-hash"),
+            event("ground-physical")
+        ),
+        (1, 1, 1, 1)
+    );
+    assert_eq!(
+        (event("ground-record"), event("ground-hash")),
+        (0, 0),
+        "a legacy row is never written beside the semantic ones"
+    );
+    let profile = rows.iter().find(|r| r["event"] == "ground-profile").unwrap();
+    assert_eq!(
+        (profile["record"].as_str(), profile["legacy_diagnostics"].as_str()),
+        (Some("host_semantic"), Some("none")),
+        "{profile}"
+    );
+    let record = rows.iter().find(|r| r["event"] == "ground-semantic-record").unwrap();
+    assert_eq!((record["restored"].as_i64(), record["anchored"].as_i64()), (Some(1), Some(1)), "{record}");
+    assert!(rows.iter().any(|r| r["event"] == "state_digest"));
+    // sample completeness is still enforced, in this profile too
+    assert_eq!((ground_samples(&rows, "point"), ground_samples(&rows, "impact")), (5, 5));
+}
+
+#[test]
+fn the_ground_driver_original_profile_is_still_supported_and_boots_without_a_terrain_provider() {
+    let (status, stdout, stderr, trace, rows) = run_ground_case_as("legacy", "ok", &["points=5", "impacts=5", "repeats=1"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert!(!trace.contains("terrain-provider"), "the original host has no provider: {trace}");
+    assert!(trace.lines().any(|l| l == "boot terrain=false"), "{trace}");
+    let event = |name: &str| rows.iter().filter(|r| r["event"] == name).count();
+    assert_eq!((event("ground-record"), event("ground-hash"), event("ground-physical")), (1, 1, 1));
+    assert_eq!(
+        (event("ground-profile"), event("ground-semantic-record"), event("ground-semantic-hash")),
+        (0, 0, 0),
+        "the original profile has no semantic row"
+    );
+}
+
+#[test]
+fn the_ground_driver_host_semantic_profile_supports_empty_families_and_small_runs() {
+    for args in [["points=0", "impacts=5"], ["points=5", "impacts=0"], ["points=1", "impacts=1"]] {
+        let (status, stdout, stderr, _, rows) = run_ground_case_as("semantic", "ok", &args);
+        assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{args:?}: {stdout}\n{stderr}");
+        assert!(rows.iter().any(|r| r["event"] == "state_digest"), "{args:?}");
+    }
+    // the physical fold is required with its empty value for an empty family in this profile too
+    let (status, _, _, _, rows) = run_ground_case_as("semantic", "ok", &["points=0", "impacts=5", "repeats=1"]);
+    assert!(status.success());
+    for fold in ["ground-semantic-hash", "ground-physical"] {
+        let row = rows.iter().find(|r| r["event"] == fold).unwrap_or_else(|| panic!("no {fold} row"));
+        assert_eq!(row["above"].as_str(), Some("cbf29ce484222325"), "{row}");
+    }
+}
+
+// The profile controls: each report below has ONE defect and must be refused by its exact reason, with `report_invalid`, no success row and no digest. A missing or ambiguous profile is never
+// accepted as success, a legacy row is never accepted beside the semantic ones (a fake zeroed or copied ground-hash would make two different diagnostics look equal), and the report must be
+// the profile the host implies.
+#[test]
+fn the_ground_driver_refuses_a_missing_mixed_or_disagreeing_report_profile() {
+    let counts: &[&str] = &["points=5", "impacts=5"];
+    let original_on_provider_host =
+        "the report is the original profile, but this host has a terrain provider (the host-terrain module) and expects the host_semantic profile";
+    let semantic_on_plain_host =
+        "the report is the host_semantic profile, but this host has no terrain provider (the original module) and expects the original profile";
+    for (profile, mode, reason) in [
+        // a host with a provider whose report names no profile (the original shape), and a host without one whose report is the semantic shape
+        ("semantic", "profile_row_missing", original_on_provider_host),
+        ("swap_semantic_host", "ok", original_on_provider_host),
+        ("swap_legacy_host", "ok", semantic_on_plain_host),
+        ("legacy", "legacy_with_profile_row", semantic_on_plain_host),
+        // the profile row itself
+        ("semantic", "profile_names_legacy", "ground-profile: record must be host_semantic, got legacy"),
+        (
+            "semantic",
+            "profile_claims_diagnostics",
+            "ground-profile: legacy_diagnostics must be none, got zeroed",
+        ),
+        ("semantic", "profile_key_missing", "ground-profile: legacy_diagnostics is missing"),
+        (
+            "semantic",
+            "profile_word_malformed",
+            "ground-profile: record must be a word, got 'host-semantic'",
+        ),
+        // a row of the other profile beside the profile's own
+        (
+            "semantic",
+            "mixed_legacy_hash",
+            "the report mixes profiles: ground-hash belongs to the original profile, but the report is the host_semantic profile",
+        ),
+        (
+            "semantic",
+            "mixed_legacy_record",
+            "the report mixes profiles: ground-record belongs to the original profile, but the report is the host_semantic profile",
+        ),
+        (
+            "legacy",
+            "legacy_with_semantic_record",
+            "the report mixes profiles: ground-semantic-record belongs to the host_semantic profile, but the report is the original profile",
+        ),
+    ] {
+        assert_ground_defect_as(profile, mode, counts, reason);
+    }
+}
+
+// The measurements keep their guards in the host-semantic profile, under the profile's own row names. The same defects in the original profile are in the table above.
+#[test]
+fn the_ground_driver_keeps_its_record_hash_and_sample_guards_in_the_host_semantic_profile() {
+    let counts: &[&str] = &["points=5", "impacts=5"];
+    let restore = "the probe did not restore the shared terrain record: restored=";
+    for (mode, reason) in [
+        ("record_words_absent", "ground-semantic-record: words_before is missing".to_string()),
+        (
+            "record_word_short",
+            "ground-semantic-record: words_after must be 16 lowercase hex digits, got 'abcd'".to_string(),
+        ),
+        ("not_anchored", "ground-semantic-record: anchored is 0, expected 1".to_string()),
+        ("unrestored", format!("{restore}0 words 0123456789abcdef -> 0123456789abcdef")),
+        ("words_differ", format!("{restore}1 words 0123456789abcdef -> ffffffffffffffff")),
+        ("hash_bare", "ground-semantic-hash: combined is missing".to_string()),
+        ("hash_short", "ground-semantic-hash: below must be 16 lowercase hex digits, got '1'".to_string()),
+        ("hash_row_missing", "the report has no ground-semantic-hash row".to_string()),
+        ("physical_missing_row", "the report has no ground-physical row".to_string()),
+        ("empty_fold", "ground-semantic-hash: above is cbf29ce484222325 for 5 cases".to_string()),
+        (
+            "sample_point_gap_n1",
+            "ground-sample: point case 1 is not sampled, but no tag has reached 2 samples (the gap is cases 1 to 1)".to_string(),
+        ),
+        ("sample_type_omitted", "ground-sample: impact samples of type 2 is 0, expected 1".to_string()),
+    ] {
+        assert_ground_defect_as("semantic", mode, counts, &reason);
+    }
+}

@@ -1,0 +1,10 @@
+local function mark(s) io.stdout:write(s .. '\n'); io.stdout:flush() end
+mark('BEFORE_HOST_CALLBACK_ERROR')
+local ok, err = pcall(host.log, {})
+mark('AFTER_HOST_CALLBACK_ERROR=' .. tostring(ok))
+assert(not ok and tostring(err):find('string', 1, true))
+mark('BEFORE_EXPLICIT_HOST_ERROR')
+local ok, err = pcall(host.record, 0, {})
+mark('AFTER_EXPLICIT_HOST_ERROR=' .. tostring(ok))
+assert(not ok and tostring(err):find('no recording open', 1, true))
+mark('HOST_CALLBACK_ERRORS=PASS')

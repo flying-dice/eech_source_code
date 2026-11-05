@@ -1,0 +1,32 @@
+[
+  {
+    "case": "object-report-site-none-02",
+    "tool_session": 98776,
+    "actual_original_driver_exit": 0
+  },
+  {
+    "case": "object-report-site-damage-raise-02",
+    "tool_session": 33328,
+    "actual_original_driver_exit": 0
+  },
+  {
+    "case": "object-report-site-destroy-duplicate-02",
+    "tool_session": 2536,
+    "actual_original_driver_exit": 0
+  },
+  {
+    "case": "object-report-site-own-destroy-unknown-02",
+    "tool_session": 45561,
+    "actual_original_driver_exit": 0
+  },
+  {
+    "case": "object-report-segment-none-02",
+    "tool_session": 51049,
+    "actual_original_driver_exit": 0
+  },
+  {
+    "case": "object-report-segment-destroy-02",
+    "tool_session": 27783,
+    "actual_original_driver_exit": 0
+  }
+]

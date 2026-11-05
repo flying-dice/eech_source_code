@@ -1,0 +1,112 @@
+{
+  "source": "8a5dad17208550831c796f37fbe9dde7f36caec5",
+  "scope": "Actual additional RED controls for focused report-consistency P2; these are failed protections, not accepted report behavior",
+  "cohorts": [
+    {
+      "group": "forged-gate",
+      "actual_controller_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "original_unchanged": true,
+      "payloads_unchanged": true,
+      "mutations_unchanged": true,
+      "cases": [
+        {
+          "case": "healthy",
+          "input_sha256": "b421e74ea483433ed9437b3143c68a12b76fb6d4a6f95b04c9371985dc3f0db7",
+          "actual_native_runner_exit": 0,
+          "native_exit_recorded": true,
+          "done": [
+            {
+              "event": "done",
+              "failures": 0
+            }
+          ],
+          "comparison_refused": false,
+          "expected_outcome_observed": true
+        },
+        {
+          "case": "forged-end_probe_unbacked",
+          "input_sha256": "4aa2eea2cdff8b47427da020eab74461ff9b71776916bba5d38c612c586a5abb",
+          "actual_native_runner_exit": 0,
+          "native_exit_recorded": true,
+          "done": [
+            {
+              "event": "done",
+              "failures": 0
+            }
+          ],
+          "comparison_refused": false,
+          "expected_outcome_observed": true
+        },
+        {
+          "case": "forged-beyond_safe_bound",
+          "input_sha256": "d1d84231fd3d975602783bb0cd3c81623dd29945d1e78298f233425099ca9185",
+          "actual_native_runner_exit": 0,
+          "native_exit_recorded": true,
+          "done": [
+            {
+              "event": "done",
+              "failures": 0
+            }
+          ],
+          "comparison_refused": false,
+          "expected_outcome_observed": true
+        }
+      ]
+    },
+    {
+      "group": "write-count",
+      "actual_controller_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "original_unchanged": true,
+      "payloads_unchanged": true,
+      "mutations_unchanged": true,
+      "cases": [
+        {
+          "case": "healthy",
+          "input_sha256": "b421e74ea483433ed9437b3143c68a12b76fb6d4a6f95b04c9371985dc3f0db7",
+          "actual_native_runner_exit": 0,
+          "native_exit_recorded": true,
+          "done": [
+            {
+              "event": "done",
+              "failures": 0
+            }
+          ],
+          "comparison_refused": false,
+          "expected_outcome_observed": true
+        },
+        {
+          "case": "incoherent-true-write-count",
+          "input_sha256": "283b4f388500c430971059ff75e7891b2a97730235caedc7af447166fb4d5025",
+          "actual_native_runner_exit": 0,
+          "native_exit_recorded": true,
+          "done": [
+            {
+              "event": "done",
+              "failures": 0
+            }
+          ],
+          "comparison_refused": false,
+          "expected_outcome_observed": true
+        },
+        {
+          "case": "incoherent-false-write-count",
+          "input_sha256": "61581fa4d2197d3415faeb1a4a3ec79e5d465cebb5e5cd0a059ef53350a477e1",
+          "actual_native_runner_exit": 0,
+          "native_exit_recorded": true,
+          "done": [
+            {
+              "event": "done",
+              "failures": 0
+            }
+          ],
+          "comparison_refused": false,
+          "expected_outcome_observed": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-sys v0.1.0 (/src/eech-campaign/crates/eech-sys)
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+error: float has excessive precision
+   --> crates/eech-world/src/cmb.rs:190:36
+    |
+190 |             (HE_ANTI_AIRCRAFT, 65, 0.656_019_36),
+    |                                    ^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#excessive_precision
+    = note: `-D clippy::excessive-precision` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::excessive_precision)]`
+help: consider changing the type or truncating it to
+    |
+190 -             (HE_ANTI_AIRCRAFT, 65, 0.656_019_36),
+190 +             (HE_ANTI_AIRCRAFT, 65, 0.656_019_4),
+    |
+
+error: could not compile `eech-world` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+CARGO_EXIT=101
+DOCKER_EXIT=101

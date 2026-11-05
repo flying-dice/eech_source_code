@@ -1,0 +1,169 @@
+{
+  "when_utc": "2026-10-28T16:53:46.849905+00:00",
+  "count": 27,
+  "files": [
+    {
+      "file": "root-final-frame-64cf-completion.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-completion.json",
+      "bytes": 14609,
+      "sha256": "0d8eec76a3f31c4fb9406d343e8632c1d94db42c0ad741fe0a4f43ba077be7d8"
+    },
+    {
+      "file": "root-final-frame-64cf-original-driver-exit.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-original-driver-exit.json",
+      "bytes": 491,
+      "sha256": "c8734cbf7c253994a67c9ea50c4a2815f2c8ccbb86f240a4fa1b3ff449264ac0"
+    },
+    {
+      "file": "root-final-frame-64cf-raw-samples-audit.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-raw-samples-audit.json",
+      "bytes": 733,
+      "sha256": "0f17643a48fe7d412a17eadaedd886bb0bae8c69a5eb5ade92b9f63dcca54b7c"
+    },
+    {
+      "file": "root-final-frame-64cf-complete-artifacts.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-complete-artifacts.json",
+      "bytes": 1320,
+      "sha256": "fdb6a6e4219432dc76d077a1d0f3ff065fe4acae793b7796fdef33fd41348620"
+    },
+    {
+      "file": "root-final-frame-64cf-post-inputs.log",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-post-inputs.log",
+      "bytes": 325,
+      "sha256": "026836bb25a27f6090284d53f5be5475d81b956e81aa1b466d978532162f57f3"
+    },
+    {
+      "file": "root-final-frame-64cf-post-build.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-post-build.json",
+      "bytes": 11450,
+      "sha256": "fef6130afece4bfc13e4bcb0504f1fb32304b321742a83bd9a6e0cd4adb5b1e9"
+    },
+    {
+      "file": "root-final-frame-64cf-postcheck-exits.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-postcheck-exits.json",
+      "bytes": 1970,
+      "sha256": "8a1e5305edeb08c97eecd5b21e85ec0c65449ae8e3ca7e4d48a0fd3d5f817d16"
+    },
+    {
+      "file": "root-final-frame-64cf-prelaunch.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-prelaunch.json",
+      "bytes": 3028,
+      "sha256": "41ff52e29435aefb373f023dddde754084582c1c39c2c4c3b0c6b582e3fb8722"
+    },
+    {
+      "file": "root-final-frame-64cf-lua-syntax.log",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-lua-syntax.log",
+      "bytes": 40,
+      "sha256": "6bc9364224063eb9bb37255f7a695d64fc4e4817f6068a5914298f2bacf03a3a"
+    },
+    {
+      "file": "root-final-frame-64cf-pre-inputs.log",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-frame-64cf-pre-inputs.log",
+      "bytes": 325,
+      "sha256": "7590a1ea1f3977551006791381b011adbd024d377b2503677956996e573c68fa"
+    },
+    {
+      "file": "audit-final-frame-samples.py",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\audit-final-frame-samples.py",
+      "bytes": 5311,
+      "sha256": "c1f80b12ef13e45c7df1ebc098bc1a42d8783feb072e187b522972a025983863"
+    },
+    {
+      "file": "run-frame-cost.ps1",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\run-frame-cost.ps1",
+      "bytes": 2776,
+      "sha256": "9cc90470dfbf188ceaa26ea4a4c3c277251130763ac5ef6427ff943c758ae172"
+    },
+    {
+      "file": "final-frame-cost-scope-and-followup.md",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\final-frame-cost-scope-and-followup.md",
+      "bytes": 2856,
+      "sha256": "290cf2f28921345007007df9d3c342a3c20400e554cb884c9941bf2efa2d8f96"
+    },
+    {
+      "file": "independent-final-frame-helpers-review-20261028.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-final-frame-helpers-review-20261028.json",
+      "bytes": 10671,
+      "sha256": "803f6eb7cb2c74268acf1bbe2796b741a29bf7dbe90f1e1199e0c7cdbf17e095"
+    },
+    {
+      "file": "independent-final-frame-64cf-runtime-review-20261028.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-final-frame-64cf-runtime-review-20261028.json",
+      "bytes": 9379,
+      "sha256": "a3a2ee764867a784bcf97104be1be7f0d7c299793a672527ab19da192defd594"
+    },
+    {
+      "file": "independent-final-frame-64cf-verification-data-20261028.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-final-frame-64cf-verification-data-20261028.json",
+      "bytes": 4692,
+      "sha256": "9b613c3ff842512ee9459ba6822b137b769f1ca284dafb5d0f58549d851effc1"
+    },
+    {
+      "file": "root-ci-aa19-all-nine.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-ci-aa19-all-nine.json",
+      "bytes": 2802,
+      "sha256": "e2e988d8924a0dc839fc03525ca3348612c681352611382588346d8c039e5502"
+    },
+    {
+      "file": "root-ci-aa19-windows-crlf-confirmation.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-ci-aa19-windows-crlf-confirmation.json",
+      "bytes": 1791,
+      "sha256": "950085c1041440cae3d6160c540eaf18a990527f51655f50b25b4c4cb9d55f84"
+    },
+    {
+      "file": "run.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\frame-cost-final-d2-900-01\\run.json",
+      "bytes": 1823,
+      "sha256": "3ca586c9b07c04e140ef0422852f29cd36323c59747b2c4db29d228dce195016"
+    },
+    {
+      "file": "frame-cost.jsonl",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\frame-cost-final-d2-900-01\\frame-cost.jsonl",
+      "bytes": 556377,
+      "sha256": "447e0581deb484739e273108eebba7526d2d8676bf9dfac2e13fd2d97d971848"
+    },
+    {
+      "file": "background-processes-start.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\frame-cost-final-d2-900-01\\background-processes-start.json",
+      "bytes": 5133,
+      "sha256": "d5b75d12626a45bf5146eaf2188dca90cc82895abcb6ccf6bd91e9849bd36cab"
+    },
+    {
+      "file": "probe-campaign.lua",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\final-frame-64cf-lua\\campaign.lua",
+      "bytes": 14820,
+      "sha256": "31ebba83848f143dd42ca3ac7233230ac2c36eeaa63532c673ed75d124eb88df"
+    },
+    {
+      "file": "probe-campaign.source.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\final-frame-64cf-lua\\campaign.source.json",
+      "bytes": 1146,
+      "sha256": "f636cdea3a62c5fed80d0942ddba26810a46acb7a1355c016590a072b6f3a043"
+    },
+    {
+      "file": "probe-metrics.lua",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\final-frame-64cf-lua\\metrics.lua",
+      "bytes": 6903,
+      "sha256": "dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053"
+    },
+    {
+      "file": "probe-observations.lua",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\final-frame-64cf-lua\\observations.lua",
+      "bytes": 7229,
+      "sha256": "68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701"
+    },
+    {
+      "file": "prepare-final-frame-measurement.py",
+      "original": "R:\\d2-evidence\\prepare-final-frame-measurement.py",
+      "bytes": 5208,
+      "sha256": "f8183850d6cd2e37e7064cdef1c7eee517ced46f667aaf53a220341c5774e797"
+    },
+    {
+      "file": "retained-f470-equal-lua-dll-clock-calibration.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-finalshipping-lua-clock-calibration-f4700bbab.json",
+      "bytes": 1643,
+      "sha256": "477dc16abe4f8b0da6360afbee08df5f1ca32d86f2d625794ba75d9ff0f817b0"
+    }
+  ],
+  "scope": "Exact safe proof/helper copies and timing-only raw samples. Private full campaign recordings, retail assets and binaries remain external."
+}

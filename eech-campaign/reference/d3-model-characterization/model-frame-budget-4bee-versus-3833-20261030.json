@@ -1,0 +1,32 @@
+[
+  {
+    "case": "original",
+    "source": "4bee2cc8c95309e85b7503a87606b92e0d2594fe",
+    "actual_native_exit": 0,
+    "frame_audit": {
+      "actual_frame_calls": 35,
+      "final_elapsed_seconds": 3.49999737739563
+    },
+    "all_three_uninstrumented_artifacts_byte_exact": {
+      "recording.acmi": true,
+      "observations.jsonl": true,
+      "metrics.json": true
+    },
+    "wrapper_sha256": "bea76984abe3db9310bd0b92a696e8e952add78e15e0d3344d054f07973c9dc5"
+  },
+  {
+    "case": "repaired",
+    "source": "3833c822d907e1088c3f34d067acea2dc33257c3",
+    "actual_native_exit": 0,
+    "frame_audit": {
+      "actual_frame_calls": 36,
+      "final_elapsed_seconds": 3.5999972820281982
+    },
+    "all_three_uninstrumented_artifacts_byte_exact": {
+      "recording.acmi": true,
+      "observations.jsonl": true,
+      "metrics.json": true
+    },
+    "wrapper_sha256": "bea76984abe3db9310bd0b92a696e8e952add78e15e0d3344d054f07973c9dc5"
+  }
+]

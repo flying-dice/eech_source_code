@@ -1,0 +1,37 @@
+TEST_LINK_FLAGS=-fno-pie -no-pie
+SANITIZERS=-fsanitize=address,undefined -fno-sanitize-recover=undefined
+SANITIZER_PROBE_COMPILE_EXIT=0
+SANITIZER_PROBE_RUN_EXIT=0
+COMPILE_EXIT=0
+ok   every one of the sixteen registered collision handlers is wrapped once, and installing twice does not wrap the wrapper
+ok   the bridge's own handler ran with the original arguments
+ok   no health or flag of the bridge was read
+ok   the bridge delivery is counted
+ok   and it is not counted as an observed delivery, so it is never a false fatal
+ok   a cargo (no damage level) is counted and never read
+ok   a hit on a helicopter is observed and its damage applied
+ok   its health went from 5 to 0: fatal, five points
+ok   and the receiver was still the same entity afterwards
+ok   one damage entry, one exit
+ok   the real nesting depth is retained past the table (at least 9)
+ok   the frames past the table are counted
+ok   and the trace says it is not trustworthy
+ok   only the frames inside the table were recorded (the eight inner ones and the first hit)
+ok   nothing was read from the slot after it was freed
+ok   the receiver is reported destroyed
+ok   and the entity that reused the slot is not credited with the collision
+ok   an object that kept its slot is the same receiver afterwards: not destroyed, not fatal
+ok   (the slot still holds the same kind and the same data after the handler)
+ok   a slot freed and reused by an entity of the same kind and data is still reported destroyed: the generation, not the type and data, decides
+ok   and nothing was read from that slot after it was freed
+ok   the no-weapon and invulnerable exits are counted as entries with exits
+ok   an entry with no exit unbalances the counters
+ok   two blasts in one invocation are a repetition; one blast in each of two invocations by the same weapon address are not
+ok   a blast outside any invocation is counted
+ok   a roll whose condition took no draw and did not fire: one attempt, no draw, no hit, not fatal
+ok   a roll that drew once and fired to zero health: one attempt (the END after the hit does not count it twice), one draw, one fatal hit
+ok   a roll that drew once and did not fire: one attempt, one draw, no hit
+ok   the kinds that were not rolled have no attempts
+OBSERVER_CHECKS=ok: 29 checks, 0 failures
+RUN_EXIT=0
+DOCKER_EXIT=0

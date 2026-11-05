@@ -1,0 +1,28 @@
+{
+  "judge_source": "b7fbb2eab20677a6f2efed0116931f97e3a6b320",
+  "native_source": "d559c38592405afcabc172ec876a4fdfa7f9687b",
+  "changed_files": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/lua/env-ambient-authority.lua",
+    "eech-campaign/crates/eech-world/tests/env_ambient_authority.rs",
+    "eech-campaign/docs/d3-environment-sound-routine.md",
+    "eech-campaign/reference/d3-environment-characterization/ambient-authority-8d0-084-reds/084-targeted-protocol-red-completion.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-authority-8d0-084-reds/8d0-Linux-initial-guard-failure.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-authority-8d0-084-reds/8d0-Windows-guard-before-public-failure.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-authority-8d0-084-reds/8d0-Windows-judge-export.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-authority-8d0-084-reds/8d0-first-real-control-order-red.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-authority-8d0-084-reds/8d0-independent-source-review.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-authority-8d0-084-reds/receipt.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/Linux-guards-both-strict-completion.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/Windows-build-completion.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/current-CI.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/independent-source-and-real-control-review.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/ledger92-preservation.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/real-wide-controller.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/real-wide-summary.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/receipt.json"
+  ],
+  "all_existing_runtime_C_Rust_ABI_providers_and_G11_exact": true,
+  "new_driver_sha256": "78f1bb65c63a6e83815dff90c3db85f78838df36063adb9696e58ca2230b7f75",
+  "scope": "New test-only Lua/judge with unchanged d559 native; preserve all51 original payloads. Not a build of the new Lua into the retained package; actual driver provenance must be recorded separately."
+}

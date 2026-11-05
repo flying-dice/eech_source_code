@@ -1,0 +1,34 @@
+== control (unmutated copy)
+54 checks, 0 failures
+CONTROL_EXIT=0
+== mutant: continuation_after
+54 checks, 1 failures
+MUTANT continuation_after: CAUGHT (exit 1)
+== mutant: modifier_upper_bound
+54 checks, 1 failures
+MUTANT modifier_upper_bound: CAUGHT (exit 1)
+== mutant: radius_must_not_change
+54 checks, 1 failures
+MUTANT radius_must_not_change: CAUGHT (exit 1)
+== mutant: crater_needs_terrain
+54 checks, 1 failures
+MUTANT crater_needs_terrain: CAUGHT (exit 1)
+== mutant: sector_order
+54 checks, 1 failures
+MUTANT sector_order: CAUGHT (exit 1)
+== mutant: blasts_at_most_two
+54 checks, 1 failures
+MUTANT blasts_at_most_two: CAUGHT (exit 1)
+== mutant: direct_hit_needs_target
+54 checks, 1 failures
+MUTANT direct_hit_needs_target: CAUGHT (exit 1)
+== mutant: window_sector_in_map
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/blast_checks.c:128:24: runtime error: index 3 out of bounds for type 'int [3]'
+MUTANT window_sector_in_map: CAUGHT (exit 1)
+== mutant: rocket_must_be_known
+54 checks, 1 failures
+MUTANT rocket_must_be_known: CAUGHT (exit 1)
+sed: -e expression #1, char 6: unknown option to `s'
+MUTANT terrain_asked_once: PATTERN NOT FOUND
+CAUGHT=9 MISSED=1
+DOCKER_EXIT=1

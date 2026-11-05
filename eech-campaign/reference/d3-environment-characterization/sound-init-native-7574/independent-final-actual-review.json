@@ -1,0 +1,118 @@
+{
+  "created_utc": "2026-11-01T03:55:06.689702+00:00",
+  "reviewer": "sole independent Codex reviewer",
+  "source": {
+    "head": "e4c93d68fca90ff57a70bb6b640a296a6179bb6b",
+    "physical_native_and_lua": "7574caa2ca87a2a44608a234fd1dd73136b8e4c0",
+    "publication_head": "e4c93d68fca90ff57a70bb6b640a296a6179bb6b",
+    "repo": "R:/d3-evidence/environment-services-20261030",
+    "clean_at_inspection": true,
+    "runtime_relabelled": false
+  },
+  "scope": "One combined new actual-evidence, auditor, safe-publication and factual docs/test clarification review. Unchanged source144e, hooks, physical kernels, FP and prior characterization gates reused; no builds, tests, native executions or campaign reruns by reviewer.",
+  "findings": [],
+  "finite_original_init_characterization_closed": true,
+  "inspected_facts": {
+    "terminal_execution": "Recovery aggregate and both probe/observation-off child controllers and natives are actual0; aggregate completed2026-11-01T03:38:54.013472Z. Four pre/post input stages actual0, all four 1179-file manifest arrays/counts/bytes/combined hash independently match the frozen Lebanon reference.",
+    "native_identity": "BUILD-INFO pins7574, clean build inputs, release x86_64 Windows GNU env-observer fixture. Independently hashed all62 declared payloads; every Lua payload matches frozen source; controllers use that exact binary/script with no override. Windows and Linux canonical terminal builds actual0; Linux default/observer packages and both strict profiles complete. All9 recorded exact7574 CI jobs completed success; no claim of publication-head binary/CI.",
+    "complete_observation_off": {
+      "bytes": 5191384,
+      "rows": 17283,
+      "sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+      "baseline": "environment-host-pause-defaults-82234a3a3-20261101/natural/environment.jsonl",
+      "complete_bytes_and_line_endings_identical": true,
+      "prefix_only": false
+    },
+    "probe": {
+      "json_rows": 95,
+      "json_sha256": "a089e14f7238a1e579dae537fc6dedb6c8516016aace23dcfb39a2fedd9b72db",
+      "native_sidecar_bytes": 7582,
+      "native_sidecar_rows": 91,
+      "native_sidecar_sha256": "74401e0cb6bb973ed02a6d4b280bfc688aea72b53001f0935c4b88e6b18a5c43",
+      "all_raw_rows_exactly_reconstruct_sidecar": true,
+      "each_raw_field_joins_projected_value": true,
+      "frames": 1200,
+      "report_read_only": true,
+      "rng_and_next_entity_local_indices_equal_before_after": true
+    },
+    "measured_catalogue_and_reads": {
+      "slots": 2122,
+      "named_and_application_samples": 2069,
+      "nonzero_rate": 2069,
+      "nonzero_original_rate": 2069,
+      "nonzero_size": 0,
+      "filled_end_report_digest": "6605372942e1ea2c",
+      "constructor_calls": 5222,
+      "looping_calls": 3548,
+      "sample_reads": 1674,
+      "distinct_sample_keys": 64,
+      "minimum_key": 2,
+      "maximum_key": 2105,
+      "keys_at_or_above_2069": 12,
+      "first_read_tuple": [
+        22050,
+        0,
+        22050
+      ],
+      "uses_sum": 1674,
+      "all_read_digest": "17e67b8187903754",
+      "out_of_domain_dropped_orphan_saturated": 0,
+      "scope": "Individual rows are FIRST-read metadata, use counts aggregate reads, and digest covers every read. No per-read value replay or full-catalogue consumer-liveness claim."
+    },
+    "measured_initialization": "Entry no_sound0/dedicated0, backend attempted once; DirectSoundCreate called1 and returned80004005, other three observed COM entries called0. Header attempts3 all failed; data attempts0; descriptor matching did not run. Report dedicated1/enabled0/initialized0; side-loader entry1 with enabled0, initialization load0. These facts establish no missing-asset or positive-device/playing-handle claim.",
+    "windows_exclusive_output": "Actual helper native/controller0; script hash and62 payloads checked. Retained stderr records same-name/dot/case-alias refusals; retained fresh.txt remains abc and binary.raw remains one-NUL-two-LF. This is a disposable output-primitive probe, not a campaign or whole-filesystem claim.",
+    "auditor": "Read complete8322-byte checker. Its strict JSON parsing, exact sidecar/raw joins, complete baseline comparison, manifest identities and bounded projection are consistent with independently inspected originals. Initial combined-shell assertion report had no separate child exit; preserved as such. Separately named checker-only invocation records actualchild0 and exact before/after auditor hash2972f30de9e2ecdaff965ae26c89182bfb54ee69fb208fdc054bbc541c8552d0. No campaign was repeated for that correction.",
+    "factual_clarification": "Reviewed full Engine/test diff and appended docs/STATUS.2122 denotes slots and2069 named descriptors; C always used NUM_SOUND_SAMPLE_INDICES. Corrected worst bound2122*128+16384=288000<327680. New full-domain witness and cfg(test) Engine capacity constant are test-only;17 driver guards and one Engine capacity test are recorded successful. No C/header/Lua/build or ordinary Rust production change.",
+    "source_map": "All changed tracked files are metadata/docs or the two test-only changes. Exact Engine Git prefix before newline+#[cfg(test)] is identical at7574/e4, SHA434bcdb88ec3f06f9c193826a7a1fffebe39b3c5c6767e7cac1b1cee57b36b8e; including that LF yields625ff12f76fe6ecfb07ddc611e4b1871549bbe6d2d6adc10c1a0ca8ef5a9f335. Both explicit boundaries prove equality.",
+    "safe_publication": "Inspected all12 committed files under reference/d3-environment-characterization/sound-init-native-7574. All eight private-original identity entries match retained files and Git blobs. Five JSON receipts differ only by documented CRLF-to-LF publication; decoded values equal. Source144e report and auditor are byte-identical. Measured projection independently joins private JSON, removes raw strings, sidecar path and RNG/entity/local values; no retail files, vectors or allocation IDs published. Semantic sample keys remain sample catalogue indices."
+  },
+  "retained_failures_and_limits": [
+    "Original458/native50a probe and aggregate remain actual1; separate458 observation-off remains0. Original full returned probe report remains UNAVAILABLE. Only retained ctor totals/max-count/digest are compared with recovery; no whole-wrapper equality to unavailable old capture.",
+    "Earlier failed compiler/lint/command/red/preprocess attempts and overwritten firstsoundd1 raw-log gap retain their original scope; surviving excerpt is not a complete raw log.",
+    "Only one original initialization on the already hosted baseline and its read-only report are characterized. No positive device/handle, second initialization, data-loader reads or all compiled-reader liveness is measured.",
+    "Metadata/backend ownership remains Core. Speech size filtering, winding-rotor duration, other readers, per-family/range/device/destroy/network/pitch/amplitude/time/terrain/spatial/model duties remain required D3 work.",
+    "No new Tacview inspection, shipping40/all8, normal-merge approval, wholeTask51/D3 acceptance or D4/D5 start is implied."
+  ],
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/environment-original-sound-init-recovery-7574caa2c-20261101/controller.json",
+      "bytes": 3956,
+      "sha256": "a302fdde65632f5e088876141efbd9d7e08045cf88b68c04d3c00253f4155d4b"
+    },
+    {
+      "path": "R:/d3-evidence/original-sound-init-audit-verified-exit-7574caa2c-20261101/completion.json",
+      "bytes": 1198,
+      "sha256": "d3725136531c6c799412128fba9f79d949edfb25abf48b72bb701ae63a25468e"
+    },
+    {
+      "path": "R:/d3-evidence/original-sound-init-audit-verified-exit-7574caa2c-20261101/result.json",
+      "bytes": 25361,
+      "sha256": "9b98aa6aaee8799be501aebf276233eaef1d3255df7a8c9d7023340ba4fbcf0e"
+    },
+    {
+      "path": "R:/d3-evidence/audit-original-sound-init-recovery-20261101.py",
+      "bytes": 8322,
+      "sha256": "2972f30de9e2ecdaff965ae26c89182bfb54ee69fb208fdc054bbc541c8552d0"
+    },
+    {
+      "path": "R:/d3-evidence/sound-init-exclusive-output-native-7574caa2c-20261101/completion.json",
+      "bytes": 1823,
+      "sha256": "d2a6bb19e6fdfeebaa97854e3a1d08a1f7963ff7889cf124da3f187ad859a1e2"
+    },
+    {
+      "path": "R:/d3-evidence/current-CI-7574caa2c-20261101.json",
+      "bytes": 15745,
+      "sha256": "b8b4c127284bca16894490539aba73fef481edaf6ee8c15c5796b083817b50e0"
+    },
+    {
+      "path": "R:/d3-evidence/original-init-publication-source-map-e4c93d68f-20261101.json",
+      "bytes": 6055,
+      "sha256": "46292b59ce652130ad652b312cbae39df26ad88cec175c54ced029f3b3257d60"
+    },
+    {
+      "path": "R:/d3-evidence/independent-environment-original-sound-init-capacity-source-review-7574caa2c-20261101.json",
+      "bytes": 9903,
+      "sha256": "144e578209b5631e6d275341cdfd538fca8a195efb70cb39f83cf16e92139ef4"
+    }
+  ]
+}

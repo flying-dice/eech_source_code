@@ -1,0 +1,65 @@
+{
+  "scope": "Numeric/FP/package/source-correction checkpoint; G12 red retained, fixture correction unbuilt/unreviewed. Not amplitude authority, Tacview, fullshipping or Task51/D3 acceptance. No retail payloads/raw coordinates copied.",
+  "entries": [
+    {
+      "file": "f6-complete-numeric-comparison.json",
+      "original_private": "R:\\d3-evidence\\environment-sound-f6-complete-numeric-comparison-20261031.json",
+      "original_sha256": "89ef9d687960b8e002de0bdb736bda1951a3806c8b9d3dfd7e21e85a7ba738c0",
+      "retained_Git_LF_sha256": "19e370d9a0e5ba155d7c458c18c4dd77412f019c783784a62e4aafb52282392b"
+    },
+    {
+      "file": "f6-Linux-completion.json",
+      "original_private": "R:\\d3-evidence\\environment-sound-host-f6d812c7c-linux-20261031-completion.json",
+      "original_sha256": "930990f3fea371bdeb78259152009412df40e08f2fe3147d4036a5221d0af045",
+      "retained_Git_LF_sha256": "04df8cd63341bc953ec4b4829e1759e06186d424d41f96f624f4849ce4466ce6"
+    },
+    {
+      "file": "f6-Windows-build-completion.json",
+      "original_private": "R:\\d3-evidence\\environment-sound-host-f6d812c7c-windows-20261031-completion.json",
+      "original_sha256": "a06dced9121c6990105bfb18c65a26b394a16ccb44019fcbf3f25dc60c9488b7",
+      "retained_Git_LF_sha256": "73ca88898c8d275abb506affcf5bc1ad08f705d418adb3e0e96a9bb8dae9018f"
+    },
+    {
+      "file": "f6-Windows-libraries.json",
+      "original_private": "R:\\d3-evidence\\environment-sound-f6-actual-Windows-libs-20261031\\receipt.json",
+      "original_sha256": "7a4d9c6843213125b08595bc9d510f0b5d8d4e10f1322dbdd8abd7e2662f904c",
+      "retained_Git_LF_sha256": "8b3dac59c7c51a769f03ded7efc3e9029e3d73314f5c0bca3d03988ff3968367"
+    },
+    {
+      "file": "f6-Windows-terrain-ambient.json",
+      "original_private": "R:\\d3-evidence\\environment-sound-f6-actual-Windows-ambient-20261031\\receipt.json",
+      "original_sha256": "01992d765cdf7de43b56109b1f8b8be651edd0b7aa5b9b4f31244a34bcd630c5",
+      "retained_Git_LF_sha256": "089cc9d867f6706b2ad88c6629549fa28f30b0be5bc3d225d17f5218a97ca74c"
+    },
+    {
+      "file": "f6-current-CI.json",
+      "original_private": "R:\\d3-evidence\\current-CI-f6d812c7c-20261031.json",
+      "original_sha256": "8d4d746274feff2253c6caf9c9f178337222fc9bfdd8eece598710b6a5efa408",
+      "retained_Git_LF_sha256": "8d4d746274feff2253c6caf9c9f178337222fc9bfdd8eece598710b6a5efa408"
+    },
+    {
+      "file": "f6-hosted-mode-tests.json",
+      "original_private": "R:\\d3-evidence\\environment-ambient-f6-hosted-mode-checks-20261031.json",
+      "original_sha256": "2794ce0cdce720a848c67b89dc7cebbb1a6d6fb749ff36f4c048a96f544b1058",
+      "retained_Git_LF_sha256": "2794ce0cdce720a848c67b89dc7cebbb1a6d6fb749ff36f4c048a96f544b1058"
+    },
+    {
+      "file": "f6-independent-review.json",
+      "original_private": "R:\\d3-evidence\\independent-environment-ambient-host-correction-review-f6d812c7c-20261031.json",
+      "original_sha256": "6da713059607c57e16fbacaaa92ab3f221c502cb22e5b4519d21f84f03eaa0c6",
+      "retained_Git_LF_sha256": "bbfc3fc95a65e89a8f468f774745ce22c8a0c0b32399490d141d6439e699b5b8"
+    },
+    {
+      "file": "f6-wide-fixture-red.json",
+      "original_private": "R:\\d3-evidence\\environment-sound-wide-f6-fixture-diagnostic-20261031\\controller.json",
+      "original_sha256": "b235a51e71998f3f765e7c18cc3feb5f9e47854b82aa46a5b9ff69734b2c12a7",
+      "retained_Git_LF_sha256": "727864bb4d344c7d6f22512e8a01c84050c65726e80c8872921b517bf2eac679"
+    },
+    {
+      "file": "G12-production-equivalence.json",
+      "original_private": "R:\\d3-evidence\\environment-sound-G12-correction-production-equivalence-20261031.json",
+      "original_sha256": "e5225e24ce51db28874b210297eb5fc7e46d9b9d9f47e49c3f9ab5f10ba769b9",
+      "retained_Git_LF_sha256": "56531706d46f33394286028983e9ecfbbfd067576c3c8daf312e7569ffe8ceaa"
+    }
+  ]
+}

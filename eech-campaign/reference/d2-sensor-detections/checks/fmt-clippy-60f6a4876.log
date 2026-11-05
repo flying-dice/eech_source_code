@@ -1,0 +1,11 @@
+RUSTUP_ADD_EXIT=0
+FMT_EXIT=0
+CLIPPY_DEFAULT_EXIT=0
+    Checking eech-campaign v0.1.0 (/src/eech-campaign/crates/eech-campaign)
+    Checking eech-harness v0.1.0 (/src/eech-campaign/crates/eech-harness)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 8m 49s
+CLIPPY_SENSOR_EXIT=0
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Checking eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 29s
+DOCKER_EXIT=0

@@ -1,0 +1,32 @@
+{
+  "created_utc": "2026-10-29T00:10:45.383578+00:00",
+  "implementation_merge": "a44e2b3483aab5f5b51aad47dd67e3ece5874da9",
+  "copies": [
+    {
+      "file": "independent-final-d2-fullpack-publication-composition-review-6220bd5d9-20261029.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-final-d2-fullpack-publication-composition-review-6220bd5d9-20261029.json",
+      "bytes": 28318,
+      "sha256": "d5a44c3dd104923a323dc6d0f69b904356c3bf3e96b764f6990af4aed247c000"
+    },
+    {
+      "file": "root-ci-6220-all-nine.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-ci-6220-all-nine.json",
+      "bytes": 3721,
+      "sha256": "a8d21bc8ee23513fad586676ec70cafd677647507af7c9d5b97432ef7c09c30c"
+    },
+    {
+      "file": "root-pr105-merge-tree-verification.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-pr105-merge-tree-verification.json",
+      "bytes": 879,
+      "sha256": "f5357cd2cd6c8124c306c274428423c5d051c09aebe04ae89bb080a5267fd00c"
+    },
+    {
+      "file": "root-final-shipping-cache-cleanup-20261029.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-shipping-cache-cleanup-20261029.json",
+      "bytes": 849,
+      "sha256": "c613d7c687ceac7fea85b79a28669b699f153d47fb777ea537e4c94f8048407a"
+    }
+  ],
+  "metadata_only": true,
+  "scope": "Exact completed implementation review, CI, fetched merge-tree and cache-cleanup records. No raw retail/recording/binary payload. External epic acceptance is recorded in Jira and Confluence."
+}

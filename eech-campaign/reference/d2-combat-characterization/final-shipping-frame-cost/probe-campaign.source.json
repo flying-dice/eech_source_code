@@ -1,0 +1,12 @@
+{
+  "shipping_campaign": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\target\\windows-d2-combat-final-64cf0f1c5\\lua\\campaign.lua",
+  "shipping_campaign_sha256": "a50bf7952f2379f06cab8b18ed060fab20568e2768f405118c0b802b85069fcb",
+  "instrumented_copy": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-evidence\\combat-characterization-20261028\\final-frame-64cf-lua\\campaign.lua",
+  "instrumented_sha256": "31ebba83848f143dd42ca3ac7233230ac2c36eeaa63532c673ed75d124eb88df",
+  "exact_companion_copies": {
+    "metrics.lua": "dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053",
+    "observations.lua": "68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701"
+  },
+  "changes": "preamble, clock span around sole existing engine:frame, per-frame samples outside timed span, final statistics; original remaining script retained",
+  "limits": "Native-only frame cost. Not DCS callback/scheduling/objects cost, not a budget or final regression acceptance. Compare complete resulting recordings separately."
+}

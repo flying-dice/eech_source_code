@@ -1,0 +1,92 @@
+/*
+ * EECH headless build: the DirectX COM entry points EECH calls (the C macros
+ * of the DirectX headers), declared without prototypes as the originals were
+ * called. csrc/eech_com_null.c defines them: every one fails with E_FAIL.
+ */
+#ifndef EECH_COMPAT_COM_H
+#define EECH_COMPAT_COM_H
+HRESULT DirectInputCreateEx ();
+HRESULT DirectSoundCreate ();
+HRESULT IAMMultiMediaStream_AddMediaStream ();
+HRESULT IAMMultiMediaStream_GetMediaStream ();
+HRESULT IAMMultiMediaStream_Initialize ();
+HRESULT IAMMultiMediaStream_OpenFile ();
+HRESULT IAMMultiMediaStream_Release ();
+HRESULT IAMMultiMediaStream_SetState ();
+HRESULT IDirect3D7_CreateDevice ();
+HRESULT IDirect3D7_Release ();
+HRESULT IDirect3D9_CreateDevice ();
+HRESULT IDirect3DDevice7_GetCaps ();
+HRESULT IDirect3DDevice7_Release ();
+HRESULT IDirect3DDevice7_SetRenderTarget ();
+HRESULT IDirect3DDevice9_DrawPrimitiveUP ();
+HRESULT IDirect3DDevice9_GetDeviceCaps ();
+HRESULT IDirect3DDevice9_GetRenderState ();
+HRESULT IDirect3DDevice9_GetTextureStageState ();
+HRESULT IDirect3DDevice9_Release ();
+HRESULT IDirect3DDevice9_Reset ();
+HRESULT IDirect3DDevice9_SetFVF ();
+HRESULT IDirect3DDevice9_TestCooperativeLevel ();
+HRESULT IDirect3DTexture9_Release ();
+HRESULT IDirectDraw7_QueryInterface ();
+HRESULT IDirectDrawMediaStream_CreateSample ();
+HRESULT IDirectDrawStreamSample_GetSurface ();
+HRESULT IDirectDrawStreamSample_Release ();
+HRESULT IDirectDrawStreamSample_SetRect ();
+HRESULT IDirectDrawStreamSample_Update ();
+HRESULT IDirectDrawSurface7_Blt ();
+HRESULT IDirectInput7_CreateDeviceEx ();
+HRESULT IDirectInput7_Release ();
+HRESULT IDirectInputDevice7_Acquire ();
+HRESULT IDirectInputDevice7_GetDeviceData ();
+HRESULT IDirectInputDevice7_GetDeviceState ();
+HRESULT IDirectInputDevice7_Release ();
+HRESULT IDirectInputDevice7_SetCooperativeLevel ();
+HRESULT IDirectInputDevice7_SetDataFormat ();
+HRESULT IDirectInputDevice7_SetEventNotification ();
+HRESULT IDirectInputDevice7_SetProperty ();
+HRESULT IDirectInputDevice7_Unacquire ();
+HRESULT IDirectInputDevice_Acquire ();
+HRESULT IDirectInputDevice_GetDeviceData ();
+HRESULT IDirectSound3DBuffer_GetMaxDistance ();
+HRESULT IDirectSound3DBuffer_GetMinDistance ();
+HRESULT IDirectSound3DBuffer_GetPosition ();
+HRESULT IDirectSound3DBuffer_GetVelocity ();
+HRESULT IDirectSound3DBuffer_SetMaxDistance ();
+HRESULT IDirectSound3DBuffer_SetMinDistance ();
+HRESULT IDirectSound3DBuffer_SetPosition ();
+HRESULT IDirectSound3DBuffer_SetVelocity ();
+HRESULT IDirectSound3DListener_CommitDeferredSettings ();
+HRESULT IDirectSound3DListener_GetDopplerFactor ();
+HRESULT IDirectSound3DListener_GetOrientation ();
+HRESULT IDirectSound3DListener_GetPosition ();
+HRESULT IDirectSound3DListener_GetRolloffFactor ();
+HRESULT IDirectSound3DListener_GetVelocity ();
+HRESULT IDirectSound3DListener_SetDopplerFactor ();
+HRESULT IDirectSound3DListener_SetOrientation ();
+HRESULT IDirectSound3DListener_SetPosition ();
+HRESULT IDirectSound3DListener_SetRolloffFactor ();
+HRESULT IDirectSound3DListener_SetVelocity ();
+HRESULT IDirectSoundBuffer_GetCaps ();
+HRESULT IDirectSoundBuffer_GetCurrentPosition ();
+HRESULT IDirectSoundBuffer_GetFrequency ();
+HRESULT IDirectSoundBuffer_GetPan ();
+HRESULT IDirectSoundBuffer_GetStatus ();
+HRESULT IDirectSoundBuffer_GetVolume ();
+HRESULT IDirectSoundBuffer_Lock ();
+HRESULT IDirectSoundBuffer_Play ();
+HRESULT IDirectSoundBuffer_QueryInterface ();
+HRESULT IDirectSoundBuffer_Release ();
+HRESULT IDirectSoundBuffer_SetCurrentPosition ();
+HRESULT IDirectSoundBuffer_SetFrequency ();
+HRESULT IDirectSoundBuffer_SetPan ();
+HRESULT IDirectSoundBuffer_SetVolume ();
+HRESULT IDirectSoundBuffer_Stop ();
+HRESULT IDirectSoundBuffer_Unlock ();
+HRESULT IDirectSound_CreateSoundBuffer ();
+HRESULT IDirectSound_DuplicateSoundBuffer ();
+HRESULT IDirectSound_Release ();
+HRESULT IDirectSound_SetCooperativeLevel ();
+HRESULT IMediaStream_QueryInterface ();
+HRESULT IMediaStream_Release ();
+#endif

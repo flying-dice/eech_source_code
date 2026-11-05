@@ -1,0 +1,137 @@
+{
+  "scope": "Explicit safe exact copies; private retail assets, binary exports, roots and complete recordings excluded",
+  "files": [
+    {
+      "file": "run.json",
+      "original": "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec\\run.json",
+      "bytes": 791,
+      "sha256": "b462bb2689dbd01084ad388c788c4913780c84cdf9826d94089846b80865c426"
+    },
+    {
+      "file": "completion.json",
+      "original": "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec\\completion.json",
+      "bytes": 754,
+      "sha256": "263524287ab922dd6c55394822c301cd226bf458d0140b544024dcc238ece38c"
+    },
+    {
+      "file": "lead-verification.json",
+      "original": "R:\\d2-evidence\\weapon-final-pack-lead-verification.json",
+      "bytes": 17725,
+      "sha256": "b6c3b56fbff4641b0715fa3fcc8a4ac871539481488265fa841ad5bec213691f"
+    },
+    {
+      "file": "report.json",
+      "original": "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec\\report.json",
+      "bytes": 39135,
+      "sha256": "ba896d6447a0745bf34f27515b8a9a89b619a0a4278fc9813bdc9e4be01dbf40"
+    },
+    {
+      "file": "report.md",
+      "original": "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec\\report.md",
+      "bytes": 26211,
+      "sha256": "cd104c824af9f9183dc98c6def321335fbd18568ffdd3bbd466345393d980944"
+    },
+    {
+      "file": "preflight.json",
+      "original": "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec\\preflight.json",
+      "bytes": 8556,
+      "sha256": "157d1b359a1aa959c4184c82aba6fd0b993606cdfc74f0f23cecb3cb20f46d76"
+    },
+    {
+      "file": "complete-comparison.json",
+      "original": "R:\\d2-evidence\\weapon-final-pack-full8-comparison.json",
+      "bytes": 3221,
+      "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+    },
+    {
+      "file": "post-build-manifest.json",
+      "original": "R:\\d2-evidence\\weapon-final-pack-post-build.json",
+      "bytes": 9577,
+      "sha256": "9d0d17701e32503c1f914c34e3c22b3b1fcaf64da9fb3080a09accf0010c8947"
+    },
+    {
+      "file": "initial-build-manifest.json",
+      "original": "R:\\d2-evidence\\weapon-characterization-20261027\\root-shipping-a137-manifest.json",
+      "bytes": 9577,
+      "sha256": "5dc408c28504ff63984c9d8fa822d47b55a8991094f2c2b9ae59f0b04e75b3ef"
+    },
+    {
+      "file": "BUILD-INFO.txt",
+      "original": "R:\\d2-evidence\\shipping-source-d2-weapon-a137fc3ec\\eech-campaign\\target\\windows-d2-weapon-final\\BUILD-INFO.txt",
+      "bytes": 3657,
+      "sha256": "5e0fe29daecc6d128911e40f0ef0c17633870726f5d5b36c5e058398981cdc95"
+    },
+    {
+      "file": "pack.stdout.log",
+      "original": "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec\\pack.stdout.log",
+      "bytes": 3431,
+      "sha256": "4a664534717b86b01afdfefb554e15222b182523a941d57899ff43770b59f258"
+    },
+    {
+      "file": "pack.stderr.log",
+      "original": "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec\\pack.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "pack-definition.log",
+      "original": "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec\\pack-definition.log",
+      "bytes": 1118,
+      "sha256": "bc9830dec219b011c99b8ab22c009875f7120c7953432091f77a887316e177ac"
+    },
+    {
+      "file": "python-resolver.log",
+      "original": "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec\\python-resolver.log",
+      "bytes": 222,
+      "sha256": "f5c26fc0e24eeff4b8e05675ea2e338df065a8230b2c1e0a98a3a6ba5546f4be"
+    },
+    {
+      "file": "launcher.py",
+      "original": "C:\\Users\\starscream\\.codex\\skills\\eech-regression\\scripts\\run_regression.py",
+      "bytes": 16973,
+      "sha256": "dad4dbafcd2d6c057c7f306d2e8aefb233f1b788a18e3f58233a3a096ddef5b4"
+    },
+    {
+      "file": "compare-complete-packs.py",
+      "original": "C:\\Users\\starscream\\.codex\\skills\\eech-regression\\scripts\\compare_complete_packs.py",
+      "bytes": 2670,
+      "sha256": "c7bb3ed6d21a532f888da01943e69228124c54999ecf81966b6fb28b29979ea6"
+    },
+    {
+      "file": "preflight-inputs-georgia.log",
+      "original": "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec\\preflight-inputs-georgia.log",
+      "bytes": 311,
+      "sha256": "d51c39c894993c408c8956fcba6c902fa9c833edf318e7c4f29f9bdcbf0de2dd"
+    },
+    {
+      "file": "post-inputs-georgia.log",
+      "original": "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec\\post-inputs-georgia.log",
+      "bytes": 311,
+      "sha256": "d51c39c894993c408c8956fcba6c902fa9c833edf318e7c4f29f9bdcbf0de2dd"
+    },
+    {
+      "file": "preflight-inputs-lebanon.log",
+      "original": "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec\\preflight-inputs-lebanon.log",
+      "bytes": 299,
+      "sha256": "c1b1622571d32010de52d2cdc0d81563ecb5b047ac4b0ab5bfd6c588f3be4bfd"
+    },
+    {
+      "file": "post-inputs-lebanon.log",
+      "original": "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec\\post-inputs-lebanon.log",
+      "bytes": 299,
+      "sha256": "c1b1622571d32010de52d2cdc0d81563ecb5b047ac4b0ab5bfd6c588f3be4bfd"
+    },
+    {
+      "file": "preflight-inputs-lebanon_repeat.log",
+      "original": "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec\\preflight-inputs-lebanon_repeat.log",
+      "bytes": 306,
+      "sha256": "e5d6fb4011a9563fcb5793683c231ee973237b6da0ab6376ca9ea60ad1982443"
+    },
+    {
+      "file": "post-inputs-lebanon_repeat.log",
+      "original": "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec\\post-inputs-lebanon_repeat.log",
+      "bytes": 306,
+      "sha256": "e5d6fb4011a9563fcb5793683c231ee973237b6da0ab6376ca9ea60ad1982443"
+    }
+  ]
+}

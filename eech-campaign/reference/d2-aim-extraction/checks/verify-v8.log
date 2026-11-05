@@ -1,0 +1,5 @@
+fmt-check CARGO_EXIT=0
+clippy-default CARGO_EXIT=0
+clippy-aim-fixture CARGO_EXIT=0
+test CARGO_EXIT=0
+ALL DONE

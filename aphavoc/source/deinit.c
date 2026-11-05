@@ -254,7 +254,6 @@ void deinitialise_game (void)
 	DeInitialise_Shared_Memory(); // we do this in any case, even if it was not set up..
 
 	// arneh - delete the ballistics tables
-	delete_ballistics_tables();
 
 #ifndef OGRE_EE
 	// free ffb data

@@ -1,0 +1,112 @@
+{
+  "when_utc": "2026-10-28T16:05:33.058263+00:00",
+  "source": "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5",
+  "source_sha": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "phase": "post",
+  "results": [
+    {
+      "case": "object-report-site-none-02",
+      "root": "R:\\d2-evidence\\combat-characterization-20261028\\roots\\object-report-site-none-02",
+      "actual_exit": 0,
+      "command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\object-report-site-none-02",
+        "--compare",
+        "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-64cf-post-object-report-site-none-02.log",
+      "log_sha256": "513125d605f9b462e41c1431b1d4b9cb198993f36e3e3b059992f9b849a618a0"
+    },
+    {
+      "case": "object-report-site-damage-raise-02",
+      "root": "R:\\d2-evidence\\combat-characterization-20261028\\roots\\object-report-site-damage-raise-02",
+      "actual_exit": 0,
+      "command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\object-report-site-damage-raise-02",
+        "--compare",
+        "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-64cf-post-object-report-site-damage-raise-02.log",
+      "log_sha256": "16eda055ffad325497501fd6221b66e20dc82fc06de7ceee9c8f76022264ec31"
+    },
+    {
+      "case": "object-report-site-destroy-duplicate-02",
+      "root": "R:\\d2-evidence\\combat-characterization-20261028\\roots\\object-report-site-destroy-duplicate-02",
+      "actual_exit": 0,
+      "command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\object-report-site-destroy-duplicate-02",
+        "--compare",
+        "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-64cf-post-object-report-site-destroy-duplicate-02.log",
+      "log_sha256": "81a9f15e6ee945988fb0225edc1ab2b972be8916db51e322d84ae12aa645f0fd"
+    },
+    {
+      "case": "object-report-site-own-destroy-unknown-02",
+      "root": "R:\\d2-evidence\\combat-characterization-20261028\\roots\\object-report-site-own-destroy-unknown-02",
+      "actual_exit": 0,
+      "command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\object-report-site-own-destroy-unknown-02",
+        "--compare",
+        "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-64cf-post-object-report-site-own-destroy-unknown-02.log",
+      "log_sha256": "55121e399602bb202bbc47031531f9cc5be04c29249b474bc19859a548a064bb"
+    },
+    {
+      "case": "object-report-segment-none-02",
+      "root": "R:\\d2-evidence\\combat-characterization-20261028\\roots\\object-report-segment-none-02",
+      "actual_exit": 0,
+      "command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\object-report-segment-none-02",
+        "--compare",
+        "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-64cf-post-object-report-segment-none-02.log",
+      "log_sha256": "17f2073276e4ca25cc92f2e215b8bb0c877403f215d76172be5563989ab34ff3"
+    },
+    {
+      "case": "object-report-segment-destroy-02",
+      "root": "R:\\d2-evidence\\combat-characterization-20261028\\roots\\object-report-segment-destroy-02",
+      "actual_exit": 0,
+      "command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\object-report-segment-destroy-02",
+        "--compare",
+        "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-64cf-post-object-report-segment-destroy-02.log",
+      "log_sha256": "974784b45568dcc64d8e120d1f7d6f2c2ff930db24f872b0b0c395ccb6936f93"
+    }
+  ],
+  "passed": true,
+  "limits": "Input identity verification only; separate source/build/actual native exits and observed report state required."
+}

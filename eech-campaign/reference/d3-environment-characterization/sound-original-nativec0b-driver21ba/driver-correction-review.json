@@ -1,0 +1,97 @@
+{
+  "review_id": "ENV-SOUND-DRIVER-CORRECTION-21BA-20261031",
+  "reviewer": "Sole independent Codex reviewer; no nested agents",
+  "reviewed_utc": "2026-10-31T14:19:57.5269053Z",
+  "scope": "One changed-delta review of the reported sound characterization protocol group and its new guards, from c0b via actual-red93bc to fixed21ba. No unchanged C fixture or production/kernel source re-review.",
+  "source": {
+    "finding_base": "c0b6c3386dae772eafcd456bc3620f0299bccb4f",
+    "red": "93bc520d1c8a909858e45247aac9cf7a748ef002",
+    "fixed": "21ba7114339993df5edf190d434f739e12ab2192",
+    "tree": "fe9f52ad6f2f35a0bed2786dd5a5f206e8d4a41c",
+    "frozen": "R:/d3-evidence/environment-sound-driver-source-21ba71143",
+    "clean": true,
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "blob": "769471908f840a421f93de99a045ab6a02150c4e",
+        "sha256": "62f5e208438511ac5add3f018790459bd25b8acfea24f06f91422c3ccb3a74c3"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-characterization.lua",
+        "blob": "8fa62a33b7c062d21febc446659634ca0040df45",
+        "sha256": "45f3e3ada5eb8ac10e4e1c153f22fa07d63879a87f9d55bb3dbcea29006a2bdb"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sound_characterization.rs",
+        "blob": "b11f23e62b902c3bdbebee81dd5cd4ce0bcdf72d",
+        "sha256": "b1479969e7edc8c8db0f300f7878ff123f62b916f87e1d4ae813583d2d5d0b39"
+      },
+      {
+        "path": "eech-campaign/docs/d3-environment-sound-routine.md",
+        "blob": "e7b197daaeae18b8742db4b98927b7ebfc416a4f",
+        "sha256": "b1fbbb3c54ac9591233f94948ed058205556ce296424e1234cdcbd3f8d8698b2"
+      }
+    ],
+    "driver_sha256": "45f3e3ada5eb8ac10e4e1c153f22fa07d63879a87f9d55bb3dbcea29006a2bdb",
+    "guards_blob_red_and_fixed": "b11f23e62b902c3bdbebee81dd5cd4ce0bcdf72d",
+    "fixture_blob_c0b_red_and_fixed": "a0911c0a7d1dd50b5933cb6a4cf215a4b0800dc8",
+    "driver_blob_c0b_and_red": "beb0a971740a9927d5c01f8d8200bb8e90475cdc"
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/environment-sound-driver-93bc520d1-red-linux-20261031.log",
+      "sha256": "7928dfbb940c0e8ca3b23e87b81f80bb0c829358a0a82730719bee72c0f4b99d"
+    },
+    {
+      "path": "R:/d3-evidence/environment-sound-driver-93bc520d1-red-linux-20261031-completion.json",
+      "sha256": "2c21c03fbc094f206dd12c6e967fde5b1e74dde4d863f1a5b5e095d28a99ca97"
+    },
+    {
+      "path": "R:/d3-evidence/environment-sound-driver-21ba71143-equivalence-20261031.json",
+      "sha256": "c15fae60bace84213e126b6c1d8818e6de63361e89c474251dff12ac68e1caf4"
+    }
+  ],
+  "closed_finding": {
+    "id": "ENV-SOUND-ORIGINAL-1",
+    "prior_report": "independent-environment-sound-original-source-review-c0b6c3386-20261031.json",
+    "prior_sha256": "b618371bda7e8dd023dabc8c3bf41973c02599467772fb79eff8bf2fcc61af63",
+    "status": "CLOSED IN REVIEWED SOURCE",
+    "refs": [
+      "eech-campaign/crates/eech-world/lua/env-sound-characterization.lua:102",
+      "eech-campaign/crates/eech-world/lua/env-sound-characterization.lua:113",
+      "eech-campaign/crates/eech-world/lua/env-sound-characterization.lua:194",
+      "eech-campaign/crates/eech-world/lua/env-sound-characterization.lua:205"
+    ],
+    "facts": "Both state fingerprints are now required exact16lowercase hex before equality; both absent cannot pass. Each answered case requires exactly one session row, a digits-only current case index and an explicit0/1 session fact. RNG unchanged facts are explicitly0/1. Child words in plan/before/after lists require exact8lowercase hex; na is rejected for the ambient sound classes and reserved for declared other/nonsound. Valid0 facts remain accepted and counted as anomalies. No amplitude formula or accepted amplitude values are introduced, and valid serialized word/raw outputs remain unchanged."
+  },
+  "guard_assessment": {
+    "refs": [
+      "eech-campaign/crates/eech-world/tests/env_sound_characterization.rs:351",
+      "eech-campaign/crates/eech-world/tests/env_sound_characterization.rs:373"
+    ],
+    "facts": "The focused test constructs23damaged versions of actual-grammar scripted records, requires an env-sound witness error plus witness_failure and no success summary, and collects every failure to refuse. Healthy and genuine0-anomaly controls remain. Existing negative controls already refused before correction are retained. The guard file is byte-identical from red to fixed; the cases calculate no amplitude or physics."
+  },
+  "actual_red_read": {
+    "source": "93bc520d1c8a909858e45247aac9cf7a748ef002",
+    "actual_exit": 101,
+    "completed_utc": "2026-10-31T14:16:09.741280+00:00",
+    "scope": "One focused test ran and failed;4others filtered. Log lists13of23damaged records still accepted by unchanged c0b driver, including both fingerprints absent, duplicate/foreign session rows and malformed sound words. Positive healthy/anomaly controls ran. This is measured witness red, not a native or campaign failure."
+  },
+  "other_inspected_facts": [
+    "Equivalence receipt and changed path lists restrict the fix to driver/docs and the previously added guard; Cfixture/native production/ABI/providers are unchanged. Explicit new21driver with unchangedc0b native provenance is supported; no native rebuild is inferred from this source review.",
+    "Docs now state the equal-mode outdoor rain alias/double attenuation exactly and retain the compiled reader/player/render disposition as required D3 work. No semantic baseline repair or dead-code inference is introduced.",
+    "Session and fingerprint-shape checks occur before call rows are emitted. A later failure can still leave partial diagnostic rows followed by witness_failure and no success summary; those rows are not valid completed characterization. This review does not promote them to acceptance."
+  ],
+  "findings": [],
+  "verdict": "No actionable findings in the changed delta. ENV-SOUND-ORIGINAL-1 closed in source, with actual red retained; corrected execution and original retail characterization remain separate gates.",
+  "validation": {
+    "performed": "Read-only diff/source/blob/hash inspection, actual prior-red log/receipt read and git diff --check0. Only this private report written.",
+    "not_performed": "No new tests/builds/compilers/native runs, source edits, process/Docker changes, external calls, public writes or auth changes.",
+    "runtime_pending": "At handoff Root corrected5guard/strict controller6972 was live, no result yet. Priorc0b Windowsfixturebuild0/Linuxold4guards/nativefixturecompile/strict0 are reused. Original retail sound measurement NOTRUN; no amplitude baseline or physical solver delivery accepted."
+  },
+  "limitations": [
+    "The fingerprint is rendered fixture-state bookkeeping, not CPU floating-point state evidence. The23-case scripted guard verifies driver behavior only, not the original sound routine or its physics.",
+    "No unchanged C/kernel/observer/field/wind/original-sector source or runtime review repeated. All old reports, red evidence and partials retained.",
+    "Whole Task51/D3 remains open, including physical effects/time/remaining terrain/spatial/model/full shipping/currentCI/review/normal merges. D4/D5 unstarted; no player/render/speaker completion claim."
+  ]
+}

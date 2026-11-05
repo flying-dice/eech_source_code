@@ -1,0 +1,229 @@
+{
+  "when_utc": "2026-10-31T17:37:59.847311+00:00",
+  "scope": "Focused original queue behavior on current hosted field/ambient baseline. Every non-queue RAW row including endings compared with retained native765/driver235 fixed120s control. New queue/primitive values are observations, not expected physical goldens, host authority, renderer/network/audio, Tacview or shipping acceptance.",
+  "old_source": "76533dd3ae836674c27704040d6ce1b6ed84f80d",
+  "old_script_source": "235290e0d4b48cb1bfce2cc5556217d14251ec97",
+  "new_source": "a27f6ead2150fd4047c87a8eb7c5583f6a6d6c01",
+  "new_native_controller_exits": [
+    0,
+    0
+  ],
+  "all_pre_post_inputs0": true,
+  "verified_payloads": 53,
+  "nonqueue_raw_rows": [
+    17230,
+    17230
+  ],
+  "all_nonqueue_raw_including_endings_equal": false,
+  "first_difference": 25,
+  "natural_raw_bytes": 5181498,
+  "natural_raw_sha256": "3248f58461e40d76b9a8b19e6c827f901e54c4bf1ef314c162735ae03eb9d710",
+  "queue_event_counts": {
+    "env-lightning-plan": 1,
+    "env-lightning-unsupported": 2,
+    "env-lq-report": 1,
+    "env-lq": 12,
+    "env-lq-slot": 4,
+    "lightning_queue_outcome": 4,
+    "lightning_queue_environment": 2,
+    "lightning_queue_summary": 1
+  },
+  "queue_summary": {
+    "event": "lightning_queue_summary",
+    "final_occupancy": 4,
+    "lightning_events": 2,
+    "main_present": 1,
+    "no_active_environment": 0,
+    "queue_capacity": 32,
+    "queue_full": 0,
+    "queued": 4,
+    "records": 12,
+    "unexplained": 0,
+    "update_calls": 0
+  },
+  "private_comparison_sha256": "7edfc2562a13b9f9ece0c1c3ff6d3a6c1666b1d2f53d0ae3c96e36df76f7e065",
+  "current_equivalent_host_control": {
+    "when_utc": "2026-10-31T17:47:31.385190+00:00",
+    "scope": "COMPLETE current hosted-field PREQUEUE observer baseline RAW vs new queue probe non-queue RAW, including every ending. Separate result: historicalpre-hostfield765 observer comparison remains FALSE; no row normalization or acceptance baseline/tolerance change. No host queue handoff/Tacview/shipping acceptance.",
+    "baseline_native_source": "d559c38592405afcabc172ec876a4fdfa7f9687b",
+    "baseline_code_equivalent_preprobe_source": "12ca0f15f83a6301ac24455788096800345faad6",
+    "new_probe_native_source": "a27f6ead2150fd4047c87a8eb7c5583f6a6d6c01",
+    "new_primitive_driver_source": "60e5ee0bd60b6197d09705e7d388311885fd83ea",
+    "actual_native_controller_exits": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "verified_payloads": [
+      51,
+      53
+    ],
+    "all_four_pre_post_inputs0": true,
+    "raw_row_counts": [
+      17230,
+      17230
+    ],
+    "complete_currenthost_nonqueue_raw_including_endings_equal": true,
+    "differing_rows": 0,
+    "first_difference": null,
+    "baseline_complete_raw_sha256": "e3b660d265b8d231d94a87e087e4d7967837767244e491edc9be2d15dda52f65",
+    "probe_nonqueue_raw_sha256": "e3b660d265b8d231d94a87e087e4d7967837767244e491edc9be2d15dda52f65",
+    "probe_complete_raw_sha256": "3248f58461e40d76b9a8b19e6c827f901e54c4bf1ef314c162735ae03eb9d710",
+    "retained_historical_comparison_whole_nonqueue_equal": false,
+    "historical_differences": 16,
+    "historical_changed_fields_only": "boot weather_draw.w0, a1/3/4/5/6/8/9/10 x2; preexisting05b8 hostedinit rawdraw hooks vslegacy derivedfield hooks; sameRNG/seq/allother17214rows andall10830selectedstate/campaign/runrows exact",
+    "historical_investigation_sha256": "5f97429600fa8b1bf026bd72e00a16958614644cca04105a17e855c7af07b64c"
+  },
+  "original_five_case_aggregate_exit": 1,
+  "aggregate_exit_reason": "ONLY historical observer comparison:16 preexisting field diagnostic changes; all5physical runs0. Failed receipt is unchanged.",
+  "primitives": [
+    {
+      "case": 1,
+      "source": "a27f6ead2150fd4047c87a8eb7c5583f6a6d6c01",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 53,
+      "raw_bytes": 2585,
+      "raw_sha256": "bbd61178c4b0d113d072de3cfec42320284b81835713ade1721e6055f9a613f5",
+      "events": {
+        "boot": 1,
+        "env-lightning-plan": 1,
+        "env-lightning-unsupported": 2,
+        "env-lq-report": 1,
+        "env-lightning": 1,
+        "env-lightning-end": 1,
+        "result": 1
+      },
+      "result": {
+        "case": 1,
+        "changed": "1",
+        "event": "result",
+        "label": "add_without_active_environment",
+        "mask_after_w": "00000000",
+        "mask_before_w": "00000000",
+        "occupancy_after": "0",
+        "occupancy_before": "0",
+        "refusal": "",
+        "refused": false,
+        "update_calls_after": "0",
+        "update_calls_before": "0"
+      }
+    },
+    {
+      "case": 2,
+      "source": "a27f6ead2150fd4047c87a8eb7c5583f6a6d6c01",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 53,
+      "raw_bytes": 3181,
+      "raw_sha256": "929d0f151e8a9bf9615fdd75e2cfa50e877fed86c1a2d43b0797470409b744ff",
+      "events": {
+        "boot": 1,
+        "env-lightning-plan": 1,
+        "env-lightning-unsupported": 2,
+        "env-lq-report": 1,
+        "env-lightning": 1,
+        "env-lightning-input": 1,
+        "env-lightning-slot": 1,
+        "env-lightning-end": 1,
+        "result": 1
+      },
+      "result": {
+        "case": 2,
+        "changed": "1",
+        "event": "result",
+        "label": "add_with_the_main_environment",
+        "mask_after_w": "00000001",
+        "mask_before_w": "00000000",
+        "occupancy_after": "1",
+        "occupancy_before": "0",
+        "refusal": "",
+        "refused": false,
+        "update_calls_after": "0",
+        "update_calls_before": "0"
+      }
+    },
+    {
+      "case": 3,
+      "source": "a27f6ead2150fd4047c87a8eb7c5583f6a6d6c01",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 53,
+      "raw_bytes": 13860,
+      "raw_sha256": "028abbfc794cce455247352bb586411e99631ef7862034bc3fcf93011e507d99",
+      "events": {
+        "boot": 1,
+        "env-lightning-plan": 1,
+        "env-lightning-unsupported": 2,
+        "env-lq-report": 1,
+        "env-lightning": 1,
+        "env-lightning-step": 2,
+        "env-lightning-slot": 32,
+        "env-lightning-end": 1,
+        "result": 1
+      },
+      "result": {
+        "case": 3,
+        "changed": "1",
+        "event": "result",
+        "label": "fill_the_queue_and_drop_the_next",
+        "mask_after_w": "ffffffff",
+        "mask_before_w": "00000000",
+        "occupancy_after": "32",
+        "occupancy_before": "0",
+        "refusal": "",
+        "refused": false,
+        "update_calls_after": "0",
+        "update_calls_before": "0"
+      }
+    },
+    {
+      "case": 4,
+      "source": "a27f6ead2150fd4047c87a8eb7c5583f6a6d6c01",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 53,
+      "raw_bytes": 3993,
+      "raw_sha256": "d6ee22ef0bb6bd06b384f7b2d6a50bdb555df088bf9972b5247ac29d148d339f",
+      "events": {
+        "boot": 1,
+        "env-lightning-plan": 1,
+        "env-lightning-unsupported": 2,
+        "env-lq-report": 1,
+        "env-lightning": 1,
+        "env-lightning-input": 1,
+        "env-lightning-slot": 3,
+        "env-lightning-end": 1,
+        "result": 1
+      },
+      "result": {
+        "case": 4,
+        "changed": "1",
+        "event": "result",
+        "label": "age_a_cloud_burst_by_the_time_of_day",
+        "mask_after_w": "00000000",
+        "mask_before_w": "00000000",
+        "occupancy_after": "0",
+        "occupancy_before": "0",
+        "refusal": "",
+        "refused": false,
+        "update_calls_after": "2",
+        "update_calls_before": "0"
+      }
+    }
+  ],
+  "primitive_driver_source": "60e5ee0bd60b6197d09705e7d388311885fd83ea",
+  "primitive_driver_sha256": "4378af4c393664abe0b856e4fe6e9f6a0054e9b46ad8b36c0c8e474dfe6d26e8",
+  "all_five_actual_native_controller_exits0": true,
+  "all_ten_pre_post_inputs0": true,
+  "original_queue_characterization_only": true
+}

@@ -65,6 +65,8 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "project.h"
+#include "entity/mobile/mb_aimfx.h"
+#include "entity/mobile/mb_hostaim.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -335,14 +337,37 @@ int get_local_entity_cargo_door_state (entity *en)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// The weapon-system-ready devices are physical: the host owns their state machine (EEDCS-44, mb_hostaim.h).  The campaign says open or close, and keeps the
+// host's answer as the entity's weapon-system-ready state.  The keyframe primitives in key_anim.c stay for the doors, flaps, airbrakes and undercarriage.
+
+static void command_entity_weapon_system_ready (entity *en, int open)
+{
+	campaign_aim_step
+		step;
+
+	campaign_aim_result
+		result;
+
+	memset (&step, 0, sizeof (step));
+
+	step.mode = CAMPAIGN_AIM_READY_COMMAND;
+
+	campaign_aim_identify (&step, en, NULL);
+
+	step.ready_state = get_local_entity_float_value( en, FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE );
+
+	step.ready_open = open;
+
+	result = campaign_aim_ask (&step, FALSE);
+
+	AIM_FX_READY_COMMAND (en, open, result.ready_state)
+
+	set_local_entity_float_value( en, FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE, result.ready_state );
+}
+
 void open_entity_weapon_system_ready (entity *en)
 {
-	float
-		val;
-
-	val = set_entity_keyframe_value_animating_forwards( en, get_local_entity_float_value( en, FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE ) );
-
-	set_local_entity_float_value( en, FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE, val );
+	command_entity_weapon_system_ready (en, TRUE);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -351,12 +376,7 @@ void open_entity_weapon_system_ready (entity *en)
 
 void close_entity_weapon_system_ready( entity *en )
 {
-	float
-		val;
-
-	val = set_entity_keyframe_value_animating_reverse( en, get_local_entity_float_value( en, FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE ) );
-
-	set_local_entity_float_value( en, FLOAT_TYPE_WEAPON_SYSTEM_READY_STATE, val );
+	command_entity_weapon_system_ready (en, FALSE);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

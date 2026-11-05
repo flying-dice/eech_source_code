@@ -1,0 +1,374 @@
+[
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-ab900-completion.json",
+    "copy": "root-h1-ab900-completion.json",
+    "bytes": 2067,
+    "sha256": "1296dbc5011e5e39480da02bd36b8236624648b460f267740bc4f49595584814"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-ab900-complete-comparison.json",
+    "copy": "root-h1-ab900-complete-comparison.json",
+    "bytes": 1302,
+    "sha256": "6e0892ebefc2df8c61b00e0faeb693797ee7cbf0b82686792a333a145e4f1f85"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-ab900-post-input.log",
+    "copy": "root-h1-ab900-post-input.log",
+    "bytes": 252,
+    "sha256": "487eeb147686ae34c5748f91a0b37259f0c85cb44e2478ae29527d6726a5fc41"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-provider-cohort-audit.json",
+    "copy": "root-h1-provider-cohort-audit.json",
+    "bytes": 39964,
+    "sha256": "ac0fd1ae254015db687df67ebff3f7962b74f48af1e3949865408ec4893dcb96"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-B-post-inputs.json",
+    "copy": "root-h1-B-post-inputs.json",
+    "bytes": 5302,
+    "sha256": "f0f719c8c0478c6865f02ac5c3d816c4e30c6e4c43f9898007f57eca44e37080"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-B-build-manifest.json",
+    "copy": "root-h1-B-build-manifest.json",
+    "bytes": 9553,
+    "sha256": "3fc469c960bfccc972515af8cf6144cea5042ff2797f4ed6602f1e5796f330e8"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-matched-models-checkpoint.json",
+    "copy": "root-h1-matched-models-checkpoint.json",
+    "bytes": 10163,
+    "sha256": "67ec1b75002134adbf5598af6c4e40cd01784c4658fe63e71f2d48912ec61e30"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-C-release-final-completion.json",
+    "copy": "root-h1-C-release-final-completion.json",
+    "bytes": 3655,
+    "sha256": "6a2f26b977521af0cbf7fc7090c2ddb72ac9a426dc68cb47009d83dfdea165c3"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-C-final-build-manifest.json",
+    "copy": "root-h1-C-final-build-manifest.json",
+    "bytes": 9553,
+    "sha256": "b995ef332f20e160ad8cda3abab33f7b36e92a22e57f3adeeca9052d926dbbe2"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-cref180-post-inputs.log",
+    "copy": "root-h1-cref180-post-inputs.log",
+    "bytes": 305,
+    "sha256": "caa00f8942bf99db459cdd0fead097d7a193b55e7e9fe531515c43a1c9d7d733"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-cseduce600-post-inputs.log",
+    "copy": "root-h1-cseduce600-post-inputs.log",
+    "bytes": 308,
+    "sha256": "5f5054f4ca3f7533345b910bb8fb6ee1bf104cd48c8e63e871ace88eb5c689f6"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-crelease600-post-inputs.log",
+    "copy": "root-h1-crelease600-post-inputs.log",
+    "bytes": 309,
+    "sha256": "3bb7b7b97b75ab4a3b87e95a761b40e3e8480df6cf30c15039735e7c194d6eb2"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\independent-a137-remaining-focused-review-20261028.json",
+    "copy": "independent-a137-remaining-focused-review-20261028.json",
+    "bytes": 1162,
+    "sha256": "c2594e91e5627d02b90c030db53dfe499da8a067148c52cd7bfe4990c157a692"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\independent-a137-release-C-review-20261028.json",
+    "copy": "independent-a137-release-C-review-20261028.json",
+    "bytes": 677,
+    "sha256": "568647251feb698192fc004b1edf958f131653040cbcb2f896ec661333ba4601"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\h1-queue-b.log",
+    "copy": "h1-queue-b.log",
+    "bytes": 10472,
+    "sha256": "481c7986621c5efa9e17160e5cac673d1ce06db7d629702fdf2f28fa34e36f10"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\h1-queue-c.log",
+    "copy": "h1-queue-c.log",
+    "bytes": 1665,
+    "sha256": "9f6525f0affac718855efaa42f2b0789833f9adc0f948e41c3ee471744290194"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\scripts\\audit-h1-provider-cohort-20261028.py",
+    "copy": "audit-h1-provider-cohort-20261028.py",
+    "bytes": 4028,
+    "sha256": "aef9db26ba833f66e6c21773eeb45f3467c0d39062f059984504846769355324"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pref-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pref-provider-post-input.log",
+    "bytes": 302,
+    "sha256": "5f56ce16367bb216833d369f7089e287901405be660ce51b50d36b72c1da6122"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pnever-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pnever-provider-post-input.log",
+    "bytes": 304,
+    "sha256": "82c5865269b53ffa38459bf1983817d6531528cf14e6494024a4801bf77b4fed"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pown-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pown-provider-post-input.log",
+    "bytes": 302,
+    "sha256": "c2ce5090e7e68a983616fc0f4889142a645c0237642733791cdd8e2bad9c4b7f"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pseduce-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pseduce-provider-post-input.log",
+    "bytes": 305,
+    "sha256": "e8e4715a5c87f9fd9b3dc74863d0bd11480c8fd0d4b3efead3e8a3830c72f0c3"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pfast-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pfast-provider-post-input.log",
+    "bytes": 303,
+    "sha256": "4a1b1a68202c201fc63109450b85eddd3d3f0b9f34a4844b4f02ad088d32437f"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-prelslow-provider-post-input.log",
+    "copy": "post-inputs/root-h1-prelslow-provider-post-input.log",
+    "bytes": 306,
+    "sha256": "d4ee99fe2de53c4a2885d296d954f001415c78740568792a0b2940a9b27f7cf0"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pdrag-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pdrag-provider-post-input.log",
+    "bytes": 303,
+    "sha256": "f4bb01eb2be6f10b43fae29b46fd65b2ce5e09ce2bbaf8fee3cdf50d5710799d"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pshort-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pshort-provider-post-input.log",
+    "bytes": 304,
+    "sha256": "80fc0a9f13ffd671532b9b3463b38386eb9f9ad2f11bd3fc2475aea74deab462"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pbss-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pbss-provider-post-input.log",
+    "bytes": 302,
+    "sha256": "641c6648bcbb8fddcb349dad72a0428f6a8a409ae5f9b32b5c557e97993f3f70"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pbsl-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pbsl-provider-post-input.log",
+    "bytes": 302,
+    "sha256": "295b376d686106eeca62a60f2eb9b30a41dbedf19371131333a992c860fc5f43"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pbsa-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pbsa-provider-post-input.log",
+    "bytes": 302,
+    "sha256": "ea5fba99939b51a69b0944e14554e50e13bf8c55456999c438fc1965ed4d6a6d"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pbsn-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pbsn-provider-post-input.log",
+    "bytes": 302,
+    "sha256": "3f5b6bb602a2e7f1cb6b54a47e2a4df441cb77b5f390433db59d1ae0da3fe479"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pbsr-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pbsr-provider-post-input.log",
+    "bytes": 302,
+    "sha256": "803c7d2474f4f9277c72f15f43c534fdf64f661d2be1e0fcb93eb7fc1b7a2f83"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pbse-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pbse-provider-post-input.log",
+    "bytes": 302,
+    "sha256": "eb228c535b03d67f32938b01dd81ae038641a068d30d7d018998b42bf5ae330d"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pbsd-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pbsd-provider-post-input.log",
+    "bytes": 302,
+    "sha256": "377b3ae3b7122c847e9153ad5432108756a864a6b8fd95eaf3143546f8cc52d2"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pbba-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pbba-provider-post-input.log",
+    "bytes": 302,
+    "sha256": "5a1805bb546f0d19e9a55a0af806e7aaf09601f068dc90d27989fdeffb7313ff"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pbrb-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pbrb-provider-post-input.log",
+    "bytes": 302,
+    "sha256": "305bd6a1eddec5141c2f4b6127b4fbdb44d2a8eb6049fd593ba95098503a8d0d"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pbdf-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pbdf-provider-post-input.log",
+    "bytes": 302,
+    "sha256": "5bf6c8e1d493cc5709e74ee874e6f7dc643d4e9a2b4bd39ed3ead188bea18416"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pbsf-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pbsf-provider-post-input.log",
+    "bytes": 302,
+    "sha256": "b092da002a9e6be86c80a016d1dc3c1643bb06016c8f210d97914d59f37dbb3f"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pbrf-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pbrf-provider-post-input.log",
+    "bytes": 302,
+    "sha256": "ae4c692c91b7da141f7cf9d812976a9ba7d5cc2d38828cd1e18a81caef703d93"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\root-h1-pbrn-provider-post-input.log",
+    "copy": "post-inputs/root-h1-pbrn-provider-post-input.log",
+    "bytes": 302,
+    "sha256": "a1c2a43ebe3066bda20e1c31129f362431875a9347493b5e91feec473fcff528"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pref\\summary.jsonl",
+    "copy": "summaries/h1-pref.jsonl",
+    "bytes": 928,
+    "sha256": "33b0674dc518b373cc8239efc8bb6420bdeaeb1fb64b49f6bcaf2288ca69b6ce"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pnever\\summary.jsonl",
+    "copy": "summaries/h1-pnever.jsonl",
+    "bytes": 930,
+    "sha256": "ba22e10c1e1fb7134d0c31037cdb0b5fb51d1259c2e8208884ad4d430c2ca216"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pown\\summary.jsonl",
+    "copy": "summaries/h1-pown.jsonl",
+    "bytes": 839,
+    "sha256": "a5dc445ce8063bfe8a585c18621f85241c46e5dc11fe1d5e92a47e46d2381b8d"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pseduce\\summary.jsonl",
+    "copy": "summaries/h1-pseduce.jsonl",
+    "bytes": 880,
+    "sha256": "4de55b4195282c581750373ded2f1ccd100aac6fdc254792f2fb1e87e7d206e9"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pfast\\summary.jsonl",
+    "copy": "summaries/h1-pfast.jsonl",
+    "bytes": 879,
+    "sha256": "7e5918311b486de5f4f6e25d79bedabc6dbabb885206eae0c93a24869797e677"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-prelslow\\summary.jsonl",
+    "copy": "summaries/h1-prelslow.jsonl",
+    "bytes": 880,
+    "sha256": "fbeaf36c8440747535066c56aa3e1ca29b8ab6f7ea7755236ecfad08948c35ab"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pdrag\\summary.jsonl",
+    "copy": "summaries/h1-pdrag.jsonl",
+    "bytes": 878,
+    "sha256": "4bc4c7ee43f8f5ccb8e25ce01c141aa4167500e9691d47edbf52e0c02ca21019"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pshort\\summary.jsonl",
+    "copy": "summaries/h1-pshort.jsonl",
+    "bytes": 878,
+    "sha256": "c098b1272e13e4ac127f67800eae6cd796d19ffd0baf731001e5708d9191d0e6"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pbss\\summary.jsonl",
+    "copy": "summaries/h1-pbss.jsonl",
+    "bytes": 1003,
+    "sha256": "3bb9cb1590834bd6f207eb14c91a2b0e2661a68cef088df3085a3deb18fca5dd"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pbsl\\summary.jsonl",
+    "copy": "summaries/h1-pbsl.jsonl",
+    "bytes": 971,
+    "sha256": "a4f9687b3837aacf97561a1ae0146ed61804d22d197ccb3eee71a3e903d01f50"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pbsa\\summary.jsonl",
+    "copy": "summaries/h1-pbsa.jsonl",
+    "bytes": 975,
+    "sha256": "32979b94e47ec2f47fa9ed8c1b9971f589afbb8de83846c652bd31fb85e91aea"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pbsn\\summary.jsonl",
+    "copy": "summaries/h1-pbsn.jsonl",
+    "bytes": 989,
+    "sha256": "c06baa810ec0d4a3f57eadbf5431f3b34deebf8bcf9ec83ca6edb882c3511607"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pbsr\\summary.jsonl",
+    "copy": "summaries/h1-pbsr.jsonl",
+    "bytes": 982,
+    "sha256": "6b7f905d0f92f9d605695b6ce631569440b23a119278b4e6222b9d65b7449c13"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pbse\\summary.jsonl",
+    "copy": "summaries/h1-pbse.jsonl",
+    "bytes": 1040,
+    "sha256": "07ca268038e72a92b2fe4bb6cdd15f97c6e34b120990f156923ff84f11d571f4"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pbsd\\summary.jsonl",
+    "copy": "summaries/h1-pbsd.jsonl",
+    "bytes": 953,
+    "sha256": "e53dc69d62701ca2ffc052e51c4343e2eaed6801fc160ca941991e273fb00ae3"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pbba\\summary.jsonl",
+    "copy": "summaries/h1-pbba.jsonl",
+    "bytes": 967,
+    "sha256": "e188b31a3e8411aec626c3d50d494055abb258a79a8db0a451fb3b13b5221966"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pbrb\\summary.jsonl",
+    "copy": "summaries/h1-pbrb.jsonl",
+    "bytes": 1002,
+    "sha256": "a7b212512278c668af8f46efde2c63bc61a1e7102b7c2328f68c47d69f710f28"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pbdf\\summary.jsonl",
+    "copy": "summaries/h1-pbdf.jsonl",
+    "bytes": 1019,
+    "sha256": "c7668f36bc26ae5c0d694485dcce433de9fae2f75489eca4565cb110a665e663"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pbsf\\summary.jsonl",
+    "copy": "summaries/h1-pbsf.jsonl",
+    "bytes": 1027,
+    "sha256": "1ad44bda3629d859ad3f0ca20bd18bdd5a16d0dc3ed377b8105ee55c1b95a0a7"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pbrf\\summary.jsonl",
+    "copy": "summaries/h1-pbrf.jsonl",
+    "bytes": 1034,
+    "sha256": "a8e1c239473426451c9b0683feda37d2640fa68942988787d94c4be83d18f59b"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-pbrn\\summary.jsonl",
+    "copy": "summaries/h1-pbrn.jsonl",
+    "bytes": 1037,
+    "sha256": "81a6d2aeb0e3953035a292da413006240968c7169820696af2f48511432d3832"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-cref180\\summary.jsonl",
+    "copy": "summaries/h1-cref180.jsonl",
+    "bytes": 877,
+    "sha256": "6bae672ae5c2d47db17ede7a8eeb45c936e69e86517c2fc628ea770315e91da9"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-cseduce600\\summary.jsonl",
+    "copy": "summaries/h1-cseduce600.jsonl",
+    "bytes": 921,
+    "sha256": "ea157422d817ec27495f507d96b79a2a2ac1750ed83dc3778a4d34bb06e6b653"
+  },
+  {
+    "source": "R:\\d2-evidence\\weapon-characterization-20261027\\out\\h1-crelease600\\summary.jsonl",
+    "copy": "summaries/h1-crelease600.jsonl",
+    "bytes": 930,
+    "sha256": "560f919d9c5783dcb068b216dc52363a88d40cb5c5f356b5745de6b2d364ae1b"
+  }
+]

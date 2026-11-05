@@ -1,0 +1,124 @@
+{
+  "review_id": "ENV-G12-CORRECTION-D559-20261031",
+  "reviewed_utc": "2026-10-31T15:47:51.6271531Z",
+  "reviewer": "Sole independent Codex reviewer; no nested agents",
+  "scope": "One finite f6..d559 G12-only correction correctness, clean-code, boundary and evidence-scope pass. No production/G11 kernel re-review, builds, runs, process changes, Docker, source edits or public writes.",
+  "source": {
+    "repository": "R:/d3-evidence/environment-sound-source-d559c3859",
+    "base": "f6d812c7c8e33179ec7d0a8143ede370da336bf5",
+    "head": "d559c38592405afcabc172ec876a4fdfa7f9687b",
+    "tree": "66c7b33aa2f6c2922ac2cc1beb5497c71d40a9e5",
+    "clean": true,
+    "identities": [
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+        "blob": "39561b6a63cd8d54d2f326c0ba18e5d8e7f8701e",
+        "sha256": "e7a6019c65e78ab46cc00a6349dbf393431dbd8a31b2847cda6e36fa60e4ce98"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-wide-children.lua",
+        "blob": "560fac3a7ac4e579df5908bc886416aaf7798888",
+        "sha256": "f7abe22c2ac4dfe9ff46c44a811fe89cd1eecac34d8b07fa6d5e390a730e9f1a"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sound_wide_children.rs",
+        "blob": "737e7640e567123c03b0efed4c435cf135266dc4",
+        "sha256": "babbbafbb9fbded6c8edbb05e3028041ebf936360751026d2725c1d7ee2b889b"
+      },
+      {
+        "path": "eech-campaign/docs/d3-environment-sound-routine.md",
+        "blob": "098c35088133ed69702a61d57daa67722b5428b8",
+        "sha256": "5ea06bfccf35f826d5d8e33e7b0d6cb3786262ecb3de88b05efc5c222e64abbb"
+      },
+      {
+        "path": "STATUS.md",
+        "blob": "7379c442e33065c445f079ede628af792641f152",
+        "sha256": "cd04df01e07af68d5c50033c9c22b1daff7898116da8d675c76ee846da304abe"
+      }
+    ],
+    "equivalence": "Diff contains only fixture group12, its driver/harness, docs/status and safe retained receipts. Direct git-blob comparison confirms fixture prefix before group12 and suffix from env_case_count exact. The Root equivalence receipt describes its honest pre-pin uncommitted snapshot; it does not pretend to be a d559 execution receipt."
+  },
+  "reused_review": {
+    "path": "R:/d3-evidence/independent-environment-ambient-host-correction-review-f6d812c7c-20261031.json",
+    "sha256": "6da713059607c57e16fbacaaa92ab3f221c502cb22e5b4519d21f84f03eaa0c6",
+    "scope": "Production source verdict reused; only ENV-AMBIENT-WIDE-1 reopened for this new correction."
+  },
+  "finding_closure": {
+    "id": "ENV-AMBIENT-WIDE-1",
+    "source_disposition": "Corrected in source and exercised successfully by the finite real 16/17/20 control; no new findings.",
+    "facts": [
+      "eech_env_fixture.c:2243-2249 captures post-body force_root, special_effect_root and update_link, performs the existing whole-session restoration, then reinstates the live list roots/links. This also occurs before the rc error return, so returning errors do not rewind newly allocated topology. No new ownership or deallocation is implied.",
+      "env_wide_topology at line 2018 verifies every walked special-effect child parent, predecessor and termination. It is checked after construction, reported after the real update, and checked again after cleanup. The bounded 4096-step refusal protects this diagnostic walk; existing child scratch remains limited to 32 and rejects oversized lists.",
+      "Cleanup reads the actual child list again and compares count and ordered entity identities with the post-update list before emitting list_preserved. The driver requires topology=ok, list_topology_after_cleanup=ok and list_preserved=1. The old root rewind therefore cannot silently produce a healthy case.",
+      "Lua lines 161-188 require each live terrain_before count to match the previous target, exclude genuinely new IDs and compare the remaining ordered entity/subtype/class list with the preceding after list. A reported new ID already in the prior list is refused. The logic accepts head insertion without assuming created entities are appended.",
+      "The common cleanup preserves the intentionally persistent heap/list/amplitude mutations and restores the scalar/field/global inputs as before. Fatal engine stops still do not claim restoration; returning fixture refusal/error rows cannot become a healthy summary."
+    ],
+    "guards": [
+      "Added finite damaged-record cases reject failed cleanup identity, bad parent/topology after cleanup, bad predecessor topology after update, the old 6-versus-16 continuity signature, a falsely new old ID and a substituted retained entity.",
+      "Existing altitude-140/delta-zero, own j/128 setup and half-word j/256 nonidentity checks remain, as do drop/reorder/revalue/skipped-child/missing/refused/error guards.",
+      "Updated Rust header and healthy-test naming now match the actual nonidentity setup. Scripted guards prove driver bookkeeping, not real DLL topology, physics, audible output or player/render behavior."
+    ],
+    "clean_code": "The narrow fixture helper and explicit root/link preservation repair the ownership boundary without changing production or disguising the process-isolated heap mutation. No new source-specific blocking issue found."
+  },
+  "findings": [],
+  "execution_context": {
+    "kind": "Root-produced actual receipts read for scope; this reviewer did not execute tests",
+    "evidence": [
+      {
+        "path": "R:/d3-evidence/environment-sound-G12-correction-production-equivalence-20261031.json",
+        "sha256": "e5225e24ce51db28874b210297eb5fc7e46d9b9d9f47e49c3f9ab5f10ba769b9"
+      },
+      {
+        "path": "R:/d3-evidence/environment-sound-f6-complete-numeric-comparison-20261031.json",
+        "sha256": "89ef9d687960b8e002de0bdb736bda1951a3806c8b9d3dfd7e21e85a7ba738c0"
+      },
+      {
+        "path": "R:/d3-evidence/environment-ambient-f6-hosted-mode-checks-20261031.json",
+        "sha256": "2794ce0cdce720a848c67b89dc7cebbb1a6d6fb749ff36f4c048a96f544b1058"
+      },
+      {
+        "path": "R:/d3-evidence/current-CI-f6d812c7c-20261031.json",
+        "sha256": "8d4d746274feff2253c6caf9c9f178337222fc9bfdd8eece598710b6a5efa408"
+      }
+    ],
+    "f6": [
+      "Three complete 108-row ambient numeric files including endings equal c0b/21 originals: Georgia 118118 bytes, each Lebanon 118120 bytes; all six input checks 0 and 51 payloads. This is numeric conformance, not altered-host authority or full shipping.",
+      "Retained f6 Linux full pipeline terminal 0 at 15:39:20.684102 UTC; Root reports both strict phases and affected package checks passed. Retained Windows engine/DC/world 81/24/254 and terrain ambient 4 passed.",
+      "Root current-CI receipt reports nine hosted successes and decoded Wine/both-i686 executions of both new ambient FP tests. These support the unchanged f6 production, not the changed G12 fixture.",
+      "Retained f6 wide diagnostic terminal native/controller 1 with witness_failure, pre/post input checks 0, 51 payloads. It reaches healthy 16 then detects count continuity loss at the next case; it is the expected fixture red and is preserved."
+    ],
+    "d559": "Windows normal native build actual 0 at 15:46:33.309551 UTC. Fresh fixed-recovery native/controller terminal 0 at 15:46:56.459626 UTC; pre-input/native/post-input stages all 0, 51 payloads. Linux log confirms four driver functions passed and first strict phase completed; second strict/current d559 CI still pending at this close.",
+    "d559_evidence": [
+      {
+        "path": "R:/d3-evidence/environment-sound-wide-d559c3859-real-fixed-20261031/controller.json",
+        "sha256": "37a22d7a436367111b7e27561e74d80a7a4908e6f6dfafb0d3fa0ecea21b07be"
+      },
+      {
+        "path": "R:/d3-evidence/environment-sound-wide-d559c3859-real-fixed-20261031/environment.jsonl",
+        "sha256": "51ff68cff933a996e62854c76cd4c8b08c4b63ba8903fae485662fdde7f5ee11"
+      },
+      {
+        "path": "R:/d3-evidence/environment-sound-G12-d559-real-control-summary-20261031.json",
+        "sha256": "e5ad20ce4d38a62748f35e038c90de812d2d29c06f807403e39e2e13360856b7"
+      },
+      {
+        "path": "R:/d3-evidence/environment-sound-host-d559c3859-windows-20261031-completion.json",
+        "sha256": "1236e9081fe655a788a87f82de13072277bbc34502a71d8c4e5bd7e39e28102e"
+      }
+    ],
+    "reviewer_readonly_raw_checks": [
+      "Parsed all seven strict JSON rows: boot, plan, unsupported, three cases, summary; complete raw SHA256 51ff68cff933a996e62854c76cd4c8b08c4b63ba8903fae485662fdde7f5ee11 matches controller and safe summary.",
+      "Independently checked targets 16/17/20, prior terrain counts 6/16/17, creations 10/1/3, unique entity IDs, genuinely new IDs and ordered retained entity/subtype/class continuity.",
+      "Independently checked each actual before word equals its own j/128 and after word equals j/256, with unchanged identity/order in each case: 16, 17 and 20 terrain words respectively; all after/update and cleanup topology observations pass and list_preserved is 1. No raw words, flags or coordinates reproduced here.",
+      "The copied runtime Lua file is byte-identical to frozen d559 source; SHA256 f7abe22c2ac4dfe9ff46c44a811fe89cd1eecac34d8b07fa6d5e390a730e9f1a.",
+      "The safe summary matches the actual receipt/raw scope. The process and root are consumed; no heap/list/amplitude restoration, audible/network/player/render or general changed-host authority is claimed."
+    ]
+  },
+  "limitations": [
+    "The corrected G12 source and finite fresh-root real constructor control are closed. This does not establish arbitrary list sizes, all campaigns, changed-host amplitude authority or full migration acceptance.",
+    "Canonical extended x87 reference precision remains explicitly unmeasured; this narrow fixture review makes no new startup-control claim.",
+    "No public amplitude-authority, speaker/audio, network, player/render, Tacview, full-shipping 40/all-8, normal-merge or Task51/D3 completion claim. Remaining effects/time/terrain/spatial/model stay required; D4/D5 unstarted.",
+    "Closed original/kernel/observer evidence retained and reused. No raw retail coordinates, flags or amplitude lists included in this private report."
+  ],
+  "verdict": "ENV-AMBIENT-WIDE-1 corrected in source and finite real 16/17/20 control verified; no new findings. Second strict/current d559 CI and wider authority/shipping/D3 gates remain open."
+}

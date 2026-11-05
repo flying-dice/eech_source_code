@@ -1,0 +1,28 @@
+EEDCS-38 host-owned force creation, initial placement and removal: what each file here is, and what it does and does not show
+
+BUILD-INFO.txt, build.head, build.tree, build.exit, cargo-build-full.log   provenance of the tested binaries (native head 5aa6ca54, 0 dirty inputs, hashes); cargo-build-full.log has 0 "warning" lines and no errors (no separate -Wall review)
+identities.txt                    revisions, hashes, input manifests, toolchains, reference-run hashes
+pack-report.json / .md            the single regression pack run at 5aa6ca54: PASS, 40 of 40 checks, exit 0 (pack.exit). Runner evidence. 17 directly protected, 12 baseline-sensitive, 8 NOT COVERED, 8 EVIDENCE ONLY, as the report states
+pack-loss-chain.json              the pack's M3 loss-chain observation
+independent-reference-hashes.json the parent's complete hashing of both reference runs (Tacview, observations, metrics), from the parent-prepared verify-complete-reference.py run once, unmodified, after the pack: passed true. The parent still verifies the full hashes itself before approval
+early-prefix-check.json           an early prefix check (20:40) whose observations comparison FAILED because its input was the older lebanon-3h observation format (no supply_detail). A verifier-input error, not a candidate change
+early-observation-prefix-corrected.json  the same prefix re-checked against the accepted supply-detail observations (reference/m3-resupply-loop): both runs match. Partial (1 MiB prefix), superseded by independent-reference-hashes.json
+witness-failed-original/          the first boot-only witness: exit 139 (msvcrt 0xc0000005, access [0, 308]) during artwork loading. Cause: a wrongly escaped map path in the witness script (the map line had three literal backslashes). A witness setup error, not a candidate defect. Script, exit, time, the non-artwork stderr line and the stderr tail are kept; the full stderr (233 lines, mostly artwork notices) is retained outside the repository and was never overwritten
+witness-corrected/                the corrected witness: only the script changed (exact escaped map path, asserted equal to [[..\common\maps\map5]] with length 19 before boot); same binaries, same private Lebanon root. Exit 0 in 2.1 s
+linux/                            Linux fmt, clippy and test logs for the runtime source (see below)
+
+Witness result (witness-corrected/witness.out): through the public Lua -> eech_dc.dll -> eech-world path the first routed member's create_place answer was shifted by (+250, 0, -125) m; the entity heap (engine:objects()) held the answered position (objects vs answer 0.000 m; answer vs the DLL's input 279.508 m) and 1443 of 1443 control members matched their unshifted answers within 0.01 m (worst 0.0000). 1444 create_place answers, 225 place steps.
+Witness limits: boot only; position only; y was unchanged, so the centre-of-gravity offset is not discriminated; one shifted subject; no frames run; no height, attitude, expiry, retirement or full-lifecycle claim; no physics claim.
+
+linux/linux-fmt.log               `cargo fmt --all -- --check`, FMT_EXIT=0
+linux/linux-build-test-fixes.log  workspace build with all targets, exit 0
+linux/linux-test-fixes-final.log  `cargo test --workspace`, exit 0: eech-world lib 88, bin 18, eech-engine 9, eech-campaign 11, eech-dc 3 + 2, others as the log shows; 0 failed
+linux/linux-clippy-fixes.log      FAILED, the clippy component was not installed in the image (kept)
+linux/linux-clippy-fixes-2.log    clippy 0.1.99 reported one manual_range_patterns at eech-engine/src/lib.rs:407 (fixed as 0..=2)
+linux/linux-clippy-fixes-3.log    clippy clean, exit 0
+linux/test-initial-failure-transcript.txt  an excerpt recovered by the parent, not the original full log, of the one retained test failure: an INCORRECT TEST SETUP (a helicopter fall never enters the ground-fall phase, so no sequence was open). Not a production red.
+
+Compile statement (corrects an earlier claim): eech-engine-sys/build/main.rs compiles every listed legacy C source (faction.c, rv_hostmv.c, gp_roster.c, the family updaters) with EECH_CAMPAIGN_HOST_MOVEMENT on Linux and MinGW, so the Linux cargo builds did compile them. The earlier statement that they did not was wrong. No compile-red is claimed or manufactured.
+
+Not here, by design: the Tacview recording and observations.jsonl (identified by hash), raw pack traces.
+Not claimed: that the pack exercises rare paths (helicopter, fixed-wing and person terminal ordering, fatal-guard reachability); that the pack reaches expiry and retirement beyond what its scenarios do; that the Tacview was visually reviewed; independent verification beyond the parent's hash script; any live DCS behaviour (M6). The pack validates only its scenarios.

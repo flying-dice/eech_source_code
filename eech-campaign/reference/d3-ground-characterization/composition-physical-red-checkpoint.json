@@ -1,0 +1,386 @@
+{
+  "kind": "Unaccepted G1/ground composition physical RED checkpoint; no production fix or delivery",
+  "created_utc": "2026-10-29T15:46:32.869107+00:00",
+  "authority": {
+    "goal": "11534337v3",
+    "ledger": "14548994v57",
+    "epic": "EEDCS-21 In Progress",
+    "tasks": [
+      "EEDCS-47",
+      "EEDCS-48"
+    ]
+  },
+  "source_identity": {
+    "original": "c119a7370b5de43923a86d7a8124f9532bb523ee",
+    "candidate": "3ad2094172426d0d7e93ccded493a9a813211cd1"
+  },
+  "native_composition": {
+    "actual_exit_each": 0,
+    "runs": 3,
+    "points": 20000,
+    "impacts": 5000,
+    "repeats": 2,
+    "strict_rows_each": 119,
+    "build_actual_exit": 0,
+    "verified_build_manifest_entries": 46,
+    "post_inputs": {
+      "scope": "All three completed G1/ground composition roots remain accepted inputs; physicalhashcomparisonRED separately preserved",
+      "records": [
+        {
+          "map": "georgia",
+          "actual_exit": 0
+        },
+        {
+          "map": "lebanon",
+          "actual_exit": 0
+        },
+        {
+          "map": "lebanon-repeat",
+          "actual_exit": 0
+        }
+      ],
+      "source": "3ad2094172426d0d7e93ccded493a9a813211cd1",
+      "completed_utc": "2026-10-29T15:28:49.1621568Z"
+    }
+  },
+  "comparisons": [
+    {
+      "original": {
+        "source": "c119a7370b5de43923a86d7a8124f9532bb523ee",
+        "raw_bytes": 39327,
+        "raw_sha256": "5d2d40ed04ad77d485d09fea3e7afef340967edae52a8013dd0b80327092844a",
+        "rows": 117
+      },
+      "candidate": {
+        "source": "3ad2094172426d0d7e93ccded493a9a813211cd1",
+        "raw_bytes": 39559,
+        "raw_sha256": "0c0fc0415f72006538462404cf8c83904698e890f0f88b3c556d9ec9ddba465c",
+        "rows": 119
+      },
+      "profiles_and_restoration_valid": true,
+      "in_process_repeats_valid": true,
+      "physical_equal": false,
+      "cache_and_semantic_samples_equal": true,
+      "differences": [
+        {
+          "category": "physical",
+          "row": [
+            "ground-physical",
+            1
+          ],
+          "field": "combined",
+          "original": "03c997493d4ab73d",
+          "candidate": "0dcbc41090bdd2ed"
+        },
+        {
+          "category": "physical",
+          "row": [
+            "ground-physical",
+            1
+          ],
+          "field": "above",
+          "original": "0c97c389344445d4",
+          "candidate": "5e81519695eaa654"
+        },
+        {
+          "category": "physical",
+          "row": [
+            "ground-physical",
+            1
+          ],
+          "field": "below",
+          "original": "9201db667b7422d1",
+          "candidate": "42d1eb26a4a7e5e9"
+        },
+        {
+          "category": "physical",
+          "row": [
+            "ground-physical",
+            2
+          ],
+          "field": "combined",
+          "original": "03c997493d4ab73d",
+          "candidate": "0dcbc41090bdd2ed"
+        },
+        {
+          "category": "physical",
+          "row": [
+            "ground-physical",
+            2
+          ],
+          "field": "above",
+          "original": "0c97c389344445d4",
+          "candidate": "5e81519695eaa654"
+        },
+        {
+          "category": "physical",
+          "row": [
+            "ground-physical",
+            2
+          ],
+          "field": "below",
+          "original": "9201db667b7422d1",
+          "candidate": "42d1eb26a4a7e5e9"
+        }
+      ],
+      "scenario": "georgia"
+    },
+    {
+      "original": {
+        "source": "c119a7370b5de43923a86d7a8124f9532bb523ee",
+        "raw_bytes": 39349,
+        "raw_sha256": "248ca1e81a4c72bad8011d28f77271c28aba916dec16dd4b17602c7c38f00b91",
+        "rows": 117
+      },
+      "candidate": {
+        "source": "3ad2094172426d0d7e93ccded493a9a813211cd1",
+        "raw_bytes": 39581,
+        "raw_sha256": "f5083b9bd2358a86f49f4705626fc05d05548e27e35cdb25d1f8c76d70366adc",
+        "rows": 119
+      },
+      "profiles_and_restoration_valid": true,
+      "in_process_repeats_valid": true,
+      "physical_equal": false,
+      "cache_and_semantic_samples_equal": true,
+      "differences": [
+        {
+          "category": "physical",
+          "row": [
+            "ground-physical",
+            1
+          ],
+          "field": "combined",
+          "original": "ea3064a7736c904f",
+          "candidate": "ea6f3d42b7e1750b"
+        },
+        {
+          "category": "physical",
+          "row": [
+            "ground-physical",
+            1
+          ],
+          "field": "above",
+          "original": "b419196047efb93d",
+          "candidate": "fb913c564e6716d1"
+        },
+        {
+          "category": "physical",
+          "row": [
+            "ground-physical",
+            1
+          ],
+          "field": "below",
+          "original": "54db721aed53d535",
+          "candidate": "e191d5c48962937d"
+        },
+        {
+          "category": "physical",
+          "row": [
+            "ground-physical",
+            2
+          ],
+          "field": "combined",
+          "original": "ea3064a7736c904f",
+          "candidate": "ea6f3d42b7e1750b"
+        },
+        {
+          "category": "physical",
+          "row": [
+            "ground-physical",
+            2
+          ],
+          "field": "above",
+          "original": "b419196047efb93d",
+          "candidate": "fb913c564e6716d1"
+        },
+        {
+          "category": "physical",
+          "row": [
+            "ground-physical",
+            2
+          ],
+          "field": "below",
+          "original": "54db721aed53d535",
+          "candidate": "e191d5c48962937d"
+        }
+      ],
+      "scenario": "lebanon"
+    },
+    {
+      "original": {
+        "source": "c119a7370b5de43923a86d7a8124f9532bb523ee",
+        "raw_bytes": 39349,
+        "raw_sha256": "248ca1e81a4c72bad8011d28f77271c28aba916dec16dd4b17602c7c38f00b91",
+        "rows": 117
+      },
+      "candidate": {
+        "source": "3ad2094172426d0d7e93ccded493a9a813211cd1",
+        "raw_bytes": 39581,
+        "raw_sha256": "f5083b9bd2358a86f49f4705626fc05d05548e27e35cdb25d1f8c76d70366adc",
+        "rows": 119
+      },
+      "profiles_and_restoration_valid": true,
+      "in_process_repeats_valid": true,
+      "physical_equal": false,
+      "cache_and_semantic_samples_equal": true,
+      "differences": [
+        {
+          "category": "physical",
+          "row": [
+            "ground-physical",
+            1
+          ],
+          "field": "combined",
+          "original": "ea3064a7736c904f",
+          "candidate": "ea6f3d42b7e1750b"
+        },
+        {
+          "category": "physical",
+          "row": [
+            "ground-physical",
+            1
+          ],
+          "field": "above",
+          "original": "b419196047efb93d",
+          "candidate": "fb913c564e6716d1"
+        },
+        {
+          "category": "physical",
+          "row": [
+            "ground-physical",
+            1
+          ],
+          "field": "below",
+          "original": "54db721aed53d535",
+          "candidate": "e191d5c48962937d"
+        },
+        {
+          "category": "physical",
+          "row": [
+            "ground-physical",
+            2
+          ],
+          "field": "combined",
+          "original": "ea3064a7736c904f",
+          "candidate": "ea6f3d42b7e1750b"
+        },
+        {
+          "category": "physical",
+          "row": [
+            "ground-physical",
+            2
+          ],
+          "field": "above",
+          "original": "b419196047efb93d",
+          "candidate": "fb913c564e6716d1"
+        },
+        {
+          "category": "physical",
+          "row": [
+            "ground-physical",
+            2
+          ],
+          "field": "below",
+          "original": "54db721aed53d535",
+          "candidate": "e191d5c48962937d"
+        }
+      ],
+      "scenario": "lebanon-repeat"
+    }
+  ],
+  "classification": "Above/below/combined physical folds differ; impact folds, all emitted physical samples/counters and common cache fields match. Cause unresolved. Legacy/semantic diagnostic hashes are separate and not compared.",
+  "coordinate_unit_red": {
+    "actual_exit": 101,
+    "test_file_sha256": "3387122840645cdc68eb2d45da3d6f57b94ff8283e06d4cf6543874cf420b5dc",
+    "scope": "Actual library Lua request-coordinate bit-preservation test; no productionfix; source-based cause of large point hashes still unproven",
+    "working_tree": true,
+    "executed_tests": 1,
+    "completed_utc": "2026-10-29T15:37:07.7192818Z",
+    "source_base": "3ad2094172426d0d7e93ccded493a9a813211cd1",
+    "command": "cargo test --release --locked -p eech-world --lib a_request_coordinate_keeps_its_exact_single_precision_bits_including_signed_zero_and_tiny_values -- --nocapture",
+    "observed": "Both x/z lose negative-zero, smallest positive/negative subnormal and smallest normal bits to positive zero. Ordinary cases pass. No production fix.",
+    "causality": "Input-fidelity defect established; cause of physical hash mismatch NOT established.",
+    "initial_wrong_target": {
+      "created_utc": "2026-10-29T15:36:57.0054119Z",
+      "disposition": "Setup/selection error, not PASS and not RED evidence",
+      "executed_tests": 0,
+      "scope": "Initial focused invocation selected --bin eech-world, but the new terrain.rs test belongs to the library",
+      "original_actual_exit": 0,
+      "retained_completion": "coordinate-input-red-completion.json",
+      "retained_log": "coordinate-input-red.log"
+    },
+    "source_after_test": "Subsequent comment-only clarification; recorded SHA identifies the actually tested source."
+  },
+  "prefix_diagnostic": {
+    "status": "completed",
+    "kind": "Diagnostic point-prefix bisection only, unchanged binaries/cases; no baseline or tolerance change",
+    "seed": 20261029,
+    "impacts": 0,
+    "repeats": 1,
+    "lower": 14,
+    "upper": 15,
+    "first_mismatching_prefix": 15,
+    "case_index": 14,
+    "scope_limit": "First divergence under observed deterministic FNV prefix comparisons; raw case trace may still be required. No physical fix or expected-value change.",
+    "completed_utc": "2026-10-29T15:41:58.733716+00:00",
+    "actual_controller_exit": 0,
+    "completed_pairs": 14,
+    "all_pre_native_post_exits": 0,
+    "source_binaries": "Unchanged original c119 and candidate 3ad; fresh roots each pair; no accepted baseline or tolerance modification."
+  },
+  "shipping_pack": {
+    "runtime_source": "06d42557843aba5728ffafae937451413115fb6c",
+    "state": "RUNNING, not accepted; same original four native processes verified live at checkpoint",
+    "latest_retained_prefix_audit": {
+      "when_utc": "2026-10-29T15:04:17.308036+00:00",
+      "runtime_source": "06d42557843aba5728ffafae937451413115fb6c",
+      "scope": "LIVE PREFIX ONLY; not complete output, native completion or pack acceptance",
+      "rows": [
+        {
+          "file": "reference\\run1\\recording.acmi",
+          "observed_bytes": 18214082,
+          "baseline_bytes": 117690861,
+          "equal_prefix": true,
+          "empty_prefix": false,
+          "candidate_prefix_sha256": "7d24be8a95e8ef0eaf4802c8083eac9276c607fd4fc468585ea7ce0c2782327c",
+          "baseline_prefix_sha256": "7d24be8a95e8ef0eaf4802c8083eac9276c607fd4fc468585ea7ce0c2782327c",
+          "first_difference": null
+        },
+        {
+          "file": "reference\\run1\\observations.jsonl",
+          "observed_bytes": 11288576,
+          "baseline_bytes": 85716447,
+          "equal_prefix": true,
+          "empty_prefix": false,
+          "candidate_prefix_sha256": "ec24291c6611734facacee60d46b4a83dd844891d758ab594a89a178e79e72d8",
+          "baseline_prefix_sha256": "ec24291c6611734facacee60d46b4a83dd844891d758ab594a89a178e79e72d8",
+          "first_difference": null
+        },
+        {
+          "file": "reference\\run2\\recording.acmi",
+          "observed_bytes": 18205890,
+          "baseline_bytes": 117690861,
+          "equal_prefix": true,
+          "empty_prefix": false,
+          "candidate_prefix_sha256": "015933e79beb38e17fab8d69f406d8b17298587f32a7129bcee76f51235ed9ff",
+          "baseline_prefix_sha256": "015933e79beb38e17fab8d69f406d8b17298587f32a7129bcee76f51235ed9ff",
+          "first_difference": null
+        },
+        {
+          "file": "reference\\run2\\observations.jsonl",
+          "observed_bytes": 11288576,
+          "baseline_bytes": 85716447,
+          "equal_prefix": true,
+          "empty_prefix": false,
+          "candidate_prefix_sha256": "ec24291c6611734facacee60d46b4a83dd844891d758ab594a89a178e79e72d8",
+          "baseline_prefix_sha256": "ec24291c6611734facacee60d46b4a83dd844891d758ab594a89a178e79e72d8",
+          "first_difference": null
+        }
+      ]
+    },
+    "limits": "Partial file equality only; complete 40 checks, eight full files, actual exits and post-input gates pending. Physical RED also requires classification."
+  },
+  "review": "Independent review of 3ad source adapter found no blocking source defect and one footer-label P3, now corrected. Native RED and new unit test have not received a final review. No merge approval claimed.",
+  "next": "Trace actual point case 14 with minimally instrumented new diagnostic sources; keep original/candidate frozen binaries and raw outputs unchanged. Classify physical mismatch before G1 delivery or G2 production cutover. Continue all D3 scope; D4/D5 not started.",
+  "private_evidence": "R:/d3-evidence; raw retail assets/coordinates, binaries and recordings excluded from Git."
+}

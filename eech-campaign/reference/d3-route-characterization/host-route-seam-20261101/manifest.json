@@ -1,0 +1,102 @@
+{
+  "source_runtime": "9e4f3f9750bac1ce61bd8d1da98467397dd0dac5",
+  "files": [
+    {
+      "file": "model-host-route-source-9e4f3f9750-20261101.json",
+      "bytes": 1206,
+      "sha256": "9d86f1795e98333add71a366a7ad160b68e1f9dadbd3ac1b0f4a2fbbe44f4e82",
+      "literal_private_source": "R:\\d3-evidence\\model-host-route-source-9e4f3f9750-20261101.json"
+    },
+    {
+      "file": "model-host-route-freeze-9e4f3f9750-20261101.json",
+      "bytes": 416,
+      "sha256": "4f9d57f3c1f346fc6dc65f9359730d08348aeabcfbd57a16e9d0d19e8eac771d",
+      "literal_private_source": "R:\\d3-evidence\\model-host-route-freeze-9e4f3f9750-20261101.json"
+    },
+    {
+      "file": "model-host-route-first-cohort-compare-9e4f3f9750-20261101.json",
+      "bytes": 3948,
+      "sha256": "0fafdb3c1d6de8db28ddc1b4fb6209819c68687be5cee7bb42bec4bc3b05c655",
+      "literal_private_source": "R:\\d3-evidence\\model-host-route-first-cohort-compare-9e4f3f9750-20261101.json"
+    },
+    {
+      "file": "model-host-route-boundary-actual-9e4f3f9750-20261101.json",
+      "bytes": 7604,
+      "sha256": "def73d309eb3903fb0f409767f2c1092dd69a155752fdbc9bbe8cfbde4595385",
+      "literal_private_source": "R:\\d3-evidence\\model-host-route-boundary-actual-9e4f3f9750-20261101.json"
+    },
+    {
+      "file": "model-host-route-short-byte-compare-9e4f3f9750-v80-20261101.json",
+      "bytes": 2119,
+      "sha256": "b5a61067efda99e2829ad6ee1fd1ff6201956e2601036fd3f25d39d5121fb586",
+      "literal_private_source": "R:\\d3-evidence\\model-host-route-short-byte-compare-9e4f3f9750-v80-20261101.json"
+    },
+    {
+      "file": "model-host-route-first-cohort-compare-50e7f9d85-20261101.json",
+      "bytes": 3948,
+      "sha256": "663c61cbb9aa82221a59bd2e696d12e99ecb89159152e157ca694b7a76ea67e0",
+      "literal_private_source": "R:\\d3-evidence\\model-host-route-first-cohort-compare-50e7f9d85-20261101.json"
+    },
+    {
+      "file": "model-host-route-complete-repeats-50e7f9d85-20261101.json",
+      "bytes": 1327,
+      "sha256": "3628d9bc19fc27a84f7f7847a46427dfc83a9ea97e5441fcbd111b28fdba3cc7",
+      "literal_private_source": "R:\\d3-evidence\\model-host-route-complete-repeats-50e7f9d85-20261101.json"
+    },
+    {
+      "file": "model-host-route-topology-guards-actual-50e7f9d85-20261101.json",
+      "bytes": 5467,
+      "sha256": "8ac592dbbb0edcc8c29dc9c413cd99617fca15fe90a5c9906a0631a490307ce3",
+      "literal_private_source": "R:\\d3-evidence\\model-host-route-topology-guards-actual-50e7f9d85-20261101.json"
+    },
+    {
+      "file": "model-host-route-short-byte-compare-50e7f9d85-v80-20261101.json",
+      "bytes": 2259,
+      "sha256": "e93e9ead3f10cbbd21359e26d628a61990d86b4be875b2995fdd37d755ea82d8",
+      "literal_private_source": "R:\\d3-evidence\\model-host-route-short-byte-compare-50e7f9d85-v80-20261101.json"
+    },
+    {
+      "file": "model-host-route-authority-controls-8b4562edb-20261101.json",
+      "bytes": 5708,
+      "sha256": "899fc2898b9ff9d5a2b57937ff81e5b64c075dc516878494924a1591e3bb6dd2",
+      "literal_private_source": "R:\\d3-evidence\\model-host-route-authority-controls-8b4562edb-20261101.json"
+    },
+    {
+      "file": "model-host-route-full-fp-def6a9bde-20261101.json",
+      "bytes": 10485,
+      "sha256": "7ac2a0c7be066861c0f12f74104411872105dc66ada430fa518df2fc46a6b540",
+      "literal_private_source": "R:\\d3-evidence\\model-host-route-full-fp-def6a9bde-20261101.json"
+    },
+    {
+      "file": "independent-model-host-route-source-actual-def6a9bde-20261101.json",
+      "bytes": 14667,
+      "sha256": "63027184fff24cd2d2d774aaef1a4d19d089320eff3658b621db3300e041b293",
+      "literal_private_source": "R:\\d3-evidence\\independent-model-host-route-source-actual-def6a9bde-20261101.json"
+    },
+    {
+      "file": "independent-model-host-route-guard-actual-50e7f9d85-20261101.json",
+      "bytes": 11764,
+      "sha256": "583c29a2d09b5406d9ba976de665a855b22daac98b91a2e05be33a5a7841c2c2",
+      "literal_private_source": "R:\\d3-evidence\\independent-model-host-route-guard-actual-50e7f9d85-20261101.json"
+    },
+    {
+      "file": "model-host-route-builds-9e4f3f9750-20261101.json",
+      "bytes": 1488,
+      "sha256": "e7b6758e4fb1ea69021128371358baa2a2e636a5d2c456f43f53899486cd1334",
+      "literal_private_source": "R:\\d3-evidence\\model-host-route-builds-9e4f3f9750-20261101.json"
+    },
+    {
+      "file": "independent-model-host-route-swap-consumer-actual-9e4f3f9750-20261101.json",
+      "bytes": 15128,
+      "sha256": "35623e1ff3fbb6c841a2da43fda6c0d13b3488c04b285d87f1c2e56a93edd5c0",
+      "literal_private_source": "R:\\d3-evidence\\independent-model-host-route-swap-consumer-actual-9e4f3f9750-20261101.json"
+    }
+  ],
+  "scope": "Literal safe reports keep OWNsource and at-the-time scope, including failed/open earlier gates. Final35623 closes finite host route-data seam only. No rawretailmodel assets/binaries/recordings/credentials; physicalcommon/customloaders+requiredreaders andwholeD3 remainopen. Final review selfcopy/manifest publication verified by outer receipt, not recursive selfreview.",
+  "README_sha256": "f024ef9c389dc1ac4ce82dc7872ec484ec32416b991957be2d800ee9ae0efe62",
+  "finite_host_route_data_seam_closed": true,
+  "Task50_complete": false,
+  "D3_complete": false,
+  "shipping_complete": false,
+  "final_review_sha256": "35623e1ff3fbb6c841a2da43fda6c0d13b3488c04b285d87f1c2e56a93edd5c0"
+}

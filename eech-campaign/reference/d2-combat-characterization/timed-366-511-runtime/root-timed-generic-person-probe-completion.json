@@ -1,0 +1,135 @@
+{
+  "when_utc": "2026-10-28T09:43:43.811739+00:00",
+  "source": "511156c1c9a0cffa37f4364646cb7d9a1d222a3e",
+  "original_exec_session": 26882,
+  "actual_driver_and_native_exit": 0,
+  "run_record": {
+    "status": "completed",
+    "when_utc": "2026-10-28T09:28:26.2568776Z",
+    "binary": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\eech-world.exe",
+    "arguments": "R:/d2-evidence/combat-characterization-20261028/timed-generic-person-probe.lua root=R:/d2-evidence/combat-characterization-20261028/roots/timed-generic-person-01 out=R:/d2-evidence/combat-characterization-20261028/out/timed-generic-person-01/trace.jsonl warmup=60 frame_ms=100 timed_seconds=20 timed_probe_mode=timed_generic_person case_script=R:/d2-evidence/combat-timed-scope-source-511156c1c/eech-campaign/target/weapon-fixture/combat-timed-scope-511156c1c/lua/combat-case.lua probe_summary=R:/d2-evidence/combat-characterization-20261028/out/timed-generic-person-01/probe-summary.jsonl",
+    "root": "R:/d2-evidence/combat-characterization-20261028/roots/timed-generic-person-01",
+    "out": "R:/d2-evidence/combat-characterization-20261028/out/timed-generic-person-01",
+    "mode": "timed_generic_person",
+    "kind": "Focused own-DAMAGE plus generic-PERSON TIMED authority around unchanged controlled scenario; expected error must match actual reason",
+    "wrapper_sha256": "13f15948e3dcac724a0cfcb8c577e307ce49b575e3ab7d29caaecec56ed4a412",
+    "case_script_sha256": "3de3505a64ed1f994edc21f825d38e9c568acb2310391d9642d2d3ecfeb9e264",
+    "actual_native_exit": 0,
+    "native_pid": 15716,
+    "created_utc": "2026-10-28T09:28:26.2692085Z",
+    "completed_utc": "2026-10-28T09:31:02.4599404Z"
+  },
+  "plan": {
+    "created_utc": "2026-10-28T09:24:58.923926+00:00",
+    "source": "511156c1c9a0cffa37f4364646cb7d9a1d222a3e",
+    "purpose": "Actual public-native positive generic PERSON timed draw: reference PERSON has3HP and bothdefaultshotsfatal, official180genericuntriggered. HostownonepointDAMAGEleaveslivingwoundedperson, ownstochasticTIMED usescampaignsingle sample.",
+    "wrapper": "R:\\d2-evidence\\combat-characterization-20261028\\timed-generic-person-probe.lua",
+    "wrapper_sha256": "13f15948e3dcac724a0cfcb8c577e307ce49b575e3ab7d29caaecec56ed4a412",
+    "driver": "R:\\d2-evidence\\combat-characterization-20261028\\run-timed-generic-person-probe.ps1",
+    "driver_sha256": "2159d32cdeb1e7073274abe2af969c02534289c476c89fd95a7cc047ba880ce8",
+    "driver_original": "R:\\d2-evidence\\combat-characterization-20261028\\run-timed-aa-probe.ps1",
+    "driver_original_sha256": "56b5f324e8b18e5ea988f11314e2cb29d043ad83d397119ffb68d0869b6f1993",
+    "driver_literal_replacements": [
+      [
+        "'timed_never','timed_rate150','bad_health_second_draw','bad_health_fatal'",
+        "'timed_generic_person'"
+      ],
+      [
+        "timed-aa-probe.lua",
+        "timed-generic-person-probe.lua"
+      ],
+      [
+        "Focused changed-host AA authority/refusal",
+        "Focused own-DAMAGE plus generic-PERSON TIMED authority"
+      ],
+      [
+        "TIMED_AA_PROBE_NATIVE_",
+        "TIMED_GENERIC_PERSON_NATIVE_"
+      ]
+    ],
+    "lua51_compile_only_actual_status": 0,
+    "case_script": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\lua\\combat-case.lua",
+    "case_script_sha256": "3de3505a64ed1f994edc21f825d38e9c568acb2310391d9642d2d3ecfeb9e264",
+    "case": "timed-generic-person-01",
+    "mode": "timed_generic_person",
+    "expected_native_exit": 0,
+    "native_arguments": "unchanged full39casefixture/warmup60/frame100/timed20/seed1/freshretailroot",
+    "limits": [
+      "Changes DAMAGE model AND samplepolicy AND PERSON TIMED physics, not a timed-only causal control",
+      "DefaultPERSON bleeding remains source-unreachable; this is intentional ownhostphysicalmodel variation",
+      "Actual generic_samples>0 and corePERSONtimed event/hpchange required; untriggered/error is not pass",
+      "FatalPERSON ifobserved is ownmodel-induced, not referencePERSON or fatalAATIMED/selfhit coverage",
+      "Sameexistingcasescript/helpers untouched; case precondition text/census may change legitimately from differentdamageanswers; no defaultbyteidentityclaim",
+      "No productsource/baseline/tolerance change; native/source-review/runtimegates remain"
+    ]
+  },
+  "summary": {
+    "event": "timed_generic_person_probe",
+    "failure": "",
+    "generic_draw_requests": 4,
+    "generic_fatals": 1,
+    "generic_hits": 1,
+    "generic_samples": 4,
+    "last_generic_level": 0,
+    "last_person_damage_level": 1,
+    "person_damage_answers": 2,
+    "person_damage_writes": 2,
+    "scope": "own DAMAGE model plus stochastic PERSON TIMED model; not a timed-only or default-byte comparison",
+    "script_completed": true
+  },
+  "case_count": 39,
+  "all_case_preconditions_ok_or_validly_refused": true,
+  "trusted_observers": 79,
+  "contiguous_events": 75,
+  "native_PERSON_timed_event": {
+    "at": 80.19896697998,
+    "draws": 1,
+    "event": "cmb-ev",
+    "kind": "timed",
+    "new_level": 0,
+    "receiver": "ENTITY_TYPE_PERSON",
+    "scope": "case:timed_health_ANTI_AIRCRAFT_0:log",
+    "seq": 9,
+    "type": 3
+  },
+  "native_PERSON_run_counters": {
+    "at": 80.19896697998,
+    "attempts": 105280,
+    "draws": 4,
+    "event": "cmb-timed",
+    "fatal": 1,
+    "hits": 1,
+    "kind": 3,
+    "scope": "run"
+  },
+  "person_census": [
+    {
+      "at": 60.099273681641,
+      "event": "cmb-case-census",
+      "kind": "ENTITY_TYPE_PERSON",
+      "live": 140,
+      "scope": "census:before"
+    },
+    {
+      "at": 80.19896697998,
+      "event": "cmb-case-census",
+      "kind": "ENTITY_TYPE_PERSON",
+      "live": 139,
+      "scope": "census:after"
+    }
+  ],
+  "trace_bytes": 403360,
+  "trace_sha256": "c316b0a53d6bbace17bfb28e1e8271c82fcb2a5da0d9e3e53a7e45981b95d7b5",
+  "post_input_manifest_exit": 0,
+  "post_input_log": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-generic-person-01-post-inputs.log",
+  "exports_unchanged": 40,
+  "build_info_sha256": "0e02acdda5cf7b6c1db53a90541b2bd56df92700d6fb3abb5cf60693794a19ea",
+  "scope": "Host Lua -> native campaign actually accepts stochastic PERSON timed eligibility and applies a fatal health change; own DAMAGE preserves living wound3->2->1 before timed1->0",
+  "limits": [
+    "Combined own DAMAGE model and stochastic timed RNG policy; NOT a timed-only or default-reference byte comparison.",
+    "Default EECH PERSON critical/bleeding remains unreachable and unchanged.",
+    "One own-model PERSON timed fatal; no fatalAA TIMED/self-hit/player/MP/easy native coverage.",
+    "39 cases include valid launch refusals, not39 physical-damage coverage claims."
+  ],
+  "remaining": "Single independent NEW runtime-evidence review"
+}

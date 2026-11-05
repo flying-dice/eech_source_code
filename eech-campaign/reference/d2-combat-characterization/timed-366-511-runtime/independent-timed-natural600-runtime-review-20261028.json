@@ -1,0 +1,136 @@
+{
+  "review_utc": "2026-10-28T08:39:42.747471+00:00",
+  "reviewer": "single independent Codex /root/d2_los_review",
+  "scope": "NEW completed timed366 natural600 proof only; no source re-review, edits, tests, builds or native launches.",
+  "disposition": "No findings; focused default600 timed/critical behavior proof closed for actual366 runtime.",
+  "actual_runtime_source": "366d5591430025173dbbae30c0378c1cf6b08894",
+  "source_clean": true,
+  "actual_original_controller63991_exit": 0,
+  "actual_native_exit": 0,
+  "native_pid": 19080,
+  "run_record": {
+    "status": "completed",
+    "when_utc": "2026-10-28T08:08:22.3047287Z",
+    "binary": "R:\\d2-evidence\\combat-timed-source-366d55914\\eech-campaign\\target\\weapon-fixture\\combat-timed-366d55914\\eech-world.exe",
+    "arguments": "R:/d2-evidence/combat-timed-source-366d55914/eech-campaign/target/weapon-fixture/combat-timed-366d55914/lua/combat-characterization.lua root=R:/d2-evidence/combat-characterization-20261028/roots/timed-natural-01 scenario=lebanon_retail seconds=600 frame_ms=100 checkpoint_every=60 out=R:/d2-evidence/combat-characterization-20261028/out/timed-natural-01/trace.jsonl",
+    "root": "R:/d2-evidence/combat-characterization-20261028/roots/timed-natural-01",
+    "out": "R:/d2-evidence/combat-characterization-20261028/out/timed-natural-01",
+    "kind": "Timed/critical candidate combat witness; comparison with retained original required, not fullpack acceptance",
+    "actual_native_exit": 0,
+    "native_pid": 19080,
+    "created_utc": "2026-10-28T08:08:22.4338459Z",
+    "completed_utc": "2026-10-28T08:32:39.3162291Z"
+  },
+  "complete_trace": {
+    "bytes": 984994,
+    "sha256": "a90f687151df132dfad3496cd304f538e3f9c1e2b0ffbbdde3255adebba90c42",
+    "full_bytes_independently_equal_forecast891_and_real225": true,
+    "JSON_rows": 6868,
+    "contiguous_events": 6440,
+    "trusted_groups": 12,
+    "six_final_hashes": {
+      "at": 600.00250244141,
+      "blast": "94e4342b77af9fb0",
+      "collision": "1604458addc998ce",
+      "damage": "c2fa884d57551eda",
+      "event": "cmb-hash",
+      "order": "319346bbdbdbb942",
+      "repair": "83387100fbf25fb2",
+      "scope": "run",
+      "timed": "c8f71b2cc7995418"
+    }
+  },
+  "audit": {
+    "artifact_complete": true,
+    "all_checks_PASS": true,
+    "checks": 27,
+    "recorded_actual_exit": 0,
+    "sha256": "53bfd2868ac528d1b999331735ce413873594156924011793936742d692f4fbd",
+    "limit": "Existing repository corrected-schema audit inspected, not rerun; full byte equality/configuration/event/trust/preservation independently checked in this review."
+  },
+  "final_timed_measurements": [
+    {
+      "at": 600.00250244141,
+      "attempts": 1026989,
+      "draws": 364,
+      "event": "cmb-timed",
+      "fatal": 0,
+      "hits": 43,
+      "kind": 1,
+      "scope": "run"
+    },
+    {
+      "at": 600.00250244141,
+      "attempts": 546036,
+      "draws": 210,
+      "event": "cmb-timed",
+      "fatal": 1,
+      "hits": 68,
+      "kind": 2,
+      "scope": "run"
+    },
+    {
+      "at": 600.00250244141,
+      "attempts": 833140,
+      "draws": 0,
+      "event": "cmb-timed",
+      "fatal": 0,
+      "hits": 0,
+      "kind": 3,
+      "scope": "run"
+    },
+    {
+      "at": 600.00250244141,
+      "attempts": 4134689,
+      "draws": 0,
+      "event": "cmb-timed",
+      "fatal": 0,
+      "hits": 0,
+      "kind": 4,
+      "scope": "run"
+    },
+    {
+      "at": 600.00250244141,
+      "attempts": 2740387,
+      "draws": 506,
+      "event": "cmb-timed",
+      "fatal": 1,
+      "hits": 112,
+      "kind": 5,
+      "scope": "run"
+    },
+    {
+      "at": 600.00250244141,
+      "attempts": 216036,
+      "draws": 204,
+      "event": "cmb-timed",
+      "fatal": 0,
+      "hits": 37,
+      "kind": 6,
+      "scope": "run"
+    }
+  ],
+  "post_preservation": {
+    "input_files_independently_rehashed": 1179,
+    "input_bytes": 102239559,
+    "input_combined_manifest_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+    "recorded_post_input_actual_exit": 0,
+    "all40_export_files_independently_rehashed_equal_initial_post": true,
+    "recorded_post_export_actual_exit": 0,
+    "BUILD_INFO_sha256": "953f7c2868de8bed8cb36ba4bceacd2c00c868e895a64709a919508e9fecb4d5",
+    "BUILD_INFO_dirty_files": 0
+  },
+  "elapsed_observation": {
+    "native_wall_seconds": 1456.882384,
+    "prior_real225_seconds": 1232.508024,
+    "limit": "Different concurrent native/compiler load. Not matched performance comparison, causal slowdown, DLL-only cost or DCS frame-time proof."
+  },
+  "limits": [
+    "Actual runtime366 remains labelled366. Later511 fixture-only source equivalence supports previously reviewed unaffected-path reuse; no object identity or relabelled511 native proof.",
+    "Whole f41 raw equality remainsFALSE from the already reviewed124 declared blast-counter quote removals; no baseline/tolerance rewrite or repeated schema classification in this pass.",
+    "Default600 covers observed timed behavior of four active families; PERSON remains referencefalse, AA timedfatal/selfhit/player/MP/easy-difficulty native coverage remains unproven.",
+    "Provider authority/refusal,900physical control, ordinary full40/all8/post3 and remaining Task46 physical scope are separate gates."
+  ],
+  "proof_sha256": "a9a447dec6ca354617fae67d470fd85cc1ca7ad125e9fb77d45c5349b2306475",
+  "raw_inputs_and_outputs_untouched": true
+}

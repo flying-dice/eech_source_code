@@ -1,0 +1,15 @@
+source: git archive 65892de17bf5c4bb9ab6e9f8af70779e35b0106b (stock)
+image: sha256:0c60c75db7b035e830c4834b1e15e096483631915bafc22c1af6aae02032bab3
+rustc: rustc 1.98.1 (48a229cea 2026-09-01)
+cargo: cargo 1.98.1 (797e8a9bc 2026-08-05)
+mingw: gcc 12-posix, gcc-mingw-w64-x86-64-posix 12.2.0-14+deb12u1+25.2+b1
+target: x86_64-pc-windows-gnu, release
+mlua-sys: name = "mlua-sys" version = "0.6.8" source = "registry+https://github.com/rust-lang/crates.io-index" 
+sha256:
+  61e38ef21f4610995570147c6bfa2566d819799bca347d6f8170a65fc085d750  eech_dc.dll
+  ae54d32fcbabb7155a355143919d3489dcfc81a0158fbf487edb4128ccd36c59  eech-world.exe
+  d0c799fe4e1e615d335d18504d28a7b0d7c78d7f97d1754bb885b1097ac60350  lua.dll
+  4b1fa47d8426e9b9a1806c2bffb746c9843c9cf70ab46bc205f76ddc803ecbe2  lua/campaign.lua
+  dbce9000c176e8563c0443d4b82942b4aef332393fb95da4c1fab738f3c3f30c  lua/lifecycle.lua
+  dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053  lua/metrics.lua
+  68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701  lua/observations.lua

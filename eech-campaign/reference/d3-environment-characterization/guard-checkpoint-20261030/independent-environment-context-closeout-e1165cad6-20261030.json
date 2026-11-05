@@ -1,0 +1,126 @@
+{
+  "schema": "independent-environment-context-closeout/v1",
+  "reviewed_utc": "2026-10-30T07:15:01.186502+00:00",
+  "base": "aeccdcb29340129e8099e53e19ca05a6cf484540",
+  "reviewed_head": "e1165cad60fc6fe81585ef1c1cdc2eb011129cbe",
+  "snapshot": "R:\\d3-evidence\\environment-guard-source-e1165cad6",
+  "original_measured_C_source": "99352e331527e8aafb2961949536217eab7a8ecf",
+  "head_exact_clean_before_after": true,
+  "scope": "Only residual protocol guard-context/null_same correction, new tests/docs and renewed evidence. Prior C/numerical/RNG/restoration and scheduler/Windows-wiring reviews reused.",
+  "disposition": "CHANGES_REQUIRED_ONE_NARROW_INIT_QUERY_TEMPLATE_COMPLETION",
+  "findings": [
+    {
+      "id": "ENV-INIT-WIND-UNAVAILABLE-SHAPE",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+      "line": 339,
+      "related_lines": [
+        409,
+        411
+      ],
+      "title": "Permit the initializer query form already allowed by its gust guard",
+      "reason": "The new context checker includes group6 and the documentation says initializer query wind availability agrees with the same report gust. But both env-init-query templates still pass allow_unavailable=false. A coherent initializer state with an out-of-domain inherited gust and both queries reporting wind=unavailable_gust_outside_0_1 is rejected before the context check. The unchanged C initializer does not reset gust; env_render_queries explicitly emits that form instead of calling the asserting wind function. This is a validator/source-form mismatch, not an observed failure of current native cases, whose inherited gust is in-domain.",
+      "correction": "Enable the unavailable alternative on both initializer query templates, then let the new gust-context check decide which branch is legal. Add a coherent out-of-domain initializer/no-wind positive and an in-domain initializer/false-unavailability negative (and keep the out-of-domain initializer/with-wind negative). No C, physical answers, original oracle or native numerical rerun needs changing."
+    }
+  ],
+  "closed_in_this_delta": [
+    "Initializer server and weather-update camera/cockpit/server guard predicates are now checked from the validated census and report context; impossible refusals and impossible supported paths are rejected.",
+    "Retail snapshot query wind availability matches its own gust domain; non-query update-state gust phase1.0 remains allowed.",
+    "null_same is exactly the equality of the two reported word strings, so signed-zero/bit distinctions and both equality/inequality observations are preserved without predicting a speed.",
+    "Positive stand-in state gust is now in-domain and default wind speed/null-speed words agree with flag1. New context negatives and legitimate alternative forms are exercised."
+  ],
+  "prior_P2_disposition": {
+    "ENV-REPORT-PREDICATE-COHERENCE": "Main impossible-branch and diagnostic-consistency correction is sound; one legitimate initializer-unavailable template remains incomplete.",
+    "ENV-PERIODIC-SCHEDULE-BOUND": "CLOSED_REUSED",
+    "ENV-WINDOWS-GUARD-PATHS": "CLOSED_REUSED"
+  },
+  "source_identity": {
+    "changed_paths": [
+      "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+      "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "eech-campaign/docs/d3-environment-characterization.md"
+    ],
+    "sha256": {
+      "eech-campaign/crates/eech-world/lua/env-characterization.lua": "fdc42ca17ace15988477d3af2e373a39e29378a901df2935a3c658b6fcdbe78d",
+      "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "1439df2ee4ee0c3e8df5bfbabf7b5b35f7c531d9520793ebf47b21cec32aa8a1",
+      "eech-campaign/docs/d3-environment-characterization.md": "37a917db3eec7b9f281eb8074026ff121dd3b093f1a5bab1129f0eb833350da6"
+    },
+    "runtime_driver_source": "e1165cad60fc6fe81585ef1c1cdc2eb011129cbe",
+    "driver_sha256": "fdc42ca17ace15988477d3af2e373a39e29378a901df2935a3c658b6fcdbe78d",
+    "C_FFI_numerical_sources_unchanged": true
+  },
+  "actual_evidence": {
+    "Linux": {
+      "actual_exit": 0,
+      "guards_passed": 8,
+      "guards_failed": 0,
+      "format": 0,
+      "world_all_target_strict_Clippy": 0,
+      "completed_utc": "2026-10-30T07:05:54.543261+00:00"
+    },
+    "Windows": {
+      "build_export_exit": 0,
+      "native_guard_exit": 0,
+      "guards_passed": 8,
+      "guards_failed": 0,
+      "host_override": "EECH_WORLD_TEST_HOST",
+      "host_source": "99352e331527e8aafb2961949536217eab7a8ecf",
+      "test_exe_sha256": "1c6b1bda757304c793597536727a2357bf50d5d1a2502d5e4d239b3e646ebe7b",
+      "coverage": "34 malformed-protocol controls and7 coherent alternate controls run inside renewed real-Lua guard groups; these are collaborator checks, not environment numerical evidence."
+    },
+    "genuine_original_fixture_compatibility": {
+      "compiled_source": "99352e331527e8aafb2961949536217eab7a8ecf",
+      "new_runtime_Lua_source": "e1165cad60fc6fe81585ef1c1cdc2eb011129cbe",
+      "all_controller_native_pre_post_exits": 0,
+      "manifest_input_files": 1179,
+      "original_file_manifest_entries_rehashed": 43,
+      "BINF_sha256": "5d7e4c9817a0cabb8d1def0e2f6b3b7ff5c3566e246a362b5e5a2b5cf4fa7ec8",
+      "old_rows": 704,
+      "new_rows": 705,
+      "all704_original_raw_lines_including_line_endings_exact": true,
+      "only_added_metadata": {
+        "event": "validation",
+        "protocol": "env-fixture/1",
+        "refused_witnesses": 2,
+        "reports": 169,
+        "witnesses": 164
+      },
+      "new_raw_sha256": "a25f409d468403911b31c7e5827b21264d2b77886016b4794b5655b13461d4a7",
+      "assessment": "Exact unchanged705-row output compared with prior new-driver compatibility as well; current original inputs remain in-domain and exercise successful initializer wind answers. They do not cover the missing alternative flagged above."
+    },
+    "metadata_recovery": {
+      "field": "host_source",
+      "mistaken_value": "99352e331527e8aafb2969536217eab7a8ecf",
+      "corrected_value": "99352e331527e8aafb2961949536217eab7a8ecf",
+      "basis": "Original BINF exact source plus unchanged executable/argv evidence",
+      "all_other_execution_fields_unchanged": true,
+      "original_mistaken_record_retained": true,
+      "test_log_and_execution_not_rerun": true
+    }
+  },
+  "previous_review_sha256": "2acc5eef2b35644194a3e12852d77832917e918a05cfa8b6d4ecec53e51bb97e",
+  "evidence_sha256": {
+    "R:\\d3-evidence\\independent-environment-guard-closeout-aeccdcb29-20261030.json": "2acc5eef2b35644194a3e12852d77832917e918a05cfa8b6d4ecec53e51bb97e",
+    "R:\\d3-evidence\\environment-context-e1165cad6-validation-20261030.json": "804d03e4c2764a232001437fa360907fe691694c9728192c7bc1df602214b8b1",
+    "R:\\d3-evidence\\environment-driver-compatibility-e1165cad6-20261030\\controller.json": "2ddd35fae42c3044f818de09d937fe52ece7ffddefa34572c066ef9ccbc6d132",
+    "R:\\d3-evidence\\environment-driver-compatibility-e1165cad6-20261030\\environment.jsonl": "a25f409d468403911b31c7e5827b21264d2b77886016b4794b5655b13461d4a7",
+    "R:\\d3-evidence\\environment-driver-compatibility-e1165cad6-20261030\\native.log": "8599e95157d1da971f5521fcc9ee5b84e5a10c966f37cf3a4bc325078f51bc1f",
+    "R:\\d3-evidence\\environment-driver-compatibility-e1165cad6-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\environment-driver-compatibility-e1165cad6-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\environment-original-source-99352e331\\eech-campaign\\target\\env-fixture\\original-99352e331\\BUILD-INFO.txt": "5d7e4c9817a0cabb8d1def0e2f6b3b7ff5c3566e246a362b5e5a2b5cf4fa7ec8",
+    "R:\\d3-evidence\\environment-guard-source-e1165cad6\\eech-campaign\\target\\windows-env-guards-e1165cad6\\host_callbacks.exe": "1c6b1bda757304c793597536727a2357bf50d5d1a2502d5e4d239b3e646ebe7b",
+    "R:\\d3-evidence\\environment-guard-e1165cad6-linux-20261030-completion.json": "bc260126e54f97132e855d3afc4e5cd4d578f321e25867c9c05b9f683d59daf6",
+    "R:\\d3-evidence\\environment-guard-e1165cad6-linux-20261030.log": "0e44b7482ce63f7aa5528c58d8081bae6c03e4fb6e86b4c6c695adf9a5605724",
+    "R:\\d3-evidence\\environment-guard-e1165cad6-windows-20261030-completion.json": "1c08276e3e0ee8f7a5b85243633dc5654997407c8bbcd621f9f5e37e54049200",
+    "R:\\d3-evidence\\environment-guard-e1165cad6-windows-20261030.log": "fc94c7f394ae6927b76c90b90b59b17d992e46c6d5b681f6e48df09de56ffcf2",
+    "R:\\d3-evidence\\environment-guards-windows-e1165cad6-execution-20261030.json": "316631ffa48407bd7c3e0defb963a4283dc1f54827658f8ee1d640ad99fbeca7",
+    "R:\\d3-evidence\\environment-guards-windows-e1165cad6-execution-20261030.log": "29a27e00215c199b4a39b496d2292d29e4b85d73bffbe318d35ddd94edd4478d",
+    "R:\\d3-evidence\\environment-guards-windows-e1165cad6-execution-metadata-original-20261030.json": "c21363a7e582ef7d12cebef453366841ebe14f15f8a671db153daa84fd3f6387"
+  },
+  "limits": [
+    "No formal GitHub approval, Task51 delivery, host environment cutover, fullshipping or D3 completion.",
+    "Current unchanged original C/native numerical evidence remains valid; no physical mismatch is demonstrated by the one checker-form finding.",
+    "Original lightning/entity causality, sound/terrain scratch, libc reseed, save/client paths and remaining D3 physical/environment/time ownership work remain open.",
+    "No reviewer source edits/builds/tests/native/campaign/process/cache/Git/auth/external actions or nested agents. Only this new private canonical-LF report written."
+  ]
+}

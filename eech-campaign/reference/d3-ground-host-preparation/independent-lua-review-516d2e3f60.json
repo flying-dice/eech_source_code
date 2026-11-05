@@ -1,0 +1,327 @@
+{
+  "schema": "independent-review-v1",
+  "reviewed_utc": "2026-10-29T17:37:16.690018+00:00",
+  "task": "EEDCS-48 host-only Lua ground adapter and healthy old-DLL public missing-handoff witness",
+  "repository": "R:\\d3-evidence\\ground-host-lua-fixed-source",
+  "base": "55c06998b01492cf9cbd4ff990867f82eb467ad2",
+  "measured_source_head": "516d2e3f60add91d2a76c50b5d36b9c171eb650d",
+  "source_clean_before_and_after": true,
+  "publication_repository": "R:\\d3-evidence\\ground-host-preparation-20261029",
+  "separately_reviewed_metadata_head": "0e4987b5afcf2bb2341ba2981ac1f775a47e698b",
+  "disposition": "CLOSED_FOR_HOST_ONLY_PREPARATION; NO_REMAINING_ACTIONABLE_FINDINGS",
+  "open_findings": [],
+  "scope": "One combined correctness, clean-code, exact-value/boundary safety, actual test/evidence and publication-delta pass. The closed14bf kernel/G1/input-fidelity reviews are reused. Reviewer performed read-only source/log/Git/hash/JSON comparisons and wrote only this report; no supplied tests, builds, Lua/native executables, campaigns, processes/caches/auth or external writes/actions; no delegation.",
+  "source_hashes": [
+    {
+      "path": "eech-campaign/crates/eech-world/src/terrain.rs",
+      "sha256": "de8fac26da6ba03cd36f29ba6c8ce7fbcccf8df1a583f862f3fd4e15be7c4c14",
+      "same_as_prior_linux_tested_source": true,
+      "prior_linux_sha256": "de8fac26da6ba03cd36f29ba6c8ce7fbcccf8df1a583f862f3fd4e15be7c4c14"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/ground_provider.rs",
+      "sha256": "91a5898d1bcc99be09c3d5ce0a3d5a4f96fb3ff5f27a875f8359ff839e8b494a",
+      "same_as_prior_linux_tested_source": true,
+      "prior_linux_sha256": "91a5898d1bcc99be09c3d5ce0a3d5a4f96fb3ff5f27a875f8359ff839e8b494a"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/ground_handoff.rs",
+      "sha256": "3841939461647761e0715077ccb2fe316405c767b7e5ce82e11f8253a098904e",
+      "same_as_prior_linux_tested_source": true,
+      "prior_linux_sha256": "3841939461647761e0715077ccb2fe316405c767b7e5ce82e11f8253a098904e"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/ground-provider-transport.lua",
+      "sha256": "d36f69814e57e81725289deaa6851880d18b69f41f0fe4059a4436512f520dee",
+      "same_as_prior_linux_tested_source": false,
+      "prior_linux_sha256": "6a1886f57bbf14a41b94b7a811c6794e793600aea7cc68ab524b2eee7671242b"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/ground-handoff.lua",
+      "sha256": "11a6821d4cb14d89bde5eb56bfd7d9579fbcff5afb0ef258e33bdb317a29e56d",
+      "same_as_prior_linux_tested_source": true,
+      "prior_linux_sha256": "11a6821d4cb14d89bde5eb56bfd7d9579fbcff5afb0ef258e33bdb317a29e56d"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/ground-handoff-verdict.lua",
+      "sha256": "aab4161f5aab4acaaf37beb21ad513a6e7f6a7ad2309c695c03dd93719ec6ec3",
+      "same_as_prior_linux_tested_source": true,
+      "prior_linux_sha256": "aab4161f5aab4acaaf37beb21ad513a6e7f6a7ad2309c695c03dd93719ec6ec3"
+    }
+  ],
+  "source_assessment": [
+    {
+      "file": "eech-campaign/crates/eech-world/src/terrain.rs",
+      "lines": [
+        960,
+        975,
+        985,
+        995,
+        1006,
+        1015,
+        1081,
+        1101
+      ],
+      "result": "The two new respond arms parse the request then delegate to the reviewed Terrain methods; no duplicate physical solver or new FFI/ABI is introduced. World bounds remain supplied data. Nested table fields use the existing strict numeric-only/exact-f32, one-read coordinate reader. Hint shape is parsed at the Lua boundary; the existing kernel still validates its map tag only on an actual point read. Outputs widen f32 values exactly to Lua numbers, including keyed corrected endpoints; normal/last-elevation/type/stored/optional hint are copied by value. A no-read below answer omits record, so a future caller can retain its complete prior record. No private pointer, legacy entity index or required hint/layout crosses this new Lua adapter."
+    },
+    {
+      "file": "eech-campaign/crates/eech-world/lua/ground-provider-transport.lua",
+      "result": "The real production provider is exercised directly, without a mock numerical answer or another ground solver. Checks cover complete/absent record, caller-supplied world bounds, lazy tag refusal, cold/warm flow, corrected endpoints, signed zero/subnormal round trips, single getter read and specific invalid-shape/number/non-finite/off-terrain errors. Endpoint checks using0.01 are shape/relation checks; they do not replace the closed exact kernel/original conformance comparisons."
+    },
+    {
+      "file": "eech-campaign/crates/eech-world/lua/ground-handoff.lua",
+      "lines": [
+        27,
+        53,
+        64,
+        78
+      ],
+      "result": "Wrapper-only arguments are removed, provider calls and replies delegate to the actual host, counts are operation-specific, and host args/factory are restored after the protected driver run. A failed driver cannot satisfy healthy:true. The separate verdict distinguishes setup/no traffic, unexpected ground traffic on control and the expected missing-boundary marker. Guard stand-ins are labelled local wrapper tests, not DLL/physics proof."
+    },
+    {
+      "file": "eech-campaign/crates/eech-world/tests/ground_handoff.rs",
+      "lines": [
+        262,
+        307,
+        333
+      ],
+      "result": "The actual child processes are hidden and waited through Command::output; the Rust test asserts control success, required non-success plus the specific RED stderr marker, corresponding summaries and completed driver output. The real embedded characterisation driver retains its strict schema/restoration checks. Child stderr and exact numeric status are not separately persisted by this helper; the retained native test exit0 proves the asserted success/non-success predicates. No fabricated exact required-child exit number is assigned here."
+    }
+  ],
+  "evidence": {
+    "prior_linux": {
+      "completion_sha256": "8069c8bcee6d51ea56f6f21b49ccb2245212b7334f9a40c77cf068eb8e16a9c2",
+      "actual_exit_recorded": 0,
+      "actual_terrain_library_tests": 6,
+      "actual_map_free_guards": 8,
+      "map_dependent_functions_explicitly_skipped": 2,
+      "scope": "Prior f66 working-tree source. Five of six recorded source hashes still match; transport Lua changed only three test diagnostic expectations, comments and one non-integral test case. No skipped function is counted as retail/public proof."
+    },
+    "windows_build": {
+      "completion_sha256": "3d184bea08f71fb97cab83a158a45dca5ddc19f59b4360dfaff9dc9276bfc3ea",
+      "actual_exit_recorded": 0,
+      "source": "516d2e3f60add91d2a76c50b5d36b9c171eb650d",
+      "target": "x86_64-pc-windows-gnu release; host/tests only; no campaign DLL built",
+      "manifests_verified": {
+        "new": {
+          "entries": 4,
+          "build_info_sha256": "41850554191e5bb17a31c22fd1b36e8cc0f5e6399d43178a235aaf4d6b955cbf",
+          "payloads_all_verified": true,
+          "payloads": [
+            {
+              "file": "eech-world.exe",
+              "sha256": "348cdce79383a7ae9736e72fad629a0115f52122132e3e76446624a76e46c9f4"
+            },
+            {
+              "file": "ground_provider.exe",
+              "sha256": "1043e55fb6f2deff84d4155eaa40d9cf7cdd2d91c21913c97e9dd6a092e696ae"
+            },
+            {
+              "file": "ground_handoff.exe",
+              "sha256": "47c0d44cbe9899855740eb609ebd5260e8e5a40255217aac3b1d0f8ef7e38510"
+            },
+            {
+              "file": "lua.dll",
+              "sha256": "7b2ec3f3fd174f6b65a2159ee46dc8e9102624a350d978e16ddf4396d7c2be0b"
+            }
+          ]
+        },
+        "old_fixture": {
+          "entries": 46,
+          "build_info_sha256": "893eec47ed24bf748c279c6d7ffe256b77ae36e05efcac63e69a75fc348773fd",
+          "payloads_all_verified": true
+        }
+      },
+      "hybrid_components": [
+        {
+          "file": "eech-world.exe",
+          "source": "516d2e3f60add91d2a76c50b5d36b9c171eb650d",
+          "sha256": "348cdce79383a7ae9736e72fad629a0115f52122132e3e76446624a76e46c9f4"
+        },
+        {
+          "file": "lua.dll",
+          "source": "516d2e3f60add91d2a76c50b5d36b9c171eb650d",
+          "sha256": "7b2ec3f3fd174f6b65a2159ee46dc8e9102624a350d978e16ddf4396d7c2be0b"
+        },
+        {
+          "file": "eech_dc.dll",
+          "source": "febbb7cc57f41d66f752a696feb1f4447cbbcd32",
+          "sha256": "bdd6393d06a8cde461b6e562b499e98b47003afc1dce8e0437e1382e288e099c"
+        }
+      ],
+      "component_identities_sha256": "d2c752dd251e1292ebd96d2e5ffa39db6ad5eb7faa07fcaf3c3075d8219a41bd"
+    },
+    "native_controller": {
+      "path": "R:\\d3-evidence\\ground-host-lua-516d2e3f60-native-20261029\\controller.json",
+      "sha256": "7b9d1015cb41773a0450af74dc6f429d74065659d23b0bbafb976ef1461e136c",
+      "actual_outer_exit_recorded": 0,
+      "completion_sha256": "834324f0636ad858892508f78bdd634d73afb107414fecd9432caca6debf0435",
+      "all11_recorded_subprocess_command_exits": 0
+    },
+    "direct_map_transport": [
+      {
+        "scenario": "georgia",
+        "actual_native_exit_recorded": 0,
+        "native_test_functions": 3,
+        "strict_check_rows": 45,
+        "no_skips": true,
+        "all_checks_true_and_sequenced": true,
+        "raw_sha256": "68bf4401a926e7f17ec7e3908b383e1ca7efb64af674756ecdc09c92d499f0d0",
+        "native_log_sha256": "3183a1ce9e278983acf962a22a429ce8b28d2110cd54d077a6239bfaa0ba863e"
+      },
+      {
+        "scenario": "lebanon",
+        "actual_native_exit_recorded": 0,
+        "native_test_functions": 3,
+        "strict_check_rows": 45,
+        "no_skips": true,
+        "all_checks_true_and_sequenced": true,
+        "raw_sha256": "68bf4401a926e7f17ec7e3908b383e1ca7efb64af674756ecdc09c92d499f0d0",
+        "native_log_sha256": "21a4449a52d327fd9838f1553aa8ee41e28509378e579f6018af0f3ac64a99aa"
+      }
+    ],
+    "public_handoff": {
+      "actual_native_test_exit_recorded": 0,
+      "native_tests": 7,
+      "no_skips": true,
+      "native_test_log_sha256": "3391fb78ee06e04bc90be751cffee1e8687e6f34e44363e9f0dfd238189cb980",
+      "child_outcomes": "Control successful; required non-success with specific GROUND-HANDOFF-RED, both asserted by the actual passing Rust native test. Exact required-child integer code is not recorded separately.",
+      "driver_witnesses": {
+        "control": {
+          "strict_rows": 60,
+          "raw_sha256": "6d37c3bac200c3e1d36d4c443225c2111d8afb456a495249bbd3e26960e2c4b4",
+          "record_restored": true,
+          "before_after_record_hash": "9a87cdac8942cc78",
+          "digest": {
+            "alive": 1577,
+            "digest": "08b68c8f",
+            "elapsed": 3.9999969005585,
+            "event": "state_digest",
+            "frames": 40,
+            "objects": 1577,
+            "probed": true
+          },
+          "summary": {
+            "event": "ground_handoff",
+            "handoff": "control",
+            "healthy": true,
+            "passed": true,
+            "point": 88878,
+            "fast": 0,
+            "map": 1,
+            "ground_below": 0,
+            "ground_impact": 0,
+            "other": 0,
+            "message": "ground-handoff: control: zero ground requests with 88878 point request(s): the unmoved DLL computes the ground predicates and the impact search itself"
+          }
+        },
+        "required": {
+          "strict_rows": 60,
+          "raw_sha256": "6d37c3bac200c3e1d36d4c443225c2111d8afb456a495249bbd3e26960e2c4b4",
+          "record_restored": true,
+          "before_after_record_hash": "9a87cdac8942cc78",
+          "digest": {
+            "alive": 1577,
+            "digest": "08b68c8f",
+            "elapsed": 3.9999969005585,
+            "event": "state_digest",
+            "frames": 40,
+            "objects": 1577,
+            "probed": true
+          },
+          "summary": {
+            "event": "ground_handoff",
+            "handoff": "required",
+            "healthy": true,
+            "passed": false,
+            "point": 88878,
+            "fast": 0,
+            "map": 1,
+            "ground_below": 0,
+            "ground_impact": 0,
+            "other": 0,
+            "message": "GROUND-HANDOFF-RED: no ground_below or ground_impact request reached the host terrain provider (88878 point request(s)): the DLL still computes the ground predicates and the impact search itself"
+          }
+        }
+      },
+      "driver_raws_complete_byte_equal": true,
+      "three_executed_embedded_scripts_match_frozen_source": true
+    },
+    "inputs": [
+      {
+        "case": "georgia",
+        "pre_post_log_sha256": "df106b82422ae8b89b7288adc81d7fc454f68fefb5f2d5642801dfec0534d937",
+        "pre_post_check_exits_recorded": [
+          0,
+          0
+        ],
+        "input_entries": 1174
+      },
+      {
+        "case": "lebanon",
+        "pre_post_log_sha256": "a6a1fe7b21641a2cf37f262ebdc21f9a8843ebbf0692806167af7811584f0e61",
+        "pre_post_check_exits_recorded": [
+          0,
+          0
+        ],
+        "input_entries": 1179
+      },
+      {
+        "case": "control",
+        "pre_post_log_sha256": "f17695efc637b659be91b02d051837304dbb723ca07efaf6f4a63ea1a9acb4fa",
+        "pre_post_check_exits_recorded": [
+          0,
+          0
+        ],
+        "input_entries": 1179
+      },
+      {
+        "case": "required",
+        "pre_post_log_sha256": "a78b44626c7cb1437ae2ddf9425f48c1398399b9da113717ad3f4849544345b7",
+        "pre_post_check_exits_recorded": [
+          0,
+          0
+        ],
+        "input_entries": 1179
+      }
+    ],
+    "prior_f66_failure": {
+      "source": "f66ba1f139ee5047414a99aac5ce21e367c28c9d",
+      "actual_native_exit_recorded": 101,
+      "actual_outer_exit_recorded": 1,
+      "strict_rows": 29,
+      "first28_checks_pass": true,
+      "check29_failed": "Wrong test expectation got number vs actual correct got integer for world=5.",
+      "private_raw_sha256": "d1a9a2646ed5b2f82922c696492cd200d9a7708a9f3a51b344f9844a57fb4418",
+      "private_log_sha256": "3e4438ae175d5cbd853947f79390594a579d57a539c3b03087d21a799f116507",
+      "correction_scope": "Git diff f66..516 verifies no product source/physics/refusal change: exactly three diagnostic expectation substitutions, comments and an added5.5/non-integral refusal case, plus documentation/evidence. Earlier failed raw/log remain retained."
+    }
+  },
+  "resolved_findings": [
+    {
+      "priority": "P3",
+      "status": "CLOSED_AT_SEPARATE_PUBLICATION_HEAD",
+      "original_file": "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\reference\\d3-ground-host-preparation\\lua-first-native-f66ba1f139-failure.json",
+      "line": 24,
+      "issue": "The unqualified private raw_sha256 differed from the public LF JSONL copy, whose29 lines originated as private CRLF. Rows/text were unchanged.",
+      "resolution": "Publication0e adds explicit private-vs-Git hashes and line endings, states CRLF-to-LF-only transformation and that raw_sha256 identifies retained private bytes. Independent comparison confirms exactly that transformation, both hashes and all29 decoded rows. No source/test/native rerun or raw evidence rewrite was needed.",
+      "private_original_sha256": "d1a9a2646ed5b2f82922c696492cd200d9a7708a9f3a51b344f9844a57fb4418",
+      "git_copy_sha256": "80bf943ae666229677d6c5c6bfa953bb1059b9d6a35755b0fcb579ff8d1220f3"
+    }
+  ],
+  "publication_check": {
+    "head": "0e4987b5afcf2bb2341ba2981ac1f775a47e698b",
+    "only_four_metadata_paths_changed_from_measured_head": true,
+    "failure_metadata_git_sha256": "580efb925932cbb8eecb57958290e177467fc0da950bb40432fa16f5e12f7c26",
+    "native_result_git_sha256": "8c7ded16a16779a71992e7a55b409bb3a5d4d85e7326ac9a20652436e504e957",
+    "result": "Safe result fields, native exits, all11 original command records, driver raw hashes, digests and restorations correspond to the private controller/raws. One timestamp serializes the same instant with one trailing fractional zero omitted. STATUS/docs now distinguish completed516 checks from retained earlier pending/failure history. Runtime/test source is unchanged from frozen516; no relabelling as0e runtime."
+  },
+  "limits": [
+    "This closes only the new host Lua preparation and healthy old-DLL missing-boundary witness. The new host is deliberately paired with the unchanged feb fixture DLL; it is not a shipping candidate or delivered G2 extraction.",
+    "Direct-map checks exercise the prepared host operations. The public old-DLL seam exercises original ground_probe calls and shows zero ground operations despite real point traffic; it does not demonstrate production DLL authority or the wn_move launch glue. Future cutover tests must exercise actual moved callers, both required operations as applicable, valid generic/no-hint answers, refusals and actual world consequences.",
+    "The required-mode verdict is an existence-of-handoff diagnostic after healthy traffic, not an exhaustive proof that every physical ground call has moved. The wrapper guards alone are not native/physics evidence.",
+    "No legacy private-record/hash equality is newly claimed; record restoration and completed healthy digest are the public seam evidence. No new32-bit execution, sanitizers, whole-runtime equivalence, Tacview visual inspection, DCS scheduling/performance or final shipping acceptance is established.",
+    "Task47 delivery/base verification is still required before G2 production cutover. Its running shipping pack and all processes/inputs were untouched. Whole D3, including other active above/below consumers and remaining spatial/model/environment/time/loader responsibilities, remains incomplete."
+  ],
+  "next_bounded_work": "No open correction from this pass. Preserve measured516 identities and the separately closed0e metadata. After normal Task47 delivery/base re-verification, review the genuinely new G2 production dispatch/client/caller/ownership-removal delta and collect actual public authority/refusal/default/shipping evidence without re-reviewing unchanged kernels."
+}

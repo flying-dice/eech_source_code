@@ -1,0 +1,4 @@
+# Preserve exact evidence bytes; these are not campaign source files.
+*.json -text whitespace=cr-at-eol
+*.log -text -whitespace
+README.md text eol=lf

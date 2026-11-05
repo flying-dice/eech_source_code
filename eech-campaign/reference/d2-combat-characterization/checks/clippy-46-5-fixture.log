@@ -1,0 +1,8 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+    Checking eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 23s
+CARGO_EXIT=0
+DOCKER_EXIT=0

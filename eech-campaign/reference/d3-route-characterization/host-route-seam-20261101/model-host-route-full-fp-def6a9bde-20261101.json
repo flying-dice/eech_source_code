@@ -1,0 +1,311 @@
+{
+  "source": "def6a9bdec11e5f8a27451d8057162a34f340693",
+  "created_utc": "2026-11-01T20:09:18.609085+00:00",
+  "all_requested_entry_state_checks_pass": true,
+  "actual_measured_entries": 16,
+  "counter_control_entries": 8,
+  "route_containing_probe_entries": 8,
+  "successful_route_probe_entries": 4,
+  "refused_route_probe_entries": 4,
+  "caller_roundings": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "all_full_raw_caller_words_preserved": true,
+  "native_harness": "Existing actual public eech_engine_model_host_fpu: kind1 counters,kind0 probe includes actualroute node+face. No mock or stand-in registers. Eachseededbeforestate has bothunits requestedRC/allmask/nonzero0x34flags; threefullrawbefore/afterwords compared literally, not just same flags. Healthy8 plus4fresh refused processes2each; no nativequery after fatal probe.",
+  "boundaries": "Scene46/kind76 landing route is truly found in all5 pre-measurement actualprobes. Refusal is injected ONLY inside route_node of the actualprobe, after successfulboot; EngineFATAL1 measured/reported byharness withchildprocess0 verifying expectedcontrol. Not allboot/allentry FP equivalence.",
+  "cases": [
+    {
+      "case": "reference",
+      "controller_exit": 0,
+      "native_process_exit": 0,
+      "pre_post_input_exits": [
+        0,
+        0
+      ],
+      "payloads_rehashed": 57,
+      "actual_entries": 8,
+      "found_route_probe_before_measurement": true,
+      "controller_sha256": "342a12e37da39fe64cf5211f22903a7ee783d6f3edab5a18470698edfc0ce08a",
+      "raw_fp_sha256": "5995fe8a9e3d84e3c04835ce8168219c53357a71a2d1e6c21d1fa78d466e8020"
+    },
+    {
+      "case": "refused-0",
+      "controller_exit": 0,
+      "native_process_exit": 0,
+      "pre_post_input_exits": [
+        0,
+        0
+      ],
+      "payloads_rehashed": 57,
+      "actual_entries": 2,
+      "found_route_probe_before_measurement": true,
+      "controller_sha256": "528a7f374d9589d80a974f0a842e1a0ca7098efe7eaef3ee74eb0c109d89d91e",
+      "raw_fp_sha256": "e8b717efcb7fe250da9c736ad4c291029f3707fdfe72611da554d7bf2903eee4"
+    },
+    {
+      "case": "refused-1",
+      "controller_exit": 0,
+      "native_process_exit": 0,
+      "pre_post_input_exits": [
+        0,
+        0
+      ],
+      "payloads_rehashed": 57,
+      "actual_entries": 2,
+      "found_route_probe_before_measurement": true,
+      "controller_sha256": "aee8ccb73dbad6864f7068ccdcdf420a1f6f75d221964f0369c86a6608a13dfb",
+      "raw_fp_sha256": "c79f9cc725327b12bcca4941cd3ff65cd85eba85a1cfb69fdd8f0752c76432a9"
+    },
+    {
+      "case": "refused-2",
+      "controller_exit": 0,
+      "native_process_exit": 0,
+      "pre_post_input_exits": [
+        0,
+        0
+      ],
+      "payloads_rehashed": 57,
+      "actual_entries": 2,
+      "found_route_probe_before_measurement": true,
+      "controller_sha256": "ae8b7d055853691e7ad1b6ac029a4e76030c4ec3ec482cb68aa54b74ae6cd25a",
+      "raw_fp_sha256": "d0d5e957bde01fe4dd69532e502755e48ad169097e2f4c07fbd32a60aed45d19"
+    },
+    {
+      "case": "refused-3",
+      "controller_exit": 0,
+      "native_process_exit": 0,
+      "pre_post_input_exits": [
+        0,
+        0
+      ],
+      "payloads_rehashed": 57,
+      "actual_entries": 2,
+      "found_route_probe_before_measurement": true,
+      "controller_sha256": "805df1df89c145b6ab3b1c03edabe4865bc6af54cef2dfbbaa21206376e1e6ed",
+      "raw_fp_sha256": "6bb5d736d3ee07f0a0a583a89bb2fda33d74209b10e8ce88eb5b411bd6eb23da"
+    }
+  ],
+  "entries": [
+    {
+      "control": "reference",
+      "kind": 1,
+      "rounding": 0,
+      "entry_result": 0,
+      "before_x87_control": "0x037f",
+      "before_x87_status": "0x0034",
+      "before_mxcsr": "0x00001fb5",
+      "all_three_raw_words_literal_equal": true,
+      "actual_route_node_queries": 0,
+      "actual_route_face_queries": 0,
+      "actual_refusal": false
+    },
+    {
+      "control": "reference",
+      "kind": 0,
+      "rounding": 0,
+      "entry_result": 0,
+      "before_x87_control": "0x037f",
+      "before_x87_status": "0x0034",
+      "before_mxcsr": "0x00001fb5",
+      "all_three_raw_words_literal_equal": true,
+      "actual_route_node_queries": 1,
+      "actual_route_face_queries": 1,
+      "actual_refusal": false
+    },
+    {
+      "control": "reference",
+      "kind": 1,
+      "rounding": 1,
+      "entry_result": 0,
+      "before_x87_control": "0x077f",
+      "before_x87_status": "0x0034",
+      "before_mxcsr": "0x00003fb5",
+      "all_three_raw_words_literal_equal": true,
+      "actual_route_node_queries": 0,
+      "actual_route_face_queries": 0,
+      "actual_refusal": false
+    },
+    {
+      "control": "reference",
+      "kind": 0,
+      "rounding": 1,
+      "entry_result": 0,
+      "before_x87_control": "0x077f",
+      "before_x87_status": "0x0034",
+      "before_mxcsr": "0x00003fb5",
+      "all_three_raw_words_literal_equal": true,
+      "actual_route_node_queries": 1,
+      "actual_route_face_queries": 1,
+      "actual_refusal": false
+    },
+    {
+      "control": "reference",
+      "kind": 1,
+      "rounding": 2,
+      "entry_result": 0,
+      "before_x87_control": "0x0b7f",
+      "before_x87_status": "0x0034",
+      "before_mxcsr": "0x00005fb5",
+      "all_three_raw_words_literal_equal": true,
+      "actual_route_node_queries": 0,
+      "actual_route_face_queries": 0,
+      "actual_refusal": false
+    },
+    {
+      "control": "reference",
+      "kind": 0,
+      "rounding": 2,
+      "entry_result": 0,
+      "before_x87_control": "0x0b7f",
+      "before_x87_status": "0x0034",
+      "before_mxcsr": "0x00005fb5",
+      "all_three_raw_words_literal_equal": true,
+      "actual_route_node_queries": 1,
+      "actual_route_face_queries": 1,
+      "actual_refusal": false
+    },
+    {
+      "control": "reference",
+      "kind": 1,
+      "rounding": 3,
+      "entry_result": 0,
+      "before_x87_control": "0x0f7f",
+      "before_x87_status": "0x0034",
+      "before_mxcsr": "0x00007fb5",
+      "all_three_raw_words_literal_equal": true,
+      "actual_route_node_queries": 0,
+      "actual_route_face_queries": 0,
+      "actual_refusal": false
+    },
+    {
+      "control": "reference",
+      "kind": 0,
+      "rounding": 3,
+      "entry_result": 0,
+      "before_x87_control": "0x0f7f",
+      "before_x87_status": "0x0034",
+      "before_mxcsr": "0x00007fb5",
+      "all_three_raw_words_literal_equal": true,
+      "actual_route_node_queries": 1,
+      "actual_route_face_queries": 1,
+      "actual_refusal": false
+    },
+    {
+      "control": "refused-0",
+      "kind": 1,
+      "rounding": 0,
+      "entry_result": 0,
+      "before_x87_control": "0x037f",
+      "before_x87_status": "0x0034",
+      "before_mxcsr": "0x00001fb5",
+      "all_three_raw_words_literal_equal": true,
+      "actual_route_node_queries": 0,
+      "actual_route_face_queries": 0,
+      "actual_refusal": false
+    },
+    {
+      "control": "refused-0",
+      "kind": 0,
+      "rounding": 0,
+      "entry_result": 1,
+      "before_x87_control": "0x037f",
+      "before_x87_status": "0x0034",
+      "before_mxcsr": "0x00001fb5",
+      "all_three_raw_words_literal_equal": true,
+      "actual_route_node_queries": 1,
+      "actual_route_face_queries": 0,
+      "actual_refusal": true
+    },
+    {
+      "control": "refused-1",
+      "kind": 1,
+      "rounding": 1,
+      "entry_result": 0,
+      "before_x87_control": "0x077f",
+      "before_x87_status": "0x0034",
+      "before_mxcsr": "0x00003fb5",
+      "all_three_raw_words_literal_equal": true,
+      "actual_route_node_queries": 0,
+      "actual_route_face_queries": 0,
+      "actual_refusal": false
+    },
+    {
+      "control": "refused-1",
+      "kind": 0,
+      "rounding": 1,
+      "entry_result": 1,
+      "before_x87_control": "0x077f",
+      "before_x87_status": "0x0034",
+      "before_mxcsr": "0x00003fb5",
+      "all_three_raw_words_literal_equal": true,
+      "actual_route_node_queries": 1,
+      "actual_route_face_queries": 0,
+      "actual_refusal": true
+    },
+    {
+      "control": "refused-2",
+      "kind": 1,
+      "rounding": 2,
+      "entry_result": 0,
+      "before_x87_control": "0x0b7f",
+      "before_x87_status": "0x0034",
+      "before_mxcsr": "0x00005fb5",
+      "all_three_raw_words_literal_equal": true,
+      "actual_route_node_queries": 0,
+      "actual_route_face_queries": 0,
+      "actual_refusal": false
+    },
+    {
+      "control": "refused-2",
+      "kind": 0,
+      "rounding": 2,
+      "entry_result": 1,
+      "before_x87_control": "0x0b7f",
+      "before_x87_status": "0x0034",
+      "before_mxcsr": "0x00005fb5",
+      "all_three_raw_words_literal_equal": true,
+      "actual_route_node_queries": 1,
+      "actual_route_face_queries": 0,
+      "actual_refusal": true
+    },
+    {
+      "control": "refused-3",
+      "kind": 1,
+      "rounding": 3,
+      "entry_result": 0,
+      "before_x87_control": "0x0f7f",
+      "before_x87_status": "0x0034",
+      "before_mxcsr": "0x00007fb5",
+      "all_three_raw_words_literal_equal": true,
+      "actual_route_node_queries": 0,
+      "actual_route_face_queries": 0,
+      "actual_refusal": false
+    },
+    {
+      "control": "refused-3",
+      "kind": 0,
+      "rounding": 3,
+      "entry_result": 1,
+      "before_x87_control": "0x0f7f",
+      "before_x87_status": "0x0034",
+      "before_mxcsr": "0x00007fb5",
+      "all_three_raw_words_literal_equal": true,
+      "actual_route_node_queries": 1,
+      "actual_route_face_queries": 0,
+      "actual_refusal": true
+    }
+  ],
+  "build_info_sha256": "c5281361e857d24c0f896803b7d78eaec27d626295035cc03fba0ce2017cb2f1",
+  "driver": {
+    "path": "R:/d3-evidence/host-route-fp-control-20261101.lua",
+    "sha256": "084326902d69e64ee260d7777071c2bd9f2516e7293e85cd55338e281b76f943"
+  },
+  "controller": {
+    "path": "R:/d3-evidence/run-host-route-fp-control-20261101.py",
+    "sha256": "56fe9dc7654b6cf6d09cf37762cc7a10897420ae6f6689f7dca8fa6fc9d80f25"
+  },
+  "limits": "Finite modelroute-query caller-state evidence at def6 only. No claim of Coregeometryloader removal, unsafehosttopology acceptance, allboot/frame/RNG equivalence, visualTacview, shipping40/all8 or Task50/D3 closure. P1 topology/workspace/progress finding remainsOPEN under independent review. Rawprobegeometry staysprivate."
+}

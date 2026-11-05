@@ -586,7 +586,7 @@ entity *create_bai_task (entity_sides side, entity *target_group, entity *origin
 
 		ASSERT (get_local_entity_type (target_group) == ENTITY_TYPE_GROUP);
 
-		count = get_local_entity_int_value (target_group, INT_TYPE_MEMBER_COUNT);
+		count = campaign_roster_group_member_count (target_group);
 
 		ASSERT (count > 0);
 
@@ -969,7 +969,7 @@ entity *create_close_air_support_task (entity_sides side, entity *target_group, 
 
 		ASSERT (get_local_entity_type (target_group) == ENTITY_TYPE_GROUP);
 
-		count = get_local_entity_int_value (target_group, INT_TYPE_MEMBER_COUNT);
+		count = campaign_roster_group_member_count (target_group);
 
 		ASSERT (count > 0);
 
@@ -1112,7 +1112,7 @@ entity *create_escort_task (entity *group, int critical, float priority, entity 
 
 		ASSERT (get_local_entity_type (group) == ENTITY_TYPE_GROUP);
 
-		count = get_local_entity_int_value (group, INT_TYPE_MEMBER_COUNT);
+		count = campaign_roster_group_member_count (group);
 
 		ASSERT (count > 0);
 
@@ -1621,7 +1621,7 @@ entity *create_sead_task (entity_sides side, entity *target, entity *originator,
 
 		ASSERT (get_local_entity_type (target) == ENTITY_TYPE_GROUP);
 
-		count = get_local_entity_int_value (target, INT_TYPE_MEMBER_COUNT);
+		count = campaign_roster_group_member_count (target);
 
 		ASSERT (count > 0);
 

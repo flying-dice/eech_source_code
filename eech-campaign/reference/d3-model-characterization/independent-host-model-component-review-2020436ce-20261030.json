@@ -1,0 +1,277 @@
+{
+  "schema": "independent-review/v1",
+  "task": "EEDCS-50 new host-owned model component",
+  "reviewed_head": "2020436ce160ac3762f00f7ee8290f4e6247bce3",
+  "reviewed_base": "2abcf589033de3935c809b719a8cece542edd627",
+  "frozen_source": "R:/d3-evidence/model-host-numbered-source-2020436ce",
+  "clean_exact_head_before_after": true,
+  "disposition": "CHANGES_REQUIRED",
+  "findings": [
+    {
+      "id": "MODEL-NODE-PREALLOCATION",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/src/models.rs",
+      "line": 1002,
+      "related_lines": [
+        985,
+        986,
+        993,
+        1004,
+        1115,
+        1198
+      ],
+      "title": "Bound serialized sub-object counts before allocating nodes",
+      "reason": "The scene header supplies node_budget and sub_objects accepts a file count n against only that budget, then resizes the Node vector before verifying that the remaining bytes can hold those records. A tiny truncated binary/named scene can declare both counts INT_MAX and trigger allocation of about112GB (52 bytes per Node), allocator abort or process exhaustion instead of a bounded ModelError. The512MiB per-file limit does not constrain this allocation.",
+      "bounded_correction": "Before resize, check cumulative arithmetic/representable node lengths and a conservative format/version-correct minimum serialized record bound against remaining bytes; use an explicit resource ceiling or bounded/checked reservation as needed. Preserve valid node order/layout and add a tiny exaggerated-count file control that refuses without a large allocation.",
+      "evidence": "Static source defect; no deliberately excessive allocation was executed by this reviewer."
+    },
+    {
+      "id": "MODEL-OVERRIDE-IO",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/src/models.rs",
+      "line": 325,
+      "related_lines": [
+        327,
+        328,
+        335,
+        1371,
+        1376,
+        1443,
+        1448
+      ],
+      "title": "Propagate override-directory and entry read errors",
+      "reason": "sorted_entries converts read_dir errors to an empty list and flattens individual entry errors. find_dir likewise resolves an inaccessible/existing directory as absent. A failed OBJECTS or named-scene directory enumeration can therefore silently omit physical overrides and produce a successful partial/table-only store, contradicting file-specific refusal/no fallback behavior.",
+      "bounded_correction": "Distinguish genuinely absent optional directories from enumeration/type/entry failures; propagate failures as ModelError with the affected path. Preserve successful enumeration order and valid no-OBJECTS installations. Add bounded I/O-error controls through actual resolver/enumerator code (injectable filesystem boundary is acceptable when permissions cannot be reproduced portably).",
+      "evidence": "Static error handling; no permissions/assets were changed or native run performed."
+    },
+    {
+      "id": "MODEL-COMPARISON-COMPLETENESS",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+      "line": 233,
+      "related_lines": [
+        247,
+        254,
+        337,
+        342,
+        402
+      ],
+      "secondary_path": "eech-campaign/crates/eech-world/lua/model-host-compare.lua:157",
+      "title": "Refuse incomplete or failed original reports before declaring comparison success",
+      "reason": "compare_original parses recognized rows independently but ignores original done/check results, catalogue cardinality/uniqueness and geometry terminal/depth/group completeness; its only completeness guard is at least one input row. The Lua driver only rejects zero compared counters. A truncated original ending after one matching model-scene, a repeated matching scene, or an otherwise matching report whose original done says failures>0 can consequently yield zero mismatches and done failures0. Existing synthetic comparator fixtures intentionally omit the real report envelope, so they do not expose this false green.",
+      "bounded_correction": "Validate the supported original report contract/completion before comparison, including declared catalogue identity/cardinality and geometry depth/terminal/call correspondence. Preserve legitimate catalogue-off, explicit refused/capped/unbacked modes and original partial-write observations; do not require unsupported physical successes. Replace partial positive collaborators with coherent report envelopes and add truncate/duplicate/missing-terminal/failed-done controls through the real comparator.",
+      "reuse_limit": "The actual three complete hash-pinned originals were independently inspected and their metadata/215 calls compared below; this reusable-checker defect does not invalidate those concrete matched measurements."
+    },
+    {
+      "id": "MODEL-SCENE-WIDTH",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/src/models.rs",
+      "line": 1549,
+      "secondary_path": "eech-campaign/crates/eech-world/src/model_host.rs:104",
+      "title": "Check scene bounds before narrowing i64 to usize",
+      "reason": "check_scene converts a positive i64 scene to usize before comparing with scene count. On32-bit targets,4294967297 wraps to1 and passes, so public scene/triangle can answer the wrong model rather than refuse. The Lua whole-number range currently permits that input.",
+      "bounded_correction": "Compare the original i64 with actual scene-count/target representability bounds before conversion, then convert. Add a positive wide-ID control that exercises the32-bit boundary or a checked conversion helper with an explicit target ceiling. Leave valid IDs and numerical behavior unchanged.",
+      "evidence": "Target-width source defect, not an observed failure of the current Windows x64 retail runs."
+    }
+  ],
+  "finding_count": {
+    "P2": 4
+  },
+  "scope": "One initial combined correctness, clean-code, immutable ownership/lifetime/concurrency, file/memory/FFI/boundary/numerical and actual-evidence pass. Closed original fixture/driver309, Task49 and G1/G2 reviews reused; no unchanged review fleet or execution.",
+  "positive_source_assessment": [
+    "The component owns disk loading and physical model queries in the host; no campaign DLL/table is loaded by the comparison. ModelStore owns its immutable Vec/Arena data, Arc userdata returns copied plain values, and numeric C calls receive only live value buffers/counts. No hidden DLL solver or private-pointer export was found. Production campaign dispatch/loader remains unchanged.",
+    "Reader byte slices use checked boundaries; table object count has an explicit ceiling, EEO narrow counts are checked, recursive node depth is bounded, query array accesses are checked against backing blocks, and the C bounds traversal validates object/node spans. The four findings identify remaining concrete gaps rather than claiming these existing guards absent.",
+    "The original triangle integer walk, float promotions/literals/scaling, scene-bound transforms/radius and cached scene timing were compared with3dobjdb.c/3dsubobj.c. First named ID=N postincrement and inclusive final surface consolidation now agree with original numbering; cached scene bounds are not recomputed after a later overwrite.",
+    "The C kernel has call-local context, no retained numeric globals, checks x87/SSE masks, saves/restores caller fenv/MXCSR and sets the original toward-zero rounding. Current tests cover four rounding modes/sticky SSE status and an unmasked SSE refusal. No additional C arithmetic/FFI lifetime defect was established within the supported inspected path.",
+    "C Node and Rust repr(C) fields agree; the runtime size query checks the52-byte node. The private ABI is primitive arrays/counts, not campaign layouts/pointers. Immutable store Send+Sync is a meaningful compile assertion; query FPU state is thread-local and not stored in the Arc.",
+    "The3025-name file was independently regenerated by read-only parsing of the actual header and exactly matches. The conditional Windows header test may return NOT CHECKED when the build-machine source path is unavailable; the25 PASS count alone is not proof of that particular header assertion. This independent header check supplies source correspondence.",
+    "The Lua comparison writer now escapes control bytes rather than percent-q multiline strings; checked writes/flush/close and output-existence guards remain. The repository PowerShell runner forwards native actual exit. No source, raw asset, baseline or oracle was normalized."
+  ],
+  "actual_evidence": {
+    "initial0b": {
+      "source": "0b5750f7a2d12e3eee48d1f4a0f6e1cb429ec0aa",
+      "status": "Retained failure/limited initial evidence, not acceptance",
+      "tests": "Linux/Windows21 of23 passed; two strict-JSON error-path failures; separate Clippy101 with six source/doc idiom findings.",
+      "retail": "Initial three native comparisons0 did not prove identity: old comparator skipped named IDs. Root separate audit found61 differing main/collision fields all+1 and surface52518 versus original52517. These records remain preserved and are not relabelled current success."
+    },
+    "current202": {
+      "linux_actual_exit": 0,
+      "fmt": 0,
+      "new_model_store_tests": {
+        "passed": 25,
+        "failed": 0
+      },
+      "old_model_characterization_tests": {
+        "passed": 8,
+        "failed": 0
+      },
+      "host_all_target_clippy": 0,
+      "windows_build_actual_exit": 0,
+      "windows_tests_actual_exit": 0,
+      "windows_passed": 25,
+      "windows_failed": 0,
+      "invalid_explicit_host_control": {
+        "native_exit": 101,
+        "passed": 0,
+        "failed": 1,
+        "meaning": "Expected strict override refusal/no fallback, controller0; not a component test failure."
+      },
+      "five_build_manifest_payloads_rehashed": true,
+      "build_info_sha256": "b40f93fa756491eee3734f313fcee90330a64b4275a192ec70534e8bdca10022",
+      "image": "sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51"
+    },
+    "retail": {
+      "actual_controller_exit": 0,
+      "actual_repo_powershell_and_native_exits": [
+        0,
+        0,
+        0
+      ],
+      "maps": [
+        "georgia",
+        "lebanon",
+        "lebanon-repeat"
+      ],
+      "pre_post_input_comparisons_each": 0,
+      "strict_rows_each": 3357,
+      "bytes_each": 1278273,
+      "all_three_complete_HOST_reports_byte_identical": true,
+      "host_report_sha256": "34e4b68478a2b998411edc46f5e5ad565e8a2fc304decabdb2cb3b8747b03e86",
+      "scene_rows_each": 3025,
+      "independently_matched_fields": "All IDs/names/loaded status, main/collision including named IDs, scene radius/bb/bb2 and all provided collision-object counts/custom/radius/bounds; no61-ID skip.",
+      "surface_block": 52517,
+      "host_status_counts": {
+        "present": 828,
+        "absent": 2009,
+        "no_scene": 188
+      },
+      "independently_matched_original_calls_each": 215,
+      "original_calls": {
+        "true": 208,
+        "safe_end_false": 6,
+        "absence_false": 1
+      },
+      "scene_and_triangle_mismatches": 0,
+      "comparison_limit": "Original six positive models only; the4 selected refused models have host answers but no original triangle oracle.",
+      "original_reports_and_five_payloads_unchanged": true
+    },
+    "unmeasured_geometry": {
+      "original_refused_rows": 59,
+      "custom_objects": 14,
+      "mixed_face_layouts": 45,
+      "four_selected_host_only_counts": {
+        "188": 6,
+        "1": 54,
+        "1412": 33,
+        "1165": 9
+      },
+      "meaning": "Host counts/endings are informational, not matches. Original allocation/backing/extent instrumentation and real original calls remain required within Task50 before equivalence for these models."
+    },
+    "verification_method": "Read-only controller/log/hash/source inspections plus independent strict JSON parsing and field/bit comparison of all three host files against retained366+driverffba originals. All five build entries were independently rehashed. No supplied build/test/native/audit executable was run by this reviewer."
+  },
+  "limits_and_next": [
+    "Correct the four bounded findings in one batch with affected source-level/real comparator controls. Preserve current202 binaries, complete retail evidence and initial0b failures; no need to repeat closed physical campaigns solely for validator/I/O/width guards. Root decides genuinely affected new build/native gates under new identities.",
+    "This is a prepared host-private model component. No production dispatch moved; model loader and queries still run in EECH_DC production. No host authority/refusal integration, Task50 delivery, Tacview/shipping/full40/eight-artifact or whole-D3 acceptance is inferred.",
+    "Only six safe positive model geometries and one absence have original triangle oracles here. Other originally safe models have metadata coverage, not exhaustive triangle coverage. Four selected and all59 conservative custom/mixed refusals remain unmeasured.",
+    "Current source documentation retains preparation-time UNBUILT/UNRUN wording; these are not used as runtime evidence. Root should append precise current at-time results when publishing, retaining prior failures and distinctions.",
+    "Remaining whole-D3 requirements include original custom/mixed characterization, production model loader/solver removal, hierarchy/viewpoint/device/muzzle/target-point services, entity collision, other spatial/environment/time services and bounded DCS mapping. They are not deferred toD5.",
+    "No formal GitHub approval, delivered Task50 or whole-D3 claim. Current CI is not established by local results. Live Task47 shipping processes, cache and partial prefixes were untouched and outside this pass."
+  ],
+  "source_identities": [
+    {
+      "path": "eech-campaign/crates/eech-world/src/models.rs",
+      "sha256": "3fde868584e044553186e6958d0a9a8da4346748b4c1bde898c862b34db760f5"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+      "sha256": "4b4e3da80d0f0dd07b92dcaab1e41fba5733090efcb88ba2d885367fb53ede22"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/model_step.c",
+      "sha256": "4e4b16aab62681ab917272741c84502aa1e2a1f156604e0d9b7e3a7332025477"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/data/scene-names.txt",
+      "sha256": "da17ddeb46ae1dad201ad6dfa1cd82fb90a44f252f907f3684e4dc58fcfd2b52"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/model-host-compare.lua",
+      "sha256": "66b137122920362053ca867c4863bf341c848dd00246d8d3b5d1a930a1dc3018"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/model_store.rs",
+      "sha256": "3d880d0b235b7da33f6a04b4a178e212925a122fd7c24ae4b82d507376ea6c7a"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/build.rs",
+      "sha256": "208146a83bce30fa135639910ec3990b73960fb11b4863ecdbe8787d2a99301c"
+    },
+    {
+      "path": "eech-campaign/tools/model-host-compare-windows.ps1",
+      "sha256": "9b793f8df0ef9aba019831bb809c84bac9f42a0ab15ff98fd7d136fda09ce85a"
+    },
+    {
+      "path": "eech-campaign/docs/m5-model-host-store.md",
+      "sha256": "36285ce01c7b0dacfcb2b1c088b72dc8774ab9e6a53366e41d10449c50915f42"
+    },
+    {
+      "path": "modules/3d/3dobjdb.c",
+      "sha256": "fc3e86ba9cffd570a9827bae817e425b6cad1c9df098b2090bbe3e3628ea2b19"
+    },
+    {
+      "path": "modules/3d/3dsubobj.c",
+      "sha256": "bf2c56531b39d33c9ff15011e1be960709679702a6634185fee472d68891a79c"
+    },
+    {
+      "path": "modules/3d/3dobjvis.c",
+      "sha256": "01cf140d94a6a23322fa9c426df23416122e86d7449de3408dbc8b6af990604f"
+    }
+  ],
+  "evidence_identities": [
+    {
+      "path": "R:/d3-evidence/model-host-2020436ce-linux-20261030-completion.json",
+      "sha256": "2909f9c8d589c0445d4b9d5aebf946a9dcb0999f2bda0f727fe5540c8a10ec4e"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-2020436ce-linux-20261030.log",
+      "sha256": "88d9f9321455b0d92001455ce06b87364aae1a9b420e002040dbbd36b91abdfd"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-2020436ce-windows-20261030-completion.json",
+      "sha256": "4669f3893d6813105f0a4bbd882390cf2e7ad155d30b4aa5cfe14aeb065f14ce"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-2020436ce-windows-tests-20261030/controller.json",
+      "sha256": "695547d338650b8df03419806617aa45b99ec1ef6f0d19c955f69129c1291412"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-2020436ce-retail-20261030/controller.json",
+      "sha256": "fe66346164cb55c95c17643c180d759a01215610605b834e865803ec4be974a5"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-0b5750f7a-first-retail-identity-audit-20261029.json",
+      "sha256": "047eadf912f3af607e3094947b2fb3b32d8937b1f7243c4c5cfbd71272a611e0"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-0b5750f7a-retail-20261029/controller.json",
+      "sha256": "d6e8b5a3b0a9aa295aebd8dbe6156af39515a7565d8f39169fd869dab3531ba4"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-0b5750f7a-linux-20261029-completion.json",
+      "sha256": "28f9b94ce5f6bd314cc326380a4a9f0082de4c8780f53a54815bb1478a4a8ffe"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-0b5750f7a-windows-tests-20261029/controller.json",
+      "sha256": "b0d905fa1acfaaff577ba28c42baca597677733cfb127f9af1c1b98742d1b876"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-0b5750f7a-clippy-separate-20261029-completion.json",
+      "sha256": "6f103f66f30f495841d6454509fa5427968a09397ebe41fa63f172726065624f"
+    }
+  ],
+  "prior_closed_report": {
+    "path": "R:/d3-evidence/independent-model-driver-validator-closure-309b3f050-20261029.json",
+    "sha256": "ab48e5079bcc07f119236d31555f70c082f733ae5a979956071bd6d6b8a62bce"
+  },
+  "review_actions": "Read-only Git/file/hash and independent JSON analysis only. No source edits, builds, tests, native runs, process/cache/auth/Git/external mutation or nested agents. Only this new UTF8-LF review report was written."
+}

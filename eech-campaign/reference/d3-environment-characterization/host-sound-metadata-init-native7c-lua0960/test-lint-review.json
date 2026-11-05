@@ -1,0 +1,68 @@
+{
+  "created_utc": "2026-11-01T06:05:59.598933+00:00",
+  "reviewer": "sole independent Codex reviewer",
+  "source": {
+    "head": "0e25c5e00ee7e9aae41b4e97582c4d12a4681ac0",
+    "base": "0960e22d1fc4cd6bf95373f839b5c49c72ec27d0",
+    "production_source": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+    "repo": "R:/d3-evidence/environment-services-20261030",
+    "clean_at_inspection": true,
+    "diff_command": "git diff --binary --full-index 0960e22d1fc4cd6bf95373f839b5c49c72ec27d0 0e25c5e00ee7e9aae41b4e97582c4d12a4681ac0",
+    "diff_bytes": 3736,
+    "diff_sha256": "6fc9601fd56f5f80d9a38fa12fc3c6f3aa38972014af5d3bd6ebabf23b622a71",
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "bytes": 435612,
+        "sha256": "f650d09ee0fdbb3fed0b4309582a55b8dddd70e6152d4ce27789cccb3ac123e3"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "bytes": 531660,
+        "sha256": "48057c74135d23853e51c89b6638357a0360b5a9586222d69df780264fd112a6"
+      }
+    ]
+  },
+  "scope": "One actual new-delta source correctness/clean-code/boundary pass. Only STATUS and two cfg(test) test bodies changed. No tests, builds, natives, retail runs, product edits or nested agents by reviewer.",
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "inspected_facts": [
+    "The refusal-output number parser removes only trim_start before split_whitespace; split_whitespace already skips the leading whitespace. The same token is parsed, and before/after fingerprint assertions, cause markers, exit checks and child-process behavior remain identical.",
+    "The local Case lifetime alias names the existing tuple of label, descriptor vector and owned reply. Vec<Case> has the same case data/representation and no change to borrowing, callback lifetime, pointer usage or production ABI. No allow attribute or lint suppression is added.",
+    "Exact Git diff is two paths. All other tracked blobs are identical to0960. Both edits are after the Engine #[cfg(test)] mod tests marker. All296248 bytes before that marker exactly equal0960 and production7c; ordinary runtime source is unchanged.",
+    "Engine C is byte-identical to0960 and production7c, including exactly one embedded NUL at byte40481. Lua/script/delegate, fixture, asset, Cargo, build and all other production inputs are unchanged by this delta.",
+    "Retained default-strict log records exactly the trim_split_whitespace and type_complexity errors in the two new test locations, followed by could not compile due to2 previous errors. This validates the narrow repair attribution, not a corrected current-head strict pass."
+  ],
+  "identities": {
+    "engine_rust_before_sha256": "4f701c6aab88725c0d1d3cb44bf361cc8e1a750028b3501f1af1ff71f8f852f5",
+    "engine_rust_after_sha256": "48057c74135d23853e51c89b6638357a0360b5a9586222d69df780264fd112a6",
+    "ordinary_runtime_prefix": {
+      "boundary": "before #[cfg(test)] LF mod tests {",
+      "bytes": 296248,
+      "sha256": "271bda7f5d53b239dfa1195245984848362e2030d9da9ce37450ede409590d3e",
+      "identical_at": [
+        "0e25c5e00ee7e9aae41b4e97582c4d12a4681ac0",
+        "0960e22d1fc4cd6bf95373f839b5c49c72ec27d0",
+        "7c85100efb1e1aa4669f6c88051f9adce041629c"
+      ]
+    },
+    "engine_c": {
+      "sha256": "23ea0bac337b0609848265c3ee31e7f3c8f2f97a2be564d2cb242b6e47f4c50c",
+      "nul_count": 1,
+      "nul_offset": 40481
+    },
+    "retained_default_strict_log": {
+      "path": "R:/d3-evidence/metadata-linux-final-overlay-0960-20261101/default-strict.log",
+      "sha256": "fb9ffeade23661b2c8aa3ff88ddf3ceb3fab6b9abfe0f09e60ca2a7a83270a76"
+    }
+  },
+  "limits": [
+    "Corrected strict/currentCI results are pending; prior affected-test results reported by Root are not a current-head acceptance claim. No new physical/runtime/shipping/native ownership conclusion.",
+    "Native production identity remains7c85100ef, with later Lua overrides separately identified. This test-only head must not relabel its DLL. Existing0960 source/protocol closure is reused, with no unchanged-source re-review.",
+    "All previous failures, incomplete logging and evidence scopes stay retained. WholeTask51/D3/remaining sound/time/terrain/spatial/model duties, shipping40/all8 and normal delivery remain open; D4/D5 not accepted."
+  ],
+  "reused_review": {
+    "path": "R:/d3-evidence/independent-environment-host-sound-metadata-witness-delta-review-0960e22d1-20261101.json",
+    "sha256": "1958962e08ddb2fe0c9bf5e19ba352147e7effd996f568d24878aa4503819241"
+  }
+}

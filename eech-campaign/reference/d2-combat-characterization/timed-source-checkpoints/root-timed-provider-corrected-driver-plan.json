@@ -1,0 +1,78 @@
+{
+  "when_utc": "2026-10-28T07:56:17.557303+00:00",
+  "source_driver": "run-real-provider.ps1",
+  "source_sha256": "62975b6a3adbf86331d24f49f58b556ffd4c2f68633d6e8ed70bdb4851c41e2e",
+  "new_driver": "run-timed-provider.ps1",
+  "new_sha256": "3b2c3be196cfb77227b1de039ebaa573463c1cf0cf78efd6a463ef884d5ecfa8",
+  "replaced_driver_preserved": "R:\\d2-evidence\\combat-characterization-20261028\\driver-history\\run-timed-provider-before-ownership-correction-20261028.ps1",
+  "replacements": [
+    [
+      "'reference','damage_none','bad_damage_level','bad_damage_draw_twice','bad_damage_exit','bad_damage_class','bad_damage_unwritten','bad_damage_missing'",
+      "'reference','timed_never','timed_fast','critical_late','selfhit_allowed','timed_generic','bad_health_class','bad_health_missing','bad_health_classify_draw','bad_health_second_draw','bad_health_hit_ineligible','bad_health_fatal'"
+    ],
+    [
+      "Real-damage candidate public-path provider",
+      "Timed/critical candidate public-path provider"
+    ],
+    [
+      "REAL_PROVIDER_NATIVE_",
+      "TIMED_PROVIDER_NATIVE_"
+    ]
+  ],
+  "source_under_review": "1c943ffb55b8eebd944aa9647f124c2a6fd026b5",
+  "seconds": 180,
+  "cases": [
+    {
+      "name": "timed-provider-reference-01",
+      "mode": "reference"
+    },
+    {
+      "name": "timed-provider-never-01",
+      "mode": "timed_never"
+    },
+    {
+      "name": "timed-provider-fast-01",
+      "mode": "timed_fast"
+    },
+    {
+      "name": "timed-provider-late-01",
+      "mode": "critical_late"
+    },
+    {
+      "name": "timed-provider-generic-01",
+      "mode": "timed_generic"
+    },
+    {
+      "name": "timed-provider-bad-class-01",
+      "mode": "bad_health_class"
+    },
+    {
+      "name": "timed-provider-bad-missing-01",
+      "mode": "bad_health_missing"
+    },
+    {
+      "name": "timed-provider-bad-classify-draw-01",
+      "mode": "bad_health_classify_draw"
+    },
+    {
+      "name": "timed-provider-bad-second-draw-01",
+      "mode": "bad_health_second_draw"
+    },
+    {
+      "name": "timed-provider-bad-ineligible-01",
+      "mode": "bad_health_hit_ineligible"
+    },
+    {
+      "name": "timed-provider-bad-fatal-01",
+      "mode": "bad_health_fatal"
+    }
+  ],
+  "native_status": "NONE; review/build/capacity gates required",
+  "limits": [
+    "timed_generic requires a hurt PERSON or class-zero aircraft at or below half original health; actual timed_generic>0 required for native own-model claim",
+    "bad_health_second_draw needs an eligible roll; bad_health_fatal needs an actual hit; untriggered is not refusal proof",
+    "critical_late changes DAMAGE critical classification too; not a timed-only control",
+    "Changed temporal/physical models can alter future draw count and campaign trajectory",
+    "No selfhit native planned absent reached own-hit; source/contract limit explicit"
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "review": "Independent D3 time/DCS mapping documentation correction review",
+  "created_utc": "2026-11-01T16:51:58.812098+00:00",
+  "source": {
+    "documentation_head": "ff6240022b78a539a0ee41c1a98518655c906407",
+    "previous_reviewed_doc_head": "4d84bb3355cc630f17f8efcf7fac95f424c1c109",
+    "unchanged_physical_source_and_native": "78fe5efdb5cbaff904e3b645d680acbd7776597d",
+    "diff_sha256": "82a3bf532f1604e82d62a85c5ac0a2e8ea82815a0f43f72116ce87aa9da41b0d",
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "git_blob_sha256": "b1e2c6ef6e6e0573549eb2c801af03272886d0cc71a90272b611ecfbc574f191"
+      },
+      {
+        "path": "eech-campaign/docs/d3-environment-time-DCS-mapping.md",
+        "git_blob_sha256": "710b2f8bb427ec153d3228826b4899d642507cfd6de768206b2e882c75e823d0"
+      }
+    ],
+    "all_other_tracked_entries_and_modes_exact78": true,
+    "targeted_source_hashes": [
+      {
+        "path": "aphavoc/source/ai/parser/parsgen.c",
+        "git_blob_sha256": "ef7b324ebf5e466910e102abaf9db4af807bcc38c3bfbe95309af6ba6f2e528a"
+      },
+      {
+        "path": "aphavoc/source/ai/faction/parser.c",
+        "git_blob_sha256": "907bc7574b08133257d81689d1f977d6e7fb4df8076fb8af2a171ab488bdbc12"
+      },
+      {
+        "path": "aphavoc/source/ui_menu/sessparm/sparm_sc.c",
+        "git_blob_sha256": "7fb26834af01d1052de7ecaaeddcc74546f0564eaf8f32e442a1060318cbeb22"
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_creat.c",
+        "git_blob_sha256": "7abc30146f8fe3e01773f78a14b1895c87c80640a5d61f1b31aa38339c17340d"
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/session.c",
+        "git_blob_sha256": "cc89d8160510a2e31428e46a137dc6295fba01b4da28d75a775ebdcd6022cd75"
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_hostenv.c",
+        "git_blob_sha256": "78836c8cd5b9a335778670129f2179597b1c2006a53ee38d9bf481fc05201919"
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_pack.c",
+        "git_blob_sha256": "5590ca9c45462cbb2b0d6310e520c81e08f47011e7106ebfe79d35e3d1594aae"
+      },
+      {
+        "path": "eech-campaign/crates/eech-dc/src/module.rs",
+        "git_blob_sha256": "32af7c43987af906fe7160f190de519eb1aef8c596b8520a072671dc43e1b838"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+        "git_blob_sha256": "00839c7dd14d20748fc9ca092f3e75306648a846b1d85238ab237dc18241bc44"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/env_ref.c",
+        "git_blob_sha256": "4fb9dd4f8913b585aed72d341e6600d93f43e1a54db00fbca70b6c92b4c2127a"
+      }
+    ]
+  },
+  "scope": "One new two-path correction/design pass. Prior3f6aa907 time-domain/wind findings and closed source/actual/primary declaration reviews reused. No source edit, active-worktree review, build/test/native rerun, live DCS observation or shipping assessment.",
+  "closed_findings": [
+    {
+      "id": "D3-MAPPING-1",
+      "status": "closed",
+      "basis": "Existing public u32 domain is retained and positive100/250/50 coverage is explicitly separated from any future adapter cadence/conversion/stall policy."
+    },
+    {
+      "id": "D3-MAPPING-2",
+      "status": "closed",
+      "basis": "Steady wind is an explicit observation policy without determinism/reproducibility proof. Core finite/shape-only checks are correctly stated. A selected terrain+10m observation plane, one sample per request, horizontal projection/magnitude, zero vertical reply, no added gust and separate per-request ambient sampling are now explicit planned-provider choices, with narrowing coherence qualified."
+    }
+  ],
+  "findings": [
+    {
+      "id": "D3-MAPPING-BOOT-1",
+      "priority": "P2",
+      "location": "eech-campaign/docs/d3-environment-time-DCS-mapping.md:148",
+      "title": "Do not claim a fixed game.cfg is necessary or RANDOM always refuses",
+      "evidence": "The document itself correctly identifies the campaign-file rain-tag0 init_fixed(DRY) path and says that each compatible fixed request enters STATIC. In source parsgen.c1318 that request sets the mirror to the planned F(DRY). Later sparm_sc.c1500-1508 invokes init_random for SESSION_WEATHER_RANDOM only while local_weather_model remainsTRUE. After the earlier fixed request it isFALSE, so a missing/default-RANDOM game.cfg causes no second random request. With authored M=DRY, the proposed provider table reachesSTATIC and accepts this boot, contrary to the later unconditional sentence that missing game.cfg or RANDOM ends in refusal. The provider receives init_fixed(mode), not which file/config path caused it, so its current proposed state machine cannot enforce the stated binary-config prerequisite.",
+      "required_correction": "State the actual restriction in terms of observed request sequence: a compatible fixed request may come from the campaign rain tag or from configured GOOD/FAIR/POOR; RANDOM/missing game.cfg fails only when no earlier compatible fixed request occurred. Alternatively specify an explicit separate prevalidated configuration restriction if TL really requires it, without claiming the existing provider protocol can infer that cause. No engine/API change or runtime rerun is needed to correct this design/prose inconsistency."
+    }
+  ],
+  "documentation_review_no_blocking_findings": false,
+  "weather_mapping_plan_closed": false,
+  "concrete_plan_assessment": [
+    "C0 versus F(M), import acknowledgement versus state-writing operations, first parser init_random handling, repeated-random refusal, whole-state carriers, queue restrictions, scoped static divergence and chosen wind/ambient relationship are now concrete enough for a bounded source-level M5 workaround plan once the bootstrap inconsistency is corrected. They remain unimplemented planned DCS-provider behavior, not changes to the reference host.",
+    "The initial parser random request really occurs before the configured weather setting; refusing it unconditionally would block boot. Returning the declared unchanged C0 is now an explicit compatibility decision while the original Core draws still occur. No global random-stream or world-result equivalence is inferred.",
+    "The M5 choices are separate from M6 verification of mission-state readability/types, pairing, numeric precision/axes and actual boot/save/client-import behavior. The table already refuses mismatching imports; fresh saved/client state need not succeed merely because a runtime matrix is listed. Preserve those exact restricted outcomes rather than implying general reload or client-state support.",
+    "Source readers versus active host weapon lookup are now qualified. Altitude is no longer invented as a current WIND input, and reference ambient is correctly not reused to secretly resample a legacy field instead of DCS wind."
+  ],
+  "ancillary_source_clarification": {
+    "location": "eech-campaign/docs/d3-environment-time-DCS-mapping.md:93",
+    "note": "Qualify the sentence that reference step evolves the lightning timer: wind-zone/gust evolution remains outside the local/global weather branch, but lightning-timer evolution is in the local-weather branch. After init_fixed makes the model global, that timer does not evolve via the reference step. This does not invalidate the separately planned frozen F(M) step; it avoids a new source-fact overstatement."
+  },
+  "limits": [
+    "One bootstrap-policy finding remains. No live DCS behavior, implemented provider/schema, captured mission, positive backend/audio, input-domain change, all-weather coverage, full time-service, Task51/D3/49/50, shipping40/all8/Tacview, final CI or normal delivery acceptance.",
+    "The running shipping78 pack and all executable entries remain untouched. Named future M6 checks are not actual results."
+  ]
+}

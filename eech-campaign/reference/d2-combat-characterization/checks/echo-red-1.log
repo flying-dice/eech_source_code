@@ -1,0 +1,29 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.04s
+     Running tests/host_callbacks.rs (/target/debug/deps/host_callbacks-01e380bfce0df75c)
+
+running 1 test
+test aim_round_trips_through_lua_and_refuses_what_it_was_not_asked ... FAILED
+
+failures:
+
+---- aim_round_trips_through_lua_and_refuses_what_it_was_not_asked stdout ----
+
+thread 'aim_round_trips_through_lua_and_refuses_what_it_was_not_asked' (508) panicked at crates/eech-world/tests/host_callbacks.rs:685:5:
+exit status: 1
+
+Error: RuntimeError("[string \"/tmp/eech-world-aim-507.lua\"]:316: echo value 3 is a finite number: -nan\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'assert'\n\t[string \"/tmp/eech-world-aim-507.lua\"]:316: in main chunk")
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    aim_round_trips_through_lua_and_refuses_what_it_was_not_asked
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p eech-world --test host_callbacks`
+CARGO_EXIT=101
+DOCKER_EXIT=101

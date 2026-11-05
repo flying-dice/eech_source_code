@@ -1,0 +1,79 @@
+{
+  "review_id": "ENV-SECTOR-TEST-WAIT-9C47-20261031",
+  "reviewer": "Sole independent Codex reviewer; no nested agents",
+  "reviewed_utc": "2026-10-31T13:52:47.1557505Z",
+  "scope": "One read-only pass on the test-only Clippy and single-owned-child timeout-control delta from prior_base05b474 to inspected_commit9c47. Root pinned before the final identity read; the inspected test bytes belong to9c47, not an uncommitted snapshot. This correction changes report metadata only and performs no new source review.",
+  "source": {
+    "repository": "R:/d3-evidence/environment-services-20261030",
+    "prior_base": "05b474e88e15e37ea6c7d06ea70d330419f7a2ee",
+    "inspected_commit": "9c47b972aae4dc6640a09f6d9cc13d5f2de81db0",
+    "changed_paths_vs_prior_base": [
+      "STATUS.md",
+      "eech-campaign/crates/eech-world/tests/env_sector_authority.rs",
+      "eech-campaign/crates/eech-world/tests/terrain_sector.rs",
+      "eech-campaign/docs/d3-environment-sector-surface.md"
+    ],
+    "reviewed_test_files": [
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sector_authority.rs",
+        "raw_blob": "1beebd3c4ee1c8215cf69f85c822609386ac358b",
+        "sha256": "351b00514c8557f47cadba760f96e436ca7a4f93a70ea2d5ca1cb58a598f20bf"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/terrain_sector.rs",
+        "raw_blob": "f996fcd4792dc09f08f3f5d5050080fce50f9bf5",
+        "sha256": "6bb80a5055a82932b793edf2a42a3a02b30b62b4ce84734cbee11670f2c776c8"
+      }
+    ],
+    "identity_note": "The original report source.base already recorded9c47. Root confirms both reviewed test hashes equal9c47, with no subsequent code changes; Root additionally corrected stale pending-status prose before pin."
+  },
+  "inspected_facts": [
+    {
+      "refs": [
+        "eech-campaign/crates/eech-world/tests/env_sector_authority.rs:178",
+        "eech-campaign/crates/eech-world/tests/terrain_sector.rs:344"
+      ],
+      "fact": "The inclusive range membership refuses exactly the former i64 capacity set; the local SectorAnswer alias denotes the exact previous nested reference type. No FP seeds/calls/masks/assertions, observer completeness rule, boot-count check or production logic changes."
+    },
+    {
+      "refs": [
+        "eech-campaign/crates/eech-world/tests/env_sector_authority.rs:1338",
+        "eech-campaign/crates/eech-world/tests/env_sector_authority.rs:1402",
+        "eech-campaign/crates/eech-world/tests/env_sector_authority.rs:1416"
+      ],
+      "fact": "Timeout controls use current_exe with an exact test-name filter and child-local ENV_SECTOR_CHILD setting. Hang sleeps in that same test process, failure exits that process with3, and the helper is a no-op in the ordinary suite. This creates no shell/descendant holding the pipes and does not recurse into public modes or the parent timeout test. The runner executable logic is unchanged; the added comment accurately states its one-child limitation."
+    },
+    {
+      "refs": [
+        "eech-campaign/crates/eech-world/tests/env_sector_authority.rs:1430",
+        "eech-campaign/crates/eech-world/tests/env_sector_authority.rs:1443",
+        "eech-campaign/crates/eech-world/tests/env_sector_authority.rs:1446"
+      ],
+      "fact": "The2s wall and25s upper assertion remain. New checks require the timeout classification, child diagnostic and successful kill/wait, reject an early return before2s, and separately require exit3 with its diagnostic from the failing child rather than treating it as a timeout. No runtime result is inferred from this source."
+    }
+  ],
+  "prior_closed_review": {
+    "report": "independent-environment-sector-judge-review-05b474e88-20261031.json",
+    "sha256": "78fe334606c9496586d85961da9b553c7d301b57fa96bff0f50202067c11b720",
+    "scope": "Boot-count P2 source closure reused unchanged."
+  },
+  "findings": [],
+  "verdict": "No actionable findings in the inspected test-only delta at9c47. Source review is not execution or authority proof.",
+  "validation_context": {
+    "root_reported_prior_failure": "Actual Windows05b474 guard suite13/14: timeout fixture waited29.337829s because CMD/PING descendant retained pipes; no real five-mode run. This report does not recast that failure as a pass.",
+    "reviewer_checks": "Read-only source/diff/identity inspection and git diff --check0. No tests/builds/compilers/native runs, process changes, Docker, source edits, external calls, auth or public writes. Only this report written.",
+    "pending": "At the original source-review handoff new strict/guard execution and five real public modes remained pending. Metadata-update information from Root: Windows9c47 judge-only build actual0 at13:53:42UTC; publicV2 controller22092 live from13:54:08 first15guards then freshfive modes; Linux judge/both-strict3180 live. No successful guard/public/strict result is inferred."
+  },
+  "limitations": [
+    "The child runner still does not manage process trees: descendants retaining pipes can delay reader joins. The corrected fixture and stated public target use one child; no broader process-manager guarantee is accepted.",
+    "The changed path list contains only the two test files and two documentation files; no production C/Rust ABI/provider or Lua inputs changed. No unchanged kernels, original-sector/field/model/observer oracles or prior evidence were re-reviewed.",
+    "Whole Task51/D3 and full shipping/currentCI/normal merge gates remain open; physical effects/time/remaining terrain/spatial/model remain required. D4/D5 unstarted. All previous failures, partials and live ground runs are preserved."
+  ],
+  "metadata_correction": {
+    "corrected_utc": "2026-10-31T13:54:40.5295611Z",
+    "reason": "Root pinned before the last original read; correct identity wording only, without another source pass.",
+    "supersedes_path": "R:/d3-evidence/independent-environment-sector-test-wait-review-working-05b474e88-20261031.json",
+    "preserved_original_sha256": "a5c6036cffbf716578c0107c5ad58cd0125e479a1b238193abc4531f2cafdcbb",
+    "source_review_repeated": false
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "recorded_utc": "2026-10-30T03:31:52.897417+00:00",
+  "task": "EEDCS-50",
+  "pr": 110,
+  "kind": "CORRECTION_SOURCE_CHECKPOINT",
+  "author": {
+    "pid": 22552,
+    "controller_pid": 20288,
+    "started_utc": "2026-10-30T03:14:03.070506+00:00",
+    "completed_utc": "2026-10-30T03:31:13.297262+00:00",
+    "session": "20f8be8d-68b1-4ff9-947f-73e2362b0071",
+    "model": "claude-sonnet-5-5",
+    "effort": "high",
+    "state": "terminal",
+    "actual_exit": 0
+  },
+  "tool_session": 10026,
+  "terminal_collected": true,
+  "review_corrected_in_source": "Six P2 and two P3; not independently validated yet.",
+  "validation": "UNBUILT / UNRUN / UNREVIEWED correction source. Prior de2 Windows46/408 Linux results apply only to initial source.",
+  "eech_engine_c_nul_count": 1,
+  "next": "Format and build affected targets, run actual bridge/Lua/native controls and Core-generated synthetic bootstrap, then one independent changed-source review before retail handoff acceptance. Keep Task47 shipping run intact.",
+  "ledger_version": 74,
+  "jira_comment": "10869",
+  "scope": "D3 remains In Progress; no production, normal merge or D3 closure claim."
+}

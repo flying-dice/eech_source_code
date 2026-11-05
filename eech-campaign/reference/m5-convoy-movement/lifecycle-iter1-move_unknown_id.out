@@ -1,0 +1,5 @@
+load	ok	
+prepare	ok	
+boot	error	runtime error: eech: EECH fatal error: routed vehicle movement: host move_vehicle failed for stranger:2784: runtime error: runtime error: host.move_vehicle: unknown host id stranger:2784
+boot_after	error	runtime error: eech: not valid in the engine's state
+end

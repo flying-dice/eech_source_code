@@ -1,0 +1,46 @@
+{
+  "when_utc": "2026-10-28T08:16:01.397289+00:00",
+  "source": "366d5591430025173dbbae30c0378c1cf6b08894",
+  "actual_original_controller86637_exit": 1,
+  "actual_native_exit": 1,
+  "run_record": {
+    "status": "completed",
+    "when_utc": "2026-10-28T08:08:42.6243110Z",
+    "binary": "R:\\d2-evidence\\combat-timed-source-366d55914\\eech-campaign\\target\\weapon-fixture\\combat-timed-366d55914\\eech-world.exe",
+    "arguments": "R:/d2-evidence/combat-timed-source-366d55914/eech-campaign/target/weapon-fixture/combat-timed-366d55914/lua/combat-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/timed-controlled-01 out=R:/d2-evidence/combat-characterization-20261028/out/timed-controlled-01/trace.jsonl warmup=60 frame_ms=100 timed_seconds=20",
+    "root": "R:/d2-evidence/combat-characterization-20261028/roots/timed-controlled-01",
+    "out": "R:/d2-evidence/combat-characterization-20261028/out/timed-controlled-01",
+    "kind": "Timed/critical candidate controlled combat witness; precondition done is not physical-path coverage; not extraction/fullpack acceptance",
+    "actual_native_exit": 1,
+    "native_pid": 9724,
+    "created_utc": "2026-10-28T08:08:42.6372631Z",
+    "completed_utc": "2026-10-28T08:10:36.2508456Z"
+  },
+  "trace_complete": false,
+  "trace_bytes": 363281,
+  "trace_sha256": "e28e9cbe18d6b0e380fcb46c82360f8d9925d787ea35fb46085a8a1956b1f7d4",
+  "first_primary_failure_case": {
+    "ammo_after": -1,
+    "ammo_before": -1,
+    "done": false,
+    "event": "case",
+    "name": "timed_health_PERSON_declared_unreachable",
+    "ok": false,
+    "refused": false,
+    "text": "runtime error: eech: EECH fatal error: host aim: a health request needs a host aim callback stack traceback: \t[C]: in function 'cmb_case_state' \t[string \"R:/d2-evidence/combat-timed-source-366d5591...\"]:303: in function <[string \"R:/d2-evidence/combat-timed-source-366d5591...\"]:303> \t[C]: in function 'pcall' \t[string \"R:/d2-evidence/combat-timed-source-366d5591...\"]:121: in function 'run_case' \t[string \"R:/d2-evidence/combat-timed-source-366d5591...\"]:303: in main chunk "
+  },
+  "primary_error": "host aim: a health request needs a host aim callback, while cmb_case_state queried PERSON health",
+  "secondary_error": "cmb_trace sees engine poisoned by prior fatal; not primary cause",
+  "post1179_input_actual_exit": 0,
+  "disposition": "RETAINED FAILED native RED; sameSonnet narrowly fixing fixture host callback scope; no scenario/baseline/strictguard bypass",
+  "healthy_runs_preserved": [
+    "63991 natural600",
+    "59291 control900",
+    "83709 Task45fullpack"
+  ],
+  "provider_queue": "NOTSTARTED until controlled corrected gate closes",
+  "intentional_cli_handoff": {
+    "prior50759_actual_exit": -1,
+    "reason": "Read-only impact lane stopped with clean366 and no tool child; no timeout/quota/native stop"
+  }
+}

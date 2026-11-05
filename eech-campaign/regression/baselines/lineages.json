@@ -1,0 +1,33 @@
+{
+ "about": "The accepted campaign baselines, by lineage and version (docs/governance/REVIEW.md, 'Baseline changes'). A lineage is one configuration: build platform, inputs, seed and duration. Its current version is materialised at its working path, which the regression runners read. Versions are never overwritten or removed: a change adds a version through an approved change record in regression/changes/ (tools/baseline-governance.py adopt). Earlier git revisions of the baselines are not reconstructed here; the lineage starts at v1, the baseline accepted when it was established.",
+ "lineages": {
+  "windows-retail": {
+   "configuration": "Windows MinGW build (tools/build-windows.sh); retail Comanche vs Hokum Georgia (map3) and Lebanon (map5); seed 1; 3 simulated hours; 100 ms frames; a checkpoint every 3,600 s (tools/regress-windows.ps1)",
+   "inputs": {
+    "georgia": {"manifest": "reference/m4-s3-mutation/inputs-georgia.json", "combined_sha256": "d373bc4262464da87532b8128d396358f0003bc2e9e51e8fa92cf0a6e2b50de2"},
+    "lebanon": {"manifest": "reference/lebanon-3h/inputs.json", "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09"}
+   },
+   "working_path": "regression/windows",
+   "current": "v1",
+   "versions": [
+    {
+     "id": "v1",
+     "path": "regression/baselines/windows-retail/v1",
+     "files": {
+      "georgia_retail.json": "675960e731eec6726ecaadb9540853e3f24769b25c97ecf2c3e9c386617a7d12",
+      "lebanon_retail.json": "fc93a1ee491bb23386d3e607eb59ca6e99f9b6b49ebebc9de0996bf6bf971271"
+     },
+     "established": {
+      "at": "e0801614 (the integration branch after #69)",
+      "accepted_in": ["#19 (M1 acceptance)", "#63 (Lebanon re-recorded without S2)", "#23 and #27 (reproduced by the M2 and M3 reference runs)"],
+      "sources": {
+       "georgia_retail.json": "a run at 12e8f692, reproduced exactly by the accepted candidate 0288ece2",
+       "lebanon_retail.json": "a run of the accepted candidate 0288ece2, produced twice byte-identically; committed at 62277a3a"
+      },
+      "note": "the baseline in force when the lineage was established; its earlier git history is not part of the lineage"
+     }
+    }
+   ]
+  }
+ }
+}

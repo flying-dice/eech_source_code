@@ -1,0 +1,26 @@
+{
+  "directory": "%USERPROFILE%\\AppData\\Local\\Temp\\eech-dcs-lua-compat-607c66298bfa45d58be3355aded7dcb2",
+  "started": "2026-10-20T23:30:34.8180458+01:00",
+  "completed": true,
+  "pid": 50972,
+  "exitCode": -1073741819,
+  "scope": "DCS Lua DLL in standalone EECH host; no DCS mission or engine boot",
+  "inputs": [
+    {
+      "name": "eech_dc.dll",
+      "sha256": "A99D7A1118008F73A995FD7E4701A04BDDB5FA51D1BF3B5A487297D78C383F41"
+    },
+    {
+      "name": "eech-world.exe",
+      "sha256": "13CC2A6F00EC570A907C701BF2F8711429934B7F833C01BD847A1F492988A228"
+    },
+    {
+      "name": "lua-compat.lua",
+      "sha256": "CD077A44C116D1372D4AA6E0C80CB53F497847BE56D18DF605EF08C7ACA6C9B5"
+    },
+    {
+      "name": "lua.dll",
+      "sha256": "8A228B5437520BC8DDA3E77AAC7BB7F81C10D23F0747ADBCBAFE95647533B755"
+    }
+  ]
+}

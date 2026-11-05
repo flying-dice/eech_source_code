@@ -1,0 +1,21 @@
+# Static check run on 2026-10-21; exit status 0. No DCS or DLL code was executed.
+# Command: python -I eech-campaign/tools/dcs-probe/pe-lua-link-check.py E:/eech-runs/dcs-probe/bin/eech_dc.dll "D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua.dll"
+# candidate eech_dc.dll sha256: a99d7a1118008f73a995fd7e4701a04bddb5fa51d1bf3b5a487297d78c383f41
+# host lua.dll sha256: 8a228b5437520bc8dda3e77aac7bb7f81c10d23f0747adbcbafe95647533b755
+module: E:/eech-runs/dcs-probe/bin/eech_dc.dll
+  machine 0x8664, PE32+, delay imports none
+  exports luaopen_eech_dc: yes
+  imported DLLs: KERNEL32.dll, USERENV.dll, WS2_32.dll, api-ms-win-core-synch-l1-2-0.dll, bcryptprimitives.dll, kernel32.dll, lua.dll, msvcrt.dll, ntdll.dll
+host Lua: D:/Program Files/Eagle Dynamics/DCS World OpenBeta/bin-mt/lua.dll (export name lua.dll)
+  PE32+, 130 exports, delay imports none
+  imported DLLs: KERNEL32.dll, VCRUNTIME140.dll, api-ms-win-crt-convert-l1-1-0.dll, api-ms-win-crt-environment-l1-1-0.dll, api-ms-win-crt-filesystem-l1-1-0.dll, api-ms-win-crt-heap-l1-1-0.dll, api-ms-win-crt-locale-l1-1-0.dll, api-ms-win-crt-math-l1-1-0.dll, api-ms-win-crt-runtime-l1-1-0.dll, api-ms-win-crt-stdio-l1-1-0.dll, api-ms-win-crt-string-l1-1-0.dll, api-ms-win-crt-time-l1-1-0.dll, api-ms-win-crt-utility-l1-1-0.dll
+  error-unwinding imports: longjmp
+lua.dll: 83 symbols imported, 130 host exports
+pass: module is x86-64 PE32+
+pass: host Lua is PE32+
+pass: module exports luaopen_eech_dc
+pass: module has no delay imports
+pass: module imports from lua.dll
+pass: no imported Lua symbol is missing from the host
+pass: module imports no MinGW runtime DLL
+PASS (link level; struct layouts not checked)

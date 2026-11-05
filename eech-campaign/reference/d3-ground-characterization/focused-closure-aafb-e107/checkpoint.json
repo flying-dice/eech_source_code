@@ -1,0 +1,90 @@
+{
+  "schema": "d3-ground-focused-closure/v1",
+  "updated_utc": "2026-10-31T01:45:33.106366+00:00",
+  "production_source": "aafb21775f5d3523a30f148d23fbce588902025a",
+  "test_only_recovery_source": "e1076ece31565a3b4f73a7e2adbe8e2698d9c023",
+  "production_unchanged_across_test_recovery": true,
+  "finite_physical_conformance": "All3maps20kpoints/5kimpacts times2,113commondecodedrows exact c119;119candidate rows also complete byte-exact prior02cc; all actualnative/prepost0",
+  "actual_FP_controls": {
+    "Linux_tests_passed": 21,
+    "Windows_tests_passed": 21,
+    "caller_state_calls_each_platform": 104,
+    "cases": 13,
+    "rounding_modes": 4,
+    "flag_patterns": 2,
+    "observed": "x87 control/status and MXCSR exactly preserved; tag/pointer fields not separately judged",
+    "strict_Clippy": 0
+  },
+  "actual_weapon_authority": {
+    "test_functions_passed": 16,
+    "real_modes": 9,
+    "unique_roots": 9,
+    "prepost_manifests": 18,
+    "all_actual_exits": 0,
+    "coverage": "One anti-aircraft-launched20mm projectile cohort; changed terminal7steps->1; exact shifted point consumed; six specific refusals after matchedlaunch. Armed provider operations change globally, so not an isolated campaign-policy/RNG total comparison."
+  },
+  "CI_at_test_source": "8/8 SUCCESS",
+  "original_failures": "02cc lint101/export125 and aafb synthetic FP coverage101 onLinux/Windows preserved; separate recoveries never relabel originals",
+  "full_shipping": {
+    "tool": 72359,
+    "runner_pid": 20800,
+    "runner_birth": "2026-10-31T01:31:27Z",
+    "native_pids": [
+      17448,
+      8964,
+      18980,
+      24868
+    ],
+    "state": "LIVE; actualfinalexit/full40/all8complete/eof/post-input acceptance pending",
+    "output": "R:\\d3-evidence\\shipping-ground-aafb21775-final-pack-20261031",
+    "first_prefixes": "All4 nonempty prefixes equal at captured sizes; partial evidence only"
+  },
+  "remaining": "Fullshipping/eightcomplete artifacts, final independent evidence/currentheadCI/normal delivery. WholeD3 other physical services remain open.",
+  "receipts": {
+    "independent-FP-actual-recovery.json": {
+      "private_source": "R:\\d3-evidence\\independent-ground-fp-actual-recovery-closeout-e1076ece3-20261031.json",
+      "raw_sha256": "2d60696be528582f00962c0681080a2ad6dc919ac2eef40b992ccf5b4ae2e672",
+      "Git_LF_sha256": "2d60696be528582f00962c0681080a2ad6dc919ac2eef40b992ccf5b4ae2e672"
+    },
+    "independent-FP-test-source.json": {
+      "private_source": "R:\\d3-evidence\\independent-ground-fp-test-recovery-review-e1076ece3-20261031.json",
+      "raw_sha256": "16dff745651a2cda68183eb2bf2adfa99cee28d7029cdf4a69bfd81016d5452a",
+      "Git_LF_sha256": "16dff745651a2cda68183eb2bf2adfa99cee28d7029cdf4a69bfd81016d5452a"
+    },
+    "independent-weapon-authority.json": {
+      "private_source": "R:\\d3-evidence\\independent-ground-weapon-authority-review-aafb21775-20261031.json",
+      "raw_sha256": "ac99a17707fdbcbc56c1c3e3f520c9a995a003b8456c368acd8d15c2c01b1d4e",
+      "Git_LF_sha256": "ac99a17707fdbcbc56c1c3e3f520c9a995a003b8456c368acd8d15c2c01b1d4e"
+    },
+    "Linux-test-recovery-completion.json": {
+      "private_source": "R:\\d3-evidence\\ground-fp-recovery-e1076ece3-linux-20261031-completion.json",
+      "raw_sha256": "6b01a96bc4cf664e0bac0e2ba61b798d4f68796f5e7cfc59809c880aefcbf9bd",
+      "Git_LF_sha256": "c03b68d3b39a67b676a8fc68da25d2858688512b14d2376f71dbbcec1decda3d"
+    },
+    "Windows-test-export-completion.json": {
+      "private_source": "R:\\d3-evidence\\ground-fp-recovery-e1076ece3-windows-20261031-completion.json",
+      "raw_sha256": "24925f2f017d9118a1d5d676b303e06a2cb89471ecdf4497914b7cececbe4701",
+      "Git_LF_sha256": "0f32a6ce235c8117648dc75ee1259a36fe2d7ae2178a48cf9544bcde83b83ab7"
+    },
+    "actual-Windows-FP-recovery.json": {
+      "private_source": "R:\\d3-evidence\\ground-fp-Windows-e1076ece3-recovery-20261031.json",
+      "raw_sha256": "a11465ebfcc171e64e33434e7f21c8f1c62d3958bdf73e343bfb108d95ece29c",
+      "Git_LF_sha256": "6f0e076eb58715ea9be7b7b8a616427788f7d235f57cb1892c67218791f13a23"
+    },
+    "authority-controller.json": {
+      "private_source": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\controller.json",
+      "raw_sha256": "b6f79caf80c26daa484acd195873d560366b7eae94f697298da9cfface159413",
+      "Git_LF_sha256": "a71a2ce6f60836b6ae88866fe73205b64deb362bc3877cbea5b4680663f5bdd4"
+    },
+    "current-CI-e107.json": {
+      "private_source": "R:\\d3-evidence\\ground-current-CI-e1076ece3-20261031.json",
+      "raw_sha256": "8846715e19f138612aff4ad0a2a834b5e0420e8cdc1010c43d603ceb925e7260",
+      "Git_LF_sha256": "eb3449579e51cdaf226214e62ef6b2c17b06b6c2b111aaf1364ef3f368a1215f"
+    },
+    "first-live-prefixes.json": {
+      "private_source": "R:\\d3-evidence\\ground-aafb-live-prefixes-first-20261031.json",
+      "raw_sha256": "8aa0f66b793e60fd5167fc8aa1a5e07e87fecc7abf01297db8302761d7067ffd",
+      "Git_LF_sha256": "db5b8f7a77e09bace3eee1e241d9046bf2b6661209d4baf98b5d9989f83a2b57"
+    }
+  }
+}

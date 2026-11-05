@@ -1,0 +1,116 @@
+{
+  "native_capture_source": "a6cf70b672a6dab771048cc676e230b22ffa0972",
+  "current_checker_source": "d30e153e9116bcfbfa816c5752ef2492360ac33a",
+  "created_utc": "2026-11-01T22:58:47.696144+00:00",
+  "results": [
+    {
+      "case": "georgia",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_inputs": [
+        0,
+        0
+      ],
+      "payloads": 59,
+      "controller_sha256": "8da8a188b26d7d539f8659824cccbaf67da3cc5f5f7ec0ae7892b985f52586b5",
+      "raw_report_bytes": 883159,
+      "raw_report_sha256": "d8bae4ece090569002ac590d8fadfcb64c838c4a325762ced94a6b54b6da4b06",
+      "JSON_rows": 3065,
+      "scene_rows": 3025,
+      "pages": 32,
+      "scenes_read": 2837,
+      "ordered_ID_count": 510,
+      "by_status": {
+        "listed": 95,
+        "empty": 2742,
+        "absent": 188
+      },
+      "by_source_status": {
+        "built-listed": 23,
+        "built-empty": 121,
+        "file-empty": 2621,
+        "file-listed": 72,
+        "none-absent": 188
+      },
+      "max_observed_count": 42,
+      "max_observed_capacity": 42,
+      "content_projection_digest": "f1506ca29e44eb91",
+      "checked_clocks": [
+        {
+          "day": 1,
+          "elapsed_seconds": 0,
+          "event": "clock",
+          "time_of_day_seconds": 31816,
+          "when": "before"
+        },
+        {
+          "day": 1,
+          "elapsed_seconds": 0,
+          "event": "clock",
+          "time_of_day_seconds": 31816,
+          "when": "after"
+        }
+      ],
+      "read_only_projection_and_first_page_check_passed": true
+    },
+    {
+      "case": "lebanon",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_inputs": [
+        0,
+        0
+      ],
+      "payloads": 59,
+      "controller_sha256": "6e31c6355dd5968b420e448f75e8915a12afb1b92c924644d42f507d5059b5db",
+      "raw_report_bytes": 883159,
+      "raw_report_sha256": "5151f579bedefd38a7db4ca2d313f922163e8079cfdf8121b39af0fe1986cbae",
+      "JSON_rows": 3065,
+      "scene_rows": 3025,
+      "pages": 32,
+      "scenes_read": 2837,
+      "ordered_ID_count": 510,
+      "by_status": {
+        "listed": 95,
+        "empty": 2742,
+        "absent": 188
+      },
+      "by_source_status": {
+        "built-listed": 23,
+        "built-empty": 121,
+        "file-empty": 2621,
+        "file-listed": 72,
+        "none-absent": 188
+      },
+      "max_observed_count": 42,
+      "max_observed_capacity": 42,
+      "content_projection_digest": "f1506ca29e44eb91",
+      "checked_clocks": [
+        {
+          "day": 1,
+          "elapsed_seconds": 0,
+          "event": "clock",
+          "time_of_day_seconds": 31816,
+          "when": "before"
+        },
+        {
+          "day": 1,
+          "elapsed_seconds": 0,
+          "event": "clock",
+          "time_of_day_seconds": 31816,
+          "when": "after"
+        }
+      ],
+      "read_only_projection_and_first_page_check_passed": true
+    }
+  ],
+  "all32_native_pages_literal_equal_G_L": true,
+  "all3025_raw_anim_JSON_lines_including_endings_literal_equal_G_L": true,
+  "whole_JSON_files_equal": false,
+  "original_native_boots": 2,
+  "input_checks_passed": 4,
+  "finite_original_animation_gate_closed": false,
+  "remaining_gate": "Corrected d30 driver tests/fmt/World all-target lint and same held independent source/actual review. Windows checker replay is separate, not new native characterization.",
+  "known_failed_a6_Linux": "actual101 E0382 partial-moved Option<String> in the diagnostic Rust test, preserved. ActualCproducer/Windowsbuild/nativecaptures passed at own a6 identity. Corrected d30 as_ref borrow and invalid-day predicate order require affected checks.",
+  "scope": "First original final scene animation lists from real host Lua/public native original-keeping fixture. Lists observed, not recomputed. Source state projection is status/count/filled/ordered IDs, not every emitted backing/success/source field. G/L share catalogue and pages; not an independent repeat or wholefile equality claim. No new828/routes/FP matrix or shipping/full physicalmetadata ownership/Task50/D3 acceptance."
+}

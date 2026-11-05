@@ -1,0 +1,9 @@
+COMPAT_HOST_LUA=Lua 5.1
+COMPAT_MODULE=eech-dc 0.1.0
+COMPAT_EXPECTED_ERROR=bad argument #1: error converting Lua string to table
+stack traceback:
+	[C]: in ?
+	[C]: in function 'pcall'
+	[string "%USERPROFILE%\AppData\Local\Temp\eech-dcs-..."]:6: in main chunk
+
+COMPAT_100_ERROR_CALLBACKS=PASS

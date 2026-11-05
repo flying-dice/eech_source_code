@@ -1,0 +1,351 @@
+{
+  "schema": "independent-finite-review-v1",
+  "reviewed_utc": "2026-11-03T01:42:08.520313+00:00",
+  "reviewer": "Same sole independent Codex review lane; no subagents, builds, tests, native executions, cache/VM operations or candidate edits performed by reviewer.",
+  "scope": "Task52 production live target-point query seam, corrected diagnostic preflight and strict witness, one valid host-ABSENT boundary control, ordinary-source reuse/short conformance, and bounded safe publication fidelity. This report completes the same combined correctness, clean-code and boundary-safety pass.",
+  "decision": {
+    "source_review_no_blocking_findings": true,
+    "findings": [],
+    "finite_live_query_slice_closed": true,
+    "corrected_fixture_safety_closed": true,
+    "strict_witness_and_absent_boundary_closed": true,
+    "whole_Task52_accepted": false,
+    "Task50_dependency_or_merge_accepted": false,
+    "full_shipping_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "source_identity": {
+    "base_closed_initializer_diagnostic": "c37d02a77f83abf4a52fb6c111ba0f54dbd122f1",
+    "production_live_query": "8118389a96d84ba3e4528967bbca973d5f2bd804",
+    "corrected_diagnostic_fixture": "fc6388ffc4bb56a93bfd490e10724d7ace6f00db",
+    "absence_external_Lua_and_test_source": "c70716b1a34bfd612ede484bf44510dae69af2b6",
+    "committed_safe_publication": "099aa09c2dfeb77ca708214421e81113369a057e",
+    "ordinary_runtime_measured_at": "8118389a96d84ba3e4528967bbca973d5f2bd804",
+    "authority_runtime_measured_at": "fc6388ffc4bb56a93bfd490e10724d7ace6f00db",
+    "absence_runtime_measured_at": "fc6388ffc4bb56a93bfd490e10724d7ace6f00db",
+    "no_c707_native_rebuild_or_retrospective_relabel": true
+  },
+  "source_conclusions": [
+    "Hosted TH3/TH4 remove the original physical live-query body from the supported production route; original-model/target-point diagnostic features retain it explicitly. Core still owns seeker, guidance, selection and engagement policy.",
+    "Instance selection asks the host for the semantic chain. FOUND preserves entity-position then attitude viewpoint updates and supplies actual current main and child relative pose/scale to the host world transform. ABSENT bit-copies entity position without viewpoint writes or a world request. No physical Core fallback is introduced.",
+    "No-instance fixed selection retains original heading-read conditions and zero-heading quirk; nonfixed/invalid-shape fallbacks remain position copies. Existing offset initialization and host numeric/RNG reviews are reused at their own identities.",
+    "Request/reply field order, finite exact-f32 transport, semantic identity, operation/name checks, end markers and bounded synchronous ownership agree across C/Rust/Lua. Host child search and live placement use the existing reviewed host math; no parallel mathematical oracle is substituted.",
+    "Eight chain levels are an explicit supported bound with named refusal. Legacy hierarchy/instance storage and their declared counts remain coupled; this is not an arbitrary-pointer or arbitrary-model memory-safety guarantee.",
+    "Corrected fixture preflights every path and retains validated nodes before sentinel, mutation, getter or pose read. No second unchecked mutation walk remains. Restoration/readback applies only after normal return; fatal unwind has no restoration claim.",
+    "Strict witness requires exact six-case order per phase, complete grammar/domains, operation/scene and own/getter query joins, position-and-attitude viewpoint semantics and truthful restoration fields. NoTP control accepts only the deliberately valid ABSENT contract and preserves its measured legacy disagreement."
+  ],
+  "closed_findings": [
+    {
+      "id": "TARGET-POINT-LIVE-FIXTURE-1",
+      "original_severity": "P1",
+      "original_source": "8118389a96",
+      "status": "CLOSED at fc6388ffc4",
+      "correction": "Bounded path preflight and node reuse precede all dangerous fixture accesses. Positive out-of-range response armed only during mutation is actually refused before getter/viewpoint access on each refused row."
+    },
+    {
+      "id": "TARGET-POINT-LIVE-WITNESS-1",
+      "original_severity": "P2",
+      "original_source": "8118389a96",
+      "status": "CLOSED at fc6388ffc4 plus c707 ABSENT control",
+      "correction": "Exact row/order/domain/semantic and restoration joins, finite damaged controls, and one measured host-ABSENT acceptance case; old accepted physics predicates were not widened."
+    }
+  ],
+  "actual_authority": {
+    "corrected_queue": {
+      "path": "D:/EECH-Migration-Evidence/target-point-live-query-authority-corrected-fc6388ffc4-20261103/queue.json",
+      "bytes": 22666,
+      "sha256": "988f8b360f5c83b7707498624a859ed19f3fa5e0a380daef2a89ff3da25bacd0"
+    },
+    "cases": [
+      {
+        "case": "original-changed-red",
+        "native_actual_exit": 1,
+        "controller_actual_exit": 1,
+        "input_checks": 2,
+        "unchanged_payloads": 84,
+        "controller_sha256": "35809a45edabda3704c3ecd518273eb50315c0776bb21aef3be5e5b8eeca5435",
+        "complete_raw_sha256": "c426b9af779ae53103de85c53eb39d675365879e928bd3844932f7cfb5af5280"
+      },
+      {
+        "case": "queries_chain_bad_name",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "input_checks": 2,
+        "unchanged_payloads": 84,
+        "controller_sha256": "5603fe6f469d7c842013f4b5610b59c96902fc1ac1f907bee3d7962617c08fc6",
+        "complete_raw_sha256": "bf9fb128c3548969cb3bdbb877c00911ecc97f78dc00e1fed22fd95902cfedbb"
+      },
+      {
+        "case": "queries_chain_offset_late",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "input_checks": 2,
+        "unchanged_payloads": 84,
+        "controller_sha256": "840b76821cf22ff63dc0e024dfd7fd3edd5d9bb2d1b32eb488701d3e3bc31809",
+        "complete_raw_sha256": "61ac1e8fe49d3a2b8b20d1e2c1f7f522f3902d3cb704082c7c2a15b81c2cb314"
+      },
+      {
+        "case": "queries_chain_too_deep",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "input_checks": 2,
+        "unchanged_payloads": 84,
+        "controller_sha256": "7f796f5ca8bbd751e03cb7066545076ad5d6d1c0918351df34944c66b3a56eec",
+        "complete_raw_sha256": "0b632020f17fbfe0a7fa35c2a54c0325bf7de1e1e8df4c7a6c65b112741987cb"
+      },
+      {
+        "case": "queries_chain_withheld",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "input_checks": 2,
+        "unchanged_payloads": 84,
+        "controller_sha256": "ce39c60141fa923f959003794cfcbc9f64e78d52a7c275510df5063134d87bf0",
+        "complete_raw_sha256": "b1ac14c217826c8597f5e8751ca6f15fceac012ec7d357810da50bb46ef9af10"
+      },
+      {
+        "case": "queries_changed",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "input_checks": 2,
+        "unchanged_payloads": 84,
+        "controller_sha256": "069302467a470ba63194f9accf727c8d5990be57b4860def9b4d7d39cd86448a",
+        "complete_raw_sha256": "764ebea2a8cac3cc03d7415957ee76c0f97b9eb4fb716c14623efd0db05e887d"
+      },
+      {
+        "case": "queries_fixed_bad_name",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "input_checks": 2,
+        "unchanged_payloads": 84,
+        "controller_sha256": "6fd5a775e74d095a836f9cb87c585c6bd14981c4fba5a04238e09382ffb19e9b",
+        "complete_raw_sha256": "f6562d4d237f7f8f36e87ab5e99770b1c4d9a8b282dffa6f6c8f37836dcb15fc"
+      },
+      {
+        "case": "queries_fixed_bad_nan",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "input_checks": 2,
+        "unchanged_payloads": 84,
+        "controller_sha256": "e472d916af2d52e3c442d4d1f1f50cbb71ff56f01e4e2b834d584226d6bd4cbb",
+        "complete_raw_sha256": "2147e3365c0c6dc82d6a189ad36b79b40cb8afb3d43facd7396b50ef36e43636"
+      },
+      {
+        "case": "queries_fixed_withheld",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "input_checks": 2,
+        "unchanged_payloads": 84,
+        "controller_sha256": "7370f7e47d20519dcb9c257ef6b2735e25b6747fe2afc0c406da30063c88574b",
+        "complete_raw_sha256": "306666d966b494068b6574a7ee16b3d0c9a0c28a6083f3f0a1004247e9dd7fdc"
+      },
+      {
+        "case": "queries_world_bad_name",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "input_checks": 2,
+        "unchanged_payloads": 84,
+        "controller_sha256": "aac0f3113d4faf110e737d240f8ea0859bd65cb94dc5dc0c2cc30fb99f3f3cd8",
+        "complete_raw_sha256": "510f12485d3cc00da1244cf42bf3073943b4f74ef87706c147855f9ca7a5f463"
+      },
+      {
+        "case": "queries_world_bad_nan",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "input_checks": 2,
+        "unchanged_payloads": 84,
+        "controller_sha256": "8efd7f4d96942382ad4417360d04617bdbaca011f32d9862cc3d34c8eac31177",
+        "complete_raw_sha256": "0d964f9ca2d4d3de35a57ba7a44afdf1b06a1960f408d67bf64f65163027c841"
+      },
+      {
+        "case": "queries_world_withheld",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "input_checks": 2,
+        "unchanged_payloads": 84,
+        "controller_sha256": "7f4456cb2623024062b169ea9a91b546805a1dd4a78b887b7006378ad08fb826",
+        "complete_raw_sha256": "d49cbc10339e5660d13ea8e898742375e2fdb175d2dbee66c2546da75fe0d58b"
+      },
+      {
+        "case": "reference",
+        "native_actual_exit": 0,
+        "controller_actual_exit": 0,
+        "input_checks": 2,
+        "unchanged_payloads": 84,
+        "controller_sha256": "b1418a8fa4f7b51315bf902b6c7ed3084133ff646ed1cc947a0b4091c47c111f",
+        "complete_raw_sha256": "dd8f0d6ad2511489f6a1419e27477a5abd105581aada88a556225ad5e91dec53"
+      }
+    ],
+    "reference": {
+      "rows": 12,
+      "found": 4,
+      "absent": 0,
+      "fixed": 4,
+      "fallback": 4,
+      "refused": 0
+    },
+    "changed": "Changed world/fixed answers reach the real getter and differ from the reference. Mutated current leaf pose is observed and consumed; no new independent original mutated-pose numerical oracle is claimed.",
+    "late_positive_out_of_range": {
+      "rows": 12,
+      "found": 2,
+      "refused": 2,
+      "fixed": 4,
+      "fallback": 4,
+      "scope": "Both refused instance rows are mutation=true with chain_path_outside_instance; getter_called=0 and vp_touched=0. Other rows in the entry may call or write. This is a per-row result."
+    },
+    "nine_negative_controls": "Withheld chain/world/fixed, bad world/fixed NaN, bad chain/world/fixed names, and too-deep chain each trip their correct primary named refusal. Boot-stage and query-stage paths remain distinguished; no postfatal state or cleanup measurement is inferred.",
+    "original_getter_red": "Corrected three-feature Original control has the fixture API and reaches the real original getter; it fails because the getter uses no host geometry query, not because of setup, API absence or UNREACHED. Expected native/controller 1 is retained as RED.",
+    "poison_flag_qualification": "The diagnostic summary poisoned field denotes optional legacy model-array poisoning, not telemetry of the Engine fatal/poison state.",
+    "full_input_checks": 26,
+    "payloads_per_profile": 84
+  },
+  "actual_absent_boundary": {
+    "result": {
+      "path": "D:/EECH-Migration-Evidence/target-point-query-absence-c707-nativefc-20261103/result.json",
+      "bytes": 3548,
+      "sha256": "c859ec158a4e16292ed615d593557cb511da723a831e501cfa891bf62dca8fd3"
+    },
+    "controller": {
+      "path": "D:/EECH-Migration-Evidence/target-point-query-absence-c707-nativefc-20261103/actual/controller.json",
+      "bytes": 4858,
+      "sha256": "264017f5eb65b774b9b25046d0a699412b7355b3ea7e9be28bd305cfe635c061"
+    },
+    "source_scope": {
+      "path": "D:/EECH-Migration-Evidence/target-point-query-absence-c707-nativefc-20261103/source-scope.json",
+      "bytes": 1406,
+      "sha256": "0d00940b9d9e35b10df0c1ed735f94f3f64f1a5324e409495c63ad7682452cc4"
+    },
+    "complete_raw_sha256": "53b73aa9f967a4bb3b2a240e5ed5b2763a4ba9f9aaf00adcf2c57bf96fcb0318",
+    "native_actual_exit": 0,
+    "controller_actual_exit": 0,
+    "full_input_checks": 2,
+    "unchanged_payloads": 84,
+    "rows": 12,
+    "found": 0,
+    "absent": 4,
+    "fixed": 4,
+    "fallback": 4,
+    "refused": 0,
+    "legacy_differs": 4,
+    "verified": "Each instance call asks one chain question and no world/fixed question, returns the entity-position bits, leaves all viewpoint position/attitude words untouched, and restores the sentinel. Literal c707 external Lua/helper identities were checked against Git and native payload.",
+    "limit": "Deliberate valid host-ABSENT boundary response, not a natural retail no-target-point observation. No native C change or new campaign kernel build."
+  },
+  "ordinary_short": {
+    "comparison": {
+      "path": "R:/d3-evidence/target-point-live-query-short-comparison-8118389a96-20261103.json",
+      "bytes": 1777,
+      "sha256": "c583a15da2f88c2a364b08cec0334ac94cae2ea419fd6fc2e9ce776e7ad9274c"
+    },
+    "native_and_controller_actual_exit": 0,
+    "full_input_checks": 2,
+    "unchanged_payloads": 84,
+    "independent_readback": "Both full 1179-file manifests equal accepted reference, all 84 BUILD-INFO payload hashes rechecked, and every complete output byte compared directly including line endings.",
+    "scenario": "Retained exact 0.001-hour Lebanon campaign; recording every 10, observation every 1 with supply, explicit output paths; no scenario-duration or baseline change.",
+    "files": [
+      {
+        "file": "recording.acmi",
+        "bytes": 230871,
+        "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+        "literal_complete_equal": true
+      },
+      {
+        "file": "observations.jsonl",
+        "bytes": 1553674,
+        "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+        "literal_complete_equal": true
+      },
+      {
+        "file": "metrics.json",
+        "bytes": 7477,
+        "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+        "literal_complete_equal": true
+      }
+    ]
+  },
+  "builds": {
+    "corrected_fc_linux": {
+      "path": "R:/d3-evidence/target-point-live-query-corrected-fc6388ffc4-linux-20261103-completion.json",
+      "bytes": 853,
+      "sha256": "d335c1aa7cd5521329dd411a5a14976de81eb30a98bd405dd017c466cda0b893"
+    },
+    "corrected_fc_windows": {
+      "path": "R:/d3-evidence/target-point-live-query-corrected-fc6388ffc4-windows-20261103-completion.json",
+      "bytes": 1524,
+      "sha256": "a4912bfa98ebb406e873329b94813035e681fc007db7869df70399c3362f8bd6"
+    },
+    "all_named_corrected_profiles_terminal_actual_zero": true,
+    "linux_actual_scope": "Focused World DEFAULT model_store/model_target_point/target_point_characterization; full Engine/DC/World model-host-fixture+LOS package tests; fmt and default/feature all-target strict. This is not a second full three-package DEFAULT test command at fc.",
+    "ordinary_full_default_reuse": "Full three-package DEFAULT gates and ordinary binary were measured at 811; source/macro proof excludes changed fixture code from ordinary production and preserves active campaign/runtime inputs. Results retain the 811 identity.",
+    "windows_actual_scope": "Corrected host fixture and corrected declared three-feature Original control were both rebuilt and completed 0. No ordinary-fc rebuild is claimed.",
+    "absence_checks": "c707 focused working-tree model_store 65 passed, formatting/default strict passed. Earlier test-filter failure remains a separate test-collaborator failure, not a C/native failure.",
+    "current_all_CI_or_full_pack_claimed": false
+  },
+  "source_reuse_proofs": [
+    {
+      "path": "R:/d3-evidence/target-point-live-query-811-to-fc6388-scope-20261103.json",
+      "bytes": 1920,
+      "sha256": "356ef87523e61f57f82c9436c52ece1b1766c9293e5540c55323243e29a9633e"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/target-point-query-absence-c707-nativefc-20261103/source-scope.json",
+      "bytes": 1406,
+      "sha256": "0d00940b9d9e35b10df0c1ed735f94f3f64f1a5324e409495c63ad7682452cc4"
+    }
+  ],
+  "preserved_failures": [
+    "Original 811 CHANGES_REQUIRED source report remains immutable. The old authority queue was intentionally stopped with outer actual exit unknown; completed old controls retain their own identities, and no-native/setup attempts are not promoted into measurements.",
+    "Known-unsafe old positive out-of-range chain fixture was not run. Corrected native and fresh controls supplied the preflight witness.",
+    "The original getter RED is expected native/controller 1, not relabeled a green native run. Earlier working-tree diagnostic/test failures and source chronology remain retained."
+  ],
+  "safe_publication": {
+    "committed_head_reviewed": "099aa09c2dfeb77ca708214421e81113369a057e",
+    "projection": "actual-results.json is a fieldwise safe projection, not a literal private-report copy or independent approval. Selected exits/counts/source hashes agree with audited controllers and completions.",
+    "copy_fidelity": "Ordinary scope proof is literal LF. Absence scope and short-comparison metadata differ private CRLF versus committed LF only, with parsed JSON equality and private hashes retained. Runtime output bytes were never normalized or imported.",
+    "privacy": "No raw retail geometry/pose catalogue/coordinates, native binaries, credentials, pointers or allocation indices included. Safe hashes, counts and named control semantics only.",
+    "provenance_wording_correction": {
+      "status": "INSPECTED_PENDING_COMMIT_AND_GIT_BLOB_IDENTITY_CHECK",
+      "changed_paths_only": [
+        "README.md",
+        "actual-results.json"
+      ],
+      "reviewed_files": [
+        {
+          "path": "R:/d3-evidence/tp-original-20261102/eech-campaign/reference/d3-target-point-characterization/live-query-authority-811-fc-c707-20261103/README.md",
+          "bytes": 4144,
+          "sha256": "9cd1974bc5d8a6cdbd91cdf112c57830fe7016b8f61c9fae6a8584d95c2b33c7"
+        },
+        {
+          "path": "R:/d3-evidence/tp-original-20261102/eech-campaign/reference/d3-target-point-characterization/live-query-authority-811-fc-c707-20261103/actual-results.json",
+          "bytes": 14371,
+          "sha256": "3220a268814393ee62a70842fceacdae1815bd70eb602fcd03624e671cbea655"
+        }
+      ],
+      "result": "README and scope_annotation accurately separate focused World DEFAULT plus full feature tests at fc from full three-package DEFAULT reuse at 811. Original private generic label remains preserved and explicitly qualified. No runtime rerun needed.",
+      "owner_remaining_action": "Commit these exact reviewed metadata bytes with the literal independent report and verify committed blob identities. No approval or committed-state claim is made for the current uncommitted correction."
+    }
+  },
+  "reused_closed_reviews": [
+    {
+      "slice": "initializer native9b/diagnosticc37",
+      "sha256": "95f97d0b7e33daf269d2f8bd3d35f11e2aa8f0d583c74f1fabd6812475e45ccd"
+    },
+    {
+      "slice": "original-input/RNG native1c30/checkerebcb",
+      "sha256": "25f64cd419d3e420bbd8398545229a1c19ff6355f8b7a69a0295c691d70915de"
+    },
+    {
+      "slice": "host position prototype0cb7",
+      "sha256": "4c6dde8cea33c8a79abe005d6d47fe7176fcf340a030bf4aa6756d55e63e7794"
+    },
+    {
+      "slice": "fixed-host numeric00098",
+      "sha256": "4aacc10460ffbb98bed3fde4ba2cee45cd1c055fb8ccaca726ace8eaf95d5767"
+    }
+  ],
+  "limitations_and_next_unmet_gates": [
+    "Finite live-query seam only. Full 40-check/all-eight COMPLETE-file shipping acceptance, current final CI, Task50 dependency/normal delivery and whole Task52/D3 acceptance are not supplied by these controls.",
+    "No blanket all-model/depth/live-state, full caller-FPU equivalence, future/global CRT, visual/Tacview, DCS runtime or whole-DLL removal claim. Chain bound eight explicitly refuses unsupported depth.",
+    "Normal-return fixture restoration and per-refused-row no-access are verified; no postfatal receiver query, buffer inspection, restoration, destructor or cleanup success is claimed.",
+    "Legacy hierarchy/instance storage and other required D3 readers/collision remain separately coupled. They are not declared dormant or delivered by this finite query review.",
+    "No additional original runs or optional prototype are required to close this bounded slice. Remaining shipping/dependency and broader physical-extraction work stays with the lead."
+  ]
+}

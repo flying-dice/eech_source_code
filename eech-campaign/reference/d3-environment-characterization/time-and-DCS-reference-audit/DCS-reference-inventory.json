@@ -1,0 +1,51 @@
+{
+  "scope": "Read-only primary code reference for required D3 mapping, not a DCS runtime validation, adapter implementation, D5 work or migration acceptance.",
+  "repository": "flying-dice/tslua-dcs",
+  "commit": "1179554fcafcef92d71313336cc09500febf8245",
+  "source_files": [
+    {
+      "path": "packages/tslua-dcs-mission-types/src/atmosphere.ts",
+      "blob": "421e6f651978137ea35ed6f6b36bb6954edf3114",
+      "url": "https://github.com/flying-dice/tslua-dcs/blob/1179554fcafcef92d71313336cc09500febf8245/packages/tslua-dcs-mission-types/src/atmosphere.ts"
+    },
+    {
+      "path": "packages/tslua-dcs-mission-types/src/timer.ts",
+      "blob": "abc1b98a108c48974cf2b84f3c55792fd30c5521",
+      "url": "https://github.com/flying-dice/tslua-dcs/blob/1179554fcafcef92d71313336cc09500febf8245/packages/tslua-dcs-mission-types/src/timer.ts"
+    },
+    {
+      "path": "packages/tslua-dcs-mission-types/src/land.ts",
+      "blob": "9e5fd4557fd94b7da38f613a36040439b6086fb3",
+      "url": "https://github.com/flying-dice/tslua-dcs/blob/1179554fcafcef92d71313336cc09500febf8245/packages/tslua-dcs-mission-types/src/land.ts"
+    }
+  ],
+  "candidate_calls": [
+    {
+      "need": "Physical wind",
+      "call": "atmosphere.getWind(point) or atmosphere.getWindWithTurbulence(point)",
+      "verified": "Declarations exist in pinned reference code. Which variant/below-terrain semantics is appropriate needs explicit mapping, no actual DCS call executed."
+    },
+    {
+      "need": "Incoming host simulation ticks",
+      "call": "timer.getTime()",
+      "verified": "Declaration exists. Pause/acceleration/scheduled callback/rounding/wrap behavior not verified here; do not repeat library prose as measured native behavior."
+    },
+    {
+      "need": "Absolute host time metadata",
+      "call": "timer.getAbsTime(), timer.getTime0()",
+      "verified": "Declarations exist. Campaign calendar/time-of-day rules remain Core; do not replace them blindly with DCS absolute time."
+    },
+    {
+      "need": "Terrain point geometry/classification",
+      "call": "land.getHeight(point), land.getSurfaceType(point), land.getIP(origin,direction,distance)",
+      "verified": "Declarations exist; actual current adapter/coordinate and physical semantics require task-specific reviewed mapping."
+    }
+  ],
+  "gaps": [
+    "Legacy weather zone init/evolution/mirror fields are EECH reference-host behavior, not evidence of direct corresponding DCS calls. Need explicit per-field mission metadata/host-owned workaround/disposition.",
+    "No declaration inspected provides an EECH62-type sector surface flag set or transition count. No absence claim across all DCS APIs; define needed legacy workaround or host-internal disposition after physical sound move.",
+    "Type declarations/tests are primary library code; native DCS signatures/behavior were not executed here. Official cited FAQ endpoint returned403 and was not used as factual evidence.",
+    "Document concrete M6 checks for untested pause/time/weather/geometry behavior; do not start live DCS campaign or historical TypeScript port."
+  ],
+  "goal_boundary": "M5 goal names this repository as a reference. No edits/builds in it or ee-dcs, no historical call-map branch used."
+}

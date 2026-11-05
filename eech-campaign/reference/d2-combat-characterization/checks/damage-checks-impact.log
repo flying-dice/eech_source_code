@@ -1,0 +1,74 @@
+TEST_LINK_FLAGS=-fno-pie -no-pie
+SANITIZERS=-fsanitize=address,undefined -fno-sanitize-recover=undefined
+SANITIZER_PROBE_COMPILE_EXIT=0
+SANITIZER_PROBE_RUN_EXIT=0
+COMPILE_EXIT=0
+ok   the host asks for its sample once: the campaign takes ONE sample of its stream and asks again
+ok   the first question carries no sample and the second carries the one taken
+ok   the weapon, its figures, its speed and the blast fraction cross by value
+ok   the armour data and the geometry cross by value
+ok   the settings and the health cross by value
+ok   the host's answer is what the campaign gets, whole
+ok   a host with a model of its own that asks for none: none is taken, its outcome is used
+ok   a hit that does nothing is a legal answer
+ok   and so is a capability of zero or less, which the original's arithmetic can give
+ok   an invulnerable player's hit is stopped by the host and takes no sample
+ok   a host that asks for a sample for such a hit is refused and none is taken
+ok   a host that hits an invulnerable player is refused
+ok   a stopped hit that still changes something is refused
+ok   a stop for a target that is not invulnerable is refused
+ok   a second request for a sample is refused
+ok   a request for a lookup is refused
+ok   a failing host stops the engine with its reason
+ok   no host: the engine stops with a clear message
+ok   health written under the cheat guard is refused
+ok   health written below zero is refused
+ok   health raised is refused
+ok   health taken to exactly zero is legal
+ok   a write of health 0 for a hit of capability 0 (it would kill a healthy target) is refused
+ok   so is any other write for a hit of capability 0
+ok   and for a negative capability
+ok   and for the most negative one
+ok   a negative capability that writes nothing stays a legal no-op answer
+ok   and so does a zero one, whatever class the unchanged health has
+ok   a capability of 1 may be written
+ok   health changed without being written is refused
+ok   a class changed without the health is refused
+ok   health below zero (never written by the original) is clamped to zero by a legal write
+ok   a vehicle given an aircraft's class is refused
+ok   an aircraft may be critical (2)
+ok   and not 3
+ok   a person is never critical
+ok   and a fixed structure has no class
+ok   a host that needs a damage setting the campaign could not resolve says so (the campaign then stops with the original's message)
+ok   it may not say so when the request carried one
+ok   nor for an AI, which needs none
+ok   a host that does not use the setting at all is not made to
+ok   one damage event that agrees with the answer is accepted and handed on whole
+ok   an echo the host does not give is not an error
+ok   two damage events are refused
+ok   an event of another kind is refused
+ok   an echo whose capability disagrees with the answer is refused
+ok   an echo nobody asked for is refused
+ok   a centred hit's echo (a not-a-number armour as raw bits) is accepted: the hit does nothing and writes nothing
+ok   and the four values come back bit for bit, the not-a-number with its sign
+ok   as the value the observer saw
+ok   every bit pattern that matters (payloads, signs, zero, infinities, a denormal, the largest finite) survives the halves
+ok   a raw-bit half above 65535 is refused
+ok   or below zero
+ok   or not an integer
+ok   a not-a-number in the readable floats is still refused: finite validation is not weakened
+ok   and an infinity in a half
+ok   a stopped hit echoes nothing
+ok   an armour model that does not exist is refused before the host is asked
+ok   so is a critical model
+ok   a flag that is not a boolean
+ok   a non-finite position
+ok   a non-finite attitude
+ok   a non-finite speed
+ok   a classified health with no initial level to divide by
+ok   but a person, who is not classified, has none to need
+ok   an armour level of any sign is a legal question (the original only logged a zero)
+DAMAGE_CHECKS=ok: 66 checks, 0 failures
+RUN_EXIT=0
+DOCKER_EXIT=0

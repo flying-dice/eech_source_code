@@ -1,0 +1,206 @@
+{
+  "review": "Independent bounded original pause/resume final actual/auditor/safe-publication review",
+  "created_utc": "2026-11-01T00:06:07.704292+00:00",
+  "measurement_date_utc": "2026-10-31",
+  "source": {
+    "tested_native": "33c015557fb3fbc26592e20b143ada40ec155e1f",
+    "tested_driver": "299bcf05128da68e85c8490025594f99969335b8",
+    "actual_driver_sha256": "7b1f3d491a200b7cd2fd18f217bb120fab43971be39ae6890186fc5ca074a24e",
+    "source_review_reused_sha256": "d06782ef482f4943223e4c624162347b3ba863cc9a08a4de7f02bd272b6b51ac",
+    "baseline": "Existing hosted e502 lifetime/field state with original production pause/resume routines; not whole-original DLL."
+  },
+  "findings": [],
+  "original_pause_resume_characterization_closed": true,
+  "closure_scope": "Only the four measured original SESSION-parent cases11..14, before any host pause/resume move.",
+  "inspected_facts": {
+    "controls": {
+      "native_and_controller_exit0": 4,
+      "pre_post_inputs0": 8,
+      "raw_rows": 147,
+      "completed_utc": "2026-10-31T23:54:16.539892+00:00",
+      "method": "Independently read all four raw files and child stage receipts, checked raw hashes, complete results/nonpartial status, scan/state/probe joins and end restoration. No raw artifact was rewritten or normalized."
+    },
+    "identity": {
+      "C_Rust_build_files_independently_hashed_in_both_snapshots": 3597,
+      "unchanged_native_payloads_independently_hashed": 56,
+      "build_info_sha256": "4c11053a181c530deda3bd473e024a8d0daf27251e1ebcda2b5361b615a146a0",
+      "input_manifests_independently_compared_to_frozen_reference": 8,
+      "external_driver_pre_post_sha_match": true,
+      "scope": "Native33 build/profile remains distinct from separately frozen Lua299; no new299 Windows binary claim. Equivalence metadata names exactly the four Lua/test/docs changed paths and unchanged other tracked blobs."
+    },
+    "measured": {
+      "11": {
+        "returns": "1,1",
+        "observed": "Pause invalidates while linked; resume validates while still linked. Stored effect lifetime5 and validity timer1.5 remain."
+      },
+      "12": {
+        "returns": "1,1",
+        "calls": 4,
+        "stored_SERVER_ENTERs": 3,
+        "observed": "Pause timer1.5 ->0.5 ->0 while linked; next update unlinks. Resume validates/relinks while effect lifetime remains5; next valid update gives4. No invented fourth ENTER."
+      },
+      "13": {
+        "returns": "0,1,0,1,0",
+        "observed": "Second pause with delay9 leaves existing1.5 validity timer; resume retains timer. No-op/repeated counts corroborated by captured states."
+      },
+      "14": {
+        "returns": "0,2,0,2",
+        "observed": "Both matching S cohort effects change; T cohort unaffected. Before/after matching counts agree with captured valid/invalid/member states; unrelated boot children remain in totals."
+      }
+    },
+    "observer_and_restoration": {
+      "scan_complete_flags": true,
+      "scan_counts_join_adjacent_cohort_states": true,
+      "probe_creations_entries_counts_consistent": true,
+      "probe_dropped_overflow_untracked_open": 0,
+      "descriptor_and_delta_restored": true,
+      "tracking_disabled_after_fixture": true,
+      "entity_state_restored": false,
+      "isolation": "Each case executes in its own process/root. Stable cohort indices in the derived view are semantic labels, not allocation IDs."
+    },
+    "gate_context": {
+      "native33_windows_actual_exit": 0,
+      "native33_linux_actual_exit": 0,
+      "native33_scope": "Fresh observer native and affected driver/module/default+observer C checks/both strict, not a repeat of unchanged closed physical matrices.",
+      "canonical299_guard_functions": 20,
+      "canonical299_driver_and_lint_actual_exit": 0,
+      "exact299_CI_jobs_success": 9,
+      "scope": "Inspected retained execution receipts/logs and exact-source CI metadata; reviewer ran no tests/builds/native controls."
+    },
+    "auditor": "Read the audit helper and independently verified its key assertions, all four projected state/step/scan/journal fields against raw records, raw hashes and totals. Safe projection preserves measured words; it computes no preferred physical outcome.",
+    "publication": {
+      "proposed_files": 9,
+      "JSON_publications": 7,
+      "all_private_and_publication_hashes_verified": true,
+      "all_seven_decoded_JSON_values_identical": true,
+      "scope": "Reviewed all safe JSON/README plus proposed STATUS/docs. Raw strings, volatile allocation slots/IDs and world position words are absent; raw receipt metadata contains only filename/bytes/SHA. Semantic cohort ent/tracked labels intentionally remain. Private147rows/endings remain unchanged outside Git.",
+      "future_edits": "Pending-review wording is accurate for the inspected proposal; subsequent closure/report additions are not pre-reviewed."
+    },
+    "failures_retained": "Prior33 source P2s, exact-old-Lua red Cargo101 and green1 fmt1/test101 stay distinct from green2/canonical success. Earlier d2/d3 numeric exit tags remain untrusted/unknown; firstd1 original raw log remains unavailable, partial excerpt/tool records only."
+  },
+  "limitations": [
+    "No host pause/resume extraction, general replaceability or whole sound-delivery acceptance. SESSION-parent play dispatch uses the original initialized default no-op (source fact reused from closed review); no fake handle and no device/non-session/range/per-family playback characterization.",
+    "Backend/device/network/independent destroy/per-vehicle pitch/amplitude/physical time and required remaining terrain/spatial/model responsibilities remain D3 work.",
+    "No audible/player/render/Tacview/full40/all8complete shipping, normal merge or whole Task51/D3 closure. Exact299 nine-job CI success does not certify a later documentation head or final delivery. D4/D5 remain unstarted.",
+    "No unchanged source re-review, old retail reruns, tests/builds/native runs, agents, source/process/public/auth changes performed by reviewer; source and original evidence closures reused. Ground partial recordings are outside this finite review and not shipping evidence."
+  ],
+  "evidence": [
+    {
+      "path": "R:\\d3-evidence\\independent-environment-original-sound-pause-resume-driver-source-review-299bcf051-20261031.json",
+      "sha256": "d06782ef482f4943223e4c624162347b3ba863cc9a08a4de7f02bd272b6b51ac"
+    },
+    {
+      "path": "R:\\d3-evidence\\original-sound-pause-resume-native33-driver-299bcf051-equivalence-20261031.json",
+      "sha256": "c3cc26655d0724f2b4e036309829a1f0c61f1e9c5046385a6bb2555a8847cc98"
+    },
+    {
+      "path": "R:\\d3-evidence\\original-sound-pause-resume-native33-driver299-audit-20261031.json",
+      "sha256": "77abafaf9c6ae36f8178e65ec2289d05f9ce08a08af7686251d7a392eef55e8a"
+    },
+    {
+      "path": "R:\\d3-evidence\\audit-original-sound-pause-resume-20261031.py",
+      "sha256": "7f351e85a87d594a2d0806d87c4188afc244ceae618a3b3803e7c1d924914969"
+    },
+    {
+      "path": "R:\\d3-evidence\\run-original-sound-pause-resume-control-20261031.py",
+      "sha256": "69afb273fc808f5b75ab39e341d4769f8fbb17fd6c6f07866bd0bde0df535536"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-original-sound-pause-resume-controls-native33-driver299bcf051-20261031\\controller.json",
+      "sha256": "0680e46692deb2c0373ad92140fda49e772d47f12a90ec4961400401666529ee"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-original-sound-pause-resume-33c015557-windows-20261031-completion.json",
+      "sha256": "10f22f2752327ef18d89baeeca8e170dfb54d05363a00ce64c7967f695f18623"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-original-sound-pause-resume-33c015557-linux-20261031-completion.json",
+      "sha256": "9678c42032937ac63a4a744a2678c635e25dd0b49d6333add4b2014f57312a05"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-original-sound-pause-resume-driver-299bcf051-linux-20261031-completion.json",
+      "sha256": "d709d006decff55e747c1732e9519438635161165e8b1a62b5e499b44d66abf3"
+    },
+    {
+      "path": "R:\\d3-evidence\\current-CI-299bcf051-20261031.json",
+      "sha256": "7f8429e26887efb882ae6e472f362dc308b798a3ee8f790e9a03616a5d7d9ad8"
+    }
+  ],
+  "case_raw_identities": [
+    {
+      "case": 11,
+      "path": "R:\\d3-evidence\\environment-original-sound-pause-resume-controls-native33-driver299bcf051-20261031\\case-11\\environment.jsonl",
+      "bytes": 9013,
+      "sha256": "2dafc17e72b0a529f973fa313fa14925daf65ec6ff0f4c57c41c0ea02f67f614"
+    },
+    {
+      "case": 12,
+      "path": "R:\\d3-evidence\\environment-original-sound-pause-resume-controls-native33-driver299bcf051-20261031\\case-12\\environment.jsonl",
+      "bytes": 13697,
+      "sha256": "48b91e6d1a2706c56cd573c8b6d362377e9af715fb34fc898c1ebde397c51a9d"
+    },
+    {
+      "case": 13,
+      "path": "R:\\d3-evidence\\environment-original-sound-pause-resume-controls-native33-driver299bcf051-20261031\\case-13\\environment.jsonl",
+      "bytes": 12403,
+      "sha256": "c3fec3e25ec309de130b5c01f7c8dc0dccb0151394a8f54fffc501ed9c63b51e"
+    },
+    {
+      "case": 14,
+      "path": "R:\\d3-evidence\\environment-original-sound-pause-resume-controls-native33-driver299bcf051-20261031\\case-14\\environment.jsonl",
+      "bytes": 16385,
+      "sha256": "dcc998d1c85f18358ab6b4b0abd035a1ba8b5fe34e42dda14dcdd46735bcc539"
+    }
+  ],
+  "proposed_publication_identity": {
+    "directory": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-pause-resume-original-native33-driver299",
+    "files": [
+      {
+        "name": "current-CI-299bcf051-20261031.json",
+        "sha256": "7f8429e26887efb882ae6e472f362dc308b798a3ee8f790e9a03616a5d7d9ad8"
+      },
+      {
+        "name": "environment-original-sound-pause-resume-33c015557-linux-20261031-completion.json",
+        "sha256": "3928ca42d28699a480830a667f096ee2c6cdd62a982e1c0e7b0344a48d646065"
+      },
+      {
+        "name": "environment-original-sound-pause-resume-33c015557-windows-20261031-completion.json",
+        "sha256": "3a245d5bc50b67d05fae9c45eaf1ab17ee4f7940fb0219eed59c082645a0e23b"
+      },
+      {
+        "name": "environment-original-sound-pause-resume-driver-299bcf051-linux-20261031-completion.json",
+        "sha256": "87053338b4ad0d64ae076fef13f89a3dcb5190c0b4b6650d7b81aacec18dc92e"
+      },
+      {
+        "name": "independent-environment-original-sound-pause-resume-driver-source-review-299bcf051-20261031.json",
+        "sha256": "f319ec7db507a6b286c61d4716d1bc57a24f1f883f3ed0ef55a3a6a14665edec"
+      },
+      {
+        "name": "independent-environment-original-sound-pause-resume-source-review-33c015557-20261031.json",
+        "sha256": "08be9508cefdfee2b3e8e78cac7896c80f05509e335a016030515f4c46200dc4"
+      },
+      {
+        "name": "original-sound-pause-resume-native33-driver299-audit-20261031.json",
+        "sha256": "20b7963329dbb7b1bbcabfd9482b2c67ba856fb9283d2df5de48ebcdd1169af1"
+      },
+      {
+        "name": "README.md",
+        "sha256": "d3a97a8ce8df77b0e964ea4bbc680f78f987f120ab41910aaacfaf90cf70ebd0"
+      },
+      {
+        "name": "receipt-identities.json",
+        "sha256": "b8ad496b2658f0ece5d4ef7d409d7e00c7ed67620168c6f3c0bb4f591a975c8a"
+      }
+    ],
+    "docs": [
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\STATUS.md",
+        "sha256": "03e3e2ce225cf0d45055d2cd7c07a21c2d9cba121c813fb105f98c52cfd6ca59"
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\docs\\d3-sound-lifetime.md",
+        "sha256": "fc481ad512d9dba968c3fc6e1c5df72779a61a69a11775d4253a63dfaaa4c175"
+      }
+    ]
+  }
+}

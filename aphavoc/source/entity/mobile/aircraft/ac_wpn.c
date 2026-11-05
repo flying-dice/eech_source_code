@@ -65,6 +65,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "project.h"
+#include "entity/mobile/mb_aimfx.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -270,6 +271,7 @@ aircraft_fire_result aircraft_fire_weapon (entity *en, unsigned int check_flags,
 		
 		if (!get_local_entity_int_value (en, INT_TYPE_SELECTED_WEAPON_SYSTEM_READY))
 		{
+			AIM_FX_REJECT (EECH_AIM_SITE_AIRCRAFT_FIRE, EECH_AIM_REJECT_NOT_READY)
 			if (debug_flag)
 			{
 				debug_log ("AC_WPN: Fire Weapon Error - WEAPON SYSTEM NOT READY");
@@ -280,6 +282,7 @@ aircraft_fire_result aircraft_fire_weapon (entity *en, unsigned int check_flags,
 
 		if (!get_local_entity_int_value (en, INT_TYPE_WEAPON_AND_TARGET_VECTORS_VALID))
 		{
+			AIM_FX_REJECT (EECH_AIM_SITE_AIRCRAFT_FIRE, EECH_AIM_REJECT_VECTORS_INVALID)
 			if (debug_flag)
 			{
 				debug_log ("AC_WPN: Fire Weapon Error - outside launch angle (1)");
@@ -303,8 +306,10 @@ aircraft_fire_result aircraft_fire_weapon (entity *en, unsigned int check_flags,
 		else
 			launch_angle_modifier = 1.0;
 		
+		AIM_FX_ANGLE (EECH_AIM_SITE_AIRCRAFT_FIRE, en, launch_angle_error, launch_angle_modifier * weapon_database[raw->selected_weapon].max_launch_angle_error)
 		if (fabs (launch_angle_error) > launch_angle_modifier * weapon_database[raw->selected_weapon].max_launch_angle_error)
 		{
+			AIM_FX_REJECT (EECH_AIM_SITE_AIRCRAFT_FIRE, EECH_AIM_REJECT_LAUNCH_ANGLE)
 			if (debug_flag)
 			{
 				debug_log ("AC_WPN: Fire Weapon Error - outside launch angle (%f > %f)", deg(fabs (launch_angle_error)), launch_angle_modifier * deg(weapon_database[raw->selected_weapon].max_launch_angle_error));
@@ -538,6 +543,7 @@ while(TRUE)
 
 	if (!get_local_entity_int_value (en, INT_TYPE_WEAPON_AND_TARGET_VECTORS_VALID))
 	{
+		AIM_FX_REJECT (EECH_AIM_SITE_AIRCRAFT_UPDATE, EECH_AIM_REJECT_VECTORS_INVALID)
 		if (debug_flag)
 		{
 			debug_log ("AC_WPN: Not Firing - outside launch angle");
@@ -560,8 +566,10 @@ while(TRUE)
 
 		launch_angle_error = acos (get_3d_unit_vector_dot_product (weapon_vector, weapon_to_intercept_point_vector));
 
+		AIM_FX_ANGLE (EECH_AIM_SITE_AIRCRAFT_UPDATE, en, launch_angle_error, weapon_database[raw->selected_weapon].max_launch_angle_error)
 		if (fabs (launch_angle_error) > weapon_database[raw->selected_weapon].max_launch_angle_error)
 		{
+			AIM_FX_REJECT (EECH_AIM_SITE_AIRCRAFT_UPDATE, EECH_AIM_REJECT_LAUNCH_ANGLE)
 			if (debug_flag)
 			{
 				debug_log ("AC_WPN: Fire Weapon Error - outside launch angle (%f > %f)", deg(fabs (launch_angle_error)), deg(weapon_database[raw->selected_weapon].max_launch_angle_error));

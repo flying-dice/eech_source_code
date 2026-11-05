@@ -158,6 +158,10 @@ extern void add_to_force_info (entity *force_en, entity *new_en);
 
 extern void remove_from_force_info (entity *force_en, entity *new_en);
 
+extern void remove_from_force_info_values (entity *force_en, entity_sub_types group_type, int force_info_category);
+
+extern int check_force_campaign_objectives (entity *force_en);
+
 extern int get_force_space (entity *force_en, force_info_catagories force_info_catagory);
 
 extern void replace_into_force_info (entity *force_en, entity *new_en);

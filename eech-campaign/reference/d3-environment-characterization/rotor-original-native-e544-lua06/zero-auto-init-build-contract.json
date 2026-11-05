@@ -1,0 +1,40 @@
+{
+  "created_utc": "2026-11-01T08:03:42.920610+00:00",
+  "scope": "Material source/build-contract fact missed by raw-language-level indeterminate-domain discussion. No build/physical result or source review correction is fabricated; original review unchanged and retained.",
+  "sources": [
+    {
+      "source": "3fdbe6efd08864898a320373d04be79a24c1a374",
+      "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "git_blob": "7725fc09eac92bc4484b4b0c0c047507eb665ceb",
+      "sha256": "165afec957a4612c4ed08960e00f8e5384fa0b5d38031514b66f3e1acd8e62d3",
+      "flag": {
+        "line": 165,
+        "text": "        .flag(\"-ftrivial-auto-var-init=zero\")"
+      }
+    },
+    {
+      "source": "a2c5c46a8a10e516b2e1179047f88aa70d45c782",
+      "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "git_blob": "9420cc0390345abb1861738d445ae1d6ee8bff9b",
+      "sha256": "7f858087965e74ff7c2a37179b62a1f7762b9b2974c73df8f6dfc2899859728e",
+      "flag": {
+        "line": 166,
+        "text": "        .flag(\"-ftrivial-auto-var-init=zero\")"
+      }
+    },
+    {
+      "source": "71671f979647106fef58217e3bf8c140ed560f0d",
+      "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "git_blob": "9420cc0390345abb1861738d445ae1d6ee8bff9b",
+      "sha256": "7f858087965e74ff7c2a37179b62a1f7762b9b2974c73df8f6dfc2899859728e",
+      "flag": {
+        "line": 166,
+        "text": "        .flag(\"-ftrivial-auto-var-init=zero\")"
+      }
+    }
+  ],
+  "fact": "The maintained full native engine build already applies zero auto-variable initialization to legacy C in accepted integration and both rotor checkpoints. It is not a new source initialization or rule change.",
+  "pending": "Canonical artifact output-word/FP comparison must measure affected LOCAL/FD cases rather than infer arbitrary stack outputs solely from raw C. No observed zero/bit stability is claimed until actual execution. Arbitrary compilers or missing/different flags remain outside this bounded compile contract.",
+  "author": "SAME SonnetHigh follow-up PID22908/controller18684 started08:03:12.945958Z after prior3176/22636 terminal0. Source-only correction before final freeze/build; no native started.",
+  "reviewer": "Same independent reviewer notified; upcoming NEW correction delta only, no unchanged review fleet."
+}

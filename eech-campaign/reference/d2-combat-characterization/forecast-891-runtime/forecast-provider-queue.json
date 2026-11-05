@@ -1,0 +1,33 @@
+{
+  "status": "completed",
+  "updated_utc": "2026-10-28T06:14:23.6513394Z",
+  "completed": [
+    {
+      "actual_driver_native_exit": 0,
+      "name": "forecast-provider-reference-01",
+      "mode": "reference"
+    },
+    {
+      "actual_driver_native_exit": 0,
+      "name": "forecast-provider-zero-01",
+      "mode": "forecast_zero"
+    },
+    {
+      "actual_driver_native_exit": 0,
+      "name": "forecast-provider-negative-01",
+      "mode": "bad_forecast_negative"
+    },
+    {
+      "actual_driver_native_exit": 0,
+      "name": "forecast-provider-draw-01",
+      "mode": "bad_forecast_draw"
+    },
+    {
+      "actual_driver_native_exit": 0,
+      "name": "forecast-provider-fraction-01",
+      "mode": "bad_forecast_fraction"
+    }
+  ],
+  "actual_exit": 0,
+  "scope": "All five driver/native exits0; not an authority/refusal acceptance claim"
+}

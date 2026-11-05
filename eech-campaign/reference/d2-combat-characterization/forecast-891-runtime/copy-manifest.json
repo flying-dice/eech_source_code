@@ -1,0 +1,240 @@
+{
+  "copied_utc": "2026-10-28T07:07:07.566168+00:00",
+  "scope": "Safe forecast runtime evidence and real-source review records only; no retail assets/binaries/full raw recordings",
+  "copies": [
+    {
+      "file": "root-clean-forecast-891c36-fixture-manifest.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-clean-forecast-891c36-fixture-manifest.json",
+      "bytes": 10919,
+      "sha256": "7fdb6bf267e36f8ed3c2b18d9deb959230a9ba39eef3f2441cf1b2ffd8af71fb"
+    },
+    {
+      "file": "root-build-forecast-891c36d72.log",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-build-forecast-891c36d72.log",
+      "bytes": 4352,
+      "sha256": "9a4a220495e49a15e67b56a8791f5cf2bb7dd5e9f4d914bec6df3b775a16f3ab"
+    },
+    {
+      "file": "root-forecast-natural-01-completion.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-natural-01-completion.json",
+      "bytes": 15840,
+      "sha256": "35f382341e17be06cf78f85e8b3ab3e35e5a2f70e1be7f80603164bf414083a4"
+    },
+    {
+      "file": "root-forecast-natural-01-audit.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-natural-01-audit.json",
+      "bytes": 14082,
+      "sha256": "db10b5023c77f8bb413938ca1bcf9d1ca6c238b57ed01a05f40442febfc8f822"
+    },
+    {
+      "file": "root-forecast-natural-01-audit.log",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-natural-01-audit.log",
+      "bytes": 6313,
+      "sha256": "d6f4c5097c9e6f98594b60a23d8887e4af348e1d73cf09cde00eb7e7b37462c9"
+    },
+    {
+      "file": "root-forecast-natural-01-declared-schema-comparison.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-natural-01-declared-schema-comparison.json",
+      "bytes": 16296,
+      "sha256": "f3d27db42f331ac8f4076bfc0828301b61f6e50dc2bb0461200e09c3296dfe3b"
+    },
+    {
+      "file": "root-forecast-natural-01-post-inputs.log",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-natural-01-post-inputs.log",
+      "bytes": 311,
+      "sha256": "06bd9c319d003fd37e04b7d4b4c767eb93397a5c0ff459c8602d21c0682eb4a3"
+    },
+    {
+      "file": "root-forecast-natural-01-post-build.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-natural-01-post-build.json",
+      "bytes": 10919,
+      "sha256": "f995252109a0f7c90c699eff7191c2adb3234dc17ad2511b3101ffdd471e9b2d"
+    },
+    {
+      "file": "independent-forecast-natural600-runtime-helper-review-20261028.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-forecast-natural600-runtime-helper-review-20261028.json",
+      "bytes": 8521,
+      "sha256": "554ba28797ba73076b802e6255b17bfe8dc34a31b649e4f5a43ccfeea2d18a2e"
+    },
+    {
+      "file": "root-forecast-control-01-completion.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-control-01-completion.json",
+      "bytes": 4044,
+      "sha256": "4d8e313be3c7bc4b042071f9fe90fc0be560179eb29066b763539ae8a077e5db"
+    },
+    {
+      "file": "root-forecast-control-01-complete-comparison.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-control-01-complete-comparison.json",
+      "bytes": 1313,
+      "sha256": "5c6551268d2cb8abfef0c4213c5f3a6fbe75c2d8ad6b32b10ec78173eb689c56"
+    },
+    {
+      "file": "root-forecast-control-01-post-inputs.log",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-control-01-post-inputs.log",
+      "bytes": 311,
+      "sha256": "e3902b50cd6c703af55ee5466a835732e1183e9e0f09db2332bcb0b922d34134"
+    },
+    {
+      "file": "root-forecast-control-01-post-build.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-control-01-post-build.json",
+      "bytes": 10919,
+      "sha256": "767b98c9203baafa9cbafd48d8c25ab3c343708540cd50dd39815313a94719af"
+    },
+    {
+      "file": "independent-forecast-control900-runtime-review-20261028.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-forecast-control900-runtime-review-20261028.json",
+      "bytes": 7647,
+      "sha256": "e27e23ada97f7a4e00d26adbf90401a941a14c077aaa18fee04b3f6df19eaca8"
+    },
+    {
+      "file": "root-forecast-providers-completion.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-providers-completion.json",
+      "bytes": 18015,
+      "sha256": "281cc8474e345660bb05d3b3fda43f789c282e4e90572185d79a194be8608278"
+    },
+    {
+      "file": "forecast-provider-queue.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\forecast-provider-queue.json",
+      "bytes": 887,
+      "sha256": "815a5ed2d5619b502c3162fa54fb74706849e644335a4cb0568d30694116c72d"
+    },
+    {
+      "file": "root-forecast-providers-post-build.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-providers-post-build.json",
+      "bytes": 10919,
+      "sha256": "42a84deb6bd15e30761a96ea0d4b2da5700da09f0ba9ff2b2f2994417024b6c4"
+    },
+    {
+      "file": "independent-forecast-providers-runtime-review-20261028.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-forecast-providers-runtime-review-20261028.json",
+      "bytes": 15872,
+      "sha256": "9138b76469de9b13f7e5eaec1df1d2ffde78bbdaecaf467347ea11a87f42ffad"
+    },
+    {
+      "file": "root-forecast-provider-helper-review.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-provider-helper-review.json",
+      "bytes": 987,
+      "sha256": "1bcdc4183c309a46dada18d66c0832dbf0fea91b9f1257562ac297c19e173c1f"
+    },
+    {
+      "file": "run-forecast-provider.ps1",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\run-forecast-provider.ps1",
+      "bytes": 2109,
+      "sha256": "7ddf7608ad72bf5fe342ba5da2a5342641c5fc3bd17bc0bf42163c3b8c0dd505"
+    },
+    {
+      "file": "run-forecast-provider-queue.ps1",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\run-forecast-provider-queue.ps1",
+      "bytes": 1962,
+      "sha256": "2a784d0132be9dfaf22bdb3199f666c721c0e9c304ef52d1a9b4efc16c0d7f0e"
+    },
+    {
+      "file": "compare-combat-declared-schema.py",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\compare-combat-declared-schema.py",
+      "bytes": 4080,
+      "sha256": "8296ef0d38945d863136fefa87ecf880428ea59acb40e83e9aba6914a57adad8"
+    },
+    {
+      "file": "independent-real-hit-source-review-dc3113e4b-20261028.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-real-hit-source-review-dc3113e4b-20261028.json",
+      "bytes": 22744,
+      "sha256": "81171053dfbbc497890d2ad088e72d48a5f2a380b4e91598046e6e23466298ce"
+    },
+    {
+      "file": "independent-real-hit-correction-review-225ff4abd-20261028.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-real-hit-correction-review-225ff4abd-20261028.json",
+      "bytes": 19415,
+      "sha256": "9193abcdf218e07d93c88475b7983c8ccae05ff90d0b3f5d3a5a838a2c9222e9"
+    },
+    {
+      "file": "root-forecast-provider-reference-01-post-inputs.log",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-provider-reference-01-post-inputs.log",
+      "bytes": 322,
+      "sha256": "f6fa078293ef4e760dd5a163bb4f1fc4790367fcfbe9db82c2249270cbd3f77f"
+    },
+    {
+      "file": "providers/reference/run.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-reference-01\\run.json",
+      "bytes": 1155,
+      "sha256": "80005f1a2978ef8b5f396c56cc85fa148ff2eef621975d72ff53bab73d621641"
+    },
+    {
+      "file": "providers/reference/summary.jsonl",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-reference-01\\summary.jsonl",
+      "bytes": 942,
+      "sha256": "2381abc0fe44ea2d1fa6f18f20a35b871c959aea88a440b24dbd36963b33c5b8"
+    },
+    {
+      "file": "root-forecast-provider-zero-01-post-inputs.log",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-provider-zero-01-post-inputs.log",
+      "bytes": 317,
+      "sha256": "e8019dcc8c2222a0095beab7f35c612b08eadc51142e7f23b4d1688d57f2adf1"
+    },
+    {
+      "file": "providers/zero/run.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-zero-01\\run.json",
+      "bytes": 1144,
+      "sha256": "4b26bc915552a86a17f133a7376b8c94f0862928a3e0c821d74857002ff0810b"
+    },
+    {
+      "file": "providers/zero/summary.jsonl",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-zero-01\\summary.jsonl",
+      "bytes": 883,
+      "sha256": "b2bff0e7cfa3789545c9508b3fce748072b8abf27163ed3f09d8eef58cb4c11d"
+    },
+    {
+      "file": "root-forecast-provider-negative-01-post-inputs.log",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-provider-negative-01-post-inputs.log",
+      "bytes": 321,
+      "sha256": "df2537cc5d091a80f985c8703374bb62378a0f984690791edf37074876f1e215"
+    },
+    {
+      "file": "providers/negative/run.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-negative-01\\run.json",
+      "bytes": 1174,
+      "sha256": "29beb7c5e44b6bf90f4877e9d1a5eecd53dfdd9a3424aa27e42e73ca23d5a409"
+    },
+    {
+      "file": "providers/negative/summary.jsonl",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-negative-01\\summary.jsonl",
+      "bytes": 1012,
+      "sha256": "b85b588a1ed8fd3d9f6330a08ed0bcdcd464e387122f716cb90933c193db334f"
+    },
+    {
+      "file": "root-forecast-provider-draw-01-post-inputs.log",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-provider-draw-01-post-inputs.log",
+      "bytes": 317,
+      "sha256": "bda00bf3d9b778d14af301d95a8ee7fb987aa7fd4ffcc7ba4889927ca286b9a2"
+    },
+    {
+      "file": "providers/draw/run.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-draw-01\\run.json",
+      "bytes": 1152,
+      "sha256": "3412e55c04b1a75208339b970585dd5833ae04d0ab108f5631c326c60e3d4034"
+    },
+    {
+      "file": "providers/draw/summary.jsonl",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-draw-01\\summary.jsonl",
+      "bytes": 1017,
+      "sha256": "9418317cfdd96e1828bd23d23d58e4bf8884c6c2907776ddecd8b9fe5518d7b3"
+    },
+    {
+      "file": "root-forecast-provider-fraction-01-post-inputs.log",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-provider-fraction-01-post-inputs.log",
+      "bytes": 321,
+      "sha256": "68c76aff92eb7f89a2e618118c1e7987368c78b67ea791c34a82c36dbf979f5e"
+    },
+    {
+      "file": "providers/fraction/run.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-fraction-01\\run.json",
+      "bytes": 1176,
+      "sha256": "15f6cded52436aa0247203ee0a8731ae5ebdab4f4e613ff7139c5b65d20347c8"
+    },
+    {
+      "file": "providers/fraction/summary.jsonl",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-fraction-01\\summary.jsonl",
+      "bytes": 1011,
+      "sha256": "74b8f7d8f642da0c6882e07ca77d48993935a349c27f8b2c5b3f993808e21cac"
+    }
+  ]
+}

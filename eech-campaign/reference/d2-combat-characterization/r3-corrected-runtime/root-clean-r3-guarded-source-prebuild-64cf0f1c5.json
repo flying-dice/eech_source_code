@@ -1,0 +1,29 @@
+{
+  "when_utc": "2026-10-28T16:00:59.709671+00:00",
+  "clone_tool_session": 15123,
+  "clone_actual_exit": 0,
+  "clone_command": "git clone --config core.autocrlf=false --config core.longpaths=true --no-hardlinks --branch codex/d2-combat-resolution R:/d2-sensor-detections R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5",
+  "detached_source": "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5",
+  "expected_head": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "clean": true,
+  "no_alternates": true,
+  "source_frontiers": {
+    "aphavoc": "62dfbb79d5298ead7040c5d4b190867e91c8d7ba",
+    "modules": "cb40c4563825739137c59de394ed92ca9bf8ab9c",
+    "eech-campaign/crates": "a6568e778fb27c39e9da7fa22d98a609224fc41b",
+    "eech-campaign/tools": "28c9ac18eceeef0f794b2834f76e5a646d1d4fc1",
+    "eech-campaign/Cargo.toml": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+    "eech-campaign/Cargo.lock": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+    "eech-campaign/scenarios": "d9a521c0db9069d557a5d73b0c68f055f79e7baa",
+    "eech-campaign/regression": "090bd08a26859a8d1ce0907473e049142342aa75"
+  },
+  "review_file": "R:\\d2-evidence\\combat-characterization-20261028\\independent-r3-guard-order-correction-review-64cf0f1c5-20261028.json",
+  "review_sha256": "5b1f02166eeff003eed6337846e9c8a7f31d2db7361e2d62a9063fc81385147a",
+  "review_disposition": "Production guard-order P2 and prior wording P3 closed. New test-only dummy-pointer P3 is being corrected in parallel; no native or merge acceptance inferred from this build.",
+  "build_profile": "ordinary shipping",
+  "build_script": "R:\\d2-evidence\\combat-characterization-20261028\\root-build-r3-guarded-64cf0f1c5-shipping.sh",
+  "build_script_sha256": "90d7c86d9c85487d9c127bc292aae1b142502b08ca62e8a2e4088dd128d67ef7",
+  "build_output": "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\target\\windows-d2-combat-final-64cf0f1c5",
+  "target_volume": "eech-win-target-d2-combat-reports-guarded-shipping-64cf0f1c5-20261028",
+  "limits": "Prebuild identity only. Root inspected focused review disposition. No build/native/pack acceptance."
+}

@@ -1,0 +1,67 @@
+{
+  "when_utc": "2026-10-28T10:45:32.541562+00:00",
+  "source": "e0a42825bcfad8280aa861879fdd9a0e561cdda3",
+  "source_clean": true,
+  "original_exec_session": 37911,
+  "actual_driver_and_native_exit": 0,
+  "run_record": {
+    "status": "completed",
+    "when_utc": "2026-10-28T10:01:09.8254992Z",
+    "binary": "R:\\d2-evidence\\combat-impact-source-e0a42825b\\eech-campaign\\target\\weapon-fixture\\combat-impact-e0a42825b\\eech-world.exe",
+    "arguments": "R:/d2-evidence/combat-impact-source-e0a42825b/eech-campaign/target/weapon-fixture/combat-impact-e0a42825b/lua/campaign.lua root=R:/d2-evidence/combat-characterization-20261028/roots/impact-control-01 scenario=lebanon_retail hours=0.25 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/combat-characterization-20261028/out/impact-control-01/recording.acmi observe=R:/d2-evidence/combat-characterization-20261028/out/impact-control-01/observations.jsonl metrics=R:/d2-evidence/combat-characterization-20261028/out/impact-control-01/metrics.json observe_supply=0",
+    "root": "R:/d2-evidence/combat-characterization-20261028/roots/impact-control-01",
+    "out": "R:/d2-evidence/combat-characterization-20261028/out/impact-control-01",
+    "kind": "Impact/blast candidate physical-output control; comparison with retained original required, not combat census or fullpack acceptance",
+    "reference_provenance": "Retained ab-base root provenance inferred; no independent original input verification invented",
+    "capacity": "Lead permits seven native processes on eight physical cores, separated roots; one implementation lane",
+    "actual_native_exit": 0,
+    "native_pid": 18976,
+    "created_utc": "2026-10-28T10:01:09.9583898Z",
+    "completed_utc": "2026-10-28T10:40:54.2640339Z"
+  },
+  "comparison": {
+    "baseline": "R:/d2-evidence/los-characterization-baseline-20261026/out/ab-base",
+    "candidate": "R:/d2-evidence/combat-characterization-20261028/out/impact-control-01",
+    "scope": "Complete artifact bytes only; native exits and configuration require separate verification",
+    "results": [
+      {
+        "file": "recording.acmi",
+        "baseline_bytes": 11363845,
+        "candidate_bytes": 11363845,
+        "baseline_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "candidate_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "matches": true
+      },
+      {
+        "file": "observations.jsonl",
+        "baseline_bytes": 6629273,
+        "candidate_bytes": 6629273,
+        "baseline_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "candidate_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "matches": true
+      },
+      {
+        "file": "metrics.json",
+        "baseline_bytes": 11777,
+        "candidate_bytes": 11777,
+        "baseline_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "candidate_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "matches": true
+      }
+    ],
+    "passed": true
+  },
+  "post_inputs_actual_exit": 0,
+  "post_input_log": "R:\\d2-evidence\\combat-characterization-20261028\\root-impact-control-01-post-inputs.log",
+  "post_exports_unchanged": 40,
+  "build_info_sha256": "3c3f23119bda091f16fb433c155afc64fa84c462bf0a2c4c485f47e6f00a2821",
+  "elapsed_wall_seconds": 2384.305644,
+  "scope": "Complete default900s observational-control artifacts only, not combatcensus or shipping fullpack",
+  "limits": [
+    "Baselineinputroot provenance remains inferred; not invented independent original verification.",
+    "Full-byte/hash equality is not visual inspection.",
+    "Elapsed under currentconcurrency is not matchedbenchmark/DCSframecost.",
+    "Hostauthority/refusals restcohort, bridge/R3/reports/finalshipping/wholeD2 gates remain."
+  ],
+  "remaining": "IndependentNEW900runtime review withremainingprovidercohort oncecomplete"
+}

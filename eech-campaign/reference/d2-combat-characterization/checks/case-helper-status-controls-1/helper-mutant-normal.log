@@ -1,0 +1,28 @@
+TEST_LINK_FLAGS=-fno-pie -no-pie
+SANITIZERS=-fsanitize=address,undefined -fno-sanitize-recover=undefined
+COMPILE_EXIT=0
+Aborted
+FAIL a person is reported never critical (the original predicate asked once, FALSE) and not eligible
+FAIL and its health was not touched, not even to 1 percent
+FAIL an anti-aircraft vehicle that is neither explosive nor flammable has no fire roll: not eligible
+FAIL and its health was not touched
+FAIL 20 percent is NOT critical (strictly below 15 is): not eligible, and the health is put back
+FAIL the health is exactly what it was
+FAIL 14 percent of a flammable vehicle is critical by the original predicate: eligible, health set to 14
+FAIL a vehicle too small to have a positive health below 15 percent (initial 5: one point is 20 percent) is not eligible and is restored
+ok   ordinal 1 is the second living vehicle of the kind and only that one
+FAIL an ordinal past the living entities is not found and not eligible
+FAIL a kind with no vehicle critical predicate is refused
+FAIL 257 existing children: refused BEFORE the launch (the snapshot cannot be complete)
+FAIL nothing was launched, retired or delivered
+ok   exactly 256 existing children is the boundary the snapshot holds: the case runs
+FAIL and only the one weapon the launch created was retired, none of the 256 old ones
+FAIL a launch that creates 300 weapons is an explicit error with the counts
+FAIL all 300 new weapons were retired, none of the 3 old ones, and nothing was delivered
+FAIL a launch that creates exactly 256 weapons is accounted in full: delivered once, all 256 retired
+ok   a refused launch is an explicit error and nothing is delivered or retired
+ok   a weaponless collision launches nothing and delivers with no sender
+ENGINE STOP: position off map in the setter
+timeout: the monitored command dumped core
+RUN_EXIT=134
+DOCKER_EXIT=134

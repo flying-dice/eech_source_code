@@ -1,0 +1,1 @@
+print("COMPAT_EMPTY_LUA=" .. _VERSION)

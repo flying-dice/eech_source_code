@@ -1,0 +1,8 @@
+2026-10-28 03:52:43 start h1-cref180 (prov reference) bin=R:/eech_source_code/eech-campaign/target/weapon-fixture/a137fc3ec-clean: R:/eech_source_code/eech-campaign/target/weapon-fixture/a137fc3ec-clean/lua/aim-provider.lua root=R:/d2-evidence/weapon-characterization-20261027/roots/h1-cref180 scenario=lebanon_retail seconds=180 mode=reference out=R:/d2-evidence/weapon-characterization-20261027/out/h1-cref180/summary.jsonl
+2026-10-28 03:59:29 end h1-cref180 : native exit=0 after 406 s
+2026-10-28 03:59:29 start h1-cseduce600 (prov seduce_never) bin=R:/eech_source_code/eech-campaign/target/weapon-fixture/a137fc3ec-clean: R:/eech_source_code/eech-campaign/target/weapon-fixture/a137fc3ec-clean/lua/aim-provider.lua root=R:/d2-evidence/weapon-characterization-20261027/roots/h1-cseduce600 scenario=lebanon_retail seconds=600 mode=seduce_never out=R:/d2-evidence/weapon-characterization-20261027/out/h1-cseduce600/summary.jsonl
+2026-10-28 04:18:21 end h1-cseduce600 : native exit=0 after 1,132 s
+2026-10-28 04:18:21 start h1-crelease600 (prov release_slow) bin=R:/eech_source_code/eech-campaign/target/weapon-fixture/a137fc3ec-clean: R:/eech_source_code/eech-campaign/target/weapon-fixture/a137fc3ec-clean/lua/aim-provider.lua root=R:/d2-evidence/weapon-characterization-20261027/roots/h1-crelease600 scenario=lebanon_retail seconds=600 mode=release_slow out=R:/d2-evidence/weapon-characterization-20261027/out/h1-crelease600/summary.jsonl
+2026-10-28 04:37:06 end h1-crelease600 : native exit=0 after 1,125 s
+2026-10-28 04:37:06 PLAN COMPLETE: 3 runs, every actual exit 0 (not evidence by itself: see the per-run lines and traces)
+CAPTURED_C_OUTER_EXIT=0

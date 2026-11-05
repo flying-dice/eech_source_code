@@ -1,0 +1,189 @@
+{
+  "review_kind": "One combined new correction-delta source correctness / clean-code / boundary pass; no product execution",
+  "source": {
+    "head": "e54423b5c17b4386c099240ea02158ec525c05f7",
+    "base": "a2c5c46a8a10e516b2e1179047f88aa70d45c782",
+    "first_correction_commit": "71671f979647106fef58217e3bf8c140ed560f0d",
+    "frozen_clean_repo": "D:/EECH-Migration-Evidence/ro-e54423b5c",
+    "head_clean_verified": true,
+    "diff_command": [
+      "git",
+      "diff",
+      "--binary",
+      "--full-index",
+      "a2c5c46a8a10e516b2e1179047f88aa70d45c782",
+      "e54423b5c17b4386c099240ea02158ec525c05f7"
+    ],
+    "diff_sha256": "84993b9c2df9db5e80885e1554edbd0c28932a2f5e4716bf3ea967f072983593",
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "git_blob": "1d88344a78eed1dcb1b71da55e89e753d5bf10f7",
+        "sha256": "9a5f731a5c58a962e74d2d76a01a92eeec3602f3bd6be2586083a9f6fd7a71f0",
+        "bytes": 456578
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/aircraft/helicop/helicop.c",
+        "git_blob": "3a4c9ba285ed41985d29ceeedf94100b0536bf49",
+        "sha256": "17a2553d6a08a76735bc696786449a6ecc10e4df1025b3621387d2b5ce579140",
+        "bytes": 67266
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_envfx.h",
+        "git_blob": "2a27544145f6103dbb88f841396a34e6be2534ca",
+        "sha256": "56386e11f4e1d72c3a89de1abcbd60612390e46aa756ed21f6e1b5fd6a2490cd",
+        "bytes": 17573
+      },
+      {
+        "path": "eech-campaign/crates/eech-dc/src/module.rs",
+        "git_blob": "87a139b78095a964540959128bb984e3c1be3b0d",
+        "sha256": "f4835e5a291724e9c7fbb7bd19596cc86c33bc6e61ce4ec1e1f8aa05a98278af",
+        "bytes": 304100
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+        "git_blob": "2cd359392bd9176b08511ae29b84950949c94704",
+        "sha256": "7a061f4a1c48b741e8a4bdcf82828157a19415e755e02a50a13d5d61c9bcdbc3",
+        "bytes": 173359
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_observer.c",
+        "git_blob": "3eb451812a278095cecee5d6ef0dcb67a2aeaa4f",
+        "sha256": "cb144a05f9a4e5186f5b235ad5a5883157a139e99c683aa865c31cc6c0c81d41",
+        "bytes": 51670
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "git_blob": "9bc46df1b4caf695ae15b665d030f38aecb8b3bd",
+        "sha256": "09d83a1e5549b868947d56418f104d8df4c13e89980db049dadd098061ac2a43",
+        "bytes": 551480
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-rotor-sounds.lua",
+        "git_blob": "c61a8497003b20cea6742a9fd2625238b7acdbb1",
+        "sha256": "4f8944c528ce006fa25d29c228e223851b01bcf30fca5cab093a8f811172fedd",
+        "bytes": 41907
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_rotor_sounds.rs",
+        "git_blob": "407e9b4050a3590553a3cdd914d03b337326bac0",
+        "sha256": "70836c54f6c6e5ee70d062c0f56872f4ddf7ab093ac87e9a96535308cf2ae2a6",
+        "bytes": 43508
+      },
+      {
+        "path": "eech-campaign/docs/d3-sound-lifetime.md",
+        "git_blob": "a367c8a8f449b76aff3285eaf03e8704863c7114",
+        "sha256": "678b63c85bc9d46a3b498b8ed8a4f81bc464891126357ac9e8d5dd7d0c7a1f04",
+        "bytes": 134925
+      }
+    ],
+    "all_other_tracked_entries_exact_base": 8638,
+    "other_tree_records_sha256": "2af8343e908f2a3168e83364a339242bcf870646ba9cc72b1e0b7cafaa8b4fc1",
+    "engine_c_exact_base": true,
+    "engine_c_sha256": "9965ef45b3921dcc067758cb3db1daad19a60e74dab3f9a3edb77b47a1397594",
+    "engine_c_nul_count": 1,
+    "engine_c_nul_offsets": [
+      40800
+    ]
+  },
+  "findings": [
+    {
+      "id": "ENV-ROTOR-CORRECTION-1",
+      "priority": "P2",
+      "title": "Finish the new sweep cohort/class and FP-field validation before accepting its semantic evidence",
+      "locations": [
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-rotor-sounds.lua",
+          "lines": "401-435,476-513"
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/env_rotor_sounds.rs",
+          "lines": "537-551,583-613"
+        }
+      ],
+      "evidence": [
+        "The driver bounds turbine2_children/apu_children only individually by sound_children, but never joins them to the actual output/probe child subtypes. The prepared positive ENTITY claims one TURBINE2 child, yet its sole sound/output subtype is5; actual TURBINE2 is36 and APU34 (en_sbtyp.h). Thus the supposed coherent compiler_zero_init positive already carries an impossible cohort declaration.",
+        "For FD rows, class is checked only against three strings. Relabelling the equal-engine consumed-zero-init row as defined leaves all input/output/probe joins satisfied and changes its published scope from compiler compatibility to ordinary controlled input. The opposite class/cohort mismatches are likewise not reconciled. This weakens the material F1 disclosure even though the native C classification itself is correct for its fixed table.",
+        "New FP rows accept round_before=bogus and round_after=bogus because only string equality is tested; no integer/unavailable-state validation is applied. The closed field order does not validate those values. This is a malformed-record acceptance, not an observed native FP defect."
+      ],
+      "action": "Join the declared T2/APU counts to the real subtype cohort in the output rows (and probe where present); use coherent real-subtype positives. Reconcile each FD class with the declared finite input/classification facts and the actually consumed cohort so consumed zero-init cases cannot become safe-language cases; no amplitude/pitch oracle or original math change is needed. Validate round fields as genuine numeric/control observations and reject malformed/unavailable values while preserving the platform-specific fenv scope. Add finite damaged forms for these concrete acceptances. Lua/tests/prose corrections can retain e544 native C/ABI identity under an explicit mapping; do not relabel or unnecessarily rebuild unchanged C."
+    }
+  ],
+  "source_review_no_blocking_findings": false,
+  "prior_report": {
+    "path": "R:/d3-evidence/independent-environment-original-rotor-sounds-source-review-a2c5c46a8-20261101.json",
+    "sha256": "a948f2d5eda0ae2ba29d7943bbe8c37b2467db1464cd057c54bba1612c2052d3",
+    "bytes": 18717
+  },
+  "material_prior_finding_amendment": {
+    "receipt": {
+      "path": "R:/d3-evidence/rotor-zero-auto-init-build-contract-a2c-7167-20261101.json",
+      "sha256": "98846f4b532178ce83f732bb03d1bde9e0161db3e708ee9942afd684854eb7eb",
+      "bytes": 2376
+    },
+    "reviewer_correction": "The prior P1 identified genuine language-level unassigned locals but did not account for the existing F1 flag in the canonical whole-engine build. That omission means the prior raw-language discussion must not be promoted into a claim of arbitrary canonical artifact outputs or a mandatory canonical skip. The old report remains unchanged; this new assessment supplies the material build-contract qualification.",
+    "independently_verified": "The receipt hashes and flag were verified from immutable3fdbe6efd/a2c/7167 Git blobs. e544 build/main.rs is byte-exact a2c (SHA7f858087965e74ff7c2a37179b62a1f7762b9b2974c73df8f6dfc2899859728e); one cc::Build applies -ftrivial-auto-var-init=zero before adding every sources.txt legacy unit and csrc/*.c. No initialization, arithmetic, flag or baseline change was introduced.",
+    "scope": "The zero-auto-init contract is declared by the canonical build, not detected at runtime. No observed zero or stability is claimed before actual output comparisons. Language-level unsupported behavior remains outside that contract; other compilers/flags are not covered."
+  },
+  "prior_group_dispositions": [
+    {
+      "id": "ENV-ROTOR-ORIGINAL-1",
+      "status": "Canonical-build source disposition amended and source-clear; observed values pending",
+      "facts": [
+        "Every source FD shape is executed, labelled defined / undefined_not_consumed / compiler_zero_init from explicit table annotations plus actual child consumption. Source contains15FD shapes (10fully assigned and5with unassigned-local annotations), and12AI rpm shapes; actual required counts must use this frozen source, not the earlier nine-shape description.",
+        "Native C classification correctly uses TURBINE2/APU child counts and does not silently initialise original rotor locals. The residual is the Lua semantic/class join, not the C math or F1 contract."
+      ]
+    },
+    {
+      "id": "ENV-ROTOR-ORIGINAL-2",
+      "status": "Source closed",
+      "facts": [
+        "The fixture is now also available without the observer, preflights remaining caller capacity>=30720 before mutation, stages text in a static bounded buffer, and has no returning path after mutation until rpm/player/FD pointer/phase have been restored. Stage append failures latch and refuse after cleanup.",
+        "With at most32children, kids[1536] covers the worst unsigned subtype and two8hex words per sound child (under928B);15rows of output/input/FP data fit the30720stage. The existing32KiB default report covers it; lower caller capacities refuse before calls.",
+        "New cfg(env-fixture) Rust/Lua env_case_capacity validates capacity1..existinginit-report maximum, owns its buffer, and uses the unchanged C boundary. Driver short-buffer guards require the named refusal and no probe call/phase/open/pending mutation. Children intentionally remain process-isolated/mutating. Actual guard execution remains separate."
+      ]
+    },
+    {
+      "id": "ENV-ROTOR-ORIGINAL-3",
+      "status": "Source correction closed with bounded unmeasured transparency gate",
+      "facts": [
+        "All new ACTION hook delay arguments are integer0, eliminating the previous ENV_FXF float-valued argument even when unarmed. Probe now copies acceleration for every present FD but engine/APU words only for LOCAL, zero otherwise; global-FD semantics are explicit.",
+        "Uninstrumented env-fixture, observer-unarmed and observer-armed variants can emit fixture-read per-call output words and standard fenv observations without duplicating rotor arithmetic. Original rotor math is atop the existing hosted baseline; HOST_ENV is not disabled.",
+        "Three-way actual output comparisons remain pending. The rows measure fegetround plus FE_ALL_EXCEPT tests with saved/restored exception flags; they do not snapshot full x87 CW/SW/TW/TOP, precision bits, or complete MXCSR/FTZ/DAZ. The documented x86-64 scalar-SSE target must not be generalized into x87/i686/full-caller-FP acceptance."
+      ]
+    },
+    {
+      "id": "ENV-ROTOR-ORIGINAL-4",
+      "status": "Most prior protocol corrections source-closed; residual consolidated above",
+      "facts": [
+        "New grammar enforces exact field order, exhaustive anchored tuple items, direct max limits, real entity/player types, sound-child after_seen/count equality, non-sound zero data, consumed-field zero conventions, sequence, natural phase0 and sweep phase1 boundaries.",
+        "Strict sweep plan/entity/input/out/FP/end rows now join call count/order, chosen entity/player/FD and every input word, and probe after words to fixture-read output words. There is no rotor amplitude recomputation.",
+        "The old incoherent rpm positives are corrected; finite damaged guards exercise missing after data, tuple junk, false clean overlimits, wrong phase/type, swapped entity/player/FD/input words and output mismatches. Remaining cohort/class and new FP-field types are finding1."
+      ]
+    },
+    {
+      "id": "ENV-ROTOR-ORIGINAL-5",
+      "status": "Source closed; actual green pending",
+      "facts": [
+        "The helper records pre-existing paths after setup and treats them as foreign; preserved sentinel files are not parsed/read as this invocation output. Newly created output remains strict JSON, without silently ignoring malformed owned content. Existing file bytes remain asserted exactly.",
+        "The test supports explicit EECH_ROTOR_DRIVER_UNDER_TEST for a meaningful old-driver red on unchanged natural grammar, selected separately from canonical new-driver checks. No red/green execution is inferred from the source."
+      ]
+    }
+  ],
+  "identity_and_ownership_limits": [
+    "Only the10changed paths were reviewed as new code; earlier backend/metadata/field/kernel acceptances remain reused, not re-reviewed. Runtime C/fixture/hooks changed since a2c, so a2c builds cannot stand in for e544. e544 C is now source-clear for this finite preparation; the residual pertains to Lua/test semantic evidence.",
+    "Old cases0-15, prior Lua drivers, production host callback ABI and all accepted literal reference folders remain exact outside these10paths. Engine C/header/sys ABI is unchanged in this correction, one embedded NUL at40800.",
+    "Fixture output reads no private pointer/handle through Lua; selected heap indices/raw FD words remain private evidence. No device/voice handle or backend is fabricated. Return errors before mutation and declared child mutation are separate from fatal longjmp paths, which remain terminal/poisoned."
+  ],
+  "actual_gates_pending": [
+    "Root canonical Linux matrix and Windows uninstrumented/observer sequential builds, then actual unit/integration/strict and current CI checks; none accepted by this reviewer from launch status or author exits. No native has been run for this candidate.",
+    "Corrected semantic guards, including meaningful unchanged-format old-a2c red and new positive controls; staged short-capacity refusal through real C.",
+    "Eight fresh-root measurements: natural120s, unarmed observation-off120s, and12AI/15FD sweeps in uninstrumented/unarmed/armed variants with identical inputs. Complete raw rows/endings retained; comparison must separately identify compiler_zero_init cases and actual coverage/cohort.",
+    "Numerical transparency is actual equality of output words and the specified standard fenv fields across the3variants for the measured target, not full x87 state or arbitrary compiler proof. Reuse accepted b426 entropy/heap/constructor facts; do not rerun a closed original just for handover."
+  ],
+  "limitations": [
+    "One residual P2; source gate false until semantic sweep/FP-field correction. No actual characterization, rotor host extraction, positive audio/backend, player/render, Tacview, shipping40/all8, Task51/D3 or normal delivery acceptance. D4/D5 not started.",
+    "All a2c initial failures and prior a948report remain preserved. This report amends the missing F1 qualification transparently without rewriting old evidence or claiming measured zero outputs.",
+    "No product edits, builds/compiles/tests/native/retail runs, Docker/cache/auth changes, external writes or nested agents by reviewer. Only this canonical LF private report is written."
+  ]
+}

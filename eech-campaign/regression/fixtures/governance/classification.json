@@ -1,0 +1,29 @@
+{
+ "fixture": "TEST FIXTURE for tools/baseline-governance.py: not an EECH campaign baseline, not behavioural evidence",
+ "title": "Governance fixture: the fixture value changes from 1 to 2 by a deliberate rule change",
+ "classification": "intentional-semantic-change",
+ "semantic_change": {
+  "rule": "the fixture rule now yields 2 where it yielded 1",
+  "claims": [
+   "FIXTURE.value"
+  ]
+ },
+ "claim_changes": [
+  {
+   "claim": "FIXTURE.value",
+   "change": "its expected value becomes 2; its protection class is unchanged"
+  }
+ ],
+ "residual_risks": [
+  "none: test fixture"
+ ],
+ "delta": {
+  "interpretation": "the fixture rule was changed on purpose; the new value is its intended result",
+  "evidence": [
+   {
+    "ref": "regression/fixtures/governance/README.md: the rule change this fixture stands for"
+   }
+  ],
+  "classification": "intentional-semantic-change"
+ }
+}

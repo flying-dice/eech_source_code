@@ -1,0 +1,80 @@
+[
+  {
+    "ProcessId": 4444,
+    "CreationDate": "2026-10-14T11:20:11.332395+01:00",
+    "Name": "wslservice.exe",
+    "CommandLine": null
+  },
+  {
+    "ProcessId": 8740,
+    "CreationDate": "2026-10-26T08:05:59.918742+00:00",
+    "Name": "vmmemWSL",
+    "CommandLine": null
+  },
+  {
+    "ProcessId": 23036,
+    "CreationDate": "2026-10-26T08:06:02.360375+00:00",
+    "Name": "wslrelay.exe",
+    "CommandLine": " --mode 2 --vm-id {1028896f-640e-4401-b4aa-30ea392a7dd5} --handle 2432"
+  },
+  {
+    "ProcessId": 23132,
+    "CreationDate": "2026-10-26T08:06:02.815436+00:00",
+    "Name": "wslsettings.exe",
+    "CommandLine": " ----ms-protocol:wsl-settings://oobe"
+  },
+  {
+    "ProcessId": 22872,
+    "CreationDate": "2026-10-26T08:07:19.671113+00:00",
+    "Name": "wslhost.exe",
+    "CommandLine": " --vm-id {1028896f-640e-4401-b4aa-30ea392a7dd5} --handle 2736"
+  },
+  {
+    "ProcessId": 23724,
+    "CreationDate": "2026-10-26T08:07:19.699772+00:00",
+    "Name": "wslhost.exe",
+    "CommandLine": " --vm-id {1028896f-640e-4401-b4aa-30ea392a7dd5} --handle 2748"
+  },
+  {
+    "ProcessId": 21576,
+    "CreationDate": "2026-10-26T08:08:03.059585+00:00",
+    "Name": "wsl.exe",
+    "CommandLine": "\"C:\\WINDOWS\\system32\\wsl.exe\" --distribution EECH-D2-Build --user root --exec /bin/sh -lc \"exec dockerd --pidfile /run/eech-d2-docker.pid --data-root /var/lib/docker --host unix:///var/run/docker.sock --max-concurrent-downloads=2\""
+  },
+  {
+    "ProcessId": 21544,
+    "CreationDate": "2026-10-26T08:08:03.079554+00:00",
+    "Name": "wsl.exe",
+    "CommandLine": "\"C:\\WINDOWS\\system32\\wsl.exe\" --distribution EECH-D2-Build --user root --exec /bin/sh -lc \"exec dockerd --pidfile /run/eech-d2-docker.pid --data-root /var/lib/docker --host unix:///var/run/docker.sock --max-concurrent-downloads=2\""
+  },
+  {
+    "ProcessId": 22324,
+    "CreationDate": "2026-10-26T08:08:03.110325+00:00",
+    "Name": "wslhost.exe",
+    "CommandLine": " --distro-id {a5100118-4a99-41ec-aece-8f8e7fdc7d59} --vm-id {1028896f-640e-4401-b4aa-30ea392a7dd5} --handle 784 --event 808 --parent 812"
+  },
+  {
+    "ProcessId": 24104,
+    "CreationDate": "2026-10-28T16:08:29.71932+00:00",
+    "Name": "eech-world.exe",
+    "CommandLine": "\"R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\target\\windows-d2-combat-final-64cf0f1c5\\eech-world.exe\" R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\target\\windows-d2-combat-final-64cf0f1c5\\lua\\campaign.lua root=R:/d2-evidence/candidate-roots-d2-combat-final/georgia scenario=georgia_retail hours=3 record=0 checkpoint_every=3600 metrics=R:/d2-evidence/candidate-pack-d2-combat-final-64cf0f1c5/regress/georgia_retail.json"
+  },
+  {
+    "ProcessId": 22180,
+    "CreationDate": "2026-10-28T16:08:29.733572+00:00",
+    "Name": "eech-world.exe",
+    "CommandLine": "\"R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\target\\windows-d2-combat-final-64cf0f1c5\\eech-world.exe\" R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\target\\windows-d2-combat-final-64cf0f1c5\\lua\\campaign.lua root=R:/d2-evidence/candidate-pack-d2-combat-final-64cf0f1c5/roots/lebanon-regress scenario=lebanon_retail hours=3 record=0 checkpoint_every=3600 metrics=R:/d2-evidence/candidate-pack-d2-combat-final-64cf0f1c5/regress/lebanon_retail.json"
+  },
+  {
+    "ProcessId": 16388,
+    "CreationDate": "2026-10-28T16:08:32.839576+00:00",
+    "Name": "eech-world.exe",
+    "CommandLine": "\"R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\target\\windows-d2-combat-final-64cf0f1c5\\eech-world.exe\" R:/d2-evidence/combat-reports-guarded-source-64cf0f1c5/eech-campaign/target/windows-d2-combat-final-64cf0f1c5/lua/campaign.lua root=R:/d2-evidence/candidate-roots-d2-combat-final/lebanon scenario=lebanon_retail hours=3 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/candidate-pack-d2-combat-final-64cf0f1c5/reference/run1/recording.acmi observe=R:/d2-evidence/candidate-pack-d2-combat-final-64cf0f1c5/reference/run1/observations.jsonl metrics=R:/d2-evidence/candidate-pack-d2-combat-final-64cf0f1c5/reference/run1/metrics.json observe_supply=1"
+  },
+  {
+    "ProcessId": 15568,
+    "CreationDate": "2026-10-28T16:08:32.857986+00:00",
+    "Name": "eech-world.exe",
+    "CommandLine": "\"R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\target\\windows-d2-combat-final-64cf0f1c5\\eech-world.exe\" R:/d2-evidence/combat-reports-guarded-source-64cf0f1c5/eech-campaign/target/windows-d2-combat-final-64cf0f1c5/lua/campaign.lua root=R:/d2-evidence/candidate-roots-d2-combat-final/lebanon-repeat scenario=lebanon_retail hours=3 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/candidate-pack-d2-combat-final-64cf0f1c5/reference/run2/recording.acmi observe=R:/d2-evidence/candidate-pack-d2-combat-final-64cf0f1c5/reference/run2/observations.jsonl metrics=R:/d2-evidence/candidate-pack-d2-combat-final-64cf0f1c5/reference/run2/metrics.json observe_supply=1"
+  }
+]

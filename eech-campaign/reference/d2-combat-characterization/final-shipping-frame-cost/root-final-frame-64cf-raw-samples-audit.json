@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "frames": 9000,
+  "windows": 15,
+  "recomputed": {
+    "mean_ms": 260.26277777777767,
+    "max_ms": 563.9999999999645,
+    "p50_ms": 253.9999999999054,
+    "p95_ms": 370.00000000011823,
+    "p99_ms": 429.0000000000873
+  },
+  "samples_file": "R:\\d2-evidence\\combat-characterization-20261028\\out\\frame-cost-final-d2-900-01\\frame-cost.jsonl",
+  "samples_bytes": 556377,
+  "samples_sha256": "447e0581deb484739e273108eebba7526d2d8676bf9dfac2e13fd2d97d971848",
+  "limits": "Elapsed native engine:frame only, quantized os.clock under recorded load; no DCS callback/scheduling budget or causal benchmark. Original native/controller completion and default artifact/input/build/source checks required separately."
+}

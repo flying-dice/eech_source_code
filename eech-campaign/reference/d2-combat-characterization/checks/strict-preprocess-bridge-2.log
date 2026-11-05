@@ -1,0 +1,4 @@
+aphavoc/source/entity/special/bridge/br_msgs.c: strict feature-off equivalence PASS (1273718 bytes preprocessed)
+aphavoc/source/entity/fixed/segment/sg_updt.c: strict feature-off equivalence PASS (1263990 bytes preprocessed)
+aphavoc/source/entity/fixed/segment/sg_dstry.c: strict feature-off equivalence PASS (1268527 bytes preprocessed)
+STRICT_EXIT=0

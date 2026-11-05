@@ -1,0 +1,7 @@
+# Exact evidence copies; no campaign source is covered.
+* -text whitespace=cr-at-eol
+*.log -whitespace
+*.jsonl -whitespace
+# Historical operational copies retain original trailing blank lines exactly.
+*.ps1 -whitespace
+README.md text eol=lf

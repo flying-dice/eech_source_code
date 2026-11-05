@@ -1,0 +1,162 @@
+{
+  "schema": "independent-source-review-v1",
+  "created_utc": "2026-10-31T21:12:18.267623+00:00",
+  "reviewer": "sole independent Codex reviewer /root/d3_environment_review",
+  "source": {
+    "repo": "R:\\d3-evidence\\environment-services-20261030",
+    "base": "35bb4b93a19dabb1ff2b7a88458dcd0d8d42a66d",
+    "head": "bcb7142d4a5383d525a00de72f11d6073b3e43b7",
+    "tree": "51fc5461c33b259992cc31da974c41efa098d21a",
+    "clean_at_review": true,
+    "files": [
+      {
+        "path": "STATUS.md",
+        "sha256": "139b1cd1c171e586a6b0f5f9fa585373c066abf62ac52a9787411a790ce4dfda",
+        "git_blob": "e5301996cd2e2780cbd5c2026b450700e77d33f7"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+        "sha256": "ed3c3a04d06bdcc9eb804c8f9256ef8f27c22e099c1ac91694fbc5a1019b7611",
+        "git_blob": "6c8365055f8541bbde775a4f20b5274bf74281b7"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+        "sha256": "c9f0ccfbebea64ab9eaaee23e9028920d756e918c308db3c1a596c30f10982c3",
+        "git_blob": "74f9d059fe0e3404554b0b5e1a553e0267918c2c"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sound_lifetime.rs",
+        "sha256": "d79c6d5f75539495e6704e4febacdcae82e5750f5c4ebfae3f5e46f745af9f76",
+        "git_blob": "b287ff775c6d9798745a0643466c6cb9ce0af12e"
+      },
+      {
+        "path": "eech-campaign/docs/d3-sound-lifetime.md",
+        "sha256": "59c1f7470cea20046e5b9947ebb8f4ef7e26a80f9971c1182b7f084b0ab23ba9",
+        "git_blob": "7b34ac021cef006f69cbcf03ecd2520f281567c6"
+      }
+    ]
+  },
+  "scope": "One combined new-delta correctness, clean-code, boundary, protocol, restoration and new census review of original controlled-data sound domains 4..10. Existing zero-lifetime actuals and prior sound/queue/field reviews reused, not re-reviewed. No host move or new physical API.",
+  "source_review_no_blocking_findings": false,
+  "findings": [
+    {
+      "id": "ENV-SOUND-DOMAIN-1",
+      "priority": "P1",
+      "title": "Establish capacity for both entities before the two-entity controls invoke the unchecked constructor",
+      "references": [
+        {
+          "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+          "line": 2647
+        },
+        {
+          "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+          "line": 2773
+        },
+        {
+          "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+          "line": 2782
+        },
+        {
+          "path": "aphavoc/source/entity/special/effect/soundeff/se_creat.c",
+          "line": 101
+        },
+        {
+          "path": "aphavoc/source/entity/special/effect/soundeff/soundeff.c",
+          "line": 674
+        }
+      ],
+      "evidence": "The single initial free-index check proves only one free entity exists. Cases7 and8 then construct a and b without any second-slot capacity check. If exactly one slot remains, a consumes it and b construction returns NULL from the underlying create routine; the helper immediately passes it to sample initialization, which asserts/dereferences it. Later safe snapshot/update predicates cannot protect this earlier call. These cases advertise explicit prerequisite refusal, so one available slot cannot be treated as sufficient for two.",
+      "required_change": "Check the actual two-entity prerequisite before invoking the unchecked second constructor and refuse safely if insufficient. Restore descriptor/delta/tracking state before any error/refusal, and state any partial entity creation honestly. Preserve ordinary constructor/allocation behavior; no fake sample lifetime or new heap framework is needed."
+    },
+    {
+      "id": "ENV-SOUND-DOMAIN-2",
+      "priority": "P2",
+      "title": "Apply complete per-call and cross-capture coherence to the new data-case reports",
+      "references": [
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+          "line": 200
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+          "line": 281
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+          "line": 301
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+          "line": 313
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/env_sound_lifetime.rs",
+          "line": 438
+        }
+      ],
+      "evidence": "The new branch independently reimplements a weaker journal validator: it checks routine ownership, total ENTER/KILL counts and only the final unfinished point, but no intervening transition or upd state machine. For case5, deleting the first CLIENT_EXIT while reducing stored still leaves three ENTERs, a final CLIENT_EXIT and the same calls/end state, so the missing middle operation is accepted. Arbitrary upd values are never checked; report.kills is not reconciled with summed kills; declared delta-row calls, end skipped and per-case entity/count inputs are not bound to the observed calls/stopping conditions. Independent env-sound-state rows are not joined to adjacent probe captures: its own positive case4 has creation-state life_w=40a00000 while the same constructor CREATED probe record remains generic life_w=3fc00000. No game write occurs between these two captures, so accepting that contradiction is not an alternative lifetime outcome. Typed descriptor rows likewise do not establish that the named controlled inputs were used.",
+      "required_change": "Reuse the established per-entity transition/update-pair rules for this at-most-three-call unsampled domain. Reconcile per-case declared inputs/entities/planned calls/skipped counts with actual state/probe calls, permitting skips only after a dead or unlinked state; bind report kill totals, current update ordinals and stable cohort identity. Match creation snapshots to CREATED fields and client post-call snapshots to corresponding EXIT fields where they are the same capture point, without calculating an expected lifetime. Correct canned positives so the independent captures agree, and add finite coherent damaged-record guards for these named cases. Keep all physical outputs observed and do not introduce a preferred numerical oracle."
+    },
+    {
+      "id": "ENV-SOUND-DOMAIN-3",
+      "priority": "P2",
+      "title": "Correct the active pause/resume census and distinguish state transitions from playback prerequisites",
+      "references": [
+        {
+          "path": "eech-campaign/docs/d3-sound-lifetime.md",
+          "line": 129
+        },
+        {
+          "path": "aphavoc/source/entity/mobile/vehicle/vh_int.c",
+          "line": 279
+        },
+        {
+          "path": "aphavoc/source/entity/system/en_comms/en_comms.c",
+          "line": 4134
+        },
+        {
+          "path": "aphavoc/source/entity/system/en_comms/en_comms.c",
+          "line": 4834
+        },
+        {
+          "path": "aphavoc/source/entity/special/effect/soundeff/soundeff.c",
+          "line": 170
+        },
+        {
+          "path": "aphavoc/source/entity/special/effect/soundeff/soundeff.c",
+          "line": 196
+        }
+      ],
+      "evidence": "The new census names only cdmusic/fw_anim/fw_int/helicop as pause/resume callers. Both identifiers actually occur in40 C files including the helper, and all40 appear in the maintained compiled sources list; omitted external callers include vh_int, en_comms and the compiled avionics families. These cannot be dismissed from a headless trace. The resume implementation sets valid TRUE and reinserts an absent UPDATE link around the play call; actual playback-handle availability is not proof that these validity/list state responsibilities are inherently device-unavailable. A generic lifetime move must explicitly disposition them. The creator count24 also includes soundeff.c itself: it is24 identifier-containing files,23 external caller files, not24 independently listed callsites.",
+      "required_change": "Make the bounded compiled-reference census accurate, naming or explicitly grouping the omitted vehicle/network/avionics callers. Separate resume validity/relink state from device-dependent playback and keep each unmeasured domain explicit instead of treating the whole resume operation as unavailable. Qualify creator counts. No next fixture design or broader trace/security framework is requested by this review."
+    }
+  ],
+  "inspected_facts": [
+    "All five changed files inspected. Only fixture C, dedicated Lua/guards and docs/STATUS change. Original production sound math/hooks/probe storage and Engine C stay unchanged; changed fixture C still requires a new native build.",
+    "Snapshot helper reads only stable slot type/data after possible kill and reads sound fields only while type/data remain live. Float state words are copied by memcpy. The update helper checks type/data and update-list membership before every call, so destroyed or unlinked entities are not updated again.",
+    "Maximum snapshots are bounded by the fixed cases (at most eight), below the fixed24 capacity. Descriptor changes use named positive integer rates/sizes; constructor computes original lifetime/sum/caps, and real update functions perform all evolution. No fixture lifetime solver is added.",
+    "After normal call collection, tracking is switched off and saved delta/rate/size fields restored before fallible state/report emission; initial header/facts/unsupported rows occur before mutation. The process-isolated entities themselves are intentionally not restored. Pause can touch session children; counts are exposed and driver refuses a non-isolated result, but no general campaign restoration is claimed.",
+    "Group14 index0/cases1..3 and plan cases3 remain on their old dispatch path. New domain entries4..10 are explicit only; no old retail report or baseline is modified.",
+    "New census was checked against source identifiers and sources.txt only for its new claims. Both pause/resume have40 matching compiled files (including the implementation); creator identifiers have24 files including the helper. No headless dormancy or runtime caller reachability is inferred."
+  ],
+  "census_identity": {
+    "source_list": {
+      "path": "eech-campaign/crates/eech-engine-sys/sources.txt",
+      "sha256": "d1aa1c0f0b7dd88c1483687915cbd53f8d94e9e495b88b0a11ac97d027dbca88"
+    },
+    "compiled_pause_identifier_files": 40,
+    "compiled_resume_identifier_files": 40,
+    "creator_identifier_files_including_helper": 24
+  },
+  "execution_context": {
+    "reviewer": "Read-only source analysis and private report write only; no tests, native runs, builds, Docker/process/source/auth/public changes or agents.",
+    "author_WIP": "Root reports f1 formatting/outdated-argument failures retained and f2 fmt/observer C compile/sound8/host45/queue18/strict0; these are preparation checks, not actual new-domain physical observations.",
+    "root_gates": "New bcb Windows/Linux builds may complete; source gate remains false and seven new roots remain unused. No prior942 binary can execute this changed fixture."
+  },
+  "retention_gap": "The earlier first d1 WIP raw log remains unavailable; the labelled excerpt and user tool results are partial evidence only. Existing canonical/retail originals and new exclusive WIP failures/greens are not rewritten.",
+  "limitations": [
+    "This report blocks new-domain measurement pending the three finite source groups; no host sound handoff, original-domain runtime closure, audible/device/player/network/render/fullshipping or Task51/D3 acceptance is granted.",
+    "Positive sample-data, sequence/cap/loop/invalid/unlink outcomes remain unmeasured until real new-native controls. Playback handles, resume state/device portions, independent destroy/network and per-vehicle amplitude/pitch responsibilities remain explicitly scoped; none is deferred from required D3.",
+    "Whole Task51/D3 and sound/time/terrain/spatial/model/full40/all8 shipping/current checks/normal merges remain open; D4/D5 unstarted."
+  ]
+}

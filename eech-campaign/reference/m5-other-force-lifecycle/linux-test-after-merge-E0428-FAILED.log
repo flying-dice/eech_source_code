@@ -1,0 +1,28 @@
+   Compiling eech-engine-sys v0.1.0 (/repo/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-world v0.1.0 (/repo/eech-campaign/crates/eech-world)
+error[E0428]: the name `a_tumble_forms_its_draws_in_double_as_the_original_expression_does` is defined multiple times
+    --> crates/eech-world/src/movement.rs:3026:5
+     |
+2721 |     fn a_tumble_forms_its_draws_in_double_as_the_original_expression_does() {
+     |     ----------------------------------------------------------------------- previous definition of the value `a_tumble_forms_its_draws_in_double_as_the_original_expression_does` here
+...
+3026 |     fn a_tumble_forms_its_draws_in_double_as_the_original_expression_does() {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `a_tumble_forms_its_draws_in_double_as_the_original_expression_does` redefined here
+     |
+     = note: `a_tumble_forms_its_draws_in_double_as_the_original_expression_does` must be defined only once in the value namespace of this module
+
+error[E0428]: the name `the_tumble_step_hands_the_helper_the_draws_it_received_in_double` is defined multiple times
+    --> crates/eech-world/src/movement.rs:3079:5
+     |
+2774 |     fn the_tumble_step_hands_the_helper_the_draws_it_received_in_double() {
+     |     --------------------------------------------------------------------- previous definition of the value `the_tumble_step_hands_the_helper_the_draws_it_received_in_double` here
+...
+3079 |     fn the_tumble_step_hands_the_helper_the_draws_it_received_in_double() {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `the_tumble_step_hands_the_helper_the_draws_it_received_in_double` redefined here
+     |
+     = note: `the_tumble_step_hands_the_helper_the_draws_it_received_in_double` must be defined only once in the value namespace of this module
+
+   Compiling eech-engine v0.1.0 (/repo/eech-campaign/crates/eech-engine)
+For more information about this error, try `rustc --explain E0428`.
+error: could not compile `eech-world` (lib test) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...

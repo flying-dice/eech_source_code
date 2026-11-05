@@ -1,0 +1,81 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.76s
+     Running unittests src/lib.rs (/target/debug/deps/eech_world-49d864156aa003d7)
+
+running 14 tests
+test cmb::tests::a_conventional_munitions_weapon_takes_the_munitions_figures_scaled_by_the_burst ... ok
+test cmb::tests::a_hit_takes_the_campaigns_one_sample_and_it_sets_the_random_modifier ... FAILED
+test cmb::tests::a_high_explosive_hit_splashes_with_the_random_modifier_and_a_conventional_one_takes_the_munitions_figures ... FAILED
+test cmb::tests::a_hit_the_original_has_no_answer_for_is_refused ... ok
+test cmb::tests::a_non_explosive_weapon_is_scaled_by_the_velocity_argument_and_an_explosive_one_is_not ... ok
+test cmb::tests::a_player_target_is_scaled_by_the_players_setting_after_the_raw_capability ... ok
+test cmb::tests::a_question_the_original_has_no_answer_for_is_refused ... ok
+test cmb::tests::a_weapon_that_cannot_pierce_and_is_not_explosive_does_nothing ... ok
+test cmb::tests::a_weapon_that_pierces_the_armour_does_its_full_damage ... ok
+test cmb::tests::high_explosive_splash_follows_the_warhead_and_the_armour ... ok
+test cmb::tests::the_armour_a_hit_meets_follows_the_aspect_of_a_vehicle_or_an_aircraft ... FAILED
+test cmb::tests::the_health_a_hit_leaves_is_clamped_at_zero_and_classified_before_and_after ... FAILED
+test cmb::tests::the_players_invulnerability_stops_a_hit_before_its_sample_and_the_cheat_guard_stops_the_health ... FAILED
+test cmb::tests::the_players_setting_and_the_multiplayer_multiplier_scale_the_capability_after_the_arithmetic ... FAILED
+
+failures:
+
+---- cmb::tests::a_hit_takes_the_campaigns_one_sample_and_it_sets_the_random_modifier stdout ----
+
+thread 'cmb::tests::a_hit_takes_the_campaigns_one_sample_and_it_sets_the_random_modifier' (925) panicked at crates/eech-world/src/cmb.rs:550:13:
+assertion `left == right` failed: sample 0
+  left: (700, 1, 700)
+ right: (750, 1, 750)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- cmb::tests::a_high_explosive_hit_splashes_with_the_random_modifier_and_a_conventional_one_takes_the_munitions_figures stdout ----
+
+thread 'cmb::tests::a_high_explosive_hit_splashes_with_the_random_modifier_and_a_conventional_one_takes_the_munitions_figures' (924) panicked at crates/eech-world/src/cmb.rs:579:9:
+assertion `left == right` failed
+  left: 42
+ right: 45
+
+---- cmb::tests::the_armour_a_hit_meets_follows_the_aspect_of_a_vehicle_or_an_aircraft stdout ----
+
+thread 'cmb::tests::the_armour_a_hit_meets_follows_the_aspect_of_a_vehicle_or_an_aircraft' (933) panicked at crates/eech-world/src/cmb.rs:601:13:
+assertion `left == right` failed: weapon at [0.0, 0.0, -100.0]
+  left: (10.0, 8)
+ right: (5.0, 9)
+
+---- cmb::tests::the_health_a_hit_leaves_is_clamped_at_zero_and_classified_before_and_after stdout ----
+
+thread 'cmb::tests::the_health_a_hit_leaves_is_clamped_at_zero_and_classified_before_and_after' (934) panicked at crates/eech-world/src/cmb.rs:666:13:
+assertion `left == right` failed: level 50
+  left: (true, 42, 0, 0)
+ right: (true, 41, 0, 0)
+
+---- cmb::tests::the_players_invulnerability_stops_a_hit_before_its_sample_and_the_cheat_guard_stops_the_health stdout ----
+
+thread 'cmb::tests::the_players_invulnerability_stops_a_hit_before_its_sample_and_the_cheat_guard_stops_the_health' (935) panicked at crates/eech-world/src/cmb.rs:652:9:
+assertion `left == right` failed
+  left: (8, false, 50, 0)
+ right: (9, false, 50, 0)
+
+---- cmb::tests::the_players_setting_and_the_multiplayer_multiplier_scale_the_capability_after_the_arithmetic stdout ----
+
+thread 'cmb::tests::the_players_setting_and_the_multiplayer_multiplier_scale_the_capability_after_the_arithmetic' (936) panicked at crates/eech-world/src/cmb.rs:711:9:
+assertion `left == right` failed: 9 * 0.33 = 2.97, truncated
+  left: (8, 2)
+ right: (9, 2)
+
+
+failures:
+    cmb::tests::a_high_explosive_hit_splashes_with_the_random_modifier_and_a_conventional_one_takes_the_munitions_figures
+    cmb::tests::a_hit_takes_the_campaigns_one_sample_and_it_sets_the_random_modifier
+    cmb::tests::the_armour_a_hit_meets_follows_the_aspect_of_a_vehicle_or_an_aircraft
+    cmb::tests::the_health_a_hit_leaves_is_clamped_at_zero_and_classified_before_and_after
+    cmb::tests::the_players_invulnerability_stops_a_hit_before_its_sample_and_the_cheat_guard_stops_the_health
+    cmb::tests::the_players_setting_and_the_multiplayer_multiplier_scale_the_capability_after_the_arithmetic
+
+test result: FAILED. 8 passed; 6 failed; 0 ignored; 0 measured; 197 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p eech-world --lib`
+CARGO_EXIT=101
+DOCKER_EXIT=101

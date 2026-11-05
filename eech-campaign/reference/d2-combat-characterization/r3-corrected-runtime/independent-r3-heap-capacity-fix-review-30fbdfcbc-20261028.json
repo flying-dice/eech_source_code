@@ -1,0 +1,368 @@
+{
+  "reviewed_utc": "2026-10-28T15:36:16.326873+00:00",
+  "reviewer": "one independent Codex delivery reviewer",
+  "scope": "ONLY NEW1d93188..30fbdfcbc runtime-capacity fix, associated sourcechecks/docs and unchanged sixcase02plan. Prior cf90crashes/bridgecompat/e367natural/sourcec398/pub4bca reused, not repeated. No agents/sourceedits/builds/tests/native campaigns.",
+  "base_sha": "1d93188b328309a4a1d06bbc240e81384e83b7bc",
+  "reviewed_sha_before": "30fbdfcbc222daf1d19ec1adcb81ab6613eb848b",
+  "reviewed_sha_after": "30fbdfcbc222daf1d19ec1adcb81ab6613eb848b",
+  "source_status_before": "clean",
+  "source_status_after": "clean",
+  "findings": [
+    {
+      "priority": "P2",
+      "id": "R3-CAPACITY-GUARDS-MUST-PRECEDE-CACHED-RESOLUTION-AND-TYPE-READ",
+      "title": "Validate current heap/map/index before cached IDs, subject dereference and report resolution",
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\mb_hostobj.c",
+      "line": 213,
+      "related_lines": [
+        219,
+        271,
+        275,
+        287,
+        311,
+        326,
+        379,
+        409,
+        411
+      ],
+      "mechanism": "Normal enumeration is now bounded correctly, but campaign_object_host_id reads en->type at213 before any currentcapacity/index check and uses old map_capacity. campaign_object_identify calls it and returns cachedID at275 before heap_capacity/map-consistency check. resolve_report_target calls unchecked get_local_entity_ptr(storedindex) at409 and reads type411 without currentcapacity/map validation. With map37 and identifiedslot36, changing runtimecapacity20 is refused by structures(), but identify(existing36) returns cachedID and report(oldID) attempts index36. A pointer at index==capacity is also type-read before identify287 rejection; currenttest physically allocates11 then declarescapacity10, so it cannot catch the early actualone-past type read.",
+      "bounded_correction": "Centralize actualcapacity/map-consistency and entity-index validation before any targettype/map dereference or cachedreturn, and before report storedindex lookup. Preserve null/unrostered behavior and normal release/reset/lifecycle semantics; do not infer arbitrary live resizing support. Add cached-ID andreport shrink/zeroheap controls and instrumentation/ASan protection for PRE-type access, checking no invalidaccess/hostquery/application before refusal. This is the promised refusal/boundary invariant of the newfix, not a demand to launch native heapresize scenarios.",
+      "evidence_scope": "Concrete source-order deduction; not claimed new30fb native crash. Existing82testonly checks fresh in-range identify under changedsize and an index==logicalcap still physically allocated, so green does not establish these paths."
+    },
+    {
+      "priority": "P3",
+      "id": "R3-CAPACITY-FAILURE-EVIDENCE-WORDING",
+      "title": "Keep fault-location and map-size claims within observed evidence",
+      "file": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\docs\\m5-combat-extraction.md",
+      "line": 709,
+      "related_lines": [
+        712,
+        720
+      ],
+      "mechanism": "New prose says the FIRST read past allocation faulted, while closedcf90 established instruction/symbol/OOBloop, not exact first invalidindex; adjacent mappedmemory could permit earlierinvalidreads. Also2MiB was old ceilingmap TOTAL (524288*4), not2MiBexcess versus125000/135000maps. The redaccessor returns validdummy for forbiddenindices: it counts attemptedforbiddenlookups, it does not perform each actual OOBtype read underASan.",
+      "bounded_correction": "Say an out-of-bounds type read faulted withoutfirst-index claim; call oldmap2MiBtotal/largerthanneeded (or state exactexcess). Preserve rawfailedlogs/acceptedcf90limits and explicitly label oldredas guardedaccess instrumentation, complementing realnativecrashes, not physicalOOBASan reproduction. No native/test rerun needed for prose."
+    }
+  ],
+  "disposition": "NOT closed: stablecapacity enumeration bug repaired in source, but NEWP2 cached/resolution/pre-dereference paths remain unsafe against the declared capacity/refusal contract. P3 evidence wording correction also needed. No corrected Windows/native proof yet.",
+  "verified_changes": {
+    "normal_enumeration": "One productionfile changed: mb_hostobj.c. Enumerates actualnumber_of_entities [0,capacity), allsixkinds and ascendingvalidslotorder retained. Map allocated actualcapacity, resetclearsmap_capacity; no engineheap enlargement/selectors/inputs/numeric/RNG/policy/ABI changes. Allocation size <=524288ints fits32bitsize_t.",
+    "capacity_domain": "heap_capacity rejects<=0 or>MAX; equalMAX currently accepted. Actualengineinitializer asserts num<MAX; helperdoesnotallocate or enlargeheap. Tests exercise capacities8/20/37/64/129 under4096ceiling, zero and logicalindex==cap, not equalceiling actualnative. None of this proves arbitrary same-size heapreplacement or live resizing support without lifecycle reset.",
+    "lifetime": "Registrystrings/recordstorage unchanged from closedborrowedcallbackcontract. P2 concernsvalidationordering/map-incarnation consistency, not a newlyobserved borrowedstring UAF.",
+    "unchanged_fixture": "Preexisting test-only fixture_hosted_entity MAXguard explicitly documentedoutside shippingreportpath; no unrelatedfixturecleanup requested. NoRust/FFIDTOchanged; priorClippy/layout evidence reusable, currentCargoCcompile/syntax/fmt verified."
+  },
+  "test_assessment": {
+    "old_red": "Actualcompile0/run1/Docker1;82checks19behavioralfailures, earlier81redretained. Currentharness links oldf470registry with newactualcapfakeheap and guardedaccessor. Invalidgetptr requests incrementout_of_range_reads andreturndummy; subsequenttype read is inboundsdummy, so no sanitizerfailure counted as semanticred. Real sixnativef470accessviolations remain independentstrongred.",
+    "green": "82/0 with exactcalloc(capacity), lastslotpylon/ordering/repeat/release/reset/capchange/newidentity/zero/logicalcapindex cases. Meaningful detection of original MAXscan; does not cover P2earlycached/report/pre-type accesses.",
+    "mutations": "23compiledruntimecatches, control0 and negativecompile/timeoutsetup separate; failedcontrollergap attempt preserved. Mutantsverifyexistingclauses, not completeness of missingguards.",
+    "real_tree": "Workspace andfixtureCargo actualCARGO/DOCKER0,macroofflink/publicLua included;fmtDOCKER0/syntax22exit0. NoRustchange soClippynotrerun explicitly, not falselynewpass."
+  },
+  "existing_source_check_logs": [
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\object-checks-5.log",
+      "sha256": "19db796e8d39c6f0fdd06ad4709ffffd5da4e6852769346c523019439a4a6871",
+      "markers": [
+        "SANITIZER_PROBE_COMPILE_EXIT=0",
+        "SANITIZER_PROBE_RUN_EXIT=0",
+        "COMPILE_EXIT=0",
+        "81 checks, 0 failures",
+        "RUN_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\object-checks-6-red-pre-capacity-f4700bbab.log",
+      "sha256": "63aba7b1997535e72cbac7dcf038fd4486466af853613541aa02e9bb7774b0cf",
+      "markers": [
+        "COMPILE_EXIT=0",
+        "81 checks, 18 failures",
+        "RUN_EXIT=1",
+        "DOCKER_EXIT=1"
+      ]
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\object-checks-7.log",
+      "sha256": "cc17a492f2da0cc2746d4a38f49e8ccff82c5ab9c4a30b4879b79a79f3c9261a",
+      "markers": [
+        "SANITIZER_PROBE_COMPILE_EXIT=0",
+        "SANITIZER_PROBE_RUN_EXIT=0",
+        "COMPILE_EXIT=0",
+        "82 checks, 0 failures",
+        "RUN_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\object-checks-8-red-pre-capacity-f4700bbab.log",
+      "sha256": "75974dda760b1f6ce8757ccaf7723021a6525654f7596eff7db882f3c6cbf632",
+      "markers": [
+        "COMPILE_EXIT=0",
+        "82 checks, 19 failures",
+        "RUN_EXIT=1",
+        "DOCKER_EXIT=1"
+      ]
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\object-mutation-5-failed-controller-gaps.log",
+      "sha256": "2de7e3e92f9c9aa4a6e370ea212425ddaa125c558d3e21314861d8f322b77c9f",
+      "markers": [
+        "81 checks, 0 failures",
+        "81 checks, 4 failures",
+        "MUTANT identity_ends_with_the_entity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 10 failures",
+        "MUTANT slot_forgets_the_identity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 8 failures",
+        "MUTANT no_duplicate_identity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 9 failures",
+        "MUTANT no_roster_collision: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 3 failures",
+        "MUTANT no_control_characters: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 2 failures",
+        "MUTANT fact_applied_once: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 1 failures",
+        "MUTANT no_repair_by_report: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 2 failures",
+        "MUTANT no_negative_level: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 1 failures",
+        "MUTANT server_only: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 2 failures",
+        "MUTANT zero_level_kills: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 2 failures",
+        "MUTANT destruction_leaves_level: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 1 failures",
+        "MUTANT stale_roster_identity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 14 failures",
+        "MUTANT identity_issued_once: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 1 failures",
+        "MUTANT empty_report: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 5 failures",
+        "MUTANT identity_needs_a_body: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 5 failures",
+        "MUTANT member_cannot_take_a_structure_identity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 2 failures",
+        "MUTANT member_cannot_take_a_member_identity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 1 failures",
+        "MUTANT member_identity_is_utf8: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 3 failures",
+        "MUTANT ever_issued_forgets_ended: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 4 failures",
+        "MUTANT envelope_ignores_structures: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 15 failures",
+        "MUTANT listing_walks_to_the_ceiling: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 17 failures",
+        "MUTANT capacity_is_the_ceiling: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "81 checks, 0 failures",
+        "MUTANT heap_resize_unnoticed: FAILURE class=PASSED compile=0 run=0 (not a catch)",
+        "MUTANT map_forgets_its_capacity_on_reset: FAILURE class=BUILD_FAILURE compile=1 run=- (not a catch)",
+        "SETUP CONTROL cannot_compile: class=BUILD_FAILURE as expected (compile=1 run=-), not a catch",
+        "SETUP CONTROL never_ends: class=TIMEOUT as expected (compile=0 run=124), not a catch",
+        "CAUGHT=22 FAILED=2 SETUP_CONTROLS_AS_EXPECTED=2 SETUP_CONTROLS_WRONG=0 CONTROL_OK=1",
+        "DOCKER_EXIT=1"
+      ]
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\object-mutation-6.log",
+      "sha256": "3f326ba2db94b1670aa95e4108e7de9fb50d348baa8cbcf377dd83dc6d80674d",
+      "markers": [
+        "82 checks, 0 failures",
+        "82 checks, 4 failures",
+        "MUTANT identity_ends_with_the_entity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 10 failures",
+        "MUTANT slot_forgets_the_identity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 8 failures",
+        "MUTANT no_duplicate_identity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 9 failures",
+        "MUTANT no_roster_collision: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 3 failures",
+        "MUTANT no_control_characters: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 2 failures",
+        "MUTANT fact_applied_once: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 1 failures",
+        "MUTANT no_repair_by_report: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 2 failures",
+        "MUTANT no_negative_level: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 1 failures",
+        "MUTANT server_only: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 2 failures",
+        "MUTANT zero_level_kills: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 2 failures",
+        "MUTANT destruction_leaves_level: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 1 failures",
+        "MUTANT stale_roster_identity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 14 failures",
+        "MUTANT identity_issued_once: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 1 failures",
+        "MUTANT empty_report: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 5 failures",
+        "MUTANT identity_needs_a_body: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 5 failures",
+        "MUTANT member_cannot_take_a_structure_identity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 2 failures",
+        "MUTANT member_cannot_take_a_member_identity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 1 failures",
+        "MUTANT member_identity_is_utf8: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 3 failures",
+        "MUTANT ever_issued_forgets_ended: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 4 failures",
+        "MUTANT envelope_ignores_structures: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 15 failures",
+        "MUTANT listing_walks_to_the_ceiling: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 18 failures",
+        "MUTANT capacity_is_the_ceiling: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "82 checks, 1 failures",
+        "MUTANT heap_resize_unnoticed: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1",
+        "SETUP CONTROL cannot_compile: class=BUILD_FAILURE as expected (compile=1 run=-), not a catch",
+        "SETUP CONTROL never_ends: class=TIMEOUT as expected (compile=0 run=124), not a catch",
+        "CAUGHT=23 FAILED=0 SETUP_CONTROLS_AS_EXPECTED=2 SETUP_CONTROLS_WRONG=0 CONTROL_OK=1",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\cargo-test-r3c-1.log",
+      "sha256": "f27206ac440441681c734c740f424a07a87b2da779ff31e04875aba0e6456224",
+      "markers": [
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\cargo-test-r3c-fixture.log",
+      "sha256": "c7fb619a995159fd87ef4836b9afcaa000fe4eafd6804eecb3358a45e2353b2c",
+      "markers": [
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\fmt-r3c-check.log",
+      "sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+      "markers": [
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "path": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\checks\\syntax-r3c.log",
+      "sha256": "509041f0354c7a539ba6cfa213b362b4756e9b165af87d20535468e96d106045",
+      "markers": [
+        "SYNTAX_EXIT=0"
+      ]
+    }
+  ],
+  "probe_plan": {
+    "preparation_sha256": "69d2c66855cc1a42a8e3648c7ebb3494f3d9bc3d843131813cf102096744e988",
+    "six_fresh02_preparation_records_1179_actual0": true,
+    "same_cases_and_args": "Same report/none/damage+raise/destroy+duplicate/ownidentitydestroy+unknown/segmentnone/segmentdestroy at5/100/12/seed1; sourcewitness/driver/inputs/selectors/tolerancesunchanged.01crashes retainfailureidentity and are not rewritten.",
+    "next": "After NEWsourcecorrectionreview and cleanshippingbuild,02sixnativecases with actualcensus/before/after/summary, primaryspecificcontrols, postinput/build. Native0/notdone/pcallcatch alone insufficient.",
+    "compatibility_reuse": "Closedf470natural600/bridgepair retained as unchangedphysicalcomponent compatibility, never relabelled30fb/futurefixedsource. Default does not call structures() but DOES use registryidentify/commoncontext; validstablecapacity yieldssameIDs/logicalregistrationorder while mapallocation/privateguards differ. No unchanged-oldwar reruns required by this review; NEWcorrected fullshipping40/full8/post3 stillmandatory and sixAPIcases indispensable.",
+    "essential_extra": "Focused Cguardcoverage ofcached-ID/report shrink and before-type access (P2), not a campaign/reviewfleet or newhealthybaseline run."
+  },
+  "diffcheck_actual_exit": 0,
+  "changed_file_pins": [
+    {
+      "path": "STATUS.md",
+      "bytes": 65792,
+      "raw_sha256": "e126767487fd799657b0049cb205c252556290f8a0e9831964b54d15857d43a8",
+      "canonical_git_blob": "0656e2a7dd6cb4d081576acbeb5b0e925bda701e"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostobj.c",
+      "bytes": 13711,
+      "raw_sha256": "168a9b4a2c595187f76495650f7f4a4f7dd6f7a0eb9cde5ddf158ee69a2ba55b",
+      "canonical_git_blob": "cdbbc13153d90c1890f6b92671372c0675ba8c6b"
+    },
+    {
+      "path": "eech-campaign/docs/m5-combat-extraction.md",
+      "bytes": 106019,
+      "raw_sha256": "0b2a8d1ad5a897a63c5f7991f4d8a1193b324eca192c2bb907b167ee35ac6d92",
+      "canonical_git_blob": "63e6419c9e63f24759fe35866ddd52c78f8a86dc"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/mutate-object-checks.sh",
+      "bytes": 7043,
+      "raw_sha256": "08771dc3a578faf69c986cc6a34833aeeda9010a4d17fb8cc872c66f4e8e68e3",
+      "canonical_git_blob": "d9b8409b7676b42cce1846a5bcadba4b282c5651"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/object-stub/project.h",
+      "bytes": 2983,
+      "raw_sha256": "90e4fdfea076d9ee6b51411c95cf3db8af45861c76bdf2d66069bf53c93ce317",
+      "canonical_git_blob": "47cd47bd84bd0fdadcbd8d9e4c87014714296206"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/object_checks.c",
+      "bytes": 28012,
+      "raw_sha256": "ee48c878d378b5eaa7f9b9e530d27e2ce2b7f2b160280676c9ea78743f7d800e",
+      "canonical_git_blob": "5ac631623a62d0a8e07e58d9010c72f87b146a6d"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/run-object-checks-pre-capacity.sh",
+      "bytes": 2485,
+      "raw_sha256": "36834552233ab5b80d4bf030b25245bfc90c2f976e59257b0f42ca65d91c73b1",
+      "canonical_git_blob": "af118d13210f5b1dc32162ec4e84635f028604ea"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-r3c-1.log",
+      "bytes": 40486,
+      "raw_sha256": "f27206ac440441681c734c740f424a07a87b2da779ff31e04875aba0e6456224",
+      "canonical_git_blob": "092c160fb552e98f56244d892e9328145698444f"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-r3c-fixture.log",
+      "bytes": 36649,
+      "raw_sha256": "c7fb619a995159fd87ef4836b9afcaa000fe4eafd6804eecb3358a45e2353b2c",
+      "canonical_git_blob": "453ddeff1a799abac6c984650e466d957740c309"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/fmt-r3c-check.log",
+      "bytes": 43,
+      "raw_sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+      "canonical_git_blob": "fb443baa65a38fe198b61549de69630e8a4fb6fb"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/object-checks-5.log",
+      "bytes": 5853,
+      "raw_sha256": "19db796e8d39c6f0fdd06ad4709ffffd5da4e6852769346c523019439a4a6871",
+      "canonical_git_blob": "ad8c182bb0f27a562fd0d6ab456767fa9a55d1af"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/object-checks-6-red-pre-capacity-f4700bbab.log",
+      "bytes": 5763,
+      "raw_sha256": "63aba7b1997535e72cbac7dcf038fd4486466af853613541aa02e9bb7774b0cf",
+      "canonical_git_blob": "70b6ee519ac9ab7740e4ed9a6472296bb145489a"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/object-checks-7.log",
+      "bytes": 5923,
+      "raw_sha256": "cc17a492f2da0cc2746d4a38f49e8ccff82c5ab9c4a30b4879b79a79f3c9261a",
+      "canonical_git_blob": "b1c75e8b9bc97ce6efb1d242e437c7128cd399e7"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/object-checks-8-red-pre-capacity-f4700bbab.log",
+      "bytes": 5833,
+      "raw_sha256": "75974dda760b1f6ce8757ccaf7723021a6525654f7596eff7db882f3c6cbf632",
+      "canonical_git_blob": "7c92bc04f7e6d1ead61e27def8efdda5415b0012"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/object-mutation-5-failed-controller-gaps.log",
+      "bytes": 3939,
+      "raw_sha256": "2de7e3e92f9c9aa4a6e370ea212425ddaa125c558d3e21314861d8f322b77c9f",
+      "canonical_git_blob": "32151ecd5ecc5efb5feb8d61102f060101bf7804"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/object-mutation-6.log",
+      "bytes": 3630,
+      "raw_sha256": "3f326ba2db94b1670aa95e4108e7de9fb50d348baa8cbcf377dd83dc6d80674d",
+      "canonical_git_blob": "845af6e52fb7e77c4785025ab8077541d4357716"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/syntax-r3c.log",
+      "bytes": 1927,
+      "raw_sha256": "509041f0354c7a539ba6cfa213b362b4756e9b165af87d20535468e96d106045",
+      "canonical_git_blob": "366eb35bca39f1502d9cb9e34a8a45ffc6312541"
+    }
+  ],
+  "remaining": [
+    "Fix NEWP2/P3 and request focusednewdelta followup, not unchangedfullreview.",
+    "FreshcorrectedWindows/shippingbuild/new02reportauthority/refusal/compatibilityasneeded; no nativeacceptancefromsourcechecks.",
+    "Finalshipping40/full8/post3/finalcost/currentCI/finalreview/normalmerge46/wholeD2audit; noD3."
+  ]
+}

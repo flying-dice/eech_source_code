@@ -1,0 +1,98 @@
+{
+  "driver_source": "21ba7114339993df5edf190d434f739e12ab2192",
+  "native_source": "c0b6c3386dae772eafcd456bc3620f0299bccb4f",
+  "driver_sha256": "45f3e3ada5eb8ac10e4e1c153f22fa07d63879a87f9d55bb3dbcea29006a2bdb",
+  "all_native_and_C_fixture_inputs_unchanged": true,
+  "changed_paths": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/lua/env-sound-characterization.lua",
+    "eech-campaign/crates/eech-world/tests/env_sound_characterization.rs",
+    "eech-campaign/docs/d3-environment-sound-routine.md"
+  ],
+  "verified_payloads": 50,
+  "build_info_sha256": "bef6347dd4e0d83a5d575eb480a4d921a5c4ba5369c2278dd8b34a0e2d67c25e",
+  "root": "R:\\d3-evidence\\environment-ambient-original-roots-20261031\\georgia",
+  "scenario": "georgia_retail",
+  "controller_pid": 6684,
+  "state": "terminal",
+  "started_utc": "2026-10-31T14:21:34.090770+00:00",
+  "stages": [
+    {
+      "stage": "pre-inputs",
+      "pid": 15256,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-sound-driver-source-21ba71143\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-ambient-original-roots-20261031\\georgia",
+        "--compare",
+        "R:\\d3-evidence\\environment-sound-driver-source-21ba71143\\eech-campaign\\reference\\m4-s3-mutation\\inputs-georgia.json",
+        "--output",
+        "R:\\d3-evidence\\environment-ambient-original-nativec0b-driver21ba-georgia-20261031\\pre-inputs.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T14:21:34.099775+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T14:21:35.526123+00:00"
+    },
+    {
+      "stage": "native",
+      "pid": 22608,
+      "args": [
+        "R:\\d3-evidence\\environment-ambient-original-source-c0b6c3386\\eech-campaign\\target\\env-fixture\\ambient-original-c0b6c3386\\eech-world.exe",
+        "R:\\d3-evidence\\environment-sound-driver-source-21ba71143\\eech-campaign\\crates\\eech-world\\lua\\env-sound-characterization.lua",
+        "root=R:/d3-evidence/environment-ambient-original-roots-20261031/georgia",
+        "scenario=georgia_retail",
+        "out=R:/d3-evidence/environment-ambient-original-nativec0b-driver21ba-georgia-20261031/environment.jsonl"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T14:21:35.539231+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T14:21:40.180124+00:00"
+    },
+    {
+      "stage": "post-inputs",
+      "pid": 25456,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-sound-driver-source-21ba71143\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-ambient-original-roots-20261031\\georgia",
+        "--compare",
+        "R:\\d3-evidence\\environment-sound-driver-source-21ba71143\\eech-campaign\\reference\\m4-s3-mutation\\inputs-georgia.json",
+        "--output",
+        "R:\\d3-evidence\\environment-ambient-original-nativec0b-driver21ba-georgia-20261031\\post-inputs.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T14:21:40.192165+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T14:21:41.311372+00:00"
+    }
+  ],
+  "scope": "Original UNCHANGED ambient amplification routine on hostedfield/sectorbaseline. New corrected Lua driver, unchanged c0b C fixture/native. Not whole-originalDLL, physicalcutover, audible/render/player or shipping acceptance.",
+  "actual_native_exit": 0,
+  "controller_error": null,
+  "pre_input_exit": 0,
+  "post_input_exit": 0,
+  "payloads_unchanged": true,
+  "driver_unchanged": true,
+  "completed_utc": "2026-10-31T14:21:41.360098+00:00",
+  "json_rows": 108,
+  "json_sha256": "06067c5b0a9522c7545f54a01c8cace2926b1e756d50ff855e64577b90062270",
+  "summary": [
+    {
+      "anomalies": 0,
+      "answered": 44,
+      "calls": 47,
+      "cases": 46,
+      "event": "summary",
+      "refused": 2,
+      "refused_reasons": "no_gunship_entity_for_the_cockpit_branch=2"
+    }
+  ],
+  "actual_controller_exit": 0
+}

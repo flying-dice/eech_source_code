@@ -1,0 +1,1 @@
+COMPAT_EMPTY_LUA=Lua 5.1

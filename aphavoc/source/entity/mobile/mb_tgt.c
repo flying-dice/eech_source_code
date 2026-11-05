@@ -84,6 +84,53 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//
+// EEDCS-42: in a host build the physical line-of-sight calculation belongs to the host.  The two public checks stay as the
+// campaign's callers know them (target selection, weapon choice and guide placement call them and act on the boolean), read the
+// entity facts the host needs (a pose, and whether the end is a vehicle whose pose the ray lifts), and ask the host through
+// campaign_los_query.  The solver below, in the #else branch, is the original legacy-game code; it is not compiled into a host build.
+//
+
+#ifdef EECH_CAMPAIGN_HOST_LOS
+
+#include "entity/mobile/mb_hostlos.h"
+
+int check_entity_line_of_sight (entity *source, entity *target, mobile_los_check_criteria criteria)
+{
+	vec3d
+		source_position,
+		target_position;
+
+	int
+		source_eye,
+		target_eye;
+
+	ASSERT (source);
+
+	ASSERT (target);
+
+	get_local_entity_vec3d (source, VEC3D_TYPE_POSITION, &source_position);
+
+	source_eye = (get_local_entity_int_value (source, INT_TYPE_IDENTIFY_VEHICLE) != 0);
+
+	get_local_entity_vec3d (target, VEC3D_TYPE_POSITION, &target_position);
+
+	target_eye = (get_local_entity_int_value (target, INT_TYPE_IDENTIFY_VEHICLE) != 0);
+
+	return campaign_los_query (source, target, &source_position, &target_position, criteria, TRUE, source_eye, target_eye);
+}
+
+int check_position_line_of_sight (entity *source, entity *target, vec3d *source_position, vec3d *target_position, mobile_los_check_criteria criteria)
+{
+	return campaign_los_query (source, target, source_position, target_position, criteria, FALSE, FALSE, FALSE);
+}
+
+#else
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #define LOS_COARSE_CHECK_DISTANCE					200.0f
 
 #define LOS_FINE_CHECK_DISTANCE_SOURCE_END		40.0f
@@ -134,6 +181,39 @@ int check_entity_line_of_sight (entity *source, entity *target, mobile_los_check
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef EECH_LOS_FIXTURE
+
+//
+// TEST-ONLY characterisation recorder (EEDCS-42), compiled only with the `los-fixture` feature and never part of the shipping
+// module. Every line of sight query, whether it arrives as an entity or a position check, passes through the public
+// check_position_line_of_sight, which here only forwards to the unchanged solver below and records the query's inputs and its
+// answer. Recording is observational: it reads the inputs and the result and alters neither.
+//
+
+extern void eech_los_lookup_terrain (int phase, vec3d *point, float elevation);
+
+extern void eech_los_lookup_objects (int phase, vec3d *start, vec3d *end, int hit, vec3d *collision_point);
+
+extern void eech_los_trace_record (entity *source, entity *target, vec3d *source_position, vec3d *target_position, mobile_los_check_criteria criteria, int result);
+
+int eech_los_solver (entity *source, entity *target, vec3d *source_position, vec3d *target_position, mobile_los_check_criteria criteria);
+
+int check_position_line_of_sight (entity *source, entity *target, vec3d *source_position, vec3d *target_position, mobile_los_check_criteria criteria)
+{
+	int
+		result;
+
+	result = eech_los_solver (source, target, source_position, target_position, criteria);
+
+	eech_los_trace_record (source, target, source_position, target_position, criteria, result);
+
+	return result;
+}
+
+#define check_position_line_of_sight eech_los_solver
+
+#endif
 
 int check_position_line_of_sight (entity *source, entity *target, vec3d *source_position, vec3d *target_position, mobile_los_check_criteria criteria)
 {
@@ -209,6 +289,12 @@ int check_position_line_of_sight (entity *source, entity *target, vec3d *source_
 			get_3d_terrain_point_data (check_position.x, check_position.z, &terrain_info);
 	
 			terrain_elevation = get_3d_terrain_point_data_elevation (&terrain_info);
+
+			#ifdef EECH_LOS_FIXTURE
+
+			eech_los_lookup_terrain (1, &check_position, terrain_elevation);
+
+			#endif
 	
 			if (terrain_elevation > check_position.y)
 			{
@@ -265,6 +351,12 @@ int check_position_line_of_sight (entity *source, entity *target, vec3d *source_
 			get_3d_terrain_point_data (check_position.x, check_position.z, &terrain_info);
 	
 			terrain_elevation = get_3d_terrain_point_data_elevation (&terrain_info);
+
+			#ifdef EECH_LOS_FIXTURE
+
+			eech_los_lookup_terrain (2, &check_position, terrain_elevation);
+
+			#endif
 	
 			if (terrain_elevation > check_position.y)
 			{
@@ -321,6 +413,12 @@ int check_position_line_of_sight (entity *source, entity *target, vec3d *source_
 			get_3d_terrain_point_data (check_position.x, check_position.z, &terrain_info);
 	
 			terrain_elevation = get_3d_terrain_point_data_elevation (&terrain_info);
+
+			#ifdef EECH_LOS_FIXTURE
+
+			eech_los_lookup_terrain (3, &check_position, terrain_elevation);
+
+			#endif
 	
 			if (terrain_elevation > check_position.y)
 			{
@@ -363,6 +461,12 @@ int check_position_line_of_sight (entity *source, entity *target, vec3d *source_
 								&collision_point,
 								&normal
 							);
+
+		#ifdef EECH_LOS_FIXTURE
+
+		eech_los_lookup_objects (4, source_position, &check_position, collision_en != NULL, &collision_point);
+
+		#endif
 	
 		if (collision_en)
 		{
@@ -396,6 +500,12 @@ int check_position_line_of_sight (entity *source, entity *target, vec3d *source_
 								&collision_point,
 								&normal
 							);
+
+		#ifdef EECH_LOS_FIXTURE
+
+		eech_los_lookup_objects (5, target_position, &check_position, collision_en != NULL, &collision_point);
+
+		#endif
 	
 		if (collision_en)
 		{
@@ -421,3 +531,12 @@ int check_position_line_of_sight (entity *source, entity *target, vec3d *source_
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef EECH_LOS_FIXTURE
+
+#undef check_position_line_of_sight
+
+#endif
+
+#endif
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

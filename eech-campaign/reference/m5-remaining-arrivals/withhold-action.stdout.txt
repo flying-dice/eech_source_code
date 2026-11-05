@@ -1,0 +1,23 @@
+diag_selected	mode=withhold host=eech-world:2779 task=21474931450 waypoint=21474933431 sub_type=1 query=action mobile=fixed_wing selected_at=363.4 delay=10.0
+diag_calls	total=102 passed=102 after_delay=1 after_delay_passed=1 withheld=101 released_at=373.49999999995 advanced_to=60129636250 advanced_at=380.19999999994 ended_at=380.3
+diag_first	distance=7978.95 radius=0.00 velocity=0.00 landed=false heading=0.0000 heading_criterion=0.0000 heading_source=nil waypoint_heading=0.0000 altitude=0.00 altitude_criterion=0.00 guide_altitude=0.00
+diag_last	distance=5292.45 radius=0.00 velocity=0.00 landed=false heading=0.0000 heading_criterion=0.0000 heading_source=nil waypoint_heading=0.0000 altitude=0.00 altitude_criterion=0.00 guide_altitude=0.00
+diag_seen	waypoint=21474933431 kind=radius_arrival sub_type=1 query=reached first=363.4 last=380.1 calls=168 passed=0
+diag_seen	waypoint=21474933431 kind=radius_arrival sub_type=1 query=action first=363.5 last=373.5 calls=101 passed=101
+diag_seen	waypoint=60129636250 kind=radius_arrival sub_type=27 query=reached first=380.2 last=380.2 calls=1 passed=0
+diag_last_call	at=373.5 reference_gates_passed=true
+select	action
+query	action
+mobile	fixed_wing
+waypoint_sub_type	1
+outcome_after_release	advanced
+task_key_before_after	21474931450	25769899927
+waypoint_key_before_after	21474933431	60129636250
+leader_host_id	eech-world:2779
+withheld_seconds	10.1
+withheld_calls	101
+selected_first_position	133426.172	1611.184	62491.027
+selected_last_position	134812.109	1609.943	64761.340
+selected_displacement	2659.914
+advanced_after_release_seconds	6.7
+result	ok

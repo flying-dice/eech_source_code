@@ -1,0 +1,218 @@
+{
+  "time_utc": "2026-10-28T09:33:09.4354630Z",
+  "bin": "R:/d2-evidence/shipping-source-d2-weapon-a137fc3ec/eech-campaign/target/windows-d2-weapon-final",
+  "manifest_sha256": "5e0fe29daecc6d128911e40f0ef0c17633870726f5d5b36c5e058398981cdc95",
+  "files": [
+    {
+      "file": "eech_dc.dll",
+      "expected_sha256": "758a548f08d8df9fab6413055c9ef534177c190d6b91134de85671a9695c9aef",
+      "actual_sha256": "758a548f08d8df9fab6413055c9ef534177c190d6b91134de85671a9695c9aef",
+      "matches": true
+    },
+    {
+      "file": "eech-world.exe",
+      "expected_sha256": "de89ffd7c01e34ab7499326075aed6a0c524dea5ddc1d34ccdf0c2768be7abb5",
+      "actual_sha256": "de89ffd7c01e34ab7499326075aed6a0c524dea5ddc1d34ccdf0c2768be7abb5",
+      "matches": true
+    },
+    {
+      "file": "lua.dll",
+      "expected_sha256": "fdd3325eab5f5fa1a1542e9ba82809960bda31a323641955348b6c223d803a05",
+      "actual_sha256": "fdd3325eab5f5fa1a1542e9ba82809960bda31a323641955348b6c223d803a05",
+      "matches": true
+    },
+    {
+      "file": "lua/aim-characterization.lua",
+      "expected_sha256": "262b525ebac326071ad00833a2d7f69f20735637aba458f1fa3f30e2710a8200",
+      "actual_sha256": "262b525ebac326071ad00833a2d7f69f20735637aba458f1fa3f30e2710a8200",
+      "matches": true
+    },
+    {
+      "file": "lua/aim-lead-probe.lua",
+      "expected_sha256": "0ff667e8db8dbf0132ff472fdc50d0f4b7eec6d0899eca86ad02e8404a6dc68c",
+      "actual_sha256": "0ff667e8db8dbf0132ff472fdc50d0f4b7eec6d0899eca86ad02e8404a6dc68c",
+      "matches": true
+    },
+    {
+      "file": "lua/aim-malformed.lua",
+      "expected_sha256": "52384379400e077480bd195513131f3e6fe7a85e47846b6c37d12c6c6d6b4903",
+      "actual_sha256": "52384379400e077480bd195513131f3e6fe7a85e47846b6c37d12c6c6d6b4903",
+      "matches": true
+    },
+    {
+      "file": "lua/aim-person-case.lua",
+      "expected_sha256": "60c46bb5a0056e31c03e31805fbca3cd9cd68efbecfaada71d5416b970caf3e8",
+      "actual_sha256": "60c46bb5a0056e31c03e31805fbca3cd9cd68efbecfaada71d5416b970caf3e8",
+      "matches": true
+    },
+    {
+      "file": "lua/aim-provider.lua",
+      "expected_sha256": "d9ea1d1a87a02015d95338cf47218e85a0088607ce2560ae3bdc6e8d7f703ae4",
+      "actual_sha256": "d9ea1d1a87a02015d95338cf47218e85a0088607ce2560ae3bdc6e8d7f703ae4",
+      "matches": true
+    },
+    {
+      "file": "lua/aircraft-arrivals.lua",
+      "expected_sha256": "a98055c3b50f966a5ec9409914ed6ff42b54425b70fc18324c24e82f1bb6e2cd",
+      "actual_sha256": "a98055c3b50f966a5ec9409914ed6ff42b54425b70fc18324c24e82f1bb6e2cd",
+      "matches": true
+    },
+    {
+      "file": "lua/campaign.lua",
+      "expected_sha256": "a50bf7952f2379f06cab8b18ed060fab20568e2768f405118c0b802b85069fcb",
+      "actual_sha256": "a50bf7952f2379f06cab8b18ed060fab20568e2768f405118c0b802b85069fcb",
+      "matches": true
+    },
+    {
+      "file": "lua/convoy-movement.lua",
+      "expected_sha256": "d9e9bb643815fe64468f3a0c22d00f37b9e430179db95fd67272a576b5e5aca9",
+      "actual_sha256": "d9e9bb643815fe64468f3a0c22d00f37b9e430179db95fd67272a576b5e5aca9",
+      "matches": true
+    },
+    {
+      "file": "lua/dependent-carry.lua",
+      "expected_sha256": "801c423a0e6f84202b3ff448f2cccd61c98a144175be4c3f46bad2f471e64a23",
+      "actual_sha256": "801c423a0e6f84202b3ff448f2cccd61c98a144175be4c3f46bad2f471e64a23",
+      "matches": true
+    },
+    {
+      "file": "lua/dependent-fixture.lua",
+      "expected_sha256": "ae7abd20d3479d2f0e27f8881ec0c1e53fab2408475821b57fcff16d5ef23549",
+      "actual_sha256": "ae7abd20d3479d2f0e27f8881ec0c1e53fab2408475821b57fcff16d5ef23549",
+      "matches": true
+    },
+    {
+      "file": "lua/fixed-wing-movement.lua",
+      "expected_sha256": "4cdc6953ab2caed4cf75809420e967898087fcd717fc18a2e54f8cd2f75ff44c",
+      "actual_sha256": "4cdc6953ab2caed4cf75809420e967898087fcd717fc18a2e54f8cd2f75ff44c",
+      "matches": true
+    },
+    {
+      "file": "lua/helicopter-lifecycle.lua",
+      "expected_sha256": "660784ba1fc82348b84b1168f6ee1fcdec29943fe7ab3d206662d2f8e7d4a7b2",
+      "actual_sha256": "660784ba1fc82348b84b1168f6ee1fcdec29943fe7ab3d206662d2f8e7d4a7b2",
+      "matches": true
+    },
+    {
+      "file": "lua/helicopter-movement.lua",
+      "expected_sha256": "b2c6b9d0bfe6086918d3a479361b050e90a0f9560d1ca20bdaafeccf20b5c458",
+      "actual_sha256": "b2c6b9d0bfe6086918d3a479361b050e90a0f9560d1ca20bdaafeccf20b5c458",
+      "matches": true
+    },
+    {
+      "file": "lua/host-identities-lifecycle.lua",
+      "expected_sha256": "cedf6e8822d27b1339e7619d10001ae7ad8b5998781b1296e323219196a1341c",
+      "actual_sha256": "cedf6e8822d27b1339e7619d10001ae7ad8b5998781b1296e323219196a1341c",
+      "matches": true
+    },
+    {
+      "file": "lua/host-identities.lua",
+      "expected_sha256": "e651a6b6af64eb807320f878116ee43c7cff8b82e4ede7ab10d0bbe8ca2de55a",
+      "actual_sha256": "e651a6b6af64eb807320f878116ee43c7cff8b82e4ede7ab10d0bbe8ca2de55a",
+      "matches": true
+    },
+    {
+      "file": "lua/lifecycle.lua",
+      "expected_sha256": "9f2fe751146e7a2beb7b0b26e758c9db47c0a5c1e82cd82612ac8d03430bbb79",
+      "actual_sha256": "9f2fe751146e7a2beb7b0b26e758c9db47c0a5c1e82cd82612ac8d03430bbb79",
+      "matches": true
+    },
+    {
+      "file": "lua/los-characterization.lua",
+      "expected_sha256": "979b875cd6691214574155de2d61dcd52921eb4bef5f8a7e33d8d8d72b03333c",
+      "actual_sha256": "979b875cd6691214574155de2d61dcd52921eb4bef5f8a7e33d8d8d72b03333c",
+      "matches": true
+    },
+    {
+      "file": "lua/los-controls.lua",
+      "expected_sha256": "e0bda6eccf19d40270b21a7f82e9fe9239a563932f86036e73c9019e0d4a528f",
+      "actual_sha256": "e0bda6eccf19d40270b21a7f82e9fe9239a563932f86036e73c9019e0d4a528f",
+      "matches": true
+    },
+    {
+      "file": "lua/los-provider.lua",
+      "expected_sha256": "7b7442eb54e1a93770909210336453991d851c16ba68584b64894241d5d43d71",
+      "actual_sha256": "7b7442eb54e1a93770909210336453991d851c16ba68584b64894241d5d43d71",
+      "matches": true
+    },
+    {
+      "file": "lua/loss-all-family.lua",
+      "expected_sha256": "a4e0da2b9ff2ed202875a32555e6d032351ee1ab8a39f2f2a8cae56b65af30de",
+      "actual_sha256": "a4e0da2b9ff2ed202875a32555e6d032351ee1ab8a39f2f2a8cae56b65af30de",
+      "matches": true
+    },
+    {
+      "file": "lua/metrics.lua",
+      "expected_sha256": "dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053",
+      "actual_sha256": "dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053",
+      "matches": true
+    },
+    {
+      "file": "lua/observations.lua",
+      "expected_sha256": "68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701",
+      "actual_sha256": "68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701",
+      "matches": true
+    },
+    {
+      "file": "lua/own-model.lua",
+      "expected_sha256": "1bfc0c23f29cd08fd899c098ad4e7c1c0be03722c69f743ecb5bfad5fca2d603",
+      "actual_sha256": "1bfc0c23f29cd08fd899c098ad4e7c1c0be03722c69f743ecb5bfad5fca2d603",
+      "matches": true
+    },
+    {
+      "file": "lua/own-weapon.lua",
+      "expected_sha256": "4a1b8283dc7580483dec0160f1d023ad34b32c72fb5207ccc49ffaa97bef0ff4",
+      "actual_sha256": "4a1b8283dc7580483dec0160f1d023ad34b32c72fb5207ccc49ffaa97bef0ff4",
+      "matches": true
+    },
+    {
+      "file": "lua/remaining-arrivals.lua",
+      "expected_sha256": "eb5ee7f4ff8e331b66d47b9f49d9d048fc279e4c9a8e4f7e7260c8a9b800f920",
+      "actual_sha256": "eb5ee7f4ff8e331b66d47b9f49d9d048fc279e4c9a8e4f7e7260c8a9b800f920",
+      "matches": true
+    },
+    {
+      "file": "lua/sense-provider.lua",
+      "expected_sha256": "ed69830bc2aa8cdeef48b8bf94378404124596bf9c1d72d9ff69b4738776dfd5",
+      "actual_sha256": "ed69830bc2aa8cdeef48b8bf94378404124596bf9c1d72d9ff69b4738776dfd5",
+      "matches": true
+    },
+    {
+      "file": "lua/sensor-characterization.lua",
+      "expected_sha256": "d663631053cc7ba34156eac7a52bea4911c225c7089263b6bbaed887e25e3ffa",
+      "actual_sha256": "d663631053cc7ba34156eac7a52bea4911c225c7089263b6bbaed887e25e3ffa",
+      "matches": true
+    },
+    {
+      "file": "lua/supply-arrivals-lifecycle.lua",
+      "expected_sha256": "0b4d04a2f14a31e119128510f7df84736dc55e67030d58a325ca040d313aa584",
+      "actual_sha256": "0b4d04a2f14a31e119128510f7df84736dc55e67030d58a325ca040d313aa584",
+      "matches": true
+    },
+    {
+      "file": "lua/supply-arrivals.lua",
+      "expected_sha256": "c62f951c2c0fe8da457b2f2e983012f0d7978a0f5d84f183d66c3b0203b23ccf",
+      "actual_sha256": "c62f951c2c0fe8da457b2f2e983012f0d7978a0f5d84f183d66c3b0203b23ccf",
+      "matches": true
+    },
+    {
+      "file": "lua/surface-movement.lua",
+      "expected_sha256": "3277d3bafecdbe7ba5784097180a39f81643cc5c857ac4766522af072245351d",
+      "actual_sha256": "3277d3bafecdbe7ba5784097180a39f81643cc5c857ac4766522af072245351d",
+      "matches": true
+    },
+    {
+      "file": "lua/weapon-case.lua",
+      "expected_sha256": "df5b29996ce319eefa81935199e5aab7cd368553c129a5963db46674d5bc3074",
+      "actual_sha256": "df5b29996ce319eefa81935199e5aab7cd368553c129a5963db46674d5bc3074",
+      "matches": true
+    },
+    {
+      "file": "lua/weapon-characterization.lua",
+      "expected_sha256": "b9b04c789020296f642ab9aa5c0979b0f126fbdc220daf3ea75ee3a2b2310f81",
+      "actual_sha256": "b9b04c789020296f642ab9aa5c0979b0f126fbdc220daf3ea75ee3a2b2310f81",
+      "matches": true
+    }
+  ],
+  "passed": true
+}

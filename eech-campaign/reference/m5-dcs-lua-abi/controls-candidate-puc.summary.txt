@@ -1,0 +1,14 @@
+
+control     pass exits                            last
+-------     ---- -----                            ----
+empty       3/3  0x00000000,0x00000000,0x00000000 COMPAT_EMPTY_LUA=Lua 5.1
+first-error 3/3  0x00000000,0x00000000,0x00000000 AFTER_GC
+host-log    3/3  0x00000000,0x00000000,0x00000000 AFTER_GC
+load-only   3/3  0x00000000,0x00000000,0x00000000 AFTER_GC
+lua-compat  3/3  0x00000000,0x00000000,0x00000000 COMPAT_100_ERROR_CALLBACKS=PASS
+plain-error 3/3  0x00000000,0x00000000,0x00000000 PLAIN_100_ERRORS=PASS
+
+
+host 02c524cd28915742b2adbb22ec8a5df47b0961eb247a01dfdf43960adf6331e5
+module c9d6a5d67eda9892e19e03ff2deb4edc56f365c9ab262796fe96c79ca187aa51
+lua d0c799fe4e1e615d335d18504d28a7b0d7c78d7f97d1754bb885b1097ac60350

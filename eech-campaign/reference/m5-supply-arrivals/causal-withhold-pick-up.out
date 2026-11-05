@@ -1,0 +1,11 @@
+task_key	8590027091
+waypoint_key	42949769156
+leader_host_id	eech-world:3082
+withheld_seconds	12.2
+withheld_calls	101
+waypoint_before_after	pick_up	prepare_for_drop_off
+completed_before_after	0	0
+cargo_before_after	0	1
+supplier_before_after	98.400	96.800	98.400	86.800
+receiver_before_after	100.000	60.000	100.000	60.000
+result	ok

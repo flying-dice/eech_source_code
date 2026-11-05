@@ -1,0 +1,18 @@
+{
+  "source": "6711d5f11804537255d08e5c355f329796cca657",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-sector-host-6711d5f11-linux-20261031.sh"
+  ],
+  "pid": 3820,
+  "controller_pid": 25424,
+  "state": "terminal",
+  "started_utc": "2026-10-31T12:59:54.639548+00:00",
+  "scope": "New host-sector linux affected builds/checks only; actual retail/authority/fullshipping acceptance separate",
+  "actual_exit": 101,
+  "completed_utc": "2026-10-31T13:03:46.399688+00:00"
+}

@@ -1,0 +1,199 @@
+{
+  "schema": "independent-correction-review/v1",
+  "reviewed_utc": "2026-10-30T03:42:21.078894+00:00",
+  "reviewed_head": "ea1953b6cf8218020e05eda3d2ae498d976a09bf",
+  "base": "de2c5b3c1942e77502a2eb056d0e1b39de230a07",
+  "frozen_path": "R:\\d3-evidence\\model-handoff-source-ea1953b6c",
+  "tracked_clean_before_and_after": true,
+  "prior_report_sha256": "ba492e1d89ec07a86477ee3f9c5df54a5b35aef3ee74f029c1542b2c06e6c393",
+  "scope": "Only new corrections/test/witness/schema/docs delta; closed f9 store/kernel/828geometry and old309 originaldriver reused, not reviewed again.",
+  "verdict": "CHANGES_REQUIRED",
+  "new_native_public_handoff_execution": "HOLD_UNTIL_RESIDUAL_BATCH_VALIDATED",
+  "native_safety_assessment": "No new C/Rust memory/lifetime/FFI blocker found in the substantive six correction groups. The HOLD is for remaining witness/readiness/check gates; this is not an allegation that controlled model accessor execution is newly unsafe. Any future bounded diagnostic must retain exact source/build identity and cannot be promoted to acceptance.",
+  "prior_findings": [
+    {
+      "id": "MODEL-PUBLIC-IDENTITY",
+      "disposition": "SOURCE_CLOSED",
+      "basis": "Public ModelScene now uses compiled scene name + loaded/collider booleans, with bounded128-byte C name buffer and matching RustreprC. Acceptance compares only compiled public name; private main/collision numbers are optional reference diagnostics, never required/rejected by core. Independent host may use its own storage."
+    },
+    {
+      "id": "MODEL-NUMBER-FIDELITY",
+      "disposition": "SOURCE_CLOSED_WITH_ACTUAL_UNIT_LIMITS",
+      "basis": "MODEL_BRIDGE reads raw Lua field once, checks exact type and passes17digit text or exacthex to bounded Rust slots. Physical values no longer traverse LuaValue integer coercion. Tests cover tiny/subnormal/-zero, nonfinite/hex, exact whole counts and stateful getter counts under RZ. Outer public-entry full-state evidence remains mandatory, distinct from unchanged kernel controls."
+    },
+    {
+      "id": "MODEL-FOUND-PRESENCE",
+      "disposition": "SOURCE_CLOSED_NATIVE_CONTROL_PENDING",
+      "basis": "C now rejects any answer for unloaded scene, FOUND/END without collider and ABSENT with collider before writes. Presence is host-declared semantic data; native contradiction modes prepared, not yet run."
+    },
+    {
+      "id": "MODEL-EXACT-BOUNDED-LIST",
+      "disposition": "SOURCE_CLOSED",
+      "basis": "Exact text length checked inLua before tokens; Rust fixed arrays consume exactlyN then reject extra token, no unboundedVec. Numeric tables read1..N plusN+1 once and bound raw-key traversal; extra after-hole/outside/non-numeric keys rejected. Supported stateful virtual getters intentionally allowed and tested; list contract now explicitly numeric-table or exact bit-pattern text, not mixed pattern elements."
+    },
+    {
+      "id": "MODEL-WITNESS-PREFLIGHT",
+      "disposition": "ORIGINAL_GAPS_SOURCE_CLOSED_RESIDUAL_STAGE_FINDING",
+      "basis": "Pre-output finite decimal/integral/list/frames/probe counts checked, frame progress required, healthy requested probe/LOS failures make nonzero exit. Residual expected-negative stage classification above remains."
+    },
+    {
+      "id": "MODEL-WITNESS-JSON-IO",
+      "disposition": "SOURCE_CLOSED_DECODER_TEST_GATE_OPEN",
+      "basis": "New shared JSON encoder handles controlbytes/quote/backslash/UTF8 and finite flat values, checks write/flush/close. Real-script tests cover byte roundtrip and failure callbacks; independent actual writer diagnostic confirms tiny serialization. Strict Rust consumer test must be corrected without relaxing checks."
+    },
+    {
+      "id": "MODEL-INSTALL-WORDING",
+      "disposition": "SOURCE_CLOSED",
+      "basis": "C stores only callback function and NULL user, not per-entry HostContext pointer. Header accurately describes refreshed callback vs process-owned Rust provider; Rust closure ownership/BOOTED/reentry discipline unchanged."
+    },
+    {
+      "id": "MODEL-COUNTER-WORDING",
+      "disposition": "SOURCE_CLOSED",
+      "basis": "reference_* and replied_* separated; native accepted counters explicitly distinguished. No counter alone claimed authority."
+    }
+  ],
+  "findings": [
+    {
+      "id": "MODEL-WITNESS-REFUSAL-STAGE",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/lua/model-authority.lua",
+      "line": 380,
+      "related": [
+        "eech-campaign/crates/eech-world/lua/model-authority.lua:294",
+        "eech-campaign/crates/eech-world/lua/model-authority.lua:427"
+      ],
+      "title": "Recognize expected primary refusal at its actual call stage",
+      "reason": "Only frame errors populate failure. A requested probe may be the first call to trigger a malformed provider: tripped becomes true and the genuine primary guard is retained in probe.report, but the negative verdict asserts failure and rejects it as if the bad answer had been accepted. A triangle guard raised during boot is likewise absent from the boot expected-marker table. Thus valid expected-refusal controls depend incorrectly on whether the first query happened in a frame, boot or explicit probe.",
+      "correction": "Record/classify genuine primary model errors at boot/frame/probe stages and require the expected mode was actually tripped, exact marker and correct stage/termination. Preserve healthy requested-probe failure propagation and unreached classification. Add real-script boot/probe-stage negative controls; no physical oracle change or repeated fleet required."
+    },
+    {
+      "id": "MODEL-FP-PROOF-SCOPE",
+      "priority": "P3",
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "line": 2289,
+      "related": [
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_fpu_test.c:67",
+        "eech-campaign/crates/eech-engine/src/lib.rs:985"
+      ],
+      "title": "Qualify the new FPU test claim and retain the outer-entry gate",
+      "reason": "MODEL_BRIDGE prose says caller floating-point state is not touched. The new helper observes only fegetround, then itself restores saved x87+MXCSR; this neither measures provider status/mask preservation nor proves production ENTER/LEAVE caller restoration. Numeric formatting/narrowing can affect status flags. No new actual public-entry full-state witness has run. This does not establish a newly broken unchanged engine entry or invalidate closed model_step state controls.",
+      "correction": "Describe exact current evidence (round-toward-zero retained; helper restores its own saved environment). Before handoff acceptance, verify complete caller x87 control/status and MXCSR before/after real successful and provider-refused public entries, with nonzero status and differing caller RC. Do not weaken that outer caller invariant to match current helper."
+    },
+    {
+      "id": "MODEL-JSON-TEST-DECODER",
+      "priority": "P3",
+      "path": "eech-campaign/crates/eech-world/tests/model_store.rs",
+      "line": 2421,
+      "title": "Use a precise test decoder without changing correct emitted values",
+      "reason": "Actual Linux suite exits101 on tiny f64 assertion: serde_json default decoder is one ULP off. Root actual shipped writer emits9.9999999999999995e-21; retained host-only diagnostic and independent Python parse round-trip exactly to literal1e-20. This is a failing consumer/test gate, not demonstrated writer corruption.",
+      "correction": "Inspect/configure a precise test-only JSON decoder and retain exact expected-value checks. Preserve red log and emitted bytes; do not add tolerance, normalize raw output or change physical values. Rerun affected test and reach strict Clippy."
+    },
+    {
+      "id": "MODEL-FPU-EXTERN-DOC-LINT",
+      "priority": "P3",
+      "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "line": 1445,
+      "title": "Fix the newly reported extern-block documentation warning",
+      "reason": "Actual Linux build reports unused_doc_comment for test-support extern block. Current run stopped earlier at model_store failure, so all-target -Dwarnings Clippy was not reached and is not green.",
+      "correction": "Use an ordinary block comment or documentation on an item Rustdoc consumes; no suppression. Complete affected strict Clippy after decoder/stage fixes."
+    }
+  ],
+  "counts": {
+    "P2": 1,
+    "P3": 3
+  },
+  "source_sha256": {
+    "STATUS.md": "50f1a6643e4f2a5aa71ae2554e264ad8b843cb89ce21300394ae5bb44e2fc583",
+    "aphavoc/source/entity/mobile/mb_hostmodel.c": "a1a6f382ca90dc4fc095efbc40b997510303c98cc75725e97dcd20a02448e36a",
+    "aphavoc/source/entity/mobile/mb_hostmodel.h": "afbd3c080574fbf67875e4ffaa3934b0c64a7f23ae8c60272b453695c4e50bd3",
+    "eech-campaign/crates/eech-dc/Cargo.toml": "065270d5264de68d95f5264f38f822c190d16c02b1b67c355c36cd5bf9786056",
+    "eech-campaign/crates/eech-dc/src/module.rs": "cc35ffeec5b09d9eac377b1d8a354929586c57b733a4f78e90dfb7d83afcc8ff",
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml": "0a5021e6f435bd5cc3ed07c3c850fc4c01a716b21050819c7ba84889e8b4c93a",
+    "eech-campaign/crates/eech-engine-sys/build/main.rs": "350f74f1d49b8627cda03b659b4f6e62a3c809676f675313f8e32bbdc6c28d21",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c": "576c25d95eea8982a0b8a6d75b82d1316683f27dd630e374c2e2d16cc8c21a4f",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h": "f28e180958f340edf073e5df902a7780c8caf940ed00b71c59af64246d8f944f",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_fpu_test.c": "997442e0a7d3c657f96454e0d4d3e8b5baee2c0c9e56628455ab9ab8759b5a2e",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_model_host_fixture.c": "cc4364d870d359caad5d8e170e2cf19db134556b71f2a2d0b4c8106b3681e0bb",
+    "eech-campaign/crates/eech-engine-sys/src/lib.rs": "266c82937689b72a7a62646e4f7e81bd78986c6a754e5f5135c9bb241ef693e7",
+    "eech-campaign/crates/eech-engine/Cargo.toml": "d5e22837c67c1864b44c6e458f8a81a4a90287d229c8ce404d6f0067603481f5",
+    "eech-campaign/crates/eech-engine/src/lib.rs": "1bfb75d01d802e32eaf819c765bd0cd3ece87e9332a2402544a4efde08ee63fe",
+    "eech-campaign/crates/eech-world/lua/json-lines-check.lua": "794e70767895bb7f3e2fd10b485c16afa43adca8ba0baa8cc4c162e646cf6adf",
+    "eech-campaign/crates/eech-world/lua/json-lines.lua": "8b8b367ae1026548f39bf4561aa57604044ca5c128e4a9c10ece29fcd9f7fb99",
+    "eech-campaign/crates/eech-world/lua/model-authority.lua": "76ca47ec3226c67de525ee89bd2f4a426227d7a5be9f6fd99bd543c9007cb865",
+    "eech-campaign/crates/eech-world/lua/model-provider-check.lua": "b8fa9e26e07074a4ed70680c78125f57789a26d58f7d3ebc2813ae86d10019af",
+    "eech-campaign/crates/eech-world/src/model_host.rs": "34079f8726f97c128155c065dea03db8133dee6ce2bc68ff04f0fe579edf828e",
+    "eech-campaign/crates/eech-world/tests/model_store.rs": "a4bc0ff949be9db6090c43b19f6d8ec67351d1d7623d79054a125be58f140a0d",
+    "eech-campaign/docs/m5-model-host-authority.md": "4a931c4a9c409f5ae9a15d537cba337c287e2cf2dcf1f4c85eeee68b26254b4d",
+    "eech-campaign/reference/d3-model-characterization/independent-model-public-handoff-review-de2c5b3c1-20261030.json": "ba492e1d89ec07a86477ee3f9c5df54a5b35aef3ee74f029c1542b2c06e6c393",
+    "eech-campaign/reference/d3-model-characterization/ledger-model-handoff-initial-review-v74-20261030.json": "db20fd70e9e66e99d5337ddfcccaca981e48b1eb9ff6d220d316923ed987590c",
+    "eech-campaign/reference/d3-model-characterization/model-handoff-1812cc70b-format-20261030.json": "9d3f7b1d12dafa77d017a0e13416a4a833113ed4055de36c7e11d836fd11f6c9",
+    "eech-campaign/reference/d3-model-characterization/model-handoff-correction-author-complete-20261030.json": "a7b9c9f2ceee841dd0486ee4b84d912ad2ac104bdb8ecc1d579879403502536a",
+    "eech-campaign/reference/d3-model-characterization/model-handoff-de2c5b3c1-BUILD-INFO.txt": "95971dcfcbbbb5e0a6b75d6bda158473c876a6656c59ed9a2f190f9f77a3350e",
+    "eech-campaign/reference/d3-model-characterization/model-handoff-de2c5b3c1-initial-validation-20261030.json": "92df6469e4825fedbcef74faf6836a04e130833c063d066abc8c32e9ab1918e1",
+    "eech-campaign/reference/d3-model-characterization/model-handoff-in-progress-checkpoint-20261030.json": "5e763ef69b274f974ae02bd5c9984bce319f7e39bb23850c5d70cf8acac19c02",
+    "eech-campaign/reference/d3-model-characterization/model-handoff-initial-tracker-checkpoint-20261030.json": "3691060eaa10289fbd27663402121885848f962037ccf3f7e18b12d264d5140b"
+  },
+  "checks": {
+    "linux": {
+      "completion": "R:\\d3-evidence\\model-handoff-ea1953b6c-linux-20261030-completion.json",
+      "completion_sha256": "659882b1b493628c419df1ce6c6b203d3f6c154707f7f1dcba3a78322987c0b3",
+      "log_sha256": "f8edb5e13d90bdbaf38745736c6f0e52c0ac633e1bbcb345f79b72f057933a9b",
+      "actual_exit": 101,
+      "test_summaries": [
+        "test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 73 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+        "test result: ok. 235 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+        "test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s",
+        "test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s",
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s",
+        "test result: FAILED. 41 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.93s"
+      ]
+    },
+    "windows": {
+      "completion": "R:\\d3-evidence\\model-handoff-ea1953b6c-windows-20261030-completion.json",
+      "completion_sha256": "6c6776602de1d672e67d7fc70dc98d378e7bf7fde9044cf9387e317d1af8f697",
+      "log_sha256": "fc77dbb9fdf7d092fc90688b8476f529125d071bd845f90ce8efeadca276c8bd",
+      "actual_exit": 0,
+      "test_summaries": []
+    },
+    "hostfixture": {
+      "completion": "R:\\d3-evidence\\model-handoff-ea1953b6c-hostfixture-20261030-completion.json",
+      "completion_sha256": "620b615b884c5259db6d6327555c3d9af3f166f236d336b80a19f61fe43f3655",
+      "log_sha256": "f1f3907865b1d723c664fe6985b80f3e6d4455b74c162315551111c0d0fc3274",
+      "actual_exit": 0,
+      "test_summaries": []
+    }
+  },
+  "verified_build_manifests": [
+    {
+      "path": "R:\\d3-evidence\\model-handoff-source-ea1953b6c\\eech-campaign\\target\\windows-model-handoff-ea1953b6c\\BUILD-INFO.txt",
+      "sha256": "5828b28ad84eb3a14cd4b408b2272f797d4071e9232497f91ce514b0e9232b72",
+      "verified_file_manifest_entries": 48
+    }
+  ],
+  "writer_diagnostic": {
+    "path": "R:\\d3-evidence\\model-json-writer-tiny-diagnostic-ea1953b6c-20261030\\diagnostic.json",
+    "sha256": "26d27df5eda03853b1a72d4648675fbe00d8ffbd57ace6a63def2964e69a51c5",
+    "raw_rows_sha256": "5eaa766083f811dc564607396d958f9a393928dbf7394a3e8a409f7707bb69be",
+    "actual_native_exit": 0,
+    "rows": 7,
+    "tiny_exact_hex": "0x1.79ca10c924223p-67",
+    "no_DLL_campaign_boot": true
+  },
+  "boundary_assessment": [
+    "C/Rust new reply fields match by source: loaded/collider int, radius and two6float arrays,128byte name, result and9points;12byte request/232byte reply/4byte alignment by declaration. Actual compiled inner-offset probe is not provided and no32bit runtime claimed.",
+    "Names are bounded/NUL-checked in Rust and C before strcmp; compiled null-name maps to empty string for scene0. Public identity/presence no longer requires private loader arrays. New raw-index diagnostic stays feature-only.",
+    "No saved Rust-context UAF path established: provider owns Lua bridge closure process-lifetime; model callback ignores Cuser; C now explicitly retains NULLuser; BOOTED prevents secondboot and operation guard prevents reentry before callback replacement. Panics/refusals return toC before fatal longjmp.",
+    "Kernel arithmetic/RNG/call order remain unchanged. Static host-authored scalar tables stay stable, live triangle writes occur only after all new presence/finite checks; END/ABSENT leave buffer untouched.",
+    "New dev FPU-support feature compiles test helper only; helper is not a production FP guard and its TLS save slot is a bounded single-level test utility, not a nested/unwind-safe general scope.",
+    "Both Windows shipping and diagnostic fixture compilation actual0, exact file hashes verified. Linux fmt and earlier suites passed, model_store41/42 then actual101; Clippy not reached. Compilerwarning and tinydecoder failure are retained and not relabelled passed.",
+    "Actual Core-generated synthetic campaign bootstrap remains untested. model_store standard fixture and stand-in witness flows do not establish shipping prepare_installation-root compatibility; actual execution is required, noNOTRUN/pass substitution.",
+    "No new retail authority/influence/poison/refusal/publicFP entry measured; all828 model conformance supports unchanged physical hostdata only. Remaining D3 physical scans/transforms/solvers/loaders/hierarchy/device/targetpoint/route networks remain required withinD3."
+  ],
+  "limits": [
+    "No reviewer edits/builds/tests/native/campaign/process/cache/auth/Git mutations, external writes or nested agents; only read-only inspection and this one report.",
+    "No formal GitHub approval, Task50delivery, production/Tacview/fullshipping or wholeD3 acceptance. Task47 shipping untouched."
+  ]
+}

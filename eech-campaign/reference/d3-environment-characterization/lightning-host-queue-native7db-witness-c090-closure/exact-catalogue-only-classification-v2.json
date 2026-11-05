@@ -1,0 +1,87 @@
+{
+  "when_utc": "2026-10-31T19:12:24.469820+00:00",
+  "scope": "STRICT whole raw equality remains FALSE. Explicit intentional test-only catalogue change4\u21925 for new forked-age case; every other row/ending must still be exact. No normalization, ignored numeric fields, baseline/tolerance update or shipping acceptance.",
+  "all_five_original_physical_and_other_raw_rows_exact": true,
+  "rows": [
+    {
+      "case": "natural",
+      "whole_raw_equal": false,
+      "exact_catalogue_change": [
+        {
+          "row_index": 17221,
+          "event": "env-lightning-plan",
+          "before_cases": 4,
+          "after_cases": 5,
+          "scope": "new forked-age case; original four controls unchanged; absence refusal only if model data unavailable"
+        }
+      ],
+      "all_other_raw_rows_and_endings_equal": true,
+      "other_raw_rows": 17256,
+      "other_raw_sha256": "554452d5a0629d47e825b2d09c4f1bd9572eee0eb81435d8f3e6027087e57f64"
+    },
+    {
+      "case": "primitive-1",
+      "whole_raw_equal": false,
+      "exact_catalogue_change": [
+        {
+          "row_index": 1,
+          "event": "env-lightning-plan",
+          "before_cases": 4,
+          "after_cases": 5,
+          "scope": "new forked-age case; original four controls unchanged; absence refusal only if model data unavailable"
+        }
+      ],
+      "all_other_raw_rows_and_endings_equal": true,
+      "other_raw_rows": 7,
+      "other_raw_sha256": "54c57c583c55c61ab8e69f8b23444464af34d7bfb954fb96ea8bf9df690c8b4c"
+    },
+    {
+      "case": "primitive-2",
+      "whole_raw_equal": false,
+      "exact_catalogue_change": [
+        {
+          "row_index": 1,
+          "event": "env-lightning-plan",
+          "before_cases": 4,
+          "after_cases": 5,
+          "scope": "new forked-age case; original four controls unchanged; absence refusal only if model data unavailable"
+        }
+      ],
+      "all_other_raw_rows_and_endings_equal": true,
+      "other_raw_rows": 9,
+      "other_raw_sha256": "a7c46a79439dcaee7479fc1cc7c4321480fb0e0df350a16e564b8d4b8076a6a2"
+    },
+    {
+      "case": "primitive-3",
+      "whole_raw_equal": false,
+      "exact_catalogue_change": [
+        {
+          "row_index": 1,
+          "event": "env-lightning-plan",
+          "before_cases": 4,
+          "after_cases": 5,
+          "scope": "new forked-age case; original four controls unchanged; absence refusal only if model data unavailable"
+        }
+      ],
+      "all_other_raw_rows_and_endings_equal": true,
+      "other_raw_rows": 41,
+      "other_raw_sha256": "741f40a58d97dd0f8fb781a7ca437d74ddec8617589e88b6f59209c4d4c8ce6a"
+    },
+    {
+      "case": "primitive-4",
+      "whole_raw_equal": false,
+      "exact_catalogue_change": [
+        {
+          "row_index": 1,
+          "event": "env-lightning-plan",
+          "before_cases": 4,
+          "after_cases": 5,
+          "scope": "new forked-age case; original four controls unchanged; absence refusal only if model data unavailable"
+        }
+      ],
+      "all_other_raw_rows_and_endings_equal": true,
+      "other_raw_rows": 11,
+      "other_raw_sha256": "5c9247965b4f531141f9cdd0d80f37773c4f4ce7fd3fe8731449d01e7d9a2ee1"
+    }
+  ]
+}

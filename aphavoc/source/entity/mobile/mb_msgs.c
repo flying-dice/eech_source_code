@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_cmbfx.h"
+
 #include "ai/taskgen/taskgen.h"
 #include "ai/ai_misc/ai_route.h"
 #include "ai/faction/faction.h"
@@ -1462,6 +1464,8 @@ static int response_to_waypoint_landed_reached (entity_messages message, entity 
 	// repair
 	//
 	/////////////////////////////////////////////////////////////////
+
+	CMB_FX_REPAIR (receiver, get_local_entity_int_value (receiver, INT_TYPE_DAMAGE_LEVEL), get_local_entity_int_value (receiver, INT_TYPE_INITIAL_DAMAGE_LEVEL), EECH_CMB_REPAIR_RESUPPLY)
 
 	set_client_server_entity_int_value (receiver, INT_TYPE_DAMAGE_LEVEL, get_local_entity_int_value (receiver, INT_TYPE_INITIAL_DAMAGE_LEVEL));
 

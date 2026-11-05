@@ -1,0 +1,84 @@
+=== mb_hostaim: /target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/f6fc6cb7fd4fea60-mb_hostaim.o
+--- undefined math and solver symbols referenced by mb_hostaim.o
+
+=== weapon: /target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/5cb301d82f74365a-weapon.o
+--- undefined math and solver symbols referenced by weapon.o
+atan2 get_3d_transformation_matrix multiply_transpose_matrix3x3_vec3d sqrtf 
+=== wn_move: /target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/5cb301d82f74365a-wn_move.o
+--- undefined math and solver symbols referenced by wn_move.o
+acos asin atan2 floorf get_3d_transformation_matrix get_3d_transformation_matrix_from_face_normal_and_heading normalise_3d_vector normalise_3d_vector_given_magnitude sin sincos sqrt sqrtf 
+=== en_anim: /target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/8aea941875758247-en_anim.o
+--- undefined math and solver symbols referenced by en_anim.o
+get_keyframed_animation_state set_entity_keyframe_value_animating_forwards set_entity_keyframe_value_animating_reverse 
+=== ac_anim: /target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/7b3f35cf6fde921c-ac_anim.o
+--- undefined math and solver symbols referenced by ac_anim.o
+get_keyframed_animation_state update_entity_reversable_keyframed_value 
+=== vh_anim: /target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/ba61bc8479461a04-vh_anim.o
+--- undefined math and solver symbols referenced by vh_anim.o
+update_entity_reversable_keyframed_value 
+=== ps_anim: /target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/f40726945ef23119-ps_anim.o
+--- undefined math and solver symbols referenced by ps_anim.o
+get_keyframed_animation_state 
+=== rv_hostmv: /target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/17b7ab18e93a6a78-rv_hostmv.o
+--- undefined math and solver symbols referenced by rv_hostmv.o
+
+=== eech_dc.dll: the aiming kernel and the fixture are not in the shipping module (kernel symbols are in eech-world.exe)
+eech_aim_ready_update: dll=0 exe=1
+eech_aim_ready_command: dll=0 exe=1
+eech_aim_required: dll=0 exe=1
+eech_aim_step: dll=0 exe=1
+eech_aim_ballistic: dll=0 exe=1
+eech_aim_lead: dll=0 exe=1
+eech_aim_vectors: dll=0 exe=1
+eech_aim_intercept: dll=0 exe=1
+eech_aim_person_face: dll=0 exe=1
+eech_aim_trace: dll=0 exe=0
+eech_aim_replay_echo: dll=0 exe=0
+ballistic_pitch_deflection: dll=0 exe=1
+get_intercept_point: dll=1 exe=0
+=== eech_dc.dll symbols named campaign_aim
+p .pdata$campaign_aim_ask
+p .pdata$campaign_aim_available
+p .pdata$campaign_aim_identify
+p .pdata$campaign_aim_set_host
+p .pdata$campaign_aim_supply_table
+t .text$campaign_aim_ask
+t .text$campaign_aim_available
+t .text$campaign_aim_identify
+t .text$campaign_aim_set_host
+t .text$campaign_aim_supply_table
+r .xdata$campaign_aim_ask
+r .xdata$campaign_aim_available
+r .xdata$campaign_aim_identify
+r .xdata$campaign_aim_set_host
+r .xdata$campaign_aim_supply_table
+T campaign_aim_ask
+T campaign_aim_available
+T campaign_aim_identify
+T campaign_aim_set_host
+T campaign_aim_supply_table
+=== eech_dc.dll: the original solvers by name (get_ballistic_pitch_deflection stays as the thin campaign-side call)
+p .pdata$get_ballistic_pitch_deflection
+p .pdata$get_lead_and_ballistic_intercept_point_and_angle_of_projection
+p .pdata$get_target_intercept_point
+p .pdata$open_entity_weapon_system_ready
+p .pdata$update_aircraft_weapon_system_ready
+p .pdata$update_entity_weapon_systems
+t .text$get_ballistic_pitch_deflection
+t .text$get_lead_and_ballistic_intercept_point_and_angle_of_projection
+t .text$get_target_intercept_point
+t .text$open_entity_weapon_system_ready
+t .text$update_aircraft_weapon_system_ready
+t .text$update_entity_weapon_systems
+r .xdata$get_ballistic_pitch_deflection
+r .xdata$get_lead_and_ballistic_intercept_point_and_angle_of_projection
+r .xdata$get_target_intercept_point
+r .xdata$open_entity_weapon_system_ready
+r .xdata$update_aircraft_weapon_system_ready
+r .xdata$update_entity_weapon_systems
+T get_ballistic_pitch_deflection
+T get_lead_and_ballistic_intercept_point_and_angle_of_projection
+T get_target_intercept_point
+T open_entity_weapon_system_ready
+T update_aircraft_weapon_system_ready
+T update_entity_weapon_systems

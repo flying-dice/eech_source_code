@@ -1,0 +1,52 @@
+{
+  "run": "20261020-233835-load",
+  "stage": "load",
+  "started": "2026-10-20T23:38:35.3277582+01:00",
+  "inputs": {
+    "candidate_eech_dc": {
+      "path": "E:\\eech_source_code\\.claude\\worktrees\\agent-a9904988ee5ea2a0f\\eech-campaign\\target\\pr59-candidate\\eech_dc.dll",
+      "sha256": "a99d7a1118008f73a995fd7e4701a04bddb5fa51d1bf3b5a487297d78c383f41"
+    },
+    "probe": {
+      "sha256": "7e6993558e7bb86f218de5fbd4ffd8005f2675bb6ba5bb8169347c3e34be31c2"
+    },
+    "hook": {
+      "sha256": "14cdf01e93a982ddf814ffe15fed261f2821685e20db89a8ef18801709f63763"
+    },
+    "template": {
+      "path": "D:\\Program Files\\Eagle Dynamics\\DCS World OpenBeta\\CoreMods\\WWII Units\\FW-190D-9\\Missions\\fw190.miz",
+      "sha256": "346cb7f75dad00439e0f98b7274f9e98ba9abb9f8c9803d78478da4d405445ba"
+    },
+    "mission": {
+      "path": "E:\\eech-runs\\dcs-probe\\missions\\probe-load.miz",
+      "sha256": "9f736912a3543e0d6ec037ecb404d4e99361a884b93dc3688fb82e81488b2730"
+    },
+    "dcs_exe": {
+      "path": "D:\\Program Files\\Eagle Dynamics\\DCS World OpenBeta\\bin-mt\\DCS.exe",
+      "sha256": "6bb5832c909592ffe3c3881c4b9bbe5a50a108061469d555bd62d50d56791c41"
+    },
+    "dcs_lua": {
+      "sha256": "8a228b5437520bc8dda3e77aac7bb7f81c10d23f0747adbcbafe95647533b755"
+    },
+    "mission_scripting": {
+      "sha256": "f212df7f2bc6799c2d04b766ef702088c4779661fee164f76f0426efa6d80f6d"
+    },
+    "autoupdate_version": "2.9.29.27468"
+  },
+  "command": "Start-Process \"D:\\Program Files\\Eagle Dynamics\\DCS World OpenBeta\\bin-mt\\DCS.exe\" -ArgumentList -w DCS.M5Probe --no-launcher -WindowStyle Hidden -PassThru",
+  "pid": 42940,
+  "elapsed_seconds": 120.6,
+  "verdict": "timeout",
+  "stopped_pids": [
+    42940
+  ],
+  "outputs": [
+    {
+      "sha256": "e9a3b2c1424bc74824b305897686978492fd3ef7e622f1e4c29004d4e98d0090",
+      "bytes": 2034,
+      "name": "dcs.log"
+    }
+  ],
+  "default_profile_log_unchanged": true,
+  "finished": "2026-10-20T23:40:39.7053709+01:00"
+}

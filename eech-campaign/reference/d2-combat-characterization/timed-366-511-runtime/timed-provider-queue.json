@@ -1,0 +1,62 @@
+{
+  "status": "failed",
+  "updated_utc": "2026-10-28T09:20:18.5009954Z",
+  "completed": [
+    {
+      "mode": "reference",
+      "prelaunch_input_actual_exit": 0,
+      "actual_driver_native_exit": 0,
+      "name": "timed-provider-reference-01"
+    },
+    {
+      "mode": "timed_never",
+      "prelaunch_input_actual_exit": 0,
+      "actual_driver_native_exit": 0,
+      "name": "timed-provider-never-01"
+    },
+    {
+      "mode": "timed_fast",
+      "prelaunch_input_actual_exit": 0,
+      "actual_driver_native_exit": 0,
+      "name": "timed-provider-fast-01"
+    },
+    {
+      "mode": "critical_late",
+      "prelaunch_input_actual_exit": 0,
+      "actual_driver_native_exit": 0,
+      "name": "timed-provider-late-01"
+    },
+    {
+      "mode": "timed_generic",
+      "prelaunch_input_actual_exit": 0,
+      "actual_driver_native_exit": 0,
+      "name": "timed-provider-generic-01"
+    },
+    {
+      "mode": "bad_health_class",
+      "prelaunch_input_actual_exit": 0,
+      "actual_driver_native_exit": 0,
+      "name": "timed-provider-bad-class-01"
+    },
+    {
+      "mode": "bad_health_missing",
+      "prelaunch_input_actual_exit": 0,
+      "actual_driver_native_exit": 0,
+      "name": "timed-provider-bad-missing-01"
+    },
+    {
+      "mode": "bad_health_classify_draw",
+      "prelaunch_input_actual_exit": 0,
+      "actual_driver_native_exit": 0,
+      "name": "timed-provider-bad-classify-draw-01"
+    },
+    {
+      "mode": "bad_health_second_draw",
+      "prelaunch_input_actual_exit": 0,
+      "actual_driver_native_exit": 1,
+      "name": "timed-provider-bad-second-draw-01"
+    }
+  ],
+  "actual_exit": 1,
+  "remaining_not_started": true
+}

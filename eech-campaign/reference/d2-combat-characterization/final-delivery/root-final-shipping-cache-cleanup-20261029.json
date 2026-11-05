@@ -1,0 +1,20 @@
+{
+  "when_utc": "2026-10-29T00:01:58.8011196Z",
+  "volume": "eech-win-target-d2-combat-reports-guarded-shipping-64cf0f1c5-20261028",
+  "pre_inspect": {
+    "CreatedAt": "2026-10-28T16:02:28Z",
+    "Driver": "local",
+    "Labels": null,
+    "Mountpoint": "/var/lib/docker/volumes/eech-win-target-d2-combat-reports-guarded-shipping-64cf0f1c5-20261028/_data",
+    "Name": "eech-win-target-d2-combat-reports-guarded-shipping-64cf0f1c5-20261028",
+    "Options": null,
+    "Scope": "local"
+  },
+  "all_container_references": [],
+  "exported_shipping_manifest": "root-final-fullpack-64cf-post-build.json",
+  "verified_exported_files": 42,
+  "removed": "eech-win-target-d2-combat-reports-guarded-shipping-64cf0f1c5-20261028",
+  "post_volume_absent": true,
+  "global_prune": false,
+  "sources_binaries_roots_recordings_preserved": true
+}

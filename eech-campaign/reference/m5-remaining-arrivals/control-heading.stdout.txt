@@ -1,0 +1,10 @@
+diag_selected	mode=control host=eech-world:2997 task=73014541127 waypoint=42949765773 sub_type=27 query=reached mobile=helicopter selected_at=272.0 delay=10.0
+diag_calls	total=887 passed=237 after_delay=786 after_delay_passed=136 withheld=0 released_at=271.99999999998 advanced_to=60129638633 advanced_at=360.79999999995 ended_at=3600.0
+diag_first	distance=18.86 radius=20.00 velocity=0.00 landed=false heading=1.8945 heading_criterion=0.0873 heading_source=target waypoint_heading=0.0000 altitude=0.00 altitude_criterion=0.00 guide_altitude=0.00
+diag_last	distance=0.14 radius=20.00 velocity=0.00 landed=false heading=0.0000 heading_criterion=0.0000 heading_source=nil waypoint_heading=0.0000 altitude=609.65 altitude_criterion=2.00 guide_altitude=611.11
+diag_seen	waypoint=42949765773 kind=radius_arrival sub_type=27 query=reached first=272.1 last=360.6 calls=886 passed=236
+diag_seen	waypoint=60129638633 kind=radius_arrival sub_type=27 query=reached first=360.8 last=371.4 calls=107 passed=35
+diag_loss	at=371.4 event=credit host=eech-world:2997 member=2997 group=678
+diag_loss	at=371.4 event=physical host=eech-world:2997 member=2997 group=678
+diag_last_call	at=360.6 reference_gates_passed=false
+result	control

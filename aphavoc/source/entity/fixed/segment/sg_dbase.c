@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_hostaim.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -773,6 +775,12 @@ void deinitialise_segment_database()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//
+// The shape of a segment from the state of its neighbours (EEDCS-46, R5).  WHICH variant (normal, destroyed, predecessor destroyed, successor destroyed, both) is the HOST's physical decision (mb_hostaim.h
+// BRIDGE, SHAPE): the campaign sends the segment's own alive flag and whether each neighbour exists and is alive, as they are at this moment.  WHAT each variant looks like for a segment type is the
+// segment database above (asset data, the campaign's).  Both callers use it: the bridge's collision response (br_msgs.c) and the unpacking of a saved world (sg_pack.c).
+//
+
 object_3d_index_numbers get_bridge_segment_damaged_object (entity *en, entity *pred, entity *succ)
 {
 
@@ -783,41 +791,45 @@ object_3d_index_numbers get_bridge_segment_damaged_object (entity *en, entity *p
 		damaged_object;
 
 	int
-		alive,
-		pred_alive,
-		succ_alive;
+		variant;
 
 	bridge_segment_type = (bridge_segment_types) get_local_entity_int_value (en, INT_TYPE_BRIDGE_SEGMENT_TYPE);
 
-	alive = get_local_entity_int_value (en, INT_TYPE_ALIVE);
+	variant = campaign_aim_bridge_shape (get_local_entity_int_value (en, INT_TYPE_ALIVE), pred != NULL, (pred != NULL) && get_local_entity_int_value (pred, INT_TYPE_ALIVE), succ != NULL,
+		(succ != NULL) && get_local_entity_int_value (succ, INT_TYPE_ALIVE));
 
-	pred_alive = ((pred == NULL) || (get_local_entity_int_value (pred, INT_TYPE_ALIVE)));
+	switch (variant)
+	{
+		case CAMPAIGN_BRIDGE_VARIANT_DESTROYED:
+		{
+			damaged_object = segment_database[ bridge_segment_type ].destroyed_object;
 
-	succ_alive = ((succ == NULL) || (get_local_entity_int_value (succ, INT_TYPE_ALIVE)));
+			break;
+		}
+		case CAMPAIGN_BRIDGE_VARIANT_PRED_DESTROYED:
+		{
+			damaged_object = segment_database[ bridge_segment_type ].pred_destroyed_object;
 
-	//
-	// select correct object shape dependant on the state of it's neighbours
-	//
+			break;
+		}
+		case CAMPAIGN_BRIDGE_VARIANT_SUCC_DESTROYED:
+		{
+			damaged_object = segment_database[ bridge_segment_type ].succ_destroyed_object;
 
-	if (!alive)
-	{
-		damaged_object = segment_database[ bridge_segment_type ].destroyed_object;
-	}
-	else if ((!pred_alive) && (succ_alive))
-	{
-		damaged_object = segment_database[ bridge_segment_type ].pred_destroyed_object;
-	}
-	else if ((pred_alive) && (!succ_alive))
-	{
-		damaged_object = segment_database[ bridge_segment_type ].succ_destroyed_object;
-	}
-	else if ((!pred_alive) && (!succ_alive))
-	{
-		damaged_object = segment_database[ bridge_segment_type ].both_destroyed_object;
-	}
-	else
-	{
-		damaged_object = segment_database[ bridge_segment_type ].normal_object;
+			break;
+		}
+		case CAMPAIGN_BRIDGE_VARIANT_BOTH_DESTROYED:
+		{
+			damaged_object = segment_database[ bridge_segment_type ].both_destroyed_object;
+
+			break;
+		}
+		default:
+		{
+			damaged_object = segment_database[ bridge_segment_type ].normal_object;
+
+			break;
+		}
 	}
 
 	return damaged_object;
@@ -826,3 +838,27 @@ object_3d_index_numbers get_bridge_segment_damaged_object (entity *en, entity *p
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//
+// The terrain under a segment, for the host that asks for it (EEDCS-46, R5): the height of the ground at the segment's x and z and whether it is water.  Terrain is a data service of the campaign until D3;
+// what the HOST does with it (the floor a segment falls to, the metre a water floor is lower, where a collapsed segment rests) is its own physical decision.  `context` is the segment's position.
+//
+
+void campaign_segment_terrain (void *context, float *height, int *water)
+{
+	vec3d
+		*pos;
+
+	terrain_3d_point_data
+		terrain_info;
+
+	pos = (vec3d *) context;
+
+	memset (&terrain_info, 0, sizeof (terrain_3d_point_data));
+
+	ASSERT(point_inside_map_area(pos));
+
+	*height = get_3d_terrain_point_data (pos->x, pos->z, &terrain_info);
+
+	*water = (get_terrain_type_class (terrain_info.terrain_type) == TERRAIN_CLASS_WATER);
+}

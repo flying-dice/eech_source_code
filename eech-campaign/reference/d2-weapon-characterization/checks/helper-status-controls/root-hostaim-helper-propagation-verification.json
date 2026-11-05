@@ -1,0 +1,36 @@
+{
+  "when_utc": "2026-10-28T01:39:49.018373+00:00",
+  "scope": "Evidence-wrapper exit propagation only; NOT campaign/native physics failures or new physics acceptance",
+  "production_code": "e6c13864b2cba4f26d7747415fdfcf2e49f82164; production mb_hostaim.c gitdiff0",
+  "helper_path": "R:\\eech_source_code\\eech-campaign\\reference\\d2-weapon-characterization\\c-checks\\run-hostaim-validation.sh",
+  "helper_sha256": "848e887b0b5f7b236e4733ec8d22013e4c08b624c8e4996f3d196a1f5e274775",
+  "sh_n_actual_exit": 0,
+  "positive": {
+    "outer_actual_exit": 0,
+    "compile_actual_exit": 0,
+    "run_actual_exit": 0,
+    "docker_actual_exit": 0,
+    "actual_C_guard_assertions": 66
+  },
+  "intentional_compile_failure": {
+    "override": "EECH_HOSTAIM_VALIDATION_CC=false",
+    "outer_actual_exit": 1,
+    "compile_actual_exit": 1,
+    "run_attempted": false,
+    "docker_actual_exit": 1
+  },
+  "intentional_run_failure": {
+    "override": "EECH_HOSTAIM_VALIDATION_CC=/src/eech-campaign/target/hostaim-helper-probes-20261028/run7-cc.sh",
+    "outer_actual_exit": 7,
+    "compile_actual_exit": 0,
+    "run_actual_exit": 7,
+    "docker_actual_exit": 7,
+    "probe_source": "#!/bin/sh\n# Intentional helper-status probe, not a compiler or campaign test.\noutput=\nwhile [ \"$#\" -gt 0 ]; do\n    if [ \"$1\" = \"-o\" ]; then\n        shift\n        output=${1:-}\n        break\n    fi\n    shift\ndone\nif [ \"$output\" != /tmp/hostaim_validation ]; then\n    echo \"unexpected probe output path\" >&2\n    exit 29\nfi\nprintf '%s\\n' '#!/bin/sh' 'echo INTENTIONAL_HELPER_RUN_FAILURE >&2' 'exit 7' > \"$output\" || exit 30\nchmod +x \"$output\" || exit 31\necho INTENTIONAL_PROBE_COMPILER_SUCCEEDED\nexit 0\n"
+  },
+  "logs": {
+    "root-hostaim-helper-positive-20261028.log": "61a6916be64750dddbf8b321621361b2a87ec31d3cf8b464e2498d9f16f59e18",
+    "root-hostaim-helper-compile-negative-20261028.log": "fef90a5d97c64dd302d837533785fcf8a267250cfa49626305b3724e16180ee1",
+    "root-hostaim-helper-run-negative-20261028.log": "a82bbd23cb7069076f502023f71992b87821cfd290ee80466339f3cb61a245c8"
+  },
+  "passed": true
+}

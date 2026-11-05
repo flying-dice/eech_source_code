@@ -1,0 +1,13 @@
+{
+  "status": "completed",
+  "when_utc": "2026-10-28T07:09:21.0066586Z",
+  "binary": "R:\\d2-evidence\\combat-real-source-225ff4abd\\eech-campaign\\target\\weapon-fixture\\combat-real-225ff4abd\\eech-world.exe",
+  "arguments": "R:/d2-evidence/combat-real-source-225ff4abd/eech-campaign/target/weapon-fixture/combat-real-225ff4abd/lua/combat-characterization.lua root=R:/d2-evidence/combat-characterization-20261028/roots/real-damage-natural-01 scenario=lebanon_retail seconds=600 frame_ms=100 checkpoint_every=60 out=R:/d2-evidence/combat-characterization-20261028/out/real-damage-natural-01/trace.jsonl",
+  "root": "R:/d2-evidence/combat-characterization-20261028/roots/real-damage-natural-01",
+  "out": "R:/d2-evidence/combat-characterization-20261028/out/real-damage-natural-01",
+  "kind": "Real-damage candidate combat witness; comparison with retained original required, not fullpack acceptance",
+  "actual_native_exit": 0,
+  "native_pid": 9716,
+  "created_utc": "2026-10-28T07:09:21.0207834Z",
+  "completed_utc": "2026-10-28T07:29:53.5288073Z"
+}

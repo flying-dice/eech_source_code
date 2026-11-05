@@ -1,0 +1,63 @@
+{
+  "run": "20261020-235038-load",
+  "stage": "load",
+  "started": "2026-10-20T23:50:38.5992120+01:00",
+  "inputs": {
+    "candidate_eech_dc": {
+      "sha256": "a99d7a1118008f73a995fd7e4701a04bddb5fa51d1bf3b5a487297d78c383f41",
+      "path": "E:\\eech_source_code\\.claude\\worktrees\\agent-a9904988ee5ea2a0f\\eech-campaign\\target\\pr59-candidate\\eech_dc.dll"
+    },
+    "probe": {
+      "sha256": "7e6993558e7bb86f218de5fbd4ffd8005f2675bb6ba5bb8169347c3e34be31c2"
+    },
+    "hook": {
+      "sha256": "14cdf01e93a982ddf814ffe15fed261f2821685e20db89a8ef18801709f63763"
+    },
+    "template": {
+      "sha256": "346cb7f75dad00439e0f98b7274f9e98ba9abb9f8c9803d78478da4d405445ba",
+      "path": "D:\\Program Files\\Eagle Dynamics\\DCS World OpenBeta\\CoreMods\\WWII Units\\FW-190D-9\\Missions\\fw190.miz"
+    },
+    "mission": {
+      "sha256": "ef1c87fdf47b02f3621ef8dc70ed6b125633b1aa4b4d657147eb9b9c5dfcc553",
+      "path": "E:\\eech-runs\\dcs-probe\\missions\\probe-load.miz"
+    },
+    "dcs_exe": {
+      "sha256": "6bb5832c909592ffe3c3881c4b9bbe5a50a108061469d555bd62d50d56791c41",
+      "path": "D:\\Program Files\\Eagle Dynamics\\DCS World OpenBeta\\bin-mt\\DCS.exe"
+    },
+    "dcs_lua": {
+      "sha256": "8a228b5437520bc8dda3e77aac7bb7f81c10d23f0747adbcbafe95647533b755"
+    },
+    "mission_scripting": {
+      "sha256": "f212df7f2bc6799c2d04b766ef702088c4779661fee164f76f0426efa6d80f6d"
+    },
+    "autoupdate_version": "2.9.29.27468"
+  },
+  "cancel_login": true,
+  "command": "Start-Process \"D:\\Program Files\\Eagle Dynamics\\DCS World OpenBeta\\bin-mt\\DCS.exe\" -ArgumentList -w DCS.M5Probe --no-launcher -WindowStyle Hidden -PassThru",
+  "pid": 808,
+  "elapsed_seconds": 301.5,
+  "verdict": "timeout",
+  "dialogs": [
+    {
+      "text": "DCS Login | Username | Password | Save password | Cancel | Log In | Auto login | [Cancel clicked]",
+      "seconds": 10.0
+    },
+    {
+      "text": "Authorization cancelled | OK | Cancel",
+      "seconds": 14.0
+    }
+  ],
+  "stopped_pids": [
+    808
+  ],
+  "outputs": [
+    {
+      "sha256": "a6425a19cacdcb819197baf48135d769f2fffbd819db79a1641c463d79059b40",
+      "name": "dcs.log",
+      "bytes": 17725
+    }
+  ],
+  "default_profile_log_unchanged": true,
+  "finished": "2026-10-20T23:55:44.4306863+01:00"
+}

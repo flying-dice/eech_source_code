@@ -1,0 +1,123 @@
+{
+  "review_utc": "2026-10-28T08:35:53.516581+00:00",
+  "reviewer": "single independent Codex /root/d2_los_review",
+  "scope": "NEW corrected controlled native evidence only; no source re-review, edits, builds, tests or native launches.",
+  "disposition": "No findings; corrected controlled native GREEN closes the fixture-scope regression within existing controlled coverage limits.",
+  "source_sha": "511156c1c9a0cffa37f4364646cb7d9a1d222a3e",
+  "frozen_source_clean": true,
+  "actual_original_controller35484_exit": 0,
+  "actual_native_exit": 0,
+  "native_pid": 24476,
+  "run_record": {
+    "status": "completed",
+    "when_utc": "2026-10-28T08:29:39.7986492Z",
+    "binary": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\eech-world.exe",
+    "arguments": "R:/d2-evidence/combat-timed-scope-source-511156c1c/eech-campaign/target/weapon-fixture/combat-timed-scope-511156c1c/lua/combat-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/timed-controlled-02 out=R:/d2-evidence/combat-characterization-20261028/out/timed-controlled-02/trace.jsonl warmup=60 frame_ms=100 timed_seconds=20",
+    "root": "R:/d2-evidence/combat-characterization-20261028/roots/timed-controlled-02",
+    "out": "R:/d2-evidence/combat-characterization-20261028/out/timed-controlled-02",
+    "kind": "Timed/critical candidate controlled combat witness; precondition done is not physical-path coverage; not extraction/fullpack acceptance",
+    "actual_native_exit": 0,
+    "native_pid": 24476,
+    "created_utc": "2026-10-28T08:29:39.9158646Z",
+    "completed_utc": "2026-10-28T08:32:32.5934964Z"
+  },
+  "baseline_source": "35c3d677758d7c0e7b664267c25508220412e4a5",
+  "full_raw_comparison": {
+    "bytes": 403523,
+    "sha256": "61c252a9e9d34be4e26ccac79d86e97c0dae1912dd205331733724d2ef135b4a",
+    "independently_equal_complete_original35_bytes": true,
+    "all_four_scenario_Lua_files_equal_original35": true
+  },
+  "measured": {
+    "cases": 39,
+    "done_preconditions": 10,
+    "valid_refused": 29,
+    "all_cases_ok": true,
+    "trusted_groups": 79,
+    "events_contiguous": 74,
+    "person_case": {
+      "ammo_after": -1,
+      "ammo_before": -1,
+      "done": true,
+      "event": "case",
+      "name": "timed_health_PERSON_declared_unreachable",
+      "ok": true,
+      "refused": false,
+      "text": "cmb-case-health kind=PERSON ordinal=0 live=138 found=1 eligible=0 reason=person_never_critical_in_source predicate=0 initial=3 before=3 set=-1 "
+    },
+    "aa20": {
+      "attempts": 138489,
+      "draws": 201,
+      "event": "timed_activity",
+      "fatal": 0,
+      "fired": true,
+      "hits": 41,
+      "ordinal": 0,
+      "path": "anti_aircraft_fire",
+      "rolled": true
+    },
+    "aa20_all_six_kind_deltas": {
+      "1": {
+        "attempts": 34974,
+        "draws": 0,
+        "hits": 0,
+        "fatal": 0
+      },
+      "2": {
+        "attempts": 18291,
+        "draws": 0,
+        "hits": 0,
+        "fatal": 0
+      },
+      "3": {
+        "attempts": 28140,
+        "draws": 0,
+        "hits": 0,
+        "fatal": 0
+      },
+      "4": {
+        "attempts": 138489,
+        "draws": 201,
+        "hits": 41,
+        "fatal": 0
+      },
+      "5": {
+        "attempts": 91254,
+        "draws": 0,
+        "hits": 0,
+        "fatal": 0
+      },
+      "6": {
+        "attempts": 7236,
+        "draws": 0,
+        "hits": 0,
+        "fatal": 0
+      }
+    }
+  },
+  "counter_correction": "201 is the eligible AA draw count, not all-world AA attempts. Raw before414089/after552578 gives138489 attempts. The initially wrong derived assertion is expressly retained/disclosed; no raw/product checker/baseline/tolerance changed.",
+  "preservation": {
+    "post_inputs_independently_rehashed": 1179,
+    "input_bytes": 102239559,
+    "all40_exports_independently_rehashed_equal_initial_post": true,
+    "BUILD_INFO_sha256": "0e02acdda5cf7b6c1db53a90541b2bd56df92700d6fb3abb5cf60693794a19ea",
+    "BUILD_INFO_dirty_files": 0,
+    "post_input_actual_exit": 0,
+    "post_build_actual_exit": 0,
+    "failed01_raw_rehashed_unchanged": true,
+    "failed01_actual_native_and_controller_exit": 1
+  },
+  "source_equivalence": {
+    "all_four_tree_ids_independently_verified": true,
+    "proof_sha256": "b1ccf857c26b27bcbf684fd19eecb802050d3cc1cec412298641b16a4c3fbff9",
+    "limit": "Source-level unaffected-path basis only; no object identity and no relabelling366 natural600/control900 as511."
+  },
+  "proof_sha256": "0b3aee4bd901118940eb16a4f2623a9faa9d6d915b0bf8255544b4634ce6d6e8",
+  "limits": [
+    "39valid cases with10done/29refused do not prove39 physical paths, all13health kinds or positive blast coverage.",
+    "PERSON default predicate remainsfalse and makes no health change; AA20 has201draws/41hits/0fatal. No native fatalAA timedfire or selfhit proof.",
+    "This controlled gate is distinct from positive host-model authority/refusal cohort, default600/900 and full40/all8/post3/wholeD2 acceptance.",
+    "Actual root controller/build process statuses are retained process observations, not inferred from equal raw files."
+  ],
+  "build_process_records": "Root reports prebuild33871actual0 before fixture81781actual0/dirty0; reviewer independently verifies resulting frozen source, BUILD-INFO and40outputs without replay."
+}

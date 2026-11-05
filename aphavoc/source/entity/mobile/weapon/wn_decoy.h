@@ -64,17 +64,9 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extern float get_decoy_timer_start_value (weapon_decoy_types type);
-
-extern float get_decoy_timer_restart_value (weapon_decoy_types type);
-
-extern int get_weapon_locked_onto_decoy (weapon_decoy_types type, entity *sender);
+extern float get_decoy_difficulty_coefficient (entity *sender);
 
 extern void update_decoy (entity *en);
-
-extern void get_smoke_grenade_distract_position (entity *weapon, entity *grenade, vec3d *distract_position);
-
-extern void get_jammer_distract_position (entity *weapon, vec3d *target_position);
 
 extern entity_sub_types get_decoy_type_for_weapon (entity *en);
 

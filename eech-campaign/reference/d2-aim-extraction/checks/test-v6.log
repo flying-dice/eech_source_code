@@ -1,0 +1,28 @@
+error: test failed, to rerun pass `-p eech-world --test host_callbacks`
+test sense_round_trips_through_lua_and_refuses_what_it_was_not_asked ... ok
+test the_hosted_helicopter_plan_guide_and_abandon_round_trip_through_lua ... ok
+test line_of_sight_round_trips_through_lua_and_refuses_what_it_was_not_asked ... ok
+test a_failing_host_callback_returns_its_error_to_pcall ... ok
+test aim_round_trips_through_lua_and_refuses_what_it_was_not_asked ... FAILED
+test move_vehicle_refuses_an_unknown_id_a_foreign_pose_and_an_unknown_mode ... ok
+
+failures:
+
+---- aim_round_trips_through_lua_and_refuses_what_it_was_not_asked stdout ----
+
+thread 'aim_round_trips_through_lua_and_refuses_what_it_was_not_asked' (1093) panicked at crates/eech-world/tests/host_callbacks.rs:397:5:
+exit status: 1
+
+Error: CallbackError { traceback: "stack traceback:\n\t[C]: in function 'aim'\n\t[string \"/tmp/eech-world-aim-1090.lua\"]:41: in function 'lead'\n\t[string \"/tmp/eech-world-aim-1090.lua\"]:43: in main chunk", cause: RuntimeError("host.aim: echo must be a boolean, got nil") }
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    aim_round_trips_through_lua_and_refuses_what_it_was_not_asked
+
+test result: FAILED. 6 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p eech-world --test host_callbacks`
+CARGO_EXIT=101
+DOCKER_EXIT=101

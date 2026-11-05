@@ -1,0 +1,235 @@
+{
+  "schema": "independent-publication-and-provisional-whole-D2-scope-review/v1",
+  "created_utc": "2026-10-28T16:16:50.124997+00:00",
+  "reviewer": "/root/d2_los_review",
+  "published_sha": "09253829b2822fe83dafd4031569410ed2edf6a7",
+  "publication_base": "a89a668ae2fa5594a93fb6bbccf46e1c9b7bff38",
+  "actual_runtime_build_sha": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "disposition": "PUBLICATION_AND_COMPOSITION_VERIFIED; PROVISIONAL_FINITE_D2_RESPONSIBILITIES_ACCOUNTED_FOR; NO_NEW_BLOCKING_FINDINGS; FINAL_D2_ACCEPTANCE_PENDING",
+  "findings": [],
+  "authority": {
+    "M5": {
+      "url": "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
+      "live_version_read": 3,
+      "scope": "Move physical-world simulation into host, campaign decisions remain EECH_DC; only work needed for DCS integration, no full DCS clone; live DCS campaign M6."
+    },
+    "ledger": {
+      "url": "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994",
+      "initial_live_version_read": 47,
+      "updated_live_version_read": 48,
+      "updated_utc": "2026-10-28T16:12:04.994Z",
+      "scope": "FiniteD2 physical sensing/visibility, physical aiming/weapon execution, combat resolution/factual reports; target selection/priorities/engagement/awareness/consequences core. D3terrain/environment, D4airfields/logistics, D5final integration/removal. OnlyD2 active.",
+      "update_disposition": "v48 progress append independently read from live connector, records actual6cases and finalpack/cost active; no finite-scope or acceptance change. Root publication prefix/macro preservation is outside this metadata-only source publication check."
+    }
+  },
+  "publication": {
+    "count": 26,
+    "all_private_worktree_pinned_git_bytes_equal": true,
+    "manifest_excludes_generated_readme_attrs_and_itself_as_intended": true,
+    "all8_runtime_build_scenario_frontiers_equal_frozen64cf": true,
+    "all4_accepted42_45_merges_are_ancestors": [
+      "3ce17432e4026f85b19ebf06cc582314817ddac2",
+      "04bf645a96f8277ca54d4a575b77f35b5ee68052",
+      "83539982a5b19b3e5636454ef36066505065f3ab",
+      "3b91ca34730a88e944700af1d0b7d777e071c73e"
+    ],
+    "clean_before_and_after": true,
+    "diff_check_actual_exit": 0,
+    "scoped_attributes": "* -text whitespace=cr-at-eol",
+    "safety": "Only explicit reviewed proof/review/manifest/run-record/script/disassembly copies. No retail inputs, binaries, complete full raw campaign recordings or credentials added. Retained failed f470 runs and v1 auditor remain explicit superseded evidence, not falsely passed.",
+    "claims": "README/STATUS distinguish actual64cf build from equivalent a89a/092, prior failures from corrected state, primary pcall refusal/native0 from healthy-only claims, identify-only own model from independent combat host, at-time activepack38810/frame8557 from completed acceptance.",
+    "prior_P3": "STATUS now correctly says64cf workspace/fixture/fmt/syntax and earlier unchanged-Rust Clippy evidence reused; no Clippy rerun invented.",
+    "verification_data": {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-r3-publication-09253829b-verification-data-20261028.json",
+      "sha256": "cd288eb1d4bb6e40d450155e90f4f5388f520dece8dc88c25ae106128fe62687"
+    },
+    "root_proof": {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-r3-corrected-runtime-publication-09253829b.json",
+      "sha256": "dae221ff41c4e3212c8869ffd229089558c3f0bd13ebf671979b5afea0eef59e"
+    }
+  },
+  "provisional_responsibility_matrix": [
+    {
+      "responsibility": "Physical visibility/LOS",
+      "delivery": "Accepted EEDCS-42 / merge3ce17432e",
+      "host": "los.rs + csrc/los_step.c own eye lift, ray arithmetic, ordered sampling and final visibility. No shipping legacy fallback in the closed source pass.",
+      "core": "Chooses rays/targets and reacts; terrain elevation and generic object scan provide requested data.",
+      "evidence": "Original/candidate ordered transcript and600s characterization, causal visibility/terrain/refusal controls and accepted40/full8/post3 delivery reused."
+    },
+    {
+      "responsibility": "Physical sensor detection",
+      "delivery": "Accepted EEDCS-43 / merge04bf645a9",
+      "host": "sense.rs + csrc/sense_step.c own range/altitude/floor state, tolerance and emitter/stealth predicates; generic physical nondetection legal.",
+      "core": "Enumerates/orders/filters candidates, retains ranking/engagement/awareness; sends database/environment state and samples at the original conditional point.",
+      "evidence": "Fresh443-event match, default900 and generic/causal/refusal controls and accepted40/full8/post3 delivery reused. Original runner1 and separately reviewed unchanged checker recovery0 remain distinct."
+    },
+    {
+      "responsibility": "Physical aiming/readiness/person facing",
+      "delivery": "Accepted EEDCS-44 / merge83539982a",
+      "host": "aim.rs + csrc/aim_step.c own device offsets/slew, readiness, weapon/intercept/lead/ballistic predictions and person orientation through actual pose handoff. Partial-output presence preserves original caller writes.",
+      "core": "Chooses weapon/package/target and ready/open command; supplies model viewpoints and applies host pose.",
+      "evidence": "1962-event complete trace, controlled person continuity, actual C-wrapper sentinel probe, causal/refusal controls and accepted40/full8/post3 delivery reused. Player triangulation path is explicitly unsupported/refused, not a hidden reference solver."
+    },
+    {
+      "responsibility": "Weapon physical tables/range/birth/release/flight/contact/terminal",
+      "delivery": "Accepted EEDCS-45 / merge3b91ca347",
+      "host": "flight.rs / wn_flight.c and aim.rs own table generation, guided range, release/ROF, birth/dispersion/velocity, flight/guidance/tracking/contact/terminal decisions and ordered partial actions.",
+      "core": "Intent, weapon/package selection, ammo accounting, entity links and generic lookup services; private associations retain safe correlation without pointers or heap IDs crossing.",
+      "evidence": "Final10532-event natural raw, controlled/generic model, matched model changes, genuine refusals and accepted40/full8/post3 delivery reused. Controlled trace two Lua source-position diagnostics are not whole-trace equality; physical records remain exact."
+    },
+    {
+      "responsibility": "Post-flight parachute/lifetime/decoy/lock compatibility",
+      "delivery": "Accepted EEDCS-45",
+      "host": "Owns crate/seat deployment physics and lifetime phases, decoy timers/restarts, seduction and expired-decoy reacquisition.",
+      "core": "Applies target links and always progresses unlink loop; finds affected seekers, retains notification order and effects.",
+      "evidence": "Source/control tests and retained downstream natural/controlled observations reused. Direct parachute-state hash, ejector-seat native launch and all guidance/player branches not claimed."
+    },
+    {
+      "responsibility": "Combat forecast and real-hit capability/armour/health",
+      "delivery": "Task46 source and bounded runtime closed; delivery pending",
+      "host": "cmb.rs / csrc/cmb_step.c own no-weapon forecast, invulnerability, real capability/sample, aspect/difficulty armour, resulting health/clamp and critical classes.",
+      "core": "Preserves sound/application order, setters/kill/accounting/credit, applies explicit partial-write/no-write contract; float diagnostic transport is exact bit data, no sanitation.",
+      "evidence": "Forecast and real default600/900, SITE/SU/centred-solid exact originals, matched own model/draw-policy variation and real malformed refusals closed. Non-finite intermediate bits supported by source/ABI tests plus native measurement equality, not printed raw NaN-payload observation."
+    },
+    {
+      "responsibility": "Critical classification/assessment/timed damage/self-hit gate",
+      "delivery": "Task46 corrected source and bounded runtime closed",
+      "host": "Owns four HEALTH operations, threshold arithmetic, all6 family timed eligibility, ordered one-draw policy and helicopter self-hit physical gate.",
+      "core": "Reads host class for campaign mobility/update/return-home decisions and presentation; no reference timed eligibility veto.",
+      "evidence": "Default600/900, exact controlled39case partial-coverage witness, AA never/rate150 and genuine primary refusals; generic PERSON combined DAMAGE+TIMED4samples/1hit/1fatal closed. Short180 cohort failure/untriggered modes remain explicitly partial; no default PERSON bleeding/fatalAA/selfhit/player/MP native coverage invented."
+    },
+    {
+      "responsibility": "Impact plan and blast physical selection",
+      "delivery": "Task46 e0 source and bounded runtime closed",
+      "host": "Owns impact killcode/crater/direct/blast order, radius/sector progression/range/modifier/exclusion/rocket interception decisions.",
+      "core": "Supplies bounded mutable windows/data; applies notification then reads actual successor, keeps private continuation/identity safety; effects/sounds/application remain mirrored.",
+      "evidence": "600 default/four focused/900 full3 and16provider cohort including actual10primary refusals closed. All13 kinds/valid rocket interception/player/MP not inferred from observed subset."
+    },
+    {
+      "responsibility": "Bridge/segment physical collapse and rest placement",
+      "delivery": "Task46 corrected636 source/native closed; composed unchanged",
+      "host": "Six Bridge ops KILL/SHAPE/NEIGHBOUR/FALL/REST/VEHICLES own collapse, shape, propagation, fall/landing, physical vehicle choice and unpack rest geometry.",
+      "core": "Route links, repair-task policy/quantities and campaign consequences; destructive application guarded against immediate release, RV successor read AFTER apply.",
+      "evidence": "Original direct structural failure characterized; corrected default pair all320598bytes exact; own/own_fall influence and nil/badshape primary refusals;900 full3 exact. Native REST, occupied-vehicle kill, player/MP/client/Georgia/other geometries remain source/contract-only limits."
+    },
+    {
+      "responsibility": "Persistent physical correlation and factual reports",
+      "delivery": "Task46 corrected64cf shipping6cases closed; final delivery pending",
+      "host": "Issues opaque per-incarnation structure IDs, reuses mobile IDs and reports damage/destruction by ID; common aim and actual DAMAGE/HEALTH/IMPACT subjects carry known ID context.",
+      "core": "Validates namespace both directions/tombstones/incarnation/heap capacity/presence, applies real setter/kill consequences with no post-kill read; no reference physical veto.",
+      "evidence": "Registry/ABI/window/subject contract checks plus actual63136 inventory and cached second enumeration, site/segment withholding/health/destruction, own identify and3specific primary guards. Malicious cross-ID/stale-slot/all6kind mutations are not native-proven. Six f470 crashes remain failures,64cf is actual corrected build, a89a/092 are equivalent metadata/test-only identities."
+    }
+  ],
+  "residual_boundary_classification": [
+    {
+      "item": "Generic terrain/environment/model/geometry services",
+      "disposition": "D3/shared-data coupling. Campaign may supply requested elevations/normals/materials/object segment intersections/model viewpoints/database figures, but weapon/sight/damage/collapse-specific decisions remain host-owned. This is not authorization to leave an active D2 physical decision in the DLL."
+    },
+    {
+      "item": "Entity/sector mirrors and private application/lifetime/correlation",
+      "disposition": "Transitional integration/removal coupling; core identity validation, private continuations and safe setters/notification ordering are application machinery. Persistent structure correlation and actual reports were D2 and are now supplied, not deferred toD5."
+    },
+    {
+      "item": "Shared RNG/private local stream/effects/sound",
+      "disposition": "Declared coupling. Host decides conditional draw need; raw samples rather than seed/private heapindex cross. Effects/sounds are presentation/application, not fallback physics."
+    },
+    {
+      "item": "Repair and fixed restoration quantities",
+      "disposition": "D4 physical logistics. Health writers can remain there; every D2 critical predicate consumes host class at actual reads. Repair-like inbound damage reports remain correctly refused."
+    },
+    {
+      "item": "Campaign policy/consequences",
+      "disposition": "Core keeps candidate ranking, target/weapon/package/fire intent, awareness, credit/accounting, mobility decisions on host facts, route/repair-task policy and D1 transactions; host physical answers are applied without hidden reference solver fallback."
+    },
+    {
+      "item": "Dormant EECH player-avionics/HUD ballistic helper",
+      "disposition": "Explicit lead supported-runtime scope classification, not pure general math and not an active D2 fallback. Legacy co_wpn.c:893 get_weapon_drop -> :924 get_angle_of_projection_with_range -> projtile.c:119-127 computes a physical sightdrop. Current callers hm_hud.c:1835/hk_hud.c:1925/ha_hud.c:2501 are legacy HUD draw/optionalEO paths; both files remain compiled as dormant coupling. No eech-campaign product call/export or cockpit/HUD host operation; actual public frame is without drawing (eech_engine.c:306-336). Active weapon.c legacy callers are#if0, active hosted physical paths closed; tracked ballistic helper routes host. M5 does not port the EECH cockpit. D5 may remove dormant code, never implement a missing active D2 solver.",
+      "evidence_basis": "Targeted caller/build inventory only, not repeated arithmetic review; root explicit technical-lead disposition in this review. Root will commit this exact supported-runtime boundary in a scope document.",
+      "limit": "Reintroducing any supported public/player-avionics caller would require host routing before claiming finiteD2complete; absence of nativeplayer coverage alone is not the exclusion reason."
+    }
+  ],
+  "coverage_and_acceptance_limits": [
+    "This is a reconciliation of the accepted42\u201345 and closed incremental46 source/runtime reviews against authoritative finite scope, not a fresh whole-tree numerical source pass or an exhaustive native branch census. No newly demonstrated unextracted activeD2 responsibility found.",
+    "Native unexercised cases (player/MP/client, selfhit, fatalAA, certainweapon guidance/submunition/ejector paths, bridgeREST/occupiedvehicles/othergeometry, allkind mutations/maliciousIDreuse) remain explicit source/contract-only limits; no new coverage created by scope audit.",
+    "Old source component matches stay under actual source SHA. Current64cf fullordinary campaign comparison is mandatory; no relabelling earlier f470/636/e0 runs as64cf.",
+    "Legacyf41 raw whole-trace equality remains false because124 documented blast-counter quote removals; corrected-schema measurements/full corrected traces are preserved. Complete recording equality is byte comparison, not visual inspection. Original retained ab-base input-root provenance remains inferred.",
+    "Finalframe timing must be judged from final exported raw samples/independent recomputation and actual source/build/exit/artifact/input evidence. Parent measurement was not causal/matched; noDCSframebudget/threading/live-campaign claim follows."
+  ],
+  "pending_final_gates": [
+    "Final ordinaryshipping pack38810 actual runner/launcher/native completions and exact40 accepted checks.",
+    "All8complete raw artifacts, post3retail manifests, unchanged42exports/BINF/clean frozen64cf source.",
+    "Final raw nativeframe-cost8557 completion/sample audit/config/clock/exits/input/build and bounded interpretation.",
+    "Current applicableCI, exactcandidate finalindependent evidence review and normalTask46 merge/delivery.",
+    "Final wholeD2reconciliation/adopted scope document/Epic18acceptance and ledger/Jira closure. M5 DCSexperiments/M6liveoperation are separate, noD3start inferred."
+  ],
+  "reused_review_identities": [
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-forecast-source-review-91bc07e07-20261028.json",
+      "sha256": "6a65e0d62fd1d16a82ab7079475914ea252247fd6f09073992cb4a300d544df0",
+      "use": "Reuse original source/evidence disposition with subsequent corrections and later native closures; not a repeated source/runtime pass."
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-real-hit-correction-review-225ff4abd-20261028.json",
+      "sha256": "9193abcdf218e07d93c88475b7983c8ccae05ff90d0b3f5d3a5a838a2c9222e9",
+      "use": "Reuse original source/evidence disposition with subsequent corrections and later native closures; not a repeated source/runtime pass."
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-critical-correction-review-1c943ffb5-20261028.json",
+      "sha256": "756bb015ec7abf0dfa42e0dd06bcddb57669eb110c8d6df6ac2c36cd2fae9732",
+      "use": "Reuse original source/evidence disposition with subsequent corrections and later native closures; not a repeated source/runtime pass."
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-impact-blast-correction-and-timed-publication-review-e0a42825b-20261028.json",
+      "sha256": "103787b3c22506d7c13fcd0c3a4edf15d768084dee5f5f339cda4fc4f9725c58",
+      "use": "Reuse original source/evidence disposition with subsequent corrections and later native closures; not a repeated source/runtime pass."
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-bridge-physical-correction-review-636ef798a-20261028.json",
+      "sha256": "cabde36775a9972243fb92b74c5127d2295e56c7f70c9453972cac38a3a9412f",
+      "use": "Reuse original source/evidence disposition with subsequent corrections and later native closures; not a repeated source/runtime pass."
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-corrected636-bridge-focused-runtime-review-20261028.json",
+      "sha256": "319c633fcd47bb7bce3225f24667d2d3eb98374003093d459af85c299b28a432",
+      "use": "Reuse original source/evidence disposition with subsequent corrections and later native closures; not a repeated source/runtime pass."
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-corrected636-bridge-control900-review-20261028.json",
+      "sha256": "6a8a15ff7fd1833f2f9db2827882d6c256201de5112a0906fdfdf51016282181",
+      "use": "Reuse original source/evidence disposition with subsequent corrections and later native closures; not a repeated source/runtime pass."
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-r3-correction-review-f4700bbab-20261028.json",
+      "sha256": "c398ba49d0ab85c7e063ab4addd3a0e5e6c8e94d9843253b9b28dffedffada94",
+      "use": "Reuse original source/evidence disposition with subsequent corrections and later native closures; not a repeated source/runtime pass."
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-r3-guard-order-correction-review-64cf0f1c5-20261028.json",
+      "sha256": "5b1f02166eeff003eed6337846e9c8a7f31d2db7361e2d62a9063fc81385147a",
+      "use": "Reuse original source/evidence disposition with subsequent corrections and later native closures; not a repeated source/runtime pass."
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-r3-dummy-sentinel-correction-review-a89a668ae-20261028.json",
+      "sha256": "e75cb441fb620cf631f632bd52223d69fb231dda6fccc65ec0b03664f68a85fe",
+      "use": "Reuse original source/evidence disposition with subsequent corrections and later native closures; not a repeated source/runtime pass."
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-r3-64cf-six-report-runtime-review-20261028.json",
+      "sha256": "b3f34540f3e0696f8b99bc9799bea02580697490e963e8187c210c1baa9543e0",
+      "use": "Reuse original source/evidence disposition with subsequent corrections and later native closures; not a repeated source/runtime pass."
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-r3-six-auditor-v2-correction-review-20261028.json",
+      "sha256": "6f2acae1d284ca4153c01a20c434749195b5939ef2788ab27f2597bb795229a8",
+      "use": "Reuse original source/evidence disposition with subsequent corrections and later native closures; not a repeated source/runtime pass."
+    }
+  ],
+  "method_limits": {
+    "no_agents": true,
+    "no_implementation_changes": true,
+    "no_builds_tests_native_or_process_changes": true,
+    "no_remote_writes": true,
+    "reads": "Pinned publication Git objects/private copies; live authority pages; prior closed review/documentation chain and narrow residual caller/build classification. No repeated unchanged solver implementation review.",
+    "writes": "Private integrity-data JSON and this private independent report only."
+  }
+}

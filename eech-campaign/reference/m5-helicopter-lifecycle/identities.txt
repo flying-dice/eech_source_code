@@ -1,0 +1,16 @@
+EEDCS-36 helicopter rotor and dying/crash motion: identities of the final evidence
+runtime commit: 68a16fc1a31715d5f884344d9e9ae06a980004b1 (tree 4c6904a7ee80b898ea7ba8b432159c339dc159a8), 0 dirty build inputs (source-identity.txt, BUILD-INFO.txt)
+build: EECH_WIN_TARGET=eech-lifecycle-precision-target tools/build-windows.sh target/lifecycle-precision, exit 0, image sha256:bb10e44a20e9c6304b3a318902bcf0f8ec8175c162862240ce25c34bd7e562be, rustc 1.98.1, mingw gcc 12-posix
+binaries (BUILD-INFO.txt):
+  921cde1efae2136660edc0f70dacf8a5add09c23b0b3dc10fe17cb9a990cf017  eech_dc.dll
+  3f5be6a3c5156d734d9dd8e6a0b28b201e652a4f74d30176e9e067c35e00c862  eech-world.exe
+  b224cb2eacdea06fcb7fe273979e660fbef0c1a9c65be53c7be9fc0a4571daca  lua.dll
+reference artifacts (parent's independent hashes, parent-independent-reference-hashes.json; run 1 == run 2):
+  recording.acmi   117,690,861 bytes  3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b  (equals the accepted Tacview baseline)
+  observations.jsonl  85,716,447 bytes  da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf  (equals the accepted observations baseline)
+  metrics.json         35,942 bytes  fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587
+Lebanon inputs: 1179 files, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09 in both roots (pack-report.md)
+Georgia inputs: 1174 files, combined SHA-256 d373bc4262464da87532b8128d396358f0003bc2e9e51e8fa92cf0a6e2b50de2 (pack-report.md)
+0.5 h replay prefix (replay-0.5h-prefix-comparison.json): 72,971 candidate lines, last t=1799.61, differences [], candidate prefix sha256 49b496d205e73cac326aa1f4091151c8c7b84061505c4d7bffb90d8f9db43494
+pack: run 2026-10-22T15:02:57+01:00 to 2026-10-22T16:48:36+01:00 (pack-start.txt/pack-end.txt, external), exit 0
+This folder does not hold the Tacview recording or observations.jsonl (retail-derived, 117 MB and 86 MB); the hashes above identify them.

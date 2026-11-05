@@ -1,0 +1,135 @@
+{
+  "schema": "independent-source-correction-review-v1",
+  "created_utc": "2026-10-31T22:51:17.557462+00:00",
+  "reviewer": "sole independent Codex reviewer /root/d3_environment_review",
+  "source": {
+    "head": "e5020587153e1922acdc412598c4920501988a9a",
+    "base": "402ba441003e362486d3591c2d078f4a9b1d3bbf",
+    "tree": "a232b6040c662dc838aab6a3b92864de05254db0",
+    "repo": "R:\\d3-evidence\\environment-services-20261030",
+    "clean_at_review": true,
+    "frozen_source": "R:/d3-evidence/environment-host-sound-lifetime-source-e50205871",
+    "files": [
+      {
+        "path": "STATUS.md",
+        "sha256": "e333b4a0b8d4e40c7e994766299c3f5bafe3c22780a85d4267b94aaac17a9d71",
+        "git_blob": "50fea10b4d5e3cd0e7826fdad8978fb80c9396b5"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/env_ref.c",
+        "sha256": "ecf65255aa053407928aea37891a3c1372fc84bc20314eb7ff887cea8c1cf6dc",
+        "git_blob": "8982e9b4e658ace2ee7a4b985626863ba2eb9ee4"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-host-witness.lua",
+        "sha256": "5e33b55e1730b4484bdc82a47da17d5cf6044abfdc5a74dfab8ce1d49344a891",
+        "git_blob": "70cd59b0a479a072fa03b8dae83e52255db5b540"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/env.rs",
+        "sha256": "05b3fffb3d5b7acb58c2e17de60e4ae1903f655295b943eaffc3d1c6eeb1a968",
+        "git_blob": "636523e597feacea3208374a492d058a6fb47207"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sound_lifetime.rs",
+        "sha256": "f6fba0f5283c1273e7ad2c74d7e07c38a27eb11ee5f23ef4566533c92051ba4b",
+        "git_blob": "2b575d4ef4376d692ae5ebbeb3600f3ab7aeff57"
+      },
+      {
+        "path": "eech-campaign/docs/d3-sound-lifetime.md",
+        "sha256": "d91eb93289769a6b70ac0ea1961dc3530c65cfa8a14e8f5e1f2a3ae4b44c1462",
+        "git_blob": "f43a56931767336b49d6bab6a9fb9800e53c6092"
+      }
+    ]
+  },
+  "scope": "One finite six-file correction-delta correctness/clean-code/boundary pass closing the two402 findings. Prior fifteen-file/kernel/caller/layout facts and finite original observations reused; no unchanged re-review or old experiment.",
+  "prior_review": {
+    "path": "R:/d3-evidence/independent-environment-host-sound-lifetime-source-review-402ba4410-20261031.json",
+    "sha256": "0b5f468032d374c152c9005bd2bfb69a6651f073d67f160135342084003bf8cb"
+  },
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "disposition": {
+    "ENV-HOST-SOUND-1": "Closed at source: bit-copy initialization/publication, guarded float classification and integer staged validity; actual corrected full-FP CI remains pending.",
+    "ENV-HOST-SOUND-2": "Closed at source: boot forwarded unchanged and fixture arming after real boot returns, separate operation counts, per-call changed-lifetime words and aged-without-kill negative."
+  },
+  "verified_corrections": [
+    {
+      "fact": "sound init initializes output via memset; update initializes output via memcpy from input bits. After save/canonical entry, float work and finite/sign classification happen inside the guard. Work and integer bad/result flags are settled before fp_leave; only integer branches, error strings and memcpy publication remain afterward. NeedPlaying/refusal leaves original lifetime bits without publishing partially aged state. No arithmetic expressions, tolerance/mask/seed or physical outputs are changed.",
+      "references": [
+        {
+          "path": "eech-campaign/crates/eech-world/csrc/env_ref.c",
+          "line": 1933
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/csrc/env_ref.c",
+          "line": 1979
+        }
+      ]
+    },
+    {
+      "fact": "Existing complete-state matrix retains its normal questions and adds signalling-NaN lifetime/delta/invalid-valid-lifetime, quiet-NaN and infinity refusals. This is added refusal coverage, not evidence that the corrected native/i686 builds already pass."
+    },
+    {
+      "fact": "Witness wraps the ordinary mutable module boot table for the delegate only, forwards every boot operation to the real provider, and flips phase only after real_boot returns successfully. Factory and boot are restored after protected delegate execution. Selected-op boot requests are recorded separately; init changes/refusals now meet case6, whose existing ask catch supplies the real engine_failure/no-result evidence. Scripted guards now model looping boot init calls.",
+      "reference": {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-host-witness.lua",
+        "line": 101
+      }
+    },
+    {
+      "fact": "Changed-update requires the constructor plus all three post-call lifetime words to be equal and live, three calls and no kill. The new aged-without-kill canned negative is rejected. Healthy additionally requires the first post-call word to differ. Changed-init still requires the exact host-sent0.25 constructor word. No second physical solver or fabricated case failure is added.",
+      "reference": {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-host-witness.lua",
+        "line": 232
+      }
+    },
+    {
+      "fact": "Old-safe116 with pinned d4 delegate remains a genuine capability-red source path: old Core completes supported case4 without either new operation; same mutable boot export can be wrapped, phase flips, fixture requests stay0 and the witness reports capability_missing before healthy ownership checks. No new-op request is forced onto old provider, no boot/observer API change or C layout is required by the script. This is source feasibility, not a claimed actual red execution."
+    },
+    {
+      "fact": "All six changed files inspected. Source/docs now keep actual31October timing despite retained20261101 WIP filenames, corrected source versus prior failed402 distinct, and all metadata/resume/device/destroy/network/pitch/amplitude/time/terrain/spatial/model responsibilities explicitly open within D3."
+    }
+  ],
+  "preserved_red_evidence": {
+    "receipt": {
+      "path": "R:\\d3-evidence\\current-CI-402ba4410-20261031.json",
+      "sha256": "b4191bd30602bd438f51cb3c7e4b6ce24c47f6131f36e050762b3ff797ec7584",
+      "bytes": 16879
+    },
+    "decoded_i686_logs": [
+      {
+        "path": "R:\\d3-evidence\\current-CI-402ba4410-job-124675994865-20261031.log",
+        "sha256": "3cb0325d6105cc38158b4c53552555f1108ae82db4814d86ee439ccb07fb948b",
+        "bytes": 265334
+      },
+      {
+        "path": "R:\\d3-evidence\\current-CI-402ba4410-job-124675995078-20261031.log",
+        "sha256": "1ae90849a0f5193f3a8f2d1ae8ee36c391066c3c52e64d697993e7a2e0ace364",
+        "bytes": 265057
+      }
+    ],
+    "classification": "Both402 i686 jobs actually fail101. Root reports384 caller-state failure kinds/4224 checked (init128/update256), including x87 condition/status changes and denormal flag leakage; inspected retained log shows those status changes and library263pass/1fail. Seven other jobs succeeded. Prior402 remains failed, no mask/normalization/relabeling."
+  },
+  "execution_context": {
+    "reviewer": "Read-only source/evidence analysis and this private report write only. No builds/tests/native runs/Docker/process/source/auth/public changes or agents.",
+    "author_wip": [
+      {
+        "path": "R:\\d3-evidence\\sound-fix402-WIP-20261101-c1.log",
+        "sha256": "6162debe1c79f196481beaac0529fb36b73a897677143b3d331e16f88618493e",
+        "bytes": 109
+      },
+      {
+        "path": "R:\\d3-evidence\\sound-fix402-WIP-20261101-c2.log",
+        "sha256": "ef0110dad5487e75adacd5d153cd389bd0e8ddf36fcecb2689280ba9e9c6e252",
+        "bytes": 40463
+      }
+    ],
+    "scope": "Author c2 fmt/default+observer C checks/sound14/world264/DC28/engineenv4/strict reported0 are WIP preparation, not shipping/i686/public native acceptance. New immutable e502 builds/current CI are pending;18roots remain unused and no candidate/authority engine has run."
+  },
+  "limitations": [
+    "Exact-delta source gate only. Root must obtain both new immutable native build exits0 and ALL9 exact-e502 CI jobs, including both previously failing i686 variants, before candidate measurements. Actual default/raw conformance, old-safe116 capability red with d4 delegate and actual healthy/changed/refusal modes remain required.",
+    "No host sound slice/runtime/full sound ownership, device/playing-idle handle, resume/destroy/network/per-vehicle delivery, shipping/current-final-CI/normal merge or Task51/D3 acceptance. Remaining sound/time/terrain/spatial/model/full40/all8 complete-byte gates remain required; D4/D5 unstarted.",
+    "Earlier unavailable first d1 raw WIP gap and partial excerpt remain explicit; all failed402 and original measurements are preserved without repeating closed work."
+  ]
+}

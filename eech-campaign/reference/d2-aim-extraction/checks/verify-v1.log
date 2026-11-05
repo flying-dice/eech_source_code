@@ -1,0 +1,5 @@
+fmt-check exit=0
+clippy-default exit=0
+clippy-aim-fixture exit=0
+test exit=0
+ALL DONE

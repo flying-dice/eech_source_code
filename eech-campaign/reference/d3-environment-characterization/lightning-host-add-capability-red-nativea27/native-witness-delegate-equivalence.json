@@ -1,0 +1,22 @@
+{
+  "when_utc": "2026-10-31T17:48:53.599588+00:00",
+  "native_source": "a27f6ead2150fd4047c87a8eb7c5583f6a6d6c01",
+  "witness_source": "d220a11163dbac4d1f6a5267a9a4e2bc12e8e457",
+  "changed_paths": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/lua/env-lightning-host-witness.lua",
+    "eech-campaign/crates/eech-world/lua/env-lightning-queue.lua",
+    "eech-campaign/crates/eech-world/tests/env_lightning_queue.rs",
+    "eech-campaign/docs/d3-lightning-queue.md"
+  ],
+  "only_lua_test_docs_changed": true,
+  "native_C_Rust_production_build_and_natural_driver_unchanged": true,
+  "verified_native_payloads": 53,
+  "native_build_info_sha256": "a98db117d67f8d1ef7c1ec1de248e8f3e7ff18c470b77ca29533552b2a221a8e",
+  "witness": "R:\\d3-evidence\\environment-queue-host-witness-source-d220a1116\\eech-campaign\\crates\\eech-world\\lua\\env-lightning-host-witness.lua",
+  "witness_sha256": "7beabf86975b3efea441d68715fae659ff4427d51babf107c1a122ab5ba4bdcb",
+  "delegate_source": "60e5ee0bd60b6197d09705e7d388311885fd83ea",
+  "delegate": "R:\\d3-evidence\\environment-lightning-queue-original-source-60e5ee0bd\\eech-campaign\\crates\\eech-world\\lua\\env-lightning-queue.lua",
+  "delegate_sha256": "4378af4c393664abe0b856e4fe6e9f6a0054e9b46ad8b36c0c8e474dfe6d26e8",
+  "scope": "Explicit olda27native/newd220witness/new60ecorrecteddelegate for meaningful missing hostadd capability red. No newnative build, physical move or acceptance."
+}

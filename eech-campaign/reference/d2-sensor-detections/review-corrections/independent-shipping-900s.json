@@ -1,0 +1,48 @@
+{
+  "scope": "Completed379 ordinary-shipping900s physical sensing extraction only; NOT final full3hpack or review-fix acceptance",
+  "source": "37989fa5f183abbffa122fb47535923a83f6bfa9",
+  "candidate_native_exit_record": "exit=0",
+  "candidate_exit_record_file": "R:\\d2-evidence\\sensor-characterization-baseline-20261026\\out\\ab-ship\\done.txt",
+  "retained_supplied_baseline_reused": true,
+  "candidate": "R:\\d2-evidence\\sensor-characterization-baseline-20261026\\out\\ab-ship",
+  "baseline": "R:\\d2-evidence\\los-characterization-baseline-20261026\\out\\ab-base",
+  "artifacts": [
+    {
+      "file": "recording.acmi",
+      "retained_supplied_baseline": {
+        "bytes": 11363845,
+        "sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f"
+      },
+      "candidate": {
+        "bytes": 11363845,
+        "sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f"
+      },
+      "matches": true
+    },
+    {
+      "file": "observations.jsonl",
+      "retained_supplied_baseline": {
+        "bytes": 6629273,
+        "sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b"
+      },
+      "candidate": {
+        "bytes": 6629273,
+        "sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b"
+      },
+      "matches": true
+    },
+    {
+      "file": "metrics.json",
+      "retained_supplied_baseline": {
+        "bytes": 11777,
+        "sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474"
+      },
+      "candidate": {
+        "bytes": 11777,
+        "sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474"
+      },
+      "matches": true
+    }
+  ],
+  "all_match": true
+}

@@ -1,0 +1,8 @@
+tree: 60f6a4876e02d4ce4e6d32436930b69d82214260 dirty files in build inputs: 1
+== ac_tgt: base lines 32533, feature-off lines 32533, feature-on lines 32676
+ac_tgt: feature OFF preprocesses IDENTICAL to base (blank lines dropped, assertion __LINE__ normalised)
+ac_tgt: feature ON adds hooks (143 lines differ in the new text, 0 in the base)
+== vh_tgt: base lines 32739, feature-off lines 32739, feature-on lines 32882
+vh_tgt: feature OFF preprocesses IDENTICAL to base (blank lines dropped, assertion __LINE__ normalised)
+vh_tgt: feature ON adds hooks (143 lines differ in the new text, 0 in the base)
+DOCKER_EXIT=0

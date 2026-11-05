@@ -1,0 +1,463 @@
+{
+  "when_utc": "2026-10-28T11:02:40.680382+00:00",
+  "source": "bbfea21fcdb808162e246f1fd74c15a705ba2e54",
+  "source_path": "R:\\d2-evidence\\combat-bridge-original-source-bbfea21fc",
+  "source_clean_after_both": true,
+  "source_physics": "ORIGINAL bridge/segment code; pure test-only observer, no bridge physics moved",
+  "actual_clone_exec": 81439,
+  "clone_actual_exit": 0,
+  "prebuild_audit": "root-clean-original-bridge-source-prebuild-bbfea21fc.json BEFORE build54075",
+  "actual_build_exec": 54075,
+  "build_actual_exit": 0,
+  "dirty_build_inputs": 0,
+  "exports_unchanged": 41,
+  "build_info_sha256": "06f741c1be7ab519d19f291bfde338713dfcb3e580017fb5caca86c00cee07f3",
+  "image": "sha256:354194724cfd6a0cc30e3b0acef77c16d08edae7f163bafd343e84583c915617",
+  "records": [
+    {
+      "name": "bridge-original-lebanon-01",
+      "actual_original_exec_session": 99734,
+      "actual_driver_native_exit": 0,
+      "run_record": {
+        "status": "completed",
+        "when_utc": "2026-10-28T10:46:36.7745648Z",
+        "binary": "R:\\d2-evidence\\combat-bridge-original-source-bbfea21fc\\eech-campaign\\target\\weapon-fixture\\combat-bridge-original-bbfea21fc\\eech-world.exe",
+        "arguments": "R:/d2-evidence/combat-bridge-original-source-bbfea21fc/eech-campaign/target/weapon-fixture/combat-bridge-original-bbfea21fc/lua/bridge-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/bridge-original-lebanon-01 scenario=lebanon_retail out=R:/d2-evidence/combat-characterization-20261028/out/bridge-original-lebanon-01/trace.jsonl warmup=5 frame_ms=100 window_seconds=12 criterion=0",
+        "root": "R:/d2-evidence/combat-characterization-20261028/roots/bridge-original-lebanon-01",
+        "out": "R:/d2-evidence/combat-characterization-20261028/out/bridge-original-lebanon-01",
+        "scenario": "lebanon_retail",
+        "kind": "ORIGINAL bridge collapse characterization: declared direct structural failure, not weapon hit. Actual preconditions, ordered physics/consequences and independent review required; not extraction or fullpack acceptance.",
+        "bridge_script_sha256": "7bac2fc65274ab737abe16d2e19f19e452780a1e38985221cdbb4bb8d481213a",
+        "build_info_sha256": "06f741c1be7ab519d19f291bfde338713dfcb3e580017fb5caca86c00cee07f3",
+        "actual_native_exit": 0,
+        "native_pid": 10104,
+        "created_utc": "2026-10-28T10:46:36.8826441Z",
+        "completed_utc": "2026-10-28T10:46:58.2560795Z"
+      },
+      "audit_exit": 0,
+      "audit": {
+        "status": "PASS",
+        "process_done": true,
+        "trace": "R:\\d2-evidence\\combat-characterization-20261028\\out\\bridge-original-lebanon-01\\trace.jsonl",
+        "trace_bytes": 320598,
+        "sha256": "d4c198afc3be5d5bb03f6c5b25800351c37700cf2cd0c0f5cbeda802ebafc6c3",
+        "rows": 1326,
+        "boot": {
+          "case": "bridge_collapse",
+          "criterion": 0,
+          "event": "boot",
+          "frame_ms": 100,
+          "scenario": "lebanon_retail",
+          "seed": 1,
+          "warmup": 5,
+          "window_seconds": 12
+        },
+        "case": {
+          "bridge": 0,
+          "done": true,
+          "event": "bridge_case",
+          "first_collapse": true,
+          "reason": "",
+          "scenario": "lebanon_retail",
+          "segment": 0,
+          "text": "cmb-bridge-fail bridge=0 found=1 segments=8 index=0 criterion=0 done=1 sub=1 bridge_alive=1 neighbour=1 neighbour_alive=1 first_collapse=1 precondition=declared_direct_structural_failure api=kill_client_server_entity armed=1 "
+        },
+        "summary": {
+          "done": true,
+          "event": "bridge_summary",
+          "first_collapse": true,
+          "frames": 120,
+          "in_update_at_end": 0,
+          "landed_all": true,
+          "n_child_killed": 2,
+          "n_collision": 11,
+          "n_fall": 4,
+          "n_landed": 1,
+          "n_link_broken": 1,
+          "n_repair_task": 1,
+          "n_segment_update": 5,
+          "n_shape": 11,
+          "n_supported_removed": 1,
+          "n_unsupported_kill": 1,
+          "n_update_inserted": 2,
+          "state_valid": true
+        },
+        "state_groups": 122,
+        "segments_per_group": 8,
+        "contiguous_events": 40,
+        "bridge_events": {
+          "collision": 11,
+          "shape": 11,
+          "child_killed": 2,
+          "link_broken": 1,
+          "repair_task": 1,
+          "update_inserted": 2,
+          "segment_update": 5,
+          "unsupported_kill": 1,
+          "supported_removed": 1,
+          "fall": 4,
+          "landed": 1
+        },
+        "trusted_reports": 3,
+        "before": {
+          "alive": 1,
+          "at": 5.0999956130981,
+          "breaks": 0,
+          "bridge": 0,
+          "end": 246,
+          "event": "cmb-bridge-state",
+          "repair_tasks": 0,
+          "routed_alive": 454,
+          "scope": "bridge:before",
+          "segments": 8,
+          "start": 240,
+          "sub_type": 5
+        },
+        "immediate_after": {
+          "alive": 0,
+          "at": 5.0999956130981,
+          "breaks": 1,
+          "bridge": 0,
+          "end": 246,
+          "event": "cmb-bridge-state",
+          "repair_tasks": 1,
+          "routed_alive": 454,
+          "scope": "bridge:after",
+          "segments": 8,
+          "start": 240,
+          "sub_type": 5
+        },
+        "final": {
+          "alive": 0,
+          "at": 17.099931716919,
+          "breaks": 1,
+          "bridge": 0,
+          "end": 246,
+          "event": "cmb-bridge-state",
+          "repair_tasks": 1,
+          "routed_alive": 454,
+          "scope": "frame:120:state",
+          "segments": 8,
+          "start": 240,
+          "sub_type": 5
+        },
+        "scope": "Original native bridge characterization only; not weapon-hit, alternate-host authority or fullpack acceptance"
+      },
+      "post_inputs_exit": 0,
+      "post_input_log": "R:\\d2-evidence\\combat-characterization-20261028\\root-bridge-original-lebanon-01-post-inputs.log"
+    },
+    {
+      "name": "bridge-original-lebanon-repeat-01",
+      "actual_original_exec_session": 81402,
+      "actual_driver_native_exit": 0,
+      "run_record": {
+        "status": "completed",
+        "when_utc": "2026-10-28T10:51:48.5742550Z",
+        "binary": "R:\\d2-evidence\\combat-bridge-original-source-bbfea21fc\\eech-campaign\\target\\weapon-fixture\\combat-bridge-original-bbfea21fc\\eech-world.exe",
+        "arguments": "R:/d2-evidence/combat-bridge-original-source-bbfea21fc/eech-campaign/target/weapon-fixture/combat-bridge-original-bbfea21fc/lua/bridge-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/bridge-original-lebanon-repeat-01 scenario=lebanon_retail out=R:/d2-evidence/combat-characterization-20261028/out/bridge-original-lebanon-repeat-01/trace.jsonl warmup=5 frame_ms=100 window_seconds=12 criterion=0",
+        "root": "R:/d2-evidence/combat-characterization-20261028/roots/bridge-original-lebanon-repeat-01",
+        "out": "R:/d2-evidence/combat-characterization-20261028/out/bridge-original-lebanon-repeat-01",
+        "scenario": "lebanon_retail",
+        "kind": "ORIGINAL bridge collapse characterization: declared direct structural failure, not weapon hit. Actual preconditions, ordered physics/consequences and independent review required; not extraction or fullpack acceptance.",
+        "bridge_script_sha256": "7bac2fc65274ab737abe16d2e19f19e452780a1e38985221cdbb4bb8d481213a",
+        "build_info_sha256": "06f741c1be7ab519d19f291bfde338713dfcb3e580017fb5caca86c00cee07f3",
+        "actual_native_exit": 0,
+        "native_pid": 17440,
+        "created_utc": "2026-10-28T10:51:48.5967618Z",
+        "completed_utc": "2026-10-28T10:52:10.3104227Z"
+      },
+      "audit_exit": 0,
+      "audit": {
+        "status": "PASS",
+        "process_done": true,
+        "trace": "R:\\d2-evidence\\combat-characterization-20261028\\out\\bridge-original-lebanon-repeat-01\\trace.jsonl",
+        "trace_bytes": 320598,
+        "sha256": "d4c198afc3be5d5bb03f6c5b25800351c37700cf2cd0c0f5cbeda802ebafc6c3",
+        "rows": 1326,
+        "boot": {
+          "case": "bridge_collapse",
+          "criterion": 0,
+          "event": "boot",
+          "frame_ms": 100,
+          "scenario": "lebanon_retail",
+          "seed": 1,
+          "warmup": 5,
+          "window_seconds": 12
+        },
+        "case": {
+          "bridge": 0,
+          "done": true,
+          "event": "bridge_case",
+          "first_collapse": true,
+          "reason": "",
+          "scenario": "lebanon_retail",
+          "segment": 0,
+          "text": "cmb-bridge-fail bridge=0 found=1 segments=8 index=0 criterion=0 done=1 sub=1 bridge_alive=1 neighbour=1 neighbour_alive=1 first_collapse=1 precondition=declared_direct_structural_failure api=kill_client_server_entity armed=1 "
+        },
+        "summary": {
+          "done": true,
+          "event": "bridge_summary",
+          "first_collapse": true,
+          "frames": 120,
+          "in_update_at_end": 0,
+          "landed_all": true,
+          "n_child_killed": 2,
+          "n_collision": 11,
+          "n_fall": 4,
+          "n_landed": 1,
+          "n_link_broken": 1,
+          "n_repair_task": 1,
+          "n_segment_update": 5,
+          "n_shape": 11,
+          "n_supported_removed": 1,
+          "n_unsupported_kill": 1,
+          "n_update_inserted": 2,
+          "state_valid": true
+        },
+        "state_groups": 122,
+        "segments_per_group": 8,
+        "contiguous_events": 40,
+        "bridge_events": {
+          "collision": 11,
+          "shape": 11,
+          "child_killed": 2,
+          "link_broken": 1,
+          "repair_task": 1,
+          "update_inserted": 2,
+          "segment_update": 5,
+          "unsupported_kill": 1,
+          "supported_removed": 1,
+          "fall": 4,
+          "landed": 1
+        },
+        "trusted_reports": 3,
+        "before": {
+          "alive": 1,
+          "at": 5.0999956130981,
+          "breaks": 0,
+          "bridge": 0,
+          "end": 246,
+          "event": "cmb-bridge-state",
+          "repair_tasks": 0,
+          "routed_alive": 454,
+          "scope": "bridge:before",
+          "segments": 8,
+          "start": 240,
+          "sub_type": 5
+        },
+        "immediate_after": {
+          "alive": 0,
+          "at": 5.0999956130981,
+          "breaks": 1,
+          "bridge": 0,
+          "end": 246,
+          "event": "cmb-bridge-state",
+          "repair_tasks": 1,
+          "routed_alive": 454,
+          "scope": "bridge:after",
+          "segments": 8,
+          "start": 240,
+          "sub_type": 5
+        },
+        "final": {
+          "alive": 0,
+          "at": 17.099931716919,
+          "breaks": 1,
+          "bridge": 0,
+          "end": 246,
+          "event": "cmb-bridge-state",
+          "repair_tasks": 1,
+          "routed_alive": 454,
+          "scope": "frame:120:state",
+          "segments": 8,
+          "start": 240,
+          "sub_type": 5
+        },
+        "scope": "Original native bridge characterization only; not weapon-hit, alternate-host authority or fullpack acceptance"
+      },
+      "post_inputs_exit": 0,
+      "post_input_log": "R:\\d2-evidence\\combat-characterization-20261028\\root-bridge-original-lebanon-repeat-01-post-inputs.log"
+    }
+  ],
+  "complete_raw_pair_identical": true,
+  "complete_raw_bytes": 320598,
+  "complete_raw_sha256": "d4c198afc3be5d5bb03f6c5b25800351c37700cf2cd0c0f5cbeda802ebafc6c3",
+  "auditor_script": "R:\\d2-evidence\\combat-characterization-20261028\\audit-original-bridge.py",
+  "auditor_sha256": "694193f476a5156d9ba5ab9e5bb683be1840a2d68daeb4b2bf66edda21d0308a",
+  "auditor_controls": {
+    "when_utc": "2026-10-28T10:56:25.808565+00:00",
+    "scope": "New originalbridge artifact auditor genuine valid and corrupted-artifact controls; no campaign/physics/baseline mutation",
+    "results": [
+      {
+        "name": "valid_original",
+        "actual_exit": 0,
+        "expected_exit": 0,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\valid_original-audit.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\valid_original.log"
+      },
+      {
+        "name": "missing_segment",
+        "actual_exit": 1,
+        "expected_exit": 1,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\missing_segment-audit.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\missing_segment.log"
+      },
+      {
+        "name": "duplicate_state",
+        "actual_exit": 1,
+        "expected_exit": 1,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\duplicate_state-audit.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\duplicate_state.log"
+      },
+      {
+        "name": "wrong_sequence",
+        "actual_exit": 1,
+        "expected_exit": 1,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\wrong_sequence-audit.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\wrong_sequence.log"
+      },
+      {
+        "name": "false_landing",
+        "actual_exit": 1,
+        "expected_exit": 1,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\false_landing-audit.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\false_landing.log"
+      },
+      {
+        "name": "unknown_event",
+        "actual_exit": 1,
+        "expected_exit": 1,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\unknown_event-audit.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\unknown_event.log"
+      },
+      {
+        "name": "unbounded_census",
+        "actual_exit": 1,
+        "expected_exit": 1,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\unbounded_census-audit.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\unbounded_census.log"
+      },
+      {
+        "name": "malformed_json",
+        "actual_exit": 1,
+        "expected_exit": 1,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\malformed_json-audit.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-controls\\malformed_json.log"
+      }
+    ],
+    "all_expected": true
+  },
+  "reached": "Actual118bridge survey,selectedbridge0/8segments/122state groups,firstcollapse from declared directstructuralfailure;40contiguous events,unsupportedkill1,childkills2,routebreak1,repairtask1,updateinsert2,fall4,land1,supportedremove1,shape11,collision11;all3reports trusted,finalno pendingupdate. Repairtasks0->1; routedalive454unchanged. Allcountsfrom actualraw/state, notdone alone.",
+  "limits": [
+    "Declared direct structural failure, not weaponhit or host-owned bridge physics proof.",
+    "Only one actually reached bridge/type/height on Lebanon; Georgia freshroot remains unused, no coverage invented.",
+    "No player/MP/client,occupied-vehicle kill/stopping or arbitrarybridge data cases claimed.",
+    "12s does not universally guarantee landing; landing was actually observed in this case.",
+    "No Tacview/fullpack/shipping/wholeD2 acceptance from this diagnostic."
+  ],
+  "remaining": "Independentfocused helper correction closure before R5 implementation; native pair facts andimpact900 accepted by independentcombinedreview0a5b41...",
+  "auditor_phase_fix": {
+    "when_utc": "2026-10-28T11:08:41.108820+00:00",
+    "scope": "Focused NEW auditor phase/time/bounded-read correction; native originals/runrecords/baseline unchanged, no native rerun",
+    "before_red": "root-original-bridge-auditor-phase-red.json",
+    "after_helper": "R:\\d2-evidence\\combat-characterization-20261028\\audit-original-bridge.py",
+    "after_sha256": "694193f476a5156d9ba5ab9e5bb683be1840a2d68daeb4b2bf66edda21d0308a",
+    "controls": [
+      {
+        "name": "moved_disarm",
+        "actual_exit": 1,
+        "expected_exit": 1,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\moved_disarm-green.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\moved_disarm-green.log"
+      },
+      {
+        "name": "relabeled_frame_logs",
+        "actual_exit": 1,
+        "expected_exit": 1,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\relabeled_frame_logs-green.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\relabeled_frame_logs-green.log"
+      },
+      {
+        "name": "wrong_frame_time",
+        "actual_exit": 1,
+        "expected_exit": 1,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\wrong_frame_time-green.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\wrong_frame_time-green.log"
+      },
+      {
+        "name": "misplaced_before_report",
+        "actual_exit": 1,
+        "expected_exit": 1,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\misplaced_before_report-green.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\misplaced_before_report-green.log"
+      },
+      {
+        "name": "premature_case_marker",
+        "actual_exit": 1,
+        "expected_exit": 1,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\premature_case_marker-green.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\premature_case_marker-green.log"
+      },
+      {
+        "name": "valid_original",
+        "actual_exit": 0,
+        "expected_exit": 0,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\valid_original-regression.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\valid_original-regression.log"
+      },
+      {
+        "name": "missing_segment",
+        "actual_exit": 1,
+        "expected_exit": 1,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\missing_segment-regression.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\missing_segment-regression.log"
+      },
+      {
+        "name": "duplicate_state",
+        "actual_exit": 1,
+        "expected_exit": 1,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\duplicate_state-regression.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\duplicate_state-regression.log"
+      },
+      {
+        "name": "wrong_sequence",
+        "actual_exit": 1,
+        "expected_exit": 1,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\wrong_sequence-regression.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\wrong_sequence-regression.log"
+      },
+      {
+        "name": "false_landing",
+        "actual_exit": 1,
+        "expected_exit": 1,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\false_landing-regression.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\false_landing-regression.log"
+      },
+      {
+        "name": "unknown_event",
+        "actual_exit": 1,
+        "expected_exit": 1,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\unknown_event-regression.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\unknown_event-regression.log"
+      },
+      {
+        "name": "unbounded_census",
+        "actual_exit": 1,
+        "expected_exit": 1,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\unbounded_census-regression.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\unbounded_census-regression.log"
+      },
+      {
+        "name": "malformed_json",
+        "actual_exit": 1,
+        "expected_exit": 1,
+        "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\malformed_json-regression.json",
+        "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\malformed_json-regression.log"
+      }
+    ],
+    "all_expected": true,
+    "original_and_repeat_final_audit_exit": 0,
+    "remaining": "Independentfocused helper correction review"
+  },
+  "prior_auditor_P2": "Scope/time ordering gap recorded by independentreview0a5b41...; current native facts independently verified; original evidence unchanged"
+}

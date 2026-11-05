@@ -1,0 +1,57 @@
+NATIVE_PACK_CWD=R:\d2-evidence
+retained tier: artifacts, checkers, reproduction and sensitivity (no retail data) ...
+running the regression (Georgia, Lebanon) and the reference (Lebanon twice) for 3 simulated hours each ...
+PASS - directly protected                     M1.georgia.mechanics
+FAIL - differs from the baseline              M1.georgia.war  [UNCLASSIFIED]
+PASS - directly protected                     M1.lebanon.mechanics
+PASS - directly protected                     M1.lebanon.resupply
+FAIL - differs from the baseline              M1.lebanon.war  [UNCLASSIFIED]
+PASS - directly protected                     M1.lifecycle.one_boot
+PASS - directly protected                     M1.lifecycle.bad_arguments
+PASS - directly protected                     M1.lifecycle.rejected_root
+PASS - directly protected                     M1.lifecycle.fatal_error
+PASS - directly protected                     M1.lifecycle.no_reuse
+PASS - directly protected                     M1.lifecycle.missing_map_crash
+NOT COVERED                                   M1.lifecycle.unverified
+PASS - directly protected                     M1.corrections.S3
+FAIL - differs from the baseline              M1.corrections.S2_removed  [UNCLASSIFIED]
+FAIL - differs from the baseline              M1.corrections.S1  [UNCLASSIFIED]
+FAIL - differs from the baseline              M1.corrections.portability  [UNCLASSIFIED]
+FAIL - differs from the baseline              M1.corrections.load_time_data  [UNCLASSIFIED]
+EVIDENCE ONLY - not automatically checked     M1.corrections.W1
+NOT COVERED                                   M1.corrections.N3
+NOT COVERED                                   M1.corrections.N1_N2
+EVIDENCE ONLY - not automatically checked     M1.corrections.H1
+NOT COVERED                                   M1.corrections.U1
+EVIDENCE ONLY - not automatically checked     M1.corrections.F1
+EVIDENCE ONLY - not automatically checked     M1.corrections.compile_only
+EVIDENCE ONLY - not automatically checked     M1.rebuild
+EVIDENCE ONLY - not automatically checked     M1.kernel
+NOT COVERED                                   M1.longer_runs
+PASS - directly protected                     M2.inputs
+PASS - directly protected                     M2.repeatable
+FAIL - directly protected                     M2.tacview_observations  [UNCLASSIFIED]
+PASS - directly protected                     M2.unperturbed
+FAIL - differs from the baseline              M2.reference_reproduced  [UNCLASSIFIED]
+FAIL - differs from the baseline              M2.fidelity_characterised  [UNCLASSIFIED]
+EVIDENCE ONLY - not automatically checked     M2.plain_observations
+NOT COVERED                                   M2.captures
+NOT COVERED                                   M2.tacview_visual
+FAIL - directly protected                     M3.resupply_loop  [UNCLASSIFIED]
+FAIL - differs from the baseline              M3.resupply_reproduced  [UNCLASSIFIED]
+FAIL - differs from the baseline              M3.feedback  [UNCLASSIFIED]
+FAIL - differs from the baseline              M3.duplicate_crate  [UNCLASSIFIED]
+PASS - directly protected                     M3.supply_loss
+PASS - baseline-sensitive                     M3.supply_loss_reproduced
+NOT COVERED                                   M3.adaptive_compensation
+EVIDENCE ONLY - not automatically checked     M3.chdir
+PASS - directly protected                     M4.s3_detected
+FAIL: regress.georgia.exact: not identical; tolerance mode: IDENTICAL to the baseline
+FAIL: regress.lebanon.exact: not identical; tolerance mode: IDENTICAL to the baseline
+FAIL: reference.observation_check: run 1: observation check FAIL (run1\check.json); run 2: observation check FAIL (run2\check.json)
+FAIL: reference.baseline: 
+FAIL: reference.supply_chains: no result
+FAIL: retained.check_report: ../../candidate-pack-sensing-a2a041fec/reference/run1/check.json was not written
+FAIL: retained.chains_report: ../../candidate-pack-sensing-a2a041fec/reference/run1/chains.json was not written
+EVIDENCE ONLY - not automatically checked: 8; FAIL - differs from the baseline: 11; FAIL - directly protected: 2; NOT COVERED: 8; PASS - baseline-sensitive: 1; PASS - directly protected: 15
+REGRESSION PACK: FAIL - UNCLASSIFIED: no change record for this build (tools/baseline-governance.py propose) (report: candidate-pack-sensing-a2a041fec\report.md)

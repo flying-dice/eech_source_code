@@ -1,0 +1,42 @@
+{
+  "actual_exit": 0,
+  "kind": "Separate read-only assessment; original aggregate1/raws/controller unchanged",
+  "when_utc": "2026-10-29T23:06:02.015886+00:00",
+  "original_aggregate_exit": 1,
+  "original_aggregate_error": "Root controller expected log phrase malformed model report; actual driver reports report refused. Both native processes already refused the requested invalid response correctly.",
+  "controller_sha256": "1e17954bd5cb5416acc69a31fcb0b4464875ea776b560c7c8bd9b1df324b4c4b",
+  "script_sha256": "e1e0908c094503ec81e93371e8807b51143ecd9135dce7ab0c17e774b2a52509",
+  "driver_sha256": "ffba01750612790d6268e8626e83bbd48179194f51a62138ef3f9ecd42051db9",
+  "results": [
+    {
+      "case": "missing_triangles",
+      "actual_native_exit": 1,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "done_present": false,
+      "terminal": {
+        "event": "report-refused",
+        "reason": "original_false without an original call that returned false at that depth",
+        "what": "geometry scene 8 depth 0"
+      },
+      "raw_sha256": "fa606c876c94f621a5b8235ddbe28e254451eb245bf8d5e4d88d0dd472b83e25",
+      "log_sha256": "8725f460086cb221d03b8f9a6bff9cac331cd93d7c160ade7854a02af42a357d"
+    },
+    {
+      "case": "duplicate_catalogue_id",
+      "actual_native_exit": 1,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "done_present": false,
+      "terminal": {
+        "event": "report-refused",
+        "reason": "scene row 1: wrong or out-of-order scene identity 2",
+        "what": "catalogue page 1"
+      },
+      "raw_sha256": "b0c06989f34f4da078f479664ba33da1485fefd20997ff668ee7ff10369ad4f0",
+      "log_sha256": "7955f82abe17e4890c6c7e4c7d0943a666b0ed9c0fa041264d0ad994630a2571"
+    }
+  ],
+  "payloads_unchanged": true,
+  "limits": "Working-driver hash only; no new native DLL build or final source/test review. Failed drivers exit before a final model-state snapshot; model-state equality is proven by the separate healthy new-driver native run, not claimed for these refusals."
+}

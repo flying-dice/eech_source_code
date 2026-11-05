@@ -1,0 +1,19 @@
+{
+  "when_utc": "2026-10-28T05:51:49.994316+00:00",
+  "review": "independent-controlled-sites-runtime-review-20261028.json",
+  "P3": "Limit target exclusion to area-blast walk, retain observed direct collision. Raw traces/measurements unchanged. No runtime/source re-review needed.",
+  "proofs": [
+    {
+      "proof": "R:\\d2-evidence\\combat-characterization-20261028\\root-controlled-site-01-completion.json",
+      "before_copy": "R:\\d2-evidence\\combat-characterization-20261028\\proof-history\\root-controlled-site-01-completion-before-P3-wording.json",
+      "before_sha256": "46df109ffdb2d12869221cbdc1d795e82e16fd41483e260724646e421cec0739",
+      "after_sha256": "1a8da8865497cfc6e6f5f0b877131bbaa0dcafbd4b7b84f200c8e81421752551"
+    },
+    {
+      "proof": "R:\\d2-evidence\\combat-characterization-20261028\\root-controlled-site-updatable-01-completion.json",
+      "before_copy": "R:\\d2-evidence\\combat-characterization-20261028\\proof-history\\root-controlled-site-updatable-01-completion-before-P3-wording.json",
+      "before_sha256": "d305e01b4ca616289c2f4bb724b78eaee3176036362139c4214593f74162b5c5",
+      "after_sha256": "96f580e2a5595d1d1219e230d3fcef7db1f28f0fdac11866d80fa37dff467237"
+    }
+  ]
+}

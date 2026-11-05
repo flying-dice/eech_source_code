@@ -1,0 +1,108 @@
+{
+  "corrected_checker_source": "d30e153e9116bcfbfa816c5752ef2492360ac33a",
+  "actual_original_capture_source": "a6cf70b672a6dab771048cc676e230b22ffa0972",
+  "windows_Lua_runtime_binary_source": "a6cf70b672a6dab771048cc676e230b22ffa0972",
+  "created_utc": "2026-11-01T22:57:45.362068+00:00",
+  "corrected_driver_sha256": "a927f954fe6cefa070b41ddc4fdda888f1ad7b66af926ceda0c4b7e7e52012dc",
+  "runtime_exe_sha256": "b3b198267aca6af085dfbbfc32ceedc99cd73b36e9ad38458038befb75534fb9",
+  "results": [
+    {
+      "case": "georgia-positive",
+      "actual_exit": 0,
+      "expected_checker_success": true,
+      "wrapper_sha256": "11366fd3293365ce9be842ee69df7976291abcdd24cb4fee86da81f6373b7388",
+      "log_sha256": "d1967b92bfe1f4cc0ae9edf3d56be519afb3694887a250d37444777b6d520069",
+      "raw_original_report_sha256": "d8bae4ece090569002ac590d8fadfcb64c838c4a325762ced94a6b54b6da4b06"
+    },
+    {
+      "case": "lebanon-positive",
+      "actual_exit": 0,
+      "expected_checker_success": true,
+      "wrapper_sha256": "d363f52fa51a49c966eabc1cf6ca4ad7661b663a6ec28d6f176e385a0689e435",
+      "log_sha256": "d1967b92bfe1f4cc0ae9edf3d56be519afb3694887a250d37444777b6d520069",
+      "raw_original_report_sha256": "5151f579bedefd38a7db4ca2d313f922163e8079cfdf8121b39af0fe1986cbae"
+    },
+    {
+      "case": "before-missing",
+      "actual_exit": 0,
+      "expected_checker_success": false,
+      "wrapper_sha256": "b0a1602a804fb0156851cdb34ae73c56d5e9e16f5dcc7834f2a0b9c3b411c627",
+      "log_sha256": "8108fe75e86860a3e6c033594707136876351589bdbc43a4f4262af63655f269",
+      "raw_original_report_sha256": "5151f579bedefd38a7db4ca2d313f922163e8079cfdf8121b39af0fe1986cbae"
+    },
+    {
+      "case": "before-nan",
+      "actual_exit": 0,
+      "expected_checker_success": false,
+      "wrapper_sha256": "cf64cd810262a91f70c21fe290fed5333798f4c7a339a73c801aad03d171ccc7",
+      "log_sha256": "8108fe75e86860a3e6c033594707136876351589bdbc43a4f4262af63655f269",
+      "raw_original_report_sha256": "5151f579bedefd38a7db4ca2d313f922163e8079cfdf8121b39af0fe1986cbae"
+    },
+    {
+      "case": "before-infinite",
+      "actual_exit": 0,
+      "expected_checker_success": false,
+      "wrapper_sha256": "5d9b2fca4832e76fa2e6048809a4cf3c7695d9d55e216d96744667606f0dca35",
+      "log_sha256": "8108fe75e86860a3e6c033594707136876351589bdbc43a4f4262af63655f269",
+      "raw_original_report_sha256": "5151f579bedefd38a7db4ca2d313f922163e8079cfdf8121b39af0fe1986cbae"
+    },
+    {
+      "case": "before-huge",
+      "actual_exit": 0,
+      "expected_checker_success": false,
+      "wrapper_sha256": "e5398b76082537000e8ee94f28c99450d4952cf233d78ac103f352d9219204ff",
+      "log_sha256": "8108fe75e86860a3e6c033594707136876351589bdbc43a4f4262af63655f269",
+      "raw_original_report_sha256": "5151f579bedefd38a7db4ca2d313f922163e8079cfdf8121b39af0fe1986cbae"
+    },
+    {
+      "case": "before-fractional",
+      "actual_exit": 0,
+      "expected_checker_success": false,
+      "wrapper_sha256": "ee89d34789028afddaa028545565a63f34862f6354f5bf7e429699af221d451d",
+      "log_sha256": "8108fe75e86860a3e6c033594707136876351589bdbc43a4f4262af63655f269",
+      "raw_original_report_sha256": "5151f579bedefd38a7db4ca2d313f922163e8079cfdf8121b39af0fe1986cbae"
+    },
+    {
+      "case": "after-missing",
+      "actual_exit": 0,
+      "expected_checker_success": false,
+      "wrapper_sha256": "a46bd4d03c09e89a6f4aa80dc8f732368d4e65803cc056e5a1974fb9ad477c18",
+      "log_sha256": "5fac5842355d5e327ae5024dd8cf76465b784a0f32e48b59685d9bd204f58337",
+      "raw_original_report_sha256": "5151f579bedefd38a7db4ca2d313f922163e8079cfdf8121b39af0fe1986cbae"
+    },
+    {
+      "case": "after-nan",
+      "actual_exit": 0,
+      "expected_checker_success": false,
+      "wrapper_sha256": "d629ebe24545bad6e98a5c7fdbb56606d29ebe8d4a6b7f2f68584c222ddaba82",
+      "log_sha256": "5fac5842355d5e327ae5024dd8cf76465b784a0f32e48b59685d9bd204f58337",
+      "raw_original_report_sha256": "5151f579bedefd38a7db4ca2d313f922163e8079cfdf8121b39af0fe1986cbae"
+    },
+    {
+      "case": "after-infinite",
+      "actual_exit": 0,
+      "expected_checker_success": false,
+      "wrapper_sha256": "00d66a6160ad42156c6dba737a37456fdc9281556b865dc9539d2e6b1d47cb1f",
+      "log_sha256": "5fac5842355d5e327ae5024dd8cf76465b784a0f32e48b59685d9bd204f58337",
+      "raw_original_report_sha256": "5151f579bedefd38a7db4ca2d313f922163e8079cfdf8121b39af0fe1986cbae"
+    },
+    {
+      "case": "after-huge",
+      "actual_exit": 0,
+      "expected_checker_success": false,
+      "wrapper_sha256": "c88c97395eb0d2c4b2973b7cbf71cc04eeff06af4af3145f7338e6193a07c24f",
+      "log_sha256": "5fac5842355d5e327ae5024dd8cf76465b784a0f32e48b59685d9bd204f58337",
+      "raw_original_report_sha256": "5151f579bedefd38a7db4ca2d313f922163e8079cfdf8121b39af0fe1986cbae"
+    },
+    {
+      "case": "after-fractional",
+      "actual_exit": 0,
+      "expected_checker_success": false,
+      "wrapper_sha256": "b00c4355a30d1c850db90680bf86dbfcb5fb74a603d83d348d9e581701459b23",
+      "log_sha256": "5fac5842355d5e327ae5024dd8cf76465b784a0f32e48b59685d9bd204f58337",
+      "raw_original_report_sha256": "5151f579bedefd38a7db4ca2d313f922163e8079cfdf8121b39af0fe1986cbae"
+    }
+  ],
+  "actual_exit": 0,
+  "scope": "Windows real host Lua evaluator, corrected checker over retained actual32pages/clock with a stand-in engine; positiveG/L and missing/NaN/Inf/huge/fractional day before/after. No retail campaign boot, new physical/native characterization or enabled-trap/fullFP equivalence. Native capture identities remain a6; Root wrappers do not modify roots/binaries/raws."
+}

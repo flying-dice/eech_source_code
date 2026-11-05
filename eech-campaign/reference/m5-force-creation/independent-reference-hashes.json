@@ -1,0 +1,63 @@
+{
+  "checked_at": "2026-10-22T22:39:39.779911+00:00",
+  "complete_files": true,
+  "pack_exit": 0,
+  "pack_checks_passed": 40,
+  "native_head": "5aa6ca5492aec719c228ffdb21bf624f929b5e4e",
+  "passed": true,
+  "note": "Complete Tacview compared with reference/lebanon-3h/recording.zip.acmi; observations with the accepted supply-detail reference/m3-resupply-loop/observations.jsonl.gz. Metrics compared as JSON values; normalized-byte equality is reported separately. No baseline was modified. An initial prefix check used the older lebanon-3h observation format; its mismatch was a verifier-input correction, not a candidate change.",
+  "results": [
+    {
+      "run": "run1",
+      "file": "recording.acmi",
+      "bytes": 117690861,
+      "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b",
+      "retained_bytes": 117690861,
+      "retained_sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b",
+      "matches_retained_bytes": true
+    },
+    {
+      "run": "run1",
+      "file": "observations.jsonl",
+      "bytes": 85716447,
+      "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf",
+      "retained_bytes": 85716447,
+      "retained_sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf",
+      "matches_retained_bytes": true
+    },
+    {
+      "run": "run1",
+      "file": "metrics.json",
+      "bytes": 35942,
+      "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587",
+      "matches_retained_json_values": true,
+      "matches_after_crlf_normalization": true
+    },
+    {
+      "run": "run2",
+      "file": "recording.acmi",
+      "bytes": 117690861,
+      "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b",
+      "retained_bytes": 117690861,
+      "retained_sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b",
+      "matches_retained_bytes": true
+    },
+    {
+      "run": "run2",
+      "file": "observations.jsonl",
+      "bytes": 85716447,
+      "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf",
+      "retained_bytes": 85716447,
+      "retained_sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf",
+      "matches_retained_bytes": true
+    },
+    {
+      "run": "run2",
+      "file": "metrics.json",
+      "bytes": 35942,
+      "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587",
+      "matches_retained_json_values": true,
+      "matches_after_crlf_normalization": true
+    }
+  ]
+}

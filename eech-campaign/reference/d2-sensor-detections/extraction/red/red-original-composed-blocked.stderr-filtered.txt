@@ -1,0 +1,1 @@
+sense-provider: mode=blocked begin=0 candidate=0 draw=0 signature=0 end=0 accept=0 reject=0 weapon_births=185 losses=6 failure=none

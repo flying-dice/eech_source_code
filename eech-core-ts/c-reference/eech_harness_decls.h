@@ -57,4 +57,11 @@ extern float get_approx_2d_range (const vec3d *v1, const vec3d *v2);
 
 extern void assess_group_supplies (entity *en);
 
+/* en_heap.c's set_free_entity releases arrival state through guide.h's hook. This
+   harness never compiles gd_supply_arrival.c, the only owner of that state, so it has
+   nothing to release: the same no-op guide.h gives builds without EECH_CAMPAIGN_HOST_ARRIVALS. */
+#ifndef campaign_supply_arrival_release_entity
+#define campaign_supply_arrival_release_entity(ENTITY) ((void) 0)
+#endif
+
 #endif

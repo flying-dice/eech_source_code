@@ -65,6 +65,16 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "project.h"
+#include "entity/special/session/ss_envfx.h"
+
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+#include <string.h>
+
+#include "entity/special/session/ss_hostenv.h"
+
+#endif
+
 #include "ai/taskgen/assign.h"
 #include "entity/tacview/tacview.h"
 
@@ -1484,6 +1494,178 @@ void kill_helicopter_rotor_sound_effects (entity *en)
 #define HELICOPTER_ROTOR_SOUNDS_LOOPING_MAX_RPM_VALUE	45
 #define HELICOPTER_ROTOR_SOUNDS_LOOPING_MIN_RPM_VALUE	30
 
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+//
+// EECH_CAMPAIGN_HOST_ENV (EEDCS-51, D3): the ACOUSTICS of this helicopter's rotor, turbines and APU -- every level and pitch, and the CHOICE and order of the pause and resume requests -- are the HOST's
+// (aphavoc/source/entity/special/session/ss_hostenv.h ROTOR_SOUND).  This campaign hands over what the original read (the stored main rotor rpm, the player kind as a role, whether a flight model is current and,
+// when it is, its acceleration vector, and the three engine rpm only for the local player), makes the requests in the order the host answers, walks the children as before and writes the levels the host
+// answers.  The reads, the calls of the pause and resume helpers, the walk, the sub type match and the writes stay the campaign's; the host's answer is checked whole before any of it happens.  The probe
+// hooks are the original's, at the same points.  The original follows in the #else, for the original game's build only.
+//
+
+void update_local_helicopter_rotor_sounds (entity *en)
+{
+	helicopter
+		*raw;
+
+	campaign_rotor_sound
+		sound;
+
+	entity
+		*spec;
+
+	dynamics_type
+		*fd;
+
+	int
+		player,
+		have_flight_model,
+		position;
+
+	float
+		acceleration [3],
+		left_rpm,
+		right_rpm,
+		apu_rpm;
+
+	ASSERT (en);
+
+	raw = (helicopter *) get_local_entity_data (en);
+
+	ENV_FXR (ENV_FXR_ENTER, en, 0, 0, 0)
+
+	fd = get_current_flight_dynamics ();
+
+	have_flight_model = (fd != NULL);
+
+	if (get_local_entity_int_value (en, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI)
+	{
+		player = CAMPAIGN_ROTOR_PLAYER_AI;
+	}
+	else if (get_local_entity_int_value (en, INT_TYPE_PLAYER) == ENTITY_PLAYER_LOCAL)
+	{
+		player = CAMPAIGN_ROTOR_PLAYER_LOCAL;
+	}
+	else
+	{
+		player = CAMPAIGN_ROTOR_PLAYER_REMOTE;
+	}
+
+	acceleration [0] = 0.0f;
+	acceleration [1] = 0.0f;
+	acceleration [2] = 0.0f;
+	left_rpm = 0.0f;
+	right_rpm = 0.0f;
+	apu_rpm = 0.0f;
+
+	if (have_flight_model)
+	{
+		// the original uses the acceleration for EVERY player kind, and the engine rpm only for the local one
+		acceleration [0] = fd->model_acceleration_vector.x;
+		acceleration [1] = fd->model_acceleration_vector.y;
+		acceleration [2] = fd->model_acceleration_vector.z;
+
+		if (player == CAMPAIGN_ROTOR_PLAYER_LOCAL)
+		{
+			left_rpm = fd->left_engine_n1_rpm.value;
+			right_rpm = fd->right_engine_n1_rpm.value;
+			apu_rpm = fd->apu_rpm.value;
+		}
+	}
+
+	campaign_rotor_sound_ask (player, raw->main_rotor_rpm, have_flight_model, acceleration, left_rpm, right_rpm, apu_rpm, &sound);
+
+	//
+	// the requests, in the host's order (the answer holds only those the original makes for this role)
+	//
+
+	for (position = 0; position < sound.action_count; position ++)
+	{
+		entity_sub_types
+			sub_type;
+
+		unsigned int
+			delay_bits;
+
+		switch (sound.action_channel [position])
+		{
+		case CAMPAIGN_ROTOR_CHANNEL_LOOPING:	sub_type = ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_LOOPING;	break;
+		case CAMPAIGN_ROTOR_CHANNEL_SLAP:		sub_type = ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_SLAP;	break;
+		case CAMPAIGN_ROTOR_CHANNEL_TURBINE1:	sub_type = ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE1;	break;
+		case CAMPAIGN_ROTOR_CHANNEL_TURBINE2:	sub_type = ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE2;	break;
+		default:								sub_type = ENTITY_SUB_TYPE_EFFECT_SOUND_APU_TURBINE;	break;
+		}
+
+		// the probe records the delay as the very bits the host answered (the word of zero for the original's literal 0.0)
+		memcpy (&delay_bits, &sound.action_delay [position], sizeof (delay_bits));
+
+		ENV_FXR (ENV_FXR_ACTION, en, sound.action_resume [position], sub_type, delay_bits)
+
+		if (sound.action_resume [position])
+		{
+			resume_local_entity_sound_type (en, sub_type);
+		}
+		else
+		{
+			pause_local_entity_sound_type (en, sub_type, sound.action_delay [position]);
+		}
+	}
+
+	//
+	// set sound effect amplification
+	//
+
+	spec = get_local_entity_first_child (en, LIST_TYPE_SPECIAL_EFFECT);
+
+	while (spec)
+	{
+		ENV_FXR (ENV_FXR_CHILD, spec, 0, 0, 0)
+
+		if (spec->type == ENTITY_TYPE_SOUND_EFFECT)
+		{
+			int
+				channel;
+
+			switch (get_local_entity_int_value (spec, INT_TYPE_ENTITY_SUB_TYPE))
+			{
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_LOOPING:	channel = CAMPAIGN_ROTOR_CHANNEL_LOOPING;	break;
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE1:	channel = CAMPAIGN_ROTOR_CHANNEL_TURBINE1;	break;
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE2:	channel = CAMPAIGN_ROTOR_CHANNEL_TURBINE2;	break;
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_APU_TURBINE:		channel = CAMPAIGN_ROTOR_CHANNEL_APU;		break;
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_SLAP:		channel = CAMPAIGN_ROTOR_CHANNEL_SLAP;		break;
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_WIND_UP1:
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_WIND_UP2:
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_WIND_DOWN1:
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_WIND_DOWN2:	channel = CAMPAIGN_ROTOR_CHANNEL_WINDING;	break;
+			default:											channel = -1;								break;
+			}
+
+			// a sub type the original does not handle is not written
+			if (channel >= 0)
+			{
+				if (sound.write [channel] & CAMPAIGN_ROTOR_WRITE_AMPLIFICATION)
+				{
+					set_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION, sound.amplification [channel]);
+				}
+
+				if (sound.write [channel] & CAMPAIGN_ROTOR_WRITE_PITCH)
+				{
+					set_local_entity_float_value (spec, FLOAT_TYPE_SOUNDPITCH, sound.pitch [channel]);
+				}
+			}
+
+			ENV_FXR (ENV_FXR_CHILD_AFTER, spec, 0, 0, 0)
+		}
+
+		spec = get_local_entity_child_succ (spec, LIST_TYPE_SPECIAL_EFFECT);
+	}
+
+	ENV_FXR (ENV_FXR_EXIT, en, 0, 0, 0)
+}
+
+#else
+
 void update_local_helicopter_rotor_sounds (entity *en)
 {
 	helicopter
@@ -1506,6 +1688,8 @@ void update_local_helicopter_rotor_sounds (entity *en)
 	ASSERT (en);
 
 	raw = (helicopter *) get_local_entity_data (en);
+
+	ENV_FXR (ENV_FXR_ENTER, en, 0, 0, 0)
 
 	if (raw->main_rotor_rpm >= HELICOPTER_ROTOR_SOUNDS_LOOPING_MAX_RPM_VALUE)
 	{
@@ -1565,9 +1749,15 @@ void update_local_helicopter_rotor_sounds (entity *en)
 		left_turbine_amp = 0.2 + bound((lrpm - 20.0) * 0.01, 0.0, 0.4);
 
 		if (lrpm > 1)
+		{
+			ENV_FXR (ENV_FXR_ACTION, en, 1, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE1, 0)
 			resume_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE1);
+		}
 		else
+		{
+			ENV_FXR (ENV_FXR_ACTION, en, 0, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE1, 0)
 			pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE1, 0.0);
+		}
 
 		if (play_both_sounds)
 		{
@@ -1577,12 +1767,19 @@ void update_local_helicopter_rotor_sounds (entity *en)
 			right_turbine_amp = 0.2 + bound((rrpm - 40.0) * 0.02, 0.0, 0.4);
 
 			if (rrpm > 1)
+			{
+				ENV_FXR (ENV_FXR_ACTION, en, 1, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE2, 0)
 				resume_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE2);
+			}
 			else
+			{
+				ENV_FXR (ENV_FXR_ACTION, en, 0, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE2, 0)
 				pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE2, 0.0);
+			}
 		}
 		else
 		{
+			ENV_FXR (ENV_FXR_ACTION, en, 0, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE2, 0)
 			pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE2, 0.0);
 			left_turbine_amp *= 1.2;  // if only one sound is used for both engines, compensate by making it louder
 		}
@@ -1592,10 +1789,14 @@ void update_local_helicopter_rotor_sounds (entity *en)
 		{
 			apu_pitch = bound(apu_rpm * 0.02, 0.0, 2.0) + 0.2;
 			apu_amp = bound(apu_rpm * 0.01, 0.0, 0.25);
+			ENV_FXR (ENV_FXR_ACTION, en, 1, ENTITY_SUB_TYPE_EFFECT_SOUND_APU_TURBINE, 0)
 			resume_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_APU_TURBINE);
 		}
 		else
+		{
+			ENV_FXR (ENV_FXR_ACTION, en, 0, ENTITY_SUB_TYPE_EFFECT_SOUND_APU_TURBINE, 0)
 			pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_APU_TURBINE, 0.0);
+		}
 	}
 	else
 	{
@@ -1611,12 +1812,16 @@ void update_local_helicopter_rotor_sounds (entity *en)
 
 	if (looping_amp == 0.0)
 	{
+		ENV_FXR (ENV_FXR_ACTION, en, 0, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_LOOPING, 0)
 		pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_LOOPING, 0.0);
+		ENV_FXR (ENV_FXR_ACTION, en, 0, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_SLAP, 0)
 		pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_SLAP, 0.0);
 	}
 	else
 	{
+		ENV_FXR (ENV_FXR_ACTION, en, 1, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_LOOPING, 0)
 		resume_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_LOOPING);
+		ENV_FXR (ENV_FXR_ACTION, en, 1, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_SLAP, 0)
 		resume_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_SLAP);
 	}
 
@@ -1628,6 +1833,8 @@ void update_local_helicopter_rotor_sounds (entity *en)
 
 	while (spec)
 	{
+		ENV_FXR (ENV_FXR_CHILD, spec, 0, 0, 0)
+
 		if (spec->type == ENTITY_TYPE_SOUND_EFFECT)
 		{
 			switch (get_local_entity_int_value (spec, INT_TYPE_ENTITY_SUB_TYPE))
@@ -1661,11 +1868,17 @@ void update_local_helicopter_rotor_sounds (entity *en)
 				set_local_entity_float_value (spec, FLOAT_TYPE_SOUNDPITCH, looping_pitch);
 				break;
 			}
+
+			ENV_FXR (ENV_FXR_CHILD_AFTER, spec, 0, 0, 0)
 		}
 
 		spec = get_local_entity_child_succ (spec, LIST_TYPE_SPECIAL_EFFECT);
 	}
+
+	ENV_FXR (ENV_FXR_EXIT, en, 0, 0, 0)
 }
+
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2118,7 +2331,12 @@ void transmit_player_recon_data (entity *en)
 
 			recon_radius = get_local_entity_waypoint_database_action_radius_value (current_waypoint, en);
 
+#ifdef EECH_CAMPAIGN_HOST_ARRIVALS
+			/* The host decides whether the helicopter is strictly inside the recon radius. */
+			if (campaign_recon_reached (en, current_waypoint))
+#else
 			if (get_sqr_2d_range (wp_pos, en_pos) < (recon_radius * recon_radius))
+#endif
 			{
 				debug_log ("HELICOP: Transmitting recon data");
 

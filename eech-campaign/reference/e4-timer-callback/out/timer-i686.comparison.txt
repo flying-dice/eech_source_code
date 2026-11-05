@@ -1,0 +1,6 @@
+# timer.o, i686: red vs green
+disassembly: IDENTICAL (292 lines)
+address-normalised diff:
+(none)
+compiler commands differ only in paths:
+(identical)

@@ -1,0 +1,59 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-sys v0.1.0 (/src/eech-campaign/crates/eech-sys)
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+    Checking eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+error: used `expect()` on an `Option` value
+    --> crates/eech-engine/src/lib.rs:6722:22
+     |
+6722 |         let window = second.window.expect("the window crossed");
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is `None`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#expect_used
+     = note: requested on the command line with `-D clippy::expect-used`
+
+error: indexing may panic
+    --> crates/eech-dc/src/module.rs:2273:33
+     |
+2273 |         assert_eq!((echo.len(), echo[0].kind, echo[0].a, echo[0].b), (1, 11, 0, 3));
+     |                                 ^^^^^^^
+     |
+     = help: consider using `.get(n)` or `.get_mut(n)` instead
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#indexing_slicing
+     = note: requested on the command line with `-D clippy::indexing-slicing`
+
+error: indexing may panic
+    --> crates/eech-dc/src/module.rs:2273:47
+     |
+2273 |         assert_eq!((echo.len(), echo[0].kind, echo[0].a, echo[0].b), (1, 11, 0, 3));
+     |                                               ^^^^^^^
+     |
+     = help: consider using `.get(n)` or `.get_mut(n)` instead
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#indexing_slicing
+
+error: indexing may panic
+    --> crates/eech-dc/src/module.rs:2273:58
+     |
+2273 |         assert_eq!((echo.len(), echo[0].kind, echo[0].a, echo[0].b), (1, 11, 0, 3));
+     |                                                          ^^^^^^^
+     |
+     = help: consider using `.get(n)` or `.get_mut(n)` instead
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#indexing_slicing
+
+error: indexing may panic
+    --> crates/eech-dc/src/module.rs:2274:20
+     |
+2274 |         assert_eq!(echo[0].f[..3], [5.0, 20.0, 0.25]);
+     |                    ^^^^^^^
+     |
+     = help: consider using `.get(n)` or `.get_mut(n)` instead
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#indexing_slicing
+
+error: could not compile `eech-engine` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `eech-dc` (lib test) due to 4 previous errors
+CARGO_EXIT=101
+DOCKER_EXIT=101

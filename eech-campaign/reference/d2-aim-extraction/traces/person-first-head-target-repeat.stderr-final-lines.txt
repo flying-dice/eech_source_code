@@ -1,0 +1,2 @@
+mmon\graphics\ui\cohokum\map\barrwht.psd
+aim-person-case target: 0 failed checks, 60 host steps for the person

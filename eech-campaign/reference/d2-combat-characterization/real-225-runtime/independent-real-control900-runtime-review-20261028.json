@@ -1,0 +1,93 @@
+{
+  "review_utc": "2026-10-28T07:47:54.285664+00:00",
+  "reviewer": "single independent Codex /root/d2_los_review",
+  "scope": "NEW completed real225900 physical-output evidence only; no source review, tests, native or builds launched.",
+  "disposition": "No findings; focused900 physical-output proof closed.",
+  "source_sha": "225ff4abd886f188e63e83d5d3c3b688f26d1a86",
+  "frozen_source_clean": true,
+  "actual_native_exit": 0,
+  "native_pid": 22704,
+  "actual_original_controller50679_exit": 0,
+  "completion_process_evidence": "Original held-handle run.json and completion proof agree; actual controller exit observed by root tool transcript, not derived from artifact PASS.",
+  "completed_utc": "2026-10-28T07:45:56.5360832Z",
+  "run_record": {
+    "status": "completed",
+    "when_utc": "2026-10-28T07:09:31.2320660Z",
+    "binary": "R:\\d2-evidence\\combat-real-source-225ff4abd\\eech-campaign\\target\\weapon-fixture\\combat-real-225ff4abd\\eech-world.exe",
+    "arguments": "R:/d2-evidence/combat-real-source-225ff4abd/eech-campaign/target/weapon-fixture/combat-real-225ff4abd/lua/campaign.lua root=R:/d2-evidence/combat-characterization-20261028/roots/real-damage-control-01 scenario=lebanon_retail hours=0.25 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/combat-characterization-20261028/out/real-damage-control-01/recording.acmi observe=R:/d2-evidence/combat-characterization-20261028/out/real-damage-control-01/observations.jsonl metrics=R:/d2-evidence/combat-characterization-20261028/out/real-damage-control-01/metrics.json observe_supply=0",
+    "root": "R:/d2-evidence/combat-characterization-20261028/roots/real-damage-control-01",
+    "out": "R:/d2-evidence/combat-characterization-20261028/out/real-damage-control-01",
+    "kind": "Real-damage candidate physical-output control; comparison with retained original required, not combat census or fullpack acceptance",
+    "reference_provenance": "Retained ab-base root provenance inferred; no independent original input verification invented",
+    "capacity": "Lead permits seven native processes on eight physical cores, separated roots; one implementation lane",
+    "actual_native_exit": 0,
+    "native_pid": 22704,
+    "created_utc": "2026-10-28T07:09:31.2464526Z",
+    "completed_utc": "2026-10-28T07:45:56.5360832Z"
+  },
+  "raw_files": [
+    {
+      "file": "recording.acmi",
+      "bytes": 11363845,
+      "sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+      "independent_complete_byte_equality": true
+    },
+    {
+      "file": "observations.jsonl",
+      "bytes": 6629273,
+      "sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+      "independent_complete_byte_equality": true
+    },
+    {
+      "file": "metrics.json",
+      "bytes": 11777,
+      "sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+      "independent_complete_byte_equality": true
+    }
+  ],
+  "post_inputs": {
+    "files_independently_rehashed": 1179,
+    "bytes": 102239559,
+    "all_match": true,
+    "recorded_verifier_actual_exit": 0,
+    "combined_manifest_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09"
+  },
+  "post_exports": {
+    "files_independently_rehashed": 40,
+    "initial_post_records_equal": true,
+    "all_match": true,
+    "build_info_manifest_path": "R:\\d2-evidence\\combat-real-source-225ff4abd\\eech-campaign\\target\\weapon-fixture\\combat-real-225ff4abd\\BUILD-INFO.txt",
+    "build_info_manifest_sha256": "ca4525cdf197bfe166b3ee9f7d6b0151f3328c054e5bc75890028300e56c3599",
+    "recorded_verifier_actual_exit": 0
+  },
+  "proof_files": [
+    {
+      "file": "R:\\d2-evidence\\combat-characterization-20261028\\root-real-damage-control-01-completion.json",
+      "sha256": "db8ed920f87f92273d3520d9d4a96af8d4e00949fe70e3b02ac9f189392c0e96"
+    },
+    {
+      "file": "R:\\d2-evidence\\combat-characterization-20261028\\root-real-damage-control-01-complete-comparison.json",
+      "sha256": "b6e10da87a7c192f2c8634c8f3cd6cde6ea409bf57f357e43f62e05466c866e0"
+    },
+    {
+      "file": "R:\\d2-evidence\\combat-characterization-20261028\\root-real-damage-control-01-post-inputs.log",
+      "sha256": "581bd1d572a560e4fe08ff86dc92f7478a4c9763943a7814d5ed4aedaabc27d0"
+    },
+    {
+      "file": "R:\\d2-evidence\\combat-characterization-20261028\\root-real-damage-control-01-post-build.json",
+      "sha256": "9cac1809e5b9a6504edb50daec38260c1eb81db7a27e6b0239898864d4538bfe"
+    },
+    {
+      "file": "R:\\d2-evidence\\combat-characterization-20261028\\root-clean-real-225ff-fixture-manifest.json",
+      "sha256": "7d6df4b003459a32373e2f68d8ae929244adb3de71019253dce86d2295b2cad8"
+    }
+  ],
+  "run_log_completion_markers_present": true,
+  "limits": [
+    "Retained ab-base input-root provenance is inferred, not independently verified.",
+    "Complete three-file byte equality is not visual Tacview inspection.",
+    "Canonical campaign does not drain combat observer: no900 combat-event census/trust claim.",
+    "This closes only real-hit225 focused900; timed correction, further Task46 physical work and full40 delivery are separate gates."
+  ],
+  "preservation": "Reviewed original raw files/proofs without modification; wrote only this new independent record."
+}

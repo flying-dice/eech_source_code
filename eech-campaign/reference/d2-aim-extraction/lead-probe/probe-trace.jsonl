@@ -1,0 +1,25 @@
+{"event":"boot","mode":"all","scenario":"lebanon_retail","sentinel":-123.5,"warmup":20,"weapon":13}
+{"bound":3572,"elapsed":19.999887466431,"event":"warmed_up"}
+{"event":"chosen","source":"eech-world:1","target":"eech-world:143"}
+{"event":"probe","lead_requests":1,"report":"aim-lead-probe result=1 time_of_flight_bits=42587fa6 sentinel_bits=c2f70000 kept_sentinel=0 time_of_flight=54.1246567 angle=0.543848038","scenario":"reference"}
+{"detail":"1","event":"check","name":"reference: the host was asked at least one lead request (one logical solve; a random-draw handshake is two physical requests)","ok":true}
+{"detail":"54.124656677246","event":"check","name":"reference: the host produced a flight time","ok":true}
+{"detail":"","event":"check","name":"reference: the campaign returned the success","ok":true}
+{"detail":"caller 54.1246567 host 54.124656677246","event":"check","name":"reference: the sentinel was replaced by the host's flight time","ok":true}
+{"event":"probe","lead_requests":1,"report":"aim-lead-probe result=1 time_of_flight_bits=c2f70000 sentinel_bits=c2f70000 kept_sentinel=1 time_of_flight=-123.5 angle=0.0294474959","scenario":"off_map"}
+{"detail":"1","event":"check","name":"off_map: the host was asked at least one lead request (one logical solve; a random-draw handshake is two physical requests)","ok":true}
+{"detail":"ok=true time_of_flight=nil","event":"check","name":"off_map: the reference solver's off-map path succeeded and produced NO flight time (it invents none)","ok":true}
+{"detail":"result 1 caller -123.5","event":"check","name":"off_map: the campaign returned the success and KEPT the caller's sentinel","ok":true}
+{"event":"probe","lead_requests":1,"report":"aim-lead-probe result=1 time_of_flight_bits=41480000 sentinel_bits=c2f70000 kept_sentinel=0 time_of_flight=12.5 angle=0.25","scenario":"present"}
+{"detail":"1","event":"check","name":"present: the host was asked at least one lead request (one logical solve; a random-draw handshake is two physical requests)","ok":true}
+{"detail":"12.5","event":"check","name":"present: a produced flight time replaces the sentinel","ok":true}
+{"event":"probe","lead_requests":1,"report":"aim-lead-probe result=1 time_of_flight_bits=c2f70000 sentinel_bits=c2f70000 kept_sentinel=1 time_of_flight=-123.5 angle=0.25","scenario":"absent_ok"}
+{"detail":"1","event":"check","name":"absent_ok: the host was asked at least one lead request (one logical solve; a random-draw handshake is two physical requests)","ok":true}
+{"detail":"-123.5","event":"check","name":"absent_ok: success without a flight time keeps the sentinel","ok":true}
+{"event":"probe","lead_requests":1,"report":"aim-lead-probe result=0 time_of_flight_bits=c2f70000 sentinel_bits=c2f70000 kept_sentinel=1 time_of_flight=-123.5 angle=0.25","scenario":"absent_failed"}
+{"detail":"1","event":"check","name":"absent_failed: the host was asked at least one lead request (one logical solve; a random-draw handshake is two physical requests)","ok":true}
+{"detail":"-123.5","event":"check","name":"absent_failed: failure without a flight time keeps the sentinel","ok":true}
+{"event":"probe","lead_requests":1,"report":"aim-lead-probe result=0 time_of_flight_bits=40400000 sentinel_bits=c2f70000 kept_sentinel=0 time_of_flight=3 angle=0.25","scenario":"present_failed"}
+{"detail":"1","event":"check","name":"present_failed: the host was asked at least one lead request (one logical solve; a random-draw handshake is two physical requests)","ok":true}
+{"detail":"3","event":"check","name":"present_failed: a flight time produced before the failure is stored","ok":true}
+{"event":"verdict","failed":0,"mode":"all"}

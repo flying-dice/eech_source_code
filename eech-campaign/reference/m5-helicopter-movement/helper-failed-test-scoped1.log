@@ -1,0 +1,54 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.15s
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+error[E0109]: generic arguments are not allowed on local variable
+    --> crates/eech-engine/src/lib.rs:1492:46
+     |
+1492 | ...   let status = unsafe { move_vehicle::<_, _, _, _>(step, &mut result, error.as_mut_ptr(), error.len(), &mut context as *mut _ ...
+     |                             ------------   ^  ^  ^  ^ generic argument not allowed
+     |                             |
+     |                             not allowed on local variable
+
+error[E0057]: this function takes 1 argument but 5 arguments were supplied
+    --> crates/eech-engine/src/lib.rs:1492:31
+     |
+1492 | ...fe { move_vehicle::<_, _, _, _>(step, &mut result, error.as_mut_ptr(), error.len(), &mut context as *mut _ as *mut c_void) };
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^ ----  -----------  ------------------  -----------  ------------------------------------- unexpected argument #5 of type `*mut std::ffi::c_void`
+     |                                    |     |            |                   |
+     |                                    |     |            |                   unexpected argument #4 of type `usize`
+     |                                    |     |            unexpected argument #3 of type `*mut i8`
+     |                                    |     unexpected argument #2 of type `&mut eech_movement_result`
+     |                                    expected `MovementStep`, found `&eech_movement_step`
+     |
+note: closure defined here
+    --> crates/eech-engine/src/lib.rs:1472:32
+     |
+1472 |         let mut move_vehicle = |request: MovementStep| {
+     |                                ^^^^^^^^^^^^^^^^^^^^^^^
+help: remove the extra arguments
+     |
+1492 -         let status = unsafe { move_vehicle::<_, _, _, _>(step, &mut result, error.as_mut_ptr(), error.len(), &mut context as *mut _ as *mut c_void) };
+1492 +         let status = unsafe { move_vehicle::<_, _, _, _>(/* MovementStep */) };
+     |
+
+error[E0308]: mismatched types
+    --> crates/eech-engine/src/lib.rs:1493:28
+     |
+1493 |         assert_eq!(status, 0, "the callback refused the step");
+     |                            ^ expected `Result<MovementResult, _>`, found integer
+     |
+     = note: expected enum `Result<MovementResult, _>`
+                found type `{integer}`
+help: try wrapping the expression in `Err`
+     |
+1493 |         assert_eq!(status, Err(0), "the callback refused the step");
+     |                            ++++ +
+
+Some errors have detailed explanations: E0057, E0109, E0308.
+For more information about an error, try `rustc --explain E0057`.
+error: could not compile `eech-engine` (lib test) due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...

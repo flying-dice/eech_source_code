@@ -1,0 +1,106 @@
+{
+  "schema": "independent-focused-test-and-scope-document-review/v1",
+  "created_utc": "2026-10-28T16:22:07.820704+00:00",
+  "reviewer": "/root/d2_los_review",
+  "base_sha": "09253829b2822fe83dafd4031569410ed2edf6a7",
+  "reviewed_sha": "63ea6cfa480a2d6c2eeee91c6902179530320c2f",
+  "disposition": "FOCUSED_TEST_CORRECTION_AND_SCOPE_DRAFT_CLOSED; NO_NEW_FINDINGS; WINDOWS_CI_AND_FINAL_ACCEPTANCE_PENDING",
+  "findings": [],
+  "scope": "Only092..63ea test assertions/status/check logs and the exact external scope draft. No unchanged production/source/runtime review repeated.",
+  "test_assessment": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "line": 1610,
+      "assessment": "Whole logical line must equal CALLS 0:0:-1:0 through str::lines; accepts LF/CRLF without rewriting raw stdout or trimming content. More precise than substring matching; existing not-done JSON and call/flow checks remain. No Windows skip."
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "line": 1903,
+      "assessment": "Last logical trace line must equal structures. Appended actions/extra final nonempty or blank line cannot satisfy it. Earlier report-before-frame and exact report-count checks unchanged. Required final logical ordering preserved; transport newline spelling no longer determines outcome."
+    }
+  ],
+  "evidence": {
+    "retained_CI_red": {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\ci-092-windows-cross-job-122939836511-attempt2.log",
+      "sha256": "47f0fad40a11eaba9a3fe97fccab18710dde5ad486dbe82c04a1756cb35513b4",
+      "observed": "Job122939836511/run40723326838: host_callbacks22pass/2fail, correct CALLS and finalstructures rows printed. Existing earlier suites passed. Failure remains recorded, not relabelled green."
+    },
+    "local_linux": "Committed cargo-test-ci-crlf-host-callbacks.log actual24pass/0fail/CARGO_EXIT0/DOCKER_EXIT0; final fmt actual0 and fmt-fix0 retained. These are local Linux results, not Windows confirmation.",
+    "windows_current": "Pending; only actual current pushed-head Windows CI can close Windows gate. No CI or test invoked by reviewer."
+  },
+  "production_identity": {
+    "changed_paths": [
+      "STATUS.md",
+      "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-ci-crlf-host-callbacks.log",
+      "eech-campaign/reference/d2-combat-characterization/checks/fmt-ci-crlf-check.log",
+      "eech-campaign/reference/d2-combat-characterization/checks/fmt-ci-crlf-fix.log"
+    ],
+    "production_or_shipping_input_changes_in_this_delta": false,
+    "all_coarse_crates_tree_equal_claim": false,
+    "explanation": "crates tree changes because host_callbacks.rs is a test target. Exactly that one file differs in crates; all actual product C/Rust src/Lua, Cargo manifests/build recipes/shipping scripts are unchanged. Previous all8coarse tree equality holds through092 only, not63ea. Root final publication must record exact exception/equivalence; immutable running build/BINF remains actual64cf."
+  },
+  "scope_draft": {
+    "path": "R:\\d2-evidence\\combat-characterization-20261028\\D2-SCOPE-AUDIT-DRAFT.md",
+    "sha256": "8906a8c485419ef1fe21e30ca0b8786ed18990646bf159c31b298e858a1b3bd4",
+    "bytes": 6406,
+    "disposition": "Suitable for exact unchanged publication as docs/handover/D2-SCOPE-AUDIT.md; committed-copy integrity remains a subsequent metadata gate.",
+    "matches_provisional_review": {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-r3-publication-and-provisional-d2-scope-audit-09253829b-20261028.json",
+      "sha256": "b5c1991254926a8f99b45cd91e2e6767a728f0d165ff6f6723690cc75e3de575"
+    },
+    "assessment": [
+      "FiniteD2 responsibilities/accounted boundaries match the liveM5v3/ledger48 and accepted42\u201345/closed46 review chain; campaign decisions/consequences remain core. No missing active physical solver assigned toD5.",
+      "Explicit HUD disposition calls it actual dormant legacy ballistic/EO avionics arithmetic, not pure math; no supported campaign runtime caller or HUD host operation. Exclusion is the M5 supported-runtime boundary adopted by technical lead, not lack of native player evidence. Reintroducing a supported caller needs host routing/new scope review.",
+      "Truthfully separates controlled report facts, identify-only own host, native coverage limits, prior f470 failures, old-source component evidence, source equivalence and current64cf actual build.",
+      "Still provisional: final40/all8/post3/rawframe-cost/CI/finalreview/normalmerge/Task46/Epic18acceptance remain pending. Scope document does not itself supply new physics/native coverage or completeD2."
+    ]
+  },
+  "integrity": {
+    "head_before_after": "63ea6cfa480a2d6c2eeee91c6902179530320c2f",
+    "clean_before_after": true,
+    "diff_check_actual_exit": 0,
+    "pins": [
+      {
+        "path": "STATUS.md",
+        "git_blob": "cdeeaf927ee99a09dea323a9288ddc57bd4edf36",
+        "bytes": 73492,
+        "sha256": "b30d064f43a3757f38e8535183c29b527fcf1d056ed2c0c5e4420cdf2486f129",
+        "canonical_worktree_match": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+        "git_blob": "0bba60171224ea273986e79fde93c3161a07d182",
+        "bytes": 144486,
+        "sha256": "bc54e5f550d725018081e4c0b5c504be75a3d5388e7e9e898cb8520e16c49062",
+        "canonical_worktree_match": true
+      },
+      {
+        "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-ci-crlf-host-callbacks.log",
+        "git_blob": "5bd55f129743c0e47739b068629e22e9165bdd01",
+        "bytes": 2602,
+        "sha256": "d08d214b830c768ca040d7d34b82a5b60877306e75c3b255142ea8a7335f9528",
+        "canonical_worktree_match": true
+      },
+      {
+        "path": "eech-campaign/reference/d2-combat-characterization/checks/fmt-ci-crlf-check.log",
+        "git_blob": "fb443baa65a38fe198b61549de69630e8a4fb6fb",
+        "bytes": 43,
+        "sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+        "canonical_worktree_match": true
+      },
+      {
+        "path": "eech-campaign/reference/d2-combat-characterization/checks/fmt-ci-crlf-fix.log",
+        "git_blob": "0440576237c2695add363d04eb55ec4e3083f490",
+        "bytes": 47,
+        "sha256": "b124c325297d43393c804bf6c88c72eb566198af4b69d3207c6e225e8bd65af4",
+        "canonical_worktree_match": true
+      }
+    ]
+  },
+  "limits": [
+    "No implementation mutation, build/test/native launch, agents, process/remote change by reviewer; only private review JSON written.",
+    "No raw stdout/trace/baseline normalization. No old source/math/native run re-review or redundant campaigns requested.",
+    "Exact future published scope copy and production-input-equivalence proof need verification after metadata composition; no claim already committed."
+  ]
+}

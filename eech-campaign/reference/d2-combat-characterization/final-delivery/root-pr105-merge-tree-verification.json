@@ -1,0 +1,21 @@
+{
+  "when_utc": "2026-10-29T00:09:29.652439+00:00",
+  "PR": "https://github.com/flying-dice/eech_source_code/pull/105",
+  "merge": "a44e2b3483aab5f5b51aad47dd67e3ece5874da9",
+  "parents": [
+    "3b91ca34730a88e944700af1d0b7d777e071c73e",
+    "6220bd5d92a3318c1f358d005bc57c098e651007"
+  ],
+  "reviewed_head": "6220bd5d92a3318c1f358d005bc57c098e651007",
+  "integration_tip": "a44e2b3483aab5f5b51aad47dd67e3ece5874da9",
+  "merge_tree": "385807073f5e63d679b800655dcfb516b5bf4322",
+  "reviewed_head_tree": "385807073f5e63d679b800655dcfb516b5bf4322",
+  "exact_tree_equal": true,
+  "normal_merge": true,
+  "admin": false,
+  "auto_merge": false,
+  "current_head_CI": "root-ci-6220-all-nine.json",
+  "independent_review_sha256": "d5a44c3dd104923a323dc6d0f69b904356c3bf3e96b764f6990af4aed247c000",
+  "runtime_build": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "goal_complete": false
+}

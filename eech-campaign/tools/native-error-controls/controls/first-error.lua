@@ -1,0 +1,12 @@
+local function mark(s) io.stdout:write(s .. '\n'); io.stdout:flush() end
+mark('BEFORE_REQUIRE')
+local ok, dc = pcall(require, 'eech_dc')
+mark('AFTER_REQUIRE=' .. tostring(ok))
+if not ok then mark(tostring(dc)); error(dc) end
+mark('MODULE=' .. tostring(dc.name))
+mark('BEFORE_BAD_ARGUMENT')
+local ok, err = pcall(dc.boot, 'not a table')
+mark('AFTER_BAD_ARGUMENT=' .. tostring(ok))
+assert(not ok)
+mark(tostring(err))
+mark('BEFORE_GC'); collectgarbage('collect'); mark('AFTER_GC')

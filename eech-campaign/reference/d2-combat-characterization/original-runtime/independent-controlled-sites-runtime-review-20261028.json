@@ -1,0 +1,175 @@
+{
+  "schema": "independent-bounded-runtime-review-v1",
+  "preserved_utc": "2026-10-28T05:51:30.205385+00:00",
+  "reviewer": "/root/d2_los_review",
+  "scope": "NEW completed original SITE and SITE_UPDATABLE selector probes only; no unchanged source review, builds, native launches, tests or agents. Prior original02 review remains separate.",
+  "frozen_source": {
+    "path": "R:/d2-evidence/combat-controlled-source-35c3d6777",
+    "sha": "35c3d677758d7c0e7b664267c25508220412e4a5",
+    "head_confirmed": true,
+    "git_status_porcelain_empty": true,
+    "moving_forecast_checkout_not_inspected": true
+  },
+  "disposition": "No blocking evidence findings; bounded original fixed-kind real-damage and blast characterization supported. One nonblocking P3 wording qualification recorded below.",
+  "verification": {
+    "each_root_input_files_independently_rehashed": 1179,
+    "each_root_input_mismatches": 0,
+    "input_bytes_per_root": 102239559,
+    "input_manifest_combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+    "export_files_independently_rehashed": 40,
+    "export_mismatches": 0,
+    "initial_and_post_expected_export_maps_equal": true,
+    "build_info_independently_rehashed": true,
+    "build_info_sha256": "5cfa0a40a456bf7e914874233c2d902ca6af02f7338fa60fd7cf6b952295ec13",
+    "initial_manifest": "root-clean-controlled-35c3-fixture-manifest.json",
+    "post_build_record": "root-controlled-sites-post-build.json",
+    "raw_cases_and_case_deltas_equal_completion_records": true,
+    "all_six_pre_case_hashes_equal_original_f41_checkpoint60": true,
+    "clock_labels": {
+      "controlled_actual": 60.099273681641,
+      "natural_checkpoint_marker": 60
+    },
+    "clock_limit": "These are matching six cumulative hash values, not equal timestamp labels. The disclosed earlier exact-time-query StopIteration was an analyst failure before proof output, not a native failure."
+  },
+  "probes": [
+    {
+      "name": "controlled-site-01",
+      "completion_record": "R:\\d2-evidence\\combat-characterization-20261028\\root-controlled-site-01-completion.json",
+      "trace": "R:\\d2-evidence\\combat-characterization-20261028\\out\\controlled-site-01\\trace.jsonl",
+      "trace_bytes": 113688,
+      "trace_sha256": "102e90ea2a55caca71e24ab58ce2b0005080f99df19b32fef0280882f50071ee",
+      "actual_original_controller_session": 56485,
+      "actual_original_controller_exit_recorded": 0,
+      "native_pid": 23984,
+      "actual_native_exit_recorded": 0,
+      "cases": 9,
+      "done_preconditions": 9,
+      "refusals": 0,
+      "argument_errors": 0,
+      "trusted_integrity_reports": 19,
+      "contiguous_events": 31,
+      "chosen_he": {
+        "weapon": 54,
+        "launcher": "eech-world:2690",
+        "rounds": 6,
+        "planned_estimate": 4
+      },
+      "chosen_solid": {
+        "weapon": 76,
+        "launcher": "eech-world:2784",
+        "rounds": 12,
+        "planned_estimate": 4
+      },
+      "physical": {
+        "selected_kind": "SITE",
+        "he_direct_health_writes": 1,
+        "he_direct_damage": 200,
+        "he_modifier_half_health_writes": 1,
+        "he_modifier_half_damage": 200,
+        "solid_capability_calls": 2,
+        "solid_draws": 2,
+        "solid_health_writes": 0,
+        "weaponless_no_weapon_exits": 1,
+        "explosion_invocations": 2,
+        "blast_calls": 3,
+        "land_blast_calls": 2,
+        "target_blast_calls": 1,
+        "selected_kind_applied": 7,
+        "selected_kind_fatal": 5,
+        "selected_kind_area_blast_notifications": 4,
+        "full_run_damage_writes": 20,
+        "full_run_real_capability_calls": 22,
+        "full_run_real_draws": 22,
+        "all_six_timed_draws": 0,
+        "case_timed_counter_deltas": 0,
+        "elapsed_seconds": 60.099273681641
+      },
+      "root_post_input_actual_exit_recorded": 0,
+      "export_verifier_actual_exit_recorded": 0
+    },
+    {
+      "name": "controlled-site-updatable-01",
+      "completion_record": "R:\\d2-evidence\\combat-characterization-20261028\\root-controlled-site-updatable-01-completion.json",
+      "trace": "R:\\d2-evidence\\combat-characterization-20261028\\out\\controlled-site-updatable-01\\trace.jsonl",
+      "trace_bytes": 116036,
+      "trace_sha256": "e3f324a264d912e48a991de769508656ba5b5d6e30d0447e21a7fd1c74644c1e",
+      "actual_original_controller_session": 48136,
+      "actual_original_controller_exit_recorded": 0,
+      "native_pid": 4376,
+      "actual_native_exit_recorded": 0,
+      "cases": 9,
+      "done_preconditions": 9,
+      "refusals": 0,
+      "argument_errors": 0,
+      "trusted_integrity_reports": 19,
+      "contiguous_events": 19,
+      "chosen_he": {
+        "weapon": 54,
+        "launcher": "eech-world:2690",
+        "rounds": 6,
+        "planned_estimate": 4
+      },
+      "chosen_solid": {
+        "weapon": 76,
+        "launcher": "eech-world:2784",
+        "rounds": 12,
+        "planned_estimate": 4
+      },
+      "physical": {
+        "selected_kind": "SITE_UPDATABLE",
+        "he_direct_health_writes": 1,
+        "he_direct_damage": 1200,
+        "he_modifier_half_health_writes": 1,
+        "he_modifier_half_damage": 294,
+        "solid_capability_calls": 2,
+        "solid_draws": 2,
+        "solid_health_writes": 0,
+        "weaponless_no_weapon_exits": 1,
+        "explosion_invocations": 2,
+        "blast_calls": 3,
+        "land_blast_calls": 2,
+        "target_blast_calls": 1,
+        "selected_kind_applied": 8,
+        "selected_kind_fatal": 3,
+        "selected_kind_area_blast_notifications": 5,
+        "full_run_damage_writes": 8,
+        "full_run_real_capability_calls": 10,
+        "full_run_real_draws": 10,
+        "all_six_timed_draws": 0,
+        "case_timed_counter_deltas": 0,
+        "elapsed_seconds": 60.099273681641
+      },
+      "root_post_input_actual_exit_recorded": 0,
+      "export_verifier_actual_exit_recorded": 0
+    }
+  ],
+  "findings": [
+    {
+      "priority": 3,
+      "blocking": false,
+      "files": [
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-controlled-site-01-completion.json",
+          "line": 745
+        },
+        {
+          "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-controlled-site-updatable-01-completion.json",
+          "line": 746
+        }
+      ],
+      "issue": "Unqualified HIT_TARGET deliberately excludes linked target wording can imply the target receives no damage.",
+      "observed_fact": "Each HIT_TARGET case records a modifier-zero direct collision plus subsequent area-blast notifications.",
+      "bounded_correction": "Qualify exclusion as applying to the area-blast sector walk; retain the observed direct collision as distinct coverage."
+    }
+  ],
+  "limits": [
+    "Not all thirteen damage-bearing kinds characterized; OBJECT remains absent.",
+    "No new original or candidate source approval, damage extraction acceptance or fullpack/shipping acceptance.",
+    "Solid-shot evidence is two real capability/draw calls without health writes per selected kind, not positive solid-shot damage.",
+    "done=true is only a precondition; reported positive physical coverage comes from actual case deltas and event records.",
+    "First living receiver may change after a fatal hit; cases are not a same-entity modifier comparison.",
+    "Timed_seconds=0 retains PERSON predicate and AA critical-health setter but advances no timed frames; no new timed activity claimed.",
+    "Original02 ROF/time-gate diagnosis remains source-supported but unproven; these successful other-weapon probes do not identify its actual refusal branch.",
+    "Native/controller exits are inspected completed records and trusted root captures, not new live observations by this reviewer."
+  ]
+}

@@ -1,0 +1,147 @@
+{
+  "review_id": "ENV-AMBIENT-HOST-CORRECTION-F6-20261031",
+  "reviewed_utc": "2026-10-31T15:36:25.1192496Z",
+  "reviewer": "Sole independent Codex reviewer; no nested agents",
+  "scope": "One finite changed-delta correctness, clean-code and boundary review: bf64653de..f6 fixes plus previously unreviewed group-12 fixture/wide driver/harness since a39. Closed original/kernel/observer reviews reused; no source edits, builds, native runs, Docker, process changes or public writes.",
+  "source": {
+    "repository": "R:/d3-evidence/environment-services-20261030",
+    "prior_review_head": "a39a7a2ec07f5ec9e02008c58463003e9107978a",
+    "correction_base": "bf64653dee245027a5ac46ebe4ad201790639200",
+    "head": "f6d812c7c8e33179ec7d0a8143ede370da336bf5",
+    "tree": "a04dd56100ead87130d32bafe2cf9ab504b7a89b",
+    "clean": true,
+    "identities": [
+      {
+        "path": "aphavoc/source/entity/special/session/ss_updt.c",
+        "blob": "0ccaac31700e46b9e635fe8e083660d2058b9403",
+        "sha256": "c3c8b01e8561c15dcd9788b67104e5230386b9e9bf6296bdfcac17c0f70d0152"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+        "blob": "f656cdb288efc80e6cb7345b0e3960b5e25ef5c0",
+        "sha256": "3919b0cdac258761510e7da9627331b208bb3f2d4cb4f6e231baa2b5e1eb0506"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/env_ref.c",
+        "blob": "0ad21ea5b091432f99cd465a366b5c6cd6d99d86",
+        "sha256": "52c2d9596d4f0edb2ccf7568f9bf74a93a510a1e9301ba984e62343445b83fbc"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/terrain_ref.c",
+        "blob": "afed281e6f256fff73da9b4d236eeeefe58d7213",
+        "sha256": "87c9d5c3ff7a7fdfe547fa64bdbdb846947a9035e63dc4d9b86cc68752b49100"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/env.rs",
+        "blob": "f4a216688677a7a47e209f6edf00a22317c12483",
+        "sha256": "8b85df9384b0a9bee33810cbe9b824c542253a13a03e358b439008ad181bed2e"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/terrain_sector.rs",
+        "blob": "573ff97dfd87666afcc78c202900c274934f4500",
+        "sha256": "fd4fda36eada0287be0dc83a504124012055a7fbbe41d8f2b6506dfbb7472e02"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sound_wide_children.rs",
+        "blob": "20b89bc6b03d06e73a97d0463e1843fcdad67844",
+        "sha256": "2408348d652d7902dd44bfe30683638a9d4279be990e180bb58f25b850575190"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-wide-children.lua",
+        "blob": "5a9f89dd883b50e343eb80ae893c23a7956ddc19",
+        "sha256": "ac7e5003a65734a0dae09b736c579aef978615b5400f846d8a9101a92dc004f5"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "blob": "a8d602d2b10435ff7013b8d0c55273b59778ebd8",
+        "sha256": "56022926a5091c7b2789d448ad952c528e3cf0f5f12f0dbeb96b2f9e3e0bbee7"
+      },
+      {
+        "path": "eech-campaign/docs/d3-environment-sound-routine.md",
+        "blob": "cb1d7d7319cd2d10c369cdf419b98c808454a595",
+        "sha256": "98819136180c2bfe336ae59d86a46e9ca8bdefdfa915efa1d0f9ec68acd3efef"
+      }
+    ]
+  },
+  "reused_reviews": [
+    {
+      "path": "R:/d3-evidence/independent-environment-ambient-host-source-review-a39a7a2ec-20261031.json",
+      "sha256": "8cced1aad38a23ea3bf54a4191f5a86ff359ca4b6509a51cd4122c7deba9304c"
+    },
+    {
+      "path": "R:/d3-evidence/independent-environment-ambient-original-actual-review-nativec0b-driver21ba-20261031.json",
+      "sha256": "8755577f55861682e4dd55cc93c6fad0b00f4dee51600e5136afa88ef411cd2c"
+    }
+  ],
+  "prior_groups": [
+    {
+      "id": "ENV-AMBIENT-HOST-1",
+      "source_disposition": "Ambient-only caller-mode dependence addressed in source; corrected numeric/FP runtime acceptance pending.",
+      "facts": [
+        "env_ref.c:1132 and terrain_ref.c:3755 introduce entry-only canonical helpers. Each reads back complete x87 control 0x0f7f and MXCSR 0x7f80 before ambient arithmetic. FTZ/DAZ are disabled and x87 precision fixed; unchanged guards retain pointer/bit ingress, staged results and full saved-state restoration. Closed field and sector-entry helpers are unchanged.",
+        "The selected extended x87 precision is explicitly an assumption about the reference process, not measured startup control. Root reports legacy __8087cw PC53 source plus rounding-only engine setup; neither that source fact nor the assumption establishes effective controls at the original call site. Corrected target numeric comparisons and i686 gates remain necessary.",
+        "The strengthened environment regression compares answer words, all RC pairs, two supported precision selections, SSE sticky/denormal modes and three x87 status arrangements: 3840 calls. This test file and the existing 5376-call terrain test file are byte-identical between red bf and f6. No tolerance, seed or mask was weakened.",
+        "The source-local, previously unaccepted saturation assertion was corrected before f6 from a presumed runtime-RZ literal to the compiled upper-bound literal. Retained original case 28 and the complete a39 Lebanon raw equality support that classification; original baselines were not changed."
+      ]
+    },
+    {
+      "id": "ENV-AMBIENT-HOST-2",
+      "source_disposition": "Campaign child cap removed in production source; actual wide-list acceptance blocked by new fixture finding below.",
+      "facts": [
+        "ss_updt.c:784-960 uses a bounded transport batch, flushes when full, before rain/wind writes and at end, and emits no question for an empty batch. The list is traversed in order, every terrain child captures its own prior amplitude, and each validated batch is applied in order. Capacity 16 no longer limits total campaign children.",
+        "The new engine protocol test checks a single transport request bound. The real wide witness is a separate fixture, not evidence that the production cap still exists."
+      ]
+    }
+  ],
+  "new_findings": [
+    {
+      "id": "ENV-AMBIENT-WIDE-1",
+      "priority": "P1",
+      "title": "Group-12 cleanup restores the old session child-list root after adding real children",
+      "locations": [
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:2175",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:2189",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:534",
+        "aphavoc/source/entity/special/session/session.h:82",
+        "aphavoc/source/entity/special/effect/soundeff/se_creat.c:209",
+        "aphavoc/source/entity/system/en_funcs/en_list.c:422"
+      ],
+      "evidence": "env_wide_case saves the complete session before env_wide_body creates sound entities. Cleanup calls env_restore_state, which memcpy-restores that entire pre-creation record. The record includes special_effect_root. The real constructor inserts each new entity at the head and changes the old first child predecessor. Restoring only the old root detaches the newly allocated head prefix while leaving entity links and other lists modified.",
+      "impact": "After a successful 16-child case, the next case sees the original terrain-child count instead of 16; its created count violates the 16-to-17 continuity guard. The old first child also retains a predecessor inconsistent with the restored root. Process isolation does not repair topology within the three-case process. The BF red run stopped fatally at 17 before its cleanup and therefore did not expose this successful-return defect. No 16/17/20 healthy witness can be accepted from this source.",
+      "requested_change": "Preserve the post-construction child topology while restoring the intended scalar/field/global session state on every returning path. Keep newly created children reachable and internally linked. Validate retained identities/counts and root/predecessor/successor/parent continuity after cleanup and into the next case. Correct only the fixture, then run the finite real 16/17/20 witness. Align the new Rust header and test naming with the actual altitude-140, half-amplitude setup rather than stale altitude-zero/unchanged-amplitude prose."
+    }
+  ],
+  "other_inspected_facts": [
+    "Group 12 is explicit-only; default characterization groups and group-11 original outputs are unchanged. Its constructor creates real entities, cycles six terrain classes, bounds the largest requested list within its local scratch capacity, and discloses that heap/amplitudes are not restored. It is a process-isolated control, not a new original oracle.",
+    "The Lua witness checks constructor count progression, unique identities/order within each before/after list, own previous-word setup, and the nonidentity half-word result at altitude 140/delta zero. It refuses missing feature/camera/classes, malformed rows, fixture refusals and engine errors; errors cannot become healthy summaries. It records RNG status without upgrading that to whole-campaign RNG policy proof.",
+    "Scripted Rust guards exercise bookkeeping, drop/reorder/revalue/skipped-child controls and errors, not real physics. The updated assertion inspects the emitted engine_failure JSON reason first line and case 2; it permits the normal outer mlua traceback. This corrects the prior harness assertion without hiding engine failure.",
+    "Canonical helper duplication is narrow and keeps closed entry behavior stable. No additional source-specific production correctness, ownership or boundary finding was found in this finite pass."
+  ],
+  "evidence_context": {
+    "directory": "eech-campaign/reference/d3-environment-characterization/ambient-a39-bf-review-reds/",
+    "read_receipts": [
+      "bf-real-wide-list-red.json",
+      "bf-actual-two-group-red.json",
+      "bf-strong-env-red-completion.json",
+      "bf-actual-Windows-strong-env-red.json",
+      "bf-bookkeeping-failed-outer-error-assertion.json",
+      "a39-first-default-Lebanon-comparison.json",
+      "receipt.json"
+    ],
+    "actual_red_scopes": [
+      "BF strong environment Linux focused test exit 101: 768 changed answers in 3840 calls; retained Windows two pass/one fail.",
+      "a39 terrain ambient tests retained two pass/two fail; 192 answer changes in 5376 x64 calls and retained i686 red evidence.",
+      "BF real wide run terminal native/controller 1, pre/post input checks 0 and 51 payloads: 16 healthy, 17 fatal ambient.request, 20 not reached.",
+      "Prior wide harness three pass/one fail was an overly restrictive outer-error assertion, retained as such.",
+      "a39 complete 108-row Lebanon output equalled the original numeric file; this did not establish full FP invariance."
+    ],
+    "corrected_f6_execution": "At source-pass close, Root reports normal Linux/Windows pipelines live since 15:30:19. No corrected f6 success is inferred; new numeric and wide acceptance pending."
+  },
+  "limitations": [
+    "Source-only finding batch. No new compiler, runtime, floating-point, audio, player, renderer, network, frame, Tacview or full-shipping acceptance.",
+    "Canonical x87 reference precision remains an explicitly unmeasured process assumption. Finite numeric samples cannot establish all inputs/targets.",
+    "All prior failures and original baselines retained. No new raw retail coordinates, flags or amplitude records published in this report.",
+    "Task51 and whole D3 remain open, including remaining effects/time/terrain/spatial/model and full shipping/current CI gates; D4/D5 unstarted."
+  ],
+  "verdict": "Two prior production source groups addressed, runtime gates pending; one new blocking group-12 fixture P1. One finite batch, not migration acceptance."
+}

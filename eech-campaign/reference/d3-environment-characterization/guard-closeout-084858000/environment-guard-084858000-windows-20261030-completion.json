@@ -1,0 +1,18 @@
+{
+  "source": "084858000b8a7190f9e89304be7a8ab849b64c40",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-guard-084858000-windows-20261030.sh"
+  ],
+  "pid": 9180,
+  "controller_pid": 24248,
+  "state": "terminal",
+  "started_utc": "2026-10-30T07:25:15.384518+00:00",
+  "scope": "Cross-compile/export Windows guard executable only; no execution",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-30T07:26:11.392765+00:00"
+}

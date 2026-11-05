@@ -1,0 +1,73 @@
+**Bottom line:** I would not restructure campaign code or merge anything right now. The live records say M5 structural work is still gated, and no PR can merge while server-side protection is unverified.
+
+**Product and hosts.** One native campaign Lua module, `EECH_DC` (`eech_dc.dll`). It is the original EECH C code behind a Rust public boundary, not a rewrite. Two hosts can load it, and they are alternatives, not layers:
+- **EECH World**, a Rust reference host with its own Lua environment and physical world.
+- **DCS World.**
+
+The campaign owns state, decisions, logistics and progression. Hosts own physics and supply observations.
+
+**Active Task and Epic.**
+- The Epic is **EEDCS-5**, "A reviewed plan for moving EECH_DC into DCS World" (To Do). Its authoritative goal is a Confluence page.
+- **EEDCS-9** is the governance gate (In Progress, delivered by PR #73), and it blocks **EEDCS-10**, the DCS call map (In Progress, PR #74).
+- This checkout (`pr73-fix`, `9fa83a46`) is two commits ahead of PR #73's head `23c1a28d` and has not been pushed or reviewed.
+
+**What authorises M5 structural work.** The files and the live records disagree:
+- The checked-in `AGENT.md` here says the M4 acceptance (EEDCS-4, #31) and the M5 kickoff (#35) open structural work from `a02d489c`, with `windows-retail v1` as the baseline.
+- But that `AGENT.md` is unmerged candidate text from PR #73. EEDCS-9 says its own merged delivery is what authorises structural work.
+- The lead's current review on #73 is **CHANGES_REQUESTED** and says: "M5 structural work remains gated on its corrected, approved delivery."
+- So in practice the authorisation is EEDCS-9 merged with the lead's approval, on top of the M4 and M5 records.
+
+**Before moving existing behaviour:**
+- Characterise it on a named baseline revision with sociable tests of the real collaborating components.
+- Record the defects, unsupported cases and prerequisites you find.
+- Keep structural moves separate from bug fixes and rule changes.
+- Run the M4 regression pack against every candidate.
+
+**Allowed read-only now:**
+- Inspect the branch, base and working tree.
+- Read source, build, and run the existing tests and the M4 pack on the baseline.
+- Do discovery and characterisation, such as the EEDCS-10 interaction map.
+
+None of this may change campaign, engine, host or interface behaviour, or any baseline.
+
+**What a pure refactor must prove.** It can start from passing tests; no artificial red step is needed. Then:
+- The same behavioural scenarios stay green across the move.
+- Afterwards, it asserts both the preserved behaviour and the new ownership contract.
+- Host observations must actually influence the campaign, and host actions must actually be used. Interface declarations alone don't count.
+- The M4 pack still holds, and any difference is explained.
+
+**Approval and merge blockers.** A current formal GitHub **APPROVED** review from **@fd-starscream-bot** on the current head is mandatory. Comments, CI, other approvals and self-reviews don't count. A merge is blocked by any of:
+- no lead approval, or new commits since the approval;
+- failing applicable checks or unresolved blocking feedback;
+- self-approval, self-merge, or an identity conflict;
+- **unverified server-side protection**, which blocks every merge by anyone.
+
+**If the M4 pack differs:**
+1. Nothing is re-recorded or overwritten (`-Update` is refused).
+2. `baseline-governance.py propose` turns the red report into a change record with every delta marked `UNCLASSIFIED`.
+3. Each delta is classified with evidence as one of: regression (rejected), approved defect correction, intentional semantic change, or expected input/world variation (which starts a separate lineage).
+4. The lead formally approves the commit holding that record.
+5. A follow-up `adopt` commit references the approval; the tool verifies it on GitHub, adds the new version and keeps the old one. That commit needs fresh approval.
+
+A classification explains a failing check; it never makes it pass.
+
+**What I'd do if you asked now:**
+- **Restructure:** decline. EEDCS-9 hasn't been delivered, and the lead has explicitly gated structural work on it. I'd offer read-only characterisation or EEDCS-10 discovery instead.
+- **Merge an "approved" PR:** decline.
+  - No such approval exists: #73 has CHANGES_REQUESTED and no approval.
+  - Protection is unverified. The rulesets API returns `[]`, the branch-protection API returns 404, and GitHub reports #73 as `CLEAN` (mergeable) despite the change request, which suggests nothing is enforced.
+  - I'm an implementing agent, not an authorised maintainer.
+
+**Identity issue to fix.** Local git's `user.name` is `starscream-bot`, which looks like the lead's identity. `gh` is logged in as `fd-shockwave-bot` with write access. Commits shouldn't carry an author name that resembles the lead.
+
+**What I read:**
+- **Files:** `CLAUDE.md`, `AGENT.md`, `PROJECT.md`, `docs/governance/REVIEW.md`.
+- **Live records:** Jira EEDCS-5, EEDCS-9 (with its comment), EEDCS-10 and the open-issue list; the Confluence goal page (summary only); PR #73 metadata and the lead's review; the open PR list; the rulesets, protection and permission APIs.
+
+**What I didn't reach:**
+- **Unreachable:** the Confluence page body (only its summary loaded), and whether the protection 404 means "no protection" or "not allowed to read it" — so protection stays unverified.
+- **Not read:** EEDCS-4; the comments on EEDCS-5 and EEDCS-10; GitHub #31 and #35; `BASELINE_RECORD.md`; the PR #74 discussion.
+- **Not done:** this session started from the repo root, not `eech-campaign/`.
+
+One more thing to know: EEDCS-5 now frames M5 as a reviewed plan for moving into DCS, with EECH World "only a harness". That is narrower than `PROJECT.md`'s M5 gate.
+exit 0

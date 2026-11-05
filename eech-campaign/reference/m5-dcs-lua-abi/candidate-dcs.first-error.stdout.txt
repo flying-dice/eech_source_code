@@ -1,0 +1,13 @@
+BEFORE_REQUIRE
+AFTER_REQUIRE=true
+MODULE=eech-dc 0.1.0
+BEFORE_BAD_ARGUMENT
+AFTER_BAD_ARGUMENT=false
+bad argument #1: error converting Lua string to table
+stack traceback:
+	[C]: in ?
+	[C]: in function 'pcall'
+	[string "E:\eech_source_code\.claude\worktrees\m5-dcs-lua-abi\eech-campaign\tools\native-error-controls\controls\first-error.lua"]:8: in main chunk
+
+BEFORE_GC
+AFTER_GC

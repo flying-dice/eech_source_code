@@ -1,0 +1,20 @@
+{
+  "original_native_source": "366622e0c08b2caaa5a5317f5197c0ee3d7050e9",
+  "diagnostic_source": "309b3f0505ba33e50a65fe8ad59d95443eb9806b",
+  "driver_sha256": "ffba01750612790d6268e8626e83bbd48179194f51a62138ef3f9ecd42051db9",
+  "native_c_rust_ffi_cargo_build_inputs_unchanged": true,
+  "changed_paths": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/lua/model-characterization.lua",
+    "eech-campaign/crates/eech-world/tests/model_characterization.rs",
+    "eech-campaign/docs/m5-model-characterization.md",
+    "eech-campaign/reference/d3-model-characterization/BUILD-INFO-366622e0c.txt",
+    "eech-campaign/reference/d3-model-characterization/independent-model-original-characterization-review-366622e0c-20261029.json",
+    "eech-campaign/reference/d3-model-characterization/ledger-original-model-measured-v68-20261029.json",
+    "eech-campaign/reference/d3-model-characterization/model-original-366622e0c-retained-measurements-strict-audit-20261029.json",
+    "eech-campaign/reference/d3-model-characterization/original-catalogues-366622e0c-summary.json",
+    "eech-campaign/reference/d3-model-characterization/original-selected-geometry-366622e0c-summary.json"
+  ],
+  "reuse": "Existing native366 DLL/host/43payloads remain labelled366; working-driver healthy and same-corruption results apply to this exact Git driver byte hash. New tests not yet executed.",
+  "harness_only_followup": "c441->309 changes only test harness and docs; Lua driver byteexactffba and native inputs366 unchanged. Actual original-DLL measurements and corruption controls reused, no repeat needed."
+}

@@ -1,0 +1,409 @@
+{
+  "schema": "independent-source-review-v1",
+  "preserved_utc": "2026-10-28T06:34:44.781259+00:00",
+  "reviewer": "/root/d2_los_review",
+  "repo": "R:\\d2-sensor-detections",
+  "base": "891c36d72c274361af11600b85e51b2aab1542cd",
+  "reviewed_sha": "dc3113e4b5254ec5610e7e5eac1f61a8699a077a",
+  "head_before": "dc3113e4b5254ec5610e7e5eac1f61a8699a077a",
+  "head_after": "dc3113e4b5254ec5610e7e5eac1f61a8699a077a",
+  "clean_before": true,
+  "clean_after": true,
+  "scope": "One combined correctness, clean-code and boundary-safety review of NEW real-hit damage source only. Unchanged Task45 and forecast source were not re-reviewed except new shared-kernel/protocol interactions. No edits, builds, tests, native launches or agents. Private review JSON is the only write.",
+  "disposition": "Two actionable P2 source/contract findings and one P3 coverage wording correction; source closure pending bounded corrections. No candidate native acceptance.",
+  "findings": [
+    {
+      "priority": 2,
+      "title": "Reject health writes for a nonpositive capability",
+      "path": "aphavoc/source/entity/mobile/mb_hostaim.c",
+      "line": 552,
+      "mechanism": "A valid ordinary vehicle request with damage_level80, initial100, cheat_guard0 accepts DONE/exited0/capability0/written1/new_level0/critical_before0/critical_after1/bad_modifier0/no echo. The result passes class, invulnerability and level-range checks, then damage.c:472 sets health0 and the handler credits/kills the target. Negative capability behaves the same. This contradicts the documented contract that a capability of zero or less does nothing.",
+      "bounded_correction": "Reject written when capability<=0 before applying the answer. Preserve valid zero/negative unwritten answers and generic-host freedom over positive-capability health outcomes; do not recompute the host solver or require exact subtraction in core.",
+      "meaningful_check": "Extend the existing production mb_hostaim.c C guard with zero and negative capability paired with written1 and a decreased level; both must refuse. Keep zero/negative unwritten/no-transition cases accepted.",
+      "evidence": "Source-verified branch walkthrough; no new test/build/native executed."
+    },
+    {
+      "priority": 2,
+      "title": "Preserve legitimate centred-hit diagnostics through the fixture round trip",
+      "path": "eech-campaign/crates/eech-world/src/main.rs",
+      "line": 2063,
+      "related": [
+        {
+          "path": "eech-campaign/crates/eech-world/csrc/cmb_step.c",
+          "line": 364
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/src/cmb.rs",
+          "line": 627
+        },
+        {
+          "path": "aphavoc/source/entity/mobile/mb_hostaim.c",
+          "line": 650
+        }
+      ],
+      "mechanism": "The explicitly covered centred vehicle solid-shot case (weapon_position==target_position, non-easy armour) has norm0, producing NaN aspect armour. The original non-HE comparison is false and returns capability0 without converting NaN to int or writing health. The retained new kernel test checks only this outcome without echo. Fixture damage always requests echo; main copies outcome.armour NaN into echo.f, which the Lua exact-number/C all_finite echo validation rejects. Thus a supported no-op hit becomes fatal in the default fixture/public path, although shipping without echo returns0.",
+      "bounded_correction": "Make the optional diagnostic representation capable of carrying the original intermediate float bit patterns, including this NaN, losslessly without weakening finite validation for physical request/result fields. Do not sanitize the physics, fabricate a finite armour value, omit the observer call/counters or change a golden to pass.",
+      "meaningful_check": "Exercise the actual host Lua callback plus production exchange/fixture consumer for the centred solid-shot input with echo enabled; verify capability0/unwritten and faithful intermediate hash/accounting. Retain ordinary finite echo and malformed physical-value refusal checks.",
+      "evidence": "Source-verified original branch, kernel output and echo validation; not a shipping formula finding. No new test/build/native executed."
+    },
+    {
+      "priority": 3,
+      "title": "Correct the anti-aircraft coverage limitation",
+      "path": "eech-campaign/docs/m5-combat-extraction.md",
+      "line": 146,
+      "mechanism": "The statement that a fatal anti-aircraft hit was not reached by any retained original run conflicts with the already accepted f41 natural600: ANTI_AIRCRAFT collisions5/fatal5. The unreached case is the fatal anti-aircraft timed fire roll, not every fatal hit.",
+      "bounded_correction": "Acknowledge the five observed fatal AA collisions; if intended, qualify the missing fatal path as the anti-aircraft timed-fire roll. Preserve the genuine player/MP/invulnerability/easy-armour limitations.",
+      "evidence": "Previously closed original natural600 record; no repeated original evidence review or native run."
+    }
+  ],
+  "review_conclusions": {
+    "ownership": "Real-hit capability, aspect armour, invulnerability response, health-result and post-hit classes execute in host C through Lua; core gathers by-value facts and applies validated outputs via original setters/consequences. Old aspect solver removed; remaining real weapon_damage_capability call refuses rather than falling back, and all current external callers are NULL forecasts.",
+    "numeric_and_rng": "Compared original matrix arithmetic, face weights, HE/random formula, conventional submunition figures, speed ratio, player float then multiplayer integer scaling, health subtraction/clamp and integer critical percentages. One rand16 handshake reconstructs original double frand1 then float assignment. Sounds remain before draw; setter/consequences after. No separate arithmetic deviation found for defined ordinary inputs. Native/FPU equivalence pending.",
+    "boundary": "C/Rust structure fields and inspected layout probe agree; mandatory typed Lua reply fields, one draw/no lookup, guard consistency and class bounds are checked. Generic host may answer with its own positive-health outcomes and no draw/echo; nonpositive-written gap is finding1. No private entity ID/pointer/layout/seed sent.",
+    "fixture": "Reference hooks begin before draw and replay optional echo. Generic echo omission is declared unobserved. Centred solid-hit NaN diagnostic is finding2; no claim that all malformed/valid edges are covered by existing50 C checks.",
+    "scope_remaining": "R1 other critical readers (timed rolls, mobility gates, helicopter branches, smoke/speech), R2 AI helicopter self-hit gate, timed health, impact/blast, bridge/collapse and factual reporting remain declared core coupling; no whole Task46/D2 closure.",
+    "evidence_strength": "50 production bridge guard checks and mutation4fail, forecast25guard checks, Rust ABI/host/kernel tests and mutations were read. They do not link the whole damage.c entity gathering/application or establish native behavior. Kernel-mutant-2 actually records6failed tests, distinct from its filename.",
+    "existing_failure_disposition": "test-r46-1 records actual101 with a Lua echo-flag assertion failure; test-r46-2 actualCargo/Docker0. Final main validates echo before returning NEED_DRAW; no lost assertion coverage found. Syntax/preprocessing logs are bounded listed subsets, not whole build/native proof.",
+    "git_diff_check": "Read-only git diff --check between pinned base/head returned0."
+  },
+  "retained_check_markers": {
+    "damage-checks-1.log": {
+      "markers": [
+        "SANITIZER_PROBE_COMPILE_EXIT=0",
+        "SANITIZER_PROBE_RUN_EXIT=0",
+        "COMPILE_EXIT=0",
+        "DAMAGE_CHECKS=ok: 50 checks, 0 failures",
+        "RUN_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "damage-mutant-1.log": {
+      "markers": [
+        "SANITIZER_PROBE_COMPILE_EXIT=0",
+        "SANITIZER_PROBE_RUN_EXIT=0",
+        "COMPILE_EXIT=0",
+        "DAMAGE_CHECKS=FAILED: 50 checks, 4 failures",
+        "RUN_EXIT=1",
+        "DOCKER_EXIT=1"
+      ]
+    },
+    "forecast-checks-3.log": {
+      "markers": [
+        "SANITIZER_PROBE_COMPILE_EXIT=0",
+        "SANITIZER_PROBE_RUN_EXIT=0",
+        "COMPILE_EXIT=0",
+        "FORECAST_CHECKS=ok: 25 checks, 0 failures",
+        "RUN_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "kernel-mutant-2.log": {
+      "markers": [
+        "test result: FAILED. 8 passed; 6 failed; 0 ignored; 0 measured; 197 filtered out; finished in 0.00s",
+        "CARGO_EXIT=101",
+        "DOCKER_EXIT=101"
+      ]
+    },
+    "test-r46-1.log": {
+      "markers": [
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 53 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+        "test result: ok. 211 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s",
+        "test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.62s",
+        "test result: FAILED. 13 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.84s",
+        "CARGO_EXIT=101",
+        "DOCKER_EXIT=101"
+      ]
+    },
+    "test-r46-2.log": {
+      "markers": [
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 53 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+        "test result: ok. 211 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s",
+        "test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.64s",
+        "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s",
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "clippy-r46-1-default.log": {
+      "markers": [
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "clippy-r46-1-fixture.log": {
+      "markers": [
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "syntax-check-48-1.log": {
+      "markers": [
+        "SYNTAX_EXIT=0",
+        "OUTER=0"
+      ]
+    },
+    "strict-preprocess-48-1.log": {
+      "markers": [
+        "STRICT_EXIT=0",
+        "OUTER=0"
+      ]
+    }
+  },
+  "pending_gates": [
+    "Resolve two P2 findings and P3 wording correction; review only new correction deltas.",
+    "Fresh immutable clean Windows candidate builds and exact source/export identities.",
+    "Candidate natural600/controlled positive/default900 equivalence, public own/changed-host authority and genuine malformed refusal runtime proof.",
+    "Original player, multiplayer, invulnerability and easy armour are native-unproven; source contracts are not native proof.",
+    "Full40/all8/post3/currentCI/Task45 predecessor delivery/normal merge before Task46 delivery; later physical responsibilities remain unaccepted."
+  ],
+  "changed_file_pins": [
+    {
+      "path": "STATUS.md",
+      "git_blob": "e5b5b21278298bd1ca2d9065597146326fce4206",
+      "working_file_sha256": "1de73915e406db2f28feb2f7c71327867230ba3136919222039d6222185de091",
+      "bytes": 27040
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/fixwing/fw_msgs.c",
+      "git_blob": "c56ae695ca1f7edba62008313835bf15a26dbfcb",
+      "working_file_sha256": "693ea89c221187cc6678f07aff00c835e03c219bcc6b2592c06e2db6402ac47e",
+      "bytes": 18133
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/helicop/hc_msgs.c",
+      "git_blob": "77f471691e6c1cc1c0b8eb379cda1c0f41b636cc",
+      "working_file_sha256": "2072108be3d9e52d8454f26720f3c132c41ce37e9a09c0f9239f9887137ddf6d",
+      "bytes": 24649
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_cmbfx.h",
+      "git_blob": "a05ec9070e2c23a29c76f11e400e95056b7bde03",
+      "working_file_sha256": "9be5e7aac753b782c883caa63ac32f486310ec97061a84996afefe1d188819a4",
+      "bytes": 8221
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostaim.c",
+      "git_blob": "e634cf08326ccf659b4a4aa13467fd9a8e914ee0",
+      "working_file_sha256": "d36f72e4a2fc7a7f4cf7531a658f23ce0e14bda36719fe0618fe1567db9e8640",
+      "bytes": 35210
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostaim.h",
+      "git_blob": "ad88e012b077231fa29d4dc913b464f516ccbf9e",
+      "working_file_sha256": "d6749c6e4616f0757ae87363fcf559c7ec75ee0510114b9df819535fe0ade159",
+      "bytes": 36669
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/vehicle/anti_air/aa_msgs.c",
+      "git_blob": "0f25f101ec907b13f6d4f90c4d030ccab3ca2069",
+      "working_file_sha256": "7f67b31896f5c93e33f19bd76fd43f0634a6bd7699b7763037eb717ed1febb05",
+      "bytes": 11835
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/vehicle/person/ps_msgs.c",
+      "git_blob": "eda8f5f99c43d53f3054a4e0ab46871d961a5861",
+      "working_file_sha256": "2f9c683248ed7cbce04e94c84b9fb3164ebcae2f5793a888bed2d22ed1d0c091",
+      "bytes": 11759
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/vehicle/routed/rv_msgs.c",
+      "git_blob": "b5cbe77a28dc4a14e942aea9a3810e9ce61d0214",
+      "working_file_sha256": "55402f8e537e1f2526b3dc1e9675e0c66c6a378f40c46fa137d7edbc0003cf5e",
+      "bytes": 12886
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/vehicle/ship/sh_msgs.c",
+      "git_blob": "b33fead941de79ddf2c172dbf87fb3316d83679d",
+      "working_file_sha256": "e9935b6119084b1d1a8f0a9c7532caa258089ad2e275a6a4c352f0b770bcbe66",
+      "bytes": 12663
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/weapon/damage.c",
+      "git_blob": "9592b03aafd28b38d193d15201520f800e8ae790",
+      "working_file_sha256": "699e7aba7f796c745bbba9b7efb4e15e3b4481d22121be1343f9bd2d0968d3ca",
+      "bytes": 29238
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/weapon/damage.h",
+      "git_blob": "58f20b991b23b6527b845ffbad1b297b65e26404",
+      "working_file_sha256": "f673eaf8d8d52bd6f78b169f983cb4528b636b3e442b9f3b847f0e9e85ef8c2f",
+      "bytes": 5523
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/weapon/wn_cllsn.c",
+      "git_blob": "da909c89e1a24fc20ca355ca09f447e7c02bea8c",
+      "working_file_sha256": "617344d19f9048d877821d1a07212b53763a45d4eac0f220803650b8917ab91b",
+      "bytes": 5303
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/weapon/wn_cllsn.h",
+      "git_blob": "0d07d8e0993ac352dc74f6b673ce5b6a48fd041d",
+      "working_file_sha256": "d850ca520a0c660bf145d0cd2e9b1610b7a610a6a1ae80b53a223511c98720a5",
+      "bytes": 3270
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "git_blob": "ec15e68e282e0991fab7c5b9ab9dfdbec8eee02c",
+      "working_file_sha256": "989ec147fc534cc9e6e172fa4b7cc6d09670288723a2c2157650ac2842a7b713",
+      "bytes": 105851
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_aim_layout.c",
+      "git_blob": "3dc8ff2f09071225b2d45acd50310d849fb2ef5a",
+      "working_file_sha256": "ca425ba38c6a7d2fe4888bd5d2f68be8f4f95717cb7e2b0e4c55e188723be6e4",
+      "bytes": 2414
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_fixture.c",
+      "git_blob": "8c349ede103a52e27e85a697c9be31a7eb527eb6",
+      "working_file_sha256": "893ffe273f51c7851db77eec30bc986a739c7fa2123883e9a5609bf9f78bc0c7",
+      "bytes": 35503
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "git_blob": "7cc6bbb19fd8c7f656b622367169f409130f45b5",
+      "working_file_sha256": "f1cc0c139b0ec4f6473ac096c7c61679f66da29f045fd892d25a878bc568cb4b",
+      "bytes": 41363
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "git_blob": "96bbb0bb06ef16b6e7bd45c2662234ea7ab1fd7d",
+      "working_file_sha256": "c4dd3588e927ca4f0cfc9da517aeb86d6b083e8bdcf714f9b3417dd250c5a0e0",
+      "bytes": 311387
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/cmb_step.c",
+      "git_blob": "5dc2f569313f05dc42973120d2f5a848f49beb6a",
+      "working_file_sha256": "9dec9c7f8f314c265bec1f716f1db637d84d717ad2245d13cec39ec6c7620761",
+      "bytes": 15861
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/aim-malformed.lua",
+      "git_blob": "70646ba41fb34239ce5fb6c17b26db61e97db512",
+      "working_file_sha256": "38db9c38a1e9e3fadd92c3753fd41dbe62dadf1f0bebc5dc238b612755e55bda",
+      "bytes": 5773
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/aim-provider.lua",
+      "git_blob": "8d81f06307d8dc9fe512de5e06eb38aef5d84e3a",
+      "working_file_sha256": "7976bd245b49204ea26e35e8fe2fd93e9c18e19a0152bfcc2e186a00a2ced141",
+      "bytes": 23461
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/own-weapon.lua",
+      "git_blob": "30ea108d9ff887facd5f7470b0549ccab3f4eff3",
+      "working_file_sha256": "9b474dac8674d7adffaefe3fb290ca6f750e6e2e63f961369e401c7a6bea9e98",
+      "bytes": 6840
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/cmb.rs",
+      "git_blob": "dcb980c53e7cacbb69cc3a53a7534f3523e0698e",
+      "working_file_sha256": "4f3e5b023c890dd3733d1d5c38fb7367ef45956babee37d622673c09cf788899",
+      "bytes": 34404
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/main.rs",
+      "git_blob": "bdb2477958c4eaccb2076d87bf94990e9e02e0be",
+      "working_file_sha256": "ea586c2afc9f7f7fd84eaaef9b8dbe83026896cac1bd95a8e6c695f2ac054eda",
+      "bytes": 158448
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "git_blob": "bc13e77facd08fc0a7a3413a4b8b6abc0c916937",
+      "working_file_sha256": "559e51c6f2cb5ee5dca7a2a199395c50dd736681cad5edcd83646bcdd6d31509",
+      "bytes": 83500
+    },
+    {
+      "path": "eech-campaign/docs/m5-combat-extraction.md",
+      "git_blob": "f22cc0d8e1715cc2a01a2f7eb306b7435b0a0924",
+      "working_file_sha256": "509b4f38abec85b6e89250e261e28417e7ca4d9d09893cfcc35295c2c77565c4",
+      "bytes": 18189
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/README.md",
+      "git_blob": "763df8ff4492957766b18f7f99cf73550e8f9663",
+      "working_file_sha256": "099daf8ca5affce095fc14033b1db3876308d538b2bbdff711ed9b606749d305",
+      "bytes": 30981
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/damage_checks.c",
+      "git_blob": "f36764a10eee007dc05926f79bae5e1685ae64c6",
+      "working_file_sha256": "a0483d43dec0639bd8fba884f9e245d54ff5f3eb6db699c6faac0a12509f8a4f",
+      "bytes": 17301
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/run-damage-checks.sh",
+      "git_blob": "849583adbf024d24e2668bb8bcf9f2f02b1d9bd8",
+      "working_file_sha256": "5f8eb1741f0064a1ba435586c62ace4d0b900f4309f32c3f858986a3cd28100b",
+      "bytes": 2020
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-r46-1-default.log",
+      "git_blob": "c9673d6b851219c8482f79269d1d9f0cc8fa961e",
+      "working_file_sha256": "c8f7e7ee7feb4d4e827f5810a75b635c6179805934c72f683a055dbb22834329",
+      "bytes": 651
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-r46-1-fixture.log",
+      "git_blob": "95befc14c52ed49c052ba32991430492985896bb",
+      "working_file_sha256": "c0698c1733dc878f82b7f1af635c2a2b90b7f6b88112b66a706b9ba1850b7ead",
+      "bytes": 365
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/damage-checks-1.log",
+      "git_blob": "fb013409c79491cab002ee28889add3363debabc",
+      "working_file_sha256": "7b6743acae7f539316e878460110dd9f9bd57a1afa9ef6d9e9bac504da1d8482",
+      "bytes": 3002
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/damage-mutant-1.log",
+      "git_blob": "df791dc9acdeca6977fd722003f48c4fbfabf0a2",
+      "working_file_sha256": "8af76d8dbac1864872594174da059bf450f9671f2cb9f6b212394f152a77b2c4",
+      "bytes": 3006
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/forecast-checks-3.log",
+      "git_blob": "8235c61b62330decc40ac7a529c1606736619679",
+      "working_file_sha256": "4cf35c5a41b1d2c4bca2917c364c6a757f88aa5666b893ad246fdb9320808e2e",
+      "bytes": 1691
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/kernel-mutant-2.log",
+      "git_blob": "b37333329870292322ae9698e076767605810f83",
+      "working_file_sha256": "7d3572c44da3508b1c1934785a800dc5cd0d75f0fb0cad52d0a3742c1738ea62",
+      "bytes": 4733
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/strict-preprocess-48-1.log",
+      "git_blob": "febebd15b06b77121a1e875d63c06378c4702b4a",
+      "working_file_sha256": "a7235b6bd6f2e8746f299cc0deb31b13c570d9be1bd0bdbbe0427abe8448b035",
+      "bytes": 17877
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/syntax-check-48-1.log",
+      "git_blob": "b83f059251408d7820a968a5dbccd9b357b43bf2",
+      "working_file_sha256": "706c696515f811cd85b6da6513a21ed724ac38a27b3b775a46813b04de1d6d55",
+      "bytes": 4041
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/test-r46-1.log",
+      "git_blob": "6e71bc1a77b7af05082861ce69cf1b0ea5aa8f77",
+      "working_file_sha256": "9ec3c245e416e3680457cbe60c8f974f58abff39acd48a7e02364d2d19ce1970",
+      "bytes": 31449
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/test-r46-2.log",
+      "git_blob": "906912756e1011f60e2557df4b987fe19e656961",
+      "working_file_sha256": "b9d91c3ccc91c2a70e926bd493d97e596567f61ba67fbbe00733d3099afeb852",
+      "bytes": 31131
+    }
+  ]
+}

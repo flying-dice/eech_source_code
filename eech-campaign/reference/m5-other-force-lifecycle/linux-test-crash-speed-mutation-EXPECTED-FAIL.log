@@ -1,0 +1,33 @@
+   Compiling eech-world v0.1.0 (/repo/eech-campaign/crates/eech-world)
+warning: unused variable: `speed`
+    --> crates/eech-world/src/movement.rs:1528:45
+     |
+1528 |             let Some(CrashStage::Velocity { speed }) = crash else {
+     |                                             ^^^^^ help: try ignoring the field: `speed: _`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `eech-world` (lib test) generated 1 warning (run `cargo fix --lib -p eech-world --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s
+     Running unittests src/lib.rs (/cache/target/debug/deps/eech_world-49d864156aa003d7)
+
+running 1 test
+test movement::tests::a_wing_crash_slide_keeps_its_post_slope_speed_through_the_clear_and_commits_the_staged_candidate ... FAILED
+
+failures:
+
+---- movement::tests::a_wing_crash_slide_keeps_its_post_slope_speed_through_the_clear_and_commits_the_staged_candidate stdout ----
+
+thread 'movement::tests::a_wing_crash_slide_keeps_its_post_slope_speed_through_the_clear_and_commits_the_staged_candidate' (253) panicked at crates/eech-world/src/movement.rs:3438:9:
+assertion `left == right` failed: a 0.5 m/s slide is not at rest, whatever the cleared scalar says
+  left: 1
+ right: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    movement::tests::a_wing_crash_slide_keeps_its_post_slope_speed_through_the_clear_and_commits_the_staged_candidate
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 67 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p eech-world --lib`

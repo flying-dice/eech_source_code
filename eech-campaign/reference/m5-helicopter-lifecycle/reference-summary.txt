@@ -1,0 +1,42 @@
+EEDCS-36 host-owned AI helicopter rotor and dying/crash motion: final check and provenance summary
+runtime commit: 68a16fc1a31715d5f884344d9e9ae06a980004b1 (draft PR95; this folder is added by a docs/evidence-only commit, runtime source unchanged since 68a16fc1)
+build: tools/build-windows.sh target/lifecycle-precision, EECH_WIN_TARGET=eech-lifecycle-precision-target (fresh), pinned image sha256:bb10e44a...562be, exit 0, 0 dirty inputs (BUILD-INFO.txt, identities.txt).
+
+precision defect and correction (summary only; the failed runs are not copied and are not claimed as passes):
+  The first native pack at 3ace3841 gave 39 of 40 checks PASS; only retained.observations FAILED (candidate observations sha prefix a91c593f948f against da26bab01163), verdict "FAIL - UNCLASSIFIED: no change record". Both complete Tacview recordings equalled the baseline.
+  First difference: observations line 62489, t=1559.67, snapshot 83324 (dead blue AH-1T Sea Cobra), h 0.75041 (baseline) against 0.75040 (candidate).
+  Cause: the tumble draws are frand1() doubles, but the first transport narrowed them to float. 68a16fc1 carries them as doubles end to end; float fields stay float, RNG order and count are unchanged.
+  Not a baseline difference: no golden, tolerance or scenario was changed, and nothing was classified as approved variation.
+  Original failed pack and the stopped 20 s witness hold attempt remain in the external output directory (native/), unmodified.
+
+precision mutation (Linux container, pinned image; precision-mutation-red2.log, precision-mutation-green2.log):
+  red: with the through-step call narrowed to f64::from(draw as f32), the test the_tumble_step_hands_the_helper_the_draws_it_received_in_double FAILS ("draw 6: the step did not use the draws it was given"; 1 passed, 1 failed; exit 101).
+  green: restored, both tests pass (2 passed).
+  A first red attempt passed because it called the helper directly; it is not copied and was replaced by the through-step test.
+
+Linux container (container-clippy-and-test-final.log): cargo fmt --all -- --check clean; cargo clippy --locked --offline --all-targets -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world -- -D warnings (log shows no warning or error lines); cargo test: eech-dc 2 (layout) + library 0; eech-engine 5; eech-world library 57, binary 18, host_callbacks 2, load_dc 2; all "ok", 0 failed.
+  An earlier clippy run flagged a PI literal in the new test and was fixed (std::f32::consts::PI); that failed log is not copied.
+  The Linux build compiles the host C (hc_step.c) and the Rust; the aphavoc call sites and rv_hostmv.c were compiled by the retail MinGW build.
+
+focused 0.5 h Lebanon replay (replay-0.5h-prefix-comparison.json): exit 0; all 72,971 observation lines equal the first 72,971 lines of the accepted observations (0 differences), including every line at t=1559.67 and t=1619.65. Prefix only; not full acceptance.
+
+public witness (tools/helicopter-lifecycle-windows.ps1, HoldSeconds=1, Lebanon retail root; witness-control-lifecycle.out, witness-hold-lifecycle.out, witness-driver.log): PASS (driver log ends "PASS"; hold output "result ok")
+  subject: Mi-17 Hip eech-world:3069 (legacy 87568, group key 712), physical loss at 1584.90 s (campaign loss 1584.66 s)
+  control: rotor_down first at 1585.00 s, 34 calls, each changed the rotor; fall, fall_gravity, contact and tumble 34 each; settle first at 1587.70 s, 7 calls, buried once; no crash_begin/crash_end for this subject
+  hold: host held the rotor from 1585.00 to 1586.10 s: 11 held steps, held_seconds 1.1, 0 rotor changes while held; 23 released steps; the first change after release was rotor_down at 1586.10 s
+  Proves rotor hold and release through the public Lua -> module -> world path. It is rotor authority only: it does not delay or hold the fall, settle, tumble or terminal state, and it covers the fall path (not crash slide or rotor_idle) for one subject.
+  witness exit.txt is empty (the driver script's $LASTEXITCODE was null on completion); the verdict is taken from the driver log and the hold output, not from an exit code.
+
+regression pack (pack-report.json/.md; pack exit 0): REGRESSION PACK: PASS
+  40 checks in report.json, all PASS (verified from the retained report); counts: 17 PASS directly protected, 12 PASS baseline-sensitive, 8 NOT COVERED, 8 EVIDENCE ONLY
+  baseline windows-retail v1; georgia and lebanon exact: IDENTICAL; no golden, tolerance or scenario change; no baseline difference to classify
+  build under test differs from the accepted build in eech_dc.dll, eech-world.exe, lua.dll, lua/campaign.lua, lua/lifecycle.lua (reported by the pack)
+  reference: recording.acmi, observations.jsonl and metrics.json byte-identical in run 1, run 2 and the accepted baseline (identities.txt, parent's independent hashes); lebanon_retail 39 of 39 campaign expectations hold
+  The Tacview recording was checked by hash; it was not visually reviewed.
+  Blind spots stand, notably coupled-engine (campaign and world both in eech_dc.dll), three-hours, one-war, captures, tacview-visual and linux (stale baselines).
+
+hosted checks: not recorded here (the parent owns CI and publication).
+
+full local logs (not copied; retail-derived or irrelevant to the result): E:/eech-runs/m5-d1/helicopter-lifecycle-20261022/ (CHECKPOINT.md, native/ original 3ace3841 build, failed pack and stopped 20 s hold, native-precision/ final build, replay, witness and pack)
+not copied: retail data, the Tacview recording, observations.jsonl, helper failures.
+Not claimed: D1 or all-aircraft completion, M5 completion; no live DCS run (M6); no independent review (the parent's).

@@ -1,0 +1,37 @@
+TEST_LINK_FLAGS=-fno-pie -no-pie
+SANITIZERS=-fsanitize=address,undefined -fno-sanitize-recover=undefined
+SANITIZER_PROBE_COMPILE_EXIT=0
+SANITIZER_PROBE_RUN_EXIT=0
+/src/aphavoc/source/entity/mobile/mb_hostaim.c: In function 'campaign_aim_damage_echo_float':
+/src/aphavoc/source/entity/mobile/mb_hostaim.c:980:22: warning: typedef 'float_is_32_bits' locally defined but not used [-Wunused-local-typedefs]
+  980 |         typedef char float_is_32_bits[(sizeof (float) == sizeof (unsigned int)) ? 1 : -1];
+      |                      ^~~~~~~~~~~~~~~~
+COMPILE_EXIT=0
+ok   the host's own capability is what the campaign gets back
+ok   the weapon and its damage figures cross by value
+ok   the armour level, the player flag and setting and the two arguments of the original cross by value
+ok   no echo is asked for outside the fixture build
+ok   a host with another model gives another capability, used as it is
+ok   and a capability of zero is a legal answer
+ok   accepted forecasts took no sample of the shared stream
+ok   a host that asks for a sample is refused and no sample is taken
+ok   a host that asks for a lookup is refused
+ok   no host: the engine stops with a clear message
+ok   a host that fails: the engine stops with the host's reason
+ok   a negative capability is refused
+ok   an unknown state is refused
+ok   an answer that carries a time of flight, which a forecast cannot, is refused
+ok   an armour level below zero is refused before the host is asked
+ok   a player flag that is not a boolean is refused
+ok   a non-finite player setting is refused
+ok   a non-finite damage modifier is refused
+ok   a non-finite velocity is refused
+ok   one forecast event that agrees with the answer is accepted and handed on whole
+ok   an echo the host does not give is not an error (a host with a model of its own has none)
+ok   two forecast events are refused
+ok   an event of another kind is refused
+ok   an echo whose capability disagrees with the answer is refused
+ok   an echo nobody asked for is refused
+FORECAST_CHECKS=ok: 25 checks, 0 failures
+RUN_EXIT=0
+DOCKER_EXIT=0

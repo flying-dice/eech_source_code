@@ -1,0 +1,4 @@
+controls-*.results.jsonl -text -diff
+controls-*.summary.txt -text -diff
+boot.summary.txt -text -diff
+audit-3h.summary.txt -text -diff

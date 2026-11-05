@@ -1,0 +1,239 @@
+
+Disassembly of section .text.windows_timer_interrupt:
+
+ADDR <windows_timer_interrupt>:
+mov    0x0(%rip),%rax        # ADDR <windows_timer_interrupt+off>
+cmpl   $0x0,(%rax)
+jne    ADDR <windows_timer_interrupt+off>
+mov    %edx,%edx
+mov    0x0(%rip),%rax        # ADDR <windows_timer_interrupt+off>
+cmpl   $0x0,(%rax)
+je     ADDR <windows_timer_interrupt+off>
+test   %rdx,%rdx
+je     ADDR <windows_timer_interrupt+off>
+push   %rbp
+mov    %rsp,%rbp
+call   *%rdx
+pop    %rbp
+ret
+ret
+
+Disassembly of section .text.windows_timer_routine:
+
+ADDR <windows_timer_routine>:
+mov    0x0(%rip),%rax        # ADDR <windows_timer_routine+off>
+cmpl   $0x0,(%rax)
+jne    ADDR <windows_timer_routine+off>
+mov    0x0(%rip),%rax        # ADDR <windows_timer_routine+off>
+cmpl   $0x0,(%rax)
+je     ADDR <windows_timer_routine+off>
+mov    0x0(%rip),%rdx        # ADDR <windows_timer_routine+off>
+mov    (%rdx),%eax
+add    $0xa,%eax
+mov    %eax,(%rdx)
+mov    $0x0,%eax
+ret
+
+Disassembly of section .text.deinitialise_timers_system:
+
+ADDR <deinitialise_timers_system>:
+push   %rbp
+mov    %rsp,%rbp
+push   %r12
+push   %rbx
+cmpl   $0x0,0x0(%rip)        # ADDR <deinitialise_timers_system+off>
+jle    ADDR <deinitialise_timers_system+off>
+lea    0x0(%rip),%rbx        # ADDR <deinitialise_timers_system+off>
+mov    $0x0,%r12d
+jmp    ADDR <deinitialise_timers_system+off>
+add    $0x1,%r12d
+add    $0x8,%rbx
+cmp    %r12d,0x0(%rip)        # ADDR <deinitialise_timers_system+off>
+jle    ADDR <deinitialise_timers_system+off>
+cmpl   $0x0,(%rbx)
+je     ADDR <deinitialise_timers_system+off>
+mov    0x4(%rbx),%edi
+call   ADDR <deinitialise_timers_system+off>
+movl   $0x0,(%rbx)
+movl   $0x0,0x4(%rbx)
+jmp    ADDR <deinitialise_timers_system+off>
+mov    $0xa,%edi
+call   ADDR <deinitialise_timers_system+off>
+mov    0x0(%rip),%rax        # ADDR <deinitialise_timers_system+off>
+mov    (%rax),%esi
+test   %esi,%esi
+jne    ADDR <deinitialise_timers_system+off>
+pop    %rbx
+pop    %r12
+pop    %rbp
+ret
+movslq %esi,%rsi
+mov    0x0(%rip),%rax        # ADDR <deinitialise_timers_system+off>
+mov    (%rax),%rdi
+call   ADDR <deinitialise_timers_system+off>
+mov    0x0(%rip),%rax        # ADDR <deinitialise_timers_system+off>
+movl   $0x0,(%rax)
+jmp    ADDR <deinitialise_timers_system+off>
+
+Disassembly of section .text.initialise_timers_system:
+
+ADDR <initialise_timers_system>:
+push   %rbp
+mov    %rsp,%rbp
+sub    $0x10,%rsp
+movq   $0x0,-0x8(%rbp)
+mov    0x0(%rip),%rax        # ADDR <initialise_timers_system+off>
+movl   $0x0,(%rax)
+movl   $0x0,0x0(%rip)        # ADDR <initialise_timers_system+off>
+lea    0x0(%rip),%rax        # ADDR <initialise_timers_system+off>
+lea    0x80(%rax),%rdx
+movl   $0x0,(%rax)
+movl   $0x0,0x4(%rax)
+add    $0x8,%rax
+cmp    %rdx,%rax
+jne    ADDR <initialise_timers_system+off>
+lea    0x0(%rip),%rdi        # ADDR <initialise_timers_system+off>
+call   ADDR <initialise_timers_system+off>
+lea    0x0(%rip),%rsi        # ADDR <initialise_timers_system+off>
+mov    $0x113,%edi
+call   ADDR <initialise_timers_system+off>
+lea    -0x8(%rbp),%rdi
+mov    $0x8,%esi
+call   ADDR <initialise_timers_system+off>
+mov    $0xa,%edi
+call   ADDR <initialise_timers_system+off>
+mov    %eax,%edx
+mov    $0x0,%eax
+cmp    $0x61,%edx
+jne    ADDR <initialise_timers_system+off>
+leave
+ret
+mov    0x0(%rip),%rax        # ADDR <initialise_timers_system+off>
+movl   $0x1,(%rax)
+mov    0x0(%rip),%rax        # ADDR <initialise_timers_system+off>
+mov    (%rax),%rdi
+mov    $0x0,%ecx
+mov    $0x64,%edx
+mov    $0x1,%esi
+call   ADDR <initialise_timers_system+off>
+mov    $0x1,%eax
+jmp    ADDR <initialise_timers_system+off>
+
+Disassembly of section .text.create_timer_event:
+
+ADDR <create_timer_event>:
+push   %rbp
+mov    %rsp,%rbp
+push   %r12
+push   %rbx
+mov    %edi,%r9d
+lea    0x0(%rip),%rax        # ADDR <create_timer_event+off>
+mov    $0x0,%edi
+jmp    ADDR <create_timer_event+off>
+add    $0x1,%edi
+add    $0x8,%rax
+cmp    $0x10,%edi
+je     ADDR <create_timer_event+off>
+mov    (%rax),%r12d
+test   %r12d,%r12d
+jne    ADDR <create_timer_event+off>
+lea    0x1(%rdi),%ebx
+mov    %edx,%ecx
+mov    $0x1,%r8d
+lea    0x0(%rip),%rdx        # ADDR <create_timer_event+off>
+mov    %r9d,%edi
+call   ADDR <create_timer_event+off>
+movslq %ebx,%rcx
+lea    0x0(%rip),%rdx        # ADDR <create_timer_event+off>
+mov    %eax,0x4(%rdx,%rcx,8)
+test   %eax,%eax
+jne    ADDR <create_timer_event+off>
+mov    %r12d,%eax
+pop    %rbx
+pop    %r12
+pop    %rbp
+ret
+mov    $0x0,%r12d
+jmp    ADDR <create_timer_event+off>
+movslq %ebx,%rdi
+lea    0x0(%rip),%rdx        # ADDR <create_timer_event+off>
+movl   $0x1,(%rdx,%rdi,8)
+addl   $0x1,0x0(%rip)        # ADDR <create_timer_event+off>
+mov    %eax,%r12d
+jmp    ADDR <create_timer_event+off>
+
+Disassembly of section .text.destroy_timer_event:
+
+ADDR <destroy_timer_event>:
+mov    0x0(%rip),%ecx        # ADDR <destroy_timer_event+off>
+test   %ecx,%ecx
+jle    ADDR <destroy_timer_event+off>
+lea    0x0(%rip),%rdx        # ADDR <destroy_timer_event+off>
+mov    $0x0,%eax
+jmp    ADDR <destroy_timer_event+off>
+add    $0x1,%eax
+add    $0x8,%rdx
+cmp    %ecx,%eax
+je     ADDR <destroy_timer_event+off>
+cmpl   $0x0,-0x4(%rdx)
+je     ADDR <destroy_timer_event+off>
+cmpl   $0x0,(%rdx)
+je     ADDR <destroy_timer_event+off>
+push   %rbp
+mov    %rsp,%rbp
+push   %r12
+push   %rbx
+add    $0x1,%eax
+lea    0x0(%rip),%r12        # ADDR <destroy_timer_event+off>
+movslq %eax,%rbx
+mov    0x4(%r12,%rbx,8),%edi
+call   ADDR <destroy_timer_event+off>
+movl   $0x0,(%r12,%rbx,8)
+mov    $0x1,%eax
+pop    %rbx
+pop    %r12
+pop    %rbp
+ret
+mov    $0x0,%eax
+ret
+mov    $0x0,%eax
+ret
+
+Disassembly of section .text.windows_system_timer:
+
+ADDR <windows_system_timer>:
+mov    0x0(%rip),%rax        # ADDR <windows_system_timer+off>
+cmpl   $0x0,(%rax)
+jne    ADDR <windows_system_timer+off>
+mov    0x0(%rip),%rax        # ADDR <windows_system_timer+off>
+cmpl   $0x0,(%rax)
+je     ADDR <windows_system_timer+off>
+mov    0x0(%rip),%rdx        # ADDR <windows_system_timer+off>
+mov    (%rdx),%eax
+add    $0xa,%eax
+mov    %eax,(%rdx)
+ret
+
+Disassembly of section .text.windows_system_timer_interrupt:
+
+ADDR <windows_system_timer_interrupt>:
+mov    0x0(%rip),%rax        # ADDR <windows_system_timer_interrupt+off>
+cmpl   $0x0,(%rax)
+jne    ADDR <windows_system_timer_interrupt+off>
+mov    0x0(%rip),%rax        # ADDR <windows_system_timer_interrupt+off>
+cmpl   $0x0,(%rax)
+je     ADDR <windows_system_timer_interrupt+off>
+mov    0x0(%rip),%rdx        # ADDR <windows_system_timer_interrupt+off>
+mov    (%rdx),%eax
+add    $0x1,%eax
+mov    %eax,(%rdx)
+ret
+
+Disassembly of section .text.system_sleep:
+
+ADDR <system_sleep>:
+push   %rbp
+mov    %rsp,%rbp
+call   ADDR <system_sleep+off>
+pop    %rbp
+ret

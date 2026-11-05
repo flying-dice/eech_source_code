@@ -1,0 +1,70 @@
+{
+  "source": "21ba7114339993df5edf190d434f739e12ab2192",
+  "all_nine_completed_success": true,
+  "jobs": [
+    {
+      "id": 124561447897,
+      "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41209521067
+    },
+    {
+      "id": 124561448046,
+      "name": "test (x86_64-unknown-linux-gnu)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41209521067
+    },
+    {
+      "id": 124561448074,
+      "name": "test (i686-unknown-linux-gnu)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41209521067
+    },
+    {
+      "id": 124561448090,
+      "name": "windows-cross",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41209521067
+    },
+    {
+      "id": 124561448096,
+      "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41209521067
+    },
+    {
+      "id": 124561448116,
+      "name": "dcs-probe-tools",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41209521067
+    },
+    {
+      "id": 124561448127,
+      "name": "evidence-selftest",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41209521067
+    },
+    {
+      "id": 124561390014,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41209521071
+    },
+    {
+      "id": 124561389825,
+      "name": "Slice 1a historical equivalence",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41209521094
+    }
+  ],
+  "scope": "Corrected sound-driver/nativec0b provenance; originalampcharacterization only. New4779closure/docs and physicalhostsourceWIP are separate revisions, notcoveredbythiscurrent21CI."
+}

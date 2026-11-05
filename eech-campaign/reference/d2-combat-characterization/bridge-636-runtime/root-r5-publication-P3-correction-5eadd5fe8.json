@@ -1,0 +1,13 @@
+{
+  "when_utc": "2026-10-28T12:31:07.213650+00:00",
+  "head": "5eadd5fe85459ff0d64669af86b8c3f7878ad6cc",
+  "source_parent": "b268c7e5a0016898ba855a5316cc91c3fd5fa98e",
+  "changed_files": [
+    "eech-campaign/reference/d2-combat-characterization/impact-bridge-original-runtime/.gitattributes",
+    "eech-campaign/reference/d2-combat-characterization/task45-parent-frame-cost/.gitattributes"
+  ],
+  "all34_private_worktree_git_blobs_still_exact": true,
+  "diffcheck_bb_to_head_actual_exit": 0,
+  "scope": "P3 scoped CR whitespace metadata only; no normalized artifacts/baselines, no physics change. First Root assertion expected LF-only attributes but originals were CRLF; it failed before mutation; corrected content check then two metadata files changed. P1/P2 remain source gate blockers.",
+  "next": "SoleSonnet P1/P2 corrections once full review report arrives; no native on b268 or current samephysics5e"
+}

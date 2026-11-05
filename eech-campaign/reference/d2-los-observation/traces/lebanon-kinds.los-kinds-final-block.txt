@@ -1,0 +1,19 @@
+los-kinds source=ENTITY_TYPE_ROUTED_VEHICLE target=ENTITY_TYPE_ROUTED_VEHICLE source_host_id=1 target_host_id=1 counteech-world: process exit
+los-kinds source=ENTITY_TYPE_ROUTED_VEHICLE target=ENTITY_TYPE_ANTI_AIRCRAFT source_host_id=1 target_host_id=1 count=50301
+los-kinds source=ENTITY_TYPE_SHIP_VEHICLE target=ENTITY_TYPE_ANTI_AIRCRAFT source_host_id=1 target_host_id=1 count=11670
+los-kinds source=ENTITY_TYPE_SHIP_VEHICLE target=ENTITY_TYPE_ROUTED_VEHICLE source_host_id=1 target_host_id=1 count=567
+los-kinds source=ENTITY_TYPE_ROUTED_VEHICLE target=ENTITY_TYPE_SITE source_host_id=1 target_host_id=1 count=3070
+los-kinds source=ENTITY_TYPE_ROUTED_VEHICLE target=ENTITY_TYPE_HELICOPTER source_host_id=1 target_host_id=1 count=7259
+los-kinds source=ENTITY_TYPE_HELICOPTER target=ENTITY_TYPE_ANTI_AIRCRAFT source_host_id=1 target_host_id=1 count=4095
+los-kinds source=ENTITY_TYPE_ANTI_AIRCRAFT target=ENTITY_TYPE_HELICOPTER source_host_id=1 target_host_id=1 count=5865
+los-kinds source=ENTITY_TYPE_HELICOPTER target=ENTITY_TYPE_ROUTED_VEHICLE source_host_id=1 target_host_id=1 count=21632
+los-kinds source=ENTITY_TYPE_SHIP_VEHICLE target=ENTITY_TYPE_FIXED_WING source_host_id=1 target_host_id=1 count=2716
+los-kinds source=ENTITY_TYPE_HELICOPTER target=ENTITY_TYPE_HELICOPTER source_host_id=1 target_host_id=1 count=775
+los-kinds source=ENTITY_TYPE_ANTI_AIRCRAFT target=ENTITY_TYPE_FIXED_WING source_host_id=1 target_host_id=1 count=10473
+los-kinds source=ENTITY_TYPE_ROUTED_VEHICLE target=ENTITY_TYPE_FIXED_WING source_host_id=1 target_host_id=1 count=241
+los-kinds source=ENTITY_TYPE_FIXED_WING target=ENTITY_TYPE_SHIP_VEHICLE source_host_id=1 target_host_id=1 count=5
+los-kinds source=ENTITY_TYPE_SHIP_VEHICLE target=ENTITY_TYPE_WEAPON source_host_id=1 target_host_id=0 count=397
+los-kinds source=ENTITY_TYPE_ANTI_AIRCRAFT target=ENTITY_TYPE_ROUTED_VEHICLE source_host_id=1 target_host_id=1 count=1
+los-kinds source=ENTITY_TYPE_FIXED_WING target=ENTITY_TYPE_ANTI_AIRCRAFT source_host_id=1 target_host_id=1 count=2
+los-kinds source=ENTITY_TYPE_FIXED_WING target=ENTITY_TYPE_HELICOPTER source_host_id=1 target_host_id=1 count=4
+los-kinds rows=18 overflow=0

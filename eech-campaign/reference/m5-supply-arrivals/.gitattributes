@@ -1,0 +1,5 @@
+M4-TEST-INFO.txt -text -diff
+causal-*.out -text -diff
+controls-*.results.jsonl -text -diff
+controls-*.summary.txt -text -diff
+independent-release-source-equivalence.json -text -diff

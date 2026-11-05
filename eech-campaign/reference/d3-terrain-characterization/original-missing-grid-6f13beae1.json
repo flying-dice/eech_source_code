@@ -1,0 +1,144 @@
+{
+  "scope": "Controlled missing-grid variants only, not accepted retail baseline; source original solver remains inDLL. Both realnative/controller0. Host generated data not yet compared.",
+  "cases": [
+    {
+      "map": "lebanon",
+      "runtime_source": "6f13beae1a0b7b1da7bc42c4b1e68e14f19a50d7",
+      "generated_path": "R:\\d3-evidence\\grid-generation-roots\\lebanon-original\\common\\maps\\map5\\terrain\\terrain.sim",
+      "generated_bytes": 4202516,
+      "generated_sha256": "d3a707e8d21964b3f8df8d28f8d2a5afd88c0aa52e648fc3495a25aa6a26aa42",
+      "trace_sha256": "ee4d7d597c64e420ce1723816a1c6d1f89eb0c99ad25a7378c1825b676246129",
+      "hashes": [
+        {
+          "at": 0,
+          "event": "terrain-probe-hash",
+          "primed": "42669569d4a35a25",
+          "report": "probe",
+          "sample": "5019c81ccaa3bf8d"
+        },
+        {
+          "at": 0,
+          "available": 1,
+          "count": 20006,
+          "event": "terrain-probe-fast-hash",
+          "fast": "12f0edcddd5d840c",
+          "report": "probe"
+        }
+      ],
+      "native_record": {
+        "status": "completed",
+        "when_utc": "2026-10-29T11:22:08.9939224Z",
+        "binary": "R:\\d3-evidence\\terrain-backend-source-6f13beae1\\eech-campaign\\target\\terrain-fixture\\backend-6f13beae1\\eech-world.exe",
+        "arguments": "R:/d3-evidence/terrain-backend-source-6f13beae1/eech-campaign/target/terrain-fixture/backend-6f13beae1/lua/terrain-characterization.lua root=R:/d3-evidence/grid-generation-roots/lebanon-original scenario=lebanon_retail out=R:/d3-evidence/original-generated-grid-6f13beae1/lebanon/trace.jsonl seconds=0 frame_ms=100 probe_at=0 probe_seed=1 probe_count=20000 emit=256",
+        "root": "R:/d3-evidence/grid-generation-roots/lebanon-original",
+        "out": "R:/d3-evidence/original-generated-grid-6f13beae1/lebanon",
+        "scenario": "lebanon_retail",
+        "kind": "D3 original terrain characterization: test-only fixture, not shipping pack acceptance",
+        "driver_sha256": "9312b426be22c13a6d947be8fd18dca9062eb1854ce32bb139aba2833efb6dd0",
+        "launcher_sha256": "6ed9b68e7800cb46025e2653331dde76bc6301a4f6c1e47824d92f35d1e94b9b",
+        "build_info_sha256": "f319ed2537981de5688c3eb082da7cd789d375b6cc42578d72e9db152fe7f8d2",
+        "actual_native_exit": 0,
+        "native_pid": 11116,
+        "created_utc": "2026-10-29T11:22:09.1338861Z",
+        "completed_utc": "2026-10-29T11:22:12.3968192Z"
+      },
+      "header_words_i32": [
+        1025,
+        1025,
+        1125646336,
+        1127743488
+      ],
+      "header": {
+        "width": 1025,
+        "height": 1025,
+        "x_grid": 152.0,
+        "z_grid": 184.0
+      },
+      "all_other_inputs_exact": true,
+      "grid_before": [
+        {
+          "path": "common/maps/map5/terrain/TERRAIN.SIM",
+          "bytes": 1052692,
+          "sha256": "15d1109d9d86c65552359195550e6293494e1daffc421eba3e3f60d851a950f6"
+        }
+      ],
+      "grid_after": [
+        {
+          "path": "common/maps/map5/terrain/terrain.sim",
+          "bytes": 4202516,
+          "sha256": "d3a707e8d21964b3f8df8d28f8d2a5afd88c0aa52e648fc3495a25aa6a26aa42"
+        }
+      ]
+    },
+    {
+      "map": "georgia",
+      "runtime_source": "6f13beae1a0b7b1da7bc42c4b1e68e14f19a50d7",
+      "generated_path": "R:\\d3-evidence\\grid-generation-roots\\georgia-original\\common\\maps\\map3\\terrain\\terrain.sim",
+      "generated_bytes": 8400916,
+      "generated_sha256": "83ac8c715274a117cbbef80e4665065746a6b0bf77c1b50b8b1aa1dd45d9700c",
+      "trace_sha256": "acc37d76fce53a19c0ae624e075c03babe848ede60d51d4f71a53dee72bca984",
+      "hashes": [
+        {
+          "at": 0,
+          "event": "terrain-probe-hash",
+          "primed": "6f61a1158a8ab759",
+          "report": "probe",
+          "sample": "0199bfae4fbe4ff5"
+        },
+        {
+          "at": 0,
+          "available": 1,
+          "count": 20006,
+          "event": "terrain-probe-fast-hash",
+          "fast": "aa1179597dceabc4",
+          "report": "probe"
+        }
+      ],
+      "native_record": {
+        "status": "completed",
+        "when_utc": "2026-10-29T11:22:08.9940160Z",
+        "binary": "R:\\d3-evidence\\terrain-backend-source-6f13beae1\\eech-campaign\\target\\terrain-fixture\\backend-6f13beae1\\eech-world.exe",
+        "arguments": "R:/d3-evidence/terrain-backend-source-6f13beae1/eech-campaign/target/terrain-fixture/backend-6f13beae1/lua/terrain-characterization.lua root=R:/d3-evidence/grid-generation-roots/georgia-original scenario=georgia_retail out=R:/d3-evidence/original-generated-grid-6f13beae1/georgia/trace.jsonl seconds=0 frame_ms=100 probe_at=0 probe_seed=1 probe_count=20000 emit=256",
+        "root": "R:/d3-evidence/grid-generation-roots/georgia-original",
+        "out": "R:/d3-evidence/original-generated-grid-6f13beae1/georgia",
+        "scenario": "georgia_retail",
+        "kind": "D3 original terrain characterization: test-only fixture, not shipping pack acceptance",
+        "driver_sha256": "9312b426be22c13a6d947be8fd18dca9062eb1854ce32bb139aba2833efb6dd0",
+        "launcher_sha256": "6ed9b68e7800cb46025e2653331dde76bc6301a4f6c1e47824d92f35d1e94b9b",
+        "build_info_sha256": "f319ed2537981de5688c3eb082da7cd789d375b6cc42578d72e9db152fe7f8d2",
+        "actual_native_exit": 0,
+        "native_pid": 24176,
+        "created_utc": "2026-10-29T11:22:09.1338796Z",
+        "completed_utc": "2026-10-29T11:22:12.7972610Z"
+      },
+      "header_words_i32": [
+        2049,
+        1025,
+        1131675648,
+        1130889216
+      ],
+      "header": {
+        "width": 2049,
+        "height": 1025,
+        "x_grid": 244.0,
+        "z_grid": 232.0
+      },
+      "all_other_inputs_exact": true,
+      "grid_before": [
+        {
+          "path": "common/maps/map3/terrain/terrain.sim",
+          "bytes": 8400916,
+          "sha256": "83ac8c715274a117cbbef80e4665065746a6b0bf77c1b50b8b1aa1dd45d9700c"
+        }
+      ],
+      "grid_after": [
+        {
+          "path": "common/maps/map3/terrain/terrain.sim",
+          "bytes": 8400916,
+          "sha256": "83ac8c715274a117cbbef80e4665065746a6b0bf77c1b50b8b1aa1dd45d9700c"
+        }
+      ]
+    }
+  ],
+  "metadata_note": "Header first16bytes are i32width,i32height,f32xgrid,f32zgrid; rawi32words retained. Only controlled grid recreation differs; original grid filenames/resolution recorded exactly, no reference changes."
+}

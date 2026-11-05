@@ -1,0 +1,54 @@
+fixture run: green (TEST build, not the shipping binary)
+features: eech-dc/dependent-fixture
+commit: c9cb51a3dd2fbf4130fc59323fa2e255d2905a28
+dirty paths in build inputs: 0
+volume: eech-dep-fix-green-g2
+5cae090303a293d3db403788538ef574f553ca5cf64bc3642a8a033e3ff734c7  eech_dc.dll
+eech-world.exe + lua.dll: those of native/BUILD-INFO.txt (commit 7c61e13a build)
+command: eech-world.exe dependent-fixture.lua root=<copied retail root> hours=0.01
+exit=0
+--- stdout (artwork stderr noise omitted) ---
+hosted	helicopter	174
+hosted	routed	1143
+hosted	fixed_wing	91
+hosted	ship	36
+check	candidates	pass	parent=83133(ship) routed=8751 helicopter=82546 grandchild=8815
+position.campaign_dependents_also_carried	6
+check	position.carried	pass	7 carries, 6 other
+check	position.lands_on_parent_new	pass
+check	position.moved	pass
+check	position.no_place_after_carry	pass	0
+check	position.child.host_dll_agree	pass	dll=(17578.742,-0.063,79937.070) host=(17578.742,-0.063,79937.070)
+check	helicopter.carried	pass	8 carries
+check	helicopter.horizontal_offset_kept	pass	0.001674
+check	helicopter.height_offset_kept	pass	0.000031
+check	helicopter.heading_is_parent_heading	pass	helicopter=0.0000 parent=0.0000
+check	helicopter.no_place_after_carry	pass	0
+check	helicopter.child.host_dll_agree	pass	dll=(47222.465,315.941,30612.242) host=(47222.465,315.941,30612.242)
+check	rotated.candidate	pass	parent 8946 heading -2.072
+check	rotated.angle_is_meaningful	pass	-2.0717 rad
+check	rotated.carried	pass
+check	rotated.matches_handler_formula	pass	host=(4102.700,315.941,46805.852) formula=(4102.700,315.941,46805.853)
+check	rotated.distance_kept	pass
+check	rotated.offset_was_turned	pass
+check	rotated.heading_is_parent_heading	pass	helicopter=-2.0717 parent=-2.0717
+check	rotated.no_place_after_carry	pass	0
+check	rotated.child.host_dll_agree	pass	dll=(4102.700,315.941,46805.852) host=(4102.700,315.941,46805.852)
+chain.order	eech-world:2678<-eech-world:2716 eech-world:1<-eech-world:2716 eech-world:3<-eech-world:1 eech-world:2727<-eech-world:2716 eech-world:2726<-eech-world:2716 eech-world:2725<-eech-world:2716 eech-world:2724<-eech-world:2716 eech-world:2723<-eech-world:2716 eech-world:2722<-eech-world:2716
+check	chain.child_then_grandchild	pass
+check	chain.grandchild_on_child_new	pass
+check	chain.no_place_after_carry	pass	0
+check	chain.child.host_dll_agree	pass	dll=(17563.742,-0.063,79922.070) host=(17563.742,-0.063,79922.070)
+check	chain.grandchild.host_dll_agree	pass	dll=(17563.742,-0.063,79922.070) host=(17563.742,-0.063,79922.070)
+check	guard.restored_after_chain	pass
+check	sink.carried	pass	9 carries
+check	sink.carry_parents_are_ship_or_chain	pass	0
+check	sink.no_place_after_carry	pass	0
+check	sink.child.host_dll_agree	pass	dll=(17568.742,-0.063,79927.070) host=(17568.742,-0.063,79927.070)
+check	sink.helicopter.host_dll_agree	pass	dll=(17584.617,299.937,79872.773) host=(17584.617,299.937,79872.773)
+check	sink.grandchild.host_dll_agree	pass	dll=(17568.742,-0.063,79927.070) host=(17568.742,-0.063,79927.070)
+check	sink.parent.host_dll_agree	pass	dll=(17568.742,-0.063,79927.070) host=(17568.742,-0.063,79927.070)
+carries	43
+refused	0
+checks	34	failed	0
+result	ok

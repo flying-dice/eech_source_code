@@ -66,6 +66,10 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_cmbfx.h"
+
+#include "entity/mobile/mb_hostaim.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,6 +82,9 @@
 
 static void update_server (entity *en)
 {
+	campaign_health_result
+		timed;
+
 	person
 		*raw;
 
@@ -95,17 +102,24 @@ static void update_server (entity *en)
 
 	// bleeding damage
 	
-	if (damage_level &&  vehicle_critically_damaged(en) && frand1() < 2 * get_delta_time())
+	CMB_FX_TIMED_BEGIN (EECH_CMB_TIMED_PERSON_BLEEDING)
+
+	// the eligibility, the sample, the roll, the health a hit leaves and whether it is fatal are the host's (EEDCS-46); the setting of the health, the hooks and the kill stay here
+	vehicle_timed_health (en, damage_level, 0, &timed);
+
+	if (timed.hit)
 	{
-		damage_level--;
+		set_client_server_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL, timed.new_level);
 
-		set_client_server_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL, max(0, damage_level));
+		CMB_FX_TIMED_HIT (en, timed.new_level)
 
-		if (damage_level <= 0)
+		if (timed.fatal)
 			kill_client_server_entity (en);
 	}
 
-	if (raw->vh.mob.alive && !vehicle_critically_damaged(en))
+	CMB_FX_TIMED_END ()
+
+	if (raw->vh.mob.alive && !timed.critical_class)
 	{
 		//
 		// Update
@@ -152,6 +166,18 @@ static void update_server (entity *en)
 
 		if (get_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE) == OPERATIONAL_STATE_DEAD)
 		{
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+			//
+			// host-owned lifetime (EEDCS-38): see rv_updt.c
+			//
+
+			campaign_movement_require_hosted (en);
+
+			if (campaign_movement_expire (en, &raw->vh.death_timer, get_delta_time (), 0))
+			{
+				destroy_client_server_entity_family (en);
+			}
+#else
 			raw->vh.death_timer += get_delta_time ();
 
 			if (!((int)(raw->vh.death_timer + 1) % 300))
@@ -159,6 +185,7 @@ static void update_server (entity *en)
 				{
 					destroy_client_server_entity_family (en);
 				}
+#endif
 		}
 	}
 }

@@ -1,0 +1,10 @@
+task_key_before_after	4295046955	4295046953
+waypoint_key_before_after	4295046965	4295046974
+leader_host_id	eech-world:2999
+withheld_seconds	10.1
+withheld_calls	101
+selected_first_position	136028.781	604.727	68524.531
+selected_last_position	135972.031	604.727	68488.156
+selected_displacement	67.407
+advanced_after_release_seconds	0.1
+result	ok

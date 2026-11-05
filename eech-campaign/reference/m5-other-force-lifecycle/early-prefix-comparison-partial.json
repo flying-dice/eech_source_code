@@ -1,0 +1,18 @@
+{
+  "checked_at": "2026-10-22T17:24:38.565502",
+  "partial_only": true,
+  "results": [
+    {
+      "file": "recording.acmi",
+      "complete_line_bytes": 10327207,
+      "lines": 222625,
+      "matches_retained_prefix": true
+    },
+    {
+      "file": "observations.jsonl",
+      "complete_line_bytes": 6320057,
+      "lines": 30672,
+      "matches_retained_prefix": true
+    }
+  ]
+}

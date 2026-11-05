@@ -1,0 +1,19 @@
+{
+ "provider_trace": "out/pv-reference/trace.jsonl",
+ "characterization_trace": "../aim-characterization-20261026/out/r-a/trace.jsonl",
+ "checkpoint_at": 300.0,
+ "provider_report_lines": 196,
+ "reference_report_lines": 196,
+ "differing_lines": 0,
+ "hashes": {
+  "provider": {
+   "physical": "79efa18d48328638",
+   "decision": "cca4b35b00b2672c"
+  },
+  "reference": {
+   "physical": "79efa18d48328638",
+   "decision": "cca4b35b00b2672c"
+  }
+ },
+ "differences_first30": []
+}

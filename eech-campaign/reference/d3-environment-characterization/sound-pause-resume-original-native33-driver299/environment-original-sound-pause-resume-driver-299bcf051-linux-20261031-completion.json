@@ -1,0 +1,18 @@
+{
+  "source": "299bcf05128da68e85c8490025594f99969335b8",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-original-sound-pause-resume-driver-299bcf051-linux-20261031.sh"
+  ],
+  "pid": 25208,
+  "controller_pid": 2112,
+  "state": "terminal",
+  "started_utc": "2026-10-31T23:52:07.389042+00:00",
+  "scope": "Parser-only pause/resume correction guard/lint checks; immutable33native reused with verified C/Rust/build identity; no new native/physical/shipping claim; source review/default raw/public authority/Tacview/shipping acceptance separate",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T23:53:28.374023+00:00"
+}

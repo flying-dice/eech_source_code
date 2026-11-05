@@ -1,0 +1,43 @@
+== control (unmutated copies)
+stage: the vehicles walk
+CONTROL compile=0 run=0 class=PASSED
+== mutant: kill_ignores_server
+stage: the discrete facts
+MUTANT kill_ignores_server: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: shape_pred_succ_swapped
+stage: the vehicles walk
+MUTANT shape_pred_succ_swapped: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: missing_neighbour_counts_dead
+stage: the vehicles walk
+MUTANT missing_neighbour_counts_dead: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: fall_rate
+stage: the vehicles walk
+MUTANT fall_rate: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: water_offset
+stage: the vehicles walk
+MUTANT water_offset: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: landing_is_strict
+stage: the vehicles walk
+MUTANT landing_is_strict: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: vehicles_radius
+FAIL vehicles walk (run 33)
+MUTANT vehicles_radius: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: vehicles_range_weights
+FAIL vehicles walk (run 37)
+MUTANT vehicles_range_weights: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: vehicles_any_kind
+FAIL vehicles walk (run 10)
+MUTANT vehicles_any_kind: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: vehicles_stale_window
+FAIL vehicles walk (run 14)
+MUTANT vehicles_stale_window: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== setup control: cannot_compile
+/tmp/m/mb_hostaim.c:14:2: error: #error a copy that cannot compile
+   14 | #error a copy that cannot compile
+      |  ^~~~~
+SETUP CONTROL cannot_compile: class=BUILD_FAILURE as expected (compile=1 run=-), not a catch
+== setup control: never_ends
+stage: the discrete facts
+SETUP CONTROL never_ends: class=TIMEOUT as expected (compile=0 run=124), not a catch
+CAUGHT=10 FAILED=0 SETUP_CONTROLS_AS_EXPECTED=2 SETUP_CONTROLS_WRONG=0 CONTROL_OK=1
+DOCKER_EXIT=0

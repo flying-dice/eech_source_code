@@ -1,0 +1,28 @@
+== georgia_retail: tools/regress-compare.py regression/windows/georgia_retail.json <mutant> (tolerance mode, no --exact)
+OUTSIDE tolerance of the baseline
+FAIL   2.0 h  launched  blue                                               857 -> 1083
+FAIL   2.0 h  resupplied red KEYSITE_AIRBASE ammo                             4 -> 0
+FAIL   3.0 h  sorties   red infantry TROOP_MOVEMENT_INSERT_CAPTURE          10 -> 6
+FAIL   3.0 h  lost      blue air_defence                                    13 -> 19
+FAIL   3.0 h  lost      blue helicopter                                     41 -> 51
+FAIL   3.0 h  spawned   red infantry                                        96 -> 76
+FAIL   3.0 h  resupplied red KEYSITE_AIRBASE ammo                             6 -> 1
+FAIL   3.0 h  resupplied red KEYSITE_AIRBASE fuel                             5 -> 11
+FAIL   3.0 h  supply    red KEYSITE_AIRBASE fuel                          28.2 -> 43.3
+FAIL   3.0 h  alive     blue air_defence                                    25 -> 19
+FAIL   3.0 h  alive     blue helicopter                                     31 -> 19
+== lebanon_retail: tools/regress-compare.py regression/windows/lebanon_retail.json <mutant> (tolerance mode, no --exact)
+OUTSIDE tolerance of the baseline
+FAIL   2.0 h  lost      red infantry                                         6 -> 0
+FAIL   2.0 h  spawned   red infantry                                         4 -> 0
+FAIL   3.0 h  sorties   red ground_vehicle RETREAT                          10 -> 15
+FAIL   3.0 h  sorties   red helicopter BAI                                  10 -> 6
+FAIL   3.0 h  lost      blue fixed_wing                                     25 -> 13
+FAIL   3.0 h  spawned   blue infantry                                        8 -> 16
+FAIL   3.0 h  resupplied red KEYSITE_AIRBASE fuel                             8 -> 12
+FAIL   3.0 h  resupplied red KEYSITE_MILITARY_BASE ammo                       6 -> 0
+FAIL   3.0 h  resupplied red KEYSITE_MILITARY_BASE fuel                       1 -> 5
+FAIL   3.0 h  supply    blue KEYSITE_AIRBASE fuel                           21 -> 40.6
+FAIL   3.0 h  supply    red KEYSITE_MILITARY_BASE ammo                    84.9 -> 64
+FAIL   3.0 h  alive     blue fixed_wing                                     26 -> 35
+FAIL   3.0 h  alive     blue helicopter                                     27 -> 20

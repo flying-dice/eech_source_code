@@ -1,0 +1,103 @@
+{
+  "when_utc": "2026-10-28T11:08:41.108820+00:00",
+  "scope": "Focused NEW auditor phase/time/bounded-read correction; native originals/runrecords/baseline unchanged, no native rerun",
+  "before_red": "root-original-bridge-auditor-phase-red.json",
+  "after_helper": "R:\\d2-evidence\\combat-characterization-20261028\\audit-original-bridge.py",
+  "after_sha256": "694193f476a5156d9ba5ab9e5bb683be1840a2d68daeb4b2bf66edda21d0308a",
+  "controls": [
+    {
+      "name": "moved_disarm",
+      "actual_exit": 1,
+      "expected_exit": 1,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\moved_disarm-green.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\moved_disarm-green.log"
+    },
+    {
+      "name": "relabeled_frame_logs",
+      "actual_exit": 1,
+      "expected_exit": 1,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\relabeled_frame_logs-green.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\relabeled_frame_logs-green.log"
+    },
+    {
+      "name": "wrong_frame_time",
+      "actual_exit": 1,
+      "expected_exit": 1,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\wrong_frame_time-green.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\wrong_frame_time-green.log"
+    },
+    {
+      "name": "misplaced_before_report",
+      "actual_exit": 1,
+      "expected_exit": 1,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\misplaced_before_report-green.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\misplaced_before_report-green.log"
+    },
+    {
+      "name": "premature_case_marker",
+      "actual_exit": 1,
+      "expected_exit": 1,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\premature_case_marker-green.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\premature_case_marker-green.log"
+    },
+    {
+      "name": "valid_original",
+      "actual_exit": 0,
+      "expected_exit": 0,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\valid_original-regression.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\valid_original-regression.log"
+    },
+    {
+      "name": "missing_segment",
+      "actual_exit": 1,
+      "expected_exit": 1,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\missing_segment-regression.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\missing_segment-regression.log"
+    },
+    {
+      "name": "duplicate_state",
+      "actual_exit": 1,
+      "expected_exit": 1,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\duplicate_state-regression.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\duplicate_state-regression.log"
+    },
+    {
+      "name": "wrong_sequence",
+      "actual_exit": 1,
+      "expected_exit": 1,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\wrong_sequence-regression.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\wrong_sequence-regression.log"
+    },
+    {
+      "name": "false_landing",
+      "actual_exit": 1,
+      "expected_exit": 1,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\false_landing-regression.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\false_landing-regression.log"
+    },
+    {
+      "name": "unknown_event",
+      "actual_exit": 1,
+      "expected_exit": 1,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\unknown_event-regression.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\unknown_event-regression.log"
+    },
+    {
+      "name": "unbounded_census",
+      "actual_exit": 1,
+      "expected_exit": 1,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\unbounded_census-regression.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\unbounded_census-regression.log"
+    },
+    {
+      "name": "malformed_json",
+      "actual_exit": 1,
+      "expected_exit": 1,
+      "summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\malformed_json-regression.json",
+      "log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\malformed_json-regression.log"
+    }
+  ],
+  "all_expected": true,
+  "original_and_repeat_final_audit_exit": 0,
+  "remaining": "Independentfocused helper correction review"
+}

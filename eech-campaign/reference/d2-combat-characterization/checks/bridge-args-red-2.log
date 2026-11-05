@@ -1,0 +1,46 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.49s
+     Running tests/host_callbacks.rs (/target/debug/deps/host_callbacks-01e380bfce0df75c)
+
+running 1 test
+test the_bridge_witness_never_turns_a_segment_that_is_not_a_number_into_the_automatic_choice ... FAILED
+
+failures:
+
+---- the_bridge_witness_never_turns_a_segment_that_is_not_a_number_into_the_automatic_choice stdout ----
+
+thread 'the_bridge_witness_never_turns_a_segment_that_is_not_a_number_into_the_automatic_choice' (164) panicked at crates/eech-world/tests/host_callbacks.rs:1512:5:
+a segment was killed for segment=abc (status exit status: 0):
+prepare
+boot
+frame 100
+frame 100
+case 0:0:-1:0
+case 1:1:-1:0
+case 2:1:-1:0
+case 1:1:-1:0
+frame 100
+case 1:1:-1:0
+frame 100
+case 1:1:-1:0
+frame 100
+case 1:1:-1:0
+case 3:0:-1:0
+
+BRIDGE_CASE_DONE
+CALLS 0:0:-1:0 1:1:-1:0 2:1:-1:0 1:1:-1:0 1:1:-1:0 1:1:-1:0 1:1:-1:0 3:0:-1:0
+BRIDGE_CALLER_DONE
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    the_bridge_witness_never_turns_a_segment_that_is_not_a_number_into_the_automatic_choice
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p eech-world --test host_callbacks`
+CARGO_EXIT=101
+DOCKER_EXIT=101

@@ -4396,6 +4396,14 @@
 							>
 						</File>
 						<File
+							RelativePath=".\aphavoc\source\entity\special\group\gp_loss.c"
+							>
+						</File>
+						<File
+							RelativePath=".\aphavoc\source\entity\special\group\gp_loss.h"
+							>
+						</File>
+						<File
 							RelativePath=".\aphavoc\source\entity\special\group\gp_msgs.c"
 							>
 						</File>

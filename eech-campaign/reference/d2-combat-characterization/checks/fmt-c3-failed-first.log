@@ -1,0 +1,63 @@
+RUSTUP_ADD_EXIT=0
+FMT_EXIT=1
+Diff in /src/eech-campaign/crates/eech-dc/src/module.rs:1591:
+         // TEST-ONLY (feature `weapon-fixture`, EEDCS-46): controlled combat cases of the original campaign that launch nothing (op 0 census, op 1 set a health percentage), given the
+         // same complete host as a frame because the health case sets a health and asks the critical predicate, which the host answers; not part of the shipping module.
+         #[cfg(feature = "weapon-fixture")]
+-        methods.add_method(
+-            "cmb_case_state",
+-            |lua, this, (op, kind, ordinal, percent): (i32, String, i32, i32)| {
+-                let bind_mobile = this.bind_mobile.clone();
+-                let observe_loss = this.observe_loss.clone();
+-                let supply_reached = this.supply_reached.clone();
+-                let move_vehicle = this.move_vehicle.clone();
+-                let line_of_sight = this.line_of_sight.clone();
+-                let sense = this.sense.clone();
+-                let aim = this.aim.clone();
+-                let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
+-                let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
+-                let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
+-                let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
+-                let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
+-                let mut sensor = |message| call_sense(lua, &sense, message);
+-                let mut aimer = |request| call_aim(lua, &aim, request);
+-                this.engine
+-                    .cmb_case_state(
+-                        op,
+-                        &kind,
+-                        ordinal,
+-                        percent,
+-                        &mut binder,
+-                        &mut observer,
+-                        &mut reach,
+-                        &mut mover,
+-                        &mut sighter,
+-                        &mut sensor,
+-                        &mut aimer,
+-                    )
+-                    .map_err(lua_error)
+-            },
+-        );
++        methods.add_method("cmb_case_state", |lua, this, (op, kind, ordinal, percent): (i32, String, i32, i32)| {
++            let bind_mobile = this.bind_mobile.clone();
++            let observe_loss = this.observe_loss.clone();
++            let supply_reached = this.supply_reached.clone();
++            let move_vehicle = this.move_vehicle.clone();
++            let line_of_sight = this.line_of_sight.clone();
++            let sense = this.sense.clone();
++            let aim = this.aim.clone();
++            let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
++            let mut observer = |descriptor| call_observe_loss(lua, &observe_loss, descriptor);
++            let mut reach = |descriptor| call_supply_reached(lua, &supply_reached, descriptor);
++            let mut mover = |step| call_move_vehicle(lua, &move_vehicle, step);
++            let mut sighter = |message| call_line_of_sight(lua, &line_of_sight, message);
++            let mut sensor = |message| call_sense(lua, &sense, message);
++            let mut aimer = |request| call_aim(lua, &aim, request);
++            this.engine
++                .cmb_case_state(
++                    op,
++                    &kind,
++                    ordinal,
++                    percent,
++                    &mut binder,
+DOCKER_EXIT=0

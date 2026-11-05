@@ -1,0 +1,39 @@
+{
+  "when_utc": "2026-10-28T16:23:48.484943+00:00",
+  "files": [
+    {
+      "file": "independent-r3-publication-and-provisional-d2-scope-audit-09253829b-20261028.json",
+      "bytes": 21242,
+      "sha256": "b5c1991254926a8f99b45cd91e2e6767a728f0d165ff6f6723690cc75e3de575"
+    },
+    {
+      "file": "independent-r3-publication-09253829b-verification-data-20261028.json",
+      "bytes": 9877,
+      "sha256": "cd288eb1d4bb6e40d450155e90f4f5388f520dece8dc88c25ae106128fe62687"
+    },
+    {
+      "file": "independent-ci-crlf-and-scope-draft-review-63ea6cfa4-20261028.json",
+      "bytes": 6988,
+      "sha256": "492732ef928b0522a497d998f15bfdfade747646611a4074fe4c3d635f6fa999"
+    },
+    {
+      "file": "root-r3-corrected-runtime-publication-09253829b.json",
+      "bytes": 6418,
+      "sha256": "dae221ff41c4e3212c8869ffd229089558c3f0bd13ebf671979b5afea0eef59e"
+    },
+    {
+      "file": "root-63ea-test-only-production-equivalence.json",
+      "bytes": 2654,
+      "sha256": "4a10f4f8a2ec25774d394407d171103047fb9a8f65cbf696b20757354d3063c6"
+    },
+    {
+      "file": "root-ci-092-crlf-diagnosis.json",
+      "bytes": 1218,
+      "sha256": "2e766a3f73e55b7ebc5e7485ce5c09c2deaea3e503d80ac2e5b455f7523f4b8a"
+    }
+  ],
+  "scope_document": "docs/handover/D2-SCOPE-AUDIT.md",
+  "scope_document_sha256": "8906a8c485419ef1fe21e30ca0b8786ed18990646bf159c31b298e858a1b3bd4",
+  "reviewed_draft_sha256": "8906a8c485419ef1fe21e30ca0b8786ed18990646bf159c31b298e858a1b3bd4",
+  "limits": "Exact provisional source-scope and test-only portability evidence. Final shipping/cost/CI/merge and whole-D2 acceptance pending."
+}

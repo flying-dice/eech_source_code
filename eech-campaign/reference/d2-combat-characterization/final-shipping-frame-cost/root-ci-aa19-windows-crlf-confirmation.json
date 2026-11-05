@@ -1,0 +1,32 @@
+{
+  "when_utc": "2026-10-28T16:32:09.994015+00:00",
+  "head": "aa19f0e085c9635e964142e134e80bf96c6bc253",
+  "job_id": 122948353786,
+  "run_id": 40725598960,
+  "job_url": "https://github.com/flying-dice/eech_source_code/actions/runs/40725598960/job/122948353786",
+  "job_status": "completed",
+  "job_conclusion": "success",
+  "job_started_at": "2026-10-28T16:25:01Z",
+  "job_completed_at": "2026-10-28T16:30:23Z",
+  "run_state_at_capture": {
+    "conclusion": "",
+    "headSha": "aa19f0e085c9635e964142e134e80bf96c6bc253",
+    "status": "in_progress"
+  },
+  "job_metadata_fetch_actual_exit": 0,
+  "job_log_fetch_actual_exit": 0,
+  "raw_log": "R:\\d2-evidence\\combat-characterization-20261028\\ci-aa19-windows-cross-job-122948353786.log",
+  "raw_log_sha256": "c0e1f87ecc4f72a20b622518beea89e2aacdc8405d428c7213e31852dee15ed1",
+  "targeted_test_pass_lines": {
+    "the_bridge_witness_says_so_and_does_nothing_when_no_bridge_meets_the_first_collapse_criterion": [
+      "2026-10-28T16:30:17.1672418Z test the_bridge_witness_says_so_and_does_nothing_when_no_bridge_meets_the_first_collapse_criterion ... ok"
+    ],
+    "the_object_witness_reports_a_destruction_by_identity_once_and_reads_the_state_afterwards": [
+      "2026-10-28T16:30:17.5618723Z test the_object_witness_reports_a_destruction_by_identity_once_and_reads_the_state_afterwards ... ok"
+    ]
+  },
+  "host_callbacks_summary": [
+    "2026-10-28T16:30:19.4816249Z test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.83s"
+  ],
+  "limitations": "Actual Windows cross/Wine CI confirmation of corrected tests on aa19. Overallrun still inprogress at capture; not final full campaign/cost/merge acceptance. Raw CI log retained; ANSI stripping only for diagnosis, no campaign output normalization."
+}

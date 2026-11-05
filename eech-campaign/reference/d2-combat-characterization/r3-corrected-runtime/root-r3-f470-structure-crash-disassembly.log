@@ -1,0 +1,56 @@
+
+/src/eech-campaign/target/windows-d2-combat-final-f4700bbab/eech_dc.dll:     file format pei-x86-64
+
+
+Disassembly of section .text:
+
+00000001801c6840 <campaign_object_structures>:
+   1801c6840:	55                   	push   %rbp
+   1801c6841:	41 57                	push   %r15
+   1801c6843:	41 56                	push   %r14
+   1801c6845:	41 55                	push   %r13
+   1801c6847:	41 54                	push   %r12
+   1801c6849:	57                   	push   %rdi
+   1801c684a:	56                   	push   %rsi
+   1801c684b:	53                   	push   %rbx
+   1801c684c:	48 83 ec 58          	sub    $0x58,%rsp
+   1801c6850:	48 8d 6c 24 50       	lea    0x50(%rsp),%rbp
+   1801c6855:	49 89 ce             	mov    %rcx,%r14
+   1801c6858:	48 89 55 58          	mov    %rdx,0x58(%rbp)
+   1801c685c:	be 00 00 00 00       	mov    $0x0,%esi
+   1801c6861:	41 bc 00 00 00 00    	mov    $0x0,%r12d
+   1801c6867:	4c 8b 2d 92 91 a6 00 	mov    0xa69192(%rip),%r13        # 180c2fa00 <.refptr.entities>
+   1801c686e:	48 8b 3d 4b 97 a6 00 	mov    0xa6974b(%rip),%rdi        # 180c2ffc0 <.refptr.fn_get_local_entity_int_value>
+   1801c6875:	4c 8b 3d 94 97 a6 00 	mov    0xa69794(%rip),%r15        # 180c30010 <.refptr.fn_get_local_entity_vec3d_ptr>
+   1801c687c:	eb 20                	jmp    1801c689e <campaign_object_structures+0x5e>
+   1801c687e:	48 8d 4d d0          	lea    -0x30(%rbp),%rcx
+   1801c6882:	48 8b 55 58          	mov    0x58(%rbp),%rdx
+   1801c6886:	41 ff d6             	call   *%r14
+   1801c6889:	41 83 c4 01          	add    $0x1,%r12d
+   1801c688d:	48 83 c6 20          	add    $0x20,%rsi
+   1801c6891:	48 81 fe 00 00 00 01 	cmp    $0x1000000,%rsi
+   1801c6898:	0f 84 01 01 00 00    	je     1801c699f <campaign_object_structures+0x15f>
+   1801c689e:	48 89 f3             	mov    %rsi,%rbx
+   1801c68a1:	49 03 5d 00          	add    0x0(%r13),%rbx
+   1801c68a5:	66 0f ef c0          	pxor   %xmm0,%xmm0
+   1801c68a9:	0f 11 45 d0          	movups %xmm0,-0x30(%rbp)
+   1801c68ad:	0f 11 45 e0          	movups %xmm0,-0x20(%rbp)
+   1801c68b1:	0f 11 45 f0          	movups %xmm0,-0x10(%rbp)
+   1801c68b5:	8b 0b                	mov    (%rbx),%ecx
+   1801c68b7:	e8 74 fb ff ff       	call   1801c6430 <campaign_object_is_structure>
+   1801c68bc:	85 c0                	test   %eax,%eax
+   1801c68be:	74 cd                	je     1801c688d <campaign_object_structures+0x4d>
+   1801c68c0:	48 89 d9             	mov    %rbx,%rcx
+   1801c68c3:	e8 68 f6 ff ff       	call   1801c5f30 <campaign_object_identify>
+   1801c68c8:	48 89 45 d0          	mov    %rax,-0x30(%rbp)
+   1801c68cc:	8b 03                	mov    (%rbx),%eax
+   1801c68ce:	89 45 d8             	mov    %eax,-0x28(%rbp)
+   1801c68d1:	8b 03                	mov    (%rbx),%eax
+   1801c68d3:	48 69 c0 e0 08 00 00 	imul   $0x8e0,%rax,%rax
+   1801c68da:	ba 35 00 00 00       	mov    $0x35,%edx
+   1801c68df:	48 89 d9             	mov    %rbx,%rcx
+   1801c68e2:	ff 94 07 a8 01 00 00 	call   *0x1a8(%rdi,%rax,1)
+   1801c68e9:	89 45 dc             	mov    %eax,-0x24(%rbp)
+   1801c68ec:	8b 03                	mov    (%rbx),%eax
+   1801c68ee:	48                   	rex.W
+   1801c68ef:	69                   	.byte 0x69

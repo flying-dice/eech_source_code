@@ -1,0 +1,107 @@
+{
+  "reviewed_utc": "2026-10-28T12:08:46.580904+00:00",
+  "reviewer": "same independent Codex reviewer",
+  "scope": "ONE NEW Task45-parent native frame-cost wrapper/helper/evidence review only; accepted a137source/physics approval reused, no mutableR5checkout inspected",
+  "source_before": {
+    "sha": "a137fc3ec1963d88de5f0b8562145b358b50e111",
+    "status": "clean"
+  },
+  "source_after": {
+    "sha": "a137fc3ec1963d88de5f0b8562145b358b50e111",
+    "status": "clean"
+  },
+  "findings": [],
+  "disposition": "Measurement and complete-artifact/preservation evidence accepted within declared observational engine:frame+nestedhostcallbacks scope; no DCSbudget/matchedbenchmark/finalD2 acceptance",
+  "process": {
+    "original_driver_exec": 7184,
+    "recorded_actual_original_driver_exit": 0,
+    "native_pid": 23428,
+    "actual_native_exit": 0,
+    "created_utc": "2026-10-28T11:32:31.5000056Z",
+    "completed_utc": "2026-10-28T12:04:02.5104843Z",
+    "run_record_sha256": "731c79204734ae06a6d5d32330e4d75a6e8863ae0f1ea5da7c0e8a979761597b",
+    "native_log_sha256": "743d7313fb4ef3931de2354cc3a7495c8f4e85aec889f565619f65889a38b5a3",
+    "native_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "scope": "Native record and held original driver actualexit/parent tool observation retained separately; not inferred from statistics footer alone."
+  },
+  "instrumentation": {
+    "generator_sha256": "17a20fa8e6c78e89fe3b66684ddd58f6597483ce77bd97ae1fd9ee8a8f62fb23",
+    "auditor_sha256": "c06c15acf6c3866f8b74bd06ed009b71b3046b693b8655dc88dfcb6b8b7f02f9",
+    "driver_sha256": "9cc90470dfbf188ceaa26ea4a4c3c277251130763ac5ef6427ff943c758ae172",
+    "instrumented_script_sha256": "8bdc9cd8927265017af0a2548382475b4247fc07761aefc65ace659375e92046",
+    "provenance_sha256": "57f1bd70e052fbbf34a6f8012c41c56168bc46c0b71847bf08ec495a9238c3b0",
+    "shipping_campaign_sha256": "a50bf7952f2379f06cab8b18ed060fab20568e2768f405118c0b802b85069fcb",
+    "exact_generated_bytes_reconstructed_without_execution": true,
+    "exact_companions": {
+      "metrics.lua": "dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053",
+      "observations.lua": "68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701"
+    },
+    "body_preservation": "OriginalUTF8shipping body retained exactly (originalLF); only new observational prefix/suffix and sole engine:frame anchor timed before/after. No extra frame/object/physicaloperation, seed/config/definition change. Probeadd/windowwrites/sort/quantiles outside measured span.",
+    "boundary_safety": "Fresh-output guarded hidden native heldhandle actualexit driver; generator refuses existing measurement/provenance and differingcompanions. Nonfinite/negative elapsed rejected; samples capped200000. No product ABI/pointer/identity/seed changes."
+  },
+  "statistics": {
+    "timing_file_sha256": "752a2d98235b321af4968c908f38e8db71b09c0066b171e1f35eb8c876fb2150",
+    "frames": 9000,
+    "contiguous_windows": 15,
+    "frames_each": 600,
+    "mean_ms": 207.120222,
+    "weighted_serialized_mean_ms": 207.1202222,
+    "max_ms": 554,
+    "reported_p50_ms": 194,
+    "reported_p95_ms": 334,
+    "reported_p99_ms": 424,
+    "quantiles": "Source-inspected nearest-rank sort over all9000 accepted frame samples; rawperframe samples RAM-only/notexported, so NOT independently recomputed.",
+    "timer": "ActualretainedshippingLuaDLL os.clock advances during observedidle; elapsedtiming, notCPU-only. Timerquantized; calibration doesnotprovefullresolution/monotonicity or DCS timing.",
+    "calibration_sha256": "bc8573f860b8bdee6e16f4e3d0403d50d51cdde120659b6a39bd5dbe0bd0802c",
+    "calibrated_LuaDLL_sha256": "fdd3325eab5f5fa1a1542e9ba82809960bda31a323641955348b6c223d803a05"
+  },
+  "complete_artifacts": [
+    {
+      "file": "recording.acmi",
+      "baseline_bytes": 11363845,
+      "candidate_bytes": 11363845,
+      "baseline_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+      "candidate_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+      "matches": true
+    },
+    {
+      "file": "observations.jsonl",
+      "baseline_bytes": 6629273,
+      "candidate_bytes": 6629273,
+      "baseline_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+      "candidate_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+      "matches": true
+    },
+    {
+      "file": "metrics.json",
+      "baseline_bytes": 11777,
+      "candidate_bytes": 11777,
+      "baseline_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+      "candidate_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+      "matches": true
+    }
+  ],
+  "preservation": {
+    "post_inputs_independently_hashed": 1179,
+    "pre_input_record_sha256": "6ec31faedef50843208c4e07c50bf90f8370bd4edc1ffa1ad548dbbd2ad9eb92",
+    "post_input_log_sha256": "64db8e0aa852f0974a2ba6b3fcb9be08265a388e97e25c73897c1d288862b404",
+    "pre_build_manifest_sha256": "1cd56ec9abe64b5c6b0a5e012be7cad4de3f42c7ef8ca63b9a644792ab5c49be",
+    "post_build_manifest_sha256": "e722e0cbd94f9ba77a832dcbdee235c79127d3efa229daef11e065f3d2c30441",
+    "all_export_hashes_verified": 35,
+    "BUILDINFO_sha256": "5e0fe29daecc6d128911e40f0ef0c17633870726f5d5b36c5e058398981cdc95",
+    "script_and_companions_unchanged": true,
+    "resource_snapshot_sha256": "1b7e471fed8a1c7b9c9872fc4964f34e7a673d47a3cbc304a409391941d5a277"
+  },
+  "helper_truthfulness": "Root audit helper validates statistics/source hashes and existing comparison/manifestfields; originalouterexit0 is supplied from actual7184 terminal observation, not discovered by it. This independent pass separately recomputed full3bytes,1179inputs,35exports+BUILDINFO and exactscriptderivation. Initial stdin MATCH-vs-IDENTICAL assertion failure disclosed; no native/artifact recovery/rewrite.",
+  "limits": [
+    "Only engine:frame plus nested hostcallbacks; objects/recording/metrics/outerloop and DCSscheduling/fullcallbackcost excluded.",
+    "Timers/sourceinstrumentation outside measured span can perturb total workload/cache/scheduling; no uninstrumentedmatchedbaseline or causalperformanceclaim.",
+    "Initialresource snapshot showsClaude/WSL; it is not continuous resource attribution or utilizationmeasurement.",
+    "15simulatedminutes under concurrentload, not DCSN4 30min/x4, framebudget, regressionspeedratio or finalordinaryD2cost.",
+    "Fullbyte/hashcomparison not visualinspection; ab-baseinputprovenanceinferred, not invented originalverification.",
+    "No rawperframes exported; quantiles sourcealgorithm evidence, not independentrecomputation.",
+    "No agents/edits/native/tests/builds or mutableR5source inspection during this review.",
+    "FinalD2shippingR4measurement/40all8post3/currentCI/review/normalmerge/R5R3physicalreports/wholeD2scope remain."
+  ],
+  "proof_sha256": "4e84a448376ba3d4f2484a38505381a8a820d8aefb6cdb7581ff54fca6ef8ddb"
+}

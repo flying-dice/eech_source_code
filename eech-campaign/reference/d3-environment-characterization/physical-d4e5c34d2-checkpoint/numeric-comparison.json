@@ -1,0 +1,33 @@
+{
+  "when_utc": "2026-10-31T10:59:57.165781+00:00",
+  "source": "d4e5c34d2b85e5ee6e9b98e2edd9b00e3c2505c4",
+  "original_comparison": "environment-physical-original-comparison-05b8caf82-20261031.json",
+  "method": "Actual complete byte equality vsretained05b whose704original993 rawlines+endings were verified, plusoneextra validationmetadata. Nooriginalrerun.",
+  "scope": "Finite numericconformance ONLY; Linux/actualWindowsFP/protocol/authority/shipping gates independent.",
+  "rows": [
+    {
+      "case": "georgia",
+      "all_native_pre_post_exit0": true,
+      "payloads": 46,
+      "complete_705_line_files_equal_05b": true,
+      "all_704_original_raw_lines_including_endings_equal": true,
+      "candidate_sha256": "5165602d132abefb8a975f24cf909dcfbf7790a9a3e710edb90e62f179dca56f"
+    },
+    {
+      "case": "lebanon",
+      "all_native_pre_post_exit0": true,
+      "payloads": 46,
+      "complete_705_line_files_equal_05b": true,
+      "all_704_original_raw_lines_including_endings_equal": true,
+      "candidate_sha256": "a25f409d468403911b31c7e5827b21264d2b77886016b4794b5655b13461d4a7"
+    },
+    {
+      "case": "lebanon-repeat",
+      "all_native_pre_post_exit0": true,
+      "payloads": 46,
+      "complete_705_line_files_equal_05b": true,
+      "all_704_original_raw_lines_including_endings_equal": true,
+      "candidate_sha256": "a25f409d468403911b31c7e5827b21264d2b77886016b4794b5655b13461d4a7"
+    }
+  ]
+}

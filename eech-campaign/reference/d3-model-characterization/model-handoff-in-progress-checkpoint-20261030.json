@@ -1,0 +1,27 @@
+{
+  "checkpoint_utc": "2026-10-30T03:28:29.759409+00:00",
+  "request": "Commit and push everything",
+  "kind": "IN_PROGRESS_SOURCE_CHECKPOINT",
+  "task": "EEDCS-50",
+  "pr": 110,
+  "parent": "101169f971032c3917c26f646913d5437d4b81f9",
+  "implementation": {
+    "pid": 22552,
+    "controller_pid": 20288,
+    "birth_utc": "2026-10-30T03:14:03.073000Z",
+    "model": "claude-sonnet-5-5",
+    "effort": "high",
+    "session": "20f8be8d-68b1-4ff9-947f-73e2362b0071",
+    "state": "live when checkpoint requested; do not duplicate writer"
+  },
+  "validation": "This partial correction snapshot is unbuilt, unrun and has no changed-source review. Earlier de2c5b3c1 build/test results do not validate these edits.",
+  "review": "Six P2 and two P3 from ba492e1d89ec07a86477ee3f9c5df54a5b35aef3ee74f029c1542b2c06e6c393 are being corrected. No closure claimed.",
+  "existing_evidence": "All 828 present original/host component model comparisons remain closed and reusable. New public handoff retail execution remains held.",
+  "scope": "D3 remains In Progress. Required physical scans, transforms, solvers, loader dependencies, environment and time remain open. D4/D5 have not started.",
+  "trackers": {
+    "ledger_version": 74,
+    "jira_comment": "10869"
+  },
+  "shipping": "Task47 same original processes; latest retained exact prefixes are partial evidence, not a completed 40-check pack.",
+  "next": "Collect the existing writer; preserve and validate final corrections, one changed-source independent review, then actual public-path and deterministic acceptance before normal merge."
+}

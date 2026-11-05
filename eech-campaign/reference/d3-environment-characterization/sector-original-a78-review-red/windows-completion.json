@@ -1,0 +1,18 @@
+{
+  "source": "a78b6ab3c2512288c91ceed907379e9fda9ccf34",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-sector-original-a78b6ab3c-windows-20261031.sh"
+  ],
+  "pid": 19836,
+  "controller_pid": 7060,
+  "state": "terminal",
+  "started_utc": "2026-10-31T12:27:17.493871+00:00",
+  "scope": "Original sector characterization windows build/new harness guards only; no retail facts yet, no production cutover or shipping acceptance",
+  "actual_exit": 1,
+  "completed_utc": "2026-10-31T12:29:31.455455+00:00"
+}

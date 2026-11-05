@@ -1,0 +1,215 @@
+{
+  "created_utc": "2026-11-01T05:32:21.352752+00:00",
+  "reviewer": "sole independent Codex reviewer; no nested agents",
+  "source": {
+    "head": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+    "parent": "5be48eccb7a618816a7822b1b00410c57c7a1328",
+    "repo": "R:/d3-evidence/environment-services-20261030",
+    "clean_at_inspection": true,
+    "prior_overlay_review": "independent-environment-host-sound-metadata-overlay-source-review-20261101.json",
+    "prior_overlay_review_sha256": "6b965b5832d0d94cb741c2b82abc2f9f07febc2f4d4e33925c9a154dc05b5772",
+    "changed_git_blobs": [
+      {
+        "path": "STATUS.md",
+        "bytes": 430134,
+        "sha256": "f39c3eec076459bc85bfb6ab5ed0e636b99bdc193a9dee51d1be788f28bc110a"
+      },
+      {
+        "path": "aphavoc/source/appsound/snd_data.c",
+        "bytes": 340550,
+        "sha256": "99766c84b6877332ca43154ed52cb4efcfb8064de326c80471218a70ce8ad9be"
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_envfx.h",
+        "bytes": 14049,
+        "sha256": "e5f1070142f7b2710a110427bd4df94aab5eac4fbe18e57ae86589c355aa7b84"
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_hostenv.c",
+        "bytes": 41552,
+        "sha256": "6753e1c000441ee4a7685d391c88c893fc59ea82443ab8951ca508a7abae607b"
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_hostenv.h",
+        "bytes": 26761,
+        "sha256": "8e89906bf201569c7114d721c10c6d95e935118257572ba3f6f083fe655c91f6"
+      },
+      {
+        "path": "eech-campaign/crates/eech-dc/src/module.rs",
+        "bytes": 294490,
+        "sha256": "b6d909fcafffeebe9a4d1a16c0322251355ad155556259ceead996b055496d6e"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+        "bytes": 64571,
+        "sha256": "23ea0bac337b0609848265c3ee31e7f3c8f2f97a2be564d2cb242b6e47f4c50c"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h",
+        "bytes": 26209,
+        "sha256": "08b42262844e67de0f9fcb7af3a21093b2be2bee484a548c4ff39b959f1bec7f"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_observer.c",
+        "bytes": 40156,
+        "sha256": "5652c4a8fcfddc913d63997ba0fa5a348da949e96a455f85a2f93ef040f58702"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+        "bytes": 63498,
+        "sha256": "08cee04da1a154aacb072ce9cb8daaa7fb33b73b806dcd6cf2cd74483dbbd777"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "bytes": 531633,
+        "sha256": "4f701c6aab88725c0d1d3cb44bf361cc8e1a750028b3501f1af1ff71f8f852f5"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-data-host-witness.lua",
+        "bytes": 18785,
+        "sha256": "9953784bf934537c8486d3980092cb4e1764d246b37804403f626a869ba7cd53"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-init-host.lua",
+        "bytes": 33818,
+        "sha256": "eaa77bddbeb6ffaa64ab0383859bbee2dba6be5ce0f33572557bfedb99604f66"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/env.rs",
+        "bytes": 138927,
+        "sha256": "81e9260fcb065b5ef5949037ab53261fed9cb78aedf7425b0ab883b485eefd76"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/lib.rs",
+        "bytes": 302,
+        "sha256": "19bb53bf5109dedfebe1cff674631346701b612f6a9f5d0c56633fdcbafa47f8"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/sound_assets.rs",
+        "bytes": 94198,
+        "sha256": "9ff7667f9795a0e2e4da5b2b9ce2b575471daa6bb6246d492abf2a2eeb49ffef"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/sound_data.rs",
+        "bytes": 37403,
+        "sha256": "bbfd0e010e2b0297a9762ff54ef29a619f79d68a78424feeef2e48d6f5dc1897"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sound_data_witness.rs",
+        "bytes": 13599,
+        "sha256": "61b785043173191d2a80aff32354342fa07127ba9f5000d54dcee062516f6369"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sound_init.rs",
+        "bytes": 55016,
+        "sha256": "9ff90fef6d9d9e7ac358eb9f0c1f73232f7f4a0408c4ea0cd6afed992edfcd78"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/sound_catalogue_provider.rs",
+        "bytes": 13232,
+        "sha256": "bcc4f1fc7527a2dfe0ea2ecceb2c713c4431c0b34b1a50b14c004e535ea73307"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/sound_root_cwd.rs",
+        "bytes": 5864,
+        "sha256": "e333f99379f01bf33b89c00dba0fe97d034ab27bd236acebbbf397e6c94383a9"
+      },
+      {
+        "path": "eech-campaign/docs/d3-sound-lifetime.md",
+        "bytes": 100810,
+        "sha256": "242d87de9a3cba17e3bb3bbd4b2ea0319ef50fe73d38cbd1854f204b4d408e52"
+      },
+      {
+        "path": "eech-campaign/tools/generate-sound-assets.py",
+        "bytes": 3611,
+        "sha256": "20c32f50328dbb0426f48c8826cd0bdb6b02160b395e9b28f4123c98186c498b"
+      }
+    ]
+  },
+  "scope": "One combined material correction-delta and new driver/witness/tests/docs source pass. Compared corrected bytes to immutable0455 overlay and new files to parent5be; reused all unchanged physical kernels, ABI inspection, generated asset table and closed originals. No reviewer compiles, tests, native/retail runs, product edits or extra agents.",
+  "source_review_no_blocking_findings": false,
+  "four_prior_production_groups_source_closed": true,
+  "findings": [
+    {
+      "id": "ENV-SOUND-METADATA-CORRECTION-1",
+      "priority": "P2",
+      "title": "Join the new host-answer totals to the actual catalogue and zero Core header events",
+      "locations": [
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-sound-init-host.lua",
+          "line": 237
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-sound-init-host.lua",
+          "line": 252
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/env_sound_init.rs",
+          "line": 1106
+        }
+      ],
+      "evidence": "The new parser checks present/count signs and forbids matches in absent/empty headers, but never reconciles matched+missed with the named descriptors in that initialization, or matched with header_count for this actual unique-slot table. The source C always emits matched_count and listed-matched_count; its table is unique by slot (also asserted by the C consumer test). Nevertheless the new canned opened positive is matched5+missed2 beside named6, and its absent positive is matched0+missed0 beside named6. These are accepted as coherent. boot.header_count is also not required0 although all Core header-open/match events must0. Therefore truncated/forged new mirror counters and stale Core header count can be accepted while derived output calls them coherent.",
+      "action": "Reconcile each host-answer row with the corresponding filled named-descriptor count (or explicitly expose listed count if needed): matched+missed must cover the full request, with the required header-count bounds for the real unique-slot catalogue. Require the Core boot header_count0 together with its zero open/match events. Correct only the new hosted canned positives, retaining legitimate absent-pair misses and matched-zero semantics. Add finite damaged-counter guards (missing/extra misses, impossible match/count, nonzero Core header count) with coherent positives. Preserve original driver/schema/accepted rows."
+    },
+    {
+      "id": "ENV-SOUND-METADATA-CORRECTION-2",
+      "priority": "P2",
+      "title": "Prove the requested refusal and verify the retained stop evidence",
+      "locations": [
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-sound-data-host-witness.lua",
+          "line": 123
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-sound-data-host-witness.lua",
+          "line": 136
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-sound-data-host-witness.lua",
+          "line": 182
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-sound-data-host-witness.lua",
+          "line": 194
+        }
+      ],
+      "evidence": "Lua evaluates base(request,...) before alter in return alter(request,base(...)). A base-provider error (for example the real header parser rejecting malformed input) therefore prevents the intentional withheld branch from running. requests is already1, withheld is exempt from any altered/cause check, and the generic callback marker plus host sound data text are enough to accept stopped_at_boundary. This attributes a prerequisite/base failure to the intended withdrawal. Separately read_all returns nil for an open failure and ignores read/close errors; the refusal branch treats nil as evidence that no boot row exists and never requires the expected empty sidecar. Thus unavailable/unreadable evidence can produce an accepted refusal. These are source-traced paths, not reviewer-executed tests.",
+      "action": "Make the withheld mode itself record and identify its intentional withdrawal (prefer a unique cause token/count; avoid calling the base first when intentionally withholding), and require that exact cause before accepting it. For every refusal, read the expected delegate output and sidecar with checked open/read/close; require their expected empty/no-result state and propagate IO errors as setup/evidence failures. Add small guards for a base provider that errors before alteration, missing/unreadable evidence and read/close failure. Keep actual named engine boundary verification. Do not infer a successful control from a generic callback error."
+    }
+  ],
+  "prior_finding_dispositions": [
+    {
+      "id": "ENV-SOUND-METADATA-1",
+      "status": "source_closed",
+      "facts": "env::anchored uses std::path::absolute at provider creation before native cwd changes; explicit sound_root precedence and errors are retained. New standalone sound_root_cwd test configures relative argument/explicit roots, performs the cwd transition, checks present/absent roots and precedence, and restores cwd via Drop. World-only test has no Engine dependency. No targeted pre-fix exit is promoted to proof of a known cause without stderr."
+    },
+    {
+      "id": "ENV-SOUND-METADATA-2",
+      "status": "source_closed",
+      "facts": "exists short-circuits header then data; each search tries working cohokum, installation cohokum again, common. Header is reopened/read/parsed/closed, data reopened and held through lookup. Named second-open errors propagate. New source tests record present/absent/fallback ordering and simulate removal at the two boundaries. These are source checks, not measured runtime conformance."
+    },
+    {
+      "id": "ENV-SOUND-METADATA-3",
+      "status": "source_closed",
+      "facts": "Both Rust and C reject absent/empty matched headers and more distinct matched(slot,name) queries than header_count while permitting identical repeats, a present empty header and matched zero. The hosted C builds request from the compiled table, gets/validates the entire reply and only then clears/updates every live catalogue field and number_of_application_sound_samples. C positive witness now sets a coherent count."
+    },
+    {
+      "id": "ENV-SOUND-METADATA-4",
+      "status": "production_source_closed_with_new_witness_findings_above",
+      "facts": "ENV_FXA_HOST_ANSWER and env-sndinit-host-answer explicitly say source=host_reply_mirror. Core OPEN/MATCH events and IO attempt counters are not fabricated; blocked_sound_samples/count remain Core. New docs distinguish changed diagnostic provenance and preserve strict whole-report false comparisons. Original driver remains untouched and deliberately rejects hosted rows; new hosted driver carries the separate protocol."
+    }
+  ],
+  "new_test_and_boundary_facts": [
+    "Inspected the new real-C staging and refusal tests. Process-global catalogue tests share a mutex; C host function is static with null user pointer. The callback observes the previous catalogue before commit. Seven Unix child cases seed a coherent catalogue, install a refusal/malformed host and require the marker plus before/after fingerprint. SIGABRT handler performs a fixed integer fingerprint and libc write/_exit; no allocated object or freed entity is touched. Each child is isolated and parent requires its recorded stop. Windows does not execute that Unix refusal child path. No execution is claimed by this review.",
+    "New bridge/reply/request shapes and generated rates remain the inspected overlay versions; Engine C/header/sys callback layout and generator/asset table are unchanged from overlay (apart from the separately inspected code corrections/tests/formatting). No physical float kernel or new RNG draw was introduced.",
+    "Protected original env-sound-init.lua SHAa40bd591c0b309819f1fcaa5a88464c49a64434df8c04baf95d8d644035c4182, accepted299 driver SHA7b1f3d491a200b7cd2fd18f217bb120fab43971be39ae6890186fc5ca074a24e and complete fixture C SHA77ab216130a0a7e9445ae0ebd33b47b848e55a90af71d5a946d37497848a2d62 are byte-identical to5be.",
+    "Healthy/changed witness source checks actual lightning/thunder rate/size/original-rate fields and catalogue digest, not merely request counts; other environment traffic forwards to the original provider. Changed mode alters exactly two named descriptor answers. Its scripted tests are judge controls over canned report rows, not engine/physics or real-public-control evidence.",
+    "Old-capability red needs a completing ORIGINAL delegate on the old native (both original and hosted delegates are available via the explicit delegate argument). With the documented hosted delegate, the old native report is intentionally rejected before the requests0 capability check; that is setup/parser failure, not the desired capability red. Record the distinct delegate identity explicitly in the later actual control and clarify this exception in instructions.",
+    "No whole-new-workspace/kernel/original rerun requested. Author compilation forbidden in correction turn; formatting/generator checks are not build acceptance. Earlier WIP/module/opt0/Clippy failures, explicitly stopped first author, preserved compressed partials and unknown/unjudged old relative-root failure cause retain their original status."
+  ],
+  "limitations": [
+    "Source gate remains false solely for the two new witness/protocol groups; prior four production groups are source-resolved. No corrected-current canonical build, caller FP gate, ownership/refusal control, equivalent-input raw conformance or currentCI pass is inferred.",
+    "Boot-time callbacks can fail before the delegate emits its boot row; this is a real native boot error and does not itself imply an engine_failure JSON row. Evidence and cause must be recorded without inventing one.",
+    "Init-time metadata remains coupled to Core dynamic loaders/blocked file state, backend, campaign sample/speech policy, other readers, non-session/per-family playback, network, physical time and terrain/spatial/model duties. WholeTask51/D3, shipping40/all8, normal delivery and D4/D5 are not accepted."
+  ]
+}

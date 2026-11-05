@@ -1,0 +1,44 @@
+nm: /usr/bin/x86_64-w64-mingw32-nm
+=== ac_tgt object: /target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/7b3f35cf6fde921c-ac_tgt.o
+--- defined (T/t text):
+t .text
+t .text$update_aircraft_target_scan
+T update_aircraft_target_scan
+--- undefined (U):
+aircraft_database campaign_sense_begin campaign_sense_candidate campaign_sense_end convert_float_to_int engage_targets_in_group entity_sector_map fn_get_local_entity_attitude_matrix fn_get_local_entity_child_succ fn_get_local_entity_first_child fn_get_local_entity_float_value fn_get_local_entity_int_value fn_get_local_entity_parent fn_get_local_entity_vec3d_ptr get_3d_vector_dot_product get_local_entity_current_task random_number_seed system_delta_time world_map write_debug_log 
+=== vh_tgt object: /target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/ba61bc8479461a04-vh_tgt.o
+--- defined (T/t text):
+t .text
+t .text$get_scan_floor_difficulty_factor
+t .text$get_vehicle_surface_to_air_scan_group_targets
+t .text$get_vehicle_surface_to_surface_scan_group_targets
+t .text$update_vehicle_target_scan
+T get_scan_floor_difficulty_factor
+T get_vehicle_surface_to_air_scan_group_targets
+T get_vehicle_surface_to_surface_scan_group_targets
+T update_vehicle_target_scan
+--- undefined (U):
+campaign_sense_begin campaign_sense_candidate campaign_sense_end check_entity_line_of_sight convert_float_to_int engage_targets_in_group entity_sector_map fn_get_local_entity_child_pred fn_get_local_entity_child_succ fn_get_local_entity_first_child fn_get_local_entity_float_value fn_get_local_entity_int_value fn_get_local_entity_parent fn_get_local_entity_vec3d_ptr get_speech_sector_coordinates play_client_server_speech random_number_seed session_entity speech_sector_coordinates system_delta_time vehicle_database world_map write_debug_log 
+=== mb_hostsense object: /target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-ace72e8c4c8c73a3/out/f6fc6cb7fd4fea60-mb_hostsense.o
+--- defined (T/t text):
+t .text
+t .text$ask_host
+t .text$campaign_sense_begin
+t .text$campaign_sense_candidate
+t .text$campaign_sense_end
+t .text$campaign_sense_set_host
+t .text$fill_host_id
+t ask_host
+T campaign_sense_begin
+T campaign_sense_candidate
+T campaign_sense_end
+T campaign_sense_set_host
+t fill_host_id
+--- undefined (U):
+campaign_roster_host_id debug_fatal entities fn_get_local_entity_float_value fn_get_local_entity_int_value get_comanche_stub_wings_attached get_local_entity_undercarriage_state get_local_entity_weapon_system_ready_state get_scan_floor_difficulty_factor memcpy strlen write_debug_log 
+=== any fixture or sensor-observer symbol in the shipping objects
+0
+=== the physical sensing arithmetic in the shipping scan objects
+ac_tgt references get_approx_3d_range: 0  get_sqr_2d_range: 0  frand1x/rand: 3
+vh_tgt references get_approx_3d_range: 0  get_sqr_2d_range: 0  frand1x/rand: 3
+DOCKER_EXIT=0

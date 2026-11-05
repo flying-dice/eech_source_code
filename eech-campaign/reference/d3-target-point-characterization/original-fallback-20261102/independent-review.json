@@ -1,0 +1,339 @@
+{
+  "review_kind": "independent combined correctness, clean-code and boundary-safety review of new ORIGINAL setup-probe source and completed fallback measurements",
+  "reviewed_utc": "2026-11-02T21:07:03.434210+00:00",
+  "source": {
+    "head": "ca048937995da98138bddcdcc66752520b683f33",
+    "measured_runtime_head": "5e67930a2a705c257ce3c1a1e633f2de9017ca52",
+    "closed_controlled_base": "75d6cb62a64ebe883d906d1b0f7f5bbb57bbe014",
+    "initial_setup_head": "03bebc12df130326b4deb951e60113fb5332adb7",
+    "checker_snapshot": "D:/EECH-Migration-Evidence/target-point-original-ca04893799",
+    "runtime_snapshot": "D:\\EECH-Migration-Evidence\\target-point-original-5e67930a2a",
+    "native_to_current_checker_full_index_binary_diff_sha256": "bd1337cb784c7f85f09e24439fdab0be27f232cfa6235e7873245c3adf4435e6",
+    "native_to_checker_changed_paths": [
+      "STATUS.md",
+      "eech-campaign/crates/eech-world/lua/target-point-characterization.lua",
+      "eech-campaign/crates/eech-world/tests/target_point_characterization.rs",
+      "eech-campaign/docs/d3-target-point-characterization.md"
+    ],
+    "other_8960_tracked_blobs_and_modes_exact": true,
+    "original_engine_prefix_bytes_literal": 75458,
+    "engine_NUL_count": 1,
+    "engine_NUL_offset": 42530,
+    "reviewed_blob_identities": [
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_tp_fixture.c",
+        "bytes": 47899,
+        "sha256": "3c675c7e2560261d04aae9d3695371252ac1fbc10a9699ce7bcbb7fab8aa0204",
+        "mode": "100644"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+        "bytes": 78032,
+        "sha256": "e7744039ed41fbd475b0e3f2ce53730c2b59bde15d820ff6dd42bffe30422dcc",
+        "mode": "100644"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h",
+        "bytes": 36511,
+        "sha256": "f7724d64449212df000a92818ab4f103282563344314723768494be8905b34af",
+        "mode": "100644"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+        "bytes": 72661,
+        "sha256": "ce52f61176c9c1169e678a2a5b3a91e9372aa160248607838ab614d704e5f897",
+        "mode": "100644"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "bytes": 620729,
+        "sha256": "22d7ecc8b6e78bc6cf595f548c0a79baa6f99cb97cb7f19849da9e03ea32cca8",
+        "mode": "100644"
+      },
+      {
+        "path": "eech-campaign/crates/eech-dc/src/module.rs",
+        "bytes": 387574,
+        "sha256": "60c2c1fea107e295fd06ad721499f6a9ab10f05845f0d19d1101c88ec659eb2c",
+        "mode": "100644"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/target-point-characterization.lua",
+        "bytes": 75323,
+        "sha256": "614e0027a698106036a4912ecc3553906eb2a42bae5e11c8e4315d27a4ca5bc3",
+        "mode": "100644"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/target_point_characterization.rs",
+        "bytes": 119095,
+        "sha256": "645564cd3b3a1e13f8579d372ed2b58359c14601841b0253ca5ffcf2a87ab824",
+        "mode": "100644"
+      },
+      {
+        "path": "eech-campaign/docs/d3-target-point-characterization.md",
+        "bytes": 38420,
+        "sha256": "8fe39e548275ec6cbb5737fb3b16a80693bcfe367974abb847485f7116ba8625",
+        "mode": "100644"
+      }
+    ]
+  },
+  "reused_closed_reviews": [
+    {
+      "sha256": "1ef9ff3b9d58ba713440e5e66ed948818408e2a805fe045e41d975b5486f6ba6",
+      "scope": "Original generation/census and measured natural branch1 slice; no repeated review or original run."
+    },
+    {
+      "sha256": "315d7efe8343d8a395751810bc424992d88292c6e85fb9c7c26aba6cb3bb625a",
+      "scope": "c500 native / 75d6 guards: measured read-only controlled branch3 cases, finite safe scan, strict intervals and unavailable fallback cases. Reused at their own identities."
+    }
+  ],
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "source_checks": [
+    "New C setup/API plumbing remains target-point-fixture-only. Original query, initializer and campaign caller bodies are unchanged by this setup delta. No production target-point service, host solver, shipping mode or campaign selection rule is added.",
+    "The live scan reuses the finite heap-derived bound, aligned integer-address membership and non-null eligible-data checks before typed getters. Fixed-size pick/row storage is bounded. The 4096-byte minimum preflights the three fixed-size report rows before any mutation; names are bounded 96-byte buffers, and all static reason/format strings fit that bound.",
+    "Direct instance-field writes match the actual aircraft/vehicle typed getter layouts. The fixed-object typed setter is a plain shape-field assignment. Each normal case checks the applied state, calls the unchanged original once, restores the field before the next case, and checks restoration. The entity points to its original live instance before the temporary instance is destroyed; no temporary pointer crosses C/Rust/Lua.",
+    "The selected temporary scene is an actual latest-census bounding-box scene without a skin animation. The original construct_3d_object / construct_3d_sub_objects / skin_random path was inspected: skin_random returns before its random path when animation<0. Original destruction frees the owned allocations and symmetrically reverses the selected object count, memory counter and per-scene creation counter. No original constructor/destructor code is changed.",
+    "Instance viewpoint checks are raw 12-word comparisons, not recomputed geometry. The setup adds no replacement mathematical oracle. Caller class7 (the eighth class) records the explicit setup cases separately from natural and read-only controlled queries.",
+    "Engine/sys/Lua signatures and feature gates agree. The Engine method preserves refusal text through the established bad-argument channel. A failed engine call stops the driver; no query/frame is issued after that failure. A fatal unwind has no cleanup guarantee, and no such restoration is claimed.",
+    "One explanatory fixture comment differs from initial03b at measured5e; the reviewed setup executable C body is unchanged by that comment correction. Native5e to currentca is a stronger whole-blob/mode equality proof for all native C/Rust/ABI/build and other Lua inputs."
+  ],
+  "closed_setup_protocol_group": {
+    "id": "TARGET-POINT-SETUP-1",
+    "scope": "One consolidated state/declaration/generation/shared-cohort join group, including the initially omitted shared-scan population relation.",
+    "resolution": [
+      "Available rows require applied==called, restored1, and the correct per-case called/not-called reason. Missing-candidate reasons are case-specific. Unavailable rows have no state or model names; sentinel destinations have no name.",
+      "Every declared original model index/name joins the captured boot catalogue. The constructed scene joins its boot bounding-box row, and the actual case1 query joins its own applicable generation, rather than the eventual final generation. Later natural census passes remain supported.",
+      "Cases1/2 agree on whether the single scan found a mobile with an instance. Eligible population covers at least one shared mobile when case2 is available plus one distinct structure when case3 is available. The checker does not invent a requirement for three distinct entities or equate call count to unique entity count.",
+      "Case query counts, order, family/host-identity state and the exact boot-anchored contiguous setup call interval are joined to the complete event stream. No setup event is treated as natural coverage."
+    ],
+    "guard_quality": "The no-query available/applied0/called0/restored1 positive is accepted first; a one-character applied0->1 fault is then rejected by the exact predicate, without an unrelated query-count failure. Coherent population boundary positives and missing-scene positives retain their real mobile case; contradictory mobile availability and undersized populations are rejected. Model/name, sentinel, reason, restoration and later-generation cases are also exercised. The test tuple alias is mechanical; no physical expected word or branch oracle was weakened."
+  },
+  "build_and_guard_actuals": {
+    "measured_runtime": {
+      "source": "5e67930a2a705c257ce3c1a1e633f2de9017ca52",
+      "windows_fixture_actual_exit": 0,
+      "windows_completed_utc": "2026-11-02T20:43:09.783133+00:00",
+      "linux_actual_exit": 0,
+      "linux_completed_utc": "2026-11-02T20:49:44.022482+00:00",
+      "linux_scope": "Focused driver, default and target-point-feature three-package commands, repository fmt and BOTH all-target strict lint commands.",
+      "target_guard_result_rows": [
+        {
+          "passed": 35,
+          "failed": 0
+        },
+        {
+          "passed": 35,
+          "failed": 0
+        },
+        {
+          "passed": 35,
+          "failed": 0
+        }
+      ],
+      "build_info_sha256": "c17cec4c5cecd9affabec34deaddb3d1d798e01893bd87c9a86a845613b01d13",
+      "all84_native_payload_hashes_independently_rechecked": true,
+      "profile": "Diagnostic target-point fixture; not ordinary shipping."
+    },
+    "current_checker": {
+      "source": "ca048937995da98138bddcdcc66752520b683f33",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-02T21:04:54.454716+00:00",
+      "scope": "Focused current driver37/0, repository fmt and BOTH all-target strict commands. Broader package commands are retained at measured5e, not relabelled as ca.",
+      "guard_passed": 37,
+      "guard_failed": 0,
+      "strict_dev_completions": 2,
+      "new_current_checker_retail_boot_or_binary_claimed": false
+    },
+    "preserved_failures": [
+      "Initial03b affected/default/feature package commands passed, then default Clippy failed on the test tuple type_complexity diagnostic; feature Clippy and native launch were gated off. No03b retail capture exists.",
+      "The first current-checker preflight failed because its file-allowlist omitted the boundary document; this was a source-scope preflight failure, not a compiler/native result. The corrected four-path scope is independently verified."
+    ],
+    "current_all_hosted_CI_success_claimed": false
+  },
+  "actual_original_products": [
+    {
+      "scenario": "georgia_retail",
+      "native_and_controller_exits_each_run": 0,
+      "full_input_manifest_checks": 4,
+      "files_per_input_manifest": 1174,
+      "verified_payloads_each_run": 84,
+      "default_query_calls": 1,
+      "setup_total_query_calls": 4,
+      "setup_query_calls": 3,
+      "setup_branch_counts": {
+        "2": 1,
+        "4": 2
+      },
+      "setup_cases_called": [
+        1,
+        2,
+        3
+      ],
+      "unavailable_setup_cases": [],
+      "scan": {
+        "visited": 63526,
+        "eligible": 39973
+      },
+      "normal_return_restoration": {
+        "all_three_applied_called_restored": true,
+        "two_original_instance_viewpoint_word_comparisons_equal": true,
+        "three_selected_construction_counters_restored_for_case1": true,
+        "case3_shape_restored": true,
+        "setup_query_viewpoint_changed_count": 0
+      },
+      "products": [
+        {
+          "mode": "default",
+          "controller": {
+            "path": "D:/EECH-Migration-Evidence/target-point-fallback-original-actual-5e67930a2a-20261102/default/georgia/controller.json",
+            "bytes": 5877,
+            "sha256": "9e1450c7a8efcce7a742ad968e0854216d04d0dad2a8207d0a48586f504c8057"
+          },
+          "complete_private_jsonl": {
+            "path": "D:/EECH-Migration-Evidence/target-point-fallback-original-actual-5e67930a2a-20261102/default/georgia/targetpoints.jsonl",
+            "bytes": 2109819,
+            "sha256": "18cae7af7c3c0fe77298c4536a0d9b6ba99a3f5433fd1faa3af5c4564a4fa05e"
+          },
+          "completed_utc": "2026-11-02T20:50:14.106852+00:00"
+        },
+        {
+          "mode": "setup",
+          "controller": {
+            "path": "D:/EECH-Migration-Evidence/target-point-fallback-original-actual-5e67930a2a-20261102/setup/georgia/controller.json",
+            "bytes": 5890,
+            "sha256": "5da40453f55d4598343b571252c874626d3652768da3c84062840aa42c560a35"
+          },
+          "complete_private_jsonl": {
+            "path": "D:/EECH-Migration-Evidence/target-point-fallback-original-actual-5e67930a2a-20261102/setup/georgia/targetpoints.jsonl",
+            "bytes": 2112211,
+            "sha256": "259190dab05cb81b3384f772bd89bc8e97b25345c27f9b9c2348b1701bc4a0f1"
+          },
+          "completed_utc": "2026-11-02T20:50:32.363090+00:00"
+        }
+      ]
+    },
+    {
+      "scenario": "lebanon_retail",
+      "native_and_controller_exits_each_run": 0,
+      "full_input_manifest_checks": 4,
+      "files_per_input_manifest": 1179,
+      "verified_payloads_each_run": 84,
+      "default_query_calls": 217,
+      "setup_total_query_calls": 220,
+      "setup_query_calls": 3,
+      "setup_branch_counts": {
+        "2": 1,
+        "4": 2
+      },
+      "setup_cases_called": [
+        1,
+        2,
+        3
+      ],
+      "unavailable_setup_cases": [],
+      "scan": {
+        "visited": 91096,
+        "eligible": 64580
+      },
+      "normal_return_restoration": {
+        "all_three_applied_called_restored": true,
+        "two_original_instance_viewpoint_word_comparisons_equal": true,
+        "three_selected_construction_counters_restored_for_case1": true,
+        "case3_shape_restored": true,
+        "setup_query_viewpoint_changed_count": 0
+      },
+      "products": [
+        {
+          "mode": "default",
+          "controller": {
+            "path": "D:/EECH-Migration-Evidence/target-point-fallback-original-actual-5e67930a2a-20261102/default/lebanon/controller.json",
+            "bytes": 5862,
+            "sha256": "252e2fb3b493756c8b367a0fe32171cf539e1d865c3b933d56e24b21fdffe929"
+          },
+          "complete_private_jsonl": {
+            "path": "D:/EECH-Migration-Evidence/target-point-fallback-original-actual-5e67930a2a-20261102/default/lebanon/targetpoints.jsonl",
+            "bytes": 2263336,
+            "sha256": "9758e676a6ce5a1999fcfb625944485e4a52cbef68d43eab3491838580eaa1f8"
+          },
+          "completed_utc": "2026-11-02T20:50:13.785821+00:00"
+        },
+        {
+          "mode": "setup",
+          "controller": {
+            "path": "D:/EECH-Migration-Evidence/target-point-fallback-original-actual-5e67930a2a-20261102/setup/lebanon/controller.json",
+            "bytes": 5876,
+            "sha256": "84b3edf3b5bcf962511576a30f8ff859a8e7ef8c2d208a2da9c56b9b71916d41"
+          },
+          "complete_private_jsonl": {
+            "path": "D:/EECH-Migration-Evidence/target-point-fallback-original-actual-5e67930a2a-20261102/setup/lebanon/targetpoints.jsonl",
+            "bytes": 2265754,
+            "sha256": "7d202c688d2a9f32c719eb8b860813c837333527e930af58c45b2662728e944f"
+          },
+          "completed_utc": "2026-11-02T20:50:31.344138+00:00"
+        }
+      ]
+    }
+  ],
+  "independent_raw_and_identity_verification": [
+    "Four terminal native/controller0 receipts, all pre/native/post stage exits0, exact native/script/source/profile commands, eight full input entry lists/byte totals/combined digests matching the Georgia1174 and Lebanon1179 reference manifests, and all84 payload hashes were checked independently.",
+    "Each map retains two complete3026-row original census catalogues, 522093 raw bytes each. Every full boot/end catalogue string including line endings is literal equal between measured default, setup and retained c500 products. No initializer/seeker invocation is introduced by the setup function.",
+    "All default raw query records literally equal retained c500. For each setup natural query, removing only its declared index/sequence prefix leaves the entire remaining raw text literally equal to default, including result, viewpoint, identity and generation characters. Whole default/setup JSONL equality is intentionally not claimed, and no raw file or accepted recording is normalized.",
+    "The current ca population, reason, declaration-name, sentinel, case/generation, family/identity-state and exact interval predicates were independently applied to all retained5e raw products. They all hold. This read-only join is not a newly executed ca Lua retail campaign or C measurement.",
+    "Both maps have exactly one setup call for each of the three cases, occupying calls[1,4): branch2 once, branch4 not-fixed once, branch4 invalid-shape once. All six setup query records show vp_changed0. Case1 temporary-instance VP words are unchanged, the real-instance VP checks for cases1/2 return true, the selected three constructor counters return to their saved values, and the fixed shape is restored. Case3 legitimately has no host identity; none is synthesized."
+  ],
+  "finite_original_fallback_setup_slice_closed": true,
+  "all_seven_declared_original_query_case_shapes_have_bounded_measured_examples_across_reused_and_current_evidence": true,
+  "physical_target_point_extraction_accepted": false,
+  "limitations": [
+    "The new examples are declared fixture setups on real entities, not natural campaign target/aim/weapon selection. Earlier natural branch1 and controlled branch3 evidence remain separately identified. Bounded examples of all seven query case shapes do not prove every caller, scene, entity, value or future lifecycle.",
+    "Normal-return restoration is measured for these six successful setup calls. Fatal-unwind cleanup, allocator internal state, allocation-address equivalence and all engine memory/counter state are not claimed.",
+    "The non-skinned constructor RNG property is source-backed; no full RNG fingerprint, enabled-trap matrix or complete caller x87/MXCSR/FPU equivalence was measured here.",
+    "The direct gd_attck local-offset consumer is still unmeasured. Required physical transformations and host facts remain to be extracted and validated; this review accepts no Core-retained physical rotation or other unimplemented host service.",
+    "No new shipping40/all8, Tacview/visual, live DCS, Task52 delivery, Task50 delivery or wholeD3 acceptance follows from this characterization. Documentation/safe-reference publication imports are outside this source/runtime gate.",
+    "The reviewer performed only read-only source/evidence checks and wrote this new report; no builds, tests, natives, source edits, cache/VM/daemon operations, authentication, app writes or nested agents."
+  ],
+  "next_unmet_gate": "Preserve and validate all physical target-point query transformations, actual viewpoint/result effects and the direct local-offset consumer at the host boundary, with its own authority/refusal/numerical/conformance evidence before Task52 completion.",
+  "evidence_identities": [
+    {
+      "path": "R:/d3-evidence/target-point-original-5e67930a2a-windows-20261102-completion.json",
+      "bytes": 601,
+      "sha256": "2519fb6b9b2c4bce38dcafec593e57499cfd3e0f8a1b51b0de9acfb5e852b92c"
+    },
+    {
+      "path": "R:/d3-evidence/target-point-original-5e67930a2a-linux-20261102-completion.json",
+      "bytes": 581,
+      "sha256": "82018da0b021b1935bb0f4bf7438cf56c2a25961aa2b5811e05ff90c7cb4026f"
+    },
+    {
+      "path": "R:/d3-evidence/target-point-original-5e67930a2a-linux-20261102.log",
+      "bytes": 488245,
+      "sha256": "17a8ba99402542ff6640a510aab801fd6d7dd80db63003a62daf2f09c3425b62"
+    },
+    {
+      "path": "R:/d3-evidence/target-point-original-ca04893799-linux-20261102-completion.json",
+      "bytes": 614,
+      "sha256": "af88924b05223e6f70b35cbabaa59ac828e572133c8b01b23ef5de1b96bc61c0"
+    },
+    {
+      "path": "R:/d3-evidence/target-point-original-ca04893799-linux-20261102.log",
+      "bytes": 7969,
+      "sha256": "c8781df8fe3958338b3a04e465adec0531f7cf0ad940dccea025add612a84285"
+    },
+    {
+      "path": "R:/d3-evidence/target-point-setup-cohort-checker-runtime-scope-20261102.json",
+      "bytes": 866,
+      "sha256": "07b2dde71d8b64fcbeaa851c7ed62519b74912d4fa533dc977275387912b0426"
+    },
+    {
+      "path": "R:/d3-evidence/target-point-original-fallback-5e-comparison-20261102.json",
+      "bytes": 8425,
+      "sha256": "bdb80ef5ea5cf97e869d497ffa985ac74c18c50d8d2e91f6aaf69bea4f3f31a8"
+    },
+    {
+      "path": "R:/d3-evidence/compare-target-point-fallback-5e67930a2a-20261102.py",
+      "bytes": 4711,
+      "sha256": "d4d79354099adc920cb82ecd4923cf65bb0d5c83da71b410bede3bdfc3a2003e"
+    }
+  ],
+  "publication_safety": "Only counts, hashes, source references and bounded semantic outcomes are included. No raw catalogue, retail geometry/coordinates, raw seed, private allocation/entity/host IDs, native pointer or binary is reproduced."
+}

@@ -1,0 +1,483 @@
+{
+  "schema": "independent-final-D2-technical-review/v1",
+  "created_utc": "2026-10-29T00:02:57.394842+00:00",
+  "reviewer": "/root/d2_los_review",
+  "task": "EEDCS-46 / PR105 and finite EEDCS-18 D2 composition",
+  "reviewed_publication_head": "6220bd5d92a3318c1f358d005bc57c098e651007",
+  "publication_parent": "daf3960d845def1b59d29c7fa1a07480f5936390",
+  "actual_ordinary_shipping_runtime_source": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "disposition": "FINAL_INDEPENDENT_TECHNICAL_REVIEW_COMPLETE; NO_BLOCKING_FINDINGS; NORMAL_DELIVERY_CONDITIONAL_ON_CURRENT_HEAD_CI_AND_MERGE_VERIFICATION",
+  "findings": [],
+  "main_conclusion": "The new completed native fullpack, exact publication and composed finiteD2 responsibility evidence are supported at this pinned head, within the retained limits. All previous source/correction findings are closed through their scoped follow-ups. No newly demonstrated activeD2 solver or factual-report responsibility remains assigned toD5. Current-head CI, normal merge/tree verification and authorized Task46/Epic18 acceptance are still unmet delivery steps; this report does not mark the task/epic/M5 complete or manufacture GitHub approval.",
+  "one_combined_pass_scope": {
+    "new_evidence": "Original completed finalpack38810, accepted check set, complete8artifactcomparison, post3external+internalretail inputs, shipping file/BINF/source/composition identities; then metadata publication622 and finalscope/STATUS claims.",
+    "reuse": "Closed42\u201345 accepted delivery reviews and Task46 source, actual authority/refusal/default/component, finalcost and provisional finite-scope reviews reused without re-reviewing unchanged physics or rerunning campaigns.",
+    "reviewer_actions": "Read-only source/evidence/metadata inspection plus one installed artifact comparator and independent file/input hashes; privateverification/report writes only. No agents, native/scenario/build/test/process/source/remote mutations."
+  },
+  "original_runtime_completion": {
+    "original_tool_session": 38810,
+    "controller_pid": 23828,
+    "actual_controller_exit": 0,
+    "original_terminal_chunk": "ad9e24",
+    "actual_observed_footer": "ORIGINAL_PACK_EXIT=0; LAUNCHER_COMPLETION=True",
+    "original_pack_completed_utc": "2026-10-28T23:53:56.298682+00:00",
+    "wrapper_completed_utc": "2026-10-28T23:54:10.580446+00:00",
+    "runner": "Original established frozen64cf regression-pack.py, no report-only recovery/native restart.",
+    "scenario_configuration": "Georgia/Lebanon regressions plus Lebanon twice recorded;3simulatedhours/seed1/frame100ms; -Exact and -ObserveSupply as accepted; separateinternalLebanoncopy.",
+    "main_campaign_exit_assessment": "Originalrunner/controller0 coherent with completed reference and regress script success and strict held-child-handle exit guards; fourmaincampaigns successful. Deliberate lifecycle failures are separate: characterized missing-map0xC0000005 remains expected known defect, not a claim every lifecycle child exits0."
+  },
+  "exact_accepted_pack": {
+    "accepted_check_count": 40,
+    "all40pass": true,
+    "exact_check_set": [
+      "blindspot.georgia_resupply",
+      "evidence.artifacts",
+      "evidence.checkers",
+      "evidence.manifests",
+      "evidence.reproduce.chains",
+      "evidence.reproduce.loss",
+      "evidence.reproduce.m2_check",
+      "evidence.reproduce.m3_check",
+      "governance.fixture",
+      "governance.lineage",
+      "inputs.georgia",
+      "inputs.lebanon",
+      "inputs.lebanon_repeat",
+      "lifecycle.bad_arguments",
+      "lifecycle.boot_twice",
+      "lifecycle.missing_campaign",
+      "lifecycle.missing_map",
+      "lifecycle.missing_root",
+      "lifecycle.no_reuse",
+      "reference.baseline",
+      "reference.loss_chain",
+      "reference.observation_check",
+      "reference.observed_equals_unobserved",
+      "reference.repeatable",
+      "reference.supply_chains",
+      "regress.georgia.exact",
+      "regress.georgia.expectations",
+      "regress.lebanon.exact",
+      "regress.lebanon.expectations.mechanics",
+      "regress.lebanon.expectations.resupply",
+      "retained.chains_report",
+      "retained.check_report",
+      "retained.loss_report",
+      "retained.observations",
+      "retained.recording",
+      "sensitivity.loss_chain_check",
+      "sensitivity.observation_check",
+      "sensitivity.s3_exact",
+      "sensitivity.s3_lebanon_expectation",
+      "sensitivity.supply_chain_check"
+    ],
+    "accepted_report": "R:/eech-regression-20261025/evidence/final-pack/report.json",
+    "accepted_report_sha256": "d7e89d6443197f756702631928725aa93ea7160bf06600167d696c2a74c6e99c",
+    "candidate_report_sha256": "4f47a1b4271c206a6fd40a8ced9af3e13ce9a8aeb298b2c927b4eec853ef69ec",
+    "descriptions_claims_blindspots_counts_unchanged": true,
+    "baseline_tolerances_scenarios_unchanged": true,
+    "evidence": "Compared candidate and retained destination-baseline reports to exactaccepted set/status; acceptedM4 claimclasses/blindspots retained, not rewritten to make green. pack.json unchanged from acceptedTask45 composition."
+  },
+  "complete_recordings_and_metrics": {
+    "installed_skill_comparator_actual_exit": 0,
+    "command": "Python-B compare_complete_packs.py --baseline R:/d2-evidence/baseline-host-20261026-shortpath --candidate R:/d2-evidence/candidate-pack-d2-combat-final-64cf0f1c5 --accepted-report R:/eech-regression-20261025/evidence/final-pack/report.json --out independent-final-fullpack-64cf-complete-eight-files-20261029.json",
+    "scope": "Whole completed files by size/SHA256, not liveprefixes/visualTacview. Reused completed equivalent destination baseline; no baseline rerun.",
+    "all8_equal": true,
+    "results": [
+      {
+        "file": "reference/run1/recording.acmi",
+        "baseline": {
+          "bytes": 117690861,
+          "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+        },
+        "candidate": {
+          "bytes": 117690861,
+          "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run1/observations.jsonl",
+        "baseline": {
+          "bytes": 85716447,
+          "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+        },
+        "candidate": {
+          "bytes": 85716447,
+          "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run1/metrics.json",
+        "baseline": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "candidate": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run2/recording.acmi",
+        "baseline": {
+          "bytes": 117690861,
+          "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+        },
+        "candidate": {
+          "bytes": 117690861,
+          "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run2/observations.jsonl",
+        "baseline": {
+          "bytes": 85716447,
+          "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+        },
+        "candidate": {
+          "bytes": 85716447,
+          "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run2/metrics.json",
+        "baseline": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "candidate": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "matches": true
+      },
+      {
+        "file": "regress/georgia_retail.json",
+        "baseline": {
+          "bytes": 22427,
+          "sha256": "7427660511cf60c503d393f94021b51fef03723a629d6bc6987d497d93c9148d"
+        },
+        "candidate": {
+          "bytes": 22427,
+          "sha256": "7427660511cf60c503d393f94021b51fef03723a629d6bc6987d497d93c9148d"
+        },
+        "matches": true
+      },
+      {
+        "file": "regress/lebanon_retail.json",
+        "baseline": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "candidate": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "matches": true
+      }
+    ],
+    "independent_comparison_path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-final-fullpack-64cf-complete-eight-files-20261029.json",
+    "independent_comparison_sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+  },
+  "post_run_integrity": {
+    "required_external_post_checks_actual0": 3,
+    "additional_internal_lebanon_post_actual0": true,
+    "retail_roots_independently_hashed": [
+      {
+        "root": "R:\\d2-evidence\\candidate-roots-d2-combat-final\\georgia",
+        "role": "georgia",
+        "files_independently_hashed": 1174,
+        "combined_expected_sha256": "d373bc4262464da87532b8128d396358f0003bc2e9e51e8fa92cf0a6e2b50de2",
+        "all_sizes_and_sha256_match": true
+      },
+      {
+        "root": "R:\\d2-evidence\\candidate-roots-d2-combat-final\\lebanon",
+        "role": "lebanon",
+        "files_independently_hashed": 1179,
+        "combined_expected_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+        "all_sizes_and_sha256_match": true
+      },
+      {
+        "root": "R:\\d2-evidence\\candidate-roots-d2-combat-final\\lebanon-repeat",
+        "role": "lebanon_repeat",
+        "files_independently_hashed": 1179,
+        "combined_expected_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+        "all_sizes_and_sha256_match": true
+      },
+      {
+        "root": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\roots\\lebanon-regress",
+        "role": "lebanon_internal",
+        "files_independently_hashed": 1179,
+        "combined_expected_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+        "all_sizes_and_sha256_match": true
+      }
+    ],
+    "total_independently_hashed_manifest_files": 4711,
+    "shipping_file_manifest_entries": 42,
+    "meaning": "42 exported build FILE-MANIFEST ENTRIES, not42DLLexportfunctions. Every initial/post/current recorded filehash and BUILD-INFO matched.",
+    "build_info_sha256": "3410ac4174a259e0ee211e4bb05361a819e1c1da54a300abe93968eff08e169d",
+    "runtime_frozen_clean": true,
+    "author_clean_at_native_validation": "daf3960d8 as retained native-validation identity proof",
+    "publication_head_clean_before_after": "6220bd5d92a3318c1f358d005bc57c098e651007"
+  },
+  "final_publication": {
+    "19_private_worktree_pinned_git_copies_exact": true,
+    "copies": [
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/root-final-fullpack-64cf-completion.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-64cf-completion.json",
+        "bytes": 10315,
+        "sha256": "3ff5eae9c3b1891f965e89fb9d12012425054ede88f522721bed5693bbd8d37c"
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/complete-eight-files.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-64cf-complete-eight-files.json",
+        "bytes": 3221,
+        "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/post-build.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-64cf-post-build.json",
+        "bytes": 11450,
+        "sha256": "8a1dc6145066a5bf04858015a286ae00628ae9e6ec1fe9aa5ae443491ed5bd16"
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/internal-lebanon-post-inputs.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-64cf-internal-lebanon-post-inputs.json",
+        "bytes": 1117,
+        "sha256": "9d451d1a3e10f0bf91b26b5f5451ff3fe5bdf1f0363da1b798dc04a7a820568a"
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/internal-lebanon-post-inputs.log",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-64cf-internal-lebanon-post-inputs.log",
+        "bytes": 322,
+        "sha256": "90c7fa45c381fa1a55f352239ebb5b86ecb3e83660ca587f98c07258e2fde9ea"
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/clean-source-identities.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-64cf-clean-source-identities.json",
+        "bytes": 423,
+        "sha256": "0e38e36c7ad7e7ca1f3ffd62331466283351499f85e624d7aad978ba797780aa"
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/source-equivalence-at-daf.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-source-equivalence-at-daf.json",
+        "bytes": 1885,
+        "sha256": "671a719393de51353b85d283e13be59e706a9ce99ca354716ab24cadbef6c85a"
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/pack-run.json",
+        "private_original": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\run.json",
+        "bytes": 815,
+        "sha256": "09e5cc55be2fc3a16a7503a8c42cb44d38c22515029db52767db719132c3ee44"
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/launcher-completion.json",
+        "private_original": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\completion.json",
+        "bytes": 781,
+        "sha256": "b57603f92a40f06481bfd2ebae5dedbf1b69db9da51449a027b5e30473d021fc"
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/pack-report.json",
+        "private_original": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\report.json",
+        "bytes": 39140,
+        "sha256": "4f47a1b4271c206a6fd40a8ced9af3e13ce9a8aeb298b2c927b4eec853ef69ec"
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/reference-summary.txt",
+        "private_original": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\reference\\summary.txt",
+        "bytes": 1366,
+        "sha256": "37c79ed5027a0bf3b69c32a77ab47ed947ce182365af894cdd5013c7bd67ebb8"
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/regress.txt",
+        "private_original": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\logs\\regress.txt",
+        "bytes": 3209,
+        "sha256": "f77700c20a79ee0bfffed423a3f6775fb865814cb402fc2c7823be2337294da6"
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/post-inputs-georgia.log",
+        "private_original": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\post-inputs-georgia.log",
+        "bytes": 311,
+        "sha256": "ce102f0fa06def8a1afbc9c4b0f64c2052b65beda718f8b30960fc89a9dcd82d"
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/post-inputs-lebanon.log",
+        "private_original": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\post-inputs-lebanon.log",
+        "bytes": 299,
+        "sha256": "c3df3a214c52124cadd3358f9104369da5a7f134d03e3630b48138b415c64f35"
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/post-inputs-lebanon_repeat.log",
+        "private_original": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\post-inputs-lebanon_repeat.log",
+        "bytes": 306,
+        "sha256": "24d212fd889b19eab3f343f2d3bceab10b8fcd3cf671b74800d65250c359e675"
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/preflight.json",
+        "private_original": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\preflight.json",
+        "bytes": 9585,
+        "sha256": "c9240da946a3d80ce4da66bda998ed743e15e7ff4e0f50d587f28a750046c995"
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/BUILD-INFO.txt",
+        "private_original": "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\target\\windows-d2-combat-final-64cf0f1c5\\BUILD-INFO.txt",
+        "bytes": 4298,
+        "sha256": "3410ac4174a259e0ee211e4bb05361a819e1c1da54a300abe93968eff08e169d"
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/compare_complete_packs.py",
+        "private_original": "C:\\Users\\starscream\\.codex\\skills\\eech-regression\\scripts\\compare_complete_packs.py",
+        "bytes": 2670,
+        "sha256": "c7bb3ed6d21a532f888da01943e69228124c54999ecf81966b6fb28b29979ea6"
+      },
+      {
+        "file": "eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/ci-at-daf-all-nine.json",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-ci-daf-all-nine.json",
+        "bytes": 2687,
+        "sha256": "a424bb3264ebf26fa663848acd95ea199df2a65bf9b29665a061bda5847e2f26"
+      }
+    ],
+    "all24_changed_paths_metadata_only": true,
+    "scope_doc_sha256": "9bacf38acc74a5c51b1f76729f461bba666937fab9e688e082bb925ea01baaa4",
+    "readme_sha256": "4ede9a4e6469c2ca5d5676bbc6f84a8d0139d513c5bb10f262a83478cce11f2f",
+    "status_sha256": "933bb4930a39386a1797f05328c057987b15e12b803d11e86244bf92a0e18513",
+    "scoped_attributes": "* -text whitespace=cr-at-eol",
+    "diff_check_actual_exit": 0,
+    "safety": "No fullrawrecordings/observations/campaignmetrics, retailroots/assets or shippingbinaries added. Named reports/runrecords/summary/checker/buildtext/proofs are exact, failedhistory preserved.",
+    "claims": "README/STATUS/scope now correctly close native validation but keep finalreview/currentCI/normalmerge/acceptance separate. Actualbuild remains64cf, source-equivalence not relabelled runtime. PriorCI evidence is specificallydaf, not an approval of622. Lifecycle known-defect and component/causal/coverage/cost limitations remain visible."
+  },
+  "composition_and_whole_D2_scope": {
+    "accepted42_45_merges_are_ancestors_of_actual_runtime": [
+      "3ce17432e4026f85b19ebf06cc582314817ddac2",
+      "04bf645a96f8277ca54d4a575b77f35b5ee68052",
+      "83539982a5b19b3e5636454ef36066505065f3ab",
+      "3b91ca34730a88e944700af1d0b7d777e071c73e"
+    ],
+    "seven_coarse_frontiers_equal64cf": true,
+    "crates_exception": "Only eech-campaign/crates/eech-world/tests/host_callbacks.rs differs; corrected CRLF logical-line assertions affect test target only. All product C/Rustsrc/Lua/Cargo/build/tools/scenario/regression inputs unchanged; no8coarse-tree-equality claim.",
+    "frontiers": [
+      {
+        "path": "aphavoc",
+        "frozen": "62dfbb79d5298ead7040c5d4b190867e91c8d7ba",
+        "candidate": "62dfbb79d5298ead7040c5d4b190867e91c8d7ba"
+      },
+      {
+        "path": "modules",
+        "frozen": "cb40c4563825739137c59de394ed92ca9bf8ab9c",
+        "candidate": "cb40c4563825739137c59de394ed92ca9bf8ab9c"
+      },
+      {
+        "path": "eech-campaign/crates",
+        "frozen": "a6568e778fb27c39e9da7fa22d98a609224fc41b",
+        "candidate": "2c0681096a769c7f79a142561838c708a3272e82"
+      },
+      {
+        "path": "eech-campaign/tools",
+        "frozen": "28c9ac18eceeef0f794b2834f76e5a646d1d4fc1",
+        "candidate": "28c9ac18eceeef0f794b2834f76e5a646d1d4fc1"
+      },
+      {
+        "path": "eech-campaign/Cargo.toml",
+        "frozen": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+        "candidate": "6651665cec5e20632f00e9c2682042b4fa9f2db5"
+      },
+      {
+        "path": "eech-campaign/Cargo.lock",
+        "frozen": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+        "candidate": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3"
+      },
+      {
+        "path": "eech-campaign/scenarios",
+        "frozen": "d9a521c0db9069d557a5d73b0c68f055f79e7baa",
+        "candidate": "d9a521c0db9069d557a5d73b0c68f055f79e7baa"
+      },
+      {
+        "path": "eech-campaign/regression",
+        "frozen": "090bd08a26859a8d1ce0907473e049142342aa75",
+        "candidate": "090bd08a26859a8d1ce0907473e049142342aa75"
+      }
+    ],
+    "finite_responsibilities_accounted_for": [
+      "PhysicalLOS/eyeheight/ray stepping and visibility; physical sensor range/altitude/tolerance/emitter/stealth with generic nondetection.",
+      "Device/weapon/intercept/lead/ballistic geometry, readiness and personfacing with partial-output semantics.",
+      "Ballistic tables/range, birth/release/flight/guidance/contact/terminal, parachute/lifetime/decoy/seduction/expired-decoy physical decisions.",
+      "Forecast/realhit capability/armour/health/critical/invulnerability, timed/classify/assess/selfhit gates, impact/blast physical decisions.",
+      "Bridge/segment collapse/shape/neighbour/fall/rest/vehicle physical decisions.",
+      "Persistentstructure/mobileroster hostIDcorrelation and actualdamage/destruction report application/withholding/primaryguards."
+    ],
+    "core_boundary": "Target/weapon/package/rank/fireintent/engagement/awareness/credit/accounting/route/repairtask policy and D1consequences staycore; application and private lifetime/identity/progress safety remaincore without physical reference veto/fallback.",
+    "declared_residuals": "Terrain/model/environment/generalgeometry services D3; airfield/logistics/repairquantities D4; entitymirrors/sharedRNG/effects/sounds transitional coupling; dormant legacyEECHHUDavionics not a supportedcampaignruntime operation, D5 mayremoveit but maynot supply a missing activeD2solver. NoD3started.",
+    "authority": "LiveM5page11534337v3 and finiteledger14548994v49 read during review; finalscope document matches this supported-runtime disposition. Ledger49 at-timeactivepack paragraph is historical and requires final authorizedappend afterdelivery, not a scope change.",
+    "whole_epic_disposition": "Technical source/boundary/runtime reconciliation ready for leadacceptance after currentCI/normalmerge/fetchedtree; this independent review alone does not set Epic18Done."
+  },
+  "reused_cost_gate": {
+    "review_sha256": "a3a2ee764867a784bcf97104be1be7f0d7c299793a672527ab19da192defd594",
+    "publication_review_sha256": "0109735d8860b7fbacea8b82cf8f23edea80e4981cf369f724ae194650e67db6",
+    "result": "9000rawframes/15windows,mean260.2627778/max564/p50254/p95370/p99429ms, exact3completecontrolfiles/post1179/42manifestentries.",
+    "limits": "Loadedquantizedelapsed engine:frame+nestedcallbacks only; outerwork/sampleI/O influence and concurrentload retained. No causalparentcomparison, fullDCSmissioncallback/threading/budget or liveDCScampaign acceptance. Exactfollowup retained; not rerun here."
+  },
+  "coverage_and_provenance_limits": [
+    "Source-contract coverage is not nativecoverage of everybranch/family/player/MP/client/bridgegeometry/REST/occupiedvehicle/weaponmode. Retained source/componentreviews specify actual reached/unreachedpaths; no additionalcoverage inferred from finalrecording equality.",
+    "Controlledreportcases mutate site/segment, inventory all6kinds; own-IDcase changes identifyonly, not an independententirecombatmodel. Other actualgenericphysical/causal/refusalcohorts establish bounded hostsubstitution separately.",
+    "Legacyf41whole600raw remainsFALSE due124declaredcounterquote-removals; currentcorrectedschemaequality preserved. Task45controlledsource-locationdiagnostics remainexplicit, not silently normalized wholetraceequality.",
+    "Retained originalab-base900input-rootprovenance remainsINFERRED; currentfinalfourroots independently verified. No visualTacview, allM5acceptance orDCSbudgetclaim.",
+    "Inherited acceptedM4report blindspots/claimclasses remain untouched, including knownmissing-map/lifecycle/sampling/longrunlimits. CurrentD2ownership proven by supplementalclosedcausal/source/report evidence, not by rewriting historicalpackclaims."
+  ],
+  "remaining_delivery_gates": [
+    "All applicable checks SUCCESS at exact6220bd5d9 or any later changedhead; historicaldaf9SUCCESS does not close this gate.",
+    "NormalPR105merge and fetchedmerge-tree equality to reviewedcandidate, no approvalfabrication/adminbypass.",
+    "AuthorizedTask46Done and wholeEpic18leadacceptance/Jira/Confluence update preserving5reports andpriorcontent; D3onlyafterwholeD2closure.",
+    "Preserve exported/raw/failed evidence and remove onlycompleteddisposablecaches withzero references. Not a reason to rerun closednativecampaigns."
+  ],
+  "reused_review_identities": [
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-r3-publication-and-provisional-d2-scope-audit-09253829b-20261028.json",
+      "sha256": "b5c1991254926a8f99b45cd91e2e6767a728f0d165ff6f6723690cc75e3de575"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-ci-crlf-and-scope-draft-review-63ea6cfa4-20261028.json",
+      "sha256": "492732ef928b0522a497d998f15bfdfade747646611a4074fe4c3d635f6fa999"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-final-scope-publication-review-aa19f0e08-20261028.json",
+      "sha256": "4e57f74079ad46d5283dec7f737adc7928fe05c76c7b19980697409ee98deb55"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-final-frame-64cf-runtime-review-20261028.json",
+      "sha256": "a3a2ee764867a784bcf97104be1be7f0d7c299793a672527ab19da192defd594"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-final-frame-publication-review-daf3960d8-20261028.json",
+      "sha256": "0109735d8860b7fbacea8b82cf8f23edea80e4981cf369f724ae194650e67db6"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-r3-64cf-six-report-runtime-review-20261028.json",
+      "sha256": "b3f34540f3e0696f8b99bc9799bea02580697490e963e8187c210c1baa9543e0"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-r3-six-auditor-v2-correction-review-20261028.json",
+      "sha256": "6f2acae1d284ca4153c01a20c434749195b5939ef2788ab27f2597bb795229a8"
+    }
+  ],
+  "verification_artifacts": [
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-final-fullpack-64cf-runtime-verification-draft-20261029.json",
+      "sha256": "72ae229aa1ff56358ee0d50c73296d7bd733c73cf1119f00fa7f416890135577"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\independent-final-fullpack-publication-6220bd5d9-verification-data-20261029.json",
+      "sha256": "6762b7b4b3e30ed45dd36ddd2e00c9a404b43e469002406ea7b22aeb41264e1e"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-publication-6220bd5d9.json",
+      "sha256": "39d0dcf7ec6d171d66533960cf532f9bc2f66f588bae1aa5aa2c4948132357b3"
+    }
+  ],
+  "review_process": "ONEcombined finalnew-runtime/publication/composition pass, oneindependentreviewer, no nestedagents/fleet. Earlier source/numeric/cost/authority audits reused, not repeated. Initial inspection-onlyPython display exited1 because it attempted list slicing on the checks dictionary; corrected read-only inspection exited0. This was neither a product/native/checkerfailure nor altered evidence."
+}

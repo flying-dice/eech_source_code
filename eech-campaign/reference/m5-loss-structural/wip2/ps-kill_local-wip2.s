@@ -1,0 +1,193 @@
+0000000000000000 <kill_local>:
+push   %rbp
+push   %r13
+push   %r12
+push   %rdi
+push   %rsi
+push   %rbx
+sub    $0x28,%rsp
+lea    0x20(%rsp),%rbp
+mov    %rcx,%rbx
+mov    (%rcx),%eax
+imul   $0x8e0,%rax,%rax
+add    0x0(%rip),%rax        # L
+IMAGE_REL_AMD64_REL32	.refptr.fn_get_local_entity_int_value
+mov    $0x7,%edx
+call   *0x38(%rax)
+test   %eax,%eax
+je     L
+mov    0x0(%rip),%rsi        # L
+IMAGE_REL_AMD64_REL32	.refptr.fn_get_local_entity_parent
+mov    (%rbx),%eax
+imul   $0x168,%rax,%rax
+mov    $0x21,%edx
+mov    %rbx,%rcx
+call   *0x108(%rsi,%rax,1)
+mov    %rax,%rcx
+mov    %rbx,%rdx
+call   L
+IMAGE_REL_AMD64_REL32	remove_mobile_values_from_sector
+mov    (%rbx),%eax
+imul   $0x8e0,%rax,%rax
+add    0x0(%rip),%rax        # L
+IMAGE_REL_AMD64_REL32	.refptr.fn_set_local_entity_int_value
+mov    $0x0,%r8d
+mov    $0x7,%edx
+mov    %rbx,%rcx
+call   *0x38(%rax)
+mov    %rbx,%rcx
+call   L
+IMAGE_REL_AMD64_REL32	damage_person_3d_object
+mov    (%rbx),%eax
+imul   $0x168,%rax,%rax
+mov    $0x19,%edx
+mov    %rbx,%rcx
+call   *0xc8(%rsi,%rax,1)
+mov    %rax,%rdi
+test   %rax,%rax
+je     L
+mov    (%rdi),%eax
+imul   $0x8e0,%rax,%rax
+add    0x0(%rip),%rax        # L
+IMAGE_REL_AMD64_REL32	.refptr.fn_get_local_entity_int_value
+mov    $0x82,%edx
+mov    %rdi,%rcx
+call   *0x410(%rax)
+mov    %eax,%edx
+mov    (%rdi),%eax
+imul   $0x8e0,%rax,%rax
+add    0x0(%rip),%rax        # L
+IMAGE_REL_AMD64_REL32	.refptr.fn_set_local_entity_int_value
+lea    0x1(%rdx),%r8d
+mov    $0x82,%edx
+mov    %rdi,%rcx
+call   *0x410(%rax)
+mov    0x0(%rip),%rax        # L
+IMAGE_REL_AMD64_REL32	.refptr.system_comms_model
+cmpl   $0x0,(%rax)
+jne    L
+mov    (%rbx),%eax
+imul   $0x168,%rax,%rax
+add    0x0(%rip),%rax        # L
+IMAGE_REL_AMD64_REL32	.refptr.fn_get_local_entity_first_child
+mov    $0x27,%edx
+mov    %rbx,%rcx
+call   *0x138(%rax)
+mov    %rax,%rsi
+test   %rax,%rax
+je     L
+mov    0x0(%rip),%r12        # L
+IMAGE_REL_AMD64_REL32	.refptr.fn_get_local_entity_child_succ
+jmp    L
+mov    $0x15c,%r8d
+lea    0x0(%rip),%rdx        # L
+IMAGE_REL_AMD64_REL32	.rdata
+lea    0xd9(%rip),%rcx        # L
+IMAGE_REL_AMD64_REL32	.rdata
+call   L
+IMAGE_REL_AMD64_REL32	write_debug_log
+jmp    L
+mov    %rbx,%r8
+mov    %r13,%rdx
+mov    $0x32,%ecx
+call   L
+IMAGE_REL_AMD64_REL32	notify_local_entity
+test   %rsi,%rsi
+je     L
+mov    (%rsi),%eax
+imul   $0x168,%rax,%rax
+mov    %rsi,%r13
+mov    $0x27,%edx
+mov    %rsi,%rcx
+call   *0x138(%r12,%rax,1)
+mov    %rax,%rsi
+cmpl   $0x22,0x0(%r13)
+jne    L
+jmp    L
+mov    %rbx,%rcx
+call   L
+IMAGE_REL_AMD64_REL32	unlink_member_task_dependents
+mov    $0x18,%edx
+mov    %rbx,%rcx
+call   L
+IMAGE_REL_AMD64_REL32	unlink_local_entity_children
+mov    %rbx,%rcx
+call   L
+IMAGE_REL_AMD64_REL32	unlink_member_from_group
+mov    %rbx,%rcx
+call   L
+IMAGE_REL_AMD64_REL32	unlink_member_from_guide
+mov    %rbx,%rcx
+call   L
+IMAGE_REL_AMD64_REL32	unlink_member_from_takeoff_queue
+mov    $0x12,%edx
+mov    %rbx,%rcx
+call   L
+IMAGE_REL_AMD64_REL32	kill_local_entity_sound_type
+mov    $0x26,%edx
+mov    %rbx,%rcx
+call   L
+IMAGE_REL_AMD64_REL32	unlink_local_entity_children
+mov    $0x1b,%edx
+mov    %rbx,%rcx
+call   L
+IMAGE_REL_AMD64_REL32	delete_local_entity_from_parents_child_list
+mov    $0x26,%edx
+mov    %rbx,%rcx
+call   L
+IMAGE_REL_AMD64_REL32	delete_local_entity_from_parents_child_list
+mov    (%rbx),%eax
+imul   $0x8e0,%rax,%rax
+add    0x0(%rip),%rax        # L
+IMAGE_REL_AMD64_REL32	.refptr.fn_set_local_entity_int_value
+mov    $0x2,%r8d
+mov    $0x9b,%edx
+mov    %rbx,%rcx
+call   *0x4d8(%rax)
+mov    %rdi,%rdx
+mov    $0x8,%ecx
+call   L
+IMAGE_REL_AMD64_REL32	notify_campaign_screen
+mov    0x0(%rip),%rax        # L
+IMAGE_REL_AMD64_REL32	.refptr.system_comms_model
+cmpl   $0x0,(%rax)
+je     L
+mov    (%rbx),%eax
+imul   $0x5a0,%rax,%rax
+add    0x0(%rip),%rax        # L
+IMAGE_REL_AMD64_REL32	.refptr.fn_set_local_entity_float_value
+pxor   %xmm2,%xmm2
+mov    $0x1b,%edx
+mov    %rbx,%rcx
+call   *0xd8(%rax)
+mov    0x0(%rip),%rax        # L
+IMAGE_REL_AMD64_REL32	.refptr.system_comms_model
+cmpl   $0x0,(%rax)
+je     L
+add    $0x28,%rsp
+pop    %rbx
+pop    %rsi
+pop    %rdi
+pop    %r12
+pop    %r13
+pop    %rbp
+ret
+mov    %rbx,%rdx
+mov    %rdi,%rcx
+call   L
+IMAGE_REL_AMD64_REL32	notify_group_member_killed
+jmp    L
+mov    %rbx,%rcx
+call   L
+IMAGE_REL_AMD64_REL32	create_client_server_object_killed_explosion_effect
+jmp    L
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+

@@ -1,0 +1,11 @@
+TEST_LINK_FLAGS=-fno-pie -no-pie
+SANITIZERS=-fsanitize=address,undefined -fno-sanitize-recover=undefined
+SANITIZER_PROBE_COMPILE_EXIT=0
+SANITIZER_PROBE_RUN_EXIT=0
+COMPILE_EXIT=0
+stage: the discrete facts
+stage: the fall
+stage: the vehicles walk
+compared 64036, fell 20001, landed 9804, over water 6690, on the boundary 5455, vehicle walks 4000, vehicles killed 10104, effects on the lists 4426, zero length 308, failures 0
+RUN_EXIT=0
+DOCKER_EXIT=0

@@ -1,0 +1,19 @@
+{
+  "checked_at": "2026-10-22T20:41:41.672996+00:00",
+  "complete_files": false,
+  "note": "Corrects the initial prefix verifier input: lebanon-3h observations predate supply_detail. Accepted retained observations are m3-resupply-loop (complete SHA256 da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf). No candidate or baseline changed.",
+  "results": [
+    {
+      "run": "run1",
+      "compared_prefix_bytes": 1048576,
+      "matches_accepted_supply_detail_reference": true,
+      "prefix_sha256": "7a2e87d356c06b67463b4c924bf3ed0817f029687613fcccb39d1f43fced60e5"
+    },
+    {
+      "run": "run2",
+      "compared_prefix_bytes": 1048576,
+      "matches_accepted_supply_detail_reference": true,
+      "prefix_sha256": "7a2e87d356c06b67463b4c924bf3ed0817f029687613fcccb39d1f43fced60e5"
+    }
+  ]
+}

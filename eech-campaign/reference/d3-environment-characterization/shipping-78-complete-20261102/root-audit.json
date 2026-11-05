@@ -1,0 +1,97 @@
+{
+  "checked_utc": "2026-11-02T15:30:48.973749+00:00",
+  "native_source": "78fe5efdb5cbaff904e3b645d680acbd7776597d",
+  "candidate_documentation_head": "d4564f36a878b9cee1010ef30891858b4b5c8c84",
+  "snapshot_clean": true,
+  "ordinary_build": true,
+  "verified_payloads": 74,
+  "build_info_sha256": "98baeb069c2d57b64f1a409d60265fb0246997acc3d9abfaa5529dd56b999b56",
+  "original_runner_exit": 0,
+  "original_runner_completed_utc": "2026-11-02T07:08:52.219365+00:00",
+  "launcher_gate_passed": true,
+  "launcher_completed_utc": "2026-11-02T07:09:06.456507+00:00",
+  "accepted_checks": 40,
+  "complete_artifacts_equal": 8,
+  "comparison_path": "R:\\d3-evidence\\environment-shipping-complete-78fe5efdb-20261102-1535.json",
+  "comparison_sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad",
+  "external_post_inputs": {
+    "georgia": {
+      "exit_code": 0,
+      "log": "D:\\EECH-Migration-Evidence\\shipping-environment-production-78fe5efdb-20261101-1626\\post-inputs-georgia.log"
+    },
+    "lebanon": {
+      "exit_code": 0,
+      "log": "D:\\EECH-Migration-Evidence\\shipping-environment-production-78fe5efdb-20261101-1626\\post-inputs-lebanon.log"
+    },
+    "lebanon_repeat": {
+      "exit_code": 0,
+      "log": "D:\\EECH-Migration-Evidence\\shipping-environment-production-78fe5efdb-20261101-1626\\post-inputs-lebanon_repeat.log"
+    }
+  },
+  "internal_post_inputs": {
+    "actual_exit": 0,
+    "args": [
+      "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+      "-B",
+      "-X",
+      "utf8",
+      "D:\\EECH-Migration-Evidence\\nb-78fe5efdb\\eech-campaign\\tools\\input-manifest.py",
+      "D:\\EECH-Migration-Evidence\\shipping-environment-production-78fe5efdb-20261101-1626\\roots\\lebanon-regress",
+      "--compare",
+      "D:\\EECH-Migration-Evidence\\nb-78fe5efdb\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+      "--output",
+      "R:\\d3-evidence\\environment-shipping-internal-post-inputs-78fe5efdb-20261102-1535.json"
+    ]
+  },
+  "non_executable_changes_since_native": [
+    {
+      "status": "M",
+      "path": "STATUS.md"
+    },
+    {
+      "status": "A",
+      "path": "eech-campaign/docs/d3-environment-time-DCS-mapping.md"
+    },
+    {
+      "status": "A",
+      "path": "eech-campaign/reference/d3-environment-characterization/backend-time-closeout-78-5c-20261101/.gitattributes"
+    },
+    {
+      "status": "A",
+      "path": "eech-campaign/reference/d3-environment-characterization/backend-time-closeout-78-5c-20261101/README.md"
+    },
+    {
+      "status": "A",
+      "path": "eech-campaign/reference/d3-environment-characterization/backend-time-closeout-78-5c-20261101/backend-actual-independent-78.json"
+    },
+    {
+      "status": "A",
+      "path": "eech-campaign/reference/d3-environment-characterization/backend-time-closeout-78-5c-20261101/backend-actual-root-78.json"
+    },
+    {
+      "status": "A",
+      "path": "eech-campaign/reference/d3-environment-characterization/backend-time-closeout-78-5c-20261101/backend-entry-source-78.json"
+    },
+    {
+      "status": "A",
+      "path": "eech-campaign/reference/d3-environment-characterization/backend-time-closeout-78-5c-20261101/backend-source-6a.json"
+    },
+    {
+      "status": "A",
+      "path": "eech-campaign/reference/d3-environment-characterization/backend-time-closeout-78-5c-20261101/manifest.json"
+    },
+    {
+      "status": "A",
+      "path": "eech-campaign/reference/d3-environment-characterization/backend-time-closeout-78-5c-20261101/mapping-source-4d.json"
+    },
+    {
+      "status": "A",
+      "path": "eech-campaign/reference/d3-environment-characterization/backend-time-closeout-78-5c-20261101/mapping-source-5c.json"
+    },
+    {
+      "status": "A",
+      "path": "eech-campaign/reference/d3-environment-characterization/backend-time-closeout-78-5c-20261101/mapping-source-ff.json"
+    }
+  ],
+  "scope": "Task51 ordinary shipping evidence, not visual inspection, native DCS, M6 or whole D3 closure. Final independent review/current CI/publication/normal merge remain separate."
+}

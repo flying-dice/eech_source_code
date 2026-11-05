@@ -1,0 +1,14 @@
+RUSTUP_ADD_EXIT=0
+FMT_EXIT=1
+Diff in /src/eech-campaign/crates/eech-engine/src/lib.rs:6719:
+         let Some(AimRequest::Blast(second)) = seen else {
+             panic!("the host was not asked about the blast")
+         };
+-        let Some(window) = second.window else {
+-            panic!("the window did not cross")
+-        };
++        let Some(window) = second.window else { panic!("the window did not cross") };
+         assert_eq!((window.sx, window.sz, window.after, window.end, window.entries.len()), (1, 1, 7, true, 2));
+         assert_eq!(
+             window.entries[1],
+DOCKER_EXIT=0

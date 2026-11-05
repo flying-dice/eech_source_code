@@ -1,0 +1,18 @@
+{
+  "source": "e1076ece31565a3b4f73a7e2adbe8e2698d9c023",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-ground-fp-recovery-e1076ece3-windows-20261031.sh"
+  ],
+  "pid": 11004,
+  "controller_pid": 23312,
+  "state": "terminal",
+  "started_utc": "2026-10-31T01:23:14.736118+00:00",
+  "scope": "Test-only Windows FP compile/export; no product binary rebuild or native execution",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T01:24:13.228186+00:00"
+}

@@ -1,0 +1,54 @@
+[package]
+name = "eech-engine-sys"
+version = "0.1.0"
+description = "Private native layer: ALL of EECH (the maintained Windows build's 1,226 C files) compiled headless for the host, with its raw FFI."
+edition.workspace = true
+publish.workspace = true
+links = "eech_engine"
+build = "build/main.rs"
+
+[features]
+# TEST-ONLY (EEDCS-40): the dependent-positioning fixture driver. Never enabled in the shipping build.
+dependent-fixture = []
+# TEST-ONLY red build: dependent-fixture with the pre-EEDCS-40 boolean apply guard, applied to the staged copy only.
+dependent-fixture-old-guard = ["dependent-fixture"]
+# TEST-ONLY (EEDCS-41): the all-family loss trigger. Never enabled in the shipping build.
+loss-fixture = []
+# TEST-ONLY (EEDCS-42): the line-of-sight characterisation trace and probe. Never enabled in the shipping build.
+los-fixture = []
+# TEST-ONLY (EEDCS-43): the sensor-detection characterisation trace and probe. Never enabled in the shipping build.
+sensor-fixture = []
+# TEST-ONLY (EEDCS-47): the terrain surface characterisation trace and probe. Never enabled in the shipping build.
+terrain-fixture = []
+# TEST-ONLY (EEDCS-44): the physical weapon-aiming characterisation trace. Never enabled in the shipping build.
+aim-fixture = []
+# TEST-ONLY (EEDCS-45): the physical weapon-execution characterisation trace, event log and controlled launch case. Never enabled in the shipping build.
+weapon-fixture = []
+# TEST-ONLY (EEDCS-50): read-only questions to the original collision-model accessors. Never enabled in the shipping build.
+model-fixture = []
+# TEST-ONLY (EEDCS-50, D3): the shipping host-owned model data PLUS a diagnostic that counts the host's answers and overwrites the campaign's own model arrays that the
+# original accessors read (so any read of them would show). Excludes model-fixture, which keeps the original accessors on purpose. Never enabled in the shipping build.
+model-host-fixture = []
+# TEST SUPPORT (EEDCS-50, D3): runs a unit test under round-toward-zero as the engine entry does, and reports whether the code under test kept it. Never enabled in the shipping build.
+fpu-test-support = []
+# TEST-ONLY (EEDCS-51): the original session environment (weather, wind, clock) characterisation. Never enabled in the shipping build.
+env-fixture = []
+# TEST-ONLY (EEDCS-51): the read-only observer of the original environment initialisation, shared-entropy order, lightning/sound effects and frame time phase. Never enabled in the shipping build.
+env-observer = ["env-fixture"]
+# TEST-ONLY (EEDCS-48): the ground-contact characterisation probe. Never enabled in the shipping build.
+ground-fixture = []
+# TEST-ONLY (EEDCS-50, D3): the observer of the ORIGINAL airfield route parser and its route-object lookup (routegen.c, popread.c), reported through two read-only entries. Never enabled in the shipping build.
+route-fixture = []
+# TEST-ONLY (EEDCS-50, D3): keep the ORIGINAL airfield route parser (the campaign DLL's own model arrays) instead of the host-owned route data: the original route characterisation. Never enabled in the shipping build.
+route-original = []
+# TEST-ONLY (EEDCS-52, D3): the observer of the ORIGINAL get_local_entity_target_point, the callers that reach it and the boot census of target_point_offsets[] (en_maths.c, wn_dbase.c, weapon.c, wn_move.c), reported through three read-only entries. Never enabled in the shipping build.
+target-point-fixture = []
+
+# TEST-ONLY (EEDCS-50): the isolated control of the original-model read-safety walk; it needs the feature's C
+[[test]]
+name = "model_walk"
+path = "tests/model_walk.rs"
+required-features = ["model-fixture"]
+
+[build-dependencies]
+cc = { version = "1.2", features = ["parallel"] }

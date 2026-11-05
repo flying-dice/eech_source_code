@@ -1,0 +1,9 @@
+E:/eech-runs/roots/georgia: 1174 input files, 142,522,166 bytes, combined SHA-256 d373bc4262464da87532b8128d396358f0003bc2e9e51e8fa92cf0a6e2b50de2
+inputs IDENTICAL to reference/m4-s3-mutation/inputs-georgia.json
+exit 0
+E:/eech-runs/m2/lebanon-root: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09
+inputs IDENTICAL to reference/lebanon-3h/inputs.json
+exit 0
+E:/eech-runs/m2/lebanon-m1-copy: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09
+inputs IDENTICAL to reference/lebanon-3h/inputs.json
+exit 0

@@ -1,0 +1,13 @@
+BEFORE_HOST_LOG_GOOD
+AFTER_HOST_LOG_GOOD
+BEFORE_HOST_LOG_BAD
+AFTER_HOST_LOG_BAD=false
+HOST_LOG_ERROR=bad argument #1: error converting Lua table to String (expected string or number)
+stack traceback:
+	[C]: in function 'host.log'
+	[C]: in function 'pcall'
+	[string "E:\eech_source_code\.claude\worktrees\m5-dc..."]:8: in main chunk
+
+HOST_LOG_100_ERRORS=PASS
+BEFORE_GC
+AFTER_GC

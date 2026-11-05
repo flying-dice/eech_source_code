@@ -1,0 +1,2 @@
+# Retained evidence is byte-exact; no end-of-line or text normalisation.
+* -text

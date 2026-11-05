@@ -1,0 +1,13 @@
+# SHA-256 and size of each trace: the ORIGINAL file the Windows driver wrote (CRLF line endings, private outputs under R:/d2-evidence/aim-characterization-20261026/out/<run>/trace.jsonl)
+# and of the copy committed here (Git stores it with LF; hash the committed bytes with `git cat-file blob HEAD:<path> | sha256sum`). The comparator reads either.
+# original_sha256                                                  original_bytes  lf_sha256                                                        lf_bytes  file
+c4e9c2b108184243b2bb48034216cad80a7bc9e6225b6229ef8148fe0823ce62 287242 b709f052aec6f67a8bed69d6bea11d49bb400e09f5015c9ba653b5e218f8489c 285280 traces/lebanon-r-a.jsonl
+c4e9c2b108184243b2bb48034216cad80a7bc9e6225b6229ef8148fe0823ce62 287242 b709f052aec6f67a8bed69d6bea11d49bb400e09f5015c9ba653b5e218f8489c 285280 traces/lebanon-r-b.jsonl
+5612ccab145ab32de501078644b9e4fc73f0471f9502e4581641a05224e2841a 256694 8a2f60e562d5b6121e4154dd0871df120b482132c49299b5022f78590e2af2c5 254954 traces/lebanon-f-a.jsonl
+5612ccab145ab32de501078644b9e4fc73f0471f9502e4581641a05224e2841a 256694 8a2f60e562d5b6121e4154dd0871df120b482132c49299b5022f78590e2af2c5 254954 traces/lebanon-f-b.jsonl
+180269847d6baae20108dca30bacfc4e89c85e5efffc709840a01da7b21e980d 249533 00931bb2833dedca45bf6c459c0ca45aef38fbc0c5e2e955584636a53ae2f509 247813 traces/lebanon-b7f9-a.jsonl
+180269847d6baae20108dca30bacfc4e89c85e5efffc709840a01da7b21e980d 249533 00931bb2833dedca45bf6c459c0ca45aef38fbc0c5e2e955584636a53ae2f509 247813 traces/lebanon-b7f9-b.jsonl
+1bbadc7cbe0edacfff24b75ccd933e0d1552e59aeab3bcb5ddcb7e2d0064b6c7 179279 d5734f396704b757b57ac3f3bf5b97f24673d9d5f77e10842ae8be715f7e4bd1 177856 traces/georgia-f-g.jsonl
+7c5878b4597d637f92929c4006675be22728c3863694f34825701afe14cf3f94 32887 08ccd0fea1e337ec08872d3bb75cfdc511953c39ce48e7f23b4920cdb0436b98 32674 traces/person-target.jsonl
+7c5878b4597d637f92929c4006675be22728c3863694f34825701afe14cf3f94 32887 08ccd0fea1e337ec08872d3bb75cfdc511953c39ce48e7f23b4920cdb0436b98 32674 traces/person-target-repeat.jsonl
+f7d614bf35631c2749b77eb0c4f24e0b1f4f8cc06e6117e56e76dd4f6e87dc12 26984 4ab83da457554cec4a65711a16712811f37fab93ae02be50c0c25f604620ca5a 26790 traces/person-control.jsonl

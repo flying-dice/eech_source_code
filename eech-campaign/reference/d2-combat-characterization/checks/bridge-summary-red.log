@@ -1,0 +1,41 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.60s
+     Running tests/host_callbacks.rs (/target/debug/deps/host_callbacks-01e380bfce0df75c)
+
+running 6 tests
+test the_bridge_witness_never_turns_a_segment_that_is_not_a_number_into_the_automatic_choice ... ok
+test the_bridge_summary_counts_a_segment_as_finished_only_from_a_state_that_really_says_so ... FAILED
+test the_bridge_witness_says_so_and_does_nothing_when_no_bridge_meets_the_first_collapse_criterion ... ok
+test the_bridge_witness_accepts_an_explicit_valid_selector_and_the_edge_values_and_passes_them_on_exactly ... FAILED
+test the_bridge_witness_records_a_declared_failure_and_a_bounded_window_of_frames_in_order ... ok
+test the_bridge_witness_refuses_a_malformed_argument_before_anything_is_prepared_booted_run_or_killed ... ok
+
+failures:
+
+---- the_bridge_summary_counts_a_segment_as_finished_only_from_a_state_that_really_says_so stdout ----
+
+thread 'the_bridge_summary_counts_a_segment_as_finished_only_from_a_state_that_really_says_so' (174) panicked at crates/eech-world/tests/host_callbacks.rs:1631:9:
+assertion `left == right` failed: window_seconds=0 finish 5 empty false: {"done":true,"event":"bridge_summary","first_collapse":true,"frames":0,"in_update_at_end":0,"landed_all":true,"n_segment_update":1}
+  left: (Some(0), Some(0), Some(true), None)
+ right: (Some(0), Some(1), Some(false), Some(true))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- the_bridge_witness_accepts_an_explicit_valid_selector_and_the_edge_values_and_passes_them_on_exactly stdout ----
+
+thread 'the_bridge_witness_accepts_an_explicit_valid_selector_and_the_edge_values_and_passes_them_on_exactly' (175) panicked at crates/eech-world/tests/host_callbacks.rs:1515:5:
+assertion `left == right` failed: {"done":true,"event":"bridge_summary","first_collapse":true,"frames":0,"in_update_at_end":0,"landed_all":true,"n_segment_update":1}
+  left: (Some(true), Some(0), Some(0), Some(true), None)
+ right: (Some(true), Some(0), Some(1), Some(false), Some(true))
+
+
+failures:
+    the_bridge_summary_counts_a_segment_as_finished_only_from_a_state_that_really_says_so
+    the_bridge_witness_accepts_an_explicit_valid_selector_and_the_edge_values_and_passes_them_on_exactly
+
+test result: FAILED. 4 passed; 2 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.17s
+
+error: test failed, to rerun pass `-p eech-world --test host_callbacks`
+CARGO_EXIT=101
+DOCKER_EXIT=101

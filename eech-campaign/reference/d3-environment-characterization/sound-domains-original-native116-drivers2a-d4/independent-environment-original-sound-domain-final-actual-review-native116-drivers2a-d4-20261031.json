@@ -1,0 +1,468 @@
+{
+  "schema": "independent-actual-evidence-review-v1",
+  "created_utc": "2026-10-31T21:56:20.184536+00:00",
+  "reviewer": "sole independent Codex reviewer /root/d3_environment_review",
+  "source": {
+    "tested_native": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+    "successful_cases4_to8_driver": "2a4139830e2ec13617635c553a519d9be3015a2d",
+    "successful_cases9_to10_driver": "d4cebb76dd2980ac078dc15f07fcd381439a9229",
+    "current_repo_head": "d4cebb76dd2980ac078dc15f07fcd381439a9229",
+    "working_changes": "Only proposed STATUS/docs and safe reference publication; no runtime writer active."
+  },
+  "scope": "One combined new actual/auditor/safe-publication correctness and boundary review. Seven controlled-data original sound cases4..10 only; old zero-start35bb closure and closed source/kernel reviews reused. Current hosted environment baseline, not whole-unhooked original DLL.",
+  "findings": [],
+  "actual_review_no_blocking_findings": true,
+  "safe_publication_review_no_blocking_findings": true,
+  "original_domain_characterization_closed": true,
+  "closed_scope": "Finite measurements of positive lifetime server aging/expiry and direct client clamp, sequence construction, ordinary/music caps, two looping routines, and pause-driven invalid countdown/next-update unlink on each routine. These are original observations, not host sound ownership or generic sound-domain completeness.",
+  "actual_runs": {
+    "successful": [
+      {
+        "case": 4,
+        "driver": "2a4139830e2ec13617635c553a519d9be3015a2d",
+        "controller": {
+          "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-4\\controller.json",
+          "sha256": "1b619c77f63c1cba49bbd0fdeb19e3af2789af58e88aa575da75bc8cd8425ba8",
+          "bytes": 4916
+        },
+        "raw": {
+          "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-4\\environment.jsonl",
+          "sha256": "16984dfebbcfa07a5f3e699ad29afe20cbb61768edc72bc5834b83f30b0fac58",
+          "bytes": 11971
+        },
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "verified_payloads": 55,
+        "script_sha256": "09c2b6a783c067cc3b6695950d86c0ae70921826f9fa57fb65fe1190e11d167a",
+        "calls": 3,
+        "kills": 1,
+        "entities": 1,
+        "records": 6,
+        "restoration_flags": true
+      },
+      {
+        "case": 5,
+        "driver": "2a4139830e2ec13617635c553a519d9be3015a2d",
+        "controller": {
+          "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-5\\controller.json",
+          "sha256": "5092c64141f63818e4fae1d7b4c561c78fc70bcc57f6a5ce115b541cbc91384b",
+          "bytes": 4932
+        },
+        "raw": {
+          "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-5\\environment.jsonl",
+          "sha256": "7308a1efd48c90712a6c09d4f3e9ddbb0df31fd979bc186862c9df49a4e2c267",
+          "bytes": 12789
+        },
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "verified_payloads": 55,
+        "script_sha256": "09c2b6a783c067cc3b6695950d86c0ae70921826f9fa57fb65fe1190e11d167a",
+        "calls": 3,
+        "kills": 0,
+        "entities": 1,
+        "records": 7,
+        "restoration_flags": true
+      },
+      {
+        "case": 6,
+        "driver": "2a4139830e2ec13617635c553a519d9be3015a2d",
+        "controller": {
+          "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-6\\controller.json",
+          "sha256": "f1a123a06363628ae687f9cea7217d9b79b622ba5f3a13a9f1a00232b15a7802",
+          "bytes": 4763
+        },
+        "raw": {
+          "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-6\\environment.jsonl",
+          "sha256": "2178f85d28a08a82bacde5b4589ebccdff7ac79e6895abba8dd2f232f70dfb65",
+          "bytes": 6691
+        },
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "verified_payloads": 55,
+        "script_sha256": "09c2b6a783c067cc3b6695950d86c0ae70921826f9fa57fb65fe1190e11d167a",
+        "calls": 0,
+        "kills": 0,
+        "entities": 1,
+        "records": 1,
+        "restoration_flags": true
+      },
+      {
+        "case": 7,
+        "driver": "2a4139830e2ec13617635c553a519d9be3015a2d",
+        "controller": {
+          "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-7\\controller.json",
+          "sha256": "459a0b597445c9c166f309af33c64f42cda028eda5bbf3fc48b00b01f0463139",
+          "bytes": 4803
+        },
+        "raw": {
+          "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-7\\environment.jsonl",
+          "sha256": "f12086a63729c3c8e327c2c56e942ac2d3e34581ad0556892016df2dbf2790d4",
+          "bytes": 7907
+        },
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "verified_payloads": 55,
+        "script_sha256": "09c2b6a783c067cc3b6695950d86c0ae70921826f9fa57fb65fe1190e11d167a",
+        "calls": 0,
+        "kills": 0,
+        "entities": 2,
+        "records": 2,
+        "restoration_flags": true
+      },
+      {
+        "case": 8,
+        "driver": "2a4139830e2ec13617635c553a519d9be3015a2d",
+        "controller": {
+          "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-8\\controller.json",
+          "sha256": "be7e385aad6aac90a52cbe7c6b762713b7a5726d3274e162ca2b86efa95e8c60",
+          "bytes": 5089
+        },
+        "raw": {
+          "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-8\\environment.jsonl",
+          "sha256": "9e5aa62f10ff7ed38d6e609a1fd3bb2142e0e12dc6ecfd8d473e2353f58d6362",
+          "bytes": 17586
+        },
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "verified_payloads": 55,
+        "script_sha256": "09c2b6a783c067cc3b6695950d86c0ae70921826f9fa57fb65fe1190e11d167a",
+        "calls": 6,
+        "kills": 0,
+        "entities": 2,
+        "records": 11,
+        "restoration_flags": true
+      },
+      {
+        "case": 9,
+        "driver": "d4cebb76dd2980ac078dc15f07fcd381439a9229",
+        "controller": {
+          "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-d4cebb76d-20261031\\case-9\\controller.json",
+          "sha256": "e768c19cdfa066151098e0bd3b26360a9acafb85490935fc7c489f119274c0fb",
+          "bytes": 4986
+        },
+        "raw": {
+          "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-d4cebb76d-20261031\\case-9\\environment.jsonl",
+          "sha256": "aaf562c423b2736ab3722199cf0158e2220a0c26d2d809c661c9af90a43d5104",
+          "bytes": 10901
+        },
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "verified_payloads": 55,
+        "script_sha256": "ad277d1f92c75b7c12c9f1606e512ec49d508804c77c81ffb9ae2c4c1d9909e7",
+        "calls": 3,
+        "kills": 0,
+        "entities": 1,
+        "records": 4,
+        "restoration_flags": true
+      },
+      {
+        "case": 10,
+        "driver": "d4cebb76dd2980ac078dc15f07fcd381439a9229",
+        "controller": {
+          "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-d4cebb76d-20261031\\case-10\\controller.json",
+          "sha256": "3959fbded8067dbfc5703bb33d7733093afef95983c149040215914728894ca2",
+          "bytes": 4988
+        },
+        "raw": {
+          "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-d4cebb76d-20261031\\case-10\\environment.jsonl",
+          "sha256": "df3c7b2dd178848245f4b8dbd8ee85a51ed5216e98d6836b03d0e5e6534b29f3",
+          "bytes": 13427
+        },
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "pre_post_inputs_actual_exit": [
+          0,
+          0
+        ],
+        "verified_payloads": 55,
+        "script_sha256": "ad277d1f92c75b7c12c9f1606e512ec49d508804c77c81ffb9ae2c4c1d9909e7",
+        "calls": 3,
+        "kills": 0,
+        "entities": 1,
+        "records": 7,
+        "restoration_flags": true
+      }
+    ],
+    "success_native_controller_exits_zero": true,
+    "successful_pre_post_checks": 14,
+    "including_retained_failure_native_runs": 8,
+    "including_failure_pre_post_checks": 16,
+    "retail_files_per_manifest": 1179,
+    "all16_input_manifests_independently_matched_reference": true,
+    "all55_payload_hashes_independently_verified": true,
+    "all_pinned_script_post_hashes_independently_verified": true,
+    "native_build_info": {
+      "path": "R:\\d3-evidence\\environment-sound-entity-original-source-116ffd5fb\\eech-campaign\\target\\env-observer\\sound-entity-original-116ffd5fb\\BUILD-INFO.txt",
+      "sha256": "45d3fd719abd0dab917d70000ca223a4720c536ebfae69b0e88a890b8fd7fd97",
+      "bytes": 5647
+    },
+    "native_executable": {
+      "path": "R:\\d3-evidence\\environment-sound-entity-original-source-116ffd5fb\\eech-campaign\\target\\env-observer\\sound-entity-original-116ffd5fb\\eech-world.exe",
+      "sha256": "8f15643a215f4a54b9dc46a5382db1095e552f3d39be1adee572b9b160733ce7",
+      "bytes": 2923555
+    },
+    "native_dll": {
+      "path": "R:\\d3-evidence\\environment-sound-entity-original-source-116ffd5fb\\eech-campaign\\target\\env-observer\\sound-entity-original-116ffd5fb\\eech_dc.dll",
+      "sha256": "7fb73d1b543176a323b9f1d53c2b52fc8d8ee1cac74a52b0acd197b0376a0261",
+      "bytes": 18286130
+    }
+  },
+  "measured_outcomes": [
+    "Case4: effect lifetime5 ->3 ->1 then real server kill on call3. The final slot has data0; its zero placeholder words are not a live lifetime and decode to null in the audit.",
+    "Case5: direct client routine5 ->3 ->1 ->0, alive with no kill after three calls. It runs on a server-created entity, not a real client/network delivery.",
+    "Case6: controlled two-sample constructor reports lifetime4. Case7: ordinary/music controlled constructors report40 and300.",
+    "Case8: two looping entities retain lifetime0 and live data/list membership through three server/client calls each, no kills.",
+    "Cases9/10: real pause changes validity to false and valid lifetime to1.5; subsequent captures show0.5 then0 while still linked, then the next call unlinks with no kill. Effect lifetime stays5. Pause counts total11/matching1/returned1 and subtype-to-own-constructor identity are coherent.",
+    "All seven are unrefused and nonpartial; descriptors/delta restoration and tracking-off/no-drop/no-untracked reports are present. Original retail inputs are unchanged; sample descriptors are explicit temporary in-process world-input variation."
+  ],
+  "retained_failure_and_recovery": {
+    "initial_aggregate": {
+      "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\controller.json",
+      "sha256": "4de57111ea61805003ad74984cf37dc694205bcfffd08aae809abca71578b3ba",
+      "bytes": 36891
+    },
+    "initial_aggregate_actual_exit": 1,
+    "failed_case9_controller": {
+      "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-9\\controller.json",
+      "sha256": "027cf9dc869efbf0d1822880098750d2c0ec84d4b530abb4fa9401fa3e887c43",
+      "bytes": 4940
+    },
+    "failed_case9_raw": {
+      "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-9\\environment.jsonl",
+      "sha256": "b4919c672fe7978d291286591dd1a09264aa3bc2f6a4a6c85eab25b20fe55ee5",
+      "bytes": 10871
+    },
+    "failed_case9_native_controller_actual_exit": 1,
+    "recovery_aggregate": {
+      "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-d4cebb76d-20261031\\controller.json",
+      "sha256": "f092c063b793259c83dcfe5e56fdbbabf0d3e539826dea8e0200a4b81d857418",
+      "bytes": 16286
+    },
+    "recovery_actual_exit": 0,
+    "recovery_completed_utc": "2026-10-31T21:49:35.047176+00:00",
+    "every_preterminal_C_report_line_and_ending_equal": true,
+    "equal_preterminal_lines": 26,
+    "equal_preterminal_bytes_sha256": "97a08ac52ae37f19f4138bd7cff9649b2c122d5cd4311dffe95ff56b4b820302",
+    "complete_failed_and_recovery_raw_equal": false,
+    "classification": "All26 old preterminal C report rows/endings equal fresh9 exactly. Only terminal witness_failure changes to result. The old native/controller and initial aggregate remain actual1; recovered9 uses a fresh root,10 was previously unrun, successful4..8 are preserved with driver2a and not rerun or reattributed. No failed directory or raw/baseline/tolerance was rewritten."
+  },
+  "auditor": {
+    "helper": {
+      "path": "R:\\d3-evidence\\audit-original-sound-domain-controls-20261031.py",
+      "sha256": "85cb963d9c87266b79e115e10eb6cc0a974f8007362730cf61a640d72a2719cf",
+      "bytes": 4581
+    },
+    "executed_combined_report": {
+      "path": "R:\\d3-evidence\\original-sound-domain-combined-native116-drivers2a-d4-20261031.json",
+      "sha256": "5b888f83e16a1e436797d5b09b95661b827e74c7c3a1fa702b357657b640ce9b",
+      "bytes": 24024
+    },
+    "reported_actual_exit": 0,
+    "independent_checks": "Re-read all eight controllers and stage exits; matched all16 pre/post manifest inputs and combined hashes to the1179-file reference; rehashed55 immutable native payloads and both frozen Lua overrides; matched raw hashes/events/results, restoration flags and word-to-float state projection; independently compared old/new9 complete preterminal bytes/endings. Helper decodes only live data with struct.unpack and emits null for freed slots; decoding is explanatory, not a physical expected-value test or normalized baseline. Hardcoded summary booleans are backed here by explicit retained-artifact verification."
+  },
+  "provenance_and_reuse": {
+    "native_2a_equivalence": {
+      "path": "R:\\d3-evidence\\original-sound-native116ffd5fb-driver-2a4139830-equivalence-20261031.json",
+      "sha256": "3462a0b034cd362bb82eec2b31e3f248a05938a742c8b57f137bbf687d928579",
+      "bytes": 1091
+    },
+    "native_d4_equivalence": {
+      "path": "R:\\d3-evidence\\original-sound-native116ffd5fb-driver-d4cebb76d-equivalence-20261031.json",
+      "sha256": "d0db717c002ef15da236595e91dd53c7631a5f7fe2d95cc232d961bc3fa56496",
+      "bytes": 1091
+    },
+    "native_windows_gate": {
+      "path": "R:\\d3-evidence\\environment-sound-entity-original-116ffd5fb-windows-20261031-completion.json",
+      "sha256": "5d3b877f2671cf8da372d301f3a357f2d0b746660ee984d89c459a99776e8b6b",
+      "bytes": 666
+    },
+    "native_linux_gate": {
+      "path": "R:\\d3-evidence\\environment-sound-entity-original-116ffd5fb-linux-20261031-completion.json",
+      "sha256": "be497068eb703578c28226f03e52aa403b35236c5df5985d6462aa234338a381",
+      "bytes": 782
+    },
+    "driver_2a_gate": {
+      "path": "R:\\d3-evidence\\environment-sound-entity-original-2a4139830-linux-20261031-completion.json",
+      "sha256": "e689e614a340e62d6797bc18806ff72ccbefccb1fa6f8b6cc08174344ae5ad50",
+      "bytes": 795
+    },
+    "driver_d4_gate": {
+      "path": "R:\\d3-evidence\\environment-sound-entity-original-d4cebb76d-linux-20261031-completion.json",
+      "sha256": "387d091c864bb35fbac0c28e2818b78a93639321a93c4866841cd491289a17a2",
+      "bytes": 794
+    },
+    "source_2a_review": {
+      "path": "R:\\d3-evidence\\independent-environment-original-sound-domain-source-review-2a4139830-20261031.json",
+      "sha256": "903d4227f42ec50ad0aeecc457cf7b1575a79c29c2831c568358d815031ce37f",
+      "bytes": 6949
+    },
+    "source_d4_review": {
+      "path": "R:\\d3-evidence\\independent-environment-original-sound-pause-isolation-source-review-d4cebb76d-20261031.json",
+      "sha256": "31e18c5325f87ac83bc0528c0fb21b29f4e4978157a1fa32116ed0738e9316fe",
+      "bytes": 7993
+    },
+    "scope": "All C including fixture/observer and Rust production/build inputs are identical from safe native116 to each driver revision; independent git diff allowlist verified. Both separately hashed overrides keep their actual source labels. Native116 Windows and default/observer C/affected checks0 plus current2a8/d4nine-sound/fmt/world-strict0 receipts are terminal. Earlier c9 broad packages/both strict reuse remains bounded by prior explicit unchanged-production identity. Unsafe bcb/c9 binaries are not used for these runs. No later docs checkpoint is a new tested binary or current-final CI acceptance."
+  },
+  "safe_publication": {
+    "directory": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4",
+    "receipt_identities": {
+      "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\receipt-identities.json",
+      "sha256": "14355c89e50c9ab74d91537ff08ed5efd4e304f83cabe5b7f7c3b238c8fb6a10",
+      "bytes": 11786
+    },
+    "identities_verified": 21,
+    "files": [
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\case-10-controller.json",
+        "sha256": "64fc0a9fbbe14c954e83cba34b714fbeb0c98e42e51be3ab9d246bb178f96338",
+        "bytes": 4527
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\case-4-controller.json",
+        "sha256": "d6e41246c77abcf85eebbf5a42e8e805ef1e492149753b82d13219b2ba3fbbf6",
+        "bytes": 4493
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\case-5-controller.json",
+        "sha256": "81a158829e827a66ca516be67964ecbd8a51c6c559bf2f2c5543fd19338b8c6d",
+        "bytes": 4493
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\case-6-controller.json",
+        "sha256": "d1ca7e75e33a02d476ec59bce042be176161ccf47ff952b245549912776a5435",
+        "bytes": 4492
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\case-7-controller.json",
+        "sha256": "a028beae744c4ea8adcdc15ad4ce90fab979d9f555d24c76e0036c47880e010e",
+        "bytes": 4492
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\case-8-controller.json",
+        "sha256": "e2f6de1313eec578393ff49b9c937da10fc9b3b322972f2aad9883c5d973e85f",
+        "bytes": 4491
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\case-9-controller.json",
+        "sha256": "177cd00781477a8a30e0efc136962420571e9af05cca2c9e204c95b05c71ff18",
+        "bytes": 4573
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\combined-observations-safe.json",
+        "sha256": "5e138f4c607383c71ac9c658e8c9f9c6257276fc9a2ccbf93555f82ebe21d64a",
+        "bytes": 22458
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\environment-sound-entity-original-116ffd5fb-linux-20261031-completion.json",
+        "sha256": "316052c2d7ad183e1e1a9faaaafbe27b5c6af478584ca8e60109bb7a0fff2d0e",
+        "bytes": 764
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\environment-sound-entity-original-116ffd5fb-windows-20261031-completion.json",
+        "sha256": "3363f0db2ac7fbd7677ad092a816ad64e19f342cd1ae2e13e689f98af700ccdf",
+        "bytes": 648
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\environment-sound-entity-original-2a4139830-linux-20261031-completion.json",
+        "sha256": "da8c112d5034afa6b53edb9984f28b7fe7b04213cd7416e451153aa594120178",
+        "bytes": 777
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\environment-sound-entity-original-d4cebb76d-linux-20261031-completion.json",
+        "sha256": "c40e308f91cdaaecccd5c8829396df00a48a6de636702b388358d947bf144c2d",
+        "bytes": 776
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\failed-initial-case-9-controller.json",
+        "sha256": "ca869fd0cf94bb01e18852c7c976b4c9a5706a3f55d6ca70dc158f23819ebe9d",
+        "bytes": 4527
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\independent-environment-original-sound-domain-source-review-116ffd5fb-20261031.json",
+        "sha256": "9d0c591334812010524b601175911d05a456755eebfa018b36a363ec01b8aab0",
+        "bytes": 9757
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\independent-environment-original-sound-domain-source-review-2a4139830-20261031.json",
+        "sha256": "af35bc592995163d5d5409e6bffe11d6a2cf3237b88b8d5df563d8462ac00b12",
+        "bytes": 6843
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\independent-environment-original-sound-domain-source-review-bcb7142d4-20261031.json",
+        "sha256": "d45ed7c54950c3ac5291e4de0e5e095236db5f02367c1d9b2f9f3eda08a10caf",
+        "bytes": 12190
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\independent-environment-original-sound-pause-isolation-source-review-d4cebb76d-20261031.json",
+        "sha256": "4b82502d7de9d74f9c87fc3e39888993bf211ff5639e2f19099c0b458f76cbb8",
+        "bytes": 7868
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\initial-aggregate-controller.json",
+        "sha256": "9ddba50bfa1a3900c9381244b4f4d4df4f56a727c6dbf929f5462ef49441ac29",
+        "bytes": 34435
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\original-sound-native116ffd5fb-driver-2a4139830-equivalence-20261031.json",
+        "sha256": "628090afc4777495c3387a177be79123e757dba8bcf7adcd1ba5d26a36c5eff6",
+        "bytes": 1076
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\original-sound-native116ffd5fb-driver-d4cebb76d-equivalence-20261031.json",
+        "sha256": "9d11b2d8b0f99284aafdce05ff326f545be2951c06d3d7efcb560bb5d3954bef",
+        "bytes": 1076
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\README.md",
+        "sha256": "2571f7f82fc642b011e881a58939d6ca615fbca8f63c8916f1c92dffca713cfc",
+        "bytes": 4782
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\receipt-identities.json",
+        "sha256": "14355c89e50c9ab74d91537ff08ed5efd4e304f83cabe5b7f7c3b238c8fb6a10",
+        "bytes": 11786
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-domains-original-native116-drivers2a-d4\\recovery-aggregate-controller.json",
+        "sha256": "bc084b47e267dff412f1d68df5abf6858a0e5463926130b4ae3a853d1a364009",
+        "bytes": 15219
+      }
+    ],
+    "verified_transform": "All21 private-original/publication hashes and parsed transforms verified: recursive json_events lists become exact event counts; exactly29 allocation slot fields are omitted from combined states; other numeric/word/outcome/identity facts remain exact. Copied d4 source/failure report and all other safe JSON were scanned for allocation IDs, raw position records and retail input arrays; none exposed. README and proposed STATUS/docs accurately keep the initial failure, mixed drivers, pending final review and finite limits. Root may now update that pending-review prose; this report does not write public files."
+  },
+  "retention_gap": "The first overwritten d1 raw WIP log remains unavailable. Its labelled excerpt and retained user tool failures are partial, not recovered raw. Subsequent exclusive failures/greens/reds, old failed9 and successful/recovery raw measurements remain separately retained.",
+  "limitations": [
+    "Finite seven-domain original characterization only. No host sound move/API, replaceable world authority, real playback/idle handle, audible/player/render delivery, resume validity/relink or device behavior, independent destroy/network/per-vehicle pitch/amplitude proof. These responsibilities remain required D3 with their own disposition.",
+    "No visual/Tacview, CPU FP-state/all-state equivalence or full shipping inference follows from these diagnostic cases. Current-final CI, full40/all8 complete shipping byte gates and normal merges are not accepted here.",
+    "Whole Task51/D3 remains open: sound/time/required terrain/spatial/model and full delivery gates remain; D4/D5 not started. Old zero-start characterization is reused in its separate finite scope."
+  ],
+  "host_sound_move_accepted": false,
+  "current_final_CI_accepted": false,
+  "shipping_accepted": false,
+  "task51_or_D3_complete": false,
+  "reviewer_actions": "Read-only retained-artifact/source-identity analysis and this private report write only. No native runs/builds/tests, Docker/process/source/auth/public changes, agents or old experiments. EECH regression evidence-audit guidance applied."
+}

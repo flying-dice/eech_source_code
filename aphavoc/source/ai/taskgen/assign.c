@@ -383,7 +383,7 @@ static int suitable_group_task_specific_checks (entity *task, entity *group)
 	
 			objective_type = get_local_entity_int_value (objective, INT_TYPE_ENTITY_SUB_TYPE);
 	
-			if (objective_type == ENTITY_SUB_TYPE_KEYSITE_AIRBASE && get_local_entity_int_value (group, INT_TYPE_MEMBER_COUNT) < 2 &&
+			if (objective_type == ENTITY_SUB_TYPE_KEYSITE_AIRBASE && campaign_roster_group_member_count (group) < 2 &&
 					get_local_entity_int_value (objective, INT_TYPE_SIDE) != get_local_entity_int_value (group, INT_TYPE_SIDE))
 				return FALSE;
 
@@ -473,7 +473,7 @@ entity *get_suitable_registered_group (entity *task, int *idle_group_count)
 
 						if (idle_count > group_database [group_raw->sub_type].minimum_idle_count)
 						{
-							if (get_local_entity_int_value (current_group, INT_TYPE_MEMBER_COUNT) >= get_local_entity_int_value (task, INT_TYPE_MINIMUM_MEMBER_COUNT))
+							if (campaign_roster_group_member_count (current_group) >= get_local_entity_int_value (task, INT_TYPE_MINIMUM_MEMBER_COUNT))
 							{
 								if (check_group_members_awake (current_group))
 								{

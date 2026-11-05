@@ -1,0 +1,60 @@
+{
+  "when_utc": "2026-10-28T16:03:19.421682+00:00",
+  "frozen_source": "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5",
+  "frozen_sha": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "candidate": "R:\\d2-sensor-detections",
+  "candidate_sha": "a89a668ae2fa5594a93fb6bbccf46e1c9b7bff38",
+  "both_clean": true,
+  "candidate_pushed": true,
+  "frontiers": [
+    {
+      "path": "aphavoc",
+      "frozen": "62dfbb79d5298ead7040c5d4b190867e91c8d7ba",
+      "candidate": "62dfbb79d5298ead7040c5d4b190867e91c8d7ba"
+    },
+    {
+      "path": "modules",
+      "frozen": "cb40c4563825739137c59de394ed92ca9bf8ab9c",
+      "candidate": "cb40c4563825739137c59de394ed92ca9bf8ab9c"
+    },
+    {
+      "path": "eech-campaign/crates",
+      "frozen": "a6568e778fb27c39e9da7fa22d98a609224fc41b",
+      "candidate": "a6568e778fb27c39e9da7fa22d98a609224fc41b"
+    },
+    {
+      "path": "eech-campaign/tools",
+      "frozen": "28c9ac18eceeef0f794b2834f76e5a646d1d4fc1",
+      "candidate": "28c9ac18eceeef0f794b2834f76e5a646d1d4fc1"
+    },
+    {
+      "path": "eech-campaign/Cargo.toml",
+      "frozen": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+      "candidate": "6651665cec5e20632f00e9c2682042b4fa9f2db5"
+    },
+    {
+      "path": "eech-campaign/Cargo.lock",
+      "frozen": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+      "candidate": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3"
+    },
+    {
+      "path": "eech-campaign/scenarios",
+      "frozen": "d9a521c0db9069d557a5d73b0c68f055f79e7baa",
+      "candidate": "d9a521c0db9069d557a5d73b0c68f055f79e7baa"
+    },
+    {
+      "path": "eech-campaign/regression",
+      "frozen": "090bd08a26859a8d1ce0907473e049142342aa75",
+      "candidate": "090bd08a26859a8d1ce0907473e049142342aa75"
+    }
+  ],
+  "all8_equal": true,
+  "changed_files": [
+    "STATUS.md",
+    "eech-campaign/reference/d2-combat-characterization/c-checks/object_checks.c",
+    "eech-campaign/reference/d2-combat-characterization/checks/object-checks-14-dummy-safe-harness.log",
+    "eech-campaign/reference/d2-combat-characterization/checks/object-checks-15-red-pre-guard-order-30fbdfcbc-dummy-safe-harness.log",
+    "eech-campaign/reference/d2-combat-characterization/checks/object-mutation-9-dummy-safe-harness.log"
+  ],
+  "limits": "Runtime/build/scenario equivalence only. Shipping build remains actual64cf, never relabelled as a89a; test-only focused review and actual new native/API/fullpack acceptance still required."
+}

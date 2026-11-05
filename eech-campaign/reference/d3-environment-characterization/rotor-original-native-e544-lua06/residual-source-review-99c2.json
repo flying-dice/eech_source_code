@@ -1,0 +1,109 @@
+{
+  "review_kind": "One bounded residual Lua/test/prose correction source pass, including two mechanical test-lint edits",
+  "source": {
+    "head": "99c2a64aeac8ac35619c69d51af2f2a0637fb3e8",
+    "base_native_source": "e54423b5c17b4386c099240ea02158ec525c05f7",
+    "author_correction": "2e20b1a3b74113289d1f40dc7f293b6ce9cdb5fa",
+    "frozen_clean_repo": "D:/EECH-Migration-Evidence/rd-99c2a64ae",
+    "head_clean_verified": true,
+    "diff_command": [
+      "git",
+      "diff",
+      "--binary",
+      "--full-index",
+      "e54423b5c17b4386c099240ea02158ec525c05f7",
+      "99c2a64aeac8ac35619c69d51af2f2a0637fb3e8"
+    ],
+    "diff_sha256": "cbb2adda81c76696a5a4d84ef5db0aedb911cfc885acba6ebc51b53eb2c037df",
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "git_blob": "84a587e7a99d76dea271343556566a0323c54f0e",
+        "bytes": 459161,
+        "sha256": "41bd95abc6a053bb09be08dda5bc2a83e00dc5a559aa4c41d8943be4dc4bfa4b"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-rotor-sounds.lua",
+        "git_blob": "6d7c9e70af909af4993bf6a0992c5043b3ca3ba1",
+        "bytes": 46943,
+        "sha256": "c02df5dbf4b951bc6c3ed1728325e8a0d29cc195ddc37ac5abf59e72f0f4519e"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_rotor_sounds.rs",
+        "git_blob": "b065ee51f390003a526584a5e279afb31d3a572a",
+        "bytes": 50689,
+        "sha256": "39755adea0712de9247bba71bd5928504b824c8b63d1aceb9f18912b385598d7"
+      },
+      {
+        "path": "eech-campaign/docs/d3-sound-lifetime.md",
+        "git_blob": "1c4db815901ce704cff34bc05cd1d85593799ae2",
+        "bytes": 135836,
+        "sha256": "b78149050230cee31a3e75b0cb05c85ca15d5752f1cd7b8efd1dc67ba91d4911"
+      }
+    ],
+    "mechanical_lint_delta_paths": [
+      "eech-campaign/crates/eech-world/tests/env_rotor_sounds.rs"
+    ],
+    "mechanical_lint_diff_sha256": "a6f4d9405668158187695be62978ea34cb63ed628a3c64e9a1d42d22566253e2"
+  },
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "closed_finding": {
+    "id": "ENV-ROTOR-CORRECTION-1",
+    "prior_review": {
+      "path": "R:/d3-evidence/independent-environment-original-rotor-sounds-correction-source-review-e54423b5c-20261101.json",
+      "sha256": "48924aa08f68661d4b6d272ee6a5b439fc1975ba63b67046ec0571984e2d69ed",
+      "bytes": 14923
+    },
+    "facts": [
+      "Output rows now count real subtype36/TURBINE2 and34/APU and require exact equality with the declared child cohort. When armed, the existing output/probe join also makes the actual stored-after cohort agree. Positives now use T2/APU/T1 subtypes36/34/35 coherently.",
+      "Each FD row class is derived from its declared finite engine/APU assignment conditions and the consumed subtype cohort. Equal-engine consumed T2 and zero-APU consumed cases cannot be relabelled defined; unread unassigned locals and fully assigned cases have separate positive and damaged guards. No amplitude or pitch is recomputed.",
+      "The f32-word decoder preserves the declared finite word values in Lua double form, rejects nonfinite engine/APU words and checks only assignment conditions for the current fixed finite sweep. It is not a new general rotor solver or a claim that arbitrary C f32 arithmetic equals Lua double arithmetic; the immutable C table remains12AI/15FD shapes and actual values/FP output remain separately measured.",
+      "FP round observations now require the declared standard x86 values0/1024/2048/3072 and equality before/after; bogus, negative/unavailable and unknown values are refused. Exception strings require1-2hex digits within0x3f. The documented mask is a bounded x86 union; this is not full x87 status/control or MXCSR proof.",
+      "New damaged forms cover false T2/APU counts, consumed/unread/fully-assigned class swaps, equal bogus/negative/unknown rounds and oversized flags. Existing specific-error assertions and no-result checks remain. All underlying raw-before-validation, exclusive ownership, phase/input/output joins and staged C cleanup are reused unchanged."
+    ],
+    "locations": [
+      "eech-campaign/crates/eech-world/lua/env-rotor-sounds.lua:377-407,465-489",
+      "eech-campaign/crates/eech-world/tests/env_rotor_sounds.rs:191-195,543-555,830-846,875-977"
+    ]
+  },
+  "mechanical_lint_check": {
+    "scope": "Only the Rust guard file differs between author2e20 and final99c2.",
+    "facts": [
+      "Eight identical request strings now use an array instead of a Vec before the same join; generated malformed request text and assertion are unchanged.",
+      "sweep_args lifetime parameters are elided with the same input/output borrowing; values, literals, ordering and returned vector are unchanged.",
+      "No parser, assertion, physical input, expected numeric word or tolerance is weakened by these two substitutions."
+    ]
+  },
+  "native_and_overlay_identity": {
+    "manifest": {
+      "path": "D:/EECH-Migration-Evidence/rotor-final-driver-overlay-99c2a64ae-20261101/manifest.json",
+      "sha256": "6940d0784ffd7bbcd95792a0741652b3679bf6a5747b382f1f51ec8e78ba18f5",
+      "bytes": 1825
+    },
+    "two_overlay_files_git_bytes_equal": true,
+    "all_other_tracked_entries_and_modes_exact": true,
+    "unchanged_entry_count": 8644,
+    "unchanged_tree_records_sha256": "e0fbd6adc277ee6c9b36f38aca55a5f9d27bdf761124fc84750a336d06c67ced",
+    "engine_c_sha256": "9965ef45b3921dcc067758cb3db1daad19a60e74dab3f9a3edb77b47a1397594",
+    "engine_c_nul_count": 1,
+    "engine_c_nul_offsets": [
+      40800
+    ],
+    "meaning": "Native C/header/productionRust/ABI/build/observer/fixture inputs and all older accepted reference blobs are exact e544. Reuse the immutable e544 native binaries with explicit99c2 external Lua; separately built corrected guard artifacts retain their effective99c2 identity. No new native source/build is labelled99c2."
+  },
+  "reused_prior_scopes": [
+    "All five original a2c groups and the e544 C cleanup/F1 canonical-domain/observation-provenance assessments are reused; this pass reviewed only the four new paths and native identity proof.",
+    "The prior report transparently amended the missed existing F1 zero-auto-init contract; raw-language unassigned locals are not grounds for arbitrary canonical-output claims or mandatory canonical skips. Contract declaration is not an observed zero value.",
+    "Numerical transparency still requires actual uninstrumented/unarmed/armed output-word and standard-fenv equality on the measured target. No x87/i686/full-CW-SW-TW/MXCSR/FTZ-DAZ proof is inferred from those fields."
+  ],
+  "execution_context_not_acceptance": [
+    "Root reported e544 Windows Engine/DC/World and prior guard executables0 at2026-11-01T08:17:01.561787Z; Linux default+observer builds/tests0, then first strict101 on the two test-only lint issues corrected here, observer strict not reached. These results are not relabelled99c2.",
+    "Corrected two-file99c2 guard/red/strict overlays and Windows corrected guard artifacts are separate pending actual gates; no green result is inferred from source or author completion.",
+    "Root reported one old env-characterization.lua e544 unarmed120s diagnostic still running; its2978845/5191384-byte equal prefix is partial only. No duplicate unarmed run or new rotor sweep/probe execution is requested by reviewer; seven roots remained unused in the supplied status."
+  ],
+  "limitations": [
+    "Finite source gate clear only. No original-rotor actual characterization, numerical-transparency closure, physical rotor host move, positive audio/device/player/render/Tacview proof, fullshipping40/all8, Task51/D3 or normal-delivery acceptance. Current/future CI remains separate; D4/D5 unstarted.",
+    "No builds, compiles/tests, native/retail runs, product/source edits, Docker/cache/auth changes, external writes or nested agents by reviewer. Only this canonical private LF report is written; earlier source/evidence and failures stay intact."
+  ]
+}

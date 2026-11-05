@@ -1,0 +1,30 @@
+{
+  "source": "9e4f3f9750bac1ce61bd8d1da98467397dd0dac5",
+  "created_utc": "2026-11-01T21:08:34.444001+00:00",
+  "results": [
+    {
+      "platform": "linux",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-01T21:08:29.378259+00:00",
+      "completion_sha256": "ee50729b240241370f7ff89c51dc68d8c0f2a5db4a7642c35113876621e526b6",
+      "log_sha256": "6af9bff39c86c3a1f0db992ea54fe2f92818482abb02f58906f7fe9ab35b918c"
+    },
+    {
+      "platform": "windows",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-01T21:02:20.910563+00:00",
+      "completion_sha256": "8841c1cb5761c55b21a7f6cc17a7053d90a0d2368dd7a270ca66da4b2948690a",
+      "log_sha256": "48cfb3314745b19d46a75d81b8a767d62e81b8bc81d096411bb698442ac1cde1"
+    }
+  ],
+  "Linux_default_passed": 562,
+  "Linux_combined_passed": 562,
+  "Linux_sum_is_not_unique_tests": true,
+  "Linux_failed": 0,
+  "Linux_default_and_combined_format_strict_gates_exit": 0,
+  "Windows_combined_fixture_build_exit": 0,
+  "verified_payloads": 57,
+  "build_info_sha256": "bbc7fa894216bc27cf6eef035ce14b4698a51a5e63ea9ff4f874362441394a17",
+  "bin": "D:\\EECH-Migration-Evidence\\route-host-9e4f3f9750\\eech-campaign\\target\\route-fixture\\host-combined-9e4f3f9750",
+  "scope": "Canonical actual build/package/fmt/default+combined strict only. Exact same standard Windows builder with TWO explicit combined diagnostic feature/banner substitutions; not a shipping build. Native/wholeD3 acceptance separate."
+}

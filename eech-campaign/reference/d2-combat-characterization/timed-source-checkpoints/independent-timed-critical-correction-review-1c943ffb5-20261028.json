@@ -1,0 +1,324 @@
+{
+  "review_utc": "2026-10-28T07:57:26.337174+00:00",
+  "reviewer": "single independent Codex /root/d2_los_review",
+  "base": "d6c878c7d67c9da72eca1ba1ea8395a2e13bf43c",
+  "reviewed_sha": "1c943ffb55b8eebd944aa9647f124c2a6fd026b5",
+  "head_before": "1c943ffb55b8eebd944aa9647f124c2a6fd026b5",
+  "clean_before": true,
+  "head_after": "1c943ffb55b8eebd944aa9647f124c2a6fd026b5",
+  "clean_after": true,
+  "scope": "Focused new correction only: TIMED ownership, affected generic bridge/observer preservation, provider replacements and P3 wording. No unchanged225 arithmetic or full d6 source re-review. No source edits/builds/native/tests launched.",
+  "disposition": "TIMED-OWNERSHIP P2 resolved; substantive prior P3 trigger/scope/kernel-header corrections resolved. No new correctness or boundary blocker found. Two residual P3 introductory comments remain.",
+  "resolved": [
+    {
+      "finding": "TIMED-OWNERSHIP",
+      "status": "resolved",
+      "evidence": [
+        "mb_hostaim.c now only permits a HEALTH sample for TIMED and retains existing one-sample/lookup/answer-consistency checks; reference-specific person/class0/burn/health veto removed.",
+        "Both aircraft update sites unconditionally ask TIMED at the original CMB_FX_TIMED_BEGIN location; setter, hit hook, fatal kill and early return remain in their reviewed order.",
+        "cmb_step.c runtime math/eligibility unchanged (only introductory comment changed), so reference ineligible cases return without a draw. No fixture hook or observer code changed. Extra ineligible aircraft requests are expected; native physical/counter equality still pending.",
+        "Production C bridge controls accept one sampled generic PERSON/class0-aircraft/nonburning/zero-health TIMED answer; old gate retained as RED8, corrected59/0. Four old-gate failures are direct positive acceptance controls; other four concern refusal-path assertions/messages, not eight distinct numeric defects.",
+        "Engine boundary accepts PERSON/class0-aircraft HEALTH NeedDraw and completed reply. No new ABI field/layout changed by correction."
+      ]
+    },
+    {
+      "finding": "TIMED-DOCS substantive trigger/scope/header",
+      "status": "resolved with residual introductory-comment cleanup",
+      "evidence": [
+        "bad_health_hit_ineligible accurately documented as first completed ineligible answer; bad_health_fatal requires actual hit.",
+        "bad_health_classify_draw replaces reference-specific person-draw case; bad_health_second_draw waits for a supplied sample and asks again. Lua host tests exercise first-only corruption and reference continuation.",
+        "critical_late documentation now declares DAMAGE critical classification changes; reference capability/forecast arithmetic unchanged.",
+        "Host kernel introductory remainder text no longer lists timed rolls as core-owned."
+      ]
+    }
+  ],
+  "remaining_findings": [
+    {
+      "priority": "P3",
+      "title": "Update two introductory comments left describing the removed reference veto",
+      "locations": [
+        {
+          "path": "C:/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d2-sensor-detections/eech-campaign/crates/eech-world/lua/aim-malformed.lua",
+          "line": 17,
+          "end_line": 18
+        },
+        {
+          "path": "C:/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d2-sensor-detections/eech-campaign/reference/d2-combat-characterization/c-checks/health_checks.c",
+          "line": 4,
+          "end_line": 5
+        }
+      ],
+      "mechanism": "The malformed-provider introduction still describes the removed person-draw provider. The health-check introduction still says no sample is taken for targets the original did not draw for, directly contradicting the new four positive generic-host controls at249ff. Actual mode bodies and bridge behavior are corrected.",
+      "bounded_correction": "Describe classify-draw/second-draw providers and one sample whenever a valid TIMED host asks; reference eligibility belongs only in the reference model. Comment-only cleanup, no campaign rerun required.",
+      "blocking_runtime_source": false
+    }
+  ],
+  "new_generic_provider": {
+    "mode": "timed_generic",
+    "behavior": "Eligible only for positive-health PERSON or class-zero AIRCRAFT at <=half initial health; asks for one raw sample, own hit condition sample<16384, decreases at most one, returns reference classification at resulting health. Own eligibility/roll math is in Lua host, not DLL.",
+    "counter": "timed_generic counts completed own-model draw answers, not merely calls/requests and not unique entities.",
+    "limits": [
+      "No native authority proof yet;180s may never meet <=half-health precondition. Absence must remain untriggered.",
+      "A generic stochastic person roll does not require changing the unchanged DAMAGE class schema.",
+      "Self-hit remains source/contract coverage absent an actual self-hit fixture."
+    ]
+  },
+  "supporting_logs": [
+    {
+      "file": "eech-campaign/reference/d2-combat-characterization/checks/clippy-c2-1-default.log",
+      "sha256": "b91833737e324361dc4970b2ed6b3db75b607b39ea4ab4920aa2e133f5809b19",
+      "markers": [
+        "RUSTUP_ADD_EXIT=0",
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "eech-campaign/reference/d2-combat-characterization/checks/clippy-c2-1-fixture.log",
+      "sha256": "a63640cfe0e6e94aa9c080bff59244e37a4394053f1b7d7c74566005d76b867d",
+      "markers": [
+        "RUSTUP_ADD_EXIT=0",
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "eech-campaign/reference/d2-combat-characterization/checks/damage-checks-c2.log",
+      "sha256": "ef72f9f5606668849a9132786d4694da260333307731c46d602bcad6cd3f43c6",
+      "markers": [
+        "SANITIZER_PROBE_COMPILE_EXIT=0",
+        "SANITIZER_PROBE_RUN_EXIT=0",
+        "COMPILE_EXIT=0",
+        "DAMAGE_CHECKS=ok: 66 checks, 0 failures",
+        "RUN_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "eech-campaign/reference/d2-combat-characterization/checks/forecast-checks-c2.log",
+      "sha256": "4cf35c5a41b1d2c4bca2917c364c6a757f88aa5666b893ad246fdb9320808e2e",
+      "markers": [
+        "SANITIZER_PROBE_COMPILE_EXIT=0",
+        "SANITIZER_PROBE_RUN_EXIT=0",
+        "COMPILE_EXIT=0",
+        "FORECAST_CHECKS=ok: 25 checks, 0 failures",
+        "RUN_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "eech-campaign/reference/d2-combat-characterization/checks/health-checks-c2.log",
+      "sha256": "22412c8d0de37d2b8218df86955cefe16ee6af22c448e0d71945b686aec3ef3d",
+      "markers": [
+        "SANITIZER_PROBE_COMPILE_EXIT=0",
+        "SANITIZER_PROBE_RUN_EXIT=0",
+        "COMPILE_EXIT=0",
+        "HEALTH_CHECKS=ok: 59 checks, 0 failures",
+        "RUN_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    {
+      "file": "eech-campaign/reference/d2-combat-characterization/checks/health-checks-red-c2.log",
+      "sha256": "767c4fe009e03ce819d87e3c76879b3b711468e2772a3e4e7a13b61bd62e7d5e",
+      "markers": [
+        "SANITIZER_PROBE_COMPILE_EXIT=0",
+        "SANITIZER_PROBE_RUN_EXIT=0",
+        "COMPILE_EXIT=0",
+        "FAIL a host's own stochastic bleeding for a person with health is accepted: it takes its ONE sample and its hit is returned",
+        "FAIL a host's own degradation of an aircraft in class 0 is accepted the same way",
+        "FAIL a host's own timed physics for a vehicle that cannot burn is accepted the same way",
+        "FAIL and for a vehicle with no health (a hit on none leaves none)",
+        "FAIL a second sample is refused for a person as for anything",
+        "FAIL a classification may not ask for a sample",
+        "FAIL an assessment may not",
+        "FAIL a hit eligibility may not",
+        "HEALTH_CHECKS=FAILED: 59 checks, 8 failures",
+        "RUN_EXIT=1",
+        "DOCKER_EXIT=1"
+      ]
+    },
+    {
+      "file": "eech-campaign/reference/d2-combat-characterization/checks/strict-preprocess-c2-1.log",
+      "sha256": "d53e5a2b2fab06cacf98590720435ea4ac501f7efa0e820f2b5f0f1ccefcf5c3",
+      "markers": [
+        "STRICT_EXIT=0",
+        "OUTER=0"
+      ]
+    },
+    {
+      "file": "eech-campaign/reference/d2-combat-characterization/checks/syntax-check-c2-1.log",
+      "sha256": "a98148210b5d6a862b93f9798bd1a74d099d781881edb9812901b4edecdd9444",
+      "markers": [
+        "SYNTAX_EXIT=0",
+        "OUTER=0"
+      ]
+    },
+    {
+      "file": "eech-campaign/reference/d2-combat-characterization/checks/test-c2-1.log",
+      "sha256": "a2ca2a332570a645551a2fbe32b03f47f31d57830b55b408c0926d5c74a29eb1",
+      "markers": [
+        "RUSTUP_ADD_EXIT=0",
+        "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 57 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+        "test result: ok. 217 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s",
+        "test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.63s",
+        "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s",
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    }
+  ],
+  "source_static_limits": [
+    "Syntax log records50 successful on/off real-header cases and SYNTAX/OUTER0; this is not a Windows shipping build.",
+    "Strict-preprocess log has STRICT/OUTER0 and explicitly distinguishes unchanged observer-source equivalence from expected physical-extraction differences.",
+    "C guard returns scripted production bridge results; it does not execute an actual game health setter/native update.",
+    "Zero-health generic hit path inspected against existing vehicle kill_local dead-entity early guards; no unsupported repeated-loss claim made."
+  ],
+  "pending_runtime_gates": [
+    "Fresh immutable corrected fixture/build identities and input verification.",
+    "600 default complete corrected-schema physical measurements versus retained forecast891;900 complete3 versus retainedab-base.",
+    "Controlled original35 comparisons with actual deltas/rejections, not all39 coverage.",
+    "Matched reference/changed hosts and malformed cases with genuine trigger/error; generic positive activity required.",
+    "Task46 remainder impact/blast/bridge/factual reporting/whole-scope/full40 acceptance remain open."
+  ],
+  "pinned_changed_files": [
+    {
+      "path": "STATUS.md",
+      "bytes": 30860,
+      "sha256": "889d40b8c555c17919bb0886324cdfb0fbec38ea38767ca1ec34e1d2f4813f86",
+      "git_blob": "f21643c4a41b9b55fabb877889ce21332153faf8"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/fixwing/fw_updt.c",
+      "bytes": 11113,
+      "sha256": "bd024a77ca0bc05c0f45f8e8382f7ba6ff4534ad72bbf030895349f996b404a7",
+      "git_blob": "4b24f9bfde45f3bbac4a5abe05402a173283c1eb"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/helicop/hc_updt.c",
+      "bytes": 29564,
+      "sha256": "30f37c06732dfa0fc711d8d3e8ffc4898d2251332799beffd7b292b6a048f78b",
+      "git_blob": "a46c31838f8a973da08b010cf7cb075e639afe5f"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostaim.c",
+      "bytes": 43114,
+      "sha256": "cf13879f12ee85949836cfb30468bdb6e83350c0ca5b957353d3b2ac2c40b5cc",
+      "git_blob": "8a76512a250fbe213ec82eb955089a8990c02880"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostaim.h",
+      "bytes": 41718,
+      "sha256": "95aff33adde765e9f9b4c47983a37fdd5b25ea893198a9bb84d140b720d639cf",
+      "git_blob": "6ae6ff742d3d4b261b2f05844aea45e37a7f2e16"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "bytes": 324198,
+      "sha256": "1a2f4c1f19d7b684f6afe40b6dac4cb6754cd4a0cc1f91eed783022fb0c9af74",
+      "git_blob": "0becc805807f5734980f86a3e07abfefe9bf724f"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/cmb_step.c",
+      "bytes": 21214,
+      "sha256": "87b4cf758268ed42f6e31a59dd3fa48720c84f8b133bc9947f6f7ea64d8abd3e",
+      "git_blob": "a309eb4b80325c516637c898b30571b2b05f7369"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/aim-malformed.lua",
+      "bytes": 7606,
+      "sha256": "b2686025fec80157047d3c85ff7e2509db408e527af311e7a813f5d6d72d5fed",
+      "git_blob": "ca498f0acd2e79199ec5f5a9e632018c403ee447"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/aim-provider.lua",
+      "bytes": 30025,
+      "sha256": "ac2e4168166b61e1e4f8b9663817dcb527a41a6c38697349bdc7a3918cf1ea28",
+      "git_blob": "934220bc2cc9e656f622ef3eabbfbca79fb606b0"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "bytes": 92650,
+      "sha256": "dc844d482a0b7298a7282ec527ac7f688e6b986a207b19a9ae723b7af6e5b1ea",
+      "git_blob": "68d96f1ffa87c21e286c8a51f7b5312802e9ce62"
+    },
+    {
+      "path": "eech-campaign/docs/m5-combat-extraction.md",
+      "bytes": 33567,
+      "sha256": "0f8571bfbd906c7942080b2d0c0fa6e0a8da841fc098e8b0b982306a808aff88",
+      "git_blob": "004627bfe35dfdf49d5c5d2ba95be4fc43007c77"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/README.md",
+      "bytes": 32507,
+      "sha256": "6ee37eb98a09902de428e1b9f9654fd2d243c30da26726f0d74bd2fc718dd06c",
+      "git_blob": "cd8e5eb68ccb27a89845298df26a8285a8b968d8"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/health_checks.c",
+      "bytes": 19028,
+      "sha256": "bd2ae6828d88fabee488dc9f006ddccee5f3b78436fc8484fc3cf2aa2ea8fb26",
+      "git_blob": "171c635a36c67aaa1c898270b682798e45b474b0"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-c2-1-default.log",
+      "bytes": 435,
+      "sha256": "b91833737e324361dc4970b2ed6b3db75b607b39ea4ab4920aa2e133f5809b19",
+      "git_blob": "4e73884d7a64b66effb7a9f00a5f42526ec09ee1"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-c2-1-fixture.log",
+      "bytes": 365,
+      "sha256": "a63640cfe0e6e94aa9c080bff59244e37a4394053f1b7d7c74566005d76b867d",
+      "git_blob": "d52ffaef31667ec594d85bf273413032cbcd1e84"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/damage-checks-c2.log",
+      "bytes": 3965,
+      "sha256": "ef72f9f5606668849a9132786d4694da260333307731c46d602bcad6cd3f43c6",
+      "git_blob": "43eb5a322873e89553a5f8285e171581b8920781"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/forecast-checks-c2.log",
+      "bytes": 1691,
+      "sha256": "4cf35c5a41b1d2c4bca2917c364c6a757f88aa5666b893ad246fdb9320808e2e",
+      "git_blob": "8235c61b62330decc40ac7a529c1606736619679"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/health-checks-c2.log",
+      "bytes": 3476,
+      "sha256": "22412c8d0de37d2b8218df86955cefe16ee6af22c448e0d71945b686aec3ef3d",
+      "git_blob": "e2263a4e371b3765b30fb23531f831bb3fe70316"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/health-checks-red-c2.log",
+      "bytes": 3480,
+      "sha256": "767c4fe009e03ce819d87e3c76879b3b711468e2772a3e4e7a13b61bd62e7d5e",
+      "git_blob": "419b1058f16621c50e209fd3c8bbac368d59ce55"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/strict-preprocess-c2-1.log",
+      "bytes": 10261,
+      "sha256": "d53e5a2b2fab06cacf98590720435ea4ac501f7efa0e820f2b5f0f1ccefcf5c3",
+      "git_blob": "718d5b2a0374d5112a8e48d637dcfad3994bbbf5"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/syntax-check-c2-1.log",
+      "bytes": 4375,
+      "sha256": "a98148210b5d6a862b93f9798bd1a74d099d781881edb9812901b4edecdd9444",
+      "git_blob": "f5db07c412a3e655178d1591c124fd56b2eed38b"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/test-c2-1.log",
+      "bytes": 32605,
+      "sha256": "a2ca2a332570a645551a2fbe32b03f47f31d57830b55b408c0926d5c74a29eb1",
+      "git_blob": "99540a46be5f61cf9aac5ef412b1b9a469dfe207"
+    }
+  ]
+}

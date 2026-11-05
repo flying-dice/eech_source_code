@@ -1,0 +1,160 @@
+{
+  "source": "bce0c3514be13ee4bbc3a571387132989f74e3c6",
+  "created_utc": "2026-11-02T16:40:12.084193+00:00",
+  "snapshot": "D:\\EECH-Migration-Evidence\\model-integrated-bce0c3514b",
+  "source_clean": true,
+  "builds": {
+    "linux": {
+      "pid": 9692,
+      "controller_pid": 24068,
+      "source": "bce0c3514be13ee4bbc3a571387132989f74e3c6",
+      "args": [
+        "wsl",
+        "-d",
+        "EECH-D2-Build",
+        "--",
+        "sh",
+        "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-model-integrated-bce0c3514b-linux-20261102.sh"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-11-02T16:25:24.154808+00:00",
+      "scope": "Integrated default plus combined model-host/ground/los/route/env-fixture/env-observer three-package tests/fmt/BOTH strict gates; explicitly compile interleaved merged fixture bodies. No original evidence relabeling.",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-02T16:34:51.533644+00:00"
+    },
+    "ordinary": {
+      "pid": 17308,
+      "controller_pid": 20492,
+      "source": "bce0c3514be13ee4bbc3a571387132989f74e3c6",
+      "args": [
+        "wsl",
+        "-d",
+        "EECH-D2-Build",
+        "--",
+        "sh",
+        "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-model-integrated-bce0c3514b-ordinary-20261102.sh"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-11-02T16:25:24.154808+00:00",
+      "scope": "Integrated ORDINARY shipping build, unchanged repository build-windows.sh/flags. No fixture/observer acceptance substitution.",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-02T16:28:07.305043+00:00"
+    },
+    "windows": {
+      "pid": 10948,
+      "controller_pid": 13884,
+      "source": "bce0c3514be13ee4bbc3a571387132989f74e3c6",
+      "args": [
+        "wsl",
+        "-d",
+        "EECH-D2-Build",
+        "--",
+        "sh",
+        "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-model-integrated-bce0c3514b-windows-20261102.sh"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-11-02T16:29:40.102713+00:00",
+      "scope": "Integrated route-fixture+model-host-fixture+env-fixture+env-observer; two exact standard-builder feature/banner adaptations. Explicit combined diagnostic profile, not shipping.",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-02T16:31:58.227494+00:00"
+    }
+  },
+  "linux_package_groups": [
+    {
+      "profile": "default",
+      "actual_command_exit": 0,
+      "exit_basis": "Actual terminal0 of the exact sequential set-e shell; an earlier e9 run of this same chain returned101 on test failure.",
+      "local_test_totals_claimed": false
+    },
+    {
+      "profile": "model-host+ground+los+route+env-fixture+env-observer",
+      "actual_command_exit": 0,
+      "exit_basis": "Actual terminal0 of the exact sequential set-e shell; an earlier e9 run of this same chain returned101 on test failure.",
+      "local_test_totals_claimed": false
+    }
+  ],
+  "fmt_exit": 0,
+  "default_all_target_strict_clippy_exit": 0,
+  "six_feature_all_target_strict_clippy_exit": 0,
+  "linux_log_sha256": "f708319a18cddd7ff4c6dabf529e98ca980572d4b92243c37590b6d0c4899507",
+  "linux_command_script_sha256": "1bde69d4feb0b6dc49be31d9510f44b59832caf6ab37369d7594172e464e03cf",
+  "log_capture_limit": "Local stdout/stderr file output interleaves/overwrites some early fragments; exact local unit totals and release-boundary lines are NOT claimed. Original log and actual0 receipts preserved. The first audit parser failed only its expected boundary-count assertion. Future controllers use PIPE and one writer. All nine complete independent exact-head CI jobs also pass.",
+  "ordinary_profile_audit": {
+    "source": "bce0c3514be13ee4bbc3a571387132989f74e3c6",
+    "state": "terminal",
+    "actual_exit": 0,
+    "completed_utc": "2026-11-02T16:29:41.527421+00:00",
+    "snapshot_clean": true,
+    "ordinary_profile": true,
+    "image": "sha256:0ed1f8561f8872fa72671baea590794a5eef0223aed85fca218c9ad95bfee40b",
+    "verified_payloads": 83,
+    "build_info_sha256": "9c3a590a282f2f25129e128211998c1421f4b7be1c9226259bbdd03fe7d72628",
+    "native_dll_sha256": "8ba10f975bf7bbb185d2daf6e7855b7273e6ec38f34c2b269471b62a1e04ad91",
+    "world_exe_sha256": "eff38404f7be61cf7280693dd2092001d90431b1cd3896da051503f53abe0225",
+    "actual_environment_observer_implementation_symbols": 0,
+    "unresolved_DirectSound_calls": 0,
+    "other_fixture_named_symbols_for_source_disposition": [],
+    "symbols_sha256": "da69806b3b9a9e0277c18c33f60833fd25232c2dd8adce0dc2e41682e99e44d5",
+    "args": [
+      "wsl",
+      "-d",
+      "EECH-D2-Build",
+      "--",
+      "docker",
+      "run",
+      "--rm",
+      "--network",
+      "none",
+      "-v",
+      "/mnt/d/EECH-Migration-Evidence/model-integrated-bce0c3514b/eech-campaign/target/windows-model-integrated-bce0c3514b:/evidence-bin:ro",
+      "sha256:0ed1f8561f8872fa72671baea590794a5eef0223aed85fca218c9ad95bfee40b",
+      "x86_64-w64-mingw32-nm",
+      "-a",
+      "/evidence-bin/eech_dc.dll"
+    ],
+    "scope": "Actual current ordinary profile/payload/symbol inspection, no native campaign. Observed names do not by themselves establish live fixture APIs or backend availability; source/feature gates and independent review classify them. No shipping/artifact/Task50/D3 acceptance from this audit alone."
+  },
+  "corrected_GL_actuals": [
+    {
+      "source": "bce0c3514be13ee4bbc3a571387132989f74e3c6",
+      "scenario": "georgia_retail",
+      "root": "D:\\EECH-Migration-Evidence\\model-integrated-caller-fixed-roots-20261102-1625\\georgia",
+      "actual_native_exit": 0,
+      "actual_exit": 0,
+      "verified_payloads": 83,
+      "build_info_sha256": "b3e8da42a446fbaafb5f625fd2f75f55ae454e312d36dca139310e8c6a14e304",
+      "completed_utc": "2026-11-02T16:33:59.064041+00:00",
+      "scenes": 3025,
+      "ids": 510,
+      "statuses": {
+        "listed": 95,
+        "empty": 2742,
+        "absent": 188
+      },
+      "page_count": 32
+    },
+    {
+      "source": "bce0c3514be13ee4bbc3a571387132989f74e3c6",
+      "scenario": "lebanon_retail",
+      "root": "D:\\EECH-Migration-Evidence\\model-integrated-caller-fixed-roots-20261102-1625\\lebanon",
+      "actual_native_exit": 0,
+      "actual_exit": 0,
+      "verified_payloads": 83,
+      "build_info_sha256": "b3e8da42a446fbaafb5f625fd2f75f55ae454e312d36dca139310e8c6a14e304",
+      "completed_utc": "2026-11-02T16:33:58.114228+00:00",
+      "scenes": 3025,
+      "ids": 510,
+      "statuses": {
+        "listed": 95,
+        "empty": 2742,
+        "absent": 188
+      },
+      "page_count": 32
+    }
+  ],
+  "literal_list_comparison_path": "R:\\d3-evidence\\model-integrated-literal-lists-bce0c3514b-20261102.json",
+  "literal_list_comparison_sha256": "c4506640a72d0a5b74612deaeb9b535c833e27a6e36f06f1503278c954034bd3",
+  "current_hosted_checks": 9,
+  "shipping_preflight": "D:/EECH-Migration-Evidence/preflight-model-integrated-bce0c3514b-20261102-1629/preflight.json",
+  "scope": "Current corrected integration gate only. e9 short/env/arithmetic actuals and exactsource-scope proof stay at ownidentities. Historicale9 default101 and missingenvGL1 preserved. No fullshipping40/all8/Task50/D3acceptance."
+}

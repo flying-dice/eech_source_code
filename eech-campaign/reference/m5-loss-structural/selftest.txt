@@ -1,0 +1,24 @@
+## sensitivity at 78dc796b: each mutation is applied alone to the working tree, checked, then restored
+### M1 ordering: rv_dstry.c kill_local unlinks from its guide before its group
+DIFF rv_dstry.c kill_local
+FAIL: 1
+### M2 per-type omission: aa_dstry.c kill_local also counts a task loss
+DIFF aa_dstry.c kill_local
+FAIL: 1
+### M3 helper body: the task-dependent notification passes another reason
+DIFF gp_loss.c notify_member_task_dependents_completed
+FAIL: 1
+### M4 helper signature: notify_group_member_killed takes (member, group)
+DIFF gp_loss.c notify_group_member_killed
+FAIL: 1
+### M5 file scope: ps_dstry.c redefines a list type
+DIFF ps_dstry.c outside its functions, or its function list
+FAIL: 1
+### M6 DEBUG_MODULE 1 in ps_dstry.c
+FAIL aphavoc/source/entity/mobile/vehicle/person/ps_dstry.c: DEBUG_MODULE is not 0, so removing its blocks is not equivalent
+FAIL: 1
+### M7 an extra static helper in gp_loss.c
+FAIL gp_loss.c helpers ['unlisted_helper']
+FAIL: 1
+### restored
+PASS

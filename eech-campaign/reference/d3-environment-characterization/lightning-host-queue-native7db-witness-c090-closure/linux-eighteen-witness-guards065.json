@@ -1,0 +1,18 @@
+{
+  "source": "065e8e2dfd237054c52bb359f36a39b27b38d876",
+  "pid": 14056,
+  "controller_pid": 7916,
+  "state": "terminal",
+  "started_utc": "2026-10-31T19:14:26.871116+00:00",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-queue-reply-frame-065e8e2df-linux-20261031.sh"
+  ],
+  "scope": "New Lua frame-boundary witness tests/fmt/world strict; explicit native7db production-token equivalence; no shipping acceptance",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T19:16:07.522810+00:00"
+}

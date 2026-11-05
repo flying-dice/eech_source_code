@@ -1,0 +1,25 @@
+info: downloading component clippy
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Checking eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Checking eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+error: used `expect()` on an `Option` value
+    --> crates/eech-engine/src/lib.rs:1490:28
+     |
+1490 |                 let call = host.move_vehicle.expect("the table carries move_vehicle");
+     |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is `None`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#expect_used
+     = note: requested on the command line with `-D clippy::expect-used`
+
+error: used `expect()` on an `Option` value
+    --> crates/eech-engine/src/lib.rs:1495:9
+     |
+1495 |         seen.expect("the host was called")
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: if this value is `None`, it will panic
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#expect_used
+
+error: could not compile `eech-engine` (lib test) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...

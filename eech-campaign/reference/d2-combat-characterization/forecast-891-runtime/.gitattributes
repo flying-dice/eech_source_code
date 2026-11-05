@@ -1,0 +1,5 @@
+# Exact evidence copies; no campaign source is covered by these attributes.
+* -text whitespace=cr-at-eol
+*.log -whitespace
+*.jsonl -whitespace
+README.md text eol=lf

@@ -1,0 +1,53 @@
+{
+  "observed_utc": "2026-10-28T23:59:37.728727+00:00",
+  "actual_runtime_build": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "candidate_at_validation": "daf3960d845def1b59d29c7fa1a07480f5936390",
+  "coarse_frontiers": [
+    {
+      "path": "aphavoc",
+      "frozen": "62dfbb79d5298ead7040c5d4b190867e91c8d7ba",
+      "candidate": "62dfbb79d5298ead7040c5d4b190867e91c8d7ba"
+    },
+    {
+      "path": "modules",
+      "frozen": "cb40c4563825739137c59de394ed92ca9bf8ab9c",
+      "candidate": "cb40c4563825739137c59de394ed92ca9bf8ab9c"
+    },
+    {
+      "path": "eech-campaign/crates",
+      "frozen": "a6568e778fb27c39e9da7fa22d98a609224fc41b",
+      "candidate": "2c0681096a769c7f79a142561838c708a3272e82"
+    },
+    {
+      "path": "eech-campaign/tools",
+      "frozen": "28c9ac18eceeef0f794b2834f76e5a646d1d4fc1",
+      "candidate": "28c9ac18eceeef0f794b2834f76e5a646d1d4fc1"
+    },
+    {
+      "path": "eech-campaign/Cargo.toml",
+      "frozen": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+      "candidate": "6651665cec5e20632f00e9c2682042b4fa9f2db5"
+    },
+    {
+      "path": "eech-campaign/Cargo.lock",
+      "frozen": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+      "candidate": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3"
+    },
+    {
+      "path": "eech-campaign/scenarios",
+      "frozen": "d9a521c0db9069d557a5d73b0c68f055f79e7baa",
+      "candidate": "d9a521c0db9069d557a5d73b0c68f055f79e7baa"
+    },
+    {
+      "path": "eech-campaign/regression",
+      "frozen": "090bd08a26859a8d1ce0907473e049142342aa75",
+      "candidate": "090bd08a26859a8d1ce0907473e049142342aa75"
+    }
+  ],
+  "all8_coarse_trees_equal": false,
+  "only_crates_difference": [
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs"
+  ],
+  "production_compilation_inputs_unchanged": true,
+  "scope": "Native build remains64cf; integration-test and publication metadata do not relabel it."
+}

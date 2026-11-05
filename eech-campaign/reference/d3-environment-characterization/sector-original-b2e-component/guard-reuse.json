@@ -1,0 +1,19 @@
+{
+  "source": "b2e55b18b556d04bc1512a1553a8e1b859347c36",
+  "guard_source": "a78b6ab3c2512288c91ceed907379e9fda9ccf34",
+  "guard_actual_exit": 0,
+  "test_functions": 4,
+  "script_and_guard_files_exact": [
+    {
+      "file": "eech-campaign/crates/eech-world/lua/env-sector-characterization.lua",
+      "sha256": "88ddbae3a76bfc2d3f79ff37c31c25386d241413cfa4cbee1269e9fdb1034535",
+      "unchanged": true
+    },
+    {
+      "file": "eech-campaign/crates/eech-world/tests/env_sector_characterization.rs",
+      "sha256": "2b8d3fa31436768a656b513e726bad9ea20e088435051f4e0b55678a8e8d6e8d",
+      "unchanged": true
+    }
+  ],
+  "scope": "Reuse already completed four realLua-driver bookkeeping guards; newCstringfix recompiles actualfixture below. No originalretail queryfacts or shippingacceptance."
+}

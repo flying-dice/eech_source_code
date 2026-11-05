@@ -1,0 +1,18 @@
+{
+  "source": "82234a3a3cb6d54fbbede7a2cf7939c965e353c3",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-host-sound-pause-82234a3a3-windows-20261101.sh"
+  ],
+  "pid": 11720,
+  "controller_pid": 23016,
+  "state": "terminal",
+  "started_utc": "2026-11-01T01:02:22.921200+00:00",
+  "scope": "ACTUAL host sound pause/resume candidate windows observer build/full affected default and observer packages and both strict profiles on accepted ground integration; source/default raw/public authority/shipping acceptance separate",
+  "actual_exit": 0,
+  "completed_utc": "2026-11-01T01:05:24.930123+00:00"
+}

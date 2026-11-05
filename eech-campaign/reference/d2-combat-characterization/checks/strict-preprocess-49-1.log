@@ -1,0 +1,18 @@
+/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d2-evidence/weapon-characterization-20261027/scripts/strict-preprocess-49.sh: line 10: can't create ])"
+    elif echo "$f" | grep -q "_updt.c$"; then
+        # the include of mb_hostaim.h is new text of these sources; the update_server functions (the timed roll and the gate after it) are what is compared
+        echo "$f: DIFFERS FROM THE BASELINE BY DESIGN (the timed roll moved to the host); the difference of update_server only:"
+        awk "f||/^static void update_server/{f=1} /^static void update_client/{exit} f{print}" /tmp/base.pp > /tmp/base.fn
+        awk "f||/^static void update_server/{f=1} /^static void update_client/{exit} f{print}" /tmp/off.pp > /tmp/off.fn
+        test -s /tmp/base.fn
+        test -s /tmp/off.fn
+        diff -u /tmp/base.fn /tmp/off.fn | head -120 || true
+    else
+        echo "$f: strict feature-off equivalence DIFFERS"
+        diff -u /tmp/base.pp /tmp/off.pp | head -35 || true
+        failed=1
+    fi
+done
+exit "$failed"
+: Filename too long
+OUTER=0

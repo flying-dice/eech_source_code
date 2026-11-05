@@ -1,0 +1,1 @@
+Error: RuntimeError("[string \"R:/d2-evidence/los-characterization-baselin...\"]:124: los-characterization: probe at 1 s found no supported opposed pair; characterisation unavailable\nstack traceback:\n\t[C]: in ?\n\t[C

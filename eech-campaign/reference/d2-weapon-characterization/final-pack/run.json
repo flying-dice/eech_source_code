@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "pid": 14296,
+  "when_utc": "2026-10-28T09:21:21.589574+00:00",
+  "native_cwd": "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec",
+  "runner": "R:\\d2-evidence\\shipping-source-d2-weapon-a137fc3ec\\eech-campaign\\tools\\regression-pack.py",
+  "arguments": [
+    "--georgia",
+    "R:\\d2-evidence\\candidate-roots-d2-weapon-execution\\georgia",
+    "--lebanon",
+    "R:\\d2-evidence\\candidate-roots-d2-weapon-execution\\lebanon",
+    "--lebanon-repeat",
+    "R:\\d2-evidence\\candidate-roots-d2-weapon-execution\\lebanon-repeat",
+    "--bin",
+    "R:\\d2-evidence\\shipping-source-d2-weapon-a137fc3ec\\eech-campaign\\target\\windows-d2-weapon-final",
+    "--out",
+    "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec"
+  ],
+  "exit_code": 0
+}

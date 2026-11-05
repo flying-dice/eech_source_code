@@ -1020,6 +1020,8 @@ void full_initialise_game (void)
 
 	ui_force_update ();
 
+	supply_weapon_figures();
+
 	generate_ballistics_tables();
 	generate_guided_missiles_tables();
 

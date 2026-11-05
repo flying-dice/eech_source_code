@@ -1,0 +1,3 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.48s
+CARGO_CLIPPY_EXIT=0
+DOCKER_EXIT=0
