@@ -46,6 +46,24 @@
 --   bad_write_mask    a HIT answered with mask 56 (a hit has assigned both vectors):                     [model-provider:entity_collision.write_mask]
 --   bad_answer        a hit answered with mask 64 (outside the six components):                         [model-provider:entity_collision.answer]
 --
+-- THE ENTITY_CANDIDATE PATH (third slice; mb_hostmodel.h ENTITY_CANDIDATE, 44 facts, 7 states). In the shipped module the scan OFFERS each candidate to the host (`entity_candidate`) before any
+-- narrow phase: the host decides skip / need_updated / need_fixed / need_placement / need_normal / buildings / test, and only a `test` is followed by the `entity_collision` question above. The request's
+-- scene is a number >= 0 (0 until a shape was read) and its text place holds 44 comma-separated 0x%08x patterns; nothing else is sent. A real reply is { result = <one of the seven>, name = the scene's
+-- compiled name (EMPTY for scene 0) } and, for `test` only, p = 12 or 16 patterns (the narrow phase's candidate pose). The wrapper counts the armed candidate questions, classifies their real answers
+-- (global to the war: the provider carries no weapon identity) and delegates the operation byte for byte in every mode that does not alter it. Zero candidate questions is UNREACHED, never authority.
+--
+--   candidate_real        PAIRED CONTROL. The candidate answers are the host's REAL ones; entity_collision is answered HIT (mask 63, at the request's OLD end, the real name) whenever asked. That second answer is
+--                         a CONFIGURED SECONDARY host input, held identically in BOTH paired modes, so that a candidate decision has a physical consequence to change without any guessed geometry: the real
+--                         scan must reach the narrow phase (a `test` decision) and the forced hit must reach the weapon step's hit count (contact_any_hits).
+--   candidate_skip        every armed candidate question is answered a valid SKIP (the real answer is asked first for its name echo) and entity_collision is answered the SAME configured HIT if it is ever
+--                         asked. It must receive positive candidate questions, and the skip must prevent every downstream narrow-phase question and every weapon entity hit: the cohort's physical signature
+--                         is then recorded for comparison with candidate_real by the caller (a cross-run comparison, never claimed from one process). A diagnostic world variation, not a source change.
+--   withheld_candidate    the provider raises on the first armed candidate question:                         [model-provider:entity_candidate.callback]
+--   bad_candidate_state   the first armed candidate question whose facts say it is not a city is answered `buildings` (legal only for a city): [model-provider:entity_candidate.state]
+--   bad_candidate_identity the first armed candidate question is answered with the real state under another scene's name: [model-provider:entity_candidate.identity]
+-- The old entity_collision modes above are unchanged in what they alter. `control` is the NATURAL healthy control (nothing altered, no configured secondary input) and is the first thing Root runs;
+-- the paired modes are kept apart from it and are compared with each other, never with the natural control.
+--
 -- THE CONTROLLED VIEW INPUT. See tree-authority.lua: the existing protocol's VIEW_WEAPON lookup answer (mb_hostaim.h, answered r0 by wn_move.c, f[7] in Lua) is set to 1 by an aim delegate over the
 -- unmodified host.aim on every armed weapon_step request, hosted and Original alike. It is a CONFIGURED, GLOBAL-while-armed diagnostic input (the protocol carries no weapon identity, so natural
 -- weapons are affected too), not a camera, not a per-weapon identity and not an entity call; the entity lookup, the questions and the counters stay measured. A run in which it never reached a
@@ -156,6 +174,24 @@ local MODES = {
 		marker = "entity_collision.answer",
 	},
 }
+-- the ENTITY_CANDIDATE modes (see the header): the configured secondary input is the existing forced-hit entity_collision answer
+MODES.candidate_real = { answer = MODES.forced_hit.answer, paired = true }
+MODES.candidate_skip = {
+	answer = MODES.forced_hit.answer, paired = true, skips = true,
+	-- a valid skip: nothing more to do for the candidate; the name is the real answer's echo
+	candidate = function (_, real) return { result = "skip", name = real.name } end,
+}
+MODES.withheld_candidate = { candidate = function () error ("the host withholds its candidate answer", 0) end, once = true, marker = "entity_candidate.callback" }
+MODES.bad_candidate_state = {
+	-- `buildings` is legal only for a city (fact 9); the first question that is not a city is answered with it
+	candidate = function (_, real) return { result = "buildings", name = real.name } end,
+	eligible = function (parsed) return parsed.words [9] == ZERO end, once = true, marker = "entity_candidate.state",
+}
+MODES.bad_candidate_identity = {
+	-- the real state, under a name that is not the scene's (and not empty, so it is wrong for scene 0 too)
+	candidate = function (_, real) return { result = real.result, name = "NOT_THE_SCENE", p = real.p } end,
+	once = true, marker = "entity_candidate.identity",
+}
 local plan = MODES [mode]
 if plan == nil then refuse ("unknown mode '" .. tostring (mode) .. "'") end
 if profile == "original" and mode ~= "control" then refuse ("profile=original runs only mode=control: no entity_collision question reaches the provider to alter") end
@@ -253,8 +289,11 @@ local function engine_marker (err) return string.match (first_line (err), FATAL)
 -- ---------------------------------------------------------------------------------------------------------------- the host's model provider, counted, altered only when armed
 local armed = false
 local reference -- the host's own model provider (host.model), resolved inside the owned close scope (main)
-local before, after = { entity = 0, other = 0 }, { entity = 0, other = 0 }
+local before, after = { entity = 0, other = 0, candidate = 0 }, { entity = 0, other = 0, candidate = 0 }
 local altered = 0
+local cand_altered, cand_skipped = 0, 0
+-- the armed candidate questions and the REAL answers they got
+local cand = { total = 0, scene0 = 0, mobile = 0, skip = 0, need_updated = 0, need_fixed = 0, need_placement = 0, need_normal = 0, buildings = 0, test = 0 }
 -- what the provider SEES after the launch (the whole war's questions: the provider carries no weapon identity)
 local seen = { stationary = 0, moving = 0, real_hit = 0, real_miss = 0, real_mask_63 = 0, real_mask_56 = 0, real_mask_other = 0, answered_hit = 0, answered_miss = 0 }
 local faults = { request = 0, reply = 0 }
@@ -300,10 +339,67 @@ local function reply_problem (answer)
 	end
 	return nil
 end
+-- the candidate request as the contract states it: a scene >= 0 (0 until a shape was read) and nothing but the text place, which holds exactly 44 float patterns; fact 7 is the mobile flag
+local function parse_candidate_request (scene, depth, kind, definition, key)
+	if type (scene) ~= "number" or scene < 0 or scene ~= math.floor (scene) then return nil, "scene " .. tostring (scene) end
+	if depth ~= nil or kind ~= nil or definition ~= nil then return nil, "an entity candidate question carries only a scene and the facts text" end
+	if type (key) ~= "string" then return nil, "no facts text" end
+	local words = words_of_text (key, 44)
+	if words == nil then return nil, "the facts text is not 44 comma separated 0x%08x patterns" end
+	return { scene = scene, words = words, mobile = words [7] ~= ZERO }
+end
+local CANDIDATE_STATES = { skip = true, need_updated = true, need_fixed = true, need_placement = true, need_normal = true, buildings = true, test = true }
+-- the first problem of a REAL candidate reply against the contract, or nil: one of the seven states, a name (EMPTY for scene 0, the scene's compiled name otherwise) and a pose of 12 or 16 patterns for a test only
+local function candidate_reply_problem (answer, scene)
+	if type (answer) ~= "table" then return "the reply is not a table" end
+	if not CANDIDATE_STATES [answer.result] then return "result " .. tostring (answer.result) end
+	if type (answer.name) ~= "string" then return "no scene name" end
+	if scene == 0 and answer.name ~= "" then return "a name for scene 0" end
+	if scene ~= 0 and answer.name == "" then return "no scene name for scene " .. tostring (scene) end
+	if answer.result == "test" then
+		if type (answer.p) ~= "string" then return "a test without a pose" end
+		local words = words_of_text (answer.p)
+		if words == nil or (#words ~= 12 and #words ~= 16) then return "the pose is not 12 or 16 0x%08x patterns" end
+	elseif answer.p ~= nil then
+		return "a pose with " .. answer.result
+	end
+	return nil
+end
+local function candidate_question (scene, depth, kind, definition, key)
+	local parsed, why = parse_candidate_request (scene, depth, kind, definition, key)
+	if parsed then
+		cand.total = cand.total + 1
+		if parsed.scene == 0 then cand.scene0 = cand.scene0 + 1 end
+		if parsed.mobile then cand.mobile = cand.mobile + 1 end
+	else
+		faults.request = faults.request + 1
+		first_fault = first_fault or ("candidate request: " .. why)
+	end
+	local real = reference ("entity_candidate", scene, depth, kind, definition, key)
+	local problem = candidate_reply_problem (real, scene)
+	if problem then
+		faults.reply = faults.reply + 1
+		first_fault = first_fault or ("candidate reply: " .. problem)
+	else
+		cand [real.result] = cand [real.result] + 1
+	end
+	if plan.candidate == nil then return real end
+	-- an altered answer is formed only from a well-formed question and real reply (a witness failure raised here would come back carrying the callback marker the refusal mode credits)
+	if parsed == nil or problem then return real end
+	if plan.eligible and not plan.eligible (parsed, real) then return real end
+	if plan.once and cand_altered >= 1 then return real end
+	cand_altered = cand_altered + 1
+	local answer = plan.candidate (parsed, real)
+	if type (answer) == "table" and answer.result == "skip" then cand_skipped = cand_skipped + 1 end
+	return answer
+end
 local function model (op, scene, depth, kind, definition, key)
 	local counts = armed and after or before
-	if op == "entity_collision" then counts.entity = counts.entity + 1 else counts.other = counts.other + 1 end
-	-- every other operation, and every question before the launch, is the host's own answer, returned unchanged
+	if op == "entity_collision" then counts.entity = counts.entity + 1
+	elseif op == "entity_candidate" then counts.candidate = counts.candidate + 1
+	else counts.other = counts.other + 1 end
+	-- the armed candidate questions are counted and classified; every other operation, and every question before the launch, is the host's own answer, returned unchanged
+	if op == "entity_candidate" and armed then return candidate_question (scene, depth, kind, definition, key) end
 	if op ~= "entity_collision" or not armed then return reference (op, scene, depth, kind, definition, key) end
 	local parsed, why = parse_request (scene, depth, kind, definition, key)
 	if parsed then
@@ -632,6 +728,11 @@ local function main ()
 		stationary = seen.stationary, moving = seen.moving, real_hit = seen.real_hit, real_miss = seen.real_miss,
 		real_mask_63 = seen.real_mask_63, real_mask_56 = seen.real_mask_56, real_mask_other = seen.real_mask_other,
 		answered_hit = seen.answered_hit, answered_miss = seen.answered_miss, altered = altered,
+		candidate_before = before.candidate, candidate_after = after.candidate, candidate_scene0 = cand.scene0, candidate_mobile = cand.mobile,
+		candidate_skip = cand.skip, candidate_need_updated = cand.need_updated, candidate_need_fixed = cand.need_fixed, candidate_need_placement = cand.need_placement,
+		candidate_need_normal = cand.need_normal, candidate_buildings = cand.buildings, candidate_test = cand.test,
+		candidate_altered = cand_altered, candidate_answered_skip = cand_skipped,
+		secondary_input = plan.paired and "entity_collision_answered_hit_mask_63_at_the_request_old_end_whenever_asked_in_both_paired_modes_configured_not_natural" or "",
 		request_faults = faults.request, reply_faults = faults.reply, first_fault = first_fault or "",
 		cohort_signature = table.concat (signature_parts, ";"),
 		attribution = "global_to_the_war_no_per_weapon_identity",
@@ -643,7 +744,7 @@ local function main ()
 		-- a refusal mode: the engine must have stopped, at this marker, at an armed entity question the provider altered
 		if failure == nil then return "mode " .. mode .. " completed: the engine did not stop at " .. plan.marker end
 		if failure.marker ~= plan.marker then return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "], not at [model-provider:" .. plan.marker .. "]: " .. failure.line end
-		if altered < 1 then return "mode " .. mode .. " stopped without the provider having altered an entity answer: " .. failure.line end
+		if altered + cand_altered < 1 then return "mode " .. mode .. " stopped without the provider having altered an entity answer: " .. failure.line end
 		if view.applied < 1 then return "mode " .. mode .. " stopped, but the controlled view input never reached a weapon step: the stop is not at an entity question of the configured flight" end
 		return nil
 	end
@@ -663,17 +764,33 @@ local function main ()
 	-- the ACTUAL caller was reached: the weapon step's entity lookup was made (the fixture's own counter, not the provider's)
 	if any_tests_delta < 1 then return "UNREACHED: the weapon step made no entity-collision test (contact_any_tests did not rise): the actual entity caller was not reached" end
 	if profile == "original" then
-		if after.entity ~= 0 then return "profile=original, but the host was asked " .. after.entity .. " entity_collision questions: the module is not the original" end
-		return "CAPABILITY RED (expected for the original profile): the entity-collision caller ran (contact_any_tests +" .. any_tests_delta .. ", contact_any_hits +" .. any_hits_delta .. ", fixture API present) and the host was asked no entity_collision question"
+		if after.entity ~= 0 or after.candidate ~= 0 then return "profile=original, but the host was asked " .. after.entity .. " entity_collision and " .. after.candidate .. " entity_candidate questions: the module is not the original" end
+		return "CAPABILITY RED (expected for the original profile): the entity-collision caller ran (contact_any_tests +" .. any_tests_delta .. ", contact_any_hits +" .. any_hits_delta .. ", fixture API present) and the host was asked no entity_collision question and no entity_candidate question"
 	end
 	-- the route is the host's: a candidate that passed the (campaign) broad phase asks the host. None at all is a setup that never reached the narrow phase
-	if after.entity < 1 then return string.format ("UNREACHED: the weapon step made %d entity-collision tests but no candidate reached the narrow phase, so the host was asked no entity_collision question", any_tests_delta) end
+	if after.candidate < 1 then return string.format ("UNREACHED: the weapon step made %d entity-collision tests but the host was asked no entity_candidate question, so no candidate reached the narrow phase: the real scan did not reach the host", any_tests_delta) end
+	if after.entity < 1 and not plan.skips then return string.format ("UNREACHED: the weapon step made %d entity-collision tests but no candidate reached the narrow phase, so the host was asked no entity_collision question", any_tests_delta) end
 	if faults.request + faults.reply ~= 0 then return string.format ("the entity question or the host's reply is not the contract's (request_faults=%d reply_faults=%d): %s", faults.request, faults.reply, tostring (first_fault)) end
 	if seen.stationary + seen.moving ~= after.entity then return string.format ("the provider counted %d entity questions but classified %d", after.entity, seen.stationary + seen.moving) end
+	if cand.total ~= after.candidate then return string.format ("the provider counted %d candidate questions but classified %d", after.candidate, cand.total) end
 	if mode == "control" then
-		if altered ~= 0 then return "the control altered an entity answer" end
+		if altered ~= 0 or cand_altered ~= 0 then return "the control altered an answer" end
 		-- every weapon-step entity hit is one narrow-phase hit of the host (the hosted line of sight asks too, so the host may report more)
 		if seen.real_hit < any_hits_delta then return string.format ("the weapon step counted %d entity hits but the host's narrow phase reported only %d", any_hits_delta, seen.real_hit) end
+		return nil
+	end
+	if mode == "candidate_real" then
+		-- the paired control: the real scan must have reached the narrow phase (a test decision) and the configured hit must have been used by the actual caller
+		if cand_altered ~= 0 then return "candidate_real altered a candidate answer" end
+		if cand.test < 1 or after.entity < 1 then return "UNREACHED: the real candidate decisions never required a narrow phase (" .. cand.test .. " test decisions, " .. after.entity .. " entity questions), so the paired variant has nothing to prevent" end
+		if altered ~= after.entity or seen.answered_hit ~= after.entity or seen.answered_miss ~= 0 then return string.format ("candidate_real answered %d hits and %d misses of %d entity questions", seen.answered_hit, seen.answered_miss, after.entity) end
+		if any_hits_delta < 1 then return "candidate_real: the configured hit never reached the weapon step's entity hit count (contact_any_hits did not rise): the narrow phase's answer was not used by the actual caller" end
+		return nil
+	elseif mode == "candidate_skip" then
+		-- the variant: every candidate decision was a valid skip, so no narrow phase may follow and no entity hit may reach the weapon step
+		if cand_altered ~= after.candidate or cand_skipped ~= after.candidate then return string.format ("candidate_skip answered %d skips of %d candidate questions", cand_skipped, after.candidate) end
+		if after.entity ~= 0 or altered ~= 0 then return string.format ("candidate_skip: the host was still asked %d entity_collision questions after every candidate was skipped", after.entity) end
+		if any_hits_delta ~= 0 then return string.format ("candidate_skip: the weapon step still counted %d entity hits although every candidate was skipped", any_hits_delta) end
 		return nil
 	end
 	if altered < 1 then return "mode " .. mode .. " altered no entity answer" end

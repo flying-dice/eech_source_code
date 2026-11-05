@@ -18,6 +18,7 @@ const COLLABORATORS: &str = r#"
 WRITTEN, CLOSED, CREATED = {}, 0, false
 AIM_LOG, CALLER_MUTATED, ORIGINAL = {}, false, nil
 MODEL_LOG, DELEGATION_BROKEN, ENTITY_LOG, LAUNCH = {}, {}, {}, nil
+CAND_LOG, CAND_POS = {}, 0
 local function deep_copy (value)
 	if type (value) ~= "table" then return value end
 	local copy = {}
@@ -94,6 +95,22 @@ local function reference (op, scene, depth, kind, definition, key)
 		elseif real == "hit_mask" then answer = { result = "hit", mask = 56, name = "CANDIDATE", p = NO_POINT .. "," .. UP }
 		elseif real == "partial" then answer = { result = "miss", mask = 1, name = "CANDIDATE", p = "0x3f800000," .. ZERO .. "," .. ZERO .. "," .. NO_POINT }
 		else answer = { result = "miss", mask = 56, name = "CANDIDATE", p = NO_POINT .. "," .. UP } end
+	elseif op == "entity_candidate" then
+		-- the REAL candidate answers of one dialogue, in the scenario's order (a scan that offers one mobile candidate and is told to test it, by default); the name is the scene's
+		CAND_POS = CAND_POS + 1
+		local state = (scenario.candidate_sequence or { "test" }) [CAND_POS] or "test"
+		if scenario.real_candidate_error then error ("the real provider refuses", 0) end
+		local bad = scenario.bad_real_candidate
+		answer = { result = bad == "state" and "perhaps" or state, name = (scene == 0 and bad ~= "name0") and "" or "CANDIDATE" }
+		if bad == "name0" then answer.name = "SOMETHING" end
+		if bad == "unnamed" then answer.name = "" end
+		if state == "test" or bad == "pose" then
+			local count = (bad == "pose") and 13 or (scenario.moving and 16 or 12)
+			local words = {}
+			for _ = 1, count do words [#words + 1] = "0x3f800000" end
+			answer.p = table.concat (words, ",")
+		end
+		CAND_LOG [#CAND_LOG + 1] = { scene = scene, result = answer.result, key = key }
 	else
 		answer = { op = op, token = call_no }
 	end
@@ -189,6 +206,54 @@ package.preload.eech_dc = function ()
 				local seen = AIM_LOG [#AIM_LOG].request.answers
 				return with_answers and type (seen) == "table" and type (seen [2]) == "table" and seen [2].kind == 1 and seen [2].f [7] == 1 and not scenario.view_ignored
 			end
+			-- one scan candidate's dialogue with the host, the campaign's half as the shared C applies it (mb_hostentity.h): 44 facts staged as the host asks (a mobile candidate with its scene, or a
+			-- non-mobile one with scene 0 until the fixed facts are read), the seven states, the name echo and the legality of each state against the facts. True: the narrow phase is required
+			local STATES = { skip = true, need_updated = true, need_fixed = true, need_placement = true, need_normal = true, buildings = true, test = true }
+			local altering = { candidate_skip = true, withheld_candidate = true, bad_candidate_state = true, bad_candidate_identity = true }
+			local function candidate_dialogue ()
+				if scenario.no_candidate_questions then return true end
+				local mobile = not scenario.fixed_candidate
+				local scene = mobile and 7 or 0
+				local words = {}
+				for index = 1, 44 do words [index] = ZERO end
+				words [1], words [2], words [3] = OLD_W [1], OLD_W [2], OLD_W [3]
+				words [4], words [5], words [6] = NEW_W [1], NEW_W [2], NEW_W [3]
+				if mobile then words [7] = "0x3f800000" end
+				CAND_POS = 0
+				for _ = 1, 8 do
+					local key = table.concat (words, ",")
+					if scenario.bad_candidate_request == "count" then key = string.match (key, "^(.*),[^,]+$") end
+					local ok, answer = ask_model ("entity_candidate", scene, nil, nil, nil, key, not altering [MODE])
+					if not ok then stop ("entity_candidate.callback", tostring (answer)) end
+					if type (answer) ~= "table" or not STATES [answer.result] then stop ("entity_candidate.answer", "result") end
+					if (scene == 0 and answer.name ~= "") or (scene ~= 0 and answer.name ~= "CANDIDATE") then stop ("entity_candidate.identity", "name") end
+					local result = answer.result
+					if result == "skip" then return false
+					elseif result == "need_updated" then
+						if not mobile or words [21] ~= ZERO then stop ("entity_candidate.state", "UPDATED asked of a candidate that cannot need it") end
+						words [21] = "0x40000000"
+					elseif result == "need_fixed" then
+						if mobile or words [43] ~= ZERO then stop ("entity_candidate.state", "fixed facts asked of a candidate that cannot need them") end
+						words [43], words [8], scene = "0x3f800000", "0x3f800000", 9
+					elseif result == "need_placement" then
+						if words [44] ~= ZERO or scene == 0 then stop ("entity_candidate.state", "placement asked of a candidate that cannot need it") end
+						words [44], words [23] = "0x3f800000", "0x3f800000"
+					elseif result == "need_normal" then
+						if words [24] ~= ZERO or words [44] == ZERO or words [23] == ZERO or mobile then stop ("entity_candidate.state", "normal asked of a candidate that cannot need it") end
+						words [24] = "0x3f800000"
+					elseif result == "buildings" then
+						if words [9] == ZERO then stop ("entity_candidate.state", "buildings named for a candidate that is not a city") end
+						return false
+					else
+						local count = 0
+						if type (answer.p) == "string" then for _ in string.gmatch (answer.p, "[^,]+") do count = count + 1 end end
+						if count ~= 12 and count ~= 16 then stop ("entity_candidate.pose", "pose of " .. count) end
+						if scene == 0 then stop ("entity_candidate.state", "a narrow phase for a candidate that has no scene") end
+						return true
+					end
+				end
+				stop ("entity_candidate.state", "the dialogue did not end")
+			end
 			-- the scripted flight's entity lookup: the campaign's own rules applied as far as the driver's bookkeeping needs (the bridge's shape checks, the C domain checks); the stop text is the real wrapper
 			local function entity_test ()
 				tests = tests + 1
@@ -203,6 +268,7 @@ package.preload.eech_dc = function ()
 						if scenario.engine_stop.text_only then error ("a Lua error that merely mentions " .. "[model-provider:" .. scenario.engine_stop.marker .. "] in its text", 0) end
 						error (scenario.engine_stop.wrapper or (FATAL .. "[model-provider:" .. scenario.engine_stop.marker .. "] scripted"), 0)
 					end
+					if candidate_dialogue () then
 					local key, extra = pose_key (scenario.moving)
 					local ok, answer = ask_model ("entity_collision", 7, extra, nil, nil, key, MODE == "control")
 					if not ok then stop ("entity_collision.callback", tostring (answer)) end
@@ -222,6 +288,10 @@ package.preload.eech_dc = function ()
 					end
 					if answer.result == "hit" and not scenario.hit_ignored then hits = hits + 1 flight_hit = true end
 					if answer.result == "miss" and scenario.hits_despite_miss then hits = hits + 1 end
+					elseif scenario.ignore_skip then
+						-- a (wrong) campaign that asks the narrow phase although the host skipped the candidate
+						ask_model ("entity_collision", 7, nil, nil, nil, pose_key (false), false)
+					end
 				end
 			end
 			function engine:frame (milliseconds)
@@ -284,6 +354,8 @@ struct Driven {
     entity_log: Vec<(String, String, i64, String)>,
     /// (launcher, target, weapon) of the launch the driver made
     launch: Option<(String, String, i64)>,
+    /// (scene, result, facts text) of every candidate question the REAL provider answered
+    candidate_log: Vec<(i64, String, String)>,
 }
 
 /// Runs the real driver once. `scenario` is the inside of the Lua table the collaborators read; `args` are the driver's own arguments.
@@ -308,6 +380,7 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
     let broken: mlua::Table = globals.get("DELEGATION_BROKEN").expect("the delegation record");
     let entities: mlua::Table = globals.get("ENTITY_LOG").expect("the entity log");
     let launch: Option<mlua::Table> = globals.get("LAUNCH").expect("the launch");
+    let candidates: mlua::Table = globals.get("CAND_LOG").expect("the candidate log");
     Driven {
         result,
         rows: written.concat(),
@@ -340,6 +413,17 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
             })
             .collect(),
         launch: launch.map(|t| (t.get("launcher").unwrap(), t.get("target").unwrap(), t.get("weapon").unwrap())),
+        candidate_log: candidates
+            .sequence_values::<mlua::Table>()
+            .map(|entry| {
+                let entry = entry.expect("a candidate log entry");
+                (
+                    entry.get::<i64>("scene").unwrap(),
+                    entry.get::<String>("result").unwrap(),
+                    entry.get::<String>("key").unwrap(),
+                )
+            })
+            .collect(),
     }
 }
 
@@ -901,4 +985,278 @@ fn the_words_helper_is_the_same_text_as_the_tree_witnesss() {
     let (entity, tree) = (block(SCRIPT), block(TREE_SCRIPT));
     assert!(entity.iter().any(|line| line.contains("local function word_of")), "the block holds the helper");
     assert_eq!(entity, tree);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// the ENTITY_CANDIDATE path: the real candidate dialogue of the scripted scan (44 facts, 7 states), the natural control, the paired controls and the refusals
+
+/// the states a staged dialogue passes through before its test: the fixed facts, the placement and the terrain normal (a non-mobile candidate that starts with scene 0)
+const STAGED: &str = ", fixed_candidate = true, candidate_sequence = { 'need_fixed', 'need_placement', 'need_normal', 'test' }";
+
+fn candidate_row(extra: &str, mode: &str) -> (Driven, Value) {
+    let driven = drive(&healthy(extra), &[("mode", mode)]);
+    let row = authority(&driven);
+    (driven, row)
+}
+
+#[test]
+fn the_natural_control_counts_the_actual_candidate_questions_and_classifies_the_real_answers_with_nothing_altered() {
+    // one mobile candidate with its scene, told to test it
+    let (driven, row) = candidate_row("", "control");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(
+        (row["candidate_before"].clone(), row["candidate_after"].clone()),
+        (Value::from(0), Value::from(1))
+    );
+    assert_eq!(
+        (row["candidate_test"].clone(), row["candidate_mobile"].clone(), row["candidate_scene0"].clone()),
+        (Value::from(1), Value::from(1), Value::from(0))
+    );
+    assert_eq!(
+        (row["entity_after"].clone(), row["candidate_altered"].clone(), row["altered"].clone()),
+        (Value::from(1), Value::from(0), Value::from(0))
+    );
+    assert_eq!(row["secondary_input"], "", "the natural control holds no configured secondary input");
+    assert!(driven.delegation_broken.is_empty(), "{:?}", driven.delegation_broken);
+    // a staged dialogue of a non-mobile candidate: scene 0 first, a scene once its fixed facts were read, every state counted
+    let (driven, row) = candidate_row(STAGED, "control");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(row["candidate_after"], 4);
+    for (field, expected) in [
+        ("candidate_need_fixed", 1),
+        ("candidate_need_placement", 1),
+        ("candidate_need_normal", 1),
+        ("candidate_test", 1),
+        ("candidate_scene0", 1),
+        ("candidate_mobile", 0),
+        ("entity_after", 1),
+    ] {
+        assert_eq!(row[field], expected, "{field}");
+    }
+    assert_eq!(
+        driven
+            .candidate_log
+            .iter()
+            .map(|(scene, result, _)| (*scene, result.as_str()))
+            .collect::<Vec<_>>(),
+        [(0, "need_fixed"), (9, "need_placement"), (9, "need_normal"), (9, "test")]
+    );
+    assert!(
+        driven.candidate_log.iter().all(|(_, _, facts)| facts.split(',').count() == 44),
+        "every question carries exactly 44 patterns"
+    );
+    assert!(driven.delegation_broken.is_empty(), "{:?}", driven.delegation_broken);
+    // three scan candidates in one flight
+    let (driven, row) = candidate_row(", questions = 3", "control");
+    assert!(driven.result.is_ok(), "{:?}", driven.result);
+    assert_eq!((row["candidate_after"].clone(), row["entity_after"].clone()), (Value::from(3), Value::from(3)));
+}
+
+#[test]
+fn zero_candidate_questions_is_unreached_even_when_the_narrow_phase_was_asked_and_a_malformed_request_or_real_reply_is_a_failure() {
+    // the narrow phase was asked but no candidate question ever reached the host: the real scan was not reached, so it is not authority
+    let error = error_of(drive(&healthy(", no_candidate_questions = true"), &[]));
+    assert!(error.contains("UNREACHED") && error.contains("asked no entity_candidate question"), "{error}");
+    // the scan offered a candidate and the host's real decision was a skip: the natural control then reached no narrow phase, which is UNREACHED
+    let driven = drive(&healthy(", candidate_sequence = { 'skip' }"), &[]);
+    let row = authority(&driven);
+    assert_eq!(
+        (row["candidate_after"].clone(), row["candidate_skip"].clone(), row["entity_after"].clone()),
+        (Value::from(1), Value::from(1), Value::from(0))
+    );
+    assert!(error_of(driven).contains("no candidate reached the narrow phase"));
+    // a request that is not 44 patterns is counted and fails the verdict, never credited
+    let driven = drive(&healthy(", bad_candidate_request = 'count'"), &[]);
+    let row = authority(&driven);
+    assert_eq!(row["request_faults"], 1);
+    assert!(row["first_fault"].as_str().unwrap().starts_with("candidate request:"), "{row}");
+    // real replies that break the contract are counted at the question and stop the scripted engine at the candidate's own marker
+    for (bad, marker) in [
+        ("state", "entity_candidate.answer"),
+        ("name0", "entity_candidate.identity"),
+        ("unnamed", "entity_candidate.identity"),
+    ] {
+        // the unnamed reply is wrong only for a candidate that has a scene (the mobile one); the others are wrong at scene 0
+        let scene0 = if bad == "unnamed" { "" } else { ", fixed_candidate = true" };
+        let driven = drive(
+            &healthy(&format!(", bad_real_candidate = '{bad}', candidate_sequence = {{ 'skip' }}{scene0}")),
+            &[],
+        );
+        let row = authority(&driven);
+        assert_eq!(row["reply_faults"], 1, "{bad}");
+        assert!(row["first_fault"].as_str().unwrap().starts_with("candidate reply:"), "{bad}: {row}");
+        let error = error_of(driven);
+        assert!(error.contains(marker), "{bad}: {error}");
+    }
+}
+
+#[test]
+fn the_paired_control_reaches_the_actual_narrow_phase_with_the_configured_hit_and_the_cohort_physically_hits() {
+    let natural = drive(&healthy(""), &[]);
+    let (paired, row) = candidate_row("", "candidate_real");
+    assert!(paired.result.is_ok(), "{:?}\n{}", paired.result, paired.rows);
+    assert_eq!(row["completed"], true);
+    // the candidate answers are the host's real ones; only the configured narrow-phase hit is held, and it is declared
+    assert_eq!(
+        (row["candidate_altered"].clone(), row["candidate_test"].clone(), row["candidate_after"].clone()),
+        (Value::from(0), Value::from(1), Value::from(1))
+    );
+    assert_eq!(
+        (row["entity_after"].clone(), row["answered_hit"].clone(), row["altered"].clone()),
+        (Value::from(1), Value::from(1), Value::from(1))
+    );
+    assert_eq!(row["contact_any_hits_delta"], 1, "the actual caller used the configured hit");
+    assert!(row["secondary_input"].as_str().unwrap().contains("configured_not_natural"), "{row}");
+    assert!(row["cohort_signature"].as_str().unwrap().contains("target"), "the cohort physically hit");
+    assert_ne!(
+        row["cohort_signature"],
+        authority(&natural)["cohort_signature"],
+        "and that is not the natural healthy signature"
+    );
+    // a hit the actual caller did not use is not authority
+    let error = error_of(drive(&healthy(", hit_ignored = true"), &[("mode", "candidate_real")]));
+    assert!(error.contains("never reached the weapon step's entity hit count"), "{error}");
+    // real decisions that never required a narrow phase leave the paired variant with nothing to prevent
+    let error = error_of(drive(&healthy(", candidate_sequence = { 'skip' }"), &[("mode", "candidate_real")]));
+    assert!(
+        error.contains("UNREACHED") && error.contains("no candidate reached the narrow phase"),
+        "{error}"
+    );
+}
+
+#[test]
+fn the_skip_variant_changes_the_cohort_by_preventing_every_narrow_phase_question_and_hit_with_the_same_configured_secondary_input() {
+    let (paired, paired_row) = candidate_row("", "candidate_real");
+    assert!(paired.result.is_ok());
+    for extra in ["", ", questions = 3"] {
+        let (skipped, row) = candidate_row(extra, "candidate_skip");
+        assert!(skipped.result.is_ok(), "{extra}: {:?}\n{}", skipped.result, skipped.rows);
+        let asked = if extra.is_empty() { 1 } else { 3 };
+        assert_eq!(
+            (
+                row["candidate_after"].clone(),
+                row["candidate_answered_skip"].clone(),
+                row["candidate_altered"].clone()
+            ),
+            (Value::from(asked), Value::from(asked), Value::from(asked)),
+            "{extra}"
+        );
+        assert_eq!(
+            (row["entity_after"].clone(), row["altered"].clone(), row["contact_any_hits_delta"].clone()),
+            (Value::from(0), Value::from(0), Value::from(0)),
+            "{extra}"
+        );
+        assert_eq!(
+            row["secondary_input"], paired_row["secondary_input"],
+            "the same configured secondary input is declared in both paired modes"
+        );
+        assert_eq!(row["completed"], true);
+        // the physical consequence: a cohort that no longer ends on the target
+        assert_ne!(row["cohort_signature"], paired_row["cohort_signature"], "{extra}");
+        assert!(row["cohort_signature"].as_str().unwrap().contains("ground"), "{extra}");
+        assert!(skipped.delegation_broken.is_empty(), "{:?}", skipped.delegation_broken);
+    }
+    // a campaign that asks the narrow phase although the host skipped the candidate is a failure, not a pass
+    let error = error_of(drive(&healthy(", ignore_skip = true"), &[("mode", "candidate_skip")]));
+    assert!(
+        error.contains("still asked 1 entity_collision questions after every candidate was skipped"),
+        "{error}"
+    );
+    // no candidate question at all is UNREACHED for the variant too
+    let error = error_of(drive(&healthy(", no_entity_questions = true"), &[("mode", "candidate_skip")]));
+    assert!(error.contains("UNREACHED") && error.contains("asked no entity_candidate question"), "{error}");
+}
+
+#[test]
+fn a_withheld_or_malformed_candidate_answer_counts_only_at_the_anchored_engine_stop_with_its_exact_candidate_marker_and_nothing_is_asked_afterwards() {
+    const NO_SCENE: &str = ", fixed_candidate = true, candidate_sequence = { 'need_fixed', 'test' }";
+    for (mode, marker, extra) in [
+        ("withheld_candidate", "entity_candidate.callback", ""),
+        ("bad_candidate_state", "entity_candidate.state", ""),
+        ("bad_candidate_identity", "entity_candidate.identity", ""),
+        // the same at a candidate that has no scene yet: the name check is an identity refusal there too
+        ("bad_candidate_identity", "entity_candidate.identity", NO_SCENE),
+        ("bad_candidate_state", "entity_candidate.state", NO_SCENE),
+    ] {
+        let driven = drive(&healthy(extra), &[("mode", mode)]);
+        let outcome = driven.result.clone();
+        assert!(outcome.is_ok(), "{mode} {extra}: {outcome:?}\n{}", driven.rows);
+        let row = authority(&driven);
+        assert_eq!(row["completed"], false, "{mode}");
+        assert_eq!(row["failure_marker"], marker, "{mode}: the candidate's own marker, never the narrow phase's");
+        assert_eq!(
+            (row["candidate_altered"].clone(), row["altered"].clone()),
+            (Value::from(1), Value::from(0)),
+            "{mode}"
+        );
+        assert_eq!(row["entity_after"], 0, "{mode}: no narrow-phase question before or after the stop");
+        assert_eq!(row["candidate_after"], 1, "{mode}: nothing is asked of the host after the fatal");
+        assert_eq!(row["case_weapons_pending"], -1, "{mode}: the cohort is not counted after the stop");
+        assert_eq!(row["contact_any_tests_delta"], -1, "{mode}: no counter is read from a stopped engine");
+        assert_eq!(row["contact_any_hits_delta"], -1, "{mode}: unknown stays unknown");
+    }
+    // the old narrow-phase marker is not credited to a candidate mode, and a witness failure cannot pose as the host withholding an answer
+    let error = error_of(drive(
+        &healthy(", engine_stop = { after = 1, marker = 'entity_collision.callback' }"),
+        &[("mode", "withheld_candidate")],
+    ));
+    assert!(
+        error.contains("stopped at [model-provider:entity_collision.callback], not at [model-provider:entity_candidate.callback]"),
+        "{error}"
+    );
+    // a stop at the candidate's own marker that the provider did not cause (nothing altered) is not credited either
+    let error = error_of(drive(
+        &healthy(", engine_stop = { after = 1, marker = 'entity_candidate.callback' }"),
+        &[("mode", "withheld_candidate")],
+    ));
+    assert!(error.contains("without the provider having altered"), "{error}");
+    for scenario in [
+        "engine_stop = { after = 1, marker = 'entity_candidate.callback', text_only = true }",
+        "engine_stop = { after = 1, marker = 'x', wrapper = 'eech: EECH fatal error: host model: [model-provider:entity_candidate.callback] x' }",
+    ] {
+        let error = error_of(drive(&healthy(&format!(", {scenario}")), &[("mode", "withheld_candidate")]));
+        assert!(error.contains("an unrecognised failure, not the engine's known fatal"), "{scenario}: {error}");
+    }
+    // a flight that never asks the host completes without the stop: a failure, not a pass
+    let error = error_of(drive(&healthy(", no_entity_questions = true"), &[("mode", "withheld_candidate")]));
+    assert!(error.contains("the engine did not stop at entity_candidate.callback"), "{error}");
+}
+
+#[test]
+fn the_original_profile_has_the_api_and_the_real_caller_lookups_but_no_candidate_question_and_the_expected_red_names_both_counts() {
+    let original = [("profile", "original")];
+    let driven = drive(&healthy(", fixture_api = true, original_tests = true"), &original);
+    let row = authority(&driven);
+    assert_eq!(
+        (row["candidate_after"].clone(), row["entity_after"].clone(), row["fixture_api"].clone()),
+        (Value::from(0), Value::from(0), Value::from(true))
+    );
+    let error = error_of(driven);
+    assert!(
+        error.contains("CAPABILITY RED") && error.contains("no entity_candidate question") && error.contains("fixture API present"),
+        "{error}"
+    );
+    // an Original module that nevertheless asked the host a candidate question is not the original
+    let error = error_of(drive(&healthy(", fixture_api = true"), &original));
+    assert!(error.contains("entity_candidate questions: the module is not the original"), "{error}");
+    // the paired and candidate modes are hosted-profile modes only
+    for mode in [
+        "candidate_real",
+        "candidate_skip",
+        "withheld_candidate",
+        "bad_candidate_state",
+        "bad_candidate_identity",
+    ] {
+        assert!(
+            error_of(drive("", &[("profile", "original"), ("mode", mode)])).contains("only mode=control"),
+            "{mode}"
+        );
+    }
+}
+
+#[test]
+fn the_candidate_modes_close_the_evidence_with_a_checked_close_and_a_failing_close_is_never_hidden() {
+    let driven = drive(&healthy(", io_fail = { op = 'close' }"), &[("mode", "candidate_skip")]);
+    assert_eq!(driven.closed, 1);
+    assert!(error_of(driven).contains("OUTPUT FAILURE"), "the close failure is raised");
 }

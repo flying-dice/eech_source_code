@@ -215,6 +215,46 @@ The same independent reviewer found no findings (`FINITE_STATIONARY_ENTITY_HANDO
 global while armed, with no per-weapon attribution; no new direct x87/MXCSR or RNG measurement of the public caller. The first native command was
 `eech-world.exe <literal entity-authority.lua> root=<fresh root> mode=control out=<new .jsonl>`; runtime JSON Lines stay private (retail coordinates).
 
+## The ENTITY_CANDIDATE public authority witness (the same `lua/entity-authority.lua`; TEST-ONLY, written 5 November 2026, NOT yet run natively)
+
+The finite stationary witness above shows that the host's `entity_collision` answer reaches the campaign. The candidate decisions (the third slice) need the same proof of their own: that a host's `entity_candidate`
+answer reaches the real scan and changes what a real weapon cohort does, and that a withheld or malformed one stops the engine at the candidate's own marker. Nothing of the shipping code changes for it: it is pure Lua
+and tests, extending the existing script and reusing its checked output, cohort, WordCodec, exact engine-fatal recognition and controlled VIEW_WEAPON input unchanged.
+
+**Boundary.** Host Lua to the real public module (`weapon-fixture`), the REAL `ENTITY_CANDIDATE` operation, the native scan with its services and narrow phase, and an actual weapon cohort. **Grammar (44 facts, 7 states):**
+the request is a scene number >= 0 (0 until a shape was read) and the facts text of exactly 44 comma-separated `0x%08x` patterns, nothing else; a real reply is `{ result, name }` with `result` one of `skip`,
+`need_updated`, `need_fixed`, `need_placement`, `need_normal`, `buildings`, `test`, `name` the scene's compiled name (EMPTY for scene 0) and, for `test` only, `p` of 12 or 16 patterns. The wrapper delegates every other
+operation, and every candidate question in a mode that does not alter it, byte for byte; it counts the ARMED questions (the war's, global, with no weapon identity), classifies the real answers and the fixture's own counters,
+and a count of zero is UNREACHED, never authority. The source-derived case and view preconditions of the stationary witness are kept (global while armed; no per-weapon identity).
+
+| mode | what the provider does after the launch | the verdict needs |
+|---|---|---|
+| `control` | nothing: the NATURAL healthy control, the first thing Root runs | candidate questions >= 1, well-formed requests and real replies, the old entity checks; no configured secondary input |
+| `candidate_real` | PAIRED CONTROL: the real candidate answers; `entity_collision` answered HIT (mask 63 at the request's OLD end, real name) whenever asked | a real `test` decision reached the narrow phase and the configured hit reached the weapon step's hit count; the cohort physically hits |
+| `candidate_skip` | every candidate question answered a valid SKIP (the real answer is asked first for its name); the SAME configured hit if `entity_collision` is ever asked | positive candidate questions, every one skipped, no `entity_collision` question, no weapon entity hit; the cohort signature is recorded for comparison with `candidate_real` by the caller |
+| `withheld_candidate` | raises on the first armed candidate question | the engine stops at exactly `[model-provider:entity_candidate.callback]`, nothing asked afterwards, unread counters -1 |
+| `bad_candidate_state` | the first question that is not a city is answered `buildings` | exactly `[model-provider:entity_candidate.state]` |
+| `bad_candidate_identity` | the real state under another scene's name | exactly `[model-provider:entity_candidate.identity]` |
+
+**The configured secondary input is declared, not natural.** Both paired modes hold the existing, already tested forced-hit `entity_collision` answer, so a candidate decision has a physical consequence to change without guessing
+any geometry: the real scan must reach the narrow phase (`candidate_real`) and the skip must prevent it and change the cohort (`candidate_skip`). The natural healthy comparison stays separate (`control`): the paired modes are
+compared with each other, never with it. This is a diagnostic world variation, not a source or physics change, and no question is fabricated. The Original profile (`weapon-fixture` + `collision-fixture`, `profile=original`,
+`mode=control`) must have the fixture API and the real caller lookups (`contact_any_tests` rising) with ZERO candidate and zero narrow-phase questions: the EXPECTED `CAPABILITY RED`, exit 1; its physical signature is compared with
+the natural healthy control, not with the paired one. A module without the fixture API, or no lookup, is UNREACHED, never a red.
+
+**Native command (Root; ONE natural healthy control first, on the frozen `1ccc9e2ed` hosted `weapon-fixture` binaries, one fresh root).** `eech-world.exe <literal entity-authority.lua> root=<fresh root> mode=control out=<new, non-existing .jsonl>`
+(defaults: warmup 30 s, settle 120 s, frame 100 ms). Exit 0 is a reached, well-formed, complete control. `UNREACHED` (a zero candidate count, a view that never reached a weapon step, no entity lookup) is a result to preserve, not to
+retry or loosen, and the case, view or distance is not to be tuned afterwards without actual branch facts. Only after it reached the candidate questions: `candidate_real`, `candidate_skip`, `withheld_candidate`,
+`bad_candidate_state` and `bad_candidate_identity` on their own fresh roots, then the Original control on the `weapon-fixture,collision-fixture` build. The literal blob of the script is the identity: it is a new Lua blob, never a relabelled
+`b24ca9038` one. Runtime JSON Lines stay private (retail coordinates); safe counts and hashes only.
+
+**Controls** (`tests/entity_authority.rs`, 21 tests now, the REAL driver in a real Lua state against scripted collaborators that apply the shared dialogue's rules: the staged states, the name echo and the legality of each state against
+the facts): the natural control with staged and repeated dialogues; zero candidate questions UNREACHED even when the narrow phase was asked; a malformed request and real replies counted; the paired control reaching the narrow phase
+and the cohort hitting; the skip variant preventing every narrow-phase question and hit and changing the signature, and failing when a narrow phase is still asked; the three refusals and the withheld answer at their exact candidate
+markers (at a candidate with and without a scene), the old marker not credited, a witness failure unable to pose as the host withholding, nothing asked after the fatal; the Original profile's RED naming both counts; and a checked close.
+Five mutants of the witness (a skip that answers the real state, an unchecked hit use, an unchecked downstream question, an unaltered identity and the old marker credited) each fail them (exit 101). They invent no physics and say
+nothing about the DLL.
+
 ## Checks (Linux, pinned image) and their status
 
 **Review status.** The independent source pass over `c510c55c7` returned CHANGES_REQUIRED with one P1, ENV-ENTITY-CALLER-BUFFER-1 (the question read caller output storage the original never reads). The literal
