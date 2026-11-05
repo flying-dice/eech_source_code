@@ -1,0 +1,23 @@
+{
+  "removed_utc": "2026-11-05T17:13:13.842624+00:00",
+  "volume": "eech-win-pose-observer-1f9a939bc-20261105",
+  "actual_remove_exit": 0,
+  "container_owners_before": [],
+  "both_windows_builds_complete": true,
+  "all_planned_native_runs_complete": true,
+  "retained_payload_seals": [
+    {
+      "profile": "ordinary",
+      "payloads_rehashed": 88,
+      "all_equal": true
+    },
+    {
+      "profile": "hosted",
+      "payloads_rehashed": 88,
+      "all_equal": true
+    }
+  ],
+  "frozen_source_binaries_inputs_raw_outputs_retained": true,
+  "linux_author_cache_untouched": "eech-linux-d3-collision-driver-5416adb3b-20261029",
+  "scope": "Exact closed disposable Windows target volume only. No filesystem tree/input/source/bin removal and no daemon/WSL restart. PID14572 nowbelongsnewClaude, not oldbuild; no process stopped."
+}

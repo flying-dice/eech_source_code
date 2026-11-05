@@ -1,0 +1,46 @@
+{
+  "runtime_source": "1f9a939bc8d50e7d2fede60b26830d6fdd39055a",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 62,
+      "sha256": "9464b301a283a4eb3e9d7857adc11aee7074bf311ae6da26117d3458bad5be13"
+    },
+    {
+      "path": "actual-facts.json",
+      "bytes": 5236,
+      "sha256": "3884e649c1dc2314551ab11ae2395a2a55bf9ca8ae87631deb3833de087eb880"
+    },
+    {
+      "path": "actual-review.json",
+      "bytes": 14926,
+      "sha256": "dc7b102d3c48edaae0ae9d246462687f4c3054d34dc13ffec462daba38bc2f51"
+    },
+    {
+      "path": "cache-cleanup.json",
+      "bytes": 833,
+      "sha256": "244430e1180832309a7fd7281cad34b5c739b1b3a93fe7bae4ae85cb5484926c"
+    },
+    {
+      "path": "ordinary-short-comparison.json",
+      "bytes": 2299,
+      "sha256": "46bb167f7427aec8e9a1e24237263db11bd912e0e49e42b5ec147e32fcd29581"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3550,
+      "sha256": "ec4f6096ad3abc2f272088a1676343ffab958d83fa26fdc6bc93c69607153834"
+    },
+    {
+      "path": "windows-build-completion.json",
+      "bytes": 1683,
+      "sha256": "2ccded70e11b1789facaff4e5dee1ca3e568a0c5f63ac488c9f0696561e6119c"
+    },
+    {
+      "path": "windows-builds-payloads.json",
+      "bytes": 29861,
+      "sha256": "043e9c5ab60c5e7e5b9a272e21c275fb1ea6ba4b2c8b3542ad16f38061e8fde8"
+    }
+  ],
+  "scope": "Finite observer characterization/default conformance only, not physical pose authority or acceptance of later production bytes."
+}
