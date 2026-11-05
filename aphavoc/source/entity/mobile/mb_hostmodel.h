@@ -266,7 +266,8 @@ enum campaign_model_pose_difference
 	/* the host holds NO motion vector for the record (every kind but an aircraft, and a vehicle that is not a wreck) */
 	CAMPAIGN_POSE_NO_HELD_MOTION = 8,
 	/* the campaign's motion vector is not bit for bit the product, rounded toward zero, of the record's attitude row 2 and the record's speed (the original's vehicle formula, from the HOST's record, computed in
-	   integers: no floating-point flag or rounding mode is involved). It is also set when an operand of that product is not finite, where the product is not defined */
+	   integers: no floating-point flag or rounding mode is involved). That product is the REFERENCE product: IEEE gradual-underflow round toward zero (denormals-are-zero and flush-to-zero off), not a claim about any
+	   other caller's denormal mode. It is also set when an operand of that product is not finite, where the product is not defined */
 	CAMPAIGN_POSE_DIFFERS_FORMULA = 16
 };
 

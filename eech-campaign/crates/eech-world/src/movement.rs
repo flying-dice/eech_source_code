@@ -1463,6 +1463,10 @@ fn bits_differ(ours: &[u32], theirs: &[f32]) -> bool {
 /// rounding mode is irrelevant (the observer runs inside a model callback that has no floating-point protection of its own, and the campaign's own product runs under the reference's round-toward-zero; a
 /// result that is not representable is truncated, an overflow gives the largest finite value and an underflow the truncated subnormal or zero). `None` when an operand is an infinity or a NaN, where no
 /// product is defined here. The operands are significands of at most 24 bits, so their product is exact in 48 bits and the truncation is the only rounding.
+///
+/// WHAT IT IS, EXACTLY: the reference product, IEEE gradual-underflow round-toward-zero (denormals-are-zero and flush-to-zero both OFF, the reference profile's own setting, which the host's profile
+/// selection preserves in the caller's word). It is NOT claimed to equal a product computed under another caller's denormal mode (DAZ or FTZ set), where the processor's result for a subnormal operand or
+/// result differs; a classification against this product is a classification against the reference's, which is what the observation says.
 pub fn product_toward_zero(a: u32, b: u32) -> Option<u32> {
     let (exponent_a, exponent_b) = ((a >> 23) & 0xff, (b >> 23) & 0xff);
     if exponent_a == 0xff || exponent_b == 0xff {
@@ -7137,7 +7141,9 @@ mod tests {
     fn the_integer_product_is_the_hardwares_round_toward_zero_product_for_every_finite_operand_class() {
         use crate::reference_arithmetic::{current_mxcsr, write_mxcsr, MXCSR_TOWARD_ZERO};
         let saved = current_mxcsr();
-        write_mxcsr((saved & !0x6000) | MXCSR_TOWARD_ZERO);
+        // the intended profile, stated in full and not inherited from the caller: round toward zero, every exception masked, no sticky flag, denormals-are-zero and flush-to-zero both OFF (gradual underflow).
+        // The caller's own word is restored afterwards.
+        write_mxcsr(MXCSR_TOWARD_ZERO | 0x1f80);
         let mut next = stream(0x1234_5678);
         let specials: [u32; 14] = [
             0x0000_0000,

@@ -93,7 +93,10 @@
 -- `recorded` carries kind 0 and difference 0.
 --
 -- WHAT ONE HEALTHY RUN CLASSIFIES TOGETHER. Every observation is classified, BEFORE the launch (boot, warmup and every natural weapon until then: `pose_pre_*`) and after it (`pose_*`), into the histograms of (stage, entity
--- type, alive, class, kind, difference), and the `pose_fact_*` fields sum both phases into the facts the host-sourced pose cutover needs: how many mobile offers had no identity, had an identity the host never issued, retired or issued
+-- type, alive, class, kind, difference), whose per-stage buckets are the truthful counts of observation QUESTIONS. The `pose_fact_*` fields sum both phases into the facts the host-sourced pose cutover needs, with these DENOMINATORS: an
+-- OFFER is one stage-0 observation (the scan offered a mobile candidate to the host once: the same entity offered again by a later scan counts again, so offers are neither unique mobiles nor unique records); every offer-level fact (the
+-- classes, dead, the position, the held motion vector, the formula, the kinds) counts STAGE-0 observations only; the attitude facts (`attitude_compared`, `attitude_differs`) count STAGE-1 observations only (a mobile whose broad phase passed
+-- is observed a second time, with its attitude); `pose_fact_observations` counts every observation question of both stages. The facts say: how many mobile offers had no identity, had an identity the host never issued, retired or issued
 -- without a record, and had a record; how many offers were of a dead entity (a wreck is alive 0); how many records disagreed with the campaign's position and, at the placement, its attitude; how many held a motion vector, how
 -- many held none and how many held one that differed; and how many motion vectors were, and how many were not, the record's attitude row 2 times its speed (by kind). It is OBSERVED, never asserted: the natural control only requires
 -- that something was observed (a positive count, before or after the launch) and that every question and reply is well formed. WHAT IT DOES NOT SHOW: only the offers and paths this run reached are characterised. A histogram
@@ -574,10 +577,10 @@ local function pose_histogram_text (histogram)
 	for _, bucket in ipairs (keys) do parts [#parts + 1] = bucket .. "=" .. histogram [bucket] end
 	return table.concat (parts, ";")
 end
--- the facts the cutover needs, summed over BOTH phases' histograms (each bucket is stage:type:alive:class:kind:difference)
+-- the facts the cutover needs, summed over BOTH phases' histograms (each bucket is stage:type:alive:class:kind:difference); the denominators are in the header: offers and every offer-level fact are STAGE-0 observations, the attitude facts STAGE-1
 local function pose_facts ()
 	local facts = {
-		offers = 0, no_id = 0, unrecorded = 0, retired = 0, unknown = 0, recorded = 0, dead = 0, dead_recorded = 0, position_differs = 0, attitude_compared = 0, attitude_differs = 0,
+		observations = 0, offers = 0, no_id = 0, unrecorded = 0, retired = 0, unknown = 0, recorded = 0, dead = 0, dead_recorded = 0, position_differs = 0, attitude_compared = 0, attitude_differs = 0,
 		motion_held = 0, motion_held_differs = 0, motion_not_held = 0, formula_equal = 0, formula_differs = 0, vehicle_formula_equal = 0, vehicle_formula_differs = 0,
 		aircraft_motion_differs = 0,
 	}
@@ -587,6 +590,14 @@ local function pose_facts ()
 		for bucket, count in pairs (histogram) do
 			local stage, _, alive, class, kind, difference = string.match (bucket, "^(%d+):(%d+):(%d+):([%a_]+):(%d+):(%d+)$")
 			stage, alive, kind, difference = tonumber (stage), tonumber (alive), tonumber (kind), tonumber (difference)
+			facts.observations = facts.observations + count
+			if stage == 1 then
+				-- the placement observation repeats the offer's position and motion: only the attitude is its own
+				if class == "recorded" then
+					facts.attitude_compared = facts.attitude_compared + count
+					if has (difference, 2) then facts.attitude_differs = facts.attitude_differs + count end
+				end
+			else
 			facts.offers = facts.offers + count
 			facts [class] = facts [class] + count
 			if alive == 0 then facts.dead = facts.dead + count end
@@ -594,10 +605,6 @@ local function pose_facts ()
 				if alive == 0 then facts.dead_recorded = facts.dead_recorded + count end
 				by_kind [kind] = (by_kind [kind] or 0) + count
 				if has (difference, 1) then facts.position_differs = facts.position_differs + count end
-				if stage == 1 then
-					facts.attitude_compared = facts.attitude_compared + count
-					if has (difference, 2) then facts.attitude_differs = facts.attitude_differs + count end
-				end
 				if has (difference, 8) then facts.motion_not_held = facts.motion_not_held + count
 				else
 					facts.motion_held = facts.motion_held + count
@@ -609,6 +616,7 @@ local function pose_facts ()
 				elseif has (difference, 4) then
 					facts.aircraft_motion_differs = facts.aircraft_motion_differs + count
 				end
+			end
 			end
 		end
 	end
@@ -998,7 +1006,7 @@ local function main ()
 		pose_pre_total = pose_pre.total, pose_pre_stage_offer = pose_pre.stage_offer, pose_pre_stage_placement = pose_pre.stage_placement, pose_pre_named = pose_pre.named,
 		pose_pre_recorded = pose_pre.recorded, pose_pre_unrecorded = pose_pre.unrecorded, pose_pre_retired = pose_pre.retired, pose_pre_unknown = pose_pre.unknown, pose_pre_no_id = pose_pre.no_id,
 		pose_pre_histogram = pose_histogram_text (pose_pre_histogram),
-		pose_fact_offers = pose_facts_row.offers, pose_fact_no_id = pose_facts_row.no_id, pose_fact_unrecorded = pose_facts_row.unrecorded, pose_fact_retired = pose_facts_row.retired,
+		pose_fact_observations = pose_facts_row.observations, pose_fact_offers = pose_facts_row.offers, pose_fact_no_id = pose_facts_row.no_id, pose_fact_unrecorded = pose_facts_row.unrecorded, pose_fact_retired = pose_facts_row.retired,
 		pose_fact_unknown = pose_facts_row.unknown, pose_fact_recorded = pose_facts_row.recorded, pose_fact_dead = pose_facts_row.dead, pose_fact_dead_recorded = pose_facts_row.dead_recorded,
 		pose_fact_position_differs = pose_facts_row.position_differs, pose_fact_attitude_compared = pose_facts_row.attitude_compared, pose_fact_attitude_differs = pose_facts_row.attitude_differs,
 		pose_fact_motion_held = pose_facts_row.motion_held, pose_fact_motion_held_differs = pose_facts_row.motion_held_differs, pose_fact_motion_not_held = pose_facts_row.motion_not_held,

@@ -1881,22 +1881,26 @@ fn the_stage_masks_the_whole_identity_domain_the_prelaunch_phase_and_the_facts_a
     assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
     assert_eq!(row["pose_histogram"], "0:4:1:recorded:1:8=1;1:4:1:recorded:1:10=1");
     for (field, expected) in [
-        ("pose_fact_offers", 2),
-        ("pose_fact_recorded", 2),
+        ("pose_fact_observations", 2),
+        ("pose_fact_offers", 1),
+        ("pose_fact_recorded", 1),
         ("pose_fact_no_id", 0),
         ("pose_fact_dead", 0),
         ("pose_fact_position_differs", 0),
         ("pose_fact_attitude_compared", 1),
         ("pose_fact_attitude_differs", 1),
-        ("pose_fact_motion_not_held", 2),
+        ("pose_fact_motion_not_held", 1),
         ("pose_fact_motion_held", 0),
-        ("pose_fact_formula_equal", 2),
-        ("pose_fact_vehicle_formula_equal", 2),
+        ("pose_fact_formula_equal", 1),
+        ("pose_fact_vehicle_formula_equal", 1),
         ("pose_fact_vehicle_formula_differs", 0),
     ] {
         assert_eq!(row[field], expected, "{field}");
     }
-    assert_eq!(row["pose_fact_recorded_by_kind"], "1=2");
+    assert_eq!(
+        row["pose_fact_recorded_by_kind"], "1=1",
+        "per OFFER (stage 0): the placement observation of the same offer is not a second mobile"
+    );
     // an aircraft record whose held vector differs: classified apart from the vehicles
     let (driven, row) = pose_row(", pose_kind = 4, pose_difference = 21", "control");
     assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
@@ -1946,6 +1950,7 @@ fn the_stage_masks_the_whole_identity_domain_the_prelaunch_phase_and_the_facts_a
         (Value::from(1), Value::from(pre + 1)),
         "the facts sum both phases"
     );
+    assert_eq!(row["pose_fact_observations"], pre + 1);
     let (driven, row) = pose_row(", pose_before_launch = true, no_pose_questions = true", "control");
     assert!(driven.result.is_ok(), "reached before the launch alone: {:?}\n{}", driven.result, driven.rows);
     assert_eq!(row["pose_after"], 0);
