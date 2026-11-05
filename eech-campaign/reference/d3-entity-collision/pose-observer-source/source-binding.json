@@ -1,0 +1,105 @@
+{
+  "recorded_utc": "2026-11-05T16:47:09.432252+00:00",
+  "runtime": "1f9a939bc8d50e7d2fede60b26830d6fdd39055a",
+  "metadata_head": "369560540ad21fb32eef23029fec8d97c4c015ac",
+  "clean_pushed": true,
+  "metadata_only_delta": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "eech-campaign/reference/d3-entity-collision/entity-pose-observer-correction-gate-20261105.json"
+  ],
+  "final_direct_exits": {
+    "fmt_apply": 0,
+    "fmt_check": 0,
+    "check_four": 0,
+    "build_collision_fixture": 0,
+    "build_weapon_fixture": 0,
+    "build_model_fixture": 0,
+    "build_model_host_fixture": 0,
+    "build_weapon_and_collision": 0,
+    "dialogue": 0,
+    "engine_lib": 0,
+    "dc_lib": 0,
+    "movement": 0,
+    "pose_host": 0,
+    "entity_authority": 0,
+    "tree_authority": 0,
+    "host_callbacks": 0,
+    "clippy_four": 0,
+    "clippy_entity_dialogue": 0
+  },
+  "result_rows": 8,
+  "tests_passed": 462,
+  "tests_failed": 0,
+  "gate_log_bytes": 61415,
+  "gate_log_sha256": "23b6265704262e50bba9ac816f81bd49be6242451fc709f279499efe3437e2d2",
+  "freeze_sha256": "5876979720ff743654277e228695d195d84d914d8cd42b2e992f71931db38412",
+  "source_input_rows": 2919,
+  "post_gate_and_post_commit_raw_filtered_maps_equal": true,
+  "final_pre_gate_map_available": false,
+  "pre_gate_qualification": "source-before.txt belongs to12ce before residual corrections. Final began cargo fmt--all; no after-fmt pre-gate map was captured. No before/after equality or immutable Linux build snapshot is claimed. Author/root observed no subsequent source edits during final run. Post-gate maps and committed bytes independently verified; fresh immutable Windows snapshot/cache still required.",
+  "raw_inputs_byte_exact_to_runtime_git": 2916,
+  "raw_test_lua_line_ending_qualifications": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "tested_working_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "runtime_git_sha256": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9",
+      "tested_working_bytes": 3691,
+      "runtime_git_bytes": 3608,
+      "working_CRLF_count": 83,
+      "unchanged_since_base": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "tested_working_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "runtime_git_sha256": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655",
+      "tested_working_bytes": 5848,
+      "runtime_git_bytes": 5720,
+      "working_CRLF_count": 128,
+      "unchanged_since_base": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "tested_working_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "runtime_git_sha256": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b",
+      "tested_working_bytes": 3683,
+      "runtime_git_bytes": 3600,
+      "working_CRLF_count": 83,
+      "unchanged_since_base": true
+    }
+  ],
+  "filtered_hash_exceptions_with_identical_raw_git_bytes": [
+    "aphavoc/laa.c",
+    "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+    "aphavoc/source/entity/special/effect/smokelst/sl_types.h"
+  ],
+  "changed_code_paths": [
+    "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+    "aphavoc/source/entity/mobile/mb_hostentity.h",
+    "aphavoc/source/entity/mobile/mb_hostmodel.c",
+    "aphavoc/source/entity/mobile/mb_hostmodel.h",
+    "aphavoc/source/entity/mobile/mb_hostoffer.h",
+    "eech-campaign/crates/eech-dc/src/module.rs",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+    "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+    "eech-campaign/crates/eech-engine/src/lib.rs",
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "eech-campaign/crates/eech-world/src/main.rs",
+    "eech-campaign/crates/eech-world/src/model_host.rs",
+    "eech-campaign/crates/eech-world/src/movement.rs",
+    "eech-campaign/crates/eech-world/src/reference_arithmetic.rs",
+    "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+    "eech-campaign/crates/eech-world/tests/entity_pose_host.rs"
+  ],
+  "all_changed_code_raw_exact_to_runtime_git": true,
+  "source_after_sha256": "21e905989ab91953d35a5a2b2ddcadb843a882f46c255bee97937352776f86f4",
+  "source_after_commit_sha256": "20fc1b4e7ba4465d533e7cd69aba920c478d3f0b6e8dc4ec4f8862235e026772",
+  "literal_witness": {
+    "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "git_blob": "a5eb38b6663072599315b84da4e4128e19d68530",
+    "sha256_raw": "ef6186ee5930868b56e7d9091f2938256bf3b0b340d4e4f1448c671ccc4a6c1b",
+    "bytes": 88493
+  },
+  "scope": "Source and actual Linux gate binding only. No Windows/native/retail result, physical pose authority, full Task49 or D3 acceptance. Separate 3 unchanged testLua line-ending qualifications and3 Core filtered exceptions; no source/output normalization."
+}
