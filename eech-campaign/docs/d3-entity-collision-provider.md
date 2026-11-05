@@ -87,7 +87,7 @@ x86-64 run can distinguish from the by-value one, so it is guarded by text and i
 the Rust transcription of the scan in the differential is a model of the dialogue, not that code. The compile guard (`entity_host_guard`) shows the ordinary module holds none of the original's decisions, the offer
 header holds none either, the original profile keeps all of them, and the identity labels are bound as stated.
 
-## The enumeration: the host drives the cursor (fourth slice, 5 November 2026; source and Linux checks only)
+## The enumeration: the host drives the cursor (fourth slice, 5 November 2026; source cleared for planned native validation; Linux controls only so far)
 
 Before this slice the campaign still decided WHICH candidates were visited and in what order. `get_line_of_sight_collision_entity` now hands the enumeration to the host (`ENTITY_SCAN`, `mb_hostmodel.h`; the reference host is
 `csrc/entity_scan_step.c`, the original's expressions): the segment's min and max, the 150 m widening and the clamp to the map's extents as sector indices, the traversal (x outer, z inner), that each sector's list is read from its
@@ -126,12 +126,18 @@ observation to take, not a claim.
 zero moving questions, so every mobile candidate seen was stationary. The concrete native prerequisite, left open: a witness run whose evidence row shows `candidate_need_updated` greater than zero within the armed window
 (the existing `warmup` argument is the only knob, to be chosen from observed counts of moving group members near the launcher, never tuned after an UNREACHED); stationary evidence does not cover it.
 
-**Evidence (Linux, pinned image; nothing native).** CHARACTERISATION of the replaced behaviour on the clean source `4b3ec8470` (the candidate differential, 10 tests, and the C control, both green) before any change.
+**Evidence (Linux, pinned image; no Windows or retail campaign ran, but the Linux C controls executed the compiled C).** CHARACTERISATION of the replaced behaviour on the clean source `4b3ec8470` (the candidate differential, 10 tests, and the C control, both green) before any change.
 Then: the new differential compares the ORIGINAL scan over a 4 x 4 map (window arithmetic, x outer z inner, tail-first lists, exclusions, first hit, services, poses and refusals, transcribed from the source) with the host-driven
 scan (400 worlds x 6 segments, segments of every size and at the map's edges, exclusions that name real entries): same entity and the SAME TRANSCRIPT. Kernel contracts (window, clamp, order, phases, refusals), the C control that
 runs the REAL driver and the REAL exchange over scripted sector lists (positive paths first: tail-first order, first hit, an unnamed sector never read, exclusion facts, an empty list; then each illegal state, cursor and runaway by
 marker), the bridge, the engine callback, and the real provider. Mutants of the window widening, the map clamp, the first-hit end, the exclusion, the traversal order, the list direction and the exclusion fact each fail their check. The
 campaign's driver against the real heap getters is exercised natively only.
+
+**Qualifications recorded by the independent source review (`independent-entity-enumeration-source-40ef-runtime8b852-20261105.json`, SHA-256 `1a856a53300c216d8c462c2da6fad26494f057d380cc7ab328dcaad70d4b470d`, SOURCE_CLEAR_FOR_PLANNED_NATIVE_VALIDATION, findings empty).** (1) The preamble of the hosted
+branch in `en_cllsn.c` that still says the enumeration window, order and exclusions remain Core is HISTORICAL and stale for this slice: the decision kernel is the host's, and only the backing lists, the live state and the identity equality
+remain Core transitional dependencies. The frozen compiled source `8b85230826ad1c1bea289f6d2592f31b705a03f6` is unchanged by this note; the comment can be corrected with the next production C change. (2) The differential is a Rust TRANSCRIPTION of the original scan compared with the
+host decision functions and a model of the service: it is not an execution of the legacy `en_cllsn.c` loop, and its generator and thresholds differ from the old synthetic world set. (3) The 4 000 000-question limit bounds the host's questions, not
+the campaign's own walk to the tail of a list.
 
 ## The output contract (review finding ENV-ENTITY-CALLER-BUFFER-1)
 

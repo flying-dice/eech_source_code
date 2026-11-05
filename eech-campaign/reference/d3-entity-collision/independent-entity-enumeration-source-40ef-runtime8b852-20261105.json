@@ -1,0 +1,304 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05T14:13:58.680213+00:00",
+  "review": "One independent combined correctness, clean-code and boundary-safety source review of the new ENTITY_SCAN enumeration cutover and its retained direct Linux gate. No reviewer builds, tests, campaigns, source edits, process operations or subagents.",
+  "source": {
+    "base": "4b3ec847050418d04186d0bdb73ad37974b986f8",
+    "runtime_commit": "8b85230826ad1c1bea289f6d2592f31b705a03f6",
+    "metadata_head": "40ef389217194c66ca68eda09881517a52e24161",
+    "commit": "8b85230826ad1c1bea289f6d2592f31b705a03f6",
+    "worktree": "R:\\d3-evidence\\collision-characterization-20261029",
+    "clean_readback": true,
+    "changed_paths": [
+      "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+      "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "aphavoc/source/entity/mobile/mb_hostscan.h",
+      "eech-campaign/crates/eech-dc/src/module.rs",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+      "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_host_guard.rs",
+      "eech-campaign/crates/eech-engine/src/lib.rs",
+      "eech-campaign/crates/eech-world/build.rs",
+      "eech-campaign/crates/eech-world/csrc/entity_scan_step.c",
+      "eech-campaign/crates/eech-world/src/entity_host.rs",
+      "eech-campaign/crates/eech-world/src/model_host.rs",
+      "eech-campaign/crates/eech-world/tests/entity_candidate_host.rs",
+      "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+      "eech-campaign/docs/d3-entity-collision-provider.md"
+    ],
+    "metadata_only_delta": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json",
+      "eech-campaign/reference/d3-entity-collision/entity-enumeration-direct-gate-20261105.json"
+    ],
+    "all_18_reviewed_working_paths_raw_exact_to_runtime_git": true,
+    "source_input_rows": 2918,
+    "all_three_raw_and_filtered_input_maps_equal": true,
+    "input_manifests": [
+      {
+        "path": "D:\\EECH-Migration-Evidence\\entity-enumeration-20261105-a\\source-before-final.txt",
+        "bytes": 469077,
+        "sha256": "8547d8ae8a2e333a8cb66236ddf6f25b122e1f9d4c5a9d6c07128a11fcc5642b"
+      },
+      {
+        "path": "D:\\EECH-Migration-Evidence\\entity-enumeration-20261105-a\\source-after-final.txt",
+        "bytes": 469077,
+        "sha256": "8547d8ae8a2e333a8cb66236ddf6f25b122e1f9d4c5a9d6c07128a11fcc5642b"
+      },
+      {
+        "path": "D:\\EECH-Migration-Evidence\\entity-enumeration-20261105-a\\source-after-commit.txt",
+        "bytes": 465738,
+        "sha256": "9cbc5a80da8848c14dfdb272b18de3828dd133262be26ed5a91e6b144ae30c28"
+      }
+    ],
+    "qualified_root_binding": {
+      "path": "R:\\d3-evidence\\entity-enumeration-source-binding-40ef-runtime8b852-20261105.json",
+      "bytes": 4523,
+      "sha256": "8864de06bdaaeb7f3a4d1fca5c9cf16bdf2a7318f362f543aa7ed59718181e44"
+    }
+  },
+  "decision": {
+    "status": "SOURCE_CLEAR_FOR_PLANNED_NATIVE_VALIDATION",
+    "source_review_no_blocking_findings": true,
+    "native_launch_clearance": true,
+    "findings": [],
+    "finite_scan_native_authority_closed": false,
+    "new_scan_ordinary_short_conformance_closed": false,
+    "moving_public_authority_or_parity_closed": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "source_assessment": [
+    {
+      "area": "Original function and arithmetic",
+      "finding": "The ordinary hosted function delegates before its old min/max, widening, sector conversion and loops. The original-feature branch retains those statements. The new Host kernel uses the same finite-input comparisons, 150.0f widening, clamp, C truncation then integer side-length division, and x-outer/z-inner progress. The existing hosted fpu.h staging already replaces the legacy GNU conversion assembly with C truncation; this review does not use unpatched x87 assembly as its original oracle."
+    },
+    {
+      "area": "Actual cursor service and first hit",
+      "finding": "The shared mb_hostscan.h used by en_cllsn.c serves the named sector only after map validation, reads its tallest height then first child and successor chain to the tail, serves predecessors, and reports source/target identity equality as a fact. It calls the unchanged Candidate dialogue only for a nonexcluded served entry. A city-child hit returns the actual building returned by that dialogue. The first resolved hit is returned without later sector/list/getter work. No entity pointer or allocation index crosses the transport, no roster is copied, and no list ownership or lifetime is transferred."
+    },
+    {
+      "area": "State legality, malformed responses and bounds",
+      "finding": "Sixteen fact words and five distinct states are wired consistently through C, sys, Engine, DC and World. BEGIN and END permit FIRST or DONE_NONE; ENTRY permits the matching NEXT/OFFER; RESOLVED permits DONE_HIT or NEXT according to the actual offer result. These checks prevent NEXT/OFFER on a NULL cursor and false DONE_HIT. FIRST cursor words are classified through raw pointer/memcpy finite checks, then integral/domain checks, before integer/map access; unused cursor words must be positive zero. The map is checked before list dereference. A 4,000,000-exchange work limit is explicit; it is not a corruption-proof bound on the Core list tail walk."
+    },
+    {
+      "area": "Reads, output contract and refusals",
+      "finding": "The new service reads no prior caller point/normal. It retains the closed Candidate/narrowphase dialogue and its staged effectful UPDATED/terrain services and component-write contract. Full SCAN reply validation precedes that reply being acted on. A later refusal is not a transaction rollback: earlier legitimate offers may already have made the original partial output writes or getter effects. No after-fatal buffer/state inspection or restoration claim is made."
+    },
+    {
+      "area": "Host and profile boundaries",
+      "finding": "The new provider operation is a pure enumeration decision from its segment, map, phase and cursor facts; it does not bootstrap another model store. Candidate/narrowphase continue using their accepted finalized ModelStore path. The original collision profile remains explicit and compiled by the gate, including the weapon+collision combination. The shared backing-list service remains Core coupling, not an independent Host roster or completed physical ownership."
+    },
+    {
+      "area": "FPU, RNG and finite input",
+      "finding": "The Host wrapper validates the finite sixteen-word domain and integral controls, requires all six exception masks in both units, runs the new C arithmetic under ScopedRounding Zero and compares its saved/restored state. No RNG call is added in the scan service/kernel. This is source and direct-test evidence only: no new all-rounding-mode caller-FP, enabled-trap, native RNG or whole-public-lifecycle equivalence claim is made."
+    },
+    {
+      "area": "Clean-code scope",
+      "finding": "A small private shared cursor header avoids a second implementation of the actual Core service in its C control. The pure C Host kernel, typed Rust decision and transport are separated by their existing roles. The original function declarations remain shared with its explicit original branch. No unrelated old kernel/helper redesign was required."
+    }
+  ],
+  "direct_validation": {
+    "gate_directory": "D:\\EECH-Migration-Evidence\\entity-enumeration-20261105-a\\gate",
+    "gate_log": {
+      "path": "D:\\EECH-Migration-Evidence\\entity-enumeration-20261105-a\\gate\\gate.log",
+      "bytes": 278318,
+      "sha256": "755e95b6720506f9c3f51a8297f5ae50af1452a7d04bfd5414fe55f98e9adc01"
+    },
+    "runner_exit_record": {
+      "record": "container_exit=0",
+      "path": "D:\\EECH-Migration-Evidence\\entity-enumeration-20261105-a\\gate\\runner-exit.txt",
+      "bytes": 17,
+      "sha256": "d83a34d9170b1ee4a2323b29e31ca7e61668451861ed713be3830fd2652be1fa"
+    },
+    "steps": [
+      {
+        "name": "fmt",
+        "actual_child_exit": 0
+      },
+      {
+        "name": "tests-four-crates",
+        "actual_child_exit": 0
+      },
+      {
+        "name": "test-model-walk",
+        "actual_child_exit": 0
+      },
+      {
+        "name": "test-tree-dialogue",
+        "actual_child_exit": 0
+      },
+      {
+        "name": "test-entity-dialogue",
+        "actual_child_exit": 0
+      },
+      {
+        "name": "build-collision-fixture",
+        "actual_child_exit": 0
+      },
+      {
+        "name": "build-weapon-fixture",
+        "actual_child_exit": 0
+      },
+      {
+        "name": "build-model-fixture",
+        "actual_child_exit": 0
+      },
+      {
+        "name": "build-model-host-fixture",
+        "actual_child_exit": 0
+      },
+      {
+        "name": "build-weapon-and-collision-fixture",
+        "actual_child_exit": 0
+      },
+      {
+        "name": "clippy-four-crates",
+        "actual_child_exit": 0
+      },
+      {
+        "name": "clippy-dc-collision",
+        "actual_child_exit": 0
+      },
+      {
+        "name": "clippy-dc-weapon",
+        "actual_child_exit": 0
+      },
+      {
+        "name": "clippy-dc-weapon-and-collision",
+        "actual_child_exit": 0
+      },
+      {
+        "name": "clippy-engine-sys-tree-dialogue",
+        "actual_child_exit": 0
+      },
+      {
+        "name": "clippy-engine-sys-entity-dialogue",
+        "actual_child_exit": 0
+      }
+    ],
+    "direct_children": 16,
+    "actual_container_exit": 0,
+    "test_result_rows": 65,
+    "passed": 1198,
+    "failed": 0,
+    "no_FAILED_or_error_lines": true,
+    "safe_committed_gate": {
+      "path": "R:\\d3-evidence\\collision-characterization-20261029\\eech-campaign\\reference\\d3-entity-collision\\entity-enumeration-direct-gate-20261105.json",
+      "bytes": 5227,
+      "sha256": "f72e81be14a3178f03df7d32a89b2ad1a3c507c5f74a485aee6efdce8800da52"
+    },
+    "scope": "The no-fail-fast four-crate tests, focused shared C model/tree/entity controls, relevant original/weapon/model/host and weapon+collision profile builds, fmt and all listed strict gates completed. Compiled C controls executed. Conditional native tests or build-only profiles are not counted as retail engine coverage.",
+    "new_contracts": {
+      "entity_candidate_host_tests": 13,
+      "generated_differential": "400 synthetic worlds x 6 segments over a 4 x 4 grid; original scan/window/placements are a Rust transcription, compared with the actual Host decision functions and a model of the service. It is not execution of the legacy en_cllsn.c loop. The grid generator and coverage thresholds changed; this is not literal replay of the old synthetic world set.",
+      "actual_shared_C_control": "The real mb_hostscan.h, mb_hostentity.h exchange and unchanged offer service run over scripted C sector lists. Positive tail/order/first-hit/exclusion/empty paths and invalid state/cursor/provider/runaway paths run; the test requires at least 315 expectations. These are not the actual campaign heap getters.",
+      "bridge_engine_provider_new_tests": {
+        "DC": 2,
+        "Engine": 2,
+        "World_provider": 1
+      },
+      "source_guard_tests": 5
+    },
+    "prechange_characterization": "The retained base4b3 evidence is 10 Candidate transcription/differential tests and one actual shared C dialogue control, not an original engine-loop or moving native measurement.",
+    "mutation_evidence": {
+      "summary": {
+        "path": "D:\\EECH-Migration-Evidence\\entity-enumeration-20261105-a\\mutants-summary.txt",
+        "bytes": 504,
+        "sha256": "69b8a5bffc3ffe0a38774f0f67691ce1fab290d39d7aae64b38aed6f03f24148"
+      },
+      "seven_targeted_cargo_exits": 101,
+      "targets": [
+        "widening",
+        "map clamp",
+        "first-hit termination",
+        "exclusion",
+        "x/z order",
+        "head instead of tail",
+        "excluded fact"
+      ],
+      "header_restoration_independently_byte_checked": true,
+      "kernel_restoration_bound_by_final_input_maps_and_committed_source": true,
+      "wrapper_success_is_not_a_mutant_green": true
+    },
+    "retained_failures": "focused1 had an incorrect expected getter-log string; clippy1/clippy2 had new-test tuple/indexing lint failures. They remain separate from the final gate. No old Candidate gate is relabelled as this new SCAN gate."
+  },
+  "source_byte_qualifications": {
+    "all_2918_working_raw_inputs_equal_git": false,
+    "root_enumerated_raw_exact_inputs": 2915,
+    "new_changed_paths_raw_exact": 18,
+    "unchanged_test_lua_working_CRLF_vs_committed_LF": [
+      {
+        "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+        "tested_working_bytes": 3691,
+        "tested_working_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+        "runtime_git_bytes": 3608,
+        "runtime_git_sha256": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9",
+        "working_CRLF_count": 83,
+        "git_unchanged_since_base_4b3": true,
+        "only_source_line_endings_differ": true,
+        "filtered_git_id_equal": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+        "tested_working_bytes": 5848,
+        "tested_working_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+        "runtime_git_bytes": 5720,
+        "runtime_git_sha256": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655",
+        "working_CRLF_count": 128,
+        "git_unchanged_since_base_4b3": true,
+        "only_source_line_endings_differ": true,
+        "filtered_git_id_equal": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+        "tested_working_bytes": 3683,
+        "tested_working_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+        "runtime_git_bytes": 3600,
+        "runtime_git_sha256": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b",
+        "working_CRLF_count": 83,
+        "git_unchanged_since_base_4b3": true,
+        "only_source_line_endings_differ": true,
+        "filtered_git_id_equal": true
+      }
+    ],
+    "separate_preexisting_Core_filtered_hash_exceptions": [
+      "aphavoc/laa.c",
+      "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+      "aphavoc/source/entity/special/effect/smokelst/sl_types.h"
+    ],
+    "meaning": "All before/after/after-commit raw+filtered maps are independently equal. The three unchanged Lua test fixtures were checked individually: working CRLF bytes reduce exactly to the unchanged base/runtime/metadata Git LF blobs, with the recorded filtered ids. This is separate from three Core files whose raw bytes match Git while clean-filter ids differ. Shipping C/Rust binding is supported by the qualified Root receipt and every changed path was independently raw-compared. No accepted raw recording/output was normalized, rewritten or rerun."
+  },
+  "nonblocking_documentation_qualifications": [
+    {
+      "path": "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+      "qualification": "Its older hosted preamble still says enumeration window/order/exclusions remain Core. That is stale for this delta: the new decision kernel is Host-owned; actual backing lists, live state and identity equality remain Core transitional dependencies. Root acknowledged correction in current documentation/publication."
+    },
+    {
+      "path": "eech-campaign/docs/d3-entity-collision-provider.md",
+      "qualification": "Linux evidence described as nothing native means no Windows/retail/native campaign. The retained controls actually execute compiled C. The differential is explicitly a transcription. Root acknowledged this scope qualification; no claim of an original engine-loop runtime oracle follows."
+    }
+  ],
+  "next_unmet_native_gates": [
+    "Build and seal the corrected ordinary and planned fixture Windows profiles at their exact source identities.",
+    "Run the retained ordinary short once on fresh verified inputs, compare all complete outputs literally to the accepted baseline, and record walltime for the increased per-entry callback cost. Existing runtime1ccc/d39 short and authority remain at their own identities.",
+    "Run the new SCAN public healthy/changed/withheld boundary controls with actual reached scan questions, real cohort consequences and named refusals; do not substitute the closed Candidate controls.",
+    "Keep moving native parity/authority unmeasured until a real NEED_UPDATED/moving path is witnessed, without reclassifying stationary counts or the synthetic differential."
+  ],
+  "required_remaining_scope": [
+    "Core backing sector lists and insertion/relink order",
+    "semantic roster identities and lifetime/synchronization contract",
+    "live pose/state and source/target identity coupling",
+    "Core city-child traversal",
+    "required raw loaders/forest/cloud and remaining object physical ownership",
+    "hierarchy/device/muzzle/target-point and other whole-D3 requirements",
+    "primary-evidenced complete DCS shape/query/data mapping",
+    "whole Task49 full pack/dependency/delivery gates"
+  ],
+  "reused_closed_evidence": "Candidate public authority0e27 at runtime1ccc/diagnosticd39; Candidate Source673; corrected narrowphase source1ab and stationaryae1; TREE7ad; delivered Task50/Task52 shipping3fdf. Their source/actual proofs were not rerun or swept and do not prove new SCAN native behavior.",
+  "publication_safety": "Safe counts, hashes, source paths and limits only; no retail coordinates, physical tuples, entity indices/pointers, host-id suffixes, geometry, recordings, assets, binaries or credentials."
+}

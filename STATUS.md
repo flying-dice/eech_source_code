@@ -1,4 +1,23 @@
-# CURRENT — D3 Task49: the entity scan's ENUMERATION is host-driven (window, order, exclusions, first hit); the heap stays as a named backing dependency; source and Linux only, source review next (5 November 2026)
+# CURRENT — D3 Task49: the host-driven ENTITY_SCAN enumeration is independently SOURCE-CLEAR for planned native validation; Root's Windows builds of `8b8523082` are its own; the public SCAN witness is next (5 November 2026)
+
+This is the ONE current summary; dated entries below are history. Read `R:/d3-evidence/D3-CURRENT.json` and the active card. The independent source review (`independent-entity-enumeration-source-40ef-runtime8b852-20261105.json`, LF, SHA-256 `1a856a53300c216d8c462c2da6fad26494f057d380cc7ab328dcaad70d4b470d`)
+is `SOURCE_CLEAR_FOR_PLANNED_NATIVE_VALIDATION` with no findings for runtime `8b85230826ad1c1bea289f6d2592f31b705a03f6` (metadata `40ef38921`); it is NOT scan native authority, ordinary-short conformance, moving-path authority, whole Task 49 or D3. Published unchanged beside the Root
+source binding (`entity-enumeration-source-binding-40ef-runtime8b852-20261105.json`, 4523 bytes LF, SHA-256 `8864de06bdaaeb7f3a4d1fca5c9cf16bdf2a7318f362f543aa7ed59718181e44`). Closed and not repeated: Candidate finite authority `0e27b680`, Source `673c0d93`, stationary Entity `ae1ea9be`, TREE `7ad1a698`, Task 50, Task 52.
+
+**Corrected evidence scope (do not restate the earlier claims).** The direct 16-step gate is all child exit 0, container 0, 65 result rows, 1198 tests; before, after and after-commit input maps (2918 rows, raw and filtered) are equal. Of those rows 2915 raw working
+inputs are byte-exact to Git. The exact three unchanged `tests/lua/tree-geometry-{conversion-refused-control,one-shot-control,refused-probe-control}.lua` are WORKING-copy CRLF against committed LF (the same Git blob since base `4b3ec8470`; filtered ids equal Git), and
+they are SEPARATE from the three known Core inputs (`aphavoc/laa.c`, `xp_types.h`, `sl_types.h`) whose raw bytes match Git but whose clean-filter ids differ. All 18 changed files are raw-exact to the runtime Git. So neither "all 2918 raw equal Git" nor "only
+three qualifications" is claimed. The actual `git diff 4b3ec8470..8b8523082` is 18 changed paths (an earlier narrative said 19: the count was wrong; the list in the review is the actual one).
+
+**Wording corrections.** "Nothing native" for the Linux evidence means no Windows or retail campaign; the Linux C controls executed the compiled C. The hosted preamble in `en_cllsn.c` that says the enumeration window, order and exclusions remain Core is HISTORICAL: the
+decision kernel is the host's and only the backing lists, live state and identity equality remain Core (a transitional dependency, REQUIRED to move). The compiled `8b8523082` inputs are not changed for prose; the comment can follow the next production C change.
+The differential is a transcription, not the legacy loop; the 4 000 000-question limit bounds the host's questions, not the campaign's walk to a list's tail.
+
+**Next.** A TEST-ONLY public ENTITY_SCAN witness extending `entity-authority.lua` (Root pins its literal blob and reuses the frozen `8b8523082` binaries), then Root's ordinary short against `80fd` with wall time. Still REQUIRED and open: the roster/identity/synchronisation/live pose behind the
+cursor, city-child enumeration, the effectful UPDATED and shared terrain record, raw tree/forest/cloud/RNG, hierarchy, devices, muzzles, rotor damage, smoke, host identities, the DCS needed-only mapping, the moving public path (existing finite counts have mobile candidates but
+`NEED_UPDATED` 0; mobile counts are not motion and no warmup is to be tuned after UNREACHED), whole Task 49 (full 40/all8, CI, review, normal merge) and D3. D4/D5 unstarted. No baseline, tolerance, input, seed, frame or duration change.
+
+# HISTORICAL (superseded 5 November 2026 by the CURRENT block above; the enumeration cutover before its source review) — D3 Task49: the entity scan's ENUMERATION is host-driven (window, order, exclusions, first hit); the heap stays as a named backing dependency; source and Linux only, source review next (5 November 2026)
 
 This is the ONE current summary; dated entries below are history. Read `R:/d3-evidence/D3-CURRENT.json` and the active card. Closed and not repeated: the finite Candidate public authority (frozen `1ccc9e2ed` + literal diagnostic `d39a14a95`, report `0e27b680…`), the ordinary short on `1ccc9e2ed`, finite stationary Entity, TREE, Task 50 and Task 52.
 
