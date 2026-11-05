@@ -1,0 +1,207 @@
+{
+  "schema": 1,
+  "source_commit": "1f9a939bc8d50e7d2fede60b26830d6fdd39055a",
+  "literal_witness": {
+    "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "git_blob": "a5eb38b6663072599315b84da4e4128e19d68530",
+    "sha256_raw": "ef6186ee5930868b56e7d9091f2938256bf3b0b340d4e4f1448c671ccc4a6c1b",
+    "bytes": 88493
+  },
+  "changed_since_parent": [
+    {
+      "path": "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+      "git_blob": "a1d50c0921b1f2bb7f38652f673883557bd33d1f",
+      "sha256_raw": "e68ced855d2fc9bb080654c52d767f75ce57ebb04e5369a8b00008cf794b737d",
+      "bytes": 76349
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "git_blob": "e7f020d57dd9c64fb9d87e1d20ce1f4ccbe9a208",
+      "sha256_raw": "3a077be752de9991ac7de8fa49b59ff2a2a0cdb8453a0cddb1cbd857001d0bb9",
+      "bytes": 25252
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "git_blob": "817d6025c8ae8b9b2351d811efb1231a0ce4ca15",
+      "sha256_raw": "f5f108441815248eaeb0b4313346d46f3f6e3a3620acad3f4925996c7017e043",
+      "bytes": 43478
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostoffer.h",
+      "git_blob": "e1df283ac4c2766df2d5593fa2ba234177843a93",
+      "sha256_raw": "1dd5d4c76a095131360019565c3f6e21f209277a3debdaf0e2ec20ef59326193",
+      "bytes": 11442
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "git_blob": "b0ee7b35a80cb202c8f93251320550000206e37a",
+      "sha256_raw": "94c5cbb3f2b5ce51d46a8f941cb2bc7034aab264cb38afbb8ea6e0f779853efb",
+      "bytes": 459093
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+      "git_blob": "0241411d72f61e6555d07129df38571b7586a533",
+      "sha256_raw": "55203ab9849847806dee8fb50559a1bf2b5ef5fa9f1234c7130fa349c139cdad",
+      "bytes": 80455
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "git_blob": "54daa79e01a2edd3fd0b84335a730d8ddd439977",
+      "sha256_raw": "db0def07f58bd74f8faffcf73b9a51f6b8add407431567a24c60fcfa1173c154",
+      "bytes": 78557
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+      "git_blob": "2ccc6cd13e22faf6f07f5e0ff53ff21aa5af46cc",
+      "sha256_raw": "044dd470475de91ede411d9f5dedeabe68aaf509adf12b1b723a9732fe11b769",
+      "bytes": 2324
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "git_blob": "a499588b063f8704d2aec2695842209648b4ff55",
+      "sha256_raw": "ac346a24d57b1097d2f474202a7f9619652bac4c2b616882415a97a9ecebb5b2",
+      "bytes": 677024
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "git_blob": "a5eb38b6663072599315b84da4e4128e19d68530",
+      "sha256_raw": "ef6186ee5930868b56e7d9091f2938256bf3b0b340d4e4f1448c671ccc4a6c1b",
+      "bytes": 88493
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+      "git_blob": "21b17a1630f6bbeddc9e09b9a3590307808f34c6",
+      "sha256_raw": "f066e20456647e8d285fd599f61ceedcc4ace105ce5abdaf8a35886d11903934",
+      "bytes": 105496
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/movement.rs",
+      "git_blob": "ff7b76350b07500a5fcbdf96174401580b6321b9",
+      "sha256_raw": "d6d7c3bf7a36cc809675d7b8423562e0858e1220efd87fc82b8d1880b5e94825",
+      "bytes": 349257
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/reference_arithmetic.rs",
+      "git_blob": "5af73ef13c57902f75a7646220a1a09c3168cbba",
+      "sha256_raw": "2bf4a03b0111ca90278487aea9429377f2511c7410876e7d0839cbc285dc2b84",
+      "bytes": 5988
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "git_blob": "a4f0074d25d652c6746cabdbf4015465f8e15cf8",
+      "sha256_raw": "721a9d9b6badf2f5b673176b52679e766381bdfbbfa064de2c4e4ece655a38e3",
+      "bytes": 111411
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/entity_pose_host.rs",
+      "git_blob": "3ae46396bd7f7583938efedbfc63fa0ce143ba72",
+      "sha256_raw": "3d21c0730946bb872f1a90916ef9f4d4977d1eaafe864814fa61807a8a439bfd",
+      "bytes": 11830
+    },
+    {
+      "path": "eech-campaign/docs/d3-entity-collision-provider.md",
+      "git_blob": "95761750cfa3b99200332d6f1fb50840375d0d2e",
+      "sha256_raw": "2bd75a52e0d17f83750d3540a62f563067bd921c4b3ad9c7a9275be9ac3272b8",
+      "bytes": 73629
+    }
+  ],
+  "source_identity": {
+    "rows": 2919,
+    "filtered_column_sha256": {
+      "at_first_corrected_commit_12ce81bf8": "255cd188cb0fdcfdbf5f4287c22a0deaba056ef2c8dd8ff60779dc6cc42716a1",
+      "after_final_checks": "5634e92ecbef25aa120b847fbcf91ae91d846d8d84d67fd1b4e8159e0560832a",
+      "after_final_commit": "5634e92ecbef25aa120b847fbcf91ae91d846d8d84d67fd1b4e8159e0560832a"
+    },
+    "raw_column_sha256": {
+      "at_first_corrected_commit_12ce81bf8": "09d43b2d76e8cdff73217b058086b17eeeb4353d453d5e7eaa55968bd0983c94",
+      "after_final_checks": "727117a3fe7414fc69ccd1ef2b9d4a8521bfc5f56c51a334369ad2cf90be6c84",
+      "after_final_commit": "727117a3fe7414fc69ccd1ef2b9d4a8521bfc5f56c51a334369ad2cf90be6c84"
+    },
+    "committed_byte_binding": "the maps after the final checks and after the final commit are equal (the committed bytes are the bytes the final checks saw); the final run began with cargo fmt --all, so a capture taken before it is not comparable and none is claimed; the first map (12ce81bf8) predates the residual corrections",
+    "core_filtered_hash_exceptions_unchanged": [
+      "aphavoc/laa.c",
+      "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+      "aphavoc/source/entity/special/effect/smokelst/sl_types.h"
+    ],
+    "tests_lua_working_crlf_git_lf_qualification_separate": [
+      {
+        "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+        "working_crlf": 83,
+        "committed_crlf": 0,
+        "unchanged_since_base": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+        "working_crlf": 128,
+        "committed_crlf": 0,
+        "unchanged_since_base": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+        "working_crlf": 83,
+        "committed_crlf": 0,
+        "unchanged_since_base": true
+      }
+    ],
+    "binary_safety": "no changed file has a NUL or CRLF count different from the base; the two literal NUL bytes of the first checkpoint are textual backslash-zero; eech-dc/src/module.rs keeps its two pre-existing NULs unchanged"
+  },
+  "final_checks": {
+    "log": "D:/EECH-Migration-Evidence/pose-fix-20261105-a/final/final.log",
+    "log_sha256": "23b6265704262e50bba9ac816f81bd49be6242451fc709f279499efe3437e2d2",
+    "direct_child_exits": {
+      "fmt_apply": 0,
+      "fmt_check": 0,
+      "check_four": 0,
+      "build_collision_fixture": 0,
+      "build_weapon_fixture": 0,
+      "build_model_fixture": 0,
+      "build_model_host_fixture": 0,
+      "build_weapon_and_collision": 0,
+      "dialogue": 0,
+      "engine_lib": 0,
+      "dc_lib": 0,
+      "movement": 0,
+      "pose_host": 0,
+      "entity_authority": 0,
+      "tree_authority": 0,
+      "host_callbacks": 0,
+      "clippy_four": 0,
+      "clippy_entity_dialogue": 0
+    },
+    "result_rows": 8,
+    "tests_passed": 462,
+    "tests_failed": 0,
+    "entity_dialogue_expectations": 356,
+    "selection": "by changed risk per the Root execution control of 16:15: fmt, the actual C builds of all five fixture profiles, the isolated C dialogue control, strict clippy of the four crates and of the entity-dialogue feature, and the focused targets of the changed inputs (eech-engine lib, eech-dc lib, movement, entity_pose_host, entity_authority, tree_authority, host_callbacks). The earlier full four-crate suite is PARENT evidence and was not repeated."
+  },
+  "focused_mutation_controls": {
+    "summary": [
+      "fp-hardware-multiply apply=0 exits=[target=101 ] failure_evidence_lines=1 restored=yes",
+      "c-offer-attitude-not-refused apply=0 exits=[target=101 ] failure_evidence_lines=4 restored=yes",
+      "c-held-contradiction-not-refused apply=0 exits=[target=101 ] failure_evidence_lines=4 restored=yes",
+      "c-identity-truncated apply=0 exits=[target=101 ] failure_evidence_lines=3 restored=yes",
+      "lua-offer-attitude-not-faulted apply=0 exits=[target=101 ] failure_evidence_lines=1 restored=yes",
+      "done"
+    ],
+    "meaning": "five mutants, one per corrected defect class (a hardware float multiply dies by SIGFPE under unmasked exceptions; the offer-stage attitude and the held/none-held contradiction are no longer refused; the identity truncated to 127 bytes; the witness no longer faults an offer-stage attitude). No broader sweep."
+  },
+  "honest_scope": {
+    "added_reads": "three read-only metadata reads per observation (entity type, alive flag, roster identity); the words are copied from the original reads; the physical getter transcript excludes them and is not an all-getter proof",
+    "eligible": "non-city mobile candidates of a sector list; mobile-flagged city children are intentionally not observed",
+    "formula": "the reference product: IEEE gradual-underflow round toward zero (DAZ=FTZ=0), computed in integers; not claimed for another caller denormal mode; set when an operand is not finite",
+    "identity": "the roster whole domain, 1 to 128 bytes of text, carried in the request field host_id; nothing skipped or shortened"
+  },
+  "not_answered": [
+    "which writer produced a difference, and every writer, pack route, gunship route or dependent carry the run does not reach (their disposition stays required; no universal coverage is inferred from no difference)",
+    "moving public parity (a count of mobile offers is not moving candidates; candidate_need_updated is that counter)",
+    "any physical-authority cutover, the sector backing/roster/static/city children/effectful getters/raw forest cloud RNG/hierarchy/devices/muzzles/rotor/smoke/DCS mapping, whole Task49 and D3"
+  ],
+  "recorded_utc": "2026-11-05",
+  "scope": "Linux direct-exit checks of the observer CORRECTION batch (integer formula, stage masks, 128-byte identity domain, binary safety, honest scope, the 16:07 and 16:09 residuals). Not a native, Windows or retail run; no result of the campaign is claimed.",
+  "parent": {
+    "runtime_commit": "3ad06e9530aff132dd1f0fbebf83d52cb1ad0b84",
+    "metadata_commit": "32e736bb9",
+    "gate": "16 steps all direct child exit 0, 66 result rows, 1220 tests (reference/d3-entity-collision/entity-pose-probe-gate-20261105.json)",
+    "meaning": "preserved as PARENT evidence of the first observer checkpoint; it is NOT the corrected source and clears nothing"
+  }
+}
