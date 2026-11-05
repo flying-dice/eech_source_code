@@ -1,0 +1,30 @@
+{
+  "compiled_source": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+  "literal_source": "0d76fd2d62967d8c85bd91bc724b14c6ebb594bb",
+  "metadata": "ab99171844e58ccb112ae5427bddb3eebc745bca",
+  "actual_literal_source_parent": "0cf2e16a41a03e3bdb42e77adf3f789e3e1c12d2",
+  "scoped_delta": [
+    {
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "git_blob": "2835e9461559cd7395198cd55959ff27a92a422d",
+      "sha256": "3b4a0320bb903629dd81c8fe888017913e7d284e36ceff5d9bb26760a65c5656"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "git_blob": "7ec63d269265faa9fc72482c464d1f151bcdef73",
+      "sha256": "06d254b0ef11c191d7e9cd88869bb580ec4b7f536699dc981f54e5f35c83f9d5"
+    }
+  ],
+  "no_C_no_production_Rust_no_build_input_delta": true,
+  "actual_author_exit": 0,
+  "focused_real_Lua_result": "46passed0failed; oldLuaRED43passed3failed; initialupvalue/fmtfailures retained",
+  "raw_changed_file_hashes_before_after_literal_equal": true,
+  "aggregate_scope_digest_before_after_literal_equal": true,
+  "aggregate_map_qualification": "The retained full-scope map files contain one aggregate digest line only; no retained per-file map rows are claimed. Individual changed-file hashes are independently joined above.",
+  "original_checkpoint_sha256": "409cfa15f518b0925cb7638ed12e7a8dd19a9db355e9472c1bafb38bb4ad068a",
+  "literal": "R:\\d3-evidence\\query-lift-input-0d76fd2d6-literal.lua",
+  "literal_git_blob": "2835e9461559cd7395198cd55959ff27a92a422d",
+  "literal_sha256": "3b4a0320bb903629dd81c8fe888017913e7d284e36ceff5d9bb26760a65c5656",
+  "scope": "Only a separately bound opt-in witness Lua literal may run on existing compiled3475. No binary/source relabelling or ordinary fullpack restart. New matchedA required beforeB/Original; noeligible=>honestUNREACHED.",
+  "verified_utc": "2026-11-05T23:16:45.996684+00:00"
+}

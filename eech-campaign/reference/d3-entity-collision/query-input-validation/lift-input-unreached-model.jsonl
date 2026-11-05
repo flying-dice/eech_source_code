@@ -1,0 +1,4 @@
+{"event":"boot","frame_budget":6200,"frame_ms":100,"mode":"moving_query_control","profile":"hosted","seed":1,"settle":120,"warmup":30}
+{"bound":3572,"elapsed":30.099733352661,"entity_before":6925,"event":"warmed_up","frames":301}
+{"eligibility":"final_warmup_move_step_carried_terrain_input_and_map_ceiling","event":"query_case_selected","final_frame":300,"lift_input_candidates":0,"moving_candidates":80,"selection":"first_alive_moving_routed_target_in_identity_order","target":"none","terrain_without_ceiling_candidates":0}
+{"event":"witness_failure","reason":"UNREACHED: 80 alive routed vehicles were stepped by the host above 1 m/s in the final warmup frame (3572 bound), but none of those move steps carried the terrain input and map ceiling the bounded lift needs (0 carried a terrain input without the ceiling): the controlled query case is not run, nothing is tuned"}
