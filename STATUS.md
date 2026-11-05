@@ -1,4 +1,32 @@
-# D3 current — integration reviewed; Task50 ordinary shipping pack running (2 November 2026)
+# CURRENT — D3 Task50: completed full pack and independent shipping review clear; normal delivery pending (5 November 2026)
+
+This is the ONE current summary; dated entries below are history. The workspace's
+canonical runtime checkpoint is `R:/d3-evidence/D3-CURRENT.json`. Live Confluence
+controls whole-D3 scope. Task49's entity author is active in its own worktree.
+
+Measured production `bce0c3514be13ee4bbc3a571387132989f74e3c6`: the original ordinary
+Windows pack completed 3 November 08:50 UTC with runner exit0 and launcher
+completion true. All40 accepted checks pass; ALL8 COMPLETE default recording,
+observation and metric files are literally byte-identical to the retained baseline.
+Final audit5Nov: all4 full retail input manifests0 (including the internal Lebanon
+copy), all83 payloads/BUILD-INFO/runner/accepted report unchanged and source clean.
+
+The combined independent full-shipping review has no findings, reuses the closed
+source/authority69cad review and confirms these results. Literal report, complete
+comparisons, source-scope and count/hash evidence are in
+`eech-campaign/reference/d3-route-characterization/full-pack-acceptance-20261105/`.
+This publication changes metadata only. Final current CI and a normal merge into
+verified integration581d32a remain delivery gates; it does not claim a merge yet.
+
+The host supplies model loading/triangles/bounds/radii and related physical data;
+campaign choices and consequences stay Core. Task52 target-point production is
+implemented on its stack and its full pack also completed; its dependency delivery
+follows Task50. Task49 entity/tree collision and remaining live hierarchy/instance,
+device/muzzle and physical loader/solver disposition remain REQUIRED whole-D3 work.
+D3 stays open and D4/D5 are unstarted. Baselines/tolerances/inputs/run configuration
+are unchanged. No visual Tacview or native DCS execution claim.
+
+# HISTORICAL (superseded 5 November 2026) — D3 current — integration reviewed; Task50 ordinary shipping pack running (2 November 2026)
 
 Current measured source bce0c3514be13ee4bbc3a571387132989f74e3c6 integrates accepted Task51a42 with closed model metadata. Independent combined source/actual review69cad05093958bcdfb7b1f2d602a9d5749e7794d7abf544da890c0124f06920f has no findings; finite integration checkpoint closed. Default+six-feature package commands, formatting/BOTH strict commands0; ordinary+four-featureWindows0,83 payloads verified, all9exact-bceCI pass. Precise localunit totals are not claimed because the retained stdout/stderr capture overlaps early fragments; actual set-e exits and independent CI remain clear.
 
