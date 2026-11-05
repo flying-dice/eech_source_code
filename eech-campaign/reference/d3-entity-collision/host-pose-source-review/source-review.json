@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05T17:59:10.300361+00:00",
+  "review": "One combined independent correctness, clean-code and boundary-safety source review of the NEW canonical mobile pose/vector production cutover. Only the delta from0f5b and its affected controls/witness were reviewed. Closed observer, SCAN/TREE/Candidate/narrowphase and Task50/52 proofs were reused without source sweeps or reruns. No reviewer source edits, builds/tests/native/cache/VM/auth/process changes or subagents.",
+  "source": {
+    "base_commit": "0f5b8443e564810e7ba7b38932d3f88f0e8ee946",
+    "runtime_commit": "4f790b712871561c2b04c3d3173ad7ad51ee8a24",
+    "metadata_head": "17d3ba35ba23072f32d876b11dc5ef7ca3ca6b05",
+    "commit": "4f790b712871561c2b04c3d3173ad7ad51ee8a24",
+    "worktree": "R:\\d3-evidence\\collision-characterization-20261029",
+    "changed_code_paths": [
+      "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "aphavoc/source/entity/mobile/mb_hostoffer.h",
+      "aphavoc/source/entity/mobile/vehicle/routed/rv_hostmv.c",
+      "aphavoc/source/entity/mobile/vehicle/routed/rv_hostmv.h",
+      "aphavoc/source/entity/mobile/vehicle/routed/rv_move.c",
+      "aphavoc/source/entity/special/group/gp_roster.c",
+      "eech-campaign/crates/eech-dc/src/module.rs",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+      "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+      "eech-campaign/crates/eech-engine/src/lib.rs",
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "eech-campaign/crates/eech-world/src/entity_host.rs",
+      "eech-campaign/crates/eech-world/src/main.rs",
+      "eech-campaign/crates/eech-world/src/model_host.rs",
+      "eech-campaign/crates/eech-world/src/movement.rs",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "eech-campaign/crates/eech-world/tests/entity_pose_host.rs",
+      "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "eech-campaign/crates/eech-world/tests/model_target_point.rs"
+    ],
+    "runtime_to_metadata_only_paths": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json",
+      "eech-campaign/reference/d3-entity-collision/entity-host-record-cutover-focused-20261105.json"
+    ],
+    "freeze": {
+      "path": "R:\\d3-evidence\\mobile-pose-host-record-CODE-FROZEN-20261105.json",
+      "bytes": 13250,
+      "sha256": "b15701fda0625d9631d1769ce84f46e39193a8f29bcb1d78dc044dbe9bb14360"
+    },
+    "literal_witness": {
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "git_blob": "abc5cf0d9dda2747bf48bdccc8b545854a304cd1",
+      "bytes": 93064,
+      "sha256": "007166f160ce68e9e5ee884fd7f112501897815a211b3713ddf2877beddd7e80"
+    },
+    "formatted_precommit_and_postcommit_input_maps": {
+      "rows": 2919,
+      "raw_filtered_maps_independently_equal": true,
+      "pre_commit": {
+        "path": "D:\\EECH-Migration-Evidence\\pose-cutover-20261105-a\\source-pre-commit.txt",
+        "bytes": 470619,
+        "sha256": "37188a78c0b69f993c33228a581c89e93a7a47b3ba4dc58d0bad5238a4600641"
+      },
+      "post_commit": {
+        "path": "D:\\EECH-Migration-Evidence\\pose-cutover-20261105-a\\source-after-commit.txt",
+        "bytes": 465907,
+        "sha256": "5904882c4de17c4a69c79a0997c2331ef38df90be540d334cc50cc704abc2f77"
+      },
+      "all_22_changed_code_raw_hashes_independently_match_commit": true,
+      "qualification": "These are the after-format/pre-commit and after-commit maps described by the author; no immutable Linux build snapshot or a new full pre/post test-gate binding is inferred. Existing three testLua working-CRLF/Git-LF qualifications and separate three Core clean-filter exceptions remain distinct; no accepted output normalization."
+    }
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "source_review_no_blocking_findings": false,
+    "native_launch_clearance": false,
+    "physical_pose_authority_closed": false,
+    "moving_public_parity_or_authority_closed": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false,
+    "findings": [
+      {
+        "id": "ENV-ENTITY-POSE-DOMAIN-1",
+        "priority": "P1",
+        "title": "Mandatory canonical-record and mirror assertions are introduced before lifecycle/domain completeness is established",
+        "locations": [
+          {
+            "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+            "line": 624,
+            "function": "entity_candidate_answer"
+          },
+          {
+            "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+            "line": 520,
+            "function": "check_pose_reply"
+          },
+          {
+            "path": "eech-campaign/docs/d3-entity-collision-provider.md",
+            "line": 421,
+            "section": "Refusals by contract"
+          },
+          {
+            "path": "aphavoc/source/entity/mobile/vehicle/routed/rv_move.c",
+            "function": "routed_vehicle_motion_vector"
+          },
+          {
+            "path": "aphavoc/source/entity/special/group/gp_roster.c",
+            "function": "campaign_roster_link_member"
+          }
+        ],
+        "evidence": "Every mobile&&!of_city query now requires a named canonical record. Empty IDs, no Movers, issued-without-record, retired/unknown IDs and incomplete records become refusals; the document explicitly calls this a new refusal on unreached/no-group/pre-bind/wreck states. The legitimate unhosted movement branch is still retained, while canonical registration is supplied through the group roster/link lifecycle. The closed observer reached only alive, recorded kind1 offers and cannot establish availability or synchronization for every supported caller/creation/placement/lifetime path. The new mirror assertion additionally turns any legitimate producer not yet incorporated into the canonical lifecycle into an engine fatal.",
+        "impact": "Previously decidable collisions can be stopped by a newly required registry/identity state, or by a valid Core writer whose canonical update has not been covered. NoID/unrecorded/dead/unreached cannot be reclassified as invalid merely because the one observed default window had none. Genuinely invalid stale/forged IDs may still be refused; they must be distinguished from legitimate supported paths by source/lifecycle evidence.",
+        "minimum_correction": "Establish canonical availability and coherent physical pose/vector updates for legitimate paths before their first collision question, at actual creation/binding/placement/step/skipped-update/lifetime boundaries. Preserve formerly valid default/unhosted/pre-bind/wreck behavior or provide decisive current compiled caller/lifecycle proof that a particular category is genuinely invalid there. Do not query-seed from Core words, invent zeros/derived vectors, weaken the old physical oracle, or treat a new expected-refusal test and a kind1-only sample as the compatibility proof. Keep every unreached writer/domain explicitly required.",
+        "validation_boundary": "Use coherent positive consumption/default and relevant lifecycle controls before damaged/refusal cases. The current C control still accepts a no-ID offer under a scripted candidate host, while the new real-provider test declares it refused; those controls do not demonstrate preserved end-to-end compatibility."
+      },
+      {
+        "id": "ENV-ENTITY-POSE-FLAG-VALIDATION-1",
+        "priority": "P2",
+        "title": "New canonical dispatch evaluates raw floating flag words before their finite/domain validation",
+        "locations": [
+          {
+            "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+            "line": 617,
+            "function": "entity_candidate_answer"
+          }
+        ],
+        "evidence": "transport_pose intentionally accepts arbitrary word patterns. The new flag closure performs f32::from_bits(words[MOBILE/OF_CITY/PLACEMENT_GIVEN]) !=0.0 before the existing candidate validator. A signaling NaN therefore has no explicit safe raw-classification barrier before a possible FP comparison, and finite malformed nonzero flags can select canonical lookup/refusal before their request-domain error. The model callback itself has no per-callback floating-state guard.",
+        "impact": "Malformed input can affect floating status/trap behavior or produce a registry/busy/missing-record result before the actual malformed-request diagnosis. This is a source-level ordering/boundary defect; no bad native execution or claimed observed trap was used to establish it, and a compiler optimization is not a raw-word safety guarantee.",
+        "minimum_correction": "Classify the relevant raw finite and flag domains before any floating evaluation or canonical lookup, reusing the established request classifier/raw-word discipline and preserving the prior accepted zero/flag semantics. Only then select the registry path. Validate the decision controls without accidentally reintroducing discarded mirror words as physical authority.",
+        "validation_boundary": "One positive-first malformed signaling-NaN/invalid flag case at the existing real-provider boundary, with the intended request error winning before record lookup, is enough for this finding. No unsafe old-native or new broad FP programme is required."
+      }
+    ]
+  },
+  "new_dataflow_assessment": [
+    "The intended canonical consumption is real in the inspected code: the provider reads the same SharedMovers handle used by movement and overwrites the mobile candidate decision inputs with record position/motion and stage-permitted attitude. It does not add a ModelStore pose cache. The real-provider unit deliberately supplies different mirror words and observes the canonical decision/pose, then moves the same record and observes the next decision change. This is meaningful consumption evidence at that unit boundary.",
+    "Routed end-of-step and the two existing vector-derivation early returns now obtain motion from a Host step/result, rather than copying a Core-derived vector into the query. The new Host calculation is the original row2-times-speed expression over its own post-step record. Bind seeds and explicit placement inputs are now carried for every recognized hosted kind; ship results and lifecycle-held vectors are retained. Signed zeros and stale-vector-until-derivation behavior have focused tests.",
+    "The existing first lifecycle claim still adopts the Core-origin vector; the source itself declares that remaining producer responsibility. Explicit placements remain inputs from the campaign. Neither this partial retention change nor the canonical query makes all physical producers, backing state or writers Host-owned.",
+    "The original physical getter staging and scan/first-hit implementation are not otherwise changed. UPDATED whole-flag effects and the shared terrain record remain in their existing requested positions. Host ID lookup is now once per offer; the same bounded ID travels in each question and is echoed in the real C collaborator. No prior caller output words are read.",
+    "Borrowed IDs are copied into synchronous bounded request storage. Reference-model canonical lookup uses try_borrow and copies words before the borrow ends; no new pointer/index wire or second registry was found. The public witness mutates the Host registry before delegating the relevant reference question, rather than while its read borrow is active.",
+    "No additional concrete memory/RefCell/store/layout bug was established. The new physical multiplications execute in the existing Host movement arithmetic context; the focused same-expression tests are not a new full public caller-FP/parity measurement. The unchecked flag ordering above remains the concrete new FP boundary issue."
+  ],
+  "public_witness_and_unmet_actual_gates": {
+    "current_modes": "withdrawn_record retires the selected query identity through Host movement and expects the named retired-record refusal; displaced_record places only the Host record elsewhere and expects the staged mirror assertion. Both are stop/refusal controls, with unknown postfatal counters retained; neither is a completed changed-physical-outcome control.",
+    "positive_consumption_limit": "The real-provider unit distinguishes canonical versus discarded mirror inputs. It does not by itself demonstrate the complete public C/Engine/Host physical handoff. Do not label the two new stop modes as a successful changed canonical-pose public physical-effect proof.",
+    "later_validation_after_fix": "Select the minimum affected native controls after the compatibility/flag corrections: fresh immutable profiles and retained ordinary short, reached healthy canonical queries, coherent canonical-input/physical-consumption evidence at a supported lifecycle boundary, and exact missing/withheld/mismatch refusal limits. A conformance assertion may correctly reject an incoherent Host-only displacement; do not weaken it merely to create a positive effect, and do not manufacture a broad fixture framework.",
+    "moving": "No moving public result is established. Positive candidate_need_updated and moving questions at the actual public route remain necessary before a moving-parity/authority claim; mobile counts are not that proof. No additional closed experiment is rerun for this rejected source."
+  },
+  "focused_checks": {
+    "log": {
+      "path": "D:\\EECH-Migration-Evidence\\pose-cutover-20261105-a\\final\\final.log",
+      "bytes": 66213,
+      "sha256": "d5e661bfe1fc2e26a287ae044682942ee6f53f3d3a1a48c6d5ce03b2ded1e17c"
+    },
+    "actual_container_exit": 0,
+    "direct_commands": [
+      {
+        "name": "fmt_apply",
+        "actual_exit": 0
+      },
+      {
+        "name": "fmt_check",
+        "actual_exit": 0
+      },
+      {
+        "name": "check_four",
+        "actual_exit": 0
+      },
+      {
+        "name": "dialogue",
+        "actual_exit": 0
+      },
+      {
+        "name": "engine_lib",
+        "actual_exit": 0
+      },
+      {
+        "name": "dc_lib",
+        "actual_exit": 0
+      },
+      {
+        "name": "movement",
+        "actual_exit": 0
+      },
+      {
+        "name": "pose_host",
+        "actual_exit": 0
+      },
+      {
+        "name": "model_target_point",
+        "actual_exit": 0
+      },
+      {
+        "name": "entity_candidate_host",
+        "actual_exit": 0
+      },
+      {
+        "name": "entity_authority",
+        "actual_exit": 0
+      },
+      {
+        "name": "tree_authority",
+        "actual_exit": 0
+      },
+      {
+        "name": "host_callbacks",
+        "actual_exit": 0
+      }
+    ],
+    "command_count": 13,
+    "test_result_rows": 10,
+    "tests_passed": 512,
+    "tests_failed": 0,
+    "separate_final_C_dialogue": {
+      "log": {
+        "path": "D:\\EECH-Migration-Evidence\\pose-cutover-20261105-a\\dialogue-final\\dialogue.log",
+        "bytes": 539,
+        "sha256": "a8281e9a7074ef53c2eee1be8740967948e0469a42e3e907f6a428a06c820eda"
+      },
+      "fmt_check_exit": 0,
+      "dialogue_exit": 0,
+      "actual_printed_expectations": 361
+    },
+    "scope": "Working-tree affected compile/focused validation on the formatted checkpoint: fmt, four-crate all-target check, actual shared C dialogue, Engine/DC libraries and the changed registry/provider/witness/guard targets. These green results include tests of the newly declared refusals and do not override the compatibility finding. No fixture-build/strict final matrix, new Windows/native/retail result or production authority is claimed for4f790. The final fixture/clippy/full-suite matrix was deferred and is not required on known blocked source.",
+    "preserved_failed_attempts": "The author freeze records initial provider-borrow/C-call-site compile errors and the earlier seed/setup/witness/vector attempts at their own identities. No pipeline wrapper or old observer full gate is relabelled as this source."
+  },
+  "nonblocking_prose_corrections_for_same_batch": [
+    "The new decision paragraph says scan and sector lists are the campaign's. Preserve the accepted boundary: Host SCAN decisions/order/termination are unchanged by this slice; Core still supplies the backing sector lists and child traversal.",
+    "The offer helper's old observer-only wording should reflect that a malformed/mismatched observation now stops as a conformance assertion; it is not a physical solver answer, but its validity is no longer decision-neutral.",
+    "Do not claim every kind's canonical vector or missing-record category is fully dispositioned from the alive kind1-only observer; source/lifecycle coverage and native authority remain distinct."
+  ],
+  "closed_parent_scope": "Observer Source d801 and actual dc7b remain CLOSED at1f9a, including their disclosed missing final pre-gate map and exact tested eight sticky-flag patterns. SCAN/TREE/Candidate/narrowphase and delivered Task50/52 proofs remain closed at their identities; none was swept, rerun or reclassified as production pose authority.",
+  "required_remaining": "Compatibility-complete canonical lifecycle and actual vector producer coverage first; then current native authority/parity gates. Core backing/roster/identities/live state, raw loaders/forest/cloud, city children/effectful services, hierarchy/devices/muzzles/rotor/smoke/DCS mapping, consolidated Task49 shipping/dependencies and all whole-D3 requirements remain required.",
+  "publication_safety": "Safe source paths, counts, hashes, contract descriptions and limitations only. No retail coordinates/vectors/physical tuples, host-ID suffixes, entity indices/pointers, catalogue, cohort signatures, recordings/transcripts/assets/binaries or credentials."
+}
