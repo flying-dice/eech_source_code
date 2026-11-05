@@ -28,6 +28,7 @@
 
 #include "project.h"
 
+#include "entity/special/guide/gd_attck.h"
 #include "eech_engine.h"
 #include "eech_headless.h"
 
@@ -37,6 +38,8 @@ struct campaign_model_counters
 {
 	long catalogue, scene, triangle, found, end, absent, bounds_reads, bounds_without_lines_reads, radius_reads;
 	long presence_checked, presence_mismatches;
+	long target_offset;
+	long target_chain, target_world, target_fixed;
 };
 
 extern struct campaign_model_counters campaign_model_counts;
@@ -44,6 +47,8 @@ extern void campaign_model_poison_arrays (void);
 extern void campaign_model_core_residency (int *rows, int *metadata_rows, int *points, int *faces, int *point_refs, int *surface_points);
 extern void campaign_model_core_horizon (int *cached, int *uncached);
 extern void campaign_model_core_metadata (long *values);
+extern int campaign_object_is_structure (int entity_type);
+extern int campaign_model_target_point_chain (int scene, int *offsets);
 
 static uint32_t float_bits (float value)
 {
@@ -468,6 +473,525 @@ int eech_model_host_horizon_refusal_run (char *text, int capacity)
 	n = snprintf (text, (size_t) capacity, "model-core-horizon-refusal returned=1\n");
 
 	return ((n < 0) || (n >= capacity)) ? 1 : 0;
+}
+
+/* The host-authored target-point offsets as the campaign HOLDS them (EEDCS-52, D3): `initialise_target_point_offsets` copied each scene's three LOCAL coordinates from the host's
+   TARGET_POINT_OFFSET answers into the private `target_point_offsets` table the direct guidance consumer reads. This reports how many such questions the host was asked since boot
+   (the real boot asks once per scene per initialiser invocation, and invokes it twice) and, for scenes `first ..= first + count - 1`, the held words. A held value that equals what
+   the host answered is the authority; one the campaign could have computed itself would show only if the host's answer were changed. Read-only. */
+int eech_model_host_target_offsets_run (int first, int count, char *text, int capacity)
+{
+	int i, n, used;
+
+	if ((first < 1) || (count < 1) || (first > (int) OBJECT_3D_LAST - count))
+	{
+		return 1;
+	}
+
+	used = snprintf (text, (size_t) capacity, "model-host-offsets asked=%ld\n", campaign_model_counts.target_offset);
+
+	if ((used < 0) || (used >= capacity))
+	{
+		return 1;
+	}
+
+	for (i = first; i < first + count; i++)
+	{
+		n = snprintf (text + used, (size_t) (capacity - used), "model-host-offset scene=%d cache=0x%08x,0x%08x,0x%08x\n", i, float_bits (target_point_offsets[i].x),
+			float_bits (target_point_offsets[i].y), float_bits (target_point_offsets[i].z));
+
+		if ((n < 0) || (n >= capacity - used))
+		{
+			return 1;
+		}
+
+		used += n;
+	}
+
+	return 0;
+}
+
+/* A used-entity list node is trusted only if it is an aligned slot of the entity heap this run allocated (compared as integers); the same check the original target-point
+   observer makes before it dereferences a node. */
+static int host_heap_slot (const entity *en)
+{
+	uintptr_t base = (uintptr_t) entities;
+	uintptr_t at = (uintptr_t) en;
+
+	if (!entities || number_of_entities <= 0)
+	{
+		return 0;
+	}
+
+	if ((at < base) || (at >= base + ((uintptr_t) number_of_entities * sizeof (entity))))
+	{
+		return 0;
+	}
+
+	return ((at - base) % sizeof (entity)) == 0;
+}
+
+/* The DIRECT guidance consumer, called for real on a real entity (EEDCS-52, D3): `calculate_attack_guide_intercept_point` (gd_attck.c) reads all three LOCAL offset coordinates of
+   the target's shape from `target_point_offsets` and returns them as its intercept point when the target is not moving and the weapon is not a ballistic one. This finds, among the
+   live mobiles, the first whose shape is a valid scene and whose velocity is exactly zero, picks the first weapon with a guidance type (so the ballistic drop branch is not taken),
+   calls the consumer once and reports the held offset, the consumer's three coordinates and their equality. No candidate is UNAVAILABLE with its reason, never a pass. The entity is
+   not changed; the function draws no random number and advances no time. Not an engine target selection: the entity is chosen by this diagnostic. */
+int eech_model_host_attack_consumer_run (char *text, int capacity)
+{
+	entity *en, *target = NULL;
+	int visited = 0, shape = 0, weapon = -1, w, equal;
+	vec3d ip;
+	float velocity;
+	int n;
+
+	for (en = get_local_entity_list (); en;)
+	{
+		int type;
+
+		if ((visited >= number_of_entities) || !host_heap_slot (en))
+		{
+			n = snprintf (text, (size_t) capacity, "model-host-consumer status=unavailable reason=entity_list_not_trusted visited=%d\n", visited);
+			return ((n < 0) || (n >= capacity)) ? 1 : 0;
+		}
+
+		visited++;
+		type = (int) en->type;
+
+		if (((type == ENTITY_TYPE_ROUTED_VEHICLE) || (type == ENTITY_TYPE_ANTI_AIRCRAFT) || (type == ENTITY_TYPE_SHIP_VEHICLE)) && get_local_entity_data (en))
+		{
+			int candidate = get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE);
+
+			if ((candidate > OBJECT_3D_INVALID_OBJECT_INDEX) && (candidate < OBJECT_3D_LAST))
+			{
+				velocity = get_local_entity_float_value (en, FLOAT_TYPE_VELOCITY);
+
+				if ((float_bits (velocity) & 0x7fffffffu) == 0)
+				{
+					target = en;
+					shape = candidate;
+					break;
+				}
+			}
+		}
+
+		en = get_local_entity_succ (en);
+	}
+
+	for (w = 0; w < NUM_ENTITY_SUB_TYPE_WEAPONS; w++)
+	{
+		if (weapon_database[w].guidance_type != WEAPON_GUIDANCE_TYPE_NONE)
+		{
+			weapon = w;
+			break;
+		}
+	}
+
+	if (!target || (weapon < 0))
+	{
+		n = snprintf (text, (size_t) capacity, "model-host-consumer status=unavailable reason=%s visited=%d\n", !target ? "no_stationary_mobile_with_a_valid_shape" : "no_guided_weapon", visited);
+		return ((n < 0) || (n >= capacity)) ? 1 : 0;
+	}
+
+	memset (&ip, 0, sizeof (ip));
+	calculate_attack_guide_intercept_point (target, target, weapon, &ip);
+
+	equal = (float_bits (ip.x) == float_bits (target_point_offsets[shape].x)) && (float_bits (ip.y) == float_bits (target_point_offsets[shape].y)) &&
+		(float_bits (ip.z) == float_bits (target_point_offsets[shape].z));
+
+	n = snprintf (text, (size_t) capacity,
+		"model-host-consumer status=called scene=%d entity_type=%d weapon=%d cache=0x%08x,0x%08x,0x%08x consumer=0x%08x,0x%08x,0x%08x equal=%d\n", shape, (int) target->type, weapon,
+		float_bits (target_point_offsets[shape].x), float_bits (target_point_offsets[shape].y), float_bits (target_point_offsets[shape].z), float_bits (ip.x), float_bits (ip.y),
+		float_bits (ip.z), equal);
+
+	return ((n < 0) || (n >= capacity)) ? 1 : 0;
+}
+
+/* The target-point QUERY, called for real on real entities (EEDCS-52, D3): `get_local_entity_target_point` (en_maths.c) on the live entities this diagnostic picks, with the host questions
+   it asked counted around each call. Cases, each one row `model-host-tp case=... status=called|unavailable`:
+     instance_a, instance_b   the first two live vehicles with an instance (any outcome: the counters say whether the host named a chain and was asked for a position). The instance
+                              viewpoint is first set to a sentinel and read after the call, so `vp_written` shows whether the getter wrote it (it writes only when the host named a chain). When `mutate`
+                              is set and the host named a chain, the leaf sub-instance's live relative position, heading and scale are changed for the call and restored after it, and `pose` is the
+                              placement as this diagnostic itself read it from the live tree (the root pose, then each level of the chain), for the script to compare with what the host was sent.
+     instance_none            a vehicle whose instance pointer is set to NULL for the call (not fixed): the original's no-instance, non-fixed fallback, restored after.
+     fixed_a, fixed_b         the first fixed structures with a valid shape: one whose cached host offset has a horizontal part and one that has none, when both exist.
+     fixed_invalid            a fixed structure whose shape is set to the invalid index for the call, restored after: the bit-for-bit position copy.
+   A host-named chain that does not lie inside the instance (a negative or too-large sibling position, a missing child array) is a named REFUSAL of the row (`status=refused
+   reason=chain_path_outside_instance`), made by the ONE bounded walk below before the sentinel, any change, the getter or any pose read; the row returns normally, nothing was touched, and
+   the production world-chain guard is never relied on to catch what this fixture would dereference first. Restoration is READ BACK on normal return (`restored=1` measured equal,
+   `0` measured different, `-1` nothing was changed); nothing here claims cleanup after a fatal unwind.
+   `base` is the entity position as the getter reads it, `heading` the entity heading, `cache` the cached host offset of the shape, `result` the getter's answer, `chain`, `world` and
+   `fixed` the questions asked of the host DURING the call. Nothing else is changed, no random number is drawn and no time advances. A case with no candidate is UNAVAILABLE with its
+   reason, never a pass. */
+static void tp_bits3 (char *out, size_t capacity, const vec3d *v)
+{
+	snprintf (out, capacity, "0x%08x,0x%08x,0x%08x", float_bits (v->x), float_bits (v->y), float_bits (v->z));
+}
+
+static int tp_vehicle_instance_field (entity *en, object_3d_instance ***field)
+{
+	void *data = get_local_entity_data (en);
+
+	switch ((int) en->type)
+	{
+		case ENTITY_TYPE_ANTI_AIRCRAFT:
+		case ENTITY_TYPE_ROUTED_VEHICLE:
+		case ENTITY_TYPE_SHIP_VEHICLE:
+		{
+			*field = &((vehicle *) data)->inst3d;
+			return 1;
+		}
+		default:
+		{
+			return 0;
+		}
+	}
+}
+
+/* the live placement as this diagnostic reads it: the root, then each level of the host's chain by walking the instance's own sub-instance arrays */
+static int tp_pose_text (object_3d_instance *inst, object_3d_sub_instance *const *path, int levels, char *out, int capacity)
+{
+	int used = 0, i, level, n;
+	float words[15];
+
+	words[0] = inst->vp.position.x;
+	words[1] = inst->vp.position.y;
+	words[2] = inst->vp.position.z;
+	memcpy (&words[3], inst->vp.attitude, 9 * sizeof (float));
+	words[12] = inst->relative_scale.x;
+	words[13] = inst->relative_scale.y;
+	words[14] = inst->relative_scale.z;
+
+	for (i = 0; i < 15; i++)
+	{
+		n = snprintf (out + used, (size_t) (capacity - used), "%s0x%08x", i ? "," : "", float_bits (words[i]));
+		if ((n < 0) || (n >= capacity - used)) return 0;
+		used += n;
+	}
+
+	for (level = 0; level < levels; level++)
+	{
+		object_3d_sub_instance *node = path[level];
+		float level_words[9];
+
+		level_words[0] = node->relative_position.x;
+		level_words[1] = node->relative_position.y;
+		level_words[2] = node->relative_position.z;
+		level_words[3] = node->relative_heading;
+		level_words[4] = node->relative_pitch;
+		level_words[5] = node->relative_roll;
+		level_words[6] = node->relative_scale.x;
+		level_words[7] = node->relative_scale.y;
+		level_words[8] = node->relative_scale.z;
+
+		for (i = 0; i < 9; i++)
+		{
+			n = snprintf (out + used, (size_t) (capacity - used), ",0x%08x", float_bits (level_words[i]));
+			if ((n < 0) || (n >= capacity - used)) return 0;
+			used += n;
+		}
+	}
+
+	return 1;
+}
+
+static int tp_row (char *text, int capacity, int *used, const char *name, entity *en, int mutate, int what)
+{
+	/* what: 0 a vehicle's own instance, 1 the instance pointer set to NULL, 2 a fixed structure as it is, 3 a fixed structure with the invalid shape */
+	object_3d_instance **field = NULL, *inst = NULL, *saved_instance = NULL;
+	vec3d base, result, vp_position_saved;
+	matrix3x3 vp_attitude_saved;
+	long chain0 = campaign_model_counts.target_chain, world0 = campaign_model_counts.target_world, fixed0 = campaign_model_counts.target_fixed;
+	char base_text[80], result_text[80], cache_text[80], pose_text[2048], mutation[96];
+	int scene = 0, vp_written = -1, restored = -1, shape_saved = 0, pose_ok = 0, levels = 0, legacy_same = -1, offsets[CAMPAIGN_MODEL_CHAIN_MAX], n;
+	float heading_value = 0.0f;
+	uint32_t heading_bits = 0;
+	object_3d_sub_instance *path[CAMPAIGN_MODEL_CHAIN_MAX], *leaf = NULL;
+	matrix3x3 entity_attitude;
+	vec3d leaf_position;
+	float leaf_heading;
+	vec3d leaf_scale;
+
+	pose_text[0] = '-';
+	pose_text[1] = '\0';
+	mutation[0] = '-';
+	mutation[1] = '\0';
+	memset (&result, 0, sizeof (result));
+
+	if (what <= 1)
+	{
+		tp_vehicle_instance_field (en, &field);
+		saved_instance = *field;
+		inst = saved_instance;
+		scene = inst->object_number;
+	}
+	else
+	{
+		scene = (int) get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE);
+	}
+
+	get_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &base);
+	heading_value = get_local_entity_float_value (en, FLOAT_TYPE_HEADING);
+	heading_bits = float_bits (heading_value);
+
+	if (what == 0)
+	{
+		/* the host's chain, asked by this diagnostic itself (not counted in the deltas below), to place the mutation and to read the live pose independently */
+		levels = campaign_model_target_point_chain (scene, offsets);
+		/* the diagnostic's own ask raised the counter: the deltas are taken from the value after it */
+		chain0 = campaign_model_counts.target_chain;
+
+		/* THE ONE BOUNDED WALK, a mandatory preflight. It follows the positions the host named down the instance's own sub-instance arrays, each checked against the scene database's counts,
+		   and records every node it reaches: the legacy comparison, the mutation and the pose read below use these nodes and never walk the offsets again. A path that is not inside the
+		   instance is a named refusal of the row, returned before the sentinel, any change, the getter or any pose read. */
+		{
+			object_3d_sub_object_search_data search;
+			object_3d_sub_instance *walk = inst->sub_objects, *reached = NULL;
+			object_3d_database_entry *entries = objects_3d_scene_database[scene].sub_objects;
+			int count = objects_3d_scene_database[scene].number_of_sub_objects, step, found;
+
+			search.search_depth = 0;
+			search.search_object = inst;
+			search.sub_object_index = OBJECT_3D_SUB_OBJECT_TARGET_POINT;
+			found = (find_object_3d_sub_object (&search) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND);
+
+			for (step = 0; step < levels; step++)
+			{
+				if ((offsets[step] < 0) || (offsets[step] >= count) || (!walk) || (!entries))
+				{
+					n = snprintf (text + *used, (size_t) (capacity - *used),
+						"model-host-tp case=%s status=refused reason=chain_path_outside_instance scene=%d level=%d offset=%d levels=%d chain=%ld world=%ld fixed=%ld getter_called=0 vp_touched=0\n", name,
+						scene, step, offsets[step], levels, campaign_model_counts.target_chain - chain0, campaign_model_counts.target_world - world0,
+						campaign_model_counts.target_fixed - fixed0);
+
+					if ((n < 0) || (n >= capacity - *used))
+					{
+						return 1;
+					}
+
+					*used += n;
+					return 0;
+				}
+
+				reached = &walk[offsets[step]];
+				path[step] = reached;
+				count = entries[offsets[step]].number_of_sub_objects;
+				entries = entries[offsets[step]].sub_objects;
+				walk = reached->sub_objects;
+			}
+
+			/* the ORIGINAL's own selection as the oracle of the host's: the legacy depth-0 search (compiled, not called by the campaign) reaches the same sub-instance as the walk, or both find none */
+			legacy_same = found ? ((levels > 0) && (reached == search.result_sub_object)) : (levels == 0);
+			leaf = reached;
+		}
+
+		vp_position_saved = inst->vp.position;
+		memcpy (vp_attitude_saved, inst->vp.attitude, sizeof (vp_attitude_saved));
+		inst->vp.position.x = 12345.0f;
+		inst->vp.position.y = 23456.0f;
+		inst->vp.position.z = 34567.0f;
+		{
+			int row_index, column;
+
+			for (row_index = 0; row_index < 3; row_index++)
+			{
+				for (column = 0; column < 3; column++)
+				{
+					inst->vp.attitude[row_index][column] = 7777.0f;
+				}
+			}
+		}
+
+		if (mutate && (levels > 0))
+		{
+			leaf_position = leaf->relative_position;
+			leaf_heading = leaf->relative_heading;
+			leaf_scale = leaf->relative_scale;
+			leaf->relative_position.x += 1.0f;
+			leaf->relative_heading += 0.25f;
+			leaf->relative_scale.x *= 1.5f;
+			snprintf (mutation, sizeof (mutation), "x+1,heading+0.25,scale_x*1.5");
+		}
+		else
+		{
+			leaf = NULL;
+		}
+	}
+	else if (what == 1)
+	{
+		*field = NULL;
+	}
+	else if (what == 3)
+	{
+		shape_saved = scene;
+		set_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE, OBJECT_3D_INVALID_OBJECT_INDEX);
+	}
+
+	memset (&result, 0, sizeof (result));
+	get_local_entity_target_point (en, &result);
+
+	if (what == 0)
+	{
+		/* the FULL meaning of "the getter wrote the instance viewpoint": position AND attitude are the entity's (written), both are still the sentinels (untouched), or one of each (partial) */
+		int position_written, position_untouched, attitude_written, attitude_untouched, row_index, column;
+
+		get_local_entity_attitude_matrix (en, entity_attitude);
+		position_written = (float_bits (inst->vp.position.x) == float_bits (base.x)) && (float_bits (inst->vp.position.y) == float_bits (base.y)) &&
+			(float_bits (inst->vp.position.z) == float_bits (base.z));
+		position_untouched = (float_bits (inst->vp.position.x) == float_bits (12345.0f)) && (float_bits (inst->vp.position.y) == float_bits (23456.0f)) &&
+			(float_bits (inst->vp.position.z) == float_bits (34567.0f));
+		attitude_written = (memcmp (inst->vp.attitude, entity_attitude, sizeof (entity_attitude)) == 0);
+		attitude_untouched = 1;
+
+		for (row_index = 0; row_index < 3; row_index++)
+		{
+			for (column = 0; column < 3; column++)
+			{
+				attitude_untouched = attitude_untouched && (float_bits (inst->vp.attitude[row_index][column]) == float_bits (7777.0f));
+			}
+		}
+
+		vp_written = (position_written && attitude_written) ? 1 : ((position_untouched && attitude_untouched) ? 0 : 2);
+
+		if (levels > 0)
+		{
+			pose_ok = tp_pose_text (inst, path, levels, pose_text, (int) sizeof (pose_text));
+
+			if (!pose_ok)
+			{
+				pose_text[0] = '-';
+				pose_text[1] = '\0';
+			}
+		}
+
+		if (leaf)
+		{
+			leaf->relative_position = leaf_position;
+			leaf->relative_heading = leaf_heading;
+			leaf->relative_scale = leaf_scale;
+		}
+
+		inst->vp.position = vp_position_saved;
+		memcpy (inst->vp.attitude, vp_attitude_saved, sizeof (vp_attitude_saved));
+
+		/* READ BACK: the touched viewpoint and (when it was changed) the leaf hold exactly what they held before */
+		restored = (memcmp (&inst->vp.position, &vp_position_saved, sizeof (vp_position_saved)) == 0) && (memcmp (inst->vp.attitude, vp_attitude_saved, sizeof (vp_attitude_saved)) == 0);
+
+		if (leaf)
+		{
+			restored = restored && (float_bits (leaf->relative_position.x) == float_bits (leaf_position.x)) && (float_bits (leaf->relative_position.y) == float_bits (leaf_position.y)) &&
+				(float_bits (leaf->relative_position.z) == float_bits (leaf_position.z)) && (float_bits (leaf->relative_heading) == float_bits (leaf_heading)) &&
+				(float_bits (leaf->relative_scale.x) == float_bits (leaf_scale.x)) && (float_bits (leaf->relative_scale.y) == float_bits (leaf_scale.y)) &&
+				(float_bits (leaf->relative_scale.z) == float_bits (leaf_scale.z));
+		}
+	}
+	else if (what == 1)
+	{
+		*field = saved_instance;
+		restored = (*field == saved_instance);
+	}
+	else if (what == 3)
+	{
+		set_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE, shape_saved);
+		restored = ((int) get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE) == shape_saved);
+	}
+
+	tp_bits3 (base_text, sizeof (base_text), &base);
+	tp_bits3 (result_text, sizeof (result_text), &result);
+
+	if ((what == 2) && (scene > OBJECT_3D_INVALID_OBJECT_INDEX) && (scene < OBJECT_3D_LAST))
+	{
+		tp_bits3 (cache_text, sizeof (cache_text), &target_point_offsets[scene]);
+	}
+	else
+	{
+		snprintf (cache_text, sizeof (cache_text), "-");
+	}
+
+	n = snprintf (text + *used, (size_t) (capacity - *used),
+		"model-host-tp case=%s status=called type=%d scene=%d base=%s heading=0x%08x cache=%s result=%s chain=%ld world=%ld fixed=%ld vp_written=%d levels=%d legacy_same=%d restored=%d mutation=%s pose=%s\n", name,
+		(int) en->type, (what == 3) ? shape_saved : scene, base_text, heading_bits, cache_text, result_text, campaign_model_counts.target_chain - chain0,
+		campaign_model_counts.target_world - world0, campaign_model_counts.target_fixed - fixed0, vp_written, levels, legacy_same, restored, mutation, pose_text);
+
+	if ((n < 0) || (n >= capacity - *used))
+	{
+		return 1;
+	}
+
+	*used += n;
+	return 0;
+}
+
+int eech_model_host_target_queries_run (int mutate, char *text, int capacity)
+{
+	entity *en;
+	entity *vehicle_a = NULL, *vehicle_b = NULL, *fixed_horizontal = NULL, *fixed_flat = NULL;
+	int visited = 0, used = 0, n;
+
+	for (en = get_local_entity_list (); en;)
+	{
+		int type;
+		object_3d_instance **field;
+
+		if ((visited >= number_of_entities) || !host_heap_slot (en))
+		{
+			n = snprintf (text, (size_t) capacity, "model-host-tp case=scan status=unavailable reason=entity_list_not_trusted visited=%d\n", visited);
+			return ((n < 0) || (n >= capacity)) ? 1 : 0;
+		}
+
+		visited++;
+		type = (int) en->type;
+
+		if (get_local_entity_data (en))
+		{
+			if (tp_vehicle_instance_field (en, &field))
+			{
+				if (*field)
+				{
+					if (!vehicle_a) vehicle_a = en;
+					else if (!vehicle_b) vehicle_b = en;
+				}
+			}
+			else if (campaign_object_is_structure (type) && get_local_entity_int_value (en, INT_TYPE_IDENTIFY_FIXED) && !get_local_entity_ptr_value (en, PTR_TYPE_INSTANCE_3D_OBJECT))
+			{
+				int shape = (int) get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE);
+
+				if ((shape > OBJECT_3D_INVALID_OBJECT_INDEX) && (shape < OBJECT_3D_LAST))
+				{
+					int horizontal = ((float_bits (target_point_offsets[shape].x) & 0x7fffffffu) != 0) || ((float_bits (target_point_offsets[shape].z) & 0x7fffffffu) != 0);
+
+					if (horizontal && !fixed_horizontal) fixed_horizontal = en;
+					else if (!horizontal && !fixed_flat) fixed_flat = en;
+				}
+			}
+		}
+
+		en = get_local_entity_succ (en);
+	}
+
+	used = 0;
+	text[0] = '\0';
+
+#define TP_CASE(NAME, ENTITY, WHAT, REASON) \
+	if (ENTITY) \
+	{ \
+		if (tp_row (text, capacity, &used, NAME, ENTITY, mutate, WHAT)) return 1; \
+	} \
+	else \
+	{ \
+		n = snprintf (text + used, (size_t) (capacity - used), "model-host-tp case=%s status=unavailable reason=%s visited=%d\n", NAME, REASON, visited); \
+		if ((n < 0) || (n >= capacity - used)) return 1; \
+		used += n; \
+	}
+
+	TP_CASE ("instance_a", vehicle_a, 0, "no_vehicle_with_an_instance")
+	TP_CASE ("instance_b", vehicle_b, 0, "no_second_vehicle_with_an_instance")
+	TP_CASE ("instance_none", vehicle_a, 1, "no_vehicle_with_an_instance")
+	TP_CASE ("fixed_horizontal", fixed_horizontal, 2, "no_fixed_structure_with_a_horizontal_offset")
+	TP_CASE ("fixed_flat", fixed_flat, 2, "no_fixed_structure_without_a_horizontal_offset")
+	TP_CASE ("fixed_invalid", fixed_flat ? fixed_flat : fixed_horizontal, 3, "no_fixed_structure")
+#undef TP_CASE
+
+	return 0;
 }
 
 int eech_model_host_poison_run (void)

@@ -659,3 +659,257 @@ int eech_model_scene_bounds(int32_t main_object, const float *object_bounds, int
 
 	return (leave_environment(&caller, context.error ? MODEL_BAD_ARGUMENT : MODEL_OK));
 }
+
+/* ------------------------------------------------------------------------------------------------------------------------------------ */
+/* wn_dbase.c initialise_target_point_offsets and 3dobjdb.c get_3d_sub_object_world_viewpoint: the target point (EEDCS-52, D3) */
+/* ------------------------------------------------------------------------------------------------------------------------------------ */
+
+/* maths/matrix.c, expression for expression (a is preserved, b is not) */
+static void multiply_matrix3x3_matrix3x3(matrix3x3 result, const matrix3x3 a, const matrix3x3 b)
+{
+	result[0][0] = ((a[0][0] * b[0][0]) + (a[0][1] * b[1][0]) + (a[0][2] * b[2][0]));
+	result[0][1] = ((a[0][0] * b[0][1]) + (a[0][1] * b[1][1]) + (a[0][2] * b[2][1]));
+	result[0][2] = ((a[0][0] * b[0][2]) + (a[0][1] * b[1][2]) + (a[0][2] * b[2][2]));
+
+	result[1][0] = ((a[1][0] * b[0][0]) + (a[1][1] * b[1][0]) + (a[1][2] * b[2][0]));
+	result[1][1] = ((a[1][0] * b[0][1]) + (a[1][1] * b[1][1]) + (a[1][2] * b[2][1]));
+	result[1][2] = ((a[1][0] * b[0][2]) + (a[1][1] * b[1][2]) + (a[1][2] * b[2][2]));
+
+	result[2][0] = ((a[2][0] * b[0][0]) + (a[2][1] * b[1][0]) + (a[2][2] * b[2][0]));
+	result[2][1] = ((a[2][0] * b[0][1]) + (a[2][1] * b[1][1]) + (a[2][2] * b[2][1]));
+	result[2][2] = ((a[2][0] * b[0][2]) + (a[2][1] * b[1][2]) + (a[2][2] * b[2][2]));
+}
+
+/*
+ * wn_dbase.c, the bounding-box fallback of initialise_target_point_offsets, expression for expression (`bounding_box` is the SCENE's box, xmin xmax ymin ymax zmin zmax):
+ *
+ *	target_point_offsets[i].x = (bounding_box->xmin + bounding_box->xmax) * 0.5;
+ *	target_point_offsets[i].y = max ((bounding_box->ymin + bounding_box->ymax) * 0.5, 0.0);
+ *	target_point_offsets[i].z = (bounding_box->zmin + bounding_box->zmax) * 0.5;
+ *
+ * (a float sum times the double 0.5, the max of that double and the double 0.0, each converted to float on assignment: the x87-free double arithmetic the original compiles to.)
+ */
+static void __attribute__((noinline)) target_point_bbox_body(const float *bounds, float *out)
+{
+	out[0] = (bounds[0] + bounds[1]) * 0.5;
+	out[1] = max((bounds[2] + bounds[3]) * 0.5, 0.0);
+	out[2] = (bounds[4] + bounds[5]) * 0.5;
+}
+
+int eech_model_target_point_bbox(const float *bounds, float *out)
+{
+	eech_model_caller_environment caller;
+	int result;
+
+	if (!bounds || !out)
+	{
+		return (MODEL_BAD_ARGUMENT);
+	}
+
+	result = enter_environment(&caller);
+
+	if (result != MODEL_OK)
+	{
+		return (result);
+	}
+
+	target_point_bbox_body(bounds, out);
+
+	return (leave_environment(&caller, MODEL_OK));
+}
+
+/*
+ * 3dobjdb.c get_3d_sub_object_world_viewpoint, expression for expression, over a chain of sub-objects at their keyframe 0 (what construct_3d_sub_objects gives a fresh
+ * instance): `path` lists indices into `nodes` from the scene's top-level sub-object down to the target (the original collects the target and its parents and walks them
+ * from the topmost child of the main object to the target). `root_position`, `root_attitude` (row-major 3x3) and `root_scale` are the main object's viewpoint and relative
+ * scale; the answer is the sub-object's world position and attitude.
+ *
+ * What it does NOT know: any sub-object's CURRENT placement. A live instance's sub-objects carry whatever the campaign has since set on them (a device's angles, an
+ * animation); this kernel answers only for the state a fresh instance has.
+ *
+ *	sub = objects[count]->relative_position;  sub *= scale;  multiply_matrix3x3_vec3d (&sub, attitude, &sub);  position += sub;
+ *	scale *= objects[count]->relative_scale;
+ *	get_3d_transformation_matrix (sub_attitude, heading, -pitch, -roll);  multiply_matrix3x3_matrix3x3 (result_attitude, sub_attitude, attitude);  attitude = result_attitude;
+ */
+#define MODEL_MAX_PATH 256
+
+static void __attribute__((noinline)) world_viewpoint_body(const eech_model_node *nodes, const int32_t *path, int32_t length, const float *root_position,
+	const float *root_attitude, const float *root_scale, float *out_position, float *out_attitude)
+{
+	vec3d position, scale;
+	matrix3x3 attitude;
+	int32_t count;
+
+	memcpy(&position, root_position, sizeof(vec3d));
+	memcpy(attitude, root_attitude, sizeof(matrix3x3));
+	memcpy(&scale, root_scale, sizeof(vec3d));
+
+	for (count = 0; count < length; count++)
+	{
+		const eech_model_node *node = &nodes[path[count]];
+		vec3d sub;
+		matrix3x3 result_attitude, sub_attitude;
+
+		sub.x = node->keyframe[0];
+		sub.y = node->keyframe[1];
+		sub.z = node->keyframe[2];
+
+		sub.x *= scale.x;
+		sub.y *= scale.y;
+		sub.z *= scale.z;
+
+		multiply_matrix3x3_vec3d(&sub, attitude, &sub);
+
+		position.x += sub.x;
+		position.y += sub.y;
+		position.z += sub.z;
+
+		sub.x = node->keyframe[6];
+		sub.y = node->keyframe[7];
+		sub.z = node->keyframe[8];
+
+		scale.x *= sub.x;
+		scale.y *= sub.y;
+		scale.z *= sub.z;
+
+		get_3d_transformation_matrix(sub_attitude, node->keyframe[3], -node->keyframe[4], -node->keyframe[5]);
+
+		multiply_matrix3x3_matrix3x3(result_attitude, sub_attitude, attitude);
+
+		memcpy(attitude, result_attitude, sizeof(matrix3x3));
+	}
+
+	memcpy(out_attitude, attitude, sizeof(matrix3x3));
+	memcpy(out_position, &position, sizeof(vec3d));
+}
+
+int eech_model_world_viewpoint(const eech_model_node *nodes, int32_t node_count, const int32_t *path, int32_t path_length, const float *root_position,
+	const float *root_attitude, const float *root_scale, float *out_position, float *out_attitude)
+{
+	eech_model_caller_environment caller;
+	int32_t count;
+	int result;
+
+	if (!nodes || !path || !root_position || !root_attitude || !root_scale || !out_position || !out_attitude || node_count < 1 || path_length < 1 ||
+		path_length > MODEL_MAX_PATH)
+	{
+		return (MODEL_BAD_ARGUMENT);
+	}
+
+	for (count = 0; count < path_length; count++)
+	{
+		if (path[count] < 0 || path[count] >= node_count)
+		{
+			return (MODEL_BAD_ARGUMENT);
+		}
+	}
+
+	result = enter_environment(&caller);
+
+	if (result != MODEL_OK)
+	{
+		return (result);
+	}
+
+	world_viewpoint_body(nodes, path, path_length, root_position, root_attitude, root_scale, out_position, out_attitude);
+
+	return (leave_environment(&caller, MODEL_OK));
+}
+
+/* ------------------------------------------------------------------------------------------------------------------------------------ */
+/* en_maths.c get_local_entity_target_point, the no-instance FIXED-object path (branch 3): the shape's offset added to the entity position (EEDCS-52, D3) */
+/* ------------------------------------------------------------------------------------------------------------------------------------ */
+
+#define MODEL_MISSING_INPUT 4
+
+/*
+ * The original's statements for a fixed object of a valid shape, copied with their types and their order (target_point is the entity position the original's
+ * get_local_entity_vec3d had already copied; `offset` is target_point_offsets[index]; every local is the float the original declares, sin and cos are the double functions
+ * assigned to float):
+ *
+ *	if ((target_point_offsets[index].x != 0.0) || (target_point_offsets[index].z != 0.0))
+ *	{
+ *		heading = get_local_entity_float_value (en, FLOAT_TYPE_HEADING);
+ *
+ *		if (heading != 0.0)
+ *		{
+ *			sin_heading = sin (heading);
+ *			cos_heading = cos (heading);
+ *
+ *			rotated_x_offset = (cos_heading * target_point_offsets[index].x) + (sin_heading * target_point_offsets[index].z);
+ *			rotated_z_offset = (cos_heading * target_point_offsets[index].z) - (sin_heading * target_point_offsets[index].x);
+ *
+ *			target_point->x += rotated_x_offset;
+ *			target_point->z += rotated_z_offset;
+ *		}
+ *	}
+ *
+ *	target_point->y += target_point_offsets[index].y;
+ *
+ * The heading is read ONLY inside the first test: a missing heading is a refusal exactly where the original would have read one, and nothing is defaulted. `path` reports which
+ * branch of the original was taken: 0 no horizontal offset, 1 horizontal offset and a zero heading (the legacy quirk: x and z are not added), 2 rotated.
+ */
+static int __attribute__((noinline)) fixed_target_point_body(const float *base, const float *offset, const float *heading, float *out, int32_t *path)
+{
+	vec3d target_point, target_point_offset;
+	float heading_value, sin_heading, cos_heading, rotated_x_offset, rotated_z_offset;
+
+	memcpy(&target_point, base, sizeof(vec3d));
+	memcpy(&target_point_offset, offset, sizeof(vec3d));
+
+	*path = 0;
+
+	if ((target_point_offset.x != 0.0) || (target_point_offset.z != 0.0))
+	{
+		*path = 1;
+
+		if (!heading)
+		{
+			return (MODEL_MISSING_INPUT);
+		}
+
+		memcpy(&heading_value, heading, sizeof(float));
+
+		if (heading_value != 0.0)
+		{
+			*path = 2;
+
+			sin_heading = sin(heading_value);
+			cos_heading = cos(heading_value);
+
+			rotated_x_offset = (cos_heading * target_point_offset.x) + (sin_heading * target_point_offset.z);
+			rotated_z_offset = (cos_heading * target_point_offset.z) - (sin_heading * target_point_offset.x);
+
+			target_point.x += rotated_x_offset;
+			target_point.z += rotated_z_offset;
+		}
+	}
+
+	target_point.y += target_point_offset.y;
+
+	memcpy(out, &target_point, sizeof(vec3d));
+
+	return (MODEL_OK);
+}
+
+int eech_model_fixed_target_point(const float *base, const float *offset, const float *heading, float *out, int32_t *path)
+{
+	eech_model_caller_environment caller;
+	int result;
+
+	if (!base || !offset || !out || !path)
+	{
+		return (MODEL_BAD_ARGUMENT);
+	}
+
+	result = enter_environment(&caller);
+
+	if (result != MODEL_OK)
+	{
+		return (result);
+	}
+
+	result = fixed_target_point_body(base, offset, heading, out, path);
+
+	return (leave_environment(&caller, result));
+}

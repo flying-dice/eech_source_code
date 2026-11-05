@@ -73,6 +73,33 @@
  *              indirection) is the host's; the campaign receives decoded floats and node numbers only. ABSENT means the host has no route of that kind for the scene; the
  *              campaign asks only for a route its own hierarchy lookup found, so an ABSENT is a disagreement and stops the engine, as does a malformed or refused answer.
  *
+ *   TARGET_POINT_OFFSET   a scene's LOCAL target-point offset (EEDCS-52, D3): the three floats initialise_target_point_offsets (wn_dbase.c) used to compute by constructing an
+ *              instance of the scene, searching it for a TARGET_POINT sub-object, taking that sub-object's world position under an identity pose or, failing that, the centre of
+ *              the scene's bounding box with y clamped at zero. The host owns that physical work now (the same model data and the same arithmetic as the original, on the host's
+ *              own store); the campaign asks once per scene per initialiser invocation (the real boot invokes it twice, and each invocation asks again), receives the three
+ *              coordinates in the first three words of `points`, and copies them into the private `target_point_offsets` table that the direct guidance consumer
+ *              (gd_attck.c calculate_attack_guide_intercept_point) reads. The reply echoes the scene's compiled name and must be FOUND with three finite floats; an END or
+ *              ABSENT, a non-finite coordinate, a refusal or a provider that is missing stops the engine with the host's reason, and there is no fallback to the original
+ *              construction. A scene no file defines is a valid catalogue slot with the zero bounding box and answers a zero offset, which is not a refusal; the invalid index 0 is
+ *              not asked (its entry is the zero the original assigned).
+ *
+ *   TARGET_POINT_CHAIN / TARGET_POINT_WORLD / TARGET_POINT_FIXED   the three questions behind get_local_entity_target_point (en_maths.c; EEDCS-52, D3). The host owns the
+ *              physical work: WHICH sub-object is the target point and WHERE it is. The campaign keeps what is its own: whether the entity has a live instance or is fixed, the
+ *              exact fallbacks (no target point, no instance, not fixed, the invalid shape: the entity position, bit for bit), the write of the instance viewpoint only when a target
+ *              point exists, the order in which it reads the entity, and the use of the answer.
+ *              CHAIN: `scene` is the instance's scene. ABSENT means the scene has no TARGET_POINT sub-object (the original's second branch); FOUND carries `chain_length` (1 to
+ *              CAMPAIGN_MODEL_CHAIN_MAX) and, in `chain_offsets`, the position of the first TARGET_POINT sub-object among its siblings at each level, topmost level first
+ *              (the original's depth-0 search result). The host names the chain; the campaign does not search for it.
+ *              WORLD: the CURRENT placement the host needs and cannot hold, because the campaign mutates it (device angles, animation, scale): `pose` carries, in this order, the
+ *              instance's world position (3), attitude (9, row-major) and relative scale (3), then for each level of the chain just named the live sub-instance's relative
+ *              position (3), heading, pitch, roll and relative scale (3) (`pose_count` = 15 + 9 * chain_length). The host applies them along the chain it named, with the original's
+ *              arithmetic, and answers the world position in the first three words of `points`; a chain length that is not the one it named is a refusal, never a default pose.
+ *              FIXED: the position the original had copied (3) and, only when the cached host offset of the shape has a horizontal part, the entity heading (1); the host adds the
+ *              shape's offset as the original did (including the zero-heading quirk: no horizontal addition) and answers the world position. A heading the host needs and was not
+ *              given is a refusal.
+ *              Every reply echoes the scene's compiled name and must be FOUND (CHAIN also ABSENT) with finite floats; a refusal, a malformed or non-finite answer, an END or a missing
+ *              provider stops the engine with the host's reason. There is NO fallback to the original sub-object search, world-viewpoint solver or fixed rotation.
+ *
  * The bounds and the radius are copied once, at boot, into immutable tables owned by this module (host-authored data, valid for the life of the process and never
  * written again). Callers hold the bounds pointer across loop iterations, so it must be stable; a rotating cache would not be. The tables are a snapshot of the host's
  * answers, not an authority of the campaign's own.
@@ -106,7 +133,11 @@ enum campaign_model_op
 	CAMPAIGN_MODEL_OBJECT,
 	CAMPAIGN_MODEL_ANIMATION,
 	CAMPAIGN_MODEL_CUSTOM_OBJECT,
-	CAMPAIGN_MODEL_CUSTOM_ORDER
+	CAMPAIGN_MODEL_CUSTOM_ORDER,
+	CAMPAIGN_MODEL_TARGET_POINT_OFFSET,
+	CAMPAIGN_MODEL_TARGET_POINT_CHAIN,
+	CAMPAIGN_MODEL_TARGET_POINT_WORLD,
+	CAMPAIGN_MODEL_TARGET_POINT_FIXED
 };
 
 enum campaign_model_object_role
@@ -120,6 +151,10 @@ enum campaign_model_object_role
 
 /* the longest animation name (without the terminator) a reply may carry */
 #define CAMPAIGN_MODEL_ANIMATION_NAME_MAX 127
+
+/* TARGET_POINT_*: the deepest sub-object chain the transport carries, and the floats of the largest pose (15 + 9 * CAMPAIGN_MODEL_CHAIN_MAX, rounded up) */
+#define CAMPAIGN_MODEL_CHAIN_MAX 8
+#define CAMPAIGN_MODEL_POSE_MAX 96
 
 enum campaign_model_triangle_result
 {
@@ -144,6 +179,9 @@ typedef struct campaign_model_request
 	int definition;
 	/* CUSTOM_ORDER: the name of the directory under OBJECTS that holds the custom scene file (NUL-terminated) */
 	char key[CAMPAIGN_MODEL_NAME_MAX + 1];
+	/* TARGET_POINT_WORLD and TARGET_POINT_FIXED: the number of floats in `pose` (see the operations above) */
+	int pose_count;
+	float pose[CAMPAIGN_MODEL_POSE_MAX];
 } campaign_model_request;
 
 typedef struct campaign_model_reply
@@ -175,6 +213,9 @@ typedef struct campaign_model_reply
 	float object_bounds[12];
 	/* ANIMATION (FOUND): the logical name of the texture animation */
 	char animation_name[CAMPAIGN_MODEL_ANIMATION_NAME_MAX + 1];
+	/* TARGET_POINT_CHAIN (FOUND): the levels of the chain and the sibling position of the first TARGET_POINT sub-object at each, topmost first */
+	int chain_length;
+	int chain_offsets[CAMPAIGN_MODEL_CHAIN_MAX];
 } campaign_model_reply;
 
 typedef int (*campaign_model_fn)

@@ -57,7 +57,12 @@ fn check(code: c_int) -> Result<(), EngineError> {
 /// (`cmb-case-error reason=... detail=...`) into the report buffer before it returns the argument error, and `check` turns every argument error into "rejected by the engine";
 /// this keeps the reason instead of discarding it. Any other failure, and a rejection that wrote nothing, is unchanged.
 /// The ground-contact probe (feature `ground-fixture`, EEDCS-48) writes `ground-refused reason=...` the same way and uses it too.
-#[cfg(any(feature = "weapon-fixture", feature = "env-fixture", feature = "ground-fixture"))]
+#[cfg(any(
+    feature = "weapon-fixture",
+    feature = "env-fixture",
+    feature = "ground-fixture",
+    feature = "target-point-fixture"
+))]
 fn keep_case_reason(status: Result<(), EngineError>, text: &[std::os::raw::c_char]) -> Result<String, EngineError> {
     // SAFETY: the buffer was zero-filled and the engine NUL-terminates anything it writes within it.
     let report = unsafe { CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned();
@@ -994,6 +999,22 @@ const ROUTE_REPORT_CAPACITY: usize = 1024 * 1024;
 #[cfg(feature = "route-fixture")]
 pub const ROUTE_CALLS_MAX: i32 = 1024;
 
+/// TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): room for the census rows (one per model index); a report that does not fit is refused, never cut short.
+#[cfg(feature = "target-point-fixture")]
+const TARGET_POINT_REPORT_CAPACITY: usize = 4 * 1024 * 1024;
+
+/// TEST-ONLY (feature `target-point-fixture`): room for the summary or one recorded query (a few lines); a report that does not fit is refused, never cut short.
+#[cfg(feature = "target-point-fixture")]
+const TARGET_POINT_LINE_CAPACITY: usize = 64 * 1024;
+
+/// TEST-ONLY (feature `target-point-fixture`): the most queries the C side records. The same number bounds the C table (csrc/eech_tp_fixture.c TP_EVENTS).
+#[cfg(feature = "target-point-fixture")]
+pub const TARGET_POINT_EVENTS_MAX: i32 = 4096;
+
+/// TEST-ONLY (feature `target-point-fixture`): the most initialiser passes (census generations) the C side keeps. The same number bounds the C table (csrc/eech_tp_fixture.c TP_GENERATIONS).
+#[cfg(feature = "target-point-fixture")]
+pub const TARGET_POINT_GENERATIONS_MAX: i32 = 4;
+
 /// TEST-ONLY (feature `weapon-fixture`): room for one weapon-execution report or one chunk of the event log; a report that does not fit is refused, never cut short.
 #[cfg(feature = "weapon-fixture")]
 const WPN_REPORT_CAPACITY: usize = 160 * 1024;
@@ -1077,6 +1098,16 @@ pub enum ModelQuery {
     },
     /// one step of an .EES scene's ordered animated-surface references (the order the original's `add_animation_object` visits the scene's objects)
     Animation { scene: i32, index: i32, definition: i32 },
+    /// a scene's LOCAL target-point offset (EEDCS-52): the three coordinates `initialise_target_point_offsets` used to compute by constructing the scene. Never asked for the
+    /// invalid scene 0, whose entry is the campaign's own zero
+    TargetPointOffset { scene: i32 },
+    /// which sub-object of the instance's scene is the first TARGET_POINT (EEDCS-52): the host names the chain, the campaign does not search for it. Scene 0 (the invalid index) is asked
+    TargetPointChain { scene: i32 },
+    /// the world position of that sub-object for the campaign's CURRENT placement: the instance's world position (3), attitude (9, row-major) and relative scale (3), then for each level
+    /// of the chain the host named the live relative position (3), heading, pitch, roll and relative scale (3), all as exact float bit patterns
+    TargetPointWorld { scene: i32, pose: Vec<u32> },
+    /// a FIXED object's target point: the entity position the original had copied (3) and, only when the cached host offset has a horizontal part, the heading (1), as bit patterns
+    TargetPointFixed { scene: i32, pose: Vec<u32> },
     /// one step of the campaign's ANNOUNCEMENT of the order in which it walks the custom scene files: file number `position` is the scene `scene`'s file in the directory named
     /// `key`; or (`end`) the walk is over and has `position` files. The campaign's definitions are then named by their position in that walk.
     CustomOrder { scene: i32, position: i32, end: bool, key: String },
@@ -1189,6 +1220,21 @@ pub enum ModelAnswer {
         step: ModelAnimation,
     },
     CustomOrder(ModelOrder),
+    /// a scene's three LOCAL offset coordinates (exact `f32` values, signed zeros and tiny magnitudes included) with the scene's compiled name (the echo)
+    TargetPointOffset {
+        scene_name: String,
+        offset: [f32; 3],
+    },
+    /// the chain the host names for a scene: the sibling position of the first TARGET_POINT sub-object at each level, topmost first (1 to 8 levels), or `None` when the scene has none
+    TargetPointChain {
+        scene_name: String,
+        offsets: Option<Vec<i32>>,
+    },
+    /// a target point's world position (exact `f32` values), for either a live instance or a fixed object, with the scene's compiled name (the echo)
+    TargetPointPosition {
+        scene_name: String,
+        position: [f32; 3],
+    },
 }
 
 /// The host's model provider. It is installed once, at boot, and is the only source of the campaign's collision-model answers: the campaign no longer compiles the code that
@@ -1257,6 +1303,26 @@ unsafe extern "C" fn model_callback(
                     index: source.depth,
                 },
             ),
+            sys::EECH_MODEL_TARGET_POINT_OFFSET => ("target_point_offset", ModelQuery::TargetPointOffset { scene: source.scene }),
+            sys::EECH_MODEL_TARGET_POINT_CHAIN => ("target_point_chain", ModelQuery::TargetPointChain { scene: source.scene }),
+            sys::EECH_MODEL_TARGET_POINT_WORLD | sys::EECH_MODEL_TARGET_POINT_FIXED => {
+                let world = source.op == sys::EECH_MODEL_TARGET_POINT_WORLD;
+                let operation = if world { "target_point_world" } else { "target_point_fixed" };
+                // the pose is the campaign's own packaging: a count outside the array is a malformed request, never read past the array
+                let count = usize::try_from(source.pose_count)
+                    .ok()
+                    .filter(|count| *count <= sys::EECH_MODEL_POSE_MAX)
+                    .ok_or_else(|| format!("[model-provider:{operation}.request] the pose has {} floats", source.pose_count))?;
+                let pose = source.pose[..count].iter().map(|float| float.to_bits()).collect();
+                (
+                    operation,
+                    if world {
+                        ModelQuery::TargetPointWorld { scene: source.scene, pose }
+                    } else {
+                        ModelQuery::TargetPointFixed { scene: source.scene, pose }
+                    },
+                )
+            }
             sys::EECH_MODEL_OBJECT_TABLE => ("object_table", ModelQuery::ObjectTable),
             sys::EECH_MODEL_OBJECT | sys::EECH_MODEL_CUSTOM_OBJECT => (
                 "object",
@@ -1361,6 +1427,34 @@ unsafe extern "C" fn model_callback(
                     ModelRouteFace::Absent => reply.result = sys::EECH_MODEL_TRIANGLE_ABSENT,
                 }
             }
+            ("target_point_offset", ModelAnswer::TargetPointOffset { scene_name, offset }) => {
+                put_name(&mut reply, &scene_name, "target_point_offset")?;
+                reply.result = sys::EECH_MODEL_TRIANGLE_FOUND;
+                reply.points[..3].copy_from_slice(&offset);
+            }
+            ("target_point_chain", ModelAnswer::TargetPointChain { scene_name, offsets }) => {
+                put_name(&mut reply, &scene_name, "target_point_chain")?;
+                match offsets {
+                    None => reply.result = sys::EECH_MODEL_TRIANGLE_ABSENT,
+                    Some(offsets) => {
+                        if offsets.is_empty() || offsets.len() > sys::EECH_MODEL_CHAIN_MAX {
+                            return Err(format!(
+                                "[model-provider:target_point_chain.answer] a chain has 1 to {} levels, got {}",
+                                sys::EECH_MODEL_CHAIN_MAX,
+                                offsets.len()
+                            ));
+                        }
+                        reply.result = sys::EECH_MODEL_TRIANGLE_FOUND;
+                        reply.chain_length = offsets.len() as c_int;
+                        reply.chain_offsets[..offsets.len()].copy_from_slice(&offsets);
+                    }
+                }
+            }
+            (operation @ ("target_point_world" | "target_point_fixed"), ModelAnswer::TargetPointPosition { scene_name, position }) => {
+                put_name(&mut reply, &scene_name, operation)?;
+                reply.result = sys::EECH_MODEL_TRIANGLE_FOUND;
+                reply.points[..3].copy_from_slice(&position);
+            }
             ("object_table", ModelAnswer::ObjectTable { objects }) => reply.object_count = objects,
             ("custom_order", ModelAnswer::CustomOrder(step)) => {
                 reply.result = match step {
@@ -1414,6 +1508,9 @@ unsafe extern "C" fn model_callback(
                     ModelAnswer::Object { .. } => "an object step",
                     ModelAnswer::Animation { .. } => "an animation step",
                     ModelAnswer::CustomOrder(_) => "a walk announcement step",
+                    ModelAnswer::TargetPointOffset { .. } => "a target point offset",
+                    ModelAnswer::TargetPointChain { .. } => "a target point chain",
+                    ModelAnswer::TargetPointPosition { .. } => "a target point position",
                 };
                 return Err(format!(
                     "[model-provider:{operation}.answer] the provider answered a {operation} question with {given}"
@@ -6083,6 +6180,76 @@ impl Engine {
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 
+    /// TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): what the ORIGINAL target-point query, its callers and the boot census of `target_point_offsets[]` did in this process, as
+    /// `key=value` text lines: the counters, the branch and caller matrix, the case counts, the census totals and the two verdicts (see `csrc/eech_tp_fixture.c`). Read-only; a report
+    /// that does not fit fails.
+    #[cfg(feature = "target-point-fixture")]
+    pub fn target_point_summary(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; TARGET_POINT_LINE_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_target_point_summary(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): the census of `target_point_offsets[]` as ONE initialiser pass (generation `generation`, zero-based) recorded it, one row per
+    /// model index, as `key=value` text lines. `generation` is checked here before the engine is entered, and again by the engine, which refuses an ordinal it did not keep. Read-only; a
+    /// report that does not fit fails.
+    #[cfg(feature = "target-point-fixture")]
+    pub fn target_point_offsets(&self, generation: i32) -> Result<String, EngineError> {
+        if !(0..TARGET_POINT_GENERATIONS_MAX).contains(&generation) {
+            return Err(EngineError::BadArgument(format!(
+                "target_point_offsets: generation {generation} must be within 0..{TARGET_POINT_GENERATIONS_MAX}"
+            )));
+        }
+        let mut text = vec![0 as std::os::raw::c_char; TARGET_POINT_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_target_point_offsets(generation, text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): the SETUP probe, a separate opt-in mode, once per process and only between queries and census passes. For three cases the read-only
+    /// probe found no live candidate (an instance without a TARGET_POINT, a mobile with no instance, a fixed object with the invalid shape) it gives a real live entity an explicit physical
+    /// PRECONDITION, calls the ORIGINAL `get_local_entity_target_point` once, and restores the precondition and verifies the restoration before it returns; a restoration that fails, an incomplete
+    /// scan or a buffer that is too small is refused with its reason (see `csrc/eech_tp_fixture.c`). It is not a campaign target selection.
+    #[cfg(feature = "target-point-fixture")]
+    pub fn target_point_setup(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; TARGET_POINT_LINE_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        let status = check(unsafe { sys::eech_engine_target_point_setup(text.as_mut_ptr(), text.len() as i32) });
+        keep_case_reason(status, &text)
+    }
+
+    /// TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): the CONTROLLED probe, once per process and only between queries and census passes (a second call, or one made while a query or
+    /// a pass is running, is refused). It finds live entities for which the original takes each unreached case and calls the ORIGINAL `get_local_entity_target_point` once per pick as the
+    /// controlled caller; it is not a campaign target selection. The report lists the cases, their candidates and picks (a case with none is unavailable); the picks' queries are read
+    /// as ordinary recorded queries (see `csrc/eech_tp_fixture.c`).
+    #[cfg(feature = "target-point-fixture")]
+    pub fn target_point_probe(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; TARGET_POINT_LINE_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        let status = check(unsafe { sys::eech_engine_target_point_probe(text.as_mut_ptr(), text.len() as i32) });
+        // a refusal writes `tp-probe-refused reason=...` and fails as a bad argument that keeps the reason (nothing was called)
+        keep_case_reason(status, &text)
+    }
+
+    /// TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): one recorded query by its zero-based index, as one `key=value` text line. `index` is checked here before the engine is
+    /// entered, and again by the engine, which refuses an index it did not record.
+    #[cfg(feature = "target-point-fixture")]
+    pub fn target_point_event(&self, index: i32) -> Result<String, EngineError> {
+        if !(0..TARGET_POINT_EVENTS_MAX).contains(&index) {
+            return Err(EngineError::BadArgument(format!(
+                "target_point_event: index {index} must be within 0..{TARGET_POINT_EVENTS_MAX}"
+            )));
+        }
+        let mut text = vec![0 as std::os::raw::c_char; TARGET_POINT_LINE_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_target_point_event(index, text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
     /// TEST-ONLY (feature `aim-fixture`, EEDCS-44): the run-wide report of the physical weapon-aiming code the campaign's own update loop has run
     /// since boot or the last reset, as `key=value` text lines. Read-only; there is no probe.
     #[cfg(feature = "aim-fixture")]
@@ -6246,6 +6413,28 @@ impl Engine {
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 
+    /// TEST-ONLY (feature `model-host-fixture`, EEDCS-52 D3): the host-authored target-point offsets as the campaign HOLDS them: how many TARGET_POINT_OFFSET questions the host was
+    /// asked since boot, and for scenes `first ..= first + count - 1` the float bit patterns of the private table the direct guidance consumer reads. `first` and `count` are checked
+    /// here before the engine is entered. Read-only.
+    #[cfg(feature = "model-host-fixture")]
+    pub fn model_host_target_offsets(&self, first: i32, count: i32) -> Result<String, EngineError> {
+        if first < 1 || !(1..=MODEL_PAGE_SCENES).contains(&count) || first > i32::MAX - MODEL_PAGE_SCENES {
+            return Err(EngineError::BadArgument(format!(
+                "model host target offsets: first {first} must be at least 1 and count {count} within 1..={MODEL_PAGE_SCENES}"
+            )));
+        }
+        // SAFETY: the buffer outlives the call and the capacity passed is its length.
+        Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_host_target_offsets(first, count, text, capacity) })
+    }
+
+    /// TEST-ONLY (feature `model-host-fixture`, EEDCS-52 D3): the direct guidance consumer (`calculate_attack_guide_intercept_point`) called once for real on a live stationary mobile with
+    /// a valid shape and a guided weapon; the row reports the held offset and the consumer's three coordinates, or that no candidate exists. Read-only apart from the call.
+    #[cfg(feature = "model-host-fixture")]
+    pub fn model_host_attack_consumer(&self) -> Result<String, EngineError> {
+        // SAFETY: the buffer outlives the call and the capacity passed is its length.
+        Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_host_attack_consumer(text, capacity) })
+    }
+
     /// TEST-ONLY (feature `model-host-fixture`, EEDCS-50 D3): one scene's radius and bounds (asked twice: same address and bits) and one step of its collision-triangle cursor
     /// through the REAL public accessors, as `key=value` rows in the format of the original fixture's (float bit patterns, the return, the buffer words written, the rounding
     /// mode before and after). A host that cannot answer stops the engine with its reason.
@@ -6297,6 +6486,15 @@ impl Engine {
         check(call(text.as_mut_ptr(), text.len() as i32))?;
         // SAFETY: the engine wrote a NUL-terminated string within the buffer.
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `model-host-fixture`, EEDCS-52 D3): the target-point query (`get_local_entity_target_point`) called for real on live entities, with the host questions it asked
+    /// counted around each call (one `model-host-tp` row per case). `mutate` changes the leaf sub-instance's live placement for the call of an instance whose host-named chain exists (and
+    /// restores it). Read-only apart from those restored changes.
+    #[cfg(feature = "model-host-fixture")]
+    pub fn model_host_target_queries(&self, mutate: bool) -> Result<String, EngineError> {
+        // SAFETY: the buffer outlives the call and the capacity passed is its length.
+        Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_host_target_queries(i32::from(mutate), text, capacity) })
     }
 
     /// TEST-ONLY (feature `model-fixture`, EEDCS-50): the table sizes and page bounds of the model questions.
@@ -10541,6 +10739,8 @@ mod tests {
             role: 0,
             definition: 0,
             key: [0; sys::EECH_MODEL_NAME_MAX + 1],
+            pose_count: 0,
+            pose: [0.0; sys::EECH_MODEL_POSE_MAX],
         }
     }
 
@@ -10554,6 +10754,8 @@ mod tests {
             role,
             definition,
             key: [0; sys::EECH_MODEL_NAME_MAX + 1],
+            pose_count: 0,
+            pose: [0.0; sys::EECH_MODEL_POSE_MAX],
         }
     }
 
@@ -10819,6 +11021,8 @@ mod tests {
             role: request.role,
             definition: request.definition,
             key: request.key,
+            pose_count: request.pose_count,
+            pose: request.pose,
         }
     }
 

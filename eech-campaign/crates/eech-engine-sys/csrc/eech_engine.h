@@ -424,6 +424,18 @@ int eech_engine_model_host_counters (char *text, int capacity);
    eech_engine_model_animations (the original observer) so the same driver reads and compares them. Read-only. Fails (bad argument) outside the page bounds or when the report does not
    fit `capacity`. */
 int eech_engine_model_host_animations (int first, int count, char *text, int capacity);
+/* The host-authored target-point offsets as the campaign HOLDS them (EEDCS-52, D3): `model-host-offsets asked=N` (the TARGET_POINT_OFFSET questions asked of the host since boot) and one
+   `model-host-offset scene=S cache=0x..,0x..,0x..` row per scene `first ..= first + count - 1` (the float bit patterns of the private table the direct guidance consumer reads). Read-only.
+   Fails (bad argument) for scenes outside 1 .. OBJECT_3D_LAST - 1 or a report that does not fit `capacity`. */
+int eech_engine_model_host_target_offsets (int first, int count, char *text, int capacity);
+/* The direct guidance consumer (gd_attck.c calculate_attack_guide_intercept_point) called once for real on a live stationary mobile with a valid shape and a guided weapon: one
+   `model-host-consumer` row with the held offset, the consumer's three coordinates and their equality, or status=unavailable with its reason. Read-only apart from the call. */
+int eech_engine_model_host_attack_consumer (char *text, int capacity);
+/* The target-point QUERY called for real (EEDCS-52, D3): `get_local_entity_target_point` on the live entities the diagnostic picks (two vehicles with an instance, a vehicle with its instance
+   pointer set to NULL for the call, fixed structures with and without a horizontal cached offset, a fixed structure with the invalid shape for the call), the host questions counted around each
+   call, one `model-host-tp` row per case (`status=unavailable` with its reason when no entity exists). `mutate` = 1 changes the leaf sub-instance's live placement for the call of an instance whose
+   host-named chain exists, and restores it. Read-only apart from those restored changes. */
+int eech_engine_model_host_target_queries (int mutate, char *text, int capacity);
 /* Overwrites every array the ORIGINAL accessors read (the scene database's radius, bounds and collision object index) with values that make any read visible. */
 int eech_engine_model_host_poison (void);
 /* One scene's radius and bounds (asked twice: same address and bits) and one step of its collision-triangle cursor through the REAL public accessors, in the format of the
@@ -529,6 +541,21 @@ int eech_engine_ground_probe (uint32_t seed, int points, int impacts, char *text
  */
 int eech_engine_route_summary (char *text, int capacity);
 int eech_engine_route_call (int index, char *text, int capacity);
+#endif
+
+#ifdef EECH_TARGET_POINT_FIXTURE
+/*
+ * TEST-ONLY (feature target-point-fixture, EEDCS-52 D3): see eech_tp_fixture.c. Not part of the shipping module.
+ * What the ORIGINAL get_local_entity_target_point, the callers that reached it and the boot census of target_point_offsets[] did, as `key=value` text lines.
+ * `eech_engine_target_point_summary` is the counters, the branch and caller matrix, the case counts, the census totals and two verdicts (the census is whole; the query capture is whole);
+ * `eech_engine_target_point_offsets` is one row per model index of ONE kept census generation (an initialiser pass, by ordinal); `eech_engine_target_point_event` is one recorded query by its zero-based index. All are read-only and
+ * take no host. A report that does not fit, or an index not recorded, fails as a bad argument.
+ */
+int eech_engine_target_point_summary (char *text, int capacity);
+int eech_engine_target_point_offsets (int generation, char *text, int capacity);
+int eech_engine_target_point_event (int index, char *text, int capacity);
+int eech_engine_target_point_probe (char *text, int capacity);
+int eech_engine_target_point_setup (char *text, int capacity);
 #endif
 
 #endif

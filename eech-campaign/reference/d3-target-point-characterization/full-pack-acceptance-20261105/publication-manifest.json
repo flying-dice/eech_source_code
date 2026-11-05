@@ -1,0 +1,37 @@
+{
+  "files": {
+    ".gitattributes": {
+      "bytes": 14,
+      "sha256": "ed0552c0c90dc66525615947b802a78c48a1bf76ef68886ec8679298594f2511"
+    },
+    "complete-comparison.json": {
+      "bytes": 3221,
+      "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+    },
+    "current-ci-before-publication.json": {
+      "bytes": 1632,
+      "sha256": "085b25e5d8d248dfcdb38ed4943e7a8ca418acb9e8ca5c1dba5d3b979f38ad7a"
+    },
+    "dependency-source-scope.json": {
+      "bytes": 2289,
+      "sha256": "fd65c4000bef49ce6413a432e68f8b9766c41ca8e29e418111f714fb9979ffd3"
+    },
+    "full-pack-audit.json": {
+      "bytes": 2796,
+      "sha256": "92469bda5706fd5c7f72e995950f3ec0000c93b261d59b17dce126b519667832"
+    },
+    "independent-final-delivery-review.json": {
+      "bytes": 29333,
+      "sha256": "3fdf0d9af0ef15ffdbe39607fea9330aa63488428ea673c50643fe6de937b979"
+    },
+    "README.md": {
+      "bytes": 2032,
+      "sha256": "1d28766c84c986e29006457ac1486defd347bf09379a2781748fd4b02664c058"
+    },
+    "Task50-dependency-delivery.json": {
+      "bytes": 863,
+      "sha256": "d021d645c300735838ac69f3b3421b3b1bd8b008fff7e46e1b6003f97b9b9a3a"
+    }
+  },
+  "raw_assets_recordings_geometry_not_published": true
+}

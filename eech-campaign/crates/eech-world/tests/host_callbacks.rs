@@ -2098,10 +2098,10 @@ fn every_reference_script_that_prepares_the_installation_selects_the_profile_rig
         );
         with_profile += 1;
     }
-    // 58 scripts select the profile: the 30 retained reference clients, the nineteen environment drivers (EEDCS-51: env-*.lua, which boot with the host model provider and select the profile at the integration of Tasks 50 and 51), the shipped campaign.lua, the five terrain/ground real-engine drivers
-    // (ground-authority, ground-characterization, terrain-characterization, terrain-has-face, terrain-provider), the original route observer (route-characterization), the loader-detachment control (model-horizon-control) and the original scene animation-list observer (model-animation-characterization);
+    // 59 scripts select the profile: the 30 retained reference clients, the nineteen environment drivers (EEDCS-51: env-*.lua, which boot with the host model provider and select the profile at the integration of Tasks 50 and 51), the shipped campaign.lua, the five terrain/ground real-engine drivers
+    // (ground-authority, ground-characterization, terrain-characterization, terrain-has-face, terrain-provider), the original route observer (route-characterization), the loader-detachment control (model-horizon-control), the original scene animation-list observer (model-animation-characterization) and the original target-point observer (target-point-characterization, EEDCS-52);
     // the two diagnostics left out on purpose are counted apart. Scripts that prepare no installation (for example model-provider-check.lua, which boots no engine) are in neither count.
-    assert_eq!((with_profile, without_profile), (58, 2));
+    assert_eq!((with_profile, without_profile), (59, 2));
 }
 
 // The environment characterisation driver (EEDCS-51, lua/env-characterization.lua) run as the host binary runs it, against a stand-in engine. The checks protect its CONTRACT: arguments refused before

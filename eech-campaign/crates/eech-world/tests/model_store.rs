@@ -2990,6 +2990,28 @@ local standin = host.args.standin or "healthy"
 -- when this engine asks the provider a triangle question the way the campaign does: never, at boot, in the second frame, or in the first requested probe
 local ask = host.args.ask or "never"
 local swallow = host.args.swallow == "1"
+
+-- `fake_queries=1` plays the reference host's answers to the three target-point questions (the synthetic installation has no target point of its own): scene 2 has a two-level chain,
+-- every other scene none; a position is the pose's own words, so that a different placement is a different answer
+if host.args.fake_queries == "1" then
+	local real = host.model
+	local function name_of (scene) return real ("scene", scene).name end
+	local chain_asks = 0
+	host.model = function (op, scene, depth, kind, definition, key)
+		if op == "target_point_chain" then
+			chain_asks = chain_asks + 1
+			-- `fake_drift=1`: every second question about scene 2 is answered with another chain, so the diagnostic's own chain and the getter's differ
+			if scene == 2 and host.args.fake_drift == "1" and chain_asks % 2 == 0 then return { result = "chain", name = name_of (2), offsets = { 0, 0 } } end
+			if scene == 2 then return { result = "chain", name = name_of (2), offsets = { 0, 1 } } end
+			return { result = "absent", name = name_of (scene) }
+		elseif op == "target_point_world" then
+			return { result = "world", name = name_of (scene), p = "0x3f800000,0x40000000," .. key:match ("(0x%x+)$") }
+		elseif op == "target_point_fixed" then
+			return { result = "fixed", name = name_of (scene), p = key:match ("^([^,]+,[^,]+,[^,]+)") }
+		end
+		return real (op, scene, depth, kind, definition, key)
+	end
+end
 local unrelated = host.args.unrelated == "1"
 
 -- the native stop on a provider refusal: the engine turns the provider's error (or a `refused` answer) into an error carrying the provider's marker. `swallow=1` plays an
@@ -3017,6 +3039,24 @@ package.preload["eech_dc"] = function ()
 			for depth = 0, 2 do config.model ("triangle", 1, depth) end
 		end
 		if ask == "boot" then native_triangle (config) end
+		-- `engine_offsets=core` plays initialise_target_point_offsets: twice per boot (the real boot invokes it twice) it asks the provider for the LOCAL offset of scenes 1..5 and copies
+		-- the three coordinates into a table the direct consumer reads. The native stops are the marker texts the module raises. `ignore=1` plays an engine that asks and then keeps the
+		-- reference host's answer instead of the one it was given.
+		local held, asked = {}, 0
+		if (host.args.engine_offsets or "none") == "core" then
+			for _ = 1, 2 do
+				for scene = 1, 5 do
+					asked = asked + 1
+					local answer = config.model ("target_point_offset", scene)
+					if type (answer) ~= "table" then error ("eech: [model-provider:target_point_offset.answer] the provider returned no table", 0) end
+					if answer.result == "refused" then error ("eech: [model-provider:target_point_offset.refused] " .. tostring (answer.reason), 0) end
+					if answer.result ~= "offset" then error ("eech: [model-provider:target_point_offset.answer] result must be offset or refused", 0) end
+					if answer.name ~= host.model ("scene", scene).name then error ("eech: [model-provider:target_point_offset.identity] the host named another scene", 0) end
+					if string.find (answer.p, "0x7fc", 1, true) then error ("eech: [model-provider:target_point_offset.answer] p: not finite", 0) end
+					held [scene] = host.args.ignore == "1" and host.model ("target_point_offset", scene).p or answer.p
+				end
+			end
+		end
 		-- `animation=core` plays what the campaign does with a custom scene definition's references: it asks them to the end, maps each LOGICAL name to its own table (a name it lacks is
 		-- the accepted T2 tolerance: animation 0) and de-duplicates as add_animation does. `animation=none` asks nothing. `ignore=1` plays an engine that ignores the host's answers and
 		-- keeps the reference host's list.
@@ -3069,6 +3109,104 @@ package.preload["eech_dc"] = function ()
 			end
 		end
 		function engine:model_host_counters () return "model-host catalogue=1 scene=3026\n" end
+		if (host.args.offsets_fixture or "yes") == "yes" then
+			function engine:model_host_target_offsets (first, count)
+				return string.format ("model-host-offsets asked=%d\nmodel-host-offset scene=%d cache=%s\n", asked, first, held [first] or "0x00000000,0x00000000,0x00000000")
+			end
+			-- the real consumer returns the held words of its target's shape (scene 2 here); `consumer=none` plays a run with no stationary mobile, `consumer=other` a consumer that did not read the table
+			function engine:model_host_attack_consumer ()
+				if host.args.consumer == "none" then return "model-host-consumer status=unavailable reason=no_stationary_mobile_with_a_valid_shape visited=3\n" end
+				local cache = held [2] or "0x00000000,0x00000000,0x00000000"
+				local consumer = host.args.consumer == "other" and "0x3f800000,0x3f800000,0x3f800000" or cache
+				return string.format ("model-host-consumer status=called scene=2 entity_type=1 weapon=4 cache=%s consumer=%s equal=%d\n", cache, consumer, consumer == cache and 1 or 0)
+			end
+		end
+		-- `engine_queries=core` plays get_local_entity_target_point on six live entities: the questions it asks the provider, in order, and the row it reports for each. The native stops
+		-- are the marker texts the module raises (the Lua bridge refuses a non-finite position or a ninth level; the C code checks the name). The `queries_*` arguments play engines that
+		-- do something else: `ignore` returns the entity position instead of the host's answer, `pose=same` sends the keyframe-0 pose whatever the live placement, `vp=no` does not write the
+		-- viewpoint, `fallback_asks` asks the host in a fallback, `heading_always` sends a heading with a cached offset that has no horizontal part, `missing=<case>` has no such entity.
+		if (host.args.engine_queries or "none") == "core" and (host.args.queries_fixture or "yes") == "yes" then
+			local ZERO = "0x00000000"
+			local ROOT_POSE = table.concat ({ "0x41200000", "0x41a00000", "0x41f00000", "0x3f800000", ZERO, ZERO, ZERO, "0x3f800000", ZERO, ZERO, ZERO, "0x3f800000", "0x3f800000", "0x3f800000", "0x3f800000" }, ",")
+			local function level (last) return table.concat ({ "0x3f800000", ZERO, ZERO, ZERO, ZERO, ZERO, "0x40000000", "0x40000000", last }, ",") end
+			local BASE = "0x42c80000,0x42480000,0xc1a00000"
+			local function native (op, scene, key)
+				local a = config.model (op, scene, nil, nil, nil, key)
+				if type (a) ~= "table" then error ("eech: [model-provider:" .. op .. ".answer] the provider returned no table", 0) end
+				if a.result == "refused" then error ("eech: [model-provider:" .. op .. ".refused] " .. tostring (a.reason), 0) end
+				if a.name ~= host.model ("scene", scene).name then error ("eech: [model-provider:" .. op .. ".identity] the host named another scene", 0) end
+				if op == "target_point_chain" then
+					if a.result == "absent" then return a end
+					if a.result ~= "chain" or type (a.offsets) ~= "table" or a.offsets [9] ~= nil then error ("eech: [model-provider:" .. op .. ".answer] a chain has one to eight levels", 0) end
+				else
+					if a.result ~= (op == "target_point_world" and "world" or "fixed") or string.find (a.p, "0x7fc", 1, true) then error ("eech: [model-provider:" .. op .. ".answer] p: not finite", 0) end
+				end
+				return a
+			end
+			function engine:model_host_target_queries (mutate)
+				local lines = {}
+				local function scene_of (scene) return host.args.queries_wrong_scene == "1" and scene + 1 or scene end
+				local function row (case, f)
+					if host.args.queries_missing == case then
+						lines [#lines + 1] = string.format ("model-host-tp case=%s status=unavailable reason=no_such_entity visited=3", case)
+						return
+					end
+					local mutation = f.mutation or "-"
+					if host.args.queries_mutation == "always" then mutation = "x+1,heading+0.25,scale_x*1.5" elseif host.args.queries_mutation == "never" then mutation = "-" end
+					lines [#lines + 1] = string.format ("model-host-tp case=%s status=called type=1 scene=%d base=%s heading=0x3f800000 cache=%s result=%s chain=%d world=%d fixed=%d vp_written=%d levels=%d legacy_same=%s restored=%d mutation=%s pose=%s",
+						case, scene_of (f.scene), BASE, f.cache or "-", f.result, f.chain or 0, f.world or 0, f.fixed or 0, f.vp_written or -1, f.levels or 0, f.legacy_same or "-1",
+						host.args.queries_restored == "no" and f.restored == 1 and 0 or (f.restored or -1), mutation, f.pose or "-")
+				end
+				for _, spec in ipairs { { "instance_a", 2 }, { "instance_b", 3 } } do
+					local case, scene = spec [1], spec [2]
+					local own = native ("target_point_chain", scene)
+					-- the ONE bounded walk is a mandatory preflight: a chain that is not inside the instance (here: a sibling position of 2 or more, or a negative one) is a named refusal of the row
+					local bad_level, bad_offset
+					if own.result == "chain" then
+						for i, o in ipairs (own.offsets) do if o < 0 or o >= 2 then bad_level, bad_offset = i - 1, o break end end
+					end
+					if bad_level and host.args.queries_preflight ~= "no" then
+						lines [#lines + 1] = string.format ("model-host-tp case=%s status=refused reason=chain_path_outside_instance scene=%d level=%d offset=%d levels=%d chain=0 world=0 fixed=0 getter_called=0 vp_touched=0",
+							case, scene_of (scene), bad_level, bad_offset, #own.offsets)
+					else
+						local chain = native ("target_point_chain", scene)
+						-- `queries_absent_ignored=1` plays an engine that ignores an ABSENT chain and goes on to ask for a position
+						if chain.result == "chain" or (host.args.queries_absent_ignored == "1" and chain.result == "absent") then
+							local last = (mutate and host.args.queries_pose ~= "same") and "0x40a00000" or "0x3f800000"
+							local pose = ROOT_POSE .. "," .. level (ZERO) .. "," .. level (last)
+							local world = native ("target_point_world", scene, pose)
+							row (case, { scene = scene, result = host.args.queries_ignore == "1" and BASE or world.p, chain = 1, world = 1, vp_written = host.args.queries_vp == "no" and 0 or (host.args.queries_vp == "partial" and 2 or 1),
+								levels = 2, legacy_same = host.args.queries_legacy == "differs" and "0" or "1", restored = 1,
+								mutation = mutate and "x+1,heading+0.25,scale_x*1.5" or "-", pose = host.args.queries_pose == "wrong" and string.gsub (pose, ",0x%x+$", ",0x00000001") or pose })
+						else
+							row (case, { scene = scene, result = host.args.queries_absent_result == "wrong" and "0x3f800000,0x3f800000,0x3f800000" or BASE, chain = 1, vp_written = host.args.queries_absent_vp == "1" and 1 or 0, levels = 0,
+								legacy_same = host.args.queries_legacy == "differs" and "0" or (host.args.queries_legacy == "unknown" and "-1" or "1"), restored = host.args.queries_restored == "no" and 0 or 1 })
+						end
+					end
+				end
+				local asks = host.args.queries_fallback_asks == "1"
+				if asks then native ("target_point_chain", 2) end
+				row ("instance_none", { scene = 2, result = BASE, chain = asks and 1 or 0, restored = 1 })
+				for _, spec in ipairs { { "fixed_horizontal", 9, "0x00000000,0x40000000,0x40400000", "," .. "0x3f800000" }, { "fixed_flat", 10, "0x00000000,0x40000000,0x00000000", host.args.queries_heading_always == "1" and ",0x3f800000" or "" } } do
+					local fixed = native ("target_point_fixed", spec [2], BASE .. spec [4])
+					row (spec [1], { scene = spec [2], cache = spec [3], result = host.args.queries_ignore == "1" and BASE or fixed.p, fixed = host.args.queries_report == "bad_domain" and 2 or 1 })
+				end
+				row ("fixed_invalid", { scene = 10, result = BASE, restored = 1 })
+				-- `queries_report=` plays a report that breaks the six-row grammar in one way
+				local shape = host.args.queries_report
+				if shape == "duplicate" then lines [2] = lines [1]
+				elseif shape == "unknown" then lines [5] = string.gsub (lines [5], "case=fixed_flat", "case=fixed_other")
+				elseif shape == "extra" then lines [#lines + 1] = lines [1]
+				elseif shape == "noise" then table.insert (lines, 1, "noise from somewhere")
+				elseif shape == "stray" then lines [3] = lines [3] .. " junk"
+				elseif shape == "missing_field" then lines [1] = string.gsub (lines [1], " restored=%-?%d+", "")
+				elseif shape == "repeat_field" then lines [1] = lines [1] .. " pose=-"
+				elseif shape == "unknown_status" then lines [4] = string.gsub (lines [4], "status=called", "status=maybe")
+				elseif shape == "reorder" then lines [1], lines [2] = lines [2], lines [1]
+				elseif shape == "no_newline" then return table.concat (lines, "\n") end
+				return table.concat (lines, "\n") .. "\n"
+			end
+		end
 		function engine:model_host_probe (scene, depth)
 			if ask == "probe" then native_triangle (config) end
 			if standin == "refuse" then error ("the probe was refused\nby the stand-in") end
@@ -3186,6 +3324,361 @@ fn a_changed_host_control_is_covered_only_when_it_was_given_and_its_consequence_
         // given, but the engine ignored it and kept the reference list: the final list does not show the change
         let run = stand_in_run_with(animated_root(), &[&format!("mode={mode}"), "animation=core", "ignore=1"], "healthy");
         assert!(!run.status.success() && run.stderr.contains("does not show it"), "{mode}: {}", run.stderr);
+    }
+}
+
+// The target-point offset controls (EEDCS-52, D3): the campaign copies the host's LOCAL offset of each scene into the table the direct guidance consumer reads. What is tested here is
+// the script's own bookkeeping and verdict against a stand-in engine; that the native code does the same is the model-host-fixture DLL's run.
+const CHANGED_OFFSET: &str = "0x3fc00000,0x40200000,0xc0900000";
+
+#[test]
+fn the_held_target_offsets_are_the_hosts_a_changed_host_moves_them_and_the_direct_consumer() {
+    // the healthy control: the campaign holds exactly what the reference host replied for each requested scene, the native question count is the provider's (twice per boot), and the
+    // direct consumer returned the held words of its target's shape
+    let run = stand_in_run(&["engine_offsets=core", "offsets=1"], "healthy");
+    assert!(run.status.success(), "{}", run.stderr);
+    let rows: Vec<Value> = run.rows().into_iter().filter(|r| r["event"] == "target_offset").collect();
+    assert_eq!(rows.len(), 3);
+    for row in &rows {
+        assert!(!row["held"].as_str().unwrap().is_empty(), "{row}");
+        assert_eq!(row["held"], row["replied"], "{row}");
+        assert_eq!(row["held"], row["reference"], "{row}");
+        assert_eq!(row["asked"].as_i64(), Some(10), "{row}");
+    }
+    let summary = run.row("summary");
+    assert_eq!(
+        (
+            summary["offsets_rows"].as_i64(),
+            summary["offsets_asked"].as_i64(),
+            summary["offsets_problem"].as_str()
+        ),
+        (Some(3), Some(10), Some(""))
+    );
+    assert!(run.row("attack_consumer")["report"].as_str().unwrap().contains("status=called"));
+
+    // a changed host: every offset answered with a constant. The held words and the consumer's coordinates are that constant, and differ from the reference host's answer
+    let run = stand_in_run(&["mode=offsets_changed", "engine_offsets=core", "offsets=1"], "healthy");
+    assert!(run.status.success(), "{}", run.stderr);
+    for row in run.rows().into_iter().filter(|r| r["event"] == "target_offset") {
+        assert_eq!(row["held"].as_str(), Some(CHANGED_OFFSET), "{row}");
+        assert_ne!(row["held"], row["reference"], "{row}");
+    }
+    assert!(run.row("attack_consumer")["report"]
+        .as_str()
+        .unwrap()
+        .contains(&format!("consumer={CHANGED_OFFSET}")));
+
+    // an engine that asks and then keeps the reference answer (it computed the offset itself): the changed answer is not what the campaign holds
+    let run = stand_in_run(&["mode=offsets_changed", "engine_offsets=core", "offsets=1", "ignore=1"], "healthy");
+    assert!(!run.status.success() && run.stderr.contains("the campaign holds"), "{}", run.stderr);
+
+    // unavailable is never covered: the host was never asked, the DLL has no fixture entries, no stationary mobile exists, or the consumer did not read the table
+    let run = stand_in_run(&["engine_offsets=none", "offsets=1"], "healthy");
+    assert!(
+        !run.status.success() && run.stderr.contains("UNREACHED") && run.stderr.contains("never asked"),
+        "{}",
+        run.stderr
+    );
+    let run = stand_in_run(&["engine_offsets=core", "offsets=1", "offsets_fixture=no"], "healthy");
+    assert!(!run.status.success() && run.stderr.contains("model-host-fixture"), "{}", run.stderr);
+    let run = stand_in_run(&["engine_offsets=core", "offsets=1", "consumer=none"], "healthy");
+    assert!(
+        !run.status.success() && run.stderr.contains("UNREACHED") && run.stderr.contains("direct guidance consumer"),
+        "{}",
+        run.stderr
+    );
+    let run = stand_in_run(&["engine_offsets=core", "offsets=1", "consumer=other"], "healthy");
+    assert!(!run.status.success() && run.stderr.contains("the direct consumer returned"), "{}", run.stderr);
+
+    // the arguments: the changed control reads its consequence from the held offsets, and a scene list means an observation was asked for
+    for (args, fragment) in [
+        (vec!["mode=offsets_changed"], "offsets=1"),
+        (vec!["offset_scenes=1"], "without offsets=1"),
+        (vec!["offsets=2"], "offsets"),
+    ] {
+        let run = stand_in_run(&args, "healthy");
+        assert!(!run.status.success() && run.stderr.contains(fragment), "{args:?}: {}", run.stderr);
+    }
+}
+
+#[test]
+fn a_withheld_or_malformed_target_offset_answer_stops_the_engine_by_name_and_nothing_falls_back() {
+    for (mode, marker) in [
+        ("offsets_withheld", "[model-provider:target_point_offset.refused]"),
+        ("offsets_bad_nan", "[model-provider:target_point_offset.answer]"),
+        ("offsets_bad_name", "[model-provider:target_point_offset.identity]"),
+        ("offsets_bad_end", "[model-provider:target_point_offset.answer]"),
+    ] {
+        let run = stand_in_run(&[&format!("mode={mode}"), "engine_offsets=core", "offsets=1"], "healthy");
+        assert!(run.status.success(), "{mode}: the stop was not recognised\n{}", run.stderr);
+        let boot = run.row("boot_failed");
+        assert_eq!(
+            (boot["stage"].as_str(), boot["matched"].as_bool(), boot["tripped"].as_bool()),
+            (Some("boot"), Some(true), Some(true)),
+            "{mode}"
+        );
+        assert!(boot["error"].as_str().unwrap().contains(marker), "{boot}");
+        // the answer was never asked for: UNREACHED, not coverage
+        let run = stand_in_run(&[&format!("mode={mode}"), "engine_offsets=none"], "healthy");
+        assert!(!run.status.success() && run.stderr.contains("UNREACHED"), "{mode}: {}", run.stderr);
+    }
+}
+
+// The target-point query controls (EEDCS-52, D3): get_local_entity_target_point asks the host which sub-object, where it is for the live placement, and a fixed object's position. What is
+// tested here is the script's own bookkeeping and verdict against a stand-in engine; that the native code does the same is the model-host-fixture DLL's run.
+const CHANGED_WORLD: &str = "0x40f00000,0x41080000,0xc1180000";
+const CHANGED_FIXED: &str = "0x41380000,0x41480000,0xc1580000";
+const QUERIES: [&str; 3] = ["engine_queries=core", "fake_queries=1", "queries=1"];
+
+fn queries_run(extra: &[&str]) -> ScriptRun {
+    let mut args: Vec<&str> = QUERIES.to_vec();
+    args.extend(extra);
+    stand_in_run(&args, "healthy")
+}
+
+#[test]
+fn the_getter_results_are_the_hosts_answers_the_live_placement_moves_them_and_a_changed_host_reaches_the_getter() {
+    let run = queries_run(&[]);
+    assert!(run.status.success(), "{}", run.stderr);
+    let rows: Vec<Value> = run.rows().into_iter().filter(|r| r["event"] == "target_query").collect();
+    assert_eq!(rows.len(), 12, "six cases, as the world has them and with the leaf placement changed");
+    assert!(rows.iter().all(|r| r["status"] == "called"));
+    let summary = run.row("summary");
+    assert_eq!(
+        (
+            summary["queries_rows"].as_i64(),
+            summary["queries_found"].as_i64(),
+            summary["queries_absent"].as_i64(),
+            summary["queries_fixed"].as_i64(),
+            summary["queries_fallback"].as_i64(),
+            summary["queries_problem"].as_str()
+        ),
+        (Some(12), Some(2), Some(2), Some(4), Some(4), Some(""))
+    );
+
+    // a changed host: the world and fixed positions are constants, and the getter returned exactly them where it asked
+    let run = queries_run(&["mode=queries_changed"]);
+    assert!(run.status.success(), "{}", run.stderr);
+    for row in run.rows().into_iter().filter(|r| r["event"] == "target_query") {
+        let text = row["report"].as_str().unwrap();
+        if text.contains("world=1") {
+            assert!(text.contains(&format!("result={CHANGED_WORLD} ")), "{text}");
+        }
+        if text.contains("fixed=1") {
+            assert!(text.contains(&format!("result={CHANGED_FIXED} ")), "{text}");
+        }
+    }
+}
+
+#[test]
+fn a_getter_that_does_not_use_the_hosts_answer_or_the_live_placement_is_found_and_nothing_unreached_is_covered() {
+    for (args, fragment) in [
+        // an engine that asks and then returns the entity position (it computed the point itself)
+        (vec!["queries_ignore=1"], "the getter returned"),
+        (vec!["mode=queries_changed", "queries_ignore=1"], "the getter returned"),
+        // an engine that sends the keyframe-0 placement whatever the live one is: the changed placement moves nothing
+        (vec!["queries_pose=same"], "did not move the host's answer"),
+        // the pose the host was sent is not the live placement the diagnostic read
+        (vec!["queries_pose=wrong"], "the host was sent"),
+        // the chain the host named is not the sub-instance the original's own search reaches
+        (vec!["queries_legacy=differs"], "does not reach the sub-instance the original's search finds"),
+        // the viewpoint is written only when the host named a chain
+        (vec!["queries_vp=no"], "NOT written"),
+        // a fallback that asks the host, and a heading sent where the cached offset has no horizontal part
+        (vec!["queries_fallback_asks=1"], "a fallback asked the host"),
+        (vec!["queries_heading_always=1"], "the heading goes only with a horizontal cached offset"),
+        // a case with no live entity is unavailable, never covered
+        (vec!["queries_missing=fixed_horizontal"], "UNREACHED: query case fixed_horizontal"),
+        (vec!["queries_missing=instance_a"], "UNREACHED: query case instance_a"),
+        // a DLL without the fixture entry, and a run that asks nothing
+        (vec!["queries_fixture=no"], "model-host-fixture"),
+    ] {
+        let run = queries_run(&args);
+        assert!(!run.status.success() && run.stderr.contains(fragment), "{args:?}: {}", run.stderr);
+    }
+    let run = stand_in_run(&["fake_queries=1", "queries=1"], "healthy");
+    assert!(!run.status.success() && run.stderr.contains("model-host-fixture"), "{}", run.stderr);
+    // the arguments: the controls read their consequence from the getter's results
+    for (args, fragment) in [
+        (vec!["mode=queries_changed"], "queries=1"),
+        (vec!["mode=queries_world_withheld"], "queries=1"),
+        (vec!["queries=2"], "queries"),
+    ] {
+        let run = stand_in_run(&args, "healthy");
+        assert!(!run.status.success() && run.stderr.contains(fragment), "{args:?}: {}", run.stderr);
+    }
+}
+
+#[test]
+fn a_valid_absent_chain_on_an_existing_instance_is_covered_only_as_four_untouched_entity_position_rows() {
+    // the faithful ABSENT: every chain question about an instance is answered absent with the correct name. Four instance calls (two cases, unmutated and mutating), each the entity
+    // position bit for bit, the viewpoint untouched during the getter, no world or fixed question, the sentinel restored (measured); fixed and fallback joins stay strict.
+    for extra in [vec![], vec!["queries_legacy=differs"]] {
+        let mut args = vec!["mode=queries_chain_absent"];
+        args.extend(extra.iter().copied());
+        let run = queries_run(&args);
+        assert!(run.status.success(), "{args:?}: {}", run.stderr);
+        let summary = run.row("summary");
+        assert_eq!(
+            (
+                summary["queries_found"].as_i64(),
+                summary["queries_absent"].as_i64(),
+                summary["queries_fixed"].as_i64(),
+                summary["queries_fallback"].as_i64(),
+                summary["queries_refused"].as_i64(),
+                summary["queries_problem"].as_str()
+            ),
+            (Some(0), Some(4), Some(4), Some(4), Some(0), Some("")),
+            "{args:?}"
+        );
+        // a legacy_same of 0 is a deliberate host-vs-original difference, counted as such and never turned into 1
+        let differs = if extra.is_empty() { 0 } else { 4 };
+        assert_eq!(summary["queries_legacy_differs"].as_i64(), Some(differs), "{args:?}");
+        for row in run
+            .rows()
+            .into_iter()
+            .filter(|r| r["event"] == "target_query" && matches!(r["case"].as_str(), Some("instance_a" | "instance_b")))
+        {
+            let text = row["report"].as_str().unwrap();
+            assert!(text.contains("chain=1 world=0 fixed=0 vp_written=0 levels=0"), "{text}");
+            assert!(text.contains("restored=1"), "{text}");
+        }
+    }
+    // each breach of the contract is found by its own fragment, and none of the other controls moved
+    for (args, fragment) in [
+        // the absence is ignored and a position is asked anyway
+        (vec!["queries_absent_ignored=1"], "the absence was ignored"),
+        // the viewpoint is written on an absence
+        (vec!["queries_absent_vp=1"], "not write the viewpoint"),
+        // another position than the entity's is returned
+        (vec!["queries_absent_result=wrong"], "return the entity position"),
+        // the sentinel is not restored (measured)
+        (vec!["queries_restored=no"], "a measured restoration"),
+        // a bad scene on the event, and a drifting own/getter chain, still fail as before
+        (vec!["queries_wrong_scene=1"], "is for scene"),
+        (vec!["queries_legacy=unknown"], "legacy_same must be 0"),
+    ] {
+        let mut all = vec!["mode=queries_chain_absent"];
+        all.extend(args.iter().copied());
+        let run = queries_run(&all);
+        assert!(!run.status.success() && run.stderr.contains(fragment), "{args:?}: {}", run.stderr);
+    }
+    // zero FOUND is allowed ONLY in the named control: the same ignored absence in the ordinary run is a position asked after the host named none
+    let run = queries_run(&["queries_absent_ignored=1"]);
+    assert!(
+        !run.status.success() && run.stderr.contains("a position was asked but the host named"),
+        "{}",
+        run.stderr
+    );
+    // and the mode needs the fixture observation like every queries_ mode
+    let run = stand_in_run(&["mode=queries_chain_absent"], "healthy");
+    assert!(!run.status.success() && run.stderr.contains("queries=1"), "{}", run.stderr);
+}
+
+#[test]
+fn the_six_row_witness_is_exactly_six_named_rows_in_the_c_grammar_with_every_event_joined_to_its_row() {
+    // the faithful report passes (the healthy test above); each of these breaks the grammar, the row set, a domain, a join or the meaning of a field in ONE way
+    for (args, fragment) in [
+        (vec!["queries_report=duplicate"], "is instance_a where instance_b is expected once and in order"),
+        (vec!["queries_report=reorder"], "is instance_b where instance_a is expected once and in order"),
+        (vec!["queries_report=unknown"], "is fixed_other where fixed_flat is expected"),
+        (vec!["queries_report=extra"], "7 lines, not exactly 6"),
+        (vec!["queries_report=noise"], "7 lines, not exactly 6"),
+        (vec!["queries_report=stray"], "stray text"),
+        (vec!["queries_report=missing_field"], "where the grammar has restored"),
+        (vec!["queries_report=repeat_field"], "repeats the field pose"),
+        (vec!["queries_report=unknown_status"], "unknown status maybe"),
+        (vec!["queries_report=bad_domain"], "fixed is outside its domain"),
+        (vec!["queries_report=no_newline"], "does not end with a newline"),
+        // the event is joined to its row by scene and operation, in the order the native code asked
+        (vec!["queries_wrong_scene=1"], "is for scene"),
+        // the diagnostic's own chain and the getter's chain are the same question and must have been answered alike
+        (vec!["fake_drift=1"], "the diagnostic's chain and the getter's chain differ"),
+        // the viewpoint is written as a whole (position AND attitude) or not at all
+        (vec!["queries_vp=partial"], "only PARTLY written"),
+        // a restoration is a measured readback, not a claim
+        (vec!["queries_restored=no"], "a measured restoration"),
+        // the mutation belongs to the mutating call only
+        (vec!["queries_mutation=always"], "reports mutation"),
+        (vec!["queries_mutation=never"], "reports mutation"),
+    ] {
+        let run = queries_run(&args);
+        assert!(!run.status.success() && run.stderr.contains(fragment), "{args:?}: {}", run.stderr);
+    }
+}
+
+#[test]
+fn an_out_of_range_chain_armed_only_in_the_mutating_call_is_refused_by_the_fixture_before_it_touches_anything() {
+    // the witness: a coherent unmutated call first, then every chain the host names has its first sibling position moved outside the instance, only while the mutating call runs
+    let run = queries_run(&["mode=queries_chain_offset_late"]);
+    assert!(run.status.success(), "{}", run.stderr);
+    let summary = run.row("summary");
+    assert_eq!(summary["queries_refused"].as_i64(), Some(1), "{summary}");
+    assert_eq!(summary["queries_problem"].as_str(), Some(""));
+    let refused: Vec<Value> = run
+        .rows()
+        .into_iter()
+        .filter(|r| r["event"] == "target_query" && r["status"] == "refused")
+        .collect();
+    assert_eq!(refused.len(), 1);
+    assert_eq!(refused[0]["mutate"], true);
+    let text = refused[0]["report"].as_str().unwrap();
+    assert!(
+        text.contains("reason=chain_path_outside_instance") && text.contains("offset=4000") && text.contains("getter_called=0 vp_touched=0"),
+        "{text}"
+    );
+    // the unmutated call was coherent: no row of it is refused, and it reached a host-named target point
+    assert!(run
+        .rows()
+        .into_iter()
+        .filter(|r| r["event"] == "target_query" && r["mutate"] == false)
+        .all(|r| r["status"] == "called"));
+
+    // a fixture that does NOT preflight goes on to use the out-of-range chain: found, never covered
+    let run = queries_run(&["mode=queries_chain_offset_late", "queries_preflight=no"]);
+    assert!(
+        !run.status.success() && run.stderr.contains("the fixture went on to use the out-of-range chain"),
+        "{}",
+        run.stderr
+    );
+    // a refusal where nothing was armed is not coverage either: it happens in the healthy run only if the fixture invents one
+    // (the same script without the mode never arms the offset, so the healthy run has no refused row)
+    let run = queries_run(&[]);
+    assert_eq!(run.row("summary")["queries_refused"].as_i64(), Some(0));
+    // the mode needs the fixture observation, like every queries_ mode
+    let run = stand_in_run(&["mode=queries_chain_offset_late"], "healthy");
+    assert!(!run.status.success() && run.stderr.contains("queries=1"), "{}", run.stderr);
+}
+
+#[test]
+fn a_withheld_or_malformed_target_point_answer_stops_the_engine_by_name_and_nothing_falls_back() {
+    for (mode, marker) in [
+        ("queries_chain_withheld", "[model-provider:target_point_chain.refused]"),
+        ("queries_world_withheld", "[model-provider:target_point_world.refused]"),
+        ("queries_fixed_withheld", "[model-provider:target_point_fixed.refused]"),
+        ("queries_world_bad_nan", "[model-provider:target_point_world.answer]"),
+        ("queries_fixed_bad_nan", "[model-provider:target_point_fixed.answer]"),
+        ("queries_chain_bad_name", "[model-provider:target_point_chain.identity]"),
+        ("queries_world_bad_name", "[model-provider:target_point_world.identity]"),
+        ("queries_fixed_bad_name", "[model-provider:target_point_fixed.identity]"),
+        ("queries_chain_too_deep", "[model-provider:target_point_chain.answer]"),
+    ] {
+        let run = queries_run(&[&format!("mode={mode}")]);
+        assert!(run.status.success(), "{mode}: the stop was not recognised\n{}", run.stderr);
+        let summary = run.row("summary");
+        assert_eq!(
+            (
+                summary["primary_stage"].as_str(),
+                summary["primary_matched"].as_bool(),
+                summary["tripped"].as_bool()
+            ),
+            (Some("queries"), Some(true), Some(true)),
+            "{mode}"
+        );
+        assert!(summary["primary_message"].as_str().unwrap().contains(marker), "{mode}: {summary}");
+        // the answer was never asked for: UNREACHED, not coverage
+        let run = stand_in_run(&[&format!("mode={mode}"), "queries=1", "fake_queries=1"], "healthy");
+        assert!(!run.status.success() && run.stderr.contains("UNREACHED"), "{mode}: {}", run.stderr);
     }
 }
 

@@ -5,12 +5,22 @@
 //!   store:scene (n)                       one scene: name, main/collision indices, radius and bounds as float bit patterns, the collision object's counts
 //!   store:triangle (scene, depth)         the original accessor's answer for one depth: the nine float bit patterns, the end, the absence, or an explicit refusal
 //!   store:compare_original (path)         the retained original report (the model driver's JSON Lines) against this store, field by field and triangle by triangle
+//!   store:scene_index (name)              the scene a compiled (upper case) name stands for, or nil
+//!   store:target_point_local (scene)      the scene's LOCAL target-point offset (float bit patterns) and where it came from, or a refusal (EEDCS-52)
+//!   store:target_point_world (scene, pose) the INSTANCE-world target point of a scene for a semantic root pose {position, attitude, scale?} (hex bit patterns), in the stated state
+//!   store:target_point_fixed (shape, base, heading?)  a FIXED object's target point (branch 3) from the entity position words and, only where the original reads it, the heading
+//!   store:compare_target_points (path)    the retained target-point observer report (its JSON Lines) against this store: every local offset row, every branch-1 and branch-3 query
+//!
+//! The provider (`host.model`, `host.model_provider`) also answers the three questions behind `get_local_entity_target_point` (EEDCS-52): `target_point_chain` (the sibling positions of
+//! the first TARGET_POINT sub-object, topmost first, or absent), `target_point_world` (its world position for the CURRENT placement the campaign sends in the text place) and
+//! `target_point_fixed` (a fixed object's position); `ModelStore::target_point_chain` and `ModelStore::target_point_live` are the store behind them.
 //!
 //! No pointer, offset or legacy layout reaches Lua; the store is immutable and shared (`Arc`), so a value a script keeps never refers into it. Arguments are whole
 //! numbers within range or the call is refused before the store is touched. A missing asset is reported as `NOT RUN`, never as a pass.
 use crate::models::{
-    compiled_scene_name, hex_list, scene_last, AnimationRef, CustomWalk, ErrorKind, ModelStore, ObjectHeader, ObjectSource, RouteFace, RouteNode, SceneSource,
-    Triangle, CUSTOM_WALK_MAX,
+    compiled_scene_name, hex_list, scene_index_by_name, scene_last, AnimationRef, CustomWalk, ErrorKind, FixedPath, FixedTarget, ModelStore, ObjectHeader,
+    ObjectSource, OffsetSource, RouteFace, RouteNode, SceneSource, TargetPointChain, TargetPointLocal, TargetPointWorld, Triangle, CUSTOM_WALK_MAX,
+    TARGET_POINT_CHAIN_MAX, TARGET_POINT_STATE,
 };
 use crate::original_report;
 use mlua::prelude::*;
@@ -269,6 +279,105 @@ impl LuaUserData for StoreHandle {
             let answer = this.0.animation_ref(scene, index, definition).map_err(query_error)?;
             animation_table(lua, &answer)
         });
+        methods.add_method("scene_index", |_, _this, name: String| Ok(scene_index_by_name(&name).map(|scene| scene as i64)));
+        methods.add_method("target_point_local", |lua, this, scene: LuaValue| {
+            let scene = whole(&scene, "scene", i64::MIN / 2, i64::MAX / 2)?;
+            let answer = this.0.target_point_local(scene).map_err(query_error)?;
+            let table = lua.create_table()?;
+            match answer {
+                TargetPointLocal::Offset { offset, source } => {
+                    table.set("result", "offset")?;
+                    table.set("offset", hex_list(&offset))?;
+                    table.set("source", offset_source_name(source))?;
+                }
+                TargetPointLocal::Refused(reason) => {
+                    table.set("result", "refused")?;
+                    table.set("reason", reason)?;
+                }
+            }
+            Ok(table)
+        });
+        methods.add_method("target_point_world", |lua, this, (scene, pose): (LuaValue, LuaTable)| {
+            let scene = whole(&scene, "scene", i64::MIN / 2, i64::MAX / 2)?;
+            let position = pose_words::<3>(&pose, "position", None)?;
+            let attitude = pose_words::<9>(&pose, "attitude", None)?;
+            let one = 1.0f32.to_bits();
+            let scale = pose_words::<3>(&pose, "scale", Some([one; 3]))?;
+            let answer = this.0.target_point_world(scene, position, attitude, scale).map_err(query_error)?;
+            let table = lua.create_table()?;
+            match answer {
+                TargetPointWorld::Found { position, attitude } => {
+                    table.set("result", "found")?;
+                    table.set("position", hex_list(&position))?;
+                    table.set("attitude", hex_list(&attitude))?;
+                    table.set("state", TARGET_POINT_STATE)?;
+                }
+                TargetPointWorld::NoTargetPoint => {
+                    table.set("result", "no_target_point")?;
+                    table.set("state", TARGET_POINT_STATE)?;
+                }
+                TargetPointWorld::Refused(reason) => {
+                    table.set("result", "refused")?;
+                    table.set("reason", reason)?;
+                }
+            }
+            Ok(table)
+        });
+        methods.add_method("target_point_fixed", |lua, this, (shape, base, heading): (LuaValue, String, Option<String>)| {
+            let shape = whole(&shape, "shape", i64::MIN / 2, i64::MAX / 2)?;
+            let base = hex_words::<3>(&base, "base")?;
+            let heading = heading.map(|text| hex_words::<1>(&text, "heading")).transpose()?.map(|word| word[0]);
+            let answer = this.0.target_point_fixed(shape, base, heading).map_err(query_error)?;
+            let table = lua.create_table()?;
+            match answer {
+                FixedTarget::Offset { result, path } => {
+                    table.set("result", "offset")?;
+                    table.set("position", hex_list(&result))?;
+                    table.set("path", fixed_path_name(path))?;
+                }
+                FixedTarget::PositionCopy { result } => {
+                    table.set("result", "position_copy")?;
+                    table.set("position", hex_list(&result))?;
+                }
+                FixedTarget::Refused(reason) => {
+                    table.set("result", "refused")?;
+                    table.set("reason", reason)?;
+                }
+            }
+            Ok(table)
+        });
+        methods.add_method("compare_target_points", |lua, this, path: String| {
+            let report = compare_target_points(&this.0, Path::new(&path)).map_err(|e| LuaError::runtime(format!("model store: compare_target_points: {e}")))?;
+            let t = lua.create_table()?;
+            for (name, value) in [
+                ("offset_events", report.offset_events),
+                ("offset_rows", report.offset_rows),
+                ("offset_rows_compared", report.offset_rows_compared),
+                ("offset_rows_not_recorded", report.offset_rows_not_recorded),
+                ("offset_mismatches", report.offset_mismatches),
+                ("offset_sub_object", report.offset_sub_object),
+                ("offset_bbox", report.offset_bbox),
+                ("offset_invalid_zero", report.offset_invalid_zero),
+                ("queries", report.queries),
+                ("branch1_queries", report.branch1_queries),
+                ("branch1_matched", report.branch1_matched),
+                ("branch1_mismatches", report.branch1_mismatches),
+                ("branch1_refused", report.branch1_refused),
+                ("other_branch_queries", report.other_branch_queries),
+                ("branch3_queries", report.branch3_queries),
+                ("branch3_complete", report.branch3_complete),
+                ("branch3_matched", report.branch3_matched),
+                ("branch3_mismatches", report.branch3_mismatches),
+                ("branch3_refused", report.branch3_refused),
+                ("branch3_missing_input", report.branch3_missing_input),
+                ("branch3_offset_input_differs", report.branch3_offset_input_differs),
+            ] {
+                t.set(name, value)?;
+            }
+            t.set("state", TARGET_POINT_STATE)?;
+            t.set("listed", string_list(lua, &report.listed)?)?;
+            Ok(t)
+        });
         methods.add_method("compare_original", |lua, this, path: String| {
             let report = compare_original(&this.0, Path::new(&path)).map_err(|e| LuaError::runtime(format!("model store: compare_original: {e}")))?;
             let t = lua.create_table()?;
@@ -331,6 +440,109 @@ fn provider_number(value: Option<LuaValue>, name: &str, operation: &str) -> LuaR
             .map(Some)
             .map_err(|e| LuaError::runtime(format!("[model-provider:{operation}.request] {e}"))),
     }
+}
+
+/// The campaign's floats from the provider's text: `count_ok` says which counts are allowed, each token is `0x` and eight hexadecimal digits (exact bit patterns, any value).
+fn transport_pose(text: Option<&str>, operation: &str, count_ok: impl Fn(usize) -> bool) -> LuaResult<Vec<u32>> {
+    let bad = |why: &str| LuaError::runtime(format!("[model-provider:{operation}.request] the pose {why}"));
+    let text = text.ok_or_else(|| bad("is missing"))?;
+    let mut words = Vec::new();
+    for token in text.split(',') {
+        let digits = token
+            .strip_prefix("0x")
+            .filter(|digits| digits.len() == 8)
+            .ok_or_else(|| bad("must be 0x and eight hexadecimal digits per float"))?;
+        words.push(u32::from_str_radix(digits, 16).map_err(|_| bad("must be 0x and eight hexadecimal digits per float"))?);
+        if words.len() > 15 + 9 * TARGET_POINT_CHAIN_MAX {
+            return Err(bad("is longer than the transport carries"));
+        }
+    }
+    if !count_ok(words.len()) {
+        return Err(bad(&format!("has {} floats, which this question does not take", words.len())));
+    }
+    Ok(words)
+}
+
+/// The reference host's answer to a target-point question of a live instance or a fixed object (`get_local_entity_target_point`, EEDCS-52): which sub-object (the chain), where it is
+/// for the campaign's CURRENT placement (the world position) and a fixed object's target point. The store does the physical work; a refusal of the store is a refusal here, never a number.
+fn target_point_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaResult<LuaTable> {
+    let operation = q.operation.as_str();
+    let fail = |message: String| LuaError::runtime(format!("[model-provider:{operation}.request] {message}"));
+    if q.depth.is_some() || q.kind.is_some() || q.definition.is_some() {
+        return Err(fail("a target point question has no depth, kind or definition".into()));
+    }
+    let scene = q.scene.ok_or_else(|| fail("a target point question needs a scene".into()))?;
+    let table = lua.create_table()?;
+    let name = usize::try_from(scene).ok().and_then(compiled_scene_name).unwrap_or("");
+    table.set("name", name)?;
+    let refuse = |table: &LuaTable, reason: &str| -> LuaResult<()> {
+        table.set("result", "refused")?;
+        table.set("reason", reason)
+    };
+    match operation {
+        "target_point_chain" => {
+            if q.key.is_some() {
+                return Err(fail("a chain question has no pose".into()));
+            }
+            if scene < 0 {
+                return Err(fail(format!("scene {scene} is not a scene")));
+            }
+            match store.target_point_chain(scene).map_err(|e| fail(e.to_string()))? {
+                TargetPointChain::Found(offsets) => {
+                    table.set("result", "chain")?;
+                    table.set("offsets", lua.create_sequence_from(offsets)?)?;
+                }
+                TargetPointChain::NoTargetPoint => table.set("result", "absent")?,
+                TargetPointChain::Refused(reason) => refuse(&table, reason)?,
+            }
+        }
+        "target_point_world" => {
+            // the instance's position (3), attitude (9) and relative scale (3), then nine floats for each level of the chain
+            let words = transport_pose(q.key.as_deref(), operation, |n| n >= 24 && (n - 15) % 9 == 0)?;
+            let take = |from: usize, count: usize| -> Vec<u32> { words[from..from + count].to_vec() };
+            let (position, attitude, scale) = (take(0, 3), take(3, 9), take(12, 3));
+            // whole levels only: the count was checked above, so no float is left over
+            let (levels, _) = words[15..].as_chunks::<9>();
+            let live: Vec<[u32; 9]> = levels.to_vec();
+            let result = store.target_point_live(
+                scene,
+                [position[0], position[1], position[2]],
+                <[u32; 9]>::try_from(attitude.as_slice()).map_err(|_| fail("the attitude is not nine floats".into()))?,
+                [scale[0], scale[1], scale[2]],
+                &live,
+            );
+            match result.map_err(|e| fail(e.to_string()))? {
+                TargetPointWorld::Found { position, .. } => {
+                    table.set("result", "world")?;
+                    table.set("p", hex_list(&position))?;
+                }
+                // the campaign asks for a position only after the host named a chain: a scene with none is a disagreement, not an answer
+                TargetPointWorld::NoTargetPoint => refuse(&table, "no_target_point")?,
+                TargetPointWorld::Refused(reason) => refuse(&table, reason)?,
+            }
+        }
+        _ => {
+            // the position the campaign copied (3) and, only when its cached offset has a horizontal part, the heading (1)
+            let words = transport_pose(q.key.as_deref(), operation, |n| n == 3 || n == 4)?;
+            if scene < 1 {
+                return Err(fail(format!(
+                    "scene {scene} has no fixed target point: the invalid shape's position copy is the campaign's own"
+                )));
+            }
+            let heading = words.get(3).copied();
+            match store
+                .target_point_fixed(scene, [words[0], words[1], words[2]], heading)
+                .map_err(|e| fail(e.to_string()))?
+            {
+                FixedTarget::Offset { result, .. } | FixedTarget::PositionCopy { result } => {
+                    table.set("result", "fixed")?;
+                    table.set("p", hex_list(&result))?;
+                }
+                FixedTarget::Refused(reason) => refuse(&table, reason)?,
+            }
+        }
+    }
+    Ok(table)
 }
 
 /// The reference host's answer to one model question of the campaign (aphavoc/.../mb_hostmodel.h; the Lua contract is `call_model` in eech-dc/src/module.rs): the host's own
@@ -411,6 +623,32 @@ fn model_answer(
             };
             table.set("name", crate::models::compiled_subobject_name(kind as usize).unwrap_or(""))?;
             return Ok(table);
+        }
+        // A scene's LOCAL target-point offset (EEDCS-52, D3): the host's own `target_point_local` (the TARGET_POINT sub-object's position or the bounding-box centre, or the zero
+        // of a catalogue slot no file defines), as exact bit patterns, with the scene's compiled name as the echo. The invalid scene 0 is not asked by the campaign and is not answered
+        // here as a scene: it is the campaign's own zero. A refusal of the store is a refusal of the provider, never a number.
+        "target_point_offset" => {
+            let scene = scene.ok_or_else(|| fail("a target point offset question needs a scene".into()))?;
+            if depth.is_some() {
+                return Err(fail("a target point offset question has no depth".into()));
+            }
+            if scene < 1 {
+                return Err(fail(format!(
+                    "scene {scene} has no target point offset to ask for: the invalid scene's zero is the campaign's own"
+                )));
+            }
+            match store.target_point_local(scene).map_err(|e| fail(e.to_string()))? {
+                TargetPointLocal::Offset { offset, .. } => {
+                    table.set("result", "offset")?;
+                    table.set("p", hex_list(&offset))?;
+                    table.set("name", usize::try_from(scene).ok().and_then(compiled_scene_name).unwrap_or(""))?;
+                }
+                TargetPointLocal::Refused(reason) => {
+                    table.set("result", "refused")?;
+                    table.set("reason", reason)?;
+                    table.set("name", usize::try_from(scene).ok().and_then(compiled_scene_name).unwrap_or(""))?;
+                }
+            }
         }
         // The metadata of the physical models the campaign mirrors in its private compatibility rows (EEDCS-50, D3, L2). The table question is asked once, before any scene;
         // an object question names the object by the role it has in a scene (the fourth argument is the ROLE) and a cursor (the depth argument), never by the campaign's own
@@ -689,6 +927,11 @@ impl ProviderState {
         let operation = q.operation.as_str();
         match operation {
             "custom_order" => self.custom_order(lua, current, q.scene, q.depth, q.kind, q.key),
+            // the target-point queries of a live instance or a fixed object (EEDCS-52): the campaign's current placement arrives in the text place
+            "target_point_chain" | "target_point_world" | "target_point_fixed" => {
+                let store = self.final_store(current)?;
+                target_point_answer(lua, &store, &q)
+            }
             // the database's own questions: independent of how the custom scene files are read
             "object_table" | "object" => {
                 let store = self.base(current)?;
@@ -818,6 +1061,423 @@ impl Report {
             self.listed.push(text);
         }
     }
+}
+
+fn offset_source_name(source: OffsetSource) -> &'static str {
+    match source {
+        OffsetSource::SubObject => "sub_object",
+        OffsetSource::BoundingBox => "bbox",
+        OffsetSource::InvalidZero => "invalid_zero",
+    }
+}
+
+/// `N` float bit patterns of a pose field (`0x..,0x..` text); a missing field is the default if there is one, otherwise refused.
+fn pose_words<const N: usize>(pose: &LuaTable, key: &str, default: Option<[u32; N]>) -> LuaResult<[u32; N]> {
+    let value: LuaValue = pose.get(key)?;
+    match value {
+        LuaValue::Nil => default.ok_or_else(|| LuaError::runtime(format!("model store: bad argument: the pose has no {key}"))),
+        LuaValue::String(text) => {
+            let text = text
+                .to_str()
+                .map_err(|_| LuaError::runtime(format!("model store: bad argument: pose {key} is not text")))?;
+            let words = parse_bits(&text).ok_or_else(|| LuaError::runtime(format!("model store: bad argument: pose {key} is not 0x-prefixed hex words")))?;
+            <[u32; N]>::try_from(words).map_err(|w| LuaError::runtime(format!("model store: bad argument: pose {key} has {} words, not {N}", w.len())))
+        }
+        other => Err(LuaError::runtime(format!(
+            "model store: bad argument: pose {key} must be text, got {}",
+            other.type_name()
+        ))),
+    }
+}
+
+#[derive(Default)]
+struct TargetPointReport {
+    offset_events: usize,
+    offset_rows: usize,
+    offset_rows_compared: usize,
+    offset_rows_not_recorded: usize,
+    offset_mismatches: usize,
+    offset_sub_object: usize,
+    offset_bbox: usize,
+    offset_invalid_zero: usize,
+    queries: usize,
+    branch1_queries: usize,
+    branch1_matched: usize,
+    branch1_mismatches: usize,
+    branch1_refused: usize,
+    /// branches 2 and 4 (position copies, not replayed here)
+    other_branch_queries: usize,
+    /// branch 3, a fixed object: all queries; those that carry the recorded base position (the replay's input); matched / mismatched against the original result; refused by the host;
+    /// and those an older report cannot replay because it recorded no base position (counted, never passed); and rows whose host offset differs from the offset the original read
+    branch3_queries: usize,
+    branch3_complete: usize,
+    branch3_matched: usize,
+    branch3_mismatches: usize,
+    branch3_refused: usize,
+    branch3_missing_input: usize,
+    branch3_offset_input_differs: usize,
+    listed: Vec<String>,
+}
+
+impl TargetPointReport {
+    fn list(&mut self, text: String) {
+        if self.listed.len() < LISTED {
+            self.listed.push(text);
+        }
+    }
+}
+
+/// The observer's `key=value` fields of one report line (`tp-offset ...`, `tp-event ...`); the first word must be `head`. The host identity that ends an event line is cut off
+/// before the split, so a printable identity with spaces cannot be read as fields.
+fn report_fields<'a>(line: &'a str, head: &str) -> Option<Vec<(&'a str, &'a str)>> {
+    let line = line.split(" host_id_len=").next().unwrap_or(line);
+    let mut words = line.split_whitespace();
+    if words.next() != Some(head) {
+        return None;
+    }
+    words.map(|word| word.split_once('=')).collect()
+}
+
+fn field<'a>(fields: &[(&'a str, &'a str)], key: &str) -> Option<&'a str> {
+    fields.iter().find(|(k, _)| *k == key).map(|(_, v)| *v)
+}
+
+/// `00000000,3f800000` as bit patterns (the observer writes them without a prefix)
+fn parse_plain_words(list: &str, count: usize) -> Option<Vec<u32>> {
+    let words: Option<Vec<u32>> = list
+        .split(',')
+        .map(|w| if w.len() == 8 { u32::from_str_radix(w, 16).ok() } else { None })
+        .collect();
+    words.filter(|w| w.len() == count)
+}
+
+/// The name the observer writes for a scene: every character that is not alphanumeric, `_`, `.` or `-` becomes `_` (clean_name in eech_tp_fixture.c).
+fn observer_name(name: &str) -> String {
+    name.chars()
+        .map(|c| if c.is_ascii_alphanumeric() || matches!(c, '_' | '.' | '-') { c } else { '_' })
+        .collect()
+}
+
+/// Compares the store with a retained target-point observer report (the JSON Lines the original-DLL characterisation driver wrote): every recorded LOCAL offset row of every
+/// pass is compared bit for bit with `target_point_local`, and every branch-1 query (an instance with a TARGET_POINT sub-object) is answered by `target_point_world` from the
+/// model and the semantic root pose the original recorded (`vp_after`: position, then the nine attitude words) and compared with the original's result. The original is the
+/// oracle; nothing here computes an expectation. The world comparison holds only if the instance was in the state `TARGET_POINT_STATE` names; a mismatch is listed, never
+/// repaired.
+fn compare_target_points(store: &ModelStore, path: &Path) -> Result<TargetPointReport, String> {
+    let meta = std::fs::metadata(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    if meta.len() > MAX_REPORT {
+        return Err(format!("{} is {} bytes, over the {MAX_REPORT}-byte limit", path.display(), meta.len()));
+    }
+    let content = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    let mut report = TargetPointReport::default();
+    for (index, line) in content.lines().enumerate() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let number = index + 1;
+        let row: Value = serde_json::from_str(line).map_err(|e| format!("line {number}: not JSON: {e}"))?;
+        match text(&row, "event").unwrap_or_default() {
+            "offsets" => {
+                report.offset_events += 1;
+                let body = text(&row, "text").ok_or_else(|| format!("line {number}: an offsets event without text"))?;
+                for entry in body.lines().filter(|l| !l.trim().is_empty()) {
+                    compare_offset_row(store, &mut report, entry).map_err(|e| format!("line {number}: {e}"))?;
+                }
+            }
+            "query" => {
+                report.queries += 1;
+                let body = text(&row, "text").ok_or_else(|| format!("line {number}: a query event without text"))?;
+                compare_query(store, &mut report, body).map_err(|e| format!("line {number}: {e}"))?;
+            }
+            _ => {}
+        }
+    }
+    if report.offset_events == 0 {
+        return Err(format!("{} holds no offsets event", path.display()));
+    }
+    Ok(report)
+}
+
+fn compare_offset_row(store: &ModelStore, report: &mut TargetPointReport, entry: &str) -> Result<(), String> {
+    let fields = report_fields(entry, "tp-offset").ok_or_else(|| format!("not a tp-offset row: {entry}"))?;
+    let get = |key: &str| field(&fields, key).ok_or_else(|| format!("a tp-offset row without {key}: {entry}"));
+    let generation = get("generation")?;
+    let scene: i64 = get("index")?.parse().map_err(|_| format!("a tp-offset row with a bad index: {entry}"))?;
+    let state = get("state")?;
+    let label = format!("pass {generation} scene {scene} ({})", get("name")?);
+    report.offset_rows += 1;
+    if state == "none" {
+        report.offset_rows_not_recorded += 1;
+        return Ok(());
+    }
+    let original = parse_plain_words(get("offset")?, 3).ok_or_else(|| format!("a tp-offset row with a bad offset: {entry}"))?;
+    let expected_source = match state {
+        "sub_object" => {
+            report.offset_sub_object += 1;
+            OffsetSource::SubObject
+        }
+        "bbox" => {
+            report.offset_bbox += 1;
+            OffsetSource::BoundingBox
+        }
+        "invalid_zero" => {
+            report.offset_invalid_zero += 1;
+            OffsetSource::InvalidZero
+        }
+        other => return Err(format!("a tp-offset row with the state '{other}': {entry}")),
+    };
+    report.offset_rows_compared += 1;
+    if state == "bbox" {
+        // the data under the arithmetic: the bounds the original centred are the bounds the host holds, so that a bbox row that differs says whether the INPUT or the MATH differs
+        let bounds = parse_plain_words(get("bounds")?, 6).ok_or_else(|| format!("a bbox tp-offset row with bad bounds: {entry}"))?;
+        match store.scene(scene) {
+            Ok(view) if view.bounding_box[..] == bounds[..] => {}
+            Ok(view) => {
+                report.offset_mismatches += 1;
+                report.list(format!(
+                    "{label}: bounds original {} host {}",
+                    hex_plain(&bounds),
+                    hex_plain(&view.bounding_box)
+                ));
+            }
+            Err(e) => {
+                report.offset_mismatches += 1;
+                report.list(format!("{label}: {e}"));
+            }
+        }
+    }
+    match store.target_point_local(scene) {
+        Err(e) => {
+            report.offset_mismatches += 1;
+            report.list(format!("{label}: {e}"));
+        }
+        Ok(TargetPointLocal::Refused(why)) => {
+            report.offset_mismatches += 1;
+            report.list(format!(
+                "{label}: the original has {} ({state}), the host refuses ({why})",
+                hex_plain(&original)
+            ));
+        }
+        Ok(TargetPointLocal::Offset { offset, source }) => {
+            if offset[..] != original[..] {
+                report.offset_mismatches += 1;
+                report.list(format!(
+                    "{label}: {state} original {} host {} ({})",
+                    hex_plain(&original),
+                    hex_plain(&offset),
+                    offset_source_name(source)
+                ));
+            } else if source != expected_source {
+                report.offset_mismatches += 1;
+                report.list(format!(
+                    "{label}: same bits but the original took {state}, the host {}",
+                    offset_source_name(source)
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
+fn hex_plain(words: &[u32]) -> String {
+    words.iter().map(|w| format!("{w:08x}")).collect::<Vec<_>>().join(",")
+}
+
+fn fixed_path_name(path: FixedPath) -> &'static str {
+    match path {
+        FixedPath::NoHorizontal => "no_horizontal",
+        FixedPath::HeadingZero => "heading_zero",
+        FixedPath::Rotated => "rotated",
+    }
+}
+
+/// `N` float bit patterns of a Lua argument (`0x..,0x..` text)
+fn hex_words<const N: usize>(text: &str, name: &str) -> LuaResult<[u32; N]> {
+    let words = parse_bits(text).ok_or_else(|| LuaError::runtime(format!("model store: bad argument: {name} is not 0x-prefixed hex words")))?;
+    <[u32; N]>::try_from(words).map_err(|w| LuaError::runtime(format!("model store: bad argument: {name} has {} words, not {N}", w.len())))
+}
+
+/// One recorded branch-3 query (a fixed object of a valid shape) replayed through the host from the EXACT recorded inputs: the entity base position the original had copied and the
+/// heading it read, with the shape's offset taken from the independently loaded model, never from the recorded offset (which is compared as an input, separately). The recorded
+/// result is the oracle and the recorded case names which way the original's tests went. A report from before the base position was recorded cannot be replayed: it is counted as
+/// missing its input, and is never a pass and never reconstructed by subtraction.
+fn compare_fixed_query(store: &ModelStore, report: &mut TargetPointReport, fields: &[(&str, &str)], entry: &str) -> Result<(), String> {
+    let get = |key: &str| field(fields, key);
+    let required = |key: &str| field(fields, key).ok_or_else(|| format!("a branch-3 tp-event row without {key}: {entry}"));
+    report.branch3_queries += 1;
+    let shape: i64 = required("shape")?
+        .parse()
+        .map_err(|_| format!("a branch-3 tp-event row with a bad shape: {entry}"))?;
+    let name = get("model_name").unwrap_or("-");
+    let label = format!("event {} (fixed shape {shape}, {name})", get("index").unwrap_or("?"));
+    let result = parse_plain_words(required("result")?, 3).ok_or_else(|| format!("a branch-3 tp-event row with a bad result: {entry}"))?;
+    let Some(base_text) = get("base").filter(|text| *text != "-") else {
+        report.branch3_missing_input += 1;
+        if report.branch3_missing_input == 1 {
+            report.list(format!("{label}: the report recorded no base position (an older observer); branch-3 queries without one are counted as missing their input and are not replayed"));
+        }
+        return Ok(());
+    };
+    let base = parse_plain_words(base_text, 3).ok_or_else(|| format!("a branch-3 tp-event row with a bad base: {entry}"))?;
+    let heading = match get("heading") {
+        None | Some("-") => None,
+        Some(text) => Some(parse_plain_words(text, 1).ok_or_else(|| format!("a branch-3 tp-event row with a bad heading: {entry}"))?[0]),
+    };
+    report.branch3_complete += 1;
+    if shape < 1 || shape >= scene_last() as i64 {
+        // the original indexed its table with this value; no offset exists to replay it with
+        report.branch3_refused += 1;
+        report.list(format!(
+            "{label}: the shape is outside the catalogue (1 to {}), nothing to replay",
+            scene_last() - 1
+        ));
+        return Ok(());
+    }
+    let host_name = usize::try_from(shape).ok().and_then(compiled_scene_name).map(observer_name);
+    if host_name.as_deref() != Some(name) {
+        report.branch3_mismatches += 1;
+        report.list(format!("{label}: the host names that scene {host_name:?}"));
+        return Ok(());
+    }
+    // The two recorded facts the replay is judged against besides the result: the case (which way the original's own tests went) and the offset it read. A row that does not carry a
+    // known case label or a well-formed offset cannot have these checks, so it is counted as missing its input (never matched with the checks switched off); a label that is none
+    // of the three or an offset that is not three words is a malformed report.
+    let expected_path = match get("case") {
+        Some("no_horizontal_offset") => Some(FixedPath::NoHorizontal),
+        Some("heading_zero_quirk") => Some(FixedPath::HeadingZero),
+        Some("rotated_horizontal_offset") => Some(FixedPath::Rotated),
+        None | Some("-") => None,
+        Some(other) => return Err(format!("a branch-3 tp-event row with the unknown case '{other}': {entry}")),
+    };
+    let recorded_offset = match get("offset") {
+        None | Some("-") => None,
+        Some(text) => Some(parse_plain_words(text, 3).ok_or_else(|| format!("a branch-3 tp-event row with a bad offset: {entry}"))?),
+    };
+    let (Some(expected_path), Some(recorded_offset)) = (expected_path, recorded_offset) else {
+        report.branch3_missing_input += 1;
+        report.list(format!(
+            "{label}: the row carries no {} (an older or incomplete observer); it is counted as missing its input and is not replayed",
+            if get("case").is_none_or(|c| c == "-") {
+                "case label"
+            } else {
+                "recorded offset"
+            }
+        ));
+        return Ok(());
+    };
+    // the input under the arithmetic: the offset the original read is the offset the host derives from its own model (a difference is the INPUT, not the math)
+    if let Ok(TargetPointLocal::Offset { offset, .. }) = store.target_point_local(shape) {
+        if recorded_offset[..] != offset[..] {
+            report.branch3_offset_input_differs += 1;
+            report.list(format!(
+                "{label}: the offset the original read {} is not the host's {}",
+                hex_plain(&recorded_offset),
+                hex_plain(&offset)
+            ));
+        }
+    }
+    match store.target_point_fixed(shape, [base[0], base[1], base[2]], heading) {
+        Err(e) => {
+            report.branch3_refused += 1;
+            report.list(format!("{label}: {e}"));
+        }
+        Ok(FixedTarget::Refused(why)) => {
+            report.branch3_refused += 1;
+            report.list(format!("{label}: the host refuses ({why}); the original has {}", hex_plain(&result)));
+        }
+        Ok(FixedTarget::PositionCopy { result: host }) => {
+            if host[..] == result[..] {
+                report.branch3_matched += 1;
+            } else {
+                report.branch3_mismatches += 1;
+                report.list(format!("{label}: original {} host position copy {}", hex_plain(&result), hex_plain(&host)));
+            }
+        }
+        Ok(FixedTarget::Offset { result: host, path }) => {
+            if host[..] != result[..] {
+                report.branch3_mismatches += 1;
+                report.list(format!(
+                    "{label}: original {} host {} (path {}, base {}, heading {})",
+                    hex_plain(&result),
+                    hex_plain(&host),
+                    fixed_path_name(path),
+                    hex_plain(&base),
+                    heading.map_or("-".to_string(), |h| format!("{h:08x}"))
+                ));
+            } else if expected_path != path {
+                report.branch3_mismatches += 1;
+                report.list(format!(
+                    "{label}: same bits but the original took '{}' and the host the {} path",
+                    get("case").unwrap_or("-"),
+                    fixed_path_name(path)
+                ));
+            } else {
+                report.branch3_matched += 1;
+            }
+        }
+    }
+    Ok(())
+}
+
+fn compare_query(store: &ModelStore, report: &mut TargetPointReport, body: &str) -> Result<(), String> {
+    let mut lines = body.lines().filter(|l| !l.trim().is_empty());
+    let (Some(entry), None) = (lines.next(), lines.next()) else {
+        return Err("a query event that is not exactly one line".to_string());
+    };
+    let fields = report_fields(entry, "tp-event").ok_or_else(|| format!("not a tp-event row: {entry}"))?;
+    let get = |key: &str| field(&fields, key).ok_or_else(|| format!("a tp-event row without {key}: {entry}"));
+    match get("branch")? {
+        "1" => {}
+        "3" => return compare_fixed_query(store, report, &fields, entry),
+        _ => {
+            report.other_branch_queries += 1;
+            return Ok(());
+        }
+    }
+    report.branch1_queries += 1;
+    let model: i64 = get("model")?.parse().map_err(|_| format!("a tp-event row with a bad model: {entry}"))?;
+    let name = get("model_name")?;
+    let label = format!("event {} ({name}, model {model})", get("index")?);
+    let vp = parse_plain_words(get("vp_after")?, 12).ok_or_else(|| format!("a branch-1 tp-event row without a 12-word vp_after: {entry}"))?;
+    let result = parse_plain_words(get("result")?, 3).ok_or_else(|| format!("a tp-event row with a bad result: {entry}"))?;
+    let host_name = usize::try_from(model).ok().and_then(compiled_scene_name).map(observer_name);
+    if host_name.as_deref() != Some(name) {
+        report.branch1_mismatches += 1;
+        report.list(format!("{label}: the host names that scene {host_name:?}"));
+        return Ok(());
+    }
+    let position = [vp[0], vp[1], vp[2]];
+    let mut attitude = [0u32; 9];
+    attitude.copy_from_slice(&vp[3..12]);
+    let one = 1.0f32.to_bits();
+    match store.target_point_world(model, position, attitude, [one; 3]) {
+        Err(e) => {
+            report.branch1_mismatches += 1;
+            report.list(format!("{label}: {e}"));
+        }
+        Ok(TargetPointWorld::Refused(why)) => {
+            report.branch1_refused += 1;
+            report.list(format!("{label}: the host refuses ({why}); the original has {}", hex_plain(&result)));
+        }
+        Ok(TargetPointWorld::NoTargetPoint) => {
+            report.branch1_mismatches += 1;
+            report.list(format!("{label}: the original found a TARGET_POINT sub-object, the host finds none"));
+        }
+        Ok(TargetPointWorld::Found { position, .. }) => {
+            if position[..] == result[..] {
+                report.branch1_matched += 1;
+            } else {
+                report.branch1_mismatches += 1;
+                report.list(format!(
+                    "{label}: original {} host {} (state {TARGET_POINT_STATE}, root pose {})",
+                    hex_plain(&result),
+                    hex_plain(&position),
+                    hex_plain(&vp)
+                ));
+            }
+        }
+    }
+    Ok(())
 }
 
 fn int(row: &Value, key: &str) -> Option<i64> {

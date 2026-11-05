@@ -1,0 +1,169 @@
+{
+  "schema": "independent-finite-original-source-actual-review/1",
+  "created_utc": "2026-11-02T19:45:18.709417+00:00",
+  "source": {
+    "head": "2f7445c4d7ad43cc88e91e1e1f0e8d5932a05e8b",
+    "prior_reviewed_source": "d1ba9e71bc4e311f719b3e9391fc19f6eacb2ce6",
+    "snapshot": "D:\\EECH-Migration-Evidence\\target-point-original-2f7445c4d7",
+    "clean": true,
+    "binary_delta_sha256": "c9909f4ea7f90975bb327d45679557daaa2338be90bf5567b789d97712fdf4f1",
+    "original_base": "1fb023388ef2ca094db2eada4dc9b26c8d0c3de4",
+    "protected_original_query_caller_files": [
+      "aphavoc/source/entity/en_misc/en_maths/en_maths.c",
+      "aphavoc/source/entity/mobile/weapon/wn_dbase.c",
+      "aphavoc/source/entity/mobile/weapon/weapon.c",
+      "aphavoc/source/entity/mobile/weapon/wn_move.c"
+    ],
+    "all_protected_whole_blobs_and_modes_exact": true,
+    "engine_original_prefix_bytes": 75458,
+    "engine_original_literal_prefix_exact": true,
+    "engine_NUL_count": 1,
+    "engine_NUL_offset": 42530
+  },
+  "scope": "Same combined correctness/clean-code/boundary review of the bounded original-keeping generation observer, its temporal checker correction and first successful captures. No production target-point host query or extraction.",
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "finite_boot_census_and_measured_branch1_slice_closed": true,
+  "all_target_point_branches_characterized": false,
+  "Task52_accepted": false,
+  "Task50_accepted": false,
+  "whole_D3_accepted": false,
+  "closed_findings": [
+    "5488 generation/lifecycle P2: each original initializer pass has its own bounded row array and ordinal. No first pass is hidden/reset, no count2 is hardcoded and no policy call is coalesced.",
+    "Historical snapshot completeness is separate from current live equality; every retained generation has ended/interrupted/row/duplicate/range/completeness facts. The latest complete pass must match the live table. Capacity4 overflow or incomplete/stray/interrupted observations prevent whole-capture acceptance.",
+    "Queries record latest ended generation and whether a pass was open at the original observation point. Shape-offset rows join to their applicable historical generation, not blindly to the final table. Original instance VP writes and heading-zero behavior remain untouched.",
+    "Temporal checker residual: against every known boot/frame/end summary, seq<calls requires gen<=last and seq>=calls requires gen>=last. Generation order cannot go backwards. Compatible intervals between samples and instance queries before the first end/open pass remain observations; branch3 without an applicable completed table remains refused.",
+    "7af synthetic partial-summary correction narrows the interrupted query mutation to exactly one query-counter occurrence, preserving complete pass facts and all old assertions. e057 adds coherent-positive-first boundary controls with checked mutations. 2f changes only formatting after that source fix.",
+    "Earlier clock/table and exact protocol join corrections remain intact; no repeated old C/kernel review or old native run was required."
+  ],
+  "source_boundary_checks": [
+    "Generation storage is statically bounded4; append uses fresh indexes, never reuses an ended row array, checks overflow before writing and records loss. C/Rust/Lua generation arguments and bounds agree; report truncation/index failure remains fail-closed.",
+    "TP12 changes explanation only. Each original initializer still calls seeker-limit policy exactly once before geometry. Two initializers in the measured one-boot lifecycle preserve two source-backed policy invocations, not one globally. No separate seeker output or policy equivalence experiment is claimed.",
+    "Census and query data remain private feature-only reports; no pointer/product host wire, campaign policy or original math is added. The ordinary builder/pack/input references are unchanged."
+  ],
+  "current_validation": {
+    "linux": {
+      "actual_exit": 0,
+      "completed_utc": "2026-11-02T19:40:33.606267Z",
+      "scope": "Sequential formatter, default and target-point-feature three-package release commands, default and feature all-target strict Clippy.",
+      "target_driver_passed_per_suite": 23,
+      "target_driver_failed_per_suite": 0,
+      "two_target23pass_rows_independently_found": true,
+      "two_strict_completions_independently_found": true,
+      "log_sha256": "2a4b780b8224e0b0b315b0d0d9ada7be0bafffdfb47c296080a8e7c7174cdb78"
+    },
+    "windows_fixture": {
+      "actual_exit": 0,
+      "completed_utc": "2026-11-02T19:34:12.755032Z",
+      "build_info_sha256": "a9e85af2424e204d85f7704b546b9ba4676a03c15a87674442360ee2f103f557",
+      "payloads_rehashed": 84,
+      "scope": "Explicit target-point-fixture builder, not ordinary shipping."
+    },
+    "current_hosted_CI": "No new current-head CI receipt was supplied/reviewed for this final artifact; no current-CI/delivery acceptance inferred."
+  },
+  "actual_captures": {
+    "native_source": "2f7445c4d7ad43cc88e91e1e1f0e8d5932a05e8b",
+    "cases": [
+      {
+        "scenario": "georgia",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "stage_exits": [
+          0,
+          0,
+          0
+        ],
+        "full_input_checks": 2,
+        "verified_payloads": 84,
+        "controller_sha256": "93342b8f55905120209ca000320bdbbcaf5e5dc8fedfc4f4960173f2e6681bb6",
+        "raw_json_bytes": 2109072,
+        "raw_json_sha256": "eb9ddf2b24b947a4da833311ebf0411316e733a8c36b071e0661db619d0bde15",
+        "frames": 36,
+        "boot_calls": 1,
+        "post_boot_queries": 0,
+        "total_calls": 1,
+        "query_events": 1,
+        "completed_utc": "2026-11-02T19:41:02.114931+00:00",
+        "VP_words_changed": 1
+      },
+      {
+        "scenario": "lebanon",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "stage_exits": [
+          0,
+          0,
+          0
+        ],
+        "full_input_checks": 2,
+        "verified_payloads": 84,
+        "controller_sha256": "b8447bf253768d4566865a0542c11c8c0e3882c0fe70cf8cfa0f8607a0aaf3e3",
+        "raw_json_bytes": 2262589,
+        "raw_json_sha256": "db8a5da7da29288e1e09adb61a634ffcb092cfd121b1fc1813c70eb9f21be407",
+        "frames": 36,
+        "boot_calls": 1,
+        "post_boot_queries": 216,
+        "total_calls": 217,
+        "query_events": 217,
+        "completed_utc": "2026-11-02T19:41:01.019147+00:00",
+        "VP_words_changed": 3
+      }
+    ],
+    "all_native_and_controller_exits_zero": true,
+    "four_full_input_checks_exit0": true,
+    "input_lists_and_combined_hashes_equal_references": true,
+    "all84_payload_hashes_rechecked": true,
+    "all_captures_complete": true,
+    "per_map_generation_history": {
+      "measured_generations": 2,
+      "history_capacity": 4,
+      "rows_per_generation": 3026,
+      "sub_object": 587,
+      "bbox": 2438,
+      "invalid_zero": 1,
+      "all_passes_ended_complete": true,
+      "duplicate_stray_dropped_interrupted_open_out_of_range_or_live_mismatch": 0,
+      "raw_bytes_per_generation": 522093,
+      "generation0_raw_sha256": "8fde232992a03a66b1cb9d68b057a75083c26377eee47a298557b8968846a5ae",
+      "generation1_raw_sha256": "00e6cccc03d4e802d99679cf19c9c71643c5b185cf5a29962bf10ae3d956e3e1",
+      "each_generation_boot_and_end_complete_text_literal_equal": true
+    },
+    "query_coverage": "Georgia: one boot branch1/unattributed query and no post-boot query in36frames. Lebanon: one boot branch1/unattributed plus216 branch1 aim_vectors calls (detail6) during36frames. All recorded events use generation1; contiguous event sequence, summary/case/caller and sampled-boundary joins hold.",
+    "viewpoint_consequence": "All before/after12-word records and vp_changed flags independently joined. Actual changed words occur once in Georgia and3times total in Lebanon. The original VP write is observable; these captures do not justify eliding it.",
+    "unreached": "No natural branches2,3,4, aim-lead/intercept, or weapon-step target-vector coverage is claimed from these captures. gd_attck direct LOCAL-offset consumer is separate and unmeasured.",
+    "cross_checkpoint_conformance": "The complete current JSONL for each map is literally byte-identical, including endings, to retained successful7af captures at their own source identity. This is a cross-checkpoint comparison, not a claim of another same-head independent repeat. Both raw files remain unchanged.",
+    "retained_failed_d1_comparison": "As an explicit parsed-field comparison, all3026 index/name/state/offset/bounds/live tuples of latest generation1 equal the sole latest cohort retained in each FAILEDd1 file. Whole cross-schema files are unequal; no normalization or recovery/equality claim for the old lost first-pass data."
+  },
+  "preserved_history": [
+    "73 Windows built0 but real-Lua guards6pass/11fail clock-table; no native launched at that source.",
+    "D1 default guards20pass, storage/Docker interruption125, recovery feature20pass then constant-assert Clippy101, followed by deefe fmt/bothstrict0 at its distinct test-source identity.",
+    "D1 first G/L actual native/controller1 (4inputchecks0/84payloads) because destructive once-only census could not retain two original passes; those failures remain unchanged.",
+    "7c partial synthetic report mutation failed one guard while other21passed; 7af scoped correction passed22 and produced successful native captures before the later checker boundary fix.",
+    "No source/binary/run/report identity was retrospectively relabelled by later source, formatting, storage recovery or diagnostics."
+  ],
+  "evidence_receipts": [
+    {
+      "path": "R:\\d3-evidence\\target-point-original-2f7445c4d7-linux-20261102-completion.json",
+      "sha256": "3b5ca263bf289682365bc6d76016387279d29326f49c4aa359f4d99fd2f469fe"
+    },
+    {
+      "path": "R:\\d3-evidence\\target-point-original-2f7445c4d7-windows-20261102-completion.json",
+      "sha256": "00326c53e0d156e05bcd63c1b8008a576f7dcf0d1255d52e574da24d2c3dbc32"
+    },
+    {
+      "path": "R:\\d3-evidence\\target-point-original-freeze-2f7445c4d7-20261102.json",
+      "sha256": "ffa7911db3f4ff542ef55ab6f7ff35424d7df0c0f15f88a62c43e46b5ae5e44b"
+    },
+    {
+      "path": "R:\\d3-evidence\\independent-target-point-original-source-actual-d1ba9e71bc-20261102.json",
+      "sha256": "5488d0896e156f034acdb0f967c081d5ec87e068e41c49706807445e428137bf"
+    }
+  ],
+  "limits_and_next_gate": [
+    "Finite acceptance covers the two observed boot offset-table snapshots and measured original branch1 behavior only. The remaining original branches2/3/4 need bounded original characterization before their physical service can be extracted; synthetic guards are not numerical/native branch coverage.",
+    "No full x87/MXCSR, RNG, whole update-order transparency, downstream VP-reader, original-model-accessor-profile equivalence, all-family or all-hierarchy coverage is established.",
+    "No production host API, target-point solver ownership, Task52 delivery, Task50 full40/all8 shipping, visual Tacview, live DCS/M6 or whole-D3 acceptance. PR112 remains stacked behind Task50; later source/publication/merge is separate."
+  ],
+  "privacy": "Counts/hashes/source scope only; no retail-derived offset catalogue, raw target coordinates, entity identities, geometry or pointers in this report.",
+  "reviewer_actions": "Read-only changed-source/actual inspection with independent byte, row, word-equality, counter, identity, input and payload hashing checks. No builds/tests/native launches, VM/cache/daemon operations, candidate edits, nested agents or external writes. Only this canonical review was written."
+}

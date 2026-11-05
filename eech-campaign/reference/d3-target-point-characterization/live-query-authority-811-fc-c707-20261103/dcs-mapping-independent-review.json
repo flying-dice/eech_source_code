@@ -1,0 +1,67 @@
+{
+  "schema": "independent-bounded-documentation-review-v1",
+  "reviewed_utc": "2026-11-03T01:44:16.610155+00:00",
+  "scope": "New target-point DCS provider plan and pinned declaration receipt only; existing finite query source/actual review is reused without reopening or executing tests.",
+  "source_state": {
+    "repository_HEAD": "099aa09c2dfeb77ca708214421e81113369a057e",
+    "new_files_reviewed_as": "Uncommitted reviewable documentation bytes; no committed-state claim",
+    "files": [
+      {
+        "path": "R:/d3-evidence/tp-original-20261102/eech-campaign/docs/d3-model-target-point-DCS-mapping.md",
+        "bytes": 4888,
+        "sha256": "ea6e08cfbd73cfb3e8b0745a6a6e596ba35c29ddca9297c729ba23307e3287fd"
+      },
+      {
+        "path": "R:/d3-evidence/tp-original-20261102/eech-campaign/reference/d3-target-point-characterization/dcs-model-reference-20261103.json",
+        "bytes": 1708,
+        "sha256": "79d156fa1d1e985bc7e048bc99e366c59b02f849cc1b40144a4d46e1077eed8e"
+      }
+    ]
+  },
+  "decision": {
+    "documentation_review_no_blocking_findings": true,
+    "findings": [],
+    "finite_plan_and_provenance_scope_clear": true,
+    "DCS_provider_implemented_or_measured": false,
+    "whole_Task52_or_D3_closed": false
+  },
+  "provenance": {
+    "pinned_commit": "1179554fcafcef92d71313336cc09500febf8245",
+    "verified_files": [
+      {
+        "file": "Object.ts",
+        "bytes": 3982,
+        "sha256": "3dfb8e733f653cf771d0233739504219ba39f0f6fbb60e1593f4b582650b4036",
+        "git_blob": "3e4863261901fba73af2fda1b31f47ee034bd16d"
+      },
+      {
+        "file": "Unit.ts",
+        "bytes": 18472,
+        "sha256": "67cb202ec657c890c2924ace0cd31b2e05b7abaaa1fd0388178a9b9e7c416854",
+        "git_blob": "98bd6a7f0a57b6039481a3d91e773cf355332987"
+      },
+      {
+        "file": "coord.ts",
+        "bytes": 4464,
+        "sha256": "fed5c1784921254f2e7565f39e4766074627a863e4fe8e9269a957327382cd60",
+        "git_blob": "a83d6f2fbd1d7af3ae180bc473bbed1f26b22614"
+      }
+    ],
+    "verification": "Actual retained UTF-8 bytes match declared byte lengths, SHA256 and git hash-object --no-filters blob identities. Public receipt equals retained private receipt as parsed JSON. These are author-maintained declaration sources, not native implementation/runtime measurements or an exhaustive API absence proof."
+  },
+  "conclusions": [
+    "Object getPoint, getPosition and getTypeName declarations and Unit descriptor methods support the stated API shapes. Position3 declares p plus x/y/z vector fields; basis/coordinate conversion remains a planned native check, not a verified convention or current adapter.",
+    "UnitDesc.box bounds are treated as metadata, not an authentic semantic aim point, joint chain or collision mesh. No silent bounding-box-centre fallback is proposed.",
+    "Versioned host-owned per-type semantic point data is explicitly a proposed workaround keyed through an explicit campaign-scene/type mapping. Unknown identity, missing catalogue/provider and unsupported joints are distinct errors; a declared legitimate absence remains distinct from missing data.",
+    "Root placement plus a configured rigid point is restricted to an explicitly rigid contract. It is not presented as equivalent to animated legacy target points. Host remains responsible for physical transforms; campaign seeker/guidance/engagement policy stays Core.",
+    "Current legacy instance hierarchy, live pose/scale marshalling and host identity coupling remain REQUIRED D3 work. Device, muzzle, rotor-damage, smoke-attachment and world-viewpoint consumer disposition is not waived by finite getter success or postponed solely because later native DCS operation is M6.",
+    "The plan supplies no invented joint API, private-pointer wire or EECH-index-derived host identity. It requires actual movement/rotation, supported animated-point and error-path checks later; reference-host complete conformance remains separate."
+  ],
+  "remaining_requirements": [
+    "Implement and prove explicit type/scene mapping, catalogue provenance/completeness, host object registry and current placement/joint capability for the required supported domain.",
+    "Complete required legacy hierarchy/instance and related physical-consumer extraction before whole D3 closure; unsupported required behavior cannot be silently replaced with absence or a guessed point.",
+    "Perform later native DCS coordinate/basis, identity-lifetime and supported point/animation checks without treating declaration comments as measured behavior.",
+    "Lead must commit reviewed bytes and verify publication identities. No new runtime, baseline, tolerance, shipping, Task50 dependency or whole Task52 acceptance follows from this documentation review."
+  ],
+  "review_execution": "Read-only documentation and declaration-byte/hash inspection only; no builds, tests, campaigns, cache/VM operations, source edits or subagents."
+}

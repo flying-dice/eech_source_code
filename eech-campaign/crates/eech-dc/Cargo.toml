@@ -52,6 +52,8 @@ ground-fixture = ["eech-engine/ground-fixture"]
 route-fixture = ["eech-engine/route-fixture"]
 # TEST-ONLY (EEDCS-50, D3): keep the original airfield route parser (the original route characterisation). Never enabled in the shipping build.
 route-original = ["eech-engine/route-original"]
+# TEST-ONLY (EEDCS-52, D3): the observer of the original target-point query and offset census (target_point_summary, target_point_offsets, target_point_event). Never enabled in the shipping build.
+target-point-fixture = ["eech-engine/target-point-fixture"]
 
 # Code that runs inside a host's process: a panic in this DLL takes the host
 # down. The reference crate's restriction lints, denied here.

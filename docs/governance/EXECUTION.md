@@ -56,9 +56,12 @@ live state. The tracked card holds stable decisions; the checkpoint holds transi
 PIDs, paths and tool IDs. On this host the canonical checkpoint is
 `R:/d3-evidence/D3-CURRENT.json`, mirrored on D:.
 
-For the current Task52, finish the existing RNG-evidence correction and clearance;
-the next implementation is **host offset initialization**, not another optional
-characterization. Keep seeker policy once per initializer invocation and direct
-guidance consumption of all three host-authored local offset coordinates. The
-current comparer-only finding is repaired in that bounded implementation batch;
-independently verified valid numeric rows are not discarded or rerun for it.
+The current task, its next action and its open gates live in the active extraction card and the one
+current STATUS summary, not in this file; this file keeps only the enduring controls above.
+
+STATUS.md keeps ONE current summary, first in the file and dated; every later entry is
+history that keeps its own date and scope, and none of them is live state even if an
+older heading once said "current". A fresh context reads the active card, that summary
+and the runtime checkpoint, and opens an older entry only for the evidence of the next
+unmet gate. When the state changes, replace the top summary and demote it to history
+instead of adding a second "current" heading.

@@ -114,6 +114,19 @@ fn main() {
         }
     }
 
+    // 1a0b. EEDCS-52 (D3): the host-owned target-point OFFSETS and QUERIES. initialise_target_point_offsets asks the host for each scene's local offset and get_local_entity_target_point for its chain, world and fixed positions (patches.rs, TARGET_POINT_HOST_PATCHES) in every
+    //      build that has a host model. The builds that keep the ORIGINAL initialiser on purpose are feature target-point-fixture (the original characterisation, whose observer hooks
+    //      are inside the original body) and feature model-fixture (the original accessors, no host).
+    if !model_fixture && env::var_os("CARGO_FEATURE_TARGET_POINT_FIXTURE").is_none() {
+        for file in patches::target_point_host_files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let text: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = patches::apply_target_point_host(file, &text).chars().map(|c| c as u32 as u8).collect();
+            write_if_changed(&staged, &patched);
+        }
+    }
+
     // 1a1. EEDCS-50 (D3): the host-owned ROUTE data. The airfield route parser takes its nodes and line faces from the host (patches.rs, ROUTE_HOST_PATCHES) in every build that has
     //      a host model. The builds that keep the ORIGINAL parser on purpose are feature model-fixture (the original accessors, no host) and feature route-original (the original
     //      route characterisation: the observer of the unmoved parser).
@@ -186,6 +199,19 @@ fn main() {
                 .chars()
                 .map(|c| c as u32 as u8)
                 .collect();
+            write_if_changed(&staged, &patched);
+        }
+    }
+
+    // 1a3. TEST-ONLY (feature target-point-fixture, EEDCS-52 D3): observation hooks in the staged ORIGINAL get_local_entity_target_point (en_maths.c), initialise_target_point_offsets
+    //      (wn_dbase.c) and the two campaign callers that reach the query (weapon.c, wn_move.c), patches.rs TARGET_POINT_FIXTURE_PATCHES. None of the four files has a shipping
+    //      patch (random.c also gets the one srand announcement); with the feature off the staged files are exactly the shipping ones.
+    if env::var_os("CARGO_FEATURE_TARGET_POINT_FIXTURE").is_some() {
+        for file in patches::target_point_fixture_files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let text: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = patches::apply_target_point_fixture(file, &text).chars().map(|c| c as u32 as u8).collect();
             write_if_changed(&staged, &patched);
         }
     }
@@ -305,6 +331,11 @@ fn main() {
     }
     if env::var_os("CARGO_FEATURE_ROUTE_FIXTURE").is_some() {
         build.define("EECH_ROUTE_FIXTURE", None);
+    }
+    if env::var_os("CARGO_FEATURE_TARGET_POINT_FIXTURE").is_some() {
+        build.define("EECH_TARGET_POINT_FIXTURE", None);
+        // EEDCS-52: every rand () of this build is counted (csrc/eech_tp_rand.h renames it; the real call happens once, in place); no other build includes the header
+        build.flag("-include").flag(manifest.join("csrc/eech_tp_rand.h").to_str().unwrap());
     }
     if windows {
         build.flag("-include").flag(manifest.join("csrc/eech_win32_names.h").to_str().unwrap());

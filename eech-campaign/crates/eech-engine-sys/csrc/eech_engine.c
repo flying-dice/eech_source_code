@@ -1801,6 +1801,9 @@ extern int eech_model_host_poison_run (void);
 extern int eech_model_host_probe_run (int scene, int depth, char *text, int capacity);
 extern int eech_model_host_horizon_refusal_run (char *text, int capacity);
 extern int eech_model_host_animation_run (int first, int count, char *text, int capacity);
+extern int eech_model_host_target_offsets_run (int first, int count, char *text, int capacity);
+extern int eech_model_host_attack_consumer_run (char *text, int capacity);
+extern int eech_model_host_target_queries_run (int mutate, char *text, int capacity);
 
 int eech_engine_model_host_counters (char *text, int capacity)
 {
@@ -1824,6 +1827,48 @@ int eech_engine_model_host_animations (int first, int count, char *text, int cap
 		LEAVE (EECH_ENGINE_STATE);
 	}
 	if (!text || (capacity <= 0) || eech_model_host_animation_run (first, count, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_host_target_offsets (int first, int count, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_host_target_offsets_run (first, count, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_host_attack_consumer (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_host_attack_consumer_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_host_target_queries (int mutate, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || ((mutate != 0) && (mutate != 1)) || eech_model_host_target_queries_run (mutate, text, capacity) != 0)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -2107,6 +2152,94 @@ int eech_engine_route_call (int index, char *text, int capacity)
 		LEAVE (EECH_ENGINE_STATE);
 	}
 	if (!text || (capacity <= 0) || index < 0 || eech_route_call_run (index, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
+
+#ifdef EECH_TARGET_POINT_FIXTURE
+
+/*
+ * TEST-ONLY (EEDCS-52, D3; feature target-point-fixture): the report of what the ORIGINAL target-point query, its callers and the boot census of target_point_offsets[] did during this
+ * process (eech_tp_fixture.c). Read-only: the entries pass no host, run inside the engine entry (EECH's round-toward-zero mode) and touch no campaign state.
+ */
+extern int eech_tp_summary_run (char *text, int capacity);
+extern int eech_tp_offsets_run (int generation, char *text, int capacity);
+extern int eech_tp_event_run (int index, char *text, int capacity);
+
+int eech_engine_target_point_summary (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_tp_summary_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_target_point_offsets (int generation, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || generation < 0 || eech_tp_offsets_run (generation, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_target_point_event (int index, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || index < 0 || eech_tp_event_run (index, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/* TEST-ONLY (EEDCS-52): the controlled probe, once, after the boot: see eech_tp_fixture.c eech_tp_probe_run */
+extern int eech_tp_probe_run (char *text, int capacity);
+
+int eech_engine_target_point_probe (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_tp_probe_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/* TEST-ONLY (EEDCS-52): the setup probe, a separate opt-in mode, once, after the boot: see eech_tp_fixture.c eech_tp_setup_run */
+extern int eech_tp_setup_run (char *text, int capacity);
+
+int eech_engine_target_point_setup (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_tp_setup_run (text, capacity) != 0)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
