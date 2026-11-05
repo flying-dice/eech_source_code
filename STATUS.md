@@ -1,4 +1,32 @@
-# CURRENT — D3 Task49: finite stationary ENTITY_COLLISION handoff and native authority CLOSED; the physical entity/object scan cutover is next (5 November 2026)
+# CURRENT — D3 Task49: the entity scan's per-candidate decisions are the host's (source and Linux checks only; nothing native); Root's build and ordinary short are next (5 November 2026)
+
+This is the ONE current summary; dated entries below are history. Read the active card and `R:/d3-evidence/D3-CURRENT.json` (Root is its sole writer). Closed and not to be redone: the corrected narrow phase `f153`/`7ead`,
+the finite stationary ENTITY_COLLISION authority on native `7ead34d09` (same reviewer, `FINITE_STATIONARY_ENTITY_HANDOFF_AUTHORITY_VERIFIED`; safe record
+[`eech-campaign/reference/d3-entity-collision/finite-authority/`](eech-campaign/reference/d3-entity-collision/finite-authority/README.md), published in `b007f215c`), the finite TREE handoff, Task 50 and Task 52.
+
+**Production change (compiled C, Rust and the model-provider protocol; frozen source `2d1a16273f599e852eefaf9b10581be49cf80309`; no native run).** `get_line_of_sight_collision_entity` in the ordinary module no longer decides anything about a candidate. The campaign walks the sector
+window and lists in the original's order, skips the source and target, and OFFERS each entity that has a collision flag (`offer_candidate_to_host`, `en_cllsn.c`); the host decides, through the new model operation
+`ENTITY_CANDIDATE` (`mb_hostmodel.h`; reference host `csrc/entity_candidate_step.c`, the original's expressions): the sector's tallest-structure skip, the branch (mobile, fixed, city, a building listed in a sector),
+the moving test, the sweep ends, the radius + 10 m broad phase, the city's box and a fixed candidate's placement. The campaign performs the two services with effects of their own, the destructive `UPDATED` getter and the
+terrain face-normal question, exactly when the host names them (`NEED_UPDATED`, `NEED_NORMAL`), offers a city's buildings in its list order (`BUILDINGS`), and sends the existing `ENTITY_COLLISION` question with the pose the
+host derived (`TEST`). The question is a pure function of 42 facts; no entity identity crosses and the host keeps nothing. Contract and limits: `eech-campaign/docs/d3-entity-collision-provider.md`, "The scan".
+
+**Evidence (Linux, pinned image, direct child exits; safe record `eech-campaign/reference/d3-entity-collision/entity-scan-direct-gate-20261105.json`: 16 steps all exit 0, 1179 tests passed and none failed in 65 result rows, code-input identity equal before the gate and after the commit; three earlier gates failed on real findings and are retained).** The new differential `entity_candidate_host` (8 tests): the original scan's control flow and arithmetic, transcribed, against the same scan
+driven by the host's decisions, over 400 generated worlds x 6 segments with boundary-equality coordinates: the same entity and the same transcript of `UPDATED` reads, terrain questions and narrow-phase poses, bit for bit.
+Five kernel mutants each fail it (exit 101), the file restored byte for byte. The isolated C control (170 expectations) exercises the campaign's REAL half of the dialogue against a scripted host. Compile guard
+`entity_host_guard` shows the ordinary module holds none of the original's decisions and the original profile keeps them all. **Not measured natively:** the campaign's scan loop (`en_cllsn.c`) is engine C that only a native
+run exercises; the Rust transcription is a model of it. Per-candidate questions replace one question per broad-phase passer, so the cost per query rises: Root should compare wall time on the ordinary short.
+
+**Next (Root).** Build the ordinary, hosted `weapon-fixture` and original profile binaries of the frozen source; run the ordinary exact short and compare with the retained `80fd` baseline (the first unmet gate: it is the
+only evidence that the host's decisions equal the original's on retail data); then the existing `entity-authority.lua` control (its `entity_collision` questions are now reached through a `TEST` decision). The
+changed-answer witness for `ENTITY_CANDIDATE` itself (a withheld or forced decision changing the weapon's physical outcome) is NOT written yet and is required before this slice is authority-verified.
+
+**Still coupled in Core and REQUIRED.** The enumeration of candidates: the sector window, the sector lists and their insertion order (the first hit ends the scan, so the order is observable and is campaign history the host has no copy
+of: a host-held roster would be a second physical store that must follow every position write, sector relink and release), the reads of each entity's own state, and the two effectful getters; the moving public path is not measured;
+hierarchy, devices, muzzles, rotor damage, smoke, host identities, the raw tree loader, forest and cloud block, the DCS mappings (no primary-evidenced collision-mesh or first-hit API). All ten whole-D3 requirements persist; Task 49
+and D3 are not complete; D4/D5 and TypeScript are not started. No baseline, tolerance, input, seed, frame or duration change.
+
+# HISTORICAL (superseded 5 November 2026 by the CURRENT block above; the entity finite-authority publication) — D3 Task49: finite stationary ENTITY_COLLISION handoff and native authority CLOSED; the physical entity/object scan cutover is next (5 November 2026)
 
 This is the ONE current summary; dated entries below are history. Read the active card and `R:/d3-evidence/D3-CURRENT.json` (Root is its sole writer).
 
