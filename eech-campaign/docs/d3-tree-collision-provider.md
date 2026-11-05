@@ -1,9 +1,9 @@
 # D3 tree segment collision: the host-owned query (EEDCS-49)
 
-Status: **production source implemented and focused-checked on Linux; the independent source review of `eec18682f` returned CHANGES_REQUIRED (four groups) and this text describes the
-corrected source. The source-review gate stays OPEN until the same reviewer closes it.** No retail, Windows or native-campaign run exists yet (Root owns the native actuals; the C ABI
-controls below did run). This is the *tree* slice of Task 49. It is not Task 49: `get_line_of_sight_collision_entity` (entity/object collision), the raw Core tree loader, the
-forest-object constructor and the cloud block (below) are still the campaign's, and whole D3 / EEDCS-21 stay open.
+Status (5 November 2026): **the finite TREE query handoff and its native authority are independently CLOSED** (see "Final closure" below; the earlier `CHANGES_REQUIRED` and `UNREACHED` records are
+kept as history). This is the *tree* slice of Task 49. It is not Task 49: the entity/object slice is only started (its narrow phase is host-asked, see
+[d3-entity-collision-provider.md](d3-entity-collision-provider.md); its sector scan, broad phase and roster are still Core), and the raw Core tree loader, the forest-object constructor and the
+cloud block (below) are still the campaign's. Whole Task 49, the full shipping regression, the dependencies and whole D3 / EEDCS-21 stay open.
 
 ## What changed
 
@@ -115,6 +115,20 @@ Source fact (not a physics regression): the original flight (`csrc/wn_flight.c`)
 **The controlled view input (existing protocol, Lua only).** The host protocol already carries the physical fact the rule reads: the weapon-step lookup `CAMPAIGN_STEP_LOOKUP_VIEW_WEAPON` (`mb_hostaim.h`), which the campaign answers as `r0` in `wn_move.c` and the host's step consumes before its unmodified precision rule and its real entity and tree queries. The weapon-step request reaches the host's aim function with the lookup answers as events `{kind, a, b, c, d, f}` (twelve floats, `f[6..11]` = `r0..r5`; `aim_event_table` in `eech-dc`, read back by `step_events` in `eech-world`). The witness's aim delegate therefore, when armed and for `mode == "weapon_step"` only, copies the request and the single answer of kind 1 and sets its sixth result word (`f[7]` in Lua) to 1, then calls the unmodified `host.aim`. Every other field, event, lookup and mode is passed as it came (a signed zero in another word stays a signed zero; the caller's table is not modified). It is a CONFIGURED diagnostic view input, not a claim that a camera viewed the round and not a campaign or player decision; no tree call, entity-miss answer or counter is faked: the entity miss, the tree question and `contact_trees_tests` stay measured. It is applied identically in the hosted and the Original profile and to every weapon step of the war while armed (the protocol carries no weapon identity, so natural weapons are affected too, and the control is "the TREE provider unmodified under this controlled view input", not a wholly unaltered host). Ordinary and full runs never load this witness and are entirely unmodified.
 
 The launch is back to the simple known one (the first launcher with an unguided ballistic weapon in stock and its nearest enemy, the f0 baseline pair). The run records `view_steps_seen`, `view_answers_seen`, `view_applied`, `view_already_set` and the weapon fixture's `precision_high` delta, and requires that the input reached a weapon step and that the step took the high-precision path before the tree counters mean anything; otherwise it is UNREACHED. The tree counter / provider guard is unchanged: a run with no tree test is still UNREACHED. If the existing transport could not represent the view fact the work would have stopped here; it can (the answer events carry all twelve words).
+
+## Final closure of the finite TREE handoff (independent, 3 November 2026)
+
+The same independent reviewer's final report [`independent-tree-production-authority-eb2-nativef0-20261103.json`](../reference/d3-tree-collision-production/finite-authority/independent-tree-production-authority-eb2-nativef0-20261103.json)
+(SHA-256 `7ad1a698f7996012eda90584661aca717c6b34bf4817f48e2837f6c595fc1dca`) has no findings. Native source `f0f928147f6ca81906212038d86ecdf98ce5b400`; literal witness
+`eb2b2eb6781fefce7e6b76abdbbd4d947010a7f7` (`tree-authority.lua` blob `9123f1448ec8ec412b146a2ff290360e5d7769ab`). Verified actuals: the healthy control plus the ten-case matrix (11 cases,
+22 full input lists, 87 payloads each); the forced hit changes the real cohort's physical terminal; seven named refusals; the explicit Original profile reaches real TREE with no host, the
+expected capability RED with a matching physical signature; and the ordinary f0 short is COMPLETE and literal-equal to the retained `80fd` baseline. The two earlier selectors that never
+reached TREE stay recorded as UNREACHED; nothing was retried, searched or re-graded. The safe projections are in
+[`reference/d3-tree-collision-production/finite-authority/`](../reference/d3-tree-collision-production/finite-authority/README.md).
+
+**Limits, stated by the review and kept:** the view input is an explicit configured diagnostic input (not a claim that a camera viewed the round), the armed window is global (the protocol
+carries no weapon identity), and a direct measurement of the new TREE caller's floating-point state is NOT claimed. Open and unchanged: the raw Core tree loader, forest constructor (RNG unproved)
+and cloud block, the retail forest-store fact, the DCS tree mapping, the established M4 regression pack on the complete Task 49 candidate, the dependencies, and whole D3.
 
 ## Checks and commands
 

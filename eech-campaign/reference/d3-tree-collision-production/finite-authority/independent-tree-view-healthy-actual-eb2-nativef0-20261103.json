@@ -1,0 +1,124 @@
+{
+  "schema": "independent-bounded-healthy-native-control-review-v1",
+  "reviewed_utc": "2026-11-03T03:50:05.049628+00:00",
+  "scope": "New completed configured-view TREE healthy control and extension to remaining already-reviewed native matrix only. No new source sweep, build, native execution or closed helper/kernel/Task52 re-review.",
+  "source": {
+    "native_commit": "f0f928147f6ca81906212038d86ecdf98ce5b400",
+    "external_diagnostic_commit": "eb2b2eb6781fefce7e6b76abdbbd4d947010a7f7",
+    "external_diagnostic_git_blob": "9123f1448ec8ec412b146a2ff290360e5d7769ab",
+    "external_diagnostic_sha256": "0feb86a0ed7bbf08da4b298531c793f969455524f0fcc6916dc91451bf33ae2a",
+    "literal_file_equal_to_reviewed_Git_blob": true,
+    "build_info_sha256": "9fc4d144cb840b45df922eca96a302580b3c7cd790baaf5200bc2e9d127e2995",
+    "profile": "eech-dc weapon-fixture, hosted TREE route; no binary relabel as eb2"
+  },
+  "decision": {
+    "actual_healthy_verified": true,
+    "findings": [],
+    "remaining_native_matrix_clearance": true,
+    "diagnostic_native_launch_clearance": true,
+    "finite_TREE_authority_or_delivery_closed": false,
+    "whole_Task49_or_D3_accepted": false,
+    "full_shipping_accepted": false
+  },
+  "completed_evidence": {
+    "controller": {
+      "path": "D:/EECH-Migration-Evidence/tree-authority-nativef0-diagnosticeb2-view-control-20261103/controller.json",
+      "bytes": 4323,
+      "sha256": "fd245e85795b14c96dd789ce081f8ce1bb28a891fbf79e037e034e028e38ef35"
+    },
+    "complete_jsonl": {
+      "path": "D:/EECH-Migration-Evidence/tree-authority-nativef0-diagnosticeb2-view-control-20261103/model.jsonl",
+      "bytes": 1742,
+      "sha256": "e03f3bbd0e1457cbe223debd522791aa33c0c6e32efea8ee784bfb03c4995752"
+    },
+    "native_log": {
+      "path": "D:/EECH-Migration-Evidence/tree-authority-nativef0-diagnosticeb2-view-control-20261103/native.log",
+      "bytes": 42265,
+      "sha256": "882ea4a5bd1bb15b9c00a53d347c13e0b7c94a49a0d0ce803fcdd1df1ad75259"
+    },
+    "pre_inputs": {
+      "path": "D:/EECH-Migration-Evidence/tree-authority-nativef0-diagnosticeb2-view-control-20261103/pre-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    "post_inputs": {
+      "path": "D:/EECH-Migration-Evidence/tree-authority-nativef0-diagnosticeb2-view-control-20261103/post-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    "native_actual_exit": 0,
+    "controller_actual_exit": 0,
+    "completed_utc": "2026-11-03T03:48:13.793903+00:00",
+    "json_rows": 7,
+    "events": [
+      "boot",
+      "warmed_up",
+      "case_selected",
+      "case_launch",
+      "cohort",
+      "terminal",
+      "authority"
+    ]
+  },
+  "independent_checks": [
+    "Controller and every pre-input/native/post-input stage are terminal actual0. Both full input reports match each other and the retained Lebanon reference for file list, sizes/hashes, combined digest and totals: 1179 files /102239559 bytes each.",
+    "Actual hosted BUILD-INFO hash matches controller and all87 listed payload hashes were independently rehashed. External diagnostic bytes match the exact reviewed eb2 Git blob and controller SHA; metrics/driver generic arguments are not treated as another script or new kernel identity.",
+    "Complete JSONL hash matches controller, all seven rows parse and join boot/cohort/launch/terminal/authority. Existing launch report restoration and births/creates join one member; it ended once, zero pending/foreign/duplicate terminals. No raw retail terminal position is copied into this report.",
+    "Real weapon contact_trees_tests delta7 equals observed tree_begin7, queries7 and done replies7. There are fourteen terrain replies and exactly seven OLD-then-NEW query sequences. All order/pairing/coordinate/hint fault counters are0, and the healthy TREE provider was unmodified.",
+    "Configured view was applied29 times; real precision_high delta7 is observed. The source-reviewed configured input is not relabeled a measured camera condition or per-case-only input."
+  ],
+  "safe_actual_counts": {
+    "tests_delta": 7,
+    "tree_begin_after": 7,
+    "tree_terrain_after": 14,
+    "queries": 7,
+    "done_replies": 7,
+    "need_terrain_replies": 14,
+    "ends_old_new": 7,
+    "ends_old": 0,
+    "ends_new": 0,
+    "ends_none": 0,
+    "precision_high_delta": 7,
+    "view_steps_seen": 71,
+    "view_answers_seen": 29,
+    "view_applied": 29,
+    "view_already_set": 0,
+    "order_faults": 0,
+    "pairing_faults": 0,
+    "coordinate_faults": 0,
+    "hint_faults": 0,
+    "cohort_size": 1,
+    "case_weapons_ended": 1,
+    "case_weapons_pending": 0,
+    "foreign_terminals": 0,
+    "duplicate_terminals": 0,
+    "later_births": 0,
+    "altered_begin": 0,
+    "altered_terrain": 0
+  },
+  "scope_of_counter_proof": "The weapon fixture counters and provider observations cover the global armed window. Cohort terminal accounting is separate. Seven matching requests establish actual host TREE route reachability under configured-view context, not unique attribution of every request to a particular projectile or original-camera/natural-context equivalence.",
+  "cleared_remaining_matrix": {
+    "modes": [
+      "new_only",
+      "forced_hit",
+      "withheld_tree",
+      "bad_tree_state",
+      "bad_tree_word",
+      "done_not_boolean",
+      "new_then_old",
+      "old_twice",
+      "third_lookup",
+      "Original profile control"
+    ],
+    "conditions": "Use the SAME reviewed literal eb2 diagnostic and already verified f0 hosted/declared weapon+collision Original binaries, fresh unused input roots and explicit identities. Retain each actual native/controller/input/hash result; no afterpoison query or restoration claim on refusal. No existing healthy or old failed run needs repeating.",
+    "reason": "The corrected production dialogue, refusal shapes, diagnostic preflight and owned output path were already source-cleared. This new healthy run resolves actual view/precision/TREE reachability and exposes no safety blocker for those reviewed modes.",
+    "required_verdicts": "Matched named Engine refusal may be expected scripted success; wrong marker/setup failure is not acceptance. Original control must have its actual fixture API and a real original TREE-test counter delta with zero host requests before being classified capability RED. Forced-hit real cohort consequence must be compared with this retained healthy control under the same configured-view context."
+  },
+  "preservation_and_reuse": [
+    "Both earlier f0/f0-diagnostic3619 controls remain native/controller1 UNREACHED with zero TREE tests. They are not retroactively passing authority or original capability evidence.",
+    "f0 ordinary complete short proof/all-three literal files and source/build gates retain their own identities; not rerun or relabeled. Full ordinary packs and protected Task50 pack remain outside this pass.",
+    "Closed source review5120 and prior source/helper/kernel reports are reused as scoped, not a substitute for actual remaining matrix results."
+  ],
+  "remaining_unmet_gates": "Full combined TREE authority/matrix and conformance review after actual completion; any new glue/full caller FPU requirements remain separate. Raw Core loader, forest/cloud constructor and conditional CRT effects, entity/object collision and a concrete required DCS TREE mapping remain OPEN. No whole Task49/D3, full40/all8, normal delivery or live DCS acceptance.",
+  "review_execution": "Same sole reviewer, read-only completed raw/controller/input/payload and literal-script checks only. No build/test/native/cache/VM/auth/app operation or subagent. Safe immutable canonical-LF report only; no retail coordinates/geometry/private pointers copied."
+}
