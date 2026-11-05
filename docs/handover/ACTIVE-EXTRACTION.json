@@ -7,10 +7,10 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "host-pose-source-changes-required-before-final-matrix",
+  "phase": "host-pose-corrections-frozen-unreviewed-awaiting-same-reviewer-before-final-matrix",
   "preparation_batches_without_cutover": 0,
   "preparation_limit": 2,
-  "next_production_change": "Fix ENV-ENTITY-POSE-DOMAIN-1 and ENV-ENTITY-POSE-FLAG-VALIDATION-1 in ONE same-author batch, preserving legitimate canonical lifecycles and raw validation order; include concrete successful changed physical/moving public proof, return frozen before Root final checks.",
+  "next_production_change": "Root joins the SAME reviewer for one confirmation pass of ENV-ENTITY-POSE-DOMAIN-1 and ENV-ENTITY-POSE-FLAG-VALIDATION-1 on frozen f3107332b (UNREVIEWED, focused Linux only); on clearance Root selects the final matrix, builds, the ordinary short against 80fd, ONE healthy control, then the host-side moving_control/terrain_lift sequence in docs/d3-entity-collision-provider.md; this lane resumes only for concrete findings or native actuals.",
   "ready_evidence": [
     "Closed preparation reused, not redone: original characterization (15054 queries / 29894 ordered terrain answers exact through the host library and real Lua; original raw unchanged, 47a4af0d1/b44d2c96f) and the host tree loader/kernel 8c452f197 (review 4258f1b94, FP state/refusal/lifetime controls).",
     "Merge of the verified clean Task52 branch 099aa09c2dfeb77ca708214421e81113369a057e into the old Task49 head f2473817bced177b588878d6e416dcb4400f8bc2 (normal merge, no rebase/force); both sides' features, FFI, tests and history preserved.",
@@ -155,7 +155,8 @@
       "blocks_cutover": false,
       "evidence": "Source 4f790b712871561c2b04c3d3173ad7ad51ee8a24 (UNREVIEWED, frozen) moves the mobile candidate decision and the legacy vector into the ONE Movers record. The observer actuals closed the characterisation of the reached recorded kind-1 domain only.",
       "missing_fact": "Review of these bytes, the ordinary + hosted native builds, the ordinary short against the three 80fd files, ONE healthy control (and the host-side modes after it); then a legitimately reached MOVING candidate (candidate_need_updated and moving counters positive) for the moving public path; the disposition of every unreached state (no identity, unrecorded, retired, wreck) and writer.",
-      "next_fix": "Root joins the same reviewer and selects the final checks; this lane resumes for one batch of concrete findings."
+      "next_fix": "Root joins the same reviewer and selects the final checks; this lane resumes for one batch of concrete findings.",
+      "public_proof_added": "f3107332b: hosted moving_control and terrain_lift modes (scripted driver controls only); the moving/positive physical-effect public proof is NOT yet run and is still required."
     },
     {
       "id": "ENV-ENTITY-POSE-DOMAIN-1",
@@ -163,7 +164,8 @@
       "blocks_cutover": true,
       "evidence": "Every mobile&&!of_city query now requires a named canonical record. Empty IDs, no Movers, issued-without-record, retired/unknown IDs and incomplete records become refusals; the document explicitly calls this a new refusal on unreached/no-group/pre-bind/wreck states. The legitimate unhosted movement branch is still retained, while canonical registration is supplied through the group roster/link lifecycle. The closed observer reached only alive, recorded kind1 offers and cannot establish availability or synchronization for every supported caller/creation/placement/lifetime path. The new mirror assertion additionally turns any legitimate producer not yet incorporated into the canonical lifecycle into an engine fatal.",
       "missing_fact": "Establish canonical availability and coherent physical pose/vector updates for legitimate paths before their first collision question, at actual creation/binding/placement/step/skipped-update/lifetime boundaries. Preserve formerly valid default/unhosted/pre-bind/wreck behavior or provide decisive current compiled caller/lifecycle proof that a particular category is genuinely invalid there. Do not query-seed from Core words, invent zeros/derived vectors, weaken the old physical oracle, or treat a new expected-refusal test and a kind1-only sample as the compatibility proof. Keep every unreached writer/domain explicitly required.",
-      "next_fix": "Use coherent positive consumption/default and relevant lifecycle controls before damaged/refusal cases. The current C control still accepts a no-ID offer under a scripted candidate host, while the new real-provider test declares it refused; those controls do not demonstrate preserved end-to-end compatibility."
+      "next_fix": "Use coherent positive consumption/default and relevant lifecycle controls before damaged/refusal cases. The current C control still accepts a no-ID offer under a scripted candidate host, while the new real-provider test declares it refused; those controls do not demonstrate preserved end-to-end compatibility.",
+      "corrected_in_source": "f3107332b UNREVIEWED: supported lifecycle proved from compiled source (entity_pose_lifecycle_guard) and by real Movers/provider lifecycle controls; refusals only for forged/stale/withdrawn IDs; open dispositions listed in the provider doc. Status stays open until the same reviewer confirms."
     },
     {
       "id": "ENV-ENTITY-POSE-FLAG-VALIDATION-1",
@@ -171,7 +173,8 @@
       "blocks_cutover": true,
       "evidence": "transport_pose intentionally accepts arbitrary word patterns. The new flag closure performs f32::from_bits(words[MOBILE/OF_CITY/PLACEMENT_GIVEN]) !=0.0 before the existing candidate validator. A signaling NaN therefore has no explicit safe raw-classification barrier before a possible FP comparison, and finite malformed nonzero flags can select canonical lookup/refusal before their request-domain error. The model callback itself has no per-callback floating-state guard.",
       "missing_fact": "Classify the relevant raw finite and flag domains before any floating evaluation or canonical lookup, reusing the established request classifier/raw-word discipline and preserving the prior accepted zero/flag semantics. Only then select the registry path. Validate the decision controls without accidentally reintroducing discarded mirror words as physical authority.",
-      "next_fix": "One positive-first malformed signaling-NaN/invalid flag case at the existing real-provider boundary, with the intended request error winning before record lookup, is enough for this finding. No unsafe old-native or new broad FP programme is required."
+      "next_fix": "One positive-first malformed signaling-NaN/invalid flag case at the existing real-provider boundary, with the intended request error winning before record lookup, is enough for this finding. No unsafe old-native or new broad FP programme is required.",
+      "corrected_in_source": "f3107332b UNREVIEWED: integer raw classifier runs before any float read or record lookup (same domains/order/messages), differential + MXCSR tests, positive-first provider RED/GREEN. Status stays open until the same reviewer confirms."
     }
   ],
   "next_action": "validate",
