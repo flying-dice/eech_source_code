@@ -208,14 +208,14 @@ argument failures with the first error kept.
 **Identities.** `lua/entity-authority.lua` Git blob `dcf9c1eae1c7adacc5d33d7d9784a105405665c1` (LF), `tests/entity_authority.rs` blob `ee8df2e3fd8becb85c59e336a6bfec77abcebfe2`. They change no compiled input: the runtime is the corrected source `f153`/`7ead`.
 
 **Native result (Root, immutable corrected build `7ead34d09`, witness blob above, safe record under [`finite-authority/`](../reference/d3-entity-collision/finite-authority/README.md)).** The healthy control and six further
-controls ran, 14 full input checks, 87 payloads each, every exit 0. Healthy: 279 stationary armed questions (44 real hits, 235 real misses), six actual weapon lookups, one cohort member complete. Forced hit:
+controls ran, 14 full input checks0, 87 payloads each; six native/controller exits0, Original native/controller1 as expected, matrix queue0. Healthy: 279 stationary armed questions (44 real hits, 235 real misses), six actual weapon lookups, one cohort member complete. Forced hit:
 45 valid answers change the cohort terminal. Forced miss: 749 valid partial-write answers, no weapon entity hit (the healthy weapon made none either, so this is valid MISS coverage and **not** a measured
 physical change). The three refusal modes stop at their exact anchored markers with nothing read afterwards. The Original profile reaches the entity caller with no host question: the expected capability RED.
 The same independent reviewer found no findings (`FINITE_STATIONARY_ENTITY_HANDOFF_AUTHORITY_VERIFIED`). **Limits:** every queried pose was stationary, so the MOVING public path is not measured; the view input is
 global while armed, with no per-weapon attribution; no new direct x87/MXCSR or RNG measurement of the public caller. The first native command was
 `eech-world.exe <literal entity-authority.lua> root=<fresh root> mode=control out=<new .jsonl>`; runtime JSON Lines stay private (retail coordinates).
 
-## The ENTITY_CANDIDATE public authority witness (the same `lua/entity-authority.lua`; TEST-ONLY, written 5 November 2026, NOT yet run natively)
+## The ENTITY_CANDIDATE public authority witness (TEST-ONLY; finite native validation completed 5 November 2026)
 
 The finite stationary witness above shows that the host's `entity_collision` answer reaches the campaign. The candidate decisions (the third slice) need the same proof of their own: that a host's `entity_candidate`
 answer reaches the real scan and changes what a real weapon cohort does, and that a withheld or malformed one stops the engine at the candidate's own marker. Nothing of the shipping code changes for it: it is pure Lua
@@ -254,6 +254,10 @@ and the cohort hitting; the skip variant preventing every narrow-phase question 
 markers (at a candidate with and without a scene), the old marker not credited, a witness failure unable to pose as the host withholding, nothing asked after the fatal; the Original profile's RED naming both counts; and a checked close.
 Five mutants of the witness (a skip that answers the real state, an unchecked hit use, an unchecked downstream question, an unaltered identity and the old marker credited) each fail them (exit 101). They invent no physics and say
 nothing about the DLL.
+
+**Native finite result.** Seven expected outcomes on frozen1ccc plus literal d39 are independently closed, findings empty, report SHA256 `0e27b680f812de14d9aa837b70fbfbfb634576b96e7382fbcc8904a2374d1456`; [safe evidence](../reference/d3-entity-collision/candidate-finite-authority/README.md). Healthy70470 Candidate/279 stationary narrowphase/6 caller lookups/cohort1complete. Paired real55131/45 with configured hit reaches hit_target after1 step; paired55876 valid skips prevent all narrowphase questions and end hit_land after6. The SAME secondary input is held across the pair; natural healthy remains separate. Three exact Candidate refusals, Original expected native/controller1 with API/caller reached and host questions0, physical cohort equal natural; matrix0,14 full input checks0,88 unchanged payloads each. Ordinary exact short: all3 COMPLETE files literally equal80fd. These are finite authority and short conformance, not wholeTask49/fullpack/D3. Moving-native coverage and every required coupling listed above remain open.
+
+**Literal comment qualification.** The unchanged d39 opening comments that put radius+10/broadphase in Core describe the earlier slice. Runtime1ccc has Host-owned per-candidate decisions. Core still owns the physical enumeration and backing state/getter services, all required to move; no campaign-policy exclusion is inferred. Preserve literal d39 bytes and actuals.
 
 ## Checks (Linux, pinned image) and their status
 
