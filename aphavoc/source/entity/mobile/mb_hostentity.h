@@ -269,9 +269,26 @@ static void check_candidate_reply (const campaign_model_reply *reply, int scene,
 	}
 }
 
+// The host identity a candidate question carries (a MOBILE candidate's: the host decides its physical pose from its own record of that identity): the roster's whole domain of 1 to CAMPAIGN_MODEL_HOST_ID_MAX
+// bytes, never shortened. One beyond the domain cannot exist and is refused by marker rather than skipped.
+static size_t candidate_host_id_length (const char *host_id)
+{
+	size_t
+		length;
+
+	length = (host_id != NULL) ? strlen (host_id) : 0;
+
+	if (length > CAMPAIGN_MODEL_HOST_ID_MAX)
+	{
+		debug_fatal ("host model: [model-provider:entity_candidate.request] a host identity of %d bytes is outside the roster's domain of 1 to %d", (int) length, CAMPAIGN_MODEL_HOST_ID_MAX);
+	}
+
+	return (length);
+}
+
 // One question about one candidate: the facts in, the host's checked decision out. `scene` is the candidate's scene, and 0 for a city. Returns a campaign_model_candidate_state and, for TEST,
 // the narrow phase's pose in `pose` (`*pose_count` floats).
-static int campaign_entity_candidate_exchange (int scene, const float *facts, float *pose, int *pose_count)
+static int campaign_entity_candidate_exchange (int scene, const float *facts, const char *host_id, float *pose, int *pose_count)
 {
 	campaign_model_request
 		request;
@@ -299,6 +316,11 @@ static int campaign_entity_candidate_exchange (int scene, const float *facts, fl
 	request.scene = scene;
 	request.pose_count = CAMPAIGN_MODEL_CANDIDATE_FACTS;
 	memcpy (&request.pose [0], facts, CAMPAIGN_MODEL_CANDIDATE_FACTS * sizeof (float));
+
+	if (host_id != NULL)
+	{
+		memcpy (request.host_id, host_id, candidate_host_id_length (host_id));
+	}
 
 	CAMPAIGN_ENTITY_CANDIDATE_ASK (&request, &reply);
 
@@ -493,6 +515,13 @@ static void check_pose_reply (const campaign_model_reply *reply, int named, int 
 	if (((reply->write_mask & CAMPAIGN_POSE_DIFFERS_MOTION) != 0) && ((reply->write_mask & CAMPAIGN_POSE_NO_HELD_MOTION) != 0))
 	{
 		debug_fatal ("host model: [model-provider:entity_pose.answer] the host reports a difference from a held motion vector and that none is held (mask %d)", reply->write_mask);
+	}
+
+	// The CONFORMANCE assertion: the host's physical record decides the candidate's pose, and the campaign's words (its mirror) are compared with it. A position, attitude or motion vector that is not the host's is a
+	// mirror the host did not make (a write that bypassed the host): it stops the engine by name. The other bits only describe the record and decide nothing.
+	if ((reply->write_mask & (CAMPAIGN_POSE_DIFFERS_POSITION | CAMPAIGN_POSE_DIFFERS_ATTITUDE | CAMPAIGN_POSE_DIFFERS_MOTION)) != 0)
+	{
+		debug_fatal ("host model: [model-provider:entity_pose.mirror] the campaign's words for a mobile candidate differ from the host's physical record (difference mask %d: 1 position, 2 attitude, 4 motion vector)", reply->write_mask);
 	}
 }
 

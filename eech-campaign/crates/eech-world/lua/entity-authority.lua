@@ -81,6 +81,16 @@
 --   bad_scan_cursor       the first armed real FIRST is answered with a fractional sector x (0.5), the real z:  [model-provider:entity_scan.cursor]
 -- `control` stays the NATURAL healthy control (nothing altered, no configured secondary input); it now also requires a positive scan, candidate and narrow-phase chain. The earlier modes keep their own meaning.
 --
+-- THE HOST'S PHYSICAL RECORD DECIDES A MOBILE CANDIDATE'S POSE (sixth slice). An ENTITY_CANDIDATE question of a MOBILE candidate (an aircraft or a vehicle of a sector list; never a building listed under a city) now carries the candidate's
+-- semantic host identity after the 44 facts (one space, then the identity, 1 to 128 bytes): the host takes the candidate's position, motion vector and attitude from ITS OWN canonical record of that identity (the one Movers registry the movement
+-- callbacks step), never from the facts' words for them, which the campaign still reads and ENTITY_POSE compares with the record (a difference stops the engine by `entity_pose.mirror`). A mobile candidate the host holds no record of is
+-- refused by name (`entity_candidate.refused`, "candidate record"). The witness counts the mobile candidate questions with and without an identity (`candidate_mobile_named`, `candidate_mobile_unnamed`): the natural control requires none
+-- without one. Two HOST-SIDE modes act through the host's own movement callback, before the question is delegated:
+--   withdrawn_record      the host retires the identity of the first armed mobile candidate question that named one (the campaign's report that the incarnation ended, made by the host): the real provider then refuses by name
+--                         [model-provider:entity_candidate.refused] "retired". Nothing is asked after the stop.
+--   displaced_record      the host places that candidate's record somewhere other than where the campaign holds it (a host-only record change): the next observation reports a position difference and the engine stops
+--                         [model-provider:entity_pose.mirror]. A host-only pose cannot pass the conformance comparison, which is exactly what this shows.
+--
 -- THE ENTITY_POSE OBSERVATION (fifth slice; mb_hostmodel.h ENTITY_POSE, 15 words). For each MOBILE candidate of a sector list (an aircraft or a vehicle whose collision-test-mobile flag is set) the shipped offer asks the host to
 -- OBSERVE it against the host's own record of its semantic host identity (the one Movers registry the movement callbacks step), beside the original's reads. Nothing decides from the answer and no candidate, count or order of
 -- the dialogue depends on it. The words (the position and motion vector, and at the placement stage the attitude) are the ones the original read; the observation ADDS three read-only metadata reads, the entity's type, its alive
@@ -265,6 +275,9 @@ MODES.bad_pose_state = {
 	pose = function () return { result = "no_id", kind = 0, difference = 0 } end,
 	eligible_pose = function (parsed) return parsed.named end, once = true, marker = "entity_pose.state",
 }
+-- the HOST-SIDE record modes (see the header): the host's own movement callback changes its own record before the question is delegated
+MODES.withdrawn_record = { withdraw = true, marker = "entity_candidate.refused" }
+MODES.displaced_record = { displace = true, marker = "entity_pose.mirror" }
 local plan = MODES [mode]
 if plan == nil then refuse ("unknown mode '" .. tostring (mode) .. "'") end
 if profile == "original" and mode ~= "control" then refuse ("profile=original runs only mode=control: no entity_collision question reaches the provider to alter") end
@@ -367,6 +380,7 @@ local altered = 0
 local cand_altered, cand_skipped = 0, 0
 local scan_altered, scan_none_answered = 0, 0
 local pose_altered = 0
+local withdrawn, displaced = 0, 0
 -- the armed pose observations by stage and by the class the REAL host answered, the ones that named an identity, and the histogram of (stage, entity type, alive, class, kind, difference)
 local pose = { total = 0, stage_offer = 0, stage_placement = 0, named = 0, recorded = 0, unrecorded = 0, retired = 0, unknown = 0, no_id = 0 }
 local pose_histogram = {}
@@ -376,7 +390,7 @@ local pose_pre_histogram = {}
 -- the armed scan questions by phase, and the REAL answers they got
 local scan = { total = 0, phase_begin = 0, phase_entry = 0, phase_end = 0, phase_resolved = 0, excluded = 0, first = 0, next = 0, offer = 0, done_none = 0, done_hit = 0 }
 -- the armed candidate questions and the REAL answers they got
-local cand = { total = 0, scene0 = 0, mobile = 0, skip = 0, need_updated = 0, need_fixed = 0, need_placement = 0, need_normal = 0, buildings = 0, test = 0 }
+local cand = { total = 0, scene0 = 0, mobile = 0, mobile_named = 0, mobile_unnamed = 0, skip = 0, need_updated = 0, need_fixed = 0, need_placement = 0, need_normal = 0, buildings = 0, test = 0 }
 -- what the provider SEES after the launch (the whole war's questions: the provider carries no weapon identity)
 local seen = { stationary = 0, moving = 0, real_hit = 0, real_miss = 0, real_mask_63 = 0, real_mask_56 = 0, real_mask_other = 0, answered_hit = 0, answered_miss = 0 }
 local faults = { request = 0, reply = 0 }
@@ -422,14 +436,25 @@ local function reply_problem (answer)
 	end
 	return nil
 end
+-- a text place of `count` fixed-width patterns and, when the campaign has an identity, one space and the identity (1 to 128 bytes); nil for a text that is neither
+local function split_identity (key, count)
+	local words_text = count * 10 + (count - 1)
+	if #key > words_text then
+		if string.sub (key, words_text + 1, words_text + 1) ~= " " then return nil end
+		return string.sub (key, 1, words_text), string.sub (key, words_text + 2)
+	end
+	return key, ""
+end
 -- the candidate request as the contract states it: a scene >= 0 (0 until a shape was read) and nothing but the text place, which holds exactly 44 float patterns; fact 7 is the mobile flag
 local function parse_candidate_request (scene, depth, kind, definition, key)
 	if type (scene) ~= "number" or scene < 0 or scene ~= math.floor (scene) then return nil, "scene " .. tostring (scene) end
 	if depth ~= nil or kind ~= nil or definition ~= nil then return nil, "an entity candidate question carries only a scene and the facts text" end
 	if type (key) ~= "string" then return nil, "no facts text" end
-	local words = words_of_text (key, 44)
+	local text, host_id = split_identity (key, 44)
+	local words = text and words_of_text (text, 44)
+	if words ~= nil and #host_id > 128 then return nil, "the identity is " .. #host_id .. " bytes, outside the roster's domain of 1 to 128" end
 	if words == nil then return nil, "the facts text is not 44 comma separated 0x%08x patterns" end
-	return { scene = scene, words = words, mobile = words [7] ~= ZERO }
+	return { scene = scene, words = words, mobile = words [7] ~= ZERO, host_id = host_id, named = host_id ~= "" }
 end
 local CANDIDATE_STATES = { skip = true, need_updated = true, need_fixed = true, need_placement = true, need_normal = true, buildings = true, test = true }
 -- the first problem of a REAL candidate reply against the contract, or nil: one of the seven states, a name (EMPTY for scene 0, the scene's compiled name otherwise) and a pose of 12 or 16 patterns for a test only
@@ -549,6 +574,11 @@ local function pose_question (scene, depth, kind, definition, key, is_armed)
 		faults.request = faults.request + 1
 		first_fault = first_fault or ("pose request: " .. why)
 	end
+	-- HOST-SIDE: the host places this mobile's record somewhere else (the first named armed observation only), so the campaign's words no longer match it
+	if is_armed and plan.displace and parsed and parsed.named and displaced == 0 then
+		displaced = displaced + 1
+		host.move_vehicle ({ host_id = parsed.host_id, mode = "place", pose = { position = { 1, 2, 3 }, velocity = 0, attitude = { 1, 0, 0, 0, 1, 0, 0, 0, 1 } }, motion_vector_in = { 0, 0, 0 } })
+	end
 	local real = reference ("entity_pose", scene, depth, kind, definition, key)
 	local problem = pose_reply_problem (real, parsed)
 	if problem then
@@ -630,7 +660,15 @@ local function candidate_question (scene, depth, kind, definition, key)
 	if parsed then
 		cand.total = cand.total + 1
 		if parsed.scene == 0 then cand.scene0 = cand.scene0 + 1 end
-		if parsed.mobile then cand.mobile = cand.mobile + 1 end
+		if parsed.mobile then
+			cand.mobile = cand.mobile + 1
+			if parsed.named then cand.mobile_named = cand.mobile_named + 1 else cand.mobile_unnamed = cand.mobile_unnamed + 1 end
+			-- HOST-SIDE: the host retires the identity this question names, before the question is delegated (the first one only)
+			if plan.withdraw and parsed.named and withdrawn == 0 and plan.candidate == nil then
+				withdrawn = withdrawn + 1
+				host.move_vehicle ({ host_id = parsed.host_id, mode = "retire" })
+			end
+		end
 	else
 		faults.request = faults.request + 1
 		first_fault = first_fault or ("candidate request: " .. why)
@@ -1003,6 +1041,7 @@ local function main ()
 		pose_before = before.pose, pose_after = after.pose, pose_stage_offer = pose.stage_offer, pose_stage_placement = pose.stage_placement, pose_named = pose.named,
 		pose_recorded = pose.recorded, pose_unrecorded = pose.unrecorded, pose_retired = pose.retired, pose_unknown = pose.unknown, pose_no_id = pose.no_id,
 		pose_altered = pose_altered, pose_histogram = pose_histogram_text (pose_histogram),
+		candidate_mobile_named = cand.mobile_named, candidate_mobile_unnamed = cand.mobile_unnamed, record_withdrawn = withdrawn, record_displaced = displaced,
 		pose_pre_total = pose_pre.total, pose_pre_stage_offer = pose_pre.stage_offer, pose_pre_stage_placement = pose_pre.stage_placement, pose_pre_named = pose_pre.named,
 		pose_pre_recorded = pose_pre.recorded, pose_pre_unrecorded = pose_pre.unrecorded, pose_pre_retired = pose_pre.retired, pose_pre_unknown = pose_pre.unknown, pose_pre_no_id = pose_pre.no_id,
 		pose_pre_histogram = pose_histogram_text (pose_pre_histogram),
@@ -1025,8 +1064,10 @@ local function main ()
 		-- a refusal mode: the engine must have stopped, at this marker, at an armed entity question the provider altered
 		if failure == nil then return "mode " .. mode .. " completed: the engine did not stop at " .. plan.marker end
 		if failure.marker ~= plan.marker then return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "], not at [model-provider:" .. plan.marker .. "]: " .. failure.line end
-		if altered + cand_altered + scan_altered + pose_altered < 1 then return "mode " .. mode .. " stopped without the provider having altered an entity answer: " .. failure.line end
+		if altered + cand_altered + scan_altered + pose_altered + withdrawn + displaced < 1 then return "mode " .. mode .. " stopped without the provider having altered an entity answer: " .. failure.line end
 		if view.applied < 1 then return "mode " .. mode .. " stopped, but the controlled view input never reached a weapon step: the stop is not at an entity question of the configured flight" end
+		if mode == "withdrawn_record" and not string.find (failure.line, "retired", 1, true) then return "mode withdrawn_record stopped at its marker, but not for the retired identity: " .. failure.line end
+		if mode == "displaced_record" and not string.find (failure.line, "differ from the host", 1, true) then return "mode displaced_record stopped at its marker, but not for a mirror that differs from the host's record: " .. failure.line end
 		return nil
 	end
 	if failure ~= nil then return "mode " .. mode .. " failed in the engine at [model-provider:" .. failure.marker .. "]: " .. failure.line end
@@ -1062,6 +1103,7 @@ local function main ()
 		if altered ~= 0 or cand_altered ~= 0 or scan_altered ~= 0 then return "the control altered an answer" end
 		-- the natural chain: the enumeration offered candidates and a candidate reached the narrow phase
 		if scan.offer < 1 then return "UNREACHED: the real enumeration offered no entry (" .. scan.offer .. " offers), so no candidate dialogue followed from it" end
+		if cand.mobile_unnamed > 0 then return string.format ("%d mobile candidate questions carried no host identity: the host holds no record it can decide their pose from", cand.mobile_unnamed) end
 		-- the observation is characterisation, not an expectation: it must have been REACHED (a mobile candidate was offered), and every question and reply was well formed (checked above)
 		if pose.total + pose_pre.total < 1 then return "UNREACHED: the real enumeration offered " .. scan.offer .. " entries but no mobile candidate was offered, before or after the launch, so the host was asked no entity_pose question and the mobile collaborator contract was not observed" end
 		-- every weapon-step entity hit is one narrow-phase hit of the host (the hosted line of sight asks too, so the host may report more)

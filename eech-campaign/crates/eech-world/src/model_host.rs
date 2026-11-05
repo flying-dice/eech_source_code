@@ -496,6 +496,22 @@ fn entity_collision_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaRe
     Ok(table)
 }
 
+/// The text place of a question that names a host identity: `count` fixed-width bit patterns, then (when the campaign has an identity) one space and the identity, which may hold any text.
+fn split_words_and_identity<'a>(text: &'a str, count: usize, operation: &str) -> LuaResult<(&'a str, &'a str)> {
+    let words_text = count * 10 + (count - 1);
+    match text.get(words_text..) {
+        Some("") | None => Ok((text, "")),
+        Some(rest) => {
+            let identity = rest.strip_prefix(' ').ok_or_else(|| {
+                LuaError::runtime(format!(
+                    "[model-provider:{operation}.request] the host identity does not follow the words after a single space"
+                ))
+            })?;
+            Ok((&text[..words_text], identity))
+        }
+    }
+}
+
 /// The reference host's answer to an ENTITY_POSE observation: the class of the identity in the ONE `Movers` registry the movement callbacks step (shared by handle, never copied), the kind of its record
 /// and the bits of how the campaign's words differ from it. It reads, compares and reports; it creates no record, adopts no word and refuses nothing a valid observation can contain. A host
 /// that keeps no movers (a script that never bound a mobile) classifies every identity as `unknown`, which is what it is.
@@ -584,9 +600,70 @@ fn entity_candidate_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaRe
     let scene = q
         .scene
         .ok_or_else(|| fail("an entity candidate question needs a scene (0 for a city)".into()))?;
-    let words = transport_pose(q.key.as_deref(), operation, |n| n == entity_host::CANDIDATE_FACTS)?;
+    let (pattern_text, host_id) = match q.key.as_deref() {
+        Some(text) => {
+            let (patterns, identity) = split_words_and_identity(text, entity_host::CANDIDATE_FACTS, operation)?;
+            (Some(patterns), identity)
+        }
+        None => (None, ""),
+    };
+    let mut words = transport_pose(pattern_text, operation, |n| n == entity_host::CANDIDATE_FACTS)?;
     let table = lua.create_table()?;
     table.set("name", usize::try_from(scene).ok().and_then(compiled_scene_name).unwrap_or(""))?;
+    // A MOBILE candidate of a sector list (never a building listed under a city) has its physical pose from the host's OWN record of its identity, the ONE `Movers` registry the movement callbacks step: the
+    // position and motion vector from the first question, the attitude once the placement facts were read (no attitude is required before the original read it). The campaign's words for them are compared with the
+    // record by ENTITY_POSE and never decide here. A candidate the host holds no record of is refused by name: it is never completed from the campaign's words.
+    let (mobile, of_city, placement_given) = {
+        let flag = |at: usize| f32::from_bits(words[at]) != 0.0;
+        (
+            flag(entity_host::CANDIDATE_MOBILE),
+            flag(entity_host::CANDIDATE_OF_CITY),
+            flag(entity_host::CANDIDATE_PLACEMENT_GIVEN),
+        )
+    };
+    if mobile && !of_city {
+        let canonical = if host_id.is_empty() {
+            Err("no host identity: the campaign has none for this mobile candidate".to_string())
+        } else {
+            match lua.app_data_ref::<movement::SharedMovers>() {
+                None => Err("the host keeps no movement records".to_string()),
+                Some(shared) => match shared.0.try_borrow() {
+                    Err(_) => {
+                        table.set("result", "refused")?;
+                        table.set(
+                            "reason",
+                            "candidate record busy: the movement registry was being stepped while a mobile candidate was decided",
+                        )?;
+                        return Ok(table);
+                    }
+                    Ok(movers) => match movers.canonical(host_id) {
+                        movement::Canonical::Record(record) => Ok(record),
+                        movement::Canonical::Unrecorded => Err("the host issued the identity to a member it keeps no movement record for".to_string()),
+                        movement::Canonical::Retired => Err("the host retired the identity".to_string()),
+                        movement::Canonical::Unknown => Err("the host never issued the identity".to_string()),
+                        movement::Canonical::Incomplete => Err("the host's record holds no motion vector".to_string()),
+                    },
+                },
+            }
+        };
+        match canonical {
+            Ok(record) => {
+                words[entity_host::CANDIDATE_POSITION..entity_host::CANDIDATE_POSITION + 3].copy_from_slice(&record.position);
+                words[entity_host::CANDIDATE_MOTION..entity_host::CANDIDATE_MOTION + 3].copy_from_slice(&record.motion);
+                if placement_given {
+                    words[entity_host::CANDIDATE_ATTITUDE..entity_host::CANDIDATE_ATTITUDE + 9].copy_from_slice(&record.attitude);
+                }
+            }
+            Err(why) => {
+                table.set("result", "refused")?;
+                table.set(
+                    "reason",
+                    format!("candidate record: the host holds no physical record for this mobile candidate ({why})"),
+                )?;
+                return Ok(table);
+            }
+        }
+    }
     match entity_host::candidate_in_store(store, scene, &words) {
         Ok(step) => {
             table.set(

@@ -27,7 +27,7 @@ fn a_failing_host_callback_returns_its_error_to_pcall() {
 }
 
 const MOVE_VEHICLE_SCRIPT: &str = "local pose = { position = { 0, 0, 0 }, velocity = 0, attitude = { 1, 0, 0, 0, 1, 0, 0, 0, 1 } }
-local id = host.bind_mobile({ member_key = 1, group_key = 1, entity_id = 1, entity_type = 1, sub_type = 1, side = 1, pose = pose, movement_kind = 1 })
+local id = host.bind_mobile({ member_key = 1, group_key = 1, entity_id = 1, entity_type = 1, sub_type = 1, side = 1, pose = pose, movement_kind = 1, motion_vector = { 0, 0, 0 } })
 local function stop(host_id, from) return host.move_vehicle({ host_id = host_id, mode = 'stop', pose = from }) end
 assert(stop(id, pose).velocity == 0)
 local ok, err = pcall(stop, 'eech-world:999', pose)
@@ -37,7 +37,7 @@ ok, err = pcall(stop, id, moved)
 assert(not ok and tostring(err):find('differs from the host', 1, true), tostring(err))
 ok, err = pcall(host.move_vehicle, { host_id = id, mode = 'glide', pose = pose })
 assert(not ok and tostring(err):find('unknown mode glide', 1, true), tostring(err))
-local man = host.bind_mobile({ member_key = 2, group_key = 1, entity_id = 2, entity_type = 2, sub_type = 1, side = 1, pose = pose, movement_kind = 3 })
+local man = host.bind_mobile({ member_key = 2, group_key = 1, entity_id = 2, entity_type = 2, sub_type = 1, side = 1, pose = pose, movement_kind = 3, motion_vector = { 0, 0, 0 } })
 local function step(host_id, mode, extra)
   local request = { host_id = host_id, mode = mode, pose = pose }
   for key, value in pairs(extra or {}) do request[key] = value end
@@ -139,7 +139,7 @@ fn the_hosted_helicopter_plan_guide_and_abandon_round_trip_through_lua() {
 const DEPENDENT_CARRY_SCRIPT: &str = "local level = { 1, 0, 0, 0, 1, 0, 0, 0, 1 }
 local function at(x, z) return { position = { x, 0, z }, velocity = 0, attitude = level } end
 local function bind(key, kind, x, z, extra)
-  local request = { member_key = key, group_key = 1, entity_id = key, entity_type = key, sub_type = 1, side = 1, pose = at(x, z), movement_kind = kind }
+  local request = { member_key = key, group_key = 1, entity_id = key, entity_type = key, sub_type = 1, side = 1, pose = at(x, z), movement_kind = kind, motion_vector = { 0, 0, 0 } }
   for name, value in pairs(extra or {}) do request[name] = value end
   return host.bind_mobile(request)
 end

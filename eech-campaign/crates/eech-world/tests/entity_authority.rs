@@ -21,6 +21,7 @@ MODEL_LOG, DELEGATION_BROKEN, ENTITY_LOG, LAUNCH = {}, {}, {}, nil
 CAND_LOG, CAND_POS = {}, 0
 SCAN_LOG = {}
 POSE_LOG = {}
+MOVES, RETIRED, DISPLACED = {}, {}, {}
 local function deep_copy (value)
 	if type (value) ~= "table" then return value end
 	local copy = {}
@@ -121,6 +122,7 @@ local function reference (op, scene, depth, kind, definition, key)
 		local result = named and (scenario.pose_class or "recorded") or "no_id"
 		local recorded = result == "recorded"
 		answer = { result = result, kind = recorded and (scenario.pose_kind or 1) or 0, difference = recorded and ((depth == 1 and scenario.pose_difference_placement) or scenario.pose_difference or 8) or 0 }
+		if DISPLACED [string.sub (key, 166)] then answer = { result = "recorded", kind = 1, difference = 1 } end
 		local bad = scenario.bad_real_pose
 		if bad == "state" then answer.result = "perhaps" end
 		if bad == "kind" then answer.kind = 6 end
@@ -134,6 +136,13 @@ local function reference (op, scene, depth, kind, definition, key)
 		CAND_POS = CAND_POS + 1
 		local state = (scenario.candidate_sequence or { "test" }) [CAND_POS] or "test"
 		if scenario.real_candidate_error then error ("the real provider refuses", 0) end
+		local identity = #key > 483 and string.sub (key, 485) or ""
+		if RETIRED [identity] then
+			answer = { result = "refused", reason = "candidate record: the host holds no physical record for this mobile candidate (the host retired the identity)" }
+			ANSWERS [#ANSWERS + 1] = answer
+			record.answer = answer
+			return answer
+		end
 		local bad = scenario.bad_real_candidate
 		answer = { result = bad == "state" and "perhaps" or state, name = (scene == 0 and bad ~= "name0") and "" or "CANDIDATE" }
 		if bad == "name0" then answer.name = "SOMETHING" end
@@ -175,6 +184,11 @@ host = {
 	env_provider = function () return function () return {} end end,
 	terrain_provider = function () return function () return { elevation = 0 } end end,
 	model = reference,
+	move_vehicle = function (step)
+		MOVES [#MOVES + 1] = step
+		if step.mode == "retire" then RETIRED [step.host_id] = true elseif step.mode == "place" then DISPLACED [step.host_id] = true end
+		return {}
+	end,
 	create_exclusive = function ()
 		if scenario.create_fails then return nil, "already exists" end
 		CREATED = true
@@ -266,6 +280,8 @@ package.preload.eech_dc = function ()
 				-- the stage's own masks, as the shared C checks them: no attitude is read at the offer, and a held-vector difference contradicts "none held"
 				if stage == 0 and math.floor (answer.difference / 2) % 2 == 1 then stop ("entity_pose.answer", "an attitude difference at the offer stage") end
 				if math.floor (answer.difference / 4) % 2 == 1 and math.floor (answer.difference / 8) % 2 == 1 then stop ("entity_pose.answer", "a held-vector difference with none held") end
+				-- the CONFORMANCE assertion of the shared C: a position, attitude or motion-vector difference is a mirror the host did not make
+				if answer.difference % 8 ~= 0 then stop ("entity_pose.mirror", "the campaign's words differ from the host's record") end
 			end
 			local function candidate_dialogue ()
 				if scenario.no_candidate_questions then return true end
@@ -281,8 +297,11 @@ package.preload.eech_dc = function ()
 				for _ = 1, 8 do
 					local key = table.concat (words, ",")
 					if scenario.bad_candidate_request == "count" then key = string.match (key, "^(.*),[^,]+$") end
+					-- a MOBILE candidate's question names its semantic host identity after the facts (the host decides its pose from its own record of it)
+					if mobile and not scenario.unnamed_candidate then key = key .. " eech-world:1" end
 					local ok, answer = ask_model ("entity_candidate", scene, nil, nil, nil, key, not altering [MODE])
 					if not ok then stop ("entity_candidate.callback", tostring (answer)) end
+					if type (answer) == "table" and answer.result == "refused" then stop ("entity_candidate.refused", tostring (answer.reason)) end
 					if type (answer) ~= "table" or not STATES [answer.result] then stop ("entity_candidate.answer", "result") end
 					if (scene == 0 and answer.name ~= "") or (scene ~= 0 and answer.name ~= "CANDIDATE") then stop ("entity_candidate.identity", "name") end
 					local result = answer.result
@@ -1742,7 +1761,7 @@ fn the_natural_control_counts_the_pose_observations_by_stage_and_class_and_keeps
         (", pose_class = 'unknown'", "pose_unknown", "0:4:1:unknown:0:0=1"),
         (", pose_class = 'unrecorded'", "pose_unrecorded", "0:4:1:unrecorded:0:0=1"),
         (", pose_class = 'retired'", "pose_retired", "0:4:1:retired:0:0=1"),
-        (", pose_kind = 4, pose_difference = 21", "pose_recorded", "0:4:1:recorded:4:21=1"),
+        (", pose_kind = 4, pose_difference = 16", "pose_recorded", "0:4:1:recorded:4:16=1"),
         (", unnamed_pose = true", "pose_no_id", "0:4:1:no_id:0:0=1"),
     ] {
         let (driven, row) = pose_row(extra, "control");
@@ -1877,9 +1896,9 @@ fn the_pose_observation_follows_the_scan_the_empty_enumeration_prevents_it_and_t
 #[test]
 fn the_stage_masks_the_whole_identity_domain_the_prelaunch_phase_and_the_facts_are_classified_together() {
     // the placement stage reads an attitude, so an attitude difference is valid there; the facts are summed from the histograms
-    let (driven, row) = pose_row(", candidate_sequence = { 'need_placement', 'test' }, pose_difference_placement = 10", "control");
+    let (driven, row) = pose_row(", candidate_sequence = { 'need_placement', 'test' }, pose_difference_placement = 16", "control");
     assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
-    assert_eq!(row["pose_histogram"], "0:4:1:recorded:1:8=1;1:4:1:recorded:1:10=1");
+    assert_eq!(row["pose_histogram"], "0:4:1:recorded:1:8=1;1:4:1:recorded:1:16=1");
     for (field, expected) in [
         ("pose_fact_observations", 2),
         ("pose_fact_offers", 1),
@@ -1888,7 +1907,7 @@ fn the_stage_masks_the_whole_identity_domain_the_prelaunch_phase_and_the_facts_a
         ("pose_fact_dead", 0),
         ("pose_fact_position_differs", 0),
         ("pose_fact_attitude_compared", 1),
-        ("pose_fact_attitude_differs", 1),
+        ("pose_fact_attitude_differs", 0),
         ("pose_fact_motion_not_held", 1),
         ("pose_fact_motion_held", 0),
         ("pose_fact_formula_equal", 1),
@@ -1902,13 +1921,13 @@ fn the_stage_masks_the_whole_identity_domain_the_prelaunch_phase_and_the_facts_a
         "per OFFER (stage 0): the placement observation of the same offer is not a second mobile"
     );
     // an aircraft record whose held vector differs: classified apart from the vehicles
-    let (driven, row) = pose_row(", pose_kind = 4, pose_difference = 21", "control");
+    let (driven, row) = pose_row(", pose_kind = 4, pose_difference = 16", "control");
     assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
     for (field, expected) in [
-        ("pose_fact_aircraft_motion_differs", 1),
+        ("pose_fact_aircraft_motion_differs", 0),
         ("pose_fact_motion_held", 1),
-        ("pose_fact_motion_held_differs", 1),
-        ("pose_fact_position_differs", 1),
+        ("pose_fact_motion_held_differs", 0),
+        ("pose_fact_position_differs", 0),
         ("pose_fact_formula_differs", 1),
         ("pose_fact_vehicle_formula_differs", 0),
     ] {
@@ -1962,4 +1981,52 @@ fn the_stage_masks_the_whole_identity_domain_the_prelaunch_phase_and_the_facts_a
         (row["pose_altered"].clone(), row["failure_marker"].clone()),
         (Value::from(1), Value::from("entity_pose.callback"))
     );
+}
+
+#[test]
+fn the_host_side_record_modes_refuse_by_exact_name_and_nothing_is_asked_afterwards() {
+    // the host retires the identity of the first mobile candidate that named one: the real provider refuses it by name at the candidate question, and the narrow phase is never reached
+    let driven = drive(&healthy(""), &[("mode", "withdrawn_record")]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let row = authority(&driven);
+    assert_eq!(
+        (row["completed"].clone(), row["failure_marker"].clone(), row["record_withdrawn"].clone()),
+        (Value::from(false), Value::from("entity_candidate.refused"), Value::from(1))
+    );
+    assert!(row["failure_line"].as_str().unwrap().contains("retired"), "{row}");
+    assert_eq!(
+        (row["candidate_after"].clone(), row["entity_after"].clone()),
+        (Value::from(1), Value::from(0)),
+        "the refused question is the last the host was asked"
+    );
+    for (field, expected) in [("case_weapons_pending", -1), ("contact_any_tests_delta", -1), ("contact_any_hits_delta", -1)] {
+        assert_eq!(row[field], expected, "{field}: no counter is read from a stopped engine");
+    }
+    // the host places its own record elsewhere: the observation reports the difference and the engine stops at the conformance assertion, before the candidate question
+    let driven = drive(&healthy(""), &[("mode", "displaced_record")]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let row = authority(&driven);
+    assert_eq!(
+        (row["completed"].clone(), row["failure_marker"].clone(), row["record_displaced"].clone()),
+        (Value::from(false), Value::from("entity_pose.mirror"), Value::from(1))
+    );
+    assert!(row["failure_line"].as_str().unwrap().contains("differ from the host"), "{row}");
+    assert_eq!((row["pose_after"].clone(), row["candidate_after"].clone()), (Value::from(1), Value::from(0)));
+    // a mode whose host-side action never happens (no mobile candidate named an identity) completes without its stop: a failure, never a refusal
+    let error = error_of(drive(&healthy(", unnamed_candidate = true"), &[("mode", "withdrawn_record")]));
+    assert!(error.contains("the engine did not stop at entity_candidate.refused"), "{error}");
+    // the natural control counts the mobile candidate questions by identity, and an unnamed one is a failure of the control (the host could not decide its pose)
+    let (driven, row) = scan_row("", "control");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(
+        (row["candidate_mobile_named"].clone(), row["candidate_mobile_unnamed"].clone()),
+        (Value::from(1), Value::from(0))
+    );
+    let error = error_of(drive(&healthy(", unnamed_candidate = true"), &[]));
+    assert!(error.contains("carried no host identity"), "{error}");
+    // a conformance difference in a completed-control scenario stops the engine by its name (the shared C refuses it), and is never a pass
+    let driven = drive(&healthy(", pose_difference = 21"), &[]);
+    let row = authority(&driven);
+    assert_eq!(row["failure_marker"], "entity_pose.mirror");
+    assert!(driven.result.is_err());
 }

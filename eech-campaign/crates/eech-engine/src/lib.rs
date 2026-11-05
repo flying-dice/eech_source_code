@@ -305,6 +305,8 @@ pub enum MovementMode {
     /// an infantry member with a target turns to face it (EEDCS-44): the host forms the heading from its own record of the person's position
     /// and the target position sent, turns its record and answers the attitude and the heading (`angles[0]`)
     PersonFace,
+    /// a routed vehicle's motion vector where the legacy code derived it without a step (EEDCS-49): the host evaluates attitude row 2 times the speed from its own record, retains it and answers it
+    RoutedVector,
 }
 
 /// Terrain at the pre-move position, sampled by the campaign.
@@ -1131,7 +1133,8 @@ pub enum ModelQuery {
     /// what the host decides about ONE candidate of the entity scan (EEDCS-49, mb_hostmodel.h ENTITY_CANDIDATE): `scene` is the candidate's scene (0 for a city, which has none of its own)
     /// and `facts` the 44 floats the campaign read from the entity it is visiting, as exact bit patterns (the segment, the collision flags, the sector's tallest structure, the live position,
     /// motion, heading and attitude, a city's box, and the answers of the two services the host asks for: the UPDATED flag and the terrain face normal)
-    EntityCandidate { scene: i32, facts: Vec<u32> },
+    /// `host_id` is a MOBILE candidate's semantic host identity (empty for any other candidate): the host decides its pose from its own record of it, never from the position, motion and attitude words of `facts`
+    EntityCandidate { scene: i32, facts: Vec<u32>, host_id: String },
     /// the ENUMERATION of the entity scan (EEDCS-49, mb_hostmodel.h ENTITY_SCAN): the sector window, the traversal order, the exclusions and the first-hit end are the host's. `facts` are the 16 floats
     /// of the question as exact bit patterns (the segment, the campaign's world map, the phase and the cursor the host last gave, and what the campaign reports about the entry it served)
     EntityScan { facts: Vec<u32> },
@@ -1439,7 +1442,19 @@ unsafe extern "C" fn model_callback(
                     .filter(|count| *count == 44)
                     .ok_or_else(|| format!("[model-provider:entity_candidate.request] the facts have {} floats", source.pose_count))?;
                 let facts = source.pose[..count].iter().map(|float| float.to_bits()).collect();
-                ("entity_candidate", ModelQuery::EntityCandidate { scene: source.scene, facts })
+                let Some(length) = source.host_id.iter().position(|c| *c == 0) else {
+                    return Err("[model-provider:entity_candidate.request] the host identity is not NUL-terminated".to_string());
+                };
+                let bytes: Vec<u8> = source.host_id[..length].iter().map(|c| *c as u8).collect();
+                let host_id = String::from_utf8(bytes).map_err(|_| "[model-provider:entity_candidate.request] the host identity is not text".to_string())?;
+                (
+                    "entity_candidate",
+                    ModelQuery::EntityCandidate {
+                        scene: source.scene,
+                        facts,
+                        host_id,
+                    },
+                )
             }
             sys::EECH_MODEL_ENTITY_SCAN => {
                 let count = usize::try_from(source.pose_count)
@@ -3656,7 +3671,7 @@ where
         } else {
             None
         };
-        let motion_vector = matches!(movement_kind, Some(MovementKind::FixedWing | MovementKind::Helicopter)).then_some(descriptor.motion_vector);
+        let motion_vector = movement_kind.is_some().then_some(descriptor.motion_vector);
         if motion_vector.is_some_and(|vector| vector.iter().any(|value| !value.is_finite())) {
             return Err("bind_mobile received a non-finite motion vector".into());
         }
@@ -5665,6 +5680,7 @@ where
             sys::EECH_MOVEMENT_FIXED_WING_LOOKAHEAD => MovementMode::FixedWingLookahead,
             sys::EECH_MOVEMENT_DEPENDENT_CARRY => MovementMode::DependentCarry,
             sys::EECH_MOVEMENT_PERSON_FACE => MovementMode::PersonFace,
+            sys::EECH_MOVEMENT_ROUTED_VECTOR => MovementMode::RoutedVector,
             other => return Err(format!("move_vehicle received unknown mode {other}")),
         };
         let terrain_follow = checked_bool("terrain_follow", source.terrain_follow)?;
@@ -5774,6 +5790,7 @@ where
                 | MovementMode::FixedWingLookahead
                 | MovementMode::DependentCarry
                 | MovementMode::PersonFace
+                | MovementMode::RoutedVector
                 | MovementMode::Retire
                 | MovementMode::CreatePlace
                 | MovementMode::Expire
@@ -7816,6 +7833,7 @@ mod tests {
             sys::EECH_MOVEMENT_FIXED_WING_LOOKAHEAD => MovementMode::FixedWingLookahead,
             sys::EECH_MOVEMENT_DEPENDENT_CARRY => MovementMode::DependentCarry,
             sys::EECH_MOVEMENT_PERSON_FACE => MovementMode::PersonFace,
+            sys::EECH_MOVEMENT_ROUTED_VECTOR => MovementMode::RoutedVector,
             _ => MovementMode::Place,
         }
     }
@@ -11057,6 +11075,16 @@ mod tests {
     }
 
     #[test]
+    fn a_routed_vector_step_is_a_known_mode_the_host_answers_and_an_unknown_mode_is_refused() {
+        let mut step = place_step([0.0; 3]);
+        step.mode = sys::EECH_MOVEMENT_ROUTED_VECTOR;
+        assert_eq!(received(&step).mode, MovementMode::RoutedVector);
+        step.mode = sys::EECH_MOVEMENT_ROUTED_VECTOR + 1;
+        let (outcome, _) = crossing(&step, |_| panic!("the host must not be asked"));
+        assert!(outcome.is_err(), "a mode beyond the protocol never reaches the host");
+    }
+
+    #[test]
     fn a_person_face_step_carries_the_target_position_and_a_non_finite_target_is_refused() {
         let mut step = place_step([0.0; 3]);
         step.mode = sys::EECH_MOVEMENT_PERSON_FACE;
@@ -11361,7 +11389,7 @@ mod tests {
             let given = decision.clone();
             let (code, reply, error) = model_crossing(
                 Some(Box::new(move |query| match query {
-                    ModelQuery::EntityCandidate { scene, facts } => {
+                    ModelQuery::EntityCandidate { scene, facts, .. } => {
                         *record.borrow_mut() = Some((scene, facts));
                         Ok(ModelAnswer::EntityCandidate {
                             scene_name: "CANDIDATE".to_string(),

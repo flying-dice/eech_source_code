@@ -264,6 +264,8 @@ pub const EECH_MOVEMENT_FIXED_WING_LOOKAHEAD: c_int = 45;
 pub const EECH_MOVEMENT_DEPENDENT_CARRY: c_int = 46;
 /// EEDCS-44: an infantry member with a target turns to face it; the host forms the heading and answers the attitude and the heading (`angles[0]`).
 pub const EECH_MOVEMENT_PERSON_FACE: c_int = 47;
+/// EEDCS-49: a routed vehicle's motion vector where the legacy code derived it without a step; the host derives it from its own record, retains it and answers it.
+pub const EECH_MOVEMENT_ROUTED_VECTOR: c_int = 48;
 /// The terrain samples a helicopter's guidance asks for at most (HELICOPTER_TERRAIN_AVOIDANCE_LOOKAHEAD_SAMPLE_NUMBER + 1).
 pub const EECH_HC_TERRAIN_SAMPLES: usize = 2;
 

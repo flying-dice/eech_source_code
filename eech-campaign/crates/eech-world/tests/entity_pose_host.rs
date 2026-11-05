@@ -66,12 +66,14 @@ fn observe(lua: &Lua, stage: i64, entity_type: i64, alive: i64, key: &str) -> ml
 
 fn registry() -> Rc<RefCell<Movers>> {
     let mut movers = Movers::default();
-    movers.bind("eech-world:1", Kind::Routed, at(1.0, 3.0, 5.0), None, None).unwrap();
+    movers
+        .bind("eech-world:1", Kind::Routed, at(1.0, 3.0, 5.0), Some([0.0, 0.0, 5.0]), None)
+        .unwrap();
     movers
         .bind("eech-world:2", Kind::FixedWing, at(10.0, 30.0, 0.0), Some([0.0, 0.0, 100.0]), None)
         .unwrap();
     movers.issue("eech-world:3").unwrap();
-    movers.bind("eech-world:4", Kind::Person, at(7.0, 7.0, 1.0), None, None).unwrap();
+    movers.bind("eech-world:4", Kind::Person, at(7.0, 7.0, 1.0), Some([0.0; 3]), None).unwrap();
     movers.retire("eech-world:4").unwrap();
     Rc::new(RefCell::new(movers))
 }
@@ -79,19 +81,19 @@ fn registry() -> Rc<RefCell<Movers>> {
 #[test]
 fn a_recorded_identity_is_compared_with_the_hosts_own_record_and_every_class_is_reported() {
     let lua = host(Some(registry()));
-    // a routed vehicle (kind 1): the host holds no motion vector for it (8) and the campaign's equals the record's attitude row 2 times its speed, so only that is reported
+    // a routed vehicle (kind 1): the record holds the vector it was seeded with ([0, 0, 5]) and the campaign's words are exactly it, so nothing differs
     let routed = words([1.0, 2.0, 3.0], [0.0, 0.0, 5.0], None);
-    assert_eq!(observe(&lua, 0, 4, 1, &text(&routed, "eech-world:1")).unwrap(), ("recorded".into(), 1, 8));
+    assert_eq!(observe(&lua, 0, 4, 1, &text(&routed, "eech-world:1")).unwrap(), ("recorded".into(), 1, 0));
     // the placement stage adds the attitude, compared bit for bit
     let placed = words([1.0, 2.0, 3.0], [0.0, 0.0, 5.0], Some(LEVEL));
-    assert_eq!(observe(&lua, 1, 4, 1, &text(&placed, "eech-world:1")).unwrap(), ("recorded".into(), 1, 8));
+    assert_eq!(observe(&lua, 1, 4, 1, &text(&placed, "eech-world:1")).unwrap(), ("recorded".into(), 1, 0));
     let mut turned = LEVEL;
     turned[5] = 1.0e-7;
     let turned = words([1.0, 2.0, 3.0], [0.0, 0.0, 5.0], Some(turned));
-    assert_eq!(observe(&lua, 1, 4, 1, &text(&turned, "eech-world:1")).unwrap(), ("recorded".into(), 1, 8 | 2));
+    assert_eq!(observe(&lua, 1, 4, 1, &text(&turned, "eech-world:1")).unwrap(), ("recorded".into(), 1, 2));
     // a position that is not the record's, and a motion vector that is not the formula's
     let off = words([1.0, 2.5, 3.0], [0.0, 0.0, 4.0], None);
-    assert_eq!(observe(&lua, 0, 4, 1, &text(&off, "eech-world:1")).unwrap(), ("recorded".into(), 1, 8 | 1 | 16));
+    assert_eq!(observe(&lua, 0, 4, 1, &text(&off, "eech-world:1")).unwrap(), ("recorded".into(), 1, 1 | 4 | 16));
     // a fixed-wing aircraft (kind 4) holds its vector: equal to it, the formula (a speed of zero) is the only difference; another vector is a difference of the held one too
     let held = words([10.0, 2.0, 30.0], [0.0, 0.0, 100.0], None);
     assert_eq!(observe(&lua, 0, 3, 1, &text(&held, "eech-world:2")).unwrap(), ("recorded".into(), 4, 16));
@@ -200,20 +202,20 @@ fn the_rosters_whole_identity_domain_is_observed_whole_and_a_signalling_nan_word
     let longest = "w".repeat(128);
     let multibyte = "\u{e9}".repeat(64);
     assert_eq!(multibyte.len(), 128);
-    movers.bind(&longest, Kind::Routed, at(1.0, 3.0, 5.0), None, None).unwrap();
-    movers.bind(&multibyte, Kind::Ship, at(4.0, 6.0, 2.0), None, None).unwrap();
+    movers.bind(&longest, Kind::Routed, at(1.0, 3.0, 5.0), Some([0.0, 0.0, 5.0]), None).unwrap();
+    movers.bind(&multibyte, Kind::Ship, at(4.0, 6.0, 2.0), Some([0.0, 0.0, 2.0]), None).unwrap();
     let movers = Rc::new(RefCell::new(movers));
     let lua = host(Some(movers));
     let routed = words([1.0, 2.0, 3.0], [0.0, 0.0, 5.0], None);
-    assert_eq!(observe(&lua, 0, 4, 1, &text(&routed, &longest)).unwrap(), ("recorded".into(), 1, 8));
+    assert_eq!(observe(&lua, 0, 4, 1, &text(&routed, &longest)).unwrap(), ("recorded".into(), 1, 0));
     let ship = words([4.0, 2.0, 6.0], [0.0, 0.0, 2.0], None);
-    assert_eq!(observe(&lua, 0, 4, 1, &text(&ship, &multibyte)).unwrap(), ("recorded".into(), 2, 8));
+    assert_eq!(observe(&lua, 0, 4, 1, &text(&ship, &multibyte)).unwrap(), ("recorded".into(), 2, 0));
     // a prefix of an identity is not the identity, and nothing is shortened on the way
     assert_eq!(observe(&lua, 0, 4, 1, &text(&routed, &longest[..127])).unwrap().0, "unknown");
     // a signalling NaN word crosses as its bits (no float is formed from it): it is a position difference, and the registry is untouched
     let mut signalling = routed;
     signalling[2] = f32::from_bits(0x7fa0_0001);
-    assert_eq!(observe(&lua, 0, 4, 1, &text(&signalling, &longest)).unwrap(), ("recorded".into(), 1, 8 | 1));
+    assert_eq!(observe(&lua, 0, 4, 1, &text(&signalling, &longest)).unwrap(), ("recorded".into(), 1, 1));
     assert!(text(&signalling, "").contains("0x7fa00001"), "the pattern is the bits");
-    assert_eq!(observe(&lua, 0, 4, 1, &text(&routed, &longest)).unwrap(), ("recorded".into(), 1, 8));
+    assert_eq!(observe(&lua, 0, 4, 1, &text(&routed, &longest)).unwrap(), ("recorded".into(), 1, 0));
 }

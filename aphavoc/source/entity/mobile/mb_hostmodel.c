@@ -1992,12 +1992,12 @@ int campaign_model_entity_scan (const float *facts, float *cursor)
 }
 
 // ENTITY_CANDIDATE (mb_hostmodel.h; EEDCS-49, D3, third slice): what the host decides about one candidate of the scan. The dialogue is mb_hostentity.h; the facts are read by the caller.
-int campaign_model_entity_candidate (int scene, const float *facts, float *pose, int *pose_count)
+int campaign_model_entity_candidate (int scene, const float *facts, const char *host_id, float *pose, int *pose_count)
 {
 	int
 		state;
 
-	state = campaign_entity_candidate_exchange (scene, facts, pose, pose_count);
+	state = campaign_entity_candidate_exchange (scene, facts, host_id, pose, pose_count);
 
 #ifdef EECH_MODEL_HOST_FIXTURE
 	switch (state)

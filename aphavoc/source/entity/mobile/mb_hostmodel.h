@@ -223,8 +223,8 @@ enum campaign_model_op
    `pose_count` is 15: the position (3) and the motion vector (3) (STAGE_OFFER: the words the original read for every mobile candidate), or those and the attitude (9) (STAGE_PLACEMENT: read when the broad phase
    passed); the words of a stage that was not read are zero. `depth` is the stage, `kind` the entity's type, `definition` whether it is alive (0 or 1) and `host_id` its semantic host identity (empty when the roster has none;
    the roster's whole identity domain of 1 to 128 bytes of text is carried, never shortened and never skipped). The reply: `candidate_state` the class (campaign_model_pose_class), `candidate_count` the kind of the host's
-   record (0 none, 1 routed vehicle, 2 ship, 3 person, 4 fixed-wing aircraft, 5 helicopter) and `write_mask` the differences (campaign_model_pose_difference bits). NOTHING DECIDES FROM THE ANSWER: it is recorded and its shape
-   checked, no physical result depends on it, and a candidate is offered, tested and skipped exactly as without it.
+   record (0 none, 1 routed vehicle, 2 ship, 3 person, 4 fixed-wing aircraft, 5 helicopter) and `write_mask` the differences (campaign_model_pose_difference bits). NOTHING DECIDES FROM THE ANSWER: no physical result depends on it, and a candidate is offered, tested and skipped exactly as without it. It is a CONFORMANCE assertion: the host's physical record decides a mobile
+   candidate's pose (ENTITY_CANDIDATE), and a position, attitude or motion-vector difference between the campaign's mirror and that record stops the engine by marker entity_pose.mirror; the other bits only describe the record.
 
    WHAT THE OBSERVATION READS. The words are the ones the original's scan read (position and motion vector for every mobile candidate, the attitude in its narrow phase): they are copied from the facts already read and are no
    new read. The observation adds exactly THREE read-only metadata reads per question, which the original did not make: the entity's TYPE (a direct field), its ALIVE flag (the mobile's own flag) and its roster HOST IDENTITY
@@ -459,10 +459,12 @@ void campaign_model_install_scenes (void);
    the host reports the original's arithmetic assigned are written (normal first), after the whole reply has been checked. Returns TRUE for a hit. */
 int campaign_model_entity_collision (int scene, const float *segment_old, const float *segment_new, const float *candidate, int candidate_count, float *point, float *normal);
 
-/* ENTITY_CANDIDATE: asks the host what it decides about one candidate from `facts` (CAMPAIGN_MODEL_CANDIDATE_FACTS floats, see above; `scene` is the candidate's scene, 0 until its shape has been read). The reply is
+/* ENTITY_CANDIDATE: asks the host what it decides about one candidate from `facts` (CAMPAIGN_MODEL_CANDIDATE_FACTS floats, see above; `scene` is the candidate's scene, 0 until its shape has been read). `host_id` is a MOBILE
+   candidate's semantic host identity (NULL for any other candidate): the host takes the candidate's position, motion vector and attitude from ITS OWN physical record of that identity, never from the facts' words for those
+   (which the campaign still reads and sends, and compares with the record in ENTITY_POSE); a mobile candidate with no record, a retired or unknown identity is refused by name. The reply is
    checked completely; the returned state is a campaign_model_candidate_state and, for TEST, `pose` receives the `*pose_count` floats of the narrow phase's candidate pose (room for
    CAMPAIGN_MODEL_CANDIDATE_POSE_MAX). */
-int campaign_model_entity_candidate (int scene, const float *facts, float *pose, int *pose_count);
+int campaign_model_entity_candidate (int scene, const float *facts, const char *host_id, float *pose, int *pose_count);
 
 /* ENTITY_SCAN: asks the host what to do next in the enumeration of the scan from `facts` (CAMPAIGN_MODEL_SCAN_FACTS floats, see above). The reply is checked completely; the returned state is a
    campaign_model_scan_state and, for FIRST, `cursor` receives the two sector indices (whole numbers inside the map). */

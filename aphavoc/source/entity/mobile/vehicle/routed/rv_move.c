@@ -137,6 +137,27 @@ static void routed_vehicle_movement_stop (entity *en, int client_server)
 #endif
 }
 
+// The routed vehicle's motion vector where the legacy code derived it without a step (the early returns). A hosted vehicle's comes from the host's own record
+// (EEDCS-49: the vector the collision reads is the host's), an unhosted one is derived here exactly as before
+
+static void routed_vehicle_motion_vector (entity *en, routed_vehicle *raw)
+{
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	if (campaign_movement_is_hosted (en))
+	{
+		campaign_movement_routed_vector (en);
+
+		return;
+	}
+
+#endif
+
+	raw->vh.mob.motion_vector.x = raw->vh.mob.attitude [2][0] * raw->vh.mob.velocity;
+	raw->vh.mob.motion_vector.y = raw->vh.mob.attitude [2][1] * raw->vh.mob.velocity;
+	raw->vh.mob.motion_vector.z = raw->vh.mob.attitude [2][2] * raw->vh.mob.velocity;
+}
+
 void routed_vehicle_movement (entity *en)
 {
 
@@ -240,9 +261,7 @@ void routed_vehicle_movement (entity *en)
 			}
 		}
 
-		raw->vh.mob.motion_vector.x = raw->vh.mob.attitude [2][0] * raw->vh.mob.velocity;
-		raw->vh.mob.motion_vector.y = raw->vh.mob.attitude [2][1] * raw->vh.mob.velocity;
-		raw->vh.mob.motion_vector.z = raw->vh.mob.attitude [2][2] * raw->vh.mob.velocity;
+		routed_vehicle_motion_vector (en, raw);
 
 		return;
 	}
@@ -280,9 +299,7 @@ void routed_vehicle_movement (entity *en)
 			set_local_entity_float_value (en, FLOAT_TYPE_DESIRED_VELOCITY, 0.0);
 		}
 
-		raw->vh.mob.motion_vector.x = raw->vh.mob.attitude [2][0] * raw->vh.mob.velocity;
-		raw->vh.mob.motion_vector.y = raw->vh.mob.attitude [2][1] * raw->vh.mob.velocity;
-		raw->vh.mob.motion_vector.z = raw->vh.mob.attitude [2][2] * raw->vh.mob.velocity;
+		routed_vehicle_motion_vector (en, raw);
 
 		return;
 	}

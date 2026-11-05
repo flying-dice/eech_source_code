@@ -3873,7 +3873,8 @@ fn gunship(name: &str) -> LuaResult<Gunship> {
 ///                 city, the entity is a city building, the candidate is a building listed under a city whose box was met, the city has a first building (each exactly 0 or 1), the sector's
 ///                 tallest structure height, the position (3), the motion vector (3), the frame time, the UPDATED answer (0 not asked, 1 false, 2 true), the heading, the align-with-terrain
 ///                 flag, the terrain face normal given (0 or 1), that normal (3), the attitude (9, row-major), the city's bounding box min (3) and max (3), the fixed facts were read (0 or 1)
-///                 and the placement facts were read (0 or 1). The facts are STAGED: the host asks for what a branch needs only when the original branch reached it. Returns `{ result, name = text }`
+///                 and the placement facts were read (0 or 1). FOR A MOBILE candidate of a sector list (never a building listed under a city) the text carries, after the 44 patterns, one space and the candidate's semantic HOST IDENTITY (1 to 128 bytes): the host decides the
+///                 candidate's position, motion vector and attitude from ITS OWN canonical record of that identity and never from facts 13 to 18 and 27 to 35, and refuses by name a mobile candidate it holds no record of. The facts are STAGED: the host asks for what a branch needs only when the original branch reached it. Returns `{ result, name = text }`
 ///                 and, for `test`, `p`: `result` is `skip` (nothing more to do for the candidate), `need_updated` (the campaign performs its UPDATED getter, which has an effect of its own, and
 ///                 asks again with fact 20 filled in), `need_fixed` (the campaign reads the fixed flag and what the fixed branch reads, and asks again with facts 7 to 9, 11, the scene, the
 ///                 position, the city box and fact 42 filled in), `need_placement` (the campaign reads the attitude of a mobile candidate, or the heading and align flag of a fixed one, and
@@ -4301,7 +4302,19 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
         // the segment and the candidate's pose cross as exact bit patterns in the text place (18 floats: stationary, 22: moving); the caller's intercept point and normal are outputs and do not cross
         ModelQuery::EntityCollision { scene, pose } => ("entity_collision", Some(scene), None, None, None, Some(pose_text(&pose))),
         // the facts of one candidate of the entity scan cross as exact bit patterns in the text place (44 floats); the scene is 0 until the campaign has read the shape
-        ModelQuery::EntityCandidate { scene, facts } => ("entity_candidate", Some(scene), None, None, None, Some(pose_text(&facts))),
+        // a mobile candidate's semantic host identity follows the facts after one space (the facts are 44 fixed-width patterns); the host decides that candidate's pose from its own record of it
+        ModelQuery::EntityCandidate { scene, facts, host_id } => (
+            "entity_candidate",
+            Some(scene),
+            None,
+            None,
+            None,
+            Some(if host_id.is_empty() {
+                pose_text(&facts)
+            } else {
+                format!("{} {host_id}", pose_text(&facts))
+            }),
+        ),
         // the facts of the enumeration cross as exact bit patterns in the text place (16 floats); the scene is 0
         ModelQuery::EntityScan { facts } => ("entity_scan", Some(0), None, None, None, Some(pose_text(&facts))),
         // the words of an observation cross as exact bit patterns in the text place (15 floats), followed, when the candidate has one, by a space and its host identity; the stage, the entity's type and its
@@ -5736,7 +5749,16 @@ mod tests {
             .take(44)
             .map(|float| float.to_bits())
             .collect();
-        let decide = |provider: &mut ModelProvider, scene: i32| ask(provider, ModelQuery::EntityCandidate { scene, facts: facts.clone() });
+        let decide = |provider: &mut ModelProvider, scene: i32| {
+            ask(
+                provider,
+                ModelQuery::EntityCandidate {
+                    scene,
+                    facts: facts.clone(),
+                    host_id: String::new(),
+                },
+            )
+        };
         for (scene, expected) in [
             (1, CandidateDecision::Skip),
             (2, CandidateDecision::NeedUpdated),
@@ -5966,7 +5988,16 @@ mod tests {
                return { result = 'skip', name = 'A\\0B' }
              end",
         )?;
-        let mut decide = |scene: i32| ask(&mut provider, ModelQuery::EntityCandidate { scene, facts: vec![0; 44] });
+        let mut decide = |scene: i32| {
+            ask(
+                &mut provider,
+                ModelQuery::EntityCandidate {
+                    scene,
+                    facts: vec![0; 44],
+                    host_id: String::new(),
+                },
+            )
+        };
         let refused = decide(1).err().ok_or("accepted")?;
         assert!(
             refused.contains("[model-provider:entity_candidate.refused]") && refused.contains("no such model"),

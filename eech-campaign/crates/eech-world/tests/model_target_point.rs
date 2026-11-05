@@ -1346,17 +1346,23 @@ fn a_direct_city_building_and_a_fixed_candidate_below_the_tallest_skip_are_skipp
     fixed[43] = 1.0;
     assert_eq!(candidate_answer(&lua, 1, &fixed).0, "test");
     // 6. a mobile candidate whose box is met asks for its UPDATED answer before any model, and then needs the model of its scene
+    // (the mobile candidate's physical record is the host's: the registry holds the one this candidate's identity names, inside the segment's box)
+    lua.set_app_data(eech_world::movement::SharedMovers(registry_with(
+        "eech-world:7",
+        [0.0, 0.0, 0.0],
+        [0.0, 0.0, 5.0],
+    )));
     let mut mobile = facts;
     mobile[6] = 1.0;
     mobile[16] = 3.0;
     assert_eq!(
-        candidate_answer(&lua, 8, &mobile).0,
+        candidate_with_identity(&lua, 8, &mobile, "eech-world:7").0,
         "need_updated",
         "the destructive getter first: the original read it before its radius"
     );
     mobile[20] = 1.0;
     assert_eq!(
-        candidate_answer(&lua, 8, &mobile).0,
+        candidate_with_identity(&lua, 8, &mobile, "eech-world:7").0,
         "refused",
         "an unloaded scene is refused once the broad phase needs it"
     );
@@ -1410,4 +1416,168 @@ fn the_enumeration_is_decided_by_the_real_provider_from_the_segment_and_the_map_
     let (result, _, reason) = scan_answer(&lua, &facts);
     assert_eq!(result, "refused", "{reason}");
     assert!(reason.contains("outside the sector window"), "{reason}");
+}
+
+// ---- ENTITY_CANDIDATE and the host's physical record (EEDCS-49, D3): a MOBILE candidate's pose is the ONE `Movers` registry's canonical record, never the campaign's words ----
+
+fn candidate_with_identity(lua: &mlua::Lua, scene: i32, facts: &[f32], identity: &str) -> (String, String, Vec<u32>) {
+    let text = if identity.is_empty() {
+        candidate_text(facts)
+    } else {
+        format!("{} {identity}", candidate_text(facts))
+    };
+    lua.globals().set("FACTS", text).unwrap();
+    lua.globals().set("SCENE", scene).unwrap();
+    let table: mlua::Table = lua
+        .load(r#"return host.model_provider (host.model_store (ROOT)) ("entity_candidate", SCENE, nil, nil, nil, FACTS)"#)
+        .eval()
+        .expect("the provider answers");
+    let pose = table
+        .get::<Option<String>>("p")
+        .unwrap()
+        .map(|text| {
+            text.split(',')
+                .map(|token| u32::from_str_radix(token.trim_start_matches("0x"), 16).unwrap())
+                .collect()
+        })
+        .unwrap_or_default();
+    (
+        table.get("result").unwrap(),
+        table.get::<Option<String>>("reason").unwrap().unwrap_or_default(),
+        pose,
+    )
+}
+
+/// the facts of a mobile candidate whose box the segment meets, as the campaign sends them once it has read the candidate's placement: its OWN words are deliberately NOT the host record's
+fn mobile_facts(campaign_position: [f32; 3], campaign_motion: [f32; 3], campaign_attitude: [f32; 9]) -> [f32; 44] {
+    let mut facts = [0.0f32; 44];
+    facts[..6].copy_from_slice(&[-100.0, -100.0, -100.0, 100.0, 100.0, 100.0]);
+    facts[6] = 1.0;
+    facts[12] = 1000.0;
+    facts[13..16].copy_from_slice(&campaign_position);
+    facts[16..19].copy_from_slice(&campaign_motion);
+    facts[19] = 0.1;
+    // the UPDATED answer was given (1: false) and the placement facts were read
+    facts[20] = 1.0;
+    facts[27..36].copy_from_slice(&campaign_attitude);
+    facts[43] = 1.0;
+    facts
+}
+
+fn registry_with(identity: &str, position: [f32; 3], motion: [f32; 3]) -> std::rc::Rc<std::cell::RefCell<eech_world::movement::Movers>> {
+    use eech_world::movement::{Kind, Movers, Pose};
+    let mut movers = Movers::default();
+    let pose = Pose {
+        position,
+        velocity: 5.0,
+        attitude: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
+    };
+    movers.bind(identity, Kind::Routed, pose, Some(motion), None).unwrap();
+    std::rc::Rc::new(std::cell::RefCell::new(movers))
+}
+
+#[test]
+fn a_mobile_candidates_pose_is_the_hosts_canonical_record_and_the_campaigns_words_decide_nothing() {
+    let (root, store) = standard();
+    let lua = lua_with_store(&root.dir);
+    let movers = registry_with("eech-world:7", [0.0, 0.0, 0.0], [0.0, 0.0, 5.0]);
+    lua.set_app_data(eech_world::movement::SharedMovers(movers.clone()));
+    // the campaign's words are somewhere else entirely (far outside the segment's box, a turned attitude, another vector): were they the candidate's pose, the broad phase would skip it
+    let garbage_attitude = [0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0];
+    let words = mobile_facts([9000.0, 0.0, 9000.0], [1.0, 2.0, 3.0], garbage_attitude);
+    let (result, reason, pose) = candidate_with_identity(&lua, 1, &words, "eech-world:7");
+    assert_eq!(result, "test", "the host record is inside the box: {reason}");
+    // the narrow phase's pose is the RECORD's: exactly what the real decision gives when the facts carry the record's own words
+    let mut from_record = candidate_words(&words);
+    from_record[13..16].copy_from_slice(&[0.0f32, 0.0, 0.0].map(f32::to_bits));
+    from_record[16..19].copy_from_slice(&[0.0f32, 0.0, 5.0].map(f32::to_bits));
+    from_record[27..36].copy_from_slice(&[1.0f32, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0].map(f32::to_bits));
+    let expected = eech_world::entity_host::candidate_in_store(&store, 1, &from_record).expect("the decision from the record's own words");
+    assert_eq!(expected.state, eech_world::entity_host::CandidateState::Test);
+    assert_eq!(pose, expected.pose, "the pose the host returns is the record's, bit for bit");
+    // and it is NOT what the campaign's words would have given (the RED against a provider that used them)
+    let from_campaign = eech_world::entity_host::candidate_in_store(&store, 1, &candidate_words(&words)).expect("the decision from the campaign's words");
+    assert_ne!(
+        from_campaign.state,
+        eech_world::entity_host::CandidateState::Test,
+        "the campaign's words alone would have skipped it"
+    );
+    // a mobile whose words and record agree decides identically (the coherent default stays green)
+    let agreeing = mobile_facts([0.0, 0.0, 0.0], [0.0, 0.0, 5.0], [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]);
+    assert_eq!(candidate_with_identity(&lua, 1, &agreeing, "eech-world:7").2, expected.pose);
+    // the placement facts not read yet: no attitude is required before the original read it
+    let mut early = agreeing;
+    early[43] = 0.0;
+    early[27..36].copy_from_slice(&[0.0; 9]);
+    assert_eq!(candidate_with_identity(&lua, 1, &early, "eech-world:7").0, "need_placement");
+    // the record is read at EACH question: when the host moves the mobile (a placement it adopts), the same campaign words decide differently
+    movers
+        .borrow_mut()
+        .step(
+            "eech-world:7",
+            eech_world::movement::Pose {
+                position: [9000.0, 0.0, 9000.0],
+                velocity: 5.0,
+                attitude: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
+            },
+            eech_world::movement::Request::Place {
+                motion_vector: [0.0, 0.0, 5.0],
+            },
+        )
+        .unwrap();
+    assert_eq!(
+        candidate_with_identity(&lua, 1, &agreeing, "eech-world:7").0,
+        "skip",
+        "the host moved the mobile away; the campaign's unchanged words did not keep it in the box"
+    );
+}
+
+fn candidate_words(facts: &[f32; 44]) -> Vec<u32> {
+    facts.iter().map(|value| value.to_bits()).collect()
+}
+
+#[test]
+fn a_mobile_candidate_the_host_holds_no_record_of_is_refused_by_name_and_never_completed_from_the_campaigns_words() {
+    let (root, _store) = standard();
+    let lua = lua_with_store(&root.dir);
+    let facts = mobile_facts([0.0, 0.0, 0.0], [0.0, 0.0, 5.0], [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]);
+    let refused = |lua: &mlua::Lua, identity: &str, why: &str| {
+        let (result, reason, pose) = candidate_with_identity(lua, 1, &facts, identity);
+        assert_eq!(result, "refused", "{identity:?}: {reason}");
+        assert!(reason.contains("candidate record") && reason.contains(why), "{identity:?}: {reason}");
+        assert!(pose.is_empty(), "no pose is handed over");
+    };
+    // a host that keeps no movement records at all
+    refused(&lua, "eech-world:7", "keeps no movement records");
+    let movers = registry_with("eech-world:7", [0.0, 0.0, 0.0], [0.0, 0.0, 5.0]);
+    lua.set_app_data(eech_world::movement::SharedMovers(movers.clone()));
+    // the campaign has no identity for the candidate, never issued one, or the host issued it without a record, or retired it
+    refused(&lua, "", "no host identity");
+    refused(&lua, "eech-world:99", "never issued");
+    movers.borrow_mut().issue("eech-world:8").unwrap();
+    refused(&lua, "eech-world:8", "no movement record");
+    movers.borrow_mut().retire("eech-world:7").unwrap();
+    refused(&lua, "eech-world:7", "retired");
+    // a registry being stepped is refused by name, never read through a second borrow
+    let movers = registry_with("eech-world:7", [0.0, 0.0, 0.0], [0.0, 0.0, 5.0]);
+    lua.set_app_data(eech_world::movement::SharedMovers(movers.clone()));
+    let guard = movers.borrow_mut();
+    let (result, reason, _) = candidate_with_identity(&lua, 1, &facts, "eech-world:7");
+    assert_eq!((result.as_str(), reason.contains("candidate record busy")), ("refused", true), "{reason}");
+    drop(guard);
+    assert_eq!(candidate_with_identity(&lua, 1, &facts, "eech-world:7").0, "test");
+    // a candidate that is not a mobile of a sector list needs no record: a fixed one, and a building listed under a city (even one whose flags read as mobile)
+    let mut fixed = facts;
+    fixed[6] = 0.0;
+    fixed[7] = 1.0;
+    fixed[42] = 1.0;
+    let (_, reason, _) = candidate_with_identity(&lua, 1, &fixed, "");
+    assert!(!reason.contains("candidate record"), "a fixed candidate needs no record: {reason}");
+    let mut of_city = facts;
+    of_city[10] = 1.0;
+    let (_, reason, _) = candidate_with_identity(&lua, 1, &of_city, "");
+    assert!(
+        !reason.contains("candidate record"),
+        "a building listed under a city is not a mobile of a sector list: {reason}"
+    );
 }

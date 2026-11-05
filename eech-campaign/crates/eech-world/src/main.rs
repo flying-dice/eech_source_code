@@ -721,6 +721,7 @@ fn movement_from(lua: &Lua, step: &LuaTable) -> LuaResult<(String, Pose, Request
     let mode: String = step.get("mode")?;
     let request = match mode.as_str() {
         "stop" => Request::Stop,
+        "routed_vector" => Request::RoutedVector,
         "place" => Request::Place {
             motion_vector: numbers(lua, step, "motion_vector_in")?,
         },

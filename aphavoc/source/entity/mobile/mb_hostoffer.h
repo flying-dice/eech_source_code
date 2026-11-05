@@ -42,7 +42,7 @@
 
 // The observation of a mobile candidate's words (mb_hostmodel.h, ENTITY_POSE): the position and motion vector, and for STAGE_PLACEMENT the attitude, exactly as they were read into `facts`. The
 // answer is observed by the host; nothing here depends on it.
-static void campaign_offer_observe_pose (int stage, CAMPAIGN_OFFER_ENTITY *target, const float *facts)
+static void campaign_offer_observe_pose (int stage, CAMPAIGN_OFFER_ENTITY *target, const char *host_id, const float *facts)
 {
 	float
 		words [CAMPAIGN_MODEL_POSE_FACTS];
@@ -58,7 +58,7 @@ static void campaign_offer_observe_pose (int stage, CAMPAIGN_OFFER_ENTITY *targe
 		memcpy (&words [6], &facts [CAMPAIGN_CANDIDATE_ATTITUDE], 9 * sizeof (float));
 	}
 
-	campaign_model_entity_pose (stage, (int) CAMPAIGN_OFFER_TYPE (target), (CAMPAIGN_OFFER_ALIVE (target) != 0), CAMPAIGN_OFFER_HOST_ID (target), words);
+	campaign_model_entity_pose (stage, (int) CAMPAIGN_OFFER_TYPE (target), (CAMPAIGN_OFFER_ALIVE (target) != 0), host_id, words);
 }
 
 // Offers one candidate to the host. `of_city` is TRUE for a building listed under a city whose box the host reported as met (the host does not apply the sector skip to it again).
@@ -82,6 +82,9 @@ static CAMPAIGN_OFFER_ENTITY *campaign_offer_candidate
 		box_min [3],
 		box_max [3];
 
+	const char
+		*host_id;
+
 	int
 		mobile,
 		fixed,
@@ -95,6 +98,8 @@ static CAMPAIGN_OFFER_ENTITY *campaign_offer_candidate
 		*hit;
 
 	first_building = NULL;
+
+	host_id = NULL;
 
 	memset (facts, 0, sizeof (facts));
 
@@ -134,13 +139,17 @@ static CAMPAIGN_OFFER_ENTITY *campaign_offer_candidate
 
 			CAMPAIGN_OFFER_MOTION (target, &facts [CAMPAIGN_CANDIDATE_MOTION]);
 
-			campaign_offer_observe_pose (CAMPAIGN_POSE_STAGE_OFFER, target, facts);
+			// the mobile's semantic host identity (a read-only metadata read, once per offer): the host decides this candidate's physical pose from its own record of it
+
+			host_id = CAMPAIGN_OFFER_HOST_ID (target);
+
+			campaign_offer_observe_pose (CAMPAIGN_POSE_STAGE_OFFER, target, host_id, facts);
 		}
 	}
 
 	for (;;)
 	{
-		state = campaign_model_entity_candidate (scene, facts, pose, &pose_count);
+		state = campaign_model_entity_candidate (scene, facts, host_id, pose, &pose_count);
 
 		switch (state)
 		{
@@ -224,7 +233,7 @@ static CAMPAIGN_OFFER_ENTITY *campaign_offer_candidate
 
 					if (!of_city)
 					{
-						campaign_offer_observe_pose (CAMPAIGN_POSE_STAGE_PLACEMENT, target, facts);
+						campaign_offer_observe_pose (CAMPAIGN_POSE_STAGE_PLACEMENT, target, host_id, facts);
 					}
 				}
 				else if (facts [CAMPAIGN_CANDIDATE_FIXED] != 0.0f)

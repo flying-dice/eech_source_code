@@ -159,6 +159,14 @@ pub fn collide_in_store(store: &ModelStore, scene: i64, pose: &[u32]) -> Result<
 /// The floats of an `ENTITY_CANDIDATE` question: the facts the campaign reads from the candidate it is visiting (`csrc/entity_candidate_step.c` lists them, staged in the order the original
 /// needed them), and of the narrow-phase pose the host answers a `TEST` with.
 pub const CANDIDATE_FACTS: usize = 44;
+/// Where the facts of an ENTITY_CANDIDATE question that the host's physical record decides for a mobile candidate sit (mb_hostmodel.h, CAMPAIGN_CANDIDATE_*): the flags, the position (3), the motion vector (3),
+/// the attitude (9) and the flag that says the placement facts were read.
+pub const CANDIDATE_MOBILE: usize = 6;
+pub const CANDIDATE_OF_CITY: usize = 10;
+pub const CANDIDATE_POSITION: usize = 13;
+pub const CANDIDATE_MOTION: usize = 16;
+pub const CANDIDATE_ATTITUDE: usize = 27;
+pub const CANDIDATE_PLACEMENT_GIVEN: usize = 43;
 pub const CANDIDATE_STATIONARY_POSE: usize = 12;
 pub const CANDIDATE_MOVING_POSE: usize = 16;
 

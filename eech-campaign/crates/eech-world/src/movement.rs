@@ -1201,6 +1201,8 @@ pub enum Request {
     /// an infantryman with a target turns to face it: the host forms the heading from the person's retained position and the target's, turns
     /// its record and answers the attitude and the heading (`angles[0]`)
     PersonFace(PersonFace),
+    /// a routed vehicle's motion vector at a place where the legacy code derived it without a step: the host evaluates attitude row 2 times the speed from its own record, retains it and answers it
+    RoutedVector,
 }
 
 /// How an attached child follows its moving parent; fixed by the child's class in the original handlers.
@@ -1248,13 +1250,14 @@ impl Request {
             Request::Create(_) => "create_place",
             Request::DependentCarry(_) => "dependent_carry",
             Request::PersonFace(_) => "person_face",
+            Request::RoutedVector => "routed_vector",
         }
     }
 
     /// Whether a mobile of `kind` may make this request; any kind may receive a placement.
     fn allows(&self, kind: Kind) -> bool {
         match self {
-            Request::Advance(_) | Request::Stop => kind == Kind::Routed,
+            Request::Advance(_) | Request::Stop | Request::RoutedVector => kind == Kind::Routed,
             Request::ShipMove(_) => kind == Kind::Ship,
             Request::PersonBegin(_) | Request::PersonEnd(_) | Request::PersonFace(_) => kind == Kind::Person,
             Request::FixedWingMove(_) | Request::FixedWingLookahead => kind == Kind::FixedWing,
@@ -1350,7 +1353,8 @@ struct Record {
     pose: Pose,
     /// The host built this mobile's initial pose (a `Create` request); a mobile is created once.
     placed: bool,
-    /// An aircraft's previous motion vector, retained by the host; `None` for other kinds.
+    /// The CANONICAL motion vector of the mobile, retained by the host for every kind (seeded at the bind, adopted at a placement, produced by the solver at each step that the legacy code assigned it, and held by the
+    /// vehicle lifecycle). It is what collision reads: not the campaign's copy, and never derived at query time from the speed and the attitude.
     motion_vector: Option<[f32; 3]>,
     pending: Option<Pending>,
     /// A helicopter's phase one ran and phase two is owed. Nothing else may be requested until it is made.
@@ -1441,6 +1445,29 @@ pub enum Observation {
     Retired,
     /// the host never issued the identity
     Unknown,
+}
+
+/// What the registry holds for an identity a collision decision names: the record's canonical physical words, or why it has none.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Canonical {
+    Record(CanonicalWords),
+    /// the host issued the identity to a member it keeps no movement record for
+    Unrecorded,
+    /// the host retired the identity
+    Retired,
+    /// the host never issued the identity
+    Unknown,
+    /// the record exists but holds no motion vector (a record the bind contract makes impossible; refused rather than completed)
+    Incomplete,
+}
+
+/// The canonical position, motion vector and attitude of a record, as the exact bit patterns it holds.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CanonicalWords {
+    pub kind: Kind,
+    pub position: [u32; 3],
+    pub motion: [u32; 3],
+    pub attitude: [u32; 9],
 }
 
 /// The campaign's position is not bit for bit the record's.
@@ -1563,13 +1590,13 @@ impl Movers {
     /// or helicopter) must be seeded with its motion vector, and no other kind may be: a missing
     /// seed is refused rather than defaulted. A helicopter must also be seeded with its rotor state, and no other kind may be.
     pub fn bind(&mut self, host_id: &str, kind: Kind, pose: Pose, motion_vector: Option<[f32; 3]>, rotor: Option<[f32; 3]>) -> Result<(), String> {
-        match (kind, motion_vector) {
-            (Kind::FixedWing | Kind::Helicopter, None) => {
-                return Err(format!("host.bind_mobile: {kind:?} {host_id} was bound without a motion vector"));
+        // the record holds every kind's canonical motion vector from its first moment: the seed is explicit (the campaign's vector when the identity was issued) and a missing one is refused, never defaulted
+        match motion_vector {
+            None => return Err(format!("host.bind_mobile: {kind:?} {host_id} was bound without a motion vector")),
+            Some(vector) if vector.iter().any(|value| !value.is_finite()) => {
+                return Err(format!("host.bind_mobile: {kind:?} {host_id} was bound with a non-finite motion vector"));
             }
-            (Kind::FixedWing | Kind::Helicopter, Some(_)) => {}
-            (_, Some(_)) => return Err(format!("host.bind_mobile: {kind:?} {host_id} was bound with a motion vector")),
-            (_, None) => {}
+            Some(_) => {}
         }
         match (kind, rotor) {
             (Kind::Helicopter, None) => {
@@ -1629,7 +1656,7 @@ impl Movers {
         if words.attitude.is_some_and(|attitude| bits_differ(&attitude, &record.pose.attitude)) {
             difference |= OBSERVED_ATTITUDE;
         }
-        match record.motion_vector.or(record.vehicle_vector) {
+        match record.motion_vector {
             Some(held) if bits_differ(&words.motion, &held) => difference |= OBSERVED_MOTION,
             Some(_) => {}
             None => difference |= OBSERVED_NO_HELD_MOTION,
@@ -1645,6 +1672,29 @@ impl Movers {
             difference |= OBSERVED_FORMULA;
         }
         Observation::Recorded { kind: record.kind, difference }
+    }
+
+    /// The CANONICAL physical words of an identity, for the provider's collision decisions (ENTITY_CANDIDATE): the position, motion vector and attitude of the record, as bit patterns, taken from the one
+    /// registry and never from the campaign's words. Read-only; an identity without such a record is reported as what it is, never defaulted.
+    pub fn canonical(&self, host_id: &str) -> Canonical {
+        let Some(record) = self.mobiles.get(host_id) else {
+            return if self.unrecorded.contains(host_id) {
+                Canonical::Unrecorded
+            } else if self.retired.contains(host_id) {
+                Canonical::Retired
+            } else {
+                Canonical::Unknown
+            };
+        };
+        let Some(motion) = record.motion_vector else {
+            return Canonical::Incomplete;
+        };
+        Canonical::Record(CanonicalWords {
+            kind: record.kind,
+            position: record.pose.position.map(f32::to_bits),
+            motion: motion.map(f32::to_bits),
+            attitude: record.pose.attitude.map(f32::to_bits),
+        })
     }
 
     /// The guidance answer the last [`Movers::step`] produced (a plan or guide request), if any; taken once.
@@ -1962,9 +2012,7 @@ impl Movers {
         }
         if let Request::Place { motion_vector } = request {
             record.pose = campaign;
-            if matches!(record.kind, Kind::FixedWing | Kind::Helicopter) {
-                record.motion_vector = Some(motion_vector);
-            }
+            record.motion_vector = Some(motion_vector);
             record.hc_flow = None;
             return Ok(settled(record.pose, false, [0.0; 3]));
         }
@@ -1977,7 +2025,17 @@ impl Movers {
             Request::Advance(advance) => {
                 release_vehicle_vector(record);
                 let rotated = advance_pose(&mut record.pose, &advance);
-                Ok(settled(record.pose, rotated, [0.0; 3]))
+                // the legacy routed step ended by evaluating the motion vector from the post-step attitude and speed: the solver evaluates the same expression now and retains the result
+                let vector = row_two_times_speed(&record.pose);
+                record.motion_vector = Some(vector);
+                Ok(settled(record.pose, rotated, vector))
+            }
+            Request::RoutedVector => {
+                // the places where the legacy code evaluated the same expression without a step (its early returns): the host evaluates it from its own record, at that boundary
+                release_vehicle_vector(record);
+                let vector = row_two_times_speed(&record.pose);
+                record.motion_vector = Some(vector);
+                Ok(settled(record.pose, false, vector))
             }
             Request::Stop => {
                 release_vehicle_vector(record);
@@ -1987,6 +2045,7 @@ impl Movers {
             Request::ShipMove(ship) => {
                 release_vehicle_vector(record);
                 let motion_vector = ship_pose(&mut record.pose, &ship);
+                record.motion_vector = Some(motion_vector);
                 Ok(settled(record.pose, false, motion_vector))
             }
             Request::FixedWingLookahead => {
@@ -2489,6 +2548,18 @@ fn held_rotor(record: &Record, host_id: &str, mirror: &[f32; 3]) -> Result<[f32;
 }
 
 /// Live movement changes the vehicle's vector legitimately, so the next wreck, fall or sink establishes it afresh.
+/// The vector the vehicle lifecycle holds (the claim of the wreck, fall and sink steps) IS the canonical vector of the record: holding one holds the other, so the vector a collision reads is the one the lifecycle left.
+fn hold_vehicle_vector(record: &mut Record, vector: [f32; 3]) {
+    record.vehicle_vector = Some(vector);
+    record.motion_vector = Some(vector);
+}
+
+/// The legacy routed vehicle's motion vector: its attitude's row 2 times its speed, each product a single-precision multiplication under the reference's rounding, as the campaign evaluated it.
+fn row_two_times_speed(pose: &Pose) -> [f32; 3] {
+    let (attitude, speed) = (&pose.attitude, pose.velocity);
+    [attitude[6] * speed, attitude[7] * speed, attitude[8] * speed]
+}
+
 fn release_vehicle_vector(record: &mut Record) {
     record.vehicle_vector = None;
     record.death_candidate = None;
@@ -2840,7 +2911,7 @@ fn vehicle_lifecycle(record: &mut Record, host_id: &str, step: &Lifecycle) -> Re
             }
             None => step.motion_vector,
         };
-        record.vehicle_vector = Some(held);
+        hold_vehicle_vector(record, held);
         return Ok(settled(record.pose, false, held));
     }
     let claim = record.vehicle_vector.ok_or_else(|| {
@@ -2887,7 +2958,7 @@ fn vehicle_lifecycle(record: &mut Record, host_id: &str, step: &Lifecycle) -> Re
                 );
             }
             record.death_candidate = None;
-            record.vehicle_vector = Some(vector);
+            hold_vehicle_vector(record, vector);
             record.pose.position = position;
             record.pose.velocity = speed;
             record.pose.attitude = attitude;
@@ -2914,7 +2985,7 @@ fn vehicle_lifecycle(record: &mut Record, host_id: &str, step: &Lifecycle) -> Re
             let _ = unsafe { eech_gv_fall_gravity(vector.as_mut_ptr(), step.gravity, dt) };
             fall.stage = FallStage::Gravity;
             record.fall = Some(fall);
-            record.vehicle_vector = Some(vector);
+            hold_vehicle_vector(record, vector);
             outcome.motion_vector = vector;
         }
         LifecycleMode::GvFallSettle => {
@@ -2952,7 +3023,7 @@ fn vehicle_lifecycle(record: &mut Record, host_id: &str, step: &Lifecycle) -> Re
             let mut fall = open_fall(record, host_id, mode, &[FallStage::Settled])?;
             fall.stage = FallStage::Vectored;
             record.fall = Some(fall);
-            record.vehicle_vector = Some(fall.staged_vector);
+            hold_vehicle_vector(record, fall.staged_vector);
             outcome.motion_vector = fall.staged_vector;
         }
         LifecycleMode::GvFallCommit => {
@@ -2969,7 +3040,7 @@ fn vehicle_lifecycle(record: &mut Record, host_id: &str, step: &Lifecycle) -> Re
             let mut vector = claim;
             // SAFETY: as above; the attitude is 9 floats and its first row is the x axis.
             unsafe { eech_gv_impact(vector.as_mut_ptr(), step.signed_speed, record.pose.attitude.as_ptr()) };
-            record.vehicle_vector = Some(vector);
+            hold_vehicle_vector(record, vector);
             outcome.motion_vector = vector;
         }
         LifecycleMode::ShipSink => {
@@ -2990,7 +3061,7 @@ fn vehicle_lifecycle(record: &mut Record, host_id: &str, step: &Lifecycle) -> Re
                     attitude.as_mut_ptr(),
                 );
             }
-            record.vehicle_vector = Some(vector);
+            hold_vehicle_vector(record, vector);
             record.pose.position = position;
             record.pose.velocity = speed;
             record.pose.attitude = attitude;
@@ -3609,7 +3680,11 @@ mod tests {
     fn movers(kind: Kind, start: Pose) -> Movers {
         let mut movers = Movers::default();
         // an aircraft is seeded with the vector `fixed_wing_move` mirrors
-        let seed = matches!(kind, Kind::FixedWing | Kind::Helicopter).then_some([0.0, 0.0, 100.0]);
+        let seed = Some(if matches!(kind, Kind::FixedWing | Kind::Helicopter) {
+            [0.0, 0.0, 100.0]
+        } else {
+            [0.0; 3]
+        });
         movers.bind("v", kind, start, seed, (kind == Kind::Helicopter).then_some(ROTOR)).unwrap();
         movers
     }
@@ -3777,7 +3852,7 @@ mod tests {
     fn a_retired_id_is_never_reused() {
         let mut movers = movers(Kind::Routed, pose(0.0, 0.0));
         movers.retire("v").unwrap();
-        let error = movers.bind("v", Kind::Routed, pose(0.0, 0.0), None, None).unwrap_err();
+        let error = movers.bind("v", Kind::Routed, pose(0.0, 0.0), Some([0.0; 3]), None).unwrap_err();
         assert!(error.contains("retired"), "{error}");
         assert!(movers.issue("v").unwrap_err().contains("retired"));
         assert!(movers.retire("v").unwrap_err().contains("retired"), "a mobile is retired once");
@@ -3786,7 +3861,7 @@ mod tests {
     #[test]
     fn a_live_id_is_never_bound_twice() {
         let mut movers = movers(Kind::Routed, pose(1.0, 1.0));
-        let error = movers.bind("v", Kind::Ship, pose(0.0, 0.0), None, None).unwrap_err();
+        let error = movers.bind("v", Kind::Ship, pose(0.0, 0.0), Some([0.0; 3]), None).unwrap_err();
         assert!(error.contains("already"), "{error}");
         assert!(movers.issue("v").unwrap_err().contains("already"));
         // the refused bind left the first record untouched
@@ -3918,9 +3993,9 @@ mod tests {
     #[test]
     fn base_a_child_pose_the_campaign_wrote_during_its_parents_step_is_a_write_the_host_never_saw() {
         let mut movers = Movers::default();
-        movers.bind("ship", Kind::Ship, pose(0.0, 0.0), None, None).unwrap();
-        movers.bind("child", Kind::Routed, pose(10.0, 0.0), None, None).unwrap();
-        movers.bind("grandchild", Kind::Routed, pose(20.0, 0.0), None, None).unwrap();
+        movers.bind("ship", Kind::Ship, pose(0.0, 0.0), Some([0.0; 3]), None).unwrap();
+        movers.bind("child", Kind::Routed, pose(10.0, 0.0), Some([0.0; 3]), None).unwrap();
+        movers.bind("grandchild", Kind::Routed, pose(20.0, 0.0), Some([0.0; 3]), None).unwrap();
         let moved = movers.step("ship", pose(0.0, 0.0), Request::ShipMove(ship_move([0.0, 0.0, 1000.0]))).unwrap();
         let delta = [moved.pose.position[0] - 0.0, moved.pose.position[1] - 0.0, moved.pose.position[2] - 0.0];
         assert_near(delta, [0.0, 0.0, 0.5]);
@@ -3959,9 +4034,9 @@ mod tests {
     #[test]
     fn a_child_and_a_grandchild_follow_a_parent_the_host_moved_and_stay_consistent() {
         let mut movers = Movers::default();
-        movers.bind("ship", Kind::Ship, pose(0.0, 0.0), None, None).unwrap();
-        movers.bind("child", Kind::Routed, pose(10.0, 0.0), None, None).unwrap();
-        movers.bind("grandchild", Kind::Person, pose(20.0, 0.0), None, None).unwrap();
+        movers.bind("ship", Kind::Ship, pose(0.0, 0.0), Some([0.0; 3]), None).unwrap();
+        movers.bind("child", Kind::Routed, pose(10.0, 0.0), Some([0.0; 3]), None).unwrap();
+        movers.bind("grandchild", Kind::Person, pose(20.0, 0.0), Some([0.0; 3]), None).unwrap();
         let moved = movers.step("ship", pose(0.0, 0.0), Request::ShipMove(ship_move([0.0, 0.0, 1000.0]))).unwrap();
         // the notification names the position the parent had; the host already holds the new one
         let child = movers
@@ -3989,8 +4064,8 @@ mod tests {
     #[test]
     fn a_child_follows_a_parent_the_campaign_is_about_to_write() {
         let mut movers = Movers::default();
-        movers.bind("parent", Kind::Routed, pose(5.0, 5.0), None, None).unwrap();
-        movers.bind("child", Kind::Routed, pose(10.0, 0.0), None, None).unwrap();
+        movers.bind("parent", Kind::Routed, pose(5.0, 5.0), Some([0.0; 3]), None).unwrap();
+        movers.bind("child", Kind::Routed, pose(10.0, 0.0), Some([0.0; 3]), None).unwrap();
         let new = [6.0, 0.0, 7.0];
         let child = movers
             .step("child", pose(10.0, 0.0), carry("parent", CarryShape::Position, [5.0, 0.0, 5.0], new))
@@ -4004,10 +4079,10 @@ mod tests {
     #[test]
     fn a_carry_the_host_cannot_vouch_for_is_refused_and_changes_nothing() {
         let mut movers = Movers::default();
-        movers.bind("parent", Kind::Routed, pose(5.0, 5.0), None, None).unwrap();
-        movers.bind("child", Kind::Routed, pose(10.0, 0.0), None, None).unwrap();
-        movers.bind("ship", Kind::Ship, pose(0.0, 0.0), None, None).unwrap();
-        movers.bind("gone", Kind::Routed, pose(0.0, 0.0), None, None).unwrap();
+        movers.bind("parent", Kind::Routed, pose(5.0, 5.0), Some([0.0; 3]), None).unwrap();
+        movers.bind("child", Kind::Routed, pose(10.0, 0.0), Some([0.0; 3]), None).unwrap();
+        movers.bind("ship", Kind::Ship, pose(0.0, 0.0), Some([0.0; 3]), None).unwrap();
+        movers.bind("gone", Kind::Routed, pose(0.0, 0.0), Some([0.0; 3]), None).unwrap();
         movers.retire("gone").unwrap();
         let old = [5.0, 0.0, 5.0];
         let new = [6.0, 0.0, 7.0];
@@ -4056,7 +4131,7 @@ mod tests {
     #[test]
     fn a_helicopter_child_is_carried_with_the_original_arithmetic() {
         let mut movers = Movers::default();
-        movers.bind("parent", Kind::Routed, pose(0.0, 0.0), None, None).unwrap();
+        movers.bind("parent", Kind::Routed, pose(0.0, 0.0), Some([0.0; 3]), None).unwrap();
         movers.bind("child", Kind::Helicopter, pose(10.0, 3.0), Some([0.0; 3]), Some(ROTOR)).unwrap();
         let heading = 0.7f32;
         let (old, new) = ([0.0f32; 3], [1.5f32, 0.25, 2.5]);
@@ -4339,13 +4414,15 @@ mod tests {
     }
 
     #[test]
-    fn an_aircraft_needs_a_motion_vector_seed_and_no_other_kind_takes_one() {
+    fn every_kind_needs_an_explicit_motion_vector_seed_and_a_non_finite_one_is_refused() {
+        // the record holds EVERY kind's canonical motion vector from its first moment: the seed is the campaign's vector when the identity was issued, and a missing one is refused, never defaulted
         let mut movers = Movers::default();
-        let error = movers.bind("v", Kind::FixedWing, pose(0.0, 0.0), None, None).unwrap_err();
-        assert!(error.contains("without a motion vector"), "{error}");
-        for kind in [Kind::Routed, Kind::Ship, Kind::Person] {
-            let error = movers.bind("v", kind, pose(0.0, 0.0), Some([0.0; 3]), None).unwrap_err();
-            assert!(error.contains("with a motion vector"), "{error}");
+        for kind in [Kind::Routed, Kind::Ship, Kind::Person, Kind::FixedWing, Kind::Helicopter] {
+            let rotor = (kind == Kind::Helicopter).then_some(ROTOR);
+            let error = movers.bind("v", kind, pose(0.0, 0.0), None, rotor).unwrap_err();
+            assert!(error.contains("without a motion vector"), "{kind:?}: {error}");
+            let error = movers.bind("v", kind, pose(0.0, 0.0), Some([f32::NAN, 0.0, 0.0]), rotor).unwrap_err();
+            assert!(error.contains("non-finite motion vector"), "{kind:?}: {error}");
         }
         let error = movers
             .step("v", pose(0.0, 0.0), Request::FixedWingMove(fixed_wing_move(FixedWingPhase::Flight)))
@@ -5055,7 +5132,7 @@ mod tests {
         let mut movers = Movers::default();
         let error = movers.bind("v", Kind::Helicopter, pose(0.0, 0.0), Some(SEED), None).unwrap_err();
         assert!(error.contains("without a rotor state"), "{error}");
-        let error = movers.bind("v", Kind::Routed, pose(0.0, 0.0), None, Some(ROTOR)).unwrap_err();
+        let error = movers.bind("v", Kind::Routed, pose(0.0, 0.0), Some([0.0; 3]), Some(ROTOR)).unwrap_err();
         assert!(error.contains("with a rotor state"), "{error}");
         let error = movers
             .bind("v", Kind::Helicopter, pose(0.0, 0.0), Some(SEED), Some([f32::NAN, 0.0, 0.0]))
@@ -5596,7 +5673,7 @@ mod tests {
 
         // within 1000 m the threshold is 300 s, but the gate (int(timer + 1) % 300 == 0) opens only for [299, 300)
         let mut near = Movers::default();
-        near.bind("v", Kind::Routed, start, None, None).unwrap();
+        near.bind("v", Kind::Routed, start, Some([0.0; 3]), None).unwrap();
         run(&mut near, start, expiry(298.6, 0.0, 0.0, 0)).unwrap();
         let before = run(&mut near, start, expiry(298.6, 0.5, 0.0, DEATH_RANGE_SUPPLIED)).unwrap();
         assert_eq!((before.death_timer, before.flags), (299.1, 0), "gated but under 300 s");
@@ -5605,7 +5682,7 @@ mod tests {
 
         // the next gate window is [599, 600): over the threshold there, the life is over
         let mut late = Movers::default();
-        late.bind("v", Kind::Routed, start, None, None).unwrap();
+        late.bind("v", Kind::Routed, start, Some([0.0; 3]), None).unwrap();
         run(&mut late, start, expiry(598.9, 0.0, 0.0, 0)).unwrap();
         let ended = run(&mut late, start, expiry(598.9, 0.5, 0.0, DEATH_RANGE_SUPPLIED)).unwrap();
         assert_eq!((ended.death_timer, ended.flags), (599.4, 1));
@@ -5627,7 +5704,7 @@ mod tests {
         run(&mut movers, start, expiry(5399.2, 0.0, 5.0e7, DEATH_RANGE_SUPPLIED)).unwrap();
         assert_eq!(run(&mut movers, start, expiry(5399.2, 0.5, 5.0e7, DEATH_RANGE_SUPPLIED)).unwrap().flags, 0);
         let mut over = Movers::default();
-        over.bind("v", Kind::Routed, start, None, None).unwrap();
+        over.bind("v", Kind::Routed, start, Some([0.0; 3]), None).unwrap();
         run(&mut over, start, expiry(5699.0, 0.0, 5.0e7, DEATH_RANGE_SUPPLIED)).unwrap();
         assert_eq!(run(&mut over, start, expiry(5699.0, 0.5, 5.0e7, DEATH_RANGE_SUPPLIED)).unwrap().flags, 1);
     }
@@ -5645,7 +5722,7 @@ mod tests {
         assert_eq!((aged.death_timer, aged.flags), (0.5, 0));
 
         let mut guns = Movers::default();
-        guns.bind("v", Kind::Routed, start, None, None).unwrap();
+        guns.bind("v", Kind::Routed, start, Some([0.0; 3]), None).unwrap();
         run(&mut guns, start, expiry(598.9, 0.0, 0.0, DEATH_NEVER_EXPIRES)).unwrap();
         let kept = run(&mut guns, start, expiry(598.9, 0.5, 0.0, DEATH_NEVER_EXPIRES)).unwrap();
         assert_eq!((kept.death_timer, kept.flags), (599.4, 0), "ages, but is never told its life is over");
@@ -5696,7 +5773,7 @@ mod tests {
         // off the gate (int(timer + 1) is not a multiple of 300) the host never asks, whatever the range bit says
         for (timer, delta) in [(0.0, 0.5), (1.0, 0.5), (297.0, 0.5), (298.6, 0.0), (299.1, 1.0), (300.1, 0.5)] {
             let mut quiet = Movers::default();
-            quiet.bind("v", Kind::Routed, start, None, None).unwrap();
+            quiet.bind("v", Kind::Routed, start, Some([0.0; 3]), None).unwrap();
             let answer = run(&mut quiet, start, expiry(timer, delta, 0.0, 0)).unwrap();
             assert_eq!(answer.flags, 0, "{timer}+{delta} is off the gate");
         }
@@ -5711,7 +5788,7 @@ mod tests {
         assert_eq!((answered.flags, answered.death_timer), (1, 599.4));
         // a wreck that never expires does not ask for a range it would not use
         let mut guns = Movers::default();
-        guns.bind("v", Kind::Routed, start, None, None).unwrap();
+        guns.bind("v", Kind::Routed, start, Some([0.0; 3]), None).unwrap();
         run(&mut guns, start, expiry(598.9, 0.0, 0.0, DEATH_NEVER_EXPIRES)).unwrap();
         assert_eq!(run(&mut guns, start, expiry(598.9, 0.5, 0.0, DEATH_NEVER_EXPIRES)).unwrap().flags, 0);
     }
@@ -6562,7 +6639,7 @@ mod tests {
             let error = planned(&mut movers, hc_plan(names)).unwrap_err();
             assert!(error.contains(wanted), "{error}");
         }
-        movers.bind("g", Kind::Routed, at(0.0, 0.0, 0.0), None, None).unwrap();
+        movers.bind("g", Kind::Routed, at(0.0, 0.0, 0.0), Some([0.0; 3]), None).unwrap();
         let error = planned(&mut movers, hc_plan(vec![Some("g".into())])).unwrap_err();
         assert!(error.contains("is not a helicopter"), "{error}");
         // no member count is refused: a group of 64 resolves
@@ -6932,7 +7009,7 @@ mod tests {
             assert!(error.contains(wanted), "{error}");
             assert!(movers.mobiles.get("v").unwrap().helicopter_pending, "{wanted}: the step is still owed");
         }
-        movers.bind("g", Kind::Routed, at(0.0, 0.0, 0.0), None, None).unwrap();
+        movers.bind("g", Kind::Routed, at(0.0, 0.0, 0.0), Some([0.0; 3]), None).unwrap();
         let error = movers
             .step("v", begun.pose, Request::HelicopterGuidedEnd(follower_steer(&begun, Some("g"))))
             .unwrap_err();
@@ -6970,40 +7047,45 @@ mod tests {
 
     #[test]
     fn an_observation_compares_the_campaigns_words_with_the_hosts_record_bit_for_bit() {
-        // a routed vehicle: the host holds no motion vector for it (the campaign derives a live vehicle's from its attitude and speed), which is REPORTED, and the original's formula is computed from the
-        // HOST's record (attitude row 2 times its speed)
-        let movers = movers(Kind::Routed, moving_pose(5.0));
+        // a routed vehicle whose record holds the vector its solver produced (here the one the campaign placed: attitude row 2 times its speed, [0, 0, 5]); the formula is computed from the HOST's record
+        let mut movers = movers(Kind::Routed, moving_pose(5.0));
+        movers
+            .step(
+                "v",
+                moving_pose(5.0),
+                Request::Place {
+                    motion_vector: [0.0, 0.0, 5.0],
+                },
+            )
+            .unwrap();
         let record = |words: &ObservedWords| match movers.observe("v", words) {
             Observation::Recorded { kind, difference } => (kind, difference),
             other => panic!("{other:?}"),
         };
         let same = words([1.0, 2.0, 3.0], [0.0, 0.0, 5.0], None);
-        assert_eq!(record(&same), (Kind::Routed, OBSERVED_NO_HELD_MOTION));
+        assert_eq!(record(&same), (Kind::Routed, 0));
         assert_eq!(
             record(&ObservedWords {
                 attitude: Some(bits9(LEVEL)),
                 ..same
             }),
-            (Kind::Routed, OBSERVED_NO_HELD_MOTION)
+            (Kind::Routed, 0)
         );
         // one ulp, a signed zero and a NaN payload are differences: the comparison is of bits
         let ulp = f32::from_bits(1.0f32.to_bits() + 1);
-        assert_eq!(
-            record(&words([ulp, 2.0, 3.0], [0.0, 0.0, 5.0], None)).1,
-            OBSERVED_NO_HELD_MOTION | OBSERVED_POSITION
-        );
+        assert_eq!(record(&words([ulp, 2.0, 3.0], [0.0, 0.0, 5.0], None)).1, OBSERVED_POSITION);
         let zeroed = Pose {
             position: [0.0, 0.0, 0.0],
             ..moving_pose(5.0)
         };
         let mut at_zero = Movers::default();
-        at_zero.bind("z", Kind::Routed, zeroed, None, None).unwrap();
+        at_zero.bind("z", Kind::Routed, zeroed, Some([0.0, 0.0, 5.0]), None).unwrap();
         let negative_zero = words([-0.0, 0.0, 0.0], [0.0, 0.0, 5.0], None);
         assert_eq!(
             at_zero.observe("z", &negative_zero),
             Observation::Recorded {
                 kind: Kind::Routed,
-                difference: OBSERVED_NO_HELD_MOTION | OBSERVED_POSITION
+                difference: OBSERVED_POSITION
             }
         );
         // an attitude is compared only when the placement stage supplies one
@@ -7015,17 +7097,14 @@ mod tests {
                 ..same
             })
             .1,
-            OBSERVED_NO_HELD_MOTION | OBSERVED_ATTITUDE
+            OBSERVED_ATTITUDE
         );
         // a motion vector that is not the formula's is a difference of the formula (the vehicle has none held)
-        assert_eq!(
-            record(&words([1.0, 2.0, 3.0], [0.0, 0.0, 4.0], None)).1,
-            OBSERVED_NO_HELD_MOTION | OBSERVED_FORMULA
-        );
+        assert_eq!(record(&words([1.0, 2.0, 3.0], [0.0, 0.0, 4.0], None)).1, OBSERVED_MOTION | OBSERVED_FORMULA);
         // a signalling NaN word is carried as bits and is a difference
         let mut signalling = words([1.0, 2.0, 3.0], [0.0, 0.0, 5.0], None);
         signalling.position[2] = 0x7fa0_0001;
-        assert_eq!(record(&signalling).1, OBSERVED_NO_HELD_MOTION | OBSERVED_POSITION);
+        assert_eq!(record(&signalling).1, OBSERVED_POSITION);
     }
 
     #[test]
@@ -7074,7 +7153,7 @@ mod tests {
                 difference: OBSERVED_MOTION
             }
         );
-        wreck.mobiles.get_mut("w").unwrap().vehicle_vector = Some([0.0, 0.0, 5.0]);
+        hold_vehicle_vector(wreck.mobiles.get_mut("w").unwrap(), [0.0, 0.0, 5.0]);
         assert_eq!(
             wreck.observe("w", &words([1.0, 2.0, 3.0], [0.0, 0.0, 5.0], None)),
             Observation::Recorded {
@@ -7086,8 +7165,8 @@ mod tests {
 
     fn movers_for_wreck() -> Movers {
         let mut wreck = Movers::default();
-        wreck.bind("w", Kind::Routed, moving_pose(5.0), None, None).unwrap();
-        wreck.mobiles.get_mut("w").unwrap().vehicle_vector = Some([1.0, 1.0, 1.0]);
+        wreck.bind("w", Kind::Routed, moving_pose(5.0), Some([0.0; 3]), None).unwrap();
+        hold_vehicle_vector(wreck.mobiles.get_mut("w").unwrap(), [1.0, 1.0, 1.0]);
         wreck
     }
 
@@ -7095,7 +7174,7 @@ mod tests {
     fn an_observation_classifies_every_identity_and_changes_nothing() {
         let mut movers = movers(Kind::Routed, moving_pose(5.0));
         movers.issue("u").unwrap();
-        movers.bind("gone", Kind::Routed, moving_pose(5.0), None, None).unwrap();
+        movers.bind("gone", Kind::Routed, moving_pose(5.0), Some([0.0; 3]), None).unwrap();
         movers.retire("gone").unwrap();
         movers.retire("u").unwrap();
         movers.issue("unrecorded").unwrap();
@@ -7205,7 +7284,7 @@ mod tests {
             assert_eq!(product_toward_zero(0x3f80_0000, operand), None);
         }
         let mut movers = Movers::default();
-        movers.bind("v", Kind::Routed, moving_pose(5.0), None, None).unwrap();
+        movers.bind("v", Kind::Routed, moving_pose(5.0), Some([0.0; 3]), None).unwrap();
         movers.mobiles.get_mut("v").unwrap().pose.velocity = f32::INFINITY;
         let outcome = movers.observe("v", &words([1.0, 2.0, 3.0], [0.0, 0.0, 5.0], None));
         assert!(
@@ -7219,7 +7298,7 @@ mod tests {
     fn an_observation_leaves_the_floating_point_state_exactly_as_it_found_it_whatever_the_rounding_the_flags_and_the_masks() {
         use crate::reference_arithmetic::{current_mxcsr, write_mxcsr};
         let mut movers = Movers::default();
-        movers.bind("routed", Kind::Routed, moving_pose(5.0), None, None).unwrap();
+        movers.bind("routed", Kind::Routed, moving_pose(5.0), Some([0.0; 3]), None).unwrap();
         movers.bind("air", Kind::FixedWing, moving_pose(0.0), Some([0.0, 0.0, 100.0]), None).unwrap();
         // operands whose product is inexact, subnormal and overflowing: any floating-point multiplication of them would raise a flag, and with the exceptions unmasked would trap
         movers.mobiles.get_mut("routed").unwrap().pose.attitude = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.333_333_34, 1.0e-30, 3.0e38];
@@ -7257,17 +7336,17 @@ mod tests {
         let mut next = stream(0x00c0_ffee);
         let mut movers = Movers::default();
         for (id, kind, vector) in [
-            ("routed", Kind::Routed, None),
-            ("ship", Kind::Ship, None),
-            ("person", Kind::Person, None),
+            ("routed", Kind::Routed, Some([0.0; 3])),
+            ("ship", Kind::Ship, Some([0.0; 3])),
+            ("person", Kind::Person, Some([0.0; 3])),
             ("fixed", Kind::FixedWing, Some([0.0, 0.0, 100.0])),
             ("heli", Kind::Helicopter, Some([1.0, 2.0, 3.0])),
         ] {
             let rotor = (kind == Kind::Helicopter).then_some(ROTOR);
             movers.bind(id, kind, moving_pose(3.0), vector, rotor).unwrap();
         }
-        movers.bind("wreck", Kind::Routed, moving_pose(3.0), None, None).unwrap();
-        movers.mobiles.get_mut("wreck").unwrap().vehicle_vector = Some([0.0, 0.0, 3.0]);
+        movers.bind("wreck", Kind::Routed, moving_pose(3.0), Some([0.0; 3]), None).unwrap();
+        hold_vehicle_vector(movers.mobiles.get_mut("wreck").unwrap(), [0.0, 0.0, 3.0]);
         let ids = ["routed", "ship", "person", "fixed", "heli", "wreck", "nobody"];
         for round in 0..4000 {
             let id = ids[(next() % 7) as usize];
@@ -7292,7 +7371,107 @@ mod tests {
                     "{id}: a difference from a held vector and none held ({difference})"
                 );
                 assert!(difference <= 31, "{id}: {difference}");
+                assert!(
+                    difference & OBSERVED_NO_HELD_MOTION == 0,
+                    "{id}: every record holds its canonical vector ({difference})"
+                );
             }
         }
+    }
+
+    fn canonical_record(movers: &Movers, id: &str) -> CanonicalWords {
+        match movers.canonical(id) {
+            Canonical::Record(record) => record,
+            other => panic!("{other:?}"),
+        }
+    }
+
+    #[test]
+    fn a_routed_step_evaluates_the_legacy_vector_in_the_solver_and_the_record_retains_it_stale_until_it_is_derived_again() {
+        let mut movers = movers(Kind::Routed, pose(0.0, 0.0));
+        let outcome = movers.step("v", pose(0.0, 0.0), Request::Advance(advance([100.0, 0.0, 0.0]))).unwrap();
+        let (attitude, speed) = (outcome.pose.attitude, outcome.pose.velocity);
+        assert!(speed > 0.0, "the vehicle moved");
+        let expected = [attitude[6] * speed, attitude[7] * speed, attitude[8] * speed];
+        assert_eq!(
+            outcome.motion_vector.map(f32::to_bits),
+            expected.map(f32::to_bits),
+            "the answer is the legacy expression, bit for bit"
+        );
+        assert_eq!(
+            canonical_record(&movers, "v").motion,
+            expected.map(f32::to_bits),
+            "the record retains the solver's result"
+        );
+        // a stop zeroes the speed and leaves the vector exactly as the legacy code left it (stale) until the code derives it again
+        let stopped = movers.step("v", outcome.pose, Request::Stop).unwrap();
+        assert_eq!(
+            canonical_record(&movers, "v").motion,
+            expected.map(f32::to_bits),
+            "a stop does not derive the vector"
+        );
+        // the early-return derivation: the host evaluates it from its own record, at that boundary
+        let derived = movers.step("v", stopped.pose, Request::RoutedVector).unwrap();
+        let zero = [stopped.pose.attitude[6] * 0.0, stopped.pose.attitude[7] * 0.0, stopped.pose.attitude[8] * 0.0];
+        assert_eq!(derived.motion_vector.map(f32::to_bits), zero.map(f32::to_bits));
+        assert_eq!(canonical_record(&movers, "v").motion, zero.map(f32::to_bits));
+        // a campaign pose the host did not make is refused (the derivation is not a placement)
+        let error = movers.step("v", pose(5.0, 5.0), Request::RoutedVector).unwrap_err();
+        assert!(error.contains("differs from the host's record"), "{error}");
+    }
+
+    #[test]
+    fn the_derived_vector_keeps_the_signs_of_its_zeros_and_is_not_the_seed() {
+        // a stationary vehicle: the legacy expression gives -0.0 where an attitude element is negative, a signed zero a +0 seed does not have: the record's vector is the host's result, not a guess of zero
+        let mut still = pose(0.0, 0.0);
+        still.attitude = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0, -0.5];
+        let mut movers = Movers::default();
+        movers.bind("v", Kind::Routed, still, Some([0.0; 3]), None).unwrap();
+        assert_eq!(canonical_record(&movers, "v").motion, [0u32; 3], "the seed is the campaign's +0 vector");
+        movers.step("v", still, Request::RoutedVector).unwrap();
+        assert_eq!(
+            canonical_record(&movers, "v").motion,
+            [0x8000_0000u32, 0, 0x8000_0000],
+            "the derived vector carries the signed zeros of attitude row 2 times a speed of zero"
+        );
+    }
+
+    #[test]
+    fn only_a_routed_vehicle_derives_its_vector_and_every_kind_adopts_a_placed_one() {
+        for kind in [Kind::Ship, Kind::Person, Kind::FixedWing, Kind::Helicopter] {
+            let mut movers = movers(kind, pose(0.0, 0.0));
+            let error = movers.step("v", pose(0.0, 0.0), Request::RoutedVector).unwrap_err();
+            assert!(error.contains("is not a request for"), "{kind:?}: {error}");
+        }
+        for kind in [Kind::Routed, Kind::Ship, Kind::Person, Kind::FixedWing, Kind::Helicopter] {
+            let mut movers = movers(kind, pose(0.0, 0.0));
+            movers
+                .step(
+                    "v",
+                    pose(0.0, 0.0),
+                    Request::Place {
+                        motion_vector: [1.0, 2.0, 3.0],
+                    },
+                )
+                .unwrap();
+            assert_eq!(
+                canonical_record(&movers, "v").motion,
+                [1.0f32, 2.0, 3.0].map(f32::to_bits),
+                "{kind:?}: a placement adopts the campaign's vector"
+            );
+        }
+    }
+
+    #[test]
+    fn a_ship_step_retains_the_vector_the_solver_answered_and_a_claimed_vehicle_vector_is_the_canonical_one() {
+        let mut ships = movers(Kind::Ship, pose(0.0, 0.0));
+        let outcome = ships.step("v", pose(0.0, 0.0), Request::ShipMove(ship_move([100.0, 0.0, 0.0]))).unwrap();
+        assert_eq!(canonical_record(&ships, "v").motion, outcome.motion_vector.map(f32::to_bits));
+        // the lifecycle's claim IS the record's vector: the claim adopts the campaign's, and every later step holds its result in both
+        let start = moving(0.0);
+        let mut vehicle = vehicle(Kind::Routed, start, GROUND);
+        assert_eq!(canonical_record(&vehicle, "v").motion, GROUND.map(f32::to_bits));
+        let impact = run(&mut vehicle, start, life(LifecycleMode::GvImpact, [0.0; 3], GROUND)).unwrap();
+        assert_eq!(canonical_record(&vehicle, "v").motion, impact.motion_vector.map(f32::to_bits));
     }
 }

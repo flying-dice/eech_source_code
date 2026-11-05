@@ -949,13 +949,10 @@ void campaign_roster_link_member (entity *group, entity *member)
 			descriptor.position[2] = mob->position.z;
 			descriptor.velocity = mob->velocity;
 			memcpy (descriptor.attitude, mob->attitude, sizeof (descriptor.attitude));
-			if ((descriptor.movement_kind == CAMPAIGN_MOVEMENT_KIND_FIXED_WING) ||
-				(descriptor.movement_kind == CAMPAIGN_MOVEMENT_KIND_HELICOPTER))
-			{
-				descriptor.motion_vector[0] = mob->motion_vector.x;
-				descriptor.motion_vector[1] = mob->motion_vector.y;
-				descriptor.motion_vector[2] = mob->motion_vector.z;
-			}
+			// the explicit seed of the host's canonical motion vector, for every hosted kind (the host holds it from here on and the campaign's copy is compared with it)
+			descriptor.motion_vector[0] = mob->motion_vector.x;
+			descriptor.motion_vector[1] = mob->motion_vector.y;
+			descriptor.motion_vector[2] = mob->motion_vector.z;
 			if (descriptor.movement_kind == CAMPAIGN_MOVEMENT_KIND_HELICOPTER)
 			{
 				const helicopter *raw = (helicopter *) get_local_entity_data (member);
