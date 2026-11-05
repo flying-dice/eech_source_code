@@ -1,4 +1,34 @@
-# CURRENT — D3 Task49: finite Candidate public authority independently closed; ordinary short all3 COMPLETE byte-identical; REQUIRED physical enumeration/roster extraction next (5 November 2026)
+# CURRENT — D3 Task49: the entity scan's ENUMERATION is host-driven (window, order, exclusions, first hit); the heap stays as a named backing dependency; source and Linux only, source review next (5 November 2026)
+
+This is the ONE current summary; dated entries below are history. Read `R:/d3-evidence/D3-CURRENT.json` and the active card. Closed and not repeated: the finite Candidate public authority (frozen `1ccc9e2ed` + literal diagnostic `d39a14a95`, report `0e27b680…`), the ordinary short on `1ccc9e2ed`, finite stationary Entity, TREE, Task 50 and Task 52.
+
+**Production change, frozen source `8b85230826ad1c1bea289f6d2592f31b705a03f6` (base `4b3ec847050418d04186d0bdb73ad37974b986f8`; compiled C, Rust and the model-provider protocol; no Lua change; no native run).** `get_line_of_sight_collision_entity` hands the ENUMERATION to the host through the new model
+operation `ENTITY_SCAN` (reference host `csrc/entity_scan_step.c`, the original's expressions): the segment's min and max, the 150 m widening and the clamp to the map as sector indices, x outer / z inner, each list read from its TAIL,
+the exclusion of the source and the target, the offer of each entry to the unchanged `ENTITY_CANDIDATE` dialogue and the end of the scan at the FIRST hit. The campaign's driver is `aphavoc/source/entity/mobile/mb_hostscan.h` (shared with the
+C control, bound to the real sector lists in `en_cllsn.c`); the original window and loops stay byte for byte under `#else`. **Design: a host-driven CURSOR, not a roster.** The first hit ends the scan, so the heap's insertion and
+relink order is the result; a host-held roster would be a second store that must follow every write, relink and release, with identities that outlive a scan, and none of that exists. The host is stateless (the cursor travels in the
+question and the answer), the campaign serves the entry the host names and reports the one fact only the heap can state (that it is the source or the target), nothing is copied and no pointer or index crosses. Contract, collaborator
+facts and limits: `eech-campaign/docs/d3-entity-collision-provider.md`, "The enumeration".
+
+**The named backing dependency, REQUIRED to move (not ownership, not independent authority).** The sector lists, their order, the live entity state and the source/target comparison remain the campaign's entity heap. Still required: semantic
+host identities for every collidable that outlive a scan, a synchronisation contract for position writes, relinks and releases, the live pose, city-child enumeration (still the campaign's, in the city's list order, inside the candidate
+dialogue), and every other required coupling below.
+
+**Evidence (Linux, pinned image, direct child exits, one log; safe record `eech-campaign/reference/d3-entity-collision/entity-enumeration-direct-gate-20261105.json`).** CHARACTERISATION first, on the clean `4b3ec847050418d04186d0bdb73ad37974b986f8`: the candidate differential and the C
+control, green. Then the 16-step gate (`fmt`, four-crate tests, `model_walk`, tree and entity dialogue controls, five fixture builds, eight strict clippy runs). The new differential compares the ORIGINAL scan over a 4 x 4 map (window arithmetic,
+order, exclusions, first hit, services, poses, refusals) with the host-driven scan over 400 worlds x 6 segments, equal entity and equal transcript; the C control (315 expectations) runs the REAL driver and exchange over scripted sector
+lists; seven mutants (window not widened, clamp missing, first hit not ending, exclusion ignored, z-outer/x-inner, list from the head, exclusion unreported) each fail (exit 101). Source identity raw and filtered equal before and after.
+The campaign driver against the real heap getters is exercised natively only. Earlier failed logs are retained.
+
+**The moving public path is still NOT measured.** In the finite Candidate evidence the armed windows had 198 to 462 mobile candidates and zero `NEED_UPDATED`, so all were stationary. The concrete native prerequisite, left open: a witness run
+whose evidence row shows `candidate_need_updated` greater than zero (the existing `warmup` argument is the only knob, chosen from observed counts of moving group members, never tuned after UNREACHED).
+
+**Next.** Independent source review of this NEW material only (Root calls it); then Root: Windows build of the cleared source, the exact ordinary short against `80fd` with wall time (the enumeration adds at least two scan questions per candidate and one per
+named sector), the existing Candidate witness re-run on the new binaries, and a still-unwritten changed/withheld `ENTITY_SCAN` witness (the driver rejects each illegal state by marker; no native evidence yet). Still REQUIRED and open: the roster
+and live pose behind the cursor, city-child enumeration, raw tree loader / forest / cloud / RNG / shared terrain effects, hierarchy and world viewpoints, devices, muzzles, rotor damage, smoke, host identities, the DCS needed-only mapping, the moving public
+path, whole Task 49 (full 40/all8, CI, review, normal merge) and D3. D4/D5 unstarted. No baseline, tolerance, input, seed, frame or duration change.
+
+# HISTORICAL (superseded 5 November 2026 by the CURRENT block above; finite Candidate authority closed) — D3 Task49: finite Candidate public authority independently closed; ordinary short all3 COMPLETE byte-identical; REQUIRED physical enumeration/roster extraction next (5 November 2026)
 
 This is the ONE current summary; dated entries below are history. Read `R:/d3-evidence/D3-CURRENT.json` and the active card. Runtime1ccc has independent source clearance673 and all3 Windows profiles0/all88 payloads. Exact ordinary0.001h Lebanon run completed0, pre/post inputs0; COMPLETE Tacview, observations and campaign metrics remain literally equal80fd. Wall9.576s versus7ead8.743s is one observation, not a benchmark.
 

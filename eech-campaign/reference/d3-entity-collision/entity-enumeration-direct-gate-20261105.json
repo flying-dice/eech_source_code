@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05",
+  "scope": "Direct-exit Linux gate of the ENTITY_SCAN cutover (fourth slice): the sector window, the traversal, the exclusions and the first-hit end are the host's; the campaign serves the host's cursor over its own sector lists. Compiled C, Rust and the model-provider protocol changed; Lua is unchanged. Not a native, Windows or retail run: the campaign driver against the real heap getters is exercised natively only.",
+  "base_head": "4b3ec847050418d04186d0bdb73ad37974b986f8",
+  "source_commit": "8b85230826ad1c1bea289f6d2592f31b705a03f6",
+  "characterisation_before_change": {
+    "source": "4b3ec847050418d04186d0bdb73ad37974b986f8",
+    "dir": "characterization-4b3ec8470",
+    "meaning": "the candidate differential (10 tests) and the C control, green on the clean source before the enumeration was replaced"
+  },
+  "steps": [
+    {
+      "step": "fmt",
+      "child_exit": 0
+    },
+    {
+      "step": "tests-four-crates",
+      "child_exit": 0
+    },
+    {
+      "step": "test-model-walk",
+      "child_exit": 0
+    },
+    {
+      "step": "test-tree-dialogue",
+      "child_exit": 0
+    },
+    {
+      "step": "test-entity-dialogue",
+      "child_exit": 0
+    },
+    {
+      "step": "build-collision-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-weapon-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-model-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-model-host-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "build-weapon-and-collision-fixture",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-four-crates",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-dc-collision",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-dc-weapon",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-dc-weapon-and-collision",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-engine-sys-tree-dialogue",
+      "child_exit": 0
+    },
+    {
+      "step": "clippy-engine-sys-entity-dialogue",
+      "child_exit": 0
+    }
+  ],
+  "failed_steps": 0,
+  "test_result_rows": 65,
+  "tests_passed": 1198,
+  "tests_failed": 0,
+  "gate_log": {
+    "bytes": 278318,
+    "sha256": "755e95b6720506f9c3f51a8297f5ae50af1452a7d04bfd5414fe55f98e9adc01"
+  },
+  "new_checks": {
+    "entity_candidate_host": "13 tests: the new differential of the ORIGINAL scan (window arithmetic, x outer z inner, tail-first lists, exclusions, first hit, services, poses, refusals) against the host-driven scan over a 4 x 4 map, 400 worlds x 6 segments; kernel contracts for the window, the clamp, the order, the phases and the refusals",
+    "entity_dialogue": "C control, 315 expectations: the REAL driver (mb_hostscan.h) and the REAL exchange over scripted sector lists: tail-first order, first hit, an unnamed sector never read, exclusion facts, an empty list; each illegal state, cursor (raw-word classification, signalling NaN included) and a runaway host by marker",
+    "bridge_engine_provider": "eech-dc 2 + eech-engine 2 + eech-world provider 1 new tests for the ENTITY_SCAN transport",
+    "entity_host_guard": "5 tests: the ordinary module returns the host-driven scan before the original window and loops, which stay under the original branch; the driver header holds none of the window arithmetic"
+  },
+  "mutation_controls": {
+    "summary": [
+      "window-not-widened apply=0 cargo=differential=101 restored_equal=yes",
+      "clamp-missing apply=0 cargo=differential=101 restored_equal=yes",
+      "first-hit-not-ending apply=0 cargo=differential=101 restored_equal=yes",
+      "exclusion-ignored apply=0 cargo=differential=101 restored_equal=yes",
+      "z-outer-x-inner apply=0 cargo=differential=101 restored_equal=yes",
+      "list-served-from-head apply=0 cargo=dialogue=101 restored_equal=yes",
+      "exclusion-never-reported apply=0 cargo=dialogue=101 restored_equal=yes",
+      "kernel_and_header_restored"
+    ],
+    "summary_sha256": "69b8a5bffc3ffe0a38774f0f67691ce1fab290d39d7aae64b38aed6f03f24148",
+    "meaning": "seven mutants (window not widened, map clamp missing, first hit not ending the scan, exclusion ignored, z outer / x inner, list served from the head, exclusion never reported) each failed their check (exit 101) and each file was restored byte for byte"
+  },
+  "failed_logs_retained": [
+    "focused1 (a wrong expected getter log in the first exclusion case)",
+    "clippy1 and clippy2 (a complex type and two indexing lints in new tests)"
+  ],
+  "code_inputs": {
+    "rows": 2918,
+    "filtered_column_sha256_before_gate": "a5829f116472a911af4447693f385bd9cc7d1e53e4c4d5ed3675475b99be2844",
+    "filtered_column_sha256_after_commit": "a5829f116472a911af4447693f385bd9cc7d1e53e4c4d5ed3675475b99be2844",
+    "raw_column_sha256_before_gate": "0a786fd2cc9446d217b3ab66c7173f32b4c706a2f83afa5442e7f60aec3af35d",
+    "raw_column_sha256_after_commit": "0a786fd2cc9446d217b3ab66c7173f32b4c706a2f83afa5442e7f60aec3af35d",
+    "equal": true,
+    "meaning": "filtered = Git blob id as the clean filter would store each working file; raw = SHA-256 of the raw working bytes; three pre-existing CRLF files keep the documented qualification; no accepted file was normalised"
+  }
+}
