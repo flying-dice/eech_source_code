@@ -1,0 +1,824 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05T14:44:36.701685+00:00",
+  "review": "One independent combined correctness, clean-code and boundary-safety review of the new test-only SCAN authority witness, focused controls and completed native evidence. Closed production Source1a856 and other finite reviews were reused without a source sweep or rerun. Reviewer performed read-only inspections and wrote this report only.",
+  "source": {
+    "runtime_commit": "8b85230826ad1c1bea289f6d2592f31b705a03f6",
+    "diagnostic_commit": "ff608178070e247c8be5e5648b236d435884235d",
+    "metadata_head": "db8869c9727bb984ba7643badb35f6517f65d4f1",
+    "commit": "ff608178070e247c8be5e5648b236d435884235d",
+    "worktree": "R:\\d3-evidence\\collision-characterization-20261029",
+    "clean_readback": true,
+    "shipping_source_delta_under_code_roots": [
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs"
+    ],
+    "shipping_C_Rust_build_manifests_and_ordinary_drivers_unchanged": true,
+    "diagnostic_lua": {
+      "git_blob": "3f476b5b3a1582c9c00be163b78c3825e0f220c3",
+      "path": "R:\\d3-evidence\\entity-scan-authority-ff6081780-literal.lua",
+      "bytes": 71050,
+      "sha256": "13891b98e0dfb8aa1045009ecccba436f6e168724cc385bc9ce656f9eb63cc82",
+      "literal_exact_to_git": true
+    },
+    "guard_git_blob": "2d27ddf21e165d8d733ef3c937abbb14b38714bf",
+    "runtime_not_relabelled_as_diagnostic": true,
+    "source_scope_receipt": {
+      "path": "R:\\d3-evidence\\entity-scan-authority-ff6081780-literal-scope-20261105.json",
+      "bytes": 1405,
+      "sha256": "ecee4f8e2848098a6eff71ff4fb3383178c18c6b5f0869989231b74286211181"
+    }
+  },
+  "decision": {
+    "findings": [],
+    "status": "FINITE_PUBLIC_SCAN_AUTHORITY_CLOSED",
+    "finite_public_scan_authority_closed": true,
+    "finite_ordinary_short_conformance_closed": true,
+    "moving_public_authority_or_parity_closed": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "witness_assessment": [
+    "The existing driver retains owned exclusive evidence output, checked close and protected setup. The new modes add no Core memory mutation, constructor, geometry solver or shipping callback. Real request/reply delegation is unchanged outside the armed operation and selected alterations.",
+    "The new request recognizer checks scene 0, absent depth/kind/definition, sixteen complete raw-word patterns and phase encoding. The real-answer recognizer checks the five-state grammar, cursor only for FIRST and no nonempty name. It is a diagnostic wire/shape observer, not an independent arithmetic or full semantic oracle; the production boundary remains responsible for finite/map/phase legality.",
+    "SCAN alterations are formed after a parsed request and schema-valid real reply. The state defect is applied only at BEGIN, cursor corruption only to real FIRST, and refusal alterations occur once. Exact anchored Engine markers, positive alteration counts and global VIEW application are required; an incidental callback/setup error is not credited as the intended cursor/state refusal.",
+    "The paired controls hold the same declared configured narrowphase hit in both worlds. scan_none changes only eligible BEGIN answers to valid DONE_NONE; its verdict requires every armed SCAN question altered, zero downstream Candidate/narrowphase questions, zero entity hits and a completed finite cohort. scan_real requires positive offer/test/narrowphase/caller use. Pair physical effects are compared to each other; the natural control is separate.",
+    "SCAN phase/state counters classify the REAL delegated replies. In scan_none, real FIRST=114 and real DONE_NONE=0 are consistent with 114 delivered empty answers, recorded separately by scan_answered_done_none. They must not be published as 114 real DONE_NONE answers.",
+    "Provider/caller counts and VIEW_WEAPON are global while armed. The single selected cohort is tracked separately with actual selection/launch/birth/terminal joins; neither provider questions nor physical effects are claimed to belong uniquely to that weapon. Natural refers to unchanged model answers, not an unconfigured camera/world.",
+    "The Original control has the actual fixture API and positive real caller lookups with no SCAN, Candidate or narrowphase provider questions. Its expected nonzero diagnostic exit is a reached handoff-capability RED, not absence of an API or proof that Original narrowphase ran."
+  ],
+  "focused_validation": {
+    "root": "D:\\EECH-Migration-Evidence\\entity-scan-witness-20261105-a",
+    "log": {
+      "path": "D:\\EECH-Migration-Evidence\\entity-scan-witness-20261105-a\\final-run\\final.log",
+      "bytes": 21124,
+      "sha256": "afbc3882afb6ac48b653ced792cd3250c6f70af3ad2cc6c445fb905cb507d3a0"
+    },
+    "runner": {
+      "path": "D:\\EECH-Migration-Evidence\\entity-scan-witness-20261105-a\\final-run\\runner-exit.txt",
+      "bytes": 17,
+      "sha256": "d83a34d9170b1ee4a2323b29e31ca7e61668451861ed713be3830fd2652be1fa"
+    },
+    "actual_container_exit": 0,
+    "direct_steps": [
+      {
+        "name": "fmt_check",
+        "actual_exit": 0
+      },
+      {
+        "name": "entity_authority",
+        "actual_exit": 0
+      },
+      {
+        "name": "tree_authority",
+        "actual_exit": 0
+      },
+      {
+        "name": "host_callbacks",
+        "actual_exit": 0
+      },
+      {
+        "name": "clippy_eech_world",
+        "actual_exit": 0
+      }
+    ],
+    "tests": {
+      "entity_authority": 28,
+      "unchanged_tree_authority": 17,
+      "host_callbacks": 82,
+      "total": 127,
+      "failed": 0
+    },
+    "before_after_inputs_literal_equal": true,
+    "input_rows": 2918,
+    "identity_before": {
+      "path": "D:\\EECH-Migration-Evidence\\entity-scan-witness-20261105-a\\final\\identity-before.txt",
+      "bytes": 466238,
+      "sha256": "3088f5fca4db1834d1f19b205e76692ef4d7b940b7473d6511496b41126c639b"
+    },
+    "identity_after": {
+      "path": "D:\\EECH-Migration-Evidence\\entity-scan-witness-20261105-a\\final\\identity-after.txt",
+      "bytes": 466238,
+      "sha256": "3088f5fca4db1834d1f19b205e76692ef4d7b940b7473d6511496b41126c639b"
+    },
+    "new_lua_and_guard_tested_raw_bytes_equal_diagnostic_git": true,
+    "safe_gate": {
+      "path": "R:\\d3-evidence\\collision-characterization-20261029\\eech-campaign\\reference\\d3-entity-collision\\entity-scan-witness-gate-20261105.json",
+      "bytes": 4460,
+      "sha256": "9c3b37ecb97ceaba1374a6b8d881d8acda872b58056990468d8fd53d4285ace4"
+    },
+    "mutation_summary": {
+      "path": "D:\\EECH-Migration-Evidence\\entity-scan-witness-20261105-a\\mutants-summary.txt",
+      "bytes": 297,
+      "sha256": "725e2b06c86b41a1322e408082c918b1ddb7c49e44d0f3beeeae3a8c97b915fc"
+    },
+    "five_witness_mutants_cargo_exit": 101,
+    "expected_RED_wrapper_success_not_green": true,
+    "literal_file_restoration_independently_verified": true,
+    "retained_failure": "The initial bad_scan_cursor used a later-declared helper and genuinely stopped at callback rather than cursor. Its failed verdict/log remains retained; the final literal removes that lexical dependency. No failed native is relabelled successful."
+  },
+  "native_evidence": {
+    "private_complete_root_audit": {
+      "path": "R:\\d3-evidence\\entity-scan-public-authority-actual-audit-ff608-native8b852-20261105.json",
+      "bytes": 32359,
+      "sha256": "b5083b2bdcca1bc6d87892e8371bb9fef96a1cbe63c179cd0dea90552a0ab72b"
+    },
+    "private_audit_contains_physical_tuples_and_is_not_a_safe_literal_publication": true,
+    "matrix_queue": {
+      "path": "D:\\EECH-Migration-Evidence\\entity-scan-matrix-ff608-native8b852-20261105\\queue.json",
+      "bytes": 22438,
+      "sha256": "5dffa8ac4566d0afecfade511b21fc0d6b62aef57d337484a90755430f5166f5"
+    },
+    "matrix_actual_exit": 0,
+    "six_prepared_unused_matrix_roots_manifest_exits_all_zero": true,
+    "natural_completed_before_matrix_started": true,
+    "control_count": 7,
+    "underlying_artifacts_independently_rehashed": 35,
+    "full_pre_post_input_checks": 14,
+    "input_files_each": 1179,
+    "input_bytes_each": 102239559,
+    "payloads_per_control": 88,
+    "all_controller_exits_match_expected": true,
+    "all_actual_authority_rows_equal_private_audit": true,
+    "same_selected_case_and_launch_identity_verified_across_seven": true,
+    "selection_host_ids_not_published": true,
+    "controls": [
+      {
+        "name": "control",
+        "controller_actual_exit": 0,
+        "native_actual_exit": 0,
+        "expected_exit": 0,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "full_input_files_each": 1179,
+        "input_bytes_each": 102239559,
+        "payloads_verified": 88,
+        "selection_launch_and_cohort_join_verified": true,
+        "authority": {
+          "completed": true,
+          "mode": "control",
+          "profile": "hosted",
+          "scan_before": 1494773,
+          "scan_after": 70375,
+          "scan_phase_begin": 72,
+          "scan_phase_entry": 35168,
+          "scan_phase_end": 28,
+          "scan_phase_resolved": 35107,
+          "scan_excluded": 61,
+          "scan_first": 72,
+          "scan_next": 35124,
+          "scan_offer": 35107,
+          "scan_done_none": 28,
+          "scan_done_hit": 44,
+          "scan_altered": 0,
+          "scan_answered_done_none": 0,
+          "candidate_after": 70470,
+          "candidate_need_updated": 0,
+          "entity_after": 279,
+          "stationary": 279,
+          "moving": 0,
+          "altered": 0,
+          "answered_hit": 0,
+          "answered_miss": 0,
+          "real_hit": 44,
+          "request_faults": 0,
+          "reply_faults": 0,
+          "contact_any_tests_delta": 6,
+          "contact_any_hits_delta": 0,
+          "precision_high_delta": 6,
+          "cohort_size": 1,
+          "case_weapons_ended": 1,
+          "case_weapons_pending": 0,
+          "later_births": 0,
+          "foreign_terminals": 0,
+          "duplicate_terminals": 0,
+          "incomplete": false,
+          "fixture_api": false,
+          "failure_marker": ""
+        },
+        "cohort_terminal_outcomes": [
+          {
+            "type": "M61A1_M56A3_HEI_20mm",
+            "code": "hit_land",
+            "steps": 6
+          }
+        ],
+        "physical_signature_rebuilt_excluding_ordinal": true,
+        "artifacts": [
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-healthy-ff608-native8b852-20261105\\controller.json",
+            "bytes": 4225,
+            "sha256": "6b21bfb6435737932896aa6878984b0d59a262d1c1602a49a62852290e38b5fe"
+          },
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-healthy-ff608-native8b852-20261105\\model.jsonl",
+            "bytes": 2668,
+            "sha256": "87ea1eef5f283dcde1de72de47cd5c5460ee14d574f768cf18e27e5de8109500"
+          },
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-healthy-ff608-native8b852-20261105\\native.log",
+            "bytes": 43466,
+            "sha256": "f9a48d2ab300608bc16f75569427ad7ddc1e1571ad2e2ee2d5ea52007165e3eb"
+          }
+        ]
+      },
+      {
+        "name": "scan_real",
+        "controller_actual_exit": 0,
+        "native_actual_exit": 0,
+        "expected_exit": 0,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "full_input_files_each": 1179,
+        "input_bytes_each": 102239559,
+        "payloads_verified": 88,
+        "selection_launch_and_cohort_join_verified": true,
+        "authority": {
+          "completed": true,
+          "mode": "scan_real",
+          "profile": "hosted",
+          "scan_before": 1494773,
+          "scan_after": 55307,
+          "scan_phase_begin": 45,
+          "scan_phase_entry": 27642,
+          "scan_phase_end": 0,
+          "scan_phase_resolved": 27620,
+          "scan_excluded": 22,
+          "scan_first": 45,
+          "scan_next": 27597,
+          "scan_offer": 27620,
+          "scan_done_none": 0,
+          "scan_done_hit": 45,
+          "scan_altered": 0,
+          "scan_answered_done_none": 0,
+          "candidate_after": 55131,
+          "candidate_need_updated": 0,
+          "entity_after": 45,
+          "stationary": 45,
+          "moving": 0,
+          "altered": 45,
+          "answered_hit": 45,
+          "answered_miss": 0,
+          "real_hit": 0,
+          "request_faults": 0,
+          "reply_faults": 0,
+          "contact_any_tests_delta": 1,
+          "contact_any_hits_delta": 1,
+          "precision_high_delta": 1,
+          "cohort_size": 1,
+          "case_weapons_ended": 1,
+          "case_weapons_pending": 0,
+          "later_births": 0,
+          "foreign_terminals": 0,
+          "duplicate_terminals": 0,
+          "incomplete": false,
+          "fixture_api": false,
+          "failure_marker": ""
+        },
+        "cohort_terminal_outcomes": [
+          {
+            "type": "M61A1_M56A3_HEI_20mm",
+            "code": "hit_target",
+            "steps": 1
+          }
+        ],
+        "physical_signature_rebuilt_excluding_ordinal": true,
+        "artifacts": [
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-matrix-ff608-native8b852-20261105\\scan_real\\controller.json",
+            "bytes": 4252,
+            "sha256": "5a23a99bd8bbcf517b7dc0c226631ae0f3c57e58a93c6f6e3228627cd745801c"
+          },
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-matrix-ff608-native8b852-20261105\\scan_real\\model.jsonl",
+            "bytes": 2783,
+            "sha256": "c2d741bd32901444a968dcd67a09c4f3ace13068a56c3d48e5b54120f06f2033"
+          },
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-matrix-ff608-native8b852-20261105\\scan_real\\native.log",
+            "bytes": 42745,
+            "sha256": "7ce76dd19764f68b13e10d3d561b4a6403ef59672a7ae8c0b80c9da0e468fc7d"
+          }
+        ]
+      },
+      {
+        "name": "scan_none",
+        "controller_actual_exit": 0,
+        "native_actual_exit": 0,
+        "expected_exit": 0,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "full_input_files_each": 1179,
+        "input_bytes_each": 102239559,
+        "payloads_verified": 88,
+        "selection_launch_and_cohort_join_verified": true,
+        "authority": {
+          "completed": true,
+          "mode": "scan_none",
+          "profile": "hosted",
+          "scan_before": 1494773,
+          "scan_after": 114,
+          "scan_phase_begin": 114,
+          "scan_phase_entry": 0,
+          "scan_phase_end": 0,
+          "scan_phase_resolved": 0,
+          "scan_excluded": 0,
+          "scan_first": 114,
+          "scan_next": 0,
+          "scan_offer": 0,
+          "scan_done_none": 0,
+          "scan_done_hit": 0,
+          "scan_altered": 114,
+          "scan_answered_done_none": 114,
+          "candidate_after": 0,
+          "candidate_need_updated": 0,
+          "entity_after": 0,
+          "stationary": 0,
+          "moving": 0,
+          "altered": 0,
+          "answered_hit": 0,
+          "answered_miss": 0,
+          "real_hit": 0,
+          "request_faults": 0,
+          "reply_faults": 0,
+          "contact_any_tests_delta": 26,
+          "contact_any_hits_delta": 0,
+          "precision_high_delta": 46,
+          "cohort_size": 1,
+          "case_weapons_ended": 1,
+          "case_weapons_pending": 0,
+          "later_births": 4,
+          "foreign_terminals": 0,
+          "duplicate_terminals": 0,
+          "incomplete": false,
+          "fixture_api": false,
+          "failure_marker": ""
+        },
+        "cohort_terminal_outcomes": [
+          {
+            "type": "M61A1_M56A3_HEI_20mm",
+            "code": "hit_land",
+            "steps": 6
+          }
+        ],
+        "physical_signature_rebuilt_excluding_ordinal": true,
+        "artifacts": [
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-matrix-ff608-native8b852-20261105\\scan_none\\controller.json",
+            "bytes": 4331,
+            "sha256": "0f69c3a48c22c5a6dac37cfa4cf7b2fb9f476f1aafe5f6b2b5af616e09970e65"
+          },
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-matrix-ff608-native8b852-20261105\\scan_none\\model.jsonl",
+            "bytes": 2875,
+            "sha256": "9e8d38f37df4d491a56e461f32f5657ff0454237e6002d3e5c87079d1a2e50d0"
+          },
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-matrix-ff608-native8b852-20261105\\scan_none\\native.log",
+            "bytes": 42743,
+            "sha256": "2882e911b5541053da27e7c653dd82945e678ea8e9136949fd4c0d9b103c2200"
+          }
+        ]
+      },
+      {
+        "name": "withheld_scan",
+        "controller_actual_exit": 0,
+        "native_actual_exit": 0,
+        "expected_exit": 0,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "full_input_files_each": 1179,
+        "input_bytes_each": 102239559,
+        "payloads_verified": 88,
+        "selection_launch_and_cohort_join_verified": true,
+        "authority": {
+          "completed": false,
+          "mode": "withheld_scan",
+          "profile": "hosted",
+          "scan_before": 1494773,
+          "scan_after": 1,
+          "scan_phase_begin": 1,
+          "scan_phase_entry": 0,
+          "scan_phase_end": 0,
+          "scan_phase_resolved": 0,
+          "scan_excluded": 0,
+          "scan_first": 1,
+          "scan_next": 0,
+          "scan_offer": 0,
+          "scan_done_none": 0,
+          "scan_done_hit": 0,
+          "scan_altered": 1,
+          "scan_answered_done_none": 0,
+          "candidate_after": 0,
+          "candidate_need_updated": 0,
+          "entity_after": 0,
+          "stationary": 0,
+          "moving": 0,
+          "altered": 0,
+          "answered_hit": 0,
+          "answered_miss": 0,
+          "real_hit": 0,
+          "request_faults": 0,
+          "reply_faults": 0,
+          "contact_any_tests_delta": -1,
+          "contact_any_hits_delta": -1,
+          "precision_high_delta": -1,
+          "cohort_size": 1,
+          "case_weapons_ended": 0,
+          "case_weapons_pending": -1,
+          "later_births": 0,
+          "foreign_terminals": 0,
+          "duplicate_terminals": 0,
+          "incomplete": false,
+          "fixture_api": false,
+          "failure_marker": "entity_scan.callback"
+        },
+        "cohort_terminal_outcomes": [],
+        "physical_signature_rebuilt_excluding_ordinal": true,
+        "artifacts": [
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-matrix-ff608-native8b852-20261105\\withheld_scan\\controller.json",
+            "bytes": 4271,
+            "sha256": "0d5c710aca55baeff0a54b435c847886d122ba823332ffb9266b796da8716e53"
+          },
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-matrix-ff608-native8b852-20261105\\withheld_scan\\model.jsonl",
+            "bytes": 2531,
+            "sha256": "77c695857772bade06a77f31f06339c0126fb137f8e37ee18e4906e15255a73f"
+          },
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-matrix-ff608-native8b852-20261105\\withheld_scan\\native.log",
+            "bytes": 44261,
+            "sha256": "bca92a10b5495765033a80429ac884f484a1d10f31a8d534b51c0c9ce4bb232f"
+          }
+        ]
+      },
+      {
+        "name": "bad_scan_state",
+        "controller_actual_exit": 0,
+        "native_actual_exit": 0,
+        "expected_exit": 0,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "full_input_files_each": 1179,
+        "input_bytes_each": 102239559,
+        "payloads_verified": 88,
+        "selection_launch_and_cohort_join_verified": true,
+        "authority": {
+          "completed": false,
+          "mode": "bad_scan_state",
+          "profile": "hosted",
+          "scan_before": 1494773,
+          "scan_after": 1,
+          "scan_phase_begin": 1,
+          "scan_phase_entry": 0,
+          "scan_phase_end": 0,
+          "scan_phase_resolved": 0,
+          "scan_excluded": 0,
+          "scan_first": 1,
+          "scan_next": 0,
+          "scan_offer": 0,
+          "scan_done_none": 0,
+          "scan_done_hit": 0,
+          "scan_altered": 1,
+          "scan_answered_done_none": 0,
+          "candidate_after": 0,
+          "candidate_need_updated": 0,
+          "entity_after": 0,
+          "stationary": 0,
+          "moving": 0,
+          "altered": 0,
+          "answered_hit": 0,
+          "answered_miss": 0,
+          "real_hit": 0,
+          "request_faults": 0,
+          "reply_faults": 0,
+          "contact_any_tests_delta": -1,
+          "contact_any_hits_delta": -1,
+          "precision_high_delta": -1,
+          "cohort_size": 1,
+          "case_weapons_ended": 0,
+          "case_weapons_pending": -1,
+          "later_births": 0,
+          "foreign_terminals": 0,
+          "duplicate_terminals": 0,
+          "incomplete": false,
+          "fixture_api": false,
+          "failure_marker": "entity_scan.state"
+        },
+        "cohort_terminal_outcomes": [],
+        "physical_signature_rebuilt_excluding_ordinal": true,
+        "artifacts": [
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-matrix-ff608-native8b852-20261105\\bad_scan_state\\controller.json",
+            "bytes": 4281,
+            "sha256": "bbaa77de09f8204f9ab1673763edb03f19113e8be6390d61687e7a0369a080b5"
+          },
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-matrix-ff608-native8b852-20261105\\bad_scan_state\\model.jsonl",
+            "bytes": 2575,
+            "sha256": "9a61d855a0f4941fd50c622f88471da5f8b320c15acd75f794f95e360b91915e"
+          },
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-matrix-ff608-native8b852-20261105\\bad_scan_state\\native.log",
+            "bytes": 44119,
+            "sha256": "ee1a4826d1beb4b9bf35fc76415120a5cb331047c2cac689bc515b25bb25fbb6"
+          }
+        ]
+      },
+      {
+        "name": "bad_scan_cursor",
+        "controller_actual_exit": 0,
+        "native_actual_exit": 0,
+        "expected_exit": 0,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "full_input_files_each": 1179,
+        "input_bytes_each": 102239559,
+        "payloads_verified": 88,
+        "selection_launch_and_cohort_join_verified": true,
+        "authority": {
+          "completed": false,
+          "mode": "bad_scan_cursor",
+          "profile": "hosted",
+          "scan_before": 1494773,
+          "scan_after": 1,
+          "scan_phase_begin": 1,
+          "scan_phase_entry": 0,
+          "scan_phase_end": 0,
+          "scan_phase_resolved": 0,
+          "scan_excluded": 0,
+          "scan_first": 1,
+          "scan_next": 0,
+          "scan_offer": 0,
+          "scan_done_none": 0,
+          "scan_done_hit": 0,
+          "scan_altered": 1,
+          "scan_answered_done_none": 0,
+          "candidate_after": 0,
+          "candidate_need_updated": 0,
+          "entity_after": 0,
+          "stationary": 0,
+          "moving": 0,
+          "altered": 0,
+          "answered_hit": 0,
+          "answered_miss": 0,
+          "real_hit": 0,
+          "request_faults": 0,
+          "reply_faults": 0,
+          "contact_any_tests_delta": -1,
+          "contact_any_hits_delta": -1,
+          "precision_high_delta": -1,
+          "cohort_size": 1,
+          "case_weapons_ended": 0,
+          "case_weapons_pending": -1,
+          "later_births": 0,
+          "foreign_terminals": 0,
+          "duplicate_terminals": 0,
+          "incomplete": false,
+          "fixture_api": false,
+          "failure_marker": "entity_scan.cursor"
+        },
+        "cohort_terminal_outcomes": [],
+        "physical_signature_rebuilt_excluding_ordinal": true,
+        "artifacts": [
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-matrix-ff608-native8b852-20261105\\bad_scan_cursor\\controller.json",
+            "bytes": 4289,
+            "sha256": "a3ee3e31aa9e1031eb8af52174a60c2e699b2d87cb8c308deae212be9ede7db6"
+          },
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-matrix-ff608-native8b852-20261105\\bad_scan_cursor\\model.jsonl",
+            "bytes": 2556,
+            "sha256": "abdcddbfc196e1976eb532ea323468d68d5cf436b619428580fb7ab98de64e00"
+          },
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-matrix-ff608-native8b852-20261105\\bad_scan_cursor\\native.log",
+            "bytes": 44338,
+            "sha256": "973e7bf2828c9126333662fd3c5ed597c22827771ed8a898572f17a8157e5576"
+          }
+        ]
+      },
+      {
+        "name": "original-control",
+        "controller_actual_exit": 1,
+        "native_actual_exit": 1,
+        "expected_exit": 1,
+        "pre_post_full_input_exits": [
+          0,
+          0
+        ],
+        "full_input_files_each": 1179,
+        "input_bytes_each": 102239559,
+        "payloads_verified": 88,
+        "selection_launch_and_cohort_join_verified": true,
+        "authority": {
+          "completed": true,
+          "mode": "control",
+          "profile": "original",
+          "scan_before": 0,
+          "scan_after": 0,
+          "scan_phase_begin": 0,
+          "scan_phase_entry": 0,
+          "scan_phase_end": 0,
+          "scan_phase_resolved": 0,
+          "scan_excluded": 0,
+          "scan_first": 0,
+          "scan_next": 0,
+          "scan_offer": 0,
+          "scan_done_none": 0,
+          "scan_done_hit": 0,
+          "scan_altered": 0,
+          "scan_answered_done_none": 0,
+          "candidate_after": 0,
+          "candidate_need_updated": 0,
+          "entity_after": 0,
+          "stationary": 0,
+          "moving": 0,
+          "altered": 0,
+          "answered_hit": 0,
+          "answered_miss": 0,
+          "real_hit": 0,
+          "request_faults": 0,
+          "reply_faults": 0,
+          "contact_any_tests_delta": 6,
+          "contact_any_hits_delta": 0,
+          "precision_high_delta": 6,
+          "cohort_size": 1,
+          "case_weapons_ended": 1,
+          "case_weapons_pending": 0,
+          "later_births": 0,
+          "foreign_terminals": 0,
+          "duplicate_terminals": 0,
+          "incomplete": false,
+          "fixture_api": true,
+          "failure_marker": ""
+        },
+        "cohort_terminal_outcomes": [
+          {
+            "type": "M61A1_M56A3_HEI_20mm",
+            "code": "hit_land",
+            "steps": 6
+          }
+        ],
+        "physical_signature_rebuilt_excluding_ordinal": true,
+        "artifacts": [
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-matrix-ff608-native8b852-20261105\\original-control\\controller.json",
+            "bytes": 4326,
+            "sha256": "78a0741ba2c83386f0c80754360e8ea5993fc39517b019016fd6faa76d93b3b7"
+          },
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-matrix-ff608-native8b852-20261105\\original-control\\model.jsonl",
+            "bytes": 2596,
+            "sha256": "c5be03c4a9484406265ef308d065336f214319d68a531a17961dd15c4f721c4d"
+          },
+          {
+            "path": "D:\\EECH-Migration-Evidence\\entity-scan-matrix-ff608-native8b852-20261105\\original-control\\native.log",
+            "bytes": 44781,
+            "sha256": "a82173ea4b55485318b7e7ce94686c02e860edf8955744febcd6afb24b3e21aa"
+          }
+        ]
+      }
+    ]
+  },
+  "authority_joins": {
+    "natural_scan_questions": 70375,
+    "natural_scan_offers": 35107,
+    "natural_Candidate_questions": 70470,
+    "natural_stationary_narrowphase_questions": 279,
+    "natural_real_weapon_caller_lookups": 6,
+    "natural_phase_partition": "72 BEGIN/FIRST; 35168 ENTRY = 35107 OFFER + 61 excluded NEXT; 35107 RESOLVED; 44 DONE_HIT + 28 DONE_NONE = 72 completed scans. These are real and delivered states because this mode does not alter model replies.",
+    "paired_same_configured_secondary_input": true,
+    "secondary_input": "Entity collision answers configured HIT with mask63 at each request old end whenever asked in BOTH paired modes; declared diagnostic input, not natural output.",
+    "paired_physical_signature_changed": true,
+    "physical_comparison_fields": "type, outcome code, steps, position, velocity and lifetime; rebuilt from actual terminal rows, excluding ordinal. Only outcomes/steps and verification booleans are published here.",
+    "scan_real_outcome": {
+      "code": "hit_target",
+      "steps": 1,
+      "scan_questions": 55307,
+      "Candidate_questions": 55131,
+      "stationary_narrowphase_answers": 45,
+      "actual_weapon_entity_hits": 1
+    },
+    "scan_none_outcome": {
+      "code": "hit_land",
+      "steps": 6,
+      "scan_questions": 114,
+      "delivered_empty_answers": 114,
+      "Candidate_questions": 0,
+      "narrowphase_questions": 0,
+      "actual_weapon_entity_hits": 0
+    },
+    "three_refusals": "One alteration at the first armed BEGIN per mode; exact Engine callback/state/cursor marker, zero Candidate/narrowphase after the SCAN stop, no terminal; actual driver exits0 because the expected refusal is verified. Engine counters/cohort pending/precision after poison remain unknown -1. No postfatal cleanup, restoration or receiver-zero claim.",
+    "original_expected_native_and_controller_exit": 1,
+    "original_actual_caller_lookups": 6,
+    "original_scan_Candidate_narrowphase_provider_questions": 0,
+    "original_actual_physical_signature_equals_natural": true,
+    "old_1ccc_d39_natural_authority_fields_common_and_exact": 60,
+    "old_natural_physical_signature_also_exact": true,
+    "old_retained_natural_raw": {
+      "path": "D:\\EECH-Migration-Evidence\\entity-candidate-healthy-d39-native1ccc-20261105\\model.jsonl",
+      "bytes": 2376,
+      "sha256": "33876850558198a2c8cad870eb84c543d6d911ce19ac4d816d00e8264f094085"
+    },
+    "no_old_control_rerun": true
+  },
+  "build_and_ordinary_short": {
+    "build_seal": {
+      "path": "R:\\d3-evidence\\entity-scan-builds-and-payloads-8b8523082-20261105.json",
+      "bytes": 3445,
+      "sha256": "de675abcc3eb818ee0ba6a9fc243eaa2d4b1bae95e79ebadb306075f3837e322"
+    },
+    "profiles": [
+      {
+        "profile": "ordinary",
+        "actual_build_exit": 0,
+        "current_payloads_independently_rehashed": 88,
+        "build_info_sha256": "a8d17b320c8d79a88e1c2925915485b6d93f71e903cba96a6947e0e9bf3f4418",
+        "bin": "D:\\EECH-Migration-Evidence\\entity-scan-production-8b8523082\\eech-campaign\\target\\windows-entity-scan-8b8523082"
+      },
+      {
+        "profile": "hosted",
+        "actual_build_exit": 0,
+        "current_payloads_independently_rehashed": 88,
+        "build_info_sha256": "5d6b3ecce8504baa0ff93dd0d59c73d5026377384d3b021ad8ddf3da1d598775",
+        "bin": "D:\\EECH-Migration-Evidence\\entity-scan-production-8b8523082\\eech-campaign\\target\\weapon-fixture\\entity-scan-8b8523082"
+      },
+      {
+        "profile": "original",
+        "actual_build_exit": 0,
+        "current_payloads_independently_rehashed": 88,
+        "build_info_sha256": "4389eb164f1624efbff00b5dbf23f65bbc1eef9953d762ea12cb09cb78460d5d",
+        "bin": "D:\\EECH-Migration-Evidence\\entity-scan-production-8b8523082\\eech-campaign\\target\\weapon-fixture\\original-entity-scan-8b8523082"
+      }
+    ],
+    "short_proof": {
+      "path": "R:\\d3-evidence\\entity-scan-ordinary-short-comparison-8b8523082-20261105.json",
+      "bytes": 2289,
+      "sha256": "a205224d9725de999c0479b7b71d4f5ae16d0abcc1fd178fd03ef26bd6e6043d"
+    },
+    "short_controller": {
+      "path": "D:\\EECH-Migration-Evidence\\entity-scan-ordinary-short-8b8523082-20261105\\controller.json",
+      "bytes": 3890,
+      "sha256": "e2a83babb499953dde4d83b2a9169d89cae8ca8deaf30bc594151a17a2087f05"
+    },
+    "ordinary_native_controller_pre_post_all_zero": true,
+    "complete_files_independently_byte_compared": [
+      {
+        "file": "recording.acmi",
+        "bytes": 230871,
+        "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+        "literal_complete_equal": true
+      },
+      {
+        "file": "observations.jsonl",
+        "bytes": 1553674,
+        "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+        "literal_complete_equal": true
+      },
+      {
+        "file": "metrics.json",
+        "bytes": 7477,
+        "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+        "literal_complete_equal": true
+      }
+    ],
+    "native_wall_seconds": 14.679271,
+    "previous_1ccc_wall_seconds": 9.576414,
+    "ratio_vs_1ccc": 1.5328567666351935,
+    "previous_7ead_wall_seconds": 8.742922,
+    "timing_qualification": "One elapsed ordinary-short observation, with possible build contention. Approximately53.3% longer than the prior Candidate short is a visible cost/risk, not a benchmark or an unstated performance acceptance threshold. No timing-driven baseline/flag/duration change."
+  },
+  "reused_source_qualifications": {
+    "source_review": "R:/d3-evidence/independent-entity-enumeration-source-40ef-runtime8b852-20261105.json",
+    "sha256": "1a856a53300c216d8c462c2da6fad26494f057d380cc7ab328dcaad70d4b470d",
+    "qualified_binding": "R:/d3-evidence/entity-enumeration-source-binding-40ef-runtime8b852-20261105.json",
+    "binding_sha256": "8864de06bdaaeb7f3a4d1fca5c9cf16bdf2a7318f362f543aa7ed59718181e44",
+    "meaning": "Closed source proof is reused at runtime8b852, including its three unchanged working-CRLF/Git-LF testLua qualifications and separate three Core clean-filter exceptions. There is no claim all2918 raw inputs equal Git and no accepted output normalization. Old en_cllsn hosted preamble and historical Lua comments about Core physical radius/enumeration are stale prose; current ownership is Host window/traversal/exclusions/termination and Candidate radius/classification/placement, with Core backing and staged services remaining REQUIRED. Linux C controls execute C; neither their transcription nor builds are an old-engine-loop runtime oracle."
+  },
+  "limitations_and_required_remaining": [
+    "Finite public SCAN handoff and bounded ordinary short only. No whole Task49 full40/all8, dependency merge or delivery acceptance.",
+    "All observed Host narrowphase poses are stationary. Mobile flags do not imply moving authority; NEED_UPDATED/moving public behavior remains unmeasured and required.",
+    "Core still holds backing sector/entity lists and insertion/relink order, source/target equality, roster identities/lifetimes and live poses. No independent Host backing store, synchronization or global dormancy is established.",
+    "Core city-child traversal, effectful UPDATED/terrain services, raw tree/forest/cloud/loaders, hierarchy/devices/muzzles/rotor/smoke/host IDs and the other whole-D3 requirements remain open.",
+    "Complete primary-evidenced DCS dataset/API/identity mapping remains open; another host searching its own world is not proof of a mapped query.",
+    "No new full caller-FPU/all-rounding/enabled-trap, native RNG, audio/Tacview/global-equivalence claim. Closed kernel FP and generic Engine entry guards keep their existing identities and scopes.",
+    "This matrix does not test corrupted Core backing lists, every map/window/first-hit geometry configuration or all callers. Source/direct controls and the retained ordinary short complement rather than replace those exact limits."
+  ],
+  "next_unmet_gate": "Proceed with required physical backing/roster/live-state and remaining Task49/D3 ownership work, keeping native moving evidence and the eventual consolidated Task49 ordinary full pack explicit. This finite report does not require another unchanged kernel/helper sweep or a separate full war for this internal seam.",
+  "publication_safety": "Safe counts, source/Git/SHA identities, private paths, outcome labels and steps only. No retail coordinates/vectors/physical tuples, cohort_signature strings, host-ID suffixes, entity indices/pointers, geometry, recordings, transcripts, assets, binaries or credentials are included. The complete Root audit remains private."
+}

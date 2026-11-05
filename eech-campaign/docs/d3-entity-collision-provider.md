@@ -307,7 +307,7 @@ nothing about the DLL.
 
 **Literal comment qualification.** The unchanged d39 opening comments that put radius+10/broadphase in Core describe the earlier slice. Runtime1ccc has Host-owned per-candidate decisions. Core still owns the physical enumeration and backing state/getter services, all required to move; no campaign-policy exclusion is inferred. Preserve literal d39 bytes and actuals.
 
-## The ENTITY_SCAN public authority witness (the same `lua/entity-authority.lua`; TEST-ONLY; written 5 November 2026; NOT yet run against a real module)
+## The ENTITY_SCAN public authority witness (TEST-ONLY; finite native validation completed 5 November 2026)
 
 The enumeration cutover (source `8b8523082`) is cleared for planned native validation but has no native actual. This witness extends the existing script (its checked output, cohort, WordCodec, exact engine-fatal recognition and VIEW_WEAPON input are
 unchanged) and changes no shipping input: Root pins its literal blob and reuses the frozen `8b8523082` binaries.
@@ -336,6 +336,8 @@ masquerade the controls guard against. The mode's own marker check refused it (i
 **Limits.** Every question is global to the war and not attributed to the case weapon; the view input is configured and global while armed. The controls are scripted collaborators that apply the exchange's legality rules: they prove the driver, not the DLL, the heap getters or the kernel.
 The moving public path stays unmeasured (the finite counts have mobile candidates and zero `NEED_UPDATED`; no warmup is tuned after an UNREACHED). Native command (Root, ONE natural control first, fresh root, the literal blob):
 `eech-world.exe <literal entity-authority.lua> root=<fresh root> mode=control out=<new .jsonl>`; the other modes only after it reached.
+
+**SCAN native finite result.** Independently CLOSED, findings empty, report SHA256 `5cab070d2bd2b574aca46d8389e8f7327f1b3d1ac989c9b9243c10fb75e2880b`; [safe evidence](../reference/d3-entity-collision/scan-finite-authority/README.md). Frozen8b852/literalff608:7expectedcontrols/14fullinputs0/88payloads; natural70375SCAN/70470Candidate/279stationary/6caller/cohort1; pairsameconfiguredsecondaryhit changes actualcohort hit_target1step versus deliveredNone114/0Candidate/0narrowphase/hit_land6steps. Three exact SCAN refusals/no postfatalreads; Original expectedRED1/nohostquestions/equalNATURAL. Matrix0; all60commonoldnaturalfields equal1ccc/d39. SCANstate counters describe REALdelegated answers; deliveredNone has its separate counter. Ordinaryshort all3COMPLETEequal80fd;14.679s vs9.576s singleobservation/notbenchmark. Globalcounts/view, no movingpublic or wholeTask49/D3 claim. Allbacking/roster/pose/effectfulgetters/citychildren andother requiredscope remain open; nextactualphysicalpose authority usesONEexistingMovers onlyafter coverage/lifecycle characterization.
 
 ## Checks (Linux, pinned image) and their status
 
