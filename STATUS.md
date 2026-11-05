@@ -1,4 +1,22 @@
-# CURRENT — D3 Task49: the host-driven ENTITY_SCAN enumeration is independently SOURCE-CLEAR for planned native validation; Root's Windows builds of `8b8523082` are its own; the public SCAN witness is next (5 November 2026)
+# CURRENT — D3 Task49: the TEST-ONLY public ENTITY_SCAN authority witness is written and Linux-checked; it has NOT run against a real module; Root's natural control on the frozen `8b8523082` binaries is next (5 November 2026)
+
+This is the ONE current summary; dated entries below are history. Read `R:/d3-evidence/D3-CURRENT.json` and the active card. Source `ff6081780` extends `lua/entity-authority.lua` (git blob `3f476b5b3a1582c9c00be163b78c3825e0f220c3`, SHA-256 `13891b98e0dfb8aa1045009ecccba436f6e168724cc385bc9ce656f9eb63cc82`) and
+`tests/entity_authority.rs` (blob `2d27ddf21e165d8d733ef3c937abbb14b38714bf`); no script was added (the host_callbacks inventory stays 62) and no shipping input changed: `git diff --name-only 8b8523082` over the code scope lists only those two files, so Root reuses the frozen binaries with this literal Lua pinned separately.
+
+**Contract.** 16 facts, 5 states (first, next, offer, done_none, done_hit), scene 0, nil depth/kind/definition; only a real `first` carries `p` (2 patterns); next/offer/done_* carry no `p` and no non-empty name. Modes: NATURAL `control` (positive scan, candidate and
+narrow-phase chain and a complete cohort; zero is UNREACHED); paired `scan_real`/`scan_none` with the SAME configured `entity_collision` forced-hit input (scan_none answers a valid done_none at BEGIN only and must prevent every downstream candidate/narrow-phase question and entity hit;
+Root compares physical cohort signatures across the pair, never against the natural control); `withheld_scan` (exactly `entity_scan.callback`); `bad_scan_state` at BEGIN (exactly `entity_scan.state`); `bad_scan_cursor` on an eligible real FIRST (exactly `entity_scan.cursor`);
+the Original weapon+collision-fixture profile (API and caller reached, 0 scan/candidate/narrow-phase questions: the expected CAPABILITY RED, exit 1; a missing API or zero caller is UNREACHED). Counts are global to the war, no per-weapon attribution; the view input is configured.
+
+**Linux evidence only (scripted collaborators prove the driver, not the DLL).** Direct child exits all 0: fmt, `entity_authority` 28 (21 retained + 7 new), `tree_authority` 17, `host_callbacks` 82, strict `eech-world` clippy. Source maps before/after equal (2918 rows, raw and filtered).
+Five witness mutants fail `entity_authority` (101) and were restored byte for byte. The controls caught the witness's own defect: a later-declared helper raised inside the provider callback and posed as `entity_scan.callback`; the marker check refused it and the alteration was rewritten.
+Safe record: `eech-campaign/reference/d3-entity-collision/entity-scan-witness-gate-20261105.json`.
+
+**Next.** Root: ONE natural healthy `control` first (fresh root, this literal Lua, the frozen binaries), then the paired and failure modes only if it reached, then the ordinary short against `80fd` with wall time. Still REQUIRED and open: the roster/identity/synchronisation/live pose behind the cursor, city-child
+enumeration, the effectful UPDATED and shared terrain record, raw tree/forest/cloud/RNG, hierarchy, devices, muzzles, rotor damage, smoke, host identities, the DCS needed-only mapping, the moving public path (finite counts have mobile candidates but `NEED_UPDATED` 0; no warmup is to be tuned after UNREACHED),
+whole Task 49 (full 40/all8, CI, review, normal merge) and D3. D4/D5 unstarted. No baseline, tolerance, input, seed, frame or duration change.
+
+# HISTORICAL (superseded 5 November 2026 by the CURRENT block above; the enumeration source review before its public witness) — D3 Task49: the host-driven ENTITY_SCAN enumeration is independently SOURCE-CLEAR for planned native validation; Root's Windows builds of `8b8523082` are its own; the public SCAN witness is next (5 November 2026)
 
 This is the ONE current summary; dated entries below are history. Read `R:/d3-evidence/D3-CURRENT.json` and the active card. The independent source review (`independent-entity-enumeration-source-40ef-runtime8b852-20261105.json`, LF, SHA-256 `1a856a53300c216d8c462c2da6fad26494f057d380cc7ab328dcaad70d4b470d`)
 is `SOURCE_CLEAR_FOR_PLANNED_NATIVE_VALIDATION` with no findings for runtime `8b85230826ad1c1bea289f6d2592f31b705a03f6` (metadata `40ef38921`); it is NOT scan native authority, ordinary-short conformance, moving-path authority, whole Task 49 or D3. Published unchanged beside the Root
