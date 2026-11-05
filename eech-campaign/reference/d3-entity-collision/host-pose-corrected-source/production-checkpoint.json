@@ -1,0 +1,154 @@
+{
+  "schema": 1,
+  "state": "CODE_FROZEN_UNREVIEWED_BEFORE_THE_FINAL_FIXTURE_AND_CLIPPY_MATRIX",
+  "written_utc": "2026-11-05",
+  "lane": "sole Sonnet 5.5 High implementation session, whole D3 / EEDCS-21, Task49 / PR109",
+  "branch": "codex/d3-object-tree-collision",
+  "source_commit": "f3107332bf28e156ec6205ba321432bfad14dc60",
+  "parent": "5f76e01235da02f25a57e932cb050dc98baec9e5",
+  "rejected_checkpoint_kept_literal": {
+    "source": "4f790b712871561c2b04c3d3173ad7ad51ee8a24",
+    "review": "eech-campaign/reference/d3-entity-collision/host-pose-source-review/source-review.json",
+    "review_sha256": "4d2f7343ff1890bb9a85f0dc4730f0d3ba755b679986672f63f1d57efaf7c050",
+    "verdict": "CHANGES_REQUIRED, exactly two findings; neither the source nor the review is rewritten"
+  },
+  "findings_addressed_not_closed": {
+    "ENV-ENTITY-POSE-FLAG-VALIDATION-1": "entity_host::classify_candidate_words (integers only, same domains/order/messages as check_candidate_facts, FP state untouched) runs FIRST in model_host.rs entity_candidate_answer; flags are then read by bit pattern; only then the registry. RED shown: the previous provider answers the missing-record refusal for a signalling-NaN flag word (log red-p2).",
+    "ENV-ENTITY-POSE-DOMAIN-1": "no category was documented away and no expected-refusal test is the fix: the supported lifecycle is proved from compiled source (creation order, ASSERT parent, unlink/release/retire placement, destroy order, build coupling #error) by tests/entity_pose_lifecycle_guard.rs, and by a Movers lifecycle control and a provider boundary control that use the real registry; refusals remain for forged, stale and withdrawn identities only."
+  },
+  "changed_files": [
+    {
+      "path": "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+      "git_blob": "04afeb8a0713a03bb2c65927fe85f7881e518e00",
+      "sha256_raw": "f16f908d4169ce544e9ed6def40619f204625286a8d747f4acdc9574a44902d0"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "git_blob": "d79e3f64e2962ed14537a5acdaca7232c4e8dddf",
+      "sha256_raw": "2d1d28f0102e78788d9f303bca4412dbcff35015ff3f1ad8d0f89514e2ee72ce"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "git_blob": "1b1242c6e2c727bad55c2d99eaed43e10abfcf21",
+      "sha256_raw": "94f3fa161c7dd689dbb1c2b48a8cb738ab07055a9dea13d086bb675ddc5c3aec"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostoffer.h",
+      "git_blob": "a00b47c6bd05abc3544a61e1414b0dc0b7b49d34",
+      "sha256_raw": "a32b3f53a63326789ce648c7d95bb1dd62e2cf8df3cb13e53a55a96647df667a"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/tests/entity_pose_lifecycle_guard.rs",
+      "git_blob": "3a18174516814a593bc0352c0330e64a7115afb1",
+      "sha256_raw": "c448cb658cf2c644e2c2910975a10cb1f02cd501c2df337d49cc897e28849dfd"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "git_blob": "3015ac7ff49388ab4e58544dde67f9ec9617c1ed",
+      "sha256_raw": "d289806870b4ee2e9c67bfc242c4920a033c87f3cd3281c8648229c6596958d5"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/entity_host.rs",
+      "git_blob": "6fe5810813e8f3f5d5484d63be42e0f399f276b1",
+      "sha256_raw": "0a1729a132e5cfb634fed2ea29fc78f2b19896f442abcf0f3c42c225f2a222a4"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+      "git_blob": "7db967398a42ca9132ef73607a50fc78bf15a484",
+      "sha256_raw": "5f86d77123828459cf3bcc4f28bc1fae6bf2272e302cd32bdfb71019d61c8d2f"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/movement.rs",
+      "git_blob": "a74b73022053769da9176d8202c95e7195bcb4d7",
+      "sha256_raw": "fc83842493e9d57b2240e8817e1a5a30aab574dbe12b8076524b3f07a5dd7b9a"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "git_blob": "86840680d370f120b80ae62580c7c73f7e12e3ec",
+      "sha256_raw": "a16be465c6afdbc4475db64e0bcfb7fc5ade67ce1670eebd315466186e3fd0e4"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+      "git_blob": "a1cdb3f463c771e5422360bedb02839e98f4e662",
+      "sha256_raw": "a4026c2f6b7ad887a6225a7e9b36422e60c44769a4ec48833cc15507eca9e8a6"
+    },
+    {
+      "path": "eech-campaign/docs/d3-entity-collision-provider.md",
+      "git_blob": "624f2931c4f2e6269e643c0742db082f97ca1859",
+      "sha256_raw": "1e256827bc702e6912dba23b056f58dd61957362d4476769288c3490f807f180"
+    }
+  ],
+  "source_map": {
+    "file": "R:/d3-evidence/host-pose-fix-20261105/source-identity-f3107332b.txt",
+    "taken": "on the clean committed AND pushed SHA, after cargo fmt --all and its check",
+    "rows": 2920,
+    "filtered_column_sha256": "e6e163d9571e3259da036facec08f8f14556273aff059ef487b69122ff38355c",
+    "raw_column_sha256": "36f2c5f69c9949ecfea3973a62fcd3d6d9a875d1cef7733c27784a8601e7f58b",
+    "filtered_differs_from_index": [
+      "aphavoc/laa.c",
+      "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+      "aphavoc/source/entity/special/effect/smokelst/sl_types.h"
+    ],
+    "qualifications_kept_separate": "the 3 tests/lua working-CRLF/Git-LF files and the 3 Core filtered-hash files are pre-existing and unchanged; eech-dc/src/module.rs (its 2 pre-existing NULs) is not modified by this batch"
+  },
+  "focused_exits_at_these_bytes": {
+    "runner": "own-volume Linux runner, pinned image, cache eech-linux-d3-collision-driver-5416adb3b-20261029; logs D:/EECH-Migration-Evidence/pose-fix3-20261105-a/{final1,final2,red-p2,witness1,witness2}/tests.log",
+    "final1": {
+      "cargo fmt --all": 0,
+      "cargo fmt --all -- --check": 0,
+      "cargo check --locked --all-targets": 0,
+      "engine-sys entity_host_guard + entity_pose_lifecycle_guard": "5 + 4 passed, exit 0",
+      "eech-world --lib (movement, entity_host unit incl. the 200000-word differential and the MXCSR test)": "351 passed, exit 0",
+      "eech-world entity_authority / entity_candidate_host / entity_pose_host / host_callbacks / model_target_point / tree_authority": "37 / 13 / 5 / 82 / 33 / 17 passed, exit 0",
+      "eech-dc + eech-engine --lib": "64 + 117 passed, exit 0"
+    },
+    "final2": "cargo test -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue (the real C dialogue, 361 expectations): 1 passed, exit 0",
+    "failed_logs_preserved": {
+      "final1 step4": "exit 101: entity_dialogue needs --features entity-dialogue-check (my invocation omitted it); rerun as final2",
+      "witness1": "2 of 37 failed: a host-side movement mode reached the generic \"altered no entity answer\" verdict; fixed by giving the movement modes the natural-chain checks (witness2: 37 passed)"
+    },
+    "not_run_by_this_lane": "six/five fixture builds, clippy, the full 16 matrix, mutants, Windows, native, any full war"
+  },
+  "public_proof": {
+    "what_exists": "lua/entity-authority.lua: hosted_move (pass-through, per-identity last-move log), modes moving_control and terrain_lift (completion modes, allowed under profile=original), selector nearest_moving_routed_enemy_of_a_launcher_with_an_unguided_ballistic_weapon, per-identity target counters, a source-bounded terrain lift (500 m only within the step map ceiling, only the target armed routed move, step table copied)",
+    "preconditions_verified_in_source": [
+      "weapon lookup excludes only the launcher so the target is not excluded",
+      "weapon updates run before vehicle moves in a frame so the first question that can see a lift is in the NEXT frame (a one-step cohort is UNREACHED, never a pass)",
+      "a routed Advance sets the new y from the step terrain elevation (eech_convoy_step), independent of speed; need_updated is asked by the shared C only when the motion vector is above 1 m/s, so target_need_updated is the per-identity moving proof"
+    ],
+    "controls": "tests/entity_authority.rs: 3 new scripted driver tests (selection by the host last step, per-identity counters, exact UNREACHED texts, lift scope and bound, engine table never mutated, original-profile run, refusal modes still refused under original)",
+    "limits": [
+      "the scripted controls prove the driver, not the physics: the physical effect needs Root native runs",
+      "a coherent Core-mirror+record change alone does not show what the old solver consumed; the provider canonical-vs-discarded-mirror test is the other half",
+      "the original profile asks no candidate question: comparison is outcome/trace-hash level only, no claim of Original NeedUpdated or per-candidate parity",
+      "if no routed enemy was stepped with |v|>1 in the final warmup frame the run is UNREACHED (exact text), nothing is tuned",
+      "withdrawn_record / displaced_record remain named stops, not positive proof"
+    ],
+    "minimal_root_sequence": [
+      "A hosted moving_control",
+      "B hosted terrain_lift (same seed, map, warmup, frame_ms, settle)",
+      "only after A and B are positive: C original moving_control, D original terrain_lift",
+      "compare A vs B on cohort_signature, terminal events, contact_any_tests/hits deltas, wpn_trace hashes; require A: target_need_updated>=1, target_test>=1, candidate_mobile_unnamed=0; B: lifted>=1, lift_answered_y == lift_elevation, target_after_lift>=1"
+    ]
+  },
+  "review_notes_applied": [
+    "scan/sector lists are Core backing (host SCAN decisions unchanged): provider doc line and table",
+    "ENTITY_POSE offer helper/header wording: a conformance assertion, not decision-neutral (mb_hostoffer.h, mb_hostmodel.h, mb_hostentity.h)",
+    "no claim that every kind vector or missing-record category is dispositioned from the kind-1-only observer (doc open dispositions (e))"
+  ],
+  "open_dispositions_still_required": [
+    "aircraft legacy raw writers (fixed_wing_taxi, basic_fixed_wing_movement_absolute, helicopter functions)",
+    "alive AA and person vectors have no hosted writer",
+    "multiplayer pack/unpack",
+    "lifecycle claim Core-origin vector adoption",
+    "moving public path actuals",
+    "all physical backing/sector history/roster, static/fixed/city identities, effectful getters, raw tree/forest/cloud/RNG, hierarchy/devices/muzzles/rotor/smoke/host IDs, DCS mapping, full Task49 (40/all8/CI/review/merge), whole D3; D4/D5/TypeScript unstarted"
+  ],
+  "process": {
+    "fix_blocker_guard": "migration-progress.py --action fix-blocker run for both IDs (exit 0)",
+    "review_state": "D3-CURRENT review unchanged at CHANGES_REQUIRED 4d2f; the same reviewer confirms after this frozen checkpoint; nothing here marks a review accepted",
+    "native_launch_clearance": false,
+    "background_jobs_owning_cache": "none (no container holds the volume; verified)"
+  },
+  "baselines_tolerances_inputs_unchanged": true
+}
