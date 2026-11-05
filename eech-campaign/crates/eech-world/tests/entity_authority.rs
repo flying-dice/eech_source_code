@@ -22,6 +22,7 @@ CAND_LOG, CAND_POS = {}, 0
 SCAN_LOG = {}
 POSE_LOG = {}
 MOVES, RETIRED, DISPLACED, MOVE_LOG = {}, {}, {}, {}
+VECTORS_ASKED, VECTORS_ALTERED, VECTORS_SEEN = 0, false, nil
 local function deep_copy (value)
 	if type (value) ~= "table" then return value end
 	local copy = {}
@@ -173,6 +174,7 @@ host = {
 	bind_mobile = function () ids = ids + 1 return "eech-world:" .. ids end,
 	-- the unmodified host aim: it records every request it receives, the paths where it differs from the engine's pristine request, and whether a signed zero survived
 	aim = function (request)
+		if request.mode == "vectors" then VECTORS_SEEN = request end
 		local paths = {}
 		differences (ORIGINAL, request, "", paths)
 		table.sort (paths)
@@ -221,6 +223,9 @@ package.preload.eech_dc = function ()
 			end
 			local last_hit = false
 			local now, since_launch, launched = 0, 0, false
+			local frame_no = 0
+			local linked = {}
+			for _, engagement in ipairs (scenario.engagements or {}) do linked ["eech-world:" .. engagement.source] = "eech-world:" .. engagement.target end
 			local tests, hits, precision, flight_hit = 0, 0, 0, false
 			local queue = {}
 			local engine = {}
@@ -434,6 +439,24 @@ package.preload.eech_dc = function ()
 				-- a natural weapon's offer before the case's launch (boot, warmup): the witness classifies it too, and never alters it
 				if scenario.pose_before_launch and not launched then pose_observe (0, true) end
 				if not (launched and scenario.stall_after_launch) then now = now + (scenario.clock_step or milliseconds / 1000) end
+				frame_no = frame_no + 1
+				if frame_no <= (scenario.engagement_until or 1000000) then
+					for _, engagement in ipairs (scenario.engagements or {}) do
+						local target_id = "eech-world:" .. engagement.target
+						local request = {
+							mode = "vectors", echo = 1, source_host_id = "eech-world:" .. engagement.source, target_host_id = target_id,
+							weapon = { weapon = engagement.weapon, present = true }, target = { position = { 1, 2, 3 }, motion_vector = (scenario.motion or {}) [target_id] or { 0, 0, 0 }, mobile = true },
+						}
+						local pristine = deep_copy (request)
+						VECTORS_SEEN = nil
+						config.aim (request)
+						VECTORS_ASKED = VECTORS_ASKED + 1
+						local changed = {}
+						differences (pristine, request, "", changed)
+						-- the witness forwards the SAME request, unchanged, to the host's own aim
+						if VECTORS_SEEN ~= request or #changed > 0 then VECTORS_ALTERED = true end
+					end
+				end
 				weapon_step ("weapon_step", false)
 				local effective = weapon_step ("weapon_step", true)
 				weapon_step ("weapon_birth", true)
@@ -468,7 +491,9 @@ package.preload.eech_dc = function ()
 				launched = true
 				LAUNCH = { launcher = launcher, target = target, weapon = weapon }
 				for _, line in ipairs (scenario.births or { "kind=birth w=5 type=gun" }) do queue [#queue + 1] = line end
-				return scenario.launch_report or ("wpn-case-launch launcher=helicopter weapon=7 target_link_before=0 target_link=1 count_before=3 count_after=2 births=" .. #(scenario.births or { 1 }) .. " creates=1 restored=1")
+				-- a launch whose target is already the launcher's link sets no link (the fixture's own rule): link_before=1 and restored=-1
+				local already = linked [launcher] == target
+				return scenario.launch_report or ("wpn-case-launch launcher=helicopter weapon=7 target_link_before=" .. (already and 1 or 0) .. " target_link=1 count_before=3 count_after=2 births=" .. #(scenario.births or { 1 }) .. " creates=1 restored=" .. (already and -1 or 1))
 			end
 			function engine:wpn_events ()
 				local text = table.concat (queue, "\n")
@@ -507,6 +532,8 @@ struct Driven {
     pose_log: Vec<(i64, i64, i64, String, String)>,
     /// (identity, mode, terrain elevation or -1, after the launch) of every step the host's movement callback was given
     move_log: Vec<(String, String, f64, bool)>,
+    /// the `vectors` aim requests the scripted campaign made, and whether any was not forwarded as the very same unchanged request
+    vectors: (i64, bool),
 }
 
 /// Runs the real driver once. `scenario` is the inside of the Lua table the collaborators read; `args` are the driver's own arguments.
@@ -567,6 +594,10 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
             })
             .collect(),
         launch: launch.map(|t| (t.get("launcher").unwrap(), t.get("target").unwrap(), t.get("weapon").unwrap())),
+        vectors: (
+            globals.get("VECTORS_ASKED").expect("the aim request count"),
+            globals.get("VECTORS_ALTERED").expect("the aim forwarding flag"),
+        ),
         move_log: moves
             .sequence_values::<mlua::Table>()
             .map(|entry| {
@@ -2063,28 +2094,56 @@ fn the_host_side_record_modes_refuse_by_exact_name_and_nothing_is_asked_afterwar
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // the host-side movement modes: a moving routed case selected from the host's own step answers, and a terrain input the host changes after the launch
 
-/// three mobiles: a blue launcher, a red routed vehicle the host steps at 3 m/s (the far one) and a red routed vehicle it steps with a zero vector (the near one); the far one is the candidate the
+/// three mobiles: a blue launcher, a red routed vehicle the host steps at 3 m/s (the far one) and a red routed vehicle it steps with a zero vector (the near one); the campaign's own aim request of every
+/// frame has the launcher engaging the far one with weapon 7 (so its link is already that target); the far one is the candidate the
 /// scripted dialogue names, asks need_updated of, and tests; the cohort ends in the SECOND frame after the launch, so a lift at the end of the first is followed by a question
 fn moving_scenario(extra: &str) -> String {
     healthy(&format!(
         ", mobiles = {{ {{ kind = 5, side = 'blue' }}, {{ kind = 1, side = 'red' }}, {{ kind = 1, side = 'red' }} }}, positions = {{ '0,0,0', '100,0,100', '40,0,0' }}, steps = {{ 2, 3 }}, \
-         motion = {{ ['eech-world:2'] = {{ 3, 0, 0 }} }}, candidate_id = 'eech-world:2', candidate_sequence = {{ 'need_updated', 'test' }}, after = {{ [2] = {{ {TERMINAL} }} }}{extra}"
+         motion = {{ ['eech-world:2'] = {{ 3, 0, 0 }} }}, engagements = {{ {{ source = 1, target = 2, weapon = 7 }} }}, candidate_id = 'eech-world:2', candidate_sequence = {{ 'need_updated', 'test' }}, after = {{ [2] = {{ {TERMINAL} }} }}{extra}"
     ))
 }
 
 #[test]
-fn the_moving_case_is_the_routed_enemy_the_host_actually_stepped_with_a_nonzero_vector_and_its_questions_are_counted_by_identity() {
-    // the natural selection takes the NEARER stationary vehicle; the moving selection takes the one the host's last step moved, and says why (the target's own motion and the frame it was answered in)
+fn the_moving_case_is_the_campaigns_own_engagement_of_a_routed_enemy_the_host_actually_stepped_and_its_questions_are_counted_by_identity() {
+    // the natural selection is unchanged (the NEARER stationary vehicle), and the campaign's aim requests reached the host's own aim exactly as the engine made them
     let driven = drive(&moving_scenario(""), &[]);
     assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
     assert_eq!(selected(&driven)["target"], "eech-world:3");
+    assert_eq!(
+        selected(&driven)["selection"],
+        "nearest_non_person_enemy_of_a_launcher_with_an_unguided_ballistic_weapon"
+    );
+    assert!(driven.vectors.0 >= 1 && !driven.vectors.1, "{:?}", driven.vectors);
+    // the moving selection is the campaign's engagement the host's last step made moving, and the launch is made with THAT already-linked target and weapon
     let driven = drive(&moving_scenario(""), &[("mode", "moving_control")]);
     assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
     let row = selected(&driven);
-    assert_eq!(row["target"], "eech-world:2");
-    assert_eq!(row["selection"], "nearest_moving_routed_enemy_of_a_launcher_with_an_unguided_ballistic_weapon");
+    assert_eq!(
+        (row["launcher"].clone(), row["target"].clone(), row["weapon"].clone()),
+        (Value::from("eech-world:1"), Value::from("eech-world:2"), Value::from(7))
+    );
+    assert_eq!(row["selection"], "campaign_engagement_of_a_moving_routed_enemy");
+    assert_eq!(row["distance"], -1, "no distance is ranked");
+    assert_eq!(driven.launch, Some(("eech-world:1".to_string(), "eech-world:2".to_string(), 7)));
+    assert!(
+        driven.vectors.0 >= 1 && !driven.vectors.1,
+        "the aim callback forwards every request unchanged: {:?}",
+        driven.vectors
+    );
     let moving = row_of(&driven, "moving_target");
-    assert_eq!((moving["motion"].clone(), moving["frame"].clone()), (Value::from("3,0,0"), Value::from(0)));
+    assert_eq!(
+        (moving["motion"].clone(), moving["frame"].clone(), moving["vectors_frame"].clone()),
+        (Value::from("3,0,0"), Value::from(0), Value::from(0))
+    );
+    assert_eq!(moving["aim_target_motion"], "3,0,0");
+    assert_eq!(moving["heading_evidence"], "unavailable_aim_step_carries_no_weapon_identity");
+    // the launch used the campaign's own link: no setter, so the link before is 1 and nothing was restored
+    let launch = row_of(&driven, "case_launch");
+    assert!(
+        launch["text"].as_str().unwrap().contains("target_link_before=1") && launch["text"].as_str().unwrap().contains("restored=-1"),
+        "{launch}"
+    );
     // the per-identity proof that the question was a moving one (the shared C asks need_updated only of a candidate whose vector is above 1), a test, and no lift
     let row = authority(&driven);
     assert_eq!(row["completed"], true);
@@ -2102,16 +2161,54 @@ fn the_moving_case_is_the_routed_enemy_the_host_actually_stepped_with_a_nonzero_
         (row["lifted"].clone(), row["target_after_lift"].clone(), row["candidate_mobile_unnamed"].clone()),
         (Value::from(0), Value::from(0), Value::from(0))
     );
+    assert_eq!(row["altered"], 0);
     assert!(driven.move_log.iter().all(|(_, _, elevation, _)| *elevation == 10.0), "{:?}", driven.move_log);
-    // a host that stepped no routed enemy with a vector above 1 m/s is the exact blocker, with nothing tuned and nothing selected instead
-    let error = error_of(drive(&moving_scenario(", motion = {}"), &[("mode", "moving_control")]));
+    // the lowest IDENTITY wins, not the smaller distance: two engagements of the same moving target, the launcher nearer to it has the higher identity
+    let two = ", mobiles = { { kind = 5, side = 'blue' }, { kind = 1, side = 'red' }, { kind = 1, side = 'blue' } }, positions = { '0,0,0', '1000,0,1000', '998,0,1000' }, steps = { 2 }, \
+               armed = { [1] = true, [3] = true }, engagements = { { source = 3, target = 2, weapon = 7 }, { source = 1, target = 2, weapon = 7 } }";
+    let driven = drive(&moving_scenario(two), &[("mode", "moving_control")]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(driven.launch, Some(("eech-world:1".to_string(), "eech-world:2".to_string(), 7)));
+    // no moving target is engaged: the host stepped a moving enemy the campaign is NOT aiming at, and it is never taken instead
+    let engaged_stationary = ", engagements = { { source = 1, target = 3, weapon = 7 } }";
+    let driven = drive(&moving_scenario(engaged_stationary), &[("mode", "moving_control")]);
+    let launch = driven.launch.clone();
+    let error = error_of(driven);
     assert!(
-        error.contains("UNREACHED: no moving routed enemy at launch") && error.contains("not tuned"),
+        error.contains("UNREACHED: no campaign engagement of a moving routed enemy in the final warmup frame") && error.contains("not tuned"),
         "{error}"
     );
-    // a target the host stepped only BEFORE the final warmup frame does not qualify: its last answer is not the final frame's
-    let error = error_of(drive(&moving_scenario(", steps = { 3 }"), &[("mode", "moving_control")]));
-    assert!(error.contains("UNREACHED: no moving routed enemy at launch"), "{error}");
+    assert_eq!(launch, None);
+    // no campaign engagement at all
+    let error = error_of(drive(&moving_scenario(", engagements = {}"), &[("mode", "moving_control")]));
+    assert!(
+        error.contains("UNREACHED: no campaign engagement of a moving routed enemy") && error.contains("(0 launchers"),
+        "{error}"
+    );
+    // an engagement the campaign made only in an EARLIER frame than the final warmup frame does not qualify
+    let error = error_of(drive(
+        &moving_scenario(", engagement_until = 1"),
+        &[("mode", "moving_control"), ("warmup", "3")],
+    ));
+    assert!(error.contains("UNREACHED: no campaign engagement of a moving routed enemy"), "{error}");
+    // the selected weapon must pass the existing in-stock, unguided, non-decoy conditions: weapon 8 is not in stock
+    let error = error_of(drive(
+        &moving_scenario(", engagements = { { source = 1, target = 2, weapon = 8 } }"),
+        &[("mode", "moving_control")],
+    ));
+    assert!(error.contains("UNREACHED: no campaign engagement of a moving routed enemy"), "{error}");
+    // a host that stepped no routed enemy with a vector above 1 m/s, or never stepped the engaged target in the final frame, is the same blocker
+    for extra in [", motion = {}", ", steps = { 3 }"] {
+        let error = error_of(drive(&moving_scenario(extra), &[("mode", "moving_control")]));
+        assert!(error.contains("UNREACHED: no campaign engagement of a moving routed enemy"), "{extra}: {error}");
+    }
+    // a launch that had to SET the link was not the campaign's own engagement: a failure, never a pass
+    let wrong_report = report("target_link_before=0");
+    let error = error_of(drive(
+        &moving_scenario(&format!(", launch_report = \"{wrong_report}\"")),
+        &[("mode", "moving_control")],
+    ));
+    assert!(error.contains("the launch did not use the campaign's own engagement"), "{error}");
     // a moving selection whose target is never asked need_updated (the dialogue never saw a vector above 1) is UNREACHED, never a pass
     let error = error_of(drive(&moving_scenario(", candidate_sequence = { 'test' }"), &[("mode", "moving_control")]));
     assert!(
@@ -2176,7 +2273,7 @@ fn a_terrain_lift_changes_only_the_targets_own_routed_step_after_the_launch_and_
     assert!(error.contains("not at the lifted elevation"), "{error}");
     // the lift needs the moving selection's target: with none moving the run is the same exact blocker
     let error = error_of(drive(&moving_scenario(", motion = {}"), &[("mode", "terrain_lift")]));
-    assert!(error.contains("UNREACHED: no moving routed enemy at launch"), "{error}");
+    assert!(error.contains("UNREACHED: no campaign engagement of a moving routed enemy"), "{error}");
 }
 
 #[test]

@@ -93,8 +93,13 @@
 --
 -- THE HOST'S OWN MOVEMENT CHANGES WHAT THE SOLVER DECIDES FROM (two completion modes; neither is a refusal and neither is claimed by the two refusal modes above, which only STOP the engine). The engine's own movement
 -- callback is the host's (`move_vehicle = hosted_move`, a pass-through that logs each `move` answer per identity). `moving_control` and `terrain_lift` select a DIFFERENT case from the nearest-enemy rule: the nearest enemy of
--- a launcher with an unguided ballistic weapon whose LAST host step (an actual `move` answered in the final warmup frame, the host's own result) has a motion vector of squared length above 1 and is a routed vehicle. No such
--- enemy is the exact blocker `UNREACHED: no moving routed enemy at launch` (the warmup, seed and distances are not tuned to find one; an anti-aircraft gun the host steps with a zero vector does not qualify).
+-- a launcher in an ENGAGEMENT THE CAMPAIGN ITSELF HAS SET UP: the unchanged aim callback observes each turret's `vectors` request (the campaign's own source, target link and selected weapon of that frame), and a
+-- launcher qualifies when its last such request was made in the final warmup frame, its target is an alive routed enemy the host actually stepped in that same frame with a motion vector of squared length above 1 (the host's own
+-- `move` answer), and the selected weapon passes the existing unguided, non-decoy, in-stock conditions. The lowest identity order wins (no distance ranking, no fallback to the nearest enemy), and the launch is made with THAT
+-- already-linked target and weapon: the fixture then sets no link, so the launch report must say target_link_before=1 (restored=-1). The launch itself does not slew a turret, which is why a link made only for its length
+-- (the old nearest-moving selection) supplied no aim and no contact precondition. No such engagement is the exact blocker `UNREACHED: no campaign engagement of a moving routed enemy in the final warmup frame` (the warmup,
+-- seed and distances are not tuned; an anti-aircraft gun the host steps with a zero vector does not qualify). The aim `step` request names its source but no weapon, so no heading is recorded: a source may own several turrets
+-- and a correlation would be invented.
 --   moving_control    the natural case with that selection. It requires the TARGET itself to be asked need_updated (the shared C asks it only of a candidate whose motion vector is above 1: the per-identity proof that the
 --                     question was moving), to reach a `test`, and every mobile question to carry an identity.
 --   terrain_lift      the same, and after the launch (so the launch's aim is the control's) the host replaces ONE real environmental input of the target's own routed `move` steps: the terrain elevation, by a constant
@@ -401,6 +406,8 @@ local withdrawn, displaced = 0, 0
 -- the frames the engine has run (the host-movement wrapper stamps each of its answers with the frame it was given in), the host's last `move` answer per identity, the case target's identity and its questions
 local frames = 0
 local last_move = {}
+-- the last `vectors` aim request seen per source identity (target link, selected weapon, the target's motion words, frame): an observation of the campaign's own engagement, forwarded unchanged
+local last_vectors = {}
 local watched
 local tgt = { questions = 0, skip = 0, need_updated = 0, need_fixed = 0, need_placement = 0, need_normal = 0, buildings = 0, test = 0, after_lift = 0, after_lift_test = 0 }
 -- the lifted terrain elevation (metres added to the target's own routed step; a constant declared before any run) and what the lifted steps did
@@ -809,6 +816,10 @@ local function viewed_answer (answer)
 	return copy
 end
 local function aim (request)
+	if not armed and type (request) == "table" and request.mode == "vectors" and type (request.source_host_id) == "string" and type (request.target_host_id) == "string"
+		and type (request.weapon) == "table" and type (request.weapon.weapon) == "number" and type (request.target) == "table" then
+		last_vectors [request.source_host_id] = { frame = frames, target = request.target_host_id, weapon = request.weapon.weapon, motion = request.target.motion_vector }
+	end
 	if armed and type (request) == "table" and request.mode == "weapon_step" then
 		view.steps_seen = view.steps_seen + 1
 		local answers = request.answers
@@ -977,7 +988,7 @@ local function main ()
 			local best, best_distance
 			for _, other in ipairs (ordered) do
 				local o = alive [other]
-				if o and other ~= id and o.side ~= s.side and (o.side == "blue" or o.side == "red") and descriptors [other].kind ~= PERSON and (not plan.moving_target or moving_routed (other)) then
+				if o and other ~= id and o.side ~= s.side and (o.side == "blue" or o.side == "red") and descriptors [other].kind ~= PERSON then
 					local dx, dy, dz = o.position [1] - s.position [1], o.position [2] - s.position [2], o.position [3] - s.position [3]
 					local distance = math.sqrt (dx * dx + dy * dy + dz * dz)
 					if not best_distance or distance < best_distance then best, best_distance = other, distance end
@@ -991,25 +1002,48 @@ local function main ()
 		return a.order < b.order
 	end)
 	local launcher, target, weapon, distance
-	for _, pair in ipairs (pair_list) do
-		for w = 1, 127 do
-			local q = state (pair.launcher, w)
-			if q and q.weapon_count and q.weapon_count > 0 and q.guidance == 0 and q.aiming ~= 0 and q.decoy == 0 then
-				launcher, target, weapon, distance = pair.launcher, pair.target, w, pair.distance
-				break
+	local considered = #pair_list
+	if plan.moving_target then
+		-- the campaign's own engagements of the final warmup frame, in identity order (never by distance)
+		considered = 0
+		for _, id in ipairs (ordered) do
+			local aimed = last_vectors [id]
+			if alive [id] and aimed ~= nil and aimed.frame == frames - 1 then
+				considered = considered + 1
+				local o = alive [aimed.target]
+				if o and descriptors [aimed.target] and o.side ~= alive [id].side and (o.side == "blue" or o.side == "red") and moving_routed (aimed.target)
+					and aimed.weapon == math.floor (aimed.weapon) and aimed.weapon >= 1 and aimed.weapon <= 127 then
+					local q = state (id, aimed.weapon)
+					if q and q.weapon_count and q.weapon_count > 0 and q.guidance == 0 and q.aiming ~= 0 and q.decoy == 0 then
+						launcher, target, weapon = id, aimed.target, aimed.weapon
+						break
+					end
+				end
 			end
 		end
-		if launcher then break end
+	else
+		for _, pair in ipairs (pair_list) do
+			for w = 1, 127 do
+				local q = state (pair.launcher, w)
+				if q and q.weapon_count and q.weapon_count > 0 and q.guidance == 0 and q.aiming ~= 0 and q.decoy == 0 then
+					launcher, target, weapon, distance = pair.launcher, pair.target, w, pair.distance
+					break
+				end
+			end
+			if launcher then break end
+		end
 	end
-	emit { event = "case_selected", launcher = launcher or "none", target = target or "none", weapon = weapon or -1, distance = distance or -1, pairs_considered = #pair_list,
-		selection = plan.moving_target and "nearest_moving_routed_enemy_of_a_launcher_with_an_unguided_ballistic_weapon" or "nearest_non_person_enemy_of_a_launcher_with_an_unguided_ballistic_weapon" }
-	if not launcher and plan.moving_target then hard ("UNREACHED: no moving routed enemy at launch: no routed enemy of a launcher with an unguided ballistic weapon was stepped by the host in the final warmup frame with a motion vector above 1 m/s (" .. #pair_list .. " pairs); the warmup, seed and distances are not tuned") end
+	emit { event = "case_selected", launcher = launcher or "none", target = target or "none", weapon = weapon or -1, distance = distance or -1, pairs_considered = considered,
+		selection = plan.moving_target and "campaign_engagement_of_a_moving_routed_enemy" or "nearest_non_person_enemy_of_a_launcher_with_an_unguided_ballistic_weapon" }
+	if not launcher and plan.moving_target then hard ("UNREACHED: no campaign engagement of a moving routed enemy in the final warmup frame (" .. considered .. " launchers aimed a target that frame): the warmup, seed and distances are not tuned and no other target is taken") end
 	if not launcher then hard ("SETUP FAILURE: no launcher with an unguided ballistic weapon and a non-person enemy was found") end
 
 	watched = target
 	if plan.moving_target then
 		local last = last_move [target]
-		emit { event = "moving_target", target = target, motion = table.concat (last.motion, ","), frame = last.frame, position = table.concat (last.position or {}, ",") }
+		local aimed = last_vectors [launcher]
+		emit { event = "moving_target", launcher = launcher, target = target, weapon = weapon, motion = table.concat (last.motion, ","), frame = last.frame, position = table.concat (last.position or {}, ","),
+			vectors_frame = aimed.frame, aim_target_motion = type (aimed.motion) == "table" and table.concat (aimed.motion, ",") or "", heading_evidence = "unavailable_aim_step_carries_no_weapon_identity" }
 	end
 	events () -- everything the natural war logged before the launch is taken first, so what is read after is the launch's own
 	local any_tests_before = counter ("contact_any_tests")
@@ -1041,6 +1075,9 @@ local function main ()
 		table.sort (members, function (a, b) return tonumber (a) < tonumber (b) end)
 		local problem = launch_report_problem (report, first_line (launch_text), weapon)
 		if problem then hard (problem) end
+		if plan.moving_target and (whole (report.target_link_before) ~= 1 or whole (report.restored) ~= -1) then
+			hard (string.format ("the launch did not use the campaign's own engagement: target_link_before=%s restored=%s (expected 1 and -1, so no link was set): %s", tostring (report.target_link_before), tostring (report.restored), first_line (launch_text)))
+		end
 		local births = whole (report.births)
 		if #members < 1 then hard ("SETUP FAILURE: the launch logged no birth: the controlled cohort is empty") end
 		if births ~= #members then hard (string.format ("the launch report says births=%d but the launch logged %d birth events", births, #members)) end
