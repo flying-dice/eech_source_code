@@ -17,7 +17,7 @@
 //! other request is accepted for that man meanwhile.
 
 use std::cell::RefCell;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
 use std::os::raw::c_int;
 use std::rc::Rc;
 
@@ -1393,6 +1393,84 @@ struct Record {
     previous_position: [f32; 3],
 }
 
+/// DIAGNOSTICS ONLY (pose-motion trace build): how many recent requests of an identity are kept.
+const DIAG_RING: usize = 16;
+
+/// One accepted or refused request of an identity, as bit patterns after it.
+struct DiagStep {
+    seq: u64,
+    name: &'static str,
+    accepted: bool,
+    held: Option<[u32; 3]>,
+    position: [u32; 3],
+    velocity: Option<u32>,
+}
+
+/// The private trace of one identity.
+struct DiagId {
+    bound_seq: u64,
+    /// the kind, position, motion vector (zero words when none) and velocity at the bind
+    bound: (Kind, [u32; 3], [u32; 3], u32),
+    steps: u64,
+    refused: u64,
+    counts: BTreeMap<&'static str, u64>,
+    ring: VecDeque<DiagStep>,
+}
+
+/// DIAGNOSTICS ONLY: the integer trace of every identity's requests, ordered by one counter. It is not a physical store: no decision, answer or query reads it.
+#[derive(Default)]
+struct PoseDiag {
+    seq: u64,
+    ids: HashMap<String, DiagId>,
+}
+
+impl PoseDiag {
+    fn note_bind(&mut self, host_id: &str, kind: Kind, pose: &Pose, motion: Option<[f32; 3]>) {
+        self.seq += 1;
+        let id = DiagId {
+            bound_seq: self.seq,
+            bound: (
+                kind,
+                pose.position.map(f32::to_bits),
+                motion.map_or([0; 3], |m| m.map(f32::to_bits)),
+                pose.velocity.to_bits(),
+            ),
+            steps: 0,
+            refused: 0,
+            counts: BTreeMap::new(),
+            ring: VecDeque::with_capacity(DIAG_RING),
+        };
+        self.ids.insert(host_id.to_owned(), id);
+    }
+
+    fn note_step(&mut self, host_id: &str, name: &'static str, accepted: bool, state: Option<(Option<[u32; 3]>, [u32; 3], u32)>) {
+        self.seq += 1;
+        let seq = self.seq;
+        let Some(id) = self.ids.get_mut(host_id) else { return };
+        if accepted {
+            id.steps += 1;
+        } else {
+            id.refused += 1;
+        }
+        *id.counts.entry(name).or_insert(0) += 1;
+        if id.ring.len() == DIAG_RING {
+            id.ring.pop_front();
+        }
+        let (held, position, velocity) = match state {
+            Some((held, position, velocity)) => (held, position, Some(velocity)),
+            None => (None, [0; 3], None),
+        };
+        id.ring.push_back(DiagStep {
+            seq,
+            name,
+            accepted,
+            held,
+            position,
+            velocity,
+        });
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum FallStage {
     /// the candidate position is retained
@@ -1552,6 +1630,8 @@ pub struct Movers {
     unrecorded: HashSet<String>,
     retired: HashSet<String>,
     answer: Option<HelicopterAnswer>,
+    /// DIAGNOSTICS ONLY (pose-motion trace build): a private integer trace of each identity's accepted/refused requests. It is never read by a decision, an answer or a query.
+    diag: PoseDiag,
 }
 
 impl Movers {
@@ -1582,6 +1662,7 @@ impl Movers {
         if self.mobiles.remove(host_id).is_none() && !self.unrecorded.remove(host_id) {
             return Err(format!("host.retire: unknown host id {host_id}"));
         }
+        self.diag.ids.remove(host_id);
         self.retired.insert(host_id.to_owned());
         Ok(())
     }
@@ -1609,6 +1690,7 @@ impl Movers {
             (_, Some(_)) => return Err(format!("host.bind_mobile: {kind:?} {host_id} was bound with a rotor state")),
         }
         self.ensure_fresh(host_id)?;
+        self.diag.note_bind(host_id, kind, &pose, motion_vector);
         self.mobiles.insert(
             host_id.to_owned(),
             Record {
@@ -1697,6 +1779,117 @@ impl Movers {
         })
     }
 
+    /// DIAGNOSTICS ONLY: one integer trace entry for `host_id` after a request, from the record as it now stands. Nothing here reads a float or changes a record.
+    fn diag_note(&mut self, host_id: &str, name: &'static str, accepted: bool) {
+        let state = self.mobiles.get(host_id).map(|record| {
+            (
+                record.motion_vector.map(|vector| vector.map(f32::to_bits)),
+                record.pose.position.map(f32::to_bits),
+                record.pose.velocity.to_bits(),
+            )
+        });
+        self.diag.note_step(host_id, name, accepted, state);
+    }
+
+    /// DIAGNOSTICS ONLY: at a position, attitude or motion mismatch of ENTITY_POSE, append the private raw facts to the file named by `EECH_POSE_MOTION_DIAG` (nothing is written when it is unset).
+    /// Read-only: the answer, the registry and the campaign never depend on it.
+    pub fn diag_dump_mismatch(&self, host_id: &str, stage: i64, entity_type: Option<i64>, alive: Option<i64>, words: &ObservedWords, difference: u32) {
+        use std::fmt::Write as _;
+        use std::io::Write as _;
+        let Some(path) = std::env::var_os("EECH_POSE_MOTION_DIAG") else { return };
+        let hex = |w: &[u32]| w.iter().map(|x| format!("{x:08x}")).collect::<Vec<_>>().join(",");
+        let mut text = String::new();
+        let _ = writeln!(
+            text,
+            "POSE-MISMATCH diag_seq={} stage={stage} entity_type={entity_type:?} alive={alive:?} difference={difference} host_id={host_id}",
+            self.diag.seq
+        );
+        let _ = writeln!(
+            text,
+            "campaign position={} motion={} attitude={}",
+            hex(&words.position),
+            hex(&words.motion),
+            words.attitude.map_or("-".to_string(), |a| hex(&a))
+        );
+        match self.mobiles.get(host_id) {
+            None => {
+                let _ = writeln!(text, "host record: none");
+            }
+            Some(record) => {
+                let held = record.motion_vector.map(|v| v.map(f32::to_bits));
+                let _ = writeln!(
+                    text,
+                    "host kind={:?} position={} velocity={:08x} attitude={} held_motion={}",
+                    record.kind,
+                    hex(&record.pose.position.map(f32::to_bits)),
+                    record.pose.velocity.to_bits(),
+                    hex(&record.pose.attitude.map(f32::to_bits)),
+                    held.map_or("-".to_string(), |h| hex(&h))
+                );
+                let speed = record.pose.velocity.to_bits();
+                let formula: Vec<String> = record.pose.attitude[6..9]
+                    .iter()
+                    .map(|e| product_toward_zero(e.to_bits(), speed).map_or("undefined".to_string(), |w| format!("{w:08x}")))
+                    .collect();
+                let _ = writeln!(text, "host formula_row2_times_speed={}", formula.join(","));
+                let _ = writeln!(
+                    text,
+                    "host flags placed={} pending={} helicopter_pending={} crash_pending={} vehicle_vector={} death_candidate={} fall={:?} fw_speed={:?} fw_crash={} fw_turn={} death_timer={:?} hc_flow={} candidate={} contact_altitude={:?} previous_position={}",
+                    record.placed,
+                    record.pending.is_some(),
+                    record.helicopter_pending,
+                    record.crash_pending,
+                    record.vehicle_vector.map_or("-".to_string(), |v| hex(&v.map(f32::to_bits))),
+                    record.death_candidate.is_some(),
+                    record.fall.map(|f| f.stage),
+                    record.fw_speed.map(f32::to_bits),
+                    record.fw_crash.is_some(),
+                    record.fw_turn.is_some(),
+                    record.death_timer.map(f32::to_bits),
+                    record.hc_flow.is_some(),
+                    record.candidate.is_some(),
+                    record.contact_altitude.map(f32::to_bits),
+                    hex(&record.previous_position.map(f32::to_bits))
+                );
+            }
+        }
+        match self.diag.ids.get(host_id) {
+            None => {
+                let _ = writeln!(text, "trace: none");
+            }
+            Some(id) => {
+                let _ = writeln!(
+                    text,
+                    "trace bound_seq={} bound_kind={:?} bound_position={} bound_motion={} bound_velocity={:08x} steps={} refused={}",
+                    id.bound_seq,
+                    id.bound.0,
+                    hex(&id.bound.1),
+                    hex(&id.bound.2),
+                    id.bound.3,
+                    id.steps,
+                    id.refused
+                );
+                let _ = writeln!(text, "trace counts={:?}", id.counts);
+                for entry in &id.ring {
+                    let _ = writeln!(
+                        text,
+                        "trace step seq={} name={} accepted={} held_after={} position_after={} velocity_after={}",
+                        entry.seq,
+                        entry.name,
+                        entry.accepted,
+                        entry.held.map_or("-".to_string(), |h| hex(&h)),
+                        hex(&entry.position),
+                        entry.velocity.map_or("-".to_string(), |v| format!("{v:08x}"))
+                    );
+                }
+            }
+        }
+        if let Ok(mut file) = std::fs::OpenOptions::new().create(true).append(true).open(path) {
+            let _ = file.write_all(text.as_bytes());
+            let _ = file.flush();
+        }
+    }
+
     /// The guidance answer the last [`Movers::step`] produced (a plan or guide request), if any; taken once.
     pub fn take_answer(&mut self) -> Option<HelicopterAnswer> {
         self.answer.take()
@@ -1707,7 +1900,10 @@ impl Movers {
     pub fn step(&mut self, host_id: &str, campaign: Pose, request: Request) -> Result<Outcome, String> {
         self.answer = None;
         let before = self.mobiles.get(host_id).map(|record| record.pose.position);
-        let mut outcome = self.dispatch(host_id, campaign, request)?;
+        let name = request.name();
+        let result = self.dispatch(host_id, campaign, request);
+        self.diag_note(host_id, name, result.is_ok());
+        let mut outcome = result?;
         if let Some(record) = self.mobiles.get_mut(host_id) {
             if let Some(before) = before {
                 record.previous_position = before;

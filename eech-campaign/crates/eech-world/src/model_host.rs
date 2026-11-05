@@ -564,6 +564,16 @@ fn entity_pose_answer(lua: &Lua, q: &Question) -> LuaResult<LuaTable> {
                 })?
                 .observe(host_id, &observed),
         };
+        // DIAGNOSTICS ONLY (pose-motion trace build): at a position, attitude or motion mismatch, write the private raw facts; the answer below is unchanged
+        if let movement::Observation::Recorded { difference, .. } = &observation {
+            if difference & (movement::OBSERVED_POSITION | movement::OBSERVED_ATTITUDE | movement::OBSERVED_MOTION) != 0 {
+                if let Some(shared) = lua.app_data_ref::<movement::SharedMovers>() {
+                    if let Ok(movers) = shared.0.try_borrow() {
+                        movers.diag_dump_mismatch(host_id, stage, q.kind, q.definition, &observed, *difference);
+                    }
+                }
+            }
+        }
         match observation {
             movement::Observation::Recorded { kind, difference } => (
                 "recorded",
