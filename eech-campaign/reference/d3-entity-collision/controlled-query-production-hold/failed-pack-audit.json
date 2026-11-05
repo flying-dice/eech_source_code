@@ -1,0 +1,121 @@
+{
+  "recorded_utc": "2026-11-05T20:39:16.330511+00:00",
+  "source": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+  "pack_actual_exit": 1,
+  "helper_actual_exit": 1,
+  "outer_actual_exit": 1,
+  "report_sha256": "a662c409c07a7760782120a4e9746da1266b9bed5b865a8b9aa0fdae8e3c6d31",
+  "report_verdict": "FAIL - UNCLASSIFIED: no change record for this build (tools/baseline-governance.py propose)",
+  "checks_total": 40,
+  "check_status_counts": {
+    "FAIL": 16,
+    "PASS": 24
+  },
+  "native_fatal_logs": [
+    {
+      "role": "reference1",
+      "path": "D:\\EECH-Migration-Evidence\\canonical-pose-shipping-ea2b23481-20261105\\reference\\run1\\run.log",
+      "bytes": 45936,
+      "sha256": "8b942363dec3b2a134a9fb2ee33deb9b0dfa7e501e01c701218da13edafec00f",
+      "fatal_marker": "entity_pose.mirror",
+      "difference_masks": [
+        20,
+        20
+      ],
+      "actual_native_exit_individually_recorded": 1,
+      "limit": "Native exit1 reported by retained runner logs."
+    },
+    {
+      "role": "reference2",
+      "path": "D:\\EECH-Migration-Evidence\\canonical-pose-shipping-ea2b23481-20261105\\reference\\run2\\run.log",
+      "bytes": 47623,
+      "sha256": "661a6ddfdae31b2f817f483428b477b00b513a33151186de76e90fcf4e88bc03",
+      "fatal_marker": "entity_pose.mirror",
+      "difference_masks": [
+        20,
+        20
+      ],
+      "actual_native_exit_individually_recorded": null,
+      "limit": "Reference2 has a fatal log/process ended but its individual exit was not separately retained; not fabricated from inference."
+    },
+    {
+      "role": "georgia",
+      "path": "D:\\EECH-Migration-Evidence\\canonical-pose-shipping-ea2b23481-20261105\\regress\\georgia_retail.log",
+      "bytes": 45863,
+      "sha256": "a53f434d909dacb76befd1d2b4c0cf7addffeb1ffc1af9f092be404092219e1c",
+      "fatal_marker": "entity_pose.mirror",
+      "difference_masks": [
+        20,
+        20
+      ],
+      "actual_native_exit_individually_recorded": 1,
+      "limit": "Native exit1 reported by retained runner logs."
+    },
+    {
+      "role": "lebanon_unobserved",
+      "path": "D:\\EECH-Migration-Evidence\\canonical-pose-shipping-ea2b23481-20261105\\regress\\lebanon_retail.log",
+      "bytes": 47068,
+      "sha256": "4e78030ed941e967087c2468674da93b67ba30f09871498ed13844ca24de1ec1",
+      "fatal_marker": "entity_pose.mirror",
+      "difference_masks": [
+        20,
+        20
+      ],
+      "actual_native_exit_individually_recorded": 1,
+      "limit": "Native exit1 reported by retained runner logs."
+    }
+  ],
+  "recorded_progress_at_abort": [
+    {
+      "run": "run1",
+      "last_complete_recorded_seconds": 379.96,
+      "bytes": 4975464,
+      "sha256": "788848abf764f442ba51be011c50677ed510a63bfe12c63ac9f04641cc320ff2",
+      "scope": "Frozen PARTIAL recording, not10800-second completion or exact fatal clock"
+    },
+    {
+      "run": "run2",
+      "last_complete_recorded_seconds": 379.96,
+      "bytes": 4975464,
+      "sha256": "788848abf764f442ba51be011c50677ed510a63bfe12c63ac9f04641cc320ff2",
+      "scope": "Frozen PARTIAL recording, not10800-second completion or exact fatal clock"
+    }
+  ],
+  "all_four_post_input_checks": [
+    {
+      "root": "georgia",
+      "path": "D:\\EECH-Migration-Evidence\\collision-production-validation-roots-20261103-0153\\georgia",
+      "actual_exit": 0,
+      "log": "R:\\d3-evidence\\canonical-pose-failed-fullpack-georgia-inputs-20261105.log",
+      "log_sha256": "2bce8b747f56da56046fc352d98698cc343dae777c3c501308ab72d5a5ced5b7"
+    },
+    {
+      "root": "lebanon",
+      "path": "D:\\EECH-Migration-Evidence\\collision-production-validation-roots-20261103-0153\\lebanon",
+      "actual_exit": 0,
+      "log": "R:\\d3-evidence\\canonical-pose-failed-fullpack-lebanon-inputs-20261105.log",
+      "log_sha256": "dc8e0e2d9682a71de3a4d6c545e31e835a757a90a8d96c4c2deb8535c564e067"
+    },
+    {
+      "root": "lebanon_repeat",
+      "path": "D:\\EECH-Migration-Evidence\\collision-production-validation-roots-20261103-0153\\lebanon-repeat",
+      "actual_exit": 0,
+      "log": "R:\\d3-evidence\\canonical-pose-failed-fullpack-lebanon_repeat-inputs-20261105.log",
+      "log_sha256": "5b5921e5d24742105ffef9f6fe24e6d306a23d45b3e3bafe033acb7c4af3deed"
+    },
+    {
+      "root": "internal_lebanon_copy",
+      "path": "D:\\EECH-Migration-Evidence\\canonical-pose-shipping-ea2b23481-20261105\\roots\\lebanon-regress",
+      "actual_exit": 0,
+      "log": "R:\\d3-evidence\\canonical-pose-failed-fullpack-internal_lebanon_copy-inputs-20261105.log",
+      "log_sha256": "b612899aea5eafe68d634ea586dcab434cbef8ffbe7630d554f4710165799103"
+    }
+  ],
+  "ordinary_payloads_rehashed": 88,
+  "all_current_ordinary_payloads_equal_build": true,
+  "no_completion_json_written": true,
+  "first_mismatch_actor_stage_and_expected_actual_motion": "NOT in current fatal message; must trace legitimate boundary before assigning writer/root cause",
+  "blocker": "ENV-ENTITY-POSE-RUNTIME-MOTION-1",
+  "classification": "ACTUAL_ORDINARY_NATIVE_REGRESSION_BLOCKING_DELIVERY: motion bit4 differs; mask20 includes diagnostic16, not benign formula-only difference",
+  "scope": "Preserved failed established pack; previous short/default/partial-prefix facts retain only their own finite scope. No restart, oracle/tolerance change, new source acceptance or invented individual exit."
+}

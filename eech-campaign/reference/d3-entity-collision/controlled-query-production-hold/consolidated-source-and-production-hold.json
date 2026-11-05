@@ -1,0 +1,371 @@
+{
+  "schema": 1,
+  "review_date": "2026-11-05",
+  "reviewer_role": "sole independent Codex reviewer",
+  "scope": "ONE combined changed-source correctness, clean-code and boundary-safety pass over the new controlled moving query fixture, its transport, strict driver and focused actual checks. Closed production kernels/earlier source and native proofs were not swept again.",
+  "source": {
+    "commit": "2fccc23b704264637ae40921bcdb228b122d38e5",
+    "metadata_commit": "4f7c177611d96dc87b628a3648e227b002f92883",
+    "base": "e39b1162532a68501a5f709b6dc571d3d91537a7",
+    "changed_code_and_driver_paths": [
+      "eech-campaign/crates/eech-dc/src/module.rs",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_wpn_fixture.c",
+      "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "eech-campaign/crates/eech-engine/src/lib.rs",
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs"
+    ],
+    "changed_provider_doc": "eech-campaign/docs/d3-entity-collision-provider.md",
+    "safe_prior_report_publication_paths": 5,
+    "all14_declared_changed_blob_ids_SHA_lengths_and_clean_working_bytes_verified": true,
+    "metadata_delta": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json",
+      "eech-campaign/reference/d3-entity-collision/controlled-moving-query-focused-20261105.json"
+    ],
+    "NUL_counts_preserved": {
+      "eech-dc/src/module.rs": 2,
+      "eech-engine-sys/csrc/eech_engine.c": 1
+    }
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED_WITH_EXTERNAL_ORDINARY_PRODUCTION_BLOCKER",
+    "native_launch_clearance": false,
+    "source_review_no_blocking_findings": false,
+    "findings": [
+      "ENV-MOVING-QUERY-REPORT-BOUND-1",
+      "ENV-MOVING-QUERY-PROTOCOL-1",
+      "ENV-MOVING-QUERY-AB-CONTRACT-1"
+    ],
+    "finite_query_service_authority_closed": false,
+    "natural_weapon_engagement_proof": false,
+    "whole_pose_authority_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false,
+    "external_production_blockers": [
+      "ENV-ENTITY-POSE-LONG-RUN-MOTION-1"
+    ],
+    "new_native_validation_hold": true
+  },
+  "findings": [
+    {
+      "id": "ENV-MOVING-QUERY-REPORT-BOUND-1",
+      "severity": "P2",
+      "title": "A valid full-domain hit report exceeds the fixed local buffer after the effectful query",
+      "locations": [
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_wpn_fixture.c:1986",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_wpn_fixture.c:2170"
+      ],
+      "evidence": "MQ_ID_MAX accepts128 bytes. The new run formats a complete hit row through char out[320]. A routed hit using a128-byte identity and the specified six point/normal words is378 bytes before its terminator, even without any escaping expansion. snprintf prevents an overflow, but this valid case returns failure only after the real query and its destructive UPDATED/shared-terrain effects. The outer3072-byte report check does not protect this local bound.",
+      "required_correction": [
+        "Compute a finite worst-case row/report bound covering the actual semantic-ID representation and entity kind, and use a sufficiently sized local buffer or bounded direct append",
+        "Check the caller report capacity for every full result before the first effectful query; retain all three fixed queries, no early stop/search on a hit",
+        "Include encoded-ID expansion from the protocol finding in the same bound; no separate generic I/O framework is needed"
+      ],
+      "minimum_focused_validation": "A positive actual shared C formatting/boundary control with a maximum-length identity and a hit, plus insufficient-capacity refusal before a query counter advances. No retail/unsafe old-binary experiment or new war is needed."
+    },
+    {
+      "id": "ENV-MOVING-QUERY-PROTOCOL-1",
+      "severity": "P2",
+      "title": "The new report/parser/error channels can discard or accept the wrong evidence",
+      "locations": [
+        "eech-campaign/crates/eech-engine/src/lib.rs:7269",
+        "eech-campaign/crates/eech-engine/src/lib.rs:7279",
+        "eech-campaign/crates/eech-world/lua/entity-authority.lua:1031",
+        "eech-campaign/crates/eech-world/lua/entity-authority.lua:1046",
+        "eech-campaign/crates/eech-world/lua/entity-authority.lua:1064",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_wpn_fixture.c:2121"
+      ],
+      "subitems": [
+        {
+          "problem": "Raw semantic IDs are interpolated into whitespace-delimited report fields",
+          "evidence": "campaign_roster_accept_host_id accepts1..128 valid UTF-8 bytes and does not exclude ASCII whitespace/newlines. A valid identity can split a new header/result/error row. Current test IDs do not exercise this.",
+          "correction": "Use a bounded reversible private report representation for all identities, including an arbitrary hit identity; preserve the production semantic-ID domain and include representation growth in report bounds. Decode and compare exact identities."
+        },
+        {
+          "problem": "The parser filters known prefixes and validates only part of each result",
+          "evidence": "lines_of silently ignores unknown lines. Prepare does not join segments=3/type/radius/bearing domains; run never checks its header host identity or segment count. Missing or malformed hit_type/hit_is_target/hit_host_id/point/normal can become empty strings or tostring(nil) in a published signature while the current coverage checks pass.",
+          "correction": "Require exactly one complete prepare header plus three ordered segment rows, and exactly one run header for the same target plus three ordered result rows. Reject unknown/duplicate/missing rows or keys. Validate finite input bit triples and declarations, same prepared/run a/b words, hit/target flags and exact conditional hit/miss fields. HIT must carry exact3-word point and normal bit strings with a consistent type/identity; MISS must carry target=0/type=none/id=-/point=-/normal=-. If hit_is_target=1, the decoded hit identity must equal the latched target. Preserve output words; do not normalize them or introduce a parallel numerical answer oracle."
+        },
+        {
+          "problem": "Actual case-refusal reasons are discarded at the Rust bridge while the scripted collaborator exposes them",
+          "evidence": "Both new Engine methods execute check(native_code)? before reading the C text. EECH_ENGINE_BAD_ARGUMENT therefore loses the populated wpn-case-error reason. The new tests instead throw the full named reason directly, so they do not cover the real error channel.",
+          "correction": "Preserve the bounded named case-refusal text only for the defined non-poison refusal status. Continue to handle Fatal/Poisoned without inspecting output buffers or making another engine request. Use a faithful transport control so the reason tested is the one the real bridge would deliver."
+        }
+      ],
+      "minimum_focused_validation": "Start with real C-shaped complete positive prepare/run reports, including actual compiled type names and whitespace/UTF-8/max-length IDs. Then single-fault malformed header/identity/bit-vector/conditional-field/extra-row cases must fail without success output; a named non-poison refusal must survive the bridge, while a fatal must cause no buffer read or engine follow-up."
+    },
+    {
+      "id": "ENV-MOVING-QUERY-AB-CONTRACT-1",
+      "severity": "P2",
+      "title": "The lift mode incorrectly requires a narrow phase whose broad-phase precondition may have been removed",
+      "locations": [
+        "eech-campaign/crates/eech-world/lua/entity-authority.lua:1106",
+        "eech-campaign/crates/eech-world/lua/entity-authority.lua:1107",
+        "eech-campaign/crates/eech-world/lua/entity-authority.lua:1108",
+        "eech-campaign/crates/eech-world/tests/entity_authority.rs:2431"
+      ],
+      "evidence": "Both controlled modes unconditionally require target NeedUpdated, test and16-word moving test. The pre-native lead contract correctly notes that the existing radius+10/AABB check precedes the moving read: after a real lift the target can legitimately be offered and skipped without entering narrow phase. The current scripted B positive always supplies the old test path, so it does not detect this mismatch. No new native has run; this is not an after-failure tolerance change.",
+      "required_correction": [
+        "Keep A strict: actual target-specific NeedUpdated/test/moving16 within the controlled query phase, not frame/warmup/global counts",
+        "For B, ask the same latched rays only after the actual host-step lift; require an actual post-lift target offer/answer and conformance, and leave the real broad-phase skip intact",
+        "Require the declared cross-run physical result change; a B completion by itself is not changed-pose authority. Do not require a post-lift test if the geometry has left the ray",
+        "Any optional pre-lift B query/counter must be identified separately and cannot count as post-lift coverage. No new pre-lift query is required by this finding",
+        "Update the new query-mode doc/descriptor and tests; do not weaken the old natural moving-mode criteria or A"
+      ],
+      "minimum_focused_validation": "A positive keeps all moving predicates; a post-lift B target validly skipped by broad phase is accepted as measured service evidence only when offered/coherent and compared with A physical outputs. Missing target offer, missing lift, unchanged required physical result or improperly credited pre-phase counts must not close authority."
+    }
+  ],
+  "examined_boundaries_without_additional_blocker": {
+    "latch": "Prepare invalidates any prior latch; run re-resolves the semantic identity instead of keeping an entity pointer and checks alive routed/collidable state. The latch is consumed before the first real query. The engine is one boot per process and C rejects a second boot; no new epoch/reset framework is warranted from this path. A destroyed or dead target refuses before querying. Capacity/protocol defects above still block clearance.",
+    "callback_context": "ENTER(NULL) really does retain the MODEL callback: campaign_model_set_host updates only when a non-null callback is supplied, sets retained user=NULL, and Engine MODEL owns the provider in a process-thread-local RefCell. New direct methods are not relying on a dangling frame user pointer. The query needs the retained MODEL/terrain callbacks; no concrete requirement for another movement/aim callback during this query was established.",
+    "query_phase": "armed remains false during the intervening engine frame. candidate_question/tgt classification runs only when armed, which is set immediately before the controlled run. Thus the current A target counters are query-phase counters; no false claim of frame/global target coverage was found. Global pose_facts includes pre-phase history and cannot by itself be presented as target-specific coherence; the actual C offer conformance assertion and target answer join are the relevant evidence.",
+    "getters_and_outputs": "The real service intentionally performs the destructive UPDATED getter and shared terrain effects in its original order; the fixture does not restore these observations. All three predetermined rays run, and output point/normal words are inspected only on a hit. The implementation currently initializes both local vectors to zero, contrary to the header/descriptor saying normal is unwritten; qualify the prose. This local initialization is not a new physical oracle or a new caller-output read.",
+    "geometry_inputs": "The three declared bearings and centre/reach expressions match the existing structured recipe. They derive explicit ray inputs from the selected real entity/model, not expected hit answers; no retarget, pose teleport, synthetic model or solver is added.",
+    "RNG_FPU": "No explicit game RNG draw/reseed is added. The new physical input construction/query executes under the existing engine entry RTZ/fatal/restore boundary. This source inspection is not a new full caller-FPU/native measurement.",
+    "ordinary_isolation": "New executable C is inside EECH_WEAPON_FIXTURE; new sys/Engine/DC methods are cfg weapon-fixture. The builder defines the C macro only for that feature. The C public header adds declarations only. No new ordinary executable path was identified. Exact ordinary feature-filtered/object/export proof is still required before relabeling production equivalence; raw source bytes do differ."
+  },
+  "focused_actual_checks": {
+    "q1": {
+      "fmt_apply_exit": 0,
+      "driver_exit": 0,
+      "driver_passed": 40,
+      "failed": 0
+    },
+    "q2": {
+      "default_four_crate_check_exit": 0,
+      "hosted_weapon_fixture_check_exit": 0
+    },
+    "q3": {
+      "Original_weapon_collision_check_exit": 0,
+      "World_all_target_strict_exit": 0,
+      "DC_Engine_weapon_strict_exit": 0,
+      "fmt_check_exit": 0
+    },
+    "old_driver_red": {
+      "actual_child_exit": 101,
+      "passed": 37,
+      "failed": 3,
+      "meaning": "Previous Lua rejects the new mode; this demonstrates unavailable old surface behavior, not a C safety/physics counterexample"
+    },
+    "all_wrapper_container_exits": 0,
+    "qualifications": [
+      "Wrapper zero for the expected RED does not make it green",
+      "The new C fixture was compile-checked, not runtime-tested",
+      "The40 scripted controls pass but miss the finite report and B-contract cases above",
+      "No new Windows/native/campaign/full matrix/host_callbacks rerun is claimed"
+    ]
+  },
+  "source_binding": {
+    "all14_changed_blob_ids_SHA_lengths_and_current_bytes_verified": true,
+    "post_commit_map_rows": 2920,
+    "all_current_raw_map_entries_equal_map": true,
+    "no_missing_before_after_map_or_immutable_test_snapshot_invented": true,
+    "qualifications": [
+      "Three unchanged test-Lua working-CRLF/Git-LF differences remain",
+      "Separate three Core filtered-hash exceptions remain",
+      "module.rs retains2 pre-existing NUL bytes and eech_engine.c retains1; no normalization performed"
+    ],
+    "safe_prior_reports": "The published67a3 and49aa literal reports retain their known SHA values; no old actual acceptance is enlarged"
+  },
+  "required_validation_after_one_consolidated_correction": [
+    "Prioritize the actual long-run actor/motion boundary and its legitimate lifecycle fix; retain the four failed runs. Join targeted evidence for the diagnosed production change before broader native validation; never rerun unchanged wars merely for each helper.",
+    "Focused real C report/identity/capacity and faithful non-poison/fatal transport checks for the changed case",
+    "Corrected strict real-Lua positives and single-fault grammar/AB controls, then affected compile/fmt/strict checks",
+    "Source binding for the final frozen bytes and feature-filtered ordinary source/profile equivalence",
+    "Fresh reviewed hosted weapon-fixture and Original weapon+collision Windows profiles before the controlled service natives",
+    "Actual A moving coverage, then same-ray post-lift B effect, then bounded Original physical-output comparison; no natural weapon engagement claim"
+  ],
+  "protected_ordinary_pack": {
+    "runtime": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+    "state": "TERMINAL_FAILED",
+    "actual_runner_launcher_outer_exits": [
+      1,
+      1,
+      1
+    ],
+    "action": "Preserve the failed outputs, roots, binaries, receipts and earlier prefixes. Do not restart or kill anything; no process is claimed live by this superseding report.",
+    "acceptance": "Not accepted; source/ordinary shipping reuse for a later corrected candidate requires an exact new scope and conformance gate."
+  },
+  "remaining_required_scope": [
+    "Natural moving weapon integration remains open",
+    "Canonical pose/player/pack/other writers and Core-origin lifecycle adoption remain required",
+    "Backing/list/roster/live pose/synchronization/IDs/raw loaders/tree/forest/cloud/hierarchy/devices/rotor/smoke/DCS mappings remain required",
+    "Full Task49 conformance/current delivery and whole D3 remain open"
+  ],
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/controlled-moving-query-CODE-FROZEN-20261105.json",
+      "bytes": 14212,
+      "sha256": "7fb87758efce8a84a721e669a2baad5c5e4e40a7fc236d511d23ca1db52b76fb"
+    },
+    {
+      "path": "R:/d3-evidence/host-pose-fix-20261105/source-identity-2fccc23b7.txt",
+      "bytes": 466092,
+      "sha256": "5023b1b8b542b9d29b5c25d7c2386bc9505c2d2ff2989fc567aeda6bdeb8f025"
+    },
+    {
+      "path": "R:/d3-evidence/D3-MOVING-QUERY-FIXTURE-REVIEW-NOTES-20261105.txt",
+      "bytes": 1882,
+      "sha256": "74709bd860565dfc5a07f49b06dbe6f17158770028042c0768a453ffdb9bc3b5"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-fix3-20261105-a/q1/tests.log",
+      "bytes": 12414,
+      "sha256": "2cdfaa13de1e3dfdb083d2bc75115056906ad808ba2919557dd440351819f017"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-fix3-20261105-a/q1/runner-exit.txt",
+      "bytes": 17,
+      "sha256": "d83a34d9170b1ee4a2323b29e31ca7e61668451861ed713be3830fd2652be1fa"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-fix3-20261105-a/q2/tests.log",
+      "bytes": 664,
+      "sha256": "5d681517e091393ede53ae882f667efd96bd30413179e5cbbae12b2ea87ce6e6"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-fix3-20261105-a/q2/runner-exit.txt",
+      "bytes": 17,
+      "sha256": "d83a34d9170b1ee4a2323b29e31ca7e61668451861ed713be3830fd2652be1fa"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-fix3-20261105-a/q3/tests.log",
+      "bytes": 752,
+      "sha256": "b9e9605da99d4ea2614a8f274d1ef075e374bcad5d20f95fe60b66af46715585"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-fix3-20261105-a/q3/runner-exit.txt",
+      "bytes": 17,
+      "sha256": "d83a34d9170b1ee4a2323b29e31ca7e61668451861ed713be3830fd2652be1fa"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-fix3-20261105-a/q-red/tests.log",
+      "bytes": 14083,
+      "sha256": "a384a84dc7574d2546bcff43318a2839f86add5e880bf828d64cd706f633b819"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/pose-fix3-20261105-a/q-red/runner-exit.txt",
+      "bytes": 17,
+      "sha256": "d83a34d9170b1ee4a2323b29e31ca7e61668451861ed713be3830fd2652be1fa"
+    },
+    {
+      "path": "R:/d3-evidence/canonical-pose-shipping-ea2b-20261105-completion.json",
+      "bytes": 3025,
+      "sha256": "6ee146eeb0e061f553ebbcf44c3332422ae33cc4b9385a05eb696f24cf21cf4a"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-shipping-ea2b23481-20261105/run.json",
+      "bytes": 954,
+      "sha256": "cf1e12b746b076bba1728be1b80f78b74e6ae199fbfbd6c843b45166c0253d81"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-shipping-ea2b23481-20261105/report.json",
+      "bytes": 42573,
+      "sha256": "a662c409c07a7760782120a4e9746da1266b9bed5b865a8b9aa0fdae8e3c6d31"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-shipping-ea2b23481-20261105/reference/run1/run.log",
+      "bytes": 45936,
+      "sha256": "8b942363dec3b2a134a9fb2ee33deb9b0dfa7e501e01c701218da13edafec00f"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-shipping-ea2b23481-20261105/reference/run2/run.log",
+      "bytes": 47623,
+      "sha256": "661a6ddfdae31b2f817f483428b477b00b513a33151186de76e90fcf4e88bc03"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-shipping-ea2b23481-20261105/regress/georgia_retail.log",
+      "bytes": 45863,
+      "sha256": "a53f434d909dacb76befd1d2b4c0cf7addffeb1ffc1af9f092be404092219e1c"
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/canonical-pose-shipping-ea2b23481-20261105/regress/lebanon_retail.log",
+      "bytes": 47068,
+      "sha256": "4e78030ed941e967087c2468674da93b67ba30f09871498ed13844ca24de1ec1"
+    }
+  ],
+  "review_operations": "Read-only changed Git/source/caller/log/map inspection plus this new report write; no tests, builds, native launches, cache/VM actions, source edits, agents or external operations. The only additional review was the new terminal pack receipt/report and four targeted fatal logs; no broad ea2b source rereview or campaign rerun.",
+  "publication_safety": "No retail geometry, coordinates, vectors, physical tuples, host-ID suffixes, recordings or assets are copied. The synthetic378-byte row bound contains no retail data.",
+  "supersedes_for_consolidated_batch": {
+    "path": "R:/d3-evidence/independent-controlled-moving-query-source-2fccc-20261105.json",
+    "bytes": 18402,
+    "sha256": "b06f8e0c128c06bd6e99d339878dfcf29e7a47ead2c73b9d9c70b090e3f068ee",
+    "reason": "The three finite fixture groups were saved immediately before Root notified a new terminal ordinary production regression. Original report remains immutable. This report retains that exact batch and adds the independently joined external actual blocker."
+  },
+  "external_production_regression": {
+    "id": "ENV-ENTITY-POSE-LONG-RUN-MOTION-1",
+    "severity": "P1",
+    "origin": "NEW completed actual evidence from the ordinary ea2b shipping pack; not introduced by the new2fccc fixture-only delta",
+    "runtime": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+    "pack_root": "D:/EECH-Migration-Evidence/canonical-pose-shipping-ea2b23481-20261105",
+    "actual_pack_runner_exit": 1,
+    "actual_launcher_exit": 1,
+    "actual_outer_exit": 1,
+    "terminal_completed_utc": "2026-11-05T20:29:59.470198+00:00",
+    "runner_receipt_status": "completed with exit1",
+    "four_recorded_run_logs": [
+      {
+        "path": "D:/EECH-Migration-Evidence/canonical-pose-shipping-ea2b23481-20261105/reference/run1/run.log",
+        "entity_pose_mirror_fatal_present": true,
+        "difference_mask": 20,
+        "fatal_occurrences_in_log": 2,
+        "bytes": 45936,
+        "sha256": "8b942363dec3b2a134a9fb2ee33deb9b0dfa7e501e01c701218da13edafec00f"
+      },
+      {
+        "path": "D:/EECH-Migration-Evidence/canonical-pose-shipping-ea2b23481-20261105/reference/run2/run.log",
+        "entity_pose_mirror_fatal_present": true,
+        "difference_mask": 20,
+        "fatal_occurrences_in_log": 2,
+        "bytes": 47623,
+        "sha256": "661a6ddfdae31b2f817f483428b477b00b513a33151186de76e90fcf4e88bc03"
+      },
+      {
+        "path": "D:/EECH-Migration-Evidence/canonical-pose-shipping-ea2b23481-20261105/regress/georgia_retail.log",
+        "entity_pose_mirror_fatal_present": true,
+        "difference_mask": 20,
+        "fatal_occurrences_in_log": 2,
+        "bytes": 45863,
+        "sha256": "a53f434d909dacb76befd1d2b4c0cf7addffeb1ffc1af9f092be404092219e1c"
+      },
+      {
+        "path": "D:/EECH-Migration-Evidence/canonical-pose-shipping-ea2b23481-20261105/regress/lebanon_retail.log",
+        "entity_pose_mirror_fatal_present": true,
+        "difference_mask": 20,
+        "fatal_occurrences_in_log": 2,
+        "bytes": 47068,
+        "sha256": "4e78030ed941e967087c2468674da93b67ba30f09871498ed13844ca24de1ec1"
+      }
+    ],
+    "actual_failure": "All four ordinary campaign logs contain the engine-own [model-provider:entity_pose.mirror] fatal with difference mask20. Mask20 includes actual held-motion mismatch bit4 and diagnostic formula bit16; this is not a benign formula-only16 observation.",
+    "claim_limits": [
+      "The mask establishes a real current production conformance failure. It does not identify the actor, source writer, lifetime boundary or whether Core or canonical held motion is stale.",
+      "Root reported all four native processes had exited naturally and none was stopped; this reviewer performed no kill/restart or process manipulation.",
+      "Root is capturing final four full manifests and payload seals; their outcomes are pending this report and not manufactured as green.",
+      "The pack has an outer terminal completion receipt with exit1, but no successful pack-root completion.json. No40/all8 or full-file equivalence acceptance exists.",
+      "Earlier finite ordinary-short/default results and partial prefix comparisons remain true only for their measured scope; they do not qualify this failed long run.",
+      "This new actual failure takes priority over optional controlled-query validation. The source review0a00 was limited; no universal supported-path conformance was established there."
+    ],
+    "pack_report_counts": {
+      "FAIL - directly protected": 9,
+      "FAIL - differs from the baseline": 12,
+      "PASS - directly protected": 8,
+      "NOT COVERED": 8,
+      "EVIDENCE ONLY - not automatically checked": 8
+    },
+    "priority_correction": "Trace and fix the actual legitimate production motion writer/record boundary. Preserve the mirror check, original physical words, getter order and accepted baseline/oracles. Do not query-seed a record, copy a Core-computed vector into a query-time authority cache, silently default/refuse a valid path, suppress bit4, or relax acceptance.",
+    "minimum_actual_context_for_actor_trace": [
+      "First failing native operation/frame/elapsed simulated time and per-process case, keyed privately to the exact preserved input/build identities",
+      "First mismatching semantic actor identity, actual type/subtype, alive state, movement kind and ENTITY_POSE stage; keep identifiers private",
+      "Core and canonical held motion as exact raw words at that first mismatch, together with the position/attitude/velocity words needed to distinguish a real vector writer from mere formula diagnostic16",
+      "The preceding real movement/placement/vector/creation/lifetime event for that same record, with mode/order/stamps and the actual Core writer/update branch between the last coherent boundary and the offer",
+      "Destructive UPDATED state and skipped-update/early-return/loss/wreck context only insofar as the actual actor/call path requires it; no broad new lexical inventory or raw per-frame tracing programme"
+    ],
+    "no_new_source_root_cause_claim": true,
+    "next_native_disposition": "Hold acceptance and unchanged bad-source validation. Root may select a bounded actor-trace reproduction only after its actual context/source correction is made concrete and reviewable; no restart or baseline modification is requested by this report."
+  }
+}

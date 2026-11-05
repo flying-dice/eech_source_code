@@ -1,0 +1,37 @@
+{
+  "fixture_source": "2fccc23b704264637ae40921bcdb228b122d38e5",
+  "failed_ordinary_runtime": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 62,
+      "sha256": "9464b301a283a4eb3e9d7857adc11aee7074bf311ae6da26117d3458bad5be13"
+    },
+    {
+      "path": "consolidated-source-and-production-hold.json",
+      "bytes": 26541,
+      "sha256": "afb226787a10a72dff70518a902b5a6ceb608bebb063572b3cf797f890ceb45b"
+    },
+    {
+      "path": "failed-pack-audit.json",
+      "bytes": 5329,
+      "sha256": "448ae1fccc3a326308437964ca2cd1a8657418139f58c3cd9a551c25f749224e"
+    },
+    {
+      "path": "fixture-checkpoint.json",
+      "bytes": 14212,
+      "sha256": "7fb87758efce8a84a721e669a2baad5c5e4e40a7fc236d511d23ca1db52b76fb"
+    },
+    {
+      "path": "fixture-source-review.json",
+      "bytes": 18402,
+      "sha256": "b06f8e0c128c06bd6e99d339878dfcf29e7a47ead2c73b9d9c70b090e3f068ee"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3036,
+      "sha256": "6d3718bf7f6e989335d7f51633e35958f7f26883d0a54d41716bf6f603eb8bd0"
+    }
+  ],
+  "scope": "CHANGES_REQUIRED and actual production failure; no clearance/acceptance"
+}
