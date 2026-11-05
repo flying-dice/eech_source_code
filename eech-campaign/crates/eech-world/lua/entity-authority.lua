@@ -116,6 +116,15 @@
 -- expected answer), one actual engine frame runs, then `engine:wpn_moving_query_run` asks the production get_line_of_sight_collision_entity for the SAME latched segments.
 --   moving_query_control   the target is the first alive routed vehicle, in identity order, whose last host step (final warmup frame) had a motion vector above 1 m/s AND was given the terrain input and map ceiling the bounded lift reads (a callback-shape fact copied from the engine's own step: a routed step the core gives no terrain is valid ordinary movement but cannot carry the lift, and such an earlier actor is counted and passed over, never altered); the frame steps normally. The same rule selects in every query mode, hosted and original, and none eligible is an exact prelaunch UNREACHED with finite counts.
 --   moving_query_lift      the same, and in that one frame the host's own `move` step of that target carries the existing bounded terrain lift (see terrain_lift): the engine writes the host's answer to Core, the mirror must agree.
+--   moving_query_speed_control / moving_query_speed_zero   a SEPARATE pair of modes whose input is the speed demand, not terrain (no terrain, ceiling or lift is read). The target is the first alive routed vehicle in identity
+--                          order whose last move step (final warmup frame) had a motion vector above 1 m/s AND carried a finite positive `desired_velocity` (a presence/sign fact copied from the engine's own step, no arithmetic); none eligible is
+--                          the same exact prelaunch UNREACHED with finite counts, and the same rule selects in hosted and original. `_control` changes nothing (A). In `_zero` (B), only during the one engine frame between prepare and run and only
+--                          on a `move` step of THAT target whose incoming demand is finite and positive, the host delegates a shallow copy that differs ONLY in desired_velocity = 0, exactly once, to the same host.move_vehicle (the engine's
+--                          own table is never mutated; no pose, setter, answer or solver is touched; the core's task, route and command storage and every other step field and table are the engine's own). This changes the speed demand the
+--                          host's solver RECEIVES in a test-only configuration; it does NOT show that the host failed to fulfil an unchanged solver command, and it is not terrain authority or a whole physical cutover. The row carries the
+--                          incoming demand, the substituted 0 and the window's valid, refused, transformed and delegated counts; only a delegated transformed step is credited, a step with a missing or non-positive demand is neither changed nor
+--                          credited, and no such step is an exact UNREACHED. B further requires the target OFFERED after that step, the contract held (the existing mirror and fault checks), and a physical result different from the completed
+--                          A's (`control_signature`); an identical result is UNCHANGED, never tuned to differ. Query service only: the natural moving weapon integration gap stays open.
 -- No retarget, teleport, flag or answer is altered, nothing is searched for a hit, and every segment is asked once. Hosted, the target itself must be asked need_updated, reach a `test` that carries the 16-word moving pose,
 -- every mobile question must carry an identity and the conformance assertion must hold; no such target, no such coverage or a refused latch is an exact UNREACHED. Original (profile=original, the module built with weapon-fixture and
 -- collision-fixture) asks the SAME segments of the original solver and reports the physical outputs only (no host question exists to count). The rows `query_segment` and `query_authority` carry the physical outputs; comparing
@@ -453,6 +462,9 @@ MODES.terrain_lift = { moving_target = true, host_side_movement = true, lift = t
 -- the controlled moving QUERY case (completion modes; no weapon is launched): see the header
 MODES.moving_query_control = { query = true, host_side_movement = true }
 MODES.moving_query_lift = { query = true, host_side_movement = true, lift = true }
+-- the controlled moving QUERY case with a configured SPEED-DEMAND input (see the header): the target is chosen by the speed demand its final warmup move step carried, not by terrain
+MODES.moving_query_speed_control = { query = true, host_side_movement = true, speed = true }
+MODES.moving_query_speed_zero = { query = true, host_side_movement = true, speed = true, speed_zero = true }
 local plan = MODES [mode]
 if plan == nil then refuse ("unknown mode '" .. tostring (mode) .. "'") end
 if profile == "original" and mode ~= "control" and not plan.host_side_movement then refuse ("profile=original runs only mode=control (or a host-side movement mode): no entity_collision question reaches the provider to alter") end
@@ -563,8 +575,11 @@ local last_move = {}
 local last_vectors = {}
 local watched
 -- (window_*: the target's own steps seen in the controlled query's one frame, by the shape the bounded lift needs; type presence only, no value is kept; counted in both query modes)
+-- (speed_*: the speed-demand modes' counts for the same window: move steps that carried a finite positive desired_velocity, those that did not, the transformed copies made and delegated, the first incoming demand and the
+-- substituted one as text, and the target's questions after a transformed step was delegated)
 local tgt = { questions = 0, skip = 0, need_updated = 0, need_fixed = 0, need_placement = 0, need_normal = 0, buildings = 0, test = 0, test_moving16 = 0, after_lift = 0, after_lift_test = 0,
-	window_open = false, window_steps = 0, window_moves = 0, window_with_terrain = 0 }
+	window_open = false, window_steps = 0, window_moves = 0, window_with_terrain = 0,
+	speed_valid = 0, speed_bad = 0, speed_transforms = 0, speed_delegations = 0, speed_incoming = "none", speed_substituted = "none", after_speed = 0, after_speed_test = 0 }
 -- true only while the controlled query case runs its one frame: the lift of the target's own step is allowed then although the weapon launch never arms the witness
 local lift_window = false
 -- the lifted terrain elevation (metres added to the target's own routed step; a constant declared before any run) and what the lifted steps did
@@ -848,16 +863,35 @@ end
 -- terrain elevation is raised by LIFT when that stays within the step's map ceiling. The step is copied: the engine's table is never mutated. Each `move` answer is logged per identity with its frame (the host's
 -- answer to the campaign, used only to select the case; it is not provider state).
 local function hosted_move (step)
-	local delegated, lifting = step, false
-	-- the callback's own input shape, read before the delegation and kept as booleans: whether the step carries the terrain input and the map ceiling the bounded lift reads (types only, no arithmetic)
-	local terrain_input, lift_input = false, false
+	local delegated, lifting, demanding = step, false, false
+	-- the callback's own input shape, read before the delegation and kept as booleans: whether the step carries the terrain input and the map ceiling the bounded lift reads, and a finite positive
+	-- desired_velocity (the speed demand the solver receives) (types, finiteness and sign only, no arithmetic)
+	local terrain_input, lift_input, speed_input = false, false, false
 	if type (step) == "table" then
 		terrain_input = type (step.terrain) == "table"
 		lift_input = terrain_input and type (step.terrain.elevation) == "number" and type (step.map_max) == "table" and type (step.map_max [2]) == "number"
+		speed_input = finite (step.desired_velocity) and step.desired_velocity > 0
 		if tgt.window_open and watched ~= nil and step.host_id == watched then
 			tgt.window_steps = tgt.window_steps + 1
 			if step.mode == "move" then tgt.window_moves = tgt.window_moves + 1 end
 			if step.mode == "move" and terrain_input then tgt.window_with_terrain = tgt.window_with_terrain + 1 end
+			if step.mode == "move" and plan.speed then
+				if not speed_input then
+					-- a missing, non-numeric, non-finite or non-positive demand is never replaced and never credited
+					tgt.speed_bad = tgt.speed_bad + 1
+				else
+					tgt.speed_valid = tgt.speed_valid + 1
+					if plan.speed_zero then
+						-- the only change: a shallow copy whose desired_velocity is 0 (every other field, and every table in it, is the engine's own); delegated once below
+						delegated = {}
+						for key, value in pairs (step) do delegated [key] = value end
+						delegated.desired_velocity = 0
+						demanding = true
+						tgt.speed_transforms = tgt.speed_transforms + 1
+						if tgt.speed_incoming == "none" then tgt.speed_incoming, tgt.speed_substituted = string.format ("%.17g", step.desired_velocity), "0" end
+					end
+				end
+			end
 		end
 	end
 	if plan.lift and (armed or lift_window) and watched ~= nil and type (step) == "table" and step.host_id == watched and step.mode == "move" and type (step.terrain) == "table" then
@@ -877,8 +911,9 @@ local function hosted_move (step)
 	end
 	local answer = host.move_vehicle (delegated)
 	if type (step) == "table" and step.mode == "move" and type (answer) == "table" then
-		last_move [step.host_id] = { frame = frames, motion = answer.motion_vector, position = answer.position, terrain_input = terrain_input, lift_input = lift_input }
+		last_move [step.host_id] = { frame = frames, motion = answer.motion_vector, position = answer.position, terrain_input = terrain_input, lift_input = lift_input, speed_input = speed_input, demand = step.desired_velocity }
 	end
+	if demanding then tgt.speed_delegations = tgt.speed_delegations + 1 end
 	if lifting then
 		lifted = lifted + 1
 		lift_row.answered_y = type (answer) == "table" and type (answer.position) == "table" and answer.position [2] or 0 / 0
@@ -923,6 +958,10 @@ local function candidate_question (scene, depth, kind, definition, key)
 			if lifted > 0 then
 				tgt.after_lift = tgt.after_lift + 1
 				if real.result == "test" then tgt.after_lift_test = tgt.after_lift_test + 1 end
+			end
+			if tgt.speed_delegations > 0 then
+				tgt.after_speed = tgt.after_speed + 1
+				if real.result == "test" then tgt.after_speed_test = tgt.after_speed_test + 1 end
 			end
 		end
 	end
@@ -1160,11 +1199,15 @@ local function main ()
 		-- the moving criterion is unchanged; the target must ALSO be one whose final warmup `move` step the host was actually given with the terrain input and map ceiling the bounded lift reads (the callback shape
 		-- hosted_move recorded from the engine's own step: a routed step the core gives no terrain, e.g. no terrain-follow guide or a waypoint within a metre, is a valid ordinary movement but cannot carry the lift).
 		-- The same rule selects in the control and the lifted mode, hosted and original, so the pair asks about one actor; an earlier moving actor without it is counted, never mutated or given a terrain input
-		local target, moving_candidates, input_candidates, terrain_only = nil, 0, 0, 0
+		-- the speed-demand modes (moving_query_speed_*) use the same moving criterion and the same order, but their input is the speed demand: no terrain is required of them
+		local target, moving_candidates, input_candidates, terrain_only, speed_candidates = nil, 0, 0, 0, 0
 		for _, id in ipairs (ordered) do
 			if alive [id] and moving_routed (id) then
 				moving_candidates = moving_candidates + 1
-				if last_move [id].lift_input then
+				if last_move [id].speed_input then speed_candidates = speed_candidates + 1 end
+				if plan.speed then
+					if last_move [id].speed_input then target = target or id end
+				elseif last_move [id].lift_input then
 					input_candidates = input_candidates + 1
 					target = target or id
 				elseif last_move [id].terrain_input then
@@ -1173,8 +1216,11 @@ local function main ()
 			end
 		end
 		emit { event = "query_case_selected", target = target or "none", moving_candidates = moving_candidates, lift_input_candidates = input_candidates, terrain_without_ceiling_candidates = terrain_only,
-			selection = "first_alive_moving_routed_target_in_identity_order", eligibility = "final_warmup_move_step_carried_terrain_input_and_map_ceiling", final_frame = frames - 1 }
+			speed_input_candidates = speed_candidates, selected_demand = (target and last_move [target].speed_input) and string.format ("%.17g", last_move [target].demand) or "none",
+			selection = "first_alive_moving_routed_target_in_identity_order",
+			eligibility = plan.speed and "final_warmup_move_step_carried_finite_positive_desired_velocity" or "final_warmup_move_step_carried_terrain_input_and_map_ceiling", final_frame = frames - 1 }
 		if not target and moving_candidates == 0 then hard ("UNREACHED: no alive routed vehicle was stepped by the host above 1 m/s in the final warmup frame (" .. #ordered .. " bound): the controlled query case is not run, nothing is tuned") end
+		if not target and plan.speed then hard (string.format ("UNREACHED: %d alive routed vehicles were stepped by the host above 1 m/s in the final warmup frame (%d bound), but none of those move steps carried a finite positive desired_velocity: the controlled query case is not run, nothing is tuned", moving_candidates, #ordered)) end
 		if not target then hard (string.format ("UNREACHED: %d alive routed vehicles were stepped by the host above 1 m/s in the final warmup frame (%d bound), but none of those move steps carried the terrain input and map ceiling the bounded lift needs (%d carried a terrain input without the ceiling): the controlled query case is not run, nothing is tuned", moving_candidates, #ordered, terrain_only)) end
 		for _, method in ipairs { "wpn_moving_query_prepare", "wpn_moving_query_run" } do
 			local present, value = pcall (function () return engine [method] end)
@@ -1231,6 +1277,8 @@ local function main ()
 			target = target, segments = #results, query_hits = hits, query_target_hits = target_hits, query_signature = table.concat (signature, ";"),
 			lifted = lifted, lift_refused = lift_refused, lift_constant = LIFT, lift_baseline_elevation = lift_row.baseline, lift_elevation = lift_row.elevation, lift_answered_y = lift_row.answered_y, lift_frame = lift_row.frame,
 			window_target_steps = tgt.window_steps, window_target_moves = tgt.window_moves, window_target_moves_with_terrain = tgt.window_with_terrain,
+			speed_window_valid = tgt.speed_valid, speed_window_bad = tgt.speed_bad, speed_transforms = tgt.speed_transforms, speed_delegations = tgt.speed_delegations,
+			speed_incoming_demand = tgt.speed_incoming, speed_substituted_demand = tgt.speed_substituted, target_after_speed = tgt.after_speed, target_after_speed_test = tgt.after_speed_test,
 			target_questions = tgt.questions, target_skip = tgt.skip, target_need_updated = tgt.need_updated, target_need_fixed = tgt.need_fixed, target_need_placement = tgt.need_placement,
 			target_need_normal = tgt.need_normal, target_buildings = tgt.buildings, target_test = tgt.test, target_test_moving16 = tgt.test_moving16, target_after_lift = tgt.after_lift, target_after_lift_test = tgt.after_lift_test,
 			candidate_after = after.candidate, candidate_mobile = cand.mobile, candidate_mobile_named = cand.mobile_named, candidate_mobile_unnamed = cand.mobile_unnamed, entity_after = after.entity,
@@ -1246,13 +1294,34 @@ local function main ()
 			local y, e = lift_row.answered_y, lift_row.elevation
 			if not finite (y) or not (math.abs (y - e) <= math.abs (e) * 2 ^ -23) then return string.format ("%s: the host's answer to the lifted step is at y=%s, not at the lifted elevation %s", mode, tostring (y), tostring (e)) end
 		end
+		if plan.speed_zero and tgt.speed_delegations < 1 then
+			return string.format ("UNREACHED: %s changed no step of the target (in the query frame the target was given %d steps, %d of mode move, %d with a finite positive desired_velocity, %d without): the host's own routed move of the target never carried a speed demand to replace", mode, tgt.window_steps, tgt.window_moves, tgt.speed_valid, tgt.speed_bad)
+		end
 		if profile == "original" then
 			if after.entity ~= 0 or after.candidate ~= 0 or after.scan ~= 0 or after.pose ~= 0 then return "profile=original, but the host was asked " .. after.entity .. " entity_collision, " .. after.candidate .. " entity_candidate, " .. after.scan .. " entity_scan and " .. after.pose .. " entity_pose questions: the module is not the original" end
+			-- the original asks no hosted question, so only a control the caller bound is compared here (Root binds the Original control's signature)
+			if plan.speed_zero and args.control_signature ~= nil and args.control_signature ~= "" and args.control_signature == table.concat (signature, ";") then
+				return string.format ("UNCHANGED: %s: the original's physical result under the replaced speed demand is exactly the control's: the changed demand changed no output", mode)
+			end
 			return nil
 		end
 		if faults.request + faults.reply ~= 0 then return string.format ("the entity question or the host's reply is not the contract's (request_faults=%d reply_faults=%d): %s", faults.request, faults.reply, tostring (first_fault)) end
 		if cand.mobile_unnamed ~= 0 then return string.format ("%s: %d mobile candidate questions carried no host identity", mode, cand.mobile_unnamed) end
 		if after.scan < 1 then return string.format ("UNREACHED: %s: the production query asked the host no entity_scan question", mode) end
+		if plan.speed_zero then
+			-- B (speed demand): the SAME latched segments asked after the target's real move step was delegated ONCE with desired_velocity 0 in place of the engine's finite positive demand. This changes the demand the host's
+			-- solver RECEIVED in a test-only configuration; it is not a claim that the host failed to fulfil an unchanged command. As for the lift, the broad phase may legitimately skip the target (no NeedUpdated or test
+			-- is required), but the target must have been OFFERED and ANSWERED after the delegated step in the query phase, every request and reply must be the contract's, the engine must have completed (the C
+			-- offer-conformance assertion stops it on a mirror that differs from the host's record) and the physical result must differ from the completed A's.
+			if tgt.after_speed < 1 then return string.format ("UNREACHED: %s: no question about the target %s followed the changed-demand step (the target was not offered after it)", mode, target) end
+			if args.control_signature == nil or args.control_signature == "" then
+				return mode .. " needs control_signature=<the moving_query_speed_control run's query_signature>: a completed changed-demand query is not evidence until its physical result is compared with the control's"
+			end
+			if args.control_signature == table.concat (signature, ";") then
+				return string.format ("UNCHANGED: %s: the changed-demand query's physical result is exactly the control's (after_speed=%d, after_speed_test=%d): the replaced speed demand changed no output", mode, tgt.after_speed, tgt.after_speed_test)
+			end
+			return nil
+		end
 		if plan.lift then
 			-- B: the SAME latched segments asked after the real lifted host step. The shared broad phase (radius + 10 m, before the moving-vector read) may legitimately skip the lifted target without a
 			-- NeedUpdated or a narrow-phase test, so none is required: what is required is that the target was actually OFFERED and ANSWERED after the lift in the query phase (`tgt.after_lift`: only

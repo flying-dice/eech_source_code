@@ -24,6 +24,8 @@ POSE_LOG = {}
 MOVES, RETIRED, DISPLACED, MOVE_LOG = {}, {}, {}, {}
 VECTORS_ASKED, VECTORS_ALTERED, VECTORS_SEEN = 0, false, nil
 MQ_CALLS = {}
+-- every move step the host received: id|demand received|phase|fields that differ from the engine's own step ('-' is the same table)|demand the engine gave; and the last demand the host received per identity
+DEMAND_LOG, LAST_DEMAND, CURRENT_STEP = {}, {}, nil
 -- a roster identity of 128 bytes mixing space, newline, tab, carriage return, `%`, `-`, `=` and UTF-8 (the maximum of the domain)
 EXOTIC_ID = (function ()
 	local cycle = { 32, 10, 97, 9, 37, 195, 169, 45, 61, 13, 90, 226, 130, 172, 126, 46, 95, 57 }
@@ -239,6 +241,17 @@ host = {
 		MOVES [#MOVES + 1] = step
 		MOVE_LOG [#MOVE_LOG + 1] = { id = step.host_id, mode = step.mode, elevation = step.terrain and step.terrain.elevation or -1, launched = LAUNCH ~= nil }
 		if step.mode == "retire" then RETIRED [step.host_id] = true elseif step.mode == "place" then DISPLACED [step.host_id] = true end
+		if step.mode == "move" then
+			local differing = {}
+			if step ~= CURRENT_STEP then
+				for key, value in pairs (step) do if CURRENT_STEP [key] ~= value then differing [#differing + 1] = key end end
+				for key in pairs (CURRENT_STEP) do if step [key] == nil then differing [#differing + 1] = key end end
+				table.sort (differing)
+			end
+			local function shown (value) return type (value) == "number" and string.format ("%.17g", value) or tostring (value == nil and "none" or value) end
+			DEMAND_LOG [#DEMAND_LOG + 1] = table.concat ({ step.host_id, shown (step.desired_velocity), #MQ_CALLS > 0 and "query" or "warmup", #differing > 0 and table.concat (differing, ",") or "-", shown (CURRENT_STEP.desired_velocity) }, "|")
+			LAST_DEMAND [step.host_id] = step.desired_velocity
+		end
 		if step.mode == "move" then
 			-- the host's physical step answers AT the terrain it was given (the convoy step sets the new y from it) unless the scenario says the answer ignores it
 			local y = step.terrain and step.terrain.elevation or 0
@@ -521,15 +534,23 @@ package.preload.eech_dc = function ()
 					local lines = ((flight_hit and scenario.after_hit) or scenario.after or {}) [since_launch] or {}
 					for _, line in ipairs (lines) do queue [#queue + 1] = line end
 				end
-				for _, index in ipairs (scenario.steps or {}) do
+				for _, index in ipairs ((scenario.no_query_frame_steps and #MQ_CALLS > 0) and {} or scenario.steps or {}) do
 					local ground = scenario.ground or 10
-					local step = { host_id = "eech-world:" .. index, mode = "move", terrain = { elevation = ground, forest = false, face_normal = { 0, 1, 0 } }, map_max = { 1000, scenario.ceiling or 2000, 1000 } }
+					-- the speed demand the engine gives this step: the scenario's per identity, replaced in the controlled query's one frame by `query_demand` ('missing' is no desired_velocity at all)
+					local demand = (scenario.demand or {}) [index]
+					if #MQ_CALLS > 0 and (scenario.query_demand or {}) [index] ~= nil then
+						demand = scenario.query_demand [index]
+						if demand == "missing" then demand = nil end
+					end
+					local step = { host_id = "eech-world:" .. index, mode = "move", terrain = { elevation = ground, forest = false, face_normal = { 0, 1, 0 } }, map_max = { 1000, scenario.ceiling or 2000, 1000 },
+						desired_velocity = demand, max_acceleration = 3, delta_seconds = 0.5, waypoint = { 100, 0, 100 }, map_min = { 0, 0, 0 }, tacview_logging = false }
+					CURRENT_STEP = step
 					-- a routed step the core gives no terrain (the supported None input): always for `bare_steps`, or only in the controlled query's one frame (after its prepare) for `bare_in_query_frame`
 					local bare = (scenario.bare_steps or {}) [index] or ((scenario.bare_in_query_frame or {}) [index] and #MQ_CALLS > 0)
 					if bare then step.terrain = nil end
 					config.move_vehicle (step)
 					-- the engine's own step table is never mutated by the host-movement wrapper
-					if (bare and step.terrain ~= nil) or (not bare and step.terrain.elevation ~= ground) then CALLER_MUTATED = true end
+					if (bare and step.terrain ~= nil) or (not bare and step.terrain.elevation ~= ground) or (step.desired_velocity ~= demand and not (demand ~= demand and step.desired_velocity ~= step.desired_velocity)) then CALLER_MUTATED = true end
 				end
 			end
 			function engine:wpn_case_query (id, weapon)
@@ -572,13 +593,15 @@ package.preload.eech_dc = function ()
 					MQ_CALLS [#MQ_CALLS + 1] = "run@" .. now
 					if scenario.query_refuse == "run" then error ("eech: bad argument: wpn-case-error reason=target_not_alive host_id=" .. mq_enc (tostring (latched_query)), 0) end
 					local lines = { "wpn-moving-query-run host_id=" .. mq_enc (tostring (latched_query)) .. " segments=3" }
+					-- the scripted physics: the rays answer from the demand the host's solver was last given for the target (only when the scenario defines the zero-demand answer)
+					local rays = (scenario.query_zero_demand_hits and LAST_DEMAND [tostring (latched_query)] == 0) and scenario.query_zero_demand_hits or scenario.query_hits or { 1, 0, 1 }
 					for k = 0, 2 do
 						-- the production caller's questions about the target: the hosted module asks the host, the original asks nothing
 						if not scenario.query_original then scan_walk (function () candidate_dialogue () end) end
 						local a, b = segment_text (k)
 						if scenario.query_segment_changed and k == 2 then a = "0x41000000,0x41000001,0x41000003" end
-						local head = "wpn-moving-query-result seg=" .. k .. " hit=" .. ((scenario.query_hits or { 1, 0, 1 }) [k + 1]) .. " a=" .. a .. " b=" .. b
-						if (scenario.query_hits or { 1, 0, 1 }) [k + 1] == 1 then
+						local head = "wpn-moving-query-result seg=" .. k .. " hit=" .. rays [k + 1] .. " a=" .. a .. " b=" .. b
+						if rays [k + 1] == 1 then
 							if scenario.query_other_hit_exotic and k == 0 then
 								-- a hit of ANOTHER entity, whose roster identity is the exotic maximum one, and a hit entity that has no roster identity
 								lines [#lines + 1] = head .. " hit_is_target=0 hit_type=ENTITY_TYPE_HELICOPTER hit_host_id=" .. mq_enc (EXOTIC_ID) .. " point=0xffffffff,0x7fc00001,0x80000000 normal=0x00000000,0x3f800000,0x00000000"
@@ -638,6 +661,8 @@ struct Driven {
     vectors: (i64, bool),
     /// the controlled query surface's calls, in order, each with the simulated time it was made at
     query_calls: Vec<String>,
+    /// every `move` step the host received as `identity|demand received|phase|fields differing from the engine's own step|demand the engine gave` (see the collaborators)
+    demand_log: Vec<String>,
 }
 
 /// Runs the real driver once. `scenario` is the inside of the Lua table the collaborators read; `args` are the driver's own arguments.
@@ -698,6 +723,12 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
             })
             .collect(),
         launch: launch.map(|t| (t.get("launcher").unwrap(), t.get("target").unwrap(), t.get("weapon").unwrap())),
+        demand_log: globals
+            .get::<mlua::Table>("DEMAND_LOG")
+            .expect("the demand log")
+            .sequence_values::<String>()
+            .map(|entry| entry.unwrap())
+            .collect(),
         query_calls: globals
             .get::<mlua::Table>("MQ_CALLS")
             .expect("the query call log")
@@ -2946,4 +2977,361 @@ fn a_lift_is_credited_only_by_the_targets_real_terrain_bearing_step_inside_the_q
     let driven = drive(&query_scenario(", candidate_sequence = { 'skip' }, query_hits = { 0, 0, 0 }"), &lift(signature));
     assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
     assert_eq!(query_row(&driven)["lifted"], 1);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// the controlled query with a configured SPEED-DEMAND input: the target is chosen by the finite positive desired_velocity its final warmup move step carried (no terrain is required), and in B only that
+// target's one query-frame move step is delegated with desired_velocity 0 in place of the engine's demand. A changed demand the solver receives, not a claim about an unchanged command.
+
+const SPEED_CONTROL: &str = "moving_query_speed_control";
+const SPEED_ZERO: &str = "moving_query_speed_zero";
+
+/// both red vehicles carry a speed demand in every step (2 asks for 7.5 and 3 for 6); the rays answer all-miss only for a target whose solver was last given a zero demand
+fn demand_movers(extra: &str) -> String {
+    two_movers(&format!(", demand = {{ [2] = 7.5, [3] = 6 }}, query_zero_demand_hits = {{ 0, 0, 0 }}{extra}"))
+}
+
+/// the move steps the host received for one identity in one phase
+fn demand_steps(driven: &Driven, id: &str, phase: &str) -> Vec<Vec<String>> {
+    driven
+        .demand_log
+        .iter()
+        .map(|entry| entry.split('|').map(str::to_string).collect::<Vec<_>>())
+        .filter(|fields| fields[0] == id && fields[2] == phase)
+        .collect()
+}
+
+fn signature_of(driven: &Driven) -> &'static str {
+    let text = query_row(driven)["query_signature"].as_str().expect("the signature").to_string();
+    Box::leak(text.into_boxed_str())
+}
+
+#[test]
+fn the_speed_control_selects_the_first_moving_vehicle_that_carried_a_positive_demand_and_changes_nothing() {
+    let control = [("mode", SPEED_CONTROL)];
+    let driven = drive(&demand_movers(""), &control);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let selected = row_of(&driven, "query_case_selected");
+    assert_eq!(
+        (
+            selected["target"].clone(),
+            selected["moving_candidates"].clone(),
+            selected["speed_input_candidates"].clone(),
+            selected["selected_demand"].clone(),
+            selected["eligibility"].clone()
+        ),
+        (
+            Value::from("eech-world:2"),
+            Value::from(2),
+            Value::from(2),
+            Value::from("7.5"),
+            Value::from("final_warmup_move_step_carried_finite_positive_desired_velocity")
+        ),
+        "{selected}"
+    );
+    // A keeps its strict moving path in the query phase, takes the window provenance, and replaces nothing: every step reached the host as the very engine table
+    let row = query_row(&driven);
+    assert!(
+        row["target_need_updated"].as_i64().unwrap() >= 1 && row["target_test"].as_i64().unwrap() >= 1 && row["target_test_moving16"].as_i64().unwrap() >= 1,
+        "{row}"
+    );
+    assert_eq!(
+        (
+            row["speed_window_valid"].clone(),
+            row["speed_window_bad"].clone(),
+            row["speed_transforms"].clone(),
+            row["speed_delegations"].clone(),
+            row["speed_incoming_demand"].clone(),
+            row["speed_substituted_demand"].clone()
+        ),
+        (
+            Value::from(1),
+            Value::from(0),
+            Value::from(0),
+            Value::from(0),
+            Value::from("none"),
+            Value::from("none")
+        ),
+        "{row}"
+    );
+    assert!(!driven.caller_mutated);
+    assert!(
+        driven.demand_log.iter().all(|entry| entry.split('|').nth(3) == Some("-")),
+        "{:?}",
+        driven.demand_log
+    );
+    // the terrain input is not part of this selection: the same actor, with steps that carry none, is still the target
+    let bare = demand_movers(", bare_steps = { [2] = true, [3] = true }");
+    let driven = drive(&bare, &control);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(row_of(&driven, "query_prepared")["target"], "eech-world:2");
+    assert_eq!(query_row(&driven)["window_target_moves_with_terrain"], 0);
+    // the old terrain-input selector is unchanged beside it: those steps are all terrain-less, so the lift-input mode finds nothing
+    let error = error_of(drive(&bare, &[("mode", "moving_query_control")]));
+    assert!(error.contains("none of those move steps carried the terrain input and map ceiling"), "{error}");
+}
+
+#[test]
+fn an_earlier_mover_without_a_finite_positive_demand_is_passed_over_untouched() {
+    for earlier in ["0", "-2", "0/0", "1/0", "-1/0", "'fast'"] {
+        let scenario = two_movers(&format!(", demand = {{ [2] = {earlier}, [3] = 6 }}, candidate_id = 'eech-world:3'"));
+        let driven = drive(&scenario, &[("mode", SPEED_CONTROL)]);
+        assert!(driven.result.is_ok(), "{earlier}: {:?}\n{}", driven.result, driven.rows);
+        let selected = row_of(&driven, "query_case_selected");
+        assert_eq!(
+            (
+                selected["target"].clone(),
+                selected["moving_candidates"].clone(),
+                selected["speed_input_candidates"].clone()
+            ),
+            (Value::from("eech-world:3"), Value::from(2), Value::from(1)),
+            "{earlier}: {selected}"
+        );
+        assert!(!driven.caller_mutated, "{earlier}");
+        assert!(
+            driven.demand_log.iter().all(|entry| entry.split('|').nth(3) == Some("-")),
+            "{earlier}: {:?}",
+            driven.demand_log
+        );
+    }
+    // a step with no desired_velocity at all
+    let driven = drive(&two_movers(", demand = { [3] = 6 }, candidate_id = 'eech-world:3'"), &[("mode", SPEED_CONTROL)]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(row_of(&driven, "query_prepared")["target"], "eech-world:3");
+    assert_eq!(row_of(&driven, "query_case_selected")["speed_input_candidates"], 1);
+}
+
+#[test]
+fn no_actor_with_a_positive_demand_is_a_named_prelaunch_unreached_in_every_speed_mode_and_profile() {
+    for demand in ["", ", demand = { [2] = 0, [3] = -1 }", ", demand = { [2] = 0/0, [3] = 1/0 }"] {
+        for (mode, profile) in [
+            (SPEED_CONTROL, "hosted"),
+            (SPEED_ZERO, "hosted"),
+            (SPEED_CONTROL, "original"),
+            (SPEED_ZERO, "original"),
+        ] {
+            let mut args = vec![("mode", mode), ("control_signature", "x")];
+            let mut scenario = two_movers(demand);
+            if profile == "original" {
+                args.push(("profile", "original"));
+                scenario.push_str(", fixture_api = true, query_original = true");
+            }
+            let driven = drive(&scenario, &args);
+            // nothing was latched or run, and the finite counts are in the row and the reason
+            assert!(driven.query_calls.is_empty(), "{mode} {profile}: {:?}", driven.query_calls);
+            let selected = row_of(&driven, "query_case_selected");
+            assert_eq!(
+                (
+                    selected["target"].clone(),
+                    selected["moving_candidates"].clone(),
+                    selected["speed_input_candidates"].clone(),
+                    selected["selected_demand"].clone()
+                ),
+                (Value::from("none"), Value::from(2), Value::from(0), Value::from("none")),
+                "{mode} {profile}: {selected}"
+            );
+            let error = error_of(driven);
+            assert!(
+                error.contains("UNREACHED: 2 alive routed vehicles") && error.contains("none of those move steps carried a finite positive desired_velocity"),
+                "{mode} {profile}: {error}"
+            );
+        }
+    }
+}
+
+#[test]
+fn the_zero_demand_b_delegates_one_copy_that_differs_only_in_desired_velocity_and_is_credited_by_a_different_physical_result() {
+    let control = drive(&demand_movers(""), &[("mode", SPEED_CONTROL)]);
+    assert!(control.result.is_ok(), "{:?}\n{}", control.result, control.rows);
+    let signature = signature_of(&control);
+    let driven = drive(&demand_movers(""), &[("mode", SPEED_ZERO), ("control_signature", signature)]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(row_of(&driven, "query_prepared")["target"], "eech-world:2");
+    let row = query_row(&driven);
+    assert_eq!(
+        (
+            row["speed_window_valid"].clone(),
+            row["speed_window_bad"].clone(),
+            row["speed_transforms"].clone(),
+            row["speed_delegations"].clone(),
+            row["speed_incoming_demand"].clone(),
+            row["speed_substituted_demand"].clone(),
+            row["window_target_moves"].clone()
+        ),
+        (
+            Value::from(1),
+            Value::from(0),
+            Value::from(1),
+            Value::from(1),
+            Value::from("7.5"),
+            Value::from("0"),
+            Value::from(1)
+        ),
+        "{row}"
+    );
+    // the target was offered after the delegated step and the real result is not the control's: it followed the demand the host's solver received
+    assert!(row["target_after_speed"].as_i64().unwrap() >= 1, "{row}");
+    assert_eq!(row["query_hits"], 0);
+    assert_ne!(row["query_signature"].as_str().unwrap(), signature);
+    // the host received exactly ONE changed step for the target in the query frame, carrying demand 0 and differing from the engine's own step in that one field; the engine gave 7.5 and its table is intact
+    assert_eq!(
+        demand_steps(&driven, "eech-world:2", "query"),
+        vec![vec!["eech-world:2", "0", "query", "desired_velocity", "7.5"]]
+    );
+    // every other step (the target's warmup steps, the other vehicle's steps in both phases) reached the host as the engine's own table
+    assert!(demand_steps(&driven, "eech-world:2", "warmup")
+        .iter()
+        .all(|fields| fields[3] == "-" && fields[1] == "7.5"));
+    for phase in ["warmup", "query"] {
+        assert!(!demand_steps(&driven, "eech-world:3", phase).is_empty(), "{phase}");
+        assert!(
+            demand_steps(&driven, "eech-world:3", phase)
+                .iter()
+                .all(|fields| fields[3] == "-" && fields[1] == "6"),
+            "{phase}"
+        );
+    }
+    assert!(!driven.caller_mutated);
+    // the control keeps its own demand: the same target's query-frame step reached the host unchanged there
+    assert_eq!(
+        demand_steps(&control, "eech-world:2", "query"),
+        vec![vec!["eech-world:2", "7.5", "query", "-", "7.5"]]
+    );
+}
+
+#[test]
+fn the_zero_demand_b_may_skip_the_narrow_phase_but_never_the_offer_and_an_unchanged_result_is_rejected() {
+    // a valid broad-phase skip of the changed target is allowed once it was offered and answered
+    let skipping = demand_movers(", candidate_sequence = { 'skip' }");
+    let control = drive(&demand_movers(""), &[("mode", SPEED_CONTROL)]);
+    let signature = signature_of(&control);
+    let driven = drive(&skipping, &[("mode", SPEED_ZERO), ("control_signature", signature)]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let row = query_row(&driven);
+    assert_eq!(
+        (row["target_need_updated"].clone(), row["target_test"].clone()),
+        (Value::from(0), Value::from(0)),
+        "{row}"
+    );
+    assert!(row["target_after_speed"].as_i64().unwrap() >= 1);
+    // while A keeps its strict moving predicates where B may skip
+    let error = error_of(drive(&skipping, &[("mode", SPEED_CONTROL)]));
+    assert!(
+        error.contains("UNREACHED: moving_query_speed_control") && error.contains("never asked need_updated"),
+        "{error}"
+    );
+    // the changed demand that leaves every output as A's is UNCHANGED, never credited
+    let unchanged = two_movers(", demand = { [2] = 7.5, [3] = 6 }");
+    let a = drive(&unchanged, &[("mode", SPEED_CONTROL)]);
+    let error = error_of(drive(&unchanged, &[("mode", SPEED_ZERO), ("control_signature", signature_of(&a))]));
+    assert!(error.contains("UNCHANGED") && error.contains("changed no output"), "{error}");
+    // a changed result with no control signature is not compared, so it is not closed
+    let error = error_of(drive(&demand_movers(""), &[("mode", SPEED_ZERO)]));
+    assert!(error.contains("needs control_signature="), "{error}");
+    // no question about the changed target after its step is UNREACHED, whatever the earlier counts were
+    let error = error_of(drive(
+        &demand_movers(", candidate_id = 'eech-world:3'"),
+        &[("mode", SPEED_ZERO), ("control_signature", signature)],
+    ));
+    assert!(error.contains("UNREACHED") && error.contains("followed the changed-demand step"), "{error}");
+}
+
+#[test]
+fn a_query_frame_step_without_a_valid_demand_or_no_step_at_all_is_unreached_and_never_credited() {
+    let control = drive(&demand_movers(""), &[("mode", SPEED_CONTROL)]);
+    let signature = signature_of(&control);
+    // the target was eligible at the final warmup frame, but its query-frame step carries no usable demand: nothing is replaced and the reason carries the finite window counts
+    for bad in ["'missing'", "0", "-3", "0/0", "1/0"] {
+        let driven = drive(
+            &demand_movers(&format!(", query_demand = {{ [2] = {bad} }}")),
+            &[("mode", SPEED_ZERO), ("control_signature", signature)],
+        );
+        let row = query_row(&driven);
+        assert_eq!(
+            (
+                row["speed_window_valid"].clone(),
+                row["speed_window_bad"].clone(),
+                row["speed_transforms"].clone(),
+                row["speed_delegations"].clone()
+            ),
+            (Value::from(0), Value::from(1), Value::from(0), Value::from(0)),
+            "{bad}: {row}"
+        );
+        assert_eq!(row["speed_incoming_demand"], "none");
+        // the one query-frame step reached the host as the engine's own table
+        let steps = demand_steps(&driven, "eech-world:2", "query");
+        assert!(steps.len() == 1 && steps[0][3] == "-", "{bad}: {steps:?}");
+        let error = error_of(driven);
+        assert!(
+            error.contains("UNREACHED: moving_query_speed_zero changed no step")
+                && error.contains("the target was given 1 steps, 1 of mode move, 0 with a finite positive desired_velocity, 1 without"),
+            "{bad}: {error}"
+        );
+    }
+    // no callback of the target in the query frame at all
+    let driven = drive(
+        &demand_movers(", no_query_frame_steps = true"),
+        &[("mode", SPEED_ZERO), ("control_signature", signature)],
+    );
+    let row = query_row(&driven);
+    assert_eq!(
+        (row["window_target_steps"].clone(), row["speed_transforms"].clone()),
+        (Value::from(0), Value::from(0)),
+        "{row}"
+    );
+    assert!(demand_steps(&driven, "eech-world:2", "query").is_empty());
+    let error = error_of(driven);
+    assert!(
+        error.contains("UNREACHED: moving_query_speed_zero changed no step") && error.contains("the target was given 0 steps"),
+        "{error}"
+    );
+    // while the unchanged A does not need a window step (it replaces nothing)
+    let driven = drive(&demand_movers(", no_query_frame_steps = true"), &[("mode", SPEED_CONTROL)]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+}
+
+#[test]
+fn the_original_profile_receives_the_same_changed_demand_and_asks_the_host_nothing() {
+    let original = |mode: &'static str, signature: &'static str| {
+        let mut args = vec![("profile", "original"), ("mode", mode)];
+        if !signature.is_empty() {
+            args.push(("control_signature", signature));
+        }
+        args
+    };
+    let original_scenario = |extra: &str| demand_movers(&format!(", fixture_api = true, query_original = true{extra}"));
+    let a = drive(&original_scenario(""), &original(SPEED_CONTROL, ""));
+    assert!(a.result.is_ok(), "{:?}\n{}", a.result, a.rows);
+    let signature = signature_of(&a);
+    let b = drive(&original_scenario(""), &original(SPEED_ZERO, signature));
+    assert!(b.result.is_ok(), "{:?}\n{}", b.result, b.rows);
+    // the same actor, the same one-frame input change as the hosted B, and no hosted question of any kind
+    assert_eq!(row_of(&b, "query_prepared")["target"], "eech-world:2");
+    let row = query_row(&b);
+    assert_eq!(
+        (
+            row["entity_after"].clone(),
+            row["candidate_after"].clone(),
+            row["scan_after"].clone(),
+            row["pose_after"].clone(),
+            row["speed_transforms"].clone(),
+            row["speed_delegations"].clone()
+        ),
+        (Value::from(0), Value::from(0), Value::from(0), Value::from(0), Value::from(1), Value::from(1)),
+        "{row}"
+    );
+    assert_eq!(
+        demand_steps(&b, "eech-world:2", "query"),
+        vec![vec!["eech-world:2", "0", "query", "desired_velocity", "7.5"]]
+    );
+    assert_ne!(row["query_signature"].as_str().unwrap(), signature);
+    // a bound control the changed demand does not differ from is UNCHANGED, and a step it cannot replace is UNREACHED
+    let unchanged = two_movers(", demand = { [2] = 7.5, [3] = 6 }, fixture_api = true, query_original = true");
+    let same = drive(
+        &unchanged,
+        &original(SPEED_ZERO, signature_of(&drive(&unchanged, &original(SPEED_CONTROL, "")))),
+    );
+    assert!(error_of(same).contains("UNCHANGED"));
+    let error = error_of(drive(&original_scenario(", no_query_frame_steps = true"), &original(SPEED_ZERO, signature)));
+    assert!(error.contains("UNREACHED: moving_query_speed_zero changed no step"), "{error}");
 }
