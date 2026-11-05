@@ -1,0 +1,403 @@
+{
+  "schema": "independent-finite-configured-input-authority/v1",
+  "reviewed_utc": "2026-11-05T23:54:59.812682+00:00",
+  "source": {
+    "compiled_runtime_commit": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+    "opt_in_literal_commit": "6fb7ff43ab19ca12b5b374f2d9933f1beaa1e692",
+    "literal_git_blob": "d690abdb252a6191349a5d5e0ae55860ed2bff86",
+    "literal_sha256": "5d116d5662892905c538695dd30cda053a02a7d05aaf9ba2d63fb442eacd0422",
+    "source_clearance": {
+      "path": "R:/d3-evidence/independent-query-speed-input-source-6fb-native3475-20261105.json",
+      "bytes": 13236,
+      "sha256": "742afe7329b400b7e807b25fa8cb0948a1d283cc7891b44dc091aabdbd5602c4"
+    },
+    "compatibility": {
+      "path": "R:/d3-evidence/query-speed-input-compiled-compatibility-20261105.json",
+      "bytes": 2082,
+      "sha256": "8ac54d158edb9eb4224a3dce94d955df30f376e8ad7523b085009872b5413aae"
+    },
+    "binary_not_relabelled": true
+  },
+  "scope": "One new actual audit of the four matched configured speed-demand query-service controls. Closed production, numeric, source, original and other authority reviews were reused at their own identities. No tests/builds/campaigns, source edits, agents or process/cache operations were performed by the reviewer.",
+  "decision": {
+    "status": "FINITE_CONFIGURED_SPEED_INPUT_QUERY_SERVICE_AUTHORITY_VERIFIED",
+    "findings": [],
+    "finite_configured_input_query_service_authority_closed": true,
+    "finite_configured_speed_input_query_service_authority_closed": true,
+    "matched_input_effect_verified": true,
+    "Host_Core_coherence_in_measured_controls_verified": true,
+    "Original_full_physical_query_row_parity_verified": true,
+    "unchanged_command_fulfillment_failure_proved": false,
+    "terrain_authority_proved": false,
+    "natural_moving_weapon_engagement_proved": false,
+    "whole_physical_backing_accepted": false,
+    "Person_long_run_regression_closed": false,
+    "full_pack_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "actual_controls": [
+    {
+      "role": "hosted-A",
+      "controller": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-hosted-A-native3475-20261105/controller.json",
+        "bytes": 4295,
+        "sha256": "09f57e1db42a26543431d50e370fd0c15364d4b532e76543d42ffc1fc688bb69"
+      },
+      "outer_receipt": {
+        "path": "R:/d3-evidence/query-speed-input-hosted-A-native3475-20261105-completion.json",
+        "bytes": 2189,
+        "sha256": "4dd8b3da994ddc81666f7131ff6a3e499f1affa1270b0198b7747c373f47fb4f"
+      },
+      "raw_jsonl": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-hosted-A-native3475-20261105/model.jsonl",
+        "bytes": 3663,
+        "sha256": "3350b0283efc895b5c22933ad63a6214c7e6804f44aebecd37a8be865f5f0d9b"
+      },
+      "native_log": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-hosted-A-native3475-20261105/native.log",
+        "bytes": 40830,
+        "sha256": "1cc11045f20bc8e3682dbc0f157ab53c2ea669087cd314306fd80350fb91c919"
+      },
+      "pre_inputs": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-hosted-A-native3475-20261105/pre-inputs.json",
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "post_inputs": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-hosted-A-native3475-20261105/post-inputs.json",
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "native_helper_controller_outer_exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "full_pre_post_input_exits": [
+        0,
+        0
+      ],
+      "full_manifest_bytes_equal": true,
+      "input_files": 1179,
+      "input_bytes": 102239559,
+      "verified_payloads": 88,
+      "json_rows": 8,
+      "facts": {
+        "completed": true,
+        "segments": 3,
+        "query_hits": 3,
+        "query_target_hits": 3,
+        "target_need_updated": 3,
+        "target_test": 3,
+        "target_test_moving16": 3,
+        "speed_window_valid": 1,
+        "speed_window_bad": 0,
+        "speed_transforms": 0,
+        "speed_delegations": 0,
+        "target_after_speed": 0,
+        "entity_after": 4,
+        "candidate_after": 586,
+        "scan_after": 609,
+        "pose_after": 34,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "pose_fact_position_differs": 0,
+        "pose_fact_attitude_differs": 0,
+        "pose_fact_motion_held_differs": 0
+      },
+      "B_actual_incoming_demand_finite_positive_and_substitution_zero_verified": null,
+      "A_changes_no_demand": true
+    },
+    {
+      "role": "hosted-B",
+      "controller": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-hosted-B-native3475-20261105/controller.json",
+        "bytes": 4673,
+        "sha256": "20328ca8d9524c239f27f58afbfb5242b42127d30726c55e8d4c0e79a38a964d"
+      },
+      "outer_receipt": {
+        "path": "R:/d3-evidence/query-speed-input-hosted-B-native3475-20261105-completion.json",
+        "bytes": 2727,
+        "sha256": "c3b04eb63a38e36f5c40d30ad2244d2ac017abdc6882492e0bcb9d1958562ba4"
+      },
+      "raw_jsonl": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-hosted-B-native3475-20261105/model.jsonl",
+        "bytes": 3668,
+        "sha256": "516b331dfede6cb35c51ccda9cdf7c492b6e43c10673442e5963bd6d3c90ac8f"
+      },
+      "native_log": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-hosted-B-native3475-20261105/native.log",
+        "bytes": 40827,
+        "sha256": "7acbb11019cdd38c27704dcb9b0d479fa6cbbdbe0d5fc980f2f265f0d59e5ca2"
+      },
+      "pre_inputs": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-hosted-B-native3475-20261105/pre-inputs.json",
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "post_inputs": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-hosted-B-native3475-20261105/post-inputs.json",
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "native_helper_controller_outer_exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "full_pre_post_input_exits": [
+        0,
+        0
+      ],
+      "full_manifest_bytes_equal": true,
+      "input_files": 1179,
+      "input_bytes": 102239559,
+      "verified_payloads": 88,
+      "json_rows": 8,
+      "facts": {
+        "completed": true,
+        "segments": 3,
+        "query_hits": 3,
+        "query_target_hits": 3,
+        "target_need_updated": 3,
+        "target_test": 3,
+        "target_test_moving16": 3,
+        "speed_window_valid": 1,
+        "speed_window_bad": 0,
+        "speed_transforms": 1,
+        "speed_delegations": 1,
+        "target_after_speed": 9,
+        "entity_after": 4,
+        "candidate_after": 586,
+        "scan_after": 609,
+        "pose_after": 34,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "pose_fact_position_differs": 0,
+        "pose_fact_attitude_differs": 0,
+        "pose_fact_motion_held_differs": 0
+      },
+      "B_actual_incoming_demand_finite_positive_and_substitution_zero_verified": true,
+      "A_changes_no_demand": null
+    },
+    {
+      "role": "original-A",
+      "controller": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-original-A-native3475-20261105/controller.json",
+        "bytes": 4330,
+        "sha256": "77503fa0e5d65d3b3eb5883c566b33737379958b3c35603010d71fb33a46f3a0"
+      },
+      "outer_receipt": {
+        "path": "R:/d3-evidence/query-speed-input-original-A-native3475-20261105-completion.json",
+        "bytes": 2208,
+        "sha256": "eeec6a816227af5a3b3c258f6313cd8489aec25d904c0b1a1cd0f95a1b9e92f8"
+      },
+      "raw_jsonl": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-original-A-native3475-20261105/model.jsonl",
+        "bytes": 3567,
+        "sha256": "e51195b51f67787a8f1d81c8b74dec8919e8b481543bcc6836944968667825d8"
+      },
+      "native_log": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-original-A-native3475-20261105/native.log",
+        "bytes": 41314,
+        "sha256": "e92fc6152bd81cc9e7404d167f54344213096acd2d6d369d6388f1e44fab0f4d"
+      },
+      "pre_inputs": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-original-A-native3475-20261105/pre-inputs.json",
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "post_inputs": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-original-A-native3475-20261105/post-inputs.json",
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "native_helper_controller_outer_exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "full_pre_post_input_exits": [
+        0,
+        0
+      ],
+      "full_manifest_bytes_equal": true,
+      "input_files": 1179,
+      "input_bytes": 102239559,
+      "verified_payloads": 88,
+      "json_rows": 8,
+      "facts": {
+        "completed": true,
+        "segments": 3,
+        "query_hits": 3,
+        "query_target_hits": 3,
+        "target_need_updated": 0,
+        "target_test": 0,
+        "target_test_moving16": 0,
+        "speed_window_valid": 1,
+        "speed_window_bad": 0,
+        "speed_transforms": 0,
+        "speed_delegations": 0,
+        "target_after_speed": 0,
+        "entity_after": 0,
+        "candidate_after": 0,
+        "scan_after": 0,
+        "pose_after": 0,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "pose_fact_position_differs": 0,
+        "pose_fact_attitude_differs": 0,
+        "pose_fact_motion_held_differs": 0
+      },
+      "B_actual_incoming_demand_finite_positive_and_substitution_zero_verified": null,
+      "A_changes_no_demand": true
+    },
+    {
+      "role": "original-B",
+      "controller": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-original-B-native3475-20261105/controller.json",
+        "bytes": 4709,
+        "sha256": "dae706cb64e9a950b3420d71a35a9067126f2bec6eba9f21e5464a3d11355a8d"
+      },
+      "outer_receipt": {
+        "path": "R:/d3-evidence/query-speed-input-original-B-native3475-20261105-completion.json",
+        "bytes": 2748,
+        "sha256": "7a99b56505b01f621794ca3a8f34417a554def803fa0745869c4f5425435b32e"
+      },
+      "raw_jsonl": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-original-B-native3475-20261105/model.jsonl",
+        "bytes": 3572,
+        "sha256": "62d4e4c09e48f56abde4565c85f3103789d1c3381e7cb69be096eec7116d8f1e"
+      },
+      "native_log": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-original-B-native3475-20261105/native.log",
+        "bytes": 41311,
+        "sha256": "9e1ecd0949472d6bbe96e5fd288d6d41fb08b19719e73c7cd8a1a574d652576b"
+      },
+      "pre_inputs": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-original-B-native3475-20261105/pre-inputs.json",
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "post_inputs": {
+        "path": "D:/EECH-Migration-Evidence/query-speed-input-original-B-native3475-20261105/post-inputs.json",
+        "bytes": 209622,
+        "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+      },
+      "native_helper_controller_outer_exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "full_pre_post_input_exits": [
+        0,
+        0
+      ],
+      "full_manifest_bytes_equal": true,
+      "input_files": 1179,
+      "input_bytes": 102239559,
+      "verified_payloads": 88,
+      "json_rows": 8,
+      "facts": {
+        "completed": true,
+        "segments": 3,
+        "query_hits": 3,
+        "query_target_hits": 3,
+        "target_need_updated": 0,
+        "target_test": 0,
+        "target_test_moving16": 0,
+        "speed_window_valid": 1,
+        "speed_window_bad": 0,
+        "speed_transforms": 1,
+        "speed_delegations": 1,
+        "target_after_speed": 0,
+        "entity_after": 0,
+        "candidate_after": 0,
+        "scan_after": 0,
+        "pose_after": 0,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "pose_fact_position_differs": 0,
+        "pose_fact_attitude_differs": 0,
+        "pose_fact_motion_held_differs": 0
+      },
+      "B_actual_incoming_demand_finite_positive_and_substitution_zero_verified": true,
+      "A_changes_no_demand": null
+    }
+  ],
+  "independently_verified_common_joins": {
+    "all_four_compiled_source_and_exact_opt_in_literal": true,
+    "all_four_same_selected_target_and_selection": true,
+    "all_four_same_prepared_target_type_radius_and_exact_three_latched_rays": true,
+    "all_four_same_fixed_seed_warmup_frame_settle_budget": true,
+    "all_four_complete_initial_input_manifest_bytes_equal": true,
+    "all_four_pre_post_manifest_bytes_equal": true,
+    "eight_full_input_checks_exit0": true,
+    "each_input_check_files": 1179,
+    "all_four_payload_seals_88_verified": true,
+    "current_exported_hosted_and_Original_88_payloads_independently_rehashed": true,
+    "BUILD_INFO_hashes_joined_to_actual_sealed_profile_builds": true,
+    "literal_independently_compared_to_exact_Git_blob": true,
+    "each_B_native_argv_control_signature_equals_its_completed_same_profile_A": true,
+    "each_B_helper_argv_control_signature_equals_its_completed_same_profile_A": true,
+    "each_B_incoming_demand_equals_its_A_selected_demand": true,
+    "each_B_actual_physical_signature_differs_from_authentic_A": true
+  },
+  "physical_comparisons": {
+    "Hosted_A_Original_A_full_three_query_segment_lines_literal_equal_including_line_endings": true,
+    "Hosted_B_Original_B_full_three_query_segment_lines_literal_equal_including_line_endings": true,
+    "Hosted_A_to_B_changed_field_counts": {
+      "hit": 0,
+      "hit_is_target": 0,
+      "hit_type": 0,
+      "hit_host_id": 0,
+      "point": 3,
+      "normal": 0,
+      "a": 0,
+      "b": 0
+    },
+    "claim": "All three actual contact-point word triples differ under B; hit state/type/target identity, normal words and ray inputs remain equal. The full matched physical outputs agree with the real Original caller in both configurations. No physical tuples or identity suffixes are reproduced."
+  },
+  "configured_input_evidence": {
+    "A": "Unchanged input. Hosted A actually reaches three target NeedUpdated, three target test and three target moving16 decisions, with three target hits.",
+    "B": "Each profile receives one real valid target move callback in the bounded frame and applies exactly one desired_velocity positive-to-zero copy and delegation. The same Movers/solver and normal Core result application are retained by the reviewed source; observed Host/Core mirror differences and request/reply faults are zero. Hosted B has nine actual post-transform target questions and three target hits.",
+    "Original": "Both Original controls actually execute the same query fixture with zero hosted entity/candidate/scan/pose questions. Their complete physical rows equal their corresponding Hosted control; this is not API-absence or UNREACHED evidence.",
+    "attribution": "Per-target query-phase counts and the matched fixed rays/configuration support this controlled service proof. Warmup/global counts alone are not credited as the positive moving path.",
+    "meaning": "This deliberately changes the speed-demand input received by the Host solver. It does not demonstrate failure to fulfil an unchanged solver command. Core route/task/command storage and production policy code are unchanged, but the configured received input is expressly different."
+  },
+  "evidence_summary": {
+    "Root_safe_projection": {
+      "path": "R:/d3-evidence/query-speed-input-safe-actual-facts-6fb-native3475-20261105.json",
+      "bytes": 6259,
+      "sha256": "3d48f8c84ecb36d239ea37928615ccbac74b25ce53cc31b902d7dcf89387c406"
+    },
+    "Root_private_audit_hash_reference_only": {
+      "path": "R:/d3-evidence/query-speed-input-private-actual-audit-6fb-native3475-20261105.json",
+      "bytes": 48956,
+      "sha256": "e0ba8b7d4385d434ecc2a9e6af3fbcc192c07694af8f9ddf648160d033dd09d3"
+    },
+    "Root_auditor_source": {
+      "path": "R:/d3-evidence/audit-query-speed-input-actuals-20261105.py",
+      "bytes": 6147,
+      "sha256": "b60f903582c8b610d3230d5a7c001d706a7ce94a10cca1e823075af4bf94510a"
+    },
+    "qualification": "Root reports auditor execution0. The reviewer independently read all four raw controller/outer receipts, reports, actual helper/native signature arguments, full input manifests and current payload seals. Private raw audit contents were not copied into this publishable report."
+  },
+  "preserved_history": [
+    "The previous terrain-eligibility A remains prelaunch UNREACHED; earlier3475 terrain B remains UNREACHED. Neither is relabelled as a successful speed control.",
+    "The older natural weapon moving attempts remain UNREACHED at their own identities. No seed/time/actor/ray search or parameter tuning is credited.",
+    "The failed ea2b full pack remains failed. This finite successful service set does not transfer or normalize that pack."
+  ],
+  "remaining_required_gates": [
+    "The active ordinary3475 full40/all8 pack must complete and receive its own exact-output, full-input, payload/source and delivery audit. It was not touched or accepted by this review.",
+    "Natural moving weapon integration remains an unmeasured integration fact; no claim is inferred from direct service query success.",
+    "Required physical backing/roster/lifetime/live pose and writer ownership, effectful getters, city children, loaders/forest/cloud/hierarchy/devices and DCS mappings remain in the whole-D3 scope.",
+    "Current CI, dependency joins and normal Task49 delivery acceptance remain separate. This proof is not a whole Task49 or D3 verdict."
+  ],
+  "publication_safety": "Only aggregate counts, SHA256 values, outcome/word-field labels, private/source paths and verified join booleans. No raw retail coordinates, vectors, physical tuples, rays, actor IDs or suffixes, signatures, argv values, transcripts, catalogues or binaries are published."
+}

@@ -1,0 +1,91 @@
+{
+  "record": "query-speed-input-CODE-FROZEN-20261105",
+  "status": "UNREVIEWED CODE_FROZEN source checkpoint; focused Linux checks only. No native, Windows, full-pack, C or production Rust change or run. No new native clearance, actual, or Task49/whole-D3 claim.",
+  "task": "EEDCS-49 / PR109 / branch codex/d3-object-tree-collision",
+  "code": {
+    "sha": "6fb7ff43ab19ca12b5b374f2d9933f1beaa1e692",
+    "tree": "bce394f03cb66f06a30f82b8a588f29a851b8e57",
+    "actual_direct_parent_rev_parse_code_caret": "cef51fb03674c2c896d0f12fc78983ef1f4bf972",
+    "pushed": true,
+    "files": {
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua": {"git_blob": "d690abdb252a6191349a5d5e0ae55860ed2bff86", "raw_sha256": "5d116d5662892905c538695dd30cda053a02a7d05aaf9ba2d63fb442eacd0422", "numstat": "+77/-8"},
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs": {"git_blob": "f4cc2dd52056acfe1a2542777a0efe613b496877", "raw_sha256": "5c1647f53127b17208b9f57a664f354821079602c3c96e1e952d695f5d76846f", "numstat": "+393/-5"}
+    },
+    "exact_git_bytes": "R:/d3-evidence/qspeed-20261105/code.patch (git diff --binary of the two files before commit) sha256 670c59a3ca1c55ad750bb02e77aa2f0e383af4c26245dfa6fdbf299195954204; committed blobs above"
+  },
+  "metadata": {
+    "sha": "05408103dba810db175ffa5ed4694f841aaf4fff",
+    "tree": "9cba6d3cdb50a4c27d673b73d81c05eb9ebbb41a",
+    "parent": "6fb7ff43ab19ca12b5b374f2d9933f1beaa1e692",
+    "pushed": true,
+    "files": ["STATUS.md (one new current summary first; previous current demoted to HISTORICAL)", "docs/handover/ACTIVE-EXTRACTION.json (phase text only; valid JSON)"],
+    "label": "Written AFTER the code checks; no file under eech-campaign differs between the code commit and the metadata commit (git diff --stat 6fb7ff43a HEAD -- eech-campaign is empty)."
+  },
+  "delta": {
+    "modes": ["moving_query_speed_control (A)", "moving_query_speed_zero (B)"],
+    "separate_from": "moving_query_control / moving_query_lift / terrain_lift / moving_control: unchanged selector, text, tests and evidence",
+    "selector": "same first-alive-routed-in-identity-order moving criterion (final warmup move step, motion norm > 1) AND the same step's own desired_velocity finite and > 0, kept as a boolean (type/finite/sign only, no arithmetic; the value is copied for provenance). No terrain required. Same in hosted A/B and Original. None eligible: finite prelaunch UNREACHED, query_calls empty, no search.",
+    "transform_B": "only inside the one tgt.window_open frame between the latched prepare and run, only on the watched target's mode=move step whose incoming desired_velocity is finite and >0: shallow copy of the step, desired_velocity = 0, ONE delegation to the same host.move_vehicle. Engine table never mutated; terrain, map bounds, delta_seconds, max_acceleration, waypoint, commands keep their table identities. No pose/setter/answer/solver edit.",
+    "counts_and_provenance": "row query_authority: speed_window_valid, speed_window_bad, speed_transforms, speed_delegations (counted after the host returns), speed_incoming_demand (first applied, %.17g), speed_substituted_demand ('0'), target_after_speed, target_after_speed_test; row query_case_selected: speed_input_candidates, selected_demand, eligibility.",
+    "B_verdicts": "no delegated transformed step => UNREACHED (counts in the reason); no target question after it => UNREACHED; no control_signature => refused; physical signature equal to A's => UNCHANGED; valid broad-phase skip allowed in B only; existing request/reply fault checks and the C mirror assertion unchanged; A keeps need_updated/test/moving16.",
+    "original": "same selector and same input transform; asserts zero entity/candidate/scan/pose hosted questions; control_signature, when bound, equal => UNCHANGED (optional, as the lift precedent)",
+    "lua_locals": "no new file-level locals; new state lives in the existing tgt table and plan (no Lua 5.1 upvalue pressure)",
+    "test_fixture": "existing sociable Lua provider fixture in entity_authority.rs: engine steps now carry desired_velocity (per-identity scenario.demand, query_demand override), max_acceleration, delta_seconds, waypoint, map_min, tacview_logging; DEMAND_LOG records received demand, phase, differing fields vs the engine table and the engine's demand; scripted rays answer from the demand the solver stand-in last received only when the scenario defines query_zero_demand_hits; no_query_frame_steps; NaN-safe mutation check"
+  },
+  "characterised_before_implementation": {
+    "main.rs movement_from Request::Advance": "mode 'move' parses delta_seconds, desired_velocity, max_acceleration, waypoint, tacview_logging, optional terrain, map_min/max via exact_numbers (17-digit Lua text narrowed to f32); a missing/non-numeric desired_velocity is an error, so a changed demand must be a real number",
+    "Movers advance": "Request::Advance runs eech_convoy_step on the canonical record, retains record.motion_vector = row_two_times_speed, returns the settled result",
+    "convoy_step.c": "velocity += bound(desired_velocity - velocity, -10*max_accel, max_accel)*dt; movement_distance = min(distance, velocity*dt); a demand of 0 therefore changes velocity and position via the real solver (no fixture arithmetic in the witness)",
+    "Core rv_hostmv.c campaign_movement_move/ask_host": "Core sends desired_velocity from the guide and applies the host result (velocity, attitude, position through the setter, motion vector from the host record); finite-result validation unchanged",
+    "safe_actual_input": "available: a finite positive desired_velocity is present in the real move step; no native work was needed"
+  },
+  "checks": {
+    "route": "R:/d3-evidence/check-pose-motion-diag-linux-20261105.sh in WSL EECH-D2-Build; image sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51 present; volume eech-linux-d3-collision-driver-5416adb3b-20261029; docker ps (inside WSL) listed no container and --filter volume returned none before use (no other owner). Direct child exit codes in .exit files; no pipeline-0 claim.",
+    "only_these_two_selected_checks": ["cargo fmt -p eech-world -- --check", "cargo test --release --locked -p eech-world --test entity_authority"],
+    "artifacts_dir": "R:/d3-evidence/qspeed-20261105/",
+    "sequence": [
+      {"step": "fmt check #1 (before apply)", "exit": 1, "log": "qspeed-fmt-1.log", "sha256": "fb00ae4f62ad4493fc804859d5cb57078e483ad811dced23977b16d1f0e83f1e", "note": "formatting differences in the new test code only"},
+      {"step": "cargo fmt -p eech-world (apply)", "exit": 0, "log": "qspeed-fmt-apply.log"},
+      {"step": "fmt check #2", "exit": 0, "log": "qspeed-fmt-2.log"},
+      {"step": "RED: previous Lua (git show HEAD:...lua) + new tests", "exit": 101, "result": "46 passed; 7 failed", "log": "qspeed-red-test.log", "sha256": "2ce7e4e6e50ea5746d8df129717ae29fa6552d095e6cc392f47262c6c424dd4d", "note": "the 7 failures are exactly the 7 new tests (unknown mode under the previous Lua); the new Lua was copied aside, restored, and its raw sha256 5d116d56... re-verified equal (lua-new/lua-old-red/lua-restored.sha). This RED run used the test fixture before the two fixture-only fixes below; the failing cause (mode absent) is independent of them"},
+      {"step": "GREEN attempt 1", "exit": 101, "result": "52 passed; 1 failed", "log": "qspeed-green-test.log", "sha256": "e64e5fafc879b39ab15d72e3e8e5d24e0f59fe381e869f30ee8802de073818d7", "note": "test-fixture defect, not the Lua: NaN ~= NaN made the fixture's engine-mutation flag true for demand 0/0; fixed NaN-safe, kept the log"},
+      {"step": "GREEN attempt 2", "exit": 101, "result": "52 passed; 1 failed", "log": "qspeed-green-test-2.log", "sha256": "f418f445aff65be56c2c6ab96ea96258a3bb9975aa41234544f24c1303a95913", "note": "test-fixture defect: string.format('%.17g') of the string demand 'fast' in the fixture logger; the Lua correctly treats it as no demand; fixed, kept the log"},
+      {"step": "GREEN attempt 3", "exit": 0, "result": "53 passed; 0 failed", "log": "qspeed-green-test-3.log", "sha256": "82f761ba8c16b70f9c3eea3c0b97d0ba0557b0c619a6afe385c36f15cc255e77"},
+      {"step": "FINAL bracketed fmt check", "exit": 0, "log": "qspeed-final-fmt.log"},
+      {"step": "FINAL bracketed entity_authority", "exit": 0, "result": "53 passed; 0 failed", "log": "qspeed-final-test.log", "sha256": "ccb7d026f3426f57a876a3242e6585862596bfca52fa2851b8f7733946eaa003"}
+    ],
+    "guard": "python migration-progress.py --action fix-blocker --blocker entity-host-sourced-live-pose: exit 0 (guard-fix-blocker.json); run with the bundled Python 3.12 (python on PATH is the Store stub)",
+    "existing_tests": "all 46 existing entity_authority tests pass unchanged beside the 7 new ones (terrain modes, old selector, old texts)"
+  },
+  "scope_and_hash_maps": {
+    "per_file_rows": "every tracked file under eech-campaign: 3658 rows of path, raw working-tree sha256, Git blob id of the raw bytes (no filters), byte length",
+    "final_before_checks": {"file": "scope-final-before.tsv", "sha256": "26c35e5d279ebb99fdf6ffe1d9829c81b83bdae3dd6b837ccf7649d8644132ed"},
+    "final_after_checks": {"file": "scope-final-after.tsv", "sha256": "26c35e5d279ebb99fdf6ffe1d9829c81b83bdae3dd6b837ccf7649d8644132ed"},
+    "literal_equal": "cmp of the two row files: identical",
+    "changed_file_raw_hashes_before_after_final_checks": "identical (changed-final-before.sha == changed-final-after.sha, sha256 32a665d2a28496621987c5136a9aa742bb5f2aab2ce3e702723205944ccec343)",
+    "code_before_after_literal_equal": "the checked bytes and the committed blobs have the same raw sha256 (5d116d56..., 5c1647f5...)",
+    "earlier_snapshot": "scope-before.tsv (b798c1e9...) was taken before the fmt apply and the two fixture fixes; only tests/entity_authority.rs differs from the final rows",
+    "git_status_before_and_after": "only the two files modified (final-status-before/after.txt); clean tree after both pushes"
+  },
+  "proved": [
+    "7 new sociable tests pass with the new Lua and fail against the previous Lua; 46 existing pass in both",
+    "selector: first identity-ordered moving routed actor with a finite positive demand is chosen with no terrain requirement; an earlier actor with missing, zero, negative, NaN, +/-inf or string demand is passed over untouched; terrain-less steps are valid; the old terrain selector still rejects terrain-less steps",
+    "no eligible actor => named prelaunch UNREACHED, query_calls empty, finite counts, in both speed modes and both profiles (empty, non-positive and non-finite demand)",
+    "B: exactly ONE changed delegation for the target in the query frame, received demand 0 with desired_velocity as the only differing field and the engine's 7.5 intact; every warmup step and the other vehicle's steps in both phases reached the host as the engine's own table; caller_mutated false; transforms==delegations==1; incoming 7.5 / substituted 0 recorded",
+    "B credited only with the target offered after the step and a signature different from A's (the scripted physics answers from the demand the stand-in solver last received); valid broad-phase skip accepted in B, still rejected in A; identical result => UNCHANGED; missing control => refused; no later target question => UNREACHED",
+    "query-frame step with missing/0/negative/NaN/inf demand, or no query-frame step at all => nothing replaced, nothing credited, UNREACHED with the finite window counts",
+    "Original: same selector and transform, zero hosted entity/candidate/scan/pose questions, signature differs from the Original A; UNCHANGED and UNREACHED paths covered"
+  ],
+  "not_proved_or_limits": [
+    "No real engine, native, Windows or full-pack execution: the witness and test fixture are Lua-only; whether the compiled 3475 engine actually yields an eligible target, a transformed frame, coherent mirror/Core results, a target offered in the query phase or a changed physical signature is UNKNOWN until Root selects a matched execution",
+    "The scripted physics in the fixture (rays answer from the last received demand) demonstrates that the changed demand reaches the host stand-in and is credited only by a changed result; it is not evidence that the real solver's one-frame velocity change moves any real ray result. A real B may legitimately end UNCHANGED/UNREACHED and must not be tuned (factor, time, rays)",
+    "Query service only: this is a changed speed-demand INPUT to the host's solver in a test-only configuration; it does NOT show that a host failed to fulfil an unchanged solver command, is not terrain authority, not a whole physical cutover and not natural moving weapon integration (that gap stays OPEN)",
+    "Core task/route/command storage and production policy code unchanged; no C, no production Rust, no native",
+    "The new Lua is a new literal input: it does not inherit the compiled3475 clearance; the same reviewer must join this SOURCE; no new native clearance or actual is claimed",
+    "The ordinary40/all8 compiled3475 pack (controller 12732 / launcher 23720 / runner 20760) and the frozen source/bin/roots were not touched or inspected beyond the brief",
+    "Remaining required D3 work (physical backing, roster/lifecycle, remaining model/RNG services, DCS mapping, complete 40/all8/current CI/review/normal merge, all ten requirements) is open; D4/D5/TypeScript unstarted",
+    "The RED run predates two fixture-only fixes; the final tests were not re-run against the previous Lua (the cause of RED, the absent modes, is independent of the fixes)"
+  ],
+  "review_state_at_freeze": "no outstanding new source findings beyond this design; card blockers unchanged (entity-host-sourced-live-pose and ENV-ENTITY-POSE-LONG-RUN-MOTION-1 remain open as before; this change does not close either)",
+  "next": "the SAME reviewer joins this SOURCE; Root alone selects one matched control execution and owns external D3-CURRENT.json (not written here); then the next required physical backing production work"
+}

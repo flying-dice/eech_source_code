@@ -1,0 +1,33 @@
+{
+  "compiled_source": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+  "literal_source": "6fb7ff43ab19ca12b5b374f2d9933f1beaa1e692",
+  "metadata": "05408103dba810db175ffa5ed4694f841aaf4fff",
+  "actual_literal_source_parent": "cef51fb03674c2c896d0f12fc78983ef1f4bf972",
+  "scoped_delta": [
+    {
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "git_blob": "d690abdb252a6191349a5d5e0ae55860ed2bff86",
+      "sha256": "5d116d5662892905c538695dd30cda053a02a7d05aaf9ba2d63fb442eacd0422"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "git_blob": "f4cc2dd52056acfe1a2542777a0efe613b496877",
+      "sha256": "5c1647f53127b17208b9f57a664f354821079602c3c96e1e952d695f5d76846f"
+    }
+  ],
+  "no_C_no_production_Rust_no_build_input_delta": true,
+  "actual_author_exit": 0,
+  "focused_real_Lua_result": "53passed0failed; oldLuaRED46passed7failed; earlierfmtand2mockfailures retained/qualified",
+  "full_retained_scope_rows": 3658,
+  "raw_full_scope_per_file_maps_before_after_literal_equal": true,
+  "scope_map_sha256": "26c35e5d279ebb99fdf6ffe1d9829c81b83bdae3dd6b837ccf7649d8644132ed",
+  "raw_changed_file_hashes_before_after_literal_equal": true,
+  "original_checkpoint_sha256": "99ec2f92f1fda3e6c12e1837a79497ff14fc6668c18814395765a41515d793d2",
+  "literal": "R:\\d3-evidence\\query-speed-input-6fb7ff43a-literal.lua",
+  "literal_git_blob": "d690abdb252a6191349a5d5e0ae55860ed2bff86",
+  "literal_sha256": "5d116d5662892905c538695dd30cda053a02a7d05aaf9ba2d63fb442eacd0422",
+  "native_driver": "R:/d3-evidence/run-query-speed-input-native3475-20261105.py",
+  "native_driver_sha256": "1ab866a34aa303b47bf071861c80875d097130f5527ed8519699b932ad1858db",
+  "scope": "Only new opt-in configured speed-demand input Lua literal on compiled3475; no binary/source relabel or pack restart. SAME source review required, strictpositiveA first, fresh roots, authenticBsignature/SAMEsource-target-rays-config-inputs. Unreached/unchanged remains failure, no parameterhunt.",
+  "verified_utc": "2026-11-05T23:41:06.709238+00:00"
+}

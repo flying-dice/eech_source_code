@@ -1,0 +1,136 @@
+{
+  "schema": "independent-bounded-unreached-actual/v1",
+  "reviewed_utc": "2026-11-05T23:26:30.393058+00:00",
+  "source": {
+    "compiled_runtime_commit": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+    "opt_in_literal_commit": "0d76fd2d62967d8c85bd91bc724b14c6ebb594bb",
+    "literal": {
+      "path": "R:/d3-evidence/query-lift-input-0d76fd2d6-literal.lua",
+      "bytes": 131079,
+      "sha256": "3b4a0320bb903629dd81c8fe888017913e7d284e36ceff5d9bb26760a65c5656"
+    },
+    "literal_git_blob": "2835e9461559cd7395198cd55959ff27a92a422d",
+    "prior_source_review": {
+      "path": "R:/d3-evidence/independent-query-lift-input-witness-source-0d76-native3475-20261105.json",
+      "bytes": 10285,
+      "sha256": "a3e99f369c18f90354bc3840227de007e09cc8ede005f369bc346d24f604f3a6"
+    },
+    "runtime_not_relabelled": true
+  },
+  "decision": {
+    "status": "VERIFIED_PRELAUNCH_UNREACHED",
+    "findings": [],
+    "actual_result_verified": true,
+    "honest_unreached_verified": true,
+    "actual_A_positive": false,
+    "B_or_Original_launched": false,
+    "finite_moving_query_changed_input_authority_closed": false,
+    "Person_long_run_regression_closed": false,
+    "natural_weapon_engagement_proved": false,
+    "full_pack_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "evidence": {
+    "controller": {
+      "path": "D:/EECH-Migration-Evidence/query-lift-input-hosted-A-0d76-native3475-20261105/controller.json",
+      "bytes": 4271,
+      "sha256": "c5b9abd519e8e799ea8823e2d6aa563ed955e7ddb96d844f79c11fd53a39bf6e"
+    },
+    "outer_completion": {
+      "path": "R:/d3-evidence/query-lift-input-hosted-A-0d76-native3475-20261105-completion.json",
+      "bytes": 2449,
+      "sha256": "a8e6e6be1d2715897072ff1c6a7fd87f9e8b2b78873a02205bd93d4708920e6d"
+    },
+    "outer_process": {
+      "path": "R:/d3-evidence/query-lift-input-hosted-A-0d76-native3475-20261105-process.json",
+      "bytes": 2449,
+      "sha256": "a8e6e6be1d2715897072ff1c6a7fd87f9e8b2b78873a02205bd93d4708920e6d"
+    },
+    "raw_report": {
+      "path": "D:/EECH-Migration-Evidence/query-lift-input-hosted-A-0d76-native3475-20261105/model.jsonl",
+      "bytes": 876,
+      "sha256": "ee4d83d9367a520dd1234956cd20dce0c66ddf3375e38ed0d9d6e36f2fe35faa"
+    },
+    "native_log": {
+      "path": "D:/EECH-Migration-Evidence/query-lift-input-hosted-A-0d76-native3475-20261105/native.log",
+      "bytes": 44834,
+      "sha256": "fd2b0cb596dbb76c99880d3a6fdca17c1a4f52bcacb7d07baf58f6c7746efacf"
+    },
+    "pre_inputs": {
+      "path": "D:/EECH-Migration-Evidence/query-lift-input-hosted-A-0d76-native3475-20261105/pre-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    "post_inputs": {
+      "path": "D:/EECH-Migration-Evidence/query-lift-input-hosted-A-0d76-native3475-20261105/post-inputs.json",
+      "bytes": 209622,
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    "native_helper_controller_outer_exits": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "full_pre_post_input_exits": [
+      0,
+      0
+    ],
+    "inputs": 1179,
+    "input_bytes": 102239559,
+    "pre_post_manifest_bytes_equal": true,
+    "hosted_payloads_independently_rehashed": 88,
+    "binary_BUILD_INFO_joined_to_sealed_profile": true,
+    "literal_independently_compared_to_Git": true
+  },
+  "measurement": {
+    "json_events": [
+      "boot",
+      "warmed_up",
+      "query_case_selected",
+      "witness_failure"
+    ],
+    "json_rows": 4,
+    "warmup_seconds": 30,
+    "frame_ms": 100,
+    "seed": 1,
+    "reported_frames": 301,
+    "selection_final_frame": 300,
+    "bound_roster": 3572,
+    "moving_candidates": 80,
+    "lift_input_candidates": 0,
+    "terrain_without_ceiling_candidates": 0,
+    "selected_target": "none",
+    "query_prepared_or_run": false,
+    "physical_query_rows": 0,
+    "completed_utc": "2026-11-05T23:20:16.262340+00:00"
+  },
+  "established": [
+    "The new literal ran on the unchanged compiled3475 hosted module and correctly refused before preparing or asking controlled query rays.",
+    "Among the 80 movers satisfying the fixed final-warmup criterion, no retained last move input met terrain-table/numeric-elevation/numeric-map-ceiling eligibility. None was counted as terrain-bearing without that ceiling shape.",
+    "Full inputs remain unchanged and all 88 hosted payloads match the sealed compiled3475 profile. No B or Original followed this failed A."
+  ],
+  "inference_limits": [
+    "No controlled query, hit, NeedUpdated, moving16 or changed physical effect was measured here. Old3475 positive A remains at its own diagnostic identity.",
+    "Final-warmup shape absence does not establish arbitrary future absence, absence for other actors/campaigns or which condition failed in the old3475 B window. The old zero-counter inference is unchanged.",
+    "This is witness underreach, not a newly demonstrated production movement defect or a reason to change valid None-terrain semantics."
+  ],
+  "bounded_practical_recommendation": {
+    "action": "Stop this terrain-prerequisite path; do not retry the same case or search actor/time/geometry for eligibility. A new opt-in configured-input service control may instead use an actual already-present input in the real selected movement callback, with one declared transform and no adaptive search.",
+    "possible_speed_demand_control": "A test-only desired_velocity=0 copy could be considered only after exact source review. It must be named a change to the Host received speed-demand input. The solver would fulfill a different desired command; it would not prove failure to fulfill the unchanged incoming command. Core route/task/storage and production policy code may remain unchanged, but the test input change must be explicit.",
+    "new_source_contract": [
+      "Require and privately preserve the actual incoming field, including its meaningful difference and finite domain. Do not inject a missing terrain field or fabricate a pose/record.",
+      "Copy only the declared input, delegate once to the same Movers, apply the canonical result through normal Core application, preserve every other input and staged ordering.",
+      "Use fixed latched rays and authentic same-input A/B source/target/configuration joins. Require actual target offer/coherence and changed physical output; UNREACHED and UNCHANGED remain unaccepted."
+    ],
+    "clearance": "Recommendation only; no unimplemented transform or new native is cleared by this actual review.",
+    "service_vs_natural": "A changed direct query-service output establishes only that configured service path. Natural moving weapon integration remains a separate unmet fact."
+  },
+  "protected_scope": [
+    "The active ordinary3475 full pack was not touched, restarted or accepted.",
+    "No source sweep, new build/test/campaign, instrumentation, process/cache/VM operation or subagent was used.",
+    "All remaining required backing/roster/live pose and writers, effectful getters, city children, loaders/forest/cloud/hierarchy/devices, DCS mapping and Task49/D3 obligations remain open."
+  ],
+  "publication_safety": "Aggregate counts, hashes, outcome and source/private path references only. No retail coordinates, vectors, actor identity suffixes, physical tuples, signatures or raw model catalogue."
+}
