@@ -454,216 +454,39 @@ static int get_3d_line_quad_face_intersection
 // caller's intercept point and face normal go to neither and their final words come back, whether or not the segment hits, as the original's intersection helpers left them. The original
 // arithmetic is not compiled into it; the explicit original-characterisation profile (feature collision-fixture) keeps it.
 //
-// What the campaign keeps, declared and required to move: WHICH candidates are offered and in what order (the sector window of the segment, the sector lists scanned from the tail, the exclusion
-// of the source and the target, and that an entity with neither collision flag is never offered: the sector lists and the entities' live state are the campaign's), the reads of the entity's own
-// state the host is given as facts, the two services with effects of their own that the host names when it needs them (the destructive UPDATED getter and the terrain face-normal question, each
-// performed exactly once, at the place the original performed it) and the consequences of a hit. The debug drawing of the collision boxes (draw_collision_boxes) is not carried: the host owns
-// the boxes, and the headless campaign has no external view.
+// What the campaign keeps, declared and required to move: WHICH candidates are offered and in what order (the sector window of the segment, the sector lists scanned from the tail and the
+// exclusion of the source and the target: the sector lists and the entities' live state are the campaign's), the reads of the entity's own state the host is given as facts (in stages, only as
+// the host asks for the next one, so a candidate the original skipped is not made to supply a shape, a fixed flag or a model), the two services with effects of their own that the host names
+// when it needs them (the destructive UPDATED getter and the terrain face-normal question, each performed exactly once, at the place the original performed it) and the consequences of a hit. The debug drawing of the collision boxes (draw_collision_boxes) is a declared unsupported
+// diagnostic of the hosted module and is not carried: the host owns the boxes (the characterisation never probed it either).
 
 #include "entity/mobile/mb_hostmodel.h"
 
 extern int campaign_model_entity_collision (int scene, const float *segment_old, const float *segment_new, const float *candidate, int candidate_count, float *point, float *normal);
 
-// Offers one candidate to the host. `of_city` is TRUE for a building listed under a city whose box the host reported as met (the host does not apply the sector skip to it again). Returns the
-// entity that was hit, with the intercept point and face normal written as the original left them, or NULL.
-static entity *offer_candidate_to_host
-(
-	entity *target,
-	int of_city,
-	float sector_tallest_structure_height,
-	vec3d *source_old_position,
-	vec3d *source_new_position,
-	vec3d *source_intercept_point,
-	vec3d *face_normal
-)
-{
-	float
-		facts [CAMPAIGN_MODEL_CANDIDATE_FACTS],
-		pose [CAMPAIGN_MODEL_CANDIDATE_POSE_MAX];
+// The campaign's offer of one candidate (mb_hostoffer.h, shared with the isolated control of its dialogue) is bound here to the real entity getters. It reads an entity's state in stages, only as
+// the host asks for the next stage, in the order the original read it; the two getters with effects of their own are the real ones.
 
-	int
-		mobile,
-		fixed,
-		scene,
-		state,
-		pose_count;
+#define CAMPAIGN_OFFER_ENTITY entity
 
-	vec3d
-		*position,
-		*motion_vector,
-		bounding_box_min,
-		bounding_box_max,
-		terrain_face_normal;
+#define CAMPAIGN_OFFER_MOBILE_FLAG(E) get_local_entity_int_value ((E), INT_TYPE_COLLISION_TEST_MOBILE)
+#define CAMPAIGN_OFFER_FIXED_FLAG(E) get_local_entity_int_value ((E), INT_TYPE_COLLISION_TEST_FIXED)
+#define CAMPAIGN_OFFER_IS_CITY(E) (get_local_entity_type ((E)) == ENTITY_TYPE_CITY)
+#define CAMPAIGN_OFFER_IS_CITY_BUILDING(E) (get_local_entity_type ((E)) == ENTITY_TYPE_CITY_BUILDING)
+#define CAMPAIGN_OFFER_SHAPE(E) get_local_entity_int_value ((E), INT_TYPE_OBJECT_3D_SHAPE)
+#define CAMPAIGN_OFFER_POSITION(E,OUT) memcpy ((OUT), get_local_entity_vec3d_ptr ((E), VEC3D_TYPE_POSITION), sizeof (vec3d))
+#define CAMPAIGN_OFFER_MOTION(E,OUT) memcpy ((OUT), get_local_entity_vec3d_ptr ((E), VEC3D_TYPE_MOTION_VECTOR), sizeof (vec3d))
+#define CAMPAIGN_OFFER_ATTITUDE(E,OUT) do { matrix3x3 offer_attitude; get_local_entity_attitude_matrix ((E), offer_attitude); memcpy ((OUT), offer_attitude, 9 * sizeof (float)); } while (0)
+#define CAMPAIGN_OFFER_HEADING(E) get_local_entity_float_value ((E), FLOAT_TYPE_HEADING)
+#define CAMPAIGN_OFFER_ALIGN(E) get_local_entity_int_value ((E), INT_TYPE_ALIGN_WITH_TERRAIN)
+#define CAMPAIGN_OFFER_FIRST_BUILDING(E) get_local_entity_first_child ((E), LIST_TYPE_CITY_BUILDING)
+#define CAMPAIGN_OFFER_NEXT_BUILDING(B) get_local_entity_child_succ ((B), LIST_TYPE_CITY_BUILDING)
+#define CAMPAIGN_OFFER_BOX(E,MIN,MAX) do { vec3d offer_min, offer_max; get_local_entity_vec3d ((E), VEC3D_TYPE_BOUNDING_BOX_MIN, &offer_min); get_local_entity_vec3d ((E), VEC3D_TYPE_BOUNDING_BOX_MAX, &offer_max); memcpy ((MIN), &offer_min, sizeof (vec3d)); memcpy ((MAX), &offer_max, sizeof (vec3d)); } while (0)
+#define CAMPAIGN_OFFER_UPDATED(E) get_local_entity_int_value ((E), INT_TYPE_UPDATED)
+#define CAMPAIGN_OFFER_TERRAIN_NORMAL(X,Z,OUT) do { vec3d offer_normal; get_3d_terrain_face_normal (&offer_normal, (X), (Z)); memcpy ((OUT), &offer_normal, sizeof (vec3d)); } while (0)
+#define CAMPAIGN_OFFER_DELTA_TIME() get_delta_time ()
 
-	matrix3x3
-		attitude;
-
-	entity
-		*building,
-		*hit;
-
-	ASSERT (target);
-
-	memset (facts, 0, sizeof (facts));
-
-	facts [CAMPAIGN_CANDIDATE_SEGMENT_OLD + 0] = source_old_position->x;
-	facts [CAMPAIGN_CANDIDATE_SEGMENT_OLD + 1] = source_old_position->y;
-	facts [CAMPAIGN_CANDIDATE_SEGMENT_OLD + 2] = source_old_position->z;
-
-	facts [CAMPAIGN_CANDIDATE_SEGMENT_NEW + 0] = source_new_position->x;
-	facts [CAMPAIGN_CANDIDATE_SEGMENT_NEW + 1] = source_new_position->y;
-	facts [CAMPAIGN_CANDIDATE_SEGMENT_NEW + 2] = source_new_position->z;
-
-	//
-	// the collision flags, read in the original's order: the mobile flag, and the fixed flag only of what is not mobile
-	//
-
-	mobile = (get_local_entity_int_value (target, INT_TYPE_COLLISION_TEST_MOBILE) != 0);
-
-	fixed = FALSE;
-
-	if (!mobile)
-	{
-		fixed = (get_local_entity_int_value (target, INT_TYPE_COLLISION_TEST_FIXED) != 0);
-	}
-
-	if ((!of_city) && (!mobile) && (!fixed))
-	{
-		// neither flag: the original did nothing with the entity, and it is not offered
-		return (NULL);
-	}
-
-	facts [CAMPAIGN_CANDIDATE_MOBILE] = (float) mobile;
-
-	facts [CAMPAIGN_CANDIDATE_FIXED] = (float) fixed;
-
-	facts [CAMPAIGN_CANDIDATE_OF_CITY] = (float) of_city;
-
-	facts [CAMPAIGN_CANDIDATE_TALLEST] = sector_tallest_structure_height;
-
-	facts [CAMPAIGN_CANDIDATE_DELTA_TIME] = get_delta_time ();
-
-	scene = 0;
-
-	position = NULL;
-
-	if (mobile)
-	{
-		scene = get_local_entity_int_value (target, INT_TYPE_OBJECT_3D_SHAPE);
-
-		position = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
-
-		motion_vector = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_MOTION_VECTOR);
-
-		get_local_entity_attitude_matrix (target, attitude);
-
-		memcpy (&facts [CAMPAIGN_CANDIDATE_MOTION], motion_vector, sizeof (vec3d));
-
-		memcpy (&facts [CAMPAIGN_CANDIDATE_ATTITUDE], attitude, 9 * sizeof (float));
-	}
-	else if ((!of_city) && (get_local_entity_type (target) == ENTITY_TYPE_CITY))
-	{
-		building = get_local_entity_first_child (target, LIST_TYPE_CITY_BUILDING);
-
-		facts [CAMPAIGN_CANDIDATE_CITY] = 1.0;
-
-		facts [CAMPAIGN_CANDIDATE_HAS_BUILDINGS] = (building != NULL);
-
-		position = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
-
-		if (building)
-		{
-			get_local_entity_vec3d (target, VEC3D_TYPE_BOUNDING_BOX_MIN, &bounding_box_min);
-			get_local_entity_vec3d (target, VEC3D_TYPE_BOUNDING_BOX_MAX, &bounding_box_max);
-
-			memcpy (&facts [CAMPAIGN_CANDIDATE_BOX_MIN], &bounding_box_min, sizeof (vec3d));
-			memcpy (&facts [CAMPAIGN_CANDIDATE_BOX_MAX], &bounding_box_max, sizeof (vec3d));
-		}
-	}
-	else if ((!of_city) && (get_local_entity_type (target) == ENTITY_TYPE_CITY_BUILDING))
-	{
-		// a building listed directly in a sector: the host skips it, and there is nothing to read
-		facts [CAMPAIGN_CANDIDATE_CITY_BUILDING] = 1.0;
-
-		position = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
-	}
-	else
-	{
-		scene = get_local_entity_int_value (target, INT_TYPE_OBJECT_3D_SHAPE);
-
-		position = get_local_entity_vec3d_ptr (target, VEC3D_TYPE_POSITION);
-
-		facts [CAMPAIGN_CANDIDATE_HEADING] = get_local_entity_float_value (target, FLOAT_TYPE_HEADING);
-
-		facts [CAMPAIGN_CANDIDATE_ALIGN] = (get_local_entity_int_value (target, INT_TYPE_ALIGN_WITH_TERRAIN) != 0);
-	}
-
-	memcpy (&facts [CAMPAIGN_CANDIDATE_POSITION], position, sizeof (vec3d));
-
-	for (;;)
-	{
-		state = campaign_model_entity_candidate (scene, facts, pose, &pose_count);
-
-		switch (state)
-		{
-			case CAMPAIGN_MODEL_CANDIDATE_SKIP:
-			{
-				return (NULL);
-			}
-			case CAMPAIGN_MODEL_CANDIDATE_NEED_UPDATED:
-			{
-				// the destructive getter, once, exactly when the host needs it (the original read it for every moving candidate it visited)
-
-				facts [CAMPAIGN_CANDIDATE_UPDATED] = get_local_entity_int_value (target, INT_TYPE_UPDATED) ? 2.0 : 1.0;
-
-				break;
-			}
-			case CAMPAIGN_MODEL_CANDIDATE_NEED_NORMAL:
-			{
-				// the terrain question of a terrain-aligned fixed object, asked once the broad phase has passed, as the original asked it
-
-				get_3d_terrain_face_normal (&terrain_face_normal, position->x, position->z);
-
-				facts [CAMPAIGN_CANDIDATE_NORMAL_GIVEN] = 1.0;
-
-				memcpy (&facts [CAMPAIGN_CANDIDATE_NORMAL], &terrain_face_normal, sizeof (vec3d));
-
-				break;
-			}
-			case CAMPAIGN_MODEL_CANDIDATE_BUILDINGS:
-			{
-				// the city's box is met: its buildings, in the campaign's list order, the first one that is hit ends the scan
-
-				building = get_local_entity_first_child (target, LIST_TYPE_CITY_BUILDING);
-
-				while (building)
-				{
-					hit = offer_candidate_to_host (building, TRUE, sector_tallest_structure_height, source_old_position, source_new_position, source_intercept_point, face_normal);
-
-					if (hit)
-					{
-						return (hit);
-					}
-
-					building = get_local_entity_child_succ (building, LIST_TYPE_CITY_BUILDING);
-				}
-
-				return (NULL);
-			}
-			default:
-			{
-				// the narrow phase, at the pose the host derived
-
-				if (campaign_model_entity_collision (scene, &source_old_position->x, &source_new_position->x, pose, pose_count, &source_intercept_point->x, &face_normal->x))
-				{
-					return (target);
-				}
-
-				return (NULL);
-			}
-		}
-	}
-}
+#include "entity/mobile/mb_hostoffer.h"
 
 #else
 
@@ -1511,7 +1334,7 @@ entity *get_line_of_sight_collision_entity
 #ifdef EECH_CAMPAIGN_HOST_ENTITY
 
 	//
-	// scan: the campaign walks the sectors and their lists in the original's order and offers each candidate to the host, which decides (offer_candidate_to_host above)
+	// scan: the campaign walks the sectors and their lists in the original's order and offers each candidate to the host, which decides (campaign_offer_candidate, mb_hostoffer.h)
 	//
 
 	for (x_sector = x_sector_min; x_sector <= x_sector_max; x_sector++)
@@ -1546,7 +1369,7 @@ entity *get_line_of_sight_collision_entity
 			{
 				if ((target != los_source) && (target != los_target))
 				{
-					hit = offer_candidate_to_host (target, FALSE, sector_tallest_structure_height, source_old_position, source_new_position, source_intercept_point, face_normal);
+					hit = campaign_offer_candidate (target, FALSE, sector_tallest_structure_height, &source_old_position->x, &source_new_position->x, &source_intercept_point->x, &face_normal->x);
 
 					if (hit)
 					{

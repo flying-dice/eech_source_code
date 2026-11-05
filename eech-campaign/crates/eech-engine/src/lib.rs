@@ -1129,7 +1129,7 @@ pub enum ModelQuery {
     /// attitude (9) and speed (1) (22 floats). The caller's intercept point and normal are outputs and are not part of the question
     EntityCollision { scene: i32, pose: Vec<u32> },
     /// what the host decides about ONE candidate of the entity scan (EEDCS-49, mb_hostmodel.h ENTITY_CANDIDATE): `scene` is the candidate's scene (0 for a city, which has none of its own)
-    /// and `facts` the 42 floats the campaign read from the entity it is visiting, as exact bit patterns (the segment, the collision flags, the sector's tallest structure, the live position,
+    /// and `facts` the 44 floats the campaign read from the entity it is visiting, as exact bit patterns (the segment, the collision flags, the sector's tallest structure, the live position,
     /// motion, heading and attitude, a city's box, and the answers of the two services the host asks for: the UPDATED flag and the terrain face normal)
     EntityCandidate { scene: i32, facts: Vec<u32> },
     /// a FIXED object's target point: the entity position the original had copied (3) and, only when the cached host offset has a horizontal part, the heading (1), as bit patterns
@@ -1219,6 +1219,10 @@ pub enum CandidateDecision {
     NeedNormal,
     Buildings,
     Test(Vec<f32>),
+    /// the host needs the facts the fixed branch reads (the fixed flag, whether it is a city or a city building, the shape, position and city box), which the campaign had not read yet
+    NeedFixed,
+    /// the host needs the placement facts (a mobile candidate's attitude, a fixed one's heading and align flag), asked for once the broad phase has passed
+    NeedPlacement,
 }
 
 /// The host's answer to a step of the campaign's walk announcement: it has that file, it has none, or (to the closing step) the announcement is accepted.
@@ -1386,7 +1390,7 @@ unsafe extern "C" fn model_callback(
             sys::EECH_MODEL_ENTITY_CANDIDATE => {
                 let count = usize::try_from(source.pose_count)
                     .ok()
-                    .filter(|count| *count == 42)
+                    .filter(|count| *count == 44)
                     .ok_or_else(|| format!("[model-provider:entity_candidate.request] the facts have {} floats", source.pose_count))?;
                 let facts = source.pose[..count].iter().map(|float| float.to_bits()).collect();
                 ("entity_candidate", ModelQuery::EntityCandidate { scene: source.scene, facts })
@@ -1538,6 +1542,8 @@ unsafe extern "C" fn model_callback(
                 reply.candidate_state = match decision {
                     CandidateDecision::Skip => sys::EECH_MODEL_CANDIDATE_SKIP,
                     CandidateDecision::NeedUpdated => sys::EECH_MODEL_CANDIDATE_NEED_UPDATED,
+                    CandidateDecision::NeedFixed => sys::EECH_MODEL_CANDIDATE_NEED_FIXED,
+                    CandidateDecision::NeedPlacement => sys::EECH_MODEL_CANDIDATE_NEED_PLACEMENT,
                     CandidateDecision::NeedNormal => sys::EECH_MODEL_CANDIDATE_NEED_NORMAL,
                     CandidateDecision::Buildings => sys::EECH_MODEL_CANDIDATE_BUILDINGS,
                     CandidateDecision::Test(pose) => {
@@ -11220,13 +11226,15 @@ mod tests {
 
     #[test]
     fn the_model_callback_carries_an_entity_candidate_question_and_every_decision_exactly() {
-        // the question is the 42 facts, bit for bit, and the scene; each decision crosses with its state, and only a test carries the pose of 12 or 16 floats
-        let sent: Vec<f32> = (0..42).map(|at| f32::from_bits(0x3f80_0000 + at as u32)).collect();
+        // the question is the 44 facts, bit for bit, and the scene; each decision crosses with its state, and only a test carries the pose of 12 or 16 floats
+        let sent: Vec<f32> = (0..44).map(|at| f32::from_bits(0x3f80_0000 + at as u32)).collect();
         let pose12: Vec<f32> = [-0.0_f32, f32::from_bits(1), 3.5].iter().cycle().take(12).copied().collect();
         let pose16: Vec<f32> = (0..16).map(|at| at as f32 - 0.5).collect();
         let decisions = [
             (CandidateDecision::Skip, sys::EECH_MODEL_CANDIDATE_SKIP, 0),
             (CandidateDecision::NeedUpdated, sys::EECH_MODEL_CANDIDATE_NEED_UPDATED, 0),
+            (CandidateDecision::NeedFixed, sys::EECH_MODEL_CANDIDATE_NEED_FIXED, 0),
+            (CandidateDecision::NeedPlacement, sys::EECH_MODEL_CANDIDATE_NEED_PLACEMENT, 0),
             (CandidateDecision::NeedNormal, sys::EECH_MODEL_CANDIDATE_NEED_NORMAL, 0),
             (CandidateDecision::Buildings, sys::EECH_MODEL_CANDIDATE_BUILDINGS, 0),
             (CandidateDecision::Test(pose12.clone()), sys::EECH_MODEL_CANDIDATE_TEST, 12),
@@ -11234,7 +11242,7 @@ mod tests {
         ];
         for (decision, state, count) in decisions {
             let mut request = model_request(sys::EECH_MODEL_ENTITY_CANDIDATE, 9, 0);
-            request.pose_count = 42;
+            request.pose_count = 44;
             for (slot, float) in request.pose.iter_mut().zip(&sent) {
                 *slot = *float;
             }
@@ -11276,7 +11284,7 @@ mod tests {
 
     #[test]
     fn the_model_callback_refuses_entity_candidate_facts_of_another_size_a_pose_of_another_size_and_an_answer_of_another_kind() {
-        for count in [0, 6, 18, 22, 41, 43, 96] {
+        for count in [0, 6, 18, 22, 42, 43, 45, 96] {
             let mut request = model_request(sys::EECH_MODEL_ENTITY_CANDIDATE, 9, 0);
             request.pose_count = count;
             let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
@@ -11285,7 +11293,7 @@ mod tests {
         }
         for size in [0_usize, 11, 13, 15, 17] {
             let mut request = model_request(sys::EECH_MODEL_ENTITY_CANDIDATE, 9, 0);
-            request.pose_count = 42;
+            request.pose_count = 44;
             let (code, _, error) = model_crossing(
                 Some(Box::new(move |_| {
                     Ok(ModelAnswer::EntityCandidate {
@@ -11299,12 +11307,12 @@ mod tests {
             assert!(error.contains("[model-provider:entity_candidate.answer]"), "{size} floats: {error}");
         }
         let mut request = model_request(sys::EECH_MODEL_ENTITY_CANDIDATE, 9, 0);
-        request.pose_count = 42;
+        request.pose_count = 44;
         let (code, _, error) = model_crossing(Some(Box::new(|_| Ok(ModelAnswer::Triangle(ModelTriangle::End)))), request);
         assert_ne!(code, 0);
         assert!(error.contains("[model-provider:entity_candidate.answer]"), "{error}");
         let mut request = model_request(sys::EECH_MODEL_ENTITY_CANDIDATE, 9, 0);
-        request.pose_count = 42;
+        request.pose_count = 44;
         let (code, _, error) = model_crossing(
             Some(Box::new(|_| Err("[model-provider:entity_candidate.refused] no model".to_string()))),
             request,

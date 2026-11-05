@@ -9,9 +9,11 @@
  * are outputs, not inputs.  Where the platform has memory protection the buffers are placed on pages that cannot be read: a dialogue that read, loaded, copied or forwarded a word
  * of a buffer the original had not assigned would fault.  Elsewhere the same cases run on ordinary buffers and the request is compared across two different buffer contents.
  *
- * The same control covers the campaign's half of the host's per-candidate decisions (ENTITY_CANDIDATE, mb_hostentity.h): what is sent (the 42 facts, bit for bit, in the order of
- * mb_hostmodel.h), what is accepted (each of the five states, the narrow phase pose of 12 or 16 floats, a city's empty name) and what stops the engine (a state the facts do not allow, a pose
- * of another size or with a non-finite float, another scene's name, a city with a scene, a refusal).
+ * The same control covers the campaign's half of the host's per-candidate decisions (ENTITY_CANDIDATE): the exchange (mb_hostentity.h: the 44 facts sent bit for bit in the order of
+ * mb_hostmodel.h, each of the seven states, the narrow phase pose of 12 or 16 floats, scene 0 for a candidate whose shape was not read, and what stops the engine: a state the facts do not allow,
+ * a pose of another size or with a non-finite float, a quiet or signalling NaN included, another scene's name under its own entity_candidate.identity label, a refusal) and the campaign's
+ * OFFER (mb_hostoffer.h, the very code en_cllsn.c runs) over scripted entities that log every getter in order: a candidate the host skips is read for nothing the original did not read, a direct
+ * city building needs no scene, the destructive UPDATED getter and the terrain question are performed once and only when named.
  *
  * eech_entity_dialogue_check_run returns the number of failed expectations (0: all held) and writes one line per failure; *checks is the number of expectations made.
  */
@@ -58,6 +60,8 @@ struct scripted_candidate
 };
 
 static struct scripted_candidate decision;
+static struct scripted_candidate queue[8];
+static int queue_length, queue_next;
 static struct scripted_answer answer;
 static campaign_model_request seen;
 static int asks;
@@ -91,10 +95,13 @@ static void scripted_ask (campaign_model_request *request, campaign_model_reply 
 
 	if (request->op == CAMPAIGN_MODEL_ENTITY_CANDIDATE)
 	{
-		reply->candidate_state = decision.state;
-		reply->candidate_count = decision.count;
-		memcpy (reply->candidate, decision.pose, sizeof (decision.pose));
-		strncpy (reply->name, decision.name, sizeof (reply->name) - 1);
+		const struct scripted_candidate *given = (queue_next < queue_length) ? &queue[queue_next++] : &decision;
+
+		reply->candidate_state = given->state;
+		reply->candidate_count = given->count;
+		memcpy (reply->candidate, given->pose, sizeof (given->pose));
+		/* the scene's name, as the host echoes it: empty for a candidate that has no scene, unless the script names another */
+		strncpy (reply->name, given->name ? given->name : ((request->scene == 0) ? "" : SCENE_NAME), sizeof (reply->name) - 1);
 
 		return;
 	}
@@ -121,10 +128,19 @@ static void scripted_identity (const campaign_model_reply *reply, int scene)
 	}
 }
 
+static void scripted_candidate_identity (const campaign_model_reply *reply, int scene)
+{
+	if (strcmp (reply->name, SCENE_NAME) != 0)
+	{
+		debug_fatal ("host model: [model-provider:entity_candidate.identity] the host named scene %d \"%.60s\"", scene, reply->name);
+	}
+}
+
 #define CAMPAIGN_ENTITY_REQUIRE_SCENE(SCENE) scripted_scene (SCENE)
 #define CAMPAIGN_ENTITY_ASK(REQUEST,REPLY) scripted_ask ((REQUEST), (REPLY))
 #define CAMPAIGN_ENTITY_IDENTITY(REPLY,SCENE) scripted_identity ((REPLY), (SCENE))
 #define CAMPAIGN_ENTITY_CANDIDATE_ASK(REQUEST,REPLY) scripted_ask ((REQUEST), (REPLY))
+#define CAMPAIGN_ENTITY_CANDIDATE_IDENTITY(REPLY,SCENE) scripted_candidate_identity ((REPLY), (SCENE))
 
 #include "entity/mobile/mb_hostentity.h"
 
@@ -337,7 +353,7 @@ static void expect_refusal (struct tc *t, const char *label, const char *marker,
 }
 
 
-/* ---- ENTITY_CANDIDATE ---- */
+/* ---- ENTITY_CANDIDATE: the exchange, and the campaign's offer (mb_hostoffer.h) over scripted entities ---- */
 
 static void script_candidate (int state, int count, const char *name)
 {
@@ -357,7 +373,8 @@ static void script_candidate (int state, int count, const char *name)
 	}
 }
 
-/* the facts of a candidate of one kind: odd but finite words everywhere, then the flags that make the kind */
+/* the facts of a candidate of one kind: odd but finite words everywhere, then the flags that make the kind. The stage flags say what was read: the fixed facts of a fixed or city candidate,
+   the placement of a candidate that has one */
 static void make_facts (float *facts, int mobile, int fixed, int city, int has_buildings, int of_city, int align)
 {
 	int i;
@@ -376,6 +393,8 @@ static void make_facts (float *facts, int mobile, int fixed, int city, int has_b
 	facts[CAMPAIGN_CANDIDATE_UPDATED] = 0.0f;
 	facts[CAMPAIGN_CANDIDATE_ALIGN] = (float) align;
 	facts[CAMPAIGN_CANDIDATE_NORMAL_GIVEN] = 0.0f;
+	facts[CAMPAIGN_CANDIDATE_FIXED_GIVEN] = (float) (fixed || city);
+	facts[CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] = (float) (align || mobile);
 }
 
 struct candidate_outcome
@@ -417,14 +436,273 @@ static void expect_candidate_refusal (struct tc *t, const char *label, const cha
 	tc_expect (t, o.pose_count == 0, what, line);
 }
 
+/* ---- the offer: scripted entities that log every getter the campaign calls, in order ---- */
+
+struct sentity
+{
+	int mobile, fixed, city, city_building, shape, align, updated;
+	float position[3], motion[3], attitude[9], heading, box_min[3], box_max[3];
+	struct sentity *first_building, *next_building;
+};
+
+static char reads[128];
+static int collision_calls, collision_scene, collision_count, collision_hit;
+static const float *collision_old, *collision_new;
+
+static void read_log (char letter)
+{
+	size_t n = strlen (reads);
+
+	if (n + 1 < sizeof (reads))
+	{
+		reads[n] = letter;
+		reads[n + 1] = '\0';
+	}
+}
+
+static int so_mobile (struct sentity *e) { read_log ('M'); return (e->mobile); }
+static int so_fixed (struct sentity *e) { read_log ('F'); return (e->fixed); }
+static int so_is_city (struct sentity *e) { read_log ('C'); return (e->city); }
+static int so_is_city_building (struct sentity *e) { read_log ('G'); return (e->city_building); }
+static int so_shape (struct sentity *e) { read_log ('S'); return (e->shape); }
+static void so_position (struct sentity *e, float *out) { read_log ('P'); memcpy (out, e->position, sizeof (e->position)); }
+static void so_motion (struct sentity *e, float *out) { read_log ('V'); memcpy (out, e->motion, sizeof (e->motion)); }
+static void so_attitude (struct sentity *e, float *out) { read_log ('A'); memcpy (out, e->attitude, sizeof (e->attitude)); }
+static float so_heading (struct sentity *e) { read_log ('H'); return (e->heading); }
+static int so_align (struct sentity *e) { read_log ('L'); return (e->align); }
+static struct sentity *so_first_building (struct sentity *e) { read_log ('B'); return (e->first_building); }
+static struct sentity *so_next_building (struct sentity *e) { return (e->next_building); }
+static void so_box (struct sentity *e, float *min, float *max) { read_log ('X'); memcpy (min, e->box_min, sizeof (e->box_min)); memcpy (max, e->box_max, sizeof (e->box_max)); }
+static int so_updated (struct sentity *e) { read_log ('U'); return (e->updated); }
+static void so_terrain_normal (float x, float z, float *out) { read_log ('N'); out[0] = x * 0.0f; out[1] = 1.0f; out[2] = z * 0.0f; }
+
+#define CAMPAIGN_OFFER_ENTITY struct sentity
+#define CAMPAIGN_OFFER_MOBILE_FLAG(E) so_mobile (E)
+#define CAMPAIGN_OFFER_FIXED_FLAG(E) so_fixed (E)
+#define CAMPAIGN_OFFER_IS_CITY(E) so_is_city (E)
+#define CAMPAIGN_OFFER_IS_CITY_BUILDING(E) so_is_city_building (E)
+#define CAMPAIGN_OFFER_SHAPE(E) so_shape (E)
+#define CAMPAIGN_OFFER_POSITION(E,OUT) so_position ((E), (OUT))
+#define CAMPAIGN_OFFER_MOTION(E,OUT) so_motion ((E), (OUT))
+#define CAMPAIGN_OFFER_ATTITUDE(E,OUT) so_attitude ((E), (OUT))
+#define CAMPAIGN_OFFER_HEADING(E) so_heading (E)
+#define CAMPAIGN_OFFER_ALIGN(E) so_align (E)
+#define CAMPAIGN_OFFER_FIRST_BUILDING(E) so_first_building (E)
+#define CAMPAIGN_OFFER_NEXT_BUILDING(B) so_next_building (B)
+#define CAMPAIGN_OFFER_BOX(E,MIN,MAX) so_box ((E), (MIN), (MAX))
+#define CAMPAIGN_OFFER_UPDATED(E) so_updated (E)
+#define CAMPAIGN_OFFER_TERRAIN_NORMAL(X,Z,OUT) so_terrain_normal ((X), (Z), (OUT))
+#define CAMPAIGN_OFFER_DELTA_TIME() 0.0625f
+
+/* the campaign's two host calls, bound to the REAL candidate exchange (with its complete reply check) and to a recording narrow phase */
+#define campaign_model_entity_candidate check_model_entity_candidate
+#define campaign_model_entity_collision check_model_entity_collision
+
+static int check_model_entity_candidate (int scene, const float *facts, float *pose, int *pose_count)
+{
+	return (campaign_entity_candidate_exchange (scene, facts, pose, pose_count));
+}
+
+static int check_model_entity_collision (int scene, const float *segment_old, const float *segment_new, const float *candidate, int candidate_count, float *point, float *normal)
+{
+	(void) candidate;
+	(void) point;
+	(void) normal;
+
+	collision_calls++;
+	collision_scene = scene;
+	collision_count = candidate_count;
+	collision_old = segment_old;
+	collision_new = segment_new;
+
+	return (collision_hit);
+}
+
+#include "entity/mobile/mb_hostoffer.h"
+
+#undef campaign_model_entity_candidate
+#undef campaign_model_entity_collision
+
+/* the decisions the scripted host gives, in order, one per question; the name is the scene's (empty for scene 0) unless one is given */
+static void queue_reset (void)
+{
+	memset (&decision, 0, sizeof (decision));
+	queue_length = 0;
+	queue_next = 0;
+}
+
+static void queue_state (int state, int count)
+{
+	static const uint32_t finite[4] = { 0x80000000u, 0x00000001u, 0x3f800000u, 0xc2c80000u };
+	int i;
+
+	memset (&queue[queue_length], 0, sizeof (queue[0]));
+	queue[queue_length].state = state;
+	queue[queue_length].count = count;
+
+	for (i = 0; i < count; i++)
+	{
+		queue[queue_length].pose[i] = finite[i % 4];
+	}
+
+	queue_length++;
+}
+
+struct offer_outcome
+{
+	int stopped;
+	struct sentity *hit;
+};
+
+static struct offer_outcome offer (struct sentity *target, int of_city, float tallest)
+{
+	struct offer_outcome o;
+	float point[3], normal[3];
+
+	memset (&o, 0, sizeof (o));
+	memset (point, 0, sizeof (point));
+	memset (normal, 0, sizeof (normal));
+	reads[0] = '\0';
+	collision_calls = 0;
+	asks = 0;
+	fatal_text[0] = '\0';
+
+	if (setjmp (fatal_jump) == 0)
+	{
+		o.hit = campaign_offer_candidate (target, of_city, tallest, SEGMENT_OLD, SEGMENT_NEW, point, normal);
+	}
+	else
+	{
+		o.stopped = TRUE;
+	}
+
+	return (o);
+}
+
+static struct sentity make_entity (int mobile, int fixed, int shape)
+{
+	struct sentity e;
+	static const float identity[9] = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+
+	memset (&e, 0, sizeof (e));
+	e.mobile = mobile;
+	e.fixed = fixed;
+	e.shape = shape;
+	e.position[0] = 10.0f;
+	e.motion[0] = 5.0f;
+	e.heading = 0.5f;
+	memcpy (e.attitude, identity, sizeof (identity));
+
+	return (e);
+}
+
+static void offer_cases (struct tc *t)
+{
+	struct sentity e, b1, b2;
+	struct offer_outcome o;
+
+	/* A building listed directly in a sector has no shape. Skipped by its sector's height it is read for nothing but its mobile flag, and the question carries no scene. */
+	e = make_entity (FALSE, TRUE, 0);
+	e.city_building = TRUE;
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+	o = offer (&e, FALSE, -500.0f);
+	EXPECT (t, !o.stopped && o.hit == NULL && strcmp (reads, "M") == 0 && asks == 1 && seen.scene == 0);
+
+	/* The same building in a sector that does not skip it: the host asks for the fixed facts, the campaign reads the flag and the type and still has no shape to give; the host's skip is accepted with scene 0. */
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, !o.stopped && o.hit == NULL && strcmp (reads, "MFCG") == 0 && asks == 2 && seen.scene == 0);
+	EXPECT (t, seen.pose[CAMPAIGN_CANDIDATE_CITY_BUILDING] == 1.0f && seen.pose[CAMPAIGN_CANDIDATE_FIXED_GIVEN] == 1.0f && seen.pose[CAMPAIGN_CANDIDATE_FIXED] == 1.0f);
+
+	/* A fixed candidate in a sector below the segment whose geometry is unusable (shape 0) is read for its mobile flag only: no fixed flag, shape, position, heading or align flag */
+	e = make_entity (FALSE, TRUE, 0);
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+	o = offer (&e, FALSE, -500.0f);
+	EXPECT (t, !o.stopped && o.hit == NULL && strcmp (reads, "M") == 0 && collision_calls == 0 && seen.scene == 0);
+
+	/* A mobile candidate the host skips was read for its shape, position and motion vector, and not for its attitude or its UPDATED flag */
+	e = make_entity (TRUE, FALSE, 7);
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+	o = offer (&e, FALSE, -500.0f);
+	EXPECT (t, !o.stopped && o.hit == NULL && strcmp (reads, "MSPV") == 0 && seen.scene == 7);
+
+	/* a moving mobile candidate: the destructive getter once, when named, then the placement, then the narrow phase at the host's pose; a hit returns the candidate */
+	e = make_entity (TRUE, FALSE, 7);
+	e.updated = TRUE;
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_UPDATED, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_TEST, 16);
+	collision_hit = TRUE;
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, !o.stopped && o.hit == &e && strcmp (reads, "MSPVUA") == 0 && asks == 3);
+	EXPECT (t, collision_calls == 1 && collision_scene == 7 && collision_count == 16 && collision_old == SEGMENT_OLD && collision_new == SEGMENT_NEW);
+	EXPECT (t, seen.pose[CAMPAIGN_CANDIDATE_UPDATED] == 2.0f && seen.pose[CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] == 1.0f);
+	collision_hit = FALSE;
+
+	/* a fixed candidate aligned with the terrain, in the original's order: the fixed facts, the placement, the terrain question, then the narrow phase; a miss returns nothing */
+	e = make_entity (FALSE, TRUE, 9);
+	e.align = TRUE;
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_NORMAL, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_TEST, 12);
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, !o.stopped && o.hit == NULL && strcmp (reads, "MFCGSPHLN") == 0 && asks == 4);
+	EXPECT (t, collision_calls == 1 && collision_scene == 9 && collision_count == 12);
+	EXPECT (t, seen.pose[CAMPAIGN_CANDIDATE_NORMAL_GIVEN] == 1.0f && seen.pose[CAMPAIGN_CANDIDATE_NORMAL + 1] == 1.0f);
+
+	/* a candidate whose branch needs geometry it cannot give (shape 0): the host's narrow phase for it is refused, nothing is tested */
+	e = make_entity (FALSE, TRUE, 0);
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_TEST, 12);
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, o.stopped && strstr (fatal_text, "entity_candidate.state") != NULL && collision_calls == 0);
+
+	/* a city: its facts (first building, position, box), then its buildings in list order, each read for its shape and position; the second is hit and returned */
+	e = make_entity (FALSE, TRUE, 0);
+	e.city = TRUE;
+	b1 = make_entity (FALSE, TRUE, 3);
+	b2 = make_entity (FALSE, TRUE, 4);
+	e.first_building = &b1;
+	b1.next_building = &b2;
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_BUILDINGS, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_TEST, 12);
+	collision_hit = TRUE;
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, !o.stopped && o.hit == &b2 && strcmp (reads, "MFCBPXSPSPMFHL") == 0 && asks == 5);
+	EXPECT (t, collision_calls == 1 && collision_scene == 4 && collision_count == 12);
+	collision_hit = FALSE;
+
+	/* the host's NEED answers are bounded by the facts: fixed facts asked of a mobile candidate stop the engine before anything else is read */
+	e = make_entity (TRUE, FALSE, 7);
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, o.stopped && strstr (fatal_text, "entity_candidate.state") != NULL && strcmp (reads, "MSPV") == 0);
+}
+
 static void candidate_cases (struct tc *t)
 {
 	float facts[CAMPAIGN_MODEL_CANDIDATE_FACTS], more[CAMPAIGN_MODEL_CANDIDATE_FACTS];
 	struct candidate_outcome o;
 	int i, same;
 
-	/* the question: exactly the 42 facts, bit for bit, in the layout the header names, for the scene, and nothing else */
+	/* the question: exactly the 44 facts, bit for bit, in the layout the header names, for the scene, and nothing else */
 	make_facts (facts, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE);
+	queue_reset ();
 	script_candidate (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0, SCENE_NAME);
 	memset (&seen, 0x7e, sizeof (seen));
 	o = ask_candidate (7, facts);
@@ -436,6 +714,13 @@ static void candidate_cases (struct tc *t)
 		same = same && (memcmp (&seen.pose[i], &facts[i], sizeof (float)) == 0);
 	}
 	EXPECT (t, same);
+
+	/* a candidate whose shape has not been read has scene 0, and the host's skip of it is accepted with an empty name */
+	make_facts (more, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
+	more[CAMPAIGN_CANDIDATE_FIXED_GIVEN] = 0.0f;
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0, "");
+	o = ask_candidate (0, more);
+	EXPECT (t, !o.stopped && o.state == CAMPAIGN_MODEL_CANDIDATE_SKIP && seen.scene == 0);
 
 	/* each state the facts allow is accepted, and only TEST carries a pose */
 	script_candidate (CAMPAIGN_MODEL_CANDIDATE_NEED_UPDATED, 0, SCENE_NAME);
@@ -456,7 +741,20 @@ static void candidate_cases (struct tc *t)
 	o = ask_candidate (7, facts);
 	EXPECT (t, !o.stopped && o.state == CAMPAIGN_MODEL_CANDIDATE_TEST && o.pose_count == 12);
 
-	/* a stationary fixed candidate aligned with the terrain may ask for the face normal, once */
+	/* the next stages of a non-mobile candidate the sector skip did not remove */
+	make_facts (more, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
+	more[CAMPAIGN_CANDIDATE_FIXED_GIVEN] = 0.0f;
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0, "");
+	o = ask_candidate (0, more);
+	EXPECT (t, !o.stopped && o.state == CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED);
+
+	make_facts (more, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE);
+	more[CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] = 0.0f;
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0, SCENE_NAME);
+	o = ask_candidate (7, more);
+	EXPECT (t, !o.stopped && o.state == CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT);
+
+	/* a fixed candidate aligned with the terrain, its placement read, may ask for the face normal, once */
 	make_facts (more, FALSE, TRUE, FALSE, FALSE, FALSE, TRUE);
 	script_candidate (CAMPAIGN_MODEL_CANDIDATE_NEED_NORMAL, 0, SCENE_NAME);
 	o = ask_candidate (7, more);
@@ -468,8 +766,9 @@ static void candidate_cases (struct tc *t)
 	o = ask_candidate (0, more);
 	EXPECT (t, !o.stopped && o.state == CAMPAIGN_MODEL_CANDIDATE_BUILDINGS && seen.scene == 0);
 
-	/* a building listed under a city may be moving only if it is mobile: a stationary pose of 12 is fine for any */
+	/* a building listed under a city: a stationary pose of 12 floats */
 	make_facts (more, FALSE, TRUE, FALSE, FALSE, TRUE, FALSE);
+	more[CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] = 1.0f;
 	script_candidate (CAMPAIGN_MODEL_CANDIDATE_TEST, 12, SCENE_NAME);
 	o = ask_candidate (9, more);
 	EXPECT (t, !o.stopped && o.state == CAMPAIGN_MODEL_CANDIDATE_TEST && o.pose_count == 12);
@@ -482,18 +781,22 @@ static void candidate_cases (struct tc *t)
 	expect_candidate_refusal (t, "the host refuses the exchange", "model-provider:callback", 7, facts, __LINE__);
 	refuse_the_exchange = FALSE;
 
-	expect_candidate_refusal (t, "scene 0 for a candidate that is not a city", "scene.index", 0, facts, __LINE__);
 	expect_candidate_refusal (t, "a scene beyond the catalogue", "scene.index", SCENES, facts, __LINE__);
+	expect_candidate_refusal (t, "a negative scene", "scene.index", -1, facts, __LINE__);
 
 	script_candidate (0, 0, SCENE_NAME);
 	expect_candidate_refusal (t, "state 0", "entity_candidate.state", 7, facts, __LINE__);
-	script_candidate (6, 0, SCENE_NAME);
-	expect_candidate_refusal (t, "state 6", "entity_candidate.state", 7, facts, __LINE__);
+	script_candidate (8, 0, SCENE_NAME);
+	expect_candidate_refusal (t, "state 8", "entity_candidate.state", 7, facts, __LINE__);
 	script_candidate (CAMPAIGN_MODEL_CANDIDATE_SKIP, 12, SCENE_NAME);
 	expect_candidate_refusal (t, "a skip that carries a pose", "entity_candidate.pose", 7, facts, __LINE__);
 
+	/* the scene's name is the candidate's own refusal, not the narrow phase's */
 	script_candidate (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0, "OTHER");
-	expect_candidate_refusal (t, "another scene's name", "entity_collision.identity", 7, facts, __LINE__);
+	expect_candidate_refusal (t, "another scene's name", "entity_candidate.identity", 7, facts, __LINE__);
+	EXPECT (t, strstr (fatal_text, "entity_collision.identity") == NULL);
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0, "OTHER");
+	expect_candidate_refusal (t, "a name for a candidate that has no scene", "entity_candidate.identity", 0, facts, __LINE__);
 
 	/* the UPDATED flag is asked of a mobile candidate once: not of a fixed one, not of a building under a city, not again */
 	script_candidate (CAMPAIGN_MODEL_CANDIDATE_NEED_UPDATED, 0, SCENE_NAME);
@@ -505,7 +808,24 @@ static void candidate_cases (struct tc *t)
 	more[CAMPAIGN_CANDIDATE_UPDATED] = 2.0f;
 	expect_candidate_refusal (t, "UPDATED asked again", "entity_candidate.state", 7, more, __LINE__);
 
-	/* the terrain's face normal is asked of a fixed candidate that aligns with the terrain, once */
+	/* the fixed facts are asked of a candidate that is not mobile, once */
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0, SCENE_NAME);
+	expect_candidate_refusal (t, "fixed facts asked of a mobile candidate", "entity_candidate.state", 7, facts, __LINE__);
+	make_facts (more, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE);
+	expect_candidate_refusal (t, "fixed facts asked again", "entity_candidate.state", 7, more, __LINE__);
+	make_facts (more, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE);
+	expect_candidate_refusal (t, "fixed facts asked of a building under a city", "entity_candidate.state", 7, more, __LINE__);
+
+	/* the placement is asked once, and only by a branch that has reached one */
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0, SCENE_NAME);
+	make_facts (more, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE);
+	more[CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] = 1.0f;
+	expect_candidate_refusal (t, "placement asked again", "entity_candidate.state", 7, more, __LINE__);
+	make_facts (more, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
+	more[CAMPAIGN_CANDIDATE_FIXED_GIVEN] = 0.0f;
+	expect_candidate_refusal (t, "placement asked before the fixed facts were read", "entity_candidate.state", 7, more, __LINE__);
+
+	/* the terrain's face normal is asked of a fixed candidate that aligns with the terrain and has its placement, once */
 	script_candidate (CAMPAIGN_MODEL_CANDIDATE_NEED_NORMAL, 0, SCENE_NAME);
 	make_facts (more, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE);
 	expect_candidate_refusal (t, "a normal asked of a candidate that does not align", "entity_candidate.state", 7, more, __LINE__);
@@ -514,6 +834,9 @@ static void candidate_cases (struct tc *t)
 	expect_candidate_refusal (t, "a normal asked again", "entity_candidate.state", 7, more, __LINE__);
 	make_facts (more, TRUE, FALSE, FALSE, FALSE, FALSE, TRUE);
 	expect_candidate_refusal (t, "a normal asked of a mobile candidate", "entity_candidate.state", 7, more, __LINE__);
+	make_facts (more, FALSE, TRUE, FALSE, FALSE, FALSE, TRUE);
+	more[CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] = 0.0f;
+	expect_candidate_refusal (t, "a normal asked before the placement was read", "entity_candidate.state", 7, more, __LINE__);
 
 	/* buildings are named only for a city that has one */
 	script_candidate (CAMPAIGN_MODEL_CANDIDATE_BUILDINGS, 0, SCENE_NAME);
@@ -523,7 +846,7 @@ static void candidate_cases (struct tc *t)
 	make_facts (more, FALSE, TRUE, TRUE, FALSE, FALSE, FALSE);
 	expect_candidate_refusal (t, "buildings named for a city without one", "entity_candidate.state", 0, more, __LINE__);
 
-	/* the pose of a test: 12 or 16 finite floats, 16 only for a mobile candidate */
+	/* the pose of a test: 12 or 16 finite floats, 16 only for a mobile candidate, and a candidate that has a scene */
 	make_facts (facts, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE);
 	script_candidate (CAMPAIGN_MODEL_CANDIDATE_TEST, 13, SCENE_NAME);
 	expect_candidate_refusal (t, "a pose of 13 floats", "entity_candidate.pose", 7, facts, __LINE__);
@@ -534,17 +857,25 @@ static void candidate_cases (struct tc *t)
 	expect_candidate_refusal (t, "an infinite float in the pose", "entity_candidate.pose", 7, facts, __LINE__);
 	script_candidate (CAMPAIGN_MODEL_CANDIDATE_TEST, 12, SCENE_NAME);
 	decision.pose[0] = 0x7fc00000u;
-	expect_candidate_refusal (t, "a NaN in the pose", "entity_candidate.pose", 7, facts, __LINE__);
+	expect_candidate_refusal (t, "a quiet NaN in the pose", "entity_candidate.pose", 7, facts, __LINE__);
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_TEST, 12, SCENE_NAME);
+	decision.pose[5] = 0x7fa00001u;
+	expect_candidate_refusal (t, "a signalling NaN in the pose", "entity_candidate.pose", 7, facts, __LINE__);
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_TEST, 16, SCENE_NAME);
+	decision.pose[15] = 0xffa00001u;
+	expect_candidate_refusal (t, "a negative signalling NaN in the last float of a moving pose", "entity_candidate.pose", 7, facts, __LINE__);
 	script_candidate (CAMPAIGN_MODEL_CANDIDATE_TEST, 16, SCENE_NAME);
 	make_facts (more, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE);
 	expect_candidate_refusal (t, "a moving pose for a candidate that is not mobile", "entity_candidate.pose", 7, more, __LINE__);
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_TEST, 12, "");
+	expect_candidate_refusal (t, "a narrow phase for a candidate that has no scene", "entity_candidate.state", 0, facts, __LINE__);
 
-	/* a city with a scene, and a city that the host names */
+	/* a city with a scene */
 	script_candidate (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0, "");
 	make_facts (more, FALSE, TRUE, TRUE, TRUE, FALSE, FALSE);
 	expect_candidate_refusal (t, "a city with a scene of its own", "entity_candidate.request", 7, more, __LINE__);
-	script_candidate (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0, SCENE_NAME);
-	expect_candidate_refusal (t, "a city the host names", "entity_candidate.identity", 0, more, __LINE__);
+
+	offer_cases (t);
 }
 
 int eech_entity_dialogue_check_run (char *text, int capacity, int *checks)

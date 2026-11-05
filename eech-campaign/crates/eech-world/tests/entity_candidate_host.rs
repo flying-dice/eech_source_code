@@ -6,7 +6,9 @@
 //!   (`|motion|^2 > 1`) and the two services the host must ask for rather than assume (the destructive `UPDATED` getter and the terrain face normal), the broad-phase box and its
 //!   strict boundaries, a city's height-then-xz box, a building listed directly in a sector, and the refusal of a facts record that is malformed;
 //! * a DIFFERENTIAL of the whole scan: the original's control flow and arithmetic, transcribed from the source (sector order, tail-first lists, exclusions, the skip, the branches), run
-//!   over many generated worlds against the same scan driven by the host's decisions exactly as the campaign's half drives them (`offer_candidate_to_host`, en_cllsn.c). Both record
+//!   over many generated worlds against the same scan driven by the host's decisions exactly as the campaign's half drives them (`campaign_offer_candidate`, mb_hostoffer.h). A few entities
+//!   have no usable scene (a direct city building and a city never have one): where the original reached a broad phase for one, both scans must stop with the same refusal, and where it did not,
+//!   neither may need a model. Both record
 //!   a transcript: every `UPDATED` read, every terrain normal question, every pose the narrow phase is asked about (bit for bit) and the entity returned. The two must be equal, so a
 //!   decision, a pose, a service or an order that differs is a failure. The narrow phase itself is a hash of the pose here (it is the subject of `entity_collision_host.rs`), which makes
 //!   any pose difference visible without a second model of the intersection.
@@ -16,6 +18,7 @@
 
 use eech_world::entity_host::{candidate, CandidateState, CANDIDATE_FACTS};
 use eech_world::trees::{Rounding, ScopedRounding};
+use std::cell::Cell;
 
 // ---- the layout of the facts (mb_hostmodel.h) ----
 const MOBILE: usize = 6;
@@ -36,8 +39,11 @@ const NORMAL: usize = 24;
 const ATTITUDE: usize = 27;
 const BOX_MIN: usize = 36;
 const BOX_MAX: usize = 39;
+const FIXED_GIVEN: usize = 42;
+const PLACEMENT_GIVEN: usize = 43;
 
 const SPACE: [f32; 6] = [-100.0, -100.0, -100.0, 100.0, 100.0, 100.0];
+const IDENTITY: [f32; 9] = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
 
 fn bits(values: &[f32]) -> Vec<u32> {
     values.iter().map(|value| value.to_bits()).collect()
@@ -50,23 +56,43 @@ fn blank() -> [f32; CANDIDATE_FACTS] {
     facts
 }
 
-fn decide(facts: &[f32], radius: f32) -> (CandidateState, Vec<f32>) {
-    let step = candidate(&bits(facts), radius.to_bits()).expect("a well-formed question is answered");
-    (step.state, step.pose.iter().map(|word| f32::from_bits(*word)).collect())
+/// the host's decision, and how many times it asked for the scene's radius (a candidate the original skipped must not ask at all)
+fn decide_counting(facts: &[f32], radius: f32) -> (CandidateState, Vec<f32>, usize) {
+    let asked = Cell::new(0);
+    let step = candidate(&bits(facts), &mut || {
+        asked.set(asked.get() + 1);
+        Ok(radius.to_bits())
+    })
+    .expect("a well-formed question is answered");
+    (step.state, step.pose.iter().map(|word| f32::from_bits(*word)).collect(), asked.get())
 }
 
-/// a stationary mobile candidate at `position` whose box of `radius + 10` m the segment SPACE may or may not meet
+fn decide(facts: &[f32], radius: f32) -> (CandidateState, Vec<f32>) {
+    let (state, pose, _) = decide_counting(facts, radius);
+    (state, pose)
+}
+
+/// the decision of a candidate whose scene has no usable model: asking for the radius is a refusal
+fn decide_without_model(facts: &[f32]) -> Result<CandidateState, String> {
+    candidate(&bits(facts), &mut || Err("scene 8 is not loaded in the host's model store".to_string())).map(|step| step.state)
+}
+
+/// a stationary mobile candidate at `position` (shape, position, motion and the placement read) whose box of `radius + 10` m the segment SPACE may or may not meet
 fn mobile_at(position: [f32; 3]) -> [f32; CANDIDATE_FACTS] {
     let mut facts = blank();
     facts[MOBILE] = 1.0;
     facts[POSITION..POSITION + 3].copy_from_slice(&position);
-    facts[ATTITUDE..ATTITUDE + 9].copy_from_slice(&[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]);
+    facts[ATTITUDE..ATTITUDE + 9].copy_from_slice(&IDENTITY);
+    facts[PLACEMENT_GIVEN] = 1.0;
     facts
 }
 
+/// a fixed candidate whose fixed facts and placement were read
 fn fixed_at(position: [f32; 3]) -> [f32; CANDIDATE_FACTS] {
     let mut facts = blank();
     facts[FIXED] = 1.0;
+    facts[FIXED_GIVEN] = 1.0;
+    facts[PLACEMENT_GIVEN] = 1.0;
     facts[TALLEST] = 1000.0;
     facts[POSITION..POSITION + 3].copy_from_slice(&position);
     facts
@@ -79,7 +105,7 @@ fn a_stationary_mobile_candidate_is_skipped_outside_its_box_and_tested_at_its_po
     assert_eq!(state, CandidateState::Test);
     assert_eq!(pose.len(), 12);
     assert_eq!(pose[..3], [115.0, 0.0, 0.0], "a stationary candidate is tested at its position");
-    assert_eq!(pose[3..], [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0], "with its own attitude");
+    assert_eq!(pose[3..], IDENTITY, "with its own attitude");
     let (state, pose) = decide(&mobile_at([115.01, 0.0, 0.0]), 5.0);
     assert_eq!(
         (state, pose.len()),
@@ -99,11 +125,9 @@ fn a_mobile_candidate_is_moving_only_above_a_squared_speed_of_one_and_then_the_h
     assert_eq!(decide(&facts, 5.0).0, CandidateState::Test, "a squared speed of exactly one is stationary");
     assert_eq!(decide(&facts, 5.0).1.len(), 12);
     facts[MOTION] = 1.0001;
-    assert_eq!(
-        decide(&facts, 5.0).0,
-        CandidateState::NeedUpdated,
-        "above one it is moving and the destructive getter is needed"
-    );
+    // moving: the destructive getter is needed first, and the model is not (the radius is only asked for after the sweep is known)
+    let (state, _, radius_asked) = decide_counting(&facts, 5.0);
+    assert_eq!((state, radius_asked), (CandidateState::NeedUpdated, 0));
     // even a candidate whose box is nowhere near the segment needs the answer: the original read the flag for every moving candidate it visited
     let mut far = mobile_at([5000.0, 0.0, 0.0]);
     far[MOTION] = 3.0;
@@ -139,33 +163,103 @@ fn a_moving_candidate_is_swept_from_the_position_by_the_flag_and_the_frame_time_
 }
 
 #[test]
-fn a_candidate_that_is_not_mobile_is_skipped_in_a_sector_whose_tallest_structure_is_below_the_segment_and_a_mobile_one_is_not() {
-    let mut facts = fixed_at([0.0, 0.0, 0.0]);
-    facts[TALLEST] = -100.5;
+fn the_placement_is_asked_for_only_once_the_broad_phase_has_passed() {
+    // a mobile candidate that meets the segment needs its attitude: the host asks, and does not ask for a candidate it skips
+    let mut facts = mobile_at([0.0, 0.0, 0.0]);
+    facts[PLACEMENT_GIVEN] = 0.0;
+    assert_eq!(decide(&facts, 5.0).0, CandidateState::NeedPlacement);
+    let mut far = mobile_at([5000.0, 0.0, 0.0]);
+    far[PLACEMENT_GIVEN] = 0.0;
     assert_eq!(
-        decide(&facts, 5.0).0,
+        decide(&far, 5.0).0,
         CandidateState::Skip,
-        "the segment's lowest point is above the tallest structure"
+        "the placement of a candidate the broad phase removes is never read"
     );
-    facts[TALLEST] = -100.0;
-    assert_eq!(decide(&facts, 5.0).0, CandidateState::Test, "equal is not above");
-    let mut mobile = mobile_at([0.0, 0.0, 0.0]);
-    mobile[TALLEST] = -500.0;
-    assert_eq!(decide(&mobile, 5.0).0, CandidateState::Test, "the skip is not the mobile branch's");
-    // neither flag: nothing to decide
-    let mut neither = blank();
-    neither[TALLEST] = 1000.0;
-    assert_eq!(decide(&neither, 5.0).0, CandidateState::Skip);
+    // the same for a fixed candidate and for a moving one
+    let mut fixed = fixed_at([0.0, 0.0, 0.0]);
+    fixed[PLACEMENT_GIVEN] = 0.0;
+    assert_eq!(decide(&fixed, 5.0).0, CandidateState::NeedPlacement);
+    fixed[POSITION] = 5000.0;
+    assert_eq!(decide(&fixed, 5.0).0, CandidateState::Skip);
+    let mut moving = mobile_at([0.0, 0.0, 0.0]);
+    moving[MOTION] = 3.0;
+    moving[UPDATED] = 2.0;
+    moving[PLACEMENT_GIVEN] = 0.0;
+    assert_eq!(decide(&moving, 5.0).0, CandidateState::NeedPlacement);
 }
 
 #[test]
-fn a_fixed_candidate_is_placed_by_its_heading_or_asks_for_the_terrain_normal_once_the_broad_phase_has_passed() {
+fn a_candidate_that_is_not_mobile_is_skipped_in_a_sector_whose_tallest_structure_is_below_the_segment_before_its_fixed_flag_or_any_model_is_needed() {
+    // the facts the original had read at that point: the segment, the mobile flag and the sector's tallest height. Nothing about a shape, a position or a model.
+    let mut facts = blank();
+    facts[TALLEST] = -100.5;
+    let (state, pose, radius_asked) = decide_counting(&facts, 5.0);
+    assert_eq!(
+        (state, pose.len(), radius_asked),
+        (CandidateState::Skip, 0, 0),
+        "the segment's lowest point is above the tallest structure"
+    );
+    assert_eq!(decide_without_model(&facts), Ok(CandidateState::Skip), "and the skip needs no usable model");
+    facts[TALLEST] = -100.0;
+    let (state, _, radius_asked) = decide_counting(&facts, 5.0);
+    assert_eq!(
+        (state, radius_asked),
+        (CandidateState::NeedFixed, 0),
+        "equal is not above: the host asks for the fixed facts, and still needs no model"
+    );
+    let mut mobile = mobile_at([0.0, 0.0, 0.0]);
+    mobile[TALLEST] = -500.0;
+    assert_eq!(decide(&mobile, 5.0).0, CandidateState::Test, "the skip is not the mobile branch's");
+}
+
+#[test]
+fn a_direct_city_building_and_an_unflagged_entity_are_skipped_without_a_scene_or_a_model_and_a_fixed_candidate_that_reaches_its_broad_phase_refuses_a_missing_model(
+) {
+    // a building listed directly in a sector: its fixed facts say so, and it has no shape; the host's skip needs no radius
+    let mut listed = blank();
+    listed[TALLEST] = 1000.0;
+    listed[FIXED] = 1.0;
+    listed[FIXED_GIVEN] = 1.0;
+    listed[CITY_BUILDING] = 1.0;
+    let (state, _, radius_asked) = decide_counting(&listed, 5.0);
+    assert_eq!((state, radius_asked), (CandidateState::Skip, 0));
+    assert_eq!(decide_without_model(&listed), Ok(CandidateState::Skip));
+    // an entity that is neither mobile nor fixed: nothing
+    let mut neither = blank();
+    neither[TALLEST] = 1000.0;
+    neither[FIXED_GIVEN] = 1.0;
+    assert_eq!(decide_without_model(&neither), Ok(CandidateState::Skip));
+    // a fixed candidate in a sector that does not skip it needs its model once it reaches the broad phase, and an unusable one is a refusal: never a skip, never a miss
+    let reached = fixed_at([0.0, 0.0, 0.0]);
+    let refused = decide_without_model(&reached).unwrap_err();
+    assert!(refused.contains("not loaded"), "{refused}");
+    // a city's own box needs no model either; its buildings are offered and each needs theirs
+    let mut city = fixed_at([0.0, 0.0, 0.0]);
+    city[CITY] = 1.0;
+    city[HAS_BUILDINGS] = 1.0;
+    city[BOX_MIN..BOX_MIN + 3].copy_from_slice(&[-10.0, -10.0, -10.0]);
+    city[BOX_MAX..BOX_MAX + 3].copy_from_slice(&[10.0, 10.0, 10.0]);
+    assert_eq!(decide_without_model(&city), Ok(CandidateState::Buildings));
+    let mut building = fixed_at([0.0, 0.0, 0.0]);
+    building[OF_CITY] = 1.0;
+    assert!(
+        decide_without_model(&building).is_err(),
+        "a building that reaches its broad phase needs its model"
+    );
+}
+
+#[test]
+fn the_fixed_flag_is_asked_for_after_the_skip_and_a_fixed_candidate_is_placed_by_its_heading_or_asks_for_the_terrain_normal_once_the_broad_phase_has_passed() {
     let mut facts = fixed_at([0.0, 0.0, 0.0]);
     facts[HEADING] = 0.0;
     let (state, pose) = decide(&facts, 5.0);
     assert_eq!(state, CandidateState::Test);
     assert_eq!(pose.len(), 12);
-    assert_eq!(pose[3..], [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0], "a zero heading is the identity");
+    assert_eq!(pose[3..], IDENTITY, "a zero heading is the identity");
+    let mut unread = facts;
+    unread[FIXED_GIVEN] = 0.0;
+    unread[FIXED] = 0.0;
+    assert_eq!(decide(&unread, 5.0).0, CandidateState::NeedFixed, "the fixed flag is asked for, not assumed");
     facts[ALIGN] = 1.0;
     assert_eq!(decide(&facts, 5.0).0, CandidateState::NeedNormal, "an aligned object needs the terrain");
     let mut outside = fixed_at([500.0, 0.0, 0.0]);
@@ -180,13 +274,13 @@ fn a_fixed_candidate_is_placed_by_its_heading_or_asks_for_the_terrain_normal_onc
     let (state, pose) = decide(&facts, 5.0);
     assert_eq!(state, CandidateState::Test);
     // flat ground and a zero heading give the identity placement, with the normal as the second row
-    assert_eq!(pose[3..], [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]);
+    assert_eq!(pose[3..], IDENTITY);
     facts[NORMAL..NORMAL + 3].copy_from_slice(&[0.6, 0.8, 0.0]);
     let tilted = decide(&facts, 5.0).1;
     assert_eq!(tilted[6..9], [0.6, 0.8, 0.0], "a tilted ground's normal is the second row of the placement");
-    // a vertical normal's complement: a normal that is almost horizontal gives the identity, as the original does
+    // a normal that is almost horizontal gives the identity, as the original does
     facts[NORMAL..NORMAL + 3].copy_from_slice(&[1.0, 0.00005, 0.0]);
-    assert_eq!(decide(&facts, 5.0).1[3..], [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]);
+    assert_eq!(decide(&facts, 5.0).1[3..], IDENTITY);
 }
 
 #[test]
@@ -231,26 +325,33 @@ fn a_city_is_tested_by_height_then_by_the_xz_box_and_then_its_buildings_are_offe
 fn a_building_that_is_neither_mobile_nor_fixed_is_the_originals_invalid_target_and_malformed_facts_are_refused_never_defaulted() {
     let mut unflagged = blank();
     unflagged[OF_CITY] = 1.0;
-    let refused = candidate(&bits(&unflagged), 5.0f32.to_bits()).unwrap_err();
+    // its placement is asked for first (the original read the flags in its narrow phase); once read, an unflagged building is the original's fatal
+    assert_eq!(decide(&unflagged, 5.0).0, CandidateState::NeedPlacement);
+    unflagged[PLACEMENT_GIVEN] = 1.0;
+    let refused = candidate(&bits(&unflagged), &mut || Ok(5.0f32.to_bits())).unwrap_err();
     assert!(refused.contains("Invalid target"), "{refused}");
+    let radius = || Ok(5.0f32.to_bits());
     for (label, at, value) in [
         ("a flag of 2", MOBILE, 2.0),
         ("a negative flag", FIXED, -1.0),
+        ("the fixed-given flag 2", FIXED_GIVEN, 2.0),
+        ("the placement-given flag 2", PLACEMENT_GIVEN, 2.0),
         ("the updated state 3", UPDATED, 3.0),
         ("a non-finite fact", POSITION, f32::NAN),
         ("an infinite fact", MOTION, f32::INFINITY),
     ] {
         let mut facts = mobile_at([0.0, 0.0, 0.0]);
         facts[at] = value;
-        assert!(candidate(&bits(&facts), 5.0f32.to_bits()).is_err(), "{label} must be refused");
+        assert!(candidate(&bits(&facts), &mut || radius()).is_err(), "{label} must be refused");
     }
     let mut both = mobile_at([0.0, 0.0, 0.0]);
     both[CITY] = 1.0;
     both[CITY_BUILDING] = 1.0;
-    assert!(candidate(&bits(&both), 5.0f32.to_bits()).is_err(), "a city that is also a city building");
-    assert!(candidate(&[0u32; 41], 0).is_err(), "41 facts");
+    assert!(candidate(&bits(&both), &mut || radius()).is_err(), "a city that is also a city building");
+    assert!(candidate(&[0u32; 43], &mut || radius()).is_err(), "43 facts");
+    assert!(candidate(&[0u32; 42], &mut || radius()).is_err(), "the 42 facts of the previous layout");
     assert!(
-        candidate(&bits(&mobile_at([0.0; 3])), f32::NAN.to_bits()).is_err(),
+        candidate(&bits(&mobile_at([0.0; 3])), &mut || Ok(f32::NAN.to_bits())).is_err(),
         "a radius that is not a number"
     );
 }
@@ -288,12 +389,18 @@ enum Event {
     Updated(usize, usize),
     Normal(usize, usize, [u32; 2]),
     Narrow(usize, usize, Vec<u32>),
+    /// the scan stopped: a branch needed the radius of a scene that has no usable model (the original asserted; the host refuses by name)
+    Refused(usize, usize),
 }
+
+/// what both scans return when the engine would stop
+const STOPPED: (usize, usize, Option<usize>) = (usize::MAX, 0, None);
 
 const DT: f32 = 0.0625;
 
-fn radius_of(scene: i64) -> f32 {
-    2.0 + (scene as f32) * 3.25
+/// the radius of the scene's model, or none when the scene has no usable model (scene 0, the invalid index)
+fn radius_of(scene: i64) -> Option<f32> {
+    (scene >= 1).then_some(2.0 + (scene as f32) * 3.25)
 }
 
 fn terrain_normal(x: f32, z: f32) -> [f32; 3] {
@@ -401,7 +508,6 @@ fn original_scan(scan: Scan, log: &mut Vec<Event>) -> Option<(usize, usize, Opti
                 continue;
             }
             if ent.mobile {
-                let radius = radius_of(ent.scene);
                 let m = ent.motion;
                 let sqr_velocity = m[0] * m[0] + m[1] * m[1] + m[2] * m[2];
                 if sqr_velocity > 1.0 {
@@ -414,6 +520,10 @@ fn original_scan(scan: Scan, log: &mut Vec<Event>) -> Option<(usize, usize, Opti
                         (told, [told[0] + m[0] * DT, told[1] + m[1] * DT, told[2] + m[2] * DT])
                     };
                     let (mut tmin, mut tmax) = min_max(told, tnew);
+                    let Some(radius) = radius_of(ent.scene) else {
+                        log.push(Event::Refused(s, l * 1000));
+                        return Some(STOPPED);
+                    };
                     for axis in 0..3 {
                         tmin[axis] -= radius + 10.0;
                         tmax[axis] += radius + 10.0;
@@ -427,6 +537,10 @@ fn original_scan(scan: Scan, log: &mut Vec<Event>) -> Option<(usize, usize, Opti
                         }
                     }
                 } else {
+                    let Some(radius) = radius_of(ent.scene) else {
+                        log.push(Event::Refused(s, l * 1000));
+                        return Some(STOPPED);
+                    };
                     let (tmin, tmax) = around(ent.position, radius);
                     if meets(tmin, tmax, smin, smax) {
                         let pose = [ent.position.as_slice(), ent.attitude.as_slice()].concat();
@@ -450,7 +564,10 @@ fn original_scan(scan: Scan, log: &mut Vec<Event>) -> Option<(usize, usize, Opti
                             tmax[2] += ent.position[2];
                             if !(tmax[0] < smin[0]) && !(tmin[0] > smax[0]) && !(tmax[2] < smin[2]) && !(tmin[2] > smax[2]) {
                                 for (b, building) in ent.buildings.iter().enumerate() {
-                                    let radius = radius_of(building.scene);
+                                    let Some(radius) = radius_of(building.scene) else {
+                                        log.push(Event::Refused(s, l * 1000 + b + 1));
+                                        return Some(STOPPED);
+                                    };
                                     let (bmin, bmax) = around(building.position, radius);
                                     if meets(bmin, bmax, smin, smax) {
                                         let words = original_stationary(building, old, new, (s, l, Some(b)), log);
@@ -463,7 +580,10 @@ fn original_scan(scan: Scan, log: &mut Vec<Event>) -> Option<(usize, usize, Opti
                         }
                     }
                 } else if !ent.city_building {
-                    let radius = radius_of(ent.scene);
+                    let Some(radius) = radius_of(ent.scene) else {
+                        log.push(Event::Refused(s, l * 1000));
+                        return Some(STOPPED);
+                    };
                     let (tmin, tmax) = around(ent.position, radius);
                     if meets(tmin, tmax, smin, smax) {
                         let words = original_stationary(ent, old, new, (s, l, None), log);
@@ -500,7 +620,8 @@ fn original_stationary(ent: &Entity, old: [f32; 3], new: [f32; 3], at: (usize, u
     words
 }
 
-/// the campaign's half exactly as `offer_candidate_to_host` (en_cllsn.c) drives the host: the facts it reads, the two services performed when the host names them, the buildings in order
+/// the campaign's half exactly as `campaign_offer_candidate` (mb_hostoffer.h) drives the host: what it reads and when (the mobile flag first; a mobile candidate's shape, position and motion; the fixed
+/// facts only when the host asks; the placement only after the broad phase), the two services performed when the host names them, the buildings in order. A refusal stops the scan.
 fn offer(
     ent: &Entity,
     of_city: bool,
@@ -511,50 +632,79 @@ fn offer(
     log: &mut Vec<Event>,
 ) -> Option<(usize, usize, Option<usize>)> {
     let key = at.1 * 1000 + at.2.map_or(0, |b| b + 1);
-    let fixed = !ent.mobile && ent.fixed;
-    if !of_city && !ent.mobile && !fixed {
-        return None;
-    }
     let mut facts = [0.0f32; CANDIDATE_FACTS];
     facts[..3].copy_from_slice(&old);
     facts[3..6].copy_from_slice(&new);
-    facts[MOBILE] = f32::from(u8::from(ent.mobile));
-    facts[FIXED] = f32::from(u8::from(fixed));
-    facts[OF_CITY] = f32::from(u8::from(of_city));
     facts[TALLEST] = tallest;
     facts[DELTA_TIME] = DT;
-    facts[POSITION..POSITION + 3].copy_from_slice(&ent.position);
     let mut scene = 0;
-    if ent.mobile {
+    if of_city {
+        facts[OF_CITY] = 1.0;
         scene = ent.scene;
-        facts[MOTION..MOTION + 3].copy_from_slice(&ent.motion);
-        facts[ATTITUDE..ATTITUDE + 9].copy_from_slice(&ent.attitude);
-    } else if !of_city && ent.city {
-        facts[CITY] = 1.0;
-        facts[HAS_BUILDINGS] = f32::from(u8::from(!ent.buildings.is_empty()));
-        if !ent.buildings.is_empty() {
-            facts[BOX_MIN..BOX_MIN + 3].copy_from_slice(&ent.box_min);
-            facts[BOX_MAX..BOX_MAX + 3].copy_from_slice(&ent.box_max);
-        }
-    } else if !of_city && ent.city_building {
-        facts[CITY_BUILDING] = 1.0;
+        facts[POSITION..POSITION + 3].copy_from_slice(&ent.position);
     } else {
-        scene = ent.scene;
-        facts[HEADING] = ent.heading;
-        facts[ALIGN] = f32::from(u8::from(ent.align));
+        facts[MOBILE] = f32::from(u8::from(ent.mobile));
+        if ent.mobile {
+            scene = ent.scene;
+            facts[POSITION..POSITION + 3].copy_from_slice(&ent.position);
+            facts[MOTION..MOTION + 3].copy_from_slice(&ent.motion);
+        }
     }
     loop {
-        let radius = if scene == 0 { 0.0 } else { radius_of(scene) };
-        let step = candidate(&bits(&facts), radius.to_bits()).expect("the host decides");
+        let decided = candidate(&bits(&facts), &mut || {
+            radius_of(scene).map(f32::to_bits).ok_or_else(|| format!("scene {scene} has no usable model"))
+        });
+        let step = match decided {
+            Ok(step) => step,
+            Err(why) => {
+                assert!(why.contains("has no usable model"), "only the missing model is a refusal here: {why}");
+                log.push(Event::Refused(at.0, key));
+                return Some(STOPPED);
+            }
+        };
         match step.state {
             CandidateState::Skip => return None,
             CandidateState::NeedUpdated => {
                 log.push(Event::Updated(at.0, at.1));
                 facts[UPDATED] = if ent.updated { 2.0 } else { 1.0 };
             }
+            CandidateState::NeedFixed => {
+                let fixed = ent.fixed;
+                facts[FIXED] = f32::from(u8::from(fixed));
+                facts[FIXED_GIVEN] = 1.0;
+                if fixed {
+                    if ent.city {
+                        facts[CITY] = 1.0;
+                        facts[HAS_BUILDINGS] = f32::from(u8::from(!ent.buildings.is_empty()));
+                        if !ent.buildings.is_empty() {
+                            facts[POSITION..POSITION + 3].copy_from_slice(&ent.position);
+                            facts[BOX_MIN..BOX_MIN + 3].copy_from_slice(&ent.box_min);
+                            facts[BOX_MAX..BOX_MAX + 3].copy_from_slice(&ent.box_max);
+                        }
+                    } else if ent.city_building {
+                        facts[CITY_BUILDING] = 1.0;
+                    } else {
+                        scene = ent.scene;
+                        facts[POSITION..POSITION + 3].copy_from_slice(&ent.position);
+                    }
+                }
+            }
+            CandidateState::NeedPlacement => {
+                if of_city {
+                    facts[MOBILE] = f32::from(u8::from(ent.mobile));
+                    facts[FIXED] = f32::from(u8::from(!ent.mobile && ent.fixed));
+                }
+                if facts[MOBILE] != 0.0 {
+                    facts[ATTITUDE..ATTITUDE + 9].copy_from_slice(&ent.attitude);
+                } else if facts[FIXED] != 0.0 {
+                    facts[HEADING] = ent.heading;
+                    facts[ALIGN] = f32::from(u8::from(ent.align));
+                }
+                facts[PLACEMENT_GIVEN] = 1.0;
+            }
             CandidateState::NeedNormal => {
-                let normal = terrain_normal(ent.position[0], ent.position[2]);
-                log.push(Event::Normal(at.0, key, [ent.position[0].to_bits(), ent.position[2].to_bits()]));
+                let normal = terrain_normal(facts[POSITION], facts[POSITION + 2]);
+                log.push(Event::Normal(at.0, key, [facts[POSITION].to_bits(), facts[POSITION + 2].to_bits()]));
                 facts[NORMAL_GIVEN] = 1.0;
                 facts[NORMAL..NORMAL + 3].copy_from_slice(&normal);
             }
@@ -614,7 +764,8 @@ fn entity(r: &mut Random, kind: u32, extent: i32) -> Entity {
         fixed: false,
         city: false,
         city_building: false,
-        scene: 1 + i64::from(r.pick(9)),
+        // a few entities have no usable scene: the original needed one only where it reached a broad phase
+        scene: if r.pick(25) == 0 { 0 } else { 1 + i64::from(r.pick(9)) },
         position: [r.quarter(extent), r.quarter(extent / 2), r.quarter(extent)],
         motion: [0.0; 3],
         updated: r.pick(2) == 0,
@@ -640,6 +791,8 @@ fn entity(r: &mut Random, kind: u32, extent: i32) -> Entity {
         8 => {
             e.fixed = true;
             e.city = true;
+            // a city has no shape of its own
+            e.scene = 0;
             for _ in 0..r.pick(5) {
                 let mut building = entity(r, 4, extent);
                 building.position = [e.position[0] + r.quarter(30), e.position[1], e.position[2] + r.quarter(30)];
@@ -649,6 +802,8 @@ fn entity(r: &mut Random, kind: u32, extent: i32) -> Entity {
         9 => {
             e.fixed = true;
             e.city_building = true;
+            // a building listed directly in a sector has no shape: the original skipped it without a shape lookup
+            e.scene = 0;
         }
         _ => {}
     }
@@ -659,7 +814,7 @@ fn entity(r: &mut Random, kind: u32, extent: i32) -> Entity {
 fn the_host_decided_scan_is_the_original_scan_in_hits_services_poses_and_order_over_many_worlds() {
     let _original_arithmetic = ScopedRounding::set(Rounding::Zero).expect("round toward zero");
     let mut random = Random(0x5eed_1234_abcd_ef01);
-    let (mut hits, mut narrows, mut updates, mut normals, mut cities, mut moving) = (0usize, 0usize, 0usize, 0usize, 0usize, 0usize);
+    let (mut hits, mut narrows, mut updates, mut normals, mut cities, mut moving, mut refusals) = (0usize, 0usize, 0usize, 0usize, 0usize, 0usize, 0usize);
     for world in 0..400 {
         let extent = 40 + (world % 7) * 20;
         let sectors: Vec<Sector> = (0..1 + random.pick(3))
@@ -686,6 +841,7 @@ fn the_host_decided_scan_is_the_original_scan_in_hits_services_poses_and_order_o
             for event in &a {
                 match event {
                     Event::Updated(..) => updates += 1,
+                    Event::Refused(..) => refusals += 1,
                     Event::Normal(..) => normals += 1,
                     Event::Narrow(_, key, words) => {
                         narrows += 1;
@@ -703,4 +859,5 @@ fn the_host_decided_scan_is_the_original_scan_in_hits_services_poses_and_order_o
     assert!(normals > 100, "terrain questions {normals}");
     assert!(moving > 100, "moving candidates {moving}");
     assert!(cities > 20, "city buildings {cities}");
+    assert!(refusals > 10, "scans that stopped on a scene with no model {refusals}");
 }

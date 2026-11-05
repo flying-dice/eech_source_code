@@ -16,7 +16,7 @@ Inputs and where they come from (all measured or read, none assumed):
 | Input | Source | Owner after this slice |
 |---|---|---|
 | segment ends, excluded source/target (the caller's point/normal buffers are outputs and are never read) | callers (`mb_hostlos.c`, `mb_tgt.c`, `wn_move.c` COLLISION lookup, gunship avionics/`co_force.c`) | campaign (unchanged) |
-| sector window, sector lists, tail-first order, the source/target exclusion, that an entity with neither collision flag is never offered | campaign entities (the sector lists ARE the campaign's membership) | **campaign, declared transitional coupling** |
+| sector window, sector lists, tail-first order, the source/target exclusion, the reads of each entity's state, in stages and only as the host asks | campaign entities (the sector lists ARE the campaign's membership) | **campaign, declared transitional coupling** |
 | `TALLEST_STRUCTURE_HEIGHT` skip, mobile/fixed/city branch, moving classification, the broad-phase box of radius + 10 m (the host's radius table), the city's height-then-xz box, a building listed directly in a sector | the facts the campaign reads, and the host's model data | **host (third slice, moved)** |
 | moving sweep ends (from the `UPDATED` answer, motion vector, `get_delta_time`) | the host decides from facts; the destructive `UPDATED` getter is performed by the campaign exactly when the host names it | **host decides, campaign performs the getter** |
 | stationary placement (position, heading, terrain-aligned normal) | the host derives the placement; the terrain question `get_3d_terrain_face_normal` is asked by the campaign when the host names it, once the broad phase passed | **host decides, campaign performs the terrain question** |
@@ -41,36 +41,51 @@ the other model operations read: no second loader or cache.
 ## The scan: the per-candidate decisions (third slice, 5 November 2026; source and Linux checks only)
 
 `get_line_of_sight_collision_entity` in the ordinary module (`EECH_CAMPAIGN_HOST_ENTITY`) no longer decides anything about a candidate. The campaign walks the sector window and each sector list from the tail,
-skips the source and the target, and **offers** every entity that has a collision flag (`offer_candidate_to_host`, `en_cllsn.c`). The host decides (`ENTITY_CANDIDATE`, `mb_hostmodel.h`; the reference host is
-`csrc/entity_candidate_step.c`, the original's expressions): the sector's tallest-structure skip of everything that is not mobile, the branch (mobile first; then the fixed flag, a city, a building listed
-directly in a sector, any other), whether a mobile candidate is moving (`|motion|^2 > 1`), a moving candidate's sweep ends, the broad-phase box of the scene's radius + 10 m with its strict boundaries, a
-city's height-then-xz box and a stationary fixed candidate's placement. The question carries 42 facts (layout in `mb_hostmodel.h`); the answer is one of five states.
+skips the source and the target, and **offers** every entity in the list (`campaign_offer_candidate`, `mb_hostoffer.h`, bound to the real getters in `en_cllsn.c`). The host decides (`ENTITY_CANDIDATE`,
+`mb_hostmodel.h`; the reference host is `csrc/entity_candidate_step.c`, the original's expressions): the sector's tallest-structure skip of everything that is not mobile, the branch (mobile first; then the
+fixed flag, a city, a building listed directly in a sector, any other), whether a mobile candidate is moving (`|motion|^2 > 1`), a moving candidate's sweep ends, the broad-phase box of the scene's radius + 10 m with
+its strict boundaries, a city's height-then-xz box and a stationary fixed candidate's placement. The question carries 44 facts (layout in `mb_hostmodel.h`); the answer is one of seven states.
+
+**The facts are staged, in the order the original needed them** (correction of review finding ENV-ENTITY-CANDIDATE-PRECONDITION-1). The first question carries only what the original read for every candidate:
+the segment, the mobile flag, the sector's tallest structure height and, for a mobile candidate, its shape, position and motion vector (a building under a passed city: its shape and position). A candidate that is not
+mobile in a sector below the segment is skipped **there**: its fixed flag, shape, position, heading and align flag are never read and no model is looked up, as in the original, and a direct city building (which has
+no shape) needs no scene. The host asks for the next stage only when the branch reaches it. The scene's radius is the host's own model data and is looked up only when a branch reaches its broad phase; a scene the
+store cannot give then is a refusal by name, never a default radius, a miss or a skip.
 
 | state | meaning | what the campaign does |
 |---|---|---|
 | `SKIP` | nothing more for this candidate | continues with the next one |
 | `NEED_UPDATED` | a moving mobile candidate needs the `UPDATED` answer | performs the destructive getter, once, and asks again with fact 20 |
-| `NEED_NORMAL` | a terrain-aligned fixed candidate passed the broad phase | asks the terrain for the face normal at its position (the terrain question and its shared-record effects, at the place the original asked it) and asks again |
+| `NEED_FIXED` | a non-mobile candidate the sector skip did not remove | reads the fixed flag and, if fixed, the city/city-building type and a city's first building, position and box, or any other candidate's shape and position |
+| `NEED_PLACEMENT` | the broad phase passed | reads the attitude of a mobile candidate, or the heading and align flag of a fixed one (a building under a city: the flags too) |
+| `NEED_NORMAL` | a terrain-aligned fixed candidate has its placement | asks the terrain for the face normal at its position (the terrain question and its shared-record effects, at the place the original asked it) and asks again |
 | `BUILDINGS` | a city's box is met | offers the city's buildings in its list order, each as a building under the city (no second sector skip); the first hit ends the scan |
 | `TEST` | the narrow phase is required, with the pose (12 or 16 floats) | sends the existing `ENTITY_COLLISION` question with that pose; a hit returns the candidate, a miss continues, and the partial writes are the narrow phase's |
 
-The question is a pure function of its facts: nothing is kept between questions, so the decision is the one the original made in a single pass, and a candidate that needs a service is simply asked again with the answer.
-Every reply is checked completely (`mb_hostentity.h`, `check_candidate_reply`): a state the facts do not allow (`NEED_UPDATED` for a candidate that is not mobile or already has the flag, `NEED_NORMAL` for one that
-does not align or already has the normal, `BUILDINGS` for a non-city), a pose of another size or with a non-finite float, another scene's name, a city that is given a scene and a refusal stop the engine by marker;
-a refusal is never a skip. **No entity identity crosses**: a candidate is named only by the order the campaign offers it, and the host holds no roster or state.
+The question is a pure function of its facts: nothing is kept between questions, so the decision is the one the original made in a single pass, and a candidate that needs something is simply asked again.
+Every reply is checked completely before any of it is used (`mb_hostentity.h`, `check_candidate_reply`): a state the facts do not allow (each `NEED_*` is legal once, only for the facts that can need it; `BUILDINGS`
+for a non-city; a `TEST` for a candidate that has no scene), a pose of another size or with a non-finite float (classified from its raw bytes through a pointer: a quiet or signalling NaN is never passed or loaded
+as a float before it is refused), a scene name that is not the scene's (its own `entity_candidate.identity` label; the narrow phase keeps `entity_collision.identity`), a city that is given a scene and a refusal
+stop the engine by marker; a refusal is never a skip. **No entity identity crosses**: a candidate is named only by the order the campaign offers it, and the host holds no roster or state.
 
-**What the campaign reads for the facts** is valid for every entity the original reached the same branch for: the collision flags (mobile first, fixed only of what is not mobile); for a mobile candidate its shape,
-position, motion vector and attitude; for a city its position, bounding box and whether it has a first building; for any other fixed candidate its shape, position, heading and align-with-terrain flag. All are plain
-getters; the only getters with effects (`UPDATED`, the terrain normal) are performed on the host's request. A candidate with an invalid shape is refused by name at its offer, where the original asserted at its test; the
-characterisation's census refuses such worlds up front, so no retail world is expected to reach it. The debug drawing of the collision boxes (`draw_collision_boxes`) is not carried in the hosted module.
+**What the campaign reads, and when,** is exactly what the original read on the branch it took, so no entity is made to supply a shape, a fixed flag, a position, a heading or a model the original did not use.
+An entity that is neither mobile nor fixed now costs one question in a sector that does not skip it, where it cost none (the original read its fixed flag there too). The two getters with effects (`UPDATED`, the
+terrain normal) are performed on the host's request. The debug drawing of the collision boxes (`draw_collision_boxes`) is a declared unsupported diagnostic of the hosted module and is not carried: the host owns the boxes.
 
-**Evidence (Linux, pinned image; nothing native).** `tests/entity_candidate_host.rs` (8 tests): a contract for each branch; and a DIFFERENTIAL of the whole scan, the original's control flow and arithmetic transcribed from
-the source against the same scan driven by the host's decisions as `offer_candidate_to_host` drives them, over 400 generated worlds with six segments each (quarter-unit coordinates so boundary equalities occur): both
-must return the same entity and the SAME TRANSCRIPT of `UPDATED` reads, terrain questions and narrow-phase poses, bit for bit, in the same order. Five mutants of the kernel (the moving test `>=`, the `UPDATED`
-meaning inverted, the sector skip `>=`, a strict broad-phase comparison, a strict city height comparison) each fail it (exit 101) and the file was restored byte for byte. The isolated C control
-(`eech_entity_dialogue_check.c`, 170 expectations) exercises the campaign's REAL half of the dialogue (`mb_hostentity.h`) against a scripted host: the 42 facts sent bit for bit, the five states, the pose, and each
-refusal by marker. The campaign's scan loop itself (`en_cllsn.c`) is C that needs the engine and is exercised natively only: the Rust transcription of it in the differential is a model, not that code. The compile guard
-(`entity_host_guard`) shows the ordinary module holds none of the original's decisions and the original profile keeps all of them.
+**Evidence (Linux, pinned image; nothing native).** (1) `tests/entity_candidate_host.rs` (10 tests): a contract for each branch and stage, including that a skipped candidate, a direct city building and a city ask
+for no radius; and a DIFFERENTIAL of the whole scan, the original's control flow and arithmetic transcribed from the source against the same scan driven by the host's decisions as `campaign_offer_candidate` drives them,
+over 400 generated worlds with six segments each (quarter-unit coordinates so boundary equalities occur, and a few entities with no usable scene): both must return the same entity and the SAME TRANSCRIPT of `UPDATED`
+reads, terrain questions, narrow-phase poses and refusals, bit for bit, in the same order. (2) The isolated C control (`eech_entity_dialogue_check.c`, 216 expectations) runs the REAL exchange (`mb_hostentity.h`) and
+the REAL offer (`mb_hostoffer.h`, the code `en_cllsn.c` runs) over scripted entities that log every getter in order: a direct city building skipped by height is read for its mobile flag only and asked with scene 0;
+the same building not skipped reaches its host skip with scene 0; a fixed candidate skipped by height with no usable geometry is read for its mobile flag only; a mobile candidate skipped is not read for its attitude or
+its UPDATED flag; the UPDATED getter and the terrain question are performed once, only when named, in the original's order; a city's buildings are read for shape and position in list order; and each illegal state, pose,
+name and scene is refused by marker. (3) `model_target_point.rs` runs the same cases through the real provider and a real `ModelStore`: the skips need no model, a candidate that reaches its broad phase on an
+unloaded scene or scene 0 is refused, and a loaded scene reaches the placement and the pose. (4) Controls RED before the correction, through these same collaborators: the C exchange stopped a direct city building at
+`scene.index` and the provider refused it with "scene 0 is not a scene a candidate can have". (5) Mutants RED after it: the radius asked before the skip, the fixed facts never asked, an eager fixed-flag read, an eager
+attitude read and the candidate's identity bound to the narrow phase's label each fail their check (exit 101) and each file was restored byte for byte. The classifier-by-pointer change is a source contract that no
+x86-64 run can distinguish from the by-value one, so it is guarded by text and is not claimed as a measurement. The campaign's scan loop (`en_cllsn.c`) is bound to engine getters and is exercised natively only;
+the Rust transcription of the scan in the differential is a model of the dialogue, not that code. The compile guard (`entity_host_guard`) shows the ordinary module holds none of the original's decisions, the offer
+header holds none either, the original profile keeps all of them, and the identity labels are bound as stated.
 
 ## The output contract (review finding ENV-ENTITY-CALLER-BUFFER-1)
 

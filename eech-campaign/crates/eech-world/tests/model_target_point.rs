@@ -1283,3 +1283,81 @@ fn a_nonzero_heading_rotates_the_fixed_offset_with_the_originals_arithmetic_thro
         .exec()
         .expect("the provider hands over the store's rotated words");
 }
+
+// ---- ENTITY_CANDIDATE through the real provider and ModelStore boundary (EEDCS-49, D3): a candidate the original skipped before it read any shape needs no model ----
+
+fn candidate_text(facts: &[f32]) -> String {
+    facts.iter().map(|value| format!("0x{:08x}", value.to_bits())).collect::<Vec<_>>().join(",")
+}
+
+/// the provider's answer to one entity candidate question over the fixture store: (result, reason)
+fn candidate_answer(lua: &mlua::Lua, scene: i32, facts: &[f32]) -> (String, String) {
+    lua.globals().set("FACTS", candidate_text(facts)).unwrap();
+    lua.globals().set("SCENE", scene).unwrap();
+    let table: mlua::Table = lua
+        .load(r#"return host.model_provider (host.model_store (ROOT)) ("entity_candidate", SCENE, nil, nil, nil, FACTS)"#)
+        .eval()
+        .expect("the provider answers");
+    (table.get("result").unwrap(), table.get::<Option<String>>("reason").unwrap().unwrap_or_default())
+}
+
+#[test]
+fn a_direct_city_building_and_a_fixed_candidate_below_the_tallest_skip_are_skipped_without_a_model_and_a_candidate_that_needs_geometry_still_refuses() {
+    let (root, _store) = standard();
+    let lua = lua_with_store(&root.dir);
+    // the facts of ENTITY_CANDIDATE (mb_hostmodel.h): 6 mobile, 7 fixed, 9 city building, 12 tallest, 13..15 position, 42 fixed facts read, 43 placement read
+    let mut facts = [0.0f32; 44];
+    facts[..6].copy_from_slice(&[-100.0, -100.0, -100.0, 100.0, 100.0, 100.0]);
+    facts[19] = 0.1;
+    // 1. a candidate that is not mobile in a sector whose tallest structure is below the segment: the original read nothing about it, the campaign sends the first stage (scene 0), and the host
+    // skips it; even a scene the store has not loaded (8 is an empty slot) cannot make that a refusal
+    let mut below = facts;
+    below[12] = -500.0;
+    assert_eq!(candidate_answer(&lua, 0, &below), ("skip".to_string(), String::new()));
+    assert_eq!(candidate_answer(&lua, 8, &below).0, "skip", "the original skipped it before it read its shape");
+    // 2. the same candidate in a sector it is not skipped in: the host asks for the fixed facts, and still needs no scene
+    let mut reached = facts;
+    reached[12] = 1000.0;
+    assert_eq!(candidate_answer(&lua, 0, &reached), ("need_fixed".to_string(), String::new()));
+    // 3. a building listed directly in a sector (fixed, a city building, no shape of its own): its legitimate skip needs no scene, no radius and no model
+    let mut building = reached;
+    building[7] = 1.0;
+    building[9] = 1.0;
+    building[42] = 1.0;
+    assert_eq!(
+        candidate_answer(&lua, 0, &building),
+        ("skip".to_string(), String::new()),
+        "the original skipped it without a shape lookup"
+    );
+    // 4. a candidate that reaches its broad phase needs its model: an unloaded scene, and scene 0, are refusals named by the provider, never a skip or a miss
+    let mut fixed = reached;
+    fixed[7] = 1.0;
+    fixed[42] = 1.0;
+    let (result, reason) = candidate_answer(&lua, 8, &fixed);
+    assert_eq!((result.as_str(), reason.contains("not loaded")), ("refused", true), "{reason}");
+    let (result, reason) = candidate_answer(&lua, 0, &fixed);
+    assert_eq!(
+        (result.as_str(), reason.contains("not a scene a candidate can have")),
+        ("refused", true),
+        "{reason}"
+    );
+    // 5. with a loaded scene (1) the same facts reach the placement stage and then the narrow phase's pose: the model is the store's own
+    assert_eq!(candidate_answer(&lua, 1, &fixed), ("need_placement".to_string(), String::new()));
+    fixed[43] = 1.0;
+    assert_eq!(candidate_answer(&lua, 1, &fixed).0, "test");
+    // 6. a mobile candidate whose box is met asks for its UPDATED answer before any model, and then needs the model of its scene
+    let mut mobile = facts;
+    mobile[6] = 1.0;
+    mobile[16] = 3.0;
+    assert_eq!(
+        candidate_answer(&lua, 8, &mobile).0,
+        "need_updated",
+        "the destructive getter first: the original read it before its radius"
+    );
+    mobile[20] = 1.0;
+    assert_eq!(
+        candidate_answer(&lua, 8, &mobile).0,
+        "refused",
+        "an unloaded scene is refused once the broad phase needs it"
+    );
+}

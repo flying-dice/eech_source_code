@@ -156,14 +156,15 @@ pub fn collide_in_store(store: &ModelStore, scene: i64, pose: &[u32]) -> Result<
     })
 }
 
-/// The floats of an `ENTITY_CANDIDATE` question: the facts the campaign reads from the candidate it is visiting (`csrc/entity_candidate_step.c` lists them), and of the narrow-phase pose the
-/// host answers a `TEST` with.
-pub const CANDIDATE_FACTS: usize = 42;
+/// The floats of an `ENTITY_CANDIDATE` question: the facts the campaign reads from the candidate it is visiting (`csrc/entity_candidate_step.c` lists them, staged in the order the original
+/// needed them), and of the narrow-phase pose the host answers a `TEST` with.
+pub const CANDIDATE_FACTS: usize = 44;
 pub const CANDIDATE_STATIONARY_POSE: usize = 12;
 pub const CANDIDATE_MOVING_POSE: usize = 16;
 
-/// What the host decided about one candidate (`csrc/entity_candidate_step.c`). `NeedUpdated` and `NeedNormal` ask the campaign for a service that has effects of its own, and the
-/// question is then asked again with the answer filled in; `Buildings` says a city's box is met, so its buildings are offered one by one; `Test` carries the candidate's pose for the
+/// What the host decided about one candidate (`csrc/entity_candidate_step.c`). `NeedUpdated` and `NeedNormal` ask the campaign for a service that has effects of its own, `NeedFixed` and
+/// `NeedPlacement` for facts the branch has only now reached (the fixed flag and what the fixed branch reads; the attitude, or the heading and align flag, once the broad phase has passed),
+/// and the question is then asked again with them filled in; `Buildings` says a city's box is met, so its buildings are offered one by one; `Test` carries the candidate's pose for the
 /// narrow phase.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CandidateState {
@@ -172,6 +173,8 @@ pub enum CandidateState {
     NeedNormal,
     Buildings,
     Test,
+    NeedFixed,
+    NeedPlacement,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -181,8 +184,12 @@ pub struct CandidateStep {
     pub pose: Vec<u32>,
 }
 
+/// The radius of the candidate's scene, in words: asked for ONLY by a branch that has reached its broad phase, so that a candidate the original skipped needs no model. An `Err` is a refusal
+/// of the model data (an unusable scene), never a default radius and never a miss.
+pub type Radius<'a> = dyn FnMut() -> Result<u32, String> + 'a;
+
 extern "C" {
-    fn eech_entity_candidate(facts: *const f32, radius: f32, candidate: *mut f32, candidate_count: *mut c_int) -> c_int;
+    fn eech_entity_candidate(facts: *const f32, has_radius: c_int, radius: f32, candidate: *mut f32, candidate_count: *mut c_int) -> c_int;
 }
 
 const CANDIDATE_SKIP: c_int = 1;
@@ -190,10 +197,13 @@ const CANDIDATE_NEED_UPDATED: c_int = 2;
 const CANDIDATE_NEED_NORMAL: c_int = 3;
 const CANDIDATE_BUILDINGS: c_int = 4;
 const CANDIDATE_TEST: c_int = 5;
+const CANDIDATE_NEED_FIXED: c_int = 6;
+const CANDIDATE_NEED_PLACEMENT: c_int = 7;
+const CANDIDATE_NEED_RADIUS: c_int = 8;
 const CANDIDATE_INVALID_TARGET: c_int = -1;
 
 /// The facts of a candidate that are flags or states, and the values each may have: the collision flags, the city facts and the role (6 to 11), the UPDATED state (20), the align flag and
-/// the normal-given flag (22, 23). Anything else is a malformed question, never a default.
+/// the normal-given flag (22, 23), and the two facts-read flags (42, 43). Anything else is a malformed question, never a default.
 fn check_candidate_facts(facts: &[f32]) -> Result<(), String> {
     if facts.len() != CANDIDATE_FACTS {
         return Err(format!("an entity candidate question has {CANDIDATE_FACTS} floats, not {}", facts.len()));
@@ -201,7 +211,7 @@ fn check_candidate_facts(facts: &[f32]) -> Result<(), String> {
     if let Some(at) = facts.iter().position(|value| !value.is_finite()) {
         return Err(format!("fact {at} of an entity candidate question is not a finite number"));
     }
-    for at in [6, 7, 8, 9, 10, 11, 22, 23] {
+    for at in [6, 7, 8, 9, 10, 11, 22, 23, 42, 43] {
         if facts[at] != 0.0 && facts[at] != 1.0 {
             return Err(format!("fact {at} of an entity candidate question is a flag and must be 0 or 1"));
         }
@@ -218,15 +228,8 @@ fn check_candidate_facts(facts: &[f32]) -> Result<(), String> {
     Ok(())
 }
 
-/// The host's decision about one candidate, from the campaign's facts and the radius of the candidate's scene (words). The decision is the original's, run under round-toward-zero with the
-/// caller's complete floating-point state saved and restored, as the narrow phase's is.
-pub fn candidate(facts: &[u32], radius: u32) -> Result<CandidateStep, String> {
-    let facts: Vec<f32> = facts.iter().map(|word| f32::from_bits(*word)).collect();
-    check_candidate_facts(&facts)?;
-    let radius = f32::from_bits(radius);
-    if !radius.is_finite() {
-        return Err("the radius of the candidate's scene is not a finite number".into());
-    }
+/// One run of the kernel under the original's arithmetic, with the caller's complete floating-point state saved and restored: the raw state it answered and its pose floats.
+fn run_candidate(facts: &[f32], radius: Option<f32>) -> Result<(c_int, [f32; CANDIDATE_MOVING_POSE], c_int), String> {
     let state = fp_state()?;
     if state.x87_masks != 63 || state.sse_masks != 63 {
         return Err(format!(
@@ -238,12 +241,36 @@ pub fn candidate(facts: &[u32], radius: u32) -> Result<CandidateStep, String> {
     let mut count: c_int = 0;
     let decided = {
         let _original_arithmetic = ScopedRounding::set(Rounding::Zero)?;
-        // SAFETY: `facts` has the 42 floats the kernel reads, `pose` has room for 16 and `count` is one int.
-        unsafe { eech_entity_candidate(facts.as_ptr(), radius, pose.as_mut_ptr(), &mut count) }
+        // SAFETY: `facts` has the 44 floats the kernel reads, `pose` has room for 16 and `count` is one int.
+        unsafe {
+            eech_entity_candidate(
+                facts.as_ptr(),
+                c_int::from(radius.is_some()),
+                radius.unwrap_or(0.0),
+                pose.as_mut_ptr(),
+                &mut count,
+            )
+        }
     };
     let after = fp_state()?;
     if after != state {
         return Err("the entity candidate kernel did not hand back the caller's floating-point state".into());
+    }
+    Ok((decided, pose, count))
+}
+
+/// The host's decision about one candidate, from the campaign's facts. The decision is the original's, run under round-toward-zero with the caller's complete floating-point state saved and
+/// restored, as the narrow phase's is. `radius` is asked for only if the branch the facts take reaches a broad phase.
+pub fn candidate(facts: &[u32], radius: &mut Radius) -> Result<CandidateStep, String> {
+    let facts: Vec<f32> = facts.iter().map(|word| f32::from_bits(*word)).collect();
+    check_candidate_facts(&facts)?;
+    let (mut decided, mut pose, mut count) = run_candidate(&facts, None)?;
+    if decided == CANDIDATE_NEED_RADIUS {
+        let radius = f32::from_bits(radius()?);
+        if !radius.is_finite() {
+            return Err("the radius of the candidate's scene is not a finite number".into());
+        }
+        (decided, pose, count) = run_candidate(&facts, Some(radius))?;
     }
     let step = |state, pose: Vec<u32>| Ok(CandidateStep { state, pose });
     match decided {
@@ -251,31 +278,29 @@ pub fn candidate(facts: &[u32], radius: u32) -> Result<CandidateStep, String> {
         CANDIDATE_NEED_UPDATED => step(CandidateState::NeedUpdated, Vec::new()),
         CANDIDATE_NEED_NORMAL => step(CandidateState::NeedNormal, Vec::new()),
         CANDIDATE_BUILDINGS => step(CandidateState::Buildings, Vec::new()),
+        CANDIDATE_NEED_FIXED => step(CandidateState::NeedFixed, Vec::new()),
+        CANDIDATE_NEED_PLACEMENT => step(CandidateState::NeedPlacement, Vec::new()),
         CANDIDATE_TEST => match count {
             12 | 16 => step(CandidateState::Test, pose[..count as usize].iter().map(|value| value.to_bits()).collect()),
             other => Err(format!("the entity candidate kernel gave a pose of {other} floats")),
         },
         CANDIDATE_INVALID_TARGET => Err("an entity candidate that is neither mobile nor fixed reached its pose (the original's `Invalid target`)".into()),
+        CANDIDATE_NEED_RADIUS => Err("the entity candidate kernel asked for the radius twice".into()),
         other => Err(format!("the entity candidate kernel answered {other}")),
     }
 }
 
-/// The decision over the host's final store: the radius is the scene's own (a city has no scene of its own and is decided without one), and a scene the store does not have loaded is a
-/// refusal.
+/// The decision over the host's final store: the radius is the scene's own and is looked up only when the branch needs it (a candidate the original skipped, a direct city building and a
+/// city need no model), and a scene the store does not have, or has not loaded, is then a refusal.
 pub fn candidate_in_store(store: &ModelStore, scene: i64, facts: &[u32]) -> Result<CandidateStep, String> {
-    let is_city = facts.get(8).map(|word| f32::from_bits(*word) == 1.0).unwrap_or(false);
-    if is_city {
-        if scene != 0 {
-            return Err(format!("a city is decided without a scene of its own, not scene {scene}"));
+    candidate(facts, &mut || {
+        if scene < 1 {
+            return Err(format!("scene {scene} is not a scene a candidate can have"));
         }
-        return candidate(facts, 0.0f32.to_bits());
-    }
-    if scene < 1 {
-        return Err(format!("scene {scene} is not a scene a candidate can have"));
-    }
-    let view = store.scene(scene).map_err(|e| e.to_string())?;
-    if !view.loaded {
-        return Err(format!("scene {scene} is not loaded in the host's model store"));
-    }
-    candidate(facts, view.radius)
+        let view = store.scene(scene).map_err(|e| e.to_string())?;
+        if !view.loaded {
+            return Err(format!("scene {scene} is not loaded in the host's model store"));
+        }
+        Ok(view.radius)
+    })
 }

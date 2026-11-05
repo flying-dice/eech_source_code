@@ -5,8 +5,8 @@
 //! where the platform allows it, and checks: what is sent (the segment and the pose, never the caller's words), what is written (only the components the host says the original
 //! assigned, normal first, with their computed words, including a computed signed zero and NaN payloads), that initialised untouched words keep their exact bits, and that every
 //! malformed answer (a mask or a word outside the domain, a hit that has not assigned both vectors, another kind of result, another scene's name, a refusal) stops the engine before
-//! a single word of either buffer is written. The same control covers the campaign's half of the host's per-candidate decisions (ENTITY_CANDIDATE): the 42 facts it sends, bit for bit, the
-//! five states and the narrow-phase pose it accepts, and the state, pose, identity and scene it refuses by marker. It loads no model and says nothing about the host's kernel.
+//! a single word of either buffer is written. The same control covers the campaign's half of the host's per-candidate decisions (ENTITY_CANDIDATE): the 44 facts it sends, bit for bit, the
+//! seven states and the narrow-phase pose it accepts, the state, pose, identity and scene it refuses by marker, and the campaign's offer over scripted entities that log every getter. It loads no model and says nothing about the host's kernel.
 use eech_engine_sys as _;
 use std::ffi::{c_char, c_int};
 
@@ -21,5 +21,5 @@ fn the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_an
     let failures = unsafe { eech_entity_dialogue_check_run(text.as_mut_ptr(), text.len() as c_int, &mut checks) };
     let report: String = text.iter().take_while(|&&c| c != 0).map(|&c| c as u8 as char).collect();
     assert_eq!(failures, 0, "the dialogue disagreed with its expectations:\n{report}");
-    assert!(checks >= 170, "only {checks} expectations were made: the control did not run in full");
+    assert!(checks >= 216, "only {checks} expectations were made: the control did not run in full");
 }

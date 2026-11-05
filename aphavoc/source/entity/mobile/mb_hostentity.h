@@ -17,6 +17,7 @@
  *   CAMPAIGN_ENTITY_ASK (request, reply)         one host exchange, which stops the engine on a missing provider or a refusal
  *   CAMPAIGN_ENTITY_IDENTITY (reply, scene)      stops the engine unless the reply names the campaign's own name for `scene`
  *   CAMPAIGN_ENTITY_CANDIDATE_ASK (request, reply)  the same exchange for an ENTITY_CANDIDATE question (it may be counted separately)
+ *   CAMPAIGN_ENTITY_CANDIDATE_IDENTITY (reply, scene)  the same identity check for an ENTITY_CANDIDATE reply, which names its own operation (entity_candidate.identity)
  *
  * The same header holds the campaign's half of the host's per-candidate decisions (ENTITY_CANDIDATE, mb_hostmodel.h): the facts layout, the exchange and the complete check of the host's
  * decision against the facts it was given.  It reads no entity: the caller (en_cllsn.c) fills the facts from the entity it visits and performs the two services the host may ask for.
@@ -147,13 +148,14 @@ static int campaign_entity_collision_exchange
 // ENTITY_CANDIDATE (EEDCS-49, D3, third slice): the exchange. The facts are laid out as in mb_hostmodel.h (CAMPAIGN_CANDIDATE_*).
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-// whether a float is a finite number, read as bytes (an infinity or a NaN has every exponent bit set)
-static int candidate_word_is_finite (float value)
+// whether the float at `value` is a finite number, classified from its raw bytes: the untrusted word is never passed or loaded as a floating value before it is refused (an infinity or a
+// NaN, signalling or quiet, has every exponent bit set)
+static int candidate_word_is_finite (const float *value)
 {
 	uint32_t
 		word;
 
-	memcpy (&word, &value, sizeof (word));
+	memcpy (&word, value, sizeof (word));
 
 	return ((word & 0x7f800000u) != 0x7f800000u);
 }
@@ -170,9 +172,9 @@ static void check_candidate_reply (const campaign_model_reply *reply, int scene,
 
 	count = reply->candidate_count;
 
-	if ((state < CAMPAIGN_MODEL_CANDIDATE_SKIP) || (state > CAMPAIGN_MODEL_CANDIDATE_TEST))
+	if ((state < CAMPAIGN_MODEL_CANDIDATE_SKIP) || (state > CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT))
 	{
-		debug_fatal ("host model: [model-provider:entity_candidate.state] the host decided state %d for scene %d, which is not one of the five", state, scene);
+		debug_fatal ("host model: [model-provider:entity_candidate.state] the host decided state %d for scene %d, which is not one of the seven", state, scene);
 	}
 
 	if ((state != CAMPAIGN_MODEL_CANDIDATE_TEST) && (count != 0))
@@ -188,11 +190,29 @@ static void check_candidate_reply (const campaign_model_reply *reply, int scene,
 		}
 	}
 
+	if (state == CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED)
+	{
+		if ((facts [CAMPAIGN_CANDIDATE_MOBILE] != 0.0f) || (facts [CAMPAIGN_CANDIDATE_OF_CITY] != 0.0f) || (facts [CAMPAIGN_CANDIDATE_FIXED_GIVEN] != 0.0f))
+		{
+			debug_fatal ("host model: [model-provider:entity_candidate.state] the host asked for the fixed facts of scene %d, which is a mobile candidate, a building under a city or one whose fixed facts were read", scene);
+		}
+	}
+
+	if (state == CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT)
+	{
+		if ((facts [CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] != 0.0f) ||
+			((facts [CAMPAIGN_CANDIDATE_MOBILE] == 0.0f) && (facts [CAMPAIGN_CANDIDATE_OF_CITY] == 0.0f) && (facts [CAMPAIGN_CANDIDATE_FIXED_GIVEN] == 0.0f)))
+		{
+			debug_fatal ("host model: [model-provider:entity_candidate.state] the host asked for the placement facts of scene %d, which were read already or whose branch has not reached a placement", scene);
+		}
+	}
+
 	if (state == CAMPAIGN_MODEL_CANDIDATE_NEED_NORMAL)
 	{
-		if ((facts [CAMPAIGN_CANDIDATE_ALIGN] == 0.0f) || (facts [CAMPAIGN_CANDIDATE_NORMAL_GIVEN] != 0.0f) || (facts [CAMPAIGN_CANDIDATE_MOBILE] != 0.0f) || (facts [CAMPAIGN_CANDIDATE_FIXED] == 0.0f))
+		if ((facts [CAMPAIGN_CANDIDATE_ALIGN] == 0.0f) || (facts [CAMPAIGN_CANDIDATE_NORMAL_GIVEN] != 0.0f) || (facts [CAMPAIGN_CANDIDATE_MOBILE] != 0.0f) || (facts [CAMPAIGN_CANDIDATE_FIXED] == 0.0f) ||
+			(facts [CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] == 0.0f))
 		{
-			debug_fatal ("host model: [model-provider:entity_candidate.state] the host asked for the terrain face normal of scene %d, which is not a fixed candidate aligned with the terrain whose normal was not given yet", scene);
+			debug_fatal ("host model: [model-provider:entity_candidate.state] the host asked for the terrain face normal of scene %d, which is not a fixed candidate with its placement aligned with the terrain whose normal was not given yet", scene);
 		}
 	}
 
@@ -217,9 +237,15 @@ static void check_candidate_reply (const campaign_model_reply *reply, int scene,
 			debug_fatal ("host model: [model-provider:entity_candidate.pose] the host gave a moving pose for scene %d, which is not a mobile candidate", scene);
 		}
 
+		// the narrow phase needs the candidate's scene: a pose for a candidate whose shape was never read cannot be tested
+		if (scene == 0)
+		{
+			debug_fatal ("host model: [model-provider:entity_candidate.state] the host required a narrow phase for a candidate that has no scene");
+		}
+
 		for (index = 0; index < count; index++)
 		{
-			if (!candidate_word_is_finite (reply->candidate [index]))
+			if (!candidate_word_is_finite (&reply->candidate [index]))
 			{
 				debug_fatal ("host model: [model-provider:entity_candidate.pose] float %d of the pose the host gave for scene %d is not a finite number", index, scene);
 			}
@@ -240,14 +266,14 @@ static int campaign_entity_candidate_exchange (int scene, const float *facts, fl
 	int
 		index;
 
-	if (facts [CAMPAIGN_CANDIDATE_CITY] != 0.0f)
+	// scene 0 means no shape has been read yet: a skipped candidate, a city and a direct city building have none, and the host refuses by name a branch that needs one. A scene that is named
+	// must be one a candidate can have.
+	if ((facts [CAMPAIGN_CANDIDATE_CITY] != 0.0f) && (scene != 0))
 	{
-		if (scene != 0)
-		{
-			debug_fatal ("host model: [model-provider:entity_candidate.request] a city has no scene of its own, but scene %d was named", scene);
-		}
+		debug_fatal ("host model: [model-provider:entity_candidate.request] a city has no scene of its own, but scene %d was named", scene);
 	}
-	else
+
+	if (scene != 0)
 	{
 		CAMPAIGN_ENTITY_REQUIRE_SCENE (scene);
 	}
@@ -260,16 +286,16 @@ static int campaign_entity_candidate_exchange (int scene, const float *facts, fl
 
 	CAMPAIGN_ENTITY_CANDIDATE_ASK (&request, &reply);
 
-	if (facts [CAMPAIGN_CANDIDATE_CITY] != 0.0f)
+	if (scene == 0)
 	{
 		if (reply.name [0] != 0)
 		{
-			debug_fatal ("host model: [model-provider:entity_candidate.identity] the host named a city \"%.60s\", which has no scene", reply.name);
+			debug_fatal ("host model: [model-provider:entity_candidate.identity] the host named a scene \"%.60s\" for a candidate that has none", reply.name);
 		}
 	}
 	else
 	{
-		CAMPAIGN_ENTITY_IDENTITY (&reply, scene);
+		CAMPAIGN_ENTITY_CANDIDATE_IDENTITY (&reply, scene);
 	}
 
 	check_candidate_reply (&reply, scene, facts);

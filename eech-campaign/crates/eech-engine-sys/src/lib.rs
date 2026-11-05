@@ -1142,6 +1142,8 @@ pub const EECH_MODEL_CANDIDATE_NEED_UPDATED: c_int = 2;
 pub const EECH_MODEL_CANDIDATE_NEED_NORMAL: c_int = 3;
 pub const EECH_MODEL_CANDIDATE_BUILDINGS: c_int = 4;
 pub const EECH_MODEL_CANDIDATE_TEST: c_int = 5;
+pub const EECH_MODEL_CANDIDATE_NEED_FIXED: c_int = 6;
+pub const EECH_MODEL_CANDIDATE_NEED_PLACEMENT: c_int = 7;
 /// the floats of the narrow-phase pose a TEST answer carries (a stationary candidate's 12, a moving one's 16)
 pub const EECH_MODEL_CANDIDATE_POSE_MAX: usize = 16;
 /// the deepest sub-object chain the target-point transport carries, and the floats of the largest pose (15 + 9 * chain, rounded up)

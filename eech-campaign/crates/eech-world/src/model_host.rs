@@ -497,7 +497,8 @@ fn entity_collision_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaRe
 
 /// The reference host's answer to an entity candidate question (`get_line_of_sight_collision_entity`'s per-candidate decisions, EEDCS-49): what the host decided about the candidate the
 /// campaign is visiting, from the facts it read. `skip`, `need_updated` (the campaign performs its destructive UPDATED getter and asks again), `need_normal` (the campaign asks the
-/// terrain for the face normal and asks again), `buildings` (a city's box is met) or `test` with the narrow phase's candidate pose. The decision is the original's, the radius the scene's own.
+/// terrain for the face normal and asks again), `need_fixed` and `need_placement` (the campaign reads the facts the branch has only now reached and asks again), `buildings` (a city's box
+/// is met) or `test` with the narrow phase's candidate pose. The decision is the original's, and the scene's radius is looked up only when the branch reaches its broad phase.
 fn entity_candidate_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaResult<LuaTable> {
     let operation = q.operation.as_str();
     let fail = |message: String| LuaError::runtime(format!("[model-provider:{operation}.request] {message}"));
@@ -520,6 +521,8 @@ fn entity_candidate_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaRe
                     entity_host::CandidateState::NeedNormal => "need_normal",
                     entity_host::CandidateState::Buildings => "buildings",
                     entity_host::CandidateState::Test => "test",
+                    entity_host::CandidateState::NeedFixed => "need_fixed",
+                    entity_host::CandidateState::NeedPlacement => "need_placement",
                 },
             )?;
             if step.state == entity_host::CandidateState::Test {

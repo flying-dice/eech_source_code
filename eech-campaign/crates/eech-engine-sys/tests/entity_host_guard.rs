@@ -1,7 +1,7 @@
 //! Compile guard of the host-owned entity collision scan (EEDCS-49, D3): the ordinary module must not compile or execute the original physical entity test or its per-candidate decisions.
 //!
 //! `en_cllsn.c` has two bodies for the narrow phase (`accurate_stationary_bounding_box_collision_test` and `accurate_moving_bounding_box_collision_test`) and two for the scan loop of
-//! `get_line_of_sight_collision_entity`. The hosted ones (`EECH_CAMPAIGN_HOST_ENTITY`) offer each candidate to the host (`campaign_model_entity_candidate`), which decides its branch,
+//! `get_line_of_sight_collision_entity`. The hosted ones (`EECH_CAMPAIGN_HOST_ENTITY`) offer each candidate to the host (`campaign_offer_candidate`, mb_hostoffer.h, which asks `campaign_model_entity_candidate`), which decides its branch,
 //! its sweep, its broad phase and its pose, and carry the narrow phase to the host through `campaign_model_entity_collision`; the original ones (the model transform, the sweep
 //! positions, the face order, the intersections, the classification, the broad phase and the pose derivation) stay in the `#else` branches for the explicit original-characterisation
 //! profile, feature `collision-fixture`, and for the model fixtures whose model arrays are the original's. The build script defines the macro in every other build. This test reads the
@@ -88,14 +88,19 @@ fn the_ordinary_entity_scan_asks_the_host_to_decide_each_candidate_and_the_origi
             "the hosted entity scan mentions {name}: the decisions must be the host's"
         );
     }
+    // the offer itself is the shared header (mb_hostoffer.h): the ordinary module binds it to the real getters, and it holds the call to the host and none of the original's decisions
     assert!(
-        hosted.contains("campaign_model_entity_candidate"),
-        "the hosted scan must ask the host about each candidate"
-    );
-    assert!(
-        hosted.contains("offer_candidate_to_host") && !original.contains("offer_candidate_to_host"),
+        hosted.contains("entity/mobile/mb_hostoffer.h") && !original.contains("mb_hostoffer.h"),
         "only the hosted module offers candidates to the host"
     );
+    let offer = read("../../../aphavoc/source/entity/mobile/mb_hostoffer.h");
+    assert!(
+        offer.contains("campaign_model_entity_candidate"),
+        "the offer must ask the host about each candidate"
+    );
+    for name in ORIGINAL_DECISIONS {
+        assert!(!offer.contains(name), "the campaign's offer mentions {name}: the decisions must be the host's");
+    }
     // the scan loop of get_line_of_sight_collision_entity: its own pair of branches, after the declarations'
     let function = source.find("entity *get_line_of_sight_collision_entity").expect("the scan function");
     let body = &source[function..];
@@ -112,7 +117,7 @@ fn the_ordinary_entity_scan_asks_the_host_to_decide_each_candidate_and_the_origi
         );
     }
     assert!(
-        hosted_loop.contains("offer_candidate_to_host") && !original_loop.contains("offer_candidate_to_host"),
+        hosted_loop.contains("campaign_offer_candidate") && !original_loop.contains("campaign_offer_candidate"),
         "the hosted scan walks the sector lists and offers"
     );
     assert!(
@@ -152,4 +157,32 @@ fn the_build_defines_the_hosted_narrow_phase_only_where_the_host_model_operation
         condition.contains("CARGO_FEATURE_COLLISION_FIXTURE\").is_none()") && condition.contains("CARGO_FEATURE_MODEL_FIXTURE\").is_none()"),
         "the original characterisation and the model fixtures keep the original narrow phase: {condition}"
     );
+}
+
+#[test]
+fn the_candidate_dialogue_names_its_own_identity_label_and_the_narrow_phase_keeps_its_own() {
+    // the control binds a scripted identity helper, so the real binding is read here: a bad scene-name echo of an ENTITY_CANDIDATE reply is an entity_candidate.identity stop and a bad echo of
+    // an ENTITY_COLLISION reply stays an entity_collision.identity one
+    let model = read("../../../aphavoc/source/entity/mobile/mb_hostmodel.c");
+    let binding = |name: &str| {
+        let at = model.find(name).unwrap_or_else(|| panic!("{name} is bound"));
+        model[at..].lines().next().unwrap().to_string()
+    };
+    let collision = binding("#define CAMPAIGN_ENTITY_IDENTITY(REPLY,SCENE)");
+    let candidate = binding("#define CAMPAIGN_ENTITY_CANDIDATE_IDENTITY(REPLY,SCENE)");
+    assert!(
+        collision.contains("\"entity_collision\"") && !collision.contains("entity_candidate"),
+        "{collision}"
+    );
+    assert!(
+        candidate.contains("\"entity_candidate\"") && !candidate.contains("entity_collision"),
+        "{candidate}"
+    );
+    // the exchange uses the candidate's own check for a scene it names, and not the narrow phase's
+    let entity = read("../../../aphavoc/source/entity/mobile/mb_hostentity.h");
+    let exchange = &entity[entity.find("static int campaign_entity_candidate_exchange").expect("the candidate exchange")..];
+    assert!(exchange.contains("CAMPAIGN_ENTITY_CANDIDATE_IDENTITY (&reply, scene)") && !exchange.contains("CAMPAIGN_ENTITY_IDENTITY (&reply"));
+    // the classifier of the host's pose floats takes a pointer and reads its bytes: an untrusted float is never passed by value before it is refused
+    assert!(entity.contains("static int candidate_word_is_finite (const float *value)"));
+    assert!(entity.contains("candidate_word_is_finite (&reply->candidate [index])"));
 }

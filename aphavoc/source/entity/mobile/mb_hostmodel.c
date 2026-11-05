@@ -65,7 +65,7 @@ struct campaign_model_counters
 	/* ENTITY_COLLISION questions asked of the host (EEDCS-49) and the hits and misses the native code ACCEPTED */
 	long entity_collision, entity_hit, entity_miss;
 	/* ENTITY_CANDIDATE questions asked of the host (EEDCS-49) and the states the native code ACCEPTED: skip, UPDATED asked, terrain normal asked, buildings, narrow phase required */
-	long entity_candidate, candidate_skip, candidate_updated, candidate_normal, candidate_buildings, candidate_test;
+	long entity_candidate, candidate_skip, candidate_updated, candidate_normal, candidate_buildings, candidate_test, candidate_fixed, candidate_placement;
 };
 
 struct campaign_model_counters campaign_model_counts;
@@ -1858,6 +1858,9 @@ void campaign_model_route_primary_start (int index, int starts)
 #define CAMPAIGN_ENTITY_CANDIDATE_ASK(REQUEST,REPLY) ask ((REQUEST), (REPLY), "entity candidate")
 #endif
 
+// the candidate's own identity label: a bad scene-name echo of an ENTITY_CANDIDATE reply is not an entity_collision refusal
+#define CAMPAIGN_ENTITY_CANDIDATE_IDENTITY(REPLY,SCENE) check_target_point_identity ((REPLY), (SCENE), "entity_candidate")
+
 #include "mb_hostentity.h"
 
 int campaign_model_entity_collision (int scene, const float *segment_old, const float *segment_new, const float *candidate, int candidate_count, float *point, float *normal)
@@ -1913,6 +1916,18 @@ int campaign_model_entity_candidate (int scene, const float *facts, float *pose,
 		case CAMPAIGN_MODEL_CANDIDATE_BUILDINGS:
 		{
 			campaign_model_counts.candidate_buildings++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED:
+		{
+			campaign_model_counts.candidate_fixed++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT:
+		{
+			campaign_model_counts.candidate_placement++;
 
 			break;
 		}

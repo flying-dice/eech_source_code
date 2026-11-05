@@ -10,17 +10,25 @@
  * question, each performed exactly when this function names it, never earlier) and the consequences of a hit.
  *
  * It is a pure function of its facts: there is no state between calls and the environment is not touched (the caller, src/entity_host.rs, runs it under round-toward-zero with the
- * caller's complete floating-point state saved and restored, as the narrow phase and the tree kernel are; this file is NOT compiled with -frounding-math). A candidate that needs a
- * service answers NEED_*, the campaign performs the service and asks again with the answer filled in, and every earlier fact is identical, so the decision is the one the original made in
- * a single pass.
+ * caller's complete floating-point state saved and restored, as the narrow phase and the tree kernel are; this file is NOT compiled with -frounding-math). A candidate that needs
+ * something answers NEED_*, the campaign performs the service or reads the facts and asks again with them filled in, and every earlier fact is identical, so the decision is the one the
+ * original made in a single pass.
+ *
+ * THE FACTS ARE STAGED, in the order the original needed them. The campaign first sends only what the original read for every candidate: the segment, the mobile flag, the sector's tallest
+ * structure height and, for a mobile candidate, its shape, position and motion vector (a building listed under a passed city sends its shape and position). A candidate that is not mobile in
+ * a sector below the segment is skipped HERE, before the original read its fixed flag or any shape. Otherwise the host asks for the fixed facts (NEED_FIXED: the fixed flag, whether it is
+ * a city or a city building and the shape, position, city box the branch reads) and, once the broad phase has passed, for the placement facts (NEED_PLACEMENT: the attitude of a mobile
+ * candidate, the heading and align flag of a fixed one). The radius of the candidate's scene is the host's own model data and is asked for (NEED_RADIUS, which never leaves the host) only by
+ * a branch that has reached its broad phase: a skipped candidate needs no model.
  *
  * FACTS (floats; every flag is exactly 0 or 1):
  *   [0..2] segment old end, [3..5] segment new end,
- *   [6] collision-test-mobile flag, [7] collision-test-fixed flag, [8] the entity is a city, [9] the entity is a city building,
+ *   [6] collision-test-mobile flag, [7] collision-test-fixed flag (meaningful once [42] says it was read), [8] the entity is a city, [9] the entity is a city building,
  *   [10] the candidate is a building listed under a city that has passed its box (not listed in the sector), [11] the city has a first building,
  *   [12] the sector's tallest structure height, [13..15] position, [16..18] motion vector, [19] frame time,
  *   [20] the UPDATED answer (0 not asked, 1 false, 2 true), [21] heading, [22] align-with-terrain flag, [23] face normal given, [24..26] terrain face normal,
- *   [27..35] attitude (row-major; meaningful for a mobile candidate), [36..38] city bounding box min, [39..41] max.
+ *   [27..35] attitude (row-major; meaningful for a mobile candidate), [36..38] city bounding box min, [39..41] max,
+ *   [42] the fixed facts were read, [43] the placement facts were read.
  * RESULT: a CANDIDATE_* state and, for TEST, the candidate's pose for the narrow phase: 12 floats (position, attitude) or 16 (old position, new position, attitude, speed).
  */
 #include <math.h>
@@ -33,6 +41,11 @@
 #define CANDIDATE_NEED_NORMAL (3)
 #define CANDIDATE_BUILDINGS (4)
 #define CANDIDATE_TEST (5)
+#define CANDIDATE_NEED_FIXED (6)
+#define CANDIDATE_NEED_PLACEMENT (7)
+
+/* the branch has reached its broad phase and the radius of the candidate's scene is not known yet: asked of the host's own model data by src/entity_host.rs, never sent to the campaign */
+#define CANDIDATE_NEED_RADIUS (8)
 
 /* a candidate that is neither mobile nor fixed reached the pose derivation: the original's debug_fatal ("Invalid target") */
 #define CANDIDATE_INVALID_TARGET (-1)
@@ -99,6 +112,12 @@ static int stationary_candidate(const float *facts, int mobile, int fixed, float
 	matrix3x3 attitude;
 	float heading;
 
+	/* the live placement is read once the broad phase has passed: the attitude of a mobile candidate, the heading and align flag of a fixed one */
+	if (facts[43] == 0.0f)
+	{
+		return CANDIDATE_NEED_PLACEMENT;
+	}
+
 	position.x = facts[13];
 	position.y = facts[14];
 	position.z = facts[15];
@@ -143,9 +162,10 @@ static int stationary_candidate(const float *facts, int mobile, int fixed, float
 	return CANDIDATE_TEST;
 }
 
-/* The entry: `facts` as described at the top of the file, `radius` the candidate scene's radius (the host's model data; unused for a city), `candidate` room for 16 floats. Returns a
-   CANDIDATE_* state or CANDIDATE_INVALID_TARGET. Nothing of the caller's is read other than `facts`. */
-int eech_entity_candidate(const float *facts, float radius, float *candidate, int *candidate_count)
+/* The entry: `facts` as described at the top of the file; `has_radius` says whether `radius`, the candidate scene's radius (the host's model data), is known: a branch that needs it
+   while it is not answers CANDIDATE_NEED_RADIUS and is asked again with it; `candidate` has room for 16 floats. Returns a CANDIDATE_* state or CANDIDATE_INVALID_TARGET. Nothing of the
+   caller's is read other than `facts`. */
+int eech_entity_candidate(const float *facts, int has_radius, float radius, float *candidate, int *candidate_count)
 {
 	vec3d source_old_position, source_new_position, source_min_position, source_max_position, target_position, target_motion_vector, target_old_position, target_new_position,
 		target_min_position, target_max_position;
@@ -204,6 +224,11 @@ int eech_entity_candidate(const float *facts, float radius, float *candidate, in
 	if (facts[10] != 0.0f)
 	{
 		/* a building listed under a city whose box the segment meets: stationary, and the sector's tallest-structure skip was already applied to its city */
+		if (!has_radius)
+		{
+			return CANDIDATE_NEED_RADIUS;
+		}
+
 		target_min_position.x = target_position.x - radius - 10;
 		target_min_position.y = target_position.y - radius - 10;
 		target_min_position.z = target_position.z - radius - 10;
@@ -287,6 +312,11 @@ int eech_entity_candidate(const float *facts, float radius, float *candidate, in
 				target_max_position.z = target_old_position.z;
 			}
 
+			if (!has_radius)
+			{
+				return CANDIDATE_NEED_RADIUS;
+			}
+
 			target_min_position.x -= radius + 10;
 			target_min_position.y -= radius + 10;
 			target_min_position.z -= radius + 10;
@@ -298,6 +328,11 @@ int eech_entity_candidate(const float *facts, float radius, float *candidate, in
 			if (box_meets_segment(&target_min_position, &target_max_position, &source_min_position, &source_max_position))
 			{
 				/* accurate_moving_bounding_box_collision_test: the sweep ends, the attitude and the speed */
+				if (facts[43] == 0.0f)
+				{
+					return CANDIDATE_NEED_PLACEMENT;
+				}
+
 				candidate[0] = target_old_position.x;
 				candidate[1] = target_old_position.y;
 				candidate[2] = target_old_position.z;
@@ -318,6 +353,11 @@ int eech_entity_candidate(const float *facts, float radius, float *candidate, in
 		}
 
 		/* stationary mobile */
+		if (!has_radius)
+		{
+			return CANDIDATE_NEED_RADIUS;
+		}
+
 		target_min_position.x = target_position.x - radius - 10;
 		target_min_position.y = target_position.y - radius - 10;
 		target_min_position.z = target_position.z - radius - 10;
@@ -338,6 +378,12 @@ int eech_entity_candidate(const float *facts, float radius, float *candidate, in
 	if (source_min_position.y > facts[12])
 	{
 		return CANDIDATE_SKIP;
+	}
+
+	/* the fixed flag is read only now: the original did not read it in a sector it skipped */
+	if (facts[42] == 0.0f)
+	{
+		return CANDIDATE_NEED_FIXED;
 	}
 
 	if (!fixed)
@@ -386,6 +432,11 @@ int eech_entity_candidate(const float *facts, float radius, float *candidate, in
 	{
 		/* a building listed directly in a sector is skipped */
 		return CANDIDATE_SKIP;
+	}
+
+	if (!has_radius)
+	{
+		return CANDIDATE_NEED_RADIUS;
 	}
 
 	target_min_position.x = target_position.x - radius - 10;
