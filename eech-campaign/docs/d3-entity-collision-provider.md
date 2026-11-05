@@ -100,6 +100,64 @@ Core callers need a DCS-facing primitive, and which are internal to the EECH ref
 not show that every Core collision consumer is unnecessary), is part of the next extraction. For any required primitive the work is to name a verified full API contract or a bounded,
 versioned per-type host geometry and transform workaround with its provenance and supported types. Unknown objects, unsupported child state and missing geometry refuse by name.
 
+## The public authority witness (`lua/entity-authority.lua`; TEST-ONLY, written, controlled, NOT YET RUN natively)
+
+The unit and C controls prove the campaign's half and the host kernel. They do not show that the host's answer reaches the campaign through the **public** path. `lua/entity-authority.lua` is the sibling of
+`tree-authority.lua`: host-owned Lua → the public native module (a DLL built with `weapon-fixture`) → the host's model provider (`host.model`) → a REAL weapon launched through the campaign's own launch call.
+It reuses the tree witness's verified blocks verbatim (the exclusive checked output, the launch-report and terminal grammars, the configured VIEW_WEAPON aim delegate, the frozen cohort, the anchored engine-stop
+recognition), a drift test compares its float-words block with the tree witness's, and nothing of the closed TREE witness or any default driver is changed.
+
+**What it observes.** The provider wrapper delegates EVERY operation to `host.model` unchanged (the very table the host gave, the arguments untouched; a scripted check proves it in every mode) and counts them; only
+an `entity_collision` question asked AFTER the launch ("armed") may be answered differently, by the chosen mode. For each armed question it records: the request (the key is 18 or 22 `0x%08x` patterns, nothing
+else is sent: the corrected shape), the host's real reply (result, mask 0..63 with whole vectors, a point only with a normal, a hit is 63, zero words where the mask assigns nothing, a name) and, from the weapon
+fixture, the run-wide counters `contact_any_tests` (the weapon step's entity lookups: the ACTUAL caller was reached), `contact_any_hits` and `precision_high`. Nothing is faked: no call, counter or answer is
+made up, and the counters are the fixture's own.
+
+**Branch preconditions, derived from source (no distance guess).** (1) `wn_flight.c` asks the entity lookup only when the weapon is a server weapon with in-flight collision checking and (the step is at high precision
+or the weapon has no target); the launch links the case target, so the precision path is needed: the existing VIEW_WEAPON lookup answer is set to 1 by an aim delegate over the unmodified `host.aim` on every armed
+`weapon_step`, hosted and Original alike, **configured and global while armed, not a camera and not a per-weapon identity**, with its use measured (`precision_high` must rise). (2) `get_line_of_sight_collision_entity`
+excludes only the launcher for a weapon (`los_target` is NULL) and visits the sector window of the segment widened by 150 m; a candidate gets a narrow-phase question only if it is collidable (`INT_TYPE_COLLISION_TEST_MOBILE`
+exists for vehicles and aircraft, `..._FIXED` for structures; a PERSON has neither) and the segment's box meets the candidate's box of radius + 10 m. So the case is the **nearest non-person enemy of any launcher
+that has an unguided ballistic weapon in stock**, so that the target is the weapon's first broad-phase candidate. If no candidate ever passes the broad phase (still Core, still campaign-owned) the host is asked
+nothing, and that is **UNREACHED**, never authority. The wrapper counts questions of the whole war (the provider carries no weapon identity); foreign activity is declared, not attributed.
+
+**Modes (one per process; exit 0 is the verdict).**
+
+| mode | what the provider does after the launch | the verdict needs |
+|---|---|---|
+| `control` | nothing altered | at least one `entity_collision` question, each request well formed, each real reply well formed, `contact_any_tests` rose, the host's hit count covers the weapon step's `contact_any_hits` |
+| `forced_hit` | every question answered HIT, mask 63, point = the request's OLD end, normal up (the real answer is still asked for its name echo and discarded) | the forced hit reached the weapon step's own hit count; the cohort's PHYSICAL signature (type, code, steps, position, velocity, lifetime of each case weapon, never its ordinal) is recorded for comparison with the control |
+| `forced_miss` | every question answered MISS, mask 56 (normal assigned, point not) | an accepted partial-write miss; no hit may reach the weapon step. If the control had no hits this is **valid MISS coverage, not a measured changed physical outcome**, and the row says so |
+| `withheld_entity` | the provider raises on the first armed question | the engine stops at exactly `[model-provider:entity_collision.callback]` |
+| `bad_write_mask` | a HIT answered with mask 56 | the engine stops at exactly `[model-provider:entity_collision.write_mask]` |
+| `bad_answer` | a hit answered with mask 64 | the engine stops at exactly `[model-provider:entity_collision.answer]` |
+
+An engine stop counts only as the anchored first line `runtime error: eech: EECH fatal error: host model: [model-provider:<marker>] `; a Lua error that merely mentions a marker, a witness failure, a different marker or a
+stop with nothing altered is a failure of the witness, never proof. After a stop nothing is asked of the engine again, and counters that were not read stay unknown (-1). An altered answer is formed only from a
+well-formed question and real reply; otherwise the host's own answer is returned and the counted fault fails the verdict (a witness failure raised inside the callback would come back carrying the callback marker the
+refusal modes credit).
+
+**The explicit Original profile (`profile=original`, control only).** The module is built with `weapon-fixture` AND `collision-fixture` (the original narrow phase; `EECH_CAMPAIGN_HOST_ENTITY` is not defined). The fixture
+API must be PRESENT, the actual entity caller must have been reached (`contact_any_tests` rose, with the identical configured view input) and the host must have been asked NO `entity_collision` question: that is reported as
+`CAPABILITY RED` and the process fails on purpose. A module without the fixture API, a run with no entity lookup, or one that asked the host, is `UNREACHED` or "not the original", never a red. The counter cannot show
+that the original narrow phase itself ran (it counts the caller's lookup), so the row reports the lookups that hit.
+
+**Controls** (`tests/entity_authority.rs`, 14 tests, the REAL driver in a real Lua state against scripted collaborators; they invent no physics and say nothing about the DLL or the host kernel): a healthy control with
+stationary and moving questions and several per step joined with the counters; a real hit checked against the weapon step's hit count; the request shape (18 and 22 patterns, a count, token or extra-argument fault) and a
+malformed real reply (the driver's own check with a lenient campaign, and the campaign's own stop); every UNREACHED distinction (no candidate question, no entity lookup, view ignored, no view answer, a short view answer);
+the view input (only an armed `weapon_step` with the answer differs, only in `answers[2].f[7]`, a signed zero in an unrelated word survives, the caller's table is untouched); exact delegation of every other operation and
+of every question before the launch in every mode; the Original profile's red and each of its non-reds; a forced hit that must change the cohort's signature and must reach the hit count (and fails when it does not); a
+forced miss that must not reach it; the three refusal modes at their exact markers, the wrong marker, the text-only mention, three unwrapped stops and a stop with nothing altered; the case selection (a person is not a
+candidate, a friend is not an enemy, the smallest distance across launchers, the next pair when the nearest launcher has no weapon, no candidate at all); the cohort and the launch report; and the setup, output and
+argument failures with the first error kept.
+
+**Identities.** `lua/entity-authority.lua` Git blob `dcf9c1eae1c7adacc5d33d7d9784a105405665c1` (LF), `tests/entity_authority.rs` blob `ee8df2e3fd8becb85c59e336a6bfec77abcebfe2`. They change no compiled input: the runtime is the corrected source `f153`/`7ead`.
+
+**First native command (Root; ONE healthy actual before any other mode).** On the hosted `weapon-fixture` build of the immutable corrected source, one fresh private installation root, the literal blob of the script
+(`git show <this commit>:eech-campaign/crates/eech-world/lua/entity-authority.lua`): `eech-world.exe <literal entity-authority.lua> root=<fresh root> mode=control out=<new, non-existing .jsonl>` (defaults: warmup 30 s,
+settle 120 s, frame 100 ms). Exit 0 is a reached, well-formed control. `UNREACHED` (with its named reason), a setup failure or any other failure is a result to preserve, not to retry or loosen; the other modes use their own
+fresh roots only after the control reached the entity question. The runtime JSON Lines stay private (they hold retail coordinates); safe counts and hashes only go into Git.
+
 ## Checks (Linux, pinned image) and their status
 
 **Review status.** The independent source pass over `c510c55c7` returned CHANGES_REQUIRED with one P1, ENV-ENTITY-CALLER-BUFFER-1 (the question read caller output storage the original never reads). The literal

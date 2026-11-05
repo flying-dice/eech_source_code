@@ -1,6 +1,36 @@
-# CURRENT — D3 Task49: entity output-contract P1 closed by independent source review; corrected Windows/native validation next (5 November 2026)
+# CURRENT — D3 Task49: the public ENTITY_COLLISION authority witness is written and controlled (Lua/tests/docs only); Root's ONE healthy hosted actual is next (5 November 2026)
 
-This is the ONE current summary; dated entries below are history. Read the active
+This is the ONE current summary; dated entries below are history. Read the active card and `R:/d3-evidence/D3-CURRENT.json` (Root is its sole writer). Closed and not to be redone: the corrected entity narrow-phase
+source `f153`/`7ead` (same reviewer, `1ab8b6a2…`, findings=[], native launch cleared), the C contract and its 16-child gate, the finite TREE handoff (`7ad1a698…`), Task 50 and Task 52 (delivered, accepted40/all8). Root's
+immutable corrected Windows builds (`entity-output-production-7ead34d09`) are not touched by this batch.
+
+**This batch (Lua, tests and docs only; no C, Rust or shipping input changed; the compiled runtime stays `f153`/`7ead`).** `eech-campaign/crates/eech-world/lua/entity-authority.lua` (Git blob `dcf9c1eae1c7adacc5d33d7d9784a105405665c1`) is a TEST-ONLY
+sibling of `tree-authority.lua` and `tests/entity_authority.rs` (blob `ee8df2e3fd8becb85c59e336a6bfec77abcebfe2`) are its driver controls. Boundary: host Lua → the public module (`weapon-fixture`) → `host.model` → a REAL weapon launched through the
+campaign's own call; the provider wrapper delegates every operation unchanged and may answer only an armed `entity_collision` question differently. It records the corrected request (18 or 22 patterns, no caller
+outputs), the real reply (result, mask, whole vectors, a hit is 63, zero unassigned words, a name) and the weapon fixture's own counters `contact_any_tests` / `contact_any_hits` / `precision_high`. Modes: `control`,
+`forced_hit` (HIT at the request's OLD end, mask 63; the cohort's physical signature, without the weapon ordinal, is recorded to compare with the control and the hit count must rise), `forced_miss` (mask 56; valid MISS
+coverage, not a measured physical change unless the control had hits), `withheld_entity` / `bad_write_mask` / `bad_answer` (exact markers `entity_collision.callback` / `.write_mask` / `.answer` at the anchored engine
+stop, nothing asked afterwards, unread counters stay -1) and the explicit Original control (fixture API present, entity caller reached, no host question: `CAPABILITY RED`). **Source-derived branch preconditions:** the weapon
+step asks the entity lookup only at high precision or without a target, so the existing VIEW_WEAPON input is reused, configured and global while armed and measured (not a camera or per-weapon identity); a candidate gets a
+narrow-phase question only if it is collidable (vehicle, aircraft or structure; a person has neither flag) and its box of radius + 10 m meets the segment, so the case is the nearest non-person enemy of a launcher with an
+unguided ballistic weapon, and **zero questions is UNREACHED, never authority** (the broad phase and sector order are still Core). Contract: `eech-campaign/docs/d3-entity-collision-provider.md`, "The public authority witness".
+
+**Evidence (direct child exits, one combined log, valid raw and filtered identity).** `D:/EECH-Migration-Evidence/entity-witness-20261105-e`: `cargo fmt --all -- --check`, `entity_authority` 14/14, the unchanged `tree_authority` 17/17, strict clippy `-p eech-world --all-targets`, all
+0. The first run of the controls found a real witness defect (the signature joined a missing terminal field and raised before the terminal check); fixed with `tostring`. Code-input identity taken on the Windows checkout
+(new inputs included, 2913 rows) is equal before and after: filtered column `6a69c0edb99becdf9e2ba2a56aa409ed6f86a6cb84a863441d1524ba28c8abd7`, raw column `b4dbab12e07a3bff8d6260331c2185496886e5dedcf68d454f97e768100aa6b5`; the tracked code diff against the previous head is empty
+and the two files are the only new inputs. The three pre-existing CRLF files keep their documented filter qualification.
+
+**Next (Root).** ONE healthy hosted control on one fresh root with the literal blob on the matching hosted `weapon-fixture` build: `eech-world.exe <literal entity-authority.lua> root=<fresh root> mode=control out=<new .jsonl>`; preserve an
+UNREACHED result (then the missing fact is the actual broad-phase geometry, not a looser guard); only after it reaches the entity question the remaining modes on their own fresh roots, then the new Lua, tests and actuals go to the SAME independent
+reviewer together.
+
+**Still coupled in Core and REQUIRED.** The sector traversal and entity lists, exclusions, the physical broad phase (radius test, tallest-structure skip, city box), candidate classification, the live pose and flags with their side
+effects (the destructive `UPDATED` getter, the terrain-aligned face normal order), the roster; the raw tree loader, forest constructor and cloud block; hierarchy, devices, muzzles, rotor-damage, smoke and host identities; the DCS
+mappings. All ten whole-D3 requirements persist; Task49 and D3 are not complete; D4/D5 and TypeScript are not started. No baseline, tolerance, input, seed, frame or duration change.
+
+# HISTORICAL (superseded 5 November 2026 by the CURRENT block above; the entity witness batch) — D3 Task49: entity output-contract P1 closed by independent source review; corrected Windows/native validation next (5 November 2026)
+
+(Demoted: this was the CURRENT summary before the entity authority witness batch.) Read the active
 card and `R:/d3-evidence/D3-CURRENT.json`. Task50 andTask52 are DELIVERED873a/847,
 bothDone with accepted40/all8COMPLETE literal and verified finalCI/actual merge trees.
 

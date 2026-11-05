@@ -1,0 +1,904 @@
+//! The host-authority and refusal witness of the production ENTITY_COLLISION narrow-phase handoff (EEDCS-49, D3): DRIVER CONTROLS.
+//!
+//! `lua/entity-authority.lua` boots the campaign through the public path (`require ("eech_dc")`, a DLL built with `weapon-fixture`), launches ONE real weapon through the campaign's own launch
+//! call and observes what the host's MODEL provider is asked (`entity_collision`) while the weapon flies. The public witness needs a retail installation and the DLL, so it is Root's native run.
+//! This file runs the REAL driver, in a real Lua state, against SCRIPTED collaborators (a scripted `eech_dc` engine, a scripted `host.model`, a scripted exclusive output file), to show what the
+//! driver does with: a reached case and one that asked the host nothing, every UNREACHED distinction (no entity lookup, no precision, no candidate), a malformed request or reply, a forced hit
+//! that the caller did and did not use, a forced miss, each refusal at the anchored engine stop with the exact marker, an incomplete or inconsistent cohort, the Original profile's red, exact
+//! delegation of every other operation and the physical signature of the cohort. The collaborators invent no physics and say nothing about the DLL or the host's kernel; the scripted engine
+//! applies only as much of the real bridge and C domain rules as the driver's bookkeeping needs (the rules themselves are checked in eech-engine-sys `entity_dialogue` and eech-dc).
+
+use mlua::Lua;
+use serde_json::Value;
+
+const SCRIPT: &str = include_str!("../lua/entity-authority.lua");
+const TREE_SCRIPT: &str = include_str!("../lua/tree-authority.lua");
+
+const COLLABORATORS: &str = r#"
+WRITTEN, CLOSED, CREATED = {}, 0, false
+AIM_LOG, CALLER_MUTATED, ORIGINAL = {}, false, nil
+MODEL_LOG, DELEGATION_BROKEN, ENTITY_LOG, LAUNCH = {}, {}, {}, nil
+local function deep_copy (value)
+	if type (value) ~= "table" then return value end
+	local copy = {}
+	for key, inner in pairs (value) do copy [key] = deep_copy (inner) end
+	return copy
+end
+-- the paths at which two requests differ; numbers are compared by their printed form so that a signed zero is a difference
+local function differences (a, b, path, out)
+	if type (a) == "table" and type (b) == "table" then
+		local seen = {}
+		for key in pairs (a) do seen [key] = true end
+		for key in pairs (b) do seen [key] = true end
+		for key in pairs (seen) do
+			local inner = type (key) == "number" and (path .. "[" .. key .. "]") or (path == "" and key or (path .. "." .. key))
+			differences (a [key], b [key], inner, out)
+		end
+	elseif type (a) == "number" and type (b) == "number" then
+		if string.format ("%g", a) ~= string.format ("%g", b) then out [#out + 1] = path end
+	elseif a ~= b then
+		out [#out + 1] = path
+	end
+end
+local scenario = SCENARIO
+local file = { writes = 0, flushes = 0 }
+function file:write (text)
+	self.writes = self.writes + 1
+	local fail = scenario.io_fail
+	if fail and fail.op == "write" and fail.at == self.writes then return nil, "disk full" end
+	WRITTEN [#WRITTEN + 1] = text
+	return self
+end
+function file:flush ()
+	self.flushes = self.flushes + 1
+	local fail = scenario.io_fail
+	if fail and fail.op == "flush" and fail.at == self.flushes then return nil, "flush failed" end
+	return true
+end
+function file:close ()
+	CLOSED = CLOSED + 1
+	local fail = scenario.io_fail
+	if fail and fail.op == "close" then return nil, "close failed" end
+	return true
+end
+
+-- the words of the scripted segment: OLD (100, 50, 200) and NEW (300, 60, 400)
+local OLD_W = { "0x42c80000", "0x42480000", "0x43480000" }
+local NEW_W = { "0x43960000", "0x42700000", "0x43c80000" }
+local ZERO = "0x00000000"
+local UP = ZERO .. ",0x3f800000," .. ZERO
+local NO_POINT = ZERO .. "," .. ZERO .. "," .. ZERO
+-- the request as the corrected contract sends it: the segment's two ends, then the candidate's pose (12 words stationary, 16 moving); never the caller's outputs
+local function pose_key (moving)
+	local words = { OLD_W [1], OLD_W [2], OLD_W [3], NEW_W [1], NEW_W [2], NEW_W [3] }
+	for _ = 1, moving and 16 or 12 do words [#words + 1] = "0x3f800000" end
+	if scenario.bad_request == "count" then words [#words] = nil
+	elseif scenario.bad_request == "token" then words [7] = "1.5"
+	elseif scenario.bad_request == "extra" then return table.concat (words, ","), 1 end
+	return table.concat (words, ",")
+end
+
+-- the REAL model provider as the scripted host.model: every call is logged with its arguments and the table it answered; the entity answer is the scenario's `real`
+local call_no, ANSWERS = 0, {}
+local function reference (op, scene, depth, kind, definition, key)
+	call_no = call_no + 1
+	local record = { op = op, scene = scene, depth = depth, kind = kind, definition = definition, key = key }
+	MODEL_LOG [#MODEL_LOG + 1] = record
+	local answer
+	if op == "entity_collision" then
+		if scenario.real_error then error ("the real provider refuses", 0) end
+		local first3 = string.match (key, "^([^,]+,[^,]+,[^,]+),") or NO_POINT
+		local real = scenario.real or "miss"
+		if real == "hit" then answer = { result = "hit", mask = 63, name = "CANDIDATE", p = first3 .. "," .. UP }
+		elseif real == "unassigned_word" then answer = { result = "miss", mask = 56, name = "CANDIDATE", p = "0x00000001," .. ZERO .. "," .. ZERO .. "," .. UP }
+		elseif real == "hit_mask" then answer = { result = "hit", mask = 56, name = "CANDIDATE", p = NO_POINT .. "," .. UP }
+		elseif real == "partial" then answer = { result = "miss", mask = 1, name = "CANDIDATE", p = "0x3f800000," .. ZERO .. "," .. ZERO .. "," .. NO_POINT }
+		else answer = { result = "miss", mask = 56, name = "CANDIDATE", p = NO_POINT .. "," .. UP } end
+	else
+		answer = { op = op, token = call_no }
+	end
+	ANSWERS [#ANSWERS + 1] = answer
+	record.answer = answer
+	return answer
+end
+
+local ids = 0
+local profile_stage
+host = {
+	args = ARGS,
+	use_reference_arithmetic = function ()
+		assert (profile_stage == "prepared", "the profile must be selected right after the installation is prepared")
+		profile_stage = "selected"
+	end,
+	bind_mobile = function () ids = ids + 1 return "eech-world:" .. ids end,
+	-- the unmodified host aim: it records every request it receives, the paths where it differs from the engine's pristine request, and whether a signed zero survived
+	aim = function (request)
+		local paths = {}
+		differences (ORIGINAL, request, "", paths)
+		table.sort (paths)
+		local answers = request.answers
+		local zero = type (answers) == "table" and type (answers [1]) == "table" and type (answers [1].f) == "table" and string.format ("%g", answers [1].f [1]) or "-"
+		AIM_LOG [#AIM_LOG + 1] = { mode = request.mode, launched = ARMED_NOW, paths = table.concat (paths, ","), zero = zero, request = request }
+		return { state = "done" }
+	end,
+	env_provider = function () return function () return {} end end,
+	terrain_provider = function () return function () return { elevation = 0 } end end,
+	model = reference,
+	create_exclusive = function ()
+		if scenario.create_fails then return nil, "already exists" end
+		CREATED = true
+		return file
+	end,
+}
+if scenario.no_model then host.model = nil end
+if scenario.no_terrain then host.terrain_provider = nil end
+
+local FATAL = "runtime error: eech: EECH fatal error: host model: "
+local MODE = ARGS.mode or "control"
+package.preload.eech_dc = function ()
+	return {
+		prepare_installation = function () profile_stage = "prepared" end,
+		boot = function (config)
+			assert (profile_stage == "selected", "the profile must be selected before the boot")
+			local mobiles = scenario.mobiles or { { kind = 5, side = "blue" }, { kind = 1, side = "red" } }
+			local positions = scenario.positions or { "0,0,0", "100,0,100" }
+			local by_id, armed_weapons = {}, scenario.armed or { [1] = true }
+			for index, mobile in ipairs (mobiles) do
+				local id = config.bind_mobile { movement_kind = mobile.kind, side = mobile.side }
+				by_id [id] = { index = index, position = positions [index] or "1000000,0,1000000" }
+			end
+			local now, since_launch, launched = 0, 0, false
+			local tests, hits, precision, flight_hit = 0, 0, 0, false
+			local queue = {}
+			local engine = {}
+			if scenario.fixture_api then engine.collision_probe = function () end end
+			function engine:clock () return { elapsed_seconds = now } end
+			local function stop (marker, text) error (FATAL .. "[model-provider:" .. marker .. "] " .. text, 0) end
+			-- every model operation goes through the DRIVER's wrapper; an operation the host answers itself must come back as the very table the host gave, with the arguments unchanged
+			local function ask_model (op, scene, depth, kind, definition, key, expect_same)
+				local before = #ANSWERS
+				local ok, answer = pcall (config.model, op, scene, depth, kind, definition, key)
+				if not ok then return false, answer end
+				if expect_same and #ANSWERS == before + 1 then
+					local record = MODEL_LOG [#MODEL_LOG]
+					if answer ~= ANSWERS [#ANSWERS] or record.op ~= op or record.scene ~= scene or record.depth ~= depth or record.kind ~= kind or record.definition ~= definition or record.key ~= key then
+						DELEGATION_BROKEN [#DELEGATION_BROKEN + 1] = op
+					end
+				elseif expect_same then
+					DELEGATION_BROKEN [#DELEGATION_BROKEN + 1] = op .. " (not asked of the host exactly once)"
+				end
+				return true, answer
+			end
+			-- one weapon step as the campaign sends it: the lookup answers of the round (a first round has none), VIEW_WEAPON (kind 1) among them, with a signed zero in an unrelated word
+			local function weapon_step (mode, with_answers)
+				local request = { mode = mode, weapon = 7, delta_time = 0.1, position = { 1, 2, 3 }, answers = {} }
+				if with_answers and not scenario.no_view_answer then
+					request.answers = {
+						{ kind = 3, a = 1, b = 2, c = 3, d = 4, f = { -0.0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 } },
+						{ kind = 1, a = 0, b = 0, c = 0, d = 0, f = { 0, 0, 0, 0, 0, 0, scenario.view_preset or 0, 0, 0, 0, 0, 0 } },
+						{ kind = 14, a = 0, b = 0, c = 0, d = 0, f = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+					}
+					if scenario.short_view then request.answers [2].f [12] = nil end
+				end
+				ORIGINAL, ARMED_NOW = deep_copy (request), launched
+				local pristine = deep_copy (request)
+				config.aim (request)
+				local mutated = {}
+				differences (pristine, request, "", mutated)
+				if #mutated > 0 then CALLER_MUTATED = true end
+				local seen = AIM_LOG [#AIM_LOG].request.answers
+				return with_answers and type (seen) == "table" and type (seen [2]) == "table" and seen [2].kind == 1 and seen [2].f [7] == 1 and not scenario.view_ignored
+			end
+			-- the scripted flight's entity lookup: the campaign's own rules applied as far as the driver's bookkeeping needs (the bridge's shape checks, the C domain checks); the stop text is the real wrapper
+			local function entity_test ()
+				tests = tests + 1
+				-- the ORIGINAL profile's flight: the narrow phase runs inside the module and the host is asked nothing
+				if scenario.original_tests then
+					if scenario.original_hits then hits = hits + 1 end
+					return
+				end
+				if scenario.no_entity_questions then return end
+				for _ = 1, scenario.questions or 1 do
+					if scenario.engine_stop and scenario.engine_stop.after == since_launch then
+						if scenario.engine_stop.text_only then error ("a Lua error that merely mentions " .. "[model-provider:" .. scenario.engine_stop.marker .. "] in its text", 0) end
+						error (scenario.engine_stop.wrapper or (FATAL .. "[model-provider:" .. scenario.engine_stop.marker .. "] scripted"), 0)
+					end
+					local key, extra = pose_key (scenario.moving)
+					local ok, answer = ask_model ("entity_collision", 7, extra, nil, nil, key, MODE == "control")
+					if not ok then stop ("entity_collision.callback", tostring (answer)) end
+					local words = {}
+					if type (answer) == "table" and type (answer.p) == "string" then for token in string.gmatch (answer.p, "[^,]+") do words [#words + 1] = token end end
+					ENTITY_LOG [#ENTITY_LOG + 1] = { key = key, result = type (answer) == "table" and answer.result or "?", mask = type (answer) == "table" and answer.mask or -1, p = type (answer) == "table" and answer.p or "" }
+					if type (answer) ~= "table" or (answer.result ~= "hit" and answer.result ~= "miss") then stop ("entity_collision.answer", "result") end
+					local mask = answer.mask
+					if type (mask) ~= "number" or mask ~= mask or mask ~= math.floor (mask) or mask < 0 or mask > 63 then stop ("entity_collision.answer", "mask must be a whole number within 0..63") end
+					if #words ~= 6 then stop ("entity_collision.answer", "p") end
+					if answer.name ~= "CANDIDATE" then stop ("entity_collision.identity", "name") end
+					local point, normal = mask % 8, math.floor (mask / 8)
+					if not scenario.lenient_engine and ((point ~= 0 and point ~= 7) or (normal ~= 0 and normal ~= 7) or (point ~= 0 and normal == 0) or (answer.result == "hit" and mask ~= 63)) then stop ("entity_collision.write_mask", "mask " .. mask) end
+					for index = 1, 6 do
+						local assigned = (index <= 3 and point ~= 0) or (index > 3 and normal ~= 0)
+						if not scenario.lenient_engine and not assigned and words [index] ~= ZERO then stop ("entity_collision.unwritten", "word " .. index) end
+					end
+					if answer.result == "hit" and not scenario.hit_ignored then hits = hits + 1 flight_hit = true end
+					if answer.result == "miss" and scenario.hits_despite_miss then hits = hits + 1 end
+				end
+			end
+			function engine:frame (milliseconds)
+				if not (launched and scenario.stall_after_launch) then now = now + (scenario.clock_step or milliseconds / 1000) end
+				weapon_step ("weapon_step", false)
+				local effective = weapon_step ("weapon_step", true)
+				weapon_step ("weapon_birth", true)
+				if launched and effective then precision = precision + 1 end
+				-- other operations the host answers itself, every frame, before and after the launch
+				if not scenario.no_other_ops then
+					ask_model ("scene", 3, nil, nil, nil, nil, true)
+					ask_model ("triangle", 3, 0, nil, nil, nil, true)
+				end
+				if launched then
+					since_launch = since_launch + 1
+					if effective and not scenario.no_entity_tests then entity_test () end
+					local lines = ((flight_hit and scenario.after_hit) or scenario.after or {}) [since_launch] or {}
+					for _, line in ipairs (lines) do queue [#queue + 1] = line end
+				end
+			end
+			function engine:wpn_case_query (id, weapon)
+				local entry = by_id [id]
+				local position = entry and entry.position or "1000000,0,1000000"
+				if weapon == 0 then return "alive=1 weapon_count=0 has_target=0 position=" .. position end
+				if entry and armed_weapons [entry.index] and weapon == 7 then return "alive=1 weapon_count=3 warhead=2 guidance=0 aiming=2 decoy=0 position=" .. position end
+				return "alive=1 weapon_count=0 warhead=2 guidance=0 aiming=2 decoy=0 position=" .. position
+			end
+			function engine:wpn_case_launch (launcher, target, weapon)
+				launched = true
+				LAUNCH = { launcher = launcher, target = target, weapon = weapon }
+				for _, line in ipairs (scenario.births or { "kind=birth w=5 type=gun" }) do queue [#queue + 1] = line end
+				return scenario.launch_report or ("wpn-case-launch launcher=helicopter weapon=7 target_link_before=0 target_link=1 count_before=3 count_after=2 births=" .. #(scenario.births or { 1 }) .. " creates=1 restored=1")
+			end
+			function engine:wpn_events ()
+				local text = table.concat (queue, "\n")
+				queue = {}
+				return text
+			end
+			function engine:wpn_trace ()
+				return "wpn-counter name=other value=9\nwpn-counter name=contact_any_tests value=" .. tests .. "\nwpn-counter name=contact_any_hits value=" .. hits
+					.. "\nwpn-counter name=precision_high value=" .. precision .. "\n"
+			end
+			return engine
+		end,
+	}
+end
+"#;
+
+struct Driven {
+    result: Result<(), String>,
+    rows: String,
+    closed: i64,
+    created: bool,
+    /// (mode, armed at the call, paths where the host's aim differed from the engine's pristine request, the printed first word of the unrelated answer)
+    aim_log: Vec<(String, bool, String, String)>,
+    caller_mutated: bool,
+    /// the operations whose answer or arguments did not come back exactly as the host's own
+    delegation_broken: Vec<String>,
+    /// (the request's pose text, the answer's result, mask and words) of every entity question the scripted engine asked
+    entity_log: Vec<(String, String, i64, String)>,
+    /// (launcher, target, weapon) of the launch the driver made
+    launch: Option<(String, String, i64)>,
+}
+
+/// Runs the real driver once. `scenario` is the inside of the Lua table the collaborators read; `args` are the driver's own arguments.
+fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
+    let lua = Lua::new();
+    let mut table = String::from("{ root = 'unused-root', out = 'unused-out', warmup = '1', settle = '2', frame_ms = '1000'");
+    for (key, value) in args {
+        table.push_str(&format!(", {key} = '{value}'"));
+    }
+    table.push_str(" }");
+    lua.load(format!("ARGS = {table}\nSCENARIO = {{ {scenario} }}"))
+        .exec()
+        .expect("the scenario is valid Lua");
+    lua.load(COLLABORATORS)
+        .set_name("scripted collaborators")
+        .exec()
+        .expect("the collaborators load");
+    let result = lua.load(SCRIPT).set_name("entity-authority.lua").exec().map_err(|e| e.to_string());
+    let written: Vec<String> = lua.globals().get("WRITTEN").expect("the collected output");
+    let globals = lua.globals();
+    let log: mlua::Table = globals.get("AIM_LOG").expect("the aim log");
+    let broken: mlua::Table = globals.get("DELEGATION_BROKEN").expect("the delegation record");
+    let entities: mlua::Table = globals.get("ENTITY_LOG").expect("the entity log");
+    let launch: Option<mlua::Table> = globals.get("LAUNCH").expect("the launch");
+    Driven {
+        result,
+        rows: written.concat(),
+        closed: globals.get("CLOSED").expect("the close count"),
+        created: globals.get("CREATED").expect("the creation flag"),
+        aim_log: log
+            .sequence_values::<mlua::Table>()
+            .map(|entry| {
+                let entry = entry.expect("a log entry");
+                (
+                    entry.get::<String>("mode").unwrap(),
+                    entry.get::<Option<bool>>("launched").unwrap().unwrap_or(false),
+                    entry.get::<String>("paths").unwrap(),
+                    entry.get::<String>("zero").unwrap(),
+                )
+            })
+            .collect(),
+        caller_mutated: globals.get("CALLER_MUTATED").expect("the mutation flag"),
+        delegation_broken: broken.sequence_values::<String>().map(|op| op.unwrap()).collect(),
+        entity_log: entities
+            .sequence_values::<mlua::Table>()
+            .map(|entry| {
+                let entry = entry.expect("an entity log entry");
+                (
+                    entry.get::<String>("key").unwrap(),
+                    entry.get::<String>("result").unwrap(),
+                    entry.get::<i64>("mask").unwrap(),
+                    entry.get::<String>("p").unwrap(),
+                )
+            })
+            .collect(),
+        launch: launch.map(|t| (t.get("launcher").unwrap(), t.get("target").unwrap(), t.get("weapon").unwrap())),
+    }
+}
+
+fn rows(driven: &Driven) -> Vec<Value> {
+    driven
+        .rows
+        .lines()
+        .map(|line| serde_json::from_str(line).unwrap_or_else(|e| panic!("{line}: {e}")))
+        .collect()
+}
+
+fn row_of(driven: &Driven, event: &str) -> Value {
+    rows(driven)
+        .into_iter()
+        .find(|row| row["event"] == event)
+        .unwrap_or_else(|| panic!("no {event} row: {}", driven.rows))
+}
+
+fn authority(driven: &Driven) -> Value {
+    row_of(driven, "authority")
+}
+
+fn error_of(driven: Driven) -> String {
+    driven.result.expect_err("the run must fail")
+}
+
+const TERMINAL: &str = "\"kind=terminal w=5 type=gun code=ground steps=40 pos=1.5,100.5,3 velocity=3 lifetime=4\"";
+const TERMINAL_HIT: &str = "\"kind=terminal w=5 type=gun code=target steps=1 pos=100,50,200 velocity=0 lifetime=0.1\"";
+
+/// a healthy scenario: the weapon ends at the first frame after the launch, on the ground; when a hit reaches it, on the target
+fn healthy(extra: &str) -> String {
+    format!("after = {{ [1] = {{ {TERMINAL} }} }}, after_hit = {{ [1] = {{ {TERMINAL_HIT} }} }}{extra}")
+}
+
+/// The launch report of the real C emitter (eech_wpn_fixture.c wpn-case-launch), with single fields replaced.
+fn report(changes: &str) -> String {
+    let mut fields: Vec<(String, String)> = [
+        ("launcher", "helicopter"),
+        ("weapon", "7"),
+        ("target_link_before", "0"),
+        ("target_link", "1"),
+        ("count_before", "3"),
+        ("count_after", "2"),
+        ("births", "1"),
+        ("creates", "1"),
+        ("restored", "1"),
+    ]
+    .iter()
+    .map(|(k, v)| (k.to_string(), v.to_string()))
+    .collect();
+    for change in changes.split_whitespace() {
+        let (key, value) = change.split_once('=').expect("key=value");
+        fields.iter_mut().find(|(k, _)| k == key).expect("a known field").1 = value.to_string();
+    }
+    let body: Vec<String> = fields.iter().map(|(k, v)| format!("{k}={v}")).collect();
+    format!("wpn-case-launch {}", body.join(" "))
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// the healthy control: reached, well formed, joined with the fixture's counters
+
+#[test]
+fn a_healthy_control_sees_real_entity_questions_checks_their_shape_and_joins_the_fixture_counters() {
+    for (extra, stationary, moving) in [("", 1, 0), (", moving = true", 0, 1), (", questions = 3", 3, 0)] {
+        let driven = drive(&healthy(extra), &[]);
+        let outcome = driven.result.clone();
+        assert!(outcome.is_ok(), "{extra}: {outcome:?}\n{}", driven.rows);
+        let row = authority(&driven);
+        assert_eq!(row["completed"], true);
+        assert_eq!(
+            (row["stationary"].clone(), row["moving"].clone()),
+            (Value::from(stationary), Value::from(moving)),
+            "{extra}"
+        );
+        assert_eq!(
+            row["entity_after"],
+            stationary + moving,
+            "{extra}: every question after the launch was counted, none before"
+        );
+        assert_eq!(row["entity_before"], 0);
+        assert_eq!((row["request_faults"].clone(), row["reply_faults"].clone()), (Value::from(0), Value::from(0)));
+        assert_eq!(row["real_miss"], stationary + moving);
+        assert_eq!(
+            row["real_mask_56"],
+            stationary + moving,
+            "the real reply is a miss that assigned only the normal"
+        );
+        assert_eq!((row["altered"].clone(), row["answered_hit"].clone()), (Value::from(0), Value::from(0)));
+        assert_eq!(row["contact_any_tests_delta"], 1, "the fixture's own count of the weapon step's entity tests");
+        assert_eq!(row["contact_any_hits_delta"], 0);
+        assert_eq!(row["precision_high_delta"], 1);
+        assert_eq!(row["attribution"], "global_to_the_war_no_per_weapon_identity");
+        assert!(driven.delegation_broken.is_empty(), "{extra}: {:?}", driven.delegation_broken);
+        assert_eq!(driven.closed, 1, "the evidence is closed once, on success");
+    }
+}
+
+#[test]
+fn a_real_hit_is_checked_against_the_weapon_steps_own_hit_count() {
+    // the host's narrow phase reports a hit and the weapon step counted it: coherent, and the terminal is the on-target one
+    let driven = drive(&healthy(", real = 'hit'"), &[]);
+    let outcome = driven.result.clone();
+    assert!(outcome.is_ok(), "{outcome:?}\n{}", driven.rows);
+    let row = authority(&driven);
+    assert_eq!(
+        (row["real_hit"].clone(), row["real_mask_63"].clone(), row["contact_any_hits_delta"].clone()),
+        (Value::from(1), Value::from(1), Value::from(1))
+    );
+    // the weapon step counted a hit the host's narrow phase never reported: the answer was used elsewhere or the count is wrong
+    let error = error_of(drive(&healthy(", hits_despite_miss = true"), &[]));
+    assert!(error.contains("counted 1 entity hits but the host's narrow phase reported only 0"), "{error}");
+}
+
+#[test]
+fn the_request_is_the_corrected_shape_and_a_malformed_request_or_real_reply_is_a_failure() {
+    // positive first: the logged question is the segment and the pose, 18 patterns (stationary) or 22 (moving), and carries no outputs
+    let driven = drive(&healthy(""), &[]);
+    assert_eq!(driven.entity_log.len(), 1);
+    assert_eq!(driven.entity_log[0].0.split(',').count(), 18);
+    let driven = drive(&healthy(", moving = true"), &[]);
+    assert_eq!(driven.entity_log[0].0.split(',').count(), 22);
+    // single faults of the request
+    for (fault, fragment) in [
+        ("count", "the pose has 17 floats"),
+        ("token", "not comma separated"),
+        ("extra", "carries only a scene and the pose text"),
+    ] {
+        let error = error_of(drive(&healthy(&format!(", bad_request = '{fault}'")), &[]));
+        assert!(error.contains("request_faults=1") && error.contains(fragment), "{fault}: {error}");
+    }
+    // single faults of the host's own reply. The driver's own contract check, with a scripted campaign that would accept the reply:
+    let faults = [
+        ("unassigned_word", "word 1 is not assigned by mask 56 but is not zero"),
+        ("hit_mask", "a hit with mask 56"),
+        ("partial", "assigns a vector in part"),
+    ];
+    for (real, fragment) in faults {
+        let error = error_of(drive(&healthy(&format!(", real = '{real}', lenient_engine = true")), &[]));
+        assert!(error.contains("reply_faults=1") && error.contains(fragment), "{real}: {error}");
+    }
+    // an altered mode never forms its answer from a malformed real reply: the host's own answer is returned unaltered (no witness failure crosses the engine's callback boundary, where it would
+    // carry the callback marker the refusal modes credit) and the fault fails the verdict
+    let driven = drive(&healthy(", real = 'hit_mask', lenient_engine = true"), &[("mode", "forced_hit")]);
+    let rows_text = driven.rows.clone();
+    let error = error_of(driven);
+    assert!(error.contains("reply_faults=1"), "{error}");
+    assert!(rows_text.contains("\"altered\":0"), "{rows_text}");
+    // and the campaign's own rules stop the engine on the same replies: the control cannot complete, and the stop is the engine's, never a pass
+    for (real, marker) in [
+        ("unassigned_word", "entity_collision.unwritten"),
+        ("hit_mask", "entity_collision.write_mask"),
+        ("partial", "entity_collision.write_mask"),
+    ] {
+        let error = error_of(drive(&healthy(&format!(", real = '{real}'")), &[]));
+        assert!(
+            error.contains(&format!("mode control failed in the engine at [model-provider:{marker}]")),
+            "{real}: {error}"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// reached, unreached, API missing
+
+#[test]
+fn a_run_whose_actual_entity_caller_or_narrow_phase_was_not_reached_is_unreached_never_authority() {
+    // the weapon step's entity lookup was made but no candidate passed the broad phase: the host was asked nothing
+    let error = error_of(drive(&healthy(", no_entity_questions = true"), &[]));
+    assert!(
+        error.contains("UNREACHED") && error.contains("no candidate reached the narrow phase"),
+        "{error}"
+    );
+    // the weapon step never made the lookup: the actual caller was not reached
+    let error = error_of(drive(&healthy(", no_entity_tests = true"), &[]));
+    assert!(error.contains("UNREACHED") && error.contains("contact_any_tests did not rise"), "{error}");
+    // the host ignores the viewed answer: the step never took the high-precision path
+    let error = error_of(drive(&healthy(", view_ignored = true"), &[]));
+    assert!(error.contains("UNREACHED") && error.contains("precision_high did not rise"), "{error}");
+    // the campaign sent no VIEW_WEAPON answer at all
+    let error = error_of(drive(&healthy(", no_view_answer = true"), &[]));
+    assert!(error.contains("UNREACHED") && error.contains("never reached a weapon step"), "{error}");
+    // a VIEW_WEAPON answer that does not carry twelve result words cannot be applied exactly: a witness failure, not a guess
+    let error = error_of(drive(&healthy(", short_view = true"), &[]));
+    assert!(error.contains("twelve result words"), "{error}");
+    // a view the campaign already answered as set is counted, not hidden
+    let driven = drive(&healthy(", view_preset = 1"), &[]);
+    let outcome = driven.result.clone();
+    assert!(outcome.is_ok(), "{outcome:?}\n{}", driven.rows);
+    assert_eq!(authority(&driven)["view_already_set"], 1);
+    // the evidence still records what was seen when the run is UNREACHED
+    let driven = drive(&healthy(", no_entity_questions = true"), &[]);
+    assert_eq!(authority(&driven)["entity_after"], 0);
+}
+
+#[test]
+fn the_armed_weapon_step_is_given_the_configured_view_and_everything_else_reaches_the_host_unchanged() {
+    let driven = drive(&healthy(""), &[]);
+    let outcome = driven.result.clone();
+    assert!(outcome.is_ok(), "{outcome:?}\n{}", driven.rows);
+    let row = authority(&driven);
+    assert_eq!(row["view_input"], "configured_view_weapon_true_on_armed_weapon_steps");
+    assert_eq!(
+        (
+            row["view_steps_seen"].clone(),
+            row["view_answers_seen"].clone(),
+            row["view_applied"].clone(),
+            row["view_already_set"].clone()
+        ),
+        (Value::from(2), Value::from(1), Value::from(1), Value::from(0))
+    );
+    assert!(!driven.caller_mutated, "the caller's request table must not change");
+    for (mode, armed, paths, zero) in &driven.aim_log {
+        // only an ARMED weapon_step WITH the lookup answer differs, and only in the sixth result word of the VIEW_WEAPON answer (f[7] in Lua)
+        let expected = if *armed && mode == "weapon_step" && zero != "-" {
+            "answers[2].f[7]"
+        } else {
+            ""
+        };
+        assert_eq!(paths, expected, "{mode} armed={armed}: {paths}");
+    }
+    let armed_full: Vec<_> = driven
+        .aim_log
+        .iter()
+        .filter(|(mode, armed, paths, _)| *armed && mode == "weapon_step" && !paths.is_empty())
+        .collect();
+    assert_eq!(armed_full.len(), 1, "{:?}", driven.aim_log);
+    assert_eq!(
+        armed_full[0].3, "-0",
+        "a signed zero in an unrelated result word reached the host as a signed zero"
+    );
+}
+
+#[test]
+fn every_other_operation_and_every_question_before_the_launch_is_the_hosts_own_answer_unchanged_in_every_mode() {
+    for mode in ["control", "forced_hit", "forced_miss"] {
+        let driven = drive(&healthy(""), &[("mode", mode)]);
+        let outcome = driven.result.clone();
+        assert!(outcome.is_ok(), "{mode}: {outcome:?}\n{}", driven.rows);
+        assert!(driven.delegation_broken.is_empty(), "{mode}: {:?}", driven.delegation_broken);
+        let row = authority(&driven);
+        assert!(
+            row["other_ops_before"].as_i64().unwrap() >= 2 && row["other_ops_after"].as_i64().unwrap() >= 2,
+            "{mode}: other operations were asked before and after the launch"
+        );
+    }
+    // the check is real: a wrapper that changed an operation would be recorded; here, the scripted engine proves it can see a difference by comparing identity
+    let driven = drive(&healthy(", no_other_ops = true"), &[]);
+    assert!(driven.result.is_ok());
+    assert_eq!(authority(&driven)["other_ops_after"], 0);
+}
+
+#[test]
+fn the_original_profile_is_a_capability_red_only_when_the_actual_entity_caller_ran_and_otherwise_unreached() {
+    let original = [("profile", "original")];
+    // the scripted original makes entity tests (the weapon fixture's counter rises) but never asks the host, and the fixture API is present: the expected RED
+    let error = error_of(drive(&healthy(", fixture_api = true, original_tests = true"), &original));
+    assert!(
+        error.contains("CAPABILITY RED") && error.contains("contact_any_tests +1") && error.contains("fixture API present"),
+        "{error}"
+    );
+    // the same, with a hit among the lookups: the row says how many lookups hit
+    let error = error_of(drive(&healthy(", fixture_api = true, original_tests = true, original_hits = true"), &original));
+    assert!(error.contains("CAPABILITY RED") && error.contains("contact_any_hits +1"), "{error}");
+    // a module without the fixture API is not the original profile: setup failure, not a red
+    let error = error_of(drive(&healthy(", original_tests = true"), &original));
+    assert!(error.contains("UNREACHED") && error.contains("collision-fixture API"), "{error}");
+    // with the API but no entity test (the counter did not rise) it is UNREACHED too: the call the red is about never happened
+    let error = error_of(drive(&healthy(", fixture_api = true, no_entity_tests = true"), &original));
+    assert!(error.contains("UNREACHED") && error.contains("contact_any_tests did not rise"), "{error}");
+    // the Original profile gets the identical configured input, and it is recorded
+    let driven = drive(&healthy(", fixture_api = true, original_tests = true"), &original);
+    let rows_text = driven.rows.clone();
+    assert!(error_of(driven).contains("CAPABILITY RED"));
+    assert!(
+        rows_text.contains("\"view_applied\":1") && rows_text.contains("\"precision_high_delta\":1") && rows_text.contains("\"fixture_api\":true"),
+        "{rows_text}"
+    );
+    // a module that is NOT the original but is asked in the original profile (the host was asked a question) is refused
+    let error = error_of(drive(&healthy(", fixture_api = true"), &original));
+    assert!(error.contains("the module is not the original"), "{error}");
+    // the original profile only runs the control; the hosted profile refuses a module that has the original's fixture API
+    assert!(error_of(drive("", &[("profile", "original"), ("mode", "forced_hit")])).contains("only mode=control"));
+    let error = error_of(drive(&healthy(", fixture_api = true"), &[]));
+    assert!(error.contains("keeps the original narrow phase"), "{error}");
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// the altered modes
+
+#[test]
+fn a_forced_hit_is_a_valid_complete_answer_at_the_requests_old_end_and_must_reach_the_weapon_steps_hit_count() {
+    let control = drive(&healthy(""), &[]);
+    let forced = drive(&healthy(""), &[("mode", "forced_hit")]);
+    let outcome = forced.result.clone();
+    assert!(outcome.is_ok(), "{outcome:?}\n{}", forced.rows);
+    let row = authority(&forced);
+    assert_eq!(
+        (row["altered"].clone(), row["answered_hit"].clone(), row["answered_miss"].clone()),
+        (Value::from(1), Value::from(1), Value::from(0))
+    );
+    assert_eq!(row["contact_any_hits_delta"], 1, "the forced hit reached the weapon step's own hit count");
+    // the answer is complete write information: mask 63, the request's OLD end as the point, an up normal; the real host answer is still asked (its name is the echo)
+    let (key, result, mask, p) = &forced.entity_log[0];
+    let old: Vec<&str> = key.split(',').take(3).collect();
+    assert_eq!((result.as_str(), *mask), ("hit", 63));
+    assert_eq!(p, &format!("{},{},0x3f800000,{}", old.join(","), "0x00000000", "0x00000000"));
+    // the PHYSICAL signature of the cohort changes against the control: its terminal is the on-target one, and it is compared without the weapon's ordinal
+    let (control_signature, forced_signature) = (authority(&control)["cohort_signature"].clone(), row["cohort_signature"].clone());
+    assert_ne!(control_signature, forced_signature, "the forced hit changed the cohort's physical terminal");
+    assert!(forced_signature.as_str().unwrap().starts_with("gun|target|"), "{forced_signature}");
+    assert!(!forced_signature.as_str().unwrap().contains("w=5"), "the signature carries no ordinal");
+    // a forced hit that the actual caller never counted is a failure: the answer was not used
+    let error = error_of(drive(&healthy(", hit_ignored = true"), &[("mode", "forced_hit")]));
+    assert!(error.contains("never reached the weapon step's entity hit count"), "{error}");
+    // a mode that altered nothing (no question) is UNREACHED, not a pass
+    let error = error_of(drive(&healthy(", no_entity_questions = true"), &[("mode", "forced_hit")]));
+    assert!(error.contains("UNREACHED"), "{error}");
+}
+
+#[test]
+fn a_forced_miss_is_an_accepted_partial_write_miss_and_no_hit_may_reach_the_weapon_step() {
+    let driven = drive(&healthy(""), &[("mode", "forced_miss")]);
+    let outcome = driven.result.clone();
+    assert!(outcome.is_ok(), "{outcome:?}\n{}", driven.rows);
+    let row = authority(&driven);
+    assert_eq!(
+        (row["altered"].clone(), row["answered_miss"].clone(), row["answered_hit"].clone()),
+        (Value::from(1), Value::from(1), Value::from(0))
+    );
+    assert_eq!(row["contact_any_hits_delta"], 0);
+    // the answer assigns the normal only: mask 56, the point's three words are zero
+    let (_, result, mask, p) = &driven.entity_log[0];
+    assert_eq!((result.as_str(), *mask), ("miss", 56));
+    assert_eq!(p, "0x00000000,0x00000000,0x00000000,0x00000000,0x3f800000,0x00000000");
+    // honest about what it shows: valid MISS coverage, not a measured physical change
+    assert_eq!(
+        row["miss_coverage"],
+        "valid_accepted_miss_not_a_measured_physical_change_unless_the_control_had_hits"
+    );
+    // a hit that still reaches the weapon step after every question was answered as a miss is a failure
+    let error = error_of(drive(&healthy(", hits_despite_miss = true"), &[("mode", "forced_miss")]));
+    assert!(error.contains("still counted 1 entity hits"), "{error}");
+}
+
+#[test]
+fn a_refusal_counts_only_at_the_anchored_engine_stop_with_the_exact_marker_and_nothing_is_asked_afterwards() {
+    for (mode, marker) in [
+        ("withheld_entity", "entity_collision.callback"),
+        ("bad_write_mask", "entity_collision.write_mask"),
+        ("bad_answer", "entity_collision.answer"),
+    ] {
+        let driven = drive(&healthy(""), &[("mode", mode)]);
+        let outcome = driven.result.clone();
+        assert!(outcome.is_ok(), "{mode}: {outcome:?}\n{}", driven.rows);
+        let row = authority(&driven);
+        assert_eq!(row["completed"], false, "{mode}");
+        assert_eq!(row["failure_marker"], marker, "{mode}");
+        assert_eq!(row["altered"], 1, "{mode}");
+        assert_eq!(row["case_weapons_pending"], -1, "{mode}: the cohort is not counted after the stop");
+        assert_eq!(row["contact_any_tests_delta"], -1, "{mode}: no counter is read from a stopped engine");
+        assert_eq!(row["contact_any_hits_delta"], -1, "{mode}: unknown stays unknown");
+    }
+    // the same stop at the WRONG marker (an answer cause where a callback was intended) is the witness failing
+    let error = error_of(drive(
+        &healthy(", engine_stop = { after = 1, marker = 'entity_collision.answer' }"),
+        &[("mode", "withheld_entity")],
+    ));
+    assert!(
+        error.contains("stopped at [model-provider:entity_collision.answer], not at [model-provider:entity_collision.callback]"),
+        "{error}"
+    );
+    // a Lua error that only mentions the marker, and an engine stop without the known wrapper, are not the engine's
+    for scenario in [
+        "engine_stop = { after = 1, marker = 'entity_collision.callback', text_only = true }",
+        "engine_stop = { after = 1, marker = 'x', wrapper = 'eech: EECH fatal error: host model: [model-provider:entity_collision.callback] x' }",
+        "engine_stop = { after = 1, marker = 'x', wrapper = 'runtime error: eech: EECH fatal error: host terrain: [terrain-provider:tree_begin.callback] x' }",
+    ] {
+        let error = error_of(drive(&healthy(&format!(", {scenario}")), &[("mode", "withheld_entity")]));
+        assert!(error.contains("an unrecognised failure, not the engine's known fatal"), "{scenario}: {error}");
+    }
+    // a refusal mode whose flight never asks the host completes without the stop: that is a failure, not a pass
+    let error = error_of(drive(&healthy(", no_entity_questions = true"), &[("mode", "withheld_entity")]));
+    assert!(error.contains("the engine did not stop at entity_collision.callback"), "{error}");
+    // a stop that happens although the provider altered nothing (an unaltered control question) is not credited to the mode
+    let error = error_of(drive(
+        &healthy(", engine_stop = { after = 1, marker = 'entity_collision.callback' }"),
+        &[("mode", "withheld_entity")],
+    ));
+    assert!(error.contains("without the provider having altered"), "{error}");
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// the case: selection, cohort, launch report, terminals
+
+fn selected(driven: &Driven) -> Value {
+    row_of(driven, "case_selected")
+}
+
+#[test]
+fn the_case_is_the_nearest_non_person_enemy_of_a_launcher_with_an_unguided_ballistic_weapon() {
+    // the default roster: blue launcher at the origin, red target at 100, 0, 100
+    let driven = drive(&healthy(""), &[]);
+    let outcome = driven.result.clone();
+    assert!(outcome.is_ok(), "{outcome:?}\n{}", driven.rows);
+    let row = selected(&driven);
+    assert_eq!(
+        (row["launcher"].clone(), row["target"].clone(), row["weapon"].clone()),
+        (Value::from("eech-world:1"), Value::from("eech-world:2"), Value::from(7))
+    );
+    assert_eq!(row["selection"], "nearest_non_person_enemy_of_a_launcher_with_an_unguided_ballistic_weapon");
+    // a nearer PERSON is not a candidate (no collision flag), a nearer FRIEND is not an enemy; the nearer vehicle is chosen
+    let scenario = healthy(
+        ", mobiles = { { kind = 5, side = 'blue' }, { kind = 1, side = 'red' }, { kind = 1, side = 'red' }, { kind = 3, side = 'red' }, { kind = 1, side = 'blue' } }, positions = { '0,0,0', '100,0,100', '40,0,0', '5,0,0', '2,0,0' }",
+    );
+    let driven = drive(&scenario, &[]);
+    let outcome = driven.result.clone();
+    assert!(outcome.is_ok(), "{outcome:?}\n{}", driven.rows);
+    assert_eq!(selected(&driven)["target"], "eech-world:3");
+    // the smallest distance wins ACROSS launchers: the second launcher is nearer to its enemy than the first is to its own
+    let scenario = healthy(
+        ", mobiles = { { kind = 5, side = 'blue' }, { kind = 1, side = 'red' }, { kind = 1, side = 'blue' } }, positions = { '0,0,0', '100,0,0', '98,0,0' }, armed = { [1] = true, [3] = true }",
+    );
+    let driven = drive(&scenario, &[]);
+    let outcome = driven.result.clone();
+    assert!(outcome.is_ok(), "{outcome:?}\n{}", driven.rows);
+    let row = selected(&driven);
+    assert_eq!(
+        (row["launcher"].clone(), row["target"].clone()),
+        (Value::from("eech-world:3"), Value::from("eech-world:2"))
+    );
+    assert_eq!(row["distance"], 2.0);
+    // the nearest pair's launcher has no weapon in stock: the next nearest pair is taken
+    let scenario = healthy(
+        ", mobiles = { { kind = 5, side = 'blue' }, { kind = 1, side = 'red' }, { kind = 1, side = 'blue' } }, positions = { '0,0,0', '100,0,0', '98,0,0' }, armed = { [1] = true }",
+    );
+    let driven = drive(&scenario, &[]);
+    assert_eq!(selected(&driven)["launcher"], "eech-world:1");
+    // the pair that was chosen is the one the launch was made with
+    assert_eq!(driven.launch, Some(("eech-world:1".to_string(), "eech-world:2".to_string(), 7)));
+    // no enemy that is a candidate type at all: a setup failure, not a guess
+    let scenario = healthy(", mobiles = { { kind = 5, side = 'blue' }, { kind = 3, side = 'red' } }");
+    let error = error_of(drive(&scenario, &[]));
+    assert!(error.contains("SETUP FAILURE: no launcher"), "{error}");
+}
+
+#[test]
+fn an_incomplete_empty_or_inconsistent_cohort_is_a_failure_and_never_a_pass() {
+    let two = "births = { 'kind=birth w=5 type=gun', 'kind=birth w=6 type=gun' }";
+    let error = error_of(drive(&format!("{two}, {}", healthy("")), &[]));
+    assert!(error.contains("INCOMPLETE") && error.contains("1 of 2"), "{error}");
+    let error = error_of(drive(&format!("births = {{}}, launch_report = '{}'", report("births=0")), &[]));
+    assert!(error.contains("the controlled cohort is empty"), "{error}");
+    let error = error_of(drive(&format!("launch_report = '{}', {}", report("births=2"), healthy("")), &[]));
+    assert!(error.contains("births=2 but the launch logged 1"), "{error}");
+    let error = error_of(drive(&format!("launch_report = '{}', {}", report("restored=0"), healthy("")), &[]));
+    assert!(error.contains("restore the launcher's temporary target link"), "{error}");
+    let error = error_of(drive(
+        &format!(
+            "launch_report = 'something else {}', {}",
+            report("").replace("wpn-case-launch ", ""),
+            healthy("")
+        ),
+        &[],
+    ));
+    assert!(error.contains("not a wpn-case-launch line"), "{error}");
+    // a duplicate terminal and an incomplete one
+    let error = error_of(drive(
+        &format!("after = {{ [1] = {{ {TERMINAL}, \"kind=terminal w=5 type=gun code=target steps=41 pos=2,2,2 velocity=3 lifetime=4\" }} }}"),
+        &[],
+    ));
+    assert!(error.contains("ended twice"), "{error}");
+    let error = error_of(drive(
+        "after = { [1] = { 'kind=terminal w=5 type=gun steps=40 pos=1,1,1 velocity=3 lifetime=4' } }",
+        &[],
+    ));
+    assert!(error.contains("is incomplete") && error.contains("field code"), "{error}");
+    // natural activity of other weapons is declared foreign and is not the case's
+    let scenario = format!(
+        "after = {{ [1] = {{ 'kind=birth w=9 type=later', 'kind=terminal w=9 type=later code=target steps=3 pos=7,8,9 velocity=1 lifetime=1' }}, [2] = {{ {TERMINAL} }} }}"
+    );
+    let driven = drive(&scenario, &[]);
+    let outcome = driven.result.clone();
+    assert!(outcome.is_ok(), "{outcome:?}\n{}", driven.rows);
+    let row = authority(&driven);
+    assert_eq!(
+        (row["foreign_terminals"].clone(), row["later_births"].clone(), row["cohort_size"].clone()),
+        (Value::from(1), Value::from(1), Value::from(1))
+    );
+    assert_eq!(row["case_weapons_ended"], 1, "only the case weapon's terminal is the case's");
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// the clock, the output, the arguments and the shared words
+
+#[test]
+fn setup_output_and_arguments_fail_closed_and_the_first_error_is_never_hidden() {
+    // positive first: the healthy run opens the evidence through the checked exclusive-create capability and closes it once
+    let driven = drive(&healthy(""), &[]);
+    assert!(driven.result.is_ok() && driven.created && driven.closed == 1);
+    assert!(
+        SCRIPT.contains("host.create_exclusive") && !SCRIPT.contains("host.output_create_new ("),
+        "the witness must use host.create_exclusive"
+    );
+    // a host with no model provider or no terrain factory fails AFTER the evidence was opened: it is closed once and the failure is named
+    for (scenario, fragment) in [("no_model = true", "no host.model"), ("no_terrain = true", "no host.terrain_provider")] {
+        let driven = drive(scenario, &[]);
+        let (created, closed) = (driven.created, driven.closed);
+        let error = error_of(driven);
+        assert!(error.contains(fragment), "{scenario}: {error}");
+        assert!(created && closed == 1, "{scenario}: opened {created}, closed {closed}");
+        let driven = drive(&format!("{scenario}, io_fail = {{ op = 'close' }}"), &[]);
+        let error = error_of(driven);
+        assert!(error.contains(fragment) && !error.contains("closing"), "{scenario}: {error}");
+    }
+    let stalled = drive("clock_step = 0", &[]);
+    let closed = stalled.closed;
+    assert!(error_of(stalled).contains("entity-authority: STALLED CLOCK"));
+    assert_eq!(closed, 1, "the evidence is closed on the error path too");
+    for (op, at, fragment) in [
+        ("write", 1, "OUTPUT FAILURE: writing"),
+        ("write", 4, "OUTPUT FAILURE: writing"),
+        ("flush", 2, "OUTPUT FAILURE: flushing"),
+        ("close", 0, "OUTPUT FAILURE: closing"),
+    ] {
+        let driven = drive(&format!("io_fail = {{ op = '{op}', at = {at} }}, {}", healthy("")), &[]);
+        let error = error_of(driven);
+        assert!(error.contains(&format!("entity-authority: {fragment}")), "{op} {at}: {error}");
+    }
+    let existing = drive("create_fails = true", &[]);
+    assert!(!existing.created && existing.rows.is_empty());
+    assert!(error_of(existing).contains("nothing was run"));
+    for (key, value) in [
+        ("warmup", "nan"),
+        ("settle", "inf"),
+        ("frame_ms", "0"),
+        ("warmup", "100000"),
+        ("profile", "elsewhere"),
+        ("mode", "nothing"),
+        ("mode", "withheld_tree"),
+    ] {
+        let refused = drive("", &[(key, value)]);
+        assert!(!refused.created, "{key}={value}");
+        assert!(error_of(refused).contains("entity-authority:"), "{key}={value}");
+    }
+}
+
+#[test]
+fn the_words_helper_is_the_same_text_as_the_tree_witnesss() {
+    // the helper that gives the exact float words (both zeros, subnormals, boundaries) was proven under an enabled divide-by-zero trap for the tree witness; this one must be the same code
+    let block = |text: &str| -> Vec<String> {
+        let begin = text.find("-- BEGIN words").expect("the words marker");
+        let end = text.find("-- END words").expect("the words end marker");
+        text[begin..end]
+            .lines()
+            .filter(|line| !line.trim_start().starts_with("--"))
+            .map(|line| line.to_string())
+            .collect()
+    };
+    let (entity, tree) = (block(SCRIPT), block(TREE_SCRIPT));
+    assert!(entity.iter().any(|line| line.contains("local function word_of")), "the block holds the helper");
+    assert_eq!(entity, tree);
+}
