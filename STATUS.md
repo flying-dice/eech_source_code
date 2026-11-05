@@ -4,6 +4,8 @@ This is the ONE current summary; dated entries below are history. Read the activ
 the finite stationary ENTITY_COLLISION authority on native `7ead34d09` (same reviewer, `FINITE_STATIONARY_ENTITY_HANDOFF_AUTHORITY_VERIFIED`; safe record
 [`eech-campaign/reference/d3-entity-collision/finite-authority/`](eech-campaign/reference/d3-entity-collision/finite-authority/README.md), published in `b007f215c`), the finite TREE handoff, Task 50 and Task 52.
 
+**Publication qualification (Root, 5 November).** The seven stationary controls passed their declared expected outcomes: six native/controller exits 0 and Original exit 1 (expected capability RED); the matrix queue exited 0. The literal independent report is LF; the two Windows receipts are CRLF. Literal report/receipt bytes and hashes are unchanged.
+
 **Production change (compiled C, Rust and the model-provider protocol; frozen source `2d1a16273f599e852eefaf9b10581be49cf80309`; no native run).** `get_line_of_sight_collision_entity` in the ordinary module no longer decides anything about a candidate. The campaign walks the sector
 window and lists in the original's order, skips the source and target, and OFFERS each entity that has a collision flag (`offer_candidate_to_host`, `en_cllsn.c`); the host decides, through the new model operation
 `ENTITY_CANDIDATE` (`mb_hostmodel.h`; reference host `csrc/entity_candidate_step.c`, the original's expressions): the sector's tallest-structure skip, the branch (mobile, fixed, city, a building listed in a sector),
@@ -17,7 +19,7 @@ Five kernel mutants each fail it (exit 101), the file restored byte for byte. Th
 `entity_host_guard` shows the ordinary module holds none of the original's decisions and the original profile keeps them all. **Not measured natively:** the campaign's scan loop (`en_cllsn.c`) is engine C that only a native
 run exercises; the Rust transcription is a model of it. Per-candidate questions replace one question per broad-phase passer, so the cost per query rises: Root should compare wall time on the ordinary short.
 
-**Next (Root).** Build the ordinary, hosted `weapon-fixture` and original profile binaries of the frozen source; run the ordinary exact short and compare with the retained `80fd` baseline (the first unmet gate: it is the
+**Next (Root).** First complete the same independent reviewer's pass over the NEW candidate source and gate evidence. After source clearance, build the ordinary, hosted `weapon-fixture` and original profile binaries of the frozen source; run the ordinary exact short and compare with the retained `80fd` baseline (the first unmet gate: it is the
 only evidence that the host's decisions equal the original's on retail data); then the existing `entity-authority.lua` control (its `entity_collision` questions are now reached through a `TEST` decision). The
 changed-answer witness for `ENTITY_CANDIDATE` itself (a withheld or forced decision changing the weapon's physical outcome) is NOT written yet and is required before this slice is authority-verified.
 
