@@ -1,0 +1,46 @@
+{
+  "source": "7ead34d09e05c394c56bc2ef0d8bd315929b312c",
+  "snapshot": "D:\\EECH-Migration-Evidence\\entity-output-production-7ead34d09",
+  "candidate": "D:\\EECH-Migration-Evidence\\entity-output-ordinary-short-7ead34d09-20261105",
+  "baseline": "R:\\d3-evidence\\model-reference-profile-recording-80fd62ea4-20261030",
+  "native_actual_exit": 0,
+  "controller_actual_exit": 0,
+  "pre_post_inputs_actual_exit": [
+    0,
+    0
+  ],
+  "payloads_unchanged": 87,
+  "files": [
+    {
+      "file": "recording.acmi",
+      "baseline_bytes": 230871,
+      "candidate_bytes": 230871,
+      "baseline_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+      "candidate_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+      "literal_complete_equal": true,
+      "first_difference": null
+    },
+    {
+      "file": "observations.jsonl",
+      "baseline_bytes": 1553674,
+      "candidate_bytes": 1553674,
+      "baseline_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+      "candidate_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+      "literal_complete_equal": true,
+      "first_difference": null
+    },
+    {
+      "file": "metrics.json",
+      "baseline_bytes": 7477,
+      "candidate_bytes": 7477,
+      "baseline_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+      "candidate_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+      "literal_complete_equal": true,
+      "first_difference": null
+    }
+  ],
+  "all_three_complete_literal_equal": true,
+  "helper_sha256": "b00f2cc257ca1354a1cb51c2ed89f62a290b98abac6930ea557289da14635c56",
+  "argument_reuse": "Exact retained811 ordinary short; only bin/root/output paths replaced. hours0.001/record1/record_every10/observe_every1/observe_supply1; defaults seed1/frame100ms.",
+  "scope": "COMPLETE ordinary short only; not native entity authority, full40/all8 or wholeTask49/D3 acceptance."
+}

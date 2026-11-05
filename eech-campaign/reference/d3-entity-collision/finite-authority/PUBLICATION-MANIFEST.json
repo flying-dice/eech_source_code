@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "files": [
+    {
+      "file": "entity-output-builds-and-payloads-7ead34d09-20261105.json",
+      "bytes": 1924,
+      "sha256": "1b1894527dd9d466cba4c34351ccd914bad73b382f99a30fe82e02d85c6339f7",
+      "kind": "literal source copy"
+    },
+    {
+      "file": "entity-output-ordinary-short-comparison-7ead34d09-20261105.json",
+      "bytes": 2055,
+      "sha256": "16ca2ce2c168bb2824466439c4f7914f13efebb68d3e8c08a86b3a06c16f835c",
+      "kind": "literal source copy"
+    },
+    {
+      "file": "finite-authority-summary.json",
+      "bytes": 9079,
+      "sha256": "40ab79b44f9842b1cc30934d4f04da6e5eeadf55cc04640dbc941e6e66129384",
+      "kind": "derived"
+    },
+    {
+      "file": "independent-entity-public-authority-b24-native7ead-20261105.json",
+      "bytes": 20664,
+      "sha256": "ae1ea9be89f7adc8cee302acc976ea9628c858ad5538cd8e81243d116a981f87",
+      "kind": "literal source copy"
+    },
+    {
+      "file": "README.md",
+      "bytes": 3105,
+      "sha256": "704f2f203a7a6ba9d0e80dd5854d52a6d955cdac4ffc777b6bb2d48dc2a35ea7",
+      "kind": "derived"
+    }
+  ]
+}

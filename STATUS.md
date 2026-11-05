@@ -1,4 +1,20 @@
-# CURRENT — D3 Task49: the public ENTITY_COLLISION authority witness is written and controlled (Lua/tests/docs only); Root's ONE healthy hosted actual is next (5 November 2026)
+# CURRENT — D3 Task49: finite stationary ENTITY_COLLISION handoff and native authority CLOSED; the physical entity/object scan cutover is next (5 November 2026)
+
+This is the ONE current summary; dated entries below are history. Read the active card and `R:/d3-evidence/D3-CURRENT.json` (Root is its sole writer).
+
+**Closed, not to be redone.** Corrected narrow phase `f153`/`7ead` (same reviewer `1ab8b6a2…`, findings=[]); the finite stationary public authority on native `7ead34d09` with the test-only witness `b24ca9038`: the same reviewer's
+report (`independent-entity-public-authority-b24-native7ead-20261105.json`, `FINITE_STATIONARY_ENTITY_HANDOFF_AUTHORITY_VERIFIED`, findings=[]) covers 7 native cases, 14 full input checks, 87 payloads each, every exit 0 (healthy 279
+stationary questions; a forced hit changes the cohort terminal; a forced miss is valid coverage only; three exact anchored refusals; the Original profile is the expected capability RED), the ordinary exact short COMPLETE and literal-equal
+to `80fd`, and three sealed Windows builds. The safe record, with a manifest, is [`eech-campaign/reference/d3-entity-collision/finite-authority/`](eech-campaign/reference/d3-entity-collision/finite-authority/README.md) (literal CRLF source copies
+under `-text`; the summary JSON is a derived projection and says so; the private Root audit holding physical tuples is unchanged). Also closed: finite TREE handoff `7ad1a698…`, Task 50 and Task 52 (delivered, accepted40/all8).
+
+**Not claimed.** The MOVING public path (every measured pose was stationary), per-weapon attribution (the view input is global while armed), a new x87/MXCSR or RNG measurement, the whole Task 49 pack, current CI, D3.
+
+**Next gate (production).** Move the physical entity/object segment-query scan out of EECH_DC (`get_line_of_sight_collision_entity` in `aphavoc/source/entity/en_misc/en_maths/en_cllsn.c`): sector window, tail-first order,
+exclusions, tallest-structure skip, broad phase, city box, classification, live pose and flags with their side effects. Still REQUIRED and coupled in Core: hierarchy, devices, muzzles, rotor damage, smoke, host identities, the raw tree
+loader, forest and cloud block, the DCS mappings. All ten whole-D3 requirements persist; D4/D5 and TypeScript are not started. No baseline, tolerance, input, seed, frame or duration change.
+
+# HISTORICAL (superseded 5 November 2026 by the CURRENT block above; the entity witness batch) — D3 Task49: the public ENTITY_COLLISION authority witness is written and controlled (Lua/tests/docs only); Root's ONE healthy hosted actual is next (5 November 2026)
 
 This is the ONE current summary; dated entries below are history. Read the active card and `R:/d3-evidence/D3-CURRENT.json` (Root is its sole writer). Closed and not to be redone: the corrected entity narrow-phase
 source `f153`/`7ead` (same reviewer, `1ab8b6a2…`, findings=[], native launch cleared), the C contract and its 16-child gate, the finite TREE handoff (`7ad1a698…`), Task 50 and Task 52 (delivered, accepted40/all8). Root's

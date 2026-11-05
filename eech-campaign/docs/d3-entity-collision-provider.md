@@ -1,6 +1,6 @@
 # D3 entity/object collision: the host-owned narrow phase (EEDCS-49, second slice)
 
-3 November 2026. **SOURCE and focused Linux checks only. No native, Windows or retail run has exercised this change; nothing here is accepted.** This is the
+3 November 2026, status refreshed 5 November 2026. **The narrow phase is native-validated for the FINITE STATIONARY handoff only (corrected source `f153`/`7ead`; [`finite-authority/`](../reference/d3-entity-collision/finite-authority/README.md)); the moving public path, the physical scan and Task 49 are NOT accepted.** The body below is the dated 3 to 5 November account; its statements about runs are updated in place where they have since changed. This is the
 *entity/object* slice of Task 49 (the tree slice is [d3-tree-collision-provider.md](d3-tree-collision-provider.md)). It is not Task 49 and not D3.
 
 ## What `get_line_of_sight_collision_entity` is, from source
@@ -100,7 +100,7 @@ Core callers need a DCS-facing primitive, and which are internal to the EECH ref
 not show that every Core collision consumer is unnecessary), is part of the next extraction. For any required primitive the work is to name a verified full API contract or a bounded,
 versioned per-type host geometry and transform workaround with its provenance and supported types. Unknown objects, unsupported child state and missing geometry refuse by name.
 
-## The public authority witness (`lua/entity-authority.lua`; TEST-ONLY, written, controlled, NOT YET RUN natively)
+## The public authority witness (`lua/entity-authority.lua`; TEST-ONLY; run natively 5 November 2026 on `7ead34d09`, finite stationary authority verified)
 
 The unit and C controls prove the campaign's half and the host kernel. They do not show that the host's answer reaches the campaign through the **public** path. `lua/entity-authority.lua` is the sibling of
 `tree-authority.lua`: host-owned Lua → the public native module (a DLL built with `weapon-fixture`) → the host's model provider (`host.model`) → a REAL weapon launched through the campaign's own launch call.
@@ -153,17 +153,20 @@ argument failures with the first error kept.
 
 **Identities.** `lua/entity-authority.lua` Git blob `dcf9c1eae1c7adacc5d33d7d9784a105405665c1` (LF), `tests/entity_authority.rs` blob `ee8df2e3fd8becb85c59e336a6bfec77abcebfe2`. They change no compiled input: the runtime is the corrected source `f153`/`7ead`.
 
-**First native command (Root; ONE healthy actual before any other mode).** On the hosted `weapon-fixture` build of the immutable corrected source, one fresh private installation root, the literal blob of the script
-(`git show <this commit>:eech-campaign/crates/eech-world/lua/entity-authority.lua`): `eech-world.exe <literal entity-authority.lua> root=<fresh root> mode=control out=<new, non-existing .jsonl>` (defaults: warmup 30 s,
-settle 120 s, frame 100 ms). Exit 0 is a reached, well-formed control. `UNREACHED` (with its named reason), a setup failure or any other failure is a result to preserve, not to retry or loosen; the other modes use their own
-fresh roots only after the control reached the entity question. The runtime JSON Lines stay private (they hold retail coordinates); safe counts and hashes only go into Git.
+**Native result (Root, immutable corrected build `7ead34d09`, witness blob above, safe record under [`finite-authority/`](../reference/d3-entity-collision/finite-authority/README.md)).** The healthy control and six further
+controls ran, 14 full input checks, 87 payloads each, every exit 0. Healthy: 279 stationary armed questions (44 real hits, 235 real misses), six actual weapon lookups, one cohort member complete. Forced hit:
+45 valid answers change the cohort terminal. Forced miss: 749 valid partial-write answers, no weapon entity hit (the healthy weapon made none either, so this is valid MISS coverage and **not** a measured
+physical change). The three refusal modes stop at their exact anchored markers with nothing read afterwards. The Original profile reaches the entity caller with no host question: the expected capability RED.
+The same independent reviewer found no findings (`FINITE_STATIONARY_ENTITY_HANDOFF_AUTHORITY_VERIFIED`). **Limits:** every queried pose was stationary, so the MOVING public path is not measured; the view input is
+global while armed, with no per-weapon attribution; no new direct x87/MXCSR or RNG measurement of the public caller. The first native command was
+`eech-world.exe <literal entity-authority.lua> root=<fresh root> mode=control out=<new .jsonl>`; runtime JSON Lines stay private (retail coordinates).
 
 ## Checks (Linux, pinned image) and their status
 
 **Review status.** The independent source pass over `c510c55c7` returned CHANGES_REQUIRED with one P1, ENV-ENTITY-CALLER-BUFFER-1 (the question read caller output storage the original never reads). The literal
 report is kept in [`independent-entity-narrowphase-source-c510c55c7-20261105.json`](../reference/d3-entity-collision/independent-entity-narrowphase-source-c510c55c7-20261105.json) (SHA-256
-`18dba44b15530097e3a04e37ac7e7d062dcd39569f86e659511ff50679111251`); it is not an approval and no native launch is cleared. The correction is in "The output contract" above; the corrected source awaits the
-same reviewer.
+`18dba44b15530097e3a04e37ac7e7d062dcd39569f86e659511ff50679111251`); it is not an approval. The correction is in "The output contract" above. The SAME reviewer cleared the corrected source `f153`/`7ead` with no findings (report
+[`independent-entity-output-contract-source-7ead34d09-20261105.json`](../reference/d3-entity-collision/independent-entity-output-contract-source-7ead34d09-20261105.json), SHA-256 `1ab8b6a2d1295ed47a189b18af9b35a461876e4e65959f2a30db9112157ce039`), and the finite stationary native authority is closed (previous section).
 
 **What each check covers.** `eech-engine-sys` `entity_dialogue` (`entity-dialogue-check`, the REAL `mb_hostentity.h` against a scripted host): the request holds only the segment and the pose, bit for bit,
 and is identical whatever the caller's buffers hold; with the intercept point and normal on pages that can neither be read nor written, a miss that assigned nothing completes (a read or a write would fault);
@@ -193,7 +196,6 @@ Git blob id of each working file as Git's clean filter would store it; the *raw*
 committed blob, while their raw working bytes equal their committed bytes (CR counts 64, 66 and 119 in both; [`filter-qualification-20261105.txt`](../reference/d3-entity-collision/filter-qualification-20261105.txt)).
 So "every listed id is a committed-byte hash" is not claimed; the raw column is the byte identity, and no accepted C file was normalised or rewritten. After the commit the Git blobs of the changed and new inputs bind the source.
 
-These are contract guards, not an oracle for retail models. What the retail models answer, and whether the campaign's behaviour is unchanged, is for the native comparison: the established ordinary regression
-(byte-identical Tacview, observation and metric files) on a build of the corrected source, plus a changed-answer witness for `ENTITY_COLLISION` (forced hit, forced miss, refusal) in the manner of
-`tree-authority.lua`. **Neither has been run**, and the same reviewer's clearance of the corrected source is pending. The closed TREE adapter (`mb_hosttree.h`) copies the caller's prior tree buffers as bytes
+These are contract guards, not an oracle for retail models. The native comparison has since run on `7ead34d09`: the ordinary exact short is COMPLETE and literal-equal to the retained `80fd` baseline and the
+changed-answer witness (forced hit, forced miss, refusals, Original control) is verified for stationary candidates (see the previous sections). The **whole Task 49 regression pack** (accepted 40, all 8, current CI, review, normal merge) has NOT run for this candidate. The closed TREE adapter (`mb_hosttree.h`) copies the caller's prior tree buffers as bytes
 into its question; the reviewer closed TREE at its own identity and raised nothing there, so it is not touched, but it is the same shape of read and is named here so it is not rediscovered.
