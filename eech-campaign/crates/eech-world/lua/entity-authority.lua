@@ -211,6 +211,141 @@ local function word_of (x)
 end
 -- END words
 
+-- ---------------------------------------------------------------------------------------------------------------- the controlled moving QUERY report: one bounded codec and strict grammar
+-- (csrc/eech_mq_report.h formats it). A semantic host identity is 1 to 128 bytes of ANY value, so a report carries it ENCODED: every byte but an ASCII letter, digit or one of `._~` is `%XX` (upper-case
+-- hexadecimal); the encoding is reversible and canonical, and `-` is always encoded, so a lone `-` is the absent identity. A report is complete lines, single-spaced, whose record names and ordered keys are
+-- exactly those below: an unknown, duplicate, missing, reordered or trailing record or key, a malformed word, an empty line or a conditional field of the other branch is a failure of the report, never
+-- parsed around. The words are kept as the exact printed bit patterns: nothing is normalised and no numerical answer is computed here.
+local MQ_SEGMENTS, MQ_ID_MAX, MQ_ID_ENCODED_MAX = 3, 128, 384
+local MQ_TARGET_TYPE = "ENTITY_TYPE_ROUTED_VEHICLE"
+-- the three declared bearings of the structured recipe, as the single-precision words the prepare report prints
+local MQ_BEARINGS = { "0x3f060a92", "0x40060a92", "0x406a927f" }
+local function mq_encode (id)
+	if type (id) ~= "string" or #id < 1 or #id > MQ_ID_MAX or string.find (id, "\0", 1, true) then return nil end
+	return (string.gsub (id, "[^A-Za-z0-9._~]", function (c) return string.format ("%%%02X", string.byte (c)) end))
+end
+-- the identity an encoded text names, or nil unless the text is the canonical encoding of an identity of the roster's domain
+local function mq_decode (text)
+	if type (text) ~= "string" or #text < 1 or #text > MQ_ID_ENCODED_MAX or string.find (text, "[^A-Za-z0-9._~%%]") then return nil end
+	local id = string.gsub (text, "%%(%x%x)", function (hex) return string.char (tonumber (hex, 16)) end)
+	if mq_encode (id) ~= text then return nil end
+	return id
+end
+local function mq_word (text) return type (text) == "string" and string.match (text, "^0x" .. string.rep ("[0-9a-f]", 8) .. "$") ~= nil end
+local function mq_triple (text)
+	if type (text) ~= "string" then return false end
+	local count = 0
+	for word in string.gmatch (text .. ",", "([^,]*),") do
+		if not mq_word (word) then return false end
+		count = count + 1
+	end
+	return count == 3 and string.sub (text, -1) ~= ","
+end
+-- a printed single-precision word whose exponent field is not all ones (neither an infinity nor a NaN)
+local function mq_finite_word (text)
+	if not mq_word (text) then return false end
+	local high, low = tonumber (string.sub (text, 3, 4), 16), tonumber (string.sub (text, 5, 6), 16)
+	return (high % 128) * 2 + math.floor (low / 128) ~= 255
+end
+local function mq_finite_triple (text)
+	if not mq_triple (text) then return false end
+	for word in string.gmatch (text, "[^,]+") do
+		if not mq_finite_word (word) then return false end
+	end
+	return true
+end
+-- complete newline-terminated lines, none empty or holding a control byte
+local function mq_lines (text)
+	if type (text) ~= "string" or text == "" or string.sub (text, -1) ~= "\n" then return nil, "the report is not complete newline-terminated lines" end
+	local list, start = {}, 1
+	while start <= #text do
+		local stop = string.find (text, "\n", start, true)
+		local line = string.sub (text, start, stop - 1)
+		if line == "" then return nil, "the report holds an empty line" end
+		if string.find (line, "%c") then return nil, "the report holds a control byte" end
+		list [#list + 1] = line
+		start = stop + 1
+	end
+	return list
+end
+-- one record: the exact record name, then exactly these keys in this order, single-spaced, each with a value
+local function mq_row (line, record, keys)
+	local tokens = {}
+	for token in string.gmatch (line, "[^ ]+") do tokens [#tokens + 1] = token end
+	if table.concat (tokens, " ") ~= line then return nil, "the record is not single-spaced" end
+	if tokens [1] ~= record or #tokens ~= #keys + 1 then return nil, "the record is not " .. record .. " with " .. #keys .. " keys" end
+	local row = { raw = line }
+	for index, key in ipairs (keys) do
+		local name, value = string.match (tokens [index + 1], "^([a-z_]+)=(.+)$")
+		if name ~= key then return nil, "the key " .. key .. " is missing, unknown or out of order" end
+		row [key] = value
+	end
+	return row
+end
+-- exactly one prepare header and three ordered segment rows for `target`; the header and rows are returned
+local function mq_parse_prepare (text, target)
+	local lines, why = mq_lines (text)
+	if not lines then return nil, why end
+	if #lines ~= 1 + MQ_SEGMENTS then return nil, "the prepare report has " .. #lines .. " records, not one header and " .. MQ_SEGMENTS .. " segments" end
+	local head
+	head, why = mq_row (lines [1], "wpn-moving-query-prepare", { "host_id", "segments", "target_type", "radius" })
+	if not head then return nil, "prepare header: " .. why end
+	if mq_decode (head.host_id) ~= target then return nil, "the prepare header does not name the target " .. target end
+	if head.segments ~= tostring (MQ_SEGMENTS) or head.target_type ~= MQ_TARGET_TYPE then return nil, "the prepare header's segment count or target type is not the declared " .. MQ_SEGMENTS .. " / " .. MQ_TARGET_TYPE end
+	if not mq_finite_word (head.radius) or string.sub (head.radius, 3, 3) >= "8" or head.radius == "0x00000000" then return nil, "the prepare header's radius is not a finite positive word" end
+	local segments = {}
+	for index = 1, MQ_SEGMENTS do
+		local row
+		row, why = mq_row (lines [index + 1], "wpn-moving-query-segment", { "seg", "bearing", "a", "b" })
+		if not row then return nil, "prepare segment " .. index .. ": " .. why end
+		if row.seg ~= tostring (index - 1) or row.bearing ~= MQ_BEARINGS [index] or not mq_finite_triple (row.a) or not mq_finite_triple (row.b) then
+			return nil, "prepare segment " .. index .. " is out of order, has an undeclared bearing or a non-finite endpoint: " .. row.raw
+		end
+		segments [index] = row
+	end
+	return head, segments
+end
+-- exactly one run header for `target` and three ordered result rows over the prepared segments; each result is returned with its decoded hit identity
+local function mq_parse_run (text, target, prepared)
+	local lines, why = mq_lines (text)
+	if not lines then return nil, why end
+	if #lines ~= 1 + MQ_SEGMENTS then return nil, "the run report has " .. #lines .. " records, not one header and " .. MQ_SEGMENTS .. " results" end
+	local head
+	head, why = mq_row (lines [1], "wpn-moving-query-run", { "host_id", "segments" })
+	if not head then return nil, "run header: " .. why end
+	if mq_decode (head.host_id) ~= target or head.segments ~= tostring (MQ_SEGMENTS) then return nil, "the run header does not name the target " .. target .. " with " .. MQ_SEGMENTS .. " segments" end
+	local results = {}
+	for index = 1, MQ_SEGMENTS do
+		local row
+		row, why = mq_row (lines [index + 1], "wpn-moving-query-result", { "seg", "hit", "a", "b", "hit_is_target", "hit_type", "hit_host_id", "point", "normal" })
+		if not row then return nil, "run result " .. index .. ": " .. why end
+		if row.seg ~= tostring (index - 1) or row.a ~= prepared [index].a or row.b ~= prepared [index].b then
+			return nil, "run result " .. index .. " is not the prepared segment (same index and the same endpoint words): " .. row.raw
+		end
+		if row.hit == "0" then
+			if row.hit_is_target ~= "0" or row.hit_type ~= "none" or row.hit_host_id ~= "-" or row.point ~= "-" or row.normal ~= "-" then
+				return nil, "run result " .. index .. " is a miss that carries hit fields: " .. row.raw
+			end
+		elseif row.hit == "1" then
+			if row.hit_is_target ~= "0" and row.hit_is_target ~= "1" then return nil, "run result " .. index .. " has no hit_is_target flag: " .. row.raw end
+			if not string.match (row.hit_type, "^ENTITY_TYPE_[A-Z_]+$") then return nil, "run result " .. index .. " is a hit with no entity type: " .. row.raw end
+			if not mq_triple (row.point) or not mq_triple (row.normal) then return nil, "run result " .. index .. " is a hit without exactly three point words and three normal words: " .. row.raw end
+			if row.hit_host_id ~= "-" then
+				row.hit_id = mq_decode (row.hit_host_id)
+				if row.hit_id == nil then return nil, "run result " .. index .. " carries a hit identity that is not a canonical encoding: " .. row.raw end
+			end
+			if row.hit_is_target == "1" and (row.hit_id ~= target or row.hit_type ~= MQ_TARGET_TYPE) then
+				return nil, "run result " .. index .. " says the hit is the target, but its identity or type is not: " .. row.raw
+			end
+		else
+			return nil, "run result " .. index .. " carries hit=" .. tostring (row.hit) .. ": " .. row.raw
+		end
+		results [index] = row
+	end
+	return head, results
+end
+-- END the controlled moving QUERY report
+
 local args = host.args
 local root = args.root
 if type (root) ~= "string" or root == "" then refuse ("root=<installation root> is required") end
@@ -1025,29 +1160,18 @@ local function main ()
 			if ok then return text, nil end
 			if string.sub (first_line (text), 1, #NAME + 1) == NAME .. ":" then error (tostring (text), 0) end
 			local marker = engine_marker (text)
-			if marker == nil then hard ("UNREACHED: the controlled query case refused " .. method .. ": " .. first_line (text)) end
-			return nil, { marker = marker, line = first_line (text) }
-		end
-		local function lines_of (text, prefix)
-			local list = {}
-			for line in string.gmatch (text, "[^\n]+") do
-				if string.sub (line, 1, #prefix) == prefix then
-					local f = fields (line)
-					f.raw = line
-					list [#list + 1] = f
-				end
+			if marker == nil then
+				-- the bridge keeps the case's NAMED refusal (`wpn-case-error reason=...`, the non-poison argument status); a failure without one is not a refusal of the case and is never read as UNREACHED
+				if not string.find (tostring (text), "wpn-case-error reason=", 1, true) then hard ("the controlled query case failed " .. method .. " without a named case refusal (the bridge lost its reason?): " .. first_line (text)) end
+				hard ("UNREACHED: the controlled query case refused " .. method .. ": " .. first_line (text))
 			end
-			return list
+			return nil, { marker = marker, line = first_line (text) }
 		end
 		local prepared, failure = ask ("wpn_moving_query_prepare", target)
 		if failure then hard ("the engine stopped while the controlled query case was prepared: [model-provider:" .. failure.marker .. "]") end
-		local head = lines_of (prepared, "wpn-moving-query-prepare ")
-		local latched = lines_of (prepared, "wpn-moving-query-segment ")
-		if #head ~= 1 or head [1].host_id ~= target or #latched ~= 3 then hard ("the prepare report does not name " .. target .. " with three segments: " .. first_line (prepared)) end
-		for index, segment in ipairs (latched) do
-			if tonumber (segment.seg) ~= index - 1 or segment.a == nil or segment.b == nil then hard ("the prepare report's segment " .. index .. " is malformed: " .. segment.raw) end
-		end
-		emit { event = "query_prepared", target = target, target_type = head [1].target_type, radius = head [1].radius,
+		local head, latched = mq_parse_prepare (prepared, target)
+		if not head then hard ("the prepare report is malformed: " .. latched) end
+		emit { event = "query_prepared", target = target, target_type = head.target_type, radius = head.radius,
 			segments = table.concat ({ latched [1].a .. ">" .. latched [1].b, latched [2].a .. ">" .. latched [2].b, latched [3].a .. ">" .. latched [3].b }, ";") }
 		-- ONE actual engine frame, the lift (when the mode has it) in the target's own host step; then the SAME segments are asked
 		lift_window = plan.lift and true or false
@@ -1060,20 +1184,17 @@ local function main ()
 		end
 		local results, hits, target_hits, signature = {}, 0, 0, {}
 		if ran then
-			results = lines_of (ran, "wpn-moving-query-result ")
-			if #results ~= 3 then hard ("the query run reported " .. #results .. " results, not three: " .. first_line (ran)) end
-			for index, result in ipairs (results) do
-				if tonumber (result.seg) ~= index - 1 or result.a ~= latched [index].a or result.b ~= latched [index].b then
-					hard ("the segment asked is not the segment latched before the frame (segment " .. index .. "): " .. result.raw)
-				end
-				if result.hit ~= "0" and result.hit ~= "1" then hard ("a query result carries hit=" .. tostring (result.hit) .. ": " .. result.raw) end
+			local run_head
+			run_head, results = mq_parse_run (ran, target, latched)
+			if not run_head then hard ("the query run report is malformed: " .. results) end
+			for _, result in ipairs (results) do
 				if result.hit == "1" then
 					hits = hits + 1
 					if result.hit_is_target == "1" then target_hits = target_hits + 1 end
 				end
-				signature [#signature + 1] = table.concat ({ result.hit, tostring (result.hit_type), tostring (result.hit_is_target), tostring (result.hit_host_id), tostring (result.point), tostring (result.normal) }, "|")
-				emit { event = "query_segment", seg = tonumber (result.seg), hit = tonumber (result.hit), hit_is_target = tonumber (result.hit_is_target) or 0, hit_type = result.hit_type or "", hit_host_id = result.hit_host_id or "",
-					point = result.point or "", normal = result.normal or "", a = result.a, b = result.b }
+				signature [#signature + 1] = table.concat ({ result.hit, result.hit_type, result.hit_is_target, result.hit_host_id, result.point, result.normal }, "|")
+				emit { event = "query_segment", seg = tonumber (result.seg), hit = tonumber (result.hit), hit_is_target = tonumber (result.hit_is_target), hit_type = result.hit_type, hit_host_id = result.hit_host_id,
+					point = result.point, normal = result.normal, a = result.a, b = result.b }
 			end
 		end
 		local pose_facts_row = pose_facts ()
@@ -1103,10 +1224,24 @@ local function main ()
 		if faults.request + faults.reply ~= 0 then return string.format ("the entity question or the host's reply is not the contract's (request_faults=%d reply_faults=%d): %s", faults.request, faults.reply, tostring (first_fault)) end
 		if cand.mobile_unnamed ~= 0 then return string.format ("%s: %d mobile candidate questions carried no host identity", mode, cand.mobile_unnamed) end
 		if after.scan < 1 then return string.format ("UNREACHED: %s: the production query asked the host no entity_scan question", mode) end
+		if plan.lift then
+			-- B: the SAME latched segments asked after the real lifted host step. The shared broad phase (radius + 10 m, before the moving-vector read) may legitimately skip the lifted target without a
+			-- NeedUpdated or a narrow-phase test, so none is required: what is required is that the target was actually OFFERED and ANSWERED after the lift in the query phase (`tgt.after_lift`: only
+			-- armed questions about the target's own identity after the lift step are counted, never warmup or global counts), that every request and reply was the contract's (no fault above) and that
+			-- the engine completed (the C offer-conformance assertion stops the engine on a mirror that differs from the host's record), and that the physical query result CHANGED from the control's.
+			if tgt.after_lift < 1 then return string.format ("UNREACHED: %s: no question about the target %s followed the lifted step (the target was not offered after the lift)", mode, target) end
+			if args.control_signature == nil or args.control_signature == "" then
+				return mode .. " needs control_signature=<the moving_query_control run's query_signature>: a completed lifted query is not changed-pose authority until its physical result is compared with the control's"
+			end
+			if args.control_signature == table.concat (signature, ";") then
+				return string.format ("UNCHANGED: %s: the lifted query's physical result is exactly the control's (after_lift=%d, after_lift_test=%d): the lift changed no output, so no changed-pose authority is claimed", mode, tgt.after_lift, tgt.after_lift_test)
+			end
+			return nil
+		end
+		-- A: the strict moving path within the controlled query phase, from the target's own questions (never a frame, warmup or global count)
 		if tgt.need_updated < 1 then return string.format ("UNREACHED: %s: the target %s was never asked need_updated in %d questions (the shared C asks it only of a candidate whose motion vector is above 1), so it was not a moving candidate at the query", mode, target, tgt.questions) end
 		if tgt.test < 1 then return string.format ("UNREACHED: %s: no question about the target %s reached the narrow phase (%d questions, %d skipped)", mode, target, tgt.questions, tgt.skip) end
 		if tgt.test_moving16 < 1 then return string.format ("UNREACHED: %s: no test decision about the target %s carried the 16-word moving pose", mode, target) end
-		if plan.lift and tgt.after_lift < 1 then return string.format ("UNREACHED: %s: no question about the target %s followed the lifted step", mode, target) end
 		return nil
 	end
 	local pair_list = {}

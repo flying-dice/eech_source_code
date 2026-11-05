@@ -24,6 +24,51 @@ POSE_LOG = {}
 MOVES, RETIRED, DISPLACED, MOVE_LOG = {}, {}, {}, {}
 VECTORS_ASKED, VECTORS_ALTERED, VECTORS_SEEN = 0, false, nil
 MQ_CALLS = {}
+-- a roster identity of 128 bytes mixing space, newline, tab, carriage return, `%`, `-`, `=` and UTF-8 (the maximum of the domain)
+EXOTIC_ID = (function ()
+	local cycle = { 32, 10, 97, 9, 37, 195, 169, 45, 61, 13, 90, 226, 130, 172, 126, 46, 95, 57 }
+	local bytes = {}
+	for k = 1, 128 do bytes [k] = string.char (cycle [(k - 1) % #cycle + 1]) end
+	return table.concat (bytes)
+end) ()
+-- the C encoder of csrc/eech_mq_report.h: every byte but an ASCII letter, digit or `._~` is %XX in upper-case hexadecimal
+local function mq_enc (id) return (string.gsub (id, "[^A-Za-z0-9._~]", function (c) return string.format ("%%%02X", string.byte (c)) end)) end
+local MQ_BEARING_WORDS = { "0x3f060a92", "0x40060a92", "0x406a927f" }
+-- one single fault applied to a REAL-shaped report (the scenario's `query_fault`)
+local function mq_fault (name, text)
+	local lines = {}
+	for line in string.gmatch (text, "[^\n]+") do lines [#lines + 1] = line end
+	local function join () return table.concat (lines, "\n") .. "\n" end
+	if name == "prepare_unknown_record" then lines [#lines + 1] = "wpn-moving-query-noise x=1"
+	elseif name == "prepare_missing_segment" then lines [#lines] = nil
+	elseif name == "prepare_duplicate_segment" then lines [4] = lines [3]
+	elseif name == "prepare_other_target" then lines [1] = string.gsub (lines [1], "host_id=[^ ]+", "host_id=eech%%2Dworld%%3A3")
+	elseif name == "prepare_bad_bearing" then lines [2] = string.gsub (lines [2], "bearing=0x%x+", "bearing=0x3f800000")
+	elseif name == "prepare_nonfinite_endpoint" then lines [2] = string.gsub (lines [2], " a=0x%x+", " a=0x7f800000", 1)
+	elseif name == "prepare_wrong_type" then lines [1] = string.gsub (lines [1], "ENTITY_TYPE_ROUTED_VEHICLE", "routed_vehicle")
+	elseif name == "prepare_double_space" then lines [2] = string.gsub (lines [2], " bearing", "  bearing")
+	elseif name == "prepare_extra_key" then lines [1] = lines [1] .. " extra=1"
+	elseif name == "prepare_no_newline" then return (string.gsub (join (), "\n$", ""))
+	elseif name == "run_extra_row" then lines [#lines + 1] = lines [#lines]
+	elseif name == "run_missing_row" then lines [#lines] = nil
+	elseif name == "run_other_target" then lines [1] = string.gsub (lines [1], "host_id=[^ ]+", "host_id=eech%%2Dworld%%3A3")
+	elseif name == "run_hit_without_point" then lines [2] = string.gsub (lines [2], " point=0x%x+,0x%x+,0x%x+", " point=-")
+	elseif name == "run_hit_two_normal_words" then lines [2] = string.gsub (lines [2], "normal=(0x%x+,0x%x+),0x%x+", "normal=%1")
+	elseif name == "run_miss_with_point" then lines [3] = string.gsub (lines [3], "point=%-", "point=0x42000000,0x42000001,0x42000002")
+	elseif name == "run_miss_with_identity" then lines [3] = string.gsub (lines [3], "hit_host_id=%-", "hit_host_id=eech%%2Dworld%%3A2")
+	elseif name == "run_target_flag_with_other_identity" then lines [2] = string.gsub (lines [2], "hit_host_id=[^ ]+", "hit_host_id=eech%%2Dworld%%3A3")
+	elseif name == "run_bad_encoding" then lines [2] = string.gsub (lines [2], "hit_host_id=[^ ]+", "hit_host_id=a%%zz")
+	elseif name == "run_lowercase_escape" then lines [2] = string.gsub (lines [2], "hit_host_id=[^ ]+", "hit_host_id=a%%c3%%a9")
+	elseif name == "run_non_canonical_escape" then lines [2] = string.gsub (lines [2], "hit_host_id=[^ ]+", "hit_host_id=%%41")
+	elseif name == "run_short_word" then lines [2] = string.gsub (lines [2], "point=0x42000000", "point=0x4200")
+	elseif name == "run_unknown_key" then lines [2] = string.gsub (lines [2], " hit_is_target=", " ghost=1 hit_is_target=")
+	elseif name == "run_reordered_keys" then lines [2] = string.gsub (lines [2], "(hit=%d) (a=[^ ]+)", "%2 %1")
+	elseif name == "run_bad_hit_flag" then lines [2] = string.gsub (lines [2], " hit=1", " hit=2")
+	elseif name == "run_hit_is_target_unknown" then lines [2] = string.gsub (lines [2], "hit_is_target=1", "hit_is_target=2")
+	elseif name == "run_trailing_space" then lines [2] = lines [2] .. " "
+	else error ("unknown scripted fault " .. tostring (name)) end
+	return join ()
+end
 local function deep_copy (value)
 	if type (value) ~= "table" then return value end
 	local copy = {}
@@ -504,19 +549,23 @@ package.preload.eech_dc = function ()
 			if not scenario.no_query_surface then
 				function engine:wpn_moving_query_prepare (id)
 					MQ_CALLS [#MQ_CALLS + 1] = "prepare@" .. now .. ":" .. id
-					if scenario.query_refuse == "prepare" then error ("wpn-case-error reason=target_model_unsupported host_id=" .. id, 0) end
+					-- the REAL bridge delivers the named, non-poison refusal as `eech: bad argument: <the case's report>` (eech-dc lua_error over keep_case_reason)
+					if scenario.query_refuse == "prepare" then error ("eech: bad argument: wpn-case-error reason=target_model_unsupported host_id=" .. mq_enc (id), 0) end
+					if scenario.query_refuse == "prepare_lost" then error ("eech: bad argument: rejected by the engine", 0) end
 					latched_query = id
-					local lines = { "wpn-moving-query-prepare host_id=" .. id .. " segments=3 target_type=routed_vehicle radius=0x41200000" }
+					local lines = { "wpn-moving-query-prepare host_id=" .. mq_enc (id) .. " segments=3 target_type=ENTITY_TYPE_ROUTED_VEHICLE radius=0x41200000" }
 					for k = 0, 2 do
 						local a, b = segment_text (k)
-						lines [#lines + 1] = "wpn-moving-query-segment seg=" .. k .. " bearing=0x3f060a92 a=" .. a .. " b=" .. b
+						lines [#lines + 1] = "wpn-moving-query-segment seg=" .. k .. " bearing=" .. MQ_BEARING_WORDS [k + 1] .. " a=" .. a .. " b=" .. b
 					end
-					return table.concat (lines, "\n") .. "\n"
+					local text = table.concat (lines, "\n") .. "\n"
+					if scenario.query_fault and string.sub (scenario.query_fault, 1, 8) == "prepare_" then text = mq_fault (scenario.query_fault, text) end
+					return text
 				end
 				function engine:wpn_moving_query_run ()
 					MQ_CALLS [#MQ_CALLS + 1] = "run@" .. now
-					if scenario.query_refuse == "run" then error ("wpn-case-error reason=target_not_alive", 0) end
-					local lines = { "wpn-moving-query-run host_id=" .. tostring (latched_query) .. " segments=3" }
+					if scenario.query_refuse == "run" then error ("eech: bad argument: wpn-case-error reason=target_not_alive host_id=" .. mq_enc (tostring (latched_query)), 0) end
+					local lines = { "wpn-moving-query-run host_id=" .. mq_enc (tostring (latched_query)) .. " segments=3" }
 					for k = 0, 2 do
 						-- the production caller's questions about the target: the hosted module asks the host, the original asks nothing
 						if not scenario.query_original then scan_walk (function () candidate_dialogue () end) end
@@ -524,13 +573,22 @@ package.preload.eech_dc = function ()
 						if scenario.query_segment_changed and k == 2 then a = "0x41000000,0x41000001,0x41000003" end
 						local head = "wpn-moving-query-result seg=" .. k .. " hit=" .. ((scenario.query_hits or { 1, 0, 1 }) [k + 1]) .. " a=" .. a .. " b=" .. b
 						if (scenario.query_hits or { 1, 0, 1 }) [k + 1] == 1 then
-							lines [#lines + 1] = head .. " hit_is_target=1 hit_type=routed_vehicle hit_host_id=" .. tostring (latched_query) .. " point=0x42000000,0x42000001,0x42000002 normal=0x00000000,0x3f800000,0x00000000"
+							if scenario.query_other_hit_exotic and k == 0 then
+								-- a hit of ANOTHER entity, whose roster identity is the exotic maximum one, and a hit entity that has no roster identity
+								lines [#lines + 1] = head .. " hit_is_target=0 hit_type=ENTITY_TYPE_HELICOPTER hit_host_id=" .. mq_enc (EXOTIC_ID) .. " point=0xffffffff,0x7fc00001,0x80000000 normal=0x00000000,0x3f800000,0x00000000"
+							elseif scenario.query_building_hit and k == 0 then
+								lines [#lines + 1] = head .. " hit_is_target=0 hit_type=ENTITY_TYPE_CITY_BUILDING hit_host_id=- point=0x42000000,0x42000001,0x42000002 normal=0x00000000,0x3f800000,0x00000000"
+							else
+								lines [#lines + 1] = head .. " hit_is_target=1 hit_type=ENTITY_TYPE_ROUTED_VEHICLE hit_host_id=" .. mq_enc (tostring (latched_query)) .. " point=0x42000000,0x42000001,0x42000002 normal=0x00000000,0x3f800000,0x00000000"
+							end
 						else
 							lines [#lines + 1] = head .. " hit_is_target=0 hit_type=none hit_host_id=- point=- normal=-"
 						end
 					end
 					latched_query = nil
-					return table.concat (lines, "\n") .. "\n"
+					local text = table.concat (lines, "\n") .. "\n"
+					if scenario.query_fault and string.sub (scenario.query_fault, 1, 4) == "run_" then text = mq_fault (scenario.query_fault, text) end
+					return text
 				end
 			end
 			function engine:wpn_events ()
@@ -2392,7 +2450,7 @@ fn the_controlled_query_latches_three_segments_about_the_first_moving_routed_veh
     let prepared = row_of(&driven, "query_prepared");
     assert_eq!(
         (prepared["target"].clone(), prepared["target_type"].clone()),
-        (Value::from("eech-world:2"), Value::from("routed_vehicle"))
+        (Value::from("eech-world:2"), Value::from("ENTITY_TYPE_ROUTED_VEHICLE"))
     );
     let row = query_row(&driven);
     assert_eq!(row["completed"], true);
@@ -2428,7 +2486,11 @@ fn the_controlled_query_latches_three_segments_about_the_first_moving_routed_veh
     assert!(!driven.caller_mutated);
 
     // the changed mode lifts ONLY the target's own host step of that one frame; the latched segments are the same; the target's questions followed the lifted step
-    let lifted = drive(&query_scenario(""), &[("mode", "moving_query_lift")]);
+    let control_signature = row["query_signature"].as_str().unwrap().to_string();
+    let lifted = drive(
+        &query_scenario(", query_hits = { 1, 0, 0 }"),
+        &[("mode", "moving_query_lift"), ("control_signature", &control_signature)],
+    );
     assert!(lifted.result.is_ok(), "{:?}\n{}", lifted.result, lifted.rows);
     let changed = query_row(&lifted);
     assert_eq!(changed["completed"], true);
@@ -2483,9 +2545,12 @@ fn a_query_case_that_cannot_be_prepared_or_covered_is_an_exact_unreached_and_nev
         error.contains("UNREACHED: the controlled query case refused wpn_moving_query_run") && error.contains("target_not_alive"),
         "{error}"
     );
+    // the case's named refusal reaches the driver in the form the REAL bridge delivers it; a failure that lost its reason is not a refusal of the case
+    let error = error_of(drive(&query_scenario(", query_refuse = 'prepare_lost'"), &control));
+    assert!(error.contains("without a named case refusal"), "{error}");
     // the segments asked must be the ones latched before the frame
     let error = error_of(drive(&query_scenario(", query_segment_changed = true"), &control));
-    assert!(error.contains("not the segment latched before the frame"), "{error}");
+    assert!(error.contains("malformed") && error.contains("is not the prepared segment"), "{error}");
     // a module without the surface is not the weapon fixture
     let error = error_of(drive(&query_scenario(", no_query_surface = true"), &control));
     assert!(error.contains("no controlled moving query surface"), "{error}");
@@ -2506,15 +2571,148 @@ fn a_query_case_that_cannot_be_prepared_or_covered_is_an_exact_unreached_and_nev
     let error = error_of(drive(&query_scenario(", unnamed_candidate = true"), &control));
     assert!(error.contains("carried no host identity"), "{error}");
     // the lift is bounded by the step's own map ceiling and a refused lift is UNREACHED
-    let error = error_of(drive(&query_scenario(", ceiling = 100"), &[("mode", "moving_query_lift")]));
+    let lift = [("mode", "moving_query_lift"), ("control_signature", "x")];
+    let error = error_of(drive(&query_scenario(", ceiling = 100"), &lift));
     assert!(error.contains("UNREACHED: moving_query_lift lifted no step"), "{error}");
     // a host answer that does not take the lifted input is a failure
-    let error = error_of(drive(&query_scenario(", answer_ignores_lift = true"), &[("mode", "moving_query_lift")]));
+    let error = error_of(drive(&query_scenario(", answer_ignores_lift = true"), &lift));
     assert!(error.contains("not at the lifted elevation"), "{error}");
     // a conformance difference stops the engine and is never a pass
     let driven = drive(&query_scenario(", pose_difference = 21"), &control);
     assert!(driven.result.is_err(), "{}", driven.rows);
     assert_eq!(query_row(&driven)["failure_marker"], "entity_pose.mirror");
+}
+
+/// The roster identity of 128 bytes the scripted collaborator names, and its encoding computed here independently of the driver and of the scripted encoder (the C codec's rule: ASCII letters, digits and
+/// `._~` stay, every other byte is `%XX` in upper-case hexadecimal).
+fn exotic_identity() -> Vec<u8> {
+    let cycle: [u8; 18] = [32, 10, 97, 9, 37, 195, 169, 45, 61, 13, 90, 226, 130, 172, 126, 46, 95, 57];
+    (0..128).map(|k| cycle[k % cycle.len()]).collect()
+}
+
+fn encoded_identity(bytes: &[u8]) -> String {
+    bytes
+        .iter()
+        .map(|&b| {
+            if b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b'~') {
+                (b as char).to_string()
+            } else {
+                format!("%{b:02X}")
+            }
+        })
+        .collect()
+}
+
+#[test]
+fn a_complete_c_shaped_report_with_a_maximum_whitespace_and_utf8_identity_and_a_building_hit_is_accepted_and_reported_exactly() {
+    let encoded = encoded_identity(&exotic_identity());
+    let driven = drive(&query_scenario(", query_other_hit_exotic = true"), &[("mode", "moving_query_control")]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let segments: Vec<Value> = rows(&driven).into_iter().filter(|r| r["event"] == "query_segment").collect();
+    assert_eq!(segments.len(), 3);
+    // the other entity's identity is carried canonically encoded (no whitespace, exactly the independently encoded bytes), its type is the compiled name, and the hit's words are kept as printed
+    assert_eq!(segments[0]["hit_host_id"], Value::from(encoded.clone()));
+    assert!(!encoded.chars().any(|c| c.is_whitespace()) && encoded.len() > 128, "{encoded}");
+    assert_eq!(segments[0]["hit_type"], "ENTITY_TYPE_HELICOPTER");
+    assert_eq!(segments[0]["hit_is_target"], 0);
+    assert_eq!(segments[0]["point"], "0xffffffff,0x7fc00001,0x80000000");
+    assert!(query_row(&driven)["query_signature"].as_str().unwrap().contains(&encoded));
+    // a hit entity with no roster identity carries `-`, which is never an identity
+    let driven = drive(&query_scenario(", query_building_hit = true"), &[("mode", "moving_query_control")]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let segments: Vec<Value> = rows(&driven).into_iter().filter(|r| r["event"] == "query_segment").collect();
+    assert_eq!(
+        (segments[0]["hit_type"].clone(), segments[0]["hit_host_id"].clone()),
+        (Value::from("ENTITY_TYPE_CITY_BUILDING"), Value::from("-"))
+    );
+}
+
+#[test]
+fn every_single_fault_in_a_prepare_or_run_report_stops_the_witness_and_a_complete_report_does_not() {
+    let control = [("mode", "moving_query_control")];
+    // (the scripted single fault, the part of the witness failure that names it)
+    let faults: [(&str, &str); 27] = [
+        ("prepare_unknown_record", "prepare report has 5 records"),
+        ("prepare_missing_segment", "prepare report has 3 records"),
+        ("prepare_duplicate_segment", "out of order"),
+        ("prepare_other_target", "does not name the target"),
+        ("prepare_bad_bearing", "undeclared bearing"),
+        ("prepare_nonfinite_endpoint", "non-finite endpoint"),
+        ("prepare_wrong_type", "segment count or target type"),
+        ("prepare_double_space", "not single-spaced"),
+        ("prepare_extra_key", "with 4 keys"),
+        ("prepare_no_newline", "newline-terminated"),
+        ("run_extra_row", "run report has 5 records"),
+        ("run_missing_row", "run report has 3 records"),
+        ("run_other_target", "does not name the target"),
+        ("run_hit_without_point", "three point words and three normal words"),
+        ("run_hit_two_normal_words", "three point words and three normal words"),
+        ("run_miss_with_point", "miss that carries hit fields"),
+        ("run_miss_with_identity", "miss that carries hit fields"),
+        ("run_target_flag_with_other_identity", "identity or type is not"),
+        ("run_bad_encoding", "not a canonical encoding"),
+        ("run_lowercase_escape", "not a canonical encoding"),
+        ("run_non_canonical_escape", "not a canonical encoding"),
+        ("run_short_word", "three point words and three normal words"),
+        ("run_unknown_key", "with 9 keys"),
+        ("run_reordered_keys", "unknown or out of order"),
+        ("run_bad_hit_flag", "carries hit=2"),
+        ("run_hit_is_target_unknown", "no hit_is_target flag"),
+        ("run_trailing_space", "not single-spaced"),
+    ];
+    for (fault, expected) in faults {
+        let driven = drive(&query_scenario(&format!(", query_fault = '{fault}'")), &control);
+        let rows_text = driven.rows.clone();
+        let error = error_of(driven);
+        assert!(error.contains("malformed") && error.contains(expected), "{fault}: {error}");
+        // no completed result is ever published for a malformed report
+        assert!(
+            !rows_text.contains("\"event\":\"query_authority\"") || !rows_text.contains("\"completed\":true"),
+            "{fault}: {rows_text}"
+        );
+    }
+}
+
+#[test]
+fn the_lifted_query_is_service_evidence_only_with_a_post_lift_offer_and_a_changed_physical_result_and_may_skip_the_narrow_phase() {
+    let lift = |signature: &'static str| [("mode", "moving_query_lift"), ("control_signature", signature)];
+    // the control's physical result, as the control run would report it
+    let control = drive(&query_scenario(""), &[("mode", "moving_query_control")]);
+    let signature = query_row(&control)["query_signature"].as_str().unwrap().to_string();
+    let signature: &'static str = Box::leak(signature.into_boxed_str());
+    // the lifted target is offered after the lift and skipped by the broad phase (no need_updated, no test, no 16-word pose), and the physical result changed: accepted
+    let driven = drive(&query_scenario(", candidate_sequence = { 'skip' }, query_hits = { 0, 0, 0 }"), &lift(signature));
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let row = query_row(&driven);
+    assert_eq!(
+        (
+            row["target_after_lift"].clone(),
+            row["target_need_updated"].clone(),
+            row["target_test"].clone(),
+            row["target_test_moving16"].clone(),
+            row["query_hits"].clone()
+        ),
+        (Value::from(3), Value::from(0), Value::from(0), Value::from(0), Value::from(0)),
+        "{row}"
+    );
+    // the same lifted run whose physical result equals the control's is not changed-pose authority
+    let error = error_of(drive(&query_scenario(""), &lift(signature)));
+    assert!(error.contains("UNCHANGED") && error.contains("changed no output"), "{error}");
+    // a changed result with no control signature supplied is not compared, so it is not closed
+    let error = error_of(drive(&query_scenario(", query_hits = { 0, 0, 0 }"), &[("mode", "moving_query_lift")]));
+    assert!(error.contains("needs control_signature="), "{error}");
+    // no question about the target after the lift is UNREACHED, whatever the pre-phase counts were (the unlifted control still needs its strict moving path)
+    let error = error_of(drive(
+        &query_scenario(", query_hits = { 0, 0, 0 }, candidate_id = 'eech-world:3'"),
+        &lift(signature),
+    ));
+    assert!(error.contains("UNREACHED") && error.contains("followed the lifted step"), "{error}");
+    // the control (A) keeps its strict moving predicates even where B may skip
+    let error = error_of(drive(&query_scenario(", candidate_sequence = { 'skip' }"), &[("mode", "moving_query_control")]));
+    assert!(
+        error.contains("UNREACHED: moving_query_control") && error.contains("never asked need_updated"),
+        "{error}"
+    );
 }
 
 #[test]

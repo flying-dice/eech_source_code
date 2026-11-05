@@ -66,13 +66,46 @@ fn check(code: c_int) -> Result<(), EngineError> {
     feature = "collision-fixture"
 ))]
 fn keep_case_reason(status: Result<(), EngineError>, text: &[std::os::raw::c_char]) -> Result<String, EngineError> {
-    // SAFETY: the buffer was zero-filled and the engine NUL-terminates anything it writes within it.
-    let report = unsafe { CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned();
+    // a fatal error, a poisoned engine or a state error never has its output buffer inspected: the engine stopped or refused before it wrote one, and nothing it may hold is a result
+    if let Err(error @ (EngineError::Fatal(_) | EngineError::Poisoned | EngineError::State)) = status {
+        return Err(error);
+    }
+    let report = case_report(text);
     match status {
         Ok(()) => Ok(report),
         Err(EngineError::BadArgument(_)) if !report.trim().is_empty() => Err(EngineError::BadArgument(report.trim().to_string())),
         Err(error) => Err(error),
     }
+}
+
+/// The report a case wrote: the bytes up to the first NUL inside the buffer (the buffer was zero-filled and the engine NUL-terminates anything it writes within it), never read past its length.
+#[cfg(any(
+    feature = "weapon-fixture",
+    feature = "env-fixture",
+    feature = "ground-fixture",
+    feature = "target-point-fixture",
+    feature = "collision-fixture"
+))]
+fn case_report(text: &[std::os::raw::c_char]) -> String {
+    #[cfg(test)]
+    CASE_REPORT_READS.with(|reads| reads.set(reads.get() + 1));
+    let bytes: Vec<u8> = text.iter().take_while(|&&c| c != 0).map(|&c| c as u8).collect();
+    String::from_utf8_lossy(&bytes).into_owned()
+}
+
+// Test seam: how many times this thread read a case report buffer (defined wherever `case_report`, which increments it, is compiled for a test).
+#[cfg(all(
+    test,
+    any(
+        feature = "weapon-fixture",
+        feature = "env-fixture",
+        feature = "ground-fixture",
+        feature = "target-point-fixture",
+        feature = "collision-fixture"
+    )
+))]
+thread_local! {
+    static CASE_REPORT_READS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
 }
 
 fn cstring(s: &str) -> Result<CString, EngineError> {
@@ -1038,6 +1071,11 @@ pub const TARGET_POINT_GENERATIONS_MAX: i32 = 4;
 /// TEST-ONLY (feature `weapon-fixture`): room for one weapon-execution report or one chunk of the event log; a report that does not fit is refused, never cut short.
 #[cfg(feature = "weapon-fixture")]
 const WPN_REPORT_CAPACITY: usize = 160 * 1024;
+
+/// The controlled moving entity query case's report buffer (EEDCS-49, D3): the engine proves, before its first query, that the worst-case report of every record it can produce fits the capacity it is
+/// given (csrc/eech_mq_report.h), and refuses by name otherwise.
+#[cfg(feature = "weapon-fixture")]
+const WPN_MOVING_QUERY_REPORT_CAPACITY: usize = 4096;
 
 /// TEST-ONLY (feature `env-fixture`): room for one case of the session environment characterisation; a report that does not fit is refused by the engine, never cut short.
 #[cfg(feature = "env-fixture")]
@@ -7264,21 +7302,21 @@ impl Engine {
     #[cfg(feature = "weapon-fixture")]
     pub fn wpn_moving_query_prepare(&self, host_id: &str) -> Result<String, EngineError> {
         let host_id = std::ffi::CString::new(host_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
-        let mut text = vec![0 as std::os::raw::c_char; 4096];
+        let mut text = vec![0 as std::os::raw::c_char; WPN_MOVING_QUERY_REPORT_CAPACITY];
         // SAFETY: the string and the buffer outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
-        check(unsafe { sys::eech_engine_wpn_moving_query_prepare(host_id.as_ptr(), text.as_mut_ptr(), text.len() as i32) })?;
-        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
-        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+        let status = check(unsafe { sys::eech_engine_wpn_moving_query_prepare(host_id.as_ptr(), text.as_mut_ptr(), text.len() as i32) });
+        // the case's named refusal (`wpn-case-error reason=...`) survives the bridge; a fatal or poisoned engine is reported without its buffer being read
+        keep_case_reason(status, &text)
     }
 
     /// TEST-ONLY (feature `weapon-fixture`, EEDCS-49 D3): asks the production entity query for the latched segments (one-shot) and reports each result as `key=value` text.
     #[cfg(feature = "weapon-fixture")]
     pub fn wpn_moving_query_run(&self) -> Result<String, EngineError> {
-        let mut text = vec![0 as std::os::raw::c_char; 4096];
+        let mut text = vec![0 as std::os::raw::c_char; WPN_MOVING_QUERY_REPORT_CAPACITY];
         // SAFETY: the buffer outlives the call and the capacity passed is the buffer length; the engine NUL-terminates it.
-        check(unsafe { sys::eech_engine_wpn_moving_query_run(text.as_mut_ptr(), text.len() as i32) })?;
-        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
-        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+        let status = check(unsafe { sys::eech_engine_wpn_moving_query_run(text.as_mut_ptr(), text.len() as i32) });
+        // the case's named refusal survives the bridge; a fatal or poisoned engine is reported without its buffer being read
+        keep_case_reason(status, &text)
     }
 
     /// TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the entity kind of a roster host id from its type field alone, as `key=value` text (`found=0` for an unknown id).
@@ -13942,5 +13980,63 @@ mod tests {
                 );
             }
         }
+    }
+}
+
+/// The bridge of a controlled case's named refusal (EEDCS-49, D3): the report buffer is read only for a success and for the non-poison argument refusal.
+#[cfg(all(test, feature = "weapon-fixture"))]
+mod case_refusal_bridge_tests {
+    use super::*;
+
+    fn bytes(text: &str) -> Vec<std::os::raw::c_char> {
+        let mut buffer = vec![0 as std::os::raw::c_char; 256];
+        for (slot, byte) in buffer.iter_mut().zip(text.bytes()) {
+            *slot = byte as std::os::raw::c_char;
+        }
+        buffer
+    }
+
+    /// the result of the bridge and how many times it read the report buffer
+    fn bridged(status: Result<(), EngineError>, report: &str) -> (Result<String, EngineError>, usize) {
+        let before = CASE_REPORT_READS.with(|reads| reads.get());
+        let result = keep_case_reason(status, &bytes(report));
+        (result, CASE_REPORT_READS.with(|reads| reads.get()) - before)
+    }
+
+    #[test]
+    fn a_named_non_poison_refusal_survives_the_bridge_and_a_fatal_or_poisoned_engine_never_reads_the_buffer() {
+        const NAMED: &str = "wpn-case-error reason=target_not_alive host_id=a%0Ab\n";
+        // success: the report itself
+        let (result, reads) = bridged(Ok(()), "report\n");
+        assert!(matches!(result, Ok(ref text) if text == "report\n") && reads == 1);
+        // the real engine entry returns the argument status, which `check` turns into the generic text: the case's named reason replaces it, trimmed
+        let (result, reads) = bridged(check(sys::EECH_ENGINE_BAD_ARGUMENT), NAMED);
+        assert!(matches!(result, Err(EngineError::BadArgument(ref text)) if text == NAMED.trim()) && reads == 1);
+        // a refusal that wrote nothing keeps the generic text
+        let (result, _) = bridged(check(sys::EECH_ENGINE_BAD_ARGUMENT), "  \n");
+        assert!(matches!(result, Err(EngineError::BadArgument(ref text)) if text == "rejected by the engine"));
+        // a fatal error, a poisoned engine and a state error return their own error and do not inspect the buffer, whatever it holds
+        for status in [
+            Err(EngineError::Fatal("stopped".into())),
+            check(sys::EECH_ENGINE_POISONED),
+            check(sys::EECH_ENGINE_STATE),
+        ] {
+            let expected = format!("{status:?}");
+            let (result, reads) = bridged(status, NAMED);
+            assert_eq!(reads, 0, "the buffer was inspected after {expected}");
+            assert_eq!(format!("{result:?}"), expected);
+        }
+    }
+
+    #[test]
+    fn the_report_is_the_bytes_before_the_first_nul_inside_the_buffer() {
+        let mut text = vec![0 as std::os::raw::c_char; 8];
+        for (slot, byte) in text.iter_mut().zip(b"ab") {
+            *slot = *byte as std::os::raw::c_char;
+        }
+        assert!(matches!(keep_case_reason(Ok(()), &text), Ok(ref report) if report == "ab"));
+        // an unterminated buffer is bounded by its own length, never read past it
+        let full = vec![b'x' as std::os::raw::c_char; 4];
+        assert!(matches!(keep_case_reason(Ok(()), &full), Ok(ref report) if report == "xxxx"));
     }
 }

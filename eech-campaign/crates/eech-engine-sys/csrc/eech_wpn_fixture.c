@@ -42,6 +42,7 @@
 
 #include "eech_engine.h"
 #include "eech_headless.h"
+#include "eech_mq_report.h"
 #include "entity/mobile/mb_wpnfx.h"
 #include "entity/mobile/mb_hostaim.h"
 
@@ -1975,17 +1976,15 @@ int eech_wpn_case_launch_run (const char *launcher_id, const char *target_id, in
  *             bearings 0, 1 and 2, reach radius + 20 m, y at the middle of the model's bounding box without lines, centred on the entity's position at this moment). The position and the
  *             model reads only construct the explicit query INPUTS; they are not an expected answer. An unsupported target or model (no bounds, a non-finite value, a kind other than a routed
  *             vehicle, not collidable, not alive) is a named failure and latches nothing: it is never converted into a miss.
- *   run       validates everything BEFORE the first query (a latched case, the identity still naming an alive routed vehicle, the report capacity), then asks the production function for
- *             each of the three latched segments, exactly as the recipe does (no source, no target exclusion; the intercept point zeroed first; the face normal left unwritten) and reports
- *             hit or miss, the kind and semantic host identity of a hit and, for a HIT only, the intercept point and the face normal as bit patterns. A miss reports no output word: they are
- *             never read. The latch is consumed: a second run needs a new prepare. No pointer, heap index or layout is stored or reported; the target is looked up again by its host id.
+ *   run       validates everything BEFORE the first query (the report capacity proved from the worst case of every report, a latched case, the identity still naming an alive routed vehicle),
+ *             then asks the production function for each of the three latched segments, exactly as the recipe does (no source, no target exclusion; the intercept point and the face normal
+ *             are zeroed locally first, which is not a physical oracle and is never read on a miss) and reports hit or miss, the kind and semantic host identity of a hit and, for a HIT only, the
+ *             intercept point and the face normal as bit patterns. A miss reports no output word: they are never read. The latch is consumed: a second run needs a new prepare. No pointer,
+ *             heap index or layout is stored or reported; the target is looked up again by its host id.
+ *             Every identity in a report is the ENCODED identity of eech_mq_report.h (reversible, no whitespace), so any roster identity of 1 to 128 bytes is reported exactly.
  * The queries are the original production caller: the effects of its getters (the whole-word AND of the UPDATED flag and the shared terrain point record) happen exactly as in any scan and
  * are neither observed nor restored here. Nothing is moved, created or destroyed.
  */
-#define MQ_SEGMENTS 3
-#define MQ_ID_MAX 128
-#define MQ_REPORT_MIN 3072
-
 static const float mq_bearings[MQ_SEGMENTS] = { 0.5235988f, 2.0943951f, 3.6651914f };
 
 static struct
@@ -2003,35 +2002,73 @@ static uint32_t mq_bits (float value)
 	return bits;
 }
 
+static void mq_words (const vec3d *v, uint32_t words[3])
+{
+	words[0] = mq_bits (v->x);
+	words[1] = mq_bits (v->y);
+	words[2] = mq_bits (v->z);
+}
+
 static int mq_finite3 (const vec3d *v)
 {
 	return isfinite (v->x) && isfinite (v->y) && isfinite (v->z);
 }
 
-static int mq_append (char *text, int capacity, int *used, const char *format, ...)
-{
-	va_list args;
-	int n;
-	if (*used >= capacity)
-	{
-		return -1;
-	}
-	va_start (args, format);
-	n = vsnprintf (text + *used, (size_t) (capacity - *used), format, args);
-	va_end (args);
-	if (n < 0 || n >= capacity - *used)
-	{
-		return -1;
-	}
-	*used += n;
-	return 0;
-}
-
+/* the refusal: a NAMED reason with the encoded identity, in the report buffer the engine entry returns with the non-poison argument status (the Rust bridge keeps it) */
 static int mq_error (char *text, int capacity, const char *reason, const char *host_id)
 {
+	char encoded[MQ_ID_ENCODED_MAX + 1];
+
 	mq.latched = 0;
-	snprintf (text, (size_t) capacity, "wpn-case-error reason=%s host_id=%s\n", reason, host_id);
+	if (host_id == NULL || mq_encode_id (host_id, encoded, sizeof (encoded)) < 0)
+	{
+		snprintf (encoded, sizeof (encoded), "-");
+	}
+	if (mq_format_error (text, (size_t) capacity, reason, encoded) < 0)
+	{
+		snprintf (text, (size_t) capacity, "wpn-case-error reason=capacity host_id=-\n");
+	}
 	return -1;
+}
+
+/* a defect of the report itself after the queries ran: a NAMED refusal replaces whatever was written, never a partial report that could be read as a result */
+static int mq_internal (char *text, int capacity, const char *reason)
+{
+	mq.latched = 0;
+	if (mq_format_error (text, (size_t) capacity, reason, "-") < 0)
+	{
+		text[0] = 0;
+	}
+	return -1;
+}
+
+/* the longest compiled entity type name, or -1 when one is longer than the report allows or holds a whitespace byte (the names are `ENTITY_TYPE_...`): every type a hit may report is bounded here */
+static int mq_type_names_max (void)
+{
+	int longest = 0, type;
+
+	for (type = 0; type < NUM_ENTITY_TYPES; type++)
+	{
+		const char *name = get_entity_type_name ((entity_types) type);
+		size_t length = name ? strlen (name) : 0, k;
+
+		if (length < 1 || length > MQ_TYPE_NAME_MAX)
+		{
+			return -1;
+		}
+		for (k = 0; k < length; k++)
+		{
+			if ((unsigned char) name[k] <= ' ' || (unsigned char) name[k] > '~')
+			{
+				return -1;
+			}
+		}
+		if ((int) length > longest)
+		{
+			longest = (int) length;
+		}
+	}
+	return longest;
 }
 
 /* the target's identity and kind checks shared by prepare and run: NULL and a reason when the id does not name a live, alive, collidable routed vehicle */
@@ -2061,26 +2098,39 @@ static entity *mq_target (const char *host_id, const char **reason)
 	return en;
 }
 
+/* the report capacity, proved from the worst case of EVERY report this case can produce (see eech_mq_report.h) before anything is read or queried */
+static int mq_capacity_refusal (char *text, int capacity)
+{
+	int type_max = mq_type_names_max ();
+
+	text[0] = 0;
+	if (type_max < 0 || !mq_capacity_holds (capacity, (size_t) type_max))
+	{
+		snprintf (text, (size_t) capacity, "wpn-case-error reason=capacity host_id=-\n");
+		return -1;
+	}
+	return 0;
+}
+
 int eech_wpn_moving_query_prepare_run (const char *host_id, char *text, int capacity)
 {
 	const char *reason;
+	char encoded[MQ_ID_ENCODED_MAX + 1], line[MQ_REPORT_SCRATCH];
 	entity *en;
 	vec3d *position;
-	int index, k, used = 0;
+	int index, k, n, used = 0;
 	float radius, reach, ymid;
 	object_3d_bounds *bounds;
-	size_t length = strlen (host_id);
+	uint32_t a[3], b[3];
 
-	text[0] = 0;
 	mq.latched = 0;
-	if (capacity < MQ_REPORT_MIN)
+	if (mq_capacity_refusal (text, capacity))
 	{
-		snprintf (text, (size_t) capacity, "wpn-case-error reason=capacity\n");
 		return -1;
 	}
-	if (length < 1 || length > MQ_ID_MAX)
+	if (mq_encode_id (host_id, encoded, sizeof (encoded)) < 0)
 	{
-		snprintf (text, (size_t) capacity, "wpn-case-error reason=host_id_domain\n");
+		snprintf (text, (size_t) capacity, "wpn-case-error reason=host_id_domain host_id=-\n");
 		return -1;
 	}
 	en = mq_target (host_id, &reason);
@@ -2116,85 +2166,98 @@ int eech_wpn_moving_query_prepare_run (const char *host_id, char *text, int capa
 			return mq_error (text, capacity, "segment_not_finite", host_id);
 		}
 	}
-	snprintf (mq.host_id, sizeof (mq.host_id), "%s", host_id);
-	mq.latched = 1;
-	if (mq_append (text, capacity, &used, "wpn-moving-query-prepare host_id=%s segments=%d target_type=%s radius=0x%08x\n", host_id, MQ_SEGMENTS,
-		get_entity_type_name ((entity_types) en->type), mq_bits (radius)))
+	n = mq_format_prepare_header (line, sizeof (line), encoded, get_entity_type_name ((entity_types) en->type), mq_bits (radius));
+	if (n < 0 || n >= capacity - used)
 	{
 		return mq_error (text, capacity, "capacity", host_id);
 	}
+	memcpy (text + used, line, (size_t) n + 1);
+	used += n;
 	for (k = 0; k < MQ_SEGMENTS; k++)
 	{
-		if (mq_append (text, capacity, &used, "wpn-moving-query-segment seg=%d bearing=0x%08x a=0x%08x,0x%08x,0x%08x b=0x%08x,0x%08x,0x%08x\n", k, mq_bits (mq_bearings[k]),
-			mq_bits (mq.a[k].x), mq_bits (mq.a[k].y), mq_bits (mq.a[k].z), mq_bits (mq.b[k].x), mq_bits (mq.b[k].y), mq_bits (mq.b[k].z)))
+		mq_words (&mq.a[k], a);
+		mq_words (&mq.b[k], b);
+		n = mq_format_segment (line, sizeof (line), k, mq_bits (mq_bearings[k]), a, b);
+		if (n < 0 || n >= capacity - used)
 		{
 			return mq_error (text, capacity, "capacity", host_id);
 		}
+		memcpy (text + used, line, (size_t) n + 1);
+		used += n;
 	}
+	snprintf (mq.host_id, sizeof (mq.host_id), "%s", host_id);
+	mq.latched = 1;
 	return 0;
 }
 
 int eech_wpn_moving_query_run (char *text, int capacity)
 {
 	const char *reason;
+	char encoded[MQ_ID_ENCODED_MAX + 1], line[MQ_REPORT_SCRATCH];
 	entity *en;
-	int k, used = 0;
+	int k, n, used = 0;
 
-	text[0] = 0;
-	if (capacity < MQ_REPORT_MIN)
+	/* every check precedes the first query: the report capacity from the worst case of every report, the latch, and the identity (looked up again: no pointer was kept) naming an alive collidable routed vehicle */
+	if (mq_capacity_refusal (text, capacity))
 	{
-		snprintf (text, (size_t) capacity, "wpn-case-error reason=capacity\n");
 		return -1;
 	}
 	if (!mq.latched)
 	{
-		snprintf (text, (size_t) capacity, "wpn-case-error reason=not_latched\n");
+		snprintf (text, (size_t) capacity, "wpn-case-error reason=not_latched host_id=-\n");
 		return -1;
 	}
-	/* every check precedes the first query: the identity is looked up again (no pointer was kept) and must still name an alive collidable routed vehicle */
 	en = mq_target (mq.host_id, &reason);
 	if (!en)
 	{
 		return mq_error (text, capacity, reason, mq.host_id);
 	}
-	if (mq_append (text, capacity, &used, "wpn-moving-query-run host_id=%s segments=%d\n", mq.host_id, MQ_SEGMENTS))
+	if (mq_encode_id (mq.host_id, encoded, sizeof (encoded)) < 0)
+	{
+		return mq_error (text, capacity, "host_id_domain", NULL);
+	}
+	n = mq_format_run_header (line, sizeof (line), encoded);
+	if (n < 0 || n >= capacity - used)
 	{
 		return mq_error (text, capacity, "capacity", mq.host_id);
 	}
+	memcpy (text + used, line, (size_t) n + 1);
+	used += n;
 	mq.latched = 0;
 	for (k = 0; k < MQ_SEGMENTS; k++)
 	{
 		vec3d a = mq.a[k], b = mq.b[k], point, normal;
 		entity *hit;
 		const char *hit_id;
-		char out[320];
-		int n;
+		char encoded_hit[MQ_ID_ENCODED_MAX + 1];
+		uint32_t aw[3], bw[3], pw[3] = { 0, 0, 0 }, nw[3] = { 0, 0, 0 };
 
 		point.x = point.y = point.z = 0.0f;
 		normal.x = normal.y = normal.z = 0.0f;
 		hit = get_line_of_sight_collision_entity (NULL, NULL, &a, &b, &point, &normal);
-		n = snprintf (out, sizeof (out), "wpn-moving-query-result seg=%d hit=%d a=0x%08x,0x%08x,0x%08x b=0x%08x,0x%08x,0x%08x", k, hit ? 1 : 0, mq_bits (mq.a[k].x), mq_bits (mq.a[k].y),
-			mq_bits (mq.a[k].z), mq_bits (mq.b[k].x), mq_bits (mq.b[k].y), mq_bits (mq.b[k].z));
-		if (n < 0 || n >= (int) sizeof (out))
-		{
-			return -1;
-		}
+		mq_words (&mq.a[k], aw);
+		mq_words (&mq.b[k], bw);
+		encoded_hit[0] = 0;
 		if (hit)
 		{
 			hit_id = case_entity_live (hit) ? campaign_roster_host_id (hit) : NULL;
 			/* the intercept point and the face normal are assigned on a hit (the contract); on a miss nothing is read */
-			n += snprintf (out + n, sizeof (out) - (size_t) n, " hit_is_target=%d hit_type=%s hit_host_id=%s point=0x%08x,0x%08x,0x%08x normal=0x%08x,0x%08x,0x%08x\n", hit == en ? 1 : 0,
-				get_entity_type_name ((entity_types) hit->type), hit_id ? hit_id : "-", mq_bits (point.x), mq_bits (point.y), mq_bits (point.z), mq_bits (normal.x), mq_bits (normal.y),
-				mq_bits (normal.z));
+			mq_words (&point, pw);
+			mq_words (&normal, nw);
+			if (hit_id && mq_encode_id (hit_id, encoded_hit, sizeof (encoded_hit)) < 0)
+			{
+				/* the roster domain is 1 to MQ_ID_MAX bytes, so this cannot hold; it is an internal defect, never a silent miss */
+				return mq_internal (text, capacity, "report_identity_defect");
+			}
 		}
-		else
+		n = mq_format_result (line, sizeof (line), k, hit != NULL, aw, bw, hit == en, hit ? get_entity_type_name ((entity_types) hit->type) : "none", encoded_hit[0] ? encoded_hit : NULL, pw, nw);
+		if (n < 0 || n >= capacity - used)
 		{
-			n += snprintf (out + n, sizeof (out) - (size_t) n, " hit_is_target=0 hit_type=none hit_host_id=- point=- normal=-\n");
+			/* proved impossible before the first query (mq_capacity_refusal); a failure here is a defect of the bound */
+			return mq_internal (text, capacity, "report_bound_defect");
 		}
-		if (n < 0 || n >= (int) sizeof (out) || mq_append (text, capacity, &used, "%s", out))
-		{
-			return -1;
-		}
+		memcpy (text + used, line, (size_t) n + 1);
+		used += n;
 	}
 	return 0;
 }

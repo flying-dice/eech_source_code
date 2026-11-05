@@ -52,6 +52,9 @@ tree-dialogue-check = []
 # TEST-ONLY (EEDCS-49): the isolated control of the campaign's half of the host-owned entity collision narrow phase (csrc/eech_entity_dialogue_check.c). Never enabled in the shipping build.
 entity-dialogue-check = []
 
+# TEST-ONLY (EEDCS-49, D3): the isolated control of the controlled moving entity query case's report codec and bounds (csrc/eech_mq_report.h, csrc/eech_mq_report_check.c). Never enabled in the shipping build.
+mq-report-check = []
+
 # TEST-ONLY (EEDCS-50): the isolated control of the original-model read-safety walk; it needs the feature's C
 [[test]]
 name = "model_walk"
@@ -62,6 +65,11 @@ required-features = ["model-fixture"]
 name = "entity_dialogue"
 path = "tests/entity_dialogue.rs"
 required-features = ["entity-dialogue-check"]
+
+[[test]]
+name = "mq_report"
+path = "tests/mq_report.rs"
+required-features = ["mq-report-check"]
 
 [[test]]
 name = "tree_dialogue"

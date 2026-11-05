@@ -3522,12 +3522,19 @@ fn begin_person(record: &mut Record, begin: &PersonBegin) -> Outcome {
             death_timer: 0.0,
         };
     }
-    settle_person(&mut record.pose, &pending, false, 0.0)
+    // a man who does not follow the terrain settles in this one step: the vector the campaign applies from this answer is the one the host retains
+    let outcome = settle_person(&mut record.pose, &pending, false, 0.0);
+    record.motion_vector = Some(outcome.motion_vector);
+    outcome
 }
 
 fn end_person(record: &mut Record, end: &PersonEnd) -> Outcome {
     let pending = record.pending.take().expect("checked by the caller");
-    settle_person(&mut record.pose, &pending, true, end.elevation)
+    // the legacy person step wrote the man's motion vector (the increment over the frame time) at the end of his step: the host retains the vector of that boundary, which the campaign applies
+    // from the same answer (`apply_person_pose`). Between the phases the campaign applies nothing, so the retained vector is unchanged there.
+    let outcome = settle_person(&mut record.pose, &pending, true, end.elevation);
+    record.motion_vector = Some(outcome.motion_vector);
+    outcome
 }
 
 fn settle_person(pose: &mut Pose, pending: &Pending, terrain_follow: bool, elevation: f32) -> Outcome {
@@ -4218,6 +4225,76 @@ mod tests {
         movers
             .step("v", walked.pose, Request::PersonBegin(person_begin([0.0, 0.0, 100.0], 1.5, false)))
             .unwrap();
+    }
+
+    /// ENV-ENTITY-POSE-LONG-RUN-MOTION-1. The legacy person step wrote the man's motion vector (the increment over the frame time, a vertical part included) and the host solves that step, so the vector the
+    /// campaign applies from the host's answer is the vector the host must retain: the ordinary long run stopped at an infantryman whose retained vector was still the zero seed while the campaign's was his
+    /// walking vector. Real `Movers`, the real C person kernel; the observation is of the words the campaign holds after the answer.
+    #[test]
+    fn an_infantrymans_step_retains_the_motion_vector_the_campaign_applies() {
+        let observe_applied = |movers: &Movers, applied: &Outcome| match movers.observe(
+            "v",
+            &ObservedWords {
+                position: applied.pose.position.map(f32::to_bits),
+                motion: applied.motion_vector.map(f32::to_bits),
+                attitude: Some(applied.pose.attitude.map(f32::to_bits)),
+            },
+        ) {
+            Observation::Recorded { kind, difference } => {
+                assert_eq!(kind, Kind::Person);
+                difference
+            }
+            other => panic!("{other:?}"),
+        };
+        for terrain_follow in [false, true] {
+            let mut movers = movers(Kind::Person, pose(0.0, 0.0));
+            let mut campaign = pose(0.0, 0.0);
+            // the speed the animation chose each frame: walking, running, then a man who only turns (no distance), then walking again
+            for (frame, (ps_vel, waypoint)) in [
+                (1.0, [30.0, 3.0, 40.0]),
+                (3.0, [30.0, 3.0, 40.0]),
+                (0.0, [-20.0, 0.0, 5.0]),
+                (1.0, [-20.0, 0.0, 5.0]),
+            ]
+            .into_iter()
+            .enumerate()
+            {
+                let held_before = canonical_record(&movers, "v").motion;
+                let begun = movers
+                    .step("v", campaign, Request::PersonBegin(person_begin(waypoint, ps_vel, terrain_follow)))
+                    .unwrap();
+                let applied = if terrain_follow {
+                    // between the phases the campaign applies nothing and the host retains what it held
+                    assert!(begun.pending);
+                    assert_eq!(
+                        canonical_record(&movers, "v").motion,
+                        held_before,
+                        "frame {frame}: a pending begin leaves the retained vector as it was (its placeholder answer is never applied)"
+                    );
+                    movers.step("v", campaign, Request::PersonEnd(PersonEnd { elevation: 0.5 })).unwrap()
+                } else {
+                    begun
+                };
+                if ps_vel != 0.0 {
+                    assert!(
+                        applied.motion_vector.iter().any(|word| *word != 0.0),
+                        "frame {frame}: a walking man has a vector"
+                    );
+                }
+                assert_eq!(
+                    canonical_record(&movers, "v").motion,
+                    applied.motion_vector.map(f32::to_bits),
+                    "follow={terrain_follow} frame {frame}: the host retains the vector the campaign applies"
+                );
+                let difference = observe_applied(&movers, &applied);
+                assert_eq!(
+                    difference & (OBSERVED_POSITION | OBSERVED_ATTITUDE | OBSERVED_MOTION),
+                    0,
+                    "follow={terrain_follow} frame {frame}: the observation of the applied words reports difference mask {difference}"
+                );
+                campaign = applied.pose;
+            }
+        }
     }
 
     #[test]
