@@ -64,6 +64,23 @@
 -- The old entity_collision modes above are unchanged in what they alter. `control` is the NATURAL healthy control (nothing altered, no configured secondary input) and is the first thing Root runs;
 -- the paired modes are kept apart from it and are compared with each other, never with the natural control.
 --
+-- THE ENTITY_SCAN PATH (fourth slice; mb_hostmodel.h ENTITY_SCAN, 16 facts, 5 states). In the shipped module the host drives the ENUMERATION of the scan (the sector window, the traversal, the exclusions and the first-hit
+-- end) through `entity_scan` questions BEFORE any candidate is offered; the campaign only serves the host's cursor over its own sector lists (a transitional backing dependency). The request is scene 0 (a number), no
+-- depth, kind or definition, and the text place holds 16 comma-separated 0x%08x patterns: the segment (6), the sector side and the world map (5), the PHASE (0 BEGIN, 1 an entry is served, 2 the list has no more
+-- entries, 3 the offered entry is resolved), the cursor sector x and z the host last gave, whether the served entry is the source or the target, whether the offered entry hit. A real reply is { result } with `result` one
+-- of first, next, offer, done_none, done_hit; `first` alone carries `p`, two patterns (the sector x and z, whole numbers); every other state carries no `p` and no name (the reference host's empty name is accepted, a
+-- non-empty one is a fault). The wrapper counts the ARMED scan questions by phase and classifies their real answers (global to the war: no weapon identity) and delegates the operation byte for byte in every mode that does not
+-- alter it. Zero scan questions is UNREACHED, never authority.
+--
+--   scan_real             PAIRED CONTROL. The scan answers are the host's REAL ones; entity_collision is answered HIT (the existing forced-hit answer) whenever asked. That second answer is a CONFIGURED SECONDARY host
+--                         input held identically in BOTH paired modes. The real enumeration must reach the candidate dialogue, the narrow phase and the weapon step's hit count.
+--   scan_none             every armed BEGIN question is answered a valid DONE_NONE (an empty enumeration) and the SAME configured entity_collision hit if it is ever asked. It must receive positive scan questions and
+--                         prevent EVERY downstream candidate question, narrow-phase question and entity hit; the caller compares the cohort's physical signature with scan_real (never with the natural control).
+--   withheld_scan         the provider raises on the first armed scan question:                                  [model-provider:entity_scan.callback]
+--   bad_scan_state        the first armed BEGIN question is answered `next` (illegal at the start of a scan):       [model-provider:entity_scan.state]
+--   bad_scan_cursor       the first armed real FIRST is answered with a fractional sector x (0.5), the real z:  [model-provider:entity_scan.cursor]
+-- `control` stays the NATURAL healthy control (nothing altered, no configured secondary input); it now also requires a positive scan, candidate and narrow-phase chain. The earlier modes keep their own meaning.
+--
 -- THE CONTROLLED VIEW INPUT. See tree-authority.lua: the existing protocol's VIEW_WEAPON lookup answer (mb_hostaim.h, answered r0 by wn_move.c, f[7] in Lua) is set to 1 by an aim delegate over the
 -- unmodified host.aim on every armed weapon_step request, hosted and Original alike. It is a CONFIGURED, GLOBAL-while-armed diagnostic input (the protocol carries no weapon identity, so natural
 -- weapons are affected too), not a camera, not a per-weapon identity and not an entity call; the entity lookup, the questions and the counters stay measured. A run in which it never reached a
@@ -192,6 +209,25 @@ MODES.bad_candidate_identity = {
 	candidate = function (_, real) return { result = real.result, name = "NOT_THE_SCENE", p = real.p } end,
 	once = true, marker = "entity_candidate.identity",
 }
+-- the ENTITY_SCAN modes (see the header): the configured secondary input is the existing forced-hit entity_collision answer
+MODES.scan_real = { answer = MODES.forced_hit.answer, paired = true }
+MODES.scan_none = {
+	answer = MODES.forced_hit.answer, paired = true, no_downstream = true,
+	-- a valid empty enumeration, only at the start of a scan
+	scan = function () return { result = "done_none" } end,
+	eligible_scan = function (parsed) return parsed.phase == 0 end,
+}
+MODES.withheld_scan = { scan = function () error ("the host withholds its scan answer", 0) end, once = true, marker = "entity_scan.callback" }
+MODES.bad_scan_state = {
+	-- `next` is illegal at the start of a scan: no entry has been served
+	scan = function () return { result = "next" } end,
+	eligible_scan = function (parsed) return parsed.phase == 0 end, once = true, marker = "entity_scan.state",
+}
+MODES.bad_scan_cursor = {
+	-- the real first sector with a fractional x: finite and a well-formed pattern, so it reaches the campaign's own cursor check
+	scan = function (_, real) return { result = "first", p = "0x3f000000," .. string.match (real.p, "^[^,]+,([^,]+)$") } end,
+	eligible_scan = function (_, real) return real.result == "first" end, once = true, marker = "entity_scan.cursor",
+}
 local plan = MODES [mode]
 if plan == nil then refuse ("unknown mode '" .. tostring (mode) .. "'") end
 if profile == "original" and mode ~= "control" then refuse ("profile=original runs only mode=control: no entity_collision question reaches the provider to alter") end
@@ -289,9 +325,12 @@ local function engine_marker (err) return string.match (first_line (err), FATAL)
 -- ---------------------------------------------------------------------------------------------------------------- the host's model provider, counted, altered only when armed
 local armed = false
 local reference -- the host's own model provider (host.model), resolved inside the owned close scope (main)
-local before, after = { entity = 0, other = 0, candidate = 0 }, { entity = 0, other = 0, candidate = 0 }
+local before, after = { entity = 0, other = 0, candidate = 0, scan = 0 }, { entity = 0, other = 0, candidate = 0, scan = 0 }
 local altered = 0
 local cand_altered, cand_skipped = 0, 0
+local scan_altered, scan_none_answered = 0, 0
+-- the armed scan questions by phase, and the REAL answers they got
+local scan = { total = 0, phase_begin = 0, phase_entry = 0, phase_end = 0, phase_resolved = 0, excluded = 0, first = 0, next = 0, offer = 0, done_none = 0, done_hit = 0 }
 -- the armed candidate questions and the REAL answers they got
 local cand = { total = 0, scene0 = 0, mobile = 0, skip = 0, need_updated = 0, need_fixed = 0, need_placement = 0, need_normal = 0, buildings = 0, test = 0 }
 -- what the provider SEES after the launch (the whole war's questions: the provider carries no weapon identity)
@@ -365,6 +404,60 @@ local function candidate_reply_problem (answer, scene)
 	end
 	return nil
 end
+-- the scan request as the contract states it: scene 0, nothing else but the text place of exactly 16 patterns; the phase (fact 12) is one of 0, 1.0, 2.0, 3.0
+local PHASES = { [ZERO] = 0, ["0x3f800000"] = 1, ["0x40000000"] = 2, ["0x40400000"] = 3 }
+local function parse_scan_request (scene, depth, kind, definition, key)
+	if scene ~= 0 then return nil, "scene " .. tostring (scene) end
+	if depth ~= nil or kind ~= nil or definition ~= nil then return nil, "an entity scan question carries only the scene 0 and the facts text" end
+	if type (key) ~= "string" then return nil, "no facts text" end
+	local words = words_of_text (key, 16)
+	if words == nil then return nil, "the facts text is not 16 comma separated 0x%08x patterns" end
+	local phase = PHASES [words [12]]
+	if phase == nil then return nil, "the phase " .. words [12] .. " is not 0 to 3" end
+	return { words = words, phase = phase, excluded = words [15] ~= ZERO }
+end
+local SCAN_STATES = { first = true, next = true, offer = true, done_none = true, done_hit = true }
+-- the first problem of a REAL scan reply against the contract, or nil: one of the five states, two patterns for `first` only, and no non-empty name
+local function scan_reply_problem (answer)
+	if type (answer) ~= "table" then return "the reply is not a table" end
+	if not SCAN_STATES [answer.result] then return "result " .. tostring (answer.result) end
+	if answer.name ~= nil and answer.name ~= "" then return "a name with " .. answer.result end
+	if answer.result == "first" then
+		if type (answer.p) ~= "string" or words_of_text (answer.p, 2) == nil then return "first without two 0x%08x patterns" end
+	elseif answer.p ~= nil then
+		return "a cursor with " .. answer.result
+	end
+	return nil
+end
+local function scan_question (scene, depth, kind, definition, key)
+	local parsed, why = parse_scan_request (scene, depth, kind, definition, key)
+	if parsed then
+		scan.total = scan.total + 1
+		local name = ({ [0] = "phase_begin", "phase_entry", "phase_end", "phase_resolved" }) [parsed.phase]
+		scan [name] = scan [name] + 1
+		if parsed.excluded then scan.excluded = scan.excluded + 1 end
+	else
+		faults.request = faults.request + 1
+		first_fault = first_fault or ("scan request: " .. why)
+	end
+	local real = reference ("entity_scan", scene, depth, kind, definition, key)
+	local problem = scan_reply_problem (real)
+	if problem then
+		faults.reply = faults.reply + 1
+		first_fault = first_fault or ("scan reply: " .. problem)
+	else
+		scan [real.result] = scan [real.result] + 1
+	end
+	if plan.scan == nil then return real end
+	-- an altered answer is formed only from a well-formed question and real reply (a witness failure raised here would come back carrying the callback marker the refusal mode credits)
+	if parsed == nil or problem then return real end
+	if plan.eligible_scan and not plan.eligible_scan (parsed, real) then return real end
+	if plan.once and scan_altered >= 1 then return real end
+	scan_altered = scan_altered + 1
+	local answer = plan.scan (parsed, real)
+	if type (answer) == "table" and answer.result == "done_none" then scan_none_answered = scan_none_answered + 1 end
+	return answer
+end
 local function candidate_question (scene, depth, kind, definition, key)
 	local parsed, why = parse_candidate_request (scene, depth, kind, definition, key)
 	if parsed then
@@ -397,8 +490,10 @@ local function model (op, scene, depth, kind, definition, key)
 	local counts = armed and after or before
 	if op == "entity_collision" then counts.entity = counts.entity + 1
 	elseif op == "entity_candidate" then counts.candidate = counts.candidate + 1
+	elseif op == "entity_scan" then counts.scan = counts.scan + 1
 	else counts.other = counts.other + 1 end
 	-- the armed candidate questions are counted and classified; every other operation, and every question before the launch, is the host's own answer, returned unchanged
+	if op == "entity_scan" and armed then return scan_question (scene, depth, kind, definition, key) end
 	if op == "entity_candidate" and armed then return candidate_question (scene, depth, kind, definition, key) end
 	if op ~= "entity_collision" or not armed then return reference (op, scene, depth, kind, definition, key) end
 	local parsed, why = parse_request (scene, depth, kind, definition, key)
@@ -732,6 +827,9 @@ local function main ()
 		candidate_skip = cand.skip, candidate_need_updated = cand.need_updated, candidate_need_fixed = cand.need_fixed, candidate_need_placement = cand.need_placement,
 		candidate_need_normal = cand.need_normal, candidate_buildings = cand.buildings, candidate_test = cand.test,
 		candidate_altered = cand_altered, candidate_answered_skip = cand_skipped,
+		scan_before = before.scan, scan_after = after.scan, scan_phase_begin = scan.phase_begin, scan_phase_entry = scan.phase_entry, scan_phase_end = scan.phase_end,
+		scan_phase_resolved = scan.phase_resolved, scan_excluded = scan.excluded, scan_first = scan.first, scan_next = scan.next, scan_offer = scan.offer,
+		scan_done_none = scan.done_none, scan_done_hit = scan.done_hit, scan_altered = scan_altered, scan_answered_done_none = scan_none_answered,
 		secondary_input = plan.paired and "entity_collision_answered_hit_mask_63_at_the_request_old_end_whenever_asked_in_both_paired_modes_configured_not_natural" or "",
 		request_faults = faults.request, reply_faults = faults.reply, first_fault = first_fault or "",
 		cohort_signature = table.concat (signature_parts, ";"),
@@ -744,7 +842,7 @@ local function main ()
 		-- a refusal mode: the engine must have stopped, at this marker, at an armed entity question the provider altered
 		if failure == nil then return "mode " .. mode .. " completed: the engine did not stop at " .. plan.marker end
 		if failure.marker ~= plan.marker then return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "], not at [model-provider:" .. plan.marker .. "]: " .. failure.line end
-		if altered + cand_altered < 1 then return "mode " .. mode .. " stopped without the provider having altered an entity answer: " .. failure.line end
+		if altered + cand_altered + scan_altered < 1 then return "mode " .. mode .. " stopped without the provider having altered an entity answer: " .. failure.line end
 		if view.applied < 1 then return "mode " .. mode .. " stopped, but the controlled view input never reached a weapon step: the stop is not at an entity question of the configured flight" end
 		return nil
 	end
@@ -764,19 +862,37 @@ local function main ()
 	-- the ACTUAL caller was reached: the weapon step's entity lookup was made (the fixture's own counter, not the provider's)
 	if any_tests_delta < 1 then return "UNREACHED: the weapon step made no entity-collision test (contact_any_tests did not rise): the actual entity caller was not reached" end
 	if profile == "original" then
-		if after.entity ~= 0 or after.candidate ~= 0 then return "profile=original, but the host was asked " .. after.entity .. " entity_collision and " .. after.candidate .. " entity_candidate questions: the module is not the original" end
-		return "CAPABILITY RED (expected for the original profile): the entity-collision caller ran (contact_any_tests +" .. any_tests_delta .. ", contact_any_hits +" .. any_hits_delta .. ", fixture API present) and the host was asked no entity_collision question and no entity_candidate question"
+		if after.entity ~= 0 or after.candidate ~= 0 or after.scan ~= 0 then return "profile=original, but the host was asked " .. after.entity .. " entity_collision, " .. after.candidate .. " entity_candidate and " .. after.scan .. " entity_scan questions: the module is not the original" end
+		return "CAPABILITY RED (expected for the original profile): the entity-collision caller ran (contact_any_tests +" .. any_tests_delta .. ", contact_any_hits +" .. any_hits_delta .. ", fixture API present) and the host was asked no entity_collision question, no entity_candidate question and no entity_scan question"
 	end
 	-- the route is the host's: a candidate that passed the (campaign) broad phase asks the host. None at all is a setup that never reached the narrow phase
-	if after.candidate < 1 then return string.format ("UNREACHED: the weapon step made %d entity-collision tests but the host was asked no entity_candidate question, so no candidate reached the narrow phase: the real scan did not reach the host", any_tests_delta) end
-	if after.entity < 1 and not plan.skips then return string.format ("UNREACHED: the weapon step made %d entity-collision tests but no candidate reached the narrow phase, so the host was asked no entity_collision question", any_tests_delta) end
+	if after.scan < 1 then return string.format ("UNREACHED: the weapon step made %d entity-collision tests but the host was asked no entity_scan question, so no candidate reached the narrow phase and the host was asked no entity_candidate question: the real enumeration did not reach the host", any_tests_delta) end
+	if after.candidate < 1 and not plan.no_downstream then return string.format ("UNREACHED: the weapon step made %d entity-collision tests but the host was asked no entity_candidate question, so no candidate reached the narrow phase: the real scan did not reach the host", any_tests_delta) end
+	if after.entity < 1 and not plan.skips and not plan.no_downstream then return string.format ("UNREACHED: the weapon step made %d entity-collision tests but no candidate reached the narrow phase, so the host was asked no entity_collision question", any_tests_delta) end
 	if faults.request + faults.reply ~= 0 then return string.format ("the entity question or the host's reply is not the contract's (request_faults=%d reply_faults=%d): %s", faults.request, faults.reply, tostring (first_fault)) end
 	if seen.stationary + seen.moving ~= after.entity then return string.format ("the provider counted %d entity questions but classified %d", after.entity, seen.stationary + seen.moving) end
 	if cand.total ~= after.candidate then return string.format ("the provider counted %d candidate questions but classified %d", after.candidate, cand.total) end
+	if scan.total ~= after.scan then return string.format ("the provider counted %d scan questions but classified %d", after.scan, scan.total) end
 	if mode == "control" then
-		if altered ~= 0 or cand_altered ~= 0 then return "the control altered an answer" end
+		if altered ~= 0 or cand_altered ~= 0 or scan_altered ~= 0 then return "the control altered an answer" end
+		-- the natural chain: the enumeration offered candidates and a candidate reached the narrow phase
+		if scan.offer < 1 then return "UNREACHED: the real enumeration offered no entry (" .. scan.offer .. " offers), so no candidate dialogue followed from it" end
 		-- every weapon-step entity hit is one narrow-phase hit of the host (the hosted line of sight asks too, so the host may report more)
 		if seen.real_hit < any_hits_delta then return string.format ("the weapon step counted %d entity hits but the host's narrow phase reported only %d", any_hits_delta, seen.real_hit) end
+		return nil
+	end
+	if mode == "scan_real" then
+		-- the paired control: the real enumeration must have offered entries, the candidate dialogue and the narrow phase must have followed, and the configured hit must have been used by the actual caller
+		if scan_altered ~= 0 or cand_altered ~= 0 then return "scan_real altered an answer of the enumeration or of a candidate" end
+		if scan.offer < 1 or cand.test < 1 or after.entity < 1 then return "UNREACHED: the real enumeration never led to a narrow phase (" .. scan.offer .. " offers, " .. cand.test .. " test decisions, " .. after.entity .. " entity questions), so the paired variant has nothing to prevent" end
+		if altered ~= after.entity or seen.answered_hit ~= after.entity or seen.answered_miss ~= 0 then return string.format ("scan_real answered %d hits and %d misses of %d entity questions", seen.answered_hit, seen.answered_miss, after.entity) end
+		if any_hits_delta < 1 then return "scan_real: the configured hit never reached the weapon step's entity hit count (contact_any_hits did not rise): the narrow phase's answer was not used by the actual caller" end
+		return nil
+	elseif mode == "scan_none" then
+		-- the variant: every scan was a valid empty enumeration, so no candidate dialogue, no narrow phase and no entity hit may follow
+		if scan_altered ~= after.scan or scan_none_answered ~= after.scan then return string.format ("scan_none answered %d empty enumerations of %d scan questions", scan_none_answered, after.scan) end
+		if after.candidate ~= 0 or after.entity ~= 0 or altered ~= 0 or cand_altered ~= 0 then return string.format ("scan_none: the host was still asked %d entity_candidate and %d entity_collision questions after every enumeration was empty", after.candidate, after.entity) end
+		if any_hits_delta ~= 0 then return string.format ("scan_none: the weapon step still counted %d entity hits although every enumeration was empty", any_hits_delta) end
 		return nil
 	end
 	if mode == "candidate_real" then

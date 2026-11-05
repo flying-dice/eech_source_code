@@ -307,6 +307,36 @@ nothing about the DLL.
 
 **Literal comment qualification.** The unchanged d39 opening comments that put radius+10/broadphase in Core describe the earlier slice. Runtime1ccc has Host-owned per-candidate decisions. Core still owns the physical enumeration and backing state/getter services, all required to move; no campaign-policy exclusion is inferred. Preserve literal d39 bytes and actuals.
 
+## The ENTITY_SCAN public authority witness (the same `lua/entity-authority.lua`; TEST-ONLY; written 5 November 2026; NOT yet run against a real module)
+
+The enumeration cutover (source `8b8523082`) is cleared for planned native validation but has no native actual. This witness extends the existing script (its checked output, cohort, WordCodec, exact engine-fatal recognition and VIEW_WEAPON input are
+unchanged) and changes no shipping input: Root pins its literal blob and reuses the frozen `8b8523082` binaries.
+
+**Grammar (16 facts, 5 states).** The request is scene `0` (a number), no depth, kind or definition, and the text place of exactly 16 `0x%08x` patterns (the segment, the sector side and world map, the PHASE 0 begin / 1 entry served / 2 list exhausted / 3
+offer resolved, the cursor the host last gave, whether the served entry is the source or the target, whether the offered entry hit). A real reply is `{ result }` with `result` one of `first`, `next`, `offer`, `done_none`, `done_hit`; `first` alone carries `p`
+(two patterns, the sector), the others carry no `p`, and the reference host's empty name is accepted while a non-empty one is a fault. The wrapper counts the ARMED questions by phase and classifies the real answers (global to the war, no weapon identity),
+delegates the operation byte for byte in every mode that does not alter it, and treats zero scan questions as UNREACHED, never authority.
+
+| mode | what the provider does after the launch | the verdict needs |
+|---|---|---|
+| `control` | nothing: the NATURAL healthy control, Root's first run | positive scan, candidate and narrow-phase chain (an offered entry, a candidate dialogue, a narrow-phase question), well-formed requests and real replies, a complete cohort; no configured secondary input |
+| `scan_real` | PAIRED CONTROL: the real enumeration; `entity_collision` answered HIT (the existing forced-hit answer) whenever asked | the real scan offered entries, the candidate dialogue and the narrow phase followed, and the configured hit reached the weapon step's hit count; the cohort physically hits |
+| `scan_none` | every armed BEGIN question answered a valid `done_none`; the SAME configured hit if `entity_collision` is ever asked | positive scan questions, every one a begin answered empty, NO candidate question, NO narrow-phase question, NO entity hit; the caller compares the cohort signature with `scan_real`, never with the natural control |
+| `withheld_scan` | raises on the first armed scan question | exactly `[model-provider:entity_scan.callback]`, nothing asked afterwards, unread counters -1 |
+| `bad_scan_state` | the first BEGIN question is answered `next` (illegal at the start) | exactly `[model-provider:entity_scan.state]` |
+| `bad_scan_cursor` | the first real `first` is answered with a fractional x (0.5) and the real z | exactly `[model-provider:entity_scan.cursor]` (the finite fraction passes the bridge and is refused by the campaign's own cursor check, not by an earlier marker) |
+
+The configured secondary input is declared, not natural, and identical in both paired modes: it gives a scan decision a physical consequence to change without any guessed geometry. The natural control is separate. Every alteration is formed from a well-formed
+question and real reply (an eligible one: the begin, or the real first); a malformed real reply is counted and returned unaltered, so a witness failure cannot pose as an engine refusal. The Original profile (`weapon-fixture` + `collision-fixture`, `mode=control`) must
+have the fixture API and the real caller lookups with ZERO scan, candidate and narrow-phase questions: the EXPECTED `CAPABILITY RED` (exit 1), its signature compared with the natural control. A missing API or a caller that never ran is UNREACHED.
+
+**What the controls caught while being written.** The first version of the cursor alteration called a helper declared later in the file, so the witness itself raised inside the provider callback and the engine reported it as a callback failure at `entity_scan.callback`: the exact
+masquerade the controls guard against. The mode's own marker check refused it (it stopped at the callback marker, not at the cursor marker); the alteration now uses no later-declared helper.
+
+**Limits.** Every question is global to the war and not attributed to the case weapon; the view input is configured and global while armed. The controls are scripted collaborators that apply the exchange's legality rules: they prove the driver, not the DLL, the heap getters or the kernel.
+The moving public path stays unmeasured (the finite counts have mobile candidates and zero `NEED_UPDATED`; no warmup is tuned after an UNREACHED). Native command (Root, ONE natural control first, fresh root, the literal blob):
+`eech-world.exe <literal entity-authority.lua> root=<fresh root> mode=control out=<new .jsonl>`; the other modes only after it reached.
+
 ## Checks (Linux, pinned image) and their status
 
 **Review status.** The independent source pass over `c510c55c7` returned CHANGES_REQUIRED with one P1, ENV-ENTITY-CALLER-BUFFER-1 (the question read caller output storage the original never reads). The literal
