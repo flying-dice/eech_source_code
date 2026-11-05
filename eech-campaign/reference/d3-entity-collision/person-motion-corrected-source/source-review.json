@@ -1,0 +1,227 @@
+{
+  "schema": "independent-bounded-source-review/v1",
+  "reviewed_utc": "2026-11-05T22:23:22.225753+00:00",
+  "source": {
+    "commit": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+    "metadata_commit": "07567426072fc41510ccad7e54129c0dc5696300",
+    "actual_direct_parent": "097c6a5f4c7799499cb1f1b2a0dac4d07cc1b8c0",
+    "semantic_code_baseline": "c2aa4f52b4d2c114cae89747208874c1bcd2d8b0",
+    "production_correction_commit": "c2aa4f52b4d2c114cae89747208874c1bcd2d8b0",
+    "prior_source": "9eaff3b94f820546bd1e25a62c269df16f07621f",
+    "snapshot": "D:/EECH-Migration-Evidence/person-motion-3475fb93b-20261105-source",
+    "changed_code_and_provider_documentation": [
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+        "blob": "dd9a01039c189c3f4867d418977c76936b00a064",
+        "bytes": 4795,
+        "sha256": "68020114bc3fc92eba4daa3e2924b8deae472acd39fa9c596fbb9a61a5c9145b"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+        "blob": "9c846cc02f13e597fad5611c1a13d0a95a4440aa",
+        "bytes": 24393,
+        "sha256": "7e97fa25140f62ab285c8b1f0788e8978d398e092c4dcff09e3777ac648f1091"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_mq_report.h",
+        "blob": "9136a54e682d00b730da969a82d90e7932c5396a",
+        "bytes": 7850,
+        "sha256": "017a016b1a7a21421d410f063e85dc4b760f7a2351273f9a51fbe6d0913ec9a9"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_mq_report_check.c",
+        "blob": "50e6ae5c79fd05c58aa6b7fd0b9d6f968a02ffc7",
+        "bytes": 12063,
+        "sha256": "3b6da5952845b28e61ee2cdaf4cebfa61ba7b0c6a32ea05eb63ba0a2db799663"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_wpn_fixture.c",
+        "blob": "6bd3480bb39892bb46fb294f18b37ab450758643",
+        "bytes": 77826,
+        "sha256": "7b5d3f395457f006ab6bf44ababec461a93f55d7401b2edcb2dba7eeac32f97b"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/mq_report.rs",
+        "blob": "4f1f61b3e459e34664355b15f310b1e6594dcd2b",
+        "bytes": 1554,
+        "sha256": "5fafbbc5a920c2276292eb832cf3cea988495fd75cd4f9c345d4b8887c86559a"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "blob": "deb19e9686ac27d0ec0406d6cf532243394d18e0",
+        "bytes": 685434,
+        "sha256": "52cfb25fcd24fb384d00da02fb356be81d728b3a7286f142dae0359aad128708"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "blob": "ad4238d9a51e79b236dba833bdcea18ca146fde3",
+        "bytes": 127724,
+        "sha256": "e580b0e2752c28ccb440b66778bd0b4992de0651502dcdc9e9975d4b6af68d05"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/movement.rs",
+        "blob": "78516ac2047228b5fadbb3dafa62e223b184304b",
+        "bytes": 366996,
+        "sha256": "33560723cd2aaab531a9c180da5cd048dd59e2f4b9febb62a8446f1cace369cd"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "blob": "1db3f39f9026f05eb51d41b4f92f006c246843a0",
+        "bytes": 161263,
+        "sha256": "8185d3ddb5596af13e97484c94b23997ef024449ff9876de2e77eef6e9a40851"
+      },
+      {
+        "path": "eech-campaign/docs/d3-entity-collision-provider.md",
+        "blob": "d8a38deae48aa8611154cf96435c0f9a6ea6648d",
+        "bytes": 93706,
+        "sha256": "8d647300cf4b90dc06bf3daa01486b7fb800bec9e318b1c8c31c217cd3b20347"
+      }
+    ],
+    "metadata_only_delta_to_075": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json"
+    ],
+    "checkpoint_parent_qualification": "product_source_parent names c2aa, which is the code baseline, NOT the actual direct parent. Actual Git parent is097 above. Original checkpoint preserved literally; no ancestry rewrite."
+  },
+  "scope": "One combined correctness, clean-code and boundary-safety source review of Person completed-vector retention and the three controlled moving-query fixture corrections, including the narrow reverse-identity correction and five final frozen-source checks. No new native acceptance.",
+  "decision": {
+    "status": "SOURCE_CLEAR_FOR_PLANNED_NATIVE_VALIDATION",
+    "findings": [],
+    "native_launch_clearance": true,
+    "clearance_scope": [
+      "NEW ordinary, hosted weapon-fixture and required Original Windows builds from the corrected source with sealed payloads and profiles.",
+      "After required profile-isolation checks: ordinary retained short and healthy validation, then bounded controlled moving-query A, B and Original controls using their declared prerequisites."
+    ],
+    "source_corrections_closed": true,
+    "production_regression_runtime_conformance_closed": false,
+    "controlled_moving_query_authority_closed": false,
+    "natural_weapon_engagement_proved": false,
+    "full_pack_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "finding_dispositions": [
+    {
+      "id": "ENV-ENTITY-POSE-LONG-RUN-MOTION-1",
+      "disposition": "CORRECTED_AT_SOURCE; new production runtime validation remains required",
+      "evidence": "The actual diagnostic replay confirmed completed Person steps left canonical held motion at its initial value while the active Core application wrote the returned nonzero vector. Both immediate nonpending Person completion and PersonEnd now retain the exact Host solver result in the same Movers record. Pending begin preserves the previous completed vector. No query seeding, Core-vector copying, guessed formula, fallback or mirror suppression was introduced.",
+      "validation": "The clean final snapshot passed the focused real Person-step retention test, including preservation across pending steps. This is not proof that every failed pack actor has been corrected."
+    },
+    {
+      "id": "ENV-MOVING-QUERY-REPORT-BOUND-1",
+      "disposition": "CORRECTED_AT_SOURCE",
+      "evidence": "The shared formatter uses reversible canonical encoding for full 128-byte semantic identities, checked worst-case capacity before queries, bounded complete rows and explicit internal-format errors. The isolated actual C formatter control exercises the same implementation; old insufficient local storage is not reused."
+    },
+    {
+      "id": "ENV-MOVING-QUERY-PROTOCOL-1",
+      "disposition": "CORRECTED_AT_SOURCE including reverse identity join",
+      "evidence": "The driver validates complete ordered prepare/run grammar, exact target identity and ray words, finite input domains and raw output word shapes. A target hit flag requires the target identity and routed type; a non-target flag cannot carry that same target identity. Missing/extra/reordered fields and partial reports refuse. Named nonpoison case reasons survive the Engine bridge; Fatal, Poisoned and State return before any report-buffer read. Unwritten miss outputs are not read."
+    },
+    {
+      "id": "ENV-MOVING-QUERY-AB-CONTRACT-1",
+      "disposition": "CORRECTED_AT_SOURCE; cross-run authority remains an actual gate",
+      "evidence": "A retains positive per-query target NeedUpdated, test and moving-kernel requirements. B uses the same latched rays after a real Host step and lift; it can legitimately broadphase-skip before the moving read. B instead requires a post-lift target offer/answer, coherence and a changed physical result. Warmup/global observations are not credited to the controlled query interval."
+    }
+  ],
+  "final_frozen_actuals": {
+    "source_binding": {
+      "path": "R:/d3-evidence/person-motion-final-source-binding-3475fb93b-20261105.json",
+      "bytes": 2510,
+      "sha256": "50a7e172b67f7fdd20a6835a2e764a3cab82afce7c858576716e9689813befb9"
+    },
+    "process_receipt": {
+      "path": "R:/d3-evidence/person-motion-3475fb93b-20261105-gate-process.json",
+      "bytes": 3779,
+      "sha256": "746ab779d4c79e907638f4f38cc7c2bfe0ee61ecb0ed590651aadee3e863b1a5"
+    },
+    "gate_log": {
+      "path": "D:/EECH-Migration-Evidence/person-motion-3475fb93b-20261105-gate/gate.log",
+      "bytes": 26138,
+      "sha256": "ee78350f272f0853045fb1cb9c624dd33f31c65e379e0698168e21dd6f537154"
+    },
+    "controller_actual_exit": 0,
+    "completed_utc": "2026-11-05T22:17:27.034138+00:00",
+    "five_direct_child_exits": {
+      "fmt": 0,
+      "person-retention": 0,
+      "public-drivers": 0,
+      "nonweapon-helper-compile": 0,
+      "strict-world": 0
+    },
+    "test_results": {
+      "person_retention": {
+        "passed": 1,
+        "failed": 0,
+        "filtered": 351
+      },
+      "entity_authority": {
+        "passed": 43,
+        "failed": 0
+      },
+      "target_point_characterization": {
+        "passed": 53,
+        "failed": 0
+      }
+    },
+    "compile_only_check": "eech-engine target-point-fixture tests; no C/native campaign execution claimed by this check.",
+    "strict_scope": "eech-world all targets, -D warnings; this is not a new full16 gate.",
+    "maps": {
+      "before_after_literal_equal": true,
+      "sha256": "047730a9a257c25acf000b4eefeb213a33f31c1bf4b7e7a457141545e2027c80",
+      "scoped_rows": 4136,
+      "all_scoped_raw_files_independently_compared_to_committed_Git_and_snapshot": true,
+      "filtered_hash_qualifications": [
+        "aphavoc/laa.c",
+        "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+        "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+        "modules/system/malloc.c.h",
+        "modules/system/nedmalloc.c"
+      ],
+      "qualification": "All five qualified inputs are raw-byte-exact to Git. Only their filtered hash interpretation differs. No old working-Lua CRLF qualification was inherited by this clean clone."
+    },
+    "original_checkpoint": {
+      "path": "R:/d3-evidence/query-reverse-identity-CODE-FROZEN-20261105.json",
+      "bytes": 4140,
+      "sha256": "e9c5128778d308081abc6ee2b21d3c9213841933f0ca6a9c7e6aba65781fd077"
+    },
+    "ancestry": "Git independently resolves the direct parent to 097c6a5f4, not c2aa. The original checkpoint is preserved; its c2aa parent label is explicitly treated as a semantic code baseline."
+  },
+  "retained_evidence": [
+    {
+      "path": "R:/d3-evidence/independent-controlled-moving-query-source-2fccc-with-production-regression-20261105.json",
+      "bytes": 26541,
+      "sha256": "afb226787a10a72dff70518a902b5a6ceb608bebb063572b3cf797f890ceb45b"
+    },
+    {
+      "path": "R:/d3-evidence/independent-pose-motion-diagnostic-source-bd6e-20261105.json",
+      "bytes": 13363,
+      "sha256": "b2ef7882caac936c22972347221d83ed62fd3e29becc0fe2d4dc16add1152bb7"
+    },
+    {
+      "path": "R:/d3-evidence/independent-pose-motion-diagnostic-actual-bd6e-20261105.json",
+      "bytes": 9227,
+      "sha256": "9f0399d179dbeb35bc48867f1cc521dd985f284dedfa3a37660632b6f7c501db"
+    }
+  ],
+  "retained_checks_qualification": "Earlier author C formatter, engine refusal-channel, standalone fixture compile and explicit package strict checks retain their recorded source/pass identities. The selected final clean checks and complete source binding join the final correction without relabelling an earlier broad pass or the out-of-scope workspace lint as a new full16 green gate.",
+  "required_build_profile_proof_before_native": [
+    "During the new Windows builds, bind actual commands, feature manifests and C defines to the corrected Git source. The ordinary profile must not define EECH_WEAPON_FIXTURE or EECH_MQ_REPORT_CHECK.",
+    "Inspect actual ordinary objects/archive/exported symbols for absence of new moving-query fixture entrypoints and eech_mq_report_check_run; retain the existing source feature gates for the corresponding Rust/Lua methods. Check the intended hosted and Original weapon profiles contain the required entrypoints. This is a bounded build audit, not a new campaign programme.",
+    "Seal the exported binaries and complete payloads. The guarded fixture additions can be shown absent from the ordinary build, but Person retention is a deliberate ordinary production change; no overall ordinary equivalence to failed ea2b is inferred."
+  ],
+  "required_actual_gates": [
+    "New ordinary retained short with the established exact flags, full pre/post inputs and sealed payloads, plus new healthy validation. Prior ea2b short or partial prefixes cannot satisfy this for changed Person behavior.",
+    "A must actually reach positive target NeedUpdated, target test and the moving kernel in the controlled query interval. UNREACHED remains a failure to establish that positive.",
+    "Before crediting B, independently bind its supplied control signature to the actual completed positive A, with the same source, target, latched rays, configuration and appropriate binary/diagnostic identities. An arbitrary nonempty control_signature and B exit0 alone are not authority evidence.",
+    "Credit B only for the declared post-lift target offer/coherence and actual changed physical result, including a legitimate broadphase skip. Keep any separate pre-lift observations separate. Validate the required Original control with its real fixture and caller present.",
+    "The failed ea2b complete pack remains failed. Eventual corrected Task49 shipping requires its normal complete40/all8 acceptance join, relevant CI and dependencies; no additional full war is required per internal helper."
+  ],
+  "limitations": [
+    "No Windows build, campaign, corrected long-run replay, physical A/B result or full-pack success has yet been measured for this corrected source in this review.",
+    "The confirmed diagnostic Person mechanism concerns the observed first mismatch; it does not prove all four failed pack actors or all other writers are equivalent.",
+    "Controlled moving-query service validation does not prove natural weapon engagement. Earlier natural moving attempts remain UNREACHED at their own identities.",
+    "QUERY fixtures use fixed rays and real roster relookup. No campaign retargeting, teleport, fabricated pose, adaptive hit search or second physical solver is authorized by this clearance.",
+    "Core backing, roster and identities, live pose synchronization and remaining physical writers, city children, effectful getters, raw loaders, forest/cloud/hierarchy, devices and required DCS mappings remain in the whole-D3 scope. This finite review does not waive them.",
+    "No raw retail trajectories, actor identities, coordinates, vectors, physical tuples or cohort signatures are included in this report."
+  ]
+}

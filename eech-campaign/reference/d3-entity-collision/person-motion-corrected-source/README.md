@@ -1,0 +1,11 @@
+# Corrected Person motion and moving-query source
+
+Product source `3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7` (Person correction `c2aa4f52b` plus the narrow Lua reverse-identity join). The SAME combined independent report has no source findings and clears NEW ordinary, hosted and Original builds and bounded validation after the required profile-isolation audit. Report SHA256 `62f5641e61c2c470cb9cca17aed90d0d0e69f20c800d942c4b2974e212e24be1`.
+
+Root's five frozen checks all exit0: format, the real Person retention test, both public driver suites (43 entity and53 target-point), a standalone nonweapon helper compile, and strict world lint. All4136 scoped raw inputs (including modules and the Lua patch) match Git; before/after maps are literal, SHA256 `047730a9a257c25acf000b4eefeb213a33f31c1bf4b7e7a457141545e2027c80`. Five existing Core/module filtered-hash qualifications remain raw-Git-exact. The fresh clone does not inherit the old workingLua CRLF qualifications. The other focused checks retain their original working-tree identities and qualifications.
+
+The checkpoint files are copied literally. The protocol checkpoint's `product_source_parent` incorrectly names the code baseline c2aa as its direct parent. Actual ancestry is c2aa -> metadata097 -> product3475 -> metadata075. The binding supplement explicitly corrects that field; the original is preserved. No branch history was rewritten.
+
+The Person result is retained at its completed movement boundary, including pending preservation. This is an ordinary production change: gated fixture exclusion does not establish ordinary equivalence to failed ea2b. New Windows builds, actual profile/object/export exclusion, ordinary complete short comparison, healthy control, real moving query A/B/Original and unchanged40/all8 remain required. B's opaque control signature must be bound to the completed positive A's SAME source, target, rays and configuration. Script0 alone cannot establish that join.
+
+The failed ea2b pack, its partial recordings and the private diagnostic remain at their own identities. No corrected-native, physical authority, natural moving weapon integration, full Task49 or whole D3 acceptance is claimed. All ten D3 requirements remain; D4/D5/TypeScript unstarted. Raw retail data and actor/pose/motion/history stay external.

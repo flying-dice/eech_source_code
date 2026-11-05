@@ -1,0 +1,221 @@
+{
+  "schema": 1,
+  "written_utc": "2026-11-05T22:03:33.462993+00:00",
+  "scope": "CODE_FROZEN: the Person motion-vector retention correction (ENV-ENTITY-POSE-LONG-RUN-MOTION-1) and the three batched controlled-moving-query fixture corrections. UNREVIEWED; no new Windows/native/full-pack run by this lane.",
+  "source": "c2aa4f52b4d2c114cae89747208874c1bcd2d8b0",
+  "source_parent": "9eaff3b94f820546bd1e25a62c269df16f07621f",
+  "metadata_commit": "097c6a5f4c7799499cb1f1b2a0dac4d07cc1b8c0",
+  "branch": "codex/d3-object-tree-collision",
+  "tree_clean_at_write": true,
+  "failed_production_runtime": "ea2b234819ac8c72567c95e8e665e4808e6742e1",
+  "diagnostic_source": "bd6e9c5794c26fc7e3fadbbcbcd31ae292b8d0ce",
+  "changed_paths": [
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+      "git_blob": "dd9a01039c189c3f4867d418977c76936b00a064",
+      "bytes": 4795,
+      "sha256": "68020114bc3fc92eba4daa3e2924b8deae472acd39fa9c596fbb9a61a5c9145b",
+      "nul_bytes": 0
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "git_blob": "9c846cc02f13e597fad5611c1a13d0a95a4440aa",
+      "bytes": 24393,
+      "sha256": "7e97fa25140f62ab285c8b1f0788e8978d398e092c4dcff09e3777ac648f1091",
+      "nul_bytes": 0
+    },
+    {
+      "status": "A",
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_mq_report.h",
+      "git_blob": "9136a54e682d00b730da969a82d90e7932c5396a",
+      "bytes": 7850,
+      "sha256": "017a016b1a7a21421d410f063e85dc4b760f7a2351273f9a51fbe6d0913ec9a9",
+      "nul_bytes": 0
+    },
+    {
+      "status": "A",
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_mq_report_check.c",
+      "git_blob": "50e6ae5c79fd05c58aa6b7fd0b9d6f968a02ffc7",
+      "bytes": 12063,
+      "sha256": "3b6da5952845b28e61ee2cdaf4cebfa61ba7b0c6a32ea05eb63ba0a2db799663",
+      "nul_bytes": 0
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_wpn_fixture.c",
+      "git_blob": "6bd3480bb39892bb46fb294f18b37ab450758643",
+      "bytes": 77826,
+      "sha256": "7b5d3f395457f006ab6bf44ababec461a93f55d7401b2edcb2dba7eeac32f97b",
+      "nul_bytes": 0
+    },
+    {
+      "status": "A",
+      "path": "eech-campaign/crates/eech-engine-sys/tests/mq_report.rs",
+      "git_blob": "4f1f61b3e459e34664355b15f310b1e6594dcd2b",
+      "bytes": 1554,
+      "sha256": "5fafbbc5a920c2276292eb832cf3cea988495fd75cd4f9c345d4b8887c86559a",
+      "nul_bytes": 0
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "git_blob": "deb19e9686ac27d0ec0406d6cf532243394d18e0",
+      "bytes": 685434,
+      "sha256": "52cfb25fcd24fb384d00da02fb356be81d728b3a7286f142dae0359aad128708",
+      "nul_bytes": 0
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "git_blob": "1c12117dbb2bd1fb0ee3e4a64c485a3a695d08dc",
+      "bytes": 127362,
+      "sha256": "2d8fce292968877fe4470a8b1814790213be4cc2493104d62b26d7f917030c4a",
+      "nul_bytes": 0
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-world/src/movement.rs",
+      "git_blob": "78516ac2047228b5fadbb3dafa62e223b184304b",
+      "bytes": 366996,
+      "sha256": "33560723cd2aaab531a9c180da5cd048dd59e2f4b9febb62a8446f1cace369cd",
+      "nul_bytes": 0
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "git_blob": "17f18ef8cb1a225930f433bf7f6a062bcb3b0044",
+      "bytes": 160067,
+      "sha256": "f698accb302720e1ad4c9d89d7b39646c7c6f08097f9e07468594ad7944a7a7b",
+      "nul_bytes": 0
+    },
+    {
+      "status": "M",
+      "path": "eech-campaign/docs/d3-entity-collision-provider.md",
+      "git_blob": "8099057d20e58b0a8d79d0b27a2c0092f7a096ff",
+      "bytes": 93583,
+      "sha256": "44db7ee2637a48f425cdf5fb6ea39091e254283a597ab5a3517a2b3eccefba0f",
+      "nul_bytes": 0
+    }
+  ],
+  "focused_check_exits_by_stage": {
+    "c1-default-check": "exit=0",
+    "c10-clippy-world": "exit=0",
+    "c11-clippy-engine-dc-weapon": "exit=101",
+    "c2-fmt-apply": "exit=0",
+    "c3-fmt-check": "exit=0",
+    "c4-world-tests": "exit=101",
+    "c5-engine-lib-weapon": "exit=0",
+    "c6-sys-mq-report": "exit=0",
+    "c7-sys-entity-dialogue": "exit=0",
+    "c8-hosted-weapon-fixture-check": "exit=0",
+    "c9-original-weapon-collision-check": "exit=0",
+    "d1-fmt-apply": "exit=0",
+    "d10-original-weapon-collision-check": "exit=0",
+    "d11-clippy-world": "exit=0",
+    "d12-clippy-engine-dc-weapon": "exit=101",
+    "d13-clippy-default-four": "exit=0",
+    "d2-fmt-check": "exit=0",
+    "d3-default-check": "exit=0",
+    "d4-world-tests-no-fail-fast": "exit=0",
+    "d5-engine-lib-weapon": "exit=0",
+    "d6-engine-lib-default": "exit=0",
+    "d7-sys-mq-report": "exit=0",
+    "d8-sys-entity-dialogue": "exit=0",
+    "d9-hosted-weapon-fixture-check": "exit=0",
+    "e1-fmt-apply": "exit=0",
+    "e10-world-person-and-entity-tests": "exit=0",
+    "e2-fmt-check": "exit=0",
+    "e3-engine-lib-weapon": "exit=0",
+    "e4-engine-lib-default": "exit=0",
+    "e5-clippy-engine-dc-weapon": "exit=0",
+    "e6-clippy-default-four": "exit=0",
+    "e7-clippy-world": "exit=0",
+    "e8-hosted-weapon-fixture-check": "exit=0",
+    "e9-original-weapon-collision-check": "exit=0",
+    "f1-fmt-apply": "exit=0",
+    "f2-fmt-check": "exit=0",
+    "f3-world-lib": "exit=0",
+    "f4-clippy-world": "exit=0",
+    "f5-default-check": "exit=0",
+    "g1-fmt-apply": "exit=0",
+    "g2-fmt-check": "exit=0",
+    "g3-engine-case-refusal-weapon": "exit=0",
+    "g4-engine-target-point-tests-compile": "exit=0",
+    "g5-engine-env-tests-compile": "exit=0",
+    "g6-engine-ground-tests-compile": "exit=0",
+    "g7-engine-collision-tests-compile": "exit=0",
+    "g8-clippy-engine-dc-weapon": "exit=0",
+    "g9-clippy-four-packages": "exit=0",
+    "runner": "exit=0",
+    "runner2": "exit=0",
+    "runner3": "exit=0",
+    "runner4": "exit=0",
+    "runner5": "exit=0"
+  },
+  "private_artifacts": {
+    "raw_first_mismatch_trace": "D:\\EECH-Migration-Evidence\\pose-motion-diag-20261105\\PRIVATE-pose-motion-mismatch.txt",
+    "raw_trace_sha256": "9fafa239c4217f2cb914ec086741513b902fbecdff93c3e7c4440eafca04d34b",
+    "note": "raw actor identity, pose and motion words stay outside Git"
+  },
+  "stage_commands": {
+    "red-person-vector": "cargo test --release --locked -p eech-world --lib an_infantrymans_step  (RED: exit 101 before the change; log red-person-vector.log)",
+    "green-movement-lib": "cargo test --release --locked -p eech-world --lib movement  (GREEN: 150 passed; log green-movement-lib.log)",
+    "c1-default-check": "cargo check --locked --all-targets",
+    "c2-fmt-apply": "cargo fmt --all",
+    "c3-fmt-check": "cargo fmt --all --check",
+    "c4-world-tests": "cargo test --release --locked -p eech-world  (101: stopped at the target_point_characterization source-shape guard; later binaries did not run; superseded by d4)",
+    "c5-engine-lib-weapon": "cargo test --release --locked -p eech-engine --features weapon-fixture --lib",
+    "c6-sys-mq-report": "cargo test --release --locked -p eech-engine-sys --features mq-report-check --test mq_report",
+    "c7-sys-entity-dialogue": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue",
+    "c8-hosted-weapon-fixture-check": "cargo check --locked -p eech-dc --features weapon-fixture",
+    "c9-original-weapon-collision-check": "cargo check --locked -p eech-dc --features weapon-fixture,collision-fixture",
+    "c10-clippy-world": "cargo clippy --locked -p eech-world --all-targets -- -D warnings",
+    "c11-clippy-engine-dc-weapon": "cargo clippy --locked -p eech-engine -p eech-dc --all-targets --features eech-dc/weapon-fixture -- -D warnings  (101: test-only lint in the new engine unit test of that pass)",
+    "d1..d13": "second pass after the keep_case_reason restructure: fmt apply/check, default check, eech-world full crate --no-fail-fast (all binaries ok), engine weapon and default libs, mq_report, entity dialogue, hosted and Original weapon fixture checks, clippy world, clippy engine+dc weapon (101: unused doc comment on thread_local! and unwrap_err in the new test), clippy --locked --all-targets at the WORKSPACE (an unintended all-workspace selection; exit 0; Root recorded a concurrent docker stop request that raced its natural completion)",
+    "e1..e10": "third pass after the two test-only lint fixes: fmt, engine weapon/default libs, strict engine+dc weapon lint, default and world lints, hosted/Original checks, an_infantrymans_step + entity_authority + target_point_characterization",
+    "f1..f5": "fourth pass after the pending-preserved assertion: fmt, eech-world lib (352 passed), clippy world, default check",
+    "g1..g9": "fifth pass after the counter cfg alignment: fmt, engine case-refusal tests (weapon-fixture), engine --lib --no-run test compiles for target-point, env, ground and collision fixtures, strict engine+dc weapon lint, strict lint of exactly eech-engine-sys, eech-engine, eech-dc and eech-world"
+  },
+  "stage_note": "Every stage ran its command in the pinned Linux image sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51 on the volume eech-linux-d3-collision-driver-5416adb3b-20261029 (single owner: this lane); logs and exits in D:/EECH-Migration-Evidence/motion-fix-20261105. Source files changed between passes, so each stage ran at the bytes of its time; the table says which pass covered which change. Root's frozen gate reruns what it selects on the frozen snapshot.",
+  "final_byte_coverage": {
+    "movement.rs (final, with the pending-preserved assertion)": "f1 fmt, f2 fmt check, f3 eech-world lib 352 passed, f4 strict world lint, f5 default check",
+    "eech-engine lib.rs (final counter cfg)": "g1 fmt, g2 fmt check, g3 case-refusal tests, g4-g7 nonweapon fixture test compiles, g8 strict engine+dc weapon lint, g9 strict lint of the four packages",
+    "entity-authority.lua, entity_authority.rs, the fixture C, mq report header/check, Cargo/build wiring": "d4 (eech-world whole crate, no-fail-fast: every binary ok, entity_authority 43 passed), e10 (entity_authority and target_point_characterization), d7 (mq_report 1832 expectations), d9/d10 and e8/e9 (hosted and Original weapon fixture checks); these files did not change after those passes except the test-module assertion in movement.rs and the lib.rs cfg"
+  },
+  "qualifications": [
+    "UNREVIEWED; focused Linux checks only. No Windows build, native run, ordinary short, healthy control, fixture native, 40/all8 pack or CI by this lane.",
+    "The new C fixture (eech_wpn_fixture.c moving query case) and the isolated report codec compile and the codec control passes; the fixture itself has never run natively. The order of its capacity proof before the first query is by construction (the first statement of both entries) and is not exercised by a Linux test.",
+    "The existing source-shape guard in target_point_characterization.rs is UNCHANGED: keep_case_reason was restructured to keep its reviewed arm text.",
+    "The scripted collaborator of the driver tests now emits the real C-shaped reports (compiled type names, encoded identities, the real bridge refusal text, the declared bearings); its single-fault corpus has 27 faults.",
+    "Person correction: dispatch arms of routed, ship, fixed-wing and helicopter steps were read for Outcome-vector retention; the lifecycle arms were not re-read and no complete Core-writer census was run. The other three failed-pack logs are not proven to be the same actor.",
+    "The diagnostic build image identifier differs from the ea2b build image identifier (b652d7d5... against d7ed6249...); lua.dll and all Lua payload hashes equal the ea2b build.",
+    "A reviewer-noted timing window between a routed vehicle's retained step vector and the campaign's copy after the position setter is not closed or measured.",
+    "The raw first-mismatch trace is private (outside Git); the published safe facts are derived. The returned Outcome words were not captured directly."
+  ],
+  "diagnostic_and_replay": {
+    "diagnostic_source": "bd6e9c5794c26fc7e3fadbbcbcd31ae292b8d0ce (branch diag/pose-motion-trace-ea2b, pushed)",
+    "snapshot": "D:/EECH-Migration-Evidence/pose-motion-diag-bd6e9c579-20261105",
+    "windows_build": "exit 0, log D:/EECH-Migration-Evidence/pose-motion-diag-20261105/windows-build.log; BUILD-INFO sha256 194e2b23a9bdeceddc1b0ab9fa64773cd3b978badd3fb248dffc8976185f41ea; cache removed by Root (receipt R:/d3-evidence/cleanup-closed-pose-motion-diag-bd6e-windows-cache-20261105.json)",
+    "fresh_root": "D:/EECH-Migration-Evidence/pose-motion-diag-20261105/root-lebanon (copy of R:/eech-regression-20261025/roots/lebanon; 1179 inputs, combined sha256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09; pre and post manifests exit 0; CONSUMED, never reuse)",
+    "replay": "native PID 22364 born 2026-11-05 20:54:48, exited 1 at 21:27:05 (helper exit 1); entity_pose.mirror mask 20; one private trace of 3517 bytes (sha256 9fafa239c4217f2cb914ec086741513b902fbecdff93c3e7c4440eafca04d34b)",
+    "actual_review": "R:/d3-evidence/independent-pose-motion-diagnostic-actual-bd6e-20261105.json sha256 9f0399d179dbeb35bc48867f1cc521dd985f284dedfa3a37660632b6f7c501db (literal copy in the reference folder)"
+  },
+  "safe_published": "eech-campaign/reference/d3-entity-collision/person-motion-retention/ (README, safe-facts.json, the two literal independent reports, manifest)",
+  "source_map_note": "changed_paths lists every path of the source commit with its git blob id, bytes, sha256 and NUL count. No file with pre-existing NUL bytes (eech-dc module.rs 2, eech_engine.c 1) was touched; the NUL counts of the changed paths are all 0.",
+  "moving_query_review_notes_read": "R:/d3-evidence/D3-MOVING-QUERY-FIXTURE-REVIEW-NOTES-20261105.txt read in full through the Root 21:49 entry (sha256 8d2c8a13526fa0a8539951ce84a0c9779e9be9ae7634ecb42ac83a2f7687dbd3) and D3-CURRENT.json (updated 21:28:34Z) before the freeze; the 21:37 counter-cfg, 21:44 lint and pending-assertion items and the 21:48/21:49 scope notes are applied or recorded.",
+  "remaining_gates": [
+    "SAME independent combined source review of the frozen commit (Person correction + three fixture groups + the 21:49 notes)",
+    "Root-selected frozen-source checks, ordinary Windows build, ordinary short against 80fd, healthy control and the UNCHANGED 40/all8 pack; only then any claim about the long-run conformance",
+    "Fresh reviewed hosted weapon-fixture and Original weapon+collision Windows profiles before the controlled query natives (A moving coverage, then B post-lift with control_signature, then the Original physical comparison); no natural weapon engagement claim",
+    "Other writers/kinds not reached: complete Core-writer census, lifecycle adoption, pack/gunship writers, the natural moving weapon gap, backing/roster/city, getters, raw tree/forest/cloud/RNG, hierarchy/devices, DCS mapping",
+    "Task49 CI/review/normal merge and whole D3 acceptance; all ten requirements stay open; D4/D5/TypeScript unstarted"
+  ],
+  "do_not": [
+    "reuse the consumed diagnostic root or the removed caches",
+    "relabel the diagnostic bd6e binaries as the corrected build",
+    "treat source-only evidence as native acceptance",
+    "close ENV-ENTITY-POSE-LONG-RUN-MOTION-1 before the corrected build is validated"
+  ]
+}

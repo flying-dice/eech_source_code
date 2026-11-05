@@ -1,0 +1,110 @@
+{
+  "state": "terminal",
+  "controller_pid": 11096,
+  "started_utc": "2026-11-05T22:15:21.117893+00:00",
+  "source": "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7",
+  "snapshot": "D:\\EECH-Migration-Evidence\\person-motion-3475fb93b-20261105-source",
+  "output": "D:\\EECH-Migration-Evidence\\person-motion-3475fb93b-20261105-gate",
+  "cache": "eech-linux-d3-collision-driver-5416adb3b-20261029",
+  "image": "sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51",
+  "commands": [
+    {
+      "name": "clone",
+      "args": [
+        "git",
+        "clone",
+        "--no-checkout",
+        "--no-hardlinks",
+        "R:\\d3-evidence\\collision-characterization-20261029",
+        "D:\\EECH-Migration-Evidence\\person-motion-3475fb93b-20261105-source"
+      ],
+      "pid": 22620,
+      "started_utc": "2026-11-05T22:15:21.126256+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-05T22:15:22.590528+00:00"
+    },
+    {
+      "name": "longpaths",
+      "args": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\person-motion-3475fb93b-20261105-source",
+        "config",
+        "core.longpaths",
+        "true"
+      ],
+      "pid": 12692,
+      "started_utc": "2026-11-05T22:15:22.597529+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-05T22:15:22.645824+00:00"
+    },
+    {
+      "name": "checkout",
+      "args": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\person-motion-3475fb93b-20261105-source",
+        "checkout",
+        "--detach",
+        "3475fb93bf3daf6834d6c0508f8cfaa53ebb19a7"
+      ],
+      "pid": 8848,
+      "started_utc": "2026-11-05T22:15:22.652825+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-05T22:15:26.364742+00:00"
+    },
+    {
+      "name": "selected-gate",
+      "args": [
+        "wsl",
+        "-d",
+        "EECH-D2-Build",
+        "--",
+        "docker",
+        "run",
+        "--rm",
+        "--name",
+        "person-motion-3475fb93b-20261105-gate",
+        "--network",
+        "none",
+        "-v",
+        "/mnt/d/EECH-Migration-Evidence/person-motion-3475fb93b-20261105-source:/src:ro",
+        "-v",
+        "eech-linux-d3-collision-driver-5416adb3b-20261029:/target",
+        "-v",
+        "eech-cargo:/usr/local/cargo/registry",
+        "-v",
+        "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/entity-gate:/scripts:ro",
+        "-v",
+        "/mnt/d/EECH-Migration-Evidence/person-motion-3475fb93b-20261105-gate:/out",
+        "-e",
+        "CARGO_TARGET_DIR=/target",
+        "-w",
+        "/src/eech-campaign",
+        "sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51",
+        "sh",
+        "/scripts/person-motion-correction-inner.sh"
+      ],
+      "pid": 22884,
+      "started_utc": "2026-11-05T22:15:47.925433+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-05T22:17:25.117914+00:00"
+    }
+  ],
+  "frozen_checkpoint": "R:\\d3-evidence\\query-reverse-identity-CODE-FROZEN-20261105.json",
+  "author_terminal_receipt": "R:\\d3-evidence\\claude-d3-query-reverse-identity-20261105-completion.json",
+  "scope": "Five risk-selected frozen-source checks; other author/parent passes retain their own identities. Not a full16 replay or native acceptance.",
+  "source_rows": 4136,
+  "filtered_qualifications": [
+    "aphavoc/laa.c",
+    "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+    "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+    "modules/system/malloc.c.h",
+    "modules/system/nedmalloc.c"
+  ],
+  "all_raw_Git_exact": true,
+  "source_maps_literal_equal": true,
+  "source_map_sha256": "047730a9a257c25acf000b4eefeb213a33f31c1bf4b7e7a457141545e2027c80",
+  "actual_exit": 0,
+  "completed_utc": "2026-11-05T22:17:27.034138+00:00"
+}
