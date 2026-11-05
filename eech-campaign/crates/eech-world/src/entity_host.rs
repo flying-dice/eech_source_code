@@ -495,7 +495,7 @@ mod tests {
             }
             for _ in 0..(round % 3) {
                 let at = (next() as usize) % CANDIDATE_FACTS;
-                words[at] = if next() % 2 == 0 { specials[(next() % 12) as usize] } else { next() };
+                words[at] = if next().is_multiple_of(2) { specials[(next() % 12) as usize] } else { next() };
             }
             // `check_candidate_facts` compares only finite words, so the corpus may carry a NaN only where its own finite test comes first: which is exactly the order the two must share
             assert_eq!(classify_candidate_words(&words), the_floating_classifier(&words), "{words:x?}");
