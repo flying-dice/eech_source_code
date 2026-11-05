@@ -686,6 +686,54 @@ static void offer_cases (struct tc *t)
 	EXPECT (t, collision_calls == 1 && collision_scene == 4 && collision_count == 12);
 	collision_hit = FALSE;
 
+	/* A malformed NEED_PLACEMENT is refused by the exchange BEFORE the offer reads a heading, an align flag or an attitude, and before any narrow phase. A city: read as far as its fixed facts. */
+	e = make_entity (FALSE, TRUE, 0);
+	e.city = TRUE;
+	b1 = make_entity (FALSE, TRUE, 3);
+	e.first_building = &b1;
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, o.stopped && strstr (fatal_text, "entity_candidate.state") != NULL && strcmp (reads, "MFCBPX") == 0 && collision_calls == 0);
+
+	/* a building listed directly in a sector: its type and nothing more */
+	e = make_entity (FALSE, TRUE, 0);
+	e.city_building = TRUE;
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, o.stopped && strstr (fatal_text, "entity_candidate.state") != NULL && strcmp (reads, "MFCG") == 0 && collision_calls == 0);
+
+	/* an entity whose fixed flag says it is neither mobile nor fixed: no shape, no placement */
+	e = make_entity (FALSE, FALSE, 5);
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, o.stopped && strstr (fatal_text, "entity_candidate.state") != NULL && strcmp (reads, "MF") == 0 && collision_calls == 0);
+
+	/* a fixed candidate whose shape is unusable (scene 0), and a mobile one: no heading, align flag or attitude is read */
+	e = make_entity (FALSE, TRUE, 0);
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, o.stopped && strstr (fatal_text, "entity_candidate.state") != NULL && strcmp (reads, "MFCGSP") == 0 && collision_calls == 0);
+	e = make_entity (TRUE, FALSE, 0);
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, o.stopped && strstr (fatal_text, "entity_candidate.state") != NULL && strcmp (reads, "MSPV") == 0 && collision_calls == 0);
+
+	/* a building under a city that has no shape: its flags are read during a placement only a building with a shape may have */
+	e = make_entity (FALSE, TRUE, 0);
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	o = offer (&e, TRUE, 1000.0f);
+	EXPECT (t, o.stopped && strstr (fatal_text, "entity_candidate.state") != NULL && strcmp (reads, "SP") == 0 && collision_calls == 0);
+
 	/* the host's NEED answers are bounded by the facts: fixed facts asked of a mobile candidate stop the engine before anything else is read */
 	e = make_entity (TRUE, FALSE, 7);
 	queue_reset ();
@@ -824,6 +872,55 @@ static void candidate_cases (struct tc *t)
 	make_facts (more, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
 	more[CAMPAIGN_CANDIDATE_FIXED_GIVEN] = 0.0f;
 	expect_candidate_refusal (t, "placement asked before the fixed facts were read", "entity_candidate.state", 7, more, __LINE__);
+
+	/* the placement is legitimate for exactly three branches, each with its scene and its stage facts: a mobile candidate, a building under a city (whose flags are read DURING the placement, so its
+	   fixed facts were never read), and an ordinary fixed candidate whose fixed facts say it is one */
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0, SCENE_NAME);
+	make_facts (more, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE);
+	more[CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] = 0.0f;
+	o = ask_candidate (7, more);
+	EXPECT (t, !o.stopped && o.state == CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT);
+	make_facts (more, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE);
+	more[CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] = 0.0f;
+	more[CAMPAIGN_CANDIDATE_FIXED_GIVEN] = 0.0f;
+	o = ask_candidate (9, more);
+	EXPECT (t, !o.stopped && o.state == CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT);
+	make_facts (more, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE);
+	more[CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] = 0.0f;
+	o = ask_candidate (7, more);
+	EXPECT (t, !o.stopped && o.state == CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT);
+
+	/* and for no other: a city, a building listed directly in a sector, an entity the fixed facts say is neither mobile nor fixed, and a candidate that has no scene are refused BEFORE any getter */
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0, "");
+	make_facts (more, FALSE, TRUE, TRUE, TRUE, FALSE, FALSE);
+	more[CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] = 0.0f;
+	expect_candidate_refusal (t, "placement asked of a city", "entity_candidate.state", 0, more, __LINE__);
+	make_facts (more, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE);
+	more[CAMPAIGN_CANDIDATE_CITY_BUILDING] = 1.0f;
+	more[CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] = 0.0f;
+	expect_candidate_refusal (t, "placement asked of a building listed directly in a sector", "entity_candidate.state", 0, more, __LINE__);
+	/* the role alone refuses a building listed directly in a sector even when a scene is named for it (a city has none, which the request refuses first) */
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0, SCENE_NAME);
+	make_facts (more, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE);
+	more[CAMPAIGN_CANDIDATE_CITY_BUILDING] = 1.0f;
+	more[CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] = 0.0f;
+	expect_candidate_refusal (t, "placement asked of a building listed directly in a sector that was given a scene", "entity_candidate.state", 7, more, __LINE__);
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0, SCENE_NAME);
+	make_facts (more, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
+	more[CAMPAIGN_CANDIDATE_FIXED_GIVEN] = 1.0f;
+	more[CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] = 0.0f;
+	expect_candidate_refusal (t, "placement asked of an entity that is neither mobile nor fixed", "entity_candidate.state", 7, more, __LINE__);
+	script_candidate (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0, "");
+	make_facts (more, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE);
+	more[CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] = 0.0f;
+	expect_candidate_refusal (t, "placement asked of an ordinary fixed candidate that has no scene", "entity_candidate.state", 0, more, __LINE__);
+	make_facts (more, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE);
+	more[CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] = 0.0f;
+	expect_candidate_refusal (t, "placement asked of a mobile candidate that has no scene", "entity_candidate.state", 0, more, __LINE__);
+	make_facts (more, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE);
+	more[CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] = 0.0f;
+	more[CAMPAIGN_CANDIDATE_FIXED_GIVEN] = 0.0f;
+	expect_candidate_refusal (t, "placement asked of a building under a city that has no scene", "entity_candidate.state", 0, more, __LINE__);
 
 	/* the terrain's face normal is asked of a fixed candidate that aligns with the terrain and has its placement, once */
 	script_candidate (CAMPAIGN_MODEL_CANDIDATE_NEED_NORMAL, 0, SCENE_NAME);

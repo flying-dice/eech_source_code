@@ -200,10 +200,24 @@ static void check_candidate_reply (const campaign_model_reply *reply, int scene,
 
 	if (state == CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT)
 	{
-		if ((facts [CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] != 0.0f) ||
-			((facts [CAMPAIGN_CANDIDATE_MOBILE] == 0.0f) && (facts [CAMPAIGN_CANDIDATE_OF_CITY] == 0.0f) && (facts [CAMPAIGN_CANDIDATE_FIXED_GIVEN] == 0.0f)))
+		// the placement is read by the campaign's getters (heading, align flag, attitude), so it is refused HERE, before any of them, unless the facts describe a branch that has one: a mobile candidate,
+		// a building listed under a city (its collision flags are read DURING the placement, so its fixed facts are not given), or an ordinary fixed candidate whose fixed facts say it is one (not a city,
+		// not a building listed directly in a sector, not an entity that is neither mobile nor fixed). Each needs a scene, and none may have its placement already.
+		int
+			mobile,
+			of_city,
+			ordinary_fixed;
+
+		mobile = (facts [CAMPAIGN_CANDIDATE_MOBILE] != 0.0f);
+
+		of_city = (facts [CAMPAIGN_CANDIDATE_OF_CITY] != 0.0f);
+
+		ordinary_fixed = ((!mobile) && (!of_city) && (facts [CAMPAIGN_CANDIDATE_FIXED_GIVEN] != 0.0f) && (facts [CAMPAIGN_CANDIDATE_FIXED] != 0.0f) &&
+			(facts [CAMPAIGN_CANDIDATE_CITY] == 0.0f) && (facts [CAMPAIGN_CANDIDATE_CITY_BUILDING] == 0.0f));
+
+		if ((facts [CAMPAIGN_CANDIDATE_PLACEMENT_GIVEN] != 0.0f) || (scene == 0) || (!(mobile || of_city || ordinary_fixed)))
 		{
-			debug_fatal ("host model: [model-provider:entity_candidate.state] the host asked for the placement facts of scene %d, which were read already or whose branch has not reached a placement", scene);
+			debug_fatal ("host model: [model-provider:entity_candidate.state] the host asked for the placement facts of scene %d, which have been read already, or which belongs to no branch that has a placement (a city, a building listed directly in a sector, an entity that is neither mobile nor fixed, or a candidate that has no scene)", scene);
 		}
 	}
 

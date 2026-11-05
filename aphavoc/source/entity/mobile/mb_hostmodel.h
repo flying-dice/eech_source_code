@@ -148,7 +148,7 @@
  *              phase's candidate pose in `candidate` (`candidate_count` floats: 12 for a stationary candidate, 16 for a moving one), which the campaign then sends with ENTITY_COLLISION.
  *              The question is a pure function of its facts: no state is kept between questions, so the decision is the one the original made in one pass. The reply echoes the scene's compiled
  *              name (empty for scene 0). A refusal (a scene the branch needs and the model data cannot give is refused, never defaulted), a state the facts do not allow (NEED_UPDATED for a
- *              candidate that is not mobile or has the answer already, NEED_FIXED for a mobile candidate or one whose fixed facts were read, NEED_PLACEMENT when they were read, NEED_NORMAL
+ *              candidate that is not mobile or has the answer already, NEED_FIXED for a mobile candidate or one whose fixed facts were read, NEED_PLACEMENT when it was read, for a city, a building listed directly in a sector, an entity that is neither mobile nor fixed or a candidate that has no scene (refused before the campaign reads a heading, an align flag or an attitude), NEED_NORMAL
  *              for one that does not align with the terrain, has no placement yet or has the normal, BUILDINGS for a non-city, a TEST with scene 0), a pose of another size or of non-finite
  *              floats, a name that is not the scene's, or a missing provider stops the engine with the host's reason; nothing is invented. No entity identity crosses: a candidate is named only
  *              by the order the campaign offers it.
