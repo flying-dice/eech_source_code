@@ -110,6 +110,17 @@
 --   Both are allowed under profile=original (they act on movement, not on any entity question): the original solver reads the same Core mirror the engine wrote. What is then comparable is the outcome and the hashes, never a
 --   per-candidate question (the original asks none). A coherent Core-and-record change alone does not distinguish which of the two the solver consumed; that is the provider's own record-versus-discarded-mirror test.
 --
+-- THE CONTROLLED MOVING QUERY CASE (two explicit modes; a QUERY-SERVICE proof, not a natural weapon engagement). The natural moving case above depends on a campaign engagement that the first two actual runs did not find
+-- (the case launch slews no turret), so these modes ask the production entity query directly, through the same shared C and the same host route: `engine:wpn_moving_query_prepare` latches three fixed finite segments about ONE
+-- real routed vehicle (the collision fixture's structured moving-target recipe: bearings 0, 1 and 2, reach radius + 20 m, the model's bounds, taken from the entity's own position and model: explicit query INPUTS, never an
+-- expected answer), one actual engine frame runs, then `engine:wpn_moving_query_run` asks the production get_line_of_sight_collision_entity for the SAME latched segments.
+--   moving_query_control   the target is the first alive routed vehicle, in identity order, whose last host step (final warmup frame) had a motion vector above 1 m/s; the frame steps normally.
+--   moving_query_lift      the same, and in that one frame the host's own `move` step of that target carries the existing bounded terrain lift (see terrain_lift): the engine writes the host's answer to Core, the mirror must agree.
+-- No retarget, teleport, flag or answer is altered, nothing is searched for a hit, and every segment is asked once. Hosted, the target itself must be asked need_updated, reach a `test` that carries the 16-word moving pose,
+-- every mobile question must carry an identity and the conformance assertion must hold; no such target, no such coverage or a refused latch is an exact UNREACHED. Original (profile=original, the module built with weapon-fixture and
+-- collision-fixture) asks the SAME segments of the original solver and reports the physical outputs only (no host question exists to count). The rows `query_segment` and `query_authority` carry the physical outputs; comparing
+-- control with lift, and hosted with original, is read across runs. They say nothing about a weapon, its aim, launch or cohort, and the natural moving integration gap stays open.
+--
 -- THE ENTITY_POSE OBSERVATION (fifth slice; mb_hostmodel.h ENTITY_POSE, 15 words). For each MOBILE candidate of a sector list (an aircraft or a vehicle whose collision-test-mobile flag is set) the shipped offer asks the host to
 -- OBSERVE it against the host's own record of its semantic host identity (the one Movers registry the movement callbacks step), beside the original's reads. Nothing decides from the answer and no candidate, count or order of
 -- the dialogue depends on it. The words (the position and motion vector, and at the placement stage the attitude) are the ones the original read; the observation ADDS three read-only metadata reads, the entity's type, its alive
@@ -300,6 +311,9 @@ MODES.displaced_record = { displace = true, marker = "entity_pose.mirror" }
 -- the HOST-SIDE movement modes (completion modes): see the header
 MODES.moving_control = { moving_target = true, host_side_movement = true }
 MODES.terrain_lift = { moving_target = true, host_side_movement = true, lift = true }
+-- the controlled moving QUERY case (completion modes; no weapon is launched): see the header
+MODES.moving_query_control = { query = true, host_side_movement = true }
+MODES.moving_query_lift = { query = true, host_side_movement = true, lift = true }
 local plan = MODES [mode]
 if plan == nil then refuse ("unknown mode '" .. tostring (mode) .. "'") end
 if profile == "original" and mode ~= "control" and not plan.host_side_movement then refuse ("profile=original runs only mode=control (or a host-side movement mode): no entity_collision question reaches the provider to alter") end
@@ -409,7 +423,9 @@ local last_move = {}
 -- the last `vectors` aim request seen per source identity (target link, selected weapon, the target's motion words, frame): an observation of the campaign's own engagement, forwarded unchanged
 local last_vectors = {}
 local watched
-local tgt = { questions = 0, skip = 0, need_updated = 0, need_fixed = 0, need_placement = 0, need_normal = 0, buildings = 0, test = 0, after_lift = 0, after_lift_test = 0 }
+local tgt = { questions = 0, skip = 0, need_updated = 0, need_fixed = 0, need_placement = 0, need_normal = 0, buildings = 0, test = 0, test_moving16 = 0, after_lift = 0, after_lift_test = 0 }
+-- true only while the controlled query case runs its one frame: the lift of the target's own step is allowed then although the weapon launch never arms the witness
+local lift_window = false
 -- the lifted terrain elevation (metres added to the target's own routed step; a constant declared before any run) and what the lifted steps did
 local LIFT = 500
 local lifted, lift_refused, lift_row = 0, 0, { baseline = 0, elevation = 0, answered_y = 0, frame = -1 }
@@ -692,7 +708,7 @@ end
 -- answer to the campaign, used only to select the case; it is not provider state).
 local function hosted_move (step)
 	local delegated, lifting = step, false
-	if plan.lift and armed and watched ~= nil and type (step) == "table" and step.host_id == watched and step.mode == "move" and type (step.terrain) == "table" then
+	if plan.lift and (armed or lift_window) and watched ~= nil and type (step) == "table" and step.host_id == watched and step.mode == "move" and type (step.terrain) == "table" then
 		local base = step.terrain.elevation
 		local ceiling = type (step.map_max) == "table" and step.map_max [2] or nil
 		if type (base) == "number" and base == base and type (ceiling) == "number" and base + LIFT <= ceiling then
@@ -746,6 +762,12 @@ local function candidate_question (scene, depth, kind, definition, key)
 		if parsed and parsed.mobile and watched ~= nil and parsed.host_id == watched then
 			tgt.questions = tgt.questions + 1
 			tgt [real.result] = tgt [real.result] + 1
+			-- a test decision of a MOVING candidate carries the 16-word moving pose (a stationary one 12)
+			if real.result == "test" and type (real.p) == "string" then
+				local words = 0
+				for _ in string.gmatch (real.p, "[^,]+") do words = words + 1 end
+				if words == 16 then tgt.test_moving16 = tgt.test_moving16 + 1 end
+			end
 			if lifted > 0 then
 				tgt.after_lift = tgt.after_lift + 1
 				if real.result == "test" then tgt.after_lift_test = tgt.after_lift_test + 1 end
@@ -980,6 +1002,112 @@ local function main ()
 		local x, y, z = last.motion [1], last.motion [2], last.motion [3]
 		if not (finite (x) and finite (y) and finite (z)) then return false end
 		return x * x + y * y + z * z > 1
+	end
+	if plan.query then
+		-- the controlled moving QUERY case (see the header): no weapon, no launch, no cohort
+		local target, moving_candidates = nil, 0
+		for _, id in ipairs (ordered) do
+			if alive [id] and moving_routed (id) then
+				moving_candidates = moving_candidates + 1
+				target = target or id
+			end
+		end
+		emit { event = "query_case_selected", target = target or "none", moving_candidates = moving_candidates, selection = "first_alive_moving_routed_target_in_identity_order" }
+		if not target then hard ("UNREACHED: no alive routed vehicle was stepped by the host above 1 m/s in the final warmup frame (" .. #ordered .. " bound): the controlled query case is not run, nothing is tuned") end
+		for _, method in ipairs { "wpn_moving_query_prepare", "wpn_moving_query_run" } do
+			local present, value = pcall (function () return engine [method] end)
+			if not (present and type (value) == "function") then hard ("this module has no controlled moving query surface (" .. method .. "): it was not built with weapon-fixture") end
+		end
+		watched = target
+		-- one engine call: nil and a failure when the engine itself stopped (anchored marker); a refusal of the case (a named reason) is UNREACHED, never swallowed
+		local function ask (method, ...)
+			local ok, text = pcall (engine [method], engine, ...)
+			if ok then return text, nil end
+			if string.sub (first_line (text), 1, #NAME + 1) == NAME .. ":" then error (tostring (text), 0) end
+			local marker = engine_marker (text)
+			if marker == nil then hard ("UNREACHED: the controlled query case refused " .. method .. ": " .. first_line (text)) end
+			return nil, { marker = marker, line = first_line (text) }
+		end
+		local function lines_of (text, prefix)
+			local list = {}
+			for line in string.gmatch (text, "[^\n]+") do
+				if string.sub (line, 1, #prefix) == prefix then
+					local f = fields (line)
+					f.raw = line
+					list [#list + 1] = f
+				end
+			end
+			return list
+		end
+		local prepared, failure = ask ("wpn_moving_query_prepare", target)
+		if failure then hard ("the engine stopped while the controlled query case was prepared: [model-provider:" .. failure.marker .. "]") end
+		local head = lines_of (prepared, "wpn-moving-query-prepare ")
+		local latched = lines_of (prepared, "wpn-moving-query-segment ")
+		if #head ~= 1 or head [1].host_id ~= target or #latched ~= 3 then hard ("the prepare report does not name " .. target .. " with three segments: " .. first_line (prepared)) end
+		for index, segment in ipairs (latched) do
+			if tonumber (segment.seg) ~= index - 1 or segment.a == nil or segment.b == nil then hard ("the prepare report's segment " .. index .. " is malformed: " .. segment.raw) end
+		end
+		emit { event = "query_prepared", target = target, target_type = head [1].target_type, radius = head [1].radius,
+			segments = table.concat ({ latched [1].a .. ">" .. latched [1].b, latched [2].a .. ">" .. latched [2].b, latched [3].a .. ">" .. latched [3].b }, ";") }
+		-- ONE actual engine frame, the lift (when the mode has it) in the target's own host step; then the SAME segments are asked
+		lift_window = plan.lift and true or false
+		failure = guarded (frame)
+		lift_window = false
+		local ran
+		if not failure then
+			armed = true
+			ran, failure = ask ("wpn_moving_query_run")
+		end
+		local results, hits, target_hits, signature = {}, 0, 0, {}
+		if ran then
+			results = lines_of (ran, "wpn-moving-query-result ")
+			if #results ~= 3 then hard ("the query run reported " .. #results .. " results, not three: " .. first_line (ran)) end
+			for index, result in ipairs (results) do
+				if tonumber (result.seg) ~= index - 1 or result.a ~= latched [index].a or result.b ~= latched [index].b then
+					hard ("the segment asked is not the segment latched before the frame (segment " .. index .. "): " .. result.raw)
+				end
+				if result.hit ~= "0" and result.hit ~= "1" then hard ("a query result carries hit=" .. tostring (result.hit) .. ": " .. result.raw) end
+				if result.hit == "1" then
+					hits = hits + 1
+					if result.hit_is_target == "1" then target_hits = target_hits + 1 end
+				end
+				signature [#signature + 1] = table.concat ({ result.hit, tostring (result.hit_type), tostring (result.hit_is_target), tostring (result.hit_host_id), tostring (result.point), tostring (result.normal) }, "|")
+				emit { event = "query_segment", seg = tonumber (result.seg), hit = tonumber (result.hit), hit_is_target = tonumber (result.hit_is_target) or 0, hit_type = result.hit_type or "", hit_host_id = result.hit_host_id or "",
+					point = result.point or "", normal = result.normal or "", a = result.a, b = result.b }
+			end
+		end
+		local pose_facts_row = pose_facts ()
+		emit {
+			event = "query_authority", mode = mode, profile = profile, completed = failure == nil and ran ~= nil, failure_marker = failure and failure.marker or "", failure_line = failure and failure.line or "",
+			target = target, segments = #results, query_hits = hits, query_target_hits = target_hits, query_signature = table.concat (signature, ";"),
+			lifted = lifted, lift_refused = lift_refused, lift_constant = LIFT, lift_baseline_elevation = lift_row.baseline, lift_elevation = lift_row.elevation, lift_answered_y = lift_row.answered_y, lift_frame = lift_row.frame,
+			target_questions = tgt.questions, target_skip = tgt.skip, target_need_updated = tgt.need_updated, target_need_fixed = tgt.need_fixed, target_need_placement = tgt.need_placement,
+			target_need_normal = tgt.need_normal, target_buildings = tgt.buildings, target_test = tgt.test, target_test_moving16 = tgt.test_moving16, target_after_lift = tgt.after_lift, target_after_lift_test = tgt.after_lift_test,
+			candidate_after = after.candidate, candidate_mobile = cand.mobile, candidate_mobile_named = cand.mobile_named, candidate_mobile_unnamed = cand.mobile_unnamed, entity_after = after.entity,
+			scan_after = after.scan, pose_after = after.pose, pose_recorded = pose.recorded, pose_named = pose.named, pose_histogram = pose_histogram_text (pose_histogram),
+			pose_fact_position_differs = pose_facts_row.position_differs, pose_fact_attitude_differs = pose_facts_row.attitude_differs, pose_fact_motion_held_differs = pose_facts_row.motion_held_differs,
+			moving_pose_questions = seen.moving, request_faults = faults.request, reply_faults = faults.reply, first_fault = first_fault or "",
+			frames = frames, elapsed = clock.elapsed_seconds, natural_weapon_engagement = "not_claimed_query_service_only",
+		}
+		-- ------------------------------------------------------------------------------------------------ the verdict of the query modes
+		if failure then return "mode " .. mode .. " failed in the engine at [model-provider:" .. failure.marker .. "]: " .. failure.line end
+		if plan.lift then
+			if lifted < 1 then return string.format ("UNREACHED: %s lifted no step of the target (%d refused by the map ceiling): the host's own routed move of the target never carried a terrain input within the bound", mode, lift_refused) end
+			local y, e = lift_row.answered_y, lift_row.elevation
+			if not finite (y) or not (math.abs (y - e) <= math.abs (e) * 2 ^ -23) then return string.format ("%s: the host's answer to the lifted step is at y=%s, not at the lifted elevation %s", mode, tostring (y), tostring (e)) end
+		end
+		if profile == "original" then
+			if after.entity ~= 0 or after.candidate ~= 0 or after.scan ~= 0 or after.pose ~= 0 then return "profile=original, but the host was asked " .. after.entity .. " entity_collision, " .. after.candidate .. " entity_candidate, " .. after.scan .. " entity_scan and " .. after.pose .. " entity_pose questions: the module is not the original" end
+			return nil
+		end
+		if faults.request + faults.reply ~= 0 then return string.format ("the entity question or the host's reply is not the contract's (request_faults=%d reply_faults=%d): %s", faults.request, faults.reply, tostring (first_fault)) end
+		if cand.mobile_unnamed ~= 0 then return string.format ("%s: %d mobile candidate questions carried no host identity", mode, cand.mobile_unnamed) end
+		if after.scan < 1 then return string.format ("UNREACHED: %s: the production query asked the host no entity_scan question", mode) end
+		if tgt.need_updated < 1 then return string.format ("UNREACHED: %s: the target %s was never asked need_updated in %d questions (the shared C asks it only of a candidate whose motion vector is above 1), so it was not a moving candidate at the query", mode, target, tgt.questions) end
+		if tgt.test < 1 then return string.format ("UNREACHED: %s: no question about the target %s reached the narrow phase (%d questions, %d skipped)", mode, target, tgt.questions, tgt.skip) end
+		if tgt.test_moving16 < 1 then return string.format ("UNREACHED: %s: no test decision about the target %s carried the 16-word moving pose", mode, target) end
+		if plan.lift and tgt.after_lift < 1 then return string.format ("UNREACHED: %s: no question about the target %s followed the lifted step", mode, target) end
+		return nil
 	end
 	local pair_list = {}
 	for index, id in ipairs (ordered) do

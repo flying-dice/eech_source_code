@@ -7259,6 +7259,28 @@ impl Engine {
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-49 D3): latches three finite segments about one routed vehicle (by roster host id) from the collision fixture's structured moving-target recipe, as
+    /// `key=value` text. A target or model that is not supported is an error and latches nothing.
+    #[cfg(feature = "weapon-fixture")]
+    pub fn wpn_moving_query_prepare(&self, host_id: &str) -> Result<String, EngineError> {
+        let host_id = std::ffi::CString::new(host_id).map_err(|_| EngineError::BadArgument("a host id contains a NUL byte".into()))?;
+        let mut text = vec![0 as std::os::raw::c_char; 4096];
+        // SAFETY: the string and the buffer outlive the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_wpn_moving_query_prepare(host_id.as_ptr(), text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-49 D3): asks the production entity query for the latched segments (one-shot) and reports each result as `key=value` text.
+    #[cfg(feature = "weapon-fixture")]
+    pub fn wpn_moving_query_run(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; 4096];
+        // SAFETY: the buffer outlives the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_wpn_moving_query_run(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
     /// TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the entity kind of a roster host id from its type field alone, as `key=value` text (`found=0` for an unknown id).
     #[cfg(feature = "weapon-fixture")]
     pub fn wpn_case_kind(&self, host_id: &str) -> Result<String, EngineError> {

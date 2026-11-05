@@ -23,6 +23,7 @@ SCAN_LOG = {}
 POSE_LOG = {}
 MOVES, RETIRED, DISPLACED, MOVE_LOG = {}, {}, {}, {}
 VECTORS_ASKED, VECTORS_ALTERED, VECTORS_SEEN = 0, false, nil
+MQ_CALLS = {}
 local function deep_copy (value)
 	if type (value) ~= "table" then return value end
 	local copy = {}
@@ -495,6 +496,43 @@ package.preload.eech_dc = function ()
 				local already = linked [launcher] == target
 				return scenario.launch_report or ("wpn-case-launch launcher=helicopter weapon=7 target_link_before=" .. (already and 1 or 0) .. " target_link=1 count_before=3 count_after=2 births=" .. #(scenario.births or { 1 }) .. " creates=1 restored=" .. (already and -1 or 1))
 			end
+			local latched_query
+			local function segment_text (k)
+				local base = 0x41000000 + k * 0x100
+				return string.format ("0x%08x,0x%08x,0x%08x", base, base + 1, base + 2), string.format ("0x%08x,0x%08x,0x%08x", base + 16, base + 17, base + 18)
+			end
+			if not scenario.no_query_surface then
+				function engine:wpn_moving_query_prepare (id)
+					MQ_CALLS [#MQ_CALLS + 1] = "prepare@" .. now .. ":" .. id
+					if scenario.query_refuse == "prepare" then error ("wpn-case-error reason=target_model_unsupported host_id=" .. id, 0) end
+					latched_query = id
+					local lines = { "wpn-moving-query-prepare host_id=" .. id .. " segments=3 target_type=routed_vehicle radius=0x41200000" }
+					for k = 0, 2 do
+						local a, b = segment_text (k)
+						lines [#lines + 1] = "wpn-moving-query-segment seg=" .. k .. " bearing=0x3f060a92 a=" .. a .. " b=" .. b
+					end
+					return table.concat (lines, "\n") .. "\n"
+				end
+				function engine:wpn_moving_query_run ()
+					MQ_CALLS [#MQ_CALLS + 1] = "run@" .. now
+					if scenario.query_refuse == "run" then error ("wpn-case-error reason=target_not_alive", 0) end
+					local lines = { "wpn-moving-query-run host_id=" .. tostring (latched_query) .. " segments=3" }
+					for k = 0, 2 do
+						-- the production caller's questions about the target: the hosted module asks the host, the original asks nothing
+						if not scenario.query_original then scan_walk (function () candidate_dialogue () end) end
+						local a, b = segment_text (k)
+						if scenario.query_segment_changed and k == 2 then a = "0x41000000,0x41000001,0x41000003" end
+						local head = "wpn-moving-query-result seg=" .. k .. " hit=" .. ((scenario.query_hits or { 1, 0, 1 }) [k + 1]) .. " a=" .. a .. " b=" .. b
+						if (scenario.query_hits or { 1, 0, 1 }) [k + 1] == 1 then
+							lines [#lines + 1] = head .. " hit_is_target=1 hit_type=routed_vehicle hit_host_id=" .. tostring (latched_query) .. " point=0x42000000,0x42000001,0x42000002 normal=0x00000000,0x3f800000,0x00000000"
+						else
+							lines [#lines + 1] = head .. " hit_is_target=0 hit_type=none hit_host_id=- point=- normal=-"
+						end
+					end
+					latched_query = nil
+					return table.concat (lines, "\n") .. "\n"
+				end
+			end
 			function engine:wpn_events ()
 				local text = table.concat (queue, "\n")
 				queue = {}
@@ -534,6 +572,8 @@ struct Driven {
     move_log: Vec<(String, String, f64, bool)>,
     /// the `vectors` aim requests the scripted campaign made, and whether any was not forwarded as the very same unchanged request
     vectors: (i64, bool),
+    /// the controlled query surface's calls, in order, each with the simulated time it was made at
+    query_calls: Vec<String>,
 }
 
 /// Runs the real driver once. `scenario` is the inside of the Lua table the collaborators read; `args` are the driver's own arguments.
@@ -594,6 +634,12 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
             })
             .collect(),
         launch: launch.map(|t| (t.get("launcher").unwrap(), t.get("target").unwrap(), t.get("weapon").unwrap())),
+        query_calls: globals
+            .get::<mlua::Table>("MQ_CALLS")
+            .expect("the query call log")
+            .sequence_values::<String>()
+            .map(|call| call.unwrap())
+            .collect(),
         vectors: (
             globals.get("VECTORS_ASKED").expect("the aim request count"),
             globals.get("VECTORS_ALTERED").expect("the aim forwarding flag"),
@@ -2298,4 +2344,206 @@ fn the_host_side_movement_modes_run_under_the_original_profile_and_the_refusal_m
             "{mode}"
         );
     }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// the controlled moving QUERY case: three latched segments about one moving routed vehicle, one actual frame (with the lift, or not), then the SAME segments asked of the production query
+
+/// the moving scenario of the engagement tests, with the query surface: the host steps the far vehicle at 3 m/s and the near one with a zero vector; the scripted production query's dialogue names the
+/// far one, which is asked need_updated and then tested with the 16-word moving pose. No weapon is launched in these modes.
+fn query_scenario(extra: &str) -> String {
+    moving_scenario(&format!(", moving = true{extra}"))
+}
+
+fn query_row(driven: &Driven) -> Value {
+    row_of(driven, "query_authority")
+}
+
+#[test]
+fn the_controlled_query_latches_three_segments_about_the_first_moving_routed_vehicle_runs_one_frame_and_asks_the_same_segments() {
+    let driven = drive(&query_scenario(""), &[("mode", "moving_query_control")]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    // the target is the host-stepped moving vehicle in identity order (never the nearer stationary one); no weapon was launched or engaged
+    let selected = row_of(&driven, "query_case_selected");
+    assert_eq!(
+        (selected["target"].clone(), selected["selection"].clone()),
+        (Value::from("eech-world:2"), Value::from("first_alive_moving_routed_target_in_identity_order"))
+    );
+    assert_eq!(driven.launch, None);
+    assert!(
+        driven
+            .rows
+            .lines()
+            .all(|line| !line.contains("\"event\":\"case_launch\"") && !line.contains("\"event\":\"cohort\"")),
+        "{}",
+        driven.rows
+    );
+    // prepare, then ONE actual frame (one second of the scripted clock), then run: the latch is made before the frame and consumed after it
+    let times: Vec<f64> = driven
+        .query_calls
+        .iter()
+        .map(|call| call.split('@').nth(1).unwrap().split(':').next().unwrap().parse().unwrap())
+        .collect();
+    assert_eq!(
+        driven.query_calls.iter().map(|call| call.split('@').next().unwrap()).collect::<Vec<_>>(),
+        ["prepare", "run"]
+    );
+    assert_eq!(times[1] - times[0], 1.0, "{:?}", driven.query_calls);
+    let prepared = row_of(&driven, "query_prepared");
+    assert_eq!(
+        (prepared["target"].clone(), prepared["target_type"].clone()),
+        (Value::from("eech-world:2"), Value::from("routed_vehicle"))
+    );
+    let row = query_row(&driven);
+    assert_eq!(row["completed"], true);
+    assert_eq!(row["segments"], 3);
+    // the physical outputs of the three segments, reported by the production caller: a hit carries its point and normal, a miss none
+    let segments: Vec<Value> = rows(&driven).into_iter().filter(|r| r["event"] == "query_segment").collect();
+    assert_eq!(segments.len(), 3);
+    assert_eq!(
+        (segments[0]["hit"].clone(), segments[1]["hit"].clone(), segments[2]["hit"].clone()),
+        (Value::from(1), Value::from(0), Value::from(1))
+    );
+    assert_eq!(
+        (segments[1]["point"].clone(), segments[1]["normal"].clone()),
+        (Value::from("-"), Value::from("-"))
+    );
+    assert_eq!(row["query_hits"], 2);
+    // the target-specific coverage the case requires, counted by identity: every one of the three scans asked the target need_updated, then tested it with the 16-word moving pose
+    assert_eq!(
+        (
+            row["target_need_updated"].clone(),
+            row["target_test"].clone(),
+            row["target_test_moving16"].clone(),
+            row["candidate_mobile_unnamed"].clone()
+        ),
+        (Value::from(3), Value::from(3), Value::from(3), Value::from(0)),
+        "{row}"
+    );
+    assert_eq!(
+        (row["lifted"].clone(), row["natural_weapon_engagement"].clone()),
+        (Value::from(0), Value::from("not_claimed_query_service_only"))
+    );
+    assert!(driven.move_log.iter().all(|(_, _, elevation, _)| *elevation == 10.0), "{:?}", driven.move_log);
+    assert!(!driven.caller_mutated);
+
+    // the changed mode lifts ONLY the target's own host step of that one frame; the latched segments are the same; the target's questions followed the lifted step
+    let lifted = drive(&query_scenario(""), &[("mode", "moving_query_lift")]);
+    assert!(lifted.result.is_ok(), "{:?}\n{}", lifted.result, lifted.rows);
+    let changed = query_row(&lifted);
+    assert_eq!(changed["completed"], true);
+    assert_eq!(changed["lifted"], 1);
+    for (field, expected) in [("lift_baseline_elevation", 10.0), ("lift_elevation", 510.0), ("lift_answered_y", 510.0)] {
+        assert_eq!(changed[field].as_f64(), Some(expected), "{field}: {changed}");
+    }
+    assert!(
+        changed["target_after_lift"].as_i64().unwrap() >= 1 && changed["target_after_lift_test"].as_i64().unwrap() >= 1,
+        "{changed}"
+    );
+    assert_eq!(
+        row_of(&lifted, "query_prepared")["segments"],
+        prepared["segments"],
+        "the latched segments are the same in both modes"
+    );
+    for (id, _, elevation, launched) in &lifted.move_log {
+        assert!(!launched);
+        let in_the_frame = *id == "eech-world:2" && *elevation == 510.0;
+        assert!(in_the_frame || *elevation == 10.0, "{id} {elevation}");
+    }
+    assert_eq!(
+        lifted.move_log.iter().filter(|(_, _, elevation, _)| *elevation == 510.0).count(),
+        1,
+        "exactly the one frame's step of the target: {:?}",
+        lifted.move_log
+    );
+    assert!(!lifted.caller_mutated);
+}
+
+#[test]
+fn a_query_case_that_cannot_be_prepared_or_covered_is_an_exact_unreached_and_never_a_pass() {
+    let control = [("mode", "moving_query_control")];
+    // no routed vehicle was stepped above 1 m/s in the final warmup frame: nothing is searched, retried or tuned
+    let error = error_of(drive(&query_scenario(", motion = {}"), &control));
+    assert!(
+        error.contains("UNREACHED: no alive routed vehicle was stepped by the host above 1 m/s") && error.contains("nothing is tuned"),
+        "{error}"
+    );
+    // the engine refuses the latch (an unsupported model, target or non-finite input): named, and the query is never asked
+    let driven = drive(&query_scenario(", query_refuse = 'prepare'"), &control);
+    let calls = driven.query_calls.clone();
+    let error = error_of(driven);
+    assert!(
+        error.contains("UNREACHED: the controlled query case refused wpn_moving_query_prepare") && error.contains("target_model_unsupported"),
+        "{error}"
+    );
+    assert_eq!(calls.len(), 1);
+    // the engine refuses the run (the identity no longer names an alive routed vehicle)
+    let error = error_of(drive(&query_scenario(", query_refuse = 'run'"), &control));
+    assert!(
+        error.contains("UNREACHED: the controlled query case refused wpn_moving_query_run") && error.contains("target_not_alive"),
+        "{error}"
+    );
+    // the segments asked must be the ones latched before the frame
+    let error = error_of(drive(&query_scenario(", query_segment_changed = true"), &control));
+    assert!(error.contains("not the segment latched before the frame"), "{error}");
+    // a module without the surface is not the weapon fixture
+    let error = error_of(drive(&query_scenario(", no_query_surface = true"), &control));
+    assert!(error.contains("no controlled moving query surface"), "{error}");
+    // coverage: the target must be asked need_updated, reach a test and the test must carry the 16-word moving pose
+    let error = error_of(drive(&query_scenario(", candidate_sequence = { 'test' }"), &control));
+    assert!(
+        error.contains("UNREACHED: moving_query_control") && error.contains("never asked need_updated"),
+        "{error}"
+    );
+    let error = error_of(drive(&query_scenario(", candidate_sequence = { 'need_updated', 'skip' }"), &control));
+    assert!(error.contains("UNREACHED") && error.contains("reached the narrow phase"), "{error}");
+    let error = error_of(drive(&query_scenario(", moving = false"), &control));
+    assert!(
+        error.contains("UNREACHED: moving_query_control") && error.contains("16-word moving pose"),
+        "{error}"
+    );
+    // an identity-less mobile question is a failure of the control, not a pass
+    let error = error_of(drive(&query_scenario(", unnamed_candidate = true"), &control));
+    assert!(error.contains("carried no host identity"), "{error}");
+    // the lift is bounded by the step's own map ceiling and a refused lift is UNREACHED
+    let error = error_of(drive(&query_scenario(", ceiling = 100"), &[("mode", "moving_query_lift")]));
+    assert!(error.contains("UNREACHED: moving_query_lift lifted no step"), "{error}");
+    // a host answer that does not take the lifted input is a failure
+    let error = error_of(drive(&query_scenario(", answer_ignores_lift = true"), &[("mode", "moving_query_lift")]));
+    assert!(error.contains("not at the lifted elevation"), "{error}");
+    // a conformance difference stops the engine and is never a pass
+    let driven = drive(&query_scenario(", pose_difference = 21"), &control);
+    assert!(driven.result.is_err(), "{}", driven.rows);
+    assert_eq!(query_row(&driven)["failure_marker"], "entity_pose.mirror");
+}
+
+#[test]
+fn the_controlled_query_runs_the_same_case_under_the_original_profile_and_reports_outputs_only() {
+    let original = |mode: &'static str| [("profile", "original"), ("mode", mode)];
+    for mode in ["moving_query_control", "moving_query_lift"] {
+        let driven = drive(&query_scenario(", fixture_api = true, query_original = true"), &original(mode));
+        assert!(driven.result.is_ok(), "{mode}: {:?}\n{}", driven.result, driven.rows);
+        let row = query_row(&driven);
+        assert_eq!(
+            (
+                row["completed"].clone(),
+                row["segments"].clone(),
+                row["candidate_after"].clone(),
+                row["entity_after"].clone(),
+                row["scan_after"].clone()
+            ),
+            (Value::from(true), Value::from(3), Value::from(0), Value::from(0), Value::from(0)),
+            "{mode}"
+        );
+        assert_eq!(row["target"], "eech-world:2");
+    }
+    // the lift is made under the original profile too (it is a movement input, not an entity answer)
+    let driven = drive(&query_scenario(", fixture_api = true, query_original = true"), &original("moving_query_lift"));
+    assert_eq!(query_row(&driven)["lifted"], 1);
+    // a module that asks the host under the original profile is not the original
+    let error = error_of(drive(&query_scenario(", fixture_api = true"), &original("moving_query_control")));
+    assert!(error.contains("the module is not the original"), "{error}");
+    // the hosted profile still refuses the original's fixture API
+    let error = error_of(drive(&query_scenario(", fixture_api = true"), &[("mode", "moving_query_control")]));
+    assert!(error.contains("keeps the original narrow phase"), "{error}");
 }

@@ -3520,6 +3520,14 @@ impl LuaUserData for LuaEngine {
         methods.add_method("wpn_case_kind", |_, this, host_id: String| {
             this.engine.wpn_case_kind(&host_id).map_err(lua_error)
         });
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-49 D3): the controlled moving entity query case (latch three finite segments about one routed vehicle, then ask the production entity
+        // query for them); not part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("wpn_moving_query_prepare", |_, this, host_id: String| {
+            this.engine.wpn_moving_query_prepare(&host_id).map_err(lua_error)
+        });
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("wpn_moving_query_run", |_, this, ()| this.engine.wpn_moving_query_run().map_err(lua_error));
         // TEST-ONLY (feature `weapon-fixture`, EEDCS-45): one physical launch attempt through the campaign's own launch call, given the same complete host callbacks as a frame; not
         // part of the shipping module.
         #[cfg(feature = "weapon-fixture")]

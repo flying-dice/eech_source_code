@@ -1965,4 +1965,238 @@ int eech_wpn_case_launch_run (const char *launcher_id, const char *target_id, in
 	return (n < 0 || n >= capacity) ? -1 : 0;
 }
 
+/*
+ * TEST-ONLY controlled moving ENTITY QUERY case (EEDCS-49, D3). Compiled only with `weapon-fixture`; it is neither a solver, a model nor an entity store. It asks the production
+ * get_line_of_sight_collision_entity (the function the compiled consumers call) a fixed finite set of questions about ONE real moving routed vehicle, so that the SAME caller can be
+ * exercised by the hosted module (host entity decisions) and by the original build (weapon-fixture with collision-fixture, which keeps the original solver).
+ *
+ *   prepare   the target is a roster host id (never a pointer). Its alive flag, type, collision-candidate flag, position and the model's radius and bounds are read and, if every one
+ *             is supported and finite, THREE segments are latched from the collision fixture's own structured moving-target recipe (eech_collision_fixture.c entity_struct_target:
+ *             bearings 0, 1 and 2, reach radius + 20 m, y at the middle of the model's bounding box without lines, centred on the entity's position at this moment). The position and the
+ *             model reads only construct the explicit query INPUTS; they are not an expected answer. An unsupported target or model (no bounds, a non-finite value, a kind other than a routed
+ *             vehicle, not collidable, not alive) is a named failure and latches nothing: it is never converted into a miss.
+ *   run       validates everything BEFORE the first query (a latched case, the identity still naming an alive routed vehicle, the report capacity), then asks the production function for
+ *             each of the three latched segments, exactly as the recipe does (no source, no target exclusion; the intercept point zeroed first; the face normal left unwritten) and reports
+ *             hit or miss, the kind and semantic host identity of a hit and, for a HIT only, the intercept point and the face normal as bit patterns. A miss reports no output word: they are
+ *             never read. The latch is consumed: a second run needs a new prepare. No pointer, heap index or layout is stored or reported; the target is looked up again by its host id.
+ * The queries are the original production caller: the effects of its getters (the whole-word AND of the UPDATED flag and the shared terrain point record) happen exactly as in any scan and
+ * are neither observed nor restored here. Nothing is moved, created or destroyed.
+ */
+#define MQ_SEGMENTS 3
+#define MQ_ID_MAX 128
+#define MQ_REPORT_MIN 3072
+
+static const float mq_bearings[MQ_SEGMENTS] = { 0.5235988f, 2.0943951f, 3.6651914f };
+
+static struct
+{
+	int latched;
+	char host_id[MQ_ID_MAX + 1];
+	vec3d a[MQ_SEGMENTS];
+	vec3d b[MQ_SEGMENTS];
+} mq;
+
+static uint32_t mq_bits (float value)
+{
+	uint32_t bits;
+	memcpy (&bits, &value, sizeof (bits));
+	return bits;
+}
+
+static int mq_finite3 (const vec3d *v)
+{
+	return isfinite (v->x) && isfinite (v->y) && isfinite (v->z);
+}
+
+static int mq_append (char *text, int capacity, int *used, const char *format, ...)
+{
+	va_list args;
+	int n;
+	if (*used >= capacity)
+	{
+		return -1;
+	}
+	va_start (args, format);
+	n = vsnprintf (text + *used, (size_t) (capacity - *used), format, args);
+	va_end (args);
+	if (n < 0 || n >= capacity - *used)
+	{
+		return -1;
+	}
+	*used += n;
+	return 0;
+}
+
+static int mq_error (char *text, int capacity, const char *reason, const char *host_id)
+{
+	mq.latched = 0;
+	snprintf (text, (size_t) capacity, "wpn-case-error reason=%s host_id=%s\n", reason, host_id);
+	return -1;
+}
+
+/* the target's identity and kind checks shared by prepare and run: NULL and a reason when the id does not name a live, alive, collidable routed vehicle */
+static entity *mq_target (const char *host_id, const char **reason)
+{
+	entity *en = case_find (host_id);
+	if (!en)
+	{
+		*reason = "no_such_host_id";
+		return NULL;
+	}
+	if (en->type != ENTITY_TYPE_ROUTED_VEHICLE)
+	{
+		*reason = "target_kind_unsupported";
+		return NULL;
+	}
+	if (!get_local_entity_int_value (en, INT_TYPE_ALIVE))
+	{
+		*reason = "target_not_alive";
+		return NULL;
+	}
+	if (!get_local_entity_int_value (en, INT_TYPE_COLLISION_TEST_MOBILE))
+	{
+		*reason = "target_not_collidable";
+		return NULL;
+	}
+	return en;
+}
+
+int eech_wpn_moving_query_prepare_run (const char *host_id, char *text, int capacity)
+{
+	const char *reason;
+	entity *en;
+	vec3d *position;
+	int index, k, used = 0;
+	float radius, reach, ymid;
+	object_3d_bounds *bounds;
+	size_t length = strlen (host_id);
+
+	text[0] = 0;
+	mq.latched = 0;
+	if (capacity < MQ_REPORT_MIN)
+	{
+		snprintf (text, (size_t) capacity, "wpn-case-error reason=capacity\n");
+		return -1;
+	}
+	if (length < 1 || length > MQ_ID_MAX)
+	{
+		snprintf (text, (size_t) capacity, "wpn-case-error reason=host_id_domain\n");
+		return -1;
+	}
+	en = mq_target (host_id, &reason);
+	if (!en)
+	{
+		return mq_error (text, capacity, reason, host_id);
+	}
+	position = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
+	index = get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE);
+	if (!position || !mq_finite3 (position) || index <= 0 || index >= OBJECT_3D_LAST)
+	{
+		return mq_error (text, capacity, "target_pose_unsupported", host_id);
+	}
+	radius = get_object_3d_radius ((object_3d_index_numbers) index);
+	bounds = get_object_3d_bounding_box_without_lines ((object_3d_index_numbers) index);
+	if (!bounds || !isfinite (radius) || !(radius > 0.0f) || !isfinite (bounds->ymin) || !isfinite (bounds->ymax))
+	{
+		return mq_error (text, capacity, "target_model_unsupported", host_id);
+	}
+	reach = radius + 20.0f;
+	ymid = position->y + ((bounds->ymin + bounds->ymax) * 0.5f);
+	for (k = 0; k < MQ_SEGMENTS; k++)
+	{
+		float sx = (float) sin (mq_bearings[k]), cz = (float) cos (mq_bearings[k]);
+		mq.a[k].x = position->x - (sx * reach);
+		mq.a[k].y = ymid;
+		mq.a[k].z = position->z - (cz * reach);
+		mq.b[k].x = position->x + (sx * reach);
+		mq.b[k].y = ymid;
+		mq.b[k].z = position->z + (cz * reach);
+		if (!mq_finite3 (&mq.a[k]) || !mq_finite3 (&mq.b[k]))
+		{
+			return mq_error (text, capacity, "segment_not_finite", host_id);
+		}
+	}
+	snprintf (mq.host_id, sizeof (mq.host_id), "%s", host_id);
+	mq.latched = 1;
+	if (mq_append (text, capacity, &used, "wpn-moving-query-prepare host_id=%s segments=%d target_type=%s radius=0x%08x\n", host_id, MQ_SEGMENTS,
+		get_entity_type_name ((entity_types) en->type), mq_bits (radius)))
+	{
+		return mq_error (text, capacity, "capacity", host_id);
+	}
+	for (k = 0; k < MQ_SEGMENTS; k++)
+	{
+		if (mq_append (text, capacity, &used, "wpn-moving-query-segment seg=%d bearing=0x%08x a=0x%08x,0x%08x,0x%08x b=0x%08x,0x%08x,0x%08x\n", k, mq_bits (mq_bearings[k]),
+			mq_bits (mq.a[k].x), mq_bits (mq.a[k].y), mq_bits (mq.a[k].z), mq_bits (mq.b[k].x), mq_bits (mq.b[k].y), mq_bits (mq.b[k].z)))
+		{
+			return mq_error (text, capacity, "capacity", host_id);
+		}
+	}
+	return 0;
+}
+
+int eech_wpn_moving_query_run (char *text, int capacity)
+{
+	const char *reason;
+	entity *en;
+	int k, used = 0;
+
+	text[0] = 0;
+	if (capacity < MQ_REPORT_MIN)
+	{
+		snprintf (text, (size_t) capacity, "wpn-case-error reason=capacity\n");
+		return -1;
+	}
+	if (!mq.latched)
+	{
+		snprintf (text, (size_t) capacity, "wpn-case-error reason=not_latched\n");
+		return -1;
+	}
+	/* every check precedes the first query: the identity is looked up again (no pointer was kept) and must still name an alive collidable routed vehicle */
+	en = mq_target (mq.host_id, &reason);
+	if (!en)
+	{
+		return mq_error (text, capacity, reason, mq.host_id);
+	}
+	if (mq_append (text, capacity, &used, "wpn-moving-query-run host_id=%s segments=%d\n", mq.host_id, MQ_SEGMENTS))
+	{
+		return mq_error (text, capacity, "capacity", mq.host_id);
+	}
+	mq.latched = 0;
+	for (k = 0; k < MQ_SEGMENTS; k++)
+	{
+		vec3d a = mq.a[k], b = mq.b[k], point, normal;
+		entity *hit;
+		const char *hit_id;
+		char out[320];
+		int n;
+
+		point.x = point.y = point.z = 0.0f;
+		normal.x = normal.y = normal.z = 0.0f;
+		hit = get_line_of_sight_collision_entity (NULL, NULL, &a, &b, &point, &normal);
+		n = snprintf (out, sizeof (out), "wpn-moving-query-result seg=%d hit=%d a=0x%08x,0x%08x,0x%08x b=0x%08x,0x%08x,0x%08x", k, hit ? 1 : 0, mq_bits (mq.a[k].x), mq_bits (mq.a[k].y),
+			mq_bits (mq.a[k].z), mq_bits (mq.b[k].x), mq_bits (mq.b[k].y), mq_bits (mq.b[k].z));
+		if (n < 0 || n >= (int) sizeof (out))
+		{
+			return -1;
+		}
+		if (hit)
+		{
+			hit_id = case_entity_live (hit) ? campaign_roster_host_id (hit) : NULL;
+			/* the intercept point and the face normal are assigned on a hit (the contract); on a miss nothing is read */
+			n += snprintf (out + n, sizeof (out) - (size_t) n, " hit_is_target=%d hit_type=%s hit_host_id=%s point=0x%08x,0x%08x,0x%08x normal=0x%08x,0x%08x,0x%08x\n", hit == en ? 1 : 0,
+				get_entity_type_name ((entity_types) hit->type), hit_id ? hit_id : "-", mq_bits (point.x), mq_bits (point.y), mq_bits (point.z), mq_bits (normal.x), mq_bits (normal.y),
+				mq_bits (normal.z));
+		}
+		else
+		{
+			n += snprintf (out + n, sizeof (out) - (size_t) n, " hit_is_target=0 hit_type=none hit_host_id=- point=- normal=-\n");
+		}
+		if (n < 0 || n >= (int) sizeof (out) || mq_append (text, capacity, &used, "%s", out))
+		{
+			return -1;
+		}
+	}
+	return 0;
+}
+
 #endif

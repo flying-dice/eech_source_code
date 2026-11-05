@@ -469,6 +469,9 @@ int eech_engine_wpn_case_query (const char *host_id, int weapon, char *text, int
 /* The kind of a roster host id from its type field alone; reports found=0 for an unknown id. */
 int eech_engine_wpn_case_kind (const char *host_id, char *text, int capacity);
 int eech_engine_wpn_case_launch (const char *launcher_id, const char *target_id, int weapon, int salvo_count, char *text, int capacity, const struct eech_engine_host *host);
+/* TEST-ONLY controlled moving entity query case: latch three finite segments about one routed vehicle (by roster host id), then ask the production entity query for them. */
+int eech_engine_wpn_moving_query_prepare (const char *host_id, char *text, int capacity);
+int eech_engine_wpn_moving_query_run (char *text, int capacity);
 /* The physical combat-resolution report (EEDCS-46, see eech_cmb_fixture.c): damage capability, collision, blast and repair hashes and counters; and the ordered event log,
    drained incrementally like the weapon log. Read-only. */
 int eech_engine_cmb_trace (char *text, int capacity);

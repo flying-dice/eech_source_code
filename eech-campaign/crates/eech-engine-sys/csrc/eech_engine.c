@@ -1515,6 +1515,8 @@ extern int eech_wpn_events_get (char *text, int capacity);
 extern int eech_wpn_case_query_run (const char *host_id, int weapon, char *text, int capacity);
 extern int eech_wpn_case_kind_run (const char *host_id, char *text, int capacity);
 extern int eech_wpn_case_launch_run (const char *launcher_id, const char *target_id, int weapon, int salvo_count, char *text, int capacity);
+extern int eech_wpn_moving_query_prepare_run (const char *host_id, char *text, int capacity);
+extern int eech_wpn_moving_query_run (char *text, int capacity);
 
 int eech_engine_cmb_case_state (int op, const char *kind, int ordinal, int percent, char *text, int capacity, const struct eech_engine_host *host)
 {
@@ -1695,6 +1697,43 @@ int eech_engine_wpn_case_launch (const char *launcher_id, const char *target_id,
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
 	if (eech_wpn_case_launch_run (launcher_id, target_id, weapon, salvo_count, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/* TEST-ONLY controlled moving entity query case (eech_wpn_fixture.c): the model provider installed at boot answers the production caller's questions, so no entry host is needed */
+int eech_engine_wpn_moving_query_prepare (const char *host_id, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!host_id || !text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_wpn_moving_query_prepare_run (host_id, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_wpn_moving_query_run (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_wpn_moving_query_run (text, capacity) != 0)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
