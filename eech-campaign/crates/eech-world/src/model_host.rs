@@ -537,6 +537,42 @@ fn entity_candidate_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaRe
     Ok(table)
 }
 
+/// The reference host's answer to an entity scan question (the ENUMERATION of `get_line_of_sight_collision_entity`, EEDCS-49): the sector window, the traversal order, the exclusions and the first-hit
+/// end of the scan, from the segment, the campaign's world map and the cursor facts. `first` (with the sector as `p`), `next`, `offer`, `done_none` or `done_hit`. It reads no model: the enumeration
+/// needs none, and the entries it names are served by the campaign's own lists (the transitional backing dependency).
+fn entity_scan_answer(lua: &Lua, q: &Question) -> LuaResult<LuaTable> {
+    let operation = q.operation.as_str();
+    let fail = |message: String| LuaError::runtime(format!("[model-provider:{operation}.request] {message}"));
+    if q.scene != Some(0) || q.depth.is_some() || q.kind.is_some() || q.definition.is_some() {
+        return Err(fail("an entity scan question has no scene (0), depth, kind or definition".into()));
+    }
+    let words = transport_pose(q.key.as_deref(), operation, |n| n == entity_host::SCAN_FACTS)?;
+    let table = lua.create_table()?;
+    table.set("name", "")?;
+    match entity_host::scan_step(&words) {
+        Ok(step) => {
+            table.set(
+                "result",
+                match step.state {
+                    entity_host::ScanState::First => "first",
+                    entity_host::ScanState::Next => "next",
+                    entity_host::ScanState::Offer => "offer",
+                    entity_host::ScanState::DoneNone => "done_none",
+                    entity_host::ScanState::DoneHit => "done_hit",
+                },
+            )?;
+            if step.state == entity_host::ScanState::First {
+                table.set("p", hex_list(&step.cursor))?;
+            }
+        }
+        Err(reason) => {
+            table.set("result", "refused")?;
+            table.set("reason", reason)?;
+        }
+    }
+    Ok(table)
+}
+
 /// The reference host's answer to a target-point question of a live instance or a fixed object (`get_local_entity_target_point`, EEDCS-52): which sub-object (the chain), where it is
 /// for the campaign's CURRENT placement (the world position) and a fixed object's target point. The store does the physical work; a refusal of the store is a refusal here, never a number.
 fn target_point_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaResult<LuaTable> {
@@ -1054,6 +1090,8 @@ impl ProviderState {
                 let store = self.final_store(current)?;
                 entity_collision_answer(lua, &store, &q)
             }
+            // the enumeration of the scan (EEDCS-49): the facts arrive in the text place and no model is read
+            "entity_scan" => entity_scan_answer(lua, &q),
             // what the host decides about one candidate of the scan (EEDCS-49): the facts arrive in the text place
             "entity_candidate" => {
                 let store = self.final_store(current)?;

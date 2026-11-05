@@ -495,16 +495,17 @@ fn around(position: [f32; 3], radius: f32) -> ([f32; 3], [f32; 3]) {
     )
 }
 
-type Scan<'a> = (&'a [Sector], [f32; 3], [f32; 3], usize);
+/// the sectors in the order the scan visits them (each with its index in the map's grid), the segment, and the entry that is the source or the target as (sector index, list index)
+type Scan<'a> = (&'a [(usize, &'a Sector)], [f32; 3], [f32; 3], (usize, usize));
 
 /// the ORIGINAL scan (en_cllsn.c, get_line_of_sight_collision_entity and the two accurate_* placements), transcribed: returns the entity that was hit as (sector, list index[, building])
 fn original_scan(scan: Scan, log: &mut Vec<Event>) -> Option<(usize, usize, Option<usize>)> {
     let (sectors, old, new, excluded) = scan;
     let (smin, smax) = min_max(old, new);
-    for (s, sector) in sectors.iter().enumerate() {
+    for &(s, sector) in sectors.iter() {
         let ignore_all_fixed_entities_in_sector = smin[1] > sector.tallest;
         for (l, ent) in sector.list.iter().enumerate().rev() {
-            if l == excluded && s == 0 {
+            if (s, l) == excluded {
                 continue;
             }
             if ent.mobile {
@@ -725,19 +726,77 @@ fn offer(
     }
 }
 
-fn hosted_scan(scan: Scan, log: &mut Vec<Event>) -> Option<(usize, usize, Option<usize>)> {
-    let (sectors, old, new, excluded) = scan;
-    for (s, sector) in sectors.iter().enumerate() {
-        for (l, ent) in sector.list.iter().enumerate().rev() {
-            if l == excluded && s == 0 {
-                continue;
-            }
-            if let Some(hit) = offer(ent, false, sector.tallest, old, new, (s, l, None), log) {
-                return Some(hit);
-            }
+const SIDE: i32 = 100;
+const GRID: usize = 4;
+const MAP_MAX: f32 = 399.0;
+
+/// the ORIGINAL's window (en_cllsn.c: the segment's min and max, widened by LARGEST_3D_OBJECT_RADIUS, clamped to the map, as sector indices), transcribed
+fn original_window(old: [f32; 3], new: [f32; 3]) -> (i32, i32, i32, i32) {
+    let (smin, smax) = min_max(old, new);
+    let high = |a: f32, b: f32| if a > b { a } else { b };
+    let low = |a: f32, b: f32| if a < b { a } else { b };
+    let sector = |value: f32| (value as i32) / SIDE;
+    (
+        sector(high(smin[0] - 150.0, 0.0)),
+        sector(high(smin[2] - 150.0, 0.0)),
+        sector(low(smax[0] + 150.0, MAP_MAX)),
+        sector(low(smax[2] + 150.0, MAP_MAX)),
+    )
+}
+
+/// the entity that was hit: (sector index, list index, the building under a city)
+type Hit = (usize, usize, Option<usize>);
+
+/// the ORIGINAL scan over the grid: x outer, z inner, each sector's list from its tail
+fn original_grid_scan(grid: &[Sector], old: [f32; 3], new: [f32; 3], excluded: (usize, usize), log: &mut Vec<Event>) -> Option<(usize, usize, Option<usize>)> {
+    let (x_min, z_min, x_max, z_max) = original_window(old, new);
+    let mut visited = Vec::new();
+    for x in x_min..=x_max {
+        for z in z_min..=z_max {
+            let index = x as usize * GRID + z as usize;
+            visited.push((index, &grid[index]));
         }
     }
-    None
+    original_scan((&visited[..], old, new, excluded), log)
+}
+
+/// the campaign's driver exactly as `campaign_scan_entities` (mb_hostscan.h) drives the host's cursor over the campaign's lists: it serves the tail of the sector the host names, the predecessor of
+/// its entry, the fact that the entry is the source or the target, the offer (`campaign_offer_candidate`) and its result; the host decides everything else. A refusal stops the scan.
+fn hosted_grid_scan(grid: &[Sector], old: [f32; 3], new: [f32; 3], excluded: (usize, usize), log: &mut Vec<Event>) -> Option<(usize, usize, Option<usize>)> {
+    use eech_world::entity_host::{scan_step, ScanState};
+    let mut facts = [0.0f32; 16];
+    facts[..3].copy_from_slice(&old);
+    facts[3..6].copy_from_slice(&new);
+    facts[6] = SIDE as f32;
+    facts[9] = MAP_MAX;
+    facts[10] = MAP_MAX;
+    let (mut sector, mut entry, mut hit): (usize, Option<usize>, Option<Hit>) = (0, None, None);
+    for _ in 0..100_000 {
+        let step = scan_step(&bits(&facts)).expect("the host decides the enumeration");
+        match step.state {
+            ScanState::First => {
+                let (x, z) = (f32::from_bits(step.cursor[0]) as usize, f32::from_bits(step.cursor[1]) as usize);
+                facts[12] = x as f32;
+                facts[13] = z as f32;
+                sector = x * GRID + z;
+                entry = grid[sector].list.len().checked_sub(1);
+            }
+            ScanState::Next => entry = entry.and_then(|l| l.checked_sub(1)),
+            ScanState::Offer => {
+                let l = entry.expect("an entry is offered only when one is served");
+                hit = offer(&grid[sector].list[l], false, grid[sector].tallest, old, new, (sector, l, None), log);
+                facts[15] = f32::from(u8::from(hit.is_some()));
+                facts[11] = 3.0;
+                continue;
+            }
+            ScanState::DoneHit => return hit,
+            ScanState::DoneNone => return None,
+        }
+        facts[15] = 0.0;
+        facts[11] = if entry.is_some() { 1.0 } else { 2.0 };
+        facts[14] = f32::from(u8::from(entry.is_some_and(|l| (sector, l) == excluded)));
+    }
+    panic!("the host did not end the scan");
 }
 
 struct Random(u64);
@@ -766,7 +825,7 @@ fn entity(r: &mut Random, kind: u32, extent: i32) -> Entity {
         city_building: false,
         // a few entities have no usable scene: the original needed one only where it reached a broad phase
         scene: if r.pick(25) == 0 { 0 } else { 1 + i64::from(r.pick(9)) },
-        position: [r.quarter(extent), r.quarter(extent / 2), r.quarter(extent)],
+        position: [200.0 + r.quarter(extent), r.quarter(extent / 4), 200.0 + r.quarter(extent)],
         motion: [0.0; 3],
         updated: r.pick(2) == 0,
         heading: r.quarter(12) * 0.5,
@@ -811,32 +870,44 @@ fn entity(r: &mut Random, kind: u32, extent: i32) -> Entity {
 }
 
 #[test]
-fn the_host_decided_scan_is_the_original_scan_in_hits_services_poses_and_order_over_many_worlds() {
+fn the_host_driven_enumeration_is_the_original_scan_in_window_order_exclusions_first_hit_services_poses_and_refusals_over_many_worlds() {
     let _original_arithmetic = ScopedRounding::set(Rounding::Zero).expect("round toward zero");
     let mut random = Random(0x5eed_1234_abcd_ef01);
-    let (mut hits, mut narrows, mut updates, mut normals, mut cities, mut moving, mut refusals) = (0usize, 0usize, 0usize, 0usize, 0usize, 0usize, 0usize);
+    let (mut hits, mut narrows, mut updates, mut normals, mut cities, mut moving, mut refusals, mut excluded_seen, mut windows) =
+        (0usize, 0usize, 0usize, 0usize, 0usize, 0usize, 0usize, 0usize, 0usize);
     for world in 0..400 {
-        let extent = 40 + (world % 7) * 20;
-        let sectors: Vec<Sector> = (0..1 + random.pick(3))
+        // a 4 x 4 map of sectors of 100: every sector has a list (head to tail, as the campaign's list holds them) and its tallest structure
+        let grid: Vec<Sector> = (0..GRID * GRID)
             .map(|_| Sector {
                 tallest: random.quarter(30),
-                list: (0..random.pick(14))
+                list: (0..random.pick(6))
                     .map(|_| {
                         let kind = random.pick(11);
-                        entity(&mut random, kind, extent)
+                        entity(&mut random, kind, 190)
                     })
                     .collect(),
             })
             .collect();
         for _ in 0..6 {
-            let old = [random.quarter(extent), random.quarter(extent / 2), random.quarter(extent)];
-            let new = [random.quarter(extent), random.quarter(extent / 2), random.quarter(extent)];
-            let excluded = random.pick(8) as usize;
+            // segments of every size inside the map: the window is the box widened by 150 m and clamped, so small and large windows, and the map's edges, are all reached
+            let at = |r: &mut Random| [200.0 + r.quarter(200), r.quarter(25), 200.0 + r.quarter(200)];
+            let old = at(&mut random);
+            let new = if random.pick(3) == 0 {
+                [old[0] + random.quarter(30), random.quarter(25), old[2] + random.quarter(30)]
+            } else {
+                at(&mut random)
+            };
+            let new = [new[0].clamp(0.0, 399.0), new[1], new[2].clamp(0.0, 399.0)];
+            let source_sector = random.pick((GRID * GRID) as u32) as usize;
+            let excluded = (source_sector, random.pick(6) as usize);
             let (mut a, mut b) = (Vec::new(), Vec::new());
-            let original = original_scan((&sectors[..], old, new, excluded), &mut a);
-            let hosted = hosted_scan((&sectors[..], old, new, excluded), &mut b);
+            let original = original_grid_scan(&grid, old, new, excluded, &mut a);
+            let hosted = hosted_grid_scan(&grid, old, new, excluded, &mut b);
             assert_eq!(hosted, original, "world {world}: the entity that is hit");
             assert_eq!(b, a, "world {world}: the services, the poses and their order");
+            let (x_min, z_min, x_max, z_max) = original_window(old, new);
+            windows += ((x_max - x_min + 1) * (z_max - z_min + 1)) as usize;
+            excluded_seen += usize::from(excluded.1 < grid[excluded.0].list.len());
             hits += usize::from(original.is_some());
             for event in &a {
                 match event {
@@ -856,8 +927,103 @@ fn the_host_decided_scan_is_the_original_scan_in_hits_services_poses_and_order_o
     assert!(hits > 100, "hits {hits}");
     assert!(narrows > 1000, "narrow phases {narrows}");
     assert!(updates > 100, "UPDATED reads {updates}");
-    assert!(normals > 100, "terrain questions {normals}");
-    assert!(moving > 100, "moving candidates {moving}");
-    assert!(cities > 20, "city buildings {cities}");
-    assert!(refusals > 10, "scans that stopped on a scene with no model {refusals}");
+    assert!(normals > 50, "terrain questions {normals}");
+    assert!(moving > 50, "moving candidates {moving}");
+    assert!(cities > 10, "city buildings {cities}");
+    assert!(refusals > 5, "scans that stopped on a scene with no model {refusals}");
+    assert!(excluded_seen > 300, "exclusions that named a real entry {excluded_seen}");
+    assert!(windows > 2000, "sectors visited {windows}");
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// the enumeration kernel's own contract (csrc/entity_scan_step.c): the window, the traversal order, the phases and the refusals
+
+fn scan_facts(old: [f32; 3], new: [f32; 3], phase: f32, cursor: [f32; 2]) -> [f32; 16] {
+    let mut facts = [0.0f32; 16];
+    facts[..3].copy_from_slice(&old);
+    facts[3..6].copy_from_slice(&new);
+    facts[6] = 100.0;
+    facts[9] = 399.0;
+    facts[10] = 399.0;
+    facts[11] = phase;
+    facts[12] = cursor[0];
+    facts[13] = cursor[1];
+    facts
+}
+
+fn scan(facts: &[f32; 16]) -> (eech_world::entity_host::ScanState, [f32; 2]) {
+    let step = eech_world::entity_host::scan_step(&bits(facts)).expect("a well-formed question is answered");
+    (step.state, step.cursor.map(f32::from_bits))
+}
+
+#[test]
+fn the_window_is_the_segments_box_widened_by_150_and_clamped_to_the_map_and_the_traversal_is_x_outer_z_inner() {
+    use eech_world::entity_host::ScanState::{DoneNone, First};
+    // a segment from (250, 0, 250) to (260, 0, 250): the box x 250..260, z 250..250 widened to x 100..410, z 100..400, clamped to the map's 399: sectors x 1..3, z 1..3
+    let (old, new) = ([250.0, 0.0, 250.0], [260.0, 0.0, 250.0]);
+    assert_eq!(
+        scan(&scan_facts(old, new, 0.0, [0.0, 0.0])),
+        (First, [1.0, 1.0]),
+        "the scan starts at the window's minimum"
+    );
+    // the end of a list goes to the next z, then to the next x at the window's minimum z
+    assert_eq!(scan(&scan_facts(old, new, 2.0, [1.0, 1.0])), (First, [1.0, 2.0]));
+    assert_eq!(scan(&scan_facts(old, new, 2.0, [1.0, 3.0])), (First, [2.0, 1.0]), "z inner, x outer");
+    assert_eq!(
+        scan(&scan_facts(old, new, 2.0, [3.0, 3.0])).0,
+        DoneNone,
+        "the last sector of the window ends the scan"
+    );
+    // a window at the map's origin is clamped at 0, not at a negative sector
+    assert_eq!(scan(&scan_facts([0.0; 3], [10.0, 0.0, 10.0], 0.0, [0.0, 0.0])), (First, [0.0, 0.0]));
+    assert_eq!(
+        scan(&scan_facts([0.0; 3], [10.0, 0.0, 10.0], 2.0, [0.0, 1.0])),
+        (First, [1.0, 0.0]),
+        "a window of sectors 0..1 in each axis goes on from the end of z to the next x"
+    );
+    // the window does not depend on the order of the segment's ends
+    assert_eq!(scan(&scan_facts(new, old, 0.0, [0.0, 0.0])), scan(&scan_facts(old, new, 0.0, [0.0, 0.0])));
+}
+
+#[test]
+fn an_entry_that_is_the_source_or_the_target_is_skipped_every_other_is_offered_and_the_first_hit_ends_the_scan() {
+    use eech_world::entity_host::ScanState::{DoneHit, Next, Offer};
+    let (old, new) = ([250.0, 0.0, 250.0], [260.0, 0.0, 250.0]);
+    let mut entry = scan_facts(old, new, 1.0, [1.0, 1.0]);
+    assert_eq!(scan(&entry).0, Offer);
+    entry[14] = 1.0;
+    assert_eq!(scan(&entry).0, Next, "the source and the target are never candidates");
+    let mut resolved = scan_facts(old, new, 3.0, [1.0, 1.0]);
+    assert_eq!(scan(&resolved).0, Next, "a miss goes on");
+    resolved[15] = 1.0;
+    assert_eq!(
+        scan(&resolved).0,
+        DoneHit,
+        "the first hit ends the scan: a farther entry in an earlier position wins"
+    );
+}
+
+#[test]
+fn a_malformed_scan_question_or_a_cursor_outside_its_window_is_refused_never_defaulted() {
+    let (old, new) = ([250.0, 0.0, 250.0], [260.0, 0.0, 250.0]);
+    let refused = |facts: &[f32]| eech_world::entity_host::scan_step(&bits(facts)).is_err();
+    assert!(refused(&scan_facts(old, new, 1.0, [0.0, 1.0])), "a cursor sector x below the window");
+    assert!(refused(&scan_facts(old, new, 2.0, [1.0, 4.0])), "a cursor sector z above the window");
+    assert!(refused(&scan_facts(old, new, 3.0, [4.0, 1.0])), "a cursor sector x above the window");
+    for (label, at, value) in [
+        ("phase 4", 11, 4.0),
+        ("a fractional phase", 11, 0.5),
+        ("side 0", 6, 0.0),
+        ("a fractional cursor", 12, 1.5),
+        ("a negative cursor", 13, -1.0),
+        ("an excluded flag of 2", 14, 2.0),
+        ("a hit flag of 2", 15, 2.0),
+        ("a NaN segment", 0, f32::NAN),
+    ] {
+        let mut facts = scan_facts(old, new, 1.0, [1.0, 1.0]);
+        facts[at] = value;
+        assert!(refused(&facts), "{label}");
+    }
+    assert!(refused(&[0.0; 15]), "15 facts");
+    assert!(refused(&[0.0; 17]), "17 facts");
 }

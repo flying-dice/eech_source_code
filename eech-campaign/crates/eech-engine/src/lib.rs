@@ -1132,6 +1132,9 @@ pub enum ModelQuery {
     /// and `facts` the 44 floats the campaign read from the entity it is visiting, as exact bit patterns (the segment, the collision flags, the sector's tallest structure, the live position,
     /// motion, heading and attitude, a city's box, and the answers of the two services the host asks for: the UPDATED flag and the terrain face normal)
     EntityCandidate { scene: i32, facts: Vec<u32> },
+    /// the ENUMERATION of the entity scan (EEDCS-49, mb_hostmodel.h ENTITY_SCAN): the sector window, the traversal order, the exclusions and the first-hit end are the host's. `facts` are the 16 floats
+    /// of the question as exact bit patterns (the segment, the campaign's world map, the phase and the cursor the host last gave, and what the campaign reports about the entry it served)
+    EntityScan { facts: Vec<u32> },
     /// a FIXED object's target point: the entity position the original had copied (3) and, only when the cached host offset has a horizontal part, the heading (1), as bit patterns
     TargetPointFixed { scene: i32, pose: Vec<u32> },
     /// one step of the campaign's ANNOUNCEMENT of the order in which it walks the custom scene files: file number `position` is the scene `scene`'s file in the directory named
@@ -1225,6 +1228,17 @@ pub enum CandidateDecision {
     NeedPlacement,
 }
 
+/// What the host decided about the enumeration of the entity scan: the TAIL of the list of a sector (`First`, with the sector's two indices), the predecessor of the entry the campaign is at (`Next`),
+/// to offer that entry for its decisions (`Offer`), or the end of the scan with no hit (`DoneNone`) or with the hit of the entry offered last (`DoneHit`).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum ScanDecision {
+    First([f32; 2]),
+    Next,
+    Offer,
+    DoneNone,
+    DoneHit,
+}
+
 /// The host's answer to a step of the campaign's walk announcement: it has that file, it has none, or (to the closing step) the announcement is accepted.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ModelOrder {
@@ -1285,6 +1299,10 @@ pub enum ModelAnswer {
     EntityCandidate {
         scene_name: String,
         decision: CandidateDecision,
+    },
+    /// the host's decision about the enumeration of the entity scan
+    EntityScan {
+        decision: ScanDecision,
     },
     /// a target point's world position (exact `f32` values), for either a live instance or a fixed object, with the scene's compiled name (the echo)
     TargetPointPosition {
@@ -1394,6 +1412,14 @@ unsafe extern "C" fn model_callback(
                     .ok_or_else(|| format!("[model-provider:entity_candidate.request] the facts have {} floats", source.pose_count))?;
                 let facts = source.pose[..count].iter().map(|float| float.to_bits()).collect();
                 ("entity_candidate", ModelQuery::EntityCandidate { scene: source.scene, facts })
+            }
+            sys::EECH_MODEL_ENTITY_SCAN => {
+                let count = usize::try_from(source.pose_count)
+                    .ok()
+                    .filter(|count| *count == 16)
+                    .ok_or_else(|| format!("[model-provider:entity_scan.request] the facts have {} floats", source.pose_count))?;
+                let facts = source.pose[..count].iter().map(|float| float.to_bits()).collect();
+                ("entity_scan", ModelQuery::EntityScan { facts })
             }
             sys::EECH_MODEL_OBJECT_TABLE => ("object_table", ModelQuery::ObjectTable),
             sys::EECH_MODEL_OBJECT | sys::EECH_MODEL_CUSTOM_OBJECT => (
@@ -1559,6 +1585,18 @@ unsafe extern "C" fn model_callback(
                     }
                 };
             }
+            ("entity_scan", ModelAnswer::EntityScan { decision }) => {
+                reply.candidate_state = match decision {
+                    ScanDecision::First(cursor) => {
+                        reply.candidate[..2].copy_from_slice(&cursor);
+                        sys::EECH_MODEL_SCAN_FIRST
+                    }
+                    ScanDecision::Next => sys::EECH_MODEL_SCAN_NEXT,
+                    ScanDecision::Offer => sys::EECH_MODEL_SCAN_OFFER,
+                    ScanDecision::DoneNone => sys::EECH_MODEL_SCAN_DONE_NONE,
+                    ScanDecision::DoneHit => sys::EECH_MODEL_SCAN_DONE_HIT,
+                };
+            }
             (operation @ ("target_point_world" | "target_point_fixed"), ModelAnswer::TargetPointPosition { scene_name, position }) => {
                 put_name(&mut reply, &scene_name, operation)?;
                 reply.result = sys::EECH_MODEL_TRIANGLE_FOUND;
@@ -1622,6 +1660,7 @@ unsafe extern "C" fn model_callback(
                     ModelAnswer::TargetPointPosition { .. } => "a target point position",
                     ModelAnswer::EntityCollision { .. } => "an entity collision answer",
                     ModelAnswer::EntityCandidate { .. } => "an entity candidate decision",
+                    ModelAnswer::EntityScan { .. } => "an entity scan decision",
                 };
                 return Err(format!(
                     "[model-provider:{operation}.answer] the provider answered a {operation} question with {given}"
@@ -11319,6 +11358,71 @@ mod tests {
         );
         assert_ne!(code, 0, "a refusal is never a skip");
         assert!(error.contains("no model"), "{error}");
+    }
+
+    #[test]
+    fn the_model_callback_carries_an_entity_scan_question_and_every_decision_exactly() {
+        // the question is the 16 facts, bit for bit, with scene 0; each decision crosses with its state, and only FIRST carries the sector (two whole numbers in the first two floats)
+        let sent: Vec<f32> = (0..16).map(|at| f32::from_bits(0x3f80_0000 + at as u32)).collect();
+        for (decision, state, cursor) in [
+            (ScanDecision::First([2.0, 3.0]), sys::EECH_MODEL_SCAN_FIRST, [2.0, 3.0]),
+            (ScanDecision::Next, sys::EECH_MODEL_SCAN_NEXT, [0.0, 0.0]),
+            (ScanDecision::Offer, sys::EECH_MODEL_SCAN_OFFER, [0.0, 0.0]),
+            (ScanDecision::DoneNone, sys::EECH_MODEL_SCAN_DONE_NONE, [0.0, 0.0]),
+            (ScanDecision::DoneHit, sys::EECH_MODEL_SCAN_DONE_HIT, [0.0, 0.0]),
+        ] {
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+            request.pose_count = 16;
+            for (slot, float) in request.pose.iter_mut().zip(&sent) {
+                *slot = *float;
+            }
+            let expected: Vec<u32> = sent.iter().map(|float| float.to_bits()).collect();
+            let seen = std::rc::Rc::new(std::cell::RefCell::new(None));
+            let record = std::rc::Rc::clone(&seen);
+            let (code, reply, error) = model_crossing(
+                Some(Box::new(move |query| match query {
+                    ModelQuery::EntityScan { facts } => {
+                        *record.borrow_mut() = Some(facts);
+                        Ok(ModelAnswer::EntityScan { decision })
+                    }
+                    other => Err(format!("unexpected {other:?}")),
+                })),
+                request,
+            );
+            assert_eq!(code, 0, "{decision:?}: {error}");
+            assert_eq!(
+                seen.borrow().clone(),
+                Some(expected),
+                "{decision:?}: every fact arrives as the campaign sent it"
+            );
+            assert_eq!(reply.candidate_state, state, "{decision:?}");
+            assert_eq!(
+                reply.candidate[..2].iter().map(|float| float.to_bits()).collect::<Vec<_>>(),
+                cursor.map(f32::to_bits).to_vec(),
+                "{decision:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn the_model_callback_refuses_entity_scan_facts_of_another_size_and_an_answer_of_another_kind() {
+        for count in [0, 6, 15, 17, 44, 96] {
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+            request.pose_count = count;
+            let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
+            assert_ne!(code, 0, "{count} floats were accepted");
+            assert!(error.contains("[model-provider:entity_scan.request]"), "{count} floats: {error}");
+        }
+        let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+        request.pose_count = 16;
+        let (code, _, error) = model_crossing(Some(Box::new(|_| Ok(ModelAnswer::Triangle(ModelTriangle::End)))), request);
+        assert_ne!(code, 0);
+        assert!(error.contains("[model-provider:entity_scan.answer]"), "{error}");
+        let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+        request.pose_count = 16;
+        let (code, _, error) = model_crossing(Some(Box::new(|_| Err("[model-provider:entity_scan.refused] no host".to_string()))), request);
+        assert_ne!(code, 0, "a refusal is never the end of a scan");
+        assert!(error.contains("no host"), "{error}");
     }
 
     #[test]

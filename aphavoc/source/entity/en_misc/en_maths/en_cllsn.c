@@ -488,6 +488,24 @@ extern int campaign_model_entity_collision (int scene, const float *segment_old,
 
 #include "entity/mobile/mb_hostoffer.h"
 
+// The host's cursor over the campaign's sector lists (mb_hostscan.h, shared with the isolated control of its dialogue) is bound here to the real sector lists, with the original's getters in its order.
+
+#define CAMPAIGN_SCAN_ENTITY entity
+
+#define CAMPAIGN_SCAN_SIDE_LENGTH() ((float) SECTOR_SIDE_LENGTH)
+#define CAMPAIGN_SCAN_MAP_MIN_X() ((float) MIN_MAP_X)
+#define CAMPAIGN_SCAN_MAP_MIN_Z() ((float) MIN_MAP_Z)
+#define CAMPAIGN_SCAN_MAP_MAX_X() ((float) MAX_MAP_X)
+#define CAMPAIGN_SCAN_MAP_MAX_Z() ((float) MAX_MAP_Z)
+#define CAMPAIGN_SCAN_SECTOR_VALID(X,Z) (((X) >= MIN_MAP_X_SECTOR) && ((X) <= MAX_MAP_X_SECTOR) && ((Z) >= MIN_MAP_Z_SECTOR) && ((Z) <= MAX_MAP_Z_SECTOR))
+#define CAMPAIGN_SCAN_SECTOR(X,Z) get_local_raw_sector_entity ((X), (Z))
+#define CAMPAIGN_SCAN_TALLEST(S) get_local_entity_float_value ((S), FLOAT_TYPE_TALLEST_STRUCTURE_HEIGHT)
+#define CAMPAIGN_SCAN_FIRST(S) get_local_entity_first_child ((S), LIST_TYPE_SECTOR)
+#define CAMPAIGN_SCAN_SUCC(E) get_local_entity_child_succ ((E), LIST_TYPE_SECTOR)
+#define CAMPAIGN_SCAN_PRED(E) get_local_entity_child_pred ((E), LIST_TYPE_SECTOR)
+
+#include "entity/mobile/mb_hostscan.h"
+
 #else
 
 static int accurate_stationary_bounding_box_collision_test
@@ -1254,14 +1272,6 @@ entity *get_line_of_sight_collision_entity
 	object_3d_bounds
 		*bounding_box;
 
-#ifdef EECH_CAMPAIGN_HOST_ENTITY
-	float
-		sector_tallest_structure_height;
-
-	entity
-		*hit;
-#endif
-
 	ASSERT (source_old_position);
 
 	ASSERT (source_new_position);
@@ -1275,6 +1285,18 @@ entity *get_line_of_sight_collision_entity
 		create_debug_3d_line (source_old_position, source_new_position, LOS_COLOUR, collision_box_lifetime);
 	}
 	
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+
+	//
+	// the ENUMERATION is the host's (ENTITY_SCAN, mb_hostscan.h): the segment's min and max, the sector window, the traversal order, the tail-first lists, the exclusions of the source and the
+	// target and the end of the scan at the first hit are decided there. The campaign serves the host's cursor over its own sector lists (the transitional backing dependency) and offers each entry for
+	// its decisions (campaign_offer_candidate, mb_hostoffer.h).
+	//
+
+	return (campaign_scan_entities (los_source, los_target, &source_old_position->x, &source_new_position->x, &source_intercept_point->x, &face_normal->x));
+
+#else
+
 	////////////////////////////////////////
 	//
 	// get source min and max positions
@@ -1330,65 +1352,6 @@ entity *get_line_of_sight_collision_entity
 	// sector scan
 	//
 	////////////////////////////////////////
-
-#ifdef EECH_CAMPAIGN_HOST_ENTITY
-
-	//
-	// scan: the campaign walks the sectors and their lists in the original's order and offers each candidate to the host, which decides (campaign_offer_candidate, mb_hostoffer.h)
-	//
-
-	for (x_sector = x_sector_min; x_sector <= x_sector_max; x_sector++)
-	{
-		for (z_sector = z_sector_min; z_sector <= z_sector_max; z_sector++)
-		{
-			sector = get_local_raw_sector_entity (x_sector, z_sector);
-
-			sector_tallest_structure_height = get_local_entity_float_value (sector, FLOAT_TYPE_TALLEST_STRUCTURE_HEIGHT);
-
-			//
-			// search sector list backwards so that static objects are checked before mobile objects
-			//
-			// (mobile objects tend to be at the start of the list as they are dynamic)
-			//
-
-			target = get_local_entity_first_child (sector, LIST_TYPE_SECTOR);
-
-			if (target)
-			{
-				target_succ = get_local_entity_child_succ (target, LIST_TYPE_SECTOR);
-
-				while (target_succ)
-				{
-					target = target_succ;
-
-					target_succ = get_local_entity_child_succ (target, LIST_TYPE_SECTOR);
-				}
-			}
-
-			while (target)
-			{
-				if ((target != los_source) && (target != los_target))
-				{
-					hit = campaign_offer_candidate (target, FALSE, sector_tallest_structure_height, &source_old_position->x, &source_new_position->x, &source_intercept_point->x, &face_normal->x);
-
-					if (hit)
-					{
-						return (hit);
-					}
-				}
-
-				//
-				// search list backwards
-				//
-
-				target = get_local_entity_child_pred (target, LIST_TYPE_SECTOR);
-			}
-		}
-	}
-
-	return (NULL);
-
-#else
 
 	//
 	// scan

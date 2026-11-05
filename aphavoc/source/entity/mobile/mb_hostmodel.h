@@ -153,6 +153,21 @@
  *              floats, a name that is not the scene's, or a missing provider stops the engine with the host's reason; nothing is invented. No entity identity crosses: a candidate is named only
  *              by the order the campaign offers it.
  *
+ *   ENTITY_SCAN        the ENUMERATION of the scan, which precedes every ENTITY_CANDIDATE question (EEDCS-49, D3, fourth slice): which candidates are visited, in what order, which are skipped and
+ *              when the scan ends are the host's. The host decides, from the segment and the campaign's world map: the segment's min and max, the sector window (the box widened by 150 m and clamped to
+ *              the map, as sector indices), the traversal (x outer, z inner), that each sector's list is read from its TAIL backwards, that the source and the target are skipped, that an entry is
+ *              OFFERED for its decisions, and that the FIRST candidate that hits ends the scan: a farther candidate in an earlier sector or list position wins over a nearer one, so the order IS the
+ *              result. `scene` is 0 and `pose_count` is 16: the segment's old end (3) and new end (3); the sector side length, the world map's min x, min z, max x and max z; the PHASE (0 BEGIN, 1 ENTRY
+ *              an entry is served, 2 END the cursor's list has no more entries, 3 RESOLVED the offered entry's decisions are finished); the cursor sector x and z the host last gave; whether the served
+ *              entry is the source or the target (0 or 1); whether the offered entry hit (0 or 1). The host answers a `candidate_state`: FIRST (serve the TAIL of the list of the sector named in
+ *              `candidate[0]` and `candidate[1]`, whole numbers), NEXT (serve the predecessor of the current entry), OFFER (offer the current entry for its decisions, ENTITY_CANDIDATE, and report whether it
+ *              hit), DONE_NONE (the scan ends, no hit) or DONE_HIT (it ends with the entry offered last). The question is a pure function of its facts: the host keeps nothing between questions and the
+ *              cursor travels in the facts and the answer, so there is no host state to lose and no second store. THE CAMPAIGN SERVES THE HOST'S CURSOR over its own sector lists: the entity heap and
+ *              its list order are the campaign's TRANSITIONAL BACKING dependency (REQUIRED to move: they are the live state a roster must follow), and which entry is the source or the target is a
+ *              comparison only the heap can make, reported as a fact. Nothing is copied, a list cannot change inside one scan (nothing in it links, unlinks or releases an entity), and no raw pointer or
+ *              index crosses: an entry is named by the host's cursor only. A state the phase does not allow (an excluded entry offered, a resolved hit continued, a served entry that is not offered or
+ *              skipped, a cursor that is not whole numbers inside the map), a refusal, a missing provider or a scan that does not end in a bounded number of questions stops the engine by marker.
+ *
  * The bounds and the radius are copied once, at boot, into immutable tables owned by this module (host-authored data, valid for the life of the process and never
  * written again). Callers hold the bounds pointer across loop iterations, so it must be stable; a rotating cache would not be. The tables are a snapshot of the host's
  * answers, not an authority of the campaign's own.
@@ -192,7 +207,39 @@ enum campaign_model_op
 	CAMPAIGN_MODEL_TARGET_POINT_WORLD,
 	CAMPAIGN_MODEL_TARGET_POINT_FIXED,
 	CAMPAIGN_MODEL_ENTITY_COLLISION,
-	CAMPAIGN_MODEL_ENTITY_CANDIDATE
+	CAMPAIGN_MODEL_ENTITY_CANDIDATE,
+	CAMPAIGN_MODEL_ENTITY_SCAN
+};
+
+/* ENTITY_SCAN: the floats of the question, where each is, its phases and the states of the answer (the cursor is `candidate[0..2]` of the reply) */
+#define CAMPAIGN_MODEL_SCAN_FACTS 16
+#define CAMPAIGN_SCAN_SEGMENT_OLD 0
+#define CAMPAIGN_SCAN_SEGMENT_NEW 3
+#define CAMPAIGN_SCAN_SIDE 6
+#define CAMPAIGN_SCAN_MIN_X 7
+#define CAMPAIGN_SCAN_MIN_Z 8
+#define CAMPAIGN_SCAN_MAX_X 9
+#define CAMPAIGN_SCAN_MAX_Z 10
+#define CAMPAIGN_SCAN_PHASE 11
+#define CAMPAIGN_SCAN_CURSOR 12
+#define CAMPAIGN_SCAN_EXCLUDED 14
+#define CAMPAIGN_SCAN_HIT 15
+
+enum campaign_model_scan_phase
+{
+	CAMPAIGN_SCAN_PHASE_BEGIN = 0,
+	CAMPAIGN_SCAN_PHASE_ENTRY,
+	CAMPAIGN_SCAN_PHASE_END,
+	CAMPAIGN_SCAN_PHASE_RESOLVED
+};
+
+enum campaign_model_scan_state
+{
+	CAMPAIGN_MODEL_SCAN_FIRST = 1,
+	CAMPAIGN_MODEL_SCAN_NEXT,
+	CAMPAIGN_MODEL_SCAN_OFFER,
+	CAMPAIGN_MODEL_SCAN_DONE_NONE,
+	CAMPAIGN_MODEL_SCAN_DONE_HIT
 };
 
 /* ENTITY_CANDIDATE: the floats of the question (the facts) and the states of the answer */
@@ -354,5 +401,9 @@ int campaign_model_entity_collision (int scene, const float *segment_old, const 
    checked completely; the returned state is a campaign_model_candidate_state and, for TEST, `pose` receives the `*pose_count` floats of the narrow phase's candidate pose (room for
    CAMPAIGN_MODEL_CANDIDATE_POSE_MAX). */
 int campaign_model_entity_candidate (int scene, const float *facts, float *pose, int *pose_count);
+
+/* ENTITY_SCAN: asks the host what to do next in the enumeration of the scan from `facts` (CAMPAIGN_MODEL_SCAN_FACTS floats, see above). The reply is checked completely; the returned state is a
+   campaign_model_scan_state and, for FIRST, `cursor` receives the two sector indices (whole numbers inside the map). */
+int campaign_model_entity_scan (const float *facts, float *cursor);
 
 #endif

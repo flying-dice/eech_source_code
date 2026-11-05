@@ -1,6 +1,6 @@
 # D3 entity/object collision: the host-owned narrow phase (EEDCS-49, second slice)
 
-3 November 2026, status refreshed 5 November 2026; the third slice (the per-candidate decisions, see "The scan") was added the same day as SOURCE and Linux checks only. **The narrow phase is native-validated for the FINITE STATIONARY handoff only (corrected source `f153`/`7ead`; [`finite-authority/`](../reference/d3-entity-collision/finite-authority/README.md)); the moving public path, the physical scan and Task 49 are NOT accepted.** The body below is the dated 3 to 5 November account; its statements about runs are updated in place where they have since changed. This is the
+3 November 2026, status refreshed 5 November 2026 (the enumeration moved the same day, see "The enumeration"); the third slice (the per-candidate decisions, see "The scan") was added the same day as SOURCE and Linux checks only. **The narrow phase is native-validated for the FINITE STATIONARY handoff only (corrected source `f153`/`7ead`; [`finite-authority/`](../reference/d3-entity-collision/finite-authority/README.md)); the moving public path, the physical scan and Task 49 are NOT accepted.** The body below is the dated 3 to 5 November account; its statements about runs are updated in place where they have since changed. This is the
 *entity/object* slice of Task 49 (the tree slice is [d3-tree-collision-provider.md](d3-tree-collision-provider.md)). It is not Task 49 and not D3.
 
 ## What `get_line_of_sight_collision_entity` is, from source
@@ -87,6 +87,52 @@ x86-64 run can distinguish from the by-value one, so it is guarded by text and i
 the Rust transcription of the scan in the differential is a model of the dialogue, not that code. The compile guard (`entity_host_guard`) shows the ordinary module holds none of the original's decisions, the offer
 header holds none either, the original profile keeps all of them, and the identity labels are bound as stated.
 
+## The enumeration: the host drives the cursor (fourth slice, 5 November 2026; source and Linux checks only)
+
+Before this slice the campaign still decided WHICH candidates were visited and in what order. `get_line_of_sight_collision_entity` now hands the enumeration to the host (`ENTITY_SCAN`, `mb_hostmodel.h`; the reference host is
+`csrc/entity_scan_step.c`, the original's expressions): the segment's min and max, the 150 m widening and the clamp to the map's extents as sector indices, the traversal (x outer, z inner), that each sector's list is read from its
+TAIL, that the source and the target are skipped, that an entry is offered for its decisions (`ENTITY_CANDIDATE`, unchanged) and that the FIRST hit ends the scan. The campaign's driver is `mb_hostscan.h`, bound to the real sector
+lists in `en_cllsn.c`; the original window and loops stay byte for byte under `#else` for the `collision-fixture` profile.
+
+**Why a cursor and not a roster.** The first hit ends the scan, so a farther entry in an earlier sector or list position beats a nearer one: the order IS the result, and the order is the heap's insertion and relink history.
+A host-held roster would be a second physical store that must follow every position write, sector relink, flag change and release, with entity identities that outlive a scan; none of that exists, and it could not be verified
+without running it. A cursor needs none of it: the campaign keeps the lists and SERVES the host's cursor, so the order is the heap's own by construction and nothing is copied. The host is stateless (the cursor travels in the
+question and the answer, like the candidate stages), a list cannot change inside one scan (nothing in it links, unlinks or releases an entity; the two effectful getters change a flag word and the shared terrain record, never a
+list), and an entry is named only by the host's cursor: no pointer, heap index or legacy layout crosses.
+
+| host state | meaning | what the campaign does |
+|---|---|---|
+| `FIRST` + sector | serve the TAIL of that sector's list | reads the sector, its tallest structure height, its first child and the walk to the end (the original's reads, for a sector the host names only), reports whether an entry exists and whether it is the source or the target |
+| `NEXT` | serve the predecessor of the current entry | reads the predecessor and reports the same |
+| `OFFER` | offer the current entry | runs the candidate dialogue (`mb_hostoffer.h`) and reports whether it hit |
+| `DONE_NONE` / `DONE_HIT` | the scan ends | returns no entity, or the entity offered last (a hit inside a city is the building) |
+
+The exchange checks every answer before using it (`mb_hostentity.h`, `check_scan_reply`): the state must be the one the phase allows (an excluded entry is skipped and any other offered; a miss goes on and a hit ends the scan;
+the end of a list goes to the next sector or ends the scan), a cursor is two whole numbers inside 0 to 16777216 classified from their raw words (a signalling NaN is refused before any float is loaded) and the campaign refuses a
+sector outside its map before touching a list; a scan that does not end within 4 000 000 questions stops as `entity_scan.runaway`. Markers: `entity_scan.state`, `.cursor`, `.runaway`, and the provider's `.refused` / `.answer` /
+`.callback`.
+
+**The transitional Core backing dependency, REQUIRED to move and named so it cannot be mistaken for ownership.** The sector lists, their order, the entities' live state and the comparison with the source and the target remain the
+campaign's entity heap; this slice moves the DECISIONS about the enumeration, not the store. It must not be called an independent host authority or a mirrored physical store. What remains for a roster: stable semantic host
+identities for every collidable that outlive a scan, a synchronisation contract for position writes, sector relinks and releases, and the live pose without the per-candidate facts. City children are still enumerated by the campaign
+inside the candidate dialogue (`BUILDINGS`), in the city's list order. The DCS side is unchanged and unresolved: a DCS host searches its own world and has no use for the campaign's sector lists, but then needs the hit named by a
+host identity the campaign can resolve; no primary-evidenced API gives the first hit's point and normal.
+
+**Cost.** Each candidate now costs at least two scan questions besides its candidate dialogue, and each named sector one more (an empty sector costs `FIRST` and the end of its list). Timing on the ordinary short is an
+observation to take, not a claim.
+
+**The moving public path.** A moving candidate is a mobile one whose squared speed exceeds one, and the host asks for its `UPDATED` answer (`NEED_UPDATED`). The supported callers reach it: the weapon step's collision lookup
+(`wn_move.c`) and the hosted line of sight (`mb_hostlos.c`) call the same function. It is NOT measured natively: in the finite Candidate evidence the armed windows had mobile candidates (198 to 462) and ZERO `NEED_UPDATED` and
+zero moving questions, so every mobile candidate seen was stationary. The concrete native prerequisite, left open: a witness run whose evidence row shows `candidate_need_updated` greater than zero within the armed window
+(the existing `warmup` argument is the only knob, to be chosen from observed counts of moving group members near the launcher, never tuned after an UNREACHED); stationary evidence does not cover it.
+
+**Evidence (Linux, pinned image; nothing native).** CHARACTERISATION of the replaced behaviour on the clean source `4b3ec8470` (the candidate differential, 10 tests, and the C control, both green) before any change.
+Then: the new differential compares the ORIGINAL scan over a 4 x 4 map (window arithmetic, x outer z inner, tail-first lists, exclusions, first hit, services, poses and refusals, transcribed from the source) with the host-driven
+scan (400 worlds x 6 segments, segments of every size and at the map's edges, exclusions that name real entries): same entity and the SAME TRANSCRIPT. Kernel contracts (window, clamp, order, phases, refusals), the C control that
+runs the REAL driver and the REAL exchange over scripted sector lists (positive paths first: tail-first order, first hit, an unnamed sector never read, exclusion facts, an empty list; then each illegal state, cursor and runaway by
+marker), the bridge, the engine callback, and the real provider. Mutants of the window widening, the map clamp, the first-hit end, the exclusion, the traversal order, the list direction and the exclusion fact each fail their check. The
+campaign's driver against the real heap getters is exercised natively only.
+
 ## The output contract (review finding ENV-ENTITY-CALLER-BUFFER-1)
 
 The first version of this slice sent the caller's prior intercept point and normal to the host and wrote all six words back. The independent source pass found that wrong: the original
@@ -114,14 +160,10 @@ protocol.
 
 The narrow phase (first slice) and the per-candidate decisions (third slice) have moved. It is still not whole entity/object collision, and nothing below is optional or dormant.
 
-* **The enumeration of candidates stays in Core and is still required to move: the sector window of the segment, the sector lists and their order, the exclusions of the source and target, and the reads of
-  each entity's own state.** The concrete missing fact is where the order comes from. The first hit ends the scan and a farther object in an earlier-scanned sector wins over a nearer one, so the result
-  depends on (x outer, z inner) sector order and on each list's insertion history (mobiles tend to sit at the head and are visited last). That history is campaign state; the host has no copy of it, no
-  entity identity crosses, and a host-held roster would be a second authoritative physical store that must follow every position write, sector relink and release (the campaign mutates positions, the
-  `UPDATED` flags and the sector membership continuously). A bounded way to move the enumeration is a host-held roster mirror with a stated synchronisation contract, or a host-driven cursor over the campaign's
-  lists; both need the roster's semantic identities and the live pose of every collidable, which are the REQUIRED live-pose/roster work, not guessed here. The window's 150 m widening and the clamp to the map
-  edges are arithmetic over the campaign's map constants and have no effect except to prune the enumeration (an entity beyond them cannot pass a radius + 10 m box unless its radius exceeds 140 m: not shown
-  here), so they move with the enumeration. **The entity/object collision responsibility is not finished.**
+* **The enumeration's DECISIONS moved (fourth slice, see "The enumeration"); its BACKING STORE did not, and is still required to move.** The sector lists, their insertion and relink history, the entities' live state and the
+  source/target comparison are the campaign's heap, served to the host's cursor. A host-held roster (semantic identities that outlive a scan, a synchronisation contract for position writes, relinks and releases) is the
+  REQUIRED remaining work; neither the cursor nor a future mirror may be called independent authority while the heap is the live state. City children are still enumerated by the campaign in the city's list order.
+  **The entity/object collision responsibility is not finished.**
 * **The reads of an entity's state.** The facts are copied from the entity by the campaign (flags, shape, position, motion vector, attitude, heading, align flag, a city's box and first building), and the two
   getters that have effects of their own (the destructive `UPDATED` getter, which ANDs the whole flag word, and `get_3d_terrain_face_normal`, which writes the shared terrain point record) are performed by the
   campaign when the host names them. They keep their place and order exactly; they leave only with the roster.

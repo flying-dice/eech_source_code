@@ -304,3 +304,95 @@ pub fn candidate_in_store(store: &ModelStore, scene: i64, facts: &[u32]) -> Resu
         Ok(view.radius)
     })
 }
+
+/// The floats of an `ENTITY_SCAN` question (`csrc/entity_scan_step.c` lists them): the segment, the campaign's world map, the phase of the scan, the cursor the host last gave and the two facts the
+/// campaign reports about the entry it served.
+pub const SCAN_FACTS: usize = 16;
+
+/// What the host decided about the enumeration (`csrc/entity_scan_step.c`). `First` asks the campaign for the TAIL of the list of the sector it names; `Next` for the predecessor of the entry
+/// it is at; `Offer` to offer the entry it is at for its decisions; `DoneNone` ends the scan with no hit; `DoneHit` ends it with the hit of the entry offered last.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ScanState {
+    First,
+    Next,
+    Offer,
+    DoneNone,
+    DoneHit,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ScanStep {
+    pub state: ScanState,
+    /// the sector the host names, as whole numbers in float words; meaningful for `First` only (zero otherwise)
+    pub cursor: [u32; 2],
+}
+
+extern "C" {
+    fn eech_entity_scan_step(facts: *const f32, cursor: *mut f32) -> c_int;
+}
+
+/// The facts of a scan question that are flags, phases or whole numbers, and the values each may have. Anything else is a malformed question, never a default.
+fn check_scan_facts(facts: &[f32]) -> Result<(), String> {
+    if facts.len() != SCAN_FACTS {
+        return Err(format!("an entity scan question has {SCAN_FACTS} floats, not {}", facts.len()));
+    }
+    if let Some(at) = facts.iter().position(|value| !value.is_finite()) {
+        return Err(format!("fact {at} of an entity scan question is not a finite number"));
+    }
+    let whole = |at: usize, low: f32, high: f32| -> Result<(), String> {
+        if facts[at] != facts[at].floor() || facts[at] < low || facts[at] > high {
+            return Err(format!("fact {at} of an entity scan question must be a whole number within {low}..{high}"));
+        }
+        Ok(())
+    };
+    whole(6, 1.0, 16_777_216.0)?;
+    whole(11, 0.0, 3.0)?;
+    whole(12, 0.0, 16_777_216.0)?;
+    whole(13, 0.0, 16_777_216.0)?;
+    whole(14, 0.0, 1.0)?;
+    whole(15, 0.0, 1.0)?;
+    for at in [0, 1, 2, 3, 4, 5, 7, 8, 9, 10] {
+        if facts[at].abs() > 1.0e9 {
+            return Err(format!("fact {at} of an entity scan question is out of range"));
+        }
+    }
+    Ok(())
+}
+
+/// The host's decision about the enumeration, from the campaign's facts, under the original's arithmetic with the caller's floating-point state saved and restored.
+pub fn scan_step(facts: &[u32]) -> Result<ScanStep, String> {
+    let facts: Vec<f32> = facts.iter().map(|word| f32::from_bits(*word)).collect();
+    check_scan_facts(&facts)?;
+    let state = fp_state()?;
+    if state.x87_masks != 63 || state.sse_masks != 63 {
+        return Err(format!(
+            "the entity scan kernel requires every floating-point exception masked in both units (x87 {}, SSE {})",
+            state.x87_masks, state.sse_masks
+        ));
+    }
+    let mut cursor = [0.0f32; 2];
+    let decided = {
+        let _original_arithmetic = ScopedRounding::set(Rounding::Zero)?;
+        // SAFETY: `facts` has the 16 floats the kernel reads and `cursor` has room for two.
+        unsafe { eech_entity_scan_step(facts.as_ptr(), cursor.as_mut_ptr()) }
+    };
+    let after = fp_state()?;
+    if after != state {
+        return Err("the entity scan kernel did not hand back the caller's floating-point state".into());
+    }
+    let step = |state| {
+        Ok(ScanStep {
+            state,
+            cursor: cursor.map(f32::to_bits),
+        })
+    };
+    match decided {
+        1 => step(ScanState::First),
+        2 => step(ScanState::Next),
+        3 => step(ScanState::Offer),
+        4 => step(ScanState::DoneNone),
+        5 => step(ScanState::DoneHit),
+        -1 => Err("the cursor of an entity scan question lies outside the sector window of its segment".into()),
+        other => Err(format!("the entity scan kernel answered {other}")),
+    }
+}

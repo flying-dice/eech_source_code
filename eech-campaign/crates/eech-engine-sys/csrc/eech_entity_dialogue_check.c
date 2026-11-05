@@ -62,6 +62,18 @@ struct scripted_candidate
 static struct scripted_candidate decision;
 static struct scripted_candidate queue[8];
 static int queue_length, queue_next;
+
+/* the scripted host's decisions about the ENUMERATION, in order, one per question; and every scan question the campaign asked (phase, cursor, excluded, hit) */
+struct scripted_scan
+{
+	int state;
+	uint32_t cursor[2];
+};
+
+static struct scripted_scan scan_queue[48];
+static int scan_queue_length, scan_queue_next, scan_cycle;
+static float scan_seen[64][4];
+static int scan_seen_count;
 static struct scripted_answer answer;
 static campaign_model_request seen;
 static int asks;
@@ -91,6 +103,39 @@ static void scripted_ask (campaign_model_request *request, campaign_model_reply 
 	if (refuse_the_exchange)
 	{
 		debug_fatal ("host model: [model-provider:callback] the scripted host refused");
+	}
+
+	if (request->op == CAMPAIGN_MODEL_ENTITY_SCAN)
+	{
+		if (scan_seen_count < 64)
+		{
+			scan_seen[scan_seen_count][0] = request->pose[CAMPAIGN_SCAN_PHASE];
+			scan_seen[scan_seen_count][1] = request->pose[CAMPAIGN_SCAN_CURSOR];
+			scan_seen[scan_seen_count][2] = request->pose[CAMPAIGN_SCAN_EXCLUDED];
+			scan_seen[scan_seen_count][3] = request->pose[CAMPAIGN_SCAN_HIT];
+		}
+
+		scan_seen_count++;
+
+		if (scan_cycle)
+		{
+			/* a host that never ends the scan: the first sector again and again */
+			reply->candidate_state = CAMPAIGN_MODEL_SCAN_FIRST;
+		}
+		else if (scan_queue_next < scan_queue_length)
+		{
+			const struct scripted_scan *given = &scan_queue[scan_queue_next++];
+
+			reply->candidate_state = given->state;
+			memcpy (&reply->candidate[0], &given->cursor[0], sizeof (float));
+			memcpy (&reply->candidate[1], &given->cursor[1], sizeof (float));
+		}
+		else
+		{
+			reply->candidate_state = 0;
+		}
+
+		return;
 	}
 
 	if (request->op == CAMPAIGN_MODEL_ENTITY_CANDIDATE)
@@ -140,6 +185,7 @@ static void scripted_candidate_identity (const campaign_model_reply *reply, int 
 #define CAMPAIGN_ENTITY_ASK(REQUEST,REPLY) scripted_ask ((REQUEST), (REPLY))
 #define CAMPAIGN_ENTITY_IDENTITY(REPLY,SCENE) scripted_identity ((REPLY), (SCENE))
 #define CAMPAIGN_ENTITY_CANDIDATE_ASK(REQUEST,REPLY) scripted_ask ((REQUEST), (REPLY))
+#define CAMPAIGN_ENTITY_SCAN_ASK(REQUEST,REPLY) scripted_ask ((REQUEST), (REPLY))
 #define CAMPAIGN_ENTITY_CANDIDATE_IDENTITY(REPLY,SCENE) scripted_candidate_identity ((REPLY), (SCENE))
 
 #include "entity/mobile/mb_hostentity.h"
@@ -443,6 +489,10 @@ struct sentity
 	int mobile, fixed, city, city_building, shape, align, updated;
 	float position[3], motion[3], attitude[9], heading, box_min[3], box_max[3];
 	struct sentity *first_building, *next_building;
+	/* a sector list (the scan's cursor serves it): the sector's tallest structure and first child, an entry's successor and predecessor */
+	float tallest;
+	struct sentity *first_child, *succ, *pred;
+	int id;
 };
 
 static char reads[128];
@@ -522,6 +572,39 @@ static int check_model_entity_collision (int scene, const float *segment_old, co
 
 #undef campaign_model_entity_candidate
 #undef campaign_model_entity_collision
+
+/* ---- the host's cursor over scripted sector lists: the campaign's scan driver (mb_hostscan.h) bound to a 3 x 3 map whose lists log every getter ---- */
+
+static struct sentity sectors[3][3];
+
+static float ss_tallest (struct sentity *s) { read_log ('t'); return (s->tallest); }
+static struct sentity *ss_first (struct sentity *s) { read_log ('h'); return (s->first_child); }
+static struct sentity *ss_succ (struct sentity *e) { read_log ('s'); return (e->succ); }
+static struct sentity *ss_pred (struct sentity *e) { read_log ('p'); return (e->pred); }
+
+#define CAMPAIGN_SCAN_ENTITY struct sentity
+#define CAMPAIGN_SCAN_SIDE_LENGTH() 100.0f
+#define CAMPAIGN_SCAN_MAP_MIN_X() 0.0f
+#define CAMPAIGN_SCAN_MAP_MIN_Z() 0.0f
+#define CAMPAIGN_SCAN_MAP_MAX_X() 299.0f
+#define CAMPAIGN_SCAN_MAP_MAX_Z() 299.0f
+#define CAMPAIGN_SCAN_SECTOR_VALID(X,Z) (((X) >= 0) && ((X) < 3) && ((Z) >= 0) && ((Z) < 3))
+#define CAMPAIGN_SCAN_SECTOR(X,Z) (&sectors[(X)][(Z)])
+#define CAMPAIGN_SCAN_TALLEST(S) ss_tallest (S)
+#define CAMPAIGN_SCAN_FIRST(S) ss_first (S)
+#define CAMPAIGN_SCAN_SUCC(E) ss_succ (E)
+#define CAMPAIGN_SCAN_PRED(E) ss_pred (E)
+
+#define campaign_model_entity_scan check_model_entity_scan
+
+static int check_model_entity_scan (const float *facts, float *cursor)
+{
+	return (campaign_entity_scan_exchange (facts, cursor));
+}
+
+#include "entity/mobile/mb_hostscan.h"
+
+#undef campaign_model_entity_scan
 
 /* the decisions the scripted host gives, in order, one per question; the name is the scene's (empty for scene 0) unless one is given */
 static void queue_reset (void)
@@ -741,6 +824,8 @@ static void offer_cases (struct tc *t)
 	o = offer (&e, FALSE, 1000.0f);
 	EXPECT (t, o.stopped && strstr (fatal_text, "entity_candidate.state") != NULL && strcmp (reads, "MSPV") == 0);
 }
+
+static void scan_cases (struct tc *t);
 
 static void candidate_cases (struct tc *t)
 {
@@ -973,6 +1058,305 @@ static void candidate_cases (struct tc *t)
 	expect_candidate_refusal (t, "a city with a scene of its own", "entity_candidate.request", 7, more, __LINE__);
 
 	offer_cases (t);
+
+	scan_cases (t);
+}
+
+
+/* ---- the enumeration: the campaign's scan driver (mb_hostscan.h) against scripted sector lists and a scripted host, with the real exchange and the real offer ---- */
+
+static void scan_reset (void)
+{
+	memset (sectors, 0, sizeof (sectors));
+	scan_queue_length = 0;
+	scan_queue_next = 0;
+	scan_cycle = FALSE;
+	scan_seen_count = 0;
+	collision_hit = FALSE;
+}
+
+static uint32_t float_word (float value)
+{
+	uint32_t word;
+
+	memcpy (&word, &value, sizeof (word));
+
+	return (word);
+}
+
+static void scan_state (int state, float x, float z)
+{
+	scan_queue[scan_queue_length].state = state;
+	scan_queue[scan_queue_length].cursor[0] = float_word (x);
+	scan_queue[scan_queue_length].cursor[1] = float_word (z);
+	scan_queue_length++;
+}
+
+static void scan_state_words (int state, uint32_t x, uint32_t z)
+{
+	scan_queue[scan_queue_length].state = state;
+	scan_queue[scan_queue_length].cursor[0] = x;
+	scan_queue[scan_queue_length].cursor[1] = z;
+	scan_queue_length++;
+}
+
+/* the entities of a sector, head first; the scan reads the list from its tail */
+static void sector_list (int x, int z, float tallest, struct sentity **entities, int count)
+{
+	int i;
+
+	sectors[x][z].tallest = tallest;
+	sectors[x][z].first_child = count ? entities[0] : NULL;
+
+	for (i = 0; i < count; i++)
+	{
+		entities[i]->succ = (i + 1 < count) ? entities[i + 1] : NULL;
+		entities[i]->pred = (i > 0) ? entities[i - 1] : NULL;
+	}
+}
+
+struct scan_outcome
+{
+	int stopped;
+	struct sentity *hit;
+};
+
+static struct scan_outcome run_scan (struct sentity *source, struct sentity *target)
+{
+	struct scan_outcome o;
+	float point[3], normal[3];
+
+	memset (&o, 0, sizeof (o));
+	memset (point, 0, sizeof (point));
+	memset (normal, 0, sizeof (normal));
+	reads[0] = '\0';
+	collision_calls = 0;
+	asks = 0;
+	scan_seen_count = 0;
+	fatal_text[0] = '\0';
+
+	if (setjmp (fatal_jump) == 0)
+	{
+		o.hit = campaign_scan_entities (source, target, SEGMENT_OLD, SEGMENT_NEW, point, normal);
+	}
+	else
+	{
+		o.stopped = TRUE;
+	}
+
+	return (o);
+}
+
+static void expect_scan_refusal (struct tc *t, const char *label, const char *marker, int line)
+{
+	struct scan_outcome o;
+	char what[160];
+
+	scan_queue_next = 0;
+	o = run_scan (NULL, NULL);
+
+	snprintf (what, sizeof (what), "%s: stopped", label);
+	tc_expect (t, o.stopped, what, line);
+	snprintf (what, sizeof (what), "%s: stopped at %s (said: %.100s)", label, marker, fatal_text);
+	tc_expect (t, strstr (fatal_text, marker) != NULL, what, line);
+	snprintf (what, sizeof (what), "%s: nothing was offered or tested", label);
+	tc_expect (t, o.hit == NULL && collision_calls == 0, what, line);
+}
+
+static void scan_cases (struct tc *t)
+{
+	struct sentity a, b, c, list[3];
+	struct sentity *entities[3];
+
+	/* ---- positives first: the host's order, tail first, the first hit ends the scan, an unnamed sector is never read ---- */
+	scan_reset ();
+	a = make_entity (TRUE, FALSE, 7);
+	b = make_entity (TRUE, FALSE, 7);
+	c = make_entity (TRUE, FALSE, 7);
+	a.id = 1;
+	b.id = 2;
+	c.id = 3;
+	entities[0] = &a;
+	entities[1] = &b;
+	sector_list (0, 0, 55.0f, entities, 2);
+	entities[0] = &c;
+	sector_list (0, 1, 55.0f, entities, 1);
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_OFFER, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_NEXT, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_OFFER, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_DONE_HIT, 0.0f, 0.0f);
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_TEST, 12);
+	collision_hit = TRUE;
+	{
+		struct scan_outcome o = run_scan (NULL, NULL);
+
+		/* b (the tail) is offered first and misses, then a, which hits; the sector (0, 1) is never read; the tallest height is read once, with the sector */
+		EXPECT (t, !o.stopped && o.hit == &a && collision_calls == 1);
+		EXPECT (t, strcmp (reads, "thssMSPVpMSPVA") == 0);
+		EXPECT (t, scan_seen_count == 5);
+		EXPECT (t, scan_seen[0][0] == 0.0f && scan_seen[1][0] == 1.0f && scan_seen[2][0] == 3.0f && scan_seen[3][0] == 1.0f && scan_seen[4][0] == 3.0f);
+		EXPECT (t, scan_seen[2][3] == 0.0f && scan_seen[4][3] == 1.0f);
+	}
+
+	/* the source and the target are skipped by the host on the campaign's fact, and only the entity heap compared them: b is the source, a the target, so nothing is offered in that sector */
+	scan_reset ();
+	entities[0] = &a;
+	entities[1] = &b;
+	sector_list (0, 0, 55.0f, entities, 2);
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_NEXT, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_NEXT, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_DONE_NONE, 0.0f, 0.0f);
+	queue_reset ();
+	{
+		struct scan_outcome o = run_scan (&b, &a);
+
+		EXPECT (t, !o.stopped && o.hit == NULL && collision_calls == 0 && strstr (reads, "M") == NULL);
+		EXPECT (t, strcmp (reads, "thsspp") == 0);
+		EXPECT (t, scan_seen_count == 4 && scan_seen[1][2] == 1.0f && scan_seen[2][2] == 1.0f && scan_seen[3][0] == 2.0f);
+	}
+
+	/* an empty list is served as the end of that list, and the host goes on to the next sector it names (z inner, then x outer): the lists of sectors it does not name are not read */
+	scan_reset ();
+	entities[0] = &c;
+	sector_list (1, 0, 10.0f, entities, 1);
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 0.0f, 2.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 1.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_OFFER, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_NEXT, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_DONE_NONE, 0.0f, 0.0f);
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+	{
+		struct scan_outcome o = run_scan (NULL, NULL);
+
+		EXPECT (t, !o.stopped && o.hit == NULL && collision_calls == 0);
+		EXPECT (t, strcmp (reads, "thth" "sMSPVp") == 0 || strcmp (reads, "thth" "MSPVp") == 0);
+		EXPECT (t, scan_seen_count == 5 && scan_seen[1][0] == 2.0f && scan_seen[2][0] == 1.0f && scan_seen[2][1] == 1.0f);
+	}
+
+	/* ---- the exact boundary refusals, each at the host's answer and before anything is offered or tested ---- */
+	scan_reset ();
+	queue_reset ();
+	entities[0] = &a;
+	sector_list (0, 0, 55.0f, entities, 1);
+
+	scan_state (CAMPAIGN_MODEL_SCAN_OFFER, 0.0f, 0.0f);
+	expect_scan_refusal (t, "an entry offered at the start of a scan", "entity_scan.state", __LINE__);
+	scan_queue_length = 0;
+	scan_state (CAMPAIGN_MODEL_SCAN_NEXT, 0.0f, 0.0f);
+	expect_scan_refusal (t, "the next entry at the start of a scan", "entity_scan.state", __LINE__);
+	scan_queue_length = 0;
+	scan_state (0, 0.0f, 0.0f);
+	expect_scan_refusal (t, "state 0", "entity_scan.state", __LINE__);
+	scan_queue_length = 0;
+	scan_state (6, 0.0f, 0.0f);
+	expect_scan_refusal (t, "state 6", "entity_scan.state", __LINE__);
+
+	/* a served entry that is not excluded must be offered, and an excluded one skipped */
+	scan_queue_length = 0;
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_NEXT, 0.0f, 0.0f);
+	expect_scan_refusal (t, "a served entity that is not excluded, skipped", "entity_scan.state", __LINE__);
+	scan_queue_length = 0;
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_DONE_NONE, 0.0f, 0.0f);
+	expect_scan_refusal (t, "the scan ended with an entity still served", "entity_scan.state", __LINE__);
+	{
+		struct scan_outcome o;
+
+		scan_queue_length = 0;
+		scan_queue_next = 0;
+		scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 0.0f, 0.0f);
+		scan_state (CAMPAIGN_MODEL_SCAN_OFFER, 0.0f, 0.0f);
+		o = run_scan (&a, NULL);
+		EXPECT (t, o.stopped && strstr (fatal_text, "entity_scan.state") != NULL && collision_calls == 0 && strstr (reads, "M") == NULL);
+	}
+
+	/* the end of a list goes to the next sector or ends the scan: nothing else */
+	scan_queue_length = 0;
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 2.0f, 2.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_NEXT, 0.0f, 0.0f);
+	expect_scan_refusal (t, "the next entry at the end of a list", "entity_scan.state", __LINE__);
+
+	/* after an offer: a hit ends the scan, a miss goes on */
+	scan_queue_length = 0;
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_OFFER, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_NEXT, 0.0f, 0.0f);
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_TEST, 12);
+	collision_hit = TRUE;
+	{
+		struct scan_outcome o;
+
+		scan_queue_next = 0;
+		o = run_scan (NULL, NULL);
+		EXPECT (t, o.stopped && strstr (fatal_text, "entity_scan.state") != NULL && collision_calls == 1);
+	}
+	collision_hit = FALSE;
+	scan_queue_length = 0;
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_OFFER, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_DONE_HIT, 0.0f, 0.0f);
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+	{
+		struct scan_outcome o;
+
+		scan_queue_next = 0;
+		o = run_scan (NULL, NULL);
+		EXPECT (t, o.stopped && strstr (fatal_text, "entity_scan.state") != NULL && collision_calls == 0);
+	}
+
+	/* the cursor: a sector outside the map is refused by the campaign before any list is touched; a cursor that is not whole numbers inside 0 to 16777216, not finite (a signalling NaN included), or
+	   that rides on a state that carries none, is refused by the exchange from its raw words */
+	queue_reset ();
+	scan_queue_length = 0;
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 3.0f, 0.0f);
+	expect_scan_refusal (t, "a sector x outside the map", "entity_scan.cursor", __LINE__);
+	EXPECT (t, strcmp (reads, "") == 0);
+	scan_queue_length = 0;
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 0.0f, 3.0f);
+	expect_scan_refusal (t, "a sector z outside the map", "entity_scan.cursor", __LINE__);
+	scan_queue_length = 0;
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 0.5f, 0.0f);
+	expect_scan_refusal (t, "a fractional sector", "entity_scan.cursor", __LINE__);
+	scan_queue_length = 0;
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, -1.0f, 0.0f);
+	expect_scan_refusal (t, "a negative sector", "entity_scan.cursor", __LINE__);
+	scan_queue_length = 0;
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 1.0e9f, 0.0f);
+	expect_scan_refusal (t, "a sector beyond 16777216", "entity_scan.cursor", __LINE__);
+	scan_queue_length = 0;
+	scan_state_words (CAMPAIGN_MODEL_SCAN_FIRST, 0x7f800000u, 0);
+	expect_scan_refusal (t, "an infinite sector", "entity_scan.cursor", __LINE__);
+	scan_queue_length = 0;
+	scan_state_words (CAMPAIGN_MODEL_SCAN_FIRST, 0, 0x7fc00000u);
+	expect_scan_refusal (t, "a quiet NaN sector", "entity_scan.cursor", __LINE__);
+	scan_queue_length = 0;
+	scan_state_words (CAMPAIGN_MODEL_SCAN_FIRST, 0x7fa00001u, 0);
+	expect_scan_refusal (t, "a signalling NaN sector", "entity_scan.cursor", __LINE__);
+	scan_queue_length = 0;
+	scan_state (CAMPAIGN_MODEL_SCAN_DONE_NONE, 1.0f, 0.0f);
+	expect_scan_refusal (t, "a sector named with a state that carries none", "entity_scan.cursor", __LINE__);
+
+	/* a refusal of the host and a host that never ends the scan */
+	scan_queue_length = 0;
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 0.0f, 0.0f);
+	refuse_the_exchange = TRUE;
+	expect_scan_refusal (t, "the host refuses the exchange", "model-provider:callback", __LINE__);
+	refuse_the_exchange = FALSE;
+	/* an empty sector, so that the host's first-sector answer is legal at the end of its list every time */
+	sector_list (0, 0, 0.0f, entities, 0);
+	scan_cycle = TRUE;
+	expect_scan_refusal (t, "a host that never ends the scan", "entity_scan.runaway", __LINE__);
+	scan_cycle = FALSE;
 }
 
 int eech_entity_dialogue_check_run (char *text, int capacity, int *checks)

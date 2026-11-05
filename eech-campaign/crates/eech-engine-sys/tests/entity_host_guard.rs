@@ -101,29 +101,52 @@ fn the_ordinary_entity_scan_asks_the_host_to_decide_each_candidate_and_the_origi
     for name in ORIGINAL_DECISIONS {
         assert!(!offer.contains(name), "the campaign's offer mentions {name}: the decisions must be the host's");
     }
-    // the scan loop of get_line_of_sight_collision_entity: its own pair of branches, after the declarations'
+    // the enumeration (EEDCS-49, fourth slice): the ordinary module returns the host-driven scan BEFORE the segment's min and max, the sector window and the loops, which stay under the original branch
     let function = source.find("entity *get_line_of_sight_collision_entity").expect("the scan function");
     let body = &source[function..];
-    let first = body.find("#ifdef EECH_CAMPAIGN_HOST_ENTITY").expect("the hosted declarations");
-    let loop_start = first + body[first + 1..].find("#ifdef EECH_CAMPAIGN_HOST_ENTITY").expect("the hosted scan loop") + 1;
-    let otherwise = loop_start + body[loop_start..].find("\n#else\n").expect("the original scan loop");
-    let end = otherwise + body[otherwise..].find("\n#endif\n").expect("the end of the scan branches");
-    let (hosted_loop, original_loop) = (&body[loop_start..otherwise], &body[otherwise..end]);
-    for name in ORIGINAL_DECISIONS.iter().take(4) {
-        assert!(!hosted_loop.contains(name), "the hosted scan loop mentions {name}");
+    let start = body.find("#ifdef EECH_CAMPAIGN_HOST_ENTITY").expect("the hosted enumeration");
+    let otherwise = start + body[start..].find("\n#else\n").expect("the original enumeration");
+    let end = otherwise + body[otherwise..].find("\n#endif\n").expect("the end of the enumeration branches");
+    let (hosted_scan, original_scan) = (&body[start..otherwise], &body[otherwise..end]);
+    const WINDOW: [&str; 7] = [
+        "LARGEST_3D_OBJECT_RADIUS",
+        "get_x_sector",
+        "get_z_sector",
+        "source_min_position",
+        "x_sector_min",
+        "get_local_raw_sector_entity",
+        "ignore_all_fixed_entities_in_sector",
+    ];
+    for name in WINDOW {
         assert!(
-            original_loop.contains(name),
-            "the original scan loop lost {name}: the characterisation fixture would no longer observe the unmoved decisions"
+            !hosted_scan.contains(name),
+            "the hosted scan mentions {name}: the window, the order and the skips are the host's"
+        );
+        assert!(
+            original_scan.contains(name),
+            "the original scan lost {name}: the characterisation fixture would no longer observe the unmoved enumeration"
         );
     }
     assert!(
-        hosted_loop.contains("campaign_offer_candidate") && !original_loop.contains("campaign_offer_candidate"),
-        "the hosted scan walks the sector lists and offers"
+        hosted_scan.contains("campaign_scan_entities") && !original_scan.contains("campaign_scan_entities"),
+        "the hosted module hands the enumeration to the host"
     );
     assert!(
-        original_loop.contains("accurate_moving_bounding_box_collision_test"),
+        original_scan.contains("accurate_moving_bounding_box_collision_test"),
         "the original scan still reaches its own narrow phase"
     );
+    // the campaign's side of the cursor is the shared header: it holds the call to the host and neither the window arithmetic nor the original's decisions
+    let scan = read("../../../aphavoc/source/entity/mobile/mb_hostscan.h");
+    assert!(scan.contains("campaign_model_entity_scan"), "the driver must ask the host for each step");
+    for name in WINDOW.iter().take(5).chain(ORIGINAL_DECISIONS.iter()) {
+        assert!(
+            !scan.contains(name),
+            "the campaign's scan driver mentions {name}: the enumeration and the decisions must be the host's"
+        );
+    }
+    // the bindings of the real sector lists, and the original's getters in order: the sector, its tallest structure, its first child, the walk to the end
+    let driver = &source[source.find("#define CAMPAIGN_SCAN_ENTITY entity").expect("the bindings")..];
+    assert!(driver.contains("get_local_raw_sector_entity") && driver.contains("FLOAT_TYPE_TALLEST_STRUCTURE_HEIGHT") && driver.contains("LIST_TYPE_SECTOR"));
 }
 
 #[test]

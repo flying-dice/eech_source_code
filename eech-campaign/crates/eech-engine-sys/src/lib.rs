@@ -1144,6 +1144,13 @@ pub const EECH_MODEL_CANDIDATE_BUILDINGS: c_int = 4;
 pub const EECH_MODEL_CANDIDATE_TEST: c_int = 5;
 pub const EECH_MODEL_CANDIDATE_NEED_FIXED: c_int = 6;
 pub const EECH_MODEL_CANDIDATE_NEED_PLACEMENT: c_int = 7;
+/// ENTITY_SCAN (EEDCS-49): the enumeration of the scan (the sector window, traversal order, exclusions and first-hit end), and the states of its answer (`candidate_state`; the cursor is `candidate[0..2]`)
+pub const EECH_MODEL_ENTITY_SCAN: c_int = 17;
+pub const EECH_MODEL_SCAN_FIRST: c_int = 1;
+pub const EECH_MODEL_SCAN_NEXT: c_int = 2;
+pub const EECH_MODEL_SCAN_OFFER: c_int = 3;
+pub const EECH_MODEL_SCAN_DONE_NONE: c_int = 4;
+pub const EECH_MODEL_SCAN_DONE_HIT: c_int = 5;
 /// the floats of the narrow-phase pose a TEST answer carries (a stationary candidate's 12, a moving one's 16)
 pub const EECH_MODEL_CANDIDATE_POSE_MAX: usize = 16;
 /// the deepest sub-object chain the target-point transport carries, and the floats of the largest pose (15 + 9 * chain, rounded up)

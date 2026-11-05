@@ -18,6 +18,7 @@
  *   CAMPAIGN_ENTITY_IDENTITY (reply, scene)      stops the engine unless the reply names the campaign's own name for `scene`
  *   CAMPAIGN_ENTITY_CANDIDATE_ASK (request, reply)  the same exchange for an ENTITY_CANDIDATE question (it may be counted separately)
  *   CAMPAIGN_ENTITY_CANDIDATE_IDENTITY (reply, scene)  the same identity check for an ENTITY_CANDIDATE reply, which names its own operation (entity_candidate.identity)
+ *   CAMPAIGN_ENTITY_SCAN_ASK (request, reply)  the same exchange for an ENTITY_SCAN question (it may be counted separately)
  *
  * The same header holds the campaign's half of the host's per-candidate decisions (ENTITY_CANDIDATE, mb_hostmodel.h): the facts layout, the exchange and the complete check of the host's
  * decision against the facts it was given.  It reads no entity: the caller (en_cllsn.c) fills the facts from the entity it visits and performs the two services the host may ask for.
@@ -324,6 +325,126 @@ static int campaign_entity_candidate_exchange (int scene, const float *facts, fl
 		}
 
 		*pose_count = reply.candidate_count;
+	}
+
+	return (reply.candidate_state);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// ENTITY_SCAN (EEDCS-49, D3, fourth slice): the enumeration. The host's cursor over the campaign's lists, with a complete check of its answer against the facts it answers.
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// whether the float at `value` has every bit clear: an unassigned cursor, read as bytes
+static int scan_word_is_zero (const float *value)
+{
+	uint32_t
+		word;
+
+	memcpy (&word, value, sizeof (word));
+
+	return (word == 0);
+}
+
+// Everything about a scan decision that can be wrong given the facts it answers, before any of it is used. The cursor is checked from its raw words: finite first, then a whole number inside
+// 0 to 16777216 (the largest whole number a float holds exactly), and only then compared.
+static void check_scan_reply (const campaign_model_reply *reply, const float *facts)
+{
+	int
+		state,
+		phase;
+
+	state = reply->candidate_state;
+
+	phase = (int) facts [CAMPAIGN_SCAN_PHASE];
+
+	if ((state < CAMPAIGN_MODEL_SCAN_FIRST) || (state > CAMPAIGN_MODEL_SCAN_DONE_HIT))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.state] the host decided state %d, which is not one of the five", state);
+	}
+
+	if (phase == CAMPAIGN_SCAN_PHASE_BEGIN)
+	{
+		if ((state != CAMPAIGN_MODEL_SCAN_FIRST) && (state != CAMPAIGN_MODEL_SCAN_DONE_NONE))
+		{
+			debug_fatal ("host model: [model-provider:entity_scan.state] the host decided state %d at the start of a scan, which only a first sector or an empty window allows", state);
+		}
+	}
+	else if (phase == CAMPAIGN_SCAN_PHASE_ENTRY)
+	{
+		// an entry that is the source or the target is skipped, every other is offered
+		if (state != ((facts [CAMPAIGN_SCAN_EXCLUDED] != 0.0f) ? CAMPAIGN_MODEL_SCAN_NEXT : CAMPAIGN_MODEL_SCAN_OFFER))
+		{
+			debug_fatal ("host model: [model-provider:entity_scan.state] the host decided state %d for a served entry (excluded %d), which must be skipped when excluded and offered otherwise", state, (int) facts [CAMPAIGN_SCAN_EXCLUDED]);
+		}
+	}
+	else if (phase == CAMPAIGN_SCAN_PHASE_END)
+	{
+		if ((state != CAMPAIGN_MODEL_SCAN_FIRST) && (state != CAMPAIGN_MODEL_SCAN_DONE_NONE))
+		{
+			debug_fatal ("host model: [model-provider:entity_scan.state] the host decided state %d at the end of a list, which only the next sector or the end of the scan allows", state);
+		}
+	}
+	else
+	{
+		// the first candidate that hits ends the scan, and a miss goes on
+		if (state != ((facts [CAMPAIGN_SCAN_HIT] != 0.0f) ? CAMPAIGN_MODEL_SCAN_DONE_HIT : CAMPAIGN_MODEL_SCAN_NEXT))
+		{
+			debug_fatal ("host model: [model-provider:entity_scan.state] the host decided state %d after an offered entry (hit %d), which must end the scan on a hit and go on after a miss", state, (int) facts [CAMPAIGN_SCAN_HIT]);
+		}
+	}
+
+	if (state == CAMPAIGN_MODEL_SCAN_FIRST)
+	{
+		int
+			index;
+
+		for (index = 0; index < 2; index++)
+		{
+			if (!candidate_word_is_finite (&reply->candidate [index]))
+			{
+				debug_fatal ("host model: [model-provider:entity_scan.cursor] the sector index %d the host named is not a finite number", index);
+			}
+
+			if ((reply->candidate [index] < 0.0f) || (reply->candidate [index] > 16777216.0f) || ((float) (int) reply->candidate [index] != reply->candidate [index]))
+			{
+				debug_fatal ("host model: [model-provider:entity_scan.cursor] the sector index %d the host named is not a whole number within 0 to 16777216", index);
+			}
+		}
+	}
+	else if ((!scan_word_is_zero (&reply->candidate [0])) || (!scan_word_is_zero (&reply->candidate [1])))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.cursor] the host named a sector with state %d, which carries none", state);
+	}
+}
+
+// One question about the enumeration: the facts in, the host's checked decision out (a campaign_model_scan_state and, for FIRST, the two sector indices in `cursor`).
+static int campaign_entity_scan_exchange (const float *facts, float *cursor)
+{
+	campaign_model_request
+		request;
+
+	campaign_model_reply
+		reply;
+
+	memset (&request, 0, sizeof (request));
+	request.op = CAMPAIGN_MODEL_ENTITY_SCAN;
+	request.scene = 0;
+	request.pose_count = CAMPAIGN_MODEL_SCAN_FACTS;
+	memcpy (&request.pose [0], facts, CAMPAIGN_MODEL_SCAN_FACTS * sizeof (float));
+
+	CAMPAIGN_ENTITY_SCAN_ASK (&request, &reply);
+
+	check_scan_reply (&reply, facts);
+
+	cursor [0] = 0.0f;
+
+	cursor [1] = 0.0f;
+
+	if (reply.candidate_state == CAMPAIGN_MODEL_SCAN_FIRST)
+	{
+		cursor [0] = reply.candidate [0];
+
+		cursor [1] = reply.candidate [1];
 	}
 
 	return (reply.candidate_state);

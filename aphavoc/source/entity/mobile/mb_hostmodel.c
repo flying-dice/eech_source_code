@@ -65,6 +65,7 @@ struct campaign_model_counters
 	/* ENTITY_COLLISION questions asked of the host (EEDCS-49) and the hits and misses the native code ACCEPTED */
 	long entity_collision, entity_hit, entity_miss;
 	/* ENTITY_CANDIDATE questions asked of the host (EEDCS-49) and the states the native code ACCEPTED: skip, UPDATED asked, terrain normal asked, buildings, narrow phase required */
+	long entity_scan, scan_first, scan_next, scan_offer, scan_done;
 	long entity_candidate, candidate_skip, candidate_updated, candidate_normal, candidate_buildings, candidate_test, candidate_fixed, candidate_placement;
 };
 
@@ -1858,6 +1859,12 @@ void campaign_model_route_primary_start (int index, int starts)
 #define CAMPAIGN_ENTITY_CANDIDATE_ASK(REQUEST,REPLY) ask ((REQUEST), (REPLY), "entity candidate")
 #endif
 
+#ifdef EECH_MODEL_HOST_FIXTURE
+#define CAMPAIGN_ENTITY_SCAN_ASK(REQUEST,REPLY) do { campaign_model_counts.entity_scan++; ask ((REQUEST), (REPLY), "entity scan"); } while (0)
+#else
+#define CAMPAIGN_ENTITY_SCAN_ASK(REQUEST,REPLY) ask ((REQUEST), (REPLY), "entity scan")
+#endif
+
 // the candidate's own identity label: a bad scene-name echo of an ENTITY_CANDIDATE reply is not an entity_collision refusal
 #define CAMPAIGN_ENTITY_CANDIDATE_IDENTITY(REPLY,SCENE) check_target_point_identity ((REPLY), (SCENE), "entity_candidate")
 
@@ -1882,6 +1889,47 @@ int campaign_model_entity_collision (int scene, const float *segment_old, const 
 #endif
 
 	return (hit);
+}
+
+// ENTITY_SCAN (mb_hostmodel.h; EEDCS-49, D3, fourth slice): the host's cursor over the campaign's lists. The dialogue is mb_hostentity.h.
+int campaign_model_entity_scan (const float *facts, float *cursor)
+{
+	int
+		state;
+
+	state = campaign_entity_scan_exchange (facts, cursor);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	switch (state)
+	{
+		case CAMPAIGN_MODEL_SCAN_FIRST:
+		{
+			campaign_model_counts.scan_first++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_SCAN_NEXT:
+		{
+			campaign_model_counts.scan_next++;
+
+			break;
+		}
+		case CAMPAIGN_MODEL_SCAN_OFFER:
+		{
+			campaign_model_counts.scan_offer++;
+
+			break;
+		}
+		default:
+		{
+			campaign_model_counts.scan_done++;
+
+			break;
+		}
+	}
+#endif
+
+	return (state);
 }
 
 // ENTITY_CANDIDATE (mb_hostmodel.h; EEDCS-49, D3, third slice): what the host decides about one candidate of the scan. The dialogue is mb_hostentity.h; the facts are read by the caller.

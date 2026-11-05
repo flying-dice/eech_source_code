@@ -4,12 +4,12 @@ use eech_engine::{
     AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, CandidateDecision, Engine, EngineConfig, EngineError,
     EnvProvider, EnvReply, EnvRequest, EnvState, Gunship, HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor,
     MemberDescriptor, ModelAnimation, ModelAnswer, ModelObject, ModelObjectFacts, ModelOrder, ModelProvider, ModelQuery, ModelRouteFace, ModelRouteNode,
-    ModelScene, ModelTriangle, MovementMode, MovementResult, MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side,
-    SupplyReachDescriptor, TerrainAnswer, TerrainMapFacts, TerrainProvider, TerrainQuery, TerrainRecord, TreeEnd, TreeStep, VehiclePose, WeaponFigures,
-    EECH_ENV_AMBIENT, EECH_ENV_EXPORT, EECH_ENV_FLOATS, EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM, EECH_ENV_INTS,
-    EECH_ENV_LIGHTNING_ADD, EECH_ENV_LIGHTNING_UPDATE, EECH_ENV_MODE_COUNT, EECH_ENV_ROTOR_SOUND, EECH_ENV_SOUND_LIFETIME_INIT, EECH_ENV_SOUND_LIFETIME_UPDATE,
-    EECH_ENV_SOUND_PAUSE_RESUME, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND, EECH_LIGHTNING_SLOTS, EECH_ROTOR_ACTIONS, EECH_ROTOR_CHANNELS,
-    EECH_ROTOR_PLAYER_AI, EECH_ROTOR_PLAYER_LOCAL, EECH_ROTOR_PLAYER_REMOTE, EECH_SOUND_SAMPLES,
+    ModelScene, ModelTriangle, MovementMode, MovementResult, MovementStep, ObjectReport, ScanDecision, SenseMessage, SenseReason, SenseReply, SenseScan,
+    SenseState, Side, SupplyReachDescriptor, TerrainAnswer, TerrainMapFacts, TerrainProvider, TerrainQuery, TerrainRecord, TreeEnd, TreeStep, VehiclePose,
+    WeaponFigures, EECH_ENV_AMBIENT, EECH_ENV_EXPORT, EECH_ENV_FLOATS, EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM,
+    EECH_ENV_INTS, EECH_ENV_LIGHTNING_ADD, EECH_ENV_LIGHTNING_UPDATE, EECH_ENV_MODE_COUNT, EECH_ENV_ROTOR_SOUND, EECH_ENV_SOUND_LIFETIME_INIT,
+    EECH_ENV_SOUND_LIFETIME_UPDATE, EECH_ENV_SOUND_PAUSE_RESUME, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND, EECH_LIGHTNING_SLOTS, EECH_ROTOR_ACTIONS,
+    EECH_ROTOR_CHANNELS, EECH_ROTOR_PLAYER_AI, EECH_ROTOR_PLAYER_LOCAL, EECH_ROTOR_PLAYER_REMOTE, EECH_SOUND_SAMPLES,
 };
 use eech_engine::{SoundBackendProvider, SoundBackendReply, SoundBackendRequest, SOUND_BACKEND_PHASE_INITIALISE};
 use eech_engine::{SoundCatalogueEntry, SoundCatalogueProvider, SoundCatalogueReply, SoundCatalogueRequest};
@@ -3882,6 +3882,14 @@ fn gunship(name: &str) -> LuaResult<Gunship> {
 ///                 (moving: old position (3), new position (3), attitude (9), speed) floats of the narrow phase's pose, which the campaign then sends with `entity_collision`, or `refused` with
 ///                 `reason` (a scene the branch needs and cannot use is refused here, never defaulted). `name` is the scene's compiled name (an echo; empty for scene 0).
 ///
+///   "entity_scan"  the ENUMERATION of the entity scan (EEDCS-49, D3, fourth slice): scene 0 and, in the sixth place (the text), 16 comma-separated bit patterns, the FACTS: the segment's old end (3) and new
+///                 end (3), the sector side length, the world map's min x, min z, max x and max z, the PHASE (0 begin, 1 an entry is served, 2 the cursor's list has no more entries, 3 the offered entry's
+///                 decisions are finished), the cursor sector x and z the host last gave, the served entry is the source or the target (0 or 1) and the offered entry hit (0 or 1). The host decides the sector window,
+///                 the traversal (x outer, z inner, each list from its TAIL), the exclusions and the first-hit end; the campaign serves the host's cursor over its own sector lists (a transitional backing
+///                 dependency). Returns `{ result }` and, for `first`, `p` (two bit patterns: the sector x and z, whole numbers): `first` (serve the TAIL of that sector's list), `next` (serve the predecessor of
+///                 the current entry), `offer` (offer the current entry for its decisions and report whether it hit), `done_none` (the scan ends, no hit), `done_hit` (it ends with the entry offered last),
+///                 or `refused` with `reason`.
+///
 ///   "object_table"  no scene, no depth. Returns `{ result = "table", objects = n }`: how many objects the host's common database holds (the campaign's room for custom objects is its own).
 ///   "object"     a scene index, a cursor (`depth`, never negative: the approximation or the sub-object) and, in the fourth place, the ROLE the object has in the scene (0 main, 1
 ///                 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object). Returns `{ result = "object", name = text, counts = {six whole numbers within 0..65535:
@@ -4089,6 +4097,23 @@ return function(op, scene, depth, kind, definition, key)
 		if not p then return nil, 'p ' .. why end
 		return 'test', p, nil, nil, nil, nil, nil, name
 	end
+	if op == 'entity_scan' then
+		local result = a.result
+		if result == 'refused' then
+			local reason = a.reason
+			return 'refused', type(reason) == 'string' and reason:sub(1, 200) or ''
+		end
+		if result == 'first' then
+			local p, why = list(a.p, 2)
+			if not p then return nil, 'p ' .. why end
+			return 'first', p
+		end
+		if result == 'next' or result == 'offer' or result == 'done_none' or result == 'done_hit' then
+			if a.p ~= nil then return nil, 'p is only for first' end
+			return result
+		end
+		return nil, 'result must be first, next, offer, done_none, done_hit or refused'
+	end
 	if op == 'target_point_world' or op == 'target_point_fixed' then
 		local name, result = a.name, a.result
 		if result == 'refused' then
@@ -4253,6 +4278,8 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
         ModelQuery::EntityCollision { scene, pose } => ("entity_collision", Some(scene), None, None, None, Some(pose_text(&pose))),
         // the facts of one candidate of the entity scan cross as exact bit patterns in the text place (44 floats); the scene is 0 until the campaign has read the shape
         ModelQuery::EntityCandidate { scene, facts } => ("entity_candidate", Some(scene), None, None, None, Some(pose_text(&facts))),
+        // the facts of the enumeration cross as exact bit patterns in the text place (16 floats); the scene is 0
+        ModelQuery::EntityScan { facts } => ("entity_scan", Some(0), None, None, None, Some(pose_text(&facts))),
         // the fourth place carries the role the object has in the scene
         ModelQuery::Object {
             scene,
@@ -4481,6 +4508,20 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
                 },
             })
         }
+        (ModelQuery::EntityScan { .. }, "first") => {
+            let cursor = bridged_floats::<2>(&a.ok_or_else(missing)?, "p", operation)?;
+            Ok(ModelAnswer::EntityScan {
+                decision: ScanDecision::First(cursor),
+            })
+        }
+        (ModelQuery::EntityScan { .. }, "next" | "offer" | "done_none" | "done_hit") => Ok(ModelAnswer::EntityScan {
+            decision: match tag.as_str() {
+                "next" => ScanDecision::Next,
+                "offer" => ScanDecision::Offer,
+                "done_none" => ScanDecision::DoneNone,
+                _ => ScanDecision::DoneHit,
+            },
+        }),
         (ModelQuery::EntityCandidate { .. }, "test") => {
             // the bridge has already checked that the list holds exactly 12 or 16 floats; the count is read from the text and bounded again here
             let text = a.ok_or_else(missing)?;
@@ -4499,6 +4540,10 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
             scene_name: g.ok_or_else(missing)?,
             position: bridged_floats::<3>(&a.ok_or_else(missing)?, "p", operation)?,
         }),
+        (ModelQuery::EntityScan { .. }, "refused") => Err(format!(
+            "[model-provider:{operation}.refused] the host cannot answer the entity scan: {}",
+            a.unwrap_or_default()
+        )),
         (
             ModelQuery::TargetPointChain { scene }
             | ModelQuery::TargetPointWorld { scene, .. }
@@ -5658,6 +5703,83 @@ mod tests {
                 facts.iter().take(count).copied().collect::<Vec<u32>>(),
                 "the pose crosses exactly: a negative zero and a subnormal included"
             );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn an_entity_scan_question_carries_the_facts_by_bit_pattern_and_every_decision_comes_back_with_its_state_and_cursor() -> Test {
+        let lua = Lua::new();
+        // the first fact's pattern picks the decision: 1 first (sector 2, 3), 2 next, 3 offer, 4 done_none, 5 done_hit
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               assert (op == 'entity_scan' and scene == 0 and depth == nil and kind == nil and definition == nil)
+               local words = {}
+               for word in key:gmatch ('[^,]+') do words[#words + 1] = word end
+               assert (#words == 16, 'the facts are 16 patterns')
+               local pick = tonumber (words[1]:sub (-1))
+               if pick == 1 then return { result = 'first', p = '0x40000000,0x40400000' } end
+               local names = { [2] = 'next', [3] = 'offer', [4] = 'done_none', [5] = 'done_hit' }
+               return { result = names[pick] }
+             end",
+        )?;
+        let ask_with = |provider: &mut ModelProvider, pick: u32| {
+            let facts: Vec<u32> = std::iter::once(pick).chain((1..16).map(|at| 0x3f80_0000 + at)).collect();
+            ask(provider, ModelQuery::EntityScan { facts })
+        };
+        assert_eq!(
+            ask_with(&mut provider, 1)?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::First([2.0, 3.0])
+            }
+        );
+        assert_eq!(ask_with(&mut provider, 2)?, ModelAnswer::EntityScan { decision: ScanDecision::Next });
+        assert_eq!(ask_with(&mut provider, 3)?, ModelAnswer::EntityScan { decision: ScanDecision::Offer });
+        assert_eq!(
+            ask_with(&mut provider, 4)?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::DoneNone
+            }
+        );
+        assert_eq!(
+            ask_with(&mut provider, 5)?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::DoneHit
+            }
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn an_entity_scan_answer_that_is_refused_malformed_or_of_the_wrong_kind_stops_with_its_marker() -> Test {
+        let lua = Lua::new();
+        // the scene... carries nothing here: the first fact's last digit picks the answer: 1 a refusal, 2 first without a cursor, 3 first with one pattern, 4 next that carries a cursor, 5 an unknown result,
+        // 6 first with a non-finite cursor
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               local pick = tonumber (key:match ('^0x%x%x%x%x%x%x%x(%x)'))
+               if pick == 1 then return { result = 'refused', reason = 'no host' } end
+               if pick == 2 then return { result = 'first' } end
+               if pick == 3 then return { result = 'first', p = '0x40000000' } end
+               if pick == 4 then return { result = 'next', p = '0x40000000,0x40000000' } end
+               if pick == 5 then return { result = 'perhaps' } end
+               return { result = 'first', p = '0x7f800000,0x40000000' }
+             end",
+        )?;
+        let mut decide = |pick: u32| {
+            let facts: Vec<u32> = std::iter::once(pick).chain(std::iter::repeat_n(0, 15)).collect();
+            ask(&mut provider, ModelQuery::EntityScan { facts })
+        };
+        let refused = decide(1).err().ok_or("accepted")?;
+        assert!(
+            refused.contains("[model-provider:entity_scan.refused]") && refused.contains("no host"),
+            "{refused}"
+        );
+        for pick in 2..=6 {
+            let error = decide(pick).err().ok_or("accepted")?;
+            assert!(error.contains("[model-provider:entity_scan.answer]"), "answer {pick}: {error}");
         }
         Ok(())
     }
