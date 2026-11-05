@@ -1,4 +1,33 @@
-# CURRENT — D3 Task 49 (EEDCS-49, draft PR109): the first entity source review (c510c55c7) returned CHANGES_REQUIRED (one P1, ENV-ENTITY-CALLER-BUFFER-1); the corrected output-only narrow-phase contract is in source with a green direct-exit Linux gate and awaits the same reviewer; no native run; the entity broad phase/roster/hierarchy, the raw Core tree loader/forest/cloud block, the DCS mappings, whole Task 49, the dependencies and D3 remain open (5 November 2026)
+# CURRENT — D3 Task49: entity output-only contract corrected in source; same-reviewer pass/native validation pending; Task50/52 delivered (5 November 2026)
+
+This is the ONE current summary. All dated entries below are history. Recover from
+`docs/handover/ACTIVE-EXTRACTION.json` and `R:/d3-evidence/D3-CURRENT.json`.
+
+Corrected sourcef1532a6fd addresses ENV-ENTITY-CALLER-BUFFER-1: no prior caller
+point/normal words are read or sent; explicit original per-component write data
+is validated, then only assigned outputs are committed, normal before point.
+The actual isolated C-adapter guard covers unreadable output storage, hit and
+miss partial writes, initialized nonfinite/signed-zero/subnormal sentinels and
+atomic refusals. Final direct-exit Linux gate and before/after raw input identity
+are retained in `reference/d3-entity-collision/entity-output-contract-direct-gate-20261105.json`.
+The original review18d remains CHANGES_REQUIRED at c510; the corrected new material
+still needs the SAME independent reviewer. No corrected Windows/native run or
+authority/fullTask49 shipping acceptance is claimed.
+
+Task50 is DELIVERED873a and Task52 DELIVERED847, bothDone with accepted40/all8
+COMPLETE literal equality, four final full input checks, unchanged83/84payloads,
+independent3fdf, exactfinalCI and actual merge trees verified. Safe actual-delivery
+receipts accompany this normal accepted-base synchronization; all executable,
+fixture, ordinary driver and build inputs are unchanged from correctedf153.
+
+TREE finite7ad remains closed; do not repeat its unchanged evidence. Entity physical
+broadphase/sector/city/classification/roster/live pose/flag effects, rawtree loader/
+forest/cloud side effects, hierarchy/device/muzzle/rotor-damage/smoke/host identities
+and concrete DCS mappings remain REQUIRED. FullTask49 candidate40/all8, currentCI,
+review/normalmerge and whole-D3 acceptance remain open. D4/D5 are unstarted. No
+baseline/tolerance/input/seed/frame/duration change, visualTacview or nativeDCS claim.
+
+# HISTORICAL (superseded by accepted dependency synchronization 5 November 2026) — CURRENT — D3 Task 49 (EEDCS-49, draft PR109): the first entity source review (c510c55c7) returned CHANGES_REQUIRED (one P1, ENV-ENTITY-CALLER-BUFFER-1); the corrected output-only narrow-phase contract is in source with a green direct-exit Linux gate and awaits the same reviewer; no native run; the entity broad phase/roster/hierarchy, the raw Core tree loader/forest/cloud block, the DCS mappings, whole Task 49, the dependencies and D3 remain open (5 November 2026)
 
 **This is the ONE current summary. Every entry below it is dated history; none is live state, whatever its old heading said.** The recovery entry is `docs/handover/ACTIVE-EXTRACTION.json` (the Task 49 card; the Task 52 card is kept as `docs/handover/ACTIVE-EXTRACTION-EEDCS-52-20261103.json`), this summary and the runtime checkpoint `R:/d3-evidence/D3-CURRENT.json` (Root is its sole writer). Closed and not to be redone: the finite TREE handoff and native authority (`7ad1a698…`), Task 52's finite query, the Task 50/52 full-shipping runs, and the Task 50 delivery (`873a172d9`). Root's ordinary c510c55c7 Windows build (build exit 0, no engine or native run) is retained and is NOT valid acceptance for the blocked source.
 

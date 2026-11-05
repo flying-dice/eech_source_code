@@ -24,7 +24,8 @@
     "f0f928147 native/ordinary evidence (safe projection in the reference folder): Windows hosted/Original/ordinary and Linux hosted builds actual 0, 87 payloads; ordinary short COMPLETE literal-equal to 80fd; first tree-authority control UNREACHED (tests_delta 0). Case-selection correction evidence: D:/EECH-Migration-Evidence/tree-select-20261103-e/ (q1-red.log: the 14 retained guards pass and only the new selection control fails on the f0 selector, exit 101; q3-final.log: green).",
     "Second control actual (D:/EECH-Migration-Evidence/tree-authority-nativef0-diagnostic3619-control-20261103/, safe projection f0-second-control-selector3619-unreached-20261103.json): native and controller exit 1, input manifests 0, 87 payloads, a person with PKM weapon 16 and a target 0.039 m away, one weapon, hit_land in 72 steps, tests_delta 0, tree_begin 0 - UNREACHED, correctly. View-input evidence (D:/EECH-Migration-Evidence/tree-view-20261103-f/): v1-red.log the new controls on the 3619 witness exit 101 (14 of 17 failed: the scripted host only tests trees under the configured view), v3-final.log GREEN 17/17 with fmt, strict clippy -p eech-world and the progress guard all exit 0.",
     "Entity slice source (one cutover, not a preparation batch): aphavoc en_cllsn.c hosted accurate_* tests under EECH_CAMPAIGN_HOST_ENTITY (defined in every build except collision-fixture and model-fixture; original branch kept in the #else), mb_hostmodel.{h,c} ENTITY_COLLISION and campaign_model_entity_collision, eech-engine-sys const, eech-engine ModelQuery/ModelAnswer::EntityCollision and callback, eech-dc bridge, eech-world model_host.rs provider arm, entity_host.rs, csrc/entity_step.c. No existing checker, baseline, seed, frame, duration or tolerance changed. Linux evidence of that commit is CORRECTED here: the first-batch logs a2 to a9 in D:/EECH-Migration-Evidence/entity-collision-20261103-a/ pipe Cargo into tail/grep under sh without pipefail and print the outer shell status, so their actual_exit/echo codes are NOT Cargo exits (a3 and a4 contain FAILED tests beside actual_exit=0, a9 a failed clippy invocation beside c1=0, a8 a failed git hash and a feature loop that built the default five times). They are retained as history. The valid evidence is the direct-exit gate D:/EECH-Migration-Evidence/entity-collision-20261105-b/ (see blocker entity-narrow-phase-review-and-native). No native, Windows or retail execution.",
-    "TREE finite closure published 5 November 2026: ten safe files with verified SHA-256 in eech-campaign/reference/d3-tree-collision-production/finite-authority/ (manifest copied unchanged; three CRLF metadata files stored as LF with their LF hashes recorded in the README; older CHANGES_REQUIRED and UNREACHED records untouched). DCS API provenance and notes published in eech-campaign/reference/d3-entity-collision/dcs-api/."
+    "TREE finite closure published 5 November 2026: ten safe files with verified SHA-256 in eech-campaign/reference/d3-tree-collision-production/finite-authority/ (manifest copied unchanged; three CRLF metadata files stored as LF with their LF hashes recorded in the README; older CHANGES_REQUIRED and UNREACHED records untouched). DCS API provenance and notes published in eech-campaign/reference/d3-entity-collision/dcs-api/.",
+    "5Nov dependency delivery: Task50 normalPR110873a andTask52 normalPR112847, bothDone with accepted40/all8COMPLETE literal/4inputs0/all83or84payloads and exactfinalCI/actualtrees verified. Synced accepted847 metadata only after sole author TERMINAL0/cleanf153; no executable input change. See reference/d3-entity-collision/dependencies-20261105."
   ],
   "blockers": [
     {
@@ -119,7 +120,7 @@
       "complete": false
     },
     {
-      "gate": "Current independent review/checks and normal merge; Task52 and Task50 dependencies delivered",
+      "gate": "Current Task49 independent review/checks and normal merge (Task52/Task50 dependencies are delivered847/873a)",
       "complete": false
     },
     {
@@ -129,5 +130,5 @@
   ],
   "runtime_checkpoint": "R:/d3-evidence/D3-CURRENT.json",
   "do_not_restart": "Task50 original bce pack and Task52 ordinary 811 pack: verify actual PID/birth/argv and receipts before any action; neither is touched by this task.",
-  "scope_limit": "Whole D3 / EEDCS-21 and full Task49 remain open. Do not start D4/D5 or resume the historical TypeScript port. Task49 stays stacked on the unaccepted Task52/PR112 and Task50/PR110 branches: no delivery ahead of them. The Task52 card is preserved as docs/handover/ACTIVE-EXTRACTION-EEDCS-52-20261103.json."
+  "scope_limit": "Whole D3/EEDCS-21 and fullTask49 remain open; noD4/D5/TypeScript. Task50 andTask52 DELIVERED by normal873a then847, bothDone/40all8/finalCI/actualtrees verified. This normal metadata sync retains correctedf153 executable inputs. Source review of the entity output contract and native/fullTask49 gates remain required. Historical Task52 cards are archived; canonical runtime checkpoint identifies activeTask49."
 }

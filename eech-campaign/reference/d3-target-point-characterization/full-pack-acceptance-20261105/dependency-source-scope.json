@@ -1,0 +1,26 @@
+{
+  "previous_reviewed_publication": "7ca36257cab6f4205c3e111b5414266a92fd7973",
+  "accepted_Task50_merge": "873a172d9d26d0f2e437aa491187ea3cc3ef6cb2",
+  "only_metadata_process_paths_changed": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "eech-campaign/reference/d3-route-characterization/full-pack-acceptance-20261105/.gitattributes",
+    "eech-campaign/reference/d3-route-characterization/full-pack-acceptance-20261105/README.md",
+    "eech-campaign/reference/d3-route-characterization/full-pack-acceptance-20261105/complete-comparison.json",
+    "eech-campaign/reference/d3-route-characterization/full-pack-acceptance-20261105/current-ci-before-publication.json",
+    "eech-campaign/reference/d3-route-characterization/full-pack-acceptance-20261105/full-pack-audit.json",
+    "eech-campaign/reference/d3-route-characterization/full-pack-acceptance-20261105/independent-final-delivery-review.json",
+    "eech-campaign/reference/d3-route-characterization/full-pack-acceptance-20261105/prospective-integration-runtime-scope.json",
+    "eech-campaign/reference/d3-route-characterization/full-pack-acceptance-20261105/publication-manifest.json",
+    "eech-campaign/reference/d3-target-point-characterization/full-pack-acceptance-20261105/.gitattributes",
+    "eech-campaign/reference/d3-target-point-characterization/full-pack-acceptance-20261105/README.md",
+    "eech-campaign/reference/d3-target-point-characterization/full-pack-acceptance-20261105/Task50-dependency-delivery.json",
+    "eech-campaign/reference/d3-target-point-characterization/full-pack-acceptance-20261105/complete-comparison.json",
+    "eech-campaign/reference/d3-target-point-characterization/full-pack-acceptance-20261105/current-ci-before-publication.json",
+    "eech-campaign/reference/d3-target-point-characterization/full-pack-acceptance-20261105/full-pack-audit.json",
+    "eech-campaign/reference/d3-target-point-characterization/full-pack-acceptance-20261105/independent-final-delivery-review.json"
+  ],
+  "all_production_and_fixture_C_Rust_Lua_build_inputs_unchanged_from_7ca": true,
+  "ordinary811_and_fixturefc_c707_proofs_reused_at_own_identities": true,
+  "scope": "Prepared dependency/publication merge before commit; actual PR112 merge/CI remain open."
+}

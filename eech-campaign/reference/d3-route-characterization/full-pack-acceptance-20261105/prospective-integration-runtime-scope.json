@@ -1,0 +1,28 @@
+{
+  "integration": "581d32a716c46eb2b6999cac82d15284edbb5141",
+  "source": "bce0c3514be13ee4bbc3a571387132989f74e3c6",
+  "publication_head": "1fb023388ef2ca094db2eada4dc9b26c8d0c3de4",
+  "prospective_merge_tree": "9b1edbb0d4d4265f9927163e2539cd2147418096",
+  "merge_preview_actual_exit": 0,
+  "changed_paths": [
+    "AGENT.md",
+    "STATUS.md",
+    "docs/governance/D3-FIVE-WHYS-20261102.md",
+    "docs/governance/EXECUTION.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/.gitattributes",
+    "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/README.md",
+    "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/current-build-gates.json",
+    "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/current-ci.json",
+    "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/current-original-list-comparison.json",
+    "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/environment-source-scope-e9-bce.json",
+    "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/independent-integration-review.json",
+    "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/manifest.json",
+    "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/ordinary-short-e9.json",
+    "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/shipping-launch.json",
+    "eech-campaign/reference/d3-route-characterization/model-environment-integration-20261102/windows-caller-profile.json",
+    "eech-campaign/tools/migration-progress.py"
+  ],
+  "production_compiled_inputs_and_ordinary_drivers_unchanged": true,
+  "scope": "Prospective normal-merge tree only, not actual merge/approval/CI acceptance."
+}
