@@ -1,4 +1,22 @@
-# CURRENT — D3 Task49: the entity candidate cutover is CORRECTED in source for both findings of the independent source review (Linux-checked only; nothing native); same-reviewer clearance is next (5 November 2026)
+# CURRENT — D3 Task49: the ONE P2 residual (NEED_PLACEMENT legality) is corrected in the shared C predicate; Linux-checked on a NARROW scope; same-reviewer check of this fix only is next (5 November 2026)
+
+This is the ONE current summary; dated entries below are history. Read the active card and `R:/d3-evidence/D3-CURRENT.json` (Root is its sole writer). The independent follow-up of `6db5f5306` (runtime `fb3163f28`) closed
+ENV-ENTITY-CANDIDATE-PRECONDITION-1 and the pointer classifier and identity label, and left ONE P2: `check_candidate_reply` accepted `NEED_PLACEMENT` for a known city, a direct city building, an unflagged entity or a scene-less
+candidate, so the shared offer would call HEADING/ALIGN where the original never did. Its literal report (LF, SHA-256 `e525d88189e1fa3e8bd0ebc211af73f944bee644e017c7f1451a4091a453340d`) is published unchanged.
+
+**Fix, frozen source `1ccc9e2ed86206a28b591fdfab1d4ca0192a6200`.** `mb_hostentity.h`: `NEED_PLACEMENT` is accepted only for a candidate that HAS a scene and is a mobile candidate, a building under a city (its flags are read DURING the placement, so its fixed facts are
+intentionally not given) or an ordinary fixed candidate whose fixed facts say it is one, with the placement not already given; otherwise it stops at `entity_candidate.state` before any getter. Scene-less `SKIP` and `NEED_FIXED` stay
+valid; no radius or height arithmetic is added to Core. Changed paths: `mb_hostentity.h`, `mb_hostmodel.h` (doc), `eech_entity_dialogue_check.c`, `entity_dialogue.rs` (count), `d3-entity-collision-provider.md`.
+
+**Validation scope (by the lead's decision): NARROW.** Run, direct child exits, one log (`eech-campaign/reference/d3-entity-collision/entity-placement-correction-direct-gate-20261105.json`): formatting, the real shared C offer/dialogue
+control, the source guard, a weapon-fixture build and strict clippy of `eech-engine-sys` (both feature sets): all 0; source identity raw and filtered equal before and after (2916 rows). RED against the parent first (positives passed, every
+malformed role wrongly accepted), GREEN after; three mutants RED. **NOT run:** the 16-step feature matrix. The parent `fb3163f28` matrix (16 steps all 0, 1183 tests, 65 result rows) is PARENT evidence only and is not a result of this head.
+Rust, the kernel, the model provider, the features and the closed narrow phase and TREE are unchanged in this commit.
+
+**Next.** The SAME reviewer inspects only this bounded fix. Then Root: corrected Windows build, the ordinary exact short against `80fd` with wall time, then the still-unwritten `ENTITY_CANDIDATE` changed/withheld witness. Nothing native has run.
+Still REQUIRED and open: the enumeration of candidates, roster and live pose, raw tree/forest/cloud, hierarchy, devices, muzzles, rotor damage, smoke, host identities, the DCS mappings, the moving public path, whole Task 49, the full 40/all8 pack and D3.
+
+# HISTORICAL (superseded 5 November 2026 by the CURRENT block above; the two-group correction fb3163f28) — D3 Task49: the entity candidate cutover is CORRECTED in source for both findings of the independent source review (Linux-checked only; nothing native); same-reviewer clearance is next (5 November 2026)
 
 This is the ONE current summary; dated entries below are history. Read the active card and `R:/d3-evidence/D3-CURRENT.json` (Root is its sole writer). The independent source review of `42054567a` (runtime `2d1a16273`) is
 CHANGES_REQUIRED, `native_launch_clearance=false`; its literal report (LF, SHA-256 `1a64667bf072a63a21a56f80225b8cc1da2d0a3026b7983e5e07baa21fcc3302`) is published unchanged in
