@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05",
+  "scope": "Direct-exit Linux gate of the TEST-ONLY ENTITY_CANDIDATE public authority witness (Lua, tests and docs only). The witness has NOT run against a real module: the driver controls run the real Lua against scripted collaborators that apply the shared dialogue rules. No native, Windows or retail run; the compiled runtime stays 1ccc9e2ed.",
+  "base_head": "6a410b4bf",
+  "runtime_commit": "1ccc9e2ed86206a28b591fdfab1d4ca0192a6200",
+  "source_commit": "d39a14a95ed15280911c85e4490df683561e2d4b",
+  "files": {
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua": {
+      "git_blob": "0457417191de4f39973997fb5fa2e3656cde3085",
+      "sha256": "473bc07c21d5dd687f778d398499ea03894bfa5af4fa6ca43ce5e85d970a1ad3",
+      "bytes": 60040,
+      "line_endings": "LF"
+    },
+    "eech-campaign/crates/eech-world/tests/entity_authority.rs": {
+      "git_blob": "b4861919df81d9cb61d5e30739db68a5bb864429"
+    }
+  },
+  "shipping_inputs_unchanged_vs_runtime": "git diff --name-only 1ccc9e2ed over aphavoc, eech-campaign/crates, Cargo.toml, Cargo.lock and tools lists only lua/entity-authority.lua and tests/entity_authority.rs; no C, Rust shipping source, bridge, API or feature input differs",
+  "final_direct_steps": {
+    "dir": "final",
+    "steps": {
+      "fmt_check": 0,
+      "entity_authority (21 tests: 14 retained + 7 new)": 0,
+      "tree_authority (17 tests, unchanged)": 0,
+      "host_callbacks (82 tests; the reference-script inventory is unchanged at 62 because no script was added)": 0,
+      "clippy eech-world --all-targets -D warnings": 0
+    },
+    "log_sha256": "0f878b056e07c231afca523c80dabe8a68ff456d5849b26a2bbc85d65c729a9a"
+  },
+  "modes": [
+    "control (natural, unchanged semantics, now counts candidate questions)",
+    "candidate_real (paired control)",
+    "candidate_skip (paired variant)",
+    "withheld_candidate",
+    "bad_candidate_state",
+    "bad_candidate_identity"
+  ],
+  "configured_secondary_input": "entity_collision answered HIT mask 63 at the request OLD end whenever asked, held in BOTH paired modes and declared in the evidence row; the natural control stays separate",
+  "mutation_controls": {
+    "summary": [
+      "skip-answers-real apply=0 runner_exit=0 cargo=entity_authority=101",
+      "hit-use-not-required apply=0 runner_exit=0 cargo=entity_authority=101",
+      "downstream-not-checked apply=0 runner_exit=0 cargo=entity_authority=101",
+      "identity-not-altered apply=0 runner_exit=0 cargo=entity_authority=101",
+      "old-marker-credited apply=0 runner_exit=0 cargo=entity_authority=101",
+      "restored_equal=yes"
+    ],
+    "summary_sha256": "d4df9b517532e705d310551163798dc7ab96cc0859cfa282de1653e67dfc237d",
+    "meaning": "five mutants of the witness (a skip that answers the real state, an unchecked hit use, an unchecked downstream question, an unaltered identity, the old marker credited) each failed entity_authority (exit 101); the script was restored byte for byte"
+  },
+  "limits": [
+    "the controls are scripted collaborators: they prove the driver, not the DLL or the host kernel",
+    "every candidate question is global to the war and not attributed to the case weapon",
+    "the view input is configured and global while armed",
+    "the paired variation is a diagnostic world variation, not a baseline or physics change",
+    "no native result exists; zero candidate questions would be UNREACHED"
+  ],
+  "code_inputs": {
+    "rows": 2916,
+    "filtered_column_sha256_before_gate": "d7f3c8ee60845df9f1b04bf99e7fbe90349a7c580141ed31d30751868d6cee53",
+    "filtered_column_sha256_after_commit": "d7f3c8ee60845df9f1b04bf99e7fbe90349a7c580141ed31d30751868d6cee53",
+    "raw_column_sha256_before_gate": "0e099813cfc62efac0a08bfbd0ef6cbd1e2f4d6fa3f2001984a9f8c07a6f513c",
+    "raw_column_sha256_after_commit": "0e099813cfc62efac0a08bfbd0ef6cbd1e2f4d6fa3f2001984a9f8c07a6f513c",
+    "equal": true,
+    "meaning": "filtered = Git blob id as the clean filter would store each working file; raw = SHA-256 of the raw working bytes; three pre-existing CRLF files keep the documented qualification; no accepted file was normalised"
+  }
+}

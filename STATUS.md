@@ -1,4 +1,27 @@
-# CURRENT — D3 Task49: ENTITY_CANDIDATE source is CLEAR for planned native validation (same reviewer, findings=[]); Root's builds of `1ccc9e2ed` are running; the public changed/withheld authority witness is the next finite fact (5 November 2026)
+# CURRENT — D3 Task49: the ENTITY_CANDIDATE public changed/withheld authority WITNESS is written and controlled (Lua/tests/docs only); Root's ONE natural healthy control is next (5 November 2026)
+
+This is the ONE current summary; dated entries below are history. Read the active card and `R:/d3-evidence/D3-CURRENT.json` (Root is its sole writer). Source `1ccc9e2ed86206a28b591fdfab1d4ca0192a6200` is CLEAR for planned native validation (same
+reviewer, `673c0d93…2022`, published in `6a410b4bf`); candidate native authority, conformance, the ordinary short, whole Task 49, the full pack and D3 are NOT accepted. Root's builds of `1ccc9e2ed86206a28b591fdfab1d4ca0192a6200` are its own and untouched.
+
+**This batch (Lua, tests and docs only; frozen commit `d39a14a95ed15280911c85e4490df683561e2d4b`; no shipping input differs from `1ccc9e2ed86206a28b591fdfab1d4ca0192a6200`).** `eech-campaign/crates/eech-world/lua/entity-authority.lua` (Git blob `0457417191de4f39973997fb5fa2e3656cde3085`, SHA-256 `473bc07c21d5dd687f778d398499ea03894bfa5af4fa6ca43ce5e85d970a1ad3`, LF) is
+EXTENDED, not copied: the checked output, cohort, WordCodec, exact engine-fatal recognition and the controlled VIEW_WEAPON input are unchanged, and `tests/entity_authority.rs` (blob `b4861919df81d9cb61d5e30739db68a5bb864429`) gains seven driver controls (21 now).
+Boundary: host Lua to the real hosted `weapon-fixture` module, the REAL `ENTITY_CANDIDATE` operation (44 facts, 7 states), the native scan, services and narrow phase, and a real weapon cohort. Modes: `control` (the NATURAL healthy
+control; counts and classifies the armed candidate questions), `candidate_real` (paired control: real candidate answers, the existing forced-hit `entity_collision` answer held as a declared CONFIGURED secondary input; the real
+scan must reach the narrow phase and a physical hit), `candidate_skip` (every candidate answered a valid skip with the SAME configured secondary input; it must prevent every narrow-phase question and hit, and the cohort signature is
+compared with `candidate_real` across runs by the caller), `withheld_candidate` / `bad_candidate_state` / `bad_candidate_identity` (exactly `entity_candidate.callback` / `.state` / `.identity`, nothing asked afterwards, unread counters -1),
+and the Original profile control (expected `CAPABILITY RED`, exit 1, with ZERO candidate and zero narrow-phase questions). Zero candidate questions is UNREACHED, never authority; every question is global to the war with no weapon identity.
+Contract and the native command: `eech-campaign/docs/d3-entity-collision-provider.md`, "The ENTITY_CANDIDATE public authority witness".
+
+**Evidence (Linux, pinned image, direct child exits, one log; safe record `eech-campaign/reference/d3-entity-collision/entity-candidate-witness-gate-20261105.json`).** `fmt --check`, `entity_authority` 21/21, `tree_authority` 17/17 (unchanged),
+`host_callbacks` 82/82 (the reference-script inventory stays 62: no script was added) and strict `eech-world` clippy: all 0, source identity raw and filtered equal before and after (2916 rows); five mutants of the witness each fail it
+(exit 101). The controls are scripted collaborators: they prove the driver, not the DLL; nothing native has run.
+
+**Next (Root).** ONE natural healthy control on the frozen `1ccc9e2ed86206a28b591fdfab1d4ca0192a6200` hosted binaries with the literal blob: `eech-world.exe <literal entity-authority.lua> root=<fresh root> mode=control out=<new .jsonl>`; preserve an UNREACHED result; only after
+it reached the candidate questions the paired and refusal modes on fresh roots and the Original control. Then the ordinary exact short against `80fd` with wall time. Still REQUIRED and open: the enumeration of candidates (sector window,
+list order, exclusions), roster and live pose, raw tree/forest/cloud, hierarchy, devices, muzzles, rotor damage, smoke, host identities, the DCS mappings, the moving public path, whole Task 49, the full 40/all8 pack and D3. No baseline,
+tolerance, input, seed, frame or duration change.
+
+# HISTORICAL (superseded 5 November 2026 by the CURRENT block above; the source-clear publication) — D3 Task49: ENTITY_CANDIDATE source is CLEAR for planned native validation (same reviewer, findings=[]); Root's builds of `1ccc9e2ed` are running; the public changed/withheld authority witness is the next finite fact (5 November 2026)
 
 This is the ONE current summary; dated entries below are history. Read the active card and `R:/d3-evidence/D3-CURRENT.json` (Root is its sole writer). The SAME independent reviewer's final report
 (`independent-entity-candidate-placement-source-9f25-runtime1ccc-20261105.json`, LF, SHA-256 `673c0d9306e049fd64a669467651e9e1b3670174e3516431d574f5f7900a2022`) is `SOURCE_CLEAR_FOR_PLANNED_NATIVE_VALIDATION`, `findings=[]`, `native_launch_clearance=true`, for runtime
