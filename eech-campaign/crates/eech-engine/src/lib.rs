@@ -1125,8 +1125,8 @@ pub enum ModelQuery {
     /// of the chain the host named the live relative position (3), heading, pitch, roll and relative scale (3), all as exact float bit patterns
     TargetPointWorld { scene: i32, pose: Vec<u32> },
     /// whether the segment meets ONE collision candidate (EEDCS-49): `scene` is the candidate's scene, and `pose` the floats of mb_hostmodel.h's ENTITY_COLLISION as exact bit patterns: the
-    /// segment's old end (3) and new end (3), the intercept point (3) and face normal (3) the caller holds, then a stationary candidate's position (3) and attitude (9) (24 floats) or a
-    /// moving candidate's old position (3), new position (3), attitude (9) and speed (1) (28 floats)
+    /// segment's old end (3) and new end (3), then a stationary candidate's position (3) and attitude (9) (18 floats) or a moving candidate's old position (3), new position (3),
+    /// attitude (9) and speed (1) (22 floats). The caller's intercept point and normal are outputs and are not part of the question
     EntityCollision { scene: i32, pose: Vec<u32> },
     /// a FIXED object's target point: the entity position the original had copied (3) and, only when the cached host offset has a horizontal part, the heading (1), as bit patterns
     TargetPointFixed { scene: i32, pose: Vec<u32> },
@@ -1252,11 +1252,13 @@ pub enum ModelAnswer {
         scene_name: String,
         offsets: Option<Vec<i32>>,
     },
-    /// the host's answer to an entity collision question: whether the segment hit the candidate, and the FINAL intercept point and face normal (exact `f32` words, written whether or not
-    /// there was a hit, as the original's intersection helpers left them), with the scene's compiled name (the echo)
+    /// the host's answer to an entity collision question: whether the segment hit the candidate, which of the six output components the original's arithmetic assigned (`write_mask`:
+    /// bits 0 to 2 the intercept point, bits 3 to 5 the face normal) and the computed words of the point then the normal (zero for a component that was not assigned), with the scene's
+    /// compiled name (the echo). The mask's domain is the campaign's to check (mb_hostentity.h); it is carried as given
     EntityCollision {
         scene_name: String,
         hit: bool,
+        write_mask: u32,
         words: [f32; 6],
     },
     /// a target point's world position (exact `f32` values), for either a live instance or a fixed object, with the scene's compiled name (the echo)
@@ -1355,7 +1357,7 @@ unsafe extern "C" fn model_callback(
             sys::EECH_MODEL_ENTITY_COLLISION => {
                 let count = usize::try_from(source.pose_count)
                     .ok()
-                    .filter(|count| matches!(*count, 24 | 28))
+                    .filter(|count| matches!(*count, 18 | 22))
                     .ok_or_else(|| format!("[model-provider:entity_collision.request] the pose has {} floats", source.pose_count))?;
                 let pose = source.pose[..count].iter().map(|float| float.to_bits()).collect();
                 ("entity_collision", ModelQuery::EntityCollision { scene: source.scene, pose })
@@ -1487,9 +1489,19 @@ unsafe extern "C" fn model_callback(
                     }
                 }
             }
-            ("entity_collision", ModelAnswer::EntityCollision { scene_name, hit, words }) => {
+            (
+                "entity_collision",
+                ModelAnswer::EntityCollision {
+                    scene_name,
+                    hit,
+                    write_mask,
+                    words,
+                },
+            ) => {
                 put_name(&mut reply, &scene_name, "entity_collision")?;
                 reply.result = if hit { sys::EECH_MODEL_TRIANGLE_FOUND } else { sys::EECH_MODEL_TRIANGLE_END };
+                reply.write_mask =
+                    c_int::try_from(write_mask).map_err(|_| "[model-provider:entity_collision.answer] the write mask is out of range".to_string())?;
                 reply.points[..6].copy_from_slice(&words);
             }
             (operation @ ("target_point_world" | "target_point_fixed"), ModelAnswer::TargetPointPosition { scene_name, position }) => {
@@ -11071,28 +11083,28 @@ mod tests {
     }
 
     #[test]
-    fn the_model_callback_carries_an_entity_collision_pose_and_its_final_words_exactly() {
-        // the caller's intercept point and normal are inputs and outputs: a negative zero, a subnormal, a signalling NaN pattern and an infinity must cross both ways untouched
-        let words = [-0.0_f32, f32::from_bits(1), f32::from_bits(0x7fa0_0001), 1.5, f32::INFINITY, -3.0];
-        for (count, hit) in [(24_usize, true), (28, false)] {
+    fn the_model_callback_carries_an_entity_collision_pose_and_its_write_mask_and_computed_words_exactly() {
+        // the question holds only the segment and the pose; the answer's words and mask cross untouched. A negative zero, a subnormal, a signalling NaN pattern and an infinity are
+        // computed words here, and the mask says the point was not assigned (a miss that assigned the normal only)
+        let words = [0.0_f32, 0.0, 0.0, f32::from_bits(0x7fa0_0001), f32::INFINITY, -0.0];
+        for (count, hit, mask) in [(18_usize, true, 0x3f_u32), (22, false, 0x38)] {
             let mut request = model_request(sys::EECH_MODEL_ENTITY_COLLISION, 9, 0);
             request.pose_count = count as c_int;
             for (at, slot) in request.pose[..count].iter_mut().enumerate() {
                 *slot = f32::from_bits(0x3f80_0000 + at as u32);
             }
-            request.pose[6..12].copy_from_slice(&words);
             let sent: Vec<u32> = request.pose[..count].iter().map(|float| float.to_bits()).collect();
             let seen = std::rc::Rc::new(std::cell::RefCell::new(None));
             let record = std::rc::Rc::clone(&seen);
             let (code, reply, error) = model_crossing(
                 Some(Box::new(move |query| match query {
                     ModelQuery::EntityCollision { scene, pose } => {
-                        let final_words = [pose[6], pose[7], pose[8], pose[9], pose[10], pose[11]].map(f32::from_bits);
                         *record.borrow_mut() = Some((scene, pose));
                         Ok(ModelAnswer::EntityCollision {
                             scene_name: "CANDIDATE".to_string(),
                             hit,
-                            words: final_words,
+                            write_mask: mask,
+                            words,
                         })
                     }
                     other => Err(format!("unexpected {other:?}")),
@@ -11103,9 +11115,10 @@ mod tests {
             assert_eq!(
                 seen.borrow().clone(),
                 Some((9, sent)),
-                "{count} floats: the scene and every pose float arrive as the campaign sent them"
+                "{count} floats: the scene and every pose float arrive as the campaign sent them, and nothing else does"
             );
             assert_eq!(reply.result, if hit { sys::EECH_MODEL_TRIANGLE_FOUND } else { sys::EECH_MODEL_TRIANGLE_END });
+            assert_eq!(reply.write_mask, mask as c_int);
             assert_eq!(
                 reply.points[..6].iter().map(|float| float.to_bits()).collect::<Vec<_>>(),
                 words.map(f32::to_bits)
@@ -11117,7 +11130,7 @@ mod tests {
 
     #[test]
     fn the_model_callback_refuses_an_entity_collision_pose_of_another_size_and_an_answer_of_another_kind() {
-        for count in [0, 12, 27, 29, 96] {
+        for count in [0, 6, 12, 17, 19, 21, 23, 24, 28, 96] {
             let mut request = model_request(sys::EECH_MODEL_ENTITY_COLLISION, 9, 0);
             request.pose_count = count;
             let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
@@ -11125,18 +11138,34 @@ mod tests {
             assert!(error.contains("[model-provider:entity_collision.request]"), "{count} floats: {error}");
         }
         let mut request = model_request(sys::EECH_MODEL_ENTITY_COLLISION, 9, 0);
-        request.pose_count = 24;
+        request.pose_count = 18;
         let (code, _, error) = model_crossing(Some(Box::new(|_| Ok(ModelAnswer::Triangle(ModelTriangle::End)))), request);
         assert_ne!(code, 0);
         assert!(error.contains("[model-provider:entity_collision.answer]"), "{error}");
         let mut request = model_request(sys::EECH_MODEL_ENTITY_COLLISION, 9, 0);
-        request.pose_count = 24;
+        request.pose_count = 18;
         let (code, _, error) = model_crossing(
             Some(Box::new(|_| Err("[model-provider:entity_collision.refused] no model".to_string()))),
             request,
         );
         assert_ne!(code, 0, "a refusal is never a miss");
         assert!(error.contains("no model"), "{error}");
+        // a mask that cannot be a C int is not carried
+        let mut request = model_request(sys::EECH_MODEL_ENTITY_COLLISION, 9, 0);
+        request.pose_count = 18;
+        let (code, _, error) = model_crossing(
+            Some(Box::new(|_| {
+                Ok(ModelAnswer::EntityCollision {
+                    scene_name: "CANDIDATE".to_string(),
+                    hit: false,
+                    write_mask: u32::MAX,
+                    words: [0.0; 6],
+                })
+            })),
+            request,
+        );
+        assert_ne!(code, 0);
+        assert!(error.contains("write mask"), "{error}");
     }
 
     #[test]

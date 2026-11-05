@@ -6,13 +6,10 @@
 //! writes the intersection helpers made, that a refusal of the model is never a miss, and that the answer does not depend on the rounding mode of the caller. What the retail models
 //! answer is the native comparison with the retained original, never these tests.
 
-use eech_world::entity_host::{collide, EntityTest, MOVING_POSE, STATIONARY_POSE};
+use eech_world::entity_host::{collide, EntityTest, MOVING_POSE, NORMAL_ASSIGNED, POINT_ASSIGNED, STATIONARY_POSE};
 use eech_world::trees::{fp_state, rounding, Rounding, ScopedRounding};
 
 const IDENTITY: [f32; 9] = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
-/// the point and normal the caller holds going in: distinct values no intersection produces
-const POINT_IN: [f32; 3] = [7.0, 8.0, 9.0];
-const NORMAL_IN: [f32; 3] = [-7.0, -8.0, -9.0];
 const CUBE: [f32; 6] = [-1.0, 1.0, -1.0, 1.0, -1.0, 1.0];
 
 fn words(values: &[f32]) -> Vec<u32> {
@@ -24,31 +21,13 @@ fn floats(words: &[u32]) -> Vec<f32> {
 }
 
 fn stationary(old: [f32; 3], new: [f32; 3], position: [f32; 3], attitude: [f32; 9]) -> Vec<u32> {
-    let pose = [
-        old.as_slice(),
-        new.as_slice(),
-        POINT_IN.as_slice(),
-        NORMAL_IN.as_slice(),
-        position.as_slice(),
-        attitude.as_slice(),
-    ]
-    .concat();
+    let pose = [old.as_slice(), new.as_slice(), position.as_slice(), attitude.as_slice()].concat();
     assert_eq!(pose.len(), STATIONARY_POSE);
     words(&pose)
 }
 
 fn moving(old: [f32; 3], new: [f32; 3], from: [f32; 3], to: [f32; 3], attitude: [f32; 9], speed: f32) -> Vec<u32> {
-    let pose = [
-        old.as_slice(),
-        new.as_slice(),
-        POINT_IN.as_slice(),
-        NORMAL_IN.as_slice(),
-        from.as_slice(),
-        to.as_slice(),
-        attitude.as_slice(),
-        &[speed],
-    ]
-    .concat();
+    let pose = [old.as_slice(), new.as_slice(), from.as_slice(), to.as_slice(), attitude.as_slice(), &[speed]].concat();
     assert_eq!(pose.len(), MOVING_POSE);
     words(&pose)
 }
@@ -63,7 +42,40 @@ fn run(pose: &[u32], bounds: [f32; 6], triangles: &[[f32; 9]]) -> (Result<Entity
             .and_then(|at| triangles.get(at))
             .map(|triangle| words(triangle).try_into().unwrap()))
     });
+    if let Ok(test) = &answer {
+        assert_contract(test);
+    }
     (answer, asked)
+}
+
+/// What every answer must satisfy whatever the geometry: the write mask is within its domain, a vector is assigned whole, the original assigns the normal before the point so a
+/// point implies a normal, a hit has assigned both, and a component that was not assigned carries the zero word (nothing the arithmetic did not compute can be mistaken for a result).
+fn assert_contract(test: &EntityTest) {
+    let point = test.assigned & POINT_ASSIGNED;
+    let normal = test.assigned & NORMAL_ASSIGNED;
+    assert_eq!(
+        test.assigned & !(POINT_ASSIGNED | NORMAL_ASSIGNED),
+        0,
+        "mask {:#x} is outside the six components",
+        test.assigned
+    );
+    assert!(point == 0 || point == POINT_ASSIGNED, "the point is assigned whole: mask {:#x}", test.assigned);
+    assert!(
+        normal == 0 || normal == NORMAL_ASSIGNED,
+        "the normal is assigned whole: mask {:#x}",
+        test.assigned
+    );
+    assert!(point == 0 || normal != 0, "a point without a normal: mask {:#x}", test.assigned);
+    assert!(
+        !test.hit || test.assigned == (POINT_ASSIGNED | NORMAL_ASSIGNED),
+        "a hit has assigned both vectors: mask {:#x}",
+        test.assigned
+    );
+    for component in 0..6 {
+        if test.assigned & (1 << component) == 0 {
+            assert_eq!(test.words[component], 0, "component {component} was not assigned but carries a word");
+        }
+    }
 }
 
 /// the corners of a right triangle in the plane y = 0
@@ -83,6 +95,7 @@ fn a_segment_through_a_collision_triangle_hits_it_at_the_crossing_with_the_faces
     let (answer, asked) = run(&pose, CUBE, &[FLOOR]);
     let test = answer.unwrap();
     assert!(test.hit);
+    assert_eq!(test.assigned, POINT_ASSIGNED | NORMAL_ASSIGNED, "a hit assigned the normal and the point");
     let at = point(&test);
     assert!((at[0] - 1.0).abs() < 1e-4 && at[1].abs() < 1e-4 && (at[2] - 1.0).abs() < 1e-4, "{at:?}");
     let n = normal(&test);
@@ -109,23 +122,33 @@ fn the_triangle_is_placed_by_the_candidates_position_and_attitude() {
 }
 
 #[test]
-fn a_miss_keeps_the_words_the_intersection_helpers_wrote_and_a_segment_that_never_crosses_writes_no_point() {
-    // crosses the plane of the triangle OUTSIDE it: a miss, but the helper had already written the crossing
+fn a_miss_reports_exactly_the_components_the_original_assigned_a_crossing_outside_the_face_assigns_both_and_a_segment_that_never_crosses_only_the_normal() {
+    // crosses the plane of the triangle OUTSIDE it: a miss, but the helper had already assigned the crossing, so both vectors were written
     let pose = stationary([3.0, 1.0, 3.0], [3.0, -1.0, 3.0], [0.0; 3], IDENTITY);
     let (answer, asked) = run(&pose, CUBE, &[FLOOR]);
     let test = answer.unwrap();
     assert!(!test.hit);
+    assert_eq!(test.assigned, POINT_ASSIGNED | NORMAL_ASSIGNED, "the crossing is still assigned on a miss");
     let at = point(&test);
     assert!(
         (at[0] - 3.0).abs() < 1e-4 && at[1].abs() < 1e-4 && (at[2] - 3.0).abs() < 1e-4,
-        "the crossing is still written on a miss: {at:?}"
+        "the crossing is still computed on a miss: {at:?}"
     );
     assert_eq!(asked, [0, 1], "a miss walks the cursor to its end");
-    // entirely above the plane: no crossing, so the caller's point is returned untouched
+    // entirely above the plane: no crossing, so the point was never assigned (its words are zero and the caller must leave its own untouched), but the normal always was
     let pose = stationary([1.0, 2.0, 1.0], [1.0, 1.0, 1.0], [0.0; 3], IDENTITY);
     let test = run(&pose, CUBE, &[FLOOR]).0.unwrap();
     assert!(!test.hit);
-    assert_eq!(test.words[..3], words(&POINT_IN)[..], "no crossing, no point written");
+    assert_eq!(test.assigned, NORMAL_ASSIGNED, "no crossing: the normal only");
+    assert_eq!(test.words[..3], [0, 0, 0], "no crossing, no point");
+    let n = normal(&test);
+    assert!(n[1].abs() > 0.0 && n[0] == 0.0 && n[2] == 0.0, "the normal is the face's: {n:?}");
+    // a degenerate model (a triangle with no area) is a miss that still assigned the normal, and its normal is the zero vector the original computed
+    let line: [f32; 9] = [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 2.0, 0.0, 0.0];
+    let test = run(&pose, CUBE, &[line]).0.unwrap();
+    assert!(!test.hit);
+    assert_eq!(test.assigned, NORMAL_ASSIGNED);
+    assert_eq!(normal(&test), [0.0, 0.0, 0.0]);
 }
 
 #[test]
@@ -206,9 +229,9 @@ fn a_refusal_of_the_model_is_an_error_and_never_a_miss() {
         }
     });
     assert_eq!(refused.unwrap_err(), "no such collision object");
-    let short = collide(&pose[..20], words(&CUBE).try_into().unwrap(), &mut |_| Ok(None));
+    let short = collide(&pose[..17], words(&CUBE).try_into().unwrap(), &mut |_| Ok(None));
     assert!(
-        short.unwrap_err().contains("24 or 28"),
+        short.unwrap_err().contains("18 or 22"),
         "a pose that is neither a stationary nor a moving question is refused"
     );
 }
@@ -254,7 +277,20 @@ fn the_intersection_helpers_are_the_same_text_as_the_tree_kernels() {
         let end = text.find("/* en_cllsn.c: the two face wrappers").expect("the end of the intersections");
         text[start..end].to_string()
     };
+    // the one documented difference: the marked line after each helper's assignment of the point, which records the assignment and changes no arithmetic
+    let without_marks = |text: String| -> String {
+        text.lines()
+            .filter(|line| !line.contains("ENTITY_POINT_ASSIGNED()"))
+            .collect::<Vec<_>>()
+            .join("\n")
+    };
     let (tree, entity) = (section(&read("tree_step.c")), section(&read("entity_step.c")));
+    assert_eq!(
+        entity.matches("ENTITY_POINT_ASSIGNED()").count(),
+        2,
+        "one mark in each helper and no other difference"
+    );
+    let (tree, entity) = (without_marks(tree), without_marks(entity));
     assert!(
         tree.contains("static int get_3d_line_quad_intersection"),
         "the section holds both intersections"

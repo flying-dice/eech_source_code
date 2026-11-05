@@ -25,9 +25,14 @@ use crate::trees::{fp_state, Rounding, ScopedRounding};
 use std::os::raw::{c_int, c_void};
 use std::panic::{catch_unwind, AssertUnwindSafe};
 
-/// the floats of a stationary candidate's question and of a moving candidate's (the segment's two ends, the caller's intercept point and normal, then the candidate's pose)
-pub const STATIONARY_POSE: usize = 24;
-pub const MOVING_POSE: usize = 28;
+/// the floats of a stationary candidate's question and of a moving candidate's: the segment's two ends, then the candidate's pose. The caller's intercept point and normal are
+/// outputs of the original and are neither part of the question nor read.
+pub const STATIONARY_POSE: usize = 18;
+pub const MOVING_POSE: usize = 22;
+
+/// the write mask of an answer: bits 0 to 2 the intercept point, bits 3 to 5 the face normal
+pub const POINT_ASSIGNED: u32 = 0x07;
+pub const NORMAL_ASSIGNED: u32 = 0x38;
 
 /// The next collision triangle of the scene at `depth` (the original's cursor): `Some(nine words)`, or `None` for the end or the absence of one. An `Err` is a refusal of the model.
 pub type Cursor<'a> = dyn FnMut(i32) -> Result<Option<[u32; 9]>, String> + 'a;
@@ -35,13 +40,24 @@ pub type Cursor<'a> = dyn FnMut(i32) -> Result<Option<[u32; 9]>, String> + 'a;
 type TriangleFn = unsafe extern "C" fn(*mut c_void, c_int, *mut f32) -> c_int;
 
 extern "C" {
-    fn eech_entity_collision(pose: *const f32, is_moving: c_int, bounds: *const f32, triangles: TriangleFn, context: *mut c_void, result: *mut f32) -> c_int;
+    fn eech_entity_collision(
+        pose: *const f32,
+        is_moving: c_int,
+        bounds: *const f32,
+        triangles: TriangleFn,
+        context: *mut c_void,
+        result: *mut f32,
+        assigned: *mut u32,
+    ) -> c_int;
 }
 
-/// What one question answers: whether the segment hit, and the FINAL intercept point (3) and face normal (3) as exact float words.
+/// What one question answers: whether the segment hit, which of the six output components the original's arithmetic assigned (`assigned`: `POINT_ASSIGNED` and `NORMAL_ASSIGNED`
+/// bits; the original assigns the whole normal on its first intersection call and the whole point only once the segment has crossed a face's plane, so a miss can have assigned
+/// the normal or both), and the computed words of the intercept point (3) then the face normal (3). The words of a component that was not assigned are zero and mean nothing.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct EntityTest {
     pub hit: bool,
+    pub assigned: u32,
     pub words: [u32; 6],
 }
 
@@ -91,11 +107,12 @@ pub fn collide(pose: &[u32], bounds: [u32; 6], next: &mut Cursor) -> Result<Enti
     let pose: Vec<f32> = pose.iter().map(|word| f32::from_bits(*word)).collect();
     let bounds: [f32; 6] = bounds.map(f32::from_bits);
     let mut result = [0.0f32; 6];
+    let mut assigned = 0u32;
     let mut context = Context { next, failure: None };
     let hit = {
         // the kernel's arithmetic is the original's: round toward zero, the caller's whole state handed back when the guard ends
         let _original_arithmetic = ScopedRounding::set(Rounding::Zero)?;
-        // SAFETY: `pose` has the 24 or 28 floats the kernel reads for the kind it is told, `bounds` six, `result` six; the context outlives the call and is used only by `triangle`.
+        // SAFETY: `pose` has the 18 or 22 floats the kernel reads for the kind it is told, `bounds` six, `result` six, `assigned` one; the context outlives the call and is used only by `triangle`.
         unsafe {
             eech_entity_collision(
                 pose.as_ptr(),
@@ -104,6 +121,7 @@ pub fn collide(pose: &[u32], bounds: [u32; 6], next: &mut Cursor) -> Result<Enti
                 triangle,
                 std::ptr::addr_of_mut!(context).cast(),
                 result.as_mut_ptr(),
+                &mut assigned,
             )
         }
     };
@@ -116,6 +134,7 @@ pub fn collide(pose: &[u32], bounds: [u32; 6], next: &mut Cursor) -> Result<Enti
     }
     Ok(EntityTest {
         hit: hit == 1,
+        assigned,
         words: result.map(f32::to_bits),
     })
 }

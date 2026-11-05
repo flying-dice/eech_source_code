@@ -8,13 +8,14 @@
 `en_cllsn.c` scans the sector window of the segment (its box widened by `LARGEST_3D_OBJECT_RADIUS`, x outer, z inner), walks each sector's entity list from the tail
 and, for every entity that is not the excluded source or target, applies a broad phase (a box of radius + 10 m) and then a narrow phase against the entity's model:
 the collision triangles when the scene has any, else the six faces of its bounding box without lines. The first candidate whose narrow phase hits ends the scan; the
-intercept point and face normal are written by the intersection helpers *before* the hit decision, so a miss can leave partial writes (`docs/m5-collision-characterization.md`).
+intercept point and face normal are OUTPUTS written by the intersection helpers: the normal on every call, before any decision, and the point only once the segment has crossed the face's
+plane, so a miss can leave a written normal, or both (`docs/m5-collision-characterization.md`; per-component account under "The output contract" below).
 
 Inputs and where they come from (all measured or read, none assumed):
 
 | Input | Source | Owner after this slice |
 |---|---|---|
-| segment ends, caller's point/normal buffers, excluded source/target | callers (`mb_hostlos.c`, `mb_tgt.c`, `wn_move.c` COLLISION lookup, gunship avionics/`co_force.c`) | campaign (unchanged) |
+| segment ends, excluded source/target (the caller's point/normal buffers are outputs and are never read) | callers (`mb_hostlos.c`, `mb_tgt.c`, `wn_move.c` COLLISION lookup, gunship avionics/`co_force.c`) | campaign (unchanged) |
 | sector window, sector lists, tail-first order, exclusion, `TALLEST_STRUCTURE_HEIGHT` skip, city box, mobile/fixed/moving classification, the broad-phase radius test | campaign entities and the host-authored radius table | **campaign, declared transitional coupling** |
 | moving sweep ends (`UPDATED` flag, motion vector, `get_delta_time`) | campaign entity state; the destructive `UPDATED` getter keeps its place because the scan is untouched | campaign |
 | stationary placement (position, heading, terrain-aligned normal) | campaign entity state and the terrain question `get_3d_terrain_face_normal`, asked only when the broad phase passed, as before | campaign (derived in the original's order) |
@@ -24,15 +25,40 @@ Inputs and where they come from (all measured or read, none assumed):
 ## What moved
 
 The ordinary hosted module (`EECH_CAMPAIGN_HOST_ENTITY`) no longer compiles the two `accurate_*` tests, the face wrappers or the transform arithmetic. Each now derives the
-candidate's pose from the entity, in the original's order, and asks the model callback's new `ENTITY_COLLISION` operation (`mb_hostmodel.h`): the segment's two ends, the
-caller's intercept point and normal (inputs *and* outputs), then a stationary candidate's position and attitude (24 floats) or a moving one's sweep ends, attitude and speed
-(28). The reply is a hit or a miss, the final point and normal words (copied back whether or not it hit, none required finite) and the scene's compiled name (an echo). A
-refusal, a malformed answer or a missing provider stops the engine; nothing is invented. There is **no fallback** to the original arithmetic in the hosted module. The explicit
+candidate's pose from the entity, in the original's order, and asks the model callback's new `ENTITY_COLLISION` operation (`mb_hostmodel.h`; the campaign's half of the dialogue is
+`mb_hostentity.h`): the segment's two ends, then a stationary candidate's position and attitude (18 floats) or a moving one's sweep ends, attitude and speed (22). **The caller's
+intercept point and normal are not sent and not read.** The reply is a hit or a miss, a six-bit write mask naming the output components the original's arithmetic assigned, their
+computed words, and the scene's compiled name (an echo). The campaign checks the whole reply and only then writes the assigned components, normal first. A refusal, a malformed answer or a
+missing provider stops the engine before anything is written; nothing is invented. There is **no fallback** to the original arithmetic in the hosted module. The explicit
 original-characterisation profile (`collision-fixture`) and the model fixtures keep the original branch (compile guard `entity_host_guard`).
 
-The reference host answers with `csrc/entity_step.c` (the original expression for expression; the two intersections are the same text as the tree kernel's, a test compares them)
-driven by `src/entity_host.rs`, which, as the tree kernel does, requires every floating-point exception masked, runs under round-toward-zero and hands the caller's complete
-state back. The model data is the *same* final store the other model operations read: no second loader or cache.
+The reference host answers with `csrc/entity_step.c` (the original expression for expression; the two intersections are the same text as the tree kernel's apart from one marked
+line in each, which records the assignment of the point and changes no arithmetic; a test compares the two copies with those lines removed) driven by `src/entity_host.rs`, which, as
+the tree kernel does, requires every floating-point exception masked, runs under round-toward-zero and hands the caller's complete state back. The model data is the *same* final store
+the other model operations read: no second loader or cache.
+
+## The output contract (review finding ENV-ENTITY-CALLER-BUFFER-1)
+
+The first version of this slice sent the caller's prior intercept point and normal to the host and wrote all six words back. The independent source pass found that wrong: the original
+reads neither. In `get_3d_line_triangle_intersection` and `get_3d_line_quad_intersection` (`modules/maths/vector.c`):
+
+| output | assigned when | where |
+|---|---|---|
+| face normal (x, y, z) | on **every** call, at the top, before the degenerate-face test, the plane test or any decision; each component is then read only after it was assigned | `ni->x`, `ni->y`, `ni->z` |
+| intercept point (x, y, z) | only once `mu` is in range, i.e. the segment crossed the face's plane (whether or not the crossing lies inside the face); all three together | `pi->x`, `pi->y`, `pi->z` |
+
+So a miss can have assigned the normal only (a segment that never crossed any plane, or a degenerate face) or both (a crossing outside every face); a hit has assigned both. The real
+weapon-step caller (`answer_weapon_step_lookup`, `wn_move.c`) declares `intercept` and `face_normal` as automatic locals, zeroes `intercept` only and passes both on: its normal is
+indeterminate storage the original never read. The corrected exchange therefore never loads, copies or forwards either buffer; the host reports which of the six components were assigned and
+their computed words; a component that was not assigned keeps exactly the words it held, unread and unwritten (an initialised signed zero, subnormal, infinity or NaN payload stays
+bit for bit because nothing touches it); the unassigned words of a reply are zero and anything else is refused. A *computed* zero is an assigned word: a degenerate face assigns a zero
+normal and the mask says so. Callers are not initialised globally and no word is normalised.
+
+The write mask domain (checked in the campaign before any commit, `mb_hostentity.h`): 0 to 63; each vector assigned whole (bits 0 to 2, bits 3 to 5); a point implies a normal (the
+original assigns the normal first); a hit is 0x3f; unassigned words are zero. Normal-before-point order, partial writes on a miss, first-hit termination, cursor order, refusal atomicity,
+the original's arithmetic and the floating-point discipline are unchanged. The kernel records the assignment with one marked line after each helper's point assignment and with the
+face wrappers, which set the normal bits on entry; the record is per thread and reset on every entry. This is a semantic fact about what the original wrote, carried as a mask, not a generic
+protocol.
 
 ## What did NOT move (declared, required, not hidden)
 
@@ -76,22 +102,40 @@ versioned per-type host geometry and transform workaround with its provenance an
 
 ## Checks (Linux, pinned image) and their status
 
-**What each check covers.** `eech-world` `entity_collision_host` (9): triangle hit with crossing and normal, placement by position and attitude, a miss keeps the partial writes and a
-non-crossing segment writes no point, the cursor is read in order and stops at the first hit, bounding-box fallback and its attitude, the three sweep tiers with strict boundaries, a refusal is
-never a miss, rounding independence and state hand-back, and the intersection text equals the tree kernel's. `eech-engine-sys` `entity_host_guard` (3) and `tree_host_guard` (2): the hosted
-branch has no solver, the original branch keeps it, the macro is defined only where the host model exists. `eech-engine` and `eech-dc`: the callback and the Lua bridge carry the pose and the final
-words as exact bit patterns (a non-finite word included, for the entity words only) and refuse malformed requests and answers.
+**Review status.** The independent source pass over `c510c55c7` returned CHANGES_REQUIRED with one P1, ENV-ENTITY-CALLER-BUFFER-1 (the question read caller output storage the original never reads). The literal
+report is kept in [`independent-entity-narrowphase-source-c510c55c7-20261105.json`](../reference/d3-entity-collision/independent-entity-narrowphase-source-c510c55c7-20261105.json) (SHA-256
+`18dba44b15530097e3a04e37ac7e7d062dcd39569f86e659511ff50679111251`); it is not an approval and no native launch is cleared. The correction is in "The output contract" above; the corrected source awaits the
+same reviewer.
 
-**Status, corrected.** The first-batch logs (`entity-collision-20261103-a`) piped Cargo into `tail`/`grep` under `sh` without `pipefail` and printed the outer shell's status, so their
-`actual_exit` and `echo` codes are not Cargo's exits: `a3`/`a4` contain FAILED tests beside `actual_exit=0` (a real bridge defect, since fixed), `a9` a failed clippy invocation beside `c1=0`,
-and `a8` a feature loop that built the default five times and a source hash from a failed Git command. They are retained as history and not counted. The valid evidence is the direct-exit gate
-`entity-collision-20261105-b` (safe projection: [`entity-narrow-phase-direct-gate-20261105.json`](../reference/d3-entity-collision/entity-narrow-phase-direct-gate-20261105.json)): fourteen steps,
-each a direct child whose exit was read on the next line, all 0 — `cargo fmt --all -- --check`; the four-crate tests with `--no-fail-fast` (62 result rows ok, no failed or panicked test);
-`model_walk` (`model-fixture`) and `tree_dialogue` (`tree-dialogue-check`); `eech-engine-sys` builds for `collision-fixture`, `weapon-fixture`, `model-fixture`, `model-host-fixture` and
+**What each check covers.** `eech-engine-sys` `entity_dialogue` (`entity-dialogue-check`, the REAL `mb_hostentity.h` against a scripted host): the request holds only the segment and the pose, bit for bit,
+and is identical whatever the caller's buffers hold; with the intercept point and normal on pages that can neither be read nor written, a miss that assigned nothing completes (a read or a write would fault);
+a hit, a miss that crossed a plane outside the face (both vectors) and a miss that never crossed (normal only, the point's page unreadable, and on a second run its initialised signed-zero, subnormal and
+signalling-NaN words stay bit for bit) write exactly the assigned components with their computed words, including a computed signed zero and NaN payloads; a degenerate face's computed zero normal is an
+assigned word; and twenty-one refusals (the host's refusal, scene 0 and out of range, a candidate of 13 or 0 floats, another scene's name, results 0 and absent, masks 64 and -1, a point or a normal in part, a
+point without a normal, a hit that assigned one vector or none, a word for an unassigned component including a negative zero) each stop before a commit and leave BOTH initialised buffers byte for byte
+unchanged. `eech-world` `entity_collision_host` (9, plus the output contract asserted on every answer): hit assigns both; a crossing outside the face assigns both and is a miss; a segment that never
+crosses assigns only the normal (the point words are zero); a degenerate face assigns a zero normal; ascending cursor and first hit; bounding-box fallback and attitude; the three sweep tiers with strict
+boundaries; a refusal is never a miss; rounding independence and state hand-back; the intersection text equals the tree kernel's apart from the two marked assignment lines. `eech-engine-sys`
+`entity_host_guard` (3) and `tree_host_guard` (2): the hosted branch has no solver and the macro is defined only where the host model exists. `eech-engine` and `eech-dc`: pose sizes 18 and 22 only, the mask
+and computed words cross as given, a mask outside 0 to 63, non-integral, negative or not a number, a missing mask, a short list, an unnamed or another kind of answer and a refusal stop with their marker.
+
+**Red controls (not counted as green).** The isolated C control was run against three deliberately mutated adapters, each of which must fail and did (exit 101): one that reads the caller's point buffer
+(SIGSEGV on the unreadable page), one that writes the normal before the reply is checked (SIGSEGV on the unwritable page), and one that commits the assigned normal before checking the reply (FAIL lines: each refused
+answer had changed the caller's normal). The mutation was applied to `mb_hostentity.h` on the working tree and reverted; its blob id was verified equal afterwards. The old native path was not run to manufacture a red.
+
+**Direct-exit gate** `D:/EECH-Migration-Evidence/entity-collision-20261105-c` (safe projection [`entity-output-contract-direct-gate-20261105.json`](../reference/d3-entity-collision/entity-output-contract-direct-gate-20261105.json)):
+seventeen steps, each a direct child whose exit was read on the next line, one combined log, excerpts taken after the status, all 0: `cargo fmt --all -- --check`; the four-crate tests with `--no-fail-fast` (63 result
+rows ok, no failed or panicked test); `model_walk`; `tree_dialogue`; `entity_dialogue`; `eech-engine-sys` builds for `collision-fixture`, `weapon-fixture`, `model-fixture`, `model-host-fixture` and
 `weapon-fixture,collision-fixture` (so both the original and the hosted branch compile); strict clippy for the four crates, for `eech-dc` with `collision-fixture`, `weapon-fixture` and both, and for
-`eech-engine-sys` with `tree-dialogue-check`. The code inputs' Git blob identity (2908 files, tracked and untracked, taken on the Windows checkout) is identical before and after the gate. The
-progress guard's direct exit is 0 after the final card edit. A build whose artefacts were already fresh reports `Finished` from Cargo's own fingerprint check; that is a direct exit, not a recompile.
+`eech-engine-sys` with `tree-dialogue-check` and with `entity-dialogue-check`. A build whose artefacts were already fresh reports `Finished` from Cargo's own fingerprint check, a direct exit and not a recompile.
 
-These are contract guards, not an oracle for retail models. What the retail models answer, and whether the campaign's behaviour is unchanged, is for the native comparison: the established
-ordinary regression (byte-identical Tacview, observation and metric files) on a build of this source, plus, to show the host's answers actually reach the campaign, a changed-answer witness for
-`ENTITY_COLLISION` (forced hit, forced miss, refusal) in the manner of `tree-authority.lua`. **Neither has been run.** The same independent reviewer's pass over this entity material is pending.
+**Source identity.** Taken outside the container on the Windows checkout where Git resolves, new inputs included (2911 rows), before and after the gate, equal. Two columns, never conflated: the *filtered* column is the
+Git blob id of each working file as Git's clean filter would store it; the *raw* column is the SHA-256 of the working file's raw bytes. Three pre-existing CRLF inputs (`aphavoc/laa.c`,
+`aphavoc/source/entity/special/effect/explosn/xp_types.h`, `aphavoc/source/entity/special/effect/smokelst/sl_types.h`) have a filtered id (core.autocrlf=input) that is the LF-normalised form and is **not** their
+committed blob, while their raw working bytes equal their committed bytes (CR counts 64, 66 and 119 in both; [`filter-qualification-20261105.txt`](../reference/d3-entity-collision/filter-qualification-20261105.txt)).
+So "every listed id is a committed-byte hash" is not claimed; the raw column is the byte identity, and no accepted C file was normalised or rewritten. After the commit the Git blobs of the changed and new inputs bind the source.
+
+These are contract guards, not an oracle for retail models. What the retail models answer, and whether the campaign's behaviour is unchanged, is for the native comparison: the established ordinary regression
+(byte-identical Tacview, observation and metric files) on a build of the corrected source, plus a changed-answer witness for `ENTITY_COLLISION` (forced hit, forced miss, refusal) in the manner of
+`tree-authority.lua`. **Neither has been run**, and the same reviewer's clearance of the corrected source is pending. The closed TREE adapter (`mb_hosttree.h`) copies the caller's prior tree buffers as bytes
+into its question; the reviewer closed TREE at its own identity and raised nothing there, so it is not touched, but it is the same shape of read and is named here so it is not rediscovered.

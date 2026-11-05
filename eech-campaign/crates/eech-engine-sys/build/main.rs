@@ -311,6 +311,9 @@ fn main() {
     if env::var_os("CARGO_FEATURE_TREE_DIALOGUE_CHECK").is_some() {
         build.define("EECH_TREE_DIALOGUE_CHECK", None);
     }
+    if env::var_os("CARGO_FEATURE_ENTITY_DIALOGUE_CHECK").is_some() {
+        build.define("EECH_ENTITY_DIALOGUE_CHECK", None);
+    }
     if env::var_os("CARGO_FEATURE_COLLISION_FIXTURE").is_some() {
         build.define("EECH_COLLISION_FIXTURE", None);
     } else {

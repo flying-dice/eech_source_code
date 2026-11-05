@@ -1194,6 +1194,8 @@ pub struct eech_model_reply {
     /// TARGET_POINT_CHAIN (FOUND): the levels of the chain and the sibling position of the first TARGET_POINT sub-object at each, topmost first
     pub chain_length: c_int,
     pub chain_offsets: [c_int; EECH_MODEL_CHAIN_MAX],
+    /// ENTITY_COLLISION: which components of the intercept point (bits 0 to 2) and face normal (bits 3 to 5) the original's arithmetic assigned; `points` holds their words
+    pub write_mask: c_int,
 }
 
 pub type eech_model_callback =

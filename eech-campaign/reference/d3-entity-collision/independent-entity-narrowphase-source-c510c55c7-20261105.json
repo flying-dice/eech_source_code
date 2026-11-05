@@ -1,0 +1,208 @@
+{
+  "schema": 1,
+  "review": "Independent combined correctness, clean-code and boundary-safety review of the new ENTITY narrowphase source and direct gates",
+  "recorded_utc": "2026-11-05T09:02:03.243176+00:00",
+  "source": {
+    "commit": "c510c55c770f4bd2c74cee69e0de9be67a95cae7",
+    "runtime_commit": "9d108228f939d04180a7c2f53b2e93d797a3c8c3",
+    "closed_tree_parent": "eb2b2eb6781fefce7e6b76abdbbd4d947010a7f7",
+    "read_only_repository": "R:/d3-evidence/collision-characterization-20261029",
+    "changed_paths_from_closed_tree_parent": [
+      "STATUS.md",
+      "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+      "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "docs/handover/ACTIVE-EXTRACTION.json",
+      "eech-campaign/crates/eech-dc/src/module.rs",
+      "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_host_guard.rs",
+      "eech-campaign/crates/eech-engine/src/lib.rs",
+      "eech-campaign/crates/eech-world/build.rs",
+      "eech-campaign/crates/eech-world/csrc/entity_step.c",
+      "eech-campaign/crates/eech-world/src/entity_host.rs",
+      "eech-campaign/crates/eech-world/src/lib.rs",
+      "eech-campaign/crates/eech-world/src/model_host.rs",
+      "eech-campaign/crates/eech-world/tests/entity_collision_host.rs",
+      "eech-campaign/docs/d3-entity-collision-provider.md",
+      "eech-campaign/docs/d3-tree-collision-provider.md",
+      "eech-campaign/reference/d3-entity-collision/dcs-api/MAPPING-NOTES.md",
+      "eech-campaign/reference/d3-entity-collision/dcs-api/PROVENANCE.json",
+      "eech-campaign/reference/d3-entity-collision/entity-narrow-phase-direct-gate-20261105.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/PUBLICATION-MANIFEST.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/README.md",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/finite-authority-summary.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/independent-tree-authority-selection-3619cea4d-20261103.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/independent-tree-authority-view-eb2b2eb67-20261103.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/independent-tree-production-authority-eb2-nativef0-20261103.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/independent-tree-production-source-f0f928147-20261103.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/independent-tree-view-healthy-actual-eb2-nativef0-20261103.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/ledger-tree-native-authority-v137-preservation-20261103.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/tree-f0-builds-and-payloads-20261103.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/tree-ordinary-short-comparison-f0f928147f-20261103.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/tree-view-eb2-nativef0-scope-and-focused-20261103.json"
+    ],
+    "runtime_and_test_paths_reviewed": [
+      "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+      "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "eech-campaign/crates/eech-dc/src/module.rs",
+      "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_host_guard.rs",
+      "eech-campaign/crates/eech-engine/src/lib.rs",
+      "eech-campaign/crates/eech-world/build.rs",
+      "eech-campaign/crates/eech-world/csrc/entity_step.c",
+      "eech-campaign/crates/eech-world/src/entity_host.rs",
+      "eech-campaign/crates/eech-world/src/lib.rs",
+      "eech-campaign/crates/eech-world/src/model_host.rs",
+      "eech-campaign/crates/eech-world/tests/entity_collision_host.rs"
+    ],
+    "metadata_only_paths_after_runtime_commit": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json",
+      "eech-campaign/docs/d3-entity-collision-provider.md",
+      "eech-campaign/docs/d3-tree-collision-provider.md",
+      "eech-campaign/reference/d3-entity-collision/dcs-api/MAPPING-NOTES.md",
+      "eech-campaign/reference/d3-entity-collision/dcs-api/PROVENANCE.json",
+      "eech-campaign/reference/d3-entity-collision/entity-narrow-phase-direct-gate-20261105.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/PUBLICATION-MANIFEST.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/README.md",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/finite-authority-summary.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/independent-tree-authority-selection-3619cea4d-20261103.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/independent-tree-authority-view-eb2b2eb67-20261103.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/independent-tree-production-authority-eb2-nativef0-20261103.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/independent-tree-production-source-f0f928147-20261103.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/independent-tree-view-healthy-actual-eb2-nativef0-20261103.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/ledger-tree-native-authority-v137-preservation-20261103.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/tree-f0-builds-and-payloads-20261103.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/tree-ordinary-short-comparison-f0f928147f-20261103.json",
+      "eech-campaign/reference/d3-tree-collision-production/finite-authority/tree-view-eb2-nativef0-scope-and-focused-20261103.json"
+    ],
+    "post_runtime_changes_do_not_change_production_or_test_sources": true
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "source_review_no_blocking_findings": false,
+    "native_launch_clearance": false,
+    "finite_entity_narrowphase_slice_closed": false,
+    "whole_Task49_or_D3_acceptance": false
+  },
+  "findings": [
+    {
+      "id": "ENV-ENTITY-CALLER-BUFFER-1",
+      "priority": "P1",
+      "title": "The new question reads caller output storage that original callers may leave uninitialized; untouched-word semantics are not preserved by the current contract",
+      "locations": [
+        "aphavoc/source/entity/mobile/mb_hostmodel.c:1863",
+        "aphavoc/source/entity/mobile/mb_hostmodel.c:1864",
+        "eech-campaign/crates/eech-engine/src/lib.rs:1360",
+        "eech-campaign/crates/eech-world/csrc/entity_step.c:607",
+        "eech-campaign/crates/eech-world/csrc/entity_step.c:610",
+        "eech-campaign/crates/eech-world/csrc/entity_step.c:623",
+        "aphavoc/source/entity/mobile/weapon/wn_move.c:223",
+        "aphavoc/source/entity/mobile/weapon/wn_move.c:464"
+      ],
+      "evidence": "answer_weapon_step_lookup declares automatic intercept and face_normal locals. Its COLLISION case zeroes intercept only, then passes both to get_line_of_sight_collision_entity. The original intersection helpers assign every normal component before using it and assign the point only after a crossing is found. The new adapter copies both prior output vectors into request.pose; model_callback then materializes every pose element as a Rust f32 and calls to_bits. Thus indeterminate face_normal storage is newly consumed across the FFI even though the original valid collision path did not require initialized normal input. The kernel also always initializes its local output vectors from prior output floats and writes all six back; this lacks a representation-preserving guarantee for untouched signaling-NaN payloads on x87. That latter portability concern is source-based, not a measured failing x87 run.",
+      "consequence": "The real hosted weapon path can invoke undefined/indeterminate-value behavior before the narrowphase answer. Initialized sentinel tests do not cover this caller precondition. Unconditional floating-point round trips also overstate exact preservation of fields the original never wrote.",
+      "minimum_correction": "Keep the original output-only/partial-write contract: do not read untouched caller storage to form a question. Record which output components the original helper actually assigns and return that bounded write information with their computed words; validate it and commit only those components after a successful answer. An equivalent narrowly justified design is acceptable. Preserve ordered normal-before-point writes, partial writes on misses, first-hit termination, refusal atomicity and exact untouched initialized words without arithmetic or float reload/store of those untouched values. Do not globally initialize callers or weaken the original partial-write/nonfinite contract to conceal the new read.",
+      "minimum_validation": "Use a focused actual C-adapter/caller guard with the legitimate output-only normal precondition, plus positive hit, noncrossing miss, partial-write miss, cursor refusal and initialized signed-zero/subnormal/nonfinite untouched sentinels. Validate transport/domain/write-mask rejection before committing buffers. Keep native campaign launches gated until corrected source and affected focused gates are clear; do not execute this old path merely to manufacture a red."
+    }
+  ],
+  "reviewed_source_observations": [
+    "The hosted stationary path retains mobile/fixed classification, position/attitude getter order and fixed heading/terrain-normal placement order. The moving path retains attitude-before-motion-magnitude access. The broadphase/sector/city candidate loop, including its destructive UPDATED getter and sweep-end construction, is not rewritten by this delta.",
+    "The extracted kernel preserves ascending one-triangle cursor reads, first-hit stopping, triangle versus no-triangle bounding-box fallback, box face order, strict speed thresholds and OLD then NEW then MID sweep order. Original float/double midpoint and quarter-length expressions remain. These source observations do not establish retail numeric conformance of the new seam.",
+    "The triangle/quad intersection sections match the already-closed tree kernel text. New per-candidate placement and sweep code is reviewed here; the closed TREE numeric result is not relabeled as ENTITY native evidence.",
+    "The provider resolves ENTITY against ProviderState.final_store, sharing the finalized announced-order ModelStore used by existing model operations. Unknown/unloaded scenes and model cursor errors refuse rather than becoming a miss.",
+    "C request sizes and Rust dispatch accept only the declared stationary/moving shapes; the reply discriminator and scene name are checked before caller output commit. The Lua bridge accepts exact six-word responses, including nonfinite bit strings for output-word transport, without weakening the finite-only parsing of other model operations. The blocking prior-output read remains despite those checks.",
+    "Kernel callback context is synchronous and bounded by stack lifetime; callback panic/error is converted to refusal without unwinding through C. The existing full-state ScopedRounding guard is used and read back. This is not an actual native ENTITY caller-FP proof, and triangle decoding is not merely an integer lookup: it uses the existing guarded model decoder.",
+    "Ordinary builds select EECH_CAMPAIGN_HOST_ENTITY where hosted model operations exist; collision-fixture and model-fixture retain original narrowphase bodies. Face wrappers remain available only when an original entity or tree solver needs them. Original characterizations are not replaced by the new synthetic unit expectations."
+  ],
+  "actual_direct_gate": {
+    "private_directory": "D:\\EECH-Migration-Evidence\\entity-collision-20261105-b",
+    "runtime_head_in_source_receipt": "9d108228f939d04180a7c2f53b2e93d797a3c8c3",
+    "direct_children": [
+      {
+        "step": "fmt",
+        "exit": 0
+      },
+      {
+        "step": "tests-four-crates",
+        "exit": 0
+      },
+      {
+        "step": "test-model-walk",
+        "exit": 0
+      },
+      {
+        "step": "test-tree-dialogue",
+        "exit": 0
+      },
+      {
+        "step": "build-collision-fixture",
+        "exit": 0
+      },
+      {
+        "step": "build-weapon-fixture",
+        "exit": 0
+      },
+      {
+        "step": "build-model-fixture",
+        "exit": 0
+      },
+      {
+        "step": "build-model-host-fixture",
+        "exit": 0
+      },
+      {
+        "step": "build-weapon-and-collision-fixture",
+        "exit": 0
+      },
+      {
+        "step": "clippy-four-crates",
+        "exit": 0
+      },
+      {
+        "step": "clippy-dc-collision",
+        "exit": 0
+      },
+      {
+        "step": "clippy-dc-weapon",
+        "exit": 0
+      },
+      {
+        "step": "clippy-dc-weapon-and-collision",
+        "exit": 0
+      },
+      {
+        "step": "clippy-engine-sys-tree-dialogue",
+        "exit": 0
+      }
+    ],
+    "runner_receipt": "container_exit=0",
+    "result_rows_ok": 62,
+    "gate_log": {
+      "bytes": 267044,
+      "sha256": "07311933631409634cb7351922d6fe5146cc0192d70e559e0b6f4d50dfee66aa"
+    },
+    "code_input_rows": 2908,
+    "code_input_rows_digest": "7e594459c45171b68116e581a772ee3020d906e4c6919f911f8babe8388869d1",
+    "before_after_full_receipts_literal_equal": true,
+    "full_receipt_sha256": "befb28b27eb05524d12f4fc99221c2bcc2b691bf4be58b2aeb8269ff4f8e69f3",
+    "source_binding_qualification": "2905 listed input blob ids match the runtime commit verbatim. The remaining three (aphavoc/laa.c, xp_types.h, sl_types.h) equal the LF-normalized forms of their committed CRLF bytes; they are Git-filter identities, not proof that all 2908 compile-time file byte streams equal committed blobs. No semantic difference was found in those three entries. Every before/after line is literal equal.",
+    "scope": "Direct Linux Cargo/compiler/ABI/boundary tests and compile/strict gates; not a Windows or retail campaign run and not proof that fresh build artifacts were recompiled when Cargo reported them fresh.",
+    "superseded_failures_preserved": "Earlier piped Cargo statuses, invalid feature invocations and failed Git-worktree fingerprints are excluded. Their printed outer-shell zero and invalid source hashes are not accepted gates."
+  },
+  "documentation_and_publication": {
+    "new_entity_mapping_scope": "The pinned author-maintained declarations are presented as API shapes, not native DCS implementation or complete collision-data mapping. Discovery/root pose/static bounds/draw arguments are not claimed to supply original ordered mesh hit/normal semantics. Required dataset/API mapping remains open; unsupported data is not silently a miss.",
+    "safe_projection": "This report contains source paths, counts and hashes only; no retail geometry, coordinates, entity allocation indices, pointers or model catalogue.",
+    "historical_reports": "Closed TREE and Task50/52 source/actual/full-shipping evidence remains at its original identities; no repeat or new acceptance is asserted."
+  },
+  "limits_and_next_gate": [
+    "Correct the caller-buffer contract in one focused source batch and complete affected direct guards before native launch clearance.",
+    "After source clearance, Root owns bounded original/candidate native ENTITY authority, actual physical effect/refusal and ordinary retained short comparison, then the eventual complete Task49 pack. No separate full war is demanded for each internal seam.",
+    "Broadphase, sectors, city expansion, classification, live pose derivation, roster/flags and original UPDATED consequences remain Core and REQUIRED next physical work. Static terrain-aligned matrix construction remains visible coupling; this finite narrowphase review does not declare it removed.",
+    "Raw tree loading/forest/cloud ownership, object/hierarchy/instance responsibilities and the DCS API/dataset mapping remain open. No Task49 completion, dependency delivery, whole D3, shipping, visual/Tacview, RNG or complete public-caller FPU acceptance is granted."
+  ],
+  "review_operations": "Read exact committed Git source and retained evidence only. No builds, tests, campaigns, source edits, cache/VM/process actions, nested agents or external application writes were performed."
+}

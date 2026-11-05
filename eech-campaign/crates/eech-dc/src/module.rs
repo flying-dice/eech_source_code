@@ -3860,11 +3860,12 @@ fn gunship(name: &str) -> LuaResult<Gunship> {
 ///   "target_point_fixed"  a shape index (never 0) and, in the sixth place, three bit patterns (the entity position the original copied) and, only when the cached host offset has a horizontal
 ///                 part, a fourth (the heading). Returns `{ result = "fixed", p = {three}, name = text }` or `{ result = "refused", reason }` (a heading needed and not given is a refusal).
 ///
-///   "entity_collision"  a scene index (never 0) and, in the sixth place (the text), 24 (a STATIONARY candidate) or 28 (a MOVING one) comma-separated bit patterns: the segment's old end (3)
-///                 and new end (3), the intercept point (3) and face normal (3) the caller holds, then the candidate's position (3) and attitude (9, row-major), or its old position (3), new
-///                 position (3), attitude (9) and speed (1). Returns `{ result = "hit" or "miss", p = {six}, name = text }`: whether the segment meets the scene's collision triangles (its
-///                 bounding box without lines when it has none) at that pose, and the FINAL intercept point (3) and normal (3) as bit patterns, written whether or not it hit (a miss can leave
-///                 partial writes, as the original did), or `{ result = "refused", reason }`. `name` is the scene's compiled name (an echo).
+///   "entity_collision"  a scene index (never 0) and, in the sixth place (the text), 18 (a STATIONARY candidate) or 22 (a MOVING one) comma-separated bit patterns: the segment's old end (3)
+///                 and new end (3), then the candidate's position (3) and attitude (9, row-major), or its old position (3), new position (3), attitude (9) and speed (1). The caller's
+///                 intercept point and normal are OUTPUTS of the original and do not cross. Returns `{ result = "hit" or "miss", p = {six}, mask = n, name = text }`: whether the segment meets the
+///                 scene's collision triangles (its bounding box without lines when it has none) at that pose; `mask` (0..63: bits 0 to 2 the intercept point, bits 3 to 5 the normal) says which
+///                 components the original's arithmetic assigned (it assigns the whole normal first and the whole point only after a plane crossing, so a miss can have assigned the normal or
+///                 both) and `p` holds their computed words as bit patterns (zero for the others), or `{ result = "refused", reason }`. `name` is the scene's compiled name (an echo).
 ///
 ///   "object_table"  no scene, no depth. Returns `{ result = "table", objects = n }`: how many objects the host's common database holds (the campaign's room for custom objects is its own).
 ///   "object"     a scene index, a cursor (`depth`, never negative: the approximation or the sub-object) and, in the fourth place, the ROLE the object has in the scene (0 main, 1
@@ -4050,7 +4051,9 @@ return function(op, scene, depth, kind, definition, key)
 		if result ~= 'hit' and result ~= 'miss' then return nil, 'result must be hit, miss or refused' end
 		local p, why = list(a.p, 6)
 		if not p then return nil, 'p ' .. why end
-		return result, p, nil, nil, nil, nil, nil, name
+		local mask = ranged(a.mask, 63)
+		if not mask then return nil, 'mask must be a whole number within 0..63' end
+		return result, p, mask, nil, nil, nil, nil, name
 	end
 	if op == 'target_point_world' or op == 'target_point_fixed' then
 		local name, result = a.name, a.result
@@ -4212,7 +4215,7 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
         // the campaign's current placement crosses as exact bit patterns in the text place
         ModelQuery::TargetPointWorld { scene, pose } => ("target_point_world", Some(scene), None, None, None, Some(pose_text(&pose))),
         ModelQuery::TargetPointFixed { scene, pose } => ("target_point_fixed", Some(scene), None, None, None, Some(pose_text(&pose))),
-        // the segment, the caller's intercept point and normal and the candidate's pose cross as exact bit patterns in the text place (24 floats: stationary, 28: moving)
+        // the segment and the candidate's pose cross as exact bit patterns in the text place (18 floats: stationary, 22: moving); the caller's intercept point and normal are outputs and do not cross
         ModelQuery::EntityCollision { scene, pose } => ("entity_collision", Some(scene), None, None, None, Some(pose_text(&pose))),
         // the fourth place carries the role the object has in the scene
         ModelQuery::Object {
@@ -4423,6 +4426,10 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
         (ModelQuery::EntityCollision { .. }, "hit" | "miss") => Ok(ModelAnswer::EntityCollision {
             scene_name: g.ok_or_else(missing)?,
             hit: tag == "hit",
+            write_mask: b
+                .ok_or_else(missing)?
+                .parse::<u32>()
+                .map_err(|_| format!("[model-provider:{operation}.answer] the write mask is out of range"))?,
             words: bridged_words::<6>(&a.ok_or_else(missing)?, "p", operation)?,
         }),
         (ModelQuery::TargetPointWorld { .. }, "world") | (ModelQuery::TargetPointFixed { .. }, "fixed") => Ok(ModelAnswer::TargetPointPosition {
@@ -5478,20 +5485,24 @@ mod tests {
     }
 
     #[test]
-    fn an_entity_collision_question_reaches_the_provider_as_exact_bits_and_the_final_words_come_back_as_exact_bits() -> Test {
+    fn an_entity_collision_question_carries_only_the_segment_and_the_pose_and_the_computed_words_and_the_write_mask_come_back_exactly() -> Test {
         let lua = Lua::new();
-        // the provider answers a hit for a stationary pose (24 words) and a miss for a moving one (28): the six words it gives back are the caller's own intercept point and normal
-        // (words 6 to 11 of the pose), so a negative zero, a subnormal, a signalling NaN pattern and an infinity must survive both crossings, and neither tag may be read as the other
+        // the provider answers a hit that assigned everything for a stationary pose (18 words) and a miss that assigned only the normal for a moving one (22). It hands back words of
+        // the pose it received (words 6 to 11, which are candidate words here: the outputs of the original are NOT part of the question) so that a negative zero, a subnormal, a
+        // signalling NaN pattern and an infinity must survive both crossings; the unassigned point words are zero
         let mut provider = model_under_test(
             &lua,
             "return function (op, scene, depth, kind, definition, key)
                assert (op == 'entity_collision' and depth == nil and kind == nil and definition == nil)
                local words = {}
                for word in key:gmatch ('[^,]+') do words[#words + 1] = word end
-               local result = (#words == 24) and 'hit' or 'miss'
                local given = {}
                for i = 7, 12 do given[#given + 1] = words[i] end
-               return { result = result, name = 'CANDIDATE', p = table.concat (given, ',') }
+               if #words == 18 then
+                 return { result = 'hit', mask = 63, name = 'CANDIDATE', p = table.concat (given, ',') }
+               end
+               given[1], given[2], given[3] = '0x00000000', '0x00000000', '0x00000000'
+               return { result = 'miss', mask = 56, name = 'CANDIDATE', p = table.concat (given, ',') }
              end",
         )?;
         let weird = [-0.0_f32, f32::from_bits(1), 1234.5, f32::from_bits(0x7fa0_0001), f32::INFINITY, -1.0];
@@ -5501,41 +5512,57 @@ mod tests {
             words.extend((0..count - 12).map(|i| (i as f32 + 0.5).to_bits()));
             words
         };
-        for (count, expected_hit) in [(24, true), (28, false)] {
-            let ModelAnswer::EntityCollision { scene_name, hit, words } = ask(&mut provider, ModelQuery::EntityCollision { scene: 7, pose: pose(count) })?
-            else {
-                return Err("not an entity collision answer".into());
-            };
-            assert_eq!(scene_name, "CANDIDATE");
-            assert_eq!(hit, expected_hit, "{count} words");
-            assert_eq!(bits(words), bits(weird));
-        }
+        let ModelAnswer::EntityCollision {
+            scene_name,
+            hit,
+            write_mask,
+            words,
+        } = ask(&mut provider, ModelQuery::EntityCollision { scene: 7, pose: pose(18) })?
+        else {
+            return Err("not an entity collision answer".into());
+        };
+        assert_eq!((scene_name.as_str(), hit, write_mask), ("CANDIDATE", true, 63));
+        assert_eq!(bits(words), bits(weird));
+        let ModelAnswer::EntityCollision { hit, write_mask, words, .. } = ask(&mut provider, ModelQuery::EntityCollision { scene: 7, pose: pose(22) })? else {
+            return Err("not an entity collision answer".into());
+        };
+        assert_eq!(
+            (hit, write_mask),
+            (false, 56),
+            "a miss that assigned only the normal is not read as a hit or as a full write"
+        );
+        assert_eq!(bits(words), bits([0.0, 0.0, 0.0, weird[3], weird[4], weird[5]]));
         Ok(())
     }
 
     #[test]
-    fn an_entity_collision_answer_that_is_refused_short_unnamed_or_of_the_wrong_kind_stops_with_its_marker() -> Test {
+    fn an_entity_collision_answer_that_is_refused_short_unnamed_masked_out_of_range_or_of_the_wrong_kind_stops_with_its_marker() -> Test {
         let lua = Lua::new();
-        // each answer is chosen by the scene: 1 refused, 2 five words, 3 no name, 4 a name with a NUL, 5 the answer of a target point question, 6 a triangle's end
+        // each answer is chosen by the scene: 1 refused, 2 five words, 3 no name, 4 a name with a NUL, 5 the answer of a target point question, 6 no mask, 7 mask 64, 8 mask 1.5,
+        // 9 mask -1, 10 a mask that is not a number
         let mut provider = model_under_test(
             &lua,
             "return function (op, scene)
                local n = 'SCENE'
                if scene == 1 then return { result = 'refused', reason = 'no such model' } end
-               if scene == 2 then return { result = 'hit', name = n, p = { 1, 2, 3, 4, 5 } } end
-               if scene == 3 then return { result = 'miss', p = { 1, 2, 3, 4, 5, 6 } } end
-               if scene == 4 then return { result = 'hit', name = 'A\0B', p = { 1, 2, 3, 4, 5, 6 } } end
-               if scene == 5 then return { result = 'world', name = n, p = { 1, 2, 3, 4, 5, 6 } } end
-               return { result = 'end', name = n, p = { 1, 2, 3, 4, 5, 6 } }
+               if scene == 2 then return { result = 'hit', mask = 63, name = n, p = { 1, 2, 3, 4, 5 } } end
+               if scene == 3 then return { result = 'miss', mask = 56, p = { 0, 0, 0, 4, 5, 6 } } end
+               if scene == 4 then return { result = 'hit', mask = 63, name = 'A\0B', p = { 1, 2, 3, 4, 5, 6 } } end
+               if scene == 5 then return { result = 'world', mask = 63, name = n, p = { 1, 2, 3, 4, 5, 6 } } end
+               if scene == 6 then return { result = 'miss', name = n, p = { 0, 0, 0, 4, 5, 6 } } end
+               if scene == 7 then return { result = 'hit', mask = 64, name = n, p = { 1, 2, 3, 4, 5, 6 } } end
+               if scene == 8 then return { result = 'hit', mask = 1.5, name = n, p = { 1, 2, 3, 4, 5, 6 } } end
+               if scene == 9 then return { result = 'hit', mask = -1, name = n, p = { 1, 2, 3, 4, 5, 6 } } end
+               return { result = 'hit', mask = 0 / 0, name = n, p = { 1, 2, 3, 4, 5, 6 } }
              end",
         )?;
-        let mut collide = |scene: i32| ask(&mut provider, ModelQuery::EntityCollision { scene, pose: vec![0; 24] });
+        let mut collide = |scene: i32| ask(&mut provider, ModelQuery::EntityCollision { scene, pose: vec![0; 18] });
         let refused = collide(1).err().ok_or("accepted")?;
         assert!(
             refused.contains("[model-provider:entity_collision.refused]") && refused.contains("no such model"),
             "{refused}"
         );
-        for scene in 2..=6 {
+        for scene in 2..=10 {
             let error = collide(scene).err().ok_or("accepted")?;
             assert!(error.contains("[model-provider:entity_collision.answer]"), "scene {scene}: {error}");
         }

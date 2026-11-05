@@ -485,6 +485,7 @@ fn entity_collision_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaRe
         Ok(test) => {
             table.set("result", if test.hit { "hit" } else { "miss" })?;
             table.set("p", hex_list(&test.words))?;
+            table.set("mask", test.assigned)?;
         }
         Err(reason) => {
             table.set("result", "refused")?;

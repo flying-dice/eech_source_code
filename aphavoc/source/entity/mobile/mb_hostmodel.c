@@ -10,6 +10,7 @@
 #include "project.h"
 
 #include <math.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "mb_hostmodel.h"
@@ -1837,52 +1838,29 @@ void campaign_model_route_primary_start (int index, int starts)
 }
 
 // One collision candidate against the segment (mb_hostmodel.h, ENTITY_COLLISION; EEDCS-49, D3). The campaign has already decided that the candidate is collidable, moving or
-// stationary, within the broad-phase radius test, and has derived its live pose; the host does the physical work. The caller's intercept point and normal go to the host as inputs
-// and the host's final words come back whether or not there was a hit, because the original's intersection helpers leave partial writes on a miss.
-int campaign_model_entity_collision (int scene, const float *segment_old, const float *segment_new, const float *candidate, int candidate_count, float *point, float *normal)
-{
-	campaign_model_request
-		request;
-
-	campaign_model_reply
-		reply;
-
-	require_scene (scene, FALSE, "an entity collision test");
-
-	if ((candidate_count != CAMPAIGN_MODEL_ENTITY_STATIONARY_POSE - 12) && (candidate_count != CAMPAIGN_MODEL_ENTITY_MOVING_POSE - 12))
-	{
-		debug_fatal ("host model: [model-provider:entity_collision.pose] a pose of %d candidate floats was given for scene %d", candidate_count, scene);
-	}
-
-	memset (&request, 0, sizeof (request));
-	request.op = CAMPAIGN_MODEL_ENTITY_COLLISION;
-	request.scene = scene;
-	request.pose_count = 12 + candidate_count;
-	memcpy (&request.pose[0], segment_old, 3 * sizeof (float));
-	memcpy (&request.pose[3], segment_new, 3 * sizeof (float));
-	memcpy (&request.pose[6], point, 3 * sizeof (float));
-	memcpy (&request.pose[9], normal, 3 * sizeof (float));
-	memcpy (&request.pose[12], candidate, candidate_count * sizeof (float));
+// stationary, within the broad-phase radius test, and has derived its live pose; the host does the physical work. The dialogue is mb_hostentity.h, bound here to the real host
+// callback and the real scene tables: the caller's intercept point and normal are outputs, never read and never sent, and only the components the original assigned are written back.
+#define CAMPAIGN_ENTITY_REQUIRE_SCENE(SCENE) require_scene ((SCENE), FALSE, "an entity collision test")
 
 #ifdef EECH_MODEL_HOST_FIXTURE
-	campaign_model_counts.entity_collision++;
+#define CAMPAIGN_ENTITY_ASK(REQUEST,REPLY) do { campaign_model_counts.entity_collision++; ask ((REQUEST), (REPLY), "entity collision"); } while (0)
+#else
+#define CAMPAIGN_ENTITY_ASK(REQUEST,REPLY) ask ((REQUEST), (REPLY), "entity collision")
 #endif
 
-	ask (&request, &reply, "entity collision");
+#define CAMPAIGN_ENTITY_IDENTITY(REPLY,SCENE) check_target_point_identity ((REPLY), (SCENE), "entity_collision")
 
-	check_target_point_identity (&reply, scene, "entity_collision");
+#include "mb_hostentity.h"
 
-	if ((reply.result != CAMPAIGN_MODEL_TRIANGLE_FOUND) && (reply.result != CAMPAIGN_MODEL_TRIANGLE_END))
-	{
-		debug_fatal ("host model: [model-provider:entity_collision.result] the host answered neither a hit nor a miss for scene %d (result %d)", scene, reply.result);
-	}
+int campaign_model_entity_collision (int scene, const float *segment_old, const float *segment_new, const float *candidate, int candidate_count, float *point, float *normal)
+{
+	int
+		hit;
 
-	// the final words are copied exactly as the host left them: a word the original never wrote stays the caller's own, and none of them is required to be finite
-	memcpy (point, &reply.points[0], 3 * sizeof (float));
-	memcpy (normal, &reply.points[3], 3 * sizeof (float));
+	hit = campaign_entity_collision_exchange (scene, segment_old, segment_new, candidate, candidate_count, point, normal);
 
 #ifdef EECH_MODEL_HOST_FIXTURE
-	if (reply.result == CAMPAIGN_MODEL_TRIANGLE_FOUND)
+	if (hit)
 	{
 		campaign_model_counts.entity_hit++;
 	}
@@ -1892,7 +1870,7 @@ int campaign_model_entity_collision (int scene, const float *segment_old, const 
 	}
 #endif
 
-	return (reply.result == CAMPAIGN_MODEL_TRIANGLE_FOUND);
+	return (hit);
 }
 
 #ifdef EECH_MODEL_HOST_FIXTURE

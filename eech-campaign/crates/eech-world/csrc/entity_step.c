@@ -11,16 +11,20 @@
  * What the campaign keeps and sends: WHICH candidate and in which order (the sector scan, the exclusions, the broad-phase radius test), and the candidate's
  * live pose (position, attitude, a moving candidate's sweep ends and speed), derived by the campaign from its own entity state in the original's order.
  *
- * Exactly kept: the intersection helpers write the intercept point and normal BEFORE the hit decision, so a miss leaves partial writes. The point and normal the
- * caller passes in are inputs, and the final words are returned whether or not there was a hit. Float, double and narrowing steps are the original's:
+ * Exactly kept: the intercept point and normal are OUTPUTS and are never inputs. The original's helpers assign the whole normal on every call, before any decision, and
+ * the whole point only once the segment has crossed the face's plane, so a miss can leave a written normal, or both. The caller's own words are never read or sent here
+ * (a real caller passes an automatic normal it never initialised); this file reports WHICH of the six components the original's arithmetic assigned (a write mask) and
+ * their computed words, and the caller writes only those. The two marked lines inside the helpers (ENTITY_POINT_ASSIGNED) are the only difference from the tree kernel's
+ * copy of them: they record the assignment and change no arithmetic. Float, double and narrowing steps are the original's:
  * `(a + b) * 0.5` and `body_length * 0.25` promote through double as they do there. The caller (src/entity_host.rs) runs this under round-toward-zero with the
  * caller's complete floating-point state saved and restored, as the tree kernel does; this file does not touch the environment and is NOT compiled with
  * -frounding-math, so its constants fold at the default rounding as the original's did.
  *
- * POSE (floats): [0..2] segment old, [3..5] segment new, [6..8] the intercept point the caller holds, [9..11] the face normal the caller holds, then
- *   stationary: [12..14] position, [15..23] attitude (row-major 3x3)
- *   moving:     [12..14] old position, [15..17] new position, [18..26] attitude, [27] the candidate's speed (the magnitude of its motion vector)
- * The state is none: nothing is kept between calls.
+ * POSE (floats): [0..2] segment old, [3..5] segment new, then
+ *   stationary: [6..8] position, [9..17] attitude (row-major 3x3)
+ *   moving:     [6..8] old position, [9..11] new position, [12..20] attitude, [21] the candidate's speed (the magnitude of its motion vector)
+ * The result is six words, the point then the normal, and a write mask (bits 0 to 2 the point, bits 3 to 5 the normal): a component the mask does not name is zero.
+ * The only state is the per-thread record of which components the current call has assigned; it is reset on entry.
  */
 #include <math.h>
 #include <stddef.h>
@@ -35,6 +39,12 @@
 #define TEST_OLD_POSITION (1)
 #define TEST_MID_POSITION (2)
 #define TEST_NEW_POSITION (4)
+
+/* which of the six output components the current call has assigned: bits 0 to 2 the point, bits 3 to 5 the normal (per thread: the host tests run in parallel) */
+#define ENTITY_POINT_BITS 0x07u
+#define ENTITY_NORMAL_BITS 0x38u
+static __thread unsigned entity_assigned;
+#define ENTITY_POINT_ASSIGNED() (entity_assigned |= ENTITY_POINT_BITS)
 
 /* ------------------------------------------------------------------------------------------------------------------------------------ */
 /* maths/vector.c: the intersections, without the ASSERTs or debug logging; the float, double and narrowing steps are the original's. */
@@ -90,6 +100,7 @@ static int get_3d_line_triangle_intersection(const vec3d *p1, const vec3d *p2, c
 	pi->x = p1->x + mu * (vec_12.x);
 	pi->y = p1->y + mu * (vec_12.y);
 	pi->z = p1->z + mu * (vec_12.z);
+	ENTITY_POINT_ASSIGNED();
 
 	vec_ia.x = pa->x - pi->x;
 	vec_ia.y = pa->y - pi->y;
@@ -199,6 +210,7 @@ static int get_3d_line_quad_intersection(const vec3d *p1, const vec3d *p2, const
 	pi->x = p1->x + mu * (vec_12.x);
 	pi->y = p1->y + mu * (vec_12.y);
 	pi->z = p1->z + mu * (vec_12.z);
+	ENTITY_POINT_ASSIGNED();
 
 	vec_ia.x = pa->x - pi->x;
 	vec_ia.y = pa->y - pi->y;
@@ -285,8 +297,11 @@ static int get_3d_line_quad_intersection(const vec3d *p1, const vec3d *p2, const
 
 
 /* en_cllsn.c: the two face wrappers, minus the debug drawing */
-#define get_3d_line_triangle_face_intersection(OLD, NEW, P1, P2, P3, INTERCEPT, NORMAL) get_3d_line_triangle_intersection(OLD, NEW, P1, P2, P3, INTERCEPT, NORMAL)
-#define get_3d_line_quad_face_intersection(OLD, NEW, P1, P2, P3, P4, INTERCEPT, NORMAL) get_3d_line_quad_intersection(OLD, NEW, P1, P2, P3, P4, INTERCEPT, NORMAL)
+/* a helper assigns the whole normal before anything else it does, so the normal is assigned by the call itself */
+#define get_3d_line_triangle_face_intersection(OLD, NEW, P1, P2, P3, INTERCEPT, NORMAL) \
+	(entity_assigned |= ENTITY_NORMAL_BITS, get_3d_line_triangle_intersection(OLD, NEW, P1, P2, P3, INTERCEPT, NORMAL))
+#define get_3d_line_quad_face_intersection(OLD, NEW, P1, P2, P3, P4, INTERCEPT, NORMAL) \
+	(entity_assigned |= ENTITY_NORMAL_BITS, get_3d_line_quad_intersection(OLD, NEW, P1, P2, P3, P4, INTERCEPT, NORMAL))
 
 /* One step of the model's collision-triangle cursor: 1 and nine floats for a triangle, 0 for the end or the absence of one, negative for a refusal. */
 typedef int (*eech_entity_triangle_fn)(void *context, int depth, float *points);
@@ -392,10 +407,10 @@ static int stationary(const float *pose, const float *bounds, eech_entity_triang
 	new_position.x = pose[3];
 	new_position.y = pose[4];
 	new_position.z = pose[5];
-	position.x = pose[12];
-	position.y = pose[13];
-	position.z = pose[14];
-	memcpy(attitude, &pose[15], 9 * sizeof(float));
+	position.x = pose[6];
+	position.y = pose[7];
+	position.z = pose[8];
+	memcpy(attitude, &pose[9], 9 * sizeof(float));
 
 	depth = 0;
 	found = triangles(context, depth++, (float *) p);
@@ -473,14 +488,14 @@ static int moving(const float *pose, const float *bounds, eech_entity_triangle_f
 	new_position.x = pose[3];
 	new_position.y = pose[4];
 	new_position.z = pose[5];
-	target_old_position.x = pose[12];
-	target_old_position.y = pose[13];
-	target_old_position.z = pose[14];
-	target_new_position.x = pose[15];
-	target_new_position.y = pose[16];
-	target_new_position.z = pose[17];
-	memcpy(attitude, &pose[18], 9 * sizeof(float));
-	true_velocity = pose[27];
+	target_old_position.x = pose[6];
+	target_old_position.y = pose[7];
+	target_old_position.z = pose[8];
+	target_new_position.x = pose[9];
+	target_new_position.y = pose[10];
+	target_new_position.z = pose[11];
+	memcpy(attitude, &pose[12], 9 * sizeof(float));
+	true_velocity = pose[21];
 
 	/* determine which tests are required using target velocity and body length */
 	body_length = bounds[5] - bounds[4];
@@ -597,19 +612,18 @@ static int moving(const float *pose, const float *bounds, eech_entity_triangle_f
 	return FALSE;
 }
 
-/* The entry: `pose` as described at the top of the file, `bounds` the scene's bounding box without lines. The final intercept point and normal (six floats) are written to
-   `result` whether or not there was a hit. Returns 1 for a hit, 0 for a miss, negative when the triangle cursor refused. */
-int eech_entity_collision(const float *pose, int is_moving, const float *bounds, eech_entity_triangle_fn triangles, void *context, float *result)
+/* The entry: `pose` as described at the top of the file, `bounds` the scene's bounding box without lines. `result` receives six words, the point then the normal, each the computed
+   word of a component the original's arithmetic assigned and zero for any other, and `assigned` the write mask. Nothing of the caller's is read. Returns 1 for a hit, 0 for a miss,
+   negative when the triangle cursor refused (the mask and words are then zero). */
+int eech_entity_collision(const float *pose, int is_moving, const float *bounds, eech_entity_triangle_fn triangles, void *context, float *result, unsigned *assigned)
 {
 	vec3d intercept, normal;
-	int hit;
+	unsigned mask;
+	int hit, component;
 
-	intercept.x = pose[6];
-	intercept.y = pose[7];
-	intercept.z = pose[8];
-	normal.x = pose[9];
-	normal.y = pose[10];
-	normal.z = pose[11];
+	memset(&intercept, 0, sizeof(intercept));
+	memset(&normal, 0, sizeof(normal));
+	entity_assigned = 0;
 
 	if (is_moving)
 	{
@@ -620,12 +634,29 @@ int eech_entity_collision(const float *pose, int is_moving, const float *bounds,
 		hit = stationary(pose, bounds, triangles, context, &intercept, &normal);
 	}
 
+	mask = entity_assigned;
+	if (hit < 0)
+	{
+		mask = 0;
+	}
+
+	/* the words of a component that was assigned; a component that was not stays the zero it was given above and is reported as zero */
 	result[0] = intercept.x;
 	result[1] = intercept.y;
 	result[2] = intercept.z;
 	result[3] = normal.x;
 	result[4] = normal.y;
 	result[5] = normal.z;
+
+	for (component = 0; component < 6; component++)
+	{
+		if ((mask & (1u << component)) == 0)
+		{
+			memset(&result[component], 0, sizeof(float));
+		}
+	}
+
+	*assigned = mask;
 
 	return hit;
 }
