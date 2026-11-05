@@ -337,6 +337,10 @@ local function mq_parse_run (text, target, prepared)
 			if row.hit_is_target == "1" and (row.hit_id ~= target or row.hit_type ~= MQ_TARGET_TYPE) then
 				return nil, "run result " .. index .. " says the hit is the target, but its identity or type is not: " .. row.raw
 			end
+			-- the reverse join: roster identities are unique and the host computes the flag from the same entity, so the target's own identity under a false flag is contradictory
+			if row.hit_is_target == "0" and row.hit_id == target then
+				return nil, "run result " .. index .. " says the hit is not the target, but its identity is the target's: " .. row.raw
+			end
 		else
 			return nil, "run result " .. index .. " carries hit=" .. tostring (row.hit) .. ": " .. row.raw
 		end

@@ -57,6 +57,9 @@ local function mq_fault (name, text)
 	elseif name == "run_miss_with_point" then lines [3] = string.gsub (lines [3], "point=%-", "point=0x42000000,0x42000001,0x42000002")
 	elseif name == "run_miss_with_identity" then lines [3] = string.gsub (lines [3], "hit_host_id=%-", "hit_host_id=eech%%2Dworld%%3A2")
 	elseif name == "run_target_flag_with_other_identity" then lines [2] = string.gsub (lines [2], "hit_host_id=[^ ]+", "hit_host_id=eech%%2Dworld%%3A3")
+	elseif name == "run_target_identity_with_false_flag" then lines [2] = string.gsub (lines [2], "hit_is_target=1", "hit_is_target=0")
+	elseif name == "run_target_identity_with_false_flag_and_other_type" then
+		lines [2] = string.gsub (string.gsub (lines [2], "hit_is_target=1", "hit_is_target=0"), "hit_type=[A-Z_]+", "hit_type=ENTITY_TYPE_HELICOPTER")
 	elseif name == "run_bad_encoding" then lines [2] = string.gsub (lines [2], "hit_host_id=[^ ]+", "hit_host_id=a%%zz")
 	elseif name == "run_lowercase_escape" then lines [2] = string.gsub (lines [2], "hit_host_id=[^ ]+", "hit_host_id=a%%c3%%a9")
 	elseif name == "run_non_canonical_escape" then lines [2] = string.gsub (lines [2], "hit_host_id=[^ ]+", "hit_host_id=%%41")
@@ -2630,8 +2633,17 @@ fn a_complete_c_shaped_report_with_a_maximum_whitespace_and_utf8_identity_and_a_
 #[test]
 fn every_single_fault_in_a_prepare_or_run_report_stops_the_witness_and_a_complete_report_does_not() {
     let control = [("mode", "moving_query_control")];
+    // positive first: the complete valid report, whose first hit is the target itself (flag, identity and type agree), is accepted; every fault below corrupts that one report
+    let driven = drive(&query_scenario(""), &control);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let first = rows(&driven).into_iter().find(|r| r["event"] == "query_segment").unwrap();
+    assert_eq!(
+        (first["hit_is_target"].clone(), first["hit_type"].clone()),
+        (Value::from(1), Value::from("ENTITY_TYPE_ROUTED_VEHICLE")),
+        "{first}"
+    );
     // (the scripted single fault, the part of the witness failure that names it)
-    let faults: [(&str, &str); 27] = [
+    let faults: [(&str, &str); 29] = [
         ("prepare_unknown_record", "prepare report has 5 records"),
         ("prepare_missing_segment", "prepare report has 3 records"),
         ("prepare_duplicate_segment", "out of order"),
@@ -2650,6 +2662,11 @@ fn every_single_fault_in_a_prepare_or_run_report_stops_the_witness_and_a_complet
         ("run_miss_with_point", "miss that carries hit fields"),
         ("run_miss_with_identity", "miss that carries hit fields"),
         ("run_target_flag_with_other_identity", "identity or type is not"),
+        ("run_target_identity_with_false_flag", "hit is not the target, but its identity is the target's"),
+        (
+            "run_target_identity_with_false_flag_and_other_type",
+            "hit is not the target, but its identity is the target's",
+        ),
         ("run_bad_encoding", "not a canonical encoding"),
         ("run_lowercase_escape", "not a canonical encoding"),
         ("run_non_canonical_escape", "not a canonical encoding"),
