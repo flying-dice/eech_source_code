@@ -21,7 +21,7 @@ MODEL_LOG, DELEGATION_BROKEN, ENTITY_LOG, LAUNCH = {}, {}, {}, nil
 CAND_LOG, CAND_POS = {}, 0
 SCAN_LOG = {}
 POSE_LOG = {}
-MOVES, RETIRED, DISPLACED = {}, {}, {}
+MOVES, RETIRED, DISPLACED, MOVE_LOG = {}, {}, {}, {}
 local function deep_copy (value)
 	if type (value) ~= "table" then return value end
 	local copy = {}
@@ -186,7 +186,14 @@ host = {
 	model = reference,
 	move_vehicle = function (step)
 		MOVES [#MOVES + 1] = step
+		MOVE_LOG [#MOVE_LOG + 1] = { id = step.host_id, mode = step.mode, elevation = step.terrain and step.terrain.elevation or -1, launched = LAUNCH ~= nil }
 		if step.mode == "retire" then RETIRED [step.host_id] = true elseif step.mode == "place" then DISPLACED [step.host_id] = true end
+		if step.mode == "move" then
+			-- the host's physical step answers AT the terrain it was given (the convoy step sets the new y from it) unless the scenario says the answer ignores it
+			local y = step.terrain and step.terrain.elevation or 0
+			if scenario.answer_ignores_lift then y = scenario.ground or 10 end
+			return { position = { 0, y, 0 }, velocity = 0, motion_vector = (scenario.motion or {}) [step.host_id] or { 0, 0, 0 } }
+		end
 		return {}
 	end,
 	create_exclusive = function ()
@@ -298,7 +305,7 @@ package.preload.eech_dc = function ()
 					local key = table.concat (words, ",")
 					if scenario.bad_candidate_request == "count" then key = string.match (key, "^(.*),[^,]+$") end
 					-- a MOBILE candidate's question names its semantic host identity after the facts (the host decides its pose from its own record of it)
-					if mobile and not scenario.unnamed_candidate then key = key .. " eech-world:1" end
+					if mobile and not scenario.unnamed_candidate then key = key .. " " .. (scenario.candidate_id or "eech-world:1") end
 					local ok, answer = ask_model ("entity_candidate", scene, nil, nil, nil, key, not altering [MODE])
 					if not ok then stop ("entity_candidate.callback", tostring (answer)) end
 					if type (answer) == "table" and answer.result == "refused" then stop ("entity_candidate.refused", tostring (answer.reason)) end
@@ -442,6 +449,13 @@ package.preload.eech_dc = function ()
 					local lines = ((flight_hit and scenario.after_hit) or scenario.after or {}) [since_launch] or {}
 					for _, line in ipairs (lines) do queue [#queue + 1] = line end
 				end
+				for _, index in ipairs (scenario.steps or {}) do
+					local ground = scenario.ground or 10
+					local step = { host_id = "eech-world:" .. index, mode = "move", terrain = { elevation = ground, forest = false, face_normal = { 0, 1, 0 } }, map_max = { 1000, scenario.ceiling or 2000, 1000 } }
+					config.move_vehicle (step)
+					-- the engine's own step table is never mutated by the host-movement wrapper
+					if step.terrain.elevation ~= ground then CALLER_MUTATED = true end
+				end
 			end
 			function engine:wpn_case_query (id, weapon)
 				local entry = by_id [id]
@@ -491,6 +505,8 @@ struct Driven {
     scan_log: Vec<(String, String)>,
     /// (stage, entity type, alive, result, key) of every pose observation the REAL provider answered
     pose_log: Vec<(i64, i64, i64, String, String)>,
+    /// (identity, mode, terrain elevation or -1, after the launch) of every step the host's movement callback was given
+    move_log: Vec<(String, String, f64, bool)>,
 }
 
 /// Runs the real driver once. `scenario` is the inside of the Lua table the collaborators read; `args` are the driver's own arguments.
@@ -518,6 +534,7 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
     let candidates: mlua::Table = globals.get("CAND_LOG").expect("the candidate log");
     let scans: mlua::Table = globals.get("SCAN_LOG").expect("the scan log");
     let poses: mlua::Table = globals.get("POSE_LOG").expect("the pose log");
+    let moves: mlua::Table = globals.get("MOVE_LOG").expect("the move log");
     Driven {
         result,
         rows: written.concat(),
@@ -550,6 +567,18 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
             })
             .collect(),
         launch: launch.map(|t| (t.get("launcher").unwrap(), t.get("target").unwrap(), t.get("weapon").unwrap())),
+        move_log: moves
+            .sequence_values::<mlua::Table>()
+            .map(|entry| {
+                let entry = entry.expect("a move log entry");
+                (
+                    entry.get::<String>("id").unwrap(),
+                    entry.get::<String>("mode").unwrap(),
+                    entry.get::<f64>("elevation").unwrap(),
+                    entry.get::<bool>("launched").unwrap(),
+                )
+            })
+            .collect(),
         pose_log: poses
             .sequence_values::<mlua::Table>()
             .map(|entry| {
@@ -2029,4 +2058,147 @@ fn the_host_side_record_modes_refuse_by_exact_name_and_nothing_is_asked_afterwar
     let row = authority(&driven);
     assert_eq!(row["failure_marker"], "entity_pose.mirror");
     assert!(driven.result.is_err());
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// the host-side movement modes: a moving routed case selected from the host's own step answers, and a terrain input the host changes after the launch
+
+/// three mobiles: a blue launcher, a red routed vehicle the host steps at 3 m/s (the far one) and a red routed vehicle it steps with a zero vector (the near one); the far one is the candidate the
+/// scripted dialogue names, asks need_updated of, and tests; the cohort ends in the SECOND frame after the launch, so a lift at the end of the first is followed by a question
+fn moving_scenario(extra: &str) -> String {
+    healthy(&format!(
+        ", mobiles = {{ {{ kind = 5, side = 'blue' }}, {{ kind = 1, side = 'red' }}, {{ kind = 1, side = 'red' }} }}, positions = {{ '0,0,0', '100,0,100', '40,0,0' }}, steps = {{ 2, 3 }}, \
+         motion = {{ ['eech-world:2'] = {{ 3, 0, 0 }} }}, candidate_id = 'eech-world:2', candidate_sequence = {{ 'need_updated', 'test' }}, after = {{ [2] = {{ {TERMINAL} }} }}{extra}"
+    ))
+}
+
+#[test]
+fn the_moving_case_is_the_routed_enemy_the_host_actually_stepped_with_a_nonzero_vector_and_its_questions_are_counted_by_identity() {
+    // the natural selection takes the NEARER stationary vehicle; the moving selection takes the one the host's last step moved, and says why (the target's own motion and the frame it was answered in)
+    let driven = drive(&moving_scenario(""), &[]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(selected(&driven)["target"], "eech-world:3");
+    let driven = drive(&moving_scenario(""), &[("mode", "moving_control")]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let row = selected(&driven);
+    assert_eq!(row["target"], "eech-world:2");
+    assert_eq!(row["selection"], "nearest_moving_routed_enemy_of_a_launcher_with_an_unguided_ballistic_weapon");
+    let moving = row_of(&driven, "moving_target");
+    assert_eq!((moving["motion"].clone(), moving["frame"].clone()), (Value::from("3,0,0"), Value::from(0)));
+    // the per-identity proof that the question was a moving one (the shared C asks need_updated only of a candidate whose vector is above 1), a test, and no lift
+    let row = authority(&driven);
+    assert_eq!(row["completed"], true);
+    assert_eq!(
+        (
+            row["target"].clone(),
+            row["target_need_updated"].clone(),
+            row["target_test"].clone(),
+            row["target_questions"].clone()
+        ),
+        (Value::from("eech-world:2"), Value::from(2), Value::from(2), Value::from(4)),
+        "{row}"
+    );
+    assert_eq!(
+        (row["lifted"].clone(), row["target_after_lift"].clone(), row["candidate_mobile_unnamed"].clone()),
+        (Value::from(0), Value::from(0), Value::from(0))
+    );
+    assert!(driven.move_log.iter().all(|(_, _, elevation, _)| *elevation == 10.0), "{:?}", driven.move_log);
+    // a host that stepped no routed enemy with a vector above 1 m/s is the exact blocker, with nothing tuned and nothing selected instead
+    let error = error_of(drive(&moving_scenario(", motion = {}"), &[("mode", "moving_control")]));
+    assert!(
+        error.contains("UNREACHED: no moving routed enemy at launch") && error.contains("not tuned"),
+        "{error}"
+    );
+    // a target the host stepped only BEFORE the final warmup frame does not qualify: its last answer is not the final frame's
+    let error = error_of(drive(&moving_scenario(", steps = { 3 }"), &[("mode", "moving_control")]));
+    assert!(error.contains("UNREACHED: no moving routed enemy at launch"), "{error}");
+    // a moving selection whose target is never asked need_updated (the dialogue never saw a vector above 1) is UNREACHED, never a pass
+    let error = error_of(drive(&moving_scenario(", candidate_sequence = { 'test' }"), &[("mode", "moving_control")]));
+    assert!(
+        error.contains("UNREACHED: moving_control") && error.contains("never asked need_updated"),
+        "{error}"
+    );
+    // a target no question reaches the narrow phase of is UNREACHED as well
+    let error = error_of(drive(
+        &moving_scenario(", candidate_sequence = { 'need_updated', 'skip' }"),
+        &[("mode", "moving_control")],
+    ));
+    assert!(
+        error.contains("UNREACHED") && error.contains("no candidate reached the narrow phase"),
+        "{error}"
+    );
+}
+
+#[test]
+fn a_terrain_lift_changes_only_the_targets_own_routed_step_after_the_launch_and_needs_a_later_question_about_it() {
+    let driven = drive(&moving_scenario(""), &[("mode", "terrain_lift")]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let row = authority(&driven);
+    assert_eq!(row["completed"], true);
+    // two armed steps of the target, each lifted by exactly the declared constant, answered AT the lifted elevation; the later question about the target saw a lift and was tested
+    assert_eq!((row["lifted"].clone(), row["lift_refused"].clone()), (Value::from(2), Value::from(0)), "{row}");
+    for (field, expected) in [
+        ("lift_constant", 500.0),
+        ("lift_baseline_elevation", 10.0),
+        ("lift_elevation", 510.0),
+        ("lift_answered_y", 510.0),
+    ] {
+        assert_eq!(row[field].as_f64(), Some(expected), "{field}: {row}");
+    }
+    assert!(
+        row["target_after_lift"].as_i64().unwrap() >= 1 && row["target_after_lift_test"].as_i64().unwrap() >= 1,
+        "{row}"
+    );
+    assert!(row["target_need_updated"].as_i64().unwrap() >= 1);
+    // the host saw: every warmup step and the other mobile's steps unchanged, the target's armed steps lifted, nothing else touched; the engine's own table was never mutated
+    let target = "eech-world:2".to_string();
+    for (id, mode, elevation, launched) in &driven.move_log {
+        assert_eq!(mode, "move");
+        let lifted = *launched && *id == target;
+        assert_eq!(*elevation, if lifted { 510.0 } else { 10.0 }, "{id} launched={launched}");
+    }
+    assert!(driven.move_log.iter().any(|(id, _, _, launched)| *launched && *id == "eech-world:3"));
+    assert!(!driven.caller_mutated, "the engine's step table was mutated by the wrapper");
+    // the unaltered control of the same scenario lifts nothing (the effect is the lift, not the case)
+    let control = drive(&moving_scenario(""), &[("mode", "moving_control")]);
+    assert!(control.move_log.iter().all(|(_, _, elevation, _)| *elevation == 10.0));
+    // a lift the step's own map ceiling does not allow is not made, and the run is UNREACHED
+    let error = error_of(drive(&moving_scenario(", ceiling = 100"), &[("mode", "terrain_lift")]));
+    assert!(error.contains("UNREACHED: terrain_lift lifted no step"), "{error}");
+    // a cohort that ends before any question follows the lifted step is UNREACHED (weapon first, vehicle after: the first question that can see a lift is in the next frame)
+    let error = error_of(drive(
+        &moving_scenario(&format!(", after = {{ [1] = {{ {TERMINAL} }} }}")),
+        &[("mode", "terrain_lift")],
+    ));
+    assert!(error.contains("UNREACHED: terrain_lift: the cohort ended before a lifted step"), "{error}");
+    // a host whose answer is not at the lifted elevation did not take the input: a failure, never a pass
+    let error = error_of(drive(&moving_scenario(", answer_ignores_lift = true"), &[("mode", "terrain_lift")]));
+    assert!(error.contains("not at the lifted elevation"), "{error}");
+    // the lift needs the moving selection's target: with none moving the run is the same exact blocker
+    let error = error_of(drive(&moving_scenario(", motion = {}"), &[("mode", "terrain_lift")]));
+    assert!(error.contains("UNREACHED: no moving routed enemy at launch"), "{error}");
+}
+
+#[test]
+fn the_host_side_movement_modes_run_under_the_original_profile_and_the_refusal_modes_still_do_not() {
+    let original = [("profile", "original"), ("mode", "terrain_lift")];
+    // the original asks the host no entity question, so the run ends in the expected capability red, after the lift was verified; its counters say what was and was not compared
+    let driven = drive(&moving_scenario(", fixture_api = true, original_tests = true"), &original);
+    let rows_text = driven.rows.clone();
+    let row = authority(&driven);
+    assert_eq!(
+        (row["lifted"].clone(), row["target"].clone(), row["candidate_after"].clone()),
+        (Value::from(2), Value::from("eech-world:2"), Value::from(0)),
+        "{rows_text}"
+    );
+    assert!(error_of(driven).contains("CAPABILITY RED"));
+    // no lift, no original comparison: the same exact blocker as the hosted one
+    let error = error_of(drive(&moving_scenario(", fixture_api = true, original_tests = true, ceiling = 100"), &original));
+    assert!(error.contains("UNREACHED: terrain_lift lifted no step"), "{error}");
+    for mode in ["withdrawn_record", "displaced_record", "forced_hit"] {
+        assert!(
+            error_of(drive("", &[("profile", "original"), ("mode", mode)])).contains("only mode=control"),
+            "{mode}"
+        );
+    }
 }

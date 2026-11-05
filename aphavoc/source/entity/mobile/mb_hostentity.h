@@ -474,10 +474,10 @@ static int campaign_entity_scan_exchange (const float *facts, float *cursor)
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// ENTITY_POSE (EEDCS-49, D3, fifth slice): an OBSERVATION of a mobile candidate's pose against the host's record of its identity. Nothing decides from the answer; only its shape is checked.
+// ENTITY_POSE (EEDCS-49, D3, fifth slice): an OBSERVATION of a mobile candidate's pose against the host's record of its identity. The answer chooses no pose and no result; its shape is checked and a mirror difference stops the engine (a conformance assertion, not a decision-neutral read).
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-// Everything about an observation's answer that can be malformed. `named` is whether the question carried a host identity and `stage` which words it carried. The answer is never used for a decision, but a host
+// Everything about an observation's answer that can be malformed. `named` is whether the question carried a host identity and `stage` which words it carried. The answer is never used to choose a pose or a result (the mirror difference is asserted, not decided from), but a host
 // that answers with a class, a kind or a difference mask outside the contract is a host that cannot be trusted to observe, and stops the engine by marker. The mask is checked against what the stage could
 // have compared: STAGE_OFFER carries no attitude, so an attitude difference is impossible there, and a held motion vector that differs contradicts "no motion vector held".
 static void check_pose_reply (const campaign_model_reply *reply, int named, int stage)

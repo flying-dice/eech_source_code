@@ -34,14 +34,15 @@
  *
  * The ENTITY_POSE observations of a mobile candidate of a sector list (the position and motion vector the original read, and the attitude when the broad phase passed) are asked BESIDE those reads: the words
  * are copied from the facts already read, so they add no physical read, but each observation ADDS THREE read-only metadata reads the original did not make (TYPE, ALIVE and the roster HOST_ID; mb_hostmodel.h states
- * what each is). They skip nothing, reorder nothing and no decision depends on the answer. Non-mobile candidates, a city and every building listed under it (even one whose flags read as mobile in its placement)
+ * what each is). They skip nothing and reorder nothing. The answer is NOT decision-neutral: it is a conformance assertion (a position, attitude or motion-vector difference between the campaign's mirror
+ * and the host's record stops the engine, entity_pose.mirror), and the host's record, not these words, then decides the candidate's pose at the ENTITY_CANDIDATE question. Non-mobile candidates, a city and every building listed under it (even one whose flags read as mobile in its placement)
  * are not observed.
  */
 #ifndef MB_HOSTOFFER_H
 #define MB_HOSTOFFER_H
 
 // The observation of a mobile candidate's words (mb_hostmodel.h, ENTITY_POSE): the position and motion vector, and for STAGE_PLACEMENT the attitude, exactly as they were read into `facts`. The
-// answer is observed by the host; nothing here depends on it.
+// answer is a conformance assertion of the host's (a mirror difference stops the engine by marker, mb_hostentity.h); nothing else here depends on its content.
 static void campaign_offer_observe_pose (int stage, CAMPAIGN_OFFER_ENTITY *target, const char *host_id, const float *facts)
 {
 	float

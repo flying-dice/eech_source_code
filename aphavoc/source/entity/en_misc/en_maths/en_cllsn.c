@@ -447,6 +447,10 @@ static int get_3d_line_quad_face_intersection
 
 #ifdef EECH_CAMPAIGN_HOST_ENTITY
 
+#if !defined(EECH_CAMPAIGN_HOST_MOVEMENT) || !defined(EECH_CAMPAIGN_HOST_IDENTITIES)
+#error "the hosted entity decision takes a mobile candidate's pose from the host's physical record: it needs the hosted movement and identities, which bind every mobile, with that record, before it is in a sector list"
+#endif
+
 // EEDCS-49 (D3): in the headless campaign module the physical decisions of get_line_of_sight_collision_entity are the host's (mb_hostmodel.h, ENTITY_CANDIDATE and ENTITY_COLLISION). For each
 // candidate the campaign OFFERS, the host decides everything the original decided from the candidate's state: the tallest-structure skip of a sector, which branch applies, whether a mobile
 // candidate is moving, the sweep ends from the UPDATED answer and the frame time, the broad-phase box of radius + 10 m (the radius is the host's own model data), a city's box, and a

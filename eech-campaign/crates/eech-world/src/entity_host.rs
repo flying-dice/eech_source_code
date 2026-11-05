@@ -236,6 +236,44 @@ fn check_candidate_facts(facts: &[f32]) -> Result<(), String> {
     Ok(())
 }
 
+/// The raw request classifier of an `ENTITY_CANDIDATE` question: the SAME finite and flag domains as `check_candidate_facts`, in the SAME order and with the SAME messages, but over the words as
+/// they arrived and with INTEGER operations only (an exponent test for finite, an exact bit test for a flag or a state). It runs before anything is evaluated as a floating-point value and before any
+/// registry lookup, so a signalling NaN or a malformed flag selects its request error without a floating-point comparison, without touching the caller's floating-point status and without being
+/// routed through a record (or a busy registry) first. A flag is exactly zero (either sign) or one; the UPDATED state is zero, one or two. The facts that are not flags (the segment, the position,
+/// the motion vector, the attitude, the box and the rest) are checked for being finite only, as before, and no otherwise-unused fact is validated further.
+pub fn classify_candidate_words(words: &[u32]) -> Result<(), String> {
+    const ONE: u32 = 0x3f80_0000;
+    const TWO: u32 = 0x4000_0000;
+    let finite = |word: u32| word & 0x7f80_0000 != 0x7f80_0000;
+    let zero = |word: u32| word & 0x7fff_ffff == 0;
+    if words.len() != CANDIDATE_FACTS {
+        return Err(format!("an entity candidate question has {CANDIDATE_FACTS} floats, not {}", words.len()));
+    }
+    if let Some(at) = words.iter().position(|word| !finite(*word)) {
+        return Err(format!("fact {at} of an entity candidate question is not a finite number"));
+    }
+    for at in [6, 7, 8, 9, 10, 11, 22, 23, 42, 43] {
+        if !zero(words[at]) && words[at] != ONE {
+            return Err(format!("fact {at} of an entity candidate question is a flag and must be 0 or 1"));
+        }
+    }
+    if !(zero(words[20]) || words[20] == ONE || words[20] == TWO) {
+        return Err("fact 20 of an entity candidate question is the UPDATED state and must be 0, 1 or 2".into());
+    }
+    if words[8] == ONE && words[9] == ONE {
+        return Err("an entity candidate cannot be both a city and a city building".into());
+    }
+    if words[10] == ONE && words[8] == ONE {
+        return Err("a building listed under a city cannot be a city".into());
+    }
+    Ok(())
+}
+
+/// Whether a fact word of an already classified question (`classify_candidate_words`) is a set flag: its value is exactly zero or one, so any bit that is not the sign decides.
+pub fn candidate_flag_is_set(word: u32) -> bool {
+    word & 0x7fff_ffff != 0
+}
+
 /// One run of the kernel under the original's arithmetic, with the caller's complete floating-point state saved and restored: the raw state it answered and its pose floats.
 fn run_candidate(facts: &[f32], radius: Option<f32>) -> Result<(c_int, [f32; CANDIDATE_MOVING_POSE], c_int), String> {
     let state = fp_state()?;
@@ -270,6 +308,7 @@ fn run_candidate(facts: &[f32], radius: Option<f32>) -> Result<(c_int, [f32; CAN
 /// The host's decision about one candidate, from the campaign's facts. The decision is the original's, run under round-toward-zero with the caller's complete floating-point state saved and
 /// restored, as the narrow phase's is. `radius` is asked for only if the branch the facts take reaches a broad phase.
 pub fn candidate(facts: &[u32], radius: &mut Radius) -> Result<CandidateStep, String> {
+    classify_candidate_words(facts)?;
     let facts: Vec<f32> = facts.iter().map(|word| f32::from_bits(*word)).collect();
     check_candidate_facts(&facts)?;
     let (mut decided, mut pose, mut count) = run_candidate(&facts, None)?;
@@ -402,5 +441,113 @@ pub fn scan_step(facts: &[u32]) -> Result<ScanStep, String> {
         5 => step(ScanState::DoneHit),
         -1 => Err("the cursor of an entity scan question lies outside the sector window of its segment".into()),
         other => Err(format!("the entity scan kernel answered {other}")),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// a deterministic stream of 32-bit words (xorshift)
+    fn stream(seed: u32) -> impl FnMut() -> u32 {
+        let mut state = seed;
+        move || {
+            state ^= state << 13;
+            state ^= state >> 17;
+            state ^= state << 5;
+            state
+        }
+    }
+
+    fn the_floating_classifier(words: &[u32]) -> Result<(), String> {
+        let facts: Vec<f32> = words.iter().map(|word| f32::from_bits(*word)).collect();
+        check_candidate_facts(&facts)
+    }
+
+    #[test]
+    fn the_raw_classifier_is_the_established_floating_one_word_for_word_in_the_same_order_with_the_same_messages() {
+        let mut next = stream(0x00f1_a9c5);
+        let specials: [u32; 12] = [
+            0,
+            0x8000_0000,
+            0x3f80_0000,
+            0xbf80_0000,
+            0x4000_0000,
+            0x4040_0000,
+            0x7f80_0000,
+            0xff80_0000,
+            0x7fa0_0001,
+            0xffc0_0000,
+            0x0000_0001,
+            0x3f00_0000,
+        ];
+        let flags = [6usize, 7, 8, 9, 10, 11, 22, 23, 42, 43, 20];
+        let mut checked = 0;
+        for round in 0..200_000 {
+            let mut words = vec![0u32; CANDIDATE_FACTS];
+            // the ordinary case: the flags and states hold values near the valid domain, the rest are plain finite words; every round puts one or two odd words anywhere
+            for (at, word) in words.iter_mut().enumerate() {
+                *word = if flags.contains(&at) {
+                    specials[(next() % 5) as usize]
+                } else {
+                    f32::to_bits((next() % 2000) as f32 - 1000.0)
+                };
+            }
+            for _ in 0..(round % 3) {
+                let at = (next() as usize) % CANDIDATE_FACTS;
+                words[at] = if next() % 2 == 0 { specials[(next() % 12) as usize] } else { next() };
+            }
+            // `check_candidate_facts` compares only finite words, so the corpus may carry a NaN only where its own finite test comes first: which is exactly the order the two must share
+            assert_eq!(classify_candidate_words(&words), the_floating_classifier(&words), "{words:x?}");
+            checked += 1;
+        }
+        assert_eq!(checked, 200_000);
+        for count in [0usize, 43, 45] {
+            assert_eq!(classify_candidate_words(&vec![0; count]), the_floating_classifier(&vec![0; count]));
+        }
+        // the old accepted semantics: a negative zero is a zero, one is one, two is a state but not a flag
+        let mut valid = vec![0u32; CANDIDATE_FACTS];
+        valid[6] = 0x8000_0000;
+        valid[43] = 0x3f80_0000;
+        valid[20] = 0x4000_0000;
+        assert_eq!(classify_candidate_words(&valid), Ok(()));
+        valid[6] = 0x4000_0000;
+        assert!(classify_candidate_words(&valid).unwrap_err().contains("fact 6") && classify_candidate_words(&valid).unwrap_err().contains("flag"));
+    }
+
+    #[test]
+    #[cfg(target_arch = "x86_64")]
+    fn classifying_a_malformed_question_changes_neither_the_status_nor_the_control_word_whatever_state_the_caller_is_in() {
+        use crate::reference_arithmetic::{current_mxcsr, write_mxcsr};
+        let signalling = {
+            let mut words = vec![0u32; CANDIDATE_FACTS];
+            words[6] = 0x7fa0_0001;
+            words
+        };
+        let mut finite_bad = vec![0u32; CANDIDATE_FACTS];
+        finite_bad[6] = 0x4000_0000;
+        let saved = current_mxcsr();
+        let mut failures = Vec::new();
+        for rounding in 0u32..4 {
+            for flags in [0x00u32, 0x01, 0x3f] {
+                // every exception masked, then every exception UNMASKED: a floating-point comparison of the signalling NaN would trap here
+                for masks in [0x1f80u32, 0x0000] {
+                    let wanted = (rounding << 13) | masks | flags;
+                    write_mxcsr(wanted);
+                    let before = current_mxcsr();
+                    let first = classify_candidate_words(&signalling);
+                    let second = classify_candidate_words(&finite_bad);
+                    let after = current_mxcsr();
+                    if before != after || first.is_ok() || second.is_ok() {
+                        failures.push((wanted, before, after));
+                    }
+                }
+            }
+        }
+        write_mxcsr(saved);
+        assert!(
+            failures.is_empty(),
+            "the raw classifier disturbed the floating-point state or accepted a malformed word: {failures:x?}"
+        );
     }
 }

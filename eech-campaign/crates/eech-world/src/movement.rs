@@ -7474,4 +7474,52 @@ mod tests {
         let impact = run(&mut vehicle, start, life(LifecycleMode::GvImpact, [0.0; 3], GROUND)).unwrap();
         assert_eq!(canonical_record(&vehicle, "v").motion, impact.motion_vector.map(f32::to_bits));
     }
+
+    #[test]
+    fn a_vehicles_canonical_record_exists_from_its_bind_through_placement_steps_a_loss_and_a_wreck_and_ends_only_with_its_release() {
+        let start = moving(0.0);
+        let mut movers = self::movers(Kind::Routed, start);
+        // the very first moment, before any step or placement: the record is there, with the vector its seed held
+        let seeded = canonical_record(&movers, "v");
+        assert_eq!(seeded.motion, [0u32; 3]);
+        assert_eq!(seeded.position, start.position.map(f32::to_bits));
+        // the creation placement adopts the campaign's pose and vector, then a live step is the solver's: the record equals the step's answer at every boundary, in the same transaction
+        movers.step("v", start, Request::Place { motion_vector: [0.0; 3] }).unwrap();
+        let moved = movers.step("v", start, Request::Advance(advance([100.0, 0.0, 0.0]))).unwrap();
+        let held = canonical_record(&movers, "v");
+        assert_eq!(
+            (held.position, held.motion, held.attitude),
+            (
+                moved.pose.position.map(f32::to_bits),
+                moved.motion_vector.map(f32::to_bits),
+                moved.pose.attitude.map(f32::to_bits)
+            )
+        );
+        // a skipped step (the early return that derives the vector without moving) changes the vector and nothing else
+        let derived = movers.step("v", moved.pose, Request::RoutedVector).unwrap();
+        let held = canonical_record(&movers, "v");
+        assert_eq!(
+            (held.position, held.motion),
+            (moved.pose.position.map(f32::to_bits), derived.motion_vector.map(f32::to_bits))
+        );
+        // the loss unlinks the member from its group: the campaign's own affair, the host is told nothing and the record and the identity are exactly what they were
+        assert_eq!(canonical_record(&movers, "v"), held);
+        // the wreck: the lifecycle claims the vector and its steps hold their result in the one record
+        run(&mut movers, moved.pose, life(LifecycleMode::VehicleVectorSeed, [0.0; 3], derived.motion_vector)).unwrap();
+        assert_eq!(canonical_record(&movers, "v").motion, derived.motion_vector.map(f32::to_bits));
+        let impact = run(&mut movers, moved.pose, life(LifecycleMode::GvImpact, [0.0; 3], derived.motion_vector)).unwrap();
+        assert_eq!(canonical_record(&movers, "v").motion, impact.motion_vector.map(f32::to_bits));
+        assert!(matches!(movers.canonical("v"), Canonical::Record(_)), "a wreck is still recorded");
+        // the release (the physical incarnation ends) is the only end: the identity is then retired, never recorded again and never reissued
+        movers.retire("v").unwrap();
+        assert_eq!(movers.canonical("v"), Canonical::Retired);
+        assert!(
+            movers.bind("v", Kind::Routed, start, Some([0.0; 3]), None).is_err(),
+            "a retired identity is never reissued"
+        );
+        // a member the host issued an identity to without a movement record is reported as exactly that
+        movers.issue("member").unwrap();
+        assert_eq!(movers.canonical("member"), Canonical::Unrecorded);
+        assert_eq!(movers.canonical("never issued"), Canonical::Unknown);
+    }
 }

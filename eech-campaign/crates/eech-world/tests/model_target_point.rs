@@ -1581,3 +1581,151 @@ fn a_mobile_candidate_the_host_holds_no_record_of_is_refused_by_name_and_never_c
         "a building listed under a city is not a mobile of a sector list: {reason}"
     );
 }
+
+/// the same question as `candidate_with_identity`, with the facts as the bit patterns they arrive in (a signalling NaN is never formed as a float by the test either)
+fn candidate_words_with_identity(lua: &mlua::Lua, scene: i32, words: &[u32], identity: &str) -> (String, String) {
+    let patterns = words.iter().map(|word| format!("0x{word:08x}")).collect::<Vec<_>>().join(",");
+    lua.globals()
+        .set("FACTS", if identity.is_empty() { patterns } else { format!("{patterns} {identity}") })
+        .unwrap();
+    lua.globals().set("SCENE", scene).unwrap();
+    let table: mlua::Table = lua
+        .load(r#"return host.model_provider (host.model_store (ROOT)) ("entity_candidate", SCENE, nil, nil, nil, FACTS)"#)
+        .eval()
+        .expect("the provider answers");
+    (table.get("result").unwrap(), table.get::<Option<String>>("reason").unwrap().unwrap_or_default())
+}
+
+#[test]
+fn a_malformed_flag_word_is_a_request_error_before_any_record_lookup_whatever_the_registry_holds() {
+    let (root, _store) = standard();
+    let lua = lua_with_store(&root.dir);
+    let movers = registry_with("eech-world:7", [0.0, 0.0, 0.0], [0.0, 0.0, 5.0]);
+    lua.set_app_data(eech_world::movement::SharedMovers(movers.clone()));
+    let good = candidate_words(&mobile_facts([0.0, 0.0, 0.0], [0.0, 0.0, 5.0], [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]));
+    // positive first: the coherent question is decided from the record
+    assert_eq!(candidate_words_with_identity(&lua, 1, &good, "eech-world:7").0, "test");
+    // a malformed word selects the request error, whatever the registry holds: a record, nothing at all, an unknown or empty identity, or a registry being stepped
+    let malformed = [
+        (6usize, 0x7fa0_0001u32, "fact 6", "not a finite number"),
+        (10, 0xffc0_0000, "fact 10", "not a finite number"),
+        (43, 0x7f80_0000, "fact 43", "not a finite number"),
+        (13, 0x7fa0_0002, "fact 13", "not a finite number"),
+        (6, 0x4000_0000, "fact 6", "flag and must be 0 or 1"),
+        (10, 0xbf80_0000, "fact 10", "flag and must be 0 or 1"),
+        (43, 0x3f00_0000, "fact 43", "flag and must be 0 or 1"),
+        (6, 0x0000_0001, "fact 6", "flag and must be 0 or 1"),
+        (20, 0x4040_0000, "fact 20", "UPDATED state"),
+    ];
+    for (at, word, fact, why) in malformed {
+        let mut words = good.clone();
+        words[at] = word;
+        let guard = movers.borrow_mut();
+        let busy = candidate_words_with_identity(&lua, 1, &words, "eech-world:7");
+        drop(guard);
+        let cases = [
+            candidate_words_with_identity(&lua, 1, &words, "eech-world:7"),
+            candidate_words_with_identity(&lua, 1, &words, "eech-world:99"),
+            candidate_words_with_identity(&lua, 1, &words, ""),
+            busy,
+        ];
+        for (result, reason) in cases {
+            assert_eq!(result, "refused", "{fact} {word:08x}: {reason}");
+            assert!(reason.contains(fact) && reason.contains(why), "{fact} {word:08x}: {reason}");
+            assert!(
+                !reason.contains("candidate record"),
+                "the request error wins over any record or busy result: {reason}"
+            );
+        }
+    }
+    // a host that keeps no registry at all gives the same
+    let bare = lua_with_store(&root.dir);
+    let mut words = good.clone();
+    words[6] = 0x7fa0_0001;
+    let (result, reason) = candidate_words_with_identity(&bare, 1, &words, "eech-world:7");
+    assert_eq!(result, "refused");
+    assert!(reason.contains("fact 6") && !reason.contains("candidate record"), "{reason}");
+    // the old accepted semantics are kept: a negative zero is a zero (not a mobile, so no record is asked for), and a finite words elsewhere are not validated further
+    let mut zero = good.clone();
+    zero[6] = 0x8000_0000;
+    zero[7] = 0x0000_0000;
+    let (_, reason) = candidate_words_with_identity(&bare, 1, &zero, "");
+    assert!(!reason.contains("candidate record") && !reason.contains("flag"), "{reason}");
+}
+
+#[test]
+fn the_provider_decides_from_the_record_at_every_boundary_of_a_mobiles_lifetime_and_refuses_only_the_released_identity() {
+    use eech_world::movement::{Advance, Canonical, Kind, Movers, Pose, Request};
+    let (root, store) = standard();
+    let lua = lua_with_store(&root.dir);
+    let level = [1.0f32, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+    let creation = Pose {
+        position: [0.0, 0.0, 0.0],
+        velocity: 0.0,
+        attitude: level,
+    };
+    let movers = std::rc::Rc::new(std::cell::RefCell::new(Movers::default()));
+    // the bind at creation: the record is there before the first collision question
+    movers.borrow_mut().bind("eech-world:7", Kind::Routed, creation, Some([0.0; 3]), None).unwrap();
+    lua.set_app_data(eech_world::movement::SharedMovers(movers.clone()));
+    // the campaign's words never agree with anything here: only the record decides
+    let questions = mobile_facts([5000.0, 0.0, 5000.0], [9.0, 9.0, 9.0], [0.0; 9]);
+    let from_record = |movers: &std::rc::Rc<std::cell::RefCell<Movers>>| {
+        let Canonical::Record(record) = movers.borrow().canonical("eech-world:7") else {
+            panic!("no record")
+        };
+        let mut words = candidate_words(&questions);
+        words[13..16].copy_from_slice(&record.position);
+        words[16..19].copy_from_slice(&record.motion);
+        words[27..36].copy_from_slice(&record.attitude);
+        let step = eech_world::entity_host::candidate_in_store(&store, 1, &words).expect("the decision from the record's own words");
+        (format!("{:?}", step.state), step.pose)
+    };
+    let provider = |lua: &mlua::Lua| {
+        let (result, reason, pose) = candidate_with_identity(lua, 1, &questions, "eech-world:7");
+        (result, reason, pose)
+    };
+    let agrees = |lua: &mlua::Lua, movers: &std::rc::Rc<std::cell::RefCell<Movers>>, boundary: &str| {
+        let (oracle_state, oracle_pose) = from_record(movers);
+        let (result, reason, pose) = provider(lua);
+        let expected = match oracle_state.as_str() {
+            "Test" => "test",
+            "Skip" => "skip",
+            other => panic!("{boundary}: unexpected {other}"),
+        };
+        assert_eq!((result.as_str(), reason.as_str()), (expected, ""), "{boundary}");
+        assert_eq!(
+            pose,
+            if expected == "test" { oracle_pose } else { Vec::new() },
+            "{boundary}: the pose is the record's"
+        );
+    };
+    agrees(&lua, &movers, "the first question, before any step");
+    // the creation placement, a live step (the real solver) and the skipped-step derivation each move the record, and the next question follows it
+    movers
+        .borrow_mut()
+        .step("eech-world:7", creation, Request::Place { motion_vector: [0.0; 3] })
+        .unwrap();
+    agrees(&lua, &movers, "after the creation placement");
+    let advance = Advance {
+        delta_seconds: 1.0,
+        desired_velocity: 10.0,
+        max_acceleration: 4.0,
+        waypoint: [30.0, 0.0, 0.0],
+        tacview_logging: false,
+        terrain: None,
+        map_min: [-1.0e6; 3],
+        map_max: [1.0e6; 3],
+    };
+    let moved = movers.borrow_mut().step("eech-world:7", creation, Request::Advance(advance)).unwrap();
+    agrees(&lua, &movers, "after a live step");
+    movers.borrow_mut().step("eech-world:7", moved.pose, Request::RoutedVector).unwrap();
+    agrees(&lua, &movers, "after the skipped-step derivation");
+    // the loss unlinks the member from its group: the host is told nothing, and the identity and the record answer exactly as before
+    agrees(&lua, &movers, "after the loss");
+    // the release is the only end: only then is the identity refused, by name
+    movers.borrow_mut().retire("eech-world:7").unwrap();
+    let (result, reason, pose) = provider(&lua);
+    assert_eq!(result, "refused");
+    assert!(reason.contains("candidate record") && reason.contains("retired") && pose.is_empty(), "{reason}");
+}

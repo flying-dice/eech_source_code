@@ -613,14 +613,18 @@ fn entity_candidate_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaRe
     // A MOBILE candidate of a sector list (never a building listed under a city) has its physical pose from the host's OWN record of its identity, the ONE `Movers` registry the movement callbacks step: the
     // position and motion vector from the first question, the attitude once the placement facts were read (no attitude is required before the original read it). The campaign's words for them are compared with the
     // record by ENTITY_POSE and never decide here. A candidate the host holds no record of is refused by name: it is never completed from the campaign's words.
-    let (mobile, of_city, placement_given) = {
-        let flag = |at: usize| f32::from_bits(words[at]) != 0.0;
-        (
-            flag(entity_host::CANDIDATE_MOBILE),
-            flag(entity_host::CANDIDATE_OF_CITY),
-            flag(entity_host::CANDIDATE_PLACEMENT_GIVEN),
-        )
-    };
+    // The request is classified FIRST, from the raw words, with integers only (the same finite and flag domains, order and messages as the decision's own validation): a malformed word selects its request
+    // error before anything is evaluated as a float and before any registry lookup, never a record, busy or missing-record result in its place.
+    if let Err(reason) = entity_host::classify_candidate_words(&words) {
+        table.set("result", "refused")?;
+        table.set("reason", reason)?;
+        return Ok(table);
+    }
+    let (mobile, of_city, placement_given) = (
+        entity_host::candidate_flag_is_set(words[entity_host::CANDIDATE_MOBILE]),
+        entity_host::candidate_flag_is_set(words[entity_host::CANDIDATE_OF_CITY]),
+        entity_host::candidate_flag_is_set(words[entity_host::CANDIDATE_PLACEMENT_GIVEN]),
+    );
     if mobile && !of_city {
         let canonical = if host_id.is_empty() {
             Err("no host identity: the campaign has none for this mobile candidate".to_string())

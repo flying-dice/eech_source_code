@@ -91,6 +91,20 @@
 --   displaced_record      the host places that candidate's record somewhere other than where the campaign holds it (a host-only record change): the next observation reports a position difference and the engine stops
 --                         [model-provider:entity_pose.mirror]. A host-only pose cannot pass the conformance comparison, which is exactly what this shows.
 --
+-- THE HOST'S OWN MOVEMENT CHANGES WHAT THE SOLVER DECIDES FROM (two completion modes; neither is a refusal and neither is claimed by the two refusal modes above, which only STOP the engine). The engine's own movement
+-- callback is the host's (`move_vehicle = hosted_move`, a pass-through that logs each `move` answer per identity). `moving_control` and `terrain_lift` select a DIFFERENT case from the nearest-enemy rule: the nearest enemy of
+-- a launcher with an unguided ballistic weapon whose LAST host step (an actual `move` answered in the final warmup frame, the host's own result) has a motion vector of squared length above 1 and is a routed vehicle. No such
+-- enemy is the exact blocker `UNREACHED: no moving routed enemy at launch` (the warmup, seed and distances are not tuned to find one; an anti-aircraft gun the host steps with a zero vector does not qualify).
+--   moving_control    the natural case with that selection. It requires the TARGET itself to be asked need_updated (the shared C asks it only of a candidate whose motion vector is above 1: the per-identity proof that the
+--                     question was moving), to reach a `test`, and every mobile question to carry an identity.
+--   terrain_lift      the same, and after the launch (so the launch's aim is the control's) the host replaces ONE real environmental input of the target's own routed `move` steps: the terrain elevation, by a constant
+--                     (LIFT, a source-bounded physical input: only when it stays below the step's own map ceiling). The campaign's waypoint, speed demand and every other input are untouched; the host's physical step
+--                     (eech_convoy_step sets the new y from it) answers, the engine writes the answer to Core, the next observation must show Core and the record in step (a difference stops at `entity_pose.mirror`), and the
+--                     provider decides the target from that record. It requires a lifted step AND a later question about the target (a cohort that ends first is UNREACHED). Updates in a frame run weapon first, vehicle
+--                     after, so the first question that can see a lift is in the NEXT frame. The effect (the verdict, the weapon's terminal and the contact deltas against `moving_control`) is read across runs by Root.
+--   Both are allowed under profile=original (they act on movement, not on any entity question): the original solver reads the same Core mirror the engine wrote. What is then comparable is the outcome and the hashes, never a
+--   per-candidate question (the original asks none). A coherent Core-and-record change alone does not distinguish which of the two the solver consumed; that is the provider's own record-versus-discarded-mirror test.
+--
 -- THE ENTITY_POSE OBSERVATION (fifth slice; mb_hostmodel.h ENTITY_POSE, 15 words). For each MOBILE candidate of a sector list (an aircraft or a vehicle whose collision-test-mobile flag is set) the shipped offer asks the host to
 -- OBSERVE it against the host's own record of its semantic host identity (the one Movers registry the movement callbacks step), beside the original's reads. Nothing decides from the answer and no candidate, count or order of
 -- the dialogue depends on it. The words (the position and motion vector, and at the placement stage the attitude) are the ones the original read; the observation ADDS three read-only metadata reads, the entity's type, its alive
@@ -278,9 +292,12 @@ MODES.bad_pose_state = {
 -- the HOST-SIDE record modes (see the header): the host's own movement callback changes its own record before the question is delegated
 MODES.withdrawn_record = { withdraw = true, marker = "entity_candidate.refused" }
 MODES.displaced_record = { displace = true, marker = "entity_pose.mirror" }
+-- the HOST-SIDE movement modes (completion modes): see the header
+MODES.moving_control = { moving_target = true, host_side_movement = true }
+MODES.terrain_lift = { moving_target = true, host_side_movement = true, lift = true }
 local plan = MODES [mode]
 if plan == nil then refuse ("unknown mode '" .. tostring (mode) .. "'") end
-if profile == "original" and mode ~= "control" then refuse ("profile=original runs only mode=control: no entity_collision question reaches the provider to alter") end
+if profile == "original" and mode ~= "control" and not plan.host_side_movement then refuse ("profile=original runs only mode=control (or a host-side movement mode): no entity_collision question reaches the provider to alter") end
 
 -- ---------------------------------------------------------------------------------------------------------------- the evidence file: created exclusively, every write, flush and close checked, closed on every path
 local create = host.create_exclusive
@@ -381,6 +398,14 @@ local cand_altered, cand_skipped = 0, 0
 local scan_altered, scan_none_answered = 0, 0
 local pose_altered = 0
 local withdrawn, displaced = 0, 0
+-- the frames the engine has run (the host-movement wrapper stamps each of its answers with the frame it was given in), the host's last `move` answer per identity, the case target's identity and its questions
+local frames = 0
+local last_move = {}
+local watched
+local tgt = { questions = 0, skip = 0, need_updated = 0, need_fixed = 0, need_placement = 0, need_normal = 0, buildings = 0, test = 0, after_lift = 0, after_lift_test = 0 }
+-- the lifted terrain elevation (metres added to the target's own routed step; a constant declared before any run) and what the lifted steps did
+local LIFT = 500
+local lifted, lift_refused, lift_row = 0, 0, { baseline = 0, elevation = 0, answered_y = 0, frame = -1 }
 -- the armed pose observations by stage and by the class the REAL host answered, the ones that named an identity, and the histogram of (stage, entity type, alive, class, kind, difference)
 local pose = { total = 0, stage_offer = 0, stage_placement = 0, named = 0, recorded = 0, unrecorded = 0, retired = 0, unknown = 0, no_id = 0 }
 local pose_histogram = {}
@@ -655,6 +680,36 @@ local function pose_facts ()
 	facts.recorded_by_kind = table.concat (kinds, ";")
 	return facts
 end
+-- The host's own movement callback as the engine calls it (host.move_vehicle). Every step reaches the host unchanged except, in terrain_lift and only after the launch, the target's own routed `move` step, whose
+-- terrain elevation is raised by LIFT when that stays within the step's map ceiling. The step is copied: the engine's table is never mutated. Each `move` answer is logged per identity with its frame (the host's
+-- answer to the campaign, used only to select the case; it is not provider state).
+local function hosted_move (step)
+	local delegated, lifting = step, false
+	if plan.lift and armed and watched ~= nil and type (step) == "table" and step.host_id == watched and step.mode == "move" and type (step.terrain) == "table" then
+		local base = step.terrain.elevation
+		local ceiling = type (step.map_max) == "table" and step.map_max [2] or nil
+		if type (base) == "number" and base == base and type (ceiling) == "number" and base + LIFT <= ceiling then
+			delegated = {}
+			for key, value in pairs (step) do delegated [key] = value end
+			delegated.terrain = {}
+			for key, value in pairs (step.terrain) do delegated.terrain [key] = value end
+			delegated.terrain.elevation = base + LIFT
+			lifting = true
+			lift_row.baseline, lift_row.elevation, lift_row.frame = base, base + LIFT, frames
+		else
+			lift_refused = lift_refused + 1
+		end
+	end
+	local answer = host.move_vehicle (delegated)
+	if type (step) == "table" and step.mode == "move" and type (answer) == "table" then
+		last_move [step.host_id] = { frame = frames, motion = answer.motion_vector, position = answer.position }
+	end
+	if lifting then
+		lifted = lifted + 1
+		lift_row.answered_y = type (answer) == "table" and type (answer.position) == "table" and answer.position [2] or 0 / 0
+	end
+	return answer
+end
 local function candidate_question (scene, depth, kind, definition, key)
 	local parsed, why = parse_candidate_request (scene, depth, kind, definition, key)
 	if parsed then
@@ -680,6 +735,15 @@ local function candidate_question (scene, depth, kind, definition, key)
 		first_fault = first_fault or ("candidate reply: " .. problem)
 	else
 		cand [real.result] = cand [real.result] + 1
+		-- the questions about the case target itself, by the host's identity (and those after a lifted step): the per-identity evidence the global counts cannot give
+		if parsed and parsed.mobile and watched ~= nil and parsed.host_id == watched then
+			tgt.questions = tgt.questions + 1
+			tgt [real.result] = tgt [real.result] + 1
+			if lifted > 0 then
+				tgt.after_lift = tgt.after_lift + 1
+				if real.result == "test" then tgt.after_lift_test = tgt.after_lift_test + 1 end
+			end
+		end
 	end
 	if plan.candidate == nil then return real end
 	-- an altered answer is formed only from a well-formed question and real reply (a witness failure raised here would come back carrying the callback marker the refusal mode credits)
@@ -796,7 +860,7 @@ local function main ()
 	host.use_reference_arithmetic () -- the reference host's arithmetic profile, selected right after the installation is prepared and before the boot (src/reference_arithmetic.rs)
 	local engine = dc.boot {
 		install_root = root, map = map, terrain = terrain, environment = host.env_provider (), campaign_directory = "camp01", campaign = "LEBANON.CHC", gunship = "apache",
-		seed = seed, bind_mobile = bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
+		seed = seed, bind_mobile = bind_mobile, move_vehicle = hosted_move, observe_loss = host.observe_loss,
 		supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, model = model, sense = host.sense, aim = aim,
 	}
 	emit { event = "boot", mode = mode, profile = profile, warmup = warmup, settle = settle, frame_ms = frame_ms, seed = seed, frame_budget = frame_budget }
@@ -811,7 +875,6 @@ local function main ()
 	if profile == "hosted" and fixture_api then hard ("profile=hosted, but the module has the collision-fixture API: it keeps the original narrow phase and is not the shipped module (use profile=original)") end
 
 	local clock = engine:clock ()
-	local frames = 0
 	-- one frame, with finite progress: the simulated clock must be a finite number that has moved forward, and the run may not use more frames than its budget
 	local function frame ()
 		if frames >= frame_budget then hard ("FRAME BUDGET: " .. frames .. " frames were run and the simulated clock is at " .. tostring (clock.elapsed_seconds) .. " s") end
@@ -898,6 +961,15 @@ local function main ()
 	-- unguided ballistic weapon in stock. The weapon's lookup excludes only the launcher, so the target is the weapon's first broad-phase candidate when it is within the candidate's box
 	-- of radius + 10 m of the first segment; a war in which no pair is that close simply makes no narrow-phase question and the run is UNREACHED, never a pass.
 	local PERSON = 3 -- host.bind_mobile movement_kind of a person
+	local ROUTED = 1 -- host.bind_mobile movement_kind of a routed vehicle
+	-- moving_control / terrain_lift: the enemy must be a routed vehicle the host actually stepped in the final warmup frame with a motion vector above 1 m/s (the host's own answer, never a guess from its kind)
+	local function moving_routed (id)
+		local last = last_move [id]
+		if descriptors [id].kind ~= ROUTED or last == nil or last.frame ~= frames - 1 or type (last.motion) ~= "table" then return false end
+		local x, y, z = last.motion [1], last.motion [2], last.motion [3]
+		if not (finite (x) and finite (y) and finite (z)) then return false end
+		return x * x + y * y + z * z > 1
+	end
 	local pair_list = {}
 	for index, id in ipairs (ordered) do
 		local s = alive [id]
@@ -905,7 +977,7 @@ local function main ()
 			local best, best_distance
 			for _, other in ipairs (ordered) do
 				local o = alive [other]
-				if o and other ~= id and o.side ~= s.side and (o.side == "blue" or o.side == "red") and descriptors [other].kind ~= PERSON then
+				if o and other ~= id and o.side ~= s.side and (o.side == "blue" or o.side == "red") and descriptors [other].kind ~= PERSON and (not plan.moving_target or moving_routed (other)) then
 					local dx, dy, dz = o.position [1] - s.position [1], o.position [2] - s.position [2], o.position [3] - s.position [3]
 					local distance = math.sqrt (dx * dx + dy * dy + dz * dz)
 					if not best_distance or distance < best_distance then best, best_distance = other, distance end
@@ -930,9 +1002,15 @@ local function main ()
 		if launcher then break end
 	end
 	emit { event = "case_selected", launcher = launcher or "none", target = target or "none", weapon = weapon or -1, distance = distance or -1, pairs_considered = #pair_list,
-		selection = "nearest_non_person_enemy_of_a_launcher_with_an_unguided_ballistic_weapon" }
+		selection = plan.moving_target and "nearest_moving_routed_enemy_of_a_launcher_with_an_unguided_ballistic_weapon" or "nearest_non_person_enemy_of_a_launcher_with_an_unguided_ballistic_weapon" }
+	if not launcher and plan.moving_target then hard ("UNREACHED: no moving routed enemy at launch: no routed enemy of a launcher with an unguided ballistic weapon was stepped by the host in the final warmup frame with a motion vector above 1 m/s (" .. #pair_list .. " pairs); the warmup, seed and distances are not tuned") end
 	if not launcher then hard ("SETUP FAILURE: no launcher with an unguided ballistic weapon and a non-person enemy was found") end
 
+	watched = target
+	if plan.moving_target then
+		local last = last_move [target]
+		emit { event = "moving_target", target = target, motion = table.concat (last.motion, ","), frame = last.frame, position = table.concat (last.position or {}, ",") }
+	end
 	events () -- everything the natural war logged before the launch is taken first, so what is read after is the launch's own
 	local any_tests_before = counter ("contact_any_tests")
 	local any_hits_before = counter ("contact_any_hits")
@@ -1042,6 +1120,10 @@ local function main ()
 		pose_recorded = pose.recorded, pose_unrecorded = pose.unrecorded, pose_retired = pose.retired, pose_unknown = pose.unknown, pose_no_id = pose.no_id,
 		pose_altered = pose_altered, pose_histogram = pose_histogram_text (pose_histogram),
 		candidate_mobile_named = cand.mobile_named, candidate_mobile_unnamed = cand.mobile_unnamed, record_withdrawn = withdrawn, record_displaced = displaced,
+		target = watched or "", target_questions = tgt.questions, target_skip = tgt.skip, target_need_updated = tgt.need_updated, target_need_fixed = tgt.need_fixed,
+		target_need_placement = tgt.need_placement, target_need_normal = tgt.need_normal, target_buildings = tgt.buildings, target_test = tgt.test,
+		target_after_lift = tgt.after_lift, target_after_lift_test = tgt.after_lift_test,
+		lifted = lifted, lift_refused = lift_refused, lift_constant = LIFT, lift_baseline_elevation = lift_row.baseline, lift_elevation = lift_row.elevation, lift_answered_y = lift_row.answered_y, lift_frame = lift_row.frame,
 		pose_pre_total = pose_pre.total, pose_pre_stage_offer = pose_pre.stage_offer, pose_pre_stage_placement = pose_pre.stage_placement, pose_pre_named = pose_pre.named,
 		pose_pre_recorded = pose_pre.recorded, pose_pre_unrecorded = pose_pre.unrecorded, pose_pre_retired = pose_pre.retired, pose_pre_unknown = pose_pre.unknown, pose_pre_no_id = pose_pre.no_id,
 		pose_pre_histogram = pose_histogram_text (pose_pre_histogram),
@@ -1085,6 +1167,12 @@ local function main ()
 	if precision_delta < 1 then return "UNREACHED: the controlled view input was applied but the weapon step never took the high-precision collision path (precision_high did not rise)" end
 	-- the ACTUAL caller was reached: the weapon step's entity lookup was made (the fixture's own counter, not the provider's)
 	if any_tests_delta < 1 then return "UNREACHED: the weapon step made no entity-collision test (contact_any_tests did not rise): the actual entity caller was not reached" end
+	if plan.lift then
+		if lifted < 1 then return string.format ("UNREACHED: terrain_lift lifted no step of the target (%d refused by the map ceiling): the host's own routed move of the target never carried a terrain input within the bound", lift_refused) end
+		-- the host's physical step answered AT the lifted elevation (eech_convoy_step sets the new y from it): to one single-precision step of it
+		local y, e = lift_row.answered_y, lift_row.elevation
+		if not finite (y) or not (math.abs (y - e) <= math.abs (e) * 2 ^ -23) then return string.format ("terrain_lift: the host's answer to the lifted step is at y=%s, not at the lifted elevation %s", tostring (y), tostring (e)) end
+	end
 	if profile == "original" then
 		if after.entity ~= 0 or after.candidate ~= 0 or after.scan ~= 0 or after.pose ~= 0 then return "profile=original, but the host was asked " .. after.entity .. " entity_collision, " .. after.candidate .. " entity_candidate, " .. after.scan .. " entity_scan and " .. after.pose .. " entity_pose questions: the module is not the original" end
 		return "CAPABILITY RED (expected for the original profile): the entity-collision caller ran (contact_any_tests +" .. any_tests_delta .. ", contact_any_hits +" .. any_hits_delta .. ", fixture API present) and the host was asked no entity_collision question, no entity_candidate question and no entity_scan question"
@@ -1094,12 +1182,19 @@ local function main ()
 	if after.candidate < 1 and not plan.no_downstream then return string.format ("UNREACHED: the weapon step made %d entity-collision tests but the host was asked no entity_candidate question, so no candidate reached the narrow phase: the real scan did not reach the host", any_tests_delta) end
 	if after.entity < 1 and not plan.skips and not plan.no_downstream then return string.format ("UNREACHED: the weapon step made %d entity-collision tests but no candidate reached the narrow phase, so the host was asked no entity_collision question", any_tests_delta) end
 	if faults.request + faults.reply ~= 0 then return string.format ("the entity question or the host's reply is not the contract's (request_faults=%d reply_faults=%d): %s", faults.request, faults.reply, tostring (first_fault)) end
+	if plan.moving_target then
+		if cand.mobile_unnamed ~= 0 then return string.format ("%s: %d mobile candidate questions carried no host identity", mode, cand.mobile_unnamed) end
+		if tgt.need_updated < 1 then return string.format ("UNREACHED: %s: the target %s was never asked need_updated in %d questions (the shared C asks it only of a candidate whose motion vector is above 1), so it was not a moving candidate at the question", mode, tostring (watched), tgt.questions) end
+		if tgt.test < 1 then return string.format ("UNREACHED: %s: no question about the target %s reached the narrow phase (%d questions, %d skipped)", mode, tostring (watched), tgt.questions, tgt.skip) end
+		if plan.lift and tgt.after_lift < 1 then return string.format ("UNREACHED: terrain_lift: the cohort ended before a lifted step (frame %d) was followed by a question about the target %s", lift_row.frame, tostring (watched)) end
+	end
 	if seen.stationary + seen.moving ~= after.entity then return string.format ("the provider counted %d entity questions but classified %d", after.entity, seen.stationary + seen.moving) end
 	if cand.total ~= after.candidate then return string.format ("the provider counted %d candidate questions but classified %d", after.candidate, cand.total) end
 	if scan.total ~= after.scan then return string.format ("the provider counted %d scan questions but classified %d", after.scan, scan.total) end
 	if pose.total ~= after.pose then return string.format ("the provider counted %d pose questions but classified %d", after.pose, pose.total) end
 	if pose_pre.total ~= before.pose then return string.format ("the provider counted %d pre-launch pose questions but classified %d", before.pose, pose_pre.total) end
-	if mode == "control" then
+	if mode == "control" or plan.host_side_movement then
+		-- the host-side movement modes are the natural chain too: they alter the host's own movement input, never an answer of the provider
 		if altered ~= 0 or cand_altered ~= 0 or scan_altered ~= 0 then return "the control altered an answer" end
 		-- the natural chain: the enumeration offered candidates and a candidate reached the narrow phase
 		if scan.offer < 1 then return "UNREACHED: the real enumeration offered no entry (" .. scan.offer .. " offers), so no candidate dialogue followed from it" end
