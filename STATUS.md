@@ -1,4 +1,62 @@
-# CURRENT — D3 Task 52 (EEDCS-52, draft PR112): finite production target-point source/actual review CLOSED; shipping, dependency and whole D3 remain open (3 November 2026)
+# CURRENT — D3 Task52: complete regression and independent shipping review clear; Task50 delivered, final CI/normal merge pending (5 November 2026)
+
+This is the ONE current summary; all dated entries below are history. Recover the
+active whole-D3 task from `R:/d3-evidence/D3-CURRENT.json`; Task49 has its own live
+author/reviewer. The live M5 goal and migration ledger control scope.
+
+The original ordinary811 full pack completed3Nov16:20UTC: actual runner0, launcher
+completion true, all40 accepted checks PASS and ALL8 COMPLETE Tacview/observation/
+metric files literally byte-identical to the retained accepted pack. Final5Nov
+audit: all4 full retail input manifests0, all84 payloads/BUILD-INFO/runner/accepted
+report unchanged and frozen source clean. Combined independent full-shipping
+review3fdf has no findings and reuses closed initializer95f/querya1d6/mapping4bd.
+Literal review and safe final evidence are in
+`eech-campaign/reference/d3-target-point-characterization/full-pack-acceptance-20261105/`.
+
+Task50 is actually DELIVERED by normal PR110 merge873a172d9 (all9 exact38ec CI,
+accepted40/all8, actual merge tree verified). This normal dependency merge preserves
+Task52 production inputs; its only conflict was STATUS. Both useful dated histories
+and both tasks' evidence are retained. Task52 final metadata-head CI and its normal
+PR112 merge into integration remain open; no future merge is claimed here.
+
+Production811 supplies host-derived offset initialization and live target-point
+chain/world/fixed queries; seeker/guidance/engagement choices and consequences stay
+Core. Corrected fixturefc/c707 diagnostic scope stays distinct from ordinary811.
+Legacy hierarchy/live instance storage, placement/host-identity integration,
+Task49 collision and remaining physical loader/solver work stay REQUIRED whole-D3
+coupling. D3 is open; D4/D5 unstarted. No baseline/tolerance/input/configuration,
+visual Tacview inspection or native DCS execution claim changed.
+
+# HISTORICAL — Task50 final evidence publication before verified merge873a (5 November 2026)
+
+
+This is the ONE current summary; dated entries below are history. The workspace's
+canonical runtime checkpoint is `R:/d3-evidence/D3-CURRENT.json`. Live Confluence
+controls whole-D3 scope. Task49's entity author is active in its own worktree.
+
+Measured production `bce0c3514be13ee4bbc3a571387132989f74e3c6`: the original ordinary
+Windows pack completed 3 November 08:50 UTC with runner exit0 and launcher
+completion true. All40 accepted checks pass; ALL8 COMPLETE default recording,
+observation and metric files are literally byte-identical to the retained baseline.
+Final audit5Nov: all4 full retail input manifests0 (including the internal Lebanon
+copy), all83 payloads/BUILD-INFO/runner/accepted report unchanged and source clean.
+
+The combined independent full-shipping review has no findings, reuses the closed
+source/authority69cad review and confirms these results. Literal report, complete
+comparisons, source-scope and count/hash evidence are in
+`eech-campaign/reference/d3-route-characterization/full-pack-acceptance-20261105/`.
+This publication changes metadata only. Final current CI and a normal merge into
+verified integration581d32a remain delivery gates; it does not claim a merge yet.
+
+The host supplies model loading/triangles/bounds/radii and related physical data;
+campaign choices and consequences stay Core. Task52 target-point production is
+implemented on its stack and its full pack also completed; its dependency delivery
+follows Task50. Task49 entity/tree collision and remaining live hierarchy/instance,
+device/muzzle and physical loader/solver disposition remain REQUIRED whole-D3 work.
+D3 stays open and D4/D5 are unstarted. Baselines/tolerances/inputs/run configuration
+are unchanged. No visual Tacview or native DCS execution claim.
+
+# HISTORICAL (superseded 5 November 2026) — CURRENT — D3 Task 52 (EEDCS-52, draft PR112): finite production target-point source/actual review CLOSED; shipping, dependency and whole D3 remain open (3 November 2026)
 
 **This is the ONE current summary. Every entry below it is dated history; none is live state, whatever its old heading said.** The recovery entry is `docs/handover/ACTIVE-EXTRACTION.json` (this Task52 card), this summary and `R:/d3-evidence/D3-CURRENT.json` (runtime checkpoint). Scope, authority and gates are the live M5 goal and the EEDCS-52 / EEDCS-21 records. Whole D3 stays open and D4/D5 are not started. The one author lane is now working on required Task49 tree-query routing in its separate existing worktree; read the canonical checkpoint for its current state.
 

@@ -1,0 +1,33 @@
+{
+  "scope": "Safe final full-pack metadata and literal independent report; raw assets/recordings remain private.",
+  "files": {
+    ".gitattributes": {
+      "bytes": 14,
+      "sha256": "ed0552c0c90dc66525615947b802a78c48a1bf76ef68886ec8679298594f2511"
+    },
+    "complete-comparison.json": {
+      "bytes": 3221,
+      "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+    },
+    "current-ci-before-publication.json": {
+      "bytes": 1833,
+      "sha256": "903cddb8b44872857de48270db543b241dfe260a338888ad5040bf66f1d9be78"
+    },
+    "full-pack-audit.json": {
+      "bytes": 2772,
+      "sha256": "1a9e7babf7e20178d500df22f2e2980df3361971e9b44272e4b9077e36d33b02"
+    },
+    "independent-final-delivery-review.json": {
+      "bytes": 29333,
+      "sha256": "3fdf0d9af0ef15ffdbe39607fea9330aa63488428ea673c50643fe6de937b979"
+    },
+    "prospective-integration-runtime-scope.json": {
+      "bytes": 2034,
+      "sha256": "68b594bda5caf078c9cd794ea50582d9dc45fa995bf968e585e02df54cbc0b0a"
+    },
+    "README.md": {
+      "bytes": 1950,
+      "sha256": "7d88b2574b12b163856267ff387c9f1386c0fd810242745e4207f45091ff2090"
+    }
+  }
+}

@@ -7,17 +7,18 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "validation",
+  "phase": "reviewed-full-shipping-ready-for-normal-delivery",
   "preparation_batches_without_cutover": 0,
   "preparation_limit": 2,
-  "next_production_change": "Finite target-point initializer and getter production changes are implemented and independently CLOSED at source/actual scope (95f97d0 and a1d6b37c). Task52 still needs full ordinary811 40/all8 completion/post-input proofs, Task50 dependency, current checks and normal delivery/final scope audit. DCS mapping documentation reviewed4bd013c9 explicitly keeps hierarchy/liveplacement/hostidentity coupling in REQUIRED D3 scope. The one active production lane is now Task49 tree routing in its own worktree; see canonical D3-CURRENT, do not start another Task52 prototype or D4/D5.",
+  "next_production_change": "Physical target-point initializer/getter extraction and complete shipping are independently closed. Task50 delivered873a. Finish exact final metadata CI, verified ordinary-source merge scope and normal PR112 delivery; whole-D3 hierarchy/host identities remain required under the active Task49 record.",
   "ready_evidence": [
     "Original seven case shapes CLOSED2f/C500/5e+ca (1ef9/315d/d04b), numeric prototypes0cb7/00098 CLOSED at their finite keyframe0 input scope; no live-pose or production acceptance inferred from prototypes.",
     "RNG/input group CLOSED25f64cd4 for originalC1c30/checkerebcb; both initializer passes and intervening draws/reseeds characterized, not globalfuture RNG proof.",
     "Initializer production9b/c37 finite review95f97d0 CLOSED; all three host offsets reach real guidance consumer, explicitOriginal capabilityRED, no dummyconstructor/RNGpadding.",
     "Getter production811, correctedfixturefc and literal absenceLuac707 finite reviewa1d6b37c CLOSED;13 correctedcontrols+one validhostABSENT actual,28fullinputchecks,84payloads. Chain8 explicitbound/per-refused-row preflight/normal-return cleanup only.",
     "Ordinary811 exact retained short Lebanon actual0; all3 COMPLETE Tacview/observations/metrics literal baselineequal, two manifests0 and84payloads. Full40/all8 still open. Evidence reuse by exact ordinary/fixture/Lua source-scope proofs, no native relabel.",
-    "Pinned DCS declaration mapping/receipt reviewed4bd013c9 (documentation only). Legacyinstance/hierarchy/liveplacement and hostidentity integration remain REQUIRED whole-D3 work; no nativeDCS or universalanimatedpoint claim."
+    "Pinned DCS declaration mapping/receipt reviewed4bd013c9 (documentation only). Legacyinstance/hierarchy/liveplacement and hostidentity integration remain REQUIRED whole-D3 work; no nativeDCS or universalanimatedpoint claim.",
+    "5Nov independent full-shipping review3fdf: original ordinary811 runner0/launchertrue/accepted40/all8COMPLETE literal/four final inputs0/all84payloads unchanged. Safe literal report and receipts in full-pack-acceptance-20261105. Task50 normalmerge873a delivered; final Task52 CI/merge pending."
   ],
   "blockers": [
     {
@@ -57,11 +58,11 @@
       "status": "closed",
       "blocks_cutover": false,
       "evidence": "Final same-reviewer source/actual report a1d6b37c; literal independent-review.json in live-query-authority-811-fc-c707-20261103. P1/P2+13 controls+one c707 ABSENT+ordinary811 short independently joined.",
-      "missing_fact": "None for this finite source/actual slice; fullshipping/dependency/currentCI/wholeTask52/D3 remain open.",
+      "missing_fact": "None for finite source/actual or ordinary fullshipping3fdf. Task50 is delivered873a. Final Task52 metadata CI and normal merge remain delivery gates; required whole-D3 hierarchy/collision work remains separate and open.",
       "next_fix": "None; do not repeat closed source/actual review without new material."
     }
   ],
-  "next_action": "validate",
+  "next_action": "review",
   "acceptance": [
     {
       "gate": "Production physical offset initialization uses host data and old solver path is absent",
@@ -73,7 +74,7 @@
     },
     {
       "gate": "Established scenario and required complete byte-identical regression pass",
-      "complete": false
+      "complete": true
     },
     {
       "gate": "Current independent review/checks and normal merge; Task50 dependency delivered",
@@ -81,10 +82,10 @@
     },
     {
       "gate": "Complete all Task52 physical target-point queries and offset consumers, not merely the initializer increment",
-      "complete": false
+      "complete": true
     }
   ],
   "runtime_checkpoint": "R:/d3-evidence/D3-CURRENT.json",
-  "do_not_restart": "Task50 original bce pack; verify actual PID/birth/argv and receipts before any action.",
+  "do_not_restart": "Both original full packs are COMPLETE with actual0 and accepted40/all8. Their consumed roots/raws/payloads remain preserved; do not restart old PIDs or rerun wars for metadata.",
   "scope_limit": "Whole D3 remains open. Do not start D4/D5 or resume the historical TypeScript port. Task52 stays stacked on unaccepted Task50/PR110 1fb; the ordinary 8118389a96 and Task50 bce full40/all8 packs are ACTIVE per Root and must not be stopped, restarted or touched; prefixes are PARTIAL only."
 }
