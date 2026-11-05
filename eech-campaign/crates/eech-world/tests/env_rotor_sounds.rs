@@ -64,6 +64,7 @@ local function report_text ()
 end
 host.terrain_provider = function () return function () end end
 host.env_provider = function () return function () end end
+host.use_reference_arithmetic = function () ORDER [#ORDER + 1] = "select" end
 package.preload.eech_dc = function ()
 	local module = {
 		prepare_installation = function () ORDER [#ORDER + 1] = "prepare" end,
@@ -295,7 +296,7 @@ fn a_healthy_natural_capture_keeps_every_page_whole_in_order_and_arms_only_the_r
     let driven = drive_in(&work, &healthy_scenario(), &[("seconds", "1"), ("frame_ms", "250")], &|_| {});
     driven.result.clone().expect("a coherent natural capture");
     // the probe is armed by its own call, before boot, and the general observer is never armed
-    assert_eq!(&driven.order[..3], ["prepare", "arm:true", "boot"], "{:?}", driven.order);
+    assert_eq!(&driven.order[..4], ["prepare", "select", "arm:true", "boot"], "{:?}", driven.order);
     assert!(!driven.order.iter().any(|step| step == "GENERAL_OBSERVER_ARMED"));
     // one drain after boot and one after each of the four frames
     assert_eq!(driven.order.iter().filter(|step| step.as_str() == "drain").count(), 5);

@@ -552,6 +552,7 @@ local function run ()
 
 	dc = require ("eech_dc")
 	dc.prepare_installation (root)
+	host.use_reference_arithmetic () -- the reference host's arithmetic profile, selected right after the installation is prepared (src/reference_arithmetic.rs)
 	if observer_on then
 		-- the genuine refusal for a module without the observer; the observer is armed BEFORE boot, so the random start time, the reseed and the ten weather draws are in the record
 		if type (dc.env_observer_arm) ~= "function" then
@@ -563,7 +564,7 @@ local function run ()
 	engine = dc.boot {
 		install_root = root, map = scenario.map, terrain = host.terrain_provider (root, scenario.map), environment = host.env_provider (), campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache",
 		seed = seed, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
-		supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, sense = host.sense, aim = host.aim,
+		supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, model = host.model, sense = host.sense, aim = host.aim,
 	}
 	clock = engine:clock ()
 

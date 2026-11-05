@@ -1,0 +1,219 @@
+{
+  "schema": "independent-review/v1",
+  "task": "EEDCS-50 original-model response-validator closure",
+  "reviewed_head": "309b3f0505ba33e50a65fe8ad59d95443eb9806b",
+  "reviewed_delta_base": "e84c5782713dbb0bd7a006665b8016b9f225b195",
+  "original_reviewed_native_source": "366622e0c08b2caaa5a5317f5197c0ee3d7050e9",
+  "driver_first_git_checkpoint": "c44173556165ed1522a36d06f681ab9ea20e5e5a",
+  "frozen_review_source": "R:/d3-evidence/model-driver-portable-source-309b3f050",
+  "clean_exact_head_at_final_check": true,
+  "disposition": "RESOLVED_NO_NEW_FINDINGS",
+  "findings": [],
+  "closed_findings": [
+    {
+      "id": "MODEL-DRIVER-COMPLETENESS",
+      "original_priority": "P2",
+      "status": "RESOLVED",
+      "source_locations": {
+        "driver": "eech-campaign/crates/eech-world/lua/model-characterization.lua:147",
+        "catalogue": "eech-campaign/crates/eech-world/lua/model-characterization.lua:174",
+        "geometry": "eech-campaign/crates/eech-world/lua/model-characterization.lua:209",
+        "portable_tests": "eech-campaign/crates/eech-world/tests/model_characterization.rs:153"
+      },
+      "assessment": "The driver now checks page/request identity and complete ascending scene membership, metadata shapes, geometry header continuity, contiguous depth/return/write/word facts, explicit absence/refusal contracts and closing-call/terminal correspondence. An invented original_false with no false call and duplicate catalogue IDs are refused before done. Genuine partial writes, early original false, empty/absent/refused models, unbacked gates and capped walks remain explicit observations. fan_bound is not substituted for an expected original answer."
+    }
+  ],
+  "scope": "One focused combined correctness, clean-code, boundary-safety and actual evidence pass. Driver/new portable test/docs only; unchanged C/FFI, original decoder, Task49 and earlier component reviews reused, not re-reviewed.",
+  "source_assessment": [
+    "Changed native C/Rust/FFI/Cargo/build inputs are absent: the366-to309 changed-path set contains only driver, new integration-test target and metadata/docs. Existing366 native DLL and43 file-manifest entries remain labelled366. The309 Windows build is host/test-only with4 payloads, not a new original model DLL build.",
+    "The exact driver bytes are shared by first immutable working snapshot, c441 and309. Healthy native and corruption results therefore apply to the reviewed driver without relabelling the binary.",
+    "Portable tests include the actual driver using include_str and write its unchanged bytes into the per-run temporary directory. EECH_WORLD_BIN uses OsString/PathBuf, rejects an explicitly invalid path and does not silently fall back; ordinary Cargo path remains available when the override is absent.",
+    "Eight test groups exercise real-host Lua report reading against an explicitly invented protocol collaborator: healthy multi-page/short-last responses, explicit outcome preservation, caps, partial-write anomalies, changed state, catalogue/state/clock and geometry corruptions, stopping after refusal and preboot argument/provenance/output guards. Strict JSON parsing does not silently discard invalid lines. These tests do not prove model geometry or native safety.",
+    "No new actionable correctness, clean-code or boundary-safety issue was established in this bounded delta."
+  ],
+  "actual_checks": {
+    "linux309": {
+      "actual_exit": 0,
+      "fmt": 0,
+      "guard_tests": {
+        "passed": 8,
+        "failed": 0,
+        "ignored": 0
+      },
+      "all_target_clippy": 0,
+      "completion": "model-driver-309b3f050-linux-20261029-completion.json"
+    },
+    "windows309": {
+      "host_guard_build_exit": 0,
+      "manifest_payloads_rehashed": 4,
+      "build_info_sha256": "a68781aca3767c26c00c1153dc690f96d12a08827856e1ebdf8daa033fdf2a6a",
+      "actual_controller_exit": 0,
+      "valid_host_native_exit": 0,
+      "passed": 8,
+      "failed": 0,
+      "ignored": 0,
+      "invalid_override": {
+        "native_exit": 101,
+        "passed": 0,
+        "failed": 1,
+        "meaning": "Expected strict missing-host control; explicit no-fallback error, not a product or model failure."
+      },
+      "payloads_unchanged": true
+    },
+    "retained_failures": "First c441 Linux ran8 guards successfully but exited101 at unused-stdout Clippy; first c441 Windows test execution exited101 with inaccessible baked Cargo/source paths. Original failures and outputs remain retained.309 changes test portability/diagnostics only; no case expectations, driver or original native inputs changed."
+  },
+  "native_driver_evidence": {
+    "healthy": {
+      "runner": "Direct frozen366 native exe plus exact new Lua driver, not repository PowerShell wrapper and not a309 DLL build. Reused controller field repository_runner_exit does not change actual argv provenance.",
+      "cases": [
+        "georgia",
+        "lebanon",
+        "lebanon-repeat"
+      ],
+      "actual_native_exits": [
+        0,
+        0,
+        0
+      ],
+      "actual_controller_exits": [
+        0,
+        0
+      ],
+      "pre_post_inputs_per_case": 0,
+      "strict_rows_each": 3344,
+      "state_before_after_equal_each": true,
+      "done_failures_each": 0,
+      "original_selected_per_case": {
+        "true": 208,
+        "false": 7,
+        "refused_no_helper": 4
+      },
+      "payloads_unchanged": true
+    },
+    "independent_byte_comparison": {
+      "method": "Selected complete JSONL event lines via splitlines(keepends=True), preserving exact bytes and line endings; no rewriting or normalization. Compared new driver outputs to retained366 catalogue and selected geometry files.",
+      "all_three_catalogue_page_and_scene_rows_exact": true,
+      "all_three_geometry_event_rows_exact": true,
+      "geometry_rows_sha256": "103f72eb2f7e31be523f0b46b92415e1c4acba2695e7e39c0d45f97f5b00aaac",
+      "georgia_catalogue_sha256": "5cab52a2c904a8d2f6b305e9ec6356e5225d0405021dace33768a095dd6bd85d",
+      "lebanon_and_repeat_catalogue_sha256": "e1cfa7f2b0e7318ed6128fc75bda506a9ab72ccdfda24e0cd0311f1b92adef2d",
+      "whole_file_equality_claimed": false
+    },
+    "same_script_corruptions": {
+      "script_sha256": "e1e0908c094503ec81e93371e8807b51143ecd9135dce7ab0c17e774b2a52509",
+      "old_driver": "Native0/done failures0 on both corruptions, retained from original review.",
+      "new_driver": "Native1 and exact terminal report-refused, no done on both; actual pre/post0 and unchanged payloads.",
+      "cases": [
+        {
+          "mode": "missing_triangles",
+          "reason": "original_false without an original call that returned false at that depth",
+          "raw_sha256": "fa606c876c94f621a5b8235ddbe28e254451eb245bf8d5e4d88d0dd472b83e25"
+        },
+        {
+          "mode": "duplicate_catalogue_id",
+          "reason": "scene row 1: wrong or out-of-order scene identity 2",
+          "raw_sha256": "b0c06989f34f4da078f479664ba33da1485fefd20997ff668ee7ff10369ad4f0"
+        }
+      ]
+    },
+    "assessment_recovery": {
+      "original_green_controller_exit": 1,
+      "cause": "Root assessor expected malformed model report, but actual driver writes report refused. Both native children already refused correctly.",
+      "separate_read_only_assessment_exit": 0,
+      "review": "Assessment source and retained raw/controller/log/hash facts were inspected and independently checked; exact report-refused event/reason, native1, no done and same script/driver identities agree. Original failed aggregate was not rewritten or retroactively called0.",
+      "refusal_state_limit": "Expected refusal exits before final model-state snapshot; no state-equality claim is made for those failures. Separate healthy new-driver runs establish unchanged state."
+    }
+  },
+  "limits": [
+    "This closes only the original-fixture response-validator preparation finding. It is not formal GitHub approval, Task50 delivery, host model-loader implementation, production authority/cutover, shipping or whole-D3 acceptance.",
+    "The14 custom-object and45 mixed face-layout scenes remain refused original cases requiring further D3 work; the selected geometry is not all-model coverage.",
+    "No new physical query expectation, original raw, oracle, geometry formula, input asset, tolerance or baseline was changed. Prior complete source/native review is reused within its original limits.",
+    "Actual Windows and Linux guard runs validate response-contract handling, not the native decoder or physical model. Native measurements remain source366 with driverffba.",
+    "Current PR CI is not established by these local results. All other required D3 model/spatial/environment/time/loader-removal and final delivery gates remain.",
+    "No source/test/build/native/process/cache/Git/auth or external mutation was performed by this reviewer; only this new report was written."
+  ],
+  "source_hashes": [
+    {
+      "path": "eech-campaign/crates/eech-world/lua/model-characterization.lua",
+      "sha256": "ffba01750612790d6268e8626e83bbd48179194f51a62138ef3f9ecd42051db9"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/model_characterization.rs",
+      "sha256": "22afb3671b457fb6f330e56f2662bd3bfe0842adff4cf5d5ac58a75374ff5927"
+    },
+    {
+      "path": "eech-campaign/docs/m5-model-characterization.md",
+      "sha256": "fd13b7368260ee6c67ced2c403770934876ea064afebdafe032997142455b44c"
+    }
+  ],
+  "evidence_identities": [
+    {
+      "path": "R:/d3-evidence/independent-model-original-characterization-review-366622e0c-20261029.json",
+      "sha256": "caf2df9a5b59aa8c0a2de739c9cf2dc49b284aa1d869e581d99a97cb5c8fbddb"
+    },
+    {
+      "path": "R:/d3-evidence/model-driver-309b3f050-native-source-reuse-proof.json",
+      "sha256": "6a41ceed3f4c43ad3a27c357cb57a71f50c975fcc7f22ffd7d0995b9f6a3c968"
+    },
+    {
+      "path": "R:/d3-evidence/model-driver-c44173556-actual-catalogue-geometry-byte-comparison-20261029.json",
+      "sha256": "b2fa61447ddc10f82c0c22425a571dcaed6b11f01f9beb50347fae21af30bef9"
+    },
+    {
+      "path": "R:/d3-evidence/model-driver-working-ffba01750612-native-20261029/controller.json",
+      "sha256": "98fc1d0b7ed360f2458676e64cc60df7ea57eba6864eb6a11e2ef710e27a7aee"
+    },
+    {
+      "path": "R:/d3-evidence/model-driver-c44173556-native-remaining-20261029/controller.json",
+      "sha256": "27a0d786498b779a87e84502c9c103638a7c62aa344c729a4c3130e58fb92080"
+    },
+    {
+      "path": "R:/d3-evidence/model-driver-working-ffba01750612-report-corruption-green-20261029/controller.json",
+      "sha256": "1e17954bd5cb5416acc69a31fcb0b4464875ea776b560c7c8bd9b1df324b4c4b"
+    },
+    {
+      "path": "R:/d3-evidence/model-driver-working-ffba01750612-corruption-controls-assessment-20261029.json",
+      "sha256": "ad38daf4fd13f1a497e2ddf45cae202756d60a9de5c46d57f206c616c55278c8"
+    },
+    {
+      "path": "R:/d3-evidence/assess-model-driver-working-ffba01750612-corruption-controls-20261029.py",
+      "sha256": "6ad95310d730f7c17398996c592b772fd0ff9fa5f98f817396c09f09ce854c9a"
+    },
+    {
+      "path": "R:/d3-evidence/model-original-report-corruption-control-20261029.lua",
+      "sha256": "e1e0908c094503ec81e93371e8807b51143ecd9135dce7ab0c17e774b2a52509"
+    },
+    {
+      "path": "R:/d3-evidence/model-driver-c44173556-linux-20261029-completion.json",
+      "sha256": "98269f27f353c9d28ea10b01b8ab63cc509eb511e9c8be8bd9ae9d74f957075a"
+    },
+    {
+      "path": "R:/d3-evidence/model-driver-c44173556-windows-guards-20261029/controller.json",
+      "sha256": "2cc043ca2e5470f5f72066f0d1af054db4517d0e910e6b0d642fa1b67fd5ed10"
+    },
+    {
+      "path": "R:/d3-evidence/model-driver-309b3f050-linux-20261029-completion.json",
+      "sha256": "2df3a914e4c7e315b79d734d25e8158b90c17c24167c572a3022efc0bc003ee7"
+    },
+    {
+      "path": "R:/d3-evidence/model-driver-309b3f050-linux-20261029.log",
+      "sha256": "efe30857847833caec065ac84b6589b5ad1e00dde8bf1f35de57e6be7d9c23ab"
+    },
+    {
+      "path": "R:/d3-evidence/model-driver-309b3f050-windows-20261029-completion.json",
+      "sha256": "9a6fb701eb8f0bf939951a0c92cbbc575a5eab6410a808ee32b37a7392379290"
+    },
+    {
+      "path": "R:/d3-evidence/model-driver-309b3f050-windows-guards-20261029/controller.json",
+      "sha256": "2e251950be66ee5631dcea4c11d74829198b7159d0bba41702355a56c95a08f1"
+    },
+    {
+      "path": "R:/d3-evidence/model-driver-309b3f050-windows-guards-20261029/valid-host.log",
+      "sha256": "334e0bc828032a8a0f8bd65b4e1e7e9476d73e0392335d26796256dec5ad3570"
+    },
+    {
+      "path": "R:/d3-evidence/model-driver-309b3f050-windows-guards-20261029/invalid-host.log",
+      "sha256": "f926ad30e80088b3119d9acf2aa2321cf744da9acc346860e7be22a56073c881"
+    }
+  ]
+}

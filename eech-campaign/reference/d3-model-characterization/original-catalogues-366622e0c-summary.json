@@ -1,0 +1,214 @@
+{
+  "scope": "Original real-retail model catalogue only; no geometry selected, no loader moved, no shipping/Task50/D3 acceptance",
+  "source": "366622e0c08b2caaa5a5317f5197c0ee3d7050e9",
+  "base": "6bbaa8197a4843181d03cd355d562af998c75321",
+  "task": "EEDCS-50",
+  "pr": "https://github.com/flying-dice/eech_source_code/pull/110",
+  "build": {
+    "source": "366622e0c08b2caaa5a5317f5197c0ee3d7050e9",
+    "kind": "windows",
+    "args": [
+      "wsl",
+      "-d",
+      "EECH-D2-Build",
+      "--",
+      "sh",
+      "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-model-original-366622e0c.sh"
+    ],
+    "started_utc": "2026-10-29T22:36:27.049623+00:00",
+    "state": "terminal",
+    "pid": 7296,
+    "actual_exit": 0,
+    "completed_utc": "2026-10-29T22:39:08.779821+00:00"
+  },
+  "build_info_sha256": "46bcfa350d85d5b44d95f3c9b31ee708af40264b8dca3f3fae3e9b2ba8562353",
+  "controller_sha256": "612b183c17b0adeba6f842291fe68953e49e798470eb3ea777308400ac604125",
+  "verified_exports": 43,
+  "payloads_unchanged": true,
+  "catalogue_actual_exit": 0,
+  "catalogue_completed_utc": "2026-10-29T22:42:28.422594+00:00",
+  "results": [
+    {
+      "case": "georgia",
+      "pre_inputs": 0,
+      "actual_repository_runner_exit": 0,
+      "post_inputs": 0,
+      "not_run": false,
+      "native_zero_exit_recorded": true,
+      "raw_sha256": "34bef5c6730d33a3d337055d1df8cd805b5f41c61833ff2a1beac55c8ac8a9fd",
+      "rows": 3102,
+      "summary": [
+        {
+          "event": "model-summary",
+          "names": "compiled_enum",
+          "object_bytes": 144,
+          "page_scenes": 96,
+          "page_triangles": 256,
+          "raw_objects": 11442,
+          "scene_entry_bytes": 304,
+          "scene_last": 3026,
+          "surface_block": 52517,
+          "surface_bytes": 16
+        }
+      ],
+      "scenes": 3025,
+      "status_counts": {
+        "custom_object": 14,
+        "safe": 769,
+        "absent": 2009,
+        "face_mismatch": 45,
+        "no_scene": 188
+      },
+      "done": [
+        {
+          "event": "done",
+          "failures": 0
+        }
+      ],
+      "state_snapshots": [
+        {
+          "content": "64ec62e5ffdfc9c0",
+          "content_objects": 769,
+          "event": "model-state",
+          "phase": "before",
+          "pointers": "de7dce92b3ffe122",
+          "tables": "48268060b8e43f09"
+        },
+        {
+          "content": "64ec62e5ffdfc9c0",
+          "content_objects": 769,
+          "event": "model-state",
+          "phase": "after",
+          "pointers": "de7dce92b3ffe122",
+          "tables": "48268060b8e43f09"
+        }
+      ],
+      "scene_sequence_complete": true,
+      "positive_scenes": 769
+    },
+    {
+      "case": "lebanon",
+      "pre_inputs": 0,
+      "actual_repository_runner_exit": 0,
+      "post_inputs": 0,
+      "not_run": false,
+      "native_zero_exit_recorded": true,
+      "raw_sha256": "f878c8e0231b8f757040a90f92f30f37b5927bb4c4cfb31cc01b127dd2200f00",
+      "rows": 3102,
+      "summary": [
+        {
+          "event": "model-summary",
+          "names": "compiled_enum",
+          "object_bytes": 144,
+          "page_scenes": 96,
+          "page_triangles": 256,
+          "raw_objects": 11442,
+          "scene_entry_bytes": 304,
+          "scene_last": 3026,
+          "surface_block": 52517,
+          "surface_bytes": 16
+        }
+      ],
+      "scenes": 3025,
+      "status_counts": {
+        "custom_object": 14,
+        "safe": 769,
+        "absent": 2009,
+        "face_mismatch": 45,
+        "no_scene": 188
+      },
+      "done": [
+        {
+          "event": "done",
+          "failures": 0
+        }
+      ],
+      "state_snapshots": [
+        {
+          "content": "64ec62e5ffdfc9c0",
+          "content_objects": 769,
+          "event": "model-state",
+          "phase": "before",
+          "pointers": "13c4e1339ad51f6a",
+          "tables": "898b06eb6edd8751"
+        },
+        {
+          "content": "64ec62e5ffdfc9c0",
+          "content_objects": 769,
+          "event": "model-state",
+          "phase": "after",
+          "pointers": "13c4e1339ad51f6a",
+          "tables": "898b06eb6edd8751"
+        }
+      ],
+      "scene_sequence_complete": true,
+      "positive_scenes": 769
+    },
+    {
+      "case": "lebanon-repeat",
+      "pre_inputs": 0,
+      "actual_repository_runner_exit": 0,
+      "post_inputs": 0,
+      "not_run": false,
+      "native_zero_exit_recorded": true,
+      "raw_sha256": "27003430767e7001075a48425150b8d1f36d8537f93b908faff11f1b7df6076d",
+      "rows": 3102,
+      "summary": [
+        {
+          "event": "model-summary",
+          "names": "compiled_enum",
+          "object_bytes": 144,
+          "page_scenes": 96,
+          "page_triangles": 256,
+          "raw_objects": 11442,
+          "scene_entry_bytes": 304,
+          "scene_last": 3026,
+          "surface_block": 52517,
+          "surface_bytes": 16
+        }
+      ],
+      "scenes": 3025,
+      "status_counts": {
+        "custom_object": 14,
+        "safe": 769,
+        "absent": 2009,
+        "face_mismatch": 45,
+        "no_scene": 188
+      },
+      "done": [
+        {
+          "event": "done",
+          "failures": 0
+        }
+      ],
+      "state_snapshots": [
+        {
+          "content": "64ec62e5ffdfc9c0",
+          "content_objects": 769,
+          "event": "model-state",
+          "phase": "before",
+          "pointers": "d857482587909d73",
+          "tables": "0dd152eb07efe0ee"
+        },
+        {
+          "content": "64ec62e5ffdfc9c0",
+          "content_objects": 769,
+          "event": "model-state",
+          "phase": "after",
+          "pointers": "d857482587909d73",
+          "tables": "0dd152eb07efe0ee"
+        }
+      ],
+      "scene_sequence_complete": true,
+      "positive_scenes": 769
+    }
+  ],
+  "limitations": [
+    "Catalogue only: no original retail triangle query has yet been selected or measured.",
+    "769 safe entries are eligible for guarded probing; this is not geometry equivalence.",
+    "14 custom objects and 45 face-layout mismatches remain unsupported by this probe.",
+    "Full raw catalogue files differ; no byte identity across processes or normalized baseline is claimed.",
+    "No host loader, production dispatch extraction, independent Task50 review, shipping acceptance or D3 completion."
+  ],
+  "next": "Select campaign-used safe/end-backed vehicle and building models, measure original triangles/end/absence/refusals, then independent review before host loader extraction."
+}

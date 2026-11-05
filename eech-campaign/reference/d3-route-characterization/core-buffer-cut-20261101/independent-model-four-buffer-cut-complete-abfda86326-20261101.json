@@ -1,0 +1,162 @@
+{
+  "review": "Focused completed four-buffer correction source and actual evidence",
+  "source": {
+    "head": "abfda863267c9aa7d71ebc29b10f168d98c484aa",
+    "reviewed_base": "ccc452982aa2321ae8a76092e0ca92e2e1375b90",
+    "frozen_repository": "D:\\EECH-Migration-Evidence\\model-buffer-cut-abfda86326",
+    "diff_sha256": "0c93667e28dc7da4cf22386051a51c5e93a4bb2a38e84a7b24aa688188891427",
+    "changed_git_blob_sha256": {
+      "STATUS.md": "02f2cffdbb24bf1827b436670bd436c7ce4fdc7ab8f13b836c36fddefb08869a",
+      "aphavoc/source/entity/mobile/mb_hostmodel.c": "ee1951135f908d92c71d0aedb6f71a9d516a64efedf06a4f633d710f317fdef6",
+      "eech-campaign/crates/eech-engine-sys/build/patches.rs": "2b94d2acdbbcbd5df01d8b41ec33b4d6ba141b42437c6e480720f918b1c1c311",
+      "eech-campaign/crates/eech-world/lua/model-horizon-control.lua": "65ee3e5a2946ba99ada6520c5fffc64cf375ad80f052f834926a2f43fd53f149",
+      "eech-campaign/crates/eech-world/tests/model_horizon_control.rs": "5d31c0b991c227861c9fb2b5962b681ba5763a6575d24a652692c9678ca26803",
+      "eech-campaign/docs/m5-route-characterization.md": "73d9c759410a0e0e85eb96a04160ee9b343d20ea3a697a32d0017a0c0bdb1a3f"
+    },
+    "source_progression": {
+      "correction": "1f9453b1abac5fd32147881bbaebebf2e0ba6b39",
+      "test_only_formatter": "0515642a98dbe8c43f90dc871781604cf9e16539",
+      "final_negative_polygon_count_check": "abfda863267c9aa7d71ebc29b10f168d98c484aa"
+    }
+  },
+  "prior_report": {
+    "path": "R:/d3-evidence/independent-model-four-buffer-cut-source-actual-ccc452982a-20261101.json",
+    "sha256": "7f220c49d8edad4fbabf004390f3a4e760d264a26eb48e8091e9ecc83806d07b",
+    "preserved_unchanged": true
+  },
+  "scope": "Same one consolidated follow-up for the three prior findings, the tiny residual LE4 count correction, supplied helper results and final-source builds/four native controls. Unchanged CCC actuals and old route/kernel/original reviews are reused at their own source identities. No reviewer edits/builds/tests/native executions or nested agents. Later original scene-animation characterization WIP is excluded.",
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "finite_buffer_slice_closed": true,
+  "finite_four_buffer_cut_closed": true,
+  "closed_findings": [
+    {
+      "id": "ENV-MODEL-BUFFER-READER-1",
+      "disposition": "Closed by named guards at the aliased 3dtrans whole-object, flat/unclipped and surface-transform readers, surface illumination, and dominating W/Z scene, subobject and translucent funnels. Twenty-six new heads bring the strict loader patch set to 86 patches including 66 visual heads. Each guard precedes the original body, so metadata/device setup and detached point/reference dereferences do not precede it on these paths. Original-keeping diagnostic profile bypass is retained. These are unsupported visual readers, not a renderer service or a claim of global dormancy."
+    },
+    {
+      "id": "ENV-MODEL-BUFFER-IO-2",
+      "disposition": "Closed. All newly skipped regions use checked read/discard through a fixed 4096-byte buffer, with checked count/record-size domains and a U64 byte product. Exact read lengths are required. Custom polygon chunks require complete reads before validating their entries. The final abf helper refuses a negative signed polygon count before if(nonzero)/loop, permits zero, and retains the original valid-file validation/texture ordering. No seek result or missing record is silently treated as valid."
+    },
+    {
+      "id": "ENV-MODEL-BUFFER-WITNESS-3",
+      "disposition": "Closed. All three rows use the exact field order and canonical nonnegative decimal grammar; the Windows-reference i32 domain and presence/row coherence are explicit. Invalid/incomplete residency or cache evidence stops without launching the unsupported reader. Only the exact Engine-owned first line for the named horizon operation counts as its refusal; bare/quoted/wrong-prefix/file/setup errors fail. Feature-off detection is honestly after boot; earlier cache lookup is distinguished from the guarded TGA/decode branch. Nine scripted driver/drift functions preserve checked exclusive-output final closure."
+    }
+  ],
+  "source_boundary": {
+    "persistent_buffers": "The four persistent common/custom geometry buffers remain NULL: points, polygon faces, face-point references and surface-point references. Required route and collision values remain host-owned through the unchanged public model seam.",
+    "retained_IO": "Core still opens model streams and reads/discards uninterpreted regions to reach retained metadata. The temporary discard/chunk buffers are bounded; this is not removal of all Core model-file I/O or all geometry metadata.",
+    "retained_data": "True counts, bounds, radius, surface descriptors/animation indices, normals, texture metadata and hierarchy remain coupled. No new kind-0/main-point service or parallel numerical decoder was accepted.",
+    "feature_and_profile_gates": "Ordinary hosted builds apply the cut and refusal heads; explicit model-fixture/route-original diagnostics retain original data on purpose and are not shipping fallback. Fixture observation/control entries remain feature-gated.",
+    "unchanged_components": "Real existing ModelStore/provider/kernel/test paths and complete route-host patch block remain exact the accepted c88 baseline. Six full fixture/bridge/store/kernel blobs and modes also remain exact CCC; comparisons use existing tree entries, not absent-path git diff success. Engine C remains unchanged by this correction."
+  },
+  "actual_new_controls": {
+    "source": "abfda863267c9aa7d71ebc29b10f168d98c484aa",
+    "distinct_controls": 4,
+    "all_native_and_controller_exits": 0,
+    "full_pre_post_input_exits_zero": 8,
+    "payloads_rehashed_each": 58,
+    "build_info_sha256": "b9ee4e2a8bdf278b0aad146d96cd32f101fc40206b930cae2b07f9eea2d05c85",
+    "residency_horizon": {
+      "JSON_events": 7,
+      "actual_table_rows": 11442,
+      "metadata_rows": 10252,
+      "points_faces_pointrefs_surfacepoints_each": 0,
+      "cached_boot_calls": 32,
+      "uncached_boot_calls": 0,
+      "three_counter_rows_literal_equal_CCC": true,
+      "genuine_exact_Engine_owned_primary_error": true,
+      "actual_uncached_entry_fatal_caught_by_driver": true,
+      "process_zero_is_control_success_not_visual_reader_success": true,
+      "no_after_poison_engine_question": true
+    },
+    "routes": {
+      "georgia": {
+        "calls": 704,
+        "complete_bytes": 10337109,
+        "sha256": "53b9ddc61e962003081fb577def24f8b2f4ef2f71a28a488c180b319257e01f8"
+      },
+      "lebanon": {
+        "calls": 528,
+        "complete_bytes": 7758545,
+        "sha256": "7de455637bda01ded949366ddf5969b9f07eff7b4d21abf1ca1a79f20258d08f"
+      },
+      "whole_files_literal_equal_CCC_and_9e4_including_endings": true,
+      "new_independent_repeat_claimed": false,
+      "FCE_cohorts": "Declared decoded node/ordered-edge fields and literal Core graph cohorts remain exact. No unmeasured bounds or invented raw shorts; whole original-versus-host profile files intentionally differ and are not normalized."
+    },
+    "short_recording": {
+      "recording_bytes": 230871,
+      "observations_bytes": 1553674,
+      "metrics_bytes": 7477,
+      "all_three_complete_files_literal_equal_retained_80fd_including_endings": true,
+      "explicit_retained_output_arguments": true,
+      "not_visual_or_full_shipping": true
+    }
+  },
+  "reused_actual_evidence": {
+    "CCC": {
+      "source": "ccc452982aa2321ae8a76092e0ca92e2e1375b90",
+      "scope": "Previously independently verified actual withheld-node no-fallback refusal and four accessor probes with all four buffers absent. Eight original scene/triangle rows are exact prefixes; four additional route diagnostic rows are not normalized away. Original and candidate presence_mismatches remain 147. No rerun or relabel as abf measurements."
+    },
+    "IO_helpers": {
+      "source": "0515642a98dbe8c43f90dc871781604cf9e16539",
+      "actual_helper_contracts": 8,
+      "scope": "Literal campaign_model_loader_skip and campaign_model_loader_short with a pinned Linux compiler/libc and fatal capture/longjmp. Complete helper bodies are unchanged in abf and their raw log/harness hashes match the retained receipt. Covers alignment/zero/short region/negative and oversized skip count/record size and explicit polygon-short helper; not integrated parser, Windows malformed-file or campaign coverage.",
+      "new_negative_polygon_count": "Source review and canonical compilation only; no integrated malformed-file native execution is fabricated."
+    },
+    "FP_and_originals": "The sixteen def6 FP entries and old original accessor/kernel observations retain their own identities. No new full public/caller FP or all-boot equivalence is inferred from current output bytes."
+  },
+  "actual_final_gates": {
+    "source": "abfda863267c9aa7d71ebc29b10f168d98c484aa",
+    "windows_combined_fixture": {
+      "actual_exit": 0,
+      "completed_utc": "2026-11-01T22:29:00.633454Z",
+      "payloads": 58,
+      "builder_scope": "Exactly two declared diagnostic feature/banner adaptations of the standard builder; not shipping flags"
+    },
+    "linux": {
+      "actual_exit": 0,
+      "completed_utc": "2026-11-01T22:35:35.084075Z",
+      "default_passed": 571,
+      "combined_passed": 571,
+      "failed": 0,
+      "result_rows_each": 24,
+      "includes_zero_doc_rows": true,
+      "profile_sum_is_not_unique_coverage": true,
+      "fmt_default_strict_combined_strict": 0
+    },
+    "retained_exact_source_CI": {
+      "workflows": 3,
+      "completed_successful_unique_jobs": 9,
+      "source": "abfda863267c9aa7d71ebc29b10f168d98c484aa"
+    }
+  },
+  "provenance_and_history": {
+    "kernel_addendum": "The prior Root absent /c/model_step.c diff check remains preserved as insufficient. The verified addendum establishes the real /csrc/model_step.c path exists and its complete blob/mode is unchanged. No altered run, binary, original result or numerical expectation follows from that correction.",
+    "retained_failures": "CCC review remains an earlier failed source gate, not rewritten. The initial correction formatting failure is retained; Root formatter commit051 changes tests only. Builds at051 retain their own identity and no 051 native campaign was accepted. The negative LE4 source residual was corrected in abf. Earlier checker count/root-label and abandoned c389 prep histories remain explicit.",
+    "publication": "No newly staged publication is accepted here. A later literal report copy, source addendum and publication manifest must retain their own byte/hash mapping and scope; no recursive pre-review is implied."
+  },
+  "evidence_sha256": {
+    "model-buffer-cut-source-abfda86326-20261101.json": "324cfa24a30625af4453eaca3b63d5a37d84392dc0aca2b587c72068e5338b91",
+    "model-buffer-cut-actual-audit-abfda86326-20261101.json": "ee6cc0d22ebcd1df18acfee64a5a9330f356daa4c70578a692e100d8dcf8c156",
+    "model-buffer-cut-builds-abfda86326-20261101.json": "e52fecc73381105b78aaf0ee10aadafb54a5756cfb5275979a1ac98c94ba340f",
+    "model-buffer-cut-cohort-compare-abfda86326-v2-20261101.json": "9ef4be76a276229c12d09f684f187aa4550aa8444de372aa91525c0c4d197b57",
+    "model-buffer-cut-short-byte-compare-abfda86326-v80-v2-20261101.json": "5eaf0a03a3d2fa01ed15379f3b60be396f81e3eeeb4848127b73d9eb37ee1287",
+    "model-loader-io-control-0515642a98-20261101.json": "3dd1c6c1d23ba3a22228dd77071835a0cb1a7f30c3d40ed1646fd59005bd9825",
+    "check-model-loader-io-0515642a98-20261101.py": "1e8ed02f34cee57a6378efb788140f314d394e09182b0200ad5cf351e48cf182",
+    "audit-model-buffer-cut-actual-abfda86326-20261101.py": "14557cde7b953b11ed00a0ba197a466aafbfcdb9c88040a1b4a5dd4501c07eef",
+    "audit-model-buffer-cut-builds-abfda86326-20261101.py": "19f6c7ff5b5c43be77d1162cfa4deb7f3c35cc190f6857105c724524ffd2d5c8",
+    "model-buffer-cut-abf-all9CI-20261101.json": "57ac47e13abece087758c454d58a669fcf17b52dde869badc605fcceab87ee0f",
+    "model-host-route-kernel-path-audit-correction-9e4f3f9750-20261101.json": "b804ad8bf227ce0af91b8539dc8da3a0f0143184cd220b522729095f8063c787"
+  },
+  "limits": [
+    "No unsafe old/CCC visual-reader or malformed original campaign execution was requested. The new visual heads are source-placement proof; the real native refusal measured here is the uncached horizon branch.",
+    "No full malformed/truncated-loader or all lifecycle/error-path proof beyond the stated new helper boundary. Original header parsing remains outside this change.",
+    "No new pixel/render/audio success, all-accessor sweep, all-boot/full caller FP, animation-list numerical conformance or whole metadata-loader detachment.",
+    "Metadata/surfaces/normals/hierarchy and required viewpoint/device/muzzle/targetpoint plus Task49 collision remain required D3 work.",
+    "No whole Task50, Task51, D3, shipping40/all8, Tacview, current final delivery or normal merge acceptance."
+  ],
+  "conclusion": "The three prior findings and the finite negative-count residual are closed. The bounded four-persistent-buffer cut may proceed; the broader model-service and D3 obligations remain open.",
+  "privacy": "Only counts, hashes, source references and scoped failure facts are included; no raw retail geometry, coordinates, recordings, pointer values, entity allocations or credentials."
+}

@@ -1,0 +1,40 @@
+{
+  "source": "ccc452982aa2321ae8a76092e0ca92e2e1375b90",
+  "base": "c88e479c7307148d6fb33fd496988dd7e8712d70",
+  "created_utc": "2026-11-01T21:49:32.876211+00:00",
+  "immutable_before_build": true,
+  "source_exists_assertions_before_comparisons": true,
+  "unchanged_components": [
+    {
+      "path": "eech-campaign/crates/eech-world/src/models.rs",
+      "exists_both": true,
+      "complete_git_blob_and_mode_equal": true,
+      "sha256": "cc583de8b19a56e182c1aef8e1cb128cf447f89966816e2c87c7652220e128b3"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/model_route.rs",
+      "exists_both": true,
+      "complete_git_blob_and_mode_equal": true,
+      "sha256": "78c11ec0fad355e5f89302cd84283d3656192cedaa88e6f3c295de804c371599"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/model_step.c",
+      "exists_both": true,
+      "complete_git_blob_and_mode_equal": true,
+      "sha256": "644977033b055afdf37c32cd0658cf6064de3937a3366d7042bef9bdb8746c98"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+      "exists_both": true,
+      "complete_git_blob_and_mode_equal": true,
+      "sha256": "d18986c70bcd3facd63d8697c16fe484df2509e4f4c8bea8b587fd0dc11601d5"
+    }
+  ],
+  "route_host_patch_block_and_apply_functions_literal_equal_c88": true,
+  "route_patch_block_sha256": "08bdf28f6c47ef9a76d700b09abe571740290e47e49ee1bc95f255dd74a181fd",
+  "source_scope": "Fourbuffer common/customloader cut; true metadata/surfaces/normals/hierarchy stay. Cachedhorizonbranch retained, unsupporteduncached/displayheads refusepreaccess. c389kind0service/partialoriginalobserverremoved, c88primitiveprotocol/modelstore/numeric kernel restored. No numericalequivalence assumption for abandonedmainpointservice.",
+  "canonical_builds": "Linux3624 PID12500/Windows54098 PID18464 running21:48:37Z; no newnative results yet.",
+  "prior_path_audit_correction": "model-host-route-kernel-path-audit-correction-9e4f3f9750-20261101.json preservesolderincorrect /c/ check, explicitly provesREAL /csrc/ wholeblobmode unchanged. This newaudit assertsallpaths exist first.",
+  "Task50_complete": false,
+  "D3_complete": false
+}

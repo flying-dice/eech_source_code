@@ -1,0 +1,35 @@
+{
+  "scope": "Literal safe counts/hash/review reports only. Raw retail geometry/graph/scene names/pointers/assets/binaries remain private. FCE closes only original natural-boot characterization; D10 remains FAILED partial. No shipping, new production ownership or Task50/D3 acceptance.",
+  "files": [
+    {
+      "name": "model-original-route-first-incomplete-d10dd8cc0-20261101.json",
+      "bytes": 2999,
+      "sha256": "77401027b892d19d2f71e649d60560d377661c280e391ba7b23d3c4756eaafbf"
+    },
+    {
+      "name": "independent-model-original-route-first-incomplete-actual-d10-20261101.json",
+      "bytes": 8635,
+      "sha256": "1695440b83f9dd318bb04b7b3bd6fbe4c31a3001bd3f6a82a228dd87e4c959e4"
+    },
+    {
+      "name": "model-original-route-complete-fce1f1dfa-20261101.json",
+      "bytes": 4394,
+      "sha256": "da3cc93d54d76bbe80108550ef1fa04ff3d75bc98dfffbee85e4f19be387797f"
+    },
+    {
+      "name": "independent-model-original-route-complete-actual-fce1f1dfa-20261101.json",
+      "bytes": 12312,
+      "sha256": "b9122e133664715b011262f0bd5b6b8310741cfee6ae0ffb1201dc3ee3cb04cf"
+    },
+    {
+      "name": "independent-model-route-single-read-source-fce1f1dfa-20261101.json",
+      "bytes": 3569,
+      "sha256": "721d67c8c351fc020d044198d856623b071591b987f7e9c1e4910a2eadb383d9"
+    },
+    {
+      "name": "model-route-observer-transparency-d10-v80-20261101.json",
+      "bytes": 2004,
+      "sha256": "acf8e6de1eca47916d19fd40b3922c800f338480382b85728d1d3924ac218fa4"
+    }
+  ]
+}

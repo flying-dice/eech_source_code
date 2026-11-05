@@ -1,0 +1,131 @@
+{
+  "schema": "independent-changed-source-review/v1",
+  "reviewed_utc": "2026-10-30T03:56:45.772870+00:00",
+  "reviewed_head": "4bee2cc8c95309e85b7503a87606b92e0d2594fe",
+  "base": "ea1953b6cf8218020e05eda3d2ae498d976a09bf",
+  "frozen_path": "R:\\d3-evidence\\model-handoff-source-4bee2cc8c",
+  "tracked_clean_before_and_after": true,
+  "previous_report_sha256": "0c94b2efa9df651b7648e6ecabe7d0ed56e5bff1ca509a3a8598318b7a5ae188",
+  "scope": "Only new residual stage/FPU diagnostic/JSON-consumer/lint/docs controls since ea195; original sixP2/twoP3 and closed f9/kernel/all828 conformance reused, not repeated.",
+  "verdict": "CHANGES_REQUIRED_FOR_WITNESS_COMPLETENESS",
+  "native_execution_safety": {
+    "verdict": "ALLOW_WITH_RECORDED_LIMITS_AFTER_SUCCESSFUL_BUILDS",
+    "allowed": [
+      "Actual model-authority reference/altered/refusal diagnostics through reviewed C accessors with pinned fresh inputs.",
+      "Actual outer-entry successful and provider-refused FPU diagnostics using diagnostic build; these measurements are required and are not proof that must already exist before they may run.",
+      "Actual Core-generated model installation/bootstrap through ordinaryshipping and independent host provider."
+    ],
+    "conditions": [
+      "Verify actual exact-head build completion/payloads before execution. In-flight logs or absent completions are not pass.",
+      "Current witness finding must not be counted as measured/covered when requested FPU entries are skipped/unjudged; fix that bounded source/control gap before relying on witness exit as coverage, or independently retain/classify raw diagnostic rows explicitly.",
+      "Every refused initial RC requires a fresh process/eligible public entry; retain actual primary marker and successful/refused result, before/after words with nonzero status. No poisoned entry substitutes for refused-entry evidence.",
+      "Record any actual FPU mismatch or Core-generated boot refusal as a result requiring diagnosis; do not alter oracle/tolerances or silentlyNOTRUN/pass."
+    ],
+    "reason": "No concrete new C/Rust memory, lifetime, FFI or unsafe environment-seeding blocker found. Old blanketHOLD is lifted for these bounded concrete diagnostic executions once builds pass; acceptance remains pending."
+  },
+  "prior_findings": [
+    {
+      "id": "MODEL-WITNESS-REFUSAL-STAGE",
+      "disposition": "SOURCE_CLOSED",
+      "basis": "First primary now retained across boot/frame/probe/LOS/FPU. Negative mode requires tripped, correct primary marker and no unrelated error; real-script stand-ins cover boot/frame/probe, neverasked, swallowed/unrelated and accepted cases. This is checker flow evidence, not real C refusal evidence."
+    },
+    {
+      "id": "MODEL-FP-PROOF-SCOPE",
+      "disposition": "SOURCE_DIAGNOSTIC_PREPARED_RUNTIME_PENDING",
+      "basis": "Old unithelper/fegetround claims qualified; new outer harness seeds/captures x87control/status+MXCSR around actual Cpublic successful/fatal paths, then restores its own environment. Actual public-entry complete-state measurements still pending; required invariant retained."
+    },
+    {
+      "id": "MODEL-JSON-TEST-DECODER",
+      "disposition": "SOURCE_CLOSED_AFFECTED_CHECK_PENDING",
+      "basis": "Test keeps serde JSON structure validation and parses the exact tiny raw numeric lexeme with Rust f64::parse against unchanged1e-20 equality. No tolerance, writer change or production dependency change. Controlled fixed-key writer makes raw lexeme extraction adequate for this test."
+    },
+    {
+      "id": "MODEL-FPU-EXTERN-DOC-LINT",
+      "disposition": "SOURCE_CLOSED_STRICT_CLIPPY_PENDING",
+      "basis": "Unused extern-block Rustdoc comments converted to ordinary comments; current terminal strictClippy must still be observed."
+    }
+  ],
+  "findings": [
+    {
+      "id": "MODEL-REQUESTED-FPU-COMPLETENESS",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/lua/model-authority.lua",
+      "line": 443,
+      "related": [
+        "eech-campaign/crates/eech-world/lua/model-authority.lua:335",
+        "eech-campaign/crates/eech-world/lua/model-authority.lua:462",
+        "eech-campaign/crates/eech-world/lua/model-authority.lua:513",
+        "eech-campaign/crates/eech-world/tests/model_store.rs:2834"
+      ],
+      "title": "Reject success when requested outer-FPU entries were not measured",
+      "reason": "fpu=1 block is skipped once a prior boot/frame/probe/LOS primary exists, but expected-negative branches still return success with no FPU rows/problem. Additionally, the new test explicitly accepts mode=decline/ask=fpu/fpu_rounding=0,2: only RC0 probe is eligible; RC2 returnsPOISONED/judged=false, yet requested multi-RC run succeeds. Thus a requested FPU gate can be silently unmeasured or partial even though its refusal is genuine.",
+      "correction": "Track requested eligible entries/RCs and refuse unavailable/unmeasured FPU coverage on earlier primary, including earlyboot return. For negative controls minimally preflight-require a single RC per fresh process (or fail on any eligibility shortfall); healthy multi-RC stays valid. Add real-script skippedboot/frame/probe/LOS and requestedRC-shortfall controls, preserving raw evidence and unrelated-primary classification. No numerical kernel or production macro change required."
+    },
+    {
+      "id": "MODEL-NARROWING-WORDING",
+      "priority": "P3",
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "line": 2303,
+      "related": [
+        "eech-campaign/crates/eech-dc/src/module.rs:268",
+        "eech-campaign/docs/m5-model-host-authority.md:61"
+      ],
+      "title": "Qualify rounding-result claim at exact midpoints",
+      "reason": "New prose says nearest_f32 RESULT does not depend on rounding mode; unchanged helper intentionally gives the initial cast result precedence at an exact distance tie. At midpoint1+3*2^-24, RZ and upward guesses differ, so the cast-winning tie policy is mode-dependent. The actual boundary is forced to RZ and current tests cover RZ, so this is an overbroad claim, not a requested kernel change.",
+      "correction": "Document supported RZ narrowing/tie behavior and measured numeric tests. Do not claim all-mode result independence from RZ-only checks or change closed kernel/oracles to satisfy wording."
+    }
+  ],
+  "counts": {
+    "P2": 1,
+    "P3": 1
+  },
+  "checks_at_time": {
+    "linux": {
+      "state": "PENDING_AT_REVIEW",
+      "actual_exit": null,
+      "log_bytes_observed": 43595,
+      "no_terminal_completion_file": true
+    },
+    "windows": {
+      "completion_sha256": "2e0eb4c839fffee33411a294a0f9809f15555bb1e61e77e51e9b677656802c53",
+      "state": "terminal",
+      "actual_exit": 0,
+      "log_sha256": "58b1f9efdee0b406d098631573b3c0a79dee4487beaccb852f6453a64a45752c"
+    }
+  },
+  "source_sha256": {
+    "STATUS.md": "fbae639d212eb1c9a58f7ea2c04797cfb555ed26e5b8bbb1c76097060f981406",
+    "eech-campaign/crates/eech-dc/src/module.rs": "89da4c4c7d1ff29a841112fccbdf6a3b6f3223b963ff217997f6b73cc1e181db",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h": "135700e213f0d7a97d2fe72e6f5e1f6dc3d45bc605a2a29352ce33ec3980d8cc",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_fpu_test.c": "52763a9f94d39031a326641b0490e2f5f8997abd1da105c872a70dd3f58f0468",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_model_host_fixture.c": "f320e67ebce09390538cc7ae14fff61edb95fcc122741d9920386cc0b041a8fe",
+    "eech-campaign/crates/eech-engine-sys/src/lib.rs": "e7e38feca3ff30682e4c0246f1c79ae122c3fad0ac90bb76c11f45f344e86dfd",
+    "eech-campaign/crates/eech-engine/src/lib.rs": "953d8da3e26b4cea8f6e026de4f58f09f7c23975ebe52006c9344a093b50621f",
+    "eech-campaign/crates/eech-world/lua/model-authority.lua": "57b7ff06a23cbc1a1d8a023cb3d5966362848f275aa4e1adcd53b933700af2bd",
+    "eech-campaign/crates/eech-world/tests/model_store.rs": "515e361c93febde635336321ad18d557ea0276798bef018d6ed3d8c24032b25e",
+    "eech-campaign/docs/m5-model-host-authority.md": "358c97479b8b2ca8733a0ec095a1703339c1e15d0d4227f49e78e201414bac65",
+    "eech-campaign/reference/d3-model-characterization/independent-model-public-handoff-correction-review-ea1953b6c-20261030.json": "0c94b2efa9df651b7648e6ecabe7d0ed56e5bff1ca509a3a8598318b7a5ae188",
+    "eech-campaign/reference/d3-model-characterization/ledger-model-correction-validation-v75-20261030.json": "38565fdbff548b0caf671f81d4ce3f220205f0a68a03f2605af319f60713c289",
+    "eech-campaign/reference/d3-model-characterization/model-correction-validation-tracker-checkpoint-20261030.json": "a98b70998cd9b265fcd1642a6c11c8735a7fdd15ae4e95d76ef201930b2de9d9",
+    "eech-campaign/reference/d3-model-characterization/model-handoff-ea1953b6c-hostfixture-BUILD-INFO.txt": "246e1ffb1419bad25fdcb3fc30d88a4a980d8a3769b77f19ebad6725c659f3e5",
+    "eech-campaign/reference/d3-model-characterization/model-handoff-ea1953b6c-hostfixture-verification-20261030.json": "05bbb1c019b5c6fc323aa9da56f8973407859a796150b097fbc40f147db17674",
+    "eech-campaign/reference/d3-model-characterization/model-handoff-ea1953b6c-shipping-BUILD-INFO.txt": "5828b28ad84eb3a14cd4b408b2272f797d4071e9232497f91ce514b0e9232b72",
+    "eech-campaign/reference/d3-model-characterization/model-handoff-ea1953b6c-validation-20261030.json": "2c07687bd1c9ba208698bfb24cdac7c8869b75b6a0e5c791565eb5c84d3db9b8",
+    "eech-campaign/reference/d3-model-characterization/model-handoff-ea1953b6c-windows-verification-20261030.json": "90073b0a829de882dce2979465ce52dce47019b27c1dfcaff6cf950b67a79d65",
+    "eech-campaign/reference/d3-model-characterization/model-handoff-validation-fixes-author-checkpoint-20261030.json": "68c65d521073958187c421feac0ff3d1a016bb1abdc2c148047dcd625162e10d",
+    "eech-campaign/reference/d3-model-characterization/model-json-writer-tiny-diagnostic-ea1953b6c-20261030.json": "2000a0b27e76a56ba78a112461d246fb360145b2c37bd0d918bc059f6795dda4"
+  },
+  "source_safety_assessment": [
+    "New outer C harness is feature-only and calls actual eech_engine_model_host_probe/counters, not a stand-in. It is outside ENTER, so it can observe what the production public entry returns to its Ccaller.",
+    "For x86/x64 it uses bounded28-byte x87 environment image (statusoffset4), masks all exceptions before seedingdivide/underflow/inexact flags, sets requested RC in x87/MXCSR without new reserved bits, captures words immediately after entry and restores original environment plusMXCSR before formatting. Real public entry owns its fatal setjmp target; no longjmp crosses active Rust callback frames because callback returns error before Cfatal.",
+    "Request args/ranges/capacity and snprintf growth are bounded; C ABI adds only a private fixture function with matching int/pointer signature. Non-x86 reportsBAD_ARGUMENT, not invented measurements. Production eech_engine.c/ENTER/LEAVE is byte-unchanged; oneembeddedNUL preserved.",
+    "Scene/public provider data, f9 math/store, callback ownership, original-model provenance, all828 observations and old driver remain closed/unchanged. No physical expected values or tolerance changed.",
+    "The diagnostic currently seeds identical RC choice into bothunits and captures complete control/status/MXCSR words; masksallset/nonzeroflags make these meaningful success/refusal tests. It does not establish allpossible caller states, arbitrary unmasked environments or completed shipping proof.",
+    "Stand-ins validate witness verdict only. Actualfull outerFPU states after successful AND provider-refused entry, actual modelauthority influence/refusal/poison, and actual Core-generated bootstrap remain runtime gates. Missing those measurements is not a reason to forbid running their source-safe bounded diagnostics."
+  ],
+  "limits": [
+    "No reviewer builds/tests/native/campaign/process/cache/auth/Git mutation/external writes or nested agents. Only read-only inspection and this report write.",
+    "No formal GitHub approval, Task50Done, production/Tacview/fullshipping/normalmerge/wholeD3 acceptance. Task47 shipping untouched.",
+    "Finite remainingD3 physical scans/transforms/solvers/loaders/hierarchy/devices/targetpoints/entity/environment/time stay required withinD3."
+  ]
+}

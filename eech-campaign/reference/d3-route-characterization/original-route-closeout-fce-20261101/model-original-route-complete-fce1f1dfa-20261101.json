@@ -1,0 +1,90 @@
+{
+  "source": "fce1f1dfaa0423a844399eb7789db9935ae94e91",
+  "results": [
+    {
+      "case": "georgia",
+      "calls": 704,
+      "all_identities_unique": true,
+      "all_cohorts_complete": true,
+      "contexts": 704,
+      "stale": 0,
+      "original_repeat_complete_bytes_equal": true,
+      "raw_bytes": 12057836,
+      "raw_sha256": "48a075af8e24592d69cdb3cf541be2b4122bd0ff2932ea042be21c4e57c1bec8",
+      "old_partial_whole_bytes_equal": false,
+      "old_partial_comparison_scope": "All per-call nonidentity geometry/graph rows literal including endings; route-call fields other than complete/lookup equal; oldunique lookup/key unchanged; oldambiguous -1lookup/0complete replaced by actualcaller key/1complete. Summary pools/lookups literal. No raw file rewritten or normalized.",
+      "geometry_graph_rows_literal_equal": 128564,
+      "geometry_graph_row_bytes_literal_equal": 11568743,
+      "geometry_graph_tags": {
+        "route-bounds": 704,
+        "route-dropped": 704,
+        "route-totals": 704,
+        "route-capture": 704,
+        "route-node": 21116,
+        "route-face": 17467,
+        "route-final": 21116,
+        "route-link": 34934,
+        "route-start": 3649,
+        "route-position": 3864,
+        "route-offset": 21116,
+        "route-end": 704,
+        "route-slot": 1782
+      },
+      "old_unique_semantic_keys_unchanged": 430,
+      "ambiguous_identities_resolved": 274,
+      "pre_post_inputs_all_0": true,
+      "inputs_per_run": 1174,
+      "run_folders": [
+        "D:\\EECH-Migration-Evidence\\model-original-routes-fce1f1dfa-20261101\\georgia",
+        "D:\\EECH-Migration-Evidence\\model-original-routes-fce1f1dfa-20261101\\georgia-repeat"
+      ]
+    },
+    {
+      "case": "lebanon",
+      "calls": 528,
+      "all_identities_unique": true,
+      "all_cohorts_complete": true,
+      "contexts": 528,
+      "stale": 0,
+      "original_repeat_complete_bytes_equal": true,
+      "raw_bytes": 9049962,
+      "raw_sha256": "ec187d8203c82ab94888b45fca7a349e427194a2355386cf05439c321e260f63",
+      "old_partial_whole_bytes_equal": false,
+      "old_partial_comparison_scope": "All per-call nonidentity geometry/graph rows literal including endings; route-call fields other than complete/lookup equal; oldunique lookup/key unchanged; oldambiguous -1lookup/0complete replaced by actualcaller key/1complete. Summary pools/lookups literal. No raw file rewritten or normalized.",
+      "geometry_graph_rows_literal_equal": 96507,
+      "geometry_graph_row_bytes_literal_equal": 8679506,
+      "geometry_graph_tags": {
+        "route-bounds": 528,
+        "route-dropped": 528,
+        "route-totals": 528,
+        "route-capture": 528,
+        "route-node": 15783,
+        "route-face": 13175,
+        "route-final": 15783,
+        "route-link": 26350,
+        "route-start": 2608,
+        "route-position": 3020,
+        "route-offset": 15783,
+        "route-end": 528,
+        "route-slot": 1365
+      },
+      "old_unique_semantic_keys_unchanged": 394,
+      "ambiguous_identities_resolved": 134,
+      "pre_post_inputs_all_0": true,
+      "inputs_per_run": 1179,
+      "run_folders": [
+        "D:\\EECH-Migration-Evidence\\model-original-routes-fce1f1dfa-20261101\\lebanon",
+        "D:\\EECH-Migration-Evidence\\model-original-routes-fce1f1dfa-20261101\\lebanon-repeat"
+      ]
+    }
+  ],
+  "all_four_native_controller_exits": 0,
+  "all_eight_input_checks": 0,
+  "verified_payloads_unchanged": 57,
+  "build_info_sha256": "19f44651a6af566728ad74c0273d50e9bb779c62a8301b85408a2a230f01a9c5",
+  "dll_sha256": "fb040809e0de1e249364eaaace2a0997471ee0b320458bd91dcd2d7ff22caca0",
+  "world_exe_sha256": "bece4a168af439e948940edc3a28d97b78bffda4ca97a8036eb27a7dbd6eda43",
+  "source_review": "independent-model-route-single-read-source-fce1f1dfa-20261101.json SHA721d67c8c351fc020d044198d856623b071591b987f7e9c1e4910a2eadb383d9",
+  "scope": "Genuine original route natural-boot measurements with actual caller context, two verified scenarios and complete repeat captures. Not host route authority/cutover, all-installation/all-route coverage, fullFP/RNG, visualTacview,40/all8shipping,Task50 orwholeD3 acceptance. FailedD10raw retainedunaltered; finite row comparison is not normalized success or acceptedgolden.",
+  "created_utc": "2026-11-01T19:07:03.020509+00:00"
+}

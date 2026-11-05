@@ -1117,6 +1117,73 @@ extern "C" {
 pub type eech_aim_callback =
     unsafe extern "C" fn(step: *const eech_aim_step, result: *mut eech_aim_result, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
 
+/// Host-owned collision-model data (aphavoc/.../mb_hostmodel.h): the operations, the triangle results and the largest error text.
+pub const EECH_MODEL_ERROR_MAX: usize = 512;
+pub const EECH_MODEL_NAME_MAX: usize = 127;
+pub const EECH_MODEL_CATALOGUE: c_int = 1;
+pub const EECH_MODEL_SCENE: c_int = 2;
+pub const EECH_MODEL_TRIANGLE: c_int = 3;
+pub const EECH_MODEL_ROUTE_NODE: c_int = 4;
+pub const EECH_MODEL_ROUTE_FACE: c_int = 5;
+pub const EECH_MODEL_OBJECT_TABLE: c_int = 6;
+pub const EECH_MODEL_OBJECT: c_int = 7;
+pub const EECH_MODEL_ANIMATION: c_int = 8;
+pub const EECH_MODEL_CUSTOM_OBJECT: c_int = 9;
+pub const EECH_MODEL_CUSTOM_ORDER: c_int = 10;
+pub const EECH_MODEL_ANIMATION_NAME_MAX: usize = 127;
+pub const EECH_MODEL_TRIANGLE_FOUND: c_int = 1;
+pub const EECH_MODEL_TRIANGLE_END: c_int = 2;
+pub const EECH_MODEL_TRIANGLE_ABSENT: c_int = 3;
+
+/// One question about the host's models (campaign_model_request).
+#[repr(C)]
+pub struct eech_model_request {
+    pub op: c_int,
+    pub scene: c_int,
+    pub depth: c_int,
+    /// ROUTE_NODE and ROUTE_FACE: the route's sub-object kind (the scene is `scene`, the cursor `depth`)
+    pub kind: c_int,
+    /// OBJECT: the role the object has in `scene` (0 main, 1 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object); `depth` is the cursor
+    pub role: c_int,
+    /// which definition of the scene is meant: OBJECT, the n-th record of the scene database; CUSTOM_OBJECT and ANIMATION, the position of the custom scene file in the walk the
+    /// campaign announced (CUSTOM_ORDER)
+    pub definition: c_int,
+    /// CUSTOM_ORDER: the name of the directory under OBJECTS that holds the custom scene file (NUL-terminated)
+    pub key: [c_char; EECH_MODEL_NAME_MAX + 1],
+}
+
+/// The host's answer (campaign_model_reply); only the fields of the asked operation are meaningful.
+#[repr(C)]
+pub struct eech_model_reply {
+    pub scene_count: c_int,
+    /// 0 or 1: the host has a model for the scene
+    pub loaded: c_int,
+    /// 0 or 1: that model has a collider (only a loaded scene has one)
+    pub collider: c_int,
+    pub radius: f32,
+    pub bounding_box: [f32; 6],
+    pub bounding_box_without_lines: [f32; 6],
+    /// the scene's compiled name (NUL-terminated; empty for the invalid index 0): the public scene identity echo
+    pub name: [c_char; EECH_MODEL_NAME_MAX + 1],
+    pub result: c_int,
+    pub points: [f32; 9],
+    /// ROUTE_FACE: the two node indices the face joins, the surface's colour (red, green, blue) and its polygon bit (0 or 1)
+    pub route_point: [c_int; 2],
+    pub route_colour: [c_int; 3],
+    pub route_polygons: c_int,
+    /// OBJECT_TABLE: the number of objects the common database holds
+    pub object_count: c_int,
+    /// OBJECT (FOUND): points, faces, surfaces, point normals, lighting normals, culling normals offset
+    pub object_counts: [c_int; 6],
+    pub object_radius: f32,
+    /// the bounding box then the second bounding box, each `xmin xmax ymin ymax zmin zmax`
+    pub object_bounds: [f32; 12],
+    /// ANIMATION (FOUND): the logical name of the texture animation
+    pub animation_name: [c_char; EECH_MODEL_ANIMATION_NAME_MAX + 1],
+}
+
+pub type eech_model_callback =
+    unsafe extern "C" fn(request: *const eech_model_request, reply: *mut eech_model_reply, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
 /// Host-owned terrain (aphavoc/.../mb_hostterrain.h): the longest hint, in bytes without the terminator, and the three operations.
 pub const EECH_TERRAIN_HINT_MAX: usize = 127;
 pub const EECH_TERRAIN_ERROR_MAX: usize = 512;
@@ -1461,6 +1528,7 @@ pub struct eech_engine_host {
     pub line_of_sight: Option<eech_line_of_sight_callback>,
     pub sense: Option<eech_sense_callback>,
     pub aim: Option<eech_aim_callback>,
+    pub model: Option<eech_model_callback>,
     pub terrain: Option<eech_terrain_callback>,
     pub environment: Option<eech_environment_callback>,
     pub sound_catalogue: Option<eech_sound_catalogue_callback>,
@@ -1756,6 +1824,12 @@ extern "C" {
     pub fn eech_engine_ground_probe(seed: u32, points: c_int, impacts: c_int, text: *mut c_char, capacity: c_int) -> c_int;
 }
 
+#[cfg(feature = "route-fixture")]
+extern "C" {
+    pub fn eech_engine_route_summary(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_route_call(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+}
+
 #[cfg(feature = "aim-fixture")]
 extern "C" {
     pub fn eech_engine_aim_trace(text: *mut c_char, capacity: c_int) -> c_int;
@@ -1777,6 +1851,34 @@ extern "C" {
         capacity: c_int,
         host: *const eech_engine_host,
     ) -> c_int;
+}
+
+// TEST SUPPORT (feature fpu-test-support): see csrc/eech_fpu_test.c.
+#[cfg(feature = "fpu-test-support")]
+extern "C" {
+    pub fn eech_test_enter_toward_zero() -> c_int;
+    pub fn eech_test_leave_toward_zero() -> c_int;
+}
+
+// TEST-ONLY (feature model-host-fixture, EEDCS-50 D3): the host-model counters and the overwrite of the campaign's own model arrays; see csrc/eech_model_host_fixture.c.
+#[cfg(feature = "model-host-fixture")]
+extern "C" {
+    pub fn eech_engine_model_host_counters(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_host_animations(first: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_host_poison() -> c_int;
+    pub fn eech_engine_model_host_probe(scene: c_int, depth: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_host_horizon_refusal(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_host_fpu(kind: c_int, scene: c_int, depth: c_int, rounding: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+}
+
+// TEST-ONLY (feature model-fixture, EEDCS-50): read-only questions to the original model accessors; see csrc/eech_model_fixture.c.
+#[cfg(feature = "model-fixture")]
+extern "C" {
+    pub fn eech_engine_model_summary(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_catalogue(first: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_geometry(scene: c_int, first_depth: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_state(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_animations(first: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
 }
 
 // The tumble draws are the only doubles in the step. They stay its last field, so the double's alignment (4 or 8 by

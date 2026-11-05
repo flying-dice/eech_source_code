@@ -131,6 +131,7 @@ end
 -- ---------------------------------------------------------------------------------------------------------------- boot
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
+host.use_reference_arithmetic () -- the reference host's arithmetic profile, selected right after the installation is prepared (src/reference_arithmetic.rs)
 -- the observer is armed BEFORE boot, so that no sound update is missed
 if type (dc.env_observer_arm) ~= "function" then
 	emit { event = "refusal", reason = "env_observer_unavailable", detail = "the module was built without the env-observer feature" }
@@ -139,7 +140,7 @@ end
 dc.env_observer_arm (true)
 local engine = dc.boot {
 	install_root = root, map = map, terrain = provider, environment = host.env_provider (), campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache", seed = seed,
-	bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss, supply_reached = host.supply_reached, line_of_sight = host.line_of_sight,
+	bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss, supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, model = host.model,
 	sense = host.sense, aim = host.aim,
 }
 emit { event = "boot", mode = mode, scenario = scenario_name, seed = seed, frames = frames_wanted, frame_ms = frame_ms, feature = "env-observer" }

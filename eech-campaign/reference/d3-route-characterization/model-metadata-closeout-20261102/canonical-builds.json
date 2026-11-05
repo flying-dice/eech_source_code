@@ -1,0 +1,66 @@
+{
+  "source": "5515993fdc2fc0a28029723896b0228a5fe68f20",
+  "created_utc": "2026-11-02T15:42:03.243035+00:00",
+  "snapshot": "D:\\EECH-Migration-Evidence\\model-L2-metadata-5515993fdc",
+  "source_clean": true,
+  "builds": {
+    "linux": {
+      "source": "5515993fdc2fc0a28029723896b0228a5fe68f20",
+      "args": [
+        "wsl",
+        "-d",
+        "EECH-D2-Build",
+        "--",
+        "sh",
+        "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-model-L2-5515993fdc-linux-20261102.sh"
+      ],
+      "pid": 18924,
+      "controller_pid": 6604,
+      "state": "terminal",
+      "started_utc": "2026-11-02T15:32:31.475063+00:00",
+      "scope": "Corrected L2 metadata source: canonical default+combined three-package tests/fmt/both strict gates. New actuals and independent review required; not shipping acceptance.",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-02T15:41:32.722554+00:00"
+    },
+    "windows": {
+      "source": "5515993fdc2fc0a28029723896b0228a5fe68f20",
+      "args": [
+        "wsl",
+        "-d",
+        "EECH-D2-Build",
+        "--",
+        "sh",
+        "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-model-L2-5515993fdc-windows-20261102.sh"
+      ],
+      "pid": 14512,
+      "controller_pid": 8,
+      "state": "terminal",
+      "started_utc": "2026-11-02T15:32:31.475063+00:00",
+      "scope": "Corrected L2 metadata Windows route-fixture+model-host-fixture combined profile; EXACT two standard-builder feature/banner adaptations. Original animation and route evidence reused at their identities. No shipping acceptance.",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-02T15:35:45.144940+00:00"
+    }
+  },
+  "linux_package_groups": [
+    {
+      "profile": "default",
+      "test_binaries_and_doc_summaries": 26,
+      "passed": 613,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "profile": "combined-model-host-ground-los-route",
+      "test_binaries_and_doc_summaries": 26,
+      "passed": 613,
+      "failed": 0,
+      "ignored": 0
+    }
+  ],
+  "format_check_exit": 0,
+  "default_strict_clippy_exit": 0,
+  "combined_strict_clippy_exit": 0,
+  "linux_log_sha256": "7fe0db4c208e20620193f5b62e75fa71a8b7e9b64819a8ce503f558e6c3cee9d",
+  "source_guard_not_skipped": true,
+  "scope": "Canonical pinned builds only. Seven native controls and literal full bounded outputs are separately recorded; no ordinary shipping/wholeTask50/D3 acceptance."
+}

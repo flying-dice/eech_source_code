@@ -1,0 +1,68 @@
+{
+  "current_checker_source": "d30e153e9116bcfbfa816c5752ef2492360ac33a",
+  "original_producer_source": "4485ac3bc7aebc12aca934c7138c88f60ba93252",
+  "actual_native_capture_source": "a6cf70b672a6dab771048cc676e230b22ffa0972",
+  "created_utc": "2026-11-01T22:58:47.653023+00:00",
+  "unchanged_C_hooks_bridge_stage_and_public_plumbing": [
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_model_fixture.c",
+      "exists_all_three": true,
+      "complete_blob_and_mode_equal4485_a6_d30": true,
+      "sha256": "2a1e4e3e4fa7b4553310f2ac25dcb9ab5aa347202df8716e6dfa0b8e3a91eb68"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_model_hooks.h",
+      "exists_all_three": true,
+      "complete_blob_and_mode_equal4485_a6_d30": true,
+      "sha256": "3d6a20201a87a6a806343c962539f5b061e044ece430e48396a44ddaa1de88de"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "exists_all_three": true,
+      "complete_blob_and_mode_equal4485_a6_d30": true,
+      "sha256": "750c96f3256d75baaef3d7d4cb28d3300f11dec95ff54d00ced9e478c8bcb326"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h",
+      "exists_all_three": true,
+      "complete_blob_and_mode_equal4485_a6_d30": true,
+      "sha256": "35157d0d6b00a50229862e071a8e428ae439b45f18c4fdc8c8adf7667be69b31"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "exists_all_three": true,
+      "complete_blob_and_mode_equal4485_a6_d30": true,
+      "sha256": "edf66325d612498b794de6395d4e8bce40f6a7657baef1be6f66618631fd42fd"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "exists_all_three": true,
+      "complete_blob_and_mode_equal4485_a6_d30": true,
+      "sha256": "d2c21a8504d67e614d352399008675e661a9d1d2fe10f273572191522b6b2775"
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "exists_all_three": true,
+      "complete_blob_and_mode_equal4485_a6_d30": true,
+      "sha256": "2ad47855f590f365b2685af5fa5a9700ab9f44cb55739a9b9a7b71ef50bbc869"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/patches.rs",
+      "exists_all_three": true,
+      "complete_blob_and_mode_equal4485_a6_d30": true,
+      "sha256": "c5edec3fba07def435b3afc64cba1241d11fab4905dbb9ea374e705c582648b3"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "exists_all_three": true,
+      "complete_blob_and_mode_equal4485_a6_d30": true,
+      "sha256": "9b5ea872ab5b8ec38425bb1ce4dc486336658f6474152585f571c2acf583b3e4"
+    }
+  ],
+  "only_changed_paths_since_actual": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/lua/model-animation-characterization.lua",
+    "eech-campaign/crates/eech-world/tests/model_animation_characterization.rs"
+  ],
+  "scope": "Exact producer and plumbing equality, not relabelling a6 native runs as d30. Only invalid-day predicate order, Rust test borrow/negative forms and STATUS change; valid real day1 follows identical branch."
+}

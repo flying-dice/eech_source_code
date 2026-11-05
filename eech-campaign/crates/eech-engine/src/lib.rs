@@ -968,6 +968,16 @@ const TERRAIN_REPORT_CAPACITY: usize = 192 * 1024;
 #[cfg(feature = "aim-fixture")]
 const AIM_REPORT_CAPACITY: usize = 96 * 1024;
 
+/// TEST-ONLY (feature `model-fixture`): room for one model report; a report that does not fit is refused, never cut short.
+#[cfg(any(feature = "model-fixture", feature = "model-host-fixture"))]
+const MODEL_REPORT_CAPACITY: usize = 192 * 1024;
+
+/// TEST-ONLY (feature `model-fixture`): the most scenes one catalogue page and the most depths one geometry page may ask for. The same numbers bound the C side.
+#[cfg(any(feature = "model-fixture", feature = "model-host-fixture"))]
+pub const MODEL_PAGE_SCENES: i32 = 96;
+#[cfg(feature = "model-fixture")]
+pub const MODEL_PAGE_TRIANGLES: i32 = 256;
+
 /// TEST-ONLY (feature `ground-fixture`, EEDCS-48): room for one ground-contact report; a report that does not fit is refused, never cut short.
 #[cfg(feature = "ground-fixture")]
 const GROUND_REPORT_CAPACITY: usize = 192 * 1024;
@@ -975,6 +985,14 @@ const GROUND_REPORT_CAPACITY: usize = 192 * 1024;
 /// TEST-ONLY (feature `ground-fixture`, EEDCS-48): the most point cases or impact cases one probe is asked for.
 #[cfg(feature = "ground-fixture")]
 pub const GROUND_PROBE_CASES_MAX: i32 = 100_000;
+
+/// TEST-ONLY (feature `route-fixture`, EEDCS-50 D3): room for one route report (the summary, or one recorded parser call); a report that does not fit is refused, never cut short.
+#[cfg(feature = "route-fixture")]
+const ROUTE_REPORT_CAPACITY: usize = 1024 * 1024;
+
+/// TEST-ONLY (feature `route-fixture`): the most parser calls the C side records. The same number bounds the C table (csrc/eech_route_fixture.c RF_CALLS).
+#[cfg(feature = "route-fixture")]
+pub const ROUTE_CALLS_MAX: i32 = 1024;
 
 /// TEST-ONLY (feature `weapon-fixture`): room for one weapon-execution report or one chunk of the event log; a report that does not fit is refused, never cut short.
 #[cfg(feature = "weapon-fixture")]
@@ -1015,6 +1033,410 @@ pub fn env_play_arm(on: bool) -> Result<(), EngineError> {
 /// the booted engine (one per process)
 pub struct Engine {
     _not_send: std::marker::PhantomData<*const ()>,
+}
+
+/// TEST SUPPORT (feature `fpu-test-support`, EEDCS-50 D3): runs `f` under round-toward-zero, the mode the engine entry sets around every host callback, and returns whether `f` left the
+/// ROUNDING MODE as it found it (`fegetround` only; the flags, masks and MXCSR are not compared, and the helper restores the environment itself, so this is not evidence that an engine
+/// entry preserves a caller's state: `Engine::model_host_fpu` measures that). It calls no engine code.
+#[cfg(feature = "fpu-test-support")]
+pub fn under_round_toward_zero<R>(f: impl FnOnce() -> R) -> (R, bool) {
+    // SAFETY: the two C functions only read and write this thread's floating-point environment.
+    unsafe { sys::eech_test_enter_toward_zero() };
+    let result = f();
+    // SAFETY: as above.
+    let kept = unsafe { sys::eech_test_leave_toward_zero() } == 1;
+    (result, kept)
+}
+
+/// One question the campaign asks of the host's physical models (aphavoc/.../mb_hostmodel.h). No EECH pointer, offset or layout is in it: a scene is the EECH scene index,
+/// a plain integer that the host and the campaign both derive from the same data, and a depth is the caller's running triangle index.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ModelQuery {
+    /// how many scene indices the host's models cover (asked once, at boot)
+    Catalogue,
+    /// one scene's identity and scalars (asked for every scene index at boot)
+    Scene { scene: i32 },
+    /// one step of the collision-triangle cursor (asked live for every call of the accessor)
+    Triangle { scene: i32, depth: i32 },
+    /// one step of a route's ORDERED node cursor: the airfield `scene`, the route's sub-object `kind` (object_3d_sub_object_index_numbers) and the node `index`
+    RouteNode { scene: i32, kind: i32, index: i32 },
+    /// one step of a route's ORDERED line-face cursor, the same three numbers
+    RouteFace { scene: i32, kind: i32, index: i32 },
+    /// how many objects the host's common database holds (asked once, before any scene is read); the campaign's room for custom objects is its own policy and is not asked
+    ObjectTable,
+    /// the header facts of the object `scene` has in `role` (0 main, 1 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object); `cursor` names the approximation
+    /// or the sub-object. The campaign never sends its own object number. `custom` says which definition of the scene is meant: the database's record, or the scene a custom
+    /// scene file defines. `definition` is the n-th record of the scene database (`custom` false), or the position of the custom scene file in the walk the campaign announced
+    /// (`custom` true; see `CustomOrder`), so every read is answered with the facts of ITS definition and never with another one's.
+    Object {
+        scene: i32,
+        role: i32,
+        cursor: i32,
+        definition: i32,
+        custom: bool,
+    },
+    /// one step of an .EES scene's ordered animated-surface references (the order the original's `add_animation_object` visits the scene's objects)
+    Animation { scene: i32, index: i32, definition: i32 },
+    /// one step of the campaign's ANNOUNCEMENT of the order in which it walks the custom scene files: file number `position` is the scene `scene`'s file in the directory named
+    /// `key`; or (`end`) the walk is over and has `position` files. The campaign's definitions are then named by their position in that walk.
+    CustomOrder { scene: i32, position: i32, end: bool, key: String },
+}
+
+/// One scene as the host answers it, in public terms only: the scene's compiled `name` (the echo that host and campaign mean the same scene by the same index; empty for the
+/// invalid index 0), whether the host has a model for it (`loaded`), whether that model has a collider (`collider`; only a loaded scene has one), the radius and the two bounds
+/// `xmin xmax ymin ymax zmin zmax` (`bounding_box_without_lines` is the one the collision tests use). Floats are exact `f32` values. Nothing of the legacy loader's private
+/// object numbering is part of it.
+#[derive(Clone, Debug, PartialEq)]
+pub struct ModelScene {
+    pub name: String,
+    pub loaded: bool,
+    pub collider: bool,
+    pub radius: f32,
+    pub bounding_box: [f32; 6],
+    pub bounding_box_without_lines: [f32; 6],
+}
+
+/// The answer to a triangle-cursor step. `End` and `Absent` are the original accessor's FALSE (the caller's buffer is left untouched); they are distinct from each other
+/// and from every refusal, which is an `Err` from the provider.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum ModelTriangle {
+    /// point 0 x y z, point 1, point 2
+    Found([f32; 9]),
+    /// the scene has a collider and the list is over at this depth
+    End,
+    /// the scene is loaded and has no collider
+    Absent,
+}
+
+/// The answer to a route node cursor step: the node's decoded position (exact `f32` values), the end of the route's nodes, or the host's statement that it has no route
+/// of that kind for the scene. The host's own decode is all the campaign receives: no stored short, no bound and no scale.
+#[derive(Clone, Debug, PartialEq)]
+pub enum ModelRouteNode {
+    Found([f32; 3]),
+    End,
+    Absent,
+}
+
+/// The answer to a route line-face cursor step: the two node numbers the face joins (already resolved through the surface-point indirection, which is the host's), the
+/// surface's colour (red, green, blue) and whether it is a polygon surface; or the end of the faces; or the absence of the route.
+#[derive(Clone, Debug, PartialEq)]
+pub enum ModelRouteFace {
+    Found { point: [i32; 2], colour: [i32; 3], polygons: bool },
+    End,
+    Absent,
+}
+
+/// The header facts of one object exactly as the host's files hold them: the six counts the campaign's compatibility rows mirror (points, faces, surfaces, point normals,
+/// lighting normals, culling normals offset), the radius and the two bounding boxes `xmin xmax ymin ymax zmin zmax` (exact `f32` values).
+#[derive(Clone, Debug, PartialEq)]
+pub struct ModelObjectFacts {
+    pub counts: [i32; 6],
+    pub radius: f32,
+    pub bounding_box: [f32; 6],
+    pub bounding_box2: [f32; 6],
+}
+
+/// The answer to an object question: the object's facts, or the statement that the host's files name no object in that role.
+#[derive(Clone, Debug, PartialEq)]
+pub enum ModelObject {
+    Found(ModelObjectFacts),
+    Absent,
+}
+
+/// The answer to an animation-reference step: the LOGICAL name of a texture animation (never a file's animation index), the end of the references, or the statement that the
+/// scene keeps its list in its own record (it is not an .EES scene).
+#[derive(Clone, Debug, PartialEq)]
+pub enum ModelAnimation {
+    Name(String),
+    End,
+    Absent,
+}
+
+/// The host's answer to a step of the campaign's walk announcement: it has that file, it has none, or (to the closing step) the announcement is accepted.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ModelOrder {
+    Accepted,
+    Absent,
+    End,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum ModelAnswer {
+    Catalogue {
+        scenes: i32,
+    },
+    Scene(ModelScene),
+    Triangle(ModelTriangle),
+    /// a route node step with the compiled name of the kind it is about (the echo that host and campaign mean the same kind by the same number)
+    RouteNode {
+        kind_name: String,
+        step: ModelRouteNode,
+    },
+    RouteFace {
+        kind_name: String,
+        step: ModelRouteFace,
+    },
+    ObjectTable {
+        objects: i32,
+    },
+    /// an object step with the compiled name of the scene it is about (the echo that host and campaign mean the same scene by the same index)
+    Object {
+        scene_name: String,
+        step: ModelObject,
+    },
+    Animation {
+        scene_name: String,
+        step: ModelAnimation,
+    },
+    CustomOrder(ModelOrder),
+}
+
+/// The host's model provider. It is installed once, at boot, and is the only source of the campaign's collision-model answers: the campaign no longer compiles the code that
+/// read its own model arrays for them. An `Err` (a refusal, a model the host cannot answer for, a malformed answer) stops the engine with the message.
+pub type ModelProvider = Box<dyn FnMut(ModelQuery) -> Result<ModelAnswer, String>>;
+
+thread_local! {
+    // the engine and its host run on one thread; a provider is not `Send`
+    static MODEL: std::cell::RefCell<Option<ModelProvider>> = const { std::cell::RefCell::new(None) };
+}
+
+/// Copies a kind's compiled name into a reply with its terminator; one that does not fit, or holds a NUL, is not a name.
+fn put_name(reply: &mut sys::eech_model_reply, name: &str, operation: &str) -> Result<(), String> {
+    let bytes = name.as_bytes();
+    if bytes.len() > sys::EECH_MODEL_NAME_MAX || bytes.contains(&0) {
+        return Err(format!(
+            "[model-provider:{operation}.answer] the kind name is 0 to {} bytes without a NUL, got {}",
+            sys::EECH_MODEL_NAME_MAX,
+            bytes.len()
+        ));
+    }
+    for (slot, byte) in reply.name.iter_mut().zip(bytes) {
+        *slot = *byte as c_char;
+    }
+    Ok(())
+}
+
+/// The C side's model callback (mb_hostmodel.h). It runs the installed provider; a missing provider, a refusal, an answer of the wrong kind and a panic all become an error
+/// the engine stops on, with the provider's marker in the message.
+unsafe extern "C" fn model_callback(
+    request: *const sys::eech_model_request,
+    reply_out: *mut sys::eech_model_reply,
+    error: *mut c_char,
+    error_size: usize,
+    _user: *mut c_void,
+) -> c_int {
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
+        if request.is_null() || reply_out.is_null() {
+            return Err("[model-provider:callback] invalid native model callback context".into());
+        }
+        // SAFETY: C supplies a readable request for the duration of this callback.
+        let source = unsafe { &*request };
+        let (operation, query) = match source.op {
+            sys::EECH_MODEL_CATALOGUE => ("catalogue", ModelQuery::Catalogue),
+            sys::EECH_MODEL_SCENE => ("scene", ModelQuery::Scene { scene: source.scene }),
+            sys::EECH_MODEL_TRIANGLE => (
+                "triangle",
+                ModelQuery::Triangle {
+                    scene: source.scene,
+                    depth: source.depth,
+                },
+            ),
+            sys::EECH_MODEL_ROUTE_NODE => (
+                "route_node",
+                ModelQuery::RouteNode {
+                    scene: source.scene,
+                    kind: source.kind,
+                    index: source.depth,
+                },
+            ),
+            sys::EECH_MODEL_ROUTE_FACE => (
+                "route_face",
+                ModelQuery::RouteFace {
+                    scene: source.scene,
+                    kind: source.kind,
+                    index: source.depth,
+                },
+            ),
+            sys::EECH_MODEL_OBJECT_TABLE => ("object_table", ModelQuery::ObjectTable),
+            sys::EECH_MODEL_OBJECT | sys::EECH_MODEL_CUSTOM_OBJECT => (
+                "object",
+                ModelQuery::Object {
+                    scene: source.scene,
+                    role: source.role,
+                    cursor: source.depth,
+                    definition: source.definition,
+                    custom: source.op == sys::EECH_MODEL_CUSTOM_OBJECT,
+                },
+            ),
+            sys::EECH_MODEL_ANIMATION => (
+                "animation",
+                ModelQuery::Animation {
+                    scene: source.scene,
+                    index: source.depth,
+                    definition: source.definition,
+                },
+            ),
+            sys::EECH_MODEL_CUSTOM_ORDER => {
+                // the directory name: NUL-terminated within the field, valid text
+                let Some(length) = source.key.iter().position(|c| *c == 0) else {
+                    return Err("[model-provider:custom_order.request] the directory name is not NUL-terminated".to_string());
+                };
+                let bytes: Vec<u8> = source.key[..length].iter().map(|c| *c as u8).collect();
+                let key = String::from_utf8(bytes).map_err(|_| "[model-provider:custom_order.request] the directory name is not text".to_string())?;
+                (
+                    "custom_order",
+                    ModelQuery::CustomOrder {
+                        scene: source.scene,
+                        position: source.depth,
+                        end: source.role == 1,
+                        key,
+                    },
+                )
+            }
+            other => return Err(format!("[model-provider:callback] the model callback received unknown operation {other}")),
+        };
+        let answer = MODEL.with(|slot| -> Result<ModelAnswer, String> {
+            let mut slot = slot
+                .try_borrow_mut()
+                .map_err(|_| "[model-provider:callback] the model provider was asked again while it was answering".to_string())?;
+            match slot.as_mut() {
+                Some(provider) => provider(query),
+                None => Err("[model-provider:missing] no model provider is installed".to_string()),
+            }
+        })?;
+        // SAFETY: every field of the reply is plain data, and zero is a valid value for each
+        let mut reply: sys::eech_model_reply = unsafe { std::mem::zeroed() };
+        // the answer must be the kind of answer that was asked for: a provider that answers a triangle question with a scene has not answered it, and the reply it would fill
+        // is not the reply the campaign reads for that operation
+        match (operation, answer) {
+            ("catalogue", ModelAnswer::Catalogue { scenes }) => reply.scene_count = scenes,
+            ("scene", ModelAnswer::Scene(scene)) => {
+                // the name is copied with its terminator; one that does not fit, or holds a NUL, is not a scene name
+                let bytes = scene.name.as_bytes();
+                if bytes.len() > sys::EECH_MODEL_NAME_MAX || bytes.contains(&0) {
+                    return Err(format!(
+                        "[model-provider:scene.answer] the scene name is 0 to {} bytes without a NUL, got {}",
+                        sys::EECH_MODEL_NAME_MAX,
+                        bytes.len()
+                    ));
+                }
+                for (slot, byte) in reply.name.iter_mut().zip(bytes) {
+                    *slot = *byte as c_char;
+                }
+                reply.loaded = c_int::from(scene.loaded);
+                reply.collider = c_int::from(scene.collider);
+                reply.radius = scene.radius;
+                reply.bounding_box = scene.bounding_box;
+                reply.bounding_box_without_lines = scene.bounding_box_without_lines;
+            }
+            ("triangle", ModelAnswer::Triangle(triangle)) => match triangle {
+                ModelTriangle::Found(points) => {
+                    reply.result = sys::EECH_MODEL_TRIANGLE_FOUND;
+                    reply.points = points;
+                }
+                ModelTriangle::End => reply.result = sys::EECH_MODEL_TRIANGLE_END,
+                ModelTriangle::Absent => reply.result = sys::EECH_MODEL_TRIANGLE_ABSENT,
+            },
+            ("route_node", ModelAnswer::RouteNode { kind_name, step }) => {
+                put_name(&mut reply, &kind_name, "route_node")?;
+                match step {
+                    ModelRouteNode::Found(position) => {
+                        reply.result = sys::EECH_MODEL_TRIANGLE_FOUND;
+                        reply.points[..3].copy_from_slice(&position);
+                    }
+                    ModelRouteNode::End => reply.result = sys::EECH_MODEL_TRIANGLE_END,
+                    ModelRouteNode::Absent => reply.result = sys::EECH_MODEL_TRIANGLE_ABSENT,
+                }
+            }
+            ("route_face", ModelAnswer::RouteFace { kind_name, step }) => {
+                put_name(&mut reply, &kind_name, "route_face")?;
+                match step {
+                    ModelRouteFace::Found { point, colour, polygons } => {
+                        reply.result = sys::EECH_MODEL_TRIANGLE_FOUND;
+                        reply.route_point = point;
+                        reply.route_colour = colour;
+                        reply.route_polygons = c_int::from(polygons);
+                    }
+                    ModelRouteFace::End => reply.result = sys::EECH_MODEL_TRIANGLE_END,
+                    ModelRouteFace::Absent => reply.result = sys::EECH_MODEL_TRIANGLE_ABSENT,
+                }
+            }
+            ("object_table", ModelAnswer::ObjectTable { objects }) => reply.object_count = objects,
+            ("custom_order", ModelAnswer::CustomOrder(step)) => {
+                reply.result = match step {
+                    ModelOrder::Accepted => sys::EECH_MODEL_TRIANGLE_FOUND,
+                    ModelOrder::Absent => sys::EECH_MODEL_TRIANGLE_ABSENT,
+                    ModelOrder::End => sys::EECH_MODEL_TRIANGLE_END,
+                };
+            }
+            ("object", ModelAnswer::Object { scene_name, step }) => {
+                put_name(&mut reply, &scene_name, "object")?;
+                match step {
+                    ModelObject::Found(facts) => {
+                        reply.result = sys::EECH_MODEL_TRIANGLE_FOUND;
+                        reply.object_counts = facts.counts;
+                        reply.object_radius = facts.radius;
+                        reply.object_bounds[..6].copy_from_slice(&facts.bounding_box);
+                        reply.object_bounds[6..].copy_from_slice(&facts.bounding_box2);
+                    }
+                    ModelObject::Absent => reply.result = sys::EECH_MODEL_TRIANGLE_ABSENT,
+                }
+            }
+            ("animation", ModelAnswer::Animation { scene_name, step }) => {
+                put_name(&mut reply, &scene_name, "animation")?;
+                match step {
+                    ModelAnimation::Name(name) => {
+                        let bytes = name.as_bytes();
+                        if bytes.is_empty() || bytes.len() > sys::EECH_MODEL_ANIMATION_NAME_MAX || bytes.contains(&0) {
+                            return Err(format!(
+                                "[model-provider:animation.answer] an animation name is 1 to {} bytes without a NUL, got {}",
+                                sys::EECH_MODEL_ANIMATION_NAME_MAX,
+                                bytes.len()
+                            ));
+                        }
+                        for (slot, byte) in reply.animation_name.iter_mut().zip(bytes) {
+                            *slot = *byte as c_char;
+                        }
+                        reply.result = sys::EECH_MODEL_TRIANGLE_FOUND;
+                    }
+                    ModelAnimation::End => reply.result = sys::EECH_MODEL_TRIANGLE_END,
+                    ModelAnimation::Absent => reply.result = sys::EECH_MODEL_TRIANGLE_ABSENT,
+                }
+            }
+            (operation, answer) => {
+                let given = match answer {
+                    ModelAnswer::Catalogue { .. } => "a catalogue",
+                    ModelAnswer::Scene(_) => "a scene",
+                    ModelAnswer::Triangle(_) => "a triangle step",
+                    ModelAnswer::RouteNode { .. } => "a route node step",
+                    ModelAnswer::RouteFace { .. } => "a route face step",
+                    ModelAnswer::ObjectTable { .. } => "an object table",
+                    ModelAnswer::Object { .. } => "an object step",
+                    ModelAnswer::Animation { .. } => "an animation step",
+                    ModelAnswer::CustomOrder(_) => "a walk announcement step",
+                };
+                return Err(format!(
+                    "[model-provider:{operation}.answer] the provider answered a {operation} question with {given}"
+                ));
+            }
+        }
+        // SAFETY: C supplies a writable reply for the duration of this callback.
+        unsafe { *reply_out = reply };
+        Ok(())
+    }));
+    match result {
+        Ok(Ok(())) => 0,
+        Ok(Err(message)) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, &message) };
+            1
+        }
+        Err(_) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, "[model-provider:callback] the model provider panicked") };
+            1
+        }
+    }
 }
 
 /// One question the campaign asks of the host's physical terrain (aphavoc/.../mb_hostterrain.h). No EECH pointer or layout is in it: the hint is the
@@ -5251,6 +5673,11 @@ where
         line_of_sight: Some(line_of_sight::<F, G, H, M, L, D, A>),
         sense: Some(sense::<F, G, H, M, L, D, A>),
         aim: Some(aim::<F, G, H, M, L, D, A>),
+        // the model callback is not per-entry: the provider is installed once at boot and kept (the C side installs the first callback it is given). It is offered only when a
+        // provider is installed, so an engine booted without one is refused at boot by the C side; the original-characterisation build (model-fixture) installs none.
+        model: MODEL
+            .with(|slot| slot.try_borrow().map(|provider| provider.is_some()).unwrap_or(true))
+            .then_some(model_callback as sys::eech_model_callback),
         terrain: Some(terrain_callback),
         environment: Some(environment_callback),
         sound_catalogue: Some(sound_catalogue_callback),
@@ -5293,6 +5720,7 @@ impl Engine {
         line_of_sight_fn: &mut L,
         sense_fn: &mut D,
         aim_fn: &mut A,
+        model: Option<ModelProvider>,
         terrain: TerrainProvider,
         environment: EnvProvider,
         sound_catalogue: SoundCatalogueProvider,
@@ -5310,6 +5738,9 @@ impl Engine {
         if BOOTED.swap(true, Ordering::SeqCst) {
             return Err(EngineError::State);
         }
+        // EEDCS-50 (D3): the host owns the physical models. `None` installs no provider, and the engine then refuses to boot (the C side requires the callback) unless this is
+        // the original-characterisation build (feature model-fixture), which keeps the original accessors on purpose and has no host.
+        MODEL.with(|slot| *slot.borrow_mut() = model);
         let install = cstring(&config.install_root.to_string_lossy())?;
         let map = cstring(&config.map_path)?;
         let dir = cstring(&config.campaign_directory)?;
@@ -5625,6 +6056,33 @@ impl Engine {
         keep_case_reason(status, &text)
     }
 
+    /// TEST-ONLY (feature `route-fixture`, EEDCS-50 D3): what the ORIGINAL airfield route parser read and produced while the campaign loaded, as `key=value` text lines: the
+    /// table sizes, the route-object lookups and a `route-complete` verdict (see `csrc/eech_route_fixture.c`). Read-only; a report that does not fit fails.
+    #[cfg(feature = "route-fixture")]
+    pub fn route_summary(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; ROUTE_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_route_summary(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `route-fixture`, EEDCS-50 D3): one recorded parser call by its zero-based index, as `key=value` text lines. `index` is checked here before the engine is
+    /// entered, and again by the engine, which refuses an index it did not record.
+    #[cfg(feature = "route-fixture")]
+    pub fn route_call(&self, index: i32) -> Result<String, EngineError> {
+        if !(0..ROUTE_CALLS_MAX).contains(&index) {
+            return Err(EngineError::BadArgument(format!(
+                "route_call: index {index} must be within 0..{ROUTE_CALLS_MAX}"
+            )));
+        }
+        let mut text = vec![0 as std::os::raw::c_char; ROUTE_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_route_call(index, text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
     /// TEST-ONLY (feature `aim-fixture`, EEDCS-44): the run-wide report of the physical weapon-aiming code the campaign's own update loop has run
     /// since boot or the last reset, as `key=value` text lines. Read-only; there is no probe.
     #[cfg(feature = "aim-fixture")]
@@ -5750,6 +6208,148 @@ impl Engine {
     pub fn aim_trace_reset(&self) -> Result<(), EngineError> {
         // SAFETY: no pointers cross.
         check(unsafe { sys::eech_engine_aim_trace_reset() })
+    }
+
+    /// TEST-ONLY (feature `model-host-fixture`, EEDCS-50 D3): how many catalogue, scene and triangle questions the host's model provider was asked since boot, how it answered
+    /// the triangle ones, and how often the campaign read each of the bounds and radius tables the provider filled. Read-only.
+    #[cfg(feature = "model-host-fixture")]
+    pub fn model_host_counters(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; 2048];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_model_host_counters(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `model-host-fixture`, EEDCS-50 D3 L2): one page of the scenes' FINAL texture animation lists as the campaign holds them after the host-fed load, scenes
+    /// `first ..= first + count - 1`, in the row grammar of the original observer (`model_animations`). `first` and `count` are checked here before the engine is entered. Read-only.
+    #[cfg(feature = "model-host-fixture")]
+    pub fn model_host_animations(&self, first: i32, count: i32) -> Result<String, EngineError> {
+        if first < 1 || !(1..=MODEL_PAGE_SCENES).contains(&count) || first > i32::MAX - MODEL_PAGE_SCENES {
+            return Err(EngineError::BadArgument(format!(
+                "model host animation page: first {first} must be at least 1 and count {count} within 1..={MODEL_PAGE_SCENES}"
+            )));
+        }
+        // SAFETY: the buffer outlives the call and the capacity passed is its length.
+        Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_host_animations(first, count, text, capacity) })
+    }
+
+    /// TEST-ONLY (feature `model-host-fixture`, EEDCS-50 D3 loader detachment): calls the REAL `add_3d_horizon_image` on the campaign's own horizon environment with a basename no
+    /// installation has, so that the reader takes its uncached branch, where the hosted engine stops by name (`[model-provider:object.geometry]`) before any image I/O or geometry
+    /// read. The stop is the engine's fatal error: it is returned as `Err` with that message and the engine is poisoned afterwards. `Ok` means the reader did not stop.
+    #[cfg(feature = "model-host-fixture")]
+    pub fn model_host_horizon_refusal(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; 256];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_model_host_horizon_refusal(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `model-host-fixture`, EEDCS-50 D3): one scene's radius and bounds (asked twice: same address and bits) and one step of its collision-triangle cursor
+    /// through the REAL public accessors, as `key=value` rows in the format of the original fixture's (float bit patterns, the return, the buffer words written, the rounding
+    /// mode before and after). A host that cannot answer stops the engine with its reason.
+    #[cfg(feature = "model-host-fixture")]
+    pub fn model_host_probe(&self, scene: i32, depth: i32) -> Result<String, EngineError> {
+        if scene < 1 || depth < 0 {
+            return Err(EngineError::BadArgument(format!(
+                "model host probe: scene {scene} must be at least 1 and depth {depth} non-negative"
+            )));
+        }
+        let mut text = vec![0 as std::os::raw::c_char; 2048];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_model_host_probe(scene, depth, text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `model-host-fixture`, EEDCS-50 D3): the COMPLETE outer floating-point state (x87 control and status words, MXCSR) around one real public entry, measured
+    /// from the caller's side: `kind` 0 is the probe entry (the accessors, the host callback, the Lua provider and bridge; a host that cannot answer takes the fatal path), `kind` 1
+    /// the counters entry alone. The caller state is set first (`rounding` 0 nearest, 1 down, 2 up, 3 toward zero, every exception masked, nonzero flags in both units); the report
+    /// gives the words before and after and whether each is identical, and the process's own environment is put back afterwards. It repairs nothing and decides nothing.
+    #[cfg(feature = "model-host-fixture")]
+    pub fn model_host_fpu(&self, kind: i32, scene: i32, depth: i32, rounding: i32) -> Result<String, EngineError> {
+        if !(0..=1).contains(&kind) || scene < 1 || depth < 0 || !(0..=3).contains(&rounding) {
+            return Err(EngineError::BadArgument(format!(
+                "model host fpu: kind {kind} must be 0 or 1, scene {scene} at least 1, depth {depth} non-negative and rounding {rounding} within 0..=3"
+            )));
+        }
+        let mut text = vec![0 as std::os::raw::c_char; 2048];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the harness NUL-terminates it.
+        check(unsafe { sys::eech_engine_model_host_fpu(kind, scene, depth, rounding, text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the harness wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `model-host-fixture`, EEDCS-50 D3): overwrites every array the ORIGINAL model accessors read (the campaign's own radius, bounds and collision object
+    /// index per scene) so that any read of them would show. The campaign's answers from here on can only be the host's.
+    #[cfg(feature = "model-host-fixture")]
+    pub fn model_host_poison(&self) -> Result<(), EngineError> {
+        // SAFETY: no pointers cross.
+        check(unsafe { sys::eech_engine_model_host_poison() })
+    }
+
+    /// TEST-ONLY (feature `model-fixture`, EEDCS-50): runs one read-only model question and returns its `key=value` text. The report is NUL-terminated by the engine within
+    /// the buffer; a refused argument or a report that does not fit is a bad-argument error.
+    #[cfg(any(feature = "model-fixture", feature = "model-host-fixture"))]
+    fn model_report(call: impl FnOnce(*mut std::os::raw::c_char, i32) -> i32) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; MODEL_REPORT_CAPACITY];
+        check(call(text.as_mut_ptr(), text.len() as i32))?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `model-fixture`, EEDCS-50): the table sizes and page bounds of the model questions.
+    #[cfg(feature = "model-fixture")]
+    pub fn model_summary(&self) -> Result<String, EngineError> {
+        // SAFETY: the buffer outlives the call and the capacity passed is its length.
+        Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_summary(text, capacity) })
+    }
+
+    /// TEST-ONLY (feature `model-fixture`, EEDCS-50): one page of the scene catalogue, scenes `first ..= first + count - 1`. `first` and `count` are checked here before
+    /// the engine is entered.
+    #[cfg(feature = "model-fixture")]
+    pub fn model_catalogue(&self, first: i32, count: i32) -> Result<String, EngineError> {
+        if first < 1 || !(1..=MODEL_PAGE_SCENES).contains(&count) {
+            return Err(EngineError::BadArgument(format!(
+                "model catalogue page: first {first} must be at least 1 and count {count} within 1..={MODEL_PAGE_SCENES}"
+            )));
+        }
+        // SAFETY: the buffer outlives the call and the capacity passed is its length.
+        Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_catalogue(first, count, text, capacity) })
+    }
+
+    /// TEST-ONLY (feature `model-fixture`, EEDCS-50): one page of the original collision-triangle accessor for one scene, depths `first_depth ..= first_depth + count - 1`.
+    /// The arguments are checked here before the engine is entered, and again by the engine; the engine refuses a scene whose loaded data it cannot show to be backed.
+    #[cfg(feature = "model-fixture")]
+    pub fn model_geometry(&self, scene: i32, first_depth: i32, count: i32) -> Result<String, EngineError> {
+        if scene < 1 || first_depth < 0 || !(1..=MODEL_PAGE_TRIANGLES).contains(&count) || first_depth > i32::MAX - MODEL_PAGE_TRIANGLES {
+            return Err(EngineError::BadArgument(format!(
+                "model geometry page: scene {scene} must be at least 1, first_depth {first_depth} non-negative and count {count} within 1..={MODEL_PAGE_TRIANGLES}"
+            )));
+        }
+        // SAFETY: the buffer outlives the call and the capacity passed is its length.
+        Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_geometry(scene, first_depth, count, text, capacity) })
+    }
+
+    /// TEST-ONLY (feature `model-fixture`, EEDCS-50 D3): one page of the scenes' FINAL texture animation lists as the original loader left them, scenes `first ..= first + count - 1`.
+    /// `first` and `count` are checked here before the engine is entered (the page bound is the catalogue's). Read-only.
+    #[cfg(feature = "model-fixture")]
+    pub fn model_animations(&self, first: i32, count: i32) -> Result<String, EngineError> {
+        if first < 1 || !(1..=MODEL_PAGE_SCENES).contains(&count) || first > i32::MAX - MODEL_PAGE_SCENES {
+            return Err(EngineError::BadArgument(format!(
+                "model animation page: first {first} must be at least 1 and count {count} within 1..={MODEL_PAGE_SCENES}"
+            )));
+        }
+        // SAFETY: the buffer outlives the call and the capacity passed is its length.
+        Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_animations(first, count, text, capacity) })
+    }
+
+    /// TEST-ONLY (feature `model-fixture`, EEDCS-50): hashes of every table the model questions read.
+    #[cfg(feature = "model-fixture")]
+    pub fn model_state(&self) -> Result<String, EngineError> {
+        // SAFETY: the buffer outlives the call and the capacity passed is its length.
+        Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_state(text, capacity) })
     }
 
     /// TEST-ONLY (feature `env-observer`, EEDCS-51): the observer's state (armed, stored, read, dropped, overflow, the counters of the per-frame routines), as one `env-obs-report` line.
@@ -9908,6 +10508,318 @@ mod tests {
         step.pf_target = [f32::INFINITY, 0.0, 0.0];
         let (outcome, _) = crossing(&step, |_| panic!("the host must not be asked"));
         assert!(outcome.is_err(), "a non-finite target position never reaches the host");
+    }
+
+    // ---- the host's model provider (EEDCS-50, D3): the crossing of aphavoc/.../mb_hostmodel.h, with no engine booted ----
+
+    const MODEL_SENTINEL: i32 = 0x5a5a;
+
+    /// Runs the C-side callback once with `provider` installed (or none) and returns (code, the reply, the error text). The reply is pre-filled with a sentinel in the fields
+    /// the callback writes, so a refusal that wrote nothing is visible.
+    fn model_crossing(provider: Option<ModelProvider>, request: sys::eech_model_request) -> (c_int, sys::eech_model_reply, String) {
+        MODEL.with(|slot| *slot.borrow_mut() = provider);
+        // SAFETY: every field of the reply is plain data, and zero is a valid value for each
+        let mut reply: sys::eech_model_reply = unsafe { std::mem::zeroed() };
+        reply.scene_count = MODEL_SENTINEL;
+        reply.loaded = MODEL_SENTINEL;
+        reply.result = MODEL_SENTINEL;
+        let mut error = vec![0 as c_char; sys::EECH_MODEL_ERROR_MAX + 1];
+        // SAFETY: the request, the reply and the error buffer are valid for the call; the user pointer is unused.
+        let code = unsafe { model_callback(&request, &mut reply, error.as_mut_ptr(), sys::EECH_MODEL_ERROR_MAX, std::ptr::null_mut()) };
+        MODEL.with(|slot| *slot.borrow_mut() = None);
+        // SAFETY: the callback NUL-terminates what it writes within the buffer, which began zeroed.
+        let error = unsafe { std::ffi::CStr::from_ptr(error.as_ptr()) }.to_string_lossy().into_owned();
+        (code, reply, error)
+    }
+
+    fn model_request(op: c_int, scene: c_int, depth: c_int) -> sys::eech_model_request {
+        sys::eech_model_request {
+            op,
+            scene,
+            depth,
+            kind: 0,
+            role: 0,
+            definition: 0,
+            key: [0; sys::EECH_MODEL_NAME_MAX + 1],
+        }
+    }
+
+    /// an OBJECT-family question: the role the object has in the scene, and the cursor (the depth)
+    fn object_request(op: c_int, scene: c_int, role: c_int, cursor: c_int, definition: c_int) -> sys::eech_model_request {
+        sys::eech_model_request {
+            op,
+            scene,
+            depth: cursor,
+            kind: 0,
+            role,
+            definition,
+            key: [0; sys::EECH_MODEL_NAME_MAX + 1],
+        }
+    }
+
+    #[test]
+    fn the_model_callback_carries_the_object_family_by_role_and_cursor_and_animations_as_logical_names() {
+        let facts = ModelObjectFacts {
+            counts: [4, 3, 2, 1, 0, 65535],
+            radius: -0.0,
+            bounding_box: [-1.0, 2.0, -3.0, 4.0, -5.0, 6.0],
+            bounding_box2: [-0.5, 0.25, -0.125, 0.0625, -2.0, 8.0],
+        };
+        let given = facts.clone();
+        // the database record and a custom scene file's definition are two operations of the C side and one query with a flag on this side; the role and cursor arrive as sent
+        for (op, custom) in [(sys::EECH_MODEL_OBJECT, false), (sys::EECH_MODEL_CUSTOM_OBJECT, true)] {
+            let given = given.clone();
+            let (code, reply, error) = model_crossing(
+                Some(Box::new(move |query| match query {
+                    ModelQuery::Object {
+                        scene: 7,
+                        role: 4,
+                        cursor: 2,
+                        definition: 3,
+                        custom: c,
+                    } if c == custom => Ok(ModelAnswer::Object {
+                        scene_name: "UH60_BLACKHAWK".to_string(),
+                        step: ModelObject::Found(given.clone()),
+                    }),
+                    other => Err(format!("unexpected {other:?}")),
+                })),
+                object_request(op, 7, 4, 2, 3),
+            );
+            assert_eq!(code, 0, "{error}");
+            assert_eq!(reply.result, sys::EECH_MODEL_TRIANGLE_FOUND);
+            assert_eq!(reply.object_counts, facts.counts);
+            assert_eq!(reply.object_radius.to_bits(), (-0.0_f32).to_bits(), "a negative zero keeps its sign");
+            assert_eq!(reply.object_bounds[..6], facts.bounding_box);
+            assert_eq!(reply.object_bounds[6..], facts.bounding_box2);
+            // SAFETY: the callback NUL-terminated the name within its array, which began zeroed.
+            assert_eq!(unsafe { std::ffi::CStr::from_ptr(reply.name.as_ptr()) }.to_str(), Ok("UH60_BLACKHAWK"));
+        }
+        // the table answer is a count only
+        let (code, reply, _) = model_crossing(
+            Some(Box::new(|query| match query {
+                ModelQuery::ObjectTable => Ok(ModelAnswer::ObjectTable { objects: 4165 }),
+                other => Err(format!("unexpected {other:?}")),
+            })),
+            model_request(sys::EECH_MODEL_OBJECT_TABLE, 0, 0),
+        );
+        assert_eq!((code, reply.object_count), (0, 4165));
+        // an animation reference is a name, copied with its terminator, and the end of the list is its own result
+        let (code, reply, error) = model_crossing(
+            Some(Box::new(|query| match query {
+                ModelQuery::Animation {
+                    scene: 7,
+                    index: 0,
+                    definition: 0,
+                } => Ok(ModelAnswer::Animation {
+                    scene_name: "UH60_BLACKHAWK".to_string(),
+                    step: ModelAnimation::Name("USA_COPTER_DIGIT__001".to_string()),
+                }),
+                ModelQuery::Animation {
+                    scene: 7,
+                    index: 1,
+                    definition: 0,
+                } => Ok(ModelAnswer::Animation {
+                    scene_name: "UH60_BLACKHAWK".to_string(),
+                    step: ModelAnimation::End,
+                }),
+                other => Err(format!("unexpected {other:?}")),
+            })),
+            model_request(sys::EECH_MODEL_ANIMATION, 7, 0),
+        );
+        assert_eq!((code, reply.result), (0, sys::EECH_MODEL_TRIANGLE_FOUND), "{error}");
+        // SAFETY: the callback NUL-terminated the name within its array, which began zeroed.
+        assert_eq!(
+            unsafe { std::ffi::CStr::from_ptr(reply.animation_name.as_ptr()) }.to_str(),
+            Ok("USA_COPTER_DIGIT__001")
+        );
+    }
+
+    #[test]
+    fn the_model_callback_carries_the_campaigns_walk_announcement_with_its_directory_name() {
+        // a file of the walk: scene 7, position 2, in the directory MODDIR; the host has it (FOUND), lacks it (ABSENT), or the walk is over (END)
+        for (answer, expected) in [
+            (ModelOrder::Accepted, sys::EECH_MODEL_TRIANGLE_FOUND),
+            (ModelOrder::Absent, sys::EECH_MODEL_TRIANGLE_ABSENT),
+        ] {
+            let mut request = model_request(sys::EECH_MODEL_CUSTOM_ORDER, 7, 2);
+            for (slot, byte) in request.key.iter_mut().zip(b"MODDIR") {
+                *slot = *byte as c_char;
+            }
+            let (code, reply, error) = model_crossing(
+                Some(Box::new(move |query| match query {
+                    ModelQuery::CustomOrder {
+                        scene: 7,
+                        position: 2,
+                        end: false,
+                        key,
+                    } if key == "MODDIR" => Ok(ModelAnswer::CustomOrder(answer)),
+                    other => Err(format!("unexpected {other:?}")),
+                })),
+                request,
+            );
+            assert_eq!((code, reply.result), (0, expected), "{error}");
+        }
+        // the closing step carries the number of files and no directory
+        let mut request = model_request(sys::EECH_MODEL_CUSTOM_ORDER, 0, 3);
+        request.role = 1;
+        let (code, reply, error) = model_crossing(
+            Some(Box::new(|query| match query {
+                ModelQuery::CustomOrder {
+                    scene: 0,
+                    position: 3,
+                    end: true,
+                    key,
+                } if key.is_empty() => Ok(ModelAnswer::CustomOrder(ModelOrder::End)),
+                other => Err(format!("unexpected {other:?}")),
+            })),
+            request,
+        );
+        assert_eq!((code, reply.result), (0, sys::EECH_MODEL_TRIANGLE_END), "{error}");
+        // a directory name that is not terminated inside its field is refused before the provider is asked
+        let mut request = model_request(sys::EECH_MODEL_CUSTOM_ORDER, 7, 0);
+        request.key = [b'X' as c_char; sys::EECH_MODEL_NAME_MAX + 1];
+        let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the provider must not be asked"))), request);
+        assert_eq!(code, 1);
+        assert!(error.contains("[model-provider:custom_order.request]"), "{error}");
+    }
+
+    #[test]
+    fn the_model_callback_carries_every_answer_exactly() {
+        let scene = ModelScene {
+            name: "UH60_BLACKHAWK".to_string(),
+            loaded: true,
+            collider: false,
+            radius: 1.5,
+            bounding_box: [-1.0, 2.0, -3.0, 4.0, -5.0, 6.0],
+            bounding_box_without_lines: [-0.5, 0.25, -0.125, 0.0625, -2.0, 8.0],
+        };
+        let given = scene.clone();
+        let (code, reply, _) = model_crossing(
+            Some(Box::new(move |query| match query {
+                ModelQuery::Scene { scene: 7 } => Ok(ModelAnswer::Scene(given.clone())),
+                other => Err(format!("unexpected {other:?}")),
+            })),
+            model_request(sys::EECH_MODEL_SCENE, 7, 0),
+        );
+        assert_eq!(code, 0);
+        assert_eq!((reply.loaded, reply.collider, reply.radius), (1, 0, 1.5));
+        // SAFETY: the callback NUL-terminated the name within its array, which began zeroed.
+        assert_eq!(unsafe { std::ffi::CStr::from_ptr(reply.name.as_ptr()) }.to_str(), Ok("UH60_BLACKHAWK"));
+        assert_eq!(reply.bounding_box, scene.bounding_box);
+        assert_eq!(reply.bounding_box_without_lines, scene.bounding_box_without_lines);
+
+        let (code, reply, _) = model_crossing(
+            Some(Box::new(|query| match query {
+                ModelQuery::Catalogue => Ok(ModelAnswer::Catalogue { scenes: 3026 }),
+                other => Err(format!("unexpected {other:?}")),
+            })),
+            model_request(sys::EECH_MODEL_CATALOGUE, 0, 0),
+        );
+        assert_eq!((code, reply.scene_count), (0, 3026));
+
+        // a triangle crosses bit for bit, the nine floats in order, with the scene and the depth the campaign asked about
+        let points = [0.1_f32, -0.2, 3.0e-39, 1.0, 2.0, 3.0, f32::MAX, f32::MIN_POSITIVE, -0.0];
+        let (code, reply, _) = model_crossing(
+            Some(Box::new(move |query| match query {
+                ModelQuery::Triangle { scene: 9, depth: 4 } => Ok(ModelAnswer::Triangle(ModelTriangle::Found(points))),
+                other => Err(format!("unexpected {other:?}")),
+            })),
+            model_request(sys::EECH_MODEL_TRIANGLE, 9, 4),
+        );
+        assert_eq!((code, reply.result), (0, sys::EECH_MODEL_TRIANGLE_FOUND));
+        assert_eq!(reply.points.map(f32::to_bits), points.map(f32::to_bits));
+    }
+
+    #[test]
+    fn a_legitimate_end_or_absence_is_distinct_from_every_refusal() {
+        for (answer, expected) in [
+            (ModelTriangle::End, sys::EECH_MODEL_TRIANGLE_END),
+            (ModelTriangle::Absent, sys::EECH_MODEL_TRIANGLE_ABSENT),
+        ] {
+            let (code, reply, error) = model_crossing(
+                Some(Box::new(move |_| Ok(ModelAnswer::Triangle(answer)))),
+                model_request(sys::EECH_MODEL_TRIANGLE, 5, 0),
+            );
+            assert_eq!((code, reply.result, error.as_str()), (0, expected, ""));
+            // no float was written: the caller's buffer is only ever written by a FOUND answer
+            assert!(reply.points.iter().all(|value| value.to_bits() == 0));
+        }
+    }
+
+    #[test]
+    fn a_scene_name_that_cannot_be_an_echo_is_refused_and_writes_no_reply() {
+        for name in ["N".repeat(sys::EECH_MODEL_NAME_MAX + 1), "A\0B".to_string()] {
+            let scene = ModelScene {
+                name,
+                loaded: true,
+                collider: true,
+                radius: 1.0,
+                bounding_box: [0.0; 6],
+                bounding_box_without_lines: [0.0; 6],
+            };
+            let (code, reply, error) = model_crossing(
+                Some(Box::new(move |_| Ok(ModelAnswer::Scene(scene.clone())))),
+                model_request(sys::EECH_MODEL_SCENE, 3, 0),
+            );
+            assert!(code != 0 && error.contains("[model-provider:scene.answer]"), "{error}");
+            assert_eq!((reply.loaded, reply.result), (MODEL_SENTINEL, MODEL_SENTINEL));
+        }
+        // the longest name that fits is carried whole
+        let scene = ModelScene {
+            name: "N".repeat(sys::EECH_MODEL_NAME_MAX),
+            loaded: false,
+            collider: false,
+            radius: 0.0,
+            bounding_box: [0.0; 6],
+            bounding_box_without_lines: [0.0; 6],
+        };
+        let (code, reply, _) = model_crossing(
+            Some(Box::new(move |_| Ok(ModelAnswer::Scene(scene.clone())))),
+            model_request(sys::EECH_MODEL_SCENE, 3, 0),
+        );
+        assert_eq!(code, 0);
+        assert_eq!(reply.name.iter().take_while(|byte| **byte != 0).count(), sys::EECH_MODEL_NAME_MAX);
+    }
+
+    #[test]
+    fn a_missing_declining_or_malformed_provider_is_refused_by_name_and_writes_no_reply() {
+        let triangle = model_request(sys::EECH_MODEL_TRIANGLE, 5, 2);
+        // no provider installed
+        let (code, reply, error) = model_crossing(None, triangle_copy(&triangle));
+        assert!(code != 0 && error.contains("[model-provider:missing]"), "{error}");
+        assert_eq!(
+            (reply.scene_count, reply.loaded, reply.result),
+            (MODEL_SENTINEL, MODEL_SENTINEL, MODEL_SENTINEL)
+        );
+        // the host declines
+        let (code, reply, error) = model_crossing(
+            Some(Box::new(|_| Err("[model-provider:triangle.refused] the host cannot answer for scene 5".into()))),
+            triangle_copy(&triangle),
+        );
+        assert!(code != 0 && error.contains("[model-provider:triangle.refused]"), "{error}");
+        assert_eq!(reply.result, MODEL_SENTINEL);
+        // an answer of the wrong kind for the question
+        let (code, reply, error) = model_crossing(Some(Box::new(|_| Ok(ModelAnswer::Catalogue { scenes: 1 }))), triangle_copy(&triangle));
+        assert!(code != 0 && error.contains("[model-provider:triangle.answer]"), "{error}");
+        assert_eq!(reply.result, MODEL_SENTINEL);
+        // an operation the campaign does not have
+        let (code, _, error) = model_crossing(Some(Box::new(|_| Err("never".into()))), model_request(99, 0, 0));
+        assert!(code != 0 && error.contains("unknown operation 99"), "{error}");
+        // a panicking provider is a refusal, not an unwind through C
+        let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the provider panicked on purpose"))), triangle_copy(&triangle));
+        assert!(code != 0 && error.contains("panicked"), "{error}");
+    }
+
+    fn triangle_copy(request: &sys::eech_model_request) -> sys::eech_model_request {
+        sys::eech_model_request {
+            op: request.op,
+            scene: request.scene,
+            depth: request.depth,
+            kind: request.kind,
+            role: request.role,
+            definition: request.definition,
+            key: request.key,
+        }
     }
 
     /// One crossing of the terrain callback, as the C side makes it: the request is built the way mb_hostterrain.c builds it, this thread's provider is

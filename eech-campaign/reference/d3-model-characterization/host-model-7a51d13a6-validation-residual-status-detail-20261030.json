@@ -1,0 +1,313 @@
+{
+  "source": "7a51d13a6a2ecc88d79673efa09cc33dc2bda4f8",
+  "scope": "Actual affected runtime gates pass; independent residual report-status/detail P2 open, not component acceptance",
+  "linux": {
+    "fmt": 0,
+    "library_passed": 235,
+    "model_integration_passed": 33,
+    "old_diagnostic_passed": 8,
+    "all_target_clippy_exit": 0
+  },
+  "windows": {
+    "build_exit": 0,
+    "library_passed": 235,
+    "model_integration_passed": 33,
+    "explicit_missing_host_expected_native_exit": 101,
+    "controller_exit": 0,
+    "six_payloads_unchanged": true,
+    "build_info_sha256": "1e1f680ebf34e90bc8d267bb7e0ec902954ddd144f831525290c5963df05b165"
+  },
+  "retail": {
+    "all3_actual_runner_and_pre_post_exits": 0,
+    "scene_metadata_compared_each": 3025,
+    "original_calls_compared_each": 215,
+    "mismatches": 0,
+    "reports_bytes_each": 1278336,
+    "report_sha256_each": "ed3503b12227fec13cadd2d56b62296cdb08e5bd2e5b76f0ac61db776fc59317",
+    "all3_full_reports_byte_identical_8a": true,
+    "original_reports_and_six_payloads_unchanged": true
+  },
+  "controls": [
+    {
+      "cohort": "host-model-report-controls",
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "original_unchanged": true,
+      "payloads_unchanged": true,
+      "mutations_unchanged": true,
+      "cases": [
+        {
+          "case": "healthy",
+          "input_sha256": "b421e74ea483433ed9437b3143c68a12b76fb6d4a6f95b04c9371985dc3f0db7",
+          "actual_native_runner_exit": 0,
+          "comparison_refused": false,
+          "done": [
+            {
+              "event": "done",
+              "failures": 0
+            }
+          ]
+        },
+        {
+          "case": "truncated-first-scene",
+          "input_sha256": "18c2ec4fc2c5a77ce50c4d48602c60d674be55b5ec01d698f996aa725b45c7f9",
+          "actual_native_runner_exit": 1,
+          "comparison_refused": true,
+          "done": []
+        },
+        {
+          "case": "duplicate-scene",
+          "input_sha256": "8e44b3608b2cd648051caa864404521ff36d96d9dbc4a522482126ebb4152d6d",
+          "actual_native_runner_exit": 1,
+          "comparison_refused": true,
+          "done": []
+        },
+        {
+          "case": "missing-geometry-terminal",
+          "input_sha256": "51b518d74ae20491d3a670c89090f524c48014d669f95371fccb024e8c4eff02",
+          "actual_native_runner_exit": 1,
+          "comparison_refused": true,
+          "done": []
+        },
+        {
+          "case": "failed-original-done",
+          "input_sha256": "96d2cfc5ffe14d9e3bb029f484eea7f026ece41740857da5fd704ba4f4259e56",
+          "actual_native_runner_exit": 1,
+          "comparison_refused": true,
+          "done": []
+        }
+      ]
+    },
+    {
+      "cohort": "host-model-forged-gate",
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "original_unchanged": true,
+      "payloads_unchanged": true,
+      "mutations_unchanged": true,
+      "cases": [
+        {
+          "case": "healthy",
+          "input_sha256": "b421e74ea483433ed9437b3143c68a12b76fb6d4a6f95b04c9371985dc3f0db7",
+          "actual_native_runner_exit": 0,
+          "comparison_refused": false,
+          "done": [
+            {
+              "event": "done",
+              "failures": 0
+            }
+          ]
+        },
+        {
+          "case": "forged-end_probe_unbacked",
+          "input_sha256": "4aa2eea2cdff8b47427da020eab74461ff9b71776916bba5d38c612c586a5abb",
+          "actual_native_runner_exit": 1,
+          "comparison_refused": true,
+          "done": []
+        },
+        {
+          "case": "forged-beyond_safe_bound",
+          "input_sha256": "d1d84231fd3d975602783bb0cd3c81623dd29945d1e78298f233425099ca9185",
+          "actual_native_runner_exit": 1,
+          "comparison_refused": true,
+          "done": []
+        }
+      ]
+    },
+    {
+      "cohort": "host-model-write-count",
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "original_unchanged": true,
+      "payloads_unchanged": true,
+      "mutations_unchanged": true,
+      "cases": [
+        {
+          "case": "healthy",
+          "input_sha256": "b421e74ea483433ed9437b3143c68a12b76fb6d4a6f95b04c9371985dc3f0db7",
+          "actual_native_runner_exit": 0,
+          "comparison_refused": false,
+          "done": [
+            {
+              "event": "done",
+              "failures": 0
+            }
+          ]
+        },
+        {
+          "case": "incoherent-true-write-count",
+          "input_sha256": "283b4f388500c430971059ff75e7891b2a97730235caedc7af447166fb4d5025",
+          "actual_native_runner_exit": 1,
+          "comparison_refused": true,
+          "done": []
+        },
+        {
+          "case": "incoherent-false-write-count",
+          "input_sha256": "61581fa4d2197d3415faeb1a4a3ec79e5d465cebb5e5cd0a059ef53350a477e1",
+          "actual_native_runner_exit": 1,
+          "comparison_refused": true,
+          "done": []
+        }
+      ]
+    }
+  ],
+  "review": {
+    "report": "independent-host-model-review-final-7a51d13a6-20261030.json",
+    "sha256": "bf7116646316b8f78475ce244969bfb30e149438d0cf8c55bd195bc316dad9dc",
+    "disposition": "CHANGES_REQUIRED; only finite-status/refusal-detail P2 remains",
+    "resolved": "Cumulative budget, gate/header/write-count consistency and resolver wording/precedence"
+  },
+  "remaining": "59original geometry gaps, production dispatch/loading and wholeD3 services unchanged",
+  "remaining_status_detail_actual_RED": {
+    "scope": "Actual7a comparator finite-status/refusal-detail RED controls; original report and physical inputs unchanged. Unknown geometry status can omit24 original calls; no campaign DLL/new original geometry.",
+    "source": "7a51d13a6a2ecc88d79673efa09cc33dc2bda4f8",
+    "expected_rejection": false,
+    "build_info_sha256": "1e1f680ebf34e90bc8d267bb7e0ec902954ddd144f831525290c5963df05b165",
+    "results": [
+      {
+        "case": "healthy",
+        "input_sha256": "b421e74ea483433ed9437b3143c68a12b76fb6d4a6f95b04c9371985dc3f0db7",
+        "actual_native_runner_exit": 0,
+        "native_exit_recorded": true,
+        "done": [
+          {
+            "event": "done",
+            "failures": 0
+          }
+        ],
+        "comparison_refused": false,
+        "comparison_counters": [
+          {
+            "absences_confirmed": 1,
+            "event": "compare",
+            "geometry_headers": 11,
+            "original_absent": 2009,
+            "original_catalogue_scenes": 3025,
+            "original_geometry_scenes": 11,
+            "original_no_scene": 188,
+            "original_refused_rows": 59,
+            "original_refused_scenes": 4,
+            "scene_mismatches": 0,
+            "scene_rows": 3025,
+            "scene_rows_compared": 3025,
+            "triangle_mismatches": 0,
+            "triangles_compared": 215
+          }
+        ],
+        "strict_json_rows": 8,
+        "raw_sha256": "4d9376c1f1c522c485a1407bf34dbaef1f729ef136e852e20ed11e173c847ea2",
+        "expected_outcome_observed": true
+      },
+      {
+        "case": "unknown-geometry-status",
+        "input_sha256": "9ba76ac4b938e4b622f3145832aa37ddec68ec05319439e41b871beddbcae71e",
+        "actual_native_runner_exit": 0,
+        "native_exit_recorded": true,
+        "done": [
+          {
+            "event": "done",
+            "failures": 0
+          }
+        ],
+        "comparison_refused": false,
+        "comparison_counters": [
+          {
+            "absences_confirmed": 1,
+            "event": "compare",
+            "geometry_headers": 11,
+            "original_absent": 2009,
+            "original_catalogue_scenes": 3025,
+            "original_geometry_scenes": 11,
+            "original_no_scene": 188,
+            "original_refused_rows": 59,
+            "original_refused_scenes": 5,
+            "scene_mismatches": 0,
+            "scene_rows": 3025,
+            "scene_rows_compared": 3025,
+            "triangle_mismatches": 0,
+            "triangles_compared": 191
+          }
+        ],
+        "strict_json_rows": 9,
+        "raw_sha256": "bac7b09d8631d40baa78c990f81505eee9e316c863cc329ed9ed22d5c2fcfac3",
+        "expected_outcome_observed": true
+      },
+      {
+        "case": "mismatched-refusal-detail",
+        "input_sha256": "1f87230241ef4976c3c765960587405708f7632325041e29bc24a09bcddffac2",
+        "actual_native_runner_exit": 0,
+        "native_exit_recorded": true,
+        "done": [
+          {
+            "event": "done",
+            "failures": 0
+          }
+        ],
+        "comparison_refused": false,
+        "comparison_counters": [
+          {
+            "absences_confirmed": 1,
+            "event": "compare",
+            "geometry_headers": 11,
+            "original_absent": 2009,
+            "original_catalogue_scenes": 3025,
+            "original_geometry_scenes": 11,
+            "original_no_scene": 188,
+            "original_refused_rows": 59,
+            "original_refused_scenes": 4,
+            "scene_mismatches": 0,
+            "scene_rows": 3025,
+            "scene_rows_compared": 3025,
+            "triangle_mismatches": 0,
+            "triangles_compared": 215
+          }
+        ],
+        "strict_json_rows": 8,
+        "raw_sha256": "4d9376c1f1c522c485a1407bf34dbaef1f729ef136e852e20ed11e173c847ea2",
+        "expected_outcome_observed": true
+      },
+      {
+        "case": "unknown-catalogue-status",
+        "input_sha256": "ce2f5e487655494409410e58ee65917ae859650174aa12eadb9780096873dace",
+        "actual_native_runner_exit": 0,
+        "native_exit_recorded": true,
+        "done": [
+          {
+            "event": "done",
+            "failures": 0
+          }
+        ],
+        "comparison_refused": false,
+        "comparison_counters": [
+          {
+            "absences_confirmed": 1,
+            "event": "compare",
+            "geometry_headers": 11,
+            "original_absent": 2009,
+            "original_catalogue_scenes": 3025,
+            "original_geometry_scenes": 11,
+            "original_no_scene": 188,
+            "original_refused_rows": 59,
+            "original_refused_scenes": 4,
+            "scene_mismatches": 0,
+            "scene_rows": 3025,
+            "scene_rows_compared": 3025,
+            "triangle_mismatches": 0,
+            "triangles_compared": 215
+          }
+        ],
+        "strict_json_rows": 8,
+        "raw_sha256": "4d9376c1f1c522c485a1407bf34dbaef1f729ef136e852e20ed11e173c847ea2",
+        "expected_outcome_observed": true
+      }
+    ],
+    "started_utc": "2026-10-30T00:57:04.830895+00:00",
+    "pre_inputs": 0,
+    "post_inputs": 0,
+    "original_unchanged": true,
+    "payloads_unchanged": true,
+    "mutations_unchanged": true,
+    "actual_exit": 0,
+    "completed_utc": "2026-10-30T00:57:09.947360+00:00"
+  }
+}

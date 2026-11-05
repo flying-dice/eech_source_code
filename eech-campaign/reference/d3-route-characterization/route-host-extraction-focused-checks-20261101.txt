@@ -1,0 +1,44 @@
+Host route-data extraction: focused LOCAL checks of 1 November 2026 (Task50 / EEDCS-50, D3). WORKING-TREE checks on base fce1f1dfa, NOT a frozen clean-commit run, NOT a canonical build.
+Only the Rust/Lua host crate eech-world was built. The campaign engine C (mb_hostmodel.c, the staged patches H1..H5, routegen.c / popread.c as patched, the fixture), eech-engine-sys,
+eech-engine and eech-dc were NOT compiled, linked or run, and the new bridge tests in eech-dc were not run. No retail data, native campaign, Windows or Docker engine build was used.
+
+Environment: WSL distro EECH-D2-Build, image sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51, Cargo target volume eech-linux-d3-collision-driver-5416adb3b-20261029
+(no container was running on any volume before the runs). Exit statuses were captured inside the container by a MOUNTED script with a control in the same script (`false` printed 1).
+
+WIP SHA-256 of the TESTED eech-world files:
+   cc583de8b19a56e182c1aef8e1cb128cf447f89966816e2c87c7652220e128b3*eech-campaign/crates/eech-world/src/models.rs
+   d18986c70bcd3facd63d8697c16fe484df2509e4f4c8bea8b587fd0dc11601d5*eech-campaign/crates/eech-world/src/model_host.rs
+   644977033b055afdf37c32cd0658cf6064de3937a3366d7042bef9bdb8746c98*eech-campaign/crates/eech-world/csrc/model_step.c
+   78c11ec0fad355e5f89302cd84283d3656192cedaa88e6f3c295de804c371599*eech-campaign/crates/eech-world/tests/model_route.rs
+   8de8885e52883aff0570d896894558e0b45a34f59bf969498909dd4e54ec78db*eech-campaign/crates/eech-world/tests/route_characterization.rs
+   e9893bb6efafb74e80d50459db9d0b33c88c180f5a106555f2219431e2a31ab0*eech-campaign/crates/eech-world/lua/route-characterization.lua
+   5774f8c8f35a7e112644f33d712967b7f1e8eb102fa58bef09e7fc863fd85c35*eech-campaign/crates/eech-world/lua/model-authority.lua
+   aa406c4b25c3923111150f5929ef8628a61ecfd2e56a06bd4c05e48468893dd9*eech-campaign/crates/eech-world/data/subobject-names.txt
+
+WIP SHA-256 of the UNTESTED (never compiled by this lane) files; cargo fmt --all --check covered them (exit 0; they were unchanged by the formatter):
+   990e8bf66ae1411128365bfc625d3406498cc655e654ecc655f97c9d60896001*aphavoc/source/entity/mobile/mb_hostmodel.c
+   9682d2a7782177b455a8fc58f4ba65ed15584b9406767eab024d6bcd307b1b88*aphavoc/source/entity/mobile/mb_hostmodel.h
+   d3261849912bf66c5be0bc94494ba1a909d0970935258beaba05d45673fac553*eech-campaign/crates/eech-engine-sys/build/patches.rs
+   d9b6d74a45480e21b846841b038623cce7533b7df8b2ea2f0fc1c63cb7e60c4b*eech-campaign/crates/eech-engine-sys/build/main.rs
+   4d95970e3b677745873d5e5794f551ea1a11beb0d552b87260aff55eec791b2d*eech-campaign/crates/eech-engine-sys/csrc/eech_route_fixture.c
+   c308ed5db9c36201b4c11b9b7fd9a8ab14404f7941aa0b548d04e705cda970b1*eech-campaign/crates/eech-engine-sys/csrc/eech_route_hooks.h
+   821b4276cd6e21e33ae2f4da34471c8283db5627c49b9255844fbac8e647246d*eech-campaign/crates/eech-engine-sys/csrc/eech_model_host_fixture.c
+   5e13cf1934e56c52f26a72ec51d4fc11a29ebd69ec4db07070747a4715de2ff3*eech-campaign/crates/eech-engine-sys/src/lib.rs
+   c9975dcd2e6803af455c8a53a6321f1b20dbfcdc8706a1a511de6eeceaf72c9a*eech-campaign/crates/eech-engine/src/lib.rs
+   0c8ad4855448e894a01bf7c7a3fd7ae35abde5bcaf520a371b6f0c50205e0f09*eech-campaign/crates/eech-dc/src/module.rs
+
+Results (eech-campaign, release, --locked, package eech-world):
+   fmt:        cargo fmt --all --check                                                      exit 0 (whole workspace)
+   store:      --test model_store          exit 0: 45 passed      (the existing loader / store contracts and the provider drivers, after the loader kept the sub-object records and colours)
+   route:      --test model_route          exit 0: 6 passed       (kind lookup order, nested records, the ordered faces through each surface's own references with their colour, absence
+                                                                    versus end versus argument error versus a refusal by name)
+   driver:     --test route_characterization  exit 0: 18 passed   (the earlier 16, plus the host-profile shapes and their damaged controls; the drift guards compare the driver's grammar
+                                                                    and caps with the C emitter's text, host shapes included)
+   lib:        --lib                       exit 0: 250 passed
+   inventory:  --test host_callbacks every_reference_script   exit 0: 1 passed ((37, 2))
+   clippy:     cargo clippy --locked -p eech-world --all-targets -- -D warnings            exit 0 (0 error lines)
+   Raw logs (not committed): R:/d3-evidence/route-host-focused-final-20261101.log (and route-host-focused-1-20261101.log, an earlier identical-source run).
+
+NOT run, not claimed: any compile of the engine C or of eech-engine-sys / eech-engine / eech-dc; the staged patches H1..H5 applied to the real popread.c / routegen.c by a build (their anchors were
+counted against the source by hand: 26 + 2 handle sites, the two lookup returns, the object line and the position block, each once or the stated number of times); the candidate and the
+original profile builds; any characterisation of the host answers against the closed original rows; the FP harness with the new route probe line; the poison / withheld / malformed host controls.

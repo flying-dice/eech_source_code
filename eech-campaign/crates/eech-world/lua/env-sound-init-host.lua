@@ -109,6 +109,7 @@ end
 
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
+host.use_reference_arithmetic () -- the reference host's arithmetic profile, selected right after the installation is prepared (src/reference_arithmetic.rs)
 -- the hooks exist only in a module built with the env-observer feature; this driver does NOT arm the observer (the sound initialisation probe is armed by nothing), it only needs the build
 if type (dc.env_observer_arm) ~= "function" then
 	emit { event = "refusal", reason = "env_observer_unavailable", detail = "the module was built without the env-observer feature" }
@@ -117,7 +118,7 @@ end
 local engine = dc.boot {
 	install_root = root, map = scenario.map, terrain = host.terrain_provider (root, scenario.map), environment = host.env_provider (), campaign_directory = "camp01", campaign = scenario.campaign,
 	gunship = "apache", seed = seed, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
-	supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, sense = host.sense, aim = host.aim,
+	supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, model = host.model, sense = host.sense, aim = host.aim,
 }
 emit { event = "boot", scenario = scenario_name, seed = seed, seconds = seconds, frame_ms = frame_ms, feature = "env-observer", group = 14, index = 15 }
 

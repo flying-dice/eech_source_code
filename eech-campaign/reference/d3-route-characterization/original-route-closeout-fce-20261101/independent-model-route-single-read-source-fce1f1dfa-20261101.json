@@ -1,0 +1,42 @@
+{
+  "review": "Original route observer two-site single-evaluation correction",
+  "date_utc": "2026-11-01T18:59:32.218596+00:00",
+  "source": {
+    "head": "fce1f1dfaa0423a844399eb7789db9935ae94e91",
+    "base": "c12551440ddd0c79d0de31a2883c29419e6cc795",
+    "binary_diff_sha256": "bdac0ec72be840f1dfc290c31c1a84e0d52b70d48e51f80aa87f363c12e11338",
+    "changed_blob_sha256": {
+      "STATUS.md": "3b16dcd5892fb5682322173ecbb705d08087c92b6d23addbe56d0f13b5062f5f",
+      "eech-campaign/crates/eech-engine-sys/build/patches.rs": "3ef20b3e59686a06ac47bdd20776abe0f4ac1139d508e98e82a6b42c39bd134a",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_route_fixture.c": "6ede81f56717aae16ec7689211532598e594b584a8e18d5d2113dc98397537bd",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_route_hooks.h": "720c35feb3606e46f58e51102432063b53172628a740cc3771df9007ed4ed0f7",
+      "eech-campaign/docs/m5-route-characterization.md": "89ed4fa72de034f438836253bfe181f57afa914bf86e73715b53e2d4e2cbd15f"
+    }
+  },
+  "scope": "Only the five-path tiny helper/staged-call/header/prose delta; all prior caller-context identity, capture, grammar, IO and production math source conclusions reused.",
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "closed_findings": [
+    "ENV-ROUTE-CONTEXT-1"
+  ],
+  "verified": [
+    "The helper receives the already-evaluated int, registers only the existing private caller context and returns that exact int unchanged. No cast, arithmetic, getter, branch, RNG draw or second route-index dereference.",
+    "Both troop replacements now contain one route->index evaluation inside the helper argument. The original parse executes once, receives the helper returned integer and retains its other0/NULL arguments and original branch conditions. The helper completes before parse entry; the other arguments are side-effect-free constants, so C argument evaluation order introduces no new ordering dependency.",
+    "The patch retains its exact original anchor and count2. All26 other caller hooks, lookup/token logic, context consumption, protocol/guards/IO and original algorithms remain unchanged.",
+    "C prototype and definition agree; the opaque entry token remains private and is neither serialized nor exposed through the host API. All changes stay in route-fixture staging/definitions; no new production route ownership.",
+    "Engine C is byte-identical, retaining its one embedded NUL. The source-only STATUS/docs accurately keep previous D10 failed captures and bounded transparency evidence at their original identities."
+  ],
+  "actual_limits": {
+    "current_helper_built_or_run_by_reviewer": false,
+    "current_native_capture_or_transparency_claim": false,
+    "earlier_c125_windows_compile": "Root reports terminal0 at its ownC125 identity; it is not a build result for this helper correction.",
+    "current_root_build_and_guard_gates": "Pending separate actual evidence."
+  },
+  "original_route_characterization_closed": false,
+  "remaining_gates": [
+    "Root clean corrected-source C/staged-patch/native and focused guard gates.",
+    "Genuine complete original captures with semantic caller identities and separate literal geometry/graph comparison against retained failedD10 observations.",
+    "No wholeFP/RNG, allroute, physical service/loader cutover, shipping40/all8, Task50/Task51, current final CI, normal delivery or wholeD3 acceptance."
+  ],
+  "reviewer_actions": "Read-only immutable Git diff and source identity analysis; no edits/builds/tests/native/apps/auth/cache changes or nested agents."
+}

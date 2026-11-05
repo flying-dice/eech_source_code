@@ -1,0 +1,77 @@
+{
+  "source": "d10dd8cc0d2b9eb311c85f7b13796073c9cc78ad",
+  "results": [
+    {
+      "case": "georgia",
+      "native_actual_exit": 1,
+      "controller_actual_exit": 1,
+      "pre_post_inputs_actual": [
+        0,
+        0
+      ],
+      "verified_payloads_unchanged": 57,
+      "calls": 704,
+      "json_rows": 708,
+      "identity_states": {
+        "unique": 430,
+        "ambiguous": 274
+      },
+      "complete_flags": {
+        "1": 430,
+        "0": 274
+      },
+      "summary_counters": [
+        "route-summary calls=704 call_capacity=1024 dropped_calls=0 lookups=1032 lookup_capacity=4096 dropped_lookups=0 orphans=0 interrupted=0 open=0 incomplete_calls=274",
+        "route-pools slots=1782/8192 nodes=21116/32768 faces=17467/32768 finals=21116/32768 links=34934/131072 starts=3649/8192 depths=3864/8192 offsets=21116/65536"
+      ],
+      "done": {
+        "calls": 704,
+        "complete": false,
+        "event": "done",
+        "incomplete_calls": 274,
+        "malformed": false,
+        "summary_complete": false
+      },
+      "raw_sha256": "8aca9d901caea0d7152b3081cd804f8321127b29fb681bbcee2b558f8c447a98",
+      "raw_bytes": 12025813,
+      "output": "D:\\EECH-Migration-Evidence\\model-original-routes-d10dd8cc0-20261101\\georgia"
+    },
+    {
+      "case": "lebanon",
+      "native_actual_exit": 1,
+      "controller_actual_exit": 1,
+      "pre_post_inputs_actual": [
+        0,
+        0
+      ],
+      "verified_payloads_unchanged": 57,
+      "calls": 528,
+      "json_rows": 532,
+      "identity_states": {
+        "unique": 394,
+        "ambiguous": 134
+      },
+      "complete_flags": {
+        "1": 394,
+        "0": 134
+      },
+      "summary_counters": [
+        "route-summary calls=528 call_capacity=1024 dropped_calls=0 lookups=800 lookup_capacity=4096 dropped_lookups=0 orphans=0 interrupted=0 open=0 incomplete_calls=134",
+        "route-pools slots=1365/8192 nodes=15783/32768 faces=13175/32768 finals=15783/32768 links=26350/131072 starts=2608/8192 depths=3020/8192 offsets=15783/65536"
+      ],
+      "done": {
+        "calls": 528,
+        "complete": false,
+        "event": "done",
+        "incomplete_calls": 134,
+        "malformed": false,
+        "summary_complete": false
+      },
+      "raw_sha256": "6ded9515022b988d275a2f7f96ab54f531ce0ace394c7271c4c7a01d2b6fb391",
+      "raw_bytes": 9031446,
+      "output": "D:\\EECH-Migration-Evidence\\model-original-routes-d10dd8cc0-20261101\\lebanon"
+    }
+  ],
+  "created_utc": "2026-11-01T18:38:17.799389+00:00",
+  "scope": "FIRST actual original-route captures FAILED COMPLETE-CAPTURE gate solely for explicit ambiguous reverse identity. Geometry captured, no caps/orphans/malformed rows; not accepted original measurement. Both initial1741roots CONSUMED; repeat1806pair stillunused. Raw retail data retained private, no normalization or rerun. Next observer-only actualcallercontext identity fix; no physical cutover."
+}

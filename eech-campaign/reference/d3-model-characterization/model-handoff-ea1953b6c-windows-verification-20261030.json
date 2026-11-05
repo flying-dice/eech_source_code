@@ -1,0 +1,17 @@
+{
+  "source": "ea1953b6cf8218020e05eda3d2ae498d976a09bf",
+  "actual_windows_exit": 0,
+  "payloads_verified": 48,
+  "build_info": [
+    "commit: ea1953b6cf8218020e05eda3d2ae498d976a09bf",
+    "uncommitted changes in the build inputs: 0 files",
+    "image: sha256:0cca7a0756b6f07eba57031908e2e98d63d7666643996ca51ee3019e7057128b",
+    "rustc: rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo: cargo 1.99.1 (5f94df478 2026-08-27)",
+    "mingw: gcc 12-posix, gcc-mingw-w64-x86-64-posix 12.2.0-14+deb12u1+25.2+b1",
+    "lua.dll: Lua 5.1.5 (lua-5.1.5.tar.gz, SHA-256 checked in tools/Dockerfile)",
+    "target: x86_64-pc-windows-gnu, release",
+    "sha256:"
+  ],
+  "build_info_sha256": "5828b28ad84eb3a14cd4b408b2272f797d4071e9232497f91ce514b0e9232b72"
+}

@@ -1,0 +1,171 @@
+{
+  "source": "9e4f3f9750bac1ce61bd8d1da98467397dd0dac5",
+  "created_utc": "2026-11-01T21:03:34.072687+00:00",
+  "batch_actual_exit": 0,
+  "all_five_actual_controls_pass": true,
+  "full_input_checks_passed": 10,
+  "payloads_each": 57,
+  "old_unsafe_controls_executed": false,
+  "source_pin": "9e4f3f9750bac1ce61bd8d1da98467397dd0dac5",
+  "results": [
+    {
+      "case": "georgia",
+      "source": "9e4f3f9750bac1ce61bd8d1da98467397dd0dac5",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads": 57,
+      "controller_sha256": "4f3ab27fe6599f5441aa706fb9ffc855e8c87871b6882478e6d3b94cd0ffb778",
+      "native_log_sha256": "bf46e470a6ca3424f36b42fd9b08237b9d4dec3a2410da3b055c74d216fb29b5",
+      "complete_bytes": 10337109,
+      "complete_sha256": "53b9ddc61e962003081fb577def24f8b2f4ef2f71a28a488c180b319257e01f8",
+      "literal_equal_to_both_retained50e_captures": [
+        {
+          "source": "50e7f9d8578c7d283b6a47f01a0e2d09e24cfd2f",
+          "prior": "georgia",
+          "sha256": "53b9ddc61e962003081fb577def24f8b2f4ef2f71a28a488c180b319257e01f8",
+          "complete_bytes_equal": true
+        },
+        {
+          "source": "50e7f9d8578c7d283b6a47f01a0e2d09e24cfd2f",
+          "prior": "georgia-repeat",
+          "sha256": "53b9ddc61e962003081fb577def24f8b2f4ef2f71a28a488c180b319257e01f8",
+          "complete_bytes_equal": true
+        }
+      ],
+      "new_independent_repeat_run": false
+    },
+    {
+      "case": "lebanon",
+      "source": "9e4f3f9750bac1ce61bd8d1da98467397dd0dac5",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads": 57,
+      "controller_sha256": "621661586fdaaaffba4591e65e5cf7672923dfa7f7f7625b68e30eee20658ba7",
+      "native_log_sha256": "31a842f13bfb404d1e3a8e3f2627afdc2c2dabea2fdc9c6b1988366310218a39",
+      "complete_bytes": 7758545,
+      "complete_sha256": "7de455637bda01ded949366ddf5969b9f07eff7b4d21abf1ca1a79f20258d08f",
+      "literal_equal_to_both_retained50e_captures": [
+        {
+          "source": "50e7f9d8578c7d283b6a47f01a0e2d09e24cfd2f",
+          "prior": "lebanon",
+          "sha256": "7de455637bda01ded949366ddf5969b9f07eff7b4d21abf1ca1a79f20258d08f",
+          "complete_bytes_equal": true
+        },
+        {
+          "source": "50e7f9d8578c7d283b6a47f01a0e2d09e24cfd2f",
+          "prior": "lebanon-repeat",
+          "sha256": "7de455637bda01ded949366ddf5969b9f07eff7b4d21abf1ca1a79f20258d08f",
+          "complete_bytes_equal": true
+        }
+      ],
+      "new_independent_repeat_run": false
+    },
+    {
+      "case": "swap_primary",
+      "source": "9e4f3f9750bac1ce61bd8d1da98467397dd0dac5",
+      "native_exit": 1,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads": 57,
+      "controller_sha256": "80b9173349eadfdbc6ea4cf69200962147420312e799a32c377e702267437c8c",
+      "native_log_sha256": "9602ccce7086d27f4135599de8a57badc46e14addcca2315585c7f0262b1ad5d",
+      "actual_audit": {
+        "control": "swap_primary",
+        "driver_ok": false,
+        "event": "host_route_boundary_control",
+        "final_swap_topology_supplied": true,
+        "injected": 1,
+        "last_face_queries": 73,
+        "last_node_queries": 97,
+        "primary_error": "route-characterization: boot failed: runtime error: eech: EECH fatal error: host model: [model-provider:route.swap] the end-slot matching of scene 46 kind 77 swaps a tree through the start table at index 24, which the parser's search did not resolve inside its 24 of 24 entries",
+        "queries_after_final_swap_topology": 0,
+        "route_streams": 2,
+        "selected_provider_queries": 340,
+        "target_scene": 46,
+        "topology_faces": 72,
+        "topology_nodes": 96
+      },
+      "audit_sha256": "b629a53330a730bfc14e1a751e13180b0f70fd584632809d0d43cb98f6f8eb45"
+    },
+    {
+      "case": "short_positions",
+      "source": "9e4f3f9750bac1ce61bd8d1da98467397dd0dac5",
+      "native_exit": 1,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads": 57,
+      "controller_sha256": "60b25f3b17fca713462b862aec5f36413dec50d3db5d4ef478ae2bf6272bb5b3",
+      "native_log_sha256": "e238f683b304b7e3dec70d077e370758ac9aa21d556e1ae4704c14ff6c2e7d3c",
+      "actual_audit": {
+        "control": "short_positions",
+        "driver_ok": false,
+        "event": "host_route_boundary_control",
+        "final_swap_topology_supplied": false,
+        "injected": 1,
+        "last_face_queries": 3,
+        "last_node_queries": 4,
+        "primary_error": "route-characterization: boot failed: runtime error: eech: EECH fatal error: host model: [model-provider:route.position] the campaign reads depth -1 of a route position table of 3 (the route last parsed was scene 46 kind 76)",
+        "queries_after_final_swap_topology": 0,
+        "route_streams": 31,
+        "selected_provider_queries": 217,
+        "target_scene": 46,
+        "topology_faces": 2,
+        "topology_nodes": 3
+      },
+      "audit_sha256": "5fba239c86834b0bd07004665d1cbb74e31a3ccc217947011a73c1fa2b29c661"
+    },
+    {
+      "case": "short-recording",
+      "source": "9e4f3f9750bac1ce61bd8d1da98467397dd0dac5",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads": 57,
+      "controller_sha256": "c9558c4168982f04a84b9e15bd1e1a6d626f39fa6f83a85eda16a5775bc3e404",
+      "native_log_sha256": "0e091ddd293503e7774ec84a0be9a94d0613f353042e9ffd3c81b7f3946bb8f6"
+    }
+  ],
+  "helpers": [
+    {
+      "path": "R:\\d3-evidence\\host-route-swap-and-position-controls-20261101.lua",
+      "sha256": "f566c80219321345b8caf05564b3cbf420545c806d79c3c41ffbadcf91a1752b"
+    },
+    {
+      "path": "R:\\d3-evidence\\run-host-route-boundary-controls-9e4f3f9750-20261101.py",
+      "sha256": "4e39f27e4de90f85424a2f89a994b5d59c2163a376cb930ab5e12f565a66f04f"
+    },
+    {
+      "path": "R:\\d3-evidence\\run-route-final-boundary-9e4f3f9750-20261101.py",
+      "sha256": "bae8d8ce99fe660c970a0aa3bf2d61a1c719bedb9433748e73e6130dd2701b89"
+    },
+    {
+      "path": "R:\\d3-evidence\\run-host-route-combined-control-20261101.py",
+      "sha256": "2c949cfaf9cd70536c5f658a752f25c0a678f9ff85ef829e0bf9bc42eb6ef246"
+    },
+    {
+      "path": "R:\\d3-evidence\\run-model-public-native-20261030.py",
+      "sha256": "5293bee29759d610a3771d5ee03712897121e1148ab8957394738e24c9658144"
+    }
+  ],
+  "cohort_comparison": "model-host-route-first-cohort-compare-9e4f3f9750-20261101.json",
+  "short_complete_comparison": "model-host-route-short-byte-compare-9e4f3f9750-v80-20261101.json",
+  "remaining_gate": "New-source independent review and Linux canonical completion pending; no finite or whole acceptance yet.",
+  "scope": "Actual new Windows public host-Lua/native path. 24four-node trees(96nodes72edges) swapped0/1takeoffleaves exercise actual unresolved primary root index24;3node black/green chains for fixedwing routes reachactual insertion atoffset-1 after31providerstreams. Allhealthy candidate COMPLETE routefiles literal equal retained50e first+repeat without rerunning originals. WholeFCEcrossprofilefiles intentionallyunequal; declaredgeometry/graphfields exact. No visualTacview/fullshipping40/all8/Coreloader-detachment/Task50/D3acceptance."
+}

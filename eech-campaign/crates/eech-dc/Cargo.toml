@@ -38,12 +38,20 @@ terrain-fixture = ["eech-engine/terrain-fixture"]
 aim-fixture = ["eech-engine/aim-fixture"]
 # TEST-ONLY (EEDCS-45): the physical weapon-execution characterisation trace, event log and controlled launch case. Never enabled in the shipping build.
 weapon-fixture = ["eech-engine/weapon-fixture"]
+# TEST-ONLY (EEDCS-50): read-only questions to the original collision-model accessors. Never enabled in the shipping build.
+model-fixture = ["eech-engine/model-fixture"]
+# TEST-ONLY (EEDCS-50 D3): the shipping host-owned model data plus a diagnostic that counts the host's answers and overwrites the campaign's own model arrays. Never enabled in the shipping build.
+model-host-fixture = ["eech-engine/model-host-fixture"]
 # TEST-ONLY (EEDCS-51): the original session environment (weather, wind, clock) characterisation. Never enabled in the shipping build.
 env-fixture = ["eech-engine/env-fixture"]
 # TEST-ONLY (EEDCS-51): the read-only observer of the original environment initialisation, shared-entropy order, lightning/sound effects and frame time phase. Never enabled in the shipping build.
 env-observer = ["env-fixture", "eech-engine/env-observer"]
 # TEST-ONLY (EEDCS-48): the ground-contact characterisation probe. Never enabled in the shipping build.
 ground-fixture = ["eech-engine/ground-fixture"]
+# TEST-ONLY (EEDCS-50, D3): the observer of the original airfield route parser (route_summary and route_call). Never enabled in the shipping build.
+route-fixture = ["eech-engine/route-fixture"]
+# TEST-ONLY (EEDCS-50, D3): keep the original airfield route parser (the original route characterisation). Never enabled in the shipping build.
+route-original = ["eech-engine/route-original"]
 
 # Code that runs inside a host's process: a panic in this DLL takes the host
 # down. The reference crate's restriction lints, denied here.
@@ -62,3 +70,7 @@ indexing_slicing = "deny"
 
 [lints.rust]
 unsafe_code = "forbid"
+
+# The Lua provider's number parsing is tested under round-toward-zero, as the engine entry runs a callback (EEDCS-50, D3).
+[dev-dependencies]
+eech-engine = { path = "../eech-engine", features = ["fpu-test-support"] }

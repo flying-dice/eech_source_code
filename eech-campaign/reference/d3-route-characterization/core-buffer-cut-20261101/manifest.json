@@ -1,0 +1,110 @@
+{
+  "created_utc": "2026-11-01T22:39:59.369107+00:00",
+  "runtime_source": "abfda863267c9aa7d71ebc29b10f168d98c484aa",
+  "reports": [
+    {
+      "file": "model-buffer-cut-source-ccc452982a-20261101.json",
+      "bytes": 2205,
+      "sha256": "09a1bdd7e892247bc4f5837208cbf879bec60d993a661f8488a7345aabb9a9d5",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-buffer-cut-builds-ccc452982a-20261101.json",
+      "bytes": 1494,
+      "sha256": "b6678bfbdbe86e3541c5212679a8bf07fe9d893fa1b9ee23b988bbdb3d93d29c",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-buffer-cut-actual-audit-ccc452982a-20261101.json",
+      "bytes": 10718,
+      "sha256": "b3541841f961ac36fe7afcc3202af15cf5b79cd6e20e64ec7c56d79821a0ef80",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-buffer-cut-cohort-compare-ccc452982a-v2-20261101.json",
+      "bytes": 3861,
+      "sha256": "3b8524dd77b106d2b90a1d54d6251b224bd249be342c91c3eadd9f5ad188955d",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-buffer-cut-short-byte-compare-ccc452982a-v80-v2-20261101.json",
+      "bytes": 2170,
+      "sha256": "e03bd725864607443c8fee8362ecf2653388e089de7974bc1f1ea0c75148b1d8",
+      "literal_private_copy": true
+    },
+    {
+      "file": "independent-model-four-buffer-cut-source-actual-ccc452982a-20261101.json",
+      "bytes": 16647,
+      "sha256": "7f220c49d8edad4fbabf004390f3a4e760d264a26eb48e8091e9ecc83806d07b",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-buffer-cut-source-abfda86326-20261101.json",
+      "bytes": 2295,
+      "sha256": "324cfa24a30625af4453eaca3b63d5a37d84392dc0aca2b587c72068e5338b91",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-buffer-cut-builds-abfda86326-20261101.json",
+      "bytes": 1494,
+      "sha256": "e52fecc73381105b78aaf0ee10aadafb54a5756cfb5275979a1ac98c94ba340f",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-buffer-cut-actual-audit-abfda86326-20261101.json",
+      "bytes": 8797,
+      "sha256": "ee6cc0d22ebcd1df18acfee64a5a9330f356daa4c70578a692e100d8dcf8c156",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-buffer-cut-cohort-compare-abfda86326-v2-20261101.json",
+      "bytes": 3861,
+      "sha256": "9ef4be76a276229c12d09f684f187aa4550aa8444de372aa91525c0c4d197b57",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-buffer-cut-short-byte-compare-abfda86326-v80-v2-20261101.json",
+      "bytes": 2170,
+      "sha256": "5eaf0a03a3d2fa01ed15379f3b60be396f81e3eeeb4848127b73d9eb37ee1287",
+      "literal_private_copy": true
+    },
+    {
+      "file": "independent-model-four-buffer-cut-complete-abfda86326-20261101.json",
+      "bytes": 13354,
+      "sha256": "ee26b8960b4d0745efebb598fd8481e6f3270f66aca70a2392e76b19b70de848",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-loader-io-control-0515642a98-20261101.json",
+      "bytes": 1242,
+      "sha256": "3dd1c6c1d23ba3a22228dd77071835a0cb1a7f30c3d40ed1646fd59005bd9825",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-host-route-kernel-path-audit-correction-9e4f3f9750-20261101.json",
+      "bytes": 1712,
+      "sha256": "b804ad8bf227ce0af91b8539dc8da3a0f0143184cd220b522729095f8063c787",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-loader-cached-horizon-source-input-audit-c88-20261101.json",
+      "bytes": 16267,
+      "sha256": "87c9c106994f6bb7625fef9d5c53b14098b077473bbf96629feb976244cc566b",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-animation-required-consumer-source-abfda86326-20261101.json",
+      "bytes": 2035,
+      "sha256": "c8e70221579b5629df0dfe7fc07b885b647bc90b98b9f38501bbd9d215c2f944",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-buffer-cut-abf-all9CI-20261101.json",
+      "bytes": 28092,
+      "sha256": "57ac47e13abece087758c454d58a669fcf17b52dde869badc605fcceab87ee0f",
+      "literal_private_copy": true
+    }
+  ],
+  "report_count": 17,
+  "rule": "Literal safe JSON reports, not retail data or recordings; each original source and actual/reused scope preserved. Manifest excludes itself and README; outer Git publication proof kept separately."
+}

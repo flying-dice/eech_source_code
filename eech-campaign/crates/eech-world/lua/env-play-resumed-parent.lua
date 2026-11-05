@@ -111,6 +111,7 @@ end
 
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
+host.use_reference_arithmetic () -- the reference host's arithmetic profile, selected right after the installation is prepared (src/reference_arithmetic.rs)
 if type (dc.env_play_arm) ~= "function" then
 	emit { event = "refusal", reason = "play_probe_unavailable", detail = "the module was built without the env-observer feature" }
 	refuse ("the module has no env_play_arm function: build eech-dc with the env-observer feature")
@@ -120,7 +121,7 @@ dc.env_play_arm (true)
 local engine = dc.boot {
 	install_root = root, map = scenario.map, terrain = host.terrain_provider (root, scenario.map), environment = host.env_provider (), campaign_directory = "camp01", campaign = scenario.campaign,
 	gunship = "apache", seed = 1, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
-	supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, sense = host.sense, aim = host.aim,
+	supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, model = host.model, sense = host.sense, aim = host.aim,
 }
 emit { event = "boot", scenario = scenario_name, mode = mode, seconds = seconds, frame_ms = frame_ms, armed_by = "dc.env_play_arm only" }
 for _, name in ipairs ({ "env_play_report", "env_play_events", "env_case" }) do

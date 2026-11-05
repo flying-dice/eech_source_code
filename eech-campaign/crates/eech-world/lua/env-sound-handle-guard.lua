@@ -87,6 +87,7 @@ end
 
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
+host.use_reference_arithmetic () -- the reference host's arithmetic profile, selected right after the installation is prepared (src/reference_arithmetic.rs)
 -- armed BEFORE boot exactly as the original driver does, so the only difference between the two runs is the engine's code
 if type (dc.env_observer_arm) ~= "function" then
 	emit { event = "refusal", reason = "env_observer_unavailable" }
@@ -96,7 +97,7 @@ dc.env_observer_arm (true)
 local engine = dc.boot {
 	install_root = root, map = scenario.map, terrain = host.terrain_provider (root, scenario.map), environment = host.env_provider (), campaign_directory = "camp01", campaign = scenario.campaign,
 	gunship = "apache", seed = 1, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
-	supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, sense = host.sense, aim = host.aim,
+	supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, model = host.model, sense = host.sense, aim = host.aim,
 }
 emit { event = "boot", scenario = scenario_name, case = case, label = LABELS [case], group = 14 }
 local present, method = pcall (function () return engine.env_case end)

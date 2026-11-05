@@ -1,0 +1,11 @@
+{
+  "content_id": "14548994",
+  "version": 72,
+  "prior_html_exact": true,
+  "five_epic_reports_exact": true,
+  "appendix_exact_except_generated_local_ids": true,
+  "jira_comment": "10867",
+  "tested_reviewed_source": "f9c6a1e4c7cb16d664ee097a667df1aca2597e0a",
+  "closure_sha256": "e172b913493b2bbcc1b9ed91b9746698f2e2be3c8226925bdb1b362b05925787",
+  "scope": "Prepared host model component source findings closed; new original backing instrumentation unbuilt/unrun/unreviewed; no production/Task50/D3 acceptance"
+}

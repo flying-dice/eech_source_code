@@ -122,10 +122,17 @@ function file:close ()
 end
 io.open = function () return file end
 host = { args = ARGS, terrain_provider = function () return function () end end, env_provider = function () return function () end end }
+local stage = "new"
+host.use_reference_arithmetic = function ()
+	if stage ~= "prepared" then error ("SCRIPTED: the reference arithmetic profile is selected right after the installation is prepared, not from the stage " .. stage, 0) end
+	stage = "selected"
+end
+
 package.preload.eech_dc = function ()
 	return {
-		prepare_installation = function () end,
+		prepare_installation = function () stage = "prepared" end,
 		boot = function ()
+			if stage ~= "selected" then error ("SCRIPTED: boot before the reference arithmetic profile was selected (stage " .. stage .. ")", 0) end
 			local engine = {}
 			if not SCENARIO.no_env_case then
 				function engine:env_case (group, index)

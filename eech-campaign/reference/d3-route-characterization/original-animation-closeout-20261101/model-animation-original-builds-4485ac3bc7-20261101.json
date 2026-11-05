@@ -1,0 +1,27 @@
+{
+  "source": "4485ac3bc7aebc12aca934c7138c88f60ba93252",
+  "created_utc": "2026-11-01T22:46:17.838334+00:00",
+  "results": [
+    {
+      "platform": "linux",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-01T22:44:08.737402+00:00",
+      "completion_sha256": "dc1d4df03d2c80b908197d85d75204e5f812554385e13abe835b4e63fd61050b",
+      "log_sha256": "43d55f56106651c34e94eeb30f5d521684a0e564ed73513e952fec0a33eda8a1"
+    },
+    {
+      "platform": "windows",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-01T22:41:40.615305+00:00",
+      "completion_sha256": "6c854707d6efc4d2ed12b58fa209457a03df99fec467aa49476ea78109e0517d",
+      "log_sha256": "79d3fc5c3c25fa94f3a48c84e95537f2b6d1a04f860a2b0de8ffb43d2babdae6"
+    }
+  ],
+  "Linux_original_feature_passed": 578,
+  "Linux_failed": 0,
+  "Linux_fmt_and_original_strict_exit": 0,
+  "verified_payloads": 59,
+  "build_info_sha256": "9237c834aea7d9bb2b04e0e15774e73a015650bbd6b191ae4d2314c906934c5f",
+  "bin": "D:\\EECH-Migration-Evidence\\model-animation-original-4485ac3bc7\\eech-campaign\\target\\model-fixture\\animation-original-4485ac3bc7",
+  "scope": "Actual original-keeping model-fixture builds through existing repo Windows wrapper, originalfeature Linux test/fmt/strict. NO native animation characterization run; driver P2 consistency correction in progress, not acceptance or whole metadata ownership."
+}

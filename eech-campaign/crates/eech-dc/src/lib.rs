@@ -18,6 +18,7 @@
 //!                          bind_mobile = function () next_id = next_id + 1; return "host:" .. next_id end,
 //!                          supply_reached = observe_supply_reach,
 //!                          move_vehicle = host.move_vehicle,    -- the host's physical record of each routed vehicle
+//!                          model = host.model,                  -- the host's physical models: catalogue, scene bounds and radius, collision triangles
 //!                          observe_loss = function () return "forward" end,
 //!                          -- the host owns the physical terrain; boot is refused without it (see the README of reference/d3-terrain-characterization)
 //!                          terrain = host.terrain_provider (root, "..\\common\\maps\\map16"),

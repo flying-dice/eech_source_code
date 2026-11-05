@@ -1987,6 +1987,123 @@ fn the_object_witness_says_so_when_there_is_no_such_structure_and_refuses_a_malf
     );
 }
 
+// ---------------------------------------------------------------------------------------------------------------------------------
+// the reference host's own arithmetic profile (src/reference_arithmetic.rs)
+
+// 1 + 0.75 ulp: the nearest double is 1 + ulp, round-toward-zero gives 1. The operands come from strings so that nothing is folded when the chunk is compiled.
+#[cfg(target_arch = "x86_64")]
+const REFERENCE_ARITHMETIC_SCRIPT: &str = "local one, part = tonumber('1'), tonumber('1.6653345369377348e-16')
+local function toward_zero() return one + part == one end
+print('BEFORE=' .. tostring(toward_zero()))
+host.use_reference_arithmetic()
+print('AFTER=' .. tostring(toward_zero()))
+host.use_reference_arithmetic()
+print('AGAIN=' .. tostring(toward_zero()))
+";
+
+#[cfg(target_arch = "x86_64")]
+#[test]
+fn the_reference_host_selects_sse_round_toward_zero_when_asked_and_not_before() {
+    let script = std::env::temp_dir().join(format!("eech-world-reference-arithmetic-{}.lua", std::process::id()));
+    std::fs::write(&script, REFERENCE_ARITHMETIC_SCRIPT).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    // the process starts in the processor's default (nearest): the host does not select the profile at start-up or while the script is parsed
+    assert!(stdout.contains("BEFORE=false"), "{stdout}\n{stderr}");
+    assert!(stdout.contains("AFTER=true"), "{stdout}\n{stderr}");
+    assert!(stdout.contains("AGAIN=true"), "{stdout}\n{stderr}");
+    assert!(
+        stderr.contains("[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x"),
+        "{stderr}"
+    );
+}
+
+#[test]
+fn the_shipped_campaign_script_selects_the_profile_once_between_preparing_the_installation_and_booting() {
+    let source = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/lua/campaign.lua")).unwrap();
+    let at = |needle: &str| source.find(needle).unwrap_or_else(|| panic!("campaign.lua has no {needle:?}"));
+    assert_eq!(
+        source.matches("host.use_reference_arithmetic").count(),
+        1,
+        "the profile is selected exactly once"
+    );
+    let parsed = at("local frame_ms = tonumber (args.frame_ms");
+    let prepared = at("dc.prepare_installation (root)");
+    let selected = at("host.use_reference_arithmetic ()");
+    let booted = at("dc.boot {");
+    // the script's own argument parsing keeps the process state it always had; the profile comes right after the installation is prepared and before everything that follows
+    assert!(
+        parsed < prepared && prepared < selected && selected < booted,
+        "{parsed} {prepared} {selected} {booted}"
+    );
+    assert!(
+        source[prepared..selected]
+            .lines()
+            .filter(|l| !l.trim().is_empty() && !l.trim_start().starts_with("--"))
+            .count()
+            == 1,
+        "nothing but the preparation runs before the selection"
+    );
+}
+
+// The two bounded diagnostics that deliberately stay in the caller's own context: model-authority.lua exposes the module's default-nearest and explicit four-rounding callers on the RAW public
+// boundary (selecting toward-zero for them would hide exactly the restoration it proves), and model-characterization.lua is the closed original-oracle driver (its hash and semantics are frozen).
+const WITHOUT_REFERENCE_PROFILE: [&str; 2] = ["model-authority.lua", "model-characterization.lua"];
+
+#[test]
+fn every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not() {
+    let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("lua");
+    let (mut with_profile, mut without_profile) = (0, 0);
+    for entry in std::fs::read_dir(&directory).unwrap() {
+        let path = entry.unwrap().path();
+        if path.extension().and_then(|e| e.to_str()) != Some("lua") {
+            continue;
+        }
+        let name = path.file_name().unwrap().to_str().unwrap().to_string();
+        let source = std::fs::read_to_string(&path).unwrap();
+        let selects = source.contains("host.use_reference_arithmetic");
+        if WITHOUT_REFERENCE_PROFILE.contains(&name.as_str()) {
+            assert!(!selects, "{name} must stay in the caller's own floating-point context");
+            without_profile += 1;
+            continue;
+        }
+        let Some(prepared) = source.find("dc.prepare_installation") else {
+            // a library or helper the clients load: it prepares and boots nothing, so it selects nothing
+            assert!(!selects, "{name} does not prepare an installation and must not select the profile");
+            continue;
+        };
+        // the first preparation is the phase boundary; every script's own argument and constant parsing is before it and keeps the process state it always had
+        let selected = source[prepared..]
+            .find("host.use_reference_arithmetic ()")
+            .unwrap_or_else(|| panic!("{name}: no reference arithmetic profile after the installation is prepared"))
+            + prepared;
+        if let Some(boot) = source[prepared..].find("dc.boot") {
+            assert!(selected < prepared + boot, "{name}: the profile must be selected before the first boot");
+        }
+        // one selection per script, immediately after the preparation: blank and comment lines between them do not count, but no executable
+        // statement may, except the guard of the recorded-step form (`if prepared then`, taken only when that step succeeded)
+        assert_eq!(source.matches("host.use_reference_arithmetic").count(), 1, "{name}");
+        let between: Vec<&str> = source[prepared..selected]
+            .lines()
+            .map(str::trim)
+            .filter(|l| !l.is_empty() && !l.starts_with("--"))
+            .collect();
+        assert!(
+            !between.is_empty() && between[1..].iter().all(|l| *l == "if prepared then"),
+            "{name}: an executable statement runs between the preparation and the profile: {between:?}"
+        );
+        with_profile += 1;
+    }
+    // 58 scripts select the profile: the 30 retained reference clients, the nineteen environment drivers (EEDCS-51: env-*.lua, which boot with the host model provider and select the profile at the integration of Tasks 50 and 51), the shipped campaign.lua, the five terrain/ground real-engine drivers
+    // (ground-authority, ground-characterization, terrain-characterization, terrain-has-face, terrain-provider), the original route observer (route-characterization), the loader-detachment control (model-horizon-control) and the original scene animation-list observer (model-animation-characterization);
+    // the two diagnostics left out on purpose are counted apart. Scripts that prepare no installation (for example model-provider-check.lua, which boots no engine) are in neither count.
+    assert_eq!((with_profile, without_profile), (58, 2));
+}
+
 // The environment characterisation driver (EEDCS-51, lua/env-characterization.lua) run as the host binary runs it, against a stand-in engine. The checks protect its CONTRACT: arguments refused before
 // anything runs, a genuine refusal without the fixture, a control run that asks for no witness, strings that stay strings, the emitted protocol checked for EVERY family (a marker-only, wrong-family,
 // incomplete, duplicated, mistyped, mis-identified or fingerprint-inconsistent report is refused), a bounded periodic schedule, and the portable wiring below. The stand-in answers well-formed
@@ -2112,16 +2229,32 @@ end
 -- ---- group 13, index 0: the lightning queue probe's report (csrc/eech_env_fixture.c env_lightning_case, csrc/eech_env_observer.c eech_envobs_queue_report). The number of lightning events is the
 -- number of episodes the stand-in observer wrote (LIGHTNING_EPISODES, counted by its lightning ()); the shape says what the stand-in's queue did with each add: ok (both queued), no_environment (nothing
 -- active, nothing queued) or full (every slot already in use, nothing queued). The numbers are canned; the ORDER, the grammar and the reconciliation with the observer's events are the real ones.
+-- The queue's slot masks are 32-bit integers. Their bit weights are built here by exact doubling from 1 (every power of two to 2^31 is a double, and the sum of two equal doubles of
+-- this size is exact in every rounding mode), not by the runtime exponentiation `2 ^ n`, which the C library computes and which the caller's rounding mode (the new Linux SSE
+-- round-toward-zero of the reference host) can make inexact: it rendered the second add's mask as 00000002 instead of 00000003. Division by a power of two is exact as well.
+local LQ_BIT = {}
+do
+  local weight = 1
+  for i = 0, 31 do
+    LQ_BIT[i] = weight
+    weight = weight + weight
+  end
+end
+local function lq_bit(i)
+  local weight = LQ_BIT[i]
+  if weight == nil then error('stand-in: the queue bit ' .. tostring(i) .. ' is outside 0..31', 0) end
+  return weight
+end
 local function lq_pop(m)
   local count = 0
   for i = 0, 31 do
-    if math.floor(m / 2 ^ i) % 2 == 1 then count = count + 1 end
+    if math.floor(m / lq_bit(i)) % 2 == 1 then count = count + 1 end
   end
   return count
 end
 local function lq_lowest_zero(m)
   for i = 0, 31 do
-    if math.floor(m / 2 ^ i) % 2 == 0 then return i end
+    if math.floor(m / lq_bit(i)) % 2 == 0 then return i end
   end
   return -1
 end
@@ -2148,7 +2281,7 @@ local function queue_report(events, shape)
       local slot = -1
       if shape == 'ok' then
         slot = lq_lowest_zero(mask)
-        mask = mask + 2 ^ slot
+        mask = mask + lq_bit(slot)
       end
       record(ev, 2 * k, active, mask, slot, slot >= 0 and LQ_QUEUED or LQ_ZERO)
     end
@@ -2160,7 +2293,7 @@ local function queue_report(events, shape)
     .. string.format('env-lq-report armed=1 capacity=96 stored=%d dropped=0 overflow=0 lightning_events=%d update_calls=0 queue_capacity=32 final_mask_w=%08x final_occupancy=%d\n', #records, events, mask, lq_pop(mask))
     .. table.concat(records)
   for slot = 0, 31 do
-    if math.floor(mask / 2 ^ slot) % 2 == 1 then text = text .. string.format('env-lq-slot slot=%d %s\n', slot, LQ_QUEUED) end
+    if math.floor(mask / lq_bit(slot)) % 2 == 1 then text = text .. string.format('env-lq-slot slot=%d %s\n', slot, LQ_QUEUED) end
   end
   return text
 end
@@ -2415,7 +2548,13 @@ local mutations = {
 function engine:env_case(group, index)
   note('case ' .. group .. ':' .. index)
   local text = report(group, index)
-  if MUTATION ~= 'none' and group == TARGET_GROUP and (TARGET_INDEX < 0 or index == TARGET_INDEX) then text = mutations[MUTATION](text) end
+  if MUTATION ~= 'none' and group == TARGET_GROUP and (TARGET_INDEX < 0 or index == TARGET_INDEX) then
+    local coherent = text
+    text = mutations[MUTATION](coherent)
+    -- a lightning queue corruption is only a test of the driver's refusal if it really changed the coherent report it was applied to (a text edit that matches nothing is a silent no-op);
+    -- every `queue_` form is applied to the queue report only, and each one differs from the healthy report of the shape it is run with. A no-op is therefore a stand-in error (the Rust side refuses to count it), never a refusal by the driver.
+    if MUTATION:sub(1, 6) == 'queue_' and text == coherent then error('stand-in: NO-OP MUTATION ' .. MUTATION .. ' left the coherent lightning queue report unchanged', 0) end
+  end
   return text
 end
 "#;
@@ -3875,6 +4014,9 @@ const QUEUE_ROW_EVENTS: [&str; 8] = [
     "lightning_queue_summary",
 ];
 
+// what the queue stand-in raises when a corruption left the coherent report unchanged: such a form tested nothing, and a refusal by it must not be counted as the driver's
+const QUEUE_NO_OP_MUTATION: &str = "NO-OP MUTATION";
+
 fn queue_stand_in(observer_mutation: &'static str, mutation: &'static str) -> EnvStandIn {
     EnvStandIn {
         mutation,
@@ -3989,6 +4131,11 @@ fn a_lightning_queue_report_that_is_incomplete_out_of_order_or_at_odds_with_the_
     ];
     for (observer_mutation, mutation, says) in cases {
         let run = run_env_scenario(&queue_stand_in(observer_mutation, mutation), &queue_args());
+        assert!(
+            !run.stderr.contains(QUEUE_NO_OP_MUTATION),
+            "{mutation} changed nothing in the coherent report it corrupts:\n{}",
+            run.stderr
+        );
         assert!(!run.status.success(), "{mutation} was accepted:\n{}", run.out_text);
         assert!(
             run.stderr.contains("env-characterization:") && run.stderr.contains(*says),
@@ -4264,6 +4411,11 @@ fn the_natural_queue_report_rejects_incomplete_slot_cohorts() {
     let mut accepted: Vec<String> = Vec::new();
     for (mutation, what) in damaged {
         let run = run_env_scenario(&queue_stand_in("lightning_episode", mutation), &queue_args());
+        assert!(
+            !run.stderr.contains(QUEUE_NO_OP_MUTATION),
+            "{mutation} changed nothing in the coherent report it corrupts:\n{}",
+            run.stderr
+        );
         if run.status.success() {
             accepted.push(format!("{mutation}: {what}"));
         }

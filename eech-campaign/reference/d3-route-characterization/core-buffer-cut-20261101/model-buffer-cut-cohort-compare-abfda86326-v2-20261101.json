@@ -1,0 +1,85 @@
+{
+  "original_source": "fce1f1dfaa0423a844399eb7789db9935ae94e91",
+  "candidate_source": "abfda863267c9aa7d71ebc29b10f168d98c484aa",
+  "created_utc": "2026-11-01T22:30:20.970579+00:00",
+  "all_declared_unchanged_cohorts_equal": true,
+  "actual_host_profile_contains_no_unobserved_bounds": true,
+  "finite_slice_closed": false,
+  "remaining_gates": [
+    "newbuffer-cut independentreview",
+    "newcanonicalLinux completion"
+  ],
+  "scope": "Complete first natural-boot ORIGINAL-v-HOST records. Raw files read-only/never normalized. Decoded node bit/index fields and ordered resolved face point/colour/polygon fields match literally; whole node/face lines differ by intentionally absent raw/surface/local fields. All specified graph/slot/total/final/link/start/position/offset/end rows compare literally including endings. Surfaces/header legacy IDs differ by explicit host packaging/semantic key construction. Corrected host profile contains NO unmeasured bounds rows; old8b defect-bearing captures are preserved separately. No cross-profile wholefile equality, repeats, authority/refusal/FP, visualTacview, shipping40/all8 or Task50/D3 acceptance claimed.",
+  "results": [
+    {
+      "case": "georgia",
+      "calls": 704,
+      "host_bounds_rows_correctly_absent_count": 0,
+      "all_actual_context_scene_kind_names_exact": true,
+      "call_header_contract_fields_exact": true,
+      "decoded_nodes_with_literal_index_and_float_bit_fields_equal": 21116,
+      "ordered_resolved_faces_with_literal_point_colour_polygon_fields_equal": 17467,
+      "literal_graph_slot_total_final_link_start_position_offset_end_rows_equal": 87869,
+      "literal_graph_row_bytes_including_endings": 7301867,
+      "literal_graph_row_tags": {
+        "route-totals": 704,
+        "route-final": 21116,
+        "route-link": 34934,
+        "route-start": 3649,
+        "route-position": 3864,
+        "route-offset": 21116,
+        "route-end": 704,
+        "route-slot": 1782
+      },
+      "calls_with_surface_packaging_count_differences": 0,
+      "whole_cross_profile_files_equal": false,
+      "original_sha256": "48a075af8e24592d69cdb3cf541be2b4122bd0ff2932ea042be21c4e57c1bec8",
+      "candidate_sha256": "53b9ddc61e962003081fb577def24f8b2f4ef2f71a28a488c180b319257e01f8",
+      "candidate_native_controller_exits": [
+        0,
+        0
+      ],
+      "pre_post_input_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 58,
+      "candidate_bytes": 10337109
+    },
+    {
+      "case": "lebanon",
+      "calls": 528,
+      "host_bounds_rows_correctly_absent_count": 0,
+      "all_actual_context_scene_kind_names_exact": true,
+      "call_header_contract_fields_exact": true,
+      "decoded_nodes_with_literal_index_and_float_bit_fields_equal": 15783,
+      "ordered_resolved_faces_with_literal_point_colour_polygon_fields_equal": 13175,
+      "literal_graph_slot_total_final_link_start_position_offset_end_rows_equal": 65965,
+      "literal_graph_row_bytes_including_endings": 5477995,
+      "literal_graph_row_tags": {
+        "route-totals": 528,
+        "route-final": 15783,
+        "route-link": 26350,
+        "route-start": 2608,
+        "route-position": 3020,
+        "route-offset": 15783,
+        "route-end": 528,
+        "route-slot": 1365
+      },
+      "calls_with_surface_packaging_count_differences": 0,
+      "whole_cross_profile_files_equal": false,
+      "original_sha256": "ec187d8203c82ab94888b45fca7a349e427194a2355386cf05439c321e260f63",
+      "candidate_sha256": "7de455637bda01ded949366ddf5969b9f07eff7b4d21abf1ca1a79f20258d08f",
+      "candidate_native_controller_exits": [
+        0,
+        0
+      ],
+      "pre_post_input_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 58,
+      "candidate_bytes": 7758545
+    }
+  ]
+}

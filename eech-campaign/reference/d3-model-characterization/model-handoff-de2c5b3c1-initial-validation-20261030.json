@@ -1,0 +1,50 @@
+{
+  "source": "de2c5b3c1942e77502a2eb056d0e1b39de230a07",
+  "when_utc": "2026-10-30T03:17:58.138762+00:00",
+  "frozen_source": "R:\\d3-evidence\\model-handoff-source-de2c5b3c1",
+  "windows_shipping_compile_actual_exit": 0,
+  "windows_exports_verified": 46,
+  "build_info_sha256": "95971dcfcbbbb5e0a6b75d6bda158473c876a6656c59ed9a2f190f9f77a3350e",
+  "actual_build_info": [
+    "commit: de2c5b3c1942e77502a2eb056d0e1b39de230a07",
+    "uncommitted changes in the build inputs: 0 files",
+    "image: sha256:9147d7f16b9d45273270cab3dadb1589e69b885d5f07c970313a7d615c867fc1",
+    "rustc: rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo: cargo 1.99.1 (5f94df478 2026-08-27)",
+    "mingw: gcc 12-posix, gcc-mingw-w64-x86-64-posix 12.2.0-14+deb12u1+25.2+b1",
+    "lua.dll: Lua 5.1.5 (lua-5.1.5.tar.gz, SHA-256 checked in tools/Dockerfile)",
+    "target: x86_64-pc-windows-gnu, release",
+    "sha256:"
+  ],
+  "linux_format": 0,
+  "linux_affected_tests": 408,
+  "linux_affected_clippy": 0,
+  "suite_pass_counts": {
+    "dc": 9,
+    "lua_layout": 2,
+    "engine": 72,
+    "world_library": 235,
+    "world_main": 19,
+    "host_callbacks": 24,
+    "load_dc": 2,
+    "model_characterization": 8,
+    "model_store": 37
+  },
+  "engine_nul_count": 1,
+  "review": "independent-model-public-handoff-review-de2c5b3c1-20261030.json",
+  "review_sha256": "ba492e1d89ec07a86477ee3f9c5df54a5b35aef3ee74f029c1542b2c06e6c393",
+  "verdict": "CHANGES_REQUIRED",
+  "p2": [
+    "MODEL-PUBLIC-IDENTITY",
+    "MODEL-NUMBER-FIDELITY",
+    "MODEL-FOUND-PRESENCE",
+    "MODEL-EXACT-BOUNDED-LIST",
+    "MODEL-WITNESS-PREFLIGHT",
+    "MODEL-WITNESS-JSON-IO"
+  ],
+  "new_retail_handoff_execution": "NOT RUN; held for six source/witness corrections",
+  "actual_synthetic_campaign_boot": "NOT RUN; provider synthetic tests do not prove actual Core-generated installation bootstrap",
+  "authority_witness": "PREPARED ONLY, not a measured result",
+  "closed_conformance": "All828 current present model geometry/kernel/sourceprovenance evidence remains closed and reused; no unchanged sweep",
+  "production_and_D3": "INCOMPLETE; physical solvers/hierarchy/environment/time/loader removal and full shipping/normal delivery still required"
+}

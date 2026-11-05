@@ -178,9 +178,10 @@ end
 -- ---------------------------------------------------------------------------------------------------------------- boot (no observer: it is not needed for this witness)
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
+host.use_reference_arithmetic () -- the reference host's arithmetic profile, selected right after the installation is prepared (src/reference_arithmetic.rs)
 local engine = dc.boot {
 	install_root = root, map = map, terrain = terrain, environment = environment, campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache", seed = seed,
-	bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss, supply_reached = host.supply_reached, line_of_sight = host.line_of_sight,
+	bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss, supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, model = host.model,
 	sense = host.sense, aim = host.aim,
 }
 emit { event = "boot", mode = mode, scenario = scenario_name, case = case, seed = seed, feature = "env-fixture" }

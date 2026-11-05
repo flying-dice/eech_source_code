@@ -1,0 +1,136 @@
+{
+  "schema": "independent-review/v1",
+  "task": "EEDCS-50 original surface provenance correction",
+  "reviewed_head": "debf965cbff9346a2ada3e2cfb6691b572dba059",
+  "reviewed_base": "874aa5ae683df489c5df7ef09948528ea2e2306d",
+  "frozen_source": "R:/d3-evidence/model-backing-source-debf965cb",
+  "clean_exact_head_before_after": true,
+  "primary_source_bytes_match_pinned_git": true,
+  "disposition": "RESOLVED_NO_NEW_FINDINGS",
+  "findings": [],
+  "new_original_accessor_execution": "ALLOW_WITH_RECORDED_LIMITS",
+  "scope": "One focused combined correctness, clean-code and boundary-safety review of the coherent surface-hooks/gate/controls correction. Closed integer stepping, host f9 kernel/component and original366/309 reviews reused. No unchanged source sweep or new physical execution by reviewer.",
+  "closed_finding": {
+    "id": "ORIGINAL-SURFACE-PROVENANCE",
+    "previous_priority": "P2",
+    "status": "RESOLVED",
+    "assessment": "Common per-field fread success is now byte-masked per object, with the original int-to-u16 number_of_faces read correctly covering bytes8..11. Custom16-byte surface fread counts establish initialized full-record prefixes. The actual consolidation allocation base/count, ordered copy source/destination and final binding are observed. Only matching current source prefixes are carried to a bounded bitmap of initialized final records. Metadata and walk reads are gated before typed dereference; state hashing uses the observed current final block and initialized records rather than a recomputed count."
+  },
+  "source_assessment": [
+    "M12 wraps the custom surface fread once and returns its result unchanged. M13..M19 likewise wrap the seven common surface field reads once, preserving order/arguments/numerical bytes; M20/M21/M22 record actual allocation/copy/binding without rewriting original data. M5 and M10 include the new surface facts. Exact replacement anchors and feature-only staging remain in force.",
+    "mw_fill_field covers fields by successful fread byte masks; a record prefix grows only when all16 bytes are initialized, including the legitimate overlapping8..11 int read. A hole does not become filled merely because later records succeed. Duplicate/invalid fields make the source untrusted. Custom prefixes count only complete16-byte fread items, conservatively excluding a partial final item.",
+    "The per-object source is matched to the current common pointer/range or current custom record/generation. Consolidation checks phase, object identity/index/order, destination cursor and actual count before recording. Final binding requires exact base/count/running-total. Reset clears surface state/bitmap at lifecycle boundaries; generation continues to protect custom records.",
+    "The static262144-record bitmap bounds all bitmap accesses; an observed larger block is refused, not partially trusted. Per-object32768 capacity overflow remains an explicit conservative refusal. Record counts/copies are checked against the observed total before marking. No raw surface pointer or allocation identity is exported through Lua.",
+    "surface_provenance checks current object/global block bindings before supplying the observed extent/bitmap. Every typed metadata surface read calls mw_surface_gate before casting/dereferencing; the walk uses that same gate for first, intervening and one-past-end reads. Range, record-boundary,4-byte alignment, bitmap extent and initialized-bit checks precede surface memory reads.",
+    "State hashing was traced independently: whole scene/object tables retain their original zeroed-allocation assumption; surface bytes are hashed only under phase2, no-bad, no-capacity and exact-current-global-base identity, iterating only initialized bits within the observed bounded record count. It does not size a surface read from current object count sums. Those are unsigned-byte hash reads, so they have no typed-alignment requirement; the recorded actual allocation supplies their backing. Content-array extents still come from the gated read walk.",
+    "No new FPU/RNG/physical-query behavior or original numerical body is changed by these integer-only observation hooks. No additional concrete correctness, clean-code or boundary-safety defect was established in this delta."
+  ],
+  "actual_evidence": {
+    "windows_fixture_compile": {
+      "actual_exit": 0,
+      "dirty_build_inputs": 0,
+      "source": "debf965cbff9346a2ada3e2cfb6691b572dba059",
+      "image": "sha256:941a6d410417487598118a998645b731523a058ac27b34e645464562e9c27208",
+      "rust_cargo": "1.99.1",
+      "mingw": "12-posix",
+      "manifest_file_entries_independently_rehashed": 44,
+      "build_info_sha256": "67dcb1d659153a8777383251b429047ed56450d76b1f95cb732e391e3d1a37b7",
+      "scope": "Compile/artifact identity only; no new original accessor/retail execution."
+    },
+    "linux_isolated_checks": {
+      "actual_completion_exit": 0,
+      "fmt_check": 0,
+      "standalone_log": "checks=69 failures=0",
+      "rust_model_walk_test": {
+        "passed": 1,
+        "failed": 0,
+        "threshold": 69
+      },
+      "scope": "The real production fill-mask/gate/walk helpers run over synthetic owned arrays, including poisoned/unreadable addresses rejected before reads, initialized/short/misaligned/current/cross-record cases. No original model code or campaign is executed. Full loader-hook lifecycle/native metadata/state-hash behavior is source-reviewed here and remains to be observed in the new retail fixture.",
+      "warning": "Retained unused_doc_comments warning on the existing feature-gated extern declaration; no strictClippy pass claimed."
+    },
+    "sanitizer_scope": {
+      "bounded_followup": "Root bounded ASan+UBSan run uses abort_on_error=1:handle_segv=0:detect_leaks=0 and reports69/0 in the retained log.",
+      "prior_failures": "The prior repeated-DEADLYSIGNAL diagnostic is retained. A separate program with no EECH source also reproduced the default-handler runaway; the exact cause remains unresolved. Neither that reproduction nor the bounded green proves a blanket sanitizer pass or retail safety.",
+      "reviewer": "Read-only source/log/proof inspection; no sanitizer/native execution or process action."
+    },
+    "native_status": "No new original model/fixture/accessor/retail execution has occurred at review closure. Original366 measurements retain their prior identities; all59 custom/mixed geometry cases remain unmeasured."
+  },
+  "recorded_execution_limits": [
+    "ALLOW applies only to new read-only original-fixture characterization from this exact reviewed source and verified compiled artifacts, on fresh manifest-verified supported retail copies. It does not authorize malformed/truncated original loader experiments; the legacy loader can itself overrun before observation hooks intervene.",
+    "Run on the existing single engine thread; keep model tables/allocations stable between observation, safety analysis and original calls. Arbitrary concurrent mutation/free/reload is not supported.",
+    "Invoke the public gated fixture entrypoints and obey their callable/depth/refusal/capacity/budget decisions. Do not bypass the verifier to force unsupported original calls or replace refusal/gap with a fabricated miss/false.",
+    "Root must verify actual surface phase/bad/base/count/initialized/current-binding and per-object/backing diagnostics from the run, not assume expected52517 or847 counts. Partial/uninitialized/unobserved/dropped/ambiguous cases stay explicit gaps.",
+    "Before claiming expanded geometry equivalence, compare actual old six positive models208TRUE+6endFALSE+1absence and existing metadata against retained originals without numerical/oracle/tolerance changes. New surface diagnostics/hashes may differ; do not claim whole old/new raw-byte identity where only physical fields are compared.",
+    "The69 isolated controls validate helper bounds bookkeeping; they do not themselves establish properties of retail geometry or exercise every production hook/state-hash path natively. New actual retail execution/evidence review remains required."
+  ],
+  "limits": [
+    "No formal GitHub approval, Task50 Done, host production handoff, Tacview/shipping or whole-D3 acceptance. The host model component, original loader/query dispatch removal and other required D3 hierarchy/entity/environment/time/spatial work retain their earlier limits.",
+    "This is source safety permission for bounded characterization, not a native result. No new custom/mixed model answers, exhaustive other safe-model triangles or generic/DCS authority are invented.",
+    "No source/test/build/native/accessor/campaign run, process/cache/auth/Git/external mutation or nested agents by reviewer; only this new canonical UTF8-LF report was written. Live shipping evidence/process/cache is outside and untouched."
+  ],
+  "source_identities": [
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/patches.rs",
+      "sha256": "6389d9d053a3ca93d710cf217cd343980090d8f5b1cddf98130c1db302865fa1"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_model_fixture.c",
+      "sha256": "99731e63d3f22b517dce97d8ee652dee9966e678961ec75186007d6b3cb93728"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_model_hooks.h",
+      "sha256": "3d2cf2e016f15c1a9a8f1da0c34d7586b5c708c6dbf1ce7414982c21d49f3d5c"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_model_walk.h",
+      "sha256": "5dd510931c37f8f654336a6a8ffe752bc7accd2b1612e958a6369f959c394bd6"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_model_walkcheck.c",
+      "sha256": "47593349ec543f53ae287db83173f49ed35fd56ea3c781302ac7c25a0c98471e"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/tests/model_walk.rs",
+      "sha256": "90a652edcc5ad57885785c626bb275dce7733cb72ab30f04e1441b4190591ed2"
+    },
+    {
+      "path": "eech-campaign/docs/m5-model-characterization.md",
+      "sha256": "b121ffffd2cb350ef5f9ff223815953b6a237a32727b1479bb3eb9a4f29213e5"
+    }
+  ],
+  "evidence_identities": [
+    {
+      "path": "R:/d3-evidence/independent-original-model-backing-review-874aa5ae6-20261030.json",
+      "sha256": "0185df9b0748b448e0221e8721eadd82ff6ddcc36c2094052966407d7b1863a6"
+    },
+    {
+      "path": "R:/d3-evidence/model-backing-original-windows-debf965cb-20261030-completion.json",
+      "sha256": "124ba0eb35f695f18a4c44d71380f5da18bb5c3d1ed00c8ac069b13406f2a779"
+    },
+    {
+      "path": "R:/d3-evidence/model-backing-original-windows-debf965cb-20261030.log",
+      "sha256": "36ee7b86fb466b031bdbbef7d3021c4e39278363f917304059f968d5f5bd29a2"
+    },
+    {
+      "path": "R:/d3-evidence/model-backing-debf965cb-linux-20261030-completion.json",
+      "sha256": "1454a3d82b16d5f046c5a13f6ec492c5f98509abd20f5ef36d56a61c06eb3328"
+    },
+    {
+      "path": "R:/d3-evidence/model-backing-debf965cb-linux-20261030.log",
+      "sha256": "e047c9a2676bb0cd1e5de4b8ccb8016c1bf01d99e1824426fc707eba8108decc"
+    },
+    {
+      "path": "R:/d3-evidence/model-sanitizer-environment-control-20261030.json",
+      "sha256": "b9ca5f2c791fdd312cb3d451af85d4b780e20f83974f4ede99747607f433cec6"
+    },
+    {
+      "path": "R:/d3-evidence/diagnose-model-sanitizer-smoke-20261030.sh",
+      "sha256": "930a43d595cbf45f34799cdf8ff47cb11fc031897f1afc074107eea855266008"
+    }
+  ],
+  "previous_report": {
+    "path": "R:/d3-evidence/independent-original-model-backing-review-874aa5ae6-20261030.json",
+    "sha256": "0185df9b0748b448e0221e8721eadd82ff6ddcc36c2094052966407d7b1863a6"
+  }
+}
