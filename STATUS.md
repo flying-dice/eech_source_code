@@ -1,4 +1,34 @@
-# CURRENT — D3 Task49: entity output-only contract corrected in source; same-reviewer pass/native validation pending; Task50/52 delivered (5 November 2026)
+# CURRENT — D3 Task49: entity output-contract P1 closed by independent source review; corrected Windows/native validation next (5 November 2026)
+
+This is the ONE current summary; dated entries below are history. Read the active
+card and `R:/d3-evidence/D3-CURRENT.json`. Task50 andTask52 are DELIVERED873a/847,
+bothDone with accepted40/all8COMPLETE literal and verified finalCI/actual merge trees.
+
+Runtime correctionf153 and synchronized source7ead are cleared for planned native
+validation by the SAME reviewer, report1ab8b6a2d1295ed47a189b18af9b35a461876e4e65959f2a30db9112157ce039,
+findings=[], ENV-ENTITY-CALLER-BUFFER-1 closed. Caller point/normal are true outputs:
+never read/sent, explicit original component writes validated before normal-then-
+point byte commit. Actual C-adapter protected-page/atomicity controls and the
+16direct code-gate children0/63 test rows are joined; 3genuine mutantREDs stayRED.
+Raw versus filtered source identities and preexisting C/Lua EOL qualifications are
+explicit. Literal report and gate projection are under
+`eech-campaign/reference/d3-entity-collision/`.
+
+Root's immutable corrected source is
+`D:/EECH-Migration-Evidence/entity-output-production-7ead34d09`; ordinary/hosted/
+Original Windows builds are starting from the standard builder in a fresh cache.
+No corrected native/retail/authority result is claimed yet. The verified unused
+short root is reserved for the exact retained80fd comparison. Rejectedc510 compile0
+is retained separately and has never run a campaign. This publication is metadata
+only; compiled inputs remain7ead, so binaries retain that actual source identity.
+
+TREE finite7ad stays closed. Physical entity broadphase/sector/city/classification/
+roster/live pose/flags, rawtree loader/forest/cloud effects, hierarchy/device/muzzle/
+rotor-damage/smoke/host identities and DCS mappings remain REQUIRED. CompleteTask49
+candidate40/all8/currentCI/review/normalmerge and whole-D3 acceptance remain open.
+D4/D5 unstarted; no accepted baseline/tolerance/input/run setting change.
+
+# HISTORICAL (superseded by independent source clearance 5 November 2026) — CURRENT — D3 Task49: entity output-only contract corrected in source; same-reviewer pass/native validation pending; Task50/52 delivered (5 November 2026)
 
 This is the ONE current summary. All dated entries below are history. Recover from
 `docs/handover/ACTIVE-EXTRACTION.json` and `R:/d3-evidence/D3-CURRENT.json`.

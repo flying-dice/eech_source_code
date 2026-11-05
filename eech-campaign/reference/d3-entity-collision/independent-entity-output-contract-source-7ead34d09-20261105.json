@@ -1,0 +1,225 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-05T09:49:37.363258+00:00",
+  "review": "Independent changed-material correctness, clean-code and boundary-safety follow-up of ENV-ENTITY-CALLER-BUFFER-1",
+  "source": {
+    "commit": "7ead34d09e05c394c56bc2ef0d8bd315929b312c",
+    "corrected_production_commit": "f1532a6fda1f9d34bf39e7a76c3e477495629d1b",
+    "reviewed_predecessor": "c510c55c770f4bd2c74cee69e0de9be67a95cae7",
+    "repository": "R:/d3-evidence/collision-characterization-20261029",
+    "changed_paths_for_correction": [
+      "STATUS.md",
+      "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "docs/handover/ACTIVE-EXTRACTION.json",
+      "eech-campaign/crates/eech-dc/src/module.rs",
+      "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+      "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+      "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+      "eech-campaign/crates/eech-engine/src/lib.rs",
+      "eech-campaign/crates/eech-world/csrc/entity_step.c",
+      "eech-campaign/crates/eech-world/src/entity_host.rs",
+      "eech-campaign/crates/eech-world/src/model_host.rs",
+      "eech-campaign/crates/eech-world/tests/entity_collision_host.rs",
+      "eech-campaign/docs/d3-entity-collision-provider.md",
+      "eech-campaign/reference/d3-entity-collision/entity-output-contract-direct-gate-20261105.json",
+      "eech-campaign/reference/d3-entity-collision/filter-qualification-20261105.txt",
+      "eech-campaign/reference/d3-entity-collision/independent-entity-narrowphase-source-c510c55c7-20261105.json"
+    ],
+    "accepted_dependency_metadata_only_paths": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION-EEDCS-52-20261105.json",
+      "docs/handover/ACTIVE-EXTRACTION.json",
+      "eech-campaign/reference/d3-entity-collision/dependencies-20261105/.gitattributes",
+      "eech-campaign/reference/d3-entity-collision/dependencies-20261105/Task50-delivery.json",
+      "eech-campaign/reference/d3-entity-collision/dependencies-20261105/Task52-delivery.json",
+      "eech-campaign/reference/d3-route-characterization/full-pack-acceptance-20261105/.gitattributes",
+      "eech-campaign/reference/d3-route-characterization/full-pack-acceptance-20261105/README.md",
+      "eech-campaign/reference/d3-route-characterization/full-pack-acceptance-20261105/complete-comparison.json",
+      "eech-campaign/reference/d3-route-characterization/full-pack-acceptance-20261105/current-ci-before-publication.json",
+      "eech-campaign/reference/d3-route-characterization/full-pack-acceptance-20261105/full-pack-audit.json",
+      "eech-campaign/reference/d3-route-characterization/full-pack-acceptance-20261105/independent-final-delivery-review.json",
+      "eech-campaign/reference/d3-route-characterization/full-pack-acceptance-20261105/prospective-integration-runtime-scope.json",
+      "eech-campaign/reference/d3-route-characterization/full-pack-acceptance-20261105/publication-manifest.json",
+      "eech-campaign/reference/d3-target-point-characterization/full-pack-acceptance-20261105/.gitattributes",
+      "eech-campaign/reference/d3-target-point-characterization/full-pack-acceptance-20261105/README.md",
+      "eech-campaign/reference/d3-target-point-characterization/full-pack-acceptance-20261105/Task50-dependency-delivery.json",
+      "eech-campaign/reference/d3-target-point-characterization/full-pack-acceptance-20261105/complete-comparison.json",
+      "eech-campaign/reference/d3-target-point-characterization/full-pack-acceptance-20261105/current-ci-before-publication.json",
+      "eech-campaign/reference/d3-target-point-characterization/full-pack-acceptance-20261105/dependency-source-scope.json",
+      "eech-campaign/reference/d3-target-point-characterization/full-pack-acceptance-20261105/full-pack-audit.json",
+      "eech-campaign/reference/d3-target-point-characterization/full-pack-acceptance-20261105/independent-final-delivery-review.json",
+      "eech-campaign/reference/d3-target-point-characterization/full-pack-acceptance-20261105/publication-manifest.json"
+    ],
+    "production_fixture_Lua_and_build_blobs_and_modes_identical_fixed_to_current": true,
+    "accepted_integration_parent": "84775522f9eb9c7182ff89f75387115b9e3883fd"
+  },
+  "decision": {
+    "status": "SOURCE_CLEAR_FOR_PLANNED_NATIVE_VALIDATION",
+    "native_launch_clearance": true,
+    "source_review_no_blocking_findings": true,
+    "closed_findings": [
+      "ENV-ENTITY-CALLER-BUFFER-1"
+    ],
+    "findings": [],
+    "finite_entity_native_authority_or_conformance_closed": false,
+    "whole_Task49_or_D3_accepted": false
+  },
+  "closure_basis": [
+    {
+      "subject": "Output-only request",
+      "assessment": "The actual shared dialogue mb_hostentity.h sends exactly the segment and candidate pose (18 stationary or 22 moving floats). It neither loads, copies nor forwards the caller point/normal. Existing real callers remain unchanged, including the output-only normal locals in weapon and hosted LOS paths. This removes the indeterminate-storage read instead of concealing it by initializing callers."
+    },
+    {
+      "subject": "Computed writes only",
+      "assessment": "The kernel starts with its own initialized output vectors and records the normal assignment before each intersection helper, and the point assignment immediately after each whole-point assignment. The mask accumulates over the existing ordered face/sweep walk, retaining a previously written point even when a later face only replaces the normal. Unassigned components are zero in the answer and are not committed by Core. The two point-assignment markers are the only intersection-text differences from the closed tree copy; arithmetic and sweep/face order are not changed by this correction."
+    },
+    {
+      "subject": "Complete validation before commit",
+      "assessment": "The actual adapter requires the correct scene and hit/miss discriminator; accepts only six-bit, whole-vector masks; rejects point-without-normal and a hit without both vectors; and rejects any nonzero raw word for an unassigned component, including negative zero. All checks finish before either caller buffer is touched. Computed assigned words are copied as bytes, normal first then point; unassigned caller words remain unread and byte-exact, including signaling-NaN payloads."
+    },
+    {
+      "subject": "Transport and ABI",
+      "assessment": "C and Rust append write_mask at the same reply position. Request counts are consistently changed to 18/22 across C, Engine and the host provider. Lua validates an integral mask within 0..63; Engine carries it with checked C-int conversion. C remains the authority for full mask relationships before buffer commit. Six computed output words preserve the existing exact-bit string transport, including nonfinite bit patterns; other model finite-only parsing remains unchanged."
+    },
+    {
+      "subject": "Kernel lifetime and error paths",
+      "assessment": "The existing synchronous model cursor, guarded host arithmetic, refusal conversion and final announced-order ModelStore are reused. The per-thread assignment record resets for each kernel entry, is accumulated only by that invocation on the production store cursor path, and is cleared from refused results. No caller output is read by kernel initialization or return. No new callback lifetime or original solver fallback is introduced."
+    },
+    {
+      "subject": "Build boundary and original behavior",
+      "assessment": "The unchanged ordinary/original profile selection remains as reviewed at c510. The isolated dialogue C test is behind entity-dialogue-check and includes the exact production header. It is a boundary test with a scripted host, not a retail or model-numeric oracle. Original callers and collision characterization bodies are not initialized or rewritten."
+    }
+  ],
+  "actual_evidence": {
+    "scope": "Retained direct Linux command/compiler/C ABI/boundary and Rust test execution only. No corrected Windows/native retail campaign or authority result is claimed here.",
+    "directory": "D:\\EECH-Migration-Evidence\\entity-collision-20261105-c",
+    "gate_log": {
+      "bytes": 269211,
+      "sha256": "61a1f4d5a5f0441078b43bf9edbbb2f7daf0b76a8f16d9ff2199f8fafa753726"
+    },
+    "direct_steps": [
+      {
+        "name": "fmt",
+        "child_exit": 0
+      },
+      {
+        "name": "tests-four-crates",
+        "child_exit": 0
+      },
+      {
+        "name": "test-model-walk",
+        "child_exit": 0
+      },
+      {
+        "name": "test-tree-dialogue",
+        "child_exit": 0
+      },
+      {
+        "name": "test-entity-dialogue",
+        "child_exit": 0
+      },
+      {
+        "name": "build-collision-fixture",
+        "child_exit": 0
+      },
+      {
+        "name": "build-weapon-fixture",
+        "child_exit": 0
+      },
+      {
+        "name": "build-model-fixture",
+        "child_exit": 0
+      },
+      {
+        "name": "build-model-host-fixture",
+        "child_exit": 0
+      },
+      {
+        "name": "build-weapon-and-collision-fixture",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy-four-crates",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy-dc-collision",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy-dc-weapon",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy-dc-weapon-and-collision",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy-engine-sys-tree-dialogue",
+        "child_exit": 0
+      },
+      {
+        "name": "clippy-engine-sys-entity-dialogue",
+        "child_exit": 0
+      }
+    ],
+    "runner_container_exit": 0,
+    "cargo_test_result_rows_ok": 63,
+    "failed_steps": 0,
+    "progress_guard": {
+      "scope": "separate retained guard commands after card edit",
+      "child_exits": [
+        0,
+        0
+      ],
+      "container_exit": 0
+    },
+    "actual_shared_C_guard": "The isolated compiled C driver includes mb_hostentity.h and covers no prior-output reads, exact requests, hit and partial misses, unchanged signed-zero/subnormal/signaling-NaN sentinels, and malformed/refused responses before caller commit. Protected-page controls actually ran on Linux, as demonstrated by the read/early-write mutants faulting. On other platforms the source provides ordinary-buffer checks, not a claimed protected-page run.",
+    "mutant_controls_retained_as_red": [
+      {
+        "mutant": "A",
+        "child_exit": 101,
+        "harness_container_exit": 0,
+        "log_sha256": "3bd136eaaa1fb65d9c337e656500ac4278d27cf9509ea2681ad278ed3c0153cb",
+        "observed_failure": "SIGSEGV on protected page"
+      },
+      {
+        "mutant": "B",
+        "child_exit": 101,
+        "harness_container_exit": 0,
+        "log_sha256": "3bd136eaaa1fb65d9c337e656500ac4278d27cf9509ea2681ad278ed3c0153cb",
+        "observed_failure": "SIGSEGV on protected page"
+      },
+      {
+        "mutant": "C",
+        "child_exit": 101,
+        "harness_container_exit": 0,
+        "log_sha256": "11b38ccec347abe23cf5022dea0575d09fcdff7e104d9ecc856c4eff72716705",
+        "observed_failure": "eight refusal buffer-preservation expectations failed"
+      }
+    ],
+    "source_binding": {
+      "before_after_receipt_bytes": 467191,
+      "before_after_receipts_literal_equal": true,
+      "receipt_sha256": "8233397d78778a47d83deadd333127519e22b1b8b12f212df8a8d35026ecf1ad",
+      "input_rows": 2911,
+      "filtered_column_sha256": "2cb346d6ab5708a12600717bcbae1bfb851e8742d0c103eb86a8f3af2b4e82ee",
+      "raw_column_sha256": "b2f1dc3d4b54488f8c8f37aae68f2067e75a4244e1ccc8e973d4d5b6b39ac485",
+      "interpretation": "The command ran while HEAD was c510 with the corrected inputs present in the working tree. The explicit input list binds them to the subsequently committed f153 source; it is not represented as a test run after f153 was committed. All 2911 raw identities were compared with f153 Git objects: 2908 are raw-byte exact; three unchanged tree-geometry Lua controls have CRLF checkout bytes corresponding exactly to their LF committed blobs. Separately, the three already-qualified legacy CRLF C/header files have raw committed-byte equality despite differing clean-filter blob ids. No source or accepted recording was normalized by this review."
+    },
+    "failures_preserved": "Earlier c510 P1/source result, initial development kernel failure, old invalid pipeline/feature/Git-hash evidence and all three intentional mutant failures retain their own identities. None is relabeled as a green corrected gate."
+  },
+  "reuse_and_limitations": [
+    "The unaffected c510 original math, getter/UPDATED order, final-store identity, geometry cursor, sweep tiers and original-profile review is reused. This changed-material report does not repeat or extend closed TREE, Task50/52 shipping or original collision numeric evidence.",
+    "Source clearance authorizes the planned corrected Windows build and bounded native original/candidate validation. It is not a native authority, exact retail numerical or ordinary short acceptance. Root owns those new actuals and the eventual complete Task49 pack; a separate full war is not required for each internal seam.",
+    "Existing arithmetic guards and unit round-mode/state checks are not relabeled as a new complete public ENTITY caller-FPU campaign measurement. Unchanged TREE byte-copy qualifications are not converted into a new defect by analogy.",
+    "Broadphase, sectors, city expansion, classification, pose derivation, physical roster and destructive flags remain Core and REQUIRED. Raw tree/forest/cloud ownership, remaining entity/object/hierarchy work, complete DCS API/dataset mapping and whole Task49/D3 acceptance remain open.",
+    "The metadata dependency sync is verified as runtime-equivalent to f153. Accepted Task50/52 deliveries and their full-pack reviews remain closed at their own identities; no new delivery, merge approval or shipping acceptance is inferred for Task49."
+  ],
+  "review_operations": "Read exact Git objects and retained logs/receipts. Wrote this new safe report only. No source edits, tests, builds, native runs, cache/VM/process operations, nested agents or external application writes.",
+  "publication_safety": "Counts, hashes, source references and synthetic contract details only; no retail geometry, coordinates, model catalogue, raw pointers or allocation indices."
+}
