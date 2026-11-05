@@ -7,7 +7,7 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "compiled3475 ordinary40/all8 pack active; finite lift-input0d76 A prelaunchUNREACHED80moving/0terrain-input; noB/Original. Next source-only explicit speed-demand configured-input query-service variation; no native clearance yet.",
+  "phase": "compiled3475 ordinary40/all8 pack active; finite lift-input0d76 A prelaunchUNREACHED80moving/0terrain-input (closed, no B/Original). UNREVIEWED CODE_FROZEN 6fb7ff43a (parent cef51fb03; Lua witness + entity_authority.rs only): separate moving_query_speed_control/_zero query-service modes, selection by a finite positive desired_velocity, B delegates ONE copy differing only in desired_velocity=0 (a changed demand the solver receives, not an unfulfilled unchanged command); fmt0, entity_authority 53 passed (7 new fail on the previous Lua). Next: the same reviewer joins this SOURCE; Root alone selects any matched execution; no native clearance yet.",
   "preparation_batches_without_cutover": 0,
   "preparation_limit": 2,
   "next_production_change": "Retain the actual completed Person vector and query-service contract at frozen3475 (SAME source62fclear/Root5checks0); finish new ordinary/hosted/Original profile-isolation, short/default and realA/B/Original validation plus unchanged40/all8. Then resolve the remaining physical backing/roster/lifecycle services behind the cursor. No Task49/D3 acceptance yet.",
