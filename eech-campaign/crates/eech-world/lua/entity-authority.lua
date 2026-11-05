@@ -114,7 +114,7 @@
 -- (the case launch slews no turret), so these modes ask the production entity query directly, through the same shared C and the same host route: `engine:wpn_moving_query_prepare` latches three fixed finite segments about ONE
 -- real routed vehicle (the collision fixture's structured moving-target recipe: bearings 0, 1 and 2, reach radius + 20 m, the model's bounds, taken from the entity's own position and model: explicit query INPUTS, never an
 -- expected answer), one actual engine frame runs, then `engine:wpn_moving_query_run` asks the production get_line_of_sight_collision_entity for the SAME latched segments.
---   moving_query_control   the target is the first alive routed vehicle, in identity order, whose last host step (final warmup frame) had a motion vector above 1 m/s; the frame steps normally.
+--   moving_query_control   the target is the first alive routed vehicle, in identity order, whose last host step (final warmup frame) had a motion vector above 1 m/s AND was given the terrain input and map ceiling the bounded lift reads (a callback-shape fact copied from the engine's own step: a routed step the core gives no terrain is valid ordinary movement but cannot carry the lift, and such an earlier actor is counted and passed over, never altered); the frame steps normally. The same rule selects in every query mode, hosted and original, and none eligible is an exact prelaunch UNREACHED with finite counts.
 --   moving_query_lift      the same, and in that one frame the host's own `move` step of that target carries the existing bounded terrain lift (see terrain_lift): the engine writes the host's answer to Core, the mirror must agree.
 -- No retarget, teleport, flag or answer is altered, nothing is searched for a hit, and every segment is asked once. Hosted, the target itself must be asked need_updated, reach a `test` that carries the 16-word moving pose,
 -- every mobile question must carry an identity and the conformance assertion must hold; no such target, no such coverage or a refused latch is an exact UNREACHED. Original (profile=original, the module built with weapon-fixture and
@@ -562,7 +562,9 @@ local last_move = {}
 -- the last `vectors` aim request seen per source identity (target link, selected weapon, the target's motion words, frame): an observation of the campaign's own engagement, forwarded unchanged
 local last_vectors = {}
 local watched
-local tgt = { questions = 0, skip = 0, need_updated = 0, need_fixed = 0, need_placement = 0, need_normal = 0, buildings = 0, test = 0, test_moving16 = 0, after_lift = 0, after_lift_test = 0 }
+-- (window_*: the target's own steps seen in the controlled query's one frame, by the shape the bounded lift needs; type presence only, no value is kept; counted in both query modes)
+local tgt = { questions = 0, skip = 0, need_updated = 0, need_fixed = 0, need_placement = 0, need_normal = 0, buildings = 0, test = 0, test_moving16 = 0, after_lift = 0, after_lift_test = 0,
+	window_open = false, window_steps = 0, window_moves = 0, window_with_terrain = 0 }
 -- true only while the controlled query case runs its one frame: the lift of the target's own step is allowed then although the weapon launch never arms the witness
 local lift_window = false
 -- the lifted terrain elevation (metres added to the target's own routed step; a constant declared before any run) and what the lifted steps did
@@ -847,6 +849,17 @@ end
 -- answer to the campaign, used only to select the case; it is not provider state).
 local function hosted_move (step)
 	local delegated, lifting = step, false
+	-- the callback's own input shape, read before the delegation and kept as booleans: whether the step carries the terrain input and the map ceiling the bounded lift reads (types only, no arithmetic)
+	local terrain_input, lift_input = false, false
+	if type (step) == "table" then
+		terrain_input = type (step.terrain) == "table"
+		lift_input = terrain_input and type (step.terrain.elevation) == "number" and type (step.map_max) == "table" and type (step.map_max [2]) == "number"
+		if tgt.window_open and watched ~= nil and step.host_id == watched then
+			tgt.window_steps = tgt.window_steps + 1
+			if step.mode == "move" then tgt.window_moves = tgt.window_moves + 1 end
+			if step.mode == "move" and terrain_input then tgt.window_with_terrain = tgt.window_with_terrain + 1 end
+		end
+	end
 	if plan.lift and (armed or lift_window) and watched ~= nil and type (step) == "table" and step.host_id == watched and step.mode == "move" and type (step.terrain) == "table" then
 		local base = step.terrain.elevation
 		local ceiling = type (step.map_max) == "table" and step.map_max [2] or nil
@@ -864,7 +877,7 @@ local function hosted_move (step)
 	end
 	local answer = host.move_vehicle (delegated)
 	if type (step) == "table" and step.mode == "move" and type (answer) == "table" then
-		last_move [step.host_id] = { frame = frames, motion = answer.motion_vector, position = answer.position }
+		last_move [step.host_id] = { frame = frames, motion = answer.motion_vector, position = answer.position, terrain_input = terrain_input, lift_input = lift_input }
 	end
 	if lifting then
 		lifted = lifted + 1
@@ -1144,15 +1157,25 @@ local function main ()
 	end
 	if plan.query then
 		-- the controlled moving QUERY case (see the header): no weapon, no launch, no cohort
-		local target, moving_candidates = nil, 0
+		-- the moving criterion is unchanged; the target must ALSO be one whose final warmup `move` step the host was actually given with the terrain input and map ceiling the bounded lift reads (the callback shape
+		-- hosted_move recorded from the engine's own step: a routed step the core gives no terrain, e.g. no terrain-follow guide or a waypoint within a metre, is a valid ordinary movement but cannot carry the lift).
+		-- The same rule selects in the control and the lifted mode, hosted and original, so the pair asks about one actor; an earlier moving actor without it is counted, never mutated or given a terrain input
+		local target, moving_candidates, input_candidates, terrain_only = nil, 0, 0, 0
 		for _, id in ipairs (ordered) do
 			if alive [id] and moving_routed (id) then
 				moving_candidates = moving_candidates + 1
-				target = target or id
+				if last_move [id].lift_input then
+					input_candidates = input_candidates + 1
+					target = target or id
+				elseif last_move [id].terrain_input then
+					terrain_only = terrain_only + 1
+				end
 			end
 		end
-		emit { event = "query_case_selected", target = target or "none", moving_candidates = moving_candidates, selection = "first_alive_moving_routed_target_in_identity_order" }
-		if not target then hard ("UNREACHED: no alive routed vehicle was stepped by the host above 1 m/s in the final warmup frame (" .. #ordered .. " bound): the controlled query case is not run, nothing is tuned") end
+		emit { event = "query_case_selected", target = target or "none", moving_candidates = moving_candidates, lift_input_candidates = input_candidates, terrain_without_ceiling_candidates = terrain_only,
+			selection = "first_alive_moving_routed_target_in_identity_order", eligibility = "final_warmup_move_step_carried_terrain_input_and_map_ceiling", final_frame = frames - 1 }
+		if not target and moving_candidates == 0 then hard ("UNREACHED: no alive routed vehicle was stepped by the host above 1 m/s in the final warmup frame (" .. #ordered .. " bound): the controlled query case is not run, nothing is tuned") end
+		if not target then hard (string.format ("UNREACHED: %d alive routed vehicles were stepped by the host above 1 m/s in the final warmup frame (%d bound), but none of those move steps carried the terrain input and map ceiling the bounded lift needs (%d carried a terrain input without the ceiling): the controlled query case is not run, nothing is tuned", moving_candidates, #ordered, terrain_only)) end
 		for _, method in ipairs { "wpn_moving_query_prepare", "wpn_moving_query_run" } do
 			local present, value = pcall (function () return engine [method] end)
 			if not (present and type (value) == "function") then hard ("this module has no controlled moving query surface (" .. method .. "): it was not built with weapon-fixture") end
@@ -1179,8 +1202,9 @@ local function main ()
 			segments = table.concat ({ latched [1].a .. ">" .. latched [1].b, latched [2].a .. ">" .. latched [2].b, latched [3].a .. ">" .. latched [3].b }, ";") }
 		-- ONE actual engine frame, the lift (when the mode has it) in the target's own host step; then the SAME segments are asked
 		lift_window = plan.lift and true or false
+		tgt.window_open = true
 		failure = guarded (frame)
-		lift_window = false
+		lift_window, tgt.window_open = false, false
 		local ran
 		if not failure then
 			armed = true
@@ -1206,6 +1230,7 @@ local function main ()
 			event = "query_authority", mode = mode, profile = profile, completed = failure == nil and ran ~= nil, failure_marker = failure and failure.marker or "", failure_line = failure and failure.line or "",
 			target = target, segments = #results, query_hits = hits, query_target_hits = target_hits, query_signature = table.concat (signature, ";"),
 			lifted = lifted, lift_refused = lift_refused, lift_constant = LIFT, lift_baseline_elevation = lift_row.baseline, lift_elevation = lift_row.elevation, lift_answered_y = lift_row.answered_y, lift_frame = lift_row.frame,
+			window_target_steps = tgt.window_steps, window_target_moves = tgt.window_moves, window_target_moves_with_terrain = tgt.window_with_terrain,
 			target_questions = tgt.questions, target_skip = tgt.skip, target_need_updated = tgt.need_updated, target_need_fixed = tgt.need_fixed, target_need_placement = tgt.need_placement,
 			target_need_normal = tgt.need_normal, target_buildings = tgt.buildings, target_test = tgt.test, target_test_moving16 = tgt.test_moving16, target_after_lift = tgt.after_lift, target_after_lift_test = tgt.after_lift_test,
 			candidate_after = after.candidate, candidate_mobile = cand.mobile, candidate_mobile_named = cand.mobile_named, candidate_mobile_unnamed = cand.mobile_unnamed, entity_after = after.entity,
@@ -1217,7 +1242,7 @@ local function main ()
 		-- ------------------------------------------------------------------------------------------------ the verdict of the query modes
 		if failure then return "mode " .. mode .. " failed in the engine at [model-provider:" .. failure.marker .. "]: " .. failure.line end
 		if plan.lift then
-			if lifted < 1 then return string.format ("UNREACHED: %s lifted no step of the target (%d refused by the map ceiling): the host's own routed move of the target never carried a terrain input within the bound", mode, lift_refused) end
+			if lifted < 1 then return string.format ("UNREACHED: %s lifted no step of the target (%d refused by the map ceiling; in the query frame the target was given %d steps, %d of mode move, %d of those with a terrain input): the host's own routed move of the target never carried a terrain input within the bound", mode, lift_refused, tgt.window_steps, tgt.window_moves, tgt.window_with_terrain) end
 			local y, e = lift_row.answered_y, lift_row.elevation
 			if not finite (y) or not (math.abs (y - e) <= math.abs (e) * 2 ^ -23) then return string.format ("%s: the host's answer to the lifted step is at y=%s, not at the lifted elevation %s", mode, tostring (y), tostring (e)) end
 		end

@@ -524,9 +524,12 @@ package.preload.eech_dc = function ()
 				for _, index in ipairs (scenario.steps or {}) do
 					local ground = scenario.ground or 10
 					local step = { host_id = "eech-world:" .. index, mode = "move", terrain = { elevation = ground, forest = false, face_normal = { 0, 1, 0 } }, map_max = { 1000, scenario.ceiling or 2000, 1000 } }
+					-- a routed step the core gives no terrain (the supported None input): always for `bare_steps`, or only in the controlled query's one frame (after its prepare) for `bare_in_query_frame`
+					local bare = (scenario.bare_steps or {}) [index] or ((scenario.bare_in_query_frame or {}) [index] and #MQ_CALLS > 0)
+					if bare then step.terrain = nil end
 					config.move_vehicle (step)
 					-- the engine's own step table is never mutated by the host-movement wrapper
-					if step.terrain.elevation ~= ground then CALLER_MUTATED = true end
+					if (bare and step.terrain ~= nil) or (not bare and step.terrain.elevation ~= ground) then CALLER_MUTATED = true end
 				end
 			end
 			function engine:wpn_case_query (id, weapon)
@@ -2761,4 +2764,186 @@ fn the_controlled_query_runs_the_same_case_under_the_original_profile_and_report
     // the hosted profile still refuses the original's fixture API
     let error = error_of(drive(&query_scenario(", fixture_api = true"), &[("mode", "moving_query_control")]));
     assert!(error.contains("keeps the original narrow phase"), "{error}");
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// the controlled query's callback eligibility: the actor must be one whose final warmup `move` step the host was given WITH the terrain input the bounded lift reads
+
+/// both red vehicles are stepped at 3 m/s, so the first in identity order (2) is the moving criterion's choice unless its own step lacks the lift input; the scripted dialogue names the one in `extra`
+fn two_movers(extra: &str) -> String {
+    query_scenario(&format!(
+        ", motion = {{ ['eech-world:2'] = {{ 3, 0, 0 }}, ['eech-world:3'] = {{ 3, 0, 0 }} }}{extra}"
+    ))
+}
+
+fn steps_of(driven: &Driven, id: &str) -> Vec<(f64, bool)> {
+    driven
+        .move_log
+        .iter()
+        .filter(|(step, mode, ..)| step == id && mode == "move")
+        .map(|(_, _, elevation, launched)| (*elevation, *launched))
+        .collect()
+}
+
+#[test]
+fn the_query_target_is_the_first_moving_vehicle_whose_final_warmup_step_carried_the_lift_input_and_an_earlier_one_without_it_is_passed_over_unaltered() {
+    let control = [("mode", "moving_query_control")];
+    // positive first: both movers carry the input, so the moving criterion's first (2) is the target and both are counted eligible
+    let driven = drive(&two_movers(""), &control);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let selected = row_of(&driven, "query_case_selected");
+    assert_eq!(
+        (
+            selected["target"].clone(),
+            selected["moving_candidates"].clone(),
+            selected["lift_input_candidates"].clone(),
+            selected["eligibility"].clone()
+        ),
+        (
+            Value::from("eech-world:2"),
+            Value::from(2),
+            Value::from(2),
+            Value::from("final_warmup_move_step_carried_terrain_input_and_map_ceiling")
+        ),
+        "{selected}"
+    );
+    // the earlier mover's own step carries no terrain (the supported None input): it still moves, so it is counted moving, but it cannot carry the lift and the later one is the target
+    let bare = two_movers(", bare_steps = { [2] = true }, candidate_id = 'eech-world:3'");
+    let driven = drive(&bare, &control);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let selected = row_of(&driven, "query_case_selected");
+    assert_eq!(
+        (
+            selected["target"].clone(),
+            selected["moving_candidates"].clone(),
+            selected["lift_input_candidates"].clone()
+        ),
+        (Value::from("eech-world:3"), Value::from(2), Value::from(1)),
+        "{selected}"
+    );
+    assert_eq!(row_of(&driven, "query_prepared")["target"], "eech-world:3");
+    // nothing was given a terrain input and no step was dropped, repeated or mutated: the passed-over mover's steps are all terrain-less, exactly as many as the target's, each delegated once
+    assert!(!driven.caller_mutated);
+    let passed_over = steps_of(&driven, "eech-world:2");
+    assert!(
+        !passed_over.is_empty() && passed_over.iter().all(|(elevation, _)| *elevation == -1.0),
+        "{passed_over:?}"
+    );
+    assert_eq!(passed_over.len(), steps_of(&driven, "eech-world:3").len());
+    // the same eligibility selects in the lifted mode (the control's physical result is the comparison) and the lift lands on that target's own real step only
+    let signature = query_row(&driven)["query_signature"].as_str().unwrap().to_string();
+    let signature: &'static str = Box::leak(signature.into_boxed_str());
+    let lifted_scenario = format!("{bare}, candidate_sequence = {{ 'skip' }}, query_hits = {{ 0, 0, 0 }}");
+    let lift = [("mode", "moving_query_lift"), ("control_signature", signature)];
+    let driven = drive(&lifted_scenario, &lift);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(row_of(&driven, "query_prepared")["target"], "eech-world:3");
+    let row = query_row(&driven);
+    assert_eq!(
+        (
+            row["lifted"].clone(),
+            row["window_target_steps"].clone(),
+            row["window_target_moves"].clone(),
+            row["window_target_moves_with_terrain"].clone()
+        ),
+        (Value::from(1), Value::from(1), Value::from(1), Value::from(1)),
+        "{row}"
+    );
+    assert!(row["lift_frame"].as_i64().unwrap() >= 0, "{row}");
+    assert_eq!(steps_of(&driven, "eech-world:3").iter().filter(|(elevation, _)| *elevation == 510.0).count(), 1);
+    assert!(steps_of(&driven, "eech-world:2").iter().all(|(elevation, _)| *elevation == -1.0));
+    // and under the original profile, which asks the host nothing but is given the same steps: the same actor
+    let original = [("profile", "original"), ("mode", "moving_query_control")];
+    let driven = drive(&format!("{bare}, fixture_api = true, query_original = true"), &original);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(row_of(&driven, "query_prepared")["target"], "eech-world:3");
+}
+
+#[test]
+fn no_eligible_actor_is_a_named_prelaunch_unreached_with_finite_counts_and_a_terrain_less_ordinary_step_stays_valid() {
+    let both_bare = ", bare_steps = { [2] = true, [3] = true }";
+    for mode in ["moving_query_control", "moving_query_lift"] {
+        let driven = drive(&two_movers(both_bare), &[("mode", mode), ("control_signature", "x")]);
+        // the case stopped before anything was latched or run, and the counts are in the row and the reason
+        assert!(driven.query_calls.is_empty(), "{mode}: {:?}", driven.query_calls);
+        let selected = row_of(&driven, "query_case_selected");
+        assert_eq!(
+            (
+                selected["target"].clone(),
+                selected["moving_candidates"].clone(),
+                selected["lift_input_candidates"].clone()
+            ),
+            (Value::from("none"), Value::from(2), Value::from(0)),
+            "{mode}: {selected}"
+        );
+        let error = error_of(driven);
+        assert!(
+            error.contains("UNREACHED: 2 alive routed vehicles") && error.contains("none of those move steps carried the terrain input and map ceiling"),
+            "{mode}: {error}"
+        );
+    }
+    // no mover at all keeps the earlier, different reason
+    let error = error_of(drive(&query_scenario(", motion = {}"), &[("mode", "moving_query_control")]));
+    assert!(
+        error.contains("UNREACHED: no alive routed vehicle was stepped by the host above 1 m/s"),
+        "{error}"
+    );
+    // a terrain-less step is valid ordinary movement: the natural moving case selects the same vehicle and completes with the host stepping both vehicles without terrain
+    let driven = drive(&moving_scenario(both_bare), &[("mode", "moving_control")]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert!(!driven.caller_mutated);
+    assert!(steps_of(&driven, "eech-world:2").iter().all(|(elevation, _)| *elevation == -1.0));
+    assert_eq!(row_of(&driven, "case_selected")["target"], "eech-world:2");
+}
+
+#[test]
+fn a_lift_is_credited_only_by_the_targets_real_terrain_bearing_step_inside_the_query_frame() {
+    let lift = |signature: &'static str| [("mode", "moving_query_lift"), ("control_signature", signature)];
+    let control = drive(&query_scenario(""), &[("mode", "moving_query_control")]);
+    // the control reports the same window provenance (it lifts nothing)
+    assert_eq!(
+        (
+            query_row(&control)["lifted"].clone(),
+            query_row(&control)["window_target_moves_with_terrain"].clone()
+        ),
+        (Value::from(0), Value::from(1))
+    );
+    let signature = query_row(&control)["query_signature"].as_str().unwrap().to_string();
+    let signature: &'static str = Box::leak(signature.into_boxed_str());
+    // the actor was eligible at the final warmup frame, but its step in the query frame carries no terrain: nothing is lifted or credited, and the reason carries the finite window counts
+    let scenario = query_scenario(", bare_in_query_frame = { [2] = true }, candidate_sequence = { 'skip' }, query_hits = { 0, 0, 0 }");
+    let driven = drive(&scenario, &lift(signature));
+    let row = query_row(&driven);
+    assert_eq!(
+        (
+            row["lifted"].clone(),
+            row["lift_refused"].clone(),
+            row["lift_frame"].clone(),
+            row["target_after_lift"].clone(),
+            row["window_target_steps"].clone(),
+            row["window_target_moves"].clone(),
+            row["window_target_moves_with_terrain"].clone()
+        ),
+        (
+            Value::from(0),
+            Value::from(0),
+            Value::from(-1),
+            Value::from(0),
+            Value::from(1),
+            Value::from(1),
+            Value::from(0)
+        ),
+        "{row}"
+    );
+    assert!(steps_of(&driven, "eech-world:2").iter().all(|(elevation, _)| *elevation != 510.0));
+    let error = error_of(driven);
+    assert!(
+        error.contains("UNREACHED: moving_query_lift lifted no step")
+            && error.contains("the target was given 1 steps, 1 of mode move, 0 of those with a terrain input"),
+        "{error}"
+    );
+    // the same run with the real terrain-bearing step in the window is credited
+    let driven = drive(&query_scenario(", candidate_sequence = { 'skip' }, query_hits = { 0, 0, 0 }"), &lift(signature));
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(query_row(&driven)["lifted"], 1);
 }
