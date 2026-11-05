@@ -85,6 +85,10 @@ static campaign_model_request seen;
 static campaign_model_request pose_seen[8];
 static int pose_asks;
 static int pose_override, pose_state, pose_kind, pose_mask;
+/* a separate answer for the placement stage (depth 1), when pose_split is set */
+static int pose_split, pose_state1, pose_kind1, pose_mask1;
+/* the observation's three added read-only metadata reads (type, alive, roster identity), counted apart from `reads`, which is the transcript of the original's PHYSICAL getters only */
+static int meta_type_reads, meta_alive_reads, meta_id_reads;
 static int asks;
 static int refuse_the_exchange;
 
@@ -120,13 +124,19 @@ static void scripted_ask (campaign_model_request *request, campaign_model_reply 
 			debug_fatal ("host model: [model-provider:callback] the scripted host refused");
 		}
 
-		if (pose_override)
+		if (pose_override && pose_split && request->depth == CAMPAIGN_POSE_STAGE_PLACEMENT)
+		{
+			reply->candidate_state = pose_state1;
+			reply->candidate_count = pose_kind1;
+			reply->write_mask = pose_mask1;
+		}
+		else if (pose_override)
 		{
 			reply->candidate_state = pose_state;
 			reply->candidate_count = pose_kind;
 			reply->write_mask = pose_mask;
 		}
-		else if (request->key[0] != 0)
+		else if (request->host_id[0] != 0)
 		{
 			reply->candidate_state = CAMPAIGN_MODEL_POSE_RECORDED;
 			reply->candidate_count = 1;
@@ -570,6 +580,9 @@ static struct sentity *so_first_building (struct sentity *e) { read_log ('B'); r
 static struct sentity *so_next_building (struct sentity *e) { return (e->next_building); }
 static void so_box (struct sentity *e, float *min, float *max) { read_log ('X'); memcpy (min, e->box_min, sizeof (e->box_min)); memcpy (max, e->box_max, sizeof (e->box_max)); }
 static int so_updated (struct sentity *e) { read_log ('U'); return (e->updated); }
+static int so_type (struct sentity *e) { meta_type_reads++; return (e->type); }
+static int so_alive (struct sentity *e) { meta_alive_reads++; return (e->alive); }
+static const char *so_host_id (struct sentity *e) { meta_id_reads++; return (e->host_id); }
 static void so_terrain_normal (float x, float z, float *out) { read_log ('N'); out[0] = x * 0.0f; out[1] = 1.0f; out[2] = z * 0.0f; }
 
 #define CAMPAIGN_OFFER_ENTITY struct sentity
@@ -589,9 +602,9 @@ static void so_terrain_normal (float x, float z, float *out) { read_log ('N'); o
 #define CAMPAIGN_OFFER_UPDATED(E) so_updated (E)
 #define CAMPAIGN_OFFER_TERRAIN_NORMAL(X,Z,OUT) so_terrain_normal ((X), (Z), (OUT))
 #define CAMPAIGN_OFFER_DELTA_TIME() 0.0625f
-#define CAMPAIGN_OFFER_TYPE(E) ((E)->type)
-#define CAMPAIGN_OFFER_ALIVE(E) ((E)->alive)
-#define CAMPAIGN_OFFER_HOST_ID(E) ((E)->host_id)
+#define CAMPAIGN_OFFER_TYPE(E) so_type (E)
+#define CAMPAIGN_OFFER_ALIVE(E) so_alive (E)
+#define CAMPAIGN_OFFER_HOST_ID(E) so_host_id (E)
 
 /* the campaign's two host calls, bound to the REAL candidate exchange (with its complete reply check) and to a recording narrow phase */
 #define campaign_model_entity_candidate check_model_entity_candidate
@@ -745,6 +758,13 @@ static void pose_reset (void)
 	pose_state = 0;
 	pose_kind = 0;
 	pose_mask = 0;
+	pose_split = 0;
+	pose_state1 = 0;
+	pose_kind1 = 0;
+	pose_mask1 = 0;
+	meta_type_reads = 0;
+	meta_alive_reads = 0;
+	meta_id_reads = 0;
 }
 
 /* the words an observation carried, as the bits they were read as */
@@ -918,7 +938,6 @@ static void pose_cases (struct tc *t)
 {
 	struct sentity e, b1;
 	struct offer_outcome o;
-	char long_id[200];
 
 	/* a named mobile candidate the host skips: ONE observation, asked at the offer with the words the original read (position, motion), nothing else, beside the original's reads */
 	e = make_entity (TRUE, FALSE, 7);
@@ -934,7 +953,9 @@ static void pose_cases (struct tc *t)
 	o = offer (&e, FALSE, -500.0f);
 	EXPECT (t, !o.stopped && o.hit == NULL && strcmp (reads, "MSPV") == 0 && asks == 1 && pose_asks == 1);
 	EXPECT (t, pose_seen[0].op == CAMPAIGN_MODEL_ENTITY_POSE && pose_seen[0].scene == 0 && pose_seen[0].depth == CAMPAIGN_POSE_STAGE_OFFER && pose_seen[0].kind == 4 && pose_seen[0].definition == 1);
-	EXPECT (t, strcmp (pose_seen[0].key, "eech-world:12") == 0 && pose_words_are (&pose_seen[0], e.position, e.motion, NULL));
+	EXPECT (t, strcmp (pose_seen[0].host_id, "eech-world:12") == 0 && pose_words_are (&pose_seen[0], e.position, e.motion, NULL));
+	/* the observation's reads are the three added metadata ones, once each per question, and the transcript of the original's physical getters above is exactly the original's */
+	EXPECT (t, meta_type_reads == 1 && meta_alive_reads == 1 && meta_id_reads == 1);
 
 	/* a moving mobile candidate through the whole dialogue: the offer observation, then the placement observation with the attitude the original read; the decisions, reads, counts and the hit are exactly
 	   those without the observation (see offer_cases) */
@@ -950,7 +971,8 @@ static void pose_cases (struct tc *t)
 	o = offer (&e, FALSE, 1000.0f);
 	EXPECT (t, !o.stopped && o.hit == &e && strcmp (reads, "MSPVUA") == 0 && asks == 3 && collision_calls == 1 && pose_asks == 2);
 	EXPECT (t, pose_seen[0].depth == CAMPAIGN_POSE_STAGE_OFFER && pose_seen[0].definition == 0 && pose_words_are (&pose_seen[0], e.position, e.motion, NULL));
-	EXPECT (t, pose_seen[1].depth == CAMPAIGN_POSE_STAGE_PLACEMENT && pose_seen[1].kind == 4 && strcmp (pose_seen[1].key, "eech-world:12") == 0 && pose_words_are (&pose_seen[1], e.position, e.motion, e.attitude));
+	EXPECT (t, pose_seen[1].depth == CAMPAIGN_POSE_STAGE_PLACEMENT && pose_seen[1].kind == 4 && strcmp (pose_seen[1].host_id, "eech-world:12") == 0 && pose_words_are (&pose_seen[1], e.position, e.motion, e.attitude));
+	EXPECT (t, meta_type_reads == 2 && meta_alive_reads == 2 && meta_id_reads == 2);
 	collision_hit = FALSE;
 
 	/* a candidate that is not mobile is never observed: a skipped fixed one, a fixed one tested, and a city with its buildings */
@@ -964,7 +986,7 @@ static void pose_cases (struct tc *t)
 	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_NORMAL, 0);
 	queue_state (CAMPAIGN_MODEL_CANDIDATE_TEST, 12);
 	o = offer (&e, FALSE, 1000.0f);
-	EXPECT (t, !o.stopped && strcmp (reads, "MFCGSPHLN") == 0 && asks == 4 && pose_asks == 0);
+	EXPECT (t, !o.stopped && strcmp (reads, "MFCGSPHLN") == 0 && asks == 4 && pose_asks == 0 && meta_type_reads == 0 && meta_alive_reads == 0 && meta_id_reads == 0);
 	e = make_entity (FALSE, TRUE, 0);
 	e.city = TRUE;
 	b1 = make_entity (FALSE, TRUE, 3);
@@ -993,7 +1015,7 @@ static void pose_cases (struct tc *t)
 	collision_hit = TRUE;
 	o = offer (&e, FALSE, 1000.0f);
 	collision_hit = FALSE;
-	EXPECT (t, !o.stopped && o.hit == &b1 && collision_calls == 1 && pose_asks == 0);
+	EXPECT (t, !o.stopped && o.hit == &b1 && collision_calls == 1 && pose_asks == 0 && meta_type_reads == 0 && meta_alive_reads == 0 && meta_id_reads == 0);
 
 	/* a candidate the campaign has no identity for: the observation says so by an empty key, and the host's "no identity" is the only class that fits it */
 	e = make_entity (TRUE, FALSE, 7);
@@ -1001,7 +1023,7 @@ static void pose_cases (struct tc *t)
 	queue_reset ();
 	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
 	o = offer (&e, FALSE, -500.0f);
-	EXPECT (t, !o.stopped && pose_asks == 1 && pose_seen[0].key[0] == 0);
+	EXPECT (t, !o.stopped && pose_asks == 1 && pose_seen[0].host_id[0] == 0);
 	pose_override = TRUE;
 	pose_state = CAMPAIGN_MODEL_POSE_RECORDED;
 	pose_kind = 1;
@@ -1015,7 +1037,7 @@ static void pose_cases (struct tc *t)
 	{
 		static const int classes[5][3] = {
 			{ CAMPAIGN_MODEL_POSE_UNKNOWN, 0, 0 }, { CAMPAIGN_MODEL_POSE_RETIRED, 0, 0 }, { CAMPAIGN_MODEL_POSE_UNRECORDED, 0, 0 },
-			{ CAMPAIGN_MODEL_POSE_RECORDED, 5, 31 }, { CAMPAIGN_MODEL_POSE_RECORDED, 1, 0 } };
+			{ CAMPAIGN_MODEL_POSE_RECORDED, 5, 21 }, { CAMPAIGN_MODEL_POSE_RECORDED, 2, 24 } };
 		int i;
 
 		e = make_entity (TRUE, FALSE, 7);
@@ -1041,22 +1063,26 @@ static void pose_cases (struct tc *t)
 		}
 	}
 
-	/* the answer's shape, checked completely before anything else is asked: a class outside the five, a record kind or a difference mask outside the contract, a class that has no record carrying one, and
-	   a record of no kind. Each stops the engine by marker, and no candidate question was asked */
+	/* the answer's shape, checked completely before anything else is asked: a class outside the five, a record kind or a difference mask outside the contract, a class that has no record carrying one, a record
+	   of no kind, "no identity" for a named candidate and, with the stage's own masks, an attitude difference at the OFFER stage (which reads no attitude) and a difference from a held motion vector together with
+	   "none held". Each stops the engine by marker through the REAL shared checker, and no candidate question was asked */
 	{
-		static const int bad[10][3] = {
+		static const int bad[15][3] = {
 			{ 0, 0, 0 }, { 6, 0, 0 }, { CAMPAIGN_MODEL_POSE_RECORDED, 6, 0 }, { CAMPAIGN_MODEL_POSE_RECORDED, -1, 0 }, { CAMPAIGN_MODEL_POSE_RECORDED, 1, 32 },
 			{ CAMPAIGN_MODEL_POSE_RECORDED, 1, -1 }, { CAMPAIGN_MODEL_POSE_UNKNOWN, 2, 0 }, { CAMPAIGN_MODEL_POSE_RETIRED, 0, 4 }, { CAMPAIGN_MODEL_POSE_RECORDED, 0, 0 },
-			{ CAMPAIGN_MODEL_POSE_NO_ID, 0, 0 } };
-		static const char *marker[10] = {
+			{ CAMPAIGN_MODEL_POSE_NO_ID, 0, 0 },
+			{ CAMPAIGN_MODEL_POSE_RECORDED, 1, 2 }, { CAMPAIGN_MODEL_POSE_RECORDED, 1, 3 }, { CAMPAIGN_MODEL_POSE_RECORDED, 4, 10 },
+			{ CAMPAIGN_MODEL_POSE_RECORDED, 1, 12 }, { CAMPAIGN_MODEL_POSE_RECORDED, 5, 28 } };
+		static const char *marker[15] = {
 			"entity_pose.state", "entity_pose.state", "entity_pose.answer", "entity_pose.answer", "entity_pose.answer",
-			"entity_pose.answer", "entity_pose.answer", "entity_pose.answer", "entity_pose.answer", "entity_pose.state" };
+			"entity_pose.answer", "entity_pose.answer", "entity_pose.answer", "entity_pose.answer", "entity_pose.state",
+			"entity_pose.answer", "entity_pose.answer", "entity_pose.answer", "entity_pose.answer", "entity_pose.answer" };
 		int i;
 
 		e = make_entity (TRUE, FALSE, 7);
 		e.host_id = "eech-world:12";
 
-		for (i = 0; i < 10; i++)
+		for (i = 0; i < 15; i++)
 		{
 			pose_reset ();
 			pose_override = TRUE;
@@ -1070,22 +1096,74 @@ static void pose_cases (struct tc *t)
 		}
 	}
 
-	/* an identity the request cannot carry is not asked and decides nothing; the longest one that fits is carried whole */
-	memset (long_id, 'x', sizeof (long_id));
-	long_id[128] = ' ';
+	/* the stage's own masks at the PLACEMENT stage, through the real shared checker: the attitude IS read there, so an attitude difference is a valid answer (the offer's answer was valid too, and the dialogue, its
+	   reads, its counts and its hit are those without the observation); a difference from a held vector together with "none held" is not, and stops the engine at the placement, before the narrow phase */
 	e = make_entity (TRUE, FALSE, 7);
-	e.host_id = long_id;
+	e.host_id = "eech-world:12";
 	pose_reset ();
+	pose_override = TRUE;
+	pose_split = TRUE;
+	pose_state = CAMPAIGN_MODEL_POSE_RECORDED;
+	pose_kind = 1;
+	pose_mask = 25;
+	pose_state1 = CAMPAIGN_MODEL_POSE_RECORDED;
+	pose_kind1 = 1;
+	pose_mask1 = 26;
 	queue_reset ();
-	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
-	o = offer (&e, FALSE, -500.0f);
-	EXPECT (t, !o.stopped && o.hit == NULL && asks == 1 && pose_asks == 0);
-	long_id[127] = ' ';
-	pose_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_TEST, 16);
+	collision_hit = TRUE;
+	o = offer (&e, FALSE, 1000.0f);
+	collision_hit = FALSE;
+	EXPECT (t, !o.stopped && o.hit == &e && strcmp (reads, "MSPVA") == 0 && asks == 2 && pose_asks == 2 && collision_calls == 1);
+	pose_mask1 = 12;
+	pose_asks = 0;
 	queue_reset ();
-	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
-	o = offer (&e, FALSE, -500.0f);
-	EXPECT (t, !o.stopped && asks == 1 && pose_asks == 1 && strlen (pose_seen[0].key) == 127);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_TEST, 16);
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, o.stopped && strstr (fatal_text, "entity_pose.answer") != NULL && asks == 1 && pose_asks == 2 && collision_calls == 0);
+
+	/* the roster's WHOLE identity domain is carried, unshortened and never skipped (1 byte, 127, the longest 128 and a 128 byte multi-byte one), and each decides nothing; one beyond the domain cannot exist and is
+	   refused by marker, never shortened or skipped */
+	{
+		static const size_t lengths[4] = { 1, 127, 128, 128 };
+		char id[CAMPAIGN_MODEL_HOST_ID_MAX + 2];
+		size_t at, i;
+
+		e = make_entity (TRUE, FALSE, 7);
+
+		for (i = 0; i < 4; i++)
+		{
+			memset (id, 'x', sizeof (id));
+
+			if (i == 3)
+			{
+				for (at = 0; at < 128; at += 2)
+				{
+					id[at] = (char) 0xc3;
+					id[at + 1] = (char) 0xa9;
+				}
+			}
+
+			id[lengths[i]] = '\0';
+			e.host_id = id;
+			pose_reset ();
+			queue_reset ();
+			queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+			o = offer (&e, FALSE, -500.0f);
+			EXPECT (t, !o.stopped && o.hit == NULL && asks == 1 && pose_asks == 1 && strlen (pose_seen[0].host_id) == lengths[i] && memcmp (pose_seen[0].host_id, id, lengths[i] + 1) == 0);
+		}
+
+		memset (id, 'x', sizeof (id));
+		id[CAMPAIGN_MODEL_HOST_ID_MAX + 1] = '\0';
+		e.host_id = id;
+		pose_reset ();
+		queue_reset ();
+		queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+		o = offer (&e, FALSE, -500.0f);
+		EXPECT (t, o.stopped && strstr (fatal_text, "entity_pose.request") != NULL && asks == 0 && pose_asks == 0);
+	}
 
 	/* a host that refuses stops the engine by the callback marker, before any candidate question */
 	e = make_entity (TRUE, FALSE, 7);

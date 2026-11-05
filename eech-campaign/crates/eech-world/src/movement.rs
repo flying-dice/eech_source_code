@@ -1421,12 +1421,13 @@ enum CrashStage {
     },
 }
 
-/// The words the campaign read from a mobile candidate (ENTITY_POSE, an OBSERVATION): its position and motion vector, read for every mobile candidate, and from the placement stage its attitude.
+/// The words the campaign read from a mobile candidate (ENTITY_POSE, an OBSERVATION): its position and motion vector, read for every mobile candidate, and from the placement stage its attitude. They are the
+/// exact bit patterns the campaign sent, never floating-point values: no word is loaded as a float on its way here (a signalling NaN stays one).
 #[derive(Clone, Copy, Debug)]
 pub struct ObservedWords {
-    pub position: [f32; 3],
-    pub motion: [f32; 3],
-    pub attitude: Option<[f32; 9]>,
+    pub position: [u32; 3],
+    pub motion: [u32; 3],
+    pub attitude: Option<[u32; 9]>,
 }
 
 /// How the host's registry sees an identity the campaign offered for observation.
@@ -1450,11 +1451,60 @@ pub const OBSERVED_ATTITUDE: u32 = 2;
 pub const OBSERVED_MOTION: u32 = 4;
 /// The host holds NO motion vector for the record.
 pub const OBSERVED_NO_HELD_MOTION: u32 = 8;
-/// The campaign's motion vector is not the record's attitude row 2 times the record's speed (the original's vehicle formula, from the HOST's record).
+/// The campaign's motion vector is not the product, rounded toward zero, of the record's attitude row 2 and the record's speed (the original's vehicle formula, from the HOST's record), or an operand of that
+/// product is not finite and it is undefined.
 pub const OBSERVED_FORMULA: u32 = 16;
 
-fn bits_differ(ours: &[f32], theirs: &[f32]) -> bool {
-    ours.iter().zip(theirs).any(|(a, b)| a.to_bits() != b.to_bits())
+fn bits_differ(ours: &[u32], theirs: &[f32]) -> bool {
+    ours.iter().zip(theirs).any(|(a, b)| *a != b.to_bits())
+}
+
+/// The IEEE-754 single-precision product of two finite words, rounded toward zero, computed in INTEGERS: no floating-point instruction runs, so no sticky flag is raised, no trap can fire and the caller's
+/// rounding mode is irrelevant (the observer runs inside a model callback that has no floating-point protection of its own, and the campaign's own product runs under the reference's round-toward-zero; a
+/// result that is not representable is truncated, an overflow gives the largest finite value and an underflow the truncated subnormal or zero). `None` when an operand is an infinity or a NaN, where no
+/// product is defined here. The operands are significands of at most 24 bits, so their product is exact in 48 bits and the truncation is the only rounding.
+pub fn product_toward_zero(a: u32, b: u32) -> Option<u32> {
+    let (exponent_a, exponent_b) = ((a >> 23) & 0xff, (b >> 23) & 0xff);
+    if exponent_a == 0xff || exponent_b == 0xff {
+        return None;
+    }
+    let sign = (a ^ b) & 0x8000_0000;
+    // value = significand * 2^exponent, the significand an integer: a subnormal has no implicit bit and the exponent of the smallest normal
+    let split = |word: u32, exponent: u32| -> (u64, i32) {
+        let fraction = u64::from(word & 0x7f_ffff);
+        if exponent == 0 {
+            (fraction, -149)
+        } else {
+            (fraction | 0x80_0000, exponent as i32 - 150)
+        }
+    };
+    let ((significand_a, exponent_a), (significand_b, exponent_b)) = (split(a, exponent_a), split(b, exponent_b));
+    let significand = significand_a * significand_b;
+    if significand == 0 {
+        return Some(sign);
+    }
+    let exponent = exponent_a + exponent_b;
+    let length = 64 - significand.leading_zeros() as i32;
+    // the normal form: a 24-bit significand m and the exponent e such that value = m * 2^e, whose biased exponent field is e + 150
+    let shift = length - 24;
+    let biased = exponent + shift + 150;
+    if biased >= 255 {
+        return Some(sign | 0x7f7f_ffff);
+    }
+    if biased >= 1 {
+        let kept = if shift >= 0 { significand >> shift } else { significand << -shift };
+        return Some(sign | ((biased as u32) << 23) | (kept as u32 & 0x7f_ffff));
+    }
+    // below the smallest normal: the subnormal is the value in units of 2^-149, truncated
+    let down = -(exponent + 149);
+    let kept = if down < 0 {
+        significand << -down
+    } else if down >= 64 {
+        0
+    } else {
+        significand >> down
+    };
+    Some(sign | kept as u32)
 }
 
 /// The registry the host's other services see: the ONE `Movers` the movement callbacks step, shared by handle (no copy of any record is made).
@@ -1580,10 +1630,14 @@ impl Movers {
             Some(_) => {}
             None => difference |= OBSERVED_NO_HELD_MOTION,
         }
-        let speed = record.pose.velocity;
-        let attitude = &record.pose.attitude;
-        let formula = [attitude[6] * speed, attitude[7] * speed, attitude[8] * speed];
-        if bits_differ(&words.motion, &formula) {
+        // the original's vehicle formula from the HOST's record, in integers (see `product_toward_zero`): no floating-point instruction runs in an observation
+        let speed = record.pose.velocity.to_bits();
+        let row = &record.pose.attitude[6..9];
+        if !row
+            .iter()
+            .zip(&words.motion)
+            .all(|(element, motion)| product_toward_zero(element.to_bits(), speed) == Some(*motion))
+        {
             difference |= OBSERVED_FORMULA;
         }
         Observation::Recorded { kind: record.kind, difference }
@@ -6886,8 +6940,20 @@ mod tests {
         assert!((ended.angles[0] - heading_of(&leader_turned(0.4))).abs() < 1.0e-5, "{}", ended.angles[0]);
     }
 
+    fn bits3(values: [f32; 3]) -> [u32; 3] {
+        values.map(f32::to_bits)
+    }
+
+    fn bits9(values: [f32; 9]) -> [u32; 9] {
+        values.map(f32::to_bits)
+    }
+
     fn words(position: [f32; 3], motion: [f32; 3], attitude: Option<[f32; 9]>) -> ObservedWords {
-        ObservedWords { position, motion, attitude }
+        ObservedWords {
+            position: bits3(position),
+            motion: bits3(motion),
+            attitude: attitude.map(bits9),
+        }
     }
 
     fn moving_pose(velocity: f32) -> Pose {
@@ -6910,7 +6976,10 @@ mod tests {
         let same = words([1.0, 2.0, 3.0], [0.0, 0.0, 5.0], None);
         assert_eq!(record(&same), (Kind::Routed, OBSERVED_NO_HELD_MOTION));
         assert_eq!(
-            record(&ObservedWords { attitude: Some(LEVEL), ..same }),
+            record(&ObservedWords {
+                attitude: Some(bits9(LEVEL)),
+                ..same
+            }),
             (Kind::Routed, OBSERVED_NO_HELD_MOTION)
         );
         // one ulp, a signed zero and a NaN payload are differences: the comparison is of bits
@@ -6938,7 +7007,7 @@ mod tests {
         turned[1] = 1.0e-7;
         assert_eq!(
             record(&ObservedWords {
-                attitude: Some(turned),
+                attitude: Some(bits9(turned)),
                 ..same
             })
             .1,
@@ -6949,11 +7018,10 @@ mod tests {
             record(&words([1.0, 2.0, 3.0], [0.0, 0.0, 4.0], None)).1,
             OBSERVED_NO_HELD_MOTION | OBSERVED_FORMULA
         );
-        let nan = f32::from_bits(0x7fa0_0001);
-        assert_eq!(
-            record(&words([1.0, 2.0, nan], [0.0, 0.0, 5.0], None)).1,
-            OBSERVED_NO_HELD_MOTION | OBSERVED_POSITION
-        );
+        // a signalling NaN word is carried as bits and is a difference
+        let mut signalling = words([1.0, 2.0, 3.0], [0.0, 0.0, 5.0], None);
+        signalling.position[2] = 0x7fa0_0001;
+        assert_eq!(record(&signalling).1, OBSERVED_NO_HELD_MOTION | OBSERVED_POSITION);
     }
 
     #[test]
@@ -7044,5 +7112,181 @@ mod tests {
         let stepped = movers.step("v", outcome.pose, Request::Advance(advance([100.0, 0.0, 3.0]))).unwrap();
         assert_ne!(stepped.pose.position, [1.0, 2.0, 3.0]);
         assert!(matches!(movers.observe("v", &same), Observation::Recorded { difference, .. } if difference & OBSERVED_POSITION != 0));
+    }
+
+    /// a deterministic stream of 32-bit words (xorshift), so every run of the test sees the same operands
+    fn stream(seed: u32) -> impl FnMut() -> u32 {
+        let mut state = seed;
+        move || {
+            state ^= state << 13;
+            state ^= state >> 17;
+            state ^= state << 5;
+            state
+        }
+    }
+
+    #[cfg(target_arch = "x86_64")]
+    fn hardware_product_toward_zero(a: u32, b: u32) -> u32 {
+        // the hardware's own product under the SSE round-toward-zero the reference selects; opaque to the optimiser so that it is computed by the processor
+        let product = std::hint::black_box(f32::from_bits(a)) * std::hint::black_box(f32::from_bits(b));
+        std::hint::black_box(product).to_bits()
+    }
+
+    #[test]
+    #[cfg(target_arch = "x86_64")]
+    fn the_integer_product_is_the_hardwares_round_toward_zero_product_for_every_finite_operand_class() {
+        use crate::reference_arithmetic::{current_mxcsr, write_mxcsr, MXCSR_TOWARD_ZERO};
+        let saved = current_mxcsr();
+        write_mxcsr((saved & !0x6000) | MXCSR_TOWARD_ZERO);
+        let mut next = stream(0x1234_5678);
+        let specials: [u32; 14] = [
+            0x0000_0000,
+            0x8000_0000,
+            0x0000_0001,
+            0x8000_0001,
+            0x007f_ffff,
+            0x0080_0000,
+            0x3f80_0000,
+            0xbf80_0000,
+            0x7f7f_ffff,
+            0xff7f_ffff,
+            0x0000_0002,
+            0x3f00_0000,
+            0x4000_0000,
+            0x7e80_0000,
+        ];
+        let mut mismatches = Vec::new();
+        let mut check = |a: u32, b: u32| {
+            let expected = hardware_product_toward_zero(a, b);
+            let given = product_toward_zero(a, b);
+            if given != Some(expected) && mismatches.len() < 8 {
+                mismatches.push((a, b, expected, given));
+            }
+        };
+        for &a in &specials {
+            for &b in &specials {
+                check(a, b);
+            }
+        }
+        // every sign, a wide spread of exponents (overflow and underflow included) and significands, and the subnormal range on its own
+        for _ in 0..1_500_000 {
+            let (a, b) = (next(), next());
+            if (a >> 23) & 0xff != 0xff && (b >> 23) & 0xff != 0xff {
+                check(a, b);
+            }
+            let (c, d) = (next() & 0x807f_ffff, next());
+            if (d >> 23) & 0xff != 0xff {
+                check(c, d);
+            }
+        }
+        // values the vehicle formula really has: the levelled attitude and speeds from rest to fast, and the products near the exponent where overflow begins
+        for speed in [0.0f32, 1.0, 3.5, 13.9, -2.75, 1.0e10, 3.0e38] {
+            for element in [0.0f32, 1.0, -1.0, 0.5, 0.707_106_77, -0.866_025_4, 1.0e-30, 1.0e30] {
+                check(element.to_bits(), speed.to_bits());
+            }
+        }
+        write_mxcsr(saved);
+        assert!(
+            mismatches.is_empty(),
+            "the integer product differs from the hardware's round-toward-zero product: {mismatches:x?}"
+        );
+    }
+
+    #[test]
+    fn a_non_finite_operand_has_no_integer_product_and_is_reported_as_a_formula_difference() {
+        for operand in [0x7f80_0000u32, 0xff80_0000, 0x7fc0_0000, 0x7fa0_0001, 0xffff_ffff] {
+            assert_eq!(product_toward_zero(operand, 0x3f80_0000), None);
+            assert_eq!(product_toward_zero(0x3f80_0000, operand), None);
+        }
+        let mut movers = Movers::default();
+        movers.bind("v", Kind::Routed, moving_pose(5.0), None, None).unwrap();
+        movers.mobiles.get_mut("v").unwrap().pose.velocity = f32::INFINITY;
+        let outcome = movers.observe("v", &words([1.0, 2.0, 3.0], [0.0, 0.0, 5.0], None));
+        assert!(
+            matches!(outcome, Observation::Recorded { difference, .. } if difference & OBSERVED_FORMULA != 0),
+            "{outcome:?}"
+        );
+    }
+
+    #[test]
+    #[cfg(target_arch = "x86_64")]
+    fn an_observation_leaves_the_floating_point_state_exactly_as_it_found_it_whatever_the_rounding_the_flags_and_the_masks() {
+        use crate::reference_arithmetic::{current_mxcsr, write_mxcsr};
+        let mut movers = Movers::default();
+        movers.bind("routed", Kind::Routed, moving_pose(5.0), None, None).unwrap();
+        movers.bind("air", Kind::FixedWing, moving_pose(0.0), Some([0.0, 0.0, 100.0]), None).unwrap();
+        // operands whose product is inexact, subnormal and overflowing: any floating-point multiplication of them would raise a flag, and with the exceptions unmasked would trap
+        movers.mobiles.get_mut("routed").unwrap().pose.attitude = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.333_333_34, 1.0e-30, 3.0e38];
+        movers.mobiles.get_mut("routed").unwrap().pose.velocity = 7.1;
+        let probes = [
+            ("routed", words([1.0, 2.0, 3.0], [2.366_666_7, 7.1e-30, 3.0e38], Some(LEVEL))),
+            ("air", words([1.0, 2.0, 3.0], [0.0, 0.0, 100.0], None)),
+            ("nobody", words([0.0; 3], [0.0; 3], None)),
+        ];
+        let saved = current_mxcsr();
+        let mut failures = Vec::new();
+        for rounding in 0u32..4 {
+            for flags in [0x00u32, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x3f] {
+                // all six exceptions masked, then all six UNMASKED (a floating-point operation that raised one would trap and end this test)
+                for masks in [0x1f80u32, 0x0000] {
+                    let wanted = (rounding << 13) | masks | flags;
+                    write_mxcsr(wanted);
+                    let before = current_mxcsr();
+                    for (id, observed) in &probes {
+                        std::hint::black_box(movers.observe(id, observed));
+                    }
+                    let after = current_mxcsr();
+                    if before != after || after & 0xffbf != wanted & 0xffbf {
+                        failures.push((wanted, before, after));
+                    }
+                }
+            }
+        }
+        write_mxcsr(saved);
+        assert!(failures.is_empty(), "an observation changed the SSE control and status word: {failures:x?}");
+    }
+
+    #[test]
+    fn an_observation_never_reports_a_difference_its_stage_could_not_have_compared_or_one_that_contradicts_another() {
+        let mut next = stream(0x00c0_ffee);
+        let mut movers = Movers::default();
+        for (id, kind, vector) in [
+            ("routed", Kind::Routed, None),
+            ("ship", Kind::Ship, None),
+            ("person", Kind::Person, None),
+            ("fixed", Kind::FixedWing, Some([0.0, 0.0, 100.0])),
+            ("heli", Kind::Helicopter, Some([1.0, 2.0, 3.0])),
+        ] {
+            let rotor = (kind == Kind::Helicopter).then_some(ROTOR);
+            movers.bind(id, kind, moving_pose(3.0), vector, rotor).unwrap();
+        }
+        movers.bind("wreck", Kind::Routed, moving_pose(3.0), None, None).unwrap();
+        movers.mobiles.get_mut("wreck").unwrap().vehicle_vector = Some([0.0, 0.0, 3.0]);
+        let ids = ["routed", "ship", "person", "fixed", "heli", "wreck", "nobody"];
+        for round in 0..4000 {
+            let id = ids[(next() % 7) as usize];
+            // a word that is often exactly the record's (1.0, 3.0) and otherwise any bit pattern
+            let word = |next: &mut dyn FnMut() -> u32| match next() % 3 {
+                0 => f32::to_bits(1.0),
+                1 => f32::to_bits(3.0),
+                _ => next(),
+            };
+            let observed = ObservedWords {
+                position: [word(&mut next), f32::to_bits(2.0), word(&mut next)],
+                motion: [word(&mut next), word(&mut next), word(&mut next)],
+                attitude: (round % 2 == 1).then(|| std::array::from_fn(|_| word(&mut next))),
+            };
+            if let Observation::Recorded { difference, .. } = movers.observe(id, &observed) {
+                assert!(
+                    observed.attitude.is_some() || difference & OBSERVED_ATTITUDE == 0,
+                    "{id}: an attitude difference at the offer stage ({difference})"
+                );
+                assert!(
+                    difference & OBSERVED_MOTION == 0 || difference & OBSERVED_NO_HELD_MOTION == 0,
+                    "{id}: a difference from a held vector and none held ({difference})"
+                );
+                assert!(difference <= 31, "{id}: {difference}");
+            }
+        }
     }
 }

@@ -192,3 +192,28 @@ fn a_malformed_observation_is_a_named_refusal_and_a_registry_being_stepped_is_ne
     drop(guard);
     assert_eq!(observe(&lua, 0, 4, 1, &good).unwrap().0, "recorded");
 }
+
+#[test]
+fn the_rosters_whole_identity_domain_is_observed_whole_and_a_signalling_nan_word_is_only_a_difference() {
+    // the longest identity the roster issues is 128 bytes of text (multi-byte text included): the real registry binds it and the real provider finds it, whole
+    let mut movers = Movers::default();
+    let longest = "w".repeat(128);
+    let multibyte = "\u{e9}".repeat(64);
+    assert_eq!(multibyte.len(), 128);
+    movers.bind(&longest, Kind::Routed, at(1.0, 3.0, 5.0), None, None).unwrap();
+    movers.bind(&multibyte, Kind::Ship, at(4.0, 6.0, 2.0), None, None).unwrap();
+    let movers = Rc::new(RefCell::new(movers));
+    let lua = host(Some(movers));
+    let routed = words([1.0, 2.0, 3.0], [0.0, 0.0, 5.0], None);
+    assert_eq!(observe(&lua, 0, 4, 1, &text(&routed, &longest)).unwrap(), ("recorded".into(), 1, 8));
+    let ship = words([4.0, 2.0, 6.0], [0.0, 0.0, 2.0], None);
+    assert_eq!(observe(&lua, 0, 4, 1, &text(&ship, &multibyte)).unwrap(), ("recorded".into(), 2, 8));
+    // a prefix of an identity is not the identity, and nothing is shortened on the way
+    assert_eq!(observe(&lua, 0, 4, 1, &text(&routed, &longest[..127])).unwrap().0, "unknown");
+    // a signalling NaN word crosses as its bits (no float is formed from it): it is a position difference, and the registry is untouched
+    let mut signalling = routed;
+    signalling[2] = f32::from_bits(0x7fa0_0001);
+    assert_eq!(observe(&lua, 0, 4, 1, &text(&signalling, &longest)).unwrap(), ("recorded".into(), 1, 8 | 1));
+    assert!(text(&signalling, "").contains("0x7fa00001"), "the pattern is the bits");
+    assert_eq!(observe(&lua, 0, 4, 1, &text(&routed, &longest)).unwrap(), ("recorded".into(), 1, 8));
+}

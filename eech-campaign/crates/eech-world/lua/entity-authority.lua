@@ -81,15 +81,24 @@
 --   bad_scan_cursor       the first armed real FIRST is answered with a fractional sector x (0.5), the real z:  [model-provider:entity_scan.cursor]
 -- `control` stays the NATURAL healthy control (nothing altered, no configured secondary input); it now also requires a positive scan, candidate and narrow-phase chain. The earlier modes keep their own meaning.
 --
--- THE ENTITY_POSE OBSERVATION (fifth slice; mb_hostmodel.h ENTITY_POSE, 15 words). Beside the reads the original made, the shipped offer of a MOBILE candidate asks the host to OBSERVE it against the host's own record of its
--- semantic host identity (the one Movers registry the movement callbacks step): nothing decides from the answer and no entity, count or order of the dialogue depends on it. The request is scene 0, depth the stage (0 the
--- offer: the position and motion vector the original read; 1 the placement: those and the attitude), kind the entity's TYPE, definition whether it is alive (0 or 1), and the text place of exactly 15 comma-separated
--- 0x%08x patterns, then (when the roster has an identity) one space and the HOST IDENTITY. A real reply is { result, kind, difference }: result is recorded, unrecorded, retired, unknown or no_id (no_id exactly when the
--- question named no identity), kind the record's kind (0 none; 1 routed vehicle, 2 ship, 3 person, 4 fixed-wing, 5 helicopter), difference the bits 0..31 of how the campaign's words compare with the record: 1 position, 2 attitude,
--- 4 motion against a held vector, 8 no motion vector held, 16 motion against the record's attitude row 2 times its speed. A class that is not `recorded` carries kind 0 and difference 0. The wrapper counts the ARMED
--- observations by stage and class and keeps a HISTOGRAM of (stage, entity type, alive, class, kind, difference): that histogram is the characterisation of the collaborator contract (which mobile offers have an
--- identity and a record, whether the campaign's mirror agrees with the record, whether the vehicle motion vector is the record's formula, whether anything outside the host's steps writes a pose). It is OBSERVED, never
--- asserted: the natural control only requires that it was reached (a positive count) and that every question and reply is well formed. Counts are global to the war (no weapon identity).
+-- THE ENTITY_POSE OBSERVATION (fifth slice; mb_hostmodel.h ENTITY_POSE, 15 words). For each MOBILE candidate of a sector list (an aircraft or a vehicle whose collision-test-mobile flag is set) the shipped offer asks the host to
+-- OBSERVE it against the host's own record of its semantic host identity (the one Movers registry the movement callbacks step), beside the original's reads. Nothing decides from the answer and no candidate, count or order of
+-- the dialogue depends on it. The words (the position and motion vector, and at the placement stage the attitude) are the ones the original read; the observation ADDS three read-only metadata reads, the entity's type, its alive
+-- flag and its roster identity, which a transcript of the original's physical getters does not include (it is not a proof of all getters). A candidate that is not mobile, a city and every building listed under it (even one whose
+-- flags read as mobile at its placement) are NOT observed. The request is scene 0, depth the stage (0 the offer, 1 the placement), kind the entity's TYPE, definition whether it is alive (0 or 1), and the text place of exactly 15
+-- comma-separated 0x%08x patterns, then (when the roster has an identity of 1 to 128 bytes, the roster's whole domain) one space and the HOST IDENTITY. A real reply is { result, kind, difference }: result is recorded,
+-- unrecorded, retired, unknown or no_id (no_id exactly when the question named no identity), kind the record's kind (0 none; 1 routed vehicle, 2 ship, 3 person, 4 fixed-wing, 5 helicopter), difference the bits 0..31 of how the
+-- campaign's words compare with the record: 1 position, 2 attitude (the placement stage only: an offer-stage reply that carries it is malformed), 4 motion against a held vector (contradicts 8: a reply with both is
+-- malformed), 8 no motion vector held, 16 motion not bit for bit the product, rounded toward zero and computed in integers, of the record's attitude row 2 and its speed (also set when an operand is not finite). A class that is not
+-- `recorded` carries kind 0 and difference 0.
+--
+-- WHAT ONE HEALTHY RUN CLASSIFIES TOGETHER. Every observation is classified, BEFORE the launch (boot, warmup and every natural weapon until then: `pose_pre_*`) and after it (`pose_*`), into the histograms of (stage, entity
+-- type, alive, class, kind, difference), and the `pose_fact_*` fields sum both phases into the facts the host-sourced pose cutover needs: how many mobile offers had no identity, had an identity the host never issued, retired or issued
+-- without a record, and had a record; how many offers were of a dead entity (a wreck is alive 0); how many records disagreed with the campaign's position and, at the placement, its attitude; how many held a motion vector, how
+-- many held none and how many held one that differed; and how many motion vectors were, and how many were not, the record's attitude row 2 times its speed (by kind). It is OBSERVED, never asserted: the natural control only requires
+-- that something was observed (a positive count, before or after the launch) and that every question and reply is well formed. WHAT IT DOES NOT SHOW: only the offers and paths this run reached are characterised. A histogram
+-- with no mirror difference says nothing about a writer, a pack route, a gunship route or a dependent carry the run never reached, and a difference says THAT a mirror differed, never WHICH writer made it; the disposition of every
+-- unreached writer stays required. The counts are global to the war (no weapon identity), and a count of mobile offers is not a measure of moving candidates (`candidate_need_updated` is that counter).
 --
 --   withheld_pose         the provider raises on the first armed observation:                                    [model-provider:entity_pose.callback]
 --   bad_pose_answer       the first armed observation is answered kind 6 (outside the five kinds):              [model-provider:entity_pose.answer]
@@ -358,6 +367,9 @@ local pose_altered = 0
 -- the armed pose observations by stage and by the class the REAL host answered, the ones that named an identity, and the histogram of (stage, entity type, alive, class, kind, difference)
 local pose = { total = 0, stage_offer = 0, stage_placement = 0, named = 0, recorded = 0, unrecorded = 0, retired = 0, unknown = 0, no_id = 0 }
 local pose_histogram = {}
+-- every observation BEFORE the launch (boot, warmup, the natural weapons until then): classified exactly as the armed ones, never altered
+local pose_pre = { total = 0, stage_offer = 0, stage_placement = 0, named = 0, recorded = 0, unrecorded = 0, retired = 0, unknown = 0, no_id = 0 }
+local pose_pre_histogram = {}
 -- the armed scan questions by phase, and the REAL answers they got
 local scan = { total = 0, phase_begin = 0, phase_entry = 0, phase_end = 0, phase_resolved = 0, excluded = 0, first = 0, next = 0, offer = 0, done_none = 0, done_hit = 0 }
 -- the armed candidate questions and the REAL answers they got
@@ -500,6 +512,7 @@ local function parse_pose_request (scene, depth, kind, definition, key)
 	if #key > WORDS_TEXT then
 		if string.sub (key, WORDS_TEXT + 1, WORDS_TEXT + 1) ~= " " then return nil, "the identity does not follow the words after one space" end
 		text, host_id = string.sub (key, 1, WORDS_TEXT), string.sub (key, WORDS_TEXT + 2)
+		if #host_id > 128 then return nil, "the identity is " .. #host_id .. " bytes, outside the roster's domain of 1 to 128" end
 	end
 	if words_of_text (text, 15) == nil then return nil, "the words are not 15 comma separated 0x%08x patterns" end
 	return { stage = depth, entity_type = kind, alive = definition, host_id = host_id, named = host_id ~= "" }
@@ -516,14 +529,19 @@ local function pose_reply_problem (answer, parsed)
 	if answer.result ~= "recorded" and (kind ~= 0 or difference ~= 0) then return "a kind or difference with " .. answer.result end
 	if answer.result == "recorded" and kind == 0 then return "a record of no kind" end
 	if parsed and (answer.result == "no_id") == parsed.named then return "the class " .. answer.result .. " for a question that " .. (parsed.named and "named" or "did not name") .. " an identity" end
+	-- the stage's own masks: the offer stage reads no attitude, and a difference from a held vector contradicts "none held"
+	if parsed and parsed.stage == 0 and math.floor (difference / 2) % 2 == 1 then return "an attitude difference (" .. difference .. ") at the offer stage, which carries no attitude" end
+	if math.floor (difference / 4) % 2 == 1 and math.floor (difference / 8) % 2 == 1 then return "a difference from a held motion vector together with none held (" .. difference .. ")" end
 	return nil
 end
-local function pose_question (scene, depth, kind, definition, key)
+local function pose_question (scene, depth, kind, definition, key, is_armed)
+	local book, histogram = pose, pose_histogram
+	if not is_armed then book, histogram = pose_pre, pose_pre_histogram end
 	local parsed, why = parse_pose_request (scene, depth, kind, definition, key)
 	if parsed then
-		pose.total = pose.total + 1
-		if parsed.stage == 0 then pose.stage_offer = pose.stage_offer + 1 else pose.stage_placement = pose.stage_placement + 1 end
-		if parsed.named then pose.named = pose.named + 1 end
+		book.total = book.total + 1
+		if parsed.stage == 0 then book.stage_offer = book.stage_offer + 1 else book.stage_placement = book.stage_placement + 1 end
+		if parsed.named then book.named = book.named + 1 end
 	else
 		faults.request = faults.request + 1
 		first_fault = first_fault or ("pose request: " .. why)
@@ -534,13 +552,13 @@ local function pose_question (scene, depth, kind, definition, key)
 		faults.reply = faults.reply + 1
 		first_fault = first_fault or ("pose reply: " .. problem)
 	else
-		pose [real.result] = pose [real.result] + 1
+		book [real.result] = book [real.result] + 1
 		if parsed then
 			local bucket = string.format ("%d:%d:%d:%s:%d:%d", parsed.stage, parsed.entity_type, parsed.alive, real.result, real.kind, real.difference)
-			pose_histogram [bucket] = (pose_histogram [bucket] or 0) + 1
+			histogram [bucket] = (histogram [bucket] or 0) + 1
 		end
 	end
-	if plan.pose == nil then return real end
+	if not is_armed or plan.pose == nil then return real end
 	-- an altered answer is formed only from a well-formed question and real reply (a witness failure raised here would come back carrying the callback marker the refusal mode credits)
 	if parsed == nil or problem then return real end
 	if plan.eligible_pose and not plan.eligible_pose (parsed, real) then return real end
@@ -548,13 +566,56 @@ local function pose_question (scene, depth, kind, definition, key)
 	pose_altered = pose_altered + 1
 	return plan.pose (parsed, real)
 end
-local function pose_histogram_text ()
+local function pose_histogram_text (histogram)
 	local keys = {}
-	for bucket in pairs (pose_histogram) do keys [#keys + 1] = bucket end
+	for bucket in pairs (histogram) do keys [#keys + 1] = bucket end
 	table.sort (keys)
 	local parts = {}
-	for _, bucket in ipairs (keys) do parts [#parts + 1] = bucket .. "=" .. pose_histogram [bucket] end
+	for _, bucket in ipairs (keys) do parts [#parts + 1] = bucket .. "=" .. histogram [bucket] end
 	return table.concat (parts, ";")
+end
+-- the facts the cutover needs, summed over BOTH phases' histograms (each bucket is stage:type:alive:class:kind:difference)
+local function pose_facts ()
+	local facts = {
+		offers = 0, no_id = 0, unrecorded = 0, retired = 0, unknown = 0, recorded = 0, dead = 0, dead_recorded = 0, position_differs = 0, attitude_compared = 0, attitude_differs = 0,
+		motion_held = 0, motion_held_differs = 0, motion_not_held = 0, formula_equal = 0, formula_differs = 0, vehicle_formula_equal = 0, vehicle_formula_differs = 0,
+		aircraft_motion_differs = 0,
+	}
+	local by_kind = {}
+	local function has (difference, bit) return math.floor (difference / bit) % 2 == 1 end
+	for _, histogram in ipairs ({ pose_histogram, pose_pre_histogram }) do
+		for bucket, count in pairs (histogram) do
+			local stage, _, alive, class, kind, difference = string.match (bucket, "^(%d+):(%d+):(%d+):([%a_]+):(%d+):(%d+)$")
+			stage, alive, kind, difference = tonumber (stage), tonumber (alive), tonumber (kind), tonumber (difference)
+			facts.offers = facts.offers + count
+			facts [class] = facts [class] + count
+			if alive == 0 then facts.dead = facts.dead + count end
+			if class == "recorded" then
+				if alive == 0 then facts.dead_recorded = facts.dead_recorded + count end
+				by_kind [kind] = (by_kind [kind] or 0) + count
+				if has (difference, 1) then facts.position_differs = facts.position_differs + count end
+				if stage == 1 then
+					facts.attitude_compared = facts.attitude_compared + count
+					if has (difference, 2) then facts.attitude_differs = facts.attitude_differs + count end
+				end
+				if has (difference, 8) then facts.motion_not_held = facts.motion_not_held + count
+				else
+					facts.motion_held = facts.motion_held + count
+					if has (difference, 4) then facts.motion_held_differs = facts.motion_held_differs + count end
+				end
+				if has (difference, 16) then facts.formula_differs = facts.formula_differs + count else facts.formula_equal = facts.formula_equal + count end
+				if kind >= 1 and kind <= 3 then
+					if has (difference, 16) then facts.vehicle_formula_differs = facts.vehicle_formula_differs + count else facts.vehicle_formula_equal = facts.vehicle_formula_equal + count end
+				elseif has (difference, 4) then
+					facts.aircraft_motion_differs = facts.aircraft_motion_differs + count
+				end
+			end
+		end
+	end
+	local kinds = {}
+	for kind = 1, 5 do if by_kind [kind] then kinds [#kinds + 1] = kind .. "=" .. by_kind [kind] end end
+	facts.recorded_by_kind = table.concat (kinds, ";")
+	return facts
 end
 local function candidate_question (scene, depth, kind, definition, key)
 	local parsed, why = parse_candidate_request (scene, depth, kind, definition, key)
@@ -593,7 +654,7 @@ local function model (op, scene, depth, kind, definition, key)
 	else counts.other = counts.other + 1 end
 	-- the armed candidate questions are counted and classified; every other operation, and every question before the launch, is the host's own answer, returned unchanged
 	if op == "entity_scan" and armed then return scan_question (scene, depth, kind, definition, key) end
-	if op == "entity_pose" and armed then return pose_question (scene, depth, kind, definition, key) end
+	if op == "entity_pose" then return pose_question (scene, depth, kind, definition, key, armed) end
 	if op == "entity_candidate" and armed then return candidate_question (scene, depth, kind, definition, key) end
 	if op ~= "entity_collision" or not armed then return reference (op, scene, depth, kind, definition, key) end
 	local parsed, why = parse_request (scene, depth, kind, definition, key)
@@ -911,6 +972,7 @@ local function main ()
 	for _, w in ipairs (duplicates) do emit { event = "duplicate_terminal", w = w } end
 	for _, w in ipairs (later_births) do emit { event = "later_birth", w = w } end
 	local incomplete = (not failure) and pending_members () > 0
+	local pose_facts_row = pose_facts ()
 	emit {
 		event = "authority", mode = mode, profile = profile, expected_marker = plan.marker or "", completed = failure == nil and not incomplete, incomplete = incomplete,
 		failure_marker = failure and failure.marker or "", failure_line = failure and failure.line or "",
@@ -932,7 +994,17 @@ local function main ()
 		scan_done_none = scan.done_none, scan_done_hit = scan.done_hit, scan_altered = scan_altered, scan_answered_done_none = scan_none_answered,
 		pose_before = before.pose, pose_after = after.pose, pose_stage_offer = pose.stage_offer, pose_stage_placement = pose.stage_placement, pose_named = pose.named,
 		pose_recorded = pose.recorded, pose_unrecorded = pose.unrecorded, pose_retired = pose.retired, pose_unknown = pose.unknown, pose_no_id = pose.no_id,
-		pose_altered = pose_altered, pose_histogram = pose_histogram_text (),
+		pose_altered = pose_altered, pose_histogram = pose_histogram_text (pose_histogram),
+		pose_pre_total = pose_pre.total, pose_pre_stage_offer = pose_pre.stage_offer, pose_pre_stage_placement = pose_pre.stage_placement, pose_pre_named = pose_pre.named,
+		pose_pre_recorded = pose_pre.recorded, pose_pre_unrecorded = pose_pre.unrecorded, pose_pre_retired = pose_pre.retired, pose_pre_unknown = pose_pre.unknown, pose_pre_no_id = pose_pre.no_id,
+		pose_pre_histogram = pose_histogram_text (pose_pre_histogram),
+		pose_fact_offers = pose_facts_row.offers, pose_fact_no_id = pose_facts_row.no_id, pose_fact_unrecorded = pose_facts_row.unrecorded, pose_fact_retired = pose_facts_row.retired,
+		pose_fact_unknown = pose_facts_row.unknown, pose_fact_recorded = pose_facts_row.recorded, pose_fact_dead = pose_facts_row.dead, pose_fact_dead_recorded = pose_facts_row.dead_recorded,
+		pose_fact_position_differs = pose_facts_row.position_differs, pose_fact_attitude_compared = pose_facts_row.attitude_compared, pose_fact_attitude_differs = pose_facts_row.attitude_differs,
+		pose_fact_motion_held = pose_facts_row.motion_held, pose_fact_motion_held_differs = pose_facts_row.motion_held_differs, pose_fact_motion_not_held = pose_facts_row.motion_not_held,
+		pose_fact_formula_equal = pose_facts_row.formula_equal, pose_fact_formula_differs = pose_facts_row.formula_differs,
+		pose_fact_vehicle_formula_equal = pose_facts_row.vehicle_formula_equal, pose_fact_vehicle_formula_differs = pose_facts_row.vehicle_formula_differs,
+		pose_fact_aircraft_motion_differs = pose_facts_row.aircraft_motion_differs, pose_fact_recorded_by_kind = pose_facts_row.recorded_by_kind,
 		secondary_input = plan.paired and "entity_collision_answered_hit_mask_63_at_the_request_old_end_whenever_asked_in_both_paired_modes_configured_not_natural" or "",
 		request_faults = faults.request, reply_faults = faults.reply, first_fault = first_fault or "",
 		cohort_signature = table.concat (signature_parts, ";"),
@@ -977,12 +1049,13 @@ local function main ()
 	if cand.total ~= after.candidate then return string.format ("the provider counted %d candidate questions but classified %d", after.candidate, cand.total) end
 	if scan.total ~= after.scan then return string.format ("the provider counted %d scan questions but classified %d", after.scan, scan.total) end
 	if pose.total ~= after.pose then return string.format ("the provider counted %d pose questions but classified %d", after.pose, pose.total) end
+	if pose_pre.total ~= before.pose then return string.format ("the provider counted %d pre-launch pose questions but classified %d", before.pose, pose_pre.total) end
 	if mode == "control" then
 		if altered ~= 0 or cand_altered ~= 0 or scan_altered ~= 0 then return "the control altered an answer" end
 		-- the natural chain: the enumeration offered candidates and a candidate reached the narrow phase
 		if scan.offer < 1 then return "UNREACHED: the real enumeration offered no entry (" .. scan.offer .. " offers), so no candidate dialogue followed from it" end
 		-- the observation is characterisation, not an expectation: it must have been REACHED (a mobile candidate was offered), and every question and reply was well formed (checked above)
-		if pose.total < 1 then return "UNREACHED: the real enumeration offered " .. scan.offer .. " entries but no mobile candidate was offered, so the host was asked no entity_pose question and the mobile collaborator contract was not observed" end
+		if pose.total + pose_pre.total < 1 then return "UNREACHED: the real enumeration offered " .. scan.offer .. " entries but no mobile candidate was offered, before or after the launch, so the host was asked no entity_pose question and the mobile collaborator contract was not observed" end
 		-- every weapon-step entity hit is one narrow-phase hit of the host (the hosted line of sight asks too, so the host may report more)
 		if seen.real_hit < any_hits_delta then return string.format ("the weapon step counted %d entity hits but the host's narrow phase reported only %d", any_hits_delta, seen.real_hit) end
 		return nil

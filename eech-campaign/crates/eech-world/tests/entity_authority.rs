@@ -120,11 +120,13 @@ local function reference (op, scene, depth, kind, definition, key)
 		local named = #key > 164
 		local result = named and (scenario.pose_class or "recorded") or "no_id"
 		local recorded = result == "recorded"
-		answer = { result = result, kind = recorded and (scenario.pose_kind or 1) or 0, difference = recorded and (scenario.pose_difference or 8) or 0 }
+		answer = { result = result, kind = recorded and (scenario.pose_kind or 1) or 0, difference = recorded and ((depth == 1 and scenario.pose_difference_placement) or scenario.pose_difference or 8) or 0 }
 		local bad = scenario.bad_real_pose
 		if bad == "state" then answer.result = "perhaps" end
 		if bad == "kind" then answer.kind = 6 end
 		if bad == "no_id_for_named" then answer = { result = "no_id", kind = 0, difference = 0 } end
+		if bad == "attitude_at_offer" then answer = { result = "recorded", kind = 1, difference = 2 } end
+		if bad == "contradiction" then answer = { result = "recorded", kind = 1, difference = 12 } end
 		if bad == "kind_for_unrecorded" then answer = { result = "unknown", kind = 1, difference = 0 } end
 		POSE_LOG [#POSE_LOG + 1] = { stage = depth, entity_type = kind, alive = definition, result = answer.result, key = key }
 	elseif op == "entity_candidate" then
@@ -247,13 +249,13 @@ package.preload.eech_dc = function ()
 			-- scripted member; the reply's shape is checked as the shared C checks it, and NOTHING of the dialogue depends on the answer
 			local pose_altering = { withheld_pose = true, bad_pose_answer = true, bad_pose_state = true }
 			local POSE_RESULTS = { recorded = true, unrecorded = true, retired = true, unknown = true, no_id = true }
-			local function pose_observe (stage)
-				if scenario.no_pose_questions then return end
+			local function pose_observe (stage, pre)
+				if scenario.no_pose_questions and not pre then return end
 				local words = {}
 				for index = 1, 15 do words [index] = ZERO end
 				words [1], words [2], words [3] = OLD_W [1], OLD_W [2], OLD_W [3]
 				if stage == 1 then for index = 7, 15 do words [index] = "0x3f800000" end end
-				local key = table.concat (words, ",") .. (scenario.unnamed_pose and "" or " eech-world:1")
+				local key = table.concat (words, ",") .. (scenario.unnamed_pose and "" or (" " .. (scenario.pose_id_length and string.rep ("x", scenario.pose_id_length) or "eech-world:1")))
 				if scenario.bad_pose_request == "count" then key = string.match (key, "^(.*),[^,]+$") or key end
 				local ok, answer = ask_model ("entity_pose", 0, stage, 4, 1, key, not pose_altering [MODE])
 				if not ok then stop ("entity_pose.callback", tostring (answer)) end
@@ -261,6 +263,9 @@ package.preload.eech_dc = function ()
 				if type (answer.kind) ~= "number" or answer.kind < 0 or answer.kind > 5 or type (answer.difference) ~= "number" or answer.difference < 0 or answer.difference > 31 then stop ("entity_pose.answer", "range") end
 				if (answer.result == "no_id") == (not scenario.unnamed_pose) then stop ("entity_pose.state", "contradicts the question") end
 				if answer.result ~= "recorded" and (answer.kind ~= 0 or answer.difference ~= 0) then stop ("entity_pose.answer", "carries a record") end
+				-- the stage's own masks, as the shared C checks them: no attitude is read at the offer, and a held-vector difference contradicts "none held"
+				if stage == 0 and math.floor (answer.difference / 2) % 2 == 1 then stop ("entity_pose.answer", "an attitude difference at the offer stage") end
+				if math.floor (answer.difference / 4) % 2 == 1 and math.floor (answer.difference / 8) % 2 == 1 then stop ("entity_pose.answer", "a held-vector difference with none held") end
 			end
 			local function candidate_dialogue ()
 				if scenario.no_candidate_questions then return true end
@@ -400,6 +405,8 @@ package.preload.eech_dc = function ()
 				end
 			end
 			function engine:frame (milliseconds)
+				-- a natural weapon's offer before the case's launch (boot, warmup): the witness classifies it too, and never alters it
+				if scenario.pose_before_launch and not launched then pose_observe (0, true) end
 				if not (launched and scenario.stall_after_launch) then now = now + (scenario.clock_step or milliseconds / 1000) end
 				weapon_step ("weapon_step", false)
 				local effective = weapon_step ("weapon_step", true)
@@ -1735,7 +1742,7 @@ fn the_natural_control_counts_the_pose_observations_by_stage_and_class_and_keeps
         (", pose_class = 'unknown'", "pose_unknown", "0:4:1:unknown:0:0=1"),
         (", pose_class = 'unrecorded'", "pose_unrecorded", "0:4:1:unrecorded:0:0=1"),
         (", pose_class = 'retired'", "pose_retired", "0:4:1:retired:0:0=1"),
-        (", pose_kind = 4, pose_difference = 29", "pose_recorded", "0:4:1:recorded:4:29=1"),
+        (", pose_kind = 4, pose_difference = 21", "pose_recorded", "0:4:1:recorded:4:21=1"),
         (", unnamed_pose = true", "pose_no_id", "0:4:1:no_id:0:0=1"),
     ] {
         let (driven, row) = pose_row(extra, "control");
@@ -1865,4 +1872,89 @@ fn the_pose_observation_follows_the_scan_the_empty_enumeration_prevents_it_and_t
     let row = authority(&driven);
     assert_eq!(row["pose_after"], 0);
     assert_eq!(row["pose_before"], 0);
+}
+
+#[test]
+fn the_stage_masks_the_whole_identity_domain_the_prelaunch_phase_and_the_facts_are_classified_together() {
+    // the placement stage reads an attitude, so an attitude difference is valid there; the facts are summed from the histograms
+    let (driven, row) = pose_row(", candidate_sequence = { 'need_placement', 'test' }, pose_difference_placement = 10", "control");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(row["pose_histogram"], "0:4:1:recorded:1:8=1;1:4:1:recorded:1:10=1");
+    for (field, expected) in [
+        ("pose_fact_offers", 2),
+        ("pose_fact_recorded", 2),
+        ("pose_fact_no_id", 0),
+        ("pose_fact_dead", 0),
+        ("pose_fact_position_differs", 0),
+        ("pose_fact_attitude_compared", 1),
+        ("pose_fact_attitude_differs", 1),
+        ("pose_fact_motion_not_held", 2),
+        ("pose_fact_motion_held", 0),
+        ("pose_fact_formula_equal", 2),
+        ("pose_fact_vehicle_formula_equal", 2),
+        ("pose_fact_vehicle_formula_differs", 0),
+    ] {
+        assert_eq!(row[field], expected, "{field}");
+    }
+    assert_eq!(row["pose_fact_recorded_by_kind"], "1=2");
+    // an aircraft record whose held vector differs: classified apart from the vehicles
+    let (driven, row) = pose_row(", pose_kind = 4, pose_difference = 21", "control");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    for (field, expected) in [
+        ("pose_fact_aircraft_motion_differs", 1),
+        ("pose_fact_motion_held", 1),
+        ("pose_fact_motion_held_differs", 1),
+        ("pose_fact_position_differs", 1),
+        ("pose_fact_formula_differs", 1),
+        ("pose_fact_vehicle_formula_differs", 0),
+    ] {
+        assert_eq!(row[field], expected, "{field}");
+    }
+    // a reply the stage could not have produced is a counted reply fault and never a pass: an attitude difference at the offer, a held-vector difference with none held (both stages)
+    for extra in [
+        ", bad_real_pose = 'attitude_at_offer'",
+        ", bad_real_pose = 'contradiction'",
+        ", candidate_sequence = { 'need_placement', 'test' }, pose_difference_placement = 12",
+        ", pose_difference = 2",
+    ] {
+        let driven = drive(&healthy(extra), &[]);
+        let row = authority(&driven);
+        assert!(row["reply_faults"].as_i64().unwrap() >= 1, "{extra}: {row}");
+        assert!(row["first_fault"].as_str().unwrap().starts_with("pose reply:"), "{extra}: {row}");
+        assert!(driven.result.is_err(), "{extra}: a malformed real reply is never a pass");
+    }
+    // the roster's whole identity domain is carried: 128 bytes is a valid identity, 129 is not and is counted as a request fault
+    let (driven, row) = pose_row(", pose_id_length = 128", "control");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(driven.pose_log[0].4.len(), 15 * 10 + 14 + 1 + 128);
+    assert_eq!(row["request_faults"], 0);
+    let row = authority(&drive(&healthy(", pose_id_length = 129"), &[]));
+    assert!(row["request_faults"].as_i64().unwrap() >= 1, "{row}");
+    assert!(row["first_fault"].as_str().unwrap().starts_with("pose request:"), "{row}");
+    // an observation BEFORE the launch is classified too, apart from the armed ones and never altered; reached there alone it is a reached control
+    let (driven, row) = pose_row(", pose_before_launch = true", "control");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let pre = row["pose_pre_total"].as_i64().unwrap();
+    assert!(pre >= 1, "{row}");
+    assert_eq!(
+        (row["pose_before"].clone(), row["pose_pre_recorded"].clone()),
+        (Value::from(pre), Value::from(pre))
+    );
+    assert_eq!(row["pose_pre_histogram"], format!("0:4:1:recorded:1:8={pre}").as_str());
+    assert_eq!(
+        (row["pose_after"].clone(), row["pose_fact_offers"].clone()),
+        (Value::from(1), Value::from(pre + 1)),
+        "the facts sum both phases"
+    );
+    let (driven, row) = pose_row(", pose_before_launch = true, no_pose_questions = true", "control");
+    assert!(driven.result.is_ok(), "reached before the launch alone: {:?}\n{}", driven.result, driven.rows);
+    assert_eq!(row["pose_after"], 0);
+    assert!(row["pose_pre_total"].as_i64().unwrap() >= 1, "{row}");
+    // the pre-launch observations are never altered: the refusal modes act on the armed ones only
+    let row = authority(&drive(&healthy(", pose_before_launch = true"), &[("mode", "withheld_pose")]));
+    assert!(row["pose_pre_total"].as_i64().unwrap() >= 1, "{row}");
+    assert_eq!(
+        (row["pose_altered"].clone(), row["failure_marker"].clone()),
+        (Value::from(1), Value::from("entity_pose.callback"))
+    );
 }

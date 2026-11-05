@@ -32,8 +32,10 @@
  *   CAMPAIGN_OFFER_TYPE (E), CAMPAIGN_OFFER_ALIVE (E)   the entity's type and whether it is alive, and
  *   CAMPAIGN_OFFER_HOST_ID (E)                  its semantic host identity (NULL when the roster has none): the ENTITY_POSE observation of a mobile candidate (mb_hostmodel.h)
  *
- * The ENTITY_POSE observations of a mobile candidate (the position and motion vector the original read, and the attitude when the broad phase passed) are asked BESIDE those reads: they add
- * no read the original did not make, skip nothing, and no decision depends on the answer.
+ * The ENTITY_POSE observations of a mobile candidate of a sector list (the position and motion vector the original read, and the attitude when the broad phase passed) are asked BESIDE those reads: the words
+ * are copied from the facts already read, so they add no physical read, but each observation ADDS THREE read-only metadata reads the original did not make (TYPE, ALIVE and the roster HOST_ID; mb_hostmodel.h states
+ * what each is). They skip nothing, reorder nothing and no decision depends on the answer. Non-mobile candidates, a city and every building listed under it (even one whose flags read as mobile in its placement)
+ * are not observed.
  */
 #ifndef MB_HOSTOFFER_H
 #define MB_HOSTOFFER_H

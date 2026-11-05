@@ -525,11 +525,11 @@ fn entity_pose_answer(lua: &Lua, q: &Question) -> LuaResult<LuaTable> {
         None => (text, ""),
     };
     let words = transport_pose(Some(pattern_text), operation, |n| n == 15)?;
-    let float = |index: usize| f32::from_bits(words[index]);
+    // the words stay the bit patterns the campaign sent: none is loaded as a float here
     let observed = movement::ObservedWords {
-        position: [float(0), float(1), float(2)],
-        motion: [float(3), float(4), float(5)],
-        attitude: (stage == 1).then(|| std::array::from_fn(|i| float(6 + i))),
+        position: [words[0], words[1], words[2]],
+        motion: [words[3], words[4], words[5]],
+        attitude: (stage == 1).then(|| std::array::from_fn(|i| words[6 + i])),
     };
     let table = lua.create_table()?;
     let (result, kind, difference) = if host_id.is_empty() {

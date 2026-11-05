@@ -1151,9 +1151,11 @@ pub const EECH_MODEL_SCAN_NEXT: c_int = 2;
 pub const EECH_MODEL_SCAN_OFFER: c_int = 3;
 pub const EECH_MODEL_SCAN_DONE_NONE: c_int = 4;
 pub const EECH_MODEL_SCAN_DONE_HIT: c_int = 5;
-/// ENTITY_POSE (EEDCS-49): an OBSERVATION of a mobile candidate's pose against the host's record of its identity (`depth` the stage, `kind` the entity's type, `definition` whether it is alive, `key` its
+/// ENTITY_POSE (EEDCS-49): an OBSERVATION of a mobile candidate's pose against the host's record of its identity (`depth` the stage, `kind` the entity's type, `definition` whether it is alive, `host_id` its
 /// host identity, 15 floats of `pose`); the answer's `candidate_state` is the class, `candidate_count` the kind of the host's record and `write_mask` the differences. Nothing decides from it
 pub const EECH_MODEL_ENTITY_POSE: c_int = 18;
+/// the longest host identity (without the terminator) the roster issues: the whole domain crosses, so `eech_model_request.host_id` holds it entire (CAMPAIGN_MODEL_HOST_ID_MAX)
+pub const EECH_MODEL_HOST_ID_MAX: usize = 128;
 pub const EECH_MODEL_POSE_FACTS: usize = 15;
 pub const EECH_MODEL_POSE_RECORDED: c_int = 1;
 pub const EECH_MODEL_POSE_UNRECORDED: c_int = 2;
@@ -1188,6 +1190,8 @@ pub struct eech_model_request {
     /// TARGET_POINT_WORLD and TARGET_POINT_FIXED: how many floats of `pose` are meaningful
     pub pose_count: c_int,
     pub pose: [f32; EECH_MODEL_POSE_MAX],
+    /// ENTITY_POSE: the candidate's semantic host identity (NUL-terminated; empty when the roster has none)
+    pub host_id: [c_char; EECH_MODEL_HOST_ID_MAX + 1],
 }
 
 /// The host's answer (campaign_model_reply); only the fields of the asked operation are meaningful.

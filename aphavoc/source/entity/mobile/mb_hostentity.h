@@ -455,9 +455,10 @@ static int campaign_entity_scan_exchange (const float *facts, float *cursor)
 // ENTITY_POSE (EEDCS-49, D3, fifth slice): an OBSERVATION of a mobile candidate's pose against the host's record of its identity. Nothing decides from the answer; only its shape is checked.
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-// Everything about an observation's answer that can be malformed. `named` is whether the question carried a host identity. The answer is never used for a decision, but a host that answers
-// with a class, a kind or a difference mask outside the contract is a host that cannot be trusted to observe, and stops the engine by marker.
-static void check_pose_reply (const campaign_model_reply *reply, int named)
+// Everything about an observation's answer that can be malformed. `named` is whether the question carried a host identity and `stage` which words it carried. The answer is never used for a decision, but a host
+// that answers with a class, a kind or a difference mask outside the contract is a host that cannot be trusted to observe, and stops the engine by marker. The mask is checked against what the stage could
+// have compared: STAGE_OFFER carries no attitude, so an attitude difference is impossible there, and a held motion vector that differs contradicts "no motion vector held".
+static void check_pose_reply (const campaign_model_reply *reply, int named, int stage)
 {
 	if ((reply->candidate_state < CAMPAIGN_MODEL_POSE_RECORDED) || (reply->candidate_state > CAMPAIGN_MODEL_POSE_NO_ID))
 	{
@@ -483,10 +484,20 @@ static void check_pose_reply (const campaign_model_reply *reply, int named)
 	{
 		debug_fatal ("host model: [model-provider:entity_pose.answer] the host reports a record of no kind");
 	}
+
+	if ((stage == CAMPAIGN_POSE_STAGE_OFFER) && ((reply->write_mask & CAMPAIGN_POSE_DIFFERS_ATTITUDE) != 0))
+	{
+		debug_fatal ("host model: [model-provider:entity_pose.answer] the host reports an attitude difference (mask %d) for the offer stage, which carries no attitude", reply->write_mask);
+	}
+
+	if (((reply->write_mask & CAMPAIGN_POSE_DIFFERS_MOTION) != 0) && ((reply->write_mask & CAMPAIGN_POSE_NO_HELD_MOTION) != 0))
+	{
+		debug_fatal ("host model: [model-provider:entity_pose.answer] the host reports a difference from a held motion vector and that none is held (mask %d)", reply->write_mask);
+	}
 }
 
-// One observation: `words` are CAMPAIGN_MODEL_POSE_FACTS floats (see mb_hostmodel.h), sent as the bytes the entity held. Returns the class the host answered, or 0 when the identity is too long to
-// carry (it is then not asked).
+// One observation: `words` are CAMPAIGN_MODEL_POSE_FACTS floats (see mb_hostmodel.h), sent as the bytes the entity held. Returns the class the host answered. The identity is carried whole: the roster's domain
+// is 1 to CAMPAIGN_MODEL_HOST_ID_MAX bytes, so a longer one cannot exist and is refused by marker, never shortened or skipped.
 static int campaign_entity_pose_exchange (int stage, int entity_type, int alive, const char *host_id, const float *words)
 {
 	campaign_model_request
@@ -500,9 +511,9 @@ static int campaign_entity_pose_exchange (int stage, int entity_type, int alive,
 
 	length = (host_id != NULL) ? strlen (host_id) : 0;
 
-	if (length > CAMPAIGN_MODEL_POSE_HOST_ID_MAX)
+	if (length > CAMPAIGN_MODEL_HOST_ID_MAX)
 	{
-		return (0);
+		debug_fatal ("host model: [model-provider:entity_pose.request] a host identity of %d bytes is outside the roster's domain of 1 to %d", (int) length, CAMPAIGN_MODEL_HOST_ID_MAX);
 	}
 
 	memset (&request, 0, sizeof (request));
@@ -516,12 +527,12 @@ static int campaign_entity_pose_exchange (int stage, int entity_type, int alive,
 
 	if (length > 0)
 	{
-		memcpy (request.key, host_id, length);
+		memcpy (request.host_id, host_id, length);
 	}
 
 	CAMPAIGN_ENTITY_POSE_ASK (&request, &reply);
 
-	check_pose_reply (&reply, (length > 0));
+	check_pose_reply (&reply, (length > 0), stage);
 
 	return (reply.candidate_state);
 }

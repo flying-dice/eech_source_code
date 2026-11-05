@@ -1454,10 +1454,10 @@ unsafe extern "C" fn model_callback(
                     .ok()
                     .filter(|count| *count == sys::EECH_MODEL_POSE_FACTS)
                     .ok_or_else(|| format!("[model-provider:entity_pose.request] the words have {} floats", source.pose_count))?;
-                let Some(length) = source.key.iter().position(|c| *c == 0) else {
+                let Some(length) = source.host_id.iter().position(|c| *c == 0) else {
                     return Err("[model-provider:entity_pose.request] the host identity is not NUL-terminated".to_string());
                 };
-                let bytes: Vec<u8> = source.key[..length].iter().map(|c| *c as u8).collect();
+                let bytes: Vec<u8> = source.host_id[..length].iter().map(|c| *c as u8).collect();
                 let host_id = String::from_utf8(bytes).map_err(|_| "[model-provider:entity_pose.request] the host identity is not text".to_string())?;
                 let words = source.pose[..count].iter().map(|float| float.to_bits()).collect();
                 (
@@ -11101,6 +11101,7 @@ mod tests {
             key: [0; sys::EECH_MODEL_NAME_MAX + 1],
             pose_count: 0,
             pose: [0.0; sys::EECH_MODEL_POSE_MAX],
+            host_id: [0; sys::EECH_MODEL_HOST_ID_MAX + 1],
         }
     }
 
@@ -11116,6 +11117,7 @@ mod tests {
             key: [0; sys::EECH_MODEL_NAME_MAX + 1],
             pose_count: 0,
             pose: [0.0; sys::EECH_MODEL_POSE_MAX],
+            host_id: [0; sys::EECH_MODEL_HOST_ID_MAX + 1],
         }
     }
 
@@ -11501,7 +11503,7 @@ mod tests {
         for (at, slot) in request.pose.iter_mut().take(15).enumerate() {
             *slot = f32::from_bits(0x7fa0_0001 + at as u32);
         }
-        for (slot, byte) in request.key.iter_mut().zip(host_id.bytes()) {
+        for (slot, byte) in request.host_id.iter_mut().zip(host_id.bytes()) {
             *slot = byte as c_char;
         }
         request
@@ -11518,7 +11520,14 @@ mod tests {
             (PoseClass::Unknown, sys::EECH_MODEL_POSE_UNKNOWN),
             (PoseClass::NoId, sys::EECH_MODEL_POSE_NO_ID),
         ] {
-            for (stage, host_id) in [(0, "eech-world:12"), (1, ""), (1, "id with a space")] {
+            let longest = "y".repeat(sys::EECH_MODEL_HOST_ID_MAX);
+            for (stage, host_id) in [
+                (0, "eech-world:12"),
+                (1, ""),
+                (1, "id with a space"),
+                (0, longest.as_str()),
+                (1, "\u{e9}\u{4e16}"),
+            ] {
                 let request = pose_request(stage, 4, 1, host_id);
                 let expected: Vec<u32> = (0..15).map(|at| 0x7fa0_0001 + at).collect();
                 let seen = std::rc::Rc::new(std::cell::RefCell::new(None));
@@ -11565,12 +11574,12 @@ mod tests {
         }
         // an identity that is not NUL-terminated within the field, and one that is not text
         let mut request = pose_request(0, 4, 1, "");
-        request.key = [b'x' as c_char; sys::EECH_MODEL_NAME_MAX + 1];
+        request.host_id = [b'x' as c_char; sys::EECH_MODEL_HOST_ID_MAX + 1];
         let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
         assert_ne!(code, 0);
         assert!(error.contains("[model-provider:entity_pose.request]") && error.contains("NUL"), "{error}");
         let mut request = pose_request(0, 4, 1, "");
-        request.key[0] = 0xffu8 as c_char;
+        request.host_id[0] = 0xffu8 as c_char;
         let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
         assert_ne!(code, 0);
         assert!(error.contains("[model-provider:entity_pose.request]") && error.contains("not text"), "{error}");
@@ -11741,6 +11750,7 @@ mod tests {
             key: request.key,
             pose_count: request.pose_count,
             pose: request.pose,
+            host_id: request.host_id,
         }
     }
 
