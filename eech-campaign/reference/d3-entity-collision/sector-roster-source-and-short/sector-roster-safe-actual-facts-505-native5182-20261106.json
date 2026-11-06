@@ -1,0 +1,106 @@
+{
+  "scope": "Finite real host sector-roster dependency/refusal only. Not wholephysical authority/naturalweapon/Task49/D3/full40/all8.",
+  "compiled_source": "5182b526d08aefdd40ea93803188227fd74abae5",
+  "literal_source": "505cc399caf7fab6a372fce37dca1bc27883ab73",
+  "source_review_sha256": "91a755cf4cda60cb31de117a6844c757b1cfb1e7318d991f346156206c5e4940",
+  "all_four_full_input_manifests_literal_equal": true,
+  "cases": [
+    {
+      "role": "healthy",
+      "compiled_source": "5182b526d08aefdd40ea93803188227fd74abae5",
+      "literal_source": "505cc399caf7fab6a372fce37dca1bc27883ab73",
+      "literal_sha256": "cf684a24935b92b10b5ee750fa19101cefc0556088d7ade367cf33b2daaef2bb",
+      "native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "pre_post_inputs_actual_exit": [
+        0,
+        0
+      ],
+      "full_pre_post_manifest_bytes_literal_equal": true,
+      "full_manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "payloads_verified": 88,
+      "safe_facts": {
+        "completed": true,
+        "scan_after": 70375,
+        "candidate_after": 70470,
+        "entity_after": 279,
+        "scan_offer": 35107,
+        "scan_altered": 0,
+        "altered": 0,
+        "candidate_altered": 0,
+        "view_applied": 25,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "failure_marker": "",
+        "roster_insert": 63,
+        "roster_remove": 2,
+        "roster_reset": 0,
+        "roster_placed": 63,
+        "roster_removed": 2,
+        "roster_cleared": 0,
+        "roster_withdrawn": 0,
+        "roster_withdrawn_next_phase": "",
+        "roster_withdrawn_cause": "",
+        "contact_any_tests_delta": 6,
+        "contact_any_hits_delta": 0,
+        "precision_high_delta": 6,
+        "cohort_size": 1,
+        "case_weapons_pending": 0
+      },
+      "raw_reports_private": true
+    },
+    {
+      "role": "roster-withdrawal",
+      "compiled_source": "5182b526d08aefdd40ea93803188227fd74abae5",
+      "literal_source": "505cc399caf7fab6a372fce37dca1bc27883ab73",
+      "literal_sha256": "cf684a24935b92b10b5ee750fa19101cefc0556088d7ade367cf33b2daaef2bb",
+      "native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "pre_post_inputs_actual_exit": [
+        0,
+        0
+      ],
+      "full_pre_post_manifest_bytes_literal_equal": true,
+      "full_manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "payloads_verified": 88,
+      "safe_facts": {
+        "completed": false,
+        "scan_after": 2,
+        "candidate_after": 0,
+        "entity_after": 0,
+        "scan_offer": 0,
+        "scan_altered": 0,
+        "altered": 0,
+        "candidate_altered": 0,
+        "view_applied": 1,
+        "request_faults": 0,
+        "reply_faults": 1,
+        "failure_marker": "entity_scan.refused",
+        "roster_insert": 2,
+        "roster_remove": 0,
+        "roster_reset": 0,
+        "roster_placed": 2,
+        "roster_removed": 0,
+        "roster_cleared": 0,
+        "roster_withdrawn": 1,
+        "roster_withdrawn_next_phase": "phase_entry",
+        "roster_withdrawn_cause": "roster_key_ended",
+        "contact_any_tests_delta": -1,
+        "contact_any_hits_delta": -1,
+        "precision_high_delta": -1,
+        "cohort_size": 1,
+        "case_weapons_pending": -1
+      },
+      "raw_reports_private": true
+    }
+  ],
+  "healthy_complete_terminal_and_all139_shared_authority_fields_equal_prior3475": true,
+  "actual_independent_review_pending": true,
+  "captured_utc": "2026-11-06T02:29:21.964410+00:00"
+}

@@ -1,5 +1,5 @@
 {
-  "scope": "Literal safe source/selected-gate/profile/complete-short evidence. Not roster actual/full-pack/Task49/D3 acceptance.",
+  "scope": "Literal source/selected-gate/profile/complete-short and finite real host-roster dependency evidence. Not wholephysical/fullpack/Task49/D3 acceptance.",
   "files": [
     {
       "path": "independent-sector-roster-source-7bec-20261106.json",
@@ -70,6 +70,31 @@
       "path": "ledger-roster-source-v157-preservation-20261106.json",
       "bytes": 207,
       "sha256": "43af32bb54dd42698731edb1a58732559a1c068b3922634d8f068b5b7e12525a"
+    },
+    {
+      "path": "independent-sector-roster-real-withhold-actuals-505-native5182-20261106.json",
+      "bytes": 13084,
+      "sha256": "9b7dcbefa647d9163cf7f8e1fd4c1eac4c29e1b73bb798a3a2d40472807d85ab"
+    },
+    {
+      "path": "sector-roster-safe-actual-facts-505-native5182-20261106.json",
+      "bytes": 3588,
+      "sha256": "677a0c5c8636d682fef95e1fdaa56d59db03d64d096a9176b9c1aeaedc64c5d0"
+    },
+    {
+      "path": "sector-roster-healthy-physical-comparison-505-native5182-20261106.json",
+      "bytes": 977,
+      "sha256": "2d697da18d3945ac8899001f9ce937498a1a761c73c0bf3f4042bc1ebd0c5221"
+    },
+    {
+      "path": "sector-roster-final-frozen-binding-5182-20261106.json",
+      "bytes": 989,
+      "sha256": "282a3f99a8e80ce795ec834491ac141db39d94d15bf646cfa8b0b8983d72a12b"
+    },
+    {
+      "path": "cleanup-closed-sector-roster-5182-windows-cache-20261106.json",
+      "bytes": 684,
+      "sha256": "a4ae65125915327d733e8015caecec7d298f6bb2d886ece7b3e171efb0a014ad"
     }
   ]
 }

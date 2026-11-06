@@ -7,10 +7,10 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "Reviewed compiled5182/source d6ab and test-only505/source91a7; five frozen gates0,three sealed Windows profiles0,ordinary short3 COMPLETE literal80fd. ONE505healthy native ACTIVE, then real backingwithdrawal and SAME actualreview. Old3475full40active/partial, wholeD3open.",
+  "phase": "FINITEhostsectorrosterdependencyclosed505/compiled5182/SAMEactual9b7d; ordinaryshort3COMPLETEliteral80fd/profiles0. Old3475full40active/PARTIAL; nextcitybuildinglist/placementrecordsemanticlink production required; wholeTask49D3open.",
   "preparation_batches_without_cutover": 0,
   "preparation_limit": 2,
-  "next_production_change": "Review and prove the host sector roster natively (Windows hosted/Original/ordinary builds, a changed-roster authority control, ordinary short and full 40/all8 byte equality); then the next required production cut: the city building lists and the structure placement-record/semantic-ID link (one canonical record, existing lazy report-ID timing), followed by static pose, shape, live flags and hierarchy. Core lists stay conformance mirrors, never an answer; required remaining fields/services stay explicit; no wholeD3claim.",
+  "next_production_change": "Move city building-list backing and link its structures to host placement records/semantic IDs; preserve city/child order, actual create/restore/relink/retire timing and lazy report IDs. One canonical store, Core list as mirror only. Fixed/static pose/shape/live flags and hierarchy remain REQUIRED; no wholeD3claim.",
   "ready_evidence": [
     "Closed preparation reused, not redone: original characterization (15054 queries / 29894 ordered terrain answers exact through the host library and real Lua; original raw unchanged, 47a4af0d1/b44d2c96f) and the host tree loader/kernel 8c452f197 (review 4258f1b94, FP state/refusal/lifetime controls).",
     "Merge of the verified clean Task52 branch 099aa09c2dfeb77ca708214421e81113369a057e into the old Task49 head f2473817bced177b588878d6e416dcb4400f8bc2 (normal merge, no rebase/force); both sides' features, FFI, tests and history preserved.",
@@ -56,11 +56,11 @@
   "blockers": [
     {
       "id": "sector-roster-real-withhold-control",
-      "status": "open",
+      "status": "closed",
       "blocks_cutover": false,
-      "evidence": "SAME new-source review91a755cf clears exact505literal on compiled5182, final58/fmt0/fullmapsliteral. Root profile5f2f and completeordinaryshort3literal passed. Healthy native active before withdrawal.",
-      "missing_fact": "Completed successful same-literal healthy control, then actual Removed/nextENTRY ended-key refusal with Core unchanged/no fallback, followed by SAME actualreview.",
-      "next_fix": "Finish healthy; only then ONE withdrawn_backing case. Preserve actual exits/manifests/payloads and private raw report."
+      "evidence": "SAME actual9b7dcbef verifies healthy coherence and real provider Removed/nextENTRY ended-key refusal;2tripleexits0,4full1179manifests literal,88sealed each,3952source stable. Healthy139sharedfields+180Bterminal exactprior3475.",
+      "missing_fact": "None for this finite backing-dependence control. Whole physical services/currentfull40/all8 remain separately open.",
+      "next_fix": "Preserve actual evidence; do not replay this closed control."
     },
     {
       "id": "sector-roster-same-review-a21-corrections",
@@ -224,9 +224,9 @@
       "id": "sector-roster-source-review-native",
       "status": "open",
       "blocks_cutover": false,
-      "evidence": "7bec/92d/5182 source reviewedclear d6ab; exact5gates0/3952Gitexact;3Windowsprofiles0/88each/profile5f2f;ordinaryshort3COMPLETE literal80fd. Native backing controls pending; no full40/all8 roster acceptance.",
-      "missing_fact": "Reached real-roster authority/refusal actuals and SAME review, complete current candidate40/all8/currentCI/review/normalmerge; remainingcity/static/etcD3services stayrequired.",
-      "next_fix": "One combined correctness/clean-code/boundary review by the same reviewer; Root native actual on the frozen source; then the city building lists and structure placement-record/semantic-ID link as the next required cut."
+      "evidence": "Source d6ab/91a7 and actual9b7d clear finite sector-roster dependency;5frozenchecks0/3952Gitexact/mapsstable;3Windowsprofiles0/88;short3COMPLETEliteral80fd. Full current rostercandidate40/all8 pending.",
+      "missing_fact": "Whole-path city/static backing, current shipping40/all8,CI/finalreview/normalmerge; finite healthy+withdrawal is not wholephysical acceptance.",
+      "next_fix": "Required nextcitybuildinglist/structureplacementrecordsemanticlink; preserve source/contracts/order/IDs and establish new backing authority, no replayclosedsectorproof."
     }
   ],
   "next_action": "fix-blocker",
