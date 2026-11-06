@@ -1,0 +1,7 @@
+wsl: Failed to translate 'R:\d3-evidence'
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Finished `release` profile [optimized] target(s) in 1m 09s
+     Running tests/entity_dialogue.rs (/target/release/deps/entity_dialogue-6b53ffee1c477994)
+error: test failed, to rerun pass `-p eech-engine-sys --test entity_dialogue`
+error: 1 target failed:
+    `-p eech-engine-sys --test entity_dialogue`

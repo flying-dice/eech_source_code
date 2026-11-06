@@ -1,0 +1,13 @@
+wsl: Failed to translate 'R:\d3-evidence'
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `release` profile [optimized] target(s) in 6.04s
+     Running tests/entity_authority.rs (/target/release/deps/entity_authority-4723cb3c776e48ed)
+entity-authority: mode=withdrawn_box_state profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=withdrawn_box_state profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=withdrawn_box_state profile=hosted completed entity=0 other_ops=0 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=control profile=hosted completed entity=1 other_ops=2 altered=0
+entity-authority: mode=withdrawn_box_state profile=hosted completed entity=0 other_ops=0 altered=0
+error: test failed, to rerun pass `-p eech-world --test entity_authority`
+error: 1 target failed:
+    `-p eech-world --test entity_authority`

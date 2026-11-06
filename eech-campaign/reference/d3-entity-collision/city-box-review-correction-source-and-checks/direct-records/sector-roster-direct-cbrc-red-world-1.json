@@ -1,0 +1,20 @@
+{
+  "controller_pid": 8420,
+  "state": "terminal",
+  "started_utc": "2026-11-06T12:17:22.412603+00:00",
+  "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast -- a_building_of_the_other_city a_relinked_city_is_still the_current_pair_of_a_relinked a_boot_stop_at_the_expected_generic a_city_expansion_reply_that_is_not_exactly a_city_expansion_reply_of_six_exact",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/check-pose-motion-diag-linux-20261105.sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/collision-characterization-20261029",
+    "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast -- a_building_of_the_other_city a_relinked_city_is_still the_current_pair_of_a_relinked a_boot_stop_at_the_expected_generic a_city_expansion_reply_that_is_not_exactly a_city_expansion_reply_of_six_exact"
+  ],
+  "scope": "One scoped direct Cargo command. Separate stdout/stderr files: each has one Windows writer. WSL/helper return is the actual Cargo/docker stage exit, no trailing echo/pipeline used. Working-tree check only unless separately frozen/source-bound.",
+  "pid": 20936,
+  "actual_exit": 101,
+  "completed_utc": "2026-11-06T12:17:29.348883+00:00"
+}
