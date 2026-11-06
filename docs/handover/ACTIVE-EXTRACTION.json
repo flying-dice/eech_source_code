@@ -7,7 +7,7 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "UNREVIEWED CODE_FROZEN host-owned sector roster (membership and insertion order) behind ENTITY_SCAN, source 7bec89e45a9e45f14c76e0cf3f5d1bb001809f94 (focused Linux checks only; no Windows, native, ordinary or full-pack run). Prior finite configured-input query authority independently CLOSED on 6fb/3475; ordinary 3475 full40/all8 ACTIVE and untouched. Independent source review and Root native build/actual control next; wholeD3/naturalweapon/fullTask49 open.",
+  "phase": "UNREVIEWED CODE_FROZEN corrections of the three same-review findings (driver grammar, integer-only roster arithmetic, standing-key validation) of the host sector roster, source 92d0739a18a34905223f76d0cbbc081375e3c845 over 7bec89e45 (eech-world Lua and Rust only; focused Linux checks only; no Windows, native, ordinary or full-pack run). The SAME independent review a21e4443 was CHANGES_REQUIRED at 7bec; the corrected source is UNREVIEWED and no native launch is cleared. Prior finite configured-input query authority independently CLOSED on 6fb/3475; ordinary 3475 full40/all8 ACTIVE and untouched. Same-reviewer join of the changed material, then Root native build/actual control next; wholeD3/naturalweapon/fullTask49 open.",
   "preparation_batches_without_cutover": 0,
   "preparation_limit": 2,
   "next_production_change": "Review and prove the host sector roster natively (Windows hosted/Original/ordinary builds, a changed-roster authority control, ordinary short and full 40/all8 byte equality); then the next required production cut: the city building lists and the structure placement-record/semantic-ID link (one canonical record, existing lazy report-ID timing), followed by static pose, shape, live flags and hierarchy. Core lists stay conformance mirrors, never an answer; required remaining fields/services stay explicit; no wholeD3claim.",
@@ -53,6 +53,14 @@
     "Host sector roster, UNREVIEWED CODE_FROZEN 7bec89e45a9e45f14c76e0cf3f5d1bb001809f94 (6 November 2026, direct parent 9ba396da9dad49bd68cef1249c45499389d6b49b): the sector-list funnel (en_list.c) reports every insertion (head) and removal to the host as phases 4 to 6 of ENTITY_SCAN, the host issues keys, decides the sector from ITS state (a hosted mobile's Movers record; any other entity's stated position, no coordinate kept) and serves FIRST/NEXT by key; the campaign's lists are a conformance mirror with named refusals (entity_scan.roster_mirror/roster_key/key, roster.*), never a fallback. Writer coverage shown by source guard entity_roster_guard.rs; the hosted-mobile record is made current before a relink's insertion (vh_vec3d.c, ac_vec3d.c; one placement). Focused Linux evidence in R:/d3-evidence/sector-roster-20261105/: check/fmt/dialogue 439/guards/roster host 7/authority 53/candidate 13/collision 9/pose 5/host_callbacks 82/libs 65-117-356 all exit 0; RED control (campaign list as the answer) fails the four roster-authority dialogue cases, exit 101. NOT run: any real-engine execution of the hook path, Windows/native/ordinary/full-40, review. Structure semantic IDs are NOT linked to the placement key; city building lists remain the campaign's."
   ],
   "blockers": [
+    {
+      "id": "sector-roster-same-review-a21-corrections",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "SAME independent source review a21e4443 (sha256 a21e4443f3fe835b3e30d987c3cca9610a9a0a9e33a0204cc3f112fc17d1acf5) was CHANGES_REQUIRED at 7bec89e45 with exactly three findings (ENV-SECTOR-ROSTER-DRIVER-CONTRACT-1, ENV-SECTOR-ROSTER-FP-BOUNDARY-1, ENV-SECTOR-ROSTER-STANDING-KEY-1) and native_launch_clearance false. All three are corrected together in source 92d0739a18a34905223f76d0cbbc081375e3c845 (UNREVIEWED): genuine reds against 7bec, then fmt check, entity_authority 56, entity_roster_host 9, the roster lib filter 7 and model_target_point 33 passing, each its own scoped child with exit 0. Report R:/d3-evidence/sector-roster-corrections-CODE-FROZEN-20261106.json.",
+      "missing_fact": "The same reviewer's join of the changed material (six eech-world files) and final binding; then Root's exact build, native changed-roster control and ordinary short and full regression.",
+      "next_fix": "Review the corrected source once; do not rerun the unchanged 7bec C/FFI passes. No native launch before that review."
+    },
     {
       "id": "tree-source-review",
       "status": "closed",
