@@ -226,6 +226,15 @@ local function reference (op, scene, depth, kind, definition, key)
 		if bad == "offer_for_resolved" and phase == "0x40400000" then answer.result = "offer" end
 		if bad == "first_one_pattern" and answer.result == "first" then answer.p = ZERO end
 		if bad_roster == "p_on_event" and (phase == "0x40800000" or phase == "0x40a00000") then answer.p = ZERO .. "," .. ZERO end
+		-- a retaining removal that names ANOTHER valid record than the removed placement's own (the real provider never does)
+		if bad_roster == "wrong_record_on_remove" and phase == "0x40a00000" and (answer.name or "") ~= "" then answer.name = "99" end
+		-- the host's private release of a retained record, acknowledged badly AFTER the real answer: a cursor, a name, another state, or one more field
+		if phase == "0x41800000" and scenario.bad_release_ack then
+			if scenario.bad_release_ack == "cursor" then answer.p = ZERO .. "," .. ZERO
+			elseif scenario.bad_release_ack == "name" then answer.name = "9"
+			elseif scenario.bad_release_ack == "state" then answer.result = "placed"
+			elseif scenario.bad_release_ack == "tail" then answer.extra = "x" end
+		end
 		-- a reply fault of the city events, forced AFTER the real answer (the real provider never gives one)
 		local bad_city = scenario.bad_real_city
 		if CITY_PHASES [phase] and bad_city then
@@ -775,6 +784,20 @@ package.preload.eech_dc = function ()
 					sentinel_city_report (roster_key)
 					return
 				end
+				-- two live cities, each with a building and a box the host built: the older one is the first the scan serves
+				if layout == "two_cities" then
+					local first_child = city_event ("child_insert", roster_key).name
+					city_children [#city_children + 1] = first_child
+					building_report (first_child)
+					city_expand_request (roster_key, first_child)
+					local second = roster_event ("insert", true).name
+					sentinel_city_report (second)
+					local second_child = city_event ("child_insert", second).name
+					building_report (second_child)
+					city_expand_request (second, second_child)
+					scenario.second_city, scenario.second_child = second, second_child
+					return
+				end
 				-- an EMPTY city's relink is a removal and a new insertion with no list to continue: the first building is listed under the new placement
 				if layout == "empty_relink" then
 					roster_event ("remove")
@@ -811,47 +834,116 @@ package.preload.eech_dc = function ()
 				if type (answer) == "table" and answer.result == "refused" then stop ("entity_scan.refused", tostring (answer.reason)) end
 				if type (answer) ~= "table" or answer.result ~= "placed" then stop ("entity_scan.state", "a city state report allows only placed") end
 			end
+			-- the scripted UNCHANGED query: the scan serves the first (oldest) entry of the scripted sector and the candidate dialogue about the placement it served follows (the production query's consumption of ONE record)
+			local function consume_scan (offer)
+				local words = {}
+				for index = 1, 16 do words [index] = ZERO end
+				words [1], words [2], words [3] = OLD_W [1], OLD_W [2], OLD_W [3]
+				words [4], words [5], words [6] = NEW_W [1], NEW_W [2], NEW_W [3]
+				words [7], words [10], words [11] = "0x42c80000", "0x43c78000", "0x43c78000"
+				local PH = { begin = ZERO, entry = "0x3f800000", resolved = "0x40400000" }
+				local function ask (phase, standing)
+					words [12] = PH [phase]
+					local key = table.concat (words, ",")
+					if standing then key = key .. " " .. standing end
+					local ok, answer = ask_model ("entity_scan", 0, nil, nil, nil, key, true)
+					if not ok then stop ("entity_scan.callback", tostring (answer)) end
+					if type (answer) == "table" and answer.result == "refused" then stop ("entity_scan.refused", tostring (answer.reason)) end
+					return answer
+				end
+				local first = ask ("begin")
+				local cursor = {}
+				for token in string.gmatch (first.p or "", "[^,]+") do cursor [#cursor + 1] = token end
+				words [13], words [14] = cursor [1], cursor [2]
+				ask ("entry", first.name)
+				offer ()
+				ask ("resolved", first.name)
+			end
 			if scenario.lifecycle_api then
-				-- the report the C witness writes (eech_wpn_fixture.c) for one selected city, in its five lines; the scripted one makes the same lifecycle events (drain, two empty relinks, relist) through the same real provider
+				local LIFE_MIN, LIFE_MAX = "0xc0800000,0xc1200000,0xc0000000", "0x40000000,0x40000000,0x40c00000"
+				local LIFE_HIT = "ENTITY_TYPE_CITY_BUILDING point=0x00000001,0x00000002,0x00000003 normal=0x00000000,0x3f800000,0x00000000"
+				-- the report the C witness writes (eech_wpn_fixture.c), in its five lines, with the single faults the driver's strict parser must refuse
+				local function life_text (variant, count, key)
+					local lines = {
+						"wpn-city-lifecycle-selected buildings=" .. count .. " placement_key=" .. key .. " box_min=" .. LIFE_MIN .. " box_max=" .. LIFE_MAX .. " host_keyed=1",
+						"wpn-city-lifecycle-query phase=before hit=1 kind=" .. LIFE_HIT,
+						"wpn-city-lifecycle-relink empty_keyed=1 empty_key_changed=1 restored_keyed=1 restored_key_changed=1",
+						"wpn-city-lifecycle-query phase=after hit=1 kind=" .. LIFE_HIT,
+						"wpn-city-lifecycle-result query_equal=1 list_order_restored=1 mirror_box_equal=1 box_min_after=" .. LIFE_MIN .. " box_max_after=" .. LIFE_MAX .. " sector_order_changed=1 terminal=1",
+					}
+					local edits = {
+						extra_line = function () lines [#lines + 1] = "wpn-city-lifecycle-extra x=1" end,
+						blank_line = function () table.insert (lines, 3, "") end,
+						garbage_prefix = function () lines [1] = "x" .. lines [1] end,
+						trailing_space = function () lines [3] = lines [3] .. " " end,
+						duplicate_key = function () lines [5] = string.gsub (lines [5], "terminal=1", "terminal=1 terminal=1") end,
+						unknown_key = function () lines [1] = string.gsub (lines [1], "host_keyed=1", "host_key=1") end,
+						bad_bool = function () lines [3] = string.gsub (lines [3], "empty_keyed=1", "empty_keyed=2") end,
+						bad_triple = function () lines [1] = string.gsub (lines [1], "box_min=0xc0800000,", "box_min=") end,
+						bad_count = function () lines [1] = string.gsub (lines [1], "buildings=%d+", "buildings=999") end,
+						miss_with_fields = function () lines [2] = string.gsub (lines [2], "hit=1", "hit=0") end,
+						contradict_equal = function () lines [4] = "wpn-city-lifecycle-query phase=after hit=0 kind=none point=- normal=-" end,
+						contradict_mirror = function () lines [5] = string.gsub (lines [5], "box_min_after=0xc0800000", "box_min_after=0xc0800001") end,
+						wrong_city_key = function () lines [1] = string.gsub (lines [1], "placement_key=%d+", "placement_key=99") end,
+					}
+					if edits [variant] then edits [variant] () end
+					return table.concat (lines, "\n") .. "\n"
+				end
 				function engine:wpn_city_lifecycle ()
-					if scenario.lifecycle_report == "unreached" then return "wpn-city-lifecycle-unreached reason=no_bound_city_with_a_built_box_and_buildings\n" end
-					if scenario.lifecycle_report == "malformed" then return "wpn-city-lifecycle-selected buildings=1\n" end
+					local variant = scenario.lifecycle_report
+					local unreached = "wpn-city-lifecycle-unreached reason=no_bound_city_with_a_built_box_and_buildings\n"
+					if variant == "unreached" then return unreached end
 					-- the city entity released while its building is still listed (the removal of its placement, then the release by the list's name): the building drains by its own removal (a supported path), or a new placement is linked to the released record (never valid)
-					if scenario.lifecycle_report == "release_drain" or scenario.lifecycle_report == "release_continue" then
+					if variant == "release_drain" or variant == "release_continue" then
 						local list = city_list or roster_key
 						local anchor = roster_key
 						roster_event ("remove")
 						city_event ("release", anchor)
-						if scenario.lifecycle_report == "release_continue" then
+						if variant == "release_continue" then
 							roster_event ("insert")
 							city_event ("link", roster_key .. " " .. anchor)
 						end
 						for index = 1, #city_children do city_event ("child_remove", list .. " " .. city_children [index]) end
-						return "wpn-city-lifecycle-unreached reason=no_bound_city_with_a_built_box_and_buildings\n"
+						return unreached
 					end
-					local list = city_list or roster_key
-					local anchor = roster_key
-					for index = 1, #city_children do city_event ("child_remove", list .. " " .. city_children [index]) end
+					local first_key = roster_key
+					local second = scenario.lifecycle_city == "second"
+					local key0 = second and scenario.second_city or first_key
+					local list = second and key0 or (city_list or first_key)
+					local children = second and { scenario.second_child } or city_children
+					local anchor = list
+					-- the unchanged query consumes the placement the scan serves: the oldest entry, which is the first city's whichever city the lifecycle drives
+					local function consume ()
+						if scenario.lifecycle_consume == "none" then return end
+						local saved_key, saved_list = roster_key, city_list
+						roster_key = second and first_key or roster_key
+						city_list = second and nil or anchor
+						consume_scan (function () candidate_dialogue_once () end)
+						roster_key, city_list = saved_key, saved_list
+					end
+					if second then roster_key = key0 end
+					consume ()
+					if variant == "fault_then_unreached" then
+						-- a reply fault of the scenario, then an honest unreached line: the fault comes first
+						roster_event ("remove")
+						roster_event ("insert")
+						return unreached
+					end
+					for index = 1, #children do city_event ("child_remove", list .. " " .. children [index]) end
 					for _ = 1, 2 do
 						roster_event ("remove")
 						roster_event ("insert")
 						city_event ("link", roster_key .. " " .. anchor)
 						mirror_city_report (roster_key)
 					end
-					for index = #city_children, 1, -1 do
+					for index = #children, 1, -1 do
 						local child = city_event ("child_insert", anchor).name
-						city_children [index] = child
+						children [index] = child
 						building_report (child)
 						city_expand_request (roster_key, child)
 					end
-					local box = "0xc0800000,0xc1200000,0xc0000000"
-					return table.concat ({
-						"wpn-city-lifecycle-selected buildings=" .. #city_children .. " box_min=" .. box .. " box_max=0x40000000,0x40000000,0x40c00000 host_keyed=1",
-						"wpn-city-lifecycle-query phase=before hit=1 kind=ENTITY_TYPE_CITY_BUILDING point=0x00000001,0x00000002,0x00000003 normal=0x00000000,0x3f800000,0x00000000",
-						"wpn-city-lifecycle-relink empty_keyed=1 empty_key_changed=1 restored_keyed=1 restored_key_changed=1",
-						"wpn-city-lifecycle-query phase=after hit=1 kind=ENTITY_TYPE_CITY_BUILDING point=0x00000001,0x00000002,0x00000003 normal=0x00000000,0x3f800000,0x00000000",
-						"wpn-city-lifecycle-result query_equal=1 list_order_restored=1 mirror_box_equal=1 sector_order_changed=1 terminal=1",
-					}, "\n") .. "\n"
+					consume ()
+					return life_text (variant, #children, key0)
 				end
 			end
 			local function scan_walk (offer)
@@ -5801,10 +5893,58 @@ fn a_city_released_with_a_building_listed_drains_without_a_fault_and_is_never_co
 
 // The CITY box lifecycle witness modes (hosted profile). The scripted engine makes the C witness's lifecycle events through the REAL provider (whose roster the scripted expansion leaves a built box in), so the driver's
 // window counters and its two host-side interventions meet the provider's own named refusals. The consuming query itself and the placement map are the native witness's and the C dialogue check's; here the verdicts are tested.
-const LIFECYCLE: &str = ", real_scan = true, city_box = 1, lifecycle_api = true";
+const LIFECYCLE: &str = ", real_scan = true, city_box = 1, lifecycle_api = true, fixed_candidate = true, city = 1, city_state = true, candidate_sequence = { 'need_fixed', 'buildings', 'test' }";
+// two live cities with built boxes: the lifecycle drives the SECOND, but the unchanged query consumes the first (the oldest entry the scan serves)
+const LIFECYCLE_TWO: &str = ", real_scan = true, city_box = 1, city_box_layout = 'two_cities', lifecycle_city = 'second', lifecycle_api = true, fixed_candidate = true, city = 1, city_state = true, candidate_sequence = { 'need_fixed', 'buildings', 'test' }";
+
+fn lifecycle_row(driven: &Driven) -> Value {
+    row_of(driven, "city_lifecycle_authority")
+}
 
 #[test]
-fn an_unreached_city_lifecycle_report_is_unreached_and_a_malformed_one_is_a_failure_never_a_pass() {
+fn a_coherent_selected_city_lifecycle_is_credited_only_with_its_own_consumption_before_and_after() {
+    let driven = drive(&healthy(LIFECYCLE), &[("mode", "city_box_lifecycle")]);
+    assert!(driven.result.is_ok(), "{:?} / {}", driven.result, driven.rows);
+    let row = lifecycle_row(&driven);
+    assert_eq!(row["row_phase"].as_str(), Some("after_boot_warmup_standalone_fixture"), "{row}");
+    assert_eq!(
+        (row["request_faults"].as_i64().unwrap(), row["reply_faults"].as_i64().unwrap()),
+        (0, 0),
+        "{row}"
+    );
+    assert_eq!(row["completed"].as_bool(), Some(true), "{row}");
+    assert!(
+        row["consumed_before_selected"].as_i64().unwrap() >= 1 && row["consumed_after_selected"].as_i64().unwrap() >= 1,
+        "{row}"
+    );
+    assert_eq!(
+        (row["retained_answers"].as_i64().unwrap(), row["continuation_links"].as_i64().unwrap()),
+        (2, 2),
+        "{row}"
+    );
+    assert_eq!(
+        (
+            row["expansions_selected"].as_i64().unwrap(),
+            row["expansions_selected_answered"].as_i64().unwrap(),
+            row["buildings"].as_i64().unwrap()
+        ),
+        (1, 1, 1),
+        "{row}"
+    );
+    assert_eq!(
+        (
+            row["report_bound"].as_i64().unwrap(),
+            row["query_equal"].as_i64().unwrap(),
+            row["mirror_box_equal"].as_i64().unwrap()
+        ),
+        (1, 1, 1),
+        "{row}"
+    );
+    assert!(!row["selected_record"].as_str().unwrap().is_empty(), "{row}");
+}
+
+#[test]
+fn a_clean_unreached_report_is_unreached_and_every_malformed_or_contradictory_report_is_a_failure() {
     let driven = drive(
         &healthy(&format!("{LIFECYCLE}, lifecycle_report = 'unreached'")),
         &[("mode", "city_box_lifecycle")],
@@ -5814,53 +5954,118 @@ fn an_unreached_city_lifecycle_report_is_unreached_and_a_malformed_one_is_a_fail
         error.contains("UNREACHED") && error.contains("no_bound_city_with_a_built_box_and_buildings"),
         "{error}"
     );
+    for variant in [
+        "extra_line",
+        "blank_line",
+        "garbage_prefix",
+        "trailing_space",
+        "duplicate_key",
+        "unknown_key",
+        "bad_bool",
+        "bad_triple",
+        "bad_count",
+        "miss_with_fields",
+        "contradict_equal",
+        "contradict_mirror",
+    ] {
+        let driven = drive(
+            &healthy(&format!("{LIFECYCLE}, lifecycle_report = '{variant}'")),
+            &[("mode", "city_box_lifecycle")],
+        );
+        let error = error_of(driven);
+        assert!(error.contains("report is malformed"), "{variant}: {error}");
+    }
+    // a well-formed report of ANOTHER city than the one whose buildings the campaign unlisted is bound to the wrong record
     let driven = drive(
-        &healthy(&format!("{LIFECYCLE}, lifecycle_report = 'malformed'")),
+        &healthy(&format!("{LIFECYCLE}, lifecycle_report = 'wrong_city_key'")),
         &[("mode", "city_box_lifecycle")],
     );
     let error = error_of(driven);
-    assert!(error.contains("report is malformed"), "{error}");
+    assert!(error.contains("not the record whose buildings"), "{error}");
 }
 
 #[test]
-fn the_control_is_not_credited_when_the_unchanged_query_never_read_the_cities_box() {
-    // the scripted engine asks no candidate question, so nothing was consumed: every other part of the lifecycle held, and it is still UNREACHED, never a pass
-    let driven = drive(&healthy(LIFECYCLE), &[("mode", "city_box_lifecycle")]);
-    let row = row_of(&driven, "city_lifecycle_authority");
-    assert_eq!(
-        (row["retained_answers"].as_i64().unwrap(), row["continuation_links"].as_i64().unwrap()),
-        (2, 2),
-        "{row}"
-    );
-    assert_eq!(
-        (row["request_faults"].as_i64().unwrap(), row["reply_faults"].as_i64().unwrap()),
-        (0, 0),
-        "{row}"
-    );
-    let error = error_of(driven);
-    assert!(error.contains("UNREACHED") && error.contains("read no position-and-box stage"), "{error}");
+fn a_fault_or_a_fatal_is_a_failure_before_any_unreached_classification() {
+    for mode in ["city_box_lifecycle", "city_box_lifecycle_missing", "city_box_lifecycle_changed"] {
+        let driven = drive(
+            &healthy(&format!(
+                "{LIFECYCLE}, lifecycle_report = 'fault_then_unreached', bad_real_roster = 'p_on_event'"
+            )),
+            &[("mode", mode)],
+        );
+        let row = lifecycle_row(&driven);
+        assert!(row["reply_faults"].as_i64().unwrap() >= 1, "{mode}: {row}");
+        let error = error_of(driven);
+        assert!(!error.contains("UNREACHED") && error.contains("not the contract's"), "{mode}: {error}");
+    }
 }
 
 #[test]
-fn the_host_releasing_the_retained_record_is_refused_by_name_at_the_campaigns_continuation() {
+fn a_competing_live_city_or_an_aggregate_count_never_credits_or_triggers_the_selected_records_witness() {
+    for mode in ["city_box_lifecycle", "city_box_lifecycle_missing", "city_box_lifecycle_changed"] {
+        let driven = drive(&healthy(LIFECYCLE_TWO), &[("mode", mode)]);
+        let row = lifecycle_row(&driven);
+        // the unchanged query read ANOTHER city's position-and-box stage: it is counted as telemetry only, the selected record was not consumed
+        assert!(row["city_stage_lookups_in_window"].as_i64().unwrap() >= 1, "{mode}: {row}");
+        assert_eq!(row["consumed_before_selected"].as_i64(), Some(0), "{mode}: {row}");
+        assert_eq!(
+            (row["intervened"].as_i64().unwrap(), row["altered_request"].as_i64().unwrap()),
+            (0, 0),
+            "{mode}: {row}"
+        );
+        assert_eq!(
+            (row["request_faults"].as_i64().unwrap(), row["reply_faults"].as_i64().unwrap()),
+            (0, 0),
+            "{mode}: {row}"
+        );
+        let error = error_of(driven);
+        assert!(
+            error.contains("UNREACHED") && error.contains("did not consume the selected record"),
+            "{mode}: {error}"
+        );
+    }
+    // no consumption at all: the same, for every mode
+    for mode in ["city_box_lifecycle", "city_box_lifecycle_missing", "city_box_lifecycle_changed"] {
+        let driven = drive(&healthy(&format!("{LIFECYCLE}, lifecycle_consume = 'none'")), &[("mode", mode)]);
+        let row = lifecycle_row(&driven);
+        assert_eq!(
+            (row["consumed_before_selected"].as_i64(), row["intervened"].as_i64()),
+            (Some(0), Some(0)),
+            "{mode}: {row}"
+        );
+        let error = error_of(driven);
+        assert!(
+            error.contains("UNREACHED") && error.contains("did not consume the selected record"),
+            "{mode}: {error}"
+        );
+    }
+}
+
+#[test]
+fn the_host_releasing_the_selected_retained_record_is_refused_by_name_at_the_campaigns_continuation() {
     let driven = drive(&healthy(LIFECYCLE), &[("mode", "city_box_lifecycle_missing")]);
     assert!(driven.result.is_ok(), "{:?} / {}", driven.result, driven.rows);
-    let row = row_of(&driven, "city_lifecycle_authority");
+    let row = lifecycle_row(&driven);
     assert_eq!(
         (
             row["intervention"].as_str().unwrap(),
             row["intervened"].as_i64().unwrap(),
             row["altered_request"].as_i64().unwrap()
         ),
-        ("missing", 1, 0),
+        ("host_retention_release", 1, 0),
         "{row}"
     );
+    assert!(row["consumed_before_selected"].as_i64().unwrap() >= 1, "{row}");
     assert_eq!(
         (row["request_faults"].as_i64().unwrap(), row["reply_faults"].as_i64().unwrap()),
         (0, 1),
         "{row}"
     );
-    assert_eq!(row["completed"].as_bool(), Some(false), "{row}");
+    assert_eq!(
+        (row["completed"].as_bool(), row["consumed_after_selected"].as_i64()),
+        (Some(false), Some(0)),
+        "{row}"
+    );
     assert!(
         row["failure_line"].as_str().unwrap().contains("[roster.link]") && row["failure_line"].as_str().unwrap().contains("has ended"),
         "{row}"
@@ -5868,19 +6073,20 @@ fn the_host_releasing_the_retained_record_is_refused_by_name_at_the_campaigns_co
 }
 
 #[test]
-fn a_changed_box_in_the_continuing_statement_is_refused_by_the_host_that_holds_the_built_box() {
+fn a_changed_continuing_statement_is_a_mirror_conformance_negative_refused_by_the_host_that_holds_the_built_box() {
     let driven = drive(&healthy(LIFECYCLE), &[("mode", "city_box_lifecycle_changed")]);
     assert!(driven.result.is_ok(), "{:?} / {}", driven.result, driven.rows);
-    let row = row_of(&driven, "city_lifecycle_authority");
+    let row = lifecycle_row(&driven);
     assert_eq!(
         (
             row["intervention"].as_str().unwrap(),
             row["intervened"].as_i64().unwrap(),
             row["altered_request"].as_i64().unwrap()
         ),
-        ("changed", 1, 1),
+        ("mirror_conformance_negative", 1, 1),
         "{row}"
     );
+    assert!(row["consumed_before_selected"].as_i64().unwrap() >= 1, "{row}");
     assert_eq!(
         (row["request_faults"].as_i64().unwrap(), row["reply_faults"].as_i64().unwrap()),
         (0, 1),
@@ -5890,6 +6096,38 @@ fn a_changed_box_in_the_continuing_statement_is_refused_by_the_host_that_holds_t
         row["failure_line"].as_str().unwrap().contains("[roster.city]") && row["failure_line"].as_str().unwrap().contains("not the one the host holds"),
         "{row}"
     );
+}
+
+#[test]
+fn a_bad_retaining_positive_or_release_acknowledgement_causes_no_intervention_and_no_credit() {
+    // positive first: the coherent run above intervenes once. Now each single fault of the current positive removal: nothing is released, and the run is not a pass
+    for (fault, expected) in [("wrong_record_on_remove", "never retained"), ("p_on_event", "not the contract's")] {
+        let driven = drive(
+            &healthy(&format!("{LIFECYCLE}, bad_real_roster = '{fault}'")),
+            &[("mode", "city_box_lifecycle_missing")],
+        );
+        let row = lifecycle_row(&driven);
+        assert_eq!(
+            (row["intervened"].as_i64().unwrap(), row["altered_request"].as_i64().unwrap()),
+            (0, 0),
+            "{fault}: {row}"
+        );
+        assert!(driven.result.is_err(), "{fault}: a damaged positive is never a pass");
+        let error = error_of(driven);
+        assert!(error.contains(expected) && !error.contains("host-retention"), "{fault}: {error}");
+    }
+    // each single fault of the private release acknowledgement: the intervention is a failure and nothing is credited
+    for fault in ["cursor", "name", "state", "tail"] {
+        let driven = drive(
+            &healthy(&format!("{LIFECYCLE}, bad_release_ack = '{fault}'")),
+            &[("mode", "city_box_lifecycle_missing")],
+        );
+        let row = lifecycle_row(&driven);
+        assert_eq!(row["intervened"].as_i64(), Some(-1), "{fault}: {row}");
+        assert!(row["reply_faults"].as_i64().unwrap() >= 1, "{fault}: {row}");
+        let error = error_of(driven);
+        assert!(error.contains("did not satisfy its full contract"), "{fault}: {error}");
+    }
 }
 
 // After the launch the driver's own tracker holds the released city's list until its last building is removed: a building drains by its own removal with no fault and no new insertion, and a continuation of the released

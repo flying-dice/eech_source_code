@@ -2309,8 +2309,25 @@ static void cl_query (const vec3d *from, const vec3d *to, struct cl_answer *answ
 	answer->who = get_line_of_sight_collision_entity (NULL, NULL, &a, &b, &point, &normal);
 	answer->hit = (answer->who != NULL);
 	answer->kind = answer->who ? get_entity_type_name ((entity_types) answer->who->type) : "none";
-	mq_words (&point, answer->point);
-	mq_words (&normal, answer->normal);
+	/* the contract: the intercept point and the face normal are assigned on a hit only, so a miss reports none (the words stay zero and print as "-") */
+	memset (answer->point, 0, sizeof (answer->point));
+	memset (answer->normal, 0, sizeof (answer->normal));
+	if (answer->hit)
+	{
+		mq_words (&point, answer->point);
+		mq_words (&normal, answer->normal);
+	}
+}
+
+/* three raw words as the report prints them: "0xXXXXXXXX,0xXXXXXXXX,0xXXXXXXXX", or "-" when there are none (a miss) */
+static void cl_triple (char *out, size_t size, int present, const uint32_t *words)
+{
+	if (!present)
+	{
+		snprintf (out, size, "-");
+		return;
+	}
+	snprintf (out, size, "0x%08x,0x%08x,0x%08x", (unsigned int) words[0], (unsigned int) words[1], (unsigned int) words[2]);
 }
 
 static int cl_same (const struct cl_answer *x, const struct cl_answer *y)
@@ -2432,6 +2449,7 @@ int eech_wpn_city_lifecycle_run (char *text, int capacity)
 	vec3d position, moved, box_min, box_max, from, to;
 	uint32_t min_words[3], max_words[3], min_after_words[3], max_after_words[3];
 	char key_start[32], key_empty[32], key_restored[32];
+	char min_text[40], max_text[40], min_after_text[40], max_after_text[40], before_point[40], before_normal[40], after_point[40], after_normal[40];
 	int count = 0, used = 0, i, keyed_empty, keyed_restored, order_restored = 1, box_equal;
 	entity *walk;
 
@@ -2515,15 +2533,22 @@ int eech_wpn_city_lifecycle_run (char *text, int capacity)
 	mq_words (&box_max, max_after_words);
 	box_equal = (memcmp (min_words, min_after_words, sizeof (min_words)) == 0) && (memcmp (max_words, max_after_words, sizeof (max_words)) == 0);
 
-	if (cl_emit (text, capacity, &used, "wpn-city-lifecycle-selected buildings=%d box_min=0x%08x,0x%08x,0x%08x box_max=0x%08x,0x%08x,0x%08x host_keyed=%d\n", count,
-			(unsigned int) min_words[0], (unsigned int) min_words[1], (unsigned int) min_words[2], (unsigned int) max_words[0], (unsigned int) max_words[1], (unsigned int) max_words[2], key_start[0] != 0) ||
-		cl_emit (text, capacity, &used, "wpn-city-lifecycle-query phase=before hit=%d kind=%s point=0x%08x,0x%08x,0x%08x normal=0x%08x,0x%08x,0x%08x\n", before.hit, before.kind, (unsigned int) before.point[0],
-			(unsigned int) before.point[1], (unsigned int) before.point[2], (unsigned int) before.normal[0], (unsigned int) before.normal[1], (unsigned int) before.normal[2]) ||
+	cl_triple (min_text, sizeof (min_text), 1, min_words);
+	cl_triple (max_text, sizeof (max_text), 1, max_words);
+	cl_triple (min_after_text, sizeof (min_after_text), 1, min_after_words);
+	cl_triple (max_after_text, sizeof (max_after_text), 1, max_after_words);
+	cl_triple (before_point, sizeof (before_point), before.hit, before.point);
+	cl_triple (before_normal, sizeof (before_normal), before.hit, before.normal);
+	cl_triple (after_point, sizeof (after_point), after.hit, after.point);
+	cl_triple (after_normal, sizeof (after_normal), after.hit, after.normal);
+	/* the SELECTED city is named by the host's key of its sector placement when it was chosen (a roster key: a decimal the host issued, never a pointer or an index), so the driver can bind the whole witness to that one record */
+	if (cl_emit (text, capacity, &used, "wpn-city-lifecycle-selected buildings=%d placement_key=%s box_min=%s box_max=%s host_keyed=%d\n", count, key_start, min_text, max_text, key_start[0] != 0) ||
+		cl_emit (text, capacity, &used, "wpn-city-lifecycle-query phase=before hit=%d kind=%s point=%s normal=%s\n", before.hit, before.kind, before_point, before_normal) ||
 		cl_emit (text, capacity, &used, "wpn-city-lifecycle-relink empty_keyed=%d empty_key_changed=%d restored_keyed=%d restored_key_changed=%d\n", keyed_empty, strcmp (key_empty, key_start) != 0, keyed_restored,
 			strcmp (key_restored, key_empty) != 0) ||
-		cl_emit (text, capacity, &used, "wpn-city-lifecycle-query phase=after hit=%d kind=%s point=0x%08x,0x%08x,0x%08x normal=0x%08x,0x%08x,0x%08x\n", after.hit, after.kind, (unsigned int) after.point[0],
-			(unsigned int) after.point[1], (unsigned int) after.point[2], (unsigned int) after.normal[0], (unsigned int) after.normal[1], (unsigned int) after.normal[2]) ||
-		cl_emit (text, capacity, &used, "wpn-city-lifecycle-result query_equal=%d list_order_restored=%d mirror_box_equal=%d sector_order_changed=1 terminal=1\n", cl_same (&before, &after), order_restored, box_equal))
+		cl_emit (text, capacity, &used, "wpn-city-lifecycle-query phase=after hit=%d kind=%s point=%s normal=%s\n", after.hit, after.kind, after_point, after_normal) ||
+		cl_emit (text, capacity, &used, "wpn-city-lifecycle-result query_equal=%d list_order_restored=%d mirror_box_equal=%d box_min_after=%s box_max_after=%s sector_order_changed=1 terminal=1\n", cl_same (&before, &after),
+			order_restored, box_equal, min_after_text, max_after_text))
 	{
 		snprintf (text, (size_t) capacity, "wpn-city-lifecycle-error reason=report_bound_defect\n");
 		return -1;

@@ -1310,6 +1310,9 @@ fn the_city_lifecycle_witness_uses_only_the_real_shared_services_and_asks_the_ho
         "set_local_entity_vec3d (city, VEC3D_TYPE_POSITION, &position)",
         "get_line_of_sight_collision_entity (NULL, NULL, &a, &b, &point, &normal)",
         "terminal=1",
+        "placement_key=%s",
+        "box_min_after=%s box_max_after=%s",
+        "memset (answer->point, 0, sizeof (answer->point));",
     ] {
         assert!(witness.contains(needed), "the witness lacks `{needed}`");
     }

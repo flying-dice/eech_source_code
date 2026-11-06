@@ -1077,6 +1077,7 @@ const WPN_REPORT_CAPACITY: usize = 160 * 1024;
 #[cfg(feature = "weapon-fixture")]
 const WPN_MOVING_QUERY_REPORT_CAPACITY: usize = 4096;
 /// The report capacity of the CITY box lifecycle witness: the C entry refuses a smaller buffer, and its worst-case report (selection, two answers, relink and result lines) is well inside it.
+#[cfg(feature = "weapon-fixture")]
 const WPN_CITY_LIFECYCLE_REPORT_CAPACITY: usize = 4096;
 
 /// TEST-ONLY (feature `env-fixture`): room for one case of the session environment characterisation; a report that does not fit is refused by the engine, never cut short.

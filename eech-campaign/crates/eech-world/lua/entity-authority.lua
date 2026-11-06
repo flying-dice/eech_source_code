@@ -542,14 +542,18 @@ MODES.terrain_lift = { moving_target = true, host_side_movement = true, lift = t
 MODES.moving_query_control = { query = true, host_side_movement = true }
 MODES.moving_query_lift = { query = true, host_side_movement = true, lift = true }
 -- the controlled moving QUERY case with a configured SPEED-DEMAND input (see the header): the target is chosen by the speed demand its final warmup move step carried, not by terrain
--- CITY box lifecycle (REQUIRED_CITY_BOX_LIFECYCLE_RETENTION; hosted profile only, needs weapon-fixture): ONE terminal post-launch witness through the SAME actual native Core placement map. `engine:wpn_city_lifecycle` selects
--- (no search) the first bound CITY with buildings and a BUILT box, runs the unchanged production entity query along one segment through its box, drains its buildings through the real list funnel, relinks the EMPTY city one
--- sector over and back through the shared position setter, lists the buildings again and asks the same query. Every host answer is the real provider's; the campaign's own requests are unaltered except in the changed mode.
---   city_box_lifecycle          the control. Credited only when the report says the city was selected, host-keyed, the query read the city's position-and-box stage both before and after (candidate questions counted per phase of the window), both relinks produced a new
---                               host-keyed placement, the removal that left the empty city was ANSWERED with the retained record's name twice and each new placement continued it by a LINK, the answers, the city's list order and its mirrored box words are equal, and no request or reply was a fault.
---   city_box_lifecycle_missing  HOST-SIDE: the first retained-record name the provider answers is followed, BEFORE it reaches the campaign, by the host's own RELEASE of that record (phase 16, acknowledged `removed`); the campaign's next LINK of it is then the provider's NAMED refusal ([roster.link] ... has ended).
---   city_box_lifecycle_changed  the campaign's first CITY_STATE after a continuation is forwarded with ONE box word changed (box maximum x, one ulp): the provider's NAMED refusal ([roster.city] ... not the one the host holds). That request alteration is declared (altered_request=1); the Core mirror is never written by it.
--- An unreached prerequisite (no eligible city, a query that never read the city's box) is UNREACHED and never a pass. The report phase is POST-LAUNCH: the BOOT row and its fields are unchanged; a stopped engine leaves every report field -1 (no postfatal access).
+-- CITY box lifecycle (REQUIRED_CITY_BOX_LIFECYCLE_RETENTION; hosted profile only, needs weapon-fixture): ONE terminal standalone fixture call through the SAME actual native Core placement map. It runs AFTER BOOT and warmup and is NOT a launch: no weapon,
+-- no cohort and no engine frame; its row is the dedicated `city_lifecycle_authority` row, which carries none of the BOOT-only fields and is not a post-launch authority row of the legacy modes. `engine:wpn_city_lifecycle` selects (no search) the first bound
+-- CITY with buildings and a BUILT box, runs the unchanged production entity query along one segment through its box, drains its buildings through the real list funnel, relinks the EMPTY city one sector over and back through the shared position setter,
+-- lists the buildings again and asks the same query. Every host answer is the real provider's. The driver BINDS the whole window to one record: the first building the campaign unlists in the window names the selected city's canonical record (its list's
+-- name, resolved through the aliases of its relinks); the unchanged query's consumption of THAT record before the drain and after the relist, the two retaining removals, the two continuations, the restatements, the expansions and every intervention are
+-- counted and acted on for that record only. Window-wide counts of other cities' lookups are telemetry and never credit, eligibility or mutation.
+--   city_box_lifecycle          the control. Credited only with the exact report grammar, the selected record consumed BEFORE and AFTER, both relinks host-keyed and continued, the retaining answers (validated in full) naming that record twice, the answers, list order and mirrored box equal, and no fault.
+--   city_box_lifecycle_missing  the actual HOST-RETENTION intervention: when the current joined removal of the SELECTED record is answered with its retained name under the complete removal contract and the record was consumed before, the host's own RELEASE of that record (phase 16)
+--                               follows BEFORE the campaign sees the name; the acknowledgement must satisfy the whole release contract (removed, no name, no cursor, nothing else) or the run fails with nothing credited. The campaign's next LINK of it is then the provider's NAMED refusal.
+--   city_box_lifecycle_changed  a MIRROR-CONFORMANCE negative, not a change of host geometry: the current joined CITY_STATE restatement of a continuation of the selected record is forwarded with ONE box word changed (box maximum x, one ulp, declared altered_request=1);
+--                               the host that holds the built box refuses it by name, and the Core mirror is never written by it. It claims nothing about the host's geometry changing.
+-- An unreached prerequisite (no eligible city, the selected record not consumed by the unchanged query) is UNREACHED and never a pass, but a request or reply fault or an unrelated fatal is a FAILURE before it. A stopped engine leaves every report field -1 (no postfatal access).
 MODES.city_box_lifecycle = { city_lifecycle = true }
 MODES.city_box_lifecycle_missing = { city_lifecycle = true, retention_missing = true, marker = "entity_scan.refused" }
 MODES.city_box_lifecycle_changed = { city_lifecycle = true, retention_changed = true, marker = "entity_scan.refused" }
@@ -933,7 +937,10 @@ local function roster_track (parsed, answer)
 		-- a record the host keeps for the box it built is the name a city's later placement continues (a LINK) and its release ends
 		if answer.name ~= nil and answer.name ~= "" then
 			scan.city.lists [answer.name] = true
-			if scan.city.window then scan.city.life.retained = scan.city.life.retained + 1 end
+			-- counted only for the SELECTED city's record: the name answered is that canonical record, and the removed placement is that record's
+			if scan.city.window and scan.city.life.selected ~= nil and answer.name == scan.city.life.selected and scan.city.anchor (parsed.identity) == scan.city.life.selected then
+				scan.city.life.retained = scan.city.life.retained + 1
+			end
 		end
 	else
 		for key in pairs (roster_live) do roster_ended [key] = true end
@@ -997,7 +1004,10 @@ local function city_track (parsed, answer)
 		-- an acknowledged LINK of a sector placement to the key a city's list is named by: the placement CONTINUES that list's record (a relink of the city), so it is the same city as the list's name. A LINK of two
 		-- placements of one building names a child, never a list, and is no such alias
 		city.alias [parsed.keys [1]] = city.alias [parsed.keys [2]] or parsed.keys [2]
-		if city.window then city.life.continued = city.life.continued + 1 end
+		if city.window and city.life.selected ~= nil and city.alias [parsed.keys [1]] == city.life.selected then
+			city.life.continued = city.life.continued + 1
+			city.life.restated [parsed.keys [1]] = true
+		end
 	end
 end
 -- the first problem of a well-formed question against the keys seen so far, or nil: a removal names an entry that is not already ended, and a scan stands at the entry the host last served and never at one that ended
@@ -1169,44 +1179,58 @@ scan.withdrawn, scan.withdrawn_next = 0, ""
 -- the CITY events (phases 7 to 12), counted apart from the roster's and the scan's: by event and by answer; the buildings served, the list each live child is listed under, the names of the lists seen, the building a
 -- traversal was last served, the well-formed CHILD_NEXT questions that stood at it and joined the keys seen (`next_joined`), and the host's own withdrawal of that building (withdrawn_child; 1 once acknowledged
 -- `removed`, -1 when it was not) with the event it preceded
-scan.city = { total = 0, child_insert = 0, child_remove = 0, child_first = 0, child_next = 0, link = 0, name = 0, release = 0, released = {}, window = false, life = { retained = 0, continued = 0, released = 0, intervened = 0 }, placed = 0, removed = 0, next = 0, served = 0, parent = {}, lists = {}, alias = {}, last = nil, next_joined = 0, withdrawn = 0, withdrawn_next = "" }
+scan.city = { total = 0, child_insert = 0, child_remove = 0, child_first = 0, child_next = 0, link = 0, name = 0, release = 0, released = {}, window = false, life = { retained = 0, continued = 0, released = 0, intervened = 0, joined_by = {}, restated = {}, expanded = 0, expanded_answered = 0 }, placed = 0, removed = 0, next = 0, served = 0, parent = {}, lists = {}, alias = {}, last = nil, next_joined = 0, withdrawn = 0, withdrawn_next = "" }
 -- the key a city's list is named by for a key of the identity place: a sector placement that an acknowledged LINK continued the list with is the same city as the list's name (`alias`), any other key stands for itself
 function scan.city.anchor (key) return scan.city.alias [key] or key end
--- the strict parse of the CITY lifecycle report (eech_wpn_fixture.c): the five lines in their order with exactly their keys, or the reason it is malformed. An unreached report is its own shape.
+-- the strict parse of the CITY lifecycle report (eech_wpn_fixture.c), on the same line, record and raw-word helpers as the moving query report: complete newline-terminated lines, each the exact record with exactly its keys in order, single-spaced;
+-- no leftover, blank, duplicated or unknown material; booleans, counts, the roster key, the entity type and the raw word triples in their own domains (a miss carries none, a hit three words each); and the equality declarations cross-checked against the very
+-- tuples they speak of. No word is converted to a number by a floating-point instruction. An unreached report is its own one-line shape.
 function scan.city.parse_lifecycle (text)
-	local lines = {}
-	for line in string.gmatch (text, "[^\n]+") do lines [#lines + 1] = line end
-	local function fields (line, tag, keys)
-		if string.sub (line, 1, #tag + 1) ~= tag .. " " then return nil, "the line is not " .. tag end
-		local values, count = {}, 0
-		for key, value in string.gmatch (string.sub (line, #tag + 2), "([%w_]+)=(%S+)") do
-			values [key] = value
-			count = count + 1
-		end
-		if count ~= #keys then return nil, tag .. " has " .. count .. " fields, not " .. #keys end
-		for _, key in ipairs (keys) do
-			if values [key] == nil then return nil, tag .. " lacks " .. key end
-		end
-		return values
-	end
-	if #lines == 1 and string.sub (lines [1], 1, 29) == "wpn-city-lifecycle-unreached " then
-		local reason = string.match (lines [1], "^wpn%-city%-lifecycle%-unreached reason=([%w_]+)$")
-		if reason == nil then return nil, "the unreached line is malformed" end
-		return { unreached = reason }
+	local lines, why = mq_lines (text)
+	if not lines then return nil, why end
+	local function flag (value) return value == "0" or value == "1" end
+	if string.sub (lines [1], 1, 28) == "wpn-city-lifecycle-unreached" then
+		local row
+		row, why = mq_row (lines [1], "wpn-city-lifecycle-unreached", { "reason" })
+		if #lines ~= 1 or not row or not string.match (row.reason, "^[a-z_]+$") then return nil, "the unreached report is not exactly one well-formed line" end
+		return { unreached = row.reason }
 	end
 	if #lines ~= 5 then return nil, "the report has " .. #lines .. " lines, not 5" end
-	local selected, why = fields (lines [1], "wpn-city-lifecycle-selected", { "buildings", "box_min", "box_max", "host_keyed" })
-	if not selected then return nil, why end
-	local before, relink, after, result
-	before, why = fields (lines [2], "wpn-city-lifecycle-query", { "phase", "hit", "kind", "point", "normal" })
-	if not before or before.phase ~= "before" then return nil, why or "the second line is not the before query" end
-	relink, why = fields (lines [3], "wpn-city-lifecycle-relink", { "empty_keyed", "empty_key_changed", "restored_keyed", "restored_key_changed" })
-	if not relink then return nil, why end
-	after, why = fields (lines [4], "wpn-city-lifecycle-query", { "phase", "hit", "kind", "point", "normal" })
-	if not after or after.phase ~= "after" then return nil, why or "the fourth line is not the after query" end
-	result, why = fields (lines [5], "wpn-city-lifecycle-result", { "query_equal", "list_order_restored", "mirror_box_equal", "sector_order_changed", "terminal" })
-	if not result then return nil, why end
-	if result.terminal ~= "1" or result.sector_order_changed ~= "1" then return nil, "the witness did not declare itself terminal" end
+	local selected, before, relink, after, result
+	selected, why = mq_row (lines [1], "wpn-city-lifecycle-selected", { "buildings", "placement_key", "box_min", "box_max", "host_keyed" })
+	if not selected then return nil, "selected: " .. why end
+	if not string.match (selected.buildings, "^[1-9]%d*$") or tonumber (selected.buildings) > 256 then return nil, "selected: the building count is not a whole number from 1 to 256" end
+	if not is_roster_key (selected.placement_key) then return nil, "selected: the placement key is not a roster key" end
+	if not mq_finite_triple (selected.box_min) or not mq_finite_triple (selected.box_max) or selected.host_keyed ~= "1" then return nil, "selected: the box is not two finite word triples of a host-keyed city" end
+	local function query (line, phase)
+		local row, problem = mq_row (line, "wpn-city-lifecycle-query", { "phase", "hit", "kind", "point", "normal" })
+		if not row then return nil, problem end
+		if row.phase ~= phase then return nil, "the query is not the " .. phase .. " one" end
+		if row.hit == "0" then
+			if row.kind ~= "none" or row.point ~= "-" or row.normal ~= "-" then return nil, "the " .. phase .. " query is a miss that carries hit fields" end
+		elseif row.hit == "1" then
+			if not string.match (row.kind, "^ENTITY_TYPE_[A-Z_]+$") or not mq_triple (row.point) or not mq_triple (row.normal) then return nil, "the " .. phase .. " query is a hit without an entity type and two word triples" end
+		else
+			return nil, "the " .. phase .. " query carries hit=" .. tostring (row.hit)
+		end
+		return row
+	end
+	before, why = query (lines [2], "before")
+	if not before then return nil, why end
+	relink, why = mq_row (lines [3], "wpn-city-lifecycle-relink", { "empty_keyed", "empty_key_changed", "restored_keyed", "restored_key_changed" })
+	if not relink then return nil, "relink: " .. why end
+	if not (flag (relink.empty_keyed) and flag (relink.empty_key_changed) and flag (relink.restored_keyed) and flag (relink.restored_key_changed)) then return nil, "relink: a field is not 0 or 1" end
+	after, why = query (lines [4], "after")
+	if not after then return nil, why end
+	result, why = mq_row (lines [5], "wpn-city-lifecycle-result", { "query_equal", "list_order_restored", "mirror_box_equal", "box_min_after", "box_max_after", "sector_order_changed", "terminal" })
+	if not result then return nil, "result: " .. why end
+	if not (flag (result.query_equal) and flag (result.list_order_restored) and flag (result.mirror_box_equal)) or result.sector_order_changed ~= "1" or result.terminal ~= "1" then return nil, "result: a flag is not in its domain, or the witness did not declare itself terminal" end
+	if not mq_finite_triple (result.box_min_after) or not mq_finite_triple (result.box_max_after) then return nil, "result: the box after is not two finite word triples" end
+	-- the equality declarations against the tuples they speak of (raw words compared as text, never as numbers)
+	local same = before.hit == after.hit and before.kind == after.kind and before.point == after.point and before.normal == after.normal
+	if result.query_equal == "1" and not same then return nil, "result: query_equal=1 contradicts the before and after answers" end
+	local box_same = result.box_min_after == selected.box_min and result.box_max_after == selected.box_max
+	if (result.mirror_box_equal == "1") ~= box_same then return nil, "result: mirror_box_equal contradicts the box before and after" end
 	return { selected = selected, before = before, relink = relink, after = after, result = result }
 end
 -- whether a building is still listed under the list the key names
@@ -1269,28 +1293,38 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 			end
 		end
 	end
-	-- city_box_lifecycle_changed: the campaign's first CITY_STATE after a continuation by a retained record is forwarded with ONE box word changed (declared); the provider's own refusal comes back unaltered
-	if plan.retention_changed and scan.city.window and scan.city.life.intervened == 0 and scan.city.life.continued >= 1 and parsed ~= nil and parsed.kind == "city_state" then
+	-- the CITY lifecycle interventions act ONLY on the SELECTED city's record, once the unchanged query has consumed THAT record before the drain, and only on a current joined event (a competing live city or an aggregate count establishes nothing)
+	local life = scan.city.life
+	local bound = plan.city_lifecycle and scan.city.window and life.intervened == 0 and joined == nil and life.selected ~= nil and (life.before or 0) >= 1
+	-- city_box_lifecycle_changed (a MIRROR-CONFORMANCE negative): the current joined CITY_STATE restatement of a continuation of the selected record is forwarded with ONE box word changed (declared); the provider's own refusal comes back unaltered
+	if plan.retention_changed and bound and parsed ~= nil and parsed.kind == "city_state" and life.restated [parsed.key] then
 		local altered = {}
 		for index = 1, 16 do altered [index] = parsed.words [index] end
 		altered [7] = string.format ("0x%08x", tonumber (parsed.words [7]) + 1)
 		key = table.concat (altered, ",") .. " " .. parsed.key
-		scan.city.life.intervened = 1
+		life.intervened = 1
 	end
 	local real = reference ("entity_scan", scene, depth, kind, definition, key)
-	-- city_box_lifecycle_missing: the first retained-record name the provider answers is followed, BEFORE the campaign sees it, by the HOST's own release of that record (phase 16); no request or answer of the campaign is altered
-	if plan.retention_missing and scan.city.window and scan.city.life.intervened == 0 and parsed ~= nil and parsed.kind == "roster" and parsed.event == "remove" and type (real) == "table"
-		and real.result == "removed" and type (real.name) == "string" and real.name ~= "" then
+	-- city_box_lifecycle_missing (the actual HOST-RETENTION intervention): the current joined removal of the selected record, answered with that record's name under the COMPLETE removal contract, is followed BEFORE the campaign sees the answer by the host's
+	-- own release of that record (phase 16). The release acknowledgement must satisfy the whole city contract (removed, no name, no cursor) and carry nothing else, or nothing is credited.
+	if plan.retention_missing and bound and parsed ~= nil and parsed.kind == "roster" and parsed.event == "remove" and type (real) == "table" and roster_reply_problem (real, parsed) == nil
+		and real.name ~= nil and real.name ~= "" and real.name == life.selected and scan.city.anchor (parsed.identity) == life.selected and not scan.city.listed (life.selected) then
 		local words = {}
 		for index = 1, 16 do words [index] = ZERO end
 		words [12] = "0x41800000"
 		local ok, acknowledged = pcall (reference, "entity_scan", 0, nil, nil, nil, table.concat (words, ",") .. " " .. real.name)
-		if ok and type (acknowledged) == "table" and acknowledged.result == "removed" and (acknowledged.name == nil or acknowledged.name == "") then
-			scan.city.life.intervened = 1
+		local problem = not ok and "the host's release was not answered" or city_reply_problem (acknowledged, { event = "release", phase = 16, keys = { real.name } })
+		if problem == nil then
+			for field in pairs (acknowledged) do
+				if field ~= "result" and field ~= "name" then problem = "the release acknowledgement carries " .. tostring (field) end
+			end
+		end
+		if problem == nil then
+			life.intervened = 1
 		else
-			scan.city.life.intervened = -1
+			life.intervened = -1
 			faults.reply = faults.reply + 1
-			first_fault = first_fault or "scan reply: the host's release of the retained record was not acknowledged as removed"
+			first_fault = first_fault or ("scan reply: the host's release of the retained record: " .. problem)
 		end
 	end
 	-- a CITY_EXPAND question (phase 15): counted in either window, its reply checked, never altered (the box is the host's: what the campaign mirrors is whatever the host answered)
@@ -1301,6 +1335,10 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 			first_fault = first_fault or ("scan request: " .. joined)
 		end
 		local expand_problem = scan.fixed.expand_reply_problem (real, parsed)
+		if scan.city.window and scan.city.life.selected ~= nil and scan.city.anchor (parsed.city) == scan.city.life.selected then
+			scan.city.life.expanded = scan.city.life.expanded + 1
+			if expand_problem == nil then scan.city.life.expanded_answered = scan.city.life.expanded_answered + 1 end
+		end
 		if expand_problem == nil then
 			scan.fixed.expand_answered = scan.fixed.expand_answered + 1
 		else
@@ -1341,9 +1379,14 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 			scan.city.total = scan.city.total + 1
 			scan.city [parsed.event] = scan.city [parsed.event] + 1
 			-- the window's consumption marks: the candidate lookups that read a city's position-and-box stage before the drain began and after the last building was listed again
-			if scan.city.window then
-				if parsed.event == "child_remove" and scan.city.life.drain_joined == nil then scan.city.life.drain_joined = scan.fixed.city_joined end
-				if parsed.event == "child_insert" then scan.city.life.relist_joined = scan.fixed.city_joined end
+			-- the SELECTED record is latched from the first building the campaign unlists in the window (a current joined request): it is the canonical record of that building's list, and its BEFORE consumption is frozen there
+			if scan.city.window and joined == nil then
+				local life = scan.city.life
+				if parsed.event == "child_remove" and life.selected == nil then
+					life.selected = scan.city.anchor (parsed.keys [1])
+					life.before = life.joined_by [life.selected] or 0
+				end
+				if parsed.event == "child_insert" and life.selected ~= nil and scan.city.anchor (parsed.keys [1]) == life.selected then life.relist_mark = life.joined_by [life.selected] or 0 end
 			end
 			if scan.city.withdrawn == 1 and scan.city.withdrawn_next == "" then scan.city.withdrawn_next = parsed.event end
 		elseif event and parsed.kind == "fixed" then
@@ -1761,6 +1804,10 @@ local function candidate_question (scene, depth, kind, definition, key)
 		local w = parsed.words
 		if w [43] ~= ZERO and w [8] ~= ZERO and w [9] ~= ZERO and w [12] ~= ZERO and w [11] == ZERO then
 			scan.fixed.city_joined = scan.fixed.city_joined + 1
+			do
+				local record = scan.city.anchor (parsed.host_id)
+				scan.city.life.joined_by [record] = (scan.city.life.joined_by [record] or 0) + 1
+			end
 			if plan.withdraw_city and scan.fixed.city_withdrawn == 0 then
 				local words = {}
 				for index = 1, 16 do words [index] = ZERO end
@@ -2024,12 +2071,14 @@ local function main ()
 		return x * x + y * y + z * z > 1
 	end
 	if plan.city_lifecycle then
-		-- the CITY box lifecycle witness (see the header): no weapon, no launch, no cohort, no frame; hosted profile only
+		-- the CITY box lifecycle witness (see the header): after BOOT and warmup, standalone: no weapon, no launch, no cohort, no frame; hosted profile only
 		if profile ~= "hosted" then hard (mode .. " runs only in the hosted profile") end
 		local present, method = pcall (function () return engine.wpn_city_lifecycle end)
 		if not (present and type (method) == "function") then hard ("this module has no CITY lifecycle surface (wpn_city_lifecycle): it was not built with weapon-fixture") end
 		local life = scan.city.life
-		local joined_start, expand_start, answered_start = scan.fixed.city_joined, scan.fixed.expand_total, scan.fixed.expand_answered
+		-- every mark of the window starts empty: each count below belongs to this one call
+		life.joined_by, life.restated, life.selected, life.before, life.relist_mark, life.expanded, life.expanded_answered = {}, {}, nil, nil, nil, 0, 0
+		local joined_start = scan.fixed.city_joined
 		scan.city.window, armed = true, true
 		local ok, text = pcall (engine.wpn_city_lifecycle, engine)
 		scan.city.window = false
@@ -2044,28 +2093,37 @@ local function main ()
 			if not parsed_report then hard ("the CITY lifecycle report is malformed: " .. why) end
 			if parsed_report.unreached then unreached = parsed_report.unreached else report = parsed_report end
 		end
+		local selected = life.selected
+		local before_selected = selected and (life.before or 0) or -1
+		local after_selected = selected and ((life.joined_by [selected] or 0) - (life.relist_mark or (life.joined_by [selected] or 0))) or -1
+		-- the report names the city it selected by the key of its placement; the removals of the window must name that very record
+		local report_bound = report ~= nil and selected ~= nil and scan.city.anchor (report.selected.placement_key) == selected
 		local function field (group, key, default) return report and report [group] [key] or default end
-		local consumed_before = (life.drain_joined or joined_start) - joined_start
-		local consumed_after = scan.fixed.city_joined - (life.relist_joined or scan.fixed.city_joined)
 		emit {
-			event = "city_lifecycle_authority", mode = mode, profile = profile, completed = failure == nil and report ~= nil, unreached = unreached or "", failure_marker = failure and failure.marker or "",
-			failure_line = failure and failure.line or "", intervention = plan.retention_changed and "changed" or (plan.retention_missing and "missing" or "none"), intervened = life.intervened,
-			altered_request = (plan.retention_changed and life.intervened == 1) and 1 or 0, buildings = tonumber (field ("selected", "buildings", "-1")), host_keyed = tonumber (field ("selected", "host_keyed", "-1")),
-			box_min = field ("selected", "box_min", ""), box_max = field ("selected", "box_max", ""), query_before_hit = tonumber (field ("before", "hit", "-1")), query_after_hit = tonumber (field ("after", "hit", "-1")),
-			query_before_kind = field ("before", "kind", ""), query_after_kind = field ("after", "kind", ""), query_equal = tonumber (field ("result", "query_equal", "-1")),
-			list_order_restored = tonumber (field ("result", "list_order_restored", "-1")), mirror_box_equal = tonumber (field ("result", "mirror_box_equal", "-1")),
+			event = "city_lifecycle_authority", row_phase = "after_boot_warmup_standalone_fixture", mode = mode, profile = profile, completed = failure == nil and report ~= nil, unreached = unreached or "", failure_marker = failure and failure.marker or "",
+			failure_line = failure and failure.line or "", intervention = plan.retention_changed and "mirror_conformance_negative" or (plan.retention_missing and "host_retention_release" or "none"), intervened = life.intervened,
+			altered_request = (plan.retention_changed and life.intervened == 1) and 1 or 0, selected_record = selected or "", report_bound = report_bound and 1 or 0,
+			buildings = tonumber (field ("selected", "buildings", "-1")), host_keyed = tonumber (field ("selected", "host_keyed", "-1")), box_min = field ("selected", "box_min", ""), box_max = field ("selected", "box_max", ""),
+			query_before_hit = tonumber (field ("before", "hit", "-1")), query_after_hit = tonumber (field ("after", "hit", "-1")), query_before_kind = field ("before", "kind", ""), query_after_kind = field ("after", "kind", ""),
+			query_equal = tonumber (field ("result", "query_equal", "-1")), list_order_restored = tonumber (field ("result", "list_order_restored", "-1")), mirror_box_equal = tonumber (field ("result", "mirror_box_equal", "-1")),
 			empty_keyed = tonumber (field ("relink", "empty_keyed", "-1")), empty_key_changed = tonumber (field ("relink", "empty_key_changed", "-1")),
 			restored_keyed = tonumber (field ("relink", "restored_keyed", "-1")), restored_key_changed = tonumber (field ("relink", "restored_key_changed", "-1")),
-			consumed_before = consumed_before, consumed_after = consumed_after, retained_answers = life.retained, continuation_links = life.continued, releases_in_window = life.released,
-			expansions_in_window = scan.fixed.expand_total - expand_start, expansions_answered_in_window = scan.fixed.expand_answered - answered_start,
+			consumed_before_selected = before_selected, consumed_after_selected = after_selected, city_stage_lookups_in_window = scan.fixed.city_joined - joined_start, retained_answers = life.retained, continuation_links = life.continued,
+			releases_in_window = life.released, expansions_selected = life.expanded, expansions_selected_answered = life.expanded_answered,
 			request_faults = faults.request, reply_faults = faults.reply, first_fault = first_fault or "", frames = frames, natural_weapon_engagement = "not_claimed_terminal_witness",
 		}
-		-- ------------------------------------------------------------------------------------------------ the verdict of the CITY lifecycle modes
-		if unreached then return "UNREACHED: " .. mode .. ": the CITY lifecycle witness reached no eligible city (" .. unreached .. "): nothing was changed, no actor, time or geometry was searched for" end
+		-- ------------------------------------------------------------------------------------------------ the verdict of the CITY lifecycle modes: a fault or a fatal comes before any UNREACHED
+		local faulted = faults.request + faults.reply ~= 0
+		local fault_text = string.format ("the entity question or the host's reply is not the contract's (request_faults=%d reply_faults=%d): %s", faults.request, faults.reply, tostring (first_fault))
 		if plan.retention_changed or plan.retention_missing then
+			if life.intervened == -1 then return "mode " .. mode .. ": the host-side intervention did not satisfy its full contract, so nothing is credited: " .. tostring (first_fault) end
 			if life.intervened ~= 1 then
-				if failure == nil then return "UNREACHED: " .. mode .. ": the retained record was never named (retained_answers=" .. life.retained .. ", continuations=" .. life.continued .. "), so the intervention had nothing to change" end
-				return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "] before the intervention was made: " .. failure.line
+				if failure then return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "] before the intervention was made: " .. failure.line end
+				if faulted then return fault_text end
+				if unreached then return "UNREACHED: " .. mode .. ": the CITY lifecycle witness reached no eligible city (" .. unreached .. "): nothing was changed, no actor, time or geometry was searched for" end
+				if selected == nil then return "UNREACHED: " .. mode .. ": no building of any city was unlisted in the window, so no record was selected and nothing was changed" end
+				if before_selected < 1 then return "UNREACHED: " .. mode .. ": the unchanged query did not consume the selected record " .. selected .. " before the lifecycle (" .. before_selected .. "; " .. (scan.fixed.city_joined - joined_start) .. " city stage lookups in all, of other cities or after): nothing was changed" end
+				return "UNREACHED: " .. mode .. ": the selected record " .. selected .. " was never retained and restated in a current joined, fully valid event (retained_answers=" .. life.retained .. ", continuations=" .. life.continued .. "): nothing was changed"
 			end
 			if failure == nil then return "mode " .. mode .. " completed: the intervened request or record was answered, not refused" end
 			local wanted = plan.retention_changed and { "[roster.city]", "not the one the host holds" } or { "[roster.link]", "has ended" }
@@ -2076,15 +2134,16 @@ local function main ()
 			return nil
 		end
 		if failure then return "mode " .. mode .. " failed in the engine at [model-provider:" .. failure.marker .. "]: " .. failure.line end
-		if faults.request + faults.reply ~= 0 then return string.format ("the entity question or the host's reply is not the contract's (request_faults=%d reply_faults=%d): %s", faults.request, faults.reply, tostring (first_fault)) end
-		local result = report.result
-		if report.selected.host_keyed ~= "1" or tonumber (report.selected.buildings) < 1 then return "UNREACHED: " .. mode .. ": the selected city was not host-keyed with buildings" end
-		if consumed_before < 1 then return "UNREACHED: " .. mode .. ": the unchanged query read no position-and-box stage of a city BEFORE the lifecycle (" .. consumed_before .. "): the segment through the box was not consumed, nothing was searched for" end
-		if consumed_after < 1 then return "UNREACHED: " .. mode .. ": the unchanged query read no position-and-box stage of a city AFTER the restore (" .. consumed_after .. ")" end
+		if faulted then return fault_text end
+		if unreached then return "UNREACHED: " .. mode .. ": the CITY lifecycle witness reached no eligible city (" .. unreached .. "): nothing was changed, no actor, time or geometry was searched for" end
+		if not report_bound then return "mode " .. mode .. ": the report's selected city is not the record whose buildings the campaign unlisted in the window (" .. tostring (selected) .. ")" end
+		if before_selected < 1 then return "UNREACHED: " .. mode .. ": the unchanged query did not consume the selected record " .. selected .. " BEFORE the lifecycle (" .. before_selected .. "; " .. (scan.fixed.city_joined - joined_start) .. " city stage lookups in all, of any city): nothing was searched for" end
+		if after_selected < 1 then return "UNREACHED: " .. mode .. ": the unchanged query did not consume the selected record " .. selected .. " AFTER the restore (" .. after_selected .. ")" end
+		local result, buildings = report.result, tonumber (report.selected.buildings)
 		if report.relink.empty_keyed ~= "1" or report.relink.restored_keyed ~= "1" or report.relink.empty_key_changed ~= "1" or report.relink.restored_key_changed ~= "1" then return "mode " .. mode .. ": a relink of the empty city did not produce a new host-keyed placement" end
-		if life.retained ~= 2 or life.continued ~= 2 then return string.format ("mode %s: the host kept the empty city's record %d times and the campaign continued it %d times, not twice and twice", mode, life.retained, life.continued) end
+		if life.retained ~= 2 or life.continued ~= 2 then return string.format ("mode %s: the host kept the selected record %d times and the campaign continued it %d times, not twice and twice", mode, life.retained, life.continued) end
 		if life.released ~= 0 then return "mode " .. mode .. ": a release was stated although the city entity never ended (" .. life.released .. ")" end
-		if scan.fixed.expand_total - expand_start ~= tonumber (report.selected.buildings) or scan.fixed.expand_answered - answered_start ~= tonumber (report.selected.buildings) then return "mode " .. mode .. ": each relisted building must ask the host to expand the box exactly once and be answered" end
+		if life.expanded ~= buildings or life.expanded_answered ~= buildings then return "mode " .. mode .. ": each relisted building of the selected record must ask the host to expand the box exactly once and be answered" end
 		if result.query_equal ~= "1" or result.list_order_restored ~= "1" or result.mirror_box_equal ~= "1" then return "mode " .. mode .. ": the query answers, the city's list order or its mirrored box differ after the lifecycle (" .. result.query_equal .. result.list_order_restored .. result.mirror_box_equal .. ")" end
 		return nil
 	end
