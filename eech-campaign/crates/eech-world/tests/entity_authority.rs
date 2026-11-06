@@ -245,6 +245,11 @@ local function reference (op, scene, depth, kind, definition, key)
 			if bad_city == "insert_no_key" and phase == "0x40e00000" then answer.name = "" end
 			if bad_city == "removed_key" and phase == "0x41000000" then answer.name = "9" end
 			if bad_city == "link_echo" and phase == "0x41300000" then answer.name = "99" end
+			-- ONLY the LINK of a sector placement and a listed building (its second key is a city child of the real roster): the city's own continuation LINK keeps its real answer
+			if bad_city == "building_link_echo" and phase == "0x41300000" then
+				local second = string.match (identity, "^%d+ (%d+)$")
+				if second ~= nil and ROSTER_HOLD (second, true) ~= "unknown" then answer.name = "99" end
+			end
 			if bad_city == "name_echo" and phase == "0x41400000" then answer.name = "99" end
 			if bad_city == "served_not_key" and (phase == "0x41100000" or phase == "0x41200000") and answer.name ~= "" then answer.name = "01" end
 			if bad_city == "reused_key" and phase == "0x40e00000" and answer.name ~= "2" then answer.name = "1" end
@@ -965,6 +970,7 @@ package.preload.eech_dc = function ()
 						city_event ("link", roster_key .. " " .. anchor)
 						mirror_city_report (roster_key)
 					end
+					local ended_child = children [1]
 					for index = #children, 1, -1 do
 						local child = city_event ("child_insert", anchor).name
 						children [index] = child
@@ -976,6 +982,8 @@ package.preload.eech_dc = function ()
 						end
 						city_expand_request (roster_key, child)
 					end
+					-- `relist_stale`: an expansion that names the building's OLD city-list key, which ended with the drain (its alias must not survive the removal)
+					if scenario.relist_stale then city_expand_request (roster_key, ended_child) end
 					consume ()
 					return life_text (variant, #children, key0)
 				end
@@ -6063,6 +6071,44 @@ fn a_building_listed_again_with_no_acknowledged_link_to_its_record_is_a_request_
         "{row}"
     );
     assert_eq!(row["completed"].as_bool(), Some(false), "{row}");
+    assert!(driven.result.is_err(), "a fault is never a pass");
+}
+
+#[test]
+fn a_malformed_link_acknowledgement_binds_no_alias_and_an_ended_old_key_is_never_a_held_one() {
+    // the host's acknowledgement of each building's LINK is damaged after the real answer (it names another key; the real host did join the placements and the city's own continuation LINK is intact): the driver binds no alias from
+    // an acknowledgement that is not the contract's, so each building listed again is a request fault, and the damaged acknowledgement is a reply fault first. `completed` is the physical witness report only: the verdict is the faults
+    let driven = drive(
+        &healthy(&format!("{LIFECYCLE_SECTORS}, bad_real_city = 'building_link_echo'")),
+        &[("mode", "city_box_lifecycle")],
+    );
+    let row = lifecycle_row(&driven);
+    assert_eq!(row["reply_faults"].as_i64(), Some(2), "{row}");
+    assert_eq!(row["request_faults"].as_i64(), Some(2), "{row}");
+    assert!(row["first_fault"].as_str().unwrap().starts_with("scan reply: a LINK acknowledged"), "{row}");
+    assert_eq!(
+        row["continuation_links"].as_i64(),
+        Some(2),
+        "the city's own continuation is a different, intact relation: {row}"
+    );
+    let error = error_of(driven);
+    assert!(!error.contains("UNREACHED") && error.contains("reply_faults="), "{error}");
+
+    // the building's OLD city-list key ended with the drain: an expansion that names it is a request fault, however the host answers it, and the coherent relist alongside it is still credited on its own
+    let driven = drive(
+        &healthy(&format!("{LIFECYCLE_SECTORS}, relist_stale = true")),
+        &[("mode", "city_box_lifecycle")],
+    );
+    let row = lifecycle_row(&driven);
+    assert_eq!(row["request_faults"].as_i64(), Some(1), "{row}");
+    assert!(
+        row["first_fault"]
+            .as_str()
+            .unwrap()
+            .starts_with("scan request: a city expansion names the building ")
+            && row["first_fault"].as_str().unwrap().contains(", which has ended"),
+        "{row}"
+    );
     assert!(driven.result.is_err(), "a fault is never a pass");
 }
 
