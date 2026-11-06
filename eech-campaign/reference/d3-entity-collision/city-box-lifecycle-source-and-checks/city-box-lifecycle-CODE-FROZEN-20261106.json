@@ -1,0 +1,625 @@
+{
+ "baseline_characterization_at_parent": [
+  {
+   "actual_exit": 0,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --lib --test entity_roster_host",
+   "completed_utc": "2026-11-06T19:55:04.404682+00:00",
+   "label": "base-world",
+   "results": [
+    {
+     "binary": "src/lib.rs",
+     "failed": 0,
+     "passed": 372,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_roster_host",
+     "failed": 0,
+     "passed": 18,
+     "status": "ok"
+    }
+   ],
+   "stderr": {
+    "bytes": 416,
+    "sha256": "f7a904c493ccfeab1c5cb34c6db8e88b9f133c6a50f9efa3659eb201a5a8eebf"
+   },
+   "stdout": {
+    "bytes": 39934,
+    "sha256": "dd30d78a28a2d0e48bc04ebbb274c5d817488b51add93f68c30fada0c93c0fab"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard",
+   "completed_utc": "2026-11-06T19:56:48.939431+00:00",
+   "label": "base-engine",
+   "results": [
+    {
+     "binary": "entity_dialogue",
+     "failed": 0,
+     "passed": 1,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_roster_guard",
+     "failed": 0,
+     "passed": 18,
+     "status": "ok"
+    }
+   ],
+   "stderr": {
+    "bytes": 438,
+    "sha256": "4efbde18361b97063da50c2b16ce4b3581d9567213739de50a5fc736f3856702"
+   },
+   "stdout": {
+    "bytes": 2393,
+    "sha256": "a52a996fc7598032f5e2d599fed6f3346ea8ab0b2dac3231f96c51c788b8ecc5"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority",
+   "completed_utc": "2026-11-06T19:57:03.288775+00:00",
+   "label": "base-authority",
+   "results": [
+    {
+     "binary": "entity_authority",
+     "failed": 0,
+     "passed": 96,
+     "status": "ok"
+    }
+   ],
+   "stderr": {
+    "bytes": 13999,
+    "sha256": "55e5b4ee6ace149a575731f1f6e1e1c78e09bf884926d1b41bc5cbf11ad903ed"
+   },
+   "stdout": {
+    "bytes": 11418,
+    "sha256": "def80f058eb28ca5972b62b96d7d2d8fca4b357951ed4f353cc3b13d91de69c4"
+   }
+  }
+ ],
+ "changed_behavior": [
+  "the roster record also keeps the box the host built (set_city_box), apart from the state a diagnostic withdrawal retires; the record stays, placement-less and list-less, until the campaign releases the city entity",
+  "the answer of the removal (or of the last building's removal) that leaves such a record NAMES it; the campaign keeps the name (its existing list name), declares the next placement a continuation by the existing LINK, and the box the insertion then states is only the mirror of the host's",
+  "a restoring statement over a withdrawn state must carry the built box; a different one is refused by name and changes nothing",
+  "a new scan phase 16 (CITY release) states the end of the city entity; the host ends the record, or ends it with the last building when buildings are still listed",
+  "a city the host built no box for is unchanged: its record and name end with its last placement and its release asks nothing"
+ ],
+ "changed_paths": [
+  "aphavoc/source/entity/mobile/mb_hostentity.h",
+  "aphavoc/source/entity/mobile/mb_hostmodel.c",
+  "aphavoc/source/entity/mobile/mb_hostmodel.h",
+  "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+  "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+  "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+  "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+  "eech-campaign/crates/eech-world/src/model_host.rs",
+  "eech-campaign/crates/eech-world/src/roster.rs",
+  "eech-campaign/crates/eech-world/tests/city_box_lifecycle.rs",
+  "eech-campaign/crates/eech-world/tests/entity_authority.rs"
+ ],
+ "created_utc": "2026-11-06T20:25:01.670973+00:00",
+ "final_checks_on_the_frozen_bytes": [
+  {
+   "actual_exit": 0,
+   "command": "cargo fmt -p eech-world -- --check",
+   "completed_utc": "2026-11-06T20:19:07.318574+00:00",
+   "label": "final-fmt-world",
+   "results": [],
+   "stderr": {
+    "bytes": 42,
+    "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+   },
+   "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo fmt -p eech-engine-sys -- --check",
+   "completed_utc": "2026-11-06T20:19:08.712854+00:00",
+   "label": "final-fmt-engine",
+   "results": [],
+   "stderr": {
+    "bytes": 42,
+    "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+   },
+   "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo clippy --locked --all-targets -p eech-world -- -D warnings",
+   "completed_utc": "2026-11-06T20:19:13.659572+00:00",
+   "label": "final-clippy-world",
+   "results": [],
+   "stderr": {
+    "bytes": 184,
+    "sha256": "6bda4f4349deccc08a322a3a9b622bddca22e6aeffc6903eee674b0720a93822"
+   },
+   "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo clippy --locked --all-targets -p eech-engine-sys -- -D warnings",
+   "completed_utc": "2026-11-06T20:20:22.640136+00:00",
+   "label": "final-clippy-engine",
+   "results": [],
+   "stderr": {
+    "bytes": 195,
+    "sha256": "23b828c7865ac37427efa7e8c1a8bf4cedfb315c37261edf3e140621f6218a29"
+   },
+   "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard",
+   "completed_utc": "2026-11-06T20:20:36.148923+00:00",
+   "label": "final-test-engine",
+   "results": [
+    {
+     "binary": "entity_dialogue",
+     "failed": 0,
+     "passed": 1,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_host_guard",
+     "failed": 0,
+     "passed": 5,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_roster_guard",
+     "failed": 0,
+     "passed": 19,
+     "status": "ok"
+    }
+   ],
+   "stderr": {
+    "bytes": 558,
+    "sha256": "a21e05e821565b7ca8496f6b35ff624e9759f168c50f81f9d7c3a9b7c3224318"
+   },
+   "stdout": {
+    "bytes": 3154,
+    "sha256": "6a0287b6a7f218fd84ca45968bb4da29abbc7ef99fd1391f47af09a70191617f"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --lib --test entity_roster_host --test city_box_lifecycle --test entity_authority --test entity_candidate_host",
+   "completed_utc": "2026-11-06T20:20:43.157305+00:00",
+   "label": "final-test-world",
+   "results": [
+    {
+     "binary": "src/lib.rs",
+     "failed": 0,
+     "passed": 373,
+     "status": "ok"
+    },
+    {
+     "binary": "city_box_lifecycle",
+     "failed": 0,
+     "passed": 7,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_authority",
+     "failed": 0,
+     "passed": 97,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_candidate_host",
+     "failed": 0,
+     "passed": 13,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_roster_host",
+     "failed": 0,
+     "passed": 18,
+     "status": "ok"
+    }
+   ],
+   "stderr": {
+    "bytes": 14639,
+    "sha256": "e96ee3a2e771926b5dfa806ca72b6f7622ff9daec1256c4beafe124db9f2d746"
+   },
+   "stdout": {
+    "bytes": 54211,
+    "sha256": "bc7ecff7ba6704078ca118410cb70ed4e43a78d269996533759bd73c91f178bc"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "env EECH_C_OPT=2 cargo test --locked --target x86_64-unknown-linux-gnu -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard",
+   "completed_utc": "2026-11-06T20:20:56.282728+00:00",
+   "label": "final-copt2-engine",
+   "results": [
+    {
+     "binary": "entity_dialogue",
+     "failed": 0,
+     "passed": 1,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_roster_guard",
+     "failed": 0,
+     "passed": 19,
+     "status": "ok"
+    }
+   ],
+   "stderr": {
+    "bytes": 357,
+    "sha256": "953c234140196e85c0ef2c608a085674685294efabe5fed1deced04f75adf998"
+   },
+   "stdout": {
+    "bytes": 2523,
+    "sha256": "d54e5c3231bcb9bbdb9fbd3992d6b1243f46d799041ea04802e00b88f1c3c79e"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "env EECH_C_OPT=2 cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --lib --test entity_roster_host --test city_box_lifecycle --test entity_authority",
+   "completed_utc": "2026-11-06T20:21:04.852542+00:00",
+   "label": "final-copt2-world",
+   "results": [
+    {
+     "binary": "src/lib.rs",
+     "failed": 0,
+     "passed": 373,
+     "status": "ok"
+    },
+    {
+     "binary": "city_box_lifecycle",
+     "failed": 0,
+     "passed": 7,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_authority",
+     "failed": 0,
+     "passed": 97,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_roster_host",
+     "failed": 0,
+     "passed": 18,
+     "status": "ok"
+    }
+   ],
+   "stderr": {
+    "bytes": 14510,
+    "sha256": "2b351d1af8389e595ac132f06b9dd03e6d3e22d3a69b98e7365394d1797464ed"
+   },
+   "stdout": {
+    "bytes": 52390,
+    "sha256": "d6e249675d567ada0f5a9d1c64ecd1f0d247dd34cb127e9a889397c604b70a8c"
+   }
+  }
+ ],
+ "identity": {
+  "branch": "codex/d3-object-tree-collision",
+  "code": "d9bd75dbd93f42ac106a23160696ce00aa04f48f",
+  "integration_verified_at_start": "84775522f9eb9c7182ff89f75387115b9e3883fd",
+  "metadata_commit": "the commit that adds this pack (recorded in STATUS.md and the card; it cannot name itself)",
+  "parent_and_baseline": "071f8dd524cf38a3de0e9da74733650a3a45a2d5",
+  "pr": 109,
+  "sealed_runtime_681_reused_for_prior_actuals_not_for_this_source": "681ccfe5476a7c0a90036bc01cd054358c751162",
+  "worktree": "R:/d3-evidence/collision-characterization-20261029"
+ },
+ "input_maps": {
+  "before_after_identical": true,
+  "file_count": 3954,
+  "fingerprint": "4e93c43929ad45084be6479f98b9af97dfa231b6d2f137e64162ca74dc23208d",
+  "sha256": "56148069b7a57b8d9d68dde05344f169809835844bd9dc3b1a6cd02aad0e87c2"
+ },
+ "intentional_pin_changes": [
+  "roster.rs unit test: a withdrawn city restores only with the built box; the parked record, its continuation and its release are asserted",
+  "eech_entity_dialogue_check.c: a removal answered with a valid key is handed to the caller (refused there for a non-city); a building removal answered with another list is refused as naming another list",
+  "entity_roster_guard.rs: the place_child_remove name-drop condition and the new release guard",
+  "entity_authority.rs: the first invalid scan phase is 17; a name that is no key on a removal is the single fault, a valid record name is none"
+ ],
+ "iterations_between_red_and_final": [
+  {
+   "actual_exit": 101,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard",
+   "completed_utc": "2026-11-06T20:10:37.666519+00:00",
+   "label": "green1-engine",
+   "results": [
+    {
+     "binary": "entity_dialogue",
+     "failed": 1,
+     "passed": 0,
+     "status": "FAILED"
+    }
+   ],
+   "stderr": {
+    "bytes": 391,
+    "sha256": "1b4f193d0b982f60bbbd1dee3df9f5909121d083fc28aee55553b4a8995e403a"
+   },
+   "stdout": {
+    "bytes": 2573,
+    "sha256": "adf0c1e59734e99e790e4ff6d178fba9737a09612ac31a330f6c643078fc0e2a"
+   }
+  },
+  {
+   "actual_exit": 101,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --lib --test entity_roster_host --test city_box_lifecycle --test entity_authority --test entity_candidate_host",
+   "completed_utc": "2026-11-06T20:10:43.644848+00:00",
+   "label": "green1-world",
+   "results": [
+    {
+     "binary": "src/lib.rs",
+     "failed": 1,
+     "passed": 371,
+     "status": "FAILED"
+    }
+   ],
+   "stderr": {
+    "bytes": 349,
+    "sha256": "7a62ff930c645c3d8518711ce480a621c95e2abc0f1e10bb3dd013b0563884d7"
+   },
+   "stdout": {
+    "bytes": 38678,
+    "sha256": "7ec3742bf872718773327d94b167a4c347f451c8869ce4bb2f32441d4e3d21ba"
+   }
+  },
+  {
+   "actual_exit": 101,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard",
+   "completed_utc": "2026-11-06T20:14:27.544690+00:00",
+   "label": "green2-engine",
+   "results": [
+    {
+     "binary": "entity_dialogue",
+     "failed": 0,
+     "passed": 1,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_host_guard",
+     "failed": 0,
+     "passed": 5,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_roster_guard",
+     "failed": 1,
+     "passed": 17,
+     "status": "FAILED"
+    }
+   ],
+   "stderr": {
+    "bytes": 641,
+    "sha256": "0b40a75cf913cd48225bba874770cac7b8636fc2a8abf3f6e339e9e1a20a810a"
+   },
+   "stdout": {
+    "bytes": 3717,
+    "sha256": "6cf1b38c1d8531248128f04ab502c967b39a02e1ad368bdbf32d7853751205de"
+   }
+  },
+  {
+   "actual_exit": 101,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --lib --test entity_roster_host --test city_box_lifecycle --test entity_authority --test entity_candidate_host",
+   "completed_utc": "2026-11-06T20:14:33.152406+00:00",
+   "label": "green2-world",
+   "results": [
+    {
+     "binary": "src/lib.rs",
+     "failed": 0,
+     "passed": 373,
+     "status": "ok"
+    },
+    {
+     "binary": "city_box_lifecycle",
+     "failed": 0,
+     "passed": 6,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_authority",
+     "failed": 1,
+     "passed": 95,
+     "status": "FAILED"
+    }
+   ],
+   "stderr": {
+    "bytes": 14374,
+    "sha256": "f024da8971448aaa0d429f64973ee47b954762d4e074f3bc5fc17aa76d8887ed"
+   },
+   "stdout": {
+    "bytes": 50786,
+    "sha256": "e8caba411d0f2b1ddf75802e61f5e5eafa0ab98417ab890a16d33ed54c6e79b9"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard",
+   "completed_utc": "2026-11-06T20:15:57.472123+00:00",
+   "label": "green3-engine",
+   "results": [
+    {
+     "binary": "entity_dialogue",
+     "failed": 0,
+     "passed": 1,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_host_guard",
+     "failed": 0,
+     "passed": 5,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_roster_guard",
+     "failed": 0,
+     "passed": 19,
+     "status": "ok"
+    }
+   ],
+   "stderr": {
+    "bytes": 558,
+    "sha256": "322af1d2e6b7dadf3204b6da445a95d484248b4cc749bb5f2176fc97d09cf7bc"
+   },
+   "stdout": {
+    "bytes": 3154,
+    "sha256": "9df1539f9407c63f77e96a2f3d67f9e55ad2f5e3d31683625c2e15a56b979680"
+   }
+  },
+  {
+   "actual_exit": 101,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --lib --test entity_roster_host --test city_box_lifecycle --test entity_authority --test entity_candidate_host",
+   "completed_utc": "2026-11-06T20:16:01.569955+00:00",
+   "label": "green3-world",
+   "results": [
+    {
+     "binary": "src/lib.rs",
+     "failed": 0,
+     "passed": 373,
+     "status": "ok"
+    },
+    {
+     "binary": "city_box_lifecycle",
+     "failed": 0,
+     "passed": 6,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_authority",
+     "failed": 1,
+     "passed": 95,
+     "status": "FAILED"
+    }
+   ],
+   "stderr": {
+    "bytes": 14461,
+    "sha256": "a876011aa403cc846067f87492d5643b83eedcf10c825fd77062ca009ec16128"
+   },
+   "stdout": {
+    "bytes": 54968,
+    "sha256": "aa24a4baa7b717dd0702e8116975ce5b8e8f183985c7b0d8466abe3331238ef5"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --lib --test entity_roster_host --test city_box_lifecycle --test entity_authority --test entity_candidate_host",
+   "completed_utc": "2026-11-06T20:16:52.350845+00:00",
+   "label": "green4-world",
+   "results": [
+    {
+     "binary": "src/lib.rs",
+     "failed": 0,
+     "passed": 373,
+     "status": "ok"
+    },
+    {
+     "binary": "city_box_lifecycle",
+     "failed": 0,
+     "passed": 6,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_authority",
+     "failed": 0,
+     "passed": 97,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_candidate_host",
+     "failed": 0,
+     "passed": 13,
+     "status": "ok"
+    },
+    {
+     "binary": "entity_roster_host",
+     "failed": 0,
+     "passed": 18,
+     "status": "ok"
+    }
+   ],
+   "stderr": {
+    "bytes": 14639,
+    "sha256": "c52df13513fe8620fd00956bda47d6ef96da7c3013a84af275801f3cb21295e1"
+   },
+   "stdout": {
+    "bytes": 54079,
+    "sha256": "871779eb80065bcde76c603f15350bb11f37a88527da380869e21c0f672904e0"
+   }
+  }
+ ],
+ "not_changed": [
+  "campaign classification and policy",
+  "the box arithmetic (ModelStore::city_box_expand)",
+  "the first statement of a city the host never built a box for (the campaign's own initial box)",
+  "the original-fixture build",
+  "campaign.lua and every other production root"
+ ],
+ "original_behavior": [
+  "a city record ended with its last placement AND its list: an empty city's relink was a removal and a new insertion, a new record that held none and accepted the campaign's mirror of the box the host built",
+  "a record whose state the host withdrew (diagnostic) accepted ANY box on the restoring statement",
+  "a held city state refused a different box (unchanged)"
+ ],
+ "red": {
+  "c_dialogue": {
+   "actual_exit": 101,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue",
+   "completed_utc": "2026-11-06T20:08:12.989108+00:00",
+   "label": "red-c",
+   "results": [
+    {
+     "binary": "entity_dialogue",
+     "failed": 1,
+     "passed": 0,
+     "status": "FAILED"
+    }
+   ],
+   "stderr": {
+    "bytes": 391,
+    "sha256": "fc262ce9437c4bc2a2ad10f6d381e8c3c2d4dc824845612560cd1894db0e5bac"
+   },
+   "stdout": {
+    "bytes": 2960,
+    "sha256": "aabc0b5ad9b09d933cf2f6ee2034cfddb9c06f4611cad35b87199f6b00074f8f"
+   }
+  },
+  "how": "city_box_lifecycle against the unchanged production (5 of 6 failed: no retained name, a stale box accepted over a withdrawn state, the release phase unsupported; the legacy test passed); the FIRST version of the C dialogue check against the baseline C headers by git stash of only the four production headers, then a verified pop (stash list empty): 14 expectations failed, 13 of the new retention cases and one pin later reverted (the harness entity there is no city type); the final check was not re-run against the baseline",
+  "wire": {
+   "actual_exit": 101,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test city_box_lifecycle",
+   "completed_utc": "2026-11-06T20:00:44.792540+00:00",
+   "label": "red-wire",
+   "results": [
+    {
+     "binary": "city_box_lifecycle",
+     "failed": 5,
+     "passed": 1,
+     "status": "FAILED"
+    }
+   ],
+   "stderr": {
+    "bytes": 384,
+    "sha256": "cf7cf4085a48050ccade1713eb71e8510a4f6a303183ebe4c440dc4e9880d886"
+   },
+   "stdout": {
+    "bytes": 3131,
+    "sha256": "7d90eab79087eec7279194888e09421a56d9d227bbc04c85bdba980bd4ee1c7d"
+   }
+  }
+ },
+ "requirement": "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION: an actual empty-CITY relink/restore must retain or authorize the Host-built box without Core's mirror as its sole source and without replacing a valid legacy path with refusal",
+ "schema": "d3.task49.city-box-lifecycle.code-frozen.v1",
+ "status": "UNREVIEWED CODE_FROZEN: source and Linux checks only; no native actual, no independent review, no CI of this head, no SourceClearance, no acceptance"
+}

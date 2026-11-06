@@ -1,0 +1,50 @@
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs:1222:
+     assert_eq!(members.iter().position(|member| *member == "CAMPAIGN_SCAN_PHASE_CITY_EXPAND"), Some(15));
+     assert_eq!(members.iter().position(|member| *member == "CAMPAIGN_SCAN_PHASE_CITY_RELEASE"), Some(16));
+     let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+-    let read = |relative: &str| String::from_utf8_lossy(&std::fs::read(repo.join(relative)).unwrap_or_else(|e| panic!("{relative}: {e}"))).replace("\r\n", "\n");
++    let read =
++        |relative: &str| String::from_utf8_lossy(&std::fs::read(repo.join(relative)).unwrap_or_else(|e| panic!("{relative}: {e}"))).replace("\r\n", "\n");
+     assert_eq!(f32::from_bits(0x4180_0000), 16.0, "the phase word of 16.0");
+-    assert!(read("crates/eech-world/src/model_host.rs").contains("const ROSTER_RELEASE: u32 = 0x4180_0000;"), "the provider classifies the release as phase 16.0");
+-    assert!(read("crates/eech-world/lua/entity-authority.lua").contains("[\"0x41800000\"] = 16"), "the driver script classifies the release as phase 16");
++    assert!(
++        read("crates/eech-world/src/model_host.rs").contains("const ROSTER_RELEASE: u32 = 0x4180_0000;"),
++        "the provider classifies the release as phase 16.0"
++    );
++    assert!(
++        read("crates/eech-world/lua/entity-authority.lua").contains("[\"0x41800000\"] = 16"),
++        "the driver script classifies the release as phase 16"
++    );
+ 
+     let map = source("entity/mobile/mb_hostplacemap.h");
+     let release = &map[map.find("static void place_release_entity").unwrap()..map.find("static void place_reset").unwrap()];
+Diff in /src/eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs:1235:
+         "place_list_of_slot [index][0] = 0;",
+         "mb_hostplacemap.h place_release_entity",
+     );
+-    assert!(release.contains("CAMPAIGN_PLACE_CITY (CAMPAIGN_PLACE_TYPE (en))"), "only a city entity states a release");
++    assert!(
++        release.contains("CAMPAIGN_PLACE_CITY (CAMPAIGN_PLACE_TYPE (en))"),
++        "only a city entity states a release"
++    );
+     let remove = &map[map.find("static void place_remove").unwrap()..map.find("static void place_child_insert").unwrap()];
+-    assert!(remove.contains("place_retain_record (en, slot, answered);"), "a removal keeps only the name the host answered");
++    assert!(
++        remove.contains("place_retain_record (en, slot, answered);"),
++        "a removal keeps only the name the host answered"
++    );
+     let retain = &map[map.find("static void place_retain_record").unwrap()..map.find("// `en` was inserted at the head of a sector's list").unwrap()];
+-    assert!(retain.contains("CAMPAIGN_PLACE_CITY (CAMPAIGN_PLACE_TYPE (en))") && retain.contains("debug_fatal"), "a name for an entity that is no city stops the engine");
++    assert!(
++        retain.contains("CAMPAIGN_PLACE_CITY (CAMPAIGN_PLACE_TYPE (en))") && retain.contains("debug_fatal"),
++        "a name for an entity that is no city stops the engine"
++    );
+     let declare = &map[map.find("static void place_declare").unwrap()..map.find("static void place_fixed_state").unwrap()];
+-    assert!(declare.contains("else if (place_key_of_slot [slot][0] && place_list_of_slot [slot][0])"), "a placement that holds the record's name is declared to continue it");
++    assert!(
++        declare.contains("else if (place_key_of_slot [slot][0] && place_list_of_slot [slot][0])"),
++        "a placement that holds the record's name is declared to continue it"
++    );
+ }
+ 

@@ -1,0 +1,5 @@
+wsl: Failed to translate 'R:\d3-evidence'
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.66s
+     Running tests/city_box_lifecycle.rs (/target/x86_64-unknown-linux-gnu/debug/deps/city_box_lifecycle-f93e9dc673a8f213)
+error: test failed, to rerun pass `-p eech-world --test city_box_lifecycle`
