@@ -1076,6 +1076,8 @@ const WPN_REPORT_CAPACITY: usize = 160 * 1024;
 /// given (csrc/eech_mq_report.h), and refuses by name otherwise.
 #[cfg(feature = "weapon-fixture")]
 const WPN_MOVING_QUERY_REPORT_CAPACITY: usize = 4096;
+/// The report capacity of the CITY box lifecycle witness: the C entry refuses a smaller buffer, and its worst-case report (selection, two answers, relink and result lines) is well inside it.
+const WPN_CITY_LIFECYCLE_REPORT_CAPACITY: usize = 4096;
 
 /// TEST-ONLY (feature `env-fixture`): room for one case of the session environment characterisation; a report that does not fit is refused by the engine, never cut short.
 #[cfg(feature = "env-fixture")]
@@ -7352,6 +7354,17 @@ impl Engine {
         // SAFETY: the buffer outlives the call and the capacity passed is the buffer length; the engine NUL-terminates it.
         let status = check(unsafe { sys::eech_engine_wpn_moving_query_run(text.as_mut_ptr(), text.len() as i32) });
         // the case's named refusal survives the bridge; a fatal or poisoned engine is reported without its buffer being read
+        keep_case_reason(status, &text)
+    }
+
+    /// TEST-ONLY (feature `weapon-fixture`, EEDCS-49 D3, REQUIRED_CITY_BOX_LIFECYCLE_RETENTION): drives ONE real bound city through the campaign's own shared services (drain, empty relink and restore, relist) with the
+    /// production entity query before and after (see `csrc/eech_wpn_fixture.c`), as `key=value` text. A prerequisite that does not hold is `wpn-city-lifecycle-unreached reason=...` (returned normally, never a pass); the
+    /// witness is terminal and is never followed by a physical run. The host's answers are the model provider's own; a refusal stops the engine by name.
+    #[cfg(feature = "weapon-fixture")]
+    pub fn wpn_city_lifecycle(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; WPN_CITY_LIFECYCLE_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is the buffer length; the engine NUL-terminates it.
+        let status = check(unsafe { sys::eech_engine_wpn_city_lifecycle(text.as_mut_ptr(), text.len() as i32) });
         keep_case_reason(status, &text)
     }
 

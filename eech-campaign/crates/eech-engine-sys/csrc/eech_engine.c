@@ -1520,6 +1520,7 @@ extern int eech_wpn_case_kind_run (const char *host_id, char *text, int capacity
 extern int eech_wpn_case_launch_run (const char *launcher_id, const char *target_id, int weapon, int salvo_count, char *text, int capacity);
 extern int eech_wpn_moving_query_prepare_run (const char *host_id, char *text, int capacity);
 extern int eech_wpn_moving_query_run (char *text, int capacity);
+extern int eech_wpn_city_lifecycle_run (char *text, int capacity);
 
 int eech_engine_cmb_case_state (int op, const char *kind, int ordinal, int percent, char *text, int capacity, const struct eech_engine_host *host)
 {
@@ -1737,6 +1738,26 @@ int eech_engine_wpn_moving_query_run (char *text, int capacity)
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
 	if (eech_wpn_moving_query_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/* TEST-ONLY CITY box lifecycle witness (eech_wpn_fixture.c, REQUIRED_CITY_BOX_LIFECYCLE_RETENTION): one real bound city drained, relinked empty and restored, relisted and queried through the real shared services, against
+   the model provider installed at boot; a prerequisite that does not hold is reported in the text and returns normally, never as a pass */
+int eech_engine_wpn_city_lifecycle (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_wpn_city_lifecycle_run (text, capacity) != 0)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}

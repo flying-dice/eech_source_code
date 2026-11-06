@@ -1248,17 +1248,102 @@ fn the_city_release_is_the_phase_the_provider_and_the_driver_classify_and_the_ca
     );
     let remove = &map[map.find("static void place_remove").unwrap()..map.find("static void place_child_insert").unwrap()];
     assert!(
-        remove.contains("place_retain_record (en, slot, answered);"),
+        remove.contains("place_retain_record (slot, answered);"),
         "a removal keeps only the name the host answered"
+    );
+    // the acknowledgement is validated BEFORE any key is forgotten or any list name written (a pure check, then the commit)
+    before(
+        remove,
+        "place_check_retained (en, slot, answered);",
+        "place_forget_key (slot, 0);",
+        "mb_hostplacemap.h place_remove",
+    );
+    before(
+        remove,
+        "place_forget_key (slot, 0);",
+        "place_retain_record (slot, answered);",
+        "mb_hostplacemap.h place_remove",
+    );
+    let child_remove = &map[map.find("static void place_child_remove").unwrap()..map.find("static void place_release_entity").unwrap()];
+    before(
+        child_remove,
+        "the campaign's city does not hold\", answered, slot);",
+        "place_forget_key (slot, 1);",
+        "mb_hostplacemap.h place_child_remove",
+    );
+    let check = &map[map.find("static void place_check_retained").unwrap()..map.find("static void place_retain_record").unwrap()];
+    assert!(
+        check.contains("CAMPAIGN_PLACE_CITY (CAMPAIGN_PLACE_TYPE (en))")
+            && check.contains("debug_fatal")
+            && check.contains("strcmp (place_key_of_slot [slot], name)"),
+        "a name for an entity that is no city, or for another city's record, stops the engine"
     );
     let retain = &map[map.find("static void place_retain_record").unwrap()..map.find("// `en` was inserted at the head of a sector's list").unwrap()];
     assert!(
-        retain.contains("CAMPAIGN_PLACE_CITY (CAMPAIGN_PLACE_TYPE (en))") && retain.contains("debug_fatal"),
-        "a name for an entity that is no city stops the engine"
+        !retain.contains("debug_fatal"),
+        "the commit validates nothing: it only writes what the check accepted"
     );
     let declare = &map[map.find("static void place_declare").unwrap()..map.find("static void place_fixed_state").unwrap()];
     assert!(
         declare.contains("else if (place_key_of_slot [slot][0] && place_list_of_slot [slot][0])"),
         "a placement that holds the record's name is declared to continue it"
+    );
+}
+
+/// The CITY box lifecycle witness (`eech_wpn_fixture.c`, feature `weapon-fixture`) reaches the changed Core placement map ONLY through the campaign's own shared services, and never asks or answers the host itself. Read from the source:
+///
+///  1. it drains and relists the city's buildings with the real list funnel and relinks the city with the shared fixed-position setter, and asks the unchanged production entity query;
+///  2. it makes no host question of its own: no `campaign_model_` call and no `campaign_place_` call but the read-only key lookup, and it declares itself terminal;
+///  3. the engine entry, the raw binding, the Rust wrapper and the Lua method name the same function, all under the weapon-fixture gate, so no default or shipping build holds it.
+#[test]
+fn the_city_lifecycle_witness_uses_only_the_real_shared_services_and_asks_the_host_nothing_itself() {
+    let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let read =
+        |relative: &str| String::from_utf8_lossy(&std::fs::read(repo.join(relative)).unwrap_or_else(|e| panic!("{relative}: {e}"))).replace("\r\n", "\n");
+    let fixture = read("crates/eech-engine-sys/csrc/eech_wpn_fixture.c");
+    let start = fixture.find("#define CL_MAX_BUILDINGS").expect("the witness");
+    let witness = &fixture[start..];
+    for needed in [
+        "delete_local_entity_from_parents_child_list (buildings[i], LIST_TYPE_CITY_BUILDING)",
+        "insert_local_entity_into_parents_child_list (buildings[i], LIST_TYPE_CITY_BUILDING, city, NULL)",
+        "set_local_entity_vec3d (city, VEC3D_TYPE_POSITION, &moved)",
+        "set_local_entity_vec3d (city, VEC3D_TYPE_POSITION, &position)",
+        "get_line_of_sight_collision_entity (NULL, NULL, &a, &b, &point, &normal)",
+        "terminal=1",
+    ] {
+        assert!(witness.contains(needed), "the witness lacks `{needed}`");
+    }
+    assert!(!witness.contains("campaign_model_"), "the witness asks the host nothing itself");
+    for line in witness.lines().filter(|line| line.contains("campaign_place_")) {
+        assert!(
+            line.contains("campaign_place_key ("),
+            "the witness calls no placement hook but the key lookup: {line}"
+        );
+    }
+    assert!(
+        fixture[..start].contains("#ifdef EECH_WEAPON_FIXTURE"),
+        "the witness is inside the weapon-fixture gate"
+    );
+    assert!(
+        witness.contains("#ifdef EECH_CAMPAIGN_HOST_ENTITY") && witness.contains("not_a_host_asking_build"),
+        "the Original-like build reports the witness unreached"
+    );
+    let engine = read("crates/eech-engine-sys/csrc/eech_engine.c");
+    assert!(
+        engine.contains("eech_wpn_city_lifecycle_run (text, capacity)") && engine.contains("int eech_engine_wpn_city_lifecycle (char *text, int capacity)")
+    );
+    assert!(read("crates/eech-engine-sys/src/lib.rs").contains("pub fn eech_engine_wpn_city_lifecycle(text: *mut c_char, capacity: c_int) -> c_int;"));
+    let wrapper = read("crates/eech-engine/src/lib.rs");
+    let at = wrapper.find("pub fn wpn_city_lifecycle(&self)").expect("the wrapper");
+    assert!(
+        wrapper[..at].rfind("#[cfg(feature = \"weapon-fixture\")]").is_some_and(|gate| at - gate < 80),
+        "the wrapper is gated"
+    );
+    let module = std::fs::read(repo.join("crates/eech-dc/src/module.rs")).expect("module.rs");
+    let module = String::from_utf8_lossy(&module);
+    let at = module.find("methods.add_method(\"wpn_city_lifecycle\"").expect("the Lua method");
+    assert!(
+        module[..at].rfind("#[cfg(feature = \"weapon-fixture\")]").is_some_and(|gate| at - gate < 80),
+        "the Lua method is gated"
     );
 }

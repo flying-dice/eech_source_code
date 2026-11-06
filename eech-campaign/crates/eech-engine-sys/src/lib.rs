@@ -1900,6 +1900,7 @@ extern "C" {
     pub fn eech_engine_wpn_case_kind(host_id: *const c_char, text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_wpn_moving_query_prepare(host_id: *const c_char, text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_wpn_moving_query_run(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_wpn_city_lifecycle(text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_wpn_case_launch(
         launcher_id: *const c_char,
         target_id: *const c_char,

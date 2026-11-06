@@ -456,9 +456,10 @@ static const char *place_key (CAMPAIGN_PLACE_ENTITY *en, int child)
 }
 
 // The host named the record it keeps for the bounding box it built when it answered the removal of a city's placement (or of the last building listed under a placement-less city): the city has nothing else
-// that would hold the box, and the campaign's mirror must never be its only copy. Only a city can hold one, and the name is the city's own list name when it already holds one; the name stays until the next
-// placement of the city is declared to continue the record (place_declare) and until the city entity is released (place_release_entity).
-static void place_retain_record (CAMPAIGN_PLACE_ENTITY *en, int slot, const char *name)
+// that would hold the box, and the campaign's mirror must never be its only copy. The acknowledgement is VALIDATED here, before the caller changes anything (a key forgotten, a list name written): only a city can
+// hold such a record, and the record named is the city's own. A city that already holds a list anchor is named by exactly that anchor; a city with none holds only its own placement, so the one record it can be
+// named by is that placement's key (the record the host made at the insertion), never the name of any other live or parked city's record.
+static void place_check_retained (CAMPAIGN_PLACE_ENTITY *en, int slot, const char *name)
 {
 	if (!CAMPAIGN_PLACE_CITY (CAMPAIGN_PLACE_TYPE (en)))
 	{
@@ -471,11 +472,20 @@ static void place_retain_record (CAMPAIGN_PLACE_ENTITY *en, int slot, const char
 		{
 			debug_fatal ("host roster: the host named the record %.40s for the city %d, which holds the record %.40s", name, slot, place_list_of_slot [slot]);
 		}
-
-		return;
 	}
+	else if (strcmp (place_key_of_slot [slot], name) != 0)
+	{
+		debug_fatal ("host roster: the host named the record %.40s for the city %d, which holds no record but its own placement %.40s", name, slot, place_key_of_slot [slot]);
+	}
+}
 
-	memcpy (place_list_of_slot [slot], name, strlen (name) + 1);
+// The validated acknowledgement is committed: the record's name is the city's list name until the next placement continues the record (place_declare) and until the city entity is released (place_release_entity).
+static void place_retain_record (int slot, const char *name)
+{
+	if (!place_list_of_slot [slot][0])
+	{
+		memcpy (place_list_of_slot [slot], name, strlen (name) + 1);
+	}
 }
 
 // `en` was inserted at the head of a sector's list: the host places it and answers the key it issued.
@@ -550,13 +560,19 @@ static void place_remove (CAMPAIGN_PLACE_ENTITY *en)
 
 	campaign_model_entity_roster (CAMPAIGN_SCAN_PHASE_REMOVE, CAMPAIGN_PLACE_TYPE (en), 0.0f, NULL, place_key_of_slot [slot], answered);
 
+	// a named record is validated BEFORE any key or list name is changed
+	if (answered [0])
+	{
+		place_check_retained (en, slot, answered);
+	}
+
 	place_forget_key (slot, 0);
 
 	// the city's placement leaves: with buildings listed the host's record stays (the next placement continues it); the host may keep it for the bounding box it built and then names it (the name stays, and the next
 	// placement continues the record); with neither the record ends with this placement, and so does its name
 	if (answered [0])
 	{
-		place_retain_record (en, slot, answered);
+		place_retain_record (slot, answered);
 	}
 	else if (place_listed_of_slot [slot] <= 0)
 	{
@@ -715,13 +731,19 @@ static void place_child_remove (CAMPAIGN_PLACE_ENTITY *en)
 
 	campaign_model_entity_city (CAMPAIGN_SCAN_PHASE_CHILD_REMOVE, CAMPAIGN_PLACE_TYPE (en), identity, answered);
 
+	// a record the host names for the removal must be the list of a city the campaign still holds: validated BEFORE the building's key is forgotten or any list name changes
+	city = place_city_of_slot [slot] - 1;
+
+	if (answered [0] && !((city >= 0) && place_list_of_slot [city][0] && (strcmp (place_list_of_slot [city], answered) == 0)))
+	{
+		debug_fatal ("host roster: the host named the record %.40s for the removal of the building %d, which the campaign's city does not hold", answered, slot);
+	}
+
 	place_forget_key (slot, 1);
 
 	// the city loses a building (a city that was released with buildings still listed no longer holds the list, and a slot that holds another city's list is not this one's).  The name is the host's RECORD's, which
 	// lives while the city holds a sector placement or a building is listed: with the last building gone the city keeps the name while it stays placed (a building listed again, or a relink, still names that
 	// record) and drops it when it holds no placement either, which is when the host's record ends
-	city = place_city_of_slot [slot] - 1;
-
 	if ((city >= 0) && place_list_of_slot [city][0] && (strcmp (place_list_of_slot [city], place_parent_of_slot [slot]) == 0))
 	{
 		place_listed_of_slot [city]--;
@@ -738,11 +760,6 @@ static void place_child_remove (CAMPAIGN_PLACE_ENTITY *en)
 
 			place_unname_ended (city);
 		}
-	}
-
-	if (answered [0] && !((city >= 0) && place_list_of_slot [city][0] && (strcmp (place_list_of_slot [city], answered) == 0)))
-	{
-		debug_fatal ("host roster: the host named the record %.40s for the removal of the building %d, which the campaign's city does not hold", answered, slot);
 	}
 
 	place_parent_of_slot [slot][0] = 0;

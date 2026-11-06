@@ -191,6 +191,7 @@ local function reference (op, scene, depth, kind, definition, key)
 			if scenario.bad_real_expand == "commas" then answer.p = "0xc0800000,,,0xc1200000,,,0xc0000000,,,0x40000000,,,0x40000000,,," end
 			if scenario.bad_real_expand == "signed" then answer.p = "0xc0800000,0x+1234567,0xc0000000,0x40000000,0x40000000,0x40c00000" end
 			if scenario.bad_real_expand == "blank" then answer.p = "0xc0800000,0x 1234567,0xc0000000,0x40000000,0x40000000,0x40c00000" end
+			if answer.result == "expanded" and scenario.real_scan and city ~= nil then ROSTER_BOX (city, answer.p) end
 			EXPAND_LOG [#EXPAND_LOG + 1] = { phase = phase, result = answer.result, name = answer.name or "", identity = identity }
 		elseif scenario.real_scan then
 			-- the REAL provider (eech-world's model_host with its own SectorRoster, registered by the test as REAL_HOST): every question of the scan and the roster is answered by it
@@ -608,7 +609,7 @@ package.preload.eech_dc = function ()
 			end
 			-- a CITY event (the buildings of a city: phases 7 to 12): every fact is zero but the phase and an insertion's entity type; the identity place holds the keys. The host's answer comes back unaltered; a refusal
 			-- is the bridge's own fatal with the host's reason
-			local CITY_PHASES = { child_insert = "0x40e00000", child_remove = "0x41000000", child_first = "0x41100000", child_next = "0x41200000", link = "0x41300000", name = "0x41400000" }
+			local CITY_PHASES = { child_insert = "0x40e00000", child_remove = "0x41000000", child_first = "0x41100000", child_next = "0x41200000", link = "0x41300000", name = "0x41400000", release = "0x41800000" }
 			local function city_event (kind, identity)
 				local words = {}
 				for index = 1, 16 do words [index] = ZERO end
@@ -756,6 +757,24 @@ package.preload.eech_dc = function ()
 					city_expand_request (roster_key, child)
 					return
 				end
+				-- the city entity is released while a building is still listed: the placement leaves, the campaign states the release by the list's name, and the building drains through its own removal (the supported
+				-- positive); a continuation of the released record after the release (a new placement linked to it) is a request fault, never a valid path
+				if layout == "release_drain" or layout == "release_continue" then
+					local child = city_event ("child_insert", roster_key).name
+					building_report (child)
+					local anchor = roster_key
+					roster_event ("remove")
+					city_event ("release", anchor)
+					if layout == "release_continue" then
+						roster_event ("insert")
+						city_event ("link", roster_key .. " " .. anchor)
+						return
+					end
+					city_event ("child_remove", anchor .. " " .. child)
+					roster_event ("insert")
+					sentinel_city_report (roster_key)
+					return
+				end
 				-- an EMPTY city's relink is a removal and a new insertion with no list to continue: the first building is listed under the new placement
 				if layout == "empty_relink" then
 					roster_event ("remove")
@@ -777,6 +796,62 @@ package.preload.eech_dc = function ()
 					city_children [#city_children + 1] = child
 					building_report (child)
 					city_expand_request (roster_key, child)
+				end
+			end
+			-- the CITY_STATE report a placement states with the campaign's MIRROR of the box the host built (the scripted expansion's answer): position, box minimum and maximum, the sub type CITY
+			local function mirror_city_report (key_of)
+				local words = {}
+				for index = 1, 16 do words [index] = ZERO end
+				words [1], words [2], words [3] = OLD_W [1], OLD_W [2], OLD_W [3]
+				local box = {}
+				for word in string.gmatch (scenario.expanded_p or "0xc0800000,0xc1200000,0xc0000000,0x40000000,0x40000000,0x40c00000", "[^,]+") do box [#box + 1] = word end
+				words [4], words [5], words [6], words [7], words [8], words [9], words [11], words [12] = box [1], box [2], box [3], box [4], box [5], box [6], "0x40800000", "0x41600000"
+				local ok, answer = ask_model ("entity_scan", 0, nil, nil, nil, table.concat (words, ",") .. " " .. key_of, true)
+				if not ok then stop ("entity_scan.callback", tostring (answer)) end
+				if type (answer) == "table" and answer.result == "refused" then stop ("entity_scan.refused", tostring (answer.reason)) end
+				if type (answer) ~= "table" or answer.result ~= "placed" then stop ("entity_scan.state", "a city state report allows only placed") end
+			end
+			if scenario.lifecycle_api then
+				-- the report the C witness writes (eech_wpn_fixture.c) for one selected city, in its five lines; the scripted one makes the same lifecycle events (drain, two empty relinks, relist) through the same real provider
+				function engine:wpn_city_lifecycle ()
+					if scenario.lifecycle_report == "unreached" then return "wpn-city-lifecycle-unreached reason=no_bound_city_with_a_built_box_and_buildings\n" end
+					if scenario.lifecycle_report == "malformed" then return "wpn-city-lifecycle-selected buildings=1\n" end
+					-- the city entity released while its building is still listed (the removal of its placement, then the release by the list's name): the building drains by its own removal (a supported path), or a new placement is linked to the released record (never valid)
+					if scenario.lifecycle_report == "release_drain" or scenario.lifecycle_report == "release_continue" then
+						local list = city_list or roster_key
+						local anchor = roster_key
+						roster_event ("remove")
+						city_event ("release", anchor)
+						if scenario.lifecycle_report == "release_continue" then
+							roster_event ("insert")
+							city_event ("link", roster_key .. " " .. anchor)
+						end
+						for index = 1, #city_children do city_event ("child_remove", list .. " " .. city_children [index]) end
+						return "wpn-city-lifecycle-unreached reason=no_bound_city_with_a_built_box_and_buildings\n"
+					end
+					local list = city_list or roster_key
+					local anchor = roster_key
+					for index = 1, #city_children do city_event ("child_remove", list .. " " .. city_children [index]) end
+					for _ = 1, 2 do
+						roster_event ("remove")
+						roster_event ("insert")
+						city_event ("link", roster_key .. " " .. anchor)
+						mirror_city_report (roster_key)
+					end
+					for index = #city_children, 1, -1 do
+						local child = city_event ("child_insert", anchor).name
+						city_children [index] = child
+						building_report (child)
+						city_expand_request (roster_key, child)
+					end
+					local box = "0xc0800000,0xc1200000,0xc0000000"
+					return table.concat ({
+						"wpn-city-lifecycle-selected buildings=" .. #city_children .. " box_min=" .. box .. " box_max=0x40000000,0x40000000,0x40c00000 host_keyed=1",
+						"wpn-city-lifecycle-query phase=before hit=1 kind=ENTITY_TYPE_CITY_BUILDING point=0x00000001,0x00000002,0x00000003 normal=0x00000000,0x3f800000,0x00000000",
+						"wpn-city-lifecycle-relink empty_keyed=1 empty_key_changed=1 restored_keyed=1 restored_key_changed=1",
+						"wpn-city-lifecycle-query phase=after hit=1 kind=ENTITY_TYPE_CITY_BUILDING point=0x00000001,0x00000002,0x00000003 normal=0x00000000,0x3f800000,0x00000000",
+						"wpn-city-lifecycle-result query_equal=1 list_order_restored=1 mirror_box_equal=1 sector_order_changed=1 terminal=1",
+					}, "\n") .. "\n"
 				end
 			end
 			local function scan_walk (offer)
@@ -1131,6 +1206,25 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
     lua.globals().set("REAL_HOST", real_host).expect("the real host");
     let roster = std::rc::Rc::new(std::cell::RefCell::new(eech_world::roster::SectorRoster::default()));
     lua.set_app_data(eech_world::roster::SharedRoster(roster.clone()));
+    // the box the scripted expansion answered, held by the REAL roster as the host's own construction (`set_city_box`, which the real provider calls after the model store's bounds): false when the roster holds no city state for the key
+    let for_box = roster.clone();
+    let build_box = lua
+        .create_function(move |_, (key, words): (String, String)| {
+            let words: Vec<u32> = words
+                .split(',')
+                .filter_map(|word| u32::from_str_radix(word.trim_start_matches("0x"), 16).ok())
+                .collect();
+            let Some(key) = eech_world::roster::parse_key(&key) else { return Ok(false) };
+            if words.len() != 6 {
+                return Ok(false);
+            }
+            Ok(for_box
+                .borrow_mut()
+                .set_city_box(key, [words[0], words[1], words[2]], [words[3], words[4], words[5]])
+                .is_ok())
+        })
+        .expect("the roster box probe");
+    lua.globals().set("ROSTER_BOX", build_box).expect("the probe");
     // what the REAL roster holds of the fixed collision state of the sector placement a key names (a read, never a write): the scripted candidate states a withdrawn state in the provider's own words
     let hold = lua
         .create_function(move |_, (key, child): (String, Option<bool>)| {
@@ -5677,4 +5771,151 @@ fn a_city_expansion_reply_of_six_exact_patterns_is_credited_with_a_signed_zero_a
         (Value::from(2), Value::from(0)),
         "{row}"
     );
+}
+
+// The city entity's release (phase 16) is the PHYSICAL end of its record: buildings still listed drain through their own removals under the list's name (a supported path the driver must not call an ended-parent
+// fault), and nothing new continues the released record. The real provider and the driver both refuse the continuation, by name, before the continuing placement is bound.
+#[test]
+fn a_city_released_with_a_building_listed_drains_without_a_fault_and_is_never_continued() {
+    let extra = format!("{CITY_BOX}, city_box_layout = 'release_drain'");
+    let driven = drive(&healthy(&extra), &[("mode", "withdrawn_box_state")]);
+    assert!(
+        !format!("{:?}", driven.result).contains("boot failed first"),
+        "{:?} / {}",
+        driven.result,
+        driven.rows
+    );
+    let row = authority(&driven);
+    assert_eq!(
+        (row["request_faults"].as_i64().unwrap(), row["reply_faults"].as_i64().unwrap()),
+        (0, 0),
+        "{row}"
+    );
+
+    let extra = format!("{CITY_BOX}, city_box_layout = 'release_continue'");
+    let driven = drive(&healthy(&extra), &[("mode", "withdrawn_box_state")]);
+    let row = authority(&driven);
+    assert!(row["failure_line"].as_str().unwrap().contains("released with its city entity"), "{row}");
+    assert!(driven.result.is_err(), "a continuation of a released record is never a pass");
+}
+
+// The CITY box lifecycle witness modes (hosted profile). The scripted engine makes the C witness's lifecycle events through the REAL provider (whose roster the scripted expansion leaves a built box in), so the driver's
+// window counters and its two host-side interventions meet the provider's own named refusals. The consuming query itself and the placement map are the native witness's and the C dialogue check's; here the verdicts are tested.
+const LIFECYCLE: &str = ", real_scan = true, city_box = 1, lifecycle_api = true";
+
+#[test]
+fn an_unreached_city_lifecycle_report_is_unreached_and_a_malformed_one_is_a_failure_never_a_pass() {
+    let driven = drive(
+        &healthy(&format!("{LIFECYCLE}, lifecycle_report = 'unreached'")),
+        &[("mode", "city_box_lifecycle")],
+    );
+    let error = error_of(driven);
+    assert!(
+        error.contains("UNREACHED") && error.contains("no_bound_city_with_a_built_box_and_buildings"),
+        "{error}"
+    );
+    let driven = drive(
+        &healthy(&format!("{LIFECYCLE}, lifecycle_report = 'malformed'")),
+        &[("mode", "city_box_lifecycle")],
+    );
+    let error = error_of(driven);
+    assert!(error.contains("report is malformed"), "{error}");
+}
+
+#[test]
+fn the_control_is_not_credited_when_the_unchanged_query_never_read_the_cities_box() {
+    // the scripted engine asks no candidate question, so nothing was consumed: every other part of the lifecycle held, and it is still UNREACHED, never a pass
+    let driven = drive(&healthy(LIFECYCLE), &[("mode", "city_box_lifecycle")]);
+    let row = row_of(&driven, "city_lifecycle_authority");
+    assert_eq!(
+        (row["retained_answers"].as_i64().unwrap(), row["continuation_links"].as_i64().unwrap()),
+        (2, 2),
+        "{row}"
+    );
+    assert_eq!(
+        (row["request_faults"].as_i64().unwrap(), row["reply_faults"].as_i64().unwrap()),
+        (0, 0),
+        "{row}"
+    );
+    let error = error_of(driven);
+    assert!(error.contains("UNREACHED") && error.contains("read no position-and-box stage"), "{error}");
+}
+
+#[test]
+fn the_host_releasing_the_retained_record_is_refused_by_name_at_the_campaigns_continuation() {
+    let driven = drive(&healthy(LIFECYCLE), &[("mode", "city_box_lifecycle_missing")]);
+    assert!(driven.result.is_ok(), "{:?} / {}", driven.result, driven.rows);
+    let row = row_of(&driven, "city_lifecycle_authority");
+    assert_eq!(
+        (
+            row["intervention"].as_str().unwrap(),
+            row["intervened"].as_i64().unwrap(),
+            row["altered_request"].as_i64().unwrap()
+        ),
+        ("missing", 1, 0),
+        "{row}"
+    );
+    assert_eq!(
+        (row["request_faults"].as_i64().unwrap(), row["reply_faults"].as_i64().unwrap()),
+        (0, 1),
+        "{row}"
+    );
+    assert_eq!(row["completed"].as_bool(), Some(false), "{row}");
+    assert!(
+        row["failure_line"].as_str().unwrap().contains("[roster.link]") && row["failure_line"].as_str().unwrap().contains("has ended"),
+        "{row}"
+    );
+}
+
+#[test]
+fn a_changed_box_in_the_continuing_statement_is_refused_by_the_host_that_holds_the_built_box() {
+    let driven = drive(&healthy(LIFECYCLE), &[("mode", "city_box_lifecycle_changed")]);
+    assert!(driven.result.is_ok(), "{:?} / {}", driven.result, driven.rows);
+    let row = row_of(&driven, "city_lifecycle_authority");
+    assert_eq!(
+        (
+            row["intervention"].as_str().unwrap(),
+            row["intervened"].as_i64().unwrap(),
+            row["altered_request"].as_i64().unwrap()
+        ),
+        ("changed", 1, 1),
+        "{row}"
+    );
+    assert_eq!(
+        (row["request_faults"].as_i64().unwrap(), row["reply_faults"].as_i64().unwrap()),
+        (0, 1),
+        "{row}"
+    );
+    assert!(
+        row["failure_line"].as_str().unwrap().contains("[roster.city]") && row["failure_line"].as_str().unwrap().contains("not the one the host holds"),
+        "{row}"
+    );
+}
+
+// After the launch the driver's own tracker holds the released city's list until its last building is removed: a building drains by its own removal with no fault and no new insertion, and a continuation of the released
+// record is a request fault (the real provider refuses it too, by name).
+#[test]
+fn a_released_city_drains_after_the_launch_without_a_fault_and_is_never_continued() {
+    let driven = drive(
+        &healthy(&format!("{LIFECYCLE}, lifecycle_report = 'release_drain'")),
+        &[("mode", "city_box_lifecycle")],
+    );
+    let row = row_of(&driven, "city_lifecycle_authority");
+    assert_eq!(
+        (row["request_faults"].as_i64().unwrap(), row["reply_faults"].as_i64().unwrap()),
+        (0, 0),
+        "{row}"
+    );
+    assert_eq!(row["releases_in_window"].as_i64(), Some(1), "{row}");
+    let error = error_of(driven);
+    assert!(error.contains("UNREACHED"), "{error}");
+
+    let driven = drive(
+        &healthy(&format!("{LIFECYCLE}, lifecycle_report = 'release_continue'")),
+        &[("mode", "city_box_lifecycle")],
+    );
+    let row = row_of(&driven, "city_lifecycle_authority");
+    assert!(row["request_faults"].as_i64().unwrap() >= 1, "{row}");
+    assert!(row["first_fault"].as_str().unwrap().contains("released record"), "{row}");
+    assert!(driven.result.is_err(), "a continuation of a released record is never a pass");
 }

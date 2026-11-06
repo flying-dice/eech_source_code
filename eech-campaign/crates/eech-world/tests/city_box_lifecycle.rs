@@ -366,3 +366,62 @@ fn the_box_lifecycle_events_leave_the_callers_whole_floating_point_state_unchang
         }
     }
 }
+
+#[test]
+fn a_live_city_with_buildings_still_relinks_and_a_released_one_is_never_continued_while_its_children_drain() {
+    let (lua, roster) = host();
+    let key = insert(&lua, ENTITY_CITY as f32, CITY_AT);
+    assert_eq!(result(&city_state(&lua, &key, CITY_AT, INITIAL_MIN, INITIAL_MAX)), "placed");
+    let child = child_insert(&lua, &key);
+    roster
+        .borrow_mut()
+        .set_city_box(key.parse().unwrap(), bits(BUILT_MIN), bits(BUILT_MAX))
+        .unwrap();
+    // the live relink the legacy path always had: buildings are listed, so the record continues by its list (the supported positive)
+    assert_eq!(name(&remove(&lua, &key)), "", "buildings are listed: the record lives by its list");
+    let second = insert(&lua, ENTITY_CITY as f32, [2100.0, 3.0, 1100.0]);
+    assert_eq!(result(&link(&lua, &second, &key)), "placed");
+    assert_eq!(state_of(&roster, &second), FixedHold::City(built(CITY_AT)));
+    assert_eq!(name(&remove(&lua, &second)), "");
+    // the city entity is released while the building is still listed: the record is physically ended and only drains
+    assert_eq!(result(&release(&lua, &key)), "removed");
+    let third = insert(&lua, ENTITY_CITY as f32, CITY_AT);
+    let record_before = roster.borrow().record(third.parse().unwrap());
+    let late = link(&lua, &third, &key);
+    assert_eq!(result(&late), "refused", "a released record is not continued, even while a child is listed");
+    assert!(reason(&late).contains("released"), "{}", reason(&late));
+    assert_eq!(state_of(&roster, &third), FixedHold::Never, "the refused continuation transferred no state");
+    assert_eq!(
+        roster.borrow().record(third.parse().unwrap()),
+        record_before,
+        "the placement keeps its own record"
+    );
+    // the listed child still drains by the list's name, which names nothing new
+    let drained = child_remove(&lua, &key, &child);
+    assert_eq!(
+        (result(&drained), name(&drained)),
+        ("removed".to_string(), String::new()),
+        "{}",
+        reason(&drained)
+    );
+    let ended = link(&lua, &third, &key);
+    assert!(reason(&ended).contains("has ended"), "{}", reason(&ended));
+}
+
+#[test]
+fn a_parked_city_record_is_continued_only_by_a_placement_that_is_a_city() {
+    let (lua, roster) = host();
+    let key = empty_city_with_a_host_built_box(&lua, &roster);
+    assert_eq!(name(&remove(&lua, &key)), key);
+    let stranger = insert(&lua, 17.0, [1500.0, 3.0, 1500.0]);
+    let refused = link(&lua, &stranger, &key);
+    assert_eq!(result(&refused), "refused", "a placement of another family does not inherit a city's state");
+    assert!(reason(&refused).contains("not a city"), "{}", reason(&refused));
+    assert_eq!(state_of(&roster, &stranger), FixedHold::Never);
+    assert_eq!(roster.borrow().record(stranger.parse().unwrap()), Some(stranger.parse().unwrap()));
+    assert!(roster.borrow().parked(key.parse().unwrap()), "the refusal left the record parked");
+    // the city placement still continues it, with the host's box
+    let second = insert(&lua, ENTITY_CITY as f32, CITY_AT);
+    assert_eq!(result(&link(&lua, &second, &key)), "placed");
+    assert_eq!(state_of(&roster, &second), FixedHold::City(built(CITY_AT)));
+}

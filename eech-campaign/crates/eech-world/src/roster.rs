@@ -616,6 +616,20 @@ impl SectorRoster {
         if joining.child.is_some() || self.lists.get(&fresh).is_some_and(|list| !list.is_empty()) {
             return Err(Refusal::new(format!("[link] the placement {sector} already holds a city child or a list")));
         }
+        // a CITY record whose entity the campaign released is physically ended, even while released buildings are still listed (they drain through their own removals): nothing continues it
+        if held.released {
+            return Err(Refusal::new(format!(
+                "[link] the record {record} was released with its city entity: its placements, list and box are ending and nothing continues it"
+            )));
+        }
+        // a city's record is continued only by a placement that IS a city, before the placement holds any state: a placement of another family never inherits a city's state or box
+        let destination = self.entries.get(&sector).map(|entry| entry.entity_type);
+        if held.city && destination != Some(ENTITY_CITY) {
+            return Err(Refusal::new(format!(
+                "[link] the record {record} is a city's but the placement {sector} is of entity type {}, which is not a city",
+                destination.map_or_else(|| "unknown".to_string(), |entity_type| entity_type.to_string())
+            )));
+        }
         let (kept, moved) = (held.object.clone(), joining.object.clone());
         if kept.is_some() && moved.is_some() && kept != moved {
             return Err(Refusal::new("[link] the two placements are named by different object identities".to_string()));

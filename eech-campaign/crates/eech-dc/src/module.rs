@@ -3528,6 +3528,10 @@ impl LuaUserData for LuaEngine {
         });
         #[cfg(feature = "weapon-fixture")]
         methods.add_method("wpn_moving_query_run", |_, this, ()| this.engine.wpn_moving_query_run().map_err(lua_error));
+        // TEST-ONLY (feature `weapon-fixture`, EEDCS-49 D3, REQUIRED_CITY_BOX_LIFECYCLE_RETENTION): drives one real bound city through the campaign's shared drain, empty relink and restore, relist services with the
+        // production entity query before and after; terminal, never followed by a physical run; not part of the shipping module.
+        #[cfg(feature = "weapon-fixture")]
+        methods.add_method("wpn_city_lifecycle", |_, this, ()| this.engine.wpn_city_lifecycle().map_err(lua_error));
         // TEST-ONLY (feature `weapon-fixture`, EEDCS-45): one physical launch attempt through the campaign's own launch call, given the same complete host callbacks as a frame; not
         // part of the shipping module.
         #[cfg(feature = "weapon-fixture")]

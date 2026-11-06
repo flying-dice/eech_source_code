@@ -472,6 +472,8 @@ int eech_engine_wpn_case_launch (const char *launcher_id, const char *target_id,
 /* TEST-ONLY controlled moving entity query case: latch three finite segments about one routed vehicle (by roster host id), then ask the production entity query for them. */
 int eech_engine_wpn_moving_query_prepare (const char *host_id, char *text, int capacity);
 int eech_engine_wpn_moving_query_run (char *text, int capacity);
+/* TEST-ONLY CITY box lifecycle witness (eech_wpn_fixture.c): one real bound city drained, relinked empty, restored, relisted and queried; the report is key=value lines, an unreached prerequisite is reported, not an error. Terminal: never followed by a physical run. */
+int eech_engine_wpn_city_lifecycle (char *text, int capacity);
 /* The physical combat-resolution report (EEDCS-46, see eech_cmb_fixture.c): damage capability, collision, blast and repair hashes and counters; and the ordered event log,
    drained incrementally like the weapon log. Read-only. */
 int eech_engine_cmb_trace (char *text, int capacity);

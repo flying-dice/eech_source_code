@@ -3081,11 +3081,45 @@ static void city_anchor_cases (struct tc *t)
 /* ---- a city's host-built box outlives its placement: the host names the record it keeps, the campaign keeps the name, the next placement continues the record and the release of the entity ends it ---- */
 static void city_pentity (int slot, float x, float y, float z);
 
+/* the campaign's placement cache of one entity slot (its two keys, its parent and list names, the building count, the city link, the naming flag and what the reverse table finds for each key): a refused
+   acknowledgement must change NONE of it, so the canaries below take it before and compare it after the engine stopped */
+struct cache_snapshot
+{
+	char key[24], child[24], parent[24], list[24];
+	int city, listed, named, find_key, find_child;
+};
+
+static void cache_snap (int slot, struct cache_snapshot *snap)
+{
+	int kind = 0;
+
+	strcpy (snap->key, place_key_of_slot[slot]);
+	strcpy (snap->child, place_child_of_slot[slot]);
+	strcpy (snap->parent, place_parent_of_slot[slot]);
+	strcpy (snap->list, place_list_of_slot[slot]);
+	snap->city = place_city_of_slot[slot];
+	snap->listed = place_listed_of_slot[slot];
+	snap->named = place_named_of_slot[slot];
+	snap->find_key = place_key_of_slot[slot][0] ? place_find (place_key_of_slot[slot], &kind) : -2;
+	snap->find_child = place_child_of_slot[slot][0] ? place_find (place_child_of_slot[slot], &kind) : -2;
+}
+
+static int cache_same (int slot, const struct cache_snapshot *before)
+{
+	struct cache_snapshot now;
+
+	cache_snap (slot, &now);
+
+	return (strcmp (now.key, before->key) == 0) && (strcmp (now.child, before->child) == 0) && (strcmp (now.parent, before->parent) == 0) && (strcmp (now.list, before->list) == 0) &&
+		(now.city == before->city) && (now.listed == before->listed) && (now.named == before->named) && (now.find_key == before->find_key) && (now.find_child == before->find_child);
+}
+
 static void city_retention_cases (struct tc *t)
 {
-	struct pentity *city = &pheap[1], *a = &pheap[2];
+	struct pentity *city = &pheap[1], *a = &pheap[2], *other = &pheap[5];
+	struct cache_snapshot snap, snap_other;
 	char list[24], pair[200];
-	int stopped, releases;
+	int stopped, releases, kind;
 
 	city_fresh ();
 	city_pentity (1, 1100.0f, 3.0f, 1100.0f);
@@ -3154,30 +3188,72 @@ static void city_retention_cases (struct tc *t)
 	stopped = stopped || city_do (2, city, NULL, NULL);
 	EXPECT (t, !stopped && roster_asks == 1 && city_asks == 1 && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == 16 && strcmp (city_seen.host_id, list) == 0 && place_list_of_slot[city->slot][0] == 0 && place_listed_of_slot[city->slot] == 0);
 
-	/* the host names a record for the removal of an entity that is no city: the engine stops by name */
+	/* every refused acknowledgement stops the engine by name BEFORE any key, list name, count or lookup of the cache changed (the cache is snapshotted before and compared after); the coherent positives above
+	   are the same operations with the right record */
+
+	/* the host names a record for the removal of an entity that is no city */
 	city_fresh ();
 	stopped = city_do (3, a, NULL, NULL);
+	cache_snap (a->slot, &snap);
 	strcpy (roster_retain_name, "1");
 	stopped = city_do (4, a, NULL, NULL);
-	EXPECT (t, stopped && strstr (fatal_text, "no city") != NULL && place_list_of_slot[a->slot][0] == 0);
+	EXPECT (t, stopped && strstr (fatal_text, "no city") != NULL && cache_same (a->slot, &snap) && place_find ("1", &kind) == a->slot);
 
-	/* it names another record than the one the city already holds: the engine stops by name */
+	/* it names another record than the anchor the city already holds */
 	city_fresh ();
 	city_pentity (1, 1100.0f, 3.0f, 1100.0f);
 	stopped = city_do (3, city, NULL, NULL);
 	stopped = stopped || city_do (0, a, city, NULL);
+	cache_snap (city->slot, &snap);
 	strcpy (roster_retain_name, "9");
 	stopped = city_do (4, city, NULL, NULL);
-	EXPECT (t, stopped && strstr (fatal_text, "holds the record") != NULL);
+	EXPECT (t, stopped && strstr (fatal_text, "holds the record") != NULL && cache_same (city->slot, &snap));
 
-	/* the answer to the last building's removal names another list than the one it was asked about: the engine stops by name */
+	/* a city with NO anchor is named only by its own placement's record: another LIVE city's valid record is not adopted */
+	city_fresh ();
+	city_pentity (1, 1100.0f, 3.0f, 1100.0f);
+	city_pentity (5, 1200.0f, 3.0f, 1200.0f);
+	stopped = city_do (3, city, NULL, NULL);
+	stopped = stopped || city_do (3, other, NULL, NULL);
+	EXPECT (t, !stopped && strcmp (place_key_of_slot[city->slot], "1") == 0 && strcmp (place_key_of_slot[other->slot], "2") == 0);
+	cache_snap (city->slot, &snap);
+	cache_snap (other->slot, &snap_other);
+	strcpy (roster_retain_name, "2");
+	stopped = city_do (4, city, NULL, NULL);
+	EXPECT (t, stopped && strstr (fatal_text, "holds no record but its own placement") != NULL && cache_same (city->slot, &snap) && cache_same (other->slot, &snap_other) && place_list_of_slot[city->slot][0] == 0);
+
+	/* a name that is no key is refused by the exchange before the caller sees it */
+	city_fresh ();
+	city_pentity (1, 1100.0f, 3.0f, 1100.0f);
+	stopped = city_do (3, city, NULL, NULL);
+	cache_snap (city->slot, &snap);
+	strcpy (roster_retain_name, "4x");
+	stopped = city_do (4, city, NULL, NULL);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.key") != NULL && cache_same (city->slot, &snap));
+
+	/* the answer to the last building's removal names another list than the one it was asked about */
 	city_fresh ();
 	city_pentity (1, 1100.0f, 3.0f, 1100.0f);
 	stopped = city_do (3, city, NULL, NULL);
 	stopped = stopped || city_do (0, a, city, NULL);
+	cache_snap (a->slot, &snap);
+	cache_snap (city->slot, &snap_other);
 	strcpy (city_retain_name, "9");
 	stopped = city_do (1, a, NULL, NULL);
-	EXPECT (t, stopped && strstr (fatal_text, "names another list") != NULL);
+	EXPECT (t, stopped && strstr (fatal_text, "names another list") != NULL && cache_same (a->slot, &snap) && cache_same (city->slot, &snap_other));
+
+	/* a city the campaign released no longer holds the list: a record the host names for a building's removal under it is no acknowledgement the campaign can keep, and the building's cache stays whole */
+	city_fresh ();
+	city_pentity (1, 1100.0f, 3.0f, 1100.0f);
+	stopped = city_do (3, city, NULL, NULL);
+	stopped = stopped || city_do (0, a, city, NULL);
+	strcpy (list, place_list_of_slot[city->slot]);
+	stopped = stopped || city_do (2, city, NULL, NULL);
+	EXPECT (t, !stopped && place_list_of_slot[city->slot][0] == 0);
+	cache_snap (a->slot, &snap);
+	strcpy (city_retain_name, list);
+	stopped = city_do (1, a, NULL, NULL);
+	EXPECT (t, stopped && strstr (fatal_text, "does not hold") != NULL && cache_same (a->slot, &snap));
 
 	/* the release is a state REMOVED and no key; a release that names two keys is refused before anything is sent */
 	city_fresh ();
