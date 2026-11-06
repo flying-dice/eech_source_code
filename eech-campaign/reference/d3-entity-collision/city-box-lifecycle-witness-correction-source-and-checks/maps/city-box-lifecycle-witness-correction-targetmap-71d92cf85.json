@@ -1,0 +1,226 @@
+{
+ "changed_paths_raw": {
+  "eech-campaign/crates/eech-engine-sys/csrc/eech_wpn_fixture.c": {
+   "blob_at_681": "6bd3480bb39892bb46fb294f18b37ab450758643",
+   "blob_at_head": "b4efa723d9935d0ddbd5648eb4b695bd59c3de0b",
+   "blob_at_parent": "521ef001ca3cc8c2857beb2e0b4390fb8e705fc5",
+   "bytes": 90949,
+   "git_blob_of_raw_bytes": "b4efa723d9935d0ddbd5648eb4b695bd59c3de0b",
+   "sha256": "1db11d556060dacf713605b45ef9e473d30361f089ae38c1522d198bb67c3af2"
+  },
+  "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs": {
+   "blob_at_681": "8a9757c226c8904798f4f6a73c01966a0510cb6e",
+   "blob_at_head": "3df588a7563014c09543f590ed109a841d3e2621",
+   "blob_at_parent": "aef63c8fe44879cbfb003f076f5beadd744a7b30",
+   "bytes": 77296,
+   "git_blob_of_raw_bytes": "3df588a7563014c09543f590ed109a841d3e2621",
+   "sha256": "adadab4aa347939d981c98541b42d86adf8666b1f07504a382b73507081b231d"
+  },
+  "eech-campaign/crates/eech-engine/src/lib.rs": {
+   "blob_at_681": "6cd879641f1d939caf2e7758772c7183dc30fb16",
+   "blob_at_head": "7927d2201054f6bf65c69fc89cb080a19bb14bab",
+   "blob_at_parent": "0c2ba5191d57eb5e0509e31c30998941861a598a",
+   "bytes": 699727,
+   "git_blob_of_raw_bytes": "7927d2201054f6bf65c69fc89cb080a19bb14bab",
+   "sha256": "2f4f7102d868544a54267fe222ac16ac107ce10edf69489624590a146ec3ab1b"
+  },
+  "eech-campaign/crates/eech-world/lua/entity-authority.lua": {
+   "blob_at_681": "55d808c104f8f84db3f3f2d88b80743b8b3c418f",
+   "blob_at_head": "dc59833e2fb95769885e42285e1c54d8ffcc8a25",
+   "blob_at_parent": "ccd404e0b066bce54ab43dcbc9f78a2573d7c225",
+   "bytes": 253260,
+   "git_blob_of_raw_bytes": "dc59833e2fb95769885e42285e1c54d8ffcc8a25",
+   "sha256": "cee6682c2ababdfe73c435e686e46ceb7ae8c4453f67d89d0c93919079edfc47"
+  },
+  "eech-campaign/crates/eech-world/tests/entity_authority.rs": {
+   "blob_at_681": "92ef0e5d9f2735bdf7d463c81d2b4f2079d739a8",
+   "blob_at_head": "0fd230a6c1c8253fea6f1dd3a4d5930db97fc621",
+   "blob_at_parent": "960834da4c5c0d42eb4cfd5c018878c629b03e19",
+   "bytes": 349286,
+   "git_blob_of_raw_bytes": "0fd230a6c1c8253fea6f1dd3a4d5930db97fc621",
+   "sha256": "6ad658943f2f300b54fd6c5f4bf7d7a5010b1d310fbecd9ad4474ecfb8aee179"
+  }
+ },
+ "created_utc": "2026-11-06T21:39:03.186898+00:00",
+ "git_status_porcelain": [],
+ "head": "71d92cf856e1340796fb6647a7cd70bc8319907b",
+ "label": "committed-71d92cf85",
+ "parent": "4ef1f42f3d85161a9c84eb3ce8625981f8654738",
+ "paths_changed_parent_to_head": [
+  "STATUS.md",
+  "docs/handover/ACTIVE-EXTRACTION.json",
+  "eech-campaign/crates/eech-engine-sys/csrc/eech_wpn_fixture.c",
+  "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+  "eech-campaign/crates/eech-engine/src/lib.rs",
+  "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+  "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/.gitattributes",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/README.md",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/city-box-lifecycle-correction-CODE-FROZEN-20261106.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-auth.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-auth.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-auth2.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-auth3.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-auth4.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-clippy-dc.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-clippy-hosted.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-clippy-original.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-fmt-apply-engine.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-fmt-apply-world.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-fmt-dc.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-fmt-e.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-fmt-w.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-green-armed.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-guard.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-red-armed.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-red-armed.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-red-armed.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-red-c.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-red-c.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-red-c.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-red-lua.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-red-lua.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-red-lua.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-red-wire.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-red-wire.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2-red-wire.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-clippy-dc.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-clippy-dc.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-clippy-dc.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-clippy-engine.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-clippy-engine.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-clippy-engine.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-clippy-hosted.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-clippy-hosted.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-clippy-hosted.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-clippy-original.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-clippy-original.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-clippy-original.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-clippy-world.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-clippy-world.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-clippy-world.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-copt2-engine.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-copt2-engine.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-copt2-engine.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-copt2-world.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-copt2-world.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-copt2-world.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-fmt-dc.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-fmt-dc.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-fmt-dc.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-fmt-engine.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-fmt-engine.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-fmt-engine.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-fmt-world.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-fmt-world.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-fmt-world.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-test-engine.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-test-engine.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-test-engine.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-test-world.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-test-world.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/direct-records/city-box-lifecycle-c2f-test-world.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/env/chain-city-box-lifecycle-c2final-20261106.sh",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/env/cityboxmap-correction-20261106.py",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/env/run-city-box-lifecycle-direct-20261106.py",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/independent-city-box-lifecycle-source-d9bd-20261106.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/manifest.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/maps/city-box-lifecycle-correction-targetmap-4ef1f42f3.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-correction-source-and-checks/maps/input-map-summary.json"
+ ],
+ "production_roots": {
+  ".github": {
+   "at_681": "8dfc36da25df2dd4313ed2eb9160a116d982ae5f",
+   "at_parent": "8dfc36da25df2dd4313ed2eb9160a116d982ae5f",
+   "at_working_head": "8dfc36da25df2dd4313ed2eb9160a116d982ae5f",
+   "equal_681": true,
+   "equal_parent": true
+  },
+  "aphavoc": {
+   "at_681": "19b02698c59cfd2e27c377b68dbb79ca9e3c5c49",
+   "at_parent": "f7ba4081a80464eed0a08e3b4b7298b350f76614",
+   "at_working_head": "f7ba4081a80464eed0a08e3b4b7298b350f76614",
+   "equal_681": false,
+   "equal_parent": true
+  },
+  "aphavoc/source/entity/mobile": {
+   "at_681": "121b9187e3d786cd680a7837dd2c5a4964fa279e",
+   "at_parent": "a87f4e391d40f5a820203f3273ec3a23370e5bf9",
+   "at_working_head": "a87f4e391d40f5a820203f3273ec3a23370e5bf9",
+   "equal_681": false,
+   "equal_parent": true
+  },
+  "eech-campaign/.cargo": {
+   "at_681": "0a6faeb2328262b0637c62724eb6451b4fd91236",
+   "at_parent": "0a6faeb2328262b0637c62724eb6451b4fd91236",
+   "at_working_head": "0a6faeb2328262b0637c62724eb6451b4fd91236",
+   "equal_681": true,
+   "equal_parent": true
+  },
+  "eech-campaign/Cargo.lock": {
+   "at_681": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+   "at_parent": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+   "at_working_head": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+   "equal_681": true,
+   "equal_parent": true
+  },
+  "eech-campaign/Cargo.toml": {
+   "at_681": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+   "at_parent": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+   "at_working_head": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+   "equal_681": true,
+   "equal_parent": true
+  },
+  "eech-campaign/crates/eech-dc": {
+   "at_681": "46a71de0be81f99319221c40ec4b1ecaa40fd4c7",
+   "at_parent": "d45df8b6dacf3ec1a71b523b177f220ca849ec95",
+   "at_working_head": "d45df8b6dacf3ec1a71b523b177f220ca849ec95",
+   "equal_681": false,
+   "equal_parent": true
+  },
+  "eech-campaign/crates/eech-engine": {
+   "at_681": "09ed68d80ff651c0be69918015c460d4999d8292",
+   "at_parent": "023ba999eee7824ae6a94bebd88bad3813f8b7ed",
+   "at_working_head": "f2c517933404d13d11ce73ad36dd491af146a0c3",
+   "equal_681": false,
+   "equal_parent": false
+  },
+  "eech-campaign/crates/eech-engine-sys": {
+   "at_681": "00899a43872414218b03463a8d45937d2f6614a4",
+   "at_parent": "925b44f260d0366da53650319b9761af2750fbe5",
+   "at_working_head": "772d2b7566bac381fa190235fb004885743290d3",
+   "equal_681": false,
+   "equal_parent": false
+  },
+  "eech-campaign/crates/eech-world/lua": {
+   "at_681": "db481dda16a60b93f6609e1cc373f4afa2a7330e",
+   "at_parent": "8f13a861b3dcc1a92212735e3e5f1994e9646e4e",
+   "at_working_head": "13766b7d67f9a4b8ce1ce24ae3408768cfc114be",
+   "equal_681": false,
+   "equal_parent": false
+  },
+  "eech-campaign/crates/eech-world/lua/campaign.lua": {
+   "at_681": "bdb1bb144ba845bec558dfeafd863650b4457995",
+   "at_parent": "bdb1bb144ba845bec558dfeafd863650b4457995",
+   "at_working_head": "bdb1bb144ba845bec558dfeafd863650b4457995",
+   "equal_681": true,
+   "equal_parent": true
+  },
+  "eech-campaign/crates/eech-world/src": {
+   "at_681": "1a4adafce920d9fdbd922815081fd6d11e354c10",
+   "at_parent": "ea488417c0959f2fb90c8f06263f0171ed27a9ff",
+   "at_working_head": "ea488417c0959f2fb90c8f06263f0171ed27a9ff",
+   "equal_681": false,
+   "equal_parent": true
+  },
+  "modules": {
+   "at_681": "d2078c2b4c6fe03ac6534fd6e84392407cd90aef",
+   "at_parent": "d2078c2b4c6fe03ac6534fd6e84392407cd90aef",
+   "at_working_head": "d2078c2b4c6fe03ac6534fd6e84392407cd90aef",
+   "equal_681": true,
+   "equal_parent": true
+  }
+ },
+ "runtime_681": "681ccfe5476a7c0a90036bc01cd054358c751162",
+ "untracked": []
+}

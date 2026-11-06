@@ -1,0 +1,20 @@
+{
+  "controller_pid": 6140,
+  "state": "terminal",
+  "started_utc": "2026-11-06T21:33:11.053482+00:00",
+  "command": "cargo fmt -p eech-world -- --check",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/check-pose-motion-diag-linux-20261105.sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/collision-characterization-20261029",
+    "cargo fmt -p eech-world -- --check"
+  ],
+  "scope": "One Cargo command, lifecycle-scoped. Separate stdout/stderr files. Return is the actual Cargo/docker exit. Working-tree check only unless separately frozen.",
+  "pid": 14052,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-06T21:33:14.453629+00:00"
+}
