@@ -1,0 +1,217 @@
+{
+  "schema": "independent-d3-source-review.v1",
+  "reviewed_utc": "2026-11-06T21:59:17.753634+00:00",
+  "scope": "One combined independent correctness, clean-code and boundary-safety follow-up of the sole selected-REMOVE residual and the NEW offline row checker. Immutable215a source and retained evidence only; no builds/tests/native/input-tool replay, agents, tracked edits or cache operations.",
+  "source": {
+    "commit": "215a8f7389dfc9ab1dac1df2f4e45344392967d9",
+    "parent": "f21f21c1bf7679b2c5355965435ccf243ce52421",
+    "metadata_commit": "12698d05b1a3441b23a31a4927f24a4fa65972a4",
+    "previous_executable": "71d92cf856e1340796fb6647a7cd70bc8319907b",
+    "changed_paths": [
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "blob_at_parent": "dc59833e2fb95769885e42285e1c54d8ffcc8a25",
+        "bytes": 253777,
+        "git_blob": "86b26df1f0d58db471d8248c3d1f4ff69c250277",
+        "sha256": "1ab11670dc508d4570c5043642481627dc6accc7a3e4609d379828bc02aeebbb"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "blob_at_parent": "0fd230a6c1c8253fea6f1dd3a4d5930db97fc621",
+        "bytes": 350145,
+        "git_blob": "b28d547d741b171509236ba7c13f814bf042cd34",
+        "sha256": "0dfb4a05a9aa0ae3be1afc8b9d687f460ece97065eb9fb3b57172e764e79c649"
+      }
+    ],
+    "code_delta_exactly_lua_and_existing_test": true,
+    "metadata_delta": "37 evidence-pack files plus STATUS.md and active card; no executable metadata change.",
+    "new_production_build_identity_required": true
+  },
+  "decision": {
+    "status": "SOURCE_CLEAR_FOR_CONDITIONAL_FRESH_NATIVE_VALIDATION",
+    "native_launch_clearance": true,
+    "findings": [],
+    "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION_closed": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "finding_disposition": {
+    "id": "ENV-CITY-LIFECYCLE-SELECTED-REMOVE-FAULT-1",
+    "status": "CLOSED_IN_REVIEWED_SOURCE",
+    "prior_review": {
+      "path": "R:/d3-evidence/independent-city-lifecycle-selected-witness-source-71d92-20261106.json",
+      "sha256": "466326b9e42ae0c2f3feb5bb6b03d65841ef017cfd00e748af26185236ba6c7c"
+    },
+    "evidence": [
+      "Inside the selected lifecycle window, roster_reply_problem resolves the current removed placement through its LINK anchor and rejects a different nonempty retained-record name. This runs both at the private intervention predicate and at ordinary reply validation before roster_track, so the bad key is neither adopted nor credited.",
+      "The existing damaged-positive test now requires zero intervention/altered request, zero retained/release credit, a scan reply fault with its relationship reason, and an explicit failure that is not UNREACHED. The coherent positive and release-ACK damage controls remain.",
+      "An early too-general check failed a legacy non-selected scripted pin, then was narrowed to the actual selected record as required. No generic removal grammar or valid clean absence was changed."
+    ]
+  },
+  "combined_source_assessment": {
+    "correctness": "The remaining wrong-positive relationship now becomes its actual reply failure before tracking/effects. Recorded-fault-before-UNREACHED ordering therefore applies. A clean missing retained name remains distinct from a malformed different-record positive.",
+    "clean_code": "Five Lua lines extend the existing reply validator and the existing harness is strengthened. No production C/Rust/FFI/store/kernel/campaign changes over the previous reviewed source, no fallback or new API.",
+    "boundary_safety": "The actual Core drain, empty two-relink/restore, relist and consuming query fixture is unchanged. Prior selected-record BEFORE/AFTER joins, full private RELEASE ACK, exact report grammar/raw tuple checks, release/type/draining lifetime guards and C validation-before-cache-write closures are reused at their own source scopes.",
+    "query_scope": "The fixture compares valid API query results; point/normal are reported on HIT, while MISS output buffers are documented invalid and omitted. This does not weaken or replace the existing underlying narrow-phase partial-write/caller-buffer oracles.",
+    "phase_and_failure": "The dedicated row is after_boot_warmup_standalone_fixture, with no weapon/launch/cohort or extra fixture frame. Fatal paths use retained Lua telemetry and unavailable report sentinels, not postfatal physical getters. AFTER selected count0 is callback telemetry, not an executed successful AFTER query/restoration proof."
+  },
+  "execution_checker": {
+    "reviewed_script": {
+      "path": "R:/d3-evidence/validate-city-lifecycle-authority-20261106.py",
+      "bytes": 9388,
+      "sha256": "e18f2609ea317514e1d9866b0d04616b9ff9191bb1e5ac25ae0ad616e4124c2b"
+    },
+    "synthetic_v2_receipt": {
+      "path": "R:/d3-evidence/city-lifecycle-row-checker-synthetic-selfcheck-v2-20261106.json",
+      "bytes": 6923,
+      "sha256": "a15c748c354809de531c16dc05d0ecf2ce2ea9b3fefac467cb982cedb2d4f49e"
+    },
+    "actual_exit": 0,
+    "accepted_synthetic_examples": 3,
+    "rejected_synthetic_examples": 15,
+    "native_execution": false,
+    "assessment": "Read-only aggregate validator for the dedicated row, source-bound to this unchanged row schema. It checks row phase/mode/profile, selected BEFORE consumption, the intervention domain, control binding/AFTER/retention/expansions, exact expected negative marker/cause/fault category, report-unavailable sentinels and unknown AFTER telemetry. It performs no Core calls and records its own SHA.",
+    "checker_precision_resolved": "The initial self-check used a dash MISS kind rather than the source\u2019s none. V2 fixes that example and checks MISS/HIT kind domain, finite raw-box triples using integer exponent classification and integer flag domains; malformed matching MISS kinds/box words/boolean flags are rejected.",
+    "thin_scope": "Raw query tuples are absent from the emitted authority row, so the checker cannot independently reconstruct the complete C report or tuple equality. Those guarantees depend on the reviewed Lua parser and source/literal binding plus native exit/receipt checks. The helper is not a substitute for input/payload/profile seals, matched selected-record audit or successful native execution.",
+    "old_evidence_preserved": {
+      "script": {
+        "path": "R:/d3-evidence/validate-city-lifecycle-authority-20261106-before-MISS-correction.py",
+        "bytes": 8245,
+        "sha256": "9a3127cc0941f0c7ac7686f6990106bc0924cc8b64e23b465477879102ac8383"
+      },
+      "selfcheck": {
+        "path": "R:/d3-evidence/city-lifecycle-row-checker-synthetic-selfcheck-20261106.json",
+        "bytes": 6241,
+        "sha256": "22df8395af2201ebb8e906300c0c34d1427398cc46e168088644ab95dda39167"
+      },
+      "qualification": "Original synthetic self-check0 is retained but its malformed MISS control is superseded; it is never native evidence."
+    }
+  },
+  "evidence": {
+    "external_freeze": {
+      "path": "R:/d3-evidence/city-box-lifecycle-remove-identity-CODE-FROZEN-20261106.json",
+      "bytes": 13516,
+      "sha256": "b7338f24b14627e84a9d6f95043a7f80169081677add55cde7881bac7874dfc2"
+    },
+    "tracked_freeze": {
+      "path": "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-remove-identity-source-and-checks/city-box-lifecycle-remove-identity-CODE-FROZEN-20261106.json",
+      "bytes": 13516,
+      "sha256": "b7338f24b14627e84a9d6f95043a7f80169081677add55cde7881bac7874dfc2"
+    },
+    "external_tracked_relation": "Literal byte equality. Descriptive metadata-commit placeholder is not a selfhash/null-normalization schema; actual12698 is independently bound.",
+    "producer_completion": {
+      "path": "R:/d3-evidence/claude-d3-city-remove-identity-20261106-completion.json",
+      "bytes": 999,
+      "sha256": "c67e3f59ce908eec0287774dde92d686e7404d546decd367568919389a8f3b2e"
+    },
+    "producer_actual_exit": 0,
+    "producer_result_is_error": false,
+    "producer_model": "claude-sonnet-5-5",
+    "producer_completed_utc": "2026-11-06T21:54:52.626922+00:00",
+    "producer_actual_session": "7ed26c4a-a7ee-4752-9f6a-7a1b096b51af",
+    "manifest": {
+      "path": "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-remove-identity-source-and-checks/manifest.json",
+      "bytes": 6617,
+      "sha256": "d53aa5879526bc04d75690984926dcc8c77198b6d455564ac54c186df7ef53a5",
+      "listed_entries_verified_against_actual_git_bytes": 36,
+      "including_manifest": 37
+    },
+    "chronology_binding": {
+      "path": "R:/d3-evidence/city-lifecycle-215a-Root-source-pack-chronology-binding-20261106.json",
+      "bytes": 4844,
+      "sha256": "df7656ac677674bb9f92069881488a1e50544daa4962e56c9dc1bfb4cfdb1c3b"
+    },
+    "input_maps": {
+      "initial_baseline_before": {
+        "path": "R:/d3-evidence/city-box-lifecycle-20261106/identity/identity-inputmap-before.json",
+        "bytes": 2029840,
+        "sha256": "228ab3a0b3b8791521fb1392c8a7ddadfa2b34f5c81b63cc6007214525fa5114"
+      },
+      "actual_final_pre_g": {
+        "path": "R:/d3-evidence/city-box-lifecycle-20261106/identity/identity-inputmap-after.json",
+        "bytes": 2029965,
+        "sha256": "55f2816626253961609274bc8ebe041a4cc7ca16cd6cbaa8ac773e6f2c801f7f"
+      },
+      "Root_post_terminal": {
+        "path": "R:/d3-evidence/city-lifecycle-215a-Root-postterminal-inputmap-20261106.json",
+        "bytes": 2029876,
+        "sha256": "44658411c735190321fb95acf0fb909eee9aea89245492d2cdf3c8fd53698c95"
+      },
+      "file_records": 3954,
+      "all_per_path_raw_sha256_and_sizes_pre_g_to_post_terminal_equal": true,
+      "whole_map_json_bytes_claimed_equal": false,
+      "initial_baseline_to_final_differences": [
+        "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "eech-campaign/crates/eech-world/tests/entity_authority.rs"
+      ],
+      "both_changed_raw_inputs_equal_actual_code_git_bytes": true,
+      "qualification": "The frozen report\u2019s after_final_checks label is chronologically inaccurate: the actual command captures identity-inputmap-after.json after fmt-apply BEFORE all three identity-g checks. Root\u2019s independent post-terminal map supplies the actual post-check boundary. Parent-baseline-before intentionally differs in two files; full JSON headers/reference HEAD differ. Same three inherited raw-Lua CRLF/Git-LF exceptions and separate four legacy filter-only qualifications remain. No baseline/output normalization or immutable Linux-build claim."
+    },
+    "final_checks": [
+      {
+        "label": "identity-g-fmt-world",
+        "receipt": {
+          "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-identity-g-fmt-world.json",
+          "bytes": 774,
+          "sha256": "1321e15d4d53f157bad5e054f6c621367a8475b7ace69b09fc68126e9312d25a"
+        },
+        "actual_exit": 0,
+        "command": "cargo fmt -p eech-world -- --check",
+        "passed_per_binary": [],
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "label": "identity-g-clippy-world",
+        "receipt": {
+          "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-identity-g-clippy-world.json",
+          "bytes": 833,
+          "sha256": "cdee739a7882c94a1b65771ed1c441941ea0077e31a72b04cd093e110e327c00"
+        },
+        "actual_exit": 0,
+        "command": "cargo clippy --locked --all-targets -p eech-world -- -D warnings",
+        "passed_per_binary": [],
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "d4154b24d5bdd6f2941177de05f328169300c684bad5e27d0b76fca93c0530eb"
+      },
+      {
+        "label": "identity-g-test-world",
+        "receipt": {
+          "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-identity-g-test-world.json",
+          "bytes": 938,
+          "sha256": "78031f2924c94df65ea3271bc9997f11976da632b56eb31e4d5648825771d92a"
+        },
+        "actual_exit": 0,
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority --test city_box_lifecycle",
+        "passed_per_binary": [
+          9,
+          106
+        ],
+        "stdout_sha256": "fc4a3229b58628d600181b1c0d6a039d06744082fd646934a365f86a36418b6c",
+        "stderr_sha256": "e4111cd59c06c90932ab0a97265bf22d53bad702f328c86b5378e0fe8450c593"
+      }
+    ],
+    "final_children_actual_zero": 3,
+    "passing_instances": 115,
+    "result_rows": 2,
+    "scope": "Affected World formatting/Clippy and entity_authority106/city_box_lifecycle9 only. No new C/Engine/Sys/DC/i686/COPT2/Windows/native matrix.",
+    "red_chronology": "Strengthened existing single test on unchanged71d92 driver actual101 at reply_faults>=1, a meaningful wrong-positive failure. Early broad-check green101 and formatting1 are retained; pre-formatting green checks are superseded by the final identity-g receipts.",
+    "reuse": "Unchanged compiled production/fixture sources and named prior release/C atomic/selected-contract/default-cfg checks are reused at their own identities. Parent whole World-containing runs are not relabelled current driver validation."
+  },
+  "conditional_native_plan": [
+    "Root may now prepare a new clean immutable215a production snapshot and fresh ordinary/hosted/explicit Original-like Windows profiles, with longpaths configured before checkout, exact HEAD/full clean status and scoped raw-source binding. Do not relabel sealed681 or f734 binaries as215a.",
+    "Seal feature manifests, actual COFF/private-symbol profile inclusion/exclusion, established PE exports and all payloads. The fixture remains weapon-fixture-only; private C entry presence is a COFF check, not a new public production DLL API.",
+    "Run the unchanged complete ordinary short and separate healthy comparison against retained references, including every existing field and all four fixed_rule diagnostics. No accepted recording, seed/frame/duration/tolerance or physical tuple normalization changes.",
+    "Run the real selected-CITY lifecycle control first on a fresh verified root. Require report_bound1, same canonical record BEFORE and AFTER, two named retentions/two continuations, actual empty relinks/restatements, relist expansions and literal valid-result/list/mirror equality. UNREACHED or faults are not a pass; no actor/time/geometry search.",
+    "Only after the positive is reached, run the fresh-root missing-retention and changed-mirror variants with the same source/literal/configuration and verify selected-record identity/provenance across the matched set privately. Require selected BEFORE consumption, exactly the declared intervention and real named refusal; postfatal report fields stay unavailable and no BOOT-only schema assumptions or physical getters are used.",
+    "Bind the reviewed e18f checker SHA and exact literal, separate native/helper/outer exits, complete pre/post manifests, payload/source integrity and raw outputs. Checker self-checks remain synthetic. A checker-only error is repaired against retained raw output without restarting native.",
+    "This clearance does not establish that the C fixture executed or that any actual prerequisite exists. Independent actual evidence review is still required before closing CITY lifecycle authority."
+  ],
+  "remaining_requirements": [
+    "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION remains OPEN until real selected lifecycle/consumption actuals are accepted; sector height follows that required gate.",
+    "All ten D3 requirements remain, including needed property/align/DCS dispositions, sector height/hints, effectful UPDATED/shared terrain, raw TREE/FOREST/CLOUD RNG, hierarchy/devices/services, mappings, natural moving integration, current final40/all8/final inputs/payload census/current CI/normal merge/delivery/final census.",
+    "Prior finite physical4540 remains closed at its own identities. Protected f734 pack remains separate and partial prefix equality is not candidate acceptance. D4/D5 and historical TypeScript remain unstarted."
+  ]
+}

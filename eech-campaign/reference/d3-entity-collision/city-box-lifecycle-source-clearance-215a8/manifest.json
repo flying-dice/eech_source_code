@@ -1,0 +1,72 @@
+{
+  "schema": "d3.city-lifecycle-source-clearance.v1",
+  "source": "215a8f7389dfc9ab1dac1df2f4e45344392967d9",
+  "listed_files": 16,
+  "files_including_manifest": 17,
+  "files": {
+    ".gitattributes": {
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    "build-city-lifecycle-witness-windows-20261106.sh": {
+      "bytes": 1254,
+      "sha256": "e2a78a1b729d104abd80297afb2ed3c1194b49878e2c1cdb3efdbab970a03406"
+    },
+    "city-lifecycle-215a-Root-source-pack-chronology-binding-20261106.json": {
+      "bytes": 4844,
+      "sha256": "df7656ac677674bb9f92069881488a1e50544daa4962e56c9dc1bfb4cfdb1c3b"
+    },
+    "city-lifecycle-row-checker-synthetic-selfcheck-20261106.json": {
+      "bytes": 6241,
+      "sha256": "22df8395af2201ebb8e906300c0c34d1427398cc46e168088644ab95dda39167"
+    },
+    "city-lifecycle-row-checker-synthetic-selfcheck-v2-20261106.json": {
+      "bytes": 6923,
+      "sha256": "a15c748c354809de531c16dc05d0ecf2ce2ea9b3fefac467cb982cedb2d4f49e"
+    },
+    "city-lifecycle-witness-build-runners-215a-policy-20261106.json": {
+      "bytes": 1325,
+      "sha256": "592c7fd4a2b3919b8f84b1408a67e93d085a9c092428f876babbefdc6b1ae1fb"
+    },
+    "city-lifecycle-witness-Root-build-clearance-215a-20261106.json": {
+      "bytes": 1637,
+      "sha256": "a4c29892515dd58a4992fdd695a496c7e118e62e67ef5c0880a6b0934ccb8a8e"
+    },
+    "city-lifecycle-witness-windows-freeze-215a8f738-20261106.json": {
+      "bytes": 3431,
+      "sha256": "97a383454498b4fd437d859b4fc2ac2dace15aa2222373b4ca5e393b6633c995"
+    },
+    "freeze-city-lifecycle-witness-windows-20261106.py": {
+      "bytes": 4929,
+      "sha256": "1a172f6975fb12994db3edb7caed775f5ae158651c8f7d80dda4ec90a38f1c54"
+    },
+    "independent-city-lifecycle-remove-identity-source-215a8-20261106.json": {
+      "bytes": 16311,
+      "sha256": "12ad9fd32ff7b1543bf733e0eeb850405c7ea4a767f69281fc3740b2e7cba3b1"
+    },
+    "native-input-preparation.json": {
+      "bytes": 3676,
+      "sha256": "1f707c768779fe9573a39d21f9a64a5a6b15d900d72114d7397daa6939178be8"
+    },
+    "prepare-city-lifecycle-native-inputs-215a-20261106.py": {
+      "bytes": 2586,
+      "sha256": "9e20899f50f9bc01d3208c3bee9c1a2e0fd5bbf08edf2d0ff8fc0a0208154a56"
+    },
+    "README.md": {
+      "bytes": 4599,
+      "sha256": "01230e656ecda473a8248d041cace4d77da0d6dce0a9244a444237f337a8069b"
+    },
+    "run-city-lifecycle-witness-windows-20261106.py": {
+      "bytes": 6464,
+      "sha256": "cb2e1df223f7c6475018ff2e8c479b438b85e35900c9c6c399d9911b241879e0"
+    },
+    "validate-city-lifecycle-authority-20261106-before-MISS-correction.py": {
+      "bytes": 8245,
+      "sha256": "9a3127cc0941f0c7ac7686f6990106bc0924cc8b64e23b465477879102ac8383"
+    },
+    "validate-city-lifecycle-authority-20261106.py": {
+      "bytes": 9388,
+      "sha256": "e18f2609ea317514e1d9866b0d04616b9ff9191bb1e5ac25ae0ad616e4124c2b"
+    }
+  }
+}

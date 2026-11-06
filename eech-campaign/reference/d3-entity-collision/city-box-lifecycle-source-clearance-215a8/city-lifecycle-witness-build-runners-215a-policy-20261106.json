@@ -1,0 +1,19 @@
+{
+  "scope": "Prepared but not launched. Freeze binds latest author actualterminal receipt; build requires actual final PRE-g vs independent Root POST-terminal full per-file raw equality and exact chronology proof hash, rather than claiming full JSON-byte equality for maps with different reference HEAD headers. No baseline/tolerance/test/scenario changes; same three standard profiles and snapshotlongpaths requirements.",
+  "source": "215a8f7389dfc9ab1dac1df2f4e45344392967d9",
+  "helpers": [
+    {
+      "path": "R:\\d3-evidence\\freeze-city-lifecycle-witness-windows-20261106.py",
+      "sha256": "1a172f6975fb12994db3edb7caed775f5ae158651c8f7d80dda4ec90a38f1c54",
+      "previous_exact_copy": "R:\\d3-evidence\\freeze-city-lifecycle-witness-windows-20261106-before-215a-policy.py",
+      "previous_sha256": "172c20db09bee5e6d3bb754c755c6fbdb8608a49041b0b0a37b189f51c60a181"
+    },
+    {
+      "path": "R:\\d3-evidence\\run-city-lifecycle-witness-windows-20261106.py",
+      "sha256": "cb2e1df223f7c6475018ff2e8c479b438b85e35900c9c6c399d9911b241879e0",
+      "previous_exact_copy": "R:\\d3-evidence\\run-city-lifecycle-witness-windows-20261106-before-215a-policy.py",
+      "previous_sha256": "4f383dbc52873787867f02b966e586a84d1b713c3a57566cbe0c178528668793"
+    }
+  ],
+  "launch_performed": false
+}
