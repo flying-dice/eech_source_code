@@ -732,6 +732,9 @@ const ROSTER_FIXED_STATE: u32 = 0x4150_0000;
 const ROSTER_CITY_STATE: u32 = 0x4160_0000;
 /// The city-expansion question (15.0, classified from its bits like the others): see `city_expand_event`.
 const ROSTER_CITY_EXPAND: u32 = 0x4170_0000;
+/// The city release (16.0, classified from its bits like the others): the campaign's city ENTITY ends (its heap slot is freed); see `city_event`. It is the real end of the record a removal kept for the box the
+/// host built, and it is not the host's own diagnostic withdrawal of a state (which keeps every record).
+const ROSTER_RELEASE: u32 = 0x4180_0000;
 /// The bits of 1.0: the only non-zero value a flag word of the contract has.
 const ONE_BITS: u32 = 0x3f80_0000;
 
@@ -740,7 +743,9 @@ const ONE_BITS: u32 = 0x3f80_0000;
 /// The identity place carries the keys, in this order: the key the city's list is named by (the city's sector placement key at its first building, which stays the list's name across the city's sector relinks:
 /// see `crate::roster`) and, where there is one, the child's key (or the predecessor's, for an insertion); a LINK carries the sector placement and the child, or the sector placement and the list's name when the
 /// city's new sector placement continues a list whose placement left; a NAME carries the placement and then, after one space, the object identity (1 to 128 bytes of its own, so the whole place is up to 149). A scan phase's answer is `next` for 9 and 10 (the key of the entry, empty at the end of the list) and `placed` for 7, 11
-/// and 12 (the key issued, or the key now linked or named); 8 answers `removed`. Every key is validated against the live roster and its relation to the parent BEFORE anything is served or changed, and every
+/// and 12 (the key issued, or the key now linked or named); 8 answers `removed`, and names (as `name`) the record a removal leaves kept ONLY for the box the host built (a placement-less city whose last
+/// building went; the campaign keeps the name for the placement that continues it by a LINK, and for the release). The city RELEASE (16) names that record by its key alone, when the campaign's city entity
+/// ends, and answers `removed`: only the release ends a record kept for the box, never the host's own diagnostic withdrawal of a state. Every key is validated against the live roster and its relation to the parent BEFORE anything is served or changed, and every
 /// word is classified by integer operations (see `crate::roster::word_truncated`).
 fn city_event(lua: &Lua, phase: u32, words: &[u32], identity: &str) -> LuaResult<LuaTable> {
     let table = lua.create_table()?;
@@ -798,11 +803,25 @@ fn city_event(lua: &Lua, phase: u32, words: &[u32], identity: &str) -> LuaResult
             .map(|child| ("placed", child.to_string())),
         ROSTER_CHILD_REMOVE => second_key(second)
             .and_then(|child| {
+                // a record the removal leaves kept ONLY for the box the host built is named in the answer: the campaign keeps the name for the placement that continues it and for the release
+                let list = roster.list_record_of(first);
                 roster
                     .child_remove(first, child.unwrap_or(0))
                     .map_err(|why| format!("[roster.child] {}", why.0))
+                    .map(|()| {
+                        list.filter(|record| roster.parked(*record))
+                            .map(|record| record.to_string())
+                            .unwrap_or_default()
+                    })
             })
-            .map(|()| ("removed", String::new())),
+            .map(|kept| ("removed", kept)),
+        ROSTER_RELEASE => match second {
+            Some(_) => Err("[roster.key] a release names the key of the city's record only".to_string()),
+            None => roster
+                .release(first)
+                .map_err(|why| format!("[roster.release] {}", why.0))
+                .map(|()| ("removed", String::new())),
+        },
         ROSTER_CHILD_FIRST => roster
             .child_first(first)
             .map_err(|why| format!("[roster.child] {}", why.0))
@@ -1328,7 +1347,8 @@ fn city_join(words: &mut [u32], hold: crate::roster::FixedHold, key: u64) -> Res
 
 /// The host's answer to one roster event of the sector lists (see `crate::roster`): an INSERT (phase 4) states the entity's type, the sector side length and the position the campaign holds, with the
 /// semantic identity of a hosted mobile in the identity place; the host decides the sector (a hosted mobile's from its OWN record, an entity with none from the stated position), records the entry and
-/// answers the key it issued as `name`. A REMOVE (phase 5) names a key (the identity place), and a RESET (phase 6) ends every entry.
+/// answers the key it issued as `name`. A REMOVE (phase 5) names a key (the identity place) and answers `removed`, with the name of the city record the removal leaves kept ONLY for the box the host built
+/// (see `city_event`); a RESET (phase 6) ends every entry.
 fn roster_event(lua: &Lua, phase: u32, words: &[u32], identity: &str) -> LuaResult<LuaTable> {
     let table = lua.create_table()?;
     table.set("name", "")?;
@@ -1361,9 +1381,14 @@ fn roster_event(lua: &Lua, phase: u32, words: &[u32], identity: &str) -> LuaResu
                 ),
             );
         };
+        // the record a placement belongs to, asked before the removal: a city record the removal leaves kept ONLY for the box the host built is named in the answer
+        let record = roster.record(key);
         return match roster.remove(key) {
             Ok(()) => {
                 table.set("result", "removed")?;
+                if let Some(record) = record.filter(|record| roster.parked(*record)) {
+                    table.set("name", record.to_string())?;
+                }
                 Ok(table)
             }
             Err(why) => refuse(&table, format!("[roster.key] {}", why.0)),
@@ -1461,7 +1486,7 @@ fn entity_scan_answer(lua: &Lua, store: &mut dyn FnMut() -> LuaResult<Arc<ModelS
     }
     if matches!(
         phase_word,
-        ROSTER_CHILD_INSERT | ROSTER_CHILD_REMOVE | ROSTER_CHILD_FIRST | ROSTER_CHILD_NEXT | ROSTER_LINK | ROSTER_NAME
+        ROSTER_CHILD_INSERT | ROSTER_CHILD_REMOVE | ROSTER_CHILD_FIRST | ROSTER_CHILD_NEXT | ROSTER_LINK | ROSTER_NAME | ROSTER_RELEASE
     ) {
         return city_event(lua, phase_word, &words, identity);
     }

@@ -423,7 +423,8 @@ static void check_roster_reply (const campaign_model_reply *reply, int phase)
 
 	check_reply_key (reply, "entity_scan");
 
-	if ((wanted == CAMPAIGN_MODEL_SCAN_PLACED) != (reply->name [0] != 0))
+	// a removal may name the CITY record the host keeps for the box it built (a valid key, checked above; the caller refuses it for an entity that is no city); every other answer is a key for an insertion and none otherwise
+	if ((phase != CAMPAIGN_SCAN_PHASE_REMOVE) && ((wanted == CAMPAIGN_MODEL_SCAN_PLACED) != (reply->name [0] != 0)))
 	{
 		debug_fatal ("host model: [model-provider:entity_scan.key] the host %s a key for a roster event of phase %d", (wanted == CAMPAIGN_MODEL_SCAN_PLACED) ? "issued no" : "issued", phase);
 	}
@@ -701,6 +702,11 @@ static void city_identity_check (int phase, const char *identity)
 		debug_fatal ("host model: [model-provider:entity_scan.key] a request for the first building of a city names the city only");
 	}
 
+	if ((phase == CAMPAIGN_SCAN_PHASE_CITY_RELEASE) && has_second)
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.key] the release of a city names the key of its record only");
+	}
+
 	if (wants_second && !has_second)
 	{
 		debug_fatal ("host model: [model-provider:entity_scan.key] the identity place of a city event of phase %d names one key where it needs two", phase);
@@ -751,7 +757,7 @@ static void check_city_reply (const campaign_model_reply *reply, int phase, cons
 	const char
 		*space;
 
-	wanted = (phase == CAMPAIGN_SCAN_PHASE_CHILD_REMOVE) ? CAMPAIGN_MODEL_SCAN_REMOVED : (((phase == CAMPAIGN_SCAN_PHASE_CHILD_FIRST) || (phase == CAMPAIGN_SCAN_PHASE_CHILD_NEXT)) ? CAMPAIGN_MODEL_SCAN_NEXT : CAMPAIGN_MODEL_SCAN_PLACED);
+	wanted = ((phase == CAMPAIGN_SCAN_PHASE_CHILD_REMOVE) || (phase == CAMPAIGN_SCAN_PHASE_CITY_RELEASE)) ? CAMPAIGN_MODEL_SCAN_REMOVED : (((phase == CAMPAIGN_SCAN_PHASE_CHILD_FIRST) || (phase == CAMPAIGN_SCAN_PHASE_CHILD_NEXT)) ? CAMPAIGN_MODEL_SCAN_NEXT : CAMPAIGN_MODEL_SCAN_PLACED);
 
 	if (reply->candidate_state != wanted)
 	{
@@ -788,7 +794,17 @@ static void check_city_reply (const campaign_model_reply *reply, int phase, cons
 	}
 	else if ((phase == CAMPAIGN_SCAN_PHASE_CHILD_REMOVE) && (reply->name [0] != 0))
 	{
-		debug_fatal ("host model: [model-provider:entity_scan.key] the host issued a key for a city removal");
+		// the host may name the city record this removal leaves kept for the box it built: the list the removal was asked about, never another
+		space = strchr (identity, ' ');
+
+		if ((strlen (reply->name) != (size_t) (space - identity)) || (strncmp (reply->name, identity, (size_t) (space - identity)) != 0))
+		{
+			debug_fatal ("host model: [model-provider:entity_scan.key] the host named the record \"%.40s\" for a city removal, which names another list", reply->name);
+		}
+	}
+	else if ((phase == CAMPAIGN_SCAN_PHASE_CITY_RELEASE) && (reply->name [0] != 0))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.key] the host issued a key for the release of a city");
 	}
 
 	if ((!scan_word_is_zero (&reply->candidate [0])) || (!scan_word_is_zero (&reply->candidate [1])))

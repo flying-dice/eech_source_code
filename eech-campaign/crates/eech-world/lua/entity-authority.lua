@@ -761,7 +761,7 @@ end
 -- entry the scan stands at in ENTRY and RESOLVED (a roster key: 1 to 20 decimal digits, no leading zero) and in no other scan phase; an INSERT's optional hosted-mobile identity; a REMOVE's key; nothing for a RESET.
 -- The facts an event does not state are zero.
 local PHASES = { [ZERO] = 0, ["0x3f800000"] = 1, ["0x40000000"] = 2, ["0x40400000"] = 3, ["0x40800000"] = 4, ["0x40a00000"] = 5, ["0x40c00000"] = 6,
-	["0x40e00000"] = 7, ["0x41000000"] = 8, ["0x41100000"] = 9, ["0x41200000"] = 10, ["0x41300000"] = 11, ["0x41400000"] = 12, ["0x41500000"] = 13, ["0x41600000"] = 14, ["0x41700000"] = 15 }
+	["0x40e00000"] = 7, ["0x41000000"] = 8, ["0x41100000"] = 9, ["0x41200000"] = 10, ["0x41300000"] = 11, ["0x41400000"] = 12, ["0x41500000"] = 13, ["0x41600000"] = 14, ["0x41700000"] = 15, ["0x41800000"] = 16 }
 local ROSTER_EVENTS = { [4] = "insert", [5] = "remove", [6] = "reset" }
 -- the facts an INSERT states (the position's x, y and z, the entity type, the side length: facts 1 to 3, 4 and 7) and the phase (12); all others are zero
 local INSERT_STATED = { [1] = true, [2] = true, [3] = true, [4] = true, [7] = true, [12] = true }
@@ -773,8 +773,8 @@ local function others_zero (words, stated)
 	end
 	return true
 end
-local CITY_EVENTS = { [7] = "child_insert", [8] = "child_remove", [9] = "child_first", [10] = "child_next", [11] = "link", [12] = "name" }
-local CITY_RESULTS = { child_insert = "placed", child_remove = "removed", child_first = "next", child_next = "next", link = "placed", name = "placed" }
+local CITY_EVENTS = { [7] = "child_insert", [8] = "child_remove", [9] = "child_first", [10] = "child_next", [11] = "link", [12] = "name", [16] = "release" }
+local CITY_RESULTS = { child_insert = "placed", child_remove = "removed", child_first = "next", child_next = "next", link = "placed", name = "placed", release = "removed" }
 -- the keys (and, for a NAME, the object identity after the first space) of a city event's identity place, or nil and the problem: one key for the first building of a city, one or two for an insertion (the city, and
 -- the predecessor), two for a removal, a next building and a LINK, a key and an object identity for a NAME
 local function city_identity (event, identity)
@@ -788,6 +788,8 @@ local function city_identity (event, identity)
 		if string.find (second, "[%c\127]") then return nil, "a NAME carries an object identity with a control character" end
 	elseif event == "child_first" then
 		if second ~= nil then return nil, "a request for the first building of a city names the city only" end
+	elseif event == "release" then
+		if second ~= nil then return nil, "the release of a city names the key of its record only" end
 	elseif event == "child_insert" then
 		if second ~= nil and not is_roster_key (second) then return nil, "the predecessor \"" .. shown (second) .. "\" is not a roster key" end
 	else
@@ -806,7 +808,7 @@ local function parse_scan_request (scene, depth, kind, definition, key)
 	local words = words_of_text (text, 16)
 	if words == nil then return nil, "the facts text is not 16 comma separated 0x%08x patterns" end
 	local phase = PHASES [words [12]]
-	if phase == nil then return nil, "the phase " .. words [12] .. " is not 0 to 15" end
+	if phase == nil then return nil, "the phase " .. words [12] .. " is not 0 to 16" end
 	-- the identity place has the domain of its phase: a host identity or a key is 1 to 128 bytes, and a city NAME holds a key (20 digits at most), one space and an object identity of its own 1 to 128 bytes (149 in all)
 	local limit = phase == 12 and 20 + 1 + 128 or 128
 	if #identity > limit then
@@ -903,6 +905,9 @@ local function roster_reply_problem (answer, parsed)
 		if name == nil or name == "" then return "an insertion names no key" end
 		if not is_roster_key (name) then return "the key \"" .. shown (name) .. "\" is not a roster key" end
 		if roster_live [name] or roster_ended [name] then return "the key " .. name .. " was issued before" end
+	elseif parsed.event == "remove" and name ~= nil and name ~= "" then
+		-- the host names the city record it keeps for the box it built: a roster key, which is the name of a record and not a key issued now
+		if not is_roster_key (name) then return "the record \"" .. shown (name) .. "\" a removal names is not a roster key" end
 	elseif name ~= nil and name ~= "" then
 		return "a " .. parsed.event .. " names a key (" .. shown (name) .. ")"
 	end
@@ -914,6 +919,8 @@ local function roster_track (parsed, answer)
 		roster_live [answer.name] = true
 	elseif parsed.event == "remove" then
 		roster_live [parsed.identity], roster_ended [parsed.identity] = nil, true
+		-- a record the host keeps for the box it built is the name a city's later placement continues (a LINK) and its release ends
+		if answer.name ~= nil and answer.name ~= "" then scan.city.lists [answer.name] = true end
 	else
 		for key in pairs (roster_live) do roster_ended [key] = true end
 		roster_live, last_served = {}, nil
@@ -935,7 +942,10 @@ local function city_reply_problem (answer, parsed)
 		if not is_roster_key (name) then return "the key \"" .. shown (name) .. "\" is not a roster key" end
 		if roster_live [name] or roster_ended [name] then return "the key " .. name .. " was issued before" end
 	elseif parsed.event == "child_remove" then
-		if name ~= nil and name ~= "" then return "a city removal names a key (" .. shown (name) .. ")" end
+		-- the host may name the record this removal leaves kept for the box it built: the list the removal was asked about, never another
+		if name ~= nil and name ~= "" and name ~= parsed.keys [1] then return "a city removal names the record " .. shown (name) .. ", not the list " .. parsed.keys [1] end
+	elseif parsed.event == "release" then
+		if name ~= nil and name ~= "" then return "a city release names a key (" .. shown (name) .. ")" end
 	elseif parsed.event == "child_first" or parsed.event == "child_next" then
 		if name ~= nil and name ~= "" then
 			if not is_roster_key (name) then return "the building \"" .. shown (name) .. "\" served is not a roster key" end
@@ -959,6 +969,9 @@ local function city_track (parsed, answer)
 		city.lists [parsed.keys [1]] = true
 	elseif parsed.event == "child_remove" then
 		roster_live [parsed.keys [2]], roster_ended [parsed.keys [2]], city.parent [parsed.keys [2]] = nil, true, nil
+	elseif parsed.event == "release" then
+		-- the record ended with the city entity: nothing continues it
+		city.lists [parsed.keys [1]] = nil
 	elseif parsed.event == "child_first" or parsed.event == "child_next" then
 		local served = answer.name ~= nil and answer.name ~= ""
 		city.last = served and { parent = parsed.keys [1], child = answer.name } or nil
@@ -973,6 +986,11 @@ end
 local function request_join_problem (parsed)
 	if parsed.kind == "city" then
 		local keys, city = parsed.keys, scan.city
+		if parsed.event == "release" then
+			-- the campaign removed the city's placements before it releases the entity: the record's name is never a live placement
+			if roster_live [keys [1]] then return "the release names the placement " .. keys [1] .. ", which is still live" end
+			return nil
+		end
 		if roster_ended [keys [1]] and not city.lists [keys [1]] then return "the city event names the placement " .. keys [1] .. ", which has ended" end
 		if (parsed.event == "child_remove" or parsed.event == "child_next") and roster_ended [keys [2]] then return "the city event names the building " .. keys [2] .. ", which has ended" end
 		if parsed.event == "child_remove" and city.parent [keys [2]] ~= nil and city.parent [keys [2]] ~= keys [1] then return "the removal names the building " .. keys [2] .. " under the city " .. keys [1] .. ", but it is listed under " .. city.parent [keys [2]] end
@@ -1128,7 +1146,7 @@ scan.withdrawn, scan.withdrawn_next = 0, ""
 -- the CITY events (phases 7 to 12), counted apart from the roster's and the scan's: by event and by answer; the buildings served, the list each live child is listed under, the names of the lists seen, the building a
 -- traversal was last served, the well-formed CHILD_NEXT questions that stood at it and joined the keys seen (`next_joined`), and the host's own withdrawal of that building (withdrawn_child; 1 once acknowledged
 -- `removed`, -1 when it was not) with the event it preceded
-scan.city = { total = 0, child_insert = 0, child_remove = 0, child_first = 0, child_next = 0, link = 0, name = 0, placed = 0, removed = 0, next = 0, served = 0, parent = {}, lists = {}, alias = {}, last = nil, next_joined = 0, withdrawn = 0, withdrawn_next = "" }
+scan.city = { total = 0, child_insert = 0, child_remove = 0, child_first = 0, child_next = 0, link = 0, name = 0, release = 0, placed = 0, removed = 0, next = 0, served = 0, parent = {}, lists = {}, alias = {}, last = nil, next_joined = 0, withdrawn = 0, withdrawn_next = "" }
 -- the key a city's list is named by for a key of the identity place: a sector placement that an acknowledged LINK continued the list with is the same city as the list's name (`alias`), any other key stands for itself
 function scan.city.anchor (key) return scan.city.alias [key] or key end
 -- one ENTITY_SCAN question: a roster event (phases 4 to 6) or a step of the scan. The two are counted apart in both windows: an event is never a query scan, and no event alters or credits a scan control

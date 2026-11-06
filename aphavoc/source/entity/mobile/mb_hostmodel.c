@@ -81,6 +81,8 @@ struct campaign_model_counters
 	long city_stated;
 	/* the CITY_EXPAND questions (the same question, phase 15): the boxes of cities the host built for a building's link */
 	long city_expanded;
+	/* the city releases (the same question, phase 16): city entities that ended while the host held a record for them */
+	long city_released;
 	/* ENTITY_POSE observations asked of the host (EEDCS-49), and the classes it answered: recorded, unrecorded, retired, unknown, no identity */
 	long entity_pose, pose_recorded, pose_unrecorded, pose_retired, pose_unknown, pose_no_id;
 	long entity_candidate, candidate_skip, candidate_updated, candidate_normal, candidate_buildings, candidate_test, candidate_fixed, candidate_placement;
@@ -2050,6 +2052,7 @@ void campaign_model_entity_city (int phase, int entity_type, const char *identit
 		case CAMPAIGN_SCAN_PHASE_CHILD_FIRST: { campaign_model_counts.city_first++; break; }
 		case CAMPAIGN_SCAN_PHASE_CHILD_NEXT: { campaign_model_counts.city_next++; break; }
 		case CAMPAIGN_SCAN_PHASE_LINK: { campaign_model_counts.city_linked++; break; }
+		case CAMPAIGN_SCAN_PHASE_CITY_RELEASE: { campaign_model_counts.city_released++; break; }
 		default: { campaign_model_counts.city_named++; break; }
 	}
 #endif

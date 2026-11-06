@@ -103,6 +103,10 @@ static int city_link_asks, city_name_asks;
 static const char *city_name;
 static campaign_model_request city_seen;
 static char city_last_link[160], city_last_name[160];
+/* the city's box lifecycle (REQUIRED_CITY_BOX_LIFECYCLE_RETENTION): the record the scripted host says it keeps for a box it built, in the answer of a removal of a city's placement (roster_retain_name) and of a building
+   (city_retain_name); the releases (the city phase 16: CAMPAIGN_SCAN_PHASE_CITY_RELEASE) it was asked, and the last */
+static char roster_retain_name[24], city_retain_name[24], city_last_release[160];
+static int city_release_asks;
 /* the FIXED_STATE reports (the same question, phase 13: fixed/static collision backing, Task49): how many the scripted host was asked, the last and every one in order, and an answer forced instead of the coherent one
    (the coherent host acknowledges the key it was given) when `fixed_override` is set. The phase number is the contract's (mb_hostmodel.h), written out here so that the control compiles against a build that has none. */
 #define CHECK_PHASE_FIXED_STATE 13
@@ -210,6 +214,20 @@ static void scripted_city (const campaign_model_request *request, campaign_model
 				city_count--;
 			}
 
+			reply->candidate_state = CAMPAIGN_MODEL_SCAN_REMOVED;
+
+			if (city_retain_name[0])
+			{
+				strcpy (reply->name, city_retain_name);
+			}
+
+			break;
+		}
+		case 16:
+		{
+			/* the release of a city: the host ends the record it kept */
+			city_release_asks++;
+			strcpy (city_last_release, request->host_id);
 			reply->candidate_state = CAMPAIGN_MODEL_SCAN_REMOVED;
 			break;
 		}
@@ -433,6 +451,10 @@ static void scripted_ask (campaign_model_request *request, campaign_model_reply 
 		else if (phase == CAMPAIGN_SCAN_PHASE_INSERT)
 		{
 			snprintf (reply->name, sizeof (reply->name), "%d", roster_issue++);
+		}
+		else if ((phase == CAMPAIGN_SCAN_PHASE_REMOVE) && roster_retain_name[0])
+		{
+			strcpy (reply->name, roster_retain_name);
 		}
 
 		return;
@@ -2262,8 +2284,13 @@ static void roster_cases (struct tc *t)
 	stopped = roster_event (CAMPAIGN_SCAN_PHASE_REMOVE, 4, NULL, "5", key);
 	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.state") != NULL);
 	roster_state = CAMPAIGN_MODEL_SCAN_REMOVED;
+	/* a removal's answer may name the record the host keeps for a CITY's box (a valid key): the exchange hands the name to its caller, which refuses it for any entity that is no city (city_retention_cases); a name that is no key is refused here */
+	stopped = roster_event (CAMPAIGN_SCAN_PHASE_REMOVE, 4, NULL, "5", key);
+	EXPECT (t, !stopped && strcmp (key, "5") == 0);
+	roster_name = "4x";
 	stopped = roster_event (CAMPAIGN_SCAN_PHASE_REMOVE, 4, NULL, "5", key);
 	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.key") != NULL);
+	roster_name = "5";
 	roster_state = CAMPAIGN_MODEL_SCAN_CLEARED;
 	roster_name = "";
 	stopped = roster_event (CAMPAIGN_SCAN_PHASE_INSERT, 4, position, NULL, key);
@@ -2841,7 +2868,7 @@ static void city_cases (struct tc *t)
 	city_state = CAMPAIGN_MODEL_SCAN_REMOVED;
 	city_name = "77";
 	stopped = city_do (1, b, NULL, NULL);
-	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.key") != NULL && strstr (fatal_text, "issued a key") != NULL);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.key") != NULL && strstr (fatal_text, "names another list") != NULL);
 	city_override = FALSE;
 
 	/* the grammar of the identity place is checked BEFORE anything is sent: one key where two are needed, two where one is, a key that is not a key, an empty or control-character object identity (the object
@@ -2900,6 +2927,10 @@ static void city_fresh (void)
 	city_name_asks = 0;
 	city_last_link[0] = 0;
 	city_last_name[0] = 0;
+	roster_retain_name[0] = 0;
+	city_retain_name[0] = 0;
+	city_release_asks = 0;
+	city_last_release[0] = 0;
 	refuse_the_exchange = FALSE;
 	place_reset ();
 	place_host_installed = TRUE;
@@ -3042,6 +3073,131 @@ static void city_anchor_cases (struct tc *t)
 	stopped = city_do (1, f, NULL, NULL);
 	stopped = stopped || city_do (2, city, NULL, NULL);
 	EXPECT (t, !stopped && place_list_of_slot[city->slot][0] == 0 && place_listed_of_slot[city->slot] == 0 && !place_named_of_slot[city->slot] && place_key_of_slot[city->slot][0] == 0);
+
+	place_reset ();
+	place_host_installed = FALSE;
+}
+
+/* ---- a city's host-built box outlives its placement: the host names the record it keeps, the campaign keeps the name, the next placement continues the record and the release of the entity ends it ---- */
+static void city_pentity (int slot, float x, float y, float z);
+
+static void city_retention_cases (struct tc *t)
+{
+	struct pentity *city = &pheap[1], *a = &pheap[2];
+	char list[24], pair[200];
+	int stopped, releases;
+
+	city_fresh ();
+	city_pentity (1, 1100.0f, 3.0f, 1100.0f);
+
+	/* the city is placed and has no building: the host keeps the record for the box it built and says so when the placement leaves; the campaign keeps the record's name */
+	stopped = city_do (3, city, NULL, NULL);
+	EXPECT (t, !stopped && strcmp (place_key_of_slot[city->slot], "1") == 0 && place_list_of_slot[city->slot][0] == 0);
+	strcpy (roster_retain_name, "1");
+	stopped = city_do (4, city, NULL, NULL);
+	EXPECT (t, !stopped && roster_asks == 1 && city_asks == 0 && place_key_of_slot[city->slot][0] == 0 && strcmp (place_list_of_slot[city->slot], "1") == 0 && place_listed_of_slot[city->slot] == 0);
+
+	/* the next placement is declared to continue that record, by its name and before any state is stated, and the name stays */
+	roster_retain_name[0] = 0;
+	stopped = city_do (3, city, NULL, NULL);
+	EXPECT (t, !stopped && roster_asks == 1 && city_asks == 1 && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_LINK && strcmp (city_last_link, "2 1") == 0 && strcmp (place_list_of_slot[city->slot], "1") == 0);
+
+	/* a second relink: the host names the record again, and the same name continues it */
+	strcpy (roster_retain_name, "1");
+	stopped = city_do (4, city, NULL, NULL);
+	roster_retain_name[0] = 0;
+	stopped = stopped || city_do (3, city, NULL, NULL);
+	EXPECT (t, !stopped && city_link_asks == 2 && strcmp (city_last_link, "3 1") == 0 && strcmp (place_list_of_slot[city->slot], "1") == 0);
+
+	/* the city entity is released: its placement leaves (the host names the record it keeps) and the host is told to end the record, by its name; the name is gone, and the entity's slot starts clean */
+	strcpy (roster_retain_name, "1");
+	stopped = city_do (2, city, NULL, NULL);
+	roster_retain_name[0] = 0;
+	EXPECT (t, !stopped && roster_asks == 1 && city_asks == 1 && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == 16 && strcmp (city_seen.host_id, "1") == 0 && city_release_asks == 1 && strcmp (city_last_release, "1") == 0);
+	EXPECT (t, place_list_of_slot[city->slot][0] == 0 && place_key_of_slot[city->slot][0] == 0 && place_listed_of_slot[city->slot] == 0);
+	stopped = city_do (3, city, NULL, NULL);
+	EXPECT (t, !stopped && roster_asks == 1 && city_asks == 0 && city_link_asks == 2 && place_list_of_slot[city->slot][0] == 0);
+
+	/* a city the host keeps nothing for is the legacy path: the record and its name end with the placement, and its release asks nothing */
+	releases = city_release_asks;
+	stopped = city_do (4, city, NULL, NULL);
+	EXPECT (t, !stopped && place_list_of_slot[city->slot][0] == 0);
+	stopped = city_do (3, city, NULL, NULL);
+	stopped = stopped || city_do (2, city, NULL, NULL);
+	EXPECT (t, !stopped && roster_asks == 1 && city_asks == 0 && city_release_asks == releases);
+
+	/* the host keeps the record when the LAST BUILDING of a placement-less city leaves (the placement left while the building was listed): it names the record in that answer, and the campaign keeps the name */
+	stopped = city_do (3, city, NULL, NULL);
+	stopped = stopped || city_do (0, a, city, NULL);
+	strcpy (list, place_list_of_slot[city->slot]);
+	EXPECT (t, !stopped && place_listed_of_slot[city->slot] == 1 && list[0] != 0);
+	stopped = city_do (4, city, NULL, NULL);
+	EXPECT (t, !stopped && strcmp (place_list_of_slot[city->slot], list) == 0 && place_listed_of_slot[city->slot] == 1);
+	strcpy (city_retain_name, list);
+	stopped = city_do (1, a, NULL, NULL);
+	city_retain_name[0] = 0;
+	EXPECT (t, !stopped && place_listed_of_slot[city->slot] == 0 && strcmp (place_list_of_slot[city->slot], list) == 0 && place_child_of_slot[a->slot][0] == 0);
+	stopped = city_do (3, city, NULL, NULL);
+	snprintf (pair, sizeof (pair), "%s %s", place_key_of_slot[city->slot], list);
+	EXPECT (t, !stopped && city_asks == 1 && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_LINK && strcmp (city_last_link, pair) == 0);
+	strcpy (roster_retain_name, list);
+	stopped = city_do (2, city, NULL, NULL);
+	roster_retain_name[0] = 0;
+	EXPECT (t, !stopped && city_asks == 1 && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == 16 && strcmp (city_seen.host_id, list) == 0 && place_list_of_slot[city->slot][0] == 0);
+
+	/* a city released while a building is still listed: its placement leaves (the host keeps the record by the list), and the release names the list; a record the host holds for a list ends with the last building */
+	city_fresh ();
+	city_pentity (1, 1100.0f, 3.0f, 1100.0f);
+	stopped = city_do (3, city, NULL, NULL);
+	stopped = stopped || city_do (0, a, city, NULL);
+	strcpy (list, place_list_of_slot[city->slot]);
+	stopped = stopped || city_do (2, city, NULL, NULL);
+	EXPECT (t, !stopped && roster_asks == 1 && city_asks == 1 && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == 16 && strcmp (city_seen.host_id, list) == 0 && place_list_of_slot[city->slot][0] == 0 && place_listed_of_slot[city->slot] == 0);
+
+	/* the host names a record for the removal of an entity that is no city: the engine stops by name */
+	city_fresh ();
+	stopped = city_do (3, a, NULL, NULL);
+	strcpy (roster_retain_name, "1");
+	stopped = city_do (4, a, NULL, NULL);
+	EXPECT (t, stopped && strstr (fatal_text, "no city") != NULL && place_list_of_slot[a->slot][0] == 0);
+
+	/* it names another record than the one the city already holds: the engine stops by name */
+	city_fresh ();
+	city_pentity (1, 1100.0f, 3.0f, 1100.0f);
+	stopped = city_do (3, city, NULL, NULL);
+	stopped = stopped || city_do (0, a, city, NULL);
+	strcpy (roster_retain_name, "9");
+	stopped = city_do (4, city, NULL, NULL);
+	EXPECT (t, stopped && strstr (fatal_text, "holds the record") != NULL);
+
+	/* the answer to the last building's removal names another list than the one it was asked about: the engine stops by name */
+	city_fresh ();
+	city_pentity (1, 1100.0f, 3.0f, 1100.0f);
+	stopped = city_do (3, city, NULL, NULL);
+	stopped = stopped || city_do (0, a, city, NULL);
+	strcpy (city_retain_name, "9");
+	stopped = city_do (1, a, NULL, NULL);
+	EXPECT (t, stopped && strstr (fatal_text, "names another list") != NULL);
+
+	/* the release is a state REMOVED and no key; a release that names two keys is refused before anything is sent */
+	city_fresh ();
+	city_pentity (1, 1100.0f, 3.0f, 1100.0f);
+	stopped = city_do (3, city, NULL, NULL);
+	strcpy (roster_retain_name, "1");
+	stopped = stopped || city_do (4, city, NULL, NULL);
+	roster_retain_name[0] = 0;
+	city_override = TRUE;
+	city_state = CAMPAIGN_MODEL_SCAN_REMOVED;
+	city_name = "1";
+	stopped = city_do (2, city, NULL, NULL);
+	EXPECT (t, stopped && strstr (fatal_text, "release of a city") != NULL);
+	city_override = FALSE;
+	{
+		char answered[24];
+
+		stopped = city_exchange_do (16, CHECK_CITY_TYPE, "1 2", answered);
+		EXPECT (t, stopped && city_asks == 0 && strstr (fatal_text, "the key of its record only") != NULL);
+	}
 
 	place_reset ();
 	place_host_installed = FALSE;
@@ -4215,6 +4371,7 @@ int eech_entity_dialogue_check_run (char *text, int capacity, int *checks)
 	city_cases (&t);
 	city_relink_cases (&t);
 	city_anchor_cases (&t);
+	city_retention_cases (&t);
 	city_alias_cases (&t);
 	city_wire_cases (&t);
 	fixed_static_cases (&t);

@@ -47,6 +47,12 @@
 // it under the new key; the host's record, which the city's list hangs from, continues across it) and the shared fixed-position setter states a position written in the same sector. The BOX is the host's: the expansion
 // each building's link makes (ct_msgs.c) is built by the host from the records it holds (`place_city_expand`) and applied to the entity's mirror, never stated back. The box words are the original's INVERTED initial box (1.0e6 and -1.0e6) until the first building links: a valid statement. The words are copied as the entity
 // holds them and never loaded as floats here.
+//
+// THE CITY'S BOX OUTLIVES ITS PLACEMENT (Task49, REQUIRED_CITY_BOX_LIFECYCLE_RETENTION). A city with no building left holds no list, and its sector placement is transient, so the box the HOST built would have ended
+// with the record and the next placement would have been stated from the campaign's mirror alone. The host now keeps the record while it holds a box it built, and names it in the answer of the removal that leaves
+// it (a placement's, or the last building's under a placement-less city): the campaign keeps that name as the city's list name (place_retain_record), the next placement of the city is declared to continue the
+// record by it (place_declare: a LINK, and the box the insertion then states is only the mirror of the host's), and the city entity's release (place_release_entity) ends the record. A city the host built nothing for
+// is unchanged: its record, and its name, end with its last placement.
 #ifndef MB_HOSTPLACEMAP_H
 #define MB_HOSTPLACEMAP_H
 
@@ -449,6 +455,29 @@ static const char *place_key (CAMPAIGN_PLACE_ENTITY *en, int child)
 	return (child ? place_child_of_slot [slot] : place_key_of_slot [slot]);
 }
 
+// The host named the record it keeps for the bounding box it built when it answered the removal of a city's placement (or of the last building listed under a placement-less city): the city has nothing else
+// that would hold the box, and the campaign's mirror must never be its only copy. Only a city can hold one, and the name is the city's own list name when it already holds one; the name stays until the next
+// placement of the city is declared to continue the record (place_declare) and until the city entity is released (place_release_entity).
+static void place_retain_record (CAMPAIGN_PLACE_ENTITY *en, int slot, const char *name)
+{
+	if (!CAMPAIGN_PLACE_CITY (CAMPAIGN_PLACE_TYPE (en)))
+	{
+		debug_fatal ("host roster: the host named the record %.40s for the removal of entity %d (type %s), which is no city and has no bounding box to keep", name, slot, CAMPAIGN_PLACE_NAME (en));
+	}
+
+	if (place_list_of_slot [slot][0])
+	{
+		if (strcmp (place_list_of_slot [slot], name) != 0)
+		{
+			debug_fatal ("host roster: the host named the record %.40s for the city %d, which holds the record %.40s", name, slot, place_list_of_slot [slot]);
+		}
+
+		return;
+	}
+
+	memcpy (place_list_of_slot [slot], name, strlen (name) + 1);
+}
+
 // `en` was inserted at the head of a sector's list: the host places it and answers the key it issued.
 static void place_insert (CAMPAIGN_PLACE_ENTITY *en)
 {
@@ -523,8 +552,13 @@ static void place_remove (CAMPAIGN_PLACE_ENTITY *en)
 
 	place_forget_key (slot, 0);
 
-	// the city's placement leaves: with buildings listed the host's record stays (the next placement continues it); with none the record ends with this placement, and so does its name
-	if (place_listed_of_slot [slot] <= 0)
+	// the city's placement leaves: with buildings listed the host's record stays (the next placement continues it); the host may keep it for the bounding box it built and then names it (the name stays, and the next
+	// placement continues the record); with neither the record ends with this placement, and so does its name
+	if (answered [0])
+	{
+		place_retain_record (en, slot, answered);
+	}
+	else if (place_listed_of_slot [slot] <= 0)
 	{
 		place_list_of_slot [slot][0] = 0;
 	}
@@ -696,13 +730,19 @@ static void place_child_remove (CAMPAIGN_PLACE_ENTITY *en)
 		{
 			place_listed_of_slot [city] = 0;
 
-			if (!place_key_of_slot [city][0])
+			// a record the host keeps for the bounding box it built keeps its name too (the host named it in this answer)
+			if (!place_key_of_slot [city][0] && !answered [0])
 			{
 				place_list_of_slot [city][0] = 0;
 			}
 
 			place_unname_ended (city);
 		}
+	}
+
+	if (answered [0] && !((city >= 0) && place_list_of_slot [city][0] && (strcmp (place_list_of_slot [city], answered) == 0)))
+	{
+		debug_fatal ("host roster: the host named the record %.40s for the removal of the building %d, which the campaign's city does not hold", answered, slot);
 	}
 
 	place_parent_of_slot [slot][0] = 0;
@@ -715,6 +755,9 @@ static void place_child_remove (CAMPAIGN_PLACE_ENTITY *en)
 // the heap slot of `en` is released: an entity that is still placed is removed first (a path that frees an entity without unlinking it from its lists)
 static void place_release_entity (CAMPAIGN_PLACE_ENTITY *en)
 {
+	char
+		answered [CAMPAIGN_ROSTER_KEY_MAX + 1];
+
 	int
 		index;
 
@@ -738,6 +781,15 @@ static void place_release_entity (CAMPAIGN_PLACE_ENTITY *en)
 	if (place_key_of_slot [index][0])
 	{
 		place_remove (en);
+	}
+
+	// the city entity ends: the host ends the record it still holds for it (the one it kept for the bounding box it built, or the list of a city released with buildings still listed). This is the real end of the
+	// entity's lifetime; the host's own withdrawal of a state ends nothing
+	if (place_list_of_slot [index][0] && CAMPAIGN_PLACE_CITY (CAMPAIGN_PLACE_TYPE (en)))
+	{
+		answered [0] = 0;
+
+		campaign_model_entity_city (CAMPAIGN_SCAN_PHASE_CITY_RELEASE, CAMPAIGN_PLACE_TYPE (en), place_list_of_slot [index], answered);
 	}
 
 	// a city released with buildings still listed no longer holds a list: the buildings keep the name they were listed under and end the host's list as they are released

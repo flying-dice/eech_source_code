@@ -22,7 +22,8 @@
 //!
 //! A CITY's record holds the city's OWN collision state instead (`CityState`): its position and bounding box, as the campaign states them at the insertion (which a relink repeats), at a position written in the same
 //! sector and at each expansion of the box that a building's link makes. The record is the one the city's list hangs from, so the state outlives the city's transient sector placement while buildings are listed and ends
-//! with the record. The terrain the structures stand on is NOT held here (declared follow-on).
+//! with the record, EXCEPT the box the host built: the record keeps that until the campaign releases the city entity (`release`), whether or not a placement or a building is left, so that a relinked placement
+//! continues it and the campaign's mirror is never the box's only surviving copy. A diagnostic withdrawal of the state ends neither. The terrain the structures stand on is NOT held here (declared follow-on).
 //!
 //! A key is issued at an insertion and never again: a relink is a removal and a new insertion with a new sequence number, exactly the list operation it mirrors, and a removed key can never name
 //! another entity.
@@ -269,6 +270,12 @@ struct Record {
     child: Option<u64>,
     object: Option<String>,
     fixed: FixedHold,
+    /// whether the record is a city's (the type of the sector placement that made it)
+    city: bool,
+    /// the bounding box the HOST built for the city (`set_city_box`): kept apart from `fixed`, which a diagnostic withdrawal retires, so that the box the host built is never restated from the campaign's mirror
+    built: Option<([u32; 3], [u32; 3])>,
+    /// the campaign has released the city entity: the host-built box is no longer kept for a placement to continue
+    released: bool,
 }
 
 /// The host's roster of the entities in the sector lists.
@@ -311,6 +318,9 @@ impl SectorRoster {
                 child: None,
                 object: None,
                 fixed: FixedHold::Never,
+                city: entity_type == ENTITY_CITY,
+                built: None,
+                released: false,
             },
         );
         key
@@ -348,16 +358,62 @@ impl SectorRoster {
     }
 
     /// A record, and the object identity it was named by, end with its last placement, unless buildings are still listed under it: a city whose sector placement has left (a relink) keeps its record and its
-    /// list until a placement joins it again, and ends when its list is empty.
+    /// list until a placement joins it again, and ends when its list is empty. A city record that holds the box the HOST built also stays, placement-less and list-less, until the campaign releases the city
+    /// ([`SectorRoster::release`]): the box is the host's and must not survive only as the campaign's mirror.
     fn retire(&mut self, record: u64) {
         let placed = self.records.get(&record).is_some_and(|entry| entry.sector.is_some() || entry.child.is_some());
-        if placed || self.lists.get(&record).is_some_and(|list| !list.is_empty()) {
+        if placed || self.lists.get(&record).is_some_and(|list| !list.is_empty()) || self.keeps_box(record) {
             return;
         }
         self.lists.remove(&record);
         if let Some(object) = self.records.remove(&record).and_then(|ended| ended.object) {
             self.objects.remove(&object);
         }
+    }
+
+    /// Whether the record is a city's that holds the box the host built and the campaign has not released: only then does it outlive its placements and its list.
+    fn keeps_box(&self, record: u64) -> bool {
+        self.records
+            .get(&record)
+            .is_some_and(|entry| entry.city && entry.built.is_some() && !entry.released)
+    }
+
+    /// Whether the record is kept ONLY for the box the host built: it holds no placement and no list, and a new sector placement can continue it (`link`). The host names such a record to the campaign
+    /// when the removal that leaves it answers (the campaign keeps the name, and states the release when the city entity ends).
+    pub fn parked(&self, record: u64) -> bool {
+        self.keeps_box(record)
+            && self.records.get(&record).is_some_and(|entry| entry.sector.is_none() && entry.child.is_none())
+            && !self.lists.get(&record).is_some_and(|list| !list.is_empty())
+    }
+
+    /// The record whose city list a key of the identity place names, or none: what a removal that may leave the record parked has to ask BEFORE it changes anything.
+    pub fn list_record_of(&self, named: u64) -> Option<u64> {
+        self.list_record(named).ok()
+    }
+
+    /// The campaign releases the city entity (its heap slot is freed) after its placements and its buildings' placements were removed: the record named `name` (the key the host named it by when it
+    /// answered the removal that parked it, or the name of the list the city was released with) will never be continued. A record that still lists buildings ends with the last of them; a parked one ends
+    /// now. A key that names no city record the campaign may release, or a record that still holds a sector placement, is refused by name and nothing changes.
+    pub fn release(&mut self, name: u64) -> Result<(), Refusal> {
+        let Some(entry) = self.records.get(&name) else {
+            return Err(Refusal::new(self.unknown(name)));
+        };
+        if !entry.city {
+            return Err(Refusal::new(format!("the record {name} is not a city's: only a city entity is released")));
+        }
+        if entry.sector.is_some() {
+            return Err(Refusal::new(format!(
+                "the record {name} still holds a sector placement: the campaign removes it before it releases the city"
+            )));
+        }
+        if entry.released {
+            return Err(Refusal::new(format!("the record {name} was released already")));
+        }
+        if let Some(entry) = self.records.get_mut(&name) {
+            entry.released = true;
+        }
+        self.retire(name);
+        Ok(())
     }
 
     /// The record whose city list a key of the identity place names: a live sector entry names the record it belongs to, and a key that is no live entry names the record it was issued for while that record is
@@ -420,6 +476,9 @@ impl SectorRoster {
                 child: Some(key),
                 object: None,
                 fixed: FixedHold::Never,
+                city: false,
+                built: None,
+                released: false,
             },
         );
         Ok(key)
@@ -549,7 +608,7 @@ impl SectorRoster {
         let (Some(held), Some(joining)) = (self.records.get(&record), self.records.get(&fresh)) else {
             return Err(Refusal::new(format!("[link] the placement {sector} and the record {record} have no record")));
         };
-        if held.sector.is_some() || !self.lists.get(&record).is_some_and(|list| !list.is_empty()) {
+        if held.sector.is_some() || !(self.lists.get(&record).is_some_and(|list| !list.is_empty()) || self.keeps_box(record)) {
             return Err(Refusal::new(format!(
                 "[link] the record {record} is not a city list whose sector placement has left"
             )));
@@ -627,8 +686,9 @@ impl SectorRoster {
     /// building listed under a city have none: refused before the record changes), and a statement replaces what the record held (it also restores a state the host withdrew).
     ///
     /// The box is the HOST's once the host holds it (a building's link has it built there, `city_expansion` and `set_city_box`): a statement over a record that holds a city's state may move the position, which
-    /// is the campaign's geography, but a box that is not the one held is refused by name and changes nothing. A record that holds none (a new placement, or one whose state the host withdrew) takes the
-    /// statement as it is: the inverted initial box of a city with no building yet, or the campaign's mirror of the box the host built for a city whose record ended with its last placement.
+    /// is the campaign's geography, but a box that is not the one held is refused by name and changes nothing. The box the host BUILT outlives the state (a diagnostic withdrawal retires only the state, so the
+    /// statement that restores it must carry the built box) and outlives the city's placements (`retire`, `release`: a relinked placement continues the record and so the box). Only a record that holds no box of
+    /// the host's (a new placement, or a city the host never built a box for) takes the statement as it is: the inverted initial box of a city with no building yet is the campaign's own.
     pub fn set_city(&mut self, key: u64, state: CityState) -> Result<(), Refusal> {
         let record = self.record(key).ok_or_else(|| Refusal::new(self.unknown(key)))?;
         let placed = self
@@ -646,8 +706,13 @@ impl SectorRoster {
         let Some(entry) = self.records.get_mut(&record) else {
             return Err(Refusal::new(format!("the placement {key} has no record")));
         };
-        if let FixedHold::City(held) = entry.fixed {
-            if held.box_min != state.box_min || held.box_max != state.box_max {
+        // the box the host holds: the held state's, else the one the host built (kept through a diagnostic withdrawal of the state)
+        let held_box = match entry.fixed {
+            FixedHold::City(held) => Some((held.box_min, held.box_max)),
+            _ => entry.built,
+        };
+        if let Some((min, max)) = held_box {
+            if min != state.box_min || max != state.box_max {
                 return Err(Refusal::new(format!(
                     "the statement for the city {key} carries a bounding box that is not the one the host holds: the box is the host's, the campaign only mirrors it"
                 )));
@@ -723,6 +788,7 @@ impl SectorRoster {
             box_max: max,
             sub_type: held.sub_type,
         });
+        entry.built = Some((min, max));
         Ok(())
     }
 
@@ -1323,19 +1389,36 @@ mod tests {
         };
         roster.set_city(relinked, moved).unwrap();
         assert_eq!(held(&roster, relinked, false), FixedHold::City(moved));
-        // a withdrawal is kept by the link, and the next statement restores it
+        // a withdrawal is kept by the link, and the next statement restores it: carrying the box the HOST built (the box outlives the withdrawn state), never another
         roster.withdraw_fixed(relinked).unwrap();
         roster.remove(relinked).unwrap();
         let again = roster.insert((2, 2), ENTITY_CITY, None);
         roster.link(again, city).unwrap();
         assert_eq!(held(&roster, again, false), FixedHold::Withdrawn);
-        roster.set_city(again, city_state(4)).unwrap();
-        assert_eq!(held(&roster, again, false), FixedHold::City(city_state(4)));
-        // the last building leaves while the city stays placed: the record stays; the placement then leaves with nothing listed and the record and its state end with it
+        assert!(roster.set_city(again, city_state(4)).unwrap_err().0.contains("not the one the host holds"));
+        assert_eq!(held(&roster, again, false), FixedHold::Withdrawn, "a refused restoration changes nothing");
+        let restored = CityState {
+            position: city_state(4).position,
+            ..built
+        };
+        roster.set_city(again, restored).unwrap();
+        assert_eq!(held(&roster, again, false), FixedHold::City(restored));
+        // the last building leaves while the city stays placed: the record stays; the placement then leaves with nothing listed: the record holds the box the host built, so it is kept (parked) for the next
+        // placement and ended only by the campaign's release of the city
         roster.child_remove(city, building).unwrap();
-        assert_eq!(held(&roster, again, false), FixedHold::City(city_state(4)));
+        assert_eq!(held(&roster, again, false), FixedHold::City(restored));
+        assert!(!roster.parked(city), "a placed city's record is not parked");
         roster.remove(again).unwrap();
         assert!(roster.placement_fixed(again, false).unwrap_err().0.contains("has ended"));
+        assert!(roster.parked(city));
+        let continued = roster.insert((3, 3), ENTITY_CITY, None);
+        roster.link(continued, city).unwrap();
+        assert_eq!(held(&roster, continued, false), FixedHold::City(restored));
+        assert!(roster.release(city).unwrap_err().0.contains("still holds a sector placement"));
+        roster.remove(continued).unwrap();
+        roster.release(city).unwrap();
+        assert!(!roster.parked(city));
+        assert!(roster.release(city).unwrap_err().0.contains("has ended"));
         // an empty city's relink is a removal and a new insertion: a new record that holds none until it is stated
         let empty = roster.insert((0, 0), ENTITY_CITY, None);
         roster.set_city(empty, city_state(1)).unwrap();
@@ -1353,6 +1436,32 @@ mod tests {
         // a boot ends every record and its state
         roster.clear();
         assert!(roster.placement_fixed(fresh, false).is_err());
+    }
+
+    #[test]
+    fn a_release_ends_a_cities_record_only_and_is_refused_by_name_for_anything_else() {
+        let mut roster = SectorRoster::default();
+        let object = roster.insert((0, 0), 17, None);
+        assert!(roster.release(object).unwrap_err().0.contains("not a city's"));
+        let city = roster.insert((0, 0), ENTITY_CITY, None);
+        assert!(roster.release(city).unwrap_err().0.contains("still holds a sector placement"));
+        assert!(roster.release(99).unwrap_err().0.contains("never issued"));
+        roster.set_city(city, city_state(1)).unwrap();
+        let building = roster.child_insert(city, None, ENTITY_CITY_BUILDING).unwrap();
+        roster.set_city_box(city, [1; 3], [2; 3]).unwrap();
+        roster.remove(city).unwrap();
+        // released while a building is still listed: the record lives by its list, keeps nothing for the box, and ends with the last building
+        roster.release(city).unwrap();
+        assert!(roster.release(city).unwrap_err().0.contains("released already"));
+        assert!(!roster.parked(city));
+        roster.child_remove(city, building).unwrap();
+        assert!(roster.release(city).unwrap_err().0.contains("has ended"));
+        // a city the host never built a box for ends with its last placement: nothing is parked, so there is nothing to release
+        let plain = roster.insert((0, 0), ENTITY_CITY, None);
+        roster.set_city(plain, city_state(1)).unwrap();
+        roster.remove(plain).unwrap();
+        assert!(!roster.parked(plain));
+        assert!(roster.release(plain).unwrap_err().0.contains("has ended"));
     }
 
     const FIXED_DATABASE_C: &str = include_str!("../../../../aphavoc/source/entity/fixed/fx_dbase.c");

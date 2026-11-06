@@ -207,7 +207,8 @@ local function reference (op, scene, depth, kind, definition, key)
 			if bad_roster == "state" then answer.result = "removed" end
 		elseif phase == "0x40a00000" then
 			ROSTER.ended, ROSTER.live = ROSTER.live, nil
-			answer = { result = "removed", name = bad_roster == "key_on_remove" and "7" or "" }
+			-- a removal may name the CITY record the host keeps for the box it built (a roster key); a name that is no key is a reply fault
+			answer = { result = "removed", name = (bad_roster == "key_on_remove" and "x7") or (bad_roster == "record_on_remove" and "7") or "" }
 		elseif phase == "0x40c00000" then
 			ROSTER.live = nil
 			answer = { result = "cleared", name = "" }
@@ -590,7 +591,7 @@ package.preload.eech_dc = function ()
 					identity = roster_key
 				end
 				local fault = scenario.bad_roster_request
-				if fault == "phase7" then words [12] = "0x41800000"
+				if fault == "phase7" then words [12] = "0x41880000"
 				elseif fault == "insert_stray_word" and kind == "insert" then words [8] = "0x3f800000"
 				elseif fault == "remove_no_key" and kind == "remove" then identity = ""
 				elseif fault == "remove_text" and kind == "remove" then identity = "eech-world:1"
@@ -2360,7 +2361,7 @@ fn each_single_fault_of_the_new_scan_and_roster_grammar_is_counted_at_its_questi
         (", bad_scan_request = 'begin_key'", "scan request:", "carries no standing key"),
         (", bad_scan_request = 'other_key'", "scan request:", "is not the entry the host last served"),
         (", questions = 2, bad_scan_request = 'ended_key'", "scan request:", "has ended"),
-        (", bad_roster_request = 'phase7'", "scan request:", "is not 0 to 15"),
+        (", bad_roster_request = 'phase7'", "scan request:", "is not 0 to 16"),
         (
             ", bad_roster_request = 'insert_stray_word'",
             "scan request:",
@@ -2374,7 +2375,11 @@ fn each_single_fault_of_the_new_scan_and_roster_grammar_is_counted_at_its_questi
         (", bad_real_roster = 'state'", "scan reply:", "placed"),
         (", bad_real_roster = 'no_key'", "scan reply:", "names no key"),
         (", bad_real_roster = 'bad_key'", "scan reply:", "is not a roster key"),
-        (", bad_real_roster = 'key_on_remove', questions = 2", "scan reply:", "names a key"),
+        (
+            ", bad_real_roster = 'key_on_remove', questions = 2",
+            "scan reply:",
+            "a removal names is not a roster key",
+        ),
         (", questions = 2, bad_real_roster = 'reused_key'", "scan reply:", "issued before"),
         (", questions = 2, bad_real_scan = 'ended_key_served'", "scan reply:", "has ended"),
     ];
@@ -2399,6 +2404,17 @@ fn each_single_fault_of_the_new_scan_and_roster_grammar_is_counted_at_its_questi
         assert!(first.starts_with("scan reply:") && first.contains(fragment), "{extra}: {first}");
         assert!(driven.result.is_err(), "{extra}");
     }
+}
+
+/// The host keeps a city's record for the box it built and names it in the answer of the removal that leaves it: a roster key in a removal's answer is the contract, not a fault. The driver completes, counts no fault and
+/// leaves every answer unaltered (the malformed name above is the single fault).
+#[test]
+fn a_removal_that_names_the_record_the_host_keeps_for_a_citys_box_is_no_fault() {
+    let driven = drive(&healthy(", bad_real_roster = 'record_on_remove', questions = 2"), &[]);
+    let row = authority(&driven);
+    assert_eq!(row["request_faults"].as_i64().unwrap(), 0, "{row}");
+    assert_eq!(row["reply_faults"].as_i64().unwrap(), 0, "{row}");
+    assert!(driven.result.is_ok(), "{row}");
 }
 
 #[test]

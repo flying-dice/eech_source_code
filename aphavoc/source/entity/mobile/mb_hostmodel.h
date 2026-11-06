@@ -317,7 +317,9 @@ enum campaign_model_scan_phase
 	/* the CITY's own collision state (Task49): the position and bounding box of a city placement, stated to the host's record of the placement (see campaign_model_entity_city_state) */
 	CAMPAIGN_SCAN_PHASE_CITY_STATE,
 	/* the CITY expansion (Task49): a building's link has expanded its city's bounding box; the host builds the box from the records it holds and answers it (see campaign_model_entity_city_expand) */
-	CAMPAIGN_SCAN_PHASE_CITY_EXPAND
+	CAMPAIGN_SCAN_PHASE_CITY_EXPAND,
+	/* the CITY's release (Task49, REQUIRED_CITY_BOX_LIFECYCLE_RETENTION): the campaign's city entity ends (its heap slot is freed); the host ends the record it kept for the box it built (see campaign_model_entity_city) */
+	CAMPAIGN_SCAN_PHASE_CITY_RELEASE
 };
 
 /* the facts of a FIXED_STATE report (the same question, phase CAMPAIGN_SCAN_PHASE_FIXED_STATE): the position (3 floats), the entity type, the heading, the shape (a whole scene index), the entity's SUB TYPE (a whole
@@ -560,14 +562,18 @@ int campaign_model_entity_scan (const float *facts, const char *entry_key, float
 
 /* ENTITY_SCAN, the roster's events: reports that an entity of `entity_type` stands at `position` (3 floats) and was inserted at the head of the list of the sector of that position (`phase`
    CAMPAIGN_SCAN_PHASE_INSERT; `identity` is a hosted mobile's semantic identity, NULL for every other entity; the host's key for it is written to `key`), that the entity with the host's `identity` key
-   is leaving its list (CAMPAIGN_SCAN_PHASE_REMOVE), or that a new boot starts (CAMPAIGN_SCAN_PHASE_RESET). The reply is checked completely; a refusal stops the engine with the host's reason. */
+   is leaving its list (CAMPAIGN_SCAN_PHASE_REMOVE), or that a new boot starts (CAMPAIGN_SCAN_PHASE_RESET). The reply is checked completely; a refusal stops the engine with the host's reason. The host's answer to
+   a removal of a CITY's placement may name (in `key`) the record it keeps for the bounding box it built (the city has no building left to hold it): the campaign keeps that name, declares the city's next sector
+   placement to continue it (a LINK) and states its release when the city entity ends. It is empty for every other removal, and for any entity that is no city. */
 void campaign_model_entity_roster (int phase, int entity_type, float side, const float *position, const char *identity, char *key);
 
 /* ENTITY_SCAN, the city events (phases CAMPAIGN_SCAN_PHASE_CHILD_INSERT to CAMPAIGN_SCAN_PHASE_NAME): `identity` is the identity place text the caller built from the host's keys (see mb_hostentity.h,
    campaign_entity_city_exchange: it is validated against the phase's grammar before anything is sent); for an insertion `entity_type` is the building's type; the host's answer is written to `key`: the key issued (an
    insertion), the entry served (CHILD_FIRST and CHILD_NEXT: empty at the end of the list) or the key the host acknowledged (LINK and NAME). The reply is checked completely. A city's list is named by the key the
    city's sector placement had at its first building, and keeps that name when the city's placement is relinked (a LINK of the new placement and that name continues the list); a NAME's identity place is a key, one
-   space and the object identity, each at its own domain (CAMPAIGN_MODEL_SCAN_IDENTITY_MAX in all). */
+   space and the object identity, each at its own domain (CAMPAIGN_MODEL_SCAN_IDENTITY_MAX in all). A CHILD_REMOVE that leaves a placement-less city holding only the box the host built is answered with the key of that
+   record (the list's own name), which the campaign keeps as above. The release of a city (CAMPAIGN_SCAN_PHASE_CITY_RELEASE; `identity` is the key of the city's record alone, the answer the state REMOVED and no key)
+   ends the record the host kept: the real end of the entity's lifetime, never the host's own diagnostic withdrawal of a state, which keeps every record. */
 void campaign_model_entity_city (int phase, int entity_type, const char *identity, char *key);
 
 /* ENTITY_SCAN, the FIXED_STATE report (phase CAMPAIGN_SCAN_PHASE_FIXED_STATE; Task49): the collision state of the fixed-family placement the key `key` names (a sector placement's, or a building's place in its city's list)

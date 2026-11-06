@@ -526,11 +526,12 @@ fn a_citys_sector_placement_is_relinked_by_the_shared_fixed_setter_while_its_bui
     let declare = &map[map.find("static void place_declare").unwrap()..map.find("// `en` was inserted at the head of a sector's list").unwrap()];
     assert!(declare.contains("place_pair (identity, sizeof (identity), place_key_of_slot [slot], place_list_of_slot [slot]);"));
     assert!(declare.contains("place_named_of_slot [slot] = 1;") && declare.contains("place_named_of_slot [slot] ||"));
-    // the anchor is the host record's name: kept when the last building leaves a placed city, dropped only when the record ends (no placement and no building)
+    // the anchor is the host record's name: kept when the last building leaves a placed city, dropped only when the record ends (no placement, no building, and no box the host keeps the record for: the host
+    // names such a record in the answer of the removal, and the campaign then keeps the name)
     let child_remove = &map[map.find("static void place_child_remove").unwrap()..map.find("static void place_release_entity").unwrap()];
     before(
         child_remove,
-        "if (!place_key_of_slot [city][0])",
+        "if (!place_key_of_slot [city][0] && !answered [0])",
         "place_list_of_slot [city][0] = 0;",
         "mb_hostplacemap.h place_child_remove",
     );
@@ -1196,5 +1197,68 @@ fn the_no_host_extractions_of_the_list_funnel_carry_the_hook_header_that_compile
             "text: '#include \"project.h\"\\n\\n#include \"entity/mobile/mb_hostplace.h\"\\n\\n#define DEBUG_MODULE 0\\n\\n#define LANDING_DEBUG 0\\n'"
         ),
         "the historical harness: the generated eech_extracted.c names the hook header"
+    );
+}
+
+/// The city's release (REQUIRED_CITY_BOX_LIFECYCLE_RETENTION): the host keeps a city's record for the bounding box it built, so the campaign must state when the city ENTITY ends. Read from the compiled source:
+///
+///  1. the release is the sixteenth phase of the scan question, the value the host's provider (`ROSTER_RELEASE`, 16.0 as bits) and the driver script classify;
+///  2. a removal keeps the record's name only when the host named it in the answer (`place_retain_record`, a city only), and the release is stated while the city's name is still held, before it is dropped;
+///  3. a placement that joins a record the host kept is declared to continue it by the same LINK a city with listed buildings uses (the name is kept in `place_list_of_slot`), and the answer of a building's
+///     removal can only name the list it was asked about.
+#[test]
+fn the_city_release_is_the_phase_the_provider_and_the_driver_classify_and_the_campaign_states_it_while_it_holds_the_name() {
+    let model = source("entity/mobile/mb_hostmodel.h");
+    let after_enum = &model[model.find("enum campaign_model_scan_phase").unwrap()..];
+    let body = &after_enum[after_enum.find('{').unwrap() + 1..after_enum.find("};").unwrap()];
+    let mut text = String::new();
+    let mut rest = body;
+    while let Some(start) = rest.find("/*") {
+        text.push_str(&rest[..start]);
+        rest = &rest[start + rest[start..].find("*/").unwrap() + 2..];
+    }
+    text.push_str(rest);
+    let members: Vec<&str> = text.split(',').filter_map(|member| member.split_whitespace().next()).collect();
+    assert_eq!(members.iter().position(|member| *member == "CAMPAIGN_SCAN_PHASE_CITY_EXPAND"), Some(15));
+    assert_eq!(members.iter().position(|member| *member == "CAMPAIGN_SCAN_PHASE_CITY_RELEASE"), Some(16));
+    let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let read =
+        |relative: &str| String::from_utf8_lossy(&std::fs::read(repo.join(relative)).unwrap_or_else(|e| panic!("{relative}: {e}"))).replace("\r\n", "\n");
+    assert_eq!(f32::from_bits(0x4180_0000), 16.0, "the phase word of 16.0");
+    assert!(
+        read("crates/eech-world/src/model_host.rs").contains("const ROSTER_RELEASE: u32 = 0x4180_0000;"),
+        "the provider classifies the release as phase 16.0"
+    );
+    assert!(
+        read("crates/eech-world/lua/entity-authority.lua").contains("[\"0x41800000\"] = 16"),
+        "the driver script classifies the release as phase 16"
+    );
+
+    let map = source("entity/mobile/mb_hostplacemap.h");
+    let release = &map[map.find("static void place_release_entity").unwrap()..map.find("static void place_reset").unwrap()];
+    before(
+        release,
+        "campaign_model_entity_city (CAMPAIGN_SCAN_PHASE_CITY_RELEASE, CAMPAIGN_PLACE_TYPE (en), place_list_of_slot [index], answered);",
+        "place_list_of_slot [index][0] = 0;",
+        "mb_hostplacemap.h place_release_entity",
+    );
+    assert!(
+        release.contains("CAMPAIGN_PLACE_CITY (CAMPAIGN_PLACE_TYPE (en))"),
+        "only a city entity states a release"
+    );
+    let remove = &map[map.find("static void place_remove").unwrap()..map.find("static void place_child_insert").unwrap()];
+    assert!(
+        remove.contains("place_retain_record (en, slot, answered);"),
+        "a removal keeps only the name the host answered"
+    );
+    let retain = &map[map.find("static void place_retain_record").unwrap()..map.find("// `en` was inserted at the head of a sector's list").unwrap()];
+    assert!(
+        retain.contains("CAMPAIGN_PLACE_CITY (CAMPAIGN_PLACE_TYPE (en))") && retain.contains("debug_fatal"),
+        "a name for an entity that is no city stops the engine"
+    );
+    let declare = &map[map.find("static void place_declare").unwrap()..map.find("static void place_fixed_state").unwrap()];
+    assert!(
+        declare.contains("else if (place_key_of_slot [slot][0] && place_list_of_slot [slot][0])"),
+        "a placement that holds the record's name is declared to continue it"
     );
 }
