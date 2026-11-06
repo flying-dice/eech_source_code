@@ -180,6 +180,9 @@ local function reference (op, scene, depth, kind, definition, key)
 			local city, child = string.match (identity, "^(%d+) (%d+)$")
 			if child ~= nil and ROSTER_HOLD (child, true) == "withdrawn" then
 				answer = { result = "refused", reason = "[roster.city_box.building_state] the host withdrew the collision state of the city child " .. child }
+			elseif child ~= nil and ROSTER_HOLD (child, true) == "never" then
+				-- the real provider's own refusal of a building whose record holds no state (roster.rs city_expansion), as the real roster stands
+				answer = { result = "refused", reason = "[roster.city_box.building_state] the record of the city child " .. child .. " holds no fixed collision state" }
 			else
 				answer = { result = "expanded", name = city or "", p = scenario.expanded_p or "0xc0800000,0xc1200000,0xc0000000,0x40000000,0x40000000,0x40c00000" }
 			end
@@ -588,14 +591,14 @@ package.preload.eech_dc = function ()
 			-- and the boot (6). All other facts are zero. The scripted sector holds ONE entry: the first walk is a boot and an insertion, every later walk a relink (a removal and a new insertion with a new key). The host's
 			-- own answer comes back unaltered in every mode; the reply is checked as the shared C checks it (the state each phase allows, a key only for an insertion)
 			local ROSTER_PHASES = { insert = "0x40800000", remove = "0x40a00000", reset = "0x40c00000" }
-			local function roster_event (kind, keep)
+			local function roster_event (kind, keep, entity_type)
 				local words = {}
 				for index = 1, 16 do words [index] = ZERO end
 				words [12] = ROSTER_PHASES [kind]
 				local identity = ""
 				if kind == "insert" then
 					-- the entity type the insertion states: an object (17), or a CITY (5) when the scenario's placement is a city whose own state the campaign reports
-					words [1], words [2], words [3], words [4], words [7] = OLD_W [1], OLD_W [2], OLD_W [3], (scenario.city_state or scenario.city_box) and "0x40a00000" or "0x41880000", "0x447a0000"
+					words [1], words [2], words [3], words [4], words [7] = OLD_W [1], OLD_W [2], OLD_W [3], entity_type or ((scenario.city_state or scenario.city_box) and "0x40a00000" or "0x41880000"), "0x447a0000"
 					if scenario.roster_mobile then identity = "eech-world:1" end
 				elseif kind == "remove" then
 					identity = roster_key
@@ -730,6 +733,18 @@ package.preload.eech_dc = function ()
 				EXPANDED [#EXPANDED + 1] = answer.p
 				return answer
 			end
+			-- a building that also holds a SECTOR placement (`building_sector`: the real ones do, cb_creat.c lists a building in its city first and places it in its sector second), in the campaign's own order
+			-- (mb_hostplacemap.h: place_insert and place_child_insert both declare the two placements ONE entity with a LINK, the sector key first, and only then state the building, under its SECTOR key and never
+			-- under the city-list key it is listed under now; the C dialogue check pins that order). The sector key is made at the building's first placement and kept while it is listed again;
+			-- `relist_no_link` skips the LINK of the building listed again at that index (the sector key is stated, but nothing declares the new key the same entity); `relist_no_report` skips the restatement after the LINK (the record
+			-- already holds the state, so the real host holds it for the new key too)
+			local function building_in_sector (child, sector, index)
+				local placed = sector == nil
+				if placed then sector = roster_event ("insert", true, "0x40c00000").name end
+				if placed or scenario.relist_no_link ~= index then city_event ("link", sector .. " " .. child) end
+				if placed or not scenario.relist_no_report then building_report (sector) end
+				return sector
+			end
 			-- the campaign's cities at BOOT: the city is placed and states its inverted box, and each building is listed, states its fixed state and links (the link's question follows)
 			local function boot_city_box ()
 				roster_event ("reset")
@@ -819,6 +834,10 @@ package.preload.eech_dc = function ()
 					city_children [#city_children + 1] = child
 					building_report (child)
 					city_expand_request (roster_key, child)
+					if scenario.building_sector then
+						scenario.sectors = scenario.sectors or {}
+						scenario.sectors [#scenario.sectors + 1] = building_in_sector (child)
+					end
 				end
 			end
 			-- the CITY_STATE report a placement states with the campaign's MIRROR of the box the host built (the scripted expansion's answer): position, box minimum and maximum, the sub type CITY
@@ -855,9 +874,19 @@ package.preload.eech_dc = function ()
 				local cursor = {}
 				for token in string.gmatch (first.p or "", "[^,]+") do cursor [#cursor + 1] = token end
 				words [13], words [14] = cursor [1], cursor [2]
-				ask ("entry", first.name)
+				-- the sector holds the buildings' own placements too (`building_sector`) and the scan serves the OLDEST insertion first, which is a building once the city was relinked: the unchanged query walks past each entry it does not
+				-- read (resolved with no hit, the host serves the next) until the selected city, whose candidate dialogue is the one read
+				local served = first
+				if scenario.building_sector then
+					while served.name ~= roster_key do
+						ask ("entry", served.name)
+						served = ask ("resolved", served.name)
+						if served.result ~= "next" then stop ("entity_scan.state", "the scan ended before it served the city " .. tostring (roster_key)) end
+					end
+				end
+				ask ("entry", served.name)
 				offer ()
-				ask ("resolved", first.name)
+				ask ("resolved", served.name)
 			end
 			if scenario.lifecycle_api then
 				local LIFE_MIN, LIFE_MAX = "0xc0800000,0xc1200000,0xc0000000", "0x40000000,0x40000000,0x40c00000"
@@ -939,7 +968,12 @@ package.preload.eech_dc = function ()
 					for index = #children, 1, -1 do
 						local child = city_event ("child_insert", anchor).name
 						children [index] = child
-						building_report (child)
+						if scenario.building_sector then
+							building_in_sector (child, scenario.sectors [index], index)
+							-- the host's own record: the state the building was stated with survives the drain in its record and is the one the new key joins (the pair a missing LINK leaves apart holds none)
+							if scenario.relist_no_link ~= index and ROSTER_HOLD (child, true) ~= "held" then stop ("entity_scan.state", "the host holds no fixed state for the building listed again under " .. child) end						else
+							building_report (child)
+						end
 						city_expand_request (roster_key, child)
 					end
 					consume ()
@@ -5941,6 +5975,95 @@ fn a_coherent_selected_city_lifecycle_is_credited_only_with_its_own_consumption_
         "{row}"
     );
     assert!(!row["selected_record"].as_str().unwrap().is_empty(), "{row}");
+}
+
+// The real C witness lists its buildings again while they KEEP their sector placements (the drain unlists them from the city only), and `place_child_insert` states such a building under its SECTOR key after the LINK that declares the new
+// city-list key the same entity: no report ever names the new child key. The scripted engine emits exactly that order (`building_sector`), and the REAL provider joins the two placements in one record that keeps the building's state.
+const LIFECYCLE_SECTORS: &str = ", real_scan = true, city_box = 2, building_sector = true, lifecycle_api = true, fixed_candidate = true, city = 1, city_state = true, candidate_sequence = { 'need_fixed', 'buildings', 'test' }";
+
+#[test]
+fn buildings_listed_again_under_new_keys_while_their_sector_placements_stay_are_expanded_over_the_state_their_record_holds() {
+    let driven = drive(&healthy(LIFECYCLE_SECTORS), &[("mode", "city_box_lifecycle")]);
+    assert!(driven.result.is_ok(), "{:?} / {}", driven.result, driven.rows);
+    let row = lifecycle_row(&driven);
+    assert_eq!(
+        (row["request_faults"].as_i64().unwrap(), row["reply_faults"].as_i64().unwrap()),
+        (0, 0),
+        "{row}"
+    );
+    assert_eq!(row["first_fault"].as_str(), Some(""), "{row}");
+    assert_eq!(row["completed"].as_bool(), Some(true), "{row}");
+    assert_eq!(
+        (
+            row["expansions_selected"].as_i64().unwrap(),
+            row["expansions_selected_answered"].as_i64().unwrap(),
+            row["buildings"].as_i64().unwrap()
+        ),
+        (2, 2, 2),
+        "{row}"
+    );
+    assert_eq!(
+        (
+            row["report_bound"].as_i64().unwrap(),
+            row["query_equal"].as_i64().unwrap(),
+            row["mirror_box_equal"].as_i64().unwrap()
+        ),
+        (1, 1, 1),
+        "{row}"
+    );
+    // the state the host holds is the record's: the same lifecycle with NO new report after the LINK is credited the same way, because the credit is the acknowledged LINK joined to a record that holds the state, not a restatement
+    let driven = drive(
+        &healthy(&format!("{LIFECYCLE_SECTORS}, relist_no_report = true")),
+        &[("mode", "city_box_lifecycle")],
+    );
+    assert!(driven.result.is_ok(), "{:?} / {}", driven.result, driven.rows);
+    let row = lifecycle_row(&driven);
+    assert_eq!(
+        (
+            row["request_faults"].as_i64().unwrap(),
+            row["reply_faults"].as_i64().unwrap(),
+            row["expansions_selected_answered"].as_i64().unwrap()
+        ),
+        (0, 0, 2),
+        "{row}"
+    );
+}
+
+#[test]
+fn a_building_listed_again_with_no_acknowledged_link_to_its_record_is_a_request_fault_and_never_credited_by_another_buildings_link() {
+    // the buildings are listed again in reverse order: index 2 first, coherently; index 1 last, with NO LINK between its new city-list key and its sector placement (the sector key is stated, but nothing says the two are one entity)
+    let driven = drive(&healthy(&format!("{LIFECYCLE_SECTORS}, relist_no_link = 1")), &[("mode", "city_box_lifecycle")]);
+    let row = lifecycle_row(&driven);
+    assert_eq!(row["request_faults"].as_i64(), Some(1), "{row}");
+    assert!(
+        row["first_fault"]
+            .as_str()
+            .unwrap()
+            .starts_with("scan request: a city expansion names the building ")
+            && row["first_fault"]
+                .as_str()
+                .unwrap()
+                .contains("whose fixed state the provider never acknowledged"),
+        "{row}"
+    );
+    // the real host holds NO state for that new key (its record is a fresh one) and refuses the expansion by name, the same fact the driver's validator saw first
+    assert_eq!(row["reply_faults"].as_i64(), Some(1), "{row}");
+    assert!(
+        row["failure_line"].as_str().unwrap().contains("[roster.city_box.building_state]")
+            && row["failure_line"].as_str().unwrap().contains("holds no fixed collision state"),
+        "{row}"
+    );
+    // the other building's coherent LINK and expansion are its own: one answered, the faulted one is not, and the lifecycle is not completed
+    assert_eq!(
+        (
+            row["expansions_selected"].as_i64().unwrap(),
+            row["expansions_selected_answered"].as_i64().unwrap()
+        ),
+        (2, 1),
+        "{row}"
+    );
+    assert_eq!(row["completed"].as_bool(), Some(false), "{row}");
+    assert!(driven.result.is_err(), "a fault is never a pass");
 }
 
 #[test]

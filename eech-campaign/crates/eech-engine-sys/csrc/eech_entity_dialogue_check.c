@@ -3640,6 +3640,24 @@ static void fixed_static_cases (struct tc *t)
 	o = offer (&b, TRUE, 1000.0f);
 	EXPECT (t, !o.stopped && candidate_id_count == 3 && strcmp (candidate_id_log[0], child_key) == 0 && strcmp (candidate_id_log[1], child_key) == 0 && strcmp (candidate_id_log[2], child_key) == 0);
 
+	/* CHARACTERISATION of the RELIST (the city lifecycle witness unlists the buildings from the city's list only and lists them again while their sector placements stay): the new place in the list gets a NEW key, the host is told it
+	   is the same entity as the sector placement (a LINK, the sector key first), and the building is stated ONCE, under its SECTOR key. NO report names the new child key: the two placements share the host's one record, which
+	   holds the state, so all a validator can know of the new key is that LINK's acknowledgement. */
+	stopped = city_do (1, &pheap[5], NULL, NULL);
+	EXPECT (t, !stopped && place_child_of_slot[5][0] == 0 && place_key_of_slot[5][0] != 0);
+	snprintf (sector_key, sizeof (sector_key), "%s", place_key_of_slot[5]);
+	fixed_asks = 0;
+	city_link_asks = 0;
+	stopped = city_do (0, &pheap[5], &pheap[4], NULL);
+	EXPECT (t, !stopped && place_child_of_slot[5][0] != 0 && strcmp (place_child_of_slot[5], child_key) != 0 && strcmp (place_key_of_slot[5], sector_key) == 0);
+	{
+		char link[160];
+
+		snprintf (link, sizeof (link), "%s %s", sector_key, place_child_of_slot[5]);
+		EXPECT (t, city_link_asks == 1 && strcmp (city_last_link, link) == 0);
+	}
+	EXPECT (t, fixed_asks == 1 && fixed_report_is (&fixed_seen, &pheap[5], sector_key) && strcmp (fixed_seen.host_id, place_child_of_slot[5]) != 0);
+
 	/* ---- the funnel every writer of a field of the state calls: the state as it is NOW, under the placement the entity has ---- */
 	city_fresh ();
 	fixed_pentity (4, 61, 150.0f, 250.0f, 0.5f, 7, CHECK_SUB_MILITARY);

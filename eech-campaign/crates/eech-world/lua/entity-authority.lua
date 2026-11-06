@@ -1013,6 +1013,9 @@ local function city_track (parsed, answer)
 			city.life.continued = city.life.continued + 1
 			city.life.restated [parsed.keys [1]] = true
 		end
+	elseif parsed.event == "link" and city.parent [parsed.keys [2]] ~= nil and city.parent [parsed.keys [1]] == nil and roster_live [parsed.keys [1]] then
+		-- an acknowledged LINK of a LIVE sector placement and a building listed under a city (`city.parent`): the two placements are ONE host record, which holds one fixed state (see `scan.fixed.linked`)
+		scan.fixed.linked (parsed.keys [1], parsed.keys [2])
 	end
 end
 -- the first problem of a well-formed question against the keys seen so far, or nil: a removal names an entry that is not already ended, and a scan stands at the entry the host last served and never at one that ended
@@ -1050,7 +1053,7 @@ local function request_join_problem (parsed)
 		if roster_ended [parsed.city] then return "a city expansion names the city placement " .. parsed.city .. ", which has ended" end
 		if roster_ended [parsed.child] then return "a city expansion names the building " .. parsed.child .. ", which has ended" end
 		if not scan.fixed.city_held [parsed.city] then return "a city expansion names the city " .. parsed.city .. ", whose state the provider never acknowledged" end
-		if not scan.fixed.held [parsed.child] then return "a city expansion names the building " .. parsed.child .. ", whose fixed state the provider never acknowledged" end
+		if not scan.fixed.holds (parsed.child) then return "a city expansion names the building " .. parsed.child .. ", whose fixed state the provider never acknowledged" end
 		local listed = scan.city.parent [parsed.child]
 		if listed == nil then return "a city expansion names the building " .. parsed.child .. ", which is listed under no city" end
 		-- the CURRENT city placement is the city whose list the building is listed under: through the key the list is named by, which the placement's own key is or, after a relink, was linked to
@@ -1079,6 +1082,24 @@ scan.fixed = { total = 0, stated = 0, held = {}, by_key = {}, rule_eligible = 0,
 	-- (withdrawn_city_state; 1 once acknowledged `removed`, -1 when it was not) with the placement it was made for and the kind of the next question that reached the city stage, and the facts (1-based) a report states
 	city_total = 0, city_stated = 0, city_held = {}, city_joined = 0, city_withdrawn = 0, city_withdrawn_key = "", city_withdrawn_next = "",
 	city_words = { [1] = true, [2] = true, [3] = true, [4] = true, [5] = true, [6] = true, [7] = true, [8] = true, [9] = true, [11] = true, [12] = true } }
+-- A building holds up to two placements, its place in a city's list and its sector placement, and the host keeps both in ONE record with ONE fixed state (roster.rs `link`). The campaign states the building under its SECTOR key whenever it
+-- holds one (mb_hostplacemap.h place_fixed_state), also when it is listed in a city again under a NEW key (the lifecycle's relist: place_child_insert declares the LINK, then states the sector key), so such a city-list key is never reported
+-- on its own. `held` stays what was acknowledged under that very key; `shared` is a key whose record holds an acknowledged state through its OTHER placement, which only a positively acknowledged LINK (`peer`: the two keys of one record)
+-- can tell: a state acknowledged under a key after the LINK is the record's, and a LINK joins whatever state either key already held. An unlinked key, an unacknowledged LINK and a state of another record establish nothing.
+scan.fixed.peer, scan.fixed.shared = {}, {}
+function scan.fixed.linked (sector, child)
+	local f = scan.fixed
+	f.peer [sector], f.peer [child] = child, sector
+	if f.held [sector] or f.shared [sector] or f.held [child] or f.shared [child] then f.shared [sector], f.shared [child] = true, true end
+end
+function scan.fixed.state_ack (key)
+	local f = scan.fixed
+	f.held [key] = true
+	if f.peer [key] ~= nil then f.shared [f.peer [key]] = true end
+end
+function scan.fixed.holds (key)
+	return scan.fixed.held [key] == true or scan.fixed.shared [key] == true
+end
 -- the first problem of a REAL fixed-state reply against the contract, or nil: `placed`, the key the report named (never another's), and no cursor
 function scan.fixed.reply_problem (answer, parsed)
 	if type (answer) ~= "table" then return "the reply is not a table" end
@@ -1364,7 +1385,7 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 				if city_reply_problem (real, parsed) == nil then city_track (parsed, real) end
 			elseif parsed.kind == "fixed" then
 				if scan.fixed.reply_problem (real, parsed) == nil then
-					scan.fixed.held [parsed.key] = true
+					scan.fixed.state_ack (parsed.key)
 					scan.fixed.by_key [parsed.key] = parsed.words
 				end
 			elseif parsed.kind == "city_state" then
@@ -1427,7 +1448,7 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 		city_track (parsed, real)
 	elseif event and parsed.kind == "fixed" then
 		scan.fixed.stated = scan.fixed.stated + 1
-		scan.fixed.held [parsed.key] = true
+		scan.fixed.state_ack (parsed.key)
 		scan.fixed.by_key [parsed.key] = parsed.words
 	elseif event and parsed.kind == "city_state" then
 		scan.fixed.city_stated = scan.fixed.city_stated + 1
