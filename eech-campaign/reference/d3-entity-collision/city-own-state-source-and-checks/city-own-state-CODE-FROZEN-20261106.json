@@ -1,0 +1,1195 @@
+{
+  "schema": 1,
+  "record": "city-collision-state-CODE-FROZEN-20261106",
+  "written_utc": "2026-11-06T09:43:08.264855+00:00",
+  "status": "UNREVIEWED CODE_FROZEN: the CITY own position and bounding box are held by the host record of the city placement; no independent review, no Windows/native/short/full40 run, no Root build of the changed C",
+  "task": {
+    "jira": "EEDCS-49",
+    "pr": 109,
+    "epic": "EEDCS-21",
+    "branch": "codex/d3-object-tree-collision",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "lane": "one Sonnet 5.5 High implementation lane; no agents, MCP, auth, Windows, native, fullpack restart, D4, D5 or TypeScript"
+  },
+  "commits": {
+    "executable_code": "78ef839dd75d325c42acb3127d097fee400388c2",
+    "executable_code_parent_metadata": "de60a051b37b1893cb435865c14c338798399656",
+    "executable_parent_source": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa (the metadata commits 558d09604 and de60a051b over it changed no compiled or runtime input)",
+    "metadata_commit": "the commit that follows and adds the STATUS summary, the card and the reference pack: it changes no compiled or runtime input (named in the STATUS and the push, not here: a record cannot hold the hash of the commit that stores it)",
+    "writer": "this lane is the only writer of the working tree; Root is the sole external D3-CURRENT writer and the build/native/cache publisher: D3-CURRENT.json, Jira, Confluence and the PR were not touched",
+    "diff_of_executable_code_vs_parent": "15 files changed, 1459 insertions(+), 59 deletions(-)",
+    "files": [
+      "aphavoc/source/entity/fixed/city/ct_msgs.c",
+      "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "aphavoc/source/entity/mobile/mb_hostoffer.h",
+      "aphavoc/source/entity/mobile/mb_hostplace.c",
+      "aphavoc/source/entity/mobile/mb_hostplace.h",
+      "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "eech-campaign/crates/eech-world/src/model_host.rs",
+      "eech-campaign/crates/eech-world/src/roster.rs",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "eech-campaign/crates/eech-world/tests/model_target_point.rs"
+    ]
+  },
+  "guard": {
+    "migration_progress_check": "next_action fix-blocker; characterize and fix-blocker --blocker entity-object-collision accepted; production-cutover REJECTED: \"Resolve required findings before this action\" because the card keeps ENV-ENTITY-POSE-LONG-RUN-MOTION-1 open with blocks_cutover true (it is closed only by a COMPLETE current full40/all8, which is running on Root and is not this lane). The named CITY production change was made on the explicit instruction of this task; the guard rejection is recorded, not bypassed, and the card is not edited to hide it."
+  },
+  "characterisation_before_production_edits": {
+    "real_source_read": "aphavoc/source/entity/fixed/city/{ct_vec3d.c,ct_creat.c,ct_pack.c,ct_dstry.c,ct_msgs.c}, entity/fixed/{fx_vec3d.c,fx_pack.c}, ai/faction/popread.c, entity/system/{en_funcs/en_list.c,en_attrs/en_attrs.c,en_comms/en_sessn.c}, entity/en_misc/en_maths/en_cllsn.c, entity/mobile/{mb_hostplace.c,mb_hostplace.h,mb_hostplacemap.h,mb_hostoffer.h,mb_hostmodel.h,mb_hostentity.h}, eech-world roster.rs, model_host.rs, entity_host.rs, csrc/entity_candidate_step.c, lua/entity-authority.lua and the provider/driver/C-control tests",
+    "passing_baseline_behaviour_characterised": [
+      "the existing real-C offer tests (a city with its buildings: reads in the original order, facts, narrow phase) and the provider test of a real city decided from the campaign words pass on the unchanged source; the city census test the_cities_position_and_box_have_exactly_these_writers passed on the unchanged source (10 readers of the box getters) before the funnel existed (debug RED run city-red-engine: 12 passed, only the funnel test failed)",
+      "a FIXED_STATE report naming a city is refused as not of the fixed family (kept: the city has its own phase)"
+    ],
+    "known_defect_or_unavailable": "none newly found in the original; the entity_roster_host FP-flag tests fail in DEBUG builds of the UNCHANGED source (city-probe-roster-baseline: 15 passed, 2 failed) and pass in the accepted --release --locked configuration (17 of 17): the accepted configuration was used for every final and release-RED receipt"
+  },
+  "writer_census": {
+    "city_position": [
+      {
+        "writer": "ct_creat.c create_local: MID_MAP default then the attribute the population file gives (fx_vec3d.c set_local_raw_vec3d via ENTITY_ATTR_VEC3D in popread.c), both BEFORE the insertion",
+        "stated": "by the insertion (place_insert ends with place_fixed_state)"
+      },
+      {
+        "writer": "fx_vec3d.c set_local_vec3d (the shared fixed setter): a sector crossing is delete_local_entity_from_parents_child_list + insert (a relink: new key, record continued by LINK, then the statement); the same-sector branch states directly",
+        "stated": "campaign_place_fixed_state (en) in both branches (pre-existing, now handles the city)"
+      },
+      {
+        "writer": "fx_pack.c pack/unpack_fixed_data",
+        "stated": "NOT a city writer: ct_pack.c pack_local_data/unpack_local_data are empty (guarded); cities exist only through popread.c at boot"
+      },
+      {
+        "writer": "popread.c",
+        "stated": "creates the city once with its position attribute and never moves it (guarded: no set_local_entity_vec3d/raw on city)"
+      }
+    ],
+    "city_bounding_box": [
+      {
+        "writer": "ct_creat.c: the original inverted sentinel (min 1.0e6, max -1.0e6) before the attributes and the insertion",
+        "stated": "by the insertion, as a valid statement (min > max accepted)"
+      },
+      {
+        "writer": "ct_msgs.c update_city_bounding_box (response_to_link_child, LIST_TYPE_CITY_BUILDING): the only expansion; the box is relative to the city centre and never shrinks (unchanged)",
+        "stated": "campaign_place_fixed_state (this_city) as its LAST step, after the six comparisons and the three asserts (guarded; this is the one new call site)"
+      },
+      {
+        "writer": "ct_vec3d.c: getters and pointer getters only (no setter)",
+        "stated": "readers: the avionics MFD hatched circle (display only, stays Core), en_cllsn.c conformance words, mb_hostplace.c funnel reader"
+      }
+    ],
+    "one_owner": "the host record of the city placement (roster Record.fixed = FixedHold::City) is the canonical owner of the collision position and box; Core fields remain campaign state read as bitwise conformance mirrors; no duplicate physical store, no query-time adoption, no fallback",
+    "lifetime": "the record the city building list hangs from: it survives the city sector placement leaving while buildings are listed (a relink statements the new position under the new key after the LINK continued the record); an empty city relink ends the record and the new placement holds none until stated; a boot ends every record; the list anchor and NAME domains (128/149) and the lazy legacy identity are untouched (no identity is requested by a statement)",
+    "unreached_by_design": "no session pack/unpack, no destroyer and no shape/heading/sub-type write moves the city position or box; a city fixed-field setter that triggers the funnel re-states the unchanged words idempotently"
+  },
+  "contract_census": {
+    "immediate_consumer": "en_cllsn.c campaign_offer_candidate (mb_hostoffer.h) -> entity_candidate_step.c city branch: facts[36..41] box, facts[13..15] position, height test then xz test, then CANDIDATE_BUILDINGS",
+    "stage_that_needs_the_state": "only when the campaign has read its fixed facts (word 42), the city is fixed (7) and called a city (8) and its first building was served by the HOST list (11): exactly where the campaign sends the position and box words",
+    "early_skips_that_need_nothing": "the sector tallest-structure skip, the fixed-flag request itself, a city with no first building, a city the campaign reads as not fixed (provider tests pin each, also after a withdrawal)",
+    "order_and_domain": "the Core reads stay in their original deferred order (position, then box minimum and maximum; unchanged mb_hostoffer.h); the provider classifies every word by integer operations before the roster is looked at (classify_candidate_words, then word_truncated for the position and an exponent test for the box words); mirror comparison is bitwise (signed zero differs) in the order position, box minimum, box maximum; the record words then replace the campaign words",
+    "family_safety": "what the host recorded at the insertion decides: a city needs its own state, the eight fixed families keep theirs, any other placement needs none; a campaign that calls a family placement a city or the reverse is a named [candidate.family] refusal; set_city refuses any non-city and any child; set_fixed still refuses a city",
+    "wire": "ENTITY_SCAN phase 14.0 (0x41600000): position 0..2, box minimum 3..5, box maximum 6..8, phase 11, every other fact zero, key in the identity place; reply placed with the same key; withdrawal is the host own fixed-report withdrawal word",
+    "raw_float_domains": "position: finite and inside +-1.0e9 (the fixed report domain); box: finite only (the inverted sentinel is valid); never loaded as a float by the funnel (memcpy)",
+    "rng_fpu_id_timing": "no RNG, FPU or legacy identity operation was added or moved; the statement reads three getters and copies words"
+  },
+  "genuine_red": {
+    "note": "RED = the new contract tests fail on the UNCHANGED production for the missing behaviour (no compile or setup red): the test code compiled against the old source (the C control defines its city bindings as lazy macros; the provider tests reach the new state only through the wire and a Debug-name probe)",
+    "debug_first_run": [
+      {
+        "label": "city-red-world",
+        "command": "cargo test -p eech-world --no-fail-fast --test model_target_point --test entity_authority",
+        "started_utc": "2026-11-06T09:16:18.881387+00:00",
+        "completed_utc": "2026-11-06T09:16:30.588415+00:00",
+        "actual_exit": 101,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-red-world.json",
+          "bytes": 973,
+          "sha256": "5223ae7823546fbda5399fdd882ec50cff629541ae7490fc90e86275eee4892c"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-red-world.stdout.log",
+          "bytes": 35351,
+          "sha256": "c6b75fb8ff16fb7532cfa7c66f7d02570cf6baa884840d5e15d29c45b3f6e3ce"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-red-world.stderr.log",
+          "bytes": 13079,
+          "sha256": "3beda4a07a7f50848525d68f263e363ef2612378906170717601e797c03a996b"
+        },
+        "test_rows": [
+          {
+            "binary": "tests/entity_authority.rs",
+            "verdict": "FAILED",
+            "passed": 68,
+            "failed": 6
+          },
+          {
+            "binary": "tests/model_target_point.rs",
+            "verdict": "FAILED",
+            "passed": 45,
+            "failed": 7
+          }
+        ],
+        "failed_tests": [
+          "a_cities_state_the_host_withdrew_is_refused_by_name_and_only_a_new_statement_restores_it",
+          "a_city_is_skipped_without_its_state_when_it_has_no_building_or_is_not_fixed_and_the_sector_skip_comes_first",
+          "a_city_state_is_the_cities_alone_and_a_fixed_report_is_not_a_city_s",
+          "a_city_state_report_is_held_by_the_record_of_the_placement_and_the_city_is_decided_from_it",
+          "a_city_the_host_holds_no_state_for_is_refused_where_the_campaign_reads_its_position_and_box",
+          "a_citys_sector_relink_states_the_new_placement_and_the_old_key_is_no_longer_a_held_one",
+          "a_healthy_control_counts_the_city_state_reports_apart_and_the_city_stage_that_needs_the_state_is_an_eligible_lookup",
+          "a_malformed_city_state_report_is_refused_by_name_before_the_record_changes_and_the_inverted_sentinel_box_is_a_valid_statement",
+          "a_wrong_served_key_the_real_provider_could_answer_is_neither_credited_as_a_city_lookup_nor_withdrawn",
+          "each_single_fault_of_the_city_state_grammar_is_counted_at_its_question_and_is_never_a_pass",
+          "each_single_fault_of_the_new_scan_and_roster_grammar_is_counted_at_its_question_and_is_never_a_pass",
+          "the_campaigns_words_of_a_city_decide_nothing_a_difference_from_the_record_is_a_named_refusal",
+          "withdrawing_the_city_state_of_a_served_placement_makes_the_next_question_that_reads_it_refused_by_name"
+        ]
+      },
+      {
+        "label": "city-red-engine",
+        "command": "cargo test -p eech-engine-sys --features entity-dialogue-check --no-fail-fast --test entity_dialogue --test entity_roster_guard",
+        "started_utc": "2026-11-06T09:17:07.983424+00:00",
+        "completed_utc": "2026-11-06T09:18:44.986019+00:00",
+        "actual_exit": 101,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-red-engine.json",
+          "bytes": 1049,
+          "sha256": "caed889d48893cf1a56692341ad18dc4d4a0326e6a2544395bdf3e5fa746b464"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-red-engine.stdout.log",
+          "bytes": 4717,
+          "sha256": "0043f2c4c280a477352239c1fd9c1b8b63983ab4edcd052c8a58aea4bc88388d"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-red-engine.stderr.log",
+          "bytes": 673,
+          "sha256": "460ebf4da9f255e471621e53e20def7f4acbacca8eef987befcc415d1975a146"
+        },
+        "test_rows": [
+          {
+            "binary": "tests/entity_dialogue.rs",
+            "verdict": "FAILED",
+            "passed": 0,
+            "failed": 1
+          },
+          {
+            "binary": "tests/entity_roster_guard.rs",
+            "verdict": "FAILED",
+            "passed": 12,
+            "failed": 1
+          }
+        ],
+        "failed_tests": [
+          "every_writer_of_a_placed_citys_position_or_box_states_them_through_the_one_funnel_after_the_write",
+          "the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal"
+        ]
+      }
+    ],
+    "release_accepted_configuration_run": [
+      {
+        "label": "city-red-world-release",
+        "command": "cargo test --release --locked -p eech-world --test model_target_point --test entity_authority --no-fail-fast",
+        "started_utc": "2026-11-06T09:35:48.704580+00:00",
+        "completed_utc": "2026-11-06T09:36:01.292824+00:00",
+        "actual_exit": 101,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-red-world-release.json",
+          "bytes": 1011,
+          "sha256": "26c6d9af3abe3edf62ab98d13f025f7a09e309b700dbf62861cb17d0ec56c00a"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-red-world-release.stdout.log",
+          "bytes": 31975,
+          "sha256": "83c5e8aa8fef58b378a2539e766fa62bccfd9106014d8fa0f5fabd092d3b8569"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-red-world-release.stderr.log",
+          "bytes": 13073,
+          "sha256": "3b04241280392a97f8a556ee7a95313aef9f6d80c4228093cacb4dc13e69939c"
+        },
+        "test_rows": [
+          {
+            "binary": "tests/entity_authority.rs",
+            "verdict": "FAILED",
+            "passed": 68,
+            "failed": 6
+          },
+          {
+            "binary": "tests/model_target_point.rs",
+            "verdict": "FAILED",
+            "passed": 44,
+            "failed": 8
+          }
+        ],
+        "failed_tests": [
+          "a_cities_state_the_host_withdrew_is_refused_by_name_and_only_a_new_statement_restores_it",
+          "a_city_is_skipped_without_its_state_when_it_has_no_building_or_is_not_fixed_and_the_sector_skip_comes_first",
+          "a_city_state_is_the_cities_alone_and_a_fixed_report_is_not_a_city_s",
+          "a_city_state_report_is_held_by_the_record_of_the_placement_and_the_city_is_decided_from_it",
+          "a_city_the_host_holds_no_state_for_is_refused_where_the_campaign_reads_its_position_and_box",
+          "a_citys_sector_relink_states_the_new_placement_and_the_old_key_is_no_longer_a_held_one",
+          "a_healthy_control_counts_the_city_state_reports_apart_and_the_city_stage_that_needs_the_state_is_an_eligible_lookup",
+          "a_malformed_city_state_report_is_refused_by_name_before_the_record_changes_and_the_inverted_sentinel_box_is_a_valid_statement",
+          "a_placement_of_no_fixed_family_is_decided_without_a_fixed_state_and_a_city_needs_none_of_the_fixed_familys",
+          "a_wrong_served_key_the_real_provider_could_answer_is_neither_credited_as_a_city_lookup_nor_withdrawn",
+          "each_single_fault_of_the_city_state_grammar_is_counted_at_its_question_and_is_never_a_pass",
+          "each_single_fault_of_the_new_scan_and_roster_grammar_is_counted_at_its_question_and_is_never_a_pass",
+          "the_campaigns_words_of_a_city_decide_nothing_a_difference_from_the_record_is_a_named_refusal",
+          "withdrawing_the_city_state_of_a_served_placement_makes_the_next_question_that_reads_it_refused_by_name"
+        ]
+      },
+      {
+        "label": "city-red-engine-release",
+        "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --no-fail-fast -- --nocapture",
+        "started_utc": "2026-11-06T09:36:01.402936+00:00",
+        "completed_utc": "2026-11-06T09:37:19.265396+00:00",
+        "actual_exit": 101,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-red-engine-release.json",
+          "bytes": 1117,
+          "sha256": "c04a7738cfe1f0a0d702cda1e31739472ae7730a4c22da4b805f8375eaa494b8"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-red-engine-release.stdout.log",
+          "bytes": 2151,
+          "sha256": "277d475d440270ff63447cc54a4bfede14471a6aed30147dec1f528d5232bf0e"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-red-engine-release.stderr.log",
+          "bytes": 3625,
+          "sha256": "4481afb7e4f234a4147992ed65cc6fa68782dc6217dfbb11e57b4b24660c1d29"
+        },
+        "test_rows": [
+          {
+            "binary": "tests/entity_dialogue.rs",
+            "verdict": "FAILED",
+            "passed": 0,
+            "failed": 1
+          },
+          {
+            "binary": "tests/entity_roster_guard.rs",
+            "verdict": "FAILED",
+            "passed": 11,
+            "failed": 2
+          }
+        ],
+        "failed_tests": [
+          "every_writer_of_a_placed_citys_position_or_box_states_them_through_the_one_funnel_after_the_write",
+          "the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal",
+          "the_cities_position_and_box_have_exactly_these_writers"
+        ]
+      }
+    ],
+    "release_red_summary": {
+      "provider_model_target_point": "44 passed, 8 failed: the 7 new city tests plus a_placement_of_no_fixed_family_is_decided_without_a_fixed_state_and_a_city_needs_none_of_the_fixed_familys (the declared-follow-on city expectation, reclassified)",
+      "driver_entity_authority": "68 passed, 6 failed: the 5 new city-state tests plus each_single_fault_of_the_new_scan_and_roster_grammar (phase 14 is no longer the out-of-domain example: the fault word became 15, the message \"0 to 14\")",
+      "c_control_entity_dialogue": "14 city expectations failed (lines 3554, 3555, 3566, 3567, 3572, 3588, 3590, 3611, 3616, 3622, 3626, 3629, 3632, 3640), every earlier check passed",
+      "source_guard": "the funnel/writer test failed (ct_msgs.c has no statement) and the city census failed only on its reclassified reader count (10 -> 11, the new funnel reader mb_hostplace.c); the writers part had passed on the unchanged source"
+    },
+    "stash_discipline": "production files stashed, tests kept, popped: the full git diff sha256 before and after was identical (d8182de1667a9eb5f7ce95369bbdb95a6cfedf889121ee5cac4e56e83cc982e5), stash list empty"
+  },
+  "changed_test_entries_explained_not_weakened": [
+    "model_target_point.rs: the real-city test no longer lets the campaign words decide a city: the city is stated by its own report first (the prior expectation was the declared follow-on); a weapon/sound/mobile placement still needs none",
+    "entity_authority.rs: the phase-out-of-domain fault word 14.0 -> 15.0 and its message \"0 to 13\" -> \"0 to 14\" (14 is now the city state phase); the scripted engine states a city insertion with the city type and offers each building under its own list key after the city question (as the shared C does)",
+    "entity_roster_guard.rs: the box readers census 10 -> 11 (mb_hostplace.c funnel reader) and comments that named the city as a declared follow-on"
+  ],
+  "final_actual_direct_exits": [
+    {
+      "label": "city-final-fmt",
+      "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine -- --check",
+      "started_utc": "2026-11-06T09:38:00.906306+00:00",
+      "completed_utc": "2026-11-06T09:38:04.645754+00:00",
+      "actual_exit": 0,
+      "record": {
+        "path": "R:/d3-evidence/sector-roster-direct-city-final-fmt.json",
+        "bytes": 928,
+        "sha256": "50f85761971f8f0b391bcebb548761e92eb03c2405bf96a65152688412085177"
+      },
+      "stdout": {
+        "path": "R:/d3-evidence/sector-roster-direct-city-final-fmt.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "R:/d3-evidence/sector-roster-direct-city-final-fmt.stderr.log",
+        "bytes": 42,
+        "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      "test_rows": [],
+      "failed_tests": []
+    },
+    {
+      "label": "city-final-world",
+      "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test entity_pose_host --test model_target_point --lib --no-fail-fast",
+      "started_utc": "2026-11-06T09:38:04.776862+00:00",
+      "completed_utc": "2026-11-06T09:38:20.202138+00:00",
+      "actual_exit": 0,
+      "record": {
+        "path": "R:/d3-evidence/sector-roster-direct-city-final-world.json",
+        "bytes": 1179,
+        "sha256": "b9b44c7730eb71281d9731f355d7511426ac35525231483194eaf7184d68b491"
+      },
+      "stdout": {
+        "path": "R:/d3-evidence/sector-roster-direct-city-final-world.stdout.log",
+        "bytes": 56173,
+        "sha256": "9684ed68d3c4019ffebf8a06e369997040ebc6a5dbafc141d03b2d0ac6b20678"
+      },
+      "stderr": {
+        "path": "R:/d3-evidence/sector-roster-direct-city-final-world.stderr.log",
+        "bytes": 13473,
+        "sha256": "1c63891adc4b7e890c286a4cfc3dfbcfb03fd15df04354c6ee7201cb631cf8dd"
+      },
+      "test_rows": [
+        {
+          "binary": "src/lib.rs",
+          "verdict": "ok",
+          "passed": 366,
+          "failed": 0
+        },
+        {
+          "binary": "tests/entity_authority.rs",
+          "verdict": "ok",
+          "passed": 74,
+          "failed": 0
+        },
+        {
+          "binary": "tests/entity_candidate_host.rs",
+          "verdict": "ok",
+          "passed": 13,
+          "failed": 0
+        },
+        {
+          "binary": "tests/entity_pose_host.rs",
+          "verdict": "ok",
+          "passed": 5,
+          "failed": 0
+        },
+        {
+          "binary": "tests/entity_roster_host.rs",
+          "verdict": "ok",
+          "passed": 17,
+          "failed": 0
+        },
+        {
+          "binary": "tests/model_target_point.rs",
+          "verdict": "ok",
+          "passed": 52,
+          "failed": 0
+        }
+      ],
+      "failed_tests": []
+    },
+    {
+      "label": "city-final-engine",
+      "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard --test entity_pose_lifecycle_guard --no-fail-fast -- --nocapture",
+      "started_utc": "2026-11-06T09:38:20.329135+00:00",
+      "completed_utc": "2026-11-06T09:39:42.385544+00:00",
+      "actual_exit": 0,
+      "record": {
+        "path": "R:/d3-evidence/sector-roster-direct-city-final-engine.json",
+        "bytes": 1234,
+        "sha256": "d3393f2d0816a4eae755037e0f51a25a065d8e748d7e2264444047930bc59e1a"
+      },
+      "stdout": {
+        "path": "R:/d3-evidence/sector-roster-direct-city-final-engine.stdout.log",
+        "bytes": 3109,
+        "sha256": "5d0a12258484ec4b12deb53b514df9171d826385eb2baec88e7bf92539fd01ee"
+      },
+      "stderr": {
+        "path": "R:/d3-evidence/sector-roster-direct-city-final-engine.stderr.log",
+        "bytes": 597,
+        "sha256": "5cbc87705610209fc937568e81f9026f9824da952724e7ad121c87d44c08f3a2"
+      },
+      "test_rows": [
+        {
+          "binary": "tests/entity_dialogue.rs",
+          "verdict": "ok",
+          "passed": 1,
+          "failed": 0
+        },
+        {
+          "binary": "tests/entity_host_guard.rs",
+          "verdict": "ok",
+          "passed": 5,
+          "failed": 0
+        },
+        {
+          "binary": "tests/entity_pose_lifecycle_guard.rs",
+          "verdict": "ok",
+          "passed": 4,
+          "failed": 0
+        },
+        {
+          "binary": "tests/entity_roster_guard.rs",
+          "verdict": "ok",
+          "passed": 13,
+          "failed": 0
+        }
+      ],
+      "failed_tests": []
+    },
+    {
+      "label": "city-final-check",
+      "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+      "started_utc": "2026-11-06T09:39:42.518383+00:00",
+      "completed_utc": "2026-11-06T09:40:51.881687+00:00",
+      "actual_exit": 0,
+      "record": {
+        "path": "R:/d3-evidence/sector-roster-direct-city-final-check.json",
+        "bytes": 970,
+        "sha256": "93709de190426d6a696eda864e145d2f693cef7464aa6402361e5f9d3a92a474"
+      },
+      "stdout": {
+        "path": "R:/d3-evidence/sector-roster-direct-city-final-check.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "R:/d3-evidence/sector-roster-direct-city-final-check.stderr.log",
+        "bytes": 391,
+        "sha256": "dc932f5893a5404fd42cb8acf99a6e8d00d41f9d4aa758dc37e8266c77e3f7ee"
+      },
+      "test_rows": [],
+      "failed_tests": []
+    }
+  ],
+  "final_counts": {
+    "world_release": "eech-world lib 366, driver (entity_authority) 74, candidate 13, pose 5, roster 17, provider (model_target_point) 52 = 527 tests, 0 failed (prior corrected evidence 512: +3 lib, +5 driver, +7 provider)",
+    "engine_sys_release": "entity_dialogue 1 (the single C control, now with the city cases), entity_host_guard 5, entity_pose_lifecycle_guard 4, entity_roster_guard 13 = 23 tests, 0 failed",
+    "fmt_check_exit": 0,
+    "four_crate_release_check_exit": 0
+  },
+  "intermediate_attempts_preserved_not_hidden": {
+    "runs": [
+      {
+        "label": "city-fmt-1",
+        "command": "cargo fmt -p eech-world",
+        "started_utc": "2026-11-06T09:24:28.835552+00:00",
+        "completed_utc": "2026-11-06T09:24:32.234602+00:00",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-fmt-1.json",
+          "bytes": 839,
+          "sha256": "83f1dd74067fae2c798e843e22b71805b6e92109a46eb100b084ceb90644f562"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-fmt-1.stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-fmt-1.stderr.log",
+          "bytes": 42,
+          "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+        },
+        "test_rows": [],
+        "failed_tests": []
+      },
+      {
+        "label": "city-green-world-1",
+        "command": "cargo test -p eech-world --no-fail-fast --lib --test entity_authority --test model_target_point --test entity_roster_host --test entity_candidate_host --test entity_pose_host",
+        "started_utc": "2026-11-06T09:24:39.043148+00:00",
+        "completed_utc": "2026-11-06T09:24:43.812423+00:00",
+        "actual_exit": 101,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-1.json",
+          "bytes": 1143,
+          "sha256": "f0d407e671257b0bd2ff5933fbcf90831f059edf1356934e275378d4dedf9a55"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-1.stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-1.stderr.log",
+          "bytes": 1846,
+          "sha256": "59c63ff56c03cf6a297c2a2aa74b7aea350512e792148bf64e693e99363e7d7a"
+        },
+        "test_rows": [],
+        "failed_tests": []
+      },
+      {
+        "label": "city-green-world-2",
+        "command": "cargo test -p eech-world --no-fail-fast --lib --test entity_authority --test model_target_point --test entity_roster_host --test entity_candidate_host --test entity_pose_host",
+        "started_utc": "2026-11-06T09:25:00.827263+00:00",
+        "completed_utc": "2026-11-06T09:25:10.574126+00:00",
+        "actual_exit": 101,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-2.json",
+          "bytes": 1143,
+          "sha256": "9a72b4fff5f1765458c681a0de918435765feef5ff4881a09f15078a4adddd21"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-2.stdout.log",
+          "bytes": 80634,
+          "sha256": "01904eab2e27f091bc24a55eb77a6e18e2280b6b97fd2d73989879f51da28354"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-2.stderr.log",
+          "bytes": 13458,
+          "sha256": "afb7f9af5bcde53717321a8573b503cac36377eab8c6ba871fb889d79ebcc9af"
+        },
+        "test_rows": [
+          {
+            "binary": "src/lib.rs",
+            "verdict": "ok",
+            "passed": 366,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_authority.rs",
+            "verdict": "FAILED",
+            "passed": 69,
+            "failed": 5
+          },
+          {
+            "binary": "tests/entity_candidate_host.rs",
+            "verdict": "ok",
+            "passed": 13,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_pose_host.rs",
+            "verdict": "ok",
+            "passed": 5,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_roster_host.rs",
+            "verdict": "FAILED",
+            "passed": 15,
+            "failed": 2
+          },
+          {
+            "binary": "tests/model_target_point.rs",
+            "verdict": "ok",
+            "passed": 52,
+            "failed": 0
+          }
+        ],
+        "failed_tests": [
+          "a_citys_sector_relink_states_the_new_placement_and_the_old_key_is_no_longer_a_held_one",
+          "a_healthy_control_counts_the_city_state_reports_apart_and_the_city_stage_that_needs_the_state_is_an_eligible_lookup",
+          "a_wrong_served_key_the_real_provider_could_answer_is_neither_credited_as_a_city_lookup_nor_withdrawn",
+          "each_single_fault_of_the_city_state_grammar_is_counted_at_its_question_and_is_never_a_pass",
+          "the_city_words_are_classified_without_floating_point_and_leave_the_callers_whole_state_unchanged",
+          "the_roster_arithmetic_hands_back_the_callers_whole_floating_point_state_for_fractional_and_malformed_words",
+          "withdrawing_the_city_state_of_a_served_placement_makes_the_next_question_that_reads_it_refused_by_name"
+        ]
+      },
+      {
+        "label": "city-probe-roster-baseline",
+        "command": "cargo test -p eech-world --no-fail-fast --test entity_roster_host",
+        "started_utc": "2026-11-06T09:25:59.581367+00:00",
+        "completed_utc": "2026-11-06T09:26:04.949675+00:00",
+        "actual_exit": 101,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-probe-roster-baseline.json",
+          "bytes": 925,
+          "sha256": "046acc34df020b2bc8526f536057fef2e751a4173f7638556b59a8659c02a46f"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-probe-roster-baseline.stdout.log",
+          "bytes": 3483,
+          "sha256": "7d7a4e5bf76f41f33a4be8109b387e12978b0ba21b0cabcfa04aa0269d46cac7"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-probe-roster-baseline.stderr.log",
+          "bytes": 429,
+          "sha256": "756e6e84163e8429467049cbe6d598fb712933f7402f5756ff7b67fa0e9b2606"
+        },
+        "test_rows": [
+          {
+            "binary": "tests/entity_roster_host.rs",
+            "verdict": "FAILED",
+            "passed": 15,
+            "failed": 2
+          }
+        ],
+        "failed_tests": [
+          "the_city_words_are_classified_without_floating_point_and_leave_the_callers_whole_state_unchanged",
+          "the_roster_arithmetic_hands_back_the_callers_whole_floating_point_state_for_fractional_and_malformed_words"
+        ]
+      },
+      {
+        "label": "city-green-world-3",
+        "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test entity_pose_host --test model_target_point --lib --no-fail-fast",
+        "started_utc": "2026-11-06T09:26:24.103371+00:00",
+        "completed_utc": "2026-11-06T09:26:39.595739+00:00",
+        "actual_exit": 101,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-3.json",
+          "bytes": 1181,
+          "sha256": "378876f145bf04ad13fe8a1f2b2385d766bc1850fd8786fd1568c4c6c4067408"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-3.stdout.log",
+          "bytes": 79040,
+          "sha256": "530ca7181b01b8ff889e3accefa74145489fe83c31990ab376a0a1791fda82f5"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-3.stderr.log",
+          "bytes": 13337,
+          "sha256": "d41d9439f6aa8df5f30d3f356d3dd7aec5d462e7804a78ae8cb41bf956431f49"
+        },
+        "test_rows": [
+          {
+            "binary": "src/lib.rs",
+            "verdict": "ok",
+            "passed": 366,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_authority.rs",
+            "verdict": "FAILED",
+            "passed": 69,
+            "failed": 5
+          },
+          {
+            "binary": "tests/entity_candidate_host.rs",
+            "verdict": "ok",
+            "passed": 13,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_pose_host.rs",
+            "verdict": "ok",
+            "passed": 5,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_roster_host.rs",
+            "verdict": "ok",
+            "passed": 17,
+            "failed": 0
+          },
+          {
+            "binary": "tests/model_target_point.rs",
+            "verdict": "ok",
+            "passed": 52,
+            "failed": 0
+          }
+        ],
+        "failed_tests": [
+          "a_citys_sector_relink_states_the_new_placement_and_the_old_key_is_no_longer_a_held_one",
+          "a_healthy_control_counts_the_city_state_reports_apart_and_the_city_stage_that_needs_the_state_is_an_eligible_lookup",
+          "a_wrong_served_key_the_real_provider_could_answer_is_neither_credited_as_a_city_lookup_nor_withdrawn",
+          "each_single_fault_of_the_city_state_grammar_is_counted_at_its_question_and_is_never_a_pass",
+          "withdrawing_the_city_state_of_a_served_placement_makes_the_next_question_that_reads_it_refused_by_name"
+        ]
+      },
+      {
+        "label": "city-green-world-4",
+        "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast",
+        "started_utc": "2026-11-06T09:26:53.607999+00:00",
+        "completed_utc": "2026-11-06T09:27:00.047420+00:00",
+        "actual_exit": 101,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-4.json",
+          "bytes": 959,
+          "sha256": "7809ea1456912a2547aa7298b8720e5690fc5a2e588ea56cca507e32bfa3cee6"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-4.stdout.log",
+          "bytes": 18685,
+          "sha256": "d778876e75071c4289cf8d4d24c498a1d289a67f5b5fabd04f5e7cef79e52e46"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-4.stderr.log",
+          "bytes": 13227,
+          "sha256": "d378e4b03f333a1eed1887154b79a67f8ea4de9b90eb593ff643875f4b6676e0"
+        },
+        "test_rows": [
+          {
+            "binary": "tests/entity_authority.rs",
+            "verdict": "FAILED",
+            "passed": 71,
+            "failed": 3
+          }
+        ],
+        "failed_tests": [
+          "a_citys_sector_relink_states_the_new_placement_and_the_old_key_is_no_longer_a_held_one",
+          "a_healthy_control_counts_the_city_state_reports_apart_and_the_city_stage_that_needs_the_state_is_an_eligible_lookup",
+          "withdrawing_the_city_state_of_a_served_placement_makes_the_next_question_that_reads_it_refused_by_name"
+        ]
+      },
+      {
+        "label": "city-green-world-5",
+        "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast",
+        "started_utc": "2026-11-06T09:27:24.670780+00:00",
+        "completed_utc": "2026-11-06T09:27:30.977041+00:00",
+        "actual_exit": 101,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-5.json",
+          "bytes": 959,
+          "sha256": "954d96e5fa1d8d26bb00ffe65d3879762114c10ed1ae273d72015d88411cfa0d"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-5.stdout.log",
+          "bytes": 26064,
+          "sha256": "cc679e888746870a1ebe190eac0178b87ffebfc7689ab18cbfe28003f44862de"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-5.stderr.log",
+          "bytes": 12849,
+          "sha256": "16b57bc36e40ccb123a58a256e1da9fd1df7f8db3896199c7c82f58fcf65d61f"
+        },
+        "test_rows": [
+          {
+            "binary": "tests/entity_authority.rs",
+            "verdict": "FAILED",
+            "passed": 71,
+            "failed": 3
+          }
+        ],
+        "failed_tests": [
+          "a_citys_sector_relink_states_the_new_placement_and_the_old_key_is_no_longer_a_held_one",
+          "a_healthy_control_counts_the_city_state_reports_apart_and_the_city_stage_that_needs_the_state_is_an_eligible_lookup",
+          "withdrawing_the_city_state_of_a_served_placement_makes_the_next_question_that_reads_it_refused_by_name"
+        ]
+      },
+      {
+        "label": "city-green-world-6",
+        "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast",
+        "started_utc": "2026-11-06T09:28:06.160990+00:00",
+        "completed_utc": "2026-11-06T09:28:12.657267+00:00",
+        "actual_exit": 101,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-6.json",
+          "bytes": 959,
+          "sha256": "87be8e5bc4ca0a19e343ec393ce27441d90a65da5d8947a73c82aeb3e7f622f6"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-6.stdout.log",
+          "bytes": 26434,
+          "sha256": "6346b9f6bd9bf301a625f1a218f59b9e7975c9c22c644ce179fcb2760c0e5126"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-6.stderr.log",
+          "bytes": 12849,
+          "sha256": "1c7fb495c25743992cba34cb1dcc67748f5cb9346ce0420e0503d21dfed31aa4"
+        },
+        "test_rows": [
+          {
+            "binary": "tests/entity_authority.rs",
+            "verdict": "FAILED",
+            "passed": 71,
+            "failed": 3
+          }
+        ],
+        "failed_tests": [
+          "a_citys_sector_relink_states_the_new_placement_and_the_old_key_is_no_longer_a_held_one",
+          "a_healthy_control_counts_the_city_state_reports_apart_and_the_city_stage_that_needs_the_state_is_an_eligible_lookup",
+          "withdrawing_the_city_state_of_a_served_placement_makes_the_next_question_that_reads_it_refused_by_name"
+        ]
+      },
+      {
+        "label": "city-green-world-7",
+        "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast",
+        "started_utc": "2026-11-06T09:28:36.184152+00:00",
+        "completed_utc": "2026-11-06T09:28:42.515835+00:00",
+        "actual_exit": 101,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-7.json",
+          "bytes": 958,
+          "sha256": "2a8249f998f4dd73e1768eec59de105ce8b724198a9009a61f7cbe4ad7a44dde"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-7.stdout.log",
+          "bytes": 14645,
+          "sha256": "28657a48e79dc92d511f6c374d5e5a7186f16682d2e2402d01da901f0a1d2da0"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-7.stderr.log",
+          "bytes": 13027,
+          "sha256": "7a0fa6796c7c9bfe828ac74a3aac866015514eaa78698167e45a69d1735cce26"
+        },
+        "test_rows": [
+          {
+            "binary": "tests/entity_authority.rs",
+            "verdict": "FAILED",
+            "passed": 73,
+            "failed": 1
+          }
+        ],
+        "failed_tests": [
+          "withdrawing_the_city_state_of_a_served_placement_makes_the_next_question_that_reads_it_refused_by_name"
+        ]
+      },
+      {
+        "label": "city-green-world-8",
+        "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast",
+        "started_utc": "2026-11-06T09:29:02.257222+00:00",
+        "completed_utc": "2026-11-06T09:29:08.599894+00:00",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-8.json",
+          "bytes": 957,
+          "sha256": "3c0b2285043046048ff28db341fba7ae26e8de2081f556d1d982e5cf9780db15"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-8.stdout.log",
+          "bytes": 8816,
+          "sha256": "9f3dbb8d44abc646b4afc98e930d261b4a46291189500faa35950a03a0e8a1ef"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-8.stderr.log",
+          "bytes": 12985,
+          "sha256": "1f9c2c0749c66be756e76b4877ceeac5eaafd977b1cc9a27dd4474ac893c6a6c"
+        },
+        "test_rows": [
+          {
+            "binary": "tests/entity_authority.rs",
+            "verdict": "ok",
+            "passed": 74,
+            "failed": 0
+          }
+        ],
+        "failed_tests": []
+      },
+      {
+        "label": "city-green-engine-1",
+        "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard --test entity_pose_lifecycle_guard --no-fail-fast -- --nocapture",
+        "started_utc": "2026-11-06T09:29:14.953348+00:00",
+        "completed_utc": "2026-11-06T09:30:33.469748+00:00",
+        "actual_exit": 101,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-engine-1.json",
+          "bytes": 1237,
+          "sha256": "0483f1bbd0b600ed5f6d022439c52800a36e6033753e91c79493efdce62ca709"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-engine-1.stdout.log",
+          "bytes": 3198,
+          "sha256": "d34d228b81b0cf5260a6daa6d388a7a359b297f31412f1337ca81e0dabdb7950"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-engine-1.stderr.log",
+          "bytes": 1439,
+          "sha256": "da26b4db88dff4c670ef53d184f954f2864df90801dd9c383b5d41608fbbf2d1"
+        },
+        "test_rows": [
+          {
+            "binary": "tests/entity_dialogue.rs",
+            "verdict": "ok",
+            "passed": 1,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_host_guard.rs",
+            "verdict": "ok",
+            "passed": 5,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_pose_lifecycle_guard.rs",
+            "verdict": "ok",
+            "passed": 4,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_roster_guard.rs",
+            "verdict": "FAILED",
+            "passed": 12,
+            "failed": 1
+          }
+        ],
+        "failed_tests": [
+          "the_cities_position_and_box_have_exactly_these_writers"
+        ]
+      },
+      {
+        "label": "city-fmt-2",
+        "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine",
+        "started_utc": "2026-11-06T09:30:56.992802+00:00",
+        "completed_utc": "2026-11-06T09:31:00.853928+00:00",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-fmt-2.json",
+          "bytes": 907,
+          "sha256": "83382c49691bb46fabc0f5c1f0e1bc213af17a70aabebbb594b2c717ae692153"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-fmt-2.stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-fmt-2.stderr.log",
+          "bytes": 42,
+          "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+        },
+        "test_rows": [],
+        "failed_tests": []
+      },
+      {
+        "label": "city-fmt-3",
+        "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine -- --check",
+        "started_utc": "2026-11-06T09:32:41.926174+00:00",
+        "completed_utc": "2026-11-06T09:32:45.561060+00:00",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-fmt-3.json",
+          "bytes": 928,
+          "sha256": "db359eeb405148b4d132c30e23dac21c95e65e8c766bd381825193d0c6a3d6d6"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-fmt-3.stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-fmt-3.stderr.log",
+          "bytes": 42,
+          "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+        },
+        "test_rows": [],
+        "failed_tests": []
+      },
+      {
+        "label": "city-green-engine-2",
+        "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard --test entity_pose_lifecycle_guard --no-fail-fast -- --nocapture",
+        "started_utc": "2026-11-06T09:32:45.671828+00:00",
+        "completed_utc": "2026-11-06T09:34:05.606307+00:00",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-engine-2.json",
+          "bytes": 1234,
+          "sha256": "9a995c3b8cc9f34ed02314c9a4689c11ca3e680ff33f1965211e715ea3f9dc1f"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-engine-2.stdout.log",
+          "bytes": 3109,
+          "sha256": "6f638e8d144af504692c9e9ae933a3bf8b7572c5b5f799a5658465a3b1f6c5e4"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-engine-2.stderr.log",
+          "bytes": 597,
+          "sha256": "a3290ab29ad26d4e4dfcc472a92611eb23b67de36cabace37c992507c19c8e1d"
+        },
+        "test_rows": [
+          {
+            "binary": "tests/entity_dialogue.rs",
+            "verdict": "ok",
+            "passed": 1,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_host_guard.rs",
+            "verdict": "ok",
+            "passed": 5,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_pose_lifecycle_guard.rs",
+            "verdict": "ok",
+            "passed": 4,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_roster_guard.rs",
+            "verdict": "ok",
+            "passed": 13,
+            "failed": 0
+          }
+        ],
+        "failed_tests": []
+      },
+      {
+        "label": "city-green-world-9",
+        "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test entity_pose_host --test model_target_point --lib --no-fail-fast",
+        "started_utc": "2026-11-06T09:34:11.937851+00:00",
+        "completed_utc": "2026-11-06T09:34:26.952351+00:00",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-9.json",
+          "bytes": 1179,
+          "sha256": "2e106d672752df8db83df7356a980992a648f63d3b395dda77be8acfd9191f53"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-9.stdout.log",
+          "bytes": 56173,
+          "sha256": "761192d58b75dfdf9597ea834e374a2149d22a418efb6df07ebb1c0b52cc106c"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-green-world-9.stderr.log",
+          "bytes": 13473,
+          "sha256": "bdc054008a2c48db7d9bb49d6b0f8a2a2a28ec58c241d9c6d3bd4d919c10edcd"
+        },
+        "test_rows": [
+          {
+            "binary": "src/lib.rs",
+            "verdict": "ok",
+            "passed": 366,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_authority.rs",
+            "verdict": "ok",
+            "passed": 74,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_candidate_host.rs",
+            "verdict": "ok",
+            "passed": 13,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_pose_host.rs",
+            "verdict": "ok",
+            "passed": 5,
+            "failed": 0
+          },
+          {
+            "binary": "tests/entity_roster_host.rs",
+            "verdict": "ok",
+            "passed": 17,
+            "failed": 0
+          },
+          {
+            "binary": "tests/model_target_point.rs",
+            "verdict": "ok",
+            "passed": 52,
+            "failed": 0
+          }
+        ],
+        "failed_tests": []
+      },
+      {
+        "label": "city-check-1",
+        "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+        "started_utc": "2026-11-06T09:34:27.142472+00:00",
+        "completed_utc": "2026-11-06T09:35:35.162840+00:00",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-check-1.json",
+          "bytes": 970,
+          "sha256": "dec4197968fbfbdb2f455507dc0af6fb5d0a75b9a9dbc67a38c7efb2ec063c0e"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-check-1.stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-city-check-1.stderr.log",
+          "bytes": 391,
+          "sha256": "576d28cc255650cdb50a0d354b0919f844cc9f3c6402dee65ada87a380a9f4e8"
+        },
+        "test_rows": [],
+        "failed_tests": []
+      }
+    ],
+    "story": [
+      "city-fmt-1/2/3: cargo fmt applied then checked (exit 0)",
+      "city-green-world-1: compile error E0004 (FixedHold::City not covered in the family join) fixed by a named [candidate.family] arm; city-green-world-2: debug build, two entity_roster_host FP-flag tests failed",
+      "city-probe-roster-baseline: the same two tests fail on the UNCHANGED production source in DEBUG: the accepted configuration is --release --locked (city-green-world-3: roster 17 of 17)",
+      "city-green-world-3 to 8: the scripted driver engine was corrected in the test harness (insertion type 5, each building offered under its own list key with the first served child, the withdrawal next-question classification limited to the stage that reads the state): driver 74 of 74 at city-green-world-8",
+      "city-green-engine-1: the writers census reader count 10 vs 11 (the funnel reader) reclassified; city-green-engine-2: engine-sys 23 of 23",
+      "city-green-world-9 and city-check-1: the pre-freeze green chain on the tree that was committed"
+    ]
+  },
+  "final_input_maps": {
+    "repo": "R:/d3-evidence/collision-characterization-20261029",
+    "head_rev": "78ef839dd75d325c42acb3127d097fee400388c2",
+    "before": {
+      "path": "R:/d3-evidence/city-collision-input-map-before-20261106.json",
+      "bytes": 2028815,
+      "sha256": "308d62c3146e674fddb79ba1a1b9558c1d2e93e42f79ee59806e25057a78500f"
+    },
+    "after": {
+      "path": "R:/d3-evidence/city-collision-input-map-after-20261106.json",
+      "bytes": 2028815,
+      "sha256": "308d62c3146e674fddb79ba1a1b9558c1d2e93e42f79ee59806e25057a78500f"
+    },
+    "literal_equal": true,
+    "file_count": 3952,
+    "fingerprint_of_raw_sha256_map": "8c17c71416188ac61a7a1b65febed18d092e79f325345f0554e6b1b18a22ef18",
+    "changed_from_head_count": 3,
+    "note": "the maps are external (2 MB each); the repo pack keeps the fingerprint and both file hashes. The map arguments are the same for both captures; no report was normalised."
+  },
+  "raw_git_source_binding": {
+    "record": {
+      "path": "R:/d3-evidence/city-collision-raw-source-binding-78ef839dd-20261106.json",
+      "bytes": 2245,
+      "sha256": "24865fd553e5a80983d1183abbffd580164cdbdc540d8f9f1c0659b2629b0f58"
+    },
+    "commit": "78ef839dd75d325c42acb3127d097fee400388c2",
+    "files_in_map": 3952,
+    "files_raw_equal_to_commit_blob_bytes": 3949,
+    "files_raw_different": [
+      {
+        "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+        "raw_size": 3691,
+        "git_blob_size": 3608
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+        "raw_size": 5848,
+        "git_blob_size": 5720
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+        "raw_size": 3683,
+        "git_blob_size": 3600
+      }
+    ],
+    "method": "actual raw SHA-256 and size of the working-tree bytes the map captured against the bytes `git cat-file --batch` returns for <commit>:<path>; hash-object --path (a filtered identity) is not raw proof and was not used for equality",
+    "qualification": "the three different files are the inherited test-Lua CRLF files of eech-world/tests/lua (not touched by this change); seven files disagree between raw bytes and the Git-filtered identity (listed in the map) and are reported, never normalised"
+  },
+  "reused_checks_with_own_identities": {
+    "reused_not_replayed": [
+      {
+        "what": "eech-engine crate (callback/dialogue of the engine), eech-dc, the entity_candidate_step.c kernel, the FP-state controls, the Task52 tree and target-point routes",
+        "why": "no file changed: only the four-crate release check was re-run (final_check exit 0)",
+        "identity": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa chain, review beb986d8d66fc89218b0e10a5340066109dc9b9f6a35bb27c1016121c78162e6 and finite actual review 68f7b511daef369526fb589370a21642d4f5b93def08457c8a5fbee6459a56c3"
+      },
+      {
+        "what": "closed city list / sector roster / moving-query finite proofs and the fixed/static finite actuals (Windows builds, healthy and withdrawn natives, short allTHREE byte-identical 80fd)",
+        "why": "they are different properties of different commits; none is claimed for the changed C",
+        "identity": "Git packs under eech-campaign/reference/d3-entity-collision/{city-building-source,fixed-static-source-and-actuals,...}"
+      }
+    ],
+    "not_reusable": "every compiled C input changed (ct_msgs.c, mb_hostplace.c, mb_hostmodel.c and four headers): the f734 Windows profiles, short and native actuals do NOT cover this commit; they need Root exact builds and actuals under their own identities",
+    "current_full40": "Root immutable snapshot of f734 is untouched and still running (not read, not restarted); it does not cover this commit"
+  },
+  "distinguishing_negative_control": {
+    "name": "withdrawn_city_state (driver mode, lua/entity-authority.lua)",
+    "real_backing": "the REAL provider holds the city CITY_STATE report in its REAL roster; the first eligible lookup is a staged question that names the placement the host ACTUALLY served (the entry the scan last served), reached the city stage (fixed facts read, fixed, a city, first building served, not under a city) and was answered over the held state without a refusal (city_state_joined counts it: positive consumption)",
+    "host_only_removal": "before that real answer is handed on UNCHANGED, the host sends the SAME provider the withdrawal word of the fixed report for that key (answered removed): only the city own state of that record goes; the placement, its list, its object identity, the campaign Core entity, the question and the reply are untouched",
+    "actual_next_question": "the NEXT question that names the withdrawn placement AT the city stage (a building of the city names its own key, and the stage-0 question reads nothing of the state) is delegated unchanged and the real provider refuses it by its named cause [candidate.city] the host withdrew the collision state of this city; the run stops at [model-provider:entity_candidate.refused]; request faults 0, reply faults exactly 1, first fault \"candidate reply: result refused\"; the withdrawal is counted apart (city_state_withdrawn 1, city_state_withdrawn_next \"city\", cause city_state_withdrawn)",
+    "what_it_distinguishes": "removing the list or the whole record would prove the wrong dependence and is not done; a withdrawn FIXED state, a withdrawn building or a withdrawn sector entry are other causes and other markers; a wrong but live key neither credits nor mutates (request fault, test pinned)",
+    "honest_UNREACHED": "UNREACHED when no question of a city whose state the host held reached the position-and-box stage (a case with no city with a building), or when the withdrawn city was never asked about at that stage again; a request or reply fault, or an engine stop at another marker, BEFORE the withdrawal is reported as that failure and is never UNREACHED; a question at the stage that was answered after the withdrawal is a hard failure (the provider ignored it). No actor, time or geometry is hunted and no pseudo-war is configured",
+    "counters": "city_state_before/after/total/stated/joined/withdrawn/withdrawn_next/held_lifetime/withdrawn_cause; held state is populated in BOTH windows (city_held is set before the launch); a healthy armed-report count can legitimately be zero and is not required to establish previously reported canonical data",
+    "eligibility_for_the_native_case": "whether the default ordinary case reaches a SECOND question of the same served city at the city stage is a fact of the native run, not asserted here: the mode is eligible only on Root natives (a hosted build with the model provider and the driver); a clean run with none is UNREACHED by construction",
+    "implemented_and_proven_in": "tests/entity_authority.rs (5 new driver tests: healthy counters, relink, the withdrawal with every UNREACHED/failure distinction and the original-profile refusal, the wrong served key, the grammar faults) and tests/model_target_point.rs (the real provider refusal and every early skip)",
+    "limits": "driver tests use a scripted engine and read the REAL roster through a Rust probe; the real-provider refusal text is pinned in the provider tests; no native process was started by this lane"
+  },
+  "what_moved": [
+    "the CITY collision position and bounding box canonical backing: host record (CityState) with actual writers (insertion/relink, same-sector setter, box expansion), restore/relink/retirement lifecycle and physical query consumption (city_join); Core reads are bitwise conformance mirrors in the original deferred order",
+    "the phase-14 wire, the driver grammar/counters/mode, the C control and source census"
+  ],
+  "what_remains_REQUIRED_not_hidden": [
+    "sector spatial-height / hints and their actual writers",
+    "effectful whole 32-bit UPDATED and shared terrain state",
+    "raw tree/FOREST/CLOUD loaders, CRT srand/rand, season, skin_random and their consumers",
+    "needed hierarchy/subobjects/world viewpoints/devices/muzzles/rotor/damage/smoke and other physical services",
+    "needed DCS calls and bounded workarounds (UnitDesc.box is not a mesh; no invented geometry catalogue)",
+    "natural moving weapon integration",
+    "independent review of THIS source (same reviewer, correctness/clean-code/boundary once), then Root exact builds, short and actuals",
+    "current f734 full40/all8, final four inputs, CI, final review, normal merge, whole-D3 census and acceptance",
+    "This is finite collision backing, not complete environmental service acceptance; no Task49/D3 acceptance, no native clearance, no merge"
+  ],
+  "limitations_and_unavailable": [
+    "the changed real C files ct_msgs.c, mb_hostplace.c and mb_hostmodel.c are compiled only by Root Windows profile builds; here the real mb_hostplacemap.h/mb_hostentity.h are compiled and exercised by the isolated control with scripted entities, and the three files are held by source guards and review of their few lines",
+    "the debug-profile build fails two FP-flag roster tests on the UNCHANGED source (qualified above); all final receipts use --release --locked",
+    "no native, Windows, short or full40 evidence exists for this commit; no independent review exists yet"
+  ],
+  "next_bounded_action": "Same independent reviewer reviews this source ONCE (correctness, clean code, boundary safety); then Root exact Windows builds, the short ordinary comparison and the finite healthy plus withdrawn_city_state actuals; then the next required cut (sector spatial-height and hints)."
+}

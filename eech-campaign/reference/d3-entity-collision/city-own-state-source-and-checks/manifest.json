@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "record": "city-own-state-source-and-checks",
+  "source_commit": "78ef839dd75d325c42acb3127d097fee400388c2",
+  "files": {
+    "README.md": {
+      "bytes": 3485,
+      "sha256": "0bf49202315e3cd5166102f1bae2c211b1cd3e4dfcab3888b1592fb58ed4f370"
+    },
+    "city-own-state-CODE-FROZEN-20261106.json": {
+      "bytes": 63537,
+      "sha256": "cc6ed8d96e0a036e137ba8c941bf5393a7decc90b7f6a1a04e9c8a16894601c7"
+    },
+    "city-own-state-raw-source-binding-78ef839dd-20261106.json": {
+      "bytes": 2245,
+      "sha256": "24865fd553e5a80983d1183abbffd580164cdbdc540d8f9f1c0659b2629b0f58"
+    }
+  }
+}
