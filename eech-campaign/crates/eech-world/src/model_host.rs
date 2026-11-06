@@ -591,13 +591,16 @@ fn entity_pose_answer(lua: &Lua, q: &Question) -> LuaResult<LuaTable> {
 /// campaign is visiting, from the facts it read. `skip`, `need_updated` (the campaign performs its destructive UPDATED getter and asks again), `need_normal` (the campaign asks the
 /// terrain for the face normal and asks again), `need_fixed` and `need_placement` (the campaign reads the facts the branch has only now reached and asks again), `buildings` (a city's box
 /// is met) or `test` with the narrow phase's candidate pose. The decision is the original's, and the scene's radius is looked up only when the branch reaches its broad phase.
+///
+/// A candidate that is not a mobile of a sector list (a fixed object, a city, a building listed in a sector or under a city) names the placement the host served it by in the identity place of every staged
+/// question; `fixed_join` joins the key to the record of that placement and the decision is made over the fixed collision state the record holds (the campaign's words for the same facts are compared with it).
 fn entity_candidate_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaResult<LuaTable> {
     let operation = q.operation.as_str();
     let fail = |message: String| LuaError::runtime(format!("[model-provider:{operation}.request] {message}"));
     if q.depth.is_some() || q.kind.is_some() || q.definition.is_some() {
         return Err(fail("an entity candidate question has no depth, kind or definition".into()));
     }
-    let scene = q
+    let mut scene = q
         .scene
         .ok_or_else(|| fail("an entity candidate question needs a scene (0 for a city)".into()))?;
     let (pattern_text, host_id) = match q.key.as_deref() {
@@ -668,6 +671,22 @@ fn entity_candidate_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaRe
             }
         }
     }
+    // A candidate that is NOT a mobile of a sector list (a fixed object, a city, a building listed directly in a sector or under a city) names the placement the host served it by in the identity place of EVERY
+    // staged question, and the host joins that key to the record of the placement before it decides anything: what the record holds of its fixed collision state is what the decision is made over (the
+    // campaign's words for the same facts are only compared with it, and a difference or a missing or withdrawn state is a named refusal, never completed from them).
+    if !(mobile && !of_city) {
+        match fixed_join(lua, &mut words, scene, host_id, of_city) {
+            Ok(canonical) => {
+                scene = canonical;
+                table.set("name", usize::try_from(scene).ok().and_then(compiled_scene_name).unwrap_or(""))?;
+            }
+            Err(why) => {
+                table.set("result", "refused")?;
+                table.set("reason", why)?;
+                return Ok(table);
+            }
+        }
+    }
     match entity_host::candidate_in_store(store, scene, &words) {
         Ok(step) => {
             table.set(
@@ -707,6 +726,10 @@ const ROSTER_CHILD_FIRST: u32 = 0x4110_0000;
 const ROSTER_CHILD_NEXT: u32 = 0x4120_0000;
 const ROSTER_LINK: u32 = 0x4130_0000;
 const ROSTER_NAME: u32 = 0x4140_0000;
+/// The fixed-state report (13.0, classified from its bits like the others): see `fixed_event`.
+const ROSTER_FIXED_STATE: u32 = 0x4150_0000;
+/// The bits of 1.0: the only non-zero value a flag word of the contract has.
+const ONE_BITS: u32 = 0x3f80_0000;
 
 /// The city events of an `entity_scan` question (phases 7 to 12, the same question as the roster's): a building's place in its city's list (`LIST_TYPE_CITY_BUILDING`) is inserted (7), removed (8), asked for
 /// its first (9) or next (10) entry; a sector placement and a city child are declared the same entity (11); and a placement is named by the legacy object-report identity the host issued for its entity (12).
@@ -812,6 +835,220 @@ fn city_event(lua: &Lua, phase: u32, words: &[u32], identity: &str) -> LuaResult
         }
         Err(why) => refuse(&table, why),
     }
+}
+
+/// The fixed-state report of an `entity_scan` question (phase 13, EEDCS-49, D3, Task49): the campaign states the COLLISION state of a fixed-family placement it has just written (the insertion, a setter, a kill's
+/// destroyed shape, a restore, a session unpack, a bridge's damage or fall), and the host's RECORD of the placement holds it (`crate::roster::FixedState`; the record is the one the entity's placements share).
+/// The identity place carries the placement's key (a sector entry's, or a building's place in its city's list); the facts state the position (0 to 2), the entity type (3, which must be the placement's own),
+/// the heading (4), the shape (5, a whole scene index), the collision-fixed flag (7) and the align flag (8), the withdrawal word (9) and the phase (11): every other fact is zero. Every word is classified by
+/// INTEGER operations (a finite position inside the world, a finite heading, a whole shape, a flag that is exactly 0 or 1), so a signaling word is named and refused before any floating-point use and the
+/// caller's floating-point state is never changed. The answer is `placed` with the key it states.
+///
+/// The withdrawal word is the HOST's own: it retires only the fixed state the record holds (the placement stays standing; the record keeps its placements, identity and list) and answers `removed`. The campaign
+/// never sends it; the host side of a witness uses it to prove a candidate is refused when its canonical state is gone. A withdrawal states no state.
+fn fixed_event(lua: &Lua, words: &[u32], identity: &str) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    table.set("name", "")?;
+    let refuse = |table: &LuaTable, reason: String| -> LuaResult<LuaTable> {
+        table.set("result", "refused")?;
+        table.set("reason", reason)?;
+        Ok(table.clone())
+    };
+    // every fact a report does not state is zero
+    for (at, word) in words.iter().enumerate() {
+        if !matches!(at, 0..=5 | 7..=9 | 11) && *word != 0 {
+            return refuse(
+                &table,
+                format!("[roster.request] fact {at} of a fixed state report is not zero: it states nothing there"),
+            );
+        }
+    }
+    let shown = |text: &str| text.chars().take(40).collect::<String>();
+    if identity.is_empty() {
+        return refuse(&table, "[roster.key] a fixed state report names no placement".into());
+    }
+    let Some(key) = crate::roster::parse_key(identity) else {
+        return refuse(&table, format!("[roster.key] \"{}\" is not a key this host issued", shown(identity)));
+    };
+    let flag = |word: u32| -> Option<bool> {
+        if word & 0x7fff_ffff == 0 {
+            Some(false)
+        } else if word == ONE_BITS {
+            Some(true)
+        } else {
+            None
+        }
+    };
+    let Some(withdrawal) = flag(words[9]) else {
+        return refuse(&table, "[roster.withdraw] the withdrawal word of a fixed state report is not 0 or 1".into());
+    };
+    if withdrawal {
+        if [0usize, 1, 2, 3, 4, 5, 7, 8].iter().any(|at| words[*at] != 0) {
+            return refuse(
+                &table,
+                "[roster.withdraw] a withdrawal states no fixed state: the host retires what it holds".into(),
+            );
+        }
+        // every word is classified (above, by integer operations) before the roster is looked at
+        let Some(shared) = lua.app_data_ref::<crate::roster::SharedRoster>() else {
+            return refuse(&table, "[roster.missing] the host keeps no sector roster".into());
+        };
+        let Ok(mut roster) = shared.0.try_borrow_mut() else {
+            return refuse(&table, "[roster.busy] the sector roster was busy".into());
+        };
+        return match roster.withdraw_fixed(key) {
+            Ok(()) => {
+                table.set("result", "removed")?;
+                Ok(table)
+            }
+            Err(why) => refuse(&table, format!("[roster.fixed] {}", why.0)),
+        };
+    }
+    let Some(entity_type) = crate::roster::word_whole(words[3], 0, 1_000_000) else {
+        return refuse(&table, "[roster.request] a fixed state report states a whole entity type".into());
+    };
+    for (at, word) in words[..3].iter().enumerate() {
+        if crate::roster::word_truncated(*word).is_err() {
+            return refuse(
+                &table,
+                format!("[roster.position] the position word {at} of a fixed state report is not a finite number inside the world"),
+            );
+        }
+    }
+    if words[4] & 0x7f80_0000 == 0x7f80_0000 {
+        return refuse(&table, "[roster.heading] the heading of a fixed state report is not a finite number".into());
+    }
+    let Some(shape) = crate::roster::word_whole(words[5], 0, 16_777_216) else {
+        return refuse(
+            &table,
+            "[roster.shape] the shape of a fixed state report is not a whole scene index from 0 to 16777216".into(),
+        );
+    };
+    let Some(collision_fixed) = flag(words[7]) else {
+        return refuse(
+            &table,
+            "[roster.collision] the collision-fixed flag of a fixed state report is not 0 or 1".into(),
+        );
+    };
+    let Some(align) = flag(words[8]) else {
+        return refuse(&table, "[roster.align] the align flag of a fixed state report is not 0 or 1".into());
+    };
+    // every word is classified (above, by integer operations) before the roster is looked at
+    let Some(shared) = lua.app_data_ref::<crate::roster::SharedRoster>() else {
+        return refuse(&table, "[roster.missing] the host keeps no sector roster".into());
+    };
+    let Ok(mut roster) = shared.0.try_borrow_mut() else {
+        return refuse(&table, "[roster.busy] the sector roster was busy".into());
+    };
+    let state = crate::roster::FixedState {
+        position: [words[0], words[1], words[2]],
+        heading: words[4],
+        shape,
+        collision_fixed,
+        align,
+    };
+    match roster.set_fixed(key, entity_type, state) {
+        Ok(()) => {
+            table.set("result", "placed")?;
+            table.set("name", key.to_string())?;
+            Ok(table)
+        }
+        Err(why) => refuse(&table, format!("[roster.fixed] {}", why.0)),
+    }
+}
+
+/// The join of a NON-MOBILE candidate question to the host's record of the placement it names (EEDCS-49, D3, Task49). `key_text` is the identity place: the key of the placement the host served the candidate
+/// by (a sector entry's, or, for a building under a city (`of_city`), its place in the city's list), checked on EVERY staged question against the live roster and the kind of placement the branch has.
+/// What is then needed of the record follows the stage the campaign has reached: nothing before its fixed facts were read (the sector skip and the fixed flag's own request need no state), and afterwards the
+/// record's state, which the decision is made over. The campaign's words (the collision-fixed flag, the position and the scene, and once the placement was read the heading and the align flag) are compared
+/// with it BIT FOR BIT and a difference is a named refusal; the record's words then replace them in `words`, so a decision is never made over a word the host does not hold. A record the campaign never stated
+/// a state for is refused when the branch needs one (a building under a city, a candidate the campaign calls fixed), and one whose state the host withdrew is always refused: neither is completed from the
+/// campaign's words. A city is not a fixed-family record here (its own position and box are a declared follow-on), and a candidate the campaign calls not fixed whose record has no state is not a fixed
+/// candidate at all. Returns the scene the decision is made over (the record's shape once the shape was read). Every word was classified with integer operations before this runs.
+fn fixed_join(lua: &Lua, words: &mut [u32], scene: i64, key_text: &str, of_city: bool) -> Result<i64, String> {
+    use crate::roster::FixedHold;
+    const FIXED: usize = 7;
+    const CITY: usize = 8;
+    const CITY_BUILDING: usize = 9;
+    const HEADING: usize = 21;
+    const ALIGN: usize = 22;
+    const FIXED_GIVEN: usize = 42;
+    if key_text.is_empty() {
+        return Err("[candidate.key] a non-mobile candidate names no placement: the host cannot join the question to a record".into());
+    }
+    let Some(key) = crate::roster::parse_key(key_text) else {
+        return Err(format!(
+            "[candidate.key] \"{}\" is not a key this host issued",
+            key_text.chars().take(40).collect::<String>()
+        ));
+    };
+    let Some(shared) = lua.app_data_ref::<crate::roster::SharedRoster>() else {
+        return Err("[candidate.roster] the host keeps no sector roster to join a candidate to".into());
+    };
+    let Ok(roster) = shared.0.try_borrow() else {
+        return Err("[candidate.roster] the sector roster was busy while a candidate was joined to its record".into());
+    };
+    let (_, _, hold) = roster.placement_fixed(key, of_city).map_err(|why| format!("[candidate.key] {}", why.0))?;
+    let set = |word: u32| entity_host::candidate_flag_is_set(word);
+    let (fixed_given, placement_given) = (set(words[FIXED_GIVEN]), set(words[entity_host::CANDIDATE_PLACEMENT_GIVEN]));
+    let (city, city_building, fixed_flag, mobile_flag) = (
+        set(words[CITY]),
+        set(words[CITY_BUILDING]),
+        set(words[FIXED]),
+        set(words[entity_host::CANDIDATE_MOBILE]),
+    );
+    // which of the campaign's words have been read and are the record's to supply
+    let (flag_given, position_given) = if of_city {
+        (placement_given, true)
+    } else if !fixed_given || city {
+        return Ok(scene);
+    } else {
+        (true, fixed_flag && !city_building)
+    };
+    let state = match hold {
+        FixedHold::Held(state) => state,
+        FixedHold::Withdrawn => return Err("[candidate.fixed] the host withdrew the fixed physical state of this placement".into()),
+        FixedHold::Never => {
+            if of_city || fixed_flag {
+                return Err("[candidate.fixed] the host holds no fixed physical state for this placement: the shape and the position of a fixed candidate are not the campaign's word to give".into());
+            }
+            return Ok(scene);
+        }
+    };
+    let differs = |what: &str| format!("[candidate.mirror] the campaign's {what} differs from the host's fixed state of the placement");
+    let expected_fixed = state.collision_fixed && !mobile_flag;
+    if flag_given {
+        if fixed_flag != expected_fixed {
+            return Err(differs("collision-fixed flag"));
+        }
+        words[FIXED] = if expected_fixed { ONE_BITS } else { 0 };
+    }
+    let mut canonical = scene;
+    if position_given {
+        let at = entity_host::CANDIDATE_POSITION;
+        if words[at..at + 3] != state.position {
+            return Err(differs("position"));
+        }
+        if scene != i64::from(state.shape) {
+            return Err(format!(
+                "[candidate.mirror] the campaign's shape {scene} differs from the host's {} of the placement",
+                state.shape
+            ));
+        }
+        words[at..at + 3].copy_from_slice(&state.position);
+        canonical = i64::from(state.shape);
+    }
+    if placement_given && !mobile_flag && expected_fixed {
+        if words[HEADING] != state.heading {
+            return Err(differs("heading"));
+        }
+        if set(words[ALIGN]) != state.align {
+            return Err(differs("align flag"));
+        }
+        words[HEADING] = state.heading;
+        words[ALIGN] = if state.align { ONE_BITS } else { 0 };
+    }
+    Ok(canonical)
 }
 
 /// The host's answer to one roster event of the sector lists (see `crate::roster`): an INSERT (phase 4) states the entity's type, the sector side length and the position the campaign holds, with the
@@ -926,7 +1163,7 @@ fn roster_event(lua: &Lua, phase: u32, words: &[u32], identity: &str) -> LuaResu
 /// entries it names are the HOST's own roster (`crate::roster`): `first` and `next` carry the key of the entry to serve as `name` (empty when the sector's list has no more), the question
 /// that follows an entry names the entry it is standing at in the identity place, and an entry the roster does not hold, or does not hold in that sector, is refused by name and never skipped.
 /// The same question also carries the roster's own events (phases 4 to 6, `roster_event`) and the city events (phases 7 to 12, `city_event`: a city's buildings are the host's list too, and a building's two
-/// placements and its legacy object-report identity are one record). The identity place carries a standing key exactly where the scan stands at an entry, in ENTRY (1) and RESOLVED (3): that key is
+/// placements and its legacy object-report identity are one record) and the fixed state report (phase 13, `fixed_event`: a fixed-family placement's collision state, held by the placement's record). The identity place carries a standing key exactly where the scan stands at an entry, in ENTRY (1) and RESOLVED (3): that key is
 /// validated against the live roster and the sector the scan is in before the kernel decides anything (so an offer, a skip or a hit never follows an unknown, ended or misplaced entry), and BEGIN (0) and END (2) carry none.
 /// Every word of the question is classified by integer operations, so a malformed word is refused by name before any floating-point use of it and the caller's floating-point state is never changed here.
 fn entity_scan_answer(lua: &Lua, q: &Question) -> LuaResult<LuaTable> {
@@ -952,6 +1189,9 @@ fn entity_scan_answer(lua: &Lua, q: &Question) -> LuaResult<LuaTable> {
         ROSTER_CHILD_INSERT | ROSTER_CHILD_REMOVE | ROSTER_CHILD_FIRST | ROSTER_CHILD_NEXT | ROSTER_LINK | ROSTER_NAME
     ) {
         return city_event(lua, phase_word, &words, identity);
+    }
+    if phase_word == ROSTER_FIXED_STATE {
+        return fixed_event(lua, &words, identity);
     }
     let table = lua.create_table()?;
     table.set("name", "")?;

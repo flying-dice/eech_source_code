@@ -14,7 +14,7 @@
  *   - NEED_UPDATED and NEED_NORMAL: the destructive UPDATED getter and the terrain face-normal question.
  *
  * It is a header, included by en_cllsn.c (which binds it to the real entity getters) and by the isolated control csrc/eech_entity_dialogue_check.c (which binds it to scripted entities and the
- * real dialogue, mb_hostentity.h), so the control exercises THIS code and not a copy.  The includer provides FALSE, TRUE, memset, memcpy, campaign_model_entity_candidate and
+ * real dialogue, mb_hostentity.h), so the control exercises THIS code and not a copy.  The includer provides FALSE, TRUE, memset, memcpy, strlen, campaign_model_entity_candidate and
  * campaign_model_entity_collision (mb_hostmodel.h), and
  *
  *   CAMPAIGN_OFFER_ENTITY                       the entity type
@@ -31,7 +31,10 @@
  *   CAMPAIGN_OFFER_TERRAIN_NORMAL (X, Z, OUT)   the terrain's face normal at a point (the terrain question and its effects)
  *   CAMPAIGN_OFFER_DELTA_TIME ()                the frame time
  *   CAMPAIGN_OFFER_TYPE (E), CAMPAIGN_OFFER_ALIVE (E)   the entity's type and whether it is alive, and
- *   CAMPAIGN_OFFER_HOST_ID (E)                  its semantic host identity (NULL when the roster has none): the ENTITY_POSE observation of a mobile candidate (mb_hostmodel.h)
+ *   CAMPAIGN_OFFER_HOST_ID (E)                  its semantic host identity (NULL when the roster has none): the ENTITY_POSE observation of a mobile candidate (mb_hostmodel.h), and
+ *   CAMPAIGN_OFFER_FIXED_KEY (E, OF_CITY)       the key the host issued for the placement the candidate was served by: its sector placement (OF_CITY FALSE) or, for a building listed under a city
+ *                                               (OF_CITY TRUE), its place in the city's list; empty when the entity has none. Every staged question of a candidate that is NOT a mobile of a sector list names it
+ *                                               (the identity place of ENTITY_CANDIDATE): the host joins it to the record of the placement and decides from the fixed collision state the record holds
  *
  * The ENTITY_POSE observations of a mobile candidate of a sector list (the position and motion vector the original read, and the attitude when the broad phase passed) are asked BESIDE those reads: the words
  * are copied from the facts already read, so they add no physical read, but each observation ADDS THREE read-only metadata reads the original did not make (TYPE, ALIVE and the roster HOST_ID; mb_hostmodel.h states
@@ -63,6 +66,20 @@ static void campaign_offer_observe_pose (int stage, CAMPAIGN_OFFER_ENTITY *targe
 	campaign_model_entity_pose (stage, (int) CAMPAIGN_OFFER_TYPE (target), (CAMPAIGN_OFFER_ALIVE (target) != 0), host_id, words);
 }
 
+// the placement key of a candidate that is not a mobile of a sector list, copied while it is read (it names the placement for the stages of THIS offer only): NULL when the entity holds none, which the host then
+// refuses by name
+static const char *campaign_offer_key (char *copy, size_t size, const char *key)
+{
+	if ((key == NULL) || (key [0] == 0) || (strlen (key) >= size))
+	{
+		return (NULL);
+	}
+
+	memcpy (copy, key, strlen (key) + 1);
+
+	return (copy);
+}
+
 // Offers one candidate to the host. `of_city` is TRUE for a building listed under a city whose box the host reported as met (the host does not apply the sector skip to it again).
 // `source_old` and `source_new` are the segment's ends (three floats each) and `point` and `normal` the caller's outputs (neither read nor sent here). Returns the entity that was hit, with
 // the intercept point and face normal written as the original left them, or NULL.
@@ -83,6 +100,9 @@ static CAMPAIGN_OFFER_ENTITY *campaign_offer_candidate
 		terrain_face_normal [3],
 		box_min [3],
 		box_max [3];
+
+	char
+		fixed_key [CAMPAIGN_ROSTER_KEY_MAX + 1];
 
 	const char
 		*host_id;
@@ -124,6 +144,10 @@ static CAMPAIGN_OFFER_ENTITY *campaign_offer_candidate
 		scene = CAMPAIGN_OFFER_SHAPE (target);
 
 		CAMPAIGN_OFFER_POSITION (target, &facts [CAMPAIGN_CANDIDATE_POSITION]);
+
+		// the building's place in its city's list, which is what the host served it by (a metadata read of the campaign's own map, not a read of the entity): every staged question names it
+
+		host_id = campaign_offer_key (fixed_key, sizeof (fixed_key), CAMPAIGN_OFFER_FIXED_KEY (target, TRUE));
 	}
 	else
 	{
@@ -146,6 +170,12 @@ static CAMPAIGN_OFFER_ENTITY *campaign_offer_candidate
 			host_id = CAMPAIGN_OFFER_HOST_ID (target);
 
 			campaign_offer_observe_pose (CAMPAIGN_POSE_STAGE_OFFER, target, host_id, facts);
+		}
+		else
+		{
+			// every other candidate is joined to the record of the placement the host served it by (its sector placement), on every staged question
+
+			host_id = campaign_offer_key (fixed_key, sizeof (fixed_key), CAMPAIGN_OFFER_FIXED_KEY (target, FALSE));
 		}
 	}
 

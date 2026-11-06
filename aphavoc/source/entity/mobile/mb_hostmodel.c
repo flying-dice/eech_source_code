@@ -75,6 +75,8 @@ struct campaign_model_counters
 	long roster_placed, roster_removed, roster_cleared;
 	/* the city events (the same question, phases 7 to 12): buildings listed and unlisted, the first and next entries the host served, the placements linked and the placements named */
 	long city_placed, city_removed, city_first, city_next, city_linked, city_named;
+	/* the FIXED_STATE reports (the same question, phase 13): fixed collision states stated to the host's records of their placements */
+	long fixed_stated;
 	/* ENTITY_POSE observations asked of the host (EEDCS-49), and the classes it answered: recorded, unrecorded, retired, unknown, no identity */
 	long entity_pose, pose_recorded, pose_unrecorded, pose_retired, pose_unknown, pose_no_id;
 	long entity_candidate, candidate_skip, candidate_updated, candidate_normal, candidate_buildings, candidate_test, candidate_fixed, candidate_placement;
@@ -2046,6 +2048,16 @@ void campaign_model_entity_city (int phase, int entity_type, const char *identit
 		case CAMPAIGN_SCAN_PHASE_LINK: { campaign_model_counts.city_linked++; break; }
 		default: { campaign_model_counts.city_named++; break; }
 	}
+#endif
+}
+
+// ENTITY_SCAN, the FIXED_STATE report (mb_hostmodel.h; Task49): the campaign states the collision state of a fixed-family placement to the host's record of it. The dialogue is mb_hostentity.h.
+void campaign_model_entity_fixed (int entity_type, const char *key, const float *state)
+{
+	campaign_entity_fixed_exchange (entity_type, key, state);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.fixed_stated++;
 #endif
 }
 

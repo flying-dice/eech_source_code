@@ -564,3 +564,251 @@ fn a_citys_sector_placement_is_relinked_by_the_shared_fixed_setter_while_its_bui
     let sys = std::fs::read_to_string(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/lib.rs")).unwrap();
     assert!(sys.contains("pub host_id: [c_char; EECH_MODEL_SCAN_IDENTITY_MAX + 1],"));
 }
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// FIXED/STATIC COLLISION BACKING (Task49): the host's record of a placement holds a fixed entity's collision state, so EVERY writer of a field of that state must state it. These are source facts of the
+// supported single-player runtime and of the unpack routes that exist in source, asserted as text so that a new raw writer, a new fixed type or a creator that inserts before the state is complete fails here
+// before any native run. They are not a proof of behaviour (the isolated dialogue, the host's provider tests and the native control are).
+
+/// the text of the function that holds line `at` of `text`: from the line after the previous column-0 `}` to the next column-0 `}`
+fn function_around(text: &str, at: usize) -> String {
+    let lines: Vec<&str> = text.lines().collect();
+    let mut start = at;
+    while start > 0 && !lines[start - 1].starts_with('}') {
+        start -= 1;
+    }
+    let mut end = at;
+    while end + 1 < lines.len() && !lines[end].starts_with('}') {
+        end += 1;
+    }
+    lines[start..=end].join("\n")
+}
+
+/// the fixed-family files (the entity types that carry the fixed record): every `.c` file under entity/fixed with its path relative to aphavoc/source
+fn fixed_files() -> Vec<(String, String)> {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../aphavoc/source");
+    let mut files = Vec::new();
+    walk(&root.join("entity/fixed"), &mut files);
+    let mut found: Vec<(String, String)> = files
+        .into_iter()
+        .filter(|path| path.extension().is_some_and(|extension| extension == "c"))
+        .map(|path| {
+            let relative = path.strip_prefix(&root).unwrap().to_string_lossy().replace('\\', "/");
+            let text = String::from_utf8_lossy(&std::fs::read(&path).unwrap()).replace("\r\n", "\n");
+            (relative, text)
+        })
+        .collect();
+    found.sort();
+    found
+}
+
+#[test]
+fn every_writer_of_a_field_of_a_fixed_entitys_collision_state_states_it_to_the_hosts_record() {
+    let mut writers = 0;
+    for (file, text) in fixed_files() {
+        // a creator writes the state of an entity that is not placed yet (the insertion states it, which the next test pins); every other writer is a writer of a PLACED entity
+        // or an unpack that is followed by the insertion
+        let creator = file.ends_with("_creat.c");
+        // a city is not of the fixed family the host holds a state for (its own position and box are a declared follow-on)
+        if file.contains("/city/") {
+            continue;
+        }
+        for (at, line) in text.lines().enumerate() {
+            let body = code(line);
+            let shape = body.contains("object_3d_shape = ") && !body.contains("approximation_object_3d_shape") && !body.contains("object_3d_shape == ");
+            let sub_type = (body.contains("->sub_type = ") || body.contains("fix.sub_type = ")) && !body.contains("== ");
+            let heading = (body.contains("->heading = ") || body.contains("fix.heading = ")) && !body.contains("== ");
+            let height = body.contains("fix.position.y = ") || body.contains("pos->y = ");
+            let position = body.contains("raw->position = ") || body.contains("&raw->position");
+            if !(shape || sub_type || heading || height || position) || creator {
+                continue;
+            }
+            writers += 1;
+            let function = function_around(&text, at);
+            // two writers are not the placed entity's: the unpack of a session's own record (the entity is inserted into its sector list right after, ob_pack.c and cr_pack.c: the next test) and the raw
+            // vec3d setter that only the creators' attribute application uses (the last test)
+            let exempt = (file == "entity/fixed/fx_pack.c" && function.contains("unpack_fixed_data"))
+                || (file == "entity/fixed/fx_pack.c" && function.contains("pack_fixed_data"))
+                || (file == "entity/fixed/fx_vec3d.c" && function.contains("set_local_raw_vec3d"))
+                || (file == "entity/fixed/fx_vec3d.c" && function.contains("get_local_vec3d_ptr"));
+            if exempt {
+                continue;
+            }
+            assert!(
+                function.contains("campaign_place_fixed_state ("),
+                "{file}:{}: `{}` writes a field of a fixed entity's collision state in a function that does not state it to the host's record (campaign_place_fixed_state)",
+                at + 1,
+                body.trim()
+            );
+        }
+    }
+    assert!(writers >= 20, "only {writers} writers were seen: the census did not reach the fixed family");
+    // the setters every other writer goes through state the new value BEFORE they return, in the same case
+    let int_setter = source("entity/fixed/fx_int.c");
+    for assignment in ["raw->sub_type = value;", "raw->object_3d_shape = value;"] {
+        let at = int_setter.find(assignment).unwrap_or_else(|| panic!("fx_int.c: `{assignment}` is not there"));
+        let case = &int_setter[at..];
+        let stated = case.find("campaign_place_fixed_state (en);").expect("the case states the value");
+        let end = case.find("break;").expect("the case ends");
+        assert!(stated < end, "fx_int.c: `{assignment}` is not stated before its case ends");
+    }
+    assert_eq!(
+        int_setter.matches("campaign_place_fixed_state (en);").count(),
+        2,
+        "fx_int.c: ALIVE is not collision state and states nothing"
+    );
+    let float_setter = source("entity/fixed/fx_float.c");
+    before(&float_setter, "raw->heading = value;", "campaign_place_fixed_state (en);", "fx_float.c");
+    let position_setter = source("entity/fixed/fx_vec3d.c");
+    before(
+        &position_setter,
+        "insert_local_entity_into_parents_child_list (en, LIST_TYPE_SECTOR, parent, NULL);",
+        "campaign_place_fixed_state (en);",
+        "fx_vec3d.c",
+    );
+}
+
+#[test]
+fn a_session_unpack_writes_the_record_before_the_insertion_and_every_creator_completes_the_state_before_it_inserts() {
+    // the two session unpacks of a fixed entity write the record (position, sub type, shape, heading) of an entity that is not placed, and insert it afterwards: the insertion states it
+    for file in ["entity/fixed/object/ob_pack.c", "entity/fixed/crater/cr_pack.c"] {
+        let text = source(file);
+        before(
+            &text,
+            "unpack_fixed_data (en, &raw->fix, mode);",
+            "insert_local_entity_into_parents_child_list (en, LIST_TYPE_SECTOR",
+            file,
+        );
+    }
+    // no other pack file unpacks the fixed record's own fields (the others only set the alive and shape of entities that exist already, which the previous test covers)
+    for (file, text) in fixed_files() {
+        if file.ends_with("_pack.c") && !file.ends_with("ob_pack.c") && !file.ends_with("cr_pack.c") && file != "entity/fixed/fx_pack.c" {
+            assert!(
+                !code_of(&text).contains("unpack_fixed_data"),
+                "{file} unpacks the fixed record: its insertion must state it"
+            );
+        }
+    }
+    // every creator resolves the entity's shape from its type's default BEFORE it inserts the entity into its sector list (a building lists itself in its city first and its sector second, both after)
+    for (file, text) in fixed_files() {
+        if !file.ends_with("_creat.c") || file.contains("/city/") {
+            continue;
+        }
+        let Some(insert) = text.find("insert_local_entity_into_parents_child_list (en, LIST_TYPE_") else {
+            continue;
+        };
+        let resolved = text.find("default_3d_shape;").or_else(|| text.find("default_object_3d_shape"));
+        let resolved = resolved.unwrap_or_else(|| panic!("{file}: no default shape is resolved"));
+        assert!(resolved < insert, "{file}: the shape is resolved after the first insertion");
+        if file.ends_with("cb_creat.c") {
+            let sector = text.find("LIST_TYPE_SECTOR").unwrap();
+            let city = text.find("LIST_TYPE_CITY_BUILDING").unwrap();
+            assert!(city < sector, "{file}: a building is listed in its city before its sector");
+        }
+    }
+}
+
+/// the code of a whole file: every line's code without its `//` comment
+fn code_of(text: &str) -> String {
+    text.lines().map(code).collect::<Vec<_>>().join("\n")
+}
+
+#[test]
+fn the_fixed_family_is_the_types_that_carry_the_fixed_record_the_funnel_is_the_last_step_of_both_insertions_and_raw_setters_are_the_creators_alone() {
+    // the family the host's record holds a state for is exactly the entity types that overload the fixed functions, a city excepted (its own position and box are a declared follow-on)
+    let mut overloaded: Vec<String> = Vec::new();
+    for (file, text) in fixed_files() {
+        if file.ends_with("_funcs.c") && file != "entity/fixed/fx_funcs.c" {
+            for line in text.lines() {
+                if let Some(rest) = code(line).trim().strip_prefix("overload_fixed_functions (") {
+                    overloaded.push(rest.trim_end_matches([')', ';', ' ']).to_string());
+                }
+            }
+        }
+    }
+    overloaded.retain(|name| name != "ENTITY_TYPE_CITY");
+    overloaded.sort();
+    let family_text = source("entity/mobile/mb_hostplace.c");
+    let start = family_text.find("static int place_fixed_family").expect("the family");
+    let end = family_text[start..].find("\n}\n").unwrap() + start;
+    let mut family: Vec<String> = family_text[start..end]
+        .lines()
+        .filter_map(|line| {
+            code(line)
+                .trim()
+                .strip_prefix("case ")
+                .map(|rest| rest.trim_end_matches(':').trim().to_string())
+        })
+        .collect();
+    family.sort();
+    assert_eq!(
+        family, overloaded,
+        "the host holds a state for the fixed entity types the campaign has, no more and no fewer"
+    );
+    assert!(overloaded.len() >= 8, "{overloaded:?}");
+    // both insertions state the entity's state as their LAST step, after the host has issued the key and declared the placements one entity
+    let map = source("entity/mobile/mb_hostplacemap.h");
+    for (function, last) in [
+        ("static void place_insert (", "place_register (slot, 0, key);"),
+        ("static void place_child_insert (", "place_register (slot, 1, key);"),
+    ] {
+        let at = map.find(function).unwrap_or_else(|| panic!("{function}"));
+        let end = map[at..].find("\n}\n").unwrap() + at;
+        let body = &map[at..end];
+        before(body, last, "place_declare (en, slot);", function);
+        before(body, "place_declare (en, slot);", "place_fixed_state (en);", function);
+        assert!(
+            body.trim_end().ends_with("place_fixed_state (en);"),
+            "{function}: the state is the last thing a placement states"
+        );
+    }
+    // the state is read from the entity at the moment of the report and never kept by the campaign: the funnel reads, sends and keeps nothing
+    let at = map.find("static void place_fixed_state (").unwrap();
+    let end = map[at..].find("\n}\n").unwrap() + at;
+    let body = &map[at..end];
+    assert!(body.contains("CAMPAIGN_PLACE_FIXED_READ (en, state);") && body.contains("campaign_model_entity_fixed (CAMPAIGN_PLACE_TYPE (en), key, state);"));
+    assert!(
+        !body.lines().skip(1).any(|line| code(line).contains("static ")),
+        "the funnel keeps no state of its own"
+    );
+    // a raw setter (which does not relink or state anything) is used only by the creators' attribute application, which runs before an entity is inserted
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../aphavoc/source");
+    let mut files = Vec::new();
+    walk(&root, &mut files);
+    for path in files {
+        let relative = path.strip_prefix(&root).unwrap().to_string_lossy().replace('\\', "/");
+        if relative.starts_with("entity/system/en_attrs/") || relative.starts_with("entity/system/en_funcs/") || relative.starts_with("entity/mobile/") {
+            continue;
+        }
+        let text = String::from_utf8_lossy(&std::fs::read(&path).unwrap()).replace("\r\n", "\n");
+        for (at, line) in text.lines().enumerate() {
+            let body = code(line);
+            let own_table = body.contains("fn_set_local_entity_raw_") || body.trim_start().starts_with("fn_set_local_entity_raw");
+            assert!(
+                own_table || !body.contains("set_local_entity_raw_"),
+                "{relative}:{}: `{}` is a raw setter used outside the creators' attribute application",
+                at + 1,
+                body.trim()
+            );
+        }
+    }
+}
+
+#[test]
+fn a_non_mobile_candidate_names_the_placement_the_host_served_it_by_and_a_mobile_still_names_its_identity() {
+    let offer = source("entity/mobile/mb_hostoffer.h");
+    // a building listed under a city names its place in the city's list, every other non-mobile candidate its sector placement; a mobile keeps its semantic identity
+    assert!(offer.contains("CAMPAIGN_OFFER_FIXED_KEY (target, TRUE)") && offer.contains("CAMPAIGN_OFFER_FIXED_KEY (target, FALSE)"));
+    assert!(offer.contains("host_id = CAMPAIGN_OFFER_HOST_ID (target);"));
+    before(
+        &offer,
+        "CAMPAIGN_OFFER_HOST_ID (target);",
+        "CAMPAIGN_OFFER_FIXED_KEY (target, FALSE)",
+        "mb_hostoffer.h",
+    );
+    // the key is taken once per offer into a local copy and the same value is sent with every staged question of that offer; nothing is kept between offers
+    assert!(offer.contains("char\n\t\tfixed_key [CAMPAIGN_ROSTER_KEY_MAX + 1];"));
+    assert!(!offer.contains("static char"), "the offer keeps no state between candidates");
+    let collision = source("entity/en_misc/en_maths/en_cllsn.c");
+    assert!(collision.contains("#define CAMPAIGN_OFFER_FIXED_KEY(E,OF_CITY) campaign_place_key ((E), (OF_CITY))"));
+}

@@ -99,6 +99,16 @@
 --   displaced_record      the host places that candidate's record somewhere other than where the campaign holds it (a host-only record change): the next observation reports a position difference and the engine stops
 --                         [model-provider:entity_pose.mirror]. A host-only pose cannot pass the conformance comparison, which is exactly what this shows.
 --
+-- THE HOST'S RECORD OF A PLACEMENT HOLDS A FIXED ENTITY'S COLLISION STATE (Task49, fixed/static collision backing). The campaign states the collision state of every fixed-family placement it writes (position, heading, shape, the
+-- collision-fixed and align flags) to the host's record of that placement with a FIXED_STATE report (the scan question's phase 13: 16 facts, the placement's key in the identity place; the facts that are not the state's are zero,
+-- and the withdrawal word, the host's own, is never the campaign's). Every staged ENTITY_CANDIDATE question of a candidate that is NOT a mobile of a sector list names the key of the placement the host served it by in the identity
+-- place (a roster key; a mobile still names its semantic identity), and the provider decides from the record's state, comparing the campaign's words with it (a difference, a missing state or a withdrawn one is a named refusal).
+-- The witness parses the report (a request fault: another phase, a non-zero unstated fact, a withdrawal word, a key that is not a roster key or has ended), requires `placed` with the same key as the reply, counts the reports
+-- apart (`fixed_before`, `fixed_total`, `fixed_stated`), counts the keyed and unkeyed non-mobile candidate questions (an unkeyed one is a request fault) and the staged questions that needed a held state (`fixed_joined`).
+--   withdrawn_fixed_state HOST-SIDE, no answer, request or entity is altered: see MODES. Credited only by the eligible lookup served over the held state before it, the acknowledged withdrawal of ONLY that record's state, the same
+--                         candidate's placement question as the next question and the provider's own refusal [model-provider:entity_candidate.refused] [candidate.fixed] ... withdrew as the only fault. UNREACHED when no
+--                         such question was ever answered `need_placement`.
+--
 -- THE HOST'S OWN MOVEMENT CHANGES WHAT THE SOLVER DECIDES FROM (two completion modes; neither is a refusal and neither is claimed by the two refusal modes above, which only STOP the engine). The engine's own movement
 -- callback is the host's (`move_vehicle = hosted_move`, a pass-through that logs each `move` answer per identity). `moving_control` and `terrain_lift` select a DIFFERENT case from the nearest-enemy rule: the nearest enemy of
 -- a launcher in an ENGAGEMENT THE CAMPAIGN ITSELF HAS SET UP: the unchanged aim callback observes each turret's `vectors` request (the campaign's own source, target link and selected weapon of that frame), and a
@@ -469,6 +479,12 @@ MODES.withdrawn_backing = { withdraw_backing = true, marker = "entity_scan.refus
 -- the same for a city's buildings: at an actual well-formed CHILD_NEXT standing at the last building the host served, BEFORE that question is delegated, the host's own REMOVE (phase 8) of that building; the same
 -- unmodified question then goes to the same provider once and stands at the ended building. A traversal that never asks for the next building is UNREACHED
 MODES.withdrawn_child = { withdraw_child = true, marker = "entity_scan.refused" }
+-- the same for the FIXED collision state the host's record of a placement holds (Task49): at the first actual staged question of a non-mobile candidate that named a placement the provider holds a state for, whose REAL answer
+-- was `need_placement` (a placement question of the same candidate MUST follow), BEFORE that answer is handed on, the host's own withdrawal of ONLY that record's fixed state (the host-only withdrawal word of the FIXED_STATE
+-- question, answered `removed`); the real answer is handed on completely unchanged, the placement stays standing and the campaign's entity is untouched. The next actual question of the candidate names the same
+-- placement and the real provider refuses it by name: [model-provider:entity_candidate.refused] [candidate.fixed] ... withdrew. The healthy question that established the eligible lookup before the negative is the
+-- one answered before the withdrawal (counted as `fixed_joined`). A traversal that never answers `need_placement` to such a question is UNREACHED
+MODES.withdrawn_fixed_state = { withdraw_fixed = true, marker = "entity_candidate.refused" }
 -- the HOST-SIDE movement modes (completion modes): see the header
 MODES.moving_control = { moving_target = true, host_side_movement = true }
 MODES.terrain_lift = { moving_target = true, host_side_movement = true, lift = true }
@@ -575,7 +591,7 @@ local function engine_marker (err) return string.match (first_line (err), FATAL)
 -- ---------------------------------------------------------------------------------------------------------------- the host's model provider, counted, altered only when armed
 local armed = false
 local reference -- the host's own model provider (host.model), resolved inside the owned close scope (main)
-local before, after = { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, city = 0, pose = 0 }, { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, city = 0, pose = 0 }
+local before, after = { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, city = 0, fixed = 0, pose = 0 }, { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, city = 0, fixed = 0, pose = 0 }
 local altered = 0
 local cand_altered, cand_skipped = 0, 0
 local scan_altered, scan_none_answered = 0, 0
@@ -607,7 +623,7 @@ local pose_pre_histogram = {}
 -- the armed scan questions by phase, and the REAL answers they got
 local scan = { total = 0, phase_begin = 0, phase_entry = 0, phase_end = 0, phase_resolved = 0, excluded = 0, first = 0, next = 0, offer = 0, done_none = 0, done_hit = 0 }
 -- the armed candidate questions and the REAL answers they got
-local cand = { total = 0, scene0 = 0, mobile = 0, mobile_named = 0, mobile_unnamed = 0, skip = 0, need_updated = 0, need_fixed = 0, need_placement = 0, need_normal = 0, buildings = 0, test = 0 }
+local cand = { total = 0, scene0 = 0, mobile = 0, mobile_named = 0, mobile_unnamed = 0, keyed = 0, unkeyed = 0, skip = 0, need_updated = 0, need_fixed = 0, need_placement = 0, need_normal = 0, buildings = 0, test = 0 }
 -- what the provider SEES after the launch (the whole war's questions: the provider carries no weapon identity)
 local seen = { stationary = 0, moving = 0, real_hit = 0, real_miss = 0, real_mask_63 = 0, real_mask_56 = 0, real_mask_other = 0, answered_hit = 0, answered_miss = 0 }
 local faults = { request = 0, reply = 0 }
@@ -695,7 +711,7 @@ end
 -- entry the scan stands at in ENTRY and RESOLVED (a roster key: 1 to 20 decimal digits, no leading zero) and in no other scan phase; an INSERT's optional hosted-mobile identity; a REMOVE's key; nothing for a RESET.
 -- The facts an event does not state are zero.
 local PHASES = { [ZERO] = 0, ["0x3f800000"] = 1, ["0x40000000"] = 2, ["0x40400000"] = 3, ["0x40800000"] = 4, ["0x40a00000"] = 5, ["0x40c00000"] = 6,
-	["0x40e00000"] = 7, ["0x41000000"] = 8, ["0x41100000"] = 9, ["0x41200000"] = 10, ["0x41300000"] = 11, ["0x41400000"] = 12 }
+	["0x40e00000"] = 7, ["0x41000000"] = 8, ["0x41100000"] = 9, ["0x41200000"] = 10, ["0x41300000"] = 11, ["0x41400000"] = 12, ["0x41500000"] = 13 }
 local ROSTER_EVENTS = { [4] = "insert", [5] = "remove", [6] = "reset" }
 -- the facts an INSERT states (the position's x, y and z, the entity type, the side length: facts 1 to 3, 4 and 7) and the phase (12); all others are zero
 local INSERT_STATED = { [1] = true, [2] = true, [3] = true, [4] = true, [7] = true, [12] = true }
@@ -740,7 +756,7 @@ local function parse_scan_request (scene, depth, kind, definition, key)
 	local words = words_of_text (text, 16)
 	if words == nil then return nil, "the facts text is not 16 comma separated 0x%08x patterns" end
 	local phase = PHASES [words [12]]
-	if phase == nil then return nil, "the phase " .. words [12] .. " is not 0 to 12" end
+	if phase == nil then return nil, "the phase " .. words [12] .. " is not 0 to 13" end
 	-- the identity place has the domain of its phase: a host identity or a key is 1 to 128 bytes, and a city NAME holds a key (20 digits at most), one space and an object identity of its own 1 to 128 bytes (149 in all)
 	local limit = phase == 12 and 20 + 1 + 128 or 128
 	if #identity > limit then
@@ -753,6 +769,13 @@ local function parse_scan_request (scene, depth, kind, definition, key)
 		if stands and not is_roster_key (identity) then return nil, "the key of the entry phase " .. phase .. " stands at, \"" .. shown (identity) .. "\", is not a roster key" end
 		if not stands and identity ~= "" then return nil, "phase " .. phase .. " carries no standing key" end
 		return { kind = "scan", words = words, phase = phase, excluded = words [15] ~= ZERO, hit = words [16] ~= ZERO, standing = stands and identity or nil }
+	end
+	if phase == 13 then
+		-- a FIXED_STATE report (Task49): the key of the placement the state was written under, the state's words (position 1 to 3, the type 4, the heading 5, the shape 6, the two flags 8 and 9) and the phase; the withdrawal
+		-- word (10) is the HOST's own and the campaign never sends it, so a question that carries it is a request fault
+		if not others_zero (words, scan.fixed.stated_words) then return nil, "a fixed state report states nothing but the position, the type, the heading, the shape, the two flags and its phase" end
+		if not is_roster_key (identity) then return nil, "a fixed state report names \"" .. shown (identity) .. "\", which is not a roster key" end
+		return { kind = "fixed", words = words, phase = phase, event = "fixed", key = identity }
 	end
 	if phase >= 7 then
 		-- a CITY event: nothing is stated but the phase (and an insertion's entity type, fact 4); the identity place holds the keys of the phase's grammar
@@ -891,6 +914,10 @@ local function request_join_problem (parsed)
 		end
 		return nil
 	end
+	if parsed.kind == "fixed" then
+		if roster_ended [parsed.key] then return "a fixed state report names the placement " .. parsed.key .. ", which has ended" end
+		return nil
+	end
 	if parsed.kind == "roster" then
 		if parsed.event == "remove" and roster_ended [parsed.identity] then return "a removal names the entry " .. parsed.identity .. ", which has ended" end
 		return nil
@@ -903,6 +930,20 @@ local function request_join_problem (parsed)
 end
 -- the roster events are counted in `scan.roster`, apart from the scan's own questions (the driver's main function is at the interpreter's limit of upvalues, so no further local is added)
 scan.roster = { total = 0, insert = 0, remove = 0, reset = 0, placed = 0, removed = 0, cleared = 0 }
+-- the FIXED_STATE reports (phase 13, Task49), counted apart from the roster's, the city's and the scan's: the reports seen in the armed window (`total`) and answered well-formed (`stated`), the placement keys the real provider
+-- acknowledged a state for (`held`: a key that ended is never a held one), the staged candidate questions the real provider answered that NEEDED the record's state (`joined`: a placement question of the same candidate follows
+-- a `need_placement`), and the host's own withdrawal of one record's state (withdrawn_fixed_state; 1 once acknowledged `removed`, -1 when it was not) with the placement it was made for and the kind of the next candidate question.
+-- `stated_words` are the facts (1-based) a report states: the position, the type, the heading, the shape, the two flags and the phase
+scan.fixed = { total = 0, stated = 0, held = {}, joined = 0, withdrawn = 0, withdrawn_key = "", withdrawn_next = "", stated_words = { [1] = true, [2] = true, [3] = true, [4] = true, [5] = true, [6] = true, [8] = true, [9] = true, [12] = true } }
+-- the first problem of a REAL fixed-state reply against the contract, or nil: `placed`, the key the report named (never another's), and no cursor
+function scan.fixed.reply_problem (answer, parsed)
+	if type (answer) ~= "table" then return "the reply is not a table" end
+	if answer.result == "refused" then return "result refused" end
+	if answer.result ~= "placed" then return "a fixed state report answered " .. tostring (answer.result) .. ", not placed" end
+	if answer.p ~= nil then return "a cursor with placed" end
+	if answer.name ~= parsed.key then return "a fixed state report acknowledged \"" .. shown (answer.name) .. "\" for the placement " .. parsed.key end
+	return nil
+end
 -- the host's own withdrawals of a served entry (withdrawn_backing; 1 once acknowledged `removed`, -1 when it was not) and the phase of the question that followed it, counted apart from the campaign's roster events
 scan.withdrawn, scan.withdrawn_next = 0, ""
 -- the CITY events (phases 7 to 12), counted apart from the roster's and the scan's: by event and by answer; the buildings served, the list each live child is listed under, the names of the lists seen, the building a
@@ -944,6 +985,8 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 		if event then
 			if parsed.kind == "city" then
 				if city_reply_problem (real, parsed) == nil then city_track (parsed, real) end
+			elseif parsed.kind == "fixed" then
+				if scan.fixed.reply_problem (real, parsed) == nil then scan.fixed.held [parsed.key] = true end
 			elseif roster_reply_problem (real, parsed) == nil then
 				roster_track (parsed, real)
 			end
@@ -959,6 +1002,8 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 			scan.city.total = scan.city.total + 1
 			scan.city [parsed.event] = scan.city [parsed.event] + 1
 			if scan.city.withdrawn == 1 and scan.city.withdrawn_next == "" then scan.city.withdrawn_next = parsed.event end
+		elseif event and parsed.kind == "fixed" then
+			scan.fixed.total = scan.fixed.total + 1
 		elseif event then
 			roster.total = roster.total + 1
 			roster [parsed.event] = roster [parsed.event] + 1
@@ -977,6 +1022,7 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 	end
 	local problem
 	if event and parsed.kind == "city" then problem = city_reply_problem (real, parsed)
+	elseif event and parsed.kind == "fixed" then problem = scan.fixed.reply_problem (real, parsed)
 	elseif event then problem = roster_reply_problem (real, parsed)
 	else problem = scan_reply_problem (real, parsed) end
 	if problem then
@@ -985,6 +1031,9 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 	elseif event and parsed.kind == "city" then
 		scan.city [real.result] = scan.city [real.result] + 1
 		city_track (parsed, real)
+	elseif event and parsed.kind == "fixed" then
+		scan.fixed.stated = scan.fixed.stated + 1
+		scan.fixed.held [parsed.key] = true
 	elseif event then
 		roster [real.result] = roster [real.result] + 1
 		roster_track (parsed, real)
@@ -1225,6 +1274,24 @@ local function candidate_question (scene, depth, kind, definition, key)
 				withdrawn = withdrawn + 1
 				host.move_vehicle ({ host_id = parsed.host_id, mode = "retire" })
 			end
+		else
+			-- every other candidate names the placement the host served it by: a roster key (Task49). The next question after the host's withdrawal of a record's state is classified by what it names
+			if parsed.named and is_roster_key (parsed.host_id) then
+				cand.keyed = cand.keyed + 1
+				-- the key must be the placement the host ACTUALLY served: the entry the scan last served (a sector candidate) or the building the traversal of the city last served (a building under a city)
+				local served = parsed.words [11] ~= ZERO and (scan.city.last ~= nil and scan.city.last.child or nil) or last_served
+				if parsed.host_id ~= served then
+					faults.request = faults.request + 1
+					first_fault = first_fault or ("candidate request: the candidate names the placement " .. shown (parsed.host_id) .. ", which is not the entry the host last served (" .. tostring (served) .. ")")
+				end
+				if scan.fixed.withdrawn == 1 and scan.fixed.withdrawn_next == "" then
+					scan.fixed.withdrawn_next = (parsed.host_id == scan.fixed.withdrawn_key and parsed.words [44] ~= ZERO) and "placement" or "other"
+				end
+			else
+				cand.unkeyed = cand.unkeyed + 1
+				faults.request = faults.request + 1
+				first_fault = first_fault or ("candidate request: a non-mobile candidate names \"" .. shown (parsed.host_id) .. "\", which is not a placement key")
+			end
 		end
 	else
 		faults.request = faults.request + 1
@@ -1254,6 +1321,29 @@ local function candidate_question (scene, depth, kind, definition, key)
 			if tgt.speed_delegations > 0 then
 				tgt.after_speed = tgt.after_speed + 1
 				if real.result == "test" then tgt.after_speed_test = tgt.after_speed_test + 1 end
+			end
+		end
+	end
+	-- the staged questions that NEEDED the state of the record of a placement the provider holds one for (the placement question of an ordinary fixed candidate once its fixed facts were read and the collision-fixed
+	-- mirror says it is not a city or a building listed in a sector, and every question of a building listed under a city) are the eligible lookups: each is a real answer of the provider over that record, counted
+	-- (`fixed_joined`). HOST-SIDE (withdrawn_fixed_state): the first such lookup whose real answer is `need_placement` (a placement question of the same candidate follows, naming the same placement) is followed, BEFORE the
+	-- answer is handed on, by the host's own withdrawal of ONLY that record's fixed state (the host-only withdrawal word of the FIXED_STATE question, the same provider, answered `removed`); the real answer goes back unchanged
+	if parsed and not parsed.mobile and not problem and parsed.named and scan.fixed.held [parsed.host_id] and not roster_ended [parsed.host_id] then
+		local w = parsed.words
+		if w [11] ~= ZERO or (w [43] ~= ZERO and w [8] ~= ZERO and w [9] == ZERO and w [10] == ZERO) then
+			scan.fixed.joined = scan.fixed.joined + 1
+			if plan.withdraw_fixed and scan.fixed.withdrawn == 0 and real.result == "need_placement" then
+				local words = {}
+				for index = 1, 16 do words [index] = ZERO end
+				words [10], words [12] = "0x3f800000", "0x41500000"
+				local ok, acknowledged = pcall (reference, "entity_scan", 0, nil, nil, nil, table.concat (words, ",") .. " " .. parsed.host_id)
+				if ok and type (acknowledged) == "table" and acknowledged.result == "removed" and (acknowledged.name == nil or acknowledged.name == "") then
+					scan.fixed.withdrawn, scan.fixed.withdrawn_key = 1, parsed.host_id
+				else
+					scan.fixed.withdrawn = -1
+					faults.reply = faults.reply + 1
+					first_fault = first_fault or "candidate reply: the host's withdrawal of the fixed state of the placement was not acknowledged as removed"
+				end
 			end
 		end
 	end
@@ -1818,6 +1908,9 @@ local function main ()
 			city_served = scan.city.served, city_next_joined = scan.city.next_joined, city_withdrawn = scan.city.withdrawn, city_withdrawn_next = scan.city.withdrawn_next,
 			city_withdrawn_cause = (failure and string.find (failure.line, "[roster.child]", 1, true) and string.find (failure.line, "has ended", 1, true)) and "city_child_ended" or "",
 			roster_withdrawn_cause = (failure and string.find (failure.line, "[roster.key]", 1, true) and string.find (failure.line, "has ended", 1, true)) and "roster_key_ended" or "",
+			fixed_before = before.fixed, fixed_after = after.fixed, fixed_total = scan.fixed.total, fixed_stated = scan.fixed.stated, fixed_joined = scan.fixed.joined,
+			fixed_withdrawn = scan.fixed.withdrawn, fixed_withdrawn_next = scan.fixed.withdrawn_next, candidate_keyed = cand.keyed, candidate_unkeyed = cand.unkeyed, fixed_held_lifetime = (function () local held = 0 for _ in pairs (scan.fixed.held) do held = held + 1 end return held end) (),
+			fixed_withdrawn_cause = (failure and string.find (failure.line, "[candidate.fixed]", 1, true) and string.find (failure.line, "withdrew", 1, true)) and "fixed_state_withdrawn" or "",
 		target = watched or "", target_questions = tgt.questions, target_skip = tgt.skip, target_need_updated = tgt.need_updated, target_need_fixed = tgt.need_fixed,
 		target_need_placement = tgt.need_placement, target_need_normal = tgt.need_normal, target_buildings = tgt.buildings, target_test = tgt.test,
 		target_after_lift = tgt.after_lift, target_after_lift_test = tgt.after_lift_test,
@@ -1845,9 +1938,12 @@ local function main ()
 		-- a next-building question that did not join the keys seen is a request fault and no continuation: it is reported as that fault, never as an absent traversal
 		if plan.withdraw_child and scan.city.next_joined < 1 and faults.request > 0 then return "mode " .. mode .. ": no next-building question joined the keys seen, so nothing was withdrawn before one (request_faults=" .. faults.request .. "): " .. tostring (first_fault) end
 		if plan.withdraw_child and scan.city.next_joined < 1 then return "UNREACHED: " .. mode .. ": the real scan asked for no building after a served one (" .. scan.city.served .. " buildings served by " .. scan.city.child_first .. " first and " .. scan.city.child_next .. " next city questions, " .. scan.city.next_joined .. " next questions at the served building), so there was no continuation to withdraw before: the case holds no such traversal" end
+		-- a traversal in which no staged candidate question of a placement the provider holds a fixed state for was ever answered `need_placement` has nothing to withdraw before: the prerequisite was never reached, so the
+		-- negative is UNREACHED (never a pass): the case holds no such candidate, and no actor, time or geometry is searched for
+		if plan.withdraw_fixed and scan.fixed.withdrawn == 0 then return "UNREACHED: " .. mode .. ": no staged candidate question of a fixed placement whose state the provider held was answered need_placement (" .. scan.fixed.stated .. " fixed states acknowledged, " .. scan.fixed.joined .. " eligible lookups served, " .. cand.keyed .. " keyed non-mobile questions), so there was no state to withdraw before a continuation: the case holds no such candidate" end
 		if failure == nil then return "mode " .. mode .. " completed: the engine did not stop at " .. plan.marker end
 		if failure.marker ~= plan.marker then return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "], not at [model-provider:" .. plan.marker .. "]: " .. failure.line end
-		if altered + cand_altered + scan_altered + pose_altered + withdrawn + displaced + math.max (scan.withdrawn, 0) + math.max (scan.city.withdrawn, 0) < 1 then return "mode " .. mode .. " stopped without the provider having altered an entity answer: " .. failure.line end
+		if altered + cand_altered + scan_altered + pose_altered + withdrawn + displaced + math.max (scan.withdrawn, 0) + math.max (scan.city.withdrawn, 0) + math.max (scan.fixed.withdrawn, 0) < 1 then return "mode " .. mode .. " stopped without the provider having altered an entity answer: " .. failure.line end
 		if view.applied < 1 then return "mode " .. mode .. " stopped, but the controlled view input never reached a weapon step: the stop is not at an entity question of the configured flight" end
 		if mode == "withdrawn_child" then
 			-- credited only by the reached withdrawal (acknowledged `removed`) made at an actual well-formed CHILD_NEXT standing at the last building served, that same question the one delegated after it, and the host's own
@@ -1856,6 +1952,15 @@ local function main ()
 			if scan.city.withdrawn_next ~= "child_next" then return "mode withdrawn_child stopped at its marker, but the question the removal preceded was not the traversal's next building (" .. scan.city.withdrawn_next .. ")" end
 			if not (string.find (failure.line, "[roster.child]", 1, true) and string.find (failure.line, "has ended", 1, true)) then return "mode withdrawn_child stopped at its marker, but not for the ended city child: " .. failure.line end
 			if faults.request ~= 0 or faults.reply ~= 1 or first_fault ~= "scan reply: result refused" then return "mode withdrawn_child had a fault other than the host's named refusal (request_faults=" .. faults.request .. " reply_faults=" .. faults.reply .. "): " .. tostring (first_fault) end
+		end
+		if mode == "withdrawn_fixed_state" then
+			-- credited only by (a) an eligible lookup the real provider answered over the record's state BEFORE the negative (fixed_joined), (b) the reached withdrawal of ONLY that record's fixed state (acknowledged
+			-- `removed`), (c) the very next question of the candidate being its placement question naming the same placement, and (d) the provider's own named refusal for the withdrawn state as the only fault
+			if scan.fixed.withdrawn ~= 1 then return "mode withdrawn_fixed_state stopped at its marker, but the host's withdrawal of the fixed state of the placement was not acknowledged as removed (" .. scan.fixed.withdrawn .. ")" end
+			if scan.fixed.joined < 1 then return "mode withdrawn_fixed_state stopped at its marker, but no eligible lookup was served over a held state before the withdrawal (fixed_joined=" .. scan.fixed.joined .. ")" end
+			if scan.fixed.withdrawn_next ~= "placement" then return "mode withdrawn_fixed_state stopped at its marker, but the question after the withdrawal was not the same candidate's placement question (" .. scan.fixed.withdrawn_next .. ")" end
+			if not (string.find (failure.line, "[candidate.fixed]", 1, true) and string.find (failure.line, "withdrew", 1, true)) then return "mode withdrawn_fixed_state stopped at its marker, but not for the withdrawn fixed state: " .. failure.line end
+			if faults.request ~= 0 or faults.reply ~= 1 or first_fault ~= "candidate reply: result refused" then return "mode withdrawn_fixed_state had a fault other than the host's named refusal (request_faults=" .. faults.request .. " reply_faults=" .. faults.reply .. "): " .. tostring (first_fault) end
 		end
 		if mode == "withdrawn_backing" then
 			-- credited only by the reached withdrawal (acknowledged `removed`), the very next question being the entry continuation, and the host's own named refusal of the ended key as the only fault

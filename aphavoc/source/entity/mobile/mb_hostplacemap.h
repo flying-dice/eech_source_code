@@ -30,6 +30,15 @@
 //   CAMPAIGN_PLACE_IDENTITY (E)            a hosted mobile's semantic host identity, or NULL for every other entity
 //   CAMPAIGN_PLACE_OBJECT_ID (E)           the legacy object-report identity already issued for the entity (NULL when none: it is never allocated here)
 //   CAMPAIGN_PLACE_SIDE ()                 the sector side length, as a float
+//   CAMPAIGN_PLACE_FIXED_FAMILY (TYPE)     whether the entity type carries the fixed record whose COLLISION state the host holds (a city does not: its own position and box are a declared follow-on)
+//   CAMPAIGN_PLACE_FIXED_READ (E, OUT)     the entity's fixed collision state as CAMPAIGN_FIXED_STATE_WORDS floats: position (3), heading, shape, collision-fixed flag, align flag
+// and campaign_model_entity_fixed (mb_hostmodel.h).
+//
+// THE FIXED COLLISION STATE (Task49). The host's record of a fixed-family placement holds the placement's collision state, and a candidate question is decided from it (mb_hostmodel.h, ENTITY_CANDIDATE). The
+// campaign states it with `place_fixed_state`, which states the state the entity holds NOW under the key of the placement the entity has (its sector placement's, else its place in a city's list). It is
+// called at the end of both insertions (a creator states the shape before it links the entity, a relink writes the position first, an unpack writes the record first, so the state is complete there) and by every
+// writer of a field of the state after the entity is placed: a setter (position, heading, sub type, shape), a kill's destroyed shape, a restore, an unpack of a session's alive and damaged shapes and a bridge's
+// damage, fall and rest (fx_*.c, *_dstry.c, *_pack.c, segment.c, sg_updt.c). An entity that is not placed (a write during its construction, before the insertion) states nothing: its insertion does.
 #ifndef MB_HOSTPLACEMAP_H
 #define MB_HOSTPLACEMAP_H
 
@@ -364,6 +373,60 @@ static void place_declare (CAMPAIGN_PLACE_ENTITY *en, int slot)
 	}
 }
 
+// the fixed collision state of `en` as it is NOW is stated to the host's record of the placement the entity has: its sector placement's key, else its place in a city's list. A type that has none, an entity that is
+// not placed (a write during its construction, before its insertion, which then states it) and a build with no host state nothing. The state is read here, never kept: the host's record is the only one.
+static void place_fixed_state (CAMPAIGN_PLACE_ENTITY *en)
+{
+	float
+		state [CAMPAIGN_FIXED_STATE_WORDS];
+
+	const char
+		*key;
+
+	int
+		slot;
+
+	if (!campaign_model_host_installed () || !place_key_of_slot)
+	{
+		return;
+	}
+
+	if (!CAMPAIGN_PLACE_FIXED_FAMILY (CAMPAIGN_PLACE_TYPE (en)))
+	{
+		return;
+	}
+
+	slot = place_checked_slot (en);
+
+	key = place_key_of_slot [slot][0] ? place_key_of_slot [slot] : place_child_of_slot [slot];
+
+	if (!key [0])
+	{
+		return;
+	}
+
+	CAMPAIGN_PLACE_FIXED_READ (en, state);
+
+	campaign_model_entity_fixed (CAMPAIGN_PLACE_TYPE (en), key, state);
+}
+
+// the key the host issued for the placement `en` has now: its sector placement's, or (`child` TRUE) its place in a city's list; empty when it has none or there is no host. A candidate names it on every staged
+// question (mb_hostoffer.h). It is read here, never kept: a relink is a removal and a new insertion with a new key.
+static const char *place_key (CAMPAIGN_PLACE_ENTITY *en, int child)
+{
+	int
+		slot;
+
+	if (!campaign_model_host_installed () || !place_key_of_slot)
+	{
+		return "";
+	}
+
+	slot = place_checked_slot (en);
+
+	return (child ? place_child_of_slot [slot] : place_key_of_slot [slot]);
+}
+
 // `en` was inserted at the head of a sector's list: the host places it and answers the key it issued.
 static void place_insert (CAMPAIGN_PLACE_ENTITY *en)
 {
@@ -406,6 +469,9 @@ static void place_insert (CAMPAIGN_PLACE_ENTITY *en)
 	place_register (slot, 0, key);
 
 	place_declare (en, slot);
+
+	// the state of a fixed-family entity, complete here (see the head of this file): stated under the placement just made, so the record that placement joined holds it
+	place_fixed_state (en);
 }
 
 // `en` is about to leave its sector's list: the host removes the key it issued for it.
@@ -519,6 +585,9 @@ static void place_child_insert (CAMPAIGN_PLACE_ENTITY *en, CAMPAIGN_PLACE_ENTITY
 	place_listed_of_slot [parent_slot]++;
 
 	place_declare (en, slot);
+
+	// a building is listed in its city before its sector (cb_creat.c): its state is stated under whichever placement it has, here the city's list, and again under its sector placement
+	place_fixed_state (en);
 }
 
 // `en` is about to leave the list of the buildings of its city: the host unlists the key it issued for it, naming the list by the name recorded at the insertion (the city's current sector placement may not be the key

@@ -499,6 +499,8 @@ typedef char campaign_model_host_id_domain_is_the_rosters [(CAMPAIGN_MODEL_HOST_
 #define CAMPAIGN_OFFER_TYPE(E) get_local_entity_type ((E))
 #define CAMPAIGN_OFFER_ALIVE(E) get_local_entity_int_value ((E), INT_TYPE_ALIVE)
 #define CAMPAIGN_OFFER_HOST_ID(E) campaign_roster_host_id ((E))
+// a candidate that is not a mobile of a sector list is named to the host by the key of the placement the host served it by (mb_hostplace.c): the host joins it to the record that holds the fixed collision state
+#define CAMPAIGN_OFFER_FIXED_KEY(E,OF_CITY) campaign_place_key ((E), (OF_CITY))
 
 #include "entity/mobile/mb_hostoffer.h"
 

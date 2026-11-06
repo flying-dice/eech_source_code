@@ -103,6 +103,16 @@ static int city_link_asks, city_name_asks;
 static const char *city_name;
 static campaign_model_request city_seen;
 static char city_last_link[160], city_last_name[160];
+/* the FIXED_STATE reports (the same question, phase 13: fixed/static collision backing, Task49): how many the scripted host was asked, the last and every one in order, and an answer forced instead of the coherent one
+   (the coherent host acknowledges the key it was given) when `fixed_override` is set. The phase number is the contract's (mb_hostmodel.h), written out here so that the control compiles against a build that has none. */
+#define CHECK_PHASE_FIXED_STATE 13
+typedef char check_phase_is_the_contracts [(CAMPAIGN_SCAN_PHASE_FIXED_STATE == CHECK_PHASE_FIXED_STATE) ? 1 : -1];
+static int fixed_asks, fixed_override, fixed_state;
+static const char *fixed_name;
+static campaign_model_request fixed_seen, fixed_log[8];
+/* the identity place (the placement key of a non-mobile candidate, a hosted mobile's identity) of each candidate question, in order, since the last reset */
+static char candidate_id_log[8][24];
+static int candidate_id_count;
 
 /* the index of the entry with `key` in the scripted lists, or -1 */
 static int city_find (const char *key)
@@ -302,6 +312,28 @@ static void scripted_ask (campaign_model_request *request, campaign_model_reply 
 		return;
 	}
 
+	if ((request->op == CAMPAIGN_MODEL_ENTITY_SCAN) && ((int) request->pose[CAMPAIGN_SCAN_PHASE] == CHECK_PHASE_FIXED_STATE))
+	{
+		fixed_seen = *request;
+
+		if (fixed_asks < 8)
+		{
+			fixed_log[fixed_asks] = *request;
+		}
+
+		fixed_asks++;
+
+		if (refuse_the_exchange)
+		{
+			debug_fatal ("host model: [model-provider:callback] the scripted host refused");
+		}
+
+		reply->candidate_state = fixed_override ? fixed_state : CAMPAIGN_MODEL_SCAN_PLACED;
+		strncpy (reply->name, fixed_override ? fixed_name : request->host_id, sizeof (reply->name) - 1);
+
+		return;
+	}
+
 	if ((request->op == CAMPAIGN_MODEL_ENTITY_SCAN) && ((int) request->pose[CAMPAIGN_SCAN_PHASE] >= CAMPAIGN_SCAN_PHASE_CHILD_INSERT))
 	{
 		if (refuse_the_exchange)
@@ -398,6 +430,14 @@ static void scripted_ask (campaign_model_request *request, campaign_model_reply 
 	if (request->op == CAMPAIGN_MODEL_ENTITY_CANDIDATE)
 	{
 		const struct scripted_candidate *given = (queue_next < queue_length) ? &queue[queue_next++] : &decision;
+
+		if (candidate_id_count < 8)
+		{
+			strncpy (candidate_id_log[candidate_id_count], request->host_id, sizeof (candidate_id_log[0]) - 1);
+			candidate_id_log[candidate_id_count][sizeof (candidate_id_log[0]) - 1] = 0;
+		}
+
+		candidate_id_count++;
 
 		reply->candidate_state = given->state;
 		reply->candidate_count = given->count;
@@ -788,6 +828,8 @@ static int so_align (struct sentity *e) { read_log ('L'); return (e->align); }
 /* a city's buildings are the HOST's list: the real placement map asks the scripted host and compares the building it serves with the scripted entity's own list (the mirror); defined after the map */
 static struct sentity *so_city_first (struct sentity *city);
 static struct sentity *so_city_next (struct sentity *city, struct sentity *building);
+/* the placement key of a non-mobile candidate (the key the host served it by: its sector placement's, or a city building's place in its city's list), "" for an entity the placement map holds none for; defined after the map */
+static const char *so_fixed_key (struct sentity *e, int of_city);
 struct tc;
 static int city_register (struct tc *t, struct sentity *city, struct sentity *b1, struct sentity *b2);
 static void so_box (struct sentity *e, float *min, float *max) { read_log ('X'); memcpy (min, e->box_min, sizeof (e->box_min)); memcpy (max, e->box_max, sizeof (e->box_max)); }
@@ -817,6 +859,7 @@ static void so_terrain_normal (float x, float z, float *out) { read_log ('N'); o
 #define CAMPAIGN_OFFER_TYPE(E) so_type (E)
 #define CAMPAIGN_OFFER_ALIVE(E) so_alive (E)
 #define CAMPAIGN_OFFER_HOST_ID(E) so_host_id (E)
+#define CAMPAIGN_OFFER_FIXED_KEY(E,OF_CITY) so_fixed_key ((E), (OF_CITY))
 
 /* the campaign's two host calls, bound to the REAL candidate exchange (with its complete reply check) and to a recording narrow phase */
 #define campaign_model_entity_candidate check_model_entity_candidate
@@ -2175,6 +2218,8 @@ struct pentity
 	int slot, type, has_position;
 	const char *name, *identity, *object;
 	float position[3];
+	/* the scripted entity's fixed collision state: its shape (a whole number), heading and the two flags the entity's type derives (collision-test-fixed, align-with-terrain) */
+	float heading, shape, collision, align;
 };
 
 static struct pentity pheap[16];
@@ -2205,9 +2250,15 @@ static void check_city_call (int phase, int entity_type, const char *identity, c
 	campaign_entity_city_exchange (phase, entity_type, identity, key);
 }
 
+static void check_fixed_call (int entity_type, const char *key, const float *state)
+{
+	campaign_entity_fixed_exchange (entity_type, key, state);
+}
+
 #define campaign_model_host_installed check_host_installed
 #define campaign_model_entity_roster check_roster_call
 #define campaign_model_entity_city check_city_call
+#define campaign_model_entity_fixed check_fixed_call
 #define CAMPAIGN_PLACE_ENTITY struct pentity
 #define CAMPAIGN_PLACE_HEAP() place_heap_check ()
 #define CAMPAIGN_PLACE_SLOT(E) ((E)->slot)
@@ -2218,15 +2269,30 @@ static void check_city_call (int phase, int entity_type, const char *identity, c
 #define CAMPAIGN_PLACE_IDENTITY(E) ((E)->identity)
 #define CAMPAIGN_PLACE_OBJECT_ID(E) ((E)->object)
 #define CAMPAIGN_PLACE_SIDE() 100.0f
+/* the scripted world's fixed family: the entity types 60 to 69 (the campaign's own: the types that carry the fixed record, a city excepted); an entity of one states its fixed collision state to the host */
+#define CAMPAIGN_PLACE_FIXED_FAMILY(TYPE) (((TYPE) >= 60) && ((TYPE) < 70))
+#define CAMPAIGN_PLACE_FIXED_READ(E,OUT) do { memcpy ((OUT), (E)->position, 3 * sizeof (float)); (OUT)[3] = (E)->heading; (OUT)[4] = (E)->shape; (OUT)[5] = (E)->collision; (OUT)[6] = (E)->align; } while (0)
 
 #include "entity/mobile/mb_hostplacemap.h"
 
 #undef campaign_model_host_installed
 #undef campaign_model_entity_roster
 #undef campaign_model_entity_city
+#undef campaign_model_entity_fixed
 
 /* the entity of the offer that holds a placement heap slot (set by city_register) */
 static struct sentity *pheap_owner[16];
+
+/* the key the host served the offer's candidate by: the placement the real map holds for the entity (its place in a sector's list, or a city building's place in its city's list); "" when the entity is in none */
+static const char *so_fixed_key (struct sentity *e, int of_city)
+{
+	if (place_host_installed == FALSE)
+	{
+		return ("");
+	}
+
+	return (place_key (&pheap[e->pslot], of_city));
+}
 
 /* the offer's city traversal bound to the REAL placement map: the host (the scripted lists) serves the first building and the one after each; the building it serves is resolved by its key and compared with the
    scripted entity's own list at the same place; the scripted entities' reads are logged as the real getters' are (the mirror read of the first child is the 'B') */
@@ -3081,6 +3147,290 @@ static void city_wire_cases (struct tc *t)
 	place_host_installed = FALSE;
 }
 
+/* ---- FIXED/STATIC COLLISION BACKING (Task49, D3): a fixed entity's collision state is reported to the host's record of its placement, and a non-mobile candidate names the placement the host served it by ----
+   The CHARACTERISATION cases hold on the unchanged source and must keep holding (the offer reads the same getters in the same order and the narrow phase follows the entity's own writes); the cases that follow
+   them state the new contract (the report, and the key every staged question carries). The report's layout is the contract's: position (0 to 2), type (3), heading (4), shape (5), collision-fixed (7), align (8),
+   withdraw (9; never the campaign's: it is the host's own retirement of the state), phase (11). */
+#define CHECK_FIXED_HEADING 4
+#define CHECK_FIXED_SHAPE 5
+#define CHECK_FIXED_COLLISION 7
+#define CHECK_FIXED_ALIGN 8
+#define CHECK_FIXED_WITHDRAW 9
+typedef char check_fixed_layout_is_the_contracts [((CAMPAIGN_FIXED_HEADING == CHECK_FIXED_HEADING) && (CAMPAIGN_FIXED_SHAPE == CHECK_FIXED_SHAPE) && (CAMPAIGN_FIXED_COLLISION == CHECK_FIXED_COLLISION) &&
+	(CAMPAIGN_FIXED_ALIGN == CHECK_FIXED_ALIGN) && (CAMPAIGN_FIXED_WITHDRAW == CHECK_FIXED_WITHDRAW) && (CAMPAIGN_FIXED_TYPE == CAMPAIGN_ROSTER_TYPE) && (CAMPAIGN_FIXED_STATE_WORDS == 7)) ? 1 : -1];
+
+static void fixed_pentity (int slot, int type, float x, float z, float heading, int shape, int collision, int align)
+{
+	struct pentity *p = &pheap[slot];
+
+	memset (p, 0, sizeof (*p));
+	p->slot = slot;
+	p->type = type;
+	p->name = "SCRIPTED-FIXED";
+	p->has_position = TRUE;
+	p->position[0] = x;
+	p->position[1] = 3.0f;
+	p->position[2] = z;
+	p->heading = heading;
+	p->shape = (float) shape;
+	p->collision = (float) collision;
+	p->align = (float) align;
+	pheap_owner[slot] = NULL;
+}
+
+/* the words a FIXED_STATE report states for the placement `p`, and the key it names, as the scripted host saw them */
+static int fixed_report_is (const campaign_model_request *q, const struct pentity *p, const char *key)
+{
+	int index;
+
+	if ((q->op != CAMPAIGN_MODEL_ENTITY_SCAN) || (q->pose_count != CAMPAIGN_MODEL_SCAN_FACTS) || (strcmp (q->host_id, key) != 0))
+	{
+		return (FALSE);
+	}
+
+	if ((memcmp (&q->pose[0], p->position, 3 * sizeof (float)) != 0) || (q->pose[3] != (float) p->type) || (q->pose[CHECK_FIXED_HEADING] != p->heading) || (q->pose[CHECK_FIXED_SHAPE] != p->shape) ||
+		(q->pose[CHECK_FIXED_COLLISION] != p->collision) || (q->pose[CHECK_FIXED_ALIGN] != p->align) || (q->pose[CHECK_FIXED_WITHDRAW] != 0.0f) || ((int) q->pose[CAMPAIGN_SCAN_PHASE] != CHECK_PHASE_FIXED_STATE))
+	{
+		return (FALSE);
+	}
+
+	for (index = 0; index < CAMPAIGN_MODEL_SCAN_FACTS; index++)
+	{
+		if (((index > 3) && (index != CHECK_FIXED_HEADING) && (index != CHECK_FIXED_SHAPE) && (index != CHECK_FIXED_COLLISION) && (index != CHECK_FIXED_ALIGN) && (index != CAMPAIGN_SCAN_PHASE)) && (q->pose[index] != 0.0f))
+		{
+			return (FALSE);
+		}
+	}
+
+	return (TRUE);
+}
+
+/* one writer's call of the funnel under a stop catcher: TRUE when the engine stopped; the host's questions of the call are counted in fixed_asks, roster_asks and city_asks */
+static int fixed_do (struct pentity *e)
+{
+	fixed_asks = 0;
+	roster_asks = 0;
+	city_asks = 0;
+	fatal_text[0] = '\0';
+
+	if (setjmp (fatal_jump) == 0)
+	{
+		place_fixed_state (e);
+
+		return (FALSE);
+	}
+
+	return (TRUE);
+}
+
+static void fixed_static_cases (struct tc *t)
+{
+	struct sentity e, b;
+	struct offer_outcome o;
+	float heading;
+	int stopped;
+	char sector_key[24], child_key[24];
+
+	/* ---- CHARACTERISATION: a fixed candidate the real placement map holds is offered with the reads, the facts and the narrow-phase scene it always had ---- */
+	city_fresh ();
+	fixed_pentity (4, 61, 150.0f, 250.0f, 0.5f, 7, 1, 0);
+	fixed_asks = 0;
+	stopped = city_do (3, &pheap[4], NULL, NULL);
+	EXPECT (t, !stopped && roster_asks == 1 && (int) roster_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_INSERT && place_entity ("1") == &pheap[4]);
+	snprintf (sector_key, sizeof (sector_key), "%s", place_key_of_slot[4]);
+	EXPECT (t, strcmp (sector_key, "1") == 0);
+
+	e = make_entity (FALSE, TRUE, 7);
+	e.type = 61;
+	e.pslot = 4;
+	e.heading = 0.5f;
+	e.position[0] = 150.0f;
+	e.position[2] = 250.0f;
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_TEST, 12);
+	candidate_id_count = 0;
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, !o.stopped && o.hit == NULL && strcmp (reads, "MFCGSPHL") == 0 && asks == 3);
+	EXPECT (t, collision_calls == 1 && collision_scene == 7 && collision_count == 12);
+	EXPECT (t, seen.pose[CAMPAIGN_CANDIDATE_FIXED] == 1.0f && seen.pose[CAMPAIGN_CANDIDATE_HEADING] == 0.5f && seen.pose[CAMPAIGN_CANDIDATE_ALIGN] == 0.0f && seen.pose[CAMPAIGN_CANDIDATE_POSITION] == 150.0f);
+
+	/* a kill writes the destroyed shape (a raw write of the entity), a restore the restored shape: the next offer reads and tests the shape the entity holds NOW */
+	e.shape = 8;
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_TEST, 12);
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, !o.stopped && collision_calls == 1 && collision_scene == 8 && strcmp (reads, "MFCGSPHL") == 0);
+	e.shape = 7;
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_TEST, 12);
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, !o.stopped && collision_calls == 1 && collision_scene == 7);
+
+	/* a heading written after the insertion (a pylon's) is the heading the placement stage sends */
+	heading = 1.25f;
+	e.heading = heading;
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_TEST, 12);
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, !o.stopped && seen.pose[CAMPAIGN_CANDIDATE_HEADING] == heading);
+
+	/* ---- the new contract, first the report: one FIXED_STATE follows the insertion, naming the placement's key and stating the entity's whole fixed collision state ---- */
+	city_fresh ();
+	fixed_pentity (4, 61, 150.0f, 250.0f, 0.5f, 7, 1, 0);
+	fixed_asks = 0;
+	stopped = city_do (3, &pheap[4], NULL, NULL);
+	EXPECT (t, !stopped && roster_asks == 1 && fixed_asks == 1);
+	EXPECT (t, fixed_report_is (&fixed_seen, &pheap[4], "1"));
+
+	/* ---- and the key: every staged question about a non-mobile candidate carries the key of the placement the host served it by (here its sector placement), never a hosted mobile's identity ---- */
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_TEST, 12);
+	candidate_id_count = 0;
+	o = offer (&e, FALSE, 1000.0f);
+	EXPECT (t, !o.stopped && candidate_id_count == 3 && strcmp (candidate_id_log[0], "1") == 0 && strcmp (candidate_id_log[1], "1") == 0 && strcmp (candidate_id_log[2], "1") == 0);
+
+	/* a building listed under a city is offered by its place in the city's list (its child key), at both of its questions */
+	city_fresh ();
+	fixed_pentity (4, 61, 150.0f, 250.0f, 0.5f, 7, 1, 0);
+	fixed_pentity (5, 62, 160.0f, 260.0f, 0.75f, 9, 1, 1);
+	fixed_asks = 0;
+	stopped = city_do (3, &pheap[4], NULL, NULL);
+	EXPECT (t, !stopped);
+	stopped = city_do (0, &pheap[5], &pheap[4], NULL);
+	EXPECT (t, !stopped && fixed_asks == 2);
+	snprintf (child_key, sizeof (child_key), "%s", place_child_of_slot[5]);
+	/* the building's own insertion in the city's list was reported by that key (its sector placement does not exist yet) */
+	EXPECT (t, fixed_report_is (&fixed_seen, &pheap[5], child_key));
+	stopped = city_do (3, &pheap[5], NULL, NULL);
+	EXPECT (t, !stopped && fixed_asks == 3 && fixed_report_is (&fixed_seen, &pheap[5], place_key_of_slot[5]));
+	b = make_entity (FALSE, TRUE, 9);
+	b.type = 62;
+	b.pslot = 5;
+	b.align = TRUE;
+	b.heading = 0.75f;
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_NORMAL, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_TEST, 12);
+	candidate_id_count = 0;
+	o = offer (&b, TRUE, 1000.0f);
+	EXPECT (t, !o.stopped && candidate_id_count == 3 && strcmp (candidate_id_log[0], child_key) == 0 && strcmp (candidate_id_log[1], child_key) == 0 && strcmp (candidate_id_log[2], child_key) == 0);
+
+	/* ---- the funnel every writer of a field of the state calls: the state as it is NOW, under the placement the entity has ---- */
+	city_fresh ();
+	fixed_pentity (4, 61, 150.0f, 250.0f, 0.5f, 7, 1, 0);
+
+	/* an entity that is not placed yet (a setter during its construction) states nothing: its insertion does */
+	stopped = fixed_do (&pheap[4]);
+	EXPECT (t, !stopped && fixed_asks == 0 && roster_asks == 0 && city_asks == 0);
+	stopped = city_do (3, &pheap[4], NULL, NULL);
+	EXPECT (t, !stopped && fixed_report_is (&fixed_seen, &pheap[4], "1"));
+
+	/* a kill's destroyed shape, a restore, a pylon's heading, a bridge's fall and a sub type's flags are each stated, whole, the moment they are written */
+	pheap[4].shape = 8.0f;
+	stopped = fixed_do (&pheap[4]);
+	EXPECT (t, !stopped && fixed_asks == 1 && roster_asks == 0 && city_asks == 0 && fixed_report_is (&fixed_seen, &pheap[4], "1") && fixed_seen.pose[CHECK_FIXED_SHAPE] == 8.0f);
+	pheap[4].heading = 1.25f;
+	stopped = fixed_do (&pheap[4]);
+	EXPECT (t, !stopped && fixed_asks == 1 && fixed_report_is (&fixed_seen, &pheap[4], "1") && fixed_seen.pose[CHECK_FIXED_HEADING] == 1.25f);
+	pheap[4].position[1] = -4.5f;
+	stopped = fixed_do (&pheap[4]);
+	EXPECT (t, !stopped && fixed_asks == 1 && fixed_report_is (&fixed_seen, &pheap[4], "1") && fixed_seen.pose[1] == -4.5f);
+	pheap[4].collision = 0.0f;
+	pheap[4].align = 1.0f;
+	stopped = fixed_do (&pheap[4]);
+	EXPECT (t, !stopped && fixed_asks == 1 && fixed_report_is (&fixed_seen, &pheap[4], "1") && fixed_seen.pose[CHECK_FIXED_COLLISION] == 0.0f && fixed_seen.pose[CHECK_FIXED_ALIGN] == 1.0f);
+
+	/* a type that carries no fixed record (every other entity, a city among them), and a build with no host, state nothing */
+	fixed_asks = 0;
+	stopped = city_do (3, &pheap[6], NULL, NULL);
+	EXPECT (t, !stopped && fixed_asks == 0);
+	stopped = fixed_do (&pheap[6]);
+	EXPECT (t, !stopped && fixed_asks == 0);
+	place_host_installed = FALSE;
+	stopped = fixed_do (&pheap[4]);
+	EXPECT (t, !stopped && fixed_asks == 0);
+	place_host_installed = TRUE;
+
+	/* a relink is a removal and an insertion: the new placement's key states the state again, and the entity's state is never kept by the campaign (it is read from the entity each time) */
+	fixed_asks = 0;
+	stopped = city_do (4, &pheap[4], NULL, NULL);
+	EXPECT (t, !stopped && fixed_asks == 0);
+	pheap[4].position[0] = 175.0f;
+	fixed_asks = 0;
+	stopped = city_do (3, &pheap[4], NULL, NULL);
+	EXPECT (t, !stopped && fixed_asks == 1 && fixed_report_is (&fixed_seen, &pheap[4], place_key_of_slot[4]) && strcmp (place_key_of_slot[4], "1") != 0 && fixed_seen.pose[0] == 175.0f);
+
+	/* a building that has only its place in a city's list (its sector placement is gone) states under that key; its release states nothing */
+	fixed_pentity (5, 62, 160.0f, 260.0f, 0.75f, 9, 1, 1);
+	fixed_asks = 0;
+	stopped = city_do (0, &pheap[5], &pheap[4], NULL);
+	EXPECT (t, !stopped && fixed_asks == 1 && fixed_report_is (&fixed_seen, &pheap[5], place_child_of_slot[5]));
+	pheap[5].shape = 10.0f;
+	stopped = fixed_do (&pheap[5]);
+	EXPECT (t, !stopped && fixed_asks == 1 && fixed_report_is (&fixed_seen, &pheap[5], place_child_of_slot[5]) && fixed_seen.pose[CHECK_FIXED_SHAPE] == 10.0f);
+	fixed_asks = 0;
+	stopped = city_do (2, &pheap[5], NULL, NULL);
+	EXPECT (t, !stopped && fixed_asks == 0 && place_child_of_slot[5][0] == 0 && place_key_of_slot[5][0] == 0);
+	stopped = fixed_do (&pheap[5]);
+	EXPECT (t, !stopped && fixed_asks == 0);
+
+	/* the host's reply is checked completely: a refusal, another state, another placement's key, a key that is no key and a request of a key that is none stop the engine by name */
+	refuse_the_exchange = TRUE;
+	stopped = fixed_do (&pheap[4]);
+	EXPECT (t, stopped && strstr (fatal_text, "model-provider:callback") != NULL);
+	refuse_the_exchange = FALSE;
+	fixed_override = TRUE;
+	fixed_state = CAMPAIGN_MODEL_SCAN_REMOVED;
+	fixed_name = place_key_of_slot[4];
+	stopped = fixed_do (&pheap[4]);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.state") != NULL && strstr (fatal_text, "fixed state report") != NULL);
+	fixed_state = CAMPAIGN_MODEL_SCAN_PLACED;
+	fixed_name = "999";
+	stopped = fixed_do (&pheap[4]);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.key") != NULL && strstr (fatal_text, "another placement") != NULL);
+	fixed_name = "";
+	stopped = fixed_do (&pheap[4]);
+	EXPECT (t, stopped && strstr (fatal_text, "another placement") != NULL);
+	fixed_name = "eech-world:1";
+	stopped = fixed_do (&pheap[4]);
+	EXPECT (t, stopped && strstr (fatal_text, "not a roster key") != NULL);
+	fixed_override = FALSE;
+	stopped = fixed_do (&pheap[4]);
+	EXPECT (t, !stopped && fixed_asks == 1);
+	{
+		const float state[CAMPAIGN_FIXED_STATE_WORDS] = { 1.0f, 2.0f, 3.0f, 0.5f, 7.0f, 1.0f, 0.0f };
+
+		fixed_asks = 0;
+		fatal_text[0] = '\0';
+
+		if (setjmp (fatal_jump) == 0)
+		{
+			campaign_entity_fixed_exchange (61, "01", state);
+			stopped = FALSE;
+		}
+		else
+		{
+			stopped = TRUE;
+		}
+
+		EXPECT (t, stopped && strstr (fatal_text, "not a roster key") != NULL && fixed_asks == 0);
+	}
+
+	city_fresh ();
+	place_host_installed = FALSE;
+}
+
 int eech_entity_dialogue_check_run (char *text, int capacity, int *checks)
 {
 	struct tc t;
@@ -3259,6 +3609,7 @@ int eech_entity_dialogue_check_run (char *text, int capacity, int *checks)
 	city_anchor_cases (&t);
 	city_alias_cases (&t);
 	city_wire_cases (&t);
+	fixed_static_cases (&t);
 
 	if (checks)
 	{

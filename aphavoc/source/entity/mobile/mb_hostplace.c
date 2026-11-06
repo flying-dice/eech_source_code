@@ -42,6 +42,50 @@ static const char *place_object_id (struct ENTITY *en)
 	return campaign_object_host_id (en);
 }
 
+// the fixed family: the entity types that carry the fixed record (fixed.h) whose collision state the host's record of a placement holds. A city carries it too but is not one here: its own position and
+// bounding box (ct_vec3d.c) are a declared follow-on, not moved by this
+static int place_fixed_family (int type)
+{
+	switch ((entity_types) type)
+	{
+		case ENTITY_TYPE_CITY_BUILDING:
+		case ENTITY_TYPE_CRATER:
+		case ENTITY_TYPE_OBJECT:
+		case ENTITY_TYPE_PYLON:
+		case ENTITY_TYPE_SCENIC:
+		case ENTITY_TYPE_SEGMENT:
+		case ENTITY_TYPE_SITE:
+		case ENTITY_TYPE_SITE_UPDATABLE:
+		{
+			return TRUE;
+		}
+		default:
+		{
+			return FALSE;
+		}
+	}
+}
+
+// the entity's fixed collision state as it is now, with the entity's own getters (the same ones the scan reads): the position's three words, the heading, the shape (a scene index: a whole number a float holds
+// exactly) and the two flags its sub type derives. The position is copied as the words the entity holds.
+static void place_fixed_read (struct ENTITY *en, float *state)
+{
+	const float
+		*position;
+
+	position = place_position (en);
+
+	memcpy (state, position, 3 * sizeof (float));
+
+	state [3] = get_local_entity_float_value (en, FLOAT_TYPE_HEADING);
+
+	state [4] = (float) get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE);
+
+	state [5] = (get_local_entity_int_value (en, INT_TYPE_COLLISION_TEST_FIXED) != 0) ? 1.0f : 0.0f;
+
+	state [6] = (get_local_entity_int_value (en, INT_TYPE_ALIGN_WITH_TERRAIN) != 0) ? 1.0f : 0.0f;
+}
+
 #define CAMPAIGN_PLACE_ENTITY struct ENTITY
 #define CAMPAIGN_PLACE_HEAP() place_heap ()
 #define CAMPAIGN_PLACE_SLOT(E) get_local_entity_index ((E))
@@ -52,6 +96,8 @@ static const char *place_object_id (struct ENTITY *en)
 #define CAMPAIGN_PLACE_IDENTITY(E) campaign_roster_host_id ((E))
 #define CAMPAIGN_PLACE_OBJECT_ID(E) place_object_id ((E))
 #define CAMPAIGN_PLACE_SIDE() ((float) SECTOR_SIDE_LENGTH)
+#define CAMPAIGN_PLACE_FIXED_FAMILY(TYPE) place_fixed_family ((TYPE))
+#define CAMPAIGN_PLACE_FIXED_READ(E,OUT) place_fixed_read ((E), (OUT))
 
 #include "entity/mobile/mb_hostplacemap.h"
 
@@ -103,6 +149,16 @@ struct ENTITY *campaign_place_child_next (struct ENTITY *city, struct ENTITY *bu
 void campaign_place_name (struct ENTITY *en, const char *id)
 {
 	place_name (en, id);
+}
+
+void campaign_place_fixed_state (struct ENTITY *en)
+{
+	place_fixed_state (en);
+}
+
+const char *campaign_place_key (struct ENTITY *en, int child)
+{
+	return place_key (en, child);
 }
 
 #endif

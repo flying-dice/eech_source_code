@@ -40,6 +40,13 @@ struct ENTITY *campaign_place_child_next (struct ENTITY *city, struct ENTITY *bu
 // the host issued `id` as the legacy object-report identity of `en` (asked lazily, once): the host's placements of the entity are named by it
 void campaign_place_name (struct ENTITY *en, const char *id);
 
+// the fixed collision state of `en` (a fixed-family entity: position, heading, shape and the two flags its sub type derives) was written, or the entity was placed: the host's record of the placement holds the state
+// as it is now (Task49). Called by every writer of a field of it after the entity is placed; an entity that is not placed, and a type that is not of the fixed family, state nothing. See mb_hostplacemap.h.
+void campaign_place_fixed_state (struct ENTITY *en);
+
+// the key the host issued for the placement `en` has now (its sector placement's, or with `child` its place in a city's list), "" when it has none: a candidate that is not a mobile names it on every staged question
+const char *campaign_place_key (struct ENTITY *en, int child);
+
 #else
 
 #define campaign_place_insert(ENTITY) ((void) 0)
@@ -49,6 +56,7 @@ void campaign_place_name (struct ENTITY *en, const char *id);
 #define campaign_place_child_insert(ENTITY,PARENT,PRED) ((void) 0)
 #define campaign_place_child_remove(ENTITY) ((void) 0)
 #define campaign_place_name(ENTITY,ID) ((void) 0)
+#define campaign_place_fixed_state(ENTITY) ((void) 0)
 
 #endif
 

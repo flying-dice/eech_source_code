@@ -24,6 +24,8 @@ SCAN_LOG = {}
 ROSTER_LOG = {}
 -- every city event (the buildings of a city: phases 7 to 12) the REAL provider answered: phase pattern, result, the key it named and the identity place the question carried
 CITY_LOG = {}
+-- every FIXED_STATE report (phase 13: a fixed placement's collision state) the REAL provider answered: phase pattern, result, the key it named and the identity place the question carried
+FIXED_LOG = {}
 POSE_LOG = {}
 MOVES, RETIRED, DISPLACED, MOVE_LOG = {}, {}, {}, {}
 VECTORS_ASKED, VECTORS_ALTERED, VECTORS_SEEN = 0, false, nil
@@ -168,6 +170,8 @@ local function reference (op, scene, depth, kind, definition, key)
 		local bad, bad_roster = scenario.bad_real_scan, scenario.bad_real_roster
 		local CITY_PHASES = { ["0x40e00000"] = true, ["0x41000000"] = true, ["0x41100000"] = true, ["0x41200000"] = true, ["0x41300000"] = true, ["0x41400000"] = true }
 		if CITY_PHASES [phase] and not scenario.real_scan then error ("a city event needs the real provider (real_scan)", 0) end
+		local FIXED_PHASE = "0x41500000"
+		if phase == FIXED_PHASE and not scenario.real_scan then error ("a fixed state report needs the real provider (real_scan)", 0) end
 		if scenario.real_scan then
 			-- the REAL provider (eech-world's model_host with its own SectorRoster, registered by the test as REAL_HOST): every question of the scan and the roster is answered by it
 			answer = REAL_HOST.model (op, scene, depth, kind, definition, key)
@@ -209,8 +213,13 @@ local function reference (op, scene, depth, kind, definition, key)
 			if bad_city == "served_not_key" and (phase == "0x41100000" or phase == "0x41200000") and answer.name ~= "" then answer.name = "01" end
 			if bad_city == "reused_key" and phase == "0x40e00000" and answer.name ~= "2" then answer.name = "1" end
 		end
+		-- a reply fault of the fixed state report, forced AFTER the real answer (the real provider never gives one)
+		if phase == FIXED_PHASE and scenario.bad_real_fixed == "echo" then answer.name = "99" end
+		if phase == FIXED_PHASE and scenario.bad_real_fixed == "state" then answer.result = "removed" end
 		if CITY_PHASES [phase] then
 			CITY_LOG [#CITY_LOG + 1] = { phase = phase, result = answer.result, name = answer.name or "", identity = identity }
+		elseif phase == FIXED_PHASE then
+			FIXED_LOG [#FIXED_LOG + 1] = { phase = phase, result = answer.result, name = answer.name or "", identity = identity }
 		elseif phase == "0x40800000" or phase == "0x40a00000" or phase == "0x40c00000" then
 			ROSTER_LOG [#ROSTER_LOG + 1] = { phase = phase, result = answer.result, name = answer.name, identity = identity }
 		else
@@ -240,6 +249,13 @@ local function reference (op, scene, depth, kind, definition, key)
 		local identity = #key > 483 and string.sub (key, 485) or ""
 		if RETIRED [identity] then
 			answer = { result = "refused", reason = "candidate record: the host holds no physical record for this mobile candidate (the host retired the identity)" }
+			ANSWERS [#ANSWERS + 1] = answer
+			record.answer = answer
+			return answer
+		end
+		-- a non-mobile candidate of a record whose fixed state the host withdrew (the real roster says so; this reply only states it in the provider's words, which tests/model_target_point.rs pins against the real provider)
+		if scenario.fixed_state and identity ~= "" and ROSTER_HOLD (identity) == "withdrawn" then
+			answer = { result = "refused", reason = "[candidate.fixed] the host withdrew the fixed physical state of this placement" }
 			ANSWERS [#ANSWERS + 1] = answer
 			record.answer = answer
 			return answer
@@ -381,7 +397,7 @@ package.preload.eech_dc = function ()
 			-- one scan candidate's dialogue with the host, the campaign's half as the shared C applies it (mb_hostentity.h): 44 facts staged as the host asks (a mobile candidate with its scene, or a
 			-- non-mobile one with scene 0 until the fixed facts are read), the seven states, the name echo and the legality of each state against the facts. True: the narrow phase is required
 			local STATES = { skip = true, need_updated = true, need_fixed = true, need_placement = true, need_normal = true, buildings = true, test = true }
-			local altering = { candidate_skip = true, withheld_candidate = true, bad_candidate_state = true, bad_candidate_identity = true }
+			local altering = { candidate_skip = true, withheld_candidate = true, bad_candidate_state = true, bad_candidate_identity = true, withdrawn_fixed_state = true }
 			-- the campaign's OBSERVATION of a mobile candidate (mb_hostentity.h ENTITY_POSE, asked beside the original's reads): the stage, the entity's type (4), alive, the 15 words and the identity of the
 			-- scripted member; the reply's shape is checked as the shared C checks it, and NOTHING of the dialogue depends on the answer
 			local pose_altering = { withheld_pose = true, bad_pose_answer = true, bad_pose_state = true }
@@ -428,6 +444,8 @@ package.preload.eech_dc = function ()
 					if scenario.bad_candidate_request == "count" then key = string.match (key, "^(.*),[^,]+$") end
 					-- a MOBILE candidate's question names its semantic host identity after the facts (the host decides its pose from its own record of it)
 					if mobile and not scenario.unnamed_candidate then key = key .. " " .. (scenario.candidate_id or "eech-world:1") end
+					-- every other candidate names the placement the host served it by (a roster key), on every staged question (Task49)
+					if not mobile and not scenario.no_candidate_key then key = key .. " " .. (scenario.candidate_key or roster_key or "1") end
 					local ok, answer = ask_model ("entity_candidate", scene, nil, nil, nil, key, not altering [MODE])
 					if not ok then stop ("entity_candidate.callback", tostring (answer)) end
 					if type (answer) == "table" and answer.result == "refused" then stop ("entity_candidate.refused", tostring (answer.reason)) end
@@ -482,7 +500,7 @@ package.preload.eech_dc = function ()
 					identity = roster_key
 				end
 				local fault = scenario.bad_roster_request
-				if fault == "phase7" then words [12] = "0x41500000"
+				if fault == "phase7" then words [12] = "0x41600000"
 				elseif fault == "insert_stray_word" and kind == "insert" then words [8] = "0x3f800000"
 				elseif fault == "remove_no_key" and kind == "remove" then identity = ""
 				elseif fault == "remove_text" and kind == "remove" then identity = "eech-world:1"
@@ -531,12 +549,33 @@ package.preload.eech_dc = function ()
 					at = city_event ("child_next", list .. " " .. at).name
 				end
 			end
+			-- the FIXED_STATE report of the placement just inserted (phase 13): its position, the entity type the insertion stated, the heading, the shape, the collision-fixed flag and the align flag, under the placement's key
+			-- (mb_hostentity.h, campaign_entity_fixed_exchange). The host's answer comes back unaltered; a refusal is the bridge's own fatal with the host's reason
+			local function fixed_report (key_of)
+				local words = {}
+				for index = 1, 16 do words [index] = ZERO end
+				words [1], words [2], words [3] = OLD_W [1], OLD_W [2], OLD_W [3]
+				words [4], words [6], words [8], words [12] = "0x41a00000", "0x41100000", "0x3f800000", "0x41500000"
+				local fault = scenario.bad_fixed_request
+				if fault == "stray_fact" then words [7] = "0x3f800000"
+				elseif fault == "withdraw_word" then words [10] = "0x3f800000"
+				elseif fault == "phase_only_flag" then words [8] = "0x40000000" end
+				local identity = key_of
+				if fault == "bad_key" then identity = "01"
+				elseif fault == "no_key" then identity = "" end
+				local ok, answer = ask_model ("entity_scan", 0, nil, nil, nil, table.concat (words, ",") .. (identity ~= "" and (" " .. identity) or ""), true)
+				if not ok then stop ("entity_scan.callback", tostring (answer)) end
+				if type (answer) == "table" and answer.result == "refused" then stop ("entity_scan.refused", tostring (answer.reason)) end
+				if type (answer) ~= "table" or answer.result ~= "placed" then stop ("entity_scan.state", "a fixed state report allows only placed") end
+				return answer
+			end
 			local function scan_walk (offer)
 				if scenario.no_scan_questions then offer () return end
 				for index = #city_children, 1, -1 do city_event ("child_remove", (city_list or roster_key) .. " " .. city_children [index]) end
 				city_children, city_list = {}, nil
 				roster_event (roster_key == nil and "reset" or "remove")
 				roster_event ("insert")
+				if scenario.fixed_state then fixed_report (roster_key) end
 				for _ = 1, scenario.city or 0 do city_children [#city_children + 1] = city_event ("child_insert", roster_key).name end
 				if scenario.city_relink and #city_children > 0 then
 					-- the city's sector placement is relinked while its buildings stay listed (the fixed-position setter every city shares): it is removed and inserted again, and the new placement is declared to
@@ -831,6 +870,8 @@ struct Driven {
     roster_log: Vec<(String, String, String, String)>,
     /// (phase pattern, result, the key the host named, the identity place) of every city event the REAL provider answered
     city_log: Vec<(String, String, String, String)>,
+    /// (phase pattern, result, the key the host named, the identity place) of every fixed state report the REAL provider answered
+    fixed_log: Vec<(String, String, String, String)>,
     /// (stage, entity type, alive, result, key) of every pose observation the REAL provider answered
     pose_log: Vec<(i64, i64, i64, String, String)>,
     /// (identity, mode, terrain elevation or -1, after the launch) of every step the host's movement callback was given
@@ -859,9 +900,23 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
     real_host.set("args", lua.create_table().expect("a table")).expect("args");
     eech_world::model_host::register(&lua, &real_host).expect("the real provider registers");
     lua.globals().set("REAL_HOST", real_host).expect("the real host");
-    lua.set_app_data(eech_world::roster::SharedRoster(std::rc::Rc::new(std::cell::RefCell::new(
-        eech_world::roster::SectorRoster::default(),
-    ))));
+    let roster = std::rc::Rc::new(std::cell::RefCell::new(eech_world::roster::SectorRoster::default()));
+    lua.set_app_data(eech_world::roster::SharedRoster(roster.clone()));
+    // what the REAL roster holds of the fixed collision state of the sector placement a key names (a read, never a write): the scripted candidate states a withdrawn state in the provider's own words
+    let hold = lua
+        .create_function(move |_, key: String| {
+            use eech_world::roster::FixedHold;
+            Ok(
+                match eech_world::roster::parse_key(&key).map(|key| roster.borrow().placement_fixed(key, false)) {
+                    Some(Ok((_, _, FixedHold::Held(_)))) => "held",
+                    Some(Ok((_, _, FixedHold::Withdrawn))) => "withdrawn",
+                    Some(Ok((_, _, FixedHold::Never))) => "never",
+                    _ => "unknown",
+                },
+            )
+        })
+        .expect("the roster hold probe");
+    lua.globals().set("ROSTER_HOLD", hold).expect("the probe");
     lua.load(COLLABORATORS)
         .set_name("scripted collaborators")
         .exec()
@@ -877,6 +932,7 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
     let scans: mlua::Table = globals.get("SCAN_LOG").expect("the scan log");
     let roster: mlua::Table = globals.get("ROSTER_LOG").expect("the roster log");
     let city: mlua::Table = globals.get("CITY_LOG").expect("the city log");
+    let fixed: mlua::Table = globals.get("FIXED_LOG").expect("the fixed state log");
     let poses: mlua::Table = globals.get("POSE_LOG").expect("the pose log");
     let moves: mlua::Table = globals.get("MOVE_LOG").expect("the move log");
     Driven {
@@ -967,6 +1023,18 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
             .sequence_values::<mlua::Table>()
             .map(|entry| {
                 let entry = entry.expect("a city log entry");
+                (
+                    entry.get::<String>("phase").unwrap(),
+                    entry.get::<String>("result").unwrap(),
+                    entry.get::<String>("name").unwrap(),
+                    entry.get::<String>("identity").unwrap(),
+                )
+            })
+            .collect(),
+        fixed_log: fixed
+            .sequence_values::<mlua::Table>()
+            .map(|entry| {
+                let entry = entry.expect("a fixed state log entry");
                 (
                     entry.get::<String>("phase").unwrap(),
                     entry.get::<String>("result").unwrap(),
@@ -2032,7 +2100,7 @@ fn each_single_fault_of_the_new_scan_and_roster_grammar_is_counted_at_its_questi
         (", bad_scan_request = 'begin_key'", "scan request:", "carries no standing key"),
         (", bad_scan_request = 'other_key'", "scan request:", "is not the entry the host last served"),
         (", questions = 2, bad_scan_request = 'ended_key'", "scan request:", "has ended"),
-        (", bad_roster_request = 'phase7'", "scan request:", "is not 0 to 12"),
+        (", bad_roster_request = 'phase7'", "scan request:", "is not 0 to 13"),
         (
             ", bad_roster_request = 'insert_stray_word'",
             "scan request:",
@@ -4203,4 +4271,166 @@ fn the_original_profile_receives_the_same_changed_demand_and_asks_the_host_nothi
     assert!(error_of(same).contains("UNCHANGED"));
     let error = error_of(drive(&original_scenario(", no_query_frame_steps = true"), &original(SPEED_ZERO, signature)));
     assert!(error.contains("UNREACHED: moving_query_speed_zero changed no step"), "{error}");
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// the FIXED_STATE reports (phase 13, Task49: the host's record of a placement holds a fixed entity's collision state) and the placement key every staged question of a non-mobile candidate names. The real
+// provider answers the report and keeps the state in its real roster; the scripted collaborators state a candidate question's refusal for a withdrawn state in the provider's own words (the provider's
+// own refusal is pinned by tests/model_target_point.rs, and the native run asks the real provider), reading what the REAL roster holds. `withdrawn_fixed_state` is the host-side mode
+
+/// a fixed candidate of the sector placement: the real provider holds the report, and the candidate's three staged questions name the placement
+const FIXED_STATE: &str = ", real_scan = true, fixed_state = true, fixed_candidate = true, candidate_sequence = { 'need_fixed', 'need_placement', 'test' }";
+
+#[test]
+fn a_healthy_control_counts_the_fixed_state_reports_apart_and_every_staged_question_of_a_non_mobile_candidate_names_the_placement() {
+    let (driven, row) = scan_row(FIXED_STATE, "scan_real");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    for (field, expected) in [
+        ("request_faults", 0),
+        ("reply_faults", 0),
+        // the report is neither a roster event nor a city event nor a scan question: it is counted apart, and acknowledged once
+        ("fixed_before", 0),
+        ("fixed_after", 1),
+        ("fixed_total", 1),
+        ("fixed_stated", 1),
+        ("roster_after", 2),
+        ("city_after", 0),
+        ("scan_after", 3),
+        // the three staged questions each name the placement; the two that needed the state (the fixed facts read, then the placement) are the eligible lookups
+        ("candidate_keyed", 3),
+        ("candidate_unkeyed", 0),
+        ("fixed_joined", 2),
+        ("fixed_withdrawn", 0),
+        ("candidate_altered", 0),
+    ] {
+        assert_eq!(row[field], expected, "{field}: {row}");
+    }
+    assert_eq!(
+        driven.fixed_log,
+        [("0x41500000".to_string(), "placed".to_string(), "1".to_string(), "1".to_string())],
+        "the host acknowledged the state of the placement it had just issued"
+    );
+    assert_eq!(driven.scan_log.len(), 3, "the report is not a scan question");
+    assert!(driven.delegation_broken.is_empty(), "{:?}", driven.delegation_broken);
+}
+
+#[test]
+fn withdrawing_the_fixed_state_of_a_served_placement_makes_the_next_question_of_the_same_candidate_refused_by_name() {
+    let driven = drive(&healthy(FIXED_STATE), &[("mode", "withdrawn_fixed_state")]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let row = authority(&driven);
+    assert_eq!(row["completed"], false);
+    assert_eq!(row["failure_marker"], "entity_candidate.refused");
+    // the eligible lookup was served over the held state BEFORE the negative (once), the host's own withdrawal was acknowledged `removed`, and the next question was the same candidate's placement question
+    assert_eq!(
+        (
+            row["fixed_joined"].clone(),
+            row["fixed_withdrawn"].clone(),
+            row["fixed_withdrawn_next"].clone(),
+            row["fixed_withdrawn_cause"].clone()
+        ),
+        (Value::from(1), Value::from(1), Value::from("placement"), Value::from("fixed_state_withdrawn")),
+        "{row}"
+    );
+    // no answer and no request was altered: the only fault is the provider's named refusal, and the questions asked are the three of the dialogue, the last of them refused
+    assert_eq!(
+        (
+            row["candidate_altered"].clone(),
+            row["altered"].clone(),
+            row["scan_altered"].clone(),
+            row["request_faults"].clone(),
+            row["reply_faults"].clone()
+        ),
+        (Value::from(0), Value::from(0), Value::from(0), Value::from(0), Value::from(1))
+    );
+    assert_eq!(row["first_fault"], "candidate reply: result refused");
+    assert_eq!(
+        (row["candidate_after"].clone(), row["entity_after"].clone()),
+        (Value::from(3), Value::from(0)),
+        "nothing was asked after the refusal"
+    );
+    // the real provider acknowledged the campaign's report and then the host's withdrawal of ONLY that record's state, in that order, for the one placement
+    assert_eq!(
+        driven.fixed_log,
+        [
+            ("0x41500000".to_string(), "placed".to_string(), "1".to_string(), "1".to_string()),
+            ("0x41500000".to_string(), "removed".to_string(), String::new(), "1".to_string()),
+        ]
+    );
+    assert_eq!(
+        driven.roster_log.len(),
+        2,
+        "the placement itself stayed standing: only the boot and the insertion are roster events"
+    );
+    assert!(driven.delegation_broken.is_empty(), "{:?}", driven.delegation_broken);
+
+    // the prerequisite is not a pass when it was never reached: a candidate no question of which was answered `need_placement`, a placement the host was never told a state for, and an engine stop before any question
+    for extra in [
+        ", real_scan = true, fixed_state = true, fixed_candidate = true, candidate_sequence = { 'skip' }",
+        ", real_scan = true, fixed_candidate = true, candidate_sequence = { 'need_fixed', 'need_placement', 'test' }",
+        &format!("{FIXED_STATE}, engine_stop = {{ after = 1, marker = 'entity_candidate.callback' }}"),
+    ] {
+        let error = error_of(drive(&healthy(extra), &[("mode", "withdrawn_fixed_state")]));
+        assert!(error.contains("UNREACHED") && error.contains("holds no such candidate"), "{extra}: {error}");
+    }
+    let error = error_of(drive(
+        &healthy(", fixture_api = true"),
+        &[("profile", "original"), ("mode", "withdrawn_fixed_state")],
+    ));
+    assert!(error.contains("only mode=control"), "{error}");
+}
+
+#[test]
+fn each_single_fault_of_the_fixed_state_grammar_is_counted_at_its_question_and_is_never_a_pass() {
+    // a non-mobile candidate that names a placement the host did NOT last serve (a live key of another entry) is a request fault too: the key must be the placement the host actually served
+    let (driven, row) = scan_row(&format!("{FIXED_STATE}, candidate_key = '7'"), "scan_real");
+    assert!(driven.result.is_err(), "{:?}\n{}", driven.result, driven.rows);
+    assert!(
+        row["first_fault"]
+            .as_str()
+            .unwrap()
+            .contains("candidate request: the candidate names the placement 7, which is not the entry the host last served (1)"),
+        "{row}"
+    );
+    // a non-mobile candidate that names no placement is a request fault (the provider refuses it by name, and the control that saw it fails)
+    let (driven, row) = scan_row(&format!("{FIXED_STATE}, no_candidate_key = true"), "scan_real");
+    assert!(driven.result.is_err(), "{:?}\n{}", driven.result, driven.rows);
+    assert!(
+        row["request_faults"].as_i64().unwrap() >= 1 && row["candidate_unkeyed"].as_i64().unwrap() >= 1,
+        "{row}"
+    );
+    assert!(
+        row["first_fault"]
+            .as_str()
+            .unwrap()
+            .starts_with("candidate request: a non-mobile candidate names \"\""),
+        "{row}"
+    );
+    // a report that states a fact it does not state, carries the host's own withdrawal word, names no key or a key that is none, is a request fault of its own question
+    for (fault, expected) in [
+        (
+            "stray_fact",
+            "states nothing but the position, the type, the heading, the shape, the two flags and its phase",
+        ),
+        (
+            "withdraw_word",
+            "states nothing but the position, the type, the heading, the shape, the two flags and its phase",
+        ),
+        ("no_key", "names \"\", which is not a roster key"),
+        ("bad_key", "names \"01\", which is not a roster key"),
+    ] {
+        let (driven, row) = scan_row(&format!("{FIXED_STATE}, bad_fixed_request = '{fault}'"), "scan_real");
+        assert!(driven.result.is_err(), "{fault}: {:?}", driven.result);
+        assert!(row["request_faults"].as_i64().unwrap() >= 1, "{fault}: {row}");
+        let first = row["first_fault"].as_str().unwrap();
+        assert!(first.starts_with("scan request:") && first.contains(expected), "{fault}: {first}");
+    }
+    // a reply that acknowledges another placement's key, or answers another state, is a reply fault
+    for (fault, expected) in [("echo", "acknowledged \"99\" for the placement 1"), ("state", "answered removed, not placed")] {
+        let (driven, row) = scan_row(&format!("{FIXED_STATE}, bad_real_fixed = '{fault}'"), "scan_real");
+        assert!(driven.result.is_err(), "{fault}: {:?}", driven.result);
+        assert!(row["reply_faults"].as_i64().unwrap() >= 1, "{fault}: {row}");
+        let first = row["first_fault"].as_str().unwrap();
+        assert!(first.starts_with("scan reply:") && first.contains(expected), "{fault}: {first}");
+    }
 }

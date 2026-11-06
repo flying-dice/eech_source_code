@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_hostplace.h"
+
 #include "entity/mobile/mb_cmbfx.h"
 
 #include "entity/mobile/mb_hostaim.h"
@@ -157,6 +159,10 @@ static void update_server (entity *en)
 
 			CMB_FX_BRIDGE (EECH_CMB_BRIDGE_LANDED, parent, en, 0, 0, fall.floor_height)
 		}
+
+		// the falling segment's height is a raw write of the placed entity (the host decided where it is): the host's record of its placement holds the position it has when the step ends
+
+		campaign_place_fixed_state (en);
 	}
 	else if (fall.remove)
 	{

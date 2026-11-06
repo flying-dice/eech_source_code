@@ -6,7 +6,7 @@
 //! assigned, normal first, with their computed words, including a computed signed zero and NaN payloads), that initialised untouched words keep their exact bits, and that every
 //! malformed answer (a mask or a word outside the domain, a hit that has not assigned both vectors, another kind of result, another scene's name, a refusal) stops the engine before
 //! a single word of either buffer is written. The same control covers the campaign's half of the host's per-candidate decisions (ENTITY_CANDIDATE): the 44 facts it sends, bit for bit, the
-//! seven states and the narrow-phase pose it accepts, the state, pose, identity and scene it refuses by marker, and the campaign's offer over scripted entities that log every getter. It loads no model and says nothing about the host's kernel.
+//! seven states and the narrow-phase pose it accepts, the state, pose, identity and scene it refuses by marker, and the campaign's offer over scripted entities that log every getter. It loads no model and says nothing about the host's kernel. It also covers the fixed/static collision backing (Task49): the FIXED_STATE report every insertion and every writer of a fixed entity's collision state makes, and the placement key every staged question of a non-mobile candidate names.
 use eech_engine_sys as _;
 use std::ffi::{c_char, c_int};
 
@@ -22,5 +22,5 @@ fn the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_an
     let report: String = text.iter().take_while(|&&c| c != 0).map(|&c| c as u8 as char).collect();
     assert_eq!(failures, 0, "the dialogue disagreed with its expectations:\n{report}");
     println!("entity dialogue expectations made: {checks}");
-    assert!(checks >= 559, "only {checks} expectations were made: the control did not run in full");
+    assert!(checks >= 597, "only {checks} expectations were made: the control did not run in full");
 }

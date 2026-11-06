@@ -827,6 +827,60 @@ static void campaign_entity_city_exchange (int phase, int entity_type, const cha
 	memcpy (key, reply.name, strlen (reply.name) + 1);
 }
 
+// The FIXED_STATE report (the same question; phase CAMPAIGN_SCAN_PHASE_FIXED_STATE, Task49; see mb_hostmodel.h): the campaign states the collision state of the fixed-family placement `key` names. The key is validated
+// HERE as a roster key before anything is sent, and the host's reply is checked completely: the state `placed`, the same key acknowledged (never another placement's), and no sector.
+static void check_fixed_reply (const campaign_model_reply *reply, const char *key)
+{
+	if (reply->candidate_state != CAMPAIGN_MODEL_SCAN_PLACED)
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.state] the host decided state %d for a fixed state report, which allows only state %d", reply->candidate_state, CAMPAIGN_MODEL_SCAN_PLACED);
+	}
+
+	check_reply_key (reply, "entity_scan");
+
+	if (strcmp (reply->name, key) != 0)
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.key] the host acknowledged the key \"%.40s\" of a fixed state report, which names another placement", reply->name);
+	}
+
+	if ((!scan_word_is_zero (&reply->candidate [0])) || (!scan_word_is_zero (&reply->candidate [1])))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.cursor] the host named a sector for a fixed state report, which carries none");
+	}
+}
+
+static void campaign_entity_fixed_exchange (int entity_type, const char *key, const float *state)
+{
+	campaign_model_request
+		request;
+
+	campaign_model_reply
+		reply;
+
+	if (!roster_key_is_valid (key))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.key] a fixed state report names \"%.40s\", which is not a roster key", key);
+	}
+
+	memset (&request, 0, sizeof (request));
+	request.op = CAMPAIGN_MODEL_ENTITY_SCAN;
+	request.scene = 0;
+	request.pose_count = CAMPAIGN_MODEL_SCAN_FACTS;
+	request.pose [CAMPAIGN_SCAN_PHASE] = (float) CAMPAIGN_SCAN_PHASE_FIXED_STATE;
+	memcpy (&request.pose [CAMPAIGN_FIXED_POSITION], &state [0], 3 * sizeof (float));
+	request.pose [CAMPAIGN_FIXED_TYPE] = (float) entity_type;
+	request.pose [CAMPAIGN_FIXED_HEADING] = state [3];
+	request.pose [CAMPAIGN_FIXED_SHAPE] = state [4];
+	request.pose [CAMPAIGN_FIXED_COLLISION] = state [5];
+	request.pose [CAMPAIGN_FIXED_ALIGN] = state [6];
+
+	memcpy (request.host_id, key, strlen (key));
+
+	CAMPAIGN_ENTITY_SCAN_ASK (&request, &reply);
+
+	check_fixed_reply (&reply, key);
+}
+
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // ENTITY_POSE (EEDCS-49, D3, fifth slice): an OBSERVATION of a mobile candidate's pose against the host's record of its identity. The answer chooses no pose and no result; its shape is checked and a mirror difference stops the engine (a conformance assertion, not a decision-neutral read).
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

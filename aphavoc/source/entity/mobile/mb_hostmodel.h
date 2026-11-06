@@ -311,8 +311,23 @@ enum campaign_model_scan_phase
 	CAMPAIGN_SCAN_PHASE_CHILD_FIRST,
 	CAMPAIGN_SCAN_PHASE_CHILD_NEXT,
 	CAMPAIGN_SCAN_PHASE_LINK,
-	CAMPAIGN_SCAN_PHASE_NAME
+	CAMPAIGN_SCAN_PHASE_NAME,
+	/* the FIXED collision state of a fixed-family placement (Task49, fixed/static collision backing): the campaign states it each time it writes one (see campaign_model_entity_fixed) */
+	CAMPAIGN_SCAN_PHASE_FIXED_STATE
 };
+
+/* the facts of a FIXED_STATE report (the same question, phase CAMPAIGN_SCAN_PHASE_FIXED_STATE): the position (3 floats), the entity type, the heading, the shape (a whole scene index), the collision-fixed
+   flag, the align-with-terrain flag, and the withdrawal word, which is the HOST's own (the campaign always sends 0); every other fact is zero. The identity place is the key of the placement the state was written
+   under. */
+#define CAMPAIGN_FIXED_POSITION 0
+#define CAMPAIGN_FIXED_TYPE 3
+#define CAMPAIGN_FIXED_HEADING 4
+#define CAMPAIGN_FIXED_SHAPE 5
+#define CAMPAIGN_FIXED_COLLISION 7
+#define CAMPAIGN_FIXED_ALIGN 8
+#define CAMPAIGN_FIXED_WITHDRAW 9
+/* the floats of the state the campaign reads from a fixed entity (campaign_model_entity_fixed): position (3), heading, shape, collision-fixed flag, align flag */
+#define CAMPAIGN_FIXED_STATE_WORDS 7
 
 enum campaign_model_scan_state
 {
@@ -504,7 +519,11 @@ int campaign_model_entity_collision (int scene, const float *segment_old, const 
    candidate's semantic host identity (NULL for any other candidate): the host takes the candidate's position, motion vector and attitude from ITS OWN physical record of that identity, never from the facts' words for those
    (which the campaign still reads and sends, and compares with the record in ENTITY_POSE); a mobile candidate with no record, a retired or unknown identity is refused by name. The reply is
    checked completely; the returned state is a campaign_model_candidate_state and, for TEST, `pose` receives the `*pose_count` floats of the narrow phase's candidate pose (room for
-   CAMPAIGN_MODEL_CANDIDATE_POSE_MAX). */
+   CAMPAIGN_MODEL_CANDIDATE_POSE_MAX).
+   For every candidate that is NOT a mobile of a sector list (a fixed object, a city, a building listed in a sector or under a city) `host_id` is instead the key of the PLACEMENT the host served the candidate by (its
+   sector placement's, or a city building's place in the city's list), on every staged question: the host joins it to the record of the placement and, once the candidate's fixed facts were read, decides from the
+   fixed collision state the record holds (campaign_model_entity_fixed), comparing the campaign's words for the same facts (the collision-fixed flag, position, shape, heading, align flag) with it, bit for bit. A key
+   that names no live placement of the kind the branch has, and a record that holds no state (or whose state the host withdrew) where the branch needs one, are refused by name. */
 int campaign_model_entity_candidate (int scene, const float *facts, const char *host_id, float *pose, int *pose_count);
 
 /* ENTITY_SCAN: asks the host what to do next in the enumeration of the scan from `facts` (CAMPAIGN_MODEL_SCAN_FACTS floats, see above). `entry_key` is the host's key of the entry the campaign is standing at
@@ -523,6 +542,12 @@ void campaign_model_entity_roster (int phase, int entity_type, float side, const
    city's sector placement had at its first building, and keeps that name when the city's placement is relinked (a LINK of the new placement and that name continues the list); a NAME's identity place is a key, one
    space and the object identity, each at its own domain (CAMPAIGN_MODEL_SCAN_IDENTITY_MAX in all). */
 void campaign_model_entity_city (int phase, int entity_type, const char *identity, char *key);
+
+/* ENTITY_SCAN, the FIXED_STATE report (phase CAMPAIGN_SCAN_PHASE_FIXED_STATE; Task49): the collision state of the fixed-family placement the key `key` names (a sector placement's, or a building's place in its city's list)
+   is `state` (CAMPAIGN_FIXED_STATE_WORDS floats: position, heading, shape, collision-fixed flag, align flag) for an entity of `entity_type`. The host's RECORD of the placement holds it, and a candidate question about that
+   placement is decided from it. The campaign states it every time it writes one of the fields: the insertion into a list, a setter, a kill's destroyed shape, a restore, an unpack and a bridge's damage or fall. The reply
+   is checked completely (the state `placed` and the same key acknowledged); a refusal stops the engine with the host's reason. */
+void campaign_model_entity_fixed (int entity_type, const char *key, const float *state);
 
 /* whether a model provider is installed (the roster reports only to one: a build with no host has no roster and no scan) */
 int campaign_model_host_installed (void);
