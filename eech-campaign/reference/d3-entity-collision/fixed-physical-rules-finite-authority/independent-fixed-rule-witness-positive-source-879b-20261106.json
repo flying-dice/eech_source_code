@@ -1,0 +1,205 @@
+{
+  "schema": "independent-d3-source-review.v1",
+  "reviewed_utc": "2026-11-06T19:32:59.880662+00:00",
+  "scope": "One combined independent correctness, clean-code and boundary-safety follow-up of the sole positive-consumer-contract P2 in the test-only Lua witness and existing Rust harness. No builds, tests, native replay, delegated review or tracked edits were performed.",
+  "source": {
+    "commit": "879b0ebde110250169513dfd9fecc4c83f3b7b01",
+    "parent": "18f86267ffd81c44f9abb003a16ebc0089da8421",
+    "metadata_commit": "97dc32b4e5dff7066b080fd88b1a7ba54c62c9f4",
+    "compiled_runtime_source": "681ccfe5476a7c0a90036bc01cd054358c751162",
+    "prior_witness_source": "96cc958d5fca9fdf847cf1853020583071dedde8",
+    "changed_paths": [
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "bytes": 228139,
+        "sha256": "8cb88ddf2ab548728abbbd99e64bdf4c41258fe144cf9607e9ba6efbf1867892",
+        "git_blob": "e27c2da83ee59dda1ac614a36d0755698f302722"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "bytes": 323854,
+        "sha256": "2086eb094d70d159fba9c8c4f14b56eb90ad4aa273bc8e0258cc6d61336cb5f8",
+        "git_blob": "240a1f6ef603221b82e31f03e2925adae712d59c"
+      }
+    ],
+    "code_delta_exactly_two_paths": true,
+    "metadata_delta": "30 evidence-pack files plus STATUS.md and the active extraction card; no further executable change.",
+    "literal_and_binary_source_identities_separate": true
+  },
+  "decision": {
+    "status": "SOURCE_CLEAR_FOR_ONE_SEPARATELY_BOUND_NEGATIVE_NATIVE_WITNESS",
+    "native_launch_clearance": true,
+    "diagnostic_native_launch_clearance": true,
+    "findings": [],
+    "finite_fixed_rule_authority_closed": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false
+  },
+  "finding_disposition": {
+    "id": "ENV-FIXED-RULE-WITNESS-POSITIVE-ACCEPTANCE-1",
+    "prior_review": {
+      "path": "R:/d3-evidence/independent-fixed-rule-witness-source-96cc-20261106.json",
+      "sha256": "870453bc42a9172e3c20fd05ba3da86bd101ad31dbeecbc0229882450362e8d2"
+    },
+    "disposition": "CLOSED_IN_REVIEWED_SOURCE_ONLY",
+    "evidence": [
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "lines": "1042-1080",
+        "fact": "The positive_problem guard rejects scene zero, requires exact twelve-word grammar and rejects exponent255 using the encoded integer word. It checks a nonempty scene name against a unique previously accepted echo. The raw pose words are not decoded into binary32 values or rewritten."
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "lines": "1046-1063, 1787",
+        "fact": "Only changed_fixed_rule installs name_tracked. A name is pending until the campaign enters its next MODEL question; Core checks its scene identity synchronously before it can advance. The tracker observes naturally returned nonrefused candidate/object/custom-object/animation/target-offset replies. It uses no new API, guessed name table, second store or extra metadata query. Missing or conflicting bindings cannot credit or mutate."
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "lines": "1604-1619",
+        "fact": "The new positive validation precedes eligible credit, subtype restatement and extra evaluation. Malformed positives record their own reply fault and are forwarded unchanged for the consumer to reject. Unbound names leave the positive unvalidated and cannot trigger the intervention."
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "lines": "4984-5078",
+        "fact": "Positive-first controls retain valid signed-zero/subnormal positives and reject infinities, signaling NaN, scene zero and wrong scene echo; absent binding remains UNREACHED. Each damaged positive asserts zero eligibility, zero restatement, zero extra evaluation and its own failure, rather than the expected counterfactual refusal."
+      }
+    ]
+  },
+  "combined_assessment": {
+    "correctness": "The complete positive checks now cover the relevant stationary TEST consumer contract before the witness can hide the original positive. The exponent classifier works on exact hexadecimal word integers, including negative infinity and NaNs, while accepting finite subnormal and signed-zero words unchanged.",
+    "name_acceptance_boundary": "The pending echo is promoted only on the next public MODEL callback. In this synchronous Core consumer path, the identity check is fatal before such progression; a rejected answer does not provide a successful acceptance path. The current intercepted answer cannot authenticate its own name: its tracker has not received or promoted it. Missing or inconsistent history prevents intervention. This is a bounded inferred acceptance oracle, not a new authoritative model-name dataset.",
+    "clean_code": "The guard and tracking state are local to the existing mode. Default and other modes keep their original provider function, schema and behavior. No new production validator, duplicate physical owner, model store or solver was introduced.",
+    "boundary_safety": "The correction preserves the actual current served-key and held-state joins, subtype-only same-provider restatement, full placed/same-key/no-cursor ACK and same unmodified candidate payload. The extra evaluation remains declared Host-only; the resulting real flag-mirror refusal occurs before the kernel or Core UPDATED/terrain/movement/RNG/time services. ACK failure, malformed positive, answered or raised reevaluation and unrelated fatal do not become successful counterfactual credit.",
+    "scope_of_fp_statement": "Encoded words are classified without loading the represented float values; the valid subnormal/signed-zero control is retained. No new native or whole-caller FP-state measurement is claimed by this Lua correction; prior compiled-runtime source and FP evidence retain their own identities."
+  },
+  "evidence": {
+    "external_freeze": {
+      "path": "R:/d3-evidence/fixed-rule-witness-positive-contract-CODE-FROZEN-20261106.json",
+      "bytes": 19431,
+      "sha256": "1648632f8a602627f1f3639f8ce691935debd0aa8a07d64ca63cc66058b8c3fd"
+    },
+    "tracked_freeze": {
+      "path": "eech-campaign/reference/d3-entity-collision/fixed-physical-rules-witness-positive-contract-source-and-checks/fixed-physical-rules-witness-positive-contract-CODE-FROZEN-20261106.json",
+      "bytes": 17633,
+      "sha256": "11545ef8725d17ff8866b4463caf0ba54c0a2bafede179681ede08ec2a2393cf"
+    },
+    "external_tracked_join": "Strict deep equality after setting only identity.meta_commit and publication to the tracked null placeholders; no other normalization.",
+    "producer_completion": {
+      "path": "R:/d3-evidence/claude-d3-fixed-rule-witness-positive-contract-20261106-completion.json",
+      "bytes": 658,
+      "sha256": "ea333d17483c75d527d8841b0485c0e71ff805444d9f1dcc412e9d344f3e477e"
+    },
+    "producer_actual_exit": 0,
+    "producer_result_is_error": false,
+    "producer_model": "claude-sonnet-5-5",
+    "producer_completed_utc": "2026-11-06T19:31:37.910576+00:00",
+    "pack_manifest": {
+      "path": "eech-campaign/reference/d3-entity-collision/fixed-physical-rules-witness-positive-contract-source-and-checks/manifest.json",
+      "bytes": 5236,
+      "sha256": "0778306ed85d27d204e379096a914b2046dd52c3000206ce43fafc86d226720a",
+      "listed_entries_verified_against_actual_git_bytes": 29,
+      "files_including_manifest": 30
+    },
+    "targeted_maps": {
+      "before": {
+        "path": "eech-campaign/reference/d3-entity-collision/fixed-physical-rules-witness-positive-contract-source-and-checks/maps/positive-map-before-final.json",
+        "bytes": 3414,
+        "sha256": "2708e1c8dd705c514ca1754da0e771134e4cf72558eecadd6bf86f7101bb7aa3"
+      },
+      "after": {
+        "path": "eech-campaign/reference/d3-entity-collision/fixed-physical-rules-witness-positive-contract-source-and-checks/maps/positive-map-after-final.json",
+        "bytes": 3413,
+        "sha256": "42fd30276f8a04e105697972d017419376ada3f385b09d311a38f80209449f10"
+      },
+      "changed_file_records_literal_equal": true,
+      "other_differences_only": [
+        "created_utc",
+        "label"
+      ],
+      "two_changed_raw_sha256_and_sizes_equal_code_git_bytes": true,
+      "qualification": "Targeted maps of two changed raw files plus production tree identities, not a new full9769 map or an immutable Linux build. The prior full maps are reused by their own closed source identity."
+    },
+    "production_roots_independently_identical_to_runtime681": [
+      ".github",
+      "aphavoc",
+      "eech-campaign/.cargo",
+      "eech-campaign/Cargo.lock",
+      "eech-campaign/Cargo.toml",
+      "eech-campaign/crates/eech-dc",
+      "eech-campaign/crates/eech-engine",
+      "eech-campaign/crates/eech-engine-sys",
+      "eech-campaign/crates/eech-world/lua/campaign.lua",
+      "eech-campaign/crates/eech-world/src",
+      "modules"
+    ],
+    "final_checks": [
+      {
+        "name": "positive-final-green-debug",
+        "receipt": {
+          "path": "R:/d3-evidence/fixed-rule-witness-20261106/fixed-rule-witness-positive-final-green-debug.json",
+          "bytes": 886,
+          "sha256": "46f48d5ef80a8658b52797789054abdf92715d6dda2e467b9db4b4f7eeba2aef"
+        },
+        "actual_exit": 0,
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority",
+        "passed": 96,
+        "failed": 0,
+        "stdout_sha256": "ebc47707b4e0b8581058d15623840212e25823f9d846efeb01482aea27e37afb",
+        "stderr_sha256": "2a24bf877016bda350638e468d868528572d491d672ebfb8db8391ae3da2d7e2"
+      },
+      {
+        "name": "positive-final-fmt-check",
+        "receipt": {
+          "path": "R:/d3-evidence/fixed-rule-witness-20261106/fixed-rule-witness-positive-final-fmt-check.json",
+          "bytes": 771,
+          "sha256": "aa37c8a4ce162f058908ab184eea67b80c85106b0df3f8c912c068a55b94266a"
+        },
+        "actual_exit": 0,
+        "command": "cargo fmt -p eech-world -- --check",
+        "passed": 0,
+        "failed": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "name": "positive-final-clippy",
+        "receipt": {
+          "path": "R:/d3-evidence/fixed-rule-witness-20261106/fixed-rule-witness-positive-final-clippy.json",
+          "bytes": 832,
+          "sha256": "67f83f015d6492c19fb7fc9dcc8a83636a6454e3229cc2855d09f6a7f5aafaee"
+        },
+        "actual_exit": 0,
+        "command": "cargo clippy --locked -p eech-world --all-targets -- -D warnings",
+        "passed": 0,
+        "failed": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "869654c1730be6dbb694962075001daccb52611596261f291e6d5f6050a09060"
+      }
+    ],
+    "current_scoped_result": "96 passed, 0 failed; scoped fmt and eech-world all-target Clippy actual zero. No new workspace/release/i686/native test claim.",
+    "retained_red": {
+      "name": "red-96cc-positive-b",
+      "actual_exit": 101,
+      "passed": 91,
+      "failed": 5,
+      "meaning": "Unchanged96cc Lua, new single-fault controls; coherent/subnormal positive control passed. Earlier looping RED is preserved separately. No damaged native was run."
+    },
+    "reused_compiled_source_review": {
+      "path": "R:/d3-evidence/independent-fixed-rules-combined-source-681ccfe54-20261106.json",
+      "sha256": "5fdab426ca4f6b0b90ef5c747c5d7cb684c9ae9e6eb2b87710c3884e81849e92",
+      "scope": "Unchanged compiled runtime source and its exact prior checks/CI; not this diagnostic source or current-head CI."
+    }
+  },
+  "conditional_native_scope": [
+    "ONE fresh-root changed_fixed_rule negative only, using the sealed hosted binary built from runtime681 and the separately Git-bound879b Lua literal. Root must preserve and assert the exact literal commit/blob/SHA, unchanged sealed payloads, full pre/post inputs and separate native/helper/outer exits.",
+    "The existing ordinary short, healthy, Windows profile seals and prior runtime681 CI remain at their own measured identities. No rebuild or healthy replay is required solely for this Lua/test correction. Current witness-head CI is not claimed here and remains a required delivery gate.",
+    "Actual success still requires the valid real final placement, exact same held record, strict subtype-only ACK, unchanged same-payload extra evaluation, real named collision-fixed mirror refusal, zero request faults and exactly the declared one reply fault. No eligible binding or placement means honest UNREACHED; it does not justify actor, geometry or timing searches.",
+    "The extra Host evaluation is not a second Core query, natural weapon integration, or native coverage of all fifteen fixed subtypes or every ordinary-sector path. No new authority closure is granted before actual evidence review."
+  ],
+  "remaining_requirements": [
+    "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION remains OPEN and is the mandatory next production work after the finite fixed-rule proof, before sector height. Empty-city relink/restore must not depend on Core as the sole retained box copy.",
+    "All ten whole-D3 requirements remain preserved, including required default-shape/clutter/draw-align caller and DCS disposition, sector height/hints, effectful UPDATED/shared terrain, raw tree/forest/cloud RNG, needed hierarchy/devices/services, DCS mapping and natural moving integration.",
+    "Current final full40/all8, final input/payload evidence, current-head CI, final census, normal merge/delivery and whole Task49/D3 acceptance remain open. The protected f734 full pack is not accepted by partial prefix evidence. D4/D5 and historical TypeScript work remain unstarted."
+  ]
+}
