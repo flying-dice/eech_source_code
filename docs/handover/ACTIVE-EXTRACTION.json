@@ -7,10 +7,10 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "FINITEhostsectorrosterdependencyclosed505/compiled5182/SAMEactual9b7d; ordinaryshort3COMPLETEliteral80fd/profiles0. Old3475full40active/PARTIAL; nextcitybuildinglist/placementrecordsemanticlink production required; wholeTask49D3open.",
+  "phase": "UNREVIEWED CODE_FROZEN host-owned city building lists and one canonical structure record (placements linked, lazy object-report identity named) behind ENTITY_SCAN phases 7 to 12, source 2541843d13fb666299f1dbd4551f233e46e986ce over 98c39c35b7d8ee16b9982248b4db277857b09b78 (focused Linux checks only; no Windows, native, ordinary or full-pack run). The verified sector-roster dependency is closed and untouched; ordinary 3475 full40/all8 ACTIVE/PARTIAL. Independent source review, then Root's native build and one matched healthy+withdrawn_child actual next; fixed pose/shape/live flags/hierarchy, UPDATED/shared terrain, RNG, devices, DCS mapping, natural weapon and wholeD3/fullTask49 open.",
   "preparation_batches_without_cutover": 0,
   "preparation_limit": 2,
-  "next_production_change": "Move city building-list backing and link its structures to host placement records/semantic IDs; preserve city/child order, actual create/restore/relink/retire timing and lazy report IDs. One canonical store, Core list as mirror only. Fixed/static pose/shape/live flags and hierarchy remain REQUIRED; no wholeD3claim.",
+  "next_production_change": "Review the city-list/record source, then Root's native build and one matched healthy + withdrawn_child actual (or the finite UNREACHED prerequisite if the default fixed case has no city traversal); then the next required production cut: the static pose, shape and live flags of fixed and city entities and the hierarchy (the campaign's remaining dependencies of the collision scan), with the tallest structure of a sector, UPDATED/terrain-normal and the shared terrain record as explicit required follow-on services. Core lists stay conformance mirrors, never an answer; no wholeD3 claim.",
   "ready_evidence": [
     "Closed preparation reused, not redone: original characterization (15054 queries / 29894 ordered terrain answers exact through the host library and real Lua; original raw unchanged, 47a4af0d1/b44d2c96f) and the host tree loader/kernel 8c452f197 (review 4258f1b94, FP state/refusal/lifetime controls).",
     "Merge of the verified clean Task52 branch 099aa09c2dfeb77ca708214421e81113369a057e into the old Task49 head f2473817bced177b588878d6e416dcb4400f8bc2 (normal merge, no rebase/force); both sides' features, FFI, tests and history preserved.",
@@ -54,6 +54,14 @@
     "Reviewed roster source and complete short safe evidence: reference/d3-entity-collision/sector-roster-source-and-short/manifest.json. Four literal source reviews, four checkpoints, frozen gate/profile/short/prefix/root-checker/ledger proofs. Native backing actuals pending, no Task49/D3 acceptance."
   ],
   "blockers": [
+    {
+      "id": "city-building-backing-source-review",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "Source 2541843d13fb666299f1dbd4551f233e46e986ce (UNREVIEWED): the city building list, its order and a structure's linked placements and object-report identity are the host's behind ENTITY_SCAN phases 7 to 12; the campaign's list is the conformance mirror. Genuine reds, then fmt, the four-crate check, provider 13, C dialogue 494, source guards, driver 61, model_target_point 33 and the roster filter 7 passing, each its own scoped child with exit 0, between literally identical full input maps. Report R:/d3-evidence/city-building-backing-CODE-FROZEN-20261106.json.",
+      "missing_fact": "The independent source review of the changed C, Rust and Lua; Root's native build and one matched healthy plus withdrawn_child actual (the driver reports UNREACHED if the default fixed case has no city traversal); the ordinary regression on the new source.",
+      "next_fix": "Review once; Root builds and runs the control. No rerun of the closed roster, FP, provider-key or earlier driver groups."
+    },
     {
       "id": "sector-roster-real-withhold-control",
       "status": "closed",
