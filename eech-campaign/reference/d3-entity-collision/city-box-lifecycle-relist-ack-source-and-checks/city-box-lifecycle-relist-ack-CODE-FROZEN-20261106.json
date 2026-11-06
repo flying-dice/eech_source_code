@@ -1,0 +1,320 @@
+{
+  "schema": "d3-city-box-lifecycle-relist-ack-code-frozen.v1",
+  "status": "UNREVIEWED CODE_FROZEN",
+  "task": "EEDCS-49 (D3)",
+  "finding": "ENV-CITY-LIFECYCLE-RELIST-FIXED-ACK-1 (Root actual native blocker, retained literally in this pack)",
+  "source": {
+    "code_commit": "eb3861ea8a5e2103db7bc8c3d3f97cf1f15b0dc5",
+    "parent_metadata_commit": "a1ef80b05612f4b8f2d355ad024cef6037426e55",
+    "sealed_runtime_code": "354abd9c04a53f1935919abc4fde1172b438c2b3",
+    "changed_paths": {
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua": {
+        "bytes": 255678,
+        "raw_sha256": "98de0f7d593e9ace2c2a6da431d5b7021d9aaf035d59c1a223e39925c00f32db",
+        "git_blob": "3591429759763d9ed3a2216790402c2d5e9e0c09",
+        "blob_at_parent": "86b26df1f0d58db471d8248c3d1f4ff69c250277"
+      },
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs": {
+        "bytes": 357618,
+        "raw_sha256": "6228ddebcab065899bd7543f6dd4519193375093d0e9c5de62dd52237cfe5263",
+        "git_blob": "7dc4b6de0f2d4f87e1f612b7868bfafcee4fc437",
+        "blob_at_parent": "b28d547d741b171509236ba7c13f814bf042cd34"
+      },
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c": {
+        "bytes": 205207,
+        "raw_sha256": "ff1734ceed305759fb975b600884a165689d74b1cdaf88300f657b5ddb3890ff",
+        "git_blob": "73f98af9115106224b5e32e8da40c59793abed15",
+        "blob_at_parent": "91d70ad1b75060fa7a9776a4022c226c741f5d1f"
+      }
+    },
+    "production_c_or_rust_changed": false,
+    "qualification": "the driver script (`lua/entity-authority.lua`) is a literal file the native helper loads (`eech-world.exe <literal entity-authority.lua> ...`), not a compiled input; the C file is the TEST-ONLY dialogue check (feature `entity-dialogue-check`, \"Never enabled in the shipping build\" per Cargo.toml). Root verifies the binary-input identity before binding a Git literal to the sealed 354abd9c0 runtime."
+  },
+  "diagnosis": {
+    "proved_by": "reading the real shipping sources, then reproducing the symptom with the real provider and the real driver (RED over unchanged 354abd9c0: request_faults=2 reply_faults=0 with the exact native text) and probing the real roster (relist-probe1)",
+    "state_is_not_missing": "the real roster holds the fixed state for the relisted building through its record (the fixture asserts ROSTER_HOLD == held for the new child key, in-engine, before the expansion); a building listed again with NO LINK holds `never` for the new key, and the real provider refuses its expansion by name",
+    "observer_gap": "mb_hostplacemap.h place_child_insert -> place_declare sends LINK(sector key, NEW child key), then place_fixed_state states the building under its SECTOR key (it holds one), never under the new city-list key. The host keeps both placements in one record (roster.rs link/merge_fixed). The driver keyed `scan.fixed.held` by the key a report named, so the new child key looked unacknowledged although the host held the record state. Boot (child listed first, sector second) had reported the child key, which is why only the relist failed.",
+    "real_c_trace": "characterised in the C dialogue check (eech_entity_dialogue_check.c): after a drain and a relist of a sector-placed building the host is asked exactly one LINK (sector key, new child key) and exactly one FIXED_STATE, named by the sector key and not by the new child key",
+    "what_was_not_available": "no per-request trace of the native run was retained (only the summary row), so the six native requests are inferred from the real C source plus the reproduction, not observed"
+  },
+  "change": {
+    "driver": "an acknowledged LINK of a LIVE sector placement and a building listed under a city (city.parent) records the pair (scan.fixed.peer); a state acknowledged under a key marks its peer, and a LINK joins whatever state either key already held (scan.fixed.shared). The CityExpand request check asks scan.fixed.holds(child) = acknowledged under that key OR shared through an acknowledged LINK. scan.fixed.held keeps its meaning and its count (fixed_held_lifetime unchanged).",
+    "not_done": [
+      "no blanket acceptance of CityExpand or of a joined count",
+      "no acceptance of a valid-looking name",
+      "no query-time adoption, second store, API or solver",
+      "no campaign policy moved",
+      "candidate-lookup joins (scan.fixed.joined, rule-change and withdrawal eligibility) still ask the strict `held`: only the expansion validator changed",
+      "row schema and every counter unchanged"
+    ],
+    "strictness_kept": [
+      "an unlinked key, an unacknowledged or refused LINK, a LINK of an ended or non-live sector key and a state of another record establish nothing",
+      "request faults still count before and independently of any UNREACHED classification"
+    ]
+  },
+  "tests": {
+    "location": "eech-campaign/crates/eech-world/tests/entity_authority.rs (scripted engine + real provider and roster) and csrc/eech_entity_dialogue_check.c",
+    "new_tests": [
+      "buildings_listed_again_under_new_keys_while_their_sector_placements_stay_are_expanded_over_the_state_their_record_holds (also with no restatement after the LINK)",
+      "a_building_listed_again_with_no_acknowledged_link_to_its_record_is_a_request_fault_and_never_credited_by_another_buildings_link"
+    ],
+    "fixture_fidelity_changes": [
+      "the scripted relist emits the real order (LINK sector/new child, then the state under the sector key) for buildings that hold sector placements",
+      "the scripted CITY_EXPAND answer refuses a building the REAL roster holds no state for (the real provider does)",
+      "the unchanged query walks past the buildings sector entries the scan now serves first (resolved with no hit)"
+    ],
+    "c_check": "CHARACTERISATION of unchanged production C (passes before and after); a mutated expectation fails at its line (relist-c-mutant)"
+  },
+  "evidence": {
+    "runner": "R:/d3-evidence/run-city-box-lifecycle-direct-20261106.py (unchanged; x86_64 Linux debug, one cargo child per label, real exit recorded)",
+    "runs": [
+      {
+        "label": "relist-red-driver",
+        "what": "FIRST RED over the UNCHANGED 354abd9c0 driver, with the first version of the new tests (before the fixture fidelity edits below): 2 failed",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority listed_again",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T23:02:51.606344+00:00",
+        "completed_utc": "2026-11-06T23:02:55.892795+00:00",
+        "test_results": [
+          "test result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 105 filtered out; finished in 0.03s"
+        ],
+        "stdout_sha256": "415b85bbebd734fea432bc0dd1f2d873491875a140da529b2f5cda71e3030913",
+        "stderr_sha256": "372c2497242242905b745c1ae98e476918c0fca3416011f984c78f2169f48b79"
+      },
+      {
+        "label": "relist-green-driver1",
+        "what": "first run with the driver change: the expansion fault was gone; the scripted query then failed on a FIXTURE artifact (the real roster serves a building sector entry first once the city is relinked)",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority listed_again",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T23:03:59.804254+00:00",
+        "completed_utc": "2026-11-06T23:04:02.117880+00:00",
+        "test_results": [
+          "test result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 105 filtered out; finished in 0.02s"
+        ],
+        "stdout_sha256": "8b2c2c43da4a83f59d970a16abc2dcff97c7df84328266f995e1f6dcbef7cb6e",
+        "stderr_sha256": "504a279f677a4518e3e3e7b93c6b5f7facd1277a4ad1b19eef0fd34c3584d26d"
+      },
+      {
+        "label": "relist-green-driver2",
+        "what": "after the scripted query walks past the buildings sector entries: the positive passed; the negative showed the scripted expansion answered a building the real roster holds NO state for (fixture, not production)",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority listed_again",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T23:04:54.195441+00:00",
+        "completed_utc": "2026-11-06T23:04:57.013516+00:00",
+        "test_results": [
+          "test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 105 filtered out; finished in 0.02s"
+        ],
+        "stdout_sha256": "7e1b2276672c36509ec46968e208e4cb4ca77729352a39ac4625527610bd621a",
+        "stderr_sha256": "a78d7ee60318eee7e9987401ea94942b4a3f01c01f9e44b200af47573eee228f"
+      },
+      {
+        "label": "relist-probe1",
+        "what": "DIAGNOSTIC probe (temporary test, removed before the freeze): for a building listed again WITHOUT a LINK the real roster holds `never` for the new child key and `held` for the sector key",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority tmp_probe_listed_again",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T23:05:40.120367+00:00",
+        "completed_utc": "2026-11-06T23:05:42.856238+00:00",
+        "test_results": [
+          "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 108 filtered out; finished in 0.01s"
+        ],
+        "stdout_sha256": "73393deea2bfca5421f83d69468fe192bf6e4b7651eaacc8c28875dc80200784",
+        "stderr_sha256": "d043d2f53fc3fa89fada798b97d5766a5ba47e996f1be7a03baf67021b5d5c0b"
+      },
+      {
+        "label": "relist-green-driver3",
+        "what": "focused GREEN: the scripted expansion now refuses what the real roster holds no state for (the real provider does); the three listed_again tests pass",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority listed_again",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T23:06:26.327376+00:00",
+        "completed_utc": "2026-11-06T23:06:29.087427+00:00",
+        "test_results": [
+          "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 105 filtered out; finished in 0.02s"
+        ],
+        "stdout_sha256": "cb46d7402f55a31ce1d9106f6c27b137ad7ff3759942bea4126a08756d22b6ce",
+        "stderr_sha256": "e82a17dc89f4060d9d4a7ce2cf74b9ae29629035a9114955e1e37728dada589f"
+      },
+      {
+        "label": "relist-red-final",
+        "what": "FINAL RED: the final tests over the UNCHANGED driver (the driver file stashed and restored, stash list empty): 2 failed with request_faults=2 reply_faults=0, the native text",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority listed_again",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T23:06:37.187628+00:00",
+        "completed_utc": "2026-11-06T23:06:39.280950+00:00",
+        "test_results": [
+          "test result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 105 filtered out; finished in 0.02s"
+        ],
+        "stdout_sha256": "7bd9d285810b0c9940be90d7d54de129dd68ffe00e729fa8089eade9a8b7e5de",
+        "stderr_sha256": "68363b7d8fb5cac25ea2c0c37d19413e6b307a71501e6aa0e0744a010659381a"
+      },
+      {
+        "label": "relist-c-dialogue",
+        "what": "C dialogue control with the new relist emission block, plus entity_roster_guard and entity_host_guard (pass: it is a characterisation of unchanged production C)",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T23:06:48.693249+00:00",
+        "completed_utc": "2026-11-06T23:08:11.457660+00:00",
+        "test_results": [
+          "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s",
+          "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+          "test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.32s"
+        ],
+        "stdout_sha256": "716f117a52b3c114f600b11f06f1a3bc6cb36a5f39a4f067be9e168a61608f7e",
+        "stderr_sha256": "3233813fa6c284eaeb97973063e3803b7c802d8760bad677d39924b219c4273b"
+      },
+      {
+        "label": "relist-c-mutant",
+        "what": "MUTATION of the new C expectation (city_link_asks == 2): the control fails at that line, proving the block is live; the source was restored byte for byte",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T23:08:25.503707+00:00",
+        "completed_utc": "2026-11-06T23:09:38.492339+00:00",
+        "test_results": [
+          "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.39s"
+        ],
+        "stdout_sha256": "9b93a581d2f514ac0d3e8ead889d3bb0a9c393c59bf4a58858ade2dd7c577c41",
+        "stderr_sha256": "372a72a8086a86c63bcc16ba9338de6185d671f6d4bdadbef556c9e5ec8c7b66"
+      },
+      {
+        "label": "relist-fmt-world",
+        "what": "cargo fmt --check before formatting (exit 1: the new Rust tests needed rustfmt)",
+        "command": "cargo fmt -p eech-world --check",
+        "actual_exit": 1,
+        "started_utc": "2026-11-06T23:09:44.764001+00:00",
+        "completed_utc": "2026-11-06T23:09:48.252604+00:00",
+        "test_results": [],
+        "stdout_sha256": "7c4f5266116d055b9f2f3a373d982a91f7723252784f1a54650e45c3a1a693fa",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "label": "relist-fmt-apply-world",
+        "what": "cargo fmt -p eech-world (exit 0)",
+        "command": "cargo fmt -p eech-world",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T23:09:55.318150+00:00",
+        "completed_utc": "2026-11-06T23:09:58.722832+00:00",
+        "test_results": [],
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "label": "relist-world-targets",
+        "what": "the affected eech-world targets after formatting",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test city_box_lifecycle",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T23:10:17.180512+00:00",
+        "completed_utc": "2026-11-06T23:10:20.893975+00:00",
+        "test_results": [
+          "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+          "test result: ok. 108 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.59s",
+          "test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.27s",
+          "test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+        ],
+        "stdout_sha256": "af6e6025ca4ef872e6b5e313ea0f11e309336966a812f85b051c52e3c771c5e7",
+        "stderr_sha256": "5cd42e38b0fab1c60012422c448f0b620752702b55ad366440f8261cba056c5b"
+      },
+      {
+        "label": "relist-fmt-final-world",
+        "what": "cargo fmt --check after formatting",
+        "command": "cargo fmt -p eech-world --check",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T23:10:26.415905+00:00",
+        "completed_utc": "2026-11-06T23:10:29.868706+00:00",
+        "test_results": [],
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "label": "relist-clippy-world",
+        "what": "clippy --all-targets -- -D warnings",
+        "command": "cargo clippy --locked --all-targets -p eech-world -- -D warnings",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T23:10:30.024419+00:00",
+        "completed_utc": "2026-11-06T23:10:32.737025+00:00",
+        "test_results": [],
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "1900867187663b9f4a6ece3a87b6fc67cb766676c0ebe4ad06a1a96c3983018f"
+      },
+      {
+        "label": "relist-final-fmt",
+        "what": "FINAL (between the PRE and POST maps)",
+        "command": "cargo fmt -p eech-world --check",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T23:11:05.874507+00:00",
+        "completed_utc": "2026-11-06T23:11:09.324670+00:00",
+        "test_results": [],
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "label": "relist-final-world",
+        "what": "FINAL (between the PRE and POST maps)",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test city_box_lifecycle",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T23:11:09.522060+00:00",
+        "completed_utc": "2026-11-06T23:11:11.647991+00:00",
+        "test_results": [
+          "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+          "test result: ok. 108 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.60s",
+          "test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s",
+          "test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+        ],
+        "stdout_sha256": "e8d94f067751ec4e3fdcbdc68f98abe52de1819da77022c61411311e255e9bf2",
+        "stderr_sha256": "5cfb0a1ae4f8c01832c7ef3d9f011360f8c32fda86380f7d41e6e8460e9a43b5"
+      },
+      {
+        "label": "relist-final-c",
+        "what": "FINAL (between the PRE and POST maps)",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T23:11:11.840310+00:00",
+        "completed_utc": "2026-11-06T23:12:34.969082+00:00",
+        "test_results": [
+          "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.39s",
+          "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+          "test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.34s"
+        ],
+        "stdout_sha256": "61a60175d1107c3f04ef886a6f13e43e155612f92396c4344e50051552ca8f6e",
+        "stderr_sha256": "288b4c5125a5424abb667a3bac1c1f255221c80edf25d6bd2d53a66b581c678e"
+      },
+      {
+        "label": "relist-final-clippy",
+        "what": "FINAL (between the PRE and POST maps)",
+        "command": "cargo clippy --locked --all-targets -p eech-world -- -D warnings",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T23:12:35.187208+00:00",
+        "completed_utc": "2026-11-06T23:12:36.966854+00:00",
+        "test_results": [],
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "2a8d3b7b858653f65327fcf1a821951d0151dd2c2b06d6283d52053fe5bf79cf"
+      }
+    ],
+    "red": "relist-red-final (the final tests over the unchanged driver, exit 101, 2 of 3 filtered tests fail, request_faults=2 reply_faults=0) after relist-red-driver (first test version, exit 101)",
+    "green": "relist-final-world: entity_authority 108, entity_candidate_host 13, entity_roster_host 18, city_box_lifecycle 9 passed; relist-final-c: entity_dialogue 1 (the C control), entity_host_guard 5, entity_roster_guard 20 passed",
+    "lints": "cargo fmt -p eech-world --check and clippy --locked --all-targets -p eech-world -- -D warnings exit 0 on the frozen bytes",
+    "input_maps": {
+      "summary": "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-relist-ack-source-and-checks/maps/final-map-summary.json",
+      "file_count": 3954,
+      "pre_equals_post": true,
+      "pre_sha256": "2ff50b41584a0a439f39215422e2c04828451283825554811435082a58e23980",
+      "post_sha256": "2ff50b41584a0a439f39215422e2c04828451283825554811435082a58e23980"
+    }
+  },
+  "limitations": [
+    "No Windows build, native run, current CI, independent review, SourceClearance or actual CITY claim for this source. Whether the real native control now completes without request faults is unproved until Root runs a fresh control root.",
+    "Not run locally: the Original-like and hosted weapon-fixture feature builds, the i686 and EECH_C_OPT=2 matrices of the C dialogue check, the eech-dc and eech-engine packages (no file of theirs changed), or the full workspace test; CI covers those.",
+    "No per-request trace of the native run exists; the six faulted native requests were not observed individually.",
+    "Candidate-lookup joins keep the strict per-key `held`; a relisted building offered by its new child key is not counted as a joined lookup in the fixed-state withdrawal/rule-change modes (conservative: never a false credit). Not exercised natively.",
+    "The guard (migration-progress.py) said \"Fix a named OPEN blocker\" before work; the blocker was registered in the card BEFORE the named guard, then the guard passed."
+  ],
+  "preserved_literally": {
+    "failed_actual_and_Root_blocker": "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-relist-ack-source-and-checks/Root-city-lifecycle-354ab-relist-ack-failure-20261106.json (byte copy; original R:/d3-evidence/Root-city-lifecycle-354ab-relist-ack-failure-20261106.json sha256 0b29b0c3b6b1ab7cb976d9c998d24739f896051709be78d2476c70ab8700e56c)",
+    "original_failed_354ab_receipt_and_raw": "R:/d3-evidence/city-lifecycle-control-native-354abd9c0-20261106-{completion,process}.json (raw completion sha256 a14962d20bc07809ba96e506584c71a3e1125225806865318a0a6da5c71b8cf4) and its stdout/stderr logs; untouched",
+    "prior_failure": "R:/d3-evidence/Root-city-lifecycle-native-215a-boundary-failure-20261106.json (215a failed bridge 1) untouched",
+    "prior_packs": "all earlier city-box-lifecycle*-source-and-checks packs untouched, including city-box-lifecycle-scan-reply-source-and-checks (354abd9c0)"
+  },
+  "next": {
+    "review": "the SAME independent reviewer over ONLY this change (the driver join, the scripted fixture fidelity and the C characterisation), before Root binds it",
+    "root": "a NEW fresh control root is needed (the 354ab control root is CONSUMED); the short, healthy, missing and changed roots stay UNUSED. If Root confirms no compiled input differs, a separate Git literal can be bound to the sealed 354abd9c0 runtime after the same review with no new Windows/C rebuild. No negative before a control reaches the selected record before and after with zero faults.",
+    "still_open": "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION (before sector height), all ten requirements, remaining physical services, needed DCS mapping, natural moving integration, final current 40/all8, final 4 inputs, CI, review, normal merge, final census, whole D3"
+  }
+}
