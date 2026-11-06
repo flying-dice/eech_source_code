@@ -2917,6 +2917,7 @@ const BOXES: [([f32; 3], [f32; 3]); 4] = [
     ([0.0, -0.0, 0.0], [-0.0, 0.0, -0.0]),
 ];
 
+#[cfg(target_arch = "x86_64")]
 #[test]
 fn the_hosts_city_box_is_the_originals_bit_for_bit_over_every_heading_offset_and_box_and_every_caller_rounding_mode() {
     let (_root, store) = standard();
@@ -2988,6 +2989,7 @@ fn the_original_arithmetic_changes_no_control_word_rounding_or_mask_and_only_rai
     assert_eq!(flags_seen & !0x3f, 0);
 }
 
+#[cfg(target_arch = "x86_64")]
 #[test]
 fn the_hosts_city_box_hands_the_callers_complete_floating_point_state_back_and_refuses_an_unmasked_exception() {
     let (_root, store) = standard();

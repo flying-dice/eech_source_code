@@ -5975,7 +5975,9 @@ mod tests {
         );
         // a name that belongs to no answer of its kind, or that is not one token, is a malformed answer
         for pick in [7, 8] {
-            let error = ask_with(&mut provider, pick, "").expect_err("a malformed key is refused");
+            let Err(error) = ask_with(&mut provider, pick, "") else {
+                return Err(format!("pick {pick}: a malformed key was accepted").into());
+            };
             assert!(error.contains("name"), "pick {pick}: {error}");
         }
         Ok(())
@@ -6022,7 +6024,9 @@ mod tests {
             assert_eq!(words[0].to_bits(), 0x8000_0000, "the signed zero keeps its bit");
         }
         for pick in [2, 3, 4, 5] {
-            let error = ask_pick(pick).expect_err("a malformed box is refused");
+            let Err(error) = ask_pick(pick) else {
+                return Err(format!("pick {pick}: a malformed box was accepted").into());
+            };
             assert!(error.contains("entity_scan"), "pick {pick}: {error}");
         }
         Ok(())

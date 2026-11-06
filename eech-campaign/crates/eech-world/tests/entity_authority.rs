@@ -236,6 +236,8 @@ local function reference (op, scene, depth, kind, definition, key)
 		-- a reply fault of the fixed state report, forced AFTER the real answer (the real provider never gives one)
 		if (phase == FIXED_PHASE or phase == CITY_STATE_PHASE) and scenario.bad_real_fixed == "echo" then answer.name = "99" end
 		if (phase == FIXED_PHASE or phase == CITY_STATE_PHASE) and scenario.bad_real_fixed == "state" then answer.result = "removed" end
+		-- ONLY the host's restatement of a record's sub type (the sub type word UNKNOWN, no withdrawal word) is damaged: a cursor beside a correct `placed` and the same key. The campaign's own report keeps its real answer
+		if phase == FIXED_PHASE and scenario.bad_real_fixed == "restatement_cursor" and words [10] == ZERO and words [11] == ZERO then answer.p = ZERO .. "," .. ZERO end
 		if phase == "0x41700000" then
 			-- logged above
 		elseif CITY_PHASES [phase] then
@@ -4684,6 +4686,49 @@ fn changing_the_physical_rule_of_a_served_placement_makes_the_next_unmodified_qu
             && error.contains("stopped at [model-provider:entity_candidate.callback], not at [model-provider:entity_candidate.refused]"),
         "{error}"
     );
+}
+
+#[test]
+fn a_restatement_acknowledged_with_a_cursor_beside_placed_and_the_same_key_is_never_credited_as_a_change() {
+    // positive first: the same scenario with a correct acknowledgement is credited (the test above)
+    let positive = drive(&healthy(FIXED_STATE), &[("mode", "changed_fixed_rule")]);
+    assert!(positive.result.is_ok(), "{:?}\n{}", positive.result, positive.rows);
+    assert_eq!(authority(&positive)["fixed_rule_changed"], 1);
+    // only the restatement's acknowledgement is damaged (the initial report is acknowledged exactly as before); the fixed-report reply contract forbids a cursor with `placed`
+    let driven = drive(
+        &healthy(&format!("{FIXED_STATE}, bad_real_fixed = 'restatement_cursor'")),
+        &[("mode", "changed_fixed_rule")],
+    );
+    let row = authority(&driven);
+    assert_eq!(
+        driven.fixed_log,
+        [
+            ("0x41500000".to_string(), "placed".to_string(), "1".to_string(), "1".to_string()),
+            ("0x41500000".to_string(), "placed".to_string(), "1".to_string(), "1".to_string()),
+        ],
+        "the report and the restatement were both acknowledged by the provider: only the restatement's reply carries the cursor"
+    );
+    assert_eq!(
+        (
+            row["fixed_rule_eligible"].clone(),
+            row["fixed_rule_changed"].clone(),
+            row["request_faults"].clone(),
+            row["first_fault"].clone()
+        ),
+        (
+            Value::from(1),
+            Value::from(-1),
+            Value::from(0),
+            Value::from("candidate reply: the host's restatement of the fixed rule of the placement was not acknowledged as placed")
+        ),
+        "{row}"
+    );
+    let error = error_of(driven);
+    assert!(
+        error.contains("mode changed_fixed_rule") && error.contains("restatement of the fixed rule") && error.contains("not acknowledged as placed"),
+        "{error}"
+    );
+    assert!(!error.contains("UNREACHED") && !error.contains("completed"), "{error}");
 }
 
 #[test]

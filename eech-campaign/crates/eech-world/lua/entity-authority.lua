@@ -114,8 +114,7 @@
 --                         such question was ever answered `need_placement`.
 --   changed_fixed_rule    HOST-SIDE, no answer, request or entity is altered: see MODES. Credited only by (a) the eligible lookup of a fixed placement (the provider's record held and of no city or city building, the campaign's
 --                         collision flag true) that the real provider answered `need_placement` over the held state, so the record's derived rule was collision-fixed (counted as `fixed_rule_eligible` BEFORE anything is
---                         changed), (b) the host's own restatement of ONLY that record's fixed state with the sub type ENTITY_SUB_TYPE_FIXED_UNKNOWN (declared; its rule is no collision), acknowledged `placed` for the same key by
---                         the SAME provider, (c) the very next question being the same candidate's placement question, unmodified, and (d) the provider's own refusal [model-provider:entity_candidate.refused]
+--                         changed), (b) the host's own restatement of ONLY that record's fixed state with the sub type ENTITY_SUB_TYPE_FIXED_UNKNOWN (declared; its rule is no collision), acknowledged by the SAME provider under the fixed report's own reply contract (`placed`, the same key, no cursor: `scan.fixed.reply_problem`), (c) the very next question being the same candidate's placement question, unmodified, and (d) the provider's own refusal [model-provider:entity_candidate.refused]
 --                         [candidate.mirror] ... collision-fixed as the only fault. UNREACHED when no such lookup was ever answered `need_placement`.
 --
 -- THE HOST'S RECORD OF A CITY PLACEMENT HOLDS THE CITY'S OWN POSITION AND BOUNDING BOX (Task49, the follow-on of the fixed family). The campaign states them with a CITY_STATE report (the scan question's phase 14: the position in
@@ -1550,7 +1549,8 @@ local function candidate_question (scene, depth, kind, definition, key)
 				for index = 1, 16 do words [index] = scan.fixed.by_key [parsed.host_id] [index] end
 				words [11] = ZERO
 				local ok, acknowledged = pcall (reference, "entity_scan", 0, nil, nil, nil, table.concat (words, ",") .. " " .. parsed.host_id)
-				if ok and type (acknowledged) == "table" and acknowledged.result == "placed" and acknowledged.name == parsed.host_id then
+				-- the SAME contract as the campaign's own report: placed, this placement's key and no cursor
+				if ok and scan.fixed.reply_problem (acknowledged, { kind = "fixed", key = parsed.host_id }) == nil then
 					scan.fixed.rule_changed, scan.fixed.rule_changed_key = 1, parsed.host_id
 				else
 					scan.fixed.rule_changed = -1
@@ -2204,6 +2204,7 @@ local function main ()
 		if plan.withdraw_fixed and scan.fixed.withdrawn == 0 and (faults.request > 0 or faults.reply > 0) then return "mode " .. mode .. ": nothing was withdrawn because the run failed first (request_faults=" .. faults.request .. " reply_faults=" .. faults.reply .. " eligible_lookups=" .. scan.fixed.joined .. "): " .. tostring (first_fault) end
 		if plan.withdraw_fixed and scan.fixed.withdrawn == 0 and failure ~= nil and failure.marker ~= plan.marker then return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "], not at [model-provider:" .. plan.marker .. "], before any eligible lookup was withdrawn from: " .. failure.line end
 		if plan.withdraw_fixed and scan.fixed.withdrawn == 0 and failure == nil then return "UNREACHED: " .. mode .. ": no staged candidate question of a fixed placement whose state the provider held was answered need_placement (" .. scan.fixed.stated .. " fixed states acknowledged, " .. scan.fixed.joined .. " eligible lookups served, " .. cand.keyed .. " keyed non-mobile questions), so there was no state to withdraw before a continuation: the case holds no such candidate" end
+		if plan.change_rule and scan.fixed.rule_changed == -1 then return "mode " .. mode .. ": the host's restatement of the fixed rule of the placement was not acknowledged as placed (request_faults=" .. faults.request .. " reply_faults=" .. faults.reply .. "): " .. tostring (first_fault) end
 		if plan.change_rule and scan.fixed.rule_changed == 0 and (faults.request > 0 or faults.reply > 0) then return "mode " .. mode .. ": no rule was changed because the run failed first (request_faults=" .. faults.request .. " reply_faults=" .. faults.reply .. " eligible_lookups=" .. scan.fixed.joined .. "): " .. tostring (first_fault) end
 		if plan.change_rule and scan.fixed.rule_changed == 0 and failure ~= nil and failure.marker ~= plan.marker then return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "], not at [model-provider:" .. plan.marker .. "], before any eligible lookup had its rule changed: " .. failure.line end
 		if plan.change_rule and scan.fixed.rule_changed == 0 and failure == nil then return "UNREACHED: " .. mode .. ": no staged candidate question of an ordinary fixed placement whose state the provider held was answered need_placement (" .. scan.fixed.stated .. " fixed states acknowledged, " .. scan.fixed.joined .. " eligible lookups served, " .. cand.keyed .. " keyed non-mobile questions), so there was no rule to change before a continuation: the case holds no such candidate" end
