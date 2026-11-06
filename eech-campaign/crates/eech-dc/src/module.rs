@@ -3906,7 +3906,7 @@ fn gunship(name: &str) -> LuaResult<Gunship> {
 ///                 sector's list: its key is `name`, empty for an empty list), `next` (serve what follows the entry the campaign is standing at: `name` is its key, empty at the end of the list), `offer` (offer the
 ///                 current entry for its decisions and report whether it hit), `done_none` (the scan ends, no hit), `done_hit` (it ends with the entry offered last), `placed`, `removed`, `cleared`, or `refused` with
 ///                 `reason` (an ended, unknown or misplaced key is refused by name, never skipped and never the end of a list). `name` is a decimal key of at most 20 digits and only `first`, `next` and `placed`
-///                 carry one. Phase 15 (a city's bounding-box expansion, Task49: the identity place is the city's sector key, one space and the building's key, every other fact zero) is answered `expanded` with `p` the six bit patterns of the box the host built (minimum then maximum) and `name` the city's key.
+///                 carry one, and so does a `removed` that names the record a city's box keeps (phases 5 and 8 alone: a roster key, and for a child removal the list it was asked about). Phase 15 (a city's bounding-box expansion, Task49: the identity place is the city's sector key, one space and the building's key, every other fact zero) is answered `expanded` with `p` the six bit patterns of the box the host built (minimum then maximum) and `name` the city's key.
 ///
 ///   "entity_pose"  an OBSERVATION of a mobile candidate's pose (EEDCS-49, D3, fifth slice): scene 0, `depth` the stage (0 the offer: the position and motion vector the original read for every mobile
 ///                 candidate; 1 the placement: those and the attitude, read when the broad phase passed), `kind` the entity's type, `definition` whether it is alive (0 or 1) and, in the sixth place (the text),
@@ -4162,7 +4162,12 @@ return function(op, scene, depth, kind, definition, key)
 			if a.p ~= nil then return nil, 'p is only for first' end
 			return result, nil, nil, nil, nil, nil, nil, key
 		end
-		if result == 'offer' or result == 'done_none' or result == 'done_hit' or result == 'removed' or result == 'cleared' then
+		-- a removal of a city's placement or of its last building may name the record the host keeps for the box it built: the answer carries it as its name (the Rust side checks the phase and the relation to the question)
+		if result == 'removed' then
+			if a.p ~= nil then return nil, 'p is only for first' end
+			return 'removed', nil, nil, nil, nil, nil, nil, key
+		end
+		if result == 'offer' or result == 'done_none' or result == 'done_hit' or result == 'cleared' then
 			if a.p ~= nil then return nil, 'p is only for first' end
 			if key ~= '' then return nil, 'name is only for first, next and placed' end
 			return result
@@ -4314,6 +4319,36 @@ fn bridged_float(pair: &str, what: &str, operation: &str) -> Result<f32, String>
 /// The campaign's floats as the text the provider receives: eight-digit bit patterns separated by commas (a value is never rounded on its way to the host).
 fn pose_text(pose: &[u32]) -> String {
     pose.iter().map(|bits| format!("0x{bits:08x}")).collect::<Vec<_>>().join(",")
+}
+
+/// The fact of an entity-scan question that carries its phase (`CAMPAIGN_SCAN_PHASE`), and the two phases whose removal the host may answer with the name of a record it keeps (a city's box that outlives its
+/// sector placement): a roster REMOVE of the city's placement (5) and the CHILD_REMOVE of its last building (8). The release of the city (16, a private acknowledgement) and every other event name none.
+const SCAN_PHASE_FACT: usize = 11;
+const SCAN_PHASE_REMOVE: f32 = 5.0;
+const SCAN_PHASE_CHILD_REMOVE: f32 = 8.0;
+
+/// The name a removal carries is a record the host retains, legitimate only in its declared domain: a roster key (one to twenty decimal digits without a leading zero, as the campaign reads one), asked at the
+/// phase of a REMOVE or a CHILD_REMOVE, and for a CHILD_REMOVE the key of the list the removal was asked about (the first word of its identity place, `<list> <child>`). The phase is the whole number the
+/// campaign sent, compared bit for bit: a neighbouring float, a negative zero, a non-finite word or no phase at all is none of them. The campaign checks the same again before it keeps the name.
+fn check_retained_record(facts: &[u32], identity: &str, key: &str, operation: &str) -> Result<(), String> {
+    let phase = facts.get(SCAN_PHASE_FACT).copied();
+    if phase != Some(SCAN_PHASE_REMOVE.to_bits()) && phase != Some(SCAN_PHASE_CHILD_REMOVE.to_bits()) {
+        return Err(format!(
+            "[model-provider:{operation}.answer] name is only for first, next, placed and the removal of a city's record at the phase of a roster removal or of a city child removal"
+        ));
+    }
+    let is_roster_key = (1..=20).contains(&key.len()) && !key.starts_with('0') && key.bytes().all(|byte| byte.is_ascii_digit());
+    if !is_roster_key {
+        return Err(format!(
+            "[model-provider:{operation}.answer] the retained record's name is not a roster key: one to twenty decimal digits without a leading zero"
+        ));
+    }
+    if phase == Some(SCAN_PHASE_CHILD_REMOVE.to_bits()) && identity.split_once(' ').map(|(list, _)| list) != Some(key) {
+        return Err(format!(
+            "[model-provider:{operation}.answer] the record named for a city child removal names another list than the one it was asked about"
+        ));
+    }
+    Ok(())
 }
 
 fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, String> {
@@ -4621,13 +4656,22 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
                 key: g.unwrap_or_default(),
             })
         }
-        (ModelQuery::EntityScan { .. }, "next" | "offer" | "done_none" | "done_hit" | "placed" | "removed" | "cleared") => Ok(ModelAnswer::EntityScan {
+        (ModelQuery::EntityScan { facts, identity }, "removed") => {
+            let key = g.unwrap_or_default();
+            if !key.is_empty() {
+                check_retained_record(&facts, &identity, &key, operation)?;
+            }
+            Ok(ModelAnswer::EntityScan {
+                decision: ScanDecision::Removed,
+                key,
+            })
+        }
+        (ModelQuery::EntityScan { .. }, "next" | "offer" | "done_none" | "done_hit" | "placed" | "cleared") => Ok(ModelAnswer::EntityScan {
             decision: match tag.as_str() {
                 "next" => ScanDecision::Next,
                 "offer" => ScanDecision::Offer,
                 "done_none" => ScanDecision::DoneNone,
                 "placed" => ScanDecision::Placed,
-                "removed" => ScanDecision::Removed,
                 "cleared" => ScanDecision::Cleared,
                 _ => ScanDecision::DoneHit,
             },
@@ -5984,6 +6028,232 @@ mod tests {
             };
             assert!(error.contains("name"), "pick {pick}: {error}");
         }
+        Ok(())
+    }
+
+    /// the question of a roster or city event as the engine sends it: sixteen words, all zero but the phase (fact 11), and the identity place after them
+    fn scan_event(phase: f32, identity: &str) -> ModelQuery {
+        let mut facts = [0_u32; 16];
+        facts[11] = phase.to_bits();
+        ModelQuery::EntityScan {
+            facts: facts.to_vec(),
+            identity: identity.to_string(),
+        }
+    }
+
+    /// what the provider answers: the Lua table the REAL provider (`host.model`) would return, handed through the REAL bridge
+    fn scan_answer(lua: &Lua, provider: &mut ModelProvider, query: ModelQuery, answer: &str) -> Result<ModelAnswer, String> {
+        lua.load(format!("ANSWER = {answer}")).exec().map_err(|error| error.to_string())?;
+        ask(provider, query)
+    }
+
+    fn removal_provider(lua: &Lua) -> Result<ModelProvider, Box<dyn std::error::Error>> {
+        model_under_test(lua, "return function () return ANSWER end")
+    }
+
+    fn removed(key: &str) -> ModelAnswer {
+        ModelAnswer::EntityScan {
+            decision: ScanDecision::Removed,
+            key: key.to_string(),
+        }
+    }
+
+    #[test]
+    fn a_removal_names_the_record_the_host_retains_for_a_citys_box_only_in_the_two_removal_phases_that_declare_it() -> Test {
+        let lua = Lua::new();
+        let mut provider = removal_provider(&lua)?;
+        // the roster REMOVE (5) of a city placement names its identity place (the placement's key) and is answered with the record's key; the CHILD_REMOVE (8) of the last building names "<list> <child>" and is
+        // answered with the list's own key. The key must come back whole: a bridge that let the name pass and returned none would hand the campaign a plain removal
+        assert_eq!(
+            scan_answer(&lua, &mut provider, scan_event(5.0, "7"), "{ result = 'removed', name = '11193' }")?,
+            removed("11193")
+        );
+        assert_eq!(
+            scan_answer(
+                &lua,
+                &mut provider,
+                scan_event(5.0, "7"),
+                "{ result = 'removed', name = '18446744073709551615' }"
+            )?,
+            removed("18446744073709551615")
+        );
+        assert_eq!(
+            scan_answer(&lua, &mut provider, scan_event(8.0, "11193 7"), "{ result = 'removed', name = '11193' }")?,
+            removed("11193")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_plain_removal_and_the_release_of_a_city_come_back_without_a_name() -> Test {
+        let lua = Lua::new();
+        let mut provider = removal_provider(&lua)?;
+        for (phase, identity) in [(5.0, "7"), (8.0, "11193 7"), (16.0, "11193")] {
+            assert_eq!(
+                scan_answer(&lua, &mut provider, scan_event(phase, identity), "{ result = 'removed' }")?,
+                removed(""),
+                "phase {phase}"
+            );
+            assert_eq!(
+                scan_answer(&lua, &mut provider, scan_event(phase, identity), "{ result = 'removed', name = '' }")?,
+                removed(""),
+                "phase {phase}: an empty name is none"
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_name_on_a_removal_outside_its_declared_domain_is_a_malformed_answer() -> Test {
+        let lua = Lua::new();
+        let mut provider = removal_provider(&lua)?;
+        // the private RELEASE acknowledgement (16) and every other event name no record on a removal; a removal answered at the wrong phase never gets a name through
+        for (phase, identity) in [
+            (0.0, ""),
+            (1.0, "7"),
+            (2.0, "7"),
+            (3.0, "7"),
+            (4.0, "eech-world:7"),
+            (6.0, ""),
+            (7.0, "11193 eech-world:7"),
+            (9.0, "11193"),
+            (10.0, "11193 7"),
+            (11.0, "11193 7"),
+            (12.0, "11193 eech-world:7"),
+            (13.0, "11193"),
+            (14.0, "7"),
+            (15.0, "7 8"),
+            (16.0, "11193"),
+            (17.0, "11193"),
+        ] {
+            let Err(error) = scan_answer(&lua, &mut provider, scan_event(phase, identity), "{ result = 'removed', name = '11193' }") else {
+                return Err(format!("phase {phase}: a name on a removal was accepted").into());
+            };
+            assert!(error.contains("entity_scan.answer") && error.contains("name"), "phase {phase}: {error}");
+        }
+        // a phase that is not exactly the whole number 5 or 8 (a neighbouring float, a negative zero, a non-finite word, no phase at all) is no removal phase
+        for bits in [
+            0x40a0_0001,
+            0x409f_ffff,
+            0x8000_0000,
+            0x7fc0_0000,
+            0x7f80_0000,
+            0x4100_0001,
+            0x40a0_0000 | 0x8000_0000,
+        ] {
+            let mut facts = [0_u32; 16];
+            facts[11] = bits;
+            let query = ModelQuery::EntityScan {
+                facts: facts.to_vec(),
+                identity: "11193 7".to_string(),
+            };
+            let Err(error) = scan_answer(&lua, &mut provider, query, "{ result = 'removed', name = '11193' }") else {
+                return Err(format!("phase bits {bits:#010x}: a name on a removal was accepted").into());
+            };
+            assert!(error.contains("name"), "phase bits {bits:#010x}: {error}");
+        }
+        let short = ModelQuery::EntityScan {
+            facts: vec![0_u32; 11],
+            identity: "11193 7".to_string(),
+        };
+        let Err(error) = scan_answer(&lua, &mut provider, short, "{ result = 'removed', name = '11193' }") else {
+            return Err("a name on a removal that states no phase was accepted".into());
+        };
+        assert!(error.contains("name"), "{error}");
+        // the other results stay without a name wherever they are asked: the retaining answer is the removal's alone
+        for result in ["cleared", "offer", "done_none", "done_hit"] {
+            for phase in [5.0, 6.0, 8.0, 16.0] {
+                let Err(error) = scan_answer(
+                    &lua,
+                    &mut provider,
+                    scan_event(phase, "11193 7"),
+                    &format!("{{ result = '{result}', name = '11193' }}"),
+                ) else {
+                    return Err(format!("{result} at phase {phase}: a name was accepted").into());
+                };
+                assert!(error.contains("name is only for"), "{result} at phase {phase}: {error}");
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_retained_record_name_is_a_roster_key_and_a_city_child_removal_names_the_list_it_was_asked_about() -> Test {
+        let lua = Lua::new();
+        let mut provider = removal_provider(&lua)?;
+        // a roster key is one to twenty decimal digits without a leading zero, as the campaign's own check reads it; a name of any other shape, of the wrong type or with a tail is no key
+        for name in [
+            "'0'",
+            "'0123'",
+            "'1x'",
+            "'x1'",
+            "'11193 '",
+            "' 11193'",
+            "'11193\\n'",
+            "'+5'",
+            "'5.0'",
+            "'-5'",
+            "'123456789012345678901'",
+            "'1,2'",
+            "'0x1'",
+            "'@1'",
+            "11193",
+            "true",
+            "{}",
+        ] {
+            let Err(error) = scan_answer(&lua, &mut provider, scan_event(5.0, "7"), &format!("{{ result = 'removed', name = {name} }}")) else {
+                return Err(format!("name {name}: a malformed retained name was accepted").into());
+            };
+            assert!(error.contains("entity_scan.answer") && error.contains("name"), "name {name}: {error}");
+        }
+        // valid-looking wrong relations of a CHILD_REMOVE: the key of another list, the child's own key, a key of the list's digits plus a digit, and an identity place that holds no child at all
+        for (identity, name) in [
+            ("11193 7", "11194"),
+            ("11193 7", "7"),
+            ("11193 7", "111937"),
+            ("11193 7", "1119"),
+            ("11193", "11193"),
+            ("", "11193"),
+        ] {
+            let Err(error) = scan_answer(
+                &lua,
+                &mut provider,
+                scan_event(8.0, identity),
+                &format!("{{ result = 'removed', name = '{name}' }}"),
+            ) else {
+                return Err(format!("{identity:?} naming {name}: another list was accepted").into());
+            };
+            assert!(
+                error.contains("entity_scan.answer") && error.contains("names another list"),
+                "{identity:?} naming {name}: {error}"
+            );
+        }
+        // a cursor is only for `first`: a retained removal carrying one is as malformed as a plain one
+        for phase in [5.0, 8.0] {
+            let Err(error) = scan_answer(
+                &lua,
+                &mut provider,
+                scan_event(phase, "11193 7"),
+                "{ result = 'removed', name = '11193', p = '0x40000000,0x40400000' }",
+            ) else {
+                return Err(format!("phase {phase}: a cursor on a removal was accepted").into());
+            };
+            assert!(error.contains("p is only for first"), "phase {phase}: {error}");
+        }
+        // the unchanged domains: a refusal still stops the engine with the host's reason whatever it names, and a wrong result is never read as a removal
+        let Err(error) = scan_answer(
+            &lua,
+            &mut provider,
+            scan_event(5.0, "7"),
+            "{ result = 'refused', reason = 'no', name = '11193' }",
+        ) else {
+            return Err("a refusal was accepted".into());
+        };
+        assert!(error.contains("entity_scan.refused"), "{error}");
+        let Err(error) = scan_answer(&lua, &mut provider, scan_event(5.0, "7"), "{ result = 'remove', name = '11193' }") else {
+            return Err("an unknown result was accepted".into());
+        };
+        assert!(error.contains("result must be"), "{error}");
         Ok(())
     }
 
