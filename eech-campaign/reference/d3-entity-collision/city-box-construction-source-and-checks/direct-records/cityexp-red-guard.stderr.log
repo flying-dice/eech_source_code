@@ -1,0 +1,5 @@
+wsl: Failed to translate 'R:\d3-evidence'
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Finished `release` profile [optimized] target(s) in 5.25s
+     Running tests/entity_roster_guard.rs (/target/release/deps/entity_roster_guard-275c842098515ad7)
+error: test failed, to rerun pass `-p eech-engine-sys --test entity_roster_guard`

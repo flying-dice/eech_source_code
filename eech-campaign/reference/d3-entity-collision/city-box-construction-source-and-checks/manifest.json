@@ -1,0 +1,90 @@
+{
+  "schema": "d3.task49.city-box-construction.pack-manifest.v1",
+  "files": {
+    ".gitattributes": {
+      "size": 66,
+      "sha256": "f5cb13637a2de0a31aa360dd11164ac01991746839bef89c8b7e03ce69161559"
+    },
+    "city-box-construction-CODE-FROZEN-20261106.json": {
+      "size": 46171,
+      "sha256": "bec093e3b98758fcae5c7ddca1fa5f27c99fcb5d05d88d2044fd0aa8cbc6c40a"
+    },
+    "city-box-raw-binding-f06db8570-20261106.json": {
+      "size": 2251,
+      "sha256": "062ad9d3dea895c6bb9e51cd6830ab9c00b130c0dc4fa1e9006008f2fc43da9f"
+    },
+    "direct-records/cityboxfinal-check.json": {
+      "size": 999,
+      "sha256": "3c06798ca7afb526dfa4574a9b57109f97cd02bb0c182660a178ea1bdf2b568a"
+    },
+    "direct-records/cityboxfinal-dcengine.json": {
+      "size": 933,
+      "sha256": "17441e3c4c2f137a37ae10fb986ac71e46e9640831b910310a0166661858587c"
+    },
+    "direct-records/cityboxfinal-feature-collision-fixture.json": {
+      "size": 949,
+      "sha256": "4ce39b2a49b16b1ae77285ba33e6e407226d0766c233b13ca384e64d86109133"
+    },
+    "direct-records/cityboxfinal-feature-model-fixture.json": {
+      "size": 941,
+      "sha256": "832ae5c07294aa8d81487f4d74931ed9f397bddf7328d1abc5f705919731f680"
+    },
+    "direct-records/cityboxfinal-feature-model-host-fixture.json": {
+      "size": 950,
+      "sha256": "44340ef7b7dbec8917a569c04aae65e8dff6aec33349d30ba85c448ce013c0fd"
+    },
+    "direct-records/cityboxfinal-fmt.json": {
+      "size": 950,
+      "sha256": "d17894308ad8e03a5ee0f825ef7e007275c42eeffe1c3e1f7cc7745ba99bcacf"
+    },
+    "direct-records/cityboxfinal-fp-characterization.json": {
+      "size": 1165,
+      "sha256": "e870fcf6527cea613d635617a2517e1f6307732ca0d52d775c00d5bc18fc33d9"
+    },
+    "direct-records/cityboxfinal-fp-characterization.stderr.log": {
+      "size": 281,
+      "sha256": "8942760ee22dfdd21ddbd353a4c5f22e176698ad10798c4b2bda2a59baca307e"
+    },
+    "direct-records/cityboxfinal-sys.json": {
+      "size": 985,
+      "sha256": "51333fe4e73de41af1009cc51430d81937929d22a8ac180987435c38e3ae387a"
+    },
+    "direct-records/cityboxfinal-world.json": {
+      "size": 909,
+      "sha256": "1c2dd1e0ab5c662073cd4506c128c6338fd68ad8e4966be8863a742e90ee946c"
+    },
+    "direct-records/cityexp-red-guard.json": {
+      "size": 990,
+      "sha256": "a4ed4ce1448e5fb17cb54c92e9bd7f9017cd26849ed52f5f56b7cadefef2a357"
+    },
+    "direct-records/cityexp-red-guard.stderr.log": {
+      "size": 368,
+      "sha256": "b73dee8e826ace12c73eee4866bbf3390e073abc64956f449cbff0b18e744bfd"
+    },
+    "direct-records/cityexp-red-guard.stdout.log": {
+      "size": 911,
+      "sha256": "b381bcce097969a5610456c4e310d04104e2acc6c77c71c7b2e4a773687b9d9a"
+    },
+    "direct-records/cityexp-red-provider.json": {
+      "size": 1008,
+      "sha256": "ccbc6ca1309e0042de69f6225de94b44e6c88085e61a8331c225006a01a84028"
+    },
+    "direct-records/cityexp-red-provider.stderr.log": {
+      "size": 350,
+      "sha256": "28efa26ae13a805bdd7739e03989f7da3671050b9a31c7652592bdab23ab2fe6"
+    },
+    "direct-records/cityexp-red-provider.stdout.log": {
+      "size": 2670,
+      "sha256": "87bd2b4fe59b5fa9bd63d40e61a41c294a1c24c0a583ed36734c5496bcda04e0"
+    },
+    "README.md": {
+      "size": 3669,
+      "sha256": "aff5a157885b8c60012bed10e0291473faea51bee6f6d6fc9d7e3967f6c92ecb"
+    }
+  },
+  "external_not_in_git": {
+    "input_maps": "R:/d3-evidence/city-box-inputmap-{before,after}-f06db8570-20261106.json (3953 files, 2029346 bytes each, sha256 629a0a0aee761f222cb52f614cbdce4d147b4ccb89cfa0ac361cb93eb5ac5d5f, literal equal)",
+    "final_run_logs": "R:/d3-evidence/sector-roster-direct-cityboxfinal-*.stdout.log/.stderr.log (hashes in the CODE_FROZEN report)",
+    "development_run_logs": "R:/d3-evidence/sector-roster-direct-cityexp-*"
+  }
+}

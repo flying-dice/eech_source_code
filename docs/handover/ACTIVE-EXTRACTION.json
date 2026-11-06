@@ -7,10 +7,10 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "FINITE canonical CITY position/box backing verified at78ef, SAME source45e6/actual47fe findings[].3Windows0/88/actual12wrappers; short3COMPLETE byteeq80fd. Healthy4484currentCITYstage joins/no faults; realstate-onlywithdrawal→SECONDsameCITYstage namedrefusal/request0reply1/noaltered.177sharedfields+180Bterminal literalparentf734;4full1179manifests/3952rawGit stable. CoreCITYboxconstructor andphysicalpredicates remain REQUIRED next, no allCITYphysics/Task49/D3/full40 acceptance.",
+  "phase": "UNREVIEWED CODE_FROZEN f06db8570: the host builds a city's bounding box (ENTITY_SCAN phase 15) from the records it holds and the model store's scene bounds; the campaign mirrors the checked answer and states no box; original body only in the original-fixture build. Source and Linux checks only (final chain on the committed tree exit 0, maps literal equal, 3950/3953 raw-equal to blobs); no native, no review. fx_int collision-fixed/align/type predicates remain REQUIRED next, then sector height; no whole CITY physics/Task49/D3/full40 acceptance.",
   "preparation_batches_without_cutover": 0,
   "preparation_limit": 2,
-  "next_production_change": "After publishing this finite checkpoint: move remaining CITY physical box construction (model-bounds lookup, heading rotation, position offsets and aggregation in ct_msgs.c) and collision-fixed/type predicates (fx_int.c) into Host services, with actual callback/event timing, canonical inputs, FP/RNG/order, one owner and authority/refusal proof. Then sector spatial-height/hints, UPDATED/sharedterrain, rawtree/forest/cloud RNG, needed hierarchy/devices/services and DCS mapping. No Core back-call disguised as Host authority, query-time adoption, eager IDs, approximate geometry or campaign policy in Host.",
+  "next_production_change": "After the SAME source review and Root's native comparison of the host-built city box: move the fx_int.c collision-fixed/align/type predicates (actual fixed_database/subtype provenance and valid domain, named refusal for unknown, no mirror flag trusted to suppress state) into Host services, with actual timing, canonical inputs, one owner and authority/refusal proof. Then sector spatial-height/hints, UPDATED/shared terrain, raw tree/forest/cloud RNG, needed hierarchy/devices/services and DCS mapping. No Core back-call disguised as Host authority, query-time adoption, eager IDs, approximate geometry or campaign policy in Host.",
   "ready_evidence": [
     "Closed preparation reused, not redone: original characterization (15054 queries / 29894 ordered terrain answers exact through the host library and real Lua; original raw unchanged, 47a4af0d1/b44d2c96f) and the host tree loader/kernel 8c452f197 (review 4258f1b94, FP state/refusal/lifetime controls).",
     "Merge of the verified clean Task52 branch 099aa09c2dfeb77ca708214421e81113369a057e into the old Task49 head f2473817bced177b588878d6e416dcb4400f8bc2 (normal merge, no rebase/force); both sides' features, FFI, tests and history preserved.",
@@ -54,7 +54,8 @@
     "Reviewed roster source and complete short safe evidence: reference/d3-entity-collision/sector-roster-source-and-short/manifest.json. Four literal source reviews, four checkpoints, frozen gate/profile/short/prefix/root-checker/ledger proofs. Native backing actuals pending, no Task49/D3 acceptance.",
     "6Nov fixed/static finite closure atf734: independent sourcebeb986/actual68f7 nofindings;17+ literal proofs under reference/d3-entity-collision/fixed-static-source-and-actuals/manifest.json; all166healthysharedfields+180Bterminal exactcity76, actualhost-onlystatewithdrawal→unchangedplacementrefusal. Root prelauncharmedcounter/healthyouter1 and interruptedunknownexits qualified; currentf734 full40 ACTIVE. Cache removed after12COFF/30proof retention. CITY own position/box next; alltenD3scope unchanged.",
     "CITY own position/box (UNREVIEWED CODE_FROZEN 78ef839dd, eech-campaign/reference/d3-entity-collision/city-own-state-source-and-checks/): host record CityState, one funnel, writers censused (ct_creat sentinel, fx_vec3d setter, ct_msgs box expansion; no pack/setter), release RED/GREEN receipts, final maps and raw binding. Not reviewed, no actual.",
-    "6NovCITY finite canonical backing closed source45e6/actual47fe at78ef: new3profiles0/88, actual12wrappers, short3COMPLETE80fd, healthy177fields+180Bterminal exactparentf734 and realstatewithdraw→SECONDsameCITYstage refusal;4full1179manifests/3952rawGit stable. Literal proofs in city-own-state-source-and-checks/manifest.json. Final619 versus earlier618 qualified; Core physical construction/predicates explicitly REQUIRED next. No full40/Task49/D3 acceptance."
+    "6NovCITY finite canonical backing closed source45e6/actual47fe at78ef: new3profiles0/88, actual12wrappers, short3COMPLETE80fd, healthy177fields+180Bterminal exactparentf734 and realstatewithdraw→SECONDsameCITYstage refusal;4full1179manifests/3952rawGit stable. Literal proofs in city-own-state-source-and-checks/manifest.json. Final619 versus earlier618 qualified; Core physical construction/predicates explicitly REQUIRED next. No full40/Task49/D3 acceptance.",
+    "CITY box construction (UNREVIEWED CODE_FROZEN f06db8570063e49d1c0d47e913d0c440a7d0927f, eech-campaign/reference/d3-entity-collision/city-box-construction-source-and-checks/): ENTITY_SCAN phase 15, host kernel eech_model_city_box_expand under the existing caller-environment guard, record replaced in one step, campaign mirror applied only after the whole reply is checked, original body byte-identical in the original-fixture build; release RED on the unchanged tree, original control, final chain, maps and raw binding. Not reviewed, no actual."
   ],
   "blockers": [
     {
@@ -262,6 +263,14 @@
       "evidence": "SAME source45e6 and actual47fe nofindings close finite CITY9word backing. Root95bb binds final619(not historical618),3Windows0/88/profile8159/short3literal80fd; healthy4484joins/177fields+180Bterminal exactf734, real statewithdraw→SECONDsameCITYstage refusal/0altered.4full1179manifests/3952source stable; cache removed after12COFF30proof retention.",
       "missing_fact": "None for this finite canonical backing dependency. Core ct_msgs physical box construction and fx_int physical predicates remain required, as do all remaining D3/currentfull40/Task49 delivery gates.",
       "next_fix": "No replay of closed current natives/source. Next move remaining CITY physical construction and predicates, then sector-height follow-ons."
+    },
+    {
+      "id": "city-box-construction-source-review-native",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "Code f06db8570063e49d1c0d47e913d0c440a7d0927f (UNREVIEWED CODE_FROZEN): the host builds the city box; final chain exit 0 on the committed tree; input maps literal equal; no native actual.",
+      "missing_fact": "Independent source review of this cut; Root native comparison (exact new Windows profiles, ordinary short, healthy default boot with city_state_before falling by exactly city_expand_before, ONE real boot-phase withdrawn_box_state witness with its named refusal or honest UNREACHED); fx_int predicates still in Core; all remaining D3 and delivery gates.",
+      "next_fix": "Same reviewer once after this freeze; then move the fx_int predicates; no replay of closed natives or sources."
     }
   ],
   "next_action": "fix-blocker",
