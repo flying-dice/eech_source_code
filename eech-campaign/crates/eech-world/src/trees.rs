@@ -1103,6 +1103,61 @@ mod tests {
         }
     }
 
+    /// The caller's point or normal as the 32-bit words it holds, taken as the floats the kernel's signature has: the whole array is reinterpreted, twelve bytes copied, so
+    /// no `f32` is returned or compared on the way (on a 32-bit x86 target both go through the x87 register, which makes a signalling NaN quiet).
+    fn float_patterns(words: [u32; 3]) -> [f32; 3] {
+        // SAFETY: both are three plain 32-bit values and every bit pattern is a valid `f32`.
+        unsafe { std::mem::transmute::<[u32; 3], [f32; 3]>(words) }
+    }
+
+    /// The words of a point or normal the kernel answered with; the inverse of [`float_patterns`].
+    fn pattern_words(floats: [f32; 3]) -> [u32; 3] {
+        // SAFETY: as in `float_patterns`.
+        unsafe { std::mem::transmute::<[f32; 3], [u32; 3]>(floats) }
+    }
+
+    /// Runs one query with the caller's point and normal given as raw words and answers every lookup 10 m, returning whether it hit, the lookups asked and the words of the
+    /// answer.
+    fn run_words(scene: &Arc<TreeScene>, old: [f32; 3], new: [f32; 3], point: [u32; 3], normal: [u32; 3]) -> (bool, usize, [u32; 3], [u32; 3]) {
+        let mut query = TreeCollision::new(scene.clone()).unwrap();
+        let mut asked = 0;
+        let mut next = query.begin(old, new, float_patterns(point), float_patterns(normal), false, true).unwrap();
+        loop {
+            match next {
+                TreeRequest::Done { hit, point, normal } => return (hit, asked, pattern_words(point), pattern_words(normal)),
+                TreeRequest::NeedTerrain { .. } => {
+                    asked += 1;
+                    next = query.terrain(10.0).unwrap();
+                }
+            }
+            assert!(asked < 3, "a query that never ends");
+        }
+    }
+
+    #[test]
+    fn a_miss_gives_the_callers_point_and_normal_back_bit_for_bit_whatever_they_hold() {
+        // a signalling NaN, a signed zero, a subnormal, a negative quiet NaN with a payload and the smallest signalling NaN of either sign: none of them may be quietened,
+        // normalised or flushed, on any exit that leaves the caller's buffers (above the tree height, a range under 0.1 m, and no tree on the line)
+        let cases: [([u32; 3], [u32; 3]); 3] = [
+            ([0x7fa0_0001, 0x8000_0000, 0x0000_0001], [0xffc0_0123, 0x0000_0001, 0x8000_0001]),
+            ([0xff80_0001, 0x7f80_0001, 0x8000_0000], [0x7fa0_0001, 0x7fff_ffff, 0xffff_ffff]),
+            ([0x0000_0000, 0x0080_0000, 0x007f_ffff], [0x8000_0000, 0x7f7f_ffff, 0xff7f_ffff]),
+        ];
+        let empty = scene_with(&[], ForestGeometry::KnownAbsent);
+        let exits = [
+            (lone_tree(), [1000.0, 50.0, 1024.0], [1048.0, 50.0, 1024.0]),
+            (lone_tree(), [1024.0, 10.0, 1024.0], [1024.05, 10.0, 1024.0]),
+            (empty, [1000.0, 10.0, 1024.0], [1048.0, 10.0, 1024.0]),
+        ];
+        for (scene, old, new) in &exits {
+            for (point, normal) in cases {
+                let (hit, asked, got_point, got_normal) = run_words(scene, *old, *new, point, normal);
+                assert!(!hit && asked == 2, "hit {hit}, lookups {asked}");
+                assert_eq!((got_point, got_normal), (point, normal), "old {old:?} new {new:?}");
+            }
+        }
+    }
+
     #[test]
     fn the_early_exits_leave_the_callers_outputs_and_ask_only_what_the_original_asks() {
         // radial altitude over 35 m at both ends: an immediate miss after the two lookups

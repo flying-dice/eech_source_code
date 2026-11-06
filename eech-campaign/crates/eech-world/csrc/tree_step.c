@@ -110,6 +110,7 @@ typedef struct eech_tree_sector
 
 typedef char eech_tree_size_check[(sizeof(eech_tree) == 10) ? 1 : -1];
 typedef char eech_tree_sector_size_check[(sizeof(eech_tree_sector) == 8) ? 1 : -1];
+typedef char eech_tree_vec3d_size_check[(sizeof(vec3d) == 3 * sizeof(float)) ? 1 : -1];
 
 /* borrowed for one call: nothing here is kept */
 typedef struct eech_tree_scene
@@ -884,12 +885,8 @@ static int finish(eech_tree_query *q, int result, eech_tree_request *out)
 
 	out->state = TREE_DONE;
 	out->hit = result ? 1 : 0;
-	out->point[0] = q->intercept_point.x;
-	out->point[1] = q->intercept_point.y;
-	out->point[2] = q->intercept_point.z;
-	out->normal[0] = q->face_normal.x;
-	out->normal[1] = q->face_normal.y;
-	out->normal[2] = q->face_normal.z;
+	memcpy(out->point, &q->intercept_point, sizeof(out->point));
+	memcpy(out->normal, &q->face_normal, sizeof(out->normal));
 
 	return (TREE_OK);
 }
@@ -925,12 +922,9 @@ static int __attribute__((noinline)) begin_body(eech_tree_query *q, const eech_t
 	q->new_position.x = new_position[0];
 	q->new_position.y = new_position[1];
 	q->new_position.z = new_position[2];
-	q->intercept_point.x = intercept_point[0];
-	q->intercept_point.y = intercept_point[1];
-	q->intercept_point.z = intercept_point[2];
-	q->face_normal.x = face_normal[0];
-	q->face_normal.y = face_normal[1];
-	q->face_normal.z = face_normal[2];
+	/* the caller's words, copied as words: a float assignment is an x87 load and store on a 32-bit target, which makes a signalling NaN quiet */
+	memcpy(&q->intercept_point, intercept_point, sizeof(q->intercept_point));
+	memcpy(&q->face_normal, face_normal, sizeof(q->face_normal));
 	q->ignore_forest_edge_trees = ignore_forest_edge_trees;
 	q->skip_tree_top_test = skip_tree_top_test;
 
