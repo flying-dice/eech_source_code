@@ -1,0 +1,84 @@
+{
+  "schema": "d3.independent.new-source-findings.v1",
+  "written_utc": "2026-11-06T06:02:00.229930+00:00",
+  "source_commit": "95a10f8820349a9a0243035975d616b1d8447b0a",
+  "parent": "87e9a45482c51292c7dd7d3b25157d085457b56e",
+  "scope": "ONE consolidated new fixed/static backing source batch, before final provenance joins. No old city/roster/moving/math re-review.",
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "native_launch_clearance": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "findings": [
+    {
+      "id": "ENV-FIXED-CANONICAL-FAMILY-AUTHORITY-1",
+      "severity": "P1",
+      "summary": "The requirement for canonical fixed state is selected from Core collision/classification words rather than the actual placement type the host already holds.",
+      "evidence": "fixed_join discards entity_type from placement_fixed. It returns immediately if the Core city flag is set, and on FixedHold::Never it returns Ok when Core says not-fixed and not-of-city. Thus a real fixed-family record with no held state can be skipped using the Core collision-fixed flag instead of refusing the missing canonical state; a false CITY discriminator can bypass state for a non-CITY record. Conversely phase13 set_fixed accepts any matching placement type, rather than establishing the declared fixed-family/Movers ownership boundary. The default C reporter normally supplies state, but that does not establish missing-state or discriminator correctness at this new boundary.",
+      "minimum_correction": "Use actual bound placement/record family metadata to decide which properties and state the reached stage requires. At the original fixed-facts stage, an actual fixed-family placement must require canonical collision-fixed state even when its Core mirror saysfalse; only genuine CITY and non-fixed families may take their declared follow-on/no-state paths. Validate incompatible discriminators or report families by named refusal. Preserve early tallest/sector skips before fixed facts were read, direct-building/model-lookup ordering, and legitimate weapon/effect records with no fixed state. Do not add a guessed default, second pose store or query-time initialization. Extend existing real-provider tests with actual fixed-family missing state/Corefalse and non-CITY/CoreCITY cases, alongside genuine CITY/non-fixed positives."
+    },
+    {
+      "id": "ENV-FIXED-WITHDRAW-CURRENT-JOIN-1",
+      "severity": "P2",
+      "summary": "The new fixed-state withdrawal is not gated by its current served-placement join, and actual failures can be mislabeled as absent coverage.",
+      "evidence": "candidate_question increments faults.request on a parsed non-mobile key that differs from the actually served entry, but the new fixed eligible/withdraw block checks no retained joined flag. With a live held state and a valid real need_placement reply, it can remove state for that current invalid request. The final request0 condition prevents a passing verdict, but the action itself is outside the admitted-lookup contract. Separately, the new plan.withdraw_fixed/withdrawn==0 UNREACHED return runs before checking request/reply faults or an unrelated primary failure.",
+      "minimum_correction": "Retain current per-question join validity and gate eligible lookup credit and real withdrawal on it before mutation. A later valid question may still be handled under the existing explicit whole-trace qualification; do not credit or mutate the invalid current one. In this new mode, report actual request/reply/unrelated-fatal failure distinctly from genuinely absent eligible lookups. Use existing positive-first driver tests for a wrong served key that real provider could otherwise answer, and failure-before-prerequisite versus honest no-prerequisite. No generic tracing framework or native bad-input run is requested."
+    }
+  ],
+  "exact_location_search": {
+    "eech-campaign/crates/eech-world/src/model_host.rs": [
+      [
+        968,
+        "fn fixed_join(lua: &Lua, words: &mut [u32], scene: i64, key_text: &str, of_city: bool) -> Result<i64, String> {"
+      ],
+      [
+        991,
+        "let (_, _, hold) = roster.placement_fixed(key, of_city).map_err(|why| format!(\"[candidate.key] {}\", why.0))?;"
+      ],
+      [
+        1003,
+        "} else if !fixed_given || city {"
+      ],
+      [
+        1011,
+        "FixedHold::Never => {"
+      ]
+    ],
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua": [
+      [
+        1282,
+        "local served = parsed.words [11] ~= ZERO and (scan.city.last ~= nil and scan.city.last.child or nil) or last_served"
+      ],
+      [
+        1283,
+        "if parsed.host_id ~= served then"
+      ],
+      [
+        1331,
+        "if parsed and not parsed.mobile and not problem and parsed.named and scan.fixed.held [parsed.host_id] and not roster_ended [parsed.host_id] then"
+      ],
+      [
+        1943,
+        "if plan.withdraw_fixed and scan.fixed.withdrawn == 0 then return \"UNREACHED: \" .. mode .. \": no staged candidate question of a fixed placement whose state the provider held was answered need_placement (\" .. scan.fixed.stated .. \" fixed states acknowledged, \" .. scan.fixed.joined .. \" eligible lookups served, \" .. cand.keyed .. \" keyed non-mobile questions), so there was no state to withdraw before a continuation: the case holds no such candidate\" end"
+      ]
+    ],
+    "eech-campaign/crates/eech-world/src/roster.rs": [
+      [
+        474,
+        "pub fn placement_fixed(&self, key: u64, child: bool) -> Result<(u64, i32, FixedHold), Refusal> {"
+      ],
+      [
+        492,
+        "pub fn set_fixed(&mut self, key: u64, entity_type: i32, state: FixedState) -> Result<(), Refusal> {"
+      ]
+    ]
+  },
+  "inspection_dispositions": [
+    "The new state is held on the same placement record shared by sector/child LINKs; hosted mobile poses continue using the one Movers handle. No competing persistent fixed state was identified in the reviewed D2 stateless bridge/damage function adapters.",
+    "Raw constructor defaults and unpacked fixed fields are stated at the subsequent real insertion; new normal heading/subtype/shape/position writers and raw kill/bridge/rest hooks are present in the changed paths. The raw-position attribute setter is used by the existing construction attribute funnel; no currently compiled postplacement raw-position call was identified in this bounded review. This is not a future-writer/dormancy waiver.",
+    "ALIVE was not added as a fixed collision property; destroyed shapes remain the shape the collision state publishes. Exact ordinary physical math/kernel files are unchanged by this backing delta.",
+    "New phase13 raw validation in World is integer-based before roster lookup, and no new RefCell panic/reentrant call under the mutable roster borrow was found. This is not new C getter/unmasked-native FP evidence."
+  ],
+  "provenance_pending": "Final report must bind latest qfixedstatic2 checks and direct raw-source join; historical qfixedstatic chain and filtered hash-object equality are not final literal-byte proof. No native has been cleared."
+}

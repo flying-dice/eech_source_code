@@ -1,0 +1,119 @@
+{
+  "source": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa",
+  "source_review_sha256": "beb986d8d66fc89218b0e10a5340066109dc9b9f6a35bb27c1016121c78162e6",
+  "all_four_full_input_manifests_literal_equal": true,
+  "cases": [
+    {
+      "role": "healthy",
+      "source": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa",
+      "native_helper_outer_exits": [
+        0,
+        0,
+        1
+      ],
+      "input_exits": [
+        0,
+        0
+      ],
+      "full_pre_post_manifest_bytes_literal_equal": true,
+      "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "sealed_payloads_verified": 88,
+      "safe_facts": {
+        "completed": true,
+        "failure_marker": "",
+        "request_faults": 0,
+        "reply_faults": 0,
+        "view_applied": 25,
+        "fixed_before": 121166,
+        "fixed_after": 0,
+        "fixed_total": 0,
+        "fixed_stated": 0,
+        "fixed_joined": 1224,
+        "fixed_withdrawn": 0,
+        "fixed_withdrawn_next": "",
+        "fixed_withdrawn_cause": "",
+        "candidate_keyed": 70040,
+        "candidate_unkeyed": 0,
+        "candidate_need_fixed": 34798,
+        "candidate_need_placement": 279,
+        "stationary": 279,
+        "moving": 0,
+        "scan_altered": 0,
+        "candidate_altered": 0,
+        "altered": 0,
+        "contact_any_tests_delta": 6,
+        "contact_any_hits_delta": 0,
+        "precision_high_delta": 6,
+        "case_weapons_pending": 0
+      },
+      "raw_reports_private": true,
+      "healthy_stage_validation_exit": 0
+    },
+    {
+      "role": "withdrawn-fixed-state",
+      "source": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa",
+      "native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "input_exits": [
+        0,
+        0
+      ],
+      "full_pre_post_manifest_bytes_literal_equal": true,
+      "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "sealed_payloads_verified": 88,
+      "safe_facts": {
+        "completed": false,
+        "failure_marker": "entity_candidate.refused",
+        "request_faults": 0,
+        "reply_faults": 1,
+        "view_applied": 1,
+        "fixed_before": 121166,
+        "fixed_after": 0,
+        "fixed_total": 0,
+        "fixed_stated": 0,
+        "fixed_joined": 7,
+        "fixed_withdrawn": 1,
+        "fixed_withdrawn_next": "placement",
+        "fixed_withdrawn_cause": "fixed_state_withdrawn",
+        "candidate_keyed": 21,
+        "candidate_unkeyed": 0,
+        "candidate_need_fixed": 10,
+        "candidate_need_placement": 1,
+        "stationary": 0,
+        "moving": 0,
+        "scan_altered": 0,
+        "candidate_altered": 0,
+        "altered": 0,
+        "contact_any_tests_delta": -1,
+        "contact_any_hits_delta": -1,
+        "precision_high_delta": -1,
+        "case_weapons_pending": -1
+      },
+      "raw_reports_private": true,
+      "healthy_stage_validation_exit": null
+    }
+  ],
+  "healthy_comparison": {
+    "prior_compiled_source": "76fbf557cc8bff935216aba21110a137bb31bf1f",
+    "shared_authority_fields": 166,
+    "all_shared_fields_equal": true,
+    "different_shared_field_names": [],
+    "complete_terminal_lines_including_endings_literal_equal": true,
+    "terminal_count": 1,
+    "terminal_bytes": 180,
+    "terminal_sha256": "b8a859abc3df8fdfbe1cde9d34e44bc195fe3e3b24da7d83d7b03a2ce8e4c433"
+  },
+  "source_map": {
+    "files": 3952,
+    "literal_before_after_equal": true,
+    "sha256": "0e09a77f9a9d5f7153ab786ad12ddf3c9a6887672c915cd43863431e2de9e473",
+    "all_raw_Git_exact": true
+  },
+  "root_checker_qualification": "Recovery outer1 retained: Root required armed fixed_stated>0, but actual acknowledged boot states populate SAME held map before arming (fixed_before121166); healthy native/helper0 is reused without replay. New negative uses unchanged Git-bound driver, true held/current join and real NeedPlacement; no product/scenario change. Original interrupted healthy and old3475fullpack kept incomplete with exitsunknown.",
+  "scope": "FINITE fixed/static state backing dependence only. Deadstructures retain destroyedshape; campaign consequences remainCore. No liveness/registry-decrement inference from fixed_held_lifetime, no armedwriter/naturalmoving/wholephysical/full40/Task49/D3 acceptance.",
+  "actual_independent_review_pending": true,
+  "captured_utc": "2026-11-06T08:46:14.123924+00:00"
+}

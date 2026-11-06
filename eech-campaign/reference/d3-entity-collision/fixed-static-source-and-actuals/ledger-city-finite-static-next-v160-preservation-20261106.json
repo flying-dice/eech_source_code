@@ -1,0 +1,10 @@
+{
+  "before_version": 159,
+  "after_version": 160,
+  "prior_entire_html_prefix_preserved": true,
+  "reports_before": 5,
+  "reports_after": 5,
+  "all_five_preserved": true,
+  "qualification": "Only the prior named jirachart _parentId metadata and two specific Task50/PR110 link/strong normalizations are allowed. New appendix server local IDs excluded from old-prefix comparison.",
+  "scope": "Finite city dependency closed only, currentTask49/D3/full40all8 open."
+}

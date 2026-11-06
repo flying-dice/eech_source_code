@@ -1,0 +1,543 @@
+{
+  "schema": "d3.fixed-static-corrections.code-frozen.v1",
+  "record": "R:/d3-evidence/fixed-static-corrections-CODE-FROZEN-20261106.json",
+  "written_utc": "2026-11-06T06:26:54.789064+00:00",
+  "status": "UNREVIEWED CODE_FROZEN: focused Linux checks only. Not independently reviewed. No Windows build, ordinary short, native run, full40/all8, CI or merge. No native clearance, no self-approval. Whole Task49 and whole D3 remain open.",
+  "task": {
+    "jira": "EEDCS-49",
+    "epic": "EEDCS-21",
+    "pr": 109,
+    "branch": "codex/d3-object-tree-collision",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "model": "Sonnet 5.5, one fresh compact local-context correction lane"
+  },
+  "commits": {
+    "code": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa",
+    "metadata": "558d096043ff387a42b737bb9500df3d7b654085",
+    "code_direct_parent": "fe46ab3ce84d3a427b8f99493ca9d87796adb310 (metadata over 95a10f882: STATUS and the card only)",
+    "reviewed_executable_source": "95a10f8820349a9a0243035975d616b1d8447b0a",
+    "reviewed_source_parent": "87e9a45482c51292c7dd7d3b25157d085457b56e",
+    "metadata_changed_paths": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json"
+    ],
+    "code_changed_paths": [
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "eech-campaign/crates/eech-world/src/model_host.rs",
+      "eech-campaign/crates/eech-world/src/roster.rs",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "eech-campaign/crates/eech-world/tests/model_target_point.rs"
+    ],
+    "pushed": "normal pushes, no force: fe46ab3ce..f734fdfc0 then f734fdfc0..558d09604"
+  },
+  "reviewer_inputs_reread_before_freeze": {
+    "canonical_current": "R:/d3-evidence/D3-CURRENT.json (updated_utc 2026-11-06T06:12:33Z, consistent with the brief; active_jobs none)",
+    "source_review": "R:/d3-evidence/independent-fixed-static-backing-source-95a10-20261106.json",
+    "source_review_sha256": "190e42868d7b38cec143b5b49b7f09d040a09ee5741b28c8e22702fe4c4a6b43",
+    "early_batch": "R:/d3-evidence/independent-fixed-static-backing-findings-95a10-20261106.json",
+    "early_batch_sha256": "d2ccbb0526fef2c43c773d470523a841631be559179ffb920b2c28dee0e1dc93",
+    "same_known_batch": true,
+    "read_by": "bounded extraction of decision, findings, exact locations and required corrections only; both files are unchanged and are not rewritten"
+  },
+  "finding_dispositions": [
+    {
+      "id": "ENV-FIXED-CANONICAL-FAMILY-AUTHORITY-1",
+      "severity": "P1",
+      "disposition": "CORRECTED in code, unreviewed",
+      "what_changed": [
+        "model_host.rs fixed_join uses the entity type placement_fixed returns (the type the host's own roster recorded at the insertion) instead of discarding it. After the campaign read the fixed facts, a placement of the fixed family needs its record's state (Never or Withdrawn is a named refusal) even when the Core collision-fixed mirror says false; a real city (type 5) is the declared follow-on and returns the campaign's scene as before; a placement of no fixed family needs none.",
+        "named [candidate.family] refusals: a Core city flag on a non-city; a Core city-building flag on a non-building; either flag without the fixed flag; a city or a city building that the campaign calls an ordinary fixed candidate; a fixed flag on a placement of no fixed family; a building under a city that is not of the fixed family.",
+        "unchanged by construction: the early tallest/sector skip before fixed_given returns before any state is needed; the direct-building skip and deferred model-lookup order; the original Core reads stay mirrors read in the original order; no guessed default, no second physical store, no query-time Core adoption, no blanket refusal of valid paths.",
+        "roster.rs set_fixed refuses a report whose type is not of the fixed family, before the record changes (a city, a mobile, a weapon, an effect). is_fixed_family, ENTITY_CITY=5, ENTITY_CITY_BUILDING=6 and FIXED_FAMILY=[6,7,17,21,24,26,29,30] are the registered metadata."
+      ],
+      "authority_for_the_type_values": "the campaign's own enum ENTITY_TYPES (aphavoc/source/entity/system/en_types/en_types.h, no explicit values) and its reporter place_fixed_family (aphavoc/source/entity/mobile/mb_hostplace.c). roster.rs test the_entity_types_the_host_classifies_a_placement_by_are_the_campaigns_own_and_the_fixed_family_is_its_reporter_s include_str!s both files and asserts the host's constants equal them. The existing engine-sys source guard (not rerun, no C change) already holds the reporter equal to the overload_fixed_functions census minus CITY. No private index or struct layout is reinterpreted; no C/ABI change.",
+      "genuine_RED": {
+        "run": "fsfix-red-provider-driver",
+        "tree": "unchanged 95a10f882 production with only test files changed (fixtures moved to real entity types, new tests added): the failure is behaviour, not a compile or setup failure",
+        "failed_tests": [
+          "a_wrong_served_key_the_real_provider_could_answer_is_neither_credited_as_an_eligible_lookup_nor_withdrawn",
+          "withdrawing_the_fixed_state_of_a_served_placement_makes_the_next_question_of_the_same_candidate_refused_by_name",
+          "a_fixed_state_report_of_a_type_that_is_not_of_the_fixed_family_is_refused_by_name_and_changes_nothing",
+          "a_placement_of_the_fixed_family_the_host_holds_no_state_for_is_refused_when_the_campaign_says_it_is_not_fixed",
+          "the_campaigns_city_and_building_mirrors_cannot_stand_in_for_the_family_of_the_placement_the_host_holds"
+        ],
+        "observed_reasons": [
+          "provider: a_placement_of_the_fixed_family_the_host_holds_no_state_for_is_refused_when_the_campaign_says_it_is_not_fixed -> first family member (city building) was NOT refused (Never + Core fixed false skipped the state)",
+          "provider: the_campaigns_city_and_building_mirrors_cannot_stand_in_for_the_family_of_the_placement_the_host_holds -> an object that holds state, called a city by the campaign, was NOT refused (the Core city flag bypassed the state)",
+          "provider: a_fixed_state_report_of_a_type_that_is_not_of_the_fixed_family_is_refused_by_name_and_changes_nothing -> a report for a city (type 5) was accepted and held"
+        ],
+        "positive_new_test_that_passed_on_95_as_intended": [
+          "a_real_city_and_a_placement_of_no_fixed_family_are_decided_without_a_fixed_state"
+        ]
+      },
+      "green": "fsfix2-final-world (provider 45 passed, lib 363 passed) with the genuine CITY, non-fixed (city, fixed wing, helicopter, person, sound effect, weapon) and all eight fixed-family positives and the legitimate early skip"
+    },
+    {
+      "id": "ENV-FIXED-WITHDRAW-CURRENT-JOIN-1",
+      "severity": "P2",
+      "disposition": "CORRECTED in code, unreviewed",
+      "what_changed": [
+        "entity-authority.lua candidate_question keeps a per-question joined_now flag (set only when the parsed key equals the placement the host actually served). The eligible-lookup credit and the real withdrawal are gated on it, before any mutation. A later genuinely valid question may still be eligible under the existing explicit whole-trace qualification; the final request==0 requirement is unchanged.",
+        "the withdrawn_fixed_state verdict: when nothing was withdrawn it now reports (1) a request or reply fault as that failure with the counts and first fault, (2) an engine stop at another marker as that stop, and only (3) with a clean run and no failure returns UNREACHED. The existing later checks (stopped at the plan marker without an alteration, withdrawal not acknowledged, joined<1, ...) are unchanged. Physical reads, the -1 sentinel and completed=false rows are unchanged."
+      ],
+      "genuine_RED": {
+        "run": "fsfix-red-provider-driver",
+        "observed_reasons": [
+          "driver: a_wrong_served_key_the_real_provider_could_answer_is_neither_credited_as_an_eligible_lookup_nor_withdrawn -> the real provider answered `removed` for the live-but-unserved placement 2 (fixed_log held a third entry), i.e. the driver mutated for a request it already counted as a fault",
+          "driver: withdrawing_the_fixed_state_of_a_served_placement_makes_the_next_question_of_the_same_candidate_refused_by_name -> an engine stop before any question was reported UNREACHED"
+        ],
+        "not_individually_observed_red": "the request-fault-before-prerequisite and reply-fault-before-prerequisite assertions sit AFTER the engine-stop assertion in the same test, so on 95 that test aborted before reaching them. They pass on the corrected source; their RED on 95 was not separately observed and is inferred from the code path only."
+      },
+      "reclassified_expectation": "the engine stop before any question (engine_stop after=1 marker entity_candidate.callback) in withdrawn_fixed_state was asserted UNREACHED in 95a10f882. It is now asserted to be that stop's own failure, which is exactly the finding. It was moved out of the UNREACHED list with an explanatory comment; the two clean UNREACHED cases (skip-only candidate; no state stated) keep their assertion.",
+      "green": "fsfix2-final-world (driver 69 passed)"
+    }
+  ],
+  "fixture_changes_without_weakening": "The positive provider and driver fixtures used invented entity types (61, 62, 40, 20). They now use real campaign types (object 17, city building 6, city 5, pylon 21 for the mismatch case) because the new family check would otherwise refuse them. Every scenario and assertion is kept, including held-state/Core-mirror bit comparisons, deferred reads and the withdrawal refusal. The driver fixture gained second_held/candidate_second options for the wrong-live-key test.",
+  "red_run": {
+    "label": "fsfix-red-provider-driver",
+    "command": "cargo test --release --locked -p eech-world --test model_target_point --test entity_authority --no-fail-fast",
+    "actual_exit": 101,
+    "started_utc": "2026-11-06T06:17:44.668352+00:00",
+    "completed_utc": "2026-11-06T06:17:51.804436+00:00",
+    "test_results_in_order": [
+      {
+        "result": "FAILED",
+        "passed": 67,
+        "failed": 2
+      },
+      {
+        "result": "FAILED",
+        "passed": 42,
+        "failed": 3
+      }
+    ],
+    "tests_passed": 109,
+    "tests_failed": 5,
+    "record": "R:\\d3-evidence\\sector-roster-direct-fsfix-red-provider-driver.json",
+    "record_sha256": "965d8be9c5446f6296362a22e28f4717a89a041cc634277147c2b520becfc056",
+    "stdout": "R:\\d3-evidence\\sector-roster-direct-fsfix-red-provider-driver.stdout.log",
+    "stdout_sha256": "b0dc0f3f03e94efdd0ee3da79a7b27bf8d14d565627654587db5a937a6fdda67",
+    "stderr": "R:\\d3-evidence\\sector-roster-direct-fsfix-red-provider-driver.stderr.log",
+    "stderr_sha256": "32472d2ebc1fac37acffc5017e867a2edc3288590b972c5f130c7bfd9cd405d0"
+  },
+  "intermediate_actual_runs_preserved_not_hidden": [
+    {
+      "label": "fsfix-fmt-apply",
+      "command": "cargo fmt -p eech-world",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T06:20:53.689074+00:00",
+      "completed_utc": "2026-11-06T06:20:57.381949+00:00",
+      "test_results_in_order": [],
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "record": "R:\\d3-evidence\\sector-roster-direct-fsfix-fmt-apply.json",
+      "record_sha256": "022ba08cef3beddf8c6b421a2c4dfb390e946f535a4228dec64a3e2dc226b195",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fsfix-fmt-apply.stdout.log",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fsfix-fmt-apply.stderr.log",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    {
+      "label": "fsfix-green-world",
+      "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test entity_pose_host --test model_target_point --lib --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T06:21:05.297917+00:00",
+      "completed_utc": "2026-11-06T06:21:20.989152+00:00",
+      "test_results_in_order": [
+        {
+          "result": "ok",
+          "passed": 363,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 69,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 13,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 5,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 17,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 45,
+          "failed": 0
+        }
+      ],
+      "tests_passed": 512,
+      "tests_failed": 0,
+      "record": "R:\\d3-evidence\\sector-roster-direct-fsfix-green-world.json",
+      "record_sha256": "b72ba58283334fef8334c689472a57b91429058d790e94939669b9c29631f56b",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fsfix-green-world.stdout.log",
+      "stdout_sha256": "1afbb650444d19f333cd45478bea57145f4216dfdbe6f65393b17cd4e40ad1b8",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fsfix-green-world.stderr.log",
+      "stderr_sha256": "74d2e591bbcb3202c3b7a2263c2f8b7b190f131713a7a3a048ada3b79ff10251"
+    },
+    {
+      "label": "fsfix-final-fmt-check",
+      "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine -- --check",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T06:21:39.818563+00:00",
+      "completed_utc": "2026-11-06T06:21:43.524832+00:00",
+      "test_results_in_order": [],
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "record": "R:\\d3-evidence\\sector-roster-direct-fsfix-final-fmt-check.json",
+      "record_sha256": "421e1acc7add200f14a631d25ea1035a04592ac518e3cab41ebb247a89ebd2af",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fsfix-final-fmt-check.stdout.log",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fsfix-final-fmt-check.stderr.log",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    {
+      "label": "fsfix-final-check",
+      "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T06:21:43.619863+00:00",
+      "completed_utc": "2026-11-06T06:21:49.562621+00:00",
+      "test_results_in_order": [],
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "record": "R:\\d3-evidence\\sector-roster-direct-fsfix-final-check.json",
+      "record_sha256": "2d0b750ed8e50c3c0b0ca71e1ed53122667679ff3ad905c4c53835abc94a64b0",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fsfix-final-check.stdout.log",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fsfix-final-check.stderr.log",
+      "stderr_sha256": "e6aee9eecfc19f977ee70593be0868250c250802beb6921c3eb6588ef6daa100"
+    }
+  ],
+  "intermediate_note": "These ran before the last edit (a comment-only edit of entity-authority.lua, still an include_str! compile input). They all exited 0 and are preserved, but they are NOT the final chain; fsfix-fmt-apply is the format that rewrote the three Rust sources.",
+  "final_actual_runs_on_the_frozen_tree": [
+    {
+      "label": "fsfix2-final-fmt-check",
+      "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine -- --check",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T06:22:36.913094+00:00",
+      "completed_utc": "2026-11-06T06:22:40.657623+00:00",
+      "test_results_in_order": [],
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "record": "R:\\d3-evidence\\sector-roster-direct-fsfix2-final-fmt-check.json",
+      "record_sha256": "bfcce741a0d53b357264a4d10e1dff3e91eb264af4e7aae9df1905df37cb16d5",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fsfix2-final-fmt-check.stdout.log",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fsfix2-final-fmt-check.stderr.log",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    {
+      "label": "fsfix2-final-check",
+      "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T06:22:40.749210+00:00",
+      "completed_utc": "2026-11-06T06:22:43.979178+00:00",
+      "test_results_in_order": [],
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "record": "R:\\d3-evidence\\sector-roster-direct-fsfix2-final-check.json",
+      "record_sha256": "8563cda42414b450c76a46b72ad377c4d1add0ddf0729276ace2bbbb5da57feb",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fsfix2-final-check.stdout.log",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fsfix2-final-check.stderr.log",
+      "stderr_sha256": "2962cec1a277428580e87df323ddf3bf1938f1d77f3aa6ed7a7eca14520322b4"
+    },
+    {
+      "label": "fsfix2-final-world",
+      "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test entity_pose_host --test model_target_point --lib --no-fail-fast",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T06:22:44.091554+00:00",
+      "completed_utc": "2026-11-06T06:22:50.460642+00:00",
+      "test_results_in_order": [
+        {
+          "result": "ok",
+          "passed": 363,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 69,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 13,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 5,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 17,
+          "failed": 0
+        },
+        {
+          "result": "ok",
+          "passed": 45,
+          "failed": 0
+        }
+      ],
+      "tests_passed": 512,
+      "tests_failed": 0,
+      "record": "R:\\d3-evidence\\sector-roster-direct-fsfix2-final-world.json",
+      "record_sha256": "0dd66bb686fc2fb75f75b7c15e2c9a4f0013a5345b6064156b81acad0176e73a",
+      "stdout": "R:\\d3-evidence\\sector-roster-direct-fsfix2-final-world.stdout.log",
+      "stdout_sha256": "4c790bb812a6bbf036ce52c53f3017c3028782d6838a73ae1ecbb6a9eba5ca7b",
+      "stderr": "R:\\d3-evidence\\sector-roster-direct-fsfix2-final-world.stderr.log",
+      "stderr_sha256": "a2be0abb279638849f992a0e071b90214d558763063dc2faa03e98aec67c8972"
+    }
+  ],
+  "final_chain_labels": [
+    "fsfix2-final-fmt-check",
+    "fsfix2-final-check",
+    "fsfix2-final-world"
+  ],
+  "final_counts": {
+    "eech_world_lib": 363,
+    "entity_authority_driver": 69,
+    "model_target_point_provider": 45,
+    "entity_roster_host": 17,
+    "entity_candidate_host": 13,
+    "entity_pose_host": 5,
+    "total_in_final_world_run": 512,
+    "was_in_95": {
+      "lib": 361,
+      "driver": 68,
+      "provider": 41
+    }
+  },
+  "unaffected_checks_reused_exact_identity": {
+    "why": "no C, ABI, kernel, FP or engine-crate change in this delta, and eech-engine-sys and eech-engine do not depend on eech-world (no eech-world entry in either Cargo.toml). Their inputs are raw-equal to the 95a10 tree by the map.",
+    "source_commit_those_checks_belong_to": "95a10f8820349a9a0243035975d616b1d8447b0a (same raw bytes for every file of those crates)",
+    "records": [
+      {
+        "label": "fixedstatic2-final-fmt-check",
+        "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine -- --check",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T05:50:29.914952+00:00",
+        "completed_utc": "2026-11-06T05:50:33.742506+00:00",
+        "test_results_in_order": [],
+        "tests_passed": 0,
+        "tests_failed": 0,
+        "record": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-fmt-check.json",
+        "record_sha256": "333bef95461cf2a66ced5e9fa508bfb8073844447257ff29ff50a74caad2bb8f",
+        "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-fmt-check.stdout.log",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-fmt-check.stderr.log",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "label": "fixedstatic2-final-check",
+        "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T05:50:33.829630+00:00",
+        "completed_utc": "2026-11-06T05:50:39.759950+00:00",
+        "test_results_in_order": [],
+        "tests_passed": 0,
+        "tests_failed": 0,
+        "record": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-check.json",
+        "record_sha256": "98ecdbfe16600acb15905c2c6586c7f4461d3c9c9aa443e553b33613797aef1b",
+        "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-check.stdout.log",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-check.stderr.log",
+        "stderr_sha256": "9e47d54f296ef3800625d987f51b0bdfc4397e80267a8341f5fa41e2235e104e"
+      },
+      {
+        "label": "fixedstatic2-final-c-dialogue-guards",
+        "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard --test entity_pose_lifecycle_guard --no-fail-fast -- --nocapture",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T05:50:39.849382+00:00",
+        "completed_utc": "2026-11-06T05:50:52.563769+00:00",
+        "test_results_in_order": [
+          {
+            "result": "ok",
+            "passed": 1,
+            "failed": 0
+          },
+          {
+            "result": "ok",
+            "passed": 5,
+            "failed": 0
+          },
+          {
+            "result": "ok",
+            "passed": 4,
+            "failed": 0
+          },
+          {
+            "result": "ok",
+            "passed": 11,
+            "failed": 0
+          }
+        ],
+        "tests_passed": 21,
+        "tests_failed": 0,
+        "record": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-c-dialogue-guards.json",
+        "record_sha256": "a57eefe40d958a65111bb37fa065883f265a0445510736c6a811fc543c5748f6",
+        "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-c-dialogue-guards.stdout.log",
+        "stdout_sha256": "5faae71532b63cb08ace3746e62da5d6b73b66565b8199f97f254dd3489a2fe8",
+        "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-c-dialogue-guards.stderr.log",
+        "stderr_sha256": "5e2c23b6eb99d4f4a9adfa9d53ad8c016b549de994872f0066ebf1bc1c26cb64"
+      },
+      {
+        "label": "fixedstatic2-final-world",
+        "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test entity_pose_host --test model_target_point --lib --no-fail-fast",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T05:50:52.652795+00:00",
+        "completed_utc": "2026-11-06T05:51:07.969146+00:00",
+        "test_results_in_order": [
+          {
+            "result": "ok",
+            "passed": 361,
+            "failed": 0
+          },
+          {
+            "result": "ok",
+            "passed": 68,
+            "failed": 0
+          },
+          {
+            "result": "ok",
+            "passed": 13,
+            "failed": 0
+          },
+          {
+            "result": "ok",
+            "passed": 5,
+            "failed": 0
+          },
+          {
+            "result": "ok",
+            "passed": 17,
+            "failed": 0
+          },
+          {
+            "result": "ok",
+            "passed": 41,
+            "failed": 0
+          }
+        ],
+        "tests_passed": 505,
+        "tests_failed": 0,
+        "record": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-world.json",
+        "record_sha256": "a96e7133eb7fe4493dcb065c9a6ba1199c4dc856c38a8fd7d7ff1f312f707636",
+        "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-world.stdout.log",
+        "stdout_sha256": "9419050b9f6dce10eff25369e174abe786780aecac2c67c6a827970505f206d8",
+        "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-world.stderr.log",
+        "stderr_sha256": "21992a20592c808c3a0b99d576a2c1887b5341f4748e71b5d2b4bb12629ff349"
+      },
+      {
+        "label": "fixedstatic2-final-engine-callback",
+        "command": "cargo test --release --locked -p eech-engine --lib the_model_callback --no-fail-fast",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T05:51:08.066935+00:00",
+        "completed_utc": "2026-11-06T05:51:11.415555+00:00",
+        "test_results_in_order": [
+          {
+            "result": "ok",
+            "passed": 13,
+            "failed": 0
+          }
+        ],
+        "tests_passed": 13,
+        "tests_failed": 0,
+        "record": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-engine-callback.json",
+        "record_sha256": "5eada3c8deebb51170019498e5eaed8291a1fc370be6fcf0ddfa0fa49fd80bca",
+        "stdout": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-engine-callback.stdout.log",
+        "stdout_sha256": "79647e4f03ce9c6c90be44cc9564e2160becc6dd3efc2c6e4fc8c0ce05eef19a",
+        "stderr": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-engine-callback.stderr.log",
+        "stderr_sha256": "767b09631e2ccfd7c297435ba298ee467424628e9e49c8f692fe8dc3d12218f5"
+      }
+    ],
+    "c_dialogue_597_expectations_source_guards_and_engine_callback_13": "inside the reused fixedstatic2-final-c-dialogue-guards and fixedstatic2-final-engine-callback records",
+    "earlier_qfixedstatic_d924_chain": "SUPERSEDED before the last two 95 edits; not final 95 proof and not used here",
+    "fixed_static_backing_frozen_report_for_95": "R:/d3-evidence/fixed-static-backing-CODE-FROZEN-20261106.json (SHA256 prefix 243580ec); retained literally, not rewritten"
+  },
+  "final_input_maps": {
+    "before": "R:\\d3-evidence\\fsfix2-20261106-inputmap-before-final.json",
+    "after": "R:\\d3-evidence\\fsfix2-20261106-inputmap-after-final.json",
+    "sha256_before": "5bdaf4c7373ac9ccaec7f97cc6db691770ce56449f95199062a7d64171eda362",
+    "sha256_after": "5bdaf4c7373ac9ccaec7f97cc6db691770ce56449f95199062a7d64171eda362",
+    "literal_equal": true,
+    "files": 3952,
+    "captured_at_head": "fe46ab3ce84d3a427b8f99493ca9d87796adb310 (working tree held the corrections uncommitted; the code was committed afterwards unchanged)",
+    "order": "map before -> fsfix2-final-fmt-check, fsfix2-final-check, fsfix2-final-world -> map after; no edit between them or after them (git status was the five files only, then committed as f734fdfc0)",
+    "mapper": "R:/d3-evidence/sector-roster-inputmap-batched-20261106.py"
+  },
+  "raw_git_join": {
+    "record": "R:\\d3-evidence\\fixed-static-corrections-raw-source-binding-f734-20261106.json",
+    "record_sha256": "706c8904acc92bb102044112ef8bbd8e30068c7051b149e0f7c7e19a79dd09b8",
+    "method": "raw SHA-256 and size per map file against the bytes `git cat-file --batch` returns for the commit blob. It does NOT use the mapper's git_blob_of_raw_bytes, which is a FILTERED hash-object --stdin-paths identity and not raw-byte proof.",
+    "files": 3952,
+    "raw_equal_to_f734fdfc0_blob_bytes": 3949,
+    "raw_different": [
+      {
+        "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+        "raw_size": 3691,
+        "raw_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+        "git_blob": "41780e08e6f192c4f90d27052f61beadf5a8ae40",
+        "git_size": 3608,
+        "git_bytes_sha256": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+        "raw_size": 5848,
+        "raw_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+        "git_blob": "ec7dd360f70821a2213efe82db9f93ad46f20ee0",
+        "git_size": 5720,
+        "git_bytes_sha256": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+        "raw_size": 3683,
+        "raw_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+        "git_blob": "fb767e110002096f637c48c4e65d48ff5c6168fc",
+        "git_size": 3600,
+        "git_bytes_sha256": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b"
+      }
+    ],
+    "qualification": "The three raw differences are the inherited test-Lua CRLF files, untouched by this lane, unchanged from the 95 binding. All five changed source files are raw-equal to the f734fdfc0 blobs. The four inherited header/allocator filter-only paths were not separately re-listed here; they are raw-equal to the Git bytes (not among the differences).",
+    "metadata_commit": "558d09604 differs from f734fdfc0 by STATUS.md and the card only (git diff --name-only); no compiled or runtime input."
+  },
+  "what_moved": "The host's own placement type now decides which stage of a non-mobile candidate's dialogue needs the record's fixed state, and the current served-key join gates the driver's eligible-lookup credit and withdrawal. The roster is the single owner; no new store.",
+  "what_remains_REQUIRED_not_hidden": [
+    "the CITY's own position and bounding box (the next production change after this finite cut closes)",
+    "sector/tallest height, shared UPDATED and terrain effects, raw tree/forest/cloud RNG, hierarchy/devices, the DCS needed-only mapping, natural moving integration, current Task49 full40/all8, final inputs, CI, review, normal merge and the whole D3 census",
+    "all ten D3 requirements stay required; D4, D5 and TypeScript are unstarted"
+  ],
+  "preserved_contract_unchanged": [
+    "code95 holds position[3]/heading/shape/collision-fixed/align in the existing SectorRosterRecord, shared by sector and city-child placements; phase 13 states at both insertions (last step) and every writer",
+    "Core getters stay bitwise conformance mirrors in order; the host substitutes canonical words; mobiles keep the canonical Movers; ALIVE is not collision state; destroyed structures still collide with the destroyed shape",
+    "RNG/FPU/raw-domain validation precedes registry lookups; 128-ID vs 149 joined NAME domains unchanged; no eager NAME/legacy-ID timing change; no valid-restore/relink refusal"
+  ],
+  "ONE_healthy_plus_withdrawn_state_control_plan_unchanged": {
+    "plan": "the SAME existing plan in R:/d3-evidence/fixed-static-backing-CODE-FROZEN-20261106.json key ONE_distinguishing_native_control_plan: healthy mode=control, then mode=withdrawn_fixed_state, on the prepared roots fixed-static-native-roots-20261106/{short,healthy,withdrawn-fixed-state}",
+    "effect_of_this_delta_on_it": "its credit conditions are unchanged. A native run of the withdrawn mode now fails (not UNREACHED) if a request or reply fault, or an unrelated engine stop, precedes the withdrawal; an unserved or wrong key can no longer be credited or mutated. The healthy run still needs fixed_joined>=1 with zero request/reply faults.",
+    "run_by_this_lane": false
+  },
+  "limitations_and_unavailable": [
+    "UNAVAILABLE: independent review, Windows builds, ordinary short, native healthy/withdrawn runs, retail geometry; so no claim about native boot cost, a missed writer at runtime or byte-identical recordings.",
+    "The provider and driver tests use the real provider and real roster with scripted engine collaborators (the driver fixture scripts candidate answers); they are not retail execution.",
+    "Request/reply-fault assertions of the withdrawn_fixed_state test were not separately observed RED on 95 (see the finding).",
+    "Strict clippy, the full feature matrix and the workspace-wide eight crates were not run (not requested)."
+  ],
+  "untouched_root_owned_state": {
+    "old_3475_ordinary_full40_all8": "not touched, restarted, or claimed passed; last literal prefixes remain PARTIAL",
+    "prepared_exact95_snapshot": "not touched; no check, build or native ran on it",
+    "prepared_fresh_retail_roots": "fixed-static-native-roots-20261106/{short,healthy,withdrawn-fixed-state} not run or touched",
+    "linux_cache_owner": "eech-linux-d3-collision-driver-5416adb3b-20261029 used by this lane only, sequentially, one scoped Cargo command per label; no prune, no restart"
+  },
+  "next_bounded_action": "Root: the SAME independent reviewer reviews this exact corrected material once (the two findings and the changed material; closed city/roster/moving/FP/kernel evidence is not re-reviewed). Only after a clear review does Root run the prepared Windows profiles, the ordinary short and the one healthy plus one withdrawn_fixed_state native control. Required next production AFTER this finite cut closes: the actual CITY position and box, then the remaining D3 requirements."
+}

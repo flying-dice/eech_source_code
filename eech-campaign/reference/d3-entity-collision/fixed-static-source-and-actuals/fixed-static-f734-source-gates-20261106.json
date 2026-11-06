@@ -1,0 +1,111 @@
+{
+  "source": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa",
+  "snapshot": "D:\\EECH-Migration-Evidence\\fixed-static-corrected-f734-20261106-source",
+  "captured_utc": "2026-11-06T06:34:15.409758+00:00",
+  "actual_exit": 0,
+  "scope": "THIS read-only source/binding audit exit0; NO Cargo tests or compilation rerun by Root. Original direct exits retained in checks. Final authorWorld512 plus unchanged95C21/Engine13 reused with literal raw evidence; not native/fullshipping acceptance.",
+  "before_after_source_maps_literal_equal": true,
+  "all_scoped_raw_files_equal_committed_Git": true,
+  "file_count": 3952,
+  "before": "R:\\d3-evidence\\fixed-static-f734-snapshot-before-20261106.json",
+  "before_sha256": "0e09a77f9a9d5f7153ab786ad12ddf3c9a6887672c915cd43863431e2de9e473",
+  "after": "R:\\d3-evidence\\fixed-static-f734-snapshot-after-binding-20261106.json",
+  "after_sha256": "0e09a77f9a9d5f7153ab786ad12ddf3c9a6887672c915cd43863431e2de9e473",
+  "source_clearance": "R:\\d3-evidence\\independent-fixed-static-corrected-source-f734-20261106.json",
+  "source_clearance_sha256": "beb986d8d66fc89218b0e10a5340066109dc9b9f6a35bb27c1016121c78162e6",
+  "checkpoint_sha256": "dc415f577aaa1ef0f598ce4c7025b538bc7fe330a4a7a7d6669b6074278c3a19",
+  "author_final_maps": "R:\\d3-evidence\\fsfix2-20261106-inputmap-after-final.json",
+  "author_final_map_sha256": "5bdaf4c7373ac9ccaec7f97cc6db691770ce56449f95199062a7d64171eda362",
+  "changed_five_raw_Git_bindings": [
+    {
+      "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "author_raw_sha256": "0dcbd38cf2829f983af2884cf725a23d73259e838777b835941527cc9f402b03",
+      "frozen_Git_blob_bytes_sha256": "0dcbd38cf2829f983af2884cf725a23d73259e838777b835941527cc9f402b03",
+      "size": 183249,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+      "author_raw_sha256": "d6b6bf3676928092014b4a8d2ad9272b5d806abe03462b904cc070919a6c5e09",
+      "frozen_Git_blob_bytes_sha256": "d6b6bf3676928092014b4a8d2ad9272b5d806abe03462b904cc070919a6c5e09",
+      "size": 145384,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/roster.rs",
+      "author_raw_sha256": "79b2ce8bc827d9fc326a9ae13fc6e563e16e0cc90b48ee6aee86774bec44b853",
+      "frozen_Git_blob_bytes_sha256": "79b2ce8bc827d9fc326a9ae13fc6e563e16e0cc90b48ee6aee86774bec44b853",
+      "size": 52599,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "author_raw_sha256": "1f8dd530cfc81c18ffaf4a74f030480f82098affd1096da2ad1880e2555ea810",
+      "frozen_Git_blob_bytes_sha256": "1f8dd530cfc81c18ffaf4a74f030480f82098affd1096da2ad1880e2555ea810",
+      "size": 257691,
+      "literal_raw_equal": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+      "author_raw_sha256": "f69de28640f49deb318029a95f1d23495566d8b5534da6ed95ebaf51db26e154",
+      "frozen_Git_blob_bytes_sha256": "f69de28640f49deb318029a95f1d23495566d8b5534da6ed95ebaf51db26e154",
+      "size": 119812,
+      "literal_raw_equal": true
+    }
+  ],
+  "total_author_vs_frozen_raw_equal": 3949,
+  "legacy_raw_differences": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "unchanged_95_other_scope_inputs": 3947,
+  "checks": [
+    {
+      "receipt": "R:\\d3-evidence\\sector-roster-direct-fsfix2-final-fmt-check.json",
+      "sha256": "bfcce741a0d53b357264a4d10e1dff3e91eb264af4e7aae9df1905df37cb16d5",
+      "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine -- --check",
+      "actual_exit": 0,
+      "source": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa",
+      "reused_not_rerun": true
+    },
+    {
+      "receipt": "R:\\d3-evidence\\sector-roster-direct-fsfix2-final-check.json",
+      "sha256": "8563cda42414b450c76a46b72ad377c4d1add0ddf0729276ace2bbbb5da57feb",
+      "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+      "actual_exit": 0,
+      "source": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa",
+      "reused_not_rerun": true
+    },
+    {
+      "receipt": "R:\\d3-evidence\\sector-roster-direct-fsfix2-final-world.json",
+      "sha256": "0dd66bb686fc2fb75f75b7c15e2c9a4f0013a5345b6064156b81acad0176e73a",
+      "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test entity_pose_host --test model_target_point --lib --no-fail-fast",
+      "actual_exit": 0,
+      "source": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa",
+      "reused_not_rerun": true
+    },
+    {
+      "receipt": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-c-dialogue-guards.json",
+      "sha256": "a57eefe40d958a65111bb37fa065883f265a0445510736c6a811fc543c5748f6",
+      "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard --test entity_pose_lifecycle_guard --no-fail-fast -- --nocapture",
+      "actual_exit": 0,
+      "source": "95a10f8820349a9a0243035975d616b1d8447b0a",
+      "reused_not_rerun": true,
+      "qualification": "All C/ABI/Engine/DC inputs raw-byte-equal in frozen95 and frozenf734; those crates have no World dependency. Only C21/Engine13 reused; old World505/fmt/check not current proof."
+    },
+    {
+      "receipt": "R:\\d3-evidence\\sector-roster-direct-fixedstatic2-final-engine-callback.json",
+      "sha256": "5eada3c8deebb51170019498e5eaed8291a1fc370be6fcf0ddfa0fa49fd80bca",
+      "command": "cargo test --release --locked -p eech-engine --lib the_model_callback --no-fail-fast",
+      "actual_exit": 0,
+      "source": "95a10f8820349a9a0243035975d616b1d8447b0a",
+      "reused_not_rerun": true,
+      "qualification": "All C/ABI/Engine/DC inputs raw-byte-equal in frozen95 and frozenf734; those crates have no World dependency. Only C21/Engine13 reused; old World505/fmt/check not current proof."
+    }
+  ],
+  "tests_new_World": 512,
+  "tests_unchanged_C_and_Engine_reused": 34,
+  "tests_combined_scoped_evidence": 546,
+  "qualification": "Author workingtree was atfe46 before committingf734; code inputs bind literally, build/version metadata retains actual receipt identity. Three inherited Lua raw differences and four filter-only paths stay qualified. Old raw_equals_committed_blob/oldWorld-containing records are not literal byte/currenttest proof."
+}

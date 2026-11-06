@@ -1,0 +1,324 @@
+{
+  "schema": 1,
+  "review_kind": "Combined independent correctness, clean-code and boundary-safety audit of NEW finite fixed/static actuals",
+  "reviewer": "/root/d3_environment_review",
+  "captured_utc": "2026-11-06T08:53:03.475371+00:00",
+  "source": {
+    "commit": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa",
+    "metadata_commit": "558d096043ff387a42b737bb9500df3d7b654085",
+    "snapshot": "D:\\EECH-Migration-Evidence\\fixed-static-corrected-f734-20261106-source",
+    "source_review": {
+      "path": "R:\\d3-evidence\\independent-fixed-static-corrected-source-f734-20261106.json",
+      "bytes": 14079,
+      "sha256": "beb986d8d66fc89218b0e10a5340066109dc9b9f6a35bb27c1016121c78162e6"
+    },
+    "source_review_reused_without_reopening": true,
+    "diagnostic_git_blob": "6e520a428f1c834376095a2977240097a4e9749d",
+    "diagnostic_sha256": "0dcbd38cf2829f983af2884cf725a23d73259e838777b835941527cc9f402b03",
+    "diagnostic_bytes": 183249,
+    "literal_equals_frozen_Git_and_packaged_hosted_Lua": true,
+    "no_binary_relabel": true
+  },
+  "decision": {
+    "status": "FINITE_FIXED_STATIC_BACKING_DEPENDENCY_VERIFIED",
+    "findings": [],
+    "finite_public_fixed_backing_closed": true,
+    "finite_fixed_static_backing_dependency_closed": true,
+    "ordinary_complete_short_literal_equal": true,
+    "next_CITY_own_position_and_bounds_cut_may_start": true,
+    "next_cut_condition": "Review the NEW CITY own-position/bounds writers, canonical property ownership and staged consumers as its own bounded source/actual increment. This report supplies no advance clearance for that new code. Keep current frozen full pack isolated.",
+    "armed_fixed_writer_coverage_accepted": false,
+    "fixed_liveness_or_registry_retirement_accepted": false,
+    "natural_moving_weapon_integration_accepted": false,
+    "whole_physical_backing_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false
+  },
+  "independent_verification": [
+    "Read actual controllers, native logs and JSONL, direct pre/native/post exits, recovery and standalone negative completions; joined separate native/helper/orchestrator results.",
+    "Rehashed all 88 payloads and BUILD-INFO in EACH of ordinary, hosted and Original profiles; verified literal diagnostic bytes against f734 Git and packaged hosted script.",
+    "Rehashed 12 retained bound COFF objects and all 30 object/feature/export proof files; compared actual Cargo manifests and placement-symbol evidence with profile8046 and its retained raw audit hashes. No compiler or native process was invoked.",
+    "Compared all four focused full input-manifest files literally and checked 1179 entries each; checked actual input-validator exits. No asset catalogue is reproduced.",
+    "Independently compared all 166 common healthy authority fields and complete terminal bytes with retained city76 healthy; independently compared each COMPLETE ordinary short file with retained80fd.",
+    "Compared frozen before/after-binding/after-native-v2 map bytes literally; independently rehashed current 3952 scoped files against each recorded raw SHA256/size and Git-byte SHA256. No source edits, builds, tests, native launches or live full-pack operations."
+  ],
+  "build_and_profile": {
+    "all_three_actual_build_exits": 0,
+    "profiles": {
+      "ordinary": {
+        "actual_exit": 0,
+        "payloads_rehashed": 88,
+        "BUILD_INFO_sha256": "823cb9e372e858ca148640addfc9b868ff9eb1f77bae01bc1f8cca0533d07029",
+        "image": "sha256:55f471b2a38f6ac60d00443566793948c8194ca920f3ddd2cabaebc3b43d5432",
+        "features": []
+      },
+      "hosted": {
+        "actual_exit": 0,
+        "payloads_rehashed": 88,
+        "BUILD_INFO_sha256": "658f90dce606fe45356f11489b39bb4204e6cda6de22d3efa5555d8e83d1e975",
+        "image": "sha256:1e14f1e084cd206401c1adc050b7d95c272cef77b48a6403a2ead2492d11b074",
+        "features": [
+          "weapon-fixture"
+        ]
+      },
+      "original": {
+        "actual_exit": 0,
+        "payloads_rehashed": 88,
+        "BUILD_INFO_sha256": "3df4915701ab6c0c842f8e221b26ac82e7830fc739609e9102675be330d3d44c",
+        "image": "sha256:f4266a3d6edae141fcfe71362e07d08d63e994b8e953a0d6a810374fbe1096ae",
+        "features": [
+          "collision-fixture",
+          "weapon-fixture"
+        ]
+      }
+    },
+    "actual_twelve_campaign_place_wrappers_present_ordinary_and_hosted_absent_Original": true,
+    "mq_report_check_symbol_absent_all_profiles": true,
+    "ordinary_weapon_fixture_object_symbols_absent": true,
+    "fixture_names_absent_from_PE_exports_per_bound_proof": true,
+    "qualification": "Feature-to-C-define mapping is corroborated by the actual manifest-bound COFF symbols and PE-export proof. Earlier ordinary/hosted image configurations are unavailable, not inferred. Retained full RLIB is not claimed. No Original campaign control was required or run for this finite actual join.",
+    "profile_proof": {
+      "path": "R:\\d3-evidence\\fixed-static-windows-profile-isolation-f734-20261106.json",
+      "bytes": 6949,
+      "sha256": "8046ad2d3e522f42ac484a4513f76afb9cb6210e0ed9dbd13cdbe8639b39e323"
+    },
+    "retention": {
+      "path": "D:\\EECH-Migration-Evidence\\fixed-static-profile-artifacts-f734-20261106\\preservation.json",
+      "bytes": 5920,
+      "sha256": "1f54f1cb0319522d38a488ce07f20c7b1aeb91cb77b4b65ef7c2b3b1a6f240fc"
+    }
+  },
+  "actual_cases": [
+    {
+      "role": "healthy",
+      "output": "D:\\EECH-Migration-Evidence\\fixed-static-healthy-recovery-f734fdfc0-20261106",
+      "native_exit": 0,
+      "helper_exit": 0,
+      "orchestrator_exit": 1,
+      "healthy_stage_validation_exit": 0,
+      "input_manifest_exits": [
+        0,
+        0
+      ],
+      "sealed_payloads_verified": 88,
+      "json_rows": 7,
+      "json_sha256": "d1688779a33384996494efc274f4417e3bf84f92c40dd31fdf58ce243096a92f",
+      "controller": {
+        "path": "D:\\EECH-Migration-Evidence\\fixed-static-healthy-recovery-f734fdfc0-20261106\\controller.json",
+        "bytes": 4303,
+        "sha256": "ac4f12eb5f703daf58485fcb939964a99a5d6a334d2d559b34a4a56d648191b3"
+      },
+      "safe_facts": {
+        "completed": true,
+        "failure_marker": "",
+        "request_faults": 0,
+        "reply_faults": 0,
+        "view_applied": 25,
+        "fixed_before": 121166,
+        "fixed_after": 0,
+        "fixed_total": 0,
+        "fixed_stated": 0,
+        "fixed_joined": 1224,
+        "fixed_withdrawn": 0,
+        "fixed_withdrawn_next": "",
+        "fixed_withdrawn_cause": "",
+        "candidate_keyed": 70040,
+        "candidate_unkeyed": 0,
+        "candidate_need_fixed": 34798,
+        "candidate_need_placement": 279,
+        "stationary": 279,
+        "moving": 0,
+        "scan_altered": 0,
+        "candidate_altered": 0,
+        "altered": 0,
+        "contact_any_tests_delta": 6,
+        "contact_any_hits_delta": 0,
+        "precision_high_delta": 6,
+        "case_weapons_pending": 0
+      }
+    },
+    {
+      "role": "withdrawn-fixed-state",
+      "output": "D:\\EECH-Migration-Evidence\\fixed-static-withdrawn-state-f734fdfc0-20261106",
+      "native_exit": 0,
+      "helper_exit": 0,
+      "orchestrator_exit": 0,
+      "healthy_stage_validation_exit": null,
+      "input_manifest_exits": [
+        0,
+        0
+      ],
+      "sealed_payloads_verified": 88,
+      "json_rows": 6,
+      "json_sha256": "e124f525deae1ceafadf2c1692154a02668ed0d11908a0cdb4a06f3b6ac97aa2",
+      "controller": {
+        "path": "D:\\EECH-Migration-Evidence\\fixed-static-withdrawn-state-f734fdfc0-20261106\\controller.json",
+        "bytes": 4324,
+        "sha256": "8a7e9afbbd02bea7345aa74be875a6cec111ba2b157e0391aa8e74aa9e16666c"
+      },
+      "safe_facts": {
+        "completed": false,
+        "failure_marker": "entity_candidate.refused",
+        "request_faults": 0,
+        "reply_faults": 1,
+        "view_applied": 1,
+        "fixed_before": 121166,
+        "fixed_after": 0,
+        "fixed_total": 0,
+        "fixed_stated": 0,
+        "fixed_joined": 7,
+        "fixed_withdrawn": 1,
+        "fixed_withdrawn_next": "placement",
+        "fixed_withdrawn_cause": "fixed_state_withdrawn",
+        "candidate_keyed": 21,
+        "candidate_unkeyed": 0,
+        "candidate_need_fixed": 10,
+        "candidate_need_placement": 1,
+        "stationary": 0,
+        "moving": 0,
+        "scan_altered": 0,
+        "candidate_altered": 0,
+        "altered": 0,
+        "contact_any_tests_delta": -1,
+        "contact_any_hits_delta": -1,
+        "precision_high_delta": -1,
+        "case_weapons_pending": -1
+      }
+    }
+  ],
+  "authority_interpretation": {
+    "healthy": "Acknowledged boot reports populate the SAME host-held fixed-state records: fixed_before121166, armed fixed_stated0. The healthy run reaches 1224 current joined fixed lookups, 279 NeedPlacement and 279 stationary narrow-phase questions with zero request/reply/alteration faults, and completes its finite configured-view cohort. Boot-state evidence is not an armed-writer test.",
+    "withdrawal": "The unchanged Git-bound diagnostic removes ONE genuinely held state at a CURRENT joined eligible fixed question. Actual acknowledgement is followed by placement; the actual provider refuses the withdrawn state before stationary narrow phase. The primary native debug-fatal payload matches the Engine failure first line and the expected candidate.fixed withdrawal reason. This is real host-record dependence, not a generic overridden reply or Core fallback.",
+    "negative_counts": {
+      "fixed_withdrawn": 1,
+      "fixed_joined": 7,
+      "NeedPlacement": 1,
+      "stationary_reached": 0,
+      "request_faults": 0,
+      "reply_faults": 1,
+      "altered_answers": 0,
+      "postfatal_physical_counters_and_pending": -1
+    },
+    "postfatal_boundary": "The poisoned case is not complete and has no terminal event. Physical counter and pending values remain unknown(-1); report construction uses retained Lua observations. No postfatal engine query or complete-cohort claim is made. Earlier valid scan/candidate work is not claimed absent.",
+    "configured_scope": "Global configured VIEW input and one finite real cohort, not camera or unique-weapon attribution. Moving count is zero."
+  },
+  "healthy_retained_comparison": {
+    "prior_compiled_source": "76fbf557cc8bff935216aba21110a137bb31bf1f",
+    "shared_authority_fields": 166,
+    "all_shared_fields_equal": true,
+    "different_shared_field_names": [],
+    "complete_terminal_lines_including_endings_literal_equal": true,
+    "terminal_count": 1,
+    "terminal_bytes": 180,
+    "terminal_sha256": "b8a859abc3df8fdfbe1cde9d34e44bc195fe3e3b24da7d83d7b03a2ce8e4c433"
+  },
+  "ordinary_short": {
+    "source": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa",
+    "native_exit": 0,
+    "helper_exit": 0,
+    "input_exits": [
+      0,
+      0
+    ],
+    "payloads_rehashed": 88,
+    "all_three_COMPLETE_files_literal_equal": true,
+    "files": [
+      {
+        "file": "recording.acmi",
+        "bytes": 230871,
+        "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d"
+      },
+      {
+        "file": "observations.jsonl",
+        "bytes": 1553674,
+        "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc"
+      },
+      {
+        "file": "metrics.json",
+        "bytes": 7477,
+        "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4"
+      }
+    ],
+    "wall_seconds": 14.587045,
+    "walltime_qualification": "Single observed short-run duration, not a performance benchmark. No visual Tacview inspection or full-war acceptance.",
+    "comparison_receipt": {
+      "path": "R:\\d3-evidence\\fixed-static-ordinary-short-comparison-f734-20261106.json",
+      "bytes": 1753,
+      "sha256": "ccff65629e5bf30aaaf8cc1579ee427443ded9f3ca5fd21c6ab3fc5468423680"
+    }
+  },
+  "input_and_source_integrity": {
+    "focused_full_manifests": 4,
+    "entries_per_manifest": 1179,
+    "all_four_manifest_bytes_literal_equal": true,
+    "manifest_bytes": 209622,
+    "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "frozen_source_files_rehashed": 3952,
+    "all_current_scoped_raw_files_equal_Git_bytes": true,
+    "before_after_binding_after_native_v2_maps_literal_equal": true,
+    "map_sha256": "0e09a77f9a9d5f7153ab786ad12ddf3c9a6887672c915cd43863431e2de9e473",
+    "earlier_after_native_map": "Its file records and raw fingerprint equal the accepted maps, but slash/head-revision metadata differs. It is preserved; only the same-producer-arguments v2 capture is literally equal. No source/test/native replay or byte normalization occurred.",
+    "author_worktree_qualification": "The source report retains three inherited Lua working-CRLF/Git-LF qualifications. They do not apply to this clean frozen snapshot, whose 3952 actual raw files match recorded Git bytes. Filtered identity is not substituted for raw-byte proof.",
+    "source_gate_receipt": {
+      "path": "R:\\d3-evidence\\fixed-static-f734-source-gates-20261106.json",
+      "bytes": 6798,
+      "sha256": "83b013f0fc32bfa4b73f6f442ab114840581da8444d766accf02e5e9c1a33f76"
+    },
+    "source_after_native_v2": {
+      "path": "R:\\d3-evidence\\fixed-static-f734-snapshot-after-native-v2-20261106.json",
+      "bytes": 2028083,
+      "sha256": "0e09a77f9a9d5f7153ab786ad12ddf3c9a6887672c915cd43863431e2de9e473"
+    }
+  },
+  "preserved_failures_and_qualifications": [
+    {
+      "case": "Original healthy and older3475 full pack",
+      "status": "INTERRUPTED_WITHOUT_COMPLETION",
+      "actual_old_exit": null,
+      "qualification": "Original PID trees absent and no terminal receipts; cause/exit unknown. Four retained recording/observation prefixes equal baseline only through the captured partial outputs, with ACMI markers4151.33/4141.37. No complete-pack/all40/all8 inference.",
+      "receipt": {
+        "path": "R:\\d3-evidence\\fixed-static-interruption-audit-20261106.json",
+        "bytes": 2003,
+        "sha256": "09d88c1b4daf1d79a664944c2a79b0e7521f65d864959f26838397d3bfd10485"
+      }
+    },
+    {
+      "case": "Recovery orchestrator",
+      "actual_outer_exit": 1,
+      "healthy_native_exit": 0,
+      "healthy_helper_exit": 0,
+      "healthy_stage_validation_exit": 0,
+      "negative_launched_there": false,
+      "qualification": "A Root prelaunch guard incorrectly required armed fixed_stated>0 despite acknowledged boot state in the SAME held map. The successful healthy native is retained without replay; the standalone negative gates boot state, current joins, actual NeedPlacement and stationary prerequisites. This is a checker-window correction, not product/scenario/baseline relaxation.",
+      "receipt": {
+        "path": "R:\\d3-evidence\\fixed-static-recovery-f734-20261106-completion.json",
+        "bytes": 1927,
+        "sha256": "913f32f6a930c4db3002cfa261d53cde61be42026bafe37f9c90355d5c0e705d"
+      }
+    },
+    {
+      "case": "Safe-facts outer-exit projection",
+      "old_projection_sha256": "7be06dcabb240857cbb61af094f6b6d58fd53a881657b6303c3720ec651029c2",
+      "qualification": "Earlier projection used the inner healthy-stage validation0 as outer0 despite its prose caveat. Root preserved it externally and corrected healthy exits to [0,0,1] plus stage0. This review binds only corrected b3f956 projection, without rewriting original completion or replaying actuals."
+    }
+  ],
+  "scope_limits": [
+    "Finite fixed/static collision-state backing dependence only. No runtime armed setter, restore, destruction, liveness or actual registry decrement is established by this window or by fixed_held_lifetime telemetry.",
+    "Dead structures retaining destroyed-shape collision and campaign consequences remaining Core are not reclassified as a defect or a live-state proof by these counts.",
+    "CITY own position/bounds and remaining static consumers, UPDATED/shared terrain/tallest services, raw tree/forest/cloud data and RNG, hierarchy/subobjects/devices and remaining required physical services, DCS mappings, identity/lifetime/synchronization and natural moving-weapon integration remain REQUIRED.",
+    "Previously closed kernels, source numerical/FPU/RNG evidence and other finite actuals remain at their own identities. No new full-FP or all-domain measurement follows from this run.",
+    "The current ordinary f734 full40 pack is separate and active per Root; it was not operated, restarted or accepted in this review. Complete current40/all8, final input/payload checks, CI, dependency and normal delivery remain separate gates. Whole Task49/D3 stays open."
+  ],
+  "root_safe_projection": {
+    "path": "R:\\d3-evidence\\fixed-static-finite-actual-facts-f734-20261106.json",
+    "bytes": 4388,
+    "sha256": "b3f95643f81f59e2ff7d3c6c2d4ea94a7fbfa29f19e15d7815f7a6277c51438b"
+  },
+  "standalone_negative_completion": {
+    "path": "R:\\d3-evidence\\fixed-static-withdrawn-state-f734fdfc0-20261106-completion.json",
+    "bytes": 2004,
+    "sha256": "4945ad75e1e6c073fb6da58556c5e65bc6a0ef38aa6a084b14e024319fdaecdd"
+  },
+  "publication_safety": "Only aggregate counts, hashes, named semantic reasons and private/source paths. No raw retail geometry, coordinates, physical tuples, cohort signatures, actor/host-ID suffixes, indices, pointers, recordings, transcripts or binaries."
+}
