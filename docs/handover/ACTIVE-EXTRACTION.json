@@ -7,10 +7,10 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "FINITEcity-listdependencyCLOSED76fb/sourcea049/actual5684; healthy264joinedNEXT/150sharedfields+180Bterminal exact5182, reachedrealChildRemove/currentNEXTnamedrefusal,4full1179manifests literal/88sealed. Short3COMPLETEliteral80fd,profiles0/source3952stable. Nextfixed/staticcollisionstate production required; fullTask49D3open.",
+  "phase": "UNREVIEWED CODE_FROZEN fixed/static collision state 95a10f8820349a9a0243035975d616b1d8447b0a (parent 87e9a454): the host's record of each fixed-family placement holds position/heading/shape/collision-fixed/align, stated by the insertions and every writer; every staged non-mobile candidate names its served placement and is decided from the record; host-side withdrawal control withdrawn_fixed_state specified. Focused Linux checks only: no independent review, Windows, native, short or full40 run. City own position/box, UPDATED/terrain, raw loaders/RNG, hierarchy/devices and DCS mapping stay REQUIRED; whole Task49/D3 open.",
   "preparation_batches_without_cutover": 0,
   "preparation_limit": 2,
-  "next_production_change": "Move canonical fixed/static physical collision inputs behind the existing host records: required pose/shape/live flags and spatial hints, with actual create/restore/setter/report/retire ownership and one authoritative property store. Preserve FP/RNG/order, lazy IDs and campaign policy. Shared terrain/UPDATED, raw loaders/RNG, active needed hierarchy/devices and DCS mapping stay REQUIRED.",
+  "next_production_change": "After the fixed/static cut is reviewed and native-cleared: move the CITY's own fixed collision inputs (position and bounding box: ct_vec3d.c and the popread writers) behind its host record by the same funnel, then the shared UPDATED/terrain effects, raw tree/forest/cloud RNG, needed hierarchy/devices and the DCS mapping, each with its actual writers. One owner per property; no query-time Core adoption, eager legacy IDs, approximate geometry or campaign policy in the host.",
   "ready_evidence": [
     "Closed preparation reused, not redone: original characterization (15054 queries / 29894 ordered terrain answers exact through the host library and real Lua; original raw unchanged, 47a4af0d1/b44d2c96f) and the host tree loader/kernel 8c452f197 (review 4258f1b94, FP state/refusal/lifetime controls).",
     "Merge of the verified clean Task52 branch 099aa09c2dfeb77ca708214421e81113369a057e into the old Task49 head f2473817bced177b588878d6e416dcb4400f8bc2 (normal merge, no rebase/force); both sides' features, FFI, tests and history preserved.",
@@ -54,6 +54,14 @@
     "Reviewed roster source and complete short safe evidence: reference/d3-entity-collision/sector-roster-source-and-short/manifest.json. Four literal source reviews, four checkpoints, frozen gate/profile/short/prefix/root-checker/ledger proofs. Native backing actuals pending, no Task49/D3 acceptance."
   ],
   "blockers": [
+    {
+      "id": "fixed-static-source-review-native",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "Code 95a10f8820349a9a0243035975d616b1d8447b0a is UNREVIEWED CODE_FROZEN: focused Linux checks only (C control 597 expectations, source guards 5/4/11, driver 68, provider 41, roster host 17, candidate host 13, pose host 5, eech-world lib 361, engine callback 13, fmt and four-crate check exit 0) with genuine behavioural REDs preserved (C control 7 expectations, provider 6 new tests; 33 existing pass). Input maps before/after literally equal (fingerprint b8aa852c).",
+      "missing_fact": "Independent source review of the new material; the three Windows profiles; the ordinary short byte comparison; one healthy and one actual withdrawn_fixed_state native run (the host retires only the fixed state of a served eligible record and the same next question must be refused by name). Not reachable from Linux: native authority, retail behaviour and the unmodified old path cannot establish this dependency.",
+      "next_fix": "Same reviewer reviews the exact frozen material once; Root runs the exact native controls afterwards. No actor/time/geometry search: an unreached prerequisite is reported UNREACHED."
+    },
     {
       "id": "city-building-native-authority",
       "status": "closed",
