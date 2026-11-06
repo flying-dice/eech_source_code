@@ -335,6 +335,13 @@ enum campaign_model_scan_state
 /* the longest key the host's roster issues (a decimal number of at most 20 digits, without the terminator): the campaign carries it whole and never reads it as anything else */
 #define CAMPAIGN_ROSTER_KEY_MAX 20
 
+/* the longest legacy object-report identity (without the terminator; CAMPAIGN_OBJECT_ID_MAX, mb_hostobj.h; mb_hostplace.c asserts the two are equal at compile time): its own domain, independent of the host identity's */
+#define CAMPAIGN_MODEL_OBJECT_ID_MAX 128
+
+/* the longest identity place of an ENTITY_SCAN question (without the terminator): a city NAME carries a placement key, one space and an object identity, EACH at its own maximum, so the request's identity field is
+   sized for the whole join and not for either part (a host identity or an object identity alone is never longer than its own domain) */
+#define CAMPAIGN_MODEL_SCAN_IDENTITY_MAX (CAMPAIGN_ROSTER_KEY_MAX + 1 + CAMPAIGN_MODEL_OBJECT_ID_MAX)
+
 /* ENTITY_CANDIDATE: the floats of the question (the facts) and the states of the answer */
 #define CAMPAIGN_MODEL_CANDIDATE_FACTS 44
 #define CAMPAIGN_MODEL_CANDIDATE_POSE_MAX 16
@@ -420,8 +427,9 @@ typedef struct campaign_model_request
 	/* TARGET_POINT_WORLD, TARGET_POINT_FIXED and ENTITY_COLLISION: the number of floats in `pose` (see the operations above) */
 	int pose_count;
 	float pose[CAMPAIGN_MODEL_POSE_MAX];
-	/* ENTITY_POSE: the candidate's semantic host identity (NUL-terminated; empty when the roster has none) */
-	char host_id[CAMPAIGN_MODEL_HOST_ID_MAX + 1];
+	/* ENTITY_POSE and ENTITY_CANDIDATE: the candidate's semantic host identity (NUL-terminated; empty when the roster has none; at most CAMPAIGN_MODEL_HOST_ID_MAX bytes). ENTITY_SCAN: the identity place of the question
+	   (NUL-terminated; at most CAMPAIGN_MODEL_SCAN_IDENTITY_MAX bytes, a key, a hosted mobile's identity or a city NAME's key, space and object identity) */
+	char host_id[CAMPAIGN_MODEL_SCAN_IDENTITY_MAX + 1];
 } campaign_model_request;
 
 typedef struct campaign_model_reply
@@ -511,7 +519,9 @@ void campaign_model_entity_roster (int phase, int entity_type, float side, const
 
 /* ENTITY_SCAN, the city events (phases CAMPAIGN_SCAN_PHASE_CHILD_INSERT to CAMPAIGN_SCAN_PHASE_NAME): `identity` is the identity place text the caller built from the host's keys (see mb_hostentity.h,
    campaign_entity_city_exchange: it is validated against the phase's grammar before anything is sent); for an insertion `entity_type` is the building's type; the host's answer is written to `key`: the key issued (an
-   insertion), the entry served (CHILD_FIRST and CHILD_NEXT: empty at the end of the list) or the key the host acknowledged (LINK and NAME). The reply is checked completely. */
+   insertion), the entry served (CHILD_FIRST and CHILD_NEXT: empty at the end of the list) or the key the host acknowledged (LINK and NAME). The reply is checked completely. A city's list is named by the key the
+   city's sector placement had at its first building, and keeps that name when the city's placement is relinked (a LINK of the new placement and that name continues the list); a NAME's identity place is a key, one
+   space and the object identity, each at its own domain (CAMPAIGN_MODEL_SCAN_IDENTITY_MAX in all). */
 void campaign_model_entity_city (int phase, int entity_type, const char *identity, char *key);
 
 /* whether a model provider is installed (the roster reports only to one: a build with no host has no roster and no scan) */

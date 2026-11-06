@@ -23,8 +23,13 @@
 //! the head. The host holds that order (`child_insert`, `child_first`, `child_next`) as it holds a sector's, and the campaign's own list is only the mirror the scan's answer is compared with. A building has two
 //! placements, one in its city's list and one in its sector's: the campaign declares them the SAME entity (`link`) as soon as the second exists, so the host holds one record for the entity; and when the campaign
 //! asks the host for the entity's legacy object-report identity (lazily, once) the record is named by it (`name`). An identity names one record, a record has one identity, and both end with the record's last
-//! placement. A city's own placement cannot leave its sector list while any building is listed under it (the campaign destroys the buildings first), and every key is validated against the live roster and its
-//! parent before anything is served or changed.
+//! placement. Every key is validated against the live roster and its parent before anything is served or changed.
+//!
+//! A city list hangs from the city's RECORD, not from the city's current sector placement. The city's sector placement is transient: the fixed-position setter every city shares removes it from its sector list and
+//! inserts it again whenever the position crosses a sector, and a session restore does the same, while the city's buildings stay listed. So a city's sector placement may leave while buildings are listed: the record
+//! (and the object identity that names it) stays while the list is non-empty, the list is not served or extended until a placement joins the record again (`link` with the record the list hangs from), and the record
+//! ends with its last placement once the list is empty. The list is named on the wire by the key the campaign first named it by (the city's sector placement key at the first building), which stays the list's name
+//! whatever placements the city has had since.
 
 use std::collections::{BTreeMap, HashMap};
 
@@ -100,6 +105,9 @@ pub fn sector_of(x_word: u32, z_word: u32, side: i32) -> Result<(i32, i32), Refu
     Ok((axis(x_word)?, axis(z_word)?))
 }
 
+/// The longest legacy object-report identity, in bytes (`CAMPAIGN_OBJECT_ID_MAX`, mb_hostobj.h): its own domain, independent of the placement key a NAME carries before it.
+pub const OBJECT_ID_MAX: usize = 128;
+
 struct Entry {
     sector: (i32, i32),
     sequence: u64,
@@ -110,7 +118,7 @@ struct Entry {
     record: u64,
 }
 
-/// A building's place in its city's list (`LIST_TYPE_CITY_BUILDING`): which sector entry is its parent, and the record it shares with the building's own sector placement.
+/// A building's place in its city's list (`LIST_TYPE_CITY_BUILDING`): the record of the city the list hangs from (stable across the city's sector relinks), and the record the building shares with its own sector placement.
 struct Child {
     parent: u64,
     entity_type: i32,
@@ -133,7 +141,7 @@ pub struct SectorRoster {
     next_sequence: u64,
     entries: HashMap<u64, Entry>,
     sectors: HashMap<(i32, i32), BTreeMap<u64, u64>>,
-    /// the city lists: for a parent sector entry, its children's keys in the list's order (the head first: a child is inserted at the head or after a predecessor, and a scan walks head to tail)
+    /// the city lists: for the record of the city, its children's keys in the list's order (the head first: a child is inserted at the head or after a predecessor, and a scan walks head to tail)
     lists: HashMap<u64, Vec<u64>>,
     children: HashMap<u64, Child>,
     records: HashMap<u64, Record>,
@@ -174,17 +182,9 @@ impl SectorRoster {
         if !self.entries.contains_key(&key) {
             return Err(Refusal::new(self.unknown(key)));
         }
-        // a city list hangs off its parent's placement: the campaign removes every child (destroys the buildings) before the city's own placement leaves its sector list
-        if let Some(list) = self.lists.get(&key).filter(|list| !list.is_empty()) {
-            return Err(Refusal::new(format!(
-                "the roster entry {key} is the parent of {} city children that are still listed",
-                list.len()
-            )));
-        }
         let Some(entry) = self.entries.remove(&key) else {
             return Err(Refusal::new(self.unknown(key)));
         };
-        self.lists.remove(&key);
         if let Some(sector) = self.sectors.get_mut(&entry.sector) {
             sector.remove(&entry.sequence);
             if sector.is_empty() {
@@ -195,28 +195,54 @@ impl SectorRoster {
         Ok(())
     }
 
-    /// One placement leaves its record; the record, and the object identity it was named by, end with its last placement.
+    /// One placement leaves its record.
     fn leave(&mut self, record: u64, key: u64) {
-        let Some(entry) = self.records.get_mut(&record) else {
-            return;
-        };
-        if entry.sector == Some(key) {
-            entry.sector = None;
-        }
-        if entry.child == Some(key) {
-            entry.child = None;
-        }
-        if entry.sector.is_none() && entry.child.is_none() {
-            if let Some(object) = self.records.remove(&record).and_then(|ended| ended.object) {
-                self.objects.remove(&object);
+        if let Some(entry) = self.records.get_mut(&record) {
+            if entry.sector == Some(key) {
+                entry.sector = None;
             }
+            if entry.child == Some(key) {
+                entry.child = None;
+            }
+        }
+        self.retire(record);
+    }
+
+    /// A record, and the object identity it was named by, end with its last placement, unless buildings are still listed under it: a city whose sector placement has left (a relink) keeps its record and its
+    /// list until a placement joins it again, and ends when its list is empty.
+    fn retire(&mut self, record: u64) {
+        let placed = self.records.get(&record).is_some_and(|entry| entry.sector.is_some() || entry.child.is_some());
+        if placed || self.lists.get(&record).is_some_and(|list| !list.is_empty()) {
+            return;
+        }
+        self.lists.remove(&record);
+        if let Some(object) = self.records.remove(&record).and_then(|ended| ended.object) {
+            self.objects.remove(&object);
         }
     }
 
-    /// Inserts a building into its city's list: at the head, or after `pred` (a live child of the same parent). `parent` is the city's placement key in its sector; both must be live.
-    pub fn child_insert(&mut self, parent: u64, pred: Option<u64>, entity_type: i32) -> Result<u64, Refusal> {
-        if !self.entries.contains_key(&parent) {
-            return Err(Refusal::new(format!("[parent] {}", self.unknown(parent))));
+    /// The record whose city list a key of the identity place names: a live sector entry names the record it belongs to, and a key that is no live entry names the record it was issued for while that record is
+    /// still held by a placement or a list (the key a city's list was first named by, after the city's placement was relinked).
+    fn list_record(&self, key: u64) -> Result<u64, Refusal> {
+        if let Some(entry) = self.entries.get(&key) {
+            return Ok(entry.record);
+        }
+        let held = self
+            .records
+            .get(&key)
+            .is_some_and(|record| record.sector.is_some() || self.lists.get(&key).is_some_and(|list| !list.is_empty()));
+        if held {
+            Ok(key)
+        } else {
+            Err(Refusal::new(self.unknown(key)))
+        }
+    }
+
+    /// Inserts a building into its city's list: at the head, or after `pred` (a live child of the same list). `named` is the key the list is named by (see `list_record`); the city must hold a sector placement.
+    pub fn child_insert(&mut self, named: u64, pred: Option<u64>, entity_type: i32) -> Result<u64, Refusal> {
+        let parent = self.list_record(named).map_err(|why| Refusal::new(format!("[parent] {}", why.0)))?;
+        if self.records.get(&parent).is_some_and(|record| record.sector.is_none()) {
+            return Err(Refusal::new(format!("[parent] the city of the list {named} holds no sector placement")));
         }
         let at = match pred {
             None => 0,
@@ -227,7 +253,7 @@ impl SectorRoster {
                     .ok_or_else(|| Refusal::new(format!("[pred] {}", self.not_a_child(pred))))?;
                 if child.parent != parent {
                     return Err(Refusal::new(format!(
-                        "[pred] the city child {pred} is listed under {}, not under the parent {parent}",
+                        "[pred] the city child {pred} is listed under {}, not under the parent {named}",
                         child.parent
                     )));
                 }
@@ -259,42 +285,52 @@ impl SectorRoster {
         Ok(key)
     }
 
-    /// Removes a building from its city's list; the others keep their order. `parent` is the list the campaign names: a child listed under another is refused by name.
-    pub fn child_remove(&mut self, parent: u64, key: u64) -> Result<(), Refusal> {
-        let record = self.child_of(parent, key)?.record;
+    /// Removes a building from its city's list; the others keep their order. `named` is the list the campaign names: a child listed under another is refused by name. The list may be one whose city holds no
+    /// sector placement at the moment (a building is unlisted whenever the campaign releases it).
+    pub fn child_remove(&mut self, named: u64, key: u64) -> Result<(), Refusal> {
+        let parent = self.child_of(named, key)?;
+        let record = self.children.get(&key).map_or(key, |child| child.record);
         if let Some(list) = self.lists.get_mut(&parent) {
             list.retain(|child| *child != key);
         }
         self.children.remove(&key);
         self.leave(record, key);
+        self.retire(parent);
         Ok(())
     }
 
-    fn child_of(&self, parent: u64, key: u64) -> Result<&Child, Refusal> {
+    /// The record of the list `named` names, when `key` is listed under it: a child that is not, or is listed under another, is refused by name.
+    fn child_of(&self, named: u64, key: u64) -> Result<u64, Refusal> {
         let child = self.children.get(&key).ok_or_else(|| Refusal::new(self.not_a_child(key)))?;
+        let parent = self.list_record(named)?;
         if child.parent != parent {
             return Err(Refusal::new(format!(
-                "the city child {key} is listed under {}, not under the parent {parent} the campaign names",
+                "the city child {key} is listed under {}, not under the parent {named} the campaign names",
                 child.parent
             )));
         }
-        Ok(child)
+        Ok(parent)
     }
 
-    /// The first building a scan of the city's list visits (the head), when the parent is a live placement.
-    pub fn child_first(&self, parent: u64) -> Result<Option<u64>, Refusal> {
-        if !self.entries.contains_key(&parent) {
-            return Err(Refusal::new(self.unknown(parent)));
+    /// The record of the list `named` names, when its city holds a sector placement: a list is served only while it does.
+    fn served_list(&self, named: u64) -> Result<u64, Refusal> {
+        let parent = self.list_record(named)?;
+        if self.records.get(&parent).is_some_and(|record| record.sector.is_none()) {
+            return Err(Refusal::new(format!("the city of the list {named} holds no sector placement")));
         }
+        Ok(parent)
+    }
+
+    /// The first building a scan of the city's list visits (the head), when the city holds a sector placement.
+    pub fn child_first(&self, named: u64) -> Result<Option<u64>, Refusal> {
+        let parent = self.served_list(named)?;
         Ok(self.lists.get(&parent).and_then(|list| list.first().copied()))
     }
 
-    /// The building a scan visits after `key` in the list of `parent`: refused by name when `key` is not a live child of it.
-    pub fn child_next(&self, parent: u64, key: u64) -> Result<Option<u64>, Refusal> {
-        if !self.entries.contains_key(&parent) {
-            return Err(Refusal::new(self.unknown(parent)));
-        }
-        self.child_of(parent, key)?;
+    /// The building a scan visits after `key` in the list `named` names: refused by name when `key` is not a live child of it.
+    pub fn child_next(&self, named: u64, key: u64) -> Result<Option<u64>, Refusal> {
+        let parent = self.served_list(named)?;
+        self.child_of(named, key)?;
         Ok(self
             .lists
             .get(&parent)
@@ -321,7 +357,13 @@ impl SectorRoster {
     /// Declares a sector placement and a city child to be the SAME entity: they share one record, which keeps the object identity it has. A record holds at most one placement of each kind, so a sector
     /// placement joins a record only if that record has no sector placement yet, and a child only if it has no child yet: a relink is a new sector placement joining the child's record, and a creation a
     /// new child joining the new sector placement's.
+    ///
+    /// The second key may instead name the record a city's list hangs from, when that record's sector placement has left (the city was relinked): the new sector placement then continues the record, which keeps
+    /// its list, its object identity and its key, and the placement's own fresh record ends (`rejoin`).
     pub fn link(&mut self, sector: u64, child: u64) -> Result<(), Refusal> {
+        if self.entries.contains_key(&sector) && !self.children.contains_key(&child) && self.records.contains_key(&child) {
+            return self.rejoin(sector, child);
+        }
         let (Some(a), Some(b)) = (
             self.entries.get(&sector).map(|entry| entry.record),
             self.children.get(&child).map(|child| child.record),
@@ -356,6 +398,38 @@ impl SectorRoster {
             }
         }
         self.set_record(child, a);
+        Ok(())
+    }
+
+    /// A city's new sector placement continues the record its list hangs from. The record must have lost its sector placement while it kept a list, and the new placement must stand alone in its fresh record.
+    fn rejoin(&mut self, sector: u64, record: u64) -> Result<(), Refusal> {
+        let fresh = self.record(sector).ok_or_else(|| Refusal::new(format!("[link] {}", self.unknown(sector))))?;
+        let (Some(held), Some(joining)) = (self.records.get(&record), self.records.get(&fresh)) else {
+            return Err(Refusal::new(format!("[link] the placement {sector} and the record {record} have no record")));
+        };
+        if held.sector.is_some() || !self.lists.get(&record).is_some_and(|list| !list.is_empty()) {
+            return Err(Refusal::new(format!(
+                "[link] the record {record} is not a city list whose sector placement has left"
+            )));
+        }
+        if joining.child.is_some() || self.lists.get(&fresh).is_some_and(|list| !list.is_empty()) {
+            return Err(Refusal::new(format!("[link] the placement {sector} already holds a city child or a list")));
+        }
+        let (kept, moved) = (held.object.clone(), joining.object.clone());
+        if kept.is_some() && moved.is_some() && kept != moved {
+            return Err(Refusal::new("[link] the two placements are named by different object identities".to_string()));
+        }
+        self.records.remove(&fresh);
+        if let Some(object) = &moved {
+            self.objects.insert(object.clone(), record);
+        }
+        if let Some(held) = self.records.get_mut(&record) {
+            held.sector = Some(sector);
+            if held.object.is_none() {
+                held.object = moved;
+            }
+        }
+        self.set_record(sector, record);
         Ok(())
     }
 

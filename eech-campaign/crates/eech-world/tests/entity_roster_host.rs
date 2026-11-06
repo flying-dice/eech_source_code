@@ -488,14 +488,170 @@ fn a_city_list_is_served_head_first_from_the_hosts_own_order_and_a_removal_keeps
         "{}",
         reason(&ended)
     );
-    // the buildings leave before their city does; the city's own placement is refused by name while any is listed, and then leaves
-    let early = remove(&lua, &place);
-    assert_eq!(result(&early), "refused");
-    assert!(reason(&early).contains("city children that are still listed"), "{}", reason(&early));
+    // the campaign destroys a city's buildings before the city's own placement; the list ends with its last building, and then the city's placement leaves
     for child in [&b, &a, &c] {
         assert_eq!(result(&city(&lua, CHILD_REMOVE, 0.0, &format!("{place} {child}"))), "removed");
     }
+    assert!(listed(&lua, &place).is_empty());
     assert_eq!(result(&remove(&lua, &place)), "removed");
+}
+
+/// the record a placement key belongs to, as the host holds it
+fn record_of(roster: &Rc<RefCell<SectorRoster>>, key: &str) -> Option<u64> {
+    roster.borrow().record(key.parse().unwrap())
+}
+
+#[test]
+fn a_citys_sector_relink_keeps_its_list_its_children_its_record_and_its_object_identity() {
+    let (lua, roster) = host(registry());
+    // the campaign's creation order for a city with buildings, and the lazily issued object identity of the city
+    let first = insert(&lua, [1100.0, 3.0, 1100.0], 22.0, "");
+    let list = first.clone();
+    let (a, b) = (child_insert(&lua, &list, None), child_insert(&lua, &list, None));
+    assert_eq!(result(&city(&lua, NAME, 0.0, &format!("{first} eech-world:object:21"))), "placed");
+    let record = record_of(&roster, &first).expect("the city's record");
+    assert_eq!(listed(&lua, &list), vec![b.clone(), a.clone()]);
+    // the shared fixed-position setter removes the placement while the buildings stay listed: that is a supported move, never a refusal
+    assert_eq!(result(&remove(&lua, &first)), "removed");
+    assert_eq!(
+        roster.borrow().object_record("eech-world:object:21"),
+        Some(record),
+        "the identity stays with the record the list hangs from"
+    );
+    assert_eq!(
+        roster.borrow().record_members(record),
+        0,
+        "no placement, but a record that still holds its list"
+    );
+    // between the two placements the list is neither served nor extended (the city has no sector), and a building can still be unlisted
+    for (what, phase, identity) in [
+        ("a first", CHILD_FIRST, list.clone()),
+        ("a next", CHILD_NEXT, format!("{list} {b}")),
+        ("an insertion", CHILD_INSERT, list.clone()),
+    ] {
+        let refused = city(&lua, phase, if phase == CHILD_INSERT { 21.0 } else { 0.0 }, &identity);
+        assert_eq!(result(&refused), "refused", "{what}");
+        assert!(reason(&refused).contains("holds no sector placement"), "{what}: {}", reason(&refused));
+    }
+    // the city's new placement is a new sector key and a new insertion; it is declared to continue the list, whose name does not change
+    let second = insert(&lua, [2100.0, 3.0, 1100.0], 22.0, "");
+    assert_ne!(first, second, "a relink is a new key");
+    let rejoined = city(&lua, LINK, 0.0, &format!("{second} {list}"));
+    assert_eq!(
+        (result(&rejoined), name(&rejoined)),
+        ("placed".to_string(), list.clone()),
+        "{:?}",
+        rejoined.get::<Option<String>>("reason")
+    );
+    assert_eq!(record_of(&roster, &second), Some(record), "the new placement is in the SAME record");
+    assert_eq!(roster.borrow().object_of(second.parse().unwrap()), Some("eech-world:object:21"));
+    assert_eq!(roster.borrow().object_record("eech-world:object:21"), Some(record));
+    assert_eq!(roster.borrow().record_members(record), 1);
+    // the same children in the same order under their own keys, whichever name the list is asked by; and the list takes a new building at its head under the name it always had
+    assert_eq!(listed(&lua, &list), vec![b.clone(), a.clone()]);
+    assert_eq!(listed(&lua, &second), vec![b.clone(), a.clone()]);
+    let c = child_insert(&lua, &list, Some(&b));
+    assert_eq!(listed(&lua, &list), vec![b.clone(), c.clone(), a.clone()]);
+    // a second relink keeps the same name and the same record
+    assert_eq!(result(&remove(&lua, &second)), "removed");
+    let third = insert(&lua, [1100.0, 3.0, 2100.0], 22.0, "");
+    assert_eq!(result(&city(&lua, LINK, 0.0, &format!("{third} {list}"))), "placed");
+    assert_eq!(record_of(&roster, &third), Some(record));
+    assert_eq!(listed(&lua, &list), vec![b.clone(), c.clone(), a.clone()]);
+    // a placement continues a record that lost its placement only: not one that holds a placement, and not an ended or never issued one
+    let stranger = insert(&lua, [1900.0, 3.0, 1900.0], 22.0, "");
+    for (what, identity, why) in [
+        (
+            "a record that still holds its placement",
+            format!("{stranger} {list}"),
+            "is not a city list whose sector placement has left",
+        ),
+        ("a name that never was issued", format!("{stranger} 999"), "never issued"),
+    ] {
+        let refused = city(&lua, LINK, 0.0, &identity);
+        assert_eq!(result(&refused), "refused", "{what}");
+        assert!(
+            reason(&refused).contains("[roster.link]") && reason(&refused).contains(why),
+            "{what}: {}",
+            reason(&refused)
+        );
+    }
+    // the buildings go before the city; the list ends with the last, and the record and its identity end with the city's last placement
+    for child in [&b, &c, &a] {
+        assert_eq!(result(&city(&lua, CHILD_REMOVE, 0.0, &format!("{list} {child}"))), "removed");
+    }
+    assert_eq!(result(&remove(&lua, &third)), "removed");
+    assert_eq!(roster.borrow().object_record("eech-world:object:21"), None);
+    let gone = city(&lua, CHILD_FIRST, 0.0, &list);
+    assert!(reason(&gone).contains("has ended"), "{}", reason(&gone));
+}
+
+#[test]
+fn a_city_released_with_its_buildings_listed_ends_its_record_and_identity_with_the_last_building() {
+    let (lua, roster) = host(registry());
+    let city_key = insert(&lua, [1100.0, 3.0, 1100.0], 22.0, "");
+    let (a, b) = (child_insert(&lua, &city_key, None), child_insert(&lua, &city_key, None));
+    assert_eq!(result(&city(&lua, NAME, 0.0, &format!("{city_key} eech-world:object:31"))), "placed");
+    // a heap release that frees the city's placement first: the list and the record stay for the buildings, which are unlisted under the name they were listed by
+    assert_eq!(result(&remove(&lua, &city_key)), "removed");
+    assert!(roster.borrow().object_record("eech-world:object:31").is_some());
+    assert_eq!(result(&city(&lua, CHILD_REMOVE, 0.0, &format!("{city_key} {a}"))), "removed");
+    assert!(roster.borrow().object_record("eech-world:object:31").is_some(), "one building is still listed");
+    let next = city(&lua, CHILD_REMOVE, 0.0, &format!("{city_key} {a}"));
+    assert!(reason(&next).contains("has ended"), "{}", reason(&next));
+    assert_eq!(result(&city(&lua, CHILD_REMOVE, 0.0, &format!("{city_key} {b}"))), "removed");
+    assert_eq!(roster.borrow().object_record("eech-world:object:31"), None, "the identity ends with the record");
+    let ended = city(&lua, CHILD_INSERT, 21.0, &city_key);
+    assert!(reason(&ended).contains("has ended"), "{}", reason(&ended));
+    // a boot ends a detached list too
+    let again = insert(&lua, [1100.0, 3.0, 1100.0], 22.0, "");
+    let kept = child_insert(&lua, &again, None);
+    assert_eq!(result(&remove(&lua, &again)), "removed");
+    assert_eq!(result(&ask(&lua, event_facts(RESET, [0.0; 3], 0.0), "")), "cleared");
+    let reset = city(&lua, CHILD_REMOVE, 0.0, &format!("{again} {kept}"));
+    assert!(reason(&reset).contains("has ended"), "{}", reason(&reset));
+}
+
+#[test]
+fn a_name_carries_the_whole_object_identity_domain_beside_its_key_and_refuses_what_is_outside_it() {
+    let (lua, roster) = host(registry());
+    let place = insert(&lua, [1100.0, 3.0, 1100.0], 21.0, "");
+    // the whole old domain: 128 bytes of printable text, and valid multi-byte text of 128 bytes, each beside a placement key, one space apart
+    let longest = "y".repeat(128);
+    let multibyte = format!("{}zz", "\u{e9}".repeat(63));
+    assert_eq!((longest.len(), multibyte.len()), (128, 128));
+    for (at, object) in [longest.clone(), multibyte.clone()].iter().enumerate() {
+        let placed = insert(&lua, [1100.0 + at as f32, 3.0, 1100.0], 21.0, "");
+        let named = city(&lua, NAME, 0.0, &format!("{placed} {object}"));
+        assert_eq!(
+            (result(&named), name(&named)),
+            ("placed".to_string(), placed.clone()),
+            "{:?}",
+            named.get::<Option<String>>("reason")
+        );
+        assert_eq!(
+            roster.borrow().object_of(placed.parse().unwrap()),
+            Some(object.as_str()),
+            "the identity is held whole"
+        );
+        assert_eq!(roster.borrow().object_record(object), record_of(&roster, &placed));
+    }
+    // one byte beyond its own domain is refused by name and names nothing; an identity with a space keeps it
+    let before = roster.borrow().object_record(&"x".repeat(129));
+    let refused = city(&lua, NAME, 0.0, &format!("{place} {}", "x".repeat(129)));
+    assert_eq!(result(&refused), "refused");
+    assert!(
+        reason(&refused).contains("[roster.name]") && reason(&refused).contains("129 bytes"),
+        "{}",
+        reason(&refused)
+    );
+    assert_eq!(
+        (before, roster.borrow().object_of(place.parse().unwrap())),
+        (None, None),
+        "no partial lookup or name"
+    );
+    assert_eq!(result(&city(&lua, NAME, 0.0, &format!("{place} two words"))), "placed");
+    assert_eq!(roster.borrow().object_of(place.parse().unwrap()), Some("two words"));
 }
 
 #[test]

@@ -653,11 +653,15 @@ static int city_split (const char *identity, int *first_length)
 	return (space != NULL);
 }
 
+// The identity place is a key and, after one space, a second part: a key, or for a NAME the object identity, which has its own domain (CAMPAIGN_MODEL_OBJECT_ID_MAX) beside the key's, so the whole place is sized for both
+// (CAMPAIGN_MODEL_SCAN_IDENTITY_MAX). Every part is measured against its own maximum before anything is copied or sent.
 static void city_identity_check (int phase, const char *identity)
 {
 	char
-		first [CAMPAIGN_ROSTER_KEY_MAX + 2],
-		second [CAMPAIGN_MODEL_HOST_ID_MAX + 1];
+		first [CAMPAIGN_ROSTER_KEY_MAX + 2];
+
+	const char
+		*second;
 
 	int
 		first_length,
@@ -669,9 +673,9 @@ static void city_identity_check (int phase, const char *identity)
 
 	length = strlen (identity);
 
-	if (length > CAMPAIGN_MODEL_HOST_ID_MAX)
+	if (length > CAMPAIGN_MODEL_SCAN_IDENTITY_MAX)
 	{
-		debug_fatal ("host model: [model-provider:entity_scan.request] the identity place of a city event of phase %d holds %d bytes, outside the identity field of 1 to %d (a NAME's key and object identity share it)", phase, (int) length, CAMPAIGN_MODEL_HOST_ID_MAX);
+		debug_fatal ("host model: [model-provider:entity_scan.request] the identity place of a city event of phase %d holds %d bytes, outside the request's identity field of 1 to %d", phase, (int) length, CAMPAIGN_MODEL_SCAN_IDENTITY_MAX);
 	}
 
 	has_second = city_split (identity, &first_length);
@@ -704,13 +708,18 @@ static void city_identity_check (int phase, const char *identity)
 
 	if (has_second)
 	{
-		memcpy (second, identity + first_length + 1, strlen (identity + first_length + 1) + 1);
+		second = identity + first_length + 1;
 
 		if (phase == CAMPAIGN_SCAN_PHASE_NAME)
 		{
 			if (second [0] == 0)
 			{
 				debug_fatal ("host model: [model-provider:entity_scan.request] a NAME carries an empty object identity");
+			}
+
+			if (strlen (second) > CAMPAIGN_MODEL_OBJECT_ID_MAX)
+			{
+				debug_fatal ("host model: [model-provider:entity_scan.request] a NAME carries an object identity of %d bytes, outside its domain of 1 to %d", (int) strlen (second), CAMPAIGN_MODEL_OBJECT_ID_MAX);
 			}
 
 			{

@@ -98,6 +98,8 @@ struct city_entry
 
 static struct city_entry city_list[64];
 static int city_count, city_asks, city_override, city_state;
+/* the LINKs and the NAMEs the scripted host was asked since the last fresh heap (city_fresh): the cases that follow count what the campaign declares, not only what it declared last */
+static int city_link_asks, city_name_asks;
 static const char *city_name;
 static campaign_model_request city_seen;
 static char city_last_link[160], city_last_name[160];
@@ -206,6 +208,7 @@ static void scripted_city (const campaign_model_request *request, campaign_model
 		}
 		case CAMPAIGN_SCAN_PHASE_LINK:
 		{
+			city_link_asks++;
 			strcpy (city_last_link, request->host_id);
 			reply->candidate_state = CAMPAIGN_MODEL_SCAN_PLACED;
 			strcpy (reply->name, second);
@@ -213,6 +216,7 @@ static void scripted_city (const campaign_model_request *request, campaign_model
 		}
 		default:
 		{
+			city_name_asks++;
 			strcpy (city_last_name, request->host_id);
 			reply->candidate_state = CAMPAIGN_MODEL_SCAN_PLACED;
 			strcpy (reply->name, first);
@@ -2696,7 +2700,8 @@ static void city_cases (struct tc *t)
 	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.key") != NULL && strstr (fatal_text, "issued a key") != NULL);
 	city_override = FALSE;
 
-	/* the grammar of the identity place is checked BEFORE anything is sent: one key where two are needed, two where one is, a key that is not a key, an empty or control-character object identity, one that does not fit the field */
+	/* the grammar of the identity place is checked BEFORE anything is sent: one key where two are needed, two where one is, a key that is not a key, an empty or control-character object identity (the object
+	   identity's own length, beside a key of its own, is city_wire_cases) */
 	stopped = city_exchange_do (CAMPAIGN_SCAN_PHASE_CHILD_NEXT, 0, "1", key);
 	EXPECT (t, stopped && strstr (fatal_text, "needs two") != NULL && city_asks == 0);
 	stopped = city_exchange_do (CAMPAIGN_SCAN_PHASE_CHILD_FIRST, 0, "1 2", key);
@@ -2709,22 +2714,6 @@ static void city_cases (struct tc *t)
 	EXPECT (t, stopped && strstr (fatal_text, "empty object identity") != NULL && city_asks == 0);
 	stopped = city_exchange_do (CAMPAIGN_SCAN_PHASE_NAME, 0, "1 eech\nobject", key);
 	EXPECT (t, stopped && strstr (fatal_text, "control character") != NULL && city_asks == 0);
-	{
-		char longest[160], toolong[160];
-
-		memset (longest, 'x', sizeof (longest));
-		memset (toolong, 'x', sizeof (toolong));
-		longest[128] = 0;
-		toolong[129] = 0;
-		longest[0] = '1';
-		longest[1] = ' ';
-		toolong[0] = '1';
-		toolong[1] = ' ';
-		stopped = city_exchange_do (CAMPAIGN_SCAN_PHASE_NAME, 0, longest, key);
-		EXPECT (t, !stopped && city_asks == 1);
-		stopped = city_exchange_do (CAMPAIGN_SCAN_PHASE_NAME, 0, toolong, key);
-		EXPECT (t, stopped && strstr (fatal_text, "identity field") != NULL && city_asks == 0);
-	}
 
 	/* a host that refuses stops the engine with its reason and leaves the entity unlisted */
 	refuse_the_exchange = TRUE;
@@ -2737,6 +2726,285 @@ static void city_cases (struct tc *t)
 	place_reset ();
 	EXPECT (t, place_find ("1", &kind) < 0 && place_find ("2", &kind) < 0 && place_child_of_slot == NULL);
 
+	place_host_installed = FALSE;
+}
+
+/* ---- a fresh scripted heap and host for the cases that follow ---- */
+static void city_fresh (void)
+{
+	int i;
+
+	memset (pheap, 0, sizeof (pheap));
+
+	for (i = 0; i < 16; i++)
+	{
+		pheap[i].slot = i;
+		pheap[i].type = 20 + i;
+		pheap[i].name = "SCRIPTED";
+		pheap[i].has_position = TRUE;
+		pheap[i].position[0] = 1000.0f + (float) i;
+		pheap[i].position[2] = 2000.0f;
+		pheap_owner[i] = NULL;
+	}
+
+	pheap_size = 16;
+	roster_override = FALSE;
+	roster_issue = 1;
+	city_override = FALSE;
+	city_count = 0;
+	city_link_asks = 0;
+	city_name_asks = 0;
+	city_last_link[0] = 0;
+	city_last_name[0] = 0;
+	refuse_the_exchange = FALSE;
+	place_reset ();
+	place_host_installed = TRUE;
+}
+
+/* ---- a city's sector placement is transient: the list, its name and its buildings' keys outlive a relink, and the list ends at the real release ---- */
+static void city_relink_cases (struct tc *t)
+{
+	struct pentity *city = &pheap[1], *a = &pheap[2], *b = &pheap[3], *d = &pheap[4], *e = &pheap[6], *served;
+	char pair[200];
+	int stopped, kind;
+
+	city_fresh ();
+
+	/* the city and two buildings: the host names the city's list by the key of the city's sector placement at its first building, and the city and each building keep that name */
+	stopped = city_do (3, city, NULL, NULL);
+	EXPECT (t, !stopped && place_entity ("1") == city && city_asks == 0);
+	stopped = city_do (0, a, city, NULL);
+	stopped = stopped || city_do (0, b, city, NULL);
+	EXPECT (t, !stopped && strcmp (place_list_of_slot[city->slot], "1") == 0 && place_listed_of_slot[city->slot] == 2 && strcmp (place_parent_of_slot[b->slot], "1") == 0 && place_city_of_slot[b->slot] == city->slot + 1);
+
+	/* the fixed-position setter every city shares removes the city's placement and inserts it again while the buildings stay listed: the placement is a new key (a key is never reissued), the list name is not, and
+	   the new placement is declared to continue the list by that name */
+	stopped = city_do (4, city, NULL, NULL);
+	EXPECT (t, !stopped && roster_asks == 1 && city_asks == 0 && place_key_of_slot[city->slot][0] == 0 && strcmp (place_list_of_slot[city->slot], "1") == 0 && place_entity ("1") == NULL);
+	stopped = city_do (3, city, NULL, NULL);
+	EXPECT (t, !stopped && roster_asks == 1 && city_asks == 1 && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_LINK && strcmp (place_key_of_slot[city->slot], "4") == 0);
+	EXPECT (t, strcmp (city_last_link, "4 1") == 0 && city_link_asks == 1 && place_entity ("4") == city && strcmp (place_list_of_slot[city->slot], "1") == 0);
+
+	/* every later question names the list by what it was first called: the first building and the one after each, an insertion, and the unlisting of a building recorded before the relink */
+	stopped = city_serve (0, city, NULL, b, &served);
+	EXPECT (t, !stopped && served == b && strcmp (city_seen.host_id, "1") == 0);
+	stopped = city_serve (1, city, b, a, &served);
+	EXPECT (t, !stopped && served == a && strcmp (city_seen.host_id, "1 3") == 0);
+	stopped = city_do (0, d, city, NULL);
+	EXPECT (t, !stopped && strcmp (city_seen.host_id, "1") == 0 && strcmp (place_parent_of_slot[d->slot], "1") == 0 && place_listed_of_slot[city->slot] == 3);
+	stopped = city_do (1, b, NULL, NULL);
+	EXPECT (t, !stopped && strcmp (city_seen.host_id, "1 3") == 0 && place_listed_of_slot[city->slot] == 2);
+
+	/* a second relink: the same name again, a new placement key */
+	stopped = city_do (4, city, NULL, NULL);
+	stopped = stopped || city_do (3, city, NULL, NULL);
+	snprintf (pair, sizeof (pair), "%s 1", place_key_of_slot[city->slot]);
+	EXPECT (t, !stopped && city_link_asks == 2 && strcmp (city_last_link, pair) == 0 && strcmp (place_list_of_slot[city->slot], "1") == 0);
+	stopped = city_serve (0, city, NULL, d, &served);
+	EXPECT (t, !stopped && served == d && strcmp (city_seen.host_id, "1") == 0);
+
+	/* the list ends with its last building: the city then holds no list name and a later relink declares nothing, and its next building names the list by the placement it holds by then */
+	stopped = city_do (1, d, NULL, NULL);
+	stopped = stopped || city_do (1, a, NULL, NULL);
+	EXPECT (t, !stopped && place_listed_of_slot[city->slot] == 0 && place_list_of_slot[city->slot][0] == 0);
+	stopped = city_do (4, city, NULL, NULL);
+	stopped = stopped || city_do (3, city, NULL, NULL);
+	EXPECT (t, !stopped && city_asks == 0 && city_link_asks == 2);
+	stopped = city_do (0, b, city, NULL);
+	EXPECT (t, !stopped && strcmp (city_seen.host_id, place_key_of_slot[city->slot]) == 0 && strcmp (place_list_of_slot[city->slot], place_key_of_slot[city->slot]) == 0 && place_listed_of_slot[city->slot] == 1);
+
+	/* a city released while a building is still listed no longer holds the list; the building keeps the name it was listed under, a slot a new city now holds is not touched by that building's release, and the
+	   building's own unlisting names its own list */
+	snprintf (pair, sizeof (pair), "%s %s", place_parent_of_slot[b->slot], place_child_of_slot[b->slot]);
+	stopped = city_do (2, city, NULL, NULL);
+	EXPECT (t, !stopped && roster_asks == 1 && city_asks == 0 && place_list_of_slot[city->slot][0] == 0 && place_listed_of_slot[city->slot] == 0 && place_key_of_slot[city->slot][0] == 0);
+	stopped = city_do (3, city, NULL, NULL);
+	stopped = stopped || city_do (0, e, city, NULL);
+	EXPECT (t, !stopped && place_listed_of_slot[city->slot] == 1 && strcmp (place_list_of_slot[city->slot], place_key_of_slot[city->slot]) == 0);
+	stopped = city_do (2, b, NULL, NULL);
+	EXPECT (t, !stopped && city_asks == 1 && strcmp (city_seen.host_id, pair) == 0 && place_listed_of_slot[city->slot] == 1 && place_child_of_slot[b->slot][0] == 0 && place_find (place_child_of_slot[e->slot], &kind) == e->slot);
+
+	/* a new boot ends every name: nothing of the old lists is kept */
+	place_reset ();
+	EXPECT (t, place_list_of_slot == NULL && place_city_of_slot == NULL && place_listed_of_slot == NULL && place_named_of_slot == NULL);
+	place_host_installed = FALSE;
+}
+
+/* ---- the object-report identity is named once, whichever placement exists when it first can be, for every order of the placements ---- */
+static void city_alias_cases (struct tc *t)
+{
+	struct pentity *city = &pheap[1], *x = &pheap[5], *y = &pheap[6], *z = &pheap[7];
+	char pair[200];
+	int stopped;
+
+	city_fresh ();
+	stopped = city_do (3, city, NULL, NULL);
+	EXPECT (t, !stopped && city_asks == 0);
+
+	/* an identity issued while the structure is unplaced asks nothing (nothing is allocated or sent early); its first placement is a city child, which names the record, and the sector placement that joins
+	   it is only linked: the name is not lost and not repeated */
+	x->object = "eech-world:object:21";
+	stopped = city_do (5, x, NULL, NULL);
+	EXPECT (t, !stopped && city_asks == 0 && city_name_asks == 0 && !place_named_of_slot[x->slot]);
+	stopped = city_do (0, x, city, NULL);
+	EXPECT (t, !stopped && city_asks == 2 && city_name_asks == 1 && place_named_of_slot[x->slot]);
+	snprintf (pair, sizeof (pair), "%s eech-world:object:21", place_child_of_slot[x->slot]);
+	EXPECT (t, strcmp (city_last_name, pair) == 0);
+	stopped = city_do (3, x, NULL, NULL);
+	EXPECT (t, !stopped && roster_asks == 1 && city_asks == 1 && city_link_asks == 1 && city_name_asks == 1);
+
+	/* the sector placement leaves and comes back (a relink): the child's record still holds the name, so the new placement is linked and not named again */
+	stopped = city_do (4, x, NULL, NULL);
+	EXPECT (t, !stopped && city_asks == 0 && place_named_of_slot[x->slot]);
+	stopped = city_do (3, x, NULL, NULL);
+	EXPECT (t, !stopped && city_asks == 1 && city_link_asks == 2 && city_name_asks == 1);
+
+	/* the city child leaves while the sector placement stays (the record and its name stay); then the last placement leaves: the record and its name end, and the next placement names it again, once */
+	stopped = city_do (1, x, NULL, NULL);
+	EXPECT (t, !stopped && city_asks == 1 && place_named_of_slot[x->slot]);
+	stopped = city_do (4, x, NULL, NULL);
+	EXPECT (t, !stopped && !place_named_of_slot[x->slot]);
+	stopped = city_do (3, x, NULL, NULL);
+	EXPECT (t, !stopped && city_asks == 1 && city_name_asks == 2 && place_named_of_slot[x->slot]);
+	snprintf (pair, sizeof (pair), "%s eech-world:object:21", place_key_of_slot[x->slot]);
+	EXPECT (t, strcmp (city_last_name, pair) == 0);
+
+	/* asking for the identity again, or naming it after it is named, asks nothing */
+	stopped = city_do (5, x, NULL, NULL);
+	EXPECT (t, !stopped && city_asks == 0 && city_name_asks == 2);
+
+	/* a sector placement first (named there), then a city child (linked, not named again) */
+	y->object = "eech-world:object:22";
+	stopped = city_do (3, y, NULL, NULL);
+	EXPECT (t, !stopped && city_asks == 1 && city_name_asks == 3);
+	stopped = city_do (0, y, city, NULL);
+	EXPECT (t, !stopped && city_asks == 2 && city_link_asks == 3 && city_name_asks == 3);
+
+	/* an identity issued when only one placement exists names the record by it; the second placement joins by a link */
+	stopped = city_do (0, z, city, NULL);
+	EXPECT (t, !stopped && city_asks == 1 && city_name_asks == 3);
+	z->object = "eech-world:object:23";
+	stopped = city_do (5, z, NULL, NULL);
+	snprintf (pair, sizeof (pair), "%s eech-world:object:23", place_child_of_slot[z->slot]);
+	EXPECT (t, !stopped && city_asks == 1 && city_name_asks == 4 && strcmp (city_last_name, pair) == 0);
+	stopped = city_do (3, z, NULL, NULL);
+	EXPECT (t, !stopped && city_asks == 1 && city_link_asks == 4 && city_name_asks == 4);
+
+	/* a heap release ends both placements and the name with them */
+	stopped = city_do (2, z, NULL, NULL);
+	EXPECT (t, !stopped && city_asks == 1 && roster_asks == 1 && !place_named_of_slot[z->slot]);
+
+	place_reset ();
+	place_host_installed = FALSE;
+}
+
+/* a request of the city exchange with the caller's output place NOT cleared first: a refusal must leave it exactly as it was */
+static int city_exchange_keep (int phase, int entity_type, const char *identity, char *key)
+{
+	city_asks = 0;
+	fatal_text[0] = '\0';
+
+	if (setjmp (fatal_jump) == 0)
+	{
+		campaign_entity_city_exchange (phase, entity_type, identity, key);
+
+		return (FALSE);
+	}
+
+	return (TRUE);
+}
+
+/* ---- the identity place of a NAME holds a key and an object identity of the whole old domain, each at its own maximum: the joined wire form is not a new, shorter limit ---- */
+static void city_wire_cases (struct tc *t)
+{
+	struct pentity *x = &pheap[5], *y = &pheap[6], *z = &pheap[7];
+	campaign_model_request before;
+	char longest[CAMPAIGN_MODEL_OBJECT_ID_MAX + 2], multibyte[CAMPAIGN_MODEL_OBJECT_ID_MAX + 1], toolong[CAMPAIGN_MODEL_SCAN_IDENTITY_MAX + 8], key[160], place[CAMPAIGN_MODEL_SCAN_IDENTITY_MAX + 8];
+	const char *maximum = "18446744073709551615";
+	int i, stopped;
+
+	/* the field is sized for both parts at their own maximum, and the object identity's domain is the registry's, not the host identity's by coincidence */
+	EXPECT (t, CAMPAIGN_MODEL_SCAN_IDENTITY_MAX == CAMPAIGN_ROSTER_KEY_MAX + 1 + CAMPAIGN_MODEL_OBJECT_ID_MAX && sizeof (((campaign_model_request *) 0)->host_id) == CAMPAIGN_MODEL_SCAN_IDENTITY_MAX + 1);
+	EXPECT (t, strlen (maximum) == CAMPAIGN_ROSTER_KEY_MAX);
+
+	memset (longest, 'y', sizeof (longest));
+	longest[CAMPAIGN_MODEL_OBJECT_ID_MAX] = 0;
+
+	/* 63 two-byte characters and two more bytes: 128 bytes of valid UTF-8 that are not 128 characters */
+	for (i = 0; i < 63; i++)
+	{
+		multibyte[2 * i] = (char) 0xc3;
+		multibyte[2 * i + 1] = (char) 0xa9;
+	}
+
+	multibyte[126] = 'z';
+	multibyte[127] = 'z';
+	multibyte[128] = 0;
+
+	city_fresh ();
+
+	/* the REAL producer: a placement held under the longest key the host can issue, named by a 128 byte identity, sends the 149 byte identity place whole, and the host's echo of the key is accepted */
+	roster_override = TRUE;
+	roster_state = CAMPAIGN_MODEL_SCAN_PLACED;
+	roster_name = "18446744073709551615";
+	stopped = city_do (3, x, NULL, NULL);
+	roster_override = FALSE;
+	EXPECT (t, !stopped && place_entity (maximum) == x);
+	x->object = longest;
+	stopped = city_do (5, x, NULL, NULL);
+	snprintf (place, sizeof (place), "%s %s", maximum, longest);
+	EXPECT (t, !stopped && city_asks == 1 && strlen (city_seen.host_id) == CAMPAIGN_MODEL_SCAN_IDENTITY_MAX && strcmp (city_seen.host_id, place) == 0 && strcmp (city_last_name, place) == 0 && place_named_of_slot[x->slot]);
+
+	/* the same with a one digit key (the ordinary case) and with valid multi-byte text: neither is shortened or normalised */
+	stopped = city_do (3, y, NULL, NULL);
+	y->object = multibyte;
+	stopped = stopped || city_do (5, y, NULL, NULL);
+	snprintf (place, sizeof (place), "%s %s", place_key_of_slot[y->slot], multibyte);
+	EXPECT (t, !stopped && strlen (city_seen.host_id) == strlen (place_key_of_slot[y->slot]) + 1 + CAMPAIGN_MODEL_OBJECT_ID_MAX && strcmp (city_seen.host_id, place) == 0);
+
+	/* the other joins stay at their own maximum: a city list and a child, each named by the longest key, cross whole */
+	snprintf (place, sizeof (place), "%s 18446744073709551614", maximum);
+	stopped = city_exchange_do (CAMPAIGN_SCAN_PHASE_CHILD_NEXT, 0, place, key);
+	EXPECT (t, !stopped && city_asks == 1 && strcmp (city_seen.host_id, place) == 0);
+	stopped = city_exchange_do (CAMPAIGN_SCAN_PHASE_LINK, 0, place, key);
+	EXPECT (t, !stopped && city_asks == 1 && strcmp (key, "18446744073709551614") == 0);
+
+	/* an identity with spaces is one identity (the key ends at the first space): it crosses whole */
+	stopped = city_exchange_do (CAMPAIGN_SCAN_PHASE_NAME, 0, "1 two words  and more", key);
+	EXPECT (t, !stopped && city_asks == 1 && strcmp (city_seen.host_id, "1 two words  and more") == 0 && strcmp (key, "1") == 0);
+
+	/* malformed joins are refused BEFORE anything is sent or looked up, and write no output: a part beyond its own domain (the object identity of 129 bytes, with a short key and with the longest), a key of 21
+	   digits, a join beyond the request's field, a NAME with no object identity or no space, and a control character at the very end of the longest identity */
+	memcpy (&before, &city_seen, sizeof (before));
+	memset (toolong, 'q', sizeof (toolong));
+	toolong[CAMPAIGN_MODEL_OBJECT_ID_MAX + 1] = 0;
+	snprintf (place, sizeof (place), "1 %s", toolong);
+	strcpy (key, "k");
+	stopped = city_exchange_keep (CAMPAIGN_SCAN_PHASE_NAME, 0, place, key);
+	EXPECT (t, stopped && strstr (fatal_text, "object identity of 129 bytes") != NULL && city_asks == 0 && strcmp (key, "k") == 0 && memcmp (&before, &city_seen, sizeof (before)) == 0);
+	snprintf (place, sizeof (place), "%s %s", maximum, toolong);
+	stopped = city_exchange_keep (CAMPAIGN_SCAN_PHASE_NAME, 0, place, key);
+	EXPECT (t, stopped && strstr (fatal_text, "request's identity field") != NULL && city_asks == 0 && strcmp (key, "k") == 0 && memcmp (&before, &city_seen, sizeof (before)) == 0);
+	stopped = city_exchange_keep (CAMPAIGN_SCAN_PHASE_NAME, 0, "100000000000000000000 short", key);
+	EXPECT (t, stopped && strstr (fatal_text, "begins with a key of 21 bytes") != NULL && city_asks == 0 && strcmp (key, "k") == 0 && memcmp (&before, &city_seen, sizeof (before)) == 0);
+	stopped = city_exchange_keep (CAMPAIGN_SCAN_PHASE_NAME, 0, maximum, key);
+	EXPECT (t, stopped && strstr (fatal_text, "needs two") != NULL && city_asks == 0 && strcmp (key, "k") == 0);
+	stopped = city_exchange_keep (CAMPAIGN_SCAN_PHASE_NAME, 0, "18446744073709551615 ", key);
+	EXPECT (t, stopped && strstr (fatal_text, "empty object identity") != NULL && city_asks == 0 && strcmp (key, "k") == 0);
+	snprintf (place, sizeof (place), "%s %.126s\n\n", maximum, longest);
+	stopped = city_exchange_keep (CAMPAIGN_SCAN_PHASE_NAME, 0, place, key);
+	EXPECT (t, stopped && strstr (fatal_text, "control character") != NULL && city_asks == 0 && strcmp (key, "k") == 0 && memcmp (&before, &city_seen, sizeof (before)) == 0);
+	/* and a join of a key beyond its domain on the other phases: a second key of 21 digits */
+	stopped = city_exchange_keep (CAMPAIGN_SCAN_PHASE_CHILD_NEXT, 0, "1 100000000000000000000", key);
+	EXPECT (t, stopped && strstr (fatal_text, "not a roster key") != NULL && city_asks == 0 && strcmp (key, "k") == 0);
+
+	/* the real producers refuse a part outside its own domain the same way: an identity of 129 bytes is never named (nothing is sent and the record is not marked named) */
+	z->object = toolong;
+	stopped = city_do (3, z, NULL, NULL);
+	stopped = city_do (5, z, NULL, NULL);
+	EXPECT (t, stopped && strstr (fatal_text, "object identity of 129 bytes") != NULL && city_asks == 0 && !place_named_of_slot[z->slot]);
+
+	place_reset ();
 	place_host_installed = FALSE;
 }
 
@@ -2914,6 +3182,9 @@ int eech_entity_dialogue_check_run (char *text, int capacity, int *checks)
 
 	place_cases (&t);
 	city_cases (&t);
+	city_relink_cases (&t);
+	city_alias_cases (&t);
+	city_wire_cases (&t);
 
 	if (checks)
 	{

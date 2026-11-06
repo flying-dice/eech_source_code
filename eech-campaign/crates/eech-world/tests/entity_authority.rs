@@ -410,6 +410,8 @@ package.preload.eech_dc = function ()
 			local city_traverse
 			local roster_key
 			local city_children = {}
+			-- the name the city's list was first given (the city's sector key at its first building): it stays the list's name when the city's placement is relinked while the buildings stay listed
+			local city_list
 			local function candidate_dialogue ()
 				if scenario.no_candidate_questions then return true end
 				local mobile = not scenario.fixed_candidate
@@ -520,24 +522,35 @@ package.preload.eech_dc = function ()
 				return answer
 			end
 			city_traverse = function ()
-				local at = city_event ("child_first", roster_key).name
+				local list = city_list or roster_key
+				local at = city_event ("child_first", list).name
+				-- (a building the caller's own collision attempt hits ends the traversal before it asks for the next building)
+				if scenario.city_first_only then return end
 				while at ~= nil and at ~= "" do
 					-- (the building's own candidate dialogue is the next scripted answer of the walk)
-					at = city_event ("child_next", roster_key .. " " .. at).name
+					at = city_event ("child_next", list .. " " .. at).name
 				end
 			end
 			local function scan_walk (offer)
 				if scenario.no_scan_questions then offer () return end
-				for index = #city_children, 1, -1 do city_event ("child_remove", roster_key .. " " .. city_children [index]) end
-				city_children = {}
+				for index = #city_children, 1, -1 do city_event ("child_remove", (city_list or roster_key) .. " " .. city_children [index]) end
+				city_children, city_list = {}, nil
 				roster_event (roster_key == nil and "reset" or "remove")
 				roster_event ("insert")
 				for _ = 1, scenario.city or 0 do city_children [#city_children + 1] = city_event ("child_insert", roster_key).name end
+				if scenario.city_relink and #city_children > 0 then
+					-- the city's sector placement is relinked while its buildings stay listed (the fixed-position setter every city shares): it is removed and inserted again, and the new placement is declared to
+					-- continue the list the buildings were listed under, whose name does not change
+					city_list = roster_key
+					roster_event ("remove")
+					roster_event ("insert")
+					city_event ("link", roster_key .. " " .. city_list)
+				end
 				if scenario.city_link and #city_children > 0 then
 					-- the first building is also placed in its sector, declared the same entity as its place in the city's list, and named by an object identity issued for it
 					local sector = roster_event ("insert", true).name
 					city_event ("link", sector .. " " .. city_children [1])
-					city_event ("name", sector .. " eech-world:object:7")
+					city_event ("name", sector .. " " .. (scenario.city_object_length and string.rep ("y", scenario.city_object_length) or "eech-world:object:7"))
 				end
 				-- only the roster's events reached the host: no scan question was asked
 				if scenario.only_roster_events then offer () return end
@@ -2394,6 +2407,7 @@ fn a_city_traversal_served_by_the_real_provider_is_a_healthy_control_with_the_ci
         ("city_child_insert", 3),
         ("city_child_first", 1),
         ("city_child_next", 3),
+        ("city_next_joined", 3),
         ("city_placed", 3),
         ("city_next", 4),
         ("city_served", 3),
@@ -2509,9 +2523,9 @@ fn withdrawing_the_served_building_by_the_hosts_real_remove_makes_the_next_build
     assert_eq!(row["candidate_after"], 2, "need_fixed and buildings: nothing after the stop");
     assert_eq!(row["entity_after"], 0, "no narrow phase");
     assert!(driven.delegation_broken.is_empty(), "{:?}", driven.delegation_broken);
-    // a case with no city traversal has no backing to withdraw: a named finite prerequisite, never a pass; and neither is an engine stop elsewhere
+    // a case with no city traversal, or one that never asks for a building after a served one, has no continuation to withdraw before: a named finite prerequisite, never a pass; and neither is an engine stop elsewhere
     let error = error_of(drive(&healthy(", real_scan = true"), &[("mode", "withdrawn_child")]));
-    assert!(error.contains("UNREACHED") && error.contains("holds no city traversal"), "{error}");
+    assert!(error.contains("UNREACHED") && error.contains("holds no such traversal"), "{error}");
     let error = error_of(drive(
         &healthy(&format!("{CITY}, engine_stop = {{ after = 1, marker = 'entity_candidate.callback' }}")),
         &[("mode", "withdrawn_child")],
@@ -2520,6 +2534,160 @@ fn withdrawing_the_served_building_by_the_hosts_real_remove_makes_the_next_build
     // the Original profile asks the host no city question
     let error = error_of(drive(&healthy(", fixture_api = true"), &[("profile", "original"), ("mode", "withdrawn_child")]));
     assert!(error.contains("only mode=control"), "{error}");
+}
+
+#[test]
+fn a_traversal_that_never_asks_for_the_next_building_is_unreached_and_a_question_that_does_not_join_is_never_withdrawn_before() {
+    // the real caller asks for the first building before the city's bounding box decision and for the next one only after a building's own collision attempt, which can end the traversal: a healthy control
+    // with FIRST only is valid, and shows no actual next-building question
+    let (driven, row) = scan_row(&format!("{CITY}, city_first_only = true"), "scan_real");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    for (field, expected) in [
+        ("city_child_first", 1),
+        ("city_child_next", 0),
+        ("city_next_joined", 0),
+        ("city_served", 1),
+        ("request_faults", 0),
+        ("reply_faults", 0),
+    ] {
+        assert_eq!(row[field], expected, "{field}: {row}");
+    }
+    // the withdrawal needs an actual next-building question, so with none it is UNREACHED, never a pass, and the host's list is not touched: no removal was ever sent
+    let driven = drive(&healthy(&format!("{CITY}, city_first_only = true")), &[("mode", "withdrawn_child")]);
+    let error = error_of(driven);
+    assert!(
+        error.contains("UNREACHED") && error.contains("asked for no building after a served one"),
+        "{error}"
+    );
+    let driven = drive(&healthy(&format!("{CITY}, city_first_only = true")), &[("mode", "withdrawn_child")]);
+    let row = authority(&driven);
+    assert_eq!(
+        (row["city_withdrawn"].clone(), row["city_removed"].clone()),
+        (Value::from(0), Value::from(0)),
+        "{row}"
+    );
+    assert!(driven.city_log.iter().all(|(phase, ..)| phase != "0x41000000"), "{:?}", driven.city_log);
+    // a next-building question that does not stand at the building the host last served does not join the keys seen: it is a request fault, nothing is withdrawn before it, and it is not the continuation
+    let driven = drive(
+        &healthy(&format!("{CITY}, bad_city_request = 'next_not_last_served'")),
+        &[("mode", "withdrawn_child")],
+    );
+    let row = authority(&driven);
+    assert_eq!(
+        (row["city_withdrawn"].clone(), row["city_next_joined"].clone()),
+        (Value::from(0), Value::from(0)),
+        "{row}"
+    );
+    assert!(row["request_faults"].as_i64().unwrap() >= 1, "{row}");
+    let error = error_of(driven);
+    assert!(
+        !error.contains("UNREACHED") && error.contains("not the building the host last served"),
+        "{error}"
+    );
+    assert!(
+        drive(
+            &healthy(&format!("{CITY}, bad_city_request = 'next_not_last_served'")),
+            &[("mode", "withdrawn_child")]
+        )
+        .city_log
+        .iter()
+        .all(|(phase, ..)| phase != "0x41000000"),
+        "no withdrawal was sent before a question that does not join"
+    );
+}
+
+#[test]
+fn a_citys_sector_relink_with_its_buildings_listed_keeps_the_list_name_and_the_traversal_and_the_withdrawal_still_work() {
+    // the city's placement is removed and inserted again while its three buildings stay listed, and declared to continue the list: the real provider acknowledges it, serves the same buildings in the same
+    // order under the name they were listed by (an ended placement's key, which the driver must not call an ended city), and nothing is refused
+    let (driven, row) = scan_row(&format!("{CITY}, city_relink = true"), "scan_real");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    for (field, expected) in [
+        ("request_faults", 0),
+        ("reply_faults", 0),
+        ("city_link", 1),
+        ("city_child_first", 1),
+        ("city_child_next", 3),
+        ("city_next_joined", 3),
+        ("city_served", 3),
+    ] {
+        assert_eq!(row[field], expected, "{field}: {row}");
+    }
+    let log: Vec<(&str, &str, &str, &str)> = driven
+        .city_log
+        .iter()
+        .map(|(phase, result, name, identity)| (phase.as_str(), result.as_str(), name.as_str(), identity.as_str()))
+        .collect();
+    assert_eq!(
+        &log[3..],
+        [
+            ("0x41300000", "placed", "1", "5 1"),
+            ("0x41100000", "next", "4", "1"),
+            ("0x41200000", "next", "3", "1 4"),
+            ("0x41200000", "next", "2", "1 3"),
+            ("0x41200000", "next", "", "1 2"),
+        ],
+        "the list keeps the name 1 across the relink (the city's new placement is 5)"
+    );
+    // two walks: the buildings are unlisted under the same name, and the city's relinked placement then leaves
+    let (driven, row) = scan_row(&format!("{CITY}, city_relink = true, questions = 2"), "scan_real");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(
+        (row["request_faults"].clone(), row["reply_faults"].clone(), row["city_child_remove"].clone()),
+        (Value::from(0), Value::from(0), Value::from(3)),
+        "{row}"
+    );
+    // the withdrawal at the next-building question of the same relinked city
+    let driven = drive(&healthy(&format!("{CITY}, city_relink = true")), &[("mode", "withdrawn_child")]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let row = authority(&driven);
+    assert_eq!(
+        (
+            row["city_withdrawn"].clone(),
+            row["city_withdrawn_cause"].clone(),
+            row["request_faults"].clone(),
+            row["reply_faults"].clone()
+        ),
+        (Value::from(1), Value::from("city_child_ended"), Value::from(0), Value::from(1)),
+        "{row}"
+    );
+}
+
+#[test]
+fn a_city_name_carries_an_object_identity_of_its_whole_domain_beside_its_key_and_nothing_beyond_it() {
+    // the object identity has its own domain of 1 to 128 bytes beside the placement key: a 128 byte identity and the key that names its placement cross the driver's grammar and the real provider whole (the
+    // place is longer than the 128 bytes a host identity may be), and one more byte is the driver's named request fault, never a pass
+    let (driven, row) = scan_row(&format!("{CITY}, city_link = true, city_object_length = 128"), "scan_real");
+    assert!(
+        driven.result.is_ok(),
+        "{:?}
+{}",
+        driven.result,
+        driven.rows
+    );
+    assert_eq!(
+        (row["request_faults"].clone(), row["reply_faults"].clone(), row["city_name"].clone()),
+        (Value::from(0), Value::from(0), Value::from(1)),
+        "{row}"
+    );
+    let named = driven
+        .city_log
+        .iter()
+        .find(|(phase, ..)| phase == "0x41400000")
+        .expect("the NAME reached the real provider");
+    assert_eq!((named.1.as_str(), named.3.len()), ("placed", "5 ".len() + 128), "{named:?}");
+    let driven = drive(
+        &healthy(&format!("{CITY}, city_link = true, city_object_length = 129")),
+        &[("mode", "scan_real")],
+    );
+    let row = authority(&driven);
+    assert!(row["request_faults"].as_i64().unwrap() >= 1, "{row}");
+    let first = row["first_fault"].as_str().unwrap();
+    assert!(
+        first.starts_with("scan request:") && first.contains("129 bytes") && first.contains("1 to 128"),
+        "{first}"
+    );
+    assert!(driven.result.is_err(), "an identity beyond its domain is never a pass");
 }
 
 #[test]

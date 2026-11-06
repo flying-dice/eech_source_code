@@ -1162,6 +1162,11 @@ pub const EECH_MODEL_SCAN_CLEARED: c_int = 8;
 pub const EECH_MODEL_ENTITY_POSE: c_int = 18;
 /// the longest host identity (without the terminator) the roster issues: the whole domain crosses, so `eech_model_request.host_id` holds it entire (CAMPAIGN_MODEL_HOST_ID_MAX)
 pub const EECH_MODEL_HOST_ID_MAX: usize = 128;
+/// the longest legacy object-report identity (without the terminator; CAMPAIGN_MODEL_OBJECT_ID_MAX): its own domain, independent of the host identity's
+pub const EECH_MODEL_OBJECT_ID_MAX: usize = 128;
+/// the longest identity place of an ENTITY_SCAN question (without the terminator): a city NAME's placement key (20 digits at most), one space and an object identity, each at its own maximum
+/// (CAMPAIGN_MODEL_SCAN_IDENTITY_MAX)
+pub const EECH_MODEL_SCAN_IDENTITY_MAX: usize = 20 + 1 + EECH_MODEL_OBJECT_ID_MAX;
 pub const EECH_MODEL_POSE_FACTS: usize = 15;
 pub const EECH_MODEL_POSE_RECORDED: c_int = 1;
 pub const EECH_MODEL_POSE_UNRECORDED: c_int = 2;
@@ -1196,8 +1201,9 @@ pub struct eech_model_request {
     /// TARGET_POINT_WORLD and TARGET_POINT_FIXED: how many floats of `pose` are meaningful
     pub pose_count: c_int,
     pub pose: [f32; EECH_MODEL_POSE_MAX],
-    /// ENTITY_POSE: the candidate's semantic host identity (NUL-terminated; empty when the roster has none)
-    pub host_id: [c_char; EECH_MODEL_HOST_ID_MAX + 1],
+    /// ENTITY_POSE and ENTITY_CANDIDATE: the candidate's semantic host identity (NUL-terminated; empty when the roster has none; at most `EECH_MODEL_HOST_ID_MAX` bytes). ENTITY_SCAN: the identity place of the
+    /// question (NUL-terminated; at most `EECH_MODEL_SCAN_IDENTITY_MAX` bytes)
+    pub host_id: [c_char; EECH_MODEL_SCAN_IDENTITY_MAX + 1],
 }
 
 /// The host's answer (campaign_model_reply); only the fields of the asked operation are meaningful.

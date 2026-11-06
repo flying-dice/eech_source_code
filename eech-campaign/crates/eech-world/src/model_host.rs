@@ -710,8 +710,9 @@ const ROSTER_NAME: u32 = 0x4140_0000;
 
 /// The city events of an `entity_scan` question (phases 7 to 12, the same question as the roster's): a building's place in its city's list (`LIST_TYPE_CITY_BUILDING`) is inserted (7), removed (8), asked for
 /// its first (9) or next (10) entry; a sector placement and a city child are declared the same entity (11); and a placement is named by the legacy object-report identity the host issued for its entity (12).
-/// The identity place carries the keys, in this order: the parent's sector placement key and, where there is one, the child's key (or the predecessor's, for an insertion); a LINK carries the sector placement and
-/// the child; a NAME carries the placement and then, after one space, the object identity. A scan phase's answer is `next` for 9 and 10 (the key of the entry, empty at the end of the list) and `placed` for 7, 11
+/// The identity place carries the keys, in this order: the key the city's list is named by (the city's sector placement key at its first building, which stays the list's name across the city's sector relinks:
+/// see `crate::roster`) and, where there is one, the child's key (or the predecessor's, for an insertion); a LINK carries the sector placement and the child, or the sector placement and the list's name when the
+/// city's new sector placement continues a list whose placement left; a NAME carries the placement and then, after one space, the object identity (1 to 128 bytes of its own, so the whole place is up to 149). A scan phase's answer is `next` for 9 and 10 (the key of the entry, empty at the end of the list) and `placed` for 7, 11
 /// and 12 (the key issued, or the key now linked or named); 8 answers `removed`. Every key is validated against the live roster and its relation to the parent BEFORE anything is served or changed, and every
 /// word is classified by integer operations (see `crate::roster::word_truncated`).
 fn city_event(lua: &Lua, phase: u32, words: &[u32], identity: &str) -> LuaResult<LuaTable> {
@@ -791,6 +792,11 @@ fn city_event(lua: &Lua, phase: u32, words: &[u32], identity: &str) -> LuaResult
             })
             .map(|child| ("placed", child.unwrap_or(0).to_string())),
         _ => match second {
+            Some(object) if object.len() > crate::roster::OBJECT_ID_MAX => Err(format!(
+                "[roster.name] the object identity of a NAME is {} bytes, outside its own domain of 1 to {}",
+                object.len(),
+                crate::roster::OBJECT_ID_MAX
+            )),
             Some(object) if !object.is_empty() && !object.bytes().any(|byte| byte < 0x20 || byte == 0x7f) => roster
                 .name(first, object)
                 .map_err(|why| format!("[roster.name] {}", why.0))

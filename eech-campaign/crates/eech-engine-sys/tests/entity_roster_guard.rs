@@ -480,3 +480,72 @@ fn every_write_to_the_city_building_list_goes_through_the_funnel_and_a_scan_read
         "the host is told the identity only where it is issued"
     );
 }
+
+/// The city's sector placement is TRANSIENT while its buildings stay listed, and the wire domains of the city events are derived from the domains of their parts (seventh slice, corrections). Read from the compiled source:
+///
+///  1. a city has no position setter of its own: it registers the SHARED fixed-position setter, which removes the placement from its sector list and inserts it again whenever the position crosses a sector, never
+///     touching the city's building list, so a list the host keeps must outlive the placement and be continued by the next one;
+///  2. every question about a city's list names it by the stable name (`place_list_key`), never by the sector key alone; the unlisting of a building names the list it recorded at the insertion; a relinked city
+///     placement is declared to continue the list; the object identity is named once per record (the `named` flag), not once per placement;
+///  3. the request's identity field, and every buffer a city event is built or checked in, is sized from the key's domain and the object identity's own domain (never the host identity's, which the join would
+///     otherwise squeeze), and the object identity's domain is the registry's (a compile-time assertion).
+#[test]
+fn a_citys_sector_placement_is_relinked_by_the_shared_fixed_setter_while_its_buildings_stay_listed_and_the_wire_domains_are_derived() {
+    // 1. the shared setter
+    assert!(source("entity/fixed/city/ct_funcs.c").contains("overload_fixed_functions (ENTITY_TYPE_CITY);"));
+    assert!(source("entity/fixed/fx_funcs.c").contains("overload_fixed_vec3d_functions (type);"));
+    let city_vec3d = source("entity/fixed/city/ct_vec3d.c");
+    let overload = &city_vec3d[city_vec3d.find("void overload_city_vec3d_functions").unwrap()..];
+    assert!(
+        !overload.contains("fn_set_local_entity_vec3d"),
+        "the city registers no setter of its own for any vec3d"
+    );
+    let fixed = source("entity/fixed/fx_vec3d.c");
+    assert!(
+        fixed.lines().any(|line| line.trim_start().starts_with("fn_set_local_entity_vec3d")
+            && line.contains("[VEC3D_TYPE_POSITION]")
+            && line.contains("= set_local_vec3d;")),
+        "the fixed entities' position setter is the shared one"
+    );
+    let setter = &fixed[fixed.find("static void set_local_vec3d").unwrap()..fixed.find("static void set_remote_vec3d").unwrap()];
+    before(
+        setter,
+        "delete_local_entity_from_parents_child_list (en, LIST_TYPE_SECTOR);",
+        "insert_local_entity_into_parents_child_list (en, LIST_TYPE_SECTOR, parent, NULL);",
+        "fx_vec3d.c setter",
+    );
+    assert!(!setter.contains("LIST_TYPE_CITY_BUILDING"), "the setter does not touch a city's building list");
+
+    // 2. the stable name of a city's list
+    let map = source("entity/mobile/mb_hostplacemap.h");
+    assert!(map.contains("static const char *place_list_key (int slot)"));
+    assert!(map.contains("CAMPAIGN_SCAN_PHASE_CHILD_FIRST, CAMPAIGN_PLACE_TYPE (parent), place_list_key (slot), key)"));
+    assert!(map.contains("place_pair (identity, sizeof (identity), place_list_key (slot), place_child_of_slot [child_slot]);"));
+    assert!(map.contains("place_pair (identity, sizeof (identity), place_parent_of_slot [slot], place_child_of_slot [slot]);"));
+    assert!(map.contains("list = place_list_key (parent_slot);"));
+    let declare = &map[map.find("static void place_declare").unwrap()..map.find("// `en` was inserted at the head of a sector's list").unwrap()];
+    assert!(declare.contains("place_pair (identity, sizeof (identity), place_key_of_slot [slot], place_list_of_slot [slot]);"));
+    assert!(declare.contains("place_named_of_slot [slot] = 1;") && declare.contains("place_named_of_slot [slot] ||"));
+    let release = &map[map.find("static void place_release_entity").unwrap()..map.find("static void place_reset").unwrap()];
+    assert!(release.contains("place_list_of_slot [index][0] = 0;") && release.contains("place_named_of_slot [index] = 0;"));
+
+    // 3. the wire domains
+    let model = source("entity/mobile/mb_hostmodel.h");
+    assert!(model.contains("#define CAMPAIGN_MODEL_SCAN_IDENTITY_MAX (CAMPAIGN_ROSTER_KEY_MAX + 1 + CAMPAIGN_MODEL_OBJECT_ID_MAX)"));
+    assert!(model.contains("char host_id[CAMPAIGN_MODEL_SCAN_IDENTITY_MAX + 1];"));
+    assert!(source("entity/mobile/mb_hostobj.h").contains("#define CAMPAIGN_OBJECT_ID_MAX 128"));
+    assert!(source("entity/mobile/mb_hostplace.c").contains("(CAMPAIGN_MODEL_OBJECT_ID_MAX == CAMPAIGN_OBJECT_ID_MAX)"));
+    assert!(
+        !map.contains("identity [CAMPAIGN_MODEL_HOST_ID_MAX + 1]"),
+        "no city buffer is sized by the host identity's domain"
+    );
+    let entity = source("entity/mobile/mb_hostentity.h");
+    let check = &entity[entity.find("static void city_identity_check").unwrap()..entity.find("static void check_city_reply").unwrap()];
+    assert!(
+        !check.contains("CAMPAIGN_MODEL_HOST_ID_MAX"),
+        "the city event's checks are not bounded by the host identity's domain"
+    );
+    assert!(check.contains("CAMPAIGN_MODEL_SCAN_IDENTITY_MAX") && check.contains("CAMPAIGN_MODEL_OBJECT_ID_MAX"));
+    let sys = std::fs::read_to_string(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/lib.rs")).unwrap();
+    assert!(sys.contains("pub host_id: [c_char; EECH_MODEL_SCAN_IDENTITY_MAX + 1],"));
+}

@@ -466,7 +466,8 @@ MODES.withdrawn_record = { withdraw = true, marker = "entity_candidate.refused" 
 MODES.displaced_record = { displace = true, marker = "entity_pose.mirror" }
 -- the host withdraws the BACKING of the entry the real scan has just served: its own REMOVE lifecycle event (phase 5) on that key, answered `removed` by the same provider; the next real ENTRY stands at the ended key
 MODES.withdrawn_backing = { withdraw_backing = true, marker = "entity_scan.refused" }
--- the same for a city's buildings: the host's own REMOVE (phase 8) of the building the real traversal has just served; the next question of the traversal stands at the ended building
+-- the same for a city's buildings: at an actual well-formed CHILD_NEXT standing at the last building the host served, BEFORE that question is delegated, the host's own REMOVE (phase 8) of that building; the same
+-- unmodified question then goes to the same provider once and stands at the ended building. A traversal that never asks for the next building is UNREACHED
 MODES.withdrawn_child = { withdraw_child = true, marker = "entity_scan.refused" }
 -- the HOST-SIDE movement modes (completion modes): see the header
 MODES.moving_control = { moving_target = true, host_side_movement = true }
@@ -690,7 +691,7 @@ local function candidate_reply_problem (answer, scene)
 	return nil
 end
 -- the scan request as the contract states it (mb_hostentity.h): scene 0, nothing else but the text place, which holds exactly 16 patterns and, when the question carries one, one space and the identity place
--- (1 to 128 bytes). The phase (fact 12) is one of the scan's own, 0 BEGIN, 1.0 ENTRY, 2.0 END, 3.0 RESOLVED, or one of the ROSTER's events, 4.0 INSERT, 5.0 REMOVE, 6.0 RESET. The identity place holds the key of the
+-- (1 to 128 bytes; a city NAME's is a key, one space and an object identity of its own 1 to 128 bytes). The phase (fact 12) is one of the scan's own, 0 BEGIN, 1.0 ENTRY, 2.0 END, 3.0 RESOLVED, or one of the ROSTER's events, 4.0 INSERT, 5.0 REMOVE, 6.0 RESET. The identity place holds the key of the
 -- entry the scan stands at in ENTRY and RESOLVED (a roster key: 1 to 20 decimal digits, no leading zero) and in no other scan phase; an INSERT's optional hosted-mobile identity; a REMOVE's key; nothing for a RESET.
 -- The facts an event does not state are zero.
 local PHASES = { [ZERO] = 0, ["0x3f800000"] = 1, ["0x40000000"] = 2, ["0x40400000"] = 3, ["0x40800000"] = 4, ["0x40a00000"] = 5, ["0x40c00000"] = 6,
@@ -717,6 +718,7 @@ local function city_identity (event, identity)
 	if not is_roster_key (first) then return nil, "the identity place of a city event begins with \"" .. shown (first) .. "\", which is not a roster key" end
 	if event == "name" then
 		if second == nil or second == "" then return nil, "a NAME carries an empty object identity" end
+		if #second > 128 then return nil, "a NAME carries an object identity of " .. #second .. " bytes, outside its domain of 1 to 128" end
 		if string.find (second, "[%c\127]") then return nil, "a NAME carries an object identity with a control character" end
 	elseif event == "child_first" then
 		if second ~= nil then return nil, "a request for the first building of a city names the city only" end
@@ -735,11 +737,16 @@ local function parse_scan_request (scene, depth, kind, definition, key)
 	local text, identity = split_identity (key, 16)
 	if text == nil then return nil, "the identity does not follow the 16 patterns after one space" end
 	if #key > #text and identity == "" then return nil, "an empty identity follows the 16 patterns" end
-	if #identity > 128 then return nil, "the identity is " .. #identity .. " bytes, outside the roster's domain of 1 to 128" end
 	local words = words_of_text (text, 16)
 	if words == nil then return nil, "the facts text is not 16 comma separated 0x%08x patterns" end
 	local phase = PHASES [words [12]]
 	if phase == nil then return nil, "the phase " .. words [12] .. " is not 0 to 12" end
+	-- the identity place has the domain of its phase: a host identity or a key is 1 to 128 bytes, and a city NAME holds a key (20 digits at most), one space and an object identity of its own 1 to 128 bytes (149 in all)
+	local limit = phase == 12 and 20 + 1 + 128 or 128
+	if #identity > limit then
+		if phase == 12 then return nil, "the identity is " .. #identity .. " bytes, outside a city NAME's domain of 1 to " .. limit .. " (a key, one space and an object identity of its own 1 to 128)" end
+		return nil, "the identity is " .. #identity .. " bytes, outside the roster's domain of 1 to 128"
+	end
 	if phase <= 3 then
 		local stands = phase == 1 or phase == 3
 		if stands and identity == "" then return nil, "phase " .. phase .. " stands at a served entry and names no roster key" end
@@ -824,7 +831,7 @@ local function roster_track (parsed, answer)
 	else
 		for key in pairs (roster_live) do roster_ended [key] = true end
 		roster_live, last_served = {}, nil
-		scan.city.parent, scan.city.last = {}, nil
+		scan.city.parent, scan.city.lists, scan.city.last = {}, {}, nil
 	end
 end
 -- the first problem of a REAL city reply against the contract, or nil: the state its event allows, a key for an insertion (never issued before) and none for a removal, the building a traversal serves (a live child of
@@ -862,6 +869,8 @@ local function city_track (parsed, answer)
 	local city = scan.city
 	if parsed.event == "child_insert" then
 		roster_live [answer.name], city.parent [answer.name] = true, parsed.keys [1]
+		-- the key a city's list is named by is the key of the city's sector placement at its first building and stays the list's name when the placement is relinked: it may be an ended placement's key
+		city.lists [parsed.keys [1]] = true
 	elseif parsed.event == "child_remove" then
 		roster_live [parsed.keys [2]], roster_ended [parsed.keys [2]], city.parent [parsed.keys [2]] = nil, true, nil
 	elseif parsed.event == "child_first" or parsed.event == "child_next" then
@@ -874,7 +883,7 @@ end
 local function request_join_problem (parsed)
 	if parsed.kind == "city" then
 		local keys, city = parsed.keys, scan.city
-		if roster_ended [keys [1]] then return "the city event names the placement " .. keys [1] .. ", which has ended" end
+		if roster_ended [keys [1]] and not city.lists [keys [1]] then return "the city event names the placement " .. keys [1] .. ", which has ended" end
 		if (parsed.event == "child_remove" or parsed.event == "child_next") and roster_ended [keys [2]] then return "the city event names the building " .. keys [2] .. ", which has ended" end
 		if parsed.event == "child_remove" and city.parent [keys [2]] ~= nil and city.parent [keys [2]] ~= keys [1] then return "the removal names the building " .. keys [2] .. " under the city " .. keys [1] .. ", but it is listed under " .. city.parent [keys [2]] end
 		if parsed.event == "child_next" and (city.last == nil or city.last.parent ~= keys [1] or city.last.child ~= keys [2]) then
@@ -896,9 +905,10 @@ end
 scan.roster = { total = 0, insert = 0, remove = 0, reset = 0, placed = 0, removed = 0, cleared = 0 }
 -- the host's own withdrawals of a served entry (withdrawn_backing; 1 once acknowledged `removed`, -1 when it was not) and the phase of the question that followed it, counted apart from the campaign's roster events
 scan.withdrawn, scan.withdrawn_next = 0, ""
--- the CITY events (phases 7 to 12), counted apart from the roster's and the scan's: by event and by answer; the buildings served, the parent of each live child, the building a traversal was last served, and the host's own
--- withdrawal of a served building (withdrawn_child; 1 once acknowledged `removed`, -1 when it was not) with the event that followed it
-scan.city = { total = 0, child_insert = 0, child_remove = 0, child_first = 0, child_next = 0, link = 0, name = 0, placed = 0, removed = 0, next = 0, served = 0, parent = {}, last = nil, withdrawn = 0, withdrawn_next = "" }
+-- the CITY events (phases 7 to 12), counted apart from the roster's and the scan's: by event and by answer; the buildings served, the list each live child is listed under, the names of the lists seen, the building a
+-- traversal was last served, the well-formed CHILD_NEXT questions that stood at it and joined the keys seen (`next_joined`), and the host's own withdrawal of that building (withdrawn_child; 1 once acknowledged
+-- `removed`, -1 when it was not) with the event it preceded
+scan.city = { total = 0, child_insert = 0, child_remove = 0, child_first = 0, child_next = 0, link = 0, name = 0, placed = 0, removed = 0, next = 0, served = 0, parent = {}, lists = {}, last = nil, next_joined = 0, withdrawn = 0, withdrawn_next = "" }
 -- one ENTITY_SCAN question: a roster event (phases 4 to 6) or a step of the scan. The two are counted apart in both windows: an event is never a query scan, and no event alters or credits a scan control
 local function scan_question (scene, depth, kind, definition, key, counts)
 	local roster = scan.roster
@@ -906,6 +916,28 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 	-- an EVENT is a roster event (phases 4 to 6) or a city event (7 to 12): it is counted apart from the scan's own questions and from the other kind, in both windows, and it is never altered
 	local event = parsed ~= nil and parsed.kind ~= "scan"
 	if event then counts [parsed.kind] = counts [parsed.kind] + 1 else counts.scan = counts.scan + 1 end
+	-- the request's join with the keys seen so far, kept for the whole function: a well-formed question that fails it is a request fault and is never altered, like a parse or reply failure
+	local joined = armed and parsed ~= nil and request_join_problem (parsed) or nil
+	-- a well-formed CHILD_NEXT that joins the keys seen stands at the building the host last served in that list: the real traversal reached the next-building operation
+	local reached_next = armed and parsed ~= nil and joined == nil and parsed.kind == "city" and parsed.event == "child_next"
+	if reached_next then scan.city.next_joined = scan.city.next_joined + 1 end
+	-- HOST-SIDE (withdrawn_child): once, at such a question, BEFORE it is delegated, the host's own REMOVE of that building (the list's name and the building's key, phase 8) goes to the SAME provider and must come back
+	-- `removed`; the question is then delegated exactly once, unmodified, to the same provider, which refuses the ended building by name. Withdrawing at the question the real caller has actually asked is what
+	-- guarantees the continuation: the caller asks for the building after a served one only when it reaches the next-building operation, which is not after every FIRST or NEXT. Nothing the campaign holds is
+	-- written, no reply is changed or forged, and the removal is counted apart from the campaign's events
+	if reached_next and plan.withdraw_child and scan.city.withdrawn == 0 then
+		local words = {}
+		for index = 1, 16 do words [index] = ZERO end
+		words [12] = "0x41000000"
+		local ok, acknowledged = pcall (reference, "entity_scan", 0, nil, nil, nil, table.concat (words, ",") .. " " .. parsed.keys [1] .. " " .. parsed.keys [2])
+		if ok and type (acknowledged) == "table" and acknowledged.result == "removed" and (acknowledged.name == nil or acknowledged.name == "") then
+			scan.city.withdrawn = 1
+		else
+			scan.city.withdrawn = -1
+			faults.reply = faults.reply + 1
+			first_fault = first_fault or "scan reply: the host's removal of the building the traversal stood at was not acknowledged as removed"
+		end
+	end
 	local real = reference ("entity_scan", scene, depth, kind, definition, key)
 	if not armed then
 		-- before the launch the host's answer comes back unchanged; only the keys it issued and ended are remembered, so that an armed question can be joined to them
@@ -918,8 +950,6 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 		end
 		return real
 	end
-	-- the request's join with the keys seen so far, kept for the whole function: a well-formed question that fails it is a request fault and is never altered, like a parse or reply failure
-	local joined = parsed ~= nil and request_join_problem (parsed) or nil
 	if parsed then
 		if joined then
 			faults.request = faults.request + 1
@@ -979,22 +1009,6 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 			scan.withdrawn = -1
 			faults.reply = faults.reply + 1
 			first_fault = first_fault or "scan reply: the host's removal of the served entry was not acknowledged as removed"
-		end
-	end
-	-- HOST-SIDE (withdrawn_child): once, on the first real city traversal reply that serves a building, the host's own REMOVE of that building (the city's key and the building's, phase 8) goes to the SAME provider and must
-	-- come back `removed`; the reply is handed on completely unchanged, so the campaign's lists, the building and its physics are untouched and only the host's list has lost the building. The campaign's next
-	-- question of the traversal then stands at the ended building (the wrapper does not record the removal, so the request join passes) and the provider refuses it by name
-	if plan.withdraw_child and event and parsed.kind == "city" and not problem and scan.city.withdrawn == 0 and (parsed.event == "child_first" or parsed.event == "child_next") and real.name ~= nil and real.name ~= "" then
-		local words = {}
-		for index = 1, 16 do words [index] = ZERO end
-		words [12] = "0x41000000"
-		local ok, acknowledged = pcall (reference, "entity_scan", 0, nil, nil, nil, table.concat (words, ",") .. " " .. parsed.keys [1] .. " " .. real.name)
-		if ok and type (acknowledged) == "table" and acknowledged.result == "removed" and (acknowledged.name == nil or acknowledged.name == "") then
-			scan.city.withdrawn = 1
-		else
-			scan.city.withdrawn = -1
-			faults.reply = faults.reply + 1
-			first_fault = first_fault or "scan reply: the host's removal of the served building was not acknowledged as removed"
 		end
 	end
 	-- an event is never altered
@@ -1801,7 +1815,7 @@ local function main ()
 			roster_withdrawn = scan.withdrawn, roster_withdrawn_next_phase = scan.withdrawn_next,
 			city_before = before.city, city_after = after.city, city_child_insert = scan.city.child_insert, city_child_remove = scan.city.child_remove, city_child_first = scan.city.child_first,
 			city_child_next = scan.city.child_next, city_link = scan.city.link, city_name = scan.city.name, city_placed = scan.city.placed, city_removed = scan.city.removed, city_next = scan.city.next,
-			city_served = scan.city.served, city_withdrawn = scan.city.withdrawn, city_withdrawn_next = scan.city.withdrawn_next,
+			city_served = scan.city.served, city_next_joined = scan.city.next_joined, city_withdrawn = scan.city.withdrawn, city_withdrawn_next = scan.city.withdrawn_next,
 			city_withdrawn_cause = (failure and string.find (failure.line, "[roster.child]", 1, true) and string.find (failure.line, "has ended", 1, true)) and "city_child_ended" or "",
 			roster_withdrawn_cause = (failure and string.find (failure.line, "[roster.key]", 1, true) and string.find (failure.line, "has ended", 1, true)) and "roster_key_ended" or "",
 		target = watched or "", target_questions = tgt.questions, target_skip = tgt.skip, target_need_updated = tgt.need_updated, target_need_fixed = tgt.need_fixed,
@@ -1828,15 +1842,18 @@ local function main ()
 	-- ------------------------------------------------------------------------------------------------------------ the verdict (raised after the evidence is closed by the caller)
 	if plan.marker then
 		-- a refusal mode: the engine must have stopped, at this marker, at an armed entity question the provider altered
-		if plan.withdraw_child and scan.city.served < 1 then return "UNREACHED: " .. mode .. ": the real scan served no building of a city (" .. scan.city.child_first .. " first and " .. scan.city.child_next .. " next city questions), so there was no backing to withdraw: the case holds no city traversal" end
+		-- a next-building question that did not join the keys seen is a request fault and no continuation: it is reported as that fault, never as an absent traversal
+		if plan.withdraw_child and scan.city.next_joined < 1 and faults.request > 0 then return "mode " .. mode .. ": no next-building question joined the keys seen, so nothing was withdrawn before one (request_faults=" .. faults.request .. "): " .. tostring (first_fault) end
+		if plan.withdraw_child and scan.city.next_joined < 1 then return "UNREACHED: " .. mode .. ": the real scan asked for no building after a served one (" .. scan.city.served .. " buildings served by " .. scan.city.child_first .. " first and " .. scan.city.child_next .. " next city questions, " .. scan.city.next_joined .. " next questions at the served building), so there was no continuation to withdraw before: the case holds no such traversal" end
 		if failure == nil then return "mode " .. mode .. " completed: the engine did not stop at " .. plan.marker end
 		if failure.marker ~= plan.marker then return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "], not at [model-provider:" .. plan.marker .. "]: " .. failure.line end
 		if altered + cand_altered + scan_altered + pose_altered + withdrawn + displaced + math.max (scan.withdrawn, 0) + math.max (scan.city.withdrawn, 0) < 1 then return "mode " .. mode .. " stopped without the provider having altered an entity answer: " .. failure.line end
 		if view.applied < 1 then return "mode " .. mode .. " stopped, but the controlled view input never reached a weapon step: the stop is not at an entity question of the configured flight" end
 		if mode == "withdrawn_child" then
-			-- credited only by the reached withdrawal (acknowledged `removed`), the very next city question being the traversal's next building, and the host's own named refusal of the ended building as the only fault
-			if scan.city.withdrawn ~= 1 then return "mode withdrawn_child stopped at its marker, but the host's removal of the served building was not acknowledged as removed (" .. scan.city.withdrawn .. ")" end
-			if scan.city.withdrawn_next ~= "child_next" then return "mode withdrawn_child stopped at its marker, but the city question after the removal was not the traversal's next building (" .. scan.city.withdrawn_next .. ")" end
+			-- credited only by the reached withdrawal (acknowledged `removed`) made at an actual well-formed CHILD_NEXT standing at the last building served, that same question the one delegated after it, and the host's own
+			-- named refusal of the ended building as the only fault
+			if scan.city.withdrawn ~= 1 then return "mode withdrawn_child stopped at its marker, but the host's removal of the building the traversal stood at was not acknowledged as removed (" .. scan.city.withdrawn .. ")" end
+			if scan.city.withdrawn_next ~= "child_next" then return "mode withdrawn_child stopped at its marker, but the question the removal preceded was not the traversal's next building (" .. scan.city.withdrawn_next .. ")" end
 			if not (string.find (failure.line, "[roster.child]", 1, true) and string.find (failure.line, "has ended", 1, true)) then return "mode withdrawn_child stopped at its marker, but not for the ended city child: " .. failure.line end
 			if faults.request ~= 0 or faults.reply ~= 1 or first_fault ~= "scan reply: result refused" then return "mode withdrawn_child had a fault other than the host's named refusal (request_faults=" .. faults.request .. " reply_faults=" .. faults.reply .. "): " .. tostring (first_fault) end
 		end

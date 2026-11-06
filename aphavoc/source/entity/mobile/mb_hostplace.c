@@ -9,6 +9,9 @@
 
 #include "entity/mobile/mb_hostplace.h"
 
+// the object-report identity a NAME carries has its own domain beside the placement key's, and the model request's identity field is sized from it (a mismatch is a negative array size)
+typedef char campaign_model_object_id_domain_is_the_object_registrys [(CAMPAIGN_MODEL_OBJECT_ID_MAX == CAMPAIGN_OBJECT_ID_MAX) ? 1 : -1];
+
 #ifdef EECH_CAMPAIGN_HOST_ENTITY
 
 static int place_heap (void)

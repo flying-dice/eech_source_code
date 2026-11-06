@@ -11206,7 +11206,7 @@ mod tests {
             key: [0; sys::EECH_MODEL_NAME_MAX + 1],
             pose_count: 0,
             pose: [0.0; sys::EECH_MODEL_POSE_MAX],
-            host_id: [0; sys::EECH_MODEL_HOST_ID_MAX + 1],
+            host_id: [0; sys::EECH_MODEL_SCAN_IDENTITY_MAX + 1],
         }
     }
 
@@ -11222,7 +11222,7 @@ mod tests {
             key: [0; sys::EECH_MODEL_NAME_MAX + 1],
             pose_count: 0,
             pose: [0.0; sys::EECH_MODEL_POSE_MAX],
-            host_id: [0; sys::EECH_MODEL_HOST_ID_MAX + 1],
+            host_id: [0; sys::EECH_MODEL_SCAN_IDENTITY_MAX + 1],
         }
     }
 
@@ -11593,6 +11593,46 @@ mod tests {
     }
 
     #[test]
+    fn the_model_callback_carries_a_city_name_identity_place_of_its_whole_domain_untruncated() {
+        // a NAME's identity place is a placement key (20 digits at most), one space and an object identity of its own 1 to 128 bytes: 149 bytes in all, valid multi-byte text included
+        assert_eq!(sys::EECH_MODEL_SCAN_IDENTITY_MAX, 20 + 1 + sys::EECH_MODEL_OBJECT_ID_MAX);
+        let key = "18446744073709551615";
+        for object in ["y".repeat(sys::EECH_MODEL_OBJECT_ID_MAX), format!("{}zz", "é".repeat(63))] {
+            assert_eq!(object.len(), sys::EECH_MODEL_OBJECT_ID_MAX);
+            let place = format!("{key} {object}");
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+            request.pose_count = 16;
+            for (slot, byte) in request.host_id.iter_mut().zip(place.bytes()) {
+                *slot = byte as c_char;
+            }
+            let seen = std::rc::Rc::new(std::cell::RefCell::new(None));
+            let record = std::rc::Rc::clone(&seen);
+            let (code, reply, error) = model_crossing(
+                Some(Box::new(move |query| match query {
+                    ModelQuery::EntityScan { identity, .. } => {
+                        *record.borrow_mut() = Some(identity);
+                        Ok(ModelAnswer::EntityScan {
+                            decision: ScanDecision::Placed,
+                            key: "18446744073709551615".to_string(),
+                        })
+                    }
+                    other => Err(format!("unexpected {other:?}")),
+                })),
+                request,
+            );
+            assert_eq!(code, 0, "{error}");
+            assert_eq!(
+                seen.borrow().clone(),
+                Some(place.clone()),
+                "the whole identity place arrives, not a shortened one"
+            );
+            assert_eq!(place.len(), sys::EECH_MODEL_SCAN_IDENTITY_MAX);
+            let name: Vec<u8> = reply.name.iter().take_while(|c| **c != 0).map(|c| *c as u8).collect();
+            assert_eq!(name, key.as_bytes());
+        }
+    }
+
+    #[test]
     fn the_model_callback_refuses_entity_scan_facts_of_another_size_and_an_answer_of_another_kind() {
         for count in [0, 6, 15, 17, 44, 96] {
             let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
@@ -11692,7 +11732,7 @@ mod tests {
         }
         // an identity that is not NUL-terminated within the field, and one that is not text
         let mut request = pose_request(0, 4, 1, "");
-        request.host_id = [b'x' as c_char; sys::EECH_MODEL_HOST_ID_MAX + 1];
+        request.host_id = [b'x' as c_char; sys::EECH_MODEL_SCAN_IDENTITY_MAX + 1];
         let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
         assert_ne!(code, 0);
         assert!(error.contains("[model-provider:entity_pose.request]") && error.contains("NUL"), "{error}");
