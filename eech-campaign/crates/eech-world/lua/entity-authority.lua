@@ -813,8 +813,9 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 		if event and roster_reply_problem (real, parsed) == nil then roster_track (parsed, real) end
 		return real
 	end
+	-- the request's join with the keys seen so far, kept for the whole function: a well-formed question that fails it is a request fault and is never altered, like a parse or reply failure
+	local joined = parsed ~= nil and request_join_problem (parsed) or nil
 	if parsed then
-		local joined = request_join_problem (parsed)
 		if joined then
 			faults.request = faults.request + 1
 			first_fault = first_fault or ("scan request: " .. joined)
@@ -853,8 +854,8 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 	-- an event is never altered
 	if event then return real end
 	if plan.scan == nil then return real end
-	-- an altered answer is formed only from a well-formed question and real reply (a witness failure raised here would come back carrying the callback marker the refusal mode credits)
-	if parsed == nil or problem then return real end
+	-- an altered answer is formed only from a well-formed question, a request that joins the keys seen and a well-formed real reply (a witness failure raised here would come back carrying the callback marker the refusal mode credits)
+	if parsed == nil or joined or problem then return real end
 	if plan.eligible_scan and not plan.eligible_scan (parsed, real) then return real end
 	if plan.once and scan_altered >= 1 then return real end
 	scan_altered = scan_altered + 1

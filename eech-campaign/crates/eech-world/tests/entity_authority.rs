@@ -502,23 +502,30 @@ package.preload.eech_dc = function ()
 					for _, state in ipairs ({ ... }) do if answer.result == state then return end end
 					stop ("entity_scan.state", "state " .. answer.result .. " is not allowed here")
 				end
-				local answer = ask ("begin", false, false)
-				allowed (answer, "first", "done_none")
-				if answer.result == "done_none" then
-					-- a (wrong) campaign that offers an entry although the host ended the scan
-					if scenario.ignore_none then offer () end
-					-- a campaign that observes a mobile although the host ended the scan (no candidate question follows): the observation alone must fail the empty-enumeration variant
-					if scenario.pose_after_none then pose_observe (0) end
-					return
+				local answer, standing
+				if scenario.scan_from_entry then
+					-- a scan the wrapper first sees mid-way (armed between two of its questions): it stands at the key of the entry placed first, or, for `ended`, at that key after the entry was relinked under a new one
+					standing = roster_key
+					if scenario.scan_from_entry == "ended" then roster_event ("remove") roster_event ("insert") end
+				else
+					answer = ask ("begin", false, false)
+					allowed (answer, "first", "done_none")
+					if answer.result == "done_none" then
+						-- a (wrong) campaign that offers an entry although the host ended the scan
+						if scenario.ignore_none then offer () end
+						-- a campaign that observes a mobile although the host ended the scan (no candidate question follows): the observation alone must fail the empty-enumeration variant
+						if scenario.pose_after_none then pose_observe (0) end
+						return
+					end
+					-- the cursor: two whole numbers inside the map; the scripted map has the one sector (0, 0), so only zero words are valid (a fractional or other word is the exchange's or the campaign's cursor refusal)
+					local cursor = {}
+					for token in string.gmatch (answer.p or "", "[^,]+") do cursor [#cursor + 1] = token end
+					if #cursor ~= 2 then stop ("entity_scan.cursor", "two patterns") end
+					if cursor [1] ~= ZERO or cursor [2] ~= ZERO then stop ("entity_scan.cursor", "a sector that is not a whole number inside the map") end
+					words [13], words [14] = cursor [1], cursor [2]
+					-- the entry the host served: the scan stands at it until the host serves the next one
+					standing = answer.name
 				end
-				-- the cursor: two whole numbers inside the map; the scripted map has the one sector (0, 0), so only zero words are valid (a fractional or other word is the exchange's or the campaign's cursor refusal)
-				local cursor = {}
-				for token in string.gmatch (answer.p or "", "[^,]+") do cursor [#cursor + 1] = token end
-				if #cursor ~= 2 then stop ("entity_scan.cursor", "two patterns") end
-				if cursor [1] ~= ZERO or cursor [2] ~= ZERO then stop ("entity_scan.cursor", "a sector that is not a whole number inside the map") end
-				words [13], words [14] = cursor [1], cursor [2]
-				-- the entry the host served: the scan stands at it until the host serves the next one
-				local standing = answer.name
 				answer = ask ("entry", false, false, standing)
 				allowed (answer, "offer")
 				last_hit = false
@@ -526,6 +533,8 @@ package.preload.eech_dc = function ()
 				answer = ask ("resolved", false, last_hit, standing)
 				allowed (answer, last_hit and "done_hit" or "next")
 				if answer.result == "done_hit" then return end
+				-- a scan seen mid-way is seen no further: its end of the list is a valid question the refusal mode would legitimately alter, which would hide whether the earlier questions were
+				if scenario.scan_from_entry then return end
 				answer = ask ("end", false, false)
 				allowed (answer, "first", "done_none")
 			end
@@ -2141,6 +2150,37 @@ fn the_original_profile_has_the_api_and_the_real_caller_lookups_but_no_scan_cand
         assert!(
             error_of(drive("", &[("profile", "original"), ("mode", mode)])).contains("only mode=control"),
             "{mode}"
+        );
+    }
+}
+
+#[test]
+fn a_standing_key_that_fails_the_request_join_is_a_request_fault_and_is_never_altered_or_credited_as_a_scan_refusal() {
+    // positive first: the valid withheld_scan is still recognised at its first armed scan question, which is the start of a scan and carries no standing key
+    let driven = drive(&healthy(""), &[("mode", "withheld_scan")]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let row = authority(&driven);
+    assert_eq!(
+        (row["failure_marker"].clone(), row["scan_altered"].clone(), row["request_faults"].clone()),
+        (Value::from("entity_scan.callback"), Value::from(1), Value::from(0))
+    );
+    // the first armed question the wrapper sees is ENTRY, standing at a well-formed roster key that is not the entry the host last served, or one that has ended: a request fault at that question, so no
+    // alteration, no engine stop and no refusal credit
+    for (walk, fragment) in [("last_served", "which is not the entry the host last served"), ("ended", "which has ended")] {
+        let driven = drive(&healthy(&format!(", scan_from_entry = '{walk}'")), &[("mode", "withheld_scan")]);
+        let row = authority(&driven);
+        assert_eq!(
+            (row["scan_altered"].clone(), row["failure_marker"].clone()),
+            (Value::from(0), Value::from("")),
+            "{walk}: the malformed question was altered"
+        );
+        assert!(row["request_faults"].as_i64().unwrap() >= 1, "{walk}: {row}");
+        let first = row["first_fault"].as_str().unwrap();
+        assert!(first.starts_with("scan request:") && first.contains(fragment), "{walk}: {first}");
+        let error = error_of(driven);
+        assert!(
+            error.contains("the engine did not stop at entity_scan.callback"),
+            "{walk}: a malformed input is never a credited refusal: {error}"
         );
     }
 }
