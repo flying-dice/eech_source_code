@@ -83,6 +83,10 @@
 --   withheld_scan         the provider raises on the first armed scan question:                                  [model-provider:entity_scan.callback]
 --   bad_scan_state        the first armed BEGIN question is answered `next` (illegal at the start of a scan):       [model-provider:entity_scan.state]
 --   bad_scan_cursor       the first armed real FIRST is answered with a fractional sector x (0.5), the real z:  [model-provider:entity_scan.cursor]
+--   withdrawn_backing     HOST-SIDE, no answer is altered: at the first real FIRST that serves an entry the host calls the SAME provider's REMOVE lifecycle event (phase 5, the key in the identity place) on that key,
+--                         requires `removed`, and hands the FIRST reply on completely unchanged (the campaign's lists, the entity and its physics are untouched). The next real ENTRY stands at the ended key and the
+--                         provider refuses it by name: [model-provider:entity_scan.refused] [roster.key] ... has ended. Credited only by the acknowledged removal, the entry continuation as the next question and that
+--                         refusal as the only fault (reported safely as roster_withdrawn, roster_withdrawn_next_phase and roster_withdrawn_cause); the withdrawal is counted apart from the campaign's roster events.
 -- `control` stays the NATURAL healthy control (nothing altered, no configured secondary input); it now also requires a positive scan, candidate and narrow-phase chain. The earlier modes keep their own meaning.
 --
 -- THE HOST'S PHYSICAL RECORD DECIDES A MOBILE CANDIDATE'S POSE (sixth slice). An ENTITY_CANDIDATE question of a MOBILE candidate (an aircraft or a vehicle of a sector list; never a building listed under a city) now carries the candidate's
@@ -460,6 +464,8 @@ MODES.bad_pose_state = {
 -- the HOST-SIDE record modes (see the header): the host's own movement callback changes its own record before the question is delegated
 MODES.withdrawn_record = { withdraw = true, marker = "entity_candidate.refused" }
 MODES.displaced_record = { displace = true, marker = "entity_pose.mirror" }
+-- the host withdraws the BACKING of the entry the real scan has just served: its own REMOVE lifecycle event (phase 5) on that key, answered `removed` by the same provider; the next real ENTRY stands at the ended key
+MODES.withdrawn_backing = { withdraw_backing = true, marker = "entity_scan.refused" }
 -- the HOST-SIDE movement modes (completion modes): see the header
 MODES.moving_control = { moving_target = true, host_side_movement = true }
 MODES.terrain_lift = { moving_target = true, host_side_movement = true, lift = true }
@@ -801,6 +807,8 @@ local function request_join_problem (parsed)
 end
 -- the roster events are counted in `scan.roster`, apart from the scan's own questions (the driver's main function is at the interpreter's limit of upvalues, so no further local is added)
 scan.roster = { total = 0, insert = 0, remove = 0, reset = 0, placed = 0, removed = 0, cleared = 0 }
+-- the host's own withdrawals of a served entry (withdrawn_backing; 1 once acknowledged `removed`, -1 when it was not) and the phase of the question that followed it, counted apart from the campaign's roster events
+scan.withdrawn, scan.withdrawn_next = 0, ""
 -- one ENTITY_SCAN question: a roster event (phases 4 to 6) or a step of the scan. The two are counted apart in both windows: an event is never a query scan, and no event alters or credits a scan control
 local function scan_question (scene, depth, kind, definition, key, counts)
 	local roster = scan.roster
@@ -828,6 +836,7 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 			local name = ({ [0] = "phase_begin", "phase_entry", "phase_end", "phase_resolved" }) [parsed.phase]
 			scan [name] = scan [name] + 1
 			if parsed.excluded then scan.excluded = scan.excluded + 1 end
+			if scan.withdrawn == 1 and scan.withdrawn_next == "" then scan.withdrawn_next = name end
 			-- the scan begins again, with no entry served
 			if parsed.phase == 0 then last_served = nil end
 		end
@@ -849,6 +858,21 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 			last_served = (real.name ~= nil and real.name ~= "") and real.name or nil
 		elseif real.result == "done_none" or real.result == "done_hit" then
 			last_served = nil
+		end
+	end
+	-- HOST-SIDE (withdrawn_backing): once, on the first real FIRST that serves an entry, the host's own REMOVE of that key goes to the SAME provider and must come back `removed`; the FIRST reply is handed on
+	-- completely unchanged, so the campaign's lists and the entity are untouched and only the host's roster has lost the entry
+	if plan.withdraw_backing and not event and not problem and scan.withdrawn == 0 and real.result == "first" and real.name ~= nil and real.name ~= "" then
+		local words = {}
+		for index = 1, 16 do words [index] = ZERO end
+		words [12] = "0x40a00000"
+		local ok, acknowledged = pcall (reference, "entity_scan", 0, nil, nil, nil, table.concat (words, ",") .. " " .. real.name)
+		if ok and type (acknowledged) == "table" and acknowledged.result == "removed" and (acknowledged.name == nil or acknowledged.name == "") then
+			scan.withdrawn = 1
+		else
+			scan.withdrawn = -1
+			faults.reply = faults.reply + 1
+			first_fault = first_fault or "scan reply: the host's removal of the served entry was not acknowledged as removed"
 		end
 	end
 	-- an event is never altered
@@ -1652,6 +1676,8 @@ local function main ()
 		pose_recorded = pose.recorded, pose_unrecorded = pose.unrecorded, pose_retired = pose.retired, pose_unknown = pose.unknown, pose_no_id = pose.no_id,
 		pose_altered = pose_altered, pose_histogram = pose_histogram_text (pose_histogram),
 		candidate_mobile_named = cand.mobile_named, candidate_mobile_unnamed = cand.mobile_unnamed, record_withdrawn = withdrawn, record_displaced = displaced,
+			roster_withdrawn = scan.withdrawn, roster_withdrawn_next_phase = scan.withdrawn_next,
+			roster_withdrawn_cause = (failure and string.find (failure.line, "[roster.key]", 1, true) and string.find (failure.line, "has ended", 1, true)) and "roster_key_ended" or "",
 		target = watched or "", target_questions = tgt.questions, target_skip = tgt.skip, target_need_updated = tgt.need_updated, target_need_fixed = tgt.need_fixed,
 		target_need_placement = tgt.need_placement, target_need_normal = tgt.need_normal, target_buildings = tgt.buildings, target_test = tgt.test,
 		target_after_lift = tgt.after_lift, target_after_lift_test = tgt.after_lift_test,
@@ -1678,8 +1704,15 @@ local function main ()
 		-- a refusal mode: the engine must have stopped, at this marker, at an armed entity question the provider altered
 		if failure == nil then return "mode " .. mode .. " completed: the engine did not stop at " .. plan.marker end
 		if failure.marker ~= plan.marker then return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "], not at [model-provider:" .. plan.marker .. "]: " .. failure.line end
-		if altered + cand_altered + scan_altered + pose_altered + withdrawn + displaced < 1 then return "mode " .. mode .. " stopped without the provider having altered an entity answer: " .. failure.line end
+		if altered + cand_altered + scan_altered + pose_altered + withdrawn + displaced + math.max (scan.withdrawn, 0) < 1 then return "mode " .. mode .. " stopped without the provider having altered an entity answer: " .. failure.line end
 		if view.applied < 1 then return "mode " .. mode .. " stopped, but the controlled view input never reached a weapon step: the stop is not at an entity question of the configured flight" end
+		if mode == "withdrawn_backing" then
+			-- credited only by the reached withdrawal (acknowledged `removed`), the very next question being the entry continuation, and the host's own named refusal of the ended key as the only fault
+			if scan.withdrawn ~= 1 then return "mode withdrawn_backing stopped at its marker, but the host's removal of the served entry was not acknowledged as removed (" .. scan.withdrawn .. ")" end
+			if scan.withdrawn_next ~= "phase_entry" then return "mode withdrawn_backing stopped at its marker, but the question after the removal was not the entry continuation (" .. scan.withdrawn_next .. ")" end
+			if not (string.find (failure.line, "[roster.key]", 1, true) and string.find (failure.line, "has ended", 1, true)) then return "mode withdrawn_backing stopped at its marker, but not for the ended roster entry: " .. failure.line end
+			if faults.request ~= 0 or faults.reply ~= 1 or first_fault ~= "scan reply: result refused" then return "mode withdrawn_backing had a fault other than the host's named refusal (request_faults=" .. faults.request .. " reply_faults=" .. faults.reply .. "): " .. tostring (first_fault) end
+		end
 		if mode == "withdrawn_record" and not string.find (failure.line, "retired", 1, true) then return "mode withdrawn_record stopped at its marker, but not for the retired identity: " .. failure.line end
 		if mode == "displaced_record" and not string.find (failure.line, "differ from the host", 1, true) then return "mode displaced_record stopped at its marker, but not for a mirror that differs from the host's record: " .. failure.line end
 		return nil

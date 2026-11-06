@@ -164,7 +164,10 @@ local function reference (op, scene, depth, kind, definition, key)
 		local identity = string.sub (key, 177)
 		local phase, excluded, hit = words [12], words [15] ~= ZERO, words [16] ~= ZERO
 		local bad, bad_roster = scenario.bad_real_scan, scenario.bad_real_roster
-		if phase == "0x40800000" then
+		if scenario.real_scan then
+			-- the REAL provider (eech-world's model_host with its own SectorRoster, registered by the test as REAL_HOST): every question of the scan and the roster is answered by it
+			answer = REAL_HOST.model (op, scene, depth, kind, definition, key)
+		elseif phase == "0x40800000" then
 			ROSTER.issued = ROSTER.issued + 1
 			ROSTER.live = tostring (ROSTER.issued)
 			answer = { result = "placed", name = ROSTER.live }
@@ -437,7 +440,7 @@ package.preload.eech_dc = function ()
 			end
 			-- the campaign's driver of the enumeration (mb_hostscan.h) as the shared C applies it: it asks the host, serves the sector (0, 0) with ONE entry, offers it, reports the result and ends when the host does. The
 			-- legality of each state against the phase and the cursor's grammar are the exchange's rules; the stop text is the real wrapper. `offer` runs the candidate dialogue and the narrow phase of ONE entry
-			local scan_altering = { scan_none = true, withheld_scan = true, bad_scan_state = true, bad_scan_cursor = true }
+			local scan_altering = { scan_none = true, withheld_scan = true, bad_scan_state = true, bad_scan_cursor = true, withdrawn_backing = true }
 			-- the campaign's roster events (mb_hostplacemap.h): a sector list's insertion (phase 4: position, entity type and side length, and a hosted mobile's identity), removal (5: the key in the identity place)
 			-- and the boot (6). All other facts are zero. The scripted sector holds ONE entry: the first walk is a boot and an insertion, every later walk a relink (a removal and a new insertion with a new key). The host's
 			-- own answer comes back unaltered in every mode; the reply is checked as the shared C checks it (the state each phase allows, a key only for an insertion)
@@ -495,6 +498,8 @@ package.preload.eech_dc = function ()
 					elseif phase == "begin" and fault == "begin_key" then key = key .. " " .. roster_key end
 					local ok, answer = ask_model ("entity_scan", 0, nil, nil, nil, key, not scan_altering [MODE])
 					if not ok then stop ("entity_scan.callback", tostring (answer)) end
+					-- a refusal of the host is the bridge's own fatal, with the host's reason (as for the candidate)
+					if type (answer) == "table" and answer.result == "refused" then stop ("entity_scan.refused", tostring (answer.reason)) end
 					if type (answer) ~= "table" or not ({ first = true, next = true, offer = true, done_none = true, done_hit = true }) [answer.result] then stop ("entity_scan.answer", "result") end
 					return answer
 				end
@@ -763,6 +768,14 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
     lua.load(format!("ARGS = {table}\nSCENARIO = {{ {scenario} }}"))
         .exec()
         .expect("the scenario is valid Lua");
+    // the REAL model provider with its own sector roster, for the scenarios that ask for it (`real_scan`): the scripted collaborators then forward every entity_scan question to it
+    let real_host = lua.create_table().expect("a table");
+    real_host.set("args", lua.create_table().expect("a table")).expect("args");
+    eech_world::model_host::register(&lua, &real_host).expect("the real provider registers");
+    lua.globals().set("REAL_HOST", real_host).expect("the real host");
+    lua.set_app_data(eech_world::roster::SharedRoster(std::rc::Rc::new(std::cell::RefCell::new(
+        eech_world::roster::SectorRoster::default(),
+    ))));
     lua.load(COLLABORATORS)
         .set_name("scripted collaborators")
         .exec()
@@ -2146,7 +2159,14 @@ fn the_original_profile_has_the_api_and_the_real_caller_lookups_but_no_scan_cand
     assert!(error_of(drive(&healthy(", original_tests = true"), &original)).contains("collision-fixture API"));
     assert!(error_of(drive(&healthy(", fixture_api = true, no_entity_tests = true"), &original)).contains("contact_any_tests did not rise"));
     // the scan modes are hosted-profile modes only
-    for mode in ["scan_real", "scan_none", "withheld_scan", "bad_scan_state", "bad_scan_cursor"] {
+    for mode in [
+        "scan_real",
+        "scan_none",
+        "withheld_scan",
+        "bad_scan_state",
+        "bad_scan_cursor",
+        "withdrawn_backing",
+    ] {
         assert!(
             error_of(drive("", &[("profile", "original"), ("mode", mode)])).contains("only mode=control"),
             "{mode}"
@@ -2183,6 +2203,95 @@ fn a_standing_key_that_fails_the_request_join_is_a_request_fault_and_is_never_al
             "{walk}: a malformed input is never a credited refusal: {error}"
         );
     }
+}
+
+#[test]
+fn the_real_provider_serves_the_scan_and_withdrawing_the_served_backing_by_its_real_remove_makes_the_next_entry_refused_by_name() {
+    // the healthy control first: the REAL provider (its own sector roster) answers every scan and roster question, nothing is altered, and the whole chain is reached
+    let (driven, row) = scan_row(", real_scan = true", "control");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(
+        (row["request_faults"].clone(), row["reply_faults"].clone(), row["roster_withdrawn"].clone()),
+        (Value::from(0), Value::from(0), Value::from(0))
+    );
+    assert_eq!(
+        (row["scan_after"].clone(), row["roster_after"].clone(), row["scan_altered"].clone()),
+        (Value::from(4), Value::from(2), Value::from(0))
+    );
+    assert_eq!(
+        driven
+            .roster_log
+            .iter()
+            .map(|(_, result, name, _)| (result.as_str(), name.as_str()))
+            .collect::<Vec<_>>(),
+        [("cleared", ""), ("placed", "1")]
+    );
+    assert_eq!(driven.scan_standing, ["", "1", "1", ""]);
+    assert_eq!(
+        driven.scan_log.iter().map(|(_, result)| result.as_str()).collect::<Vec<_>>(),
+        ["first", "offer", "next", "first"]
+    );
+
+    // the mode: at the first real FIRST that names an entry the host calls the SAME real provider's REMOVE on that key, returns the FIRST reply unchanged, and the next real ENTRY is refused by name
+    let driven = drive(&healthy(", real_scan = true"), &[("mode", "withdrawn_backing")]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let row = authority(&driven);
+    assert_eq!(row["completed"], false);
+    assert_eq!(row["failure_marker"], "entity_scan.refused");
+    assert_eq!(
+        (
+            row["roster_withdrawn"].clone(),
+            row["roster_withdrawn_next_phase"].clone(),
+            row["roster_withdrawn_cause"].clone()
+        ),
+        (Value::from(1), Value::from("phase_entry"), Value::from("roster_key_ended")),
+        "{row}"
+    );
+    // nothing else was altered: no scan, candidate or narrow-phase answer, and the campaign's own roster events are only its boot and its insertion
+    assert_eq!(
+        (
+            row["scan_altered"].clone(),
+            row["candidate_altered"].clone(),
+            row["altered"].clone(),
+            row["request_faults"].clone()
+        ),
+        (Value::from(0), Value::from(0), Value::from(0), Value::from(0))
+    );
+    assert_eq!(
+        (row["roster_after"].clone(), row["candidate_after"].clone(), row["entity_after"].clone()),
+        (Value::from(2), Value::from(0), Value::from(0))
+    );
+    // the only reply fault is the host's own named refusal of the ended entry, never another
+    assert_eq!(row["reply_faults"], 1);
+    assert_eq!(row["first_fault"], "scan reply: result refused");
+    // the real provider acknowledged the REAL remove of the served key once, in the order: boot, insertion, removal; the first reply was handed on untouched
+    assert_eq!(
+        driven
+            .roster_log
+            .iter()
+            .map(|(phase, result, name, identity)| (phase.as_str(), result.as_str(), name.as_str(), identity.as_str()))
+            .collect::<Vec<_>>(),
+        [
+            ("0x40c00000", "cleared", "", ""),
+            ("0x40800000", "placed", "1", ""),
+            ("0x40a00000", "removed", "", "1")
+        ]
+    );
+    assert_eq!(
+        driven.scan_log.iter().map(|(_, result)| result.as_str()).collect::<Vec<_>>(),
+        ["first", "refused"]
+    );
+    assert_eq!(driven.scan_standing, ["", "1"], "the continuation stood at the key the first reply served");
+    assert!(driven.delegation_broken.is_empty(), "{:?}", driven.delegation_broken);
+
+    // the mode is credited only by the reached withdrawal and the named refusal: a provider that does not refuse the ended entry (the scripted one), or an engine stop elsewhere, is never a pass
+    let error = error_of(drive(&healthy(""), &[("mode", "withdrawn_backing")]));
+    assert!(error.contains("completed: the engine did not stop at entity_scan.refused"), "{error}");
+    let error = error_of(drive(
+        &healthy(", real_scan = true, engine_stop = { after = 1, marker = 'entity_candidate.callback' }"),
+        &[("mode", "withdrawn_backing")],
+    ));
+    assert!(error.contains("not at [model-provider:entity_scan.refused]"), "{error}");
 }
 
 #[test]
