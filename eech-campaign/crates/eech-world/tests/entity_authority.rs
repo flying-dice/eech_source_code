@@ -194,6 +194,8 @@ local function reference (op, scene, depth, kind, definition, key)
 			EXPAND_LOG [#EXPAND_LOG + 1] = { phase = phase, result = answer.result, name = answer.name or "", identity = identity }
 		elseif scenario.real_scan then
 			-- the REAL provider (eech-world's model_host with its own SectorRoster, registered by the test as REAL_HOST): every question of the scan and the roster is answered by it
+			-- the host's restatement of a record's sub type (UNKNOWN, no withdrawal word) the provider FAILS to answer at all (the real provider never does)
+			if phase == FIXED_PHASE and scenario.bad_real_fixed == "restatement_error" and words [10] == ZERO and words [11] == ZERO then error ("the real provider refuses the restatement", 0) end
 			answer = REAL_HOST.model (op, scene, depth, kind, definition, key)
 		elseif phase == "0x40800000" then
 			ROSTER.issued = ROSTER.issued + 1
@@ -238,6 +240,9 @@ local function reference (op, scene, depth, kind, definition, key)
 		if (phase == FIXED_PHASE or phase == CITY_STATE_PHASE) and scenario.bad_real_fixed == "state" then answer.result = "removed" end
 		-- ONLY the host's restatement of a record's sub type (the sub type word UNKNOWN, no withdrawal word) is damaged: a cursor beside a correct `placed` and the same key. The campaign's own report keeps its real answer
 		if phase == FIXED_PHASE and scenario.bad_real_fixed == "restatement_cursor" and words [10] == ZERO and words [11] == ZERO then answer.p = ZERO .. "," .. ZERO end
+		-- the same restatement acknowledged under ANOTHER placement's key, or answered with another state (each keeps the real state change the provider made)
+		if phase == FIXED_PHASE and scenario.bad_real_fixed == "restatement_echo" and words [10] == ZERO and words [11] == ZERO then answer.name = "99" end
+		if phase == FIXED_PHASE and scenario.bad_real_fixed == "restatement_state" and words [10] == ZERO and words [11] == ZERO then answer.result = "removed" end
 		if phase == "0x41700000" then
 			-- logged above
 		elseif CITY_PHASES [phase] then
@@ -288,13 +293,14 @@ local function reference (op, scene, depth, kind, definition, key)
 			return answer
 		end
 		-- a record whose derived rule is no collision (the host restated its sub type) against a campaign whose collision-fixed flag (8) is true at the fixed facts' stage (43): the provider's own named mirror refusal
-		if scenario.fixed_state and identity ~= "" and cw [43] ~= ZERO and cw [8] ~= ZERO and ROSTER_HOLD (identity) == "no_collision" then
+		-- (the real join compares the campaign's flag once it was GIVEN: an ordinary fixed candidate at its fixed facts (43), a building listed under a city (11) only at its placement facts (44))
+		if (scenario.fixed_state or scenario.building_state) and identity ~= "" and ((cw [11] ~= ZERO and cw [44] ~= ZERO) or (cw [11] == ZERO and cw [43] ~= ZERO)) and cw [8] ~= ZERO and ROSTER_HOLD (identity, cw [11] ~= ZERO) == "no_collision" then
 			answer = { result = "refused", reason = "[candidate.mirror] the campaign's collision-fixed flag differs from the host's fixed state of the placement" }
 			ANSWERS [#ANSWERS + 1] = answer
 			record.answer = answer
 			return answer
 		end
-		if scenario.fixed_state and identity ~= "" and ROSTER_HOLD (identity) == "withdrawn" then
+		if scenario.fixed_state and identity ~= "" and ROSTER_HOLD (identity, cw [11] ~= ZERO) == "withdrawn" then
 			answer = { result = "refused", reason = "[candidate.fixed] the host withdrew the fixed physical state of this placement" }
 			ANSWERS [#ANSWERS + 1] = answer
 			record.answer = answer
@@ -501,8 +507,10 @@ package.preload.eech_dc = function ()
 					elseif result == "need_fixed" then
 						if mobile or words [43] ~= ZERO then stop ("entity_candidate.state", "fixed facts asked of a candidate that cannot need them") end
 						words [43], words [8], scene = "0x3f800000", "0x3f800000", 9
-						if scenario.city then words [9] = "0x3f800000" end
-						if scenario.city and scenario.city_state then
+						-- a building listed under the city (of_city, 11) reads its own fixed facts: the city-building flag (10), never the city's own words
+						if scenario.city and words [11] ~= ZERO then words [10] = "0x3f800000"
+						elseif scenario.city then words [9] = "0x3f800000" end
+						if scenario.city and scenario.city_state and words [11] == ZERO then
 							words [12] = "0x3f800000"
 							words [14], words [15], words [16] = OLD_W [1], OLD_W [2], OLD_W [3]
 							words [37], words [38], words [39], words [40], words [41], words [42] = "0xc1f00000", "0xc0a00000", "0xc2200000", "0x42480000", "0x41400000", "0x42700000"
@@ -587,7 +595,7 @@ package.preload.eech_dc = function ()
 				local words = {}
 				for index = 1, 16 do words [index] = ZERO end
 				words [12] = CITY_PHASES [kind]
-				if kind == "child_insert" then words [4] = scenario.city_box and "0x40c00000" or "0x41a80000" end
+				if kind == "child_insert" then words [4] = (scenario.city_box or scenario.building_state) and "0x40c00000" or "0x41a80000" end
 				local fault = scenario.bad_city_request
 				if fault == "stray_fact" then words [6] = "0x3f800000"
 				elseif fault == "no_city" and kind == "child_first" then identity = ""
@@ -768,6 +776,8 @@ package.preload.eech_dc = function ()
 				end
 				for _ = 1, scenario.city or 0 do
 					city_children [#city_children + 1] = city_event ("child_insert", roster_key).name
+					-- the campaign states the fixed state of the building it just listed (sub type CITY_BUILDING, which collides), under the building's own place in the city's list
+					if scenario.building_state then building_report (city_children [#city_children]) end
 					if scenario.city_state then city_state_report (roster_key) end
 				end
 				if scenario.city_relink and #city_children > 0 then
@@ -1059,6 +1069,8 @@ struct Driven {
     launch: Option<(String, String, i64)>,
     /// (scene, result, facts text) of every candidate question the REAL provider answered
     candidate_log: Vec<(i64, String, String)>,
+    /// (scene, facts text, result, refusal reason or empty) of EVERY candidate call the scripted provider received, in order: the campaign's questions and the host's own extra evaluations alike
+    candidate_calls: Vec<(i64, String, String, String)>,
     /// (phase pattern, result) of every scan question the REAL provider answered
     scan_log: Vec<(String, String)>,
     /// the identity place (the key of the entry the scan stands at) every scan question carried, in the order they were asked
@@ -1267,6 +1279,23 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
                     entry.get::<String>("name").unwrap(),
                     entry.get::<String>("identity").unwrap(),
                 )
+            })
+            .collect(),
+        candidate_calls: globals
+            .get::<mlua::Table>("MODEL_LOG")
+            .expect("the model log")
+            .sequence_values::<mlua::Table>()
+            .map(|entry| entry.expect("a model log entry"))
+            .filter(|entry| entry.get::<String>("op").unwrap() == "entity_candidate")
+            // a call the scripted provider raised for has no answer: it is not listed
+            .filter_map(|entry| {
+                let answer = entry.get::<Option<mlua::Table>>("answer").unwrap()?;
+                Some((
+                    entry.get::<i64>("scene").unwrap(),
+                    entry.get::<String>("key").unwrap(),
+                    answer.get::<String>("result").unwrap(),
+                    answer.get::<Option<String>>("reason").unwrap().unwrap_or_default(),
+                ))
             })
             .collect(),
         candidate_log: candidates
@@ -4729,6 +4758,210 @@ fn a_restatement_acknowledged_with_a_cursor_beside_placed_and_the_same_key_is_ne
         "{error}"
     );
     assert!(!error.contains("UNREACHED") && !error.contains("completed"), "{error}");
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// the changed physical rule at the FINAL placement question (Task49 witness correction). The native attempt on the ordinary-need_placement selector was UNREACHED (no ordinary fixed placement was ever answered
+// need_placement), while a building listed under a city has consumed its held sub-type-derived collision flag when its placement question yields the final pose (`fixed_join`: for `of_city`, the flag is compared once
+// the placement is given). The mode therefore delegates the campaign's UNMODIFIED final-placement question to the same provider first, then restates ONLY that record's sub type as UNKNOWN, and asks the provider the SAME
+// payload once more (an extra Host-only evaluation across two controlled Host states, never a claim that the campaign asked twice) and hands the provider's own refusal back.
+
+/// a city whose own state the campaign reports and ONE building listed under it whose fixed state it reports too: the building's own dialogue reads its fixed facts, its placement, its normal and ends in the final pose
+const LISTED: &str = ", real_scan = true, city_state = true, building_state = true, fixed_candidate = true, city = 1, candidate_sequence = { 'need_fixed', 'buildings', 'need_fixed', 'need_placement', 'need_normal', 'test' }";
+
+const MIRROR: &str = "[candidate.mirror] the campaign's collision-fixed flag differs from the host's fixed state of the placement";
+
+const LISTED_DIALOGUE: [&str; 6] = ["need_fixed", "buildings", "need_fixed", "need_placement", "need_normal", "test"];
+
+#[test]
+fn a_listed_buildings_final_placement_question_is_re_evaluated_over_its_restated_sub_type_and_the_providers_mirror_refusal_is_handed_back() {
+    // positive first: the unchanged control ends in the final pose of the building, nothing is restated, the four rule fields hold their declared zeros and the dialogue is the one the mode must reproduce
+    let (control, row) = scan_row(LISTED, "scan_real");
+    assert!(control.result.is_ok(), "{:?}\n{}", control.result, control.rows);
+    assert_eq!(row["completed"], true, "{row}");
+    assert_eq!(
+        (
+            row["fixed_rule_eligible"].clone(),
+            row["fixed_rule_changed"].clone(),
+            row["fixed_rule_changed_next"].clone(),
+            row["fixed_rule_changed_cause"].clone(),
+            row["request_faults"].clone(),
+            row["reply_faults"].clone(),
+            row["candidate_after"].clone()
+        ),
+        (
+            Value::from(0),
+            Value::from(0),
+            Value::from(""),
+            Value::from(""),
+            Value::from(0),
+            Value::from(0),
+            Value::from(6)
+        ),
+        "{row}"
+    );
+    let dialogue: Vec<&str> = control.candidate_calls.iter().map(|call| call.2.as_str()).collect();
+    assert_eq!(dialogue, LISTED_DIALOGUE, "the building's dialogue reached its final pose");
+
+    let driven = drive(&healthy(LISTED), &[("mode", "changed_fixed_rule")]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let row = authority(&driven);
+    assert_eq!(row["completed"], false);
+    assert_eq!(row["failure_marker"], "entity_candidate.refused");
+    // the final pose was validated BEFORE the change (eligible), the restatement of ONLY that record's sub type was acknowledged, the SAME payload was re-evaluated, and the provider's own named mirror refusal is the cause
+    assert_eq!(
+        (
+            row["fixed_rule_eligible"].clone(),
+            row["fixed_rule_changed"].clone(),
+            row["fixed_rule_changed_next"].clone(),
+            row["fixed_rule_changed_cause"].clone()
+        ),
+        (
+            Value::from(1),
+            Value::from(1),
+            Value::from("placement"),
+            Value::from("fixed_rule_mirror_differs")
+        ),
+        "{row}"
+    );
+    // no campaign answer or request was altered: the only fault is the provider's named refusal, handed back for the ONE question the campaign asked at that stage. The campaign asked six questions, never a seventh:
+    // the re-evaluation is the host's own and is not counted as one
+    assert_eq!(
+        (
+            row["candidate_altered"].clone(),
+            row["altered"].clone(),
+            row["scan_altered"].clone(),
+            row["request_faults"].clone(),
+            row["reply_faults"].clone(),
+            row["candidate_after"].clone(),
+            row["entity_after"].clone()
+        ),
+        (
+            Value::from(0),
+            Value::from(0),
+            Value::from(0),
+            Value::from(0),
+            Value::from(1),
+            Value::from(6),
+            Value::from(0)
+        ),
+        "{row}"
+    );
+    assert_eq!(row["first_fault"], "candidate reply: result refused");
+    // the provider received the campaign's six questions exactly as the control's, a SEVENTH call that is the sixth's payload byte for byte (same scene, same text, same key) and its refusal by name
+    assert_eq!(driven.candidate_calls.len(), 7, "{:?}", driven.candidate_calls);
+    assert_eq!(
+        driven.candidate_calls[..6],
+        control.candidate_calls[..],
+        "the six questions and their real answers are the control's"
+    );
+    let (final_question, again) = (&driven.candidate_calls[5], &driven.candidate_calls[6]);
+    assert_eq!(
+        final_question.2, "test",
+        "the final pose was answered over the held state before anything was restated"
+    );
+    assert_eq!(
+        (again.0, &again.1),
+        (final_question.0, &final_question.1),
+        "the same payload to the same provider"
+    );
+    assert_eq!((again.2.as_str(), again.3.as_str()), ("refused", MIRROR));
+    // the provider acknowledged the building's own report and then the host's restatement of ONLY that record, both `placed` under the building's key
+    let child = final_question.1.rsplit(' ').next().expect("the building's key").to_string();
+    let reports: Vec<_> = driven.fixed_log.iter().filter(|entry| entry.0 == "0x41500000").collect();
+    assert_eq!(
+        reports,
+        [
+            &("0x41500000".to_string(), "placed".to_string(), child.clone(), child.clone()),
+            &("0x41500000".to_string(), "placed".to_string(), child.clone(), child.clone()),
+        ]
+    );
+    // the extra evaluation took no destructive, terrain, motion or engine action: nothing reached the engine, the movement registry or the controlled query surface
+    assert!(
+        driven.entity_log.is_empty()
+            && driven.move_log.is_empty()
+            && driven.query_calls.is_empty()
+            && driven.demand_log.is_empty()
+            && driven.pose_log.is_empty(),
+        "{:?} {:?} {:?}",
+        driven.entity_log,
+        driven.move_log,
+        driven.query_calls
+    );
+    assert!(
+        driven.roster_log.iter().all(|event| event.0 != "0x40a00000"),
+        "the placement stayed standing: no roster removal"
+    );
+    assert!(driven.delegation_broken.is_empty(), "{:?}", driven.delegation_broken);
+}
+
+#[test]
+fn a_restatement_not_acknowledged_under_the_fixed_report_contract_at_a_listed_buildings_final_question_is_never_credited_and_the_payload_is_never_re_evaluated()
+{
+    // positive first: the same scenario with a correct acknowledgement is credited (the test above). Only the restatement's acknowledgement is damaged: a cursor beside `placed`, another placement's key, another
+    // state, and a provider that fails to answer at all
+    for fault in ["restatement_cursor", "restatement_echo", "restatement_state", "restatement_error"] {
+        let driven = drive(&healthy(&format!("{LISTED}, bad_real_fixed = '{fault}'")), &[("mode", "changed_fixed_rule")]);
+        let row = authority(&driven);
+        assert_eq!(
+            (
+                row["fixed_rule_eligible"].clone(),
+                row["fixed_rule_changed"].clone(),
+                row["fixed_rule_changed_next"].clone(),
+                row["fixed_rule_changed_cause"].clone(),
+                row["request_faults"].clone()
+            ),
+            (Value::from(1), Value::from(-1), Value::from(""), Value::from(""), Value::from(0)),
+            "{fault}: {row}"
+        );
+        assert_eq!(
+            row["first_fault"], "candidate reply: the host's restatement of the fixed rule of the placement was not acknowledged as placed",
+            "{fault}"
+        );
+        // the final pose is the campaign's last answer: nothing was asked of the provider after the failed restatement, and no refusal was handed back
+        let dialogue: Vec<&str> = driven.candidate_calls.iter().take(6).map(|call| call.2.as_str()).collect();
+        assert_eq!(dialogue, LISTED_DIALOGUE, "{fault}");
+        assert!(
+            driven.candidate_calls.len() >= 6 && driven.candidate_calls.iter().skip(6).all(|call| call.1 != driven.candidate_calls[5].1),
+            "{fault}: the payload was re-asked"
+        );
+        let error = error_of(driven);
+        assert!(
+            error.contains("mode changed_fixed_rule") && error.contains("restatement of the fixed rule") && error.contains("not acknowledged as placed"),
+            "{fault}: {error}"
+        );
+        assert!(!error.contains("UNREACHED") && !error.contains("completed"), "{fault}: {error}");
+    }
+}
+
+#[test]
+fn a_listed_building_that_never_reaches_the_final_pose_or_a_run_that_failed_first_is_never_a_pass_of_the_changed_rule() {
+    // the dialogue ends in `skip` at the placement stage: no final pose was ever answered, so there was no consumed flag to change
+    let skipped = ", real_scan = true, city_state = true, building_state = true, fixed_candidate = true, city = 1, candidate_sequence = { 'need_fixed', 'buildings', 'need_fixed', 'need_placement', 'skip' }";
+    let error = error_of(drive(&healthy(skipped), &[("mode", "changed_fixed_rule")]));
+    assert!(error.contains("UNREACHED") && error.contains("holds no such candidate"), "{error}");
+    // a building the campaign never stated a fixed state for (the provider holds none): its final question is not an eligible lookup
+    let stateless = ", real_scan = true, city_state = true, fixed_candidate = true, city = 1, candidate_sequence = { 'need_fixed', 'buildings', 'need_fixed', 'need_placement', 'need_normal', 'test' }";
+    let error = error_of(drive(&healthy(stateless), &[("mode", "changed_fixed_rule")]));
+    assert!(error.contains("UNREACHED") && error.contains("holds no such candidate"), "{error}");
+    // a run that failed first is that failure, never an absent prerequisite: an engine stop before any question, and a reply fault of the real provider
+    let error = error_of(drive(
+        &healthy(&format!("{LISTED}, engine_stop = {{ after = 1, marker = 'entity_candidate.callback' }}")),
+        &[("mode", "changed_fixed_rule")],
+    ));
+    assert!(
+        !error.contains("UNREACHED")
+            && error.contains("stopped at [model-provider:entity_candidate.callback], not at [model-provider:entity_candidate.refused]"),
+        "{error}"
+    );
+    let error = error_of(drive(
+        &healthy(&format!("{LISTED}, bad_real_candidate = 'state'")),
+        &[("mode", "changed_fixed_rule")],
+    ));
+    assert!(
+        !error.contains("UNREACHED") && error.contains("reply_faults=1") && error.contains("candidate reply:"),
+        "{error}"
+    );
 }
 
 #[test]
