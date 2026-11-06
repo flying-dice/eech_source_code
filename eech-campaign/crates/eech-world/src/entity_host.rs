@@ -379,7 +379,9 @@ extern "C" {
     fn eech_entity_scan_step(facts: *const f32, cursor: *mut f32) -> c_int;
 }
 
-/// The facts of a scan question that are flags, phases or whole numbers, and the values each may have. Anything else is a malformed question, never a default.
+/// The ESTABLISHED floating form of the scan question's domain check, kept only as the test oracle of [`classify_scan_words`] (its domain, order and messages): production never evaluates a question's words
+/// as floating-point values before the caller's floating-point state is captured. Anything outside the domain is a malformed question, never a default.
+#[cfg(test)]
 fn check_scan_facts(facts: &[f32]) -> Result<(), String> {
     if facts.len() != SCAN_FACTS {
         return Err(format!("an entity scan question has {SCAN_FACTS} floats, not {}", facts.len()));
@@ -407,10 +409,11 @@ fn check_scan_facts(facts: &[f32]) -> Result<(), String> {
     Ok(())
 }
 
-/// The raw request classifier of an `ENTITY_SCAN` question: the SAME domains as `check_scan_facts`, in the SAME order and with the SAME messages, but over the words as they arrived and with INTEGER
-/// operations only (an exponent test for finite, the roster's integer classification for a whole number). It runs before any word is evaluated as a floating-point value, so a signaling NaN selects its
-/// request error without a floating-point comparison and without touching the caller's floating-point status. (`f32::is_finite` is an ordinary comparison unless the optimizer folds it into a
-/// bit test: it raises the invalid flag for a signaling NaN in an unoptimized build.)
+/// The request classifier of an `ENTITY_SCAN` question, the ONLY production validation of its words: the established domains (the test oracle `check_scan_facts`), in the SAME order and with the SAME messages,
+/// over the words as they arrived and with INTEGER operations only (an exponent test for finite, the roster's integer classification for a whole number, a sign-masked magnitude for the rest). No word is evaluated
+/// as a floating-point value, so a signaling NaN selects its request error and a valid subnormal coordinate is accepted without a floating-point comparison, without touching the caller's floating-point
+/// status and before the caller's state is captured. (`f32::is_finite` and the range comparisons are ordinary floating-point operations: they raise the invalid flag for a signaling NaN in an unoptimized
+/// build, and the denormal status, or trap if it is unmasked, for a subnormal operand while denormals-are-zero is clear.)
 pub fn classify_scan_words(words: &[u32]) -> Result<(), String> {
     const LIMIT: u32 = 1.0e9f32.to_bits();
     if words.len() != SCAN_FACTS {
@@ -438,8 +441,7 @@ pub fn classify_scan_words(words: &[u32]) -> Result<(), String> {
 /// The host's decision about the enumeration, from the campaign's facts, under the original's arithmetic with the caller's floating-point state saved and restored.
 pub fn scan_step(facts: &[u32]) -> Result<ScanStep, String> {
     classify_scan_words(facts)?;
-    let facts: Vec<f32> = facts.iter().map(|word| f32::from_bits(*word)).collect();
-    check_scan_facts(&facts)?;
+    // the caller's state is captured, and the kernel's requirement of it checked, before any word becomes a float
     let state = fp_state()?;
     if state.x87_masks != 63 || state.sse_masks != 63 {
         return Err(format!(
@@ -447,6 +449,7 @@ pub fn scan_step(facts: &[u32]) -> Result<ScanStep, String> {
             state.x87_masks, state.sse_masks
         ));
     }
+    let facts: Vec<f32> = facts.iter().map(|word| f32::from_bits(*word)).collect();
     let mut cursor = [0.0f32; 2];
     let decided = {
         let _original_arithmetic = ScopedRounding::set(Rounding::Zero)?;
@@ -548,7 +551,10 @@ mod tests {
     #[test]
     fn the_raw_scan_classifier_is_the_established_floating_one_in_the_same_order_with_the_same_messages() {
         let mut next = stream(0x5ca7_f001);
-        let specials: [u32; 13] = [
+        let specials: [u32; 16] = [
+            0x0000_0001,
+            0x8000_0001,
+            0x007f_ffff,
             0,
             0x8000_0000,
             0x3f80_0000,
@@ -575,7 +581,7 @@ mod tests {
             }
             for _ in 0..(round % 3) {
                 let at = (next() as usize) % SCAN_FACTS;
-                words[at] = if next().is_multiple_of(2) { specials[(next() % 13) as usize] } else { next() };
+                words[at] = if next().is_multiple_of(2) { specials[(next() % 16) as usize] } else { next() };
             }
             let facts: Vec<f32> = words.iter().map(|word| f32::from_bits(*word)).collect();
             assert_eq!(classify_scan_words(&words), check_scan_facts(&facts), "{words:x?}");

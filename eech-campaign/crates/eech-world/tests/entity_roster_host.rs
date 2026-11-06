@@ -420,6 +420,84 @@ fn the_roster_arithmetic_hands_back_the_callers_whole_floating_point_state_for_f
     }
 }
 
+/// the segment of a scan question stated by valid SUBNORMAL words (the smallest positive and negative, and the largest), the other facts as in `scan_facts`: a coordinate that truncates to sector (0, 0)
+#[cfg(target_arch = "x86_64")]
+fn subnormal_scan_words(phase: f32, cursor: [f32; 2]) -> [u32; 16] {
+    let mut words = scan_facts(phase, cursor, 0.0, 0.0).map(f32::to_bits);
+    words[..6].copy_from_slice(&[0x0000_0001, 0x8000_0001, 0x007f_ffff, 0x8000_0001, 0x0000_0001, 0x807f_ffff]);
+    words
+}
+
+#[test]
+#[cfg(target_arch = "x86_64")]
+fn a_valid_scan_with_subnormal_coordinates_hands_back_the_callers_whole_floating_point_state_in_every_denormal_mode() {
+    use eech_world::reference_arithmetic::{current_mxcsr, write_mxcsr};
+    const DAZ: u32 = 0x0040;
+    const FTZ: u32 = 0x8000;
+    const DENORMAL_MASK: u32 = 0x0100;
+    for mode in [Rounding::Nearest, Rounding::Up, Rounding::Down, Rounding::Zero] {
+        for raised in [false, true] {
+            // (denormals-are-zero, flush-to-zero, the denormal exception unmasked): an unmasked exception is only entered with denormals-are-zero, so no denormal operand can trap before the host's own refusal
+            for (daz, ftz, unmasked) in [
+                (false, false, false),
+                (true, false, false),
+                (false, true, false),
+                (true, true, false),
+                (true, false, true),
+                (true, true, true),
+            ] {
+                let (lua, _roster) = host(registry());
+                let key = insert(&lua, [10.0, 3.0, 10.0], 20.0, "");
+                let _caller = ScopedRounding::set(mode).expect("a caller in this rounding mode");
+                clear_exception_flags().expect("clear");
+                let mut mxcsr = current_mxcsr();
+                if daz {
+                    mxcsr |= DAZ;
+                }
+                if ftz {
+                    mxcsr |= FTZ;
+                }
+                if unmasked {
+                    mxcsr &= !DENORMAL_MASK;
+                }
+                write_mxcsr(mxcsr);
+                if raised {
+                    raise_exception_flags().expect("raise");
+                }
+                let before = caller_state();
+                let context = format!("{mode:?} raised={raised} daz={daz} ftz={ftz} denormal exception unmasked={unmasked}");
+                assert_eq!(before.2 != 0, raised, "{context}: the test's own setup");
+                let begin = ask_words(&lua, subnormal_scan_words(BEGIN, [0.0; 2]), "");
+                let entry = ask_words(&lua, subnormal_scan_words(ENTRY, [0.0, 0.0]), &key);
+                let after = caller_state();
+                if unmasked {
+                    // not supported by the kernel: the existing named refusal, and nothing of the caller's state is touched
+                    for refused in [&begin, &entry] {
+                        assert_eq!(result(refused), "refused", "{context}");
+                        assert!(
+                            reason(refused).contains("every floating-point exception masked"),
+                            "{context}: {}",
+                            reason(refused)
+                        );
+                    }
+                } else {
+                    assert_eq!(
+                        (result(&begin), name(&begin)),
+                        ("first".to_string(), key.clone()),
+                        "{context}: {:?}",
+                        begin.get::<Option<String>>("reason")
+                    );
+                    assert_eq!(result(&entry), "offer", "{context}: {:?}", entry.get::<Option<String>>("reason"));
+                }
+                assert_eq!(
+                    after, before,
+                    "{context}: the caller's whole state after a valid scan with subnormal coordinates"
+                );
+            }
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // the city lists (phases 7 to 12): a building's place in its city's list, served head first from the HOST's order, and one record for a building's two placements and its object-report identity
 
