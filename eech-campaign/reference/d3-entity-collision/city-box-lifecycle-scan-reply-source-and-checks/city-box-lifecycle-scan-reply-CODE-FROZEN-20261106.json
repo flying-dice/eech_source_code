@@ -1,0 +1,195 @@
+{
+  "schema": "d3-city-box-lifecycle-scan-reply-code-frozen.v1",
+  "status": "UNREVIEWED CODE_FROZEN",
+  "task": "EEDCS-49 (D3)",
+  "finding": "ENV-CITY-LIFECYCLE-NATIVE-REMOVED-NAME-1 (Root actual native blocker, retained literally in this pack)",
+  "source": {
+    "code_commit": "354abd9c04a53f1935919abc4fde1172b438c2b3",
+    "parent_metadata_commit": "6a6a74b61ec4ffe9af0b4578107e003edf2a1a62",
+    "runtime_code_before": "215a8f7389dfc9ab1dac1df2f4e45344392967d9",
+    "changed_paths": {
+      "eech-campaign/crates/eech-dc/src/module.rs": {
+        "bytes": 483898,
+        "sha256": "729a08118b3afe0368eafe2a953d144c826ed8d83d88e53cdbc94b294f7d9b20",
+        "git_blob": "2c07f44335c40963c4c8b6035f67eaf3e4a74f0f",
+        "blob_at_parent": "325c8129c22c756106a7874649088a7c17b3f6d0"
+      }
+    },
+    "other_paths_changed": [],
+    "unchanged_by_construction": [
+      "C sources and headers",
+      "eech-engine and eech-engine-sys",
+      "eech-world host provider, roster and driver Lua",
+      "CITY and fixed-rule math",
+      "campaign policy",
+      "retail roots, scenarios, baselines, tolerances"
+    ]
+  },
+  "defect": "MODEL_BRIDGE (the Lua function every host answer to the engine crosses) rejected any name on a `removed` entity_scan answer with \"name is only for first, next and placed\"; the same answer let through would also have been returned without its name (the bridge returned only the result). The host's legitimate retaining REMOVE (phase 5) and CHILD_REMOVE (phase 8) replies name the record it keeps for the box it built, so the native control stopped at entity_scan.answer before the corrected C map could consume it (reply_faults 0, request_faults 0, retained_answers 1, consumed_before 1, after 0).",
+  "change": {
+    "bridge": "a `removed` answer may carry a name; a cursor (`p`) stays refused; the name is returned to Rust",
+    "call_model": "check_retained_record admits a non-empty name on a removal only (1) at phase 5 or 8, the phase word compared bit for bit (a neighbouring float, -0, a non-finite word, a missing fact or any other phase, the release 16 and RESET 6 included, is refused), (2) as a roster key: one to twenty decimal digits, no leading zero, and (3) at phase 8 only as the list the removal was asked about (the first word of \"<list> <child>\")",
+    "unchanged_grammar": "offer, done_none, done_hit and cleared still refuse any name; first, next, placed, expanded and refused are untouched; the C checks (check_roster_reply, check_city_reply) are unchanged and run after this conversion",
+    "not_done": [
+      "no globally loosened result/phase/name/cursor checks",
+      "no name accepted on the private release acknowledgement",
+      "no new API, store, solver or fixture architecture"
+    ]
+  },
+  "tests": {
+    "location": "eech-campaign/crates/eech-dc/src/module.rs (mod tests, four new tests and four helpers; they drive the REAL Lua bridge through call_model with the table shape the real provider returns)",
+    "new_tests": [
+      "a_removal_names_the_record_the_host_retains_for_a_citys_box_only_in_the_two_removal_phases_that_declare_it",
+      "a_plain_removal_and_the_release_of_a_city_come_back_without_a_name",
+      "a_name_on_a_removal_outside_its_declared_domain_is_a_malformed_answer",
+      "a_retained_record_name_is_a_roster_key_and_a_city_child_removal_names_the_list_it_was_asked_about"
+    ]
+  },
+  "evidence": {
+    "runner": "R:/d3-evidence/run-city-box-lifecycle-direct-20261106.py (unchanged; x86_64 Linux debug, one cargo child per label, real exit recorded)",
+    "runs": [
+      {
+        "label": "removedname-red1",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-dc --lib",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T22:23:31.388296+00:00",
+        "completed_utc": "2026-11-06T22:24:48.847253+00:00",
+        "test_result": "test result: FAILED. 68 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+        "stdout_sha256": "fa2c9dd8694e703b51d0ee95bd542b82c419b5424a58d1d7c66aaece00aad8dc",
+        "stderr_sha256": "d5a5366fefd5b0d945170df7e48b578a80f41f0ee32541546567177dfef895c9"
+      },
+      {
+        "label": "removedname-fmt1",
+        "command": "cargo fmt -p eech-dc",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T22:25:51.054628+00:00",
+        "completed_utc": "2026-11-06T22:25:52.278938+00:00",
+        "test_result": null,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "label": "removedname-green1",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-dc --lib",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T22:26:08.665468+00:00",
+        "completed_utc": "2026-11-06T22:26:13.819460+00:00",
+        "test_result": "test result: ok. 70 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+        "stdout_sha256": "3b6644bbcb20f5f0148c4952fdb4225e5835e8751868818c483e16da73e999d0",
+        "stderr_sha256": "a3919c076cf29d07523d66f16cb962537f7ce3abb73ca7312904cf0a61dc6b35"
+      },
+      {
+        "label": "removedname-clippy1",
+        "command": "cargo clippy --locked --all-targets -p eech-dc -- -D warnings",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T22:26:13.910412+00:00",
+        "completed_utc": "2026-11-06T22:27:23.539276+00:00",
+        "test_result": null,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "541081b21c67eda5a61714375948637bb33e7a2bc63f1cdf070132fd18d757a2"
+      },
+      {
+        "label": "removedname-clippyfx1",
+        "command": "cargo clippy --locked --all-targets -p eech-dc --features weapon-fixture -- -D warnings",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T22:27:23.626940+00:00",
+        "completed_utc": "2026-11-06T22:27:27.802759+00:00",
+        "test_result": null,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "5a13d4639284d7d3ce785c5a5bd773b614303764c35be884bc41817fcb13c77f"
+      },
+      {
+        "label": "removedname-mutant1",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-dc --lib",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T22:27:38.768799+00:00",
+        "completed_utc": "2026-11-06T22:27:43.947523+00:00",
+        "test_result": "test result: FAILED. 68 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+        "stdout_sha256": "3db8d4a3d913b554565ceb1f95438f1245ef3b0b708b6da5dbad3a8554361499",
+        "stderr_sha256": "456e32b4ae4908c3f1c4dd4f13213b90839a0a7089eeb36241801e902fdb25d9"
+      },
+      {
+        "label": "removedname-final-fmt",
+        "command": "cargo fmt -p eech-dc --check",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T22:28:22.149716+00:00",
+        "completed_utc": "2026-11-06T22:28:23.355777+00:00",
+        "test_result": null,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "label": "removedname-final-test",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-dc --lib",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T22:28:23.457842+00:00",
+        "completed_utc": "2026-11-06T22:28:28.530945+00:00",
+        "test_result": "test result: ok. 70 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+        "stdout_sha256": "141fad4ef4044f6e95cce006ec246d5133c8def2ee2fce39aa5901fd373a6c86",
+        "stderr_sha256": "4e9d728f531ead8110626d4862dcf69aa9366cc22016cf5791b7d4577a1a6f05"
+      },
+      {
+        "label": "removedname-final-clippy",
+        "command": "cargo clippy --locked --all-targets -p eech-dc -- -D warnings",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T22:28:28.626901+00:00",
+        "completed_utc": "2026-11-06T22:28:32.328813+00:00",
+        "test_result": null,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "b8bc4d14cb096f714dd9142d024c978b2e96c8248b24c8ca0f43498a85c07f2f"
+      },
+      {
+        "label": "removedname-final-clippyfx",
+        "command": "cargo clippy --locked --all-targets -p eech-dc --features weapon-fixture -- -D warnings",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T22:28:32.424033+00:00",
+        "completed_utc": "2026-11-06T22:28:36.051123+00:00",
+        "test_result": null,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "db46cb1ba3b99a5e00384c28d5f721e08c6671680ce8113d0cbfd294b4a35858"
+      }
+    ],
+    "red": {
+      "record": "removedname-red1",
+      "qualification": "tests added over the UNCHANGED 215a production: 2 of 70 failed. The positive retaining removal failed with the exact text of the native fatal (\"[model-provider:entity_scan.answer] name is only for first, next and placed\"); the wrong-relation test failed on the same text where the new contract names another list. The plain-removal and the outside-domain tests passed on the unchanged bridge, which refused every name: they pin the unchanged domain, they are not RED."
+    },
+    "green": "removedname-green1 and removedname-final-test: 70 passed, 0 failed (66 pre-existing lib tests plus the four new tests; baseline lib count 66)",
+    "mutation": {
+      "record": "removedname-mutant1",
+      "qualification": "check_retained_record made to return Ok(()) first (backed up; restored byte for byte, sha256 compared): the two negative tests failed (68 passed, 2 failed). This shows the phase, key and relation checks are what the negatives test."
+    },
+    "lints": "cargo fmt -p eech-dc --check, cargo clippy --locked --all-targets -p eech-dc -- -D warnings (ordinary) and the same with --features weapon-fixture (hosted fixture profile): all exit 0 on the frozen bytes",
+    "input_maps": {
+      "summary": "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-scan-reply-source-and-checks/maps/final-map-summary.json",
+      "file_count": 3954,
+      "pre_equals_post": true,
+      "pre_sha256": "90e568149ea3921a7e4ca681486b37bc238c9d2e9c85a226b6c4eb322aaac2bf",
+      "post_sha256": "90e568149ea3921a7e4ca681486b37bc238c9d2e9c85a226b6c4eb322aaac2bf",
+      "chronology": "FINAL-PRE-CHECK map after the source and formatting froze, then the final checks, then FINAL-POST-CHECK; the parent baseline map is not a final pre-check map"
+    }
+  },
+  "boundaries_asserted": "the real Lua answer bridge (public host-to-campaign conversion) with the real answer table shape; the C grammar stays pinned by the existing entity_dialogue check, which uses a C callback and bypasses this converter",
+  "limitations": [
+    "No Windows build, native run, current CI, independent review, SourceClearance or actual CITY claim for this source. Every 215a Windows profile artifact contains the old bridge and is not evidence for it.",
+    "No local harness composes the Lua bridge with the real C city check for a real city (no Linux world has cities); the engine's put_name pass-through (read, unchanged) is not re-tested here; the C grammar of the retaining REMOVE, CHILD_REMOVE and release is pinned by the existing entity_dialogue check, which uses a C callback and was not rerun.",
+    "Lints ran on eech-dc (ordinary and weapon-fixture). The Original-like profile (collision-fixture,weapon-fixture) of eech-dc, eech-world, eech-engine and eech-engine-sys tests were not rerun: the change is one file of eech-dc.",
+    "The card guard (migration-progress.py) reported \"Fix a named OPEN blocker\" before work because the card named none for this finding; this change records ENV-CITY-LIFECYCLE-NATIVE-REMOVED-NAME-1 in the card."
+  ],
+  "preserved_literally": {
+    "failed_actual_and_Root_blocker": "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-scan-reply-source-and-checks/Root-city-lifecycle-native-215a-boundary-failure-20261106.json (byte copy; original R:/d3-evidence/Root-city-lifecycle-native-215a-boundary-failure-20261106.json sha256 9c998f8850f71ddbd8d37c3d61e6f5c2ed81471f8b501b43295d1ecf25771134)",
+    "original_failed_receipt_and_raw_data": "R:/d3-evidence/city-lifecycle-control-native-215a8-20261106-{completion,process}.json and its stdout/stderr logs; untouched",
+    "prior_packs": [
+      "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-source-and-checks (d9bd75dbd, 68+manifest)",
+      ".../city-box-lifecycle-correction-source-and-checks (4ef1f42f3, 72)",
+      ".../city-box-lifecycle-witness-correction-source-and-checks (71d92cf85, 50)",
+      ".../city-box-lifecycle-remove-identity-source-and-checks (215a8f738, 36+manifest)",
+      ".../city-box-lifecycle-source-clearance-215a8 (17)"
+    ],
+    "review_12ad": "independent-city-lifecycle-remove-identity-source-215a8-20261106.json sha256 12ad9fd32ff7b1543bf733e0eeb850405c7ea4a767f69281fc3740b2e7cba3b1 (conditional SourceClearance for 215a8f738 only; not extended to this source)"
+  },
+  "next": {
+    "review": "the SAME independent reviewer over ONLY this change (module.rs bridge and call_model plus the four tests), before Root validates the new exact source",
+    "root": "a fresh exact-source snapshot and profile builds (every profile embeds eech-dc), then the finite plan again with the control FIRST. The existing 215a control and short roots are CONSUMED; the healthy, missing and changed roots stay UNUSED and join the new source only by identical input/tool/ref identity and full manifest revalidation.",
+    "still_open": "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION (before sector height), all ten requirements, remaining physical services, needed DCS mapping, natural moving integration, final current 40/all8, final 4 inputs, CI, review, normal merge, final census and whole D3"
+  }
+}

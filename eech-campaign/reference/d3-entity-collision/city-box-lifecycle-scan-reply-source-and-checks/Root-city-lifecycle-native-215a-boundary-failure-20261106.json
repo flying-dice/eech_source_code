@@ -1,0 +1,71 @@
+{
+  "schema": "Root-actual-native-blocker.v1",
+  "created_utc": "2026-11-06T22:17:51.889528+00:00",
+  "source": {
+    "commit": "215a8f7389dfc9ab1dac1df2f4e45344392967d9",
+    "metadata_commit": "6a6a74b61ec4ffe9af0b4578107e003edf2a1a62"
+  },
+  "decision": {
+    "native_launch_clearance": false,
+    "findings": [
+      {
+        "id": "ENV-CITY-LIFECYCLE-NATIVE-REMOVED-NAME-1",
+        "severity": "P2",
+        "title": "Actual public native bridge rejects legitimate retained name on removal",
+        "actual_evidence": {
+          "altered_request": 0,
+          "box_max": "",
+          "box_min": "",
+          "buildings": -1,
+          "city_stage_lookups_in_window": 1,
+          "completed": false,
+          "consumed_after_selected": 0,
+          "consumed_before_selected": 1,
+          "continuation_links": 0,
+          "empty_key_changed": -1,
+          "empty_keyed": -1,
+          "event": "city_lifecycle_authority",
+          "expansions_selected": 0,
+          "expansions_selected_answered": 0,
+          "failure_line": "runtime error: eech: EECH fatal error: host model: [model-provider:entity_scan.answer] name is only for first, next and placed",
+          "failure_marker": "entity_scan.answer",
+          "first_fault": "",
+          "frames": 301,
+          "host_keyed": -1,
+          "intervened": 0,
+          "intervention": "none",
+          "list_order_restored": -1,
+          "mirror_box_equal": -1,
+          "mode": "city_box_lifecycle",
+          "natural_weapon_engagement": "not_claimed_terminal_witness",
+          "profile": "hosted",
+          "query_after_hit": -1,
+          "query_after_kind": "",
+          "query_before_hit": -1,
+          "query_before_kind": "",
+          "query_equal": -1,
+          "releases_in_window": 0,
+          "reply_faults": 0,
+          "report_bound": 0,
+          "request_faults": 0,
+          "restored_key_changed": -1,
+          "restored_keyed": -1,
+          "retained_answers": 1,
+          "row_phase": "after_boot_warmup_standalone_fixture",
+          "selected_record": "11193",
+          "unreached": ""
+        },
+        "required_correction": "Characterize and fix the real entity_scan answer conversion/validation in eech-dc module.rs and affected full-path tests. Support the exact legitimate retained-REMOVE domain; preserve strict other reply/request/phase/name/cursor validation. No dropping the retained name or bypassing bridge/fixture."
+      }
+    ]
+  },
+  "actual_native_helper_outer_exits": [
+    1,
+    1,
+    1
+  ],
+  "control_root_consumed": true,
+  "no_negative_launched": true,
+  "default_short": "actual native/helper/outer0; all3COMPLETE80fdbyteidentical, city-lifecycle-ordinary-short-comparison-215a8-20261106.json",
+  "scope": "Root actual observed blocker, not independent source review. Prior12ad source review remains literal conditional evidence; CITY/Task49/all10/D3 remainOPEN."
+}
