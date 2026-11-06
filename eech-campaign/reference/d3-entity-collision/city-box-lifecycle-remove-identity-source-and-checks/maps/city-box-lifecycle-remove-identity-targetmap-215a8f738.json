@@ -1,0 +1,201 @@
+{
+ "changed_paths_raw": {
+  "eech-campaign/crates/eech-engine-sys/csrc/eech_wpn_fixture.c": {
+   "blob_at_681": "6bd3480bb39892bb46fb294f18b37ab450758643",
+   "blob_at_head": "b4efa723d9935d0ddbd5648eb4b695bd59c3de0b",
+   "blob_at_parent": "b4efa723d9935d0ddbd5648eb4b695bd59c3de0b",
+   "bytes": 90949,
+   "git_blob_of_raw_bytes": "b4efa723d9935d0ddbd5648eb4b695bd59c3de0b",
+   "sha256": "1db11d556060dacf713605b45ef9e473d30361f089ae38c1522d198bb67c3af2"
+  },
+  "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs": {
+   "blob_at_681": "8a9757c226c8904798f4f6a73c01966a0510cb6e",
+   "blob_at_head": "3df588a7563014c09543f590ed109a841d3e2621",
+   "blob_at_parent": "3df588a7563014c09543f590ed109a841d3e2621",
+   "bytes": 77296,
+   "git_blob_of_raw_bytes": "3df588a7563014c09543f590ed109a841d3e2621",
+   "sha256": "adadab4aa347939d981c98541b42d86adf8666b1f07504a382b73507081b231d"
+  },
+  "eech-campaign/crates/eech-engine/src/lib.rs": {
+   "blob_at_681": "6cd879641f1d939caf2e7758772c7183dc30fb16",
+   "blob_at_head": "7927d2201054f6bf65c69fc89cb080a19bb14bab",
+   "blob_at_parent": "7927d2201054f6bf65c69fc89cb080a19bb14bab",
+   "bytes": 699727,
+   "git_blob_of_raw_bytes": "7927d2201054f6bf65c69fc89cb080a19bb14bab",
+   "sha256": "2f4f7102d868544a54267fe222ac16ac107ce10edf69489624590a146ec3ab1b"
+  },
+  "eech-campaign/crates/eech-world/lua/entity-authority.lua": {
+   "blob_at_681": "55d808c104f8f84db3f3f2d88b80743b8b3c418f",
+   "blob_at_head": "86b26df1f0d58db471d8248c3d1f4ff69c250277",
+   "blob_at_parent": "dc59833e2fb95769885e42285e1c54d8ffcc8a25",
+   "bytes": 253777,
+   "git_blob_of_raw_bytes": "86b26df1f0d58db471d8248c3d1f4ff69c250277",
+   "sha256": "1ab11670dc508d4570c5043642481627dc6accc7a3e4609d379828bc02aeebbb"
+  },
+  "eech-campaign/crates/eech-world/tests/entity_authority.rs": {
+   "blob_at_681": "92ef0e5d9f2735bdf7d463c81d2b4f2079d739a8",
+   "blob_at_head": "b28d547d741b171509236ba7c13f814bf042cd34",
+   "blob_at_parent": "0fd230a6c1c8253fea6f1dd3a4d5930db97fc621",
+   "bytes": 350145,
+   "git_blob_of_raw_bytes": "b28d547d741b171509236ba7c13f814bf042cd34",
+   "sha256": "0dfb4a05a9aa0ae3be1afc8b9d687f460ece97065eb9fb3b57172e764e79c649"
+  }
+ },
+ "created_utc": "2026-11-06T21:52:21.433439+00:00",
+ "git_status_porcelain": [],
+ "head": "215a8f7389dfc9ab1dac1df2f4e45344392967d9",
+ "label": "remove-identity",
+ "parent": "71d92cf856e1340796fb6647a7cd70bc8319907b",
+ "paths_changed_parent_to_head": [
+  "STATUS.md",
+  "docs/handover/ACTIVE-EXTRACTION.json",
+  "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+  "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/.gitattributes",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/README.md",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/city-box-lifecycle-witness-correction-CODE-FROZEN-20261106.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3-auth1.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3-fmt-e.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3-fmt-engine.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3-fmt-w.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3-red-engine-lint.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3-red-engine-lint.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3-red-engine-lint.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3-red-mutation.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3-red-mutation.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3-red-mutation.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-clippy-dc.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-clippy-dc.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-clippy-dc.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-clippy-engine-ordinary.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-clippy-engine-ordinary.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-clippy-engine-ordinary.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-clippy-hosted.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-clippy-hosted.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-clippy-hosted.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-clippy-original.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-clippy-original.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-clippy-original.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-clippy-world.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-clippy-world.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-clippy-world.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-fmt-engine-sys.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-fmt-engine-sys.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-fmt-engine-sys.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-fmt-engine.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-fmt-engine.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-fmt-engine.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-fmt-world.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-fmt-world.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-fmt-world.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-test-engine-sys.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-test-engine-sys.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-test-engine-sys.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-test-world.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-test-world.stderr.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/direct-records/city-box-lifecycle-w3f-test-world.stdout.log",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/env/chain-city-box-lifecycle-w3final-20261106.sh",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/env/cityboxmap-witness-correction-20261106.py",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/env/mutate-lua-witness-20261106.js",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/env/run-city-box-lifecycle-direct-20261106.py",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/independent-city-box-lifecycle-correction-source-4ef1-20261106.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/manifest.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/maps/city-box-lifecycle-witness-correction-targetmap-71d92cf85.json",
+  "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-witness-correction-source-and-checks/maps/input-map-summary.json"
+ ],
+ "production_roots": {
+  ".github": {
+   "at_681": "8dfc36da25df2dd4313ed2eb9160a116d982ae5f",
+   "at_parent": "8dfc36da25df2dd4313ed2eb9160a116d982ae5f",
+   "at_working_head": "8dfc36da25df2dd4313ed2eb9160a116d982ae5f",
+   "equal_681": true,
+   "equal_parent": true
+  },
+  "aphavoc": {
+   "at_681": "19b02698c59cfd2e27c377b68dbb79ca9e3c5c49",
+   "at_parent": "f7ba4081a80464eed0a08e3b4b7298b350f76614",
+   "at_working_head": "f7ba4081a80464eed0a08e3b4b7298b350f76614",
+   "equal_681": false,
+   "equal_parent": true
+  },
+  "aphavoc/source/entity/mobile": {
+   "at_681": "121b9187e3d786cd680a7837dd2c5a4964fa279e",
+   "at_parent": "a87f4e391d40f5a820203f3273ec3a23370e5bf9",
+   "at_working_head": "a87f4e391d40f5a820203f3273ec3a23370e5bf9",
+   "equal_681": false,
+   "equal_parent": true
+  },
+  "eech-campaign/.cargo": {
+   "at_681": "0a6faeb2328262b0637c62724eb6451b4fd91236",
+   "at_parent": "0a6faeb2328262b0637c62724eb6451b4fd91236",
+   "at_working_head": "0a6faeb2328262b0637c62724eb6451b4fd91236",
+   "equal_681": true,
+   "equal_parent": true
+  },
+  "eech-campaign/Cargo.lock": {
+   "at_681": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+   "at_parent": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+   "at_working_head": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+   "equal_681": true,
+   "equal_parent": true
+  },
+  "eech-campaign/Cargo.toml": {
+   "at_681": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+   "at_parent": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+   "at_working_head": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+   "equal_681": true,
+   "equal_parent": true
+  },
+  "eech-campaign/crates/eech-dc": {
+   "at_681": "46a71de0be81f99319221c40ec4b1ecaa40fd4c7",
+   "at_parent": "d45df8b6dacf3ec1a71b523b177f220ca849ec95",
+   "at_working_head": "d45df8b6dacf3ec1a71b523b177f220ca849ec95",
+   "equal_681": false,
+   "equal_parent": true
+  },
+  "eech-campaign/crates/eech-engine": {
+   "at_681": "09ed68d80ff651c0be69918015c460d4999d8292",
+   "at_parent": "f2c517933404d13d11ce73ad36dd491af146a0c3",
+   "at_working_head": "f2c517933404d13d11ce73ad36dd491af146a0c3",
+   "equal_681": false,
+   "equal_parent": true
+  },
+  "eech-campaign/crates/eech-engine-sys": {
+   "at_681": "00899a43872414218b03463a8d45937d2f6614a4",
+   "at_parent": "772d2b7566bac381fa190235fb004885743290d3",
+   "at_working_head": "772d2b7566bac381fa190235fb004885743290d3",
+   "equal_681": false,
+   "equal_parent": true
+  },
+  "eech-campaign/crates/eech-world/lua": {
+   "at_681": "db481dda16a60b93f6609e1cc373f4afa2a7330e",
+   "at_parent": "13766b7d67f9a4b8ce1ce24ae3408768cfc114be",
+   "at_working_head": "b85609761d03c59d1f9cfcb654126ed0205de703",
+   "equal_681": false,
+   "equal_parent": false
+  },
+  "eech-campaign/crates/eech-world/lua/campaign.lua": {
+   "at_681": "bdb1bb144ba845bec558dfeafd863650b4457995",
+   "at_parent": "bdb1bb144ba845bec558dfeafd863650b4457995",
+   "at_working_head": "bdb1bb144ba845bec558dfeafd863650b4457995",
+   "equal_681": true,
+   "equal_parent": true
+  },
+  "eech-campaign/crates/eech-world/src": {
+   "at_681": "1a4adafce920d9fdbd922815081fd6d11e354c10",
+   "at_parent": "ea488417c0959f2fb90c8f06263f0171ed27a9ff",
+   "at_working_head": "ea488417c0959f2fb90c8f06263f0171ed27a9ff",
+   "equal_681": false,
+   "equal_parent": true
+  },
+  "modules": {
+   "at_681": "d2078c2b4c6fe03ac6534fd6e84392407cd90aef",
+   "at_parent": "d2078c2b4c6fe03ac6534fd6e84392407cd90aef",
+   "at_working_head": "d2078c2b4c6fe03ac6534fd6e84392407cd90aef",
+   "equal_681": true,
+   "equal_parent": true
+  }
+ },
+ "runtime_681": "681ccfe5476a7c0a90036bc01cd054358c751162",
+ "untracked": []
+}

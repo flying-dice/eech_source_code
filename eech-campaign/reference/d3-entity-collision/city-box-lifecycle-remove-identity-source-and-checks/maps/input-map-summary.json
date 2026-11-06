@@ -1,0 +1,51 @@
+{
+ "after_before_formatting": {
+  "bytes": 2029965,
+  "note": "taken before `cargo fmt -p eech-world` reformatted one new test assertion; kept as evidence, not the final map",
+  "sha256": "e42d0049366613484389cf5ec4f1cb1f7abdfe4d3c7b803be199004cfb04d3e7"
+ },
+ "after_final_checks": {
+  "bytes": 2029965,
+  "changed_from_head": [
+   "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+   "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "fingerprint_of_raw_sha256_map": "a17f4e557f08db82140c67805eeff8d31ef2dc9d7c51b736853f8d5774d1a166",
+  "sha256": "55f2816626253961609274bc8ebe041a4cc7ca16cd6cbaa8ac773e6f2c801f7f"
+ },
+ "before": {
+  "bytes": 2029840,
+  "changed_from_head": [
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "fingerprint_of_raw_sha256_map": "23504e8e198c66058b645f69fbda80dff8b0529e79d4ca71fc9b56720fe48602",
+  "sha256": "228ab3a0b3b8791521fb1392c8a7ddadfa2b34f5c81b63cc6007214525fa5114"
+ },
+ "captured_over_head": "f21f21c1bf7679b2c5355965435ccf243ce52421",
+ "file_count": 3954,
+ "files_differing_between_before_and_after": [
+  "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+  "eech-campaign/crates/eech-world/tests/entity_authority.rs"
+ ],
+ "inherited_raw_vs_git_filtered_exceptions_in_both": [
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+ ],
+ "note": "Full maps (about 2 MB each) stay external with these hashes. The three inherited tree-geometry test controls disagreed at the parent already and are never normalised. The maps were captured over the working tree before the code commit; no edit followed the final map (git status clean at the code commit).",
+ "raw_vs_git_filtered_disagreement_qualification": [
+  "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+  "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+  "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+  "modules/system/malloc.c.h",
+  "modules/system/nedmalloc.c"
+ ],
+ "scope": "every tracked or untracked non-ignored file under aphavoc/source, modules, eech-campaign Cargo.toml/Cargo.lock/rust-toolchain.toml and the eech-engine-sys, eech-engine, eech-dc and eech-world crates"
+}

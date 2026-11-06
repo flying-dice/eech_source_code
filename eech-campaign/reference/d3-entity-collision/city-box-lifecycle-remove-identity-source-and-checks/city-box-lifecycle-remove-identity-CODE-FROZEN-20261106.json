@@ -1,0 +1,279 @@
+{
+ "baseline_policy": "No baseline, configuration, tolerance, input, frame, duration or seed changed; no golden output re-recorded.",
+ "changed_paths": {
+  "eech-campaign/crates/eech-world/lua/entity-authority.lua": {
+   "blob_at_parent": "dc59833e2fb95769885e42285e1c54d8ffcc8a25",
+   "bytes": 253777,
+   "git_blob": "86b26df1f0d58db471d8248c3d1f4ff69c250277",
+   "sha256": "1ab11670dc508d4570c5043642481627dc6accc7a3e4609d379828bc02aeebbb"
+  },
+  "eech-campaign/crates/eech-world/tests/entity_authority.rs": {
+   "blob_at_parent": "0fd230a6c1c8253fea6f1dd3a4d5930db97fc621",
+   "bytes": 350145,
+   "git_blob": "b28d547d741b171509236ba7c13f814bf042cd34",
+   "sha256": "0dfb4a05a9aa0ae3be1afc8b9d687f460ece97065eb9fb3b57172e764e79c649"
+  }
+ },
+ "correction": {
+  "change": "roster_reply_problem: inside the lifecycle window, a removal of the placement whose canonical record (scan.city.anchor, which resolves LINK relinks) is the SELECTED record must name exactly that record when it names one; another record is a reply fault (\"a removal of the selected record's placement P retains the record \\\"X\\\", not its own record S\"). Both call sites (unarmed tracking, armed counting) therefore skip roster_track for the bad reply, the intervention predicate no longer reaches it, no credit or effect happens, and the existing verdict order (fault before UNREACHED) reports the real fault",
+  "defect": "a current selected CITY retaining REMOVE that named another syntactically valid record was excluded from the intervention but accepted by roster_reply_problem (no fault), adopted by roster_track as a list binding, and the unintervened negative returned the clean UNREACHED",
+  "design_note": "a first GREEN attempt applied the relationship to EVERY retaining removal; it failed the legacy pin a_removal_that_names_the_record_the_host_keeps_for_a_citys_box_is_no_fault (identity-green-focused, exit 101: placement 1 retains the scripted record 7). The check was narrowed to the selected record the finding named, and the pin is unchanged",
+  "not_changed": "the verdict, the intervention predicate, the ACK validation, report grammar, selected/before/after counting, the generic removal grammar for any removal outside the selected record (the legacy record_on_remove pin keeps a scripted arbitrary roster key for a non-selected placement), the C source, every other path",
+  "test": "the EXISTING a_bad_retaining_positive_or_release_acknowledgement_causes_no_intervention_and_no_credit loop now requires, for wrong_record_on_remove and p_on_event: intervened 0 and altered 0, retained_answers 0 and releases_in_window 0, reply_faults >= 1, first_fault \"scan reply:\" naming the fault, an error that carries reply_faults and the fault text and is neither UNREACHED nor a host-retention result"
+ },
+ "created_utc": "2026-11-06T21:53:26.511030+00:00",
+ "final_checks_on_the_frozen_bytes": [
+  {
+   "actual_exit": 0,
+   "command": "cargo fmt -p eech-world -- --check",
+   "completed_utc": "2026-11-06T21:51:39.772613+00:00",
+   "failing_binaries_passed_failed": [],
+   "label": "identity-g-fmt-world",
+   "passing_per_test_binary": [],
+   "started_utc": "2026-11-06T21:51:36.397144+00:00",
+   "stderr": {
+    "bytes": 42,
+    "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+   },
+   "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo clippy --locked --all-targets -p eech-world -- -D warnings",
+   "completed_utc": "2026-11-06T21:51:41.762016+00:00",
+   "failing_binaries_passed_failed": [],
+   "label": "identity-g-clippy-world",
+   "passing_per_test_binary": [],
+   "started_utc": "2026-11-06T21:51:39.876060+00:00",
+   "stderr": {
+    "bytes": 184,
+    "sha256": "d4154b24d5bdd6f2941177de05f328169300c684bad5e27d0b76fca93c0530eb"
+   },
+   "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority --test city_box_lifecycle",
+   "completed_utc": "2026-11-06T21:51:44.569944+00:00",
+   "failing_binaries_passed_failed": [],
+   "label": "identity-g-test-world",
+   "passing_per_test_binary": [
+    9,
+    106
+   ],
+   "started_utc": "2026-11-06T21:51:41.860371+00:00",
+   "stderr": {
+    "bytes": 14589,
+    "sha256": "e4111cd59c06c90932ab0a97265bf22d53bad702f328c86b5378e0fe8450c593"
+   },
+   "stdout": {
+    "bytes": 13474,
+    "sha256": "fc4a3229b58628d600181b1c0d6a039d06744082fd646934a365f86a36418b6c"
+   }
+  }
+ ],
+ "final_summary": {
+  "children_actual_zero": 3,
+  "city_box_lifecycle": 9,
+  "entity_authority": 106,
+  "passing_instances": 115,
+  "scope": "Affected World formatting, strict World clippy and the entity_authority and city_box_lifecycle test binaries. No C, Engine, Sys, dc, Windows, native, i686 or COPT2 run: no compiled C or other Rust source changed over 71d92cf85."
+ },
+ "green_attempt_notes": {
+  "identity-f-clippy-world / identity-f-test-world": "exit 0 on the pre-formatting bytes; superseded by the final records",
+  "identity-f-fmt-world": "exit 1: cargo fmt flagged one new assertion line",
+  "identity-fmt-apply-world": "cargo fmt -p eech-world, only the two intended files differ afterwards",
+  "identity-green-focused": "exit 101: the too-general first version failed one legacy pin; narrowed"
+ },
+ "green_attempts": [
+  {
+   "actual_exit": 101,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority --test city_box_lifecycle",
+   "completed_utc": "2026-11-06T21:50:38.611799+00:00",
+   "failing_binaries_passed_failed": [
+    [
+     105,
+     1
+    ]
+   ],
+   "label": "identity-green-focused",
+   "passing_per_test_binary": [
+    9
+   ],
+   "started_utc": "2026-11-06T21:50:35.910675+00:00",
+   "stderr": {
+    "bytes": 14576,
+    "sha256": "0ddb189dc072d719c27cce6b3fb954603c6b016003948254582706db42addac5"
+   },
+   "stdout": {
+    "bytes": 18306,
+    "sha256": "b6e008778da6d42f223a1e0e2cf81e84347cd4cad8a31b156ca583d7c5d454f3"
+   }
+  },
+  {
+   "actual_exit": 1,
+   "command": "cargo fmt -p eech-world -- --check",
+   "completed_utc": "2026-11-06T21:51:13.636515+00:00",
+   "failing_binaries_passed_failed": [],
+   "label": "identity-f-fmt-world",
+   "passing_per_test_binary": [],
+   "started_utc": "2026-11-06T21:51:10.053492+00:00",
+   "stderr": {
+    "bytes": 42,
+    "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+   },
+   "stdout": {
+    "bytes": 1811,
+    "sha256": "227a8a117fa57ac0e955e8a08523bd4359ce09fd58f1cf4fd378c9e87d2da6e9"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo fmt -p eech-world",
+   "completed_utc": "2026-11-06T21:51:27.824697+00:00",
+   "failing_binaries_passed_failed": [],
+   "label": "identity-fmt-apply-world",
+   "passing_per_test_binary": [],
+   "started_utc": "2026-11-06T21:51:24.442080+00:00",
+   "stderr": {
+    "bytes": 42,
+    "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+   },
+   "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo clippy --locked --all-targets -p eech-world -- -D warnings",
+   "completed_utc": "2026-11-06T21:51:16.203502+00:00",
+   "failing_binaries_passed_failed": [],
+   "label": "identity-f-clippy-world",
+   "passing_per_test_binary": [],
+   "started_utc": "2026-11-06T21:51:13.721305+00:00",
+   "stderr": {
+    "bytes": 184,
+    "sha256": "ad8f5f69731c9b9981def3619bf4c0c4250f9ec8b49d475f8128a1ce73806a49"
+   },
+   "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  },
+  {
+   "actual_exit": 0,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority --test city_box_lifecycle",
+   "completed_utc": "2026-11-06T21:51:19.520976+00:00",
+   "failing_binaries_passed_failed": [],
+   "label": "identity-f-test-world",
+   "passing_per_test_binary": [
+    9,
+    106
+   ],
+   "started_utc": "2026-11-06T21:51:16.304044+00:00",
+   "stderr": {
+    "bytes": 14589,
+    "sha256": "2c2f63ad82de8397f9899877566eedb5e2ad31c2f0cd91ac631e403f7bc73364"
+   },
+   "stdout": {
+    "bytes": 13474,
+    "sha256": "c8ba5270296b15b8a10912f1b1b1ed5f0d47c5fd59f62cf6e9c9dd4fc5666c68"
+   }
+  }
+ ],
+ "identity": {
+  "branch": "codex/d3-object-tree-collision",
+  "code": "215a8f7389dfc9ab1dac1df2f4e45344392967d9",
+  "metadata_commit": "the commit that adds this pack (recorded in STATUS.md and the card; it cannot name itself)",
+  "metadata_commit_of_parent": "f21f21c1bf7679b2c5355965435ccf243ce52421",
+  "parent_reviewed_source": "71d92cf856e1340796fb6647a7cd70bc8319907b",
+  "pr": 109
+ },
+ "input_maps": {
+  "after_final_checks": {
+   "bytes": 2029965,
+   "changed_from_head": [
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+   ],
+   "fingerprint_of_raw_sha256_map": "a17f4e557f08db82140c67805eeff8d31ef2dc9d7c51b736853f8d5774d1a166",
+   "sha256": "55f2816626253961609274bc8ebe041a4cc7ca16cd6cbaa8ac773e6f2c801f7f"
+  },
+  "before": {
+   "bytes": 2029840,
+   "changed_from_head": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+   ],
+   "fingerprint_of_raw_sha256_map": "23504e8e198c66058b645f69fbda80dff8b0529e79d4ca71fc9b56720fe48602",
+   "sha256": "228ab3a0b3b8791521fb1392c8a7ddadfa2b34f5c81b63cc6007214525fa5114"
+  },
+  "differing_files": [
+   "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+   "eech-campaign/crates/eech-world/tests/entity_authority.rs"
+  ],
+  "summary": "maps/input-map-summary.json",
+  "target_map": "maps/city-box-lifecycle-remove-identity-targetmap-215a8f738.json"
+ },
+ "limits": [
+  "The witness C has not executed; the scripted driver harness is collaborating driver/provider evidence, not the C fixture.",
+  "The relationship is checked only for the selected record inside the window, the case the finding named; other removals keep the generic grammar.",
+  "No Windows build/seal, native actual, current-head CI, independent review of this correction or SourceClearance exists."
+ ],
+ "native_plan": "unchanged: actual selected CITY through real Core, standalone after-BOOT/warmup dedicated row, control and missing Host-retention and mirror-conformance negatives, no post-fatal getter, no invented physical fields",
+ "open": [
+  "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION",
+  "whole Task49",
+  "whole D3 (all ten requirements: required CITY-before-sector-height, remaining coupled services, current final40/all8/final inputs, CI, review, normal merge, final census)"
+ ],
+ "prior_review": {
+  "bytes": 20496,
+  "decision": "CHANGES_REQUIRED",
+  "finding": "ENV-CITY-LIFECYCLE-SELECTED-REMOVE-FAULT-1 (P2)",
+  "path": "R:/d3-evidence/independent-city-lifecycle-selected-witness-source-71d92-20261106.json",
+  "retained_literally_in_pack": "independent-city-lifecycle-selected-witness-source-71d92-20261106.json",
+  "sha256": "466326b9e42ae0c2f3feb5bb6b03d65841ef017cfd00e748af26185236ba6c7c"
+ },
+ "red": {
+  "qualification": "one RED on the single changed test; no other RED was redone",
+  "record": {
+   "actual_exit": 101,
+   "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority -- a_bad_retaining_positive_or_release_acknowledgement_causes_no_intervention_and_no_credit",
+   "completed_utc": "2026-11-06T21:50:22.459960+00:00",
+   "failing_binaries_passed_failed": [
+    [
+     0,
+     1
+    ]
+   ],
+   "label": "identity-red-world",
+   "passing_per_test_binary": [],
+   "started_utc": "2026-11-06T21:50:19.017276+00:00",
+   "stderr": {
+    "bytes": 378,
+    "sha256": "33ee96116ef1d4605574c607928f0ea4c8f25f97d952513119c175182143e447"
+   },
+   "stdout": {
+    "bytes": 1779,
+    "sha256": "d5fa1fbf2c1c1c4d668cb0e87a83a3cfdaef388842fb18a97b6fb39e1dc0aca3"
+   }
+  },
+  "result": "the strengthened existing test failed against the UNCHANGED 71d92cf85 driver at the reply_faults >= 1 assertion for wrong_record_on_remove: reply_faults 0, first_fault empty, intervened 0, retained_answers 0 (a clean absence), not a setup accident"
+ },
+ "reuse": {
+  "scope": "Unchanged compiled/runtime sources of 71d92cf85 (C witness, Engine, Sys guard, dc) and their clean fmt/clippy/Sys 20/hosted/Original-like/ordinary Engine/dc receipts in the 71d92 pack are reused with exact source binding by the target map (eech-engine-sys, eech-engine, eech-dc, eech-world/src trees equal the parent); the whole World crate checks of the parent are NOT relabelled as this driver validation."
+ },
+ "schema": "d3.task49.city-box-lifecycle-remove-identity.code-frozen.v1",
+ "status": "UNREVIEWED CODE_FROZEN correction: Lua driver and harness only; source and Linux checks; no Windows build, native actual (the witness C was not run), independent review of this material, current CI, SourceClearance or acceptance"
+}
