@@ -1,0 +1,20 @@
+
+running 1 test
+test a_malformed_link_acknowledgement_binds_no_alias_and_an_ended_old_key_is_never_a_held_one ... FAILED
+
+failures:
+
+---- a_malformed_link_acknowledgement_binds_no_alias_and_an_ended_old_key_is_never_a_held_one stdout ----
+
+thread 'a_malformed_link_acknowledgement_binds_no_alias_and_an_ended_old_key_is_never_a_held_one' (162) panicked at crates/eech-world/tests/entity_authority.rs:6083:5:
+assertion `left == right` failed: {"altered_request":0,"box_max":"0x40000000,0x40000000,0x40c00000","box_min":"0xc0800000,0xc1200000,0xc0000000","buildings":2,"city_stage_lookups_in_window":2,"completed":true,"consumed_after_selected":0,"consumed_before_selected":1,"continuation_links":0,"empty_key_changed":1,"empty_keyed":1,"event":"city_lifecycle_authority","expansions_selected":0,"expansions_selected_answered":0,"failure_line":"","failure_marker":"","first_fault":"scan reply: a LINK acknowledged \"99\" for the child 1","frames":1,"host_keyed":1,"intervened":0,"intervention":"none","list_order_restored":1,"mirror_box_equal":1,"mode":"city_box_lifecycle","natural_weapon_engagement":"not_claimed_terminal_witness","profile":"hosted","query_after_hit":1,"query_after_kind":"ENTITY_TYPE_CITY_BUILDING","query_before_hit":1,"query_before_kind":"ENTITY_TYPE_CITY_BUILDING","query_equal":1,"releases_in_window":0,"reply_faults":4,"report_bound":1,"request_faults":2,"restored_key_changed":1,"restored_keyed":1,"retained_answers":1,"row_phase":"after_boot_warmup_standalone_fixture","selected_record":"1","unreached":""}
+  left: Some(true)
+ right: Some(false)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    a_malformed_link_acknowledgement_binds_no_alias_and_an_ended_old_key_is_never_a_held_one
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 108 filtered out; finished in 0.01s
+

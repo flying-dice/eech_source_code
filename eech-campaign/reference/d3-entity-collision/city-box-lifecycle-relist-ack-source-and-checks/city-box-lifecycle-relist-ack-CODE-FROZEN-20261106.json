@@ -4,10 +4,12 @@
   "task": "EEDCS-49 (D3)",
   "finding": "ENV-CITY-LIFECYCLE-RELIST-FIXED-ACK-1 (Root actual native blocker, retained literally in this pack)",
   "source": {
-    "code_commit": "eb3861ea8a5e2103db7bc8c3d3f97cf1f15b0dc5",
+    "code_commit": "e4895c121f6f4280cd0e94a26fc74f7300cb1f78",
+    "first_code_commit": "eb3861ea8a5e2103db7bc8c3d3f97cf1f15b0dc5",
+    "supplement": "the final code commit changes the test file only; the first code commit changed the three paths below",
     "parent_metadata_commit": "a1ef80b05612f4b8f2d355ad024cef6037426e55",
     "sealed_runtime_code": "354abd9c04a53f1935919abc4fde1172b438c2b3",
-    "changed_paths": {
+    "changed_paths_first_code_commit": {
       "eech-campaign/crates/eech-world/lua/entity-authority.lua": {
         "bytes": 255678,
         "raw_sha256": "98de0f7d593e9ace2c2a6da431d5b7021d9aaf035d59c1a223e39925c00f32db",
@@ -25,6 +27,14 @@
         "raw_sha256": "ff1734ceed305759fb975b600884a165689d74b1cdaf88300f657b5ddb3890ff",
         "git_blob": "73f98af9115106224b5e32e8da40c59793abed15",
         "blob_at_parent": "91d70ad1b75060fa7a9776a4022c226c741f5d1f"
+      }
+    },
+    "changed_paths_supplement": {
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs": {
+        "bytes": 360375,
+        "raw_sha256": "8c182620b40218a378bbda3398db01aeb84ea08fa2e3760888a379553fd368a6",
+        "git_blob": "4de4ef451c68119367cf1c976e9223251801d4c6",
+        "blob_at_first_code_commit": "7dc4b6de0f2d4f87e1f612b7868bfafcee4fc437"
       }
     },
     "production_c_or_rust_changed": false,
@@ -56,7 +66,8 @@
     "location": "eech-campaign/crates/eech-world/tests/entity_authority.rs (scripted engine + real provider and roster) and csrc/eech_entity_dialogue_check.c",
     "new_tests": [
       "buildings_listed_again_under_new_keys_while_their_sector_placements_stay_are_expanded_over_the_state_their_record_holds (also with no restatement after the LINK)",
-      "a_building_listed_again_with_no_acknowledged_link_to_its_record_is_a_request_fault_and_never_credited_by_another_buildings_link"
+      "a_building_listed_again_with_no_acknowledged_link_to_its_record_is_a_request_fault_and_never_credited_by_another_buildings_link",
+      "a_malformed_link_acknowledgement_binds_no_alias_and_an_ended_old_key_is_never_a_held_one (supplement; its first half discriminates the join, its stale-key half passes through the ended-key validator before `holds`)"
     ],
     "fixture_fidelity_changes": [
       "the scripted relist emits the real order (LINK sector/new child, then the state under the sector key) for buildings that hold sector placements",
@@ -286,10 +297,134 @@
         "test_results": [],
         "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
         "stderr_sha256": "2a8d3b7b858653f65327fcf1a821951d0151dd2c2b06d6283d52053fe5bf79cf"
+      },
+      {
+        "label": "relist-supp-fmt",
+        "what": "SUPPLEMENT (tests only, after the same reviewer feedback was read): cargo fmt -p eech-world",
+        "command": "cargo fmt -p eech-world",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T23:17:35.694572+00:00",
+        "completed_utc": "2026-11-06T23:17:39.124654+00:00",
+        "test_results": [],
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "label": "relist-supp-green1",
+        "what": "SUPPLEMENT first run: a WRONG assertion of mine (the row field `completed` is the physical witness report, true with faults, as in Root actual); the driver verdict was right",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority malformed_link_acknowledgement",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T23:17:39.254674+00:00",
+        "completed_utc": "2026-11-06T23:17:42.045401+00:00",
+        "test_results": [
+          "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 108 filtered out; finished in 0.01s"
+        ],
+        "stdout_sha256": "2c43335c1c94f97596ebb51b0a6f985f89492f7fbeab3b988d91a4e4bc3a7060",
+        "stderr_sha256": "6f774b44b9940a80cee7ea01056148680747358b537237a23a48919fdf9d8372"
+      },
+      {
+        "label": "relist-supp-mutant",
+        "what": "SUPPLEMENT mutation attempt that never ran: cargo accepts one test name before `--` (exit 1, no mutation observed)",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority listed_again malformed_link_acknowledgement",
+        "actual_exit": 1,
+        "started_utc": "2026-11-06T23:18:06.916799+00:00",
+        "completed_utc": "2026-11-06T23:18:07.714881+00:00",
+        "test_results": [],
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "50c299aaf4e293207155d26bc0c69c02fd2554ae469cdad7d1f3cc031d8678aa"
+      },
+      {
+        "label": "relist-supp-mutant2",
+        "what": "SUPPLEMENT mutation (scan.fixed.holds returns true): the missing-LINK test fails, but the malformed-LINK-ACK and stale-key tests STILL PASS because other validators (the city alias, the ended key) fault first: they did not discriminate the join yet",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority -- listed_again malformed_link_acknowledgement",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T23:18:20.985769+00:00",
+        "completed_utc": "2026-11-06T23:18:23.167203+00:00",
+        "test_results": [
+          "test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 105 filtered out; finished in 0.03s"
+        ],
+        "stdout_sha256": "e14f56bca2f4e7a592ebc05d5236d3e56bbb9448fea04406075c7c68ea149b29",
+        "stderr_sha256": "b894ce7710ee3d1d422ce5a94416826f8f423e2b3488025922a0d0c285fd3d2e"
+      },
+      {
+        "label": "relist-supp-fmt2",
+        "what": "SUPPLEMENT cargo fmt -p eech-world after the building-specific fault was added",
+        "command": "cargo fmt -p eech-world",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T23:18:52.287139+00:00",
+        "completed_utc": "2026-11-06T23:18:55.722129+00:00",
+        "test_results": [],
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "label": "relist-supp-green2",
+        "what": "SUPPLEMENT GREEN: the fault now damages ONLY the acknowledgement of a building LINK; four listed_again/malformed_link_acknowledgement tests pass",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority -- listed_again malformed_link_acknowledgement",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T23:18:55.847288+00:00",
+        "completed_utc": "2026-11-06T23:18:58.614070+00:00",
+        "test_results": [
+          "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 105 filtered out; finished in 0.03s"
+        ],
+        "stdout_sha256": "5ca346ea141f9702e807af611d5afd5cba14faff2de6ee8e51dfe3e463a976fd",
+        "stderr_sha256": "33a66e9d20461244bd127bd0e940e35089c276cbb49a6602f7c3989938a793c4"
+      },
+      {
+        "label": "relist-supp-mutant3",
+        "what": "SUPPLEMENT mutation (scan.fixed.holds returns true) with the building-specific fault: the missing-LINK and the malformed-ACK tests FAIL, the other two pass; the Lua was restored byte for byte (sha256 compared)",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority -- listed_again malformed_link_acknowledgement",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T23:18:58.826768+00:00",
+        "completed_utc": "2026-11-06T23:19:00.908988+00:00",
+        "test_results": [
+          "test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 105 filtered out; finished in 0.02s"
+        ],
+        "stdout_sha256": "0ab7832c677e2790045f199e4909788b75e99f778cb2e16cdc7b136509ed95dd",
+        "stderr_sha256": "c8e4eb959999d7795e65958a3e0248c0fa246911ed711d5e8a92358b116126d0"
+      },
+      {
+        "label": "relist-supp-final-fmt",
+        "what": "SUPPLEMENT FINAL (between the PRE and POST maps of the supplement)",
+        "command": "cargo fmt -p eech-world --check",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T23:19:18.051780+00:00",
+        "completed_utc": "2026-11-06T23:19:21.471413+00:00",
+        "test_results": [],
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "label": "relist-supp-final-world",
+        "what": "SUPPLEMENT FINAL (between the PRE and POST maps of the supplement)",
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test city_box_lifecycle",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T23:19:21.673527+00:00",
+        "completed_utc": "2026-11-06T23:19:24.644546+00:00",
+        "test_results": [
+          "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+          "test result: ok. 109 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.59s",
+          "test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s",
+          "test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+        ],
+        "stdout_sha256": "8cd3351e151f467064de9a509b64fedef486cc32bf605b414a8b229c3a3de1b6",
+        "stderr_sha256": "8b34d9fd6e7c052867e53f1309f4c628a53ff46c7b965094fa2bac7be7b23332"
+      },
+      {
+        "label": "relist-supp-final-clippy",
+        "what": "SUPPLEMENT FINAL (between the PRE and POST maps of the supplement)",
+        "command": "cargo clippy --locked --all-targets -p eech-world -- -D warnings",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T23:19:24.848140+00:00",
+        "completed_utc": "2026-11-06T23:19:27.427461+00:00",
+        "test_results": [],
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "b22407e007a8515dc79f7b98b4bab3b78978dff7fafd1e27885c53c0e72c59a6"
       }
     ],
     "red": "relist-red-final (the final tests over the unchanged driver, exit 101, 2 of 3 filtered tests fail, request_faults=2 reply_faults=0) after relist-red-driver (first test version, exit 101)",
-    "green": "relist-final-world: entity_authority 108, entity_candidate_host 13, entity_roster_host 18, city_box_lifecycle 9 passed; relist-final-c: entity_dialogue 1 (the C control), entity_host_guard 5, entity_roster_guard 20 passed",
+    "supplement": "relist-supp-final-world: entity_authority 109 (the final tree), entity_candidate_host 13, entity_roster_host 18, city_box_lifecycle 9; fmt and clippy exit 0; mutation relist-supp-mutant3 (holds returns true) fails the missing-LINK and the malformed-ACK tests. The C and guard targets were not rerun: the C check and the Lua are byte-identical to the first code commit (map entries equal)",
+    "green": "relist-final-world (first code commit): entity_authority 108, entity_candidate_host 13, entity_roster_host 18, city_box_lifecycle 9 passed; relist-final-c: entity_dialogue 1 (the C control), entity_host_guard 5, entity_roster_guard 20 passed",
     "lints": "cargo fmt -p eech-world --check and clippy --locked --all-targets -p eech-world -- -D warnings exit 0 on the frozen bytes",
     "input_maps": {
       "summary": "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-relist-ack-source-and-checks/maps/final-map-summary.json",
@@ -300,6 +435,8 @@
     }
   },
   "limitations": [
+    "The same reviewer feedback file appeared at 22:55 UTC, after the first check of the session, and was read only after the first freeze; its constraints are answered by the supplement where cheap. NOT covered by a dedicated control: a state ACK absent everywhere (the boot refusal path), a LINK refused by the provider (the scripted engine stops at it), the clear/boot reset and unrelated key reuse as separate cases (key reuse is a reply fault the driver already refuses, ended keys are checked before `holds`, and peer/shared entries of ended keys are never reachable but are not cleared).",
+    "The observer-lifetime count `fixed_held_lifetime` still counts `held` only (its meaning is unchanged); alias recognition adds no phase-13 report and no counted event. `scan.fixed.shared` is not exposed in any row.",
     "No Windows build, native run, current CI, independent review, SourceClearance or actual CITY claim for this source. Whether the real native control now completes without request faults is unproved until Root runs a fresh control root.",
     "Not run locally: the Original-like and hosted weapon-fixture feature builds, the i686 and EECH_C_OPT=2 matrices of the C dialogue check, the eech-dc and eech-engine packages (no file of theirs changed), or the full workspace test; CI covers those.",
     "No per-request trace of the native run exists; the six faulted native requests were not observed individually.",
