@@ -483,7 +483,8 @@ MODES.withdrawn_child = { withdraw_child = true, marker = "entity_scan.refused" 
 -- was `need_placement` (a placement question of the same candidate MUST follow), BEFORE that answer is handed on, the host's own withdrawal of ONLY that record's fixed state (the host-only withdrawal word of the FIXED_STATE
 -- question, answered `removed`); the real answer is handed on completely unchanged, the placement stays standing and the campaign's entity is untouched. The next actual question of the candidate names the same
 -- placement and the real provider refuses it by name: [model-provider:entity_candidate.refused] [candidate.fixed] ... withdrew. The healthy question that established the eligible lookup before the negative is the
--- one answered before the withdrawal (counted as `fixed_joined`). A traversal that never answers `need_placement` to such a question is UNREACHED
+-- one answered before the withdrawal (counted as `fixed_joined`); a question that names a placement the host did not serve is a request fault and is neither counted nor followed by a withdrawal. A traversal that never
+-- answers `need_placement` to such a question is UNREACHED when the run was otherwise clean; a request or reply fault, or an engine stop at another marker, before the withdrawal is reported as that failure
 MODES.withdrawn_fixed_state = { withdraw_fixed = true, marker = "entity_candidate.refused" }
 -- the HOST-SIDE movement modes (completion modes): see the header
 MODES.moving_control = { moving_target = true, host_side_movement = true }
@@ -1263,6 +1264,8 @@ local function hosted_move (step)
 end
 local function candidate_question (scene, depth, kind, definition, key)
 	local parsed, why = parse_candidate_request (scene, depth, kind, definition, key)
+	-- whether THIS question names the placement the host actually served: only such a question is an eligible lookup, and only one may be followed by a withdrawal
+	local joined_now = false
 	if parsed then
 		cand.total = cand.total + 1
 		if parsed.scene == 0 then cand.scene0 = cand.scene0 + 1 end
@@ -1283,6 +1286,8 @@ local function candidate_question (scene, depth, kind, definition, key)
 				if parsed.host_id ~= served then
 					faults.request = faults.request + 1
 					first_fault = first_fault or ("candidate request: the candidate names the placement " .. shown (parsed.host_id) .. ", which is not the entry the host last served (" .. tostring (served) .. ")")
+				else
+					joined_now = true
 				end
 				if scan.fixed.withdrawn == 1 and scan.fixed.withdrawn_next == "" then
 					scan.fixed.withdrawn_next = (parsed.host_id == scan.fixed.withdrawn_key and parsed.words [44] ~= ZERO) and "placement" or "other"
@@ -1325,10 +1330,11 @@ local function candidate_question (scene, depth, kind, definition, key)
 		end
 	end
 	-- the staged questions that NEEDED the state of the record of a placement the provider holds one for (the placement question of an ordinary fixed candidate once its fixed facts were read and the collision-fixed
-	-- mirror says it is not a city or a building listed in a sector, and every question of a building listed under a city) are the eligible lookups: each is a real answer of the provider over that record, counted
+	-- mirror says it is not a city or a building listed in a sector, and every question of a building listed under a city) are the eligible lookups, provided THIS question names the placement the host actually served
+	-- (`joined_now`: a wrong key is a request fault, credited and mutated nothing, even when the real provider could answer it over a state it holds): each is a real answer of the provider over that record, counted
 	-- (`fixed_joined`). HOST-SIDE (withdrawn_fixed_state): the first such lookup whose real answer is `need_placement` (a placement question of the same candidate follows, naming the same placement) is followed, BEFORE the
 	-- answer is handed on, by the host's own withdrawal of ONLY that record's fixed state (the host-only withdrawal word of the FIXED_STATE question, the same provider, answered `removed`); the real answer goes back unchanged
-	if parsed and not parsed.mobile and not problem and parsed.named and scan.fixed.held [parsed.host_id] and not roster_ended [parsed.host_id] then
+	if parsed and not parsed.mobile and not problem and parsed.named and joined_now and scan.fixed.held [parsed.host_id] and not roster_ended [parsed.host_id] then
 		local w = parsed.words
 		if w [11] ~= ZERO or (w [43] ~= ZERO and w [8] ~= ZERO and w [9] == ZERO and w [10] == ZERO) then
 			scan.fixed.joined = scan.fixed.joined + 1
@@ -1940,7 +1946,10 @@ local function main ()
 		if plan.withdraw_child and scan.city.next_joined < 1 then return "UNREACHED: " .. mode .. ": the real scan asked for no building after a served one (" .. scan.city.served .. " buildings served by " .. scan.city.child_first .. " first and " .. scan.city.child_next .. " next city questions, " .. scan.city.next_joined .. " next questions at the served building), so there was no continuation to withdraw before: the case holds no such traversal" end
 		-- a traversal in which no staged candidate question of a placement the provider holds a fixed state for was ever answered `need_placement` has nothing to withdraw before: the prerequisite was never reached, so the
 		-- negative is UNREACHED (never a pass): the case holds no such candidate, and no actor, time or geometry is searched for
-		if plan.withdraw_fixed and scan.fixed.withdrawn == 0 then return "UNREACHED: " .. mode .. ": no staged candidate question of a fixed placement whose state the provider held was answered need_placement (" .. scan.fixed.stated .. " fixed states acknowledged, " .. scan.fixed.joined .. " eligible lookups served, " .. cand.keyed .. " keyed non-mobile questions), so there was no state to withdraw before a continuation: the case holds no such candidate" end
+		-- a failure the run itself had before any eligible lookup was answered (a request or reply fault, or an engine stop that is not this mode's own marker) is that failure, never an absent prerequisite
+		if plan.withdraw_fixed and scan.fixed.withdrawn == 0 and (faults.request > 0 or faults.reply > 0) then return "mode " .. mode .. ": nothing was withdrawn because the run failed first (request_faults=" .. faults.request .. " reply_faults=" .. faults.reply .. " eligible_lookups=" .. scan.fixed.joined .. "): " .. tostring (first_fault) end
+		if plan.withdraw_fixed and scan.fixed.withdrawn == 0 and failure ~= nil and failure.marker ~= plan.marker then return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "], not at [model-provider:" .. plan.marker .. "], before any eligible lookup was withdrawn from: " .. failure.line end
+		if plan.withdraw_fixed and scan.fixed.withdrawn == 0 and failure == nil then return "UNREACHED: " .. mode .. ": no staged candidate question of a fixed placement whose state the provider held was answered need_placement (" .. scan.fixed.stated .. " fixed states acknowledged, " .. scan.fixed.joined .. " eligible lookups served, " .. cand.keyed .. " keyed non-mobile questions), so there was no state to withdraw before a continuation: the case holds no such candidate" end
 		if failure == nil then return "mode " .. mode .. " completed: the engine did not stop at " .. plan.marker end
 		if failure.marker ~= plan.marker then return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "], not at [model-provider:" .. plan.marker .. "]: " .. failure.line end
 		if altered + cand_altered + scan_altered + pose_altered + withdrawn + displaced + math.max (scan.withdrawn, 0) + math.max (scan.city.withdrawn, 0) + math.max (scan.fixed.withdrawn, 0) < 1 then return "mode " .. mode .. " stopped without the provider having altered an entity answer: " .. failure.line end

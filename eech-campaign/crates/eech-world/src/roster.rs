@@ -112,6 +112,18 @@ pub fn sector_of(x_word: u32, z_word: u32, side: i32) -> Result<(i32, i32), Refu
     Ok((axis(x_word)?, axis(z_word)?))
 }
 
+/// The campaign's entity types (`en_types.h`) the host classifies a placement by when it decides what the placement's record must hold: a city (its own position and box are a declared follow-on, not held here),
+/// a building listed in a city, and the fixed family whose collision state the record holds (`place_fixed_family`, mb_hostplace.c: a building listed in a city, a crater, an object, a pylon, scenery, a bridge
+/// segment, a site and an updatable site). The values are compared with the campaign's own source by this module's tests.
+pub const ENTITY_CITY: i32 = 5;
+pub const ENTITY_CITY_BUILDING: i32 = 6;
+pub const FIXED_FAMILY: [i32; 8] = [6, 7, 17, 21, 24, 26, 29, 30];
+
+/// Whether an entity type is of the fixed family: the placements whose record holds a fixed collision state, and whose decision needs it once the campaign has read their fixed facts.
+pub fn is_fixed_family(entity_type: i32) -> bool {
+    FIXED_FAMILY.contains(&entity_type)
+}
+
 /// The longest legacy object-report identity, in bytes (`CAMPAIGN_OBJECT_ID_MAX`, mb_hostobj.h): its own domain, independent of the placement key a NAME carries before it.
 pub const OBJECT_ID_MAX: usize = 128;
 
@@ -488,7 +500,7 @@ impl SectorRoster {
     }
 
     /// States the fixed collision state of the record a placement belongs to (a sector entry or a city child; the campaign states it under whichever placement exists). The type the campaign states must be the
-    /// placement's own, and a statement replaces what the record held (it also restores a state the host withdrew).
+    /// placement's own and of the fixed family (a city, a mobile and a weapon have none: refused before the record changes), and a statement replaces what the record held (it also restores a state the host withdrew).
     pub fn set_fixed(&mut self, key: u64, entity_type: i32, state: FixedState) -> Result<(), Refusal> {
         let record = self.record(key).ok_or_else(|| Refusal::new(self.unknown(key)))?;
         let placed = self
@@ -498,6 +510,11 @@ impl SectorRoster {
         if placed != entity_type {
             return Err(Refusal::new(format!(
                 "the report states the entity type {entity_type} but the placement {key} is of type {placed}"
+            )));
+        }
+        if !is_fixed_family(placed) {
+            return Err(Refusal::new(format!(
+                "the placement {key} is of entity type {placed}, which is not of the fixed family: the host holds no fixed collision state for it"
             )));
         }
         let Some(entry) = self.records.get_mut(&record) else {
@@ -841,16 +858,16 @@ mod tests {
     #[test]
     fn a_placements_fixed_state_is_its_records_stated_by_type_replaced_by_a_statement_and_withdrawn_only_by_the_host() {
         let mut roster = SectorRoster::default();
-        let key = roster.insert((0, 0), 61, None);
+        let key = roster.insert((0, 0), 17, None);
         assert_eq!(held(&roster, key, false), FixedHold::Never, "a record holds none until the campaign states it");
-        roster.set_fixed(key, 61, state(7)).expect("the placement's own type");
+        roster.set_fixed(key, 17, state(7)).expect("the placement's own type");
         assert_eq!(held(&roster, key, false), FixedHold::Held(state(7)));
         // a statement replaces what the record held; another type's statement is refused and changes nothing
-        roster.set_fixed(key, 61, state(8)).unwrap();
+        roster.set_fixed(key, 17, state(8)).unwrap();
         assert_eq!(held(&roster, key, false), FixedHold::Held(state(8)));
-        assert!(roster.set_fixed(key, 62, state(9)).unwrap_err().0.contains("entity type 62"));
+        assert!(roster.set_fixed(key, 21, state(9)).unwrap_err().0.contains("entity type 21"));
         assert_eq!(held(&roster, key, false), FixedHold::Held(state(8)));
-        assert!(roster.set_fixed(99, 61, state(1)).unwrap_err().0.contains("never issued"));
+        assert!(roster.set_fixed(99, 17, state(1)).unwrap_err().0.contains("never issued"));
         // a sector placement is not a city child and the other way round: the kind a branch has is the kind it names
         assert!(roster.placement_fixed(key, true).unwrap_err().0.contains("sector entry"));
         // the host's own withdrawal removes only the state: the placement stands, and the next statement restores it
@@ -858,10 +875,10 @@ mod tests {
         assert_eq!(held(&roster, key, false), FixedHold::Withdrawn);
         assert_eq!(roster.sector(key), Some((0, 0)));
         assert!(roster.withdraw_fixed(key).unwrap_err().0.contains("holds no fixed physical state to withdraw"));
-        roster.set_fixed(key, 61, state(7)).unwrap();
+        roster.set_fixed(key, 17, state(7)).unwrap();
         assert_eq!(held(&roster, key, false), FixedHold::Held(state(7)));
         // a record that never held a state has nothing to withdraw
-        let other = roster.insert((0, 0), 61, None);
+        let other = roster.insert((0, 0), 17, None);
         assert!(roster.withdraw_fixed(other).is_err());
         assert_eq!(held(&roster, other, false), FixedHold::Never);
     }
@@ -869,23 +886,23 @@ mod tests {
     #[test]
     fn the_state_follows_the_record_through_the_link_of_a_buildings_two_placements_and_a_relink_and_ends_with_the_last_placement() {
         let mut roster = SectorRoster::default();
-        let city = roster.insert((0, 0), 40, None);
-        let child = roster.child_insert(city, None, 61).unwrap();
-        roster.set_fixed(child, 61, state(7)).unwrap();
+        let city = roster.insert((0, 0), 5, None);
+        let child = roster.child_insert(city, None, 17).unwrap();
+        roster.set_fixed(child, 17, state(7)).unwrap();
         assert_eq!(held(&roster, child, true), FixedHold::Held(state(7)));
         // the sector placement is a new record that joins the child's: it holds the state from then on
-        let sector = roster.insert((0, 0), 61, None);
+        let sector = roster.insert((0, 0), 17, None);
         assert_eq!(held(&roster, sector, false), FixedHold::Never);
         roster.link(sector, child).unwrap();
         assert_eq!(held(&roster, sector, false), FixedHold::Held(state(7)));
         assert_eq!(held(&roster, child, true), FixedHold::Held(state(7)), "one record, one state");
         // a statement under either placement is the one record's
-        roster.set_fixed(sector, 61, state(9)).unwrap();
+        roster.set_fixed(sector, 17, state(9)).unwrap();
         assert_eq!(held(&roster, child, true), FixedHold::Held(state(9)));
         // a relink: the sector placement leaves (the child keeps the record and its state) and a new one joins it
         roster.remove(sector).unwrap();
         assert_eq!(held(&roster, child, true), FixedHold::Held(state(9)));
-        let relinked = roster.insert((1, 1), 61, None);
+        let relinked = roster.insert((1, 1), 17, None);
         assert_eq!(held(&roster, relinked, false), FixedHold::Never);
         roster.link(relinked, child).unwrap();
         assert_eq!(held(&roster, relinked, false), FixedHold::Held(state(9)));
@@ -895,13 +912,13 @@ mod tests {
         roster.remove(relinked).unwrap();
         assert!(roster.placement_fixed(relinked, false).unwrap_err().0.contains("has ended"));
         // a relink of an entity with no child is a removal and a new insertion: a new record that holds none until it is stated
-        let alone = roster.insert((0, 0), 61, None);
-        roster.set_fixed(alone, 61, state(7)).unwrap();
+        let alone = roster.insert((0, 0), 17, None);
+        roster.set_fixed(alone, 17, state(7)).unwrap();
         roster.remove(alone).unwrap();
-        let again = roster.insert((0, 0), 61, None);
+        let again = roster.insert((0, 0), 17, None);
         assert_eq!(held(&roster, again, false), FixedHold::Never);
         // a boot ends every record and its state
-        roster.set_fixed(again, 61, state(7)).unwrap();
+        roster.set_fixed(again, 17, state(7)).unwrap();
         roster.clear();
         assert!(roster.placement_fixed(again, false).is_err());
     }
@@ -909,26 +926,86 @@ mod tests {
     #[test]
     fn two_statements_that_differ_are_never_merged_by_a_link_and_a_withdrawal_is_kept() {
         let mut roster = SectorRoster::default();
-        let city = roster.insert((0, 0), 40, None);
-        let child = roster.child_insert(city, None, 61).unwrap();
-        let sector = roster.insert((0, 0), 61, None);
-        roster.set_fixed(child, 61, state(7)).unwrap();
-        roster.set_fixed(sector, 61, state(8)).unwrap();
+        let city = roster.insert((0, 0), 5, None);
+        let child = roster.child_insert(city, None, 17).unwrap();
+        let sector = roster.insert((0, 0), 17, None);
+        roster.set_fixed(child, 17, state(7)).unwrap();
+        roster.set_fixed(sector, 17, state(8)).unwrap();
         let refusal = roster.link(sector, child).unwrap_err();
         assert!(refusal.0.contains("different fixed physical state"), "{}", refusal.0);
         // nothing was merged by the refusal: each placement still holds its own
         assert_eq!(held(&roster, child, true), FixedHold::Held(state(7)));
         assert_eq!(held(&roster, sector, false), FixedHold::Held(state(8)));
         // the same statement under both is one state; a withdrawal is kept against a record that never held one
-        roster.set_fixed(sector, 61, state(7)).unwrap();
+        roster.set_fixed(sector, 17, state(7)).unwrap();
         roster.link(sector, child).unwrap();
         assert_eq!(held(&roster, sector, false), FixedHold::Held(state(7)));
-        let city2 = roster.insert((2, 2), 40, None);
-        let child2 = roster.child_insert(city2, None, 61).unwrap();
-        roster.set_fixed(child2, 61, state(7)).unwrap();
+        let city2 = roster.insert((2, 2), 5, None);
+        let child2 = roster.child_insert(city2, None, 17).unwrap();
+        roster.set_fixed(child2, 17, state(7)).unwrap();
         roster.withdraw_fixed(child2).unwrap();
-        let sector2 = roster.insert((2, 2), 61, None);
+        let sector2 = roster.insert((2, 2), 17, None);
         roster.link(sector2, child2).unwrap();
         assert_eq!(held(&roster, sector2, false), FixedHold::Withdrawn);
+    }
+
+    #[test]
+    fn a_placement_of_no_fixed_family_can_hold_no_fixed_state_and_a_refused_statement_changes_nothing() {
+        let mut roster = SectorRoster::default();
+        // a city (its own position and box are a declared follow-on), a fixed wing, a helicopter, a person, a sound effect and a weapon
+        for entity_type in [ENTITY_CITY, 10, 14, 19, 32, 37] {
+            let key = roster.insert((0, 0), entity_type, None);
+            let refusal = roster.set_fixed(key, entity_type, state(7)).unwrap_err();
+            assert!(refusal.0.contains("not of the fixed family"), "{entity_type}: {}", refusal.0);
+            assert_eq!(held(&roster, key, false), FixedHold::Never, "{entity_type}: nothing was recorded");
+            assert!(roster.withdraw_fixed(key).is_err(), "{entity_type}: nothing to withdraw");
+        }
+        for entity_type in FIXED_FAMILY {
+            let key = roster.insert((0, 0), entity_type, None);
+            roster.set_fixed(key, entity_type, state(7)).unwrap();
+            assert_eq!(held(&roster, key, false), FixedHold::Held(state(7)), "{entity_type}");
+        }
+    }
+
+    const ENTITY_TYPES_H: &str = include_str!("../../../../aphavoc/source/entity/system/en_types/en_types.h");
+    const PLACE_FAMILY_C: &str = include_str!("../../../../aphavoc/source/entity/mobile/mb_hostplace.c");
+
+    /// the value of a campaign entity type: its place in the campaign's own `enum ENTITY_TYPES`, which gives no member a value of its own
+    fn campaign_entity_type(name: &str) -> i32 {
+        let body = ENTITY_TYPES_H
+            .split("enum ENTITY_TYPES")
+            .nth(1)
+            .and_then(|rest| rest.split("};").next())
+            .expect("the enum");
+        assert!(!body.contains('='), "an explicit value would make the order an unsafe count");
+        let members: Vec<&str> = body.lines().filter_map(|line| line.trim().strip_suffix(',')).collect();
+        i32::try_from(
+            members
+                .iter()
+                .position(|member| *member == name)
+                .unwrap_or_else(|| panic!("{name} is not an entity type")),
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn the_entity_types_the_host_classifies_a_placement_by_are_the_campaigns_own_and_the_fixed_family_is_its_reporter_s() {
+        assert_eq!(ENTITY_CITY, campaign_entity_type("ENTITY_TYPE_CITY"));
+        assert_eq!(ENTITY_CITY_BUILDING, campaign_entity_type("ENTITY_TYPE_CITY_BUILDING"));
+        // the family is the cases of the campaign's own reporter (`place_fixed_family`), which the engine's source guard holds equal to the types that overload the fixed functions, a city excepted
+        let start = PLACE_FAMILY_C.find("static int place_fixed_family").expect("the family");
+        let end = PLACE_FAMILY_C[start..].find("\n}\n").expect("its end") + start;
+        let mut family: Vec<i32> = PLACE_FAMILY_C[start..end]
+            .lines()
+            .filter_map(|line| line.trim().strip_prefix("case ").map(|rest| rest.trim_end_matches(':').trim()))
+            .map(campaign_entity_type)
+            .collect();
+        family.sort_unstable();
+        assert_eq!(
+            family, FIXED_FAMILY,
+            "the host holds a state for the types the campaign reports, no more and no fewer"
+        );
+        assert!(!is_fixed_family(ENTITY_CITY));
+        assert!(is_fixed_family(ENTITY_CITY_BUILDING));
     }
 }

@@ -445,7 +445,7 @@ package.preload.eech_dc = function ()
 					-- a MOBILE candidate's question names its semantic host identity after the facts (the host decides its pose from its own record of it)
 					if mobile and not scenario.unnamed_candidate then key = key .. " " .. (scenario.candidate_id or "eech-world:1") end
 					-- every other candidate names the placement the host served it by (a roster key), on every staged question (Task49)
-					if not mobile and not scenario.no_candidate_key then key = key .. " " .. (scenario.candidate_key or roster_key or "1") end
+					if not mobile and not scenario.no_candidate_key then key = key .. " " .. ((scenario.candidate_second and scenario.second_key) or scenario.candidate_key or roster_key or "1") end
 					local ok, answer = ask_model ("entity_candidate", scene, nil, nil, nil, key, not altering [MODE])
 					if not ok then stop ("entity_candidate.callback", tostring (answer)) end
 					if type (answer) == "table" and answer.result == "refused" then stop ("entity_candidate.refused", tostring (answer.reason)) end
@@ -494,7 +494,7 @@ package.preload.eech_dc = function ()
 				words [12] = ROSTER_PHASES [kind]
 				local identity = ""
 				if kind == "insert" then
-					words [1], words [2], words [3], words [4], words [7] = OLD_W [1], OLD_W [2], OLD_W [3], "0x41a00000", "0x447a0000"
+					words [1], words [2], words [3], words [4], words [7] = OLD_W [1], OLD_W [2], OLD_W [3], "0x41880000", "0x447a0000"
 					if scenario.roster_mobile then identity = "eech-world:1" end
 				elseif kind == "remove" then
 					identity = roster_key
@@ -555,7 +555,7 @@ package.preload.eech_dc = function ()
 				local words = {}
 				for index = 1, 16 do words [index] = ZERO end
 				words [1], words [2], words [3] = OLD_W [1], OLD_W [2], OLD_W [3]
-				words [4], words [6], words [8], words [12] = "0x41a00000", "0x41100000", "0x3f800000", "0x41500000"
+				words [4], words [6], words [8], words [12] = "0x41880000", "0x41100000", "0x3f800000", "0x41500000"
 				local fault = scenario.bad_fixed_request
 				if fault == "stray_fact" then words [7] = "0x3f800000"
 				elseif fault == "withdraw_word" then words [10] = "0x3f800000"
@@ -576,6 +576,11 @@ package.preload.eech_dc = function ()
 				roster_event (roster_key == nil and "reset" or "remove")
 				roster_event ("insert")
 				if scenario.fixed_state then fixed_report (roster_key) end
+				-- a SECOND live placement the real provider also holds a state for (stated after the served one; the scan serves the first): a candidate that names it names a placement the host did not serve
+				if scenario.fixed_state and scenario.second_held then
+					scenario.second_key = roster_event ("insert", true).name
+					fixed_report (scenario.second_key)
+				end
 				for _ = 1, scenario.city or 0 do city_children [#city_children + 1] = city_event ("child_insert", roster_key).name end
 				if scenario.city_relink and #city_children > 0 then
 					-- the city's sector placement is relinked while its buildings stay listed (the fixed-position setter every city shares): it is removed and inserted again, and the new placement is declared to
@@ -4364,20 +4369,76 @@ fn withdrawing_the_fixed_state_of_a_served_placement_makes_the_next_question_of_
     );
     assert!(driven.delegation_broken.is_empty(), "{:?}", driven.delegation_broken);
 
-    // the prerequisite is not a pass when it was never reached: a candidate no question of which was answered `need_placement`, a placement the host was never told a state for, and an engine stop before any question
+    // the prerequisite is not a pass when it was never reached, and honestly missing when nothing failed: a candidate no question of which was answered `need_placement` and a placement the host was never told a
+    // state for are UNREACHED (the run itself was clean)
     for extra in [
         ", real_scan = true, fixed_state = true, fixed_candidate = true, candidate_sequence = { 'skip' }",
         ", real_scan = true, fixed_candidate = true, candidate_sequence = { 'need_fixed', 'need_placement', 'test' }",
-        &format!("{FIXED_STATE}, engine_stop = {{ after = 1, marker = 'entity_candidate.callback' }}"),
     ] {
         let error = error_of(drive(&healthy(extra), &[("mode", "withdrawn_fixed_state")]));
         assert!(error.contains("UNREACHED") && error.contains("holds no such candidate"), "{extra}: {error}");
     }
+    // a failure of the run itself before any eligible lookup was answered is that failure, never an absent prerequisite: an engine stop before any question, a request fault and a reply fault
+    let error = error_of(drive(
+        &healthy(&format!("{FIXED_STATE}, engine_stop = {{ after = 1, marker = 'entity_candidate.callback' }}")),
+        &[("mode", "withdrawn_fixed_state")],
+    ));
+    assert!(
+        !error.contains("UNREACHED")
+            && error.contains("stopped at [model-provider:entity_candidate.callback], not at [model-provider:entity_candidate.refused]"),
+        "{error}"
+    );
+    let error = error_of(drive(
+        &healthy(&format!("{FIXED_STATE}, no_candidate_key = true")),
+        &[("mode", "withdrawn_fixed_state")],
+    ));
+    assert!(
+        !error.contains("UNREACHED") && error.contains("request_faults=") && error.contains("is not a placement key"),
+        "{error}"
+    );
+    let error = error_of(drive(
+        &healthy(&format!("{FIXED_STATE}, bad_real_candidate = 'state'")),
+        &[("mode", "withdrawn_fixed_state")],
+    ));
+    assert!(
+        !error.contains("UNREACHED") && error.contains("reply_faults=1") && error.contains("candidate reply:"),
+        "{error}"
+    );
     let error = error_of(drive(
         &healthy(", fixture_api = true"),
         &[("profile", "original"), ("mode", "withdrawn_fixed_state")],
     ));
     assert!(error.contains("only mode=control"), "{error}");
+}
+
+#[test]
+fn a_wrong_served_key_the_real_provider_could_answer_is_neither_credited_as_an_eligible_lookup_nor_withdrawn() {
+    // the real provider holds a state for a SECOND live placement and the candidate names it, although the host served the first: the real provider could answer that question over a real held state, but the
+    // key is not the placement the host actually served, so the driver counts the fault, credits no eligible lookup and withdraws nothing
+    let extra = format!("{FIXED_STATE}, second_held = true, candidate_second = true");
+    let driven = drive(&healthy(&extra), &[("mode", "withdrawn_fixed_state")]);
+    let row = authority(&driven);
+    assert_eq!(
+        driven.fixed_log,
+        [
+            ("0x41500000".to_string(), "placed".to_string(), "1".to_string(), "1".to_string()),
+            ("0x41500000".to_string(), "placed".to_string(), "2".to_string(), "2".to_string()),
+        ],
+        "both placements were stated and nothing was removed"
+    );
+    assert_eq!(
+        (row["fixed_joined"].clone(), row["fixed_withdrawn"].clone(), row["fixed_withdrawn_next"].clone()),
+        (Value::from(0), Value::from(0), Value::from("")),
+        "{row}"
+    );
+    assert_eq!((row["candidate_altered"].clone(), row["altered"].clone()), (Value::from(0), Value::from(0)));
+    assert!(row["request_faults"].as_i64().unwrap() >= 1, "{row}");
+    let error = error_of(driven);
+    assert!(
+        !error.contains("UNREACHED")
+            && error.contains("candidate request: the candidate names the placement 2, which is not the entry the host last served (1)"),
+        "{error}"
+    );
 }
 
 #[test]

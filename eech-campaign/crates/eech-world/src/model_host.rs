@@ -959,12 +959,14 @@ fn fixed_event(lua: &Lua, words: &[u32], identity: &str) -> LuaResult<LuaTable> 
 
 /// The join of a NON-MOBILE candidate question to the host's record of the placement it names (EEDCS-49, D3, Task49). `key_text` is the identity place: the key of the placement the host served the candidate
 /// by (a sector entry's, or, for a building under a city (`of_city`), its place in the city's list), checked on EVERY staged question against the live roster and the kind of placement the branch has.
-/// What is then needed of the record follows the stage the campaign has reached: nothing before its fixed facts were read (the sector skip and the fixed flag's own request need no state), and afterwards the
-/// record's state, which the decision is made over. The campaign's words (the collision-fixed flag, the position and the scene, and once the placement was read the heading and the align flag) are compared
-/// with it BIT FOR BIT and a difference is a named refusal; the record's words then replace them in `words`, so a decision is never made over a word the host does not hold. A record the campaign never stated
-/// a state for is refused when the branch needs one (a building under a city, a candidate the campaign calls fixed), and one whose state the host withdrew is always refused: neither is completed from the
-/// campaign's words. A city is not a fixed-family record here (its own position and box are a declared follow-on), and a candidate the campaign calls not fixed whose record has no state is not a fixed
-/// candidate at all. Returns the scene the decision is made over (the record's shape once the shape was read). Every word was classified with integer operations before this runs.
+/// What is then needed of the record follows the stage the campaign has reached and the placement the host ACTUALLY holds (its entity type, recorded at the insertion), never the campaign's fixed, city and
+/// building words: nothing before its fixed facts were read (the sector skip and the fixed flag's own request need no state), and afterwards a placement of the fixed family needs its record's state, which the
+/// decision is made over, whatever the campaign's collision-fixed word says of it. A city is the declared follow-on (its own position and box are not held here) and a placement of no fixed family holds none: the
+/// campaign's words decide them as before. A campaign word that contradicts the placement's family (a city that is not one, a city building the campaign does not call one, a fixed flag on a placement of
+/// no fixed family, a building under a city that is of no fixed family) is a named refusal. The campaign's other words (the collision-fixed flag, the position and the scene, and once the placement was read the
+/// heading and the align flag) are compared with the state BIT FOR BIT and a difference is a named refusal; the record's words then replace them in `words`, so a decision is never made over a word the host does
+/// not hold. A record of the fixed family the campaign never stated a state for is refused when it is reached, and one whose state the host withdrew is always refused: neither is completed from the campaign's
+/// words. Returns the scene the decision is made over (the record's shape once the shape was read). Every word was classified with integer operations before this runs.
 fn fixed_join(lua: &Lua, words: &mut [u32], scene: i64, key_text: &str, of_city: bool) -> Result<i64, String> {
     use crate::roster::FixedHold;
     const FIXED: usize = 7;
@@ -988,7 +990,7 @@ fn fixed_join(lua: &Lua, words: &mut [u32], scene: i64, key_text: &str, of_city:
     let Ok(roster) = shared.0.try_borrow() else {
         return Err("[candidate.roster] the sector roster was busy while a candidate was joined to its record".into());
     };
-    let (_, _, hold) = roster.placement_fixed(key, of_city).map_err(|why| format!("[candidate.key] {}", why.0))?;
+    let (_, entity_type, hold) = roster.placement_fixed(key, of_city).map_err(|why| format!("[candidate.key] {}", why.0))?;
     let set = |word: u32| entity_host::candidate_flag_is_set(word);
     let (fixed_given, placement_given) = (set(words[FIXED_GIVEN]), set(words[entity_host::CANDIDATE_PLACEMENT_GIVEN]));
     let (city, city_building, fixed_flag, mobile_flag) = (
@@ -997,22 +999,60 @@ fn fixed_join(lua: &Lua, words: &mut [u32], scene: i64, key_text: &str, of_city:
         set(words[FIXED]),
         set(words[entity_host::CANDIDATE_MOBILE]),
     );
+    // what the placement IS decides what its record must hold; the campaign's fixed, city and building words never do (they are only compared)
+    let family = crate::roster::is_fixed_family(entity_type);
+    let (placed_city, placed_building) = (entity_type == crate::roster::ENTITY_CITY, entity_type == crate::roster::ENTITY_CITY_BUILDING);
+    let contradicts =
+        |what: &str| format!("[candidate.family] the campaign calls the candidate {what}, but the host's placement {key} is of entity type {entity_type}");
     // which of the campaign's words have been read and are the record's to supply
     let (flag_given, position_given) = if of_city {
+        if !family {
+            return Err(format!(
+                "[candidate.family] a building listed under a city must be a placement of the fixed family, and the host's placement {key} is of entity type {entity_type}"
+            ));
+        }
         (placement_given, true)
-    } else if !fixed_given || city {
+    } else if !fixed_given {
+        // the sector skip and the fixed flag's own request: nothing of the record was needed
         return Ok(scene);
     } else {
+        // the campaign has read its fixed facts: what it calls the candidate must be what the host's own placement is
+        if city && !placed_city {
+            return Err(format!("{}, which is not a city", contradicts("a city")));
+        }
+        if city_building && !placed_building {
+            return Err(format!("{}, which is not a city building", contradicts("a city building")));
+        }
+        if (city || city_building) && !fixed_flag {
+            return Err(contradicts("a city or a city building without calling it fixed"));
+        }
+        if fixed_flag && placed_city && !city {
+            return Err(format!(
+                "{}: it is a city and the campaign does not call it one",
+                contradicts("an ordinary fixed candidate")
+            ));
+        }
+        if fixed_flag && placed_building && !city_building {
+            return Err(format!(
+                "{}: it is a city building and the campaign does not call it one",
+                contradicts("an ordinary fixed candidate")
+            ));
+        }
+        if fixed_flag && !family && !placed_city {
+            return Err(format!("{}, which is not of the fixed family", contradicts("fixed")));
+        }
+        if placed_city || !family {
+            // a city's own position and box are a declared follow-on, and a placement of no fixed family holds no state: the campaign's words decide, as before
+            return Ok(scene);
+        }
         (true, fixed_flag && !city_building)
     };
+    // a placement of the fixed family needs its record's state from here on, whatever the campaign's collision-fixed word says of it
     let state = match hold {
         FixedHold::Held(state) => state,
         FixedHold::Withdrawn => return Err("[candidate.fixed] the host withdrew the fixed physical state of this placement".into()),
         FixedHold::Never => {
-            if of_city || fixed_flag {
-                return Err("[candidate.fixed] the host holds no fixed physical state for this placement: the shape and the position of a fixed candidate are not the campaign's word to give".into());
-            }
-            return Ok(scene);
+            return Err("[candidate.fixed] the host holds no fixed physical state for this placement: the shape and the position of a fixed candidate are not the campaign's word to give".into());
         }
     };
     let differs = |what: &str| format!("[candidate.mirror] the campaign's {what} differs from the host's fixed state of the placement");

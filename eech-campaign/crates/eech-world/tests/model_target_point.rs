@@ -1299,13 +1299,19 @@ fn a_direct_city_building_and_a_fixed_candidate_below_the_tallest_skip_are_skipp
     // campaign's words of that stage state (at the origin, heading 0, collision-fixed, not aligned; the shape is the scene the stage names)
     let roster = std::rc::Rc::new(std::cell::RefCell::new(eech_world::roster::SectorRoster::default()));
     lua.set_app_data(eech_world::roster::SharedRoster(roster.clone()));
-    let placed = |shape: f32| -> String {
-        let key = roster.borrow_mut().insert((0, 0), 61, None).to_string();
-        let report = fixed_words([0.0; 3], FIXED_TYPE, 0.0, shape, 1.0, 0.0, 0.0);
+    let placed = |shape: f32, entity_type: f32| -> String {
+        let key = roster.borrow_mut().insert((0, 0), entity_type as i32, None).to_string();
+        let report = fixed_words([0.0; 3], entity_type, 0.0, shape, 1.0, 0.0, 0.0);
         assert_eq!(table_result(&scan_words_answer(&lua, report, &key)).0, "placed");
         key
     };
-    let (key_stage, key_building, key_shape8, key_shape0, key_shape1) = (placed(0.0), placed(0.0), placed(8.0), placed(0.0), placed(1.0));
+    let (key_stage, key_building, key_shape8, key_shape0, key_shape1) = (
+        placed(0.0, FIXED_TYPE),
+        placed(0.0, BUILDING_TYPE),
+        placed(8.0, FIXED_TYPE),
+        placed(0.0, FIXED_TYPE),
+        placed(1.0, FIXED_TYPE),
+    );
     let keyed = |scene: i32, facts: &[f32; 44], key: &str| {
         let (result, reason, _) = candidate_with_identity(&lua, scene, facts, key);
         (result, reason)
@@ -1757,7 +1763,10 @@ fn the_provider_decides_from_the_record_at_every_boundary_of_a_mobiles_lifetime_
 
 const FIXED_STATE_PHASE: u32 = 0x4150_0000;
 const FIXED_POSITION: [f32; 3] = [10.0, 0.0, 20.0];
-const FIXED_TYPE: f32 = 61.0;
+/// ENTITY_TYPE_OBJECT (en_types.h): a member of the fixed family; a building listed in a city or a sector is ENTITY_TYPE_CITY_BUILDING and a city ENTITY_TYPE_CITY
+const FIXED_TYPE: f32 = 17.0;
+const BUILDING_TYPE: f32 = 6.0;
+const CITY_TYPE: i32 = 5;
 
 fn fixed_words(position: [f32; 3], entity_type: f32, heading: f32, shape: f32, collision: f32, align: f32, withdraw: f32) -> [u32; 16] {
     let mut words = [0u32; 16];
@@ -1923,7 +1932,7 @@ fn every_staged_question_of_a_non_mobile_candidate_names_a_live_placement_of_the
         assert!(result == "refused" && reason.contains("[candidate.key]"), "stage {stage}: {reason}");
     }
     // a city child is not a sector placement: the question of a building listed in a sector must not name one, and a building under a city (the candidate says so) names its place in the city's list
-    let city = roster.borrow_mut().insert((0, 0), 40, None);
+    let city = roster.borrow_mut().insert((0, 0), CITY_TYPE, None);
     let child = roster.borrow_mut().child_insert(city, None, FIXED_TYPE as i32).unwrap().to_string();
     let (result, reason, _) = candidate_with_identity(&lua, 1, &fixed_facts(1, FIXED_POSITION, 0.5, 0.0), &child);
     assert!(
@@ -2005,7 +2014,7 @@ fn the_state_follows_the_record_through_a_relink_the_two_placements_of_a_buildin
     assert_eq!(table_result(&scan_words_answer(&lua, fixed_standing(), &relinked)).0, "placed");
     assert_eq!(candidate_with_identity(&lua, 1, &facts, &relinked).0, "need_placement");
     // a building has two placements, one record: the state stated under its place in a city's list is the state its sector placement decides from once the campaign declares them one entity
-    let city = roster.borrow_mut().insert((0, 0), 40, None);
+    let city = roster.borrow_mut().insert((0, 0), CITY_TYPE, None);
     let child = roster.borrow_mut().child_insert(city, None, FIXED_TYPE as i32).unwrap();
     assert_eq!(table_result(&scan_words_answer(&lua, fixed_standing(), &child.to_string())).0, "placed");
     let sector = roster.borrow_mut().insert((0, 0), FIXED_TYPE as i32, None);
@@ -2027,7 +2036,7 @@ fn the_state_follows_the_record_through_a_relink_the_two_placements_of_a_buildin
 fn a_building_listed_under_a_city_is_decided_from_the_state_its_record_holds_and_is_named_by_its_place_in_the_citys_list() {
     let (root, store) = standard();
     let (lua, roster, _sector_key) = fixed_world(&root.dir);
-    let city = roster.borrow_mut().insert((0, 0), 40, None);
+    let city = roster.borrow_mut().insert((0, 0), CITY_TYPE, None);
     let child = roster.borrow_mut().child_insert(city, None, FIXED_TYPE as i32).unwrap().to_string();
     // the building was listed in its city before its sector (cb_creat.c): the state is stated under its place in the city's list
     assert_eq!(table_result(&scan_words_answer(&lua, fixed_standing(), &child)).0, "placed");
@@ -2108,4 +2117,175 @@ fn a_record_that_states_no_collision_decides_a_skip_and_the_campaign_cannot_call
         result == "refused" && reason.contains("[candidate.mirror]") && reason.contains("collision-fixed") && pose.is_empty(),
         "{reason}"
     );
+}
+
+// ---- the family of the placement decides what its record must hold (EEDCS-49, D3, Task49: ENV-FIXED-CANONICAL-FAMILY-AUTHORITY-1) ----
+//
+// Which stage of the campaign's dialogue needs the record's fixed state is decided by the placement the host actually holds (its entity type, which the host's own roster recorded at the insertion), never by the
+// campaign's fixed, city and building mirrors: a placement of the fixed family needs its state at the stage its fixed facts were read whatever the campaign says of it, a city is the declared follow-on, and a placement
+// of no fixed family needs none. A mirror that contradicts the placement's family is a named refusal; a report of a type that is not of the fixed family is refused before the record changes.
+
+/// the entity types of the fixed family (en_types.h): a building listed in a city, a crater, an object, a pylon, scenery, a bridge segment, a site and an updatable site
+const FIXED_FAMILY_TYPES: [(i32, &str); 8] = [
+    (6, "city building"),
+    (7, "crater"),
+    (17, "object"),
+    (21, "pylon"),
+    (24, "scenic"),
+    (26, "segment"),
+    (29, "site"),
+    (30, "site updatable"),
+];
+/// entity types that are not of the fixed family: a city (its own position and box are a declared follow-on), a fixed wing, a helicopter, a person, a sound effect and a weapon
+const NOT_FIXED_FAMILY_TYPES: [(i32, &str); 6] = [
+    (5, "city"),
+    (10, "fixed wing"),
+    (14, "helicopter"),
+    (19, "person"),
+    (32, "sound effect"),
+    (37, "weapon"),
+];
+
+/// the facts of a candidate whose fixed facts the campaign read and found NOT fixed: the sector skip did not remove it, and nothing else of its branch is read
+fn fixed_read_not_fixed() -> [f32; 44] {
+    let mut facts = fixed_facts(0, FIXED_POSITION, 0.5, 0.0);
+    facts[42] = 1.0;
+    facts
+}
+
+/// a provider with the host's roster holding one placement of the type, stated nothing
+fn placement_of(root: &std::path::Path, entity_type: i32) -> (mlua::Lua, RosterHandle, String) {
+    let lua = lua_with_store(root);
+    let roster = std::rc::Rc::new(std::cell::RefCell::new(eech_world::roster::SectorRoster::default()));
+    let key = roster.borrow_mut().insert((0, 0), entity_type, None).to_string();
+    lua.set_app_data(eech_world::roster::SharedRoster(roster.clone()));
+    (lua, roster, key)
+}
+
+fn refused_family(lua: &mlua::Lua, scene: i32, facts: &[f32; 44], key: &str, what: &str, context: &str) {
+    let (result, reason, pose) = candidate_with_identity(lua, scene, facts, key);
+    assert_eq!(result, "refused", "{context}: {reason}");
+    assert!(
+        reason.contains("[candidate.family]") && reason.contains(what) && pose.is_empty(),
+        "{context}: {reason}"
+    );
+}
+
+#[test]
+fn a_placement_of_the_fixed_family_the_host_holds_no_state_for_is_refused_when_the_campaign_says_it_is_not_fixed() {
+    let (root, _store) = standard();
+    for (entity_type, name) in FIXED_FAMILY_TYPES {
+        let (lua, _roster, key) = placement_of(&root.dir, entity_type);
+        // the campaign read the fixed flag (not collision-fixed): the family's record must hold its state anyway, and the campaign's flag is not the host's word for its absence
+        let (result, reason, pose) = candidate_with_identity(&lua, 0, &fixed_read_not_fixed(), &key);
+        assert_eq!(
+            result, "refused",
+            "{name}: the fixed family needs the record's state at its fixed facts: {reason}"
+        );
+        assert!(
+            reason.contains("[candidate.fixed]") && reason.contains("holds no fixed physical state") && pose.is_empty(),
+            "{name}: {reason}"
+        );
+        // the sector skip comes BEFORE the fixed facts were read: that stage needs no state and is not a refusal
+        let mut below = fixed_facts(0, FIXED_POSITION, 0.5, 0.0);
+        below[12] = -500.0;
+        assert_eq!(
+            candidate_with_identity(&lua, 0, &below, &key).0,
+            "skip",
+            "{name}: the early skip is the original's"
+        );
+        assert_eq!(
+            candidate_with_identity(&lua, 0, &fixed_facts(0, FIXED_POSITION, 0.5, 0.0), &key).0,
+            "need_fixed",
+            "{name}"
+        );
+    }
+}
+
+#[test]
+fn the_campaigns_city_and_building_mirrors_cannot_stand_in_for_the_family_of_the_placement_the_host_holds() {
+    let (root, _store) = standard();
+    // a placement of the fixed family that holds its state, with the campaign calling it a CITY: the state is not bypassed by the mirror, and the contradiction is named
+    let (lua, _roster, key) = fixed_world(&root.dir);
+    assert_eq!(table_result(&scan_words_answer(&lua, fixed_standing(), &key)).0, "placed");
+    let mut as_city = fixed_facts(1, FIXED_POSITION, 0.5, 0.0);
+    as_city[8] = 1.0;
+    as_city[11] = 1.0;
+    refused_family(&lua, 0, &as_city, &key, "city", "an object the campaign calls a city");
+    // the same for a placement the host holds no state for, and one that is of no fixed family at all
+    let (lua, _roster, never) = placement_of(&root.dir, FIXED_TYPE as i32);
+    refused_family(&lua, 0, &as_city, &never, "city", "an object without state the campaign calls a city");
+    let (lua, _roster, weapon) = placement_of(&root.dir, 37);
+    refused_family(&lua, 0, &as_city, &weapon, "city", "a weapon the campaign calls a city");
+    // the campaign calls an object a building listed in a sector (its shape lookup skipped without a state)
+    let mut as_building = fixed_facts(1, FIXED_POSITION, 0.5, 0.0);
+    as_building[9] = 1.0;
+    let (lua, _roster, held) = fixed_world(&root.dir);
+    assert_eq!(table_result(&scan_words_answer(&lua, fixed_standing(), &held)).0, "placed");
+    refused_family(&lua, 0, &as_building, &held, "city building", "an object the campaign calls a building");
+    // a city building the campaign calls an ordinary fixed candidate, and a city the campaign does not call one
+    let (lua, _roster, building) = placement_of(&root.dir, BUILDING_TYPE as i32);
+    refused_family(
+        &lua,
+        1,
+        &fixed_facts(1, FIXED_POSITION, 0.5, 0.0),
+        &building,
+        "city building",
+        "a building called ordinary",
+    );
+    let (lua, _roster, city) = placement_of(&root.dir, CITY_TYPE);
+    refused_family(&lua, 1, &fixed_facts(1, FIXED_POSITION, 0.5, 0.0), &city, "city", "a city called ordinary");
+    // a building listed under a city must be a placement of the fixed family, whose record can hold a state
+    let (lua, roster, _key) = placement_of(&root.dir, CITY_TYPE);
+    let parent = roster.borrow_mut().insert((0, 0), CITY_TYPE, None);
+    let child = roster.borrow_mut().child_insert(parent, None, 37).unwrap().to_string();
+    refused_family(&lua, 1, &fixed_of_city(), &child, "fixed family", "a weapon listed under a city");
+}
+
+#[test]
+fn a_real_city_and_a_placement_of_no_fixed_family_are_decided_without_a_fixed_state() {
+    let (root, store) = standard();
+    // a real city: the declared follow-on (its own position and box are not the host's yet), so it needs no state and the campaign's words decide
+    let (lua, _roster, city) = placement_of(&root.dir, CITY_TYPE);
+    let mut facts = fixed_facts(1, FIXED_POSITION, 0.5, 0.0);
+    facts[8] = 1.0;
+    facts[11] = 1.0;
+    facts[36..39].copy_from_slice(&[0.0, 0.0, 0.0]);
+    facts[39..42].copy_from_slice(&[50.0, 50.0, 50.0]);
+    let (result, reason, _) = candidate_with_identity(&lua, 0, &facts, &city);
+    let oracle = eech_world::entity_host::candidate_in_store(&store, 0, &candidate_words(&facts)).expect("the decision");
+    assert_eq!(
+        oracle.state,
+        eech_world::entity_host::CandidateState::Buildings,
+        "the kernel's own decision over the same facts"
+    );
+    assert_eq!((result.as_str(), reason.as_str()), ("buildings", ""), "a city needs no fixed state");
+    // a placement of no fixed family (a weapon, a sound effect, a mobile kind): no state was ever stated, and it is decided as the campaign says, never refused for the absence
+    for (entity_type, name) in NOT_FIXED_FAMILY_TYPES {
+        let (lua, _roster, key) = placement_of(&root.dir, entity_type);
+        let (result, reason, _) = candidate_with_identity(&lua, 0, &fixed_read_not_fixed(), &key);
+        assert_eq!((result.as_str(), reason.as_str()), ("skip", ""), "{name}: not fixed, the original skipped it");
+    }
+}
+
+#[test]
+fn a_fixed_state_report_of_a_type_that_is_not_of_the_fixed_family_is_refused_by_name_and_changes_nothing() {
+    let (root, _store) = standard();
+    for (entity_type, name) in NOT_FIXED_FAMILY_TYPES {
+        let (lua, roster, key) = placement_of(&root.dir, entity_type);
+        let report = fixed_words(FIXED_POSITION, entity_type as f32, 0.5, 1.0, 1.0, 0.0, 0.0);
+        let (result, _, reason) = table_result(&scan_words_answer(&lua, report, &key));
+        assert_eq!(result, "refused", "{name}: the host holds no fixed state for a type of no fixed family");
+        assert!(reason.contains("[roster.fixed]") && reason.contains("fixed family"), "{name}: {reason}");
+        let held = roster.borrow().placement_fixed(key.parse().unwrap(), false).expect("the placement stands").2;
+        assert_eq!(held, eech_world::roster::FixedHold::Never, "{name}: the record was not changed");
+    }
+    // every member of the family is accepted by the same report
+    for (entity_type, name) in FIXED_FAMILY_TYPES {
+        let (lua, roster, key) = placement_of(&root.dir, entity_type);
+        let report = fixed_words(FIXED_POSITION, entity_type as f32, 0.5, 1.0, 1.0, 0.0, 0.0);
+        assert_eq!(table_result(&scan_words_answer(&lua, report, &key)).0, "placed", "{name}");
+        let held = roster.borrow().placement_fixed(key.parse().unwrap(), false).expect("the placement stands").2;
+        assert!(matches!(held, eech_world::roster::FixedHold::Held(_)), "{name}");
+    }
 }
