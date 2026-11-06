@@ -419,7 +419,9 @@ fn narrow(scene: i64, pose: &[u32]) -> bool {
     hash.is_multiple_of(3)
 }
 
-// the original's arithmetic for the placement (modules/maths/matrix.c and vector.c), in single precision with the narrowing steps it has
+// the original's arithmetic for the placement (modules/maths/matrix.c and vector.c), in single precision with the narrowing steps it has. These helpers are the Windows x64 original's evaluation, where every
+// float operation rounds to float (this test binary does the same on i686, which has SSE2). The hosted kernel gets the same words on x87 targets by narrowing each float operation explicitly (NARROW in
+// csrc/entity_candidate_step.c), because x87 evaluates whole expressions, and after inlining the variables between statements, in extended precision: on i686 the original text itself is not one answer.
 fn heading_matrix(heading: f32) -> [f32; 9] {
     let (sinh, cosh) = ((heading as f64).sin() as f32, (heading as f64).cos() as f32);
     let (sinp, cosp, sinr, cosr) = (0.0f32, 1.0f32, 0.0f32, 1.0f32);

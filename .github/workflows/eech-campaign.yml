@@ -67,7 +67,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends gcc gcc-multilib gcc-12 gcc-12-multilib $lua
           rustup target add ${{ matrix.target }}
       - name: Test
-        run: env ${{ matrix.env }} cargo test --locked --target ${{ matrix.target }}
+        run: env ${{ matrix.env }} cargo test --locked --no-fail-fast --target ${{ matrix.target }}
       - name: Lints
         if: matrix.target == 'x86_64-unknown-linux-gnu' && matrix.env == ''
         run: |
@@ -162,4 +162,4 @@ jobs:
           CARGO_TARGET_X86_64_PC_WINDOWS_GNU_RUNNER: wine
           LUA_LIB: ${{ runner.temp }}/lua-mingw
           WINEPATH: ${{ runner.temp }}/lua-mingw
-        run: cargo test --locked --target x86_64-pc-windows-gnu
+        run: cargo test --locked --no-fail-fast --target x86_64-pc-windows-gnu

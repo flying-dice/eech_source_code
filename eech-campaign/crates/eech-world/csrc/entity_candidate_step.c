@@ -36,6 +36,30 @@
 
 #include "eech_arith.h"
 
+/*
+ * NARROWING AT THE ORIGINAL'S FLOAT OPERATIONS (ENV-I686-ENTITY-CANDIDATE-NARROW-ULP-1). The original's arithmetic is single-precision: on the Windows x64 target (SSE, __FLT_EVAL_METHOD__ 0) every
+ * float operation, and every assignment to a float, rounds to float, and the next operation computes from the rounded value. On i686 (x87, __FLT_EVAL_METHOD__ 2, and `-std=gnu99` implies
+ * -fexcess-precision=fast) the compiler keeps whole expressions and, once a static helper is inlined, the variables between statements in extended precision. MEASURED (docs/d3-entity-collision-provider.md):
+ * the same original text compiled for i686 is not even one answer, it changes with the compilation context (the original text and this file at -O1 differ on 1657 of 2000 placements), while with
+ * SSE float math on i686 it equals the x64 words on all 2000 under round-toward-zero.
+ *
+ * NARROW (EXPRESSION) is that rounding made explicit: the expression, unchanged, is stored into an addressable volatile float and read back. It is used at each float operation of the placement, the
+ * magnitude, the speed test, the sweep ends and the broad-phase boxes; where the target already evaluates in float (x86-64, SSE) it is the expression itself, so those builds are untouched. No flag,
+ * global or tolerance is involved, and the shared helpers of eech_arith.h (used by the other steps) are not changed: the two this file needs narrowed have local copies below.
+ */
+#if defined(__FLT_EVAL_METHOD__) && __FLT_EVAL_METHOD__ != 0
+static float candidate_narrow(float value)
+{
+	volatile float stored = value;
+
+	return stored;
+}
+
+#define NARROW(EXPRESSION) candidate_narrow(EXPRESSION)
+#else
+#define NARROW(EXPRESSION) (EXPRESSION)
+#endif
+
 #define CANDIDATE_SKIP (1)
 #define CANDIDATE_NEED_UPDATED (2)
 #define CANDIDATE_NEED_NORMAL (3)
@@ -65,9 +89,52 @@ static int box_meets_segment(const vec3d *target_min_position, const vec3d *targ
 /* maths/vector.c and maths/matrix.c: the same text as convoy_step.c (a test compares the copies) */
 static void get_3d_vector_cross_product(vec3d *result, const vec3d *v1, const vec3d *v2)
 {
-	result->x = (v1->y * v2->z) - (v2->y * v1->z);
-	result->y = (v1->z * v2->x) - (v2->z * v1->x);
-	result->z = (v1->x * v2->y) - (v2->x * v1->y);
+	result->x = NARROW(NARROW(v1->y * v2->z) - NARROW(v2->y * v1->z));
+	result->y = NARROW(NARROW(v1->z * v2->x) - NARROW(v2->z * v1->x));
+	result->z = NARROW(NARROW(v1->x * v2->y) - NARROW(v2->x * v1->y));
+}
+
+/* maths/vector.c normalise_any_3d_vector, the same statements with each float operation narrowed (eech_arith.h's copy is shared and is not changed) */
+static float candidate_normalise_any_3d_vector(vec3d *vector)
+{
+	float x, y, z, length;
+
+	x = NARROW(vector->x * vector->x);
+	y = NARROW(vector->y * vector->y);
+	z = NARROW(vector->z * vector->z);
+
+	length = NARROW(sqrt(NARROW(NARROW(x + y) + z)));
+
+	if (length > 0)
+	{
+		float one_over_length;
+
+		one_over_length = NARROW(1.0 / length);
+
+		vector->x = NARROW(vector->x * one_over_length);
+		vector->y = NARROW(vector->y * one_over_length);
+		vector->z = NARROW(vector->z * one_over_length);
+	}
+	else
+	{
+		vector->x = 0;
+		vector->y = 0;
+		vector->z = 0;
+	}
+
+	return (length);
+}
+
+/* maths/vector.c get_3d_vector_magnitude, the same statements with each float operation narrowed */
+static float candidate_get_3d_vector_magnitude(const vec3d *vector)
+{
+	float x, y, z;
+
+	x = NARROW(vector->x * vector->x);
+	y = NARROW(vector->y * vector->y);
+	z = NARROW(vector->z * vector->z);
+
+	return (NARROW(sqrt(NARROW(NARROW(x + y) + z))));
 }
 
 static void get_identity_matrix3x3(matrix3x3 m)
@@ -91,11 +158,11 @@ static void get_3d_transformation_matrix_from_face_normal_and_heading(matrix3x3 
 	{
 		memcpy(&result[1][0], normal, sizeof(vec3d));
 
-		result[2][0] = sin(heading);
-		result[2][2] = cos(heading);
-		result[2][1] = -((normal->x * result[2][0]) + (normal->z * result[2][2])) / normal->y;
+		result[2][0] = NARROW(sin(heading));
+		result[2][2] = NARROW(cos(heading));
+		result[2][1] = NARROW(-NARROW(NARROW(normal->x * result[2][0]) + NARROW(normal->z * result[2][2])) / normal->y);
 
-		normalise_any_3d_vector((vec3d *)&result[2][0]);
+		candidate_normalise_any_3d_vector((vec3d *)&result[2][0]);
 
 		get_3d_vector_cross_product((vec3d *)&result[0][0], (vec3d *)&result[1][0], (vec3d *)&result[2][0]);
 	}
@@ -229,13 +296,13 @@ int eech_entity_candidate(const float *facts, int has_radius, float radius, floa
 			return CANDIDATE_NEED_RADIUS;
 		}
 
-		target_min_position.x = target_position.x - radius - 10;
-		target_min_position.y = target_position.y - radius - 10;
-		target_min_position.z = target_position.z - radius - 10;
+		target_min_position.x = NARROW(NARROW(target_position.x - radius) - 10);
+		target_min_position.y = NARROW(NARROW(target_position.y - radius) - 10);
+		target_min_position.z = NARROW(NARROW(target_position.z - radius) - 10);
 
-		target_max_position.x = target_position.x + radius + 10;
-		target_max_position.y = target_position.y + radius + 10;
-		target_max_position.z = target_position.z + radius + 10;
+		target_max_position.x = NARROW(NARROW(target_position.x + radius) + 10);
+		target_max_position.y = NARROW(NARROW(target_position.y + radius) + 10);
+		target_max_position.z = NARROW(NARROW(target_position.z + radius) + 10);
 
 		if (box_meets_segment(&target_min_position, &target_max_position, &source_min_position, &source_max_position))
 		{
@@ -252,7 +319,8 @@ int eech_entity_candidate(const float *facts, int has_radius, float radius, floa
 		target_motion_vector.y = facts[17];
 		target_motion_vector.z = facts[18];
 
-		sqr_velocity = (target_motion_vector.x * target_motion_vector.x + target_motion_vector.y * target_motion_vector.y + target_motion_vector.z * target_motion_vector.z);
+		sqr_velocity = NARROW(NARROW(NARROW(target_motion_vector.x * target_motion_vector.x) + NARROW(target_motion_vector.y * target_motion_vector.y)) +
+			NARROW(target_motion_vector.z * target_motion_vector.z));
 
 		if (sqr_velocity > 1.0)
 		{
@@ -266,17 +334,17 @@ int eech_entity_candidate(const float *facts, int has_radius, float radius, floa
 			{
 				target_new_position = target_position;
 
-				target_old_position.x = target_new_position.x - target_motion_vector.x * facts[19];
-				target_old_position.y = target_new_position.y - target_motion_vector.y * facts[19];
-				target_old_position.z = target_new_position.z - target_motion_vector.z * facts[19];
+				target_old_position.x = NARROW(target_new_position.x - NARROW(target_motion_vector.x * facts[19]));
+				target_old_position.y = NARROW(target_new_position.y - NARROW(target_motion_vector.y * facts[19]));
+				target_old_position.z = NARROW(target_new_position.z - NARROW(target_motion_vector.z * facts[19]));
 			}
 			else
 			{
 				target_old_position = target_position;
 
-				target_new_position.x = target_old_position.x + target_motion_vector.x * facts[19];
-				target_new_position.y = target_old_position.y + target_motion_vector.y * facts[19];
-				target_new_position.z = target_old_position.z + target_motion_vector.z * facts[19];
+				target_new_position.x = NARROW(target_old_position.x + NARROW(target_motion_vector.x * facts[19]));
+				target_new_position.y = NARROW(target_old_position.y + NARROW(target_motion_vector.y * facts[19]));
+				target_new_position.z = NARROW(target_old_position.z + NARROW(target_motion_vector.z * facts[19]));
 			}
 
 			if (target_old_position.x <= target_new_position.x)
@@ -317,13 +385,13 @@ int eech_entity_candidate(const float *facts, int has_radius, float radius, floa
 				return CANDIDATE_NEED_RADIUS;
 			}
 
-			target_min_position.x -= radius + 10;
-			target_min_position.y -= radius + 10;
-			target_min_position.z -= radius + 10;
+			target_min_position.x = NARROW(target_min_position.x - NARROW(radius + 10));
+			target_min_position.y = NARROW(target_min_position.y - NARROW(radius + 10));
+			target_min_position.z = NARROW(target_min_position.z - NARROW(radius + 10));
 
-			target_max_position.x += radius + 10;
-			target_max_position.y += radius + 10;
-			target_max_position.z += radius + 10;
+			target_max_position.x = NARROW(target_max_position.x + NARROW(radius + 10));
+			target_max_position.y = NARROW(target_max_position.y + NARROW(radius + 10));
+			target_max_position.z = NARROW(target_max_position.z + NARROW(radius + 10));
 
 			if (box_meets_segment(&target_min_position, &target_max_position, &source_min_position, &source_max_position))
 			{
@@ -343,7 +411,7 @@ int eech_entity_candidate(const float *facts, int has_radius, float radius, floa
 
 				memcpy(&candidate[6], &facts[27], 9 * sizeof(float));
 
-				candidate[15] = get_3d_vector_magnitude(&target_motion_vector);
+				candidate[15] = candidate_get_3d_vector_magnitude(&target_motion_vector);
 				*candidate_count = 16;
 
 				return CANDIDATE_TEST;
@@ -358,13 +426,13 @@ int eech_entity_candidate(const float *facts, int has_radius, float radius, floa
 			return CANDIDATE_NEED_RADIUS;
 		}
 
-		target_min_position.x = target_position.x - radius - 10;
-		target_min_position.y = target_position.y - radius - 10;
-		target_min_position.z = target_position.z - radius - 10;
+		target_min_position.x = NARROW(NARROW(target_position.x - radius) - 10);
+		target_min_position.y = NARROW(NARROW(target_position.y - radius) - 10);
+		target_min_position.z = NARROW(NARROW(target_position.z - radius) - 10);
 
-		target_max_position.x = target_position.x + radius + 10;
-		target_max_position.y = target_position.y + radius + 10;
-		target_max_position.z = target_position.z + radius + 10;
+		target_max_position.x = NARROW(NARROW(target_position.x + radius) + 10);
+		target_max_position.y = NARROW(NARROW(target_position.y + radius) + 10);
+		target_max_position.z = NARROW(NARROW(target_position.z + radius) + 10);
 
 		if (box_meets_segment(&target_min_position, &target_max_position, &source_min_position, &source_max_position))
 		{
@@ -407,16 +475,16 @@ int eech_entity_candidate(const float *facts, int has_radius, float radius, floa
 		target_max_position.y = facts[40];
 		target_max_position.z = facts[41];
 
-		target_min_position.y += target_position.y;
-		target_max_position.y += target_position.y;
+		target_min_position.y = NARROW(target_min_position.y + target_position.y);
+		target_max_position.y = NARROW(target_max_position.y + target_position.y);
 
 		if ((!(target_max_position.y < source_min_position.y)) && (!(target_min_position.y > source_max_position.y)))
 		{
-			target_min_position.x += target_position.x;
-			target_min_position.z += target_position.z;
+			target_min_position.x = NARROW(target_min_position.x + target_position.x);
+			target_min_position.z = NARROW(target_min_position.z + target_position.z);
 
-			target_max_position.x += target_position.x;
-			target_max_position.z += target_position.z;
+			target_max_position.x = NARROW(target_max_position.x + target_position.x);
+			target_max_position.z = NARROW(target_max_position.z + target_position.z);
 
 			if ((!(target_max_position.x < source_min_position.x)) && (!(target_min_position.x > source_max_position.x)) && (!(target_max_position.z < source_min_position.z)) &&
 				(!(target_min_position.z > source_max_position.z)))
@@ -439,13 +507,13 @@ int eech_entity_candidate(const float *facts, int has_radius, float radius, floa
 		return CANDIDATE_NEED_RADIUS;
 	}
 
-	target_min_position.x = target_position.x - radius - 10;
-	target_min_position.y = target_position.y - radius - 10;
-	target_min_position.z = target_position.z - radius - 10;
+	target_min_position.x = NARROW(NARROW(target_position.x - radius) - 10);
+	target_min_position.y = NARROW(NARROW(target_position.y - radius) - 10);
+	target_min_position.z = NARROW(NARROW(target_position.z - radius) - 10);
 
-	target_max_position.x = target_position.x + radius + 10;
-	target_max_position.y = target_position.y + radius + 10;
-	target_max_position.z = target_position.z + radius + 10;
+	target_max_position.x = NARROW(NARROW(target_position.x + radius) + 10);
+	target_max_position.y = NARROW(NARROW(target_position.y + radius) + 10);
+	target_max_position.z = NARROW(NARROW(target_position.z + radius) + 10);
 
 	if (box_meets_segment(&target_min_position, &target_max_position, &source_min_position, &source_max_position))
 	{
