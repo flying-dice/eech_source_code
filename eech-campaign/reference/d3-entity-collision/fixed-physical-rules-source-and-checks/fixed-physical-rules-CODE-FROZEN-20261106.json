@@ -1,0 +1,899 @@
+{
+  "schema": "d3.task49.fixed-physical-rules.code-frozen.v1",
+  "status": "UNREVIEWED CODE_FROZEN (source of one finite cut; no native actual, no Windows build, no review, no acceptance, no native clearance claimed)",
+  "author_model": "claude-sonnet-5-5 (High); no fallback; one implementation lane; no agents, no MCP; the Opus plan process ended 0/result false at 13:26:29 and was not restarted: its text was read as a recommendation and every source fact below was verified at 90b38189",
+  "identity": {
+    "code_commit": "d2f5027c9154841c32f70ed87747b9d908e08e48",
+    "code_parent": "90b38189601bacf57684e944a3d0f35b5ad0e69e",
+    "meta_commit": null,
+    "branch": "codex/d3-object-tree-collision",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "pushed": "normal push of the code commit to origin/codex/d3-object-tree-collision (no force), then one metadata commit",
+    "changed_files_vs_parent": [
+      {
+        "path": "aphavoc/source/entity/fixed/fx_int.c",
+        "added": 1,
+        "deleted": 1
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+        "added": 2,
+        "deleted": 2
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostmodel.h",
+        "added": 28,
+        "deleted": 20
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostplace.c",
+        "added": 14,
+        "deleted": 5
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostplace.h",
+        "added": 1,
+        "deleted": 1
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+        "added": 2,
+        "deleted": 2
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+        "added": 45,
+        "deleted": 30
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+        "added": 148,
+        "deleted": 0
+      },
+      {
+        "path": "eech-campaign/crates/eech-sys/build/spec.rs",
+        "added": 4,
+        "deleted": 1
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "added": 57,
+        "deleted": 11
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+        "added": 72,
+        "deleted": 36
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/roster.rs",
+        "added": 230,
+        "deleted": 7
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "added": 99,
+        "deleted": 12
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+        "added": 543,
+        "deleted": 46
+      },
+      {
+        "path": "eech-campaign/docs/d3-entity-collision-provider.md",
+        "added": 14,
+        "deleted": 0
+      },
+      {
+        "path": "eech-core-ts/c-reference/extract.mjs",
+        "added": 4,
+        "deleted": 1
+      }
+    ]
+  },
+  "plan_text": {
+    "path": "R:/d3-evidence/D3-FIXED-PHYSICAL-RULES-PLAN-20261106.txt",
+    "sha256": "22ea8a2d85515d31bd8f12b80b1037747e1d7ebb75faa40c2a8a7481516e0b94",
+    "use": "recommendation only"
+  },
+  "plan_corrections": [
+    "the plan said the CITY branch needed the stage mask only at the position-and-box stage; the source shows the campaign reads the city's collision flag at the SAME stage as its fixed facts (the first building and the box are read there too), so the host needs the city record from the fixed-facts stage on; a city with no first building is still skipped AFTER that check, and a question that has read nothing of the city (sector skip, the fixed flag's own request) still needs none",
+    "the plan named fact 8 for the city sub type; fact 10 is used for BOTH reports (a fixed report's fact 10 and a city report's fact 10 are the same fact), because 6, 7 and 8 are still bit-zero required for the fixed report and fact 9 is the fixed report's withdrawal word",
+    "the plan said a raw session unpack writes the sub type \"after linking\"; it is BEFORE the insertion (fx_pack.c unpack_fixed_data then insert; the object unpack that calls it is inside a block comment, so only crater unpack is live), and ct_pack.c's own unpack is an empty function: a city is never restored by pack, it is created by popread.c with the FIXED_CITY attribute before it is linked",
+    "the plan said no fixed-type sub type setter call exists after construction; the one setter is fx_int.c set_local_int_value (INT_TYPE_ENTITY_SUB_TYPE), which states the change (campaign_place_fixed_state); no caller changes a fixed sub type on a placed entity in the shipped source, but the funnel is the contract"
+  ],
+  "source_contract": {
+    "original_rule": "fx_dbase.c: const fixed_data fixed_database[NUM_ENTITY_SUB_TYPE_FIXED], 15 rows in enum ENTITY_SUB_TYPE_FIXED order; columns default_3d_shape, align_with_terrain, collision_test_fixed, ground_radar_clutter. fx_int.c get_local_int_value reads align_with_terrain and collision_test_fixed by raw->sub_type: a pure integer lookup, no FPU, no RNG, no side effect. The original validity test is entity_sub_type_fixed_valid (0 up to NUM); a value outside reads past the table (undefined behaviour).",
+    "rows": {
+      "collision_fixed_false_align_false": [
+        "UNKNOWN",
+        "SCENIC_OBJECT",
+        "TERRAIN_OBJECT"
+      ],
+      "collision_fixed_true_align_false": [
+        "BRIDGE_END_SECTION",
+        "BRIDGE_SUPPORTED_MID_SECTION",
+        "BRIDGE_UNSUPPORTED_MID_SECTION",
+        "CITY",
+        "CITY_BUILDING",
+        "ELECTRICITY_PYLON_END_TERMINATOR",
+        "ELECTRICITY_PYLON_STANDARD",
+        "ELECTRICITY_PYLON_START_TERMINATOR",
+        "ELECTRICITY_STATION",
+        "ELECTRICITY_SUBSTATION",
+        "MILITARY_BUILDING"
+      ],
+      "collision_fixed_false_align_true": [
+        "CRATER"
+      ]
+    },
+    "host_rule": "roster.rs: FIXED_SUB_TYPES = 15, FIXED_RULES[15] (FixedRule { collision_fixed, align }), fixed_rule(sub_type) -> Option; FixedState { position, heading, shape, sub_type } with collision_fixed()/align() derived; CityState gains sub_type and collision_fixed(). The sub type is held ONCE in the record the placement already has (no second store, no cache); the flags are derived, never stored apart.",
+    "domain": "15 declared values 0..14 INCLUDING ENTITY_SUB_TYPE_FIXED_UNKNOWN (0, derives no collision and no alignment, accepted and held); a value outside is refused by name [roster.subtype] (a non-whole or non-finite word: \"not a whole number\"; a whole value outside 0..14: \"not one of the 15 declared fixed sub types\") before the roster is borrowed or anything changes; roster.set_fixed/set_city refuse an undeclared value too. C ties CAMPAIGN_FIXED_SUB_TYPES to NUM_ENTITY_SUB_TYPE_FIXED at compile time (mb_hostplace.c) and tests tie FIXED_RULES to the enumeration and fx_dbase.c row for row.",
+    "wire": "FIXED_STATE (phase 13): facts 0-2 position, 3 entity type, 4 heading, 5 shape, 9 withdrawal (the host's own), 10 SUB TYPE, 11 phase; facts 6, 7, 8, 12+ must be bit-zero (a report that still states the flags 7/8 is refused \"states nothing there\"). CITY_STATE (phase 14): facts 0-8 position and box, 10 SUB TYPE, 11 phase. CAMPAIGN_FIXED_STATE_WORDS 7 -> 6, CAMPAIGN_CITY_STATE_WORDS 9 -> 10. mb_hostplace.c place_fixed_read states (float) INT_TYPE_ENTITY_SUB_TYPE and no longer reads INT_TYPE_COLLISION_TEST_FIXED or INT_TYPE_ALIGN_WITH_TERRAIN; place_city_read states the city's sub type.",
+    "join": "model_host.rs fixed_join: expected_fixed = state.collision_fixed() && !mobile; the align comparison and the replaced words use state.align(); the campaign's flags are conformance mirrors compared bit for bit ([candidate.mirror] ... collision-fixed|align flag). For a placement the host holds as a CITY (its own roster entity type, never the campaign's words): once the fixed facts were read the record is required (city_record: [candidate.city] absent or withdrawn, [candidate.family] a fixed-family state), the campaign's fixed flag is compared with the host-derived collision flag (a city the campaign calls not fixed that the host derives fixed is refused [candidate.mirror], no longer skipped), and only then the existing no-building skip and city_join (position and box, unchanged).",
+    "unchanged": "FP, RNG and order: no floating-point computation, no RNG; every report is stated from the same call sites in the same order (insertion, child insertion, setters, kill, restore, unpack, bridge) and the same funnel place_fixed_state; the offer (mb_hostoffer.h) reads the same Core getters in the same order as conformance mirrors; the lazy object-ID timing, the sector placement keys, the roster order and the city box construction are untouched."
+  },
+  "affected_active_consumers": {
+    "host_reporters_changed": [
+      "mb_hostplace.c place_fixed_read (mb_hostplace.c:84, previously both flags)",
+      "mb_hostplace.c place_city_read (adds the sub type)",
+      "mb_hostentity.h campaign_entity_fixed_exchange / campaign_entity_city_state_exchange"
+    ],
+    "host_deciders_changed": [
+      "model_host.rs fixed_event, city_state_event, fixed_join, city_record/city_join",
+      "roster.rs set_fixed, set_city, set_city_box, FixedState, CityState"
+    ],
+    "core_mirror_readers_kept_unchanged_not_claimed_as_moved": [
+      "fx_int.c getters (INT_TYPE_COLLISION_TEST_FIXED, INT_TYPE_ALIGN_WITH_TERRAIN, INT_TYPE_DEFAULT_3D_SHAPE, INT_TYPE_GROUND_RADAR_CLUTTER)",
+      "mb_hostoffer.h CAMPAIGN_OFFER_FIXED_FLAG / CAMPAIGN_OFFER_ALIGN (en_cllsn.c:480, 488: the conformance words compared with the host's)",
+      "the original-fixture narrow phase en_cllsn.c:578-586, 1627"
+    ],
+    "direct_table_readers_not_moved": {
+      "align_with_terrain": [
+        "cbuild/cb_draw.c:108",
+        "object/ob_draw.c:98",
+        "pylon/py_draw.c:175,328",
+        "scenic/sn_draw.c:101",
+        "site/st_draw.c:102",
+        "siteupdt/su_draw.c:110 (all compiled into the hosted engine, eech-engine-sys/sources.txt:43-131; whether a headless run reaches them is NOT proved: a declared remaining Core read of the physical column, required final-census disposition)"
+      ],
+      "default_3d_shape (the campaign's, not part of this rule)": [
+        "cbuild/cb_creat.c:173",
+        "crater/cr_creat.c:182",
+        "object/ob_creat.c:175",
+        "scenic/sn_creat.c:180",
+        "segment/sg_creat.c:181",
+        "site/st_creat.c:173",
+        "siteupdt/su_creat.c:173 (city/ct_creat.c is NOT a reader: its default-shape lines are inside a block comment)"
+      ],
+      "ground_radar_clutter (the campaign's)": [
+        "gunships/avionics/*_mfd.c via INT_TYPE_GROUND_RADAR_CLUTTER"
+      ]
+    },
+    "classification_and_other_domains_not_moved": [
+      "INT_TYPE_IDENTIFY_FIXED (fx_int.c): a constant true; campaign engage.c:126 task policy and sc_msgs.c:128 tallest structure (the later sector-height cut)",
+      "keysite INT_TYPE_ALIGN_WITH_TERRAIN: ks_int.c keysite_database (asserted separate), popread.c:3983"
+    ],
+    "census_pinned_by_test": "model_target_point.rs the_fixed_database_has_no_writer_and_its_readers_are_these_files_and_columns reads every C/H file under aphavoc/source and modules (comments and string literals stripped, whitespace-aware) and asserts there is no writer and exactly this reader list; it passed on 90b38189 (characterisation) and on the cut"
+  },
+  "rule_provenance_writers_timing": {
+    "provenance": "constant data in fx_dbase.c; no WUT, parser, restore or world-update path writes it (test above); const at fx_dbase.h",
+    "subtype_writers": {
+      "creator_defaults_before_insertion": [
+        "cb_creat.c:137",
+        "ct_creat.c:137",
+        "ob_creat.c:137",
+        "sn_creat.c:137",
+        "sg_creat.c:143",
+        "st_creat.c:137",
+        "su_creat.c:137 (all ENTITY_SUB_TYPE_FIXED_UNKNOWN); cr_creat.c:140 (CRATER)"
+      ],
+      "creation_attributes_before_insertion": [
+        "parser.c:2300 MILITARY_BUILDING, 2402 data-driven `sub_type` (a pylon/segment variable), 2466 SCENIC_OBJECT",
+        "popread.c:1204 CITY, 1241 CITY_BUILDING, 1273 and 4081-4226 MILITARY_BUILDING, 4176 CITY_BUILDING, 4065 regeneration sub type",
+        "bridge.c:265, 328 BRIDGE_END_SECTION",
+        "py_creat.c:202 (a local `sub_type` chosen from the neighbours)"
+      ],
+      "session_unpack": "fx_pack.c:211 inside unpack_fixed_data, called live only by cr_pack.c:175 which then inserts (guard: write before insertion); ob_pack.c's call is inside a block comment; ct_pack.c unpack_local_data is an empty function (a city is not restored by pack)",
+      "setter_after_placement": "fx_int.c set_local_int_value INT_TYPE_ENTITY_SUB_TYPE: raw->sub_type = value then campaign_place_fixed_state (en); no shipped caller changes a placed fixed entity's sub type",
+      "guard": "entity_roster_guard.rs a_fixed_entitys_sub_type_has_these_writers_each_before_the_insertion_or_stated_by_the_setter: exactly these member writes in entity/fixed (creators 8, fx_pack.c, fx_int.c); a creator's default precedes its first insertion; the setter's case states the change; the getters still read fixed_database"
+    },
+    "getter_timing_before_a_placement_or_semantic_id": "the Core getters are unchanged and keep answering from fixed_database at any time (before placement, before a roster key, before a lazy object ID). The HOST derives only when a report arrives, and a report exists only once the entity is placed (place_fixed_state returns without a key); the host never asks the campaign for a sub type and never allocates an identity, so lazy IDs and domain boundaries are preserved and no query-time adoption exists.",
+    "subtype_change": "the setter states the new sub type at once; the host re-derives both flags from that statement alone (test a_changed_sub_type_changes_the_rule_the_next_question_is_decided_from); a refused statement leaves the held state unchanged",
+    "relink_and_lifecycle": "a relink is a removal and a new insertion: a new key, a new record, and the insertion states the sub type again (fixed: place_insert ends with place_fixed_state; city: place_insert states place_city_read including the sub type). The sub type lives and ends with the record exactly as the position/shape did; a building's two placements share the one record; withdrawal retires the state and a restatement restores it.",
+    "family_authority": "the host classifies by the entity type ITS roster recorded at the insertion (roster.rs ENTITY_CITY, FIXED_FAMILY), never by the campaign's fixed/city/building words; the existing contradiction refusals are unchanged"
+  },
+  "finite_cut_vs_remaining": {
+    "moved": "the DERIVATION of collision-fixed and align for the fixed family and the city (the host holds the rule and the sub type; the decision uses it)",
+    "mirrors_not_claimed_as_moved": "the Core getters, the offer's conformance words and the original-fixture solver",
+    "remaining_required": [
+      "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION stays OPEN and untouched (an empty city's relink/restore still seeds the new record's box from Core's mirror); this cut's city sub type is a restated classification fact that neither seeds nor depends on the box (test: a restatement over the host-built box with another sub type is decided by the box alone, roster.rs a_states_flags_follow_its_sub_type_and_a_cities_box_does_not)",
+      "the six draw files' direct align reads (final census disposition), the default shape and clutter columns (the campaign's), IDENTIFY_FIXED classification and policy (Core)",
+      "sector height/hints/writers; effectful whole-32-bit UPDATED and shared terrain; raw tree/FOREST/CLOUD CRT rand/season/skin_random; needed hierarchy/devices/physical services; needed DCS API/bounded workarounds; natural moving integration",
+      "current final 40/all8/final-4-inputs/current CI/review/normal merge/final census; whole Task49/D3 acceptance; all ten D3 requirements intact; D4/D5/TypeScript untouched"
+    ]
+  },
+  "tests": {
+    "red_before_production_edit": [
+      {
+        "label": "rules-red-provider-90b",
+        "command": "cargo test --release --locked --no-fail-fast -p eech-world --test model_target_point",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T13:45:01.188447+00:00",
+        "completed_utc": "2026-11-06T13:45:24.576255+00:00",
+        "test_binaries": 1,
+        "passed": 41,
+        "failed": 28,
+        "record_sha256": "b5599d25fa428de7df30bf8200807f90a05fe4f300cb36ba39a0b9d71ef77f2b",
+        "stdout_sha256": "fce3c08510c8df84f5d768f08f5922b8377ba25828787105c4b172dd5a0a4a22",
+        "stderr_sha256": "8b2fbdfbd5c529f2471f471a1fc7f9df8ac084a444690e8bfedc48db18a7c364",
+        "note": "RED on the UNCHANGED production source (new and updated tests only): the first run also failed the readers characterisation, for MY wrong expectation that city/ct_creat.c reads the table (its default-shape lines are inside a block comment); corrected in the test, not the source (kept)",
+        "failed_tests": [
+          "a_building_listed_under_a_city_is_decided_from_the_state_its_record_holds_and_is_named_by_its_place_in_the_citys_list",
+          "a_changed_sub_type_changes_the_rule_the_next_question_is_decided_from",
+          "a_cities_state_the_host_withdrew_is_refused_by_name_and_only_a_new_statement_restores_it",
+          "a_city_expansion_is_built_by_the_host_from_the_records_it_holds_and_answers_the_box_it_now_holds",
+          "a_city_expansion_names_its_keys_and_a_pair_that_does_not_join_is_refused_before_anything_is_read",
+          "a_city_expansion_the_host_cannot_build_is_refused_by_name_and_the_record_is_not_changed",
+          "a_city_is_skipped_where_its_position_and_box_are_not_read_and_the_sector_skip_comes_first",
+          "a_city_of_the_unknown_sub_type_is_not_fixed_and_a_campaign_that_calls_it_fixed_is_refused",
+          "a_city_state_is_the_cities_alone_and_a_fixed_report_is_not_a_city_s",
+          "a_city_state_report_is_held_by_the_record_of_the_placement_and_the_city_is_decided_from_it",
+          "a_city_state_restated_over_the_box_the_host_built_may_move_the_position_but_never_change_the_box",
+          "a_city_the_campaign_calls_not_fixed_is_refused_when_the_host_derives_it_fixed_and_never_skipped_on_the_campaigns_word",
+          "a_city_whose_state_is_absent_or_withdrawn_is_refused_where_its_fixed_facts_are_read_whatever_the_campaign_calls_it",
+          "a_direct_city_building_and_a_fixed_candidate_below_the_tallest_skip_are_skipped_without_a_model_and_a_candidate_that_needs_geometry_still_refuses",
+          "a_fixed_candidate_the_host_holds_no_state_for_or_withdrew_it_from_is_refused_by_name_and_never_completed_from_the_campaigns_words",
+          "a_fixed_state_report_is_held_by_the_record_of_the_placement_and_the_staged_candidate_is_decided_from_it",
+          "a_fixed_state_report_of_a_type_that_is_not_of_the_fixed_family_is_refused_by_name_and_changes_nothing",
+          "a_malformed_city_state_report_is_refused_by_name_before_the_record_changes_and_the_inverted_sentinel_box_is_a_valid_statement",
+          "a_malformed_fixed_state_report_is_refused_by_name_before_the_record_changes",
+          "a_placement_of_no_fixed_family_is_decided_without_a_fixed_state_and_a_city_needs_none_of_the_fixed_familys",
+          "a_sub_type_the_original_has_no_row_for_is_refused_by_name_while_unknown_is_a_legitimate_statement",
+          "every_staged_question_of_a_non_mobile_candidate_names_a_live_placement_of_the_kind_its_branch_has",
+          "the_campaigns_city_and_building_mirrors_cannot_stand_in_for_the_family_of_the_placement_the_host_holds",
+          "the_campaigns_words_of_a_city_decide_nothing_a_difference_from_the_record_is_a_named_refusal",
+          "the_campaigns_words_of_a_fixed_candidate_decide_nothing_a_difference_from_the_record_is_a_named_refusal",
+          "the_fixed_database_has_no_writer_and_its_readers_are_these_files_and_columns",
+          "the_host_derives_the_collision_flag_of_every_declared_sub_type_and_the_campaigns_flag_cannot_stand_in_for_it",
+          "the_state_follows_the_record_through_a_relink_the_two_placements_of_a_building_and_ends_with_the_last_placement"
+        ]
+      },
+      {
+        "label": "rules-red-provider-90b-b",
+        "command": "cargo test --release --locked --no-fail-fast -p eech-world --test model_target_point",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T13:45:49.373816+00:00",
+        "completed_utc": "2026-11-06T13:46:06.011709+00:00",
+        "test_binaries": 1,
+        "passed": 42,
+        "failed": 27,
+        "record_sha256": "ffda088965fd47138fe80e727c2f8af3abb714b6071f82afc1278754317e960f",
+        "stdout_sha256": "696536bdf3d855fb376d2e8237935241ec8383d80c856232b30223a5f3d8fbb6",
+        "stderr_sha256": "108c2f4669f3c1459d90bb7157124a8194ec3ec4da920da8225ee997d9699cbf",
+        "note": "RED on the UNCHANGED production source, after that test correction: the two characterisation tests PASS, every boundary test fails for the missing capability (a stated sub type is refused as \"fact 10 ... not zero\"; a city the campaign calls not fixed, with no state, is answered skip)",
+        "failed_tests": [
+          "a_building_listed_under_a_city_is_decided_from_the_state_its_record_holds_and_is_named_by_its_place_in_the_citys_list",
+          "a_changed_sub_type_changes_the_rule_the_next_question_is_decided_from",
+          "a_cities_state_the_host_withdrew_is_refused_by_name_and_only_a_new_statement_restores_it",
+          "a_city_expansion_is_built_by_the_host_from_the_records_it_holds_and_answers_the_box_it_now_holds",
+          "a_city_expansion_names_its_keys_and_a_pair_that_does_not_join_is_refused_before_anything_is_read",
+          "a_city_expansion_the_host_cannot_build_is_refused_by_name_and_the_record_is_not_changed",
+          "a_city_is_skipped_where_its_position_and_box_are_not_read_and_the_sector_skip_comes_first",
+          "a_city_of_the_unknown_sub_type_is_not_fixed_and_a_campaign_that_calls_it_fixed_is_refused",
+          "a_city_state_is_the_cities_alone_and_a_fixed_report_is_not_a_city_s",
+          "a_city_state_report_is_held_by_the_record_of_the_placement_and_the_city_is_decided_from_it",
+          "a_city_state_restated_over_the_box_the_host_built_may_move_the_position_but_never_change_the_box",
+          "a_city_the_campaign_calls_not_fixed_is_refused_when_the_host_derives_it_fixed_and_never_skipped_on_the_campaigns_word",
+          "a_city_whose_state_is_absent_or_withdrawn_is_refused_where_its_fixed_facts_are_read_whatever_the_campaign_calls_it",
+          "a_direct_city_building_and_a_fixed_candidate_below_the_tallest_skip_are_skipped_without_a_model_and_a_candidate_that_needs_geometry_still_refuses",
+          "a_fixed_candidate_the_host_holds_no_state_for_or_withdrew_it_from_is_refused_by_name_and_never_completed_from_the_campaigns_words",
+          "a_fixed_state_report_is_held_by_the_record_of_the_placement_and_the_staged_candidate_is_decided_from_it",
+          "a_fixed_state_report_of_a_type_that_is_not_of_the_fixed_family_is_refused_by_name_and_changes_nothing",
+          "a_malformed_city_state_report_is_refused_by_name_before_the_record_changes_and_the_inverted_sentinel_box_is_a_valid_statement",
+          "a_malformed_fixed_state_report_is_refused_by_name_before_the_record_changes",
+          "a_placement_of_no_fixed_family_is_decided_without_a_fixed_state_and_a_city_needs_none_of_the_fixed_familys",
+          "a_sub_type_the_original_has_no_row_for_is_refused_by_name_while_unknown_is_a_legitimate_statement",
+          "every_staged_question_of_a_non_mobile_candidate_names_a_live_placement_of_the_kind_its_branch_has",
+          "the_campaigns_city_and_building_mirrors_cannot_stand_in_for_the_family_of_the_placement_the_host_holds",
+          "the_campaigns_words_of_a_city_decide_nothing_a_difference_from_the_record_is_a_named_refusal",
+          "the_campaigns_words_of_a_fixed_candidate_decide_nothing_a_difference_from_the_record_is_a_named_refusal",
+          "the_host_derives_the_collision_flag_of_every_declared_sub_type_and_the_campaigns_flag_cannot_stand_in_for_it",
+          "the_state_follows_the_record_through_a_relink_the_two_placements_of_a_building_and_ends_with_the_last_placement"
+        ]
+      },
+      {
+        "label": "rules-red-guard-90b",
+        "command": "cargo test --release --locked --no-fail-fast -p eech-engine-sys --test entity_roster_guard",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T14:19:53.048812+00:00",
+        "completed_utc": "2026-11-06T14:21:12.824399+00:00",
+        "test_binaries": 1,
+        "passed": 16,
+        "failed": 2,
+        "record_sha256": "731893eef4b9a8473143da25847a3be53b05ee72c7bb438ab79c7ba6dde620ee",
+        "stdout_sha256": "a3be5f3aecd646c97af9805dda1f75fffbac0f411b2259c097ddbbf0e05478f7",
+        "stderr_sha256": "ec25c5221ff898d557aa4fc8cc85bfe03c2f455a6db6f0f9e5ec4b842fbca274",
+        "note": "RED on the UNCHANGED production, eech-sys spec and extractor sources: the reporter guard and the no-host extraction guard fail; the sub type writers guard passes (a characterisation)",
+        "failed_tests": [
+          "the_no_host_extractions_of_the_list_funnel_carry_the_hook_header_that_compiles_every_report_away",
+          "the_reporter_states_the_sub_type_the_host_derives_its_rules_from_and_never_the_flags_the_campaign_derived"
+        ]
+      }
+    ],
+    "red_ci_fixture": {
+      "label": "ci-sys-red-90b-a",
+      "command": "cargo build -p eech-sys --release --locked --config env.EECH_C_DIAGNOSTICS=\\\"1\\\"",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T13:35:19.923579+00:00",
+      "completed_utc": "2026-11-06T13:36:42.751159+00:00",
+      "test_binaries": 0,
+      "passed": 0,
+      "failed": 0,
+      "record_sha256": "6e1f087e7e7058e5aa7622868ab123560345ff5d05a48c0d0022b6053e81978d",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "428eea61ba1e2e93f29b3c956cdbb582d234cc51335100b4863d0bc05d29b7ba",
+      "note": "RED on the UNCHANGED tree (nothing edited yet): cargo build -p eech-sys with EECH_C_DIAGNOSTICS=1 reproduces the CI failure: implicit declaration of campaign_place_insert (en_list.c:498), campaign_place_child_insert (:503), campaign_place_remove (:571), campaign_place_child_remove (:575) in the generated eech_extracted.c; exit 101",
+      "compiler_errors": [
+        [
+          "498",
+          "campaign_place_insert"
+        ],
+        [
+          "503",
+          "campaign_place_child_insert"
+        ],
+        [
+          "571",
+          "campaign_place_remove"
+        ],
+        [
+          "575",
+          "campaign_place_child_remove"
+        ]
+      ]
+    },
+    "red_notes": "the provider RED is an assertion failure for the missing capability (sub type refused as an unstated fact; a CITY with the campaign's false flags and no state answered skip), not a compile failure: the provider tests drive the public provider with report words only. The C dialogue canaries and the scripted driver tests reference the new macros/words and cannot compile against 90b38189, so their RED would be a setup accident and is NOT claimed; they pass on the cut (the C control with sub type canaries including the undeclared 15 and UNKNOWN; the driver tests for the grammar and the new mode).",
+    "characterisation_passing_before_and_after": [
+      "model_target_point.rs the_originals_fixed_database_is_fifteen_constant_rows_in_the_enumerations_order_with_these_flags (the 15 rows by name, the const declaration, the validity macro)",
+      "model_target_point.rs the_fixed_database_has_no_writer_and_its_readers_are_these_files_and_columns",
+      "entity_roster_guard.rs a_fixed_entitys_sub_type_has_these_writers_each_before_the_insertion_or_stated_by_the_setter (passed on 90b38189 before any production edit)"
+    ],
+    "green_tests_added": [
+      "model_target_point.rs: the host derives every declared sub type's flags (15 rows from the C source) and the campaign's flag cannot stand in for it; an undeclared sub type is refused while UNKNOWN is accepted and a refusal changes nothing; a changed sub type changes the next decision (CRATER, UNKNOWN, withdrawal and restoration); the city refused when the host derives it fixed and the campaign says not (never skipped); a city of UNKNOWN; a city absent or withdrawn refused at the fixed-facts stage while stage 0 needs none; malformed fixed and city reports (every stale flag word, every bad sub type word) refused before the record changes",
+      "roster.rs: the rule table equals fx_dbase.c row for row over the enumeration; only an undeclared value has no rule and a record never holds one; flags follow the sub type and a city's box does not",
+      "entity_roster_guard.rs: the reporter states the sub type and reads no flag getter, the wire layout, the compile-time domain tie; the no-host extraction guard",
+      "entity_authority.rs + lua/entity-authority.lua: the driver's strict grammar (stale flag words are a request fault) and the new TEST-ONLY mode changed_fixed_rule with unreached and failed-first controls",
+      "eech_entity_dialogue_check.c: the real shared exchange states the sub type at fact 10 (CRATER, UNKNOWN, undeclared 15, the city's) and no flag word"
+    ],
+    "changed_existing_tests": [
+      "model_target_point.rs: every report helper states a sub type instead of the two flags; a_city_is_skipped_without_its_state... was rewritten into a_city_is_skipped_where_its_position_and_box_are_not_read_and_the_sector_skip_comes_first (the old test asserted the exact campaign-word skip this cut removes); a_placement_of_no_fixed_family... now expects the never-stated city refused at its fixed-facts stage; city_with_building states its records through the provider instead of the roster API",
+      "entity_authority.rs: the scripted engine's reports state sub types; the ROSTER_HOLD probe reports a held state with no collision rule apart",
+      "the existing withdrawn_city_state witness test still passes unchanged: its refusal is the same [candidate.city] ... withdrew at the same stage"
+    ],
+    "development_runs": [
+      {
+        "label": "rules-green-world-a",
+        "command": "cargo test --release --locked --no-fail-fast -p eech-world",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T13:49:34.986119+00:00",
+        "completed_utc": "2026-11-06T13:49:42.786416+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "178ca4d5a4734c75f5631a2718a86cc4e0e879513e033f486c1f6abf3d765e03",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "9413975f4a14255b77a7934c8815f7ac196b119aa9953d3f7fe4805251b7cceb",
+        "note": "first eech-world run: one stale test fixture in roster.rs did not compile (a CityState literal without the new field); corrected"
+      },
+      {
+        "label": "rules-green-world-b",
+        "command": "cargo test --release --locked --no-fail-fast -p eech-world",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T13:50:03.377661+00:00",
+        "completed_utc": "2026-11-06T13:51:08.358353+00:00",
+        "test_binaries": 55,
+        "passed": 1168,
+        "failed": 1,
+        "record_sha256": "cc2327c5d4c9bb310d9cb1281b4ccf6125e23295cb6bfe8759dee3c82c0be8e9",
+        "stdout_sha256": "26ec931d7e7cdc67a925422916d4858dfa7f0a7ad1d2a151244cd6594fd56fe1",
+        "stderr_sha256": "bd04b94af0815811ebda121a1b08d5f38ba95538a81682e995ebdf2328d652a9",
+        "note": "eech-world: 54 binaries passed; one test failed for the INTENDED contract change (a never-stated city the campaign calls not fixed is no longer skipped); the expectation was updated, the code was not"
+      },
+      {
+        "label": "rules-green-world-c",
+        "command": "cargo test --release --locked --no-fail-fast -p eech-world",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T13:53:41.332309+00:00",
+        "completed_utc": "2026-11-06T13:54:23.257092+00:00",
+        "test_binaries": 55,
+        "passed": 1170,
+        "failed": 0,
+        "record_sha256": "d016a64f3f35728ce08d2d3634144309e683044900be35dbbdd2934026bf39d5",
+        "stdout_sha256": "f216d70e1f7bec9ada756f847d97be797a9da1b63d001c4d6e17b5abbb5e0a55",
+        "stderr_sha256": "7f3699634cae3bd704fc1a69a1fc515573c7d734204ffb4106cdd1aa12774415",
+        "note": "eech-world after that expectation and the new witness mode: all 55 binaries pass (exit 0)"
+      },
+      {
+        "label": "rules-fmt-apply-a",
+        "command": "cargo fmt -p eech-world -p eech-engine -p eech-dc -p eech-engine-sys -p eech-sys",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T13:54:55.776854+00:00",
+        "completed_utc": "2026-11-06T13:54:59.945994+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "293080dd095ffecad7b37ed1f38ee6ebd0e78b6022a80e83f98bcbba61a336b8",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6",
+        "note": "cargo fmt of the five crates (apply)"
+      },
+      {
+        "label": "rules-green-enginesys-a",
+        "command": "cargo test --release --locked --no-fail-fast -p eech-engine-sys --features entity-dialogue-check",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T13:55:47.195413+00:00",
+        "completed_utc": "2026-11-06T13:57:10.368215+00:00",
+        "test_binaries": 7,
+        "passed": 28,
+        "failed": 1,
+        "record_sha256": "b397e6454eb512deef7f763c38278222a391a5cb646ef8c1e2645375a1c4e2e3",
+        "stdout_sha256": "9dfe6e058bbfe28fc5709c90452478e87910e6525de61cc83bfa2ee6d0a2951b",
+        "stderr_sha256": "da3350a0bcef3ca0d240f30f93c81c9c9ffc9032d3da39d8671297f50841ffe0",
+        "note": "engine-sys with entity-dialogue-check: ONE guard of mine failed (it counted two local variables named sub_type as record writes); narrowed to member writes, not the source"
+      },
+      {
+        "label": "rules-green-check-a",
+        "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world --all-targets",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T13:57:10.486999+00:00",
+        "completed_utc": "2026-11-06T13:58:23.046411+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "ccc3f33ec0d9c5ac6f148e6ceaced25abf0cb10b7e2ecbdc6e98d9374c4bea1d",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ae3c66db23eb847f85017daab362acc4d0a9f3a0d0ac527c394f9c4d419737df",
+        "note": "four-crate all-targets check"
+      },
+      {
+        "label": "rules-green-feature-collision-a",
+        "command": "cargo check --release --locked -p eech-engine-sys --features collision-fixture",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T13:58:23.174085+00:00",
+        "completed_utc": "2026-11-06T13:59:32.290679+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "49f996ba1f85622827fb9ae615f143afd813658c22ee4c51b1c6945669f2d9c9",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "c58e7a9b83f36fe5cb91a57338b6b2bbbfda90b1d835bbca1ba70b65d56b1a1e",
+        "note": "original-fixture feature build"
+      },
+      {
+        "label": "rules-green-feature-modelhost-a",
+        "command": "cargo check --release --locked -p eech-engine-sys --features model-host-fixture",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T13:59:32.420710+00:00",
+        "completed_utc": "2026-11-06T14:00:42.483613+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "51f854f057e437df585664d5d15163a776ff01b34c6a95a642acd2c49946ff58",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "a1faabd7cda89e583717f42aa93057d304ea1b2e02da859797eb4cd68f05e4a4",
+        "note": "diagnostic feature build"
+      },
+      {
+        "label": "rules-green-feature-model-a",
+        "command": "cargo check --release --locked -p eech-engine-sys --features model-fixture",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T14:00:42.608892+00:00",
+        "completed_utc": "2026-11-06T14:01:52.924300+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "a25c38dad60aa9a5a564c0ec7436827e1e4a80122fae285a283d0ac4636762f5",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "a1faabd7cda89e583717f42aa93057d304ea1b2e02da859797eb4cd68f05e4a4",
+        "note": "model-fixture feature build"
+      },
+      {
+        "label": "rules-green-engine-dc-a",
+        "command": "cargo test --release --locked --no-fail-fast -p eech-engine -p eech-dc",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T14:01:53.048626+00:00",
+        "completed_utc": "2026-11-06T14:03:00.118298+00:00",
+        "test_binaries": 5,
+        "passed": 188,
+        "failed": 0,
+        "record_sha256": "3b69432325a7fd63987b6b5224f71e72ea3540000678947431ed0ab2c86f1d48",
+        "stdout_sha256": "b40c637a0e836fe887c4d11d51528029c8830103392ef0bc51f2f9711b58f5f8",
+        "stderr_sha256": "1a1b645063d54a948dfde3ff9758207b7b2bec44eec2e09aea0bfdbb8568d682",
+        "note": "eech-engine and eech-dc tests"
+      },
+      {
+        "label": "rules-green-ci-sys-a",
+        "command": "cargo build --release --locked -p eech-sys --config env.EECH_C_DIAGNOSTICS=\\\"1\\\"",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T14:03:00.447394+00:00",
+        "completed_utc": "2026-11-06T14:09:29.042084+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "c3ec4db522dd08762c3233d3a1307a788133969cf7967308b7ac11645df4f07b",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "5bace5f026c813b7dad9c0f94df3758de3e543e799ff2ee84ff71f843e9d5320",
+        "note": "CI repair: cargo build -p eech-sys with EECH_C_DIAGNOSTICS=1 on the fixed spec: exit 0, no implicit declaration"
+      },
+      {
+        "label": "rules-fmt-apply-b",
+        "command": "cargo fmt -p eech-world -p eech-engine -p eech-dc -p eech-engine-sys -p eech-sys",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T14:12:39.061216+00:00",
+        "completed_utc": "2026-11-06T14:12:43.342423+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "4c7806559dca960f68efa089f4cba7e3c194a39b32afbbb8cc1a2f8ec4a70962",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6",
+        "note": "cargo fmt (apply) after the extraction guard"
+      },
+      {
+        "label": "rules-green-enginesys-b",
+        "command": "cargo test --release --locked --no-fail-fast -p eech-engine-sys --features entity-dialogue-check",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T14:12:43.462771+00:00",
+        "completed_utc": "2026-11-06T14:13:01.763321+00:00",
+        "test_binaries": 7,
+        "passed": 30,
+        "failed": 0,
+        "record_sha256": "b0f3df0ea3b9ec3d9d02abf72e7e77eef5543567e952c864eea844b2b1e11993",
+        "stdout_sha256": "71532b89de02a20cb5bbc056eef131de91babc2349429cae822c983175d5c67e",
+        "stderr_sha256": "c5e9c5c35fe859ccbec60427dd3106b011e623bf7cba5c6600782eadad0211a4",
+        "note": "engine-sys with entity-dialogue-check after the narrowed guard and the extraction guard: all pass"
+      },
+      {
+        "label": "rules-green-sys-tests-a",
+        "command": "cargo test --release --locked --no-fail-fast -p eech-sys",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T14:13:01.888772+00:00",
+        "completed_utc": "2026-11-06T14:19:28.736065+00:00",
+        "test_binaries": 4,
+        "passed": 4,
+        "failed": 0,
+        "record_sha256": "f39c66774f7c887838633516bd3b87b4c25f5309fefc3c2210da91ca4fb0cdb2",
+        "stdout_sha256": "5cec0622cc33c6918ff19b07d8a9f6920078ad44c78f845294c2166734941393",
+        "stderr_sha256": "7fd88425234ec9e73186238de3c9515f62281cb0896e2547bd39553e0f99c847",
+        "note": "cargo test -p eech-sys (the oracle crate that failed to build in CI)"
+      },
+      {
+        "label": "rules-fmtcheck-a",
+        "command": "cargo fmt -p eech-world -p eech-engine -p eech-dc -p eech-engine-sys -p eech-sys -- --check",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T14:21:43.954401+00:00",
+        "completed_utc": "2026-11-06T14:21:48.248295+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "0f36d3ec2b77537401cf23ac182c849d2078f6525d2d1914a05bc5cfa8f45056",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6",
+        "note": "fmt --check"
+      },
+      {
+        "label": "rules-clippy-a",
+        "command": "cargo clippy --release --locked -p eech-world -p eech-engine-sys -p eech-engine -p eech-dc -p eech-sys --all-targets -- -D warnings",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T14:21:48.365044+00:00",
+        "completed_utc": "2026-11-06T14:28:39.283572+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "54bd2bff9c3c2af912a35cbcfb36a9617fe9586e3cd96a683aa62ca8daf92f13",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "f4c6a080316b77f98575c95fb5eaad61807937249508b49eefbb58e105fa5e39",
+        "note": "strict clippy on five crates: FAILED, two findings in a file of this cut (my unused SUB_CRATER and a latent approx_constant at model_target_point.rs HEADINGS, pre-existing at 90b38189: the f32 nearest to pi), fixed in the test file"
+      },
+      {
+        "label": "rules-fmtcheck-b",
+        "command": "cargo fmt -p eech-world -p eech-engine -p eech-dc -p eech-engine-sys -p eech-sys -- --check",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T14:29:11.842111+00:00",
+        "completed_utc": "2026-11-06T14:29:16.075929+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "2a763b1d835856f53d47417a7a0ee630c7e7f39328610b96685515f13736b0f6",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6",
+        "note": "fmt --check"
+      },
+      {
+        "label": "rules-clippy-b",
+        "command": "cargo clippy --release --locked -p eech-world -p eech-engine-sys -p eech-engine -p eech-dc -p eech-sys --all-targets -- -D warnings",
+        "actual_exit": 101,
+        "started_utc": "2026-11-06T14:29:16.185879+00:00",
+        "completed_utc": "2026-11-06T14:29:23.330128+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "1f9969a06435b7c768beb558b9a299c32b0fd3bef2dfd2d9fef94c77dbbd2408",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "cf7dc4d808dce6ecbbb887734dd32d52404b6fad6400b6827eb52e26cdfdbf81",
+        "note": "strict clippy on five crates: FAILED only in eech-dc/src/module.rs (two expect_err uses at lines 5978 and 6025), a file this cut does not change: a LATENT finding, recorded and NOT fixed (outside this batch)"
+      },
+      {
+        "label": "rules-clippy-c",
+        "command": "cargo clippy --release --locked -p eech-world -p eech-engine-sys -p eech-engine -p eech-sys --all-targets -- -D warnings",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T14:29:46.788668+00:00",
+        "completed_utc": "2026-11-06T14:30:58.587743+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "cb0d9ed6d739f5c9a14b33b5ac150c3fc6b3e66d446afbea4bfa77cde02fc6f6",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "1d13ddc02d870dd5b01e6a5b90b0e15f96bc61f6a8b649f3ace42733bd3b1164",
+        "note": "strict clippy on the four crates this cut touches (eech-world, eech-engine-sys, eech-engine, eech-sys): clean"
+      }
+    ],
+    "final_chain_on_the_frozen_tree": [
+      {
+        "label": "rules-final-fmtcheck",
+        "command": "cargo fmt -p eech-world -p eech-engine -p eech-dc -p eech-engine-sys -p eech-sys -- --check",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T14:31:32.901524+00:00",
+        "completed_utc": "2026-11-06T14:31:36.989428+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "d74a02bea7342895051ee74ac75d8d32636821240d73a96f05fb48c9d1ba9221",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6",
+        "note": "cargo fmt -- --check over the five crates"
+      },
+      {
+        "label": "rules-final-world",
+        "command": "cargo test --release --locked --no-fail-fast -p eech-world",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T14:31:37.109905+00:00",
+        "completed_utc": "2026-11-06T14:32:41.875951+00:00",
+        "test_binaries": 55,
+        "passed": 1170,
+        "failed": 0,
+        "record_sha256": "301437c3a567678066238640e8479189151815d643c6b1384a689935c7ec5db3",
+        "stdout_sha256": "08d0cfe1f2dde7a9ca51cd81180dc6781bdfbc59a8bf02fe7c1dd3ea8467bb36",
+        "stderr_sha256": "ead20253187f4e166e459cdb7cf4b0b82be200707118ae058770a370cf30bef0",
+        "note": "every eech-world test (55 binaries)"
+      },
+      {
+        "label": "rules-final-enginesys",
+        "command": "cargo test --release --locked --no-fail-fast -p eech-engine-sys --features entity-dialogue-check",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T14:32:41.991677+00:00",
+        "completed_utc": "2026-11-06T14:34:07.430121+00:00",
+        "test_binaries": 7,
+        "passed": 30,
+        "failed": 0,
+        "record_sha256": "580c1b17c86ecf45a2ea24c8a2030d9eb2acc8c244a28ec72e8c5ff52a4a8fa9",
+        "stdout_sha256": "097f43b37fe2348fdf8710d2a50ffb650c2e0b64dc81e4fbce7fa67105129756",
+        "stderr_sha256": "aa9e9b50d1fe33d0f9651e90012ccdf430887959d775384a30a6061a3e9dc2f5",
+        "note": "every eech-engine-sys test with entity-dialogue-check (the C dialogue control, the roster/host/pose/tree guards and the three new guards)"
+      },
+      {
+        "label": "rules-final-engine-dc",
+        "command": "cargo test --release --locked --no-fail-fast -p eech-engine -p eech-dc",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T14:34:07.553288+00:00",
+        "completed_utc": "2026-11-06T14:36:22.293807+00:00",
+        "test_binaries": 5,
+        "passed": 188,
+        "failed": 0,
+        "record_sha256": "2a463694ddae413ef02e68ea5da0eb8c4ccfc261e1eef505e806a2110526e916",
+        "stdout_sha256": "de70859de90862cb84c5091060e8a00030b59f12780d0d3f97c9277dbd0c90f1",
+        "stderr_sha256": "38f97865799053b17977b2b4563199acd392d5bb2740438c43b25d33fc5f41b2",
+        "note": "every eech-engine and eech-dc test"
+      },
+      {
+        "label": "rules-final-check",
+        "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world --all-targets",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T14:36:22.479967+00:00",
+        "completed_utc": "2026-11-06T14:36:30.926737+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "c1d4978fed969d7120d392a210833673879cf7f9f2f3665b3b8e6bd57131fdc3",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "8ca2cc300a8e3166e28f3b4fd4166db39cb851af899ad8960dad990702227374",
+        "note": "cargo check over the four crates, all targets"
+      },
+      {
+        "label": "rules-final-feature-collision",
+        "command": "cargo check --release --locked -p eech-engine-sys --features collision-fixture",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T14:36:31.064813+00:00",
+        "completed_utc": "2026-11-06T14:37:44.149261+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "25a005e7cfcb08cd2e4447cd2f546072005ae4e029608d82a17b8e257002d39e",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "d10b609d6eae94ecdd5e26e7a8a5668f212ef745d655a0b7546fab78b2e7451e",
+        "note": "the ORIGINAL-fixture build compiles"
+      },
+      {
+        "label": "rules-final-feature-modelhost",
+        "command": "cargo check --release --locked -p eech-engine-sys --features model-host-fixture",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T14:37:44.278998+00:00",
+        "completed_utc": "2026-11-06T14:38:56.860961+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "a1fc0781638781bd6c0b9361b089ff3f012b48d35b7ebb2bd923f9e957669b13",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "2170b70c5a0e2f09eb067afd9463474e13a7fe4a164a3d114a4801755f019637",
+        "note": "the diagnostic build compiles"
+      },
+      {
+        "label": "rules-final-feature-model",
+        "command": "cargo check --release --locked -p eech-engine-sys --features model-fixture",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T14:38:56.981853+00:00",
+        "completed_utc": "2026-11-06T14:40:10.492382+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "53a6fd900b14b86ec1c9925a11d637f70234f7f6902441165fa28d5d6e0b964b",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "d10b609d6eae94ecdd5e26e7a8a5668f212ef745d655a0b7546fab78b2e7451e",
+        "note": "the model-fixture build compiles"
+      },
+      {
+        "label": "rules-final-sys",
+        "command": "cargo test --release --locked --no-fail-fast -p eech-sys",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T14:40:10.612734+00:00",
+        "completed_utc": "2026-11-06T14:46:36.622058+00:00",
+        "test_binaries": 4,
+        "passed": 4,
+        "failed": 0,
+        "record_sha256": "5f43a95ad21e026af9a75d32f851f37b0b5bac66b28d4468b7ffab927a2f71d9",
+        "stdout_sha256": "eee3a0ba5e79dd254bc09cac5d9493c5d280bb1318bfc447f67761e1e78b8d6f",
+        "stderr_sha256": "7fd88425234ec9e73186238de3c9515f62281cb0896e2547bd39553e0f99c847",
+        "note": "cargo test -p eech-sys"
+      },
+      {
+        "label": "rules-final-clippy",
+        "command": "cargo clippy --release --locked -p eech-world -p eech-engine-sys -p eech-engine -p eech-sys --all-targets -- -D warnings",
+        "actual_exit": 0,
+        "started_utc": "2026-11-06T14:46:36.752176+00:00",
+        "completed_utc": "2026-11-06T14:46:41.904458+00:00",
+        "test_binaries": 0,
+        "passed": 0,
+        "failed": 0,
+        "record_sha256": "f8c0454b7df64c74e05e62f0216d5ef709b72917588124d08392cbd382584446",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "3856b167c67f912de6c9a41c0c780d01ddee82a6fedd890c87415a65d4fc7cad",
+        "note": "strict clippy over eech-world, eech-engine-sys, eech-engine, eech-sys"
+      }
+    ],
+    "final_totals": {
+      "eech-world": "rules-final-world: 1170 passed in 55 binaries, 0 failed",
+      "eech-engine-sys with entity-dialogue-check": "rules-final-enginesys: 30 passed, 0 failed",
+      "eech-engine + eech-dc": "rules-final-engine-dc: 188 passed, 0 failed",
+      "eech-sys": "rules-final-sys: 4 passed, 0 failed"
+    },
+    "runner": "R:/d3-evidence/run-sector-roster-focused-direct-20261106.py, one scoped cargo child per label, separate stdout/stderr, --release --locked, no pipeline and no trailing echo; this lane was the one owner of the Linux cache eech-linux-d3-collision-driver-5416adb3b-20261029 (image sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51, WSL EECH-D2-Build); nothing deleted or pruned; chain scripts read stdin from /dev/null after the first chain's heredoc was consumed by its first child (that chain ran only its first step, the fmt apply; receipt kept)",
+    "baselines_inputs_tolerances": "unchanged; no golden output re-recorded; no scenario tuned; no baseline, tolerance or configuration touched"
+  },
+  "ci_fixture_repair": {
+    "disposition": "FIXED at the source in both extractors, minimal: the generated eech_extracted.c prelude names entity/mobile/mb_hostplace.h (the include en_list.c itself has) in eech-campaign/crates/eech-sys/build/spec.rs and eech-core-ts/c-reference/extract.mjs; those builds define no EECH_CAMPAIGN_HOST_ENTITY, so the header turns every report into ((void) 0): the original no-host list semantics, stated in a comment; the hosted production guards are untouched.",
+    "reproduced_at_the_unchanged_tree": "sector-roster-direct-ci-sys-red-90b-a (eech-sys, exit 101, four implicit declarations at en_list.c:498/503/571/575) and the historical extract compile-check (red)",
+    "green": "sector-roster-direct-rules-green-ci-sys-a (cargo build -p eech-sys, EECH_C_DIAGNOSTICS=1, exit 0, zero implicit declarations), rules-final-sys (cargo test -p eech-sys), the historical extract compile-check (all 55 harness units -fsyntax-only -m64)",
+    "guard": "entity_roster_guard.rs the_no_host_extractions_of_the_list_funnel_carry_the_hook_header_that_compiles_every_report_away (RED on 90b38189, GREEN)",
+    "historical": {
+      "cref_extracted_unit_syntax": {
+        "what": "the historical C reference harness (eech-core-ts/c-reference) extracted unit eech_extracted.c, generated by the extractor as of 90b38189 (red) and as fixed (green), compile-checked in the pinned image with the harness flags (-fsyntax-only, no cache volume, read-only mounts)",
+        "red_m64": "exit 1: the same four implicit declarations at en_list.c:498, 503, 571, 575",
+        "green_m64": "exit 0",
+        "all_units_green_m64": "all 55 translation units of the harness (47 real, 8 extracted) compile -fsyntax-only with the fixed extractor: 0 failed",
+        "m32": "NOT run: the pinned image has no 32-bit libc (fatal error: bits/libc-header-start.h), so the harness itself (-m32), its link, the Lua conformance and the C-reference differential tests of the historical TypeScript package were NOT run here",
+        "files_outside_git": [
+          "C:/Users/starscream/AppData/Local/Temp/cref/{check-exits.txt,check-m32-*.out,check-m64-*.out,cref-all.out,units.txt}"
+        ],
+        "sha256": {
+          "check-exits.txt": "adaa4cb8908b65ae699817cda79db73588c80565f6ca8c7b47403da72cdc69ac",
+          "cref-all.out": "7e01c9f028f85e6ceb44b71f8c0361da38f7aa5ef998900717e5217db31fa0b8",
+          "units.txt": "8b00689fd0ddb0fe6bb73d5cb06e7f50bca23016f84957ac2835cd1394aa6bb3",
+          "check-m64-red.out": "9d9c44503988c226d798718422ca15145b6a46810ff595a8dcb223a4ccf14fc2",
+          "check-m64-green.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "check-m32-red.out": "a98c9ce1cb894ca72a5a46ae8761685fe1e0871c21933390e0cf5a3e0e7c3e1f",
+          "check-m32-green.out": "874b42701f7e3ead4538c60c4d39889e0ed1c99ee971698a976a7dc59a850dff"
+        }
+      }
+    },
+    "not_verified": [
+      "the Windows cross-build job (same eech-sys C source, mingw): the fix is a header include in the shared generated unit, but that job was not run here",
+      "the core-ts job's harness build (-m32), its Lua conformance and C-reference tests: not run (no 32-bit libc in the image); only the extracted unit and all 55 harness units were compile-checked at -m64",
+      "the CI \"Lints\" step, which runs after the tests in the default x64 job: strict clippy is clean for eech-world, eech-engine-sys, eech-engine and eech-sys, but FAILS in eech-dc/src/module.rs (expect_err at lines 5978 and 6025), a file this cut does not change and which holds literal control bytes: a latent finding that the compile repair now lets that step reach; NOT fixed here (outside the batch), reported to Root"
+    ]
+  },
+  "native_witness_planned": {
+    "name": "changed_fixed_rule (lua/entity-authority.lua MODES), TEST-ONLY, host-side, no answer, request or entity altered",
+    "sequence": "1 the real scan serves an ordinary fixed placement (not a city, not a city building) whose record the real provider holds; 2 the staged question with the campaign's collision flag TRUE is answered need_placement over the held record, which proves its derived rule is collision-fixed and is counted as fixed_rule_eligible BEFORE anything changes; 3 the host restates ONLY that record's fixed state to the SAME provider with the sub type UNKNOWN (the record's own other words), acknowledged placed for the same key (the campaign's own report path: nothing is withdrawn or faked); 4 the real answer is handed on unchanged; 5 the NEXT, unmodified question of the same candidate meets the campaign's true flag against the host's derived false and the provider refuses it by name [candidate.mirror] ... collision-fixed, request0/reply1, engine stop at entity_candidate.refused, no physical, counter, metric or close call after the fatal.",
+    "row_fields": [
+      "fixed_rule_eligible (must be 1)",
+      "fixed_rule_changed (1)",
+      "fixed_rule_changed_next (\"placement\")",
+      "fixed_rule_changed_cause (\"fixed_rule_mirror_differs\")"
+    ],
+    "unreached": "a run that never answers need_placement over a held fixed record is UNREACHED (no actor, time, geometry or seed hunt); a failure before the change is that failure",
+    "tested_here": "the REAL driver against the scripted engine (entity_authority.rs changing_the_physical_rule_...); the real provider's refusal text is pinned in model_target_point.rs. Not run natively by this lane.",
+    "healthy_native_expectations": "fixed_stated, city_state_stated, fixed_joined and the staged-question counts are expected to equal the parent f734/4c0b healthy values (same funnel, same call sites, same order); the host-derived flags equal the Core mirror on every joined stage (zero mirror refusals); the ordinary short run's three COMPLETE recordings, the complete physical terminal (180 bytes) and the default outputs are expected literal"
+  },
+  "expected_diagnostic_delta_for_the_native_comparison": {
+    "protocol_only": "the payload words of the FIXED_STATE and CITY_STATE reports change (facts 7 and 8 no longer carry flags; fact 10 carries the sub type in both); the driver's request grammar names the sub type. Counts of reports and of staged questions are expected unchanged.",
+    "new_row_fields_only_in_the_new_mode": [
+      "fixed_rule_eligible",
+      "fixed_rule_changed",
+      "fixed_rule_changed_next",
+      "fixed_rule_changed_cause"
+    ],
+    "behavioural_risk_to_check_natively": "a city that is placed but whose state was never stated, or was withdrawn, is now refused at its fixed-facts stage even with no building (it used to be skipped there); every healthy city states its state at its insertion (guard), so zero such refusals are expected; a data-driven fixed sub type outside 0..14 (parser.c:2402) now stops by name at its first report instead of reading past the original table",
+    "physical_recordings_terminal_default_outputs": "expected exact; no tolerance, scenario or baseline change"
+  },
+  "maps": {
+    "before": {
+      "path": "R:\\d3-evidence\\rules-inputmap-before-20261106.json",
+      "sha256": "70cb1110ef140ef6b7a8bd939fb4126bffb813d9e329c41b3ef41e48227d35f1"
+    },
+    "after": {
+      "path": "R:\\d3-evidence\\rules-inputmap-after-20261106.json",
+      "sha256": "70cb1110ef140ef6b7a8bd939fb4126bffb813d9e329c41b3ef41e48227d35f1"
+    },
+    "script": "R:/d3-evidence/sector-roster-inputmap-batched-20261106.py <repo> <out> 90b38189601bacf57684e944a3d0f35b5ad0e69e (run on the uncommitted tree before the final checks and again after them; the code was committed afterwards)",
+    "raw_git_binding": {
+      "path": "R:\\d3-evidence\\fixed-physical-rules-raw-binding-d2f5027c9-20261106.json",
+      "sha256": "70812fd3c991a4bf4a9863749fd786a675109a83884474ff4bc41cb614f8709e",
+      "files": 3953,
+      "maps_literal_equal": true,
+      "raw_equal_to_commit_blob_bytes": 3950,
+      "raw_different": [
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+        "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+      ],
+      "changed_files_outside_the_map_roots": [
+        "eech-campaign/crates/eech-sys/build/spec.rs",
+        "eech-campaign/docs/d3-entity-collision-provider.md",
+        "eech-core-ts/c-reference/extract.mjs"
+      ],
+      "outside_files_working_tree_equal_to_blob": true,
+      "method": "raw SHA-256 and size from the map against the SHA-256 and size of git cat-file --batch blob bytes of the commit; not the filtered hash-object identity",
+      "qualification": "the three raw-different files are the three legacy tree-geometry Lua controls (tests/lua/tree-geometry-*.lua) whose working-tree line endings differ from their stored blobs, the same three earlier packs qualified; this cut changed none of them. The map roots do not cover eech-sys, eech-core-ts and docs: the three changed files there are bound by the second part of the binding."
+    }
+  },
+  "process": {
+    "parent_f734_40_all8": "not touched (no process, root, binary, source, config, priority or affinity); no job, root or cache of Root's was touched",
+    "no_native_no_windows_no_retail": true,
+    "files_outside_git": [
+      "R:/d3-evidence/sector-roster-direct-rules-*, ci-sys-red-90b-a, rules-inputmap-*, fixed-physical-rules-raw-binding-*",
+      "scratch scripts C:/Users/starscream/AppData/Local/Temp/rules/",
+      "C:/Users/starscream/AppData/Local/Temp/cref/"
+    ]
+  },
+  "limits": [
+    "no native actual, no Windows build, no retail: Root's native comparison, fresh roots and the changed-rule witness run come after the SAME independent review",
+    "the Core getters, the offer's conformance words and the original-fixture build are kept and are not claimed as moved physical consumers; the six draw files' direct align reads are an open census item",
+    "the C dialogue canaries and driver tests cannot be shown RED against 90b38189 without a compile failure (declared above)",
+    "the historical harness itself (-m32) and the Windows cross job were not run",
+    "a latent strict-clippy failure exists in eech-dc/src/module.rs (not changed by this cut)",
+    "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION is OPEN and untouched"
+  ],
+  "review": "ONE independent review (correctness, clean code, boundary safety) is due after this freeze by the SAME reviewer; Root is the sole external publisher/canonical writer; no native clearance is claimed"
+}

@@ -1,0 +1,4 @@
+-m32 red exit=1
+-m32 green exit=1
+-m64 red exit=1
+-m64 green exit=0
