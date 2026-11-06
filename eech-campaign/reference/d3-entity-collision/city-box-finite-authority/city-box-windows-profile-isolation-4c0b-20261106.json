@@ -1,0 +1,158 @@
+{
+  "source": "4c0b89263f41164e1c2379f3be99ac8d6c575173",
+  "source_review_sha256": "50eee6bbaac7f114e37bc7e4fb774eb04c14c23d792f8c319df8034b0f3a964e",
+  "profile_isolation_passed": true,
+  "new_native_prerequisite_met": true,
+  "profiles": {
+    "original": {
+      "cargo_features": [
+        "collision-fixture",
+        "weapon-fixture"
+      ],
+      "manifest_path": "/target/x86_64-pc-windows-gnu/release/.fingerprint/eech-engine-sys-0c38ad68eea565f8/lib-eech_engine_sys.json",
+      "rlib": "/target/x86_64-pc-windows-gnu/release/deps/libeech_engine_sys-0c38ad68eea565f8.rlib",
+      "rlib_sha256": "d05ba54832ac3db34ae0866f40478f87bb498224717e14203712e2913c1a4f7c",
+      "bound_object_members": [
+        "f6fc6cb7fd4fea60-mb_hostplace.o",
+        "67fd5db87f5aeca0-eech_engine.o",
+        "67fd5db87f5aeca0-eech_mq_report_check.o",
+        "67fd5db87f5aeca0-eech_wpn_fixture.o"
+      ],
+      "defined_checked_C_symbols": [
+        "eech_engine_wpn_moving_query_prepare",
+        "eech_engine_wpn_moving_query_run",
+        "eech_wpn_moving_query_prepare_run",
+        "eech_wpn_moving_query_run"
+      ],
+      "host_roster_C_symbols_present": false,
+      "expected_roster_C_symbols_present": false,
+      "mq_report_checker_symbol_absent": true,
+      "fixture_names_absent_from_PE_exports": true,
+      "image": "sha256:e59fc310e44bb1d1bb90706e02197ae614c7efc2f383435c24b8b64710623a21",
+      "image_compiler_env": [],
+      "image_configuration_retained": true,
+      "derived_C_defines": {
+        "EECH_WEAPON_FIXTURE": true,
+        "EECH_MQ_REPORT_CHECK": false,
+        "EECH_COLLISION_FIXTURE": true,
+        "EECH_CAMPAIGN_HOST_ENTITY": false
+      },
+      "payloads_rehashed": 88,
+      "all_Lua_payloads_equal_frozen_source": true
+    },
+    "ordinary": {
+      "cargo_features": [],
+      "manifest_path": "/target/x86_64-pc-windows-gnu/release/.fingerprint/eech-engine-sys-3ee86ff288c8e5b9/lib-eech_engine_sys.json",
+      "rlib": "/target/x86_64-pc-windows-gnu/release/deps/libeech_engine_sys-3ee86ff288c8e5b9.rlib",
+      "rlib_sha256": "bce2e1cabfd7c755cee4620597d7f96c490fecfe3af40fd6444ebf59f547d1cf",
+      "bound_object_members": [
+        "f6fc6cb7fd4fea60-mb_hostplace.o",
+        "67fd5db87f5aeca0-eech_engine.o",
+        "67fd5db87f5aeca0-eech_mq_report_check.o",
+        "67fd5db87f5aeca0-eech_wpn_fixture.o"
+      ],
+      "defined_checked_C_symbols": [
+        "campaign_place_child_first",
+        "campaign_place_child_insert",
+        "campaign_place_child_next",
+        "campaign_place_child_remove",
+        "campaign_place_city_expand",
+        "campaign_place_entity",
+        "campaign_place_fixed_state",
+        "campaign_place_insert",
+        "campaign_place_key",
+        "campaign_place_name",
+        "campaign_place_release_entity",
+        "campaign_place_remove",
+        "campaign_place_reset"
+      ],
+      "host_roster_C_symbols_present": true,
+      "expected_roster_C_symbols_present": true,
+      "mq_report_checker_symbol_absent": true,
+      "fixture_names_absent_from_PE_exports": true,
+      "image": "sha256:6800f1b08a7879c849c07ded135e81c5db53f11396d870073630f2cd32d5d09e",
+      "image_compiler_env": null,
+      "image_configuration_retained": false,
+      "derived_C_defines": {
+        "EECH_WEAPON_FIXTURE": false,
+        "EECH_MQ_REPORT_CHECK": false,
+        "EECH_COLLISION_FIXTURE": false,
+        "EECH_CAMPAIGN_HOST_ENTITY": true
+      },
+      "payloads_rehashed": 88,
+      "all_Lua_payloads_equal_frozen_source": true
+    },
+    "hosted": {
+      "cargo_features": [
+        "weapon-fixture"
+      ],
+      "manifest_path": "/target/x86_64-pc-windows-gnu/release/.fingerprint/eech-engine-sys-f1a9d979734127b0/lib-eech_engine_sys.json",
+      "rlib": "/target/x86_64-pc-windows-gnu/release/deps/libeech_engine_sys-f1a9d979734127b0.rlib",
+      "rlib_sha256": "0d60556cac042a67b6434812db3a1de10c6f014faffd26379dedc3378919ea86",
+      "bound_object_members": [
+        "f6fc6cb7fd4fea60-mb_hostplace.o",
+        "67fd5db87f5aeca0-eech_engine.o",
+        "67fd5db87f5aeca0-eech_mq_report_check.o",
+        "67fd5db87f5aeca0-eech_wpn_fixture.o"
+      ],
+      "defined_checked_C_symbols": [
+        "campaign_place_child_first",
+        "campaign_place_child_insert",
+        "campaign_place_child_next",
+        "campaign_place_child_remove",
+        "campaign_place_city_expand",
+        "campaign_place_entity",
+        "campaign_place_fixed_state",
+        "campaign_place_insert",
+        "campaign_place_key",
+        "campaign_place_name",
+        "campaign_place_release_entity",
+        "campaign_place_remove",
+        "campaign_place_reset",
+        "eech_engine_wpn_moving_query_prepare",
+        "eech_engine_wpn_moving_query_run",
+        "eech_wpn_moving_query_prepare_run",
+        "eech_wpn_moving_query_run"
+      ],
+      "host_roster_C_symbols_present": true,
+      "expected_roster_C_symbols_present": true,
+      "mq_report_checker_symbol_absent": true,
+      "fixture_names_absent_from_PE_exports": true,
+      "image": "sha256:cba10712031040fa9baeb8284a2757e1a4e1c1b0b1cfe0c0e1d93cc36b881240",
+      "image_compiler_env": null,
+      "image_configuration_retained": false,
+      "derived_C_defines": {
+        "EECH_WEAPON_FIXTURE": true,
+        "EECH_MQ_REPORT_CHECK": false,
+        "EECH_COLLISION_FIXTURE": false,
+        "EECH_CAMPAIGN_HOST_ENTITY": true
+      },
+      "payloads_rehashed": 88,
+      "all_Lua_payloads_equal_frozen_source": true
+    }
+  },
+  "all_three_builds_actual_exit": 0,
+  "raw_audit_sha256": "39ca80d58b8249b19bfc5256f5da6f54605f27d7f425038780a9faae5bbfed7f",
+  "rlib_binding_audit_sha256": "9a5ca733c2350e5f516e05359e46094461e0c758518913982ed86bc1a226667b",
+  "frozen_scoped_source_files_rehashed": 3953,
+  "source_raw_files_unchanged": true,
+  "qualification": "C defines derived from actual Cargo feature manifests plus frozen build-script mapping, corroborated by actual bound COFF object/archive symbols and PE exports. Distinct profile imageIDs retained; same recorded compiler versions. Earlier image configs are no longer in local Docker after standard builder retagging; those env fields are unavailable, not inferred. Actual objects prove fixture exclusion/inclusion. Ordinary/hosted bound COFF define all source-declared production campaign_place_* sector/city/name/state/key functions; explicit Original defines none. No runtime or whole-D3 acceptance inferred.",
+  "verified_utc": "2026-11-06T12:49:13.953024+00:00",
+  "public_place_declarations": [
+    "campaign_place_child_first",
+    "campaign_place_child_insert",
+    "campaign_place_child_next",
+    "campaign_place_child_remove",
+    "campaign_place_city_expand",
+    "campaign_place_entity",
+    "campaign_place_fixed_state",
+    "campaign_place_insert",
+    "campaign_place_key",
+    "campaign_place_name",
+    "campaign_place_release_entity",
+    "campaign_place_remove",
+    "campaign_place_reset"
+  ],
+  "public_place_header_sha256": "81675c0294d1d9249a19fe855192287724c459435627429f41fed3ad9040dd4c",
+  "place_names_absent_from_PE_exports": true
+}

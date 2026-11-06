@@ -1,0 +1,398 @@
+{
+  "schema": "d3.independent.city-box-constructor.finite-actual.v1",
+  "created_utc": "2026-11-06T13:07:38.546372+00:00",
+  "reviewer": "same sole independent Codex reviewer",
+  "scope": "One combined correctness, evidence-truth, clean-code and boundary-safety review of the newly retained CITY box-constructor native results and orchestration; no source/kernel/FPU vector replay or new execution.",
+  "source": {
+    "compiled_runtime": "4c0b89263f41164e1c2379f3be99ac8d6c575173",
+    "reviewed_constructor_parent": "f06db8570063e49d1c0d47e913d0c440a7d0927f",
+    "observed_clean_metadata_HEAD": "e0a64fc3d7a2465efbad82a5fb4100ed6c222017",
+    "metadata_only_changes_over_runtime": true,
+    "snapshot": "D:/EECH-Migration-Evidence/city-box-corrected-4c0b89263-20261106-source",
+    "Lua_git_blob": "522c6fc2aa15a4aa7ad1f2a666d81345a9a6eac5",
+    "Lua_bytes": 211377,
+    "Lua_sha256": "9c8b622230e900e68ad4a555644b4665f4a4e84e6dc2f71fbb30950c379068f3",
+    "packaged_external_literal_equals_runtime_Git_blob": true
+  },
+  "decision": {
+    "status": "FINITE_CONSTRUCTOR_MATH_AND_CURRENT_BOOT_AUTHORITY_VERIFIED",
+    "findings": [],
+    "finite_city_box_constructor_closed": true,
+    "finite_constructor_math_and_current_BOOT_authority_verified": true,
+    "next_required_production_cut_may_start": true,
+    "next_cut": "Remaining physical fixed/CITY flags, align and classification/provenance before sectorheight; all required scope retained.",
+    "CITY_box_lifecycle_retention_closed": false,
+    "all_CITY_physics_accepted": false,
+    "natural_weapon_or_moving_accepted": false,
+    "full40_all8_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_or_merge_accepted": false
+  },
+  "build_and_profile_results": {
+    "Windows_completion": {
+      "path": "R:/d3-evidence/city-box-corrected-4c0b89263-windows-20261106-completion.json",
+      "bytes": 46855,
+      "sha256": "9db6ab82c50458ea4839321188f7b74b131c6a807f47d8a8a4fa406fca555a94"
+    },
+    "profile_isolation": {
+      "path": "R:/d3-evidence/city-box-windows-profile-isolation-4c0b-20261106.json",
+      "bytes": 7062,
+      "sha256": "25a62d05cd15aeb4f14151c78e789a4478995d418998b00bc4cde11bc810b527"
+    },
+    "all_three_actual_build_exits": 0,
+    "profiles": [
+      {
+        "role": "ordinary",
+        "actual_build_exit": 0,
+        "payloads_rehashed": 88,
+        "BUILD_INFO_sha256": "ccb5fe10a3617ab8410a11cdeeea287cea511d256f64ef4f49fd1ed9635519bf",
+        "cargo_features": [],
+        "source_declared_campaign_place_functions_in_bound_COFF": 13,
+        "private_C_names_absent_from_PE_exports": true,
+        "rlib_sha256": "bce2e1cabfd7c755cee4620597d7f96c490fecfe3af40fd6444ebf59f547d1cf"
+      },
+      {
+        "role": "hosted",
+        "actual_build_exit": 0,
+        "payloads_rehashed": 88,
+        "BUILD_INFO_sha256": "4fe0970ef7f3717dd742d438a1609b5abb55a3e4d71ad4751bb17b78e6a6f43e",
+        "cargo_features": [
+          "weapon-fixture"
+        ],
+        "source_declared_campaign_place_functions_in_bound_COFF": 13,
+        "private_C_names_absent_from_PE_exports": true,
+        "rlib_sha256": "0d60556cac042a67b6434812db3a1de10c6f014faffd26379dedc3378919ea86"
+      },
+      {
+        "role": "original",
+        "actual_build_exit": 0,
+        "payloads_rehashed": 88,
+        "BUILD_INFO_sha256": "0b9e98768f4e0bdcadd44e976a3f6aede8ab536c0bda585a6133ea785eee0d37",
+        "cargo_features": [
+          "collision-fixture",
+          "weapon-fixture"
+        ],
+        "source_declared_campaign_place_functions_in_bound_COFF": 0,
+        "private_C_names_absent_from_PE_exports": true,
+        "rlib_sha256": "d05ba54832ac3db34ae0866f40478f87bb498224717e14203712e2913c1a4f7c"
+      }
+    ],
+    "source_declared_place_function_count": 13,
+    "bound_actual_COFF_feature_symbols_verified": true,
+    "actual_PE_private_export_exclusion_verified": true,
+    "raw_profile_audit": {
+      "path": "R:/d3-evidence/city-box-windows-profile-audit-4c0b-20261106.log",
+      "bytes": 8413,
+      "sha256": "39ca80d58b8249b19bfc5256f5da6f54605f27d7f425038780a9faae5bbfed7f"
+    },
+    "bound_rlib_audit": {
+      "path": "R:/d3-evidence/city-box-windows-rlib-binding-v2-4c0b-20261106.log",
+      "bytes": 4427,
+      "sha256": "9a5ca733c2350e5f516e05359e46094461e0c758518913982ed86bc1a226667b"
+    },
+    "reader_actual_exits": [
+      0,
+      0
+    ],
+    "qualification": "Feature manifests and frozen build mapping are corroborated by actual bound archive-member COFF symbols and PE exports. Reader image is not inferred to be the producer. Distinct BUILD-INFO image identities are retained; earlier image configurations unavailable after retagging remain unavailable. No Original native execution or complete caller-FP measurement is inferred from its successful build."
+  },
+  "actual_cases": [
+    {
+      "role": "short",
+      "completion": {
+        "path": "R:/d3-evidence/city-box-ordinary-short-4c0b89263-20261106-completion.json",
+        "bytes": 1901,
+        "sha256": "63e3941aa5b74fd21213b2c1a70356a8969578e7a543354a7ebb2728b37a94da"
+      },
+      "controller": {
+        "path": "D:/EECH-Migration-Evidence/city-box-ordinary-short-4c0b89263-20261106/controller.json",
+        "bytes": 3945,
+        "sha256": "aaf5b8f108f410092c54a5c862673b06492065c32b0230cc99b87e49719c446d"
+      },
+      "private_output": "D:\\EECH-Migration-Evidence\\city-box-ordinary-short-4c0b89263-20261106",
+      "native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "input_stages_actual_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 88,
+      "completed_utc": "2026-11-06T12:53:57.460257+00:00"
+    },
+    {
+      "role": "healthy",
+      "completion": {
+        "path": "R:/d3-evidence/city-box-healthy-4c0b89263-20261106-completion.json",
+        "bytes": 2107,
+        "sha256": "3d6e86d27f6ffdd09475cdabe5db19ee658ce6f908e9a96e3d3cfad3a70874f7"
+      },
+      "controller": {
+        "path": "D:/EECH-Migration-Evidence/city-box-healthy-4c0b89263-20261106/controller.json",
+        "bytes": 4196,
+        "sha256": "e83363443fe7885774b0c4e73ce8fdd2a4685b3ae70f37eadca267fcf3fe3143"
+      },
+      "private_output": "D:\\EECH-Migration-Evidence\\city-box-healthy-4c0b89263-20261106",
+      "native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "input_stages_actual_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 88,
+      "completed_utc": "2026-11-06T12:57:20.626087+00:00"
+    },
+    {
+      "role": "withdrawal",
+      "completion": {
+        "path": "R:/d3-evidence/city-box-withdrawn-construction-4c0b89263-20261106-completion.json",
+        "bytes": 2444,
+        "sha256": "8fb43800ffc5ed9c5e9b97979f605e18fd67ee86fd8559224ec3a49800c8bf0f"
+      },
+      "controller": {
+        "path": "D:/EECH-Migration-Evidence/city-box-withdrawn-construction-4c0b89263-20261106/controller.json",
+        "bytes": 4220,
+        "sha256": "34cff49e115318e87cefb9d581bb48d3877729e35ce8cd63efad885999ef33fe"
+      },
+      "private_output": "D:\\EECH-Migration-Evidence\\city-box-withdrawn-construction-4c0b89263-20261106",
+      "native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "input_stages_actual_exits": [
+        0,
+        0
+      ],
+      "payloads_verified": 88,
+      "completed_utc": "2026-11-06T12:59:07.548143+00:00"
+    }
+  ],
+  "ordinary_short": {
+    "comparison": {
+      "path": "R:/d3-evidence/city-box-ordinary-short-comparison-4c0b-20261106.json",
+      "bytes": 1563,
+      "sha256": "ad7654a26bbcf3a81383cb881d542db2f22d9b6c48266ef8693f5b81166f132f"
+    },
+    "complete_files": [
+      {
+        "file": "recording.acmi",
+        "candidate_bytes": 230871,
+        "baseline_bytes": 230871,
+        "candidate_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+        "baseline_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+        "literal_complete_equal": true
+      },
+      {
+        "file": "observations.jsonl",
+        "candidate_bytes": 1553674,
+        "baseline_bytes": 1553674,
+        "candidate_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+        "baseline_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+        "literal_complete_equal": true
+      },
+      {
+        "file": "metrics.json",
+        "candidate_bytes": 7477,
+        "baseline_bytes": 7477,
+        "candidate_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+        "baseline_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+        "literal_complete_equal": true
+      }
+    ],
+    "all_three_COMPLETE_literal_equal": true,
+    "simulation_seconds": 3.6,
+    "original_arguments_preserved": [
+      "hours=0.001",
+      "record=1",
+      "record_every=10",
+      "observe_every=1",
+      "observe_supply=1"
+    ],
+    "scope": "Complete established short control only. No fullpack, visual inspection, performance benchmark or whole-shipping claim."
+  },
+  "healthy_constructor": {
+    "comparison": {
+      "path": "R:/d3-evidence/city-box-healthy-comparison-4c0b-20261106.json",
+      "bytes": 1174,
+      "sha256": "7d2bb5c67efd40a88dd7b455e2058bfcb99f8e4fb0449a8eca71f46046daea53"
+    },
+    "private_raw_JSONL": {
+      "bytes": 5543,
+      "sha256": "8942279015027853527cb506b11d35ba8230a59ff19dc14bfc446b1819f0fccd",
+      "rows": 7
+    },
+    "native_helper_outer_exits": [
+      0,
+      0,
+      0
+    ],
+    "positive_prelaunch_expansions": 54825,
+    "after_launch_expansions": 0,
+    "total_expansions": 54825,
+    "answered_expansions": 54825,
+    "request_faults": 0,
+    "reply_faults": 0,
+    "pending_weapons": 0,
+    "completed": true,
+    "common_authority_fields_compared": 186,
+    "exactly_one_changed_common_field": {
+      "city_state_before": {
+        "parent": 83408,
+        "current": 28583,
+        "difference": 54825
+      }
+    },
+    "declared_delta_equation_verified": true,
+    "new_fields": [
+      "city_expand_after",
+      "city_expand_answered",
+      "city_expand_before",
+      "city_expand_total"
+    ],
+    "all_other_common_authority_fields_exact": true,
+    "whole_terminal_with_line_ending_literal_equal": true,
+    "terminal_bytes": 180,
+    "terminal_sha256": "b8a859abc3df8fdfbe1cde9d34e44bc195fe3e3b24da7d83d7b03a2ce8e4c433",
+    "parent_source": "78ef839dd75d325c42acb3127d097fee400388c2",
+    "qualification": "The prelaunch window includes boot and warmup. Counts do not identify unique objects, writers or lifetime paths. No signature deletion, normalization or broader counter allowance was used."
+  },
+  "real_BOOT_withdrawal": {
+    "private_raw_JSONL": {
+      "bytes": 808,
+      "sha256": "bc162dc6c7f02d2f47759600c4ab2850ccfa0ebc499308af0a8034980d1d9736",
+      "rows": 1
+    },
+    "mode": "withdrawn_box_state",
+    "native_helper_outer_exits": [
+      0,
+      0,
+      0
+    ],
+    "boot_stop": true,
+    "completed": false,
+    "current_joined_pair_eligible": 1,
+    "real_same_provider_child_FIXED_STATE_only_withdrawal_ACK": 1,
+    "same_unmodified_constructor_question_delegated_once": true,
+    "first_phase15_request_refused": true,
+    "city_expand_before": 1,
+    "city_expand_after": 0,
+    "city_expand_total": 1,
+    "city_expand_answered": 0,
+    "cause": "city_box_building_state_withdrawn",
+    "engine_marker": "entity_scan.refused",
+    "private_ack_identity_matches_refusal_identity": true,
+    "request_faults": 0,
+    "reply_faults": 1,
+    "first_fault": "scan reply: result refused",
+    "physical_after_stop": -1,
+    "no_boot_warmup_or_cohort_after_fatal": true,
+    "no_altered_question_or_reply_or_Core_list": true,
+    "qualification": "The real acknowledgement and refusal are established by the reviewed same-provider protocol, executed driver credit and private identity/cause join. Atomic absence of late mirror writes is supported by existing C canaries and source checks; it was not measured by forbidden postfatal Engine APIs. Exit0 is the negative driver successfully recognizing the required boot refusal, not healthy boot completion."
+  },
+  "orchestration_and_provenance": {
+    "Root_finite_facts": {
+      "path": "R:/d3-evidence/city-box-finite-actual-facts-4c0b-20261106.json",
+      "bytes": 8149,
+      "sha256": "263fff9a7fe38b34deba0f2bf9dbe08d7f169a8c70c3304c8b4f2cccf5aadfe5"
+    },
+    "retained_only_Root_auditor": {
+      "path": "R:/d3-evidence/audit-city-box-finite-actuals-4c0b-20261106.py",
+      "bytes": 6914,
+      "sha256": "162fea14edd993e3b1c60a2e67f22245ce94c541c072070d143dea0eaeac5651"
+    },
+    "native_driver": {
+      "path": "R:/d3-evidence/run-city-box-native-4c0b-20261106.py",
+      "bytes": 10486,
+      "sha256": "cee636c20bf0593afd2f9b7d8ea5fc5d0d163783567df33111ed14adcd017201"
+    },
+    "unchanged_shared_helper": {
+      "path": "R:/d3-evidence/run-entity-public-native-pipe-20261105.py",
+      "bytes": 6946,
+      "sha256": "3da2855f8b8b67c73d4ac0e157b40c81acdf633bdf21560daa3e588f024b0582"
+    },
+    "three_distinct_verified_unused_roots_consumed_once": true,
+    "planned_order": "exact short first, positive healthy constructor evidence next, then one real boot withdrawal; no actor/time/geometry search",
+    "native_helper_outer_and_input_exits_individually_joined": true,
+    "literal_matches_Git_and_packaged_payload": true,
+    "complete_pre_post_input_manifest_count": 6,
+    "files_per_manifest": 1179,
+    "input_file_bytes_per_manifest": 102239559,
+    "full_manifest_bytes": 209622,
+    "all_six_full_manifest_bytes_literal_equal": true,
+    "full_manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "all_six_whole_input_arrays_literal_equal": true,
+    "whole_input_array_bytes": 208734,
+    "whole_input_array_sha256": "139befd249c2ee02cd19c8468976108116a17b62682c89dab40d1f86e9a47bc1",
+    "frozen_source_input_count": 3953,
+    "all_clean_snapshot_raw_Git_equal": true,
+    "source_maps_before_binding_after_binding_after_native_literal_equal": true,
+    "source_map_sha256": "20c2a0d5aa74934809e7af0915db6cb2ebdd08ed6b5a2747537df54177b39602",
+    "source_maps": [
+      {
+        "path": "R:/d3-evidence/city-box-corrected-4c0b89263-snapshot-before-20261106.json",
+        "bytes": 2028651,
+        "sha256": "20c2a0d5aa74934809e7af0915db6cb2ebdd08ed6b5a2747537df54177b39602"
+      },
+      {
+        "path": "R:/d3-evidence/city-box-corrected-4c0b89263-snapshot-after-binding-20261106.json",
+        "bytes": 2028651,
+        "sha256": "20c2a0d5aa74934809e7af0915db6cb2ebdd08ed6b5a2747537df54177b39602"
+      },
+      {
+        "path": "R:/d3-evidence/city-box-corrected-4c0b89263-snapshot-after-native-20261106.json",
+        "bytes": 2028651,
+        "sha256": "20c2a0d5aa74934809e7af0915db6cb2ebdd08ed6b5a2747537df54177b39602"
+      }
+    ],
+    "no_source_or_input_normalization": true,
+    "all_three_profile_payloads_rehashed_after_actuals": true,
+    "historical_pending_review_flag": "Root facts intentionally retain independent_actual_review_pending at capture; this new review supplies the finite decision without rewriting that evidence."
+  },
+  "closed_evidence_reused": {
+    "source_correction_review": {
+      "path": "R:/d3-evidence/independent-city-box-review-correction-source-4c0b8926-20261106.json",
+      "bytes": 22048,
+      "sha256": "50eee6bbaac7f114e37bc7e4fb774eb04c14c23d792f8c319df8034b0f3a964e"
+    },
+    "source_gate": {
+      "path": "R:/d3-evidence/city-box-corrected-4c0b-source-gates-20261106.json",
+      "bytes": 6418,
+      "sha256": "b6bbaec9e04eb916dc6efcaadd0d79cf57050f7fbe930c3c639f5f5c980f11ed"
+    },
+    "Root_source_binding": {
+      "path": "R:/d3-evidence/city-box-corrected-4c0b-source-check-binding-20261106.json",
+      "bytes": 5924,
+      "sha256": "c0e4532a49c8440afd07c31a6b69672d093a9f148f26e17cefaaf27af02b53aa"
+    },
+    "original_two_P2_dispositions": "Remain SOURCE_CLOSED at the source50eee identity; no new source changes or review sweep.",
+    "numeric_and_FPU_scope": "Parent f06 kernel/control/solver proof and the scoped engine-enter/restoration reasoning are reused unchanged. Current Windows legitimate boot and literal outputs pass their pending actual gates; this is not a new universal FP-status/control, trap or intermediate-callback equivalence measurement."
+  },
+  "required_remaining": {
+    "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION": {
+      "status": "OPEN_REQUIRED_WHOLE_D3",
+      "closed_by_this_pass": false,
+      "requirement": "Empty-city relink/new-record initialization still depends on a campaign mirror of the previously Host-built box. Host physical-box knowledge must survive or authorize initial/move/relink/restore/lifetime transitions without Core being its only retained copy, while preserving legitimate paths. Finite constructor math/current-BOOT closure does not waive this remaining coupling."
+    },
+    "next_before_sectorheight": "Move and verify remaining physical fx_int flags/align/classification and their provenance; preserve campaign classification policy and the valid FIXED_UNKNOWN enum distinction.",
+    "other_required_scope": [
+      "sectorheight/hints and staged UPDATED/shared terrain",
+      "raw tree/forest/cloud data and RNG ownership",
+      "needed hierarchy/devices and remaining physical services",
+      "DCS data/caller mapping and provenance",
+      "natural weapon/moving integration and required lifetime/backing coverage",
+      "current final complete40/all8 shipping, exact CI, normal merge trees and final census",
+      "all ten whole-D3 requirements"
+    ],
+    "f734_fullpack": "Original parent f734 fullpack processes/roots/binaries/output remain untouched and separate. Reported literal prefixes are partial only and cannot accept 4c0b or any fullpack.",
+    "whole_scope_not_shrunk": true
+  },
+  "review_operations": "Read-only retained file, Git-identity, hash, row, exit, manifest and byte-comparison checks only. No campaign, native launch, test, build, cache/process/VM mutation, source/card/canonical edit or subagent.",
+  "publication_safety": "Safe aggregate counts, hashes, enum outcomes and evidence paths only. Raw actor identifiers, poses, trajectories, geometry, cohort signatures, complete physical tuples and fatal lines remain private."
+}
