@@ -923,6 +923,11 @@ local function roster_reply_problem (answer, parsed)
 	elseif parsed.event == "remove" and name ~= nil and name ~= "" then
 		-- the host names the city record it keeps for the box it built: a roster key, which is the name of a record and not a key issued now
 		if not is_roster_key (name) then return "the record \"" .. shown (name) .. "\" a removal names is not a roster key" end
+		-- the SELECTED record's own removal (the placement whose list the window latched, a relinked placement being the record its LINK continued) retains that very record and never another one
+		local life, own = scan.city.life, scan.city.anchor (parsed.identity)
+		if scan.city.window and life.selected ~= nil and own == life.selected and name ~= own then
+			return "a removal of the selected record's placement " .. parsed.identity .. " retains the record \"" .. shown (name) .. "\", not its own record " .. own
+		end
 	elseif name ~= nil and name ~= "" then
 		return "a " .. parsed.event .. " names a key (" .. shown (name) .. ")"
 	end

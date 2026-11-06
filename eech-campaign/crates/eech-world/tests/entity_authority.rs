@@ -6101,7 +6101,8 @@ fn a_changed_continuing_statement_is_a_mirror_conformance_negative_refused_by_th
 #[test]
 fn a_bad_retaining_positive_or_release_acknowledgement_causes_no_intervention_and_no_credit() {
     // positive first: the coherent run above intervenes once. Now each single fault of the current positive removal: nothing is released, and the run is not a pass
-    for (fault, expected) in [("wrong_record_on_remove", "never retained"), ("p_on_event", "not the contract's")] {
+    // a retaining removal that names ANOTHER valid record than the removed placement's own is a malformed current positive, a real reply fault and never the clean absence UNREACHED
+    for (fault, expected) in [("wrong_record_on_remove", "retains the record"), ("p_on_event", "a cursor with")] {
         let driven = drive(
             &healthy(&format!("{LIFECYCLE}, bad_real_roster = '{fault}'")),
             &[("mode", "city_box_lifecycle_missing")],
@@ -6112,9 +6113,23 @@ fn a_bad_retaining_positive_or_release_acknowledgement_causes_no_intervention_an
             (0, 0),
             "{fault}: {row}"
         );
+        assert_eq!(
+            (row["retained_answers"].as_i64(), row["releases_in_window"].as_i64()),
+            (Some(0), Some(0)),
+            "{fault}: the bad record is never counted: {row}"
+        );
+        assert!(row["reply_faults"].as_i64().unwrap() >= 1, "{fault}: {row}");
+        assert!(
+            row["first_fault"].as_str().unwrap().starts_with("scan reply:") && row["first_fault"].as_str().unwrap().contains(expected),
+            "{fault}: {row}"
+        );
         assert!(driven.result.is_err(), "{fault}: a damaged positive is never a pass");
         let error = error_of(driven);
-        assert!(error.contains(expected) && !error.contains("host-retention"), "{fault}: {error}");
+        assert!(error.contains("reply_faults=") && error.contains(expected), "{fault}: {error}");
+        assert!(
+            !error.contains("UNREACHED") && !error.contains("host-retention"),
+            "{fault}: a malformed positive is a fault, not an absent prerequisite: {error}"
+        );
     }
     // each single fault of the private release acknowledgement: the intervention is a failure and nothing is credited
     for fault in ["cursor", "name", "state", "tail"] {
