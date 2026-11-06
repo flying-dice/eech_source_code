@@ -1,0 +1,945 @@
+{
+ "schema": "sector-roster-corrections-CODE-FROZEN/v1",
+ "written_utc": "2026-11-06T01:51:12Z",
+ "lane": "Sonnet 5.5 High single correction lane, Task49/PR109 (EEDCS-21/EEDCS-49); fresh compact context after c97f42b1",
+ "status": "UNREVIEWED CODE_FROZEN. Focused Linux checks only. Not a native clearance, not a Task49/D3/ordinary/full-pack acceptance. The SAME independent reviewer's a21e4443 report was CHANGES_REQUIRED at 7bec; all three of its finite groups are corrected in this NEW source and the corrected source has NOT been reviewed.",
+ "branch": "codex/d3-object-tree-collision",
+ "worktree": "R:/d3-evidence/collision-characterization-20261029",
+ "newCodeSHA": "92d0739a18a34905223f76d0cbbc081375e3c845",
+ "directParentOfNewCode_git_rev_parse": "64d4bc899f4baeb4aa8566aeff210f9f448209bb",
+ "semantic_compiled_baseline": "7bec89e45a9e45f14c76e0cf3f5d1bb001809f94 (the direct parent 64d4bc899 differs from it by STATUS.md and docs/handover/ACTIVE-EXTRACTION.json only, verified by git diff --name-only)",
+ "metadataSHA": "1aa35d4dbcb336efeb9ba5e8c5d328c9936df09b",
+ "pushed": "normal pushes, no force; the code commit was pushed before the metadata commit",
+ "reviewed_report_joined": {
+  "path": "R:/d3-evidence/independent-sector-roster-source-7bec-20261106.json",
+  "bytes": 22650,
+  "sha256": "a21e4443f3fe835b3e30d987c3cca9610a9a0a9e33a0204cc3f112fc17d1acf5",
+  "decision": "CHANGES_REQUIRED, native_launch_clearance false, exactly three groups"
+ },
+ "root_notes_read": [
+  {
+   "path": "R:/d3-evidence/sector-roster-SAME-REVIEW-OPEN-20261106.txt",
+   "bytes": 4763,
+   "sha256": "5f4a0a57484ee2eb84cbcf37b850cf98af248b6165cc40c8953d49b3dce34b3b"
+  },
+  {
+   "path": "R:/d3-evidence/sector-roster-ROOT-LOG-FINDING-20261106.txt",
+   "bytes": 2266,
+   "sha256": "531c418b47dca1f8b8bea25afefab90592c32193a313e1ecec7cc4f4fe8540dd"
+  },
+  {
+   "path": "R:/d3-evidence/sector-roster-CODE-FROZEN-20261105.json",
+   "bytes": 31351,
+   "sha256": "50f38e54775eb730c69f23d66453266c2226f7403cea28072e02d30baf3c941f"
+  }
+ ],
+ "progress_guard": "migration-progress.py --action fix-blocker --blocker entity-object-collision returned next_action fix-blocker, exit 0, before any change",
+ "findings_corrected": {
+  "ENV-SECTOR-ROSTER-DRIVER-CONTRACT-1": {
+   "change": "lua/entity-authority.lua parse_scan_request/scan_reply_problem/scan_question: phases 0..6, 16 patterns then (one space, identity) with the standing key required (a roster key: 1 to 20 digits, no leading zero) in ENTRY and RESOLVED only, FIRST/NEXT name = a roster key or empty, INSERT (only position/type/side stated, optional identity of at most 128 bytes) / REMOVE (key) / RESET (nothing) with replies placed (a key never issued before) / removed / cleared (no key, no cursor); state-by-phase and kernel joins (entry not excluded -> offer, excluded -> next, hit -> done_hit, miss -> next); key joins (a scan stands at the entry it was last served, never at an ended one; an ended entry is never served or removed again; an issued key is never reused). Roster events are counted in scan.roster apart from the scan's own questions in both windows (before.roster/after.roster, report roster_* fields), are never altered by a mode and credit no scan control; the Original profile treats any roster event as 'the module is not the original'. Preserved untouched: the strict A3 NeedUpdated and testmoving16 oracles, the B one-callback/coherence/changed-signature/same-profile-A-signature checks and Original absence (all 56 driver tests pass, including every unchanged old test).",
+   "tests": "entity_authority.rs: the scripted collaborator speaks the real C grammar by default (boot + insertion on the first walk, a relink per later walk, standing key in ENTRY/RESOLVED, key-naming replies); 3 new tests: real traffic is a healthy control with separate lifecycle counters and the exact roster/standing-key sequence for 1 and 3 walks, a hosted mobile identity and the scan_real/scan_none controls; roster-only traffic is UNREACHED and a roster event under profile=original is not the original; 20 single-fault cases (5 scan-request cases: no key, malformed key, stray key in BEGIN, another entry, an ended entry; 7 roster-request cases; 5 roster-reply cases; 3 scan-reply cases) each asserted to be counted at its question with its exact prefix and fragment and never a pass.",
+   "red": "red-authority: the UNCHANGED 7bec Lua against the new real-grammar collaborator failed 43 of 56 with 'scan request: the phase 0x40c00000 is not 0 to 3' (request_faults=4 reply_faults=3 in the first healthy control): the failure is the missing protocol, not setup. 13 tests that never reach the scan walk passed."
+  },
+  "ENV-SECTOR-ROSTER-FP-BOUNDARY-1": {
+   "change": "roster.rs word_truncated/word_whole/parse_key and model_host.rs: every roster word (phase, position, type, side, cursor, standing key) is classified and truncated by integer operations on the raw word; no floating-point instruction, compare, floor or conversion touches it. Non-finite (including every signaling NaN) and magnitude over 1.0e9 words are refused by name; fractional words are not whole; the truncation is the compiler's toward-zero conversion for every in-domain word (a 200000-word sweep plus 12 edge words is compared with `as i32` and trunc()). The eager `bool.then_some(value as i32)` is gone. The kernel's scan_step keeps its own bounded guard, unchanged.",
+   "tests": "entity_roster_host.rs the_roster_arithmetic_hands_back_the_callers_whole_floating_point_state_for_fractional_and_malformed_words: for each caller rounding (Nearest, Up, Down, Zero) with the caller's exception status clear and with it raised, a placement with fractional coordinates (truncated to sector (1,1), never rounded), a served first entry and 11 malformed raw-word cases (signaling and infinite phase, signaling and infinite positions, signaling and fractional type, signaling side, signaling cursor, excluded and hit flags) all give the named refusal and leave the whole caller state (masks, rounding, raw x87 control, raw MXCSR incl. status, raised flags) equal. roster.rs: 2 unit tests (integer classification vs `as i32`; key domain).",
+   "red": "red-roster2: with the 7bec source the fractional placement changed the caller's state (mxcsr 8064 -> 8096, exception flags 0 -> 32, the inexact flag) under Nearest, raised=false."
+  },
+  "ENV-SECTOR-ROSTER-STANDING-KEY-1": {
+   "change": "model_host.rs entity_scan_answer: before scan_step, ENTRY (1) and RESOLVED (3) must carry a standing key (strict roster-key domain), validated against the live roster and, when the cursor words are a sector, the sector the scan is in; BEGIN (0), END (2) and RESET carry none ('carries no standing key' / 'a boot carries no identity'). INSERT keeps its optional mobile identity, REMOVE its key (now the strict key domain). The Offer, skip, DoneHit and Next paths all see the same validated key.",
+   "tests": "entity_roster_host.rs the_standing_key_of_an_entry_or_a_resolved_offer_is_validated_before_any_decision_and_only_those_phases_carry_one: positive first (offer, skip->next serving the following key, done_hit, miss->next, BEGIN->first the oldest, END->done_none) then 4 decisions x 7 bad keys (unknown, ended, other sector, text, leading zero, signed, none) each refused with [roster.key] and nothing served, BEGIN/END/RESET with a key refused, roster unchanged and still served in order.",
+   "red": "red-roster2: with the 7bec source ENTRY(offer) with an unknown key answered `offer` (expected refused)."
+  }
+ },
+ "setup_error_in_first_red_qualified": "red-roster (first) failed the standing-key test at my own wrong assertion (BEGIN legitimately serves the sector's oldest key), not at the missing behaviour; it is preserved. red-roster2 is the corrected red and fails at the real gap.",
+ "other_change": {
+  "path": "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+  "what": "the enumeration test asked BEGIN with no roster installed, which 7bec already refuses by name ([roster.missing]); it now installs one roster entry in sector (1,1) and names it in ENTRY. The same scenario assertions are kept (first sector, offer, skip, done_none, cursor outside the window).",
+  "status_of_old_failure": "g5-target-point on the corrected tree failed only that test with '[roster.missing]' on the BEGIN path, which this correction does not change: inferred (not run on a pristine 7bec tree) to have failed at 7bec. The prior 7bec matrix did not include model_target_point, so it was an unnoticed gap, not a regression of this correction."
+ },
+ "changed_files_git_byte_join": [
+  {
+   "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+   "before": {
+    "git_blob_at_direct_parent": "d690abdb252a6191349a5d5e0ae55860ed2bff86",
+    "bytes": 139227,
+    "sha256": "5d116d5662892905c538695dd30cda053a02a7d05aaf9ba2d63fb442eacd0422",
+    "raw_working_sha256_in_before_map": "5d116d5662892905c538695dd30cda053a02a7d05aaf9ba2d63fb442eacd0422",
+    "before_map_raw_equals_blob_bytes": true
+   },
+   "after": {
+    "git_blob_at_code_commit": "beb7fdc877079f9ef57849a5c5b3e0dd0d0150e3",
+    "bytes": 149909,
+    "sha256": "bde7abfc24b80d9bcb49d28dcebdf8f905a8c3927eb6751a31f69f9601fed074",
+    "raw_working_sha256_in_after_map": "bde7abfc24b80d9bcb49d28dcebdf8f905a8c3927eb6751a31f69f9601fed074",
+    "after_map_raw_equals_committed_bytes": true,
+    "git_hash_object_of_raw_bytes": "beb7fdc877079f9ef57849a5c5b3e0dd0d0150e3"
+   },
+   "lines_added_removed": [
+    157,
+    23
+   ],
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+   "before": {
+    "git_blob_at_direct_parent": "8fb18bdf72532a337f11c22266226f6640a9a7c6",
+    "bytes": 118612,
+    "sha256": "eee72abdb1d2f5ce459ecd791ff3db6c15d41513839503db02b823ef1b0a87be",
+    "raw_working_sha256_in_before_map": "eee72abdb1d2f5ce459ecd791ff3db6c15d41513839503db02b823ef1b0a87be",
+    "before_map_raw_equals_blob_bytes": true
+   },
+   "after": {
+    "git_blob_at_code_commit": "8089204988bed515480def2682183ac355b4f236",
+    "bytes": 121910,
+    "sha256": "63d48a0de9b683d265e943ebe655bd84346113240b504a6d84da6a91dc535994",
+    "raw_working_sha256_in_after_map": "63d48a0de9b683d265e943ebe655bd84346113240b504a6d84da6a91dc535994",
+    "after_map_raw_equals_committed_bytes": true,
+    "git_hash_object_of_raw_bytes": "8089204988bed515480def2682183ac355b4f236"
+   },
+   "lines_added_removed": [
+    76,
+    33
+   ],
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/src/roster.rs",
+   "before": {
+    "git_blob_at_direct_parent": "68b69970bf81780ab800c627746a6e5bd71803e6",
+    "bytes": 10534,
+    "sha256": "eba7ac88c628cd02d2739a511b52daa04c2b1233b31152715e7264936e447be8",
+    "raw_working_sha256_in_before_map": "eba7ac88c628cd02d2739a511b52daa04c2b1233b31152715e7264936e447be8",
+    "before_map_raw_equals_blob_bytes": true
+   },
+   "after": {
+    "git_blob_at_code_commit": "8bc38d8d382f1b31ce563596f11e7492262b16db",
+    "bytes": 17176,
+    "sha256": "9cf8bc54bb57c7412558255d5d3ec2776678e7fc3364c3ff755a6f81abce9a30",
+    "raw_working_sha256_in_after_map": "9cf8bc54bb57c7412558255d5d3ec2776678e7fc3364c3ff755a6f81abce9a30",
+    "after_map_raw_equals_committed_bytes": true,
+    "git_hash_object_of_raw_bytes": "8bc38d8d382f1b31ce563596f11e7492262b16db"
+   },
+   "lines_added_removed": [
+    158,
+    9
+   ],
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+   "before": {
+    "git_blob_at_direct_parent": "f4cc2dd52056acfe1a2542777a0efe613b496877",
+    "bytes": 191144,
+    "sha256": "5c1647f53127b17208b9f57a664f354821079602c3c96e1e952d695f5d76846f",
+    "raw_working_sha256_in_before_map": "5c1647f53127b17208b9f57a664f354821079602c3c96e1e952d695f5d76846f",
+    "before_map_raw_equals_blob_bytes": true
+   },
+   "after": {
+    "git_blob_at_code_commit": "fb9c1cbdefaec0faf075f5053aa9ffb3ea2c6be0",
+    "bytes": 206316,
+    "sha256": "fb0df3d66509538858a890e3ab48ef3d4e286bd8abb981be1f50b5c9afacee7a",
+    "raw_working_sha256_in_after_map": "fb0df3d66509538858a890e3ab48ef3d4e286bd8abb981be1f50b5c9afacee7a",
+    "after_map_raw_equals_committed_bytes": true,
+    "git_hash_object_of_raw_bytes": "fb9c1cbdefaec0faf075f5053aa9ffb3ea2c6be0"
+   },
+   "lines_added_removed": [
+    260,
+    13
+   ],
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/tests/entity_roster_host.rs",
+   "before": {
+    "git_blob_at_direct_parent": "d2fd9d1bf701ef3f6313971428bcb8077649353b",
+    "bytes": 13163,
+    "sha256": "42f1c8e12c399f646cc654af829665886d2be1870d0dccb314268cac5ea6aebf",
+    "raw_working_sha256_in_before_map": "42f1c8e12c399f646cc654af829665886d2be1870d0dccb314268cac5ea6aebf",
+    "before_map_raw_equals_blob_bytes": true
+   },
+   "after": {
+    "git_blob_at_code_commit": "0ef9d80dda9ec0c99f947700b9e9baf7cc5dd0eb",
+    "bytes": 22237,
+    "sha256": "019200daf57aee6a2af007c23a22b2f24b2cf517aeed69830aed32060f04c19d",
+    "raw_working_sha256_in_after_map": "019200daf57aee6a2af007c23a22b2f24b2cf517aeed69830aed32060f04c19d",
+    "after_map_raw_equals_committed_bytes": true,
+    "git_hash_object_of_raw_bytes": "0ef9d80dda9ec0c99f947700b9e9baf7cc5dd0eb"
+   },
+   "lines_added_removed": [
+    161,
+    5
+   ],
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/tests/model_target_point.rs",
+   "before": {
+    "git_blob_at_direct_parent": "a1cdb3f463c771e5422360bedb02839e98f4e662",
+    "bytes": 88498,
+    "sha256": "a4026c2f6b7ad887a6225a7e9b36422e60c44769a4ec48833cc15507eca9e8a6",
+    "raw_working_sha256_in_before_map": "a4026c2f6b7ad887a6225a7e9b36422e60c44769a4ec48833cc15507eca9e8a6",
+    "before_map_raw_equals_blob_bytes": true
+   },
+   "after": {
+    "git_blob_at_code_commit": "51b907410dbeae630d4abb84e0a43c99aa6afdd9",
+    "bytes": 89416,
+    "sha256": "aea5109b48db4a79d044bea57cd4dd689d7eae79d413df4c24d462b4a1f724bb",
+    "raw_working_sha256_in_after_map": "aea5109b48db4a79d044bea57cd4dd689d7eae79d413df4c24d462b4a1f724bb",
+    "after_map_raw_equals_committed_bytes": true,
+    "git_hash_object_of_raw_bytes": "51b907410dbeae630d4abb84e0a43c99aa6afdd9"
+   },
+   "lines_added_removed": [
+    17,
+    3
+   ],
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "raw_has_CR": false
+  }
+ ],
+ "changed_file_count": 6,
+ "files_not_changed": "no C, FFI, engine, sys, dc or main.rs file: the 7bec C/FFI sources are byte-identical (the input map's only raw changes are the six files above)",
+ "input_maps": {
+  "before": {
+   "path": "R:/d3-evidence/qrofix-20261106/inputmap-before.json",
+   "bytes": 2028777,
+   "sha256": "3c76708b1f1881934c960fe263d9b6759f7ceeb68abe2cf780ef3d931c7ffc97"
+  },
+  "after": {
+   "path": "R:/d3-evidence/qrofix-20261106/inputmap-after.json",
+   "bytes": 2029138,
+   "sha256": "2c95527b4d05bdc3fd2d4f245f99837e9a735087034215b7d9459881d2aae530"
+  },
+  "file_count": [
+   3952,
+   3952
+  ],
+  "fingerprint_before": "8117c486647335d07d87dd11ad01e1c3bed3f0c6ad02c6af23c986ff203f952c",
+  "fingerprint_after": "9c622e7674cfce48e26b89c08cc3f6850e2865bbef4ea2a6db8e1d2318996e20",
+  "before_head": "64d4bc899f4baeb4aa8566aeff210f9f448209bb",
+  "after_head_at_map_time": "64d4bc899f4baeb4aa8566aeff210f9f448209bb",
+  "raw_changes_between_maps": [
+   "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+   "eech-campaign/crates/eech-world/src/model_host.rs",
+   "eech-campaign/crates/eech-world/src/roster.rs",
+   "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+   "eech-campaign/crates/eech-world/tests/entity_roster_host.rs",
+   "eech-campaign/crates/eech-world/tests/model_target_point.rs"
+  ],
+  "qualification_pre_existing_raw_vs_blob_differences_not_normalized": {
+   "paths_whose_raw_bytes_and_git_filtered_identity_disagree": [
+    "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+    "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+    "modules/system/malloc.c.h",
+    "modules/system/nedmalloc.c"
+   ],
+   "three_tree_geometry_lua_files_differ_from_their_committed_blob_bytes_in_the_working_tree_in_both_maps": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+   ],
+   "note": "present identically before and after; not touched, not normalised."
+  },
+  "script": {
+   "path": "R:/d3-evidence/sector-roster-20261105/inputmap.py",
+   "bytes": 4142,
+   "sha256": "7b1863bd6c6439930329d89ff1934cc59bd563629778346847bbfe2d72e3043e"
+  }
+ },
+ "tests_actual": {
+  "red_before_fix": [
+   {
+    "label": "qrofix-red-roster",
+    "command": "cargo test --release --locked -p eech-world --test entity_roster_host --no-fail-fast",
+    "actual_exit": 101,
+    "started_utc": "2026-11-06T01:31:48.572805+00:00",
+    "completed_utc": "2026-11-06T01:31:51.440709+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-red-roster.json",
+     "bytes": 963,
+     "sha256": "e993c00b1ea32707fdc16d9ee626a7974c1a5ed884e030720e34fd5150058495"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-red-roster.stdout.log",
+     "bytes": 2436,
+     "sha256": "3495b25735937a7a406bf1917e88cea5f5c79cfc09f75feffa434eb5ebe730b6"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-red-roster.stderr.log",
+     "bytes": 420,
+     "sha256": "49cbd3d41b6a12bc872e93ee654a256d9d4dc5a739eb0a70d187644f3259de13"
+    },
+    "test_result_rows": [
+     {
+      "status": "FAILED",
+      "passed": 7,
+      "failed": 2
+     }
+    ],
+    "failed_tests": [
+     "the_roster_arithmetic_hands_back_the_callers_whole_floating_point_state_for_fractional_and_malformed_words",
+     "the_standing_key_of_an_entry_or_a_resolved_offer_is_validated_before_any_decision_and_only_those_phases_carry_one"
+    ]
+   },
+   {
+    "label": "qrofix-red-roster2",
+    "command": "cargo test --release --locked -p eech-world --test entity_roster_host --no-fail-fast",
+    "actual_exit": 101,
+    "started_utc": "2026-11-06T01:32:07.634829+00:00",
+    "completed_utc": "2026-11-06T01:32:09.611896+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-red-roster2.json",
+     "bytes": 962,
+     "sha256": "def9ec77890cff8a17172e313a5ae900f71ac955dd00782144f2114d1877563d"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-red-roster2.stdout.log",
+     "bytes": 2464,
+     "sha256": "a204879f4707cfca23c54a4939eb7e669bd07fa13073da2c98c4c07064f43453"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-red-roster2.stderr.log",
+     "bytes": 420,
+     "sha256": "e61cf7af82fa7fd862327b7365d51b89bab4cbd7b0f1ae2d323b977bfa3760ae"
+    },
+    "test_result_rows": [
+     {
+      "status": "FAILED",
+      "passed": 7,
+      "failed": 2
+     }
+    ],
+    "failed_tests": [
+     "the_roster_arithmetic_hands_back_the_callers_whole_floating_point_state_for_fractional_and_malformed_words",
+     "the_standing_key_of_an_entry_or_a_resolved_offer_is_validated_before_any_decision_and_only_those_phases_carry_one"
+    ]
+   },
+   {
+    "label": "qrofix-red-authority",
+    "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast",
+    "actual_exit": 101,
+    "started_utc": "2026-11-06T01:36:30.560597+00:00",
+    "completed_utc": "2026-11-06T01:36:36.621419+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-red-authority.json",
+     "bytes": 959,
+     "sha256": "e2dfe44cc635b1294081138b776ed39dfb82ed77ba63d782d556fa6e7c0fea50"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-red-authority.stdout.log",
+     "bytes": 156694,
+     "sha256": "f1caff6139ff9fbd9808d6224093d9d2a40f31cb45ce2ab2cc12c79af45541b1"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-red-authority.stderr.log",
+     "bytes": 2379,
+     "sha256": "eadd3d86aecfa44580af3b25b81cf1ecc394219f288ea15b84735abb81d64bbd"
+    },
+    "test_result_rows": [
+     {
+      "status": "FAILED",
+      "passed": 13,
+      "failed": 43
+     }
+    ],
+    "failed_tests": [
+     "a_healthy_control_sees_real_entity_questions_checks_their_shape_and_joins_the_fixture_counters",
+     "a_withheld_or_malformed_scan_answer_counts_only_at_the_anchored_engine_stop_with_its_exact_scan_marker_and_nothing_is_asked_afterwards",
+     "a_forced_miss_is_an_accepted_partial_write_miss_and_no_hit_may_reach_the_weapon_step",
+     "a_terrain_lift_changes_only_the_targets_own_routed_step_after_the_launch_and_needs_a_later_question_about_it",
+     "a_complete_c_shaped_report_with_a_maximum_whitespace_and_utf8_identity_and_a_building_hit_is_accepted_and_reported_exactly",
+     "a_real_hit_is_checked_against_the_weapon_steps_own_hit_count",
+     "a_forced_hit_is_a_valid_complete_answer_at_the_requests_old_end_and_must_reach_the_weapon_steps_hit_count",
+     "an_earlier_mover_without_a_finite_positive_demand_is_passed_over_untouched",
+     "every_single_fault_in_a_prepare_or_run_report_stops_the_witness_and_a_complete_report_does_not",
+     "each_single_fault_of_the_new_scan_and_roster_grammar_is_counted_at_its_question_and_is_never_a_pass",
+     "every_other_operation_and_every_question_before_the_launch_is_the_hosts_own_answer_unchanged_in_every_mode",
+     "only_roster_events_is_unreached_never_a_scan_and_a_roster_event_in_the_original_profile_is_not_the_original",
+     "a_lift_is_credited_only_by_the_targets_real_terrain_bearing_step_inside_the_query_frame",
+     "real_protocol_traffic_with_roster_events_and_standing_keys_is_a_healthy_control_and_the_events_are_not_credited_as_query_scans",
+     "setup_output_and_arguments_fail_closed_and_the_first_error_is_never_hidden",
+     "the_empty_enumeration_variant_changes_the_cohort_by_preventing_every_candidate_question_narrow_phase_question_and_hit_with_the_same_configured_secondary_input",
+     "the_armed_weapon_step_is_given_the_configured_view_and_everything_else_reaches_the_host_unchanged",
+     "the_case_is_the_nearest_non_person_enemy_of_a_launcher_with_an_unguided_ballistic_weapon",
+     "no_eligible_actor_is_a_named_prelaunch_unreached_with_finite_counts_and_a_terrain_less_ordinary_step_stays_valid",
+     "the_controlled_query_latches_three_segments_about_the_first_moving_routed_vehicle_runs_one_frame_and_asks_the_same_segments",
+     "a_run_whose_actual_entity_caller_or_narrow_phase_was_not_reached_is_unreached_never_authority",
+     "the_moving_case_is_the_campaigns_own_engagement_of_a_routed_enemy_the_host_actually_stepped_and_its_questions_are_counted_by_identity",
+     "a_query_case_that_cannot_be_prepared_or_covered_is_an_exact_unreached_and_never_a_pass",
+     "the_natural_control_counts_the_actual_candidate_questions_and_classifies_the_real_answers_with_nothing_altered",
+     "the_natural_control_counts_the_pose_observations_by_stage_and_class_and_keeps_the_histogram_with_nothing_altered",
+     "the_lifted_query_is_service_evidence_only_with_a_post_lift_offer_and_a_changed_physical_result_and_may_skip_the_narrow_phase",
+     "the_natural_control_counts_the_actual_scan_questions_by_phase_and_requires_the_whole_chain_with_nothing_altered",
+     "the_host_side_record_modes_refuse_by_exact_name_and_nothing_is_asked_afterwards",
+     "an_incomplete_empty_or_inconsistent_cohort_is_a_failure_and_never_a_pass",
+     "the_pose_observation_follows_the_scan_the_empty_enumeration_prevents_it_and_the_original_profile_asks_none",
+     "the_query_target_is_the_first_moving_vehicle_whose_final_warmup_step_carried_the_lift_input_and_an_earlier_one_without_it_is_passed_over_unaltered",
+     "a_query_frame_step_without_a_valid_demand_or_no_step_at_all_is_unreached_and_never_credited",
+     "the_paired_control_reaches_the_actual_narrow_phase_with_the_configured_hit_and_the_cohort_physically_hits",
+     "the_stage_masks_the_whole_identity_domain_the_prelaunch_phase_and_the_facts_are_classified_together",
+     "the_speed_control_selects_the_first_moving_vehicle_that_carried_a_positive_demand_and_changes_nothing",
+     "the_skip_variant_changes_the_cohort_by_preventing_every_narrow_phase_question_and_hit_with_the_same_configured_secondary_input",
+     "the_zero_demand_b_delegates_one_copy_that_differs_only_in_desired_velocity_and_is_credited_by_a_different_physical_result",
+     "the_paired_scan_control_reaches_the_candidate_dialogue_and_the_narrow_phase_with_the_configured_hit_and_the_cohort_physically_hits",
+     "zero_pose_questions_is_unreached_and_a_malformed_pose_request_or_real_reply_is_counted_and_never_credited",
+     "the_request_is_the_corrected_shape_and_a_malformed_request_or_real_reply_is_a_failure",
+     "zero_scan_questions_is_unreached_and_a_malformed_scan_request_or_real_reply_is_counted_and_never_credited",
+     "the_zero_demand_b_may_skip_the_narrow_phase_but_never_the_offer_and_an_unchanged_result_is_rejected",
+     "zero_candidate_questions_is_unreached_even_when_the_narrow_phase_was_asked_and_a_malformed_request_or_real_reply_is_a_failure"
+    ]
+   }
+  ],
+  "intermediate_attempts_kept": [
+   {
+    "label": "qrofix-g1-roster-host",
+    "command": "cargo test --release --locked -p eech-world --test entity_roster_host --no-fail-fast",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T01:40:58.116965+00:00",
+    "completed_utc": "2026-11-06T01:41:07.924449+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g1-roster-host.json",
+     "bytes": 961,
+     "sha256": "256b454c146cf9ec7f711c9a14fa0903050ecd18c5f3c082ac46b4feb3621fb5"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g1-roster-host.stdout.log",
+     "bytes": 1027,
+     "sha256": "cb8eb98e3d75d9e4b3410054f06666ee069682d8072cf3c4e7b4d4f60f90f97f"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g1-roster-host.stderr.log",
+     "bytes": 274,
+     "sha256": "ed344bb46dc95529cfb6a88c13450f1b8128f9c034b449a9921d3b8043b45d08"
+    },
+    "test_result_rows": [
+     {
+      "status": "ok",
+      "passed": 9,
+      "failed": 0
+     }
+    ],
+    "failed_tests": []
+   },
+   {
+    "label": "qrofix-g1-authority",
+    "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast",
+    "actual_exit": 101,
+    "started_utc": "2026-11-06T01:41:12.670874+00:00",
+    "completed_utc": "2026-11-06T01:41:17.677158+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g1-authority.json",
+     "bytes": 959,
+     "sha256": "03a458a96fb3b6defecf6536396265c565d601060c5f243e8981c59be4f30c25"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g1-authority.stdout.log",
+     "bytes": 34121,
+     "sha256": "db969f2c1cbf9cd1062d13ac35425b50c9a496efe66518dc749ff5d0cb9d369f"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g1-authority.stderr.log",
+     "bytes": 412,
+     "sha256": "702315bb18a9ae9474607828b82c9b0f0fcfc3b9115c98eb5d9cfa87973151a6"
+    },
+    "test_result_rows": [
+     {
+      "status": "FAILED",
+      "passed": 1,
+      "failed": 55
+     }
+    ],
+    "failed_tests": [
+     "a_forced_miss_is_an_accepted_partial_write_miss_and_no_hit_may_reach_the_weapon_step",
+     "a_query_case_that_cannot_be_prepared_or_covered_is_an_exact_unreached_and_never_a_pass",
+     "a_lift_is_credited_only_by_the_targets_real_terrain_bearing_step_inside_the_query_frame",
+     "a_query_frame_step_without_a_valid_demand_or_no_step_at_all_is_unreached_and_never_credited",
+     "a_healthy_control_sees_real_entity_questions_checks_their_shape_and_joins_the_fixture_counters",
+     "a_real_hit_is_checked_against_the_weapon_steps_own_hit_count",
+     "a_refusal_counts_only_at_the_anchored_engine_stop_with_the_exact_marker_and_nothing_is_asked_afterwards",
+     "a_terrain_lift_changes_only_the_targets_own_routed_step_after_the_launch_and_needs_a_later_question_about_it",
+     "a_withheld_or_malformed_candidate_answer_counts_only_at_the_anchored_engine_stop_with_its_exact_candidate_marker_and_nothing_is_asked_afterwards",
+     "a_withheld_or_malformed_scan_answer_counts_only_at_the_anchored_engine_stop_with_its_exact_scan_marker_and_nothing_is_asked_afterwards",
+     "a_withheld_or_malformed_pose_answer_counts_only_at_the_anchored_engine_stop_with_its_exact_pose_marker_and_nothing_is_asked_afterwards",
+     "every_other_operation_and_every_question_before_the_launch_is_the_hosts_own_answer_unchanged_in_every_mode",
+     "each_single_fault_of_the_new_scan_and_roster_grammar_is_counted_at_its_question_and_is_never_a_pass",
+     "every_single_fault_in_a_prepare_or_run_report_stops_the_witness_and_a_complete_report_does_not",
+     "a_complete_c_shaped_report_with_a_maximum_whitespace_and_utf8_identity_and_a_building_hit_is_accepted_and_reported_exactly",
+     "a_run_whose_actual_entity_caller_or_narrow_phase_was_not_reached_is_unreached_never_authority",
+     "no_actor_with_a_positive_demand_is_a_named_prelaunch_unreached_in_every_speed_mode_and_profile",
+     "an_incomplete_empty_or_inconsistent_cohort_is_a_failure_and_never_a_pass",
+     "an_earlier_mover_without_a_finite_positive_demand_is_passed_over_untouched",
+     "setup_output_and_arguments_fail_closed_and_the_first_error_is_never_hidden",
+     "real_protocol_traffic_with_roster_events_and_standing_keys_is_a_healthy_control_and_the_events_are_not_credited_as_query_scans",
+     "the_candidate_modes_close_the_evidence_with_a_checked_close_and_a_failing_close_is_never_hidden",
+     "no_eligible_actor_is_a_named_prelaunch_unreached_with_finite_counts_and_a_terrain_less_ordinary_step_stays_valid",
+     "the_armed_weapon_step_is_given_the_configured_view_and_everything_else_reaches_the_host_unchanged",
+     "a_forced_hit_is_a_valid_complete_answer_at_the_requests_old_end_and_must_reach_the_weapon_steps_hit_count",
+     "the_empty_enumeration_variant_changes_the_cohort_by_preventing_every_candidate_question_narrow_phase_question_and_hit_with_the_same_configured_secondary_input",
+     "the_lifted_query_is_service_evidence_only_with_a_post_lift_offer_and_a_changed_physical_result_and_may_skip_the_narrow_phase",
+     "the_controlled_query_runs_the_same_case_under_the_original_profile_and_reports_outputs_only",
+     "the_controlled_query_latches_three_segments_about_the_first_moving_routed_vehicle_runs_one_frame_and_asks_the_same_segments",
+     "only_roster_events_is_unreached_never_a_scan_and_a_roster_event_in_the_original_profile_is_not_the_original",
+     "the_moving_case_is_the_campaigns_own_engagement_of_a_routed_enemy_the_host_actually_stepped_and_its_questions_are_counted_by_identity",
+     "the_original_profile_has_the_api_and_the_real_caller_lookups_but_no_scan_candidate_or_narrow_phase_question_and_a_missing_api_is_unreached",
+     "the_case_is_the_nearest_non_person_enemy_of_a_launcher_with_an_unguided_ballistic_weapon",
+     "the_original_profile_is_a_capability_red_only_when_the_actual_entity_caller_ran_and_otherwise_unreached",
+     "the_natural_control_counts_the_pose_observations_by_stage_and_class_and_keeps_the_histogram_with_nothing_altered",
+     "the_natural_control_counts_the_actual_candidate_questions_and_classifies_the_real_answers_with_nothing_altered",
+     "the_host_side_record_modes_refuse_by_exact_name_and_nothing_is_asked_afterwards",
+     "the_host_side_movement_modes_run_under_the_original_profile_and_the_refusal_modes_still_do_not",
+     "the_natural_control_counts_the_actual_scan_questions_by_phase_and_requires_the_whole_chain_with_nothing_altered",
+     "the_pose_observation_follows_the_scan_the_empty_enumeration_prevents_it_and_the_original_profile_asks_none",
+     "the_request_is_the_corrected_shape_and_a_malformed_request_or_real_reply_is_a_failure",
+     "the_original_profile_has_the_api_and_the_real_caller_lookups_but_no_candidate_question_and_the_expected_red_names_both_counts",
+     "the_original_profile_receives_the_same_changed_demand_and_asks_the_host_nothing",
+     "the_skip_variant_changes_the_cohort_by_preventing_every_narrow_phase_question_and_hit_with_the_same_configured_secondary_input",
+     "the_speed_control_selects_the_first_moving_vehicle_that_carried_a_positive_demand_and_changes_nothing",
+     "the_stage_masks_the_whole_identity_domain_the_prelaunch_phase_and_the_facts_are_classified_together",
+     "the_query_target_is_the_first_moving_vehicle_whose_final_warmup_step_carried_the_lift_input_and_an_earlier_one_without_it_is_passed_over_unaltered",
+     "the_zero_demand_b_may_skip_the_narrow_phase_but_never_the_offer_and_an_unchanged_result_is_rejected",
+     "the_scan_modes_close_the_evidence_with_a_checked_close_and_a_failing_close_is_never_hidden",
+     "zero_candidate_questions_is_unreached_even_when_the_narrow_phase_was_asked_and_a_malformed_request_or_real_reply_is_a_failure",
+     "the_zero_demand_b_delegates_one_copy_that_differs_only_in_desired_velocity_and_is_credited_by_a_different_physical_result",
+     "zero_pose_questions_is_unreached_and_a_malformed_pose_request_or_real_reply_is_counted_and_never_credited",
+     "zero_scan_questions_is_unreached_and_a_malformed_scan_request_or_real_reply_is_counted_and_never_credited",
+     "the_paired_control_reaches_the_actual_narrow_phase_with_the_configured_hit_and_the_cohort_physically_hits",
+     "the_paired_scan_control_reaches_the_candidate_dialogue_and_the_narrow_phase_with_the_configured_hit_and_the_cohort_physically_hits"
+    ]
+   },
+   {
+    "label": "qrofix-g2-authority",
+    "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast",
+    "actual_exit": 101,
+    "started_utc": "2026-11-06T01:41:38.947730+00:00",
+    "completed_utc": "2026-11-06T01:41:44.265127+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g2-authority.json",
+     "bytes": 958,
+     "sha256": "be4b6eaa23caad6d6b2cd3a58799fe953b393477ba643e9ddae818edff4e2b37"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g2-authority.stdout.log",
+     "bytes": 10483,
+     "sha256": "7ee6af03161e40423b051f7c6838f8e1f0d31880cd717af3e46bb86efaa2ba57"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g2-authority.stderr.log",
+     "bytes": 11478,
+     "sha256": "6bc46c0de80e30fe0df7651bafbc30fa9c8a50191a8b9dcaa78accfd23a22867"
+    },
+    "test_result_rows": [
+     {
+      "status": "FAILED",
+      "passed": 55,
+      "failed": 1
+     }
+    ],
+    "failed_tests": [
+     "each_single_fault_of_the_new_scan_and_roster_grammar_is_counted_at_its_question_and_is_never_a_pass"
+    ]
+   },
+   {
+    "label": "qrofix-g3-authority",
+    "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast",
+    "actual_exit": 101,
+    "started_utc": "2026-11-06T01:41:52.300390+00:00",
+    "completed_utc": "2026-11-06T01:41:57.482062+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g3-authority.json",
+     "bytes": 959,
+     "sha256": "50189afc137873fe6de709b142bd953a6ed04ab23c6a0ee4b99b886e9d588177"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g3-authority.stdout.log",
+     "bytes": 7322,
+     "sha256": "7feff746bf8b0271a361fe675bf6b165e46f3142fdb57d18ee43afa48185b4f6"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g3-authority.stderr.log",
+     "bytes": 11391,
+     "sha256": "e33cc6f82e56e2811774d25f2bfb5e86d89551ccf94c0eb01541bc945656c5c8"
+    },
+    "test_result_rows": [
+     {
+      "status": "FAILED",
+      "passed": 55,
+      "failed": 1
+     }
+    ],
+    "failed_tests": [
+     "each_single_fault_of_the_new_scan_and_roster_grammar_is_counted_at_its_question_and_is_never_a_pass"
+    ]
+   },
+   {
+    "label": "qrofix-g4-authority",
+    "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T01:42:05.490981+00:00",
+    "completed_utc": "2026-11-06T01:42:10.675277+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g4-authority.json",
+     "bytes": 956,
+     "sha256": "3a3f3dc5b39ded6fe5ede006d35419e42bc83a10316ac8f17aec7fd86f982eab"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g4-authority.stdout.log",
+     "bytes": 6703,
+     "sha256": "dbac16648ff03be1ba8e1c48b2d36de1ce562c8f80a58a1d62ab64600df2e4ec"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g4-authority.stderr.log",
+     "bytes": 11249,
+     "sha256": "38f2a15c2009dd216dff60596958724832e4b86e33253e536eb4089b9803ec4b"
+    },
+    "test_result_rows": [
+     {
+      "status": "ok",
+      "passed": 56,
+      "failed": 0
+     }
+    ],
+    "failed_tests": []
+   },
+   {
+    "label": "qrofix-g5-target-point",
+    "command": "cargo test --release --locked -p eech-world --test model_target_point --no-fail-fast",
+    "actual_exit": 101,
+    "started_utc": "2026-11-06T01:42:42.636846+00:00",
+    "completed_utc": "2026-11-06T01:42:45.456665+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g5-target-point.json",
+     "bytes": 963,
+     "sha256": "d8845a5c5e10d8a1ae9dd449f3f5639a0ce604b520cc00c13594296e70f51bde"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g5-target-point.stdout.log",
+     "bytes": 4373,
+     "sha256": "f8609c352f98099ac2c7cce98b2d9808bdf35a2d5b4fcc9d11468d4076feda23"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g5-target-point.stderr.log",
+     "bytes": 420,
+     "sha256": "6550e2491ba4c73ba219134edb56f3cc041b2cb7f08cac0aeac7c00e51fef101"
+    },
+    "test_result_rows": [
+     {
+      "status": "FAILED",
+      "passed": 32,
+      "failed": 1
+     }
+    ],
+    "failed_tests": [
+     "the_enumeration_is_decided_by_the_real_provider_from_the_segment_and_the_map_alone_and_a_malformed_question_is_refused_by_name"
+    ]
+   },
+   {
+    "label": "qrofix-g6-target-point",
+    "command": "cargo test --release --locked -p eech-world --test model_target_point --no-fail-fast",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T01:43:08.161419+00:00",
+    "completed_utc": "2026-11-06T01:43:10.954921+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g6-target-point.json",
+     "bytes": 961,
+     "sha256": "f339f7dbf37c839d90aedf0e283c762ebc03adccc4a807ca5acc33ad99420ab9"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g6-target-point.stdout.log",
+     "bytes": 3624,
+     "sha256": "b227231b43780de68a236d58a22a34d13be37793d4947c683c34f22ea1896880"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g6-target-point.stderr.log",
+     "bytes": 274,
+     "sha256": "e438ccca93228b652474188a76733baf53ec09d85dee000be0727b81e34438ae"
+    },
+    "test_result_rows": [
+     {
+      "status": "ok",
+      "passed": 33,
+      "failed": 0
+     }
+    ],
+    "failed_tests": []
+   },
+   {
+    "label": "qrofix-g6-lib-roster",
+    "command": "cargo test --release --locked -p eech-world --lib roster",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T01:43:11.125746+00:00",
+    "completed_utc": "2026-11-06T01:43:21.273285+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g6-lib-roster.json",
+     "bytes": 904,
+     "sha256": "3302c0d76b1ce213b0b68112aba7cd9add9275e460dde44305e764cbd6669dad"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g6-lib-roster.stdout.log",
+     "bytes": 850,
+     "sha256": "c6734342ea566a5288d219357c75ee33f071a0a86be0ee7f40a6d208fda562fb"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g6-lib-roster.stderr.log",
+     "bytes": 259,
+     "sha256": "b3c0c5d8835aefa053ada967a98178e543c7ada47ceeaa2bcb5e73373b8a4456"
+    },
+    "test_result_rows": [
+     {
+      "status": "ok",
+      "passed": 7,
+      "failed": 0
+     }
+    ],
+    "failed_tests": []
+   },
+   {
+    "label": "qrofix-g6-fmt-check",
+    "command": "cargo fmt -p eech-world -- --check",
+    "actual_exit": 1,
+    "started_utc": "2026-11-06T01:43:21.455725+00:00",
+    "completed_utc": "2026-11-06T01:43:24.802963+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g6-fmt-check.json",
+     "bytes": 859,
+     "sha256": "0062912d4511944d6a200515c15ac5a3bb78c4e09e7e6c039220979ae49b0b14"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g6-fmt-check.stdout.log",
+     "bytes": 12200,
+     "sha256": "34f48a057ae5b4756928f028c04bdd6c70c0a96d94c753050556436597dfb5fe"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g6-fmt-check.stderr.log",
+     "bytes": 42,
+     "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "test_result_rows": [],
+    "failed_tests": []
+   },
+   {
+    "label": "qrofix-g7-fmt-apply",
+    "command": "cargo fmt -p eech-world",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T01:43:33.583240+00:00",
+    "completed_utc": "2026-11-06T01:43:36.860715+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g7-fmt-apply.json",
+     "bytes": 838,
+     "sha256": "a11f236faec1d2e4012c9c3c7fd75691880ef7d40848c0c26385dd060759443d"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g7-fmt-apply.stdout.log",
+     "bytes": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g7-fmt-apply.stderr.log",
+     "bytes": 42,
+     "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "test_result_rows": [],
+    "failed_tests": []
+   },
+   {
+    "label": "qrofix-g7-fmt-check",
+    "command": "cargo fmt -p eech-world -- --check",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T01:43:37.058207+00:00",
+    "completed_utc": "2026-11-06T01:43:40.355030+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g7-fmt-check.json",
+     "bytes": 861,
+     "sha256": "7b812e10dfbda0dd1b852014af2ce55b34a9e4ac428bbf4647d76d9795de040d"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g7-fmt-check.stdout.log",
+     "bytes": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-g7-fmt-check.stderr.log",
+     "bytes": 42,
+     "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "test_result_rows": [],
+    "failed_tests": []
+   }
+  ],
+  "final_on_frozen_bytes": [
+   {
+    "label": "qrofix-final-1-fmt",
+    "command": "cargo fmt -p eech-world -- --check",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T01:44:08.838025+00:00",
+    "completed_utc": "2026-11-06T01:44:12.054196+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-1-fmt.json",
+     "bytes": 861,
+     "sha256": "89990efa0776300ea59807ead99182ec6711a25637e828ad8cac41d4519bec18"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-1-fmt.stdout.log",
+     "bytes": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-1-fmt.stderr.log",
+     "bytes": 42,
+     "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "test_result_rows": [],
+    "failed_tests": []
+   },
+   {
+    "label": "qrofix-final-2-world",
+    "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --no-fail-fast",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T01:44:12.176923+00:00",
+    "completed_utc": "2026-11-06T01:44:22.579559+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-2-world.json",
+     "bytes": 1009,
+     "sha256": "8f43ba8ed5f25c0117897cb96c0ebd5e9d8dfabc97f7021bdf2e1ca7b4a2e7e9"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-2-world.stdout.log",
+     "bytes": 7730,
+     "sha256": "894fd5a36b97e91df58c21a9edc60715f1d864943c42b087fc60099f5f4f1b87"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-2-world.stderr.log",
+     "bytes": 11349,
+     "sha256": "1a05de053cb5a849f6ea0aa12cf8b2a8f4fb56ce280edecd1dfa0b5b0a5b252f"
+    },
+    "test_result_rows": [
+     {
+      "status": "ok",
+      "passed": 56,
+      "failed": 0
+     },
+     {
+      "status": "ok",
+      "passed": 9,
+      "failed": 0
+     }
+    ],
+    "failed_tests": []
+   },
+   {
+    "label": "qrofix-final-3-lib",
+    "command": "cargo test --release --locked -p eech-world --lib roster",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T01:44:22.706359+00:00",
+    "completed_utc": "2026-11-06T01:44:32.774688+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-3-lib.json",
+     "bytes": 904,
+     "sha256": "ab040fef53bf35a9ccf9b2a5a2d62c76c25dd4e5e0fd45b047b98bd32e3df65f"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-3-lib.stdout.log",
+     "bytes": 850,
+     "sha256": "3ae746e2f0cd5fb628d799bd208356bd4435cb7d98df037bf22151a7dc1d45a8"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-3-lib.stderr.log",
+     "bytes": 259,
+     "sha256": "7ebc70e91434eea975b31f4881425a8823b485fc24cb8fc9c5d70198b2fc493a"
+    },
+    "test_result_rows": [
+     {
+      "status": "ok",
+      "passed": 7,
+      "failed": 0
+     }
+    ],
+    "failed_tests": []
+   },
+   {
+    "label": "qrofix-final-4-target",
+    "command": "cargo test --release --locked -p eech-world --test model_target_point",
+    "actual_exit": 0,
+    "started_utc": "2026-11-06T01:44:32.901473+00:00",
+    "completed_utc": "2026-11-06T01:44:35.776611+00:00",
+    "record": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-4-target.json",
+     "bytes": 931,
+     "sha256": "a091964967ad3f2b7ceefbb272471235702df1c4fa0798b3d5fa360175603a70"
+    },
+    "stdout": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-4-target.stdout.log",
+     "bytes": 3624,
+     "sha256": "407d100f43a377527dc9cca1a89fb74c4992a72032e5c85b2b7591dfbfdea871"
+    },
+    "stderr": {
+     "path": "R:/d3-evidence/sector-roster-direct-qrofix-final-4-target.stderr.log",
+     "bytes": 274,
+     "sha256": "7f134e58026d47fa8cdb169b32856e45a8ce7a2c0fa2919a4bfb851ed7ebf2e7"
+    },
+    "test_result_rows": [
+     {
+      "status": "ok",
+      "passed": 33,
+      "failed": 0
+     }
+    ],
+    "failed_tests": []
+   }
+  ],
+  "intermediate_failure_explanations": {
+   "g1-authority": "55 of 56 failed: 'function at line 1190 has more than 60 upvalues' (my new local `roster` pushed the driver's main function over the interpreter's 60-upvalue limit); fixed by counting roster events in scan.roster",
+   "g2-authority": "1 failed: my new remove cases ran one walk, which only boots and inserts; the cases now run two walks",
+   "g3-authority": "1 failed: the ended_key_served fixture mode fired before any key had ended; fixed in the fixture",
+   "g5-target-point": "see other_change",
+   "g6-fmt-check": "exit 1: formatting needed in my own lines only (model_host.rs, roster.rs, entity_authority.rs, entity_roster_host.rs); applied by cargo fmt -p eech-world (g7-fmt-apply) and re-checked exit 0"
+  }
+ },
+ "final_summary": {
+  "fmt_check_exit": 0,
+  "entity_authority_and_entity_roster_host": "56 passed + 9 passed",
+  "lib_roster_filter": "7 passed (351 filtered out)",
+  "model_target_point": "33 passed",
+  "direct_exits": "every final check is its own scoped cargo child; its actual exit is the helper's, no trailing echo and no pipeline",
+  "all_final_exits": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ "reused_unchanged_7bec_evidence_not_relabelled": {
+  "what": "C dialogue 439 visible expectations, the four crate cargo checks, the source guards and the library suites 65/117/356 at 7bec (z1..z5 logs under R:/d3-evidence/sector-roster-20261105) stay at their own identity: no C/FFI/engine/dc/sys source changed, so they were not rerun.",
+  "caveat": "the eech-world library suite (356/358) was NOT rerun in full on the corrected source: only the roster unit filter (7). entity_candidate_host 13, entity_collision_host 9, entity_pose_host 5 and host_callbacks 82 link the changed eech-world library but exercise none of the changed functions; they were not rerun and their 7bec results are not credited to the new source.",
+  "z3_clipped_row": "the exact aggregate count of the 7bec dialogue run stays UNAVAILABLE (clipped first row); not invented",
+  "c3_combined_log": "R:/d3-evidence/sector-roster-20261105/c3-focused.log is clobbered/truncated and its roster status UNKNOWN (not 0); preserved, not used here",
+  "z_wrapper": "wrapper_exit0 in z1..z5 is not an aggregate Cargo status; their explicit per-command exits are the facts"
+ },
+ "process_notes": [
+  "one Windows writer per log: every check used Root's run-sector-roster-focused-direct-20261106.py (one scoped cargo child, separate stdout/stderr files, the helper's actual exit); one docker owner at a time (checked docker ps empty first); no timeout restart, no cache prune, no global restart",
+  "an early Python edit in text mode converted entity_roster_host.rs to CRLF; detected by byte count, restored to LF before any run, and no CR remains in any changed file (see raw_has_CR in the join)",
+  "the ACTIVE compiled 3475 ordinary pack, its snapshot, processes and bins were not read, touched, stopped or restarted"
+ ],
+ "not_run_not_claimed": [
+  "any real-engine run of the roster hook path, Windows hosted/Original/ordinary builds, ordinary short or full 40/all8, byte equality of normal outputs, a changed-roster native authority control",
+  "a floating-point measurement of a real campaign (the roster arithmetic is now integer-only; the proof is the focused caller-state control)",
+  "strict clippy, all-targets/all-features, workspace or Cargo/C matrix",
+  "independent review of THIS corrected source"
+ ],
+ "remaining_gates": [
+  "SAME-reviewer join of the changed material (the six files above) and final binding",
+  "Root's exact frozen gates: Windows builds, native actual control with a changed-roster authority, ordinary short, complete 40/all8, current CI",
+  "city building lists and the structure placement-record/semantic-ID link, static pose, shape, live flags, hierarchy, UPDATED/terrain record, raw tree/forest/cloud RNG, devices, DCS needed-only mapping, natural moving weapon, whole Task49 acceptance and normal merge, whole D3 (all ten requirements); D4/D5/TypeScript unstarted",
+  "technical-lead APPROVED review (fd-starscream-bot) before any merge; no self-approval or merge was done here"
+ ],
+ "no_native_clearance": true,
+ "publication_safety": "Safe source locations, hashes, counts and bounded findings only; no retail coordinates, physical tuples, actor identities or binaries."
+}

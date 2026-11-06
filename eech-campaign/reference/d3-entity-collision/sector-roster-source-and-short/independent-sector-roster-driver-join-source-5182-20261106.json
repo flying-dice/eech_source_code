@@ -1,0 +1,232 @@
+{
+  "schema": "independent-bounded-source-closure/v1",
+  "reviewed_utc": "2026-11-06T02:05:46.562292+00:00",
+  "source": {
+    "commit": "5182b526d08aefdd40ea93803188227fd74abae5",
+    "actual_direct_parent": "1aa35d4dbcb336efeb9ba5e8c5d328c9936df09b",
+    "metadata_commit": "aff5ac2fa0d0fbeb60e7f3fffb16e1dc90ef9caa",
+    "production_C_roster_baseline": "7bec89e45a9e45f14c76e0cf3f5d1bb001809f94",
+    "production_World_roster_provider_baseline": "92d0739a18a34905223f76d0cbbc081375e3c845",
+    "two_changed_paths": [
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "blob": "ff7c60410280098a9170fa7f8ffcb8df938feaff",
+        "bytes": 150180,
+        "sha256": "bada79dfa6331aa647560e04dcac6dc0668a89ec17b102bc7c2f25e50efc188d"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "blob": "92128c05543a06336ad48fd6812adbb42b56a13c",
+        "bytes": 208842,
+        "sha256": "bcc344a10329b6835b02b71e01f32287e4479b7affa121f7e733a9d9ff353b49"
+      }
+    ],
+    "metadata_only_delta": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json"
+    ],
+    "unchanged_C_FFI_engine_DC_provider_math_not_re_reviewed": true
+  },
+  "scope": "One narrow correctness, clean-code, boundary-safety and provenance follow-up of the request-join alteration residual only. Prior7bec C/order/heap/lazy-ID/buffer and92d integer FP/provider-key/test-setup assessments are reused, not repeated.",
+  "decision": {
+    "status": "SOURCE_CLEAR_CONDITIONAL_PLANNED_NATIVE_VALIDATION",
+    "findings": [],
+    "source_review_no_blocking_findings": true,
+    "ENV_SECTOR_ROSTER_DRIVER_CONTRACT_1_source_closed": true,
+    "all_three_prior_source_groups_closed": true,
+    "source_clearance_for_immutable_selected_gates_and_Windows_builds": true,
+    "native_launch_clearance": true,
+    "native_launch_clearance_is_conditional": true,
+    "native_prerequisites_complete_at_report_time": false,
+    "conditional_clearance_applies_only_after": [
+      "Root binds the exact clean immutable5182 snapshot and obtains the selected frozen integration checks with their actual direct exits, then a literal-equal post-check source map. The running selected gate is not claimed complete here.",
+      "Root builds and seals the required ordinary/hosted/Original Windows profiles at the exact corrected source, joins actual features/C defines and compiled-object/export inclusion/exclusion for hosted roster versus explicit Original, and rehashes all payloads.",
+      "Root uses fresh verified retail roots and the exact compatible diagnostic literal for the bounded ordinary short/healthy and reached roster authority/refusal controls. Actual outcomes and scope require a separate evidence join."
+    ],
+    "new_roster_native_authority_closed": false,
+    "full_pack_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "residual_disposition": {
+    "id": "ENV-SECTOR-ROSTER-DRIVER-CONTRACT-1",
+    "status": "CORRECTED_AT_SOURCE",
+    "code": "scan_question retains joined for the whole function and returns the unchanged real reply when parsed is absent, joined reports a fault or the real reply is malformed. The fault still increments the same counter; only a valid eligible current request can reach plan.scan and alteration credit. No new file-level upvalue, provider call, delegation, physics or counter-clearing bypass was introduced.",
+    "test": "Positive valid withheld_scan still gets its expected callback marker with exactly one alteration and no request fault. The isolated last-served and ended-key request cases retain their fault, get no alteration or failure marker, and are not credited as refusals. The final corrected fixture ends after the fault-bearing ENTRY/RESOLVED phases to isolate this per-question property."
+  },
+  "later_valid_question_qualification": {
+    "acceptable_for_finite_guard_closure": true,
+    "explanation": "A later independently valid question may still receive its configured refusal after an earlier request fault, as with existing parse/reply failure handling. The new guard prevents alteration of the malformed CURRENT question; it is not a global poison latch for all later diagnostic questions. A primary marker and valid alteration can establish that later per-question refusal, but cannot establish a fault-free whole trace.",
+    "actual_audit_condition": "Nominal healthy/authority trace claims still require the existing request/reply fault checks. Refusal actuals must retain fault counts and identify the eligible altered question and matching primary marker; do not infer whole-trace validity solely from exit0 or erase an earlier fault. No production exception or physical oracle was weakened by this qualification.",
+    "first_failed_test_qualification": "The first fixed-code test wrongly expected zero alterations even after a later valid END question. That failed attempt remains101. The corrected fixture omits that later valid candidate only for the malformed-current-question test; the valid positive test and all56 existing driver tests remain intact."
+  },
+  "actual_focused_checks": {
+    "author_completion": {
+      "path": "R:/d3-evidence/claude-d3-sector-roster-driver-join-20261106-completion.json",
+      "bytes": 1143,
+      "sha256": "463c3afefb27031e5240ac6e53da3d4db4438496826e56878e30cefdfb68a394"
+    },
+    "author_actual_exit": 0,
+    "author_result_is_error": false,
+    "checkpoint": {
+      "path": "R:/d3-evidence/sector-roster-driver-join-CODE-FROZEN-20261106.json",
+      "bytes": 19808,
+      "sha256": "41faa507a33f81b330c848713a3f89aecf6cc59a6969d868aa271bdc11c0818d"
+    },
+    "final_direct_checks": [
+      {
+        "command": "cargo fmt -p eech-world -- --check",
+        "actual_exit": 0,
+        "receipt": {
+          "path": "R:/d3-evidence/sector-roster-direct-qjoin2-pre-fmt-check.json",
+          "bytes": 861,
+          "sha256": "a339cd1dba47af2aaebf9de643540d7e0f9d07805e48be66c99d235fe67457e7"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-qjoin2-pre-fmt-check.stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-qjoin2-pre-fmt-check.stderr.log",
+          "bytes": 42,
+          "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+        },
+        "results": []
+      },
+      {
+        "command": "cargo fmt -p eech-world -- --check",
+        "actual_exit": 0,
+        "receipt": {
+          "path": "R:/d3-evidence/sector-roster-direct-qjoin2-final-1-fmt.json",
+          "bytes": 861,
+          "sha256": "fb54b7c34f3cf69306493f2b5e7222a660c6a000ee62b2493f4307336587257e"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-qjoin2-final-1-fmt.stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-qjoin2-final-1-fmt.stderr.log",
+          "bytes": 42,
+          "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+        },
+        "results": []
+      },
+      {
+        "command": "cargo test --release --locked -p eech-world --test entity_authority",
+        "actual_exit": 0,
+        "receipt": {
+          "path": "R:/d3-evidence/sector-roster-direct-qjoin2-final-2-authority.json",
+          "bytes": 927,
+          "sha256": "6675ea2440ea96647a2208065b8cb4fa23d33fcbede1692102a8044660af548c"
+        },
+        "stdout": {
+          "path": "R:/d3-evidence/sector-roster-direct-qjoin2-final-2-authority.stdout.log",
+          "bytes": 6828,
+          "sha256": "76fa69903be446195afa17ac5ca1274e53cbd94088fdde5e1f8ce0eea514396c"
+        },
+        "stderr": {
+          "path": "R:/d3-evidence/sector-roster-direct-qjoin2-final-2-authority.stderr.log",
+          "bytes": 11342,
+          "sha256": "0c178708c3c1bb640057ddff9183a95a27a0d5f968d35e08b8dd91506ee37f0b"
+        },
+        "results": [
+          {
+            "status": "ok",
+            "passed": 57,
+            "failed": 0
+          }
+        ]
+      }
+    ],
+    "final_entity_authority": {
+      "passed": 57,
+      "failed": 0
+    },
+    "scope": "Direct scoped helper commands with separate stdout/stderr, not shell pipeline or trailing-echo exits. No new full package/feature/FP/C matrix, Windows build or campaign result is claimed.",
+    "RED_final_test_against92d_Lua": {
+      "receipt": {
+        "path": "R:/d3-evidence/sector-roster-direct-qjoin-red2-authority.json",
+        "bytes": 959,
+        "sha256": "ce64163fde435849e39fb57e75d1edf06a9c3e6d1483f17ba9e8c1424ac5a959"
+      },
+      "stdout": {
+        "path": "R:/d3-evidence/sector-roster-direct-qjoin-red2-authority.stdout.log",
+        "bytes": 7543,
+        "sha256": "902dfec5af5869c2cc02876ebb475ce2d2926ac30b5d18e4c1b51cbbfe5a2f27"
+      },
+      "stderr": {
+        "path": "R:/d3-evidence/sector-roster-direct-qjoin-red2-authority.stderr.log",
+        "bytes": 11577,
+        "sha256": "40f35a98eb707365f61e813b4d6fca81fe12fb5038c87e3e919331f97a5d931d"
+      },
+      "actual_exit": 101,
+      "passed": 56,
+      "failed": 1,
+      "cause": "The malformed current standing-key request was altered and credited at entity_scan.callback; the valid positive executed first."
+    },
+    "failed_first_frozen_attempt_retained": {
+      "path": "R:/d3-evidence/sector-roster-direct-qjoin-final-2-authority.json",
+      "bytes": 929,
+      "sha256": "f61709d3d017cde247a74d79f784d13756a833f707d4ede82485fc1a3e448c62"
+    }
+  },
+  "source_binding": {
+    "before_final_checks": {
+      "path": "R:/d3-evidence/qjoin2-20261106-inputmap-before-final.json",
+      "bytes": 2028902,
+      "sha256": "2b8d571e5c495d74ed74645fa23210488e9c2c43d40b1adb613cdb246823f866"
+    },
+    "after_final_checks": {
+      "path": "R:/d3-evidence/qjoin2-20261106-inputmap-after-final.json",
+      "bytes": 2028902,
+      "sha256": "2b8d571e5c495d74ed74645fa23210488e9c2c43d40b1adb613cdb246823f866"
+    },
+    "maps_literal_equal": true,
+    "rows": 3952,
+    "map_sha256": "2b8d571e5c495d74ed74645fa23210488e9c2c43d40b1adb613cdb246823f866",
+    "two_changed_after_bytes_independently_joined_to_committed_Git": true,
+    "working_map_qualifications": [
+      "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+      "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "modules/system/malloc.c.h",
+      "modules/system/nedmalloc.c"
+    ],
+    "qualification": "These maps were captured after final edits/formatting, around the final selected author checks, before commit; they are genuinely equal. Earlier92d pre-edit/post-edit maps remain qualified as unequal and are not relabelled. Inherited working-file/filter qualifications are not normalized or called rawGit equality.",
+    "new_immutable_snapshot_before_map": {
+      "path": "R:/d3-evidence/sector-roster-5182-snapshot-before-20261106.json",
+      "bytes": 2028077,
+      "sha256": "4edce1ff87831c41a82fd73b63c86b89fc9bd82a7c1d9ea33f9a34b01427a67a"
+    },
+    "immutable_pre_map_rows": 3952,
+    "immutable_pre_map_head": "5182b526d08aefdd40ea93803188227fd74abae5",
+    "immutable_pre_map_changed_files": 0,
+    "immutable_pre_map_all_raw_files_equal_Git": true,
+    "immutable_post_gate_binding": "Pending Root selected-gate completion; no post-map equality or selected integration success is inferred here."
+  },
+  "reused_reviews": [
+    {
+      "path": "R:/d3-evidence/independent-sector-roster-source-7bec-20261106.json",
+      "bytes": 22650,
+      "sha256": "a21e4443f3fe835b3e30d987c3cca9610a9a0a9e33a0204cc3f112fc17d1acf5"
+    },
+    {
+      "path": "R:/d3-evidence/independent-sector-roster-corrected-source-92d-20261106.json",
+      "bytes": 16988,
+      "sha256": "6582a2e662459294fd9247d680d0243da09d568363a3ce3cfacb1c82b1e9b5a6"
+    }
+  ],
+  "remaining_limits": [
+    "The prior C/keymap/list/heap/order review and92d integer classification/provider standing-key fixes remain source evidence at their own identities. No new native lifecycle coverage, caller-FP measurement or corrupt-list experiment is claimed.",
+    "No current roster ordinary/hosted/Original profile, complete short, reached roster-withheld/authority control or full40/all8 result has been accepted by this report.",
+    "The active ordinary3475 pack is a different pre-roster runtime, remains protected and was not touched or accepted. It cannot be relabelled as5182 shipping proof.",
+    "All required physical backing/roster/lifecycle/live poses and writers, city-child/static state, effectful getters, raw tree/forest/cloud/RNG, hierarchy/devices, DCS mapping, natural weapon integration, Task49 normal delivery and all10whole-D3 obligations remain open."
+  ],
+  "reviewer_operations": "Read-only exact Git/source/evidence inspection and this safe report write only. No tests/builds/native/cache/VM/process changes, candidate edits, external tracking or subagents.",
+  "publication_safety": "Source locations, aggregate counts and hashes only; no retail coordinates/vectors, actor identities/suffixes, physical tuples, raw signatures, model catalogue or binaries."
+}
