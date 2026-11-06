@@ -466,6 +466,8 @@ MODES.withdrawn_record = { withdraw = true, marker = "entity_candidate.refused" 
 MODES.displaced_record = { displace = true, marker = "entity_pose.mirror" }
 -- the host withdraws the BACKING of the entry the real scan has just served: its own REMOVE lifecycle event (phase 5) on that key, answered `removed` by the same provider; the next real ENTRY stands at the ended key
 MODES.withdrawn_backing = { withdraw_backing = true, marker = "entity_scan.refused" }
+-- the same for a city's buildings: the host's own REMOVE (phase 8) of the building the real traversal has just served; the next question of the traversal stands at the ended building
+MODES.withdrawn_child = { withdraw_child = true, marker = "entity_scan.refused" }
 -- the HOST-SIDE movement modes (completion modes): see the header
 MODES.moving_control = { moving_target = true, host_side_movement = true }
 MODES.terrain_lift = { moving_target = true, host_side_movement = true, lift = true }
@@ -572,7 +574,7 @@ local function engine_marker (err) return string.match (first_line (err), FATAL)
 -- ---------------------------------------------------------------------------------------------------------------- the host's model provider, counted, altered only when armed
 local armed = false
 local reference -- the host's own model provider (host.model), resolved inside the owned close scope (main)
-local before, after = { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, pose = 0 }, { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, pose = 0 }
+local before, after = { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, city = 0, pose = 0 }, { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, city = 0, pose = 0 }
 local altered = 0
 local cand_altered, cand_skipped = 0, 0
 local scan_altered, scan_none_answered = 0, 0
@@ -691,7 +693,8 @@ end
 -- (1 to 128 bytes). The phase (fact 12) is one of the scan's own, 0 BEGIN, 1.0 ENTRY, 2.0 END, 3.0 RESOLVED, or one of the ROSTER's events, 4.0 INSERT, 5.0 REMOVE, 6.0 RESET. The identity place holds the key of the
 -- entry the scan stands at in ENTRY and RESOLVED (a roster key: 1 to 20 decimal digits, no leading zero) and in no other scan phase; an INSERT's optional hosted-mobile identity; a REMOVE's key; nothing for a RESET.
 -- The facts an event does not state are zero.
-local PHASES = { [ZERO] = 0, ["0x3f800000"] = 1, ["0x40000000"] = 2, ["0x40400000"] = 3, ["0x40800000"] = 4, ["0x40a00000"] = 5, ["0x40c00000"] = 6 }
+local PHASES = { [ZERO] = 0, ["0x3f800000"] = 1, ["0x40000000"] = 2, ["0x40400000"] = 3, ["0x40800000"] = 4, ["0x40a00000"] = 5, ["0x40c00000"] = 6,
+	["0x40e00000"] = 7, ["0x41000000"] = 8, ["0x41100000"] = 9, ["0x41200000"] = 10, ["0x41300000"] = 11, ["0x41400000"] = 12 }
 local ROSTER_EVENTS = { [4] = "insert", [5] = "remove", [6] = "reset" }
 -- the facts an INSERT states (the position's x, y and z, the entity type, the side length: facts 1 to 3, 4 and 7) and the phase (12); all others are zero
 local INSERT_STATED = { [1] = true, [2] = true, [3] = true, [4] = true, [7] = true, [12] = true }
@@ -702,6 +705,28 @@ local function others_zero (words, stated)
 		if not stated [index] and words [index] ~= ZERO then return false end
 	end
 	return true
+end
+local CITY_EVENTS = { [7] = "child_insert", [8] = "child_remove", [9] = "child_first", [10] = "child_next", [11] = "link", [12] = "name" }
+local CITY_RESULTS = { child_insert = "placed", child_remove = "removed", child_first = "next", child_next = "next", link = "placed", name = "placed" }
+-- the keys (and, for a NAME, the object identity after the first space) of a city event's identity place, or nil and the problem: one key for the first building of a city, one or two for an insertion (the city, and
+-- the predecessor), two for a removal, a next building and a LINK, a key and an object identity for a NAME
+local function city_identity (event, identity)
+	local space = string.find (identity, " ", 1, true)
+	local first, second = identity, nil
+	if space then first, second = string.sub (identity, 1, space - 1), string.sub (identity, space + 1) end
+	if not is_roster_key (first) then return nil, "the identity place of a city event begins with \"" .. shown (first) .. "\", which is not a roster key" end
+	if event == "name" then
+		if second == nil or second == "" then return nil, "a NAME carries an empty object identity" end
+		if string.find (second, "[%c\127]") then return nil, "a NAME carries an object identity with a control character" end
+	elseif event == "child_first" then
+		if second ~= nil then return nil, "a request for the first building of a city names the city only" end
+	elseif event == "child_insert" then
+		if second ~= nil and not is_roster_key (second) then return nil, "the predecessor \"" .. shown (second) .. "\" is not a roster key" end
+	else
+		if second == nil then return nil, "the identity place of a " .. event .. " names one key where it needs two" end
+		if not is_roster_key (second) then return nil, "the second key \"" .. shown (second) .. "\" is not a roster key" end
+	end
+	return first, second
 end
 local function parse_scan_request (scene, depth, kind, definition, key)
 	if scene ~= 0 then return nil, "scene " .. tostring (scene) end
@@ -714,13 +739,21 @@ local function parse_scan_request (scene, depth, kind, definition, key)
 	local words = words_of_text (text, 16)
 	if words == nil then return nil, "the facts text is not 16 comma separated 0x%08x patterns" end
 	local phase = PHASES [words [12]]
-	if phase == nil then return nil, "the phase " .. words [12] .. " is not 0 to 6" end
+	if phase == nil then return nil, "the phase " .. words [12] .. " is not 0 to 12" end
 	if phase <= 3 then
 		local stands = phase == 1 or phase == 3
 		if stands and identity == "" then return nil, "phase " .. phase .. " stands at a served entry and names no roster key" end
 		if stands and not is_roster_key (identity) then return nil, "the key of the entry phase " .. phase .. " stands at, \"" .. shown (identity) .. "\", is not a roster key" end
 		if not stands and identity ~= "" then return nil, "phase " .. phase .. " carries no standing key" end
 		return { kind = "scan", words = words, phase = phase, excluded = words [15] ~= ZERO, hit = words [16] ~= ZERO, standing = stands and identity or nil }
+	end
+	if phase >= 7 then
+		-- a CITY event: nothing is stated but the phase (and an insertion's entity type, fact 4); the identity place holds the keys of the phase's grammar
+		local event = CITY_EVENTS [phase]
+		if not others_zero (words, phase == 7 and { [4] = true, [12] = true } or { [12] = true }) then return nil, "a city event states nothing but its phase" .. (phase == 7 and " and its entity type" or "") end
+		local first, second = city_identity (event, identity)
+		if first == nil then return nil, second end
+		return { kind = "city", words = words, phase = phase, event = event, keys = { first, second }, object = event == "name" and second or nil }
 	end
 	local event = ROSTER_EVENTS [phase]
 	if event == "insert" then
@@ -791,10 +824,64 @@ local function roster_track (parsed, answer)
 	else
 		for key in pairs (roster_live) do roster_ended [key] = true end
 		roster_live, last_served = {}, nil
+		scan.city.parent, scan.city.last = {}, nil
+	end
+end
+-- the first problem of a REAL city reply against the contract, or nil: the state its event allows, a key for an insertion (never issued before) and none for a removal, the building a traversal serves (a live child of
+-- the city asked about, never an ended one, empty at the end of the list), and for a LINK and a NAME the key the host acknowledges
+local function city_reply_problem (answer, parsed)
+	if type (answer) ~= "table" then return "the reply is not a table" end
+	if answer.result == "refused" then return "result refused" end
+	local wanted = CITY_RESULTS [parsed.event]
+	if answer.result ~= wanted then return "a city event of phase " .. parsed.phase .. " (" .. parsed.event .. ") answered " .. tostring (answer.result) .. ", not " .. wanted end
+	if answer.p ~= nil then return "a cursor with " .. wanted end
+	local name = answer.name
+	if name ~= nil and type (name) ~= "string" then return "the name is not text" end
+	if parsed.event == "child_insert" then
+		if name == nil or name == "" then return "a city insertion names no key" end
+		if not is_roster_key (name) then return "the key \"" .. shown (name) .. "\" is not a roster key" end
+		if roster_live [name] or roster_ended [name] then return "the key " .. name .. " was issued before" end
+	elseif parsed.event == "child_remove" then
+		if name ~= nil and name ~= "" then return "a city removal names a key (" .. shown (name) .. ")" end
+	elseif parsed.event == "child_first" or parsed.event == "child_next" then
+		if name ~= nil and name ~= "" then
+			if not is_roster_key (name) then return "the building \"" .. shown (name) .. "\" served is not a roster key" end
+			if roster_ended [name] then return "the building " .. name .. " it serves has ended" end
+			local parent = scan.city.parent [name]
+			if parent ~= nil and parent ~= parsed.keys [1] then return "the building " .. name .. " it serves is listed under " .. parent .. ", not under the city " .. parsed.keys [1] end
+		end
+	elseif parsed.event == "link" then
+		if name ~= parsed.keys [2] then return "a LINK acknowledged \"" .. shown (name) .. "\" for the child " .. parsed.keys [2] end
+	elseif name ~= parsed.keys [1] then
+		return "a NAME acknowledged \"" .. shown (name) .. "\" for the placement " .. parsed.keys [1]
+	end
+	return nil
+end
+-- what a well-formed city event and its well-formed reply did to the keys: an insertion lists a child under its city, a removal ends one, a traversal remembers the building it was last served
+local function city_track (parsed, answer)
+	local city = scan.city
+	if parsed.event == "child_insert" then
+		roster_live [answer.name], city.parent [answer.name] = true, parsed.keys [1]
+	elseif parsed.event == "child_remove" then
+		roster_live [parsed.keys [2]], roster_ended [parsed.keys [2]], city.parent [parsed.keys [2]] = nil, true, nil
+	elseif parsed.event == "child_first" or parsed.event == "child_next" then
+		local served = answer.name ~= nil and answer.name ~= ""
+		city.last = served and { parent = parsed.keys [1], child = answer.name } or nil
+		if served then city.served = city.served + 1 end
 	end
 end
 -- the first problem of a well-formed question against the keys seen so far, or nil: a removal names an entry that is not already ended, and a scan stands at the entry the host last served and never at one that ended
 local function request_join_problem (parsed)
+	if parsed.kind == "city" then
+		local keys, city = parsed.keys, scan.city
+		if roster_ended [keys [1]] then return "the city event names the placement " .. keys [1] .. ", which has ended" end
+		if (parsed.event == "child_remove" or parsed.event == "child_next") and roster_ended [keys [2]] then return "the city event names the building " .. keys [2] .. ", which has ended" end
+		if parsed.event == "child_remove" and city.parent [keys [2]] ~= nil and city.parent [keys [2]] ~= keys [1] then return "the removal names the building " .. keys [2] .. " under the city " .. keys [1] .. ", but it is listed under " .. city.parent [keys [2]] end
+		if parsed.event == "child_next" and (city.last == nil or city.last.parent ~= keys [1] or city.last.child ~= keys [2]) then
+			return "the traversal of the city " .. keys [1] .. " stands at the building " .. keys [2] .. ", which is not the building the host last served"
+		end
+		return nil
+	end
 	if parsed.kind == "roster" then
 		if parsed.event == "remove" and roster_ended [parsed.identity] then return "a removal names the entry " .. parsed.identity .. ", which has ended" end
 		return nil
@@ -809,16 +896,26 @@ end
 scan.roster = { total = 0, insert = 0, remove = 0, reset = 0, placed = 0, removed = 0, cleared = 0 }
 -- the host's own withdrawals of a served entry (withdrawn_backing; 1 once acknowledged `removed`, -1 when it was not) and the phase of the question that followed it, counted apart from the campaign's roster events
 scan.withdrawn, scan.withdrawn_next = 0, ""
+-- the CITY events (phases 7 to 12), counted apart from the roster's and the scan's: by event and by answer; the buildings served, the parent of each live child, the building a traversal was last served, and the host's own
+-- withdrawal of a served building (withdrawn_child; 1 once acknowledged `removed`, -1 when it was not) with the event that followed it
+scan.city = { total = 0, child_insert = 0, child_remove = 0, child_first = 0, child_next = 0, link = 0, name = 0, placed = 0, removed = 0, next = 0, served = 0, parent = {}, last = nil, withdrawn = 0, withdrawn_next = "" }
 -- one ENTITY_SCAN question: a roster event (phases 4 to 6) or a step of the scan. The two are counted apart in both windows: an event is never a query scan, and no event alters or credits a scan control
 local function scan_question (scene, depth, kind, definition, key, counts)
 	local roster = scan.roster
 	local parsed, why = parse_scan_request (scene, depth, kind, definition, key)
-	local event = parsed ~= nil and parsed.kind == "roster"
-	if event then counts.roster = counts.roster + 1 else counts.scan = counts.scan + 1 end
+	-- an EVENT is a roster event (phases 4 to 6) or a city event (7 to 12): it is counted apart from the scan's own questions and from the other kind, in both windows, and it is never altered
+	local event = parsed ~= nil and parsed.kind ~= "scan"
+	if event then counts [parsed.kind] = counts [parsed.kind] + 1 else counts.scan = counts.scan + 1 end
 	local real = reference ("entity_scan", scene, depth, kind, definition, key)
 	if not armed then
 		-- before the launch the host's answer comes back unchanged; only the keys it issued and ended are remembered, so that an armed question can be joined to them
-		if event and roster_reply_problem (real, parsed) == nil then roster_track (parsed, real) end
+		if event then
+			if parsed.kind == "city" then
+				if city_reply_problem (real, parsed) == nil then city_track (parsed, real) end
+			elseif roster_reply_problem (real, parsed) == nil then
+				roster_track (parsed, real)
+			end
+		end
 		return real
 	end
 	-- the request's join with the keys seen so far, kept for the whole function: a well-formed question that fails it is a request fault and is never altered, like a parse or reply failure
@@ -828,7 +925,11 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 			faults.request = faults.request + 1
 			first_fault = first_fault or ("scan request: " .. joined)
 		end
-		if event then
+		if event and parsed.kind == "city" then
+			scan.city.total = scan.city.total + 1
+			scan.city [parsed.event] = scan.city [parsed.event] + 1
+			if scan.city.withdrawn == 1 and scan.city.withdrawn_next == "" then scan.city.withdrawn_next = parsed.event end
+		elseif event then
 			roster.total = roster.total + 1
 			roster [parsed.event] = roster [parsed.event] + 1
 		else
@@ -845,10 +946,15 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 		first_fault = first_fault or ("scan request: " .. why)
 	end
 	local problem
-	if event then problem = roster_reply_problem (real, parsed) else problem = scan_reply_problem (real, parsed) end
+	if event and parsed.kind == "city" then problem = city_reply_problem (real, parsed)
+	elseif event then problem = roster_reply_problem (real, parsed)
+	else problem = scan_reply_problem (real, parsed) end
 	if problem then
 		faults.reply = faults.reply + 1
 		first_fault = first_fault or ("scan reply: " .. problem)
+	elseif event and parsed.kind == "city" then
+		scan.city [real.result] = scan.city [real.result] + 1
+		city_track (parsed, real)
 	elseif event then
 		roster [real.result] = roster [real.result] + 1
 		roster_track (parsed, real)
@@ -873,6 +979,22 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 			scan.withdrawn = -1
 			faults.reply = faults.reply + 1
 			first_fault = first_fault or "scan reply: the host's removal of the served entry was not acknowledged as removed"
+		end
+	end
+	-- HOST-SIDE (withdrawn_child): once, on the first real city traversal reply that serves a building, the host's own REMOVE of that building (the city's key and the building's, phase 8) goes to the SAME provider and must
+	-- come back `removed`; the reply is handed on completely unchanged, so the campaign's lists, the building and its physics are untouched and only the host's list has lost the building. The campaign's next
+	-- question of the traversal then stands at the ended building (the wrapper does not record the removal, so the request join passes) and the provider refuses it by name
+	if plan.withdraw_child and event and parsed.kind == "city" and not problem and scan.city.withdrawn == 0 and (parsed.event == "child_first" or parsed.event == "child_next") and real.name ~= nil and real.name ~= "" then
+		local words = {}
+		for index = 1, 16 do words [index] = ZERO end
+		words [12] = "0x41000000"
+		local ok, acknowledged = pcall (reference, "entity_scan", 0, nil, nil, nil, table.concat (words, ",") .. " " .. parsed.keys [1] .. " " .. real.name)
+		if ok and type (acknowledged) == "table" and acknowledged.result == "removed" and (acknowledged.name == nil or acknowledged.name == "") then
+			scan.city.withdrawn = 1
+		else
+			scan.city.withdrawn = -1
+			faults.reply = faults.reply + 1
+			first_fault = first_fault or "scan reply: the host's removal of the served building was not acknowledged as removed"
 		end
 	end
 	-- an event is never altered
@@ -1454,7 +1576,7 @@ local function main ()
 			return string.format ("UNREACHED: %s changed no step of the target (in the query frame the target was given %d steps, %d of mode move, %d with a finite positive desired_velocity, %d without): the host's own routed move of the target never carried a speed demand to replace", mode, tgt.window_steps, tgt.window_moves, tgt.speed_valid, tgt.speed_bad)
 		end
 		if profile == "original" then
-			if after.entity ~= 0 or after.candidate ~= 0 or after.scan ~= 0 or after.roster ~= 0 or after.pose ~= 0 then return "profile=original, but the host was asked " .. after.entity .. " entity_collision, " .. after.candidate .. " entity_candidate, " .. after.scan .. " entity_scan, " .. after.roster .. " roster events and " .. after.pose .. " entity_pose questions: the module is not the original" end
+			if after.entity ~= 0 or after.candidate ~= 0 or after.scan ~= 0 or after.roster ~= 0 or after.city ~= 0 or after.pose ~= 0 then return "profile=original, but the host was asked " .. after.entity .. " entity_collision, " .. after.candidate .. " entity_candidate, " .. after.scan .. " entity_scan, " .. after.roster .. " roster events, " .. after.city .. " city events and " .. after.pose .. " entity_pose questions: the module is not the original" end
 			-- the original asks no hosted question, so only a control the caller bound is compared here (Root binds the Original control's signature)
 			if plan.speed_zero and args.control_signature ~= nil and args.control_signature ~= "" and args.control_signature == table.concat (signature, ";") then
 				return string.format ("UNCHANGED: %s: the original's physical result under the replaced speed demand is exactly the control's: the changed demand changed no output", mode)
@@ -1677,6 +1799,10 @@ local function main ()
 		pose_altered = pose_altered, pose_histogram = pose_histogram_text (pose_histogram),
 		candidate_mobile_named = cand.mobile_named, candidate_mobile_unnamed = cand.mobile_unnamed, record_withdrawn = withdrawn, record_displaced = displaced,
 			roster_withdrawn = scan.withdrawn, roster_withdrawn_next_phase = scan.withdrawn_next,
+			city_before = before.city, city_after = after.city, city_child_insert = scan.city.child_insert, city_child_remove = scan.city.child_remove, city_child_first = scan.city.child_first,
+			city_child_next = scan.city.child_next, city_link = scan.city.link, city_name = scan.city.name, city_placed = scan.city.placed, city_removed = scan.city.removed, city_next = scan.city.next,
+			city_served = scan.city.served, city_withdrawn = scan.city.withdrawn, city_withdrawn_next = scan.city.withdrawn_next,
+			city_withdrawn_cause = (failure and string.find (failure.line, "[roster.child]", 1, true) and string.find (failure.line, "has ended", 1, true)) and "city_child_ended" or "",
 			roster_withdrawn_cause = (failure and string.find (failure.line, "[roster.key]", 1, true) and string.find (failure.line, "has ended", 1, true)) and "roster_key_ended" or "",
 		target = watched or "", target_questions = tgt.questions, target_skip = tgt.skip, target_need_updated = tgt.need_updated, target_need_fixed = tgt.need_fixed,
 		target_need_placement = tgt.need_placement, target_need_normal = tgt.need_normal, target_buildings = tgt.buildings, target_test = tgt.test,
@@ -1702,10 +1828,18 @@ local function main ()
 	-- ------------------------------------------------------------------------------------------------------------ the verdict (raised after the evidence is closed by the caller)
 	if plan.marker then
 		-- a refusal mode: the engine must have stopped, at this marker, at an armed entity question the provider altered
+		if plan.withdraw_child and scan.city.served < 1 then return "UNREACHED: " .. mode .. ": the real scan served no building of a city (" .. scan.city.child_first .. " first and " .. scan.city.child_next .. " next city questions), so there was no backing to withdraw: the case holds no city traversal" end
 		if failure == nil then return "mode " .. mode .. " completed: the engine did not stop at " .. plan.marker end
 		if failure.marker ~= plan.marker then return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "], not at [model-provider:" .. plan.marker .. "]: " .. failure.line end
-		if altered + cand_altered + scan_altered + pose_altered + withdrawn + displaced + math.max (scan.withdrawn, 0) < 1 then return "mode " .. mode .. " stopped without the provider having altered an entity answer: " .. failure.line end
+		if altered + cand_altered + scan_altered + pose_altered + withdrawn + displaced + math.max (scan.withdrawn, 0) + math.max (scan.city.withdrawn, 0) < 1 then return "mode " .. mode .. " stopped without the provider having altered an entity answer: " .. failure.line end
 		if view.applied < 1 then return "mode " .. mode .. " stopped, but the controlled view input never reached a weapon step: the stop is not at an entity question of the configured flight" end
+		if mode == "withdrawn_child" then
+			-- credited only by the reached withdrawal (acknowledged `removed`), the very next city question being the traversal's next building, and the host's own named refusal of the ended building as the only fault
+			if scan.city.withdrawn ~= 1 then return "mode withdrawn_child stopped at its marker, but the host's removal of the served building was not acknowledged as removed (" .. scan.city.withdrawn .. ")" end
+			if scan.city.withdrawn_next ~= "child_next" then return "mode withdrawn_child stopped at its marker, but the city question after the removal was not the traversal's next building (" .. scan.city.withdrawn_next .. ")" end
+			if not (string.find (failure.line, "[roster.child]", 1, true) and string.find (failure.line, "has ended", 1, true)) then return "mode withdrawn_child stopped at its marker, but not for the ended city child: " .. failure.line end
+			if faults.request ~= 0 or faults.reply ~= 1 or first_fault ~= "scan reply: result refused" then return "mode withdrawn_child had a fault other than the host's named refusal (request_faults=" .. faults.request .. " reply_faults=" .. faults.reply .. "): " .. tostring (first_fault) end
+		end
 		if mode == "withdrawn_backing" then
 			-- credited only by the reached withdrawal (acknowledged `removed`), the very next question being the entry continuation, and the host's own named refusal of the ended key as the only fault
 			if scan.withdrawn ~= 1 then return "mode withdrawn_backing stopped at its marker, but the host's removal of the served entry was not acknowledged as removed (" .. scan.withdrawn .. ")" end
@@ -1739,7 +1873,7 @@ local function main ()
 		if not finite (y) or not (math.abs (y - e) <= math.abs (e) * 2 ^ -23) then return string.format ("terrain_lift: the host's answer to the lifted step is at y=%s, not at the lifted elevation %s", tostring (y), tostring (e)) end
 	end
 	if profile == "original" then
-		if after.entity ~= 0 or after.candidate ~= 0 or after.scan ~= 0 or after.roster ~= 0 or after.pose ~= 0 then return "profile=original, but the host was asked " .. after.entity .. " entity_collision, " .. after.candidate .. " entity_candidate, " .. after.scan .. " entity_scan, " .. after.roster .. " roster events and " .. after.pose .. " entity_pose questions: the module is not the original" end
+		if after.entity ~= 0 or after.candidate ~= 0 or after.scan ~= 0 or after.roster ~= 0 or after.city ~= 0 or after.pose ~= 0 then return "profile=original, but the host was asked " .. after.entity .. " entity_collision, " .. after.candidate .. " entity_candidate, " .. after.scan .. " entity_scan, " .. after.roster .. " roster events, " .. after.city .. " city events and " .. after.pose .. " entity_pose questions: the module is not the original" end
 		return "CAPABILITY RED (expected for the original profile): the entity-collision caller ran (contact_any_tests +" .. any_tests_delta .. ", contact_any_hits +" .. any_hits_delta .. ", fixture API present) and the host was asked no entity_collision question, no entity_candidate question and no entity_scan question"
 	end
 	-- the route is the host's: a candidate that passed the (campaign) broad phase asks the host. None at all is a setup that never reached the narrow phase
@@ -1756,6 +1890,7 @@ local function main ()
 	if seen.stationary + seen.moving ~= after.entity then return string.format ("the provider counted %d entity questions but classified %d", after.entity, seen.stationary + seen.moving) end
 	if cand.total ~= after.candidate then return string.format ("the provider counted %d candidate questions but classified %d", after.candidate, cand.total) end
 	if scan.total ~= after.scan then return string.format ("the provider counted %d scan questions but classified %d", after.scan, scan.total) end
+	if scan.city.total ~= after.city then return string.format ("the provider counted %d city events but classified %d", after.city, scan.city.total) end
 	if scan.roster.total ~= after.roster then return string.format ("the provider counted %d roster events but classified %d", after.roster, scan.roster.total) end
 	if pose.total ~= after.pose then return string.format ("the provider counted %d pose questions but classified %d", after.pose, pose.total) end
 	if pose_pre.total ~= before.pose then return string.format ("the provider counted %d pre-launch pose questions but classified %d", before.pose, pose_pre.total) end

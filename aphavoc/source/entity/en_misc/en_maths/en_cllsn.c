@@ -486,8 +486,9 @@ extern int campaign_model_entity_collision (int scene, const float *segment_old,
 #define CAMPAIGN_OFFER_ATTITUDE(E,OUT) do { matrix3x3 offer_attitude; get_local_entity_attitude_matrix ((E), offer_attitude); memcpy ((OUT), offer_attitude, 9 * sizeof (float)); } while (0)
 #define CAMPAIGN_OFFER_HEADING(E) get_local_entity_float_value ((E), FLOAT_TYPE_HEADING)
 #define CAMPAIGN_OFFER_ALIGN(E) get_local_entity_int_value ((E), INT_TYPE_ALIGN_WITH_TERRAIN)
-#define CAMPAIGN_OFFER_FIRST_BUILDING(E) get_local_entity_first_child ((E), LIST_TYPE_CITY_BUILDING)
-#define CAMPAIGN_OFFER_NEXT_BUILDING(B) get_local_entity_child_succ ((B), LIST_TYPE_CITY_BUILDING)
+// a city's buildings are the HOST's list (mb_hostplace.c, seventh slice): the host serves the first building and the one after each, and the campaign's own list at the same place is only the mirror they are compared with
+#define CAMPAIGN_OFFER_FIRST_BUILDING(E) campaign_place_child_first ((E), get_local_entity_first_child ((E), LIST_TYPE_CITY_BUILDING))
+#define CAMPAIGN_OFFER_NEXT_BUILDING(C,B) campaign_place_child_next ((C), (B), get_local_entity_child_succ ((B), LIST_TYPE_CITY_BUILDING))
 #define CAMPAIGN_OFFER_BOX(E,MIN,MAX) do { vec3d offer_min, offer_max; get_local_entity_vec3d ((E), VEC3D_TYPE_BOUNDING_BOX_MIN, &offer_min); get_local_entity_vec3d ((E), VEC3D_TYPE_BOUNDING_BOX_MAX, &offer_max); memcpy ((MIN), &offer_min, sizeof (vec3d)); memcpy ((MAX), &offer_max, sizeof (vec3d)); } while (0)
 #define CAMPAIGN_OFFER_UPDATED(E) get_local_entity_int_value ((E), INT_TYPE_UPDATED)
 #define CAMPAIGN_OFFER_TERRAIN_NORMAL(X,Z,OUT) do { vec3d offer_normal; get_3d_terrain_face_normal (&offer_normal, (X), (Z)); memcpy ((OUT), &offer_normal, sizeof (vec3d)); } while (0)

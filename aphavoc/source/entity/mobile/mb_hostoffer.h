@@ -24,7 +24,8 @@
  *   CAMPAIGN_OFFER_POSITION (E, OUT), CAMPAIGN_OFFER_MOTION (E, OUT)  three floats, written to OUT
  *   CAMPAIGN_OFFER_ATTITUDE (E, OUT)            nine floats, row-major
  *   CAMPAIGN_OFFER_HEADING (E), CAMPAIGN_OFFER_ALIGN (E)              the heading and the align-with-terrain flag
- *   CAMPAIGN_OFFER_FIRST_BUILDING (E), CAMPAIGN_OFFER_NEXT_BUILDING (B)   a city's buildings in its list order (NULL at the end)
+ *   CAMPAIGN_OFFER_FIRST_BUILDING (E), CAMPAIGN_OFFER_NEXT_BUILDING (C, B)   a city's buildings in the HOST's list order (NULL at the end): the first of the city E, and the building after B in the list of the city C.
+ *                                               The campaign's own list at the same place is only the conformance mirror (mb_hostplacemap.h); the includer resolves the host's answer and stops the engine on a disagreement
  *   CAMPAIGN_OFFER_BOX (E, MIN, MAX)            a city's bounding box (three floats each)
  *   CAMPAIGN_OFFER_UPDATED (E)                  the destructive UPDATED getter
  *   CAMPAIGN_OFFER_TERRAIN_NORMAL (X, Z, OUT)   the terrain's face normal at a point (the terrain question and its effects)
@@ -275,7 +276,7 @@ static CAMPAIGN_OFFER_ENTITY *campaign_offer_candidate
 						return (hit);
 					}
 
-					building = CAMPAIGN_OFFER_NEXT_BUILDING (building);
+					building = CAMPAIGN_OFFER_NEXT_BUILDING (target, building);
 				}
 
 				return (NULL);

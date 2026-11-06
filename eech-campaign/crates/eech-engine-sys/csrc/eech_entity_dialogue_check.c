@@ -88,6 +88,145 @@ static const char *(*scripted_served_key) (int state, const campaign_model_reque
 static campaign_model_request roster_seen;
 static int roster_asks, roster_override, roster_state, roster_issue = 1;
 static const char *roster_name;
+/* the CITY events (phases 7 to 12): the scripted host's lists (every parent's buildings, head first, in one array), the question the campaign asked last and how many, the last identity of a LINK and a NAME,
+   and an answer forced instead of the coherent one when `city_override` is set */
+struct city_entry
+{
+	char parent[24];
+	char key[24];
+};
+
+static struct city_entry city_list[64];
+static int city_count, city_asks, city_override, city_state;
+static const char *city_name;
+static campaign_model_request city_seen;
+static char city_last_link[160], city_last_name[160];
+
+/* the index of the entry with `key` in the scripted lists, or -1 */
+static int city_find (const char *key)
+{
+	int i;
+
+	for (i = 0; i < city_count; i++)
+	{
+		if (strcmp (city_list[i].key, key) == 0)
+		{
+			return (i);
+		}
+	}
+
+	return (-1);
+}
+
+/* the first and the second key of an identity place (the second empty when there is none) */
+static void city_keys (const char *identity, char *first, char *second)
+{
+	const char *space = strchr (identity, ' ');
+
+	if (space)
+	{
+		memcpy (first, identity, (size_t) (space - identity));
+		first[space - identity] = 0;
+		strcpy (second, space + 1);
+	}
+	else
+	{
+		strcpy (first, identity);
+		second[0] = 0;
+	}
+}
+
+static void scripted_city (const campaign_model_request *request, campaign_model_reply *reply)
+{
+	char first[160], second[160];
+	int phase = (int) request->pose[CAMPAIGN_SCAN_PHASE], i, at;
+
+	city_seen = *request;
+	city_asks++;
+	city_keys (request->host_id, first, second);
+
+	switch (phase)
+	{
+		case CAMPAIGN_SCAN_PHASE_CHILD_INSERT:
+		{
+			/* at the head of the parent's buildings, or right after the named predecessor */
+			at = city_count;
+
+			for (i = 0; i < city_count; i++)
+			{
+				if (strcmp (city_list[i].parent, first) == 0)
+				{
+					at = i;
+					break;
+				}
+			}
+
+			if (second[0])
+			{
+				at = city_find (second) + 1;
+			}
+
+			memmove (&city_list[at + 1], &city_list[at], (size_t) (city_count - at) * sizeof (city_list[0]));
+			strcpy (city_list[at].parent, first);
+			snprintf (city_list[at].key, sizeof (city_list[at].key), "%d", roster_issue++);
+			city_count++;
+			reply->candidate_state = CAMPAIGN_MODEL_SCAN_PLACED;
+			strcpy (reply->name, city_list[at].key);
+			break;
+		}
+		case CAMPAIGN_SCAN_PHASE_CHILD_REMOVE:
+		{
+			at = city_find (second);
+
+			if (at >= 0)
+			{
+				memmove (&city_list[at], &city_list[at + 1], (size_t) (city_count - at - 1) * sizeof (city_list[0]));
+				city_count--;
+			}
+
+			reply->candidate_state = CAMPAIGN_MODEL_SCAN_REMOVED;
+			break;
+		}
+		case CAMPAIGN_SCAN_PHASE_CHILD_FIRST:
+		case CAMPAIGN_SCAN_PHASE_CHILD_NEXT:
+		{
+			reply->candidate_state = CAMPAIGN_MODEL_SCAN_NEXT;
+			at = (phase == CAMPAIGN_SCAN_PHASE_CHILD_NEXT) ? city_find (second) + 1 : 0;
+
+			for (i = at; i < city_count; i++)
+			{
+				if (strcmp (city_list[i].parent, first) == 0)
+				{
+					strcpy (reply->name, city_list[i].key);
+					break;
+				}
+			}
+
+			break;
+		}
+		case CAMPAIGN_SCAN_PHASE_LINK:
+		{
+			strcpy (city_last_link, request->host_id);
+			reply->candidate_state = CAMPAIGN_MODEL_SCAN_PLACED;
+			strcpy (reply->name, second);
+			break;
+		}
+		default:
+		{
+			strcpy (city_last_name, request->host_id);
+			reply->candidate_state = CAMPAIGN_MODEL_SCAN_PLACED;
+			strcpy (reply->name, first);
+			break;
+		}
+	}
+
+	if (city_override)
+	{
+		reply->candidate_state = city_state;
+		memset (reply->name, 0, sizeof (reply->name));
+		strncpy (reply->name, city_name, sizeof (reply->name) - 1);
+	}
+}
 static struct scripted_answer answer;
 static campaign_model_request seen;
 /* the ENTITY_POSE observations the campaign asked (kept apart from `seen` and `asks`, which describe the candidate dialogue), and the scripted host's answer to them: by default a recorded identity
@@ -155,6 +294,18 @@ static void scripted_ask (campaign_model_request *request, campaign_model_reply 
 		{
 			reply->candidate_state = CAMPAIGN_MODEL_POSE_NO_ID;
 		}
+
+		return;
+	}
+
+	if ((request->op == CAMPAIGN_MODEL_ENTITY_SCAN) && ((int) request->pose[CAMPAIGN_SCAN_PHASE] >= CAMPAIGN_SCAN_PHASE_CHILD_INSERT))
+	{
+		if (refuse_the_exchange)
+		{
+			debug_fatal ("host model: [model-provider:callback] the scripted host refused");
+		}
+
+		scripted_city (request, reply);
 
 		return;
 	}
@@ -601,6 +752,8 @@ struct sentity
 	int id;
 	/* the key the scripted host's roster holds for the entity in a list (assigned by sector_list; empty when it is in none) */
 	char key[24];
+	/* the entity's slot in the placement heap (pheap) when it is placed in the host's city lists: see city_register */
+	int pslot;
 };
 
 static char reads[128];
@@ -628,8 +781,11 @@ static void so_motion (struct sentity *e, float *out) { read_log ('V'); memcpy (
 static void so_attitude (struct sentity *e, float *out) { read_log ('A'); memcpy (out, e->attitude, sizeof (e->attitude)); }
 static float so_heading (struct sentity *e) { read_log ('H'); return (e->heading); }
 static int so_align (struct sentity *e) { read_log ('L'); return (e->align); }
-static struct sentity *so_first_building (struct sentity *e) { read_log ('B'); return (e->first_building); }
-static struct sentity *so_next_building (struct sentity *e) { return (e->next_building); }
+/* a city's buildings are the HOST's list: the real placement map asks the scripted host and compares the building it serves with the scripted entity's own list (the mirror); defined after the map */
+static struct sentity *so_city_first (struct sentity *city);
+static struct sentity *so_city_next (struct sentity *city, struct sentity *building);
+struct tc;
+static int city_register (struct tc *t, struct sentity *city, struct sentity *b1, struct sentity *b2);
 static void so_box (struct sentity *e, float *min, float *max) { read_log ('X'); memcpy (min, e->box_min, sizeof (e->box_min)); memcpy (max, e->box_max, sizeof (e->box_max)); }
 static int so_updated (struct sentity *e) { read_log ('U'); return (e->updated); }
 static int so_type (struct sentity *e) { meta_type_reads++; return (e->type); }
@@ -648,8 +804,8 @@ static void so_terrain_normal (float x, float z, float *out) { read_log ('N'); o
 #define CAMPAIGN_OFFER_ATTITUDE(E,OUT) so_attitude ((E), (OUT))
 #define CAMPAIGN_OFFER_HEADING(E) so_heading (E)
 #define CAMPAIGN_OFFER_ALIGN(E) so_align (E)
-#define CAMPAIGN_OFFER_FIRST_BUILDING(E) so_first_building (E)
-#define CAMPAIGN_OFFER_NEXT_BUILDING(B) so_next_building (B)
+#define CAMPAIGN_OFFER_FIRST_BUILDING(E) so_city_first (E)
+#define CAMPAIGN_OFFER_NEXT_BUILDING(C,B) so_city_next ((C), (B))
 #define CAMPAIGN_OFFER_BOX(E,MIN,MAX) so_box ((E), (MIN), (MAX))
 #define CAMPAIGN_OFFER_UPDATED(E) so_updated (E)
 #define CAMPAIGN_OFFER_TERRAIN_NORMAL(X,Z,OUT) so_terrain_normal ((X), (Z), (OUT))
@@ -974,6 +1130,7 @@ static void offer_cases (struct tc *t)
 	b2 = make_entity (FALSE, TRUE, 4);
 	e.first_building = &b1;
 	b1.next_building = &b2;
+	city_register (t, &e, &b1, &b2);
 	queue_reset ();
 	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
 	queue_state (CAMPAIGN_MODEL_CANDIDATE_BUILDINGS, 0);
@@ -991,6 +1148,7 @@ static void offer_cases (struct tc *t)
 	e.city = TRUE;
 	b1 = make_entity (FALSE, TRUE, 3);
 	e.first_building = &b1;
+	city_register (t, &e, &b1, NULL);
 	queue_reset ();
 	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
 	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_PLACEMENT, 0);
@@ -1105,6 +1263,7 @@ static void pose_cases (struct tc *t)
 	b1 = make_entity (FALSE, TRUE, 3);
 	b1.host_id = "eech-world:4";
 	e.first_building = &b1;
+	city_register (t, &e, &b1, NULL);
 	pose_reset ();
 	queue_reset ();
 	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
@@ -1119,6 +1278,7 @@ static void pose_cases (struct tc *t)
 	b1 = make_entity (TRUE, FALSE, 3);
 	b1.host_id = "eech-world:5";
 	e.first_building = &b1;
+	city_register (t, &e, &b1, NULL);
 	pose_reset ();
 	queue_reset ();
 	queue_state (CAMPAIGN_MODEL_CANDIDATE_NEED_FIXED, 0);
@@ -2009,7 +2169,7 @@ static void roster_cases (struct tc *t)
 struct pentity
 {
 	int slot, type, has_position;
-	const char *name, *identity;
+	const char *name, *identity, *object;
 	float position[3];
 };
 
@@ -2036,8 +2196,14 @@ static void check_roster_call (int phase, int entity_type, float side, const flo
 	campaign_entity_roster_exchange (phase, entity_type, side, position, identity, key);
 }
 
+static void check_city_call (int phase, int entity_type, const char *identity, char *key)
+{
+	campaign_entity_city_exchange (phase, entity_type, identity, key);
+}
+
 #define campaign_model_host_installed check_host_installed
 #define campaign_model_entity_roster check_roster_call
+#define campaign_model_entity_city check_city_call
 #define CAMPAIGN_PLACE_ENTITY struct pentity
 #define CAMPAIGN_PLACE_HEAP() place_heap_check ()
 #define CAMPAIGN_PLACE_SLOT(E) ((E)->slot)
@@ -2046,12 +2212,107 @@ static void check_roster_call (int phase, int entity_type, float side, const flo
 #define CAMPAIGN_PLACE_NAME(E) ((E)->name)
 #define CAMPAIGN_PLACE_POSITION(E) ((E)->has_position ? (E)->position : NULL)
 #define CAMPAIGN_PLACE_IDENTITY(E) ((E)->identity)
+#define CAMPAIGN_PLACE_OBJECT_ID(E) ((E)->object)
 #define CAMPAIGN_PLACE_SIDE() 100.0f
 
 #include "entity/mobile/mb_hostplacemap.h"
 
 #undef campaign_model_host_installed
 #undef campaign_model_entity_roster
+#undef campaign_model_entity_city
+
+/* the entity of the offer that holds a placement heap slot (set by city_register) */
+static struct sentity *pheap_owner[16];
+
+/* the offer's city traversal bound to the REAL placement map: the host (the scripted lists) serves the first building and the one after each; the building it serves is resolved by its key and compared with the
+   scripted entity's own list at the same place; the scripted entities' reads are logged as the real getters' are (the mirror read of the first child is the 'B') */
+static struct pentity *so_place_of (struct sentity *e)
+{
+	return (e ? &pheap[e->pslot] : NULL);
+}
+
+static struct sentity *so_city_first (struct sentity *city)
+{
+	struct pentity *served;
+
+	read_log ('B');
+
+	served = place_child_first (so_place_of (city), so_place_of (city->first_building));
+
+	return (served ? pheap_owner[served->slot] : NULL);
+}
+
+static struct sentity *so_city_next (struct sentity *city, struct sentity *building)
+{
+	struct pentity *served;
+
+	served = place_child_next (so_place_of (city), so_place_of (building), so_place_of (building->next_building));
+
+	return (served ? pheap_owner[served->slot] : NULL);
+}
+
+/* a scripted city and its buildings, placed in the host's lists by the real placement map in the order that gives the host the list the entity script states (head first: the buildings are listed from the last
+   to the first, each at the head). The city holds a sector placement (the host names its list by it), the buildings none. Returns FALSE when the map stopped the engine. */
+static int city_register (struct tc *t, struct sentity *city, struct sentity *b1, struct sentity *b2)
+{
+	struct sentity *entity[3];
+	struct sentity *listed[2];
+	int i, n = 0;
+
+	entity[0] = city;
+	entity[1] = b1;
+	entity[2] = b2;
+
+	for (i = 0; i < 3; i++)
+	{
+		if (entity[i])
+		{
+			struct pentity *p = &pheap[10 + i];
+
+			memset (p, 0, sizeof (*p));
+			p->slot = 10 + i;
+			p->type = 40 + i;
+			p->name = "SCRIPTED";
+			p->has_position = TRUE;
+			p->position[0] = 100.0f + (float) i;
+			entity[i]->pslot = 10 + i;
+			pheap_owner[10 + i] = entity[i];
+		}
+	}
+
+	if (b2)
+	{
+		listed[n++] = b2;
+	}
+
+	if (b1)
+	{
+		listed[n++] = b1;
+	}
+
+	place_reset ();
+	place_host_installed = TRUE;
+	city_count = 0;
+	roster_override = FALSE;
+	city_override = FALSE;
+	fatal_text[0] = '\0';
+
+	if (setjmp (fatal_jump) == 0)
+	{
+		place_insert (&pheap[city->pslot]);
+
+		for (i = 0; i < n; i++)
+		{
+			place_child_insert (&pheap[listed[i]->pslot], &pheap[city->pslot], NULL);
+		}
+
+		return (TRUE);
+	}
+
+	tc_expect (t, FALSE, "a scripted city could not be registered with the host", __LINE__);
+
+	return (FALSE);
+}
 
 /* one operation of the table under a stop catcher: TRUE when the engine stopped; the host's questions of the operation are counted in roster_asks */
 static int place_do (int what, struct pentity *e)
@@ -2206,6 +2467,276 @@ static void place_cases (struct tc *t)
 	EXPECT (t, stopped && strstr (fatal_text, "never placed") != NULL);
 
 	place_reset ();
+	place_host_installed = FALSE;
+}
+
+/* ---- the city lists: the real placement map and the real city exchange against the scripted host (phases 7 to 12) ---- */
+
+/* one operation of the map under a stop catcher: TRUE when the engine stopped; the host's questions of the operation are counted in city_asks (and roster_asks for the sector events) */
+static int city_do (int what, struct pentity *e, struct pentity *parent, struct pentity *pred)
+{
+	city_asks = 0;
+	roster_asks = 0;
+	fatal_text[0] = '\0';
+
+	if (setjmp (fatal_jump) == 0)
+	{
+		switch (what)
+		{
+			case 0: place_child_insert (e, parent, pred); break;
+			case 1: place_child_remove (e); break;
+			case 2: place_release_entity (e); break;
+			case 3: place_insert (e); break;
+			case 4: place_remove (e); break;
+			default: place_name (e, e->object); break;
+		}
+
+		return (FALSE);
+	}
+
+	return (TRUE);
+}
+
+/* what the host serves for the first building of a city (what 0) or the one after `building` (what 1), compared with `mirror`: TRUE when the engine stopped */
+static int city_serve (int what, struct pentity *city, struct pentity *building, struct pentity *mirror, struct pentity **served)
+{
+	city_asks = 0;
+	fatal_text[0] = '\0';
+	*served = NULL;
+
+	if (setjmp (fatal_jump) == 0)
+	{
+		*served = (what == 0) ? place_child_first (city, mirror) : place_child_next (city, building, mirror);
+
+		return (FALSE);
+	}
+
+	return (TRUE);
+}
+
+/* a request of the city exchange itself, with the host's questions counted: TRUE when the engine stopped */
+static int city_exchange_do (int phase, int entity_type, const char *identity, char *key)
+{
+	city_asks = 0;
+	fatal_text[0] = '\0';
+	key[0] = 0;
+
+	if (setjmp (fatal_jump) == 0)
+	{
+		campaign_entity_city_exchange (phase, entity_type, identity, key);
+
+		return (FALSE);
+	}
+
+	return (TRUE);
+}
+
+static void city_cases (struct tc *t)
+{
+	struct pentity *city = &pheap[1], *a = &pheap[2], *b = &pheap[3], *c = &pheap[4], *bare = &pheap[5], *loose = &pheap[6], *d = &pheap[7], *served;
+	char key[160], pair[160];
+	int i, stopped, kind;
+
+	memset (pheap, 0, sizeof (pheap));
+
+	for (i = 0; i < 16; i++)
+	{
+		pheap[i].slot = i;
+		pheap[i].type = 20 + i;
+		pheap[i].name = "SCRIPTED";
+		pheap[i].has_position = TRUE;
+		pheap[i].position[0] = 1000.0f + (float) i;
+		pheap[i].position[2] = 2000.0f;
+		pheap_owner[i] = NULL;
+	}
+
+	pheap_size = 16;
+	roster_override = FALSE;
+	roster_issue = 1;
+	city_override = FALSE;
+	city_count = 0;
+	refuse_the_exchange = FALSE;
+	place_reset ();
+	place_host_installed = TRUE;
+
+	/* the city holds its sector placement (the host names its list by that key); its buildings are listed under it, the newest at the head, a predecessor puts the new one right after it */
+	stopped = city_do (3, city, NULL, NULL);
+	EXPECT (t, !stopped && place_entity ("1") == city && city_asks == 0);
+	stopped = city_do (0, a, city, NULL);
+	EXPECT (t, !stopped && city_asks == 1 && roster_asks == 0 && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_CHILD_INSERT && strcmp (city_seen.host_id, "1") == 0);
+	EXPECT (t, city_seen.pose[CAMPAIGN_ROSTER_TYPE] == (float) a->type && place_find ("2", &kind) == a->slot && kind == 1);
+	EXPECT (t, place_entity ("2") == NULL);
+	stopped = city_do (0, b, city, NULL);
+	EXPECT (t, !stopped && strcmp (city_seen.host_id, "1") == 0 && place_find ("3", &kind) == b->slot && kind == 1);
+	stopped = city_do (0, c, city, a);
+	EXPECT (t, !stopped && strcmp (city_seen.host_id, "1 2") == 0 && place_find ("4", &kind) == c->slot && kind == 1);
+
+	/* the host's order is the answer: b, a, c. The first building is asked by the city's key; the next by the city's and the building's; the campaign's own list at the same place is only the mirror */
+	stopped = city_serve (0, city, NULL, b, &served);
+	EXPECT (t, !stopped && served == b && city_asks == 1 && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_CHILD_FIRST && strcmp (city_seen.host_id, "1") == 0);
+	stopped = city_serve (1, city, b, a, &served);
+	EXPECT (t, !stopped && served == a && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_CHILD_NEXT && strcmp (city_seen.host_id, "1 3") == 0);
+	stopped = city_serve (1, city, a, c, &served);
+	EXPECT (t, !stopped && served == c && strcmp (city_seen.host_id, "1 2") == 0);
+	stopped = city_serve (1, city, c, NULL, &served);
+	EXPECT (t, !stopped && served == NULL && city_asks == 1);
+
+	/* a disagreement is a named stop and never an end, a miss or a fallback: the campaign's list is at another building, at its end, or has one where the host serves the end */
+	stopped = city_serve (0, city, NULL, a, &served);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.city_mirror") != NULL && served == NULL);
+	stopped = city_serve (0, city, NULL, NULL, &served);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.city_mirror") != NULL);
+	stopped = city_serve (1, city, c, b, &served);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.city_mirror") != NULL && strstr (fatal_text, "end of a city's list") != NULL);
+
+	/* a key that names no building of the campaign is a named stop, whether it is a sector placement's key, a key the campaign never held or an ended one */
+	city_override = TRUE;
+	city_state = CAMPAIGN_MODEL_SCAN_NEXT;
+	city_name = "1";
+	stopped = city_serve (0, city, NULL, b, &served);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.city_key") != NULL);
+	city_name = "99";
+	stopped = city_serve (0, city, NULL, b, &served);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.city_key") != NULL);
+	city_name = "01";
+	stopped = city_serve (0, city, NULL, b, &served);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.key") != NULL);
+	city_override = FALSE;
+
+	/* a city with no sector placement has no list the host could name: nothing is asked */
+	stopped = city_do (0, d, bare, NULL);
+	EXPECT (t, stopped && strstr (fatal_text, "holds no sector placement") != NULL && city_asks == 0);
+	stopped = city_serve (0, bare, NULL, NULL, &served);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.city_parent") != NULL && city_asks == 0);
+	stopped = city_serve (1, bare, a, NULL, &served);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.city_parent") != NULL && city_asks == 0);
+
+	/* what cannot be right stops the engine by name and asks the host nothing: a predecessor the host does not list, an entity listed twice, an entity that was never listed */
+	stopped = city_do (0, d, city, loose);
+	EXPECT (t, stopped && strstr (fatal_text, "not listed by the host") != NULL && city_asks == 0);
+	stopped = city_do (0, a, city, NULL);
+	EXPECT (t, stopped && strstr (fatal_text, "still holds it") != NULL && city_asks == 0);
+	stopped = city_do (1, d, NULL, NULL);
+	EXPECT (t, stopped && strstr (fatal_text, "never listed") != NULL && city_asks == 0);
+
+	/* a removal names the city's key recorded at the insertion and the building's own, and the key names nothing afterwards (the others are served in order) */
+	stopped = city_do (1, b, NULL, NULL);
+	EXPECT (t, !stopped && city_asks == 1 && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_CHILD_REMOVE && strcmp (city_seen.host_id, "1 3") == 0);
+	EXPECT (t, place_find ("3", &kind) < 0);
+	stopped = city_serve (0, city, NULL, a, &served);
+	EXPECT (t, !stopped && served == a);
+
+	/* the same entity in two lists is declared one entity as soon as the second placement exists, in either order: a creation lists the building and then places it in its sector, and the other way round */
+	stopped = city_do (3, a, NULL, NULL);
+	EXPECT (t, !stopped && roster_asks == 1 && city_asks == 1 && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_LINK);
+	snprintf (pair, sizeof (pair), "%s 2", place_key_of_slot[a->slot]);
+	EXPECT (t, strcmp (city_last_link, pair) == 0);
+	stopped = city_do (3, d, NULL, NULL);
+	EXPECT (t, !stopped && city_asks == 0);
+	stopped = city_do (0, d, city, NULL);
+	EXPECT (t, !stopped && city_asks == 2 && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_LINK);
+	snprintf (pair, sizeof (pair), "%s %s", place_key_of_slot[d->slot], place_child_of_slot[d->slot]);
+	EXPECT (t, strcmp (city_last_link, pair) == 0);
+
+	/* the object-report identity is named once it is issued (lazily): by the sector placement's key, or by the city child's when that is all the entity has; an entity with no placement, and an empty identity, ask nothing */
+	a->object = "eech-world:object:7";
+	stopped = city_do (5, a, NULL, NULL);
+	snprintf (pair, sizeof (pair), "%s eech-world:object:7", place_key_of_slot[a->slot]);
+	EXPECT (t, !stopped && city_asks == 1 && strcmp (city_last_name, pair) == 0 && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_NAME);
+	c->object = "eech-world:object:8";
+	stopped = city_do (5, c, NULL, NULL);
+	snprintf (pair, sizeof (pair), "%s eech-world:object:8", place_child_of_slot[c->slot]);
+	EXPECT (t, !stopped && city_asks == 1 && strcmp (city_last_name, pair) == 0);
+	loose->object = "eech-world:object:9";
+	stopped = city_do (5, loose, NULL, NULL);
+	EXPECT (t, !stopped && city_asks == 0);
+	a->object = "";
+	stopped = city_do (5, a, NULL, NULL);
+	EXPECT (t, !stopped && city_asks == 0);
+	a->object = "eech-world:object:7";
+
+	/* a relink of a structure that holds its object identity: with a city child the record is declared again (the child's record keeps the name), without one the new placement is named; neither allocates anything */
+	stopped = city_do (4, a, NULL, NULL);
+	EXPECT (t, !stopped && roster_asks == 1);
+	stopped = city_do (3, a, NULL, NULL);
+	EXPECT (t, !stopped && roster_asks == 1 && city_asks == 1 && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_LINK);
+	loose->has_position = TRUE;
+	stopped = city_do (3, loose, NULL, NULL);
+	EXPECT (t, !stopped && city_asks == 1 && (int) city_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_NAME);
+	snprintf (pair, sizeof (pair), "%s eech-world:object:9", place_key_of_slot[loose->slot]);
+	EXPECT (t, strcmp (city_last_name, pair) == 0);
+
+	/* a heap slot released while still listed and placed removes the city child first, then the sector placement, by the keys recorded; one that holds neither asks nothing */
+	stopped = city_do (2, a, NULL, NULL);
+	EXPECT (t, !stopped && city_asks == 1 && roster_asks == 1 && place_child_of_slot[a->slot][0] == 0 && place_key_of_slot[a->slot][0] == 0);
+	stopped = city_do (2, a, NULL, NULL);
+	EXPECT (t, !stopped && city_asks == 0 && roster_asks == 0);
+
+	/* the host's replies are checked completely: the state the phase allows, a key for an insertion and for no removal, the key it echoes for a LINK and a NAME, a key that is a key */
+	city_override = TRUE;
+	city_state = CAMPAIGN_MODEL_SCAN_PLACED;
+	city_name = "";
+	stopped = city_do (0, b, city, NULL);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.key") != NULL && strstr (fatal_text, "issued no key") != NULL && place_child_of_slot[b->slot][0] == 0);
+	city_state = CAMPAIGN_MODEL_SCAN_REMOVED;
+	city_name = "5";
+	stopped = city_do (0, b, city, NULL);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.state") != NULL);
+	city_state = CAMPAIGN_MODEL_SCAN_PLACED;
+	city_name = "9x";
+	stopped = city_do (0, b, city, NULL);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.key") != NULL);
+	city_override = FALSE;
+	stopped = city_do (0, b, city, NULL);
+	EXPECT (t, !stopped);
+	city_override = TRUE;
+	city_state = CAMPAIGN_MODEL_SCAN_REMOVED;
+	city_name = "77";
+	stopped = city_do (1, b, NULL, NULL);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.key") != NULL && strstr (fatal_text, "issued a key") != NULL);
+	city_override = FALSE;
+
+	/* the grammar of the identity place is checked BEFORE anything is sent: one key where two are needed, two where one is, a key that is not a key, an empty or control-character object identity, one that does not fit the field */
+	stopped = city_exchange_do (CAMPAIGN_SCAN_PHASE_CHILD_NEXT, 0, "1", key);
+	EXPECT (t, stopped && strstr (fatal_text, "needs two") != NULL && city_asks == 0);
+	stopped = city_exchange_do (CAMPAIGN_SCAN_PHASE_CHILD_FIRST, 0, "1 2", key);
+	EXPECT (t, stopped && strstr (fatal_text, "names the city only") != NULL && city_asks == 0);
+	stopped = city_exchange_do (CAMPAIGN_SCAN_PHASE_CHILD_FIRST, 0, "01", key);
+	EXPECT (t, stopped && strstr (fatal_text, "not a roster key") != NULL && city_asks == 0);
+	stopped = city_exchange_do (CAMPAIGN_SCAN_PHASE_CHILD_NEXT, 0, "1 +2", key);
+	EXPECT (t, stopped && strstr (fatal_text, "not a roster key") != NULL && city_asks == 0);
+	stopped = city_exchange_do (CAMPAIGN_SCAN_PHASE_NAME, 0, "1 ", key);
+	EXPECT (t, stopped && strstr (fatal_text, "empty object identity") != NULL && city_asks == 0);
+	stopped = city_exchange_do (CAMPAIGN_SCAN_PHASE_NAME, 0, "1 eech\nobject", key);
+	EXPECT (t, stopped && strstr (fatal_text, "control character") != NULL && city_asks == 0);
+	{
+		char longest[160], toolong[160];
+
+		memset (longest, 'x', sizeof (longest));
+		memset (toolong, 'x', sizeof (toolong));
+		longest[128] = 0;
+		toolong[129] = 0;
+		longest[0] = '1';
+		longest[1] = ' ';
+		toolong[0] = '1';
+		toolong[1] = ' ';
+		stopped = city_exchange_do (CAMPAIGN_SCAN_PHASE_NAME, 0, longest, key);
+		EXPECT (t, !stopped && city_asks == 1);
+		stopped = city_exchange_do (CAMPAIGN_SCAN_PHASE_NAME, 0, toolong, key);
+		EXPECT (t, stopped && strstr (fatal_text, "identity field") != NULL && city_asks == 0);
+	}
+
+	/* a host that refuses stops the engine with its reason and leaves the entity unlisted */
+	refuse_the_exchange = TRUE;
+	stopped = city_do (0, loose, city, NULL);
+	EXPECT (t, stopped && strstr (fatal_text, "model-provider:callback") != NULL && place_child_of_slot[loose->slot][0] == 0);
+	refuse_the_exchange = FALSE;
+
+	/* a new boot ends every key of both kinds: the city's list names nothing afterwards */
+	stopped = city_do (3, a, NULL, NULL);
+	place_reset ();
+	EXPECT (t, place_find ("1", &kind) < 0 && place_find ("2", &kind) < 0 && place_child_of_slot == NULL);
+
 	place_host_installed = FALSE;
 }
 
@@ -2382,6 +2913,7 @@ int eech_entity_dialogue_check_run (char *text, int capacity, int *checks)
 	roster_cases (&t);
 
 	place_cases (&t);
+	city_cases (&t);
 
 	if (checks)
 	{

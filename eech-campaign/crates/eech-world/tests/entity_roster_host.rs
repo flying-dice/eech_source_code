@@ -419,3 +419,264 @@ fn the_roster_arithmetic_hands_back_the_callers_whole_floating_point_state_for_f
         }
     }
 }
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// the city lists (phases 7 to 12): a building's place in its city's list, served head first from the HOST's order, and one record for a building's two placements and its object-report identity
+
+const CHILD_INSERT: f32 = 7.0;
+const CHILD_REMOVE: f32 = 8.0;
+const CHILD_FIRST: f32 = 9.0;
+const CHILD_NEXT: f32 = 10.0;
+const LINK: f32 = 11.0;
+const NAME: f32 = 12.0;
+
+/// a city event: every fact is zero but the phase and, for an insertion, the entity type
+fn city(lua: &Lua, phase: f32, entity_type: f32, identity: &str) -> Table {
+    let mut words = [0u32; 16];
+    words[3] = entity_type.to_bits();
+    words[11] = phase.to_bits();
+    ask_words(lua, words, identity)
+}
+
+fn child_insert(lua: &Lua, parent: &str, pred: Option<&str>) -> String {
+    let identity = pred.map_or(parent.to_string(), |pred| format!("{parent} {pred}"));
+    let table = city(lua, CHILD_INSERT, 21.0, &identity);
+    assert_eq!(result(&table), "placed", "{:?}", table.get::<Option<String>>("reason"));
+    name(&table)
+}
+
+/// the keys the host serves for a city, from its first building to the end of the list, exactly as the campaign's driver asks: FIRST names the parent, NEXT names the parent and the building it stands at
+fn listed(lua: &Lua, parent: &str) -> Vec<String> {
+    let first = city(lua, CHILD_FIRST, 0.0, parent);
+    assert_eq!(result(&first), "next", "{:?}", first.get::<Option<String>>("reason"));
+    let mut keys = Vec::new();
+    let mut at = name(&first);
+    while !at.is_empty() {
+        keys.push(at.clone());
+        let next = city(lua, CHILD_NEXT, 0.0, &format!("{parent} {at}"));
+        assert_eq!(result(&next), "next", "{:?}", next.get::<Option<String>>("reason"));
+        at = name(&next);
+    }
+    keys
+}
+
+#[test]
+fn a_city_list_is_served_head_first_from_the_hosts_own_order_and_a_removal_keeps_the_others_in_order() {
+    let (lua, roster) = host(registry());
+    let place = insert(&lua, [1100.0, 3.0, 1100.0], 22.0, "");
+    assert!(listed(&lua, &place).is_empty(), "a city with no building lists none");
+    // the campaign creates a building with no predecessor: it goes to the HEAD, so the newest is served first; a predecessor puts it right after that building
+    let (a, b) = (child_insert(&lua, &place, None), child_insert(&lua, &place, None));
+    assert_eq!(listed(&lua, &place), vec![b.clone(), a.clone()], "head first: the newest insertion");
+    let c = child_insert(&lua, &place, Some(&a));
+    assert_eq!(listed(&lua, &place), vec![b.clone(), a.clone(), c.clone()], "after its predecessor");
+    let d = child_insert(&lua, &place, Some(&b));
+    assert_eq!(listed(&lua, &place), vec![b.clone(), d.clone(), a.clone(), c.clone()]);
+    assert_eq!(roster.borrow().child_type(a.parse().unwrap()), Some(21));
+    // another city keeps its own list, and the sector's order of the cities is untouched by the buildings
+    let other = insert(&lua, [1500.0, 3.0, 1500.0], 22.0, "");
+    let lone = child_insert(&lua, &other, None);
+    assert_eq!(listed(&lua, &other), vec![lone.clone()]);
+    assert_eq!(served(&lua), vec![place.clone(), other.clone()]);
+    // a removal leaves the others in their order, and the removed key never names anything again
+    assert_eq!(result(&city(&lua, CHILD_REMOVE, 0.0, &format!("{place} {d}"))), "removed");
+    assert_eq!(listed(&lua, &place), vec![b.clone(), a.clone(), c.clone()]);
+    let ended = city(&lua, CHILD_NEXT, 0.0, &format!("{place} {d}"));
+    assert_eq!(result(&ended), "refused");
+    assert!(
+        reason(&ended).contains("[roster.child]") && reason(&ended).contains("has ended"),
+        "{}",
+        reason(&ended)
+    );
+    // the buildings leave before their city does; the city's own placement is refused by name while any is listed, and then leaves
+    let early = remove(&lua, &place);
+    assert_eq!(result(&early), "refused");
+    assert!(reason(&early).contains("city children that are still listed"), "{}", reason(&early));
+    for child in [&b, &a, &c] {
+        assert_eq!(result(&city(&lua, CHILD_REMOVE, 0.0, &format!("{place} {child}"))), "removed");
+    }
+    assert_eq!(result(&remove(&lua, &place)), "removed");
+}
+
+#[test]
+fn a_city_event_is_validated_against_the_live_roster_and_its_parent_before_anything_is_served_or_changed() {
+    let (lua, roster) = host(registry());
+    let place = insert(&lua, [1100.0, 3.0, 1100.0], 22.0, "");
+    let other = insert(&lua, [1500.0, 3.0, 1500.0], 22.0, "");
+    let a = child_insert(&lua, &place, None);
+    let b = child_insert(&lua, &other, None);
+    let ended_parent = insert(&lua, [1200.0, 3.0, 1200.0], 22.0, "");
+    assert_eq!(result(&remove(&lua, &ended_parent)), "removed");
+    // positive first: the listed building of its own parent
+    assert_eq!(name(&city(&lua, CHILD_FIRST, 0.0, &place)), a);
+    assert_eq!(result(&city(&lua, CHILD_NEXT, 0.0, &format!("{place} {a}"))), "next");
+    let held = roster.borrow().len();
+    // every other relation is a named refusal that serves nothing and changes nothing
+    let cases: [(&str, f32, String, &str); 14] = [
+        ("an unknown parent", CHILD_FIRST, "999".into(), "never issued"),
+        ("an ended parent", CHILD_FIRST, ended_parent.clone(), "has ended"),
+        ("a child as the parent", CHILD_FIRST, a.clone(), "city child"),
+        ("text as the parent", CHILD_FIRST, "eech-world:1".into(), "not a key this host issued"),
+        ("no parent", CHILD_FIRST, String::new(), "not a key this host issued"),
+        ("two keys for a first", CHILD_FIRST, format!("{place} {a}"), "identity place"),
+        ("one key for a next", CHILD_NEXT, place.clone(), "identity place"),
+        ("a child of another parent", CHILD_NEXT, format!("{place} {b}"), "listed under"),
+        (
+            "a sector entry as the child",
+            CHILD_NEXT,
+            format!("{place} {other}"),
+            "sector entry, not a city child",
+        ),
+        ("an unknown child", CHILD_NEXT, format!("{place} 999"), "never issued"),
+        ("a removal under another parent", CHILD_REMOVE, format!("{other} {a}"), "listed under"),
+        ("a predecessor of another parent", CHILD_INSERT, format!("{place} {b}"), "listed under"),
+        (
+            "a predecessor that is a sector entry",
+            CHILD_INSERT,
+            format!("{place} {other}"),
+            "sector entry, not a city child",
+        ),
+        ("an insertion under an ended parent", CHILD_INSERT, ended_parent.clone(), "has ended"),
+    ];
+    for (what, phase, identity, why) in cases {
+        let refused = city(&lua, phase, if phase == CHILD_INSERT { 21.0 } else { 0.0 }, &identity);
+        assert_eq!(result(&refused), "refused", "{what}");
+        assert!(reason(&refused).contains(why), "{what}: {}", reason(&refused));
+        assert_eq!(name(&refused), "", "{what}: a refusal serves nothing");
+    }
+    assert_eq!(roster.borrow().len(), held);
+    assert_eq!(listed(&lua, &place), vec![a.clone()], "the lists are as they were");
+    assert_eq!(listed(&lua, &other), vec![b.clone()]);
+    // a boot ends every list and every key
+    assert_eq!(result(&ask(&lua, event_facts(RESET, [0.0; 3], 0.0), "")), "cleared");
+    let gone = city(&lua, CHILD_FIRST, 0.0, &place);
+    assert!(reason(&gone).contains("has ended"), "{}", reason(&gone));
+}
+
+#[test]
+fn a_buildings_two_placements_and_its_object_identity_are_one_record_that_follows_a_relink() {
+    let (lua, roster) = host(registry());
+    let place = insert(&lua, [1100.0, 3.0, 1100.0], 22.0, "");
+    // the campaign's creation order: the building joins its city's list, then its sector list; the second placement is declared the same entity
+    let child = child_insert(&lua, &place, None);
+    let sector = insert(&lua, [1150.0, 3.0, 1150.0], 21.0, "");
+    let linked = city(&lua, LINK, 0.0, &format!("{sector} {child}"));
+    assert_eq!((result(&linked), name(&linked)), ("placed".to_string(), child.clone()));
+    let record = roster.borrow().record(sector.parse().unwrap()).unwrap();
+    assert_eq!(roster.borrow().record(child.parse().unwrap()), Some(record));
+    assert_eq!(roster.borrow().record_members(record), 2);
+    // the legacy object-report identity is issued later, lazily, once: it names the ONE record, whichever placement the campaign names it by
+    let named = city(&lua, NAME, 0.0, &format!("{sector} eech-world:object:7"));
+    assert_eq!((result(&named), name(&named)), ("placed".to_string(), sector.clone()));
+    assert_eq!(roster.borrow().object_of(child.parse().unwrap()), Some("eech-world:object:7"));
+    assert_eq!(roster.borrow().object_record("eech-world:object:7"), Some(record));
+    // an identity names one record and a record has one identity
+    for (what, identity, why) in [
+        ("the same identity again", format!("{place} eech-world:object:7"), "names the record"),
+        ("another identity for the record", format!("{child} eech-world:object:8"), "is named already"),
+        ("an empty identity", format!("{child} "), "empty"),
+        ("a control character", format!("{child} eech-world:object:9\n"), "control character"),
+        ("an ended placement", "999 eech-world:object:9".to_string(), "never issued"),
+    ] {
+        let refused = city(&lua, NAME, 0.0, &identity);
+        assert_eq!(result(&refused), "refused", "{what}");
+        assert!(
+            reason(&refused).contains("[roster.name]") && reason(&refused).contains(why),
+            "{what}: {}",
+            reason(&refused)
+        );
+    }
+    // a relink of the building's sector placement: the new placement joins the child's record, which still holds the identity (the child never left it)
+    assert_eq!(result(&remove(&lua, &sector)), "removed");
+    assert_eq!(roster.borrow().record_members(record), 1);
+    let again = insert(&lua, [1250.0, 3.0, 1250.0], 21.0, "");
+    assert_eq!(result(&city(&lua, LINK, 0.0, &format!("{again} {child}"))), "placed");
+    assert_eq!(roster.borrow().object_of(again.parse().unwrap()), Some("eech-world:object:7"));
+    let joined = roster.borrow().record(again.parse().unwrap()).unwrap();
+    assert_eq!(roster.borrow().record(child.parse().unwrap()), Some(joined));
+    assert_eq!(roster.borrow().record_members(joined), 2);
+    assert_eq!(roster.borrow().object_record("eech-world:object:7"), Some(joined));
+    // a structure with no city child: its record ends with its placement, and the relinked placement is named again by the identity the campaign still holds
+    let lone = insert(&lua, [1300.0, 3.0, 1300.0], 23.0, "");
+    assert_eq!(result(&city(&lua, NAME, 0.0, &format!("{lone} eech-world:object:11"))), "placed");
+    assert_eq!(result(&remove(&lua, &lone)), "removed");
+    assert_eq!(
+        roster.borrow().object_record("eech-world:object:11"),
+        None,
+        "the record and its identity end with the last placement"
+    );
+    let relinked = insert(&lua, [1350.0, 3.0, 1350.0], 23.0, "");
+    assert_eq!(result(&city(&lua, NAME, 0.0, &format!("{relinked} eech-world:object:11"))), "placed");
+    // a record holds one placement of each kind: the same pair again is the same record, and neither a second sector placement nor a second child can join it
+    let again_pair = city(&lua, LINK, 0.0, &format!("{again} {child}"));
+    assert_eq!(result(&again_pair), "placed", "{:?}", again_pair.get::<Option<String>>("reason"));
+    let stranger = insert(&lua, [1420.0, 3.0, 1420.0], 21.0, "");
+    let refused = city(&lua, LINK, 0.0, &format!("{stranger} {child}"));
+    assert_eq!(result(&refused), "refused");
+    assert!(
+        reason(&refused).contains("[roster.link]") && reason(&refused).contains("already hold a sector placement"),
+        "{}",
+        reason(&refused)
+    );
+    let second_child = child_insert(&lua, &place, None);
+    let refused = city(&lua, LINK, 0.0, &format!("{again} {second_child}"));
+    assert_eq!(result(&refused), "refused");
+    assert!(reason(&refused).contains("already hold a city child"), "{}", reason(&refused));
+    // a placement the roster does not hold cannot be linked
+    let refused = city(&lua, LINK, 0.0, &format!("999 {child}"));
+    assert!(reason(&refused).contains("never issued"), "{}", reason(&refused));
+}
+
+#[test]
+fn the_city_words_are_classified_without_floating_point_and_leave_the_callers_whole_state_unchanged() {
+    const SIGNALING: u32 = 0x7fa0_0001;
+    for mode in [Rounding::Nearest, Rounding::Up, Rounding::Down, Rounding::Zero] {
+        for raised in [false, true] {
+            let (lua, _) = host(registry());
+            let place = insert(&lua, [1100.0, 3.0, 1100.0], 22.0, "");
+            let _caller = ScopedRounding::set(mode).expect("a caller in this rounding mode");
+            clear_exception_flags().expect("clear");
+            if raised {
+                raise_exception_flags().expect("raise");
+            }
+            let before = caller_state();
+            let child = child_insert(&lua, &place, None);
+            assert_eq!(listed(&lua, &place), vec![child.clone()]);
+            assert_eq!(
+                caller_state(),
+                before,
+                "{mode:?} raised={raised}: the caller's whole state after valid city events"
+            );
+            let word = |phase: f32, at: usize, value: u32| {
+                let mut words = [0u32; 16];
+                words[3] = 21.0f32.to_bits();
+                words[11] = phase.to_bits();
+                words[at] = value;
+                words
+            };
+            let cases: [(&str, [u32; 16], &str); 5] = [
+                ("a signaling type", word(CHILD_INSERT, 3, SIGNALING), "[roster.request]"),
+                ("a fractional type", word(CHILD_INSERT, 3, 2.5f32.to_bits()), "[roster.request]"),
+                ("a signaling unused fact", word(CHILD_INSERT, 5, SIGNALING), "is not zero"),
+                ("a signaling fact of a first", word(CHILD_FIRST, 0, SIGNALING), "is not zero"),
+                ("an infinite fact of a next", word(CHILD_NEXT, 14, 0x7f80_0000), "is not zero"),
+            ];
+            for (what, words, why) in cases {
+                let refused = ask_words(&lua, words, &place);
+                assert_eq!(result(&refused), "refused", "{what}");
+                assert!(reason(&refused).contains(why), "{what}: {}", reason(&refused));
+                assert_eq!(caller_state(), before, "{mode:?} raised={raised}: the caller's whole state after {what}");
+            }
+            // a city phase is classified from its bits too: a signaling phase word is the scan kernel's named refusal, not a city event
+            let mut words = [0u32; 16];
+            words[11] = SIGNALING;
+            let refused = ask_words(&lua, words, &place);
+            assert_eq!(result(&refused), "refused");
+            assert_eq!(
+                caller_state(),
+                before,
+                "{mode:?} raised={raised}: the caller's whole state after a signaling phase"
+            );
+        }
+    }
+}

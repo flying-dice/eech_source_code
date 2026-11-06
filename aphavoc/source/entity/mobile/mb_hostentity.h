@@ -636,6 +636,188 @@ static void campaign_entity_roster_exchange (int phase, int entity_type, float s
 	memcpy (key, reply.name, strlen (reply.name) + 1);
 }
 
+
+// The CITY events (the same question; phases CAMPAIGN_SCAN_PHASE_CHILD_INSERT to CAMPAIGN_SCAN_PHASE_NAME, EEDCS-49, D3, seventh slice; see mb_hostmodel.h): a building's place in its city's list
+// (LIST_TYPE_CITY_BUILDING) is inserted, removed, asked for its first or next entry; a sector placement and a city child are declared the same entity; and a placement is named by the legacy object-report
+// identity the host issued for its entity. `identity` is the identity place the caller built from keys (and, for a NAME, the object identity after one space): it is validated HERE, before anything is sent, against
+// the grammar of the phase. The host's reply is checked completely: the state the phase allows, a key for an insertion, the end of a list as an empty key, and for a LINK or a NAME the key it echoes.
+static int city_split (const char *identity, int *first_length)
+{
+	const char
+		*space;
+
+	space = strchr (identity, ' ');
+
+	*first_length = (space != NULL) ? (int) (space - identity) : (int) strlen (identity);
+
+	return (space != NULL);
+}
+
+static void city_identity_check (int phase, const char *identity)
+{
+	char
+		first [CAMPAIGN_ROSTER_KEY_MAX + 2],
+		second [CAMPAIGN_MODEL_HOST_ID_MAX + 1];
+
+	int
+		first_length,
+		has_second,
+		wants_second;
+
+	size_t
+		length;
+
+	length = strlen (identity);
+
+	if (length > CAMPAIGN_MODEL_HOST_ID_MAX)
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.request] the identity place of a city event of phase %d holds %d bytes, outside the identity field of 1 to %d (a NAME's key and object identity share it)", phase, (int) length, CAMPAIGN_MODEL_HOST_ID_MAX);
+	}
+
+	has_second = city_split (identity, &first_length);
+
+	wants_second = (phase == CAMPAIGN_SCAN_PHASE_CHILD_REMOVE) || (phase == CAMPAIGN_SCAN_PHASE_CHILD_NEXT) || (phase == CAMPAIGN_SCAN_PHASE_LINK) || (phase == CAMPAIGN_SCAN_PHASE_NAME);
+
+	if ((first_length < 1) || (first_length > CAMPAIGN_ROSTER_KEY_MAX))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.key] the identity place of a city event of phase %d begins with a key of %d bytes", phase, first_length);
+	}
+
+	memcpy (first, identity, (size_t) first_length);
+
+	first [first_length] = 0;
+
+	if (!roster_key_is_valid (first))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.key] the key \"%.40s\" of a city event of phase %d is not a roster key", first, phase);
+	}
+
+	if ((phase == CAMPAIGN_SCAN_PHASE_CHILD_FIRST) && has_second)
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.key] a request for the first building of a city names the city only");
+	}
+
+	if (wants_second && !has_second)
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.key] the identity place of a city event of phase %d names one key where it needs two", phase);
+	}
+
+	if (has_second)
+	{
+		memcpy (second, identity + first_length + 1, strlen (identity + first_length + 1) + 1);
+
+		if (phase == CAMPAIGN_SCAN_PHASE_NAME)
+		{
+			if (second [0] == 0)
+			{
+				debug_fatal ("host model: [model-provider:entity_scan.request] a NAME carries an empty object identity");
+			}
+
+			{
+				const unsigned char
+					*byte;
+
+				for (byte = (const unsigned char *) second; *byte; byte++)
+				{
+					if ((*byte < 0x20) || (*byte == 0x7f))
+					{
+						debug_fatal ("host model: [model-provider:entity_scan.request] a NAME carries an object identity with a control character");
+					}
+				}
+			}
+		}
+		else if (!roster_key_is_valid (second))
+		{
+			debug_fatal ("host model: [model-provider:entity_scan.key] the second key \"%.40s\" of a city event of phase %d is not a roster key", second, phase);
+		}
+	}
+}
+
+static void check_city_reply (const campaign_model_reply *reply, int phase, const char *identity)
+{
+	int
+		matches,
+		wanted;
+
+	const char
+		*space;
+
+	wanted = (phase == CAMPAIGN_SCAN_PHASE_CHILD_REMOVE) ? CAMPAIGN_MODEL_SCAN_REMOVED : (((phase == CAMPAIGN_SCAN_PHASE_CHILD_FIRST) || (phase == CAMPAIGN_SCAN_PHASE_CHILD_NEXT)) ? CAMPAIGN_MODEL_SCAN_NEXT : CAMPAIGN_MODEL_SCAN_PLACED);
+
+	if (reply->candidate_state != wanted)
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.state] the host decided state %d for a city event of phase %d, which allows only state %d", reply->candidate_state, phase, wanted);
+	}
+
+	check_reply_key (reply, "entity_scan");
+
+	if (phase == CAMPAIGN_SCAN_PHASE_CHILD_INSERT)
+	{
+		if (reply->name [0] == 0)
+		{
+			debug_fatal ("host model: [model-provider:entity_scan.key] the host issued no key for a city insertion");
+		}
+	}
+	else if ((phase == CAMPAIGN_SCAN_PHASE_LINK) || (phase == CAMPAIGN_SCAN_PHASE_NAME))
+	{
+		// the host echoes the key it linked (the child's, the second) or named (the placement's, the first): the campaign never accepts an acknowledgement of another entry
+		space = strchr (identity, ' ');
+
+		if (phase == CAMPAIGN_SCAN_PHASE_LINK)
+		{
+			matches = (strcmp (reply->name, space + 1) == 0);
+		}
+		else
+		{
+			matches = (strlen (reply->name) == (size_t) (space - identity)) && (strncmp (reply->name, identity, (size_t) (space - identity)) == 0);
+		}
+
+		if (!matches)
+		{
+			debug_fatal ("host model: [model-provider:entity_scan.key] the host acknowledged the key \"%.40s\" of a city event of phase %d, which names another entry", reply->name, phase);
+		}
+	}
+	else if ((phase == CAMPAIGN_SCAN_PHASE_CHILD_REMOVE) && (reply->name [0] != 0))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.key] the host issued a key for a city removal");
+	}
+
+	if ((!scan_word_is_zero (&reply->candidate [0])) || (!scan_word_is_zero (&reply->candidate [1])))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.cursor] the host named a sector for a city event, which carries none");
+	}
+}
+
+static void campaign_entity_city_exchange (int phase, int entity_type, const char *identity, char *key)
+{
+	campaign_model_request
+		request;
+
+	campaign_model_reply
+		reply;
+
+	city_identity_check (phase, identity);
+
+	memset (&request, 0, sizeof (request));
+	request.op = CAMPAIGN_MODEL_ENTITY_SCAN;
+	request.scene = 0;
+	request.pose_count = CAMPAIGN_MODEL_SCAN_FACTS;
+	request.pose [CAMPAIGN_SCAN_PHASE] = (float) phase;
+
+	if (phase == CAMPAIGN_SCAN_PHASE_CHILD_INSERT)
+	{
+		request.pose [CAMPAIGN_ROSTER_TYPE] = (float) entity_type;
+	}
+
+	memcpy (request.host_id, identity, strlen (identity));
+
+	CAMPAIGN_ENTITY_SCAN_ASK (&request, &reply);
+
+	check_city_reply (&reply, phase, identity);
+
+	memcpy (key, reply.name, strlen (reply.name) + 1);
+}
+
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // ENTITY_POSE (EEDCS-49, D3, fifth slice): an OBSERVATION of a mobile candidate's pose against the host's record of its identity. The answer chooses no pose and no result; its shape is checked and a mirror difference stops the engine (a conformance assertion, not a decision-neutral read).
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

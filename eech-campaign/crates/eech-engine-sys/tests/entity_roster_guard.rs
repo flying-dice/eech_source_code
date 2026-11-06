@@ -275,3 +275,208 @@ fn a_hosted_mobiles_record_is_made_current_before_the_insertion_of_a_sector_chan
         );
     }
 }
+
+/// whether a line names the city building list `LIST_TYPE_CITY_BUILDING` itself and not a longer name that starts with it (`_LINK`, `_ROOT`)
+fn names_the_city_list(line: &str) -> bool {
+    let name = "LIST_TYPE_CITY_BUILDING";
+    let mut from = 0;
+    while let Some(at) = line[from..].find(name) {
+        let end = from + at + name.len();
+        if !line[end..].chars().next().is_some_and(|c| c.is_ascii_alphanumeric() || c == '_') {
+            return true;
+        }
+        from = end;
+    }
+    false
+}
+
+/// the code lines of a source file that name the city building list: block and line comments are not code
+fn city_list_lines(text: &str) -> Vec<(usize, String)> {
+    let mut found = Vec::new();
+    let mut in_block_comment = false;
+    for (number, raw) in text.lines().enumerate() {
+        let mut line = code(raw).to_string();
+        if in_block_comment {
+            if let Some(end) = line.find("*/") {
+                line = line[end + 2..].to_string();
+                in_block_comment = false;
+            } else {
+                continue;
+            }
+        }
+        while let Some(start) = line.find("/*") {
+            match line[start..].find("*/") {
+                Some(end) => line.replace_range(start..start + end + 2, ""),
+                None => {
+                    line.truncate(start);
+                    in_block_comment = true;
+                }
+            }
+        }
+        if names_the_city_list(&line) {
+            found.push((number + 1, line.trim().to_string()));
+        }
+    }
+    found
+}
+
+/// The city building list (`LIST_TYPE_CITY_BUILDING`, seventh slice): the host holds a city's buildings and their order, so every write to the list must be reported, a building's place in it must be the host's one
+/// record with its sector placement, and the scan's city traversal must be served from the host's list with the campaign's own list as the mirror. Read from the compiled source:
+///
+///  1. every write to the list is the funnel (en_list.c) from the one creator (`cb_creat.c`, which inserts after the predecessor the creation names: none, for every creation that exists) and the one destroyer
+///     (`cb_dstry.c`, and the city's destruction of its children through it); no other file sets the list's links, and no creation names a predecessor for it;
+///  2. the funnel reports the insertion after the list is written and before the link notifications, and the removal while the building is still in the list;
+///  3. the list's other occurrences are creation attributes (the city is the building's parent, created and placed before it), reads, the message handler and the dispatch tables;
+///  4. a building is listed before it is placed in its sector and unlisted after it leaves it, and a release removes a still-listed building before its sector placement;
+///  5. the hosted scan's city traversal asks the host for the first and the next building, and the original body keeps the campaign's own list;
+///  6. the object-report identity is still issued lazily (the same request, the same serial) and the host is told the identity afterwards.
+#[test]
+fn every_write_to_the_city_building_list_goes_through_the_funnel_and_a_scan_reads_the_hosts_list() {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../aphavoc/source");
+    let mut files = Vec::new();
+    walk(&root, &mut files);
+    let mut inserts: Vec<String> = Vec::new();
+    let mut deletes: Vec<String> = Vec::new();
+    let mut destroys: Vec<String> = Vec::new();
+    let mut attributes: Vec<String> = Vec::new();
+    let mut offenders = Vec::new();
+    for path in files {
+        let name = path.strip_prefix(&root).unwrap().to_string_lossy().replace('\\', "/");
+        if name == "entity/system/en_funcs/en_list.c" {
+            continue;
+        }
+        let text = String::from_utf8_lossy(&std::fs::read(&path).unwrap()).replace("\r\n", "\n");
+        for (number, line) in city_list_lines(&text) {
+            let at = format!("{name}:{number}: {line}");
+            if line.contains("insert_local_entity_into_parents_child_list") {
+                inserts.push(name.clone());
+                if name != "entity/fixed/cbuild/cb_creat.c" || !line.contains("raw->city_building_link.parent, raw->city_building_link.child_pred") {
+                    offenders.push(format!("an insertion outside the one creator: {at}"));
+                }
+            } else if line.contains("delete_local_entity_from_parents_child_list") {
+                deletes.push(name.clone());
+            } else if line.contains("destroy_local_entity_children") || line.contains("destroy_client_server_entity_children") {
+                destroys.push(name.clone());
+            } else if line.contains("ENTITY_ATTR_PARENT") {
+                attributes.push(name.clone());
+            } else if line.contains("ENTITY_ATTR_CHILD_PRED") {
+                offenders.push(format!("a creation that names a predecessor in the city list: {at}"));
+            } else if name == "entity/system/en_funcs/en_list.h" && line == "LIST_TYPE_CITY_BUILDING," {
+                // the list type's own enumerator
+            } else if name.starts_with("entity/system/en_funcs/en_list/") {
+                // the dispatch tables of the list accessors
+            } else if line.starts_with("case LIST_TYPE_CITY_BUILDING:") && name == "entity/fixed/city/ct_msgs.c" {
+                // the city's message handler: which list a link message is about
+            } else if line.contains("get_local_entity_first_child")
+                || line.contains("get_local_entity_child_succ")
+                || line.contains("get_local_entity_child_pred")
+                || line.contains("get_local_entity_parent")
+            {
+                // a read (the offer's mirror, the drawing of a city's buildings)
+            } else {
+                offenders.push(format!("another use of the city building list: {at}"));
+            }
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "the city building list is written outside the funnel:\n{}",
+        offenders.join("\n")
+    );
+    assert_eq!(inserts, vec!["entity/fixed/cbuild/cb_creat.c".to_string()]);
+    assert_eq!(deletes, vec!["entity/fixed/cbuild/cb_dstry.c".to_string()]);
+    assert_eq!(destroys.len(), 2, "the city destroys its buildings through their destroyer: {destroys:?}");
+    assert!(destroys.iter().all(|file| file == "entity/fixed/city/ct_dstry.c"));
+    // the only creations name the city as the building's parent and never a predecessor, so a building is always inserted at the head
+    assert_eq!(attributes, vec!["ai/faction/popread.c".to_string(); 2], "{attributes:?}");
+
+    // 2. the funnel reports after the write and before the notifications; the removal while the building is in the list
+    let list = source("entity/system/en_funcs/en_list.c");
+    let insert = &list[list.find("void insert_local_entity_into_parents_child_list").unwrap()..list.find("void clear_local_entity_list").unwrap()];
+    before(
+        insert,
+        "set_local_entity_first_child (parent, type, en);",
+        "campaign_place_child_insert (en, parent, pred);",
+        "en_list.c insertion",
+    );
+    before(
+        insert,
+        "campaign_place_child_insert (en, parent, pred);",
+        "notify_local_entity (ENTITY_MESSAGE_LINK_CHILD, parent, en, type);",
+        "en_list.c insertion",
+    );
+    assert!(insert.contains("else if (type == LIST_TYPE_CITY_BUILDING)"));
+    let delete = &list[list.find("void delete_local_entity_from_parents_child_list").unwrap()..];
+    before(
+        delete,
+        "campaign_place_child_remove (en);",
+        "notify_local_entity (ENTITY_MESSAGE_UNLINK_CHILD, parent, en, type);",
+        "en_list.c removal",
+    );
+    before(
+        delete,
+        "campaign_place_child_remove (en);",
+        "set_local_entity_parent (en, type, NULL);",
+        "en_list.c removal",
+    );
+
+    // 4. listed before placed, unlisted after it leaves; the city is placed when it is created, before any building
+    let created = source("entity/fixed/cbuild/cb_creat.c");
+    before(
+        &created,
+        "insert_local_entity_into_parents_child_list (en, LIST_TYPE_CITY_BUILDING,",
+        "insert_local_entity_into_parents_child_list (en, LIST_TYPE_SECTOR,",
+        "cb_creat.c",
+    );
+    assert!(created.contains("ASSERT (raw->city_building_link.parent);"));
+    assert!(source("entity/fixed/city/ct_creat.c").contains("insert_local_entity_into_parents_child_list (en, LIST_TYPE_SECTOR,"));
+    let destroyed = source("entity/fixed/cbuild/cb_dstry.c");
+    before(
+        &destroyed,
+        "delete_local_entity_from_parents_child_list (en, LIST_TYPE_SECTOR);",
+        "delete_local_entity_from_parents_child_list (en, LIST_TYPE_CITY_BUILDING);",
+        "cb_dstry.c",
+    );
+    let map = source("entity/mobile/mb_hostplacemap.h");
+    let release = &map[map.find("static void place_release_entity").unwrap()..map.find("static void place_reset").unwrap()];
+    before(release, "place_child_remove (en);", "place_remove (en);", "mb_hostplacemap.h release");
+
+    // 5. the hosted scan's city traversal is the host's; the original body (kept for the characterisation profile) reads the campaign's list
+    let collision = source("entity/en_misc/en_maths/en_cllsn.c");
+    assert!(collision
+        .contains("#define CAMPAIGN_OFFER_FIRST_BUILDING(E) campaign_place_child_first ((E), get_local_entity_first_child ((E), LIST_TYPE_CITY_BUILDING))"));
+    assert!(collision.contains(
+        "#define CAMPAIGN_OFFER_NEXT_BUILDING(C,B) campaign_place_child_next ((C), (B), get_local_entity_child_succ ((B), LIST_TYPE_CITY_BUILDING))"
+    ));
+    assert!(
+        collision.contains("building = get_local_entity_first_child (target, LIST_TYPE_CITY_BUILDING);"),
+        "the original body is kept"
+    );
+    let offer = source("entity/mobile/mb_hostoffer.h");
+    assert!(offer.contains("building = CAMPAIGN_OFFER_NEXT_BUILDING (target, building);"));
+    assert!(
+        !offer.contains("get_local_entity_child_succ") && !offer.contains("get_local_entity_first_child"),
+        "the offer reads no list of the campaign itself"
+    );
+
+    // 6. the identity is issued exactly as before (the same request, the same serial) and the host is told it afterwards
+    let object = source("entity/mobile/mb_hostobj.c");
+    assert!(object.contains("request.serial = issued_count + 1;"));
+    before(
+        &object,
+        "campaign_aim_identify_object (&request, issued);",
+        "campaign_place_name (en, records[record_count - 1].host_id);",
+        "mb_hostobj.c",
+    );
+    before(
+        &object,
+        "issued_count++;",
+        "campaign_place_name (en, records[record_count - 1].host_id);",
+        "mb_hostobj.c",
+    );
+    assert_eq!(
+        object.matches("campaign_place_name").count(),
+        1,
+        "the host is told the identity only where it is issued"
+    );
+}

@@ -303,7 +303,15 @@ enum campaign_model_scan_phase
 	/* the roster's own events of the sector lists (EEDCS-49, sixth slice; see ENTITY_SCAN above): an entity was inserted into a sector's list, is about to leave it, or a new boot starts */
 	CAMPAIGN_SCAN_PHASE_INSERT,
 	CAMPAIGN_SCAN_PHASE_REMOVE,
-	CAMPAIGN_SCAN_PHASE_RESET
+	CAMPAIGN_SCAN_PHASE_RESET,
+	/* the CITY events (seventh slice): a building's place in its city's list (LIST_TYPE_CITY_BUILDING) is inserted, removed, asked for its first or its next entry; a sector placement and a city child are
+	   declared the same entity; a placement is named by the legacy object-report identity the host issued for its entity */
+	CAMPAIGN_SCAN_PHASE_CHILD_INSERT,
+	CAMPAIGN_SCAN_PHASE_CHILD_REMOVE,
+	CAMPAIGN_SCAN_PHASE_CHILD_FIRST,
+	CAMPAIGN_SCAN_PHASE_CHILD_NEXT,
+	CAMPAIGN_SCAN_PHASE_LINK,
+	CAMPAIGN_SCAN_PHASE_NAME
 };
 
 enum campaign_model_scan_state
@@ -500,6 +508,11 @@ int campaign_model_entity_scan (const float *facts, const char *entry_key, float
    CAMPAIGN_SCAN_PHASE_INSERT; `identity` is a hosted mobile's semantic identity, NULL for every other entity; the host's key for it is written to `key`), that the entity with the host's `identity` key
    is leaving its list (CAMPAIGN_SCAN_PHASE_REMOVE), or that a new boot starts (CAMPAIGN_SCAN_PHASE_RESET). The reply is checked completely; a refusal stops the engine with the host's reason. */
 void campaign_model_entity_roster (int phase, int entity_type, float side, const float *position, const char *identity, char *key);
+
+/* ENTITY_SCAN, the city events (phases CAMPAIGN_SCAN_PHASE_CHILD_INSERT to CAMPAIGN_SCAN_PHASE_NAME): `identity` is the identity place text the caller built from the host's keys (see mb_hostentity.h,
+   campaign_entity_city_exchange: it is validated against the phase's grammar before anything is sent); for an insertion `entity_type` is the building's type; the host's answer is written to `key`: the key issued (an
+   insertion), the entry served (CHILD_FIRST and CHILD_NEXT: empty at the end of the list) or the key the host acknowledged (LINK and NAME). The reply is checked completely. */
+void campaign_model_entity_city (int phase, int entity_type, const char *identity, char *key);
 
 /* whether a model provider is installed (the roster reports only to one: a build with no host has no roster and no scan) */
 int campaign_model_host_installed (void);

@@ -497,6 +497,11 @@ void insert_local_entity_into_parents_child_list (entity *en, list_types type, e
 	{
 		campaign_place_insert (en);
 	}
+	else if (type == LIST_TYPE_CITY_BUILDING)
+	{
+		// a building's place in its city's list is the host's too (seventh slice): the host lists it, and serves the scan's city traversal from ITS order
+		campaign_place_child_insert (en, parent, pred);
+	}
 
 	notify_local_entity (ENTITY_MESSAGE_LINK_CHILD, parent, en, type);
 
@@ -564,6 +569,10 @@ void delete_local_entity_from_parents_child_list (entity *en, list_types type)
 		if (type == LIST_TYPE_SECTOR)
 		{
 			campaign_place_remove (en);
+		}
+		else if (type == LIST_TYPE_CITY_BUILDING)
+		{
+			campaign_place_child_remove (en);
 		}
 
 		notify_local_entity (ENTITY_MESSAGE_UNLINK_CHILD, parent, en, type);

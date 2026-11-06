@@ -26,12 +26,29 @@ void campaign_place_reset (void);
 // the entity the host's roster key names, or NULL when the campaign holds none for it (the key is the host's, never an index of the entity heap)
 struct ENTITY *campaign_place_entity (const char *key);
 
+// the city lists (LIST_TYPE_CITY_BUILDING; seventh slice): `en` was inserted into the list of the buildings of `parent` at the head (`pred` NULL) or after `pred`, and is about to leave it. The host lists them
+// in ITS order and a scan reads that order: `campaign_place_child_first` and `_next` answer the building the host serves, resolved to its entity and compared with `mirror`, the entry the campaign's own list holds
+// at the same place (NULL at its end); a disagreement or a key that names no building stops the engine by name.
+void campaign_place_child_insert (struct ENTITY *en, struct ENTITY *parent, struct ENTITY *pred);
+
+void campaign_place_child_remove (struct ENTITY *en);
+
+struct ENTITY *campaign_place_child_first (struct ENTITY *city, struct ENTITY *mirror);
+
+struct ENTITY *campaign_place_child_next (struct ENTITY *city, struct ENTITY *building, struct ENTITY *mirror);
+
+// the host issued `id` as the legacy object-report identity of `en` (asked lazily, once): the host's placements of the entity are named by it
+void campaign_place_name (struct ENTITY *en, const char *id);
+
 #else
 
 #define campaign_place_insert(ENTITY) ((void) 0)
 #define campaign_place_remove(ENTITY) ((void) 0)
 #define campaign_place_release_entity(ENTITY) ((void) 0)
 #define campaign_place_reset() ((void) 0)
+#define campaign_place_child_insert(ENTITY,PARENT,PRED) ((void) 0)
+#define campaign_place_child_remove(ENTITY) ((void) 0)
+#define campaign_place_name(ENTITY,ID) ((void) 0)
 
 #endif
 

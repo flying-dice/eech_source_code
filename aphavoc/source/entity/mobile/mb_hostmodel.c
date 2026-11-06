@@ -73,6 +73,8 @@ struct campaign_model_counters
 	long entity_scan, scan_first, scan_next, scan_offer, scan_done;
 	/* the roster's events of the sector lists (the same question, phases 4 to 6): entities placed, removed and the boots that cleared the roster. Not counted among the scan's own states above */
 	long roster_placed, roster_removed, roster_cleared;
+	/* the city events (the same question, phases 7 to 12): buildings listed and unlisted, the first and next entries the host served, the placements linked and the placements named */
+	long city_placed, city_removed, city_first, city_next, city_linked, city_named;
 	/* ENTITY_POSE observations asked of the host (EEDCS-49), and the classes it answered: recorded, unrecorded, retired, unknown, no identity */
 	long entity_pose, pose_recorded, pose_unrecorded, pose_retired, pose_unknown, pose_no_id;
 	long entity_candidate, candidate_skip, candidate_updated, candidate_normal, candidate_buildings, candidate_test, candidate_fixed, candidate_placement;
@@ -2025,6 +2027,24 @@ void campaign_model_entity_roster (int phase, int entity_type, float side, const
 
 			break;
 		}
+	}
+#endif
+}
+
+// ENTITY_SCAN, the city events (mb_hostmodel.h; EEDCS-49, D3, seventh slice). The dialogue is mb_hostentity.h; the host holds the city lists, the records and their object identities.
+void campaign_model_entity_city (int phase, int entity_type, const char *identity, char *key)
+{
+	campaign_entity_city_exchange (phase, entity_type, identity, key);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	switch (phase)
+	{
+		case CAMPAIGN_SCAN_PHASE_CHILD_INSERT: { campaign_model_counts.city_placed++; break; }
+		case CAMPAIGN_SCAN_PHASE_CHILD_REMOVE: { campaign_model_counts.city_removed++; break; }
+		case CAMPAIGN_SCAN_PHASE_CHILD_FIRST: { campaign_model_counts.city_first++; break; }
+		case CAMPAIGN_SCAN_PHASE_CHILD_NEXT: { campaign_model_counts.city_next++; break; }
+		case CAMPAIGN_SCAN_PHASE_LINK: { campaign_model_counts.city_linked++; break; }
+		default: { campaign_model_counts.city_named++; break; }
 	}
 #endif
 }

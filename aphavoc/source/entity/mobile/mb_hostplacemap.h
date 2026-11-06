@@ -1,16 +1,18 @@
-// The campaign's report of the sector lists to the host's roster (EEDCS-49, D3, sixth slice): see mb_hostplace.h, mb_hostmodel.h (ENTITY_SCAN, the roster's events) and mb_hostplace.c.
+// The campaign's report of the sector lists and the city lists to the host's roster (EEDCS-49, D3, sixth and seventh slices): see mb_hostplace.h, mb_hostmodel.h (ENTITY_SCAN, the roster's and the city events) and mb_hostplace.c.
 //
-// The host holds the roster: which entities stand in which sector, in what order (the head of a sector's list is its newest insertion and a scan visits the tail first), decided from ITS state.  The
-// campaign tells it each insertion and removal and keeps, per entity, only the key the host issued for the entity's current placement, so that the entry the host serves can be resolved back to the campaign's
-// entity for its decisions and its consequences.  A key is the host's: it is not an index of the entity heap (that is reused, a key never is), a relink is a removal and an insertion with a new key, and a key
-// that was removed names nothing.
+// The host holds the roster: which entities stand in which sector, in what order (the head of a sector's list is its newest insertion and a scan visits the tail first), decided from ITS state; and, for a
+// city, which buildings are listed under it in what order (LIST_TYPE_CITY_BUILDING: a building is inserted at the head or after a predecessor and the scan walks head to tail).  The campaign tells it each
+// insertion and removal and keeps, per entity, only the keys the host issued for the entity's current placements (one in a sector list, one in a city's list), so that the entry the host serves can be resolved
+// back to the campaign's entity for its decisions and its consequences.  A key is the host's: it is not an index of the entity heap (that is reused, a key never is), a relink is a removal and an insertion with a
+// new key, and a key that was removed names nothing.  A building's two placements are the SAME entity: the campaign declares that to the host (LINK) as soon as the second exists, and names the record by the
+// legacy object-report identity when (and only when) the campaign has asked for one (NAME), so the host holds one record for the building and nothing is issued earlier than before.
 //
 // What this does not do: it decides no sector (the host does, from the position it is told and, for a hosted mobile, from its own record of it), it does not order the entries, and it is not the answer of a
-// scan: the campaign's list is only the mirror a scan compares the host's entry with (mb_hostscan.h).
+// scan: the campaign's lists are only the mirror a scan compares the host's entry with (mb_hostscan.h, and place_child_served below for a city).
 //
 // It is a header, included by mb_hostplace.c (bound to the real entity heap) and by the isolated control csrc/eech_entity_dialogue_check.c (bound to scripted entities and a scripted host), so the control
-// exercises THIS code and not a copy.  The includer provides FALSE, TRUE, NULL, memcpy, strcmp, strlen, calloc, free, debug_fatal, campaign_model_host_installed and campaign_model_entity_roster
-// (mb_hostmodel.h), and
+// exercises THIS code and not a copy.  The includer provides FALSE, TRUE, NULL, memcpy, strcmp, strlen, calloc, free, debug_fatal, campaign_model_host_installed, campaign_model_entity_roster and
+// campaign_model_entity_city (mb_hostmodel.h), and
 //
 //   CAMPAIGN_PLACE_ENTITY                  the entity type
 //   CAMPAIGN_PLACE_HEAP ()                 the number of slots of the entity heap this run allocated (stops the engine for a heap that is not one)
@@ -18,18 +20,22 @@
 //   CAMPAIGN_PLACE_TYPE (E), CAMPAIGN_PLACE_NAME (E)   the entity's type (an int) and its type's name (text, for a refusal)
 //   CAMPAIGN_PLACE_POSITION (E)            the entity's three position words, or NULL for an entity that has none
 //   CAMPAIGN_PLACE_IDENTITY (E)            a hosted mobile's semantic host identity, or NULL for every other entity
+//   CAMPAIGN_PLACE_OBJECT_ID (E)           the legacy object-report identity already issued for the entity (NULL when none: it is never allocated here)
 //   CAMPAIGN_PLACE_SIDE ()                 the sector side length, as a float
 #ifndef MB_HOSTPLACEMAP_H
 #define MB_HOSTPLACEMAP_H
 
-// the key the host issued for the placement of the entity in each heap slot ("" when it is not placed); the slots are those of the heap this run allocated
+// the keys the host issued for the placements of the entity in each heap slot ("" when it has none): its place in a sector's list, and its place in a city's list (and the key of that city's own sector placement,
+// which names the list the building was inserted into, so that its removal names the same list even when the entity data is already gone); the slots are those of the heap this run allocated
 static char
-	(*place_key_of_slot) [CAMPAIGN_ROSTER_KEY_MAX + 1] = NULL;
+	(*place_key_of_slot) [CAMPAIGN_ROSTER_KEY_MAX + 1] = NULL,
+	(*place_child_of_slot) [CAMPAIGN_ROSTER_KEY_MAX + 1] = NULL,
+	(*place_parent_of_slot) [CAMPAIGN_ROSTER_KEY_MAX + 1] = NULL;
 
 static int
 	place_map_capacity = 0;
 
-// the reverse map, by key: open addressing over slot numbers + 1 (0 empty, -1 a removed entry)
+// the reverse map, by key, over both kinds of placement: open addressing over (slot * 2 + kind) + 1 (0 empty, -1 a removed entry); kind 0 is a sector placement and kind 1 a city child
 static int
 	*place_table = NULL;
 
@@ -73,10 +79,17 @@ static size_t place_hash (const char *key)
 	return (hash);
 }
 
+// the key a table code names: the sector placement of slot code / 2, or its city child when the low bit is set
+static char *place_code_key (int code)
+{
+	return ((code & 1) ? place_child_of_slot [code / 2] : place_key_of_slot [code / 2]);
+}
+
 static void place_table_rebuild (size_t wanted)
 {
 	int
-		slot;
+		slot,
+		kind;
 
 	free (place_table);
 
@@ -95,20 +108,23 @@ static void place_table_rebuild (size_t wanted)
 
 	for (slot = 0; slot < place_map_capacity; slot++)
 	{
-		if (place_key_of_slot [slot][0])
+		for (kind = 0; kind < 2; kind++)
 		{
-			size_t position = place_hash (place_key_of_slot [slot]) & (place_table_size - 1);
-
-			while (place_table [position])
+			if (place_code_key (slot * 2 + kind)[0])
 			{
-				position = (position + 1) & (place_table_size - 1);
+				size_t position = place_hash (place_code_key (slot * 2 + kind)) & (place_table_size - 1);
+
+				while (place_table [position])
+				{
+					position = (position + 1) & (place_table_size - 1);
+				}
+
+				place_table [position] = slot * 2 + kind + 1;
+
+				place_table_used++;
+
+				place_table_live++;
 			}
-
-			place_table [position] = slot + 1;
-
-			place_table_used++;
-
-			place_table_live++;
 		}
 	}
 }
@@ -121,7 +137,11 @@ static void place_ensure_map (void)
 
 		place_key_of_slot = (char (*) [CAMPAIGN_ROSTER_KEY_MAX + 1]) calloc ((size_t) place_map_capacity, sizeof (*place_key_of_slot));
 
-		if (!place_key_of_slot)
+		place_child_of_slot = (char (*) [CAMPAIGN_ROSTER_KEY_MAX + 1]) calloc ((size_t) place_map_capacity, sizeof (*place_child_of_slot));
+
+		place_parent_of_slot = (char (*) [CAMPAIGN_ROSTER_KEY_MAX + 1]) calloc ((size_t) place_map_capacity, sizeof (*place_parent_of_slot));
+
+		if (!place_key_of_slot || !place_child_of_slot || !place_parent_of_slot)
 		{
 			debug_fatal ("host roster: cannot allocate the placement map of the entity heap");
 		}
@@ -130,7 +150,8 @@ static void place_ensure_map (void)
 	}
 }
 
-static int place_find_slot (const char *key)
+// the slot a key names and, in `kind`, whether it is that slot's sector placement (0) or its city child (1); -1 for a key the campaign holds none for
+static int place_find (const char *key, int *kind)
 {
 	size_t
 		position;
@@ -144,9 +165,11 @@ static int place_find_slot (const char *key)
 
 	while (place_table [position])
 	{
-		if ((place_table [position] > 0) && (strcmp (place_key_of_slot [place_table [position] - 1], key) == 0))
+		if ((place_table [position] > 0) && (strcmp (place_code_key (place_table [position] - 1), key) == 0))
 		{
-			return (place_table [position] - 1);
+			*kind = (place_table [position] - 1) & 1;
+
+			return ((place_table [position] - 1) / 2);
 		}
 
 		position = (position + 1) & (place_table_size - 1);
@@ -155,14 +178,19 @@ static int place_find_slot (const char *key)
 	return (-1);
 }
 
-static void place_forget_key (int slot)
+static void place_forget_key (int slot, int kind)
 {
 	size_t
 		position;
 
-	position = place_hash (place_key_of_slot [slot]) & (place_table_size - 1);
+	char
+		*key;
 
-	while (place_table [position] != slot + 1)
+	key = place_code_key (slot * 2 + kind);
+
+	position = place_hash (key) & (place_table_size - 1);
+
+	while (place_table [position] != slot * 2 + kind + 1)
 	{
 		if (place_table [position] == 0)
 		{
@@ -177,7 +205,108 @@ static void place_forget_key (int slot)
 
 	place_table_live--;
 
-	place_key_of_slot [slot][0] = 0;
+	key [0] = 0;
+}
+
+// the key the host issued is the entity's from now on: it is entered in the slot's place and in the reverse table (a key the host issued twice stops the engine)
+static void place_register (int slot, int kind, const char *key)
+{
+	char
+		*held;
+
+	int
+		other;
+
+	size_t
+		at;
+
+	if (place_find (key, &other) >= 0)
+	{
+		debug_fatal ("host roster: the host issued the key %s a second time", key);
+	}
+
+	held = place_code_key (slot * 2 + kind);
+
+	memcpy (held, key, strlen (key) + 1);
+
+	if ((place_table_used + 1) * 2 > place_table_size)
+	{
+		// the removed markers are dropped by the rebuild: the table only grows when the live keys need it
+		place_table_rebuild (((place_table_live + 1) * 4 > place_table_size) ? place_table_size * 2 : place_table_size);
+	}
+	else
+	{
+		at = place_hash (key) & (place_table_size - 1);
+
+		while (place_table [at] > 0)
+		{
+			at = (at + 1) & (place_table_size - 1);
+		}
+
+		if (place_table [at] == 0)
+		{
+			place_table_used++;
+		}
+
+		place_table [at] = slot * 2 + kind + 1;
+
+		place_table_live++;
+	}
+}
+
+// two keys, or a key and an object identity, in the identity place: `first`, one space, `second`
+static void place_pair (char *out, size_t capacity, const char *first, const char *second)
+{
+	size_t
+		a,
+		b;
+
+	a = strlen (first);
+
+	b = strlen (second);
+
+	if (a + 1 + b + 1 > capacity)
+	{
+		debug_fatal ("host roster: the identity place of a city event cannot hold %d and %d bytes (its field is %d bytes)", (int) a, (int) b, (int) capacity - 1);
+	}
+
+	memcpy (out, first, a);
+
+	out [a] = ' ';
+
+	memcpy (out + a + 1, second, b + 1);
+}
+
+// the entity's sector placement and its city child are one entity: the host is told as soon as the second exists (a creation puts the building in its city's list first and its sector's second, a relink
+// puts the sector placement back), and a structure that already holds its object-report identity has its new record named by it. Nothing is allocated here: an identity is named only if one was issued.
+static void place_declare (CAMPAIGN_PLACE_ENTITY *en, int slot)
+{
+	char
+		identity [CAMPAIGN_MODEL_HOST_ID_MAX + 1],
+		answered [CAMPAIGN_ROSTER_KEY_MAX + 1];
+
+	const char
+		*object;
+
+	answered [0] = 0;
+
+	if (place_key_of_slot [slot][0] && place_child_of_slot [slot][0])
+	{
+		place_pair (identity, sizeof (identity), place_key_of_slot [slot], place_child_of_slot [slot]);
+
+		campaign_model_entity_city (CAMPAIGN_SCAN_PHASE_LINK, CAMPAIGN_PLACE_TYPE (en), identity, answered);
+	}
+	else if (place_key_of_slot [slot][0])
+	{
+		object = CAMPAIGN_PLACE_OBJECT_ID (en);
+
+		if (object && object [0])
+		{
+			place_pair (identity, sizeof (identity), place_key_of_slot [slot], object);
+
+			campaign_model_entity_city (CAMPAIGN_SCAN_PHASE_NAME, CAMPAIGN_PLACE_TYPE (en), identity, answered);
+		}
+	}
 }
 
 // `en` was inserted at the head of a sector's list: the host places it and answers the key it issued.
@@ -191,9 +320,6 @@ static void place_insert (CAMPAIGN_PLACE_ENTITY *en)
 
 	int
 		slot;
-
-	size_t
-		at;
 
 	// a build with no model provider has no roster and no scan (a scan asks the host and stops the engine without one)
 	if (!campaign_model_host_installed ())
@@ -222,36 +348,9 @@ static void place_insert (CAMPAIGN_PLACE_ENTITY *en)
 	// a hosted mobile names its semantic identity: the host decides its sector from its own record of it; every other entity states its position and the host keeps only the sector
 	campaign_model_entity_roster (CAMPAIGN_SCAN_PHASE_INSERT, CAMPAIGN_PLACE_TYPE (en), CAMPAIGN_PLACE_SIDE (), position, CAMPAIGN_PLACE_IDENTITY (en), key);
 
-	if (place_find_slot (key) >= 0)
-	{
-		debug_fatal ("host roster: the host issued the key %s a second time", key);
-	}
+	place_register (slot, 0, key);
 
-	memcpy (place_key_of_slot [slot], key, strlen (key) + 1);
-
-	if ((place_table_used + 1) * 2 > place_table_size)
-	{
-		// the removed markers are dropped by the rebuild: the table only grows when the live keys need it
-		place_table_rebuild (((place_table_live + 1) * 4 > place_table_size) ? place_table_size * 2 : place_table_size);
-	}
-	else
-	{
-		at = place_hash (key) & (place_table_size - 1);
-
-		while (place_table [at] > 0)
-		{
-			at = (at + 1) & (place_table_size - 1);
-		}
-
-		if (place_table [at] == 0)
-		{
-			place_table_used++;
-		}
-
-		place_table [at] = slot + 1;
-
-		place_table_live++;
-	}
+	place_declare (en, slot);
 }
 
 // `en` is about to leave its sector's list: the host removes the key it issued for it.
@@ -279,10 +378,105 @@ static void place_remove (CAMPAIGN_PLACE_ENTITY *en)
 
 	campaign_model_entity_roster (CAMPAIGN_SCAN_PHASE_REMOVE, CAMPAIGN_PLACE_TYPE (en), 0.0f, NULL, place_key_of_slot [slot], answered);
 
-	place_forget_key (slot);
+	place_forget_key (slot, 0);
 }
 
-// the heap slot of `en` is released: an entity that is still placed is removed first (a path that frees an entity without unlinking it from its list)
+// `en` was inserted into the list of the buildings of the city `parent`, at the head (`pred` NULL) or after `pred`: the host lists it and answers the key it issued. The city must already hold a sector placement
+// (the host names the list by it): a city is created, and placed, before any of its buildings.
+static void place_child_insert (CAMPAIGN_PLACE_ENTITY *en, CAMPAIGN_PLACE_ENTITY *parent, CAMPAIGN_PLACE_ENTITY *pred)
+{
+	char
+		key [CAMPAIGN_ROSTER_KEY_MAX + 1],
+		identity [CAMPAIGN_MODEL_HOST_ID_MAX + 1];
+
+	int
+		slot,
+		parent_slot,
+		pred_slot;
+
+	if (!campaign_model_host_installed ())
+	{
+		return;
+	}
+
+	place_ensure_map ();
+
+	slot = place_checked_slot (en);
+
+	if (place_child_of_slot [slot][0])
+	{
+		debug_fatal ("host roster: entity %d (type %s) is inserted into a city list while the host still holds it in one", slot, CAMPAIGN_PLACE_NAME (en));
+	}
+
+	parent_slot = place_checked_slot (parent);
+
+	if (!place_key_of_slot [parent_slot][0])
+	{
+		debug_fatal ("host roster: the city %d (type %s) of a building's list holds no sector placement, so the host has no key to name its list by", parent_slot, CAMPAIGN_PLACE_NAME (parent));
+	}
+
+	if (pred)
+	{
+		pred_slot = place_checked_slot (pred);
+
+		if (!place_child_of_slot [pred_slot][0])
+		{
+			debug_fatal ("host roster: the predecessor %d (type %s) of a city list entry is not listed by the host", pred_slot, CAMPAIGN_PLACE_NAME (pred));
+		}
+
+		place_pair (identity, sizeof (identity), place_key_of_slot [parent_slot], place_child_of_slot [pred_slot]);
+	}
+	else
+	{
+		// no predecessor: the identity is the parent's key alone
+		memcpy (identity, place_key_of_slot [parent_slot], strlen (place_key_of_slot [parent_slot]) + 1);
+	}
+
+	key [0] = 0;
+
+	campaign_model_entity_city (CAMPAIGN_SCAN_PHASE_CHILD_INSERT, CAMPAIGN_PLACE_TYPE (en), identity, key);
+
+	place_register (slot, 1, key);
+
+	memcpy (place_parent_of_slot [slot], place_key_of_slot [parent_slot], strlen (place_key_of_slot [parent_slot]) + 1);
+
+	place_declare (en, slot);
+}
+
+// `en` is about to leave the list of the buildings of its city: the host unlists the key it issued for it, naming the list by the city's key recorded at the insertion.
+static void place_child_remove (CAMPAIGN_PLACE_ENTITY *en)
+{
+	char
+		answered [CAMPAIGN_ROSTER_KEY_MAX + 1],
+		identity [CAMPAIGN_MODEL_HOST_ID_MAX + 1];
+
+	int
+		slot;
+
+	if (!campaign_model_host_installed () || !place_key_of_slot)
+	{
+		return;
+	}
+
+	slot = place_checked_slot (en);
+
+	if (!place_child_of_slot [slot][0])
+	{
+		debug_fatal ("host roster: entity %d (type %s) leaves a city list the host never listed it in", slot, CAMPAIGN_PLACE_NAME (en));
+	}
+
+	place_pair (identity, sizeof (identity), place_parent_of_slot [slot], place_child_of_slot [slot]);
+
+	answered [0] = 0;
+
+	campaign_model_entity_city (CAMPAIGN_SCAN_PHASE_CHILD_REMOVE, CAMPAIGN_PLACE_TYPE (en), identity, answered);
+
+	place_forget_key (slot, 1);
+
+	place_parent_of_slot [slot][0] = 0;
+}
+
+// the heap slot of `en` is released: an entity that is still placed is removed first (a path that frees an entity without unlinking it from its lists)
 static void place_release_entity (CAMPAIGN_PLACE_ENTITY *en)
 {
 	int
@@ -295,12 +489,20 @@ static void place_release_entity (CAMPAIGN_PLACE_ENTITY *en)
 
 	index = CAMPAIGN_PLACE_SLOT (en);
 
-	if ((index < 0) || (index >= place_map_capacity) || !place_key_of_slot [index][0])
+	if ((index < 0) || (index >= place_map_capacity))
 	{
 		return;
 	}
 
-	place_remove (en);
+	if (place_child_of_slot [index][0])
+	{
+		place_child_remove (en);
+	}
+
+	if (place_key_of_slot [index][0])
+	{
+		place_remove (en);
+	}
 }
 
 // a new boot: the host's roster and the campaign's keys both end
@@ -311,9 +513,17 @@ static void place_reset (void)
 
 	free (place_key_of_slot);
 
+	free (place_child_of_slot);
+
+	free (place_parent_of_slot);
+
 	free (place_table);
 
 	place_key_of_slot = NULL;
+
+	place_child_of_slot = NULL;
+
+	place_parent_of_slot = NULL;
 
 	place_table = NULL;
 
@@ -334,15 +544,145 @@ static void place_reset (void)
 	}
 }
 
-// the entity the host's roster key names, or NULL when the campaign holds none for it
+// the entity the host's roster key names as a SECTOR placement, or NULL when the campaign holds none for it (a key of a city child names none here)
 static CAMPAIGN_PLACE_ENTITY *place_entity (const char *key)
 {
 	int
+		slot,
+		kind;
+
+	kind = 0;
+
+	slot = place_find (key, &kind);
+
+	return (((slot < 0) || (kind != 0)) ? NULL : CAMPAIGN_PLACE_AT (slot));
+}
+
+// the building the host served, resolved to the campaign's entity and compared with the campaign's own list at the same place (`mirror`: the entry the campaign's list holds there, or NULL at its end): the host's
+// list is the answer and the campaign's only the mirror, so an entry the campaign's list does not agree with, and a key that names no building, stop the engine by name; neither is ever an end or a fallback
+static CAMPAIGN_PLACE_ENTITY *place_child_served (const char *key, CAMPAIGN_PLACE_ENTITY *mirror)
+{
+	CAMPAIGN_PLACE_ENTITY
+		*entry;
+
+	int
+		slot,
+		kind;
+
+	if (key [0] == 0)
+	{
+		if (mirror)
+		{
+			debug_fatal ("host model: [model-provider:entity_scan.city_mirror] the host served the end of a city's list but the campaign's own list has another building: the host's list and the campaign's disagree");
+		}
+
+		return (NULL);
+	}
+
+	kind = 0;
+
+	slot = place_find (key, &kind);
+
+	if ((slot < 0) || (kind != 1))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.city_key] the host served the building \"%.40s\", which names no building of the campaign's cities", key);
+	}
+
+	entry = CAMPAIGN_PLACE_AT (slot);
+
+	if (entry != mirror)
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.city_mirror] the host served a building but the campaign's own list is %s: the host's list and the campaign's disagree", mirror ? "at another building" : "at its end");
+	}
+
+	return (entry);
+}
+
+// the first building of the city `parent`, from the host's list; `mirror` is the first child of the campaign's list
+static CAMPAIGN_PLACE_ENTITY *place_child_first (CAMPAIGN_PLACE_ENTITY *parent, CAMPAIGN_PLACE_ENTITY *mirror)
+{
+	char
+		key [CAMPAIGN_ROSTER_KEY_MAX + 1];
+
+	int
 		slot;
 
-	slot = place_find_slot (key);
+	place_ensure_map ();
 
-	return ((slot < 0) ? NULL : CAMPAIGN_PLACE_AT (slot));
+	slot = place_checked_slot (parent);
+
+	if (!place_key_of_slot [slot][0])
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.city_parent] the city %d (type %s) a scan reads the buildings of holds no sector placement, so the host has no list for it", slot, CAMPAIGN_PLACE_NAME (parent));
+	}
+
+	key [0] = 0;
+
+	campaign_model_entity_city (CAMPAIGN_SCAN_PHASE_CHILD_FIRST, CAMPAIGN_PLACE_TYPE (parent), place_key_of_slot [slot], key);
+
+	return (place_child_served (key, mirror));
+}
+
+// the building after `building` in the list of the city `parent`, from the host's list; `mirror` is the successor in the campaign's list
+static CAMPAIGN_PLACE_ENTITY *place_child_next (CAMPAIGN_PLACE_ENTITY *parent, CAMPAIGN_PLACE_ENTITY *building, CAMPAIGN_PLACE_ENTITY *mirror)
+{
+	char
+		key [CAMPAIGN_ROSTER_KEY_MAX + 1],
+		identity [CAMPAIGN_MODEL_HOST_ID_MAX + 1];
+
+	int
+		slot,
+		child_slot;
+
+	place_ensure_map ();
+
+	slot = place_checked_slot (parent);
+
+	child_slot = place_checked_slot (building);
+
+	if (!place_key_of_slot [slot][0] || !place_child_of_slot [child_slot][0])
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.city_parent] the scan stands at a building (entity %d) of a city (entity %d) and the host holds no key for one of them", child_slot, slot);
+	}
+
+	place_pair (identity, sizeof (identity), place_key_of_slot [slot], place_child_of_slot [child_slot]);
+
+	key [0] = 0;
+
+	campaign_model_entity_city (CAMPAIGN_SCAN_PHASE_CHILD_NEXT, CAMPAIGN_PLACE_TYPE (building), identity, key);
+
+	return (place_child_served (key, mirror));
+}
+
+// the campaign has asked the host for the legacy object-report identity of `en` (lazily, once) and the host issued `id`: the placements the host holds for the entity are named by it, so that the host's
+// record of the entity and the identity the campaign reports about are the same record
+static void place_name (CAMPAIGN_PLACE_ENTITY *en, const char *id)
+{
+	char
+		identity [CAMPAIGN_MODEL_HOST_ID_MAX + 1],
+		answered [CAMPAIGN_ROSTER_KEY_MAX + 1];
+
+	int
+		slot;
+
+	if (!campaign_model_host_installed () || !place_key_of_slot || !id || !id [0])
+	{
+		return;
+	}
+
+	slot = place_checked_slot (en);
+
+	// either placement names the record; an entity with none is named when it is placed (place_declare)
+	if (!place_key_of_slot [slot][0] && !place_child_of_slot [slot][0])
+	{
+		return;
+	}
+
+	place_pair (identity, sizeof (identity), place_key_of_slot [slot][0] ? place_key_of_slot [slot] : place_child_of_slot [slot], id);
+
+	answered [0] = 0;
+
+	campaign_model_entity_city (CAMPAIGN_SCAN_PHASE_NAME, CAMPAIGN_PLACE_TYPE (en), identity, answered);
 }
 
 #endif

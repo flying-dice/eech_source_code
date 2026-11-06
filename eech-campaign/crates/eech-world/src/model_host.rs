@@ -700,6 +700,113 @@ fn entity_candidate_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaRe
 const ROSTER_INSERT: u32 = 0x4080_0000;
 const ROSTER_REMOVE: u32 = 0x40a0_0000;
 const ROSTER_RESET: u32 = 0x40c0_0000;
+/// The city events (7.0 to 12.0), also classified from their bits: see `city_event`.
+const ROSTER_CHILD_INSERT: u32 = 0x40e0_0000;
+const ROSTER_CHILD_REMOVE: u32 = 0x4100_0000;
+const ROSTER_CHILD_FIRST: u32 = 0x4110_0000;
+const ROSTER_CHILD_NEXT: u32 = 0x4120_0000;
+const ROSTER_LINK: u32 = 0x4130_0000;
+const ROSTER_NAME: u32 = 0x4140_0000;
+
+/// The city events of an `entity_scan` question (phases 7 to 12, the same question as the roster's): a building's place in its city's list (`LIST_TYPE_CITY_BUILDING`) is inserted (7), removed (8), asked for
+/// its first (9) or next (10) entry; a sector placement and a city child are declared the same entity (11); and a placement is named by the legacy object-report identity the host issued for its entity (12).
+/// The identity place carries the keys, in this order: the parent's sector placement key and, where there is one, the child's key (or the predecessor's, for an insertion); a LINK carries the sector placement and
+/// the child; a NAME carries the placement and then, after one space, the object identity. A scan phase's answer is `next` for 9 and 10 (the key of the entry, empty at the end of the list) and `placed` for 7, 11
+/// and 12 (the key issued, or the key now linked or named); 8 answers `removed`. Every key is validated against the live roster and its relation to the parent BEFORE anything is served or changed, and every
+/// word is classified by integer operations (see `crate::roster::word_truncated`).
+fn city_event(lua: &Lua, phase: u32, words: &[u32], identity: &str) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    table.set("name", "")?;
+    let refuse = |table: &LuaTable, reason: String| -> LuaResult<LuaTable> {
+        table.set("result", "refused")?;
+        table.set("reason", reason)?;
+        Ok(table.clone())
+    };
+    // every fact an event does not state is zero: an insertion states its entity type, no event states anything else
+    for (at, word) in words.iter().enumerate() {
+        if at != 11 && !(at == 3 && phase == ROSTER_CHILD_INSERT) && *word != 0 {
+            return refuse(&table, format!("[roster.request] fact {at} of a city event is not zero"));
+        }
+    }
+    let entity_type = if phase == ROSTER_CHILD_INSERT {
+        let Some(entity_type) = crate::roster::word_whole(words[3], 0, 1_000_000) else {
+            return refuse(&table, "[roster.request] a city insertion states a whole entity type".into());
+        };
+        entity_type
+    } else {
+        0
+    };
+    let shown = |text: &str| text.chars().take(40).collect::<String>();
+    let key = |text: &str| crate::roster::parse_key(text).ok_or_else(|| format!("[roster.key] \"{}\" is not a key this host issued", shown(text)));
+    // the identity place: one key, or two keys after one space; a NAME's second part is the object identity, whole
+    let (first, second) = match identity.split_once(' ') {
+        Some((first, second)) => (first, Some(second)),
+        None => (identity, None),
+    };
+    let wanted_second = matches!(phase, ROSTER_CHILD_REMOVE | ROSTER_CHILD_NEXT | ROSTER_LINK | ROSTER_NAME);
+    if (phase == ROSTER_CHILD_FIRST && second.is_some())
+        || (wanted_second && second.is_none())
+        || (phase == ROSTER_CHILD_INSERT && second.is_some_and(str::is_empty))
+    {
+        return refuse(
+            &table,
+            format!("[roster.key] the identity place of this city event holds \"{}\"", shown(identity)),
+        );
+    }
+    let Some(shared) = lua.app_data_ref::<crate::roster::SharedRoster>() else {
+        return refuse(&table, "[roster.missing] the host keeps no sector roster".into());
+    };
+    let Ok(mut roster) = shared.0.try_borrow_mut() else {
+        return refuse(&table, "[roster.busy] the sector roster was busy".into());
+    };
+    let first = match key(first) {
+        Ok(first) => first,
+        Err(why) => return refuse(&table, why),
+    };
+    let second_key = |second: Option<&str>| -> Result<Option<u64>, String> { second.map(key).transpose() };
+    let outcome: Result<(&str, String), String> = match phase {
+        ROSTER_CHILD_INSERT => second_key(second)
+            .and_then(|pred| roster.child_insert(first, pred, entity_type).map_err(|why| format!("[roster.child] {}", why.0)))
+            .map(|child| ("placed", child.to_string())),
+        ROSTER_CHILD_REMOVE => second_key(second)
+            .and_then(|child| {
+                roster
+                    .child_remove(first, child.unwrap_or(0))
+                    .map_err(|why| format!("[roster.child] {}", why.0))
+            })
+            .map(|()| ("removed", String::new())),
+        ROSTER_CHILD_FIRST => roster
+            .child_first(first)
+            .map_err(|why| format!("[roster.child] {}", why.0))
+            .map(|served| ("next", served.map(|child| child.to_string()).unwrap_or_default())),
+        ROSTER_CHILD_NEXT => second_key(second)
+            .and_then(|child| roster.child_next(first, child.unwrap_or(0)).map_err(|why| format!("[roster.child] {}", why.0)))
+            .map(|served| ("next", served.map(|child| child.to_string()).unwrap_or_default())),
+        ROSTER_LINK => second_key(second)
+            .and_then(|child| {
+                roster
+                    .link(first, child.unwrap_or(0))
+                    .map_err(|why| format!("[roster.link] {}", why.0))
+                    .map(|()| child)
+            })
+            .map(|child| ("placed", child.unwrap_or(0).to_string())),
+        _ => match second {
+            Some(object) if !object.is_empty() && !object.bytes().any(|byte| byte < 0x20 || byte == 0x7f) => roster
+                .name(first, object)
+                .map_err(|why| format!("[roster.name] {}", why.0))
+                .map(|()| ("placed", first.to_string())),
+            _ => Err("[roster.name] the object identity of a NAME is empty or holds a control character".to_string()),
+        },
+    };
+    match outcome {
+        Ok((result, name)) => {
+            table.set("result", result)?;
+            table.set("name", name)?;
+            Ok(table)
+        }
+        Err(why) => refuse(&table, why),
+    }
+}
 
 /// The host's answer to one roster event of the sector lists (see `crate::roster`): an INSERT (phase 4) states the entity's type, the sector side length and the position the campaign holds, with the
 /// semantic identity of a hosted mobile in the identity place; the host decides the sector (a hosted mobile's from its OWN record, an entity with none from the stated position), records the entry and
@@ -812,7 +919,8 @@ fn roster_event(lua: &Lua, phase: u32, words: &[u32], identity: &str) -> LuaResu
 /// end of the scan, from the segment, the campaign's world map and the cursor facts. `first` (with the sector as `p`), `next`, `offer`, `done_none` or `done_hit`. The scan kernel reads no model. The
 /// entries it names are the HOST's own roster (`crate::roster`): `first` and `next` carry the key of the entry to serve as `name` (empty when the sector's list has no more), the question
 /// that follows an entry names the entry it is standing at in the identity place, and an entry the roster does not hold, or does not hold in that sector, is refused by name and never skipped.
-/// The same question also carries the roster's own events (phases 4 to 6, `roster_event`). The identity place carries a standing key exactly where the scan stands at an entry, in ENTRY (1) and RESOLVED (3): that key is
+/// The same question also carries the roster's own events (phases 4 to 6, `roster_event`) and the city events (phases 7 to 12, `city_event`: a city's buildings are the host's list too, and a building's two
+/// placements and its legacy object-report identity are one record). The identity place carries a standing key exactly where the scan stands at an entry, in ENTRY (1) and RESOLVED (3): that key is
 /// validated against the live roster and the sector the scan is in before the kernel decides anything (so an offer, a skip or a hit never follows an unknown, ended or misplaced entry), and BEGIN (0) and END (2) carry none.
 /// Every word of the question is classified by integer operations, so a malformed word is refused by name before any floating-point use of it and the caller's floating-point state is never changed here.
 fn entity_scan_answer(lua: &Lua, q: &Question) -> LuaResult<LuaTable> {
@@ -832,6 +940,12 @@ fn entity_scan_answer(lua: &Lua, q: &Question) -> LuaResult<LuaTable> {
     let phase_word = words[11];
     if matches!(phase_word, ROSTER_INSERT | ROSTER_REMOVE | ROSTER_RESET) {
         return roster_event(lua, phase_word, &words, identity);
+    }
+    if matches!(
+        phase_word,
+        ROSTER_CHILD_INSERT | ROSTER_CHILD_REMOVE | ROSTER_CHILD_FIRST | ROSTER_CHILD_NEXT | ROSTER_LINK | ROSTER_NAME
+    ) {
+        return city_event(lua, phase_word, &words, identity);
     }
     let table = lua.create_table()?;
     table.set("name", "")?;
