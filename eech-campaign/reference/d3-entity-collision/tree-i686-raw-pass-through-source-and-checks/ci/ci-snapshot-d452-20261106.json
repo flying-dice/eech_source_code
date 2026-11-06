@@ -1,0 +1,82 @@
+{
+  "schema": "d3.task49.tree-i686.ci-snapshot.v1",
+  "repo": "flying-dice/eech_source_code",
+  "workflow": ".github/workflows/eech-campaign.yml",
+  "snapshot_taken_utc": "2026-11-06T16:35Z (read-only `gh api`, no authentication change; the run was still in progress)",
+  "run_870a": {
+    "id": 42246707079,
+    "head": "870a243fba4d0e683697994617aacf60eedfd994",
+    "i686_job": 127990702498,
+    "summary": "x86_64 default, EECH_C_OPT=2, windows and helper jobs pass; both i686 profiles fail at the tree_host test"
+  },
+  "run_d452": {
+    "id": 42251649390,
+    "head": "d45221d958a70afb78778b1a9ab3aae260469607",
+    "jobs": [
+      {
+        "id": 128008012631,
+        "name": "dcs-probe-tools",
+        "conclusion": "success"
+      },
+      {
+        "id": 128008012733,
+        "name": "test (i686-unknown-linux-gnu)",
+        "conclusion": "in_progress at the snapshot"
+      },
+      {
+        "id": 128008012878,
+        "name": "evidence-selftest",
+        "conclusion": "success"
+      },
+      {
+        "id": 128008012939,
+        "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+        "conclusion": "success"
+      },
+      {
+        "id": 128008012940,
+        "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+        "conclusion": "failure",
+        "failed_step": "Test",
+        "failure": "the same tree_host test (367 passed, 1 failed in the first test binary; cargo stopped there, so no later binary ran in CI)",
+        "failure_lines": [
+          "thread 'tree_host::tests::the_host_asks_for_the_old_end_then_the_new_end_and_a_map_without_trees_is_an_answer_that_leaves_the_callers_words' (12450) panicked at crates/eech-world/src/tree_host.rs:342:9:",
+          "  left: Done { hit: false, point: [2145386497, 2147483648, 1], normal: [4290773283, 1, 2147483649] }",
+          " right: Done { hit: false, point: [2141192193, 2147483648, 1], normal: [4290773283, 1, 2147483649] }",
+          "test result: FAILED. 367 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.92s"
+        ]
+      },
+      {
+        "id": 128008013009,
+        "name": "windows-cross",
+        "conclusion": "failure",
+        "failed_step": "Lua 5.1.5 as lua.dll",
+        "failure": "curl: (35) Recv failure: Connection reset by peer fetching www.lua.org (an infrastructure/network failure before any compile; unrelated to this source)",
+        "failure_lines": [
+          "curl: (35) Recv failure: Connection reset by peer",
+          "##[error]Process completed with exit code 35."
+        ]
+      },
+      {
+        "id": 128008013104,
+        "name": "test (x86_64-unknown-linux-gnu)",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "private_logs_outside_git": {
+    "ci-870a-i686-decoded-20261106.log": {
+      "bytes": 148186,
+      "sha256": "72177a029d1534866f508350d6ced9b92d46fe32d5b910495a61962486dff4ad"
+    },
+    "ci-d452-i686-stack-job128008012940-decoded.log": {
+      "bytes": 147473,
+      "sha256": "85a8f171ede8f0307668466001dcfbc11c94da2e664ec2eb13104aee3d8cfa2b"
+    },
+    "ci-d452-windows-cross-job128008013009-decoded.log": {
+      "bytes": 41276,
+      "sha256": "8e7eee2a2795e90263195c8218faa3eaf0e14ff56823577e2e6e3146c902e367"
+    }
+  },
+  "claim_level": "reported by the GitHub API/logs and reproduced locally for the i686 tree_host test (red2-focused-d452); the windows-cross failure is reported only and was not reproduced or investigated"
+}

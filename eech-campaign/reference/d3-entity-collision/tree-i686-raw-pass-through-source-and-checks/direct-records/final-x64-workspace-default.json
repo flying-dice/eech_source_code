@@ -1,0 +1,13 @@
+{
+  "controller_pid": 17800,
+  "state": "blocked_before_launch",
+  "actual_exit": null,
+  "cargo_child_started": false,
+  "command": "cargo test --locked --no-fail-fast --target x86_64-unknown-linux-gnu",
+  "recorded_utc": "2026-11-06T17:17:30.170482+00:00",
+  "reused_receipt": "R:\\d3-evidence\\tree-i686-raw-pass-through-20261106-env\\tree-i686-green4-workspace-x64-default.json",
+  "prior_actual_exit": 0,
+  "control": "R:\\d3-evidence\\tree-i686-raw-pass-through-20261106-env\\ROOT-UNSTARTED-DUPLICATES-20261106.json",
+  "instruction": "Root deliberately blocked these unstarted duplicate jobs. Do not relabel, bypass or rerun them for final-map/commit bookkeeping. Preserve this receipt and the original exact-command receipts. Source-bind unchanged committed production bytes to original checks with honest working-tree/pre-map qualifications; do not retroactively claim a pre-map. The committed focused control and final maps/fmt/lint remain available. Freeze the bounded tree fix and retain the known real i686 pose mismatch as OPEN. Root will continue the same verified context for the actual pose defect, scoped checks, and the two CI --no-fail-fast flags, then ONE combined independent review. Final exact-head CI remains required. If qualification limits clearance, say so rather than repeating all completed experiments. Existing live jobs and shipping4natives remain untouched.",
+  "scope": "No Cargo/docker/cache job started. Not success, independent clearance or CI acceptance; original results retain their actual source qualifications."
+}

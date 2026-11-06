@@ -1,0 +1,12 @@
+rustc 1.99.1 (58cf8f9c3 2026-10-13)
+cargo 1.99.1 (5f94df478 2026-08-27)
+gcc-12 (Debian 12.2.0-14+deb12u1) 12.2.0
+i686-unknown-linux-gnu
+x86_64-pc-windows-gnu
+x86_64-unknown-linux-gnu
+/usr/lib/gcc/x86_64-linux-gnu/12/32/crtbeginS.o
+ii  gcc-12-multilib      12.2.0-14+deb12u1 amd64        GNU C compiler (multilib support)
+ii  gcc-multilib         4:12.2.0-3        amd64        GNU C compiler (multilib files)
+ii  libc6-dev-i386       2.36-9+deb12u14   amd64        GNU C Library: 32-bit development libraries for AMD64
+ii  liblua5.1-0-dev:i386 5.1.5-9           i386         Development files for the Lua language version 5.1
+m32-link-ok

@@ -1,0 +1,45 @@
+{
+  "schema": "d3.fixed-static-corrections.raw-source-binding.v1",
+  "commit": "0a7330f860c19a45a415f8a6cbf77513a9db84be",
+  "map_before": "R:/d3-evidence/tree-i686-raw-pass-through-inputmap-before-20261106.json",
+  "map_after": "R:/d3-evidence/tree-i686-raw-pass-through-inputmap-after-20261106.json",
+  "maps_literal_equal": true,
+  "map_file_count": 3953,
+  "map_head_rev": "d45221d958a70afb78778b1a9ab3aae260469607",
+  "files_raw_equal_to_commit_blob_bytes": 3950,
+  "files_missing_at_commit": [],
+  "files_raw_different_from_commit_blob_bytes": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "raw_size": 3691,
+      "raw_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "git_blob": "41780e08e6f192c4f90d27052f61beadf5a8ae40",
+      "git_size": 3608,
+      "git_bytes_sha256": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "raw_size": 5848,
+      "raw_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "git_blob": "ec7dd360f70821a2213efe82db9f93ad46f20ee0",
+      "git_size": 5720,
+      "git_bytes_sha256": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "raw_size": 3683,
+      "raw_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "git_blob": "fb767e110002096f637c48c4e65d48ff5c6168fc",
+      "git_size": 3600,
+      "git_bytes_sha256": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b"
+    }
+  ],
+  "map_changed_from_its_head": [
+    "eech-campaign/crates/eech-world/csrc/tree_step.c",
+    "eech-campaign/crates/eech-world/src/trees.rs",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "method": "raw SHA-256 and size from the map (read from the working tree) against the SHA-256 and size of `git cat-file --batch` blob bytes of the commit; not the filtered hash-object identity"
+}

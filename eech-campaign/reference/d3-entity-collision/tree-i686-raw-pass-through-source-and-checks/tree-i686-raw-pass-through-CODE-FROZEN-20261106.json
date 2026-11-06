@@ -1,0 +1,601 @@
+{
+  "schema": "d3.task49.tree-i686-raw-pass-through.code-frozen.v1",
+  "status": "UNREVIEWED CODE_FROZEN: source and Linux checks only. No SourceClearance, no native actual, no Windows/Wine run, no independent review, no acceptance and no CI success is claimed.",
+  "scope": "ONE bounded repair of the real current-CI i686 failure ENV-TREE-NOHIT-RAW-WORDS-I686-1: a no-hit tree query returned the caller's signalling-NaN point word quiet on i686. The two production files are tree_step.c (C kernel copies) and trees.rs (one kernel-level test). Rust tree_host.rs, the kernel arithmetic, the hit/identity/RNG/FP behaviour and the terrain request order are unchanged. A SECOND, distinct, pre-existing i686 failure (entity_candidate_host, one ulp in Narrow words) was found and is NOT fixed here.",
+  "producer": {
+    "model": "claude-sonnet-5-5",
+    "effort": "high",
+    "lane": "one fresh compact lane for the tree raw-word CI blocker; no Opusplan/agents/nested agents/MCP/auth change/model substitution/retail/native campaign/Windows profile/full pack/cache cleanup/merge"
+  },
+  "identity": {
+    "code": "0a7330f860c19a45a415f8a6cbf77513a9db84be",
+    "code_parent": "d45221d958a70afb78778b1a9ab3aae260469607",
+    "meta_commit": null,
+    "branch": "codex/d3-object-tree-collision",
+    "note": "meta_commit stays the tracked null placeholder in this repository copy; Root's external copy names the metadata commit",
+    "changed_paths": [
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/tree_step.c",
+        "bytes": 41539,
+        "sha256": "131ace9a71ee15231c5fae95dc24a6c2a7d44c24e58ea0b03b040fe33d25940d"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/trees.rs",
+        "bytes": 72491,
+        "sha256": "451fd9806be67408f8d8b5693d6f0b951c438d9b6ae3fd01ce570596880a9dcf"
+      }
+    ],
+    "reused_unchanged_code_under_review": {
+      "cd97e0b723e4f6710622ba9c6c19a16516fa4174": "the narrow subnormal correction (external report SHA-256 62445b900a11ae56b0a6a4c53ce6c980380cd877ab60664de7b570bb3a40401f) is the code parent's code and is neither changed nor re-reviewed here; the same reviewer is to assess it TOGETHER with this material",
+      "4fb81c673bd9ca82c9ff3fa801e553e56c1b6453": "reviewed parent of cd97e0b72 (sealed review d6b5df9f...)"
+    }
+  },
+  "ci_failure": {
+    "run": 42246707079,
+    "job": 127990702498,
+    "test": "tree_host::tests::the_host_asks_for_the_old_end_then_the_new_end_and_a_map_without_trees_is_an_answer_that_leaves_the_callers_words",
+    "location": "eech-campaign/crates/eech-world/src/tree_host.rs:342",
+    "actual": "Done hit=false point[2145386497 (0x7fe00001),2147483648,1]",
+    "expected": "Done hit=false point[2141192193 (0x7fa00001),2147483648,1]",
+    "same_failure_on_d452": "job 128008012940 (i686, EECH_ORIGINAL_STACK_ATTRIBUTES=1), identical words; see ci/ci-snapshot-d452-20261106.json",
+    "root_record": "ci/fixed-rules-870a-i686-raw-pass-through-20261106.json (literal copy)"
+  },
+  "reproduction": {
+    "claim_level": "reproduced locally on the unmodified d452 source with the real i686-unknown-linux-gnu debug target and the existing focused test",
+    "red": "red2-focused-d452: exit 101, words 2145386497 against 2141192193, identical to CI. red1-focused-d452 (exit 101) is preserved but is an ENVIRONMENT failure: the first derivative image lacked the 32-bit gcc runtime and the link failed; it is not the reproduction."
+  },
+  "cause": {
+    "claim_level": "reproduced and attributed by a kernel-level test plus generated 32-bit machine code; not a hypothesis",
+    "statement": "tree_step.c begin_body copied the caller's intercept point and face normal into the query, and finish copied them out, with float assignments. gcc -m32 (x87 math by default) compiles each as an flds/fstps pair; loading a signalling NaN into the x87 register quietens it (0x7fa00001 becomes 0x7fe00001). x86_64 uses SSE moves and keeps the payload. Signed zero and subnormals are unaffected by an x87 copy; only a signalling NaN is changed, which is why only that word differed.",
+    "attribution": {
+      "kernel_level_red": "diag1-kernel-words-i686: the new trees.rs test (reinterprets whole arrays, never calls f32::from_bits) FAILS on i686 with the unchanged C kernel: the C copy is sufficient to cause the failure.",
+      "c_only_fix": "diag2-c-only-fix-i686: with ONLY the C change, both the kernel-level test and the existing tree_host test pass. The Rust f32::from_bits/to_bits conversions in tree_host.rs did NOT change the word in this i686 debug profile, so no Rust production change is made; the existing host test keeps exercising that conversion.",
+      "disassembly": {
+        "tool": "disasm-check.sh (gcc-12 -m32 with build.rs flags) in the task-local image; env/disasm-check.txt",
+        "begin_body_x87_float_moves": {
+          "pristine_d452_O1": 32,
+          "pristine_d452_O2": 32,
+          "fixed_O1": 20,
+          "fixed_O2": 20,
+          "note": "the difference of 12 is exactly the six loads and six stores of the point and normal words"
+        },
+        "whole_object_x87_float_moves": {
+          "pristine_d452_O1": 508,
+          "pristine_d452_O2": 598,
+          "fixed_O1": 472,
+          "fixed_O2": 562
+        },
+        "limit": "an earlier c-disasm-diag.txt (env/) was made with a shell variable that expanded empty, so both runs were plain -O (= -O1); it is preserved, not relied on. The counts above come from the corrected script."
+      }
+    }
+  },
+  "repair": {
+    "files": [
+      "eech-campaign/crates/eech-world/csrc/tree_step.c",
+      "eech-campaign/crates/eech-world/src/trees.rs"
+    ],
+    "tree_step.c": "begin_body copies the caller's intercept point and face normal into the query with memcpy of their twelve bytes each; finish copies the answer out with memcpy; a compile-time check pins sizeof(vec3d) == 3 * sizeof(float). Position copies, the arithmetic and the intersection helpers (which write computed floats before the hit decision) are unchanged.",
+    "trees.rs": "tests only: two reinterpret helpers and run_words, and a_miss_gives_the_callers_point_and_normal_back_bit_for_bit_whatever_they_hold. No production Rust changed.",
+    "word_contract": "a no-hit query returns every caller output word bit-exact: signalling NaN payload and sign, quiet NaN payload, signed zero, subnormals, the largest finite values. A miss that partly overwrote the buffers still returns what the helpers wrote. Hit geometry still comes from the existing kernel; the raw output words are never adopted as campaign/physical state.",
+    "order_contract": "unchanged and asserted by the existing host test: terrain at the old end, then the new end, each only if inside the map; no fast path bypasses a required terrain call (the new kernel test also asserts two lookups on every exit it covers).",
+    "fp_rng_identity": "no change to the FP guard, rounding, arithmetic, tie rules, identity or any RNG; the new test covers three miss exits (altitude above the tree height, a range under 0.1 m, an empty sector) with three raw-word cases each."
+  },
+  "checks": {
+    "red1-focused-d452": {
+      "command": "cargo test --locked --target i686-unknown-linux-gnu -p eech-world --lib -- the_host_asks_for_the_old_end_then_the_new_end",
+      "state": "terminal",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T16:30:07.093739+00:00",
+      "completed_utc": "2026-11-06T16:30:19.242216+00:00",
+      "receipt_sha256": "742759fe491e520e31ba3de0215e25762df74a93eb62f58c6a26f73743456cf8",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "failed_tests": [],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "62974b61d2c690ebe08bb06d62abcb0d0fb4da2ac811479e82b94ae42af4877a",
+      "stdout_bytes": 0,
+      "stderr_bytes": 5431,
+      "logs_in_git": "stdout+stderr"
+    },
+    "red2-focused-d452": {
+      "command": "cargo test --locked --target i686-unknown-linux-gnu -p eech-world --lib -- the_host_asks_for_the_old_end_then_the_new_end",
+      "state": "terminal",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T16:31:58.721532+00:00",
+      "completed_utc": "2026-11-06T16:32:01.964081+00:00",
+      "receipt_sha256": "639b218ab4fb6d0feea9b6708337f68cde19908edc27dc9ea9eddac402663b03",
+      "result_rows": 1,
+      "passed": 0,
+      "failed": 1,
+      "failed_tests": [
+        "tree_host::tests::the_host_asks_for_the_old_end_then_the_new_end_and_a_map_without_trees_is_an_answer_that_leaves_the_callers_words"
+      ],
+      "stdout_sha256": "b602899bc0ebddf8855abee09321f6a99f98ce2e8c2d6a2e1de8d84021b9a2b4",
+      "stderr_sha256": "19d942537f381f2dbd3523dc020c40af7a301e83cf0e3bbf1c46c4a6d55380d0",
+      "stdout_bytes": 1090,
+      "stderr_bytes": 387,
+      "logs_in_git": "stdout+stderr"
+    },
+    "diag1-kernel-words-i686": {
+      "command": "cargo test --locked --target i686-unknown-linux-gnu -p eech-world --lib -- a_miss_gives_the_callers_point_and_normal_back_bit_for_bit",
+      "state": "terminal",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T16:34:08.435983+00:00",
+      "completed_utc": "2026-11-06T16:34:11.652349+00:00",
+      "receipt_sha256": "0e03b4a5048660b37dd4542399bffd081097b1ef0237498aee2132ee5f6cef9c",
+      "result_rows": 1,
+      "passed": 0,
+      "failed": 1,
+      "failed_tests": [
+        "trees::tests::a_miss_gives_the_callers_point_and_normal_back_bit_for_bit_whatever_they_hold"
+      ],
+      "stdout_sha256": "6a9989330a1045f569ea7c5be62a12edb0b64295024da30282a1d763a7307f65",
+      "stderr_sha256": "19d942537f381f2dbd3523dc020c40af7a301e83cf0e3bbf1c46c4a6d55380d0",
+      "stdout_bytes": 915,
+      "stderr_bytes": 387,
+      "logs_in_git": "stdout+stderr"
+    },
+    "diag2-c-only-fix-i686": {
+      "command": "cargo test --locked --target i686-unknown-linux-gnu -p eech-world --lib -- a_miss_gives_the_callers_point_and_normal_back_bit_for_bit the_host_asks_for_the_old_end_then_the_new_end",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T16:35:00.924876+00:00",
+      "completed_utc": "2026-11-06T16:35:07.326245+00:00",
+      "receipt_sha256": "8be753953b8b36b1775f1f55746d686391196aa391979330e71e08458f9ee8e2",
+      "result_rows": 1,
+      "passed": 2,
+      "failed": 0,
+      "failed_tests": [],
+      "stdout_sha256": "63fcb87b8c3366cce811060fdfe30df398d5aef10be640af08ad314f332180d9",
+      "stderr_sha256": "54b79d6617702e52c92e29492d26993ef7c5c4f536b1cadb153f5f298e3fe7d7",
+      "stdout_bytes": 363,
+      "stderr_bytes": 331,
+      "logs_in_git": "stdout+stderr"
+    },
+    "green1-focused-i686": {
+      "command": "cargo test --locked --target i686-unknown-linux-gnu -p eech-world --lib -- a_miss_gives_the_callers_point_and_normal_back_bit_for_bit the_host_asks_for_the_old_end_then_the_new_end",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T16:35:40.855531+00:00",
+      "completed_utc": "2026-11-06T16:35:43.627206+00:00",
+      "receipt_sha256": "dae2f6400b11f7b7b234f590517960493aab1a0d98c9d29ae6e04b847f9493ca",
+      "result_rows": 1,
+      "passed": 2,
+      "failed": 0,
+      "failed_tests": [],
+      "stdout_sha256": "63fcb87b8c3366cce811060fdfe30df398d5aef10be640af08ad314f332180d9",
+      "stderr_sha256": "1357e865fcb2436a8b6859c5f914d44737444de63034514f6ed2983d0235eff5",
+      "stdout_bytes": 363,
+      "stderr_bytes": 331,
+      "logs_in_git": "stdout+stderr"
+    },
+    "fmt1": {
+      "command": "cargo fmt -p eech-world -- --check",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T16:35:37.327053+00:00",
+      "completed_utc": "2026-11-06T16:35:40.727104+00:00",
+      "receipt_sha256": "d240b4cdaab0265ef5c132b5ba2965e18fe48e82f69bd06f580e47f6a3d67bab",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "failed_tests": [],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ea5f9eb874c7430bbe0886a8a4f6c364aa4bd7aa6f430b652311118282a76de3",
+      "stdout_bytes": 0,
+      "stderr_bytes": 82,
+      "logs_in_git": "stdout+stderr"
+    },
+    "pristine-d452-entity-candidate-i686": {
+      "command": "cargo test --locked --target i686-unknown-linux-gnu -p eech-world --test entity_candidate_host",
+      "state": "terminal",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T16:45:40.763757+00:00",
+      "completed_utc": "2026-11-06T16:45:51.692179+00:00",
+      "receipt_sha256": "387839e53163ed90e8d6e1c23575fce7e9e24086b1bff4deb44b3db33c4fd151",
+      "result_rows": 1,
+      "passed": 12,
+      "failed": 1,
+      "failed_tests": [
+        "the_host_driven_enumeration_is_the_original_scan_in_window_order_exclusions_first_hit_services_poses_and_refusals_over_many_worlds"
+      ],
+      "stdout_sha256": "44c19ae01579d674ed2759f4dc3d49ac9c49daa90ae38b9dfdad92a56f4100b4",
+      "stderr_sha256": "8e97a2db84f40b4ec1ebb8b56bcffb9117771d5b687903cde91dea6d68b90e7a",
+      "stdout_bytes": 3695,
+      "stderr_bytes": 530,
+      "logs_in_git": "stdout+stderr"
+    },
+    "final-i686-focused": {
+      "command": "cargo test --locked --target i686-unknown-linux-gnu -p eech-world --lib -- a_miss_gives_the_callers_point_and_normal_back_bit_for_bit the_host_asks_for_the_old_end_then_the_new_end",
+      "state": "terminal",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T17:10:07.859184+00:00",
+      "completed_utc": "2026-11-06T17:10:10.659295+00:00",
+      "receipt_sha256": "cf789c816b61265db408c2061060216b701874361bedb278ec5eff1effce3110",
+      "result_rows": 1,
+      "passed": 0,
+      "failed": 2,
+      "failed_tests": [
+        "trees::tests::a_miss_gives_the_callers_point_and_normal_back_bit_for_bit_whatever_they_hold",
+        "tree_host::tests::the_host_asks_for_the_old_end_then_the_new_end_and_a_map_without_trees_is_an_answer_that_leaves_the_callers_words"
+      ],
+      "stdout_sha256": "a3ea1826cfb1a0a5704615d32b57bb0c6a3904635ac097ade0470bfd4a442a92",
+      "stderr_sha256": "65b38d231a8934b33c2a83cba42e2de70162b4b42c90f04a013f370acddc00ed",
+      "stdout_bytes": 1787,
+      "stderr_bytes": 387,
+      "logs_in_git": "stdout+stderr"
+    },
+    "final-i686-focused-c-rebuilt": {
+      "command": "cargo test --locked --target i686-unknown-linux-gnu -p eech-world --lib -- a_miss_gives_the_callers_point_and_normal_back_bit_for_bit the_host_asks_for_the_old_end_then_the_new_end",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T17:19:25.140738+00:00",
+      "completed_utc": "2026-11-06T17:19:31.605679+00:00",
+      "receipt_sha256": "c35939bdb8725749556028207ce2f88b2d514bbe2e8d18c6fcdd5e5fac3cba31",
+      "result_rows": 1,
+      "passed": 2,
+      "failed": 0,
+      "failed_tests": [],
+      "stdout_sha256": "63fcb87b8c3366cce811060fdfe30df398d5aef10be640af08ad314f332180d9",
+      "stderr_sha256": "b066c789ab8869384934f08c6934db806bec1535c52429eda8b9f735628d8966",
+      "stdout_bytes": 363,
+      "stderr_bytes": 331,
+      "logs_in_git": "stdout+stderr"
+    },
+    "final-i686-workspace-default": {
+      "command": "cargo test --locked --no-fail-fast --target i686-unknown-linux-gnu",
+      "state": "terminal",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T17:10:10.761599+00:00",
+      "completed_utc": "2026-11-06T17:17:29.983733+00:00",
+      "receipt_sha256": "e608124884c3cb5ed466b50cc6e28d0bf9a150529f52aeb318de11ead6785b70",
+      "result_rows": 79,
+      "passed": 1391,
+      "failed": 1,
+      "failed_tests": [
+        "the_host_driven_enumeration_is_the_original_scan_in_window_order_exclusions_first_hit_services_poses_and_refusals_over_many_worlds"
+      ],
+      "stdout_sha256": "7bc42b2f295c0574c52a8a9d7403981b6f1dc1726d50bcd25af0558ed43b036d",
+      "stderr_sha256": "e457c4fa3dc4c5ff4128a84fde22e7631e3d12ab8f3f8237390d366f42c4a0eb",
+      "stdout_bytes": 150497,
+      "stderr_bytes": 167905,
+      "logs_in_git": "stdout+stderr"
+    },
+    "final-fmt-check": {
+      "command": "cargo fmt --check",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T17:17:30.350532+00:00",
+      "completed_utc": "2026-11-06T17:17:34.751721+00:00",
+      "receipt_sha256": "876636d2d9629d5b73f553c59d38873dd8427421c44c8469a37e9b56aa0d9662",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "failed_tests": [],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ea5f9eb874c7430bbe0886a8a4f6c364aa4bd7aa6f430b652311118282a76de3",
+      "stdout_bytes": 0,
+      "stderr_bytes": 82,
+      "logs_in_git": "stdout+stderr"
+    },
+    "final-clippy-workspace": {
+      "command": "cargo clippy --locked --all-targets -- -D warnings",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T17:17:34.845891+00:00",
+      "completed_utc": "2026-11-06T17:17:40.187020+00:00",
+      "receipt_sha256": "a7a249892f4420bbcf0007f1e7933fc2f8911db4a4633843aa949928cede2125",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "failed_tests": [],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "c8bd4263ed08434cf1e8502cefd13194f587b296787800ca315510e06c5ac9ee",
+      "stdout_bytes": 0,
+      "stderr_bytes": 154,
+      "logs_in_git": "stdout+stderr"
+    },
+    "final-i686-workspace-stackattr": {
+      "command": "env EECH_ORIGINAL_STACK_ATTRIBUTES=1 cargo test --locked --no-fail-fast --target i686-unknown-linux-gnu",
+      "state": "blocked_before_launch",
+      "actual_exit": null,
+      "started_utc": "2026-11-06T17:17:30.080463+00:00",
+      "completed_utc": null,
+      "receipt_sha256": "4766b0e45c4e286a583d93f0c16a91969d5072bfad248fd2052cb6e6ba07edd3",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "failed_tests": [],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "56ccc587247ed7de8742abf7beb7798f188de8168fe49290d7f4b385b63a548b",
+      "stdout_bytes": 0,
+      "stderr_bytes": 852,
+      "logs_in_git": "stdout+stderr"
+    },
+    "final-x64-workspace-default": {
+      "command": "cargo test --locked --no-fail-fast --target x86_64-unknown-linux-gnu",
+      "state": "blocked_before_launch",
+      "actual_exit": null,
+      "started_utc": "2026-11-06T17:17:30.170482+00:00",
+      "completed_utc": null,
+      "receipt_sha256": "38cbbba90788a577961a8add2648a3cb479afe4f5e3bec13d8fda63841c5ffe2",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "failed_tests": [],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "56ccc587247ed7de8742abf7beb7798f188de8168fe49290d7f4b385b63a548b",
+      "stdout_bytes": 0,
+      "stderr_bytes": 852,
+      "logs_in_git": "stdout+stderr"
+    },
+    "final-x64-workspace-opt2": {
+      "command": "env EECH_C_OPT=2 cargo test --locked --no-fail-fast --target x86_64-unknown-linux-gnu",
+      "state": "blocked_before_launch",
+      "actual_exit": null,
+      "started_utc": "2026-11-06T17:17:30.261095+00:00",
+      "completed_utc": null,
+      "receipt_sha256": "7c8f7b9e91476a68ca9d99dddd770ef1a44daf38d7eb8c6b60b5a36aa1e20117",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "failed_tests": [],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "56ccc587247ed7de8742abf7beb7798f188de8168fe49290d7f4b385b63a548b",
+      "stdout_bytes": 0,
+      "stderr_bytes": 852,
+      "logs_in_git": "stdout+stderr"
+    },
+    "green2-workspace-i686-default": {
+      "command": "cargo test --locked --no-fail-fast --target i686-unknown-linux-gnu",
+      "state": "terminal",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T16:35:50.337309+00:00",
+      "completed_utc": "2026-11-06T16:43:58.159670+00:00",
+      "receipt_sha256": "ed98427d2f89269516102c98a1f2d605c5a84528e66ab887413dca9ace581180",
+      "result_rows": 79,
+      "passed": 1391,
+      "failed": 1,
+      "failed_tests": [
+        "the_host_driven_enumeration_is_the_original_scan_in_window_order_exclusions_first_hit_services_poses_and_refusals_over_many_worlds"
+      ],
+      "stdout_sha256": "508feb7a5c9c18681fded61c4134f7df5e7ca8510ee7405af24fb1487fa8a93c",
+      "stderr_sha256": "a66001c97e4bdfc99d8d773c7f387f5707b5fd14f68b0acb2d60ab1f5b19c913",
+      "stdout_bytes": 150498,
+      "stderr_bytes": 168919,
+      "logs_in_git": "stdout only (stderr is compile output, retained outside Git, hash recorded)"
+    },
+    "green3-workspace-i686-stackattr": {
+      "command": "env EECH_ORIGINAL_STACK_ATTRIBUTES=1 cargo test --locked --no-fail-fast --target i686-unknown-linux-gnu",
+      "state": "terminal",
+      "actual_exit": 101,
+      "started_utc": "2026-11-06T16:46:15.293154+00:00",
+      "completed_utc": "2026-11-06T16:53:36.156426+00:00",
+      "receipt_sha256": "85887dd018a5a0c6337b4184fc20c030237d437f6a3baee0452d1a231f9d6590",
+      "result_rows": 79,
+      "passed": 1391,
+      "failed": 1,
+      "failed_tests": [
+        "the_host_driven_enumeration_is_the_original_scan_in_window_order_exclusions_first_hit_services_poses_and_refusals_over_many_worlds"
+      ],
+      "stdout_sha256": "fe0434822a96a9794f95bdbf7453d09f3e858bab49c81d2cc35aadd2447d53f0",
+      "stderr_sha256": "bbb9a904d70f22e48d55ba96413a13afd438c844b7c0936465c3266c6e2db111",
+      "stdout_bytes": 150497,
+      "stderr_bytes": 167905,
+      "logs_in_git": "stdout only (stderr is compile output, retained outside Git, hash recorded)"
+    },
+    "green4-workspace-x64-default": {
+      "command": "cargo test --locked --no-fail-fast --target x86_64-unknown-linux-gnu",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T16:53:36.254235+00:00",
+      "completed_utc": "2026-11-06T17:01:00.970893+00:00",
+      "receipt_sha256": "bff0e14e4331ac2bf1f4661e3dbd24665fc2f6b39b9e6e8ce1087980f38404eb",
+      "result_rows": 79,
+      "passed": 1412,
+      "failed": 0,
+      "failed_tests": [],
+      "stdout_sha256": "3b0c4565927b404b3113cd6a8e83735c159997353ba8e2af6fe055bd9d00b990",
+      "stderr_sha256": "2098319d3cbb4b4f16a41c4ad27c4b0a806b0daaf68f6b76785a9f57fd4af9cc",
+      "stdout_bytes": 150706,
+      "stderr_bytes": 160498,
+      "logs_in_git": "stdout only (stderr is compile output, retained outside Git, hash recorded)"
+    },
+    "green5-workspace-x64-opt2": {
+      "command": "env EECH_C_OPT=2 cargo test --locked --no-fail-fast --target x86_64-unknown-linux-gnu",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T17:01:01.070557+00:00",
+      "completed_utc": "2026-11-06T17:08:41.587103+00:00",
+      "receipt_sha256": "127dfdc75eee11d830de91c0d5f4045e3cbf1cdd7c72849e18b9196bb87dcebf",
+      "result_rows": 79,
+      "passed": 1412,
+      "failed": 0,
+      "failed_tests": [],
+      "stdout_sha256": "7e6e739a6284c1101cf6ebdf66d9fd9e222eac7ef1fd1499ec8ffdf67b571a1e",
+      "stderr_sha256": "d656c25521428248d55ca26c34369566b27388f00c68b516364043243a2e453f",
+      "stdout_bytes": 150706,
+      "stderr_bytes": 160486,
+      "logs_in_git": "stdout only (stderr is compile output, retained outside Git, hash recorded)"
+    },
+    "lint1-fmt-check": {
+      "command": "cargo fmt --check",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T17:08:41.687141+00:00",
+      "completed_utc": "2026-11-06T17:08:46.257223+00:00",
+      "receipt_sha256": "d88191a16aacac417352286d8e0fbfaca425e7c0a1e2bd610f962cc67910f1f6",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "failed_tests": [],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ea5f9eb874c7430bbe0886a8a4f6c364aa4bd7aa6f430b652311118282a76de3",
+      "stdout_bytes": 0,
+      "stderr_bytes": 82,
+      "logs_in_git": "stdout only (stderr is compile output, retained outside Git, hash recorded)"
+    },
+    "lint2-clippy": {
+      "command": "cargo clippy --locked --all-targets -- -D warnings",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T17:08:46.358061+00:00",
+      "completed_utc": "2026-11-06T17:08:55.605980+00:00",
+      "receipt_sha256": "7e1785fa35e3c204d053b7edb95bea93de0c0fe6720480012a93a4d43426f6ae",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "failed_tests": [],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "fd094cfe6811eca40967402976685aaa978bd8171b4ae8cb4e4f86cc1a864ecc",
+      "stdout_bytes": 0,
+      "stderr_bytes": 224,
+      "logs_in_git": "stdout only (stderr is compile output, retained outside Git, hash recorded)"
+    }
+  },
+  "check_qualifications": {
+    "committed_tree_runs": [
+      "final-i686-workspace-default",
+      "final-fmt-check",
+      "final-clippy-workspace",
+      "final-i686-focused (FAILED, see contamination)",
+      "final-i686-focused-c-rebuilt (run AFTER the after-map)"
+    ],
+    "working_tree_runs_before_the_code_commit": [
+      "red2-focused-d452 (unmodified d452)",
+      "diag1/diag2 (partial edits, by design)",
+      "green1-focused-i686",
+      "green2-workspace-i686-default",
+      "green3-workspace-i686-stackattr",
+      "green4-workspace-x64-default",
+      "green5-workspace-x64-opt2",
+      "fmt1",
+      "lint1-fmt-check",
+      "lint2-clippy"
+    ],
+    "binding_of_working_tree_runs": "No input map was taken before the working-tree runs, and none is claimed retroactively. That the committed bytes equal the bytes those runs compiled rests on the edit sequence (the last edit of either production file precedes fmt1/green1; there were none after) and on the committed-tree runs, which pass the same tests. green4 (x86_64 default) and green5 (x86_64 EECH_C_OPT=2) therefore have WORKING-TREE qualification only; the duplicate final-* runs of them and of the stack-attributes profile were deliberately blocked by Root (env/ROOT-UNSTARTED-DUPLICATES-20261106.json, blocked_before_launch, no Cargo child) and are not claimed.",
+    "contamination": {
+      "what": "final-i686-focused FAILED (exit 101) on the clean committed tree with the OLD words although the fix is committed. The `-p eech-world` build-script output directory had been last built by the pristine-d452 control (same cargo configuration), from the older source; cargo's rerun-if-changed compares file modification times, so it never recompiled the newer-timestamp fixed tree_step.c. Evidence: that run used test binary eech_world-85715ab6... and rebuilt only the Rust lib in 1.95 s, the next workspace run (a different feature set, different binary eech_world-e78eaf25...) passes the same two tests, and the rerun after a mtime-only touch (SHA-256 of tree_step.c unchanged, env/c-sha-before-touch.txt) rebuilt the C object (5.59 s) and PASSES.",
+      "cause_of_contamination": "this lane's own pristine-d452 run shared the cargo target volume with the working tree (git archive copy, same /src mount path). It is a build-cache artefact, not a defect of the fix. Run a pristine control in a separate target volume or touch the sources.",
+      "preserved": "both receipts are retained; the failed one is not relabelled."
+    }
+  },
+  "sdk_image": {
+    "purpose": "an isolated task-local derivative to run the actual i686 target; the base image, the primary Windows flags and every accepted baseline are untouched; no credential was copied",
+    "base": {
+      "image_id": "sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51",
+      "local_tag_used_in_FROM": "eech-linux-sdk-fp-base:4a5618cbc1",
+      "same_id_verified": "env/base-id.txt"
+    },
+    "derivative": {
+      "tag": "eech-d3-tree-i686-20261106:2",
+      "docker_image_id": "sha256:340cd13ae0b49a73154da549a0d0ff743bd0bfe424409f9e28afd041fcf825c1",
+      "note": "docker inspect reports the containerd manifest/index digest as Id; the build log records the config digest",
+      "dockerfile": "env/Dockerfile",
+      "adds": "gcc gcc-multilib gcc-12 gcc-12-multilib liblua5.1-0-dev:i386 (dpkg --add-architecture i386) and `rustup target add i686-unknown-linux-gnu`: the CI i686 Toolchain step's content"
+    },
+    "versions": "env/tool-versions.txt (rustc/cargo 1.99.1, gcc-12 12.2.0, i686 + x86_64 + windows-gnu targets, liblua5.1-0-dev:i386 5.1.5-9)",
+    "attempts": "attempt 1 (FROM the bare image id) failed: buildkit cannot resolve an id in FROM (env/build-attempt1-from-id.*); attempt 2 built but had no 32-bit gcc runtime (env/Dockerfile.attempt2-no-multilib; the first i686 test run failed at link: red1); attempt 3 is the image used.",
+    "cache": "one cache owner, the delegated volume eech-linux-d3-collision-driver-5416adb3b-20261029 and eech-cargo; one cargo child at a time through env/run-tree-i686-direct.py (separate stdout/stderr, real exit, unique label, --locked)."
+  },
+  "second_finding": {
+    "id": "ENV-I686-ENTITY-CANDIDATE-NARROW-ULP-1",
+    "status": "OPEN, not fixed here",
+    "claim_level": "reproduced on the pristine d452 source and on the fixed source; identical failure text",
+    "test": "tests/entity_candidate_host.rs: the_host_driven_enumeration_is_the_original_scan_in_window_order_exclusions_first_hit_services_poses_and_refusals_over_many_worlds, assertion at line 907, world 1",
+    "difference": "five of the eighteen words of Narrow(6, 2000, ...) differ by one unit in the last place on i686 (for example 3211014255 against 3211014256); every other service, pose and order is equal. x86_64 default and EECH_C_OPT=2 pass.",
+    "evidence": [
+      "pristine-d452-entity-candidate-i686 (unmodified d452)",
+      "final-i686-workspace-default (committed fix)",
+      "green2/green3 (working tree, both i686 profiles)"
+    ],
+    "left_right_text_sha256_pristine_and_fixed_equal": "7b3b8bedde1bf50760111f0d4aa6a050a02af4622fdc11486d445aa29d04ec77",
+    "ci_visibility": "CI stops at the first failing test binary, so it has not yet shown this: after the tree fix, both i686 jobs are expected to fail here next. It was not seen in CI.",
+    "cause": "not diagnosed (a Narrow-phase numeric path; the C/Rust arithmetic differs between SSE and x87 or 32-bit codegen is the unproven candidate). It is not tree transport and is outside this fix.",
+    "root_note": "the known real i686 pose mismatch Root names; retained OPEN for Root's continuing lane"
+  },
+  "ci_snapshot": "ci/ci-snapshot-d452-20261106.json",
+  "maps": {
+    "before": {
+      "file": "tree-i686-raw-pass-through-inputmap-before-20261106.json",
+      "bytes": 2029450,
+      "sha256": "6663e67173ffff8d4218ae2f54e4216a51ba297fa3beec725f04d3de1e31680b"
+    },
+    "after": {
+      "file": "tree-i686-raw-pass-through-inputmap-after-20261106.json",
+      "bytes": 2029450,
+      "sha256": "6663e67173ffff8d4218ae2f54e4216a51ba297fa3beec725f04d3de1e31680b"
+    },
+    "head_rev_argument": "d45221d958a70afb78778b1a9ab3aae260469607",
+    "repo_argument": "R:/d3-evidence/collision-characterization-20261029",
+    "literal_equal": true,
+    "files": 3953,
+    "changed_from_head_argument": [
+      "eech-campaign/crates/eech-world/csrc/tree_step.c",
+      "eech-campaign/crates/eech-world/src/trees.rs",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+    ],
+    "raw_binding": "tree-i686-raw-binding-0a7330f86-20261106.json",
+    "raw_binding_sha256": "1cd65163f778c8217fff2bcdf240f739ea017c370f1cbc0ed2528b5dbba8870d",
+    "raw_equal_to_blob": 3950,
+    "raw_different_from_blob": 3,
+    "raw_different_paths": [
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+    ],
+    "changed_files_outside_map_roots": "none (both changed files are inside the map roots and are among the raw-equal files)",
+    "repo_head_before_and_after": [
+      "0a7330f860c19a45a415f8a6cbf77513a9db84be",
+      "0a7330f860c19a45a415f8a6cbf77513a9db84be"
+    ],
+    "git_status_before_and_after": "clean (empty) both times",
+    "note": "the maps were taken on the clean committed tree around the final chain; the three qualified differences are the inherited CRLF Lua files of earlier packs. The maps are outside Git."
+  },
+  "reused_scope": {
+    "cd97e0b72": "the narrow integer-validator/guard-order correction is the unchanged parent code; its pack and report (62445b90...) are preserved and not replayed; it is not independently cleared.",
+    "4fb81c673": "the fixed/CITY physical rules, restatement ACK and DC lints are source-closed in review d6b5; the four fixed_rule_* fields stay emitted in every mode.",
+    "geometry_features_native_sys_numerical_matrices": "source-identical closed C geometry, three features, native sys and numerical matrices are reused from the earlier packs by identity; only the tree kernel's two copy sites and one test changed, and no whole war, retail or native experiment was run."
+  },
+  "unchanged_scope": {
+    "f734_parent_full_pack": "the four original natives (latest 3613.25/3599.27 four-prefix literal baseline, PARTIAL ONLY), processes, source, bin, roots, seed 1, frame 100, 3 h, tolerances, priority/affinity and drive R: are untouched",
+    "no": [
+      "consumed-root reuse",
+      "native API after a poisoned engine",
+      "new Windows/native run",
+      "retail experiment",
+      "cache cleanup",
+      "merge"
+    ],
+    "open_requirements": [
+      "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION (mandatory next CITY cut after the finite flags)",
+      "default shape/clutter and draw-align needed-caller/DCS disposition",
+      "sector height / UPDATED terrain / raw TREE/FOREST/CLOUD RNG",
+      "hierarchy services",
+      "DCS mapping",
+      "natural moving",
+      "current final 40 all8",
+      "current CI",
+      "normal merge",
+      "final census",
+      "whole D3 (all ten requirements)"
+    ]
+  },
+  "current_ci_status": "PENDING. At the snapshot d452's i686 default job was still running and the stack-attributes i686 job had failed the same tree_host test; windows-cross failed on a network error. This fix has not been run in CI. No waiver and no success is claimed; a further i686 failure (second_finding) is expected next.",
+  "limitations": [
+    "The x86_64 default and EECH_C_OPT=2 whole-workspace results (green4/green5) and the i686 stack-attributes whole-workspace result (green3) are working-tree runs before the code commit, without a pre-map; the committed-tree whole-workspace evidence is the i686 default run (final-i686-workspace-default), fmt and clippy.",
+    "i686 evidence is the local Linux 32-bit userland on an x86_64 kernel (gcc -m32, i686 rustc target), not a 32-bit machine and not the Windows MSVC build.",
+    "The Rust tree_host.rs f32::from_bits/to_bits conversion did not quieten the word in this i686 debug profile; that is evidence for this toolchain and profile only, and it is not proof the conversion is safe elsewhere. Other kernels in the same family (los, sense, entity step C files) were not audited for the same float-copy pattern.",
+    "The cause of the second finding is not diagnosed.",
+    "The windows-cross CI failure (lua.org connection reset) was reported by the log only."
+  ],
+  "next_action": {
+    "same_reviewer": "ONE combined pass over cd97e0b72 (as frozen, report 62445b90...) and this code commit's two files and actuals; closed ACK/lint/constructor/numeric/word evidence is not replayed.",
+    "root": "Observe the exact-head CI after publishing; keep ENV-I686-ENTITY-CANDIDATE-NARROW-ULP-1 and the two CI --no-fail-fast questions for the continuing lane; only after actual SOURCE clearance prepare new Windows/native checks.",
+    "next_production": "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION after the finite flags, not sector height."
+  },
+  "created_utc": "2026-11-06T17:22:43.158489+00:00"
+}

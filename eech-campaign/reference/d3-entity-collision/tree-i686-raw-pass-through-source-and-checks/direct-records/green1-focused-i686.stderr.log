@@ -1,0 +1,4 @@
+wsl: Failed to translate 'R:\d3-evidence\tree-i686-raw-pass-through-20261106-env'
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.96s
+     Running unittests src/lib.rs (/target/i686-unknown-linux-gnu/debug/deps/eech_world-85715ab6eb8308e1)

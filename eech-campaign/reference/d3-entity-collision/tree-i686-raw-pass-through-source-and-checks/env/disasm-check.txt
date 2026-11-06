@@ -1,0 +1,16 @@
+== pristine-d452 -O1: x87 flds/fstps/fsts in begin_body:
+32
+== pristine-d452 -O1: x87 flds/fstps/fsts in the whole object:
+508
+== pristine-d452 -O2: x87 flds/fstps/fsts in begin_body:
+32
+== pristine-d452 -O2: x87 flds/fstps/fsts in the whole object:
+598
+== fixed-0a7330f86 -O1: x87 flds/fstps/fsts in begin_body:
+20
+== fixed-0a7330f86 -O1: x87 flds/fstps/fsts in the whole object:
+472
+== fixed-0a7330f86 -O2: x87 flds/fstps/fsts in begin_body:
+20
+== fixed-0a7330f86 -O2: x87 flds/fstps/fsts in the whole object:
+562
