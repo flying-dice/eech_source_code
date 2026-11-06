@@ -546,6 +546,14 @@ package.preload.eech_dc = function ()
 					roster_event ("insert")
 					city_event ("link", roster_key .. " " .. city_list)
 				end
+				if scenario.city_cycle and #city_children > 0 then
+					-- the last building leaves while the city stays placed, a building is listed again under the list's name BEFORE the city moves, and the city is relinked again: the name must still be the record's
+					for index = #city_children, 1, -1 do city_event ("child_remove", city_list .. " " .. city_children [index]) end
+					city_children = { city_event ("child_insert", city_list).name }
+					roster_event ("remove")
+					roster_event ("insert")
+					city_event ("link", roster_key .. " " .. city_list)
+				end
 				if scenario.city_link and #city_children > 0 then
 					-- the first building is also placed in its sector, declared the same entity as its place in the city's list, and named by an object identity issued for it
 					local sector = roster_event ("insert", true).name
@@ -2649,6 +2657,41 @@ fn a_citys_sector_relink_with_its_buildings_listed_keeps_the_list_name_and_the_t
             row["reply_faults"].clone()
         ),
         (Value::from(1), Value::from("city_child_ended"), Value::from(0), Value::from(1)),
+        "{row}"
+    );
+}
+
+#[test]
+fn a_citys_list_name_survives_the_last_building_leaving_a_building_listed_again_and_a_second_relink() {
+    // relink, every building leaves while the city stays placed, one is listed again under the list's name, relink again, then the traversal and (two walks) the unlisting: all by the record's name 1, with the
+    // real provider, and nothing refused
+    let (driven, row) = scan_row(&format!("{CITY}, city_relink = true, city_cycle = true"), "scan_real");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    for (field, expected) in [
+        ("request_faults", 0),
+        ("reply_faults", 0),
+        ("city_child_insert", 4),
+        ("city_child_remove", 3),
+        ("city_link", 2),
+        ("city_child_first", 1),
+        ("city_child_next", 1),
+        ("city_served", 1),
+    ] {
+        assert_eq!(row[field], expected, "{field}: {row}");
+    }
+    let log: Vec<(&str, &str, &str, &str)> = driven
+        .city_log
+        .iter()
+        .map(|(phase, result, name, identity)| (phase.as_str(), result.as_str(), name.as_str(), identity.as_str()))
+        .collect();
+    let links: Vec<&str> = log.iter().filter(|entry| entry.0 == "0x41300000").map(|entry| entry.3).collect();
+    assert_eq!(links, ["5 1", "7 1"], "both relinks continue the record by its first name: {log:?}");
+    assert_eq!(&log[log.len() - 2..], [("0x41100000", "next", "6", "1"), ("0x41200000", "next", "", "1 6")]);
+    let (driven, row) = scan_row(&format!("{CITY}, city_relink = true, city_cycle = true, questions = 2"), "scan_real");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(
+        (row["request_faults"].clone(), row["reply_faults"].clone()),
+        (Value::from(0), Value::from(0)),
         "{row}"
     );
 }

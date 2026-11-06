@@ -587,6 +587,53 @@ fn a_citys_sector_relink_keeps_its_list_its_children_its_record_and_its_object_i
 }
 
 #[test]
+fn a_citys_list_keeps_its_record_name_through_the_last_building_leaving_a_building_listed_again_and_the_next_relink() {
+    let (lua, roster) = host(registry());
+    let first = insert(&lua, [1100.0, 3.0, 1100.0], 22.0, "");
+    let list = first.clone();
+    let a = child_insert(&lua, &list, None);
+    assert_eq!(result(&city(&lua, NAME, 0.0, &format!("{first} eech-world:object:51"))), "placed");
+    let record = record_of(&roster, &first).expect("the city's record");
+    // a first relink: the placement is now `second`, the record and the list are still named by the first key
+    assert_eq!(result(&remove(&lua, &first)), "removed");
+    let second = insert(&lua, [2100.0, 3.0, 1100.0], 22.0, "");
+    assert_eq!(result(&city(&lua, LINK, 0.0, &format!("{second} {list}"))), "placed");
+    // the last building leaves while the city stays placed: the record, its list name and its identity live on
+    assert_eq!(result(&city(&lua, CHILD_REMOVE, 0.0, &format!("{list} {a}"))), "removed");
+    assert_eq!(record_of(&roster, &second), Some(record));
+    assert_eq!(roster.borrow().object_record("eech-world:object:51"), Some(record));
+    assert!(listed(&lua, &list).is_empty());
+    // a building is listed again before the city moves: by the record's name, which the host still resolves
+    let d = child_insert(&lua, &list, None);
+    assert_eq!(listed(&lua, &list), vec![d.clone()]);
+    // the next relink: the placement `second` names no record the host holds (it is a placement, and ended), so only the record's own name can continue the list
+    assert_eq!(result(&remove(&lua, &second)), "removed");
+    let third = insert(&lua, [1100.0, 3.0, 2100.0], 22.0, "");
+    let refused = city(&lua, LINK, 0.0, &format!("{third} {second}"));
+    assert_eq!(result(&refused), "refused");
+    assert!(
+        reason(&refused).contains("[roster.link]") && reason(&refused).contains("has ended"),
+        "{}",
+        reason(&refused)
+    );
+    assert_eq!(result(&city(&lua, LINK, 0.0, &format!("{third} {list}"))), "placed");
+    assert_eq!(record_of(&roster, &third), Some(record));
+    assert_eq!(roster.borrow().object_of(third.parse().unwrap()), Some("eech-world:object:51"));
+    assert_eq!(listed(&lua, &list), vec![d.clone()]);
+    // the building leaves by the same name; the empty city that then loses its placement ends its record and its identity
+    assert_eq!(result(&city(&lua, CHILD_REMOVE, 0.0, &format!("{list} {d}"))), "removed");
+    assert_eq!(
+        roster.borrow().object_record("eech-world:object:51"),
+        Some(record),
+        "the placement still holds the record"
+    );
+    assert_eq!(result(&remove(&lua, &third)), "removed");
+    assert_eq!(roster.borrow().object_record("eech-world:object:51"), None);
+    let ended = city(&lua, CHILD_INSERT, 21.0, &list);
+    assert!(reason(&ended).contains("has ended"), "{}", reason(&ended));
+}
+
+#[test]
 fn a_city_released_with_its_buildings_listed_ends_its_record_and_identity_with_the_last_building() {
     let (lua, roster) = host(registry());
     let city_key = insert(&lua, [1100.0, 3.0, 1100.0], 22.0, "");

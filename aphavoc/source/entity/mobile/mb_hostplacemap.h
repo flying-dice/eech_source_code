@@ -10,8 +10,10 @@
 // the record's last placement.
 //
 // A city's list is not tied to the city's sector placement, which is transient: the fixed-position setter every city shares removes the city from its sector list and inserts it again when the position crosses a
-// sector (a session restore does the same) while its buildings stay listed.  The list is named on the wire by the key it was FIRST named by (the city's sector placement key at its first building), which the city
-// and each of its buildings keep for as long as buildings are listed; a city's new sector placement is declared to continue that list (LINK), and the host keeps the city's record and the list in between.
+// sector (a session restore does the same) while its buildings stay listed.  The list is named on the wire by the key it was FIRST named by (the city's sector placement key at its first building), which names the
+// host's RECORD of the city: the city and each of its buildings keep it for as long as that record lives, that is while buildings are listed or the city holds a sector placement (it survives the last building leaving
+// a placed city, and a building listed again before the next relink), and it is dropped when the record ends (the placement leaves with nothing listed, or the last building leaves a city that holds no placement).
+// A city's new sector placement is declared to continue the record (LINK), and the host keeps the city's record and the list in between.
 //
 // What this does not do: it decides no sector (the host does, from the position it is told and, for a hosted mobile, from its own record of it), it does not order the entries, and it is not the answer of a
 // scan: the campaign's lists are only the mirror a scan compares the host's entry with (mb_hostscan.h, and place_child_served below for a city).
@@ -433,6 +435,12 @@ static void place_remove (CAMPAIGN_PLACE_ENTITY *en)
 
 	place_forget_key (slot, 0);
 
+	// the city's placement leaves: with buildings listed the host's record stays (the next placement continues it); with none the record ends with this placement, and so does its name
+	if (place_listed_of_slot [slot] <= 0)
+	{
+		place_list_of_slot [slot][0] = 0;
+	}
+
 	place_unname_ended (slot);
 }
 
@@ -545,7 +553,9 @@ static void place_child_remove (CAMPAIGN_PLACE_ENTITY *en)
 
 	place_forget_key (slot, 1);
 
-	// the city loses a building: the list ends with its last (a city that was released with buildings still listed no longer holds the list, and a slot that holds another city's list is not this one's)
+	// the city loses a building (a city that was released with buildings still listed no longer holds the list, and a slot that holds another city's list is not this one's).  The name is the host's RECORD's, which
+	// lives while the city holds a sector placement or a building is listed: with the last building gone the city keeps the name while it stays placed (a building listed again, or a relink, still names that
+	// record) and drops it when it holds no placement either, which is when the host's record ends
 	city = place_city_of_slot [slot] - 1;
 
 	if ((city >= 0) && place_list_of_slot [city][0] && (strcmp (place_list_of_slot [city], place_parent_of_slot [slot]) == 0))
@@ -556,7 +566,10 @@ static void place_child_remove (CAMPAIGN_PLACE_ENTITY *en)
 		{
 			place_listed_of_slot [city] = 0;
 
-			place_list_of_slot [city][0] = 0;
+			if (!place_key_of_slot [city][0])
+			{
+				place_list_of_slot [city][0] = 0;
+			}
 
 			place_unname_ended (city);
 		}

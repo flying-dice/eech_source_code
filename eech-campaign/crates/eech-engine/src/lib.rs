@@ -1413,6 +1413,25 @@ fn put_name(reply: &mut sys::eech_model_reply, name: &str, operation: &str) -> R
     Ok(())
 }
 
+/// the fact of an ENTITY_SCAN question that holds its phase, and the bits of phase 12 (a city NAME: the identity place is a placement key, one space and an object identity)
+const SCAN_PHASE_FACT: usize = 11;
+const SCAN_PHASE_NAME_BITS: u32 = 0x4140_0000;
+
+/// The NUL-terminated identity of a request's `host_id` field, refused by its operation's own marker before the provider is asked when it is not terminated, is longer than `limit` (the operation's own domain,
+/// which the field can be larger than: the field is sized for a city NAME's whole identity place) or is not text. An empty identity is the caller's own optional/required rule, not decided here.
+fn request_identity(field: &[c_char], limit: usize, marker: &str, what: &str) -> Result<String, String> {
+    let Some(length) = field.iter().position(|c| *c == 0) else {
+        return Err(format!("[model-provider:{marker}.request] the {what} is not NUL-terminated"));
+    };
+    if length > limit {
+        return Err(format!(
+            "[model-provider:{marker}.request] the {what} is {length} bytes, outside its domain of at most {limit}"
+        ));
+    }
+    let bytes: Vec<u8> = field[..length].iter().map(|c| *c as u8).collect();
+    String::from_utf8(bytes).map_err(|_| format!("[model-provider:{marker}.request] the {what} is not text"))
+}
+
 /// The C side's model callback (mb_hostmodel.h). It runs the installed provider; a missing provider, a refusal, an answer of the wrong kind and a panic all become an error
 /// the engine stops on, with the provider's marker in the message.
 unsafe extern "C" fn model_callback(
@@ -1488,11 +1507,7 @@ unsafe extern "C" fn model_callback(
                     .filter(|count| *count == 44)
                     .ok_or_else(|| format!("[model-provider:entity_candidate.request] the facts have {} floats", source.pose_count))?;
                 let facts = source.pose[..count].iter().map(|float| float.to_bits()).collect();
-                let Some(length) = source.host_id.iter().position(|c| *c == 0) else {
-                    return Err("[model-provider:entity_candidate.request] the host identity is not NUL-terminated".to_string());
-                };
-                let bytes: Vec<u8> = source.host_id[..length].iter().map(|c| *c as u8).collect();
-                let host_id = String::from_utf8(bytes).map_err(|_| "[model-provider:entity_candidate.request] the host identity is not text".to_string())?;
+                let host_id = request_identity(&source.host_id, sys::EECH_MODEL_HOST_ID_MAX, "entity_candidate", "host identity")?;
                 (
                     "entity_candidate",
                     ModelQuery::EntityCandidate {
@@ -1507,12 +1522,14 @@ unsafe extern "C" fn model_callback(
                     .ok()
                     .filter(|count| *count == 16)
                     .ok_or_else(|| format!("[model-provider:entity_scan.request] the facts have {} floats", source.pose_count))?;
-                let facts = source.pose[..count].iter().map(|float| float.to_bits()).collect();
-                let Some(length) = source.host_id.iter().position(|c| *c == 0) else {
-                    return Err("[model-provider:entity_scan.request] the identity is not NUL-terminated".to_string());
+                let facts: Vec<u32> = source.pose[..count].iter().map(|float| float.to_bits()).collect();
+                // the field holds a city NAME's key, space and object identity whole; every other phase's identity (a key, a hosted mobile's identity) is within the host identity's domain
+                let limit = if facts[SCAN_PHASE_FACT] == SCAN_PHASE_NAME_BITS {
+                    sys::EECH_MODEL_SCAN_IDENTITY_MAX
+                } else {
+                    sys::EECH_MODEL_HOST_ID_MAX
                 };
-                let bytes: Vec<u8> = source.host_id[..length].iter().map(|c| *c as u8).collect();
-                let identity = String::from_utf8(bytes).map_err(|_| "[model-provider:entity_scan.request] the identity is not text".to_string())?;
+                let identity = request_identity(&source.host_id, limit, "entity_scan", "identity")?;
                 ("entity_scan", ModelQuery::EntityScan { facts, identity })
             }
             sys::EECH_MODEL_ENTITY_POSE => {
@@ -1520,11 +1537,7 @@ unsafe extern "C" fn model_callback(
                     .ok()
                     .filter(|count| *count == sys::EECH_MODEL_POSE_FACTS)
                     .ok_or_else(|| format!("[model-provider:entity_pose.request] the words have {} floats", source.pose_count))?;
-                let Some(length) = source.host_id.iter().position(|c| *c == 0) else {
-                    return Err("[model-provider:entity_pose.request] the host identity is not NUL-terminated".to_string());
-                };
-                let bytes: Vec<u8> = source.host_id[..length].iter().map(|c| *c as u8).collect();
-                let host_id = String::from_utf8(bytes).map_err(|_| "[model-provider:entity_pose.request] the host identity is not text".to_string())?;
+                let host_id = request_identity(&source.host_id, sys::EECH_MODEL_HOST_ID_MAX, "entity_pose", "host identity")?;
                 let words = source.pose[..count].iter().map(|float| float.to_bits()).collect();
                 (
                     "entity_pose",
@@ -11602,6 +11615,8 @@ mod tests {
             let place = format!("{key} {object}");
             let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
             request.pose_count = 16;
+            // a real NAME: phase 12 (the sixteen facts are otherwise zero, as the campaign sends them) and the whole identity place
+            request.pose[SCAN_PHASE_FACT] = f32::from_bits(SCAN_PHASE_NAME_BITS);
             for (slot, byte) in request.host_id.iter_mut().zip(place.bytes()) {
                 *slot = byte as c_char;
             }
@@ -11629,6 +11644,95 @@ mod tests {
             assert_eq!(place.len(), sys::EECH_MODEL_SCAN_IDENTITY_MAX);
             let name: Vec<u8> = reply.name.iter().take_while(|c| **c != 0).map(|c| *c as u8).collect();
             assert_eq!(name, key.as_bytes());
+        }
+    }
+
+    #[test]
+    fn the_model_callback_bounds_every_identity_by_its_own_operations_domain_before_the_host_is_asked() {
+        // the request field is sized for a city NAME's whole identity place (149 bytes); the identities of every other operation stay in the host identity's domain of 128, which the larger field must not widen
+        assert_eq!((sys::EECH_MODEL_HOST_ID_MAX, sys::EECH_MODEL_SCAN_IDENTITY_MAX), (128, 149));
+        let fill = |field: &mut [c_char], length: usize| {
+            for slot in field.iter_mut().take(length) {
+                *slot = b'y' as c_char;
+            }
+        };
+        for length in [sys::EECH_MODEL_HOST_ID_MAX + 1, sys::EECH_MODEL_SCAN_IDENTITY_MAX] {
+            // NUL-terminated inside the field, valid text: only its length is outside the domain
+            let mut request = pose_request(0, 4, 1, "");
+            fill(&mut request.host_id, length);
+            let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
+            assert_ne!(code, 0, "a {length} byte pose identity was accepted");
+            assert!(
+                error.contains("[model-provider:entity_pose.request]") && error.contains("outside its domain of at most 128"),
+                "{length}: {error}"
+            );
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_CANDIDATE, 9, 0);
+            request.pose_count = 44;
+            fill(&mut request.host_id, length);
+            let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
+            assert_ne!(code, 0, "a {length} byte candidate identity was accepted");
+            assert!(
+                error.contains("[model-provider:entity_candidate.request]") && error.contains("outside its domain of at most 128"),
+                "{length}: {error}"
+            );
+            // a scan question of any phase but NAME: an INSERT states a hosted mobile's identity, a REMOVE a key
+            for phase in [4.0_f32, 5.0, 0.0, 1.0, 10.0, 11.0] {
+                let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+                request.pose_count = 16;
+                request.pose[SCAN_PHASE_FACT] = phase;
+                fill(&mut request.host_id, length);
+                let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the host must not be asked"))), request);
+                assert_ne!(code, 0, "a {length} byte identity was accepted for phase {phase}");
+                assert!(
+                    error.contains("[model-provider:entity_scan.request]") && error.contains("outside its domain of at most 128"),
+                    "{phase} {length}: {error}"
+                );
+            }
+        }
+        // the full legal 128 bytes and an empty identity still cross whole (the optional or required rule belongs to the operation's host), for the candidate as for the pose and a hosted mobile's scan identity
+        for length in [0, sys::EECH_MODEL_HOST_ID_MAX] {
+            let expected = "y".repeat(length);
+            let seen = std::rc::Rc::new(std::cell::RefCell::new(None));
+            let record = std::rc::Rc::clone(&seen);
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_CANDIDATE, 9, 0);
+            request.pose_count = 44;
+            fill(&mut request.host_id, length);
+            let (code, _, error) = model_crossing(
+                Some(Box::new(move |query| match query {
+                    ModelQuery::EntityCandidate { host_id, .. } => {
+                        *record.borrow_mut() = Some(host_id);
+                        Ok(ModelAnswer::EntityCandidate {
+                            scene_name: "CANDIDATE".to_string(),
+                            decision: CandidateDecision::Skip,
+                        })
+                    }
+                    other => Err(format!("unexpected {other:?}")),
+                })),
+                request,
+            );
+            assert_eq!(code, 0, "{length}: {error}");
+            assert_eq!(seen.borrow().clone(), Some(expected.clone()), "{length}: the candidate identity arrives whole");
+            let seen = std::rc::Rc::new(std::cell::RefCell::new(None));
+            let record = std::rc::Rc::clone(&seen);
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+            request.pose_count = 16;
+            request.pose[SCAN_PHASE_FACT] = 4.0;
+            fill(&mut request.host_id, length);
+            let (code, _, error) = model_crossing(
+                Some(Box::new(move |query| match query {
+                    ModelQuery::EntityScan { identity, .. } => {
+                        *record.borrow_mut() = Some(identity);
+                        Ok(ModelAnswer::EntityScan {
+                            decision: ScanDecision::Placed,
+                            key: "1".to_string(),
+                        })
+                    }
+                    other => Err(format!("unexpected {other:?}")),
+                })),
+                request,
+            );
+            assert_eq!(code, 0, "{length}: {error}");
+            assert_eq!(seen.borrow().clone(), Some(expected), "{length}: the scan identity arrives whole");
         }
     }
 

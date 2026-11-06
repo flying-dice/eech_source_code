@@ -2803,12 +2803,14 @@ static void city_relink_cases (struct tc *t)
 	stopped = city_serve (0, city, NULL, d, &served);
 	EXPECT (t, !stopped && served == d && strcmp (city_seen.host_id, "1") == 0);
 
-	/* the list ends with its last building: the city then holds no list name and a later relink declares nothing, and its next building names the list by the placement it holds by then */
+	/* the last building leaves while the city stays placed: the host's record (and its name) lives on, so the city keeps the name of its list (city_anchor_cases follows it through the next building and the next relink);
+	   when the city's placement then leaves with no building listed the record ends, the name is dropped, a later relink declares nothing, and its next building names the list by the placement it holds by then */
 	stopped = city_do (1, d, NULL, NULL);
 	stopped = stopped || city_do (1, a, NULL, NULL);
-	EXPECT (t, !stopped && place_listed_of_slot[city->slot] == 0 && place_list_of_slot[city->slot][0] == 0);
+	EXPECT (t, !stopped && place_listed_of_slot[city->slot] == 0 && strcmp (place_list_of_slot[city->slot], "1") == 0);
 	stopped = city_do (4, city, NULL, NULL);
-	stopped = stopped || city_do (3, city, NULL, NULL);
+	EXPECT (t, !stopped && place_list_of_slot[city->slot][0] == 0);
+	stopped = city_do (3, city, NULL, NULL);
 	EXPECT (t, !stopped && city_asks == 0 && city_link_asks == 2);
 	stopped = city_do (0, b, city, NULL);
 	EXPECT (t, !stopped && strcmp (city_seen.host_id, place_key_of_slot[city->slot]) == 0 && strcmp (place_list_of_slot[city->slot], place_key_of_slot[city->slot]) == 0 && place_listed_of_slot[city->slot] == 1);
@@ -2827,6 +2829,77 @@ static void city_relink_cases (struct tc *t)
 	/* a new boot ends every name: nothing of the old lists is kept */
 	place_reset ();
 	EXPECT (t, place_list_of_slot == NULL && place_city_of_slot == NULL && place_listed_of_slot == NULL && place_named_of_slot == NULL);
+	place_host_installed = FALSE;
+}
+
+/* ---- the anchor of a city's list is its RECORD's name, kept until the record really ends: through the last building leaving, a building listed again, and every further relink ---- */
+static void city_anchor_cases (struct tc *t)
+{
+	struct pentity *city = &pheap[1], *a = &pheap[2], *b = &pheap[3], *d = &pheap[4], *e = &pheap[6], *f = &pheap[7], *served;
+	char pair[200], placed[24];
+	int stopped, name_asks;
+
+	city_fresh ();
+
+	/* a city that already holds its object-report identity, two buildings, and a first relink: its sector placement is now 4 while the host's record and list are still named 1 */
+	city->object = "eech-world:object:41";
+	stopped = city_do (3, city, NULL, NULL);
+	EXPECT (t, !stopped && city_name_asks == 1 && place_named_of_slot[city->slot] && strcmp (place_key_of_slot[city->slot], "1") == 0);
+	stopped = city_do (0, a, city, NULL);
+	stopped = stopped || city_do (0, b, city, NULL);
+	stopped = stopped || city_do (4, city, NULL, NULL);
+	stopped = stopped || city_do (3, city, NULL, NULL);
+	EXPECT (t, !stopped && strcmp (place_key_of_slot[city->slot], "4") == 0 && strcmp (city_last_link, "4 1") == 0 && city_link_asks == 1 && city_name_asks == 1);
+
+	/* the last building leaves while the city stays placed (4): the record lives, so the anchor stays 1, the count is 0 and the name is kept */
+	stopped = city_do (1, a, NULL, NULL);
+	stopped = stopped || city_do (1, b, NULL, NULL);
+	EXPECT (t, !stopped && place_listed_of_slot[city->slot] == 0 && strcmp (place_list_of_slot[city->slot], "1") == 0 && place_named_of_slot[city->slot]);
+
+	/* a building is listed again BEFORE the city moves: it is listed under the record's name 1, never under the placement 4 */
+	stopped = city_do (0, d, city, NULL);
+	EXPECT (t, !stopped && strcmp (city_seen.host_id, "1") == 0 && strcmp (place_parent_of_slot[d->slot], "1") == 0 && place_listed_of_slot[city->slot] == 1 && strcmp (place_list_of_slot[city->slot], "1") == 0);
+	stopped = city_serve (0, city, NULL, d, &served);
+	EXPECT (t, !stopped && served == d && strcmp (city_seen.host_id, "1") == 0);
+
+	/* the next relink: the new placement continues the record by ITS name 1 (the placement 4 names nothing the host holds), the name is neither lost nor repeated, and the building is served and unlisted by 1 */
+	stopped = city_do (4, city, NULL, NULL);
+	stopped = stopped || city_do (3, city, NULL, NULL);
+	snprintf (pair, sizeof (pair), "%s 1", place_key_of_slot[city->slot]);
+	EXPECT (t, !stopped && city_link_asks == 2 && strcmp (city_last_link, pair) == 0 && city_name_asks == 1 && place_named_of_slot[city->slot] && strcmp (place_list_of_slot[city->slot], "1") == 0);
+	stopped = city_serve (0, city, NULL, d, &served);
+	EXPECT (t, !stopped && served == d && strcmp (city_seen.host_id, "1") == 0);
+	snprintf (pair, sizeof (pair), "1 %s", place_child_of_slot[d->slot]);
+	stopped = city_do (1, d, NULL, NULL);
+	EXPECT (t, !stopped && strcmp (city_seen.host_id, pair) == 0 && place_listed_of_slot[city->slot] == 0 && strcmp (place_list_of_slot[city->slot], "1") == 0);
+
+	/* and once more around: listed again, relinked again (a third LINK by the same name), still one name */
+	stopped = city_do (0, e, city, NULL);
+	stopped = stopped || city_do (4, city, NULL, NULL);
+	stopped = stopped || city_do (3, city, NULL, NULL);
+	snprintf (pair, sizeof (pair), "%s 1", place_key_of_slot[city->slot]);
+	EXPECT (t, !stopped && city_link_asks == 3 && strcmp (city_last_link, pair) == 0 && city_name_asks == 1 && strcmp (place_parent_of_slot[e->slot], "1") == 0);
+
+	/* the empty parent still retires: the last building leaves, then the placement leaves with nothing listed, so the record, the anchor and the name end; the placement that comes back declares nothing and is named
+	   again (a new record), and its next building is listed under that placement's key */
+	stopped = city_do (1, e, NULL, NULL);
+	EXPECT (t, !stopped && strcmp (place_list_of_slot[city->slot], "1") == 0);
+	stopped = city_do (4, city, NULL, NULL);
+	EXPECT (t, !stopped && place_list_of_slot[city->slot][0] == 0 && !place_named_of_slot[city->slot]);
+	name_asks = city_name_asks;
+	stopped = city_do (3, city, NULL, NULL);
+	snprintf (pair, sizeof (pair), "%s eech-world:object:41", place_key_of_slot[city->slot]);
+	EXPECT (t, !stopped && city_link_asks == 3 && city_name_asks == name_asks + 1 && strcmp (city_last_name, pair) == 0);
+	strcpy (placed, place_key_of_slot[city->slot]);
+	stopped = city_do (0, f, city, NULL);
+	EXPECT (t, !stopped && strcmp (city_seen.host_id, placed) == 0 && strcmp (place_list_of_slot[city->slot], placed) == 0);
+
+	/* the final destruction is children first, then the city; nothing is left of the city's list or name, and a boot ends the rest */
+	stopped = city_do (1, f, NULL, NULL);
+	stopped = stopped || city_do (2, city, NULL, NULL);
+	EXPECT (t, !stopped && place_list_of_slot[city->slot][0] == 0 && place_listed_of_slot[city->slot] == 0 && !place_named_of_slot[city->slot] && place_key_of_slot[city->slot][0] == 0);
+
+	place_reset ();
 	place_host_installed = FALSE;
 }
 
@@ -3183,6 +3256,7 @@ int eech_entity_dialogue_check_run (char *text, int capacity, int *checks)
 	place_cases (&t);
 	city_cases (&t);
 	city_relink_cases (&t);
+	city_anchor_cases (&t);
 	city_alias_cases (&t);
 	city_wire_cases (&t);
 

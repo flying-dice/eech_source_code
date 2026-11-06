@@ -526,6 +526,21 @@ fn a_citys_sector_placement_is_relinked_by_the_shared_fixed_setter_while_its_bui
     let declare = &map[map.find("static void place_declare").unwrap()..map.find("// `en` was inserted at the head of a sector's list").unwrap()];
     assert!(declare.contains("place_pair (identity, sizeof (identity), place_key_of_slot [slot], place_list_of_slot [slot]);"));
     assert!(declare.contains("place_named_of_slot [slot] = 1;") && declare.contains("place_named_of_slot [slot] ||"));
+    // the anchor is the host record's name: kept when the last building leaves a placed city, dropped only when the record ends (no placement and no building)
+    let child_remove = &map[map.find("static void place_child_remove").unwrap()..map.find("static void place_release_entity").unwrap()];
+    before(
+        child_remove,
+        "if (!place_key_of_slot [city][0])",
+        "place_list_of_slot [city][0] = 0;",
+        "mb_hostplacemap.h place_child_remove",
+    );
+    let remove = &map[map.find("static void place_remove").unwrap()..map.find("static void place_child_insert").unwrap()];
+    before(
+        remove,
+        "if (place_listed_of_slot [slot] <= 0)",
+        "place_list_of_slot [slot][0] = 0;",
+        "mb_hostplacemap.h place_remove",
+    );
     let release = &map[map.find("static void place_release_entity").unwrap()..map.find("static void place_reset").unwrap()];
     assert!(release.contains("place_list_of_slot [index][0] = 0;") && release.contains("place_named_of_slot [index] = 0;"));
 
