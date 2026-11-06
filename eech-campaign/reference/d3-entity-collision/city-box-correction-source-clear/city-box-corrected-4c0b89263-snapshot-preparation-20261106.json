@@ -1,0 +1,15 @@
+{
+  "actual_exit": 0,
+  "source": "4c0b89263f41164e1c2379f3be99ac8d6c575173",
+  "metadata": "c1eece2c5c9489ec4f56e21c5cb2947eca53be29",
+  "snapshot": "D:\\EECH-Migration-Evidence\\city-box-corrected-4c0b89263-20261106-source",
+  "inputmap": "R:\\d3-evidence\\city-box-corrected-4c0b89263-snapshot-before-20261106.json",
+  "inputmap_sha256": "20c2a0d5aa74934809e7af0915db6cb2ebdd08ed6b5a2747537df54177b39602",
+  "file_count": 3953,
+  "all_source_raw_bytes_equal_Git": true,
+  "longpaths_local_before_checkout": true,
+  "no_hardlinks_or_alternates": true,
+  "full_status_clean": true,
+  "scope": "Exact Root clean frozen source only; NO Cargo/build/native/source clearance. SAME changed-material source review is pending.",
+  "verified_utc": "2026-11-06T12:36:15.578374+00:00"
+}

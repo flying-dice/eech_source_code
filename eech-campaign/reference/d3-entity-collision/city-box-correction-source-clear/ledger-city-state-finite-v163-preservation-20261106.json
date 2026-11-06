@@ -1,0 +1,12 @@
+{
+  "old_version": 162,
+  "new_version": 163,
+  "old_jirachart_count": 5,
+  "new_jirachart_count": 5,
+  "all_five_reports_qualified_literal_preserved": true,
+  "entire_prior_HTML_qualified_literal_preserved": true,
+  "prior_HTML_raw_literal_preserved": false,
+  "allowed_normalization": "Only exact parentId extension-field omission and the two known local-id EEDCS50/PR110 strong-anchor nesting changes; no broader text/whitespace normalization.",
+  "scope": "Finite canonical CITY backing verified only; physical construction/predicates and allten D3 requirements remain. Parentf734fullpack active/noacceptance.",
+  "captured_utc": "2026-11-06T10:42:37.784Z"
+}

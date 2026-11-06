@@ -1,0 +1,86 @@
+{
+  "scope": "Read-only source facts for NEXT required physical predicate cut. No runtime/authority/native/whole-D3 acceptance or design approval. Committed e49 source only; current constructor working tree not used or modified. No extra implementation/cache lane.",
+  "source": "e49b8aa54b27f08021c304b7f15fdd61130594ef",
+  "captured_utc": "2026-11-06T11:26:10.245078+00:00",
+  "sources": [
+    {
+      "path": "aphavoc/source/entity/fixed/fx_dbase.h",
+      "git_blob": "5c9da33fc7a9f157ea53e40240541b6ea5060c3d",
+      "raw_sha256": "fcae7f6a6bf39b43a368456417a0ce52150721d7c85ae245702c5f5553d998b5",
+      "bytes": 3913
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/fx_dbase.c",
+      "git_blob": "814ba727db742adc9daa5ba433ebcd853c982eb5",
+      "raw_sha256": "470857c9641490cf60609106d2625a267ebe22c4b0dde210850a9215db7ea386",
+      "bytes": 9913
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/fx_int.c",
+      "git_blob": "8c0b0b7cf46af69e4028d583ae5c48f204b0eac8",
+      "raw_sha256": "962dc0889addd776d2ef47f46c52aca3c740f24446683d5f457a386a156342ba",
+      "bytes": 17965
+    },
+    {
+      "path": "aphavoc/source/entity/system/en_types/en_sbtyp.h",
+      "git_blob": "e9e068b1bc2afd83cc217b9c3a84c0c70ee8aa63",
+      "raw_sha256": "b9eb7bea70e7949aaff8b0514253dcdf9c5d67f304141e99bea6fc3fa3976973",
+      "bytes": 34282
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostplace.c",
+      "git_blob": "3205b20b9261c1ce9b5b9fa11586ba9e6091dfa5",
+      "raw_sha256": "5b656b0ed4cb7469c8d781a7fa40ab822491c192c049fba09819f953b9700cb9",
+      "bytes": 6056
+    },
+    {
+      "path": "aphavoc/source/entity/special/sector/sc_msgs.c",
+      "git_blob": "70bfe0a3965185d9603deb2318acc10c4129db85",
+      "raw_sha256": "383b5571ad9875b94baa24d1595e1cd300bccf963a2bba3106f8b5a8210eed13",
+      "bytes": 9804
+    },
+    {
+      "path": "aphavoc/source/entity/special/keysite/ks_int.c",
+      "git_blob": "1807d6379c38515a50068bb7bcb242b6e44d8b3b",
+      "raw_sha256": "649e1b82cda1a58af6a8b0564ee8ee8c0b48b768750bbb7d0426d0e492e17186",
+      "bytes": 17648
+    },
+    {
+      "path": "aphavoc/source/ai/taskgen/engage.c",
+      "git_blob": "1edc3a1a243ee37dbfcef9665ef13764770bacd8",
+      "raw_sha256": "03bd6a21a34b6bae661ab745f93a6028eb9b56b8e3e859550ed954cea43555df",
+      "bytes": 33825
+    },
+    {
+      "path": "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+      "git_blob": "155bde1cfd5e62f5d872e8a7da943678d8418bad",
+      "raw_sha256": "a485a7e49a9b5b0019e6e8f6b77734c3ca3b6214efdb5fef5e89117999844b8f",
+      "bytes": 77714
+    }
+  ],
+  "fixed_subtypes_in_declaration_order": [
+    "ENTITY_SUB_TYPE_FIXED_UNKNOWN",
+    "ENTITY_SUB_TYPE_FIXED_BRIDGE_END_SECTION",
+    "ENTITY_SUB_TYPE_FIXED_BRIDGE_SUPPORTED_MID_SECTION",
+    "ENTITY_SUB_TYPE_FIXED_BRIDGE_UNSUPPORTED_MID_SECTION",
+    "ENTITY_SUB_TYPE_FIXED_CITY",
+    "ENTITY_SUB_TYPE_FIXED_CITY_BUILDING",
+    "ENTITY_SUB_TYPE_FIXED_CRATER",
+    "ENTITY_SUB_TYPE_FIXED_ELECTRICITY_PYLON_END_TERMINATOR",
+    "ENTITY_SUB_TYPE_FIXED_ELECTRICITY_PYLON_STANDARD",
+    "ENTITY_SUB_TYPE_FIXED_ELECTRICITY_PYLON_START_TERMINATOR",
+    "ENTITY_SUB_TYPE_FIXED_ELECTRICITY_STATION",
+    "ENTITY_SUB_TYPE_FIXED_ELECTRICITY_SUBSTATION",
+    "ENTITY_SUB_TYPE_FIXED_MILITARY_BUILDING",
+    "ENTITY_SUB_TYPE_FIXED_SCENIC_OBJECT",
+    "ENTITY_SUB_TYPE_FIXED_TERRAIN_OBJECT"
+  ],
+  "critical_distinctions": [
+    "fixed_data combines default_3d_shape, physical align/collision flags and ground_radar_clutter; moving whole table may move unrelated responsibilities.",
+    "fx_int INT_TYPE_IDENTIFY_FIXED is constant true, separately used by campaign taskgen engage.c and sector tallest-height calculation; cannot wholesale treat classification as physical policy.",
+    "ks_int INT_TYPE_ALIGN_WITH_TERRAIN is keysite_database, separate from fixed_database; matching enum name alone does not establish same owner.",
+    "Current reporter place_fixed_read reads derived flags through Core getters; canonical storage alone did not move derivation.",
+    "Actual runtime/compiled caller and boot/subtype setter timing remain to be characterized in sole implementation lane.",
+    "Reviewer precision: ENTITY_SUB_TYPE_FIXED_UNKNOWN is itself one of15 declared valid enum values. An unknown refusal must mean an actually unsupported/out-of-domain value, not reject that legitimate declaration by name."
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "repository": "flying-dice/tslua-dcs",
+  "commit": "1179554fcafcef92d71313336cc09500febf8245",
+  "file": "packages/tslua-dcs-mission-types/src/StaticObject.ts",
+  "git_blob": "0378b1f371fc57bc2d4f2b22dd4ed64653e92cad",
+  "bytes": 8405,
+  "sha256": "7a645cd741ffbb8d0b2ecf377e1b95e658ba116a79f355ca945bdebfcbaeb6ef",
+  "url": "https://github.com/flying-dice/tslua-dcs/blob/1179554fcafcef92d71313336cc09500febf8245/packages/tslua-dcs-mission-types/src/StaticObject.ts",
+  "scope": "Author-maintained declared API shapes/example only, not actual DCS behavior, universal static-bounds guarantee or exhaustive API absence. New source-only draft; mapping remains open.",
+  "captured_utc": "2026-11-06T11:19:05.848411+00:00"
+}

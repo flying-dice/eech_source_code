@@ -1,0 +1,109 @@
+{
+  "source": "4c0b89263f41164e1c2379f3be99ac8d6c575173",
+  "metadata": "c1eece2c5c9489ec4f56e21c5cb2947eca53be29",
+  "snapshot": "D:\\EECH-Migration-Evidence\\city-box-corrected-4c0b89263-20261106-source",
+  "actual_exit": 0,
+  "scope": "Root read-only source/check/publication/input binding ONLY; NO Cargo replay, Windows/native or independent source clearance. New focused commands own this exact source. Unchanged numerical/kernel controls retain parent f06 identity, not a newly run whole-candidate1152-test matrix.",
+  "checkpoint_sha256": "cc1d40e19e623c613c09e38d427d2cd015f65f20675542645cf83812cdf5a72e",
+  "source_files": 3953,
+  "all_snapshot_raw_bytes_equal_Git": true,
+  "changed_files_raw_Git_bound": 6,
+  "author_snapshot_qualified_raw_differences": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "exact_raw_delta_from_f06": [
+    "aphavoc/source/entity/mobile/mb_hostentity.h",
+    "aphavoc/source/entity/mobile/mb_hostmodel.h",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+    "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "eech-campaign/crates/eech-world/tests/entity_authority.rs"
+  ],
+  "unchanged_named_f06_inputs_bound": 15,
+  "final_actual_direct_check_children": [
+    {
+      "label": "cbrcfinal-fmt",
+      "command": "cargo fmt -p eech-world -p eech-engine -p eech-dc -p eech-engine-sys -- --check",
+      "actual_exit": 0,
+      "passed": 0,
+      "record_sha256": "62674d6eeaf55ec83a20902f6e95811d073c587417a40a4bf2b74456e6a9af85",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    {
+      "label": "cbrcfinal-check",
+      "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world --all-targets",
+      "actual_exit": 0,
+      "passed": 0,
+      "record_sha256": "85a6613bf400693af474661b1456d156618093bf3910fc9a32dc7ea24a569206",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "bfb4462d42aad38d932ad015f5c3525dfb5600005a74a39b52f091b63ab4ccfd"
+    },
+    {
+      "label": "cbrcfinal-sys",
+      "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --no-fail-fast",
+      "actual_exit": 0,
+      "passed": 27,
+      "record_sha256": "274f503f1b2803f5912728f9c1c377165be4e2d7f1bd82b317a41efa5c2c04ce",
+      "stdout_sha256": "2252a285a16997a7ee58699e31cef9f94827b69a86388d15add64495d0436165",
+      "stderr_sha256": "13fcbd0c8b78f33d33c0562a9896dc93c3ae745818585cd2d968102ec1f0e152"
+    },
+    {
+      "label": "cbrcfinal-dcengine",
+      "command": "cargo test --release --locked -p eech-engine -p eech-dc --no-fail-fast",
+      "actual_exit": 0,
+      "passed": 188,
+      "record_sha256": "95c6828c7e69cf0e57e95978bf7a6aaa0b555fcdf0f72c6baef0c2b4f7ddd3c6",
+      "stdout_sha256": "db5919192f4bee334f325a6d04523e084b77661b4e59f630ef7627479246f01c",
+      "stderr_sha256": "31f96a79b2af3250601fcdaa40e30857bc1c3df0d2901abebe9488c7ef920dde"
+    },
+    {
+      "label": "cbrcfinal-world-driver",
+      "command": "cargo test --release --locked -p eech-world --test entity_authority --no-fail-fast",
+      "actual_exit": 0,
+      "passed": 85,
+      "record_sha256": "63a81450e61abaa6e45bab8c5256c6f5ee4d6214d12222ed1d935277a304f1cd",
+      "stdout_sha256": "827aee085b9390a48a697e8d84bb6abdd7db901cd1580bb74228146c70fe0598",
+      "stderr_sha256": "aba4f993021d57365254ebe4015ce2dd387883adf245b9430b01404d40bcdb31"
+    },
+    {
+      "label": "cbrcfinal-feature-collision-fixture",
+      "command": "cargo check --release --locked -p eech-engine-sys --features collision-fixture",
+      "actual_exit": 0,
+      "passed": 0,
+      "record_sha256": "c516aa2750af689f220636027f180acf0a3c4e53e872cc27f66459027b01b4b8",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "bff2b236ad91da0f4f402a91eaa51a22f01a5f53c1d2583e1659950303447ee2"
+    },
+    {
+      "label": "cbrcfinal-feature-model-host-fixture",
+      "command": "cargo check --release --locked -p eech-engine-sys --features model-host-fixture",
+      "actual_exit": 0,
+      "passed": 0,
+      "record_sha256": "a32a49f237fb823ed645bb7f3fe730d86f22619629102fe035fa7eb4f6942a88",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "10338df87ce0f5ab96d1f1f8d10ac0eb5fa693e538c14bc7faaacf6a854a2024"
+    },
+    {
+      "label": "cbrcfinal-feature-model-fixture",
+      "command": "cargo check --release --locked -p eech-engine-sys --features model-fixture",
+      "actual_exit": 0,
+      "passed": 0,
+      "record_sha256": "bc561962a1001499d491191c637c57f4eedef003bf29c44c8ccf75b079bfe149",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "2f764856590247093ff4c5a365514b9c6534c38290c0caefa6f6e8ee3f5f7f41"
+    }
+  ],
+  "passed_result_instances": 300,
+  "source_maps_literal_before_after_binding": true,
+  "after_inputmap": "R:\\d3-evidence\\city-box-corrected-4c0b89263-snapshot-after-binding-20261106.json",
+  "snapshot_map_sha256": "20c2a0d5aa74934809e7af0915db6cb2ebdd08ed6b5a2747537df54177b39602",
+  "manifest_entries_actual_Git_bytes_verified": 66,
+  "external_checkpoint_strict_publication_joined_to_literal_repo_copy": true,
+  "prepared_retail_input_tool_and_reference_joined": true,
+  "source_clearance": false,
+  "native_clearance": false,
+  "verified_utc": "2026-11-06T12:37:59.549232+00:00"
+}
