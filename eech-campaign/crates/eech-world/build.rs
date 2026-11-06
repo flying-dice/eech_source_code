@@ -69,6 +69,7 @@ fn main() {
         .flag("-ftrivial-auto-var-init=zero")
         .compile("eech_steps");
     rotor_control(&opt);
+    city_box_control(&opt);
     if std::env::var_os("CARGO_CFG_WINDOWS").is_none() {
         // a link argument (at the end of every link line of this package: the
         // binary and the tests), after mlua-sys, which references lua_*
@@ -440,4 +441,23 @@ fn sha256_hex(data: &[u8]) -> String {
         }
     }
     state.iter().map(|word| format!("{word:08x}")).collect()
+}
+
+// ---- the TEST-ONLY numeric control of the ORIGINAL city bounding-box expansion (Task49, D3): tests/csrc/city_box_control.c holds the original statements of ct_msgs.c update_city_bounding_box and the two maths routines
+// they call, verbatim (the test that uses it compares the text with the original sources on every run). It is compiled with the SAME settings as the archive above, so that the control and the host's kernel
+// (csrc/model_step.c) are built by one compiler with one set of flags for one target. Only tests/model_target_point.rs references its symbol.
+fn city_box_control(opt: &str) {
+    println!("cargo::rerun-if-changed=tests/csrc/city_box_control.c");
+    cc::Build::new()
+        .file("tests/csrc/city_box_control.c")
+        .opt_level_str(opt)
+        .debug(true)
+        .pic(true)
+        .warnings(false)
+        .flag("-std=gnu99")
+        .flag("-w")
+        .flag("-fno-strict-aliasing")
+        .flag("-fwrapv")
+        .flag("-ftrivial-auto-var-init=zero")
+        .compile("eech_city_box_control");
 }

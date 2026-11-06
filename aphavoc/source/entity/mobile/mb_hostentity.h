@@ -912,6 +912,84 @@ static void campaign_entity_city_state_exchange (const char *key, const float *s
 	check_fixed_reply (&reply, key, "city state report");
 }
 
+// The CITY_EXPAND question (the same question; phase CAMPAIGN_SCAN_PHASE_CITY_EXPAND, Task49; see mb_hostmodel.h): a building's link expanded its city's bounding box and the host builds it. The question states nothing
+// but its phase and the identity place, which is the city's sector key, one space and the building's key (at most 2 * CAMPAIGN_ROSTER_KEY_MAX + 1 bytes, inside the host identity's domain); both are validated HERE as roster keys
+// before anything is sent. The reply is checked COMPLETELY before one word of the caller's `box` is written: the state EXPANDED, the city's key echoed and nothing else named, exactly CAMPAIGN_CITY_EXPAND_WORDS words (and no
+// word beyond), every word a finite number classified from its bytes. A reply that fails any of it stops the engine and `box` is as it was.
+static void check_city_expand_reply (const campaign_model_reply *reply, const char *city)
+{
+	int
+		index;
+
+	if (reply->candidate_state != CAMPAIGN_MODEL_SCAN_EXPANDED)
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.state] the host decided state %d for a city expansion, which allows only state %d", reply->candidate_state, CAMPAIGN_MODEL_SCAN_EXPANDED);
+	}
+
+	check_reply_key (reply, "entity_scan");
+
+	if (strcmp (reply->name, city) != 0)
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.key] the host acknowledged the key \"%.40s\" for a city expansion, which names another city", reply->name);
+	}
+
+	if (reply->candidate_count != CAMPAIGN_CITY_EXPAND_WORDS)
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.box] the host answered %d words for a city expansion, which carries %d", reply->candidate_count, CAMPAIGN_CITY_EXPAND_WORDS);
+	}
+
+	for (index = 0; index < CAMPAIGN_CITY_EXPAND_WORDS; index++)
+	{
+		if (!candidate_word_is_finite (&reply->candidate [index]))
+		{
+			debug_fatal ("host model: [model-provider:entity_scan.box] the box word %d the host answered for a city expansion is not a finite number", index);
+		}
+	}
+
+	for (index = CAMPAIGN_CITY_EXPAND_WORDS; index < CAMPAIGN_MODEL_CANDIDATE_POSE_MAX; index++)
+	{
+		if (!scan_word_is_zero (&reply->candidate [index]))
+		{
+			debug_fatal ("host model: [model-provider:entity_scan.box] the host answered more than %d words for a city expansion", CAMPAIGN_CITY_EXPAND_WORDS);
+		}
+	}
+}
+
+static void campaign_entity_city_expand_exchange (const char *city, const char *building, float *box)
+{
+	campaign_model_request
+		request;
+
+	campaign_model_reply
+		reply;
+
+	if (!roster_key_is_valid (city))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.key] a city expansion names the city \"%.40s\", which is not a roster key", city);
+	}
+
+	if (!roster_key_is_valid (building))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.key] a city expansion names the building \"%.40s\", which is not a roster key", building);
+	}
+
+	memset (&request, 0, sizeof (request));
+	request.op = CAMPAIGN_MODEL_ENTITY_SCAN;
+	request.scene = 0;
+	request.pose_count = CAMPAIGN_MODEL_SCAN_FACTS;
+	request.pose [CAMPAIGN_SCAN_PHASE] = (float) CAMPAIGN_SCAN_PHASE_CITY_EXPAND;
+
+	memcpy (request.host_id, city, strlen (city));
+	request.host_id [strlen (city)] = ' ';
+	memcpy (request.host_id + strlen (city) + 1, building, strlen (building));
+
+	CAMPAIGN_ENTITY_SCAN_ASK (&request, &reply);
+
+	check_city_expand_reply (&reply, city);
+
+	memcpy (box, reply.candidate, CAMPAIGN_CITY_EXPAND_WORDS * sizeof (float));
+}
+
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // ENTITY_POSE (EEDCS-49, D3, fifth slice): an OBSERVATION of a mobile candidate's pose against the host's record of its identity. The answer chooses no pose and no result; its shape is checked and a mirror difference stops the engine (a conformance assertion, not a decision-neutral read).
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

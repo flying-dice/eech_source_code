@@ -75,6 +75,16 @@ extern "C" {
         out_attitude: *mut f32,
     ) -> i32;
     fn eech_model_fixed_target_point(base: *const f32, offset: *const f32, heading: *const f32, out: *mut f32, path: *mut i32) -> i32;
+    fn eech_model_city_box_expand(
+        bounds: *const f32,
+        heading: *const f32,
+        building: *const f32,
+        city: *const f32,
+        box_min: *const f32,
+        box_max: *const f32,
+        out_min: *mut f32,
+        out_max: *mut f32,
+    ) -> i32;
     fn eech_model_fp_state(x87_masks: *mut i32, sse_masks: *mut i32, sse_rounding: *mut i32, x87_control: *mut u32, mxcsr_bits: *mut u32) -> i32;
 }
 
@@ -2200,6 +2210,19 @@ pub enum FixedTarget {
     Refused(&'static str),
 }
 
+/// The host's answer for the expansion a building's link makes of its city's bounding box (ct_msgs.c `update_city_bounding_box`): the box now held, as the six float bit patterns (minimum then maximum),
+/// or the name of what the host cannot build. A refusal is never a box.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum CityBox {
+    Expanded { min: [u32; 3], max: [u32; 3] },
+    Refused(&'static str),
+}
+
+/// Whether a float's bit pattern is a finite number (an exponent that is not all ones): classified by integer operations, before any floating-point use of the word.
+fn finite_word(word: u32) -> bool {
+    word & 0x7f80_0000 != 0x7f80_0000
+}
+
 /// Which way the original's tests went for a valid shape.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FixedPath {
@@ -2815,6 +2838,61 @@ impl ModelStore {
             result: out.map(f32::to_bits),
             path,
         })
+    }
+
+    /// The expansion a building's link makes of its city's bounding box, `update_city_bounding_box` (ct_msgs.c): the building's scene bounds WITHOUT lines (the store's own `bounding_box2`, not a value the
+    /// caller supplies), its two corners turned by `heading` about the vertical axis and moved by the building's position from the city's, and united with the box the city holds (`box_min`, `box_max`).
+    /// Every word is a float bit pattern. A scene outside 1 to the catalogue's end is an argument error (the original asserts a valid shape); a store whose custom files were never read cannot say what a slot
+    /// holds, and a word that is not finite is classified here by its bits, before any floating-point instruction has touched it: each is a named refusal, never a box.
+    pub fn city_box_expand(
+        &self,
+        shape: i64,
+        heading: u32,
+        building: [u32; 3],
+        city: [u32; 3],
+        box_min: [u32; 3],
+        box_max: [u32; 3],
+    ) -> Result<CityBox, QueryError> {
+        let view = self.scene(shape)?;
+        if self.inventory_only {
+            return Ok(CityBox::Refused("custom_definitions_not_loaded"));
+        }
+        let finite = [view.bounding_box2.as_slice(), &[heading], &building, &city, &box_min, &box_max]
+            .concat()
+            .into_iter()
+            .all(finite_word);
+        if !finite {
+            return Ok(CityBox::Refused("non_finite_input"));
+        }
+        let bounds = view.bounding_box2.map(f32::from_bits);
+        let heading = f32::from_bits(heading);
+        let (building, city) = (building.map(f32::from_bits), city.map(f32::from_bits));
+        let (box_min, box_max) = (box_min.map(f32::from_bits), box_max.map(f32::from_bits));
+        let (mut out_min, mut out_max) = ([0.0f32; 3], [0.0f32; 3]);
+        // SAFETY: the pointers are to locals of six floats (bounds), one (heading) and three each (the rest); the kernel reads the first six and writes the last two.
+        let code = unsafe {
+            eech_model_city_box_expand(
+                bounds.as_ptr(),
+                &heading,
+                building.as_ptr(),
+                city.as_ptr(),
+                box_min.as_ptr(),
+                box_max.as_ptr(),
+                out_min.as_mut_ptr(),
+                out_max.as_mut_ptr(),
+            )
+        };
+        match code {
+            0 => {}
+            1 => return Ok(CityBox::Refused("fp_masks")),
+            2 => return Ok(CityBox::Refused("fp_environment")),
+            _ => return Ok(CityBox::Refused("kernel_argument")),
+        }
+        let (min, max) = (out_min.map(f32::to_bits), out_max.map(f32::to_bits));
+        if !min.iter().chain(max.iter()).all(|word| finite_word(*word)) {
+            return Ok(CityBox::Refused("non_finite_result"));
+        }
+        Ok(CityBox::Expanded { min, max })
     }
 
     /// The `index`th node of the route object of (scene, kind): the original's parse of `object->points[index]` (routegen.c `parse_waypoint_routes_from_object`), decoded by

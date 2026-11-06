@@ -42,8 +42,12 @@ void campaign_place_name (struct ENTITY *en, const char *id);
 
 // the fixed collision state of `en` (a fixed-family entity: position, heading, shape and the two flags its sub type derives) was written, or the entity was placed: the host's record of the placement holds the state
 // as it is now (Task49). Called by every writer of a field of it after the entity is placed; an entity that is not placed, and a type that is neither of the fixed family nor the city, state nothing. A CITY states
-// its own position and bounding box through the same call (the expansion a building's link makes, ct_msgs.c, is its writer of the box). See mb_hostplacemap.h.
+// its own position (and the box it starts with) through the same call; the box a building's link expands is built by the host (`campaign_place_city_expand`, ct_msgs.c). See mb_hostplacemap.h.
 void campaign_place_fixed_state (struct ENTITY *en);
+
+// a building was linked into the list of its city (ct_msgs.c) and the city's bounding box is to be expanded for it: the host builds the box from the records it holds (the city's state, the building's fixed state, the
+// scene's bounds) and `box` (six floats: the minimum, then the maximum) receives the box it holds now, written only once the whole answer was checked. The shipping campaign has no other construction of the box
+void campaign_place_city_expand (struct ENTITY *city, struct ENTITY *building, float *box);
 
 // the key the host issued for the placement `en` has now (its sector placement's, or with `child` its place in a city's list), "" when it has none: a candidate that is not a mobile names it on every staged question
 const char *campaign_place_key (struct ENTITY *en, int child);

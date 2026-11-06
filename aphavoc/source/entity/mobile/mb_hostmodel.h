@@ -315,7 +315,9 @@ enum campaign_model_scan_phase
 	/* the FIXED collision state of a fixed-family placement (Task49, fixed/static collision backing): the campaign states it each time it writes one (see campaign_model_entity_fixed) */
 	CAMPAIGN_SCAN_PHASE_FIXED_STATE,
 	/* the CITY's own collision state (Task49): the position and bounding box of a city placement, stated to the host's record of the placement (see campaign_model_entity_city_state) */
-	CAMPAIGN_SCAN_PHASE_CITY_STATE
+	CAMPAIGN_SCAN_PHASE_CITY_STATE,
+	/* the CITY expansion (Task49): a building's link has expanded its city's bounding box; the host builds the box from the records it holds and answers it (see campaign_model_entity_city_expand) */
+	CAMPAIGN_SCAN_PHASE_CITY_EXPAND
 };
 
 /* the facts of a FIXED_STATE report (the same question, phase CAMPAIGN_SCAN_PHASE_FIXED_STATE): the position (3 floats), the entity type, the heading, the shape (a whole scene index), the collision-fixed
@@ -339,6 +341,8 @@ enum campaign_model_scan_phase
 #define CAMPAIGN_CITY_BOX_MAX 6
 /* the floats of the state the campaign reads from a city (campaign_model_entity_city_state): position (3), box minimum (3), box maximum (3) */
 #define CAMPAIGN_CITY_STATE_WORDS 9
+/* the floats of the box a city expansion answers (campaign_model_entity_city_expand): the bounding box minimum (3), then the maximum (3), as the host holds the words */
+#define CAMPAIGN_CITY_EXPAND_WORDS 6
 
 enum campaign_model_scan_state
 {
@@ -350,7 +354,9 @@ enum campaign_model_scan_state
 	/* the answers to the roster's events: the entity was placed (the reply's name is the key the host issued), removed, or the roster was cleared */
 	CAMPAIGN_MODEL_SCAN_PLACED,
 	CAMPAIGN_MODEL_SCAN_REMOVED,
-	CAMPAIGN_MODEL_SCAN_CLEARED
+	CAMPAIGN_MODEL_SCAN_CLEARED,
+	/* the answer to a city expansion: the host built the box (the reply's name is the city's key; its candidate_count is CAMPAIGN_CITY_EXPAND_WORDS and the words of candidate are the box minimum then maximum) */
+	CAMPAIGN_MODEL_SCAN_EXPANDED
 };
 
 /* the roster's insertion event: the position the campaign holds (the x, y and z words; the host decides the sector and compares a hosted mobile's with its own record), the entity's type, and the
@@ -568,6 +574,12 @@ void campaign_model_entity_fixed (int entity_type, const char *key, const float 
    served) is decided from it. The campaign states it every time it writes one of the fields: the insertion into a sector list (which a relink repeats), the shared fixed setter, and the expansion a building's link makes. The reply
    is checked completely (the state `placed` and the same key acknowledged); a refusal stops the engine with the host's reason. */
 void campaign_model_entity_city_state (const char *key, const float *state);
+/* ENTITY_SCAN, the CITY_EXPAND question (phase CAMPAIGN_SCAN_PHASE_CITY_EXPAND; Task49): the building the key `building` names (its place in the city's list) was linked to the city the key `city` names (its sector
+   placement), and the city's bounding box is to be expanded for it. The campaign states no word of it: the host holds the city's own state (its position and the box it holds) and the building's fixed state (its
+   position, heading and shape), takes the shape's bounds from the model data it owns, builds the new box with the original's arithmetic, holds it in its record of the city and answers it. `box` receives the
+   CAMPAIGN_CITY_EXPAND_WORDS floats (the minimum, then the maximum) the host holds now, and is written ONLY after the whole answer was checked (the state EXPANDED, the city's key echoed, the count of words, every word finite,
+   no sector named): a refusal, a missing provider or an answer that does not hold stops the engine by marker and leaves `box` as it was. The campaign applies the words to its mirror of the box, as they are. */
+void campaign_model_entity_city_expand (const char *city, const char *building, float *box);
 
 /* whether a model provider is installed (the roster reports only to one: a build with no host has no roster and no scan) */
 int campaign_model_host_installed (void);

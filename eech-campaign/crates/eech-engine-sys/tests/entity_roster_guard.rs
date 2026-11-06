@@ -899,11 +899,13 @@ fn the_cities_position_and_box_have_exactly_these_writers() {
 
 #[test]
 fn every_writer_of_a_placed_citys_position_or_box_states_them_through_the_one_funnel_after_the_write() {
-    // the expansion a building's link makes is the only writer of a PLACED city's box: it states the city's whole state as its last step, after the six comparisons and the three assertions
+    // the expansion a building's link makes is the only writer of a PLACED city's box. In the ORIGINAL-fixture build (the original expansion, kept as the characterisation oracle) it states the city's whole state as its
+    // last step, after the six comparisons and the three assertions; the shipping build has the host build the box and states nothing back (the next test)
     let messages = source("entity/fixed/city/ct_msgs.c");
-    let at = messages.find("static void update_city_bounding_box").expect("the expansion");
-    let end = messages[at..].find("\n}\n").unwrap() + at;
-    let body = &messages[at..end];
+    let (_, original) = city_messages_branches(&messages);
+    let at = original.find("static void update_city_bounding_box").expect("the expansion");
+    let end = original[at..].find("\n}\n").unwrap() + at;
+    let body = &original[at..end];
     before(body, "raw->bounding_box_max.z = p2.z;", "campaign_place_fixed_state (this_city);", "ct_msgs.c");
     before(
         body,
@@ -959,4 +961,64 @@ fn every_writer_of_a_placed_citys_position_or_box_states_them_through_the_one_fu
     let at = map.find("static void place_insert (").unwrap();
     let end = map[at..].find("\n}\n").unwrap() + at;
     assert!(map[at..end].trim_end().ends_with("place_fixed_state (en);"));
+}
+
+/// The text of `ct_msgs.c` the SHIPPING (hosted) build compiles and the text only the ORIGINAL-fixture build compiles: the part before `#else` and the part after it, both inside the one `#ifdef EECH_CAMPAIGN_HOST_ENTITY`
+/// that holds the expansion. A file with no such conditional compiles all of it into the shipping build, so it is all hosted text and nothing is original-only.
+fn city_messages_branches(text: &str) -> (String, String) {
+    let Some(start) = text.find("#ifdef EECH_CAMPAIGN_HOST_ENTITY") else {
+        return (text.to_string(), String::new());
+    };
+    let after = &text[start..];
+    let Some(other) = after.find("\n#else") else {
+        return (text.to_string(), String::new());
+    };
+    let end = after.find("\n#endif").expect("the conditional ends");
+    (
+        format!("{}{}", &text[..start], &after[..other]),
+        format!("{}{}", &text[..start], &after[other..end]),
+    )
+}
+
+#[test]
+fn the_shipping_cities_box_expansion_is_the_hosts_and_the_original_physical_body_stays_only_in_the_original_fixture_build() {
+    let messages = source("entity/fixed/city/ct_msgs.c");
+    let (hosted, original) = city_messages_branches(&messages);
+    // the physical work (the scene's bounds, the heading's rotation as two corners, the offset and the union of the two corners with the box) is not compiled into the shipping campaign
+    for physical in [
+        "get_object_3d_bounding_box_without_lines",
+        "get_3d_transformation_matrix",
+        "multiply_matrix3x3_vec3d",
+        "object_3d_bounds",
+        "FLOAT_TYPE_HEADING",
+        "raw->bounding_box_min.x = p1.x;",
+    ] {
+        assert!(!hosted.contains(physical), "the shipping build still computes the city's box: `{physical}`");
+    }
+    // the shipping build asks the host once per link, with the link's own pair, and applies the checked answer to the entity's mirror
+    assert!(
+        hosted.contains("campaign_place_city_expand (this_city, this_building, box);"),
+        "the link asks the host"
+    );
+    assert_eq!(hosted.matches("campaign_place_city_expand (").count(), 1, "one question per link");
+    before(
+        &hosted,
+        "campaign_place_city_expand (this_city, this_building, box);",
+        "raw->bounding_box_min.x = box [0];",
+        "ct_msgs.c",
+    );
+    assert!(
+        !hosted.contains("campaign_place_fixed_state (this_city);"),
+        "the host holds the box it built: the campaign does not state it back"
+    );
+    // the original fixture build keeps the original expansion, statement for statement, as the characterisation oracle
+    for original_statement in [
+        "bounding_box = get_object_3d_bounding_box_without_lines (object_3d_index);",
+        "get_3d_transformation_matrix (attitude, heading, 0.0, 0.0);",
+        "multiply_matrix3x3_vec3d (&p1, attitude, &p1);",
+        "multiply_matrix3x3_vec3d (&p2, attitude, &p2);",
+        "if (p2.z > raw->bounding_box_max.z) raw->bounding_box_max.z = p2.z;",
+    ] {
+        assert!(original.contains(original_statement), "the oracle lost `{original_statement}`");
+    }
 }

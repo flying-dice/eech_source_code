@@ -2567,3 +2567,456 @@ fn a_city_state_is_the_cities_alone_and_a_fixed_report_is_not_a_city_s() {
         "{reason}"
     );
 }
+
+// ---- THE CITY'S BOUNDING-BOX EXPANSION through the real provider (EEDCS-49, D3, Task49: the physical construction the city cut left in the campaign) ----
+//
+// A building's link expands its city's bounding box (ct_msgs.c update_city_bounding_box): the building's scene bounds (without lines), turned by its heading as two corners, offset by the building's position
+// from the city's, and united with the box the city holds (the box never shrinks). The host does that work from the records it already holds: the city's own state (position and current box) and the
+// building's fixed state (position, heading, shape), both stated before the link (phases 13 and 14). The campaign asks with phase 15 (the identity place is the city's sector key, one space and the building's
+// key; every other fact zero) and the host answers `expanded` with the city's key and the six words of the box it now holds, or refuses by name having changed nothing.
+
+const CITY_EXPAND_PHASE: u32 = 0x4170_0000;
+
+fn expand_words() -> [u32; 16] {
+    let mut words = [0u32; 16];
+    words[11] = CITY_EXPAND_PHASE;
+    words
+}
+
+/// the original's inverted initial box (ct_creat.c): minimum 1.0e6 and maximum -1.0e6 on every axis
+const SENTINEL_MIN: [f32; 3] = [1.0e6; 3];
+const SENTINEL_MAX: [f32; 3] = [-1.0e6; 3];
+
+/// a provider whose roster holds a city (state stated: its position and the inverted box) with one building listed under it (fixed state stated: position, heading, shape): (lua, roster, city, building)
+fn city_with_building(root: &std::path::Path, shape: f32, heading: f32, building_position: [f32; 3]) -> (mlua::Lua, RosterHandle, String, String) {
+    let (lua, roster, city) = placement_of(root, CITY_TYPE);
+    let city_key: u64 = city.parse().expect("a key");
+    let state = eech_world::roster::CityState {
+        position: bits3(CITY_POSITION),
+        box_min: bits3(SENTINEL_MIN),
+        box_max: bits3(SENTINEL_MAX),
+    };
+    roster.borrow_mut().set_city(city_key, state).expect("the city's state");
+    let child = roster.borrow_mut().child_insert(city_key, None, BUILDING_TYPE as i32).expect("listed");
+    let fixed = eech_world::roster::FixedState {
+        position: bits3(building_position),
+        heading: heading.to_bits(),
+        shape: shape as i32,
+        collision_fixed: true,
+        align: false,
+    };
+    roster.borrow_mut().set_fixed(child, BUILDING_TYPE as i32, fixed).expect("the building's state");
+    (lua, roster, city, child.to_string())
+}
+
+fn expand_answer(lua: &mlua::Lua, city: &str, child: &str) -> mlua::Table {
+    scan_words_answer(lua, expand_words(), &format!("{city} {child}"))
+}
+
+fn held_city(roster: &RosterHandle, city: &str) -> eech_world::roster::FixedHold {
+    roster.borrow().placement_fixed(city.parse().expect("a key"), false).expect("the city stands").2
+}
+
+fn hex_words(text: &str) -> Vec<u32> {
+    text.split(',')
+        .map(|word| u32::from_str_radix(word.trim_start_matches("0x"), 16).expect("a bit pattern"))
+        .collect()
+}
+
+#[test]
+fn a_city_expansion_is_built_by_the_host_from_the_records_it_holds_and_answers_the_box_it_now_holds() {
+    let (root, store) = standard();
+    // scene 5 is a plain object: its bounds without lines are the object's own, (-4, 2) x (-10, 2) x (-2, 6); heading 0 and no offset turn and move nothing
+    let view = store.scene(5).expect("the scene");
+    assert_eq!(floats(view.bounding_box2), [-4.0, 2.0, -10.0, 2.0, -2.0, 6.0]);
+    let (lua, roster, city, child) = city_with_building(&root.dir, 5.0, 0.0, CITY_POSITION);
+    let answer = expand_answer(&lua, &city, &child);
+    let (result, name, reason) = table_result(&answer);
+    assert_eq!(
+        (result.as_str(), name.as_str(), reason.as_str()),
+        ("expanded", city.as_str(), ""),
+        "the host built the box"
+    );
+    let words = hex_words(&answer.get::<String>("p").expect("the six words"));
+    assert_eq!(floats::<6>(words.clone().try_into().expect("six words")), [-4.0, -10.0, -2.0, 2.0, 2.0, 6.0]);
+    // the host's own record holds the same box (and the position it already held): the answer is the record's words, not a computation the campaign may adopt
+    let held = held_city(&roster, &city);
+    let eech_world::roster::FixedHold::City(state) = held else {
+        panic!("{held:?}")
+    };
+    assert_eq!(state.position, bits3(CITY_POSITION));
+    assert_eq!([state.box_min.as_slice(), state.box_max.as_slice()].concat(), words);
+}
+
+#[test]
+fn a_city_expansion_the_host_cannot_build_is_refused_by_name_and_the_record_is_not_changed() {
+    let (root, _store) = standard();
+    for (what, shape) in [("the invalid scene", 0.0f32), ("a scene outside the catalogue", 16_777_000.0)] {
+        let (lua, roster, city, child) = city_with_building(&root.dir, shape, 0.0, CITY_POSITION);
+        let before = held_city(&roster, &city);
+        let (result, _, reason) = table_result(&expand_answer(&lua, &city, &child));
+        assert_eq!(result, "refused", "{what}");
+        assert!(reason.contains("[roster.city_box.shape]"), "{what}: {reason}");
+        assert_eq!(held_city(&roster, &city), before, "{what}: the record was not changed");
+    }
+    // a building whose state the host withdrew (the host's own retirement: the placement stands, only the state goes)
+    let (lua, roster, city, child) = city_with_building(&root.dir, 5.0, 0.0, CITY_POSITION);
+    let mut withdraw = [0u32; 16];
+    withdraw[9] = 1.0f32.to_bits();
+    withdraw[11] = FIXED_STATE_PHASE;
+    assert_eq!(table_result(&scan_words_answer(&lua, withdraw, &child)).0, "removed");
+    let before = held_city(&roster, &city);
+    let (result, _, reason) = table_result(&expand_answer(&lua, &city, &child));
+    assert_eq!(result, "refused");
+    assert!(reason.contains("[roster.city_box.building_state]") && reason.contains("withdrew"), "{reason}");
+    assert_eq!(held_city(&roster, &city), before);
+    // a building the host was never told the state of
+    let (lua, roster, city) = placement_of(&root.dir, CITY_TYPE);
+    let child = roster
+        .borrow_mut()
+        .child_insert(city.parse().expect("a key"), None, BUILDING_TYPE as i32)
+        .expect("listed")
+        .to_string();
+    let (result, _, reason) = table_result(&expand_answer(&lua, &city, &child));
+    assert_eq!(result, "refused");
+    assert!(
+        reason.contains("[roster.city_box.city_state]") || reason.contains("[roster.city_box.building_state]"),
+        "{reason}"
+    );
+}
+
+#[test]
+fn a_city_expansion_names_its_keys_and_a_pair_that_does_not_join_is_refused_before_anything_is_read() {
+    let (root, _store) = standard();
+    let (lua, roster, city, child) = city_with_building(&root.dir, 5.0, 0.0, CITY_POSITION);
+    let before = held_city(&roster, &city);
+    // another city's building, an unknown key, the child named as the city and the city named as the child, a lone key and a malformed pair
+    let other_city = roster.borrow_mut().insert((0, 0), CITY_TYPE, None).to_string();
+    for (what, identity) in [
+        ("a building of another city", format!("{other_city} {child}")),
+        ("an unknown building", format!("{city} 99999")),
+        ("the building as the city", format!("{child} {child}")),
+        ("the city as the building", format!("{city} {city}")),
+        ("a lone key", city.clone()),
+        ("a pair with a third key", format!("{city} {child} {child}")),
+        ("a key that is not a key", format!("{city} 0{child}")),
+    ] {
+        let (result, _, reason) = table_result(&scan_words_answer(&lua, expand_words(), &identity));
+        assert_eq!(result, "refused", "{what}");
+        assert!(reason.contains("[roster.city_box."), "{what}: {reason}");
+        assert_eq!(held_city(&roster, &city), before, "{what}: nothing changed");
+    }
+    // every fact but the phase is zero
+    for at in [0usize, 3, 5, 9, 12, 15] {
+        let mut words = expand_words();
+        words[at] = 1.0f32.to_bits();
+        let (result, _, reason) = table_result(&scan_words_answer(&lua, words, &format!("{city} {child}")));
+        assert_eq!(result, "refused", "fact {at}");
+        assert!(reason.contains("[roster.request]"), "fact {at}: {reason}");
+    }
+    assert_eq!(held_city(&roster, &city), before);
+}
+
+#[test]
+fn a_city_state_restated_over_the_box_the_host_built_may_move_the_position_but_never_change_the_box() {
+    let (root, _store) = standard();
+    let (lua, roster, city, child) = city_with_building(&root.dir, 5.0, 0.0, CITY_POSITION);
+    assert_eq!(table_result(&expand_answer(&lua, &city, &child)).0, "expanded");
+    let box_min = [-4.0, -10.0, -2.0];
+    let box_max = [2.0, 2.0, 6.0];
+    // the campaign's own reports repeat the position and the mirror of the box it was given: a moved position is the campaign's geography and is held
+    let moved = [11.0, 3.0, 21.0];
+    assert_eq!(table_result(&scan_words_answer(&lua, city_words(moved, box_min, box_max), &city)).0, "placed");
+    let held = held_city(&roster, &city);
+    let eech_world::roster::FixedHold::City(state) = held else {
+        panic!("{held:?}")
+    };
+    assert_eq!(state.position, bits3(moved));
+    // a box that is not the host's is not the campaign's word to give
+    let before = held_city(&roster, &city);
+    let (result, _, reason) = table_result(&scan_words_answer(&lua, city_words(moved, [-5.0, -10.0, -2.0], box_max), &city));
+    assert_eq!(result, "refused");
+    assert!(reason.contains("[roster.city]") && reason.contains("not the one the host holds"), "{reason}");
+    assert_eq!(held_city(&roster, &city), before, "the refused statement changed nothing");
+}
+
+// ---- THE CITY BOX KERNEL against the ORIGINAL's own statements (Task49, D3) ----
+//
+// `ModelStore::city_box_expand` is the host's arithmetic of ct_msgs.c update_city_bounding_box. The control (tests/csrc/city_box_control.c) holds the original's statements and the two maths routines they call, copied
+// verbatim; the first test compares that text with the original sources, so the control IS the original under a test entry. The others compare the kernel with it bit for bit and say what the ORIGINAL's arithmetic does
+// to the floating-point state (control words, rounding, masks: nothing; the sticky exception flags it raises stay in the engine's state until the engine entry's own restore, and nothing reads them) and what the
+// host's kernel does (the caller's COMPLETE state handed back, exactly as every other kernel of this module does).
+
+extern "C" {
+    fn eech_city_box_original(bounds: *const f32, heading: f32, building: *const f32, city: *const f32, min: *mut f32, max: *mut f32, report: *mut u32) -> i32;
+}
+
+fn campaign_source(relative: &str) -> String {
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../..").join(relative);
+    String::from_utf8_lossy(&std::fs::read(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()))).replace("\r\n", "\n")
+}
+
+/// the statements of a block as comparable lines: trailing blanks cut, the empty and the comment-only lines dropped
+fn statement_lines(text: &str) -> Vec<String> {
+    text.lines()
+        .map(str::trim_end)
+        .filter(|line| !line.trim().is_empty() && !line.trim_start().starts_with("//") && !line.trim_start().starts_with("/*"))
+        .map(str::to_string)
+        .collect()
+}
+
+/// the text from the first line that holds `from` to the line that holds `to`, both included
+fn between(text: &str, from: &str, to: &str) -> String {
+    let start = text.find(from).unwrap_or_else(|| panic!("`{from}` is not there"));
+    let end = text[start..].find(to).unwrap_or_else(|| panic!("`{to}` is not there")) + start;
+    let end = end + text[end..].find('\n').unwrap_or(text.len() - end);
+    text[start..end].to_string()
+}
+
+/// a function of the original's `matrix.c`, from its signature to the closing brace at the start of a line, without its `static` (the control's only difference)
+fn function_text(text: &str, signature: &str) -> String {
+    let start = text.find(signature).unwrap_or_else(|| panic!("`{signature}` is not there"));
+    let end = text[start..].find("\n}\n").unwrap() + start + 3;
+    text[start..end].to_string()
+}
+
+#[test]
+fn the_controls_statements_are_the_originals() {
+    let control = std::fs::read_to_string(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/csrc/city_box_control.c"))
+        .expect("the control")
+        .replace("\r\n", "\n");
+    // the expansion's arithmetic, from the bounding box's first corner to the last comparison: the ORIGINAL-fixture branch of ct_msgs.c (after its `#else`), less the two reads of the entity the entry takes as arguments
+    let messages = campaign_source("aphavoc/source/entity/fixed/city/ct_msgs.c");
+    let original_branch = &messages[messages.find("\n#else").expect("the original-fixture branch")..];
+    let original = between(
+        original_branch,
+        "p1.x = bounding_box->xmin;",
+        "if (p2.z > raw->bounding_box_max.z) raw->bounding_box_max.z = p2.z;",
+    );
+    let original: Vec<String> = statement_lines(&original)
+        .into_iter()
+        .filter(|line| {
+            !line.contains("get_local_entity_float_value (this_building, FLOAT_TYPE_HEADING)")
+                && !line.contains("get_local_entity_vec3d_ptr (this_building, VEC3D_TYPE_POSITION)")
+        })
+        .collect();
+    let mine = statement_lines(&between(
+        &control,
+        "p1.x = bounding_box->xmin;",
+        "if (p2.z > raw->bounding_box_max.z) raw->bounding_box_max.z = p2.z;",
+    ));
+    assert_eq!(
+        original.len(),
+        30,
+        "the original expansion has thirty statements: six corner words, the matrix, two products, three offsets, six additions, twelve comparisons"
+    );
+    assert_eq!(mine, original, "the control's statements are not the original's");
+    // the two maths routines the statements call
+    let matrix = campaign_source("modules/maths/matrix.c");
+    for signature in [
+        "void get_3d_transformation_matrix ( matrix3x3 m, float heading, float pitch, float roll )",
+        "void multiply_matrix3x3_vec3d ( vec3d *result, const matrix3x3 m, const vec3d *v )",
+    ] {
+        let original = function_text(&matrix, signature);
+        let copy = function_text(&control, &format!("static {signature}")).replacen("static ", "", 1);
+        assert_eq!(copy, original, "{signature}");
+    }
+    // and the host's own copy of the same two routines is the same text as well (the kernel calls them): the control and the kernel meet in one arithmetic
+    let arith = campaign_source("eech-campaign/crates/eech-world/csrc/eech_arith.h");
+    let squeeze = |text: String| text.split_whitespace().collect::<Vec<_>>().join("");
+    for (signature, mine) in [
+        (
+            "void get_3d_transformation_matrix ( matrix3x3 m, float heading, float pitch, float roll )",
+            "static void get_3d_transformation_matrix(matrix3x3 m, float heading, float pitch, float roll)",
+        ),
+        (
+            "void multiply_matrix3x3_vec3d ( vec3d *result, const matrix3x3 m, const vec3d *v )",
+            "static void multiply_matrix3x3_vec3d(vec3d *result, const matrix3x3 m, const vec3d *v)",
+        ),
+    ] {
+        assert_eq!(
+            squeeze(function_text(&arith, mine)).replacen("static", "", 1),
+            squeeze(function_text(&matrix, signature)),
+            "{signature}"
+        );
+    }
+}
+
+/// the original's expansion through the control: the box words it leaves and its report of the floating-point state (x87 control, x87 status, MXCSR before; the same after)
+fn original_box(bounds: [u32; 6], heading: u32, building: [u32; 3], city: [u32; 3], min: [u32; 3], max: [u32; 3]) -> ([u32; 3], [u32; 3], [u32; 6]) {
+    let (bounds, building, city) = (bounds.map(f32::from_bits), building.map(f32::from_bits), city.map(f32::from_bits));
+    let (mut min, mut max) = (min.map(f32::from_bits), max.map(f32::from_bits));
+    let mut report = [0u32; 6];
+    // SAFETY: the pointers are to locals of six, three and three floats (read) and three, three (read and written) and six words (written).
+    let code = unsafe {
+        eech_city_box_original(
+            bounds.as_ptr(),
+            f32::from_bits(heading),
+            building.as_ptr(),
+            city.as_ptr(),
+            min.as_mut_ptr(),
+            max.as_mut_ptr(),
+            report.as_mut_ptr(),
+        )
+    };
+    assert_eq!(code, 0);
+    (min.map(f32::to_bits), max.map(f32::to_bits), report)
+}
+
+const HEADINGS: [f32; 9] = [0.0, -0.0, 0.5, -1.25, 3.141_592_7, 6.5, 1.0e-30, 100.0, -7.77];
+const OFFSETS: [[f32; 3]; 5] = [[0.0, 0.0, 0.0], [12.5, -3.0, 40.25], [-100.0, 0.0, 7.0], [0.1, 0.2, 0.3], [-0.0, -0.0, -0.0]];
+/// the boxes a city holds: the inverted initial box, one an earlier building made, one that contains everything a scene can add, and one of signed zeros (a comparison against an equal word leaves it)
+const BOXES: [([f32; 3], [f32; 3]); 4] = [
+    ([1.0e6; 3], [-1.0e6; 3]),
+    ([-3.0, -9.0, -1.0], [4.0, 3.0, 8.0]),
+    ([-1.0e5; 3], [1.0e5; 3]),
+    ([0.0, -0.0, 0.0], [-0.0, 0.0, -0.0]),
+];
+
+#[test]
+fn the_hosts_city_box_is_the_originals_bit_for_bit_over_every_heading_offset_and_box_and_every_caller_rounding_mode() {
+    let (_root, store) = standard();
+    let original_mxcsr = fpu::mxcsr();
+    let original_x87 = fpu::x87_control();
+    let mut compared = 0;
+    // scenes 5 and 6 are plain objects with different bounds, 8 is a slot no file defines (the original's zero bounding box: a valid scene, not a refusal)
+    for scene in [5i64, 6, 8, 9] {
+        let view = store.scene(scene).expect("the scene");
+        let bounds = view.bounding_box2;
+        for heading in HEADINGS {
+            for offset in OFFSETS {
+                for (min, max) in BOXES {
+                    let city = [10.0f32, 3.0, 20.0];
+                    let building = [city[0] + offset[0], city[1] + offset[1], city[2] + offset[2]];
+                    let (want_min, want_max, _) = original_box(bounds, heading.to_bits(), bits3(building), bits3(city), bits3(min), bits3(max));
+                    for rounding in [0u32, 3] {
+                        fpu::set_mxcsr(0x1f80 | (rounding << 13) | 0x21);
+                        fpu::set_x87_control(0x037f | ((rounding as u16) << 10));
+                        let got = store
+                            .city_box_expand(scene, heading.to_bits(), bits3(building), bits3(city), bits3(min), bits3(max))
+                            .expect("an argument");
+                        fpu::set_mxcsr(original_mxcsr);
+                        fpu::set_x87_control(original_x87);
+                        assert_eq!(
+                            got,
+                            eech_world::models::CityBox::Expanded { min: want_min, max: want_max },
+                            "scene {scene} heading {heading} offset {offset:?} box {min:?} {max:?} rounding {rounding}"
+                        );
+                        compared += 1;
+                    }
+                }
+            }
+        }
+    }
+    assert_eq!(compared, 4 * 9 * 5 * 4 * 2);
+}
+
+#[test]
+fn the_original_arithmetic_changes_no_control_word_rounding_or_mask_and_only_raises_sticky_flags() {
+    let (_root, store) = standard();
+    let bounds = store.scene(5).expect("the scene").bounding_box2;
+    let mut flags_seen = 0u32;
+    for heading in HEADINGS {
+        let (_, _, report) = original_box(
+            bounds,
+            heading.to_bits(),
+            bits3([10.0, 3.0, 20.0]),
+            bits3([10.0, 3.0, 20.0]),
+            bits3([1.0e6; 3]),
+            bits3([-1.0e6; 3]),
+        );
+        // before and after: the x87 control word and the MXCSR's control and mask bits (everything but the six sticky flags) are what the statements found
+        assert_eq!(report[0], report[3], "heading {heading}: the x87 control word");
+        assert_eq!(report[2] & !0x3f, report[5] & !0x3f, "heading {heading}: the MXCSR's control and mask bits");
+        assert_eq!(report[2] & 0x6000, 0x6000, "the statements ran under round-toward-zero");
+        assert_eq!(
+            (report[0] & 0x3f, (report[2] >> 7) & 0x3f),
+            (0x3f, 0x3f),
+            "every exception masked, as the engine's callback context has them"
+        );
+        flags_seen |= report[5] & 0x3f;
+    }
+    // what the statements raise is recorded (the inexact flag is the one a sine or a product of unrepresentable numbers raises); nothing in the engine reads a flag, and the engine entry restores the caller's whole state
+    eprintln!(
+        "the original's statements raised the MXCSR sticky flags {flags_seen:#04x} over {} headings",
+        HEADINGS.len()
+    );
+    assert_eq!(flags_seen & !0x3f, 0);
+}
+
+#[test]
+fn the_hosts_city_box_hands_the_callers_complete_floating_point_state_back_and_refuses_an_unmasked_exception() {
+    let (_root, store) = standard();
+    let original_mxcsr = fpu::mxcsr();
+    let original_x87 = fpu::x87_control();
+    let ask = |store: &ModelStore| {
+        store
+            .city_box_expand(
+                5,
+                0.5f32.to_bits(),
+                bits3([12.0, 3.0, 25.0]),
+                bits3([10.0, 3.0, 20.0]),
+                bits3(SENTINEL_MIN),
+                bits3(SENTINEL_MAX),
+            )
+            .expect("an argument")
+    };
+    let reference = ask(&store);
+    assert!(matches!(reference, eech_world::models::CityBox::Expanded { .. }), "{reference:?}");
+    for rounding in 0u32..4 {
+        // sticky flags set in the caller's state: the kernel hands them back as they were, never clears or adds one
+        let mxcsr = 0x1f80 | (rounding << 13) | 0x21;
+        fpu::set_mxcsr(mxcsr);
+        fpu::set_x87_control(0x037f | ((rounding as u16) << 10));
+        let before = fp_state().unwrap();
+        let answer = ask(&store);
+        let after = fp_state().unwrap();
+        fpu::set_mxcsr(original_mxcsr);
+        fpu::set_x87_control(original_x87);
+        assert_eq!(after, before, "rounding {rounding}: the caller's floating-point state after the query");
+        assert_eq!(answer, reference, "rounding {rounding}: the answer depended on the caller's rounding mode");
+    }
+    // an exception unmasked in the caller is refused, state untouched
+    fpu::set_mxcsr(original_mxcsr & !0x80);
+    let before = fp_state().unwrap();
+    let refused = ask(&store);
+    let after = fp_state().unwrap();
+    fpu::set_mxcsr(original_mxcsr);
+    assert_eq!(refused, eech_world::models::CityBox::Refused("fp_masks"));
+    assert_eq!(before, after);
+}
+
+#[test]
+fn the_hosts_city_box_classifies_every_word_by_its_bits_before_it_computes_and_names_what_it_cannot_build() {
+    let (_root, store) = standard();
+    let words = |heading: u32, building: [u32; 3], city: [u32; 3], min: [u32; 3], max: [u32; 3]| {
+        store.city_box_expand(5, heading, building, city, min, max).expect("an argument")
+    };
+    let (zero, min, max) = ([0.0f32.to_bits(); 3], bits3(SENTINEL_MIN), bits3(SENTINEL_MAX));
+    // an infinity, a quiet NaN and a signalling NaN in any input word: refused before the arithmetic, in every place
+    for bad in [0x7f80_0000u32, 0xff80_0000, 0x7fc0_0000, 0x7f80_0001, 0xffa0_0000] {
+        let refused = eech_world::models::CityBox::Refused("non_finite_input");
+        assert_eq!(words(bad, zero, zero, min, max), refused, "{bad:#x} as the heading");
+        assert_eq!(words(0, [bad, 0, 0], zero, min, max), refused, "{bad:#x} as a building word");
+        assert_eq!(words(0, zero, [0, 0, bad], min, max), refused, "{bad:#x} as a city word");
+        assert_eq!(words(0, zero, zero, [0, bad, 0], max), refused, "{bad:#x} as a box minimum word");
+        assert_eq!(words(0, zero, zero, min, [0, 0, bad]), refused, "{bad:#x} as a box maximum word");
+    }
+    // the invalid scene and a scene outside the catalogue are argument errors, as for every other question
+    assert!(matches!(store.city_box_expand(0, 0, zero, zero, min, max), Err(QueryError::BadScene(0))));
+    assert!(matches!(
+        store.city_box_expand(i64::from(scene_last() as i32), 0, zero, zero, min, max),
+        Err(QueryError::BadScene(_))
+    ));
+    // a slot no file defines is the original's zero bounding box: the box is the building's own place, never a refusal
+    let answer = store
+        .city_box_expand(8, 0, bits3([4.0, 5.0, 6.0]), bits3([1.0, 1.0, 1.0]), min, max)
+        .expect("a scene");
+    assert_eq!(
+        answer,
+        eech_world::models::CityBox::Expanded {
+            min: bits3([3.0, 4.0, 5.0]),
+            max: bits3([3.0, 4.0, 5.0])
+        }
+    );
+}

@@ -79,6 +79,8 @@ struct campaign_model_counters
 	long fixed_stated;
 	/* the CITY_STATE reports (the same question, phase 14): the positions and bounding boxes of cities stated to the host's records of their placements */
 	long city_stated;
+	/* the CITY_EXPAND questions (the same question, phase 15): the boxes of cities the host built for a building's link */
+	long city_expanded;
 	/* ENTITY_POSE observations asked of the host (EEDCS-49), and the classes it answered: recorded, unrecorded, retired, unknown, no identity */
 	long entity_pose, pose_recorded, pose_unrecorded, pose_retired, pose_unknown, pose_no_id;
 	long entity_candidate, candidate_skip, candidate_updated, candidate_normal, candidate_buildings, candidate_test, candidate_fixed, candidate_placement;
@@ -2070,6 +2072,16 @@ void campaign_model_entity_city_state (const char *key, const float *state)
 
 #ifdef EECH_MODEL_HOST_FIXTURE
 	campaign_model_counts.city_stated++;
+#endif
+}
+
+// ENTITY_SCAN, the CITY_EXPAND question (mb_hostmodel.h; Task49): a building's link expanded its city's bounding box; the host builds the box from the records it holds and answers it. The dialogue is mb_hostentity.h.
+void campaign_model_entity_city_expand (const char *city, const char *building, float *box)
+{
+	campaign_entity_city_expand_exchange (city, building, box);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.city_expanded++;
 #endif
 }
 

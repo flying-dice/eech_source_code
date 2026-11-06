@@ -19,9 +19,9 @@
 //! numbers within range or the call is refused before the store is touched. A missing asset is reported as `NOT RUN`, never as a pass.
 use crate::entity_host;
 use crate::models::{
-    compiled_scene_name, hex_list, scene_index_by_name, scene_last, AnimationRef, CustomWalk, ErrorKind, FixedPath, FixedTarget, ModelStore, ObjectHeader,
-    ObjectSource, OffsetSource, RouteFace, RouteNode, SceneSource, TargetPointChain, TargetPointLocal, TargetPointWorld, Triangle, CUSTOM_WALK_MAX,
-    TARGET_POINT_CHAIN_MAX, TARGET_POINT_STATE,
+    compiled_scene_name, hex_list, scene_index_by_name, scene_last, AnimationRef, CityBox, CustomWalk, ErrorKind, FixedPath, FixedTarget, ModelStore,
+    ObjectHeader, ObjectSource, OffsetSource, RouteFace, RouteNode, SceneSource, TargetPointChain, TargetPointLocal, TargetPointWorld, Triangle,
+    CUSTOM_WALK_MAX, TARGET_POINT_CHAIN_MAX, TARGET_POINT_STATE,
 };
 use crate::movement;
 use crate::original_report;
@@ -730,6 +730,8 @@ const ROSTER_NAME: u32 = 0x4140_0000;
 const ROSTER_FIXED_STATE: u32 = 0x4150_0000;
 /// The city-state report (14.0, classified from its bits like the others): see `city_state_event`.
 const ROSTER_CITY_STATE: u32 = 0x4160_0000;
+/// The city-expansion question (15.0, classified from its bits like the others): see `city_expand_event`.
+const ROSTER_CITY_EXPAND: u32 = 0x4170_0000;
 /// The bits of 1.0: the only non-zero value a flag word of the contract has.
 const ONE_BITS: u32 = 0x3f80_0000;
 
@@ -1024,6 +1026,81 @@ fn city_state_event(lua: &Lua, words: &[u32], identity: &str) -> LuaResult<LuaTa
         }
         Err(why) => refuse(&table, format!("[roster.city] {}", why.0)),
     }
+}
+
+/// The city-expansion question of an `entity_scan` question (phase 15, the same question as the roster's): a building's link has expanded its city's bounding box (ct_msgs.c `update_city_bounding_box`), and the host
+/// builds the box. The identity place is the key of the city's sector placement, one space and the key of the building's place in the city's list; every other fact is zero. The host joins the pair to its roster
+/// (the building must be listed under that very city), reads the two records it already holds (the city's own state: position and the box it holds, and the building's fixed state: position, heading, shape), takes
+/// the shape's bounds from the model store it owns, and builds the new box with the original's arithmetic (`ModelStore::city_box_expand`). The record of the city then holds the box in one step, and the answer is
+/// `expanded` with the city's key and the box's six words (the campaign applies them to its mirror after checking the whole answer). Every refusal is named (`[roster.city_box.<kind>]`) and made before the record
+/// changes: a pair that does not join, a city or a building the host holds no state for (or whose state it withdrew), a shape the store cannot give bounds for, an input or a result that is not finite.
+/// Every word is classified by integer operations before any floating-point instruction has touched it.
+fn city_expand_event(lua: &Lua, store: &mut dyn FnMut() -> LuaResult<Arc<ModelStore>>, words: &[u32], identity: &str) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    table.set("name", "")?;
+    let refuse = |table: &LuaTable, reason: String| -> LuaResult<LuaTable> {
+        table.set("result", "refused")?;
+        table.set("reason", reason)?;
+        Ok(table.clone())
+    };
+    // every fact an expansion does not state is zero
+    for (at, word) in words.iter().enumerate() {
+        if at != 11 && *word != 0 {
+            return refuse(
+                &table,
+                format!("[roster.request] fact {at} of a city expansion is not zero: it states nothing there"),
+            );
+        }
+    }
+    let shown = |text: &str| text.chars().take(40).collect::<String>();
+    let Some((city_text, child_text)) = identity.split_once(' ') else {
+        return refuse(
+            &table,
+            format!(
+                "[roster.city_box.key] the identity place of a city expansion holds \"{}\", not the city's key, one space and the building's key",
+                shown(identity)
+            ),
+        );
+    };
+    let (Some(city), Some(child)) = (crate::roster::parse_key(city_text), crate::roster::parse_key(child_text)) else {
+        return refuse(
+            &table,
+            format!(
+                "[roster.city_box.key] the identity place of a city expansion holds \"{}\", which is not two keys this host issued",
+                shown(identity)
+            ),
+        );
+    };
+    let Some(shared) = lua.app_data_ref::<crate::roster::SharedRoster>() else {
+        return refuse(&table, "[roster.missing] the host keeps no sector roster".into());
+    };
+    let Ok(mut roster) = shared.0.try_borrow_mut() else {
+        return refuse(&table, "[roster.busy] the sector roster was busy".into());
+    };
+    let (city_state, building) = match roster.city_expansion(city, child) {
+        Ok(held) => held,
+        Err((kind, why)) => return refuse(&table, format!("[roster.city_box.{kind}] {}", why.0)),
+    };
+    let store = store()?;
+    let (min, max) = match store.city_box_expand(
+        i64::from(building.shape),
+        building.heading,
+        building.position,
+        city_state.position,
+        city_state.box_min,
+        city_state.box_max,
+    ) {
+        Ok(CityBox::Expanded { min, max }) => (min, max),
+        Ok(CityBox::Refused(why)) => return refuse(&table, format!("[roster.city_box.{why}] the host cannot build the city's box")),
+        Err(why) => return refuse(&table, format!("[roster.city_box.shape] the building's shape has no bounds: {why}")),
+    };
+    if let Err(why) = roster.set_city_box(city, min, max) {
+        return refuse(&table, format!("[roster.city_box.city_state] {}", why.0));
+    }
+    table.set("result", "expanded")?;
+    table.set("name", city.to_string())?;
+    table.set("p", hex_list(&[min[0], min[1], min[2], max[0], max[1], max[2]]))?;
+    Ok(table)
 }
 
 /// The join of a NON-MOBILE candidate question to the host's record of the placement it names (EEDCS-49, D3, Task49). `key_text` is the identity place: the key of the placement the host served the candidate
@@ -1325,10 +1402,10 @@ fn roster_event(lua: &Lua, phase: u32, words: &[u32], identity: &str) -> LuaResu
 /// entries it names are the HOST's own roster (`crate::roster`): `first` and `next` carry the key of the entry to serve as `name` (empty when the sector's list has no more), the question
 /// that follows an entry names the entry it is standing at in the identity place, and an entry the roster does not hold, or does not hold in that sector, is refused by name and never skipped.
 /// The same question also carries the roster's own events (phases 4 to 6, `roster_event`) and the city events (phases 7 to 12, `city_event`: a city's buildings are the host's list too, and a building's two
-/// placements and its legacy object-report identity are one record) and the fixed state report (phase 13, `fixed_event`: a fixed-family placement's collision state, held by the placement's record). The identity place carries a standing key exactly where the scan stands at an entry, in ENTRY (1) and RESOLVED (3): that key is
+/// placements and its legacy object-report identity are one record) and the fixed state report (phase 13, `fixed_event`: a fixed-family placement's collision state, held by the placement's record), the city state report (phase 14, `city_state_event`) and the city expansion (phase 15, `city_expand_event`: the host builds a city's bounding box from the records it holds and the scene bounds of the model store; the only scan-phase question that reads the store). The identity place carries a standing key exactly where the scan stands at an entry, in ENTRY (1) and RESOLVED (3): that key is
 /// validated against the live roster and the sector the scan is in before the kernel decides anything (so an offer, a skip or a hit never follows an unknown, ended or misplaced entry), and BEGIN (0) and END (2) carry none.
 /// Every word of the question is classified by integer operations, so a malformed word is refused by name before any floating-point use of it and the caller's floating-point state is never changed here.
-fn entity_scan_answer(lua: &Lua, q: &Question) -> LuaResult<LuaTable> {
+fn entity_scan_answer(lua: &Lua, store: &mut dyn FnMut() -> LuaResult<Arc<ModelStore>>, q: &Question) -> LuaResult<LuaTable> {
     let operation = q.operation.as_str();
     let fail = |message: String| LuaError::runtime(format!("[model-provider:{operation}.request] {message}"));
     if q.scene != Some(0) || q.depth.is_some() || q.kind.is_some() || q.definition.is_some() {
@@ -1354,6 +1431,9 @@ fn entity_scan_answer(lua: &Lua, q: &Question) -> LuaResult<LuaTable> {
     }
     if phase_word == ROSTER_FIXED_STATE {
         return fixed_event(lua, &words, identity);
+    }
+    if phase_word == ROSTER_CITY_EXPAND {
+        return city_expand_event(lua, store, &words, identity);
     }
     if phase_word == ROSTER_CITY_STATE {
         return city_state_event(lua, &words, identity);
@@ -1973,7 +2053,11 @@ impl ProviderState {
                 entity_collision_answer(lua, &store, &q)
             }
             // the enumeration of the scan (EEDCS-49): the facts arrive in the text place and no model is read
-            "entity_scan" => entity_scan_answer(lua, &q),
+            "entity_scan" => {
+                // only a city's box expansion reads the model store (its scene bounds): every other event and scan question asks for none, as before
+                let mut store = || self.final_store(current.clone());
+                entity_scan_answer(lua, &mut store, &q)
+            }
             // an OBSERVATION of a mobile candidate against the host's record of its identity (EEDCS-49): no model is read and nothing decides from the answer
             "entity_pose" => entity_pose_answer(lua, &q),
             // what the host decides about one candidate of the scan (EEDCS-49): the facts arrive in the text place

@@ -169,6 +169,11 @@ void campaign_place_fixed_state (struct ENTITY *en)
 	place_fixed_state (en);
 }
 
+void campaign_place_city_expand (struct ENTITY *city, struct ENTITY *building, float *box)
+{
+	place_city_expand (city, building, box);
+}
+
 const char *campaign_place_key (struct ENTITY *en, int child)
 {
 	return place_key (en, child);

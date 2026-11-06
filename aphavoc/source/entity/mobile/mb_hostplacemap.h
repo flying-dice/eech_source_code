@@ -44,8 +44,8 @@
 //
 // THE CITY'S OWN STATE (Task49). A city carries the fixed record too, but what a candidate question about it reads is its position and its bounding box (en_cllsn.c: the city, when its first building was served), and it has
 // no setter, no pack data and no shape of its own. The same funnel states them, under the city's SECTOR placement (a city is never listed in another's list): the insertion states them as its last step (a relink repeats
-// it under the new key; the host's record, which the city's list hangs from, continues across it), the shared fixed-position setter states a position written in the same sector, and the expansion of the box that
-// each building's link makes (ct_msgs.c) states the box. The box words are the original's INVERTED initial box (1.0e6 and -1.0e6) until the first building links: a valid statement. The words are copied as the entity
+// it under the new key; the host's record, which the city's list hangs from, continues across it) and the shared fixed-position setter states a position written in the same sector. The BOX is the host's: the expansion
+// each building's link makes (ct_msgs.c) is built by the host from the records it holds (`place_city_expand`) and applied to the entity's mirror, never stated back. The box words are the original's INVERTED initial box (1.0e6 and -1.0e6) until the first building links: a valid statement. The words are copied as the entity
 // holds them and never loaded as floats here.
 #ifndef MB_HOSTPLACEMAP_H
 #define MB_HOSTPLACEMAP_H
@@ -610,6 +610,45 @@ static void place_child_insert (CAMPAIGN_PLACE_ENTITY *en, CAMPAIGN_PLACE_ENTITY
 
 	// a building is listed in its city before its sector (cb_creat.c): its state is stated under whichever placement it has, here the city's list, and again under its sector placement
 	place_fixed_state (en);
+}
+
+// A building's link has expanded its city's bounding box (ct_msgs.c; Task49): the HOST builds the box from the records it already holds, and the campaign applies the checked answer to its mirror in `box`
+// (CAMPAIGN_CITY_EXPAND_WORDS floats, written only once the whole answer held). The question names the city's sector placement and the building's place in the city's list; both must be placed (the creator listed
+// the building in its city before this link: en_list.c), and the building must be listed under THIS city. A pair that is not (no host installed, a city with no sector placement, an unlisted building, a building
+// of another city) is the campaign's fault and stops the engine by name BEFORE anything is asked: the campaign has no physical construction of its own to fall back on.
+static void place_city_expand (CAMPAIGN_PLACE_ENTITY *city, CAMPAIGN_PLACE_ENTITY *building, float *box)
+{
+	int
+		city_slot,
+		building_slot;
+
+	if (!campaign_model_host_installed ())
+	{
+		debug_fatal ("host roster: the bounding box of a city is built by the host, and no host is installed");
+	}
+
+	place_ensure_map ();
+
+	city_slot = place_checked_slot (city);
+
+	building_slot = place_checked_slot (building);
+
+	if (!place_key_of_slot [city_slot][0])
+	{
+		debug_fatal ("host roster: the city %d (type %s) of a building's link holds no sector placement, so the host has no key to build its box under", city_slot, CAMPAIGN_PLACE_NAME (city));
+	}
+
+	if (!place_child_of_slot [building_slot][0])
+	{
+		debug_fatal ("host roster: the building %d (type %s) of a city's box expansion is not listed by the host in a city's list", building_slot, CAMPAIGN_PLACE_NAME (building));
+	}
+
+	if (place_city_of_slot [building_slot] != city_slot + 1)
+	{
+		debug_fatal ("host roster: the building %d (type %s) of a city's box expansion is listed under another city than %d", building_slot, CAMPAIGN_PLACE_NAME (building), city_slot);
+	}
+
+	campaign_model_entity_city_expand (place_key_of_slot [city_slot], place_child_of_slot [building_slot], box);
 }
 
 // `en` is about to leave the list of the buildings of its city: the host unlists the key it issued for it, naming the list by the name recorded at the insertion (the city's current sector placement may not be the key

@@ -3902,7 +3902,7 @@ fn gunship(name: &str) -> LuaResult<Gunship> {
 ///                 sector's list: its key is `name`, empty for an empty list), `next` (serve what follows the entry the campaign is standing at: `name` is its key, empty at the end of the list), `offer` (offer the
 ///                 current entry for its decisions and report whether it hit), `done_none` (the scan ends, no hit), `done_hit` (it ends with the entry offered last), `placed`, `removed`, `cleared`, or `refused` with
 ///                 `reason` (an ended, unknown or misplaced key is refused by name, never skipped and never the end of a list). `name` is a decimal key of at most 20 digits and only `first`, `next` and `placed`
-///                 carry one.
+///                 carry one. Phase 15 (a city's bounding-box expansion, Task49: the identity place is the city's sector key, one space and the building's key, every other fact zero) is answered `expanded` with `p` the six bit patterns of the box the host built (minimum then maximum) and `name` the city's key.
 ///
 ///   "entity_pose"  an OBSERVATION of a mobile candidate's pose (EEDCS-49, D3, fifth slice): scene 0, `depth` the stage (0 the offer: the position and motion vector the original read for every mobile
 ///                 candidate; 1 the placement: those and the attitude, read when the broad phase passed), `kind` the entity's type, `definition` whether it is alive (0 or 1) and, in the sixth place (the text),
@@ -4149,6 +4149,11 @@ return function(op, scene, depth, kind, definition, key)
 			if not p then return nil, 'p ' .. why end
 			return 'first', p, nil, nil, nil, nil, nil, key
 		end
+		if result == 'expanded' then
+			local p, why = list(a.p, 6)
+			if not p then return nil, 'p ' .. why end
+			return 'expanded', p, nil, nil, nil, nil, nil, key
+		end
 		if result == 'next' or result == 'placed' then
 			if a.p ~= nil then return nil, 'p is only for first' end
 			return result, nil, nil, nil, nil, nil, nil, key
@@ -4158,7 +4163,7 @@ return function(op, scene, depth, kind, definition, key)
 			if key ~= '' then return nil, 'name is only for first, next and placed' end
 			return result
 		end
-		return nil, 'result must be first, next, offer, done_none, done_hit, placed, removed, cleared or refused'
+		return nil, 'result must be first, expanded, next, offer, done_none, done_hit, placed, removed, cleared or refused'
 	end
 	if op == 'target_point_world' or op == 'target_point_fixed' then
 		local name, result = a.name, a.result
@@ -4596,6 +4601,13 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
                     "need_placement" => CandidateDecision::NeedPlacement,
                     _ => CandidateDecision::Buildings,
                 },
+            })
+        }
+        (ModelQuery::EntityScan { .. }, "expanded") => {
+            let words = bridged_floats::<6>(&a.ok_or_else(missing)?, "p", operation)?;
+            Ok(ModelAnswer::EntityScan {
+                decision: ScanDecision::Expanded(words),
+                key: g.unwrap_or_default(),
             })
         }
         (ModelQuery::EntityScan { .. }, "first") => {
@@ -5965,6 +5977,53 @@ mod tests {
         for pick in [7, 8] {
             let error = ask_with(&mut provider, pick, "").expect_err("a malformed key is refused");
             assert!(error.contains("name"), "pick {pick}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn an_expanded_scan_answer_carries_six_bit_patterns_and_the_citys_key_and_a_short_or_non_finite_list_is_refused() -> Test {
+        let lua = Lua::new();
+        // phase 15: the box the host built, minimum then maximum, as bit patterns (a signed zero and the inverted box's magnitudes keep their bits); a list of five, one with a non-finite word and a
+        // number table with a missing element are malformed answers of their own marker, never a box
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               local pick = tonumber (key:match ('0x[0-9a-f]+'):sub (-1))
+               if pick == 1 then return { result = 'expanded', name = '17', p = '0x80000000,0x49742400,0xc9742400,0x00000001,0x40600000,0xc0880000' } end
+               if pick == 2 then return { result = 'expanded', name = '17', p = '0x00000000,0x49742400,0xc9742400,0x00000001,0x40600000' } end
+               if pick == 3 then return { result = 'expanded', name = '17', p = '0x00000000,0x49742400,0xc9742400,0x00000001,0x40600000,0x7f800000' } end
+               if pick == 4 then return { result = 'expanded', name = '17', p = { 1, 2, 3, 4, 5 } } end
+               if pick == 5 then return { result = 'expanded', name = '17' } end
+             end",
+        )?;
+        let mut ask_pick = |pick: u32| {
+            let facts: Vec<u32> = std::iter::once(0x3f80_0000 + pick).chain((1..16).map(|_| 0)).collect();
+            ask(
+                &mut provider,
+                ModelQuery::EntityScan {
+                    facts,
+                    identity: "17 18".to_string(),
+                },
+            )
+        };
+        assert_eq!(
+            ask_pick(1)?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Expanded([-0.0, 1.0e6, -1.0e6, f32::from_bits(1), 3.5, -4.25]),
+                key: "17".into()
+            }
+        );
+        if let ModelAnswer::EntityScan {
+            decision: ScanDecision::Expanded(words),
+            ..
+        } = ask_pick(1)?
+        {
+            assert_eq!(words[0].to_bits(), 0x8000_0000, "the signed zero keeps its bit");
+        }
+        for pick in [2, 3, 4, 5] {
+            let error = ask_pick(pick).expect_err("a malformed box is refused");
+            assert!(error.contains("entity_scan"), "pick {pick}: {error}");
         }
         Ok(())
     }

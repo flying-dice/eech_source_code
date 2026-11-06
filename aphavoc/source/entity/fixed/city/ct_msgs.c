@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_hostmodel.h"
+
 #include "entity/mobile/mb_hostplace.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,6 +79,52 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+
+//
+// the physical work of a building's link (the building's scene bounds, its heading's rotation of them, its offset from the city and the union with the box the city holds) is the HOST's: it builds the box from the
+// records it holds of the city and of the building (mb_hostplace.h), and the campaign applies the checked answer to its own mirror of the box. The original-fixture build keeps the original expansion below.
+//
+
+static void update_city_bounding_box (entity *this_city, entity *this_building)
+{
+	city
+		*raw;
+
+	float
+		box [CAMPAIGN_CITY_EXPAND_WORDS];
+
+	ASSERT (this_city);
+
+	ASSERT (this_building);
+
+	raw = (city *) get_local_entity_data (this_city);
+
+	//
+	// ask the host for the city's box; the answer is written into `box` only once the whole of it was checked
+	//
+
+	campaign_place_city_expand (this_city, this_building, box);
+
+	//
+	// the mirror of the host's box: the words as the host holds them (the host already holds its own box: nothing is stated back)
+	//
+
+	raw->bounding_box_min.x = box [0];
+	raw->bounding_box_min.y = box [1];
+	raw->bounding_box_min.z = box [2];
+
+	raw->bounding_box_max.x = box [3];
+	raw->bounding_box_max.y = box [4];
+	raw->bounding_box_max.z = box [5];
+
+	ASSERT (raw->bounding_box_min.x <= raw->bounding_box_max.x);
+	ASSERT (raw->bounding_box_min.y <= raw->bounding_box_max.y);
+	ASSERT (raw->bounding_box_min.z <= raw->bounding_box_max.z);
+}
+
+#else
 
 static void update_city_bounding_box (entity *this_city, entity *this_building)
 {
@@ -188,6 +236,8 @@ static void update_city_bounding_box (entity *this_city, entity *this_building)
 
 	campaign_place_fixed_state (this_city);
 }
+
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

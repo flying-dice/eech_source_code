@@ -119,6 +119,16 @@
 -- reports apart in `scan.fixed` (`city_total`, `city_stated`; `city_held` holds the keys the provider acknowledged, in BOTH windows) and the staged questions that read the city's position and box over a held state
 -- (`city_joined`), reported as `city_state_*`. A healthy armed-report count can legitimately be zero: the held state was reported before the launch.
 --
+-- THE HOST BUILDS A CITY'S BOUNDING BOX (Task49, the physical construction behind the city's own state). A building's link expands its city's box (ct_msgs.c): the campaign asks the host with a CITY_EXPAND question
+-- (phase 15 of the scan question, 0x41700000: every fact zero but the phase; the identity place is the city's sector key, one space and the building's key) and the host answers `expanded` with the city's key and, in `p`, the
+-- six bit patterns of the box it built from the records it holds (the city's state, the building's fixed state, the scene's bounds) and now holds. The campaign applies the checked words to its mirror and states no box.
+-- It happens at BOOT, when the campaign's cities are made, in the window before the launch: the witness counts the questions in both windows (`city_expand_before`, `city_expand_after`, `city_expand_total`,
+-- `city_expand_answered`), checks every reply (`expanded`, the city's key, six finite patterns) and alters nothing.
+--   withdrawn_box_state   HOST-SIDE, no answer, request or entity is altered, at BOOT: at the first CITY_EXPAND question whose pair joined a city state and a building state the provider acknowledged, the host's own
+--                         withdrawal of ONLY that building's fixed state, acknowledged `removed` by the SAME provider, and then the SAME question delegated once, unmodified: the engine stops at
+--                         [model-provider:entity_scan.refused] with [roster.city_box.building_state] ... withdrew as the only fault (an old Core that computed the box itself would not ask, and would not stop). The engine's stop at
+--                         boot is the supported error path; nothing physical is read after it (every physical fact after the stop is unknown, -1). UNREACHED when the boot asked no such question (no actor, time or geometry hunt).
+--
 -- THE HOST'S OWN MOVEMENT CHANGES WHAT THE SOLVER DECIDES FROM (two completion modes; neither is a refusal and neither is claimed by the two refusal modes above, which only STOP the engine). The engine's own movement
 -- callback is the host's (`move_vehicle = hosted_move`, a pass-through that logs each `move` answer per identity). `moving_control` and `terrain_lift` select a DIFFERENT case from the nearest-enemy rule: the nearest enemy of
 -- a launcher in an ENGAGEMENT THE CAMPAIGN ITSELF HAS SET UP: the unchanged aim callback observes each turret's `vectors` request (the campaign's own source, target link and selected weapon of that frame), and a
@@ -501,6 +511,11 @@ MODES.withdrawn_fixed_state = { withdraw_fixed = true, marker = "entity_candidat
 -- withdrew. A city asked about once, a city with no building, a city not fixed and a host that was told no city state never reach a second such question: UNREACHED when the run was otherwise clean; a request or reply
 -- fault, or an engine stop at another marker, before the withdrawal is reported as that failure
 MODES.withdrawn_city_state = { withdraw_city = true, marker = "entity_candidate.refused" }
+-- the CITY EXPANSION at BOOT (Task49): a building's link asks the host to build its city's box (phase 15, below). At the first well-formed question that joins a city state and a building state the provider holds (the pair
+-- is proved against the keys and acknowledgements seen so far), BEFORE it is delegated, the host's own withdrawal of ONLY that building's fixed state (the host-only withdrawal word of the FIXED_STATE question,
+-- answered `removed`) goes to the SAME provider; the question is then delegated exactly once, unmodified, and the real provider's own named refusal (`[roster.city_box.building_state]`, the state withdrawn) is the only fault. It
+-- happens at boot, before any weapon window: nothing is read from the engine after its stop (the physical facts after a fatal stop are unknown, never read), and a boot that asks no such question is UNREACHED
+MODES.withdrawn_box_state = { withdraw_box = true, marker = "entity_scan.refused" }
 -- the HOST-SIDE movement modes (completion modes): see the header
 MODES.moving_control = { moving_target = true, host_side_movement = true }
 MODES.terrain_lift = { moving_target = true, host_side_movement = true, lift = true }
@@ -607,7 +622,7 @@ local function engine_marker (err) return string.match (first_line (err), FATAL)
 -- ---------------------------------------------------------------------------------------------------------------- the host's model provider, counted, altered only when armed
 local armed = false
 local reference -- the host's own model provider (host.model), resolved inside the owned close scope (main)
-local before, after = { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, city = 0, fixed = 0, city_state = 0, pose = 0 }, { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, city = 0, fixed = 0, city_state = 0, pose = 0 }
+local before, after = { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, city = 0, fixed = 0, city_state = 0, city_expand = 0, pose = 0 }, { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, city = 0, fixed = 0, city_state = 0, city_expand = 0, pose = 0 }
 local altered = 0
 local cand_altered, cand_skipped = 0, 0
 local scan_altered, scan_none_answered = 0, 0
@@ -727,7 +742,7 @@ end
 -- entry the scan stands at in ENTRY and RESOLVED (a roster key: 1 to 20 decimal digits, no leading zero) and in no other scan phase; an INSERT's optional hosted-mobile identity; a REMOVE's key; nothing for a RESET.
 -- The facts an event does not state are zero.
 local PHASES = { [ZERO] = 0, ["0x3f800000"] = 1, ["0x40000000"] = 2, ["0x40400000"] = 3, ["0x40800000"] = 4, ["0x40a00000"] = 5, ["0x40c00000"] = 6,
-	["0x40e00000"] = 7, ["0x41000000"] = 8, ["0x41100000"] = 9, ["0x41200000"] = 10, ["0x41300000"] = 11, ["0x41400000"] = 12, ["0x41500000"] = 13, ["0x41600000"] = 14 }
+	["0x40e00000"] = 7, ["0x41000000"] = 8, ["0x41100000"] = 9, ["0x41200000"] = 10, ["0x41300000"] = 11, ["0x41400000"] = 12, ["0x41500000"] = 13, ["0x41600000"] = 14, ["0x41700000"] = 15 }
 local ROSTER_EVENTS = { [4] = "insert", [5] = "remove", [6] = "reset" }
 -- the facts an INSERT states (the position's x, y and z, the entity type, the side length: facts 1 to 3, 4 and 7) and the phase (12); all others are zero
 local INSERT_STATED = { [1] = true, [2] = true, [3] = true, [4] = true, [7] = true, [12] = true }
@@ -772,7 +787,7 @@ local function parse_scan_request (scene, depth, kind, definition, key)
 	local words = words_of_text (text, 16)
 	if words == nil then return nil, "the facts text is not 16 comma separated 0x%08x patterns" end
 	local phase = PHASES [words [12]]
-	if phase == nil then return nil, "the phase " .. words [12] .. " is not 0 to 14" end
+	if phase == nil then return nil, "the phase " .. words [12] .. " is not 0 to 15" end
 	-- the identity place has the domain of its phase: a host identity or a key is 1 to 128 bytes, and a city NAME holds a key (20 digits at most), one space and an object identity of its own 1 to 128 bytes (149 in all)
 	local limit = phase == 12 and 20 + 1 + 128 or 128
 	if #identity > limit then
@@ -798,6 +813,13 @@ local function parse_scan_request (scene, depth, kind, definition, key)
 		if not others_zero (words, scan.fixed.city_words) then return nil, "a city state report states nothing but the position, the box minimum, the box maximum and its phase" end
 		if not is_roster_key (identity) then return nil, "a city state report names \"" .. shown (identity) .. "\", which is not a roster key" end
 		return { kind = "city_state", words = words, phase = phase, event = "city_state", key = identity }
+	end
+	if phase == 15 then
+		-- a CITY_EXPAND question (Task49): nothing is stated but the phase; the identity place is the city's sector key, one space and the building's key (a pair of roster keys, 41 bytes at most)
+		if not others_zero (words, { [12] = true }) then return nil, "a city expansion states nothing but its phase" end
+		local city, child = string.match (identity, "^(%d+) (%d+)$")
+		if city == nil or not is_roster_key (city) or not is_roster_key (child) then return nil, "a city expansion names \"" .. shown (identity) .. "\", which is not a city key, one space and a building key" end
+		return { kind = "city_expand", words = words, phase = phase, event = "city_expand", city = city, child = child }
 	end
 	if phase >= 7 then
 		-- a CITY event: nothing is stated but the phase (and an insertion's entity type, fact 4); the identity place holds the keys of the phase's grammar
@@ -944,6 +966,15 @@ local function request_join_problem (parsed)
 		if roster_ended [parsed.key] then return "a city state report names the placement " .. parsed.key .. ", which has ended" end
 		return nil
 	end
+	if parsed.kind == "city_expand" then
+		-- a city expansion names a city placement and a building listed under a city: both ended or never acknowledged (a state the provider never held) are request faults, as is a building listed under no city seen
+		if roster_ended [parsed.city] then return "a city expansion names the city placement " .. parsed.city .. ", which has ended" end
+		if roster_ended [parsed.child] then return "a city expansion names the building " .. parsed.child .. ", which has ended" end
+		if not scan.fixed.city_held [parsed.city] then return "a city expansion names the city " .. parsed.city .. ", whose state the provider never acknowledged" end
+		if not scan.fixed.held [parsed.child] then return "a city expansion names the building " .. parsed.child .. ", whose fixed state the provider never acknowledged" end
+		if scan.city.parent [parsed.child] == nil then return "a city expansion names the building " .. parsed.child .. ", which is listed under no city" end
+		return nil
+	end
 	if parsed.kind == "roster" then
 		if parsed.event == "remove" and roster_ended [parsed.identity] then return "a removal names the entry " .. parsed.identity .. ", which has ended" end
 		return nil
@@ -974,6 +1005,49 @@ function scan.fixed.reply_problem (answer, parsed)
 	if answer.result ~= "placed" then return report .. " answered " .. tostring (answer.result) .. ", not placed" end
 	if answer.p ~= nil then return "a cursor with placed" end
 	if answer.name ~= parsed.key then return report .. " acknowledged \"" .. shown (answer.name) .. "\" for the placement " .. parsed.key end
+	return nil
+end
+-- the CITY_EXPAND questions (phase 15, Task49), kept in the same table: the questions seen in either window (`expand_total`), those answered well-formed (`expand_answered`), the host's own withdrawal of the building
+-- state before the first eligible one (withdrawn_box_state; 1 once acknowledged `removed`, -1 when it was not, -2 when the question did not join the keys seen) with the building it was made for, and whether the
+-- question was eligible (`box_eligible`: the pair joined a city state and a building state the provider acknowledged)
+scan.fixed.expand_total, scan.fixed.expand_answered, scan.fixed.box_withdrawn, scan.fixed.box_withdrawn_key, scan.fixed.box_eligible = 0, 0, 0, "", 0
+-- the first problem of a REAL city expansion reply against the contract, or nil: `expanded`, the city's key (never another's), and the six words of the box as bit patterns (the host's own text of them)
+function scan.fixed.expand_reply_problem (answer, parsed)
+	if type (answer) ~= "table" then return "the reply is not a table" end
+	if answer.result == "refused" then return "result refused" end
+	if answer.result ~= "expanded" then return "a city expansion answered " .. tostring (answer.result) .. ", not expanded" end
+	if answer.name ~= parsed.city then return "a city expansion acknowledged \"" .. shown (answer.name) .. "\" for the city " .. parsed.city end
+	if type (answer.p) ~= "string" or #answer.p ~= 65 then return "a city expansion answered a box that is not six 0x%08x patterns" end
+	for pattern in string.gmatch (answer.p, "[^,]+") do
+		local word = tonumber (string.sub (pattern, 3), 16)
+		if string.sub (pattern, 1, 2) ~= "0x" or #pattern ~= 10 or word == nil or word >= 0x7f800000 and word < 0x80000000 or word >= 0xff800000 then return "a city expansion answered the box word " .. pattern .. ", which is not a finite number" end
+	end
+	return nil
+end
+-- the verdict of withdrawn_box_state (nil when credited), given the engine's stop at boot (`failure`, nil when the boot completed). The evidence row is closed FIRST and carries only what this wrapper itself kept: after a stop
+-- NOTHING is read from the engine, so every physical fact after it is unknown (-1), never a number. Credited only by (a) an ELIGIBLE question (the pair joined a city state and a building state the provider
+-- acknowledged), (b) the reached withdrawal of ONLY that building's state (acknowledged `removed`), (c) the very question delegated afterwards, unmodified, and (d) the provider's own named refusal as the only fault.
+function scan.fixed.box_verdict (failure)
+	local f = scan.fixed
+	emit {
+		event = "authority", mode = mode, profile = profile, expected_marker = plan.marker or "", completed = false, incomplete = false,
+		failure_marker = failure and failure.marker or "", failure_line = failure and failure.line or "", boot_stop = failure ~= nil,
+		city_expand_before = before.city_expand, city_expand_after = after.city_expand, city_expand_total = f.expand_total, city_expand_answered = f.expand_answered,
+		box_eligible = f.box_eligible, box_withdrawn = f.box_withdrawn, box_withdrawn_key = f.box_withdrawn_key,
+		box_withdrawn_cause = (failure and string.find (failure.line, "[roster.city_box.building_state]", 1, true) and string.find (failure.line, "withdrew", 1, true)) and "city_box_building_state_withdrawn" or "",
+		city_held_lifetime = (function () local held = 0 for _ in pairs (f.city_held) do held = held + 1 end return held end) (),
+		fixed_held_lifetime = (function () local held = 0 for _ in pairs (f.held) do held = held + 1 end return held end) (),
+		physical_after_stop = -1, request_faults = faults.request, reply_faults = faults.reply, first_fault = first_fault or "",
+	}
+	if f.box_withdrawn == -2 or (f.box_withdrawn == 0 and (faults.request > 0 or faults.reply > 0)) then return "mode " .. mode .. ": nothing was withdrawn because the boot failed first (request_faults=" .. faults.request .. " reply_faults=" .. faults.reply .. "): " .. tostring (first_fault) end
+	if f.box_withdrawn == 0 and failure ~= nil and failure.marker ~= plan.marker then return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "], not at [model-provider:" .. plan.marker .. "], before a city expansion was withdrawn: " .. failure.line end
+	if f.box_withdrawn == 0 then return "UNREACHED: " .. mode .. ": the boot asked no city expansion that joined a held city state and a held building state (" .. f.expand_total .. " expansions asked, " .. f.expand_answered .. " answered, " .. before.city_expand .. " in the boot window): no actor, time or geometry was searched for" end
+	if f.box_withdrawn == -1 then return "mode " .. mode .. ": the host's withdrawal of the building's fixed state was not acknowledged as removed" end
+	if failure == nil then return "mode " .. mode .. " completed: the engine did not stop at " .. plan.marker .. " after the withdrawal of the building's state" end
+	if failure.marker ~= plan.marker then return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "], not at [model-provider:" .. plan.marker .. "]: " .. failure.line end
+	if not (string.find (failure.line, "[roster.city_box.building_state]", 1, true) and string.find (failure.line, "withdrew", 1, true)) then return "mode " .. mode .. " stopped at its marker, but not for the withdrawn building state: " .. failure.line end
+	if f.box_eligible ~= 1 or f.expand_total < 1 then return "mode " .. mode .. " stopped at its marker, but no eligible city expansion was recorded (eligible=" .. f.box_eligible .. ", asked=" .. f.expand_total .. ")" end
+	if faults.request ~= 0 or faults.reply ~= 1 or first_fault ~= "scan reply: result refused" then return "mode " .. mode .. " had a fault other than the host's named refusal (request_faults=" .. faults.request .. " reply_faults=" .. faults.reply .. "): " .. tostring (first_fault) end
 	return nil
 end
 -- the host's own withdrawals of a served entry (withdrawn_backing; 1 once acknowledged `removed`, -1 when it was not) and the phase of the question that followed it, counted apart from the campaign's roster events
@@ -1011,7 +1085,52 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 			first_fault = first_fault or "scan reply: the host's removal of the building the traversal stood at was not acknowledged as removed"
 		end
 	end
+	-- HOST-SIDE (withdrawn_box_state): at the first city expansion question that joins a city state and a building state the provider holds, in EITHER window (a building's link asks at boot), BEFORE it is
+	-- delegated, the host's own withdrawal of ONLY that building's fixed state (the withdrawal word of the FIXED_STATE question) goes to the SAME provider and must come back `removed`; the question is then delegated
+	-- exactly once, unmodified, and the provider's own named refusal is the only fault. A question that does not join the keys seen is a request fault and is never followed by a withdrawal
+	if plan.withdraw_box and parsed ~= nil and parsed.kind == "city_expand" and scan.fixed.box_withdrawn == 0 then
+		local join = request_join_problem (parsed)
+		if join then
+			scan.fixed.box_withdrawn = -2
+			faults.request = faults.request + 1
+			first_fault = first_fault or ("scan request: " .. join)
+		else
+			scan.fixed.box_eligible = 1
+			local words = {}
+			for index = 1, 16 do words [index] = ZERO end
+			words [10], words [12] = "0x3f800000", "0x41500000"
+			local ok, acknowledged = pcall (reference, "entity_scan", 0, nil, nil, nil, table.concat (words, ",") .. " " .. parsed.child)
+			if ok and type (acknowledged) == "table" and acknowledged.result == "removed" and (acknowledged.name == nil or acknowledged.name == "") then
+				scan.fixed.box_withdrawn, scan.fixed.box_withdrawn_key = 1, parsed.child
+			else
+				scan.fixed.box_withdrawn = -1
+				faults.reply = faults.reply + 1
+				first_fault = first_fault or "scan reply: the host's withdrawal of the building's fixed state was not acknowledged as removed"
+			end
+		end
+	end
 	local real = reference ("entity_scan", scene, depth, kind, definition, key)
+	-- a CITY_EXPAND question (phase 15): counted in either window, its reply checked, never altered (the box is the host's: what the campaign mirrors is whatever the host answered)
+	if parsed ~= nil and parsed.kind == "city_expand" then
+		scan.fixed.expand_total = scan.fixed.expand_total + 1
+		if armed and joined then
+			faults.request = faults.request + 1
+			first_fault = first_fault or ("scan request: " .. joined)
+		end
+		local expand_problem = scan.fixed.expand_reply_problem (real, parsed)
+		if expand_problem == nil then
+			scan.fixed.expand_answered = scan.fixed.expand_answered + 1
+		else
+			faults.reply = faults.reply + 1
+			first_fault = first_fault or ("scan reply: " .. expand_problem)
+		end
+		return real
+	end
+	-- the boot-phase mode asks everything in the window before the launch: a malformed question is a request fault there too (the other modes keep the window before the launch unchecked)
+	if parsed == nil and plan.withdraw_box then
+		faults.request = faults.request + 1
+		first_fault = first_fault or ("scan request: " .. why)
+	end
 	if not armed then
 		-- before the launch the host's answer comes back unchanged; only the keys it issued and ended are remembered, so that an armed question can be joined to them
 		if event then
@@ -1537,11 +1656,28 @@ local function main ()
 	local dc = require ("eech_dc")
 	dc.prepare_installation (root)
 	host.use_reference_arithmetic () -- the reference host's arithmetic profile, selected right after the installation is prepared and before the boot (src/reference_arithmetic.rs)
-	local engine = dc.boot {
+	local boot_options = {
 		install_root = root, map = map, terrain = terrain, environment = host.env_provider (), campaign_directory = "camp01", campaign = "LEBANON.CHC", gunship = "apache",
 		seed = seed, bind_mobile = bind_mobile, move_vehicle = hosted_move, observe_loss = host.observe_loss,
 		supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, model = model, sense = host.sense, aim = aim,
 	}
+	local engine
+	if plan.withdraw_box then
+		-- the negative of this mode happens AT BOOT: the engine's own stop there is the supported error path, taken here and nothing else; the stop is the engine's only when it is its anchored fatal at the model boundary
+		local booted, result = pcall (dc.boot, boot_options)
+		if booted then
+			-- the boot completed: nothing at boot reached the withdrawal, which is the honest UNREACHED of this mode (no weapon window is run for it)
+			return scan.fixed.box_verdict (nil)
+		else
+			local text = tostring (result)
+			if string.sub (first_line (text), 1, #NAME + 1) == NAME .. ":" then error (text, 0) end
+			local marker = engine_marker (text)
+			if marker == nil then hard ("an unrecognised failure at boot, not the engine's known fatal at the model boundary: " .. first_line (text)) end
+			return scan.fixed.box_verdict ({ marker = marker, line = first_line (text) })
+		end
+	else
+		engine = dc.boot (boot_options)
+	end
 	emit { event = "boot", mode = mode, profile = profile, warmup = warmup, settle = settle, frame_ms = frame_ms, seed = seed, frame_budget = frame_budget }
 
 	-- the original profile needs the fixture API of collision-fixture; a module without it is not the original profile
@@ -1988,6 +2124,7 @@ local function main ()
 			city_state_withdrawn = scan.fixed.city_withdrawn, city_state_withdrawn_next = scan.fixed.city_withdrawn_next,
 			city_state_held_lifetime = (function () local held = 0 for _ in pairs (scan.fixed.city_held) do held = held + 1 end return held end) (),
 			city_state_withdrawn_cause = (failure and string.find (failure.line, "[candidate.city]", 1, true) and string.find (failure.line, "withdrew", 1, true)) and "city_state_withdrawn" or "",
+			city_expand_before = before.city_expand, city_expand_after = after.city_expand, city_expand_total = scan.fixed.expand_total, city_expand_answered = scan.fixed.expand_answered,
 		target = watched or "", target_questions = tgt.questions, target_skip = tgt.skip, target_need_updated = tgt.need_updated, target_need_fixed = tgt.need_fixed,
 		target_need_placement = tgt.need_placement, target_need_normal = tgt.need_normal, target_buildings = tgt.buildings, target_test = tgt.test,
 		target_after_lift = tgt.after_lift, target_after_lift_test = tgt.after_lift_test,

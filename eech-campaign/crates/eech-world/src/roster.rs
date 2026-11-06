@@ -539,6 +539,10 @@ impl SectorRoster {
 
     /// States the city's own collision state of the record a placement belongs to (the campaign states it under the city's sector placement). The placement must be a city (a fixed-family placement, a mobile and a
     /// building listed under a city have none: refused before the record changes), and a statement replaces what the record held (it also restores a state the host withdrew).
+    ///
+    /// The box is the HOST's once the host holds it (a building's link has it built there, `city_expansion` and `set_city_box`): a statement over a record that holds a city's state may move the position, which
+    /// is the campaign's geography, but a box that is not the one held is refused by name and changes nothing. A record that holds none (a new placement, or one whose state the host withdrew) takes the
+    /// statement as it is: the inverted initial box of a city with no building yet, or the campaign's mirror of the box the host built for a city whose record ended with its last placement.
     pub fn set_city(&mut self, key: u64, state: CityState) -> Result<(), Refusal> {
         let record = self.record(key).ok_or_else(|| Refusal::new(self.unknown(key)))?;
         let placed = self
@@ -553,7 +557,82 @@ impl SectorRoster {
         let Some(entry) = self.records.get_mut(&record) else {
             return Err(Refusal::new(format!("the placement {key} has no record")));
         };
+        if let FixedHold::City(held) = entry.fixed {
+            if held.box_min != state.box_min || held.box_max != state.box_max {
+                return Err(Refusal::new(format!(
+                    "the statement for the city {key} carries a bounding box that is not the one the host holds: the box is the host's, the campaign only mirrors it"
+                )));
+            }
+        }
         entry.fixed = FixedHold::City(state);
+        Ok(())
+    }
+
+    /// What a building's link needs of the host's records to expand its city's box: the city's own state (position and the box it holds) and the building's fixed state (position, heading, shape). `city` is the
+    /// key of the city's sector placement and `child` the key of the building's place in the city's list; the pair must join (the building is listed under that very city). A refusal carries the kind of the
+    /// problem (`city`, `child`, `parent`, `city_state`, `building_state`) and a reason, and nothing is read from or changed in the records.
+    pub fn city_expansion(&self, city: u64, child: u64) -> Result<(CityState, FixedState), (&'static str, Refusal)> {
+        let entry = self.entries.get(&city).ok_or_else(|| ("city", Refusal::new(self.unknown(city))))?;
+        if entry.entity_type != ENTITY_CITY {
+            return Err((
+                "city",
+                Refusal::new(format!("the placement {city} is of entity type {}, which is not a city", entry.entity_type)),
+            ));
+        }
+        let building = self.children.get(&child).ok_or_else(|| ("child", Refusal::new(self.not_a_child(child))))?;
+        if building.parent != entry.record {
+            return Err((
+                "parent",
+                Refusal::new(format!(
+                    "the city child {child} is listed under {}, not under the city {city} (record {})",
+                    building.parent, entry.record
+                )),
+            ));
+        }
+        let held = |record: u64| self.records.get(&record).map(|record| record.fixed);
+        let state = match held(entry.record) {
+            Some(FixedHold::City(state)) => state,
+            Some(FixedHold::Withdrawn) => return Err(("city_state", Refusal::new(format!("the host withdrew the collision state of the city {city}")))),
+            _ => {
+                return Err((
+                    "city_state",
+                    Refusal::new(format!("the record of the city {city} holds no city collision state")),
+                ))
+            }
+        };
+        let fixed = match held(building.record) {
+            Some(FixedHold::Held(fixed)) => fixed,
+            Some(FixedHold::Withdrawn) => {
+                return Err((
+                    "building_state",
+                    Refusal::new(format!("the host withdrew the collision state of the city child {child}")),
+                ))
+            }
+            _ => {
+                return Err((
+                    "building_state",
+                    Refusal::new(format!("the record of the city child {child} holds no fixed collision state")),
+                ))
+            }
+        };
+        Ok((state, fixed))
+    }
+
+    /// The host's own construction of a city's bounding box: the record of the city placement `city` (which must hold a city's state) now holds the box `min` and `max`, the position unchanged. One step: the
+    /// record is replaced whole, or not at all.
+    pub fn set_city_box(&mut self, city: u64, min: [u32; 3], max: [u32; 3]) -> Result<(), Refusal> {
+        let record = self.record(city).ok_or_else(|| Refusal::new(self.unknown(city)))?;
+        let Some(entry) = self.records.get_mut(&record) else {
+            return Err(Refusal::new(format!("the placement {city} has no record")));
+        };
+        let FixedHold::City(held) = entry.fixed else {
+            return Err(Refusal::new(format!("the record of the placement {city} holds no city collision state")));
+        };
+        entry.fixed = FixedHold::City(CityState {
+            position: held.position,
+            box_min: min,
+            box_max: max,
+        });
         Ok(())
     }
 
@@ -1015,31 +1094,96 @@ mod tests {
         assert_eq!(held(&roster, city, false), FixedHold::Never, "a record holds none until the campaign states it");
         roster.set_city(city, city_state(1)).unwrap();
         assert_eq!(held(&roster, city, false), FixedHold::City(city_state(1)));
-        // a statement replaces the last (the insertion's inverted initial box, then each building's expansion)
-        let sentinel = CityState {
+        // a statement over a held state may move the position (the campaign's geography) but never change the box: the box is the host's once it holds it
+        let moved = CityState {
             position: [10, 11, 12],
+            ..city_state(1)
+        };
+        roster.set_city(city, moved).unwrap();
+        assert_eq!(held(&roster, city, false), FixedHold::City(moved));
+        let sentinel = CityState {
             box_min: [1.0e6f32.to_bits(); 3],
             box_max: [(-1.0e6f32).to_bits(); 3],
+            ..moved
         };
-        roster.set_city(city, sentinel).unwrap();
-        assert_eq!(
-            held(&roster, city, false),
-            FixedHold::City(sentinel),
-            "the inverted box is a valid statement as stated"
-        );
-        roster.set_city(city, city_state(5)).unwrap();
-        // only the host retires it; the placement stays standing, the campaign's next statement restores it
+        let refusal = roster.set_city(city, sentinel).unwrap_err();
+        assert!(refusal.0.contains("not the one the host holds"), "{}", refusal.0);
+        assert_eq!(held(&roster, city, false), FixedHold::City(moved), "a refused statement changes nothing");
+        // only the host retires it; the placement stays standing, the campaign's next statement restores it (the inverted initial box is a valid statement as stated)
         roster.withdraw_fixed(city).unwrap();
         assert_eq!(held(&roster, city, false), FixedHold::Withdrawn);
         assert!(roster.withdraw_fixed(city).unwrap_err().0.contains("holds no fixed physical state to withdraw"));
-        roster.set_city(city, city_state(5)).unwrap();
-        assert_eq!(held(&roster, city, false), FixedHold::City(city_state(5)));
+        roster.set_city(city, sentinel).unwrap();
+        assert_eq!(held(&roster, city, false), FixedHold::City(sentinel));
         // the family's statement is not a city's and a city's is not the family's
         assert!(roster.set_fixed(city, ENTITY_CITY, state(7)).unwrap_err().0.contains("not of the fixed family"));
         let object = roster.insert((0, 0), 17, None);
         assert!(roster.set_city(object, city_state(1)).unwrap_err().0.contains("not a city"));
         assert_eq!(held(&roster, object, false), FixedHold::Never, "a refused statement changes nothing");
         assert!(roster.set_city(99, city_state(1)).unwrap_err().0.contains("never issued"));
+    }
+
+    #[test]
+    fn a_citys_expansion_reads_the_records_of_a_joined_pair_and_the_hosts_box_replaces_only_the_box() {
+        let mut roster = SectorRoster::default();
+        let city = roster.insert((0, 0), ENTITY_CITY, None);
+        roster.set_city(city, city_state(1)).unwrap();
+        let child = roster.child_insert(city, None, ENTITY_CITY_BUILDING).unwrap();
+        // the building holds no state yet: nothing is read, and the city's record is as it was
+        let (kind, why) = roster.city_expansion(city, child).unwrap_err();
+        assert!(
+            kind == "building_state" && why.0.contains("holds no fixed collision state"),
+            "{kind}: {}",
+            why.0
+        );
+        roster.set_fixed(child, ENTITY_CITY_BUILDING, state(7)).unwrap();
+        let (held_city, held_building) = roster.city_expansion(city, child).unwrap();
+        assert_eq!((held_city, held_building), (city_state(1), state(7)));
+        // a pair that does not join: another city, a sector entry as the building, a building as the city, a key never issued
+        let other = roster.insert((0, 0), ENTITY_CITY, None);
+        roster.set_city(other, city_state(2)).unwrap();
+        let object = roster.insert((0, 0), 17, None);
+        assert_eq!(roster.city_expansion(other, child).unwrap_err().0, "parent");
+        assert_eq!(roster.city_expansion(object, child).unwrap_err().0, "city");
+        assert_eq!(roster.city_expansion(city, object).unwrap_err().0, "child");
+        assert_eq!(roster.city_expansion(child, child).unwrap_err().0, "city");
+        assert_eq!(roster.city_expansion(99, child).unwrap_err().0, "city");
+        assert_eq!(roster.city_expansion(city, 99).unwrap_err().0, "child");
+        // a state the host withdrew is named, whichever record lost it
+        roster.withdraw_fixed(child).unwrap();
+        let (kind, why) = roster.city_expansion(city, child).unwrap_err();
+        assert!(kind == "building_state" && why.0.contains("withdrew"), "{kind}: {}", why.0);
+        roster.set_fixed(child, ENTITY_CITY_BUILDING, state(7)).unwrap();
+        roster.withdraw_fixed(city).unwrap();
+        let (kind, why) = roster.city_expansion(city, child).unwrap_err();
+        assert!(kind == "city_state" && why.0.contains("withdrew"), "{kind}: {}", why.0);
+        assert!(roster
+            .set_city_box(city, [1; 3], [2; 3])
+            .unwrap_err()
+            .0
+            .contains("holds no city collision state"));
+        assert_eq!(held(&roster, city, false), FixedHold::Withdrawn, "a refused box changes nothing");
+        // the host's box replaces the box and keeps the position, in one step
+        roster.set_city(city, city_state(1)).unwrap();
+        roster.set_city_box(city, [11, 12, 13], [14, 15, 16]).unwrap();
+        assert_eq!(
+            held(&roster, city, false),
+            FixedHold::City(CityState {
+                position: city_state(1).position,
+                box_min: [11, 12, 13],
+                box_max: [14, 15, 16]
+            })
+        );
+        // and the campaign's statement of the same box (its mirror) is the one that is held; another is not
+        let mirror = CityState {
+            box_min: [11, 12, 13],
+            box_max: [14, 15, 16],
+            ..city_state(9)
+        };
+        roster.set_city(city, mirror).unwrap();
+        assert_eq!(held(&roster, city, false), FixedHold::City(mirror));
+        assert!(roster.set_city(city, city_state(9)).unwrap_err().0.contains("not the one the host holds"));
+        assert_eq!(held(&roster, city, false), FixedHold::City(mirror));
     }
 
     #[test]
@@ -1063,8 +1207,12 @@ mod tests {
         let city = roster.insert((0, 0), ENTITY_CITY, None);
         roster.set_city(city, city_state(1)).unwrap();
         let building = roster.child_insert(city, None, ENTITY_CITY_BUILDING).unwrap();
-        // the first building's link expands the box: the city states it again (under the placement it has)
-        roster.set_city(city, city_state(2)).unwrap();
+        // the first building's link expands the box: the HOST builds it (`set_city_box`) and the record holds it, the position unchanged
+        let built = CityState {
+            position: city_state(1).position,
+            ..city_state(2)
+        };
+        roster.set_city_box(city, built.box_min, built.box_max).unwrap();
         // the shared fixed setter removes the sector placement and inserts it again: the record, which the list hangs from, keeps the last state until the new placement is declared to continue it
         roster.remove(city).unwrap();
         let relinked = roster.insert((1, 1), ENTITY_CITY, None);
@@ -1074,14 +1222,14 @@ mod tests {
             "the new placement is a fresh record until it is linked"
         );
         roster.link(relinked, city).unwrap();
-        assert_eq!(
-            held(&roster, relinked, false),
-            FixedHold::City(city_state(2)),
-            "the record continues with its state"
-        );
-        // the insertion then states the new position under the new key: the one record's state is replaced
-        roster.set_city(relinked, city_state(3)).unwrap();
-        assert_eq!(held(&roster, relinked, false), FixedHold::City(city_state(3)));
+        assert_eq!(held(&roster, relinked, false), FixedHold::City(built), "the record continues with its state");
+        // the insertion then states the new position under the new key, with the campaign's mirror of the box the host built: the one record's state is replaced
+        let moved = CityState {
+            position: city_state(3).position,
+            ..built
+        };
+        roster.set_city(relinked, moved).unwrap();
+        assert_eq!(held(&roster, relinked, false), FixedHold::City(moved));
         // a withdrawal is kept by the link, and the next statement restores it
         roster.withdraw_fixed(relinked).unwrap();
         roster.remove(relinked).unwrap();

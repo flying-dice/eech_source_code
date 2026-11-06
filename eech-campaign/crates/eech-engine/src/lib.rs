@@ -1283,10 +1283,11 @@ pub enum CandidateDecision {
 
 /// What the host decided about the enumeration of the entity scan: the TAIL of the list of a sector (`First`, with the sector's two indices), the predecessor of the entry the campaign is at (`Next`),
 /// to offer that entry for its decisions (`Offer`), or the end of the scan with no hit (`DoneNone`) or with the hit of the entry offered last (`DoneHit`). The host's roster events are answered with
-/// `Placed` (the key it issued is the answer's `key`), `Removed` and `Cleared`.
+/// `Placed` (the key it issued is the answer's `key`), `Removed` and `Cleared`; a city's box expansion with `Expanded` (the six words of the box the host built, minimum then maximum, and the city's key as `key`).
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum ScanDecision {
     First([f32; 2]),
+    Expanded([f32; 6]),
     Next,
     Offer,
     DoneNone,
@@ -1720,6 +1721,11 @@ unsafe extern "C" fn model_callback(
                     ScanDecision::First(cursor) => {
                         reply.candidate[..2].copy_from_slice(&cursor);
                         sys::EECH_MODEL_SCAN_FIRST
+                    }
+                    ScanDecision::Expanded(words) => {
+                        reply.candidate[..6].copy_from_slice(&words);
+                        reply.candidate_count = 6;
+                        sys::EECH_MODEL_SCAN_EXPANDED
                     }
                     ScanDecision::Next => sys::EECH_MODEL_SCAN_NEXT,
                     ScanDecision::Offer => sys::EECH_MODEL_SCAN_OFFER,
@@ -11561,6 +11567,11 @@ mod tests {
             (ScanDecision::Placed, sys::EECH_MODEL_SCAN_PLACED, [0.0, 0.0]),
             (ScanDecision::Removed, sys::EECH_MODEL_SCAN_REMOVED, [0.0, 0.0]),
             (ScanDecision::Cleared, sys::EECH_MODEL_SCAN_CLEARED, [0.0, 0.0]),
+            (
+                ScanDecision::Expanded([2.0, 3.0, 4.0, 5.0, 6.0, 7.0]),
+                sys::EECH_MODEL_SCAN_EXPANDED,
+                [2.0, 3.0],
+            ),
         ] {
             let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
             request.pose_count = 16;
@@ -11603,6 +11614,40 @@ mod tests {
                 "{decision:?}"
             );
         }
+    }
+
+    #[test]
+    fn an_expanded_decision_crosses_with_its_six_words_bit_for_bit_and_their_count() {
+        // a city's box expansion: the six words of the box (minimum then maximum, signed zeros and the inverted-box magnitudes included) come back in the candidate place with a count of six
+        let words = [-0.0f32, 1.0e6, -1.0e6, f32::from_bits(1), 3.5, -4.25];
+        let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+        request.pose_count = 16;
+        for (at, byte) in "17 18".bytes().enumerate() {
+            request.host_id[at] = byte as c_char;
+        }
+        let (code, reply, error) = model_crossing(
+            Some(Box::new(move |query| match query {
+                ModelQuery::EntityScan { identity, .. } => {
+                    assert_eq!(identity, "17 18");
+                    Ok(ModelAnswer::EntityScan {
+                        decision: ScanDecision::Expanded(words),
+                        key: "17".to_string(),
+                    })
+                }
+                other => Err(format!("unexpected {other:?}")),
+            })),
+            request,
+        );
+        assert_eq!(code, 0, "{error}");
+        assert_eq!(reply.candidate_state, sys::EECH_MODEL_SCAN_EXPANDED);
+        assert_eq!(reply.candidate_count, 6);
+        assert_eq!(
+            reply.candidate[..6].iter().map(|float| float.to_bits()).collect::<Vec<_>>(),
+            words.map(f32::to_bits).to_vec()
+        );
+        assert!(reply.candidate[6..].iter().all(|float| float.to_bits() == 0), "no word beyond the six");
+        let name: Vec<u8> = reply.name.iter().take_while(|c| **c != 0).map(|c| *c as u8).collect();
+        assert_eq!(name, b"17");
     }
 
     #[test]

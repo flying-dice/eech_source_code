@@ -114,6 +114,14 @@ static campaign_model_request fixed_seen, fixed_log[8];
    fixed one, so that the control compiles against a build that has none. */
 #define CHECK_PHASE_CITY_STATE 14
 static int city_state_asks, city_state_override, city_state_state;
+/* the CITY_EXPAND questions (the same question, phase 15: a city's box built by the host for a building's link, Task49): how many the scripted host was asked, the last, and the answer it gives (a coherent one: the state EXPANDED,
+   the city's key echoed, six words, unless `expand_override` forces the state, the name and the count of words). The phase number is written out, like the others, so that the control compiles against a build that has none. */
+#define CHECK_PHASE_CITY_EXPAND 15
+typedef char check_phase_expand_is_the_contracts [(CAMPAIGN_SCAN_PHASE_CITY_EXPAND == CHECK_PHASE_CITY_EXPAND) ? 1 : -1];
+static int expand_asks, expand_override, expand_state, expand_count;
+static const char *expand_name;
+static uint32_t expand_words[CAMPAIGN_MODEL_CANDIDATE_POSE_MAX];
+static campaign_model_request expand_seen;
 static const char *city_state_name;
 static campaign_model_request city_state_seen, city_state_log[8];
 /* the identity place (the placement key of a non-mobile candidate, a hosted mobile's identity) of each candidate question, in order, since the last reset */
@@ -358,6 +366,36 @@ static void scripted_ask (campaign_model_request *request, campaign_model_reply 
 
 		reply->candidate_state = city_state_override ? city_state_state : CAMPAIGN_MODEL_SCAN_PLACED;
 		strncpy (reply->name, city_state_override ? city_state_name : request->host_id, sizeof (reply->name) - 1);
+
+		return;
+	}
+
+	if ((request->op == CAMPAIGN_MODEL_ENTITY_SCAN) && ((int) request->pose[CAMPAIGN_SCAN_PHASE] == CHECK_PHASE_CITY_EXPAND))
+	{
+		expand_seen = *request;
+		expand_asks++;
+
+		if (refuse_the_exchange)
+		{
+			debug_fatal ("host model: [model-provider:callback] the scripted host refused");
+		}
+
+		reply->candidate_state = expand_override ? expand_state : CAMPAIGN_MODEL_SCAN_EXPANDED;
+
+		if (expand_override)
+		{
+			strncpy (reply->name, expand_name, sizeof (reply->name) - 1);
+		}
+		else
+		{
+			const char *space = strchr (request->host_id, ' ');
+			size_t length = (space != NULL) ? (size_t) (space - request->host_id) : strlen (request->host_id);
+
+			memcpy (reply->name, request->host_id, length);
+		}
+
+		reply->candidate_count = expand_override ? expand_count : CAMPAIGN_CITY_EXPAND_WORDS;
+		memcpy (reply->candidate, expand_words, sizeof (reply->candidate));
 
 		return;
 	}
@@ -2291,6 +2329,8 @@ static void check_fixed_call (int entity_type, const char *key, const float *sta
 #define campaign_model_entity_fixed check_fixed_call
 /* the city's own state: a macro, so that the control compiles against a build whose placement map never states one */
 #define campaign_model_entity_city_state(KEY,STATE) campaign_entity_city_state_exchange ((KEY), (STATE))
+/* the city's box the host builds: a macro for the same reason */
+#define campaign_model_entity_city_expand(CITY,BUILDING,BOX) campaign_entity_city_expand_exchange ((CITY), (BUILDING), (BOX))
 #define CAMPAIGN_PLACE_ENTITY struct pentity
 #define CAMPAIGN_PLACE_HEAP() place_heap_check ()
 #define CAMPAIGN_PLACE_SLOT(E) ((E)->slot)
@@ -2316,6 +2356,7 @@ static void check_fixed_call (int entity_type, const char *key, const float *sta
 #undef campaign_model_entity_city
 #undef campaign_model_entity_fixed
 #undef campaign_model_entity_city_state
+#undef campaign_model_entity_city_expand
 
 /* the entity of the offer that holds a placement heap slot (set by city_register) */
 static struct sentity *pheap_owner[16];
@@ -3670,6 +3711,254 @@ static void city_state_cases (struct tc *t)
 	place_host_installed = FALSE;
 }
 
+
+/* ---- the CITY_EXPAND question (the same question; phase 15, Task49): the campaign asks the host to build its city's bounding box for a building's link and applies the checked answer to its mirror ---- */
+
+/* the words of the box the scripted host answers (minimum then maximum): a signed zero and a subnormal are legitimate words and must arrive exactly */
+static void expand_script (const uint32_t *words)
+{
+	memset (expand_words, 0, sizeof (expand_words));
+	memcpy (expand_words, words, CAMPAIGN_CITY_EXPAND_WORDS * sizeof (uint32_t));
+	expand_override = FALSE;
+	expand_state = CAMPAIGN_MODEL_SCAN_EXPANDED;
+	expand_count = CAMPAIGN_CITY_EXPAND_WORDS;
+	expand_name = "";
+}
+
+/* one expansion under a stop catcher: TRUE when the engine stopped; the host's questions of the call are counted */
+static int city_expand_do (struct pentity *city, struct pentity *building, float *box)
+{
+	expand_asks = 0;
+	city_state_asks = 0;
+	fixed_asks = 0;
+	city_asks = 0;
+	roster_asks = 0;
+	fatal_text[0] = '\0';
+
+	if (setjmp (fatal_jump) == 0)
+	{
+		place_city_expand (city, building, box);
+
+		return (FALSE);
+	}
+
+	return (TRUE);
+}
+
+/* the box words as a caller's buffer holds them */
+static void box_words (const float *box, uint32_t *words)
+{
+	memcpy (words, box, CAMPAIGN_CITY_EXPAND_WORDS * sizeof (float));
+}
+
+/* the question the campaign sent: the phase and nothing else but the identity place, which is the city's sector key, one space and the building's key */
+static int city_expand_request_is (const campaign_model_request *q, const char *city_key, const char *building_key)
+{
+	char identity[2 * CAMPAIGN_ROSTER_KEY_MAX + 2];
+	int index;
+
+	snprintf (identity, sizeof (identity), "%s %s", city_key, building_key);
+
+	if ((q->op != CAMPAIGN_MODEL_ENTITY_SCAN) || (q->scene != 0) || (q->pose_count != CAMPAIGN_MODEL_SCAN_FACTS) || (strcmp (q->host_id, identity) != 0))
+	{
+		return (FALSE);
+	}
+
+	for (index = 0; index < CAMPAIGN_MODEL_SCAN_FACTS; index++)
+	{
+		uint32_t word;
+
+		memcpy (&word, &q->pose[index], sizeof (word));
+
+		if ((index == CAMPAIGN_SCAN_PHASE) ? (q->pose[index] != (float) CAMPAIGN_SCAN_PHASE_CITY_EXPAND) : (word != 0))
+		{
+			return (FALSE);
+		}
+	}
+
+	return (TRUE);
+}
+
+static void city_expand_cases (struct tc *t)
+{
+	static const uint32_t GOOD[6] = { 0x80000000u, 0x00000001u, 0xc1200000u, 0x40000000u, 0x49742400u, 0xc9742400u };
+	static const uint32_t CANARY[6] = { 0x7fa5a5a5u, 0xdeadbeefu, 0x7fc0f00du, 0xffa00001u, 0x12345678u, 0x87654321u };
+	uint32_t before[6], after[6], bad[6];
+	float box[6];
+	char city_key[24], child_key[24];
+	int stopped, index;
+
+	/* a city and one building listed under it, as a building's link finds them (the creator listed it before the link: en_list.c) */
+	city_fresh ();
+	city_pentity (4, 150.0f, 3.0f, 250.0f);
+	fixed_pentity (5, 61, 150.0f, 250.0f, 0.5f, 7, 1, 0);
+	stopped = city_do (3, &pheap[4], NULL, NULL);
+	EXPECT (t, !stopped);
+	stopped = city_do (0, &pheap[5], &pheap[4], NULL);
+	EXPECT (t, !stopped);
+	snprintf (city_key, sizeof (city_key), "%s", place_key_of_slot[4]);
+	snprintf (child_key, sizeof (child_key), "%s", place_child_of_slot[5]);
+
+	/* the question: the phase and nothing else but the pair of keys; the box comes back exactly as the host holds it (a signed zero, a subnormal and the inverted box's magnitudes included) */
+	expand_script (GOOD);
+	memcpy (box, CANARY, sizeof (box));
+	stopped = city_expand_do (&pheap[4], &pheap[5], box);
+	box_words (box, after);
+	EXPECT (t, !stopped && expand_asks == 1 && city_state_asks == 0 && fixed_asks == 0 && roster_asks == 0 && city_asks == 0);
+	EXPECT (t, city_expand_request_is (&expand_seen, city_key, child_key));
+	EXPECT (t, memcmp (after, GOOD, sizeof (GOOD)) == 0);
+	/* the longest pair the grammar has fits the identity place of the request, key and key and one space (41 bytes of the 149) */
+	EXPECT (t, 2 * CAMPAIGN_ROSTER_KEY_MAX + 1 <= CAMPAIGN_MODEL_HOST_ID_MAX && CAMPAIGN_MODEL_HOST_ID_MAX <= CAMPAIGN_MODEL_SCAN_IDENTITY_MAX);
+
+	/* the reply is checked COMPLETELY before one word of the caller's box is written: every defect stops the engine by name and leaves the box as the caller had it */
+	memcpy (before, CANARY, sizeof (before));
+
+#define REFUSED_AND_UNTOUCHED(WHAT,MARKER,TEXT) \
+	do { \
+		memcpy (box, CANARY, sizeof (box)); \
+		stopped = city_expand_do (&pheap[4], &pheap[5], box); \
+		box_words (box, after); \
+		EXPECT (t, stopped && expand_asks == 1 && strstr (fatal_text, MARKER) != NULL && strstr (fatal_text, TEXT) != NULL && memcmp (after, before, sizeof (before)) == 0); \
+	} while (0)
+
+	refuse_the_exchange = TRUE;
+	stopped = city_expand_do (&pheap[4], &pheap[5], box);
+	EXPECT (t, stopped && strstr (fatal_text, "model-provider:callback") != NULL);
+	refuse_the_exchange = FALSE;
+
+	expand_script (GOOD);
+	expand_override = TRUE;
+	expand_name = city_key;
+	expand_state = CAMPAIGN_MODEL_SCAN_PLACED;
+	REFUSED_AND_UNTOUCHED ("the state of a roster event", "entity_scan.state", "city expansion");
+	expand_state = CAMPAIGN_MODEL_SCAN_FIRST;
+	REFUSED_AND_UNTOUCHED ("a scan state", "entity_scan.state", "city expansion");
+	expand_state = CAMPAIGN_MODEL_SCAN_EXPANDED;
+	expand_name = child_key;
+	REFUSED_AND_UNTOUCHED ("the building's key echoed", "entity_scan.key", "another city");
+	expand_name = "999";
+	REFUSED_AND_UNTOUCHED ("another city's key", "entity_scan.key", "another city");
+	expand_name = "";
+	REFUSED_AND_UNTOUCHED ("no key", "entity_scan.key", "another city");
+	expand_name = city_key;
+	for (index = 0; index <= 12; index++)
+	{
+		expand_count = index;
+
+		if (index == CAMPAIGN_CITY_EXPAND_WORDS)
+		{
+			continue;
+		}
+
+		REFUSED_AND_UNTOUCHED ("a count of words that is not six", "entity_scan.box", "answered");
+	}
+	expand_count = -1;
+	REFUSED_AND_UNTOUCHED ("a negative count", "entity_scan.box", "answered");
+	expand_count = CAMPAIGN_CITY_EXPAND_WORDS;
+
+	/* a word that is not a finite number, at each of the six places, as an infinity, a quiet NaN and a signalling NaN: refused, and the words before it were never written (the commit is after the whole check) */
+	for (index = 0; index < CAMPAIGN_CITY_EXPAND_WORDS; index++)
+	{
+		static const uint32_t NOT_FINITE[5] = { 0x7f800000u, 0xff800000u, 0x7fc00000u, 0x7fa00001u, 0xffc00123u };
+		int kind;
+
+		for (kind = 0; kind < 5; kind++)
+		{
+			memcpy (bad, GOOD, sizeof (bad));
+			bad[index] = NOT_FINITE[kind];
+			expand_script (bad);
+			expand_override = TRUE;
+			expand_name = city_key;
+			REFUSED_AND_UNTOUCHED ("a word that is not finite", "entity_scan.box", "not a finite number");
+		}
+	}
+
+	/* a word beyond the six is a count the host did not give: refused, untouched */
+	expand_script (GOOD);
+	expand_override = TRUE;
+	expand_name = city_key;
+	expand_words[CAMPAIGN_CITY_EXPAND_WORDS] = 0x3f800000u;
+	REFUSED_AND_UNTOUCHED ("a seventh word", "entity_scan.box", "more than");
+	expand_words[CAMPAIGN_CITY_EXPAND_WORDS] = 0x80000000u;
+	REFUSED_AND_UNTOUCHED ("a seventh word that is a signed zero", "entity_scan.box", "more than");
+	expand_words[CAMPAIGN_CITY_EXPAND_WORDS] = 0;
+	expand_words[CAMPAIGN_MODEL_CANDIDATE_POSE_MAX - 1] = 1;
+	REFUSED_AND_UNTOUCHED ("a last word", "entity_scan.box", "more than");
+	expand_override = FALSE;
+
+#undef REFUSED_AND_UNTOUCHED
+
+	/* the exchange is fine again after every refusal: the same pair, the same words */
+	expand_script (GOOD);
+	memcpy (box, CANARY, sizeof (box));
+	stopped = city_expand_do (&pheap[4], &pheap[5], box);
+	box_words (box, after);
+	EXPECT (t, !stopped && expand_asks == 1 && memcmp (after, GOOD, sizeof (GOOD)) == 0);
+
+	/* the pair is the campaign's own and is checked BEFORE anything is sent: a key that is no roster key, a building not listed by the host, one listed under another city, a city with no sector placement and a
+	   build with no host each stop the engine by name with nothing asked and the box untouched */
+	{
+		char kept[CAMPAIGN_ROSTER_KEY_MAX + 1];
+
+		memcpy (before, CANARY, sizeof (before));
+
+		snprintf (kept, sizeof (kept), "%s", place_key_of_slot[4]);
+		snprintf (place_key_of_slot[4], sizeof (place_key_of_slot[4]), "01");
+		memcpy (box, CANARY, sizeof (box));
+		stopped = city_expand_do (&pheap[4], &pheap[5], box);
+		box_words (box, after);
+		EXPECT (t, stopped && expand_asks == 0 && strstr (fatal_text, "not a roster key") != NULL && strstr (fatal_text, "city expansion") != NULL && memcmp (after, before, sizeof (before)) == 0);
+		snprintf (place_key_of_slot[4], sizeof (place_key_of_slot[4]), "%s", kept);
+
+		snprintf (kept, sizeof (kept), "%s", place_child_of_slot[5]);
+		snprintf (place_child_of_slot[5], sizeof (place_child_of_slot[5]), "01");
+		memcpy (box, CANARY, sizeof (box));
+		stopped = city_expand_do (&pheap[4], &pheap[5], box);
+		box_words (box, after);
+		EXPECT (t, stopped && expand_asks == 0 && strstr (fatal_text, "not a roster key") != NULL && memcmp (after, before, sizeof (before)) == 0);
+		snprintf (place_child_of_slot[5], sizeof (place_child_of_slot[5]), "%s", kept);
+
+		snprintf (kept, sizeof (kept), "%s", place_child_of_slot[5]);
+		place_child_of_slot[5][0] = 0;
+		memcpy (box, CANARY, sizeof (box));
+		stopped = city_expand_do (&pheap[4], &pheap[5], box);
+		box_words (box, after);
+		EXPECT (t, stopped && expand_asks == 0 && strstr (fatal_text, "not listed by the host") != NULL && memcmp (after, before, sizeof (before)) == 0);
+		snprintf (place_child_of_slot[5], sizeof (place_child_of_slot[5]), "%s", kept);
+
+		snprintf (kept, sizeof (kept), "%s", place_key_of_slot[4]);
+		place_key_of_slot[4][0] = 0;
+		memcpy (box, CANARY, sizeof (box));
+		stopped = city_expand_do (&pheap[4], &pheap[5], box);
+		box_words (box, after);
+		EXPECT (t, stopped && expand_asks == 0 && strstr (fatal_text, "no sector placement") != NULL && memcmp (after, before, sizeof (before)) == 0);
+		snprintf (place_key_of_slot[4], sizeof (place_key_of_slot[4]), "%s", kept);
+	}
+
+	city_pentity (6, 300.0f, 3.0f, 400.0f);
+	stopped = city_do (3, &pheap[6], NULL, NULL);
+	EXPECT (t, !stopped);
+	memcpy (box, CANARY, sizeof (box));
+	stopped = city_expand_do (&pheap[6], &pheap[5], box);
+	box_words (box, after);
+	EXPECT (t, stopped && expand_asks == 0 && strstr (fatal_text, "another city") != NULL && memcmp (after, CANARY, sizeof (CANARY)) == 0);
+
+	place_host_installed = FALSE;
+	memcpy (box, CANARY, sizeof (box));
+	stopped = city_expand_do (&pheap[4], &pheap[5], box);
+	box_words (box, after);
+	EXPECT (t, stopped && expand_asks == 0 && strstr (fatal_text, "no host is installed") != NULL && memcmp (after, CANARY, sizeof (CANARY)) == 0);
+	place_host_installed = TRUE;
+
+	/* a question the host never answered is not a box: after every case above the engine had stopped or the words were the host's own; the pair still works */
+	expand_script (GOOD);
+	stopped = city_expand_do (&pheap[4], &pheap[5], box);
+	EXPECT (t, !stopped && expand_asks == 1);
+
+	city_fresh ();
+	place_host_installed = FALSE;
+}
+
 int eech_entity_dialogue_check_run (char *text, int capacity, int *checks)
 {
 	struct tc t;
@@ -3850,6 +4139,7 @@ int eech_entity_dialogue_check_run (char *text, int capacity, int *checks)
 	city_wire_cases (&t);
 	fixed_static_cases (&t);
 	city_state_cases (&t);
+	city_expand_cases (&t);
 
 	if (checks)
 	{

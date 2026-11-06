@@ -26,6 +26,8 @@ ROSTER_LOG = {}
 CITY_LOG = {}
 -- every FIXED_STATE report (phase 13: a fixed placement's collision state) the REAL provider answered: phase pattern, result, the key it named and the identity place the question carried
 FIXED_LOG = {}
+-- every CITY_EXPAND question (phase 15, Task49) the scripted provider answered: phase pattern, result, the city key, the identity place
+EXPAND_LOG, EXPANDED = {}, {}
 POSE_LOG = {}
 MOVES, RETIRED, DISPLACED, MOVE_LOG = {}, {}, {}, {}
 VECTORS_ASKED, VECTORS_ALTERED, VECTORS_SEEN = 0, false, nil
@@ -173,7 +175,20 @@ local function reference (op, scene, depth, kind, definition, key)
 		local FIXED_PHASE, CITY_STATE_PHASE = "0x41500000", "0x41600000"
 		if phase == FIXED_PHASE and not scenario.real_scan then error ("a fixed state report needs the real provider (real_scan)", 0) end
 		if phase == CITY_STATE_PHASE and not scenario.real_scan then error ("a city state report needs the real provider (real_scan)", 0) end
-		if scenario.real_scan then
+		if phase == "0x41700000" then
+			if not scenario.real_scan then error ("a city expansion needs the real provider (real_scan)", 0) end
+			local city, child = string.match (identity, "^(%d+) (%d+)$")
+			if child ~= nil and ROSTER_HOLD (child, true) == "withdrawn" then
+				answer = { result = "refused", reason = "[roster.city_box.building_state] the host withdrew the collision state of the city child " .. child }
+			else
+				answer = { result = "expanded", name = city or "", p = scenario.expanded_p or "0xc0800000,0xc1200000,0xc0000000,0x40000000,0x40000000,0x40c00000" }
+			end
+			if scenario.bad_real_expand == "state" then answer.result = "placed" end
+			if scenario.bad_real_expand == "echo" then answer.name = "99" end
+			if scenario.bad_real_expand == "short" then answer.p = "0xc0800000,0xc1200000" end
+			if scenario.bad_real_expand == "infinite" then answer.p = "0xc0800000,0xc1200000,0xc0000000,0x40000000,0x40000000,0x7f800000" end
+			EXPAND_LOG [#EXPAND_LOG + 1] = { phase = phase, result = answer.result, name = answer.name or "", identity = identity }
+		elseif scenario.real_scan then
 			-- the REAL provider (eech-world's model_host with its own SectorRoster, registered by the test as REAL_HOST): every question of the scan and the roster is answered by it
 			answer = REAL_HOST.model (op, scene, depth, kind, definition, key)
 		elseif phase == "0x40800000" then
@@ -217,7 +232,9 @@ local function reference (op, scene, depth, kind, definition, key)
 		-- a reply fault of the fixed state report, forced AFTER the real answer (the real provider never gives one)
 		if (phase == FIXED_PHASE or phase == CITY_STATE_PHASE) and scenario.bad_real_fixed == "echo" then answer.name = "99" end
 		if (phase == FIXED_PHASE or phase == CITY_STATE_PHASE) and scenario.bad_real_fixed == "state" then answer.result = "removed" end
-		if CITY_PHASES [phase] then
+		if phase == "0x41700000" then
+			-- logged above
+		elseif CITY_PHASES [phase] then
 			CITY_LOG [#CITY_LOG + 1] = { phase = phase, result = answer.result, name = answer.name or "", identity = identity }
 		elseif phase == FIXED_PHASE or phase == CITY_STATE_PHASE then
 			FIXED_LOG [#FIXED_LOG + 1] = { phase = phase, result = answer.result, name = answer.name or "", identity = identity }
@@ -517,7 +534,7 @@ package.preload.eech_dc = function ()
 			end
 			-- the campaign's driver of the enumeration (mb_hostscan.h) as the shared C applies it: it asks the host, serves the sector (0, 0) with ONE entry, offers it, reports the result and ends when the host does. The
 			-- legality of each state against the phase and the cursor's grammar are the exchange's rules; the stop text is the real wrapper. `offer` runs the candidate dialogue and the narrow phase of ONE entry
-			local scan_altering = { scan_none = true, withheld_scan = true, bad_scan_state = true, bad_scan_cursor = true, withdrawn_backing = true, withdrawn_child = true }
+			local scan_altering = { scan_none = true, withheld_scan = true, bad_scan_state = true, bad_scan_cursor = true, withdrawn_backing = true, withdrawn_child = true, withdrawn_box_state = true }
 			-- the campaign's roster events (mb_hostplacemap.h): a sector list's insertion (phase 4: position, entity type and side length, and a hosted mobile's identity), removal (5: the key in the identity place)
 			-- and the boot (6). All other facts are zero. The scripted sector holds ONE entry: the first walk is a boot and an insertion, every later walk a relink (a removal and a new insertion with a new key). The host's
 			-- own answer comes back unaltered in every mode; the reply is checked as the shared C checks it (the state each phase allows, a key only for an insertion)
@@ -529,13 +546,13 @@ package.preload.eech_dc = function ()
 				local identity = ""
 				if kind == "insert" then
 					-- the entity type the insertion states: an object (17), or a CITY (5) when the scenario's placement is a city whose own state the campaign reports
-					words [1], words [2], words [3], words [4], words [7] = OLD_W [1], OLD_W [2], OLD_W [3], scenario.city_state and "0x40a00000" or "0x41880000", "0x447a0000"
+					words [1], words [2], words [3], words [4], words [7] = OLD_W [1], OLD_W [2], OLD_W [3], (scenario.city_state or scenario.city_box) and "0x40a00000" or "0x41880000", "0x447a0000"
 					if scenario.roster_mobile then identity = "eech-world:1" end
 				elseif kind == "remove" then
 					identity = roster_key
 				end
 				local fault = scenario.bad_roster_request
-				if fault == "phase7" then words [12] = "0x41700000"
+				if fault == "phase7" then words [12] = "0x41800000"
 				elseif fault == "insert_stray_word" and kind == "insert" then words [8] = "0x3f800000"
 				elseif fault == "remove_no_key" and kind == "remove" then identity = ""
 				elseif fault == "remove_text" and kind == "remove" then identity = "eech-world:1"
@@ -557,7 +574,7 @@ package.preload.eech_dc = function ()
 				local words = {}
 				for index = 1, 16 do words [index] = ZERO end
 				words [12] = CITY_PHASES [kind]
-				if kind == "child_insert" then words [4] = "0x41a80000" end
+				if kind == "child_insert" then words [4] = scenario.city_box and "0x40c00000" or "0x41a80000" end
 				local fault = scenario.bad_city_request
 				if fault == "stray_fact" then words [6] = "0x3f800000"
 				elseif fault == "no_city" and kind == "child_first" then identity = ""
@@ -623,6 +640,58 @@ package.preload.eech_dc = function ()
 				if type (answer) == "table" and answer.result == "refused" then stop ("entity_scan.refused", tostring (answer.reason)) end
 				if type (answer) ~= "table" or answer.result ~= "placed" then stop ("entity_scan.state", "a city state report allows only placed") end
 				return answer
+			end
+			-- the city's own state at its insertion with the original's INVERTED initial box (minimum 1.0e6, maximum -1.0e6): the statement a city makes before its first building links
+			local function sentinel_city_report (key_of)
+				local words = {}
+				for index = 1, 16 do words [index] = ZERO end
+				words [1], words [2], words [3] = OLD_W [1], OLD_W [2], OLD_W [3]
+				words [4], words [5], words [6], words [7], words [8], words [9], words [12] = "0x49742400", "0x49742400", "0x49742400", "0xc9742400", "0xc9742400", "0xc9742400", "0x41600000"
+				local ok, answer = ask_model ("entity_scan", 0, nil, nil, nil, table.concat (words, ",") .. " " .. key_of, true)
+				if not ok then stop ("entity_scan.callback", tostring (answer)) end
+				if type (answer) == "table" and answer.result == "refused" then stop ("entity_scan.refused", tostring (answer.reason)) end
+				if type (answer) ~= "table" or answer.result ~= "placed" then stop ("entity_scan.state", "a city state report allows only placed") end
+			end
+			-- the FIXED_STATE report of a building listed in a city (phase 13), under its place in the city's list: a city building (6), its heading, the shape of the scenario, collision-fixed
+			local function building_report (child)
+				local words = {}
+				for index = 1, 16 do words [index] = ZERO end
+				words [1], words [2], words [3] = OLD_W [1], OLD_W [2], OLD_W [3]
+				words [4], words [5], words [6], words [8], words [12] = "0x40c00000", "0x3f000000", scenario.box_shape or "0x40a00000", "0x3f800000", "0x41500000"
+				local ok, answer = ask_model ("entity_scan", 0, nil, nil, nil, table.concat (words, ",") .. " " .. child, true)
+				if not ok then stop ("entity_scan.callback", tostring (answer)) end
+				if type (answer) == "table" and answer.result == "refused" then stop ("entity_scan.refused", tostring (answer.reason)) end
+				if type (answer) ~= "table" or answer.result ~= "placed" then stop ("entity_scan.state", "a fixed state report allows only placed") end
+			end
+			-- a building's link asks the host to build its city's box (phase 15: nothing stated but the phase; the identity place is the city's sector key, one space and the building's key). The reply is checked as the shared
+			-- C checks it before any word would be applied (mb_hostentity.h): `expanded`, the city's key, six finite patterns. The host's answer comes back unaltered; a refusal is the bridge's own fatal with the host's reason
+			local function city_expand_request (city_key, child)
+				local words = {}
+				for index = 1, 16 do words [index] = ZERO end
+				words [12] = "0x41700000"
+				local fault = scenario.bad_expand_request
+				local identity = city_key .. " " .. child
+				if fault == "stray_fact" then words [6] = "0x3f800000"
+				elseif fault == "one_key" then identity = city_key
+				elseif fault == "bad_key" then identity = city_key .. " 0" .. child end
+				local ok, answer = ask_model ("entity_scan", 0, nil, nil, nil, table.concat (words, ",") .. " " .. identity, not scan_altering [MODE])
+				if not ok then stop ("entity_scan.callback", tostring (answer)) end
+				if type (answer) == "table" and answer.result == "refused" then stop ("entity_scan.refused", tostring (answer.reason)) end
+				if type (answer) ~= "table" or answer.result ~= "expanded" or answer.name ~= city_key or type (answer.p) ~= "string" then stop ("entity_scan.state", "a city expansion allows only expanded, with the city's key and a box") end
+				EXPANDED [#EXPANDED + 1] = answer.p
+				return answer
+			end
+			-- the campaign's cities at BOOT: the city is placed and states its inverted box, and each building is listed, states its fixed state and links (the link's question follows)
+			local function boot_city_box ()
+				roster_event ("reset")
+				roster_event ("insert")
+				sentinel_city_report (roster_key)
+				for _ = 1, scenario.city_box do
+					local child = city_event ("child_insert", roster_key).name
+					city_children [#city_children + 1] = child
+					building_report (child)
+					city_expand_request (roster_key, child)
+				end
 			end
 			local function scan_walk (offer)
 				if scenario.no_scan_questions then offer () return end
@@ -906,6 +975,8 @@ package.preload.eech_dc = function ()
 				return "wpn-counter name=other value=9\nwpn-counter name=contact_any_tests value=" .. tests .. "\nwpn-counter name=contact_any_hits value=" .. hits
 					.. "\nwpn-counter name=precision_high value=" .. precision .. "\n"
 			end
+			-- the campaign's cities are made at boot, before any weapon window (the host's roster is as the real boot would have it: boot, the city, its buildings)
+			if scenario.city_box then boot_city_box () end
 			return engine
 		end,
 	}
@@ -938,6 +1009,8 @@ struct Driven {
     city_log: Vec<(String, String, String, String)>,
     /// (phase pattern, result, the key the host named, the identity place) of every fixed state report the REAL provider answered
     fixed_log: Vec<(String, String, String, String)>,
+    /// (phase pattern, result, the city key, the identity place) of every city expansion question the scripted provider answered
+    expand_log: Vec<(String, String, String, String)>,
     /// (stage, entity type, alive, result, key) of every pose observation the REAL provider answered
     pose_log: Vec<(i64, i64, i64, String, String)>,
     /// (identity, mode, terrain elevation or -1, after the launch) of every step the host's movement callback was given
@@ -970,10 +1043,10 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
     lua.set_app_data(eech_world::roster::SharedRoster(roster.clone()));
     // what the REAL roster holds of the fixed collision state of the sector placement a key names (a read, never a write): the scripted candidate states a withdrawn state in the provider's own words
     let hold = lua
-        .create_function(move |_, key: String| {
+        .create_function(move |_, (key, child): (String, Option<bool>)| {
             use eech_world::roster::FixedHold;
             Ok(
-                match eech_world::roster::parse_key(&key).map(|key| roster.borrow().placement_fixed(key, false)) {
+                match eech_world::roster::parse_key(&key).map(|key| roster.borrow().placement_fixed(key, child.unwrap_or(false))) {
                     Some(Ok((_, _, FixedHold::Held(_)))) => "held",
                     Some(Ok((_, _, held))) if format!("{held:?}").starts_with("City(") => "held",
                     Some(Ok((_, _, FixedHold::Withdrawn))) => "withdrawn",
@@ -1000,6 +1073,7 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
     let roster: mlua::Table = globals.get("ROSTER_LOG").expect("the roster log");
     let city: mlua::Table = globals.get("CITY_LOG").expect("the city log");
     let fixed: mlua::Table = globals.get("FIXED_LOG").expect("the fixed state log");
+    let expansions: mlua::Table = globals.get("EXPAND_LOG").expect("the city expansion log");
     let poses: mlua::Table = globals.get("POSE_LOG").expect("the pose log");
     let moves: mlua::Table = globals.get("MOVE_LOG").expect("the move log");
     Driven {
@@ -1102,6 +1176,18 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
             .sequence_values::<mlua::Table>()
             .map(|entry| {
                 let entry = entry.expect("a fixed state log entry");
+                (
+                    entry.get::<String>("phase").unwrap(),
+                    entry.get::<String>("result").unwrap(),
+                    entry.get::<String>("name").unwrap(),
+                    entry.get::<String>("identity").unwrap(),
+                )
+            })
+            .collect(),
+        expand_log: expansions
+            .sequence_values::<mlua::Table>()
+            .map(|entry| {
+                let entry = entry.expect("a city expansion log entry");
                 (
                     entry.get::<String>("phase").unwrap(),
                     entry.get::<String>("result").unwrap(),
@@ -2167,7 +2253,7 @@ fn each_single_fault_of_the_new_scan_and_roster_grammar_is_counted_at_its_questi
         (", bad_scan_request = 'begin_key'", "scan request:", "carries no standing key"),
         (", bad_scan_request = 'other_key'", "scan request:", "is not the entry the host last served"),
         (", questions = 2, bad_scan_request = 'ended_key'", "scan request:", "has ended"),
-        (", bad_roster_request = 'phase7'", "scan request:", "is not 0 to 14"),
+        (", bad_roster_request = 'phase7'", "scan request:", "is not 0 to 15"),
         (
             ", bad_roster_request = 'insert_stray_word'",
             "scan request:",
@@ -4762,5 +4848,159 @@ fn each_single_fault_of_the_city_state_grammar_is_counted_at_its_question_and_is
         assert!(row["reply_faults"].as_i64().unwrap() >= 1, "{fault}: {row}");
         let first = row["first_fault"].as_str().unwrap();
         assert!(first.starts_with("scan reply:") && first.contains(expected), "{fault}: {first}");
+    }
+}
+
+// ---- THE HOST BUILDS A CITY'S BOUNDING BOX: the boot's questions and the boot-phase negative (EEDCS-49, D3, Task49) ----
+//
+// A building's link asks the host to build its city's box (phase 15): at BOOT, when the campaign's cities are made. The driver counts the questions in the window before the launch (`city_expand_before`), checks every
+// reply and alters nothing; `withdrawn_box_state` is the host-side negative at that boot: at the first question whose pair joined a city state and a building state the provider holds, the host withdraws ONLY that
+// building's fixed state (acknowledged `removed`) and the SAME question is delegated once, unmodified: the provider's named refusal stops the boot. These tests run the REAL driver against the scripted engine
+// (the scripted provider answers the expansion from what the REAL roster holds: tests/model_target_point.rs pins the real provider's own answers and refusals).
+
+const CITY_BOX: &str = ", real_scan = true, city_box = 2";
+
+#[test]
+fn the_cities_made_at_boot_ask_the_host_for_each_boxes_and_the_driver_counts_checks_and_alters_nothing() {
+    let (driven, row) = scan_row(&format!("{CITY_BOX}, city_state = false"), "control");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    // two buildings linked at boot: two questions in the window before the launch, none after, both answered `expanded` with the city's key
+    assert_eq!(
+        (
+            row["city_expand_before"].clone(),
+            row["city_expand_after"].clone(),
+            row["city_expand_total"].clone(),
+            row["city_expand_answered"].clone()
+        ),
+        (Value::from(2), Value::from(0), Value::from(2), Value::from(2)),
+        "{row}"
+    );
+    assert_eq!(
+        (row["request_faults"].clone(), row["reply_faults"].clone()),
+        (Value::from(0), Value::from(0)),
+        "{row}"
+    );
+    assert_eq!(driven.expand_log.len(), 2, "{:?}", driven.expand_log);
+    for (phase, result, name, identity) in &driven.expand_log {
+        assert_eq!((phase.as_str(), result.as_str()), ("0x41700000", "expanded"));
+        assert!(
+            identity.starts_with(&format!("{name} ")),
+            "the identity place is the city's key and the building's: {identity}"
+        );
+    }
+    // the diagnostic counts of the other questions are the roster's own: the city's one state report at its insertion and one state report per building (the building's fixed state), no restatement of the city's box
+    let phases: Vec<&str> = driven.fixed_log.iter().map(|entry| entry.0.as_str()).collect();
+    assert_eq!(phases, ["0x41600000", "0x41500000", "0x41500000"], "{:?}", driven.fixed_log);
+    assert!(driven.delegation_broken.is_empty(), "{:?}", driven.delegation_broken);
+}
+
+#[test]
+fn withdrawing_a_buildings_state_before_its_citys_box_is_built_makes_the_same_question_refused_by_name_and_stops_the_boot() {
+    let driven = drive(&healthy(CITY_BOX), &[("mode", "withdrawn_box_state")]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let row = authority(&driven);
+    assert_eq!(row["completed"], false);
+    assert_eq!(
+        (row["boot_stop"].clone(), row["failure_marker"].clone()),
+        (Value::from(true), Value::from("entity_scan.refused")),
+        "{row}"
+    );
+    // the question joined a held city state and a held building state (eligible), the host's own withdrawal was acknowledged, and the real refusal is named
+    assert_eq!(
+        (
+            row["box_eligible"].clone(),
+            row["box_withdrawn"].clone(),
+            row["box_withdrawn_cause"].clone(),
+            row["city_expand_total"].clone(),
+            row["city_expand_answered"].clone()
+        ),
+        (
+            Value::from(1),
+            Value::from(1),
+            Value::from("city_box_building_state_withdrawn"),
+            Value::from(1),
+            Value::from(0)
+        ),
+        "{row}"
+    );
+    // the only fault is the provider's named refusal: no request was altered and no answer was forged; every physical fact after the stop is unknown, never read
+    assert_eq!(
+        (
+            row["request_faults"].clone(),
+            row["reply_faults"].clone(),
+            row["first_fault"].clone(),
+            row["physical_after_stop"].clone()
+        ),
+        (Value::from(0), Value::from(1), Value::from("scan reply: result refused"), Value::from(-1)),
+        "{row}"
+    );
+    // the provider acknowledged the city's state and the building's, then the host's withdrawal of ONLY the building's, and was asked the question once, refused
+    let phases: Vec<(&str, &str)> = driven.fixed_log.iter().map(|entry| (entry.0.as_str(), entry.1.as_str())).collect();
+    assert_eq!(
+        phases,
+        [("0x41600000", "placed"), ("0x41500000", "placed"), ("0x41500000", "removed")],
+        "{:?}",
+        driven.fixed_log
+    );
+    assert_eq!(driven.expand_log.len(), 1, "{:?}", driven.expand_log);
+    let (_, result, _, identity) = &driven.expand_log[0];
+    assert_eq!(result, "refused");
+    // the withdrawal named the very building the delegated question named, and the delegated question is the campaign's own
+    assert_eq!(
+        driven.fixed_log[2].3,
+        identity.split(' ').nth(1).expect("the building's key"),
+        "{:?}",
+        driven.fixed_log
+    );
+    assert!(driven.delegation_broken.is_empty(), "{:?}", driven.delegation_broken);
+    // the engine was stopped at boot: nothing after the boot was asked
+    assert!(driven.launch.is_none(), "no weapon was launched after the stop at boot");
+}
+
+#[test]
+fn a_boot_that_asks_no_city_expansion_is_unreached_for_the_boot_phase_negative_and_never_a_pass() {
+    let error = error_of(drive(&healthy(", real_scan = true"), &[("mode", "withdrawn_box_state")]));
+    assert!(
+        error.contains("UNREACHED: withdrawn_box_state") && error.contains("no actor, time or geometry was searched for"),
+        "{error}"
+    );
+}
+
+#[test]
+fn a_city_expansion_question_that_is_not_the_contracts_is_a_request_fault_and_is_never_followed_by_a_withdrawal() {
+    for (fault, why) in [
+        ("stray_fact", "a city expansion states nothing but its phase"),
+        ("one_key", "which is not a city key, one space and a building key"),
+        ("bad_key", "which is not a city key, one space and a building key"),
+    ] {
+        let extra = format!("{CITY_BOX}, bad_expand_request = '{fault}'");
+        let error = error_of(drive(&healthy(&extra), &[("mode", "withdrawn_box_state")]));
+        assert!(
+            error.contains("nothing was withdrawn because the boot failed first") && error.contains(why),
+            "{fault}: {error}"
+        );
+    }
+}
+
+#[test]
+fn a_city_expansion_reply_that_is_not_the_contracts_is_a_reply_fault_of_the_healthy_boot() {
+    for (fault, why) in [
+        // the shared C's own check stops the engine at boot for a wrong state or another city's key (the scripted engine applies it): the driver never sees a boot that went on
+        ("state", "[model-provider:entity_scan.state]"),
+        ("echo", "[model-provider:entity_scan.state]"),
+        // what the shared C would also refuse, the driver's own check of the reply names: the box is not six patterns, or a word of it is not a finite number
+        (
+            "short",
+            "reply_faults=2): scan reply: a city expansion answered a box that is not six 0x%08x patterns",
+        ),
+        (
+            "infinite",
+            "reply_faults=2): scan reply: a city expansion answered the box word 0x7f800000, which is not a finite number",
+        ),
+    ] {
+        let extra = format!("{CITY_BOX}, bad_real_expand = '{fault}'");
+        let result = drive(&healthy(&extra), &[("mode", "control")]).result;
+        let error = result.expect_err("a malformed reply is a failure of the healthy run");
+        assert!(error.contains(why), "{fault}: {error}");
     }
 }
