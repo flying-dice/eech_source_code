@@ -1,0 +1,78 @@
+# Failing-test and profile evidence of campaign run 42237739479 at bfce56e3c9e56352c1f2c6beb6c53d930dbee649 (concise excerpts of retained raw logs; the raw logs stay outside Git)
+
+## x86_64 Linux debug (job 127959728807)
+##[group]Run env  cargo test --locked --target x86_64-unknown-linux-gnu
+test the_roster_arithmetic_hands_back_the_callers_whole_floating_point_state_for_fractional_and_malformed_words ... FAILED
+test the_city_words_are_classified_without_floating_point_and_leave_the_callers_whole_state_unchanged ... FAILED
+thread 'the_roster_arithmetic_hands_back_the_callers_whole_floating_point_state_for_fractional_and_malformed_words' (11909) panicked at crates/eech-world/tests/entity_roster_host.rs:416:17:
+assertion `left == right` failed: Nearest raised=false: the caller's whole state after a signaling phase
+  left: (FpState { x87_masks: 63, sse_masks: 63, sse_rounding: 0, x87_control: 895, mxcsr: 8065 }, Nearest, 1)
+ right: (FpState { x87_masks: 63, sse_masks: 63, sse_rounding: 0, x87_control: 895, mxcsr: 8064 }, Nearest, 0)
+thread 'the_city_words_are_classified_without_floating_point_and_leave_the_callers_whole_state_unchanged' (11908) panicked at crates/eech-world/tests/entity_roster_host.rs:878:13:
+assertion `left == right` failed: Nearest raised=false: the caller's whole state after a signaling phase
+  left: (FpState { x87_masks: 63, sse_masks: 63, sse_rounding: 0, x87_control: 895, mxcsr: 8065 }, Nearest, 1)
+ right: (FpState { x87_masks: 63, sse_masks: 63, sse_rounding: 0, x87_control: 895, mxcsr: 8064 }, Nearest, 0)
+test result: FAILED. 15 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+## x86_64 Linux debug EECH_C_OPT=2 (job 127959728431)
+##[group]Run env EECH_C_OPT=2 cargo test --locked --target x86_64-unknown-linux-gnu
+test the_city_words_are_classified_without_floating_point_and_leave_the_callers_whole_state_unchanged ... FAILED
+test the_roster_arithmetic_hands_back_the_callers_whole_floating_point_state_for_fractional_and_malformed_words ... FAILED
+thread 'the_city_words_are_classified_without_floating_point_and_leave_the_callers_whole_state_unchanged' (11849) panicked at crates/eech-world/tests/entity_roster_host.rs:878:13:
+assertion `left == right` failed: Nearest raised=false: the caller's whole state after a signaling phase
+  left: (FpState { x87_masks: 63, sse_masks: 63, sse_rounding: 0, x87_control: 895, mxcsr: 8065 }, Nearest, 1)
+ right: (FpState { x87_masks: 63, sse_masks: 63, sse_rounding: 0, x87_control: 895, mxcsr: 8064 }, Nearest, 0)
+thread 'the_roster_arithmetic_hands_back_the_callers_whole_floating_point_state_for_fractional_and_malformed_words' (11850) panicked at crates/eech-world/tests/entity_roster_host.rs:416:17:
+assertion `left == right` failed: Nearest raised=false: the caller's whole state after a signaling phase
+  left: (FpState { x87_masks: 63, sse_masks: 63, sse_rounding: 0, x87_control: 895, mxcsr: 8065 }, Nearest, 1)
+ right: (FpState { x87_masks: 63, sse_masks: 63, sse_rounding: 0, x87_control: 895, mxcsr: 8064 }, Nearest, 0)
+test result: FAILED. 15 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+## Windows cross / Wine debug (job 127959728238)
+test the_city_words_are_classified_without_floating_point_and_leave_the_callers_whole_state_unchanged ... FAILED
+test the_roster_arithmetic_hands_back_the_callers_whole_floating_point_state_for_fractional_and_malformed_words ... FAILED
+thread 'the_city_words_are_classified_without_floating_point_and_leave_the_callers_whole_state_unchanged' (1908) panicked at crates/eech-world/tests/entity_roster_host.rs:878:13:
+assertion `left == right` failed: Nearest raised=false: the caller's whole state after a signaling phase
+  left: (FpState { x87_masks: 63, sse_masks: 63, sse_rounding: 0, x87_control: 639, mxcsr: 8065 }, Nearest, 1)
+ right: (FpState { x87_masks: 63, sse_masks: 63, sse_rounding: 0, x87_control: 639, mxcsr: 8064 }, Nearest, 0)
+thread 'the_roster_arithmetic_hands_back_the_callers_whole_floating_point_state_for_fractional_and_malformed_words' (1904) panicked at crates/eech-world/tests/entity_roster_host.rs:416:17:
+assertion `left == right` failed: Nearest raised=false: the caller's whole state after a signaling phase
+  left: (FpState { x87_masks: 63, sse_masks: 63, sse_rounding: 0, x87_control: 639, mxcsr: 8065 }, Nearest, 1)
+ right: (FpState { x87_masks: 63, sse_masks: 63, sse_rounding: 0, x87_control: 639, mxcsr: 8064 }, Nearest, 0)
+test result: FAILED. 15 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+## i686 Linux debug (job 127959728721)
+##[group]Run env  cargo test --locked --target i686-unknown-linux-gnu
+ --> crates/eech-world/tests/model_store.rs:9:77
+error[E0433]: cannot find module or crate `fpu` in this scope
+    --> crates/eech-world/tests/model_target_point.rs:2923:26
+error[E0433]: cannot find module or crate `fpu` in this scope
+    --> crates/eech-world/tests/model_target_point.rs:2924:24
+error[E0433]: cannot find module or crate `fpu` in this scope
+    --> crates/eech-world/tests/model_target_point.rs:2937:25
+error[E0433]: cannot find module or crate `fpu` in this scope
+    --> crates/eech-world/tests/model_target_point.rs:2938:25
+error[E0433]: cannot find module or crate `fpu` in this scope
+    --> crates/eech-world/tests/model_target_point.rs:2942:25
+error[E0433]: cannot find module or crate `fpu` in this scope
+    --> crates/eech-world/tests/model_target_point.rs:2943:25
+error[E0433]: cannot find module or crate `fpu` in this scope
+    --> crates/eech-world/tests/model_target_point.rs:2994:26
+error[E0433]: cannot find module or crate `fpu` in this scope
+    --> crates/eech-world/tests/model_target_point.rs:2995:24
+error[E0433]: cannot find module or crate `fpu` in this scope
+    --> crates/eech-world/tests/model_target_point.rs:3013:9
+error[E0433]: cannot find module or crate `fpu` in this scope
+    --> crates/eech-world/tests/model_target_point.rs:3014:9
+error[E0433]: cannot find module or crate `fpu` in this scope
+    --> crates/eech-world/tests/model_target_point.rs:3018:9
+error[E0433]: cannot find module or crate `fpu` in this scope
+    --> crates/eech-world/tests/model_target_point.rs:3019:9
+error[E0433]: cannot find module or crate `fpu` in this scope
+    --> crates/eech-world/tests/model_target_point.rs:3024:5
+error[E0433]: cannot find module or crate `fpu` in this scope
+    --> crates/eech-world/tests/model_target_point.rs:3028:5
+error: could not compile `eech-world` (test "model_target_point") due to 14 previous errors
+
+## i686 with EECH_ORIGINAL_STACK_ATTRIBUTES=1 (job 127959728611)
+Not inspected: the job was in progress and its log was not retrievable when the other logs were decoded. Its cause is NOT assumed to equal the i686 job above.

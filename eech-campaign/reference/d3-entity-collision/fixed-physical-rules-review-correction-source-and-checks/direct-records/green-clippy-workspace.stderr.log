@@ -1,0 +1,9 @@
+wsl: Failed to translate 'R:\d3-evidence'
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-sys v0.1.0 (/src/eech-campaign/crates/eech-sys)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+    Checking eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Checking eech-campaign v0.1.0 (/src/eech-campaign/crates/eech-campaign)
+    Checking eech-harness v0.1.0 (/src/eech-campaign/crates/eech-harness)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6m 48s

@@ -1,0 +1,4 @@
+wsl: Failed to translate 'R:\d3-evidence'
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.28s
+     Running tests/zz_fpu_diag_untracked.rs (/target/x86_64-unknown-linux-gnu/debug/deps/zz_fpu_diag_untracked-4c5f455a389d7bc0)

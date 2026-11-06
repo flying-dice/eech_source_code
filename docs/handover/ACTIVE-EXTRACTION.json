@@ -7,10 +7,10 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "UNREVIEWED CODE_FROZEN d2f5027c9: the host derives the physical fixed/CITY collision-fixed and align rules from the stated sub type (15 declared rows incl. FIXED_UNKNOWN; undeclared refused by name; CITY Core-false bypass closed; Core getters conformance mirrors only). Source and Linux checks only: no native, no Windows, no review. Same batch: no-host extractors name mb_hostplace.h (current CI eech_extracted repair). Constructor finite proof stays closed; REQUIRED_CITY_BOX_LIFECYCLE_RETENTION OPEN; all10 scope preserved.",
+  "phase": "UNREVIEWED CODE_FROZEN 4fb81c673 (review correction over the d2f5027c9 fixed/CITY physical-rules cut; d2f/bfce pack and the 18b2faf8 review preserved literally): the restatement acknowledgement of the changed_fixed_rule witness now uses the fixed-report reply contract (ENV-FIXED-RULES-RESTATEMENT-ACK-1), entity-scan questions are classified by integer operations before any float so an unoptimized build no longer raises the invalid flag for a signaling phase (the actual CI debug failure, latent since 8b8523082), two city-box tests that need the x86_64 helper are gated like their siblings (i686 compile), two eech-dc test lint sites are repaired. Source and Linux checks only: no native, no Windows/Wine, no review, no SourceClearance. Physical rules, Host records, original math and every C/sys/extractor input are unchanged (equal Git tree ids with d2f). REQUIRED_CITY_BOX_LIFECYCLE_RETENTION OPEN and the next CITY production; all10 scope preserved.",
   "preparation_batches_without_cutover": 0,
   "preparation_limit": 2,
-  "next_production_change": "After the SAME reviewer's ONE combined pass over d2f5027c9 and Root's native comparison (healthy counts exact, one changed_fixed_rule witness, fresh roots): sector spatial-height/hints/writers (sc_msgs.c tallest structure, the later IDENTIFY_FIXED reader), then effectful whole-32-bit UPDATED/shared terrain, raw tree/FOREST/CLOUD CRT RNG, needed hierarchy/devices/physical services, DCS mapping and workarounds, natural moving integration. REQUIRED_CITY_BOX_LIFECYCLE_RETENTION and the draw-file align census stay open for the whole D3. No Core back-call disguised as Host authority, query-time adoption, eager IDs, approximate geometry or campaign policy in Host.",
+  "next_production_change": "After the SAME reviewer's pass over only the changes of 4fb81c673 over bfce56e3c and Root's native comparison (one healthy control with the four declared added fields, one real changed_fixed_rule witness, fresh roots): REQUIRED_CITY_BOX_LIFECYCLE_RETENTION first (an actual empty-CITY relink/restore must retain/authorize the Host-built box without Core's mirror as the sole surviving copy; CITY physics is not done before it), then sector spatial-height/hints/writers (sc_msgs.c tallest structure, the later IDENTIFY_FIXED reader), effectful whole-32-bit UPDATED/shared terrain, raw tree/FOREST/CLOUD CRT RNG, needed hierarchy/devices/physical services, DCS mapping and workarounds, natural moving integration. The draw-file align census and the needed-consumer census/disposition (default shape/clutter columns are NOT declared campaign-owned) stay open for the whole D3. No Core back-call disguised as Host authority, query-time adoption, eager IDs, approximate geometry or campaign policy in Host.",
   "ready_evidence": [
     "Closed preparation reused, not redone: original characterization (15054 queries / 29894 ordered terrain answers exact through the host library and real Lua; original raw unchanged, 47a4af0d1/b44d2c96f) and the host tree loader/kernel 8c452f197 (review 4258f1b94, FP state/refusal/lifetime controls).",
     "Merge of the verified clean Task52 branch 099aa09c2dfeb77ca708214421e81113369a057e into the old Task49 head f2473817bced177b588878d6e416dcb4400f8bc2 (normal merge, no rebase/force); both sides' features, FFI, tests and history preserved.",
@@ -59,7 +59,8 @@
     "CITY box review correction (UNREVIEWED CODE_FROZEN 4c0b89263f41164e1c2379f3be99ac8d6c575173 over metadata deb50f281 over f06db8570, eech-campaign/reference/d3-entity-collision/city-box-review-correction-source-and-checks/): the four items of the CHANGES_REQUIRED review (review SHA-256 1b96c121f9a656f8e375c9dbf59dcb36a7d036a9ba800696ddd8aa61154e62ab, copied literally) corrected in one batch; genuine RED on the f06 sources (15 inverted-axis C canaries; driver: mismatched pairs eligible and withdrawn, same-marker refusal UNREACHED, comma reply credited), focused GREEN and the final chain on the committed tree exit 0 (sys 27, entity_authority 85, engine/dc 188); f06 kernel/control/FPU results reused by raw identity (six paths differ). Not reviewed, no actual.",
     "Source-clear50eee and Rootc0e/b6b: see city-box-correction-source-clear/manifest.json. Both original P2 source findings closed, exact3953rawGit/6changed/8children0/300resultinstances/66literalGit proofs. No Root Cargo replay; native and wholeD3 gates open.",
     "FINITE constructor4c0b SOURCE50eee/ACTUALf267 findings[]; city-box-finite-authority/manifest.json literal proof. Constructor/currentBOOT only, not CITY lifecycle or full shipping.3profiles88/short3COMPLETE/healthy54825/singledeclaredcounterdelta/180Bterminal exact/realBOOTwithdrawal/3triples0/6full1179/source3953; cache removed after12COFF30proof.",
-    "UNREVIEWED CODE_FROZEN d2f5027c9: host-derived fixed/CITY collision-fixed and align rules; RED 90b38189, final chain exit 0, maps literal equal 3953, CI extractor repair; eech-campaign/reference/d3-entity-collision/fixed-physical-rules-source-and-checks/manifest.json. No native, no review."
+    "UNREVIEWED CODE_FROZEN d2f5027c9: host-derived fixed/CITY collision-fixed and align rules; RED 90b38189, final chain exit 0, maps literal equal 3953, CI extractor repair; eech-campaign/reference/d3-entity-collision/fixed-physical-rules-source-and-checks/manifest.json. No native, no review.",
+    "UNREVIEWED CODE_FROZEN 4fb81c673 review correction of d2f5027c9/bfce56e3c: restatement ACK contract, integer scan classification (debug FPU flag), i686 test gate, DC test lint; RED/GREEN, whole-workspace debug (default and C_OPT=2), release eech-world, workspace clippy and fmt, maps literal equal 3953; eech-campaign/reference/d3-entity-collision/fixed-physical-rules-review-correction-source-and-checks/manifest.json. No native, no review, no SourceClearance."
   ],
   "blockers": [
     {
@@ -288,15 +289,39 @@
       "id": "fixed-physical-rules-source-review-native",
       "status": "open",
       "blocks_cutover": false,
-      "evidence": "UNREVIEWED CODE_FROZEN d2f5027c9154841c32f70ed87747b9d908e08e48: eech-campaign/reference/d3-entity-collision/fixed-physical-rules-source-and-checks/README.md. RED on 90b38189, GREEN final chain exit 0 (world 55 binaries, engine-sys with the C control, engine/dc, all-targets check, three fixture features, eech-sys, clippy on four crates), maps literal equal (3953).",
-      "missing_fact": "The independent review of the host-derived rule and the CITY record requirement, and Root's native run: healthy counts and complete outputs exact, zero mirror refusals, the changed_fixed_rule witness refused by name with eligibility before the change.",
-      "next_fix": "SAME reviewer, then Root native on fresh roots. A finding is corrected in one lane batch; no baseline, tolerance or scenario change."
+      "evidence": "UNREVIEWED CODE_FROZEN d2f5027c9154841c32f70ed87747b9d908e08e48 (eech-campaign/reference/d3-entity-collision/fixed-physical-rules-source-and-checks/README.md; preserved literally) was reviewed CHANGES_REQUIRED by the same reviewer (18b2faf80a7bd43905e7e078d63aaabbe1312817b9537f100ccaefac851c7c10, one P2, no other production-rule/record/kernel finding). Correction 4fb81c673: eech-campaign/reference/d3-entity-collision/fixed-physical-rules-review-correction-source-and-checks/README.md. The d2f key red_before_production_edit is chronologically false (implementation edits began 13:37; provider RED 13:45 and guard RED 14:20 followed the initial GREEN); the pack records the erratum, distinguishes the new-wire capability RED from the specific old CITY bypass and never calls the 27 failures independent defects. The four fixed_rule_* row fields are emitted by every mode including the healthy control.",
+      "missing_fact": "The same reviewer's clearance of the corrected source, the current CI of the corrected head, and Root's native run: one healthy control with exact shared fields/complete terminal and only the four declared added fields, then one real changed_fixed_rule witness refused by name with eligibility before the change.",
+      "next_fix": "Review of the corrected changes only; then Root native on fresh roots. A finding is corrected in one lane batch; no baseline, tolerance or scenario change."
+    },
+    {
+      "id": "ENV-FIXED-RULES-RESTATEMENT-ACK-1",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "Same reviewer's P2 over d2f5027c9. Corrected at 4fb81c673: the restatement is credited only by scan.fixed.reply_problem (placed, this placement's key, no cursor); a damaged acknowledgement is a reply fault with its own verdict. RED: ack-red-bfce-lua-debug (credited against the unchanged bfce Lua); GREEN: the damaged control and the positive real-state restatement/refusal control, debug and release. eech-campaign/reference/d3-entity-collision/fixed-physical-rules-review-correction-source-and-checks/README.md.",
+      "missing_fact": "The same reviewer's confirmation of the corrected change and control.",
+      "next_fix": "Review of the changes only."
+    },
+    {
+      "id": "ENV-CI-DEBUG-SCAN-FPU-1",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "Current CI run 42237739479 at bfce (x86_64 debug, Windows/Wine, EECH_C_OPT=2): entity_roster_host two tests, MXCSR 8065/flag 1 against 8064/0 after a signaling phase. Reproduced on the clean bfce in debug (fpu-red-bfce-debug-a, exit 101), located to f32::is_finite in the floating check_scan_facts reached by scan_step (an untracked flag-location control: invalid flag in debug, not in release), not introduced by d2f (path and tests byte-identical from 90b38189; an earlier probe failed identically). Corrected by the integer classify_scan_words before any float; no assertion/flag/profile change. Local debug (default and EECH_C_OPT=2) whole workspace and release whole eech-world pass. eech-campaign/reference/d3-entity-collision/fixed-physical-rules-review-correction-source-and-checks/README.md.",
+      "missing_fact": "The current CI of the corrected head (Windows/Wine profile not run locally; same cause inferred from its log, not shown).",
+      "next_fix": "Observe current CI; if a profile still fails, characterise it before any change."
+    },
+    {
+      "id": "ENV-CI-I686-FPU-TEST-GATE-1",
+      "status": "open",
+      "blocks_cutover": false,
+      "evidence": "Current CI i686 job: compile error E0433 (fpu) at 14 sites in two city-box tests of model_target_point.rs (added by f06db8570) that use the x86_64-only helper without the cfg their siblings carry; a DIFFERENT cause from the scan FPU failure. Gated the same way at 4fb81c673 (all 5 fpu-using tests are now gated; statically checked; an i686 compile could not run: no 32-bit libc in the image). DISCLOSED: those two tests do not run on i686, so i686 city-box parity is not claimed by them. The i686 EECH_ORIGINAL_STACK_ATTRIBUTES job was not inspected and is not assumed identical.",
+      "missing_fact": "The current CI of the corrected head on both i686 jobs.",
+      "next_fix": "Observe current CI; i686 city-box parity needs its own evidence if it is required."
     },
     {
       "id": "fixed-draw-align-direct-reads-final-census",
       "status": "open",
       "blocks_cutover": false,
-      "evidence": "cb_draw.c:108, ob_draw.c:98, py_draw.c:175/328, sn_draw.c:101, st_draw.c:102 and su_draw.c:110 read fixed_database[...].align_with_terrain directly; compiled into the hosted engine (eech-engine-sys/sources.txt:43-131). The reader census is pinned by model_target_point.rs; reachability in a headless hosted run is NOT proved.",
+      "evidence": "cb_draw.c:108, ob_draw.c:98, py_draw.c:175/328, sn_draw.c:101, st_draw.c:102 and su_draw.c:110 read fixed_database[...].align_with_terrain directly; compiled into the hosted engine (eech-engine-sys/sources.txt:43-131). The reader census is pinned by model_target_point.rs; reachability in a headless hosted run is NOT proved. The default-shape and ground-radar-clutter columns were outside the physical-rules cut: they are NOT declared campaign-owned; their callers and DCS/Host/Core disposition belong to the same needed-consumer census. IDENTIFY_FIXED campaign policy stays Core.",
       "missing_fact": "Whether any supported hosted run reaches them, and if so which host observation replaces the Core table read.",
       "next_fix": "Final active-consumer/compile census disposition; not moved by the rules cut, not claimed dormant."
     },
@@ -304,12 +329,12 @@
       "id": "ci-lints-latent-eech-dc-expect-err",
       "status": "open",
       "blocks_cutover": false,
-      "evidence": "Strict clippy (-D warnings, the CI Lints step that runs after the tests in the default x64 job) fails in eech-dc/src/module.rs at 5978 and 6025 (expect_err), a file the rules cut does not change; clean for eech-world, eech-engine-sys, eech-engine and eech-sys. Latent at 90b38189: the compile regression stopped that job before the step.",
-      "missing_fact": "A separate minimal fix (module.rs holds literal control bytes inside Lua raw strings: line-based edit only).",
-      "next_fix": "Root decides whether it joins this PR; not fixed in the rules batch."
+      "evidence": "Repaired at 4fb81c673 (test-only: the two expect_err uses in eech-dc/src/module.rs became the file's let-else idiom, assertions unchanged). The workflow's own cargo clippy --locked --all-targets -- -D warnings (workspace, no -p) exited 0 on the first-GREEN and the final bytes and cargo fmt --check exited 0 on the final bytes (the earlier exit 1 is retained). Open until the current CI of the corrected head passes.",
+      "missing_fact": "The current campaign CI Lints step on the corrected head.",
+      "next_fix": "Observe current CI; no skip or exclusion."
     }
   ],
-  "next_action": "SAME independent reviewer: ONE combined correctness / clean-code / boundary-safety pass over d2f5027c9 (and the metadata over it). Root: native comparison with fresh roots only after that review; the host-side changed_fixed_rule witness once, eligibility before the change. Keep REQUIRED_CITY_BOX_LIFECYCLE_RETENTION and every whole-D3/delivery gate open; preserve the f734 ordinary pack.",
+  "next_action": "SAME independent reviewer: ONE pass over ONLY the changes of 4fb81c673 over bfce56e3c and its actuals (ACK contract and its damaged control, scan classifier and its differential, i686 gate, two lint sites, declared fields and chronology erratum); closed d2f/constructor/numeric evidence is not replayed. Root: observe the current CI of the corrected head; only after the same reviewer's clearance prepare fresh roots for the native comparison. Next production after that: REQUIRED_CITY_BOX_LIFECYCLE_RETENTION, not sector height. Preserve the f734 ordinary pack; every whole-D3/delivery gate stays open.",
   "acceptance": [
     {
       "gate": "Production tree query asks the host and the old solver is absent from the ordinary module (compile guard)",
