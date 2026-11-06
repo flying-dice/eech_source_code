@@ -3781,7 +3781,7 @@ static int city_expand_request_is (const campaign_model_request *q, const char *
 
 static void city_expand_cases (struct tc *t)
 {
-	static const uint32_t GOOD[6] = { 0x80000000u, 0x00000001u, 0xc1200000u, 0x40000000u, 0x49742400u, 0xc9742400u };
+	static const uint32_t GOOD[6] = { 0x80000000u, 0x00000001u, 0xc9742400u, 0x00000000u, 0x00000001u, 0x49742400u };
 	static const uint32_t CANARY[6] = { 0x7fa5a5a5u, 0xdeadbeefu, 0x7fc0f00du, 0xffa00001u, 0x12345678u, 0x87654321u };
 	uint32_t before[6], after[6], bad[6];
 	float box[6];
@@ -3799,7 +3799,7 @@ static void city_expand_cases (struct tc *t)
 	snprintf (city_key, sizeof (city_key), "%s", place_key_of_slot[4]);
 	snprintf (child_key, sizeof (child_key), "%s", place_child_of_slot[5]);
 
-	/* the question: the phase and nothing else but the pair of keys; the box comes back exactly as the host holds it (a signed zero, a subnormal and the inverted box's magnitudes included) */
+	/* the question: the phase and nothing else but the pair of keys; the box comes back exactly as the host holds it (a signed zero, a subnormal, a minimum equal to its maximum and the original's 1.0e6 magnitudes included) */
 	expand_script (GOOD);
 	memcpy (box, CANARY, sizeof (box));
 	stopped = city_expand_do (&pheap[4], &pheap[5], box);
@@ -3886,6 +3886,50 @@ static void city_expand_cases (struct tc *t)
 	REFUSED_AND_UNTOUCHED ("a last word", "entity_scan.box", "more than");
 	expand_override = FALSE;
 
+	/* an EXPANDED box has its minimum at or below its maximum on every axis (the original unions both corners into both, so an axis it leaves reversed is a box the host did not build): every word is finite and
+	   the count, the name and the tail are right, yet one inverted axis is refused by name, at each of the three axes and in each region of the number line, and not one word of the caller's box is written */
+	for (index = 0; index < 3; index++)
+	{
+		static const uint32_t INVERTED[5][2] = {
+			{ 0x3f800000u, 0xbf800000u },	/* 1 above -1 */
+			{ 0x00000001u, 0x80000001u },	/* the smallest subnormal above its negative */
+			{ 0xbf800000u, 0xc0000000u },	/* -1 above -2: the larger magnitude is the smaller number */
+			{ 0x7f7fffffu, 0xff7fffffu },	/* the largest finite number above its negative */
+			{ 0x00000001u, 0x00000000u }	/* the smallest subnormal above zero */
+		};
+		int kind;
+
+		for (kind = 0; kind < 5; kind++)
+		{
+			memcpy (bad, GOOD, sizeof (bad));
+			bad[index] = INVERTED[kind][0];
+			bad[index + 3] = INVERTED[kind][1];
+			expand_script (bad);
+			expand_override = TRUE;
+			expand_name = city_key;
+			REFUSED_AND_UNTOUCHED ("an axis whose minimum is above its maximum", "entity_scan.box", "minimum above its maximum");
+		}
+	}
+
+	/* the raw words are ALL classified before the order is: an inverted axis next to a word that is not finite, or next to a word beyond the six, is refused for that word */
+	memcpy (bad, GOOD, sizeof (bad));
+	bad[0] = 0x3f800000u;
+	bad[3] = 0xbf800000u;
+	bad[5] = 0x7fc00000u;
+	expand_script (bad);
+	expand_override = TRUE;
+	expand_name = city_key;
+	REFUSED_AND_UNTOUCHED ("an inverted axis and a word that is not finite", "entity_scan.box", "not a finite number");
+	memcpy (bad, GOOD, sizeof (bad));
+	bad[1] = 0x3f800000u;
+	bad[4] = 0xbf800000u;
+	expand_script (bad);
+	expand_override = TRUE;
+	expand_name = city_key;
+	expand_words[CAMPAIGN_CITY_EXPAND_WORDS] = 0x3f800000u;
+	REFUSED_AND_UNTOUCHED ("an inverted axis and a seventh word", "entity_scan.box", "more than");
+	expand_override = FALSE;
+
 #undef REFUSED_AND_UNTOUCHED
 
 	/* the exchange is fine again after every refusal: the same pair, the same words */
@@ -3894,6 +3938,27 @@ static void city_expand_cases (struct tc *t)
 	stopped = city_expand_do (&pheap[4], &pheap[5], box);
 	box_words (box, after);
 	EXPECT (t, !stopped && expand_asks == 1 && memcmp (after, GOOD, sizeof (GOOD)) == 0);
+
+	/* the legitimate boxes at the edge of the order are written exactly, bit for bit: a signed zero equal to the other sign's zero (in either position), a minimum equal to its maximum, adjacent subnormals of both
+	   signs and the extremes of the finite range */
+	{
+		static const uint32_t EDGE[4][6] = {
+			{ 0x00000000u, 0x80000000u, 0xff7fffffu, 0x80000000u, 0x00000000u, 0x7f7fffffu },
+			{ 0x3f800000u, 0x80000001u, 0xbf800000u, 0x3f800000u, 0x80000001u, 0xbf800000u },
+			{ 0x80000001u, 0x00000000u, 0xc0000000u, 0x00000001u, 0x00000001u, 0xbf800000u },
+			{ 0x80000000u, 0x80000000u, 0x80000000u, 0x00000000u, 0x00000000u, 0x00000000u }
+		};
+		int kind;
+
+		for (kind = 0; kind < 4; kind++)
+		{
+			expand_script (EDGE[kind]);
+			memcpy (box, CANARY, sizeof (box));
+			stopped = city_expand_do (&pheap[4], &pheap[5], box);
+			box_words (box, after);
+			EXPECT (t, !stopped && expand_asks == 1 && memcmp (after, EDGE[kind], sizeof (EDGE[kind])) == 0);
+		}
+	}
 
 	/* the pair is the campaign's own and is checked BEFORE anything is sent: a key that is no roster key, a building not listed by the host, one listed under another city, a city with no sector placement and a
 	   build with no host each stop the engine by name with nothing asked and the box untouched */

@@ -123,11 +123,12 @@
 -- (phase 15 of the scan question, 0x41700000: every fact zero but the phase; the identity place is the city's sector key, one space and the building's key) and the host answers `expanded` with the city's key and, in `p`, the
 -- six bit patterns of the box it built from the records it holds (the city's state, the building's fixed state, the scene's bounds) and now holds. The campaign applies the checked words to its mirror and states no box.
 -- It happens at BOOT, when the campaign's cities are made, in the window before the launch: the witness counts the questions in both windows (`city_expand_before`, `city_expand_after`, `city_expand_total`,
--- `city_expand_answered`), checks every reply (`expanded`, the city's key, six finite patterns) and alters nothing.
---   withdrawn_box_state   HOST-SIDE, no answer, request or entity is altered, at BOOT: at the first CITY_EXPAND question whose pair joined a city state and a building state the provider acknowledged, the host's own
+-- `city_expand_answered`), checks every reply (`expanded`, the city's key, exactly six 0x%08x patterns that are finite) and alters nothing.
+--   withdrawn_box_state   HOST-SIDE, no answer, request or entity is altered, at BOOT: at the first CITY_EXPAND question whose pair joined a city state and a building state the provider acknowledged AND whose building is listed
+--                         under the CURRENT city (the placement's list key, or the key an acknowledged LINK continued the list with after a relink), the host's own
 --                         withdrawal of ONLY that building's fixed state, acknowledged `removed` by the SAME provider, and then the SAME question delegated once, unmodified: the engine stops at
 --                         [model-provider:entity_scan.refused] with [roster.city_box.building_state] ... withdrew as the only fault (an old Core that computed the box itself would not ask, and would not stop). The engine's stop at
---                         boot is the supported error path; nothing physical is read after it (every physical fact after the stop is unknown, -1). UNREACHED when the boot asked no such question (no actor, time or geometry hunt).
+--                         boot is the supported error path; nothing physical is read after it (every physical fact after the stop is unknown, -1). UNREACHED only when the boot stopped at nothing and asked no such question (no actor, time or geometry hunt); ANY stop at boot without the acknowledged withdrawal, at the same marker or another, is a failure.
 --
 -- THE HOST'S OWN MOVEMENT CHANGES WHAT THE SOLVER DECIDES FROM (two completion modes; neither is a refusal and neither is claimed by the two refusal modes above, which only STOP the engine). The engine's own movement
 -- callback is the host's (`move_vehicle = hosted_move`, a pass-through that logs each `move` answer per identity). `moving_control` and `terrain_lift` select a DIFFERENT case from the nearest-enemy rule: the nearest enemy of
@@ -898,7 +899,7 @@ local function roster_track (parsed, answer)
 	else
 		for key in pairs (roster_live) do roster_ended [key] = true end
 		roster_live, last_served = {}, nil
-		scan.city.parent, scan.city.lists, scan.city.last = {}, {}, nil
+		scan.city.parent, scan.city.lists, scan.city.alias, scan.city.last = {}, {}, {}, nil
 	end
 end
 -- the first problem of a REAL city reply against the contract, or nil: the state its event allows, a key for an insertion (never issued before) and none for a removal, the building a traversal serves (a live child of
@@ -944,6 +945,10 @@ local function city_track (parsed, answer)
 		local served = answer.name ~= nil and answer.name ~= ""
 		city.last = served and { parent = parsed.keys [1], child = answer.name } or nil
 		if served then city.served = city.served + 1 end
+	elseif parsed.event == "link" and city.lists [parsed.keys [2]] and city.parent [parsed.keys [2]] == nil then
+		-- an acknowledged LINK of a sector placement to the key a city's list is named by: the placement CONTINUES that list's record (a relink of the city), so it is the same city as the list's name. A LINK of two
+		-- placements of one building names a child, never a list, and is no such alias
+		city.alias [parsed.keys [1]] = city.alias [parsed.keys [2]] or parsed.keys [2]
 	end
 end
 -- the first problem of a well-formed question against the keys seen so far, or nil: a removal names an entry that is not already ended, and a scan stands at the entry the host last served and never at one that ended
@@ -972,7 +977,10 @@ local function request_join_problem (parsed)
 		if roster_ended [parsed.child] then return "a city expansion names the building " .. parsed.child .. ", which has ended" end
 		if not scan.fixed.city_held [parsed.city] then return "a city expansion names the city " .. parsed.city .. ", whose state the provider never acknowledged" end
 		if not scan.fixed.held [parsed.child] then return "a city expansion names the building " .. parsed.child .. ", whose fixed state the provider never acknowledged" end
-		if scan.city.parent [parsed.child] == nil then return "a city expansion names the building " .. parsed.child .. ", which is listed under no city" end
+		local listed = scan.city.parent [parsed.child]
+		if listed == nil then return "a city expansion names the building " .. parsed.child .. ", which is listed under no city" end
+		-- the CURRENT city placement is the city whose list the building is listed under: through the key the list is named by, which the placement's own key is or, after a relink, was linked to
+		if scan.city.anchor (parsed.city) ~= scan.city.anchor (listed) then return "a city expansion names the building " .. parsed.child .. " and the city " .. parsed.city .. ", but the building is not listed under the city " .. parsed.city .. " (its list is " .. listed .. ")" end
 		return nil
 	end
 	if parsed.kind == "roster" then
@@ -1017,10 +1025,12 @@ function scan.fixed.expand_reply_problem (answer, parsed)
 	if answer.result == "refused" then return "result refused" end
 	if answer.result ~= "expanded" then return "a city expansion answered " .. tostring (answer.result) .. ", not expanded" end
 	if answer.name ~= parsed.city then return "a city expansion acknowledged \"" .. shown (answer.name) .. "\" for the city " .. parsed.city end
-	if type (answer.p) ~= "string" or #answer.p ~= 65 then return "a city expansion answered a box that is not six 0x%08x patterns" end
-	for pattern in string.gmatch (answer.p, "[^,]+") do
+	-- exactly six patterns (each `0x` and eight hex digits, joined by single commas), then each word classified from its bits as an integer: an exponent of all ones is an infinity or a NaN
+	local words = type (answer.p) == "string" and words_of_text (answer.p, 6) or nil
+	if words == nil then return "a city expansion answered a box that is not six 0x%08x patterns" end
+	for _, pattern in ipairs (words) do
 		local word = tonumber (string.sub (pattern, 3), 16)
-		if string.sub (pattern, 1, 2) ~= "0x" or #pattern ~= 10 or word == nil or word >= 0x7f800000 and word < 0x80000000 or word >= 0xff800000 then return "a city expansion answered the box word " .. pattern .. ", which is not a finite number" end
+		if word == nil or word % 0x80000000 >= 0x7f800000 then return "a city expansion answered the box word " .. pattern .. ", which is not a finite number" end
 	end
 	return nil
 end
@@ -1040,7 +1050,9 @@ function scan.fixed.box_verdict (failure)
 		physical_after_stop = -1, request_faults = faults.request, reply_faults = faults.reply, first_fault = first_fault or "",
 	}
 	if f.box_withdrawn == -2 or (f.box_withdrawn == 0 and (faults.request > 0 or faults.reply > 0)) then return "mode " .. mode .. ": nothing was withdrawn because the boot failed first (request_faults=" .. faults.request .. " reply_faults=" .. faults.reply .. "): " .. tostring (first_fault) end
-	if f.box_withdrawn == 0 and failure ~= nil and failure.marker ~= plan.marker then return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "], not at [model-provider:" .. plan.marker .. "], before a city expansion was withdrawn: " .. failure.line end
+	-- with no acknowledged withdrawal ANY stop at boot is a failure, whatever its marker: the generic refusal marker is also what an unrelated refusal carries, and only the withdrawn state's own refusal after the host's
+	-- acknowledged withdrawal is the credited cause. Only a boot that stopped at nothing and asked no eligible expansion is a missing prerequisite
+	if f.box_withdrawn == 0 and failure ~= nil then return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "] before a city expansion was withdrawn: " .. failure.line end
 	if f.box_withdrawn == 0 then return "UNREACHED: " .. mode .. ": the boot asked no city expansion that joined a held city state and a held building state (" .. f.expand_total .. " expansions asked, " .. f.expand_answered .. " answered, " .. before.city_expand .. " in the boot window): no actor, time or geometry was searched for" end
 	if f.box_withdrawn == -1 then return "mode " .. mode .. ": the host's withdrawal of the building's fixed state was not acknowledged as removed" end
 	if failure == nil then return "mode " .. mode .. " completed: the engine did not stop at " .. plan.marker .. " after the withdrawal of the building's state" end
@@ -1055,7 +1067,9 @@ scan.withdrawn, scan.withdrawn_next = 0, ""
 -- the CITY events (phases 7 to 12), counted apart from the roster's and the scan's: by event and by answer; the buildings served, the list each live child is listed under, the names of the lists seen, the building a
 -- traversal was last served, the well-formed CHILD_NEXT questions that stood at it and joined the keys seen (`next_joined`), and the host's own withdrawal of that building (withdrawn_child; 1 once acknowledged
 -- `removed`, -1 when it was not) with the event it preceded
-scan.city = { total = 0, child_insert = 0, child_remove = 0, child_first = 0, child_next = 0, link = 0, name = 0, placed = 0, removed = 0, next = 0, served = 0, parent = {}, lists = {}, last = nil, next_joined = 0, withdrawn = 0, withdrawn_next = "" }
+scan.city = { total = 0, child_insert = 0, child_remove = 0, child_first = 0, child_next = 0, link = 0, name = 0, placed = 0, removed = 0, next = 0, served = 0, parent = {}, lists = {}, alias = {}, last = nil, next_joined = 0, withdrawn = 0, withdrawn_next = "" }
+-- the key a city's list is named by for a key of the identity place: a sector placement that an acknowledged LINK continued the list with is the same city as the list's name (`alias`), any other key stands for itself
+function scan.city.anchor (key) return scan.city.alias [key] or key end
 -- one ENTITY_SCAN question: a roster event (phases 4 to 6) or a step of the scan. The two are counted apart in both windows: an event is never a query scan, and no event alters or credits a scan control
 local function scan_question (scene, depth, kind, definition, key, counts)
 	local roster = scan.roster

@@ -915,7 +915,26 @@ static void campaign_entity_city_state_exchange (const char *key, const float *s
 // The CITY_EXPAND question (the same question; phase CAMPAIGN_SCAN_PHASE_CITY_EXPAND, Task49; see mb_hostmodel.h): a building's link expanded its city's bounding box and the host builds it. The question states nothing
 // but its phase and the identity place, which is the city's sector key, one space and the building's key (at most 2 * CAMPAIGN_ROSTER_KEY_MAX + 1 bytes, inside the host identity's domain); both are validated HERE as roster keys
 // before anything is sent. The reply is checked COMPLETELY before one word of the caller's `box` is written: the state EXPANDED, the city's key echoed and nothing else named, exactly CAMPAIGN_CITY_EXPAND_WORDS words (and no
-// word beyond), every word a finite number classified from its bytes. A reply that fails any of it stops the engine and `box` is as it was.
+// word beyond), every word a finite number classified from its bytes, and then each axis of the box with its minimum at or below its maximum (an expanded box always is: the original unions both corners of the
+// building's rotated bounds into both the minimum and the maximum; the inverted box of a city with no building is the INITIAL state the CITY_STATE report carries, not an expanded one). A reply that fails any of it stops
+// the engine and `box` is as it was; the checks of the campaign's own mirror in ct_msgs.c are ASSERTs, which a shipping build only logs and which run after the words are written, so this is where the order is enforced.
+
+// the order of a finite word among the finite numbers, from its bytes: the sign and magnitude become one signed key, so the two zeros are the same number and no floating value is loaded or compared
+static int finite_word_order (const float *value)
+{
+	uint32_t
+		word;
+
+	int32_t
+		magnitude;
+
+	memcpy (&word, value, sizeof (word));
+
+	magnitude = (int32_t) (word & 0x7fffffffu);
+
+	return ((word & 0x80000000u) != 0 ? -magnitude : magnitude);
+}
+
 static void check_city_expand_reply (const campaign_model_reply *reply, const char *city)
 {
 	int
@@ -951,6 +970,14 @@ static void check_city_expand_reply (const campaign_model_reply *reply, const ch
 		if (!scan_word_is_zero (&reply->candidate [index]))
 		{
 			debug_fatal ("host model: [model-provider:entity_scan.box] the host answered more than %d words for a city expansion", CAMPAIGN_CITY_EXPAND_WORDS);
+		}
+	}
+
+	for (index = 0; index < 3; index++)
+	{
+		if (finite_word_order (&reply->candidate [index]) > finite_word_order (&reply->candidate [index + 3]))
+		{
+			debug_fatal ("host model: [model-provider:entity_scan.box] the box axis %d the host answered for a city expansion has its minimum above its maximum", index);
 		}
 	}
 }

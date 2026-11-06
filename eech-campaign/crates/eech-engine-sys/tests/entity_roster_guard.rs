@@ -1022,3 +1022,31 @@ fn the_shipping_cities_box_expansion_is_the_hosts_and_the_original_physical_body
         assert!(original.contains(original_statement), "the oracle lost `{original_statement}`");
     }
 }
+
+#[test]
+fn an_expanded_boxs_axis_order_is_checked_from_the_raw_words_before_any_word_of_the_callers_box_is_written() {
+    let text = source("entity/mobile/mb_hostentity.h");
+    let start = text.find("static void check_city_expand_reply (").expect("the reply check");
+    let end = start
+        + text[start..]
+            .find("\nstatic void campaign_entity_city_expand_exchange")
+            .expect("the exchange follows the check");
+    let check = &text[start..end];
+    let order = "finite_word_order (&reply->candidate [index]) > finite_word_order (&reply->candidate [index + 3])";
+    assert!(check.contains(order), "the expanded axes are ordered by the reply check");
+    // every raw word (finite, no word beyond the six) is classified before the order, and no floating value of the untrusted words is loaded or compared
+    before(check, "candidate_word_is_finite (&reply->candidate [index])", order, "mb_hostentity.h");
+    before(check, "the host answered more than %d words for a city expansion", order, "mb_hostentity.h");
+    assert!(
+        !check.contains("reply->candidate [index] >") && !check.contains("reply->candidate [index] <"),
+        "no float comparison of an untrusted word"
+    );
+    // the check is the exchange's, before the words are copied out: the campaign's ASSERTs in ct_msgs.c only log in a shipping build and run after the writes
+    let exchange = &text[end..];
+    before(
+        exchange,
+        "check_city_expand_reply (&reply, city);",
+        "memcpy (box, reply.candidate",
+        "mb_hostentity.h",
+    );
+}

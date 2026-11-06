@@ -187,6 +187,10 @@ local function reference (op, scene, depth, kind, definition, key)
 			if scenario.bad_real_expand == "echo" then answer.name = "99" end
 			if scenario.bad_real_expand == "short" then answer.p = "0xc0800000,0xc1200000" end
 			if scenario.bad_real_expand == "infinite" then answer.p = "0xc0800000,0xc1200000,0xc0000000,0x40000000,0x40000000,0x7f800000" end
+			-- the same 65 bytes as a valid box, but not six exact patterns: five patterns with fifteen separators, a signed pseudo-hex word and a blank one (each passes a length-and-token-count check)
+			if scenario.bad_real_expand == "commas" then answer.p = "0xc0800000,,,0xc1200000,,,0xc0000000,,,0x40000000,,,0x40000000,,," end
+			if scenario.bad_real_expand == "signed" then answer.p = "0xc0800000,0x+1234567,0xc0000000,0x40000000,0x40000000,0x40c00000" end
+			if scenario.bad_real_expand == "blank" then answer.p = "0xc0800000,0x 1234567,0xc0000000,0x40000000,0x40000000,0x40c00000" end
 			EXPAND_LOG [#EXPAND_LOG + 1] = { phase = phase, result = answer.result, name = answer.name or "", identity = identity }
 		elseif scenario.real_scan then
 			-- the REAL provider (eech-world's model_host with its own SectorRoster, registered by the test as REAL_HOST): every question of the scan and the roster is answered by it
@@ -686,6 +690,53 @@ package.preload.eech_dc = function ()
 				roster_event ("reset")
 				roster_event ("insert")
 				sentinel_city_report (roster_key)
+				local layout = scenario.city_box_layout
+				-- a SECOND live city with its own acknowledged state, a building of each, and the expansion asked for the pair that does not belong together: the building of the FIRST city under the SECOND city's key
+				if layout == "cross" or layout == "cross_relinked" then
+					local second = roster_event ("insert", true).name
+					sentinel_city_report (second)
+					local first_child = city_event ("child_insert", roster_key).name
+					building_report (first_child)
+					local second_child = city_event ("child_insert", second).name
+					building_report (second_child)
+					if layout == "cross" then city_expand_request (second, first_child) return end
+					-- the first city's sector placement is relinked while its buildings stay listed (its list keeps the first key's name): the new placement continues the list, and is asked about the OTHER city's building
+					local anchor = roster_key
+					roster_event ("remove")
+					roster_event ("insert")
+					city_event ("link", roster_key .. " " .. anchor)
+					sentinel_city_report (roster_key)
+					city_expand_request (roster_key, second_child)
+					return
+				end
+				-- the same pair after a legitimate relink: the building is listed under the key the first placement named the list by, and the city now stands in a new placement that continues that list
+				if layout == "relink" then
+					local child = city_event ("child_insert", roster_key).name
+					building_report (child)
+					local anchor = roster_key
+					roster_event ("remove")
+					roster_event ("insert")
+					city_event ("link", roster_key .. " " .. anchor)
+					sentinel_city_report (roster_key)
+					city_expand_request (roster_key, child)
+					return
+				end
+				-- an EMPTY city's relink is a removal and a new insertion with no list to continue: the first building is listed under the new placement
+				if layout == "empty_relink" then
+					roster_event ("remove")
+					roster_event ("insert")
+					sentinel_city_report (roster_key)
+					local child = city_event ("child_insert", roster_key).name
+					building_report (child)
+					city_expand_request (roster_key, child)
+					return
+				end
+				-- a boot refusal that is NOT the withdrawn building's: it stops at the same generic marker before any expansion, with nothing withdrawn
+				if layout == "unrelated_refusal" then
+					local child = city_event ("child_insert", roster_key).name
+					building_report (child)
+					stop ("entity_scan.refused", "[roster.unrelated] an unrelated refusal at boot")
+				end
 				for _ = 1, scenario.city_box do
 					local child = city_event ("child_insert", roster_key).name
 					city_children [#city_children + 1] = child
@@ -5003,4 +5054,133 @@ fn a_city_expansion_reply_that_is_not_the_contracts_is_a_reply_fault_of_the_heal
         let error = result.expect_err("a malformed reply is a failure of the healthy run");
         assert!(error.contains(why), "{fault}: {error}");
     }
+}
+
+// The pair a city expansion names must be the CURRENT city and a building that is listed under THAT city's list. The driver joins the sector placement (through the key its list is named by, which a relink of the
+// placement keeps) to the list the served building is listed under BEFORE it counts the question eligible or sends the host's own withdrawal. A pair of two live cities with their own acknowledged states and
+// a building of the OTHER city is a request fault: nothing is eligible, nothing is withdrawn or restated, and the boot's verdict is a failure.
+
+fn assert_no_withdrawal_of_a_mismatched_pair(layout: &str) {
+    let extra = format!("{CITY_BOX}, city_box_layout = '{layout}'");
+    let driven = drive(&healthy(&extra), &[("mode", "withdrawn_box_state")]);
+    let row = authority(&driven);
+    assert_eq!(
+        (row["box_eligible"].clone(), row["box_withdrawn"].clone(), row["box_withdrawn_cause"].clone()),
+        (Value::from(0), Value::from(-2), Value::from("")),
+        "{layout}: {row}"
+    );
+    assert!(row["request_faults"].as_i64().unwrap() >= 1, "{layout}: {row}");
+    assert!(row["first_fault"].as_str().unwrap().contains("is not listed under the city"), "{layout}: {row}");
+    // the provider acknowledged only states: no building's state was withdrawn and no state was restated
+    assert!(
+        driven.fixed_log.iter().all(|entry| entry.1 == "placed"),
+        "{layout}: nothing was withdrawn: {:?}",
+        driven.fixed_log
+    );
+    let error = error_of(driven);
+    assert!(
+        !error.contains("UNREACHED") && error.contains("nothing was withdrawn because the boot failed first") && error.contains("is not listed under the city"),
+        "{layout}: {error}"
+    );
+}
+
+#[test]
+fn a_building_of_the_other_city_is_never_eligible_and_no_state_is_withdrawn_for_it() {
+    assert_no_withdrawal_of_a_mismatched_pair("cross");
+}
+
+#[test]
+fn a_relinked_city_is_still_not_the_city_of_a_building_listed_under_another() {
+    assert_no_withdrawal_of_a_mismatched_pair("cross_relinked");
+}
+
+#[test]
+fn the_current_pair_of_a_relinked_or_an_empty_relinked_city_is_eligible_and_the_withdrawal_is_credited() {
+    for layout in ["relink", "empty_relink"] {
+        let extra = format!("{CITY_BOX}, city_box_layout = '{layout}'");
+        let driven = drive(&healthy(&extra), &[("mode", "withdrawn_box_state")]);
+        assert!(driven.result.is_ok(), "{layout}: {:?}\n{}", driven.result, driven.rows);
+        let row = authority(&driven);
+        assert_eq!(
+            (
+                row["box_eligible"].clone(),
+                row["box_withdrawn"].clone(),
+                row["box_withdrawn_cause"].clone(),
+                row["request_faults"].clone(),
+                row["reply_faults"].clone()
+            ),
+            (
+                Value::from(1),
+                Value::from(1),
+                Value::from("city_box_building_state_withdrawn"),
+                Value::from(0),
+                Value::from(1)
+            ),
+            "{layout}: {row}"
+        );
+        // exactly the building's state was withdrawn, once, and the question was delegated once
+        let removed: Vec<_> = driven.fixed_log.iter().filter(|entry| entry.1 == "removed").collect();
+        assert_eq!(removed.len(), 1, "{layout}: {:?}", driven.fixed_log);
+        assert_eq!(driven.expand_log.len(), 1, "{layout}: {:?}", driven.expand_log);
+        assert_eq!(driven.expand_log[0].1, "refused", "{layout}");
+    }
+}
+
+#[test]
+fn a_boot_stop_at_the_expected_generic_marker_with_nothing_withdrawn_is_a_failure_and_never_unreached() {
+    let extra = format!("{CITY_BOX}, city_box_layout = 'unrelated_refusal'");
+    let driven = drive(&healthy(&extra), &[("mode", "withdrawn_box_state")]);
+    let row = authority(&driven);
+    assert_eq!(
+        (
+            row["boot_stop"].clone(),
+            row["failure_marker"].clone(),
+            row["box_eligible"].clone(),
+            row["box_withdrawn"].clone(),
+            row["box_withdrawn_cause"].clone(),
+            row["physical_after_stop"].clone()
+        ),
+        (
+            Value::from(true),
+            Value::from("entity_scan.refused"),
+            Value::from(0),
+            Value::from(0),
+            Value::from(""),
+            Value::from(-1)
+        ),
+        "{row}"
+    );
+    let error = error_of(driven);
+    assert!(
+        !error.contains("UNREACHED") && error.contains("before a city expansion was withdrawn") && error.contains("an unrelated refusal at boot"),
+        "{error}"
+    );
+}
+
+#[test]
+fn a_city_expansion_reply_that_is_not_exactly_six_patterns_is_a_reply_fault_though_it_has_the_length_of_one() {
+    for fault in ["commas", "signed", "blank"] {
+        let extra = format!("{CITY_BOX}, bad_real_expand = '{fault}'");
+        let driven = drive(&healthy(&extra), &[("mode", "control")]);
+        let row = authority(&driven);
+        // never credited as an answered expansion
+        assert_eq!(row["city_expand_answered"], 0, "{fault}: {row}");
+        let error = error_of(driven);
+        assert!(
+            error.contains("scan reply: a city expansion answered a box that is not six 0x%08x patterns"),
+            "{fault}: {error}"
+        );
+    }
+}
+
+#[test]
+fn a_city_expansion_reply_of_six_exact_patterns_is_credited_with_a_signed_zero_and_a_subnormal() {
+    let extra = format!("{CITY_BOX}, expanded_p = '0x80000000,0x00000001,0xc9742400,0x00000000,0x00000001,0x49742400'");
+    let (driven, row) = scan_row(&extra, "control");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!(
+        (row["city_expand_answered"].clone(), row["reply_faults"].clone()),
+        (Value::from(2), Value::from(0)),
+        "{row}"
+    );
 }

@@ -578,7 +578,7 @@ void campaign_model_entity_city_state (const char *key, const float *state);
    placement), and the city's bounding box is to be expanded for it. The campaign states no word of it: the host holds the city's own state (its position and the box it holds) and the building's fixed state (its
    position, heading and shape), takes the shape's bounds from the model data it owns, builds the new box with the original's arithmetic, holds it in its record of the city and answers it. `box` receives the
    CAMPAIGN_CITY_EXPAND_WORDS floats (the minimum, then the maximum) the host holds now, and is written ONLY after the whole answer was checked (the state EXPANDED, the city's key echoed, the count of words, every word finite,
-   no sector named): a refusal, a missing provider or an answer that does not hold stops the engine by marker and leaves `box` as it was. The campaign applies the words to its mirror of the box, as they are. */
+   no sector named, and each axis of the box with its minimum at or below its maximum): a refusal, a missing provider or an answer that does not hold stops the engine by marker and leaves `box` as it was. The campaign applies the words to its mirror of the box, as they are. */
 void campaign_model_entity_city_expand (const char *city, const char *building, float *box);
 
 /* whether a model provider is installed (the roster reports only to one: a build with no host has no roster and no scan) */
