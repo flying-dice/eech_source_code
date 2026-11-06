@@ -7,10 +7,10 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "UNREVIEWED CODE_FROZEN two residual city-building findings corrected, source 76fbf557cc8bff935216aba21110a137bb31bf1f over c2f3602d91eba44ff3fbfd7485b5b2ee1bf65eda (code 1687431feb2a38c39394727abc9cdb090efdf916): the city list's anchor is kept until its host record ends (through the last building leaving, a building listed again and every relink), and each callback identity is bounded by its own operation's domain (128; 149 only for a phase-12 NAME) before the host is asked (focused Linux checks only; no Windows, native, ordinary or full-pack run). The verified sector-roster dependency is closed and untouched; ordinary 3475 full40/all8 ACTIVE/PARTIAL. New-material review, then Root's native build and a healthy control with a real CHILD_NEXT before the matched withdrawn_child actual next; fixed pose/shape/live flags/hierarchy, UPDATED/shared terrain, RNG, devices, DCS mapping, natural weapon and wholeD3/fullTask49 open.",
+  "phase": "City76fb SOURCE reviewedclear a049 (all4+2findingsclosed); Root3952rawGit/mapsliteral/3selecteddirectgates0; 3standardWindowsprofiles ACTIVE. No citynative/short/fullpack acceptance. Old3475full40untouched/partial, wholeD3open.",
   "preparation_batches_without_cutover": 0,
   "preparation_limit": 2,
-  "next_production_change": "Review the changed city material (the same reviewer), then Root's native build; a healthy control that establishes a real CHILD_NEXT (the finite UNREACHED prerequisite if the default fixed case never asks for a building after a served one), then the matched withdrawn_child actual; then the next required production cut: the static pose, shape and live flags of fixed and city entities and the hierarchy (the campaign's remaining dependencies of the collision scan), with the tallest structure of a sector, UPDATED/terrain-normal and the shared terrain record as explicit required follow-on services. Core lists stay conformance mirrors, never an answer; no wholeD3 claim.",
+  "next_production_change": "Validate the reviewed host city-child/structure record backing on new76fb Windows profiles: ordinaryshort exact3files, healthy actual positive CHILD_NEXT then same-provider standing-child withdrawal/refusal; current full40/all8 remains required. Static pose/shape/live flags and needed remaining hierarchy/services are next required production work.",
   "ready_evidence": [
     "Closed preparation reused, not redone: original characterization (15054 queries / 29894 ordered terrain answers exact through the host library and real Lua; original raw unchanged, 47a4af0d1/b44d2c96f) and the host tree loader/kernel 8c452f197 (review 4258f1b94, FP state/refusal/lifetime controls).",
     "Merge of the verified clean Task52 branch 099aa09c2dfeb77ca708214421e81113369a057e into the old Task49 head f2473817bced177b588878d6e416dcb4400f8bc2 (normal merge, no rebase/force); both sides' features, FFI, tests and history preserved.",
@@ -56,11 +56,11 @@
   "blockers": [
     {
       "id": "city-building-backing-source-review",
-      "status": "open",
+      "status": "closed",
       "blocks_cutover": false,
-      "evidence": "Source 76fbf557cc8bff935216aba21110a137bb31bf1f (UNREVIEWED) corrects the two residuals of the review of 1687431fe (ENV-CITY-PARENT-ANCHOR-EMPTY-CYCLE-1: the list anchor is the host record's name, kept until the record ends; ENV-CITY-NAME-FIELD-OTHER-DOMAINS-1: candidate, pose and non-NAME scan identities are bounded at 128 before the host is asked, only a phase-12 NAME up to 149). Behavioural reds were run (nine C expectations; the engine boundary test), then fmt, the four-crate check, C dialogue 559, guards 5/4/7, driver 65, host 17 and the engine callback filter 13 passing, each its own scoped child with exit 0, between literally identical full input maps. Report R:/d3-evidence/city-building-residuals-CODE-FROZEN-20261106.json.",
-      "missing_fact": "The same reviewer's check of the new material only; Root's native build and a healthy control with a real CHILD_NEXT before one matched withdrawn_child actual (UNREACHED if the default fixed case never reaches one); the ordinary regression on the new source.",
-      "next_fix": "Re-review the changed material once; Root builds and runs the controls. No rerun of the closed roster, FP, provider-key or earlier driver groups."
+      "evidence": "Source 76fbf557cc8bff935216aba21110a137bb31bf1f (UNREVIEWED) corrects the two residuals of the review of 1687431fe (ENV-CITY-PARENT-ANCHOR-EMPTY-CYCLE-1: the list anchor is the host record's name, kept until the record ends; ENV-CITY-NAME-FIELD-OTHER-DOMAINS-1: candidate, pose and non-NAME scan identities are bounded at 128 before the host is asked, only a phase-12 NAME up to 149). Behavioural reds were run (nine C expectations; the engine boundary test), then fmt, the four-crate check, C dialogue 559, guards 5/4/7, driver 65, host 17 and the engine callback filter 13 passing, each its own scoped child with exit 0, between literally identical full input maps. Report R:/d3-evidence/city-building-residuals-CODE-FROZEN-20261106.json. Final SAME76fb source reviewa049 has no findings and closes the prior city source groups; Root3952Git-exact/mapsstable/3frozengates0. Windows and actual city proof pending.",
+      "missing_fact": "None for the closed source findings at76fb; city native/ordinary/full40 gates remain separately open.",
+      "next_fix": "Preserve reviewed source; Root exact new builds and reached city actual validation, no closed-source replay."
     },
     {
       "id": "sector-roster-real-withhold-control",

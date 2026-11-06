@@ -1,0 +1,11 @@
+Root early finding for the current city cut (new material only, before source freeze/builds): withdrawn_child mutation timing.
+
+Current mb_hostoffer.h calls CAMPAIGN_OFFER_FIRST_BUILDING while handling NEED_FLAGS, before the parent city's bounding-box decision. It calls CHILD_NEXT only later, in BUILDINGS after the current child's collision attempt; a parent-box miss or a child hit can end that path without NEXT.
+
+Current entity-authority.lua withdrawn_child removes the newly served child immediately after a real child_first/child_next answer and expects the next city question to be child_next with the ended key. That continuation is not guaranteed by the real caller. Removal can instead cause a later FIRST/mirror refusal, or a lazy object-name lookup can touch the ended placement before NEXT. The synthetic real_city test's immediate FIRST->NEXT sequence does not establish the actual caller's continuation.
+
+Please resolve this BEFORE declaring the final source frozen. One robust bounded control is to withdraw the actually standing previously served child immediately BEFORE delegating a genuine well-formed CHILD_NEXT request to the SAME real provider. Validate the existing request join first; real REMOVE must acknowledge removed; then delegate that SAME unmodified NEXT exactly once and require the provider's actual ended-child refusal. This demonstrates the true consumer reached the next-child operation, needs no geometry/timing hunt, no forged error, no changed FIRST/returned answer, no coherent-success claim, and no Core write. Keep explicit withdrawal separate from campaign events and retain primary cause/request0/reply1/no postfatal reads. If another minimum source-proved design is used, explain why the real caller guarantees the mutation's exact continuation.
+
+The fixed native healthy case must expose positive real CHILD_NEXT coverage before crediting the negative test; no eligible continuation is UNREACHED, not a pass. Do not modify accepted scenarios or tune actors/geometry to force it. Prior sector withdrawal proof remains closed and unchanged.
+
+SAME independent reviewer is being asked to confirm this new-material point; no broad/closed-source re-review or extra implementation lane. Root will join any finding via D3-CURRENT before source clearance. Current healthy Sonnet process must not be restarted.

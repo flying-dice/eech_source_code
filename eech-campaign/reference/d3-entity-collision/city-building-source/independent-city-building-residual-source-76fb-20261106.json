@@ -1,0 +1,213 @@
+{
+  "schema": "d3.independent.changed-source-review.v1",
+  "written_utc": "2026-11-06T04:22:37.192253+00:00",
+  "scope": "Same single reviewer, one narrow correction join closing only the two residual city groups from the168 report. Prior corrected preissued alias, full NAME transport and pre-NEXT withdrawal source work is reused; no closed sector, math, FP, physics or shipping sweep is repeated.",
+  "source": {
+    "commit": "76fbf557cc8bff935216aba21110a137bb31bf1f",
+    "direct_parent": "c2f3602d91eba44ff3fbfd7485b5b2ee1bf65eda",
+    "corrected_code": "1687431feb2a38c39394727abc9cdb090efdf916",
+    "metadata_commit": "264cd948347aaa8bef4ef7507908ec83317ec272",
+    "metadata_delta_only": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json"
+    ],
+    "changed_code_and_test_paths": [
+      "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+      "eech-campaign/crates/eech-engine/src/lib.rs",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "eech-campaign/crates/eech-world/tests/entity_roster_host.rs"
+    ],
+    "changed_code_and_test_path_count": 7,
+    "no_production_provider_or_Lua_change_from168": true,
+    "checkpoint": {
+      "path": "R:/d3-evidence/city-building-residuals-CODE-FROZEN-20261106.json",
+      "bytes": 36715,
+      "sha256": "52a90529b87379fe9c1a770e833d3487e6b1f01431605d97addfd29c6f836236"
+    },
+    "all_seven_committed_changed_blob_bytes_and_hashes_joined": true
+  },
+  "decision": {
+    "status": "SOURCE_CLEAR_FOR_PLANNED_NATIVE_VALIDATION",
+    "source_clear": true,
+    "findings": [],
+    "native_launch_clearance": true,
+    "native_launch_clearance_is_conditional": true,
+    "clearance_scope": "Fresh exact76fb immutable snapshot and selected integration gates, followed by appropriate new Windows profiles, actual profile/payload isolation and source seals, ordinary exact short, and one healthy real city traversal. Credit the child-withdrawal actual only after healthy positively reaches an eligible actual CHILD_NEXT. No prior5182 binary or actual may be relabelled as this changed C/Rust layout.",
+    "city_native_actuals_verified": false,
+    "finite_public_city_backing_closed": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "closed_residuals": [
+    {
+      "id": "ENV-CITY-PARENT-ANCHOR-EMPTY-CYCLE-1",
+      "status": "SOURCE_CLOSED",
+      "reason": "place_child_remove now keeps the original list/record anchor when the last child leaves a still-placed parent. A later child uses that retained anchor, so a subsequent relink sends LINK to the actual persistent record. place_remove drops the anchor when the city has no listed children and its sector placement leaves; place_unname_ended then permits the record alias to end. The parent release/reset paths retain their existing explicit lifetime cleanup.",
+      "validation": "The shared real-C map/control now covers initial relink, last-child removal while placed, repopulation BEFORE the next relink, repeated cycles, traversal/removal under the stable anchor, then actual record retirement and recreation. The real provider test independently verifies this same record/list relation and the scripted real-provider Lua test verifies zero request/reply faults through the lifecycle. No query-time reconstruction from Core or new physical answer fallback was introduced.",
+      "qualification": "The C control uses a scripted name-keyed host and does not itself implement Host records. Provider tests supply the Host-side consequence; this is not a combined retail C lifecycle measurement."
+    },
+    {
+      "id": "ENV-CITY-NAME-FIELD-OTHER-DOMAINS-1",
+      "status": "SOURCE_CLOSED",
+      "reason": "The new request_identity helper checks NUL termination, the operation-specific byte limit and UTF-8 before provider invocation. Candidate and pose remain128 bytes. Scan compares the raw phase word and permits149 only for exact NAME phase12; other scan phases retain128. Existing optional/required empty-identity semantics are left to their operation, as before.",
+      "validation": "Positive NAME transport now sets actual phase12 and carries maximum20-digit key plus128-byte ASCII or multibyte object ID. Existing legal empty/128-byte candidate/scan positives remain. Focused new129/149-byte NUL-terminated negatives for pose, candidate and non-NAME scan prove the provider is not called and the exact operation.request marker is retained. Missing-NUL and invalid-UTF8 checks remain in the shared helper.",
+      "boundary_scope": "C and Rust storage remain consistently sized for the149-byte NAME join; existing reply layouts and other semantic identity domains are not widened. Classification of the phase uses bits, not a new floating comparison."
+    }
+  ],
+  "earlier_four_group_status": {
+    "parent_list_lifetime": "Closed at source after the76fb anchor correction and prior168 persistent Host record/rejoin changes. Registered relink remains supported; destruction and record/heap retirement are distinct.",
+    "preissued_object_alias": "Prior168 source closure reused: independently declared existing NAME after the first suitable placement/LINK, once per live record; no eager ID allocation or lazy-counter change.",
+    "full_object_NAME_domain": "Prior168149-byte C/Rust join and per-part20/128 validation reused, with new76fb other-operation domain closure.",
+    "actual_NEXT_withdrawal": "Prior168 parsed/request-joined CHILD_NEXT admission, real REMOVE acknowledgement and one unchanged NEXT delegation reused. FIRST-only remains UNREACHED; exact primary/fault/no-postfatal requirements are unchanged."
+  },
+  "actual_focused_evidence": {
+    "author_terminal": {
+      "path": "R:/d3-evidence/claude-d3-city-building-residuals-20261106-completion.json",
+      "bytes": 1307,
+      "sha256": "f8b645e4ecdcfce0b96bc33b7cf433057efddf02d2f83b1d93764b6af362d87b"
+    },
+    "author_actual_exit": 0,
+    "author_result_is_error": false,
+    "author_completed_utc": "2026-11-06T04:20:01.335032+00:00",
+    "five_final_direct_commands": [
+      {
+        "label": "qres2final-1-fmt",
+        "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine -- --check",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-qres2final-1-fmt.json",
+          "bytes": 928,
+          "sha256": "9a1e5922a7513cb0a90624aadb1368ca95e83adc09c20d269b46ad29b89f126d"
+        },
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "label": "qres2final-2-check",
+        "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-qres2final-2-check.json",
+          "bytes": 969,
+          "sha256": "07e07d358f5d7f395bc638ed15149e5609471d6e581b634818028c6c910e5f1d"
+        },
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "e7e127d848f54beca557e07d7f4ff2e922afce74f586efe10f4619db1406d881"
+      },
+      {
+        "label": "qres2final-3-engine-sys",
+        "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard --test entity_pose_lifecycle_guard --no-fail-fast",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-qres2final-3-engine-sys.json",
+          "bytes": 1204,
+          "sha256": "2fa279b2658a061ed4cdd7f8b1fe768366d05f546c8f516f136bc772428fadc7"
+        },
+        "stdout_sha256": "a777988b6585556e954a7525159077d221d7e07d1777e7e0fc6b1deee334b456",
+        "stderr_sha256": "2ec8ef3d8264716569809e3586197f3d1be9e902309bfac9abf863ebce626f08"
+      },
+      {
+        "label": "qres2final-4-world",
+        "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --no-fail-fast",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-qres2final-4-world.json",
+          "bytes": 1009,
+          "sha256": "92b3e760f4ee51b71092bd484f2a7bf95d5981126bea1afb71db39c4d71f632f"
+        },
+        "stdout_sha256": "ab54f9e16d36807411a2576a24260a07c0afba099a155442fe880c1c3fcba805",
+        "stderr_sha256": "a95befe7d16bf10707fb98f84327df0f95aa56e4471df934cadf4e8b4479463b"
+      },
+      {
+        "label": "qres2final-5-engine-callback",
+        "command": "cargo test --release --locked -p eech-engine --lib the_model_callback --no-fail-fast",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-qres2final-5-engine-callback.json",
+          "bytes": 960,
+          "sha256": "bf0289128cb29bb15145551e8b71f38941bb969eac5a2088d3c6b9995e78641a"
+        },
+        "stdout_sha256": "797794b1c2657eff9fe136aeebce4579e8c39d4698ed7f6205eba0be157ef665",
+        "stderr_sha256": "c1585cbccab162553df56a3ce2c59279452e87a18507a2987958e19f9f4e1622"
+      }
+    ],
+    "all_five_actual_direct_exits_and_separate_stream_hashes_independently_joined": true,
+    "test_result_rows_mechanically_derived": 7,
+    "tests_passed": 112,
+    "tests_failed": 0,
+    "breakdown": {
+      "Sys_dialogue": 1,
+      "Sys_entity_host_guard": 5,
+      "Sys_pose_lifecycle_guard": 4,
+      "Sys_roster_guard": 7,
+      "World_authority": 65,
+      "World_roster_host": 17,
+      "Engine_callback_filter": 13
+    },
+    "scope": "Three-package fmt, four-package cargo check, selected Sys dialogue/guards, two affected World targets and13 Engine callback tests. No full package/strict/feature matrix, Windows build, default campaign or city native run is inferred.",
+    "real_C_expectations": "Passing dialogue asserts at least559 expectations; this does not count as559 Rust tests or a full campaign.",
+    "genuine_behavioral_RED": {
+      "C_anchor": {
+        "actual_exit": 101,
+        "Rust_target_passed": 0,
+        "Rust_target_failed": 1,
+        "failed_C_expectations": 9,
+        "qualification": "Old C map with the new control compiles and executes; the expected anchor/later-operation assertions fail. This is behavioral, distinct from the earlier batch compile-only RED."
+      },
+      "Engine_domain": {
+        "actual_exit": 101,
+        "passed": 12,
+        "failed": 1,
+        "qualification": "Old callback branches invoke the provider on a129-byte identity; the provider sentinel panics and becomes callback error instead of the required operation.request refusal. The old branches were restored byte-for-byte after the test."
+      }
+    },
+    "retained_intermediate_failure": "The earlier E0282 annotation failure and its superseded pre-fix map are retained; the final qres2 map pair begins after that correction. No failed attempt is relabelled passing."
+  },
+  "source_binding": {
+    "file_count": 3952,
+    "final_before_after_maps_literal_equal_verified": true,
+    "bytes_each": 2029222,
+    "sha256": "179fcbd4e2c355ff8ab07ae9193a2ce9b6f600319362c5e4a2a17bee38451e33",
+    "capture_HEAD": "c2f3602d91eba44ff3fbfd7485b5b2ee1bf65eda",
+    "order": "All final edits/formatting after the E0282 fix, BEFORE map, five selected read-only checks, AFTER map, then source commit and metadata commit. Seven raw changed code/test files were separately joined to exact76fb Git blobs.",
+    "raw_capture_HEAD_difference_qualification": "Seven corrected files plus three untouched test-Lua CRLF/Git-LF entries appear in the capture-HEAD raw difference list. This is not a claim of ten new code paths or of all working raw inputs equalling Git.",
+    "inherited_qualifications": [
+      "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+      "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "modules/system/malloc.c.h",
+      "modules/system/nedmalloc.c"
+    ],
+    "no_normalization_or_test_rerun_by_reviewer": true
+  },
+  "prior_reports_reused": [
+    {
+      "path": "R:/d3-evidence/independent-city-building-backing-source-2541843-20261106.json",
+      "bytes": 19772,
+      "sha256": "0d9a7a255c0a81cd1a4638999b9c4333ca3144471766bff927f9b009bbf2f67d"
+    },
+    {
+      "path": "R:/d3-evidence/independent-city-building-corrected-source-1687431-20261106.json",
+      "bytes": 18686,
+      "sha256": "d92d877a670fac6861b1c0b6d51acb14fd93916fb722e679928f59baf59bb259"
+    }
+  ],
+  "next_required_gates": [
+    "Root must use a clean detached exact snapshot, selected frozen integration checks and stable postcheck source map. Existing unchanged Engine/World focused evidence may be reused with exact code/mode binding; no blanket repeat of old physics or full matrix is required by this review.",
+    "Build/seal new ordinary and relevant diagnostic/Original profiles, with actual feature/object/export separation appropriate to the changed request ABI and hooks. Prior5182 exported binaries cannot measure the new source.",
+    "Run the retained exact ordinary short and compare all three COMPLETE outputs literally. Then one source/profile-bound healthy city control must positively reach an actual well-formed/request-joined CHILD_NEXT with zero request/reply faults before a withdrawal is credited.",
+    "The child withdrawal must remove the real previously served record immediately before the actual NEXT, acknowledge removed, delegate unchanged NEXT once and stop at the actual ended-child primary with request0/reply1 only, no fallback and no postfatal state reads. If the fixed default case never reaches an eligible NEXT, report UNREACHED without actor/time/geometry tuning."
+  ],
+  "limits": [
+    "Source clearance permits only the planned validation sequence after the stated prerequisites; it is not measured native authority, exhaustive lifecycle or campaign equivalence.",
+    "Host list/record/alias metadata does not complete static pose, shape, alive flags or other physical consumers. Core heap/key and identity/lifetime synchronization, effectful getters and city-reader coupling still have required scope.",
+    "Shared UPDATED/terrain, tallest structures, raw tree/forest/cloud data/RNG, hierarchy/remaining consumers, DCS mapping and natural moving-weapon integration remain required. Task49, full shipping and wholeD3 are open; earlier Task50/52 and other finite proofs stay at their own identities.",
+    "Separate ordinary3475 fullpack output is outside this source pass, untouched and not accepted on partial prefixes."
+  ],
+  "review_operations": "Read-only exact correction Git blobs and retained check/log/map hashes; only this safe LF JSON was written. No candidate edits, tests/builds/native/process/cache/VM/auth/external changes or nested agents."
+}

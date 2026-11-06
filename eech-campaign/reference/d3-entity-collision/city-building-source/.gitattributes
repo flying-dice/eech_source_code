@@ -1,0 +1,3 @@
+*.json -text
+*.txt -text
+README.md text eol=lf

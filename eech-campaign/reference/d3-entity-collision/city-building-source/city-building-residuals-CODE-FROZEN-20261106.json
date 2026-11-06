@@ -1,0 +1,740 @@
+{
+ "schema": "city-building-residuals-CODE-FROZEN/v1",
+ "written_utc": "2026-11-06T04:19:44Z",
+ "lane": "Sonnet 5.5 High, the SAME relevant local context 7ef27132 resumed for one narrow residual batch (Task49/PR109); no agents, no MCP/auth changes, no TS/D4/D5",
+ "status": "UNREVIEWED CODE_FROZEN. Focused Linux checks only. Not a native clearance, not a Task49/D3 acceptance. The new C has never run in a real engine; no Windows or native build or run; earlier native binaries cannot stand in for it.",
+ "branch": "codex/d3-object-tree-collision",
+ "worktree": "R:/d3-evidence/collision-characterization-20261029",
+ "newCodeSHA": "76fbf557cc8bff935216aba21110a137bb31bf1f",
+ "actual_direct_parent_git_rev_parse": "c2f3602d91eba44ff3fbfd7485b5b2ee1bf65eda",
+ "prior_code_corrected": "1687431feb2a38c39394727abc9cdb090efdf916",
+ "metadataSHA": "264cd948347aaa8bef4ef7507908ec83317ec272",
+ "metadata_commit_direct_parent_git_rev_parse": "76fbf557cc8bff935216aba21110a137bb31bf1f",
+ "metadata_delta_over_code": [
+  "STATUS.md",
+  "docs/handover/ACTIVE-EXTRACTION.json"
+ ],
+ "pushed": "normal pushes, no force; code before the one metadata commit; no merge, no self-approval",
+ "findings_read": {
+  "path": "R:/d3-evidence/independent-city-building-correction-findings-168-20261106.json",
+  "bytes": 5539,
+  "sha256": "2e2e131a3abc7587eecec7f35d9ff4d1bec77e354bc1adfd3d4428730bd3a13b"
+ },
+ "dispositions": [
+  {
+   "id": "ENV-CITY-PARENT-ANCHOR-EMPTY-CYCLE-1",
+   "severity": "P1",
+   "disposition": "CORRECTED in source (UNREVIEWED)",
+   "cause": "the C map cleared place_list_of_slot when the listed count reached 0, but the host record R stays while the city holds a sector placement S; the next building was then anchored on S (which the host resolved to R), and after the next relink LINK(T,S) and the building removals named S, a placement that is no record name",
+   "contract": "the anchor is the host record's name; the record lives while the city holds a sector placement or a building is listed. place_child_remove keeps the anchor when the last building leaves a city that still holds its placement and drops it (with the name flag) only when the city holds none; place_remove drops it when the placement leaves with nothing listed (the record ends with it), and keeps it while buildings are listed (the record is detached and continued by the next placement's LINK(new, anchor)). A building listed again names the record, never the current placement; the object name is neither lost nor repeated; empty-parent retirement and re-creation (a new record, named again, a new anchor at the next building), children-first destruction (place_release_entity clears all) and the boot reset are unchanged and no valid path is refused. The host (roster.rs list_record/link/rejoin) and the Lua joins are NOT changed or relaxed: an ended placement is still not a list name",
+   "tests": "C city_anchor_cases over the real placement map and exchange (relink; last building leaves; building listed again; relink; serve and unlist by the record's name; again; retirement, re-naming, destruction) and the corrected city_relink_cases assertion; host test a_citys_list_keeps_its_record_name_through_the_last_building_leaving_a_building_listed_again_and_the_next_relink (real provider; includes the refusal of the ended placement as a list name); driver test a_citys_list_name_survives_the_last_building_leaving_a_building_listed_again_and_a_second_relink (real provider through the scripted caller, new city_cycle knob; both relinks LINK by the same name; two walks); source guard on the two code rules"
+  },
+  {
+   "id": "ENV-CITY-NAME-FIELD-OTHER-DOMAINS-1",
+   "severity": "P2",
+   "disposition": "CORRECTED in source (UNREVIEWED)",
+   "cause": "the enlarged request.host_id (149+NUL) let a NUL-terminated 129 to 149 byte identity reach the provider through the candidate, pose and non-NAME scan branches, whose domain stays 128",
+   "contract": "eech-engine model_callback: request_identity(field, limit, marker, what) checks termination, the operation's own length limit and UTF-8 before the provider is invoked: ENTITY_CANDIDATE and ENTITY_POSE 128 (EECH_MODEL_HOST_ID_MAX); ENTITY_SCAN 149 (EECH_MODEL_SCAN_IDENTITY_MAX) only when fact 11 is exactly phase 12 (a city NAME, classified by its bits 0x41400000) and 128 otherwise; the named [model-provider:<op>.request] marker, no provider call, nothing read after the refusal; empty identities and the full legal 128 bytes are unchanged (optional/required rules stay the operations'); the field is not shrunk and a NAME is not truncated",
+   "tests": "the_model_callback_bounds_every_identity_by_its_own_operations_domain_before_the_host_is_asked (NUL-terminated 129 and 149 byte identities refused for pose, candidate and six other scan phases with a provider that panics if asked; empty and 128 byte identities arrive whole for candidate and a hosted-mobile scan identity); the whole-NAME capacity test now sets fact 11 to phase 12 (the other facts zero) and proves legal transport; the existing NUL and not-text tests are unchanged and pass"
+  }
+ ],
+ "pre_freeze_reread": {
+  "D3_CURRENT": {
+   "path": "R:/d3-evidence/D3-CURRENT.json",
+   "bytes": 11190,
+   "sha256": "15cecc8bbcd4ddaa48b79b7b923b2e8b16da45e9e6326e85a482a6728102411c",
+   "updated_utc_field": "2026-11-06T04:07:09.114982+00:00",
+   "note": "read in full twice, before the maps and again immediately before the code commit and this freeze; not written by this lane"
+  },
+  "files_named_and_read": [
+   {
+    "path": "R:/d3-evidence/independent-city-building-correction-findings-168-20261106.json",
+    "bytes": 5539,
+    "sha256": "2e2e131a3abc7587eecec7f35d9ff4d1bec77e354bc1adfd3d4428730bd3a13b"
+   },
+   {
+    "path": "R:/d3-evidence/independent-city-building-corrected-source-1687431-20261106.json",
+    "bytes": 18686,
+    "sha256": "d92d877a670fac6861b1c0b6d51acb14fd93916fb722e679928f59baf59bb259"
+   },
+   {
+    "path": "R:/d3-evidence/independent-city-building-source-findings-254-20261106.json",
+    "bytes": 7690,
+    "sha256": "bd383042af5cbb83014fb787510ba024f6bd568c2c1e579d832b675dc0ceeef7"
+   },
+   {
+    "path": "R:/d3-evidence/independent-city-building-backing-source-2541843-20261106.json",
+    "bytes": 19772,
+    "sha256": "0d9a7a255c0a81cd1a4638999b9c4333ca3144471766bff927f9b009bbf2f67d"
+   },
+   {
+    "path": "R:/d3-evidence/independent-city-building-early-review-20261106.json",
+    "bytes": 4258,
+    "sha256": "979d6ea691281ae1d236904e064dad0766e6a9f67f2842a7e996b2206f5e87f3"
+   },
+   {
+    "path": "R:/d3-evidence/CITY-BUILDING-EARLY-REVIEW-20261106.txt",
+    "bytes": 2350,
+    "sha256": "3850e4da2e3042b84406e5a80dc08523a96496a22eb4fcf6d3805a0d908dc950"
+   },
+   {
+    "path": "R:/d3-evidence/city-building-corrections-CODE-FROZEN-20261106.json",
+    "bytes": 56900,
+    "sha256": "e8a79549b488beaec861445868ad9a420e3dba3782a155ad8db830e287399401"
+   }
+  ],
+  "result": "the 04:05 corrected-source report (d92d877a, CHANGES_REQUIRED, native false) lists exactly the same two findings as the 04:03 residual file and states the preissued-alias and pre-NEXT withdrawal source closed; D3-CURRENT (04:07:09) names no further city finding or report; nothing material was added after those reads; the closed alias, witness, numeric and old physics groups were not reopened"
+ },
+ "checks_final_on_frozen_bytes": [
+  {
+   "label": "qres2final-1-fmt",
+   "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine -- --check",
+   "actual_exit": 0,
+   "started_utc": "2026-11-06T04:16:07.655548+00:00",
+   "completed_utc": "2026-11-06T04:16:11.389380+00:00",
+   "record": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres2final-1-fmt.json",
+    "bytes": 928,
+    "sha256": "9a1e5922a7513cb0a90624aadb1368ca95e83adc09c20d269b46ad29b89f126d"
+   },
+   "stdout": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres2final-1-fmt.stdout.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   "stderr": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres2final-1-fmt.stderr.log",
+    "bytes": 42,
+    "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+   },
+   "test_result_rows": [],
+   "failed_tests": []
+  },
+  {
+   "label": "qres2final-2-check",
+   "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+   "actual_exit": 0,
+   "started_utc": "2026-11-06T04:16:11.484097+00:00",
+   "completed_utc": "2026-11-06T04:16:14.745502+00:00",
+   "record": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres2final-2-check.json",
+    "bytes": 969,
+    "sha256": "07e07d358f5d7f395bc638ed15149e5609471d6e581b634818028c6c910e5f1d"
+   },
+   "stdout": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres2final-2-check.stdout.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   "stderr": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres2final-2-check.stderr.log",
+    "bytes": 104,
+    "sha256": "e7e127d848f54beca557e07d7f4ff2e922afce74f586efe10f4619db1406d881"
+   },
+   "test_result_rows": [],
+   "failed_tests": []
+  },
+  {
+   "label": "qres2final-3-engine-sys",
+   "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard --test entity_pose_lifecycle_guard --no-fail-fast",
+   "actual_exit": 0,
+   "started_utc": "2026-11-06T04:16:14.840638+00:00",
+   "completed_utc": "2026-11-06T04:16:25.829254+00:00",
+   "record": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres2final-3-engine-sys.json",
+    "bytes": 1204,
+    "sha256": "2fa279b2658a061ed4cdd7f8b1fe768366d05f546c8f516f136bc772428fadc7"
+   },
+   "stdout": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres2final-3-engine-sys.stdout.log",
+    "bytes": 2395,
+    "sha256": "a777988b6585556e954a7525159077d221d7e07d1777e7e0fc6b1deee334b456"
+   },
+   "stderr": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres2final-3-engine-sys.stderr.log",
+    "bytes": 596,
+    "sha256": "2ec8ef3d8264716569809e3586197f3d1be9e902309bfac9abf863ebce626f08"
+   },
+   "test_result_rows": [
+    {
+     "status": "ok",
+     "passed": 1,
+     "failed": 0
+    },
+    {
+     "status": "ok",
+     "passed": 5,
+     "failed": 0
+    },
+    {
+     "status": "ok",
+     "passed": 4,
+     "failed": 0
+    },
+    {
+     "status": "ok",
+     "passed": 7,
+     "failed": 0
+    }
+   ],
+   "failed_tests": []
+  },
+  {
+   "label": "qres2final-4-world",
+   "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --no-fail-fast",
+   "actual_exit": 0,
+   "started_utc": "2026-11-06T04:16:32.050076+00:00",
+   "completed_utc": "2026-11-06T04:16:33.514897+00:00",
+   "record": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres2final-4-world.json",
+    "bytes": 1009,
+    "sha256": "92b3e760f4ee51b71092bd484f2a7bf95d5981126bea1afb71db39c4d71f632f"
+   },
+   "stdout": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres2final-4-world.stdout.log",
+    "bytes": 9669,
+    "sha256": "ab54f9e16d36807411a2576a24260a07c0afba099a155442fe880c1c3fcba805"
+   },
+   "stderr": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres2final-4-world.stderr.log",
+    "bytes": 12547,
+    "sha256": "a95befe7d16bf10707fb98f84327df0f95aa56e4471df934cadf4e8b4479463b"
+   },
+   "test_result_rows": [
+    {
+     "status": "ok",
+     "passed": 65,
+     "failed": 0
+    },
+    {
+     "status": "ok",
+     "passed": 17,
+     "failed": 0
+    }
+   ],
+   "failed_tests": []
+  },
+  {
+   "label": "qres2final-5-engine-callback",
+   "command": "cargo test --release --locked -p eech-engine --lib the_model_callback --no-fail-fast",
+   "actual_exit": 0,
+   "started_utc": "2026-11-06T04:16:33.644064+00:00",
+   "completed_utc": "2026-11-06T04:17:34.973993+00:00",
+   "record": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres2final-5-engine-callback.json",
+    "bytes": 960,
+    "sha256": "bf0289128cb29bb15145551e8b71f38941bb969eac5a2088d3c6b9995e78641a"
+   },
+   "stdout": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres2final-5-engine-callback.stdout.log",
+    "bytes": 1535,
+    "sha256": "797794b1c2657eff9fe136aeebce4579e8c39d4698ed7f6205eba0be157ef665"
+   },
+   "stderr": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres2final-5-engine-callback.stderr.log",
+    "bytes": 343,
+    "sha256": "c1585cbccab162553df56a3ce2c59279452e87a18507a2987958e19f9f4e1622"
+   },
+   "test_result_rows": [
+    {
+     "status": "ok",
+     "passed": 13,
+     "failed": 0
+    }
+   ],
+   "failed_tests": []
+  }
+ ],
+ "reds_run": [
+  {
+   "label": "qres-red-c-anchor",
+   "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue -- --nocapture",
+   "actual_exit": 101,
+   "started_utc": "2026-11-06T04:10:04.045145+00:00",
+   "completed_utc": "2026-11-06T04:11:14.061846+00:00",
+   "record": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-red-c-anchor.json",
+    "bytes": 1032,
+    "sha256": "d34108de22b64437c39a76aae1c217109d47a3b629b7dcf4d6709da02779d3fa"
+   },
+   "stdout": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-red-c-anchor.stdout.log",
+    "bytes": 374,
+    "sha256": "b542c8baea45ea8bc769aec50af193d395b1e065d518a5a5cac8140e20a31d6c"
+   },
+   "stderr": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-red-c-anchor.stderr.log",
+    "bytes": 1967,
+    "sha256": "772e005e5be71323fa7008bdd3be24bd46a18bb938aebe2d37b360d8dd73f488"
+   },
+   "test_result_rows": [
+    {
+     "status": "FAILED",
+     "passed": 0,
+     "failed": 1
+    }
+   ],
+   "failed_tests": [
+    "the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_and_commits_nothing_on_a_refusal"
+   ],
+   "failed_expectation_lines": [
+    "2810",
+    "2857",
+    "2861",
+    "2863",
+    "2869",
+    "2871",
+    "2874",
+    "2881",
+    "2886"
+   ],
+   "what": "the NEW C control (city_anchor_cases and the corrected city_relink_cases assertion) against the UNCHANGED 1687431f mb_hostplacemap.h; it compiles and runs",
+   "meaning": "GENUINE BEHAVIOURAL RED for finding 1: 9 expectations fail (the anchor is cleared when the last building leaves a placed city and the next building and relink use the current placement key). This is not the compiler/setup failure of the previous batch."
+  },
+  {
+   "label": "qres-red-engine",
+   "command": "cargo test --release --locked -p eech-engine --lib the_model_callback --no-fail-fast",
+   "actual_exit": 101,
+   "started_utc": "2026-11-06T04:08:01.818857+00:00",
+   "completed_utc": "2026-11-06T04:09:04.681358+00:00",
+   "record": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-red-engine.json",
+    "bytes": 963,
+    "sha256": "a31da7885d1fd4d7f7644fee78873e6b6267e23851f39577b98816d67901a5ab"
+   },
+   "stdout": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-red-engine.stdout.log",
+    "bytes": 2294,
+    "sha256": "caf98ee46477d9b32c06a64102cbdfed9f72cdd878fcb9619b7ec0426e239f4f"
+   },
+   "stderr": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-red-engine.stderr.log",
+    "bytes": 371,
+    "sha256": "ae904a143306cbb9a7958f761f4cb82d78fffdadf838719c9e2f72fed47d9779"
+   },
+   "test_result_rows": [
+    {
+     "status": "FAILED",
+     "passed": 12,
+     "failed": 1
+    }
+   ],
+   "failed_tests": [
+    "tests::the_model_callback_bounds_every_identity_by_its_own_operations_domain_before_the_host_is_asked"
+   ],
+   "what": "the NEW engine tests against the 1687431f engine callback branches: HEAD lib.rs with ONLY the two new constants SCAN_PHASE_FACT and SCAN_PHASE_NAME_BITS added (no logic) and the new tests applied, in the same file; the fixed file and the tests were saved aside and restored byte for byte afterwards",
+   "meaning": "GENUINE BEHAVIOURAL RED for finding 2: the host is called (\"the host must not be asked\" panics inside the provider, reported as [model-provider:callback] the model provider panicked) for a 129 byte identity, i.e. the enlarged field widened the pose/candidate domain. The phase-12 NAME capacity positive passes against the old branches because transport of the whole NAME was never the defect"
+  }
+ ],
+ "intermediate_runs_kept_failed_logs_included": [
+  {
+   "label": "qres-green-c-anchor",
+   "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue -- --nocapture",
+   "actual_exit": 0,
+   "started_utc": "2026-11-06T04:11:29.357166+00:00",
+   "completed_utc": "2026-11-06T04:12:40.031551+00:00",
+   "record": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-green-c-anchor.json",
+    "bytes": 1031,
+    "sha256": "d3cfffab734ff7717310bf0681ec81aeb00dc83945bddb689b22c510ea07c5d6"
+   },
+   "stdout": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-green-c-anchor.stdout.log",
+    "bytes": 271,
+    "sha256": "bce90b83d8a2df0458c5bd2cb20ee66ae543734a37a637a085e1848b187a5dab"
+   },
+   "stderr": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-green-c-anchor.stderr.log",
+    "bytes": 279,
+    "sha256": "f3d33f44810eae2eda5d4c467561ffaea7b7d2e19d6b39aad0c0e2329570df7e"
+   },
+   "test_result_rows": [
+    {
+     "status": "ok",
+     "passed": 1,
+     "failed": 0
+    }
+   ],
+   "failed_tests": [],
+   "explanation": "exit 0, the fix of the C anchor: 559 expectations (544 before)"
+  },
+  {
+   "label": "qres-fmt-apply",
+   "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine",
+   "actual_exit": 0,
+   "started_utc": "2026-11-06T04:13:17.413811+00:00",
+   "completed_utc": "2026-11-06T04:13:21.279408+00:00",
+   "record": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-fmt-apply.json",
+    "bytes": 907,
+    "sha256": "98dfe03500fad0186da4115699fd9284221201231ebedb3e577fdcfa8b7111ee"
+   },
+   "stdout": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-fmt-apply.stdout.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   "stderr": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-fmt-apply.stderr.log",
+    "bytes": 42,
+    "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+   },
+   "test_result_rows": [],
+   "failed_tests": []
+  },
+  {
+   "label": "qres-green-world",
+   "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --no-fail-fast",
+   "actual_exit": 0,
+   "started_utc": "2026-11-06T04:13:21.374579+00:00",
+   "completed_utc": "2026-11-06T04:13:27.593787+00:00",
+   "record": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-green-world.json",
+    "bytes": 1009,
+    "sha256": "f06c0651a6dea47709054391b0d35bf11c52730b3ad9367bf3ed982ce31e5645"
+   },
+   "stdout": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-green-world.stdout.log",
+    "bytes": 9669,
+    "sha256": "db47f5dbbaab03b70fa01bf23255103fd9e853d0e556a5477b7e7db72c67f0cb"
+   },
+   "stderr": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-green-world.stderr.log",
+    "bytes": 12617,
+    "sha256": "988d4f4057a9d181d97c71fdc193f95b5ea936be146c5bad6aa15eeabe59f8e5"
+   },
+   "test_result_rows": [
+    {
+     "status": "ok",
+     "passed": 65,
+     "failed": 0
+    },
+    {
+     "status": "ok",
+     "passed": 17,
+     "failed": 0
+    }
+   ],
+   "failed_tests": [],
+   "explanation": "exit 0 on the unchanged host/Lua production: the new provider and scripted-caller tests PASS WITHOUT a production change, as the finding is the C anchor; they pin the correct ordering and the refusal of an ended placement as a list name, they are not reds"
+  },
+  {
+   "label": "qres-fmt-apply-2",
+   "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine",
+   "actual_exit": 0,
+   "started_utc": "2026-11-06T04:13:43.483087+00:00",
+   "completed_utc": "2026-11-06T04:13:47.222671+00:00",
+   "record": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-fmt-apply-2.json",
+    "bytes": 907,
+    "sha256": "b33a0c62afb32053effef00696220c4e11b7343dfd55887ecbc46509d4833b02"
+   },
+   "stdout": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-fmt-apply-2.stdout.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   "stderr": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-fmt-apply-2.stderr.log",
+    "bytes": 42,
+    "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+   },
+   "test_result_rows": [],
+   "failed_tests": []
+  },
+  {
+   "label": "qres-guards-try",
+   "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_roster_guard --no-fail-fast",
+   "actual_exit": 0,
+   "started_utc": "2026-11-06T04:13:47.318748+00:00",
+   "completed_utc": "2026-11-06T04:13:55.513683+00:00",
+   "record": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-guards-try.json",
+    "bytes": 1037,
+    "sha256": "d2336ac8bf1158fe200aadf25be641f3f49e8eb01fbc09a8fd79c313ecf5e147"
+   },
+   "stdout": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-guards-try.stdout.log",
+    "bytes": 907,
+    "sha256": "cf44129a3dc632dca95037d9c23d31056dcb1f83590e256a3a0469fff80737cd"
+   },
+   "stderr": {
+    "path": "R:/d3-evidence/sector-roster-direct-qres-guards-try.stderr.log",
+    "bytes": 286,
+    "sha256": "310c12a5dbe993e639d0ad9eacc674a8c64d993e03859ea561d1d3ca6958a9e0"
+   },
+   "test_result_rows": [
+    {
+     "status": "ok",
+     "passed": 7,
+     "failed": 0
+    }
+   ],
+   "failed_tests": []
+  },
+  {
+   "label": "qresfinal-1-fmt",
+   "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine -- --check",
+   "actual_exit": 0,
+   "started_utc": "2026-11-06T04:14:23.764346+00:00",
+   "completed_utc": "2026-11-06T04:14:27.395071+00:00",
+   "record": {
+    "path": "R:/d3-evidence/sector-roster-direct-qresfinal-1-fmt.json",
+    "bytes": 929,
+    "sha256": "54cb189476e24ad753b8126ecad44b1fbd9563a0b9621f6795932e7d692b5593"
+   },
+   "stdout": {
+    "path": "R:/d3-evidence/sector-roster-direct-qresfinal-1-fmt.stdout.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   "stderr": {
+    "path": "R:/d3-evidence/sector-roster-direct-qresfinal-1-fmt.stderr.log",
+    "bytes": 42,
+    "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+   },
+   "test_result_rows": [],
+   "failed_tests": []
+  },
+  {
+   "label": "qresfinal-2-check",
+   "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+   "actual_exit": 101,
+   "started_utc": "2026-11-06T04:14:27.492564+00:00",
+   "completed_utc": "2026-11-06T04:15:35.398331+00:00",
+   "record": {
+    "path": "R:/d3-evidence/sector-roster-direct-qresfinal-2-check.json",
+    "bytes": 973,
+    "sha256": "27add1924b990b590eb1fea8d9294d01e0b18dd353091550dd2050ee7b211873"
+   },
+   "stdout": {
+    "path": "R:/d3-evidence/sector-roster-direct-qresfinal-2-check.stdout.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   "stderr": {
+    "path": "R:/d3-evidence/sector-roster-direct-qresfinal-2-check.stderr.log",
+    "bytes": 1039,
+    "sha256": "be67fcb3dc8de46d5937685b97a5d7e0a0a0e20ba4e3fbbc9f51c62f9f7d42c2"
+   },
+   "test_result_rows": [],
+   "failed_tests": [],
+   "explanation": "exit 101 (KEPT, a real failure of my first fix): rustc E0282 type annotations needed at eech-engine lib.rs:1525, because the scan branch now indexes `facts` before it is typed; fixed with `facts: Vec<u32>`. The earlier RED run of the engine tests ran the old branches and could not see it. The input map taken before it was superseded by a new BEFORE map after the fix (qres-... is the superseded one)"
+  },
+  {
+   "label": "qresfix-fmt-apply",
+   "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine",
+   "actual_exit": 0,
+   "started_utc": "2026-11-06T04:15:50.117769+00:00",
+   "completed_utc": "2026-11-06T04:15:53.855826+00:00",
+   "record": {
+    "path": "R:/d3-evidence/sector-roster-direct-qresfix-fmt-apply.json",
+    "bytes": 907,
+    "sha256": "14a5e96eadde3f78c7a8e74420ef09b3df6eef918716c99fc3fc80b3a200f382"
+   },
+   "stdout": {
+    "path": "R:/d3-evidence/sector-roster-direct-qresfix-fmt-apply.stdout.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   "stderr": {
+    "path": "R:/d3-evidence/sector-roster-direct-qresfix-fmt-apply.stderr.log",
+    "bytes": 42,
+    "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+   },
+   "test_result_rows": [],
+   "failed_tests": []
+  },
+  {
+   "label": "qresfix-check",
+   "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+   "actual_exit": 0,
+   "started_utc": "2026-11-06T04:15:53.951554+00:00",
+   "completed_utc": "2026-11-06T04:15:58.457352+00:00",
+   "record": {
+    "path": "R:/d3-evidence/sector-roster-direct-qresfix-check.json",
+    "bytes": 971,
+    "sha256": "256609f072ec92fd5a5282b59d1f8faf452a45081bcd09cedcee34a0d94caff0"
+   },
+   "stdout": {
+    "path": "R:/d3-evidence/sector-roster-direct-qresfix-check.stdout.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   "stderr": {
+    "path": "R:/d3-evidence/sector-roster-direct-qresfix-check.stderr.log",
+    "bytes": 240,
+    "sha256": "85410c2771d6e26ab39c6173f05b0686a53bb1a1ddd5807f41e8a09ee9a55884"
+   },
+   "test_result_rows": [],
+   "failed_tests": []
+  }
+ ],
+ "raw_input_maps": {
+  "helper": {
+   "path": "R:/d3-evidence/sector-roster-inputmap-batched-20261106.py",
+   "bytes": 5094,
+   "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+  },
+  "order": "ALL edits and formatting finished (after the E0282 fix); BEFORE map; the five selected read-only checks; AFTER map; no source edit or commit between the two maps; the code commit after the AFTER map, the one metadata commit after that",
+  "before": {
+   "path": "R:/d3-evidence/qres2-20261106-inputmap-before-final.json",
+   "bytes": 2029222,
+   "sha256": "179fcbd4e2c355ff8ab07ae9193a2ce9b6f600319362c5e4a2a17bee38451e33"
+  },
+  "after": {
+   "path": "R:/d3-evidence/qres2-20261106-inputmap-after-final.json",
+   "bytes": 2029222,
+   "sha256": "179fcbd4e2c355ff8ab07ae9193a2ce9b6f600319362c5e4a2a17bee38451e33"
+  },
+  "superseded_before_map_taken_before_the_E0282_fix_not_used_for_the_freeze": {
+   "path": "R:/d3-evidence/qres-20261106-inputmap-before-final.json",
+   "bytes": 2029222,
+   "sha256": "51334b838fd1c7b42a9e1786fa106769c459bd5b656e1cb89362212606480c9c"
+  },
+  "file_count": 3952,
+  "files_literally_equal": true,
+  "capture_HEAD": "c2f3602d91eba44ff3fbfd7485b5b2ee1bf65eda",
+  "changed_from_capture_head_in_map": [
+   "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+   "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+   "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+   "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+   "eech-campaign/crates/eech-engine/src/lib.rs",
+   "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+   "eech-campaign/crates/eech-world/tests/entity_roster_host.rs",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "changed_files_are_the_7_corrected_files_plus_preexisting_raw_filter_entries": [
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "qualification_pre_existing_raw_vs_filter_differences_preserved_not_normalized": [
+   "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+   "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+   "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+   "modules/system/malloc.c.h",
+   "modules/system/nedmalloc.c"
+  ],
+  "note": "the capture HEAD is c2f3602d (the tree was uncommitted); the join below ties the raw working bytes to the committed blobs of the code commit"
+ },
+ "changed_files_git_byte_join": [
+  {
+   "path": "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+   "before_git_blob_at_parent": "ef25b4fd380484fb7a96a53464cbc6b86d573968",
+   "after_git_blob_at_code": "365860ef215f1e5bf43e160b65a7a3adc844259a",
+   "after_bytes": 27706,
+   "after_sha256": "afaa36fa705e3472a7b53fcfa47ffd56d44ae4b1ce0b11d5302b2d838d384380",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "final_map_raw_sha256_equals_committed_blob_sha256": true,
+   "final_map_size_equals_committed_bytes": true,
+   "raw_has_CR": false,
+   "blob_at_metadata_commit_unchanged": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+   "before_git_blob_at_parent": "2bc6c11bf8e281ebabccc230deeaecdb4d5a8465",
+   "after_git_blob_at_code": "284dad427449923a0394257f3bc73e346c7c3b7f",
+   "after_bytes": 145852,
+   "after_sha256": "71f55aa3eb19e857af32f9a24f5d9de91b0e89910351add846c22b9b86fa7a84",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "final_map_raw_sha256_equals_committed_blob_sha256": true,
+   "final_map_size_equals_committed_bytes": true,
+   "raw_has_CR": false,
+   "blob_at_metadata_commit_unchanged": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+   "before_git_blob_at_parent": "53d3084a18fa67615de961b26fcc0525368764bb",
+   "after_git_blob_at_code": "2f0b0b351195bd687e65c3aa4a76a7f23e42d307",
+   "after_bytes": 2324,
+   "after_sha256": "85914ee95d97c88d66cf19aed22830f8e3988ef2274856dbc684d6021a7a94d7",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "final_map_raw_sha256_equals_committed_blob_sha256": true,
+   "final_map_size_equals_committed_bytes": true,
+   "raw_has_CR": false,
+   "blob_at_metadata_commit_unchanged": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+   "before_git_blob_at_parent": "213ba95c90e711fcf0350d478cf744d7ac3636a1",
+   "after_git_blob_at_code": "4462093c0c416a162558a80cc6bd32e242d6b7b9",
+   "after_bytes": 31153,
+   "after_sha256": "ae9392eccb5ad3599ea4c3489ebcb69da146ab0fcb507cb7e21ef7db0865f60c",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "final_map_raw_sha256_equals_committed_blob_sha256": true,
+   "final_map_size_equals_committed_bytes": true,
+   "raw_has_CR": false,
+   "blob_at_metadata_commit_unchanged": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+   "before_git_blob_at_parent": "645109d42070b53f186d7a137563b39cb6808ee6",
+   "after_git_blob_at_code": "2ba5b76e252bacd72d4d78272dce25ccc8021f8d",
+   "after_bytes": 696085,
+   "after_sha256": "42362f2050e4bc44ca682b816163e58928853d8f0e25ac3f88c9f57fb62bb4b1",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "final_map_raw_sha256_equals_committed_blob_sha256": true,
+   "final_map_size_equals_committed_bytes": true,
+   "raw_has_CR": false,
+   "blob_at_metadata_commit_unchanged": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+   "before_git_blob_at_parent": "43d2caf87e220f96e20a80801a161068fc68df7f",
+   "after_git_blob_at_code": "8a5c937c1dad863ffd48a0f6e795c0711a1e1c1a",
+   "after_bytes": 240571,
+   "after_sha256": "9a4c86043cbfdb3522928e32d47cda10131f749966869be1af62ba65d14dbf66",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "final_map_raw_sha256_equals_committed_blob_sha256": true,
+   "final_map_size_equals_committed_bytes": true,
+   "raw_has_CR": false,
+   "blob_at_metadata_commit_unchanged": true
+  },
+  {
+   "path": "eech-campaign/crates/eech-world/tests/entity_roster_host.rs",
+   "before_git_blob_at_parent": "2415ac3957896cafbac45fec0c5deb143ad95ae3",
+   "after_git_blob_at_code": "718ccb94a8ef647126c189dae101b9aff603a7c8",
+   "after_bytes": 48895,
+   "after_sha256": "0188794cc840b2d6dd7fe682ab6fadc4da0becb75eef09091d11083235b0d289",
+   "raw_working_bytes_equal_committed_blob_bytes": true,
+   "final_map_raw_sha256_equals_committed_blob_sha256": true,
+   "final_map_size_equals_committed_bytes": true,
+   "raw_has_CR": false,
+   "blob_at_metadata_commit_unchanged": true
+  }
+ ],
+ "changed_file_count": 7,
+ "docker_cache_owner_check": "wsl docker ps -a listed no container before the first run (no owner); one helper child at a time through the existing run-sector-roster-focused-direct helper with unique labels; the existing Linux cache volume was not restarted or pruned; no daemon restart",
+ "progress_guard": {
+  "plain": "migration-progress.py exit 0",
+  "fix_blocker": "migration-progress.py --action fix-blocker --blocker entity-object-collision exit 0 (after the card edit); outputs R:/d3-evidence/qres-guard-1.stdout and qres-guard-2.stdout"
+ },
+ "reused_not_rerun_not_relabelled": "unchanged blobs keep their own identity from 1687431f: eech-world roster.rs, model_host.rs and entity-authority.lua (so no World/Lua behaviour was re-validated beyond the entity_authority and entity_roster_host test files that changed), model_target_point 33, the roster library filter 7, the four-crate check of the FFI is rerun only as the compile check; the closed roster/FP/provider-key/driver results at 5182/505/91a7 and the sector withdrawn_backing control; no whole-engine, matrix, numeric or FP replay",
+ "qualifications": [
+  "the isolated C control exercises the REAL placement map and exchange against a scripted NAME-keyed host that does not model host records: the host-side consequence of the anchor is pinned by the provider test, not by the C control",
+  "the new provider and scripted-caller anchor tests pass on unchanged production Rust/Lua by design (the defect is the C anchor); only the C control and the engine boundary test are reds",
+  "the engine RED used the old branches with the two constants added in the same file, because the tests live in the production file; the fixed file was restored byte for byte",
+  "the engine callback filter ran the 13 the_model_callback tests; other eech-engine and eech-dc suites were not run",
+  "the previous batch's old-C RED was a compiler error and remains a setup/compatibility failure, never a behavioural red; this batch's C red is behavioural"
+ ],
+ "what_remains_required": [
+  "the same reviewer's check of the new material and provenance only",
+  "no Windows or native build before Root clears the source; then fresh builds and profiles for this source (the request layout changed, earlier binaries cannot stand in), a healthy control that establishes a real CHILD_NEXT, then the matched withdrawn_child actual (or the finite UNREACHED)",
+  "the fixed and city static pose/shape/live flags, hierarchy, tallest structure, UPDATED/shared terrain, raw tree/forest/cloud RNG, devices, DCS needed-only mapping, natural moving weapon, ordinary regression, complete Task49 40/all8, CI, review, technical-lead approval and normal merge, all ten D3 requirements; D4/D5/TypeScript unstarted"
+ ],
+ "next_exact_proof": "Same-reviewer check of the new material against this record (7 files, the Git byte join, the five final child records, the two maps and the two behavioural reds); then, only after Root clears the source, Root's fresh Windows build of the exact final code, the healthy control with city_next_joined > 0 and then withdrawn_child (credit only city_withdrawn 1, city_withdrawn_next child_next, city_withdrawn_cause city_child_ended, request_faults 0, reply_faults 1, first_fault scan reply: result refused) or the honest UNREACHED",
+ "not_run_not_claimed": [
+  "independent review of this batch",
+  "any Windows or native build or run, ordinary short, complete 40/all8, the actual withdrawn_child control",
+  "strict clippy or any matrix",
+  "whole Task49 or whole D3, the DCS mapping, the natural moving weapon"
+ ],
+ "process_notes": "one lane; every Python helper ran with -I; one Windows writer per log; one docker owner at a time; no restart or cache prune; the engine RED edited and restored lib.rs byte for byte from saved copies (engine-lib-final.rs) and the tree was verified at the expected 7 modified files; the ordinary 3475 pack, D3-CURRENT and Root clones/caches were not touched",
+ "no_native_clearance": true
+}

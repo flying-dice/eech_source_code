@@ -1,0 +1,72 @@
+{
+  "schema": "d3.independent.source-findings-batch.v1",
+  "written_utc": "2026-11-06T03:18:33.888140+00:00",
+  "source_commit": "2541843d13fb666299f1dbd4551f233e46e986ce",
+  "metadata_commit": "7e0026b087927a3576dfbf901bcdbbd87a4d9bb6",
+  "scope": "Consolidated finite NEW city source findings, saved before the remaining provenance joins so the same author can correct one batch. Closed sector/FP/numeric reviews are not reopened.",
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "native_launch_clearance": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "findings": [
+    {
+      "id": "ENV-CITY-PARENT-PLACEMENT-LIFETIME-1",
+      "severity": "P1",
+      "summary": "The child-list lifetime is tied to a parent sector placement and rejects a supported city-sector relink.",
+      "locations": [
+        "eech-campaign/crates/eech-world/src/roster.rs:173-190",
+        "aphavoc/source/entity/mobile/mb_hostplacemap.h:386-443,468",
+        "aphavoc/source/entity/fixed/city/ct_funcs.c:81",
+        "aphavoc/source/entity/fixed/fx_funcs.c:89",
+        "aphavoc/source/entity/fixed/fx_vec3d.c:137-164"
+      ],
+      "evidence": "CITY registers the existing fixed position setter. That setter removes and reinserts the city sector placement on a sector crossing while its CITY_BUILDING list remains attached. New SectorRoster::remove refuses any parent with a nonempty child list. This is not the city-family destruction path, which does destroy children first; that destruction ordering cannot justify rejecting a relink. C caches the insertion-time parent sector key for each child, and the host list and Child.parent use that same temporary key. Merely removing the rejection would strand the list/child-removal identities at an ended parent key.",
+      "minimum_correction": "Preserve the same city/list record and ordered children across parent placement removal/reinsert/restore, with coherent current parent addressing. Do not clear/recreate children from Core at query time, silently end the list, label this registered path unsupported, or change the original setter/order. Extend existing shared-C/provider lifecycle controls for a parent relink with children and their subsequent traversal/removal.",
+      "actual_limit": "Source-proved registered-path regression; no retail city-movement occurrence is claimed or required to demonstrate it."
+    },
+    {
+      "id": "ENV-CITY-OBJECT-ALIAS-1",
+      "severity": "P2",
+      "summary": "An already issued legacy identity can be lost when the first new placement is a city child.",
+      "locations": [
+        "aphavoc/source/entity/mobile/mb_hostplacemap.h:282-312",
+        "aphavoc/source/entity/mobile/mb_hostobj.c:311-317,396",
+        "aphavoc/source/entity/fixed/cbuild/cb_creat.c:197-199"
+      ],
+      "evidence": "If a legacy object ID was issued while no placement existed, campaign_place_name correctly sends nothing then. On later CHILD_INSERT alone, place_declare sends neither NAME nor LINK; on the subsequent sector insertion it sends LINK only. Both records can remain unnamed. A later identify call returns the cached ID before campaign_place_name, so the missing host alias does not repair itself. The existing C control covers an unplaced preissued ID followed by sector-only placement, not the normal child-first/two-placement ordering with that preissued ID.",
+      "minimum_correction": "Carry or redeclare the existing alias at first suitable placement and preserve it when the second placement joins, without allocating an ID early or twice and without querying to seed state. Cover a preissued/unplaced identity followed by child then sector insertion, as well as temporary last-placement loss/replacement where supported; distinguish identity lifetime from placement lifetime."
+    },
+    {
+      "id": "ENV-CITY-NAME-WIRE-DOMAIN-1",
+      "severity": "P2",
+      "summary": "The NAME request reduces the already supported 128-byte legacy identity domain by prepending a placement key inside the same 128-byte field.",
+      "locations": [
+        "aphavoc/source/entity/mobile/mb_hostobj.h:51",
+        "aphavoc/source/entity/mobile/mb_hostmodel.h:245,336",
+        "aphavoc/source/entity/mobile/mb_hostplacemap.h:258-277,659-690",
+        "aphavoc/source/entity/mobile/mb_hostentity.h:656-680"
+      ],
+      "evidence": "The existing object-ID contract accepts 128 bytes independently. New NAME combines a key of up to 20 bytes, one space and that ID into CAMPAIGN_MODEL_HOST_ID_MAX=128. place_pair and city_identity_check therefore reject a previously legal 128-byte identity, even with a one-digit placement key. The new C longest-identity test measures the combined field, not a full-domain object ID with its key. The standard current eech-world generated names are shorter, but that does not permit narrowing the existing provider contract.",
+      "minimum_correction": "Transport the full existing ID and key without truncation, normalization, guessed aliases or a newly unsupported legal ID. Keep request/reply validation atomic and update the existing boundary controls to exercise an actual full 128-byte object ID plus maximum placement key and reversible UTF-8 bytes where applicable. The exact safe wire layout is an implementation choice."
+    },
+    {
+      "id": "ENV-CITY-CHILD-WITHDRAW-CONTINUATION-1",
+      "severity": "P2",
+      "summary": "Removing a returned FIRST/NEXT child does not guarantee the real caller will next request CHILD_NEXT for it.",
+      "locations": [
+        "aphavoc/source/entity/mobile/mb_hostoffer.h:186-199,264-279",
+        "eech-campaign/crates/eech-world/lua/entity-authority.lua:903-1010,1831-1841"
+      ],
+      "evidence": "FIRST precedes the parent bbox decision. BUILDINGS later attempts a child collision before NEXT and can return on hit. NAME or later FIRST can therefore intervene after the current removal. The synthetic real_city immediate FIRST/NEXT fixture is not proof of the actual caller continuation. The current new withdrawal block also runs before the general joined-request alteration guard, so the correction must use current parsed/request-joined admission explicitly.",
+      "minimum_correction": "On an actual well-formed, joined CHILD_NEXT standing at the last served parent/child, first obtain real REMOVE acknowledgement from the same provider, then delegate those unchanged NEXT arguments exactly once and require the actual ended-child refusal. Credit that reached current NEXT; keep campaign events separate and Core lists unchanged. Require healthy real eligible NEXT coverage; absent continuation is UNREACHED without actor/time/geometry hunting. Keep exact primary entity_scan.refused plus roster.child/has ended, request0/reply1 only and no postfatal reads. Existing tests should distinguish FIRST-only, valid NEXT, bad join and wrong primary."
+    }
+  ],
+  "not_new_findings": [
+    "City family destruction already removes its children before its own sector placement; that valid ordering was checked and is not itself a defect.",
+    "The new host list is maintained by lifecycle events and supplies scan order; the C list is used as a conformance mirror, not an answering fallback. Static pose/shape/alive and other required physical coupling are still outside this finite list cut.",
+    "New city request classification uses integer word classification and try_borrow_mut; no new floating-point comparison or reentrant callback under the roster borrow was found in this finite inspection."
+  ],
+  "next_step": "Join the frozen checkpoint and actual direct-check/source evidence for the final scoped report; do not launch Windows/native city on this source."
+}

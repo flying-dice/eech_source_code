@@ -1,0 +1,249 @@
+{
+  "schema": "d3.independent.changed-source-review.v1",
+  "written_utc": "2026-11-06T03:20:32.560002+00:00",
+  "scope": "One combined correctness, clean-code and boundary-safety pass of the NEW city-building backing/list, placement-record alias and diagnostic changes. Earlier sector-roster, numeric, FP, Candidate, scan, TREE and Task50/52 reviews remain closed at their own identities.",
+  "source": {
+    "commit": "2541843d13fb666299f1dbd4551f233e46e986ce",
+    "direct_parent": "98c39c35b7d8ee16b9982248b4db277857b09b78",
+    "metadata_commit": "7e0026b087927a3576dfbf901bcdbbd87a4d9bb6",
+    "metadata_delta_only": [
+      "STATUS.md",
+      "docs/handover/ACTIVE-EXTRACTION.json"
+    ],
+    "changed_paths": [
+      "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+      "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "aphavoc/source/entity/mobile/mb_hostobj.c",
+      "aphavoc/source/entity/mobile/mb_hostoffer.h",
+      "aphavoc/source/entity/mobile/mb_hostplace.c",
+      "aphavoc/source/entity/mobile/mb_hostplace.h",
+      "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+      "aphavoc/source/entity/system/en_funcs/en_list.c",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+      "eech-campaign/crates/eech-world/src/model_host.rs",
+      "eech-campaign/crates/eech-world/src/roster.rs",
+      "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+      "eech-campaign/crates/eech-world/tests/entity_roster_host.rs"
+    ],
+    "changed_path_count": 18,
+    "checkpoint": {
+      "path": "R:/d3-evidence/city-building-backing-CODE-FROZEN-20261106.json",
+      "bytes": 46094,
+      "sha256": "ac7f855a27775f29083c0e98e02adc706849a76429afdd475571bd5b14f09848"
+    },
+    "all_18_changed_committed_blobs_independently_joined_to_checkpoint_bytes_and_SHA256": true,
+    "candidate_Windows_or_native_city_execution_claimed": false
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "native_launch_clearance": false,
+    "source_clear": false,
+    "findings": [
+      {
+        "id": "ENV-CITY-PARENT-PLACEMENT-LIFETIME-1",
+        "severity": "P1",
+        "summary": "The child-list lifetime is tied to a parent sector placement and rejects a supported city-sector relink.",
+        "locations": [
+          "eech-campaign/crates/eech-world/src/roster.rs:173-190",
+          "aphavoc/source/entity/mobile/mb_hostplacemap.h:386-443,468",
+          "aphavoc/source/entity/fixed/city/ct_funcs.c:81",
+          "aphavoc/source/entity/fixed/fx_funcs.c:89",
+          "aphavoc/source/entity/fixed/fx_vec3d.c:137-164"
+        ],
+        "evidence": "CITY registers the existing fixed position setter. That setter removes and reinserts the city sector placement on a sector crossing while its CITY_BUILDING list remains attached. New SectorRoster::remove refuses any parent with a nonempty child list. This is not the city-family destruction path, which does destroy children first; that destruction ordering cannot justify rejecting a relink. C caches the insertion-time parent sector key for each child, and the host list and Child.parent use that same temporary key. Merely removing the rejection would strand the list/child-removal identities at an ended parent key.",
+        "minimum_correction": "Preserve the same city/list record and ordered children across parent placement removal/reinsert/restore, with coherent current parent addressing. Do not clear/recreate children from Core at query time, silently end the list, label this registered path unsupported, or change the original setter/order. Extend existing shared-C/provider lifecycle controls for a parent relink with children and their subsequent traversal/removal.",
+        "actual_limit": "Source-proved registered-path regression; no retail city-movement occurrence is claimed or required to demonstrate it."
+      },
+      {
+        "id": "ENV-CITY-OBJECT-ALIAS-1",
+        "severity": "P2",
+        "summary": "An already issued legacy identity can be lost when the first new placement is a city child.",
+        "locations": [
+          "aphavoc/source/entity/mobile/mb_hostplacemap.h:282-312",
+          "aphavoc/source/entity/mobile/mb_hostobj.c:311-317,396",
+          "aphavoc/source/entity/fixed/cbuild/cb_creat.c:197-199"
+        ],
+        "evidence": "If a legacy object ID was issued while no placement existed, campaign_place_name correctly sends nothing then. On later CHILD_INSERT alone, place_declare sends neither NAME nor LINK; on the subsequent sector insertion it sends LINK only. Both records can remain unnamed. A later identify call returns the cached ID before campaign_place_name, so the missing host alias does not repair itself. The existing C control covers an unplaced preissued ID followed by sector-only placement, not the normal child-first/two-placement ordering with that preissued ID.",
+        "minimum_correction": "Carry or redeclare the existing alias at first suitable placement and preserve it when the second placement joins, without allocating an ID early or twice and without querying to seed state. Cover a preissued/unplaced identity followed by child then sector insertion, as well as temporary last-placement loss/replacement where supported; distinguish identity lifetime from placement lifetime."
+      },
+      {
+        "id": "ENV-CITY-NAME-WIRE-DOMAIN-1",
+        "severity": "P2",
+        "summary": "The NAME request reduces the already supported 128-byte legacy identity domain by prepending a placement key inside the same 128-byte field.",
+        "locations": [
+          "aphavoc/source/entity/mobile/mb_hostobj.h:51",
+          "aphavoc/source/entity/mobile/mb_hostmodel.h:245,336",
+          "aphavoc/source/entity/mobile/mb_hostplacemap.h:258-277,659-690",
+          "aphavoc/source/entity/mobile/mb_hostentity.h:656-680"
+        ],
+        "evidence": "The existing object-ID contract accepts 128 bytes independently. New NAME combines a key of up to 20 bytes, one space and that ID into CAMPAIGN_MODEL_HOST_ID_MAX=128. place_pair and city_identity_check therefore reject a previously legal 128-byte identity, even with a one-digit placement key. The new C longest-identity test measures the combined field, not a full-domain object ID with its key. The standard current eech-world generated names are shorter, but that does not permit narrowing the existing provider contract.",
+        "minimum_correction": "Transport the full existing ID and key without truncation, normalization, guessed aliases or a newly unsupported legal ID. Keep request/reply validation atomic and update the existing boundary controls to exercise an actual full 128-byte object ID plus maximum placement key and reversible UTF-8 bytes where applicable. The exact safe wire layout is an implementation choice."
+      },
+      {
+        "id": "ENV-CITY-CHILD-WITHDRAW-CONTINUATION-1",
+        "severity": "P2",
+        "summary": "Removing a returned FIRST/NEXT child does not guarantee the real caller will next request CHILD_NEXT for it.",
+        "locations": [
+          "aphavoc/source/entity/mobile/mb_hostoffer.h:186-199,264-279",
+          "eech-campaign/crates/eech-world/lua/entity-authority.lua:903-1010,1831-1841"
+        ],
+        "evidence": "FIRST precedes the parent bbox decision. BUILDINGS later attempts a child collision before NEXT and can return on hit. NAME or later FIRST can therefore intervene after the current removal. The synthetic real_city immediate FIRST/NEXT fixture is not proof of the actual caller continuation. The current new withdrawal block also runs before the general joined-request alteration guard, so the correction must use current parsed/request-joined admission explicitly.",
+        "minimum_correction": "On an actual well-formed, joined CHILD_NEXT standing at the last served parent/child, first obtain real REMOVE acknowledgement from the same provider, then delegate those unchanged NEXT arguments exactly once and require the actual ended-child refusal. Credit that reached current NEXT; keep campaign events separate and Core lists unchanged. Require healthy real eligible NEXT coverage; absent continuation is UNREACHED without actor/time/geometry hunting. Keep exact primary entity_scan.refused plus roster.child/has ended, request0/reply1 only and no postfatal reads. Existing tests should distinguish FIRST-only, valid NEXT, bad join and wrong primary."
+      }
+    ],
+    "finite_city_backing_closed": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "early_batch_preserved": {
+    "path": "R:/d3-evidence/independent-city-building-source-findings-254-20261106.json",
+    "bytes": 7690,
+    "sha256": "bd383042af5cbb83014fb787510ba024f6bd568c2c1e579d832b675dc0ceeef7"
+  },
+  "early_timing_confirmation": {
+    "path": "R:/d3-evidence/independent-city-building-early-review-20261106.json",
+    "bytes": 4258,
+    "sha256": "979d6ea691281ae1d236904e064dad0766e6a9f67f2842a7e996b2206f5e87f3"
+  },
+  "validated_new_source_properties_and_limits": [
+    "CITY_BUILDING insertion/removal is reported at the existing generic list funnel, before its notifications, using actual head/predecessor insertion history. New FIRST/NEXT asks the real host list, resolves the returned semantic child key through a private heap map and checks it against the actual C-list position. The C list is a conformance mirror; it is not used to answer instead of the host.",
+    "The dual-key reverse map distinguishes sector placements from child placements. Keys are grammar-checked before copying; returned child keys must resolve as a child and match the C mirror. Reply state, key presence/absence, echo and zero cursor are checked before committing the returned key. No entity heap index or pointer is added to the wire.",
+    "New city provider classification uses raw integer words, exact phase patterns and the existing integer whole-word classifier for insertion type. No new floating-point arithmetic is required for city list/alias decisions. The new operation borrows the same roster with try_borrow_mut and performs no reentrant callback inside its mutation.",
+    "Child order is maintained as host lifecycle state; it is not recomputed at query time from a Core list or a second model store. Record/LINK/NAME state is alias and placement metadata, not evidence that static physical pose, geometry, alive flags or every physical consumer has moved to Host.",
+    "The original child-collision order and early return remain in mb_hostoffer; this is why NEXT is not guaranteed after FIRST. City family destruction already destroys children before the city itself and is valid. Registered fixed-position parent relink is a different legitimate path and is the specific P1 finding.",
+    "The lazy object-ID allocator and counter are not called by the placement query; the new notification happens after the existing identity has been issued. Nevertheless, the preissued-ID catch-up and full existing identity domain are incomplete as specified in the findings.",
+    "No additional concrete geometry-math, FPU, RNG, output-write or buffer overrun defect was established in this new delta. That statement does not waive the listed correctness/contract failures or infer new native full-FP or lifecycle coverage."
+  ],
+  "actual_focused_evidence": {
+    "author_terminal": {
+      "path": "R:/d3-evidence/claude-d3-city-building-backing-20261106-completion.json",
+      "bytes": 1132,
+      "sha256": "b87c8282fd72986bc1239f2e337f7a8fea8015e6a9860a794e564c394093fcee"
+    },
+    "author_actual_exit": 0,
+    "author_result_is_error": false,
+    "final_five_direct_checks": [
+      {
+        "label": "qcity-final-1-fmt",
+        "command": "cargo fmt -p eech-world -p eech-engine-sys -- --check",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-qcity-final-1-fmt.json",
+          "bytes": 897,
+          "sha256": "a3098ae23191abef2d170241c8279ac73a34176ac0218aa99ce4b69fd81e6922"
+        },
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "label": "qcity-final-2-check",
+        "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-qcity-final-2-check.json",
+          "bytes": 970,
+          "sha256": "def6572028259d2a7df6b95944a55363ccf881c827bce671a64152f929d1bc4f"
+        },
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "c6d57165d7c51a12a6d5a45543298f57591c2355558cdeade82318d8e6ab38fa"
+      },
+      {
+        "label": "qcity-final-3-engine-sys",
+        "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard --test entity_pose_lifecycle_guard --no-fail-fast",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-qcity-final-3-engine-sys.json",
+          "bytes": 1205,
+          "sha256": "bfc6ac4cf2de94a224c4b3f877692893a5390647517a3de18fd90bd8afdff9d0"
+        },
+        "stdout_sha256": "349ee577b707b3c5a015cd4b89ccb1184a695f9dd6e14847e159e4756c85020b",
+        "stderr_sha256": "f426f66ea902080fa08483b079c6c91bb69fd920aaaf52c9c2c450801b201edd"
+      },
+      {
+        "label": "qcity-final-4-world",
+        "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --test model_target_point --no-fail-fast",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-qcity-final-4-world.json",
+          "bytes": 1061,
+          "sha256": "5f598f6f0ceda4aa62cc6e96bc2e84b44ff9c9ca65699bfdb87ad12e322fd45b"
+        },
+        "stdout_sha256": "94c9fd0a6f869cceeeb68c5ca084e3695d061940db6f25bf1942c1d5053e8bd9",
+        "stderr_sha256": "34f7c726cfd4aadd14405740e6d0c16ace4bfa3f77eaf1ca73899607e1385303"
+      },
+      {
+        "label": "qcity-final-5-lib",
+        "command": "cargo test --release --locked -p eech-world --lib roster",
+        "actual_exit": 0,
+        "record": {
+          "path": "R:/d3-evidence/sector-roster-direct-qcity-final-5-lib.json",
+          "bytes": 904,
+          "sha256": "2fdf17bcfde4ab50c02dbe31fa4c45394b91cf9a80ba59d21993c55c20edce37"
+        },
+        "stdout_sha256": "59d02fdc5f29add376853792d9a3c72cd4ea05e74955c0acfe67083dc8b7f63c",
+        "stderr_sha256": "ddf84296b2885dbb4fc47c085a66448885a51f48dfcc85a05a22c6bac7b70c25"
+      }
+    ],
+    "each_actual_direct_exit_and_separate_stdout_stderr_hash_independently_verified": true,
+    "final_test_result_rows_mechanically_derived": 8,
+    "final_tests_passed": 130,
+    "final_tests_failed": 0,
+    "result_row_breakdown": {
+      "Sys_dialogue": 1,
+      "Sys_entity_host_guard": 5,
+      "Sys_pose_lifecycle_guard": 4,
+      "Sys_roster_guard": 6,
+      "World_entity_authority": 61,
+      "World_entity_roster_host": 13,
+      "World_model_target_point": 33,
+      "World_roster_library_filter": 7
+    },
+    "isolated_C_dialogue_expectations_reported": 494,
+    "scope_qualification": "The five scoped commands cover formatting, four-package cargo check, affected Sys dialogue/guards, affected World tests and roster library filter. They are not a full canonical package/strict/feature matrix or a Windows/native campaign measurement. The isolated C executes real shared exchange/map/offer code with scripted host/heap; the real C funnel/getter/heap binding and object NAME notification are source-guarded/compile-checked. The real-provider Lua tests use scripted engine/candidate/narrowphase and cannot prove the actual caller reaches NEXT.",
+    "retained_RED": {
+      "new_provider_tests_on_old_provider": {
+        "actual_exit": 101,
+        "passed": 58,
+        "failed": 3
+      },
+      "new_source_guard_on_old_C": {
+        "actual_exit": 101,
+        "passed": 5,
+        "failed": 1
+      },
+      "qualification": "This is missing-capability/source-guard evidence. The new C dialogue is not compiled against the old C API, and no old retail native capability test was run."
+    },
+    "retained_intermediate_failures": "Checkpoint preserves the non-insert test-helper type-word failure, configured-hit scan-count expectation failure, and format-check failure. Their corrected final checks are distinct; no failed attempt is relabelled green."
+  },
+  "frozen_input_binding": {
+    "files": 3952,
+    "before_after_maps_literal_equal_verified": true,
+    "map_bytes": 2029791,
+    "map_sha256": "5cdf00fa1f233e4f2f70d679079f4b92f19343d5c43fbdf5cd06a23379afcbf7",
+    "captured_HEAD": "98c39c35b7d8ee16b9982248b4db277857b09b78",
+    "order": "Final edits/format finished, BEFORE map, five scoped checks, AFTER map, then code commit. Both raw/filtered maps are stable across these checks; the capture HEAD is the parent because changes were then uncommitted. Eighteen changed file hashes were separately joined to exact committed254 blobs.",
+    "qualifications": [
+      "aphavoc/source/entity/special/effect/explosn/xp_types.h",
+      "aphavoc/source/entity/special/effect/smokelst/sl_types.h",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "modules/system/malloc.c.h",
+      "modules/system/nedmalloc.c"
+    ],
+    "no_false_all_working_raw_Git_exact_claim": true,
+    "no_normalization_or_rerun_performed": true
+  },
+  "required_correction_and_next_gate": "One bounded author batch should address the four findings using the existing lifecycle/C-dialogue/provider/driver controls, preserving real getter/ID/lazy-counter ordering and full legal identity capacity. Review only materially corrected bytes and affected actual checks next. Source remains gated before Windows/native city. Then new ordinary short and source/profile-bound healthy actual with positive real CHILD_NEXT must precede the explicit pre-NEXT real withdrawal control; absence remains finite UNREACHED. No separate unchanged full-war or old numeric experiment is requested.",
+  "remaining_scope": [
+    "Static pose/shape/alive facts, broadphase supporting facts and live-roster/identity/heap coupling remain required as already declared. Placement/LINK/NAME metadata is not complete physical-record ownership.",
+    "Shared UPDATED/terrain effects, tallest structures, raw tree/forest/cloud data and RNG, hierarchy and remaining required consumers, DCS mapping and natural moving-weapon integration remain open. WholeD3 and Task49 delivery/fullpack gates are not accepted by focused list tests.",
+    "Separate ongoing ordinary3475 full-pack output is not touched or re-reviewed here; partial byte prefixes are not completion. Earlier accepted finite source/actuals remain at their measured identities."
+  ],
+  "review_operations": "Read-only exact Git source/diffs and retained direct receipts/log/map hashes; only safe independent JSON artifacts were written. No candidate edits, tests, builds, native launches, process/cache/VM/auth/external changes or nested agents."
+}
