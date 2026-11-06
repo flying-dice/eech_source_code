@@ -609,7 +609,7 @@ fn every_writer_of_a_field_of_a_fixed_entitys_collision_state_states_it_to_the_h
         // a creator writes the state of an entity that is not placed yet (the insertion states it, which the next test pins); every other writer is a writer of a PLACED entity
         // or an unpack that is followed by the insertion
         let creator = file.ends_with("_creat.c");
-        // a city is not of the fixed family the host holds a state for (its own position and box are a declared follow-on)
+        // a city is not of the fixed family the host holds a fixed-shape state for: its own position and box have their own census (the two tests below the family's)
         if file.contains("/city/") {
             continue;
         }
@@ -715,7 +715,7 @@ fn code_of(text: &str) -> String {
 
 #[test]
 fn the_fixed_family_is_the_types_that_carry_the_fixed_record_the_funnel_is_the_last_step_of_both_insertions_and_raw_setters_are_the_creators_alone() {
-    // the family the host's record holds a state for is exactly the entity types that overload the fixed functions, a city excepted (its own position and box are a declared follow-on)
+    // the family the host's record holds a state for is exactly the entity types that overload the fixed functions, a city excepted (it holds its own position and box: see its census)
     let mut overloaded: Vec<String> = Vec::new();
     for (file, text) in fixed_files() {
         if file.ends_with("_funcs.c") && file != "entity/fixed/fx_funcs.c" {
@@ -811,4 +811,152 @@ fn a_non_mobile_candidate_names_the_placement_the_host_served_it_by_and_a_mobile
     assert!(!offer.contains("static char"), "the offer keeps no state between candidates");
     let collision = source("entity/en_misc/en_maths/en_cllsn.c");
     assert!(collision.contains("#define CAMPAIGN_OFFER_FIXED_KEY(E,OF_CITY) campaign_place_key ((E), (OF_CITY))"));
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// THE CITY'S OWN COLLISION STATE (Task49, the follow-on of the fixed family): its position and bounding box are held by the host's record of the city's placement, so EVERY writer of either, in the supported
+// single-player runtime and the unpack routes that exist in source, must state them. A city is a placement of the sector list like the fixed family and carries the same fixed record, but it has no setter,
+// no pack data and no shape of its own: these are the writers that exist, asserted as text so that a new writer fails here before any native run (they are not a proof of behaviour: the isolated dialogue,
+// the provider tests and the native control are).
+
+#[test]
+fn the_cities_position_and_box_have_exactly_these_writers() {
+    // the box: the creator's sentinel (the original's inverted initial box) before the attributes and the insertion, and the expansion a building's link makes; no other file assigns it, and every reader of
+    // the box through its getters only reads (the avionics draw a hatched circle, the collision offer reads it)
+    let created = source("entity/fixed/city/ct_creat.c");
+    for sentinel in ["raw->bounding_box_min.x = 1000000.0;", "raw->bounding_box_max.x = -1000000.0;"] {
+        before(&created, sentinel, "set_local_entity_attributes (en, pargs);", "ct_creat.c");
+    }
+    before(
+        &created,
+        "set_local_entity_attributes (en, pargs);",
+        "insert_local_entity_into_parents_child_list (en, LIST_TYPE_SECTOR,",
+        "ct_creat.c",
+    );
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../aphavoc/source");
+    let mut files = Vec::new();
+    walk(&root, &mut files);
+    let mut assigners = Vec::new();
+    let mut readers = Vec::new();
+    for path in files {
+        let name = path.strip_prefix(&root).unwrap().to_string_lossy().replace('\\', "/");
+        let text = String::from_utf8_lossy(&std::fs::read(&path).unwrap()).replace("\r\n", "\n");
+        for line in text.lines().map(code) {
+            let assigns = ["bounding_box_min.", "bounding_box_max.", "bounding_box_min->", "bounding_box_max->"]
+                .iter()
+                .any(|member| {
+                    line.match_indices(member).any(|(at, _)| {
+                        let rest = &line[at + member.len()..];
+                        // `member.x = ...`, `member.x < ...` is a read: only a single `=` that is not `==` assigns
+                        let after = rest.trim_start_matches(|c: char| c.is_ascii_alphabetic()).trim_start();
+                        after.starts_with('=') && !after.starts_with("==")
+                    })
+                });
+            if assigns && !assigners.contains(&name) {
+                assigners.push(name.clone());
+            }
+            if line.contains("VEC3D_TYPE_BOUNDING_BOX_") && !readers.contains(&name) && !name.starts_with("entity/system/en_funcs/") {
+                readers.push(name.clone());
+            }
+        }
+    }
+    assigners.sort();
+    assert_eq!(
+        assigners,
+        ["entity/fixed/city/ct_creat.c".to_string(), "entity/fixed/city/ct_msgs.c".to_string()],
+        "the box has a creator's sentinel and one expansion: a new writer must state it to the host's record"
+    );
+    readers.sort();
+    // the avionics (a hatched circle), the collision offer (its conformance words), the city's own getters and, since the city's state moved behind its host record, the one funnel reader (mb_hostplace.c)
+    assert_eq!(readers.len(), 11, "{readers:?}");
+    assert!(readers.iter().all(|file| file.starts_with("gunships/avionics/")
+        || file == "entity/en_misc/en_maths/en_cllsn.c"
+        || file == "entity/fixed/city/ct_vec3d.c"
+        || file == "entity/mobile/mb_hostplace.c"));
+    // a city has no setter of the box (the vec3d overload table has only getters), and its session pack and unpack are empty: nothing restores a city's position or box
+    let vec3d = source("entity/fixed/city/ct_vec3d.c");
+    assert!(
+        !vec3d.contains("fn_set_local_entity_vec3d") && !vec3d.contains("fn_set_local_entity_raw_vec3d"),
+        "a city has no setter of its own"
+    );
+    assert!(vec3d.contains("#define SET_LOCAL_REQUIRED\t\t\t\t0") && vec3d.contains("#define SET_CLIENT_SERVER_REQUIRED\t0"));
+    let pack = source("entity/fixed/city/ct_pack.c");
+    for function in [
+        "static void pack_local_data (entity *en, pack_modes mode)\n{\n}",
+        "static void unpack_local_data (entity *en, entity_types type, pack_modes mode)\n{\n}",
+    ] {
+        assert!(pack.contains(function), "a city's pack hooks are empty: {function}");
+    }
+    // the position: the creator's default and the attribute the population file gives (the raw setter, before the insertion), and the shared setter every fixed entity registers; the population reader never
+    // moves a city after it created it
+    assert!(created.contains("raw->fix.position.x = MID_MAP_X;"));
+    let popread = source("ai/faction/popread.c");
+    let at = popread.find("ENTITY_TYPE_CITY,").expect("popread creates the city");
+    let end = popread[at..].find("ENTITY_ATTR_END").unwrap() + at;
+    assert!(popread[at..end].contains("ENTITY_ATTR_VEC3D ( VEC3D_TYPE_POSITION, x, y, z ),"));
+    assert!(!popread.contains("set_local_entity_vec3d ( city") && !popread.contains("set_local_entity_raw_vec3d ( city"));
+}
+
+#[test]
+fn every_writer_of_a_placed_citys_position_or_box_states_them_through_the_one_funnel_after_the_write() {
+    // the expansion a building's link makes is the only writer of a PLACED city's box: it states the city's whole state as its last step, after the six comparisons and the three assertions
+    let messages = source("entity/fixed/city/ct_msgs.c");
+    let at = messages.find("static void update_city_bounding_box").expect("the expansion");
+    let end = messages[at..].find("\n}\n").unwrap() + at;
+    let body = &messages[at..end];
+    before(body, "raw->bounding_box_max.z = p2.z;", "campaign_place_fixed_state (this_city);", "ct_msgs.c");
+    before(
+        body,
+        "ASSERT (raw->bounding_box_min.z <= raw->bounding_box_max.z);",
+        "campaign_place_fixed_state (this_city);",
+        "ct_msgs.c",
+    );
+    assert_eq!(body.matches("campaign_place_fixed_state (").count(), 1, "one statement, after the last write");
+    assert!(
+        body.trim_end().ends_with("campaign_place_fixed_state (this_city);"),
+        "the statement is the last step of the expansion"
+    );
+    assert!(messages.contains("#include \"entity/mobile/mb_hostplace.h\""));
+    // the position's writers of a placed city are the shared setter's two branches, both of which state it (the relink through its insertion), and the funnel handles a city by its type
+    let setter = source("entity/fixed/fx_vec3d.c");
+    before(
+        &setter,
+        "insert_local_entity_into_parents_child_list (en, LIST_TYPE_SECTOR, parent, NULL);",
+        "campaign_place_fixed_state (en);",
+        "fx_vec3d.c",
+    );
+    let map = source("entity/mobile/mb_hostplacemap.h");
+    let at = map.find("static void place_fixed_state (").expect("the funnel");
+    let end = map[at..].find("\n}\n").unwrap() + at;
+    let funnel = &map[at..end];
+    assert!(
+        funnel.contains("CAMPAIGN_PLACE_CITY (CAMPAIGN_PLACE_TYPE (en))"),
+        "the funnel recognises the city by its type"
+    );
+    assert!(funnel.contains("CAMPAIGN_PLACE_CITY_READ (en, city);") && funnel.contains("campaign_model_entity_city_state (key, city);"));
+    // the state is read from the entity at the moment of the report and kept by nobody
+    assert!(
+        !funnel.lines().skip(1).any(|line| code(line).contains("static ")),
+        "the funnel keeps no state of its own"
+    );
+    // the city is a type of the entity system, bound in the real placement map by its own type, and its reads are the entity's own getters (position, then the two box pointers)
+    let place = source("entity/mobile/mb_hostplace.c");
+    assert!(place.contains("#define CAMPAIGN_PLACE_CITY(TYPE) (((entity_types) (TYPE)) == ENTITY_TYPE_CITY)"));
+    assert!(place.contains("#define CAMPAIGN_PLACE_CITY_READ(E,OUT) place_city_read ((E), (OUT))"));
+    let at = place.find("static void place_city_read").expect("the reader");
+    let end = place[at..].find("\n}\n").unwrap() + at;
+    let reader = &place[at..end];
+    for getter in ["VEC3D_TYPE_POSITION", "VEC3D_TYPE_BOUNDING_BOX_MIN", "VEC3D_TYPE_BOUNDING_BOX_MAX"] {
+        assert!(reader.contains(getter), "{getter}");
+    }
+    assert!(
+        !reader.contains("float_value") && !reader.contains("get_local_entity_vec3d ("),
+        "the words are copied as the entity holds them, never loaded as floats"
+    );
+    // the city is NOT of the fixed family the host holds a fixed-shape state for (it holds its own position and box instead)
+    assert!(!place.contains("case ENTITY_TYPE_CITY:"));
+    // the first statement is the insertion's: place_insert states a city as it states the family, as its last step
+    let at = map.find("static void place_insert (").unwrap();
+    let end = map[at..].find("\n}\n").unwrap() + at;
+    assert!(map[at..end].trim_end().ends_with("place_fixed_state (en);"));
 }

@@ -829,23 +829,23 @@ static void campaign_entity_city_exchange (int phase, int entity_type, const cha
 
 // The FIXED_STATE report (the same question; phase CAMPAIGN_SCAN_PHASE_FIXED_STATE, Task49; see mb_hostmodel.h): the campaign states the collision state of the fixed-family placement `key` names. The key is validated
 // HERE as a roster key before anything is sent, and the host's reply is checked completely: the state `placed`, the same key acknowledged (never another placement's), and no sector.
-static void check_fixed_reply (const campaign_model_reply *reply, const char *key)
+static void check_fixed_reply (const campaign_model_reply *reply, const char *key, const char *report)
 {
 	if (reply->candidate_state != CAMPAIGN_MODEL_SCAN_PLACED)
 	{
-		debug_fatal ("host model: [model-provider:entity_scan.state] the host decided state %d for a fixed state report, which allows only state %d", reply->candidate_state, CAMPAIGN_MODEL_SCAN_PLACED);
+		debug_fatal ("host model: [model-provider:entity_scan.state] the host decided state %d for a %s, which allows only state %d", reply->candidate_state, report, CAMPAIGN_MODEL_SCAN_PLACED);
 	}
 
 	check_reply_key (reply, "entity_scan");
 
 	if (strcmp (reply->name, key) != 0)
 	{
-		debug_fatal ("host model: [model-provider:entity_scan.key] the host acknowledged the key \"%.40s\" of a fixed state report, which names another placement", reply->name);
+		debug_fatal ("host model: [model-provider:entity_scan.key] the host acknowledged the key \"%.40s\" of a %s, which names another placement", reply->name, report);
 	}
 
 	if ((!scan_word_is_zero (&reply->candidate [0])) || (!scan_word_is_zero (&reply->candidate [1])))
 	{
-		debug_fatal ("host model: [model-provider:entity_scan.cursor] the host named a sector for a fixed state report, which carries none");
+		debug_fatal ("host model: [model-provider:entity_scan.cursor] the host named a sector for a %s, which carries none", report);
 	}
 }
 
@@ -878,7 +878,38 @@ static void campaign_entity_fixed_exchange (int entity_type, const char *key, co
 
 	CAMPAIGN_ENTITY_SCAN_ASK (&request, &reply);
 
-	check_fixed_reply (&reply, key);
+	check_fixed_reply (&reply, key, "fixed state report");
+}
+
+// The CITY_STATE report (the same question; phase CAMPAIGN_SCAN_PHASE_CITY_STATE, Task49; see mb_hostmodel.h): the campaign states the position and bounding box of the city placement `key` names, as the entity holds the
+// words. The key is validated HERE as a roster key before anything is sent, and the host's reply is checked completely, as a fixed state report's is.
+static void campaign_entity_city_state_exchange (const char *key, const float *state)
+{
+	campaign_model_request
+		request;
+
+	campaign_model_reply
+		reply;
+
+	if (!roster_key_is_valid (key))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.key] a city state report names \"%.40s\", which is not a roster key", key);
+	}
+
+	memset (&request, 0, sizeof (request));
+	request.op = CAMPAIGN_MODEL_ENTITY_SCAN;
+	request.scene = 0;
+	request.pose_count = CAMPAIGN_MODEL_SCAN_FACTS;
+	request.pose [CAMPAIGN_SCAN_PHASE] = (float) CAMPAIGN_SCAN_PHASE_CITY_STATE;
+	memcpy (&request.pose [CAMPAIGN_CITY_POSITION], &state [0], 3 * sizeof (float));
+	memcpy (&request.pose [CAMPAIGN_CITY_BOX_MIN], &state [3], 3 * sizeof (float));
+	memcpy (&request.pose [CAMPAIGN_CITY_BOX_MAX], &state [6], 3 * sizeof (float));
+
+	memcpy (request.host_id, key, strlen (key));
+
+	CAMPAIGN_ENTITY_SCAN_ASK (&request, &reply);
+
+	check_fixed_reply (&reply, key, "city state report");
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

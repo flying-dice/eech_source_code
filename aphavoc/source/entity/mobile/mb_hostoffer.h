@@ -26,7 +26,8 @@
  *   CAMPAIGN_OFFER_HEADING (E), CAMPAIGN_OFFER_ALIGN (E)              the heading and the align-with-terrain flag
  *   CAMPAIGN_OFFER_FIRST_BUILDING (E), CAMPAIGN_OFFER_NEXT_BUILDING (C, B)   a city's buildings in the HOST's list order (NULL at the end): the first of the city E, and the building after B in the list of the city C.
  *                                               The campaign's own list at the same place is only the conformance mirror (mb_hostplacemap.h); the includer resolves the host's answer and stops the engine on a disagreement
- *   CAMPAIGN_OFFER_BOX (E, MIN, MAX)            a city's bounding box (three floats each)
+ *   CAMPAIGN_OFFER_BOX (E, MIN, MAX)            a city's bounding box (three floats each): with the city's position, the campaign's CONFORMANCE words for the state the host's record of the city holds
+ *                                               (mb_hostplacemap.h, the city's own state); the host compares them bit for bit and decides from the record, so they are read exactly where the original read them
  *   CAMPAIGN_OFFER_UPDATED (E)                  the destructive UPDATED getter
  *   CAMPAIGN_OFFER_TERRAIN_NORMAL (X, Z, OUT)   the terrain's face normal at a point (the terrain question and its effects)
  *   CAMPAIGN_OFFER_DELTA_TIME ()                the frame time

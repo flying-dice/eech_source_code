@@ -42,8 +42,8 @@ static const char *place_object_id (struct ENTITY *en)
 	return campaign_object_host_id (en);
 }
 
-// the fixed family: the entity types that carry the fixed record (fixed.h) whose collision state the host's record of a placement holds. A city carries it too but is not one here: its own position and
-// bounding box (ct_vec3d.c) are a declared follow-on, not moved by this
+// the fixed family: the entity types that carry the fixed record (fixed.h) whose collision state the host's record of a placement holds. A city carries it too but is not one here: it holds its own position and
+// bounding box (ct_vec3d.c, ct_msgs.c), stated by place_city_read below
 static int place_fixed_family (int type)
 {
 	switch ((entity_types) type)
@@ -86,6 +86,17 @@ static void place_fixed_read (struct ENTITY *en, float *state)
 	state [6] = (get_local_entity_int_value (en, INT_TYPE_ALIGN_WITH_TERRAIN) != 0) ? 1.0f : 0.0f;
 }
 
+// the city's own collision state as it is now: its position's three words, then the three words of its bounding box minimum and the three of its maximum, copied as the entity holds them (the box is the original's
+// inverted initial box until the city's first building links; no word is loaded as a float here)
+static void place_city_read (struct ENTITY *en, float *state)
+{
+	memcpy (state, get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION), 3 * sizeof (float));
+
+	memcpy (state + 3, get_local_entity_vec3d_ptr (en, VEC3D_TYPE_BOUNDING_BOX_MIN), 3 * sizeof (float));
+
+	memcpy (state + 6, get_local_entity_vec3d_ptr (en, VEC3D_TYPE_BOUNDING_BOX_MAX), 3 * sizeof (float));
+}
+
 #define CAMPAIGN_PLACE_ENTITY struct ENTITY
 #define CAMPAIGN_PLACE_HEAP() place_heap ()
 #define CAMPAIGN_PLACE_SLOT(E) get_local_entity_index ((E))
@@ -98,6 +109,8 @@ static void place_fixed_read (struct ENTITY *en, float *state)
 #define CAMPAIGN_PLACE_SIDE() ((float) SECTOR_SIDE_LENGTH)
 #define CAMPAIGN_PLACE_FIXED_FAMILY(TYPE) place_fixed_family ((TYPE))
 #define CAMPAIGN_PLACE_FIXED_READ(E,OUT) place_fixed_read ((E), (OUT))
+#define CAMPAIGN_PLACE_CITY(TYPE) (((entity_types) (TYPE)) == ENTITY_TYPE_CITY)
+#define CAMPAIGN_PLACE_CITY_READ(E,OUT) place_city_read ((E), (OUT))
 
 #include "entity/mobile/mb_hostplacemap.h"
 

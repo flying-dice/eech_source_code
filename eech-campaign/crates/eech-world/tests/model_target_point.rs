@@ -2122,8 +2122,8 @@ fn a_record_that_states_no_collision_decides_a_skip_and_the_campaign_cannot_call
 // ---- the family of the placement decides what its record must hold (EEDCS-49, D3, Task49: ENV-FIXED-CANONICAL-FAMILY-AUTHORITY-1) ----
 //
 // Which stage of the campaign's dialogue needs the record's fixed state is decided by the placement the host actually holds (its entity type, which the host's own roster recorded at the insertion), never by the
-// campaign's fixed, city and building mirrors: a placement of the fixed family needs its state at the stage its fixed facts were read whatever the campaign says of it, a city is the declared follow-on, and a placement
-// of no fixed family needs none. A mirror that contradicts the placement's family is a named refusal; a report of a type that is not of the fixed family is refused before the record changes.
+// campaign's fixed, city and building mirrors: a placement of the fixed family needs its state at the stage its fixed facts were read whatever the campaign says of it, a city needs its own at the stage that reads its
+// position and box, and a placement of no fixed family needs none. A mirror that contradicts the placement's family is a named refusal; a report of a type that is not of the fixed family is refused before the record changes.
 
 /// the entity types of the fixed family (en_types.h): a building listed in a city, a crater, an object, a pylon, scenery, a bridge segment, a site and an updatable site
 const FIXED_FAMILY_TYPES: [(i32, &str); 8] = [
@@ -2136,7 +2136,7 @@ const FIXED_FAMILY_TYPES: [(i32, &str); 8] = [
     (29, "site"),
     (30, "site updatable"),
 ];
-/// entity types that are not of the fixed family: a city (its own position and box are a declared follow-on), a fixed wing, a helicopter, a person, a sound effect and a weapon
+/// entity types that are not of the fixed family: a city (it holds its own state: see the city's tests below), a fixed wing, a helicopter, a person, a sound effect and a weapon
 const NOT_FIXED_FAMILY_TYPES: [(i32, &str); 6] = [
     (5, "city"),
     (10, "fixed wing"),
@@ -2243,15 +2243,17 @@ fn the_campaigns_city_and_building_mirrors_cannot_stand_in_for_the_family_of_the
 }
 
 #[test]
-fn a_real_city_and_a_placement_of_no_fixed_family_are_decided_without_a_fixed_state() {
+fn a_placement_of_no_fixed_family_is_decided_without_a_fixed_state_and_a_city_needs_none_of_the_fixed_familys() {
     let (root, store) = standard();
-    // a real city: the declared follow-on (its own position and box are not the host's yet), so it needs no state and the campaign's words decide
+    // a real city needs no FIXED-FAMILY state: its position and box are its own state (the tests below), stated by its own report, and a city whose own state was stated is decided from that
     let (lua, _roster, city) = placement_of(&root.dir, CITY_TYPE);
     let mut facts = fixed_facts(1, FIXED_POSITION, 0.5, 0.0);
     facts[8] = 1.0;
     facts[11] = 1.0;
     facts[36..39].copy_from_slice(&[0.0, 0.0, 0.0]);
     facts[39..42].copy_from_slice(&[50.0, 50.0, 50.0]);
+    let own = city_words(FIXED_POSITION, [0.0, 0.0, 0.0], [50.0, 50.0, 50.0]);
+    assert_eq!(table_result(&scan_words_answer(&lua, own, &city)).0, "placed");
     let (result, reason, _) = candidate_with_identity(&lua, 0, &facts, &city);
     let oracle = eech_world::entity_host::candidate_in_store(&store, 0, &candidate_words(&facts)).expect("the decision");
     assert_eq!(
@@ -2259,7 +2261,7 @@ fn a_real_city_and_a_placement_of_no_fixed_family_are_decided_without_a_fixed_st
         eech_world::entity_host::CandidateState::Buildings,
         "the kernel's own decision over the same facts"
     );
-    assert_eq!((result.as_str(), reason.as_str()), ("buildings", ""), "a city needs no fixed state");
+    assert_eq!((result.as_str(), reason.as_str()), ("buildings", ""), "a city is decided from its own state");
     // a placement of no fixed family (a weapon, a sound effect, a mobile kind): no state was ever stated, and it is decided as the campaign says, never refused for the absence
     for (entity_type, name) in NOT_FIXED_FAMILY_TYPES {
         let (lua, _roster, key) = placement_of(&root.dir, entity_type);
@@ -2288,4 +2290,280 @@ fn a_fixed_state_report_of_a_type_that_is_not_of_the_fixed_family_is_refused_by_
         let held = roster.borrow().placement_fixed(key.parse().unwrap(), false).expect("the placement stands").2;
         assert!(matches!(held, eech_world::roster::FixedHold::Held(_)), "{name}");
     }
+}
+
+// ---- THE CITY'S OWN COLLISION STATE through the real provider (EEDCS-49, D3, Task49: the follow-on of the fixed family) ----
+//
+// A city carries the fixed record too: its own position and bounding box are what a candidate question about the CITY is decided from once the campaign has read them (the city is fixed and its first building was
+// served: a city with none, or not fixed, is skipped before either is read, and the sector skip comes before everything). The host's record of the city's placement holds them (phase 14 of the scan question:
+// the position, the box minimum and the box maximum, 9 words), the campaign's own words for the same facts are only compared with it, bit for bit, and the record's words then decide. A city's record the host
+// holds no state for, or whose state the host withdrew, is refused by name at that stage and never completed from the campaign's words. The box of a city that has no building yet is the original's INVERTED
+// sentinel (the minimum 1.0e6 and the maximum -1.0e6): a valid statement, never a refusal for min > max.
+
+const CITY_STATE_PHASE: u32 = 0x4160_0000;
+const CITY_POSITION: [f32; 3] = [10.0, 3.0, 20.0];
+const CITY_BOX_MIN: [f32; 3] = [-30.0, -5.0, -40.0];
+const CITY_BOX_MAX: [f32; 3] = [50.0, 12.0, 60.0];
+
+fn city_words(position: [f32; 3], min: [f32; 3], max: [f32; 3]) -> [u32; 16] {
+    let mut words = [0u32; 16];
+    for (at, word) in position.iter().chain(min.iter()).chain(max.iter()).enumerate() {
+        words[at] = word.to_bits();
+    }
+    words[11] = CITY_STATE_PHASE;
+    words
+}
+
+fn city_standing() -> [u32; 16] {
+    city_words(CITY_POSITION, CITY_BOX_MIN, CITY_BOX_MAX)
+}
+
+/// the question of a city the campaign read as far as its position and box: fixed read and fixed, a city, its first building served (so its position and box were read)
+fn city_facts(position: [f32; 3], min: [f32; 3], max: [f32; 3]) -> [f32; 44] {
+    let mut facts = fixed_facts(1, position, 0.0, 0.0);
+    facts[8] = 1.0;
+    facts[11] = 1.0;
+    facts[36..39].copy_from_slice(&min);
+    facts[39..42].copy_from_slice(&max);
+    facts
+}
+
+/// whether a record holds a city's own state (by the variant's name, so the same check reads the same against the source that has none)
+fn holds_city_state(held: &eech_world::roster::FixedHold) -> bool {
+    format!("{held:?}").starts_with("City(")
+}
+
+fn city_refused(lua: &mlua::Lua, facts: &[f32; 44], key: &str, marker: &str, what: &str) {
+    let (result, reason, pose) = candidate_with_identity(lua, 0, facts, key);
+    assert_eq!(result, "refused", "{what}: {reason}");
+    assert!(reason.contains(marker) && reason.contains(what) && pose.is_empty(), "{what}: {reason}");
+}
+
+#[test]
+fn a_city_the_host_holds_no_state_for_is_refused_where_the_campaign_reads_its_position_and_box() {
+    let (root, _store) = standard();
+    let (lua, _roster, key) = placement_of(&root.dir, CITY_TYPE);
+    // the campaign read the city's position and box (its first building was served): they are not the campaign's word to give, and the host was never told them
+    city_refused(
+        &lua,
+        &city_facts(CITY_POSITION, CITY_BOX_MIN, CITY_BOX_MAX),
+        &key,
+        "[candidate.city]",
+        "holds no collision state",
+    );
+}
+
+#[test]
+fn a_city_state_report_is_held_by_the_record_of_the_placement_and_the_city_is_decided_from_it() {
+    let (root, store) = standard();
+    let (lua, roster, key) = placement_of(&root.dir, CITY_TYPE);
+    let (result, name, reason) = table_result(&scan_words_answer(&lua, city_standing(), &key));
+    assert_eq!((result.as_str(), name.as_str()), ("placed", key.as_str()), "{reason}");
+    // the stage that needs none of it: the fixed flag's own request
+    let first = candidate_with_identity(&lua, 0, &fixed_facts(0, FIXED_POSITION, 0.5, 0.0), &key);
+    assert_eq!((first.0.as_str(), first.1.as_str()), ("need_fixed", ""));
+    // the stage that reads the position and box: decided from the record's words, which the oracle (the host's own kernel over the same facts) decides identically
+    let facts = city_facts(CITY_POSITION, CITY_BOX_MIN, CITY_BOX_MAX);
+    let decided = candidate_with_identity(&lua, 0, &facts, &key);
+    let oracle = eech_world::entity_host::candidate_in_store(&store, 0, &candidate_words(&facts)).expect("the decision");
+    assert_eq!(oracle.state, eech_world::entity_host::CandidateState::Buildings);
+    assert_eq!((decided.0.as_str(), decided.1.as_str()), ("buildings", ""));
+    // a box the segment does not meet is a skip, decided from the same kind of record
+    let (lua2, _roster2, far) = placement_of(&root.dir, CITY_TYPE);
+    assert_eq!(
+        table_result(&scan_words_answer(&lua2, city_words([1000.0, 3.0, 1000.0], CITY_BOX_MIN, CITY_BOX_MAX), &far)).0,
+        "placed"
+    );
+    let far_facts = city_facts([1000.0, 3.0, 1000.0], CITY_BOX_MIN, CITY_BOX_MAX);
+    assert_eq!(candidate_with_identity(&lua2, 0, &far_facts, &far).0, "skip");
+    // the record holds the city's own state, and nothing of the fixed family's
+    let held = roster
+        .borrow()
+        .placement_fixed(key.parse().expect("a key"), false)
+        .expect("the placement stands")
+        .2;
+    assert!(holds_city_state(&held), "{held:?}");
+}
+
+#[test]
+fn the_campaigns_words_of_a_city_decide_nothing_a_difference_from_the_record_is_a_named_refusal() {
+    let (root, _store) = standard();
+    let (lua, _roster, key) = placement_of(&root.dir, CITY_TYPE);
+    assert_eq!(table_result(&scan_words_answer(&lua, city_standing(), &key)).0, "placed");
+    city_refused(
+        &lua,
+        &city_facts([11.0, 3.0, 20.0], CITY_BOX_MIN, CITY_BOX_MAX),
+        &key,
+        "[candidate.mirror]",
+        "position",
+    );
+    city_refused(
+        &lua,
+        &city_facts(CITY_POSITION, [-31.0, -5.0, -40.0], CITY_BOX_MAX),
+        &key,
+        "[candidate.mirror]",
+        "bounding box minimum",
+    );
+    city_refused(
+        &lua,
+        &city_facts(CITY_POSITION, CITY_BOX_MIN, [50.0, 12.0, 61.0]),
+        &key,
+        "[candidate.mirror]",
+        "bounding box maximum",
+    );
+    // a signed zero is a different word: the mirror is BITWISE
+    let (lua, _roster, zero) = placement_of(&root.dir, CITY_TYPE);
+    assert_eq!(
+        table_result(&scan_words_answer(&lua, city_words([0.0, 3.0, 20.0], CITY_BOX_MIN, CITY_BOX_MAX), &zero)).0,
+        "placed"
+    );
+    city_refused(
+        &lua,
+        &city_facts([-0.0, 3.0, 20.0], CITY_BOX_MIN, CITY_BOX_MAX),
+        &zero,
+        "[candidate.mirror]",
+        "position",
+    );
+}
+
+#[test]
+fn a_cities_state_the_host_withdrew_is_refused_by_name_and_only_a_new_statement_restores_it() {
+    let (root, _store) = standard();
+    let (lua, roster, key) = placement_of(&root.dir, CITY_TYPE);
+    let facts = city_facts(CITY_POSITION, CITY_BOX_MIN, CITY_BOX_MAX);
+    assert_eq!(table_result(&scan_words_answer(&lua, city_standing(), &key)).0, "placed");
+    assert_eq!(candidate_with_identity(&lua, 0, &facts, &key).0, "buildings");
+    // the host's own retirement of the record's state (the withdrawal word of phase 13): the placement stays standing and nothing the campaign said changed
+    let withdraw = fixed_words([0.0; 3], 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+    assert_eq!(table_result(&scan_words_answer(&lua, withdraw, &key)).0, "removed");
+    assert_eq!(
+        roster.borrow().placement_fixed(key.parse().expect("a key"), false).expect("stands").2,
+        eech_world::roster::FixedHold::Withdrawn
+    );
+    city_refused(&lua, &facts, &key, "[candidate.city]", "withdrew");
+    // the stage that never needed it is not refused: the fixed flag's own request
+    assert_eq!(
+        candidate_with_identity(&lua, 0, &fixed_facts(0, FIXED_POSITION, 0.5, 0.0), &key).0,
+        "need_fixed"
+    );
+    // a new statement of the campaign restores it
+    assert_eq!(table_result(&scan_words_answer(&lua, city_standing(), &key)).0, "placed");
+    assert_eq!(candidate_with_identity(&lua, 0, &facts, &key).0, "buildings");
+}
+
+#[test]
+fn a_city_is_skipped_without_its_state_when_it_has_no_building_or_is_not_fixed_and_the_sector_skip_comes_first() {
+    let (root, _store) = standard();
+    // none of the three stages reads the city's position or box, so the record's absence (or withdrawal) is not a refusal there
+    let (lua, _roster, key) = placement_of(&root.dir, CITY_TYPE);
+    let mut empty = city_facts(CITY_POSITION, CITY_BOX_MIN, CITY_BOX_MAX);
+    empty[11] = 0.0;
+    empty[13..16].fill(0.0);
+    empty[36..42].fill(0.0);
+    assert_eq!(
+        candidate_with_identity(&lua, 0, &empty, &key).0,
+        "skip",
+        "a city without a building is skipped before its position or box is read"
+    );
+    let mut not_fixed = fixed_facts(1, FIXED_POSITION, 0.5, 0.0);
+    not_fixed[7] = 0.0;
+    not_fixed[13..16].fill(0.0);
+    assert_eq!(
+        candidate_with_identity(&lua, 0, &not_fixed, &key).0,
+        "skip",
+        "a city the campaign reads as not fixed is skipped"
+    );
+    let mut below = fixed_facts(0, FIXED_POSITION, 0.5, 0.0);
+    below[12] = -500.0;
+    assert_eq!(candidate_with_identity(&lua, 0, &below, &key).0, "skip");
+    // the same after a withdrawal: the host's retirement of the state is only felt where the state is read
+    assert_eq!(table_result(&scan_words_answer(&lua, city_standing(), &key)).0, "placed");
+    let withdraw = fixed_words([0.0; 3], 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+    assert_eq!(table_result(&scan_words_answer(&lua, withdraw, &key)).0, "removed");
+    assert_eq!(candidate_with_identity(&lua, 0, &empty, &key).0, "skip");
+    assert_eq!(candidate_with_identity(&lua, 0, &below, &key).0, "skip");
+}
+
+#[test]
+fn a_malformed_city_state_report_is_refused_by_name_before_the_record_changes_and_the_inverted_sentinel_box_is_a_valid_statement() {
+    let (root, _store) = standard();
+    let (lua, roster, key) = placement_of(&root.dir, CITY_TYPE);
+    let held = |roster: &RosterHandle| roster.borrow().placement_fixed(key.parse().expect("a key"), false).expect("stands").2;
+    let refuse = |words: [u32; 16], identity: &str, marker: &str, what: &str| {
+        let (result, _, reason) = table_result(&scan_words_answer(&lua, words, identity));
+        assert_eq!(result, "refused", "{what}");
+        assert!(reason.contains(marker), "{what}: {reason}");
+        assert_eq!(held(&roster), eech_world::roster::FixedHold::Never, "{what}: nothing was recorded");
+    };
+    // each word of the state: a signaling NaN, infinity and a position beyond the world are refused by integer classification, before the roster is looked at
+    for (at, bad) in [
+        (0usize, 0x7fa0_0001u32),
+        (2, 0x7f80_0000),
+        (1, 0x4e6e_6b29),
+        (3, 0x7fc0_0000),
+        (5, 0xff80_0000),
+        (6, 0x7fa0_0001),
+        (8, 0x7f80_0000),
+    ] {
+        let mut words = city_standing();
+        words[at] = bad;
+        let marker = if at < 3 { "[roster.position]" } else { "[roster.box]" };
+        refuse(words, &key, marker, &format!("word {at}"));
+    }
+    // a word the report does not state, the withdrawal word (the host's own), a key that is no key, no key, and a key never issued
+    for at in [9usize, 10, 12, 13, 14, 15] {
+        let mut words = city_standing();
+        words[at] = 0x3f80_0000;
+        refuse(words, &key, "[roster.request]", &format!("fact {at}"));
+    }
+    refuse(city_standing(), "", "[roster.key]", "no key");
+    refuse(city_standing(), "01", "[roster.key]", "a key with a leading zero");
+    refuse(city_standing(), "99", "[roster.city]", "a key never issued");
+    // the original's initial box: the minimum above the maximum (1.0e6 and -1.0e6), valid and held as stated
+    let sentinel = city_words(CITY_POSITION, [1.0e6; 3], [-1.0e6; 3]);
+    let (result, _, reason) = table_result(&scan_words_answer(&lua, sentinel, &key));
+    assert_eq!(result, "placed", "{reason}");
+    assert!(holds_city_state(&held(&roster)));
+    // the stage that reads it compares the words and decides from the record all the same
+    let facts = city_facts(CITY_POSITION, [1.0e6; 3], [-1.0e6; 3]);
+    assert_eq!(candidate_with_identity(&lua, 0, &facts, &key).1, "");
+}
+
+#[test]
+fn a_city_state_is_the_cities_alone_and_a_fixed_report_is_not_a_city_s() {
+    let (root, _store) = standard();
+    // a placement of the fixed family, a mobile kind and a building listed under a city are not cities: refused before their records change
+    for (entity_type, name) in FIXED_FAMILY_TYPES
+        .iter()
+        .chain(NOT_FIXED_FAMILY_TYPES.iter().filter(|(kind, _)| *kind != CITY_TYPE))
+    {
+        let (lua, roster, key) = placement_of(&root.dir, *entity_type);
+        let (result, _, reason) = table_result(&scan_words_answer(&lua, city_standing(), &key));
+        assert_eq!(result, "refused", "{name}");
+        assert!(reason.contains("[roster.city]") && reason.contains("not a city"), "{name}: {reason}");
+        let held = roster
+            .borrow()
+            .placement_fixed(key.parse().expect("a key"), false)
+            .expect("the placement stands")
+            .2;
+        assert_eq!(held, eech_world::roster::FixedHold::Never, "{name}: the record was not changed");
+    }
+    let (lua, roster, _sector) = placement_of(&root.dir, CITY_TYPE);
+    let parent = roster.borrow_mut().insert((0, 0), CITY_TYPE, None);
+    let child = roster
+        .borrow_mut()
+        .child_insert(parent, None, BUILDING_TYPE as i32)
+        .expect("listed")
+        .to_string();
+    let (result, _, reason) = table_result(&scan_words_answer(&lua, city_standing(), &child));
+    assert_eq!(result, "refused");
+    assert!(reason.contains("[roster.city]"), "{reason}");
+    // and a fixed state report naming a real city is still refused by its own phase: the family's words are not a city's
+    let (lua, _roster, key) = placement_of(&root.dir, CITY_TYPE);
+    let report = fixed_words(FIXED_POSITION, CITY_TYPE as f32, 0.5, 1.0, 1.0, 0.0, 0.0);
+    let (result, _, reason) = table_result(&scan_words_answer(&lua, report, &key));
+    assert!(
+        result == "refused" && reason.contains("[roster.fixed]") && reason.contains("fixed family"),
+        "{reason}"
+    );
 }

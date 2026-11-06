@@ -30,15 +30,23 @@
 //   CAMPAIGN_PLACE_IDENTITY (E)            a hosted mobile's semantic host identity, or NULL for every other entity
 //   CAMPAIGN_PLACE_OBJECT_ID (E)           the legacy object-report identity already issued for the entity (NULL when none: it is never allocated here)
 //   CAMPAIGN_PLACE_SIDE ()                 the sector side length, as a float
-//   CAMPAIGN_PLACE_FIXED_FAMILY (TYPE)     whether the entity type carries the fixed record whose COLLISION state the host holds (a city does not: its own position and box are a declared follow-on)
+//   CAMPAIGN_PLACE_FIXED_FAMILY (TYPE)     whether the entity type carries the fixed record whose COLLISION state the host holds (a city is not one: it has its own state, below)
 //   CAMPAIGN_PLACE_FIXED_READ (E, OUT)     the entity's fixed collision state as CAMPAIGN_FIXED_STATE_WORDS floats: position (3), heading, shape, collision-fixed flag, align flag
-// and campaign_model_entity_fixed (mb_hostmodel.h).
+//   CAMPAIGN_PLACE_CITY (TYPE)             whether the entity type is the city
+//   CAMPAIGN_PLACE_CITY_READ (E, OUT)      the city's own state as CAMPAIGN_CITY_STATE_WORDS floats, the words as the entity holds them: position (3), bounding box minimum (3), bounding box maximum (3)
+// and campaign_model_entity_fixed and campaign_model_entity_city_state (mb_hostmodel.h).
 //
 // THE FIXED COLLISION STATE (Task49). The host's record of a fixed-family placement holds the placement's collision state, and a candidate question is decided from it (mb_hostmodel.h, ENTITY_CANDIDATE). The
 // campaign states it with `place_fixed_state`, which states the state the entity holds NOW under the key of the placement the entity has (its sector placement's, else its place in a city's list). It is
 // called at the end of both insertions (a creator states the shape before it links the entity, a relink writes the position first, an unpack writes the record first, so the state is complete there) and by every
 // writer of a field of the state after the entity is placed: a setter (position, heading, sub type, shape), a kill's destroyed shape, a restore, an unpack of a session's alive and damaged shapes and a bridge's
 // damage, fall and rest (fx_*.c, *_dstry.c, *_pack.c, segment.c, sg_updt.c). An entity that is not placed (a write during its construction, before the insertion) states nothing: its insertion does.
+//
+// THE CITY'S OWN STATE (Task49). A city carries the fixed record too, but what a candidate question about it reads is its position and its bounding box (en_cllsn.c: the city, when its first building was served), and it has
+// no setter, no pack data and no shape of its own. The same funnel states them, under the city's SECTOR placement (a city is never listed in another's list): the insertion states them as its last step (a relink repeats
+// it under the new key; the host's record, which the city's list hangs from, continues across it), the shared fixed-position setter states a position written in the same sector, and the expansion of the box that
+// each building's link makes (ct_msgs.c) states the box. The box words are the original's INVERTED initial box (1.0e6 and -1.0e6) until the first building links: a valid statement. The words are copied as the entity
+// holds them and never loaded as floats here.
 #ifndef MB_HOSTPLACEMAP_H
 #define MB_HOSTPLACEMAP_H
 
@@ -373,25 +381,30 @@ static void place_declare (CAMPAIGN_PLACE_ENTITY *en, int slot)
 	}
 }
 
-// the fixed collision state of `en` as it is NOW is stated to the host's record of the placement the entity has: its sector placement's key, else its place in a city's list. A type that has none, an entity that is
-// not placed (a write during its construction, before its insertion, which then states it) and a build with no host state nothing. The state is read here, never kept: the host's record is the only one.
+// the collision state of `en` as it is NOW is stated to the host's record of the placement the entity has: its sector placement's key, else its place in a city's list. A fixed-family entity states its fixed state and a
+// city its own position and box. A type that has none, an entity that is not placed (a write during its construction, before its insertion, which then states it) and a build with no host state nothing. The state is
+// read here, never kept: the host's record is the only one.
 static void place_fixed_state (CAMPAIGN_PLACE_ENTITY *en)
 {
 	float
-		state [CAMPAIGN_FIXED_STATE_WORDS];
+		state [CAMPAIGN_FIXED_STATE_WORDS],
+		city [CAMPAIGN_CITY_STATE_WORDS];
 
 	const char
 		*key;
 
 	int
-		slot;
+		slot,
+		of_city;
 
 	if (!campaign_model_host_installed () || !place_key_of_slot)
 	{
 		return;
 	}
 
-	if (!CAMPAIGN_PLACE_FIXED_FAMILY (CAMPAIGN_PLACE_TYPE (en)))
+	of_city = CAMPAIGN_PLACE_CITY (CAMPAIGN_PLACE_TYPE (en));
+
+	if (!of_city && !CAMPAIGN_PLACE_FIXED_FAMILY (CAMPAIGN_PLACE_TYPE (en)))
 	{
 		return;
 	}
@@ -402,6 +415,15 @@ static void place_fixed_state (CAMPAIGN_PLACE_ENTITY *en)
 
 	if (!key [0])
 	{
+		return;
+	}
+
+	if (of_city)
+	{
+		CAMPAIGN_PLACE_CITY_READ (en, city);
+
+		campaign_model_entity_city_state (key, city);
+
 		return;
 	}
 

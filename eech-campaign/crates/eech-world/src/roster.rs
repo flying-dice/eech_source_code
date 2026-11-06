@@ -18,8 +18,11 @@
 //! RECORD, and nowhere else in the host: the position, heading, shape and the two flags its type derives (`FixedState`), as the campaign states them at every write it makes to one (the insertion, a
 //! setter, a kill's destroyed shape, a restore, a session unpack, a bridge's damage or fall). The record is the one the placements of the entity share, so the state lives with the entity's placements,
 //! follows the link of a building's two placements, and ends with the record's last placement; a relink is a removal and a new insertion, so the new record holds none until the campaign states it again.
-//! A candidate question names the placement the host served and is decided from that record's words; the campaign's own words for the same facts are only compared with them (`model_host`). The city's own
-//! position and box, and the terrain the structures stand on, are NOT held here (declared follow-on).
+//! A candidate question names the placement the host served and is decided from that record's words; the campaign's own words for the same facts are only compared with them (`model_host`).
+//!
+//! A CITY's record holds the city's OWN collision state instead (`CityState`): its position and bounding box, as the campaign states them at the insertion (which a relink repeats), at a position written in the same
+//! sector and at each expansion of the box that a building's link makes. The record is the one the city's list hangs from, so the state outlives the city's transient sector placement while buildings are listed and ends
+//! with the record. The terrain the structures stand on is NOT held here (declared follow-on).
 //!
 //! A key is issued at an insertion and never again: a relink is a removal and a new insertion with a new sequence number, exactly the list operation it mirrors, and a removed key can never name
 //! another entity.
@@ -112,7 +115,7 @@ pub fn sector_of(x_word: u32, z_word: u32, side: i32) -> Result<(i32, i32), Refu
     Ok((axis(x_word)?, axis(z_word)?))
 }
 
-/// The campaign's entity types (`en_types.h`) the host classifies a placement by when it decides what the placement's record must hold: a city (its own position and box are a declared follow-on, not held here),
+/// The campaign's entity types (`en_types.h`) the host classifies a placement by when it decides what the placement's record must hold: a city (it holds its own position and box, `CityState`),
 /// a building listed in a city, and the fixed family whose collision state the record holds (`place_fixed_family`, mb_hostplace.c: a building listed in a city, a crater, an object, a pylon, scenery, a bridge
 /// segment, a site and an updatable site). The values are compared with the campaign's own source by this module's tests.
 pub const ENTITY_CITY: i32 = 5;
@@ -156,12 +159,22 @@ pub struct FixedState {
     pub align: bool,
 }
 
-/// What the host holds of a record's fixed collision state: nothing was ever stated (a record of a family that has none, or a campaign that did not state it), the state, or the host's own withdrawal of the
-/// state it held (the placement stays standing; the next statement of the campaign restores the state).
+/// The collision state of a city placement, as the campaign stated it (mb_hostmodel.h, CITY_STATE): the words a candidate question about the city is decided from once the campaign has read them. Every float is the
+/// bit pattern the entity held and is never loaded as a float here. The box of a city that has no building yet is the original's INVERTED initial box (minimum 1.0e6, maximum -1.0e6), a valid statement.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CityState {
+    pub position: [u32; 3],
+    pub box_min: [u32; 3],
+    pub box_max: [u32; 3],
+}
+
+/// What the host holds of a record's collision state: nothing was ever stated (a record of a type that has none, or a campaign that did not state it), the fixed family's state, a city's own state, or the host's own
+/// withdrawal of the state it held (the placement stays standing; the next statement of the campaign restores the state).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FixedHold {
     Never,
     Held(FixedState),
+    City(CityState),
     Withdrawn,
 }
 
@@ -524,6 +537,26 @@ impl SectorRoster {
         Ok(())
     }
 
+    /// States the city's own collision state of the record a placement belongs to (the campaign states it under the city's sector placement). The placement must be a city (a fixed-family placement, a mobile and a
+    /// building listed under a city have none: refused before the record changes), and a statement replaces what the record held (it also restores a state the host withdrew).
+    pub fn set_city(&mut self, key: u64, state: CityState) -> Result<(), Refusal> {
+        let record = self.record(key).ok_or_else(|| Refusal::new(self.unknown(key)))?;
+        let placed = self
+            .entity_type(key)
+            .or_else(|| self.child_type(key))
+            .ok_or_else(|| Refusal::new(self.unknown(key)))?;
+        if placed != ENTITY_CITY {
+            return Err(Refusal::new(format!(
+                "the placement {key} is of entity type {placed}, which is not a city: the host holds no city collision state for it"
+            )));
+        }
+        let Some(entry) = self.records.get_mut(&record) else {
+            return Err(Refusal::new(format!("the placement {key} has no record")));
+        };
+        entry.fixed = FixedHold::City(state);
+        Ok(())
+    }
+
     /// The HOST's own retirement of the fixed collision state of the record a placement belongs to: the placement stays standing and the record keeps its placements, its object identity and its list; only the
     /// state goes. The campaign never asks for it. A record that holds no state has nothing to withdraw.
     pub fn withdraw_fixed(&mut self, key: u64) -> Result<(), Refusal> {
@@ -531,7 +564,7 @@ impl SectorRoster {
         let Some(entry) = self.records.get_mut(&record) else {
             return Err(Refusal::new(format!("the placement {key} has no record")));
         };
-        if !matches!(entry.fixed, FixedHold::Held(_)) {
+        if !matches!(entry.fixed, FixedHold::Held(_) | FixedHold::City(_)) {
             return Err(Refusal::new(format!(
                 "the record of the placement {key} holds no fixed physical state to withdraw"
             )));
@@ -952,7 +985,7 @@ mod tests {
     #[test]
     fn a_placement_of_no_fixed_family_can_hold_no_fixed_state_and_a_refused_statement_changes_nothing() {
         let mut roster = SectorRoster::default();
-        // a city (its own position and box are a declared follow-on), a fixed wing, a helicopter, a person, a sound effect and a weapon
+        // a city (it holds its own state, not the family's), a fixed wing, a helicopter, a person, a sound effect and a weapon
         for entity_type in [ENTITY_CITY, 10, 14, 19, 32, 37] {
             let key = roster.insert((0, 0), entity_type, None);
             let refusal = roster.set_fixed(key, entity_type, state(7)).unwrap_err();
@@ -965,6 +998,120 @@ mod tests {
             roster.set_fixed(key, entity_type, state(7)).unwrap();
             assert_eq!(held(&roster, key, false), FixedHold::Held(state(7)), "{entity_type}");
         }
+    }
+
+    fn city_state(seed: u32) -> CityState {
+        CityState {
+            position: [seed, seed + 1, seed + 2],
+            box_min: [seed + 3, seed + 4, seed + 5],
+            box_max: [seed + 6, seed + 7, seed + 8],
+        }
+    }
+
+    #[test]
+    fn a_citys_own_state_is_its_records_stated_by_type_replaced_by_a_statement_and_withdrawn_only_by_the_host() {
+        let mut roster = SectorRoster::default();
+        let city = roster.insert((0, 0), ENTITY_CITY, None);
+        assert_eq!(held(&roster, city, false), FixedHold::Never, "a record holds none until the campaign states it");
+        roster.set_city(city, city_state(1)).unwrap();
+        assert_eq!(held(&roster, city, false), FixedHold::City(city_state(1)));
+        // a statement replaces the last (the insertion's inverted initial box, then each building's expansion)
+        let sentinel = CityState {
+            position: [10, 11, 12],
+            box_min: [1.0e6f32.to_bits(); 3],
+            box_max: [(-1.0e6f32).to_bits(); 3],
+        };
+        roster.set_city(city, sentinel).unwrap();
+        assert_eq!(
+            held(&roster, city, false),
+            FixedHold::City(sentinel),
+            "the inverted box is a valid statement as stated"
+        );
+        roster.set_city(city, city_state(5)).unwrap();
+        // only the host retires it; the placement stays standing, the campaign's next statement restores it
+        roster.withdraw_fixed(city).unwrap();
+        assert_eq!(held(&roster, city, false), FixedHold::Withdrawn);
+        assert!(roster.withdraw_fixed(city).unwrap_err().0.contains("holds no fixed physical state to withdraw"));
+        roster.set_city(city, city_state(5)).unwrap();
+        assert_eq!(held(&roster, city, false), FixedHold::City(city_state(5)));
+        // the family's statement is not a city's and a city's is not the family's
+        assert!(roster.set_fixed(city, ENTITY_CITY, state(7)).unwrap_err().0.contains("not of the fixed family"));
+        let object = roster.insert((0, 0), 17, None);
+        assert!(roster.set_city(object, city_state(1)).unwrap_err().0.contains("not a city"));
+        assert_eq!(held(&roster, object, false), FixedHold::Never, "a refused statement changes nothing");
+        assert!(roster.set_city(99, city_state(1)).unwrap_err().0.contains("never issued"));
+    }
+
+    #[test]
+    fn a_placement_that_is_not_a_city_can_hold_no_city_state_and_a_building_listed_under_a_city_is_not_one() {
+        let mut roster = SectorRoster::default();
+        for entity_type in FIXED_FAMILY.into_iter().chain([10, 14, 19, 32, 37]) {
+            let key = roster.insert((0, 0), entity_type, None);
+            let refusal = roster.set_city(key, city_state(1)).unwrap_err();
+            assert!(refusal.0.contains("not a city"), "{entity_type}: {}", refusal.0);
+            assert_eq!(held(&roster, key, false), FixedHold::Never, "{entity_type}");
+        }
+        let city = roster.insert((0, 0), ENTITY_CITY, None);
+        let child = roster.child_insert(city, None, ENTITY_CITY_BUILDING).unwrap();
+        assert!(roster.set_city(child, city_state(1)).unwrap_err().0.contains("not a city"));
+        assert_eq!(held(&roster, child, true), FixedHold::Never);
+    }
+
+    #[test]
+    fn a_citys_state_follows_its_record_across_a_sector_relink_while_buildings_are_listed_and_ends_with_the_record() {
+        let mut roster = SectorRoster::default();
+        let city = roster.insert((0, 0), ENTITY_CITY, None);
+        roster.set_city(city, city_state(1)).unwrap();
+        let building = roster.child_insert(city, None, ENTITY_CITY_BUILDING).unwrap();
+        // the first building's link expands the box: the city states it again (under the placement it has)
+        roster.set_city(city, city_state(2)).unwrap();
+        // the shared fixed setter removes the sector placement and inserts it again: the record, which the list hangs from, keeps the last state until the new placement is declared to continue it
+        roster.remove(city).unwrap();
+        let relinked = roster.insert((1, 1), ENTITY_CITY, None);
+        assert_eq!(
+            held(&roster, relinked, false),
+            FixedHold::Never,
+            "the new placement is a fresh record until it is linked"
+        );
+        roster.link(relinked, city).unwrap();
+        assert_eq!(
+            held(&roster, relinked, false),
+            FixedHold::City(city_state(2)),
+            "the record continues with its state"
+        );
+        // the insertion then states the new position under the new key: the one record's state is replaced
+        roster.set_city(relinked, city_state(3)).unwrap();
+        assert_eq!(held(&roster, relinked, false), FixedHold::City(city_state(3)));
+        // a withdrawal is kept by the link, and the next statement restores it
+        roster.withdraw_fixed(relinked).unwrap();
+        roster.remove(relinked).unwrap();
+        let again = roster.insert((2, 2), ENTITY_CITY, None);
+        roster.link(again, city).unwrap();
+        assert_eq!(held(&roster, again, false), FixedHold::Withdrawn);
+        roster.set_city(again, city_state(4)).unwrap();
+        assert_eq!(held(&roster, again, false), FixedHold::City(city_state(4)));
+        // the last building leaves while the city stays placed: the record stays; the placement then leaves with nothing listed and the record and its state end with it
+        roster.child_remove(city, building).unwrap();
+        assert_eq!(held(&roster, again, false), FixedHold::City(city_state(4)));
+        roster.remove(again).unwrap();
+        assert!(roster.placement_fixed(again, false).unwrap_err().0.contains("has ended"));
+        // an empty city's relink is a removal and a new insertion: a new record that holds none until it is stated
+        let empty = roster.insert((0, 0), ENTITY_CITY, None);
+        roster.set_city(empty, city_state(1)).unwrap();
+        roster.remove(empty).unwrap();
+        let fresh = roster.insert((0, 0), ENTITY_CITY, None);
+        assert_eq!(held(&roster, fresh, false), FixedHold::Never);
+        // a statement made BEFORE the link would carry a state of its own that differs from the record's: the link refuses it, never merges two cities' words (the campaign links first, then states)
+        let listed = roster.insert((0, 0), ENTITY_CITY, None);
+        roster.set_city(listed, city_state(1)).unwrap();
+        roster.child_insert(listed, None, ENTITY_CITY_BUILDING).unwrap();
+        roster.remove(listed).unwrap();
+        let early = roster.insert((0, 0), ENTITY_CITY, None);
+        roster.set_city(early, city_state(9)).unwrap();
+        assert!(roster.link(early, listed).unwrap_err().0.contains("different fixed physical state"));
+        // a boot ends every record and its state
+        roster.clear();
+        assert!(roster.placement_fixed(fresh, false).is_err());
     }
 
     const ENTITY_TYPES_H: &str = include_str!("../../../../aphavoc/source/entity/system/en_types/en_types.h");

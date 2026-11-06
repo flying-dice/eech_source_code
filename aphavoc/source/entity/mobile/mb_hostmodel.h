@@ -313,7 +313,9 @@ enum campaign_model_scan_phase
 	CAMPAIGN_SCAN_PHASE_LINK,
 	CAMPAIGN_SCAN_PHASE_NAME,
 	/* the FIXED collision state of a fixed-family placement (Task49, fixed/static collision backing): the campaign states it each time it writes one (see campaign_model_entity_fixed) */
-	CAMPAIGN_SCAN_PHASE_FIXED_STATE
+	CAMPAIGN_SCAN_PHASE_FIXED_STATE,
+	/* the CITY's own collision state (Task49): the position and bounding box of a city placement, stated to the host's record of the placement (see campaign_model_entity_city_state) */
+	CAMPAIGN_SCAN_PHASE_CITY_STATE
 };
 
 /* the facts of a FIXED_STATE report (the same question, phase CAMPAIGN_SCAN_PHASE_FIXED_STATE): the position (3 floats), the entity type, the heading, the shape (a whole scene index), the collision-fixed
@@ -328,6 +330,15 @@ enum campaign_model_scan_phase
 #define CAMPAIGN_FIXED_WITHDRAW 9
 /* the floats of the state the campaign reads from a fixed entity (campaign_model_entity_fixed): position (3), heading, shape, collision-fixed flag, align flag */
 #define CAMPAIGN_FIXED_STATE_WORDS 7
+
+/* the facts of a CITY_STATE report (the same question, phase CAMPAIGN_SCAN_PHASE_CITY_STATE): the city's position (3 floats), its bounding box minimum (3) and its bounding box maximum (3), exactly as the entity holds
+   the words; every other fact is zero (the host's withdrawal word is not part of it: the host retires a state with the FIXED_STATE report's withdrawal word). The identity place is the key of the city's sector
+   placement. The box of a city that has no building yet is the original's INVERTED initial box (minimum 1.0e6, maximum -1.0e6): a valid statement. */
+#define CAMPAIGN_CITY_POSITION 0
+#define CAMPAIGN_CITY_BOX_MIN 3
+#define CAMPAIGN_CITY_BOX_MAX 6
+/* the floats of the state the campaign reads from a city (campaign_model_entity_city_state): position (3), box minimum (3), box maximum (3) */
+#define CAMPAIGN_CITY_STATE_WORDS 9
 
 enum campaign_model_scan_state
 {
@@ -523,7 +534,10 @@ int campaign_model_entity_collision (int scene, const float *segment_old, const 
    For every candidate that is NOT a mobile of a sector list (a fixed object, a city, a building listed in a sector or under a city) `host_id` is instead the key of the PLACEMENT the host served the candidate by (its
    sector placement's, or a city building's place in the city's list), on every staged question: the host joins it to the record of the placement and, once the candidate's fixed facts were read, decides from the
    fixed collision state the record holds (campaign_model_entity_fixed), comparing the campaign's words for the same facts (the collision-fixed flag, position, shape, heading, align flag) with it, bit for bit. A key
-   that names no live placement of the kind the branch has, and a record that holds no state (or whose state the host withdrew) where the branch needs one, are refused by name. */
+   that names no live placement of the kind the branch has, and a record that holds no state (or whose state the host withdrew) where the branch needs one, are refused by name.
+   A CITY is decided from its own state the same way (campaign_model_entity_city_state): at the stage that reads its position and bounding box (its fixed facts read, fixed, and its first building served: a city with
+   none, or not fixed, is skipped before either is read) the host compares the campaign's words for the position and the box with the record's, bit for bit, and decides over the record's words; a record that holds
+   none, or whose state the host withdrew, is refused by name at that stage and never completed from the campaign's words. */
 int campaign_model_entity_candidate (int scene, const float *facts, const char *host_id, float *pose, int *pose_count);
 
 /* ENTITY_SCAN: asks the host what to do next in the enumeration of the scan from `facts` (CAMPAIGN_MODEL_SCAN_FACTS floats, see above). `entry_key` is the host's key of the entry the campaign is standing at
@@ -548,6 +562,12 @@ void campaign_model_entity_city (int phase, int entity_type, const char *identit
    placement is decided from it. The campaign states it every time it writes one of the fields: the insertion into a list, a setter, a kill's destroyed shape, a restore, an unpack and a bridge's damage or fall. The reply
    is checked completely (the state `placed` and the same key acknowledged); a refusal stops the engine with the host's reason. */
 void campaign_model_entity_fixed (int entity_type, const char *key, const float *state);
+
+/* ENTITY_SCAN, the CITY_STATE report (phase CAMPAIGN_SCAN_PHASE_CITY_STATE; Task49): the position and bounding box of the city placement the key `key` names (its sector placement's) are `state` (CAMPAIGN_CITY_STATE_WORDS floats:
+   position, box minimum, box maximum, as the entity holds the words). The host's RECORD of the placement holds them, and a candidate question about the city that reads them (its fixed facts read, fixed, a city with a first building
+   served) is decided from it. The campaign states it every time it writes one of the fields: the insertion into a sector list (which a relink repeats), the shared fixed setter, and the expansion a building's link makes. The reply
+   is checked completely (the state `placed` and the same key acknowledged); a refusal stops the engine with the host's reason. */
+void campaign_model_entity_city_state (const char *key, const float *state);
 
 /* whether a model provider is installed (the roster reports only to one: a build with no host has no roster and no scan) */
 int campaign_model_host_installed (void);
