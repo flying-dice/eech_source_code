@@ -1371,7 +1371,17 @@ fn a_direct_city_building_and_a_fixed_candidate_below_the_tallest_skip_are_skipp
 // ---- ENTITY_SCAN through the real provider (EEDCS-49, D3, fourth slice): the enumeration needs no model, and a malformed question is a named refusal ----
 
 fn scan_answer(lua: &mlua::Lua, facts: &[f32]) -> (String, String, String) {
-    lua.globals().set("FACTS", candidate_text(facts)).unwrap();
+    scan_answer_standing(lua, facts, "")
+}
+
+/// the same question with the key of the entry the scan stands at in the identity place (ENTRY and RESOLVED carry one; the other phases carry none)
+fn scan_answer_standing(lua: &mlua::Lua, facts: &[f32], standing: &str) -> (String, String, String) {
+    let text = if standing.is_empty() {
+        candidate_text(facts)
+    } else {
+        format!("{} {standing}", candidate_text(facts))
+    };
+    lua.globals().set("FACTS", text).unwrap();
     let table: mlua::Table = lua
         .load(r#"return host.model_provider (host.model_store (ROOT)) ("entity_scan", 0, nil, nil, nil, FACTS)"#)
         .eval()
@@ -1387,6 +1397,10 @@ fn scan_answer(lua: &mlua::Lua, facts: &[f32]) -> (String, String, String) {
 fn the_enumeration_is_decided_by_the_real_provider_from_the_segment_and_the_map_alone_and_a_malformed_question_is_refused_by_name() {
     let (root, _store) = standard();
     let lua = lua_with_store(&root.dir);
+    // the host's sector roster: the enumeration serves the entries it holds, so it keeps one, standing in sector (1, 1), for the scan to stand at (the roster's own order and refusals are entity_roster_host)
+    let roster = std::rc::Rc::new(std::cell::RefCell::new(eech_world::roster::SectorRoster::default()));
+    let standing = roster.borrow_mut().insert((1, 1), 20, None).to_string();
+    lua.set_app_data(eech_world::roster::SharedRoster(roster));
     // the segment (250, 0, 250) to (260, 0, 250) over a map of sectors of 100 up to 399: the window is sectors 1..3 in each axis
     let mut facts = [0.0f32; 16];
     facts[..6].copy_from_slice(&[250.0, 0.0, 250.0, 260.0, 0.0, 250.0]);
@@ -1402,9 +1416,9 @@ fn the_enumeration_is_decided_by_the_real_provider_from_the_segment_and_the_map_
     facts[11] = 1.0;
     facts[12] = 1.0;
     facts[13] = 1.0;
-    assert_eq!(scan_answer(&lua, &facts).0, "offer");
+    assert_eq!(scan_answer_standing(&lua, &facts, &standing).0, "offer");
     facts[14] = 1.0;
-    assert_eq!(scan_answer(&lua, &facts).0, "next");
+    assert_eq!(scan_answer_standing(&lua, &facts, &standing).0, "next");
     // the end of the last list of the window ends the scan
     facts[14] = 0.0;
     facts[11] = 2.0;

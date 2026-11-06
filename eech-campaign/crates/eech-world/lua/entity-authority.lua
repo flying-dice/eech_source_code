@@ -68,9 +68,13 @@
 -- end) through `entity_scan` questions BEFORE any candidate is offered; the campaign only serves the host's cursor over its own sector lists (a transitional backing dependency). The request is scene 0 (a number), no
 -- depth, kind or definition, and the text place holds 16 comma-separated 0x%08x patterns: the segment (6), the sector side and the world map (5), the PHASE (0 BEGIN, 1 an entry is served, 2 the list has no more
 -- entries, 3 the offered entry is resolved), the cursor sector x and z the host last gave, whether the served entry is the source or the target, whether the offered entry hit. A real reply is { result } with `result` one
--- of first, next, offer, done_none, done_hit; `first` alone carries `p`, two patterns (the sector x and z, whole numbers); every other state carries no `p` and no name (the reference host's empty name is accepted, a
--- non-empty one is a fault). The wrapper counts the ARMED scan questions by phase and classifies their real answers (global to the war: no weapon identity) and delegates the operation byte for byte in every mode that does not
--- alter it. Zero scan questions is UNREACHED, never authority.
+-- of first, next, offer, done_none, done_hit; `first` alone carries `p`, two patterns (the sector x and z, whole numbers). The host also owns WHICH entities stand in each sector and in what order (sixth slice): `first` and
+-- `next` carry the roster KEY of the entry to serve as `name` (empty when the list has no more; a roster key is 1 to 20 decimal digits without a leading zero), every other state carries no `p` and no name, and the question that
+-- follows a served entry (phases 1 and 3) names that entry in the identity place after the 16 patterns (one space, then the key) and no other scan phase carries one. The state each phase and its facts allow is the kernel's
+-- (an entry that is not excluded is offered, a hit is done_hit). The roster's EVENTS share the question: phase 4 INSERT (the position, the entity type, the side length, a hosted mobile's identity; answered `placed` with the
+-- key the host issued), 5 REMOVE (the key in the identity place; `removed`), 6 RESET (`cleared`); all other facts are zero. The wrapper joins every key it sees (a key is issued once, an ended entry is never served, stood at or
+-- removed again, and the scan stands at the entry it was last served), counts the ARMED scan questions by phase and the roster events SEPARATELY (an event is never a query scan, is never altered and credits no scan control),
+-- classifies their real answers (global to the war: no weapon identity) and delegates the operation byte for byte in every mode that does not alter it. Zero scan questions is UNREACHED, never authority.
 --
 --   scan_real             PAIRED CONTROL. The scan answers are the host's REAL ones; entity_collision is answered HIT (the existing forced-hit answer) whenever asked. That second answer is a CONFIGURED SECONDARY host
 --                         input held identically in BOTH paired modes. The real enumeration must reach the candidate dialogue, the narrow phase and the weapon step's hit count.
@@ -562,7 +566,7 @@ local function engine_marker (err) return string.match (first_line (err), FATAL)
 -- ---------------------------------------------------------------------------------------------------------------- the host's model provider, counted, altered only when armed
 local armed = false
 local reference -- the host's own model provider (host.model), resolved inside the owned close scope (main)
-local before, after = { entity = 0, other = 0, candidate = 0, scan = 0, pose = 0 }, { entity = 0, other = 0, candidate = 0, scan = 0, pose = 0 }
+local before, after = { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, pose = 0 }, { entity = 0, other = 0, candidate = 0, scan = 0, roster = 0, pose = 0 }
 local altered = 0
 local cand_altered, cand_skipped = 0, 0
 local scan_altered, scan_none_answered = 0, 0
@@ -677,50 +681,177 @@ local function candidate_reply_problem (answer, scene)
 	end
 	return nil
 end
--- the scan request as the contract states it: scene 0, nothing else but the text place of exactly 16 patterns; the phase (fact 12) is one of 0, 1.0, 2.0, 3.0
-local PHASES = { [ZERO] = 0, ["0x3f800000"] = 1, ["0x40000000"] = 2, ["0x40400000"] = 3 }
+-- the scan request as the contract states it (mb_hostentity.h): scene 0, nothing else but the text place, which holds exactly 16 patterns and, when the question carries one, one space and the identity place
+-- (1 to 128 bytes). The phase (fact 12) is one of the scan's own, 0 BEGIN, 1.0 ENTRY, 2.0 END, 3.0 RESOLVED, or one of the ROSTER's events, 4.0 INSERT, 5.0 REMOVE, 6.0 RESET. The identity place holds the key of the
+-- entry the scan stands at in ENTRY and RESOLVED (a roster key: 1 to 20 decimal digits, no leading zero) and in no other scan phase; an INSERT's optional hosted-mobile identity; a REMOVE's key; nothing for a RESET.
+-- The facts an event does not state are zero.
+local PHASES = { [ZERO] = 0, ["0x3f800000"] = 1, ["0x40000000"] = 2, ["0x40400000"] = 3, ["0x40800000"] = 4, ["0x40a00000"] = 5, ["0x40c00000"] = 6 }
+local ROSTER_EVENTS = { [4] = "insert", [5] = "remove", [6] = "reset" }
+-- the facts an INSERT states (the position's x, y and z, the entity type, the side length: facts 1 to 3, 4 and 7) and the phase (12); all others are zero
+local INSERT_STATED = { [1] = true, [2] = true, [3] = true, [4] = true, [7] = true, [12] = true }
+local function is_roster_key (text) return type (text) == "string" and #text <= 20 and string.match (text, "^[1-9]%d*$") ~= nil end
+local function shown (text) return string.sub (tostring (text), 1, 40) end
+local function others_zero (words, stated)
+	for index = 1, 16 do
+		if not stated [index] and words [index] ~= ZERO then return false end
+	end
+	return true
+end
 local function parse_scan_request (scene, depth, kind, definition, key)
 	if scene ~= 0 then return nil, "scene " .. tostring (scene) end
 	if depth ~= nil or kind ~= nil or definition ~= nil then return nil, "an entity scan question carries only the scene 0 and the facts text" end
 	if type (key) ~= "string" then return nil, "no facts text" end
-	local words = words_of_text (key, 16)
+	local text, identity = split_identity (key, 16)
+	if text == nil then return nil, "the identity does not follow the 16 patterns after one space" end
+	if #key > #text and identity == "" then return nil, "an empty identity follows the 16 patterns" end
+	if #identity > 128 then return nil, "the identity is " .. #identity .. " bytes, outside the roster's domain of 1 to 128" end
+	local words = words_of_text (text, 16)
 	if words == nil then return nil, "the facts text is not 16 comma separated 0x%08x patterns" end
 	local phase = PHASES [words [12]]
-	if phase == nil then return nil, "the phase " .. words [12] .. " is not 0 to 3" end
-	return { words = words, phase = phase, excluded = words [15] ~= ZERO }
+	if phase == nil then return nil, "the phase " .. words [12] .. " is not 0 to 6" end
+	if phase <= 3 then
+		local stands = phase == 1 or phase == 3
+		if stands and identity == "" then return nil, "phase " .. phase .. " stands at a served entry and names no roster key" end
+		if stands and not is_roster_key (identity) then return nil, "the key of the entry phase " .. phase .. " stands at, \"" .. shown (identity) .. "\", is not a roster key" end
+		if not stands and identity ~= "" then return nil, "phase " .. phase .. " carries no standing key" end
+		return { kind = "scan", words = words, phase = phase, excluded = words [15] ~= ZERO, hit = words [16] ~= ZERO, standing = stands and identity or nil }
+	end
+	local event = ROSTER_EVENTS [phase]
+	if event == "insert" then
+		if not others_zero (words, INSERT_STATED) then return nil, "an insertion states only the position, the type and the side length" end
+	elseif not others_zero (words, { [12] = true }) then
+		return nil, "a " .. (event == "remove" and "removal" or "boot") .. " states nothing but its phase"
+	elseif event == "remove" and not is_roster_key (identity) then
+		return nil, "a removal names \"" .. shown (identity) .. "\", which is not a roster key"
+	elseif event == "reset" and identity ~= "" then
+		return nil, "a boot carries no identity"
+	end
+	return { kind = "roster", words = words, phase = phase, event = event, identity = identity }
 end
+-- the keys the host issued and ended, as the questions and answers of the roster events show them (from the first event this wrapper sees, before or after the launch), and the entry the scan was last served
+local roster_live, roster_ended, last_served = {}, {}, nil
 local SCAN_STATES = { first = true, next = true, offer = true, done_none = true, done_hit = true }
--- the first problem of a REAL scan reply against the contract, or nil: one of the five states, two patterns for `first` only, and no non-empty name
-local function scan_reply_problem (answer)
+-- the states the kernel allows after each scan phase: the start and the end of a list serve a sector or end the scan, an entry is offered or skipped, a resolved offer ends the scan or goes on
+local PHASE_STATES = { [0] = { first = true, done_none = true }, [1] = { offer = true, next = true }, [2] = { first = true, done_none = true }, [3] = { next = true, done_hit = true } }
+local ROSTER_RESULTS = { insert = "placed", remove = "removed", reset = "cleared" }
+-- the first problem of a REAL scan reply against the contract, or nil: one of the five states, two patterns for `first` only, a name (the key of the entry served) for `first` and `next` only and never one that
+-- ended, and, for a well-formed question, the state its phase and facts allow
+local function scan_reply_problem (answer, parsed)
 	if type (answer) ~= "table" then return "the reply is not a table" end
 	if not SCAN_STATES [answer.result] then return "result " .. tostring (answer.result) end
-	if answer.name ~= nil and answer.name ~= "" then return "a name with " .. answer.result end
+	local name = answer.name
+	if name ~= nil and type (name) ~= "string" then return "the name is not text" end
+	if name ~= nil and name ~= "" then
+		if answer.result ~= "first" and answer.result ~= "next" then return "a name with " .. answer.result end
+		if not is_roster_key (name) then return "the name \"" .. shown (name) .. "\" is not a roster key" end
+		if roster_ended [name] then return "the entry " .. name .. " it serves has ended" end
+	end
 	if answer.result == "first" then
 		if type (answer.p) ~= "string" or words_of_text (answer.p, 2) == nil then return "first without two 0x%08x patterns" end
 	elseif answer.p ~= nil then
 		return "a cursor with " .. answer.result
 	end
+	if parsed then
+		local allowed = "the state " .. answer.result .. " is not what the kernel decides after phase " .. parsed.phase
+		if not PHASE_STATES [parsed.phase][answer.result] then return allowed end
+		if parsed.phase == 1 and (answer.result == "next") ~= parsed.excluded then return allowed .. " for an entry that is " .. (parsed.excluded and "excluded" or "not excluded") end
+		if parsed.phase == 3 and (answer.result == "done_hit") ~= parsed.hit then return allowed .. " for an offer that " .. (parsed.hit and "hit" or "missed") end
+	end
 	return nil
 end
-local function scan_question (scene, depth, kind, definition, key)
+-- the first problem of a REAL roster reply against the contract, or nil: the state its phase allows, a key only for an insertion (a roster key the host never issued before) and no cursor
+local function roster_reply_problem (answer, parsed)
+	if type (answer) ~= "table" then return "the reply is not a table" end
+	local wanted = ROSTER_RESULTS [parsed.event]
+	if answer.result ~= wanted then return "a roster event of phase " .. parsed.phase .. " (" .. parsed.event .. ") answered " .. tostring (answer.result) .. ", not " .. wanted end
+	if answer.p ~= nil then return "a cursor with " .. wanted end
+	local name = answer.name
+	if name ~= nil and type (name) ~= "string" then return "the name is not text" end
+	if parsed.event == "insert" then
+		if name == nil or name == "" then return "an insertion names no key" end
+		if not is_roster_key (name) then return "the key \"" .. shown (name) .. "\" is not a roster key" end
+		if roster_live [name] or roster_ended [name] then return "the key " .. name .. " was issued before" end
+	elseif name ~= nil and name ~= "" then
+		return "a " .. parsed.event .. " names a key (" .. shown (name) .. ")"
+	end
+	return nil
+end
+-- what a well-formed roster event and its well-formed reply did to the keys: an insertion issues one, a removal ends one and a boot ends every one
+local function roster_track (parsed, answer)
+	if parsed.event == "insert" then
+		roster_live [answer.name] = true
+	elseif parsed.event == "remove" then
+		roster_live [parsed.identity], roster_ended [parsed.identity] = nil, true
+	else
+		for key in pairs (roster_live) do roster_ended [key] = true end
+		roster_live, last_served = {}, nil
+	end
+end
+-- the first problem of a well-formed question against the keys seen so far, or nil: a removal names an entry that is not already ended, and a scan stands at the entry the host last served and never at one that ended
+local function request_join_problem (parsed)
+	if parsed.kind == "roster" then
+		if parsed.event == "remove" and roster_ended [parsed.identity] then return "a removal names the entry " .. parsed.identity .. ", which has ended" end
+		return nil
+	end
+	if parsed.standing then
+		if roster_ended [parsed.standing] then return "the scan stands at the entry " .. parsed.standing .. ", which has ended" end
+		if parsed.standing ~= last_served then return "the scan stands at the entry " .. parsed.standing .. ", which is not the entry the host last served (" .. tostring (last_served) .. ")" end
+	end
+	return nil
+end
+-- the roster events are counted in `scan.roster`, apart from the scan's own questions (the driver's main function is at the interpreter's limit of upvalues, so no further local is added)
+scan.roster = { total = 0, insert = 0, remove = 0, reset = 0, placed = 0, removed = 0, cleared = 0 }
+-- one ENTITY_SCAN question: a roster event (phases 4 to 6) or a step of the scan. The two are counted apart in both windows: an event is never a query scan, and no event alters or credits a scan control
+local function scan_question (scene, depth, kind, definition, key, counts)
+	local roster = scan.roster
 	local parsed, why = parse_scan_request (scene, depth, kind, definition, key)
+	local event = parsed ~= nil and parsed.kind == "roster"
+	if event then counts.roster = counts.roster + 1 else counts.scan = counts.scan + 1 end
+	local real = reference ("entity_scan", scene, depth, kind, definition, key)
+	if not armed then
+		-- before the launch the host's answer comes back unchanged; only the keys it issued and ended are remembered, so that an armed question can be joined to them
+		if event and roster_reply_problem (real, parsed) == nil then roster_track (parsed, real) end
+		return real
+	end
 	if parsed then
-		scan.total = scan.total + 1
-		local name = ({ [0] = "phase_begin", "phase_entry", "phase_end", "phase_resolved" }) [parsed.phase]
-		scan [name] = scan [name] + 1
-		if parsed.excluded then scan.excluded = scan.excluded + 1 end
+		local joined = request_join_problem (parsed)
+		if joined then
+			faults.request = faults.request + 1
+			first_fault = first_fault or ("scan request: " .. joined)
+		end
+		if event then
+			roster.total = roster.total + 1
+			roster [parsed.event] = roster [parsed.event] + 1
+		else
+			scan.total = scan.total + 1
+			local name = ({ [0] = "phase_begin", "phase_entry", "phase_end", "phase_resolved" }) [parsed.phase]
+			scan [name] = scan [name] + 1
+			if parsed.excluded then scan.excluded = scan.excluded + 1 end
+			-- the scan begins again, with no entry served
+			if parsed.phase == 0 then last_served = nil end
+		end
 	else
 		faults.request = faults.request + 1
 		first_fault = first_fault or ("scan request: " .. why)
 	end
-	local real = reference ("entity_scan", scene, depth, kind, definition, key)
-	local problem = scan_reply_problem (real)
+	local problem
+	if event then problem = roster_reply_problem (real, parsed) else problem = scan_reply_problem (real, parsed) end
 	if problem then
 		faults.reply = faults.reply + 1
 		first_fault = first_fault or ("scan reply: " .. problem)
+	elseif event then
+		roster [real.result] = roster [real.result] + 1
+		roster_track (parsed, real)
 	else
 		scan [real.result] = scan [real.result] + 1
+		if real.result == "first" or real.result == "next" then
+			last_served = (real.name ~= nil and real.name ~= "") and real.name or nil
+		elseif real.result == "done_none" or real.result == "done_hit" then
+			last_served = nil
+		end
 	end
+	-- an event is never altered
+	if event then return real end
 	if plan.scan == nil then return real end
 	-- an altered answer is formed only from a well-formed question and real reply (a witness failure raised here would come back carrying the callback marker the refusal mode credits)
 	if parsed == nil or problem then return real end
@@ -979,11 +1110,11 @@ local function model (op, scene, depth, kind, definition, key)
 	local counts = armed and after or before
 	if op == "entity_collision" then counts.entity = counts.entity + 1
 	elseif op == "entity_candidate" then counts.candidate = counts.candidate + 1
-	elseif op == "entity_scan" then counts.scan = counts.scan + 1
+	elseif op == "entity_scan" then -- counted by kind (a roster event or a scan question) in scan_question
 	elseif op == "entity_pose" then counts.pose = counts.pose + 1
 	else counts.other = counts.other + 1 end
 	-- the armed candidate questions are counted and classified; every other operation, and every question before the launch, is the host's own answer, returned unchanged
-	if op == "entity_scan" and armed then return scan_question (scene, depth, kind, definition, key) end
+	if op == "entity_scan" then return scan_question (scene, depth, kind, definition, key, counts) end
 	if op == "entity_pose" then return pose_question (scene, depth, kind, definition, key, armed) end
 	if op == "entity_candidate" and armed then return candidate_question (scene, depth, kind, definition, key) end
 	if op ~= "entity_collision" or not armed then return reference (op, scene, depth, kind, definition, key) end
@@ -1298,7 +1429,7 @@ local function main ()
 			return string.format ("UNREACHED: %s changed no step of the target (in the query frame the target was given %d steps, %d of mode move, %d with a finite positive desired_velocity, %d without): the host's own routed move of the target never carried a speed demand to replace", mode, tgt.window_steps, tgt.window_moves, tgt.speed_valid, tgt.speed_bad)
 		end
 		if profile == "original" then
-			if after.entity ~= 0 or after.candidate ~= 0 or after.scan ~= 0 or after.pose ~= 0 then return "profile=original, but the host was asked " .. after.entity .. " entity_collision, " .. after.candidate .. " entity_candidate, " .. after.scan .. " entity_scan and " .. after.pose .. " entity_pose questions: the module is not the original" end
+			if after.entity ~= 0 or after.candidate ~= 0 or after.scan ~= 0 or after.roster ~= 0 or after.pose ~= 0 then return "profile=original, but the host was asked " .. after.entity .. " entity_collision, " .. after.candidate .. " entity_candidate, " .. after.scan .. " entity_scan, " .. after.roster .. " roster events and " .. after.pose .. " entity_pose questions: the module is not the original" end
 			-- the original asks no hosted question, so only a control the caller bound is compared here (Root binds the Original control's signature)
 			if plan.speed_zero and args.control_signature ~= nil and args.control_signature ~= "" and args.control_signature == table.concat (signature, ";") then
 				return string.format ("UNCHANGED: %s: the original's physical result under the replaced speed demand is exactly the control's: the changed demand changed no output", mode)
@@ -1511,6 +1642,8 @@ local function main ()
 		candidate_skip = cand.skip, candidate_need_updated = cand.need_updated, candidate_need_fixed = cand.need_fixed, candidate_need_placement = cand.need_placement,
 		candidate_need_normal = cand.need_normal, candidate_buildings = cand.buildings, candidate_test = cand.test,
 		candidate_altered = cand_altered, candidate_answered_skip = cand_skipped,
+		roster_before = before.roster, roster_after = after.roster, roster_insert = scan.roster.insert, roster_remove = scan.roster.remove, roster_reset = scan.roster.reset,
+		roster_placed = scan.roster.placed, roster_removed = scan.roster.removed, roster_cleared = scan.roster.cleared,
 		scan_before = before.scan, scan_after = after.scan, scan_phase_begin = scan.phase_begin, scan_phase_entry = scan.phase_entry, scan_phase_end = scan.phase_end,
 		scan_phase_resolved = scan.phase_resolved, scan_excluded = scan.excluded, scan_first = scan.first, scan_next = scan.next, scan_offer = scan.offer,
 		scan_done_none = scan.done_none, scan_done_hit = scan.done_hit, scan_altered = scan_altered, scan_answered_done_none = scan_none_answered,
@@ -1572,7 +1705,7 @@ local function main ()
 		if not finite (y) or not (math.abs (y - e) <= math.abs (e) * 2 ^ -23) then return string.format ("terrain_lift: the host's answer to the lifted step is at y=%s, not at the lifted elevation %s", tostring (y), tostring (e)) end
 	end
 	if profile == "original" then
-		if after.entity ~= 0 or after.candidate ~= 0 or after.scan ~= 0 or after.pose ~= 0 then return "profile=original, but the host was asked " .. after.entity .. " entity_collision, " .. after.candidate .. " entity_candidate, " .. after.scan .. " entity_scan and " .. after.pose .. " entity_pose questions: the module is not the original" end
+		if after.entity ~= 0 or after.candidate ~= 0 or after.scan ~= 0 or after.roster ~= 0 or after.pose ~= 0 then return "profile=original, but the host was asked " .. after.entity .. " entity_collision, " .. after.candidate .. " entity_candidate, " .. after.scan .. " entity_scan, " .. after.roster .. " roster events and " .. after.pose .. " entity_pose questions: the module is not the original" end
 		return "CAPABILITY RED (expected for the original profile): the entity-collision caller ran (contact_any_tests +" .. any_tests_delta .. ", contact_any_hits +" .. any_hits_delta .. ", fixture API present) and the host was asked no entity_collision question, no entity_candidate question and no entity_scan question"
 	end
 	-- the route is the host's: a candidate that passed the (campaign) broad phase asks the host. None at all is a setup that never reached the narrow phase
@@ -1589,6 +1722,7 @@ local function main ()
 	if seen.stationary + seen.moving ~= after.entity then return string.format ("the provider counted %d entity questions but classified %d", after.entity, seen.stationary + seen.moving) end
 	if cand.total ~= after.candidate then return string.format ("the provider counted %d candidate questions but classified %d", after.candidate, cand.total) end
 	if scan.total ~= after.scan then return string.format ("the provider counted %d scan questions but classified %d", after.scan, scan.total) end
+	if scan.roster.total ~= after.roster then return string.format ("the provider counted %d roster events but classified %d", after.roster, scan.roster.total) end
 	if pose.total ~= after.pose then return string.format ("the provider counted %d pose questions but classified %d", after.pose, pose.total) end
 	if pose_pre.total ~= before.pose then return string.format ("the provider counted %d pre-launch pose questions but classified %d", before.pose, pose_pre.total) end
 	if mode == "control" or plan.host_side_movement then

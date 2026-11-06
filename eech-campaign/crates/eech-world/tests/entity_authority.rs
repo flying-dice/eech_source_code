@@ -20,6 +20,8 @@ AIM_LOG, CALLER_MUTATED, ORIGINAL = {}, false, nil
 MODEL_LOG, DELEGATION_BROKEN, ENTITY_LOG, LAUNCH = {}, {}, {}, nil
 CAND_LOG, CAND_POS = {}, 0
 SCAN_LOG = {}
+-- every roster event (the sector lists' insertions, removals and boots; the same question, phases 4 to 6) the REAL provider answered: phase pattern, result, the key it named and the identity place the question carried
+ROSTER_LOG = {}
 POSE_LOG = {}
 MOVES, RETIRED, DISPLACED, MOVE_LOG = {}, {}, {}, {}
 VECTORS_ASKED, VECTORS_ALTERED, VECTORS_SEEN = 0, false, nil
@@ -136,6 +138,8 @@ end
 
 -- the REAL model provider as the scripted host.model: every call is logged with its arguments and the table it answered; the entity answer is the scenario's `real`
 local call_no, ANSWERS = 0, {}
+-- the scripted host's roster: how many keys it issued, the key of the one entry the scripted sector holds, and the last key that ended
+local ROSTER = { issued = 0, live = nil, ended = nil }
 local function reference (op, scene, depth, kind, definition, key)
 	call_no = call_no + 1
 	local record = { op = op, scene = scene, depth = depth, kind = kind, definition = definition, key = key }
@@ -151,22 +155,47 @@ local function reference (op, scene, depth, kind, definition, key)
 		elseif real == "partial" then answer = { result = "miss", mask = 1, name = "CANDIDATE", p = "0x3f800000," .. ZERO .. "," .. ZERO .. "," .. NO_POINT }
 		else answer = { result = "miss", mask = 56, name = "CANDIDATE", p = NO_POINT .. "," .. UP } end
 	elseif op == "entity_scan" then
-		-- the REAL enumeration answers, by the phase the campaign reports: the first sector (0, 0) at the start, an offer for every served entry that is not excluded, the next entry after a miss, the end of the
-		-- scan when no entry is left or after a hit
+		-- the REAL answers (mb_hostentity.h grammar), by the phase the campaign reports. The question is the 16 facts and, when it carries one, a space and the identity place: the key of the entry the scan
+		-- stands at (ENTRY and RESOLVED), a hosted mobile's identity (an INSERT) or the key a REMOVE names. The host keeps ONE entry in the scripted sector (0, 0): INSERT issues its key (never reused), the
+		-- start and the end of a scan serve it, an offer is made for it when it is not excluded, a miss goes to the end of the list and a hit ends the scan
 		if scenario.real_scan_error then error ("the real provider refuses", 0) end
 		local words = {}
-		for token in string.gmatch (key, "[^,]+") do words [#words + 1] = token end
+		for token in string.gmatch (string.sub (key, 1, 175), "[^,]+") do words [#words + 1] = token end
+		local identity = string.sub (key, 177)
 		local phase, excluded, hit = words [12], words [15] ~= ZERO, words [16] ~= ZERO
-		if phase == ZERO then answer = scenario.scan_offers_nothing and { result = "done_none" } or { result = "first", p = ZERO .. "," .. ZERO }
-		elseif phase == "0x3f800000" then answer = { result = excluded and "next" or "offer" }
-		elseif phase == "0x40000000" then answer = { result = "done_none" }
-		else answer = { result = hit and "done_hit" or "next" } end
-		local bad = scenario.bad_real_scan
+		local bad, bad_roster = scenario.bad_real_scan, scenario.bad_real_roster
+		if phase == "0x40800000" then
+			ROSTER.issued = ROSTER.issued + 1
+			ROSTER.live = tostring (ROSTER.issued)
+			answer = { result = "placed", name = ROSTER.live }
+			if bad_roster == "reused_key" and ROSTER.issued > 1 then answer.name = tostring (ROSTER.issued - 1) end
+			if bad_roster == "bad_key" then answer.name = "01" end
+			if bad_roster == "no_key" then answer.name = "" end
+			if bad_roster == "state" then answer.result = "removed" end
+		elseif phase == "0x40a00000" then
+			ROSTER.ended, ROSTER.live = ROSTER.live, nil
+			answer = { result = "removed", name = bad_roster == "key_on_remove" and "7" or "" }
+		elseif phase == "0x40c00000" then
+			ROSTER.live = nil
+			answer = { result = "cleared", name = "" }
+		elseif phase == ZERO then
+			answer = scenario.scan_offers_nothing and { result = "done_none" } or { result = "first", p = ZERO .. "," .. ZERO, name = ROSTER.live or "" }
+			if bad == "ended_key_served" and ROSTER.ended then answer.name = ROSTER.ended end
+		elseif phase == "0x3f800000" then answer = { result = excluded and "next" or "offer", name = "" }
+		elseif phase == "0x40000000" then answer = { result = "done_none", name = "" }
+		else answer = { result = hit and "done_hit" or "next", name = "" } end
 		if bad == "state" then answer.result = "perhaps" end
 		if bad == "p_on_next" and answer.result ~= "first" then answer.p = ZERO .. "," .. ZERO end
 		if bad == "name" then answer.name = "SECTOR" end
+		if bad == "name_on_offer" and answer.result == "offer" then answer.name = "5" end
+		if bad == "offer_for_resolved" and phase == "0x40400000" then answer.result = "offer" end
 		if bad == "first_one_pattern" and answer.result == "first" then answer.p = ZERO end
-		SCAN_LOG [#SCAN_LOG + 1] = { phase = phase, result = answer.result, key = key }
+		if bad_roster == "p_on_event" and (phase == "0x40800000" or phase == "0x40a00000") then answer.p = ZERO .. "," .. ZERO end
+		if phase == "0x40800000" or phase == "0x40a00000" or phase == "0x40c00000" then
+			ROSTER_LOG [#ROSTER_LOG + 1] = { phase = phase, result = answer.result, name = answer.name, identity = identity }
+		else
+			SCAN_LOG [#SCAN_LOG + 1] = { phase = phase, result = answer.result, key = key, standing = identity }
+		end
 	elseif op == "entity_pose" then
 		-- the REAL observation of a mobile candidate: `recorded` (a routed vehicle's record, no motion vector held) for a named identity and `no_id` for an unnamed one, unless the scenario says otherwise
 		if scenario.real_pose_error then error ("the real provider refuses", 0) end
@@ -409,18 +438,61 @@ package.preload.eech_dc = function ()
 			-- the campaign's driver of the enumeration (mb_hostscan.h) as the shared C applies it: it asks the host, serves the sector (0, 0) with ONE entry, offers it, reports the result and ends when the host does. The
 			-- legality of each state against the phase and the cursor's grammar are the exchange's rules; the stop text is the real wrapper. `offer` runs the candidate dialogue and the narrow phase of ONE entry
 			local scan_altering = { scan_none = true, withheld_scan = true, bad_scan_state = true, bad_scan_cursor = true }
+			-- the campaign's roster events (mb_hostplacemap.h): a sector list's insertion (phase 4: position, entity type and side length, and a hosted mobile's identity), removal (5: the key in the identity place)
+			-- and the boot (6). All other facts are zero. The scripted sector holds ONE entry: the first walk is a boot and an insertion, every later walk a relink (a removal and a new insertion with a new key). The host's
+			-- own answer comes back unaltered in every mode; the reply is checked as the shared C checks it (the state each phase allows, a key only for an insertion)
+			local ROSTER_PHASES = { insert = "0x40800000", remove = "0x40a00000", reset = "0x40c00000" }
+			local roster_key
+			local function roster_event (kind)
+				local words = {}
+				for index = 1, 16 do words [index] = ZERO end
+				words [12] = ROSTER_PHASES [kind]
+				local identity = ""
+				if kind == "insert" then
+					words [1], words [2], words [3], words [4], words [7] = OLD_W [1], OLD_W [2], OLD_W [3], "0x41a00000", "0x447a0000"
+					if scenario.roster_mobile then identity = "eech-world:1" end
+				elseif kind == "remove" then
+					identity = roster_key
+				end
+				local fault = scenario.bad_roster_request
+				if fault == "phase7" then words [12] = "0x40e00000"
+				elseif fault == "insert_stray_word" and kind == "insert" then words [8] = "0x3f800000"
+				elseif fault == "remove_no_key" and kind == "remove" then identity = ""
+				elseif fault == "remove_text" and kind == "remove" then identity = "eech-world:1"
+				elseif fault == "reset_identity" and kind == "reset" then identity = "5"
+				elseif fault == "insert_long_identity" and kind == "insert" then identity = string.rep ("x", 129) end
+				local key = table.concat (words, ",") .. (identity ~= "" and (" " .. identity) or "")
+				if fault == "trailing_space" and kind == "insert" then key = key .. " " end
+				local ok, answer = ask_model ("entity_scan", 0, nil, nil, nil, key, true)
+				if not ok then stop ("entity_scan.callback", tostring (answer)) end
+				local wanted = ({ insert = "placed", remove = "removed", reset = "cleared" }) [kind]
+				if type (answer) ~= "table" or answer.result ~= wanted then stop ("entity_scan.state", "a roster event of phase " .. kind .. " allows only " .. wanted) end
+				if kind == "insert" then roster_key = answer.name end
+			end
 			local function scan_walk (offer)
 				if scenario.no_scan_questions then offer () return end
+				roster_event (roster_key == nil and "reset" or "remove")
+				roster_event ("insert")
+				-- only the roster's events reached the host: no scan question was asked
+				if scenario.only_roster_events then offer () return end
 				local words = {}
 				for index = 1, 16 do words [index] = ZERO end
 				words [1], words [2], words [3] = OLD_W [1], OLD_W [2], OLD_W [3]
 				words [4], words [5], words [6] = NEW_W [1], NEW_W [2], NEW_W [3]
 				words [7], words [10], words [11] = "0x42c80000", "0x43c78000", "0x43c78000"
 				local PHASES = { begin = ZERO, entry = "0x3f800000", ["end"] = "0x40000000", resolved = "0x40400000" }
-				local function ask (phase, excluded, hit)
+				-- the key of the entry the scan stands at rides after the 16 facts in ENTRY and RESOLVED only (mb_hostentity.h)
+				local function ask (phase, excluded, hit, standing)
 					words [12], words [15], words [16] = PHASES [phase], excluded and "0x3f800000" or ZERO, hit and "0x3f800000" or ZERO
 					local key = table.concat (words, ",")
-					if scenario.bad_scan_request == "count" then key = string.match (key, "^(.*),[^,]+$") end
+					local fault = scenario.bad_scan_request
+					if fault == "count" then key = string.match (key, "^(.*),[^,]+$") end
+					if (phase == "entry" or phase == "resolved") and fault ~= "no_key" then
+						if fault == "bad_key" then standing = "01"
+						elseif fault == "other_key" then standing = tostring (tonumber (standing) + 1)
+						elseif fault == "ended_key" then standing = ROSTER.ended or "1" end
+						key = key .. " " .. standing
+					elseif phase == "begin" and fault == "begin_key" then key = key .. " " .. roster_key end
 					local ok, answer = ask_model ("entity_scan", 0, nil, nil, nil, key, not scan_altering [MODE])
 					if not ok then stop ("entity_scan.callback", tostring (answer)) end
 					if type (answer) ~= "table" or not ({ first = true, next = true, offer = true, done_none = true, done_hit = true }) [answer.result] then stop ("entity_scan.answer", "result") end
@@ -445,11 +517,13 @@ package.preload.eech_dc = function ()
 				if #cursor ~= 2 then stop ("entity_scan.cursor", "two patterns") end
 				if cursor [1] ~= ZERO or cursor [2] ~= ZERO then stop ("entity_scan.cursor", "a sector that is not a whole number inside the map") end
 				words [13], words [14] = cursor [1], cursor [2]
-				answer = ask ("entry", false, false)
+				-- the entry the host served: the scan stands at it until the host serves the next one
+				local standing = answer.name
+				answer = ask ("entry", false, false, standing)
 				allowed (answer, "offer")
 				last_hit = false
 				offer ()
-				answer = ask ("resolved", false, last_hit)
+				answer = ask ("resolved", false, last_hit, standing)
 				allowed (answer, last_hit and "done_hit" or "next")
 				if answer.result == "done_hit" then return end
 				answer = ask ("end", false, false)
@@ -653,6 +727,10 @@ struct Driven {
     candidate_log: Vec<(i64, String, String)>,
     /// (phase pattern, result) of every scan question the REAL provider answered
     scan_log: Vec<(String, String)>,
+    /// the identity place (the key of the entry the scan stands at) every scan question carried, in the order they were asked
+    scan_standing: Vec<String>,
+    /// (phase pattern, result, the key the host named, the identity place) of every roster event the REAL provider answered
+    roster_log: Vec<(String, String, String, String)>,
     /// (stage, entity type, alive, result, key) of every pose observation the REAL provider answered
     pose_log: Vec<(i64, i64, i64, String, String)>,
     /// (identity, mode, terrain elevation or -1, after the launch) of every step the host's movement callback was given
@@ -689,6 +767,7 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
     let launch: Option<mlua::Table> = globals.get("LAUNCH").expect("the launch");
     let candidates: mlua::Table = globals.get("CAND_LOG").expect("the candidate log");
     let scans: mlua::Table = globals.get("SCAN_LOG").expect("the scan log");
+    let roster: mlua::Table = globals.get("ROSTER_LOG").expect("the roster log");
     let poses: mlua::Table = globals.get("POSE_LOG").expect("the pose log");
     let moves: mlua::Table = globals.get("MOVE_LOG").expect("the move log");
     Driven {
@@ -769,6 +848,22 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
             .map(|entry| {
                 let entry = entry.expect("a scan log entry");
                 (entry.get::<String>("phase").unwrap(), entry.get::<String>("result").unwrap())
+            })
+            .collect(),
+        scan_standing: scans
+            .sequence_values::<mlua::Table>()
+            .map(|entry| entry.expect("a scan log entry").get::<String>("standing").unwrap())
+            .collect(),
+        roster_log: roster
+            .sequence_values::<mlua::Table>()
+            .map(|entry| {
+                let entry = entry.expect("a roster log entry");
+                (
+                    entry.get::<String>("phase").unwrap(),
+                    entry.get::<String>("result").unwrap(),
+                    entry.get::<String>("name").unwrap(),
+                    entry.get::<String>("identity").unwrap(),
+                )
             })
             .collect(),
         candidate_log: candidates
@@ -1702,6 +1797,158 @@ fn zero_scan_questions_is_unreached_and_a_malformed_scan_request_or_real_reply_i
         assert!(row["reply_faults"].as_i64().unwrap() >= 1, "{bad}: {row}");
         assert!(row["first_fault"].as_str().unwrap().starts_with("scan reply:"), "{bad}: {row}");
         assert!(driven.result.is_err(), "{bad}: a malformed real reply is never a pass");
+    }
+}
+
+// the roster's events share the ENTITY_SCAN question with the scan itself (phases 4 to 6): the real traffic is the 16 facts, the key of the entry the scan stands at after them in ENTRY and RESOLVED,
+// and the key the host names in FIRST, NEXT and an insertion. These controls run the real driver against the scripted collaborator speaking exactly that.
+
+#[test]
+fn real_protocol_traffic_with_roster_events_and_standing_keys_is_a_healthy_control_and_the_events_are_not_credited_as_query_scans() {
+    let (driven, row) = scan_row("", "control");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    // one walk: the boot and one insertion are the roster's, the start, the served entry, the resolved offer and the end of the list the scan's
+    assert_eq!((row["scan_before"].clone(), row["scan_after"].clone()), (Value::from(0), Value::from(4)));
+    assert_eq!((row["roster_before"].clone(), row["roster_after"].clone()), (Value::from(0), Value::from(2)));
+    for (field, expected) in [
+        ("roster_insert", 1),
+        ("roster_remove", 0),
+        ("roster_reset", 1),
+        ("roster_placed", 1),
+        ("roster_removed", 0),
+        ("roster_cleared", 1),
+        ("scan_phase_begin", 1),
+        ("scan_phase_entry", 1),
+        ("scan_phase_resolved", 1),
+        ("scan_phase_end", 1),
+        ("scan_first", 1),
+        ("scan_offer", 1),
+        ("scan_next", 1),
+        ("scan_done_none", 1),
+        ("request_faults", 0),
+        ("reply_faults", 0),
+    ] {
+        assert_eq!(row[field], expected, "{field}: {row}");
+    }
+    assert_eq!(
+        driven.roster_log,
+        [
+            ("0x40c00000".to_string(), "cleared".to_string(), String::new(), String::new()),
+            ("0x40800000".to_string(), "placed".to_string(), "1".to_string(), String::new()),
+        ]
+    );
+    // the standing key rides ENTRY and RESOLVED only, and is the key the host served at the start
+    assert_eq!(driven.scan_standing, ["", "1", "1", ""]);
+    assert_eq!(driven.scan_log.len(), 4, "the roster events are not scan questions");
+    assert!(driven.delegation_broken.is_empty(), "{:?}", driven.delegation_broken);
+    // a relink between walks: the old key is removed, a new one is issued and served, and the old one is never named again
+    let (driven, row) = scan_row(", questions = 3", "control");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!((row["scan_after"].clone(), row["roster_after"].clone()), (Value::from(12), Value::from(6)));
+    assert_eq!(
+        (row["roster_insert"].clone(), row["roster_remove"].clone(), row["roster_reset"].clone()),
+        (Value::from(3), Value::from(2), Value::from(1))
+    );
+    assert_eq!(
+        driven
+            .roster_log
+            .iter()
+            .map(|(_, result, name, identity)| (result.as_str(), name.as_str(), identity.as_str()))
+            .collect::<Vec<_>>(),
+        [
+            ("cleared", "", ""),
+            ("placed", "1", ""),
+            ("removed", "", "1"),
+            ("placed", "2", ""),
+            ("removed", "", "2"),
+            ("placed", "3", "")
+        ]
+    );
+    assert_eq!(driven.scan_standing, ["", "1", "1", "", "", "2", "2", "", "", "3", "3", ""]);
+    // a hosted mobile's insertion names its semantic identity in the same place; the real reply is still the key
+    let (driven, row) = scan_row(", roster_mobile = true", "control");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    assert_eq!((row["request_faults"].clone(), row["reply_faults"].clone()), (Value::from(0), Value::from(0)));
+    assert_eq!(
+        driven.roster_log[1],
+        ("0x40800000".to_string(), "placed".to_string(), "1".to_string(), "eech-world:1".to_string())
+    );
+    // the same walk under the paired controls: the events are never altered and a hit ends the scan with the standing key still joined
+    for mode in ["scan_real", "scan_none"] {
+        let (driven, row) = scan_row("", mode);
+        assert!(driven.result.is_ok(), "{mode}: {:?}\n{}", driven.result, driven.rows);
+        assert_eq!(
+            (row["request_faults"].clone(), row["reply_faults"].clone()),
+            (Value::from(0), Value::from(0)),
+            "{mode}"
+        );
+        assert_eq!(row["roster_after"], 2, "{mode}");
+    }
+}
+
+#[test]
+fn only_roster_events_is_unreached_never_a_scan_and_a_roster_event_in_the_original_profile_is_not_the_original() {
+    let driven = drive(&healthy(", only_roster_events = true"), &[]);
+    let row = authority(&driven);
+    assert_eq!((row["scan_after"].clone(), row["roster_after"].clone()), (Value::from(0), Value::from(2)));
+    let error = error_of(driven);
+    assert!(error.contains("UNREACHED") && error.contains("asked no entity_scan question"), "{error}");
+    // a hosted-profile run is never credited for roster events alone, whatever the mode
+    for mode in ["scan_real", "scan_none"] {
+        let error = error_of(drive(&healthy(", only_roster_events = true"), &[("mode", mode)]));
+        assert!(error.contains("UNREACHED"), "{mode}: {error}");
+    }
+    let error = error_of(drive(&healthy(", fixture_api = true, only_roster_events = true"), &[("profile", "original")]));
+    assert!(error.contains("2 roster events") && error.contains("the module is not the original"), "{error}");
+}
+
+#[test]
+fn each_single_fault_of_the_new_scan_and_roster_grammar_is_counted_at_its_question_and_is_never_a_pass() {
+    // (the scenario, the prefix of the first fault, the fragment it names): a removal needs a second walk, because the first walk only boots and inserts
+    let cases: [(&str, &str, &str); 18] = [
+        (", bad_scan_request = 'no_key'", "scan request:", "names no roster key"),
+        (", bad_scan_request = 'bad_key'", "scan request:", "is not a roster key"),
+        (", bad_scan_request = 'begin_key'", "scan request:", "carries no standing key"),
+        (", bad_scan_request = 'other_key'", "scan request:", "is not the entry the host last served"),
+        (", questions = 2, bad_scan_request = 'ended_key'", "scan request:", "has ended"),
+        (", bad_roster_request = 'phase7'", "scan request:", "is not 0 to 6"),
+        (
+            ", bad_roster_request = 'insert_stray_word'",
+            "scan request:",
+            "states only the position, the type and the side length",
+        ),
+        (", questions = 2, bad_roster_request = 'remove_no_key'", "scan request:", "a removal names"),
+        (", questions = 2, bad_roster_request = 'remove_text'", "scan request:", "a removal names"),
+        (", bad_roster_request = 'reset_identity'", "scan request:", "a boot carries no identity"),
+        (", bad_roster_request = 'insert_long_identity'", "scan request:", "outside the roster's domain"),
+        (", bad_roster_request = 'trailing_space'", "scan request:", "empty identity"),
+        (", bad_real_roster = 'state'", "scan reply:", "placed"),
+        (", bad_real_roster = 'no_key'", "scan reply:", "names no key"),
+        (", bad_real_roster = 'bad_key'", "scan reply:", "is not a roster key"),
+        (", bad_real_roster = 'key_on_remove', questions = 2", "scan reply:", "names a key"),
+        (", questions = 2, bad_real_roster = 'reused_key'", "scan reply:", "issued before"),
+        (", questions = 2, bad_real_scan = 'ended_key_served'", "scan reply:", "has ended"),
+    ];
+    for (extra, prefix, fragment) in cases {
+        let driven = drive(&healthy(extra), &[]);
+        let row = authority(&driven);
+        let faults = row["request_faults"].as_i64().unwrap() + row["reply_faults"].as_i64().unwrap();
+        assert!(faults >= 1, "{extra}: {row}");
+        let first = row["first_fault"].as_str().unwrap();
+        assert!(first.starts_with(prefix) && first.contains(fragment), "{extra}: {first}");
+        assert!(driven.result.is_err(), "{extra}: a malformed request or reply is never a pass");
+    }
+    // a valid state of another phase and a name with a state that serves none are the host's reply faults too
+    for (extra, fragment) in [
+        (", bad_real_scan = 'name_on_offer'", "a name with offer"),
+        (", bad_real_scan = 'offer_for_resolved'", "is not what the kernel decides"),
+    ] {
+        let driven = drive(&healthy(extra), &[]);
+        let row = authority(&driven);
+        assert!(row["reply_faults"].as_i64().unwrap() >= 1, "{extra}: {row}");
+        let first = row["first_fault"].as_str().unwrap();
+        assert!(first.starts_with("scan reply:") && first.contains(fragment), "{extra}: {first}");
+        assert!(driven.result.is_err(), "{extra}");
     }
 }
 

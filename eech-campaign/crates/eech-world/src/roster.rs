@@ -29,18 +29,64 @@ impl Refusal {
     }
 }
 
-/// The sector index pair of a position: the original's `get_x_sector` and `get_z_sector` (a truncation toward zero, then the integer division by the side length).
+/// The bits of the largest magnitude a coordinate, cursor or whole-number word may state (1.0e9): the bits of a non-negative single order like its value.
+const WORD_LIMIT: u32 = 0x4e6e_6b28;
+/// The bits of the smallest magnitude that is not a finite number (infinity; every NaN, quiet or signaling, is above it).
+const WORD_NONFINITE: u32 = 0x7f80_0000;
+
+/// A single-precision word read as a number by INTEGER operations only: its value truncated toward zero, and whether it had no fractional part. No floating-point instruction touches the word, so the caller's rounding
+/// mode, exception masks and raised flags are never changed and a signaling NaN is classified without being compared or converted. A word that is not finite, or whose magnitude exceeds 1.0e9, is refused by name and is
+/// never coerced. The truncation is exactly the original's `convert_float_to_int` (under round-toward-zero) for every value of the domain.
+pub fn word_truncated(word: u32) -> Result<(i32, bool), Refusal> {
+    let magnitude = word & 0x7fff_ffff;
+    if magnitude >= WORD_NONFINITE {
+        return Err(Refusal::new("the word is not a finite number"));
+    }
+    if magnitude > WORD_LIMIT {
+        return Err(Refusal::new("the word is outside the world"));
+    }
+    let exponent = (magnitude >> 23) as i32 - 127;
+    // below one (zero and the subnormals included): truncates to zero, and is whole only when it is zero
+    if exponent < 0 {
+        return Ok((0, magnitude == 0));
+    }
+    let significand = (magnitude & 0x007f_ffff) | 0x0080_0000;
+    // the limit is below 2^30, so the exponent is at most 29 and the value fits
+    let (value, whole) = if exponent >= 23 {
+        (significand << (exponent - 23), true)
+    } else {
+        let dropped = 23 - exponent;
+        (significand >> dropped, significand & ((1 << dropped) - 1) == 0)
+    };
+    let value = value as i32;
+    Ok((if word >> 31 == 1 { -value } else { value }, whole))
+}
+
+/// A word that states a whole number within `low..=high`, by integer operations only (see [`word_truncated`]); none for a fractional, non-finite or out-of-range word.
+pub fn word_whole(word: u32, low: i32, high: i32) -> Option<i32> {
+    match word_truncated(word) {
+        Ok((value, true)) if (low..=high).contains(&value) => Some(value),
+        _ => None,
+    }
+}
+
+/// The key a roster event or a standing scan names: one to twenty decimal digits without a leading zero (the campaign's `roster_key_is_valid`), and then a number the host could have issued.
+pub fn parse_key(text: &str) -> Option<u64> {
+    if text.is_empty() || text.len() > 20 || text.starts_with('0') || !text.bytes().all(|byte| byte.is_ascii_digit()) {
+        return None;
+    }
+    text.parse().ok()
+}
+
+/// The sector index pair of a position: the original's `get_x_sector` and `get_z_sector` (a truncation toward zero, then the integer division by the side length), by integer operations only.
 pub fn sector_of(x_word: u32, z_word: u32, side: i32) -> Result<(i32, i32), Refusal> {
     if side < 1 {
         return Err(Refusal::new(format!("the sector side length {side} is not positive")));
     }
     let axis = |word: u32| -> Result<i32, Refusal> {
-        let value = f32::from_bits(word);
-        if !value.is_finite() || value.abs() > 1.0e9 {
-            return Err(Refusal::new("a position outside the world has no sector"));
-        }
-        // `as` truncates toward zero, which is what `convert_float_to_int` does under the original's round-toward-zero
-        Ok((value as i32) / side)
+        word_truncated(word)
+            .map(|(value, _)| value / side)
+            .map_err(|_| Refusal::new("a position outside the world has no sector"))
     };
     Ok((axis(x_word)?, axis(z_word)?))
 }
@@ -99,8 +145,13 @@ impl SectorRoster {
         self.sectors.get(&sector).and_then(|order| order.values().next().copied())
     }
 
-    /// The entity a scan visits after `key` in the sector it is standing in: the next insertion. `sector` is the sector the scan is in, and an entity that is not in it is refused by name.
-    pub fn next(&self, sector: (i32, i32), key: u64) -> Result<Option<u64>, Refusal> {
+    /// Whether `key` names a live entry, refused by name when it was never issued or has ended.
+    pub fn live(&self, key: u64) -> Result<(), Refusal> {
+        self.entries.get(&key).map(|_| ()).ok_or_else(|| Refusal::new(self.unknown(key)))
+    }
+
+    /// The live entry `key` names, when it stands in `sector`, the sector a scan is in: an entry that is not in it is refused by name.
+    fn entry_in(&self, sector: (i32, i32), key: u64) -> Result<&Entry, Refusal> {
         let entry = self.entries.get(&key).ok_or_else(|| Refusal::new(self.unknown(key)))?;
         if entry.sector != sector {
             return Err(Refusal::new(format!(
@@ -108,6 +159,17 @@ impl SectorRoster {
                 entry.sector
             )));
         }
+        Ok(entry)
+    }
+
+    /// Whether `key` names a live entry that stands in `sector`, the sector a scan is in: any other is refused by name.
+    pub fn standing(&self, sector: (i32, i32), key: u64) -> Result<(), Refusal> {
+        self.entry_in(sector, key).map(|_| ())
+    }
+
+    /// The entity a scan visits after `key` in the sector it is standing in: the next insertion. `sector` is the sector the scan is in, and an entity that is not in it is refused by name.
+    pub fn next(&self, sector: (i32, i32), key: u64) -> Result<Option<u64>, Refusal> {
+        let entry = self.entry_in(sector, key)?;
         Ok(self
             .sectors
             .get(&sector)
@@ -223,5 +285,92 @@ mod tests {
         assert_eq!(roster.entity_type(structure), Some(20));
         assert_eq!(roster.sector(mobile), Some((4, 4)));
         assert_eq!(roster.len(), 2);
+    }
+
+    #[test]
+    fn the_integer_classification_is_the_original_truncation_for_every_word_of_the_domain_and_refuses_the_rest_by_name() {
+        assert_eq!(WORD_LIMIT, 1.0e9f32.to_bits(), "the limit is the bits of 1.0e9");
+        assert_eq!(WORD_NONFINITE, f32::INFINITY.to_bits());
+        // the truncation equals the compiler's float-to-integer truncation (toward zero) over a sweep of every magnitude and both signs, with the whole-number test
+        let mut state = 0x2545_f491u32;
+        let mut words: Vec<u32> = vec![
+            0,
+            0x8000_0000,
+            1,
+            0x8000_0001,
+            0x007f_ffff,
+            0x0080_0000,
+            0x3f7f_ffff,
+            0x3f80_0000,
+            0xbf80_0000,
+            0x3fff_ffff,
+            WORD_LIMIT,
+            WORD_LIMIT | 0x8000_0000,
+        ];
+        for _ in 0..200_000 {
+            state ^= state << 13;
+            state ^= state >> 17;
+            state ^= state << 5;
+            words.push(state);
+        }
+        let mut accepted = 0;
+        for word in words {
+            let value = f32::from_bits(word);
+            match word_truncated(word) {
+                Ok((truncated, whole)) => {
+                    accepted += 1;
+                    assert!(value.is_finite() && value.abs() <= 1.0e9, "{word:#010x}");
+                    assert_eq!(truncated, value as i32, "{word:#010x}");
+                    assert_eq!(whole, value == value.trunc(), "{word:#010x}");
+                }
+                Err(_) => assert!(
+                    !value.is_finite() || value.abs() > 1.0e9,
+                    "{word:#010x} was refused although it is in the domain"
+                ),
+            }
+        }
+        assert!(accepted > 1000, "the sweep reached the domain");
+        for refused in [
+            0x7f80_0000,
+            0xff80_0000,
+            0x7fc0_0000,
+            0x7fa0_0001,
+            0xffa0_0001,
+            0x7fff_ffff,
+            WORD_LIMIT + 1,
+            (WORD_LIMIT + 1) | 0x8000_0000,
+        ] {
+            assert!(word_truncated(refused).is_err(), "{refused:#010x}");
+        }
+        // whole numbers within a range: a signed zero is zero, a fraction is not whole, a limit is inclusive
+        assert_eq!(word_whole(0x8000_0000, 0, 3), Some(0));
+        assert_eq!(word_whole(2.0f32.to_bits(), 0, 3), Some(2));
+        assert_eq!(word_whole(2.5f32.to_bits(), 0, 3), None);
+        assert_eq!(word_whole(4.0f32.to_bits(), 0, 3), None);
+        assert_eq!(word_whole((-1.0f32).to_bits(), 0, 3), None);
+        assert_eq!(word_whole(0x7fa0_0001, 0, 3), None);
+        assert_eq!(word_whole(16_777_216.0f32.to_bits(), 0, 16_777_216), Some(16_777_216));
+    }
+
+    #[test]
+    fn a_roster_key_is_one_to_twenty_digits_without_a_leading_zero_and_nothing_else() {
+        assert_eq!(parse_key("1"), Some(1));
+        assert_eq!(parse_key("18446744073709551615"), Some(u64::MAX));
+        for bad in [
+            "",
+            "0",
+            "012",
+            "+1",
+            "-1",
+            "1 ",
+            " 1",
+            "1.5",
+            "eech-world:1",
+            "18446744073709551616",
+            "100000000000000000000",
+            "٣",
+        ] {
+            assert_eq!(parse_key(bad), None, "{bad:?}");
+        }
     }
 }

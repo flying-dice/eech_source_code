@@ -8,6 +8,7 @@
 
 use eech_world::movement::{Kind, Movers, Pose, SharedMovers};
 use eech_world::roster::{SectorRoster, SharedRoster};
+use eech_world::trees::{clear_exception_flags, exception_flags, fp_state, raise_exception_flags, rounding, Rounding, ScopedRounding};
 use mlua::{Lua, Table};
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -17,14 +18,11 @@ const LEVEL: [f32; 9] = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
 /// the phases of the question: the scan's own and the roster's events
 const BEGIN: f32 = 0.0;
 const ENTRY: f32 = 1.0;
+const END: f32 = 2.0;
 const RESOLVED: f32 = 3.0;
 const INSERT: f32 = 4.0;
 const REMOVE: f32 = 5.0;
 const RESET: f32 = 6.0;
-
-fn pattern(float: f32) -> String {
-    format!("0x{:08x}", float.to_bits())
-}
 
 fn host(movers: Rc<RefCell<Movers>>) -> (Lua, Rc<RefCell<SectorRoster>>) {
     let lua = Lua::new();
@@ -59,7 +57,12 @@ fn registry() -> Rc<RefCell<Movers>> {
 
 /// one question of the scan or the roster: the sixteen facts (the segment, the map, the phase, the cursor, the two flags) and, when given, a space and the identity place
 fn ask(lua: &Lua, facts: [f32; 16], identity: &str) -> Table {
-    let patterns = facts.iter().map(|word| pattern(*word)).collect::<Vec<_>>().join(",");
+    ask_words(lua, facts.map(f32::to_bits), identity)
+}
+
+/// the same question from the raw words: a signaling word is sent as the bits the campaign held, never moved through a float
+fn ask_words(lua: &Lua, words: [u32; 16], identity: &str) -> Table {
+    let patterns = words.iter().map(|word| format!("0x{word:08x}")).collect::<Vec<_>>().join(",");
     let text = if identity.is_empty() { patterns } else { format!("{patterns} {identity}") };
     lua.globals().set("KEY", text).unwrap();
     lua.load(r#"return host.model ("entity_scan", 0, nil, nil, nil, KEY)"#).eval().unwrap()
@@ -262,4 +265,157 @@ fn the_roster_events_need_the_hosts_roster_and_a_host_without_one_refuses_by_nam
     let first = ask(&lua, scan_facts(BEGIN, [0.0; 2], 0.0, 0.0), "");
     assert_eq!(result(&first), "refused");
     assert!(reason(&first).contains("[roster.missing]"), "{}", reason(&first));
+}
+
+/// a scan question over a segment wide enough that sector (2, 1) is inside the window the cursor must lie in
+fn wide_facts(phase: f32, cursor: [f32; 2], excluded: f32, hit: f32) -> [f32; 16] {
+    let mut facts = scan_facts(phase, cursor, excluded, hit);
+    facts[3] = 2600.0;
+    facts
+}
+
+#[test]
+fn the_standing_key_of_an_entry_or_a_resolved_offer_is_validated_before_any_decision_and_only_those_phases_carry_one() {
+    let (lua, roster) = host(registry());
+    let a = insert(&lua, [1100.0, 3.0, 1100.0], 20.0, "");
+    let b = insert(&lua, [1200.0, 3.0, 1200.0], 21.0, "");
+    let elsewhere = insert(&lua, [2500.0, 3.0, 1500.0], 22.0, "");
+    let ended = insert(&lua, [1300.0, 3.0, 1300.0], 23.0, "");
+    assert_eq!(result(&remove(&lua, &ended)), "removed");
+    let held = roster.borrow().len();
+
+    // positive first: a live entry of the sector the scan is in is offered, skipped, hit or missed exactly as the kernel decides, in every phase that carries a key; BEGIN and END carry none
+    let offered = ask(&lua, wide_facts(ENTRY, [1.0, 1.0], 0.0, 0.0), &a);
+    assert_eq!((result(&offered), name(&offered)), ("offer".to_string(), String::new()));
+    let skipped = ask(&lua, wide_facts(ENTRY, [1.0, 1.0], 1.0, 0.0), &a);
+    assert_eq!((result(&skipped), name(&skipped)), ("next".to_string(), b.clone()));
+    let hit = ask(&lua, wide_facts(RESOLVED, [1.0, 1.0], 0.0, 1.0), &a);
+    assert_eq!((result(&hit), name(&hit)), ("done_hit".to_string(), String::new()));
+    let missed = ask(&lua, wide_facts(RESOLVED, [1.0, 1.0], 0.0, 0.0), &a);
+    assert_eq!((result(&missed), name(&missed)), ("next".to_string(), b.clone()));
+    let begin = ask(&lua, wide_facts(BEGIN, [0.0; 2], 0.0, 0.0), "");
+    assert_eq!(
+        (result(&begin), name(&begin)),
+        ("first".to_string(), a.clone()),
+        "the sector's oldest insertion"
+    );
+    let end = ask(&lua, wide_facts(END, [2.0, 1.0], 0.0, 0.0), "");
+    assert_eq!(result(&end), "done_none");
+
+    // the same questions with a key that is not the live entry of the sector the scan stands in: refused by name, and the decision (an offer, a skip, a hit, a next) is never served
+    let cases: [(&str, &str, &str); 7] = [
+        ("unknown", "999", "never issued"),
+        ("ended", &ended, "has ended"),
+        ("another sector", &elsewhere, "not in the sector"),
+        ("text", "eech-world:1", "not a key this host issued"),
+        ("leading zero", "0012", "not a key this host issued"),
+        ("signed", "+1", "not a key this host issued"),
+        ("none", "", "names none"),
+    ];
+    for (phase, excluded, hit, decision) in [
+        (ENTRY, 0.0, 0.0, "offer"),
+        (ENTRY, 1.0, 0.0, "next"),
+        (RESOLVED, 0.0, 1.0, "done_hit"),
+        (RESOLVED, 0.0, 0.0, "next"),
+    ] {
+        for (what, key, why) in cases {
+            let refused = ask(&lua, wide_facts(phase, [1.0, 1.0], excluded, hit), key);
+            assert_eq!(result(&refused), "refused", "phase {phase} ({decision}) with the {what} key");
+            assert!(
+                reason(&refused).contains("[roster.key]") && reason(&refused).contains(why),
+                "phase {phase} ({decision}) with the {what} key: {}",
+                reason(&refused)
+            );
+            assert_eq!(name(&refused), "", "a refusal serves no entry");
+        }
+    }
+
+    // BEGIN, END and the boot carry no standing key: one is refused by name where the real driver never sends one
+    for (phase, cursor) in [(BEGIN, [0.0; 2]), (END, [1.0, 1.0])] {
+        let stray = ask(&lua, wide_facts(phase, cursor, 0.0, 0.0), &a);
+        assert_eq!(result(&stray), "refused", "phase {phase}");
+        assert!(
+            reason(&stray).contains("[roster.key]") && reason(&stray).contains("carries no"),
+            "{}",
+            reason(&stray)
+        );
+    }
+    let stray = ask(&lua, event_facts(RESET, [0.0; 3], 0.0), &a);
+    assert_eq!(result(&stray), "refused");
+    assert!(
+        reason(&stray).contains("[roster.key]") && reason(&stray).contains("carries no"),
+        "{}",
+        reason(&stray)
+    );
+    assert_eq!(roster.borrow().len(), held, "nothing a refused question named was changed");
+    assert_eq!(served(&lua), vec![a, b], "and the roster still serves what it held");
+}
+
+/// the caller's whole floating-point state as the roster call sees it: masks, rounding, raw control words and the raised status flags
+fn caller_state() -> (eech_world::trees::FpState, Rounding, i32) {
+    (fp_state().expect("readable"), rounding().expect("one of the four"), exception_flags())
+}
+
+#[test]
+fn the_roster_arithmetic_hands_back_the_callers_whole_floating_point_state_for_fractional_and_malformed_words() {
+    const SIGNALING: u32 = 0x7fa0_0001;
+    for mode in [Rounding::Nearest, Rounding::Up, Rounding::Down, Rounding::Zero] {
+        for raised in [false, true] {
+            let (lua, roster) = host(registry());
+            let _caller = ScopedRounding::set(mode).expect("a caller in this rounding mode");
+            clear_exception_flags().expect("clear");
+            if raised {
+                raise_exception_flags().expect("raise");
+            }
+            let before = caller_state();
+            assert_eq!(before.2 != 0, raised, "the test's own setup");
+            // valid fractional coordinates are truncated toward zero whatever the caller's rounding is, and the call is a placement
+            let fractional = event_facts(INSERT, [1100.7, 3.3, 1100.9], 20.0).map(f32::to_bits);
+            let placed = ask_words(&lua, fractional, "");
+            assert_eq!(result(&placed), "placed", "{mode:?}: {:?}", placed.get::<Option<String>>("reason"));
+            let key = name(&placed);
+            assert_eq!(roster.borrow().sector(key.parse().unwrap()), Some((1, 1)), "{mode:?}: truncated, never rounded");
+            assert_eq!(
+                caller_state(),
+                before,
+                "{mode:?} raised={raised}: the caller's whole state after a placement with fractional coordinates"
+            );
+            // a live entry served and finished with the cursor the kernel names: the sector arithmetic of a valid scan
+            let begin = ask_words(&lua, scan_facts(BEGIN, [0.0; 2], 0.0, 0.0).map(f32::to_bits), "");
+            assert_eq!((result(&begin), name(&begin)), ("first".to_string(), key.clone()), "{mode:?}");
+            assert_eq!(
+                caller_state(),
+                before,
+                "{mode:?} raised={raised}: the caller's whole state after a served first entry"
+            );
+            // every malformed word is refused by name before any floating-point use of it
+            let scan = scan_facts(BEGIN, [0.0; 2], 0.0, 0.0).map(f32::to_bits);
+            let entry = scan_facts(ENTRY, [1.0, 1.0], 0.0, 0.0).map(f32::to_bits);
+            let insertion = event_facts(INSERT, [1100.0, 3.0, 1100.0], 20.0).map(f32::to_bits);
+            let with = |mut words: [u32; 16], at: usize, word: u32| {
+                words[at] = word;
+                words
+            };
+            let cases: [(&str, [u32; 16], &str, &str); 11] = [
+                ("a signaling phase", with(scan, 11, SIGNALING), "", "fact 11"),
+                ("an infinite phase", with(scan, 11, 0x7f80_0000), "", "fact 11"),
+                ("a signaling position x", with(insertion, 0, SIGNALING), "", "[roster.position]"),
+                ("a signaling position z", with(insertion, 2, SIGNALING), "", "[roster.position]"),
+                ("an infinite position", with(insertion, 0, 0xff80_0000), "", "[roster.position]"),
+                ("a signaling type", with(insertion, 3, SIGNALING), "", "[roster.request]"),
+                ("a signaling side", with(insertion, 6, SIGNALING), "", "[roster.request]"),
+                ("a fractional type", with(insertion, 3, 2.5f32.to_bits()), "", "[roster.request]"),
+                ("a signaling cursor at an entry", with(entry, 12, SIGNALING), &key, "fact 12"),
+                ("a signaling excluded flag at an entry", with(entry, 14, SIGNALING), &key, "fact 14"),
+                ("a signaling hit flag at an entry", with(entry, 15, SIGNALING), &key, "fact 15"),
+            ];
+            for (what, words, identity, expected) in cases {
+                let refused = ask_words(&lua, words, identity);
+                assert_eq!(result(&refused), "refused", "{mode:?} raised={raised}: {what}");
+                assert!(reason(&refused).contains(expected), "{mode:?} raised={raised}: {what}: {}", reason(&refused));
+                assert_eq!(caller_state(), before, "{mode:?} raised={raised}: the caller's whole state after {what}");
+            }
+            assert_eq!(roster.borrow().len(), 1, "only the valid fractional placement is in the roster");
+        }
+    }
 }

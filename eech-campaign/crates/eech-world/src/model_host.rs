@@ -694,16 +694,17 @@ fn entity_candidate_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaRe
     Ok(table)
 }
 
-/// The roster phases of an `entity_scan` question: the campaign reports an insertion into a sector list (4), a removal from it (5), or a new boot (6). They are not steps of a scan, so the scan
-/// kernel is never asked about them (its own phases are 0 to 3).
-const ROSTER_INSERT: f32 = 4.0;
-const ROSTER_REMOVE: f32 = 5.0;
-const ROSTER_RESET: f32 = 6.0;
+/// The roster phases of an `entity_scan` question, as the bits of the float the campaign sends: an insertion into a sector list (4.0), a removal from it (5.0), or a new boot (6.0). They are not steps of
+/// a scan, so the scan kernel is never asked about them (its own phases are 0 to 3). The phase word is classified from its bits and never compared as a float: a signaling word is then named and refused
+/// before any floating-point instruction has touched it, and the caller's floating-point state is never changed by this arithmetic (see `crate::roster::word_truncated`).
+const ROSTER_INSERT: u32 = 0x4080_0000;
+const ROSTER_REMOVE: u32 = 0x40a0_0000;
+const ROSTER_RESET: u32 = 0x40c0_0000;
 
 /// The host's answer to one roster event of the sector lists (see `crate::roster`): an INSERT (phase 4) states the entity's type, the sector side length and the position the campaign holds, with the
 /// semantic identity of a hosted mobile in the identity place; the host decides the sector (a hosted mobile's from its OWN record, an entity with none from the stated position), records the entry and
 /// answers the key it issued as `name`. A REMOVE (phase 5) names a key (the identity place), and a RESET (phase 6) ends every entry.
-fn roster_event(lua: &Lua, phase: f32, words: &[u32], identity: &str) -> LuaResult<LuaTable> {
+fn roster_event(lua: &Lua, phase: u32, words: &[u32], identity: &str) -> LuaResult<LuaTable> {
     let table = lua.create_table()?;
     table.set("name", "")?;
     let refuse = |table: &LuaTable, reason: String| -> LuaResult<LuaTable> {
@@ -718,12 +719,15 @@ fn roster_event(lua: &Lua, phase: f32, words: &[u32], identity: &str) -> LuaResu
         return refuse(&table, "the sector roster was busy".into());
     };
     if phase == ROSTER_RESET {
+        if !identity.is_empty() {
+            return refuse(&table, "[roster.key] a boot carries no identity".into());
+        }
         roster.clear();
         table.set("result", "cleared")?;
         return Ok(table);
     }
     if phase == ROSTER_REMOVE {
-        let Ok(key) = identity.parse::<u64>() else {
+        let Some(key) = crate::roster::parse_key(identity) else {
             return refuse(
                 &table,
                 format!(
@@ -740,12 +744,12 @@ fn roster_event(lua: &Lua, phase: f32, words: &[u32], identity: &str) -> LuaResu
             Err(why) => refuse(&table, format!("[roster.key] {}", why.0)),
         };
     }
-    // an insertion: type, side length and the campaign's stated position (x and z; y does not enter a sector)
-    let whole = |word: u32, low: f32, high: f32| -> Option<i32> {
-        let value = f32::from_bits(word);
-        (value.is_finite() && value == value.floor() && value >= low && value <= high).then_some(value as i32)
-    };
-    let (Some(entity_type), Some(side)) = (whole(words[3], 0.0, 1.0e6), whole(words[6], 1.0, 1.0e6)) else {
+    // an insertion: type, side length and the campaign's stated position (x and z; y does not enter a sector). Every word is classified by integer operations (`crate::roster::word_whole`): a signaling,
+    // non-finite or fractional word is refused by name before any floating-point use or conversion of it
+    let (Some(entity_type), Some(side)) = (
+        crate::roster::word_whole(words[3], 0, 1_000_000),
+        crate::roster::word_whole(words[6], 1, 1_000_000),
+    ) else {
         return refuse(
             &table,
             "[roster.request] an insertion states a whole entity type and a positive whole sector side length".into(),
@@ -808,7 +812,9 @@ fn roster_event(lua: &Lua, phase: f32, words: &[u32], identity: &str) -> LuaResu
 /// end of the scan, from the segment, the campaign's world map and the cursor facts. `first` (with the sector as `p`), `next`, `offer`, `done_none` or `done_hit`. The scan kernel reads no model. The
 /// entries it names are the HOST's own roster (`crate::roster`): `first` and `next` carry the key of the entry to serve as `name` (empty when the sector's list has no more), the question
 /// that follows an entry names the entry it is standing at in the identity place, and an entry the roster does not hold, or does not hold in that sector, is refused by name and never skipped.
-/// The same question also carries the roster's own events (phases 4 to 6, `roster_event`).
+/// The same question also carries the roster's own events (phases 4 to 6, `roster_event`). The identity place carries a standing key exactly where the scan stands at an entry, in ENTRY (1) and RESOLVED (3): that key is
+/// validated against the live roster and the sector the scan is in before the kernel decides anything (so an offer, a skip or a hit never follows an unknown, ended or misplaced entry), and BEGIN (0) and END (2) carry none.
+/// Every word of the question is classified by integer operations, so a malformed word is refused by name before any floating-point use of it and the caller's floating-point state is never changed here.
 fn entity_scan_answer(lua: &Lua, q: &Question) -> LuaResult<LuaTable> {
     let operation = q.operation.as_str();
     let fail = |message: String| LuaError::runtime(format!("[model-provider:{operation}.request] {message}"));
@@ -823,12 +829,57 @@ fn entity_scan_answer(lua: &Lua, q: &Question) -> LuaResult<LuaTable> {
         None => (None, ""),
     };
     let words = transport_pose(pattern_text, operation, |n| n == entity_host::SCAN_FACTS)?;
-    let phase = f32::from_bits(words[11]);
-    if phase == ROSTER_INSERT || phase == ROSTER_REMOVE || phase == ROSTER_RESET {
-        return roster_event(lua, phase, &words, identity);
+    let phase_word = words[11];
+    if matches!(phase_word, ROSTER_INSERT | ROSTER_REMOVE | ROSTER_RESET) {
+        return roster_event(lua, phase_word, &words, identity);
     }
     let table = lua.create_table()?;
     table.set("name", "")?;
+    let refuse = |reason: String| -> LuaResult<LuaTable> {
+        let refused = lua.create_table()?;
+        refused.set("name", "")?;
+        refused.set("result", "refused")?;
+        refused.set("reason", reason)?;
+        Ok(refused)
+    };
+    // The identity place of a scan question is the key of the entry the scan stands at, and the scan stands at one exactly in ENTRY (1) and RESOLVED (3): BEGIN (0) and END (2) carry none. The key is
+    // validated against the LIVE roster and the sector the scan is in BEFORE the kernel decides anything, so an unknown, ended or misplaced entry is never offered, hit or skipped. A word that is not a scan
+    // phase at all is the kernel's own refusal, and it is classified from its bits (the roster's integer classification), never compared as a float.
+    let phase = crate::roster::word_whole(phase_word, 0, 3);
+    let mut standing = None;
+    if let Some(number) = phase {
+        if number == 1 || number == 3 {
+            if identity.is_empty() {
+                return refuse(format!("[roster.key] phase {number} stands at a served entry and names none"));
+            }
+            let Some(key) = crate::roster::parse_key(identity) else {
+                return refuse(format!(
+                    "[roster.key] the scan stands at \"{}\", which is not a key this host issued",
+                    identity.chars().take(40).collect::<String>()
+                ));
+            };
+            let Some(shared) = lua.app_data_ref::<crate::roster::SharedRoster>() else {
+                return refuse("[roster.missing] the host keeps no sector roster".into());
+            };
+            let Ok(roster) = shared.0.try_borrow() else {
+                return refuse("[roster.busy] the sector roster was busy".into());
+            };
+            let checked = match (
+                crate::roster::word_whole(words[12], 0, 16_777_216),
+                crate::roster::word_whole(words[13], 0, 16_777_216),
+            ) {
+                (Some(x), Some(z)) => roster.standing((x, z), key),
+                // a cursor that is no sector is the kernel's refusal below; the entry still has to be a live one
+                _ => roster.live(key),
+            };
+            if let Err(why) = checked {
+                return refuse(format!("[roster.key] {}", why.0));
+            }
+            standing = Some(key);
+        } else if !identity.is_empty() {
+            return refuse(format!("[roster.key] phase {number} carries no standing key"));
+        }
+    }
     match entity_host::scan_step(&words) {
         Ok(step) => {
             table.set(
@@ -846,30 +897,22 @@ fn entity_scan_answer(lua: &Lua, q: &Question) -> LuaResult<LuaTable> {
             }
             if matches!(step.state, entity_host::ScanState::First | entity_host::ScanState::Next) {
                 // the entry to serve: the sector's oldest for `first`, the one after the entry the scan is standing at for `next`
-                let refuse = |reason: String| -> LuaResult<LuaTable> {
-                    let refused = lua.create_table()?;
-                    refused.set("name", "")?;
-                    refused.set("result", "refused")?;
-                    refused.set("reason", reason)?;
-                    Ok(refused)
-                };
                 let Some(shared) = lua.app_data_ref::<crate::roster::SharedRoster>() else {
                     return refuse("[roster.missing] the host keeps no sector roster".into());
                 };
                 let Ok(roster) = shared.0.try_borrow() else {
                     return refuse("[roster.busy] the sector roster was busy".into());
                 };
+                let sector_of = |x: u32, z: u32| match (crate::roster::word_whole(x, 0, 16_777_216), crate::roster::word_whole(z, 0, 16_777_216)) {
+                    (Some(x), Some(z)) => Ok((x, z)),
+                    _ => Err(crate::roster::Refusal("the sector the scan is in is not a whole number inside the map".into())),
+                };
                 let served = if step.state == entity_host::ScanState::First {
-                    let sector = (f32::from_bits(step.cursor[0]) as i32, f32::from_bits(step.cursor[1]) as i32);
-                    Ok(roster.first(sector))
+                    sector_of(step.cursor[0], step.cursor[1]).map(|sector| roster.first(sector))
                 } else {
-                    let sector = (f32::from_bits(words[12]) as i32, f32::from_bits(words[13]) as i32);
-                    match identity.parse::<u64>() {
-                        Ok(key) => roster.next(sector, key),
-                        Err(_) => Err(crate::roster::Refusal(format!(
-                            "the scan asked for the entry after \"{}\", which is not a key this host issued",
-                            identity.chars().take(40).collect::<String>()
-                        ))),
+                    match standing {
+                        Some(key) => sector_of(words[12], words[13]).and_then(|sector| roster.next(sector, key)),
+                        None => Err(crate::roster::Refusal("the scan asked for the entry after none".into())),
                     }
                 };
                 match served {
