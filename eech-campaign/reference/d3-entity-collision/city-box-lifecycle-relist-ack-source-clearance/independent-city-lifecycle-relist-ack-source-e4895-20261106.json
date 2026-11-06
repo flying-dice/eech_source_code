@@ -1,0 +1,291 @@
+{
+  "schema": "d3-independent-city-lifecycle-relist-ack-source-review.v1",
+  "created_utc": "2026-11-06T23:25:07.127018+00:00",
+  "reviewer": "SAME sole independent Codex reviewer",
+  "scope": "One combined correctness, clean-code and boundary-safety pass over the diagnostic ACK-alias correction, its test-only C characterization, supplemental tests, retained checks/metadata and new optional-literal native controller. Read-only immutable-source/evidence review; no tests, builds, native launches, cache operations, agents or tracked writes by reviewer.",
+  "source": {
+    "commit": "e4895c121f6f4280cd0e94a26fc74f7300cb1f78",
+    "initial_code_commit": "eb3861ea8a5e2103db7bc8c3d3f97cf1f15b0dc5",
+    "metadata_commit": "90dbf29e034f09b66ae2b8ba070cd1aacbd6ce79",
+    "measured_runtime_source": "354abd9c04a53f1935919abc4fde1172b438c2b3",
+    "initial_parent_metadata": "a1ef80b05612f4b8f2d355ad024cef6037426e55",
+    "initial_publication_commit": "7f483ab52965cecc99032f5e6ad36798aaa52e86",
+    "supplement_parent": "7f483ab52965cecc99032f5e6ad36798aaa52e86",
+    "observed_final_metadata_HEAD_clean": true,
+    "changed_paths_vs_runtime": [
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "scope": "Diagnostic entry-point Lua only; same literal in eb386 and e4895",
+        "git_blob": "3591429759763d9ed3a2216790402c2d5e9e0c09",
+        "bytes": 255678,
+        "sha256": "98de0f7d593e9ace2c2a6da431d5b7021d9aaf035d59c1a223e39925c00f32db"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "scope": "Sociable test harness; supplemental commit adds 46 test-only lines",
+        "git_blob": "4de4ef451c68119367cf1c976e9223251801d4c6",
+        "bytes": 360375,
+        "sha256": "8c182620b40218a378bbda3398db01aeb84ea08fa2e3760888a379553fd368a6"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+        "scope": "18-line test-only characterization of the real shared C insertion/report sequence",
+        "git_blob": "73f98af9115106224b5e32e8da40c59793abed15",
+        "bytes": 205207,
+        "sha256": "ff1734ceed305759fb975b600884a165689d74b1cdaf88300f657b5ddb3890ff"
+      }
+    ],
+    "production_C_Rust_Cargo_build_ABI_solver_delta": false,
+    "qualification": "Raw test-C bytes do change. They are excluded from the three measured production profiles by the independent entity-dialogue-check guard; this is not a claim that every watched raw input is byte-identical. The diagnostic Lua is loaded as a separate literal, not substituted into or relabelled as the sealed binary payload."
+  },
+  "retained_actual_and_diagnosis": {
+    "path": "R:/d3-evidence/Root-city-lifecycle-354ab-relist-ack-failure-20261106.json",
+    "bytes": 3205,
+    "sha256": "0b29b0c3b6b1ab7cb976d9c998d24739f896051709be78d2476c70ab8700e56c",
+    "finding_id": "ENV-CITY-LIFECYCLE-RELIST-FIXED-ACK-1",
+    "actual_native_helper_outer_exits": [
+      1,
+      1,
+      1
+    ],
+    "completed": true,
+    "selected_BEFORE_consumptions": 1,
+    "selected_AFTER_consumptions": 1,
+    "retained_answers": 2,
+    "continuation_links": 2,
+    "expansions": 6,
+    "expansions_answered": 6,
+    "request_faults": 6,
+    "reply_faults": 0,
+    "fatal": false,
+    "interventions": 0,
+    "disposition": "FAILED actual remains literal. Completion/geometry equality does not override request faults, and this is not a read-only checker recovery. No matched negatives were launched.",
+    "source_supported_cause": "The real child insertion declares sector+new-child LINK, then reports fixed state under the still-live sector key. The real Host joins both placements into one canonical record and requires its held state for expansion. The old driver incorrectly required a direct report under the new child key.",
+    "inference_limit": "No native per-request ACK transcript was retained. The exact state-order diagnosis is supported by immutable C/Host source, the new real-C sequence characterization and sociable reproduction, not by pretending the aggregate row contains those individual ACKs.",
+    "earlier_bounded_feedback": {
+      "path": "R:/d3-evidence/Root-city-relist-ack-review-feedback-20261106.json",
+      "bytes": 8284,
+      "sha256": "bba871a7bd6ff49edc7b21e659042113be2c23a9ca3a0e065e6d5a65267bf984"
+    }
+  },
+  "finding_dispositions": [
+    {
+      "id": "ENV-CITY-LIFECYCLE-RELIST-FIXED-ACK-1",
+      "status": "SOURCE_CLOSED_PENDING_SEPARATELY_BOUND_LITERAL_NATIVE_CONTROL",
+      "evidence": [
+        "The new city_track branch recognizes a successfully validated LINK only between a currently live sector placement and a child listed under a city; CITY-list continuation retains its separate preexisting branch.",
+        "scan.fixed.peer records that pair. state_ack records only the actual positively acknowledged report key and shares evidence with its proven peer. linked joins evidence either placement already held; no expansion answer or valid-looking name supplies physical state.",
+        "The CITY_EXPAND request validator now uses holds(child), while retaining the current CITY state, ended-key, actual child-parent and canonical CITY-anchor checks. It does not blanket accept a successful expansion.",
+        "The real shared C canary confirms a relisted building gets a new child key, one exact sector/new-child LINK and one fixed-state report under the surviving sector key. No redundant production child-key report was introduced.",
+        "Positive sociable tests exercise initial child-before-sector and relist-with-sector orders, including retention with no redundant post-LINK restatement. Missing LINK remains a request fault and the real roster holds no fixed state for the unlinked new child.",
+        "The supplemental malformed-ACK case requires reply faults followed by missing-state request faults and failure rather than UNREACHED. Its CITY continuation remains intact, distinguishing unrelated relations. The stale old-child control is rejected by the ended-key guard."
+      ]
+    }
+  ],
+  "correctness_clean_code_boundary_review": {
+    "result": "No actionable changed-material finding.",
+    "ownership": "No production physical state/store/record/link/solver or campaign policy changes. The new peer/shared tables are observer evidence, not an alternate physical owner and not query-time adoption.",
+    "strictness": "The complete same-key LINK ACK validation precedes city_track. An unlinked key, wrong/malformed/refused ACK or unrelated record cannot create the accepted relation. Existing request faults remain recorded and cannot be erased by later valid traffic, completed=true or UNREACHED classification.",
+    "lifetime": "peer/shared historical entries are not deleted on every removal/reset. Current roster-live, ended-key, child-parent and reset guards exclude those stale names before expansion; keys are monotonically issued rather than reused. This is guarded diagnostic history, not a claim that the maps themselves are cleared. An alias may retain ACK evidence while its other legitimate placement survives.",
+    "telemetry": "held/by_key keep the strict direct-report meaning; fixed_held_lifetime and report/event counters are unchanged. Only expansion eligibility uses shared evidence. Candidate/rule-change/withdrawal joins remain conservative per-key held checks and may miss a relisted child-only alias; no broader coverage is claimed.",
+    "FPU_RNG_order": "Changed executable diagnostic Lua performs table/identity/boolean operations only and does not alter real request/reply words, floating computation, RNG, query order or physical callbacks. No new full-FPU proof or changed physical-output tolerance is claimed.",
+    "test_fidelity": "The real roster/provider is used for record state and membership. Some physical expansion/report behavior remains scripted in the World harness; the stale-key test deliberately rejects the request regardless of that scripted answer. These tests are not an end-to-end native C/Lua composition or a replacement for the real Core lifecycle control.",
+    "limits_of_controls": "No dedicated new test covers every absent-ACK-at-boot, provider-refused LINK, clear/reset or unrelated key-reuse permutation. The relevant unchanged rejection/retirement guards and strictly faulted verdict remain part of the bounded source reasoning; no universal corruption/lifetime coverage is inferred."
+  },
+  "runtime_literal_reuse": {
+    "proof": {
+      "path": "R:/d3-evidence/city-relist-runtime-equivalence-e4895-on-354ab-20261106.json",
+      "bytes": 2220,
+      "sha256": "1a6ff7af841e352ae3a033bdd3ef1b719745fbade514d8dea5885bd89c980ae8"
+    },
+    "eligible": true,
+    "runtime_source": "354abd9c04a53f1935919abc4fde1172b438c2b3",
+    "literal_source": "e4895c121f6f4280cd0e94a26fc74f7300cb1f78",
+    "initial_same_Lua_source": "eb3861ea8a5e2103db7bc8c3d3f97cf1f15b0dc5",
+    "literal": {
+      "path": "R:/d3-evidence/city-relist-ack-e4895c121-literal.lua",
+      "bytes": 255678,
+      "sha256": "98de0f7d593e9ace2c2a6da431d5b7021d9aaf035d59c1a223e39925c00f32db"
+    },
+    "literal_git_blob": "3591429759763d9ed3a2216790402c2d5e9e0c09",
+    "source_guard": "eech-engine-sys/csrc/eech_entity_dialogue_check.c is wholly guarded by EECH_ENTITY_DIALOGUE_CHECK. build/main.rs enables it only for CARGO_FEATURE_ENTITY_DIALOGUE_CHECK; Cargo.toml makes that independent, not a dependency of weapon/collision/model-host profiles. All three actual runtime manifests exclude it.",
+    "production_inputs": "Outside the diagnostic Lua, Rust test harness and guarded test C canary, actual production C/Rust/Engine/DC/World host math/Cargo/build inputs are unchanged from runtime354ab. The diagnostic is not embedded by the production World sources; its include_str use is in the test harness.",
+    "sealed_payloads_retained_per_profile": {
+      "ordinary": 88,
+      "hosted": 88,
+      "original": 88
+    },
+    "retained_default_actuals": "Root-provided354ab ordinary short and healthy/default positives remain evidence at runtime354ab. No unchanged Windows/default replay is required merely to run this new separately-bound literal; no binary or bundled-Lua source identity is relabelled."
+  },
+  "controller_and_gate_review": {
+    "path": "R:/d3-evidence/run-city-lifecycle-native-from-plan-v2-20261106.py",
+    "bytes": 6817,
+    "sha256": "f74da35a9e0fa57ce08ba8f5f520eb1228e6ca097718d8e5845c42f1b153bd53",
+    "status": "Reviewed prepared optional-literal controller; no launch performed by reviewer.",
+    "checks": "Plan/artifact hashes, conditional source-review decision, exact profile/World/build source, actual payload seal, verified unused input root/tool/reference identity, literal SHA+Git blob and runtime-equivalence proof are checked before launch. Native/runtime and literal source identities are recorded separately.",
+    "control_first": "Each negative requires a zero-exit prior control with the same runtime and, when supplied, exactly the same literal source and SHA. The existing helper is pinned to SHA3da2855f8b8b67c73d4ac0e157b40c81acdf633bdf21560daa3e588f024b0582.",
+    "actual_orchestration": "Native/helper/checker/outer statuses are recorded separately. The thin row checker is pinned to e18f2609ea317514e1d9866b0d04616b9ff9191bb1e5ac25ae0ad616e4124c2b. Full pre/post manifests are compared literally with the retained reference and payloads rehashed after the run.",
+    "audit_limits": "The thin checker validates aggregate standalone rows; raw report/tuple consistency relies on the reviewed driver. A later independent actual join must verify selected-record/settings equivalence across matched roots, actual real intervention/refusal and all receipts/manifests/payloads. The controller source does not itself establish native success or full raw-report reconstruction."
+  },
+  "checks_and_provenance": {
+    "final_external_freeze": {
+      "path": "R:/d3-evidence/city-box-lifecycle-relist-ack-CODE-FROZEN-20261106.json",
+      "bytes": 33425,
+      "sha256": "5c9b91c14e99d8a345e575920d1a0771d305d96466211343fc20b0664e235881"
+    },
+    "freeze_repo_relation": "Final33425B external file is literal Git at metadata90db; no schema normalization. Initial23611B freeze SHA3e2292af161f86d31299e5efa376e717652858227c45e7a3a431e8e14a4a9f75 remains historical at initial metadata7f483, not the final artifact.",
+    "direct_final_receipts": [
+      {
+        "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-relist-final-fmt.json",
+        "bytes": 767,
+        "sha256": "9dd9b042fe05904c33ac9e3cf3823cb93d0e9cfcb58e44800b06b9909d8a4ac0",
+        "label": "relist-final-fmt",
+        "actual_exit": 0,
+        "command": "cargo fmt -p eech-world --check",
+        "started_utc": "2026-11-06T23:11:05.874507+00:00",
+        "completed_utc": "2026-11-06T23:11:09.324670+00:00"
+      },
+      {
+        "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-relist-final-world.json",
+        "bytes": 1049,
+        "sha256": "154c191901752925bda198b3c5aca2c0500126442c09b16a7ab76b5836b5c85d",
+        "label": "relist-final-world",
+        "actual_exit": 0,
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test city_box_lifecycle",
+        "started_utc": "2026-11-06T23:11:09.522060+00:00",
+        "completed_utc": "2026-11-06T23:11:11.647991+00:00"
+      },
+      {
+        "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-relist-final-c.json",
+        "bytes": 1065,
+        "sha256": "fd55710063b0b11bc7c352373bfa2fe474cfa0fd6ffba8e1d022efa0553c8f93",
+        "label": "relist-final-c",
+        "actual_exit": 0,
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard",
+        "started_utc": "2026-11-06T23:11:11.840310+00:00",
+        "completed_utc": "2026-11-06T23:12:34.969082+00:00"
+      },
+      {
+        "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-relist-final-clippy.json",
+        "bytes": 833,
+        "sha256": "a000f8470bc32be5b8096963667d5b0a57fae550cfc2057498e3024f26ddaa5d",
+        "label": "relist-final-clippy",
+        "actual_exit": 0,
+        "command": "cargo clippy --locked --all-targets -p eech-world -- -D warnings",
+        "started_utc": "2026-11-06T23:12:35.187208+00:00",
+        "completed_utc": "2026-11-06T23:12:36.966854+00:00"
+      },
+      {
+        "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-relist-supp-final-fmt.json",
+        "bytes": 766,
+        "sha256": "fb3102cd77d7c79e21a955286685cb7a067603145fa3df60a63fac692a5082c6",
+        "label": "relist-supp-final-fmt",
+        "actual_exit": 0,
+        "command": "cargo fmt -p eech-world --check",
+        "started_utc": "2026-11-06T23:19:18.051780+00:00",
+        "completed_utc": "2026-11-06T23:19:21.471413+00:00"
+      },
+      {
+        "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-relist-supp-final-world.json",
+        "bytes": 1050,
+        "sha256": "5a2b2c78611bcb149c7ada4b47f3ec21171d6b7365f589f1acface704bdbb36b",
+        "label": "relist-supp-final-world",
+        "actual_exit": 0,
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test city_box_lifecycle",
+        "started_utc": "2026-11-06T23:19:21.673527+00:00",
+        "completed_utc": "2026-11-06T23:19:24.644546+00:00"
+      },
+      {
+        "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-relist-supp-final-clippy.json",
+        "bytes": 834,
+        "sha256": "87645029ed3f6b2e9204e7a2371cc4fda8e3201fd44420dd5dab2035d70d6cc5",
+        "label": "relist-supp-final-clippy",
+        "actual_exit": 0,
+        "command": "cargo clippy --locked --all-targets -p eech-world -- -D warnings",
+        "started_utc": "2026-11-06T23:19:24.848140+00:00",
+        "completed_utc": "2026-11-06T23:19:27.427461+00:00"
+      }
+    ],
+    "initial_eb386_final_results": {
+      "World_passed_instances": 148,
+      "World_result_rows": 4,
+      "Sys_guard_C_passed_instances": 26,
+      "Sys_result_rows": 3,
+      "final_commands": 4,
+      "all_actual_exit": 0
+    },
+    "supplement_e4895_final_results": {
+      "World_passed_instances": 149,
+      "World_result_rows": 4,
+      "entity_authority_passed": 109,
+      "final_commands": 3,
+      "all_actual_exit": 0,
+      "scope": "Final fmt, affected World suites and strict World Clippy. Unchanged Lua/C canary/guard input identity permits reuse of the initial C26 evidence; it is not a rerun at e4895."
+    },
+    "retained_failure_qualification": "Initial/final old-driver REDs are controlled restorations over unchanged354ab driver with added tests, not pristine native rebuilds. Intermediate scripted-fixture failures and format1 remain literal. The temporary diagnostic probe was deliberately101 and is not GREEN. A C expectation mutant101 proves the new canary executes; it is not a production-C mutation. Supplemental unconditional-holds mutation catches missing-LINK and damaged-ACK controls; earlier unsuccessful mutant attempts remain qualified.",
+    "recorded_runs_receipts_and_stream_hashes_joined": 27,
+    "initial_PRE_map": {
+      "path": "R:/d3-evidence/city-relist-ack-20261106/final-pre-check-inputmap.json",
+      "bytes": 2030077,
+      "sha256": "2ff50b41584a0a439f39215422e2c04828451283825554811435082a58e23980"
+    },
+    "initial_POST_map": {
+      "path": "R:/d3-evidence/city-relist-ack-20261106/final-post-check-inputmap.json",
+      "bytes": 2030077,
+      "sha256": "2ff50b41584a0a439f39215422e2c04828451283825554811435082a58e23980"
+    },
+    "supplement_PRE_map": {
+      "path": "R:/d3-evidence/city-relist-ack-supp-20261106/final-pre-check-inputmap.json",
+      "bytes": 2029939,
+      "sha256": "84f3364dc0dbccbf0ccc0c0053ba13844f251de6d875153779d84b472547d383"
+    },
+    "supplement_POST_map": {
+      "path": "R:/d3-evidence/city-relist-ack-supp-20261106/final-post-check-inputmap.json",
+      "bytes": 2029939,
+      "sha256": "84f3364dc0dbccbf0ccc0c0053ba13844f251de6d875153779d84b472547d383"
+    },
+    "maps": "Each own final PRE/POST pair is literally identical,3954 input rows. Initial map covers eb386, supplemental map covers e4895; those two different test-source maps are not claimed equal to one another. Capture markers bracket their own final checks.",
+    "raw_binding": "All three final changed code/test files were independently compared by actual raw SHA256 and size to their immutable Git blobs; supplemental test blob differs intentionally from eb386. Three inherited unchanged test-Lua CRLF/Git-LF exceptions remain qualified separately. Filtered identity field names are not substituted for direct raw equality.",
+    "pack": {
+      "git_prefix": "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-relist-ack-source-and-checks",
+      "listed_files_verified": 91,
+      "files_including_manifest": 92,
+      "manifest_bytes": 16438,
+      "manifest_sha256": "8c9792e498191df6b5bdf4c926578c7ce924f1f2a813cf5796ccd112e14fa2dd",
+      "all_listed_Git_sizes_SHA256_verified": true,
+      "metadata_only_paths_vs_supplement": 38
+    },
+    "producer": {
+      "path": "R:/d3-evidence/claude-d3-city-relist-ack-20261106-completion.json",
+      "bytes": 948,
+      "sha256": "afebb975cff25cb4d544c5aa603ffd5bf6a9ffad4246ede5e941458e698e2c11",
+      "actual_exit": 0,
+      "result_is_error": false,
+      "completed_utc": "2026-11-06T23:22:26.374321+00:00",
+      "actual_model": "claude-sonnet-5-5"
+    },
+    "chronology": "Initial code eb386 and metadata7f483 preceded the supplemental test edit. The late edit was not treated as tested eb386 input: it was committed separately as e4895 with its own frozen maps/checks and metadata90db. Root feedback was read after the first freeze and addressed by that supplement. No test/native replay was performed by the reviewer."
+  },
+  "decision": {
+    "status": "SOURCE_CLEAR_FOR_CONDITIONAL_SEPARATE_LITERAL_VALIDATION_ON_SEALED_354AB",
+    "findings": [],
+    "native_launch_clearance": true,
+    "literal_native_launch_clearance": true,
+    "permitted_runtime_source": "354abd9c04a53f1935919abc4fde1172b438c2b3",
+    "permitted_literal_source": "e4895c121f6f4280cd0e94a26fc74f7300cb1f78",
+    "conditions": [
+      "Root must bind the immutable literal SHA/blob/source, runtime-equivalence proof and all sealed354ab artifacts to the exact reviewed V2 controller/plan; retain separate binary, bundled Lua and diagnostic identities.",
+      "ONE fresh real-Core selected-CITY control FIRST must reach the same selected record before and after actual empty relinks/restore and consume its box, with complete positive report, exact ACKs, zero request/reply faults and all actual exits/manifests/payloads valid. Completed/tuple equality alone is insufficient.",
+      "Only that successful same-literal control unlocks two matched fresh-root missing-retention and changed-mirror controls. Keep same source/settings/selected-record provenance, exact real interventions/named causes and no postfatal engine reads. Do not replay consumed roots or tune actor/time/geometry/seed.",
+      "Root must preserve both failed215a bridge and failed354ab six-request-fault actuals. The new source review does not turn either into acceptance or a checker-only recovery.",
+      "All new actuals require the same reviewer finite actual join before CITY lifecycle acceptance. No provider-only or smaller substitute is authorized."
+    ],
+    "CITY_lifecycle_accepted": false,
+    "whole_CITY_physics_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "remaining_requirements": "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION remains OPEN before sector height. All ten D3 requirements and needed remaining physical services/backing/writers/default-shape/clutter/draw alignment/provenance/shared terrain/hints/UPDATED/raw TREE-FOREST-CLOUD RNG/hierarchy-devices/DCS mapping, natural-moving integration, current final40/all8/final inputs/payload census/current CI/review/normal merge/delivery/final census remain required. Protected parent full-pack partial prefixes are not acceptance of this literal or a current candidate. No D4/D5 or historical TypeScript scope is authorized."
+}
