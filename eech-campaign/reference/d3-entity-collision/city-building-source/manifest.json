@@ -1,5 +1,5 @@
 {
-  "scope": "Literal city SOURCE review/correction and immutable selected checks only. No city Windows/native/short/fullpack/Task49/D3 acceptance.",
+  "scope": "Literal SOURCE/frozen/profile/complete-short and FINITE real city-list dependency evidence. No wholephysical/naturalmoving/fullpack/Task49/D3 acceptance.",
   "files": [
     {
       "path": "city-building-backing-CODE-FROZEN-20261106.json",
@@ -60,6 +60,41 @@
       "path": "city-source-review-default-prefix-3475-20261106.json",
       "bytes": 1438,
       "sha256": "f7ecdb0edf762d69a4d8b9bbbb4c42cdc15da85c258fd43a4930f4cf40c12575"
+    },
+    {
+      "path": "independent-city-building-backing-actuals-76fb-20261106.json",
+      "bytes": 16280,
+      "sha256": "56845d764b575f436224b2085024510aaa539f23c1085929a1267a71b17d529a"
+    },
+    {
+      "path": "city-safe-actual-facts-76fb-20261106.json",
+      "bytes": 3745,
+      "sha256": "bdd0b303f61885a3893f9f25eeaeafd658bb95fed5e2196f88e34607b8efa835"
+    },
+    {
+      "path": "city-final-frozen-binding-76fb-20261106.json",
+      "bytes": 959,
+      "sha256": "79765ed91d7cf96fd4d8f50930e9254db399645782c6f3b28a133dc5a269d860"
+    },
+    {
+      "path": "city-windows-profile-isolation-76fb-20261106.json",
+      "bytes": 6235,
+      "sha256": "0e1460f8f694109286b2bb70240c91c8823d72c59a8324ab045dfee185ac4cae"
+    },
+    {
+      "path": "city-ordinary-short-comparison-76fb-20261106.json",
+      "bytes": 1739,
+      "sha256": "c108048f015a17e46381806d580e97e1db19cc1f3e76ae3f8a473fac1ef23d0d"
+    },
+    {
+      "path": "cleanup-closed-city-76fb-windows-cache-20261106.json",
+      "bytes": 687,
+      "sha256": "6254ee6a580c6ea3af318cd052341bead7352e9394a77615db60af3710af6e69"
+    },
+    {
+      "path": "ledger-city-source-clear-short-v159-preservation-20261106.json",
+      "bytes": 207,
+      "sha256": "baee385a554201fda227af002531ff45ad1048abb29f40269404f49c82e51893"
     }
   ]
 }

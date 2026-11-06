@@ -7,10 +7,10 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "City76fb SOURCE reviewedclear a049 (all4+2findingsclosed); Root3952rawGit/mapsliteral/3selecteddirectgates0; 3standardWindowsprofiles ACTIVE. No citynative/short/fullpack acceptance. Old3475full40untouched/partial, wholeD3open.",
+  "phase": "FINITEcity-listdependencyCLOSED76fb/sourcea049/actual5684; healthy264joinedNEXT/150sharedfields+180Bterminal exact5182, reachedrealChildRemove/currentNEXTnamedrefusal,4full1179manifests literal/88sealed. Short3COMPLETEliteral80fd,profiles0/source3952stable. Nextfixed/staticcollisionstate production required; fullTask49D3open.",
   "preparation_batches_without_cutover": 0,
   "preparation_limit": 2,
-  "next_production_change": "Validate the reviewed host city-child/structure record backing on new76fb Windows profiles: ordinaryshort exact3files, healthy actual positive CHILD_NEXT then same-provider standing-child withdrawal/refusal; current full40/all8 remains required. Static pose/shape/live flags and needed remaining hierarchy/services are next required production work.",
+  "next_production_change": "Move canonical fixed/static physical collision inputs behind the existing host records: required pose/shape/live flags and spatial hints, with actual create/restore/setter/report/retire ownership and one authoritative property store. Preserve FP/RNG/order, lazy IDs and campaign policy. Shared terrain/UPDATED, raw loaders/RNG, active needed hierarchy/devices and DCS mapping stay REQUIRED.",
   "ready_evidence": [
     "Closed preparation reused, not redone: original characterization (15054 queries / 29894 ordered terrain answers exact through the host library and real Lua; original raw unchanged, 47a4af0d1/b44d2c96f) and the host tree loader/kernel 8c452f197 (review 4258f1b94, FP state/refusal/lifetime controls).",
     "Merge of the verified clean Task52 branch 099aa09c2dfeb77ca708214421e81113369a057e into the old Task49 head f2473817bced177b588878d6e416dcb4400f8bc2 (normal merge, no rebase/force); both sides' features, FFI, tests and history preserved.",
@@ -54,6 +54,14 @@
     "Reviewed roster source and complete short safe evidence: reference/d3-entity-collision/sector-roster-source-and-short/manifest.json. Four literal source reviews, four checkpoints, frozen gate/profile/short/prefix/root-checker/ledger proofs. Native backing actuals pending, no Task49/D3 acceptance."
   ],
   "blockers": [
+    {
+      "id": "city-building-native-authority",
+      "status": "closed",
+      "blocks_cutover": false,
+      "evidence": "SAME actual56845d76 verifies finite actualjoinedNEXT host-list dependency/refusal. Both triples0/4full1179manifestbytesliteral/88sealed; healthy150fields+180Bterminal exact5182; ordinaryshort3COMPLETE byteeq80fd/profile/root3952maps verified.",
+      "missing_fact": "None for this finite city backing proof. Wholephysical/naturalmoving/full40/all8/Task49/D3 gates remain separately open.",
+      "next_fix": "Preserve literal safe proof; do not rerun this closed native pair."
+    },
     {
       "id": "city-building-backing-source-review",
       "status": "closed",

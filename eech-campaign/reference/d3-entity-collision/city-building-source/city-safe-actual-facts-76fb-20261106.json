@@ -1,0 +1,110 @@
+{
+  "source": "76fbf557cc8bff935216aba21110a137bb31bf1f",
+  "source_review_sha256": "a049a1baf9104dad1f29d357dfb499d544427dd56be0399bf2b0a5cbdaeb4ae9",
+  "all_four_full_input_manifests_literal_equal": true,
+  "cases": [
+    {
+      "role": "healthy",
+      "source": "76fbf557cc8bff935216aba21110a137bb31bf1f",
+      "native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "input_exits": [
+        0,
+        0
+      ],
+      "full_pre_post_manifest_bytes_literal_equal": true,
+      "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "sealed_payloads_verified": 88,
+      "safe_facts": {
+        "completed": true,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "failure_marker": "",
+        "view_applied": 25,
+        "city_child_first": 4484,
+        "city_child_next": 264,
+        "city_served": 106190,
+        "city_next_joined": 264,
+        "city_next": 4748,
+        "city_child_remove": 0,
+        "city_removed": 0,
+        "city_name": 712,
+        "city_withdrawn": 0,
+        "city_withdrawn_next": "",
+        "city_withdrawn_cause": "",
+        "scan_after": 70375,
+        "candidate_after": 70470,
+        "entity_after": 279,
+        "altered": 0,
+        "candidate_altered": 0,
+        "scan_altered": 0,
+        "contact_any_tests_delta": 6,
+        "contact_any_hits_delta": 0,
+        "precision_high_delta": 6,
+        "case_weapons_pending": 0
+      },
+      "raw_reports_private": true
+    },
+    {
+      "role": "withdrawn-child",
+      "source": "76fbf557cc8bff935216aba21110a137bb31bf1f",
+      "native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "input_exits": [
+        0,
+        0
+      ],
+      "full_pre_post_manifest_bytes_literal_equal": true,
+      "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "sealed_payloads_verified": 88,
+      "safe_facts": {
+        "completed": false,
+        "request_faults": 0,
+        "reply_faults": 1,
+        "failure_marker": "entity_scan.refused",
+        "view_applied": 4,
+        "city_child_first": 285,
+        "city_child_next": 1,
+        "city_served": 101749,
+        "city_next_joined": 1,
+        "city_next": 285,
+        "city_child_remove": 0,
+        "city_removed": 0,
+        "city_name": 0,
+        "city_withdrawn": 1,
+        "city_withdrawn_next": "child_next",
+        "city_withdrawn_cause": "city_child_ended",
+        "scan_after": 4477,
+        "candidate_after": 4453,
+        "entity_after": 6,
+        "altered": 0,
+        "candidate_altered": 0,
+        "scan_altered": 0,
+        "contact_any_tests_delta": -1,
+        "contact_any_hits_delta": -1,
+        "precision_high_delta": -1,
+        "case_weapons_pending": -1
+      },
+      "raw_reports_private": true
+    }
+  ],
+  "healthy_comparison": {
+    "prior_compiled_source": "5182b526d08aefdd40ea93803188227fd74abae5",
+    "shared_authority_fields": 150,
+    "all_shared_fields_equal": true,
+    "complete_terminal_lines_including_endings_literal_equal": true,
+    "terminal_count": 1,
+    "terminal_bytes": 180,
+    "terminal_sha256": "b8a859abc3df8fdfbe1cde9d34e44bc195fe3e3b24da7d83d7b03a2ce8e4c433",
+    "physical_signature_equal": true
+  },
+  "scope": "FINITE reached city backing dependency: genuine joined currentNEXT after real standing-childREMOVE, unchanged query/replies/Core, namedendedchildrefusal. PriorFIRST/candidate/narrowphaseactivity before currentNEXT is valid; city_next counts both successfulFIRST/NEXT, city_served includes prearmedtracking. Not wholephysical/naturalmoving/Task49/D3/fullpack acceptance.",
+  "actual_independent_review_pending": true,
+  "captured_utc": "2026-11-06T04:44:05.335052+00:00"
+}

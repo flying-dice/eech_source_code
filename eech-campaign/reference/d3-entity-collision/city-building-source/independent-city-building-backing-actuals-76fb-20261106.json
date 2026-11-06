@@ -1,0 +1,297 @@
+{
+  "schema": "d3.independent.finite-native-actual-review.v1",
+  "written_utc": "2026-11-06T04:46:08.127080+00:00",
+  "scope": "One combined NEW actual/provenance/boundary review of the76fb city healthy control, real pre-NEXT child withdrawal, new profile-bound builds and retained exact short. Closed city source and older physics reviews are reused, not repeated.",
+  "source": {
+    "compiled_commit": "76fbf557cc8bff935216aba21110a137bb31bf1f",
+    "diagnostic_commit": "76fbf557cc8bff935216aba21110a137bb31bf1f",
+    "diagnostic_git_blob": "2da488f4e3400bb6c2de0877e662759cfe968115",
+    "diagnostic_sha256": "8985820ab53c2cd1876ace14475bf501ddf9b62e6a26e79c26eb63ff2acb6f28",
+    "same_diagnostic_bytes_as_frozen_packaged_Lua_verified": true,
+    "source_clearance": {
+      "path": "R:/d3-evidence/independent-city-building-residual-source-76fb-20261106.json",
+      "bytes": 15356,
+      "sha256": "a049a1baf9104dad1f29d357dfb499d544427dd56be0399bf2b0a5cbdaeb4ae9"
+    },
+    "old5182_binaries_or_actuals_relabelled": false
+  },
+  "decision": {
+    "status": "FINITE_CITY_LIST_BACKING_DEPENDENCY_VERIFIED",
+    "findings": [],
+    "healthy_actual_verified": true,
+    "positive_real_CHILD_NEXT_prerequisite_verified": true,
+    "actual_real_child_withdrawal_verified": true,
+    "finite_public_city_backing_closed": true,
+    "finite_city_list_dependency_closed": true,
+    "closure_definition": "The measured collision traversal obtains city children from the real Host list, and a real removal of the standing child immediately before the actual joined NEXT makes that unchanged NEXT refuse the ended child by name. Closure is limited to this reached backing dependency and fail-closed boundary.",
+    "whole_physical_backing_accepted": false,
+    "natural_moving_weapon_integration_accepted": false,
+    "full_shipping_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false
+  },
+  "cases": {
+    "healthy": {
+      "completion": {
+        "path": "R:/d3-evidence/city-healthy-76fbf557c-20261106-completion.json",
+        "bytes": 1701,
+        "sha256": "6562dca73c187fe61d79dd0de0e91963fb18c82f71ddf8ab84e21ce70a27d803"
+      },
+      "controller": {
+        "path": "D:/EECH-Migration-Evidence/city-healthy-76fbf557c-20261106/controller.json",
+        "bytes": 4137,
+        "sha256": "3409a575d1ba0a6e3c0b7fa2ca18983ac0cb84af653f2440baa86d6b31404a81"
+      },
+      "private_report": {
+        "path": "D:/EECH-Migration-Evidence/city-healthy-76fbf557c-20261106/model.jsonl",
+        "bytes": 4964,
+        "sha256": "0bcf629197c2eed7d6b7196234b87a4ac9f57c1a3a048e0e3cd4fb0dfe06e272"
+      },
+      "private_native_log": {
+        "path": "D:/EECH-Migration-Evidence/city-healthy-76fbf557c-20261106/native.log",
+        "bytes": 40333,
+        "sha256": "29d466aff6c6a33a8550bb7eda90f5bd1f91d2d0932d2e32ab872fdf916ef6bd"
+      },
+      "native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "full_pre_post_input_check_exits": [
+        0,
+        0
+      ],
+      "input_files_per_manifest": 1179,
+      "payloads_verified_and_rehashed": 88,
+      "safe_summary": {
+        "completed": true,
+        "request_faults": 0,
+        "reply_faults": 0,
+        "first_fault": "",
+        "failure_marker": "",
+        "scan_after": 70375,
+        "candidate_after": 70470,
+        "entity_after": 279,
+        "altered": 0,
+        "candidate_altered": 0,
+        "scan_altered": 0,
+        "view_applied": 25,
+        "city_after": 5460,
+        "city_child_first": 4484,
+        "city_child_next": 264,
+        "city_next": 4748,
+        "city_next_joined": 264,
+        "city_name": 712,
+        "city_child_insert": 0,
+        "city_child_remove": 0,
+        "city_removed": 0,
+        "city_withdrawn": 0,
+        "city_withdrawn_next": "",
+        "city_withdrawn_cause": "",
+        "cohort_size": 1,
+        "case_weapons_ended": 1,
+        "case_weapons_pending": 0,
+        "contact_any_tests_delta": 6,
+        "contact_any_hits_delta": 0,
+        "precision_high_delta": 6
+      }
+    },
+    "withdrawal": {
+      "completion": {
+        "path": "R:/d3-evidence/city-withdrawn-child-76fbf557c-20261106-completion.json",
+        "bytes": 2895,
+        "sha256": "f06295ce123df738006f031640a0abf75dad46e1126573f74a0053a178bb5a3b"
+      },
+      "controller": {
+        "path": "D:/EECH-Migration-Evidence/city-withdrawn-child-76fbf557c-20261106/controller.json",
+        "bytes": 4194,
+        "sha256": "2899887e56f3631ff288247a1bcc53afaa874205b189c8b7b481c06b48a6bcef"
+      },
+      "private_report": {
+        "path": "D:/EECH-Migration-Evidence/city-withdrawn-child-76fbf557c-20261106/model.jsonl",
+        "bytes": 4947,
+        "sha256": "53e304a69bfe7999d9042fa394b9b4e19ab5d150891d4e8334e74a30e2b3be39"
+      },
+      "private_native_log": {
+        "path": "D:/EECH-Migration-Evidence/city-withdrawn-child-76fbf557c-20261106/native.log",
+        "bytes": 42449,
+        "sha256": "fa5e8483a06819830d5509e61c17783f6d64252e80b3a05169ae49e449052b12"
+      },
+      "native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "full_pre_post_input_check_exits": [
+        0,
+        0
+      ],
+      "input_files_per_manifest": 1179,
+      "payloads_verified_and_rehashed": 88,
+      "safe_summary": {
+        "completed": false,
+        "request_faults": 0,
+        "reply_faults": 1,
+        "first_fault": "scan reply: result refused",
+        "failure_marker": "entity_scan.refused",
+        "scan_after": 4477,
+        "candidate_after": 4453,
+        "entity_after": 6,
+        "altered": 0,
+        "candidate_altered": 0,
+        "scan_altered": 0,
+        "view_applied": 4,
+        "city_after": 286,
+        "city_child_first": 285,
+        "city_child_next": 1,
+        "city_next": 285,
+        "city_next_joined": 1,
+        "city_name": 0,
+        "city_child_insert": 0,
+        "city_child_remove": 0,
+        "city_removed": 0,
+        "city_withdrawn": 1,
+        "city_withdrawn_next": "child_next",
+        "city_withdrawn_cause": "city_child_ended",
+        "cohort_size": 1,
+        "case_weapons_ended": 0,
+        "case_weapons_pending": -1,
+        "contact_any_tests_delta": -1,
+        "contact_any_hits_delta": -1,
+        "precision_high_delta": -1
+      }
+    }
+  },
+  "independent_joins": [
+    "Read both underlying controllers, individual pre/native/post stages, completion receipts, JSONL and literal/native argv. Both native/helper/outer exit zero. The exact source76 literal and new hosted76 BUILD-INFO/payload seal agree; the literal bytes also equal packaged frozen Lua. No generic override or forged refusal substitutes for real provider REMOVE.",
+    "All four primary full input manifests are literally identical across healthy/withdrawal and pre/post stages: each209622 bytes,1179 inputs,SHA25662249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1. Every input-check exit is zero; no exclusions or normalization were introduced.",
+    "Healthy and withdrawal fixed boot/configuration, selection, actual launch and cohort rows were joined privately and match apart from the declared mode. The healthy report has one completed cohort, no incomplete/foreign/duplicate terminal and zero request/reply faults.",
+    "Healthy positively reaches264 actual armed CHILD_NEXT requests and264 joined NEXT admissions. It also counts4484 armed FIRST requests,712 armed NAME events and4748 successful next-state replies. The latter includes successful FIRST replies as well as successful NEXT replies; it is not a count of CHILD_NEXT alone.",
+    "Healthy city_served106190 is driver-lifetime served-reply telemetry including pre-armed tracking, not the cardinality of the armed NEXT window. It is not used to satisfy the positive264-joined-NEXT prerequisite.",
+    "Withdrawal reaches one actual parsed/request-joined CHILD_NEXT. Its real provider REMOVE is acknowledged once, then that same unmodified NEXT refuses the ended child. The primary captured EECH fatal is anchored at entity_scan.refused and includes roster.child and has ended. Raw key/identity-bearing failure text remains private.",
+    "Withdrawal has request_faults0 and exactly one reply fault, scan reply: result refused. city_withdrawn1/current-next child_next/cause city_child_ended are explicit; normal campaign child_remove/removed counts remain0. The direct Host action is not fabricated as a Core lifecycle event.",
+    "Before that current NEXT,285 FIRST replies succeeded, and prior4477scan/4453Candidate/6narrowphase questions are legitimate. The successful next-state count285 is precisely the prior FIRST replies; the one current NEXT is refused and returns no successful next. The mode alters no answers. No claim of zero whole-window collision activity or per-entry absence is made.",
+    "Withdrawal is an expected caught fatal control, not successful campaign completion: completed=false and no terminal row. Three physical Engine counters and pending count stay-1/unread after fatal; they are not measured zeros. The closed source guard and captured report avoid postfatal Engine reads; no postfatal buffer inspection is inferred."
+  ],
+  "healthy_comparison": {
+    "prior_source": "5182b526d08aefdd40ea93803188227fd74abae5",
+    "prior_diagnostic": "505cc399caf7fab6a372fce37dca1bc27883ab73",
+    "all150_shared_authority_fields_equal_independently_verified": true,
+    "changed_shared_fields": [],
+    "one_complete_terminal_line_literal_equal_including_endings": true,
+    "terminal_bytes": 180,
+    "terminal_sha256": "b8a859abc3df8fdfbe1cde9d34e44bc195fe3e3b24da7d83d7b03a2ce8e4c433",
+    "cohort_signature_equal_verified_privately": true,
+    "qualification": "New city telemetry is additional and not folded into old scan counts. This is one healthy terminal/cohort comparison from retained raw files, not whole-file equality, natural-query per-weapon attribution or a rerun of the older campaign."
+  },
+  "build_source_and_profile_evidence": {
+    "frozen_selected_gates": {
+      "path": "R:/d3-evidence/city-76fb-frozen-gates-20261106-completion.json",
+      "bytes": 4377,
+      "sha256": "da47db88dbbb75692f88d314869a70b277ff29ab49f5979fc22ee5ce7e922bc4"
+    },
+    "Root_selected_direct_exits": [
+      0,
+      0,
+      0
+    ],
+    "Root_selected_scope": "Explicit four-package fmt/check and real shared-C dialogue/roster guard. Author World/Engine affected passes are reused at exact source identity from source review; no new full matrix is claimed.",
+    "Windows_completion": {
+      "path": "R:/d3-evidence/city-76fb-windows-20261106-completion.json",
+      "bytes": 45777,
+      "sha256": "58e3debaaecf746f29b48679dd78c30444abd5eeb23407fe7545d7b51fab2f33"
+    },
+    "three_Windows_actual_exits": [
+      0,
+      0,
+      0
+    ],
+    "all_current_payloads_independently_rehashed": {
+      "ordinary": 88,
+      "hosted": 88,
+      "Original": 88
+    },
+    "profile_proof": {
+      "path": "R:/d3-evidence/city-windows-profile-isolation-76fb-20261106.json",
+      "bytes": 6235,
+      "sha256": "0e1460f8f694109286b2bb70240c91c8823d72c59a8324ab045dfee185ac4cae"
+    },
+    "profile_audit_and_actual_rlib_binding_log_hashes_joined": true,
+    "actual_profile_boundary": "Ten campaign_place functions, including actual child FIRST/NEXT/INSERT/REMOVE and NAME, are bound in ordinary and hosted COFF members; none are present in Original. Appropriate fixture feature/object/export boundaries are retained. Original compilation is not an actual new Original city-query control.",
+    "final_frozen_binding": {
+      "path": "R:/d3-evidence/city-final-frozen-binding-76fb-20261106.json",
+      "bytes": 959,
+      "sha256": "79765ed91d7cf96fd4d8f50930e9254db399645782c6f3b28a133dc5a269d860"
+    },
+    "source_files": 3952,
+    "before_checks_after_checks_after_native_maps_literal_equal_independently_verified": true,
+    "map_bytes": 2028076,
+    "map_sha256": "cbb6a62aa601bdf872951fd5a7481524d142654a8eb891aa063e2c7d4a30218b",
+    "qualification": "Root clean frozen capture asserts all3952raw inputs equal source Git, with no raw-versus-Git exceptions. The retained map files were independently compared literally; older author-working-tree filter/line-ending qualifications are not relabelled as clean-snapshot exceptions."
+  },
+  "ordinary_short": {
+    "comparison_receipt": {
+      "path": "R:/d3-evidence/city-ordinary-short-comparison-76fb-20261106.json",
+      "bytes": 1739,
+      "sha256": "c108048f015a17e46381806d580e97e1db19cc1f3e76ae3f8a473fac1ef23d0d"
+    },
+    "native_helper_outer_exits": [
+      0,
+      0,
+      0
+    ],
+    "full_pre_post_input_checks": [
+      0,
+      0
+    ],
+    "payloads_verified": 88,
+    "all_three_COMPLETE_files_independently_compared_literal_to_retained80fd": true,
+    "files": [
+      {
+        "file": "recording.acmi",
+        "baseline_bytes": 230871,
+        "candidate_bytes": 230871,
+        "baseline_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+        "candidate_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+        "literal_complete_equal": true,
+        "first_difference": null
+      },
+      {
+        "file": "observations.jsonl",
+        "baseline_bytes": 1553674,
+        "candidate_bytes": 1553674,
+        "baseline_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+        "candidate_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+        "literal_complete_equal": true,
+        "first_difference": null
+      },
+      {
+        "file": "metrics.json",
+        "baseline_bytes": 7477,
+        "candidate_bytes": 7477,
+        "baseline_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+        "candidate_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+        "literal_complete_equal": true,
+        "first_difference": null
+      }
+    ],
+    "scope": "The exact retained short settings and explicit output paths are unchanged. Full file bytes and line endings were compared, never normalized. This finite short is not full40/all8, visual or all-war coverage."
+  },
+  "safe_projection": {
+    "receipt": {
+      "path": "R:/d3-evidence/city-safe-actual-facts-76fb-20261106.json",
+      "bytes": 3745,
+      "sha256": "bdd0b303f61885a3893f9f25eeaeafd658bb95fed5e2196f88e34607b8efa835"
+    },
+    "joined_to_private_underlying_actuals": true,
+    "historical_pending_flag": "The projection retains its capture-time independent-review-pending flag. This later report supplies the bounded verdict without modifying that historical receipt."
+  },
+  "limits_and_remaining_work": [
+    "One healthy traversal and one deliberate standing-child withdrawal establish the reached list dependency. Actual parent relink/empty-repopulate/restore and all ID/domain/lifecycle combinations are supported by the closed source/focused controls, not newly measured retail occurrences in this pair.",
+    "The configured VIEW window is global; natural calls, candidates and city traversal are not uniquely attributed to the selected weapon. Healthy zero request/reply faults and the complete cohort are measured; this does not prove every city branch or natural moving-weapon integration.",
+    "Core heap/key resolution, roster/identity/lifetime synchronization, static pose, shape and alive facts, shared UPDATED/terrain effects, tallest structures, other city readers, hierarchy and required consumers remain transitional required scope. Host list/alias metadata does not complete physical-record/backing removal.",
+    "Raw tree/forest/cloud data and RNG, DCS mapping and remaining whole-D3 requirements stay open. Prior finite numerical/FP/sector/scan/Candidate/TREE/Task50/52 proofs remain at their own identities; no new full caller-FP or whole-task acceptance is inferred.",
+    "Separate ordinary3475 fullpack is untouched and outside this report. Partial prefix equality is not completion; Task49/full shipping/dependency/delivery and wholeD3 gates remain open."
+  ],
+  "review_operations": "Read-only new actual products and receipt/log/source/map/payload hash joins. Only this safe LF report was written. No source edits, builds/tests/native/process/cache/VM/auth/external changes or agents."
+}
