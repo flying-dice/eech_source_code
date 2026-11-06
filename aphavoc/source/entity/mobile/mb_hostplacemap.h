@@ -31,9 +31,9 @@
 //   CAMPAIGN_PLACE_OBJECT_ID (E)           the legacy object-report identity already issued for the entity (NULL when none: it is never allocated here)
 //   CAMPAIGN_PLACE_SIDE ()                 the sector side length, as a float
 //   CAMPAIGN_PLACE_FIXED_FAMILY (TYPE)     whether the entity type carries the fixed record whose COLLISION state the host holds (a city is not one: it has its own state, below)
-//   CAMPAIGN_PLACE_FIXED_READ (E, OUT)     the entity's fixed collision state as CAMPAIGN_FIXED_STATE_WORDS floats: position (3), heading, shape, collision-fixed flag, align flag
+//   CAMPAIGN_PLACE_FIXED_READ (E, OUT)     the entity's fixed collision state as CAMPAIGN_FIXED_STATE_WORDS floats: position (3), heading, shape, sub type
 //   CAMPAIGN_PLACE_CITY (TYPE)             whether the entity type is the city
-//   CAMPAIGN_PLACE_CITY_READ (E, OUT)      the city's own state as CAMPAIGN_CITY_STATE_WORDS floats, the words as the entity holds them: position (3), bounding box minimum (3), bounding box maximum (3)
+//   CAMPAIGN_PLACE_CITY_READ (E, OUT)      the city's own state as CAMPAIGN_CITY_STATE_WORDS floats, the words as the entity holds them: position (3), bounding box minimum (3), bounding box maximum (3), sub type
 // and campaign_model_entity_fixed and campaign_model_entity_city_state (mb_hostmodel.h).
 //
 // THE FIXED COLLISION STATE (Task49). The host's record of a fixed-family placement holds the placement's collision state, and a candidate question is decided from it (mb_hostmodel.h, ENTITY_CANDIDATE). The

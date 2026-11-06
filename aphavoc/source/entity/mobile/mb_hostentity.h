@@ -871,8 +871,7 @@ static void campaign_entity_fixed_exchange (int entity_type, const char *key, co
 	request.pose [CAMPAIGN_FIXED_TYPE] = (float) entity_type;
 	request.pose [CAMPAIGN_FIXED_HEADING] = state [3];
 	request.pose [CAMPAIGN_FIXED_SHAPE] = state [4];
-	request.pose [CAMPAIGN_FIXED_COLLISION] = state [5];
-	request.pose [CAMPAIGN_FIXED_ALIGN] = state [6];
+	request.pose [CAMPAIGN_FIXED_SUBTYPE] = state [5];
 
 	memcpy (request.host_id, key, strlen (key));
 
@@ -904,6 +903,7 @@ static void campaign_entity_city_state_exchange (const char *key, const float *s
 	memcpy (&request.pose [CAMPAIGN_CITY_POSITION], &state [0], 3 * sizeof (float));
 	memcpy (&request.pose [CAMPAIGN_CITY_BOX_MIN], &state [3], 3 * sizeof (float));
 	memcpy (&request.pose [CAMPAIGN_CITY_BOX_MAX], &state [6], 3 * sizeof (float));
+	request.pose [CAMPAIGN_CITY_SUBTYPE] = state [9];
 
 	memcpy (request.host_id, key, strlen (key));
 

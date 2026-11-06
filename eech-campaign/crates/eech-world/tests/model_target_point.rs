@@ -1301,7 +1301,7 @@ fn a_direct_city_building_and_a_fixed_candidate_below_the_tallest_skip_are_skipp
     lua.set_app_data(eech_world::roster::SharedRoster(roster.clone()));
     let placed = |shape: f32, entity_type: f32| -> String {
         let key = roster.borrow_mut().insert((0, 0), entity_type as i32, None).to_string();
-        let report = fixed_words([0.0; 3], entity_type, 0.0, shape, 1.0, 0.0, 0.0);
+        let report = fixed_words([0.0; 3], entity_type, 0.0, shape, SUB_MILITARY, 0.0);
         assert_eq!(table_result(&scan_words_answer(&lua, report, &key)).0, "placed");
         key
     };
@@ -1768,7 +1768,18 @@ const FIXED_TYPE: f32 = 17.0;
 const BUILDING_TYPE: f32 = 6.0;
 const CITY_TYPE: i32 = 5;
 
-fn fixed_words(position: [f32; 3], entity_type: f32, heading: f32, shape: f32, collision: f32, align: f32, withdraw: f32) -> [u32; 16] {
+/// ENTITY_SUB_TYPE_FIXED_* (en_sbtyp.h) by the physical rule the host derives from each (fx_dbase.c): UNKNOWN neither collides nor aligns (a declared value, not a missing one), MILITARY_BUILDING collides, CRATER aligns
+/// without colliding, CITY collides; 15 is the first value outside the declared enumeration
+const SUB_UNKNOWN: f32 = 0.0;
+const SUB_CITY: f32 = 4.0;
+const SUB_CITY_BUILDING: f32 = 5.0;
+const SUB_CRATER: f32 = 6.0;
+const SUB_MILITARY: f32 = 12.0;
+const SUB_UNDECLARED: f32 = 15.0;
+/// the fact that states the sub type in a fixed-state and a city-state report (CAMPAIGN_FIXED_SUBTYPE, CAMPAIGN_CITY_SUBTYPE)
+const SUB_TYPE_FACT: usize = 10;
+
+fn fixed_words(position: [f32; 3], entity_type: f32, heading: f32, shape: f32, sub_type: f32, withdraw: f32) -> [u32; 16] {
     let mut words = [0u32; 16];
     for (at, word) in position.iter().enumerate() {
         words[at] = word.to_bits();
@@ -1776,16 +1787,15 @@ fn fixed_words(position: [f32; 3], entity_type: f32, heading: f32, shape: f32, c
     words[3] = entity_type.to_bits();
     words[4] = heading.to_bits();
     words[5] = shape.to_bits();
-    words[7] = collision.to_bits();
-    words[8] = align.to_bits();
     words[9] = withdraw.to_bits();
+    words[SUB_TYPE_FACT] = sub_type.to_bits();
     words[11] = FIXED_STATE_PHASE;
     words
 }
 
 /// the standing report of the placement: the position, type 61, heading 0.5, shape 1 (the fixture's small scene), collision-fixed and not aligned
 fn fixed_standing() -> [u32; 16] {
-    fixed_words(FIXED_POSITION, FIXED_TYPE, 0.5, 1.0, 1.0, 0.0, 0.0)
+    fixed_words(FIXED_POSITION, FIXED_TYPE, 0.5, 1.0, SUB_MILITARY, 0.0)
 }
 
 fn scan_words_answer(lua: &mlua::Lua, words: [u32; 16], identity: &str) -> mlua::Table {
@@ -1898,7 +1908,7 @@ fn a_fixed_candidate_the_host_holds_no_state_for_or_withdrew_it_from_is_refused_
     // told, it decides; the host's own withdrawal of the state (the placement stays standing) refuses the next question by the same name, and the same report restores it
     assert_eq!(table_result(&scan_words_answer(&lua, fixed_standing(), &key)).0, "placed");
     assert_eq!(candidate_with_identity(&lua, 1, &facts, &key).0, "need_placement");
-    let withdrawal = fixed_words([0.0; 3], 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+    let withdrawal = fixed_words([0.0; 3], 0.0, 0.0, 0.0, SUB_UNKNOWN, 1.0);
     let (result, _, reason) = table_result(&scan_words_answer(&lua, withdrawal, &key));
     assert_eq!(result, "removed", "{reason}");
     let (result, reason, _) = candidate_with_identity(&lua, 1, &facts, &key);
@@ -1979,19 +1989,27 @@ fn a_malformed_fixed_state_report_is_refused_by_name_before_the_record_changes()
         (4, 0x7fc0_0000, "heading"),
         (5, 1.5f32.to_bits(), "shape"),
         (5, (-1.0f32).to_bits(), "shape"),
-        (7, 2.0f32.to_bits(), "collision"),
-        (8, 0.5f32.to_bits(), "align"),
+        // the campaign no longer states the two flags it derived: a report that still does is refused, not read
+        (7, 1.0f32.to_bits(), "states nothing"),
+        (8, 1.0f32.to_bits(), "states nothing"),
         (9, 2.0f32.to_bits(), "withdraw"),
         (6, 1.0f32.to_bits(), "states nothing"),
-        (10, 1.0f32.to_bits(), "states nothing"),
         (12, 1.0f32.to_bits(), "states nothing"),
+        // the sub type is a whole number of the declared enumeration (UNKNOWN, 0, is one of them and is accepted below)
+        (SUB_TYPE_FACT, 1.5f32.to_bits(), "whole number"),
+        (SUB_TYPE_FACT, 0x7fc0_0000, "whole number"),
+        (SUB_TYPE_FACT, f32::INFINITY.to_bits(), "whole number"),
+        (SUB_TYPE_FACT, 2.0e9f32.to_bits(), "whole number"),
+        (SUB_TYPE_FACT, (-1.0f32).to_bits(), "declared fixed sub types"),
+        (SUB_TYPE_FACT, SUB_UNDECLARED.to_bits(), "declared fixed sub types"),
+        (SUB_TYPE_FACT, 1000.0f32.to_bits(), "declared fixed sub types"),
     ] {
         let mut bad = standing;
         bad[at] = word;
         refused(bad, &key, what);
     }
     // a withdrawal states no state, and one that does is refused
-    let mixed = fixed_words(FIXED_POSITION, FIXED_TYPE, 0.5, 1.0, 1.0, 0.0, 1.0);
+    let mixed = fixed_words(FIXED_POSITION, FIXED_TYPE, 0.5, 1.0, SUB_MILITARY, 1.0);
     refused(mixed, &key, "withdrawal");
     // nothing was recorded by any of them
     let (result, reason, _) = candidate_with_identity(&lua, 1, &fixed_facts(1, FIXED_POSITION, 0.5, 0.0), &key);
@@ -2101,7 +2119,7 @@ fn a_record_that_states_no_collision_decides_a_skip_and_the_campaign_cannot_call
     let (root, _store) = standard();
     let (lua, _roster, key) = fixed_world(&root.dir);
     // a fixed-family entity whose type derives no collision (the flag is the record's): the host decides the skip from the record, with no model and no scene read
-    let report = fixed_words(FIXED_POSITION, FIXED_TYPE, 0.5, 1.0, 0.0, 0.0, 0.0);
+    let report = fixed_words(FIXED_POSITION, FIXED_TYPE, 0.5, 1.0, SUB_UNKNOWN, 0.0);
     assert_eq!(table_result(&scan_words_answer(&lua, report, &key)).0, "placed");
     let mut not_fixed = fixed_facts(1, FIXED_POSITION, 0.5, 0.0);
     not_fixed[7] = 0.0;
@@ -2266,6 +2284,12 @@ fn a_placement_of_no_fixed_family_is_decided_without_a_fixed_state_and_a_city_ne
     for (entity_type, name) in NOT_FIXED_FAMILY_TYPES {
         let (lua, _roster, key) = placement_of(&root.dir, entity_type);
         let (result, reason, _) = candidate_with_identity(&lua, 0, &fixed_read_not_fixed(), &key);
+        if entity_type == CITY_TYPE {
+            // a city is not of the fixed family, but it holds a fixed record of its own whose sub type derives its collision flag: once its fixed facts were read, its record is needed and the campaign's
+            // "not fixed" does not skip it (the city tests below pin that and the absent and withdrawn records)
+            assert!(result == "refused" && reason.contains("[candidate.city]"), "{name}: {result} {reason}");
+            continue;
+        }
         assert_eq!((result.as_str(), reason.as_str()), ("skip", ""), "{name}: not fixed, the original skipped it");
     }
 }
@@ -2275,7 +2299,7 @@ fn a_fixed_state_report_of_a_type_that_is_not_of_the_fixed_family_is_refused_by_
     let (root, _store) = standard();
     for (entity_type, name) in NOT_FIXED_FAMILY_TYPES {
         let (lua, roster, key) = placement_of(&root.dir, entity_type);
-        let report = fixed_words(FIXED_POSITION, entity_type as f32, 0.5, 1.0, 1.0, 0.0, 0.0);
+        let report = fixed_words(FIXED_POSITION, entity_type as f32, 0.5, 1.0, SUB_MILITARY, 0.0);
         let (result, _, reason) = table_result(&scan_words_answer(&lua, report, &key));
         assert_eq!(result, "refused", "{name}: the host holds no fixed state for a type of no fixed family");
         assert!(reason.contains("[roster.fixed]") && reason.contains("fixed family"), "{name}: {reason}");
@@ -2285,7 +2309,7 @@ fn a_fixed_state_report_of_a_type_that_is_not_of_the_fixed_family_is_refused_by_
     // every member of the family is accepted by the same report
     for (entity_type, name) in FIXED_FAMILY_TYPES {
         let (lua, roster, key) = placement_of(&root.dir, entity_type);
-        let report = fixed_words(FIXED_POSITION, entity_type as f32, 0.5, 1.0, 1.0, 0.0, 0.0);
+        let report = fixed_words(FIXED_POSITION, entity_type as f32, 0.5, 1.0, SUB_MILITARY, 0.0);
         assert_eq!(table_result(&scan_words_answer(&lua, report, &key)).0, "placed", "{name}");
         let held = roster.borrow().placement_fixed(key.parse().unwrap(), false).expect("the placement stands").2;
         assert!(matches!(held, eech_world::roster::FixedHold::Held(_)), "{name}");
@@ -2305,13 +2329,19 @@ const CITY_POSITION: [f32; 3] = [10.0, 3.0, 20.0];
 const CITY_BOX_MIN: [f32; 3] = [-30.0, -5.0, -40.0];
 const CITY_BOX_MAX: [f32; 3] = [50.0, 12.0, 60.0];
 
-fn city_words(position: [f32; 3], min: [f32; 3], max: [f32; 3]) -> [u32; 16] {
+/// a city's report with the fixed sub type its record holds (the campaign's cities are ENTITY_SUB_TYPE_FIXED_CITY)
+fn city_words_of(position: [f32; 3], min: [f32; 3], max: [f32; 3], sub_type: f32) -> [u32; 16] {
     let mut words = [0u32; 16];
     for (at, word) in position.iter().chain(min.iter()).chain(max.iter()).enumerate() {
         words[at] = word.to_bits();
     }
+    words[SUB_TYPE_FACT] = sub_type.to_bits();
     words[11] = CITY_STATE_PHASE;
     words
+}
+
+fn city_words(position: [f32; 3], min: [f32; 3], max: [f32; 3]) -> [u32; 16] {
+    city_words_of(position, min, max, SUB_CITY)
 }
 
 fn city_standing() -> [u32; 16] {
@@ -2434,7 +2464,7 @@ fn a_cities_state_the_host_withdrew_is_refused_by_name_and_only_a_new_statement_
     assert_eq!(table_result(&scan_words_answer(&lua, city_standing(), &key)).0, "placed");
     assert_eq!(candidate_with_identity(&lua, 0, &facts, &key).0, "buildings");
     // the host's own retirement of the record's state (the withdrawal word of phase 13): the placement stays standing and nothing the campaign said changed
-    let withdraw = fixed_words([0.0; 3], 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+    let withdraw = fixed_words([0.0; 3], 0.0, 0.0, 0.0, SUB_UNKNOWN, 1.0);
     assert_eq!(table_result(&scan_words_answer(&lua, withdraw, &key)).0, "removed");
     assert_eq!(
         roster.borrow().placement_fixed(key.parse().expect("a key"), false).expect("stands").2,
@@ -2452,10 +2482,11 @@ fn a_cities_state_the_host_withdrew_is_refused_by_name_and_only_a_new_statement_
 }
 
 #[test]
-fn a_city_is_skipped_without_its_state_when_it_has_no_building_or_is_not_fixed_and_the_sector_skip_comes_first() {
+fn a_city_is_skipped_where_its_position_and_box_are_not_read_and_the_sector_skip_comes_first() {
     let (root, _store) = standard();
-    // none of the three stages reads the city's position or box, so the record's absence (or withdrawal) is not a refusal there
+    // the stages that do not read the city's position or box decide a skip from the record's rule, with the state the host holds
     let (lua, _roster, key) = placement_of(&root.dir, CITY_TYPE);
+    assert_eq!(table_result(&scan_words_answer(&lua, city_standing(), &key)).0, "placed");
     let mut empty = city_facts(CITY_POSITION, CITY_BOX_MIN, CITY_BOX_MAX);
     empty[11] = 0.0;
     empty[13..16].fill(0.0);
@@ -2465,23 +2496,23 @@ fn a_city_is_skipped_without_its_state_when_it_has_no_building_or_is_not_fixed_a
         "skip",
         "a city without a building is skipped before its position or box is read"
     );
-    let mut not_fixed = fixed_facts(1, FIXED_POSITION, 0.5, 0.0);
-    not_fixed[7] = 0.0;
-    not_fixed[13..16].fill(0.0);
-    assert_eq!(
-        candidate_with_identity(&lua, 0, &not_fixed, &key).0,
-        "skip",
-        "a city the campaign reads as not fixed is skipped"
-    );
     let mut below = fixed_facts(0, FIXED_POSITION, 0.5, 0.0);
     below[12] = -500.0;
-    assert_eq!(candidate_with_identity(&lua, 0, &below, &key).0, "skip");
-    // the same after a withdrawal: the host's retirement of the state is only felt where the state is read
-    assert_eq!(table_result(&scan_words_answer(&lua, city_standing(), &key)).0, "placed");
-    let withdraw = fixed_words([0.0; 3], 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+    assert_eq!(
+        candidate_with_identity(&lua, 0, &below, &key).0,
+        "skip",
+        "the sector skip comes before any fact of the city"
+    );
+    // before the campaign has read the city's fixed facts, nothing of its record is needed: not even after the host's withdrawal of it
+    let withdraw = fixed_words([0.0; 3], 0.0, 0.0, 0.0, SUB_UNKNOWN, 1.0);
     assert_eq!(table_result(&scan_words_answer(&lua, withdraw, &key)).0, "removed");
-    assert_eq!(candidate_with_identity(&lua, 0, &empty, &key).0, "skip");
     assert_eq!(candidate_with_identity(&lua, 0, &below, &key).0, "skip");
+    let unread = fixed_facts(0, FIXED_POSITION, 0.5, 0.0);
+    assert_eq!(
+        candidate_with_identity(&lua, 0, &unread, &key).0,
+        "need_fixed",
+        "the fixed flag's own request needs no state"
+    );
 }
 
 #[test]
@@ -2511,10 +2542,32 @@ fn a_malformed_city_state_report_is_refused_by_name_before_the_record_changes_an
         refuse(words, &key, marker, &format!("word {at}"));
     }
     // a word the report does not state, the withdrawal word (the host's own), a key that is no key, no key, and a key never issued
-    for at in [9usize, 10, 12, 13, 14, 15] {
+    for at in [9usize, 12, 13, 14, 15] {
         let mut words = city_standing();
         words[at] = 0x3f80_0000;
         refuse(words, &key, "[roster.request]", &format!("fact {at}"));
+    }
+    // the sub type is a whole number of the declared enumeration, classified before the roster is looked at
+    for (bad, marker) in [
+        (1.5f32.to_bits(), "whole number"),
+        (0x7fa0_0001, "whole number"),
+        (f32::INFINITY.to_bits(), "whole number"),
+        ((-1.0f32).to_bits(), "declared fixed sub types"),
+        (SUB_UNDECLARED.to_bits(), "declared fixed sub types"),
+    ] {
+        let mut words = city_standing();
+        words[SUB_TYPE_FACT] = bad;
+        let (result, _, reason) = table_result(&scan_words_answer(&lua, words, &key));
+        assert_eq!(result, "refused", "sub type word {bad:#x}");
+        assert!(
+            reason.contains("[roster.subtype]") && reason.contains(marker),
+            "sub type word {bad:#x}: {reason}"
+        );
+        assert_eq!(
+            held(&roster),
+            eech_world::roster::FixedHold::Never,
+            "sub type word {bad:#x}: nothing was recorded"
+        );
     }
     refuse(city_standing(), "", "[roster.key]", "no key");
     refuse(city_standing(), "01", "[roster.key]", "a key with a leading zero");
@@ -2560,7 +2613,7 @@ fn a_city_state_is_the_cities_alone_and_a_fixed_report_is_not_a_city_s() {
     assert!(reason.contains("[roster.city]"), "{reason}");
     // and a fixed state report naming a real city is still refused by its own phase: the family's words are not a city's
     let (lua, _roster, key) = placement_of(&root.dir, CITY_TYPE);
-    let report = fixed_words(FIXED_POSITION, CITY_TYPE as f32, 0.5, 1.0, 1.0, 0.0, 0.0);
+    let report = fixed_words(FIXED_POSITION, CITY_TYPE as f32, 0.5, 1.0, SUB_MILITARY, 0.0);
     let (result, _, reason) = table_result(&scan_words_answer(&lua, report, &key));
     assert!(
         result == "refused" && reason.contains("[roster.fixed]") && reason.contains("fixed family"),
@@ -2591,21 +2644,12 @@ const SENTINEL_MAX: [f32; 3] = [-1.0e6; 3];
 fn city_with_building(root: &std::path::Path, shape: f32, heading: f32, building_position: [f32; 3]) -> (mlua::Lua, RosterHandle, String, String) {
     let (lua, roster, city) = placement_of(root, CITY_TYPE);
     let city_key: u64 = city.parse().expect("a key");
-    let state = eech_world::roster::CityState {
-        position: bits3(CITY_POSITION),
-        box_min: bits3(SENTINEL_MIN),
-        box_max: bits3(SENTINEL_MAX),
-    };
-    roster.borrow_mut().set_city(city_key, state).expect("the city's state");
+    let stated = table_result(&scan_words_answer(&lua, city_words(CITY_POSITION, SENTINEL_MIN, SENTINEL_MAX), &city));
+    assert_eq!(stated.0, "placed", "the city's state: {}", stated.2);
     let child = roster.borrow_mut().child_insert(city_key, None, BUILDING_TYPE as i32).expect("listed");
-    let fixed = eech_world::roster::FixedState {
-        position: bits3(building_position),
-        heading: heading.to_bits(),
-        shape: shape as i32,
-        collision_fixed: true,
-        align: false,
-    };
-    roster.borrow_mut().set_fixed(child, BUILDING_TYPE as i32, fixed).expect("the building's state");
+    let building = fixed_words(building_position, BUILDING_TYPE, heading, shape, SUB_CITY_BUILDING, 0.0);
+    let stated = table_result(&scan_words_answer(&lua, building, &child.to_string()));
+    assert_eq!(stated.0, "placed", "the building's state: {}", stated.2);
     (lua, roster, city, child.to_string())
 }
 
@@ -2863,7 +2907,7 @@ fn original_box(bounds: [u32; 6], heading: u32, building: [u32; 3], city: [u32; 
     (min.map(f32::to_bits), max.map(f32::to_bits), report)
 }
 
-const HEADINGS: [f32; 9] = [0.0, -0.0, 0.5, -1.25, 3.141_592_7, 6.5, 1.0e-30, 100.0, -7.77];
+const HEADINGS: [f32; 9] = [0.0, -0.0, 0.5, -1.25, std::f32::consts::PI, 6.5, 1.0e-30, 100.0, -7.77];
 const OFFSETS: [[f32; 3]; 5] = [[0.0, 0.0, 0.0], [12.5, -3.0, 40.25], [-100.0, 0.0, 7.0], [0.1, 0.2, 0.3], [-0.0, -0.0, -0.0]];
 /// the boxes a city holds: the inverted initial box, one an earlier building made, one that contains everything a scene can add, and one of signed zeros (a comparison against an equal word leaves it)
 const BOXES: [([f32; 3], [f32; 3]); 4] = [
@@ -3019,4 +3063,457 @@ fn the_hosts_city_box_classifies_every_word_by_its_bits_before_it_computes_and_n
             max: bits3([3.0, 4.0, 5.0])
         }
     );
+}
+
+// ---- the host owns the physical fixed rules (EEDCS-49, D3, Task49: the collision-fixed and align flags a fixed sub type derives) ----
+//
+// The original derives both flags from the entity's fixed record: `fixed_database[sub_type]` (fx_dbase.c), read by fx_int.c. The campaign states the SUB TYPE (fact 10 of a fixed-state and of a city-state report) and
+// the host derives the two flags from it, holds them in the record, and decides the narrow phase's candidate from them: the campaign's own flags are a conformance mirror that cannot suppress the record's requirements.
+// The first two tests characterise the ORIGINAL's data and readers (they hold before and after the move); the rest pin the host's rule through the public provider only.
+
+/// the original's `enum ENTITY_SUB_TYPE_FIXED` members in declaration order, without the count
+fn declared_fixed_sub_types() -> Vec<String> {
+    let header = campaign_source("aphavoc/source/entity/system/en_types/en_sbtyp.h");
+    let body = header
+        .split("enum ENTITY_SUB_TYPE_FIXED\n")
+        .nth(1)
+        .and_then(|rest| rest.split('}').next())
+        .expect("the enumeration");
+    body.lines()
+        .map(str::trim)
+        .filter_map(|line| line.strip_suffix(','))
+        .filter(|name| name.starts_with("ENTITY_SUB_TYPE_FIXED_"))
+        .map(str::to_string)
+        .collect()
+}
+
+/// one row of the original's `fixed_database` as its source states it
+struct OriginalRow {
+    sub_type: String,
+    collision: bool,
+    align: bool,
+}
+
+/// the rows of the original's `fixed_database`, in row order: each is headed by its sub type's name and states its columns in comments
+fn original_fixed_rows() -> Vec<OriginalRow> {
+    let source = campaign_source("aphavoc/source/entity/fixed/fx_dbase.c");
+    let flag = |value: &str| match value {
+        "TRUE" => true,
+        "FALSE" => false,
+        other => panic!("`{other}` is not a flag"),
+    };
+    let (mut name, mut align, mut collision) = (String::new(), false, false);
+    let mut rows = Vec::new();
+    for line in source.lines() {
+        let Some((value, comment)) = line.split_once("//") else { continue };
+        let (value, comment) = (value.trim().trim_end_matches(',').trim(), comment.trim());
+        match comment {
+            "align_with_terrain" => align = flag(value),
+            "collision_test_fixed" => collision = flag(value),
+            "ground_radar_clutter" => {
+                let _ = flag(value);
+                rows.push(OriginalRow {
+                    sub_type: std::mem::take(&mut name),
+                    collision,
+                    align,
+                });
+            }
+            header if value.is_empty() && header.starts_with("ENTITY_SUB_TYPE_FIXED_") => name = header.to_string(),
+            _ => {}
+        }
+    }
+    rows
+}
+
+#[test]
+fn the_originals_fixed_database_is_fifteen_constant_rows_in_the_enumerations_order_with_these_flags() {
+    let declared = declared_fixed_sub_types();
+    assert_eq!(declared.len(), 15, "the declared fixed sub types: {declared:?}");
+    assert_eq!(
+        declared[0], "ENTITY_SUB_TYPE_FIXED_UNKNOWN",
+        "UNKNOWN is the first declared value, not a missing one"
+    );
+    let rows = original_fixed_rows();
+    // one row per declared value, in the enumeration's order, each headed by its own name
+    assert_eq!(rows.iter().map(|row| row.sub_type.clone()).collect::<Vec<_>>(), declared);
+    let flags: Vec<(&str, bool, bool)> = rows
+        .iter()
+        .map(|row| (row.sub_type.trim_start_matches("ENTITY_SUB_TYPE_FIXED_"), row.collision, row.align))
+        .collect();
+    assert_eq!(
+        flags,
+        [
+            ("UNKNOWN", false, false),
+            ("BRIDGE_END_SECTION", true, false),
+            ("BRIDGE_SUPPORTED_MID_SECTION", true, false),
+            ("BRIDGE_UNSUPPORTED_MID_SECTION", true, false),
+            ("CITY", true, false),
+            ("CITY_BUILDING", true, false),
+            ("CRATER", false, true),
+            ("ELECTRICITY_PYLON_END_TERMINATOR", true, false),
+            ("ELECTRICITY_PYLON_STANDARD", true, false),
+            ("ELECTRICITY_PYLON_START_TERMINATOR", true, false),
+            ("ELECTRICITY_STATION", true, false),
+            ("ELECTRICITY_SUBSTATION", true, false),
+            ("MILITARY_BUILDING", true, false),
+            ("SCENIC_OBJECT", false, false),
+            ("TERRAIN_OBJECT", false, false),
+        ],
+        "(sub type, collision_test_fixed, align_with_terrain)"
+    );
+    // the table is constant data sized by the enumeration's count, and the original's own validity test is 0 up to that count
+    let source = campaign_source("aphavoc/source/entity/fixed/fx_dbase.c");
+    let header = campaign_source("aphavoc/source/entity/fixed/fx_dbase.h");
+    assert!(source.contains("const fixed_data\n   fixed_database[NUM_ENTITY_SUB_TYPE_FIXED] ="));
+    assert!(header.contains("extern const fixed_data\n\tfixed_database[NUM_ENTITY_SUB_TYPE_FIXED];"));
+    assert!(campaign_source("aphavoc/source/entity/system/en_types/en_sbtyp.h")
+        .contains("#define entity_sub_type_fixed_valid(SUB_TYPE) (((SUB_TYPE) >= 0) && ((SUB_TYPE) < NUM_ENTITY_SUB_TYPE_FIXED))"));
+}
+
+/// the text of every C source and header under a campaign directory, with its comments and the contents of its string literals removed, as (path relative to the repository, text)
+fn campaign_c_files(relative: &str) -> Vec<(String, String)> {
+    fn walk(dir: &std::path::Path, found: &mut Vec<PathBuf>) {
+        for entry in std::fs::read_dir(dir).unwrap_or_else(|e| panic!("{}: {e}", dir.display())) {
+            let path = entry.unwrap().path();
+            if path.is_dir() {
+                walk(&path, found);
+            } else if matches!(path.extension().and_then(|e| e.to_str()), Some("c" | "h")) {
+                found.push(path);
+            }
+        }
+    }
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let mut paths = Vec::new();
+    walk(&root.join(relative), &mut paths);
+    paths.sort();
+    paths
+        .into_iter()
+        .map(|path| {
+            let text = String::from_utf8_lossy(&std::fs::read(&path).unwrap()).replace("\r\n", "\n");
+            let relative = path.strip_prefix(&root).unwrap().to_string_lossy().replace('\\', "/");
+            (relative, without_comments(&text))
+        })
+        .collect()
+}
+
+/// the text without block comments, line comments and the contents of string literals, so that a search sees only code
+fn without_comments(text: &str) -> String {
+    let chars: Vec<char> = text.chars().collect();
+    let mut out = String::with_capacity(text.len());
+    let mut at = 0;
+    while at < chars.len() {
+        match (chars[at], chars.get(at + 1)) {
+            ('/', Some('*')) => {
+                at += 2;
+                while at < chars.len() && !(chars[at] == '*' && chars.get(at + 1) == Some(&'/')) {
+                    at += 1;
+                }
+                at += 2;
+            }
+            ('/', Some('/')) => {
+                while at < chars.len() && chars[at] != '\n' {
+                    at += 1;
+                }
+            }
+            ('"', _) => {
+                out.push('"');
+                at += 1;
+                while at < chars.len() && chars[at] != '"' {
+                    at += if chars[at] == '\\' { 2 } else { 1 };
+                }
+                out.push('"');
+                at += 1;
+            }
+            (c, _) => {
+                out.push(c);
+                at += 1;
+            }
+        }
+    }
+    out
+}
+
+/// every use of the identifier `fixed_database` in code, whitespace and line breaks between its tokens allowed: (the field it is indexed for, whether the use is a plain read). A use that is not
+/// `fixed_database [index].field` (an address taken, a whole-row copy) reports field "?" and is not a read; neither is a field that is assigned or modified.
+fn fixed_database_uses(code: &str) -> Vec<(String, bool)> {
+    let mut uses = Vec::new();
+    let mut from = 0;
+    let identifier = |c: char| c.is_alphanumeric() || c == '_';
+    while let Some(found) = code[from..].find("fixed_database") {
+        let start = from + found;
+        let end = start + "fixed_database".len();
+        from = end;
+        if code[..start].chars().next_back().is_some_and(identifier) || code[end..].starts_with(identifier) {
+            continue; // part of a longer identifier
+        }
+        let unusable = ("?".to_string(), false);
+        let Some(rest) = code[end..].trim_start().strip_prefix('[') else {
+            uses.push(unusable);
+            continue;
+        };
+        // the closing bracket of the index (the index may itself hold brackets)
+        let mut depth = 1;
+        let mut close = None;
+        for (i, c) in rest.char_indices() {
+            match c {
+                '[' => depth += 1,
+                ']' => {
+                    depth -= 1;
+                    if depth == 0 {
+                        close = Some(i);
+                        break;
+                    }
+                }
+                _ => {}
+            }
+        }
+        let Some(field_part) = close.and_then(|close| rest[close + 1..].trim_start().strip_prefix('.')) else {
+            uses.push(unusable);
+            continue;
+        };
+        let field_part = field_part.trim_start();
+        let field: String = field_part.chars().take_while(|c| identifier(*c)).collect();
+        let after = field_part[field.len()..].trim_start();
+        let assigned = after.starts_with('=') && !after.starts_with("==");
+        let modified = ["++", "--", "+=", "-=", "|=", "&="].iter().any(|op| after.starts_with(op));
+        uses.push((field, !(assigned || modified)));
+    }
+    uses
+}
+
+#[test]
+fn the_fixed_database_has_no_writer_and_its_readers_are_these_files_and_columns() {
+    let mut readers: std::collections::BTreeMap<String, std::collections::BTreeSet<String>> = std::collections::BTreeMap::new();
+    for root in ["aphavoc/source", "modules"] {
+        for (path, code) in campaign_c_files(root) {
+            if path.ends_with("fx_dbase.c") || path.ends_with("fx_dbase.h") {
+                continue; // the definition and its declaration
+            }
+            for (field, read) in fixed_database_uses(&code) {
+                assert!(read, "{path} writes or aliases the fixed database ({field}): the table is constant data");
+                readers.entry(path.clone()).or_default().insert(field);
+            }
+        }
+    }
+    let readers: Vec<(String, Vec<String>)> = readers.into_iter().map(|(path, fields)| (path, fields.into_iter().collect())).collect();
+    let shape = vec!["default_3d_shape".to_string()];
+    let align = vec!["align_with_terrain".to_string()];
+    let creator = |path: &str| (format!("aphavoc/source/entity/fixed/{path}"), shape.clone());
+    let drawer = |path: &str| (format!("aphavoc/source/entity/fixed/{path}"), align.clone());
+    let expected = vec![
+        // the campaign's creators take the default shape (a column that is the campaign's, not a physical rule)
+        creator("cbuild/cb_creat.c"),
+        drawer("cbuild/cb_draw.c"),
+        // (city/ct_creat.c is not a reader: its default-shape resolution is inside a block comment, so the city never takes a shape from the table)
+        creator("crater/cr_creat.c"),
+        // the entity's own getters: the conformance mirror of the physical rule, the default shape and the ground radar's clutter flag
+        (
+            "aphavoc/source/entity/fixed/fx_int.c".to_string(),
+            ["align_with_terrain", "collision_test_fixed", "default_3d_shape", "ground_radar_clutter"]
+                .map(str::to_string)
+                .to_vec(),
+        ),
+        creator("object/ob_creat.c"),
+        drawer("object/ob_draw.c"),
+        drawer("pylon/py_draw.c"),
+        creator("scenic/sn_creat.c"),
+        drawer("scenic/sn_draw.c"),
+        creator("segment/sg_creat.c"),
+        creator("site/st_creat.c"),
+        drawer("site/st_draw.c"),
+        creator("siteupdt/su_creat.c"),
+        drawer("siteupdt/su_draw.c"),
+    ];
+    assert_eq!(
+        readers, expected,
+        "a new reader of the fixed database is a physical-rule consumer the host's rule must be reviewed against"
+    );
+    // the keysite's align-with-terrain is another table: the same enumeration spelling does not make it this rule
+    let keysite = without_comments(&campaign_source("aphavoc/source/entity/special/keysite/ks_int.c"));
+    assert!(keysite.contains("keysite_database") && !keysite.contains("fixed_database"));
+}
+
+/// the answer to the fixed-facts stage of a fixed candidate when the campaign's own collision flag says `core_fixed`: (the answer, the refusal text if any)
+fn fixed_answer_of(lua: &mlua::Lua, key: &str, core_fixed: bool) -> (String, String) {
+    let mut facts = fixed_facts(1, FIXED_POSITION, 0.5, 0.0);
+    facts[7] = if core_fixed { 1.0 } else { 0.0 };
+    let (result, reason, _) = candidate_with_identity(lua, 1, &facts, key);
+    (result, reason)
+}
+
+#[test]
+fn the_host_derives_the_collision_flag_of_every_declared_sub_type_and_the_campaigns_flag_cannot_stand_in_for_it() {
+    let (root, _store) = standard();
+    let rows = original_fixed_rows();
+    assert_eq!(rows.len(), 15);
+    for (sub_type, row) in rows.iter().enumerate() {
+        let (name, collision, align) = (&row.sub_type, row.collision, row.align);
+        let (lua, _roster, key) = fixed_world(&root.dir);
+        let report = fixed_words(FIXED_POSITION, FIXED_TYPE, 0.5, 1.0, sub_type as f32, 0.0);
+        let (result, _, reason) = table_result(&scan_words_answer(&lua, report, &key));
+        assert_eq!(result, "placed", "{name}: a declared sub type is a legitimate statement ({reason})");
+        // the campaign that agrees with the rule the host derives is decided from the record
+        let (answer, reason) = fixed_answer_of(&lua, &key, collision);
+        assert_eq!(answer, if collision { "need_placement" } else { "skip" }, "{name}: {reason}");
+        // the campaign that disagrees is a named mirror difference, never trusted either way
+        let (answer, reason) = fixed_answer_of(&lua, &key, !collision);
+        assert!(
+            answer == "refused" && reason.contains("[candidate.mirror]") && reason.contains("collision-fixed"),
+            "{name}: the campaign's flag {} against the host's {collision}: {answer} {reason}",
+            !collision
+        );
+        // the align flag is the host's too: once the placement is read, a campaign that states the other value is refused
+        if collision {
+            let mut facts = fixed_facts(2, FIXED_POSITION, 0.5, if align { 0.0 } else { 1.0 });
+            facts[7] = 1.0;
+            let (answer, reason, _) = candidate_with_identity(&lua, 1, &facts, &key);
+            assert!(answer == "refused" && reason.contains("align"), "{name}: {answer} {reason}");
+        }
+    }
+}
+
+#[test]
+fn a_sub_type_the_original_has_no_row_for_is_refused_by_name_while_unknown_is_a_legitimate_statement() {
+    let (root, _store) = standard();
+    let (lua, roster, key) = fixed_world(&root.dir);
+    let held = || roster.borrow().placement_fixed(key.parse().expect("a key"), false).expect("stands").2;
+    // the one value no row exists for beyond the enumeration: refused by name, and nothing recorded
+    let beyond = fixed_words(FIXED_POSITION, FIXED_TYPE, 0.5, 1.0, SUB_UNDECLARED, 0.0);
+    let (result, _, reason) = table_result(&scan_words_answer(&lua, beyond, &key));
+    assert!(
+        result == "refused" && reason.contains("[roster.subtype]") && reason.contains("15 declared"),
+        "{reason}"
+    );
+    assert_eq!(format!("{:?}", held()), "Never", "a refused statement changes nothing");
+    // UNKNOWN is declared and legitimate: it is held, derives no collision and no alignment, and is not refused as missing
+    let unknown = fixed_words(FIXED_POSITION, FIXED_TYPE, 0.5, 1.0, SUB_UNKNOWN, 0.0);
+    assert_eq!(table_result(&scan_words_answer(&lua, unknown, &key)).0, "placed");
+    assert_eq!(fixed_answer_of(&lua, &key, false).0, "skip");
+    // a refused restatement after a held state leaves that state as it was
+    let (result, _, _) = table_result(&scan_words_answer(&lua, beyond, &key));
+    assert_eq!(result, "refused");
+    assert_eq!(fixed_answer_of(&lua, &key, false).0, "skip", "the held state survived the refusal");
+}
+
+#[test]
+fn a_changed_sub_type_changes_the_rule_the_next_question_is_decided_from() {
+    let (root, _store) = standard();
+    let (lua, _roster, key) = fixed_world(&root.dir);
+    let stated = |sub_type: f32| {
+        let words = fixed_words(FIXED_POSITION, FIXED_TYPE, 0.5, 1.0, sub_type, 0.0);
+        assert_eq!(table_result(&scan_words_answer(&lua, words, &key)).0, "placed");
+    };
+    stated(SUB_MILITARY);
+    assert_eq!(fixed_answer_of(&lua, &key, true).0, "need_placement");
+    // the campaign's setter restates the sub type: the campaign's old flag now disagrees with the host's derived rule, by name
+    stated(SUB_UNKNOWN);
+    let (answer, reason) = fixed_answer_of(&lua, &key, true);
+    assert!(
+        answer == "refused" && reason.contains("[candidate.mirror]") && reason.contains("collision-fixed"),
+        "{answer} {reason}"
+    );
+    assert_eq!(fixed_answer_of(&lua, &key, false).0, "skip");
+    // CRATER aligns with the terrain without colliding: no collision, so a campaign that calls it not fixed is skipped, and one that calls it fixed is refused
+    stated(SUB_CRATER);
+    assert_eq!(fixed_answer_of(&lua, &key, false).0, "skip");
+    assert_eq!(fixed_answer_of(&lua, &key, true).0, "refused");
+    // and back: the host re-derives from the last statement, with no memory of the first
+    stated(SUB_MILITARY);
+    assert_eq!(fixed_answer_of(&lua, &key, true).0, "need_placement");
+    // the host's own withdrawal retires the rule with the state; the same statement restores both
+    let withdraw = fixed_words([0.0; 3], 0.0, 0.0, 0.0, SUB_UNKNOWN, 1.0);
+    assert_eq!(table_result(&scan_words_answer(&lua, withdraw, &key)).0, "removed");
+    let (answer, reason) = fixed_answer_of(&lua, &key, true);
+    assert!(
+        answer == "refused" && reason.contains("[candidate.fixed]") && reason.contains("withdrew"),
+        "{answer} {reason}"
+    );
+    stated(SUB_MILITARY);
+    assert_eq!(fixed_answer_of(&lua, &key, true).0, "need_placement");
+}
+
+/// the question of a city whose fixed facts the campaign read: `fixed` is its collision flag (and its city mirror); a city the campaign calls fixed and with a first building also read its position and box
+fn city_question(fixed: bool, with_building: bool) -> [f32; 44] {
+    let mut facts = fixed_facts(1, CITY_POSITION, 0.0, 0.0);
+    facts[7] = if fixed { 1.0 } else { 0.0 };
+    facts[8] = if fixed { 1.0 } else { 0.0 };
+    facts[11] = if fixed && with_building { 1.0 } else { 0.0 };
+    if fixed && with_building {
+        facts[36..39].copy_from_slice(&CITY_BOX_MIN);
+        facts[39..42].copy_from_slice(&CITY_BOX_MAX);
+    } else {
+        facts[13..16].fill(0.0);
+    }
+    facts
+}
+
+#[test]
+fn a_city_the_campaign_calls_not_fixed_is_refused_when_the_host_derives_it_fixed_and_never_skipped_on_the_campaigns_word() {
+    let (root, _store) = standard();
+    let (lua, _roster, key) = placement_of(&root.dir, CITY_TYPE);
+    assert_eq!(table_result(&scan_words_answer(&lua, city_standing(), &key)).0, "placed");
+    // the campaign's false flag, false city mirror and no building: the whole of what used to skip the city, whatever its record held
+    let (answer, reason, pose) = candidate_with_identity(&lua, 1, &city_question(false, false), &key);
+    assert!(
+        answer == "refused" && reason.contains("[candidate.mirror]") && reason.contains("collision-fixed") && pose.is_empty(),
+        "a city whose sub type is CITY collides: {answer} {reason}"
+    );
+    // the campaign that agrees is decided from the record, with or without a building
+    assert_eq!(
+        candidate_with_identity(&lua, 1, &city_question(true, false), &key).0,
+        "skip",
+        "no building: skipped, the record agreeing"
+    );
+    assert_eq!(candidate_with_identity(&lua, 1, &city_question(true, true), &key).0, "buildings");
+}
+
+#[test]
+fn a_city_of_the_unknown_sub_type_is_not_fixed_and_a_campaign_that_calls_it_fixed_is_refused() {
+    let (root, _store) = standard();
+    let (lua, _roster, key) = placement_of(&root.dir, CITY_TYPE);
+    let unknown = city_words_of(CITY_POSITION, CITY_BOX_MIN, CITY_BOX_MAX, SUB_UNKNOWN);
+    assert_eq!(
+        table_result(&scan_words_answer(&lua, unknown, &key)).0,
+        "placed",
+        "UNKNOWN is a declared sub type"
+    );
+    assert_eq!(
+        candidate_with_identity(&lua, 1, &city_question(false, false), &key).0,
+        "skip",
+        "a city whose record derives no collision is skipped, the campaign agreeing"
+    );
+    let (answer, reason, _) = candidate_with_identity(&lua, 1, &city_question(true, true), &key);
+    assert!(
+        answer == "refused" && reason.contains("[candidate.mirror]") && reason.contains("collision-fixed"),
+        "{answer} {reason}"
+    );
+    // restated as the campaign's city (popread.c gives it that sub type before it is linked), the same words are decided
+    assert_eq!(table_result(&scan_words_answer(&lua, city_standing(), &key)).0, "placed");
+    assert_eq!(candidate_with_identity(&lua, 1, &city_question(true, true), &key).0, "buildings");
+}
+
+#[test]
+fn a_city_whose_state_is_absent_or_withdrawn_is_refused_where_its_fixed_facts_are_read_whatever_the_campaign_calls_it() {
+    let (root, _store) = standard();
+    // the host was never told: the campaign's false mirrors do not let the question pass, and a question that has read nothing of the city still needs no state
+    let (lua, _roster, key) = placement_of(&root.dir, CITY_TYPE);
+    for (fixed, building) in [(false, false), (true, false), (true, true)] {
+        let (answer, reason, pose) = candidate_with_identity(&lua, 1, &city_question(fixed, building), &key);
+        assert!(
+            answer == "refused" && reason.contains("[candidate.city]") && reason.contains("holds no collision state") && pose.is_empty(),
+            "fixed={fixed} building={building}: {answer} {reason}"
+        );
+    }
+    assert_eq!(candidate_with_identity(&lua, 0, &fixed_facts(0, CITY_POSITION, 0.0, 0.0), &key).0, "need_fixed");
+    // told, then withdrawn by the host: refused by the withdrawal at that stage; the statement restores it
+    assert_eq!(table_result(&scan_words_answer(&lua, city_standing(), &key)).0, "placed");
+    let withdraw = fixed_words([0.0; 3], 0.0, 0.0, 0.0, SUB_UNKNOWN, 1.0);
+    assert_eq!(table_result(&scan_words_answer(&lua, withdraw, &key)).0, "removed");
+    let (answer, reason, _) = candidate_with_identity(&lua, 1, &city_question(false, false), &key);
+    assert!(
+        answer == "refused" && reason.contains("[candidate.city]") && reason.contains("withdrew"),
+        "{answer} {reason}"
+    );
+    assert_eq!(table_result(&scan_words_answer(&lua, city_standing(), &key)).0, "placed");
+    assert_eq!(candidate_with_identity(&lua, 1, &city_question(true, true), &key).0, "buildings");
 }

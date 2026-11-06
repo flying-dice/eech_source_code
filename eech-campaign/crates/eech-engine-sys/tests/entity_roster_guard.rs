@@ -1050,3 +1050,151 @@ fn an_expanded_boxs_axis_order_is_checked_from_the_raw_words_before_any_word_of_
         "mb_hostentity.h",
     );
 }
+
+/// the text of a C function from its signature to the closing brace at the start of a line, with the comments of its lines removed
+fn function_code(text: &str, signature: &str) -> String {
+    let at = text.find(signature).unwrap_or_else(|| panic!("`{signature}` is not there"));
+    let end = text[at..].find("\n}\n").unwrap() + at;
+    code_of(&text[at..end])
+}
+
+#[test]
+fn the_reporter_states_the_sub_type_the_host_derives_its_rules_from_and_never_the_flags_the_campaign_derived() {
+    // the original derives the collision-fixed and align flags from the fixed record's sub type (fx_int.c, fixed_database[sub_type]); the host derives them too (roster.rs, FIXED_RULES) from the sub type it is
+    // stated, so neither reporter reads a flag getter: a flag the campaign derived is never the host's physical input
+    let place = source("entity/mobile/mb_hostplace.c");
+    for signature in ["static void place_fixed_read (", "static void place_city_read ("] {
+        let body = function_code(&place, signature);
+        assert!(body.contains("INT_TYPE_ENTITY_SUB_TYPE"), "{signature}: the sub type is stated");
+        for flag in ["INT_TYPE_COLLISION_TEST_FIXED", "INT_TYPE_ALIGN_WITH_TERRAIN", "fixed_database"] {
+            assert!(!body.contains(flag), "{signature} reads {flag}, a value the campaign derived");
+        }
+    }
+    assert!(function_code(&place, "static void place_fixed_read (").contains("state [5] = (float) get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE);"));
+    assert!(function_code(&place, "static void place_city_read (").contains("state [9] = (float) get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE);"));
+    // the domain of the fact is the declared enumeration, tied at compile time to the number the host's table is sized by
+    assert!(code_of(&place).contains(
+        "typedef char campaign_fixed_sub_type_domain_is_the_declared_enumeration [(CAMPAIGN_FIXED_SUB_TYPES == NUM_ENTITY_SUB_TYPE_FIXED) ? 1 : -1];"
+    ));
+    // the wire layout: the sub type is fact 10 of both reports, the two flag facts no longer exist, and the state arrays are one word each longer or shorter accordingly
+    let model = code_of(&source("entity/mobile/mb_hostmodel.h"));
+    for definition in [
+        "#define CAMPAIGN_FIXED_SUBTYPE 10",
+        "#define CAMPAIGN_CITY_SUBTYPE 10",
+        "#define CAMPAIGN_FIXED_SUB_TYPES 15",
+        "#define CAMPAIGN_FIXED_STATE_WORDS 6",
+        "#define CAMPAIGN_CITY_STATE_WORDS 10",
+    ] {
+        assert!(model.contains(definition), "{definition}");
+    }
+    assert!(!model.contains("CAMPAIGN_FIXED_COLLISION") && !model.contains("CAMPAIGN_FIXED_ALIGN"));
+    let entity = code_of(&source("entity/mobile/mb_hostentity.h"));
+    assert!(entity.contains("request.pose [CAMPAIGN_FIXED_SUBTYPE] = state [5];"));
+    assert!(entity.contains("request.pose [CAMPAIGN_CITY_SUBTYPE] = state [9];"));
+    assert!(!entity.contains("CAMPAIGN_FIXED_COLLISION") && !entity.contains("CAMPAIGN_FIXED_ALIGN"));
+}
+
+#[test]
+fn a_fixed_entitys_sub_type_has_these_writers_each_before_the_insertion_or_stated_by_the_setter() {
+    // every assignment to a fixed record's sub type in the fixed family: a creator's default (before the entity is inserted), the session unpack (the previous test: before the insertion) and the setter
+    // that states the change to the host. A creator's attribute list (parser.c, popread.c, bridge.c, py_creat.c) reaches the same setter through the raw funnel before the insertion.
+    let mut writers: Vec<(String, usize)> = Vec::new();
+    for (file, text) in fixed_files() {
+        let count = code_of(&text)
+            .lines()
+            .filter(|line| {
+                let line = line.replace(' ', "");
+                // a write to the record's member (`raw->sub_type =`, `raw->fix.sub_type =`): a local variable of the same name (a pylon creator's attribute, a segment's read) is not a write to a record
+                (line.contains("->sub_type=") || line.contains(".sub_type=")) && !line.contains("sub_type==")
+            })
+            .count();
+        if count > 0 {
+            writers.push((file, count));
+        }
+    }
+    let expected: Vec<(String, usize)> = [
+        ("entity/fixed/cbuild/cb_creat.c", 1),
+        ("entity/fixed/city/ct_creat.c", 1),
+        ("entity/fixed/crater/cr_creat.c", 1),
+        ("entity/fixed/fx_int.c", 1),
+        ("entity/fixed/fx_pack.c", 1),
+        ("entity/fixed/object/ob_creat.c", 1),
+        ("entity/fixed/scenic/sn_creat.c", 1),
+        ("entity/fixed/segment/sg_creat.c", 1),
+        ("entity/fixed/site/st_creat.c", 1),
+        ("entity/fixed/siteupdt/su_creat.c", 1),
+    ]
+    .map(|(file, count)| (file.to_string(), count))
+    .to_vec();
+    assert_eq!(writers, expected, "a new writer of a fixed sub type must state the change to the host");
+    // a creator's default is written before its first insertion into any list
+    for (file, text) in fixed_files() {
+        if !file.ends_with("_creat.c") {
+            continue;
+        }
+        let text = code_of(&text);
+        let Some(write) = text.find("fix.sub_type =") else { continue };
+        let Some(insert) = text.find("insert_local_entity_into_parents_child_list (en, LIST_TYPE_") else {
+            continue;
+        };
+        assert!(write < insert, "{file}: the sub type is written after the first insertion");
+    }
+    // the setter's write is followed, in the same case, by the statement to the host
+    let setter = source("entity/fixed/fx_int.c");
+    let at = setter.find("raw->sub_type = value;").expect("the setter's write");
+    let case = &setter[at..at + setter[at..].find("break;").unwrap()];
+    assert!(
+        code_of(case).contains("campaign_place_fixed_state (en);"),
+        "the setter states a change of the sub type"
+    );
+    // the getters stay as the conformance mirror: they still derive from the original's table
+    let getters = code_of(&setter);
+    assert!(getters.contains("value = fixed_database[raw->sub_type].collision_test_fixed;"));
+    assert!(getters.contains("value = fixed_database[raw->sub_type].align_with_terrain;"));
+}
+
+#[test]
+fn the_no_host_extractions_of_the_list_funnel_carry_the_hook_header_that_compiles_every_report_away() {
+    // en_list.c reports every sector and city-list write through `campaign_place_*` (mb_hostplace.h, which it includes beside project.h). The no-host builds that compile its insert and delete bodies VERBATIM into a generated
+    // unit (the original-semantics oracle crate eech-sys and the historical C reference harness) drop that include, so the generated unit must name the header itself: with no EECH_CAMPAIGN_HOST_ENTITY defined
+    // the header turns every report into `((void) 0)`, which is the original, no-host list behaviour. Without it the unit does not compile (implicit declarations at en_list.c:498, 503, 571 and 575).
+    let list = source("entity/system/en_funcs/en_list.c");
+    assert!(code_of(&list).contains("#include \"entity/mobile/mb_hostplace.h\""));
+    for call in [
+        "campaign_place_insert (en);",
+        "campaign_place_child_insert (en, parent, pred);",
+        "campaign_place_remove (en);",
+        "campaign_place_child_remove (en);",
+    ] {
+        assert!(code_of(&list).contains(call), "en_list.c no longer calls {call}");
+    }
+    let header = code_of(&source("entity/mobile/mb_hostplace.h"));
+    let (host, no_host) = header.split_once("#else").expect("the header's no-host branch");
+    for hook in [
+        "campaign_place_insert",
+        "campaign_place_child_insert",
+        "campaign_place_remove",
+        "campaign_place_child_remove",
+    ] {
+        assert!(host.contains(hook), "{hook} is a declared hook");
+        assert!(
+            no_host.contains(&format!("#define {hook}(")),
+            "{hook} must compile away in a build with no host entity"
+        );
+    }
+    let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let read =
+        |relative: &str| String::from_utf8_lossy(&std::fs::read(repo.join(relative)).unwrap_or_else(|e| panic!("{relative}: {e}"))).replace("\r\n", "\n");
+    let spec = read("eech-campaign/crates/eech-sys/build/spec.rs");
+    assert!(
+        spec.contains("Raw(\"#include \\\"project.h\\\"\\n\\n#include \\\"entity/mobile/mb_hostplace.h\\\"\\n\\n#define DEBUG_MODULE 0\\n\\n#define LANDING_DEBUG 0\\n\".into()),"),
+        "eech-sys: the generated eech_extracted.c names the hook header"
+    );
+    let harness = read("eech-core-ts/c-reference/extract.mjs");
+    assert!(
+        harness.contains(
+            "text: '#include \"project.h\"\\n\\n#include \"entity/mobile/mb_hostplace.h\"\\n\\n#define DEBUG_MODULE 0\\n\\n#define LANDING_DEBUG 0\\n'"
+        ),
+        "the historical harness: the generated eech_extracted.c names the hook header"
+    );
+}

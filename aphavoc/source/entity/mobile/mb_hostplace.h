@@ -40,7 +40,7 @@ struct ENTITY *campaign_place_child_next (struct ENTITY *city, struct ENTITY *bu
 // the host issued `id` as the legacy object-report identity of `en` (asked lazily, once): the host's placements of the entity are named by it
 void campaign_place_name (struct ENTITY *en, const char *id);
 
-// the fixed collision state of `en` (a fixed-family entity: position, heading, shape and the two flags its sub type derives) was written, or the entity was placed: the host's record of the placement holds the state
+// the fixed collision state of `en` (a fixed-family entity: position, heading, shape and the sub type the host derives the two collision flags from) was written, or the entity was placed: the host's record of the placement holds the state
 // as it is now (Task49). Called by every writer of a field of it after the entity is placed; an entity that is not placed, and a type that is neither of the fixed family nor the city, state nothing. A CITY states
 // its own position (and the box it starts with) through the same call; the box a building's link expands is built by the host (`campaign_place_city_expand`, ct_msgs.c). See mb_hostplacemap.h.
 void campaign_place_fixed_state (struct ENTITY *en);

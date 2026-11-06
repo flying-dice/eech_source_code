@@ -285,6 +285,13 @@ local function reference (op, scene, depth, kind, definition, key)
 			record.answer = answer
 			return answer
 		end
+		-- a record whose derived rule is no collision (the host restated its sub type) against a campaign whose collision-fixed flag (8) is true at the fixed facts' stage (43): the provider's own named mirror refusal
+		if scenario.fixed_state and identity ~= "" and cw [43] ~= ZERO and cw [8] ~= ZERO and ROSTER_HOLD (identity) == "no_collision" then
+			answer = { result = "refused", reason = "[candidate.mirror] the campaign's collision-fixed flag differs from the host's fixed state of the placement" }
+			ANSWERS [#ANSWERS + 1] = answer
+			record.answer = answer
+			return answer
+		end
 		if scenario.fixed_state and identity ~= "" and ROSTER_HOLD (identity) == "withdrawn" then
 			answer = { result = "refused", reason = "[candidate.fixed] the host withdrew the fixed physical state of this placement" }
 			ANSWERS [#ANSWERS + 1] = answer
@@ -428,7 +435,7 @@ package.preload.eech_dc = function ()
 			-- one scan candidate's dialogue with the host, the campaign's half as the shared C applies it (mb_hostentity.h): 44 facts staged as the host asks (a mobile candidate with its scene, or a
 			-- non-mobile one with scene 0 until the fixed facts are read), the seven states, the name echo and the legality of each state against the facts. True: the narrow phase is required
 			local STATES = { skip = true, need_updated = true, need_fixed = true, need_placement = true, need_normal = true, buildings = true, test = true }
-			local altering = { candidate_skip = true, withheld_candidate = true, bad_candidate_state = true, bad_candidate_identity = true, withdrawn_fixed_state = true, withdrawn_city_state = true }
+			local altering = { candidate_skip = true, withheld_candidate = true, bad_candidate_state = true, bad_candidate_identity = true, withdrawn_fixed_state = true, changed_fixed_rule = true, withdrawn_city_state = true }
 			-- the campaign's OBSERVATION of a mobile candidate (mb_hostentity.h ENTITY_POSE, asked beside the original's reads): the stage, the entity's type (4), alive, the 15 words and the identity of the
 			-- scripted member; the reply's shape is checked as the shared C checks it, and NOTHING of the dialogue depends on the answer
 			local pose_altering = { withheld_pose = true, bad_pose_answer = true, bad_pose_state = true }
@@ -607,17 +614,17 @@ package.preload.eech_dc = function ()
 					at = city_event ("child_next", list .. " " .. at).name
 				end
 			end
-			-- the FIXED_STATE report of the placement just inserted (phase 13): its position, the entity type the insertion stated, the heading, the shape, the collision-fixed flag and the align flag, under the placement's key
+			-- the FIXED_STATE report of the placement just inserted (phase 13): its position, the entity type the insertion stated, the heading, the shape and the fixed sub type (the host derives the collision-fixed and align flags from it), under the placement's key
 			-- (mb_hostentity.h, campaign_entity_fixed_exchange). The host's answer comes back unaltered; a refusal is the bridge's own fatal with the host's reason
 			local function fixed_report (key_of)
 				local words = {}
 				for index = 1, 16 do words [index] = ZERO end
 				words [1], words [2], words [3] = OLD_W [1], OLD_W [2], OLD_W [3]
-				words [4], words [6], words [8], words [12] = "0x41880000", "0x41100000", "0x3f800000", "0x41500000"
+				words [4], words [6], words [11], words [12] = "0x41880000", "0x41100000", "0x41400000", "0x41500000"
 				local fault = scenario.bad_fixed_request
 				if fault == "stray_fact" then words [7] = "0x3f800000"
 				elseif fault == "withdraw_word" then words [10] = "0x3f800000"
-				elseif fault == "phase_only_flag" then words [8] = "0x40000000" end
+				elseif fault == "stale_flag" then words [8] = "0x3f800000" end
 				local identity = key_of
 				if fault == "bad_key" then identity = "01"
 				elseif fault == "no_key" then identity = "" end
@@ -632,7 +639,7 @@ package.preload.eech_dc = function ()
 				local words = {}
 				for index = 1, 16 do words [index] = ZERO end
 				words [1], words [2], words [3] = OLD_W [1], OLD_W [2], OLD_W [3]
-				words [4], words [5], words [6], words [7], words [8], words [9], words [12] = "0xc1f00000", "0xc0a00000", "0xc2200000", "0x42480000", "0x41400000", "0x42700000", "0x41600000"
+				words [4], words [5], words [6], words [7], words [8], words [9], words [11], words [12] = "0xc1f00000", "0xc0a00000", "0xc2200000", "0x42480000", "0x41400000", "0x42700000", "0x40800000", "0x41600000"
 				local fault = scenario.bad_city_state_request
 				if fault == "stray_fact" then words [10] = "0x3f800000"
 				elseif fault == "word_13" then words [14] = "0x3f800000" end
@@ -650,18 +657,18 @@ package.preload.eech_dc = function ()
 				local words = {}
 				for index = 1, 16 do words [index] = ZERO end
 				words [1], words [2], words [3] = OLD_W [1], OLD_W [2], OLD_W [3]
-				words [4], words [5], words [6], words [7], words [8], words [9], words [12] = "0x49742400", "0x49742400", "0x49742400", "0xc9742400", "0xc9742400", "0xc9742400", "0x41600000"
+				words [4], words [5], words [6], words [7], words [8], words [9], words [11], words [12] = "0x49742400", "0x49742400", "0x49742400", "0xc9742400", "0xc9742400", "0xc9742400", "0x40800000", "0x41600000"
 				local ok, answer = ask_model ("entity_scan", 0, nil, nil, nil, table.concat (words, ",") .. " " .. key_of, true)
 				if not ok then stop ("entity_scan.callback", tostring (answer)) end
 				if type (answer) == "table" and answer.result == "refused" then stop ("entity_scan.refused", tostring (answer.reason)) end
 				if type (answer) ~= "table" or answer.result ~= "placed" then stop ("entity_scan.state", "a city state report allows only placed") end
 			end
-			-- the FIXED_STATE report of a building listed in a city (phase 13), under its place in the city's list: a city building (6), its heading, the shape of the scenario, collision-fixed
+			-- the FIXED_STATE report of a building listed in a city (phase 13), under its place in the city's list: a city building (6), its heading, the shape of the scenario, the sub type CITY_BUILDING
 			local function building_report (child)
 				local words = {}
 				for index = 1, 16 do words [index] = ZERO end
 				words [1], words [2], words [3] = OLD_W [1], OLD_W [2], OLD_W [3]
-				words [4], words [5], words [6], words [8], words [12] = "0x40c00000", "0x3f000000", scenario.box_shape or "0x40a00000", "0x3f800000", "0x41500000"
+				words [4], words [5], words [6], words [11], words [12] = "0x40c00000", "0x3f000000", scenario.box_shape or "0x40a00000", "0x40a00000", "0x41500000"
 				local ok, answer = ask_model ("entity_scan", 0, nil, nil, nil, table.concat (words, ",") .. " " .. child, true)
 				if not ok then stop ("entity_scan.callback", tostring (answer)) end
 				if type (answer) == "table" and answer.result == "refused" then stop ("entity_scan.refused", tostring (answer.reason)) end
@@ -1098,6 +1105,7 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
             use eech_world::roster::FixedHold;
             Ok(
                 match eech_world::roster::parse_key(&key).map(|key| roster.borrow().placement_fixed(key, child.unwrap_or(false))) {
+                    Some(Ok((_, _, FixedHold::Held(state)))) if !state.collision_fixed() => "no_collision",
                     Some(Ok((_, _, FixedHold::Held(_)))) => "held",
                     Some(Ok((_, _, held))) if format!("{held:?}").starts_with("City(") => "held",
                     Some(Ok((_, _, FixedHold::Withdrawn))) => "withdrawn",
@@ -4611,6 +4619,74 @@ fn withdrawing_the_fixed_state_of_a_served_placement_makes_the_next_question_of_
 }
 
 #[test]
+fn changing_the_physical_rule_of_a_served_placement_makes_the_next_unmodified_question_refused_by_the_mirror_difference() {
+    let driven = drive(&healthy(FIXED_STATE), &[("mode", "changed_fixed_rule")]);
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    let row = authority(&driven);
+    assert_eq!(row["completed"], false);
+    assert_eq!(row["failure_marker"], "entity_candidate.refused");
+    // the eligible lookup (answered need_placement over the record's collision-fixed rule) was counted ONCE before the change, the restatement was acknowledged, and the next question was the same placement's
+    assert_eq!(
+        (
+            row["fixed_rule_eligible"].clone(),
+            row["fixed_rule_changed"].clone(),
+            row["fixed_rule_changed_next"].clone(),
+            row["fixed_rule_changed_cause"].clone()
+        ),
+        (
+            Value::from(1),
+            Value::from(1),
+            Value::from("placement"),
+            Value::from("fixed_rule_mirror_differs")
+        ),
+        "{row}"
+    );
+    // no answer and no request was altered: the only fault is the provider's named refusal, and the questions are the dialogue's three, the last refused
+    assert_eq!(
+        (
+            row["candidate_altered"].clone(),
+            row["altered"].clone(),
+            row["scan_altered"].clone(),
+            row["request_faults"].clone(),
+            row["reply_faults"].clone()
+        ),
+        (Value::from(0), Value::from(0), Value::from(0), Value::from(0), Value::from(1))
+    );
+    assert_eq!(row["first_fault"], "candidate reply: result refused");
+    assert_eq!(
+        (row["candidate_after"].clone(), row["entity_after"].clone()),
+        (Value::from(3), Value::from(0)),
+        "nothing was asked after the refusal"
+    );
+    // the real provider acknowledged the campaign's report and then the host's restatement of ONLY that record's state, in that order, both `placed` for the one placement; the placement stayed standing
+    assert_eq!(
+        driven.fixed_log,
+        [
+            ("0x41500000".to_string(), "placed".to_string(), "1".to_string(), "1".to_string()),
+            ("0x41500000".to_string(), "placed".to_string(), "1".to_string(), "1".to_string()),
+        ]
+    );
+    assert_eq!(driven.roster_log.len(), 2, "only the boot and the insertion are roster events");
+    assert!(driven.delegation_broken.is_empty(), "{:?}", driven.delegation_broken);
+    // the prerequisite is not a pass when it was never reached: a candidate no question of which was answered need_placement is UNREACHED (the run itself was clean)
+    let error = error_of(drive(
+        &healthy(", real_scan = true, fixed_state = true, fixed_candidate = true, candidate_sequence = { 'skip' }"),
+        &[("mode", "changed_fixed_rule")],
+    ));
+    assert!(error.contains("UNREACHED") && error.contains("holds no such candidate"), "{error}");
+    // a run that failed first is that failure, never an absent prerequisite
+    let error = error_of(drive(
+        &healthy(&format!("{FIXED_STATE}, engine_stop = {{ after = 1, marker = 'entity_candidate.callback' }}")),
+        &[("mode", "changed_fixed_rule")],
+    ));
+    assert!(
+        !error.contains("UNREACHED")
+            && error.contains("stopped at [model-provider:entity_candidate.callback], not at [model-provider:entity_candidate.refused]"),
+        "{error}"
+    );
+}
+
+#[test]
 fn a_wrong_served_key_the_real_provider_could_answer_is_neither_credited_as_an_eligible_lookup_nor_withdrawn() {
     // the real provider holds a state for a SECOND live placement and the candidate names it, although the host served the first: the real provider could answer that question over a real held state, but the
     // key is not the placement the host actually served, so the driver counts the fault, credits no eligible lookup and withdraws nothing
@@ -4670,11 +4746,16 @@ fn each_single_fault_of_the_fixed_state_grammar_is_counted_at_its_question_and_i
     for (fault, expected) in [
         (
             "stray_fact",
-            "states nothing but the position, the type, the heading, the shape, the two flags and its phase",
+            "states nothing but the position, the type, the heading, the shape, the sub type and its phase",
         ),
         (
             "withdraw_word",
-            "states nothing but the position, the type, the heading, the shape, the two flags and its phase",
+            "states nothing but the position, the type, the heading, the shape, the sub type and its phase",
+        ),
+        // the campaign no longer states the flags it derived: a report that still does is a request fault
+        (
+            "stale_flag",
+            "states nothing but the position, the type, the heading, the shape, the sub type and its phase",
         ),
         ("no_key", "names \"\", which is not a roster key"),
         ("bad_key", "names \"01\", which is not a roster key"),
@@ -4882,8 +4963,14 @@ fn a_wrong_served_key_the_real_provider_could_answer_is_neither_credited_as_a_ci
 #[test]
 fn each_single_fault_of_the_city_state_grammar_is_counted_at_its_question_and_is_never_a_pass() {
     for (fault, expected) in [
-        ("stray_fact", "states nothing but the position, the box minimum, the box maximum and its phase"),
-        ("word_13", "states nothing but the position, the box minimum, the box maximum and its phase"),
+        (
+            "stray_fact",
+            "states nothing but the position, the box minimum, the box maximum, the sub type and its phase",
+        ),
+        (
+            "word_13",
+            "states nothing but the position, the box minimum, the box maximum, the sub type and its phase",
+        ),
         ("no_key", "names \"\", which is not a roster key"),
         ("bad_key", "names \"01\", which is not a roster key"),
     ] {

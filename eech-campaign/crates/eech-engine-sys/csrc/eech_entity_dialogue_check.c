@@ -2284,8 +2284,8 @@ struct pentity
 	int slot, type, has_position;
 	const char *name, *identity, *object;
 	float position[3];
-	/* the scripted entity's fixed collision state: its shape (a whole number), heading and the two flags the entity's type derives (collision-test-fixed, align-with-terrain) */
-	float heading, shape, collision, align;
+	/* the scripted entity's fixed collision state: its shape (a whole number), heading and the fixed sub type the host derives the collision-fixed and align flags from */
+	float heading, shape, sub_type;
 	/* a scripted city's own bounding box (its position is the entity's position) */
 	float box_min[3], box_max[3];
 };
@@ -2343,11 +2343,11 @@ static void check_fixed_call (int entity_type, const char *key, const float *sta
 #define CAMPAIGN_PLACE_SIDE() 100.0f
 /* the scripted world's fixed family: the entity types 60 to 69 (the campaign's own: the types that carry the fixed record, a city excepted); an entity of one states its fixed collision state to the host */
 #define CAMPAIGN_PLACE_FIXED_FAMILY(TYPE) (((TYPE) >= 60) && ((TYPE) < 70))
-#define CAMPAIGN_PLACE_FIXED_READ(E,OUT) do { memcpy ((OUT), (E)->position, 3 * sizeof (float)); (OUT)[3] = (E)->heading; (OUT)[4] = (E)->shape; (OUT)[5] = (E)->collision; (OUT)[6] = (E)->align; } while (0)
+#define CAMPAIGN_PLACE_FIXED_READ(E,OUT) do { memcpy ((OUT), (E)->position, 3 * sizeof (float)); (OUT)[3] = (E)->heading; (OUT)[4] = (E)->shape; (OUT)[5] = (E)->sub_type; } while (0)
 /* the scripted world's city: the entity type 70 (not of the family above); it states its own position and bounding box */
 #define CHECK_CITY_TYPE 70
 #define CAMPAIGN_PLACE_CITY(TYPE) ((TYPE) == CHECK_CITY_TYPE)
-#define CAMPAIGN_PLACE_CITY_READ(E,OUT) do { memcpy ((OUT), (E)->position, 3 * sizeof (float)); memcpy ((OUT) + 3, (E)->box_min, 3 * sizeof (float)); memcpy ((OUT) + 6, (E)->box_max, 3 * sizeof (float)); } while (0)
+#define CAMPAIGN_PLACE_CITY_READ(E,OUT) do { memcpy ((OUT), (E)->position, 3 * sizeof (float)); memcpy ((OUT) + 3, (E)->box_min, 3 * sizeof (float)); memcpy ((OUT) + 6, (E)->box_max, 3 * sizeof (float)); (OUT)[9] = (E)->sub_type; } while (0)
 
 #include "entity/mobile/mb_hostplacemap.h"
 
@@ -3227,17 +3227,22 @@ static void city_wire_cases (struct tc *t)
 
 /* ---- FIXED/STATIC COLLISION BACKING (Task49, D3): a fixed entity's collision state is reported to the host's record of its placement, and a non-mobile candidate names the placement the host served it by ----
    The CHARACTERISATION cases hold on the unchanged source and must keep holding (the offer reads the same getters in the same order and the narrow phase follows the entity's own writes); the cases that follow
-   them state the new contract (the report, and the key every staged question carries). The report's layout is the contract's: position (0 to 2), type (3), heading (4), shape (5), collision-fixed (7), align (8),
-   withdraw (9; never the campaign's: it is the host's own retirement of the state), phase (11). */
+   them state the new contract (the report, and the key every staged question carries). The report's layout is the contract's: position (0 to 2), type (3), heading (4), shape (5), withdraw (9; never the campaign's: it is the host's own retirement of the state),
+   sub type (10: the host derives the collision-fixed and align flags from it), phase (11). */
 #define CHECK_FIXED_HEADING 4
 #define CHECK_FIXED_SHAPE 5
-#define CHECK_FIXED_COLLISION 7
-#define CHECK_FIXED_ALIGN 8
 #define CHECK_FIXED_WITHDRAW 9
-typedef char check_fixed_layout_is_the_contracts [((CAMPAIGN_FIXED_HEADING == CHECK_FIXED_HEADING) && (CAMPAIGN_FIXED_SHAPE == CHECK_FIXED_SHAPE) && (CAMPAIGN_FIXED_COLLISION == CHECK_FIXED_COLLISION) &&
-	(CAMPAIGN_FIXED_ALIGN == CHECK_FIXED_ALIGN) && (CAMPAIGN_FIXED_WITHDRAW == CHECK_FIXED_WITHDRAW) && (CAMPAIGN_FIXED_TYPE == CAMPAIGN_ROSTER_TYPE) && (CAMPAIGN_FIXED_STATE_WORDS == 7)) ? 1 : -1];
+#define CHECK_FIXED_SUBTYPE 10
+typedef char check_fixed_layout_is_the_contracts [((CAMPAIGN_FIXED_HEADING == CHECK_FIXED_HEADING) && (CAMPAIGN_FIXED_SHAPE == CHECK_FIXED_SHAPE) && (CAMPAIGN_FIXED_SUBTYPE == CHECK_FIXED_SUBTYPE) &&
+	(CAMPAIGN_CITY_SUBTYPE == CHECK_FIXED_SUBTYPE) && (CAMPAIGN_FIXED_WITHDRAW == CHECK_FIXED_WITHDRAW) && (CAMPAIGN_FIXED_TYPE == CAMPAIGN_ROSTER_TYPE) && (CAMPAIGN_FIXED_STATE_WORDS == 6) &&
+	(CAMPAIGN_CITY_STATE_WORDS == 10)) ? 1 : -1];
 
-static void fixed_pentity (int slot, int type, float x, float z, float heading, int shape, int collision, int align)
+/* the scripted sub types, by the rule the host derives from each (fx_dbase.c): CHECK_SUB_MILITARY collides and does not align, CHECK_SUB_CRATER aligns and does not collide, CHECK_SUB_CITY is the campaign's cities */
+#define CHECK_SUB_CITY 4
+#define CHECK_SUB_CRATER 6
+#define CHECK_SUB_MILITARY 12
+
+static void fixed_pentity (int slot, int type, float x, float z, float heading, int shape, int sub_type)
 {
 	struct pentity *p = &pheap[slot];
 
@@ -3251,8 +3256,7 @@ static void fixed_pentity (int slot, int type, float x, float z, float heading, 
 	p->position[2] = z;
 	p->heading = heading;
 	p->shape = (float) shape;
-	p->collision = (float) collision;
-	p->align = (float) align;
+	p->sub_type = (float) sub_type;
 	pheap_owner[slot] = NULL;
 }
 
@@ -3267,14 +3271,14 @@ static int fixed_report_is (const campaign_model_request *q, const struct pentit
 	}
 
 	if ((memcmp (&q->pose[0], p->position, 3 * sizeof (float)) != 0) || (q->pose[3] != (float) p->type) || (q->pose[CHECK_FIXED_HEADING] != p->heading) || (q->pose[CHECK_FIXED_SHAPE] != p->shape) ||
-		(q->pose[CHECK_FIXED_COLLISION] != p->collision) || (q->pose[CHECK_FIXED_ALIGN] != p->align) || (q->pose[CHECK_FIXED_WITHDRAW] != 0.0f) || ((int) q->pose[CAMPAIGN_SCAN_PHASE] != CHECK_PHASE_FIXED_STATE))
+		(q->pose[CHECK_FIXED_SUBTYPE] != p->sub_type) || (q->pose[CHECK_FIXED_WITHDRAW] != 0.0f) || ((int) q->pose[CAMPAIGN_SCAN_PHASE] != CHECK_PHASE_FIXED_STATE))
 	{
 		return (FALSE);
 	}
 
 	for (index = 0; index < CAMPAIGN_MODEL_SCAN_FACTS; index++)
 	{
-		if (((index > 3) && (index != CHECK_FIXED_HEADING) && (index != CHECK_FIXED_SHAPE) && (index != CHECK_FIXED_COLLISION) && (index != CHECK_FIXED_ALIGN) && (index != CAMPAIGN_SCAN_PHASE)) && (q->pose[index] != 0.0f))
+		if (((index > 3) && (index != CHECK_FIXED_HEADING) && (index != CHECK_FIXED_SHAPE) && (index != CHECK_FIXED_SUBTYPE) && (index != CAMPAIGN_SCAN_PHASE)) && (q->pose[index] != 0.0f))
 		{
 			return (FALSE);
 		}
@@ -3311,7 +3315,7 @@ static void fixed_static_cases (struct tc *t)
 
 	/* ---- CHARACTERISATION: a fixed candidate the real placement map holds is offered with the reads, the facts and the narrow-phase scene it always had ---- */
 	city_fresh ();
-	fixed_pentity (4, 61, 150.0f, 250.0f, 0.5f, 7, 1, 0);
+	fixed_pentity (4, 61, 150.0f, 250.0f, 0.5f, 7, CHECK_SUB_MILITARY);
 	fixed_asks = 0;
 	stopped = city_do (3, &pheap[4], NULL, NULL);
 	EXPECT (t, !stopped && roster_asks == 1 && (int) roster_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_INSERT && place_entity ("1") == &pheap[4]);
@@ -3362,7 +3366,7 @@ static void fixed_static_cases (struct tc *t)
 
 	/* ---- the new contract, first the report: one FIXED_STATE follows the insertion, naming the placement's key and stating the entity's whole fixed collision state ---- */
 	city_fresh ();
-	fixed_pentity (4, 61, 150.0f, 250.0f, 0.5f, 7, 1, 0);
+	fixed_pentity (4, 61, 150.0f, 250.0f, 0.5f, 7, CHECK_SUB_MILITARY);
 	fixed_asks = 0;
 	stopped = city_do (3, &pheap[4], NULL, NULL);
 	EXPECT (t, !stopped && roster_asks == 1 && fixed_asks == 1);
@@ -3379,8 +3383,8 @@ static void fixed_static_cases (struct tc *t)
 
 	/* a building listed under a city is offered by its place in the city's list (its child key), at both of its questions */
 	city_fresh ();
-	fixed_pentity (4, 61, 150.0f, 250.0f, 0.5f, 7, 1, 0);
-	fixed_pentity (5, 62, 160.0f, 260.0f, 0.75f, 9, 1, 1);
+	fixed_pentity (4, 61, 150.0f, 250.0f, 0.5f, 7, CHECK_SUB_MILITARY);
+	fixed_pentity (5, 62, 160.0f, 260.0f, 0.75f, 9, CHECK_SUB_MILITARY);
 	fixed_asks = 0;
 	stopped = city_do (3, &pheap[4], NULL, NULL);
 	EXPECT (t, !stopped);
@@ -3406,7 +3410,7 @@ static void fixed_static_cases (struct tc *t)
 
 	/* ---- the funnel every writer of a field of the state calls: the state as it is NOW, under the placement the entity has ---- */
 	city_fresh ();
-	fixed_pentity (4, 61, 150.0f, 250.0f, 0.5f, 7, 1, 0);
+	fixed_pentity (4, 61, 150.0f, 250.0f, 0.5f, 7, CHECK_SUB_MILITARY);
 
 	/* an entity that is not placed yet (a setter during its construction) states nothing: its insertion does */
 	stopped = fixed_do (&pheap[4]);
@@ -3414,7 +3418,7 @@ static void fixed_static_cases (struct tc *t)
 	stopped = city_do (3, &pheap[4], NULL, NULL);
 	EXPECT (t, !stopped && fixed_report_is (&fixed_seen, &pheap[4], "1"));
 
-	/* a kill's destroyed shape, a restore, a pylon's heading, a bridge's fall and a sub type's flags are each stated, whole, the moment they are written */
+	/* a kill's destroyed shape, a restore, a pylon's heading, a bridge's fall and a sub type are each stated, whole, the moment they are written */
 	pheap[4].shape = 8.0f;
 	stopped = fixed_do (&pheap[4]);
 	EXPECT (t, !stopped && fixed_asks == 1 && roster_asks == 0 && city_asks == 0 && fixed_report_is (&fixed_seen, &pheap[4], "1") && fixed_seen.pose[CHECK_FIXED_SHAPE] == 8.0f);
@@ -3424,10 +3428,20 @@ static void fixed_static_cases (struct tc *t)
 	pheap[4].position[1] = -4.5f;
 	stopped = fixed_do (&pheap[4]);
 	EXPECT (t, !stopped && fixed_asks == 1 && fixed_report_is (&fixed_seen, &pheap[4], "1") && fixed_seen.pose[1] == -4.5f);
-	pheap[4].collision = 0.0f;
-	pheap[4].align = 1.0f;
+	pheap[4].sub_type = (float) CHECK_SUB_CRATER;
 	stopped = fixed_do (&pheap[4]);
-	EXPECT (t, !stopped && fixed_asks == 1 && fixed_report_is (&fixed_seen, &pheap[4], "1") && fixed_seen.pose[CHECK_FIXED_COLLISION] == 0.0f && fixed_seen.pose[CHECK_FIXED_ALIGN] == 1.0f);
+	EXPECT (t, !stopped && fixed_asks == 1 && fixed_report_is (&fixed_seen, &pheap[4], "1") && fixed_seen.pose[CHECK_FIXED_SUBTYPE] == (float) CHECK_SUB_CRATER);
+	/* the campaign states the sub type and never a flag derived from it: no other fact of the report is a word of a rule */
+	EXPECT (t, fixed_seen.pose[7] == 0.0f && fixed_seen.pose[8] == 0.0f);
+	pheap[4].sub_type = 0.0f;
+	stopped = fixed_do (&pheap[4]);
+	EXPECT (t, !stopped && fixed_asks == 1 && fixed_report_is (&fixed_seen, &pheap[4], "1") && fixed_seen.pose[CHECK_FIXED_SUBTYPE] == 0.0f);
+	/* ENTITY_SUB_TYPE_FIXED_UNKNOWN is a declared value and a legitimate statement: it is stated as the word it is, whatever the value of an entity that never had another */
+	/* a value outside the declared enumeration is stated as it is too: the campaign neither gates nor hides it, and the host refuses it by name */
+	pheap[4].sub_type = 15.0f;
+	stopped = fixed_do (&pheap[4]);
+	EXPECT (t, !stopped && fixed_asks == 1 && fixed_report_is (&fixed_seen, &pheap[4], "1") && fixed_seen.pose[CHECK_FIXED_SUBTYPE] == 15.0f);
+	pheap[4].sub_type = (float) CHECK_SUB_MILITARY;
 
 	/* a type that carries no fixed record (every other entity, a city among them), and a build with no host, state nothing */
 	fixed_asks = 0;
@@ -3450,7 +3464,7 @@ static void fixed_static_cases (struct tc *t)
 	EXPECT (t, !stopped && fixed_asks == 1 && fixed_report_is (&fixed_seen, &pheap[4], place_key_of_slot[4]) && strcmp (place_key_of_slot[4], "1") != 0 && fixed_seen.pose[0] == 175.0f);
 
 	/* a building that has only its place in a city's list (its sector placement is gone) states under that key; its release states nothing */
-	fixed_pentity (5, 62, 160.0f, 260.0f, 0.75f, 9, 1, 1);
+	fixed_pentity (5, 62, 160.0f, 260.0f, 0.75f, 9, CHECK_SUB_MILITARY);
 	fixed_asks = 0;
 	stopped = city_do (0, &pheap[5], &pheap[4], NULL);
 	EXPECT (t, !stopped && fixed_asks == 1 && fixed_report_is (&fixed_seen, &pheap[5], place_child_of_slot[5]));
@@ -3526,6 +3540,7 @@ static void city_pentity (int slot, float x, float y, float z)
 	p->position[0] = x;
 	p->position[1] = y;
 	p->position[2] = z;
+	p->sub_type = (float) CHECK_SUB_CITY;
 
 	for (i = 0; i < 3; i++)
 	{
@@ -3546,14 +3561,14 @@ static int city_state_report_is (const campaign_model_request *q, const struct p
 		return (FALSE);
 	}
 
-	if ((memcmp (&q->pose[0], p->position, 3 * sizeof (float)) != 0) || (memcmp (&q->pose[3], p->box_min, 3 * sizeof (float)) != 0) || (memcmp (&q->pose[6], p->box_max, 3 * sizeof (float)) != 0))
+	if ((memcmp (&q->pose[0], p->position, 3 * sizeof (float)) != 0) || (memcmp (&q->pose[3], p->box_min, 3 * sizeof (float)) != 0) || (memcmp (&q->pose[6], p->box_max, 3 * sizeof (float)) != 0) || (q->pose[CAMPAIGN_CITY_SUBTYPE] != p->sub_type))
 	{
 		return (FALSE);
 	}
 
 	for (index = 9; index < CAMPAIGN_MODEL_SCAN_FACTS; index++)
 	{
-		if ((index != CAMPAIGN_SCAN_PHASE) && (q->pose[index] != 0.0f))
+		if ((index != CAMPAIGN_CITY_SUBTYPE) && (index != CAMPAIGN_SCAN_PHASE) && (q->pose[index] != 0.0f))
 		{
 			return (FALSE);
 		}
@@ -3613,7 +3628,7 @@ static void city_state_cases (struct tc *t)
 	EXPECT (t, !stopped && city_state_asks == 1 && city_state_report_is (&city_state_seen, &pheap[4], first_key) && city_state_seen.pose[0] == 175.0f && city_state_seen.pose[3] == -20.0f);
 
 	/* a building is listed under the city: the building states its own fixed state (the family's report), the city's state is not restated by the listing */
-	fixed_pentity (5, 62, 160.0f, 260.0f, 0.75f, 9, 1, 1);
+	fixed_pentity (5, 62, 160.0f, 260.0f, 0.75f, 9, CHECK_SUB_MILITARY);
 	city_state_asks = 0;
 	fixed_asks = 0;
 	stopped = city_do (0, &pheap[5], &pheap[4], NULL);
@@ -3641,7 +3656,7 @@ static void city_state_cases (struct tc *t)
 
 	/* an entity of the family is not stated as a city, and a city is never stated by the family's report */
 	city_fresh ();
-	fixed_pentity (6, 61, 150.0f, 250.0f, 0.5f, 7, 1, 0);
+	fixed_pentity (6, 61, 150.0f, 250.0f, 0.5f, 7, CHECK_SUB_MILITARY);
 	city_pentity (7, 1.0f, 2.0f, 3.0f);
 	city_state_asks = 0;
 	fixed_asks = 0;
@@ -3791,7 +3806,7 @@ static void city_expand_cases (struct tc *t)
 	/* a city and one building listed under it, as a building's link finds them (the creator listed it before the link: en_list.c) */
 	city_fresh ();
 	city_pentity (4, 150.0f, 3.0f, 250.0f);
-	fixed_pentity (5, 61, 150.0f, 250.0f, 0.5f, 7, 1, 0);
+	fixed_pentity (5, 61, 150.0f, 250.0f, 0.5f, 7, CHECK_SUB_MILITARY);
 	stopped = city_do (3, &pheap[4], NULL, NULL);
 	EXPECT (t, !stopped);
 	stopped = city_do (0, &pheap[5], &pheap[4], NULL);

@@ -107,7 +107,7 @@ static void set_local_int_value (entity *en, int_types type, int value)
 		{
 			raw->sub_type = value;
 
-			// the sub type derives the collision-fixed and align flags the host's record of the placement holds: a change of it is stated (an entity that is not placed yet states nothing)
+			// the sub type is the input the HOST derives the collision-fixed and align flags of its record of the placement from (fx_dbase.c rows, roster.rs FIXED_RULES): a change of it is stated (an entity that is not placed yet states nothing)
 
 			campaign_place_fixed_state (en);
 

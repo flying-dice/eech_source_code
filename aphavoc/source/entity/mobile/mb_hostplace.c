@@ -12,6 +12,9 @@
 // the object-report identity a NAME carries has its own domain beside the placement key's, and the model request's identity field is sized from it (a mismatch is a negative array size)
 typedef char campaign_model_object_id_domain_is_the_object_registrys [(CAMPAIGN_MODEL_OBJECT_ID_MAX == CAMPAIGN_OBJECT_ID_MAX) ? 1 : -1];
 
+// the sub type fact's domain is the declared fixed sub types, not a size the host guessed: the host's rule table has one row for each (roster.rs, FIXED_RULES; a mismatch is a negative array size)
+typedef char campaign_fixed_sub_type_domain_is_the_declared_enumeration [(CAMPAIGN_FIXED_SUB_TYPES == NUM_ENTITY_SUB_TYPE_FIXED) ? 1 : -1];
+
 #ifdef EECH_CAMPAIGN_HOST_ENTITY
 
 static int place_heap (void)
@@ -67,7 +70,12 @@ static int place_fixed_family (int type)
 }
 
 // the entity's fixed collision state as it is now, with the entity's own getters (the same ones the scan reads): the position's three words, the heading, the shape (a scene index: a whole number a float holds
-// exactly) and the two flags its sub type derives. The position is copied as the words the entity holds.
+// exactly) and the sub type the fixed record holds (a whole number). The position is copied as the words the entity holds.
+//
+// The collision-fixed and align-with-terrain flags are NOT read here. The original derives them from the sub type, fixed_database[sub_type] (fx_int.c, INT_TYPE_COLLISION_TEST_FIXED and
+// INT_TYPE_ALIGN_WITH_TERRAIN); the host derives the same two flags from the sub type it is stated (roster.rs, FIXED_RULES) and holds them in its record, so a flag the campaign derived is never the host's
+// physical input. The campaign's own getters stay as the conformance mirror the candidate questions are compared with. The sub type is stated as it is, whatever its value: ENTITY_SUB_TYPE_FIXED_UNKNOWN (0) is
+// one of the fifteen declared values and a legitimate statement, and a value outside them (the original would read past its table) is the host's to refuse by name.
 static void place_fixed_read (struct ENTITY *en, float *state)
 {
 	const float
@@ -81,13 +89,12 @@ static void place_fixed_read (struct ENTITY *en, float *state)
 
 	state [4] = (float) get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE);
 
-	state [5] = (get_local_entity_int_value (en, INT_TYPE_COLLISION_TEST_FIXED) != 0) ? 1.0f : 0.0f;
-
-	state [6] = (get_local_entity_int_value (en, INT_TYPE_ALIGN_WITH_TERRAIN) != 0) ? 1.0f : 0.0f;
+	state [5] = (float) get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE);
 }
 
 // the city's own collision state as it is now: its position's three words, then the three words of its bounding box minimum and the three of its maximum, copied as the entity holds them (the box is the original's
-// inverted initial box until the city's first building links; no word is loaded as a float here)
+// inverted initial box until the city's first building links; no word is loaded as a float here), then the sub type its fixed record holds (a city is created ENTITY_SUB_TYPE_FIXED_UNKNOWN and popread.c gives it
+// ENTITY_SUB_TYPE_FIXED_CITY before it is linked into its sector; the host derives the city's collision-fixed flag from it, as place_fixed_read says)
 static void place_city_read (struct ENTITY *en, float *state)
 {
 	memcpy (state, get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION), 3 * sizeof (float));
@@ -95,6 +102,8 @@ static void place_city_read (struct ENTITY *en, float *state)
 	memcpy (state + 3, get_local_entity_vec3d_ptr (en, VEC3D_TYPE_BOUNDING_BOX_MIN), 3 * sizeof (float));
 
 	memcpy (state + 6, get_local_entity_vec3d_ptr (en, VEC3D_TYPE_BOUNDING_BOX_MAX), 3 * sizeof (float));
+
+	state [9] = (float) get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE);
 }
 
 #define CAMPAIGN_PLACE_ENTITY struct ENTITY

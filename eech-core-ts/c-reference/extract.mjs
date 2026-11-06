@@ -277,7 +277,10 @@ export const PROJECT_H = [
 
 // Contents of the generated eech_extracted.c, in order.
 export const EXTRACTED_C = [
-	{ kind: "raw", text: '#include "project.h"\n\n#define DEBUG_MODULE 0\n\n#define LANDING_DEBUG 0\n' },
+	// mb_hostplace.h is the hook header en_list.c includes beside project.h: the extracted insert/delete bodies report every sector and
+	// city-list write through it. The historical harness defines no EECH_CAMPAIGN_HOST_ENTITY, so the header compiles every report away
+	// (the original, no-host list semantics).
+	{ kind: "raw", text: '#include "project.h"\n\n#include "entity/mobile/mb_hostplace.h"\n\n#define DEBUG_MODULE 0\n\n#define LANDING_DEBUG 0\n' },
 
 	// modules/system/time.c: the delta time the entity update loop reads and overrides
 	{ kind: "define", name: "DELTA_TIME_HISTORY_SIZE", file: "modules/system/time.c" },

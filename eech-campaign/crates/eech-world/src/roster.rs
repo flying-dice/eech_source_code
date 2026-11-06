@@ -15,7 +15,7 @@
 //! sector and the sequence.
 //!
 //! A FIXED-family placement (an object, a city building, a crater, a pylon, a piece of scenery, a bridge segment, a site and its updatable; a city is not one) also has its COLLISION state held by its
-//! RECORD, and nowhere else in the host: the position, heading, shape and the two flags its type derives (`FixedState`), as the campaign states them at every write it makes to one (the insertion, a
+//! RECORD, and nowhere else in the host: the position, heading, shape and fixed sub type (`FixedState`; the host derives the collision-fixed and align flags from the sub type, `FIXED_RULES`), as the campaign states them at every write it makes to one (the insertion, a
 //! setter, a kill's destroyed shape, a restore, a session unpack, a bridge's damage or fall). The record is the one the placements of the entity share, so the state lives with the entity's placements,
 //! follows the link of a building's two placements, and ends with the record's last placement; a relink is a removal and a new insertion, so the new record holds none until the campaign states it again.
 //! A candidate question names the placement the host served and is decided from that record's words; the campaign's own words for the same facts are only compared with them (`model_host`).
@@ -127,6 +127,14 @@ pub fn is_fixed_family(entity_type: i32) -> bool {
     FIXED_FAMILY.contains(&entity_type)
 }
 
+/// The reason a record refuses a sub type outside the declared enumeration. `ENTITY_SUB_TYPE_FIXED_UNKNOWN` is inside it; only a value no row exists for is unsupported.
+fn undeclared_sub_type(sub_type: i32) -> String {
+    format!(
+        "the fixed sub type {sub_type} is not one of the {FIXED_SUB_TYPES} declared fixed sub types (0 to {}): the host has no collision rule for it",
+        FIXED_SUB_TYPES - 1
+    )
+}
+
 /// The longest legacy object-report identity, in bytes (`CAMPAIGN_OBJECT_ID_MAX`, mb_hostobj.h): its own domain, independent of the placement key a NAME carries before it.
 pub const OBJECT_ID_MAX: usize = 128;
 
@@ -147,25 +155,100 @@ struct Child {
     record: u64,
 }
 
+/// The number of declared fixed sub types (`enum ENTITY_SUB_TYPE_FIXED`, en_sbtyp.h, `ENTITY_SUB_TYPE_FIXED_UNKNOWN` to `ENTITY_SUB_TYPE_FIXED_TERRAIN_OBJECT`): the domain of a record's sub type. The original's own
+/// validity test is `entity_sub_type_fixed_valid` (0 up to, not including, this number); `mb_hostplace.c` ties the campaign's number to the enumeration at compile time and this module's tests tie [`FIXED_RULES`]
+/// to the enumeration and the original's table.
+pub const FIXED_SUB_TYPES: usize = 15;
+
+/// What a fixed sub type means for physical collision: the two flags the original derives from the entity's fixed record, `fixed_database[sub_type].collision_test_fixed` and `.align_with_terrain` (fx_dbase.c,
+/// read by fx_int.c for `INT_TYPE_COLLISION_TEST_FIXED` and `INT_TYPE_ALIGN_WITH_TERRAIN`). A fixed candidate takes part in the narrow phase only when `collision_fixed` is set; `align` makes the narrow phase stand
+/// the candidate's shape on the terrain's face normal instead of upright. This is constant data: nothing in the original writes it (no parser, restore or world-update path), so the sub type alone decides, and a
+/// change of the sub type changes both flags at once.
+///
+/// The default shape and the ground-radar clutter flag are columns of the same original table; they are the campaign's (creators, the radar) and are NOT part of this rule.
+/// A keysite's `INT_TYPE_ALIGN_WITH_TERRAIN` comes from a different table (ks_int.c's `keysite_database`) and is not this rule either, whatever the enumeration's spelling.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FixedRule {
+    pub collision_fixed: bool,
+    pub align: bool,
+}
+
+/// The rule of each declared fixed sub type, in the enumeration's order (index = `ENTITY_SUB_TYPE_FIXED_*`): the columns `collision_test_fixed` and `align_with_terrain` of fx_dbase.c's `fixed_database`, row for row.
+/// `ENTITY_SUB_TYPE_FIXED_UNKNOWN` (0) is a declared, legitimate value whose rule is that it neither collides nor aligns; it is not a missing or a default word.
+pub const FIXED_RULES: [FixedRule; FIXED_SUB_TYPES] = {
+    const fn rule(collision_fixed: bool, align: bool) -> FixedRule {
+        FixedRule { collision_fixed, align }
+    }
+    [
+        rule(false, false), // UNKNOWN
+        rule(true, false),  // BRIDGE_END_SECTION
+        rule(true, false),  // BRIDGE_SUPPORTED_MID_SECTION
+        rule(true, false),  // BRIDGE_UNSUPPORTED_MID_SECTION
+        rule(true, false),  // CITY
+        rule(true, false),  // CITY_BUILDING
+        rule(false, true),  // CRATER
+        rule(true, false),  // ELECTRICITY_PYLON_END_TERMINATOR
+        rule(true, false),  // ELECTRICITY_PYLON_STANDARD
+        rule(true, false),  // ELECTRICITY_PYLON_START_TERMINATOR
+        rule(true, false),  // ELECTRICITY_STATION
+        rule(true, false),  // ELECTRICITY_SUBSTATION
+        rule(true, false),  // MILITARY_BUILDING
+        rule(false, false), // SCENIC_OBJECT
+        rule(false, false), // TERRAIN_OBJECT
+    ]
+};
+
+/// The rule of a fixed sub type, or none for a value outside the declared enumeration (the original would index past its table there: no row exists, so the host invents none).
+pub fn fixed_rule(sub_type: i32) -> Option<FixedRule> {
+    usize::try_from(sub_type).ok().and_then(|index| FIXED_RULES.get(index).copied())
+}
+
 /// The collision state of a fixed-family placement, as the campaign stated it (mb_hostmodel.h, FIXED_STATE): the words a narrow-phase decision about the placement is made from. Every float is the bit
 /// pattern the campaign held and is never loaded as a float here; the shape is the scene index the placement has NOW (a kill, a restore and a bridge's damage each change it, and a destroyed structure
-/// still collides with its destroyed shape), and the two flags are the ones the entity's type derives (collision-test-fixed, align-with-terrain).
+/// still collides with its destroyed shape). The record holds the fixed `sub_type` the campaign stated (always a declared one: [`SectorRoster::set_fixed`] refuses any other), and the two physical flags are
+/// DERIVED from it by the host's own rule ([`FixedRule`]), never stated by the campaign and never kept apart from it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct FixedState {
     pub position: [u32; 3],
     pub heading: u32,
     pub shape: i32,
-    pub collision_fixed: bool,
-    pub align: bool,
+    pub sub_type: i32,
+}
+
+impl FixedState {
+    /// The host's rule for the record's sub type; none only for a state that holds an undeclared one, which no statement the roster accepted can.
+    pub fn rule(&self) -> Option<FixedRule> {
+        fixed_rule(self.sub_type)
+    }
+
+    /// `collision_test_fixed`: whether a fixed candidate takes part in the narrow phase (false for an undeclared sub type, which the roster never holds).
+    pub fn collision_fixed(&self) -> bool {
+        self.rule().is_some_and(|rule| rule.collision_fixed)
+    }
+
+    /// `align_with_terrain`: whether the candidate's shape stands on the terrain's face normal (false for an undeclared sub type, which the roster never holds).
+    pub fn align(&self) -> bool {
+        self.rule().is_some_and(|rule| rule.align)
+    }
 }
 
 /// The collision state of a city placement, as the campaign stated it (mb_hostmodel.h, CITY_STATE): the words a candidate question about the city is decided from once the campaign has read them. Every float is the
 /// bit pattern the entity held and is never loaded as a float here. The box of a city that has no building yet is the original's INVERTED initial box (minimum 1.0e6, maximum -1.0e6), a valid statement.
+/// A city carries the fixed record too, so the record also holds its fixed `sub_type` (`ENTITY_SUB_TYPE_FIXED_CITY` for the campaign's cities), and the host derives the city's collision flag from it with the same rule as
+/// any fixed placement's ([`CityState::collision_fixed`]). The sub type is the campaign's restated classification fact; the box is the host's and does not depend on it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CityState {
     pub position: [u32; 3],
     pub box_min: [u32; 3],
     pub box_max: [u32; 3],
+    pub sub_type: i32,
+}
+
+impl CityState {
+    /// `collision_test_fixed` of the city's sub type (false for an undeclared one, which the roster never holds).
+    pub fn collision_fixed(&self) -> bool {
+        fixed_rule(self.sub_type).is_some_and(|rule| rule.collision_fixed)
+    }
 }
 
 /// What the host holds of a record's collision state: nothing was ever stated (a record of a type that has none, or a campaign that did not state it), the fixed family's state, a city's own state, or the host's own
@@ -530,6 +613,9 @@ impl SectorRoster {
                 "the placement {key} is of entity type {placed}, which is not of the fixed family: the host holds no fixed collision state for it"
             )));
         }
+        if fixed_rule(state.sub_type).is_none() {
+            return Err(Refusal::new(undeclared_sub_type(state.sub_type)));
+        }
         let Some(entry) = self.records.get_mut(&record) else {
             return Err(Refusal::new(format!("the placement {key} has no record")));
         };
@@ -553,6 +639,9 @@ impl SectorRoster {
             return Err(Refusal::new(format!(
                 "the placement {key} is of entity type {placed}, which is not a city: the host holds no city collision state for it"
             )));
+        }
+        if fixed_rule(state.sub_type).is_none() {
+            return Err(Refusal::new(undeclared_sub_type(state.sub_type)));
         }
         let Some(entry) = self.records.get_mut(&record) else {
             return Err(Refusal::new(format!("the placement {key} has no record")));
@@ -632,6 +721,7 @@ impl SectorRoster {
             position: held.position,
             box_min: min,
             box_max: max,
+            sub_type: held.sub_type,
         });
         Ok(())
     }
@@ -958,8 +1048,8 @@ mod tests {
             position: [1.0f32.to_bits(), 2.0f32.to_bits(), 3.0f32.to_bits()],
             heading: 0.5f32.to_bits(),
             shape,
-            collision_fixed: true,
-            align: false,
+            // ENTITY_SUB_TYPE_FIXED_MILITARY_BUILDING: collides, does not align
+            sub_type: 12,
         }
     }
 
@@ -1084,6 +1174,8 @@ mod tests {
             position: [seed, seed + 1, seed + 2],
             box_min: [seed + 3, seed + 4, seed + 5],
             box_max: [seed + 6, seed + 7, seed + 8],
+            // ENTITY_SUB_TYPE_FIXED_CITY
+            sub_type: 4,
         }
     }
 
@@ -1171,7 +1263,8 @@ mod tests {
             FixedHold::City(CityState {
                 position: city_state(1).position,
                 box_min: [11, 12, 13],
-                box_max: [14, 15, 16]
+                box_max: [14, 15, 16],
+                sub_type: city_state(1).sub_type
             })
         );
         // and the campaign's statement of the same box (its mirror) is the one that is held; another is not
@@ -1260,6 +1353,136 @@ mod tests {
         // a boot ends every record and its state
         roster.clear();
         assert!(roster.placement_fixed(fresh, false).is_err());
+    }
+
+    const FIXED_DATABASE_C: &str = include_str!("../../../../aphavoc/source/entity/fixed/fx_dbase.c");
+    const FIXED_SUB_TYPES_H: &str = include_str!("../../../../aphavoc/source/entity/system/en_types/en_sbtyp.h");
+
+    /// the campaign's `enum ENTITY_SUB_TYPE_FIXED` members, in declaration order (`NUM_ENTITY_SUB_TYPE_FIXED`, the count, excluded)
+    fn declared_fixed_sub_types() -> Vec<String> {
+        let body = FIXED_SUB_TYPES_H
+            .split("enum ENTITY_SUB_TYPE_FIXED\n")
+            .nth(1)
+            .and_then(|rest| rest.split('}').next())
+            .expect("the enumeration");
+        assert!(!body.contains('='), "an explicit value would make the order an unsafe count");
+        body.lines()
+            .map(str::trim)
+            .filter_map(|line| line.strip_suffix(','))
+            .filter(|name| name.starts_with("ENTITY_SUB_TYPE_FIXED_"))
+            .map(str::to_string)
+            .collect()
+    }
+
+    /// the original's `fixed_database` rows in row order: (the sub type each is headed by, collision_test_fixed, align_with_terrain)
+    fn original_rows() -> Vec<(String, bool, bool)> {
+        let flag = |value: &str| match value {
+            "TRUE" => true,
+            "FALSE" => false,
+            other => panic!("`{other}` is not a flag"),
+        };
+        let (mut name, mut align, mut collision) = (String::new(), false, false);
+        let mut rows = Vec::new();
+        for line in FIXED_DATABASE_C.lines() {
+            let Some((value, comment)) = line.split_once("//") else { continue };
+            let (value, comment) = (value.trim().trim_end_matches(',').trim(), comment.trim());
+            match comment {
+                "align_with_terrain" => align = flag(value),
+                "collision_test_fixed" => collision = flag(value),
+                "ground_radar_clutter" => rows.push((std::mem::take(&mut name), collision, align)),
+                header if value.is_empty() && header.starts_with("ENTITY_SUB_TYPE_FIXED_") => name = header.to_string(),
+                _ => {}
+            }
+        }
+        rows
+    }
+
+    #[test]
+    fn the_hosts_rule_table_is_the_originals_fixed_database_row_for_row_over_the_declared_enumeration() {
+        let declared = declared_fixed_sub_types();
+        assert_eq!(declared.len(), FIXED_SUB_TYPES, "the host's domain is the enumeration's size: {declared:?}");
+        let rows = original_rows();
+        assert_eq!(
+            rows.iter().map(|row| row.0.clone()).collect::<Vec<_>>(),
+            declared,
+            "a row for each declared value, in its order"
+        );
+        for (sub_type, (name, collision, align)) in rows.iter().enumerate() {
+            let rule = fixed_rule(i32::try_from(sub_type).unwrap()).unwrap_or_else(|| panic!("{name} has no rule"));
+            assert_eq!((rule.collision_fixed, rule.align), (*collision, *align), "{name}");
+            assert_eq!(FIXED_RULES[sub_type], rule);
+        }
+        assert_eq!(declared[0], "ENTITY_SUB_TYPE_FIXED_UNKNOWN");
+        assert_eq!(
+            fixed_rule(0),
+            Some(FixedRule {
+                collision_fixed: false,
+                align: false
+            }),
+            "UNKNOWN is declared, with a rule of its own"
+        );
+    }
+
+    #[test]
+    fn only_a_value_outside_the_declared_enumeration_has_no_rule_and_a_record_never_holds_one() {
+        for undeclared in [-1, i32::MIN, 15, 16, 255, i32::MAX] {
+            assert_eq!(fixed_rule(undeclared), None, "{undeclared}");
+        }
+        let mut roster = SectorRoster::default();
+        let object = roster.insert((0, 0), 17, None);
+        let city = roster.insert((0, 0), ENTITY_CITY, None);
+        for undeclared in [-1, 15, 1000] {
+            let mut bad = state(7);
+            bad.sub_type = undeclared;
+            let refusal = roster.set_fixed(object, 17, bad).unwrap_err();
+            assert!(refusal.0.contains("declared fixed sub types"), "{}", refusal.0);
+            let mut bad_city = city_state(1);
+            bad_city.sub_type = undeclared;
+            assert!(roster.set_city(city, bad_city).unwrap_err().0.contains("declared fixed sub types"));
+            // a refused statement changes nothing
+            assert_eq!(held(&roster, object, false), FixedHold::Never);
+            assert_eq!(held(&roster, city, false), FixedHold::Never);
+        }
+        // UNKNOWN is legitimate: held, with its own rule
+        let mut unknown = state(7);
+        unknown.sub_type = 0;
+        roster.set_fixed(object, 17, unknown).unwrap();
+        assert_eq!(held(&roster, object, false), FixedHold::Held(unknown));
+        assert!(!unknown.collision_fixed() && !unknown.align());
+    }
+
+    #[test]
+    fn a_states_flags_follow_its_sub_type_and_a_cities_box_does_not() {
+        // CRATER aligns without colliding; the campaign's cities collide; a restated sub type re-derives both flags at once
+        let mut crater = state(7);
+        crater.sub_type = 6;
+        assert!(!crater.collision_fixed() && crater.align());
+        assert!(state(7).collision_fixed() && !state(7).align());
+        assert!(city_state(1).collision_fixed());
+        let mut unknown_city = city_state(1);
+        unknown_city.sub_type = 0;
+        assert!(!unknown_city.collision_fixed());
+        // the host's box is not the sub type's: a restatement under another sub type over the box the host holds is decided by the box alone
+        let mut roster = SectorRoster::default();
+        let city = roster.insert((0, 0), ENTITY_CITY, None);
+        roster.set_city(city, city_state(1)).unwrap();
+        roster.set_city_box(city, [40; 3], [41; 3]).unwrap();
+        let held_box = |roster: &SectorRoster| match held(roster, city, false) {
+            FixedHold::City(held) => (held.box_min, held.box_max, held.sub_type),
+            other => panic!("{other:?}"),
+        };
+        assert_eq!(
+            held_box(&roster),
+            ([40; 3], [41; 3], 4),
+            "the box the host built keeps the sub type the record held"
+        );
+        let mut same_box = city_state(1);
+        same_box.box_min = [40; 3];
+        same_box.box_max = [41; 3];
+        same_box.sub_type = 0;
+        roster.set_city(city, same_box).unwrap();
+        assert_eq!(held_box(&roster), ([40; 3], [41; 3], 0));
+        assert!(roster.set_city(city, city_state(1)).unwrap_err().0.contains("not the one the host holds"));
     }
 
     const ENTITY_TYPES_H: &str = include_str!("../../../../aphavoc/source/entity/system/en_types/en_types.h");
