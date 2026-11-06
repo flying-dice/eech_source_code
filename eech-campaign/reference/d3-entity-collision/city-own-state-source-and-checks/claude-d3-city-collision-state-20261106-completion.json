@@ -1,0 +1,22 @@
+{
+  "controller_pid": 14344,
+  "pid": 16796,
+  "session": "2981e9ad-9fc0-4a23-ae12-ef3c28a878af",
+  "source_before": "de60a051b37b1893cb435865c14c338798399656",
+  "state": "terminal",
+  "started_utc": "2026-11-06T08:58:36.295615+00:00",
+  "model": "claude-sonnet-5-5",
+  "effort": "high",
+  "context": {
+    "prior_file": "claude-d3-fixed-static-corrections-20261106.jsonl",
+    "last_actual_input_total": 238172,
+    "choice": "Fresh compact context for NEW CITY collision-state extraction; prior context exists/terminal0. Not a size-only restart of a healthy job; no current Claude process. Prior model Sonnet5.5High verified; CLI2.1.310 exactflags checked this recovery."
+  },
+  "scope": "ONE focused CITY own collision position/box production lane after reviewed finite fixed-state closure. No agents/Windows/native/fullpack restart; SAME independent reviewer afterfreeze. Root soleexternalwriter/cacheowner except Linuxcache delegated to this lane.",
+  "actual_exit": 0,
+  "completed_utc": "2026-11-06T09:45:34.812346+00:00",
+  "assistant_models": [
+    "claude-sonnet-5-5"
+  ],
+  "result_is_error": false
+}

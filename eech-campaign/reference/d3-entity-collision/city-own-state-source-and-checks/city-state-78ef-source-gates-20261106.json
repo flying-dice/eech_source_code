@@ -1,0 +1,135 @@
+{
+  "source": "78ef839dd75d325c42acb3127d097fee400388c2",
+  "metadata": "0a847b8e1692d2e078ae1336598ae8898355570d",
+  "snapshot": "D:\\EECH-Migration-Evidence\\city-collision-state-78ef839dd-20261106-source",
+  "actual_exit": 0,
+  "scope": "THIS read-only binding audit exit0; NO Root Cargo/tests/native rerun. Four final author direct exits and550 focused tests reused after literal raw/source identity join. Sourceclear45e6 grants only conditional native validation; new Windows/profiles/short/actuals remain.",
+  "checkpoint_sha256": "b42e271263473bd8e4723b74d02faf73097358e0ea0f3c27f5eade9714827605",
+  "original_repo_checkpoint_sha256": "cc6ed8d96e0a036e137ba8c941bf5393a7decc90b7f6a1a04e9c8a16894601c7",
+  "external_checkpoint_only_adds_publication_metadata": true,
+  "source_review_sha256": "45e6798ec6d16de8f61764b99d3434e7ab7a84043fbea3520aed12ae867dc1bf",
+  "producer_actual_exit": 0,
+  "checks": [
+    {
+      "command": "cargo fmt -p eech-world -p eech-engine-sys -p eech-engine -- --check",
+      "actual_exit": 0,
+      "record": {
+        "path": "R:/d3-evidence/sector-roster-direct-city-final-fmt.json",
+        "bytes": 928,
+        "sha256": "50f85761971f8f0b391bcebb548761e92eb03c2405bf96a65152688412085177"
+      },
+      "test_rows": []
+    },
+    {
+      "command": "cargo test --release --locked -p eech-world --test entity_authority --test entity_roster_host --test entity_candidate_host --test entity_pose_host --test model_target_point --lib --no-fail-fast",
+      "actual_exit": 0,
+      "record": {
+        "path": "R:/d3-evidence/sector-roster-direct-city-final-world.json",
+        "bytes": 1179,
+        "sha256": "b9b44c7730eb71281d9731f355d7511426ac35525231483194eaf7184d68b491"
+      },
+      "test_rows": [
+        {
+          "binary": "src/lib.rs",
+          "verdict": "ok",
+          "passed": 366,
+          "failed": 0
+        },
+        {
+          "binary": "tests/entity_authority.rs",
+          "verdict": "ok",
+          "passed": 74,
+          "failed": 0
+        },
+        {
+          "binary": "tests/entity_candidate_host.rs",
+          "verdict": "ok",
+          "passed": 13,
+          "failed": 0
+        },
+        {
+          "binary": "tests/entity_pose_host.rs",
+          "verdict": "ok",
+          "passed": 5,
+          "failed": 0
+        },
+        {
+          "binary": "tests/entity_roster_host.rs",
+          "verdict": "ok",
+          "passed": 17,
+          "failed": 0
+        },
+        {
+          "binary": "tests/model_target_point.rs",
+          "verdict": "ok",
+          "passed": 52,
+          "failed": 0
+        }
+      ]
+    },
+    {
+      "command": "cargo test --release --locked -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard --test entity_pose_lifecycle_guard --no-fail-fast -- --nocapture",
+      "actual_exit": 0,
+      "record": {
+        "path": "R:/d3-evidence/sector-roster-direct-city-final-engine.json",
+        "bytes": 1234,
+        "sha256": "d3393f2d0816a4eae755037e0f51a25a065d8e748d7e2264444047930bc59e1a"
+      },
+      "test_rows": [
+        {
+          "binary": "tests/entity_dialogue.rs",
+          "verdict": "ok",
+          "passed": 1,
+          "failed": 0
+        },
+        {
+          "binary": "tests/entity_host_guard.rs",
+          "verdict": "ok",
+          "passed": 5,
+          "failed": 0
+        },
+        {
+          "binary": "tests/entity_pose_lifecycle_guard.rs",
+          "verdict": "ok",
+          "passed": 4,
+          "failed": 0
+        },
+        {
+          "binary": "tests/entity_roster_guard.rs",
+          "verdict": "ok",
+          "passed": 13,
+          "failed": 0
+        }
+      ]
+    },
+    {
+      "command": "cargo check --release --locked -p eech-engine-sys -p eech-engine -p eech-dc -p eech-world",
+      "actual_exit": 0,
+      "record": {
+        "path": "R:/d3-evidence/sector-roster-direct-city-final-check.json",
+        "bytes": 970,
+        "sha256": "93709de190426d6a696eda864e145d2f693cef7464aa6402361e5f9d3a92a474"
+      },
+      "test_rows": []
+    }
+  ],
+  "focused_world_tests": 527,
+  "focused_sys_tests": 23,
+  "C_dialogue_expectations": 619,
+  "C_count_qualification": "FINAL city-final-engine stdout says619; earlier green-engine logs and frozen/review summary say618. Historical reports retained literally; this binding uses final actual output, no source/test rerun.",
+  "full_source_files": 3952,
+  "all_frozen_raw_bytes_equal_Git": true,
+  "author_and_frozen_raw_equal": 3949,
+  "qualified_inherited_raw_differences": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "changed_source_files_raw_equal_Git": 15,
+  "before_after_binding_maps_literal_equal": true,
+  "before_after_map_sha256": "20a50e5343f6c68fdf251ad817d0ea0425a85f8b06f2dda9cde6cbfa94d460d0",
+  "manifest_entries_actual_Git_bytes_verified": 3,
+  "prepared_retail_input_tool_and_reference_joined": true,
+  "remaining": "Canonical CITY position/box backing only. Core ct_msgs physical model bounds/rotation/offset/aggregation and fx_int collision-fixed predicates remain REQUIRED D3, along with allten requirements/current40all8/CI/review/normalmerge.",
+  "verified_utc": "2026-11-06T09:55:20.620419+00:00"
+}

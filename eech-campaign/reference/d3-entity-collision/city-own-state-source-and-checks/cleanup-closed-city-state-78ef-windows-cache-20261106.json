@@ -1,0 +1,13 @@
+{
+  "source": "78ef839dd75d325c42acb3127d097fee400388c2",
+  "volume": "eech-win-city-state-78ef839dd-20261106",
+  "actual_exit": 0,
+  "no_container_owners": true,
+  "all_three_profiles_rehashed_payloads_each": 88,
+  "preservation": "D:\\EECH-Migration-Evidence\\city-state-profile-artifacts-78ef-20261106\\preservation.json",
+  "preservation_sha256": "3fb9440e11b984ff45dda4acb9c08e7e2412e5c1f8b0db85314c1744c25f87cc",
+  "retained_objects": 12,
+  "retained_files": 30,
+  "scope": "Only closed dedicated build cache removed after actual review. Source/bin/roots/raw/COFF retained. Current ordinary4native fullpack untouched and does not use Cargo cache.",
+  "completed_utc": "2026-11-06T10:29:21.546620+00:00"
+}

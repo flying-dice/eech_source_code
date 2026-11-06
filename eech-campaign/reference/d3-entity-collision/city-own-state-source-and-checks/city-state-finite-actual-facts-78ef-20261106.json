@@ -1,0 +1,117 @@
+{
+  "source": "78ef839dd75d325c42acb3127d097fee400388c2",
+  "source_review_sha256": "45e6798ec6d16de8f61764b99d3434e7ab7a84043fbea3520aed12ae867dc1bf",
+  "all_four_full_input_manifests_literal_equal": true,
+  "cases": [
+    {
+      "role": "healthy",
+      "source": "78ef839dd75d325c42acb3127d097fee400388c2",
+      "native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "input_exits": [
+        0,
+        0
+      ],
+      "full_pre_post_manifest_bytes_literal_equal": true,
+      "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "sealed_payloads_verified": 88,
+      "safe_facts": {
+        "completed": true,
+        "failure_marker": "",
+        "request_faults": 0,
+        "reply_faults": 0,
+        "view_applied": 25,
+        "city_state_before": 83408,
+        "city_state_after": 0,
+        "city_state_total": 0,
+        "city_state_stated": 0,
+        "city_state_joined": 4484,
+        "city_state_withdrawn": 0,
+        "city_state_withdrawn_next": "",
+        "city_state_withdrawn_cause": "",
+        "candidate_buildings": 44,
+        "stationary": 279,
+        "moving": 0,
+        "scan_after": 70375,
+        "candidate_after": 70470,
+        "entity_after": 279,
+        "scan_altered": 0,
+        "candidate_altered": 0,
+        "altered": 0,
+        "contact_any_tests_delta": 6,
+        "contact_any_hits_delta": 0,
+        "precision_high_delta": 6,
+        "case_weapons_pending": 0
+      },
+      "raw_reports_private": true
+    },
+    {
+      "role": "withdrawn-city-state",
+      "source": "78ef839dd75d325c42acb3127d097fee400388c2",
+      "native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "input_exits": [
+        0,
+        0
+      ],
+      "full_pre_post_manifest_bytes_literal_equal": true,
+      "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "sealed_payloads_verified": 88,
+      "safe_facts": {
+        "completed": false,
+        "failure_marker": "entity_candidate.refused",
+        "request_faults": 0,
+        "reply_faults": 1,
+        "view_applied": 5,
+        "city_state_before": 83408,
+        "city_state_after": 0,
+        "city_state_total": 0,
+        "city_state_stated": 0,
+        "city_state_joined": 459,
+        "city_state_withdrawn": 1,
+        "city_state_withdrawn_next": "city",
+        "city_state_withdrawn_cause": "city_state_withdrawn",
+        "candidate_buildings": 4,
+        "stationary": 26,
+        "moving": 0,
+        "scan_after": 7224,
+        "candidate_after": 7226,
+        "entity_after": 26,
+        "scan_altered": 0,
+        "candidate_altered": 0,
+        "altered": 0,
+        "contact_any_tests_delta": -1,
+        "contact_any_hits_delta": -1,
+        "precision_high_delta": -1,
+        "case_weapons_pending": -1
+      },
+      "raw_reports_private": true
+    }
+  ],
+  "healthy_comparison": {
+    "prior_compiled_source": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa",
+    "shared_authority_fields": 177,
+    "all_shared_fields_equal": true,
+    "different_shared_field_names": [],
+    "complete_terminal_lines_including_endings_literal_equal": true,
+    "terminal_count": 1,
+    "terminal_bytes": 180,
+    "terminal_sha256": "b8a859abc3df8fdfbe1cde9d34e44bc195fe3e3b24da7d83d7b03a2ce8e4c433"
+  },
+  "source_map": {
+    "files": 3952,
+    "literal_before_after_equal": true,
+    "sha256": "20a50e5343f6c68fdf251ad817d0ea0425a85f8b06f2dda9cde6cbfa94d460d0",
+    "all_raw_Git_exact": true
+  },
+  "C_count_qualification": "Root sourcegate95bb binds FINAL619 C expectations; original frozen/review summary618 retained literally. No source/test/native replay.",
+  "scope": "FINITE canonical CITY position/box backing dependence only. Same city SECOND relevant stage reached after real state-only withdrawal, unchanged question/reply/Core/list, namedcause. Prior26 stationary questions/other activity before that later city query are valid; postfatal counts/pending unknown(-1). Core ct_msgs physical model-bounds/rotation/offset/box aggregation and fx_int collision-fixed predicates remain REQUIRED D3. No armedwriter/liveness/naturalmoving/allCITYphysics/wholephysical/full40/Task49/D3 acceptance.",
+  "actual_independent_review_pending": true,
+  "captured_utc": "2026-11-06T10:22:06.154286+00:00"
+}

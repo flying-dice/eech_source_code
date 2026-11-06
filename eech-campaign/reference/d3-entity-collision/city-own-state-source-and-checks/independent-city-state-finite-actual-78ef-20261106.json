@@ -1,0 +1,348 @@
+{
+  "schema": 1,
+  "review_kind": "One combined independent correctness, clean-code and boundary-safety audit of NEW CITY state finite actuals",
+  "reviewer": "/root/d3_environment_review",
+  "captured_utc": "2026-11-06T10:26:49.910777+00:00",
+  "source": {
+    "commit": "78ef839dd75d325c42acb3127d097fee400388c2",
+    "metadata_commit": "0a847b8e1692d2e078ae1336598ae8898355570d",
+    "snapshot": "D:/EECH-Migration-Evidence/city-collision-state-78ef839dd-20261106-source",
+    "source_review": {
+      "path": "R:\\d3-evidence\\independent-city-collision-state-source-78ef839-20261106.json",
+      "bytes": 26335,
+      "sha256": "45e6798ec6d16de8f61764b99d3434e7ab7a84043fbea3520aed12ae867dc1bf"
+    },
+    "source_review_reused_without_reopening": true,
+    "diagnostic_git_blob": "935f4c2268690270302a06f897a22a9c765c96ab",
+    "diagnostic_bytes": 195037,
+    "diagnostic_sha256": "95623d9074937df42ab950602195eef9e05ca621c3a517c797ec313a0528c637",
+    "literal_equals_Git_and_sealed_packaged_hosted_Lua": true,
+    "native_and_literal_sources_both_78ef": true,
+    "no_binary_relabel": true
+  },
+  "decision": {
+    "status": "FINITE_CITY_POSITION_BOX_BACKING_DEPENDENCY_VERIFIED",
+    "findings": [],
+    "finite_public_city_state_backing_closed": true,
+    "finite_city_position_box_backing_dependency_closed": true,
+    "ordinary_complete_short_literal_equal": true,
+    "next_CITY_physical_box_construction_and_predicates_cut_may_start": true,
+    "next_production_order": "Move the remaining CITY physical box construction/model-data/heading/offset/aggregation and physical flag inputs before sector-height and other remaining physical services. NEW implementation needs its own bounded source/actual review; this is not advance clearance for unreviewed code. Preserve the running frozen full pack.",
+    "physical_CITY_box_construction_moved": false,
+    "all_CITY_physical_predicates_host_owned": false,
+    "armed_CITY_writer_coverage_accepted": false,
+    "liveness_or_registry_retirement_accepted": false,
+    "natural_moving_weapon_integration_accepted": false,
+    "whole_physical_backing_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false
+  },
+  "independent_actual_audit": [
+    "Read the healthy and negative raw controllers, model.jsonl and native logs plus outer completion receipts. Joined actual separate pre/native/post exits, profile/source/script arguments, payload and BUILD-INFO identities. No native was launched or repeated.",
+    "Rehashed all88 payloads and BUILD-INFO for each of THREE fresh Windows profiles. Joined profile8159 to actual direct read-only audit exits, retained raw profile log and RLIB-bound member hashes/symbols; no compilation or Docker/cache operation was performed.",
+    "Verified the195037-byte literal against the exact78ef Git blob and packaged hosted Lua. Both case controllers bind that same literal, compiled profile and mode, with only control versus withdrawn_city_state differing.",
+    "Compared all four focused full1179-input manifests literally, confirmed their validator exits, and checked the ordinary short own pre/post pair. Independently compared all THREE COMPLETE short files to retained80fd bytes.",
+    "Independently compared every177 common healthy authority field with retainedf734 healthy recovery, and the complete180-byte terminal including line endings. Raw physical fields are kept private.",
+    "Compared3952-entry frozen source maps before/after binding/after native literally, and rehashed every current scoped file against recorded raw SHA256/size and Git-byte SHA256. Reused closed45e/source gate95bb; no new source sweep or implementation test was run.",
+    "Confirmed the final retained C log actually says619 expectations. The earlier618 report/checkpoint summaries remain literal; no tests or reports were rewritten."
+  ],
+  "build_profile_evidence": {
+    "build_completion": {
+      "path": "R:\\d3-evidence\\city-state-78ef-windows-20261106-completion.json",
+      "bytes": 45950,
+      "sha256": "b21e232a31c32cafb5390b7a8520631c852b6501c2a6de960043978f5b1fe501"
+    },
+    "all_three_builds_actual_exit": 0,
+    "profiles": {
+      "ordinary": {
+        "actual_exit": 0,
+        "payloads_rehashed": 88,
+        "BUILD_INFO_sha256": "f48c1b8753103b20fd902f97fd52edeffde05fa408dd743b9205840642b2eefe",
+        "features": [],
+        "image": "sha256:72f264aadd33f664f682a3eab4b598459e73948754eb8aae43b61a95f57df322"
+      },
+      "hosted": {
+        "actual_exit": 0,
+        "payloads_rehashed": 88,
+        "BUILD_INFO_sha256": "e44732dca4fd6d73b2014f6c4904f93731add994a6fe7a189778092c52bd695f",
+        "features": [
+          "weapon-fixture"
+        ],
+        "image": "sha256:3bc1f57502d76b0592345c90f9ae39d3f0099d6e78fbe84ad5d1dfac7f3763ac"
+      },
+      "original": {
+        "actual_exit": 0,
+        "payloads_rehashed": 88,
+        "BUILD_INFO_sha256": "6bbfacea9931cceac5ff838ea705cee860b30c9431c3a1c039ff1374be1f22f3",
+        "features": [
+          "collision-fixture",
+          "weapon-fixture"
+        ],
+        "image": "sha256:4a066ca33a233eb8bda55fc9a1b724980162c2fa82e88ce7b0f8c2e8c53d0726"
+      }
+    },
+    "profile_isolation": {
+      "path": "R:\\d3-evidence\\city-state-windows-profile-isolation-78ef-20261106.json",
+      "bytes": 6952,
+      "sha256": "8159c45f94577aa74f3567ccb4b84f288521956ee2fc607fae5476af3bad8744"
+    },
+    "actual_twelve_source_declared_campaign_place_symbols_present_ordinary_and_hosted_absent_Original": true,
+    "fixture_inclusion_exclusion_and_PE_exports_bound": true,
+    "mq_report_check_symbol_absent": true,
+    "qualification": "Actual Cargo feature manifests and frozen build mapping are corroborated by the profile-bound COFF/archive symbol and PE-export evidence. The read-only audit image is not relabelled the producer image. Earlier ordinary/hosted image configuration env fields are unavailable, not inferred. No new Original retail campaign control is claimed by the compile profile."
+  },
+  "cases": [
+    {
+      "role": "healthy",
+      "output": "D:\\EECH-Migration-Evidence\\city-state-healthy-78ef839dd-20261106",
+      "native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "pre_native_post_stage_exits": [
+        0,
+        0,
+        0
+      ],
+      "input_entries_per_full_manifest": 1179,
+      "payloads_verified": 88,
+      "controller": {
+        "path": "D:\\EECH-Migration-Evidence\\city-state-healthy-78ef839dd-20261106\\controller.json",
+        "bytes": 4275,
+        "sha256": "bf872fbd1a7b47b0d4c99d77f4c0621e4b7a33411a2a151427d0661ac4b1201c"
+      },
+      "outer_completion": {
+        "path": "R:\\d3-evidence\\city-state-healthy-78ef839dd-20261106-completion.json",
+        "bytes": 1756,
+        "sha256": "3b40fa42b4f3341e5f9590f2ee1e06b8b1f4b8ee0a788b3cc6bc51925bb421c9"
+      },
+      "JSONL_rows": 7,
+      "JSONL_sha256": "6e4e85dd24897199b506e3f744ec36fda224f8394dc45e1be28e95cacf2f5fc9",
+      "safe_facts": {
+        "completed": true,
+        "failure_marker": "",
+        "request_faults": 0,
+        "reply_faults": 0,
+        "view_applied": 25,
+        "city_state_before": 83408,
+        "city_state_after": 0,
+        "city_state_total": 0,
+        "city_state_stated": 0,
+        "city_state_joined": 4484,
+        "city_state_withdrawn": 0,
+        "city_state_withdrawn_next": "",
+        "city_state_withdrawn_cause": "",
+        "candidate_buildings": 44,
+        "stationary": 279,
+        "moving": 0,
+        "scan_after": 70375,
+        "candidate_after": 70470,
+        "entity_after": 279,
+        "scan_altered": 0,
+        "candidate_altered": 0,
+        "altered": 0,
+        "contact_any_tests_delta": 6,
+        "contact_any_hits_delta": 0,
+        "precision_high_delta": 6,
+        "case_weapons_pending": 0
+      }
+    },
+    {
+      "role": "withdrawn-city-state",
+      "output": "D:\\EECH-Migration-Evidence\\city-state-withdrawn-78ef839dd-20261106",
+      "native_helper_outer_exits": [
+        0,
+        0,
+        0
+      ],
+      "pre_native_post_stage_exits": [
+        0,
+        0,
+        0
+      ],
+      "input_entries_per_full_manifest": 1179,
+      "payloads_verified": 88,
+      "controller": {
+        "path": "D:\\EECH-Migration-Evidence\\city-state-withdrawn-78ef839dd-20261106\\controller.json",
+        "bytes": 4332,
+        "sha256": "8af033c4b59d64c33e600b5f2b04bf13f69c43f9d549070606763f32605058cf"
+      },
+      "outer_completion": {
+        "path": "R:\\d3-evidence\\city-state-withdrawn-78ef839dd-20261106-completion.json",
+        "bytes": 1955,
+        "sha256": "5aa960942739888a8632a0fcc1c22760d25e10d9223ac843974fb755274f219f"
+      },
+      "JSONL_rows": 6,
+      "JSONL_sha256": "7ea42246d11c106ac67890f6edb9a38d479a5336d670f6db396af61ee6886c8f",
+      "safe_facts": {
+        "completed": false,
+        "failure_marker": "entity_candidate.refused",
+        "request_faults": 0,
+        "reply_faults": 1,
+        "view_applied": 5,
+        "city_state_before": 83408,
+        "city_state_after": 0,
+        "city_state_total": 0,
+        "city_state_stated": 0,
+        "city_state_joined": 459,
+        "city_state_withdrawn": 1,
+        "city_state_withdrawn_next": "city",
+        "city_state_withdrawn_cause": "city_state_withdrawn",
+        "candidate_buildings": 4,
+        "stationary": 26,
+        "moving": 0,
+        "scan_after": 7224,
+        "candidate_after": 7226,
+        "entity_after": 26,
+        "scan_altered": 0,
+        "candidate_altered": 0,
+        "altered": 0,
+        "contact_any_tests_delta": -1,
+        "contact_any_hits_delta": -1,
+        "precision_high_delta": -1,
+        "case_weapons_pending": -1
+      }
+    }
+  ],
+  "finite_authority_interpretation": {
+    "healthy": "83408 boot-window CITY reports were observed and acknowledged into the same host state, with zero armed reports.4484 actual CURRENT served-key CITY position/box-stage joins complete without faults. One finite configured-view cohort completes with pending0;279 stationary questions and44 BUILDINGS decisions were reached. This proves finite consumption of canonical backing, not armed writer or every lifetime coverage.",
+    "negative": "After an eligible successful real lookup of the CITY state, ONE real state-only withdrawal is acknowledged by the same provider. The initial reply is returned unchanged. A SECOND actual question of that SAME served CITY at the position/box stage is reached and refused with entity_candidate.refused / candidate.city / withdrew as its primary cause. No generic answer override, Core/list deletion, actor/time/geometry hunt or fallback is credited.",
+    "negative_safe_counts": {
+      "city_state_withdrawn": 1,
+      "city_state_joined": 459,
+      "same_CITY_second_stage_reached": true,
+      "request_faults": 0,
+      "reply_faults": 1,
+      "scan_candidate_entity_answers_altered": 0,
+      "stationary_before_refusal": 26,
+      "BUILDINGS_before_refusal": 4,
+      "postfatal_physical_counters_and_pending": -1
+    },
+    "actual_primary_cause_joined_to_native_log": true,
+    "same_key_and_stage_joins_verified_without_publishing_identity": true,
+    "intervening_work": "The second relevant CITY-stage question is not necessarily the next candidate call. Prior26 stationary questions,4 BUILDINGS decisions and other legitimate scan work are allowed. They are not postfatal queries or a zero-work claim.",
+    "poison_boundary": "The negative completed flag is false and there is no terminal event. Physical counter/pending values are unknown(-1), retained Lua observations describe the refusal, and the source-reviewed path does not ask the poisoned engine for new values. Expected refusal caught by the diagnostic accounts for native/helper/outer0; it is not a complete physical cohort.",
+    "attribution": "Global configured VIEW input and one finite case; no camera or unique-weapon attribution. Moving count0 supplies no natural moving-weapon claim."
+  },
+  "healthy_comparison": {
+    "prior_compiled_source": "f734fdfc08ac36a0feb06efdfac1cb39936a30aa",
+    "shared_authority_fields": 177,
+    "all_shared_fields_equal": true,
+    "different_shared_field_names": [],
+    "complete_terminal_lines_including_endings_literal_equal": true,
+    "terminal_count": 1,
+    "terminal_bytes": 180,
+    "terminal_sha256": "b8a859abc3df8fdfbe1cde9d34e44bc195fe3e3b24da7d83d7b03a2ce8e4c433"
+  },
+  "ordinary_short": {
+    "native_helper_outer_exits": [
+      0,
+      0,
+      0
+    ],
+    "input_exits": [
+      0,
+      0
+    ],
+    "payloads_rehashed": 88,
+    "all_three_COMPLETE_files_literal_equal": true,
+    "files": [
+      {
+        "file": "recording.acmi",
+        "bytes": 230871,
+        "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d"
+      },
+      {
+        "file": "observations.jsonl",
+        "bytes": 1553674,
+        "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc"
+      },
+      {
+        "file": "metrics.json",
+        "bytes": 7477,
+        "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4"
+      }
+    ],
+    "native_wall_seconds": 14.091691,
+    "walltime_qualification": "Single observed short duration, not a benchmark. Generated and byte-compared recording is not visual inspection.",
+    "comparison": {
+      "path": "R:\\d3-evidence\\city-state-ordinary-short-comparison-78ef-20261106.json",
+      "bytes": 1754,
+      "sha256": "bf013d15023fdfa83f6f479e7fa09534d8d32a2c035423c6f4f5f515f9516731"
+    },
+    "completion": {
+      "path": "R:\\d3-evidence\\city-state-ordinary-short-78ef839dd-20261106-completion.json",
+      "bytes": 1715,
+      "sha256": "4733835c4adbebe8a17b3ad699eef9e5e6c3fdb72622ec6120fe0424e2778221"
+    }
+  },
+  "integrity": {
+    "focused_full_input_manifests": 4,
+    "entries_each": 1179,
+    "manifest_bytes_each": 209622,
+    "all_four_manifest_bytes_literal_equal": true,
+    "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "ordinary_short_own_pre_post_literal_equal": true,
+    "source_files_rehashed": 3952,
+    "frozen_before_after_binding_after_native_maps_literal_equal": true,
+    "source_map_sha256": "20a50e5343f6c68fdf251ad817d0ea0425a85f8b06f2dda9cde6cbfa94d460d0",
+    "all_current_frozen_raw_source_files_match_Git_bytes": true,
+    "source_after_native": {
+      "path": "R:\\d3-evidence\\city-state-78ef-snapshot-after-native-20261106.json",
+      "bytes": 2028086,
+      "sha256": "20a50e5343f6c68fdf251ad817d0ea0425a85f8b06f2dda9cde6cbfa94d460d0"
+    },
+    "qualification": "The earlier author-map three inherited workingCRLF/GitLF Lua qualifications remain at their own identity. The clean frozen snapshot raw bytes all match Git. Filtered hash-object identities are not substituted for raw-byte proof."
+  },
+  "source_gate_and_count_addendum": {
+    "source_gate": {
+      "path": "R:\\d3-evidence\\city-state-78ef-source-gates-20261106.json",
+      "bytes": 5447,
+      "sha256": "95bb2787eb66a20335ba640d669c41b8af77930df79eb97d1cec52492ee5469a"
+    },
+    "read_only_binding_audit_actual_exit": 0,
+    "no_Root_Cargo_rerun": true,
+    "reused_current_World_tests": 527,
+    "reused_current_Sys_tests": 23,
+    "C_expectations_final_actual": 619,
+    "historical_summary_value": 618,
+    "final_count_log": {
+      "path": "R:\\d3-evidence\\sector-roster-direct-city-final-engine.stdout.log",
+      "bytes": 3109,
+      "sha256": "5d0a12258484ec4b12deb53b514df9171d826385eb2baec88e7bf92539fd01ee"
+    },
+    "qualification": "The final city-final-engine stdout reports619. Earlier green-engine and frozen/source-review summaries reported618; those artifacts stay literal. This addendum corrects only the final-count interpretation and does not relabel or rerun source/test/native evidence."
+  },
+  "required_remaining_work": [
+    {
+      "kind": "CITY physical box construction",
+      "source": "aphavoc/source/entity/fixed/city/ct_msgs.c:114",
+      "disposition": "REQUIRED D3: Core still obtains the building model bounding box, reads heading, computes the rotation, computes relative position offsets and aggregates min/max at114..179; only after that does the new state report run at189. Query backing dependence is verified; the actual physical calculation/model-data consumer is not extracted."
+    },
+    {
+      "kind": "CITY physical predicates",
+      "source": "aphavoc/source/entity/fixed/fx_int.c:254",
+      "disposition": "REQUIRED D3: collision_test_fixed still derives from fixed_database/sub_type at257 and the caller still supplies staged classification facts. The CITY record in this slice contains only position and box. No all-CITY-physics claim is made."
+    },
+    {
+      "kind": "Whole physical scope",
+      "disposition": "UPDATED/shared terrain/tallest/spatial-height and hints, raw tree/forest/cloud data and RNG, live identity/lifetime/synchronization, hierarchy/subobjects/viewpoints/devices and remaining required services, needed DCS calls/workarounds and natural moving-weapon integration remain REQUIRED. Allten requirements are preserved."
+    },
+    {
+      "kind": "Shipping and delivery",
+      "disposition": "The separate immutable f734 ordinary full40 pack remains active per Root and was not touched or accepted here. It does not validate changed78ef C. Complete applicable current40/all8, final inputs/payloads, CI/review/dependency/normal merge and whole-D3 final census are separate gates."
+    }
+  ],
+  "next_production_clearance_limits": "No concrete finding blocks beginning the next required CITY physical construction/predicate implementation. This is permission to progress to that NEW bounded source change, not native clearance for unknown future code or whole Task49 acceptance. No need to repeat closed numeric/source/roster/CITY-list experiments merely to recover context.",
+  "root_safe_projection": {
+    "path": "R:\\d3-evidence\\city-state-finite-actual-facts-78ef-20261106.json",
+    "bytes": 4323,
+    "sha256": "da4d3accc4a54de1a6be27b0728aa6f0ee40e073a28b2d235ecbb6163d602b70"
+  },
+  "safe_projection_pending_flag": "The Root projection retains independent-review-pending as capture history; this report contains the actual decision. Original projection is not rewritten.",
+  "scope": "FINITE canonical CITY collision position/box backing dependency and complete retained ordinary short only. No armed writer/liveness/all-CITY-physics/natural moving/whole physical/fullpack/Task49/D3 acceptance.",
+  "review_operations": "Read-only artifact/source-identity audit and one exclusive report write. No source/card/canonical changes, agents, builds, tests, native launches, VM/cache/process operations or external publication.",
+  "publication_safety": "Only aggregate numeric/enum facts, counts, hashes, semantic cause names and private/source paths. No raw retail coordinates, physical tuples, cohort signatures, host-ID suffixes, entity indices, pointers, assets/binaries/recordings/transcripts or raw fatal lines."
+}
