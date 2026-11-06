@@ -1337,6 +1337,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let movers = Rc::new(RefCell::new(Movers::default()));
     // the model provider observes the same registry (ENTITY_POSE): shared by handle, not copied
     lua.set_app_data(eech_world::movement::SharedMovers(movers.clone()));
+    // the host's roster of the sector lists (which entities stand in which sector, in what order): the ONE membership the entity scan is served from (crate::roster)
+    lua.set_app_data(eech_world::roster::SharedRoster(Rc::new(RefCell::new(
+        eech_world::roster::SectorRoster::default(),
+    ))));
     {
         let next_host_id = next_host_id.clone();
         let movers = movers.clone();

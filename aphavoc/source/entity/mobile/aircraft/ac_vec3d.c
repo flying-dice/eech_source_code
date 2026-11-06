@@ -155,6 +155,9 @@ static void set_local_vec3d (entity *en, vec3d_types type, vec3d *v)
          float
             heading;
 
+         int
+            placed;
+
          entity
 				*dependent,
 				*special_effect,
@@ -202,9 +205,18 @@ static void set_local_vec3d (entity *en, vec3d_types type, vec3d *v)
 
 			new_sector = get_local_sector_entity (v);
 
+         placed = FALSE;
+
          if (old_sector != new_sector)
          {
             delete_local_entity_from_parents_child_list (en, LIST_TYPE_SECTOR);
+
+            // the host holds a hosted mobile's pose and places it in a sector by that record (EEDCS-49, the host's sector roster): its record is made current BEFORE the insertion tells the host
+            // the mobile entered the new sector, where the placement used to follow it. It is the same single placement, made earlier
+
+            campaign_movement_place (en);
+
+            placed = TRUE;
 
             insert_local_entity_into_parents_child_list (en, LIST_TYPE_SECTOR, new_sector, NULL);
 
@@ -240,7 +252,10 @@ static void set_local_vec3d (entity *en, vec3d_types type, vec3d *v)
 				special_effect = get_local_entity_child_succ (special_effect, LIST_TYPE_SPECIAL_EFFECT);
 			}
 
-         campaign_movement_place (en);
+         if (!placed)
+         {
+            campaign_movement_place (en);
+         }
 
          break;
       }

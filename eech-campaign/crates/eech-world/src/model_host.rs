@@ -694,16 +694,139 @@ fn entity_candidate_answer(lua: &Lua, store: &ModelStore, q: &Question) -> LuaRe
     Ok(table)
 }
 
+/// The roster phases of an `entity_scan` question: the campaign reports an insertion into a sector list (4), a removal from it (5), or a new boot (6). They are not steps of a scan, so the scan
+/// kernel is never asked about them (its own phases are 0 to 3).
+const ROSTER_INSERT: f32 = 4.0;
+const ROSTER_REMOVE: f32 = 5.0;
+const ROSTER_RESET: f32 = 6.0;
+
+/// The host's answer to one roster event of the sector lists (see `crate::roster`): an INSERT (phase 4) states the entity's type, the sector side length and the position the campaign holds, with the
+/// semantic identity of a hosted mobile in the identity place; the host decides the sector (a hosted mobile's from its OWN record, an entity with none from the stated position), records the entry and
+/// answers the key it issued as `name`. A REMOVE (phase 5) names a key (the identity place), and a RESET (phase 6) ends every entry.
+fn roster_event(lua: &Lua, phase: f32, words: &[u32], identity: &str) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    table.set("name", "")?;
+    let refuse = |table: &LuaTable, reason: String| -> LuaResult<LuaTable> {
+        table.set("result", "refused")?;
+        table.set("reason", reason)?;
+        Ok(table.clone())
+    };
+    let Some(shared) = lua.app_data_ref::<crate::roster::SharedRoster>() else {
+        return refuse(&table, "the host keeps no sector roster".into());
+    };
+    let Ok(mut roster) = shared.0.try_borrow_mut() else {
+        return refuse(&table, "the sector roster was busy".into());
+    };
+    if phase == ROSTER_RESET {
+        roster.clear();
+        table.set("result", "cleared")?;
+        return Ok(table);
+    }
+    if phase == ROSTER_REMOVE {
+        let Ok(key) = identity.parse::<u64>() else {
+            return refuse(
+                &table,
+                format!(
+                    "[roster.key] \"{}\" is not a key this host issued",
+                    identity.chars().take(40).collect::<String>()
+                ),
+            );
+        };
+        return match roster.remove(key) {
+            Ok(()) => {
+                table.set("result", "removed")?;
+                Ok(table)
+            }
+            Err(why) => refuse(&table, format!("[roster.key] {}", why.0)),
+        };
+    }
+    // an insertion: type, side length and the campaign's stated position (x and z; y does not enter a sector)
+    let whole = |word: u32, low: f32, high: f32| -> Option<i32> {
+        let value = f32::from_bits(word);
+        (value.is_finite() && value == value.floor() && value >= low && value <= high).then_some(value as i32)
+    };
+    let (Some(entity_type), Some(side)) = (whole(words[3], 0.0, 1.0e6), whole(words[6], 1.0, 1.0e6)) else {
+        return refuse(
+            &table,
+            "[roster.request] an insertion states a whole entity type and a positive whole sector side length".into(),
+        );
+    };
+    let stated = match crate::roster::sector_of(words[0], words[2], side) {
+        Ok(sector) => sector,
+        Err(why) => return refuse(&table, format!("[roster.position] {}", why.0)),
+    };
+    let mut sector = stated;
+    let mut mobile = None;
+    if !identity.is_empty() {
+        // a hosted mobile: its sector is computed from the host's ONE canonical record of it (the registry the movement callbacks step); the position the campaign states is only compared
+        let canonical = match lua.app_data_ref::<movement::SharedMovers>() {
+            None => movement::Canonical::Unknown,
+            Some(movers) => match movers.0.try_borrow() {
+                Ok(movers) => movers.canonical(identity),
+                Err(_) => {
+                    return refuse(
+                        &table,
+                        "[roster.record] the movement registry was being stepped while a mobile was inserted".into(),
+                    )
+                }
+            },
+        };
+        match canonical {
+            movement::Canonical::Record(record) => {
+                match crate::roster::sector_of(record.position[0], record.position[2], side) {
+                    Ok(held) if held == stated => {
+                        sector = held;
+                        mobile = Some(identity);
+                    }
+                    Ok(held) => {
+                        return refuse(
+                        &table,
+                        format!("[roster.pose] the campaign inserts \"{identity}\" into sector {stated:?} but the host's record of it stands in sector {held:?}"),
+                    );
+                    }
+                    Err(why) => return refuse(&table, format!("[roster.record] {}", why.0)),
+                }
+            }
+            movement::Canonical::Retired => {
+                return refuse(
+                    &table,
+                    format!("[roster.record] the host retired the identity \"{identity}\" before its insertion"),
+                )
+            }
+            movement::Canonical::Incomplete => return refuse(&table, format!("[roster.record] the host's record of \"{identity}\" holds no motion vector")),
+            // the host issued the identity to a member it keeps no pose record for (or keeps no movers): the entity states its own position and the identity is only the mapping
+            movement::Canonical::Unrecorded | movement::Canonical::Unknown => mobile = Some(identity),
+        }
+    }
+    let key = roster.insert(sector, entity_type, mobile);
+    table.set("name", key.to_string())?;
+    table.set("result", "placed")?;
+    Ok(table)
+}
+
 /// The reference host's answer to an entity scan question (the ENUMERATION of `get_line_of_sight_collision_entity`, EEDCS-49): the sector window, the traversal order, the exclusions and the first-hit
-/// end of the scan, from the segment, the campaign's world map and the cursor facts. `first` (with the sector as `p`), `next`, `offer`, `done_none` or `done_hit`. It reads no model: the enumeration
-/// needs none, and the entries it names are served by the campaign's own lists (the transitional backing dependency).
+/// end of the scan, from the segment, the campaign's world map and the cursor facts. `first` (with the sector as `p`), `next`, `offer`, `done_none` or `done_hit`. The scan kernel reads no model. The
+/// entries it names are the HOST's own roster (`crate::roster`): `first` and `next` carry the key of the entry to serve as `name` (empty when the sector's list has no more), the question
+/// that follows an entry names the entry it is standing at in the identity place, and an entry the roster does not hold, or does not hold in that sector, is refused by name and never skipped.
+/// The same question also carries the roster's own events (phases 4 to 6, `roster_event`).
 fn entity_scan_answer(lua: &Lua, q: &Question) -> LuaResult<LuaTable> {
     let operation = q.operation.as_str();
     let fail = |message: String| LuaError::runtime(format!("[model-provider:{operation}.request] {message}"));
     if q.scene != Some(0) || q.depth.is_some() || q.kind.is_some() || q.definition.is_some() {
         return Err(fail("an entity scan question has no scene (0), depth, kind or definition".into()));
     }
-    let words = transport_pose(q.key.as_deref(), operation, |n| n == entity_host::SCAN_FACTS)?;
+    let (pattern_text, identity) = match q.key.as_deref() {
+        Some(text) => {
+            let (patterns, identity) = split_words_and_identity(text, entity_host::SCAN_FACTS, operation)?;
+            (Some(patterns), identity)
+        }
+        None => (None, ""),
+    };
+    let words = transport_pose(pattern_text, operation, |n| n == entity_host::SCAN_FACTS)?;
+    let phase = f32::from_bits(words[11]);
+    if phase == ROSTER_INSERT || phase == ROSTER_REMOVE || phase == ROSTER_RESET {
+        return roster_event(lua, phase, &words, identity);
+    }
     let table = lua.create_table()?;
     table.set("name", "")?;
     match entity_host::scan_step(&words) {
@@ -720,6 +843,40 @@ fn entity_scan_answer(lua: &Lua, q: &Question) -> LuaResult<LuaTable> {
             )?;
             if step.state == entity_host::ScanState::First {
                 table.set("p", hex_list(&step.cursor))?;
+            }
+            if matches!(step.state, entity_host::ScanState::First | entity_host::ScanState::Next) {
+                // the entry to serve: the sector's oldest for `first`, the one after the entry the scan is standing at for `next`
+                let refuse = |reason: String| -> LuaResult<LuaTable> {
+                    let refused = lua.create_table()?;
+                    refused.set("name", "")?;
+                    refused.set("result", "refused")?;
+                    refused.set("reason", reason)?;
+                    Ok(refused)
+                };
+                let Some(shared) = lua.app_data_ref::<crate::roster::SharedRoster>() else {
+                    return refuse("[roster.missing] the host keeps no sector roster".into());
+                };
+                let Ok(roster) = shared.0.try_borrow() else {
+                    return refuse("[roster.busy] the sector roster was busy".into());
+                };
+                let served = if step.state == entity_host::ScanState::First {
+                    let sector = (f32::from_bits(step.cursor[0]) as i32, f32::from_bits(step.cursor[1]) as i32);
+                    Ok(roster.first(sector))
+                } else {
+                    let sector = (f32::from_bits(words[12]) as i32, f32::from_bits(words[13]) as i32);
+                    match identity.parse::<u64>() {
+                        Ok(key) => roster.next(sector, key),
+                        Err(_) => Err(crate::roster::Refusal(format!(
+                            "the scan asked for the entry after \"{}\", which is not a key this host issued",
+                            identity.chars().take(40).collect::<String>()
+                        ))),
+                    }
+                };
+                match served {
+                    Ok(Some(key)) => table.set("name", key.to_string())?,
+                    Ok(None) => {}
+                    Err(why) => return refuse(format!("[roster.key] {}", why.0)),
+                }
             }
         }
         Err(reason) => {

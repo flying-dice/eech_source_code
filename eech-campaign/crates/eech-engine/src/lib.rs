@@ -1175,7 +1175,9 @@ pub enum ModelQuery {
     EntityCandidate { scene: i32, facts: Vec<u32>, host_id: String },
     /// the ENUMERATION of the entity scan (EEDCS-49, mb_hostmodel.h ENTITY_SCAN): the sector window, the traversal order, the exclusions and the first-hit end are the host's. `facts` are the 16 floats
     /// of the question as exact bit patterns (the segment, the campaign's world map, the phase and the cursor the host last gave, and what the campaign reports about the entry it served)
-    EntityScan { facts: Vec<u32> },
+    /// `identity` is the host-issued key of the entry the campaign is standing at (the question after a served entry), of the entry that left its sector list (a removal), or the semantic identity of a hosted
+    /// mobile (an insertion); empty otherwise. The same question also carries the roster's own events of the sector lists (the phase fact: 4 an insertion, 5 a removal, 6 a new boot)
+    EntityScan { facts: Vec<u32>, identity: String },
     /// an OBSERVATION of a mobile candidate's pose (EEDCS-49, mb_hostmodel.h ENTITY_POSE): the campaign names the candidate by its semantic host identity (`host_id`, empty when the roster has none) and
     /// offers the words it read (`words`, 15 floats as exact bit patterns: the position (3), the motion vector (3) and, for `stage` 1 only, the attitude (9)), with the entity's type and whether it is alive.
     /// The host reports its own record of the identity; NOTHING DECIDES FROM THE ANSWER
@@ -1280,7 +1282,8 @@ pub enum CandidateDecision {
 }
 
 /// What the host decided about the enumeration of the entity scan: the TAIL of the list of a sector (`First`, with the sector's two indices), the predecessor of the entry the campaign is at (`Next`),
-/// to offer that entry for its decisions (`Offer`), or the end of the scan with no hit (`DoneNone`) or with the hit of the entry offered last (`DoneHit`).
+/// to offer that entry for its decisions (`Offer`), or the end of the scan with no hit (`DoneNone`) or with the hit of the entry offered last (`DoneHit`). The host's roster events are answered with
+/// `Placed` (the key it issued is the answer's `key`), `Removed` and `Cleared`.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum ScanDecision {
     First([f32; 2]),
@@ -1288,6 +1291,9 @@ pub enum ScanDecision {
     Offer,
     DoneNone,
     DoneHit,
+    Placed,
+    Removed,
+    Cleared,
 }
 
 /// How the host classifies the identity of a mobile candidate it was asked to observe (ENTITY_POSE): it keeps a record of it (`Recorded`), it issued the identity to a member it keeps no movement record for
@@ -1363,8 +1369,10 @@ pub enum ModelAnswer {
         decision: CandidateDecision,
     },
     /// the host's decision about the enumeration of the entity scan
+    /// `key` is the host-issued key of the entry to serve (`First` and `Next`; empty when the sector's list has no more) or of the entry just placed (`Placed`), and empty otherwise
     EntityScan {
         decision: ScanDecision,
+        key: String,
     },
     /// the host's observation of a mobile candidate's pose: the class, the kind of its record (0 none, 1 routed vehicle, 2 ship, 3 person, 4 fixed-wing aircraft, 5 helicopter) and the differences between
     /// the campaign's words and the record (bit 0 position, 1 attitude, 2 motion against a held vector, 3 no held motion vector, 4 motion against the record's attitude row 2 times its speed)
@@ -1500,7 +1508,12 @@ unsafe extern "C" fn model_callback(
                     .filter(|count| *count == 16)
                     .ok_or_else(|| format!("[model-provider:entity_scan.request] the facts have {} floats", source.pose_count))?;
                 let facts = source.pose[..count].iter().map(|float| float.to_bits()).collect();
-                ("entity_scan", ModelQuery::EntityScan { facts })
+                let Some(length) = source.host_id.iter().position(|c| *c == 0) else {
+                    return Err("[model-provider:entity_scan.request] the identity is not NUL-terminated".to_string());
+                };
+                let bytes: Vec<u8> = source.host_id[..length].iter().map(|c| *c as u8).collect();
+                let identity = String::from_utf8(bytes).map_err(|_| "[model-provider:entity_scan.request] the identity is not text".to_string())?;
+                ("entity_scan", ModelQuery::EntityScan { facts, identity })
             }
             sys::EECH_MODEL_ENTITY_POSE => {
                 let count = usize::try_from(source.pose_count)
@@ -1688,7 +1701,8 @@ unsafe extern "C" fn model_callback(
                     }
                 };
             }
-            ("entity_scan", ModelAnswer::EntityScan { decision }) => {
+            ("entity_scan", ModelAnswer::EntityScan { decision, key }) => {
+                put_name(&mut reply, &key, "entity_scan")?;
                 reply.candidate_state = match decision {
                     ScanDecision::First(cursor) => {
                         reply.candidate[..2].copy_from_slice(&cursor);
@@ -1698,6 +1712,9 @@ unsafe extern "C" fn model_callback(
                     ScanDecision::Offer => sys::EECH_MODEL_SCAN_OFFER,
                     ScanDecision::DoneNone => sys::EECH_MODEL_SCAN_DONE_NONE,
                     ScanDecision::DoneHit => sys::EECH_MODEL_SCAN_DONE_HIT,
+                    ScanDecision::Placed => sys::EECH_MODEL_SCAN_PLACED,
+                    ScanDecision::Removed => sys::EECH_MODEL_SCAN_REMOVED,
+                    ScanDecision::Cleared => sys::EECH_MODEL_SCAN_CLEARED,
                 };
             }
             ("entity_pose", ModelAnswer::EntityPose { class, kind, difference }) => {
@@ -11528,6 +11545,9 @@ mod tests {
             (ScanDecision::Offer, sys::EECH_MODEL_SCAN_OFFER, [0.0, 0.0]),
             (ScanDecision::DoneNone, sys::EECH_MODEL_SCAN_DONE_NONE, [0.0, 0.0]),
             (ScanDecision::DoneHit, sys::EECH_MODEL_SCAN_DONE_HIT, [0.0, 0.0]),
+            (ScanDecision::Placed, sys::EECH_MODEL_SCAN_PLACED, [0.0, 0.0]),
+            (ScanDecision::Removed, sys::EECH_MODEL_SCAN_REMOVED, [0.0, 0.0]),
+            (ScanDecision::Cleared, sys::EECH_MODEL_SCAN_CLEARED, [0.0, 0.0]),
         ] {
             let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
             request.pose_count = 16;
@@ -11535,19 +11555,29 @@ mod tests {
                 *slot = *float;
             }
             let expected: Vec<u32> = sent.iter().map(|float| float.to_bits()).collect();
+            // the identity place carries a key or a semantic identity whole, and the answer's key comes back in the reply's name place
+            for (at, byte) in "eech-world:42".bytes().enumerate() {
+                request.host_id[at] = byte as c_char;
+            }
             let seen = std::rc::Rc::new(std::cell::RefCell::new(None));
             let record = std::rc::Rc::clone(&seen);
             let (code, reply, error) = model_crossing(
                 Some(Box::new(move |query| match query {
-                    ModelQuery::EntityScan { facts } => {
+                    ModelQuery::EntityScan { facts, identity } => {
+                        assert_eq!(identity, "eech-world:42");
                         *record.borrow_mut() = Some(facts);
-                        Ok(ModelAnswer::EntityScan { decision })
+                        Ok(ModelAnswer::EntityScan {
+                            decision,
+                            key: "1234567".to_string(),
+                        })
                     }
                     other => Err(format!("unexpected {other:?}")),
                 })),
                 request,
             );
             assert_eq!(code, 0, "{decision:?}: {error}");
+            let name: Vec<u8> = reply.name.iter().take_while(|c| **c != 0).map(|c| *c as u8).collect();
+            assert_eq!(name, b"1234567", "{decision:?}: the key crosses in the name place");
             assert_eq!(
                 seen.borrow().clone(),
                 Some(expected),

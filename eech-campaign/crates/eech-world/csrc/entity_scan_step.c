@@ -6,10 +6,12 @@
  * extents, converted to sector indices), the traversal (x outer, z inner), that each sector's list is read from its TAIL backwards, that the source and the target are skipped, that a candidate
  * is OFFERED for its decisions, and that the FIRST hit ends the scan. A farther candidate in an earlier sector or list position wins over a nearer one: the order is the result.
  *
- * What the campaign keeps, named and REQUIRED to move (it is a transitional backing dependency, not the campaign's ownership of the physical scan): the sector lists and their insertion
- * history (the entity heap and its relinks), the entities' live state, and the identity of the source and the target. The campaign SERVES the host's cursor over its lists: it returns the
- * entry the host asks for (the tail of a sector, the predecessor of the current entry) and reports, as a fact, whether that entry is the source or the target (a comparison only the
- * entity heap can make). No list is copied, so there is no second store to synchronise, and a list cannot change inside one scan (nothing in the scan links, unlinks or releases an entity).
+ * What the host keeps (src/roster.rs, served by src/model_host.rs): WHICH entities stand in each sector and in what order. The campaign reports each insertion into and removal from a sector list as an event
+ * of the same question (phases 4 to 6, which this kernel is never asked about) and the host answers with a key it issued; this kernel decides the window, the traversal and the ends, and the entry a
+ * sector's list serves (its oldest first, then what follows the entry the campaign is standing at) is the host's roster's. The campaign's own lists are only the conformance mirror of that order.
+ *
+ * What the campaign keeps, named and REQUIRED to move: the tallest structure of a sector, a city's buildings, the entities' live state and static pose, the semantic identity of a structure, and the
+ * identity of the source and the target (a comparison only the entity heap can make, reported as a fact).
  *
  * It is a pure function of its facts, like entity_candidate_step.c: the host keeps nothing between questions and the cursor travels in the facts and the answer. The caller
  * (src/entity_host.rs) runs it under round-toward-zero with the caller's floating-point state saved and restored; this file does not touch the environment.

@@ -1652,8 +1652,16 @@ int campaign_roster_report_loss (const char *host_id, campaign_loss_report_recei
 
 static campaign_member_record *current_member_record (entity *member)
 {
-	int index = entity_index (member);
-	int record_index = current_member_by_entity[index] - 1;
+	int index;
+	int record_index;
+
+	/* before the roster's first reset no entity is a member: a lookup asks about entities (the sector lists' placement does, for every entity it inserts) and is answered with none */
+	if (!current_member_by_entity)
+	{
+		return NULL;
+	}
+	index = entity_index (member);
+	record_index = current_member_by_entity[index] - 1;
 	if (record_index < 0)
 	{
 		return NULL;

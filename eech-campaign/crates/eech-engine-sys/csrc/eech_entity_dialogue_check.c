@@ -28,6 +28,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #if defined(__linux__)
@@ -78,6 +79,15 @@ static struct scripted_scan scan_queue[48];
 static int scan_queue_length, scan_queue_next, scan_cycle;
 static float scan_seen[64][4];
 static int scan_seen_count;
+/* the key (the identity place of the question) the campaign named with each scan question; the key the scripted host serves INSTEAD of the coherent one when `scan_key_forced` is set, and a name it
+   puts on a state that serves no entry when `scan_stray_name` is set; and how a coherent host picks the key it serves (set once the scripted sector lists exist) */
+static char scan_identity_seen[64][24];
+static const char *scan_key_forced, *scan_stray_name;
+static const char *(*scripted_served_key) (int state, const campaign_model_request *request, const campaign_model_reply *reply);
+/* the roster's events (the same question, phases 4 to 6): the question the campaign asked last and how many, and the scripted host's answer (a coherent one unless overridden) */
+static campaign_model_request roster_seen;
+static int roster_asks, roster_override, roster_state, roster_issue = 1;
+static const char *roster_name;
 static struct scripted_answer answer;
 static campaign_model_request seen;
 /* the ENTITY_POSE observations the campaign asked (kept apart from `seen` and `asks`, which describe the candidate dialogue), and the scripted host's answer to them: by default a recorded identity
@@ -149,6 +159,32 @@ static void scripted_ask (campaign_model_request *request, campaign_model_reply 
 		return;
 	}
 
+	if ((request->op == CAMPAIGN_MODEL_ENTITY_SCAN) && ((int) request->pose[CAMPAIGN_SCAN_PHASE] >= CAMPAIGN_SCAN_PHASE_INSERT))
+	{
+		int phase = (int) request->pose[CAMPAIGN_SCAN_PHASE];
+
+		roster_seen = *request;
+		roster_asks++;
+
+		if (refuse_the_exchange)
+		{
+			debug_fatal ("host model: [model-provider:callback] the scripted host refused");
+		}
+
+		reply->candidate_state = roster_override ? roster_state : ((phase == CAMPAIGN_SCAN_PHASE_INSERT) ? CAMPAIGN_MODEL_SCAN_PLACED : ((phase == CAMPAIGN_SCAN_PHASE_REMOVE) ? CAMPAIGN_MODEL_SCAN_REMOVED : CAMPAIGN_MODEL_SCAN_CLEARED));
+
+		if (roster_override)
+		{
+			strncpy (reply->name, roster_name, sizeof (reply->name) - 1);
+		}
+		else if (phase == CAMPAIGN_SCAN_PHASE_INSERT)
+		{
+			snprintf (reply->name, sizeof (reply->name), "%d", roster_issue++);
+		}
+
+		return;
+	}
+
 	seen = *request;
 	asks++;
 
@@ -165,6 +201,8 @@ static void scripted_ask (campaign_model_request *request, campaign_model_reply 
 			scan_seen[scan_seen_count][1] = request->pose[CAMPAIGN_SCAN_CURSOR];
 			scan_seen[scan_seen_count][2] = request->pose[CAMPAIGN_SCAN_EXCLUDED];
 			scan_seen[scan_seen_count][3] = request->pose[CAMPAIGN_SCAN_HIT];
+			strncpy (scan_identity_seen[scan_seen_count], request->host_id, sizeof (scan_identity_seen[0]) - 1);
+			scan_identity_seen[scan_seen_count][sizeof (scan_identity_seen[0]) - 1] = 0;
 		}
 
 		scan_seen_count++;
@@ -185,6 +223,18 @@ static void scripted_ask (campaign_model_request *request, campaign_model_reply 
 		else
 		{
 			reply->candidate_state = 0;
+		}
+
+		/* the entry the host serves, by its key: the coherent host serves what its roster (the scripted lists) holds at that place, unless a case forces a key */
+		if ((reply->candidate_state == CAMPAIGN_MODEL_SCAN_FIRST) || (reply->candidate_state == CAMPAIGN_MODEL_SCAN_NEXT))
+		{
+			const char *served = scan_key_forced ? scan_key_forced : (scripted_served_key ? scripted_served_key (reply->candidate_state, request, reply) : "");
+
+			strncpy (reply->name, served, sizeof (reply->name) - 1);
+		}
+		else if (scan_stray_name)
+		{
+			strncpy (reply->name, scan_stray_name, sizeof (reply->name) - 1);
 		}
 
 		return;
@@ -549,6 +599,8 @@ struct sentity
 	float tallest;
 	struct sentity *first_child, *succ, *pred;
 	int id;
+	/* the key the scripted host's roster holds for the entity in a list (assigned by sector_list; empty when it is in none) */
+	char key[24];
 };
 
 static char reads[128];
@@ -663,12 +715,70 @@ static struct sentity *ss_pred (struct sentity *e) { read_log ('p'); return (e->
 #define CAMPAIGN_SCAN_FIRST(S) ss_first (S)
 #define CAMPAIGN_SCAN_SUCC(E) ss_succ (E)
 #define CAMPAIGN_SCAN_PRED(E) ss_pred (E)
+#define CAMPAIGN_SCAN_ENTITY_OF(KEY) scripted_entity_of ((KEY))
+
+/* the entity the host's key names: found by the key alone, in no list order and with no logged read (the real binding resolves a key through the campaign's placement table, which reads no entity) */
+static struct sentity *scripted_entity_of (const char *key)
+{
+	int x, z;
+
+	for (x = 0; x < 3; x++)
+	{
+		for (z = 0; z < 3; z++)
+		{
+			struct sentity *e;
+
+			for (e = sectors[x][z].first_child; e; e = e->succ)
+			{
+				if (e->key[0] && (strcmp (e->key, key) == 0))
+				{
+					return (e);
+				}
+			}
+		}
+	}
+
+	return (NULL);
+}
+
+/* a coherent host serves the key of the entry its roster holds at the place it was asked about: the TAIL of the sector it names, or the predecessor of the entry the question names */
+static const char *scripted_serve (int state, const campaign_model_request *request, const campaign_model_reply *reply)
+{
+	struct sentity *e;
+
+	if (state == CAMPAIGN_MODEL_SCAN_FIRST)
+	{
+		float x, z;
+
+		memcpy (&x, &reply->candidate[0], sizeof (float));
+		memcpy (&z, &reply->candidate[1], sizeof (float));
+
+		/* a sector outside the map has no list (the comparisons are false for a NaN too): the campaign refuses the cursor itself */
+		if (!((x >= 0.0f) && (x < 3.0f) && (z >= 0.0f) && (z < 3.0f)))
+		{
+			return ("");
+		}
+
+		e = sectors[(int) x][(int) z].first_child;
+
+		while (e && e->succ)
+		{
+			e = e->succ;
+		}
+
+		return (e ? e->key : "");
+	}
+
+	e = scripted_entity_of (request->host_id);
+
+	return ((e && e->pred) ? e->pred->key : "");
+}
 
 #define campaign_model_entity_scan check_model_entity_scan
 
-static int check_model_entity_scan (const float *facts, float *cursor)
+static int check_model_entity_scan (const float *facts, const char *entry_key, float *cursor, char *key)
 {
-	return (campaign_entity_scan_exchange (facts, cursor));
+	return (campaign_entity_scan_exchange (facts, entry_key, cursor, key));
 }
 
 #include "entity/mobile/mb_hostscan.h"
@@ -1440,6 +1550,9 @@ static void scan_reset (void)
 	scan_cycle = FALSE;
 	scan_seen_count = 0;
 	collision_hit = FALSE;
+	scan_key_forced = NULL;
+	scan_stray_name = NULL;
+	scripted_served_key = scripted_serve;
 }
 
 static uint32_t float_word (float value)
@@ -1477,8 +1590,16 @@ static void sector_list (int x, int z, float tallest, struct sentity **entities,
 
 	for (i = 0; i < count; i++)
 	{
+		static int next_key = 1;
+
 		entities[i]->succ = (i + 1 < count) ? entities[i + 1] : NULL;
 		entities[i]->pred = (i > 0) ? entities[i - 1] : NULL;
+
+		/* the host's roster issued a key at the insertion, never twice: an entity keeps the key it has */
+		if (!entities[i]->key[0])
+		{
+			snprintf (entities[i]->key, sizeof (entities[i]->key), "%d", next_key++);
+		}
 	}
 }
 
@@ -1567,6 +1688,9 @@ static void scan_cases (struct tc *t)
 		EXPECT (t, scan_seen_count == 5);
 		EXPECT (t, scan_seen[0][0] == 0.0f && scan_seen[1][0] == 1.0f && scan_seen[2][0] == 3.0f && scan_seen[3][0] == 1.0f && scan_seen[4][0] == 3.0f);
 		EXPECT (t, scan_seen[2][3] == 0.0f && scan_seen[4][3] == 1.0f);
+		/* the question that follows a served entry names it by the host's key and the others name none: the host serves what comes AFTER the entry it is told the campaign is at */
+		EXPECT (t, scan_identity_seen[0][0] == 0 && strcmp (scan_identity_seen[1], b.key) == 0 && strcmp (scan_identity_seen[2], b.key) == 0);
+		EXPECT (t, strcmp (scan_identity_seen[3], a.key) == 0 && strcmp (scan_identity_seen[4], a.key) == 0 && strcmp (a.key, b.key) != 0);
 	}
 
 	/* the source and the target are skipped by the host on the campaign's fact, and only the entity heap compared them: b is the source, a the target, so nothing is offered in that sector */
@@ -1724,6 +1848,365 @@ static void scan_cases (struct tc *t)
 	scan_cycle = TRUE;
 	expect_scan_refusal (t, "a host that never ends the scan", "entity_scan.runaway", __LINE__);
 	scan_cycle = FALSE;
+
+	/* ---- the roster is the answer and the campaign's own list only its mirror: an entry the list does not agree with, or a key that names nothing, is refused BY NAME and is never an end, a miss or a fallback ---- */
+	scan_reset ();
+	queue_reset ();
+	a = make_entity (TRUE, FALSE, 7);
+	b = make_entity (TRUE, FALSE, 7);
+	entities[0] = &a;
+	entities[1] = &b;
+	sector_list (0, 0, 55.0f, entities, 2);
+	sector_list (0, 1, 55.0f, entities, 0);
+
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 0.0f, 0.0f);
+	scan_key_forced = a.key;
+	expect_scan_refusal (t, "the host serves the head of the list where the list's tail is", "entity_scan.roster_mirror", __LINE__);
+	scan_key_forced = "";
+	expect_scan_refusal (t, "the host serves the end of a list that has entries", "entity_scan.roster_mirror", __LINE__);
+	scan_key_forced = "999";
+	expect_scan_refusal (t, "the host serves a key that names no entity", "entity_scan.roster_key", __LINE__);
+	scan_key_forced = "999";
+	/* the campaign's own list was read the way the original read it (the sector, its tallest, its first child and the walk to the end) and the mirror was never asked for a predecessor */
+	EXPECT (t, strcmp (reads, "thss") == 0);
+	scan_queue_length = 0;
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 0.0f, 1.0f);
+	scan_key_forced = a.key;
+	expect_scan_refusal (t, "the host serves an entry where the list is empty", "entity_scan.roster_mirror", __LINE__);
+
+	/* a key that is not a roster key is refused by the exchange before any entity is resolved */
+	scan_queue_length = 0;
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 0.0f, 0.0f);
+	scan_key_forced = "007";
+	expect_scan_refusal (t, "a key with a leading zero", "entity_scan.key", __LINE__);
+	scan_key_forced = "12x";
+	expect_scan_refusal (t, "a key that is not a number", "entity_scan.key", __LINE__);
+	scan_key_forced = "123456789012345678901";
+	expect_scan_refusal (t, "a key of 21 digits", "entity_scan.key", __LINE__);
+	scan_key_forced = "-5";
+	expect_scan_refusal (t, "a negative key", "entity_scan.key", __LINE__);
+	scan_key_forced = NULL;
+	scan_queue_length = 0;
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_OFFER, 0.0f, 0.0f);
+	scan_stray_name = a.key;
+	expect_scan_refusal (t, "a key on an answer that serves no entry", "entity_scan.key", __LINE__);
+	scan_stray_name = NULL;
+
+	/* the coherent host: the same roster, served in its order through the real driver, with the mirror agreeing at every step */
+	scan_queue_length = 0;
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_OFFER, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_NEXT, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_OFFER, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_NEXT, 0.0f, 0.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_FIRST, 0.0f, 1.0f);
+	scan_state (CAMPAIGN_MODEL_SCAN_DONE_NONE, 0.0f, 0.0f);
+	queue_reset ();
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+	queue_state (CAMPAIGN_MODEL_CANDIDATE_SKIP, 0);
+	{
+		struct scan_outcome o;
+
+		scan_queue_next = 0;
+		o = run_scan (NULL, NULL);
+		EXPECT (t, !o.stopped && o.hit == NULL && scan_seen_count == 7);
+		EXPECT (t, strcmp (scan_identity_seen[2], b.key) == 0 && strcmp (scan_identity_seen[4], a.key) == 0 && scan_identity_seen[5][0] == 0 && scan_identity_seen[6][0] == 0);
+	}
+}
+
+/* the roster's events: one insertion, removal or reset of the sector lists, with the real exchange and a scripted host */
+static int roster_event (int phase, int entity_type, const float *position, const char *identity, char *key)
+{
+	roster_asks = 0;
+	key[0] = 0;
+	fatal_text[0] = '\0';
+
+	if (setjmp (fatal_jump) == 0)
+	{
+		campaign_entity_roster_exchange (phase, entity_type, 100.0f, position, identity, key);
+
+		return (FALSE);
+	}
+
+	return (TRUE);
+}
+
+static void roster_cases (struct tc *t)
+{
+	static const float position[3] = { 120.5f, -0.0f, 270.25f };
+	char key[CAMPAIGN_ROSTER_KEY_MAX + 1], identity[CAMPAIGN_MODEL_HOST_ID_MAX + 2];
+	int stopped;
+
+	roster_override = FALSE;
+	roster_issue = 1;
+	refuse_the_exchange = FALSE;
+
+	/* an insertion states the entity's type, the sector side length and the position the campaign holds, bit for bit (a negative zero included), with a hosted mobile's identity; the host's key comes back */
+	stopped = roster_event (CAMPAIGN_SCAN_PHASE_INSERT, 27, position, "eech-world:7", key);
+	EXPECT (t, !stopped && roster_asks == 1 && strcmp (key, "1") == 0);
+	EXPECT (t, roster_seen.op == CAMPAIGN_MODEL_ENTITY_SCAN && roster_seen.scene == 0 && roster_seen.pose_count == CAMPAIGN_MODEL_SCAN_FACTS);
+	EXPECT (t, memcmp (&roster_seen.pose[CAMPAIGN_ROSTER_POSITION], position, 3 * sizeof (float)) == 0);
+	EXPECT (t, roster_seen.pose[CAMPAIGN_ROSTER_TYPE] == 27.0f && roster_seen.pose[CAMPAIGN_SCAN_SIDE] == 100.0f && (int) roster_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_INSERT);
+	EXPECT (t, strcmp (roster_seen.host_id, "eech-world:7") == 0);
+
+	/* every other entity names no identity, and a hosted mobile's whole domain of 128 bytes crosses unshortened */
+	stopped = roster_event (CAMPAIGN_SCAN_PHASE_INSERT, 4, position, NULL, key);
+	EXPECT (t, !stopped && roster_seen.host_id[0] == 0 && strcmp (key, "2") == 0);
+	memset (identity, 'z', CAMPAIGN_MODEL_HOST_ID_MAX);
+	identity[CAMPAIGN_MODEL_HOST_ID_MAX] = 0;
+	stopped = roster_event (CAMPAIGN_SCAN_PHASE_INSERT, 4, position, identity, key);
+	EXPECT (t, !stopped && strcmp (roster_seen.host_id, identity) == 0 && strlen (roster_seen.host_id) == CAMPAIGN_MODEL_HOST_ID_MAX);
+	identity[CAMPAIGN_MODEL_HOST_ID_MAX] = 'z';
+	identity[CAMPAIGN_MODEL_HOST_ID_MAX + 1] = 0;
+	stopped = roster_event (CAMPAIGN_SCAN_PHASE_INSERT, 4, position, identity, key);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.request") != NULL && roster_asks == 0);
+
+	/* a removal names the key and a reset names nothing; neither carries a position or a type */
+	stopped = roster_event (CAMPAIGN_SCAN_PHASE_REMOVE, 4, NULL, "1", key);
+	EXPECT (t, !stopped && roster_asks == 1 && key[0] == 0 && strcmp (roster_seen.host_id, "1") == 0 && (int) roster_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_REMOVE);
+	stopped = roster_event (CAMPAIGN_SCAN_PHASE_RESET, 0, NULL, NULL, key);
+	EXPECT (t, !stopped && roster_asks == 1 && key[0] == 0 && roster_seen.host_id[0] == 0 && (int) roster_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_RESET);
+	stopped = roster_event (CAMPAIGN_SCAN_PHASE_REMOVE, 4, NULL, "007", key);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.key") != NULL && roster_asks == 0);
+	stopped = roster_event (CAMPAIGN_SCAN_PHASE_REMOVE, 4, NULL, NULL, key);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.key") != NULL && roster_asks == 0);
+
+	/* the answer is checked completely: the state the phase allows, a key for an insertion and for no other event, a key that is a roster key, no sector */
+	roster_override = TRUE;
+	roster_state = CAMPAIGN_MODEL_SCAN_PLACED;
+	roster_name = "";
+	stopped = roster_event (CAMPAIGN_SCAN_PHASE_INSERT, 4, position, NULL, key);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.key") != NULL);
+	roster_name = "4x";
+	stopped = roster_event (CAMPAIGN_SCAN_PHASE_INSERT, 4, position, NULL, key);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.key") != NULL);
+	roster_state = CAMPAIGN_MODEL_SCAN_REMOVED;
+	roster_name = "5";
+	stopped = roster_event (CAMPAIGN_SCAN_PHASE_INSERT, 4, position, NULL, key);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.state") != NULL);
+	roster_state = CAMPAIGN_MODEL_SCAN_PLACED;
+	stopped = roster_event (CAMPAIGN_SCAN_PHASE_REMOVE, 4, NULL, "5", key);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.state") != NULL);
+	roster_state = CAMPAIGN_MODEL_SCAN_REMOVED;
+	stopped = roster_event (CAMPAIGN_SCAN_PHASE_REMOVE, 4, NULL, "5", key);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.key") != NULL);
+	roster_state = CAMPAIGN_MODEL_SCAN_CLEARED;
+	roster_name = "";
+	stopped = roster_event (CAMPAIGN_SCAN_PHASE_INSERT, 4, position, NULL, key);
+	EXPECT (t, stopped && strstr (fatal_text, "entity_scan.state") != NULL);
+	roster_override = FALSE;
+
+	refuse_the_exchange = TRUE;
+	stopped = roster_event (CAMPAIGN_SCAN_PHASE_INSERT, 4, position, NULL, key);
+	EXPECT (t, stopped && strstr (fatal_text, "model-provider:callback") != NULL);
+	refuse_the_exchange = FALSE;
+}
+
+
+/* ---- the campaign's placement table (mb_hostplacemap.h): the REAL code that keeps the host's key for each entity of a sector list, bound to scripted entities and the scripted host ---- */
+
+struct pentity
+{
+	int slot, type, has_position;
+	const char *name, *identity;
+	float position[3];
+};
+
+static struct pentity pheap[16];
+static int pheap_size = 16, place_host_installed;
+
+static int place_heap_check (void)
+{
+	if ((pheap_size <= 0) || (pheap_size > 16))
+	{
+		debug_fatal ("host roster: the entity heap holds %d slots, which is not a heap this run allocated", pheap_size);
+	}
+
+	return (pheap_size);
+}
+
+static int check_host_installed (void)
+{
+	return (place_host_installed);
+}
+
+static void check_roster_call (int phase, int entity_type, float side, const float *position, const char *identity, char *key)
+{
+	campaign_entity_roster_exchange (phase, entity_type, side, position, identity, key);
+}
+
+#define campaign_model_host_installed check_host_installed
+#define campaign_model_entity_roster check_roster_call
+#define CAMPAIGN_PLACE_ENTITY struct pentity
+#define CAMPAIGN_PLACE_HEAP() place_heap_check ()
+#define CAMPAIGN_PLACE_SLOT(E) ((E)->slot)
+#define CAMPAIGN_PLACE_AT(SLOT) (&pheap[(SLOT)])
+#define CAMPAIGN_PLACE_TYPE(E) ((E)->type)
+#define CAMPAIGN_PLACE_NAME(E) ((E)->name)
+#define CAMPAIGN_PLACE_POSITION(E) ((E)->has_position ? (E)->position : NULL)
+#define CAMPAIGN_PLACE_IDENTITY(E) ((E)->identity)
+#define CAMPAIGN_PLACE_SIDE() 100.0f
+
+#include "entity/mobile/mb_hostplacemap.h"
+
+#undef campaign_model_host_installed
+#undef campaign_model_entity_roster
+
+/* one operation of the table under a stop catcher: TRUE when the engine stopped; the host's questions of the operation are counted in roster_asks */
+static int place_do (int what, struct pentity *e)
+{
+	roster_asks = 0;
+	fatal_text[0] = '\0';
+
+	if (setjmp (fatal_jump) == 0)
+	{
+		switch (what)
+		{
+			case 0: place_insert (e); break;
+			case 1: place_remove (e); break;
+			case 2: place_release_entity (e); break;
+			default: place_reset (); break;
+		}
+
+		return (FALSE);
+	}
+
+	return (TRUE);
+}
+
+static void place_cases (struct tc *t)
+{
+	int i, stopped, ok;
+	char key[24];
+
+	memset (pheap, 0, sizeof (pheap));
+
+	for (i = 0; i < 16; i++)
+	{
+		pheap[i].slot = i;
+		pheap[i].type = 20 + i;
+		pheap[i].name = "SCRIPTED";
+		pheap[i].has_position = TRUE;
+		pheap[i].position[0] = 1000.0f + (float) i;
+		pheap[i].position[1] = 5.0f;
+		pheap[i].position[2] = 2000.0f;
+	}
+
+	pheap[0].identity = "eech-world:7";
+	roster_override = FALSE;
+	roster_issue = 1;
+	refuse_the_exchange = FALSE;
+	pheap_size = 16;
+	place_reset ();
+	place_host_installed = FALSE;
+
+	/* a build with no model provider has no roster: nothing is asked, nothing is kept, and nothing resolves */
+	stopped = place_do (0, &pheap[0]);
+	EXPECT (t, !stopped && roster_asks == 0 && place_entity ("1") == NULL);
+	stopped = place_do (1, &pheap[0]);
+	EXPECT (t, !stopped && roster_asks == 0);
+	stopped = place_do (2, &pheap[0]);
+	EXPECT (t, !stopped && roster_asks == 0);
+
+	place_host_installed = TRUE;
+
+	/* an insertion tells the host the entity's type, the sector side length, the position it holds and a hosted mobile's identity; the key the host issued resolves to the entity, and only to it */
+	stopped = place_do (0, &pheap[0]);
+	EXPECT (t, !stopped && roster_asks == 1 && (int) roster_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_INSERT);
+	EXPECT (t, roster_seen.pose[CAMPAIGN_ROSTER_TYPE] == 20.0f && roster_seen.pose[CAMPAIGN_SCAN_SIDE] == 100.0f && memcmp (&roster_seen.pose[CAMPAIGN_ROSTER_POSITION], pheap[0].position, 3 * sizeof (float)) == 0);
+	EXPECT (t, strcmp (roster_seen.host_id, "eech-world:7") == 0);
+	EXPECT (t, place_entity ("1") == &pheap[0] && place_entity ("2") == NULL);
+	stopped = place_do (0, &pheap[1]);
+	EXPECT (t, !stopped && roster_seen.host_id[0] == 0 && place_entity ("2") == &pheap[1] && place_entity ("1") == &pheap[0]);
+
+	/* a removal names the key the host issued and the key resolves to nothing afterwards; the other key still resolves (the table's probe sequence is unbroken by a removed entry) */
+	stopped = place_do (1, &pheap[0]);
+	EXPECT (t, !stopped && roster_asks == 1 && (int) roster_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_REMOVE && strcmp (roster_seen.host_id, "1") == 0);
+	EXPECT (t, place_entity ("1") == NULL && place_entity ("2") == &pheap[1]);
+
+	/* a relink is a removal and an insertion: the entity has a NEW key and the old one is not reissued */
+	stopped = place_do (0, &pheap[0]);
+	EXPECT (t, !stopped && place_entity ("3") == &pheap[0] && place_entity ("1") == NULL);
+
+	/* an entity still placed when its heap slot is released is removed first; one that is not placed asks nothing */
+	stopped = place_do (2, &pheap[1]);
+	EXPECT (t, !stopped && roster_asks == 1 && strcmp (roster_seen.host_id, "2") == 0 && place_entity ("2") == NULL);
+	stopped = place_do (2, &pheap[1]);
+	EXPECT (t, !stopped && roster_asks == 0);
+	stopped = place_do (2, &pheap[9]);
+	EXPECT (t, !stopped && roster_asks == 0);
+
+	/* what cannot be right stops the engine by name and asks the host nothing: an insertion twice without a removal, a removal of an entity that was never placed, an entity with no position, a heap that is not one */
+	stopped = place_do (0, &pheap[0]);
+	EXPECT (t, stopped && strstr (fatal_text, "still holds it") != NULL && roster_asks == 0);
+	stopped = place_do (1, &pheap[5]);
+	EXPECT (t, stopped && strstr (fatal_text, "never placed") != NULL && roster_asks == 0);
+	pheap[5].has_position = FALSE;
+	stopped = place_do (0, &pheap[5]);
+	EXPECT (t, stopped && strstr (fatal_text, "no position") != NULL && roster_asks == 0);
+	pheap[5].has_position = TRUE;
+	pheap[5].slot = 16;
+	stopped = place_do (0, &pheap[5]);
+	EXPECT (t, stopped && strstr (fatal_text, "outside the entity heap") != NULL && roster_asks == 0);
+	pheap[5].slot = 5;
+	pheap_size = 0;
+	stopped = place_do (0, &pheap[5]);
+	EXPECT (t, stopped && strstr (fatal_text, "not a heap") != NULL && roster_asks == 0);
+	pheap_size = 16;
+
+	/* a host that issues a key it issued before is refused, and the entity is not recorded under it */
+	roster_override = TRUE;
+	roster_state = CAMPAIGN_MODEL_SCAN_PLACED;
+	roster_name = "3";
+	stopped = place_do (0, &pheap[5]);
+	EXPECT (t, stopped && strstr (fatal_text, "second time") != NULL && place_entity ("3") == &pheap[0]);
+	roster_override = FALSE;
+
+	/* churn: thousands of relinks of one entity beside three that stay never lose a key, and the table does not grow with the keys the host has issued (it holds the live ones) */
+	for (i = 0; i < 6000; i++)
+	{
+		stopped = place_do (0, &pheap[8]);
+
+		if (stopped)
+		{
+			break;
+		}
+
+		stopped = place_do (1, &pheap[8]);
+
+		if (stopped)
+		{
+			break;
+		}
+	}
+
+	EXPECT (t, !stopped && place_entity ("3") == &pheap[0] && place_table_size <= 8192 && place_table_live == 1);
+	ok = TRUE;
+	stopped = place_do (0, &pheap[8]);
+	snprintf (key, sizeof (key), "%d", roster_issue - 1);
+	ok = ok && !stopped && (place_entity (key) == &pheap[8]);
+	EXPECT (t, ok && place_table_live == 2);
+
+	/* a new boot ends every key, asks the host to end its roster, and the table is usable again */
+	stopped = place_do (3, NULL);
+	EXPECT (t, !stopped && roster_asks == 1 && (int) roster_seen.pose[CAMPAIGN_SCAN_PHASE] == CAMPAIGN_SCAN_PHASE_RESET);
+	EXPECT (t, place_entity ("3") == NULL && place_entity (key) == NULL);
+	stopped = place_do (0, &pheap[2]);
+	snprintf (key, sizeof (key), "%d", roster_issue - 1);
+	EXPECT (t, !stopped && place_entity (key) == &pheap[2]);
+
+	/* a host that refuses stops the engine with its reason and leaves the entity unplaced */
+	place_reset ();
+	refuse_the_exchange = TRUE;
+	stopped = place_do (0, &pheap[3]);
+	EXPECT (t, stopped && strstr (fatal_text, "model-provider:callback") != NULL);
+	refuse_the_exchange = FALSE;
+	stopped = place_do (1, &pheap[3]);
+	EXPECT (t, stopped && strstr (fatal_text, "never placed") != NULL);
+
+	place_reset ();
+	place_host_installed = FALSE;
 }
 
 int eech_entity_dialogue_check_run (char *text, int capacity, int *checks)
@@ -1895,6 +2378,10 @@ int eech_entity_dialogue_check_run (char *text, int capacity, int *checks)
 	expect_refusal (&t, "a point with one component missing", "entity_collision.write_mask", 7, 12, __LINE__);
 
 	candidate_cases (&t);
+
+	roster_cases (&t);
+
+	place_cases (&t);
 
 	if (checks)
 	{

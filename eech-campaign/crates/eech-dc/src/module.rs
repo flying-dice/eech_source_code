@@ -3894,10 +3894,15 @@ fn gunship(name: &str) -> LuaResult<Gunship> {
 ///   "entity_scan"  the ENUMERATION of the entity scan (EEDCS-49, D3, fourth slice): scene 0 and, in the sixth place (the text), 16 comma-separated bit patterns, the FACTS: the segment's old end (3) and new
 ///                 end (3), the sector side length, the world map's min x, min z, max x and max z, the PHASE (0 begin, 1 an entry is served, 2 the cursor's list has no more entries, 3 the offered entry's
 ///                 decisions are finished), the cursor sector x and z the host last gave, the served entry is the source or the target (0 or 1) and the offered entry hit (0 or 1). The host decides the sector window,
-///                 the traversal (x outer, z inner, each list from its TAIL), the exclusions and the first-hit end; the campaign serves the host's cursor over its own sector lists (a transitional backing
-///                 dependency). Returns `{ result }` and, for `first`, `p` (two bit patterns: the sector x and z, whole numbers): `first` (serve the TAIL of that sector's list), `next` (serve the predecessor of
-///                 the current entry), `offer` (offer the current entry for its decisions and report whether it hit), `done_none` (the scan ends, no hit), `done_hit` (it ends with the entry offered last),
-///                 or `refused` with `reason`.
+///                 the traversal (x outer, z inner, each list from its TAIL), the exclusions and the first-hit end, and (EEDCS-49, sixth slice) WHICH entities stand in each sector and in what order: the host's
+///                 own roster, which the campaign keeps informed with events of this same question. After the 16 patterns the text may carry a space and an identity: the key of the entry the campaign is standing at
+///                 (the phases 1 and 3), a roster event's subject (below), or a hosted mobile's semantic host identity. The roster events are the phase fact 4 (an entity was inserted into a sector's list: facts 0 to 2
+///                 the position, fact 3 the entity's type, fact 6 the sector side length; answered `placed` with the key the host issued as `name`), 5 (an entity leaves its list, the identity naming its key;
+///                 answered `removed`) and 6 (a new boot; answered `cleared`). Returns `{ result }` and, for `first`, `p` (two bit patterns: the sector x and z, whole numbers): `first` (serve the TAIL of that
+///                 sector's list: its key is `name`, empty for an empty list), `next` (serve what follows the entry the campaign is standing at: `name` is its key, empty at the end of the list), `offer` (offer the
+///                 current entry for its decisions and report whether it hit), `done_none` (the scan ends, no hit), `done_hit` (it ends with the entry offered last), `placed`, `removed`, `cleared`, or `refused` with
+///                 `reason` (an ended, unknown or misplaced key is refused by name, never skipped and never the end of a list). `name` is a decimal key of at most 20 digits and only `first`, `next` and `placed`
+///                 carry one.
 ///
 ///   "entity_pose"  an OBSERVATION of a mobile candidate's pose (EEDCS-49, D3, fifth slice): scene 0, `depth` the stage (0 the offer: the position and motion vector the original read for every mobile
 ///                 candidate; 1 the placement: those and the attitude, read when the broad phase passed), `kind` the entity's type, `definition` whether it is alive (0 or 1) and, in the sixth place (the text),
@@ -4136,16 +4141,24 @@ return function(op, scene, depth, kind, definition, key)
 			local reason = a.reason
 			return 'refused', type(reason) == 'string' and reason:sub(1, 200) or ''
 		end
+		local key = a.name
+		if key == nil then key = '' end
+		if type(key) ~= 'string' or #key > 127 or find(key, ' ', 1, true) or find(key, ' ', 1, true) then return nil, 'name must be text of at most 127 bytes without a NUL or a space' end
 		if result == 'first' then
 			local p, why = list(a.p, 2)
 			if not p then return nil, 'p ' .. why end
-			return 'first', p
+			return 'first', p, nil, nil, nil, nil, nil, key
 		end
-		if result == 'next' or result == 'offer' or result == 'done_none' or result == 'done_hit' then
+		if result == 'next' or result == 'placed' then
 			if a.p ~= nil then return nil, 'p is only for first' end
+			return result, nil, nil, nil, nil, nil, nil, key
+		end
+		if result == 'offer' or result == 'done_none' or result == 'done_hit' or result == 'removed' or result == 'cleared' then
+			if a.p ~= nil then return nil, 'p is only for first' end
+			if key ~= '' then return nil, 'name is only for first, next and placed' end
 			return result
 		end
-		return nil, 'result must be first, next, offer, done_none, done_hit or refused'
+		return nil, 'result must be first, next, offer, done_none, done_hit, placed, removed, cleared or refused'
 	end
 	if op == 'target_point_world' or op == 'target_point_fixed' then
 		local name, result = a.name, a.result
@@ -4324,7 +4337,19 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
             }),
         ),
         // the facts of the enumeration cross as exact bit patterns in the text place (16 floats); the scene is 0
-        ModelQuery::EntityScan { facts } => ("entity_scan", Some(0), None, None, None, Some(pose_text(&facts))),
+        // the identity, when there is one, follows the facts after a single space: a key of the host's roster (the entry the campaign is standing at, or a removal) or a hosted mobile's semantic identity (an insertion)
+        ModelQuery::EntityScan { facts, identity } => (
+            "entity_scan",
+            Some(0),
+            None,
+            None,
+            None,
+            Some(if identity.is_empty() {
+                pose_text(&facts)
+            } else {
+                format!("{} {identity}", pose_text(&facts))
+            }),
+        ),
         // the words of an observation cross as exact bit patterns in the text place (15 floats), followed, when the candidate has one, by a space and its host identity; the stage, the entity's type and its
         // alive flag are the depth, kind and definition places
         ModelQuery::EntityPose {
@@ -4577,15 +4602,20 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
             let cursor = bridged_floats::<2>(&a.ok_or_else(missing)?, "p", operation)?;
             Ok(ModelAnswer::EntityScan {
                 decision: ScanDecision::First(cursor),
+                key: g.unwrap_or_default(),
             })
         }
-        (ModelQuery::EntityScan { .. }, "next" | "offer" | "done_none" | "done_hit") => Ok(ModelAnswer::EntityScan {
+        (ModelQuery::EntityScan { .. }, "next" | "offer" | "done_none" | "done_hit" | "placed" | "removed" | "cleared") => Ok(ModelAnswer::EntityScan {
             decision: match tag.as_str() {
                 "next" => ScanDecision::Next,
                 "offer" => ScanDecision::Offer,
                 "done_none" => ScanDecision::DoneNone,
+                "placed" => ScanDecision::Placed,
+                "removed" => ScanDecision::Removed,
+                "cleared" => ScanDecision::Cleared,
                 _ => ScanDecision::DoneHit,
             },
+            key: g.unwrap_or_default(),
         }),
         (ModelQuery::EntityCandidate { .. }, "test") => {
             // the bridge has already checked that the list holds exactly 12 or 16 floats; the count is read from the text and bounded again here
@@ -5822,28 +5852,120 @@ mod tests {
         )?;
         let ask_with = |provider: &mut ModelProvider, pick: u32| {
             let facts: Vec<u32> = std::iter::once(pick).chain((1..16).map(|at| 0x3f80_0000 + at)).collect();
-            ask(provider, ModelQuery::EntityScan { facts })
+            ask(
+                provider,
+                ModelQuery::EntityScan {
+                    facts,
+                    identity: String::new(),
+                },
+            )
         };
         assert_eq!(
             ask_with(&mut provider, 1)?,
             ModelAnswer::EntityScan {
-                decision: ScanDecision::First([2.0, 3.0])
+                decision: ScanDecision::First([2.0, 3.0]),
+                key: String::new()
             }
         );
-        assert_eq!(ask_with(&mut provider, 2)?, ModelAnswer::EntityScan { decision: ScanDecision::Next });
-        assert_eq!(ask_with(&mut provider, 3)?, ModelAnswer::EntityScan { decision: ScanDecision::Offer });
+        assert_eq!(
+            ask_with(&mut provider, 2)?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Next,
+                key: String::new()
+            }
+        );
+        assert_eq!(
+            ask_with(&mut provider, 3)?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Offer,
+                key: String::new()
+            }
+        );
         assert_eq!(
             ask_with(&mut provider, 4)?,
             ModelAnswer::EntityScan {
-                decision: ScanDecision::DoneNone
+                decision: ScanDecision::DoneNone,
+                key: String::new()
             }
         );
         assert_eq!(
             ask_with(&mut provider, 5)?,
             ModelAnswer::EntityScan {
-                decision: ScanDecision::DoneHit
+                decision: ScanDecision::DoneHit,
+                key: String::new()
             }
         );
+        Ok(())
+    }
+
+    #[test]
+    fn an_entity_scan_question_carries_a_roster_key_or_identity_after_the_facts_and_the_key_comes_back_in_the_name() -> Test {
+        let lua = Lua::new();
+        // the identity place after the 16 patterns picks the answer: `first` serves the key 77, `next` the key in the place plus one, an insertion answers the key it issued, a removal and a reset answer none
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               local words, identity = key:match ('^([^ ]+) ?(.*)$')
+               local pick = tonumber (words:match ('0x[0-9a-f]+'):sub (-1))
+               if pick == 1 then return { result = 'first', p = '0x40000000,0x40400000', name = '77' } end
+               if pick == 2 then return { result = 'next', name = tostring (tonumber (identity) + 1) } end
+               if pick == 4 then return { result = 'placed', name = '9001' } end
+               if pick == 5 then assert (identity == '9001'); return { result = 'removed' } end
+               if pick == 6 then return { result = 'cleared' } end
+               if pick == 7 then return { result = 'offer', name = '5' } end
+               if pick == 8 then return { result = 'next', name = 'two words' } end
+             end",
+        )?;
+        let ask_with = |provider: &mut ModelProvider, pick: u32, identity: &str| {
+            let facts: Vec<u32> = std::iter::once(pick).chain((1..16).map(|at| 0x3f80_0000 + at)).collect();
+            ask(
+                provider,
+                ModelQuery::EntityScan {
+                    facts,
+                    identity: identity.to_string(),
+                },
+            )
+        };
+        assert_eq!(
+            ask_with(&mut provider, 1, "")?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::First([2.0, 3.0]),
+                key: "77".into()
+            }
+        );
+        assert_eq!(
+            ask_with(&mut provider, 2, "41")?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Next,
+                key: "42".into()
+            }
+        );
+        assert_eq!(
+            ask_with(&mut provider, 4, "eech-world:7")?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Placed,
+                key: "9001".into()
+            }
+        );
+        assert_eq!(
+            ask_with(&mut provider, 5, "9001")?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Removed,
+                key: String::new()
+            }
+        );
+        assert_eq!(
+            ask_with(&mut provider, 6, "")?,
+            ModelAnswer::EntityScan {
+                decision: ScanDecision::Cleared,
+                key: String::new()
+            }
+        );
+        // a name that belongs to no answer of its kind, or that is not one token, is a malformed answer
+        for pick in [7, 8] {
+            let error = ask_with(&mut provider, pick, "").expect_err("a malformed key is refused");
+            assert!(error.contains("name"), "pick {pick}: {error}");
+        }
         Ok(())
     }
 
@@ -5963,7 +6085,13 @@ mod tests {
         )?;
         let mut decide = |pick: u32| {
             let facts: Vec<u32> = std::iter::once(pick).chain(std::iter::repeat_n(0, 15)).collect();
-            ask(&mut provider, ModelQuery::EntityScan { facts })
+            ask(
+                &mut provider,
+                ModelQuery::EntityScan {
+                    facts,
+                    identity: String::new(),
+                },
+            )
         };
         let refused = decide(1).err().ok_or("accepted")?;
         assert!(

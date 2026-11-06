@@ -25,6 +25,7 @@
 #include "ai/ai_misc/ai_dbase.h"
 #include "ai/faction/faction.h"
 #include "ai/highlevl/setup.h"
+#include "entity/mobile/mb_hostplace.h"
 
 #include "eech_engine.h"
 #include "eech_headless.h"
@@ -308,6 +309,8 @@ static void boot (const struct eech_engine_config *config)
 	/* EEDCS-47: the extents and heights the core reads are the host's, before anything reads them */
 	campaign_terrain_install_map_facts ();
 	initialise_population_name_database ();
+	/* EEDCS-49: the host's roster of the sector lists and the campaign's keys for it end with the previous boot, before its entities are released */
+	campaign_place_reset ();
 	reinitialise_entity_system ();
 	campaign_roster_reset ();
 	campaign_supply_arrival_reset ();

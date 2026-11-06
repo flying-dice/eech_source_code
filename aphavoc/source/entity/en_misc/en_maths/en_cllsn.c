@@ -458,13 +458,16 @@ static int get_3d_line_quad_face_intersection
 // caller's intercept point and face normal go to neither and their final words come back, whether or not the segment hits, as the original's intersection helpers left them. The original
 // arithmetic is not compiled into it; the explicit original-characterisation profile (feature collision-fixture) keeps it.
 //
-// What the campaign keeps, declared and required to move: WHICH candidates are offered and in what order (the sector window of the segment, the sector lists scanned from the tail and the
-// exclusion of the source and the target: the sector lists and the entities' live state are the campaign's), the reads of the entity's own state the host is given as facts (in stages, only as
+// What the campaign keeps, declared and required to move: the exclusion of the source and the target (a comparison only the entity heap can make), the tallest structure of a sector, a city's buildings,
+// the sector lists themselves (its entity state, and the CONFORMANCE MIRROR of the host's roster: WHICH entities stand in a sector and in what order is the host's, mb_hostplace.c and mb_hostscan.h; a
+// disagreement stops the scan by name and the campaign's list never answers), the reads of the entity's own state the host is given as facts (in stages, only as
 // the host asks for the next one, so a candidate the original skipped is not made to supply a shape, a fixed flag or a model), the two services with effects of their own that the host names
 // when it needs them (the destructive UPDATED getter and the terrain face-normal question, each performed exactly once, at the place the original performed it) and the consequences of a hit. The debug drawing of the collision boxes (draw_collision_boxes) is a declared unsupported
 // diagnostic of the hosted module and is not carried: the host owns the boxes (the characterisation never probed it either).
 
 #include "entity/mobile/mb_hostmodel.h"
+
+#include "entity/mobile/mb_hostplace.h"
 
 extern int campaign_model_entity_collision (int scene, const float *segment_old, const float *segment_new, const float *candidate, int candidate_count, float *point, float *normal);
 
@@ -498,7 +501,8 @@ typedef char campaign_model_host_id_domain_is_the_rosters [(CAMPAIGN_MODEL_HOST_
 
 #include "entity/mobile/mb_hostoffer.h"
 
-// The host's cursor over the campaign's sector lists (mb_hostscan.h, shared with the isolated control of its dialogue) is bound here to the real sector lists, with the original's getters in its order.
+// The host's cursor over ITS roster of the sector lists (mb_hostscan.h, shared with the isolated control of its dialogue) is bound here to the real entity heap: the entry the host serves by key is resolved
+// to the campaign's entity (mb_hostplace.c), and the real sector lists, read with the original's getters in its order, are the conformance mirror of the host's order.
 
 #define CAMPAIGN_SCAN_ENTITY entity
 
@@ -513,6 +517,7 @@ typedef char campaign_model_host_id_domain_is_the_rosters [(CAMPAIGN_MODEL_HOST_
 #define CAMPAIGN_SCAN_FIRST(S) get_local_entity_first_child ((S), LIST_TYPE_SECTOR)
 #define CAMPAIGN_SCAN_SUCC(E) get_local_entity_child_succ ((E), LIST_TYPE_SECTOR)
 #define CAMPAIGN_SCAN_PRED(E) get_local_entity_child_pred ((E), LIST_TYPE_SECTOR)
+#define CAMPAIGN_SCAN_ENTITY_OF(KEY) campaign_place_entity ((KEY))
 
 #include "entity/mobile/mb_hostscan.h"
 

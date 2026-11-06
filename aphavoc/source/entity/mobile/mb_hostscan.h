@@ -1,14 +1,15 @@
 /*
- * The campaign's side of the host-owned ENUMERATION of the entity scan (EEDCS-49, D3, fourth slice): see mb_hostmodel.h, ENTITY_SCAN.  The host decides which sectors are visited and in what
- * order, which entries are skipped and when the scan ends; this decides nothing physical.  It SERVES the host's cursor over the campaign's own sector lists: the tail of the list of the sector
- * the host names, the predecessor of the entry it is at, the one fact only the entity heap can state (that the entry is the source or the target), the offer of an entry for its decisions
- * (mb_hostoffer.h) and the result of that offer.
+ * The campaign's side of the host-owned ENUMERATION of the entity scan (EEDCS-49, D3, fourth and sixth slices): see mb_hostmodel.h, ENTITY_SCAN.  The host decides which sectors are visited and in what
+ * order, which entries are skipped and when the scan ends; this decides nothing physical.  The host also owns WHICH entities stand in a sector and in what order (the roster, which the campaign
+ * keeps informed from the one funnel every sector-list insertion and removal goes through, mb_hostplace.c): it names the entry to serve by the key it issued, and this resolves the key to the
+ * campaign's entity, states the one fact only the entity heap can (that the entry is the source or the target), offers the entry for its decisions (mb_hostoffer.h) and returns the result of that offer.
  *
- * THE TRANSITIONAL BACKING DEPENDENCY, named and REQUIRED to move.  The sector lists, their insertion history and the entities' live state stay the campaign's heap: the host is given the
- * order the heap has, never a copy of it, so a farther entry in an earlier sector or list position still wins over a nearer one exactly as before and there is no second store whose
- * synchronisation could be wrong.  A roster the host holds would have to follow every position write, sector relink and release, and its entities would need semantic identities that
- * outlive a scan; until that exists an entry is named only by the host's cursor.  A list cannot change inside one scan, because nothing in the scan links, unlinks or releases an entity
- * (the two effectful getters it performs, UPDATED and the terrain normal, change a flag word and the shared terrain record, never a list).
+ * THE CAMPAIGN'S LISTS ARE A CONFORMANCE MIRROR, never the answer.  The reads are still the original's, in its order (the sector entity, its tallest structure height, its first child, the walk to the end of the
+ * list and the predecessor of an entry), because the campaign's own lists remain its entity state and the tallest-structure height is still its read; but the entry served is the one the HOST names, and
+ * an entry the campaign's list does not agree with stops the engine by name (entity_scan.roster_mirror), as does a key that names no entity.  Nothing falls back to the campaign's list and a
+ * disagreement is never read as an end or a miss.  A list cannot change inside one scan, because nothing in the scan links, unlinks or releases an entity (the two effectful getters it
+ * performs, UPDATED and the terrain normal, change a flag word and the shared terrain record, never a list).  Still the campaign's, declared and required to move: the tallest structure of a sector, a
+ * city's buildings and every entity's shape, flags and static pose.
  *
  * The reads are the original's, in its order: for each sector the host names, the sector entity, its tallest structure height, its first child and the walk to the end of the list; for each
  * entry the comparison with the source and the target; then the offer.  Nothing is read for a sector the host does not name.
@@ -22,13 +23,41 @@
  *   CAMPAIGN_SCAN_SECTOR_VALID (X, Z)           whether a sector index pair lies inside the map's sectors
  *   CAMPAIGN_SCAN_SECTOR (X, Z)                 the sector entity
  *   CAMPAIGN_SCAN_TALLEST (S)                   the sector's tallest structure height
- *   CAMPAIGN_SCAN_FIRST (S), CAMPAIGN_SCAN_SUCC (E), CAMPAIGN_SCAN_PRED (E)   the sector list's first child, a child's successor and predecessor (NULL at the ends)
+ *   CAMPAIGN_SCAN_FIRST (S), CAMPAIGN_SCAN_SUCC (E), CAMPAIGN_SCAN_PRED (E)   the sector list's first child, a child's successor and predecessor (NULL at the ends): the mirror
+ *   CAMPAIGN_SCAN_ENTITY_OF (KEY)               the entity the host's roster key names, or NULL when the campaign holds none for it
  */
 #ifndef MB_HOSTSCAN_H
 #define MB_HOSTSCAN_H
 
 // the most questions one scan may ask the host: the map's sectors and the entries in them are far fewer, and a host that does not end the scan is stopped by name
 #define CAMPAIGN_SCAN_MAX_QUESTIONS 4000000
+
+// The entity the host served by `key` (empty: the sector's list has no more), checked against the campaign's own list, which stands at `mirror`. The host's answer is the entry; a key that names no entity
+// of the campaign, or an entry the campaign's list is not at, is a named refusal, never an end of the list and never a fallback to the mirror.
+static CAMPAIGN_SCAN_ENTITY *campaign_scan_served (const char *key, CAMPAIGN_SCAN_ENTITY *mirror)
+{
+	CAMPAIGN_SCAN_ENTITY
+		*entry;
+
+	entry = NULL;
+
+	if (key [0] != 0)
+	{
+		entry = CAMPAIGN_SCAN_ENTITY_OF (key);
+
+		if (entry == NULL)
+		{
+			debug_fatal ("host model: [model-provider:entity_scan.roster_key] the host served the entry \"%.40s\", which names no entity of the campaign", key);
+		}
+	}
+
+	if (entry != mirror)
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.roster_mirror] the host served %s but the campaign's own sector list is %s: the roster and the list disagree", (entry != NULL) ? "an entry" : "the end of the list", (mirror != NULL) ? "at another entry" : "at its end");
+	}
+
+	return (entry);
+}
 
 // Scans the sector lists for the first candidate that hits, in the order the host decides. `source` and `target` are the entities that are never candidates (either may be NULL), `source_old` and
 // `source_new` the segment's ends (three floats each), `point` and `normal` the caller's outputs (neither read nor sent here). Returns the entity that was hit, with the intercept point and face
@@ -55,9 +84,14 @@ static CAMPAIGN_SCAN_ENTITY *campaign_scan_entities
 		z_sector,
 		questions;
 
+	char
+		current [CAMPAIGN_ROSTER_KEY_MAX + 1],
+		served [CAMPAIGN_ROSTER_KEY_MAX + 1];
+
 	CAMPAIGN_SCAN_ENTITY
 		*sector,
 		*entry,
+		*mirror,
 		*successor,
 		*hit;
 
@@ -85,6 +119,10 @@ static CAMPAIGN_SCAN_ENTITY *campaign_scan_entities
 
 	entry = NULL;
 
+	mirror = NULL;
+
+	current [0] = 0;
+
 	hit = NULL;
 
 	questions = 0;
@@ -100,7 +138,7 @@ static CAMPAIGN_SCAN_ENTITY *campaign_scan_entities
 
 		facts [CAMPAIGN_SCAN_PHASE] = (float) phase;
 
-		state = campaign_model_entity_scan (facts, cursor);
+		state = campaign_model_entity_scan (facts, current, cursor, served);
 
 		switch (state)
 		{
@@ -125,27 +163,31 @@ static CAMPAIGN_SCAN_ENTITY *campaign_scan_entities
 
 				sector_tallest_structure_height = CAMPAIGN_SCAN_TALLEST (sector);
 
-				entry = CAMPAIGN_SCAN_FIRST (sector);
+				mirror = CAMPAIGN_SCAN_FIRST (sector);
 
-				if (entry)
+				if (mirror)
 				{
-					successor = CAMPAIGN_SCAN_SUCC (entry);
+					successor = CAMPAIGN_SCAN_SUCC (mirror);
 
 					while (successor)
 					{
-						entry = successor;
+						mirror = successor;
 
-						successor = CAMPAIGN_SCAN_SUCC (entry);
+						successor = CAMPAIGN_SCAN_SUCC (mirror);
 					}
 				}
+
+				entry = campaign_scan_served (served, mirror);
 
 				break;
 			}
 			case CAMPAIGN_MODEL_SCAN_NEXT:
 			{
-				// the host's exchange only allows this after an entry was served, so there is one
+				// the host's exchange only allows this after an entry was served, so there is one: the campaign's list is read the way the original read it, and it is the host that names the entry
 
-				entry = CAMPAIGN_SCAN_PRED (entry);
+				mirror = CAMPAIGN_SCAN_PRED (mirror);
+
+				entry = campaign_scan_served (served, mirror);
 
 				break;
 			}
@@ -176,6 +218,8 @@ static CAMPAIGN_SCAN_ENTITY *campaign_scan_entities
 		facts [CAMPAIGN_SCAN_HIT] = 0.0f;
 
 		phase = (entry != NULL) ? CAMPAIGN_SCAN_PHASE_ENTRY : CAMPAIGN_SCAN_PHASE_END;
+
+		memcpy (current, served, sizeof (current));
 
 		facts [CAMPAIGN_SCAN_EXCLUDED] = ((entry != NULL) && ((entry == source) || (entry == target))) ? 1.0f : 0.0f;
 	}

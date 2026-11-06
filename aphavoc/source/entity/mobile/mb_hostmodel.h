@@ -161,11 +161,20 @@
  *              an entry is served, 2 END the cursor's list has no more entries, 3 RESOLVED the offered entry's decisions are finished); the cursor sector x and z the host last gave; whether the served
  *              entry is the source or the target (0 or 1); whether the offered entry hit (0 or 1). The host answers a `candidate_state`: FIRST (serve the TAIL of the list of the sector named in
  *              `candidate[0]` and `candidate[1]`, whole numbers), NEXT (serve the predecessor of the current entry), OFFER (offer the current entry for its decisions, ENTITY_CANDIDATE, and report whether it
- *              hit), DONE_NONE (the scan ends, no hit) or DONE_HIT (it ends with the entry offered last). The question is a pure function of its facts: the host keeps nothing between questions and the
- *              cursor travels in the facts and the answer, so there is no host state to lose and no second store. THE CAMPAIGN SERVES THE HOST'S CURSOR over its own sector lists: the entity heap and
- *              its list order are the campaign's TRANSITIONAL BACKING dependency (REQUIRED to move: they are the live state a roster must follow), and which entry is the source or the target is a
- *              comparison only the heap can make, reported as a fact. Nothing is copied, a list cannot change inside one scan (nothing in it links, unlinks or releases an entity), and no raw pointer or
- *              index crosses: an entry is named by the host's cursor only. A state the phase does not allow (an excluded entry offered, a resolved hit continued, a served entry that is not offered or
+ *              hit), DONE_NONE (the scan ends, no hit) or DONE_HIT (it ends with the entry offered last).
+ *              THE HOST'S ROSTER (EEDCS-49, sixth slice). The host owns WHICH entities stand in each sector and in what order: the campaign reports every insertion into a sector's list (at the head, so the
+ *              tail is the oldest insertion) and every removal from it, through the one funnel all of them go through (en_list.c; mb_hostplace.c), as events of THIS question, and the host issues a KEY at each
+ *              insertion (a decimal number, never issued twice; a relink is a removal and a new insertion), computes the sector from ITS state (a hosted mobile's from its own physical record, every other
+ *              entity's from the position the campaign states; no coordinate is kept) and serves the scan from its own order. The events use `pose_count` 16 with the PHASE 4 (INSERT: the position's x y z in
+ *              facts 0 to 2, the entity's type in fact 3, the sector side length in fact 6; the identity place carries a hosted mobile's semantic host identity, empty for any other entity; answered PLACED with
+ *              the key as the reply's `name`), 5 (REMOVE: the identity place carries the key; answered REMOVED) or 6 (RESET at a boot; answered CLEARED). A scan question names the key of the entry the
+ *              campaign is standing at in the identity place (the ENTRY and RESOLVED phases only) and the host answers FIRST and NEXT with the key of the entry to serve in the reply's `name`, empty when
+ *              the sector's list has no more entries: the campaign resolves the key to its entity (mb_hostplace.c), still states whether it is the source or the target, offers it and reports the result.
+ *              The question is a pure function of its facts and the host's roster. THE CAMPAIGN'S LISTS ARE A CONFORMANCE MIRROR: the campaign still reads them in the original's order and an entry the host
+ *              serves that its list is not at, a key that names no entity, an ended, unknown or misplaced key, or a roster the host does not keep is a named refusal (entity_scan.roster_mirror,
+ *              entity_scan.roster_key, entity_scan.key) and never an end, a miss or a fallback to the list. STILL THE CAMPAIGN'S, declared and required to move: the tallest structure of a sector, a city's
+ *              buildings, every entity's shape, flags and static pose, and the semantic identity of a structure (issued lazily, at the first time the campaign names it, as before). No raw pointer or
+ *              index crosses: an entry is named by the host's key only. A state the phase does not allow (an excluded entry offered, a resolved hit continued, a served entry that is not offered or
  *              skipped, a cursor that is not whole numbers inside the map), a refusal, a missing provider or a scan that does not end in a bounded number of questions stops the engine by marker.
  *
  *   ENTITY_POSE        an OBSERVATION of the live pose of a mobile candidate (EEDCS-49, D3, fifth slice; see campaign_model_pose_class above): the campaign names the candidate by its semantic host
@@ -290,7 +299,11 @@ enum campaign_model_scan_phase
 	CAMPAIGN_SCAN_PHASE_BEGIN = 0,
 	CAMPAIGN_SCAN_PHASE_ENTRY,
 	CAMPAIGN_SCAN_PHASE_END,
-	CAMPAIGN_SCAN_PHASE_RESOLVED
+	CAMPAIGN_SCAN_PHASE_RESOLVED,
+	/* the roster's own events of the sector lists (EEDCS-49, sixth slice; see ENTITY_SCAN above): an entity was inserted into a sector's list, is about to leave it, or a new boot starts */
+	CAMPAIGN_SCAN_PHASE_INSERT,
+	CAMPAIGN_SCAN_PHASE_REMOVE,
+	CAMPAIGN_SCAN_PHASE_RESET
 };
 
 enum campaign_model_scan_state
@@ -299,8 +312,20 @@ enum campaign_model_scan_state
 	CAMPAIGN_MODEL_SCAN_NEXT,
 	CAMPAIGN_MODEL_SCAN_OFFER,
 	CAMPAIGN_MODEL_SCAN_DONE_NONE,
-	CAMPAIGN_MODEL_SCAN_DONE_HIT
+	CAMPAIGN_MODEL_SCAN_DONE_HIT,
+	/* the answers to the roster's events: the entity was placed (the reply's name is the key the host issued), removed, or the roster was cleared */
+	CAMPAIGN_MODEL_SCAN_PLACED,
+	CAMPAIGN_MODEL_SCAN_REMOVED,
+	CAMPAIGN_MODEL_SCAN_CLEARED
 };
+
+/* the roster's insertion event: the position the campaign holds (the x, y and z words; the host decides the sector and compares a hosted mobile's with its own record), the entity's type, and the
+   sector side length in the same place the scan keeps it. The identity place carries a hosted mobile's semantic identity (empty for every other entity); a removal names the key instead */
+#define CAMPAIGN_ROSTER_POSITION 0
+#define CAMPAIGN_ROSTER_TYPE 3
+
+/* the longest key the host's roster issues (a decimal number of at most 20 digits, without the terminator): the campaign carries it whole and never reads it as anything else */
+#define CAMPAIGN_ROSTER_KEY_MAX 20
 
 /* ENTITY_CANDIDATE: the floats of the question (the facts) and the states of the answer */
 #define CAMPAIGN_MODEL_CANDIDATE_FACTS 44
@@ -466,9 +491,18 @@ int campaign_model_entity_collision (int scene, const float *segment_old, const 
    CAMPAIGN_MODEL_CANDIDATE_POSE_MAX). */
 int campaign_model_entity_candidate (int scene, const float *facts, const char *host_id, float *pose, int *pose_count);
 
-/* ENTITY_SCAN: asks the host what to do next in the enumeration of the scan from `facts` (CAMPAIGN_MODEL_SCAN_FACTS floats, see above). The reply is checked completely; the returned state is a
-   campaign_model_scan_state and, for FIRST, `cursor` receives the two sector indices (whole numbers inside the map). */
-int campaign_model_entity_scan (const float *facts, float *cursor);
+/* ENTITY_SCAN: asks the host what to do next in the enumeration of the scan from `facts` (CAMPAIGN_MODEL_SCAN_FACTS floats, see above). `entry_key` is the host's key of the entry the campaign is standing at
+   (NULL or empty before the first entry of a sector). The reply is checked completely; the returned state is a campaign_model_scan_state, for FIRST `cursor` receives the two sector indices (whole numbers inside
+   the map) and for FIRST and NEXT `key` receives the key (CAMPAIGN_ROSTER_KEY_MAX + 1 bytes) of the entry to serve, empty when the sector's list has no more. */
+int campaign_model_entity_scan (const float *facts, const char *entry_key, float *cursor, char *key);
+
+/* ENTITY_SCAN, the roster's events: reports that an entity of `entity_type` stands at `position` (3 floats) and was inserted at the head of the list of the sector of that position (`phase`
+   CAMPAIGN_SCAN_PHASE_INSERT; `identity` is a hosted mobile's semantic identity, NULL for every other entity; the host's key for it is written to `key`), that the entity with the host's `identity` key
+   is leaving its list (CAMPAIGN_SCAN_PHASE_REMOVE), or that a new boot starts (CAMPAIGN_SCAN_PHASE_RESET). The reply is checked completely; a refusal stops the engine with the host's reason. */
+void campaign_model_entity_roster (int phase, int entity_type, float side, const float *position, const char *identity, char *key);
+
+/* whether a model provider is installed (the roster reports only to one: a build with no host has no roster and no scan) */
+int campaign_model_host_installed (void);
 
 /* ENTITY_POSE: offers the host the words of a mobile candidate (`words`, CAMPAIGN_MODEL_POSE_FACTS floats, see above) beside its `host_id` (NULL or empty when the campaign has none) and returns the class
    of the host's answer (campaign_model_pose_class). The reply's shape is checked completely (including the stage's own difference bits) and the answer is checked and asserted (a mirror difference stops the engine by marker), never used to choose a pose. Every identity of the roster's

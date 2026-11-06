@@ -10,9 +10,10 @@
 //! [`ModelStore`], the same store the other model operations read: the scene's collision triangles one depth at a time (the original's cursor, so the first triangle that is hit
 //! ends the test and later triangles are never read) or, for a scene with none, the corners of its bounding box without lines.
 //!
-//! The campaign still owns WHICH candidates are offered and in what order (the sector window, the sector lists and their insertion history, the exclusions) and the reads of the entity
-//! state the facts are made of, and it performs the two getters that have effects of their own when the host names them. That is declared transitional coupling: the sector lists and the
-//! entities' live state are the campaign's until the physical roster moves too (a host-held roster would be a second authoritative store). Nothing here claims it has.
+//! The HOST owns which candidates are offered and in what order: the sector window and the traversal (`scan_step`) and which entities stand in each sector in what order (`crate::roster`, served
+//! by `crate::model_host`: the campaign reports every insertion into and removal from a sector list and the host issues the keys it serves the scan by). The campaign's lists are only the
+//! conformance mirror of that order. The campaign still owns the exclusion of the source and the target, a sector's tallest structure, a city's buildings, the reads of the entity state the
+//! facts are made of, and it performs the two getters that have effects of their own when the host names them: that is declared coupling, required to move, and nothing here claims it has.
 //!
 //! # Exactness
 //!

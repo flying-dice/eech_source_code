@@ -1153,6 +1153,10 @@ pub const EECH_MODEL_SCAN_NEXT: c_int = 2;
 pub const EECH_MODEL_SCAN_OFFER: c_int = 3;
 pub const EECH_MODEL_SCAN_DONE_NONE: c_int = 4;
 pub const EECH_MODEL_SCAN_DONE_HIT: c_int = 5;
+/// the answers to the roster's events of the sector lists (the scan question's phases 4 to 6): an entry was placed (the reply's `name` is its key), removed, or the roster was cleared
+pub const EECH_MODEL_SCAN_PLACED: c_int = 6;
+pub const EECH_MODEL_SCAN_REMOVED: c_int = 7;
+pub const EECH_MODEL_SCAN_CLEARED: c_int = 8;
 /// ENTITY_POSE (EEDCS-49): an OBSERVATION of a mobile candidate's pose against the host's record of its identity (`depth` the stage, `kind` the entity's type, `definition` whether it is alive, `host_id` its
 /// host identity, 15 floats of `pose`); the answer's `candidate_state` is the class, `candidate_count` the kind of the host's record and `write_mask` the differences. Nothing decides from it
 pub const EECH_MODEL_ENTITY_POSE: c_int = 18;

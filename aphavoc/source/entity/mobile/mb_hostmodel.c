@@ -18,6 +18,11 @@
 static campaign_model_host current_host;
 static int host_installed;
 
+int campaign_model_host_installed (void)
+{
+	return (host_installed);
+}
+
 void campaign_model_set_host (const campaign_model_host *host)
 {
 	// every entry that carries a callback refreshes it; an entry without one leaves it. The entry's `user` names that entry's own host context, which ends with the
@@ -66,6 +71,8 @@ struct campaign_model_counters
 	long entity_collision, entity_hit, entity_miss;
 	/* ENTITY_CANDIDATE questions asked of the host (EEDCS-49) and the states the native code ACCEPTED: skip, UPDATED asked, terrain normal asked, buildings, narrow phase required */
 	long entity_scan, scan_first, scan_next, scan_offer, scan_done;
+	/* the roster's events of the sector lists (the same question, phases 4 to 6): entities placed, removed and the boots that cleared the roster. Not counted among the scan's own states above */
+	long roster_placed, roster_removed, roster_cleared;
 	/* ENTITY_POSE observations asked of the host (EEDCS-49), and the classes it answered: recorded, unrecorded, retired, unknown, no identity */
 	long entity_pose, pose_recorded, pose_unrecorded, pose_retired, pose_unknown, pose_no_id;
 	long entity_candidate, candidate_skip, candidate_updated, candidate_normal, candidate_buildings, candidate_test, candidate_fixed, candidate_placement;
@@ -1950,13 +1957,13 @@ int campaign_model_entity_pose (int stage, int entity_type, int alive, const cha
 	return (state);
 }
 
-// ENTITY_SCAN (mb_hostmodel.h; EEDCS-49, D3, fourth slice): the host's cursor over the campaign's lists. The dialogue is mb_hostentity.h.
-int campaign_model_entity_scan (const float *facts, float *cursor)
+// ENTITY_SCAN (mb_hostmodel.h; EEDCS-49, D3, fourth slice): the host's cursor over the sector lists of ITS roster. The dialogue is mb_hostentity.h.
+int campaign_model_entity_scan (const float *facts, const char *entry_key, float *cursor, char *key)
 {
 	int
 		state;
 
-	state = campaign_entity_scan_exchange (facts, cursor);
+	state = campaign_entity_scan_exchange (facts, entry_key, cursor, key);
 
 #ifdef EECH_MODEL_HOST_FIXTURE
 	switch (state)
@@ -1989,6 +1996,37 @@ int campaign_model_entity_scan (const float *facts, float *cursor)
 #endif
 
 	return (state);
+}
+
+// ENTITY_SCAN, the roster's events (mb_hostmodel.h; EEDCS-49, D3, sixth slice): the campaign tells the host that an entity was inserted into a sector's list, is leaving it, or that a boot starts. The dialogue is
+// mb_hostentity.h; the host decides the sector and the order and answers the key it issued.
+void campaign_model_entity_roster (int phase, int entity_type, float side, const float *position, const char *identity, char *key)
+{
+	campaign_entity_roster_exchange (phase, entity_type, side, position, identity, key);
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	switch (phase)
+	{
+		case CAMPAIGN_SCAN_PHASE_INSERT:
+		{
+			campaign_model_counts.roster_placed++;
+
+			break;
+		}
+		case CAMPAIGN_SCAN_PHASE_REMOVE:
+		{
+			campaign_model_counts.roster_removed++;
+
+			break;
+		}
+		default:
+		{
+			campaign_model_counts.roster_cleared++;
+
+			break;
+		}
+	}
+#endif
 }
 
 // ENTITY_CANDIDATE (mb_hostmodel.h; EEDCS-49, D3, third slice): what the host decides about one candidate of the scan. The dialogue is mb_hostentity.h; the facts are read by the caller.

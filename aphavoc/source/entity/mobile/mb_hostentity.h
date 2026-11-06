@@ -368,8 +368,74 @@ static int scan_word_is_zero (const float *value)
 	return (word == 0);
 }
 
+// Whether `key` is a key of the host's roster: one to CAMPAIGN_ROSTER_KEY_MAX decimal digits without a leading zero (the host issues them from 1 and never again). The campaign carries a key whole and reads it
+// as nothing else.
+static int roster_key_is_valid (const char *key)
+{
+	size_t
+		length,
+		index;
+
+	length = strlen (key);
+
+	if ((length < 1) || (length > CAMPAIGN_ROSTER_KEY_MAX) || (key [0] == '0'))
+	{
+		return (FALSE);
+	}
+
+	for (index = 0; index < length; index++)
+	{
+		if ((key [index] < '0') || (key [index] > '9'))
+		{
+			return (FALSE);
+		}
+	}
+
+	return (TRUE);
+}
+
+// The key a reply names, checked BEFORE it is copied: the name place is text that ends inside the reply, and is empty, or a valid key.
+static void check_reply_key (const campaign_model_reply *reply, const char *operation)
+{
+	if (memchr (reply->name, 0, sizeof (reply->name)) == NULL)
+	{
+		debug_fatal ("host model: [model-provider:%s.key] the key the host named does not end inside the reply", operation);
+	}
+
+	if ((reply->name [0] != 0) && (!roster_key_is_valid (reply->name)))
+	{
+		debug_fatal ("host model: [model-provider:%s.key] the key \"%.40s\" the host named is not a roster key", operation, reply->name);
+	}
+}
+
+// The answer to a roster event: the state the phase allows, and a key only for an insertion (and then always).
+static void check_roster_reply (const campaign_model_reply *reply, int phase)
+{
+	int
+		wanted;
+
+	wanted = (phase == CAMPAIGN_SCAN_PHASE_INSERT) ? CAMPAIGN_MODEL_SCAN_PLACED : ((phase == CAMPAIGN_SCAN_PHASE_REMOVE) ? CAMPAIGN_MODEL_SCAN_REMOVED : CAMPAIGN_MODEL_SCAN_CLEARED);
+
+	if (reply->candidate_state != wanted)
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.state] the host decided state %d for a roster event of phase %d, which allows only state %d", reply->candidate_state, phase, wanted);
+	}
+
+	check_reply_key (reply, "entity_scan");
+
+	if ((wanted == CAMPAIGN_MODEL_SCAN_PLACED) != (reply->name [0] != 0))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.key] the host %s a key for a roster event of phase %d", (wanted == CAMPAIGN_MODEL_SCAN_PLACED) ? "issued no" : "issued", phase);
+	}
+
+	if ((!scan_word_is_zero (&reply->candidate [0])) || (!scan_word_is_zero (&reply->candidate [1])))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.cursor] the host named a sector for a roster event, which carries none");
+	}
+}
+
 // Everything about a scan decision that can be wrong given the facts it answers, before any of it is used. The cursor is checked from its raw words: finite first, then a whole number inside
-// 0 to 16777216 (the largest whole number a float holds exactly), and only then compared.
+// 0 to 16777216 (the largest whole number a float holds exactly), and only then compared. The key of the entry to serve is the host's roster key, or empty when the sector's list has no more.
 static void check_scan_reply (const campaign_model_reply *reply, const float *facts)
 {
 	int
@@ -379,6 +445,13 @@ static void check_scan_reply (const campaign_model_reply *reply, const float *fa
 	state = reply->candidate_state;
 
 	phase = (int) facts [CAMPAIGN_SCAN_PHASE];
+
+	if (phase >= CAMPAIGN_SCAN_PHASE_INSERT)
+	{
+		check_roster_reply (reply, phase);
+
+		return;
+	}
 
 	if ((state < CAMPAIGN_MODEL_SCAN_FIRST) || (state > CAMPAIGN_MODEL_SCAN_DONE_HIT))
 	{
@@ -438,10 +511,20 @@ static void check_scan_reply (const campaign_model_reply *reply, const float *fa
 	{
 		debug_fatal ("host model: [model-provider:entity_scan.cursor] the host named a sector with state %d, which carries none", state);
 	}
+
+	check_reply_key (reply, "entity_scan");
+
+	// only an entry that is served carries a key
+	if (((state != CAMPAIGN_MODEL_SCAN_FIRST) && (state != CAMPAIGN_MODEL_SCAN_NEXT)) && (reply->name [0] != 0))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.key] the host named the entry \"%.40s\" with state %d, which serves none", reply->name, state);
+	}
 }
 
-// One question about the enumeration: the facts in, the host's checked decision out (a campaign_model_scan_state and, for FIRST, the two sector indices in `cursor`).
-static int campaign_entity_scan_exchange (const float *facts, float *cursor)
+// One question about the enumeration: the facts in, the host's checked decision out (a campaign_model_scan_state, for FIRST the two sector indices in `cursor`, and for FIRST and NEXT the key of the entry to
+// serve in `key`, empty when the sector's list has no more). `entry_key` is the key of the entry the campaign is standing at: the host serves what comes after IT, so the question that follows a served entry
+// always names it, and the others never do.
+static int campaign_entity_scan_exchange (const float *facts, const char *entry_key, float *cursor, char *key)
 {
 	campaign_model_request
 		request;
@@ -449,11 +532,34 @@ static int campaign_entity_scan_exchange (const float *facts, float *cursor)
 	campaign_model_reply
 		reply;
 
+	int
+		phase,
+		standing;
+
+	phase = (int) facts [CAMPAIGN_SCAN_PHASE];
+
+	standing = (entry_key != NULL) && (entry_key [0] != 0);
+
+	if (standing != ((phase == CAMPAIGN_SCAN_PHASE_ENTRY) || (phase == CAMPAIGN_SCAN_PHASE_RESOLVED)))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.key] the scan asked in phase %d with %s, which only a served entry has", phase, standing ? "the key of an entry" : "no entry key");
+	}
+
+	if (standing && !roster_key_is_valid (entry_key))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.key] the entry key \"%.40s\" the scan is standing at is not a roster key", entry_key);
+	}
+
 	memset (&request, 0, sizeof (request));
 	request.op = CAMPAIGN_MODEL_ENTITY_SCAN;
 	request.scene = 0;
 	request.pose_count = CAMPAIGN_MODEL_SCAN_FACTS;
 	memcpy (&request.pose [0], facts, CAMPAIGN_MODEL_SCAN_FACTS * sizeof (float));
+
+	if (standing)
+	{
+		memcpy (request.host_id, entry_key, strlen (entry_key));
+	}
 
 	CAMPAIGN_ENTITY_SCAN_ASK (&request, &reply);
 
@@ -463,6 +569,8 @@ static int campaign_entity_scan_exchange (const float *facts, float *cursor)
 
 	cursor [1] = 0.0f;
 
+	key [0] = 0;
+
 	if (reply.candidate_state == CAMPAIGN_MODEL_SCAN_FIRST)
 	{
 		cursor [0] = reply.candidate [0];
@@ -470,7 +578,62 @@ static int campaign_entity_scan_exchange (const float *facts, float *cursor)
 		cursor [1] = reply.candidate [1];
 	}
 
+	if ((reply.candidate_state == CAMPAIGN_MODEL_SCAN_FIRST) || (reply.candidate_state == CAMPAIGN_MODEL_SCAN_NEXT))
+	{
+		memcpy (key, reply.name, strlen (reply.name) + 1);
+	}
+
 	return (reply.candidate_state);
+}
+
+// The roster's events (the same question, phases 4 to 6; see mb_hostmodel.h): `phase` is CAMPAIGN_SCAN_PHASE_INSERT, _REMOVE or _RESET. An insertion states the entity's `entity_type`, the sector side length and the
+// `position` words (3 floats) the campaign holds, with a hosted mobile's semantic `identity` (NULL for every other entity), and receives the host's key in `key`; a removal names the key in `identity`.
+static void campaign_entity_roster_exchange (int phase, int entity_type, float side, const float *position, const char *identity, char *key)
+{
+	campaign_model_request
+		request;
+
+	campaign_model_reply
+		reply;
+
+	size_t
+		length;
+
+	length = (identity != NULL) ? strlen (identity) : 0;
+
+	if (length > CAMPAIGN_MODEL_HOST_ID_MAX)
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.request] a host identity of %d bytes is outside the roster's domain of 1 to %d", (int) length, CAMPAIGN_MODEL_HOST_ID_MAX);
+	}
+
+	if ((phase == CAMPAIGN_SCAN_PHASE_REMOVE) && !roster_key_is_valid ((identity != NULL) ? identity : ""))
+	{
+		debug_fatal ("host model: [model-provider:entity_scan.key] a removal names \"%.40s\", which is not a roster key", (identity != NULL) ? identity : "");
+	}
+
+	memset (&request, 0, sizeof (request));
+	request.op = CAMPAIGN_MODEL_ENTITY_SCAN;
+	request.scene = 0;
+	request.pose_count = CAMPAIGN_MODEL_SCAN_FACTS;
+	request.pose [CAMPAIGN_SCAN_PHASE] = (float) phase;
+
+	if (phase == CAMPAIGN_SCAN_PHASE_INSERT)
+	{
+		memcpy (&request.pose [CAMPAIGN_ROSTER_POSITION], position, 3 * sizeof (float));
+		request.pose [CAMPAIGN_ROSTER_TYPE] = (float) entity_type;
+		request.pose [CAMPAIGN_SCAN_SIDE] = side;
+	}
+
+	if (length > 0)
+	{
+		memcpy (request.host_id, identity, length);
+	}
+
+	CAMPAIGN_ENTITY_SCAN_ASK (&request, &reply);
+
+	check_scan_reply (&reply, request.pose);
+
+	memcpy (key, reply.name, strlen (reply.name) + 1);
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

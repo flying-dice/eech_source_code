@@ -13,6 +13,7 @@ pub mod movement;
 pub mod original_report;
 pub mod output;
 pub mod reference_arithmetic;
+pub mod roster;
 pub mod sense;
 pub mod sound_assets;
 pub mod sound_data;
