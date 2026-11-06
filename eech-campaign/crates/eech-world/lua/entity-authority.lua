@@ -113,7 +113,8 @@
 --                         candidate's placement question as the next question and the provider's own refusal [model-provider:entity_candidate.refused] [candidate.fixed] ... withdrew as the only fault. UNREACHED when no
 --                         such question was ever answered `need_placement`.
 --   changed_fixed_rule    HOST-SIDE, no campaign request or entity is altered: see MODES. Credited only by (a) the campaign's FINAL placement question of a non-mobile fixed-family placement the provider holds a state
---                         for (not a city; its placement and collision flag given, the flag true), whose UNMODIFIED payload was delegated to the real provider and answered with a final pose of twelve patterns, so that the held
+--                         for (not a city; its placement and collision flag given, the flag true), whose UNMODIFIED payload was delegated to the real provider and answered with a VALIDATED final pose (the campaign's own consumer contract, checked before any credit: a nonzero scene, exactly twelve finite words classified as text and integers, never loaded
+--                         as floats, and the scene's name as the campaign accepted it; a malformed positive is the provider's reply fault, a scene with no accepted name is not validated), so that the held
 --                         sub type's collision rule was consumed (counted as `fixed_rule_eligible` BEFORE anything is changed; an ordinary fixed candidate, or a building listed under a city, whose flag `fixed_join` compares once the
 --                         placement is given), (b) the host's own restatement of ONLY that record's fixed state with the sub type ENTITY_SUB_TYPE_FIXED_UNKNOWN (declared; its rule is no collision), with the record's
 --                         current other words, acknowledged by the SAME provider under the fixed report's own reply contract (`placed`, the same key, no cursor: `scan.fixed.reply_problem`), (c) the SAME payload asked of the SAME provider
@@ -520,7 +521,7 @@ MODES.withdrawn_child = { withdraw_child = true, marker = "entity_scan.refused" 
 -- answers `need_placement` to such a question is UNREACHED when the run was otherwise clean; a request or reply fault, or an engine stop at another marker, before the withdrawal is reported as that failure
 MODES.withdrawn_fixed_state = { withdraw_fixed = true, marker = "entity_candidate.refused" }
 -- the host changes the PHYSICAL RULE of the record of the placement the real scan has just served, at the campaign's FINAL placement question (placement and collision flag given) of a non-mobile fixed-family placement:
--- the unmodified payload is delegated to the real provider and its final pose validated FIRST; the host then restates ONLY that record's fixed state with the sub type UNKNOWN (the campaign's own report path: the host
+-- the unmodified payload is delegated to the real provider and its final pose validated FIRST against the campaign's own consumer contract (nonzero scene, twelve finite words, accepted scene name); the host then restates ONLY that record's fixed state with the sub type UNKNOWN (the campaign's own report path: the host
 -- derives no collision from it), asks the SAME provider the SAME payload once more (its own extra evaluation across two controlled host states, not a question of the campaign) and hands the provider's named
 -- collision-fixed mirror refusal back instead of the pose; nothing else is altered. The listed building is an actual consumer of the held flag at that question; no natural ordinary-sector coverage is claimed
 MODES.changed_fixed_rule = { change_rule = true, marker = "entity_candidate.refused" }
@@ -1038,6 +1039,47 @@ end
 scan.fixed.expand_total, scan.fixed.expand_answered, scan.fixed.box_withdrawn, scan.fixed.box_withdrawn_key, scan.fixed.box_eligible = 0, 0, 0, "", 0
 -- what the host's re-evaluation of the final placement question answered when it was NOT the provider's refusal (changed_fixed_rule): "" until then, then `answered <result>` or `raised <message>`; never an emitted field
 scan.fixed.rule_reeval = ""
+-- THE FINAL POSITIVE OF changed_fixed_rule IS HELD BACK FROM THE CAMPAIGN (it meets the provider's refusal of the same payload instead), so it must satisfy, BEFORE any credit, restatement or extra evaluation, what the campaign's own consumer
+-- demands of a TEST reply of a non-mobile candidate (mb_hostentity.h check_candidate_reply and the identity check): a nonzero scene, exactly twelve finite pose words and the scene's own name. Words are classified as text and integer
+-- arithmetic (the exponent field of the 32 bits), never loaded as floats, so a signaling NaN or a subnormal word is neither damaged nor changes the floating-point state. The scene's name is what the campaign ACCEPTED for it: the campaign's identity
+-- check is fatal, so a reply is accepted exactly when the campaign asks its next question. `names.accepted` holds, per scene, the name of every reply (a candidate, object, custom object, animation or target point offset reply that is not a
+-- refusal) the campaign has since gone on from; a scene no accepted reply ever named, or named two ways, has NO binding and its positive is not validated (never credited, never guessed). Only the changed_fixed_rule mode tracks any of this.
+scan.fixed.names, scan.fixed.rule_unbound = { accepted = {}, conflict = {} }, 0
+scan.fixed.name_echoes = { entity_candidate = true, object = true, custom_object = true, animation = true, target_point_offset = true }
+function scan.fixed.name_tracked (inner)
+	return function (op, scene, depth, kind, definition, key)
+		local names = scan.fixed.names
+		local pending = names.pending
+		names.pending = nil
+		if pending then
+			local known = names.accepted [pending.scene]
+			if known == nil then names.accepted [pending.scene] = pending.name
+			elseif known ~= pending.name then names.conflict [pending.scene] = true end
+		end
+		local answer = inner (op, scene, depth, kind, definition, key)
+		if scan.fixed.name_echoes [op] and type (scene) == "number" and scene >= 1 and type (answer) == "table" and answer.result ~= "refused" and type (answer.name) == "string" and answer.name ~= "" then
+			names.pending = { scene = scene, name = answer.name }
+		end
+		return answer
+	end
+end
+-- the first problem of the intercepted final positive against that consumer contract, or nil; a second value says only that the scene's name cannot be known (no problem is claimed of the provider then)
+function scan.fixed.positive_problem (answer, scene)
+	if type (scene) ~= "number" or scene < 1 then return "the final TEST was answered for scene " .. tostring (scene) .. ": the narrow phase needs a nonzero scene" end
+	if answer.result ~= "test" or type (answer.p) ~= "string" then return "the final answer is not a TEST with a pose" end
+	local words = words_of_text (answer.p)
+	if words == nil or #words ~= 12 then return "the pose of a stationary candidate is not exactly 12 0x%08x patterns" end
+	for index, word in ipairs (words) do
+		local bits = tonumber (string.sub (word, 3), 16)
+		if bits == nil or math.floor (bits / 8388608) % 256 == 255 then return "float " .. (index - 1) .. " of the final pose is not a finite number" end
+	end
+	if type (answer.name) ~= "string" or answer.name == "" then return "the final TEST for scene " .. scene .. " names no scene" end
+	local names = scan.fixed.names
+	local accepted = names.accepted [scene]
+	if accepted == nil or names.conflict [scene] then return nil, "no single name was accepted for scene " .. scene end
+	if answer.name ~= accepted then return "the host names the scene " .. scene .. " \"" .. shown (answer.name) .. "\" but the campaign accepted \"" .. shown (accepted) .. "\" for it" end
+	return nil
+end
 -- the first problem of a REAL city expansion reply against the contract, or nil: `expanded`, the city's key (never another's), and the six words of the box as bit patterns (the host's own text of them)
 function scan.fixed.expand_reply_problem (answer, parsed)
 	if type (answer) ~= "table" then return "the reply is not a table" end
@@ -1560,9 +1602,14 @@ local function candidate_question (scene, depth, kind, definition, key)
 			-- no cursor) and asks the SAME provider the SAME payload once more: an extra Host-only evaluation of one actual question across two controlled Host states, never a question the campaign asked. The provider's own named
 			-- refusal of it is what goes back to the campaign. The re-evaluation is refused by `fixed_join` before the narrow phase runs: it executes no kernel, UPDATED getter, terrain read, random draw or movement step.
 			if plan.change_rule and scan.fixed.rule_changed == 0 and real.result == "test" and w [44] ~= ZERO and w [8] ~= ZERO and w [9] == ZERO and type (real.p) == "string" and scan.fixed.by_key [parsed.host_id] ~= nil and scan.fixed.by_key [parsed.host_id] [11] ~= ZERO then
-				local pose_words = 0
-				for _ in string.gmatch (real.p, "[^,]+") do pose_words = pose_words + 1 end
-				if pose_words == 12 then
+				local positive_problem, unbound = scan.fixed.positive_problem (real, scene)
+				if positive_problem then
+					-- a malformed positive is the provider's reply fault; nothing is credited, restated or re-asked, and the campaign meets the reply itself
+					faults.reply = faults.reply + 1
+					first_fault = first_fault or ("candidate reply: " .. positive_problem)
+				elseif unbound then
+					scan.fixed.rule_unbound = scan.fixed.rule_unbound + 1
+				else
 					scan.fixed.rule_eligible = scan.fixed.rule_eligible + 1
 					local words = {}
 					for index = 1, 16 do words [index] = scan.fixed.by_key [parsed.host_id] [index] end
@@ -1737,7 +1784,7 @@ local function main ()
 	local boot_options = {
 		install_root = root, map = map, terrain = terrain, environment = host.env_provider (), campaign_directory = "camp01", campaign = "LEBANON.CHC", gunship = "apache",
 		seed = seed, bind_mobile = bind_mobile, move_vehicle = hosted_move, observe_loss = host.observe_loss,
-		supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, model = model, sense = host.sense, aim = aim,
+		supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, model = plan.change_rule and scan.fixed.name_tracked (model) or model, sense = host.sense, aim = aim,
 	}
 	local engine
 	if plan.withdraw_box then
@@ -2242,7 +2289,7 @@ local function main ()
 		if plan.change_rule and scan.fixed.rule_changed == 1 and scan.fixed.rule_reeval ~= "" then return "mode " .. mode .. ": the same final placement payload was not refused by the provider after the acknowledged restatement of the sub type (" .. scan.fixed.rule_reeval .. ")" end
 		if plan.change_rule and scan.fixed.rule_changed == 0 and (faults.request > 0 or faults.reply > 0) then return "mode " .. mode .. ": no rule was changed because the run failed first (request_faults=" .. faults.request .. " reply_faults=" .. faults.reply .. " eligible_lookups=" .. scan.fixed.joined .. "): " .. tostring (first_fault) end
 		if plan.change_rule and scan.fixed.rule_changed == 0 and failure ~= nil and failure.marker ~= plan.marker then return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "], not at [model-provider:" .. plan.marker .. "], before any eligible lookup had its rule changed: " .. failure.line end
-		if plan.change_rule and scan.fixed.rule_changed == 0 and failure == nil then return "UNREACHED: " .. mode .. ": no actual final placement question (placement and collision flag given) of a non-mobile fixed-family placement whose state the provider held was answered with a final pose (" .. scan.fixed.stated .. " fixed states acknowledged, " .. scan.fixed.joined .. " eligible lookups served, " .. cand.keyed .. " keyed non-mobile questions, " .. scan.fixed.rule_eligible .. " final placement questions validated), so there was no consumed collision rule to change: the case holds no such candidate" end
+		if plan.change_rule and scan.fixed.rule_changed == 0 and failure == nil then return "UNREACHED: " .. mode .. ": no actual final placement question (placement and collision flag given) of a non-mobile fixed-family placement whose state the provider held was answered with a final pose (" .. scan.fixed.stated .. " fixed states acknowledged, " .. scan.fixed.joined .. " eligible lookups served, " .. cand.keyed .. " keyed non-mobile questions, " .. scan.fixed.rule_eligible .. " final placement questions validated, " .. scan.fixed.rule_unbound .. " final positives not validated for lack of a scene name the campaign accepted), so there was no consumed collision rule to change: the case holds no such candidate" end
 		if plan.change_rule and scan.fixed.rule_changed == 1 and failure == nil then return "mode " .. mode .. " completed: the final placement question was answered, not refused" end
 		if plan.withdraw_city and scan.fixed.city_withdrawn == 0 and (faults.request > 0 or faults.reply > 0) then return "mode " .. mode .. ": nothing was withdrawn because the run failed first (request_faults=" .. faults.request .. " reply_faults=" .. faults.reply .. " eligible_lookups=" .. scan.fixed.city_joined .. "): " .. tostring (first_fault) end
 		if plan.withdraw_city and scan.fixed.city_withdrawn == 0 and failure ~= nil and failure.marker ~= plan.marker then return "mode " .. mode .. " stopped at [model-provider:" .. failure.marker .. "], not at [model-provider:" .. plan.marker .. "], before any eligible lookup was withdrawn from: " .. failure.line end

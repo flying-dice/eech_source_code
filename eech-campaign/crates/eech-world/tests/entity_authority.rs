@@ -316,6 +316,18 @@ local function reference (op, scene, depth, kind, definition, key)
 			for _ = 1, count do words [#words + 1] = "0x3f800000" end
 			answer.p = table.concat (words, ",")
 		end
+		-- ONE fault of the FINAL positive only (every earlier answer stays coherent): a non-finite pose word or another scene's name; `subnormal` (a subnormal word and a negative zero) is a VALID positive
+		local fault = scenario.final_fault
+		if state == "test" and fault then
+			local pose = {}
+			for token in string.gmatch (answer.p, "[^,]+") do pose [#pose + 1] = token end
+			if fault == "inf" then pose [3] = "0x7f800000"
+			elseif fault == "ninf" then pose [3] = "0xff800000"
+			elseif fault == "snan" then pose [3] = "0x7fa00001"
+			elseif fault == "subnormal" then pose [3], pose [4] = "0x00000001", "0x80000000"
+			elseif fault == "name" and answer.name ~= "" then answer.name = "OTHER" end
+			answer.p = table.concat (pose, ",")
+		end
 		CAND_LOG [#CAND_LOG + 1] = { scene = scene, result = answer.result, key = key }
 	else
 		answer = { op = op, token = call_no }
@@ -522,6 +534,8 @@ package.preload.eech_dc = function ()
 					elseif result == "need_normal" then
 						if words [24] ~= ZERO or words [44] == ZERO or words [23] == ZERO or mobile then stop ("entity_candidate.state", "normal asked of a candidate that cannot need it") end
 						words [24] = "0x3f800000"
+						-- a SINGLE fault of the final question's own scene: zero, or a scene no earlier reply named
+						if scenario.final_scene == "zero" then scene = 0 elseif scenario.final_scene == "unbound" then scene = 10 end
 					elseif result == "buildings" then
 						if words [9] == ZERO then stop ("entity_candidate.state", "buildings named for a candidate that is not a city") end
 						-- a city's buildings are the host's list: the traversal asks it, and the next scripted answer is the first building's own decision
@@ -542,6 +556,9 @@ package.preload.eech_dc = function ()
 						if type (answer.p) == "string" then for _ in string.gmatch (answer.p, "[^,]+") do count = count + 1 end end
 						if count ~= 12 and count ~= 16 then stop ("entity_candidate.pose", "pose of " .. count) end
 						if scene == 0 then stop ("entity_candidate.state", "a narrow phase for a candidate that has no scene") end
+						for token in string.gmatch (answer.p, "[^,]+") do
+							if math.floor (tonumber (string.sub (token, 3), 16) / 8388608) % 256 == 255 then stop ("entity_candidate.pose", "a pose word is not a finite number") end
+						end
 						return true
 					end
 				end
@@ -4962,6 +4979,102 @@ fn a_listed_building_that_never_reaches_the_final_pose_or_a_run_that_failed_firs
         !error.contains("UNREACHED") && error.contains("reply_faults=1") && error.contains("candidate reply:"),
         "{error}"
     );
+}
+
+/// ONE fault in the intercepted final positive: the campaign's consumer contract (a nonzero scene, exactly twelve finite words, the scene's own name) is checked BEFORE any credit, restatement or extra evaluation, so the
+/// campaign meets its own refusal of the original and nothing is hidden behind the counterfactual refusal
+fn a_single_faulty_positive_is_neither_credited_nor_restated_nor_re_evaluated(extra: &str, what: &str) {
+    let driven = drive(&healthy(&format!("{LISTED}{extra}")), &[("mode", "changed_fixed_rule")]);
+    let row = authority(&driven);
+    assert_eq!(
+        (
+            row["fixed_rule_eligible"].clone(),
+            row["fixed_rule_changed"].clone(),
+            row["fixed_rule_changed_next"].clone(),
+            row["fixed_rule_changed_cause"].clone(),
+            row["request_faults"].clone(),
+            row["reply_faults"].clone()
+        ),
+        (Value::from(0), Value::from(0), Value::from(""), Value::from(""), Value::from(0), Value::from(1)),
+        "{extra}: {row}"
+    );
+    assert!(
+        row["first_fault"]
+            .as_str()
+            .is_some_and(|fault| fault.starts_with("candidate reply: ") && fault.contains(what)),
+        "{extra}: {row}"
+    );
+    // the building's own report is the only fixed report (no restatement) and the provider was asked the six questions of the campaign and nothing more (no re-evaluation, no refusal)
+    assert_eq!(driven.fixed_log.iter().filter(|entry| entry.0 == "0x41500000").count(), 1, "{extra}");
+    assert_eq!(driven.candidate_calls.len(), 6, "{extra}: {:?}", driven.candidate_calls);
+    assert!(driven.candidate_calls.iter().all(|call| call.2 != "refused"), "{extra}");
+    let error = error_of(driven);
+    assert!(
+        !error.contains("UNREACHED") && error.contains("no rule was changed because the run failed first") && error.contains(what),
+        "{extra}: {error}"
+    );
+}
+
+#[test]
+fn valid_final_positives_including_a_subnormal_word_and_a_negative_zero_are_credited_and_refused_by_name() {
+    // positive first: the coherent positive, and the valid corner words a float conversion would damage, are intercepted, credited once and answered by the provider's refusal
+    for valid in ["", ", final_fault = 'subnormal'"] {
+        let driven = drive(&healthy(&format!("{LISTED}{valid}")), &[("mode", "changed_fixed_rule")]);
+        assert!(driven.result.is_ok(), "{valid}: {:?}\n{}", driven.result, driven.rows);
+        let row = authority(&driven);
+        assert_eq!(
+            (
+                row["fixed_rule_eligible"].clone(),
+                row["fixed_rule_changed"].clone(),
+                row["reply_faults"].clone()
+            ),
+            (Value::from(1), Value::from(1), Value::from(1)),
+            "{valid}: {row}"
+        );
+        assert_eq!(driven.candidate_calls.len(), 7, "{valid}");
+    }
+}
+
+#[test]
+fn a_final_positive_with_an_infinite_pose_word_is_never_credited_and_causes_no_restatement_and_no_re_evaluation() {
+    a_single_faulty_positive_is_neither_credited_nor_restated_nor_re_evaluated(", final_fault = 'inf'", "is not a finite number");
+    a_single_faulty_positive_is_neither_credited_nor_restated_nor_re_evaluated(", final_fault = 'ninf'", "is not a finite number");
+}
+
+#[test]
+fn a_final_positive_with_a_signaling_nan_pose_word_is_never_credited_and_causes_no_restatement_and_no_re_evaluation() {
+    a_single_faulty_positive_is_neither_credited_nor_restated_nor_re_evaluated(", final_fault = 'snan'", "is not a finite number");
+}
+
+#[test]
+fn a_final_positive_for_scene_zero_is_never_credited_and_causes_no_restatement_and_no_re_evaluation() {
+    a_single_faulty_positive_is_neither_credited_nor_restated_nor_re_evaluated(", final_scene = 'zero'", "nonzero scene");
+}
+
+#[test]
+fn a_final_positive_that_names_another_scene_is_never_credited_and_causes_no_restatement_and_no_re_evaluation() {
+    a_single_faulty_positive_is_neither_credited_nor_restated_nor_re_evaluated(", final_fault = 'name'", "names the scene");
+}
+
+#[test]
+fn a_final_positive_for_a_scene_no_accepted_reply_ever_named_is_not_validated_and_is_neither_credited_nor_restated_nor_re_evaluated() {
+    // the name the campaign expects cannot be known for a scene no reply it accepted ever named: no credit, no restatement, no re-evaluation; it is neither a pass nor a provider fault
+    let driven = drive(&healthy(&format!("{LISTED}, final_scene = 'unbound'")), &[("mode", "changed_fixed_rule")]);
+    let row = authority(&driven);
+    assert_eq!(
+        (
+            row["fixed_rule_eligible"].clone(),
+            row["fixed_rule_changed"].clone(),
+            row["request_faults"].clone(),
+            row["reply_faults"].clone()
+        ),
+        (Value::from(0), Value::from(0), Value::from(0), Value::from(0)),
+        "{row}"
+    );
+    assert_eq!(driven.fixed_log.iter().filter(|entry| entry.0 == "0x41500000").count(), 1);
+    assert_eq!(driven.candidate_calls.len(), 6);
+    let error = error_of(driven);
+    assert!(error.contains("UNREACHED") && error.contains("not validated"), "{error}");
 }
 
 #[test]
