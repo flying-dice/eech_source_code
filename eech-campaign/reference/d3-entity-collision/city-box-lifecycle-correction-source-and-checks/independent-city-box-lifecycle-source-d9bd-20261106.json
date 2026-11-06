@@ -1,0 +1,355 @@
+{
+  "schema": "independent-d3-source-review.v1",
+  "reviewed_utc": "2026-11-06T20:32:28.113512+00:00",
+  "scope": "One combined independent correctness, clean-code and boundary-safety source/check review of NEW CITY box lifecycle retention. Immutable d9bd Git blobs and retained evidence only; no tests, builds, native replay, source edits, cache operations or delegated reviewers.",
+  "source": {
+    "commit": "d9bd75dbd93f42ac106a23160696ce00aa04f48f",
+    "parent": "071f8dd524cf38a3de0e9da74733650a3a45a2d5",
+    "metadata_commit": "002a19ba1a06e15e380a3329248a6a492d833766",
+    "source_worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "changed_paths": [
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+        "bytes": 49263,
+        "sha256": "981aea24d5526b714e9544f2b29b91addfca2acda843d0b15c8ea2043ba6a372",
+        "git_blob": "5ec5e691db672df41d471523b537147292645b87"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+        "bytes": 89187,
+        "sha256": "93934978d1441d1028d1bbdadc06cedd5e59c4e61a0561af977763b703e9ca27",
+        "git_blob": "0b2578b568d44ee59f1fa54e2a924546d4776200"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostmodel.h",
+        "bytes": 61019,
+        "sha256": "b5baf192424501eff87de4f29e92685fa15a85031625eb737483fbca6a76c299",
+        "git_blob": "3ff694aee440c63ace0dfd4c25c21eec579fc141"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+        "bytes": 38195,
+        "sha256": "d36915bb6bfe0e9e88dac14ad6170b9e9ef1f0b32cf3f5d9ac8c0c2f71ca8cf2",
+        "git_blob": "c451134f21d7f4f4c6ebd3021d13f79081ca0cb1"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+        "bytes": 199875,
+        "sha256": "39b64e394b105ea06fa3d6e0934da925e2b386997953a5db4e6fbc06343b898b",
+        "git_blob": "08641331cf48d7b3d817602fd5c8fc911a871aeb"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/tests/entity_roster_guard.rs",
+        "bytes": 72348,
+        "sha256": "c6cf50731c6a790854e1bf734a52cbf530d3a18261c01f4a3ff4413ca82f1b27",
+        "git_blob": "e878beeeaaf3b16c4c426ede82c07392e47a4da4"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+        "bytes": 229666,
+        "sha256": "330c4c783728e5172e4b681ad4a3036b5effb83966042bd3787ab3fdf4214a4f",
+        "git_blob": "82504e4492d7dc98c8823f1cd4a51c22e1ec4976"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/model_host.rs",
+        "bytes": 163208,
+        "sha256": "f337bb72ad868e0c7d88c5e4ab6948275ee1d8c230732ef40290774c7f8675c2",
+        "git_blob": "a9e95b5e444fc57abb669cb7e77f507bc37936d4"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/roster.rs",
+        "bytes": 89877,
+        "sha256": "d867235b030e87bdff66966c283a31f45c75095ac852e64e534c7d5fd800aefd",
+        "git_blob": "19d892fb1a04c50d16afca6a81051ad5701da7f7"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/city_box_lifecycle.rs",
+        "bytes": 19444,
+        "sha256": "fbf7dd7d8bb02fb18ed845e8e2ce2a29c470589cdc1ad7d626fd35370c4d091f",
+        "git_blob": "4a54876a953fe951cfdaffe4a0e27fae3187a1fb"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+        "bytes": 324813,
+        "sha256": "1fc670c3b2ab4cbe9f71ae27772326ac33708688a3e26e9edd339886c1c24a4f",
+        "git_blob": "2a102120620f3f0195631c1cf27b08dc7c7c4af8"
+      }
+    ],
+    "metadata_delta": "69 evidence-pack files plus STATUS.md and active card; no further executable change.",
+    "prior_runtime681_is_not_this_production_source": true
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "native_launch_clearance": false,
+    "findings": [
+      {
+        "id": "ENV-CITY-LIFECYCLE-RELEASE-DOMAIN-1",
+        "severity": "P2",
+        "title": "Distinguish a physically released CITY from a live retained CITY and a list draining after release",
+        "locations": [
+          {
+            "path": "eech-campaign/crates/eech-world/src/roster.rs",
+            "lines": "397-416, 605-636"
+          },
+          {
+            "path": "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+            "lines": "969-974, 986-1002"
+          },
+          {
+            "path": "eech-campaign/crates/eech-world/tests/city_box_lifecycle.rs",
+            "lines": "250-272"
+          }
+        ],
+        "evidence": [
+          "release marks a city record released and may leave it alive while its children remain. rejoin then accepts the same record because its list remains nonempty, without checking held.released. INSERT a fresh sector placement, LINK it to that released record before the last child leaves, and its old City state/box is transferred back into a live placement. The new tests only drain those children; they never try this continuation.",
+          "The newly admitted parked-record continuation also never checks the fresh destination entry is ENTITY_CITY. A non-CITY fresh entry with no first state can be joined to the retained City record before its later state report rejects the mismatch.",
+          "The Lua tracker clears city.lists[parent] immediately at RELEASE. A supported later CHILD_REMOVE for a still-listed child names the ended original sector key; request_join_problem then counts an ended-parent request fault, even though the real provider deliberately keeps that released list until its last child leaves."
+        ],
+        "effect": "The Host can resurrect or misbind physically ended CITY state, while the public diagnostic rejects a legitimate post-release drain. This contradicts the new phase16 lifetime contract and its no-new-valid-path-refusal requirement.",
+        "minimum_correction": [
+          "Before mutating any entry, alias, record or object mapping, reject continuation of released CITY records and require the destination of a retained-CITY continuation to be an actual live CITY placement. Keep existing generic building-link semantics outside this new CITY path unchanged.",
+          "Track released-but-draining list lifetime separately from live placement/continuable retention in Lua. Permit its legitimate existing child removals, but no new continuation/insertion, and end its binding after the last child leaves.",
+          "Use the existing real provider/Lua collaborators for positive live relink and release-with-child drain controls, plus rejected post-release LINK and wrong-family parked LINK. Assert state/aliases/order remain unchanged on refusal. No new native bad-input experiment is required."
+        ]
+      },
+      {
+        "id": "ENV-CITY-LIFECYCLE-RETAINED-ACK-ATOMIC-1",
+        "severity": "P2",
+        "title": "Validate the retained-record relationship before modifying the C placement cache",
+        "locations": [
+          {
+            "path": "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+            "lines": "458-478, 529-564"
+          },
+          {
+            "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+            "lines": "3180-3200"
+          }
+        ],
+        "evidence": [
+          "place_remove calls place_forget_key(slot,0) before place_retain_record checks whether a named removal is a CITY and whether its existing list anchor matches. The new non-CITY/wrong-record negative controls stop by name but the C placement key/cache has already been changed.",
+          "When no list anchor is held, place_retain_record copies any syntactically valid name without joining it to the current CITY placement record. The new coherent no-anchor positive uses that placement\u2019s own key; a different live/parked city key is not an authorized substitute."
+        ],
+        "effect": "An invalid retained-record acknowledgement can partially change C compatibility state or bind another City\u2019s record before later rejection. Complete grammar validation in the shared exchange does not establish this caller-specific relationship.",
+        "minimum_correction": [
+          "Validate CITY type and the returned retained-record relation against the already-held list anchor, or the current placement\u2019s own record key when there is no prior anchor, before forgetting a key or writing a list name. Then apply accepted cache changes.",
+          "Extend the existing real C dialogue positive-first controls with wrong LIVE record, non-CITY and malformed retained acknowledgements. Snapshot and require unchanged placement keys, list anchors, aliases, naming flags and lookup state on rejection; preserve coherent relink/release order."
+        ]
+      },
+      {
+        "id": "ENV-CITY-LIFECYCLE-NATIVE-PATH-1",
+        "severity": "P2",
+        "title": "The proposed provider replay does not exercise the changed Core lifecycle or a consuming collision path",
+        "locations": [
+          {
+            "path": "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-source-and-checks/README.md",
+            "section": "Finite native plan for Root, step3"
+          },
+          {
+            "path": "docs/handover/ACTIVE-EXTRACTION.json",
+            "field": "next_production_change"
+          }
+        ],
+        "evidence": "The supplied native plan proposes a not-yet-written Lua mode that replays REMOVE, INSERT, LINK, stale/true CITY_STATE and release directly against the real provider after BOOT. This is another provider/roster contract test. It never invokes the changed actual Core placement-map lifecycle and does not identify an actual consuming collision stage.",
+        "effect": "A passing direct-provider replay could leave C retention, release ordering and the Core mirror/Host record join unexecuted. It cannot close REQUIRED_CITY_BOX_LIFECYCLE_RETENTION or provide the required native authority proof.",
+        "minimum_correction": [
+          "Supply a bounded source-supported opt-in path through Host Lua -> native Core -> the actual shared CITY removal/relink/restore services on one real bound CITY, followed by an actual consuming collision path. If the current public fixture exposes no such operation, add the smallest existing-profile fixture capability and review it; do not replace the path with fabricated provider questions or a second solver.",
+          "Declare the current real CITY/child/record binding and actual empty/relinked/restored prerequisite before credit. An empty-city early skip that never reads its box is not evidence of box consumption. No actor/time/geometry search or UNREACHED-as-pass.",
+          "Declare BOOT versus post-launch row phase, exact fields, named refusal/acknowledgement and no-postfatal-access contract before launch. Preserve all existing healthy fields, including the four fixed_rule diagnostics; explicitly declare any actual phase16 lifecycle-counter delta. Require complete physical-terminal and ordinary-short equality without normalization."
+        ]
+      }
+    ],
+    "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION_closed": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "reviewed_behavior": {
+    "supported_direction": "The new built box resides in the same canonical roster record and survives diagnostic withdrawal of fixed state. A parked record is retained across an empty CITY\u2019s placement removal; a new placement links before its mirror state is restated. set_city compares the mirror to retained Host geometry before accepting, so it no longer needs Core as the sole surviving box copy.",
+    "valid_legacy_initial_state": "A City for which the Host never built a box keeps its initial/restoration behavior, including the inverted initial sentinel. No constructor repair, eight-corner substitution, new tolerance, subtype table change, campaign policy move or query-time adoption is introduced by the reviewed diff.",
+    "raw_arithmetic_and_order": "New retention/release bookkeeping uses record keys, booleans, integer words and copies. The original two-corner constructor arithmetic and fixed-rule table are unchanged. New release phase16 uses the existing16-fact transport and strict key/zero-tail grammar; no raw pointer/index is transported. Caller-specific retained-record validation still needs the atomic correction above.",
+    "lifetimes": "Placement end, parked retention, diagnostic state withdrawal and physical entity release are now separate concepts. Their implementation must preserve the release/draining distinctions in finding1 and the C acknowledgement boundary in finding2.",
+    "ffi_and_ownership": "Provider access continues through the existing SharedRoster try_borrow_mut path and existing final ModelStore. No new store, public DLL export, second world, model solver or reentrant RefCell borrow is introduced. New Windows/profile isolation remains unrun.",
+    "fp_scope": "The new lifecycle unit covers four rounding modes with raised-or-clear status (eight contexts) and compares its whole caller-state tuple across the exercised events. This is x64 Linux unit evidence, not native BOOT/Windows/full-FP proof. No new arithmetic or global FP normalization is approved."
+  },
+  "evidence": {
+    "external_freeze": {
+      "path": "R:/d3-evidence/city-box-lifecycle-CODE-FROZEN-20261106.json",
+      "bytes": 19816,
+      "sha256": "912a877945bf819abad2e0f6da33796b3f35d57e3c25ded09ad69a47fd182363"
+    },
+    "tracked_freeze": {
+      "path": "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-source-and-checks/city-box-lifecycle-CODE-FROZEN-20261106.json",
+      "bytes": 19816,
+      "sha256": "912a877945bf819abad2e0f6da33796b3f35d57e3c25ded09ad69a47fd182363"
+    },
+    "external_tracked_relation": "Literal byte equality; no placeholder changes or normalization. The tracked identity uses a descriptive metadata-commit placeholder; this review independently binds actual002a Git parent and contents.",
+    "producer_completion": {
+      "path": "R:/d3-evidence/claude-d3-city-lifecycle-20261106-completion.json",
+      "bytes": 780,
+      "sha256": "8d2b19004207eb6fd074fb46fef0ab08893284475f9cf3b50402f8ee6c6a41cd"
+    },
+    "producer_actual_exit": 0,
+    "producer_result_is_error": false,
+    "producer_model": "claude-sonnet-5-5",
+    "producer_completed_utc": "2026-11-06T20:26:41.121705+00:00",
+    "producer_start_vs_code_parent": "The job began at97dc; it first published finite-rule metadata071f. The executable code parent is071f, then source d9bd and metadata002a; no ancestry rewrite is implied.",
+    "pack_manifest": {
+      "path": "eech-campaign/reference/d3-entity-collision/city-box-lifecycle-source-and-checks/manifest.json",
+      "bytes": 11962,
+      "sha256": "c451e479932a0aa18e28deca00dd143c87dd301f57d23e99a9f6211124a40e0c",
+      "listed_entries_verified_against_actual_git_bytes": 68,
+      "including_manifest": 69
+    },
+    "input_maps": {
+      "before": {
+        "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-inputmap-before.json",
+        "bytes": 2030260,
+        "sha256": "56148069b7a57b8d9d68dde05344f169809835844bd9dc3b1a6cd02aad0e87c2"
+      },
+      "after": {
+        "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-inputmap-after.json",
+        "bytes": 2030260,
+        "sha256": "56148069b7a57b8d9d68dde05344f169809835844bd9dc3b1a6cd02aad0e87c2"
+      },
+      "whole_map_bytes_literal_equal": true,
+      "file_records": 3954,
+      "fingerprint_of_raw_sha256_map": "4e93c43929ad45084be6479f98b9af97dfa231b6d2f137e64162ca74dc23208d",
+      "eleven_changed_code_raw_sha256_and_sizes_independently_equal_actual_git_bytes": true,
+      "qualifications": "Three unchanged tree-geometry test Lua inputs retain working CRLF versus Git LF; four inherited legacy header/allocator paths are filter-only identity qualifications with raw bytes matching Git. These are separate qualifications, never baseline/output normalization. No all-files-raw-Git or immutable Linux build claim is made from this mutable working-tree gate."
+    },
+    "final_checks": [
+      {
+        "label": "final-fmt-world",
+        "receipt": {
+          "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-final-fmt-world.json",
+          "bytes": 773,
+          "sha256": "cd53aee513c5c67ad072acedb117c26de3742dd738a4342de38ab0c5eed1abdf"
+        },
+        "actual_exit": 0,
+        "command": "cargo fmt -p eech-world -- --check",
+        "result_rows": 0,
+        "passing_result_instances": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "label": "final-fmt-engine",
+        "receipt": {
+          "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-final-fmt-engine.json",
+          "bytes": 784,
+          "sha256": "f279f174f3ef4bff7cc1a4230a3285667e24e24a8cc10c619f69cc3730c592df"
+        },
+        "actual_exit": 0,
+        "command": "cargo fmt -p eech-engine-sys -- --check",
+        "result_rows": 0,
+        "passing_result_instances": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+      },
+      {
+        "label": "final-clippy-world",
+        "receipt": {
+          "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-final-clippy-world.json",
+          "bytes": 834,
+          "sha256": "0f2e78b9b5ab45c68d019c7c270ec271c9969272e3308170edff9f68355c8b3e"
+        },
+        "actual_exit": 0,
+        "command": "cargo clippy --locked --all-targets -p eech-world -- -D warnings",
+        "result_rows": 0,
+        "passing_result_instances": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "6bda4f4349deccc08a322a3a9b622bddca22e6aeffc6903eee674b0720a93822"
+      },
+      {
+        "label": "final-clippy-engine",
+        "receipt": {
+          "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-final-clippy-engine.json",
+          "bytes": 843,
+          "sha256": "7cb63841adb686ce89eab836b766e7930e8ce9eb6c696ca94421c075b62a36eb"
+        },
+        "actual_exit": 0,
+        "command": "cargo clippy --locked --all-targets -p eech-engine-sys -- -D warnings",
+        "result_rows": 0,
+        "passing_result_instances": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "23b828c7865ac37427efa7e8c1a8bf4cedfb315c37261edf3e140621f6218a29"
+      },
+      {
+        "label": "final-test-engine",
+        "receipt": {
+          "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-final-test-engine.json",
+          "bytes": 1065,
+          "sha256": "6ab2aa5216fbe56346c8b0a12856acc5a97bd45ea6d24972d4d924bd1172e499"
+        },
+        "actual_exit": 0,
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard --test entity_host_guard",
+        "result_rows": 3,
+        "passing_result_instances": 25,
+        "stdout_sha256": "6a0287b6a7f218fd84ca45968bb4da29abbc7ef99fd1391f47af09a70191617f",
+        "stderr_sha256": "a21e05e821565b7ca8496f6b35ff624e9759f168c50f81f9d7c3a9b7c3224318"
+      },
+      {
+        "label": "final-test-world",
+        "receipt": {
+          "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-final-test-world.json",
+          "bytes": 1061,
+          "sha256": "46bfe2bb9f48cf59d0a1eb09b18bdc0e89742e4149988692053a9330b43f438c"
+        },
+        "actual_exit": 0,
+        "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --lib --test entity_roster_host --test city_box_lifecycle --test entity_authority --test entity_candidate_host",
+        "result_rows": 5,
+        "passing_result_instances": 508,
+        "stdout_sha256": "bc7ecff7ba6704078ca118410cb70ed4e43a78d269996533759bd73c91f178bc",
+        "stderr_sha256": "e96ee3a2e771926b5dfa806ca72b6f7622ff9daec1256c4beafe124db9f2d746"
+      },
+      {
+        "label": "final-copt2-engine",
+        "receipt": {
+          "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-final-copt2-engine.json",
+          "bytes": 1050,
+          "sha256": "feb5dfef0e3589348dd72a6a59fb9c33e6802057a193d0a718ea2595ebb1e747"
+        },
+        "actual_exit": 0,
+        "command": "env EECH_C_OPT=2 cargo test --locked --target x86_64-unknown-linux-gnu -p eech-engine-sys --features entity-dialogue-check --test entity_dialogue --test entity_roster_guard",
+        "result_rows": 2,
+        "passing_result_instances": 20,
+        "stdout_sha256": "d54e5c3231bcb9bbdb9fbd3992d6b1243f46d799041ea04802e00b88f1c3c79e",
+        "stderr_sha256": "953c234140196e85c0ef2c608a085674685294efabe5fed1deced04f75adf998"
+      },
+      {
+        "label": "final-copt2-world",
+        "receipt": {
+          "path": "R:/d3-evidence/city-box-lifecycle-20261106/city-box-lifecycle-final-copt2-world.json",
+          "bytes": 1037,
+          "sha256": "b77aeae6be79a73b3c23ef05b37712dd79e723124814a419debc76c0fd403672"
+        },
+        "actual_exit": 0,
+        "command": "env EECH_C_OPT=2 cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --lib --test entity_roster_host --test city_box_lifecycle --test entity_authority",
+        "result_rows": 4,
+        "passing_result_instances": 495,
+        "stdout_sha256": "d6e249675d567ada0f5a9d1c64ecd1f0d247dd34cb127e9a889397c604b70a8c",
+        "stderr_sha256": "2b351d1af8389e595ac132f06b9dd03e6d3e22d3a69b98e7365394d1797464ed"
+      }
+    ],
+    "final_actual_children_zero": 8,
+    "passing_result_instances": 1048,
+    "result_rows": 14,
+    "counts_scope": "Affected default and C_OPT2 World/sys collaborators plus scoped fmt/Clippy; repeated instances, not1048 distinct new tests or a new whole-workspace/Windows/current-CI matrix.",
+    "red_chronology": {
+      "rust": "Actual101, five failed/one legacy control passed against unchanged parent production.",
+      "c": "Actual101,14 C expectations failed after temporarily restoring the author\u2019s own baseline four C inputs through stash in the same worktree/cache, then restoring the correction. This is a controlled source-baseline RED, not an independently built Original DLL/native experiment.",
+      "final_restoration_binding": "All changed C/header raw bytes match d9bd Git and stable final maps; final real shared-C controls pass with the new retention/release behavior. No replay of the old-source probe was performed by reviewer.",
+      "intermediate_failures": "Retained green1/green2/green3 and formatting failures remain superseded attempts, not final green.",
+      "metadata_count_precision": "README baseline lib373 should read372, as the actual base-world receipt and frozen report show; final lib373 is correct."
+    }
+  },
+  "required_after_correction": [
+    "Correct the three bounded groups together and bind only changed material plus affected controls. No known-bad native on d9bd is cleared; no standalone unchanged matrix or old baseline experiment is requested.",
+    "Root must use a new clean immutable corrected production source identity for Windows ordinary/hosted/explicit Original builds, actual feature/COFF/private-export and payload seals, the original complete deterministic short and healthy comparison, and the separately reviewed real Core lifecycle/consumption witness. Runtime681 positives cannot be relabelled as this new production candidate.",
+    "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION remains OPEN until corrected source and required actual lifecycle authority are accepted. Sector height follows that required acceptance, not this incomplete source gate.",
+    "All ten whole-D3 requirements remain, including default-shape/clutter/draw-align caller and DCS disposition, sector height/hints/writers, effectful UPDATED/shared terrain, raw TREE/FOREST/CLOUD RNG, needed hierarchy/devices/services, mappings, natural moving/weapon integration, current final40/all8, final inputs/payloads/current CI, normal merge/delivery and final census.",
+    "The closed finite physical-rule4540 evidence remains closed at its runtime/literal identities. The protected f734 full pack remains separate; partial prefixes are not this candidate\u2019s complete acceptance. D4/D5 and historical TypeScript remain unstarted."
+  ]
+}

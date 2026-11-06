@@ -1,0 +1,295 @@
+{
+  "schema": "d3.task49.city-box-lifecycle-correction.source-and-checks.manifest.v1",
+  "listed_files": 72,
+  "files_including_manifest": 73,
+  "files": {
+    ".gitattributes": {
+      "bytes": 61,
+      "sha256": "22106984a6c1274ead5c283789ca11d75b303658949aaa627698747e7b2d6160"
+    },
+    "README.md": {
+      "bytes": 10042,
+      "sha256": "6f373008f5280ae88cd3df57e80353122220f51abedea90c20d4a8bd503811f5"
+    },
+    "city-box-lifecycle-correction-CODE-FROZEN-20261106.json": {
+      "bytes": 19846,
+      "sha256": "b334b97c14d596e2c838da3f96d2adde14addec73188a539f74c239856ff6de7"
+    },
+    "direct-records/city-box-lifecycle-c2-auth.json": {
+      "bytes": 888,
+      "sha256": "c731fe7e3e9f5b8e40b71c20c62efa54ffd39f624ab30c8a25f35920ab171c8d"
+    },
+    "direct-records/city-box-lifecycle-c2-auth.stdout.log": {
+      "bytes": 13191,
+      "sha256": "6f10f0adfe0c07dff3a4825df1c43b99fead059b9e65396a29a794e06e7d1c27"
+    },
+    "direct-records/city-box-lifecycle-c2-auth2.json": {
+      "bytes": 1029,
+      "sha256": "a68f26f99787c9089a043452eab7bdcd8971935f88afb2d4252078d10c2ff70f"
+    },
+    "direct-records/city-box-lifecycle-c2-auth3.json": {
+      "bytes": 973,
+      "sha256": "3130cd43b0700922c6d2d608769ab2992772f6df1eef0041e46550ed54a04673"
+    },
+    "direct-records/city-box-lifecycle-c2-auth4.json": {
+      "bytes": 888,
+      "sha256": "9e584e297fbcaa1aed5857788cdab88e175f5e69fefbeb1287c0b9b38c7a6de0"
+    },
+    "direct-records/city-box-lifecycle-c2-clippy-dc.json": {
+      "bytes": 879,
+      "sha256": "0002df7a6540072c84c015a4528b7075bd78e630676c5b0495f480420410c6e0"
+    },
+    "direct-records/city-box-lifecycle-c2-clippy-hosted.json": {
+      "bytes": 896,
+      "sha256": "e5beee186e8f6d2318589e23d40699d5190a127185761593c9b2017b38ed28e2"
+    },
+    "direct-records/city-box-lifecycle-c2-clippy-original.json": {
+      "bytes": 932,
+      "sha256": "e50c601ddec5c6db9f17feb6bc4825436f521c1945d4ea5dd0d95ea0642d2067"
+    },
+    "direct-records/city-box-lifecycle-c2-fmt-apply-engine.json": {
+      "bytes": 762,
+      "sha256": "bb0e73a49fdd418676b55326e87a5d12743e129d8e9de21414d76225111eea0b"
+    },
+    "direct-records/city-box-lifecycle-c2-fmt-apply-world.json": {
+      "bytes": 751,
+      "sha256": "2d028b76759b37c4e722c29fde80f2ad1947f748dd45c3ce92dfacafd474cbe4"
+    },
+    "direct-records/city-box-lifecycle-c2-fmt-dc.json": {
+      "bytes": 745,
+      "sha256": "3cf448343d56eb3e11d8319b86c2d1729e4754969dd021091e187d7a8ee0954e"
+    },
+    "direct-records/city-box-lifecycle-c2-fmt-e.json": {
+      "bytes": 762,
+      "sha256": "541f9f9df21b8fc6ccbb539fca3f988db4a9405e50478de8b003b3cfc70396ce"
+    },
+    "direct-records/city-box-lifecycle-c2-fmt-w.json": {
+      "bytes": 750,
+      "sha256": "28e55f6df050c7f30a41b50515cfbbfc2167bef9dc377944b0f44957d25b167c"
+    },
+    "direct-records/city-box-lifecycle-c2-green-armed.json": {
+      "bytes": 974,
+      "sha256": "7686f48e1fe32642a3df2ab9ec6c110d7312bdf80b6f97d0448216f2490348e0"
+    },
+    "direct-records/city-box-lifecycle-c2-guard.json": {
+      "bytes": 969,
+      "sha256": "caf4d3ac9539d98bcb06d91d5544c417cb5f42c4471beeadaebfb4acb6df2367"
+    },
+    "direct-records/city-box-lifecycle-c2-red-armed.json": {
+      "bytes": 975,
+      "sha256": "208996b51b05a587c29a9bbc4a3400ca3a265cb64106c3c68eb16b382f2ea9a4"
+    },
+    "direct-records/city-box-lifecycle-c2-red-armed.stderr.log": {
+      "bytes": 378,
+      "sha256": "541cb2b8354956b7a14a4913a052c44f7f9380f87225dce71b37eeb7e12cda76"
+    },
+    "direct-records/city-box-lifecycle-c2-red-armed.stdout.log": {
+      "bytes": 1623,
+      "sha256": "47f42bcd57398349081078695f2543ad96984b7895858d0a707d6045360cefb3"
+    },
+    "direct-records/city-box-lifecycle-c2-red-c.json": {
+      "bytes": 964,
+      "sha256": "927dcd4d48bf2a7a0d28977aa6d60d45d95866d85d7ac865bef060b0ce0d2452"
+    },
+    "direct-records/city-box-lifecycle-c2-red-c.stderr.log": {
+      "bytes": 391,
+      "sha256": "9150939a419026fefe3e8b2e27092550a774283db96f36f2ea19995918b686e0"
+    },
+    "direct-records/city-box-lifecycle-c2-red-c.stdout.log": {
+      "bytes": 1431,
+      "sha256": "03c6c1b9a03781085a73c94b75febf6af30f2c3989c35ed1ca929a4171e0c24c"
+    },
+    "direct-records/city-box-lifecycle-c2-red-lua.json": {
+      "bytes": 972,
+      "sha256": "652a87b381c4ece9da705c1ee5303b7391a789a13135874dcd66594ed41dceb3"
+    },
+    "direct-records/city-box-lifecycle-c2-red-lua.stderr.log": {
+      "bytes": 304,
+      "sha256": "b26fb49383cce4fc3f981bc982b8f0c09d45e3386bc65c246f19923f31ef3478"
+    },
+    "direct-records/city-box-lifecycle-c2-red-lua.stdout.log": {
+      "bytes": 211,
+      "sha256": "44fcbe416e658df7fcbba61e5d6a45b265db934c267c57484739b944c879a73c"
+    },
+    "direct-records/city-box-lifecycle-c2-red-wire.json": {
+      "bytes": 893,
+      "sha256": "51040b3ccf390506381b789e265eeb9a14853b73350a65139ba08d2830f3d5b2"
+    },
+    "direct-records/city-box-lifecycle-c2-red-wire.stderr.log": {
+      "bytes": 384,
+      "sha256": "95e69450ae886dd76c8641cfad09b0efbb888ea575239808abcbfaa0c45d6167"
+    },
+    "direct-records/city-box-lifecycle-c2-red-wire.stdout.log": {
+      "bytes": 2147,
+      "sha256": "4d985c7dc3630d4cd9cd2c8b02d0bb2fd4365485bc170f899e349baab88b6705"
+    },
+    "direct-records/city-box-lifecycle-c2f-clippy-dc.json": {
+      "bytes": 880,
+      "sha256": "2b0ed592c6dad9fd68fb22d448961f11207d4d94c82d601b236334efade8805a"
+    },
+    "direct-records/city-box-lifecycle-c2f-clippy-dc.stderr.log": {
+      "bytes": 331,
+      "sha256": "8560d5755bb7f1c8968ecddf3c924b4409d6c1484ae25b89cc00122f9f7e74b2"
+    },
+    "direct-records/city-box-lifecycle-c2f-clippy-dc.stdout.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "direct-records/city-box-lifecycle-c2f-clippy-engine.json": {
+      "bytes": 843,
+      "sha256": "e2fa925ce703b35eb8cdc28c7c10de150eed38660f9a24c0234b9d518d0ab76d"
+    },
+    "direct-records/city-box-lifecycle-c2f-clippy-engine.stderr.log": {
+      "bytes": 195,
+      "sha256": "fc3319118d8f6023407ff16432a3fb4174818836738d08582b86c29dc61eda24"
+    },
+    "direct-records/city-box-lifecycle-c2f-clippy-engine.stdout.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "direct-records/city-box-lifecycle-c2f-clippy-hosted.json": {
+      "bytes": 895,
+      "sha256": "d7270f115407c251d7ad69cbeeb2bdd611101b2bb3a5ce561de068e796aa5ff2"
+    },
+    "direct-records/city-box-lifecycle-c2f-clippy-hosted.stderr.log": {
+      "bytes": 195,
+      "sha256": "23b828c7865ac37427efa7e8c1a8bf4cedfb315c37261edf3e140621f6218a29"
+    },
+    "direct-records/city-box-lifecycle-c2f-clippy-hosted.stdout.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "direct-records/city-box-lifecycle-c2f-clippy-original.json": {
+      "bytes": 931,
+      "sha256": "f02630b4a3765ea3c24543495a45b45daf52a09054056627c542d623bdf583d6"
+    },
+    "direct-records/city-box-lifecycle-c2f-clippy-original.stderr.log": {
+      "bytes": 195,
+      "sha256": "23b828c7865ac37427efa7e8c1a8bf4cedfb315c37261edf3e140621f6218a29"
+    },
+    "direct-records/city-box-lifecycle-c2f-clippy-original.stdout.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "direct-records/city-box-lifecycle-c2f-clippy-world.json": {
+      "bytes": 833,
+      "sha256": "4a4efcb99ac3986a4983a9bd4bf1b1cd1ce555ca90ebb5f5d1bd6023c901bf83"
+    },
+    "direct-records/city-box-lifecycle-c2f-clippy-world.stderr.log": {
+      "bytes": 184,
+      "sha256": "208f058bc74e7484484333d093e1c064b6fa69453bc1a95798a55d8a556dc858"
+    },
+    "direct-records/city-box-lifecycle-c2f-clippy-world.stdout.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "direct-records/city-box-lifecycle-c2f-copt2-engine.json": {
+      "bytes": 1050,
+      "sha256": "eea8ad11945588957f1854cf64312fcd004acd7d64672cdd52713f2933f0e272"
+    },
+    "direct-records/city-box-lifecycle-c2f-copt2-engine.stderr.log": {
+      "bytes": 357,
+      "sha256": "ca9f95ab2bb96b5e1bf31aeee5c58a8fa4737c69ce295ef829c49efefa2d0797"
+    },
+    "direct-records/city-box-lifecycle-c2f-copt2-engine.stdout.log": {
+      "bytes": 2631,
+      "sha256": "2bc1aefa07801dbb32eca5a6c0545c9acd36a086dba799cea6b0fd7340a29313"
+    },
+    "direct-records/city-box-lifecycle-c2f-copt2-world.json": {
+      "bytes": 1038,
+      "sha256": "cfa6fef8113c6ce57c5b605d073f72f7e1d0fb86c0dc630f921ac5a45bf23b65"
+    },
+    "direct-records/city-box-lifecycle-c2f-copt2-world.stderr.log": {
+      "bytes": 14722,
+      "sha256": "db521177ea7316bc0ddf5498f63e5590ff20eb37a8300c6b8d3c2408d605c623"
+    },
+    "direct-records/city-box-lifecycle-c2f-copt2-world.stdout.log": {
+      "bytes": 53176,
+      "sha256": "cb197a48e964c187b55e7fa125f7bfd9558009bd86fcbaf90d972ae71b0ee351"
+    },
+    "direct-records/city-box-lifecycle-c2f-fmt-dc.json": {
+      "bytes": 766,
+      "sha256": "33697fa5390a23c83f195d73bec091ff9cf2591c703bb1d2b608789313651ceb"
+    },
+    "direct-records/city-box-lifecycle-c2f-fmt-dc.stderr.log": {
+      "bytes": 42,
+      "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "direct-records/city-box-lifecycle-c2f-fmt-dc.stdout.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "direct-records/city-box-lifecycle-c2f-fmt-engine.json": {
+      "bytes": 783,
+      "sha256": "d1b74dd1c6bd82cf4bebe80ccbe20091ebd5d5f1725d7070cf6a0079a5c16d76"
+    },
+    "direct-records/city-box-lifecycle-c2f-fmt-engine.stderr.log": {
+      "bytes": 42,
+      "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "direct-records/city-box-lifecycle-c2f-fmt-engine.stdout.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "direct-records/city-box-lifecycle-c2f-fmt-world.json": {
+      "bytes": 772,
+      "sha256": "38342622a38b54425bf894790ee214d3f025b234d8af8403cea963a0ab43f242"
+    },
+    "direct-records/city-box-lifecycle-c2f-fmt-world.stderr.log": {
+      "bytes": 42,
+      "sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "direct-records/city-box-lifecycle-c2f-fmt-world.stdout.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "direct-records/city-box-lifecycle-c2f-test-engine.json": {
+      "bytes": 1063,
+      "sha256": "a0a86774ab9fc557c9576d1eeed860fde01b5c57ebb46100ccf283c1f04c8f0e"
+    },
+    "direct-records/city-box-lifecycle-c2f-test-engine.stderr.log": {
+      "bytes": 558,
+      "sha256": "de5d1881f2ab5fb049802556c4ca1f16330806cfe784c3ff4b44443979774ff9"
+    },
+    "direct-records/city-box-lifecycle-c2f-test-engine.stdout.log": {
+      "bytes": 3261,
+      "sha256": "d39c26355fb7402bfccbd322df29d03368549587b0a9d670a396ada8b1378cb8"
+    },
+    "direct-records/city-box-lifecycle-c2f-test-world.json": {
+      "bytes": 1062,
+      "sha256": "9f65eb5ccdff36314d263a1bd937314dc64f5bf67f627117418082822ab6ee77"
+    },
+    "direct-records/city-box-lifecycle-c2f-test-world.stderr.log": {
+      "bytes": 14851,
+      "sha256": "e2cd554ef65c54f53482b3c188faede18a6dd30b63684bc779559e79b899a2e9"
+    },
+    "direct-records/city-box-lifecycle-c2f-test-world.stdout.log": {
+      "bytes": 54997,
+      "sha256": "6c6d60a8f0d21e19961084655f2178c93db14c4d525c56795c83cb0a57786cfc"
+    },
+    "env/chain-city-box-lifecycle-c2final-20261106.sh": {
+      "bytes": 1700,
+      "sha256": "90c6439ac6837cc3f6162f3fa5476f3a0a4a3e5b25d688c3a05b6d85feee84d6"
+    },
+    "env/cityboxmap-correction-20261106.py": {
+      "bytes": 3623,
+      "sha256": "2f5e003a0a5173c6dc861b9d903b7b63069850eec3a9b21a855673c9cd88c60b"
+    },
+    "env/run-city-box-lifecycle-direct-20261106.py": {
+      "bytes": 4433,
+      "sha256": "05fd1fd71bbf20ae26e8bf51408dd1b65448faab9b5ee6eebcaffd56f62adc6c"
+    },
+    "independent-city-box-lifecycle-source-d9bd-20261106.json": {
+      "bytes": 24714,
+      "sha256": "5ff7b7b973f0fc8e4cbe8e287bbf29272cd4d6b3674898540d163c5e25c44661"
+    },
+    "maps/city-box-lifecycle-correction-targetmap-4ef1f42f3.json": {
+      "bytes": 19879,
+      "sha256": "3c623c88fbd728e72cde208b67127b50ed4c41ac094e383b96c110a1c653395c"
+    },
+    "maps/input-map-summary.json": {
+      "bytes": 2695,
+      "sha256": "12c76051bc2da04e02c7b666b027f7127c733957a9a6af8405e657f473d89b56"
+    }
+  }
+}
