@@ -1,0 +1,27 @@
+x64_O1_original exit=0 lines=2000
+i686_O1_original exit=0 lines=2000
+i686_O0_original exit=0 lines=2000
+i686_O2_original exit=0 lines=2000
+i686_O1_standard_original exit=0 lines=2000
+i686_O0_standard_original exit=0 lines=2000
+x64_O1_production exit=0 lines=2000
+i686_O1_production exit=0 lines=2000
+i686_O1_standard_production exit=0 lines=2000
+differs from x64_O1_original: pose_i686_O0_original.out lines=1954
+differs from x64_O1_original: pose_i686_O0_standard_original.out lines=1954
+differs from x64_O1_original: pose_i686_O1_original.out lines=1990
+differs from x64_O1_original: pose_i686_O1_production.out lines=1999
+differs from x64_O1_original: pose_i686_O1_standard_original.out lines=1954
+differs from x64_O1_original: pose_i686_O1_standard_production.out lines=1954
+differs from x64_O1_original: pose_i686_O2_original.out lines=1990
+differs from x64_O1_original: pose_x64_O1_original.out lines=0
+differs from x64_O1_original: pose_x64_O1_production.out lines=0
+words vs x64_O1_original: pose_i686_O0_original.out input_lines_differing=0 output_lines_differing=1954
+words vs x64_O1_original: pose_i686_O0_standard_original.out input_lines_differing=0 output_lines_differing=1954
+words vs x64_O1_original: pose_i686_O1_original.out input_lines_differing=0 output_lines_differing=1990
+words vs x64_O1_original: pose_i686_O1_production.out input_lines_differing=0 output_lines_differing=1999
+words vs x64_O1_original: pose_i686_O1_standard_original.out input_lines_differing=0 output_lines_differing=1954
+words vs x64_O1_original: pose_i686_O1_standard_production.out input_lines_differing=0 output_lines_differing=1954
+words vs x64_O1_original: pose_i686_O2_original.out input_lines_differing=0 output_lines_differing=1990
+words vs x64_O1_original: pose_x64_O1_original.out input_lines_differing=0 output_lines_differing=0
+words vs x64_O1_original: pose_x64_O1_production.out input_lines_differing=0 output_lines_differing=0

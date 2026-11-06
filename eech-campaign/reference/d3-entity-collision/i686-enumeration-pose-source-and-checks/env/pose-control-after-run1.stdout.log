@@ -1,0 +1,10 @@
+after_i686_O0_production exit=0 lines=2000
+after_i686_O1_production exit=0 lines=2000
+after_i686_O2_production exit=0 lines=2000
+after_i686_O1_standard_production exit=0 lines=2000
+after_x64_O1_production exit=0 lines=2000
+words vs x64_O1_original: pose_after_i686_O0_production.out output_lines_differing=0
+words vs x64_O1_original: pose_after_i686_O1_production.out output_lines_differing=0
+words vs x64_O1_original: pose_after_i686_O1_standard_production.out output_lines_differing=0
+words vs x64_O1_original: pose_after_i686_O2_production.out output_lines_differing=0
+words vs x64_O1_original: pose_after_x64_O1_production.out output_lines_differing=0

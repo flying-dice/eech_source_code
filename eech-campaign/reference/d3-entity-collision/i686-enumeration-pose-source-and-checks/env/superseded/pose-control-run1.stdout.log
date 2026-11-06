@@ -1,0 +1,10 @@
+x64_O1_original exit=1 lines=
+i686_O1_original exit=1 lines=
+i686_O0_original exit=1 lines=
+i686_O2_original exit=1 lines=
+i686_O1_standard_original exit=1 lines=
+i686_O0_standard_original exit=1 lines=
+x64_O1_production exit=1 lines=
+i686_O1_production exit=1 lines=
+i686_O1_standard_production exit=1 lines=
+differs from x64_O1_original: pose_*.out lines=0

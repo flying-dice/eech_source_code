@@ -1,0 +1,644 @@
+{
+  "schema": "d3.task49.i686-enumeration-pose.code-frozen.v1",
+  "status": "UNREVIEWED CODE_FROZEN: source and Linux checks only. No SourceClearance, no native actual, no Windows/Wine run, no independent review, no acceptance and no CI success is claimed.",
+  "scope": "ONE bounded correction of the real i686 CI/test failure ENV-I686-ENTITY-CANDIDATE-NARROW-ULP-1 (tests/entity_candidate_host.rs:907, world 1) in csrc/entity_candidate_step.c, plus the two-line workflow change that lets CI report every test binary. The tree raw-copy fix (0a7330f86) and the cd97e0b72 scan-FP fix are preserved unchanged; no tree, physical-policy, flag, oracle or tolerance change.",
+  "producer": {
+    "model": "claude-sonnet-5-5",
+    "effort": "high",
+    "lane": "the same single implementation lane, resumed after the tree-i686 producer was terminal; no nested agents/MCP/auth change/retail/Windows profile/full pack/merge"
+  },
+  "identity": {
+    "code": "681ccfe5476a7c0a90036bc01cd054358c751162",
+    "code_parent": "e442946e5589ae9b91a1522bf4b35afec490cc63",
+    "meta_commit": null,
+    "branch": "codex/d3-object-tree-collision",
+    "note": "meta_commit stays the tracked null placeholder in this repository copy; Root's external copy names the metadata commit",
+    "changed_paths": [
+      {
+        "path": ".github/workflows/eech-campaign.yml",
+        "bytes": 6937,
+        "sha256": "3f66c24dbecc31289ac5ec2a209b39e267b4266e6c14c11c63d9e369dba3a087",
+        "inside_map_roots": false
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/entity_candidate_step.c",
+        "bytes": 20295,
+        "sha256": "03c7b8644dc2980d57c93a429e21a949ee3fecbc3317b24cf145deaa17ab422f",
+        "inside_map_roots": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/entity_candidate_host.rs",
+        "bytes": 48543,
+        "sha256": "af6f45dbeb4521ce99ad89653f2c8d2a3c972d50eb0ed24eadad25a5b51831ce",
+        "inside_map_roots": true
+      }
+    ],
+    "preserved_chain": {
+      "0a7330f860c19a45a415f8a6cbf77513a9db84be": "tree raw-copy fix (code); meta e442946e5589ae9b91a1522bf4b35afec490cc63 with its pack and report (external sha256 03168a4a...) literal",
+      "cd97e0b723e4f6710622ba9c6c19a16516fa4174": "scan classifier subnormal fix (code); external report sha256 62445b900a11ae56b0a6a4c53ce6c980380cd877ab60664de7b570bb3a40401f literal"
+    }
+  },
+  "red": {
+    "claim_level": "reproduced locally twice before this lane's change, on real i686 targets: the pristine d452 source and the tree-fixed e442 source, with identical assertion text; reported by CI for both i686 jobs of e442 (run 42261406269)",
+    "receipts_in_earlier_pack": {
+      "eech-campaign/reference/d3-entity-collision/tree-i686-raw-pass-through-source-and-checks/direct-records/pristine-d452-entity-candidate-i686.json": {
+        "bytes": 1017,
+        "sha256": "387839e53163ed90e8d6e1c23575fce7e9e24086b1bff4deb44b3db33c4fd151"
+      },
+      "eech-campaign/reference/d3-entity-collision/tree-i686-raw-pass-through-source-and-checks/direct-records/pristine-d452-entity-candidate-i686.stdout.log": {
+        "bytes": 3695,
+        "sha256": "44c19ae01579d674ed2759f4dc3d49ac9c49daa90ae38b9dfdad92a56f4100b4"
+      },
+      "eech-campaign/reference/d3-entity-collision/tree-i686-raw-pass-through-source-and-checks/direct-records/final-i686-workspace-default.json": {
+        "bytes": 942,
+        "sha256": "e608124884c3cb5ed466b50cc6e28d0bf9a150529f52aeb318de11ead6785b70"
+      },
+      "eech-campaign/reference/d3-entity-collision/tree-i686-raw-pass-through-source-and-checks/direct-records/final-i686-workspace-default.stdout.log": {
+        "bytes": 150497,
+        "sha256": "7bc42b2f295c0574c52a8a9d7403981b6f1dc1726d50bcd25af0558ed43b036d"
+      },
+      "eech-campaign/reference/d3-entity-collision/tree-i686-raw-pass-through-source-and-checks/tree-i686-raw-pass-through-CODE-FROZEN-20261106.json": {
+        "bytes": 36308,
+        "sha256": "fd63e8ace37eefa03548c2eab6888f4c02975d942378b7107b7eb0dfeb8a3b7c"
+      }
+    },
+    "test": "tests/entity_candidate_host.rs: the_host_driven_enumeration_is_the_original_scan_in_window_order_exclusions_first_hit_services_poses_and_refusals_over_many_worlds, line 907, world 1",
+    "difference": "ordered UPDATED/Normal/Narrow/refusal events agree; five of the nine attitude words of Narrow(6, 2000, ...) of a terrain-aligned fixed candidate (rows 0 and 2 of the matrix; the normal row is equal) differ by one ulp on i686. The parent RED is not replayed."
+  },
+  "diagnosis": {
+    "claim_level": "measured with the original text extracted from the repository, in scratch containers (read-only source mount, no cargo cache volume, no old snapshot mounted into the candidate target cache); limits below",
+    "method": "env/pose-control.sh extracts the ORIGINAL functions by name from modules/maths/matrix.c and vector.c (get_identity_matrix3x3, normalise_any_3d_vector, get_3d_vector_cross_product, get_3d_transformation_matrix_from_face_normal_and_heading; sha256 in env/original_extract.sha256) into a surrogate (vec3d, matrix3x3, ASSERT empty) and drives them, and the production file's own statics (-DPRODUCTION_TEXT), with 2000 raw-word inputs built from integers and exact power-of-two scalings (identical on every target; verified), under round-toward-zero as the host's guard sets it, with the production flags (-std=gnu99 -fno-strict-aliasing -fwrapv -ftrivial-auto-var-init=zero, gcc-12 12.2.0, -O0/-O1/-O2). The Rust test transcription is not an input to this control.",
+    "variants": {
+      "after_i686_O0_production": {
+        "lines": 2000,
+        "output_lines_differing_from_x64_O1_original": 0,
+        "differing_per_matrix_word": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "file": "pose_after_i686_O0_production.out",
+        "sha256": "db783a1cc767e2f9c4c3bebe90ba91e2db7f73a957a2d81810d08af6a97484da",
+        "bytes": 234000
+      },
+      "after_i686_O1_production": {
+        "lines": 2000,
+        "output_lines_differing_from_x64_O1_original": 0,
+        "differing_per_matrix_word": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "file": "pose_after_i686_O1_production.out",
+        "sha256": "db783a1cc767e2f9c4c3bebe90ba91e2db7f73a957a2d81810d08af6a97484da",
+        "bytes": 234000
+      },
+      "after_i686_O1_standard_production": {
+        "lines": 2000,
+        "output_lines_differing_from_x64_O1_original": 0,
+        "differing_per_matrix_word": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "file": "pose_after_i686_O1_standard_production.out",
+        "sha256": "db783a1cc767e2f9c4c3bebe90ba91e2db7f73a957a2d81810d08af6a97484da",
+        "bytes": 234000
+      },
+      "after_i686_O2_production": {
+        "lines": 2000,
+        "output_lines_differing_from_x64_O1_original": 0,
+        "differing_per_matrix_word": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "file": "pose_after_i686_O2_production.out",
+        "sha256": "db783a1cc767e2f9c4c3bebe90ba91e2db7f73a957a2d81810d08af6a97484da",
+        "bytes": 234000
+      },
+      "after_x64_O1_production": {
+        "lines": 2000,
+        "output_lines_differing_from_x64_O1_original": 0,
+        "differing_per_matrix_word": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "file": "pose_after_x64_O1_production.out",
+        "sha256": "db783a1cc767e2f9c4c3bebe90ba91e2db7f73a957a2d81810d08af6a97484da",
+        "bytes": 234000
+      },
+      "i686_O0_original": {
+        "lines": 2000,
+        "output_lines_differing_from_x64_O1_original": 1954,
+        "differing_per_matrix_word": [
+          1186,
+          1185,
+          1204,
+          0,
+          0,
+          0,
+          669,
+          1360,
+          665
+        ],
+        "file": "pose_i686_O0_original.out",
+        "sha256": "f0886feae29945661b33ab38e4da62e3fa38bffbdf85e15fdbfeb9add6d3f2d2",
+        "bytes": 234000
+      },
+      "i686_O0_sse_original": {
+        "lines": 2000,
+        "output_lines_differing_from_x64_O1_original": 0,
+        "differing_per_matrix_word": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "file": "pose_i686_O0_sse_original.out",
+        "sha256": "db783a1cc767e2f9c4c3bebe90ba91e2db7f73a957a2d81810d08af6a97484da",
+        "bytes": 234000
+      },
+      "i686_O0_standard_original": {
+        "lines": 2000,
+        "output_lines_differing_from_x64_O1_original": 1954,
+        "differing_per_matrix_word": [
+          1186,
+          1185,
+          1204,
+          0,
+          0,
+          0,
+          669,
+          1360,
+          665
+        ],
+        "file": "pose_i686_O0_standard_original.out",
+        "sha256": "f0886feae29945661b33ab38e4da62e3fa38bffbdf85e15fdbfeb9add6d3f2d2",
+        "bytes": 234000
+      },
+      "i686_O1_original": {
+        "lines": 2000,
+        "output_lines_differing_from_x64_O1_original": 1990,
+        "differing_per_matrix_word": [
+          1257,
+          1381,
+          1266,
+          0,
+          0,
+          0,
+          1630,
+          1192,
+          1663
+        ],
+        "file": "pose_i686_O1_original.out",
+        "sha256": "9bfb71d10da32eee0988045abc42e59de7a5dda8bf7060703e99287cb5e3c21b",
+        "bytes": 234000
+      },
+      "i686_O1_production": {
+        "lines": 2000,
+        "output_lines_differing_from_x64_O1_original": 1999,
+        "differing_per_matrix_word": [
+          1048,
+          1185,
+          1073,
+          0,
+          0,
+          0,
+          1638,
+          1206,
+          1680
+        ],
+        "file": "pose_i686_O1_production.out",
+        "sha256": "df9bdacaecef09429bb50257f664fb1672aae3b498a4dc21d70763e152051c12",
+        "bytes": 234000
+      },
+      "i686_O1_sse_original": {
+        "lines": 2000,
+        "output_lines_differing_from_x64_O1_original": 0,
+        "differing_per_matrix_word": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "file": "pose_i686_O1_sse_original.out",
+        "sha256": "db783a1cc767e2f9c4c3bebe90ba91e2db7f73a957a2d81810d08af6a97484da",
+        "bytes": 234000
+      },
+      "i686_O1_sse_production": {
+        "lines": 2000,
+        "output_lines_differing_from_x64_O1_original": 0,
+        "differing_per_matrix_word": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "file": "pose_i686_O1_sse_production.out",
+        "sha256": "db783a1cc767e2f9c4c3bebe90ba91e2db7f73a957a2d81810d08af6a97484da",
+        "bytes": 234000
+      },
+      "i686_O1_standard_original": {
+        "lines": 2000,
+        "output_lines_differing_from_x64_O1_original": 1954,
+        "differing_per_matrix_word": [
+          1186,
+          1185,
+          1204,
+          0,
+          0,
+          0,
+          669,
+          1360,
+          665
+        ],
+        "file": "pose_i686_O1_standard_original.out",
+        "sha256": "f0886feae29945661b33ab38e4da62e3fa38bffbdf85e15fdbfeb9add6d3f2d2",
+        "bytes": 234000
+      },
+      "i686_O1_standard_production": {
+        "lines": 2000,
+        "output_lines_differing_from_x64_O1_original": 1954,
+        "differing_per_matrix_word": [
+          1186,
+          1185,
+          1204,
+          0,
+          0,
+          0,
+          669,
+          1360,
+          665
+        ],
+        "file": "pose_i686_O1_standard_production.out",
+        "sha256": "f0886feae29945661b33ab38e4da62e3fa38bffbdf85e15fdbfeb9add6d3f2d2",
+        "bytes": 234000
+      },
+      "i686_O2_original": {
+        "lines": 2000,
+        "output_lines_differing_from_x64_O1_original": 1990,
+        "differing_per_matrix_word": [
+          1257,
+          1381,
+          1266,
+          0,
+          0,
+          0,
+          1630,
+          1192,
+          1663
+        ],
+        "file": "pose_i686_O2_original.out",
+        "sha256": "9bfb71d10da32eee0988045abc42e59de7a5dda8bf7060703e99287cb5e3c21b",
+        "bytes": 234000
+      },
+      "i686_O2_sse_production": {
+        "lines": 2000,
+        "output_lines_differing_from_x64_O1_original": 0,
+        "differing_per_matrix_word": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "file": "pose_i686_O2_sse_production.out",
+        "sha256": "db783a1cc767e2f9c4c3bebe90ba91e2db7f73a957a2d81810d08af6a97484da",
+        "bytes": 234000
+      },
+      "x64_O1_original": {
+        "lines": 2000,
+        "output_lines_differing_from_x64_O1_original": 0,
+        "differing_per_matrix_word": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "file": "pose_x64_O1_original.out",
+        "sha256": "db783a1cc767e2f9c4c3bebe90ba91e2db7f73a957a2d81810d08af6a97484da",
+        "bytes": 234000
+      },
+      "x64_O1_production": {
+        "lines": 2000,
+        "output_lines_differing_from_x64_O1_original": 0,
+        "differing_per_matrix_word": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "file": "pose_x64_O1_production.out",
+        "sha256": "db783a1cc767e2f9c4c3bebe90ba91e2db7f73a957a2d81810d08af6a97484da",
+        "bytes": 234000
+      }
+    },
+    "pairwise_differing_lines": {
+      "i686_O1_original_vs_i686_O1_production(pre-fix text)": 1657,
+      "i686_O0_original_vs_i686_O1_original": 1573,
+      "i686_O1_original_vs_i686_O2_original": 0,
+      "i686_O0_original_vs_i686_O1_standard_production(pre-fix text)": 0,
+      "i686_O1_standard_original_vs_i686_O1_standard_production(pre-fix text)": 0
+    },
+    "findings": [
+      "x64 (SSE, __FLT_EVAL_METHOD__ 0): original text and production text give the same 2000 results (the oracle: the Windows x64 original, per the project's declared rotor/numeric policy).",
+      "i686 x87 with production flags: original text at -O1 differs from the x64 words on 1990 of 2000 inputs and production text on 1999; the two differ from EACH OTHER on 1657: the i686 result of the same original expressions depends on the compilation context (static helpers inlined, variables kept in x87 registers) and is not one answer. O1 and O2 of the original text agree with each other; O0 and -fexcess-precision=standard agree with each other and with standard production text, yet still differ from x64 because x87 evaluates whole expressions extended.",
+      "i686 with SSE float math (-msse2 -mfpmath=sse, diagnostic only, not a production flag): original text and production text equal the x64 words on all 2000 at -O0/-O1/-O2: libm sin/cos and sqrt agree across the two targets, and the remaining difference is the evaluation model, not the libraries.",
+      "after the correction, the patched production text on x87 i686 at -O0, -O1, -O2 and -fexcess-precision=standard, and on x64, equals the x64 original words on all 2000 (the after_* rows)."
+    ],
+    "classification": "PRODUCTION defect on x87 targets (evaluation model); the Rust transcription in the test is NOT the defect: it is the x64 original's single-precision-per-operation evaluation and, built for i686 (SSE2), computes the same words as x64.",
+    "limits": [
+      "The control evaluates ONE function family (the face-normal placement). The other corrected sites (sweep ends, boxes, speed test, magnitude) are covered by the differential test over 400 generated worlds, not by a separate original-text control.",
+      "No retail 32-bit MSVC/x87 behaviour is known or claimed: the original on historical 32-bit MSVC is not available here and 'unknown historical behaviour must remain unknown'. The oracle chosen is the Windows x64 original, the project's declared policy for the rotor kernel (ENV-HOST-ROTOR-CI-1) and the platform of the shipped module.",
+      "The scratch control is a surrogate compilation context, not the engine's code generation (compare the rotor control's stated limit).",
+      "The earlier scratch attempts are preserved in env/superseded: run1 failed to link (-lm before the source), run2 generated target-dependent inputs (float arithmetic in the driver), so its output was not comparable."
+    ]
+  },
+  "repair": {
+    "files": [
+      ".github/workflows/eech-campaign.yml",
+      "eech-campaign/crates/eech-world/csrc/entity_candidate_step.c",
+      "eech-campaign/crates/eech-world/tests/entity_candidate_host.rs"
+    ],
+    "entity_candidate_step.c": "NARROW (a volatile float store and read-back, active only where __FLT_EVAL_METHOD__ != 0, identity otherwise so x86-64 and SSE builds preprocess to the same expressions) at each float operation of: the face-normal placement (sin, cos, the quotient, the cross product), local copies of normalise_any_3d_vector and get_3d_vector_magnitude (the shared eech_arith.h and the other kernels are unchanged), the speed test, the sweep ends, the broad-phase boxes and the city box offsets. Every compound assignment became its single-operation form; no logic, order, facts, services or refusals changed.",
+    "entity_candidate_host.rs": "a comment only, saying the transcription is the x64 original's evaluation and why the kernel narrows explicitly",
+    "workflow": ".github/workflows/eech-campaign.yml: `--no-fail-fast` on the two `cargo test --locked --target` steps (matrix, line 70; windows-cross, line 165). Targets, features, environment, lock, compiler flags, assertions and required jobs are unchanged; the job still fails when any binary fails.",
+    "workflow_cause_and_control": "CI at 870a and d452 stopped in the eech-world lib binary at the tree failure, which hid the entity_candidate_host failure; the retained local no-fail-fast command (tree pack green2) exposed both in one run, and the e442 CI then showed the second failure only after the first was fixed.",
+    "not_done": [
+      "no -msse2/-mfpmath=sse or any other build flag (measured to give bit parity, deliberately NOT used: a changed primary FP flag)",
+      "no tolerance, NaN normalisation, cfg skip, golden rewrite or oracle change",
+      "no change to eech_arith.h, other kernels, entity_scan_step.c or the FP guard"
+    ]
+  },
+  "checks": {
+    "dev1-pose-i686-default": {
+      "command": "cargo test --locked --target i686-unknown-linux-gnu -p eech-world --test entity_candidate_host",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T17:35:27.803434+00:00",
+      "completed_utc": "2026-11-06T17:35:35.627987+00:00",
+      "receipt_sha256": "aaa8943f5f0280e1ccc7accc7efca452047cf78517f1cc241cd34bef2d9095d9",
+      "result_rows": 1,
+      "passed": 13,
+      "failed": 0,
+      "test_binary": "entity_candidate_host-d8005ab78d8c4ab5",
+      "eech_world_recompiled": true,
+      "stdout_sha256": "1cd2aa775e6ca2f96551307bd6a22dd020f860d042814f34c1c76110eaaa8d06",
+      "stderr_sha256": "a76cfdafe624e1304b32bc4dcd17c2155ceedebb7c301d59f2e27e45acb65284"
+    },
+    "dev2-fmt": {
+      "command": "cargo fmt -p eech-world -- --check",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T17:36:10.259736+00:00",
+      "completed_utc": "2026-11-06T17:36:13.859717+00:00",
+      "receipt_sha256": "e9bcbc3e4626b27ac6f56479c0da619dcba6bcfd0f0f76fe38bdf5e50b5df2d3",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "test_binary": null,
+      "eech_world_recompiled": false,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ad1f456d956af9de744dd5bd5d47f0f044ebaff37085bf7ef15cb86b66cc02d6"
+    },
+    "pose-final-i686-default": {
+      "command": "cargo test --locked --target i686-unknown-linux-gnu -p eech-world --test entity_candidate_host",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T17:37:01.806548+00:00",
+      "completed_utc": "2026-11-06T17:37:09.437074+00:00",
+      "receipt_sha256": "81e83dac130cad9a689488990a0bb5014c146d7329e2400789c0158b524ea0ca",
+      "result_rows": 1,
+      "passed": 13,
+      "failed": 0,
+      "test_binary": "entity_candidate_host-d8005ab78d8c4ab5",
+      "eech_world_recompiled": true,
+      "stdout_sha256": "4a9e6ddf7456595b79ba033b09e481e922408de7b630dddb9916a89f249dcdfe",
+      "stderr_sha256": "6258dc2b0122e0fd6d8f002b8071f823efc0a42e2ba54108f37657b735249dc0"
+    },
+    "pose-final-i686-stackattr": {
+      "command": "env EECH_ORIGINAL_STACK_ATTRIBUTES=1 cargo test --locked --target i686-unknown-linux-gnu -p eech-world --test entity_candidate_host",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T17:37:09.543736+00:00",
+      "completed_utc": "2026-11-06T17:37:11.050536+00:00",
+      "receipt_sha256": "11ee3a1b74cd2d87668552f3010fed85003da4e6adaff092000690ce534bc705",
+      "result_rows": 1,
+      "passed": 13,
+      "failed": 0,
+      "test_binary": "entity_candidate_host-d8005ab78d8c4ab5",
+      "eech_world_recompiled": false,
+      "stdout_sha256": "2261c4cbbe3529410fb8867b589e85399d7ae27076c3880ae7b5d09d47acf3be",
+      "stderr_sha256": "d88e29ca213147c6ac1f351f74f14cff9495a64cd4fc9fe201dcb662d105b71b"
+    },
+    "pose-final-x64-default": {
+      "command": "cargo test --locked --target x86_64-unknown-linux-gnu -p eech-world --test entity_candidate_host",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T17:37:11.152756+00:00",
+      "completed_utc": "2026-11-06T17:37:18.135405+00:00",
+      "receipt_sha256": "93ccec909b86b97cb3487ca10bfd8a69499f47fa3607137029bfa7076c2bf99e",
+      "result_rows": 1,
+      "passed": 13,
+      "failed": 0,
+      "test_binary": "entity_candidate_host-5f50ca84ba33b61c",
+      "eech_world_recompiled": true,
+      "stdout_sha256": "e6d63f31ffef2241ed285ecbdca1e110ffaaca0e669b29f745febf152a9c6cd5",
+      "stderr_sha256": "0bc9a036c034001a4d50bb5fd3658aa97a99d467e29a40b96d86b2bfc1957835"
+    },
+    "pose-final-fmt-check": {
+      "command": "cargo fmt -p eech-world -- --check",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T17:37:18.240747+00:00",
+      "completed_utc": "2026-11-06T17:37:21.620827+00:00",
+      "receipt_sha256": "f525636d4fb501cfd00e65cc48758d1f73ca85bc123781b2ff9f1171d0e24ead",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "test_binary": null,
+      "eech_world_recompiled": false,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "a11f1d5e481f6404d7036f8e070b404406cb585908bd06230e4b0660206081da"
+    },
+    "pose-final-clippy": {
+      "command": "cargo clippy --locked --all-targets -p eech-world -- -D warnings",
+      "state": "terminal",
+      "actual_exit": 0,
+      "started_utc": "2026-11-06T17:37:21.720821+00:00",
+      "completed_utc": "2026-11-06T17:37:32.521074+00:00",
+      "receipt_sha256": "8536f6a70fe643621294beeea650dbec0ad57dbca979245148a03ab77d1f7784",
+      "result_rows": 0,
+      "passed": 0,
+      "failed": 0,
+      "test_binary": null,
+      "eech_world_recompiled": true,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "333ea6079539355f398a7f05845f5000f54835b47b937a49d0ba84a9f8a2678a"
+    }
+  },
+  "check_qualifications": {
+    "all_final_runs": "on the clean committed tree 681ccfe54 with the maps taken before the FIRST check and after the last (literal equal); HEAD and status verified before and after",
+    "scoped_runner": "R:/d3-evidence/run-d3-pose-focused-direct-20261106.py (explicit -p eech-world, --test entity_candidate_host for tests, targets i686/x86_64, fmt, clippy); its scope guard was not bypassed; it delegates to the previous lane's strict runner and the same one cache owner and image",
+    "stackattr_row": "pose-final-i686-stackattr ran the SAME compiled test binary as pose-final-i686-default (EECH_ORIGINAL_STACK_ATTRIBUTES affects no artifact of this scoped target), so it is a second run of one binary, not a distinct build; the workspace-wide original-stack profile is covered by CI",
+    "development_runs": "dev1-pose-i686-default ran on the working tree before the city-box offsets were narrowed and before the commit (13 passed); dev2-fmt on the working tree. They are retained and not claimed as final. The test-binary name (entity_candidate_host-<hash>) is a configuration identity, not a content identity: dev1 and the final default run show the same name although the C inside was rebuilt between them (eech_world_recompiled records the rebuild).",
+    "not_replayed": "no whole-workspace, C_OPT=2, release, native, Windows/Wine, tree, scan or C-geometry replay; the committed unchanged material keeps its earlier qualifications; the e442-pack whole-workspace i686 run (final-i686-workspace-default, red only here) is the parent",
+    "x64": "x86_64 default ran the same 13 tests (the NARROW macro is the identity there; the scratch control also shows the patched x64 words equal the original)",
+    "cache_note": "the scoped targets rebuilt eech-world's C from the committed file (see eech_world_recompiled); no pristine or old snapshot was mounted into the candidate target volume in this lane"
+  },
+  "ci": "ci/ci-snapshot-e442-20261106.json",
+  "maps": {
+    "before": {
+      "file": "i686-enumeration-pose-inputmap-before-20261106.json",
+      "bytes": 2029480,
+      "sha256": "403c39bf4f1750efbbdc0d45bdee4b3a92e5c928360e2dfe976603aab64c3b93"
+    },
+    "after": {
+      "file": "i686-enumeration-pose-inputmap-after-20261106.json",
+      "bytes": 2029480,
+      "sha256": "403c39bf4f1750efbbdc0d45bdee4b3a92e5c928360e2dfe976603aab64c3b93"
+    },
+    "head_rev_argument": "e442946e5589ae9b91a1522bf4b35afec490cc63",
+    "repo_argument": "R:/d3-evidence/collision-characterization-20261029",
+    "literal_equal": true,
+    "files": 3953,
+    "changed_from_head_argument": [
+      "eech-campaign/crates/eech-world/csrc/entity_candidate_step.c",
+      "eech-campaign/crates/eech-world/tests/entity_candidate_host.rs",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+    ],
+    "raw_binding": "i686-enumeration-pose-raw-binding-681ccfe54-20261106.json",
+    "raw_binding_sha256": "e67e9c6ea4b8bcd4d5ab13c53e94f62c8355213ccc4cb2d3a0c25c2af130698c",
+    "raw_equal_to_blob": 3950,
+    "raw_different_from_blob": 3,
+    "raw_different_paths": [
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+    ],
+    "raw_different_qualification": "the three inherited CRLF Lua control files of earlier packs; neither changed production file is among them",
+    "changed_file_outside_map_roots": {
+      "path": ".github/workflows/eech-campaign.yml",
+      "bytes": 6937,
+      "sha256": "3f66c24dbecc31289ac5ec2a209b39e267b4266e6c14c11c63d9e369dba3a087",
+      "working_tree_equals_blob_bytes": true,
+      "binding": "git show 681ccfe54:<path> bytes equal the working-tree bytes, compared directly when this pack was built"
+    },
+    "repo_head_before_and_after": [
+      "681ccfe5476a7c0a90036bc01cd054358c751162",
+      "681ccfe5476a7c0a90036bc01cd054358c751162"
+    ],
+    "git_status_before_and_after": "clean (empty) both times",
+    "note": "the maps are outside Git"
+  },
+  "test_counts": {
+    "entity_candidate_host": "13 tests per run: i686 default 13/13, i686 original-stack row 13/13 (same binary), x86_64 13/13; the differential covers 400 generated worlds of 6 segments each",
+    "before": "12 passed, 1 failed on i686 (parent receipts)"
+  },
+  "reused_scopes": {
+    "tree_raw_copy_0a7330f86": "unchanged; its pack/report and the stale-cache contamination note are preserved; this lane mounted no old snapshot into the candidate cache",
+    "cd97e0b72": "unchanged; assessed together with the above and this correction by the same reviewer; no native clearance exists",
+    "closed_matrices": "source-identical closed C geometry, three features, native sys and numerical matrices are reused by identity; only entity_candidate_step.c and one test comment changed",
+    "f734_ordinary_pack": "untouched. Root's latest read-only prefix capture (2026-11-06T16:57:57Z, R:/d3-evidence/tree-x64-controls-default-prefix-f734-20261106.json, sha256 7cf45d15dc5cf8711ad5ead8a40dae16f90973c8803ba43d49630f053bf060d0): all four prefixes literal at 3963.74/3945.76 simulated seconds with the original PID/birth/argv, PARTIAL ONLY: a dated capture, not live and not complete-pack, 40/all8 or D3 acceptance. Older prefixes in earlier records are dated history."
+  },
+  "unchanged_scope": {
+    "open": [
+      "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION (mandatory next CITY cut after the finite flags)",
+      "default shape/clutter and draw-align needed-caller/DCS disposition",
+      "sector height / UPDATED terrain / raw TREE/FOREST/CLOUD RNG",
+      "hierarchy services",
+      "DCS mapping",
+      "natural moving",
+      "current final 40 all8",
+      "current CI",
+      "normal merge",
+      "final census",
+      "whole D3 (all ten requirements)"
+    ],
+    "no": [
+      "consumed-root reuse",
+      "native API after a poisoned engine",
+      "new Windows/native run",
+      "retail experiment",
+      "cache cleanup",
+      "merge"
+    ]
+  },
+  "current_ci_status": "e442 CI (run 42261406269): x86_64 default, EECH_C_OPT=2, windows-cross, evidence-selftest and dcs-probe-tools pass; both i686 jobs fail at entity_candidate_host.rs:907 (this finding); structural 42261406259 passes. This correction has not been run in CI. No waiver and no success is claimed; Windows exact-head CI remains required.",
+  "limitations": [
+    "Other kernels with float expressions (entity_scan_step.c window arithmetic, convoy/ship/person/fw/hc/los/sense/aim/cmb steps, the tree kernel's arithmetic) were NOT audited for the same x87 evaluation-model divergence; their i686 tests pass today, which is not proof they are evaluation-model independent.",
+    "The corrected sites are covered by one randomised differential and the placement control, not by an original-text control per site.",
+    "The correction narrows with volatile stores, which costs speed on x87 targets only; no performance measurement was made.",
+    "i686 evidence is the local Linux 32-bit userland on an x86_64 kernel (gcc -m32, i686 rustc target), not a 32-bit machine and not the Windows MSVC build.",
+    "The windows-cross job and the Windows exact-head check were not run locally."
+  ],
+  "next_action": {
+    "same_reviewer": "ONE combined pass over cd97e0b72 (as frozen), the tree raw-copy 0a7330f86 and this correction 681ccfe54 (entity_candidate_step.c, the test comment, the two workflow lines) with their actuals; closed evidence is not replayed.",
+    "root": "Publish and observe the exact-head CI including Windows; only after actual SOURCE clearance prepare new Windows/native checks; audit other kernels for the evaluation-model class only by the risk that CI or a review shows.",
+    "next_production": "REQUIRED_CITY_BOX_LIFECYCLE_RETENTION after the finite flags, not sector height."
+  },
+  "created_utc": "2026-11-06T17:41:01.268558+00:00"
+}

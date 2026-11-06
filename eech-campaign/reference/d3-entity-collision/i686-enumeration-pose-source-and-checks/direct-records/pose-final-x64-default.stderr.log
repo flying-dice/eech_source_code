@@ -1,0 +1,6 @@
+wsl: Failed to translate 'R:\d3-evidence\i686-enumeration-pose-20261106-env'
+   Compiling mlua-sys v0.6.8 (/src/eech-campaign/patches/mlua-sys-0.6.8)
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+   Compiling mlua v0.10.5
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.75s
+     Running tests/entity_candidate_host.rs (/target/x86_64-unknown-linux-gnu/debug/deps/entity_candidate_host-5f50ca84ba33b61c)
