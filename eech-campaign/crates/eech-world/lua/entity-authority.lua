@@ -863,21 +863,27 @@ local function city_identity (event, identity)
 end
 -- the PHYSICAL FLAG STORE (phases 19 to 22, Task49; mb_hostmodel.h): GROUP opens a word group (fact 1 here, the eligibility, 0.0 or 1.0; the answer names the host's key, "f" and decimal digits), SET and READ state the array (fact 13: 0.0, 1.0 or 2.0) and the
 -- lane (fact 14: a whole number 0 to 31) and name the group by its key in the identity place, RESET states the array and names nothing. Every other fact is zero. The patterns of the whole numbers are computed, not listed
+-- BEGIN flag patterns
+-- the powers of two by repeated doubling, exact in every rounding mode. NEVER `2 ^ n`: libm's pow is one unit low under the reference round-toward-zero profile the drivers select before the boot (2 ^ 1 came out below 2 and the
+-- mask of lane 1 printed as 0x00000001); tests/physical_flags_witness_driver.rs runs this block under that profile, and physical-flags-witness.lua holds the SAME text
+local POW2 = { [0] = 1 }
+for n = 1, 31 do POW2 [n] = POW2 [n - 1] * 2 end
 local function whole_pattern (n)
 	if n == 0 then return ZERO end
 	local e = 0
-	while 2 ^ (e + 1) <= n do e = e + 1 end
-	return string.format ("0x%08x", (127 + e) * 8388608 + (n - 2 ^ e) * 2 ^ (23 - e))
+	while POW2 [e + 1] <= n do e = e + 1 end
+	return string.format ("0x%08x", (127 + e) * 8388608 + (n - POW2 [e]) * POW2 [23 - e])
 end
-local FLAG_ARRAYS, FLAG_LANES = {}, {}
-for n = 0, 2 do FLAG_ARRAYS [whole_pattern (n)] = n end
-for n = 0, 31 do FLAG_LANES [whole_pattern (n)] = n end
 -- the lane's mask as a pattern (never through a number above 2^31: the hex digit is placed by text)
 local function mask_pattern (lane)
 	local digits = { "0", "0", "0", "0", "0", "0", "0", "0" }
-	digits [8 - math.floor (lane / 4)] = string.format ("%x", 2 ^ (lane % 4))
+	digits [8 - math.floor (lane / 4)] = string.format ("%x", POW2 [lane % 4])
 	return "0x" .. table.concat (digits)
 end
+-- END flag patterns
+local FLAG_ARRAYS, FLAG_LANES = {}, {}
+for n = 0, 2 do FLAG_ARRAYS [whole_pattern (n)] = n end
+for n = 0, 31 do FLAG_LANES [whole_pattern (n)] = n end
 local function is_flag_key (text) return type (text) == "string" and #text <= 20 and string.match (text, "^f[1-9]%d*$") ~= nil end
 local FLAG_EVENTS = { [19] = "group", [20] = "set", [21] = "read", [22] = "reset" }
 local FLAG_RESULTS = { [19] = "flag_group", [20] = "flag_set", [21] = "flag_read", [22] = "flag_reset" }

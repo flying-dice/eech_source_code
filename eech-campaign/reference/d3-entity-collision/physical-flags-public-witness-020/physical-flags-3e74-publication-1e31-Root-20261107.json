@@ -1,0 +1,34 @@
+{
+  "kind": "Root actual Git literal source-review publication binding, no test/build replay",
+  "utc": "2026-11-07T20:02:07.821124+00:00",
+  "metadata": "1e31da64370fb869be26747e1a754fe0d3aff0dc",
+  "code": "020fb3cfa5450acd91f136e678974160c12c8275",
+  "manifest_entries": 8,
+  "manifest_exact_committed_packet_coverage": true,
+  "external_literal_copies": [
+    "independent-physical-flags-keyfix-020-source-20261107.json",
+    "physical-flags-keyfix-020-Root-binding-20261107.json",
+    "physical-flags-keyfix-684-publication-Root-20261107.json",
+    "Root-hosted-zero-expectation-learning-20261107.json",
+    "Root-physical-flags-key-fix-feedback-20261107-1916.json"
+  ],
+  "published_upstream_ancestor": true,
+  "source_delta": [
+    "STATUS.md",
+    "docs/handover/ACTIVE-EXTRACTION.json",
+    "eech-campaign/docs/d3-physical-flags-contract.md",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-keyfix-020-reviewed/.gitattributes",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-keyfix-020-reviewed/README.md",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-keyfix-020-reviewed/Root-hosted-zero-expectation-learning-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-keyfix-020-reviewed/Root-physical-flags-key-fix-feedback-20261107-1916.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-keyfix-020-reviewed/independent-physical-flags-keyfix-020-source-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-keyfix-020-reviewed/literal-bytes-check.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-keyfix-020-reviewed/manifest.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-keyfix-020-reviewed/physical-flags-keyfix-020-Root-binding-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-keyfix-020-reviewed/physical-flags-keyfix-684-publication-Root-20261107.json"
+  ],
+  "production_inputs_unchanged": true,
+  "current_working_tree_scope": "Sole native-witness author active; no current whole-W clean claim. This audit binds the immutable committed review packet only.",
+  "precision": "Manifest scope footer says V2/V1 by inherited template wording; this packet actually holds the single literal 3e74 source review of020. Prior0269V2/829fV1 live in their own earlier packet, not new reviews.",
+  "limits": "Sourceclosure/buildclearance only; nativeauthority/fullshipping/wholeD3 not accepted."
+}

@@ -1,0 +1,450 @@
+{
+  "kind": "actual Git index blob bytes (git cat-file) against the working bytes of every packet file except this record and the manifest, and of every changed source file",
+  "files": {
+    ".gitattributes": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    "D3-PHYSICAL-FLAGS-PUBLIC-WITNESS-CODE-FROZEN-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 20381,
+      "sha256": "98f00c126b5384981df1aa0f7f65e2d85a48540d268a90194cab32bc4b8f69d5"
+    },
+    "README.md": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 4993,
+      "sha256": "2cb9c7d6e83dbf4b68052262337a1bfde0f39fe1a1b594766ce6ae168da76e0c"
+    },
+    "Root-physical-flags-witness-feedback-20261107-2012.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 3933,
+      "sha256": "c01583438fe821dbed4d5e4ce5409ce58edd66c9432915f8ad66483b02f66f0e"
+    },
+    "Root-publication-and-image-retention-learnings-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 2849,
+      "sha256": "92c68e88b2ca897bb8810a4021b557eab268624bd8f7a22350f47d3146dbefb9"
+    },
+    "hwwit-PRE-utc-20261107.txt": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 21,
+      "sha256": "d22a26fe06423e284d4110c22cbf8883d5147d4cd37db6f2888978d2337c62ca"
+    },
+    "hwwit-extra-identity-POST-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 8345,
+      "sha256": "6df1293a54282a3ddb8b9312bd56e5b2b7078d16f4fdac8eb76c5fa3cbbf52ba"
+    },
+    "hwwit-extra-identity-PRE-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 8345,
+      "sha256": "6df1293a54282a3ddb8b9312bd56e5b2b7078d16f4fdac8eb76c5fa3cbbf52ba"
+    },
+    "hwwit-feedback-files-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 353,
+      "sha256": "56a59d868e3ceefacd84f04a76a03155ebaa4e012c4a11849fbcca6f46260bf9"
+    },
+    "hwwit-final-set-20261107.progress": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 135,
+      "sha256": "644c3dc1f4478b46274060f9e94e883675536c2ac2cd2572c888870f48e04c1c"
+    },
+    "hwwit-final-set-lease-after-20261107.txt": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 40,
+      "sha256": "0e04cf38010a872463f74e2e21e277ed5d47cc2c4d51f532c47bbd5ed7e90856"
+    },
+    "hwwit-final-set-lease-before-20261107.txt": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 252,
+      "sha256": "9caedc585639665c6e2f15322214cf7608adae2b30ac8852273d9eaabc0e1c52"
+    },
+    "hwwit-inputmaps-compare-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 1737,
+      "sha256": "e6171126ebb6bc8f50d5a8f8621460cdddabb911d9245cebe85c527c4d3c3d10"
+    },
+    "hwwit-readers-PRE-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 972,
+      "sha256": "95d77af6f51acecbfc9f69a351666bc5ad0519fca2cdc8650e41312b8b3b0edb"
+    },
+    "hwwit-retained-dev-runs-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 2418,
+      "sha256": "454825acadaf9ff986fbb6591866431a3a5b052a2ff56ae4d79bd7c5adc99b24"
+    },
+    "independent-physical-flags-020-default-plan-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 9539,
+      "sha256": "3868cd06bea7541d2b8326a1b1d838237140ca8e2eb19fe057d7542a7e9c3310"
+    },
+    "physical-flags-020-WINDOWS-CACHE-RELEASE-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 2201,
+      "sha256": "2272fd770222e481df6047b036c0879afa80123b25db1d8aba5c44c441574b91"
+    },
+    "physical-flags-3e74-publication-1e31-Root-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 2499,
+      "sha256": "35da1a07858d4edaf336f69e01349d1586db1ef7e6b3669757cfa5d86483ff81"
+    },
+    "physical-flags-3e74-publication-1e31-all9-CI-readback-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 17012,
+      "sha256": "afe80d2e0473fe97091bf95b98578fd4197a44b8bf401bdc9fd46f82e5fba44a"
+    },
+    "physical-flags-default-020-Root-binding-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 6815,
+      "sha256": "40e8813378c1b9c4db88cd461f5d28d94145b8cf5512ca04d86174067edf0b4c"
+    },
+    "physical-flags-default-020-ordinary_short-20261107-completion.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 5394,
+      "sha256": "11b4706f693c97ce496873c72ac4f434453fde476cd32298759778da2433af4c"
+    },
+    "physical-flags-default-020-original_short-20261107-completion.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 5397,
+      "sha256": "c8d2558036480fd6be11b17db455eb0dacc1098dbc84636355315149dcbf36cd"
+    },
+    "physical-flags-default-020-plan-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 35742,
+      "sha256": "366016e852e19950807a8d03ddaefc9e13703288b9d2519e604162019963b782"
+    },
+    "physical-flags-native-020-profile-20261107-completion.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 4335,
+      "sha256": "5a1ff2a2c4cff94934b1c273ec7b57f106c7fc051518f67398817efb4bd792b9"
+    },
+    "physical-flags-native-source-snapshot-020-20261107.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 3619,
+      "sha256": "12dfa33936fbb28280be238dfa1d04a26afd83452fa62d2ff2f25c312d26b8e9"
+    },
+    "physical-flags-native-windows-020-20261107-completion.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 36703,
+      "sha256": "8def045f2f4380e62de3429cac50e6831b78d7b1cd960eb4243bdc9e6ecbb186"
+    },
+    "physical-flags-public-witness-plan.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 16852,
+      "sha256": "67b7faac8dfc93592f60513de2f8136dd6bf1e6533f751885068fe5956870633"
+    },
+    "runs/flags-witness-d1-driver-test.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 841,
+      "sha256": "13d6c8c7f091644f967fcc5e3477897575d83cfdac7eaab0853336b68466ecbd"
+    },
+    "runs/flags-witness-d1-driver-test.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 352,
+      "sha256": "3ac0d41fed08dd95d107260df53a6733db58d9bd2a9bfedd959154c92f8f0d59"
+    },
+    "runs/flags-witness-d1-driver-test.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 31741,
+      "sha256": "c71f20eac7b10e12a2ed1f111d6774c4db15f641e7208901dad7e8e935f5bcc1"
+    },
+    "runs/flags-witness-d10-world-all.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 815,
+      "sha256": "551ac99bbd7e0b4886b0102feb77ea7c1c0184e70b337c7296207a6b068c164f"
+    },
+    "runs/flags-witness-d10-world-all.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 160409,
+      "sha256": "aa30898d1c1ead67cda567f32111da8a8121ca66e90c1dce0c97808b0c668ded"
+    },
+    "runs/flags-witness-d10-world-all.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 137799,
+      "sha256": "15064ae12e0219c47d9695da112336af065cfc1710d467e438fd33a72bc08951"
+    },
+    "runs/flags-witness-d11-host-callbacks-and-guards.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 1155,
+      "sha256": "5cdff0b112036196f8f3298331ac6e92a2fecf42028beeb9cf6933d17836ae5f"
+    },
+    "runs/flags-witness-d11-host-callbacks-and-guards.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 636,
+      "sha256": "7b34481802ff1e096dcf66c8b36cfc2ae9cb1366f7c9c9e12ae954edc5c344b4"
+    },
+    "runs/flags-witness-d11-host-callbacks-and-guards.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 13328,
+      "sha256": "b497ee9a961d9fde7adf8dc207f735d1a10a2d301b0fc583b53cfb9bb48b8613"
+    },
+    "runs/flags-witness-d2-scratch-lua-format.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 814,
+      "sha256": "3dac0a1e7d3af20b9c300f2906e36b7df02f4fdd2749eb56923439560af55109"
+    },
+    "runs/flags-witness-d2-scratch-lua-format.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 313,
+      "sha256": "e67b538c09651917254946971ae172e8b6de72002314a9e57626ec195d964668"
+    },
+    "runs/flags-witness-d2-scratch-lua-format.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 448,
+      "sha256": "64daa90ed4d91e38e81b48be708d2cb41c5fce4a3cb6aab9a9a80a7c8239a231"
+    },
+    "runs/flags-witness-d3-driver-test-lane-diagnostic.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 841,
+      "sha256": "581ea70fc1f971ca1d35e4176023fc0cc977fa832dcb3768bf31fffc526ed609"
+    },
+    "runs/flags-witness-d3-driver-test-lane-diagnostic.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 352,
+      "sha256": "c10fea62e1649b4318809354c7293691657f98b633e4cb952e51b153c1a957a6"
+    },
+    "runs/flags-witness-d3-driver-test-lane-diagnostic.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 33332,
+      "sha256": "edc889ea9f931d6f1042e5bf22c3e3e3c312c8e57dfeae1466febea8dde4d2af"
+    },
+    "runs/flags-witness-d4-red-pattern-helpers-unfixed.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 906,
+      "sha256": "ae5d0528b39af471b38ad7e09c71b6a367cb7e3e810a11538ad70cea4e089d5b"
+    },
+    "runs/flags-witness-d4-red-pattern-helpers-unfixed.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 352,
+      "sha256": "edd2703565c32413c6542037181a45014bec80d82d00405f4f3930ff9fe7e9fc"
+    },
+    "runs/flags-witness-d4-red-pattern-helpers-unfixed.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 916,
+      "sha256": "b9a2d4639d14b697a6c46f34a0e32ae5dc7f09c9e7d74dd4463f71eeebdc17b6"
+    },
+    "runs/flags-witness-d5-red-pattern-helpers-both-unfixed.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 906,
+      "sha256": "f9440706a501d0f36811b80e3510f550e31f12112840f7630e123d728e7624a7"
+    },
+    "runs/flags-witness-d5-red-pattern-helpers-both-unfixed.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 352,
+      "sha256": "de971e2790928de968eb1bc9350acaaf51ca7ddc73d3cafc40ceff5f52eaad31"
+    },
+    "runs/flags-witness-d5-red-pattern-helpers-both-unfixed.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 1178,
+      "sha256": "f60602bc443dff64c46d43f8cf877ac13cdecfa9c691e613ab2fe9170f8b9a61"
+    },
+    "runs/flags-witness-d6-driver-test-after-exact-helpers.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 838,
+      "sha256": "2d1efc1042a7c8e11759381cb6c697a6b9b4c185fc1def59ece5d66008601f89"
+    },
+    "runs/flags-witness-d6-driver-test-after-exact-helpers.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 265,
+      "sha256": "df31b160efa4849df487a8d87553ebd3517ace49991e6f0b720eff4f558be673"
+    },
+    "runs/flags-witness-d6-driver-test-after-exact-helpers.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 2004,
+      "sha256": "462f2d9e1b4ae6eb6205ecd5d2d9a33420a5ccdd254e0624ef93be4d1f108b1d"
+    },
+    "runs/flags-witness-d7-fmt-check.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 861,
+      "sha256": "3911d85f349f337f9cb19ae437a1bf881ed5c8e80204446fb55cfb33783c7d4b"
+    },
+    "runs/flags-witness-d7-fmt-check.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 36,
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    "runs/flags-witness-d7-fmt-check.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 10144,
+      "sha256": "c772ba379d8bc3e01ceb0c9417304a101a5a5beb38562cdc3c5df11bbf0baa21"
+    },
+    "runs/flags-witness-d8-fmt-apply-world.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 827,
+      "sha256": "720d27381d45f367c274b041ec64a78c5167f3493f602433813f3899c533d69f"
+    },
+    "runs/flags-witness-d8-fmt-apply-world.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 36,
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    "runs/flags-witness-d8-fmt-apply-world.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "runs/flags-witness-d9-clippy-world-engine-dc.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 959,
+      "sha256": "2f9f11e6d7bb5de15ad97504c86f3daa45deb48d7dcc0c4ac92d6d5563a2873c"
+    },
+    "runs/flags-witness-d9-clippy-world-engine-dc.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 177,
+      "sha256": "43a939ef0612c6f261680632760e9538046a20a715aca8123242261a24c48a89"
+    },
+    "runs/flags-witness-d9-clippy-world-engine-dc.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "runs/flags-witness-w1-fmt-check.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 860,
+      "sha256": "ef3fd690019efe41aba989fd26c7e9bf9ca9799f43feb7fc4f9af54c7c8ebc48"
+    },
+    "runs/flags-witness-w1-fmt-check.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 36,
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    "runs/flags-witness-w1-fmt-check.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 46,
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    "runs/flags-witness-w2-clippy-world-engine-dc.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 1011,
+      "sha256": "f919eab13357c3fa6f23a71e0cc9a88310c6ee186b64a447bf20678b0cae544d"
+    },
+    "runs/flags-witness-w2-clippy-world-engine-dc.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 177,
+      "sha256": "81d76469f1fa8121c398103e503a9cd50446941b5c2f66234a6bf4be9c7ee636"
+    },
+    "runs/flags-witness-w2-clippy-world-engine-dc.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 38,
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    "runs/flags-witness-w3-witness-driver.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 924,
+      "sha256": "3adaf4d2dd2d1746e5051721e63aaea440bf1e63a2a500660546cc2fd47edf1d"
+    },
+    "runs/flags-witness-w3-witness-driver.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 265,
+      "sha256": "50d5b668ea739ea0277f47d09d78b8668e07cecf849903dfe678d905cc2ea6d0"
+    },
+    "runs/flags-witness-w3-witness-driver.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 2040,
+      "sha256": "5389c1a33099d5338949abfce61683b0df1f7fdf42e52ee1b61c946e64d74142"
+    },
+    "runs/flags-witness-w4-world-all.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 812,
+      "sha256": "2ab1c553510af7cec688263e2b89e0f187d7f795c4bd3898342dd828e3a7efe6"
+    },
+    "runs/flags-witness-w4-world-all.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 160201,
+      "sha256": "4cd19193cf74f05b8d9dbb8864bd464d542ba32d083f7326dd43a61728c7d27e"
+    },
+    "runs/flags-witness-w4-world-all.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 137107,
+      "sha256": "d82458818a7b7eb7e6bb8e6b51b50433954c63bfbeec63662fb0f4c7db2da42a"
+    },
+    "runs/flags-witness-w5-engine-sys-lua-guards.json": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 933,
+      "sha256": "a311d42541f76e5fe3824cb4f805d76e59613ddff3802c4fd35b02f640bd48db"
+    },
+    "runs/flags-witness-w5-engine-sys-lua-guards.stderr.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 279,
+      "sha256": "f069b966c99485d9b2d8c410bae49200cc77f35e8b27a9dd4cba4f4a6d38854e"
+    },
+    "runs/flags-witness-w5-engine-sys-lua-guards.stdout.log": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 3090,
+      "sha256": "2690da4b3ccbe99fb058b2e839608e3c4fea4f81085c827e5ef38e173a8d4d3c"
+    },
+    "scripts/check-physical-flags-witness-linux-20261107.sh": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 1372,
+      "sha256": "4a1a1157f0ad055a9edc277d66e2416e6a00f56d90e16d9ac3350739dfdc748f"
+    },
+    "scripts/freeze-hwwit-20261107.py": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 22350,
+      "sha256": "35a2c8f35a9381601a27e3642ead9a7e58b35bcb2accf26bd9dd1f3be45bc2ae"
+    },
+    "scripts/hwwit-extra-identity-20261107.py": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 4183,
+      "sha256": "6e0f81eb8910eca0fd24b26730a2fb197d9bdd1c1547f38ebab418e6423d8afd"
+    },
+    "scripts/preflight-receipts-20261107.py": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 2203,
+      "sha256": "dbc62ee50c9cda356c4a0eebead7f729f18dc0d62c9da74ba7e939ea9c12dbbf"
+    },
+    "scripts/publish-hwwit-20261107.py": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 7996,
+      "sha256": "bd1fb47d0509a551a3d65ef7c656295a5cef9def3009c6797eae885aa7b8cc59"
+    },
+    "scripts/run-hwwit-final-set-20261107.sh": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 2766,
+      "sha256": "299316d6727a15520158c3632e56218acf6334d946b001d48017ef3c5fcc8e9c"
+    },
+    "scripts/run-physical-flags-witness-direct-20261107.py": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 2391,
+      "sha256": "fc24968e9b0d954f68abc4440a052af147abc6724886f235927f3a99e826a9df"
+    },
+    "scripts/sector-roster-inputmap-batched-20261106.py": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 5094,
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+    },
+    "scripts/sho-compare-maps-20261107.py": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 1897,
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    },
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 279647,
+      "sha256": "bb55acdcce5f25662f314c3cb91ad1c0be08d4fd762dd1b9f69d68eab0fc77c6",
+      "frozen_sha256_equal": true
+    },
+    "eech-campaign/crates/eech-world/lua/physical-flags-witness.lua": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 43610,
+      "sha256": "2cd536d77470049f4912dd9098132adbe56a0bbff37e1fa9f2fd7de1953902ab",
+      "frozen_sha256_equal": true
+    },
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 359371,
+      "sha256": "ba2970a42b9ce13f2d58b2fdbe839adbd62b29a5b54881462639a43c99472450",
+      "frozen_sha256_equal": true
+    },
+    "eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs": {
+      "git_index_blob_bytes_equal_working_bytes": true,
+      "bytes": 38370,
+      "sha256": "5d1d485cae1d8bf9c1cf22323d7a71299b400300c757abf2e078beafb693badf",
+      "frozen_sha256_equal": true
+    }
+  },
+  "problems": []
+}

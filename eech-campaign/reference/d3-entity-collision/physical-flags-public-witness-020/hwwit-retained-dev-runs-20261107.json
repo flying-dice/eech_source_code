@@ -1,0 +1,46 @@
+{
+  "d1-driver-test": {
+    "actual_exit": 101,
+    "why": "first run of the new driver tests: 15 of 18 failed because the lane mask helper printed 0x00000001 for lane 1 (the cause was found by d3); the 3 that passed never reach a flag mask"
+  },
+  "d2-scratch-lua-format": {
+    "actual_exit": 101,
+    "why": "a scratch diagnostic test that panics on purpose to print Lua's format of 2 ^ 1 in the test's Lua state (before the reference profile is selected); the scratch file was removed and is not part of the candidate"
+  },
+  "d3-driver-test-lane-diagnostic": {
+    "actual_exit": 101,
+    "why": "the same 15 failures with the collaborator's marker text extended to show the lane and its mask: the lane was 1 and the mask computed 0x00000001, so the helper (2 ^ n under the selected round-toward-zero profile) was wrong in the driver and the collaborator"
+  },
+  "d4-red-pattern-helpers-unfixed": {
+    "actual_exit": 101,
+    "why": "RED of the helper defect: the new helper test against the unfixed texts fails at the first driver (the mask of lane 1 is 0x00000001)"
+  },
+  "d5-red-pattern-helpers-both-unfixed": {
+    "actual_exit": 101,
+    "why": "RED of the helper defect for BOTH drivers: 48 wrong values across the two identical copies of the helpers under the real reference profile"
+  },
+  "d6-driver-test-after-exact-helpers": {
+    "actual_exit": 0,
+    "why": "GREEN after the exact power-table helpers: 19 driver tests pass"
+  },
+  "d7-fmt-check": {
+    "actual_exit": 1,
+    "why": "rustfmt named 12 formatting hunks, all in the new test file only"
+  },
+  "d8-fmt-apply-world": {
+    "actual_exit": 0,
+    "why": "cargo fmt -p eech-world applied to the new test file (git status showed no other file changed)"
+  },
+  "d9-clippy-world-engine-dc": {
+    "actual_exit": 0,
+    "why": "clippy -D warnings over eech-world, eech-engine and eech-dc all targets after formatting"
+  },
+  "d10-world-all": {
+    "actual_exit": 101,
+    "why": "the whole eech-world suite found one failure: host_callbacks.rs pins the number of reference scripts that select the profile at 64 and the new driver is the 65th (it selects the profile once right after the preparation); the pin was updated with its reason, not widened"
+  },
+  "d11-host-callbacks-and-guards": {
+    "actual_exit": 0,
+    "why": "after the pin: host_callbacks 82, the driver tests 19, entity_roster_guard 20 and physical_flags_guard 6 pass"
+  }
+}

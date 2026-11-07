@@ -1,0 +1,522 @@
+{
+  "kind": "finite executable native plan of the public host-owned Lua -> native EECH_DC module -> reference host witness of the physical flag store (candidate; UNREVIEWED; native UNRUN; Root executes it, the author executes none)",
+  "binds": {
+    "code_commit_of_the_binaries": "020fb3cfa5450acd91f136e678974160c12c8275",
+    "immutable_snapshot": "D:\\EECH-Migration-Evidence\\physical-flags-keyfix-020-20261107-source",
+    "snapshot_receipt_sha256": "12dfa33936fbb28280be238dfa1d04a26afd83452fa62d2ff2f25c312d26b8e9",
+    "build_receipt_sha256": "8def045f2f4380e62de3429cac50e6831b78d7b1cd960eb4243bdc9e6ecbb186",
+    "cache_release_sha256": "2272fd770222e481df6047b036c0879afa80123b25db1d8aba5c44c441574b91",
+    "accepted_baseline": "windows-retail v1 (the M4 acceptance baseline; the established default plan of the unchanged 020 runs)",
+    "binaries": {
+      "ordinary": {
+        "directory": "D:\\EECH-Migration-Evidence\\physical-flags-keyfix-020-20261107-source\\eech-campaign\\target\\windows-physical-flags-020-ordinary",
+        "volume": "eech-win-physical-flags-020-ordinary-20261107",
+        "build_exit": 0,
+        "files": {
+          "eech_dc.dll": {
+            "sha256": "394cc3062c57e6f2284aa5ac811678b14d7239f536aa0256afe8c06f0f1bab37",
+            "bytes": 18784373
+          },
+          "eech-world.exe": {
+            "sha256": "4b056ee7dbc6c301e46cfe892139feb41411623a2e9e0ec8003afcf123e665b3",
+            "bytes": 4561953
+          },
+          "lua.dll": {
+            "sha256": "ad9a305565905b4ea1421f7c053f9ebd6ebec9bb5439b89f117451f1e90ece36",
+            "bytes": 615397
+          }
+        }
+      },
+      "original": {
+        "directory": "D:\\EECH-Migration-Evidence\\physical-flags-keyfix-020-20261107-source\\eech-campaign\\target\\collision-fixture\\physical-flags-020",
+        "volume": "eech-win-physical-flags-020-original-20261107",
+        "build_exit": 0,
+        "files": {
+          "eech_dc.dll": {
+            "sha256": "9c46ba1832164791da11281bff3fe4608397ef9c2d4fbe6ce957ffbced6c3130",
+            "bytes": 24261749
+          },
+          "eech-world.exe": {
+            "sha256": "d0bd6be28a69cb31c34b8bc999bada51b37ef5a15ff36b57bf1fa0372f47b107",
+            "bytes": 4561953
+          },
+          "lua.dll": {
+            "sha256": "ad9a305565905b4ea1421f7c053f9ebd6ebec9bb5439b89f117451f1e90ece36",
+            "bytes": 615397
+          }
+        }
+      }
+    },
+    "binaries_unchanged_note": "the 90 built payloads are unchanged; the driver is staged beside them from its frozen literal and the binaries are never re-identified as a later Lua"
+  },
+  "driver_literal": {
+    "path": "eech-campaign/crates/eech-world/lua/physical-flags-witness.lua",
+    "sha256": "2cd536d77470049f4912dd9098132adbe56a0bbff37e1fa9f2fd7de1953902ab",
+    "git_blob_of_raw_bytes": "146de178b6949177bff1103d7e96ace59a341c39",
+    "bytes": 43610,
+    "also_changed": [
+      "eech-campaign/crates/eech-world/lua/entity-authority.lua"
+    ],
+    "payload_entity_authority_sha256_in_020": "856f680ae2fc9a3b93ac1c56451bfdde2f209eb9f1e9e7eb42c2956320fb4e3e"
+  },
+  "setup": {
+    "scenario": "lebanon_retail",
+    "hours": "0.001",
+    "frame_ms": "100",
+    "seed": "1",
+    "frames": 35,
+    "established_by": "the unchanged-default 020 native runs of campaign.lua (ordinary_short and original_short, Root binding 40e88133...), actual 35 frames of 100 ms"
+  },
+  "invocation": "<ordinary or Original eech-world.exe> <staged lua/physical-flags-witness.lua> <argv_after_script>",
+  "process_rules": [
+    "one bounded process per step, a fresh verified retail copy with pre/post input manifests each",
+    "step 1 and step 2 FIRST (the characterisation, then the healthy paired control); no changed, withheld, malformed or wrong-identity step before the control PASSes",
+    "the same scenario, hours, frame_ms, seed and effective campaign and map in every report of the family",
+    "a refusal of the driver's own argument validation is not a campaign result",
+    "read-dependent cases may be UNREACHED in 35 frames; no actor, window or duration is chosen by what was reached"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "mode": "flags_original",
+      "binaries": "original",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=flags_original"
+      ],
+      "needs": [],
+      "credited": "PASS: the host was never asked a flag question (FAILURE if it was)"
+    },
+    {
+      "step": 2,
+      "mode": "flags_control",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=flags_control",
+        "original=<step 1 report>"
+      ],
+      "needs": [
+        1
+      ],
+      "credited": "PASS: an accepted group, set and reset, no fault, no backing difference; reads and consumption reported; UNREACHED if a phase was not accepted"
+    },
+    {
+      "step": 3,
+      "mode": "read_changed",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=read_changed",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS: the changed word carried into the next candidate question; refused before boot if the control reached no consumable read"
+    },
+    {
+      "step": 4,
+      "mode": "group_withheld",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=group_withheld",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at entity_scan.callback after the one eligible intervention"
+    },
+    {
+      "step": 5,
+      "mode": "group_malformed",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=group_malformed",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at entity_scan.answer after the one eligible intervention"
+    },
+    {
+      "step": 6,
+      "mode": "group_wrong_state",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=group_wrong_state",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at entity_scan.state after the one eligible intervention"
+    },
+    {
+      "step": 7,
+      "mode": "set_withheld",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=set_withheld",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at entity_scan.callback after the one eligible intervention"
+    },
+    {
+      "step": 8,
+      "mode": "set_malformed",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=set_malformed",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at entity_scan.answer after the one eligible intervention"
+    },
+    {
+      "step": 9,
+      "mode": "set_wrong_state",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=set_wrong_state",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at entity_scan.state after the one eligible intervention"
+    },
+    {
+      "step": 10,
+      "mode": "read_withheld",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=read_withheld",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at entity_scan.callback after the one eligible intervention"
+    },
+    {
+      "step": 11,
+      "mode": "read_malformed",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=read_malformed",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at entity_scan.answer after the one eligible intervention"
+    },
+    {
+      "step": 12,
+      "mode": "read_wrong_state",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=read_wrong_state",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at entity_scan.state after the one eligible intervention"
+    },
+    {
+      "step": 13,
+      "mode": "reset_withheld",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=reset_withheld",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at entity_scan.callback after the one eligible intervention"
+    },
+    {
+      "step": 14,
+      "mode": "reset_malformed",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=reset_malformed",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at entity_scan.answer after the one eligible intervention"
+    },
+    {
+      "step": 15,
+      "mode": "reset_wrong_state",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=reset_wrong_state",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at entity_scan.state after the one eligible intervention"
+    },
+    {
+      "step": 16,
+      "mode": "group_bad_key",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=group_bad_key",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at flag.key after the one eligible intervention"
+    },
+    {
+      "step": 17,
+      "mode": "group_duplicate_key",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=group_duplicate_key",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at flag.key after the one eligible intervention"
+    },
+    {
+      "step": 18,
+      "mode": "group_wrong_eligibility",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=group_wrong_eligibility",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at flag.answer after the one eligible intervention"
+    },
+    {
+      "step": 19,
+      "mode": "set_wrong_lane",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=set_wrong_lane",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at flag.answer after the one eligible intervention"
+    },
+    {
+      "step": 20,
+      "mode": "set_wrong_word",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=set_wrong_word",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at flag.word after the one eligible intervention"
+    },
+    {
+      "step": 21,
+      "mode": "read_wrong_array",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=read_wrong_array",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at flag.answer after the one eligible intervention"
+    },
+    {
+      "step": 22,
+      "mode": "read_wrong_word",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=read_wrong_word",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at flag.word after the one eligible intervention"
+    },
+    {
+      "step": 23,
+      "mode": "reset_wrong_array",
+      "binaries": "ordinary",
+      "argv_after_script": [
+        "root=<fresh verified retail root>",
+        "out=<new report path, created exclusively>",
+        "scenario=lebanon_retail",
+        "hours=0.001",
+        "frame_ms=100",
+        "seed=1",
+        "mode=reset_wrong_array",
+        "control=<step 2 report>"
+      ],
+      "needs": [
+        2
+      ],
+      "credited": "PASS only if the engine stops at flag.answer after the one eligible intervention"
+    }
+  ],
+  "not_claimed": [
+    "any native result",
+    "the supply, Tacview, helicopter, vehicle, ship, weapon-vector or message consumers",
+    "a replacement store lifetime",
+    "whole-FPU, i686, O2 or live-DCS behaviour",
+    "the full 40 or all 8 regression packs",
+    "approval or acceptance of anything"
+  ]
+}

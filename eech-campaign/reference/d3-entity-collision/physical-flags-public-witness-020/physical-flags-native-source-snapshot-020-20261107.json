@@ -1,0 +1,123 @@
+{
+  "kind": "Root fresh immutable source snapshot only; no build or native execution",
+  "utc": "2026-11-07T19:48:21.928341+00:00",
+  "source": "R:\\d3-evidence\\collision-characterization-20261029",
+  "source_observed_clean_HEAD": "684f30d94a09b814ee436aa6c1ce183c08056aff",
+  "snapshot": "D:\\EECH-Migration-Evidence\\physical-flags-keyfix-020-20261107-source",
+  "code": "020fb3cfa5450acd91f136e678974160c12c8275",
+  "longpaths_before_checkout": true,
+  "clean_full_status": true,
+  "no_alternates": true,
+  "rows": 3991,
+  "compiled_inputs_exact": true,
+  "inherited_uncompiled_Lua_lineending_qualifications": [
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+    "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua"
+  ],
+  "commands": [
+    {
+      "args": [
+        "git",
+        "-C",
+        "R:\\d3-evidence\\collision-characterization-20261029",
+        "rev-parse",
+        "HEAD"
+      ],
+      "actual_exit": 0,
+      "stdout": "684f30d94a09b814ee436aa6c1ce183c08056aff\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "git",
+        "-C",
+        "R:\\d3-evidence\\collision-characterization-20261029",
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "actual_exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "git",
+        "clone",
+        "--no-checkout",
+        "--no-hardlinks",
+        "R:\\d3-evidence\\collision-characterization-20261029",
+        "D:\\EECH-Migration-Evidence\\physical-flags-keyfix-020-20261107-source"
+      ],
+      "actual_exit": 0,
+      "stdout": "",
+      "stderr": "Cloning into 'D:\\EECH-Migration-Evidence\\physical-flags-keyfix-020-20261107-source'...\ndone.\n"
+    },
+    {
+      "args": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\physical-flags-keyfix-020-20261107-source",
+        "config",
+        "--local",
+        "core.longpaths",
+        "true"
+      ],
+      "actual_exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\physical-flags-keyfix-020-20261107-source",
+        "checkout",
+        "--detach",
+        "020fb3cfa5450acd91f136e678974160c12c8275"
+      ],
+      "actual_exit": 0,
+      "stdout": "",
+      "stderr": "HEAD is now at 020fb3cfa UNREVIEWED CODE_FROZEN: both source findings of the consolidated review V2 corrected together (ENV-PHYSICAL-FLAGS-KEY-CAPACITY-1, ENV-PHYSICAL-FLAGS-ISSUED-GROUP-ALIAS-1; Task49, D3; candidate; native UNRUN; the findings stay OPEN until the SAME reviewer closes them)\n"
+    },
+    {
+      "args": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\physical-flags-keyfix-020-20261107-source",
+        "rev-parse",
+        "HEAD"
+      ],
+      "actual_exit": 0,
+      "stdout": "020fb3cfa5450acd91f136e678974160c12c8275\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\physical-flags-keyfix-020-20261107-source",
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "actual_exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "git",
+        "-C",
+        "D:\\EECH-Migration-Evidence\\physical-flags-keyfix-020-20261107-source",
+        "config",
+        "--get",
+        "core.longpaths"
+      ],
+      "actual_exit": 0,
+      "stdout": "true\n",
+      "stderr": ""
+    }
+  ]
+}

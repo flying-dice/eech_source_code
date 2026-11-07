@@ -1,0 +1,144 @@
+{
+  "schema": 1,
+  "kind": "Independent bounded physical-flags020 build/profile and unchanged-default native plan review",
+  "created_utc": "2026-11-07T20:02:30.384517+00:00",
+  "source": {
+    "commit": "020fb3cfa5450acd91f136e678974160c12c8275",
+    "reviewed_metadata_commit": "684f30d94a09b814ee436aa6c1ce183c08056aff",
+    "snapshot": "D:/EECH-Migration-Evidence/physical-flags-keyfix-020-20261107-source",
+    "observed_snapshot_HEAD_exact": true,
+    "observed_full_status_clean": true,
+    "scope": "NEW build/profile actuals and two finite unchanged-default cases only; no whole-source re-review or review of in-flight author material."
+  },
+  "plan_sha256": "366016e852e19950807a8d03ddaefc9e13703288b9d2519e604162019963b782",
+  "controller_sha256": "b69ab6854f0418ce781d699094825aad6655e057b87d759eb6d1a6b4b36120f0",
+  "decision": {
+    "status": "CONDITIONAL_CLEAR_FOR_TWO_UNCHANGED_DEFAULT_SHORT_CASES",
+    "findings": [],
+    "default_native_launch_clearance": true,
+    "native_launch_clearance": false,
+    "physical_flag_authority_clearance": false,
+    "allowed_cases": [
+      "ordinary_short",
+      "original_short"
+    ],
+    "allowed_controller": "R:\\d3-evidence\\run-physical-flags-default-020-20261107.py",
+    "allowed_plan": "R:\\d3-evidence\\physical-flags-default-020-plan-20261107.json",
+    "meaning": "The separately named default_native_launch_clearance permits only these two fresh-root unchanged campaign.lua compatibility cases on sealed020 binaries. Generic diagnostic/intervention/native authority clearance in source review3e74 remains false. This report accepts neither unrun default results nor any authority/fullshipping/Task49/D3 result."
+  },
+  "findings": [],
+  "evidence": {
+    "source_review": {
+      "path": "R:\\d3-evidence\\independent-physical-flags-keyfix-020-source-20261107.json",
+      "bytes": 14037,
+      "sha256": "3e74ae30c3403cd3ae67dc0c84da213cd8123841f54149a364113830644a0c91"
+    },
+    "source_binding": {
+      "path": "R:\\d3-evidence\\physical-flags-keyfix-020-Root-binding-20261107.json",
+      "bytes": 32024,
+      "sha256": "5fe5f8e4d28194182dd52c498c0d73d816c15de5dc73ba61762437c73b7ba919"
+    },
+    "windows_build": {
+      "path": "R:\\d3-evidence\\physical-flags-native-windows-020-20261107-completion.json",
+      "bytes": 36703,
+      "sha256": "8def045f2f4380e62de3429cac50e6831b78d7b1cd960eb4243bdc9e6ecbb186"
+    },
+    "profile_audit": {
+      "path": "R:\\d3-evidence\\physical-flags-native-020-profile-20261107-completion.json",
+      "bytes": 4335,
+      "sha256": "5a1ff2a2c4cff94934b1c273ec7b57f106c7fc051518f67398817efb4bd792b9"
+    },
+    "cache_release_and_retention": {
+      "path": "R:\\d3-evidence\\physical-flags-020-WINDOWS-CACHE-RELEASE-20261107.json",
+      "bytes": 2201,
+      "sha256": "2272fd770222e481df6047b036c0879afa80123b25db1d8aba5c44c441574b91"
+    },
+    "plan": {
+      "path": "R:\\d3-evidence\\physical-flags-default-020-plan-20261107.json",
+      "bytes": 35742,
+      "sha256": "366016e852e19950807a8d03ddaefc9e13703288b9d2519e604162019963b782"
+    },
+    "controller": {
+      "path": "R:\\d3-evidence\\run-physical-flags-default-020-20261107.py",
+      "bytes": 4912,
+      "sha256": "b69ab6854f0418ce781d699094825aad6655e057b87d759eb6d1a6b4b36120f0"
+    },
+    "preparation": {
+      "path": "R:\\d3-evidence\\prepare-physical-flags-default-020-20261107.py",
+      "bytes": 4080,
+      "sha256": "96cb8c9d04f3d6a44e78a3b6cb58da17eb16305e887afeeb23daff11b9d3b201"
+    }
+  },
+  "new_actual_gates": {
+    "windows_build": {
+      "actual_controller_exit": 0,
+      "ordinary_actual_exit": 0,
+      "original_actual_exit": 0,
+      "payloads_each": 90,
+      "completed_utc": "2026-11-07T19:56:48.880010+00:00"
+    },
+    "profile": {
+      "actual_controller_exit": 0,
+      "per_profile_actual_exits": [
+        0,
+        0
+      ],
+      "objects_each": 15,
+      "staged_sources_each": 13,
+      "features": {
+        "ordinary": [],
+        "original": [
+          "collision-fixture"
+        ]
+      },
+      "proofs": [
+        {
+          "profile": "ordinary",
+          "sha256": "18123e17d0c20a321470b95fa6192e35db91c42a86c7e46e5ac2e604c3e5e38a"
+        },
+        {
+          "profile": "original",
+          "sha256": "78c96276bc767a38c1235beabe3d5a70b7fc5df38dd39eb71eb6a1ec25904863"
+        }
+      ],
+      "scope": "Actual archive/COFF symbols, mb_int/up_update relocations, staged sources, feature fingerprint and private-export gates. Ordinary has no original updated/moved/rotated arrays and routes operations to Host; Original retains arrays. Neither profile contains flag-test hooks. Runtime behavior/FPU equivalence is not inferred from these static gates."
+    },
+    "retention": {
+      "COFF": 30,
+      "staged_sources": 26,
+      "payloads": 180,
+      "raw_audit_files": 54,
+      "cache_execution_by_reviewer": false,
+      "qualification": "Release receipt retained/rehashed these artifacts and records Docker empty at release. Cache ownership has passed to sole author; reviewer performed no cache operation."
+    },
+    "producer_reader_identity": {
+      "ordinary_producer": "sha256:6591cccdc3ef3e40cf95b35e4f8b06d48bf6d68d705d33dd2b198c6c892c9a0f",
+      "ordinary_producer_resident_at_release": false,
+      "original_producer_and_readonly_reader": "sha256:de45afe0bdd3b7d4ef8b935b697842787e67825199411a8039a2498b67a21d86",
+      "qualification": "Ordinary producer identity and versions remain BUILD-INFO-bound. Resident Original image was only the read-only audit reader for both profiles; its measured tools do not remeasure the absent ordinary producer or establish image/compiler/binary equality. Failed initial image-inspect reader attempt is retained; no rebuild is claimed."
+    }
+  },
+  "controller_review": {
+    "correctness": [
+      "Plan profile binary paths and full90-payload lists equal the actual build receipt profiles. All declared evidence/tool/reference hashes and accepted short hashes were joined read-only during this review.",
+      "Before native, controller binds this report by exact plan/controller SHA and explicit default-only permission, binds prior source/build/profile/release evidence hashes, requires exact snapshot HEAD/full clean status and rehashes the selected90 payloads.",
+      "Each case rejects pre-existing case root/output/process/completion receipts, copies pristine retail to a distinct fresh root, and checks the repository1179-input reference before and after native. Both planned case root/output paths were absent at review.",
+      "Native command is fixed to the selected profile eeCH world executable and its shipped lua/campaign.lua: lebanon_retail, hours0.001, frame_ms100, seed1, record1, record_every10, observe_every1 and observe_supply1. No external witness literal, callback mutation/refusal or scenario search is introduced.",
+      "Successful receipt requires actual native0 and post-input0, byte-for-byte complete ACMI/observation/metrics equality to accepted80fd, payload rehash and clean snapshot status. The complete metrics equality also binds the established35-frame/3.5-second finite result rather than merely a prefix."
+    ],
+    "boundary_and_orchestration": [
+      "Child process PID, creation time, full argv, per-stage actual exit and controller status are recorded separately. Existing completed/live jobs are never attached, restarted, stopped or reused by this controller.",
+      "Failure produces a retained actual_exit1 receipt and raises; it does not retry native, modify accepted inputs/baselines or normalize comparison data. A preflight failure can leave a new output directory but launches no native before permission/evidence gates.",
+      "Fresh process/session and separate roots prevent either short case from inheriting the other case flag-store/session state. This is a bounded execution property, not proof of all supported lifecycle replacements."
+    ],
+    "clean_code": "Small explicit derivation of the retained accepted short controller, with fixed case whitelist and fixed command rather than arbitrary command execution. Preparation is a plan generator, not an execution/authority verdict. No actionable changed-plan issue identified.",
+    "pending_actuals": "No native process was launched by reviewer. Future receipts must retain real native/input/controller statuses and all three complete files; absence, failure or divergence remains failure, never accepted from this plan."
+  },
+  "required_limits": [
+    "Only ordinary_short and original_short, once each on the exact plan/controller and sealed020 profile payloads, are permitted. Any plan/controller/binary/payload change requires its own bound disposition.",
+    "No changed/withheld/malformed diagnostic driver, flag authority intervention or future author literal is authorized here. The future public Host-Lua/native-module/Host authority plan and reviewed literal need separate source and execution gates.",
+    "No generic native authority, all-consumer/all-family/lifetime/FPU/DCS/wholeheight/full40/all8/current shipping/Task49/D3/normalmerge/delivery acceptance. All ten requirements remain open at their actual scopes.",
+    "The independent original764 full40/all8 run, original process identities, inputs, source, binaries and outputs remain untouched. Its partial progress is not020 acceptance.",
+    "No build, test, native, campaign, checker replay, cache access, tracked-source mutation or nested agent was performed for this review. Only this external immutable review artifact is written."
+  ]
+}

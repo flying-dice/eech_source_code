@@ -1,0 +1,18 @@
+{
+  "scope": "Additional bounded process corrections during physical flags; all ten D3 requirements retained",
+  "five_whys": [
+    "Root publication reader failed because it guessed the external join filename rather than reading the actual frozen artifact name.",
+    "Its next assertion reused the prepublication163 count although the published manifest had165 entries after README/literal-check additions.",
+    "Both errors came from treating a previous-stage template as current evidence instead of deriving the exact committed packet set.",
+    "The first cache-release reader also assumed both producer images stayed resident after a second tagged build. Ordinary6591 was no longer resident; binaries, BUILD-INFO, actual producer identity and retained COFF remained intact.",
+    "These checks had conflated current storage availability and publication-stage counts with actual compiled/tested identity. Repairing readers is sufficient when raw source/results/payloads are proven unchanged; replaying campaigns would not recover the original history."
+  ],
+  "implemented": [
+    "The 1e31 publication audit derives exact manifest coverage from git ls-tree: all committed packet files except manifest.json, unique paths, each actual Git blob/current literal. No guessed file-count assertion. Applied successfully to8 entries/5 external literals, receipt35da1a07858d4edaf336f69e01349d1586db1ef7e6b3669757cfa5d86483ff81.",
+    "Original Root reader versions and failures remain retained. Corrected filename/count mappings are explicit in the684 receipt; post-POST freeze copier correction is dual-bound to actual PRE version/current diff. No source/test/build/campaign replay for reader errors.",
+    "Cache release rehashes30 retained COFF,26 staged sources,180 payloads and54 raw audits, verifies immutable clean020 and actual Docker empty before handing ownership to the sole author.",
+    "The resident Original producerde45 is retained by an explicit tag; missing Ordinary6591 stays missing with its real ID/BUILD-INFO versions and named inspect failure. Original image was a read-only audit reader only; no producer/compiler/binary equivalence or historical-image reconstruction claim."
+  ],
+  "next_build_control": "Retain each actual producer by an explicit unique tag immediately after that profile completes, before the next repository build retags eech-build. Apply in the next NEW controller; do not modify the already-sealed020 build controller or rebuild to recreate its missing Ordinary image.",
+  "other_enforced_learning": "Read nonzero positive expectations and actual host traffic, not Cargo exit alone: the zero-check hosted refusal was retained and replaced by a genuine16-check hosted positive. Explicit feedback read before PRE worked; helper stdout redirected to /dev/null is not reliable ongoing feedback transport."
+}

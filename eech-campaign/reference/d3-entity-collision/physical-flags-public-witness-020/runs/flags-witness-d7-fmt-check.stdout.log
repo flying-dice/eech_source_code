@@ -1,0 +1,192 @@
+rustfmt 1.10.0-stable (58cf8f9c35 2026-10-13)
+Diff in /src/eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs:278:
+     let asked: f64 = lua.globals().get("ASKED").unwrap();
+     let provider_flag_calls: f64 = lua.globals().get("PROVIDER_FLAG_CALLS").unwrap();
+     let report = std::fs::read_to_string(out).ok();
+-    Outcome { result, report, asked: asked as i64, provider_flag_calls: provider_flag_calls as i64 }
++    Outcome {
++        result,
++        report,
++        asked: asked as i64,
++        provider_flag_calls: provider_flag_calls as i64,
++    }
+ }
+ 
+ // ---------------------------------------------------------------------------------------------------------------- shared fixtures
+Diff in /src/eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs:327:
+ fn assert_failed(outcome: &Outcome, status_wanted: &str, needle: &str) {
+     let text = report(outcome);
+     assert_eq!(status(&text), status_wanted, "{text}");
+-    assert!(line_of(&text, "pf-witness-verdict").contains(needle) || text.contains(needle), "no {needle} in:\n{text}");
++    assert!(
++        line_of(&text, "pf-witness-verdict").contains(needle) || text.contains(needle),
++        "no {needle} in:\n{text}"
++    );
+     assert!(outcome.result.is_err(), "a non-PASS verdict must fail the process");
+ }
+ 
+Diff in /src/eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs:364:
+     let control = temp_path("control");
+     let _ = std::fs::remove_file(&original);
+     let _ = std::fs::remove_file(&control);
+-    let o = run_to(&format!("{ARGS}, mode = 'flags_original'"), &case(&format!("original = true, {extra_p}")), &original);
++    let o = run_to(
++        &format!("{ARGS}, mode = 'flags_original'"),
++        &case(&format!("original = true, {extra_p}")),
++        &original,
++    );
+     passed(&o);
+     let c = run_to(
+         &format!("{ARGS}, mode = 'flags_control', original = '{}'", path_text(&original)),
+Diff in /src/eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs:372:
+         &control,
+     );
+     passed(&c);
+-    Paired { original, control, p: case(extra_p) }
++    Paired {
++        original,
++        control,
++        p: case(extra_p),
++    }
+ }
+ 
+ impl Paired {
+Diff in /src/eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs:381:
+     }
+ 
+     fn mode_with(&self, mode: &str, extra_p: &str) -> Outcome {
+-        let p = if extra_p.is_empty() { self.p.clone() } else { format!("{}, {extra_p}", self.p) };
++        let p = if extra_p.is_empty() {
++            self.p.clone()
++        } else {
++            format!("{}, {extra_p}", self.p)
++        };
+         run(&format!("{ARGS}, mode = '{mode}', control = '{}'", path_text(&self.control)), &p)
+     }
+ }
+Diff in /src/eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs:459:
+ #[test]
+ fn a_host_that_loses_a_set_or_miscounts_a_reset_or_repeats_a_key_is_named_even_when_every_reply_is_well_formed() {
+     // the first read (the candidate's, lane 1 set this iteration) answers 0: a well-formed raw word the grammar allows, but not what the traffic implies
+-    let lost_set = run(&format!("{ARGS}, mode = 'flags_control'"), &case("host_fault = { event = 'read', nth = 1, p3 = '0x00000000' }"));
++    let lost_set = run(
++        &format!("{ARGS}, mode = 'flags_control'"),
++        &case("host_fault = { event = 'read', nth = 1, p3 = '0x00000000' }"),
++    );
+     assert_failed(&lost_set, "FAILURE", "the traffic implies");
+     assert_eq!(count(&report(&lost_set), "oracle_mismatches"), 1);
+     // a word that is neither 0 nor the lane's own mask is refused by the grammar check before the oracle sees it
+Diff in /src/eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs:466:
+-    let not_the_lanes_word = run(&format!("{ARGS}, mode = 'flags_control'"), &case("host_fault = { event = 'read', nth = 1, p3 = '0x00000004' }"));
++    let not_the_lanes_word = run(
++        &format!("{ARGS}, mode = 'flags_control'"),
++        &case("host_fault = { event = 'read', nth = 1, p3 = '0x00000004' }"),
++    );
+     assert_failed(&not_the_lanes_word, "FAILURE", "neither 0 nor the lane's mask");
+     // the second reset clears two eligible groups; the host states five (5.0)
+-    let miscounted = run(&format!("{ARGS}, mode = 'flags_control'"), &case("host_fault = { event = 'reset', nth = 2, p2 = '0x40a00000' }"));
++    let miscounted = run(
++        &format!("{ARGS}, mode = 'flags_control'"),
++        &case("host_fault = { event = 'reset', nth = 2, p2 = '0x40a00000' }"),
++    );
+     assert_failed(&miscounted, "FAILURE", "groups cleared");
+     // the second group is issued the first group's live key
+-    let repeated = run(&format!("{ARGS}, mode = 'flags_control'"), &case("host_fault = { event = 'group', nth = 2, name = 'f1' }"));
++    let repeated = run(
++        &format!("{ARGS}, mode = 'flags_control'"),
++        &case("host_fault = { event = 'group', nth = 2, name = 'f1' }"),
++    );
+     assert_failed(&repeated, "FAILURE", "already bound to another flag group");
+ }
+ 
+Diff in /src/eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs:489:
+     let pair = paired("");
+     // another duration is another setup
+     let other = run(
+-        &format!("{}, mode = 'flags_control', original = '{}'", ARGS.replace("0.0003", "0.0004"), path_text(&pair.original)),
++        &format!(
++            "{}, mode = 'flags_control', original = '{}'",
++            ARGS.replace("0.0003", "0.0004"),
++            path_text(&pair.original)
++        ),
+         &pair.p,
+     );
+     assert_refused_before_any_effect(&other, "another setup");
+Diff in /src/eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs:525:
+     assert_refused_before_any_effect(&o, "reply-fault");
+     let _ = std::fs::remove_file(&with_fault);
+     // a missing report, an unpaired control, no control at all and a stray argument
+-    assert_refused_before_any_effect(&run(&format!("{ARGS}, mode = 'set_withheld', control = '/nonexistent/report.txt'"), &pair.p), "cannot read the control report");
++    assert_refused_before_any_effect(
++        &run(&format!("{ARGS}, mode = 'set_withheld', control = '/nonexistent/report.txt'"), &pair.p),
++        "cannot read the control report",
++    );
+     let unpaired = temp_path("unpaired");
+     passed(&run_to(&format!("{ARGS}, mode = 'flags_control'"), &pair.p, &unpaired));
+-    assert_refused_before_any_effect(&run(&format!("{ARGS}, mode = 'set_withheld', control = '{}'", path_text(&unpaired)), &pair.p), "not a PAIRED control");
++    assert_refused_before_any_effect(
++        &run(&format!("{ARGS}, mode = 'set_withheld', control = '{}'", path_text(&unpaired)), &pair.p),
++        "not a PAIRED control",
++    );
+     let _ = std::fs::remove_file(&unpaired);
+     assert_refused_before_any_effect(&run(&format!("{ARGS}, mode = 'set_withheld'"), &pair.p), "needs control=");
+-    assert_refused_before_any_effect(&run(&format!("{ARGS}, mode = 'flags_control', control = 'x'"), &pair.p), "only for a mode that intervenes");
+-    assert_refused_before_any_effect(&run(&format!("{ARGS}, mode = 'flags_original', original = 'x'"), &pair.p), "only for flags_control");
++    assert_refused_before_any_effect(
++        &run(&format!("{ARGS}, mode = 'flags_control', control = 'x'"), &pair.p),
++        "only for a mode that intervenes",
++    );
++    assert_refused_before_any_effect(
++        &run(&format!("{ARGS}, mode = 'flags_original', original = 'x'"), &pair.p),
++        "only for flags_control",
++    );
+     assert_refused_before_any_effect(&run(&format!("{ARGS}, mode = 'nonsense'"), &pair.p), "is not a mode of this witness");
+ }
+ 
+Diff in /src/eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs:585:
+         // the altered answer is an attempt and was answered by the real provider, but the engine did NOT go on after it: it is never an accepted transaction
+         let attempts = count(&text, &format!("attempts_{event}"));
+         assert_eq!(count(&text, &format!("answered_{event}")), attempts, "{mode}");
+-        assert_eq!(count(&text, &format!("accepted_{event}")), attempts - 1, "{mode}: accepted counts only what the engine went on from");
++        assert_eq!(
++            count(&text, &format!("accepted_{event}")),
++            attempts - 1,
++            "{mode}: accepted counts only what the engine went on from"
++        );
+         assert_eq!(count(&text, "oracle_mismatches"), 0, "{mode}");
+-        assert!(!text.contains("pf-witness-reply-fault") && !text.contains("pf-witness-request-fault"), "{mode}: {text}");
++        assert!(
++            !text.contains("pf-witness-reply-fault") && !text.contains("pf-witness-request-fault"),
++            "{mode}: {text}"
++        );
+     }
+ }
+ 
+Diff in /src/eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs:697:
+         let _restore = RestoreMxcsr(reference_arithmetic::current_mxcsr());
+         let lua = unsafe { Lua::unsafe_new() };
+         let (whole, mask): (mlua::Function, mlua::Function) = lua
+-            .load(format!("local ZERO = '0x00000000'
++            .load(format!(
++                "local ZERO = '0x00000000'
+ {block}
+-return whole_pattern, mask_pattern"))
++return whole_pattern, mask_pattern"
++            ))
+             .eval()
+             .unwrap();
+         // the SAME profile the drivers select before the boot: libm's `2 ^ n` is one unit low under it, so a helper built on `^` names the wrong lane (2 ^ 1 printed as 1)
+Diff in /src/eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs:717:
+             }
+         }
+     }
+-    assert!(problems.is_empty(), "{} problems, the first ones: {:?}", problems.len(), problems.iter().take(6).collect::<Vec<_>>());
++    assert!(
++        problems.is_empty(),
++        "{} problems, the first ones: {:?}",
++        problems.len(),
++        problems.iter().take(6).collect::<Vec<_>>()
++    );
+     // one text in both drivers: the helper is not allowed to drift between the public driver and this witness
+     assert_eq!(flag_pattern_block(DRIVER), flag_pattern_block(ENTITY_AUTHORITY));
+ }
