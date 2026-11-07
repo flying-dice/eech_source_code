@@ -7,7 +7,7 @@
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
     "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
   ],
-  "phase": "Source/API disposition 2c6652f4d/2989a275b: SAME review cc70a2ce required two P2 documentation corrections; the corrections are submitted in 2ab093b2c (UNREVIEWED), both finding rows stay OPEN until the SAME reviewer. Preparation 2 of 2; NO further preparation. ENV-ENTITY-POSE-LONG-RUN-MOTION-1 OPEN/blocks_cutover=true.",
+  "phase": "Needed-consumer/API disposition reviewed SAMEb5d70724, bothP2closed, batch2of2 closed. STOPnewpreparation; earlierpersonmotionfullpackP1OPENblocks_cutovertrue. No physical/API implementation or Task49/D3 acceptance.",
   "preparation_batches_without_cutover": 2,
   "preparation_limit": 2,
   "next_production_change": "After actual corrected fullpack and independent closure of ENV-ENTITY-POSE-LONG-RUN-MOTION-1, move required sectorheight/hints and writers/readers to Host, preserving characterized rawstate/highwater semantics. The remaining-consumer/DCS-API source disposition is complete (2c6652f4d); it is planning, not host authority or delivery.",
@@ -77,7 +77,8 @@
     "SECTOR HEIGHT CLARIFICATION (comment and prose only, within batch 1 of 2, UNREVIEWED; code 3fac41f0448bfc3f1330e0fd4c8ff72f1ee3fdce over a8ef0ce66; packet eech-campaign/reference/d3-entity-collision/sector-height-characterization-clarification/): answers the SAME reviewer's report 7471e653366196803eb7a66dbc9b12287aacc140c1b19388a3b805c27a3904b9 (controls verified, three P2 precision findings, all registered OPEN before the named fix-blocker guard, which exited 0 for each). (1) contract: the zero floor holds for zero-initialised histories, the comparison is against the word actually held (a restored negative can be raised, a restored NaN is never exceeded; source-derived, not measured), the host plan must not clamp it and must tell a malformed reply from a valid raw saved word; (2) header and contract: save_words is 13 representative patterns, the wider 32-bit domain is source-derived, signalling-NaN/-O2/actual-profile limits explicit; (3) provenance: 4077 raw rows literal Git plus 3 inherited eech-world test-Lua CRLF-vs-LF cases (Root proof literal in the packet), PRE2/POST rows equal, PRE1 reconstructed, constructor not an attestation. Raw C hash 7b80c8e3 -> 84f4c9e6 named; the suffix from #ifdef (23689 bytes) is byte-identical and starts on line 41; the 179/179/6/lint results are those of a8ef0ce66 and were NOT rerun. Historical 82-file packet literal in Git (diff empty). Not claimed: new tests, native, source clearance, physical cutover, whole D3, closure of any finding or of ENV-ENTITY-POSE-LONG-RUN-MOTION-1.",
     "Reviewed sectorheight characterization033defb4, findings[]/all3P2closed: reference/d3-entity-collision/sector-height-characterization-reviewed. Originala8ef179x64+i686/defaultO1,6guard/lints; correction3fac header/doc only and original82packet unchanged. No native/physicalcutover/production-design approval; prep1of2.",
     "NEEDED CONSUMER/API DISPOSITION (second and final preparation batch; documentation and source disposition only; UNREVIEWED): code 2c6652f4dfcb1c31a0eb46bf74eb318976f4b9e6 over c6426dc310796795a0d8c694cb985b65b86d8e7d. eech-campaign/docs/d3-needed-consumer-api-disposition.md and eech-campaign/reference/d3-needed-consumer-api-disposition/ (matrix, README, manifest, primary-file requests, freeze copy; external freeze R:/d3-evidence/D3-needed-consumer-api-disposition-CODE-FROZEN-20261107.json). 15 grouped rows (sector height, shared terrain record, destructive UPDATED/MOVED/ROTATED words, raw TREE/FOREST/CLOUD loader and CRT stream, constructors, entity collision primitive, tree/scenery blocking, model hierarchy, campaign-setup model consumers, rotor/smoke, default shape/clutter, six draw-align files, natural moving, final census, accepted reuse), 110 resolved source anchors, 45 declared DCS anchors (pinned tslua-dcs 1179554f plus Root's later optional Airbase.ts, blob d3d7dedd8), accepted Task47/48/50/51/52 and finite Task49 scopes reused at their stated scope. Source/build-derived inclusion and reachability, not a measured preprocessed/symbol/runtime census; declared shapes, not live DCS behaviour. No compiler, test, native run or code change; physical cutover clearance false; ENV-ENTITY-POSE-LONG-RUN-MOTION-1 untouched. Generator exit history retained: first run exit 1 (four wrong hand-typed line expectations), later runs 0.",
-    "DISPOSITION CLARIFICATION (documentation only; UNREVIEWED; both findings ENV-D3-DISPOSITION-CALLER-PROFILE-1 and ENV-D3-DISPOSITION-MOVING-COVERAGE-1 stay OPEN until the SAME reviewer): code 2ab093b2cbca6f31dad44a8bffc95ec9570d4752 over 1dbf945281dc818d96491e5743e0e6237b07992f. Sibling packet eech-campaign/reference/d3-needed-consumer-api-disposition-clarification/ (corrected matrix, README, freeze, literal copies of review cc70a2ce and Root response 394d31fd, manifest); external freeze R:/d3-evidence/D3-needed-consumer-api-clarification-CODE-FROZEN-20261107.json. The original six-file packet is byte-identical and historical. Inclusion macros, legacy-versus-active LOS and runtime guards are separated (HOST_LOS/TERRAIN/ENV unconditional; HOST_TREE excludes collision-fixture only; HOST_ENTITY excludes collision-fixture or model-fixture; mb_tgt.c:455/494 legacy #else of HOST_LOS versus campaign_los_query -> mb_hostlos.c:275; fixed-wing clearance only for a task leader with terrain_follow != NONE); the accepted CONFIGURED moving query-service scope is kept apart from the open NATURAL engagement and unreached states. Object.export Category and world.export VolumeType names are declared as numbers only; no values, volume params, coverage or Controller payload schemas; no OPEN row closed. Generator hygiene only (113 source anchors, 49 API anchors); no compiler, test, native run or runtime source change. No fullpack40/all8, physical clearance, review or delivery claim."
+    "DISPOSITION CLARIFICATION (documentation only; UNREVIEWED; both findings ENV-D3-DISPOSITION-CALLER-PROFILE-1 and ENV-D3-DISPOSITION-MOVING-COVERAGE-1 stay OPEN until the SAME reviewer): code 2ab093b2cbca6f31dad44a8bffc95ec9570d4752 over 1dbf945281dc818d96491e5743e0e6237b07992f. Sibling packet eech-campaign/reference/d3-needed-consumer-api-disposition-clarification/ (corrected matrix, README, freeze, literal copies of review cc70a2ce and Root response 394d31fd, manifest); external freeze R:/d3-evidence/D3-needed-consumer-api-clarification-CODE-FROZEN-20261107.json. The original six-file packet is byte-identical and historical. Inclusion macros, legacy-versus-active LOS and runtime guards are separated (HOST_LOS/TERRAIN/ENV unconditional; HOST_TREE excludes collision-fixture only; HOST_ENTITY excludes collision-fixture or model-fixture; mb_tgt.c:455/494 legacy #else of HOST_LOS versus campaign_los_query -> mb_hostlos.c:275; fixed-wing clearance only for a task leader with terrain_follow != NONE); the accepted CONFIGURED moving query-service scope is kept apart from the open NATURAL engagement and unreached states. Object.export Category and world.export VolumeType names are declared as numbers only; no values, volume params, coverage or Controller payload schemas; no OPEN row closed. Generator hygiene only (113 source anchors, 49 API anchors); no compiler, test, native run or runtime source change. No fullpack40/all8, physical clearance, review or delivery claim.",
+    "SAMEb5d70724 reviewed fifteen-group source/API documentation2ab/c9a; bothP2closed; original6packetliteral/new7manifest+5freezeoutputs/Root4a42. See needed-consumer-api-disposition-reviewed/manifest.json. No physicalclearance; prep2STOP; longrunP1unchanged."
   ],
   "blockers": [
     {
@@ -458,26 +459,26 @@
     },
     {
       "id": "ENV-D3-DISPOSITION-CALLER-PROFILE-1",
-      "status": "open",
+      "status": "closed",
       "blocks_cutover": false,
       "severity": "P2",
-      "evidence": "R:\\d3-evidence\\independent-needed-consumer-api-disposition-2c6652f4d-20261107.json SHA256 cc70a2cefe7ae4d7877d8197eced100cbe539db1275103bc2571b6e562274d70",
+      "evidence": "R:\\d3-evidence\\independent-needed-consumer-api-disposition-2c6652f4d-20261107.json SHA256 cc70a2cefe7ae4d7877d8197eced100cbe539db1275103bc2571b6e562274d70; CLOSED by SAME b5d70724de9111a47366285625d2c4469da4e08c533940e00d1d2323d7932d9b at2ab/c9a; reviewed packet manifest.",
       "scope": "Documentation correction within completed preparation2; not a new preparation batch or physical clearance.",
       "missing_fact": "Service feature gates and runtime caller conditions are conflated",
       "next_fix": "Correct the matrix, generated narrative and affected summary wording to distinguish legacy versus hosted source and each actual service macro. State runtime guards separately from compiled inclusion; qualify any repeated every-waypoint sentence in the referenced current contract rather than relabelling an old test result. Preserve active mb_hostlos work and all OPEN consumer questions. Documentation-only correction; no new builds, tests or caller census requested."
     },
     {
       "id": "ENV-D3-DISPOSITION-MOVING-COVERAGE-1",
-      "status": "open",
+      "status": "closed",
       "blocks_cutover": false,
       "severity": "P2",
-      "evidence": "R:\\d3-evidence\\independent-needed-consumer-api-disposition-2c6652f4d-20261107.json SHA256 cc70a2cefe7ae4d7877d8197eced100cbe539db1275103bc2571b6e562274d70",
+      "evidence": "R:\\d3-evidence\\independent-needed-consumer-api-disposition-2c6652f4d-20261107.json SHA256 cc70a2cefe7ae4d7877d8197eced100cbe539db1275103bc2571b6e562274d70; CLOSED by SAME b5d70724de9111a47366285625d2c4469da4e08c533940e00d1d2323d7932d9b at2ab/c9a; reviewed packet manifest.",
       "scope": "Documentation correction within completed preparation2; not a new preparation batch or physical clearance.",
       "missing_fact": "Unqualified public-moving absence contradicts accepted configured query-service coverage",
       "next_fix": "Separate accepted configured public query-service coverage from the still-open natural campaign engagement and unreached-state obligations. Do not erase the accepted finite scope, broaden it into natural coverage, or close the long-run motion blocker."
     }
   ],
-  "next_action": "SAME reviewer examines the changed documentation only (2ab093b2c: sibling packet reference/d3-needed-consumer-api-disposition-clarification, regenerated narrative, one corrected contract row). Then STOP preparation; observe the existing f734 pack to actual completion without restarting it. After an actual complete corrected pack and independent closure of ENV-ENTITY-POSE-LONG-RUN-MOTION-1 the next production change is the host-owned sector scalar. All10 requirements, every remaining physical service, final current 40/all8/final inputs/CI/review/normal merge/final census and whole D3 stay required. No D4/D5/TypeScript.",
+  "next_action": "Preserve original f734fullpack and await actualcomplete40PASS/all8literal/final4inputs/sourcebinidentities+SAMEreview to resolve ENV-ENTITY-POSE-LONG-RUN-MOTION-1. Georgia complete metricsliteral but actualexitUNKNOWNpendingparent;3originalLebjobs live. Prep2STOP; no optionaldiagnostic/newwar/physicalcutover. Keep currentCI/evidence/Jira/ledger and all10required remainders.",
   "acceptance": [
     {
       "gate": "Production tree query asks the host and the old solver is absent from the ordinary module (compile guard)",
@@ -513,5 +514,12 @@
     "report_sha256": "5b5cbc95ddf9e64cc5f9545578e854aed362741269d664c966ae83507a3de628",
     "findings": [],
     "scope": "Conditional exactliteral controlFIRST then2matchednegatives; noCITY/Task49/D3 acceptance."
+  },
+  "needed_consumer_disposition_review": {
+    "source": "2ab093b2cbca6f31dad44a8bffc95ec9570d4752",
+    "metadata": "c9a833d6e732db0ecce8e7d5ee901ee3f940500d",
+    "report_sha256": "b5d70724de9111a47366285625d2c4469da4e08c533940e00d1d2323d7932d9b",
+    "findings": [],
+    "scope": "Corrected documentation15groups only, allOPENquestions preserved; no runtime/physical/DCS/Task49/D3/fullshipping/delivery clearance."
   }
 }
