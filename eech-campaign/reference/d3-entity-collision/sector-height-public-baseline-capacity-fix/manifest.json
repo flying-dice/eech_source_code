@@ -1,0 +1,295 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "D3-sector-height-public-baseline-CAPACITY-FIX-CODE-FROZEN-20261107.json",
+      "bytes": 24194,
+      "sha256": "b57a526534e4377efcf64154c9ac6914fe62b4729694b6261dea47eb5177300d"
+    },
+    {
+      "path": "independent-sector-height-public-baseline-eff3-actuals-20261107.json",
+      "bytes": 10658,
+      "sha256": "e60093c880bc3817be453228a4f707a910fd5caac55579cc4b338b5de5baea9f"
+    },
+    {
+      "path": "inputmaps-compare.json",
+      "bytes": 1737,
+      "sha256": "961efb65a25331409a0f7e981ea701f05b9b97f5cfe001eb6ae3deaa51a569b8"
+    },
+    {
+      "path": "inputmaps-vs-eff3-compare.json",
+      "bytes": 1319,
+      "sha256": "237b837b57bdfd3266418a110949da2c8dcd355a7f6a1cd91b1e5406beeb1b86"
+    },
+    {
+      "path": "offprofile-join.json",
+      "bytes": 3075,
+      "sha256": "44b7c767566474a920cc864d67ada6f8ff0dba0d4b7f3a7aa51e6a3bf0040c9a"
+    },
+    {
+      "path": "README.md",
+      "bytes": 8872,
+      "sha256": "1a3f709ddfa42a23e30632091d917facf20ab185788503b4ccb86a2fc1df5269"
+    },
+    {
+      "path": "runs/q1-fmt-apply.json",
+      "bytes": 909,
+      "sha256": "741c4dad0cbb0be6b215fb3dfcfbecb7fa142934c43a9d105abc7840c4ef4f32"
+    },
+    {
+      "path": "runs/q1-fmt-apply.stderr.log",
+      "bytes": 78,
+      "sha256": "2590112730555bd0b2be70da36e0d34249b6ee8495c3333c2542c50d8e80a4e3"
+    },
+    {
+      "path": "runs/q1-fmt-apply.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/q2-chain-stale-fixture.json",
+      "bytes": 1014,
+      "sha256": "43c336ac7da50aa211d9bd79d1bc5175f7c2237bd2cf32ded2e9dfa0a5494a81"
+    },
+    {
+      "path": "runs/q2-chain-stale-fixture.stderr.log",
+      "bytes": 68628,
+      "sha256": "be8b715c0fbec0659eb3033f52ccd72633842aab004dbe340bc14ffed1f300b4"
+    },
+    {
+      "path": "runs/q2-chain-stale-fixture.stdout.log",
+      "bytes": 34040,
+      "sha256": "0d8b83d51b0d9da2e48333cddfaf25d7b863a315f6c423bedf5c72cce01abfe1"
+    },
+    {
+      "path": "runs/s0-superseded-r1-fmt-check.json",
+      "bytes": 932,
+      "sha256": "1b67a529c6756ae864668c9556118529829a153566f06454bf1bfdb9b4e43599"
+    },
+    {
+      "path": "runs/s0-superseded-r1-fmt-check.stderr.log",
+      "bytes": 78,
+      "sha256": "2590112730555bd0b2be70da36e0d34249b6ee8495c3333c2542c50d8e80a4e3"
+    },
+    {
+      "path": "runs/s0-superseded-r1-fmt-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/s0-superseded-r2-clippy-default.json",
+      "bytes": 992,
+      "sha256": "049a0150a07c476a5832aa4300ae0c0279d5df4f7e9a2bf701bf48c057cd5c2f"
+    },
+    {
+      "path": "runs/s0-superseded-r2-clippy-default.stderr.log",
+      "bytes": 437,
+      "sha256": "5adac4883814b4acb374a79a773d2caf5bac3d51fbe0e5d598fba6f5d1ef0fb4"
+    },
+    {
+      "path": "runs/s0-superseded-r2-clippy-default.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/s0-superseded-r3-clippy-engine-funnel.json",
+      "bytes": 981,
+      "sha256": "cbea5ce15ad484fe631d4e2f265b1169b4587cafe5e9dbbafbd319ffc289d8d2"
+    },
+    {
+      "path": "runs/s0-superseded-r3-clippy-engine-funnel.stderr.log",
+      "bytes": 1050,
+      "sha256": "a984adc9b4ba994b5b5d0b498f0bed0c9d46dbb1672e61b9417261bef7b2ced2"
+    },
+    {
+      "path": "runs/s0-superseded-r3-clippy-engine-funnel.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/s0-superseded-r4-clippy-sys-observer.json",
+      "bytes": 1020,
+      "sha256": "35a8f43236f075fc6ea30d3993e3393d3a43e441c10a06b572a6a686e414ef61"
+    },
+    {
+      "path": "runs/s0-superseded-r4-clippy-sys-observer.stderr.log",
+      "bytes": 231,
+      "sha256": "469f663914e380250048e98fcce5c41260fbcbf9c4b58942bc244cae0aa66aba"
+    },
+    {
+      "path": "runs/s0-superseded-r4-clippy-sys-observer.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/s1-fmt-apply.json",
+      "bytes": 910,
+      "sha256": "5230d89e4e5106344dfcee91330d32750591911965f961f29fff8ba7bbec0c38"
+    },
+    {
+      "path": "runs/s1-fmt-apply.stderr.log",
+      "bytes": 78,
+      "sha256": "2590112730555bd0b2be70da36e0d34249b6ee8495c3333c2542c50d8e80a4e3"
+    },
+    {
+      "path": "runs/s1-fmt-apply.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/s2-clippy-engine-funnel-dev.json",
+      "bytes": 978,
+      "sha256": "aaafb3aaa0aee97fe4a1e369f965092425cdb6db450b5fcd8957fc36159faa05"
+    },
+    {
+      "path": "runs/s2-clippy-engine-funnel-dev.stderr.log",
+      "bytes": 222,
+      "sha256": "1d67a5d9e78653e0f94b0d4905341cf72dc4d52542bd856d7044d2c8fede18e5"
+    },
+    {
+      "path": "runs/s2-clippy-engine-funnel-dev.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/t1-fmt-check.json",
+      "bytes": 932,
+      "sha256": "149716e67d0eedad82c7f1b4c99e7569ca49eec5b4c9b1b87679cde3802446e7"
+    },
+    {
+      "path": "runs/t1-fmt-check.stderr.log",
+      "bytes": 78,
+      "sha256": "2590112730555bd0b2be70da36e0d34249b6ee8495c3333c2542c50d8e80a4e3"
+    },
+    {
+      "path": "runs/t1-fmt-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/t2-clippy-default.json",
+      "bytes": 990,
+      "sha256": "7fea6d3d863ed9bf7b4d8c6f601847bc31a2d339d9ef8aa9dc024d8137afbe62"
+    },
+    {
+      "path": "runs/t2-clippy-default.stderr.log",
+      "bytes": 150,
+      "sha256": "b48f5d6eceadb85899b1ef6f1d497f5173277377c69cc603eacf9f4c05db8db2"
+    },
+    {
+      "path": "runs/t2-clippy-default.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/t3-clippy-engine-funnel.json",
+      "bytes": 979,
+      "sha256": "a0ce45bbae151e10b35f62698c269db237910c32c9137a6fefe972bad1f9da35"
+    },
+    {
+      "path": "runs/t3-clippy-engine-funnel.stderr.log",
+      "bytes": 150,
+      "sha256": "5338b6bf41a73cb7f3e23cd8761dc56eeabb69dc63f4bef8ce45efffb09f6356"
+    },
+    {
+      "path": "runs/t3-clippy-engine-funnel.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/t4-clippy-sys-observer.json",
+      "bytes": 1020,
+      "sha256": "321968f2a9aa2514d5471a28226936ede36b67bd9f31e9a2ef03556895cd2aa4"
+    },
+    {
+      "path": "runs/t4-clippy-sys-observer.stderr.log",
+      "bytes": 150,
+      "sha256": "c9400544cb635a52e3820d19cc008b30fd3cc636da1fcbd6a7196769bcd75f07"
+    },
+    {
+      "path": "runs/t4-clippy-sys-observer.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/t5-engine-controls.json",
+      "bytes": 1114,
+      "sha256": "5ec3ead058d322b15484046c3def3eed5a86d24c5f231084cb6af07be7a0f3de"
+    },
+    {
+      "path": "runs/t5-engine-controls.stderr.log",
+      "bytes": 638,
+      "sha256": "ee6eecfb8957ca26fe5b49f0cec3f1e32380d3031b550771ef8ca69eeff43e0c"
+    },
+    {
+      "path": "runs/t5-engine-controls.stdout.log",
+      "bytes": 620,
+      "sha256": "cfc318711a2c26a411f05dc50ae1e243d833a6785e3a2ad2005e8d6a3172d668"
+    },
+    {
+      "path": "runs/t6-sys-control.json",
+      "bytes": 1048,
+      "sha256": "cf23ce4d053877b6f635b819961c36c6bb7047ceb3a0179b89caccc087dfb278"
+    },
+    {
+      "path": "runs/t6-sys-control.stderr.log",
+      "bytes": 338,
+      "sha256": "3f9e79ae72917ee96a750c8fdfd61169a3c47faba71b8952799320b3090e76ce"
+    },
+    {
+      "path": "runs/t6-sys-control.stdout.log",
+      "bytes": 329,
+      "sha256": "2b7d780e38cc8f7b7035c5c16a11fa6134775b93f8938505392778b88db81377"
+    },
+    {
+      "path": "runs/t7-driver-guards.json",
+      "bytes": 914,
+      "sha256": "c002d8393b884029942fc95019e05dccfe3602611e1ff10c13491d94e4347c19"
+    },
+    {
+      "path": "runs/t7-driver-guards.stderr.log",
+      "bytes": 341,
+      "sha256": "36915a1d85bab87b96dd38959e65d9327e1dced4f192d0aac56e36839593da99"
+    },
+    {
+      "path": "runs/t7-driver-guards.stdout.log",
+      "bytes": 674,
+      "sha256": "3d29da098a134812a66e388b4530ff512e2871d1cd7092be12e8eb4393b1a8c6"
+    },
+    {
+      "path": "scripts/run-sector-height-baseline-direct-20261107.py",
+      "bytes": 1975,
+      "sha256": "00222f9cdbd463f59c3af79d5162bd2412fdb2be15f4bc61228cc068f42e972c"
+    },
+    {
+      "path": "scripts/sho-compare-maps-20261107.py",
+      "bytes": 1897,
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    },
+    {
+      "path": "scripts/sho-compare-prev-20261107.py",
+      "bytes": 1633,
+      "sha256": "c156340f117be61e58d893dccfc63588778342e4cb490f89c655d521c5b65fd3"
+    },
+    {
+      "path": "scripts/sho-extra-identity-20261107.py",
+      "bytes": 1826,
+      "sha256": "5c6f50e8ba69203b502600f6429eef85207a3ebe57e2018066187b3d6e278890"
+    },
+    {
+      "path": "scripts/sho-extract-fixture.py",
+      "bytes": 270,
+      "sha256": "e0ccda76892e4f97db8e3b1f1894689b29db15e4b29eaef059dd021b0e55d985"
+    },
+    {
+      "path": "scripts/sho-offprofile-join-20261107.py",
+      "bytes": 4809,
+      "sha256": "21debf20e517ce4559acc64d8441f9099ba234b6249efcb4527e907bb16732bb"
+    }
+  ],
+  "scope": "Source and Linux-check packet of the storage-only capacity correction only; not a native result, review, approval or production move."
+}

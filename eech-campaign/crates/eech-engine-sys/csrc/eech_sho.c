@@ -45,7 +45,11 @@
 typedef char sho_fixed_words_fit [(CAMPAIGN_FIXED_STATE_WORDS <= 10) ? 1 : -1];
 typedef char sho_city_words_fit [(CAMPAIGN_CITY_STATE_WORDS <= 10) ? 1 : -1];
 
-#define SHO_EVENTS 262144
+/* The event table bound. The finite public baseline (Lebanon, hours=0.001: 35 frames) attempted 304811 event records and 262144 fitted, so the report was correctly refused as incomplete (the
+   actual native run of eff3b4b33). 524288 leaves 219477 slots of headroom for that declared window. The cost is diagnostic-feature-only static storage: the report states the record size it
+   measured (`event_record_bytes`), about 71 MB (68 MiB) of zero-initialised table, resident only as far as it is touched. The bound stays exact: a record that does not fit is counted as
+   omitted and makes the report incomplete; nothing is sampled, dropped or waived. The Rust maximum (eech-engine SHO_EVENTS_MAX) and the Lua driver's index range follow it. */
+#define SHO_EVENTS 524288
 #define SHO_CLEARANCES 4096
 #define SHO_SCAN_SIDE 256
 #define SHO_ENTITIES 524288
@@ -1005,8 +1009,8 @@ int eech_sho_summary_run (char *text, int capacity)
 	put (&o, "sho-clearance leader_reached=%llu follow_reached=%llu reads=%llu stored=%d\n", U (leader_reached), U (follow_reached), U (clearance_total), clearance_stored);
 	put (&o, "sho-session pack_total=%llu pack_stored=%llu pack_omitted=%llu unpack_total=%llu unpack_stored=%llu unpack_omitted=%llu\n",
 		U (pack_total), U (pack_stored), U (pack_total - pack_stored), U (unpack_total), U (unpack_stored), U (unpack_total - unpack_stored));
-	put (&o, "sho-tables events_used=%d events_capacity=%d events_overflow=%llu clearance_capacity=%d clearance_overflow=%llu scan_out_of_range=%llu mismatches=%llu pending=%d\n",
-		event_count, SHO_EVENTS, U (event_overflow), SHO_CLEARANCES, U (clearance_overflow), U (scan_out_of_range), U (mismatches), pending_active || (pending_clearance >= 0));
+	put (&o, "sho-tables events_used=%d events_capacity=%d event_record_bytes=%u events_overflow=%llu clearance_capacity=%d clearance_overflow=%llu scan_out_of_range=%llu mismatches=%llu pending=%d\n",
+		event_count, SHO_EVENTS, (unsigned) sizeof (struct sho_event), U (event_overflow), SHO_CLEARANCES, U (clearance_overflow), U (scan_out_of_range), U (mismatches), pending_active || (pending_clearance >= 0));
 	put (&o, "sho-complete value=%d\n", whole ());
 
 	return o.overflow ? -1 : 0;

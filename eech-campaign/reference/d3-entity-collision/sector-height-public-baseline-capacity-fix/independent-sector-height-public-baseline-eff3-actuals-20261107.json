@@ -1,0 +1,199 @@
+{
+  "schema": 1,
+  "reviewed_utc": "2026-11-07T05:43:54.927166+00:00",
+  "review_kind": "Same-reviewer retained-only new Windows/profile/short/baseline actual review; no source or execution replay",
+  "source": {
+    "commit": "eff3b4b332ec3592ae57c89f0a3d9bf426087e0b",
+    "metadata_commit": "1ef730a40ecd56c10f1a8262e0990ac71bd40102",
+    "snapshot": "D:/EECH-Migration-Evidence/sector-height-public-baseline-eff3-20261107-source",
+    "source_review": {
+      "path": "R:/d3-evidence/independent-sector-height-public-baseline-join-fix-eff3-20261107.json",
+      "bytes": 9052,
+      "sha256": "04b2f588dd736760c23ddab9cf4b19470c6b0651a77bc41544692b10a0060af3"
+    }
+  },
+  "decision": {
+    "status": "FINITE_BUILD_PROFILE_SHORT_PASS_PUBLIC_BASELINE_FAILED_CAPACITY",
+    "findings": [
+      "ENV-SECTOR-HEIGHT-BASELINE-CAPACITY-1"
+    ],
+    "build_profile_gate_verified": true,
+    "observer_ordinary_short_verified": true,
+    "whole_public_baseline_accepted": false,
+    "sector_height_host_move_open_facts_closed": false,
+    "new_native_launch_clearance": false,
+    "physical_sector_height_cutover_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "delivery_accepted": false
+  },
+  "finding": {
+    "id": "ENV-SECTOR-HEIGHT-BASELINE-CAPACITY-1",
+    "severity": "P2",
+    "title": "The diagnostic event table cannot hold the unchanged finite public baseline",
+    "actual_evidence": "The real baseline attempted304811 event records:262144 stored and42667 overflowed. The report correctly latches sho-complete0 and emits no final whole verdict; native, wrapper and outer actual exits are all1. This is a diagnostic capacity failure, not evidence of a physical regression or a defect in the overflow refusal.",
+    "minimum_correction": "Increase only the feature-gated event table capacity and synchronized Rust report-index maximum above the measured304811 requirement, with a declared bounded headroom (524288 gives219477 slots for this retained window). Preserve total/stored/omitted accounting, overflow latch, whole rejection, identity/lifecycle joins and the public driver failure semantics. Do not suppress or drop event kinds, sample away records, tune scenario inputs or change the floor/frame formula.",
+    "affected_validation": "Bind the small storage/range delta and timed final PRE/POST source maps. Run affected cap/converter bounds and relevant recorder/funnel integrity checks at the new cap, plus affected lint/format checks; reuse unchanged closed arithmetic/FP/kernel controls. The boundary control must still show one extra record visibly omitted and incomplete. No broad unchanged matrix is required.",
+    "bounded_next_actuals": "After same-reviewer changed-material source clearance, build/seal the corrected observer and prove its profile excludes funnel-check. Re-run its exact ordinary-short comparison and ONE new finite baseline on a fresh verified root at unchanged nominalhours0.001/frame100/seed1. Reuse the ordinary binary/profile only if exact feature-off production input/object scope equivalence supports it; never relabel old observer binaries. Retain this failed run and all old reader failures."
+  },
+  "actuals": {
+    "builds": {
+      "ordinary_actual_exit": 0,
+      "observer_actual_exit": 0,
+      "sealed_payloads_each": 89,
+      "all178_payloads_rehashed": true,
+      "source_rows_rehashed": 3967,
+      "frozen_source_clean": true
+    },
+    "profile": {
+      "actual_v4_audit_exit": 0,
+      "ordinary_features": [],
+      "observer_features": [
+        "sector-height-observer"
+      ],
+      "funnel_check_absent_both": true,
+      "observer_symbols_absent_ordinary_present_observer": true,
+      "private_observer_DLL_exports_absent_both": true,
+      "bound_staged_sources_each": 8,
+      "bound_COFF_objects_each": 8,
+      "engine_C_optimization": "Source/build-derived1; not an O2/FP measurement."
+    },
+    "observer_short": {
+      "native_exit": 0,
+      "outer_exit": 0,
+      "pre_post_input_exits": [
+        0,
+        0
+      ],
+      "all_three_COMPLETE_literal80fd_equal": true,
+      "files": [
+        {
+          "file": "recording.acmi",
+          "bytes": 230871,
+          "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d"
+        },
+        {
+          "file": "observations.jsonl",
+          "bytes": 1553674,
+          "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc"
+        },
+        {
+          "file": "metrics.json",
+          "bytes": 7477,
+          "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4"
+        }
+      ],
+      "limit": "Finite observer-DLL noninterference on this established short only; not universal FP neutrality, full shipping or physical authority."
+    },
+    "failed_public_baseline": {
+      "native_wrapper_outer_exits": [
+        1,
+        1,
+        1
+      ],
+      "pre_post_input_exits": [
+        0,
+        0
+      ],
+      "nominal_hours": "0.001",
+      "frame_ms": 100,
+      "seed": 1,
+      "actual_frames": 35,
+      "actual_elapsed_seconds": 3.5,
+      "frame_floor_unchanged": true,
+      "report_bytes": 70632991,
+      "report_sha256": "1674d50cc32d0be177d8e921573bd07411eb79a5c2ec77255427fe5119ef3e36",
+      "stored_event_rows": 262144,
+      "event_overflow": 42667,
+      "attempted_event_rows": 304811,
+      "sho_complete": 0,
+      "whole_verdict_lines": 0,
+      "mismatches": 0,
+      "pending": 0,
+      "links_joined": 77531,
+      "links_unjoined": 0,
+      "statements_joined": 94924,
+      "statements_unjoined": 0,
+      "child_statements": 54825,
+      "unexpected_child_statements": 0,
+      "type_mismatch": 0,
+      "double_insert": 0,
+      "remove_unjoined": 0,
+      "index_out_of_range": 0,
+      "FIRST_reads": 63,
+      "candidate_fact_offers": 27615,
+      "candidate_fact_equal_FIRST": 27615,
+      "candidate_fact_differ_FIRST": 0,
+      "candidate_fact_without_FIRST": 0,
+      "clearance_reads": 0,
+      "pack_total": 0,
+      "unpack_total": 0,
+      "limit": "Aggregate counters describe reached paths, but the stored event prefix cannot establish a complete same-record M1/M2 baseline. Clearance and pack/unpack are UNREACHED, not positive coverage. The Core high-water word remains authoritative and unmoved."
+    },
+    "inputs": {
+      "full_manifest_checks": 4,
+      "actual_exits_all_zero": true,
+      "files_each": 1179,
+      "bytes_each": 102239559,
+      "full_pre_post_JSONs_all_literal_equal": true,
+      "manifest_bytes_each": 209622,
+      "manifest_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    }
+  },
+  "provenance_and_orchestration": {
+    "Root_actual_binding": {
+      "path": "R:/d3-evidence/sector-height-eff3-actuals-Root-binding-20261107.json",
+      "bytes": 42742,
+      "sha256": "abcbb3a6623b3431ab95da3d8d8cacc483393556e7badb512608e5304008e0df"
+    },
+    "receipts": [
+      {
+        "path": "R:/d3-evidence/sector-height-eff3-windows-20261107-completion.json",
+        "bytes": 35078,
+        "sha256": "1e9d146795b751160258e223c098ab015c3a665592522399379b56935724b01f"
+      },
+      {
+        "path": "R:/d3-evidence/sector-height-windows-profile-eff3-20261107-completion.json",
+        "bytes": 3771,
+        "sha256": "7d16a28ab84d2629ea40887ddbf7911e23a9b03316742a1d133b57d7ce6be57e"
+      },
+      {
+        "path": "R:/d3-evidence/sector-height-observer-short-eff3-20261107-completion.json",
+        "bytes": 4617,
+        "sha256": "1b800b178deb4fe705db943a3c4672c619b89e5def129ca34900bfc7f22e5d93"
+      },
+      {
+        "path": "R:/d3-evidence/sector-height-observer-short-comparison-eff3-20261107.json",
+        "bytes": 1565,
+        "sha256": "a9bbe46b3aeaa01cb69a9772e26433c505846cbabef0e0c286c21bc8da813c6a"
+      },
+      {
+        "path": "R:/d3-evidence/sector-height-public-baseline-eff3-20261107-completion.json",
+        "bytes": 4301,
+        "sha256": "4c483d14a50623e3bb969a8b3c7581a6a32329d17e025bd986eb47e0d44c2710"
+      }
+    ],
+    "reader_recovery": "First two profile-reader attempts used an empty display-header image and failed DockerCLI125/outer1 before an audit container started. Third used an unresident original ordinary producer image and likewise failed. Final v4 uses resident observer image16902 as read-only artifact reader for both profiles; actual ordinary producerbd653 and observer producer16902 remain distinct, never relabelled. Exact sealed BUILD-INFO and original failures are preserved.",
+    "reader_qualification_receipts": [
+      {
+        "path": "R:/d3-evidence/sector-height-profile-audit-actual-cause-recovery-20261107.json",
+        "bytes": 793,
+        "sha256": "6a2db2190547d0d4659ea9db23fd58182ec522d8bfdc12afa1e60fe2497a0f69"
+      },
+      {
+        "path": "R:/d3-evidence/sector-height-profile-audit-reader-image-qualification-20261107.json",
+        "bytes": 764,
+        "sha256": "8ffb842330ce1f87c039e75e35e58abcaf4bf14ea044fe603812376c99dade8d"
+      }
+    ],
+    "CI": "Root actual join binds exact1ef all-nine-success readback separately; this finite report makes no delivery acceptance claim.",
+    "independent_read_scope": "Read original receipts/profile proofs and streamed the complete private failed report to recompute its hash, summary and absence of whole verdict; compared all four retained input JSON bytes. Root binds all178 payloads,3967 source rows and direct complete short-byte equality. No checker/native/input tool/build/test rerun, cache or tracked-source mutation was performed.",
+    "failure_classification": "The baseline ran only after the source/profile/short gates and failed naturally on complete0. Native failure is not converted into checker recovery or success. No duration extension, process restart, baseline change or acceptance normalization occurred."
+  },
+  "preserved_scope": [
+    "JOIN/COMPLETE/RUN source closures remain at04b/636 identities. Actual zero join faults is supportive but does not make the truncated report whole; capacity is a new bounded diagnostic finding.",
+    "P1 fullpack4de closure remains closed. Preparation remains2of2; this is required extraction baseline work, not another optional preparation.",
+    "All ten D3 requirements, remaining physical/API/hierarchy/RNG/services/natural moving integration, final current40/all8/fourinputs/currentCI/review/normalmerge/finalcensus and whole Task49/D3 remain open. No physical sector-height move or broader native authority is accepted.",
+    "Private report indices/keys/raw physical words remain outside this safe report. Only aggregate counts, hashes, enum outcomes and paths are published here."
+  ]
+}

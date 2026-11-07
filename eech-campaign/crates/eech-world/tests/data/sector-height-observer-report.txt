@@ -6,7 +6,7 @@ sho-statements fixed=3 city=0
 sho-scan reads=2 firsts=2 sectors=2 fact_offers=4 fact_nonzero=4 fact_equal_first=3 fact_differ_first=1 fact_without_first=0
 sho-clearance leader_reached=1 follow_reached=1 reads=1 stored=1
 sho-session pack_total=70 pack_stored=70 pack_omitted=0 unpack_total=70 unpack_stored=70 unpack_omitted=0
-sho-tables events_used=151 events_capacity=262144 events_overflow=0 clearance_capacity=4096 clearance_overflow=0 scan_out_of_range=0 mismatches=0 pending=0
+sho-tables events_used=151 events_capacity=524288 event_record_bytes=136 events_overflow=0 clearance_capacity=4096 clearance_overflow=0 scan_out_of_range=0 mismatches=0 pending=0
 sho-complete value=1
 sho-event i=0 seq=1 kind=insert rec=1 ent=100 sx=3 sz=4 etype=17 family=fixed shape_state=unobserved shape=0 before=0x00000000 after=0x00000000 pos=0x00000000,0x00000000,0x00000000 ymax=0x00000000 key=- words=-
 sho-event i=1 seq=2 kind=insert rec=2 ent=101 sx=3 sz=4 etype=17 family=fixed shape_state=unobserved shape=0 before=0x00000000 after=0x00000000 pos=0x00000000,0x00000000,0x00000000 ymax=0x00000000 key=- words=-

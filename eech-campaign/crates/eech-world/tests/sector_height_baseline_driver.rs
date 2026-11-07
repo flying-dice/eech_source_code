@@ -16,7 +16,7 @@ const EMITTER: &str = include_str!("../../eech-engine-sys/csrc/eech_sho.c");
 const REAL_REPORT: &str = include_str!("data/sector-height-observer-report.txt");
 
 const SUMMARY_WHOLE: &str = "sho-summary schema=2 note=x\nsho-counts seq=9 inserts_total=1\nsho-clearance leader_reached=0 follow_reached=0 reads=1 stored=1\n\
-sho-scan reads=1 firsts=1 sectors=1 fact_offers=0\nsho-tables events_used=2 events_capacity=262144 events_overflow=0\nsho-complete value=1\n";
+sho-scan reads=1 firsts=1 sectors=1 fact_offers=0\nsho-tables events_used=2 events_capacity=524288 events_overflow=0\nsho-complete value=1\n";
 
 struct Case {
     summary: String,

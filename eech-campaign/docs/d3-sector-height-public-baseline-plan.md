@@ -90,6 +90,10 @@ The recorder core takes plain data, so the controls drive it with a known cohere
 
 It does not run the real `en_list.c`, the entity heap, the roster provider or the host; the native baseline is still unrun.
 
+## Capacity correction after the actual baseline of eff3b4b33 (7 November 2026)
+
+The first finite baseline (Lebanon, `hours=0.001`, `frame_ms=100`, `seed=1`: floor gives 35 frames and 3.5 simulated seconds, not rounded to 36) attempted 304811 event records; 262144 were stored and 42667 omitted, so the report latched `sho-complete 0`, emitted no whole verdict and the native, wrapper and outer exits were 1 (`ENV-SECTOR-HEIGHT-BASELINE-CAPACITY-1`). Zero join faults in the stored prefix does not make a truncated report whole. Only the feature-gated storage changed: the event table is 524288 records (219477 slots of headroom for that window), the Rust maximum and the converter's index range follow it, and the report states the record size it measured. Every overflow, omission and join counter and the whole requirement are exact; nothing is sampled, dropped, summarised by counts or waived, and the window, the floor and the scenario are unchanged. The sequence number is not an event count (it also counts aggregate reads); the demand figure is the measured attempted records.
+
 ## Not claimed
 
 No production move, no host-owned scalar, no native or Windows result, no measurement of the engine C at -O2 (`EECH_C_OPT` does not reach `eech-engine-sys`; the engine default is -O1), no

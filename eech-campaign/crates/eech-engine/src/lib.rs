@@ -1050,7 +1050,7 @@ const SHO_REPORT_CAPACITY: usize = 4096;
 
 /// TEST-ONLY (feature `sector-height-observer`): the bounds of the C tables (csrc/eech_sho.c SHO_EVENTS, SHO_CLEARANCES, SHO_SCAN_SIDE squared).
 #[cfg(feature = "sector-height-observer")]
-pub const SHO_EVENTS_MAX: i32 = 262_144;
+pub const SHO_EVENTS_MAX: i32 = 524_288;
 #[cfg(feature = "sector-height-observer")]
 pub const SHO_CLEARANCES_MAX: i32 = 4096;
 #[cfg(feature = "sector-height-observer")]

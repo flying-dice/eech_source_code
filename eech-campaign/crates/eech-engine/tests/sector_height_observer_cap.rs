@@ -5,7 +5,7 @@
 //! latches, the report is incomplete, and no later record can hide it. The raw words themselves are never altered (a negative, infinite or quiet-NaN word is stored as its bits,
 //! never refused or clamped). It uses the recorder core with plain data (no entity heap, no roster, no host); the observer's tables are private statics of one process, so this file holds
 //! ONE test.
-use eech_engine::{sector_height_row_text, sector_height_summary_text, SHO_EVENTS_MAX};
+use eech_engine::{sector_height_row_text, sector_height_summary_text, EngineError, SHO_EVENTS_MAX};
 use eech_engine_sys::sho_support as c;
 
 fn summary() -> String {
@@ -32,6 +32,13 @@ fn line_of<'a>(summary: &'a str, prefix: &str) -> &'a str {
         None => panic!("no {prefix} line in\n{summary}"),
     }
 }
+
+// the actual finite baseline of eff3b4b33 attempted 304811 event records (262144 stored, 42667 omitted: the report was correctly refused); the bound must hold that demand
+const MEASURED_ATTEMPTED_EVENTS: i32 = 304_811;
+const _: () = assert!(
+    SHO_EVENTS_MAX > MEASURED_ATTEMPTED_EVENTS,
+    "the event table cannot hold the measured baseline demand"
+);
 
 #[test]
 fn a_session_word_that_does_not_fit_is_visibly_omitted_and_the_report_is_incomplete() {
@@ -62,6 +69,27 @@ fn a_session_word_that_does_not_fit_is_visibly_omitted_and_the_report_is_incompl
         "a table filled exactly to its bound is still whole:\n{at_bound}"
     );
 
+    // the Rust maximum and the C table bound are one number, the largest valid report index is the last stored event, and the first invalid index is refused by the converter and by the C report
+    assert_eq!(
+        field(line_of(&at_bound, "sho-tables"), "events_capacity"),
+        u64::from(bound),
+        "the C table bound and eech_engine::SHO_EVENTS_MAX disagree"
+    );
+    assert!(at_bound.contains("events_overflow=0"), "nothing overflowed at the bound");
+    if let Err(e) = sector_height_row_text("event", SHO_EVENTS_MAX - 1, SHO_EVENTS_MAX, c::eech_sho_event_run) {
+        panic!("the largest valid index must read: {e:?}");
+    }
+    assert!(matches!(
+        sector_height_row_text("event", SHO_EVENTS_MAX, SHO_EVENTS_MAX, c::eech_sho_event_run),
+        Err(EngineError::BadArgument(_))
+    ));
+    let mut buffer = vec![0 as std::os::raw::c_char; 4096];
+    // SAFETY: the buffer outlives the call and the capacity passed is its length.
+    assert_eq!(
+        unsafe { c::eech_sho_event_run(SHO_EVENTS_MAX, buffer.as_mut_ptr(), buffer.len() as i32) },
+        -1,
+        "the C report must refuse the first index past its table"
+    );
     // the raw words are stored as bits: the first four events carry the four patterns
     for (i, bits) in patterns.iter().enumerate() {
         let row = match sector_height_row_text("event", i as i32, SHO_EVENTS_MAX, c::eech_sho_event_run) {
