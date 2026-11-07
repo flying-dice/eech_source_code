@@ -1,0 +1,204 @@
+{
+  "kind": "explicit compiled-input equivalence and change join of the consumer-reference correction against the 90e9547ee code commit (loader-fix metadata) and its final POST map",
+  "code_commit": "90e9547ee5fbfb31a461a861fdaa2adac5fbafe0",
+  "metadata_commit": "8ad1e4bca0a30ea19d38402cbd95c2cb3c8efa1d",
+  "map_rows_changed": [
+    "eech-campaign/crates/eech-world/lua/sector-height-witness.lua",
+    "eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs"
+  ],
+  "map_rows_added": [],
+  "map_rows_removed": [],
+  "map_rows_identical": 3975,
+  "compiled_input_rows": 3760,
+  "compiled_inputs_aggregate_sha256_e42bb": "a0abc6d28858e7f44979df4186129b63b73d0c13809042756660b8a11c5b6832",
+  "compiled_inputs_aggregate_sha256_now": "a0abc6d28858e7f44979df4186129b63b73d0c13809042756660b8a11c5b6832",
+  "compiled_inputs_identical": true,
+  "changed_in_git_since_code_commit": [
+    {
+      "path": "STATUS.md",
+      "class": "contract prose or records"
+    },
+    {
+      "path": "docs/handover/ACTIVE-EXTRACTION.json",
+      "class": "contract prose or records"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/sector-height-witness.lua",
+      "class": "the host Lua driver (run by eech-world as an EXTERNAL script, bound separately by Git blob and SHA-256; not compiled into any binary)"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs",
+      "class": "its scripted tests (a test source, not a product input)"
+    },
+    {
+      "path": "eech-campaign/docs/d3-sector-height-production-contract.md",
+      "class": "contract prose or records"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-followup/.gitattributes",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-followup/README.md",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-followup/Root-height-native-load-binary-size-cause-20261107.json",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-followup/Root-height-native-load-restore-order-constraint-20261107.json",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-followup/Root-height-native-load-reviewer-constraints-20261107.json",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-followup/diagnosis-addendum.json",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-followup/literal-bytes-check.json",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-followup/manifest.json",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/.gitattributes",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/README.md",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/hwload-final-set-20261107.progress",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/hwload-final-set-lease-after-20261107.txt",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/hwload-final-set-lease-before-20261107.txt",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/t1-load-order-driver-tests.json",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/t1-load-order-driver-tests.stderr.log",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/t1-load-order-driver-tests.stdout.log",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/t2-load-order-driver-tests.json",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/t2-load-order-driver-tests.stderr.log",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/t2-load-order-driver-tests.stdout.log",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/t3-load-order-driver-tests.json",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/t3-load-order-driver-tests.stderr.log",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/t3-load-order-driver-tests.stdout.log",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/t4-red-previous-lua-baseline.json",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/t4-red-previous-lua-baseline.stderr.log",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/t4-red-previous-lua-baseline.stdout.log",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/t5-fmt-apply.json",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/t5-fmt-apply.stderr.log",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/t5-fmt-apply.stdout.log",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/t6-clippy-world.json",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/t6-clippy-world.stderr.log",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/t6-clippy-world.stdout.log",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/u1-fmt-check.json",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/u1-fmt-check.stderr.log",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/u1-fmt-check.stdout.log",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/u2-clippy-world.json",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/u2-clippy-world.stderr.log",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/u2-clippy-world.stdout.log",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/u3-world-driver-tests.json",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/u3-world-driver-tests.stderr.log",
+      "class": "retained evidence packet (not an input of any check)"
+    },
+    {
+      "path": "eech-campaign/reference/d3-entity-collision/sector-height-native-load-order-fix/runs/u3-world-driver-tests.stdout.log",
+      "class": "retained evidence packet (not an input of any check)"
+    }
+  ],
+  "allowed_map_changes": {
+    "eech-campaign/crates/eech-world/lua/sector-height-witness.lua": "the host Lua driver (run by eech-world as an EXTERNAL script, bound separately by Git blob and SHA-256; not compiled into any binary)",
+    "eech-campaign/crates/eech-world/tests/sector_height_witness_driver.rs": "its scripted tests (a test source, not a product input)"
+  },
+  "conclusion": "every compiled and linked input is raw-identical to the 90e9547ee/loader-fix map; only the host Lua driver, its scripted test and prose/records/evidence moved. A compiled binary of the exact loader-fix is reusable for this source ONLY through this equivalence and a separately Git/blob/SHA-bound corrected external Lua; nothing is relabelled and nothing is claimed natively",
+  "problems": []
+}

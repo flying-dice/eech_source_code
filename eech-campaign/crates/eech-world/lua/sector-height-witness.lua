@@ -45,8 +45,11 @@
 --   save_withheld              the host raises at the FIRST pack read of the save: [model-provider:entity_scan.callback] (a fault after the eligible read; a fatal before it is a FAILURE)
 --   load                       args: campaign=<the saved script's file name, `<save name>.S..`>, expect=<the SUCCESSFUL save run's report: same setup, whole, unique ordered records, terminal PASS>, name=<a NEW saved name for the second
 --                              pack>, seeds=<as in the save run> (optional). Boots the saved script (the campaign's load) and records every restore. PASS needs: every restore stated exactly the word the save packed for that sector (and no
---                              extra, none missing), the host acknowledged those bits, every restore BEFORE the first entity insertion (restore-before-insert), then the campaign saves again (`name`, consistent attempts) and no sector's
+--                              extra, none missing), the host acknowledged those bits, NO insertion between two restores and at least one insertion AFTER the last restore (the saved entities arriving), then the campaign saves again (`name`, consistent attempts) and no sector's
 --                              final word is LOWER than the word restored for it (a NaN unchanged, an infinity unchanged unless raised, a negative history raised only upward).
+--                              INSERTION PHASES are told apart by their position relative to the restores only (no caller is attributed): BEFORE the first restore is the BASELINE the supported boot builds before the saved state (a generated
+--                              script holds CAMPAIGN_DATA before SAVED_CAMPAIGN: static population and the like, parsgen.c), legitimate and reported as telemetry, never zeroed or hidden; BETWEEN two restores is never legitimate (the
+--                              sector unpack issues only restores); AFTER the last restore is the saved dynamic entities arriving, which must exist for the no-lowering relation to be exercised. The restored words REPLACE whatever the baseline held.
 --   load_withheld / load_wrong_sector / load_wrong_state / load_stale_word
 --                              ONE fault at the FIRST restore, the campaign's own boot stopping at the named marker: callback / entity_scan.sector_height (a restore echoed for another sector) / entity_scan.state (`height` for a
 --                              restore) / entity_scan.sector_height (the host stored a word that is not the one stated). Positive-first: each is the single fault of the same boot as `load` (same `expect=` validation).
@@ -1018,9 +1021,9 @@ local function session_verdict ()
 		if restored.stated ~= packed [key_xz] then return verdict ("FAILURE", string.format ("the sector %s was restored as %s, the save packed %s", key_xz, restored.stated, packed [key_xz])) end
 		if restored.stored ~= restored.stated then return verdict ("FAILURE", "the host did not acknowledge the bits stated for " .. key_xz) end
 	end
-	if state.inserts_before_first_restore > 0 then return verdict ("FAILURE", string.format ("%d entity insertions came before the first restore: restore-before-insert is not shown", state.inserts_before_first_restore)) end
-	if state.inserts_between_restores > 0 then return verdict ("FAILURE", string.format ("%d entity insertions came between two restores: restore-before-insert is not shown", state.inserts_between_restores)) end
-	if state.inserts_since_restore < 1 then return verdict ("UNREACHED", "load: no entity insertion followed the restores: restore-before-insert and no-lowering are not exercised") end
+	-- the baseline insertions (before the first restore) are the supported boot's static population, a fact of the real lifecycle that is reported, not a defect; an insertion BETWEEN two restores has no legitimate source
+	if state.inserts_between_restores > 0 then return verdict ("FAILURE", string.format ("%d entity insertions came between two restores: the sector unpack issues only restores", state.inserts_between_restores)) end
+	if state.inserts_since_restore < 1 then return verdict ("UNREACHED", "load: no entity insertion followed the restores: the saved entity records did not arrive and no-lowering is not exercised") end
 	for _, row in ipairs (reference.rows) do
 		local key_xz = row.x .. "," .. row.z
 		local word = final_read (key_xz)
@@ -1028,7 +1031,7 @@ local function session_verdict ()
 		if relation (state.restores [key_xz].stated, word) == "violation" then return verdict ("FAILURE", string.format ("the sector %s was restored as %s and read back as %s: LOWERED or a NaN changed", key_xz, state.restores [key_xz].stated, word)) end
 	end
 	if final.info.unique ~= #reference.rows then return verdict ("FAILURE", string.format ("the second pack read %d sectors, the first %d", final.info.unique, #reference.rows)) end
-	return verdict ("PASS", string.format ("load: %d sectors restored exactly as saved and acknowledged, all before the first entity insertion (%d after the last restore), none lowered, second pack in %d attempt(s)", #state.restore_order, state.inserts_since_restore, final.info.attempts))
+	return verdict ("PASS", string.format ("load: %d sectors restored exactly as saved and acknowledged, none restored between insertions, %d baseline boot insertions before the first restore (telemetry), %d saved-entity insertions after the last restore, none lowered, second pack in %d attempt(s)", #state.restore_order, state.inserts_before_first_restore, state.inserts_since_restore, final.info.attempts))
 end
 
 local function report ()

@@ -191,6 +191,8 @@ local function load_boot (config)
 	local function insert (item) config.model ("entity_scan", 0, nil, nil, nil, facts ("insert", item [1], item [2], item [3])) end
 	config.model ("entity_scan", 0, nil, nil, nil, facts ("reset", ZERO, ZERO))
 	if P.insert_first then insert (P.inserts [1]) end
+	-- the BASELINE population of the supported boot, built before the saved state is unpacked (the actual native load had 282933 of them)
+	for _, item in ipairs (P.pre_inserts or {}) do insert (item) end
 	if not P.no_restore then
 		for index, sector in ipairs (P.map) do
 			if P.skip_restore ~= index then restore (sector) end
@@ -1499,8 +1501,65 @@ fn load_run(save_report_path: &std::path::Path, report_text: &str, mode_args: &s
     )
 }
 
+// the supported boot builds a baseline BEFORE the saved state (a generated script holds CAMPAIGN_DATA before SAVED_CAMPAIGN: static population, parsgen.c), so insertions before the first restore are legitimate telemetry, not a defect and not saved-state reconstruction
+const BASELINE: &str = "pre_inserts = { { BITS (1), BITS (1), '0x40000000' }, { BITS (4), BITS (0), '0x40000000' }, { BITS (5), BITS (0), '0x41200000' } }";
+
 #[test]
-fn the_campaigns_own_load_restores_every_saved_word_exactly_before_any_insertion_and_none_is_lowered() {
+fn a_legitimate_baseline_population_before_the_first_restore_is_reported_honestly_and_every_saved_state_check_still_holds() {
+    let (path, saved) = healthy_save();
+    let base = "mode = 'load', name = 'beta'";
+    // positive first, with NO baseline (the previous driver also passes this): the coherent load
+    load_run(&path, &saved, base, "").result.as_ref().expect("the load without a baseline passes");
+    // then three baseline insertions before the first restore, the 12 exact restores, the four saved entity arrivals and the real second pack
+    let o = load_run(&path, &saved, base, BASELINE);
+    assert!(
+        o.result.is_ok(),
+        "a legitimate baseline before the first restore was refused as a defect: {:?}",
+        o.result
+    );
+    o.result.as_ref().expect("the load with a legitimate baseline passes");
+    let r = report(&o);
+    assert!(
+        line_of(&r, "sh-witness-counts")
+            .contains("restores=12 restore_duplicates=0 inserts=7 inserts_before_first_restore=3 inserts_between_restores=0 inserts_after_last_restore=4"),
+        "the baseline telemetry is reported, never zeroed or hidden: {r}"
+    );
+    let verdict = line_of(&r, "sh-witness-verdict");
+    assert!(
+        verdict.contains("status=PASS")
+            && verdict.contains("3 baseline boot insertions before the first restore (telemetry)")
+            && verdict.contains("4 saved-entity insertions after the last restore"),
+        "{verdict}"
+    );
+    // the restored words REPLACE what the baseline held (the baseline raised (1,1) to 2.0; the saved history is the negative word), and the later arrivals raise them as before
+    assert!(
+        r.contains("x=1 z=1 stated=0xc0a00000 stored=0xc0a00000 final=0x40a00000 relation=raised"),
+        "{r}"
+    );
+    assert!(r.contains("x=2 z=1 stated=0x7fc00000 stored=0x7fc00000 final=0x7fc00000 relation=held"), "{r}");
+    // single faults, each WITH the baseline: the saved-state checks are as strict as without it
+    let key_11 = "BITS (1) .. ',' .. BITS (1)";
+    let with = |extra: &str| format!("{BASELINE}, {extra}");
+    let o = load_run(&path, &saved, base, &with(&format!("restore_override = {{ {key_11}, '0xc0a00001' }}")));
+    assert_failed(&o, "FAILURE", "restored as 0xc0a00001, the save packed 0xc0a00000");
+    let o = load_run(&path, &saved, base, &with("skip_restore = 5"));
+    assert_failed(&o, "FAILURE", "the load restored 11 sectors, the save packed 12");
+    let o = load_run(&path, &saved, base, &with("dup_restore = 5"));
+    assert_failed(&o, "FAILURE", "restored more than once");
+    let o = load_run(&path, &saved, base, &with("insert_between = 6"));
+    assert_failed(&o, "FAILURE", "between two restores");
+    let o = load_run(&path, &saved, base, &with("no_inserts = true"));
+    assert_failed(&o, "UNREACHED", "no entity insertion followed");
+    let o = load_run(&path, &saved, base, &with(&format!("lowering = {key_11}")));
+    assert_failed(&o, "FAILURE", "LOWERED or a NaN changed");
+    let o = load_run(&path, &saved, base, &with("no_restore = true"));
+    assert_failed(&o, "UNREACHED", "made no restore");
+    // a baseline alone is not a load: with no restore and no saved entity arriving the telemetry says so and nothing is credited
+    remove(&[&path]);
+}
+
+#[test]
+fn the_campaigns_own_load_restores_every_saved_word_exactly_and_none_is_lowered_after_the_saved_entities_arrive() {
     let (path, saved) = healthy_save();
     let o = load_run(&path, &saved, "mode = 'load', name = 'beta'", "");
     o.result.as_ref().expect("the healthy load passes");
@@ -1602,9 +1661,11 @@ fn every_single_fault_of_the_load_is_a_failure_or_unreached_never_a_pass() {
     // a sector restored twice
     let o = load_run(&path, &saved, base, "dup_restore = 5");
     assert_failed(&o, "FAILURE", "restored more than once");
-    // an insertion before the first restore, and one between two restores: restore-before-insert is not shown
+    // an insertion before the first restore is the supported boot's baseline (a legitimate pass, see the baseline test); one BETWEEN two restores has no legitimate source
     let o = load_run(&path, &saved, base, "insert_first = true");
-    assert_failed(&o, "FAILURE", "before the first restore");
+    o.result
+        .as_ref()
+        .expect("an insertion before the first restore is legitimate baseline telemetry");
     let o = load_run(&path, &saved, base, "insert_between = 6");
     assert_failed(&o, "FAILURE", "between two restores");
     // no restore at all (the saved script was not loaded as a saved campaign), and restores with no insertion after them
