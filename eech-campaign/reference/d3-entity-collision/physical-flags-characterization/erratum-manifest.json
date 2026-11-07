@@ -1,0 +1,25 @@
+{
+  "files": [
+    {
+      "path": "erratum-freeze-labels.json",
+      "bytes": 5742,
+      "sha256": "50774a20d5c7a2a46bc56716ce1a67691aba92d3f791fc19f8efd550d62024b6"
+    },
+    {
+      "path": "erratum-README.md",
+      "bytes": 965,
+      "sha256": "aaae217f25824f39fa1b3f0a6492605082ff0dfc0deeb5e7bae467d59edd5d0c"
+    },
+    {
+      "path": "D3-PHYSICAL-FLAGS-CHARACTERIZATION-CODE-FROZEN-20261107.json",
+      "bytes": 32336,
+      "sha256": "442ab9d47cddcec742ff58632551d46d5ef43cdfff1e02eaa024263abe07a90a"
+    },
+    {
+      "path": "manifest.json",
+      "bytes": 8814,
+      "sha256": "c53c6b717ad4327049e150751903ff5e0e7758ff98851ab081407101ce48a5b7"
+    }
+  ],
+  "note": "the erratum files plus the UNCHANGED frozen receipt and the original manifest.json (their hashes are the ones committed at the characterisation commit)"
+}
