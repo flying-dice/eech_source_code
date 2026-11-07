@@ -1,0 +1,17 @@
+{
+  "source_ci": "635d4542c1a092febf3cd0269fefbff8aea637f4",
+  "source_native": "1b89c0b0ab613d2f6a08ea02dd6612457efa8982",
+  "review": "R:/d3-evidence/independent-sector-height-finite-native-1b89-ci-lua-635-20261107.json",
+  "review_sha256": "8edddd934b091ea58567d43e3a71f4eaab378431de7b0b378990ae2703e77c32",
+  "review_bytes": 20359,
+  "findings": [],
+  "finding_closed": "ENV-CI-LUA-ARCHIVE-AVAILABILITY-1",
+  "exact_ci_proof": "R:/d3-evidence/ci-lua-635-all9-CI-readback-20261107.json",
+  "exact_ci_proof_sha256": "8c241395cb9e9dd99770cf6f6c551b52ec8dfe30eddc3982f45a47d14c0f13da",
+  "native_binding": "R:/d3-evidence/sector-height-native-Root-binding-1b89-20261107.json",
+  "native_binding_sha256": "fa02f29a90c38a1cbb08d78b7b5dcf8d753916f51f3ba392a41a3bfec6d15698",
+  "native_result": "ALL9 finite original jobs terminal0 verified: ordinary+observer short complete three files byte-identical80fd; scoped M4 equality; healthyeligibleheight consumption;5matchedrefusals. Actual3profiles ordinary/observer/weapon, NOT an Original build. No new experiment/replay.",
+  "ci_result": "ALL9jobs/ALL3workflows exact635 completedSUCCESS; no manualrerun. ActualWindows Lua.orgtimeout15001ms then MacPorts SAMEpin archive, build/Wine success. Full decodedjoblog stays external.",
+  "lead_action_at_next_bounded_checkpoint": "Reconcile CIfinding CLOSED on this SAME sealedreview+actualCI proof; record finite height gates VERIFIED at true1b89 identity, keeping required M5guardedfw/nativeM6Coreload and height-open-factsOPEN. Publish a compact safe sibling review/aggregate packet with literalGit bytes+manifest, not raw authority IDs/coordinates or fullCIlogs. Update ONECURRENT/card at your normal checkpoint; no interruption/replay of in-flight witness checks. Earlier packets unchanged. Root publishes Jira/Confluence/PR services separately.",
+  "limits": "No clearance or acceptance for current M5/M6 work, natural engagement, fullheight, final current40/all8, Task49/D3/shipping/merge/delivery. All10/prep2 intact. No source/test rerun for this feedback/prose; readers/feedback presence captured separately if arriving after PRE, not mislabelled as test input drift. Root holds the sole services/checkpoint writer role."
+}
