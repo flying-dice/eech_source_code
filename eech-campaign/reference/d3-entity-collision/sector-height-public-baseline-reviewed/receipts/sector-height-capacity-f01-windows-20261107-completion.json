@@ -1,0 +1,486 @@
+{
+  "controller_pid": 21904,
+  "source": "f01e64e7950d8d323da0a7bda5c065f899f30be5",
+  "snapshot": "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-20261107-source",
+  "plan_sha256": "56b5c274604fa932d7d936f1f8d1c453c14b512152b5775425fb9a82f5849b71",
+  "review_sha256": "075924c7209dcb7372fe73c6c267b842afa3c4bb089ca0ececad39debd2c0542",
+  "helper_sha256": "54ff445297e59758cfa7ca6c5528eb1b7729872a7c7281d8b64c2b334651c0d7",
+  "controller_sha256": "a8b8d78a54beb5ec2ae3f45087e38a8f395c79e626c2b88c804416657930bf33",
+  "state": "terminal",
+  "started_utc": "2026-11-07T06:01:40.223152+00:00",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--cd",
+    "/",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-sector-height-capacity-f01-20261107.sh"
+  ],
+  "volume": "eech-win-sector-height-f01-observer-20261107",
+  "ordinary_reused": {
+    "source": "eff3b4b332ec3592ae57c89f0a3d9bf426087e0b",
+    "binary": "D:\\EECH-Migration-Evidence\\sector-height-public-baseline-eff3-20261107-source\\eech-campaign\\target\\windows-sector-height-eff3-ordinary",
+    "build_receipt": "R:/d3-evidence/sector-height-eff3-windows-20261107-completion.json",
+    "profile_proof": "D:/EECH-Migration-Evidence/sector-height-windows-profile-eff3-v4-20261107/ordinary/profile.json",
+    "scope": "True predecessor binary; source-effect feature-off equivalence only. No binary/object equality or relabel as f01; reuse requires SAMEcapacityreview."
+  },
+  "scope": "ONE fresh correctedobserverWindows build. Retainedordinaryeff3 has source-effect reuse only, never relabelled f01. No native run or acceptance.",
+  "pid": 18544,
+  "actual_build_exit": 0,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-07T06:04:56.746318+00:00",
+  "binary": "D:\\EECH-Migration-Evidence\\sector-height-capacity-f01-20261107-source\\eech-campaign\\target\\sector-height-observer\\f01",
+  "payloads": [
+    {
+      "path": "eech_dc.dll",
+      "sha256": "7f0fac69a224c6e814e01f6e356b0a92d83320fc62ff0dd5e62f29bced7f64f6",
+      "bytes": 100009522
+    },
+    {
+      "path": "eech-world.exe",
+      "sha256": "edd6fc3acd1cdc840bd58a70adc5e0be8af430f1db0374c8150ee52c8fa4707f",
+      "bytes": 4538356
+    },
+    {
+      "path": "lua.dll",
+      "sha256": "ad9a305565905b4ea1421f7c053f9ebd6ebec9bb5439b89f117451f1e90ece36",
+      "bytes": 615397
+    },
+    {
+      "path": "lua/aim-characterization.lua",
+      "sha256": "e1bd82c07880e46375d939793fe79fed8ccddd92817829a8fcd1603751388181",
+      "bytes": 5227
+    },
+    {
+      "path": "lua/aim-lead-probe.lua",
+      "sha256": "083f9ca1dda35a9e3b13f5dcf24dbdee06e6af3538ba6bc634ee4d21bbba6805",
+      "bytes": 10700
+    },
+    {
+      "path": "lua/aim-malformed.lua",
+      "sha256": "1fa81d7ba056ef3b8ca74c848a3089a1bbdea36a355b9483d2c873353e470285",
+      "bytes": 15311
+    },
+    {
+      "path": "lua/aim-person-case.lua",
+      "sha256": "6c549c86214b25ef9f415caa02238190d2e3e57353e27b4a5e9ff67112a13bb3",
+      "bytes": 17214
+    },
+    {
+      "path": "lua/aim-provider.lua",
+      "sha256": "429e2d118d9d57938e781154eeeef31107cbe4c1ea9cac36fb003d251583c80b",
+      "bytes": 42272
+    },
+    {
+      "path": "lua/aircraft-arrivals.lua",
+      "sha256": "510eadd0b1ea8ae7f6f2089e4bd38b69a8fd964852edcb1e710ddea86e2e3168",
+      "bytes": 6651
+    },
+    {
+      "path": "lua/bridge-case.lua",
+      "sha256": "264c25cc3a4f236b62e75ab68c28bafc3047fc0e33af6220b143807975219823",
+      "bytes": 13986
+    },
+    {
+      "path": "lua/campaign.lua",
+      "sha256": "0ddf607ef416eef144186e8063a74225ef29a5122ccba6a59daee97c841426fe",
+      "bytes": 12574
+    },
+    {
+      "path": "lua/collision-characterization.lua",
+      "sha256": "f5c1078fcd083239370c32c59dd203d67e551143b466c098364df534818a2926",
+      "bytes": 79830
+    },
+    {
+      "path": "lua/combat-case.lua",
+      "sha256": "972d3f63dab496e8782dbaae2b6fa3493bb51a3894343759e40d98adbaa8bade",
+      "bytes": 20815
+    },
+    {
+      "path": "lua/combat-characterization.lua",
+      "sha256": "901c83bb95a4536fd4cb1b4efc97c8518afb97f0b08bb5db12e54fd7ba780663",
+      "bytes": 5361
+    },
+    {
+      "path": "lua/combat-counters.lua",
+      "sha256": "cf5a4c270240a06106ba7c2226f26e9857e380278a418f7453f1ae5ca724b900",
+      "bytes": 2213
+    },
+    {
+      "path": "lua/combat-plan.lua",
+      "sha256": "8c08f1f3cd4ec4ffe953edf4b39edae0c8588497d0d179ae8855f4e55b8224bd",
+      "bytes": 4303
+    },
+    {
+      "path": "lua/combat-report.lua",
+      "sha256": "5acc3856920a4259208426603dfdba9ab713073b185f1ca119e2b2c82f111a4e",
+      "bytes": 2976
+    },
+    {
+      "path": "lua/convoy-movement.lua",
+      "sha256": "7bb51d300cd502d7ceab1cbcfc180f39d616fbc53608273ad6e8b5fa8aa6696c",
+      "bytes": 7914
+    },
+    {
+      "path": "lua/dependent-carry.lua",
+      "sha256": "6a6913a2c33b45753cc12bf53e6d52e0c7e6e32b5a211c8e200203a24cbddd1a",
+      "bytes": 6648
+    },
+    {
+      "path": "lua/dependent-fixture.lua",
+      "sha256": "76c67585920d0a70c9ef093bdd3b24a6e837a2d26797f81a642caefbea20a976",
+      "bytes": 16729
+    },
+    {
+      "path": "lua/entity-authority.lua",
+      "sha256": "98de0f7d593e9ace2c2a6da431d5b7021d9aaf035d59c1a223e39925c00f32db",
+      "bytes": 255678
+    },
+    {
+      "path": "lua/env-ambient-authority.lua",
+      "sha256": "f8f749acb2e9176095563dcd81ba93785a515494e5e1e2040cb5de63a960e33e",
+      "bytes": 22621
+    },
+    {
+      "path": "lua/env-characterization.lua",
+      "sha256": "cd8522d009caf09860c98473d0b858b3533798b32ddd6729cc5df283ea64dff5",
+      "bytes": 101973
+    },
+    {
+      "path": "lua/env-lightning-host-witness.lua",
+      "sha256": "9563e7429fc44e4a3edfef2b92df58558da271c12601fcb80ecaa6793e1b4a38",
+      "bytes": 19781
+    },
+    {
+      "path": "lua/env-lightning-queue.lua",
+      "sha256": "a2f0e63296df696dad0ae36bf06816889f99a6c268b20927c5c4ea091ef73240",
+      "bytes": 21939
+    },
+    {
+      "path": "lua/env-play-elided-parent.lua",
+      "sha256": "f6a0c303e0c75ef4c747446bf57984b0ee9e32a169f1c31030acc4977ca986c1",
+      "bytes": 46082
+    },
+    {
+      "path": "lua/env-play-resumed-parent.lua",
+      "sha256": "b78a9d90bb0d0ae29637169add0871df1fe94d6a2d11f398c91480e0d3da9511",
+      "bytes": 50000
+    },
+    {
+      "path": "lua/env-rotor-host-witness.lua",
+      "sha256": "ee0df5407d4a3b7a602d9bd320649d2b38f6f72319e8c7804c52809e076da471",
+      "bytes": 38367
+    },
+    {
+      "path": "lua/env-rotor-sounds.lua",
+      "sha256": "d586a814d2bb6669bf435179ef58ac66088f9eec59b832291ebd753765c6d661",
+      "bytes": 47120
+    },
+    {
+      "path": "lua/env-sector-authority.lua",
+      "sha256": "faa62475f540a872a2b6f69338a7f3eff49922d398bedf5a544c3ad584c71915",
+      "bytes": 20538
+    },
+    {
+      "path": "lua/env-sector-characterization.lua",
+      "sha256": "b55fae31d274c948a2a572acc87f9cb533f3bff03b06565de449795192707add",
+      "bytes": 10371
+    },
+    {
+      "path": "lua/env-sound-backend-host-witness.lua",
+      "sha256": "af1803cc2d40c3259b40ac7074616e4f1e905670d81365ec81e5a6284fd60035",
+      "bytes": 22733
+    },
+    {
+      "path": "lua/env-sound-characterization.lua",
+      "sha256": "06461063b484ba1b6314735891c3c8c4828fb54322f744e45d0811a39bfd5dcd",
+      "bytes": 17838
+    },
+    {
+      "path": "lua/env-sound-data-host-witness.lua",
+      "sha256": "f1df246194706b8317593a7d64a52739c6058d68586dd9980322de81be9f4919",
+      "bytes": 24376
+    },
+    {
+      "path": "lua/env-sound-handle-guard.lua",
+      "sha256": "444255f382a4c09e50428feab21869d0c5ae2ab44447a934fe096fad5bd2fb75",
+      "bytes": 11301
+    },
+    {
+      "path": "lua/env-sound-handle.lua",
+      "sha256": "9db6e3b841aa43d23e77ef81a8274f0bbfe401563600babcfaa2e1ae5072cecb",
+      "bytes": 34857
+    },
+    {
+      "path": "lua/env-sound-host-witness.lua",
+      "sha256": "b82e018ff324194e1702872d564d5866ca4d412a168f38a12c01e27df22614be",
+      "bytes": 27763
+    },
+    {
+      "path": "lua/env-sound-init-backend.lua",
+      "sha256": "17e16c7d2bf1c5052355927ea293aebc20e5dfa9696490270c13b3c70705a42b",
+      "bytes": 40526
+    },
+    {
+      "path": "lua/env-sound-init-host.lua",
+      "sha256": "d784999006dfb63d9c08b2fa74bc0ec1d7b327defda76fbdcbf0f59faa4eb38e",
+      "bytes": 36286
+    },
+    {
+      "path": "lua/env-sound-init.lua",
+      "sha256": "75ecbd6d5646331b13c9e9948b45c685891fa77d8f903f5acee234cae78143b1",
+      "bytes": 30049
+    },
+    {
+      "path": "lua/env-sound-lifetime.lua",
+      "sha256": "70ff1e013b281080bef62aee9d927a9494e417e00495aaf1f528f7125f790ac9",
+      "bytes": 67299
+    },
+    {
+      "path": "lua/env-sound-native-guard.lua",
+      "sha256": "1206b23e4ed7a2b8ea2ca135ea96fa0488692dd5129a5adc3e08a68598a5aee9",
+      "bytes": 11793
+    },
+    {
+      "path": "lua/env-sound-route.lua",
+      "sha256": "9c96c2c2d468d28788009040bce1a51fb3bf6dad8926feb42aa24c72080fd37e",
+      "bytes": 32620
+    },
+    {
+      "path": "lua/env-sound-wide-children.lua",
+      "sha256": "c543d328a8a02f5cfa9ec0b738282aa67d163e9a9667fb4f117fe5090ee80a24",
+      "bytes": 16235
+    },
+    {
+      "path": "lua/env-wind-authority.lua",
+      "sha256": "dfaffa803004e15cbb4e5957d4000113f4756c83ce4cd0de5f9fc7b12631c103",
+      "bytes": 28545
+    },
+    {
+      "path": "lua/fixed-wing-movement.lua",
+      "sha256": "b60dfe8de84f36bb2d8acae461c66c37e879e37faafca76a84686d9180135bce",
+      "bytes": 8170
+    },
+    {
+      "path": "lua/ground-authority.lua",
+      "sha256": "fcc6001d23898126515b3d56dae7421a191488fc8fa82dddf4f98c8e6e2f3302",
+      "bytes": 21295
+    },
+    {
+      "path": "lua/ground-characterization.lua",
+      "sha256": "7e22a9a352fc06b76f87770edb5e84c724f7a67ebd72fdea19ea5f0f0a5b01a7",
+      "bytes": 39404
+    },
+    {
+      "path": "lua/ground-handoff-verdict.lua",
+      "sha256": "269004b16d26135eb5a29aef45755170e1c2817a0b63d420870e3e0ce02d2775",
+      "bytes": 3105
+    },
+    {
+      "path": "lua/ground-handoff.lua",
+      "sha256": "29c05f07a484a83740fae215d7c957bc5f5497529d1cb6aa241c3282bf8c0b91",
+      "bytes": 4927
+    },
+    {
+      "path": "lua/ground-provider-transport.lua",
+      "sha256": "4e2addef34f0042afca66000a5a9ad643348e733b2edf5c0977b334eda577f3f",
+      "bytes": 16463
+    },
+    {
+      "path": "lua/helicopter-lifecycle.lua",
+      "sha256": "15b20cbd81f61bf1921cc8f5ef87848ae057acafcca0ff6e4cc0a0da5e8c2d13",
+      "bytes": 11946
+    },
+    {
+      "path": "lua/helicopter-movement.lua",
+      "sha256": "0e5c43f9f6de072da5072aa7fae1365a31cae5ff00619d386c286cad56d0fdb3",
+      "bytes": 10240
+    },
+    {
+      "path": "lua/host-identities-lifecycle.lua",
+      "sha256": "ffcbd537db7cb3eb7eda4a1ed433ca20b9214ac23e8916210df994ffc2d390e7",
+      "bytes": 10557
+    },
+    {
+      "path": "lua/host-identities.lua",
+      "sha256": "996068cd1a861aaf13e0fd5efc90a1becaab3c6461f5871b002dab0ea365b650",
+      "bytes": 5378
+    },
+    {
+      "path": "lua/json-lines-check.lua",
+      "sha256": "794e70767895bb7f3e2fd10b485c16afa43adca8ba0baa8cc4c162e646cf6adf",
+      "bytes": 2725
+    },
+    {
+      "path": "lua/json-lines.lua",
+      "sha256": "8b8b367ae1026548f39bf4561aa57604044ca5c128e4a9c10ece29fcd9f7fb99",
+      "bytes": 3318
+    },
+    {
+      "path": "lua/lifecycle.lua",
+      "sha256": "a7c170a7308b4993ca7f8011c7e204a0895e6115529cbaf60b40a63a663224a9",
+      "bytes": 4476
+    },
+    {
+      "path": "lua/los-characterization.lua",
+      "sha256": "2f434c87d355128bab16aba96ff56ba43eb92ba4854a5a64516f158bb34274e9",
+      "bytes": 8029
+    },
+    {
+      "path": "lua/los-controls.lua",
+      "sha256": "703e3fe6dd07b7b8594c5db75808f76c5ef24248ed2c8edc3b979a42e6894d78",
+      "bytes": 6291
+    },
+    {
+      "path": "lua/los-provider.lua",
+      "sha256": "c76684c2e9a605fd8c7f797244f18dc7c935766938d7b740600e3a0db9a9eb8a",
+      "bytes": 7016
+    },
+    {
+      "path": "lua/loss-all-family.lua",
+      "sha256": "f2164452ed3c154915621b7b9f49f6086beb698b7ce38ab242bb31f3f5af82d2",
+      "bytes": 36719
+    },
+    {
+      "path": "lua/metrics.lua",
+      "sha256": "dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053",
+      "bytes": 6903
+    },
+    {
+      "path": "lua/model-animation-characterization.lua",
+      "sha256": "3c21d3708f5cfd17416c0d49faed5c96fe414bbe9a100cc9364f06a5f05bfa45",
+      "bytes": 24210
+    },
+    {
+      "path": "lua/model-authority.lua",
+      "sha256": "bd6ac08064b7f6a2ef93d7c0a5f1311a3e437f746c3f04afe2517a0c09b56c8f",
+      "bytes": 88692
+    },
+    {
+      "path": "lua/model-characterization.lua",
+      "sha256": "ffba01750612790d6268e8626e83bbd48179194f51a62138ef3f9ecd42051db9",
+      "bytes": 23653
+    },
+    {
+      "path": "lua/model-horizon-control.lua",
+      "sha256": "975d0591cfa70e5ae3fc754a3b9c930abf0c5d8514bfaa1d0888026eeb95f3a1",
+      "bytes": 17442
+    },
+    {
+      "path": "lua/model-host-compare.lua",
+      "sha256": "66b137122920362053ca867c4863bf341c848dd00246d8d3b5d1a930a1dc3018",
+      "bytes": 7796
+    },
+    {
+      "path": "lua/model-provider-check.lua",
+      "sha256": "b8fa9e26e07074a4ed70680c78125f57789a26d58f7d3ebc2813ae86d10019af",
+      "bytes": 3610
+    },
+    {
+      "path": "lua/object-report-case.lua",
+      "sha256": "0fe9ed14945aefabc92257970371f2cca59c0b4eada57eca6fb18af89817486c",
+      "bytes": 12160
+    },
+    {
+      "path": "lua/observations.lua",
+      "sha256": "68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701",
+      "bytes": 7229
+    },
+    {
+      "path": "lua/own-model.lua",
+      "sha256": "1bfc0c23f29cd08fd899c098ad4e7c1c0be03722c69f743ecb5bfad5fca2d603",
+      "bytes": 4083
+    },
+    {
+      "path": "lua/own-weapon.lua",
+      "sha256": "ca1c8487ed4c17feffdd5079b2eb070cf5606d10327f1fa5c123647de0289499",
+      "bytes": 13663
+    },
+    {
+      "path": "lua/remaining-arrivals.lua",
+      "sha256": "e935aecd837acdfb31f71ef1eb066216294d56e3c0b34c4d212206b1a8337373",
+      "bytes": 13677
+    },
+    {
+      "path": "lua/route-characterization.lua",
+      "sha256": "8a10ac6e8a49879c1440afc084be6a8f81b9373a2c763204be80e4ff2f0819c4",
+      "bytes": 35200
+    },
+    {
+      "path": "lua/sector-height-baseline.lua",
+      "sha256": "a7e12fd30022fd8cfdb091728559a7f150b6f66befd5ce5a5e9847262faac138",
+      "bytes": 6934
+    },
+    {
+      "path": "lua/sense-provider.lua",
+      "sha256": "3bebc89e3d91a2f33dc0a8655235bd0de391e01078396eb996bdde588dfc8551",
+      "bytes": 10180
+    },
+    {
+      "path": "lua/sensor-characterization.lua",
+      "sha256": "bb89f6112725e981539fa2989ffa1a0e70468d2ca1c3f37501c35650ce8fe7c0",
+      "bytes": 7336
+    },
+    {
+      "path": "lua/supply-arrivals-lifecycle.lua",
+      "sha256": "5e604dc31e3c800aac238de609f98b6345b07c35d7cd3e7da018e9806ca5725a",
+      "bytes": 3803
+    },
+    {
+      "path": "lua/supply-arrivals.lua",
+      "sha256": "bff42d78da1706d9e19f6a738a0dd8cf531d0219202b28fb111889fd0adbf646",
+      "bytes": 7691
+    },
+    {
+      "path": "lua/surface-movement.lua",
+      "sha256": "26d6e122ede36f37180c0205f76e8ed8a0820b4ee699ef2683b82abc4cd6bcf9",
+      "bytes": 10741
+    },
+    {
+      "path": "lua/target-point-characterization.lua",
+      "sha256": "b56099344d63b54a533a392383dc13b7c66eb9e35ab01ed5d1af14fcfd331260",
+      "bytes": 90793
+    },
+    {
+      "path": "lua/terrain-characterization.lua",
+      "sha256": "6628ede38ba9d177c152045f830823ad53fe725eeadefc0ee16579143fe1af7d",
+      "bytes": 12025
+    },
+    {
+      "path": "lua/terrain-has-face.lua",
+      "sha256": "27d00ca6124cfbaa4878a1239960ca421905a179d9121561091475e268c1ea62",
+      "bytes": 6098
+    },
+    {
+      "path": "lua/terrain-provider.lua",
+      "sha256": "9d2938ee5ea785164595ffc55a166a2ab762291a26f2285f6a48dc531b861dd5",
+      "bytes": 16033
+    },
+    {
+      "path": "lua/tree-authority.lua",
+      "sha256": "0feb86a0ed7bbf08da4b298531c793f969455524f0fcc6916dc91451bf33ae2a",
+      "bytes": 45099
+    },
+    {
+      "path": "lua/tree-collision-replay.lua",
+      "sha256": "820d6609ad44446b4b4cc25825913cfab3124b73630f405e9d77d7e1375fcfd8",
+      "bytes": 9245
+    },
+    {
+      "path": "lua/weapon-case.lua",
+      "sha256": "c4dcdfac9a036afde0f61ca42e443294d9bdca5b7879921ab603aebf100bc05e",
+      "bytes": 24247
+    },
+    {
+      "path": "lua/weapon-characterization.lua",
+      "sha256": "d00cca417b5c1bc46b62ba3af670e803932f514fb075f9354a873d06c26aed9a",
+      "bytes": 7525
+    }
+  ],
+  "verified_payloads": 89,
+  "build_info_sha256": "c90edfbafabffdb80bb50ec2e4b707c70150dbc42ee7ed033de81c6bf83e574a",
+  "actual_BUILD_INFO_header": "commit: f01e64e7950d8d323da0a7bda5c065f899f30be5\nuncommitted changes in the build inputs: 0 files\nimage: sha256:27dcd49feca2025ad34fa0f1ab7350b4168413673cea337332434477e06eabf7\nrustc: rustc 1.99.1 (58cf8f9c3 2026-10-13)\ncargo: cargo 1.99.1 (5f94df478 2026-08-27)\nmingw: gcc 12-posix, gcc-mingw-w64-x86-64-posix 12.2.0-14+deb12u1+25.2+b1\nlua.dll: Lua 5.1.5 (lua-5.1.5.tar.gz, SHA-256 checked in tools/Dockerfile)\ntarget: x86_64-pc-windows-gnu, release, FIXTURE BUILD (eech-dc/sector-height-observer): test-only, not a shipping artifact",
+  "producer_image": "sha256:27dcd49feca2025ad34fa0f1ab7350b4168413673cea337332434477e06eabf7"
+}
