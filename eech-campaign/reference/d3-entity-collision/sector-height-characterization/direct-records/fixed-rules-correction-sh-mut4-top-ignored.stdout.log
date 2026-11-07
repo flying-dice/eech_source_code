@@ -1,0 +1,41 @@
+
+running 1 test
+test the_sector_height_is_a_high_water_word_the_original_code_stores_serves_and_saves_bit_for_bit ... FAILED
+
+failures:
+
+---- the_sector_height_is_a_high_water_word_the_original_code_stores_serves_and_saves_bit_for_bit stdout ----
+
+thread 'the_sector_height_is_a_high_water_word_the_original_code_stores_serves_and_saves_bit_for_bit' (3904) panicked at crates/eech-engine-sys/tests/sector_height.rs:21:5:
+assertion `left == right` failed: the original sector code disagreed with its expectations:
+FAIL line 405: 100 + 10 over zero is stored: word 42c80000, expected 42dc0000
+FAIL line 405: a higher sum is stored: word 43480000, expected 434d0000
+FAIL line 405: the largest subnormal plus the smallest subnormal is the smallest normal, exactly: word 007fffff, expected 00800000
+FAIL line 405: 100 + 10 over zero is stored: word 42c80000, expected 42dc0000
+FAIL line 405: a higher sum is stored: word 43480000, expected 434d0000
+FAIL line 405: the largest subnormal plus the smallest subnormal is the smallest normal, exactly: word 007fffff, expected 00800000
+FAIL line 405: three quarters of an ulp over one: word 3f800000, expected 3f800001
+FAIL line 405: the same sum over a stored one: word 3f800000, expected 3f800001
+FAIL line 405: an overflowing sum: word 7f7fffff, expected 7f800000
+FAIL line 444: first arrival: word 42c80000, expected 42dc0000
+FAIL line 448: lower arrival: word 42c80000, expected 42dc0000
+FAIL line 450: equal arrival: word 42c80000, expected 42dc0000
+FAIL line 452: higher arrival: word 43480000, expected 434d0000
+FAIL line 456: the highest member removed: still the high-water: word 43480000, expected 434d0000
+FAIL line 459: every member removed: still the high-water: word 43480000, expected 434d0000
+FAIL line 464: a lower reinsertion after a removal: word 43480000, expected 434d0000
+FAIL line 466: the same highest structure reinserted: word 43480000, expected 434d0000
+FAIL line 469: the same entity with a taller shape raises it (the shape is read at arrival): word 43480000, expected 434e0000
+FAIL line 474: the sector a structure moves into is raised: word 43480000, expected 434e0000
+FAIL line 475: the sector it left is not lowered: word 43480000, expected 434e0000
+
+  left: 20
+ right: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    the_sector_height_is_a_high_water_word_the_original_code_stores_serves_and_saves_bit_for_bit
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

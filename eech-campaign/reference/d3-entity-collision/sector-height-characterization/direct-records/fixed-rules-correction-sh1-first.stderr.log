@@ -1,0 +1,9 @@
+wsl: Failed to translate 'R:\d3-evidence'
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 09s
+     Running tests/sector_height.rs (/target/debug/deps/sector_height-00c3d69cf88a12da)
+eech: debug_fatal: host model: [model-provider:not.installed] get_object_3d_bounding_box was asked before the host's scenes were installed
+error: test failed, to rerun pass `-p eech-engine-sys --test sector_height`
+
+Caused by:
+  process didn't exit successfully: `/target/debug/deps/sector_height-00c3d69cf88a12da` (signal: 6, SIGABRT: process abort signal)

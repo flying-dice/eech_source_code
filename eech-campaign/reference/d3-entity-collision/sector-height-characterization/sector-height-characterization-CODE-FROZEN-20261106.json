@@ -1,0 +1,192 @@
+{
+  "schema": "d3-sector-height-characterization-code-frozen.v1",
+  "status": "UNREVIEWED CODE_FROZEN",
+  "task": "EEDCS-49 (D3)",
+  "scope": "ONE sector tallest-structure height CHARACTERIZATION. No production C/Rust/Lua, physical authority, ABI, shipping macro or baseline change. ENV-ENTITY-POSE-LONG-RUN-MOTION-1 stays open and blocks_cutover=true; the finite CITY acceptance cannot close it.",
+  "source": {
+    "base": "8a525b145c8c54f2b22863c20d908ee3389759e5",
+    "code_commit": "a8ef0ce662df0528dcae414287ffe45b2847cd8f",
+    "code_files": [
+      "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+      "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_sector_height_check.c",
+      "eech-campaign/crates/eech-engine-sys/tests/sector_height.rs",
+      "eech-campaign/crates/eech-engine-sys/tests/sector_height_guard.rs",
+      "eech-campaign/docs/d3-sector-height-contract.md"
+    ],
+    "production_paths_changed": "none (git diff 8a525b145 a8ef0ce66 -- aphavoc modules is empty)",
+    "pushed": "normally, origin/codex/d3-object-tree-collision"
+  },
+  "guard": {
+    "action": "characterize",
+    "exit": 0,
+    "preparation_batches_without_cutover_before": 0,
+    "after_this_batch": 1,
+    "limit": 2
+  },
+  "qualification_bound_by_this_freeze": [
+    "the feature sector-height-check is dedicated and TEST-ONLY: off by default and in every shipping build, no unrelated feature coupled, its C entirely under EECH_SECTOR_HEIGHT_CHECK, its test binary required-features",
+    "no production behaviour changed; the default build compiles the empty control file",
+    "hand-made entities, the sector map and ONE scripted model-provider callback are declared; the message table is not the public en_list funnel (that gap is explicit, trigger named in docs/d3-sector-height-contract.md section 5)",
+    "dispatch tables, message_responses, world_map, entity_sector_map, pack buffer pointers and the rounding mode are saved and restored; mb_hostmodel.c installed scenes cannot be, the safety bound is the process (own test binary, one test)",
+    "the guard is a source/build-derived census (text patterns), not an exhaustive preprocessed-symbol or runtime census; it cannot close the whole-D3 final compiled-consumer disposition"
+  ],
+  "characterized": "docs/d3-sector-height-contract.md: high-water scalar (zero fill, raise at the sector-list link by position.y + host box ymax with strict >, never lowered, no recompute on removal or sector change), zero floor, toward-zero rounding, save as the last 32 raw bits of the server-session record, restore before entities, client/browse sessions carry nothing, five source files read it, the host already takes it as fact 12, nine fixed families vs the host eight (city unknown)",
+  "final_runs": [
+    {
+      "label": "shf1-fmt-check",
+      "role": "final",
+      "actual_exit": 0,
+      "command": "cargo fmt -p eech-engine-sys -- --check",
+      "fail_lines": 0
+    },
+    {
+      "label": "shf2-control-x86_64",
+      "role": "final",
+      "actual_exit": 0,
+      "command": "cargo test --locked -p eech-engine-sys --features sector-height-check --test sector_height -- --nocapture",
+      "fail_lines": 0
+    },
+    {
+      "label": "shf3-guard-x86_64",
+      "role": "final-failed-retained",
+      "actual_exit": 101,
+      "command": "cargo test --locked -p eech-engine-sys --test sector_height_guard",
+      "fail_lines": 0
+    },
+    {
+      "label": "shf4-existing-guards",
+      "role": "final",
+      "actual_exit": 0,
+      "command": "cargo test --locked -p eech-engine-sys --test entity_roster_guard --test entity_host_guard --test tree_host_guard --test entity_pose_lifecycle_guard",
+      "fail_lines": 0
+    },
+    {
+      "label": "shf5-clippy-default",
+      "role": "final",
+      "actual_exit": 0,
+      "command": "cargo clippy --locked -p eech-engine-sys --all-targets -- -D warnings",
+      "fail_lines": 0
+    },
+    {
+      "label": "shf6-clippy-feature",
+      "role": "final",
+      "actual_exit": 0,
+      "command": "cargo clippy --locked -p eech-engine-sys --features sector-height-check --all-targets -- -D warnings",
+      "fail_lines": 0
+    },
+    {
+      "label": "shf7-control-i686",
+      "role": "final",
+      "actual_exit": 0,
+      "command": "cargo test --locked -p eech-engine-sys --features sector-height-check --target i686-unknown-linux-gnu --test sector_height -- --nocapture",
+      "fail_lines": 0
+    },
+    {
+      "label": "shf8-control-i686-opt2",
+      "role": "final-noop-duplicate",
+      "actual_exit": 0,
+      "command": "env EECH_C_OPT=2 cargo test --locked -p eech-engine-sys --features sector-height-check --target i686-unknown-linux-gnu --test sector_height -- --nocapture",
+      "fail_lines": 0
+    },
+    {
+      "label": "shg1-fmt-check",
+      "role": "final",
+      "actual_exit": 0,
+      "command": "cargo fmt -p eech-engine-sys -- --check",
+      "fail_lines": 0
+    },
+    {
+      "label": "shg2-guard-x86_64",
+      "role": "final",
+      "actual_exit": 0,
+      "command": "cargo test --locked -p eech-engine-sys --test sector_height_guard",
+      "fail_lines": 0
+    },
+    {
+      "label": "shg3-clippy-default",
+      "role": "final",
+      "actual_exit": 0,
+      "command": "cargo clippy --locked -p eech-engine-sys --all-targets -- -D warnings",
+      "fail_lines": 0
+    },
+    {
+      "label": "shg4-clippy-feature",
+      "role": "final",
+      "actual_exit": 0,
+      "command": "cargo clippy --locked -p eech-engine-sys --features sector-height-check --all-targets -- -D warnings",
+      "fail_lines": 0
+    }
+  ],
+  "expectations": {
+    "x86_64_debug": 179,
+    "i686_debug": 179,
+    "guard_tests": 6,
+    "existing_guards_unchanged": "pass"
+  },
+  "input_maps": {
+    "pre1": {
+      "file": "maps/sector-height-FINAL-PRE-CHECK-map-20261106.json",
+      "aggregate_sha256": "b41eb0e9ffa8a9c3000c07eabde893bdfea1db845e8079e69cc0b4c5b11d2f52",
+      "for_runs": "shf1 to shf8"
+    },
+    "pre2": {
+      "file": "maps/sector-height-FINAL-PRE-CHECK2-map-20261106.json",
+      "aggregate_sha256": "c365ecb7e10dee238815e322897bdf44fa573594115372e90038f579928a8792",
+      "for_runs": "shg1 to shg4"
+    },
+    "post": {
+      "file": "maps/sector-height-FINAL-POST-CHECK-map-20261106.json",
+      "aggregate_sha256": "c365ecb7e10dee238815e322897bdf44fa573594115372e90038f579928a8792",
+      "identical_to_pre2": true
+    },
+    "binding": "pre1 to pre2: equal git status and file count; of the five changed files only tests/sector_height_guard.rs differs; every other file is its Git blob at the base in both maps, so the real-C control inputs (csrc, build, Cargo.toml, tests/sector_height.rs, production, target) are literal for shf2 and shf7"
+  },
+  "sensitivity": {
+    "mutants": [
+      {
+        "label": "sh-mut1-last-arrival-wins",
+        "actual_exit": 101,
+        "failures": 20
+      },
+      {
+        "label": "sh-mut2-unlink-lowers",
+        "actual_exit": 101,
+        "failures": 4
+      },
+      {
+        "label": "sh-mut3-unpack-skips",
+        "actual_exit": 101,
+        "failures": 17
+      },
+      {
+        "label": "sh-mut4-top-ignored",
+        "actual_exit": 101,
+        "failures": 20
+      }
+    ],
+    "restored": "sc_msgs.c and sc_pack.c sha256 equal their Git blobs at the base; all 112 staged cache copies equal the blobs; the feature configuration was re-staged after the restore by the shf2 build (mutants/staged-cache-summary.json)",
+    "note": "harness-sensitivity evidence only: not a product defect, not a required RED"
+  },
+  "retained_failures_and_noops": [
+    "sh1-first (101): the first control aborted, the hosted bounding-box accessor needs installed scenes",
+    "sh2-hosted-scenes (101): 14 failures, an arithmetic slip (205 not 210) and a destructive decode of the stream",
+    "sh4-guard (101): 3 failures of text assumptions",
+    "shf3-guard-x86_64 (101): the route test asserted an English comment; Root named it; fixed by pinning the selection code (shg2 6 of 6)",
+    "shf8-control-i686-opt2 (0): NO-OP DUPLICATE of shf7 (same binary, 2.4 s): EECH_C_OPT is read only by eech-sys and eech-world, eech-engine-sys reads EECH_ENGINE_OPT; no -O2 claim for the engine C"
+  ],
+  "process": "Root feedback file absent at the first check, created 23:55:24Z after my first writes, re-read at creation, after each update (00:09, 00:21), before the final checks and before this freeze; guidance applied after the fact",
+  "not_claimed": [
+    "any native, Windows, retail, Tacview or full-war result; Windows/native source clearance or authority",
+    "host-sourced value; the public en_list funnel; the city entity behaviour; a signalling-NaN payload; any -O2 or x87 -O2 engine-C behaviour",
+    "whole Task49, whole D3, delivery, or the closure of ENV-ENTITY-POSE-LONG-RUN-MOTION-1"
+  ],
+  "remaining_required": "DCS API/needed-consumer decisions, remaining physical sector hints, effectful whole-32-bit UPDATED, shared terrain, raw TREE/FOREST/CLOUD CRT rand/season/skin_random, needed hierarchy services, DCS workarounds, natural moving integration, draw/align census, final current 40/all-8/final-4-inputs, CI, independent review, normal merge; all ten D3 requirements intact; no D4/D5/TypeScript",
+  "next": {
+    "review": "SAME independent reviewer over ONLY this change",
+    "native": "Root decides the observation through the public trigger named in the contract (entity-authority.lua over the weapon-fixture DLL; ENTITY_CANDIDATE fact 12 and the FIRST-sector read; fixed-wing terrain->min_height)",
+    "production": "the host-owned per-sector scalar (contract section 6) waits for ENV-ENTITY-POSE-LONG-RUN-MOTION-1 to close by an actual corrected fullpack and review"
+  },
+  "exit": "EXIT: this lane stops; the next batch is NOT started automatically; Root owns checkpoint publication",
+  "frozen_utc": "2026-11-07T00:27:36.221Z"
+}

@@ -1,0 +1,434 @@
+[
+  {
+    "label": "sh1-first",
+    "role": "history",
+    "command": "cargo test --locked -p eech-engine-sys --features sector-height-check --test sector_height",
+    "started_utc": "2026-11-06T23:55:45.354029+00:00",
+    "completed_utc": "2026-11-06T23:56:56.345864+00:00",
+    "actual_exit": 101,
+    "fail_lines": 0,
+    "key_lines": [
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 09s",
+      "eech: debug_fatal: host model: [model-provider:not.installed] get_object_3d_bounding_box was asked before the host's scenes were installed",
+      "error: test failed, to rerun pass `-p eech-engine-sys --test sector_height`"
+    ],
+    "first_fail_lines": [],
+    "receipt": "direct-records/fixed-rules-correction-sh1-first.json",
+    "stdout": "direct-records/fixed-rules-correction-sh1-first.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-sh1-first.stderr.log"
+  },
+  {
+    "label": "sh2-hosted-scenes",
+    "role": "history",
+    "command": "cargo test --locked -p eech-engine-sys --features sector-height-check --test sector_height",
+    "started_utc": "2026-11-06T23:59:07.016614+00:00",
+    "completed_utc": "2026-11-07T00:00:16.785047+00:00",
+    "actual_exit": 101,
+    "fail_lines": 14,
+    "key_lines": [
+      "thread 'the_sector_height_is_a_high_water_word_the_original_code_stores_serves_and_saves_bit_for_bit' (3904) panicked at crates/eech-engine-sys/tests/sector_height.rs:21:5:",
+      "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 08s",
+      "error: test failed, to rerun pass `-p eech-engine-sys --test sector_height`"
+    ],
+    "first_fail_lines": [
+      "FAIL line 405: a higher sum is stored: word 434d0000, expected 43520000",
+      "FAIL line 405: a higher sum is stored: word 434d0000, expected 43520000",
+      "FAIL line 620: the unpack restores the word bit for bit: word 00000000, expected 80000000"
+    ],
+    "receipt": "direct-records/fixed-rules-correction-sh2-hosted-scenes.json",
+    "stdout": "direct-records/fixed-rules-correction-sh2-hosted-scenes.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-sh2-hosted-scenes.stderr.log"
+  },
+  {
+    "label": "sh3-copy-decode",
+    "role": "history",
+    "command": "cargo test --locked -p eech-engine-sys --features sector-height-check --test sector_height",
+    "started_utc": "2026-11-07T00:01:01.792263+00:00",
+    "completed_utc": "2026-11-07T00:02:09.894635+00:00",
+    "actual_exit": 0,
+    "fail_lines": 0,
+    "key_lines": [
+      "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 06s"
+    ],
+    "first_fail_lines": [],
+    "receipt": "direct-records/fixed-rules-correction-sh3-copy-decode.json",
+    "stdout": "direct-records/fixed-rules-correction-sh3-copy-decode.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-sh3-copy-decode.stderr.log"
+  },
+  {
+    "label": "sh4-guard",
+    "role": "history",
+    "command": "cargo test --locked -p eech-engine-sys --test sector_height_guard",
+    "started_utc": "2026-11-07T00:03:40.847723+00:00",
+    "completed_utc": "2026-11-07T00:05:36.439313+00:00",
+    "actual_exit": 101,
+    "fail_lines": 0,
+    "key_lines": [
+      "thread 'the_raise_is_a_fixed_entity_at_a_sector_list_link_by_position_y_plus_the_box_top_and_nothing_lowers_it' (4079) panicked at crates/eech-engine-sys/tests/sector_height_guard.rs:177:5:",
+      "thread 'the_save_is_the_last_32_raw_bits_of_a_server_session_sector_record_and_the_sectors_are_unpacked_before_any_entity' (4080) panicked at crates/eech-engine-sys/tests/sector_height_guard.rs:217:5:",
+      "thread 'the_field_is_written_by_the_zero_fill_the_link_response_and_the_unpack_and_read_by_the_getter_and_the_pack_only' (4078) panicked at crates/eech-engine-sys/tests/sector_height_guard.rs:137:5:",
+      "test result: FAILED. 2 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 46.39s",
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 08s",
+      "error: test failed, to rerun pass `-p eech-engine-sys --test sector_height_guard`"
+    ],
+    "first_fail_lines": [],
+    "receipt": "direct-records/fixed-rules-correction-sh4-guard.json",
+    "stdout": "direct-records/fixed-rules-correction-sh4-guard.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-sh4-guard.stderr.log"
+  },
+  {
+    "label": "sh5-guard",
+    "role": "history",
+    "command": "cargo test --locked -p eech-engine-sys --test sector_height_guard",
+    "started_utc": "2026-11-07T00:06:01.330597+00:00",
+    "completed_utc": "2026-11-07T00:06:49.606584+00:00",
+    "actual_exit": 0,
+    "fail_lines": 0,
+    "key_lines": [
+      "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 44.71s",
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.64s"
+    ],
+    "first_fail_lines": [],
+    "receipt": "direct-records/fixed-rules-correction-sh5-guard.json",
+    "stdout": "direct-records/fixed-rules-correction-sh5-guard.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-sh5-guard.stderr.log"
+  },
+  {
+    "label": "sh6-fmt-apply",
+    "role": "history",
+    "command": "cargo fmt -p eech-engine-sys",
+    "started_utc": "2026-11-07T00:07:22.252552+00:00",
+    "completed_utc": "2026-11-07T00:07:23.622242+00:00",
+    "actual_exit": 0,
+    "fail_lines": 0,
+    "key_lines": [],
+    "first_fail_lines": [],
+    "receipt": "direct-records/fixed-rules-correction-sh6-fmt-apply.json",
+    "stdout": "direct-records/fixed-rules-correction-sh6-fmt-apply.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-sh6-fmt-apply.stderr.log"
+  },
+  {
+    "label": "sh-mut1-last-arrival-wins",
+    "role": "mutant",
+    "command": "cargo test --locked -p eech-engine-sys --features sector-height-check --test sector_height",
+    "started_utc": "2026-11-07T00:07:47.392781+00:00",
+    "completed_utc": "2026-11-07T00:08:57.843735+00:00",
+    "actual_exit": 101,
+    "fail_lines": 20,
+    "key_lines": [
+      "thread 'the_sector_height_is_a_high_water_word_the_original_code_stores_serves_and_saves_bit_for_bit' (3904) panicked at crates/eech-engine-sys/tests/sector_height.rs:21:5:",
+      "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 09s",
+      "error: test failed, to rerun pass `-p eech-engine-sys --test sector_height`"
+    ],
+    "first_fail_lines": [
+      "FAIL line 405: a lower sum leaves the word: word 42700000, expected 42dc0000",
+      "FAIL line 405: a negative sum over zero stays zero (the floor is the zero word, not minus infinity): word c2200000, expected 00000000",
+      "FAIL line 405: a negative sum over a stored word leaves it: word c2200000, expected 42dc0000"
+    ],
+    "receipt": "direct-records/fixed-rules-correction-sh-mut1-last-arrival-wins.json",
+    "stdout": "direct-records/fixed-rules-correction-sh-mut1-last-arrival-wins.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-sh-mut1-last-arrival-wins.stderr.log"
+  },
+  {
+    "label": "sh-mut2-unlink-lowers",
+    "role": "mutant",
+    "command": "cargo test --locked -p eech-engine-sys --features sector-height-check --test sector_height",
+    "started_utc": "2026-11-07T00:08:58.101678+00:00",
+    "completed_utc": "2026-11-07T00:10:09.839302+00:00",
+    "actual_exit": 101,
+    "fail_lines": 4,
+    "key_lines": [
+      "thread 'the_sector_height_is_a_high_water_word_the_original_code_stores_serves_and_saves_bit_for_bit' (3904) panicked at crates/eech-engine-sys/tests/sector_height.rs:21:5:",
+      "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 10s",
+      "error: test failed, to rerun pass `-p eech-engine-sys --test sector_height`"
+    ],
+    "first_fail_lines": [
+      "FAIL line 456: the highest member removed: still the high-water: word 00000000, expected 434d0000",
+      "FAIL line 459: every member removed: still the high-water: word 00000000, expected 434d0000",
+      "FAIL line 464: a lower reinsertion after a removal: word 42700000, expected 434d0000"
+    ],
+    "receipt": "direct-records/fixed-rules-correction-sh-mut2-unlink-lowers.json",
+    "stdout": "direct-records/fixed-rules-correction-sh-mut2-unlink-lowers.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-sh-mut2-unlink-lowers.stderr.log"
+  },
+  {
+    "label": "sh-mut3-unpack-skips",
+    "role": "mutant",
+    "command": "cargo test --locked -p eech-engine-sys --features sector-height-check --test sector_height",
+    "started_utc": "2026-11-07T00:10:10.101166+00:00",
+    "completed_utc": "2026-11-07T00:11:20.973587+00:00",
+    "actual_exit": 101,
+    "fail_lines": 17,
+    "key_lines": [
+      "thread 'the_sector_height_is_a_high_water_word_the_original_code_stores_serves_and_saves_bit_for_bit' (3904) panicked at crates/eech-engine-sys/tests/sector_height.rs:21:5:",
+      "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 09s",
+      "error: test failed, to rerun pass `-p eech-engine-sys --test sector_height`"
+    ],
+    "first_fail_lines": [
+      "FAIL line 625: the unpack restores the word bit for bit: word ffffffff, expected 00000000",
+      "FAIL line 625: the unpack restores the word bit for bit: word 7fffffff, expected 80000000",
+      "FAIL line 625: the unpack restores the word bit for bit: word fffffffe, expected 00000001"
+    ],
+    "receipt": "direct-records/fixed-rules-correction-sh-mut3-unpack-skips.json",
+    "stdout": "direct-records/fixed-rules-correction-sh-mut3-unpack-skips.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-sh-mut3-unpack-skips.stderr.log"
+  },
+  {
+    "label": "sh-mut4-top-ignored",
+    "role": "mutant",
+    "command": "cargo test --locked -p eech-engine-sys --features sector-height-check --test sector_height",
+    "started_utc": "2026-11-07T00:11:21.299411+00:00",
+    "completed_utc": "2026-11-07T00:12:31.760077+00:00",
+    "actual_exit": 101,
+    "fail_lines": 20,
+    "key_lines": [
+      "thread 'the_sector_height_is_a_high_water_word_the_original_code_stores_serves_and_saves_bit_for_bit' (3904) panicked at crates/eech-engine-sys/tests/sector_height.rs:21:5:",
+      "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 09s",
+      "error: test failed, to rerun pass `-p eech-engine-sys --test sector_height`"
+    ],
+    "first_fail_lines": [
+      "FAIL line 405: 100 + 10 over zero is stored: word 42c80000, expected 42dc0000",
+      "FAIL line 405: a higher sum is stored: word 43480000, expected 434d0000",
+      "FAIL line 405: the largest subnormal plus the smallest subnormal is the smallest normal, exactly: word 007fffff, expected 00800000"
+    ],
+    "receipt": "direct-records/fixed-rules-correction-sh-mut4-top-ignored.json",
+    "stdout": "direct-records/fixed-rules-correction-sh-mut4-top-ignored.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-sh-mut4-top-ignored.stderr.log"
+  },
+  {
+    "label": "sh7-fmt-apply",
+    "role": "history",
+    "command": "cargo fmt -p eech-engine-sys",
+    "started_utc": "2026-11-07T00:15:21.594519+00:00",
+    "completed_utc": "2026-11-07T00:15:22.941817+00:00",
+    "actual_exit": 0,
+    "fail_lines": 0,
+    "key_lines": [],
+    "first_fail_lines": [],
+    "receipt": "direct-records/fixed-rules-correction-sh7-fmt-apply.json",
+    "stdout": "direct-records/fixed-rules-correction-sh7-fmt-apply.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-sh7-fmt-apply.stderr.log"
+  },
+  {
+    "label": "shf1-fmt-check",
+    "role": "final",
+    "command": "cargo fmt -p eech-engine-sys -- --check",
+    "started_utc": "2026-11-07T00:16:40.947829+00:00",
+    "completed_utc": "2026-11-07T00:16:42.276582+00:00",
+    "actual_exit": 0,
+    "fail_lines": 0,
+    "key_lines": [],
+    "first_fail_lines": [],
+    "receipt": "direct-records/fixed-rules-correction-shf1-fmt-check.json",
+    "stdout": "direct-records/fixed-rules-correction-shf1-fmt-check.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-shf1-fmt-check.stderr.log"
+  },
+  {
+    "label": "shf2-control-x86_64",
+    "role": "final",
+    "command": "cargo test --locked -p eech-engine-sys --features sector-height-check --test sector_height -- --nocapture",
+    "started_utc": "2026-11-07T00:16:42.411761+00:00",
+    "completed_utc": "2026-11-07T00:17:53.254688+00:00",
+    "actual_exit": 0,
+    "fail_lines": 0,
+    "key_lines": [
+      "sector height expectations made: 179",
+      "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 09s"
+    ],
+    "first_fail_lines": [],
+    "receipt": "direct-records/fixed-rules-correction-shf2-control-x86_64.json",
+    "stdout": "direct-records/fixed-rules-correction-shf2-control-x86_64.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-shf2-control-x86_64.stderr.log"
+  },
+  {
+    "label": "shf3-guard-x86_64",
+    "role": "final-failed-retained",
+    "command": "cargo test --locked -p eech-engine-sys --test sector_height_guard",
+    "started_utc": "2026-11-07T00:17:53.388414+00:00",
+    "completed_utc": "2026-11-07T00:19:16.762017+00:00",
+    "actual_exit": 101,
+    "fail_lines": 0,
+    "key_lines": [
+      "thread 'the_box_top_is_the_hosts_in_every_profile_but_the_original_model_fixture_and_nine_fixed_families_can_raise_the_height' (3976) panicked at crates/eech-engine-sys/tests/sector_height_guard.rs:422:5:",
+      "test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.65s",
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 09s",
+      "error: test failed, to rerun pass `-p eech-engine-sys --test sector_height_guard`"
+    ],
+    "first_fail_lines": [],
+    "receipt": "direct-records/fixed-rules-correction-shf3-guard-x86_64.json",
+    "stdout": "direct-records/fixed-rules-correction-shf3-guard-x86_64.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-shf3-guard-x86_64.stderr.log"
+  },
+  {
+    "label": "shf4-existing-guards",
+    "role": "final",
+    "command": "cargo test --locked -p eech-engine-sys --test entity_roster_guard --test entity_host_guard --test tree_host_guard --test entity_pose_lifecycle_guard",
+    "started_utc": "2026-11-07T00:19:16.907907+00:00",
+    "completed_utc": "2026-11-07T00:19:32.851487+00:00",
+    "actual_exit": 0,
+    "fail_lines": 0,
+    "key_lines": [
+      "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+      "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.75s",
+      "test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.39s",
+      "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.01s"
+    ],
+    "first_fail_lines": [],
+    "receipt": "direct-records/fixed-rules-correction-shf4-existing-guards.json",
+    "stdout": "direct-records/fixed-rules-correction-shf4-existing-guards.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-shf4-existing-guards.stderr.log"
+  },
+  {
+    "label": "shf5-clippy-default",
+    "role": "final",
+    "command": "cargo clippy --locked -p eech-engine-sys --all-targets -- -D warnings",
+    "started_utc": "2026-11-07T00:19:32.991512+00:00",
+    "completed_utc": "2026-11-07T00:20:42.013067+00:00",
+    "actual_exit": 0,
+    "fail_lines": 0,
+    "key_lines": [
+      "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 08s"
+    ],
+    "first_fail_lines": [],
+    "receipt": "direct-records/fixed-rules-correction-shf5-clippy-default.json",
+    "stdout": "direct-records/fixed-rules-correction-shf5-clippy-default.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-shf5-clippy-default.stderr.log"
+  },
+  {
+    "label": "shf6-clippy-feature",
+    "role": "final",
+    "command": "cargo clippy --locked -p eech-engine-sys --features sector-height-check --all-targets -- -D warnings",
+    "started_utc": "2026-11-07T00:20:42.167692+00:00",
+    "completed_utc": "2026-11-07T00:21:50.774507+00:00",
+    "actual_exit": 0,
+    "fail_lines": 0,
+    "key_lines": [
+      "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 07s"
+    ],
+    "first_fail_lines": [],
+    "receipt": "direct-records/fixed-rules-correction-shf6-clippy-feature.json",
+    "stdout": "direct-records/fixed-rules-correction-shf6-clippy-feature.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-shf6-clippy-feature.stderr.log"
+  },
+  {
+    "label": "shf7-control-i686",
+    "role": "final",
+    "command": "cargo test --locked -p eech-engine-sys --features sector-height-check --target i686-unknown-linux-gnu --test sector_height -- --nocapture",
+    "started_utc": "2026-11-07T00:21:50.924528+00:00",
+    "completed_utc": "2026-11-07T00:23:00.966357+00:00",
+    "actual_exit": 0,
+    "fail_lines": 0,
+    "key_lines": [
+      "sector height expectations made: 179",
+      "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 08s"
+    ],
+    "first_fail_lines": [],
+    "receipt": "direct-records/tree-i686-shf7-control-i686.json",
+    "stdout": "direct-records/tree-i686-shf7-control-i686.stdout.log",
+    "stderr": "direct-records/tree-i686-shf7-control-i686.stderr.log"
+  },
+  {
+    "label": "shf8-control-i686-opt2",
+    "role": "final-noop-duplicate",
+    "command": "env EECH_C_OPT=2 cargo test --locked -p eech-engine-sys --features sector-height-check --target i686-unknown-linux-gnu --test sector_height -- --nocapture",
+    "started_utc": "2026-11-07T00:23:01.123669+00:00",
+    "completed_utc": "2026-11-07T00:23:04.423623+00:00",
+    "actual_exit": 0,
+    "fail_lines": 0,
+    "key_lines": [
+      "sector height expectations made: 179",
+      "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.40s"
+    ],
+    "first_fail_lines": [],
+    "receipt": "direct-records/tree-i686-shf8-control-i686-opt2.json",
+    "stdout": "direct-records/tree-i686-shf8-control-i686-opt2.stdout.log",
+    "stderr": "direct-records/tree-i686-shf8-control-i686-opt2.stderr.log"
+  },
+  {
+    "label": "sh9-fmt-apply",
+    "role": "history",
+    "command": "cargo fmt -p eech-engine-sys",
+    "started_utc": "2026-11-07T00:23:36.725618+00:00",
+    "completed_utc": "2026-11-07T00:23:38.120671+00:00",
+    "actual_exit": 0,
+    "fail_lines": 0,
+    "key_lines": [],
+    "first_fail_lines": [],
+    "receipt": "direct-records/fixed-rules-correction-sh9-fmt-apply.json",
+    "stdout": "direct-records/fixed-rules-correction-sh9-fmt-apply.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-sh9-fmt-apply.stderr.log"
+  },
+  {
+    "label": "shg1-fmt-check",
+    "role": "final",
+    "command": "cargo fmt -p eech-engine-sys -- --check",
+    "started_utc": "2026-11-07T00:23:56.468947+00:00",
+    "completed_utc": "2026-11-07T00:23:57.776907+00:00",
+    "actual_exit": 0,
+    "fail_lines": 0,
+    "key_lines": [],
+    "first_fail_lines": [],
+    "receipt": "direct-records/fixed-rules-correction-shg1-fmt-check.json",
+    "stdout": "direct-records/fixed-rules-correction-shg1-fmt-check.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-shg1-fmt-check.stderr.log"
+  },
+  {
+    "label": "shg2-guard-x86_64",
+    "role": "final",
+    "command": "cargo test --locked -p eech-engine-sys --test sector_height_guard",
+    "started_utc": "2026-11-07T00:23:57.908337+00:00",
+    "completed_utc": "2026-11-07T00:24:13.988750+00:00",
+    "actual_exit": 0,
+    "fail_lines": 0,
+    "key_lines": [
+      "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.65s",
+      "    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.59s"
+    ],
+    "first_fail_lines": [],
+    "receipt": "direct-records/fixed-rules-correction-shg2-guard-x86_64.json",
+    "stdout": "direct-records/fixed-rules-correction-shg2-guard-x86_64.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-shg2-guard-x86_64.stderr.log"
+  },
+  {
+    "label": "shg3-clippy-default",
+    "role": "final",
+    "command": "cargo clippy --locked -p eech-engine-sys --all-targets -- -D warnings",
+    "started_utc": "2026-11-07T00:24:14.130887+00:00",
+    "completed_utc": "2026-11-07T00:24:17.428888+00:00",
+    "actual_exit": 0,
+    "fail_lines": 0,
+    "key_lines": [
+      "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.49s"
+    ],
+    "first_fail_lines": [],
+    "receipt": "direct-records/fixed-rules-correction-shg3-clippy-default.json",
+    "stdout": "direct-records/fixed-rules-correction-shg3-clippy-default.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-shg3-clippy-default.stderr.log"
+  },
+  {
+    "label": "shg4-clippy-feature",
+    "role": "final",
+    "command": "cargo clippy --locked -p eech-engine-sys --features sector-height-check --all-targets -- -D warnings",
+    "started_utc": "2026-11-07T00:24:17.558734+00:00",
+    "completed_utc": "2026-11-07T00:24:20.947183+00:00",
+    "actual_exit": 0,
+    "fail_lines": 0,
+    "key_lines": [
+      "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.53s"
+    ],
+    "first_fail_lines": [],
+    "receipt": "direct-records/fixed-rules-correction-shg4-clippy-feature.json",
+    "stdout": "direct-records/fixed-rules-correction-shg4-clippy-feature.stdout.log",
+    "stderr": "direct-records/fixed-rules-correction-shg4-clippy-feature.stderr.log"
+  }
+]

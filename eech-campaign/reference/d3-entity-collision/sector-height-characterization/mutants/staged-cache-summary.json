@@ -1,0 +1,48 @@
+{
+  "what": "sha256 of every staged copy of sc_msgs.c and sc_pack.c in the Linux cache volume eech-linux-d3-collision-driver-5416adb3b-20261029 (all engine-sys build directories, i686 included), read after the final checks",
+  "git_blob_sha256": {
+    "sc_msgs.c": "383b5571ad9875b94baa24d1595e1cd300bccf963a2bba3106f8b5a8210eed13",
+    "sc_pack.c": "3f23c5abe2d0349d0ff240e2d13c5f9b0dc32978c3c7b05ee8882b50a7fedd30"
+  },
+  "copies": 112,
+  "equal_to_blob": 112,
+  "different": [],
+  "written_during_this_session": [
+    {
+      "build_dir": "debug/build/eech-engine-sys-d343ccd33c6d66f4",
+      "file": "sc_pack.c",
+      "staged_utc": "2026-11-07+00:20:46.5002781060",
+      "equals_git_blob": true
+    },
+    {
+      "build_dir": "debug/build/eech-engine-sys-d343ccd33c6d66f4",
+      "file": "sc_msgs.c",
+      "staged_utc": "2026-11-07+00:20:46.5002781060",
+      "equals_git_blob": true
+    },
+    {
+      "build_dir": "debug/build/eech-engine-sys-52299c8d474a8fa5",
+      "file": "sc_pack.c",
+      "staged_utc": "2026-11-07+00:11:27.6162760410",
+      "equals_git_blob": true
+    },
+    {
+      "build_dir": "debug/build/eech-engine-sys-52299c8d474a8fa5",
+      "file": "sc_msgs.c",
+      "staged_utc": "2026-11-07+00:16:48.1482746400",
+      "equals_git_blob": true
+    },
+    {
+      "build_dir": "i686-unknown-linux-gnu/debug/build/eech-engine-sys-e5070b2893ade61f",
+      "file": "sc_pack.c",
+      "staged_utc": "2026-11-07+00:21:55.4522780280",
+      "equals_git_blob": true
+    },
+    {
+      "build_dir": "i686-unknown-linux-gnu/debug/build/eech-engine-sys-e5070b2893ade61f",
+      "file": "sc_msgs.c",
+      "staged_utc": "2026-11-07+00:21:55.4522780280",
+      "equals_git_blob": true
+    }
+  ]
+}
