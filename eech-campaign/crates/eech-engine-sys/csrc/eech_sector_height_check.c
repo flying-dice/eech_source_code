@@ -19,15 +19,15 @@
  *   - it starts at the all-zero word and is a HIGH-WATER value, not the maximum of the current members: a higher fixed arrival raises it, a lower or an equal one leaves it, a removal does
  *     not lower it, a reinsertion of the same or a lower structure leaves it, a structure that moves sector raises the new sector and does not lower the old one;
  *   - only an entity whose IDENTIFY_FIXED is true and whose shape is not OBJECT_3D_INVALID_OBJECT_INDEX can raise it, by position.y + the scene's bounding-box ymax (a float addition, compared
- *     with a strict `>`), so a sum that is not greater than zero (negative, +0, -0, NaN, -infinity) never changes the word, and an invalid shape never reads the bounding box;
+ *     with a strict `>` against the word ACTUALLY held): over a zero-initialised history a sum that is not greater than zero (negative, +0, -0, NaN, -infinity) never changes it, but after a RAW restore a larger negative sum can raise a negative word and a restored NaN makes every comparison false (source-derived, not measured); an invalid shape never reads the bounding box;
  *   - the float words: the subnormal edges, the smallest normal, the largest finite and the infinity are stored exactly; a sum that is not exact is rounded by the mode in force (the engine
  *     entry runs toward zero) and is run under both modes;
  *   - the getter returns the stored word and reads nothing else;
  *   - the session pack writes the word as the LAST 32 raw bits of the sector's record (PACK_MODE_SERVER_SESSION only; FLOAT_TYPE_PROTOTYPE_1 is FLOAT_PACK_TYPE_UNPACKED), the unpack restores
- *     it bit for bit (zero, negative zero, subnormals, extremes, infinities and a quiet NaN), a client or browse session carries and restores nothing, and each sector gets its own word.
+ *     it bit for bit for the 13 representative patterns the control measures (save_words: zero, negative zero, the subnormal and normal edges, three ordinary values, both extremes, both infinities and one quiet NaN; the general domain is source-derived: FLOAT_PACK_TYPE_UNPACKED copies 32 raw bits), a client or browse session carries and restores nothing, and each sector gets its own word.
  *
- * NOT CLAIMED: a signalling-NaN payload (an x87 load can quieten it: the pack and unpack are exercised on every finite word, both infinities and a quiet NaN), the mobile side branch of the link
- * response (a sender that is not fixed reads the default tables: only IDENTIFY_FIXED is exercised), the sector creation (the memset is a source fact asserted by tests/sector_height_guard.rs), and
+ * NOT CLAIMED: a signalling-NaN payload (an x87 load can quieten it), an exhaustive enumeration of finite words (13 representative patterns were run, not every word), any -O2 or non-default engine-C level (the default level 1 only), the mobile side branch of the link
+ * response (a sender that is not fixed reads the default tables: only IDENTIFY_FIXED is exercised), the sector creation (the memset is a source fact asserted by tests/sector_height_guard.rs), the full floating-point control and status state (only the rounding mode is restored and checked), and
  * any real world or host.
  *
  * STATE THE CONTROL CHANGES AND GIVES BACK: the engine's int, float and vec3d dispatch tables and message_responses are saved before the initialisers run and copied back on every path of the
