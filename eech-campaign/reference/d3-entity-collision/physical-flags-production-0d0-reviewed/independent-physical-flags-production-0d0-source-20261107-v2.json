@@ -1,0 +1,192 @@
+{
+  "schema": 1,
+  "kind": "Independent combined correctness/clean-code/boundary source/check review of physical flag-store production candidate",
+  "created_utc": "2026-11-07T18:01:49.408287+00:00",
+  "source": {
+    "commit": "0d0c2545b2725d0715ce39dd7d342da600a77be0",
+    "metadata_commit": "c126e7327bead2ad343989fa884dbea97ecfa4e7",
+    "source_parent": "cf1026a4c635bf64b3602de7249f5ab8807d3121",
+    "worktree": "R:/d3-evidence/collision-characterization-20261029",
+    "clean_and_pushed_at_join": true,
+    "scope": "All new production/transport/store/driver and affected control changes in this cut, using immutable Git blobs and retained receipts. Prior original199/guide56 characterization is reused only at its accepted scope. No reviewer tests, builds, native/campaign/checker replay, cache/process/source changes or subagents."
+  },
+  "decision": {
+    "status": "CHANGES_REQUIRED",
+    "findings": [
+      {
+        "id": "ENV-PHYSICAL-FLAGS-KEY-CAPACITY-1",
+        "severity": "P2",
+        "title": "A one-over-length issued flag key passes validation and overflows its cache slot",
+        "evidence": [
+          {
+            "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+            "lines": [
+              1129,
+              1141,
+              1147,
+              1315
+            ],
+            "fact": "flag_key_is_valid permits digit index20 and exits successfully when the NUL is at21. Thus f plus20 digits is accepted at21 bytes. The issued result is copied with strlen+1."
+          },
+          {
+            "path": "aphavoc/source/entity/mobile/mb_hostmodel.h",
+            "lines": [
+              423
+            ],
+            "fact": "CAMPAIGN_ROSTER_KEY_MAX is20."
+          },
+          {
+            "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+            "lines": [
+              2131,
+              2155,
+              2157
+            ],
+            "fact": "Each real flag-key cache slot is char[20+1]. The accepted21-byte name copies22 bytes into that21-byte slot."
+          },
+          {
+            "path": "eech-campaign/crates/eech-dc/src/module.rs",
+            "lines": [
+              4169,
+              4171,
+              4191,
+              4196
+            ],
+            "fact": "The public model bridge permits a reply name up to127 bytes and forwards the new flag_group state. Engine model_callback uses the existing127-byte put_name path, so the C defect is reachable from a malformed public Host reply."
+          }
+        ],
+        "impact": "One byte beyond the identity slot is written before a refusal, potentially corrupting a neighbouring group binding. The current dialogue negative uses a22-byte name, while the positive is below the exact bound; it misses this21-byte hole.",
+        "minimum_fix": "Enforce the full canonical flag-key domain, including total byte length and terminating NUL, before any issued-key write. Align C with the existing Lua positive non-leading-zero digit grammar, rejecting f0/f01 as well. Keep the global127-byte name domain for other operation families unchanged. Add positive exact20-byte boundary and single-fault21-byte/long/noncanonical controls with surrounding output/cache canaries through the real exchange and public adapter; no damaged native run."
+      },
+      {
+        "id": "ENV-PHYSICAL-FLAGS-ISSUED-GROUP-ALIAS-1",
+        "severity": "P2",
+        "title": "A newly opened private group accepts a key already bound to another live group",
+        "evidence": [
+          {
+            "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+            "lines": [
+              2131,
+              2155,
+              2157
+            ],
+            "fact": "For an unbound group, FLAG_GROUP writes the returned key directly into its cache entry, without checking prior bindings."
+          },
+          {
+            "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+            "lines": [
+              1129,
+              1150,
+              1315
+            ],
+            "fact": "Reply validation checks lexical key/state/count/eligibility, but does not establish fresh unique issuance before the cache commit."
+          },
+          {
+            "path": "eech-campaign/crates/eech-world/src/flags.rs",
+            "lines": [
+              34,
+              37,
+              38,
+              39
+            ],
+            "fact": "open is a NEW-group operation and creates a distinct word set/key each time. Reusing an existing live key in its response is a wrong identity, not valid idempotence."
+          }
+        ],
+        "impact": "A faulty provider can name an existing domain-valid live key for a different newly opened C group. Both original independent words then address the same Host word, causing cross-group corruption and potentially mixing reset-eligible and reset-ineligible groups. Per-reply array/lane validation cannot detect this alias.",
+        "minimum_fix": "Stage the fully validated new key before committing it. Reject issuance already bound to a different private C group, preserving existing identity entries and preventing subsequent set/read under the bad binding. An identity-only uniqueness check is sufficient; add a positive two-independent-group control then one duplicate/wrong-live-key response, checking both bindings and previously held words. No public heap index, second physical store, generic epoch-transfer framework or unrelated ABI change is required."
+      }
+    ],
+    "windows_build_clearance": false,
+    "native_launch_clearance": false,
+    "flag_store_source_accepted": false,
+    "host_flag_authority_verified": false,
+    "all_consumer_coverage_accepted": false,
+    "whole_sector_height_accepted": false,
+    "whole_Task49_accepted": false,
+    "whole_D3_accepted": false,
+    "current_full_shipping_accepted": false,
+    "delivery_accepted": false
+  },
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/D3-PHYSICAL-FLAGS-PRODUCTION-CODE-FROZEN-20261107.json",
+      "bytes": 84759,
+      "sha256": "45f008ca477e332422cdd5cb67791d257f1e9a48e8a8322d014a1bad84c4e75c"
+    },
+    {
+      "path": "R:/d3-evidence/physical-flags-production-0d0-Root-binding-20261107.json",
+      "bytes": 23815,
+      "sha256": "5e85f0baf0c64ec0f3aa5588e0363a4f890f4c6e70f8b557fc9239121757091a"
+    },
+    {
+      "path": "R:/d3-evidence/physical-flags-production-c126-publication-Root-20261107.json",
+      "bytes": 720,
+      "sha256": "8f580428d3ebd355b2d4c05c5331b4f858fe04d7e2202fe64b6282720568c00a"
+    },
+    {
+      "path": "R:/d3-evidence/claude-d3-physical-flags-production-20261107-completion.json",
+      "bytes": 1543,
+      "sha256": "9193fa9e64dcb839390aa9c564873d24d1a996c797b374008374d5d45eb68dcf"
+    }
+  ],
+  "inspected_sound_scope": [
+    "The hosted mb_int getter/setter and up_update resets route to the normal campaign_entity_flag_exchange; the hosted original arrays are neither declared nor defined. C caches only issued identity text, not a flag bit/mask/word. FlagStore owns all three physical words per group and performs integer OR, destructive AND/read and reset. No second authoritative Core bit store was found.",
+    "Core still determines the original private heap grouping/lane/reset eligibility, schedules updates, sets UPDATED after each member update and chooses every consumer call. Reset order/quarter extent, TRUE-only assertion/raw-local setter behavior, default nonmobile dispatch and raw bit31 mask are preserved at the inspected source scope. Original-profile branches retain the original flag operations.",
+    "Host request classification uses raw integer words for domain checks and validates unstated facts/identity before mutations. FlagStore methods validate array/lane/key before set/read/reset. Provider state uses try_borrow_mut and named missing/busy refusal instead of a RefCell panic. Reply echo/count/state/raw-mask/tail checks and output-after-validation are otherwise sound; they do not cure the two key-binding defects.",
+    "The adapted199+56 controls execute actual production C getters/setters/reset and accepted guide response against real flag_answer/FlagStore through the native request/reply structs. Only setup and independent observation differ: test-only fresh Host store plus forgotten identity keys replaces original clear_flags; observed words come from Host state. That is not a normal production fallback or Core mirror. The true Original profile runs the corresponding original array path.",
+    "Four effective wrong-host operations are discriminated with real-store positives first and last: always-mask read, always-zero read, ignored set and non-destructive read. The ineffective fresh-binding mutation is honestly retained and replaced, not claimed as a lifetime test. Separate real provider/bridge and scripted-engine Lua integration tests close layer-specific tag/grammar gaps; they are not a complete HostLua-to-native-campaign run."
+  ],
+  "lifetime_and_FP_qualifications": [
+    "Within one persistent SharedRoster/FlagStore binding, roster clear deliberately preserves flag words/keys, matching static-array histories. Core cache is process lifetime. Engine::boot is once per process; actual reference host installs one SharedRoster in its Lua state. The tests support that binding scope, not arbitrary provider/store replacement or real session/heap lifetimes.",
+    "The new lifetime prose overclaims that replacement necessarily refuses every old key. New FlagStore starts its fN namespace again; a stale old key may already exist in the replacement store and name a different group. State the persistent-binding precondition and replacement limitation accurately. Do not treat fresh-store refusal or silent new-group zeroing as proof of legitimate legacy lifetime preservation. No automatic transfer/rebinding design is imposed by this review.",
+    "Test-only fresh_binding deliberately resets store plus identity cache for scenario isolation and leaves the model callback installed until that dedicated process ends. It does not prove production callback-context replacement safety.",
+    "Raw masks stay integer/bit-pattern words rather than booleans through C/Rust/Lua. New legitimate phase/array/lane casts are small exact integers, but no whole caller FPU-environment preservation, i686/x87 raw-subnormal transport or engine-C O2 result is established by these checks. Keep the declared architecture/Windows/native/FP gates honest; no new broad numerical programme or old-kernel replay is demanded.",
+    "A bad reply follows a real physical request; this source does not provide transactional rollback of arbitrary Host mutations after a callback or malformed response. The requested key fixes protect Core identity commits and existing word independence; they must not fabricate a second authoritative store to undo physical actions."
+  ],
+  "checks_and_provenance": {
+    "PRE_utc": "2026-11-07T17:43:30Z",
+    "POST_utc": "2026-11-07T17:50:18Z",
+    "full_input_rows": 3987,
+    "literal_PRE_POST_sha256": "1d009920c68b3b77c36ce3b567c5c4940533ad9570fc7c0ffd5188c6bab0e349",
+    "all_current_raw_rows_and_actual_Git_joined": true,
+    "inherited_qualifications": "Three unchanged uncompiled test Lua files have working CRLF versus committed LF identities. They remain explicit and unnormalized.",
+    "extra_identities": 26,
+    "all_extras_readers_scripts_stable": true,
+    "final_direct_commands": 12,
+    "all_actual_exit_zero": true,
+    "selected_test_instances": 1560,
+    "breakdown": {
+      "engine_sys_default": 50,
+      "hosted_flag_controls": 9,
+      "true_Original_flag_controls": 7,
+      "sector_height_hosted": 8,
+      "sector_height_Original": 8,
+      "World": 1281,
+      "Engine_DC": 197
+    },
+    "original_characterization_expectations_each_profile": {
+      "raw_word": 199,
+      "guide_consumer": 56
+    },
+    "chronology": "The retained source-stage development failures, including placeholder traffic/setup, ineffective fresh-store fault, genuine bridge decode omission, test syntax, census and strict lint fixes, retain their failed records. No setup failure is promoted to a capability RED. Final checks are inside equal timed maps; no post-POST publisher change in this batch.",
+    "publication": "All144 manifest entries are literal actual Git/current bytes at clean pushedc126; only STATUS/card differ from source0d0. Root binding supplies the detailed30 changed-source row identities.",
+    "producer": {
+      "actual_exit": 0,
+      "result_is_error": false,
+      "completed_utc": "2026-11-07T17:51:51.802715+00:00",
+      "model": "claude-sonnet-5-5"
+    }
+  },
+  "bounded_next_actions_and_remaining": [
+    "Batch both concrete key fixes and associated canonical/lifetime wording into the sole correction lane. Run affected exact-boundary/canary/duplicate-live-identity and actual producer/bridge controls with final input binding, preserving current failed source/evidence. No candidate Windows build or native run is cleared by this report.",
+    "The declared next real en_cllsn moving pass-through control in both profiles remains required and is distinct from the accepted guide consumer. Exercise the actual staged UPDATED read and physical consumer result; do not substitute a provider-only or test-only getter path. No optional inventory or replay of closed original numerical controls is required.",
+    "After corrected source review, fresh exact-profile Windows/object/payload/default gates and a concrete positive-first Host-owned Lua -> native EECH_DC -> Host backing/refusal proof remain necessary. Current p10 build and independent layer tests do not establish that public authority path. All needed collision/supply/Tacview/lifetime consumers stay in whole-D3 scope.",
+    "Root764 full40/all8 retains its original source/bin/root/process identities and remains running/partial only. It is not a new0d0 fullpack acceptance. Prior finite M5/M6 and P1 closures remain at their own identities.",
+    "All ten D3 requirements, wholeheight, current-candidate full40/all8/four-input shipping, exact current CI, remaining physical/API/DCS/hierarchy/RNG/natural services, independent review/normal merge/final census/Task49/D3 delivery remain required. Preparation remains2; no D4/D5 or historical TypeScript port."
+  ],
+  "report_revision": {
+    "supersedes_prose_only": "R:/d3-evidence/independent-physical-flags-production-0d0-source-20261107.json",
+    "prior_sha256": "829f196e5d2ec89afc311d312af938914b06702a1a10f770ff945c53f0b619d5",
+    "reason": "Remove an unsupported incidental count of development-failure categories; findings, evidence, actual results and decisions unchanged. No source/test/native replay."
+  }
+}

@@ -1,0 +1,10 @@
+# Physical flag-store production candidate 0d0c2545b: the SAME consolidated review (V2) and Root's bindings (literal records)
+
+Task EEDCS-49 (D3), 7 November 2026 (UTC). Exact bytes of sealed records (`* -text`); aggregate records only, no raw retail data, actor, sector or pose tuple.
+
+- **The SAME consolidated review, V2 (`CHANGES_REQUIRED`, EXACTLY TWO P2s)**: `ENV-PHYSICAL-FLAGS-KEY-CAPACITY-1` (a one-over-length issued flag key, `f` and 20 digits = 21 bytes, passes the C validator and is copied with its NUL into a 21-byte cache slot; reachable from a malformed public Host reply) and `ENV-PHYSICAL-FLAGS-ISSUED-GROUP-ALIAS-1` (a newly opened private group accepts a key already bound to another live group). Both are OPEN and block cutover. Build, native, source, host-authority, all-consumer, whole height, Task49, D3 and delivery clearances are all false.
+- **V1 retained** (`829f196e...`): V2 only removes an unsupported incidental count of development-failure categories; findings, actuals and decisions are unchanged and nothing was replayed.
+- **Root's source binding and the c126 publication record**: 3987 PRE/POST rows joined to the current files and actual Git (three inherited uncompiled Lua files keep their CRLF/Git-LF identities explicitly), 26 extras and readers stable, 12 final direct commands exit 0 (1560 selected test instances), 144 packet entries literal in actual Git, c126 metadata-only, clean, pushed, author actual 0. These green checks do NOT close the two source defects.
+- **Qualifications kept**: one persistent SharedRoster/FlagStore binding, Engine boot once per process and one reference-host store are what the tests support; a replacement store restarts the `fN` numbering, so an old key may coincidentally exist in it: replacement lifetime is unsupported and unproved. No measured whole-FPU, x87-subnormal, i686, O2 or native guarantee; no transactional rollback of arbitrary Host mutations after a request. The en_cllsn moving pass-through control and the public Lua -> module -> host proof remain required.
+
+Not a review of any later change, an approval or an acceptance of anything.
