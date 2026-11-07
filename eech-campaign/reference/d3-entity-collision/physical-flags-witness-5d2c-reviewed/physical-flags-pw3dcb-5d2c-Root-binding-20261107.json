@@ -1,0 +1,156 @@
+{
+  "kind": "Root READ_ONLY two bounded witness residuals source/check binding; native diagnostic UNRUN pending SAME review",
+  "utc": "2026-11-07T21:30:08.873157+00:00",
+  "code": "5d2c54f38d3232c172f3ef7e47f0add3778fca58",
+  "binary_code": "020fb3cfa5450acd91f136e678974160c12c8275",
+  "whole_input_rows": 3993,
+  "all_raw_PRE_POST_current_equal": true,
+  "all_actual_Git_blobs_joined": true,
+  "inherited_raw_vs_Git_qualifications": [
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-conversion-refused-control.lua",
+      "raw_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0",
+      "Git_sha256": "bd752d5fa81e405ff27c252c186a8725a59494163d8067c427f3718c22d1eed9"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-one-shot-control.lua",
+      "raw_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15",
+      "Git_sha256": "d4a80ee0e84bfdac6cfb0b3ee8fb1998a6831739ce36471542788135e5fc5655"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/tree-geometry-refused-probe-control.lua",
+      "raw_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895",
+      "Git_sha256": "5b0f467d732bd028be66a1481fb65bae7a30bb4519c2f3d75f23d83dcb6d0a6b"
+    }
+  ],
+  "extras_PRE_POST_current_equal": true,
+  "extras_count": 33,
+  "all_PRE_readers_current": true,
+  "compiled_product_rows_unchanged_from020": 3805,
+  "final_children": [
+    {
+      "label": "f1-fmt-check",
+      "actual_exit": 0,
+      "selected_instances": 0,
+      "result_rows": 0,
+      "selected_targets": {}
+    },
+    {
+      "label": "f2-clippy-world-engine-dc",
+      "actual_exit": 0,
+      "selected_instances": 0,
+      "result_rows": 0,
+      "selected_targets": {}
+    },
+    {
+      "label": "f3-witness-driver",
+      "actual_exit": 0,
+      "selected_instances": 30,
+      "result_rows": 1,
+      "selected_targets": {
+        "physical_flags_witness_driver": 30
+      }
+    },
+    {
+      "label": "f4-world-all",
+      "actual_exit": 0,
+      "selected_instances": 1312,
+      "result_rows": 61,
+      "selected_targets": {
+        "physical_flags_witness_driver": 30,
+        "host_callbacks": 82,
+        "entity_authority": 120,
+        "physical_flags_host": 7,
+        "sector_height_witness_driver": 27
+      }
+    },
+    {
+      "label": "f5-engine-sys-lua-guards",
+      "actual_exit": 0,
+      "selected_instances": 26,
+      "result_rows": 2,
+      "selected_targets": {
+        "entity_roster_guard": 20,
+        "physical_flags_guard": 6
+      }
+    }
+  ],
+  "selected_test_instances": 1368,
+  "changed_files": [
+    "eech-campaign/crates/eech-world/lua/physical-flags-witness.lua",
+    "eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs",
+    "eech-campaign/docs/d3-physical-flags-contract.md",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/.gitattributes",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/D3-PHYSICAL-FLAGS-PUBLIC-WITNESS-RESIDUAL-CODE-FROZEN-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/README.md",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/literal-bytes-check.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/manifest.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/physical-flags-public-witness-plan.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/pw3dcb-PRE-utc-20261107.txt",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/pw3dcb-extra-identity-POST-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/pw3dcb-extra-identity-PRE-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/pw3dcb-feedback-files-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/pw3dcb-final-set-20261107.progress",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/pw3dcb-final-set-lease-after-20261107.txt",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/pw3dcb-final-set-lease-before-20261107.txt",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/pw3dcb-inputmaps-compare-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/pw3dcb-name-check-negative-control-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/pw3dcb-name-check-result-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/pw3dcb-preflight-negative-control-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/pw3dcb-preflight-receipts-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/pw3dcb-readers-PRE-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/pw3dcb-retained-dev-runs-20261107.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-d1-red-parent-3dcb-new-tests.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-d1-red-parent-3dcb-new-tests.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-d1-red-parent-3dcb-new-tests.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-d2-green-attempt1.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-d2-green-attempt1.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-d2-green-attempt1.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-d3-fmt-apply-world.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-d3-fmt-apply-world.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-d3-fmt-apply-world.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-d4-clippy-world-engine-dc.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-d4-clippy-world-engine-dc.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-d4-clippy-world-engine-dc.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-d5-world-all.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-d5-world-all.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-d5-world-all.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-f1-fmt-check.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-f1-fmt-check.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-f1-fmt-check.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-f2-clippy-world-engine-dc.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-f2-clippy-world-engine-dc.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-f2-clippy-world-engine-dc.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-f3-witness-driver.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-f3-witness-driver.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-f3-witness-driver.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-f4-world-all.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-f4-world-all.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-f4-world-all.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-f5-engine-sys-lua-guards.json",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-f5-engine-sys-lua-guards.stderr.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/runs/flags-pw3dcb-f5-engine-sys-lua-guards.stdout.log",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/scripts/check-physical-flags-pw3dcb-linux-20261107.sh",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/scripts/freeze-pw3dcb-20261107.py",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/scripts/preflight-receipts-20261107.py",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/scripts/publish-pw3dcb-20261107.py",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/scripts/pw3dcb-extra-identity-20261107.py",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/scripts/pw3dcb-name-check-20261107.py",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/scripts/run-physical-flags-pw3dcb-direct-20261107.py",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/scripts/run-pw3dcb-final-set-20261107.sh",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/scripts/sector-roster-inputmap-batched-20261106.py",
+    "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/scripts/sho-compare-maps-20261107.py"
+  ],
+  "freeze_sha256": "99427bda00654338504fb1ac545f4b939f9761c31b7235300779485294513772",
+  "driver_literal": {
+    "path": "eech-campaign/crates/eech-world/lua/physical-flags-witness.lua",
+    "sha256": "30adcae241d43deddb710d014ac4585b3c0f282a7309b833c77c08cc71881ad7",
+    "git_blob_of_raw_bytes": "add513356a6fd4eb00f7138dd95b93b5863c2145",
+    "bytes": 60874,
+    "parent_candidate": "3dcb094804ab5ef41284d493df7acb14f2ae1fbf",
+    "parent_driver_sha256": "dc58dcc421b1b91d3c582bdbfc6920e6cd164a09ac75b4207a88192a2ae6c460",
+    "payload_entity_authority_sha256_in_020": "856f680ae2fc9a3b93ac1c56451bfdde2f209eb9f1e9e7eb42c2956320fb4e3e (the corrected entity-authority.lua of the parent candidate is not used by this plan)"
+  },
+  "author_completion_sha256": "d9dc142a71b6b72c6b7ad48d7802fcbf54f9de5cc4534ae6972414a138e58030",
+  "scope": "Lua/test/docs only. Engine source/runtime/binaries remain true020; external new diagnostic literal must bind separately. Root020 finite defaults40e are already complete, do not replay. Generic nativeauthority/allconsumer/lifetime/FPU/fullpack/all10/wholeheight/Task49/D3 not accepted."
+}

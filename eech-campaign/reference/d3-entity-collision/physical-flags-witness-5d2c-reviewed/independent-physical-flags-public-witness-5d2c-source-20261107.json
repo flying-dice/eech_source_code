@@ -1,0 +1,180 @@
+{
+  "schema": 1,
+  "kind": "Independent bounded public physical-flag witness residual source clearance",
+  "created_utc": "2026-11-07T21:32:37.638911+00:00",
+  "source": {
+    "commit": "5d2c54f38d3232c172f3ef7e47f0add3778fca58",
+    "parent": "76418ba4a63aaa9679107915b62300d0c42c141e",
+    "metadata_commit": "e62c878dd2978368094bceb763dff5c9b83fb7a4",
+    "compiled_runtime_commit": "020fb3cfa5450acd91f136e678974160c12c8275",
+    "review_scope": "ONLY the two bounded residual fixes to prior8a811, their tests/docs/plan and new evidence. Prior source/key/default/height proofs are retained at their own scope, not re-reviewed.",
+    "observed_metadata_HEAD_exact_fullclean": true,
+    "inputs": [
+      {
+        "path": "eech-campaign/crates/eech-world/lua/physical-flags-witness.lua",
+        "bytes": 60874,
+        "sha256": "30adcae241d43deddb710d014ac4585b3c0f282a7309b833c77c08cc71881ad7",
+        "git_blob": "add513356a6fd4eb00f7138dd95b93b5863c2145"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/physical_flags_witness_driver.rs",
+        "bytes": 70446,
+        "sha256": "d6dd51500466b9d3faed1d14cd0d0975c25a2dd2ee33ea35f18c9238c8dd1fc0",
+        "git_blob": "18d38c92c83571847de91b94943c9ce22852de5b"
+      },
+      {
+        "path": "eech-campaign/docs/d3-physical-flags-contract.md",
+        "bytes": 46642,
+        "sha256": "a03a329570d2da950b8412075d856d0e41010b6fafa83aba1b6651a7b1f82b26",
+        "git_blob": "e16c95455199c17112fe4b12bb240c6e97cd6ff0"
+      },
+      {
+        "path": "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/physical-flags-public-witness-plan.json",
+        "bytes": 18342,
+        "sha256": "601cfd09a8be54b9ae1c96b9417a6e9a685bff479d312a54a58a119167986d8b",
+        "git_blob": "ca4071c88468c9429972d6c0c60c2f8ec70b88d2"
+      }
+    ]
+  },
+  "decision": {
+    "status": "SOURCE_CLEAR_CONDITIONAL_FINITE_NATIVE_PLAN",
+    "findings": [],
+    "source_clearance": true,
+    "native_launch_clearance": true,
+    "native_launch_clearance_is_conditional": true,
+    "execution_controller_clearance": false,
+    "controller_binding_review_required_before_execution": true,
+    "physical_flag_authority_accepted": false,
+    "wholeheight_accepted": false,
+    "current_fullshipping_accepted": false,
+    "Task49_accepted": false,
+    "D3_accepted": false,
+    "delivery_accepted": false,
+    "meaning": "The corrected external Lua and same finite23-step positive-first logical plan are source-cleared. Before any execution, Root must separately bind and review the concrete run controller, materialized literal, profiles/payloads, fresh roots and positive references. This is not authority/native-result acceptance or permission for any changed/future literal or broader scenario."
+  },
+  "findings": [],
+  "prior_finding_dispositions": [
+    {
+      "id": "ENV-PHYSICAL-FLAGS-WITNESS-REFERENCE-COMPLETE-1",
+      "status": "CLOSED_SOURCE",
+      "changed_evidence": {
+        "path": "eech-campaign/crates/eech-world/lua/physical-flags-witness.lua",
+        "lines": "318-333",
+        "facts": "Distinct base-event ordinals must now increase strictly. The sole equal-ordinal case is ordered first read then read_consumable, with identical frame and complete before_* prefix. All earlier complete-reference/count/oracle/consume guards remain intact."
+      },
+      "tests": "The exact reviewer first-GROUP/first-RESET tuple counterexample, distinct SET/second-GROUP tuple alias and reversed read_consumable/read pair are refused before report/boot/provider/effect. Genuine paired positive, same-READ dual tags, later consumable read after an earlier plain read and legitimate group/set/reset-only control remain valid."
+    },
+    {
+      "id": "ENV-PHYSICAL-FLAGS-WITNESS-REFUSAL-CAUSAL-1",
+      "status": "CLOSED_SOURCE",
+      "changed_evidence": {
+        "path": "eech-campaign/crates/eech-world/lua/physical-flags-witness.lua",
+        "lines": "677-690,707",
+        "facts": "continuing wraps the ACTUAL terrain/environment functions returned by their factories, joining note_callback/settle/pending-relation clearing before delegation. Nonfunctions pass through to the module own refusal. A tail return callable(...) forwards all arguments and all results/errors once, without a second provider call."
+      },
+      "tests": "Positive-first ignored-fault->terrain and ignored-fault->environment callbacks followed by the same marker are now failures in boot and frame, alongside named-callback/normal-return/other-marker cases. Callable census covers all10 function slots supplied by this driver; module-source guard covers its ten required slots and two optional sound providers defaulting to the wrapped environment callable. Forwarding control preserves nil arguments, three returns with an intervening nil and original errors."
+    }
+  ],
+  "evidence": {
+    "prior_canonical_review": {
+      "path": "R:\\d3-evidence\\independent-physical-flags-public-witness-3dcb-source-20261107.json",
+      "bytes": 16998,
+      "sha256": "8a8114e233c5f5f137cf92af46ae1b1430f610606fc285c3f711ff51a03602da"
+    },
+    "freeze": {
+      "path": "R:\\d3-evidence\\D3-PHYSICAL-FLAGS-PUBLIC-WITNESS-RESIDUAL-CODE-FROZEN-20261107.json",
+      "bytes": 14422,
+      "sha256": "99427bda00654338504fb1ac545f4b939f9761c31b7235300779485294513772"
+    },
+    "Root_source_binding": {
+      "path": "R:\\d3-evidence\\physical-flags-pw3dcb-5d2c-Root-binding-20261107.json",
+      "bytes": 11763,
+      "sha256": "eb3d0cb63510b7ccabe813e56b4c2948a2925feb3bf80ce2aa67db3796783174"
+    },
+    "Root_publication": {
+      "path": "R:\\d3-evidence\\physical-flags-pw3dcb-e62c-publication-Root-20261107.json",
+      "bytes": 3931,
+      "sha256": "14e540c8096c544909819f3d85a99d915fb9e89729bdcf2265bd9d79f5d4b7a5"
+    },
+    "producer": {
+      "path": "R:\\d3-evidence\\claude-d3-physical-flags-witness-residual-20261107-completion.json",
+      "bytes": 1639,
+      "sha256": "d9dc142a71b6b72c6b7ad48d7802fcbf54f9de5cc4534ae6972414a138e58030"
+    }
+  },
+  "check_provenance": {
+    "producer_actual_exit": 0,
+    "result_is_error": false,
+    "actual_model": "claude-sonnet-5-5",
+    "completed_utc": "2026-11-07T21:24:35.469491+00:00",
+    "PRE_utc": "2026-11-07T21:22:03Z",
+    "POST_utc": "2026-11-07T21:23:50Z",
+    "whole_map_rows": 3993,
+    "PRE_POST_current_raw_equal": true,
+    "actual_Git_qualification": "All joined by Root to actual immutable5d2c Git bytes. Same3 inherited uncompiled tree-geometry test Lua rawCRLF/GitLF exceptions remain explicit; inputs are not normalized.",
+    "extras": 33,
+    "all_extras_and_PRE_readers_current": true,
+    "compiled_product_rows_unchanged_from020": 3805,
+    "final_direct_actual_exits": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "result_instances": 1368,
+    "components": {
+      "scripted_driver_real_provider": 30,
+      "whole_World_including_same30_driver_tests": 1312,
+      "Sys_source_guards": 26
+    },
+    "meaningful_RED": "Retained parent3dcb with new controls:26pass/4fail, specifically equal-ordinal/terrain-environment latch and callable census cases. Corrected30 driver GREEN. Final fmt/strict World+Engine+DC lint/driver/wholeWorld/source guards all0. These are scripted-campaign/real-provider tests, not new native or C executions.",
+    "publication": {
+      "actual_manifest_entries_literal_Git_current": 59,
+      "external_literal_copies": 55,
+      "clean_pushed_exact": "e62c878dd2978368094bceb763dff5c9b83fb7a4",
+      "metadata_delta": "STATUS/card only"
+    },
+    "reader_erratum": "Initial publication receipt name/source_binding prose retained an old suffix while actual e62c checks passed. Original attempt is preserved; latest14e540 receipt corrects only reader strings/name. No test/build/native replay. Earlier namespace recovery remains qualified by its immutable57115 proof; it is not reopened or relabelled."
+  },
+  "correctness_clean_code_boundary": [
+    "New changes are localized to the existing reference validator and continuation adapter. They close the demonstrated false-pass relationships without changing a public ABI, production C/Rust, store semantics, solver, baseline, tolerance or scenario.",
+    "Both provider wrappers record continuation before delegation and preserve the existing refusal priority. The wrapper does not catch/normalize provider errors, duplicate queries, fabricate data or inspect poisoned Engine state. Sound metadata/backend fallbacks use the same wrapped environment function because the witness supplies no separate callback for them.",
+    "Boot/frame entry capture, refusal latch, complete positive-reference validation and unchanged provider delegation remain the same reviewed mechanisms. The source census is a targeted guard, not an exhaustive runtime caller census or proof of arbitrary future boot configuration.",
+    "The valid changed-read witness remains a carried UPDATED fact in the same candidate next question, not proof of changed collision outcome or natural weapon engagement. No extra physical getter/query is added by these residual fixes.",
+    "Pattern-helper/reference-profile proof remains finite and unchanged. No whole-FPU, i686/x87, O2, all-array/all-consumer or replacement-store lifetime claim is inferred."
+  ],
+  "conditional_native_plan": {
+    "plan_source_path": "eech-campaign/reference/d3-entity-collision/physical-flags-witness-residual-020/physical-flags-public-witness-plan.json",
+    "plan_sha256": "601cfd09a8be54b9ae1c96b9417a6e9a685bff479d312a54a58a119167986d8b",
+    "external_lua": {
+      "bytes": 60874,
+      "sha256": "30adcae241d43deddb710d014ac4585b3c0f282a7309b833c77c08cc71881ad7",
+      "git_blob": "add513356a6fd4eb00f7138dd95b93b5863c2145"
+    },
+    "runtime": "Sealed true020 ordinary and Original90-payload binaries at their original paths/identities; corrected entity-authority.lua is not imported/executed by this standalone witness and must not overwrite its old bundled payload.",
+    "window": "lebanon_retail, hours0.001, frame_ms100, seed1, established35frames/3.5s, one fresh verified retail root/exclusive report per process; no actor/geometry/window hunt.",
+    "sequence": [
+      "flags_original on Original first, with zero Host flag traffic; a failed positive unlocks nothing.",
+      "flags_control on ordinary with the successful complete same-setup Original report; no alteration, fault or backing mismatch.",
+      "read_changed only when that actual complete paired control reached a consumable read and valid consumption tuple. Its eligibility/prefix must match control; otherwise retain UNREACHED and do not fabricate a positive.",
+      "The20 named withheld/malformed/wrong-state/key/echo/raw-word cases only when their exact current control reached the corresponding event, each with one eligible intervention and immediate same-entry expected refusal. Unreached events are not PASS."
+    ],
+    "before_execution_required": [
+      "Root must materialize the exact reviewed Lua externally and retain its Git blob/SHA/bytes, without changing any sealed90 payloads or identifying old bins as later code. Full compiled-input equivalence to020 and existing build/profile evidence must remain bound. No new Windows/default replay is required for this Lua/test/docs-only delta.",
+      "The concrete controller, plan, Root execution seal, fresh root preparation, repository input tool/reference hashes, baseline/report/reference paths and all payload/profile/source hashes must be mechanically bound and the new controller/gate reviewed before launch. This report has not reviewed a concrete execution controller.",
+      "Positive reports are immutable current-run references; preserve whole files, direct native/controller/input-check exits, actual process identity and all pre/post1179 input manifests. Every failure/unreached case stays literal; no silent retries, baseline normalization, seed/window changes or generic fatal-marker substitution.",
+      "After cases finish, actual independent review is required. Phase aggregates alone cannot establish native coverage of each UPDATED/MOVED/ROTATED array or any unreached consumer/lifetime. Publish only actual reached and causal scope."
+    ]
+  },
+  "retained_finite_acceptance": {
+    "key_source": "3e74 key-capacity and live-alias findings CLOSED_SOURCE, unchanged020 product.",
+    "default_actuals": "Canonical9b0 V2/Root40e accepted two true020 unchanged default35-frame cases: native/controller/pre/post0, all six complete files literal80fd,180 payloads unchanged. Neither replayed nor broadened here.",
+    "profile": "Build8def/profile5a1f/release2272 and30COFF/26staged/180 payload identities retain ordinary6591 absent-producer versus residentOriginalde45 read-only reader qualification. Closed Windows cache deletion does not change retained source/bin/proof identities."
+  },
+  "scope_limits": [
+    "All ten D3 requirements, other physical flag consumers, supported lifetimes/DCS, wholeheight, final CURRENT40/all8/fourinputs/currentCI/census/review/normalmerge/Task49/D3/delivery remain open. No D4/D5/TypeScript or formal GitHub approval.",
+    "Original764 fullshipping jobs/process identities/source/bin/roots/raw remain untouched and independent. Partial prefix equality is not full acceptance.",
+    "No tests/build/cache/native/war/checker replay, tracked source/card/canonical mutation or nested agents by reviewer. Only this new immutable external UTF8-LF JSON is written; Root owns canonical task/finding publication."
+  ]
+}
