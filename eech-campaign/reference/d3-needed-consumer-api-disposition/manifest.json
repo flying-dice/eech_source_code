@@ -1,0 +1,30 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "D3-needed-consumer-api-disposition-CODE-FROZEN-20261107.json",
+      "bytes": 25881,
+      "sha256": "7d33d600d00419d1d0a030006787be552c4282cb5fec698917f587ceadad5cf7"
+    },
+    {
+      "path": "needed-consumer-api-matrix.json",
+      "bytes": 85331,
+      "sha256": "54322da78c8a0f1946594e12956f4d6bf377e10bb5cf9ea592e31a6e77f2e85a"
+    },
+    {
+      "path": "needed-consumer-api-reference-requests-20261107.json",
+      "bytes": 2279,
+      "sha256": "521e67dae17e1083223c32d53efbb721fc8917642437ffd2f8ed5de6fb6f8e32"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4692,
+      "sha256": "82f84ac4d085bf86287a30e64b0cad3f482f0dea1edfd24d406932bf46d923ec"
+    }
+  ],
+  "scope": "Source/API disposition packet only; documentation, not an acceptance or a cutover clearance."
+}

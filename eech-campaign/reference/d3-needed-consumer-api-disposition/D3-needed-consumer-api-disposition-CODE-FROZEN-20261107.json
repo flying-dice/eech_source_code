@@ -1,0 +1,572 @@
+{
+  "kind": "D3-needed-consumer-api-disposition CODE_FROZEN (documentation and source disposition only)",
+  "frozen_utc": "2026-11-07T01:19:48.745370+00:00",
+  "task": "EEDCS-49",
+  "preparation_batch": "second and final (count 1 -> 2 of 2 on completion)",
+  "source_before": "c6426dc310796795a0d8c694cb985b65b86d8e7d",
+  "working_tree_tracked_changes_before_commit": "none",
+  "authority": {
+    "goal": "11534337 v3",
+    "ledger": "14548994 v171",
+    "snapshot_manifest_sha256": "3772898b608f356024d11213c597e64648f0f4e93137d2a88800db0cf2945d7f",
+    "live_html": {
+      "M5-GOAL-v3-LIVE.html": "e3bbca298c60997b2558002784b554393e43113c36560407a72ca8b31770c63d",
+      "M5-LEDGER-v171-LIVE.html": "499d264f5a20645577482c93a1aa3ee1232ed4be08c4bb4c7ff55ad2c0bd354a",
+      "M5-ledger-key-sections-LITERAL-v171.html": "8d88738e82e847804e4166b641c4d4fd1794823b3d06e13f1e687fc9e28a18ca"
+    }
+  },
+  "api_bundle": {
+    "provenance_manifest_sha256": "ff5bc7d6c7c0f4971a877ff1e6b3963cb8df91496d1deaaa0c1c05f42c53675c",
+    "commit": "1179554fcafcef92d71313336cc09500febf8245",
+    "files": {
+      "world.ts": {
+        "sha256": "1b795da9386a879e31ff6f0bb8c062e02ae0928a29604df5290c5dfa7b0f231b",
+        "git_blob": "903e0759ce5cce27295e09fb214d773475b65514",
+        "matches_provenance": true
+      },
+      "Object.ts": {
+        "sha256": "3dfb8e733f653cf771d0233739504219ba39f0f6fbb60e1593f4b582650b4036",
+        "git_blob": "3e4863261901fba73af2fda1b31f47ee034bd16d",
+        "matches_provenance": true
+      },
+      "Unit.ts": {
+        "sha256": "67cb202ec657c890c2924ace0cd31b2e05b7abaaa1fd0388178a9b9e7c416854",
+        "git_blob": "98bd6a7f0a57b6039481a3d91e773cf355332987",
+        "matches_provenance": true
+      },
+      "StaticObject.ts": {
+        "sha256": "7a645cd741ffbb8d0b2ecf377e1b95e658ba116a79f355ca945bdebfcbaeb6ef",
+        "git_blob": "0378b1f371fc57bc2d4f2b22dd4ed64653e92cad",
+        "matches_provenance": true
+      },
+      "land.ts": {
+        "sha256": "f5578b02a4650185b5374d994f0f785336d0a1217b54b6b4d1bf72e6edd8bfa0",
+        "git_blob": "9e5fd4557fd94b7da38f613a36040439b6086fb3",
+        "matches_provenance": true
+      },
+      "atmosphere.ts": {
+        "sha256": "80a63a4718e163ae6f30a5baca4ab20bbe7e924cb26cf61cd8de52a46d28032b",
+        "git_blob": "421e6f651978137ea35ed6f6b36bb6954edf3114",
+        "matches_provenance": true
+      },
+      "timer.ts": {
+        "sha256": "c66c6ca8dbd99c99160eb9d81f8bfe55096e6d593234c1e200493a47780388d9",
+        "git_blob": "abc1b98a108c48974cf2b84f3c55792fd30c5521",
+        "matches_provenance": true
+      },
+      "Controller.ts": {
+        "sha256": "e95dfadcd36a5505eb6881ab4ec1825d7d10a7cb36fed519c45d9b76657cf457",
+        "git_blob": "36563560b1df733011794229d85d65da99f00b89",
+        "matches_provenance": true
+      },
+      "Airbase.ts": {
+        "sha256": "88cd28189fb221ed2f05b542820536bb7b1b9daf397604ec5a052854fabc675b",
+        "git_blob": "d3d7dedd81babeb779c65ceab45933cc5e932139",
+        "matches_provenance": true
+      }
+    }
+  },
+  "root_feedback": {
+    "path": "R:\\d3-evidence\\Root-needed-consumer-api-disposition-feedback-20261107.json",
+    "sha256": "dfadca3562fa29d5632574eae23358843cbd9b264705be630d5a5eda4b284b95",
+    "bytes": 2994,
+    "reads": "first read in full (2197 bytes, mtime 2026-11-07T01:05Z; its hash was not recorded) before the first write of this batch; Root then rewrote it at 01:12:07Z adding additional_primary_reference (Airbase.ts) with every earlier key unchanged on reading; the new version was read in full before this freeze and Airbase.ts is incorporated (D3G-09)",
+    "mtime_utc": "2026-11-07T01:12:07.922210+00:00"
+  },
+  "outputs": {
+    "narrative": {
+      "path": "eech-campaign/docs/d3-needed-consumer-api-disposition.md",
+      "sha256": "45d0f378b1cad4767ab28889cfc679c9b7fd76325a685a1d7639be1ab553c19b",
+      "bytes": 63722
+    },
+    "matrix": {
+      "path": "eech-campaign/reference/d3-needed-consumer-api-disposition/needed-consumer-api-matrix.json",
+      "sha256": "54322da78c8a0f1946594e12956f4d6bf377e10bb5cf9ea592e31a6e77f2e85a"
+    },
+    "readme": {
+      "path": "eech-campaign/reference/d3-needed-consumer-api-disposition/README.md",
+      "sha256": "82f84ac4d085bf86287a30e64b0cad3f482f0dea1edfd24d406932bf46d923ec"
+    },
+    "primary_file_requests": {
+      "path": "eech-campaign/reference/d3-needed-consumer-api-disposition/needed-consumer-api-reference-requests-20261107.json",
+      "sha256": "521e67dae17e1083223c32d53efbb721fc8917642437ffd2f8ed5de6fb6f8e32"
+    }
+  },
+  "counts": {
+    "groups": 15,
+    "source_anchors": 110,
+    "api_refs": 45,
+    "distinct_cited_source_files": 64
+  },
+  "dispositions": {
+    "D3G-01": {
+      "disposition": "REQUIRED_NEXT_PHYSICAL_AFTER_BLOCKER",
+      "dcs_status": "OPEN"
+    },
+    "D3G-02": {
+      "disposition": "ACCEPTED_REUSE_WITH_RESIDUAL_OPEN",
+      "dcs_status": "OPEN_WORKAROUND_NAMED_UNPROVEN"
+    },
+    "D3G-03": {
+      "disposition": "REQUIRED_OPEN",
+      "dcs_status": "OPEN"
+    },
+    "D3G-04": {
+      "disposition": "REQUIRED_OPEN_BOUNDED_CAPTURE_NEXT",
+      "dcs_status": "NOT_REQUIRED_FOR_DATA_OPEN_FOR_RNG"
+    },
+    "D3G-05": {
+      "disposition": "REQUIRED_OPEN",
+      "dcs_status": "NOT_A_DCS_API_QUESTION"
+    },
+    "D3G-06": {
+      "disposition": "REQUIRED_OPEN",
+      "dcs_status": "OPEN"
+    },
+    "D3G-07": {
+      "disposition": "REQUIRED_OPEN",
+      "dcs_status": "OPEN"
+    },
+    "D3G-08": {
+      "disposition": "REQUIRED_OPEN",
+      "dcs_status": "OPEN"
+    },
+    "D3G-09": {
+      "disposition": "REQUIRED_OPEN",
+      "dcs_status": "PARTIAL_DECLARED_SHAPES_ROUTE_AND_SUBOBJECT_CONTRACTS_OPEN"
+    },
+    "D3G-10": {
+      "disposition": "REQUIRED_OPEN",
+      "dcs_status": "NOT_A_DCS_API_QUESTION"
+    },
+    "D3G-11": {
+      "disposition": "REQUIRED_OPEN",
+      "dcs_status": "OPEN_WORKAROUND_NAMED"
+    },
+    "D3G-12": {
+      "disposition": "CENSUS_OPEN_SOURCE_DERIVED_UNREACHED",
+      "dcs_status": "NOT_REQUIRED_PENDING_FINAL_CENSUS"
+    },
+    "D3G-13": {
+      "disposition": "BLOCKED_BY_ENV_ENTITY_POSE_LONG_RUN_MOTION_1",
+      "dcs_status": "DECLARED_SHAPES_PRESENT_BEHAVIOUR_UNVERIFIED"
+    },
+    "D3G-14": {
+      "disposition": "CENSUS_OPEN",
+      "dcs_status": "NOT_REQUIRED_PENDING_FINAL_CENSUS"
+    },
+    "D3G-15": {
+      "disposition": "ACCEPTED_REUSE",
+      "dcs_status": "ACCEPTED_REUSE_PER_SCOPE"
+    }
+  },
+  "open_rows": [
+    "D3G-01",
+    "D3G-02",
+    "D3G-03",
+    "D3G-04",
+    "D3G-05",
+    "D3G-06",
+    "D3G-07",
+    "D3G-08",
+    "D3G-09",
+    "D3G-10",
+    "D3G-11",
+    "D3G-12",
+    "D3G-13",
+    "D3G-14"
+  ],
+  "cited_source_files": [
+    {
+      "path": "aphavoc/source/ai/faction/parser.c",
+      "git_blob_at_head": "29f5132642c99a4df79bba3a3ab3cc85178c0884",
+      "sha256_working_tree": "907bc7574b08133257d81689d1f977d6e7fb4df8076fb8af2a171ab488bdbc12"
+    },
+    {
+      "path": "aphavoc/source/ai/faction/popread.c",
+      "git_blob_at_head": "620988f7a04105100c860efc08ba571a2d0b940d",
+      "sha256_working_tree": "35b7e368da42994d4fe54a91db7979ce3dfd2722fc537458bd5155e9605dad08"
+    },
+    {
+      "path": "aphavoc/source/ai/taskgen/taskgen.c",
+      "git_blob_at_head": "ea604e70969594e42f5c567763d03d2c01c86667",
+      "sha256_working_tree": "826fe3ad9894e19656dc90695d9f71554c6590f727bdfffe23efda02a4c98363"
+    },
+    {
+      "path": "aphavoc/source/app3d/3d_draw.c",
+      "git_blob_at_head": "f750e63862c05aa3ebae8082d567449403cd20bc",
+      "sha256_working_tree": "59c60a28d27127b2873f57969296b3e0a00afa35ef1fdbb43964099242fdf5b5"
+    },
+    {
+      "path": "aphavoc/source/entity/en_misc/en_anim/sub_anim.c",
+      "git_blob_at_head": "9ce9cc54407da0584837443e6c2078cda391baf5",
+      "sha256_working_tree": "e0fd90d025ec4b556fec119c798e24a877e8962f6bd8ce8db6dbcecf3f09af96"
+    },
+    {
+      "path": "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+      "git_blob_at_head": "155bde1cfd5e62f5d872e8a7da943678d8418bad",
+      "sha256_working_tree": "a485a7e49a9b5b0019e6e8f6b77734c3ca3b6214efdb5fef5e89117999844b8f"
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/cbuild/cb_draw.c",
+      "git_blob_at_head": "63622636821af5f6dbdbf18883efe6d9817e6859",
+      "sha256_working_tree": "80f5732099e4a18d886be559bc4843475554d60567a0b3b2c268bff94a8e095d"
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/fx_dbase.c",
+      "git_blob_at_head": "814ba727db742adc9daa5ba433ebcd853c982eb5",
+      "sha256_working_tree": "470857c9641490cf60609106d2625a267ebe22c4b0dde210850a9215db7ea386"
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/fx_int.c",
+      "git_blob_at_head": "2cf353873c24dda2c4d2beac314f658c2d2fac3a",
+      "sha256_working_tree": "898367c01aeb7525ebcb20a679662cf3236fc2c37b1cd6450abdb9435d3465e4"
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/object/ob_creat.c",
+      "git_blob_at_head": "356344a2a3cfb625ae3622c7766bc3c4efae8bab",
+      "sha256_working_tree": "948f8aca068df9f16560ae593f8b316d7854d389947e067135bbf05eff076b5f"
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/object/ob_draw.c",
+      "git_blob_at_head": "088b3501ced288be948ae6232cbf702d80b59062",
+      "sha256_working_tree": "d112df54413f76c34872ea781c1c8999f9e5eb2c758616d8f5f7d54ee89ecd6b"
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/pylon/py_draw.c",
+      "git_blob_at_head": "ffca9b1368eadd49b7ec350c6d6114c7ae8ed9a6",
+      "sha256_working_tree": "85fd8cd4df6e65a9060ced214c7bcbcf51c78b400dad4e5a10282bd8afbe4c09"
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/scenic/sn_draw.c",
+      "git_blob_at_head": "d8a570ebd6219e31b4740a6c91d4001e4d49bf94",
+      "sha256_working_tree": "0ebbe50e46aa88449cb22ec598d7f0e2476bc71d969e53016eb6ac1af5356246"
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/site/st_draw.c",
+      "git_blob_at_head": "11eddd20b8965ced09680b8dd6d965f15cac9084",
+      "sha256_working_tree": "c9e59453bf5753c9d4434bf4b3cc256a9f7ec668c15834a957c76279585f7d8e"
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/siteupdt/su_draw.c",
+      "git_blob_at_head": "f30b462c47a6bcce390cae7072c91eb7746acf03",
+      "sha256_working_tree": "1d7aa99c6e3cfe6162b41bb977892d42d9632f0c1987ec3ddc9ffa881d4197b1"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/fixwing/fw_creat.c",
+      "git_blob_at_head": "981b353d922b15c6dd66e8ad59888f85e1e86a38",
+      "sha256_working_tree": "55a68ff3a7b7e446efdffbe7d64c9a3b94f51def74b38d21217937469fea6857"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/fixwing/fw_move.c",
+      "git_blob_at_head": "2b17ef83ec2640c8cec576f478c6c18b87dd56bb",
+      "sha256_working_tree": "019bd8c3fdf75464a271e51e652342a3b0b7ad8962bb980292eb41fa5371a158"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/fixwing/fw_msgs.c",
+      "git_blob_at_head": "c56ae695ca1f7edba62008313835bf15a26dbfcb",
+      "sha256_working_tree": "693ea89c221187cc6678f07aff00c835e03c219bcc6b2592c06e2db6402ac47e"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/fixwing/fw_updt.c",
+      "git_blob_at_head": "4b24f9bfde45f3bbac4a5abe05402a173283c1eb",
+      "sha256_working_tree": "bd024a77ca0bc05c0f45f8e8382f7ba6ff4534ad72bbf030895349f996b404a7"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/helicop/hc_anim.c",
+      "git_blob_at_head": "f3b2227418b0c42b4f347c42ffab78afde213837",
+      "sha256_working_tree": "7d106b391307799a5dcfc563afccf900764b98b3b8155ca9978c2d4b8ab3edb7"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/helicop/hc_dstry.c",
+      "git_blob_at_head": "32f64f67f26ffb647b156a7329d6fe3219f11a53",
+      "sha256_working_tree": "a8f440cf92fe5cb539d6b5c5bd867142ba53342f339ed25a317f3f5ebba8a901"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/helicop/hc_int.c",
+      "git_blob_at_head": "491e150deae0ef4ecb6eeae66d1a25bc928be826",
+      "sha256_working_tree": "db2a874231471813d3ff2753954c67e126430e3d69472d1e27fc98251465be72"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/helicop/hc_updt.c",
+      "git_blob_at_head": "a46c31838f8a973da08b010cf7cb075e639afe5f",
+      "sha256_working_tree": "30f37c06732dfa0fc711d8d3e8ffc4898d2251332799beffd7b292b6a048f78b"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/helicop/helicop.c",
+      "git_blob_at_head": "4ffc1f553d2addb63d94066965927a49801d7ce3",
+      "sha256_working_tree": "5dceb9a8359b14418cd2b86ead997576beb9380978780957b703f3e973bd7a20"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostlos.c",
+      "git_blob_at_head": "ae5f887ba7614d1123912e2482ad133ceab136c9",
+      "sha256_working_tree": "137d5055987f6d03c6378078d3dca7cf939251ae06c859e9a13a2f17a9c46992"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "git_blob_at_head": "3ff694aee440c63ace0dfd4c25c21eec579fc141",
+      "sha256_working_tree": "b5baf192424501eff87de4f29e92685fa15a85031625eb737483fbca6a76c299"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostoffer.h",
+      "git_blob_at_head": "847b6d87fbc09eceac222104f4f23ace7a961be7",
+      "sha256_working_tree": "96bad27212f2c30690812ba33e0860867721d6def844415d66fa0ebaa1d3291f"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostscan.h",
+      "git_blob_at_head": "9ef5755130dc8e047e8308304873c9d8e47accf3",
+      "sha256_working_tree": "368adfed628ebfe64010ce0257779a75f415ef565bd6cd4ab82714db565d8d26"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostterrain.c",
+      "git_blob_at_head": "3bd3324622cd58472119b220dac448ac1a8c3314",
+      "sha256_working_tree": "c5d55b8129e304cec80f91c99ff20d717130422c8dd2703cdee2777d72d68fe8"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_int.c",
+      "git_blob_at_head": "fc79da45b4aaae7dd56d70cc21c9ca62adbcdbb9",
+      "sha256_working_tree": "82681420529ed68b04d98ff8c1577abb887399600123aa71cf8645b7fd06b542"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_tgt.c",
+      "git_blob_at_head": "62cced8f5f3756d2c19410ead11d7c54eacee08e",
+      "sha256_working_tree": "a62b67f180358ec81d0ab9ea2f4e7b2084e4c2da515cc4099db14781b5205be8"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/vehicle/ship/sh_creat.c",
+      "git_blob_at_head": "593eaa6e18164dd420bcfd83facce567619734da",
+      "sha256_working_tree": "494c13c784abf768337089de9e7ad42317f1da79f5c3db96c8b60aab86dc93fe"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/weapon/weapon.c",
+      "git_blob_at_head": "5da48578632b33e68e553352f5cda411e7b81122",
+      "sha256_working_tree": "6404b7b85e7ab83f80f4a29c415c1105dac2ba3c4f8959484902c902cf7ad05c"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/weapon/wn_creat.c",
+      "git_blob_at_head": "984d1fee60afedea9340debae6a4e182c3eb8ddf",
+      "sha256_working_tree": "d25e8782d52a136e987c09b71200f4169b70a9727e8483b783854d07c6c8fdc5"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/weapon/wn_move.c",
+      "git_blob_at_head": "49baa0513943a5d05f26be1bc2f965ce0635efe1",
+      "sha256_working_tree": "f9533500b7f6d10d93ebb3209b3bec15aabb07d478adb17099cf231226f7cc5b"
+    },
+    {
+      "path": "aphavoc/source/entity/special/camera/camera.c",
+      "git_blob_at_head": "1846f123c455d418531d6115d8416094d4d4e681",
+      "sha256_working_tree": "4b00e5731bef581c0cf2c4007ae5c8b9faafdc8dd6101d1333c8ee61a4b19a6a"
+    },
+    {
+      "path": "aphavoc/source/entity/special/effect/explosn/explosn.c",
+      "git_blob_at_head": "2b656854a233f9855e4b863b7e3fac473fae9d7f",
+      "sha256_working_tree": "0b0e8d8fefe66751d58b7601a5bed7ae0c4be94b4f03dafa4e0af7957a1b46d9"
+    },
+    {
+      "path": "aphavoc/source/entity/special/effect/smokelst/sl_meta.c",
+      "git_blob_at_head": "f83b3601a21084081da08bb25c9f2c904f34d39b",
+      "sha256_working_tree": "a7ee41fca48db141d83f70fff79c5b412dfd5d0ef78dcabd55ddf64c9d550439"
+    },
+    {
+      "path": "aphavoc/source/entity/special/guide/gd_supply_arrival.c",
+      "git_blob_at_head": "6b85b6ca72bd58d459f291fe1eeec86ccf3ac739",
+      "sha256_working_tree": "366e680c08be3fc839068022f784a32383db4a9b1d9e72f51225b3eb453ad783"
+    },
+    {
+      "path": "aphavoc/source/entity/special/regen/regen.c",
+      "git_blob_at_head": "86354a994ff306403166148abb7a1d0924288f6c",
+      "sha256_working_tree": "b5cfa459c74148dfaac6bd3dd8e7bc755b2e5b979654870bddec9115215902b6"
+    },
+    {
+      "path": "aphavoc/source/entity/special/sector/sc_float.c",
+      "git_blob_at_head": "496324ac47fe168aed7cede4777442c1e86be7a5",
+      "sha256_working_tree": "0e21716cd03ce3660ca8e96681368812ea951d9a322eacc1b8acd0a206e5b6ea"
+    },
+    {
+      "path": "aphavoc/source/entity/special/sector/sc_msgs.c",
+      "git_blob_at_head": "70bfe0a3965185d9603deb2318acc10c4129db85",
+      "sha256_working_tree": "383b5571ad9875b94baa24d1595e1cd300bccf963a2bba3106f8b5a8210eed13"
+    },
+    {
+      "path": "aphavoc/source/entity/special/sector/sc_pack.c",
+      "git_blob_at_head": "82575a352c1a8aff9257a541934accbfaa7afcfc",
+      "sha256_working_tree": "3f23c5abe2d0349d0ff240e2d13c5f9b0dc32978c3c7b05ee8882b50a7fedd30"
+    },
+    {
+      "path": "aphavoc/source/entity/special/sector/sc_seccreat.c",
+      "git_blob_at_head": "b94b9b84c5ea2fede87f85d787d4f83c244d125c",
+      "sha256_working_tree": "8bf02ea2241666df9f26ae95265f4139849c685eb22af300b272132b34b8ec92"
+    },
+    {
+      "path": "aphavoc/source/entity/special/sector/sector.h",
+      "git_blob_at_head": "f12f1b74eb43fdee75ab93879a60f22ed947f72d",
+      "sha256_working_tree": "045c0957f439bac07bccd0d22cca99232c8e86f767caed6c9bcf2b2a57d910fa"
+    },
+    {
+      "path": "aphavoc/source/entity/special/session/session.c",
+      "git_blob_at_head": "c8c137a5843d155ce84e8df61cdc2e62bb54d022",
+      "sha256_working_tree": "cc89d8160510a2e31428e46a137dc6295fba01b4da28d75a775ebdcd6022cd75"
+    },
+    {
+      "path": "aphavoc/source/entity/special/session/ss_creat.c",
+      "git_blob_at_head": "777adc76fa223986d9a0a5b2820b9e4a718ecd70",
+      "sha256_working_tree": "7abc30146f8fe3e01773f78a14b1895c87c80640a5d61f1b31aa38339c17340d"
+    },
+    {
+      "path": "aphavoc/source/entity/special/update/up_update.c",
+      "git_blob_at_head": "ae771f718a4e5898273f3eaffd387987c23152c4",
+      "sha256_working_tree": "d44780fb0439f645a4c4a0821f48ecaaadd949bf030dad1ce106dda1b3eb7125"
+    },
+    {
+      "path": "aphavoc/source/entity/system/en_funcs/en_draw.c",
+      "git_blob_at_head": "9d20f71d803372aa2bf766db14a034ba2e139467",
+      "sha256_working_tree": "43a6ea43946600ec8007e53f61eb0accb472a724e33e4a4be7995ab2fa2a619e"
+    },
+    {
+      "path": "aphavoc/source/entity/system/en_funcs/en_list.c",
+      "git_blob_at_head": "0aca8ca6818d9adb9abff41c699b679f4cbc779d",
+      "sha256_working_tree": "982cd33f274ff2720b58051dfbd92378e62998ff5b5414ca541282c5e4f61cb2"
+    },
+    {
+      "path": "aphavoc/source/entity/system/en_main/en_heap.h",
+      "git_blob_at_head": "6e2849d87bad58df5fc3b83f14ae0633916f026f",
+      "sha256_working_tree": "1ed6f01c0bbfa7bb217b3742a9a82f4602879548bdc65ada1c7a7b1c9622eab5"
+    },
+    {
+      "path": "aphavoc/source/gunships/avionics/common/co_radar.c",
+      "git_blob_at_head": "53c676ae448716eec634ff9b8f7beeb617a83dbf",
+      "sha256_working_tree": "46bae7c85a0da281018240d78b18c99244155ed4d807df286085f5b4ee41339b"
+    },
+    {
+      "path": "aphavoc/source/gunships/cockpits/apache/ap_cpg.c",
+      "git_blob_at_head": "2905f73125903e7c4de542ecf75dbd9eb620ac4c",
+      "sha256_working_tree": "b386c705e34e0c74830d6466eb0366e1e1bfe345cd546f5c8614c935cfddf72f"
+    },
+    {
+      "path": "aphavoc/source/gunships/dynamics/common/co_undercarriage.c",
+      "git_blob_at_head": "4daac177c6f4799b0945d12920ddc065718b5713",
+      "sha256_working_tree": "6fc6ee5ee6aef38e3b8b61233ab0fe0117b1abdb7df3efd39e9236aafa32a70c"
+    },
+    {
+      "path": "aphavoc/source/ui_menu/czone/zone_sc.c",
+      "git_blob_at_head": "0a160399e6c0c8de7b382aecb5101e5cdf118af3",
+      "sha256_working_tree": "2db9ff067abf5330d6fc1923508dcc55080a357945764420e99c4d4f653b0fe8"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "git_blob_at_head": "1379a4d95a84115a1c074d21d233b070f23cf0d6",
+      "sha256_working_tree": "8d1ee725e79eda2e8723cf31b05432999e0a63ff4ee4616014ccf5dc60ac71dc"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/sources.txt",
+      "git_blob_at_head": "80a34c950d46f2346680363bc0dc6825ed2d29e0",
+      "sha256_working_tree": "212ea8d6bad9e78999ec2baecb65694def76aaa52c355cff6f7764050b5b6cb8"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/entity_candidate_step.c",
+      "git_blob_at_head": "7ded54db8b878c6a8e6d6105bae6fdf7b215b05c",
+      "sha256_working_tree": "03c7b8644dc2980d57c93a429e21a949ee3fecbc3317b24cf145deaa17ab422f"
+    },
+    {
+      "path": "modules/3d/3dobjdb.c",
+      "git_blob_at_head": "731b4323e6f6251303ffe98fa08ebac2d1a443ee",
+      "sha256_working_tree": "fc3e86ba9cffd570a9827bae817e425b6cad1c9df098b2090bbe3e3628ea2b19"
+    },
+    {
+      "path": "modules/3d/3dobjid.c",
+      "git_blob_at_head": "3fb2174ce41b62cf6656ca41c669b34a98f354f6",
+      "sha256_working_tree": "7bd079ade2d5d5aab5b2800c9a9467069e55e1744eb2c254b7dc1fc10cb7f4dc"
+    },
+    {
+      "path": "modules/3d/terrain/terrdata.c",
+      "git_blob_at_head": "d606f94b956c84f71e3334afed4b5fdb29be38c3",
+      "sha256_working_tree": "bb770a8c6a2f39060d8beff57a1f4ad3bac7f342cab0bde06a55bfec89b9826f"
+    },
+    {
+      "path": "modules/3d/terrain/terrelev.c",
+      "git_blob_at_head": "a2f05ed817033750c50e7fe9b78fc3321a3f3ace",
+      "sha256_working_tree": "dd4a81ca92e0b2a8581750045f81fe70b8f80ce80bd00e3f4f62a53f1723e544"
+    },
+    {
+      "path": "modules/3d/terrain/terrgeom.c",
+      "git_blob_at_head": "08bd59df3c2adc2533f75b6dbceef4099318a763",
+      "sha256_working_tree": "ce028467efe1e4a9cff4e9ed5a9a3ec4024b77e72a06d24cda95926a0cf3a2d4"
+    },
+    {
+      "path": "modules/maths/random.c",
+      "git_blob_at_head": "3058b3eb3584d4a3d3bcc64aef0d6df70bd12ad1",
+      "sha256_working_tree": "d8dd524b5086b546e2a690115b44f49d97986e2142d63aa019f3ec06217b5808"
+    }
+  ],
+  "commands": [
+    {
+      "id": "c1",
+      "command": "C:/Users/starscream/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe -B -X utf8 eech-campaign/tools/migration-progress.py --action characterize",
+      "actual_exit": 0,
+      "note": "run before the first write; the guard's own output named this ONE second/final source/API disposition batch"
+    },
+    {
+      "id": "c2",
+      "command": "build-needed-consumer-api-disposition-pack-20261107.py (Windows Python -I -B -X utf8), first run",
+      "actual_exit": 1,
+      "note": "4 hand-typed expected-line values were wrong (mb_hostterrain.c, mb_int.c x2, hc_anim.c forward-declaration match); retained, corrected in the generator"
+    },
+    {
+      "id": "c3",
+      "command": "same generator, second run",
+      "actual_exit": 0,
+      "note": "no hygiene problems"
+    },
+    {
+      "id": "c4",
+      "command": "same generator, regenerated after two wording corrections (weapon step caller; clutter reader wording) and one disposition rename plus one softened sentence",
+      "actual_exit": 0,
+      "note": "the final run produced the hashed outputs"
+    },
+    {
+      "id": "c5",
+      "command": "freeze-needed-consumer-api-disposition-20261107.py, first run",
+      "actual_exit": 0,
+      "note": "superseded: it recorded a feedback file that Root rewrote afterwards (Airbase.ts addition); outputs regenerated, not relabelled"
+    },
+    {
+      "id": "c6",
+      "command": "patch3 (generator edit) then the generator again after incorporating Airbase.ts (D3G-09, additional bundle hash, requests narrowed)",
+      "actual_exit": 0,
+      "note": "no hygiene problems; the final run produced the hashed outputs"
+    },
+    {
+      "id": "c7",
+      "command": "freeze-needed-consumer-api-disposition-20261107.py, final run",
+      "actual_exit": 0,
+      "note": "this record"
+    }
+  ],
+  "hygiene_problems_at_freeze": [],
+  "not_run": [
+    "compilers",
+    "cargo",
+    "tests",
+    "native/Windows/war/full pack",
+    "benchmarks",
+    "agents/MCP/authentication/model change",
+    "cache cleanup",
+    "merge"
+  ],
+  "limits": [
+    "Documentation and source disposition only: no compiler, test, native, Windows, war, physical change; physical_cutover_clearance remains false.",
+    "Source anchors are resolved from the clean tree at the recorded HEAD; inclusion/reachability statements are source/build-derived and labelled, not an exhaustive measured preprocessed/symbol/runtime census.",
+    "DCS declarations are declared shapes of the pinned author-maintained commit, not measured live DCS contracts, exhaustive absence, universal bounds or collision-mesh guarantees; no live DCS/M6 execution is claimed.",
+    "OPEN rows stay open and reduce no D3 scope; accepted scopes are reused at their stated scope only.",
+    "ENV-ENTITY-POSE-LONG-RUN-MOTION-1 stays OPEN/blocks_cutover=true; the four original f734 natives are untouched.",
+    "Reported evidence (Task52 CRT capture, card blocker texts, accepted-scope proofs) is cited as reported and not reproduced here.",
+    "The original 8-file bundle manifest is unchanged; Airbase.ts is a later optional addition from Root with its own provenance file and hash."
+  ],
+  "blocker_state": {
+    "ENV-ENTITY-POSE-LONG-RUN-MOTION-1": "OPEN, blocks_cutover=true; not weakened",
+    "physical_cutover_clearance": false,
+    "all_ten_requirements": "remain; accepted finite scopes qualified; no Task49/D3 closure"
+  },
+  "preparation": "count becomes 2 of 2 on completion; no further preparation until an actual complete corrected pack and independent review resolve the production blocker",
+  "review": "one SAME independent reviewer for the new delta only; this freeze is not an acceptance"
+}
