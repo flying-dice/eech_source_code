@@ -55,6 +55,9 @@ entity-dialogue-check = []
 # TEST-ONLY (EEDCS-49, D3): the isolated control of the controlled moving entity query case's report codec and bounds (csrc/eech_mq_report.h, csrc/eech_mq_report_check.c). Never enabled in the shipping build.
 mq-report-check = []
 
+# TEST-ONLY (EEDCS-49, D3): the characterisation of the sector's tallest-structure high-water value against the REAL sector insertion response, float getter and session pack/unpack linked into the engine (csrc/eech_sector_height_check.c). Never enabled in the shipping build.
+sector-height-check = []
+
 # TEST-ONLY (EEDCS-50): the isolated control of the original-model read-safety walk; it needs the feature's C
 [[test]]
 name = "model_walk"
@@ -70,6 +73,11 @@ required-features = ["entity-dialogue-check"]
 name = "mq_report"
 path = "tests/mq_report.rs"
 required-features = ["mq-report-check"]
+
+[[test]]
+name = "sector_height"
+path = "tests/sector_height.rs"
+required-features = ["sector-height-check"]
 
 [[test]]
 name = "tree_dialogue"
