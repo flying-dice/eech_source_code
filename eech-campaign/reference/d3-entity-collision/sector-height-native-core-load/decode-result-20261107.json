@@ -1,0 +1,38 @@
+{
+  "kind": "read-only decode of the sector section of the saved data against the save and load reports (aggregates only)",
+  "saved_data": {
+    "bytes": 300873,
+    "sha256": "ff0fa7b04ea46190de638a72807e12a526744a60f2978ac696824014afb37862",
+    "version_int": 272,
+    "ctrl_z_bytes": 1593,
+    "crlf_pairs": 14,
+    "first_ctrl_z_offset": 167
+  },
+  "decoded": {
+    "rle_runs": 52,
+    "rle_sector_total": 1748,
+    "rle_end_bit": 954,
+    "fog_values": 3496,
+    "fog_nonzero": 1920,
+    "fog_end_bit": 56890,
+    "sector_section_end_bit": 130306,
+    "sector_section_end_byte_after_version": 16288.25,
+    "first_sector_word_byte_offset_in_file": 7116,
+    "words": 1748,
+    "words_nonzero": 1027
+  },
+  "save_report": {
+    "word_rows": 1748,
+    "words_nonzero": 1027
+  },
+  "load_report": {
+    "restore_rows": 1748,
+    "restored_words_nonzero": 0,
+    "restored_words_all_zero": true
+  },
+  "joins": {
+    "decoded_words_equal_save_report_in_order": true,
+    "restored_words_equal_save_report_in_order": false,
+    "sectors_whose_restored_word_differs_from_the_saved_word": 1027
+  }
+}
