@@ -1,0 +1,22 @@
+{
+  "controller_pid": 18904,
+  "state": "terminal",
+  "started_utc": "2026-11-07T19:24:57.297412+00:00",
+  "command": "rustup component add rustfmt && cargo fmt && rustup component add clippy && cargo clippy --locked -p eech-engine-sys --features physical-flags-check,physical-flags-consumer-check,physical-flags-collision-check,entity-dialogue-check --all-targets -- -D warnings && cargo clippy --locked -p eech-engine-sys --features physical-flags-check,physical-flags-collision-check,collision-fixture --all-targets -- -D warnings",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--cd",
+    "/",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/check-physical-flags-keyfix-linux-20261107.sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/collision-characterization-20261029",
+    "rustup component add rustfmt && cargo fmt && rustup component add clippy && cargo clippy --locked -p eech-engine-sys --features physical-flags-check,physical-flags-consumer-check,physical-flags-collision-check,entity-dialogue-check --all-targets -- -D warnings && cargo clippy --locked -p eech-engine-sys --features physical-flags-check,physical-flags-collision-check,collision-fixture --all-targets -- -D warnings"
+  ],
+  "scope": "Working-tree check in the sole leased volume eech-linux-d3-physical-flags-9d247-20261107, image sha256:9d247b4e... named, never substituted.",
+  "pid": 20356,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-07T19:27:24.635933+00:00"
+}

@@ -4506,6 +4506,65 @@ static void flag_cases (struct tc *t)
 	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_RESET, "f1", 3, ARRAY_WORD, 0, 0, 0);
 	REFUSED_RESET ("names no new key");
 
+	/* ENV-PHYSICAL-FLAGS-KEY-CAPACITY-1: the issued key is decided as a whole domain BEFORE anything is copied: `f`, a first digit 1 to 9, further digits, at most CAMPAIGN_ROSTER_KEY_MAX (20) bytes before the NUL, which is the identity slot of the
+	   campaign's cache (char [CAMPAIGN_ROSTER_KEY_MAX + 1]). The slot sits between two canary slots of its own size. POSITIVE FIRST: the exact 20-byte key is written with its NUL and both neighbours are intact; then each single fault (the 21-byte
+	   key, a long name, f0, f00, f01, an upper-case F, a trailing letter) stops the engine by marker with the slot and both neighbours exactly as they were, and the matched positive after them is accepted */
+	{
+		struct { char before [CAMPAIGN_ROSTER_KEY_MAX + 1]; char slot [CAMPAIGN_ROSTER_KEY_MAX + 1]; char after [CAMPAIGN_ROSTER_KEY_MAX + 1]; } cache;
+		char long_name [128];
+		static const char *const FAULTS [] = { "f12345678901234567890", "f123456789012345678901", "f0", "f00", "f01", "f0123", "F1", "f1x", "g1", "f", "" };
+		size_t fault;
+		int whole;
+
+#define CACHE_CANARY(WHAT) do { memset (&cache, 0x5a, sizeof (cache)); } while (0)
+#define CACHE_INTACT() (memcmp (cache.before, "\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a", sizeof (cache.before)) == 0 && memcmp (cache.after, "\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a", sizeof (cache.after)) == 0)
+#define CACHE_SLOT_UNWRITTEN() (memcmp (cache.slot, "\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a\x5a", sizeof (cache.slot)) == 0)
+
+		EXPECT (t, sizeof (cache.slot) == CAMPAIGN_ROSTER_KEY_MAX + 1 && CAMPAIGN_ROSTER_KEY_MAX == 20);
+
+		CACHE_CANARY ();
+		flag_force (CAMPAIGN_MODEL_SCAN_FLAG_GROUP, "f1234567890123456789", 3, ONE, 0, 0, 0);
+		stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_GROUP, 0, 0, NULL, TRUE, cache.slot, NULL);
+		EXPECT (t, !stopped && strlen (cache.slot) == CAMPAIGN_ROSTER_KEY_MAX && strcmp (cache.slot, "f1234567890123456789") == 0 && cache.slot [CAMPAIGN_ROSTER_KEY_MAX] == 0 && CACHE_INTACT ());
+
+		for (fault = 0; fault < sizeof (FAULTS) / sizeof (FAULTS [0]); fault++)
+		{
+			CACHE_CANARY ();
+			flag_force (CAMPAIGN_MODEL_SCAN_FLAG_GROUP, FAULTS [fault], 3, ONE, 0, 0, 0);
+			stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_GROUP, 0, 0, NULL, TRUE, cache.slot, NULL);
+			EXPECT (t, stopped && flag_asks == 1 && strstr (fatal_text, "not a flag key") != NULL && CACHE_SLOT_UNWRITTEN () && CACHE_INTACT ());
+		}
+
+		for (whole = 1; whole <= 2; whole++)
+		{
+			/* a long name (up to the bridge's 127 bytes, which the other families keep) and a 21-byte name whose last bytes are digits: both refused, nothing written */
+			memset (long_name, '1', sizeof (long_name));
+			long_name [0] = 'f';
+			long_name [(whole == 1) ? 100 : 127] = 0;
+			CACHE_CANARY ();
+			flag_force (CAMPAIGN_MODEL_SCAN_FLAG_GROUP, long_name, 3, ONE, 0, 0, 0);
+			stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_GROUP, 0, 0, NULL, TRUE, cache.slot, NULL);
+			EXPECT (t, stopped && strstr (fatal_text, "not a flag key") != NULL && CACHE_SLOT_UNWRITTEN () && CACHE_INTACT ());
+		}
+
+		/* the same domain guards the key the campaign NAMES: a 21-byte key is refused before anything is asked */
+		stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_SET, 0, 1, "f12345678901234567890", FALSE, NULL, NULL);
+		EXPECT (t, stopped && flag_asks == 0 && strstr (fatal_text, "[model-provider:flag.key]") != NULL);
+		stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_READ, 0, 1, "f01", FALSE, NULL, &before);
+		EXPECT (t, stopped && flag_asks == 0 && strstr (fatal_text, "[model-provider:flag.key]") != NULL);
+		flag_script ();
+		stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_SET, 0, 1, "f1234567890123456789", FALSE, NULL, NULL);
+		EXPECT (t, !stopped && flag_asks == 1 && flag_request_is (&flag_seen, CAMPAIGN_SCAN_PHASE_FLAG_SET, CAMPAIGN_FLAG_ARRAY, 0.0f, CAMPAIGN_FLAG_LANE, 1.0f, "f1234567890123456789"));
+
+		CACHE_CANARY ();
+		flag_force (CAMPAIGN_MODEL_SCAN_FLAG_GROUP, "f1", 3, ONE, 0, 0, 0);
+		stopped = flag_do (CAMPAIGN_SCAN_PHASE_FLAG_GROUP, 0, 0, NULL, TRUE, cache.slot, NULL);
+		EXPECT (t, !stopped && strcmp (cache.slot, "f1") == 0 && CACHE_INTACT ());
+#undef CACHE_CANARY
+#undef CACHE_INTACT
+#undef CACHE_SLOT_UNWRITTEN
+	}
+
 	/* a short or long answer and a word beyond the three */
 	flag_force (CAMPAIGN_MODEL_SCAN_FLAG_GROUP, "f1", 2, ONE, 0, 0, 0);
 	REFUSED_GROUP ("answered 2 words");

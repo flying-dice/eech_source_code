@@ -36,6 +36,41 @@ pub const SET_IGNORED: usize = 3;
 /// a read answers the right raw word but destroys no neighbour (the word is only observed, never masked in place)
 pub const READ_NON_DESTRUCTIVE: usize = 4;
 
+/// the KEY faults of the identity control (csrc/eech_physical_flags_check.c, KEY_FAULT_*: the numbers are that contract): the answer to a FLAG_GROUP question keeps its real effect (the store opens a real group) and its words, and the NAME the
+/// campaign is given is changed, as a faulty Host could give it. Distinct from `FAULT`, which changes the operations.
+pub static KEY_FAULT: AtomicUsize = AtomicUsize::new(0);
+pub const KEY_ALIAS20: usize = 1;
+pub const KEY_21: usize = 2;
+pub const KEY_LONG: usize = 3;
+pub const KEY_F01: usize = 4;
+pub const KEY_F0: usize = 5;
+pub const KEY_UPPER: usize = 6;
+pub const KEY_ROSTER: usize = 7;
+pub const KEY_DUP_FIRST: usize = 8;
+pub const KEY_DUP_SECOND: usize = 9;
+/// the keys the real store issued since the last fresh binding, in order (the duplicate faults answer an earlier one)
+static ISSUED: Mutex<Vec<String>> = Mutex::new(Vec::new());
+
+pub extern "C" fn set_key_fault(fault: c_int) {
+    KEY_FAULT.store(fault as usize, Ordering::SeqCst);
+}
+
+/// the 20-byte alias of the real key `f<n>` the ALIAS20 fault gives the campaign (a Host whose keys fill the identity slot): `f1` and 18 digits
+fn alias_of(key: &str) -> String {
+    let n: u64 = key.strip_prefix('f').and_then(|digits| digits.parse().ok()).expect("a real flag key");
+    format!("f1{n:018}")
+}
+
+/// the real key an alias stands for, when the text is an alias (20 bytes, `f1` and 18 digits), else the text itself
+fn real_of(text: &str) -> String {
+    if KEY_FAULT.load(Ordering::SeqCst) == KEY_ALIAS20 && text.len() == 20 && text.starts_with("f1") {
+        if let Ok(n) = text[2..].parse::<u64>() {
+            return format!("f{n}");
+        }
+    }
+    text.to_string()
+}
+
 fn store() -> MutexGuard<'static, Option<SectorRoster>> {
     STORE.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
 }
@@ -47,13 +82,15 @@ pub fn groups_now() -> usize {
 
 pub extern "C" fn fresh() {
     *store() = Some(SectorRoster::default());
+    ISSUED.lock().unwrap_or_else(|poisoned| poisoned.into_inner()).clear();
     STORES.fetch_add(1, Ordering::SeqCst);
 }
 
 /// # Safety
 /// `key` is a NUL-terminated text.
 pub unsafe extern "C" fn observe(key: *const c_char, array: c_int) -> u32 {
-    let key = CStr::from_ptr(key).to_str().expect("a flag key is text");
+    let key = real_of(CStr::from_ptr(key).to_str().expect("a flag key is text"));
+    let key = key.as_str();
     let guard = store();
     let roster = guard.as_ref().expect("a fresh binding was made before a word is observed");
     roster
@@ -91,7 +128,8 @@ pub unsafe extern "C" fn model(
         return 1;
     }
     let words: Vec<u32> = request.pose[..16].iter().map(|float| float.to_bits()).collect();
-    let identity = CStr::from_ptr(request.host_id.as_ptr()).to_str().expect("an identity is text");
+    let identity = real_of(CStr::from_ptr(request.host_id.as_ptr()).to_str().expect("an identity is text"));
+    let identity = identity.as_str();
     let mut guard = store();
     let Some(roster) = guard.as_mut() else {
         put_error(error, size, "[test.flags] no fresh host binding was made before the first question");
@@ -144,7 +182,24 @@ pub unsafe extern "C" fn model(
             for (slot, word) in reply.candidate.iter_mut().zip(answer.words) {
                 *slot = f32::from_bits(word);
             }
-            for (slot, byte) in reply.name.iter_mut().zip(answer.name.bytes()) {
+            let mut name = answer.name.clone();
+            if answer.result == "flag_group" {
+                let mut issued = ISSUED.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+                issued.push(name.clone());
+                name = match KEY_FAULT.load(Ordering::SeqCst) {
+                    KEY_ALIAS20 => alias_of(&name),
+                    KEY_21 => format!("f{}", "1".repeat(20)),
+                    KEY_LONG => format!("f{}", "1".repeat(100)),
+                    KEY_F01 => "f01".to_string(),
+                    KEY_F0 => "f0".to_string(),
+                    KEY_UPPER => "F1".to_string(),
+                    KEY_ROSTER => "12".to_string(),
+                    KEY_DUP_FIRST if issued.len() > 1 => issued[0].clone(),
+                    KEY_DUP_SECOND if issued.len() > 2 => issued[1].clone(),
+                    _ => name,
+                };
+            }
+            for (slot, byte) in reply.name.iter_mut().zip(name.bytes()) {
                 *slot = byte as c_char;
             }
             0

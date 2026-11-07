@@ -6485,6 +6485,54 @@ mod tests {
     }
 
     #[test]
+    fn the_adapter_keeps_the_generic_name_domain_for_a_flag_group_key_whose_20_byte_bound_the_campaigns_c_decides() -> Test {
+        // ENV-PHYSICAL-FLAGS-KEY-CAPACITY-1: a malformed public Host reply can name a flag group with up to 127 bytes, and the adapter must neither truncate nor narrow it (the other families keep their domain); the campaign's C refuses
+        // everything outside the flag key's own domain before it writes a byte (tests/physical_flags_identity.rs). 20, 21 and 127 bytes pass the adapter as given; a name with a space and one beyond 127 bytes are the adapter's own refusals.
+        let lua = Lua::new();
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               local length = tonumber (key:sub (9, 10), 16)
+               local name = length == 0 and 'f1 1' or ('f' .. string.rep ('1', length - 1))
+               return { result = 'flag_group', name = name, p = '0x3f800000,0x00000000,0x00000000' }
+             end",
+        )?;
+        let mut ask_length = |length: u32| {
+            // the provider reads the length from the last two hex digits of the first fact
+            let facts: Vec<u32> = std::iter::once(0x3f80_0000 + length).chain((1..16).map(|_| 0)).collect();
+            ask(
+                &mut provider,
+                ModelQuery::EntityScan {
+                    facts,
+                    identity: String::new(),
+                },
+            )
+        };
+        for length in [20u32, 21, 127] {
+            let answer = ask_length(length)?;
+            let ModelAnswer::EntityScan {
+                decision: ScanDecision::FlagGroup(_),
+                key,
+            } = answer
+            else {
+                return Err(format!("{length} bytes: not a flag group answer").into());
+            };
+            assert_eq!(
+                (key.len(), key.starts_with('f')),
+                (length as usize, true),
+                "{length} bytes cross the adapter as given"
+            );
+        }
+        for length in [0u32, 128] {
+            let Err(error) = ask_length(length) else {
+                return Err(format!("{length}: a name outside the generic domain was accepted").into());
+            };
+            assert!(error.contains("entity_scan"), "{length}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
     fn the_real_host_providers_flag_store_answers_through_this_bridge_what_the_campaign_asks_and_refuses_what_it_must() -> Test {
         // the REAL provider (`host.model`, eech-world) over the REAL store, behind THIS bridge's request encoding and its reply parse: the questions are the campaign's own (phases 19 to 22), the answers come back as the decisions
         // the native callback carries, bit for bit, and a refusal is the bridge's named error. A scripted provider is not involved.

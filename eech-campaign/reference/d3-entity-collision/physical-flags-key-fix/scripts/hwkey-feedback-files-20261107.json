@@ -1,0 +1,21 @@
+{
+  "note": "Root-physical-flags-key-fix-feedback*.json: none existed when this batch began (checked after the metadata checkpoint 9c63a0967). Three arrived DURING development (mtime 18:50:07Z, 19:08:51Z and 19:14:46Z) and was read in full from the file (its text also appeared in the output of development run d20); the freeze lists the files present at the freeze and refuses one that is not listed as read here.",
+  "at_start": [],
+  "read": {
+    "Root-physical-flags-key-fix-feedback-20261107-1848.json": {
+      "sha256": "44e4eb67ffcbe97b8648a54eafc3053a22b3d74686e789e8a938341c36aca594",
+      "arrived_mtime_utc": "2026-11-07T18:50:07Z",
+      "honoured": "the fixture topology defect is fixed and the hung run preserved with its real termination; the collaborators were checked together; a fast syntax check was not made (each full engine compile was the check)"
+    },
+    "Root-physical-flags-key-fix-feedback-20261107-1909.json": {
+      "sha256": "1d9fd1787cb51a7fec82068c6f203b56a1860910ac3aa6be77a9a7df7f9542ea",
+      "arrived_mtime_utc": "2026-11-07T19:08:51Z",
+      "honoured": "the setup failures are retained as setup, not capability REDs; the supervision disclosure (the unsealed direct helper now delivers Root's feedback to the console, new hash b41837e6568d80a876680900e1b553d7bda6ae18103c542d49c95579752c06fa, the old one retained beside it) is bound: the actual helper is a reader whose SHA-256 is recorded at the final PRE; a fast syntax-only check was NOT run (each full engine compile was the check)"
+    },
+    "Root-physical-flags-key-fix-feedback-20261107-1916.json": {
+      "sha256": "aa3a8d55ab544bfc1357b36069d30241d69de0915121248e7d1f7355704003bf",
+      "arrived_mtime_utc": "2026-11-07T19:14:46Z",
+      "honoured": "the required hosted collision control was completed in this SAME batch: each mobile has a genuine host-issued identity and mover record through the campaign's own roster and the private test collaborator, the same scenarios run against the real scan, candidate, narrow phase and flag store, and the no-identity refusal is kept as the matched negative (see d30 and the control)"
+    }
+  }
+}

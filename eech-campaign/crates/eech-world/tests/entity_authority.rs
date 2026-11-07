@@ -149,6 +149,8 @@ end
 local call_no, ANSWERS = 0, {}
 -- the scripted host's roster: how many keys it issued, the key of the one entry the scripted sector holds, and the last key that ended
 local ROSTER = { issued = 0, live = nil, ended = nil }
+-- the names the real flag store issued for groups, in order (a duplicate fault answers an earlier one)
+local FLAG_NAMES = {}
 local function reference (op, scene, depth, kind, definition, key)
 	call_no = call_no + 1
 	local record = { op = op, scene = scene, depth = depth, kind = kind, definition = definition, key = key }
@@ -209,6 +211,11 @@ local function reference (op, scene, depth, kind, definition, key)
 			if bad_flag and (phase == "0x41980000" or phase == "0x41a00000" or phase == "0x41a80000" or phase == "0x41b00000") and type (answer) == "table" and answer.result ~= "refused" then
 				if bad_flag == "state" then answer.result = "flag_read" end
 				if bad_flag == "group_key" and phase == "0x41980000" then answer.name = "7" end
+				if bad_flag == "group_key21" and phase == "0x41980000" then answer.name = "f" .. string.rep ("1", 20) end
+				if phase == "0x41980000" then
+					FLAG_NAMES [#FLAG_NAMES + 1] = answer.name
+					if bad_flag == "group_dup" and #FLAG_NAMES > 1 then answer.name = FLAG_NAMES [1] end
+				end
 				if bad_flag == "name_on_set" and phase == "0x41a00000" then answer.name = "f1" end
 				if bad_flag == "short" and phase == "0x41a80000" then answer.p = string.match (answer.p, "^[^,]+,[^,]+") end
 				if bad_flag == "echo" and phase == "0x41a80000" then answer.p = "0x3f800000," .. string.match (answer.p, "^[^,]+,(.*)$") end
@@ -780,6 +787,7 @@ package.preload.eech_dc = function ()
 			local function flag_events ()
 				if not scenario.real_scan then error ("the flag store needs the real provider (real_scan)", 0) end
 				flag_event ("group")
+				if scenario.flag_second_group then flag_event ("group") end
 				flag_event ("set", "0x41f80000")
 				flag_event ("read", "0x41f80000")
 				flag_event ("read", "0x41f00000")
@@ -6727,6 +6735,27 @@ fn each_single_fault_of_a_real_flag_reply_is_counted_at_its_question_and_is_neve
         ("reset_tail", "another array than the one named, or a third word"),
     ] {
         let (driven, row) = scan_row(&format!("{FIXED_STATE}, flags = true, bad_real_flag = '{fault}'"), "scan_real");
+        assert!(driven.result.is_err(), "{fault}: {:?}", driven.result);
+        assert!(row["reply_faults"].as_i64().unwrap() >= 1, "{fault}: {row}");
+        let first = row["first_fault"].as_str().unwrap();
+        assert!(first.starts_with("scan reply:") && first.contains(expected), "{fault}: {first}");
+    }
+}
+
+#[test]
+fn two_independent_flag_groups_pass_the_public_driver_and_a_key_already_issued_for_another_group_is_a_named_reply_fault() {
+    // ENV-PHYSICAL-FLAGS-ISSUED-GROUP-ALIAS-1 at the public driver: POSITIVE FIRST, a second group opened through the real provider is a new key, all six questions of the walk are answered well-formed; then ONE duplicate (the second group
+    // answered with the first group's key) and one 21-byte key (ENV-PHYSICAL-FLAGS-KEY-CAPACITY-1) are each a named reply fault, and never a pass
+    let (driven, row) = scan_row(&format!("{FIXED_STATE}, flags = true, flag_second_group = true"), "scan_real");
+    assert!(driven.result.is_ok(), "{:?}\n{}", driven.result, driven.rows);
+    for (field, expected) in [("request_faults", 0), ("reply_faults", 0), ("flag_total", 6), ("flag_answered", 6)] {
+        assert_eq!(row[field], expected, "{field}: {row}");
+    }
+    for (fault, expected) in [("group_dup", "already bound to another flag group"), ("group_key21", "which is not a flag key")] {
+        let (driven, row) = scan_row(
+            &format!("{FIXED_STATE}, flags = true, flag_second_group = true, bad_real_flag = '{fault}'"),
+            "scan_real",
+        );
         assert!(driven.result.is_err(), "{fault}: {:?}", driven.result);
         assert!(row["reply_faults"].as_i64().unwrap() >= 1, "{fault}: {row}");
         let first = row["first_fault"].as_str().unwrap();

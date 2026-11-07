@@ -1,0 +1,147 @@
+{
+  "kind": "explicit join of the KEY-FIX batch against the reference POST map",
+  "reference_commit": "9c63a09674ae5326c442bdeb1d2c9f8c2b829192",
+  "map_rows_changed": [
+    "aphavoc/source/entity/mobile/mb_hostentity.h",
+    "aphavoc/source/entity/mobile/mb_hostmodel.c",
+    "eech-campaign/Cargo.lock",
+    "eech-campaign/crates/eech-dc/src/module.rs",
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+    "eech-campaign/crates/eech-engine-sys/build/main.rs",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+    "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/support/flags_host.rs",
+    "eech-campaign/crates/eech-engine/src/lib.rs",
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "eech-campaign/crates/eech-world/src/flags.rs",
+    "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+    "eech-campaign/crates/eech-world/tests/physical_flags_host.rs"
+  ],
+  "map_rows_added": [
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_collision_check.c",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_collision.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_identity.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/support/lua_provider.rs"
+  ],
+  "map_rows_removed": [],
+  "compiled_rows_changed": [
+    "aphavoc/source/entity/mobile/mb_hostentity.h",
+    "aphavoc/source/entity/mobile/mb_hostmodel.c",
+    "eech-campaign/Cargo.lock",
+    "eech-campaign/crates/eech-dc/src/module.rs",
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+    "eech-campaign/crates/eech-engine-sys/build/main.rs",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+    "eech-campaign/crates/eech-engine/src/lib.rs",
+    "eech-campaign/crates/eech-world/src/flags.rs"
+  ],
+  "compiled_rows_added": [
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_collision_check.c"
+  ],
+  "unchanged_compiled_rows": 3754,
+  "unchanged_compiled_aggregate_sha256": "e4161e727fe2f8e8dae9a949d3ad35333965cb650617e9ec5e7276450fbf45e8",
+  "checks": [
+    {
+      "path": "aphavoc/source/entity/mobile/mb_int.c",
+      "class": "campaign C of the production move: an UNCHANGED row (the original profile's code is still the reference's)",
+      "verified": true
+    },
+    {
+      "path": "aphavoc/source/entity/special/update/up_update.c",
+      "class": "campaign C of the production move: an UNCHANGED row (the original profile's code is still the reference's)",
+      "verified": true
+    },
+    {
+      "path": "aphavoc/source/entity/special/update/up_update.h",
+      "class": "campaign C of the production move: an UNCHANGED row (the original profile's code is still the reference's)",
+      "verified": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostmodel.h",
+      "class": "campaign C of the production move: an UNCHANGED row (the original profile's code is still the reference's)",
+      "verified": true
+    },
+    {
+      "path": "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c",
+      "class": "campaign C of the production move: an UNCHANGED row (the original profile's code is still the reference's)",
+      "verified": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostoffer.h",
+      "class": "campaign C of the production move: an UNCHANGED row (the original profile's code is still the reference's)",
+      "verified": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostentity.h",
+      "class": "campaign C: the key validator, the staged group binding and a test hook gate; only the declared lines are removed",
+      "added_lines": 7,
+      "removed_lines": 4,
+      "verified": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostmodel.c",
+      "class": "campaign C: the key validator, the staged group binding and a test hook gate; only the declared lines are removed",
+      "added_lines": 24,
+      "removed_lines": 4,
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+      "class": "test-only C control wholly inside its feature gate EECH_PHYSICAL_FLAGS_CHECK",
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+      "class": "test-only C control wholly inside its feature gate EECH_ENTITY_DIALOGUE_CHECK",
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_collision_check.c",
+      "class": "test-only C control wholly inside its feature gate EECH_PHYSICAL_FLAGS_COLLISION_CHECK",
+      "verified": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_hosted.h",
+      "class": "test-only hosted header: an unchanged row",
+      "verified": true
+    },
+    {
+      "class": "Rust host key bound, bridge-side tests, and the public Lua driver's key checks (compiled or loaded inputs)",
+      "paths": [
+        "eech-campaign/crates/eech-world/src/flags.rs",
+        "eech-campaign/crates/eech-engine/src/lib.rs",
+        "eech-campaign/crates/eech-dc/src/module.rs",
+        "eech-campaign/crates/eech-world/lua/entity-authority.lua"
+      ],
+      "verified": true
+    }
+  ],
+  "changed_in_git_since_reference": [
+    "aphavoc/source/entity/mobile/mb_hostentity.h",
+    "aphavoc/source/entity/mobile/mb_hostmodel.c",
+    "eech-campaign/Cargo.lock",
+    "eech-campaign/crates/eech-dc/src/module.rs",
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+    "eech-campaign/crates/eech-engine-sys/build/main.rs",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_entity_dialogue_check.c",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_check.c",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_physical_flags_collision_check.c",
+    "eech-campaign/crates/eech-engine-sys/tests/entity_dialogue.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_collision.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_guard.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/physical_flags_identity.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/support/flags_host.rs",
+    "eech-campaign/crates/eech-engine-sys/tests/support/lua_provider.rs",
+    "eech-campaign/crates/eech-engine/src/lib.rs",
+    "eech-campaign/crates/eech-world/lua/entity-authority.lua",
+    "eech-campaign/crates/eech-world/src/flags.rs",
+    "eech-campaign/crates/eech-world/tests/entity_authority.rs",
+    "eech-campaign/crates/eech-world/tests/physical_flags_host.rs",
+    "eech-campaign/docs/d3-physical-flags-contract.md"
+  ],
+  "conclusion": "the key-fix batch changes the campaign C in two files only (the key validator and the staged group binding; the production move's files are unchanged rows), every control source is inside its feature gate, and the Rust host bound, bridge tests, public driver and test sources are the declared set; no other compiled or tested input changed",
+  "problems": []
+}

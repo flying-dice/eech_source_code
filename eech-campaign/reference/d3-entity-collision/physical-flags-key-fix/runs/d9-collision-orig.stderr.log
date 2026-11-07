@@ -1,0 +1,10 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 04s
+     Running tests/physical_flags_collision.rs (/target/t/debug/deps/physical_flags_collision-9a3dd00ec8f6490d)
+STAGE host set
+STAGE scenes installed
+STAGE before mobile
+error: test failed, to rerun pass `-p eech-engine-sys --test physical_flags_collision`
+
+Caused by:
+  process didn't exit successfully: `/target/t/debug/deps/physical_flags_collision-9a3dd00ec8f6490d --nocapture` (signal: 11, SIGSEGV: invalid memory reference)

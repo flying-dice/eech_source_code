@@ -11970,6 +11970,38 @@ mod tests {
     }
 
     #[test]
+    fn a_flag_group_key_name_crosses_the_callback_untruncated_over_the_whole_generic_name_domain_and_is_refused_beyond_it() {
+        // ENV-PHYSICAL-FLAGS-KEY-CAPACITY-1: the callback's name domain is the generic 127 bytes of every family and is NOT narrowed here; the flag key's own 20-byte bound is decided by the campaign's C before it copies a byte
+        // (csrc/eech_entity_dialogue_check.c, tests/physical_flags_identity.rs). What is shown: an exactly 20-byte, a 21-byte and a 127-byte name reach the reply as the bytes the host gave, and 128 bytes are refused by the callback itself.
+        for length in [20usize, 21, 127, 128] {
+            let name = format!("f{}", "1".repeat(length - 1));
+            let mut request = model_request(sys::EECH_MODEL_ENTITY_SCAN, 0, 0);
+            request.pose_count = 16;
+            request.pose[SCAN_PHASE_FACT] = f32::from_bits(0x4198_0000);
+            request.pose[0] = f32::from_bits(0x3f80_0000);
+            let given = name.clone();
+            let (code, reply, error) = model_crossing(
+                Some(Box::new(move |query| match query {
+                    ModelQuery::EntityScan { .. } => Ok(ModelAnswer::EntityScan {
+                        decision: ScanDecision::FlagGroup([f32::from_bits(0x3f80_0000), 0.0, 0.0]),
+                        key: given.clone(),
+                    }),
+                    other => Err(format!("unexpected {other:?}")),
+                })),
+                request,
+            );
+            if length <= sys::EECH_MODEL_NAME_MAX {
+                assert_eq!(code, 0, "{length} bytes: {error}");
+                let reply_name: Vec<u8> = reply.name.iter().take_while(|c| **c != 0).map(|c| *c as u8).collect();
+                assert_eq!(reply_name, name.as_bytes(), "{length} bytes: the name crosses untruncated");
+            } else {
+                assert_ne!(code, 0, "{length} bytes: a name beyond the generic domain is refused");
+                assert!(error.contains("entity_scan"), "{error}");
+            }
+        }
+    }
+
+    #[test]
     fn the_model_callback_carries_a_city_name_identity_place_of_its_whole_domain_untruncated() {
         // a NAME's identity place is a placement key (20 digits at most), one space and an object identity of its own 1 to 128 bytes: 149 bytes in all, valid multi-byte text included
         assert_eq!(sys::EECH_MODEL_SCAN_IDENTITY_MAX, 20 + 1 + sys::EECH_MODEL_OBJECT_ID_MAX);

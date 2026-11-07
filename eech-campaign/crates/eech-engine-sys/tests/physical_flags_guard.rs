@@ -401,3 +401,39 @@ fn the_hosted_build_holds_no_flag_array_and_every_access_goes_to_the_host() {
         "the dialogue derives and sends no slot or group number"
     );
 }
+
+#[test]
+fn the_collision_pass_through_source_is_the_one_the_collision_control_ran_and_the_hosted_path_reads_the_word_once_when_the_host_asks() {
+    // the ORIGINAL body the control runs (csrc/eech_physical_flags_collision_check.c) is the moving-mobile branch of get_line_of_sight_collision_entity: the speed test, then the raw UPDATED read, then the two position derivations with the
+    // delta time; the hosted build compiles campaign_scan_entities instead and the campaign reads the word ONLY where the host asks for it (mb_hostoffer.h NEED_UPDATED) and states 2.0 or 1.0
+    let cllsn = strip_comments(&read(&aphavoc().join("entity/en_misc/en_maths/en_cllsn.c")));
+    let order: Vec<usize> = [
+        "if (sqr_velocity > 1.0)",
+        "if (get_local_entity_int_value (target, INT_TYPE_UPDATED))",
+        "target_old_position.x = target_new_position.x - target_motion_vector->x * get_delta_time ();",
+        "target_new_position.x = target_old_position.x + target_motion_vector->x * get_delta_time ();",
+    ]
+    .iter()
+    .map(|needle| cllsn.find(needle).unwrap_or_else(|| panic!("en_cllsn.c no longer contains `{needle}`")))
+    .collect();
+    assert!(
+        cllsn[order[3]..].contains("accurate_moving_bounding_box_collision_test"),
+        "the narrow phase follows the derivations"
+    );
+    assert!(order.windows(2).all(|w| w[0] < w[1]), "the moving-mobile branch changed order: {order:?}");
+    assert_eq!(
+        cllsn.matches("INT_TYPE_UPDATED").count(),
+        2,
+        "the raw word is read in the original body and in the hosted binding of the offer, and nowhere else of this file"
+    );
+    assert!(
+        cllsn.contains("return (campaign_scan_entities (los_source, los_target"),
+        "the hosted build asks the host's scan instead of the body"
+    );
+    let offer = strip_comments(&read(&aphavoc().join("entity/mobile/mb_hostoffer.h")));
+    assert!(
+        offer.contains("facts [CAMPAIGN_CANDIDATE_UPDATED] = CAMPAIGN_OFFER_UPDATED (target) ? 2.0f : 1.0f;")
+            && offer.matches("CAMPAIGN_OFFER_UPDATED (").count() == 1,
+        "the hosted offer reads the raw word once, when the host asks for it, and states a state, not the mask"
+    );
+}

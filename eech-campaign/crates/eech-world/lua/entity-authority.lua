@@ -1215,6 +1215,8 @@ scan.fixed.expand_total, scan.fixed.expand_answered, scan.fixed.box_withdrawn, s
 scan.fixed.height_total, scan.fixed.height_answered, scan.fixed.restore_total, scan.fixed.restore_answered = 0, 0, 0, 0
 -- the physical flag store's questions (phases 19 to 22) the driver passed through and the replies it found complete (never altered, never credited to a control: the words are the host's)
 scan.fixed.flag_total, scan.fixed.flag_answered = 0, 0
+-- the keys the host issued for flag groups (ENV-PHYSICAL-FLAGS-ISSUED-GROUP-ALIAS-1): a group is a NEW group, so a key already issued is a wrong identity, never idempotence
+scan.fixed.flag_keys = {}
 -- the sector height reads ATTRIBUTED to the real consumer (modes sector_height_*): the roster entity types the host stated at each INSERT (the host's candidate question compares the word for the fixed family and a city), the FIRST
 -- answer awaiting its read, every read, the reads joined to a FIRST, the ELIGIBLE ones, the reads of any other caller (the clearance, the pack), the one altered answer, and the candidate questions that carried the word back (fact 12)
 scan.height = { types = {}, pending = nil, reads = 0, scan_joined = 0, eligible = 0, other = 0, altered = 0, consumed = 0, consumed_altered = 0, mismatch = 0 }
@@ -1300,7 +1302,8 @@ function scan.fixed.flag_reply_problem (answer, parsed)
 	if answer.result ~= wanted then return "a flag " .. parsed.event .. " answered " .. tostring (answer.result) .. ", not " .. wanted end
 	local name = answer.name
 	if parsed.phase == 19 then
-		if not is_flag_key (name) then return "a flag group was issued the key \"" .. shown (name) .. "\", which is not a flag key" end
+		if not is_flag_key (name) then return "a flag group was issued the key \"" .. shown (name) .. "\", which is not a flag key (`f`, a first digit 1 to 9, at most 20 bytes)" end
+		if scan.fixed.flag_keys [name] then return "a flag group was issued the key \"" .. shown (name) .. "\", which is already bound to another flag group" end
 	elseif name ~= nil and name ~= "" then
 		return "a flag " .. parsed.event .. " named the key \"" .. shown (name) .. "\""
 	end
@@ -1535,6 +1538,7 @@ local function scan_question (scene, depth, kind, definition, key, counts)
 		local flag_problem = f.flag_reply_problem (real, parsed)
 		if flag_problem == nil then
 			f.flag_answered = f.flag_answered + 1
+			if parsed.phase == 19 then f.flag_keys [real.name] = true end
 		else
 			faults.reply = faults.reply + 1
 			first_fault = first_fault or ("scan reply: " .. flag_problem)

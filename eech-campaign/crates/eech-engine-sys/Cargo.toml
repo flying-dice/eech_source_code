@@ -61,6 +61,8 @@ sector-height-check = []
 physical-flags-check = []
 # TEST-ONLY (EEDCS-49, D3): the real immediate-consumer control of the UPDATED word: the ORIGINAL fixed-wing response_to_check_mobile_reached_guide through the real message dispatch (csrc/eech_physical_flags_consumer_check.c). Never enabled in the shipping build.
 physical-flags-consumer-check = []
+# TEST-ONLY (EEDCS-49, D3, Task49): the second real immediate-consumer control of the UPDATED word: the moving-mobile pass-through of get_line_of_sight_collision_entity through the real public function in the ORIGINAL profile (csrc/eech_physical_flags_collision_check.c); the hosted profile runs nothing and says why. Never enabled in the shipping build.
+physical-flags-collision-check = []
 
 # TEST-ONLY (EEDCS-49, D3): the read-only observer of the sector tallest-structure word on the real public path: staged hooks (build/patches.rs SECTOR_HEIGHT_OBSERVER_PATCHES), csrc/eech_sho.c, and four
 # read-only report entries. Never enabled in the shipping build; with it off no hook, patch or definition exists.
@@ -106,6 +108,16 @@ path = "tests/physical_flags_hosted_faults.rs"
 required-features = ["physical-flags-check"]
 
 [[test]]
+name = "physical_flags_identity"
+path = "tests/physical_flags_identity.rs"
+required-features = ["physical-flags-check"]
+
+[[test]]
+name = "physical_flags_collision"
+path = "tests/physical_flags_collision.rs"
+required-features = ["physical-flags-collision-check"]
+
+[[test]]
 name = "sector_height"
 path = "tests/sector_height.rs"
 required-features = ["sector-height-check"]
@@ -136,3 +148,5 @@ cc = { version = "1.2", features = ["parallel"] }
 # TEST-ONLY (Task49): the hosted profile of the real-C flag controls asks the REAL host store (`eech_world::model_host::flag_answer`), so the test serves the engine's model provider with it (tests/support/flags_host.rs)
 [dev-dependencies]
 eech-world = { path = "../eech-world" }
+# the collision control's test bridge drives the real reference provider (`host.model`) from a Lua state of its own (tests/support/lua_provider.rs)
+mlua = { version = "0.10", features = ["lua51", "module", "serialize"] }

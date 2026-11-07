@@ -22,5 +22,5 @@ fn the_campaign_reads_no_caller_output_writes_only_what_the_original_assigned_an
     let report: String = text.iter().take_while(|&&c| c != 0).map(|&c| c as u8 as char).collect();
     assert_eq!(failures, 0, "the dialogue disagreed with its expectations:\n{report}");
     println!("entity dialogue expectations made: {checks}");
-    assert!(checks >= 1130, "only {checks} expectations were made: the control did not run in full");
+    assert!(checks >= 1149, "only {checks} expectations were made: the control did not run in full");
 }

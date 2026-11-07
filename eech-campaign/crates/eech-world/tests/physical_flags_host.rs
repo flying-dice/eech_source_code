@@ -248,6 +248,10 @@ fn every_malformed_unknown_or_wrong_identity_question_is_refused_by_name_and_cha
     refused(&read(&lua, "f01", UPDATED, 2), "flag.key.malformed");
     refused(&read(&lua, "f", UPDATED, 2), "flag.key.malformed");
     refused(&read(&lua, "F1", UPDATED, 2), "flag.key.malformed");
+    // the byte bound of the key domain (ENV-PHYSICAL-FLAGS-KEY-CAPACITY-1): exactly 20 bytes is inside it (and was never issued), 21 bytes and a long name are outside it even though canonical
+    refused(&read(&lua, "f9999999999999999999", UPDATED, 2), "flag.key.unknown");
+    refused(&read(&lua, "f99999999999999999999", UPDATED, 2), "flag.key.malformed");
+    refused(&read(&lua, &format!("f{}", "1".repeat(100)), UPDATED, 2), "flag.key.malformed");
     refused(&read(&lua, "", UPDATED, 2), "flag.key.missing");
     refused(&answer(&ask_words(&lua, facts(READ, 0.0, 2.0, 0), "f1 f1")), "flag.key.malformed");
     // a key where a group or a reset names none

@@ -1126,25 +1126,28 @@ static void campaign_entity_sector_height_exchange (int phase, int x_sector, int
 // lane. The reply of every phase is checked COMPLETELY before one word of the caller's is written: the state the phase allows, a key only for a group (and then a flag key, "f" and decimal digits, which is never a roster key), exactly
 // CAMPAIGN_FLAG_REPLY_WORDS words and none beyond, the array and lane echoed bit for bit as asked, and the raw word of a set or a read being the entity's own mask (a read: 0 or the mask). The raw word is read as bits and never
 // classified as a boolean, so lane 31's 0x80000000 is valid. Nothing here reads an entity or a heap slot.
+// The CANONICAL flag key domain (ENV-PHYSICAL-FLAGS-KEY-CAPACITY-1): `f`, then one to CAMPAIGN_ROSTER_KEY_MAX - 1 decimal digits whose first is not zero (so f0 and f01 are refused, as the host's own grammar refuses them), that is at most
+// CAMPAIGN_ROSTER_KEY_MAX bytes before the terminating NUL, which is the size of every identity slot the campaign holds (mb_hostmodel.c: char [CAMPAIGN_ROSTER_KEY_MAX + 1]). The whole domain is decided here, BEFORE any key is copied anywhere: a key of
+// CAMPAIGN_ROSTER_KEY_MAX + 1 bytes is refused, and so is anything longer (the bridge may carry up to 127 bytes of name for every family; the flag key is the narrower one). The scan never reads past the byte that decides.
 static int flag_key_is_valid (const char *key)
 {
 	int
 		index;
 
-	if (key [0] != 'f')
+	if ((key [0] != 'f') || (key [1] < '1') || (key [1] > '9'))
 	{
 		return FALSE;
 	}
 
-	for (index = 1; key [index] != 0; index++)
+	for (index = 2; key [index] != 0; index++)
 	{
-		if ((key [index] < '0') || (key [index] > '9') || (index > CAMPAIGN_ROSTER_KEY_MAX))
+		if ((key [index] < '0') || (key [index] > '9') || (index >= CAMPAIGN_ROSTER_KEY_MAX))
 		{
 			return FALSE;
 		}
 	}
 
-	return (index >= 2);
+	return TRUE;
 }
 
 static void check_flag_reply (const campaign_model_reply *reply, int phase, const float *asked, int lane)

@@ -1,0 +1,11 @@
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.82s
+     Running unittests src/lib.rs (/target/t/debug/deps/eech_world-49d864156aa003d7)
+     Running tests/entity_authority.rs (/target/t/debug/deps/entity_authority-e560af20ef34dd57)
+     Running tests/physical_flags_host.rs (/target/t/debug/deps/physical_flags_host-5e792bc00d99df08)
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 16s
+     Running unittests src/lib.rs (/target/t/debug/deps/eech_dc-fdb47b6c877293f7)
+     Running unittests src/lib.rs (/target/t/debug/deps/eech_engine-14b00a88a2e67f0a)

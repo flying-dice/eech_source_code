@@ -2123,7 +2123,8 @@ void campaign_model_sector_height_restore (int x_sector, int z_sector, const flo
 //   - a group lies inside the original's reset extent when its word index is below the number of words the original's quarter-memset clears (memset counts BYTES, so that is a quarter of the words: slots 0 to 131071); the
 //     campaign states that fact once, when it opens the group, and the host's reset clears the groups that have it;
 //   - the table is process lifetime and is NOT cleared by a campaign boot or a roster reset (a new roster identity must not clear the bits of a slot that is reused, as the original's static arrays are not); it is only as valid
-//     as the host binding that issued its keys, whose own lifetime is the store's: a key a replaced host never issued is refused by name, never answered as zero.
+//     as the ONE persistent host binding (one SharedRoster and FlagStore for the process: the engine boots once per process and the reference host installs one store) that issued its keys. A REPLACEMENT store is UNSUPPORTED and UNPROVED: it restarts
+//     its fN numbering, so an old key may coincidentally exist in it and name another group; no fresh-store refusal is promised and none is claimed as a lifetime proof.
 #define CAMPAIGN_FLAG_GROUPS (MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8))
 #define CAMPAIGN_FLAG_RESET_GROUPS ((MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8)) / sizeof (unsigned int))
 
@@ -2154,7 +2155,26 @@ static const char *flag_group_key (int slot)
 
 	if (flag_key_of_group [group][0] == 0)
 	{
-		campaign_entity_flag_exchange (CAMPAIGN_SCAN_PHASE_FLAG_GROUP, 0, 0, NULL, ((unsigned int) group < CAMPAIGN_FLAG_RESET_GROUPS), flag_key_of_group [group], NULL);
+		char
+			staged [CAMPAIGN_ROSTER_KEY_MAX + 1];
+
+		int
+			other;
+
+		// the host's answer is STAGED, not written into the group's entry: FLAG_GROUP opens a NEW group, so a key that is already bound to another group of this table names a word that group owns, and taking it would alias two independent
+		// original words (and possibly a reset-eligible one with an ineligible one) onto one host word (ENV-PHYSICAL-FLAGS-ISSUED-GROUP-ALIAS-1). The refusal comes BEFORE the commit: the entry stays empty, no set or read is ever made through the key,
+		// and every existing binding is untouched. Identity only: no bit, mask or word is kept here. (A callback's own physical effects cannot be undone by this check.)
+		campaign_entity_flag_exchange (CAMPAIGN_SCAN_PHASE_FLAG_GROUP, 0, 0, NULL, ((unsigned int) group < CAMPAIGN_FLAG_RESET_GROUPS), staged, NULL);
+
+		for (other = 0; other < (int) CAMPAIGN_FLAG_GROUPS; other++)
+		{
+			if ((other != group) && (flag_key_of_group [other][0] != 0) && (strcmp (flag_key_of_group [other], staged) == 0))
+			{
+				debug_fatal ("host model: [model-provider:flag.key] the host issued the key \"%.40s\" for a new flag group, which is already bound to another flag group", staged);
+			}
+		}
+
+		memcpy (flag_key_of_group [group], staged, strlen (staged) + 1);
 
 #ifdef EECH_MODEL_HOST_FIXTURE
 		campaign_model_counts.flag_groups++;
@@ -2164,9 +2184,9 @@ static const char *flag_group_key (int slot)
 	return flag_key_of_group [group];
 }
 
-#if defined(EECH_PHYSICAL_FLAGS_CHECK) || defined(EECH_PHYSICAL_FLAGS_CONSUMER_CHECK)
+#if defined(EECH_PHYSICAL_FLAGS_CHECK) || defined(EECH_PHYSICAL_FLAGS_CONSUMER_CHECK) || defined(EECH_PHYSICAL_FLAGS_COLLISION_CHECK)
 
-// TEST-ONLY (features physical-flags-check and physical-flags-consumer-check; never in the shipping build): the real-C controls start every scenario from a fresh host binding, which means a fresh store in the host and no key
+// TEST-ONLY (features physical-flags-check, physical-flags-consumer-check and physical-flags-collision-check; never in the shipping build): the real-C controls start every scenario from a fresh host binding, which means a fresh store in the host and no key
 // of the previous one here, and they ask which key the campaign holds for a slot's group in order to ask the host (not the campaign) what the group's words are. Neither answers a flag: the table still holds identity only.
 const char *campaign_model_flag_key_for_test (int slot)
 {

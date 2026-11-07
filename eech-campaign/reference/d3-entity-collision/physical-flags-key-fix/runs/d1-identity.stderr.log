@@ -1,0 +1,17 @@
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 11s
+     Running tests/entity_dialogue.rs (/target/t/debug/deps/entity_dialogue-ec85c77f4e32b8c2)
+     Running tests/physical_flags.rs (/target/t/debug/deps/physical_flags-f4e90df474ba47b9)
+     Running tests/physical_flags_consumer.rs (/target/t/debug/deps/physical_flags_consumer-e420c19131818b55)
+     Running tests/physical_flags_hosted_faults.rs (/target/t/debug/deps/physical_flags_hosted_faults-0ce2b18a2f4ec347)
+     Running tests/physical_flags_identity.rs (/target/t/debug/deps/physical_flags_identity-367ff55c93d35ba7)
+eech: debug_fatal: host model: [model-provider:flag.key] the key "f11111111111111111111" the host issued for a flag group is not a flag key
+eech: debug_fatal: host model: [model-provider:flag.key] the key "f111111111111111111111111111111111111111" the host issued for a flag group is not a flag key
+eech: debug_fatal: host model: [model-provider:flag.key] the key "f01" the host issued for a flag group is not a flag key
+eech: debug_fatal: host model: [model-provider:flag.key] the key "f0" the host issued for a flag group is not a flag key
+eech: debug_fatal: host model: [model-provider:flag.key] the key "F1" the host issued for a flag group is not a flag key
+eech: debug_fatal: host model: [model-provider:flag.key] the key "12" the host issued for a flag group is not a flag key
+eech: debug_fatal: host model: [model-provider:flag.key] the host issued the key "f1" for a new flag group, which is already bound to another flag group
+eech: debug_fatal: host model: [model-provider:flag.key] the host issued the key "f2" for a new flag group, which is already bound to another flag group
+eech: debug_fatal: host model: [model-provider:flag.key] the host issued the key "f1" for a new flag group, which is already bound to another flag group

@@ -466,4 +466,262 @@ int eech_physical_flags_check_run (char *text, int capacity, int *checks)
 	return c.failures;
 }
 
+#ifdef EECH_CAMPAIGN_HOST_ENTITY
+
+/*
+ * THE IDENTITY CONTROL of the hosted profile (Task49; ENV-PHYSICAL-FLAGS-KEY-CAPACITY-1 and ENV-PHYSICAL-FLAGS-ISSUED-GROUP-ALIAS-1): what the campaign's REAL binding (mb_hostmodel.c: the key table, flag_group_key, the exchange) does with the keys the
+ * HOST issues for its word groups, through the engine's own getter, setter and reset, against the REAL host store. A fault is injected by the test's provider (a well-formed answer to a real question with ONE field changed, as a faulty Host would
+ * give it); the engine's own fatal is caught here exactly as an engine entry catches it (eech_fatal_target), so a refusal is observed where it happens and not in a dead process.
+ *
+ * What it asserts: POSITIVE FIRST, two independent groups with distinct keys and independent words, then the exact 20-byte key (the identity slot's whole domain) bound through the real table with its neighbours intact; then, for EACH single fault of the
+ * key (one byte too long, a long name, f0, f01, an upper-case F, a roster-style key) and for a key ALREADY BOUND to another live group (each of the two live groups in turn, and for a reset-ineligible new group), the engine stops by named marker BEFORE
+ * the cache commit: the new group's entry stays empty, every existing binding is byte for byte as it was, the host's words of the existing groups are as they were (no set or read went through the bad binding), and the CORRECTED answer is then accepted
+ * and works. The quarter-reset extent of the corrected group is checked last (an eligible group is cleared, an ineligible one survives), so that no refusal mixed the two.
+ * It does NOT assert a lifetime of the store or a replacement of the provider: a test-only fresh binding resets the store AND forgets the keys between scenarios.
+ */
+
+#include <setjmp.h>
+#include "eech_headless.h"
+
+static void (*identity_fault_fn) (int) = NULL;
+
+/* the faults the test's provider can give (tests/support/flags_host.rs, KEY_*): the numbers are part of that contract */
+#define KEY_FAULT_NONE 0
+#define KEY_FAULT_ALIAS20 1
+#define KEY_FAULT_21 2
+#define KEY_FAULT_LONG 3
+#define KEY_FAULT_F01 4
+#define KEY_FAULT_F0 5
+#define KEY_FAULT_UPPER 6
+#define KEY_FAULT_ROSTER 7
+#define KEY_FAULT_DUP_FIRST 8
+#define KEY_FAULT_DUP_SECOND 9
+
+void eech_physical_flags_identity_set_host (campaign_model_fn model, flags_host_fresh_fn fresh, flags_host_observe_fn observe, void (*fault) (int))
+{
+	hosted_install (model, fresh, observe);
+
+	identity_fault_fn = fault;
+}
+
+/* the engine's own fatal, caught as an engine entry catches it: 1 when the statement stopped the engine (the message is kept), the poisoned flag given back */
+#define TRAP(STATEMENT, CAUGHT) \
+	do { \
+		jmp_buf trap_; \
+		jmp_buf *saved_target_ = eech_fatal_target; \
+		int saved_poisoned_ = eech_engine_poisoned; \
+		(CAUGHT) = 0; \
+		eech_fatal_target = &trap_; \
+		if (setjmp (trap_) == 0) { STATEMENT; } else { (CAUGHT) = 1; } \
+		eech_fatal_target = saved_target_; \
+		eech_engine_poisoned = saved_poisoned_; \
+	} while (0)
+
+static void identity_set (entity *en)
+{
+	set_local_entity_int_value (en, INT_TYPE_UPDATED, TRUE);
+}
+
+static int identity_read (entity *en)
+{
+	return get_local_entity_int_value (en, INT_TYPE_UPDATED);
+}
+
+static int same_keys (const char *a, const char *b)
+{
+	if ((a == NULL) || (b == NULL))
+	{
+		return (a == b);
+	}
+
+	return (strcmp (a, b) == 0);
+}
+
+int eech_physical_flags_identity_run (char *text, int capacity, int *checks)
+{
+	static const int FAULTS [] = { KEY_FAULT_21, KEY_FAULT_LONG, KEY_FAULT_F01, KEY_FAULT_F0, KEY_FAULT_UPPER, KEY_FAULT_ROSTER };
+	static const char *const FAULT_NAMES [] = { "21 bytes", "a long name", "f01", "f0", "an upper-case F", "a roster-style key" };
+	struct check
+		c;
+	entity
+		*pool,
+		*saved_entities,
+		*a,
+		*b,
+		*e;
+	char
+		key0 [CAMPAIGN_ROSTER_KEY_MAX + 1],
+		key1 [CAMPAIGN_ROSTER_KEY_MAX + 1],
+		key2 [CAMPAIGN_ROSTER_KEY_MAX + 1];
+	int
+		i,
+		caught,
+		dup;
+
+	c.text = text;
+	c.capacity = capacity;
+	c.used = 0;
+	c.failures = 0;
+	c.checks = 0;
+	text [0] = 0;
+
+	if ((hosted_fresh_fn == NULL) || (hosted_observe_fn == NULL) || (identity_fault_fn == NULL))
+	{
+		note (&c, "FAIL no hosted flag provider and fault hook were installed before the run\n");
+
+		*checks = 0;
+
+		return 1;
+	}
+
+	pool = (entity *) calloc (MAX_NUM_ENTITIES, sizeof (entity));
+
+	if (!pool)
+	{
+		note (&c, "FAIL the entity pool could not be allocated\n");
+
+		*checks = 0;
+
+		return 1;
+	}
+
+	saved_entities = entities;
+
+	save_tables ();
+
+	entities = pool;
+
+	initialise_entity_int_value_default_functions ();
+	overload_mobile_int_value_functions (ENTITY_TYPE_HELICOPTER);
+
+	/* ---- POSITIVE FIRST: two independent groups, distinct valid keys, independent raw words ---- */
+	identity_fault_fn (KEY_FAULT_NONE);
+	clear_flags ();
+
+	a = slot (pool, 3, ENTITY_TYPE_HELICOPTER);
+	b = slot (pool, 35, ENTITY_TYPE_HELICOPTER);
+
+	identity_set (a);
+	identity_set (slot (pool, 5, ENTITY_TYPE_HELICOPTER));
+	identity_set (b);
+
+	strcpy (key0, campaign_model_flag_key_for_test (3) ? campaign_model_flag_key_for_test (3) : "");
+	strcpy (key1, campaign_model_flag_key_for_test (35) ? campaign_model_flag_key_for_test (35) : "");
+
+	EXPECT (&c, (key0 [0] == 'f') && (key1 [0] == 'f') && (strcmp (key0, key1) != 0), "two groups hold two distinct host-issued keys");
+	EXPECT (&c, same_keys (campaign_model_flag_key_for_test (5), key0), "an entity of the same word group is bound to the same key");
+	EXPECT_INT (&c, hosted_word (INT_TYPE_UPDATED, 3), (long long) (mask_of (3) | mask_of (5)), "the first group's word is the host's, both bits");
+	EXPECT_INT (&c, hosted_word (INT_TYPE_UPDATED, 35), (long long) mask_of (35), "the second group's word is its own");
+	EXPECT_INT (&c, identity_read (b), (long long) (int) mask_of (35), "a read in the second group answers its own mask");
+	EXPECT_INT (&c, hosted_word (INT_TYPE_UPDATED, 3), (long long) (mask_of (3) | mask_of (5)), "a read in one group destroys nothing of the other");
+
+	/* ---- the exact 20-byte key: the whole identity slot, through the real table, neighbours intact ---- */
+	identity_fault_fn (KEY_FAULT_ALIAS20);
+	clear_flags ();
+
+	for (i = 0; i < 4; i++)
+	{
+		identity_set (slot (pool, 32 * i + 3, ENTITY_TYPE_HELICOPTER));
+	}
+
+	EXPECT (&c, (campaign_model_flag_key_for_test (3) != NULL) && (strlen (campaign_model_flag_key_for_test (3)) == CAMPAIGN_ROSTER_KEY_MAX), "the key the host issued fills the slot to its 20-byte bound");
+	EXPECT (&c, (strlen (campaign_model_flag_key_for_test (35)) == CAMPAIGN_ROSTER_KEY_MAX) && (strlen (campaign_model_flag_key_for_test (67)) == CAMPAIGN_ROSTER_KEY_MAX) && (strlen (campaign_model_flag_key_for_test (99)) == CAMPAIGN_ROSTER_KEY_MAX), "the neighbouring groups' keys are whole too");
+	EXPECT (&c, (strcmp (campaign_model_flag_key_for_test (3), campaign_model_flag_key_for_test (35)) != 0) && (strcmp (campaign_model_flag_key_for_test (35), campaign_model_flag_key_for_test (67)) != 0) && (strcmp (campaign_model_flag_key_for_test (67), campaign_model_flag_key_for_test (99)) != 0), "four distinct 20-byte keys");
+
+	for (i = 0; i < 4; i++)
+	{
+		EXPECT_INT (&c, hosted_word (INT_TYPE_UPDATED, 32 * i + 3), (long long) mask_of (3), "each 20-byte-keyed group holds its own word");
+		EXPECT_INT (&c, identity_read (slot (pool, 32 * i + 3, ENTITY_TYPE_HELICOPTER)), (long long) (int) mask_of (3), "each 20-byte-keyed group reads its own mask");
+	}
+
+	/* ---- every single fault of the issued key: refused before the commit, the existing bindings and words intact, the corrected answer accepted ---- */
+	for (i = 0; i < (int) (sizeof (FAULTS) / sizeof (FAULTS [0])); i++)
+	{
+		identity_fault_fn (KEY_FAULT_NONE);
+		clear_flags ();
+
+		identity_set (slot (pool, 3, ENTITY_TYPE_HELICOPTER));
+		identity_set (slot (pool, 35, ENTITY_TYPE_HELICOPTER));
+		strcpy (key0, campaign_model_flag_key_for_test (3));
+		strcpy (key1, campaign_model_flag_key_for_test (35));
+
+		identity_fault_fn (FAULTS [i]);
+		e = slot (pool, 100, ENTITY_TYPE_HELICOPTER);
+		TRAP (identity_set (e), caught);
+
+		EXPECT (&c, caught && (strstr (eech_fatal_message, "[model-provider:flag.key]") != NULL || strstr (eech_fatal_message, "not a flag key") != NULL), FAULT_NAMES [i]);
+		EXPECT (&c, campaign_model_flag_key_for_test (100) == NULL, "the refused key was never committed to the new group's entry");
+		EXPECT (&c, same_keys (campaign_model_flag_key_for_test (3), key0) && same_keys (campaign_model_flag_key_for_test (35), key1) && (campaign_model_flag_key_for_test (67) == NULL) && (campaign_model_flag_key_for_test (131) == NULL), "every other cache entry is as it was (neighbours included)");
+		EXPECT_INT (&c, hosted_word (INT_TYPE_UPDATED, 3), (long long) mask_of (3), "the first group's host word is as it was");
+		EXPECT_INT (&c, hosted_word (INT_TYPE_UPDATED, 35), (long long) mask_of (35), "the second group's host word is as it was");
+
+		identity_fault_fn (KEY_FAULT_NONE);
+		identity_set (e);
+
+		EXPECT (&c, (campaign_model_flag_key_for_test (100) != NULL) && !same_keys (campaign_model_flag_key_for_test (100), key0) && !same_keys (campaign_model_flag_key_for_test (100), key1), "the corrected answer is accepted and distinct");
+		EXPECT_INT (&c, identity_read (e), (long long) (int) mask_of (100), "and the corrected group works");
+	}
+
+	/* ---- a key already bound to another LIVE group: each of the two live keys in turn, then a reset-ineligible new group ---- */
+	for (dup = 0; dup < 3; dup++)
+	{
+		int
+			fault = (dup == 1) ? KEY_FAULT_DUP_SECOND : KEY_FAULT_DUP_FIRST,
+			new_slot = (dup == 2) ? 140000 : 100;
+
+		identity_fault_fn (KEY_FAULT_NONE);
+		clear_flags ();
+
+		identity_set (slot (pool, 3, ENTITY_TYPE_HELICOPTER));
+		identity_set (slot (pool, 5, ENTITY_TYPE_HELICOPTER));
+		identity_set (slot (pool, 35, ENTITY_TYPE_HELICOPTER));
+		strcpy (key0, campaign_model_flag_key_for_test (3));
+		strcpy (key1, campaign_model_flag_key_for_test (35));
+
+		identity_fault_fn (fault);
+		e = slot (pool, new_slot, ENTITY_TYPE_HELICOPTER);
+		TRAP (identity_set (e), caught);
+
+		EXPECT (&c, caught && (strstr (eech_fatal_message, "already bound to another flag group") != NULL), "a live key issued for a new group is refused by name");
+		EXPECT (&c, campaign_model_flag_key_for_test (new_slot) == NULL, "the duplicate was not committed: the new group's entry stays empty");
+		EXPECT (&c, same_keys (campaign_model_flag_key_for_test (3), key0) && same_keys (campaign_model_flag_key_for_test (35), key1), "both live bindings are as they were");
+		EXPECT_INT (&c, hosted_word (INT_TYPE_UPDATED, 3), (long long) (mask_of (3) | mask_of (5)), "the first live group's host word holds no bit of the refused group");
+		EXPECT_INT (&c, hosted_word (INT_TYPE_UPDATED, 35), (long long) mask_of (35), "the second live group's host word holds no bit of the refused group");
+
+		identity_fault_fn (KEY_FAULT_NONE);
+		identity_set (e);
+
+		EXPECT (&c, (campaign_model_flag_key_for_test (new_slot) != NULL) && !same_keys (campaign_model_flag_key_for_test (new_slot), key0) && !same_keys (campaign_model_flag_key_for_test (new_slot), key1), "the corrected answer is a new key");
+		EXPECT_INT (&c, hosted_word (INT_TYPE_UPDATED, new_slot), (long long) mask_of (new_slot), "the corrected group holds its own word");
+		EXPECT_INT (&c, hosted_word (INT_TYPE_UPDATED, 3), (long long) (mask_of (3) | mask_of (5)), "and the first live group still holds both of its bits");
+
+		if (dup == 2)
+		{
+			/* the reset extent was not mixed by the refusal: the eligible group is cleared, the reset-ineligible one (word index above the extent) survives */
+			campaign_model_flag_reset (CAMPAIGN_FLAG_ARRAY_UPDATED);
+
+			EXPECT_INT (&c, hosted_word (INT_TYPE_UPDATED, 3), 0, "a reset clears the eligible group");
+			EXPECT_INT (&c, hosted_word (INT_TYPE_UPDATED, new_slot), (long long) mask_of (new_slot), "and leaves the reset-ineligible group's bit");
+		}
+	}
+
+	identity_fault_fn (KEY_FAULT_NONE);
+
+	note (&c, "physical-flags-identity: keys=exact20+faults+duplicates through the real table\n");
+
+	entities = saved_entities;
+
+	restore_tables ();
+
+	free (pool);
+
+	*checks = c.checks;
+
+	return c.failures;
+}
+
+#undef TRAP
+
+#endif
+
 #endif

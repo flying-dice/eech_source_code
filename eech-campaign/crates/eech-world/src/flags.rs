@@ -11,12 +11,16 @@
 //! its heap), the bits and everything done to them are the host's. A key that was never issued, a malformed key, an array or a lane out of its domain are refused by name and change nothing.
 //!
 //! LIFETIME. The store is the host's: it lives with the host binding that holds it and is NOT cleared by a campaign boot or a new roster identity, because the original's static arrays are not (a slot that is
-//! reused inherits the history of the slot). Nothing here normalises a raw word to a boolean, and no state is mirrored anywhere else.
+//! reused inherits the history of the slot). The supported lifetime is ONE persistent binding (one `SharedRoster` and so one store per process); replacing the store is unsupported and unproved: a new store restarts its `fN`
+//! numbering, so an old key may coincidentally exist in it and name another group. Nothing here normalises a raw word to a boolean, and no state is mirrored anywhere else.
 
 use crate::roster::Refusal;
 
 /// the three words: UPDATED, MOVED and ROTATED
 pub const ARRAYS: usize = 3;
+
+/// the longest flag key, in bytes before the terminating NUL: the size of every identity slot of the campaign (`CAMPAIGN_ROSTER_KEY_MAX`, mb_hostmodel.h); the campaign's C refuses anything longer before it copies a byte
+pub const KEY_MAX: usize = 20;
 
 struct Group {
     /// whether the group lies inside the extent the original's quarter-memset reset reaches (the campaign states it once, when it opens the group)
@@ -51,10 +55,10 @@ impl FlagStore {
     fn index(&self, key: &str) -> Result<usize, Refusal> {
         let digits = key
             .strip_prefix('f')
-            .filter(|digits| !digits.is_empty() && !digits.starts_with('0') && digits.bytes().all(|byte| byte.is_ascii_digit()))
+            .filter(|digits| !digits.is_empty() && key.len() <= KEY_MAX && !digits.starts_with('0') && digits.bytes().all(|byte| byte.is_ascii_digit()))
             .ok_or_else(|| {
                 Refusal(format!(
-                    "[flag.key.malformed] \"{key}\" is not a flag group key: `f` and a decimal number without a leading zero"
+                    "[flag.key.malformed] \"{key}\" is not a flag group key: `f` and a decimal number without a leading zero, at most {KEY_MAX} bytes"
                 ))
             })?;
         match digits.parse::<usize>() {
@@ -215,7 +219,12 @@ mod tests {
         refused(store.read("7", 0, 2), "flag.key.malformed");
         refused(store.read("", 0, 2), "flag.key.malformed");
         refused(store.read("f", 0, 2), "flag.key.malformed");
-        refused(store.read("f99999999999999999999999", 0, 2), "flag.key.unknown");
+        refused(store.read("f99999999999999999999999", 0, 2), "flag.key.malformed");
+        // the byte bound of the key domain: 20 bytes is within it (and unknown here), 21 bytes is outside it however canonical
+        refused(store.read("f9999999999999999999", 0, 2), "flag.key.unknown");
+        assert_eq!("f9999999999999999999".len(), KEY_MAX);
+        refused(store.read("f99999999999999999999", 0, 2), "flag.key.malformed");
+        refused(store.set(&format!("f{}", "1".repeat(100)), 0, 2), "flag.key.malformed");
         refused(store.set(&key, 3, 2), "flag.array");
         refused(store.read(&key, 0, 32), "flag.lane");
         refused(store.reset(3), "flag.array");
