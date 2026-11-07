@@ -1,0 +1,240 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "D3-PHYSICAL-FLAGS-CONSUMER-CODE-FROZEN-20261107.json",
+      "bytes": 33216,
+      "sha256": "4a2a522a8af77e1181b5065df4934028d0124dc8a5c80423cb06cd66154cb871"
+    },
+    {
+      "path": "inputmaps-compare.json",
+      "bytes": 1737,
+      "sha256": "a8a0211ea9c8f55fbdc19c7649ebd026bfb24952b07187f48ba051eac28f3add"
+    },
+    {
+      "path": "join-vs-reference.json",
+      "bytes": 6850,
+      "sha256": "ea41853eadb18ba9d94fd32864e28d5507f5ccce33ab32c8ed9ca7614f36b4c0"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4804,
+      "sha256": "142f8e20e1615dbaa90080e4b1620eeb72895c2f8fa64dfdb3ab46169938ddda"
+    },
+    {
+      "path": "runs/c1-consumer-check.json",
+      "bytes": 996,
+      "sha256": "782c57de040c74ab2e2cac6504a751a0164c826e7208239b263d56505d72d6a4"
+    },
+    {
+      "path": "runs/c1-consumer-check.stderr.log",
+      "bytes": 264,
+      "sha256": "b6a0e218d70fb9733e40780bc360e45eaf56aa7823924f86bcc7558d3e96e134"
+    },
+    {
+      "path": "runs/c1-consumer-check.stdout.log",
+      "bytes": 420,
+      "sha256": "cd99767f315656498d810d6948cda094bd4fca69e10033ca0783b3a34ed0d89d"
+    },
+    {
+      "path": "runs/c2-all-flags-tests.json",
+      "bytes": 1140,
+      "sha256": "4513e40b53ba62cc938771dafbf18e630a05a8fb34be4004383fd8b4ab648be1"
+    },
+    {
+      "path": "runs/c2-all-flags-tests.stderr.log",
+      "bytes": 460,
+      "sha256": "e5be53169e480093343273360f81b4158901dbcdddf3cf433bab858b72e95ab9"
+    },
+    {
+      "path": "runs/c2-all-flags-tests.stdout.log",
+      "bytes": 1268,
+      "sha256": "52e98de75e5a89aa6ba3764d49092a8769e2cd66716daa30b867ff5042bf8ff2"
+    },
+    {
+      "path": "runs/c3-fmt-apply.json",
+      "bytes": 858,
+      "sha256": "da2167a46132ea745456ed12b90710810fae7356caa7d325d5ae220bfab23f22"
+    },
+    {
+      "path": "runs/c3-fmt-apply.stderr.log",
+      "bytes": 36,
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/c3-fmt-apply.stdout.log",
+      "bytes": 46,
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/c4-clippy-features.json",
+      "bytes": 1094,
+      "sha256": "d81c5b232901dcaa8143d8d3a840fadd684c7624a1e56c4fbae7eb4c7069d4de"
+    },
+    {
+      "path": "runs/c4-clippy-features.stderr.log",
+      "bytes": 188,
+      "sha256": "72855d388a6d6321f7e0088ce8f4964d2bdaaa32ddc645b724dd63c078eb3b25"
+    },
+    {
+      "path": "runs/c4-clippy-features.stdout.log",
+      "bytes": 38,
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "path": "runs/hwcons-final-set-20261107.progress",
+      "bytes": 168,
+      "sha256": "bb099eb1ec23d2bde8e410f383e21058294fd44426986fd8b7e530c316110553"
+    },
+    {
+      "path": "runs/hwcons-final-set-lease-after-20261107.txt",
+      "bytes": 19,
+      "sha256": "4c04288a874657cf84a8d7ee257da46d3050f3dca11b09a8ac7da7f148e8555c"
+    },
+    {
+      "path": "runs/hwcons-final-set-lease-before-20261107.txt",
+      "bytes": 231,
+      "sha256": "d009cbe4bfbfa011d611f4537dd5c3fd9f4867938be3abb7f2734592998f7b88"
+    },
+    {
+      "path": "runs/k1-fmt-check.json",
+      "bytes": 862,
+      "sha256": "20953733cc19b66ebf06a8fb1c876ee4f701fbb303fcc08f43734ce07f6d4109"
+    },
+    {
+      "path": "runs/k1-fmt-check.stderr.log",
+      "bytes": 36,
+      "sha256": "eb99b4a4cac7b9133a096e4d9c50c3c06be47953bc602343afcb34913585f06a"
+    },
+    {
+      "path": "runs/k1-fmt-check.stdout.log",
+      "bytes": 46,
+      "sha256": "5599925a145edaa750ffdd40d2dc1adb031362d0932dd5935e20440a5f51d2be"
+    },
+    {
+      "path": "runs/k2-clippy-engine-sys-default.json",
+      "bytes": 968,
+      "sha256": "24eadb0604355593c667170840ff4697a38501804f1a0c9a6abb744d39c897fb"
+    },
+    {
+      "path": "runs/k2-clippy-engine-sys-default.stderr.log",
+      "bytes": 188,
+      "sha256": "3ef3a3be7bb8a15a646702cd850923628a8767ff6a6c47cbbd1ad8a2a63deb21"
+    },
+    {
+      "path": "runs/k2-clippy-engine-sys-default.stdout.log",
+      "bytes": 38,
+      "sha256": "514f4171a1bed07e7d27a872fc29ebb3e32360eb297e28acf00ab796f80e1038"
+    },
+    {
+      "path": "runs/k3-clippy-engine-sys-both-features.json",
+      "bytes": 1040,
+      "sha256": "ce9510988972afab01465a8ae842b88d9658821225635c757c4b141a406fd99b"
+    },
+    {
+      "path": "runs/k3-clippy-engine-sys-both-features.stderr.log",
+      "bytes": 107,
+      "sha256": "58b39fb953426a50afbb1bb8b7b957011552b28ee8b96de002b7f9ac68b3bae5"
+    },
+    {
+      "path": "runs/k3-clippy-engine-sys-both-features.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/k4-engine-sys-default.json",
+      "bytes": 862,
+      "sha256": "ac3d00df56148e615d3f2a0149125524337aecec26aff05e8538c10b650f24ca"
+    },
+    {
+      "path": "runs/k4-engine-sys-default.stderr.log",
+      "bytes": 1123,
+      "sha256": "8669cbfab2f52f63e4bfe5fbeebdc8e6091794506c8264107931deb8bb7d6553"
+    },
+    {
+      "path": "runs/k4-engine-sys-default.stdout.log",
+      "bytes": 6538,
+      "sha256": "04f7ec68501cf366d7b6a58669b59f44cd7efab5491e5a2fd389db380d2b7a8f"
+    },
+    {
+      "path": "runs/k5-flags-controls-and-census.json",
+      "bytes": 1139,
+      "sha256": "82a8a77ed618cd34172ffd0f319cd1ea6516221576348826865025512d11c11f"
+    },
+    {
+      "path": "runs/k5-flags-controls-and-census.stderr.log",
+      "bytes": 459,
+      "sha256": "74691e3851233b2691a8a5a9b7186d5290191479b52a708bca97006cd12d5daa"
+    },
+    {
+      "path": "runs/k5-flags-controls-and-census.stdout.log",
+      "bytes": 1268,
+      "sha256": "80e8f4291580a8822d77fa1dea315e488ea0e53245d444baa86b87dcb5aa4d24"
+    },
+    {
+      "path": "scripts/check-physical-flags-consumer-linux-20261107.sh",
+      "bytes": 1216,
+      "sha256": "0ccbf51f73327262968788c5ff1e8f2be1151d0854652e6e9ad22c6f68747e65"
+    },
+    {
+      "path": "scripts/freeze-hwcons-20261107.PRE-version.py",
+      "bytes": 26074,
+      "sha256": "20d6cf2935f0052973618ddb783d5abfd7bc4947205b787d79b0558eca952d16"
+    },
+    {
+      "path": "scripts/freeze-hwcons-20261107.py",
+      "bytes": 28058,
+      "sha256": "ac5a761cd9f7c3ac3f896e4eb52005025e5a1b4e778a545082200c26ffabafc2"
+    },
+    {
+      "path": "scripts/hwcons-extra-identity-20261107.py",
+      "bytes": 3493,
+      "sha256": "5ce233c49f753dbcc1ce3f0424395047b9e71a22873e91051aa6549a8c9984e7"
+    },
+    {
+      "path": "scripts/hwcons-feedback-files-20261107.json",
+      "bytes": 350,
+      "sha256": "5538baf756e6cd8e5c3046fbecc9d7252811349812164622e86cce1955c0ead5"
+    },
+    {
+      "path": "scripts/hwcons-freeze-attempt1-20261107.stderr.txt",
+      "bytes": 520,
+      "sha256": "8e295d7b320a0825c4998fb2ac89d99dfea2eaf5b27e4aeb5a9e411023a35472"
+    },
+    {
+      "path": "scripts/hwcons-join-20261107.py",
+      "bytes": 8217,
+      "sha256": "0deea98747775f8f348d694c137397471a0d71843715a04ec9cda7d02d31f3c6"
+    },
+    {
+      "path": "scripts/hwcons-retained-dev-runs-20261107.json",
+      "bytes": 3,
+      "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+    },
+    {
+      "path": "scripts/run-hwcons-final-set-20261107.sh",
+      "bytes": 2544,
+      "sha256": "3ad92116901c5705ee254ca8e6666f50d8c939b486735d6b5241e86d71b5264c"
+    },
+    {
+      "path": "scripts/run-physical-flags-consumer-direct-20261107.py",
+      "bytes": 2076,
+      "sha256": "21ce62565b2776fce595e87a47d18298c147897175a182fa5c6b938894a8798b"
+    },
+    {
+      "path": "scripts/sector-roster-inputmap-batched-20261106.py",
+      "bytes": 5094,
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+    },
+    {
+      "path": "scripts/sho-compare-maps-20261107.py",
+      "bytes": 1897,
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    }
+  ],
+  "scope": "Source and local-check packet of the M5/M6 witness batch only; not a native result, review, approval or acceptance."
+}

@@ -1,0 +1,11 @@
+{
+  "scope": "Publisher-reader setup repair only, no test/build/native replay",
+  "observed": "The first freeze reader failed before writing a frozen receipt: it looked for physical-flags-c1-consumer-check.json, while actual receipts are flags-consumer-c1-consumer-check.json. The PRE reader20d6cf29 was copied to freeze-hwcons-20261107.PRE-version.py before that attempt. All five real final children are terminal0, 49 default instances plus6 combined instances (199+56 C expectations).",
+  "required": [
+    "Preserve failed attempt and PRE-version bytes. A corrected publisher reader may run without replaying unchanged test/compiler/native work. Do not claim the corrected reader was final before PRE or that all current readers still match PRE/POST if its bytes changed.",
+    "Explicitly dual-bind the old PRE/POST reader and corrected actual-current reader hashes, changed line(s) and reason, test/compiled-input equality and actual Git literal packet bytes. Preserve old timed maps, no invented timestamps or rewriting old freeze receipts. No complete-regression/consumer acceptance from publisher success alone.",
+    "Read this feedback before freeze/stop, qualify its arrival AFTER the completed checks rather than pretending it was in their PRE extras. Include new feedback and final publisher/erratum identities separately.",
+    "Implement the process improvement in this reader: derive receipt file paths from the actual run records/configuration, or assert every expected receipt path exists BEFORE PRE for future runs. Syntax-only checking of a copied publisher did not catch this concrete stale-prefix error. No extra speculative test framework or duplicated old packet."
+  ],
+  "limits": "This is a Root reader-binding qualification, not a product defect. Production flags remain unchanged; same changed-material review still required; preserve existing shipping764 jobs."
+}

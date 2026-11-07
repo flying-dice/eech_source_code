@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "R:\d3-evidence\freeze-hwcons-20261107.py", line 83, in <module>
+    shutil.copyfile(EXT / ("physical-flags-%s.%s" % (name, suffix)), RUNS / ("%s.%s" % (name, suffix)))
+  File "C:\Users\starscream\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\shutil.py", line 260, in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'R:\\d3-evidence\\physical-flags-c1-consumer-check.json'

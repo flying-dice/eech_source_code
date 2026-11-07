@@ -1,0 +1,40 @@
+{
+  "files": [
+    {
+      "path": "Root-physical-flags-consumer-feedback-20261107-1626.json",
+      "bytes": 1894,
+      "sha256": "4faab6d5959fedc5a42fc086acc4791c1ad9eceafe5759ea112e754c327e3205"
+    },
+    {
+      "path": "erratum-freeze-reader.json",
+      "bytes": 9024,
+      "sha256": "bfc8cde944ff11a6049953ba0fc3acee730b5fbd7cdd129857c92e937392fe97"
+    },
+    {
+      "path": "erratum-README.md",
+      "bytes": 864,
+      "sha256": "a4194232742ab45606614150903d7f92a6d9b83f39d62ad720c48a9cbd427a17"
+    },
+    {
+      "path": "erratum-literal-check.json",
+      "bytes": 2116,
+      "sha256": "45adf3dc93b8c1fd344d4b40a92f25557c2531ad87a18009995064c0426ff2d5"
+    },
+    {
+      "path": "preflight-receipts.json",
+      "bytes": 2150,
+      "sha256": "0d9507609722219a3e63e652590150b4ef81dc7b4516b9864e6974636186c6ac"
+    },
+    {
+      "path": "D3-PHYSICAL-FLAGS-CONSUMER-CODE-FROZEN-20261107.json",
+      "bytes": 33216,
+      "sha256": "4a2a522a8af77e1181b5065df4934028d0124dc8a5c80423cb06cd66154cb871"
+    },
+    {
+      "path": "manifest.json",
+      "bytes": 8176,
+      "sha256": "3f31ece58cf44ff21d490437daac6bce7cbf76b8af9816f27b05d13952e272ea"
+    }
+  ],
+  "note": "the erratum files plus the UNCHANGED freeze receipt and the original manifest.json"
+}

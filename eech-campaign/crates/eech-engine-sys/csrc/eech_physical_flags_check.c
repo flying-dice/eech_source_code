@@ -19,7 +19,7 @@
  *   - the key is the slot index alone: retyping a slot (an entity index reused by another type) keeps the bit, and nothing in the getter or setter looks at the type, the identity or the life of the entity;
  *   - the family domain: only the mobile family installs the three words; another type (here OBJECT) keeps the default int function for them;
  *   - the RESET: update_client_server_entities clears UPDATED once per iteration with memset (updated_entities, 0, MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8)): that is a count of BYTES that is a QUARTER of
- *     the array (16384 of 65536 bytes), so entity indices 0..131071 are reset and 131072..524287 are NEVER reset (a legacy defect, preserved as a compatibility fact); MOVED and ROTATED are not reset by the
+ *     the array (16384 of 65536 bytes), so entity indices 0..131071 are reset and 131072..524287 are NEVER reset (a legacy defect, preserved as a compatibility fact; a bit above the extent SURVIVES the reset, but the shared &= getter still clears it when it reads ANOTHER entity of its word); MOVED and ROTATED are not reset by the
  *     call with the Tacview logging off (their reset is behind tacview_is_logging () && tacview_reset_frame (), not exercised here).
  *
  * NOT CLAIMED: the consumers' bodies (en_cllsn.c, fw_msgs.c, gd_supply_arrival.c, the Tacview writers) are not run (their census is docs/d3-physical-flags-contract.md and tests/physical_flags_guard.rs); the setter with FALSE
@@ -375,7 +375,7 @@ int eech_physical_flags_check_run (char *text, int capacity, int *checks)
 		EXPECT (&c, (rotated_entities [sample_indices [i] >> 5] & mask_of (sample_indices [i])) != 0, "ROTATED is not reset by the call with Tacview logging off");
 	}
 
-	/* a flag above the reset extent is TRUE for as long as the process lives: a second reset does not clear it and the getter keeps reading it */
+	/* a flag above the reset extent SURVIVES the resets (a second reset does not clear it) and the getter keeps reading its own bit; it is NOT permanent: a getter read of another entity of its word clears it (measured by the consumer control) */
 	update_client_server_entities ();
 
 	e = &pool [400000];

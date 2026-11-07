@@ -211,3 +211,76 @@ fn the_supply_arrival_descriptor_carries_the_raw_mask_into_a_field_the_rust_side
     // the neighbouring flag of the same function IS normalised (`? TRUE : FALSE`): the asymmetry is the finding
     assert!(c.contains("get_local_entity_int_value (member, INT_TYPE_WEAPON_AND_TARGET_VECTORS_VALID) ? TRUE : FALSE"));
 }
+
+#[test]
+fn the_consumer_source_is_the_one_the_real_consumer_control_ran() {
+    // the response the control calls through the real message table (csrc/eech_physical_flags_consumer_check.c); a change of its reads, its order or its installation is a named failure here
+    let msgs = strip_comments(&read(&aphavoc().join("entity/mobile/aircraft/fixwing/fw_msgs.c")));
+    let start = msgs
+        .find("static int response_to_check_mobile_reached_guide (entity_messages message, entity *receiver, entity *sender, va_list pargs)")
+        .expect("the response");
+    let end = start + msgs[start..].find("void overload_fixed_wing_message_responses (void)").expect("the installer");
+    let body = &msgs[start..end];
+    let order: Vec<usize> = [
+        "get_local_entity_int_value (receiver, INT_TYPE_LANDED)",
+        "get_local_entity_float_value (receiver, FLOAT_TYPE_DISTANCE)",
+        "get_local_entity_float_value (receiver, FLOAT_TYPE_VELOCITY)",
+        "get_local_entity_vec3d_ptr (receiver, VEC3D_TYPE_MOTION_VECTOR)",
+        "get_local_entity_vec3d_ptr (receiver, VEC3D_TYPE_POSITION)",
+        "get_local_entity_int_value (receiver, INT_TYPE_UPDATED)",
+        "get_local_entity_vec3d (receiver, VEC3D_TYPE_GUIDE_POSITION, &guide_pos)",
+        "get_3d_perp_dist_of_point_from_line (pos1, &pos2, &guide_pos, NULL)",
+    ]
+    .iter()
+    .map(|needle| body.find(needle).unwrap_or_else(|| panic!("the response no longer contains `{needle}`")))
+    .collect();
+    assert!(order.windows(2).all(|w| w[0] < w[1]), "the reads of the response changed order: {order:?}");
+    assert_eq!(body.matches("INT_TYPE_UPDATED").count(), 1, "the raw word is read exactly once");
+    assert!(
+        body.contains("pos1->x - (mv->x * get_delta_time ())") && body.contains("pos1->x + (mv->x * get_delta_time ())"),
+        "the previous and the future position"
+    );
+    assert!(
+        msgs.contains("message_responses[ENTITY_TYPE_FIXED_WING][ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE]\t= response_to_check_mobile_reached_guide;"),
+        "the installation"
+    );
+    // the guide position is read from the RECEIVER; only a guide registers that vec3d type (the fixed wing keeps the engine's default getter)
+    let registrations: Vec<String> = [
+        "entity/special/guide/gd_vec3d.c",
+        "entity/mobile/mb_vec3d.c",
+        "entity/mobile/aircraft/ac_vec3d.c",
+        "entity/mobile/aircraft/fixwing/fw_vec3d.c",
+    ]
+    .iter()
+    .filter_map(|rel| {
+        let path = aphavoc().join(rel);
+        path.exists().then(|| strip_comments(&read(&path)))
+    })
+    .filter(|text| text.contains("VEC3D_TYPE_GUIDE_POSITION"))
+    .map(|text| {
+        text.lines()
+            .filter(|l| l.contains("fn_get_local_entity_vec3d") && l.contains("VEC3D_TYPE_GUIDE_POSITION"))
+            .collect::<Vec<_>>()
+            .join("\n")
+    })
+    .collect();
+    assert_eq!(
+        registrations.len(),
+        1,
+        "exactly one source registers the GUIDE_POSITION vec3d getter: {registrations:?}"
+    );
+    assert!(registrations[0].contains("ENTITY_TYPE_GUIDE"), "{registrations:?}");
+    // the shipping profile routes the arrival to the campaign's own checks first; the original response is the one the profile retains for the other cases
+    let guide = strip_comments(&read(&aphavoc().join("entity/special/guide/guide.c")));
+    let router = guide
+        .find("static int check_mobile_reached_waypoint (entity *member, entity *guide)")
+        .expect("the router");
+    let routed = &guide[router..router + 700];
+    assert!(routed.find("campaign_supply_arrival_is_target").unwrap() < routed.find("campaign_radius_arrival_is_target").unwrap());
+    assert!(
+        routed.find("campaign_radius_arrival_is_target").unwrap()
+            < routed
+                .find("notify_local_entity (ENTITY_MESSAGE_CHECK_MOBILE_REACHED_GUIDE, member, guide)")
+                .unwrap()
+    );
+}

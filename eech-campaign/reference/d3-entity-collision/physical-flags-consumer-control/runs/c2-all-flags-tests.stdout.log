@@ -1,0 +1,27 @@
+
+running 1 test
+physical flags expectations made: 199
+physical-flags-check: words=16384 array_bytes=65536 reset_bytes=16384 reset_indices=131072
+
+test the_per_entity_updated_moved_rotated_word_is_a_mask_the_getter_destroys_neighbours_of_and_the_reset_only_reaches_a_quarter_of ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+physical flags consumer expectations made: 56
+physical-flags-consumer: consumer=response_to_check_mobile_reached_guide via message_responses[FIXED_WING][CHECK_MOBILE_REACHED_GUIDE]
+
+test the_original_fixed_wing_arrival_response_reads_the_raw_updated_mask_destructively_only_on_its_pass_through_branch ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+test the_supply_arrival_descriptor_carries_the_raw_mask_into_a_field_the_rust_side_accepts_only_as_zero_or_one ... ok
+test the_getter_the_setter_and_the_reset_are_the_source_the_characterisation_ran ... ok
+test the_consumer_source_is_the_one_the_real_consumer_control_ran ... ok
+test every_writer_and_reader_of_the_three_words_is_the_known_census ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 14.78s
+

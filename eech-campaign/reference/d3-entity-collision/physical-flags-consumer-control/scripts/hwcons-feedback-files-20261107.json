@@ -1,0 +1,5 @@
+{
+  "Root-physical-flags-consumer-feedback*.json at start": [],
+  "listed immediately before the PRE capture": [],
+  "note": "the freeze lists them again; any file it finds that is not recorded here as read is reported as unread; the development runs c1..c4 all exited 0 (no failed attempt in this batch, so the retained-failures record is empty)"
+}

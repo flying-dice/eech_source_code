@@ -1,0 +1,128 @@
+{
+  "kind": "ERRATUM of the consumer batch freeze reader; the frozen receipt, the old timed maps and every check are preserved and NOT rewritten or rerun",
+  "root_feedback": {
+    "file": "Root-physical-flags-consumer-feedback-20261107-1626.json",
+    "sha256": "4faab6d5959fedc5a42fc086acc4791c1ad9eceafe5759ea112e754c327e3205",
+    "file_mtime_utc": "2026-11-07T16:25:27.896762+00:00",
+    "arrival": "AFTER the completed checks: the last final child ended (k5 completed 2026-11-07T16:24:03.837770+00:00) and the POST was captured at 2026-11-07T16:24:29Z before this file existed; it is NOT among the PRE extras of those checks (the PRE/POST extras list only hwcons-feedback-files, which recorded no consumer feedback file) and the freeze receipt lists it as UNREAD at freeze time, which was true; it was read afterwards in full"
+  },
+  "reader_dual_binding": {
+    "pre_reader": {
+      "file": "freeze-hwcons-20261107.PRE-version.py",
+      "sha256": "20d6cf2935f0052973618ddb783d5abfd7bc4947205b787d79b0558eca952d16",
+      "equals_the_hash_recorded_at_PRE_and_POST": true
+    },
+    "corrected_reader_actual_current": {
+      "file": "freeze-hwcons-20261107.py",
+      "sha256": "ac5a761cd9f7c3ac3f896e4eb52005025e5a1b4e778a545082200c26ffabafc2",
+      "final_before_PRE": false,
+      "run_once_after_POST_producing_the_receipt": true
+    },
+    "changed_lines": [
+      "+FREEZE_SELF = \"freeze-hwcons-20261107.py\"",
+      "+PRE_VERSION = EXT / \"freeze-hwcons-20261107.PRE-version.py\"",
+      "+    if name == FREEZE_SELF:",
+      "+        continue",
+      "+freeze_self_erratum = {",
+      "+    \"script\": FREEZE_SELF, \"sha256_at_PRE\": readers_pre[\"readers\"][FREEZE_SELF], \"sha256_now\": sha(EXT / FREEZE_SELF), \"pre_version_retained\": PRE_VERSION.name, \"pre_version_sha256\": sha(PRE_VERSION), \"edited_after_post\": True,",
+      "+    \"cause\": \"the first freeze attempt (after POST 16:24:29Z, before any output file of the freeze was written) crashed copying the run records: one stale run-record prefix (`physical-flags-%s.%s`, the previous batch's) survived the author's text replace when this script was derived from the previous freeze (FileNotFoundError, traceback retained). The edit changes that one prefix to `flags-consumer-%s.%s` and adds this erratum; nothing else in the script and no other reader changed.\",",
+      "+    \"attempt1_stderr_retained\": \"hwcons-freeze-attempt1-20261107.stderr.txt\",",
+      "+    \"replay\": \"none: a publisher-only edit does not change any input of any check; the PRE and POST maps and extras are equal and the final checks ran before the edit\",",
+      "+}",
+      "+if freeze_self_erratum[\"sha256_at_PRE\"] != freeze_self_erratum[\"pre_version_sha256\"]:",
+      "+    problems.append(\"the retained PRE version of the freeze script is not the PRE identity\")",
+      "-        shutil.copyfile(EXT / (\"physical-flags-%s.%s\" % (name, suffix)), RUNS / (\"%s.%s\" % (name, suffix)))",
+      "+        shutil.copyfile(EXT / (\"flags-consumer-%s.%s\" % (name, suffix)), RUNS / (\"%s.%s\" % (name, suffix)))",
+      "+shutil.copyfile(EXT / \"freeze-hwcons-20261107.PRE-version.py\", scripts / \"freeze-hwcons-20261107.PRE-version.py\")",
+      "+shutil.copyfile(EXT / \"hwcons-freeze-attempt1-20261107.stderr.txt\", scripts / \"hwcons-freeze-attempt1-20261107.stderr.txt\")",
+      "+script_rows.append({\"name\": \"freeze-hwcons-20261107.PRE-version.py\", \"sha256\": sha(scripts / \"freeze-hwcons-20261107.PRE-version.py\")})",
+      "+script_rows.append({\"name\": \"hwcons-freeze-attempt1-20261107.stderr.txt\", \"sha256\": sha(scripts / \"hwcons-freeze-attempt1-20261107.stderr.txt\")})",
+      "-    \"audit_reader_timing\": \"this freeze script, the join, the extra-identity script, the final-set runner, the runner, the check script, the batched map script and the comparer were FINAL before the PRE identity capture (their SHA-256 recorded at PRE and verified unchanged by this script); no reader changed after the POST capture\",",
+      "+    \"freeze_script_chronology_erratum\": freeze_self_erratum,",
+      "+    \"audit_reader_timing\": \"EXCEPT the freeze script's one erratum above (a publisher-only crash fix after POST), this freeze script, the join, the extra-identity script, the final-set runner, the runner, the check script, the batched map script and the comparer were FINAL before the PRE identity capture (their SHA-256 recorded at PRE and verified unchanged by this script); no reader changed after the POST capture\","
+    ],
+    "reason": "the first freeze attempt crashed copying the run records: one stale prefix (`physical-flags-%s.%s`, the previous batch's) survived the text replace that derived this reader from the previous one, while the actual receipts are `flags-consumer-<label>.*`; the corrected reader also records this chronology inside the receipt (freeze_script_chronology_erratum). The failed attempt's stderr and the PRE bytes are retained in the packet's scripts/.",
+    "all_other_readers_equal_their_PRE_hashes": {
+      "run-physical-flags-consumer-direct-20261107.py": {
+        "sha256_at_PRE": "21ce62565b2776fce595e87a47d18298c147897175a182fa5c6b938894a8798b",
+        "sha256_now": "21ce62565b2776fce595e87a47d18298c147897175a182fa5c6b938894a8798b",
+        "equal": true
+      },
+      "check-physical-flags-consumer-linux-20261107.sh": {
+        "sha256_at_PRE": "0ccbf51f73327262968788c5ff1e8f2be1151d0854652e6e9ad22c6f68747e65",
+        "sha256_now": "0ccbf51f73327262968788c5ff1e8f2be1151d0854652e6e9ad22c6f68747e65",
+        "equal": true
+      },
+      "run-hwcons-final-set-20261107.sh": {
+        "sha256_at_PRE": "3ad92116901c5705ee254ca8e6666f50d8c939b486735d6b5241e86d71b5264c",
+        "sha256_now": "3ad92116901c5705ee254ca8e6666f50d8c939b486735d6b5241e86d71b5264c",
+        "equal": true
+      },
+      "hwcons-join-20261107.py": {
+        "sha256_at_PRE": "0deea98747775f8f348d694c137397471a0d71843715a04ec9cda7d02d31f3c6",
+        "sha256_now": "0deea98747775f8f348d694c137397471a0d71843715a04ec9cda7d02d31f3c6",
+        "equal": true
+      },
+      "hwcons-extra-identity-20261107.py": {
+        "sha256_at_PRE": "5ce233c49f753dbcc1ce3f0424395047b9e71a22873e91051aa6549a8c9984e7",
+        "sha256_now": "5ce233c49f753dbcc1ce3f0424395047b9e71a22873e91051aa6549a8c9984e7",
+        "equal": true
+      },
+      "sector-roster-inputmap-batched-20261106.py": {
+        "sha256_at_PRE": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+        "sha256_now": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b",
+        "equal": true
+      },
+      "sho-compare-maps-20261107.py": {
+        "sha256_at_PRE": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98",
+        "sha256_now": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98",
+        "equal": true
+      }
+    },
+    "not_claimed": "that every current reader still matches PRE/POST (the freeze reader does not), that the corrected reader was final before PRE, or any acceptance from the publisher's success"
+  },
+  "unchanged_inputs": {
+    "pre_map_fingerprint": "3fb0ce36ce4b0e5a8192116ce3a75f0de38b0444c6abae646937aed22d638d7f",
+    "post_map_fingerprint": "3fb0ce36ce4b0e5a8192116ce3a75f0de38b0444c6abae646937aed22d638d7f",
+    "maps_equal": true,
+    "rows": [
+      3982,
+      3982
+    ],
+    "final_children_progress": [
+      "k1-fmt-check",
+      "exit=0",
+      "k2-clippy-engine-sys-default",
+      "exit=0",
+      "k3-clippy-engine-sys-both-features",
+      "exit=0",
+      "k4-engine-sys-default",
+      "exit=0",
+      "k5-flags-controls-and-census",
+      "exit=0",
+      "DONE"
+    ],
+    "join_problems_in_the_receipt": [],
+    "compiled_input_statement": "every compiled-input change is test-only and inert without its feature (verified in the join from the Git diff and the file text); the shipping builds are unchanged in effect",
+    "test_counts_final": {
+      "k1-fmt-check": 0,
+      "k2-clippy-engine-sys-default": 0,
+      "k3-clippy-engine-sys-both-features": 0,
+      "k4-engine-sys-default": 49,
+      "k5-flags-controls-and-census": 6
+    }
+  },
+  "frozen_receipt": {
+    "file": "D3-PHYSICAL-FLAGS-CONSUMER-CODE-FROZEN-20261107.json",
+    "sha256": "4a2a522a8af77e1181b5065df4934028d0124dc8a5c80423cb06cd66154cb871",
+    "external_equals_packet_copy": true,
+    "hygiene_problems_at_freeze": []
+  },
+  "process_improvement": {
+    "script": "preflight-receipts-20261107.py",
+    "sha256": "dbc62ee50c9cda356c4a0eebead7f729f18dc0d62c9da74ba7e939ea9c12dbbf",
+    "what": "derives every receipt path from the ACTUAL run records on disk and asserts the record, its stdout and stderr logs, terminal state and the declared helper BEFORE the timed PRE; run on this batch it found 9 records and no problem, and pointed at the wrong helper it flags every record (negative control); a future freeze reader calls it before PRE instead of hard-coding a prefix",
+    "result_file": "preflight-receipts.json"
+  },
+  "problems": []
+}
