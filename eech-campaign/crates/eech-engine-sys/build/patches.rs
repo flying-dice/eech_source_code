@@ -2541,3 +2541,150 @@ pub fn target_point_host_files() -> Vec<&'static str> {
     files.dedup();
     files
 }
+
+/// TEST-ONLY patches of the `sector-height-observer` feature (EEDCS-49, D3, the sector-height public baseline): observation hooks at the real places the sector's tallest-structure
+/// high-water value is raised, stated to the host, read by the hosted scan and candidate questions, used by the fixed-wing clearance and packed/unpacked by the session, applied by
+/// main.rs ONLY when that feature is on, to the staged copies. None of these seven files has a shipping patch. Each patch ADDS one call that records values the original statement
+/// next to it already reads or computes (csrc/eech_sho_hooks.h, csrc/eech_sho.c); it changes no original statement, argument, order or value. Floats cross as pointers (never by
+/// value). With the feature off none of this exists in the build and the in-tree sources are never edited. Same strict count check as PATCHES. Plan:
+/// docs/d3-sector-height-public-baseline-plan.md.
+pub const SECTOR_HEIGHT_OBSERVER_PATCHES: &[Patch] = &[
+    Patch {
+        file: "aphavoc/source/entity/system/en_funcs/en_list.c",
+        id: "SH1-sector-insert",
+        why: "records the insertion into a sector list after the roster was told and before LINK_CHILD",
+        original: "\t\tcampaign_place_insert (en);\n\t}\n\telse if (type == LIST_TYPE_CITY_BUILDING)\n",
+        replacement: "\t\tcampaign_place_insert (en);\n\t\teech_sho_sector_insert (en, parent); /* EECH sector-height observer (SH1) */\n\t}\n\telse if (type == LIST_TYPE_CITY_BUILDING)\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/special/sector/sc_msgs.c",
+        id: "SH2-link-begin",
+        why: "remembers the held word before the tallest-structure block",
+        original: "\t\t//\n\t\t// check for tallest fixed structure\n\t\t//\n\n\t\tif (get_local_entity_int_value (sender, INT_TYPE_IDENTIFY_FIXED))\n",
+        replacement: concat!(
+            "\t\t//\n\t\t// check for tallest fixed structure\n\t\t//\n\n",
+            "\t\teech_sho_link_begin (receiver, sender, &raw->tallest_structure_height); /* EECH sector-height observer (SH2) */\n\n",
+            "\t\tif (get_local_entity_int_value (sender, INT_TYPE_IDENTIFY_FIXED))\n"
+        ),
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/special/sector/sc_msgs.c",
+        id: "SH3-link-end",
+        why: "records the link with the word after the tallest-structure block",
+        original: "\t\t//\n\t\t// set defence levels / activity array\n\t\t//\n\n\t\tadd_mobile_values_to_sector (receiver, sender);\n",
+        replacement: concat!(
+            "\t\teech_sho_link_end (receiver, sender, &raw->tallest_structure_height); /* EECH sector-height observer (SH3) */\n\n",
+            "\t\t//\n\t\t// set defence levels / activity array\n\t\t//\n\n\t\tadd_mobile_values_to_sector (receiver, sender);\n"
+        ),
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/special/sector/sc_pack.c",
+        id: "SH4-pack",
+        why: "records the word as packed",
+        original: "\t\t\t\tpack_float_value (en, FLOAT_TYPE_PROTOTYPE_1, raw->tallest_structure_height);\n",
+        replacement: concat!(
+            "\t\t\t\tpack_float_value (en, FLOAT_TYPE_PROTOTYPE_1, raw->tallest_structure_height);\n",
+            "\t\t\t\teech_sho_pack (&raw->tallest_structure_height, (int) raw->x_sector, (int) raw->z_sector); /* EECH sector-height observer (SH4) */\n"
+        ),
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/special/sector/sc_pack.c",
+        id: "SH5-unpack",
+        why: "records the word as unpacked",
+        original: "\t\t\t\traw->tallest_structure_height = unpack_float_value (en, FLOAT_TYPE_PROTOTYPE_1);\n",
+        replacement: concat!(
+            "\t\t\t\traw->tallest_structure_height = unpack_float_value (en, FLOAT_TYPE_PROTOTYPE_1);\n",
+            "\t\t\t\teech_sho_unpack (&raw->tallest_structure_height, (int) raw->x_sector, (int) raw->z_sector); /* EECH sector-height observer (SH5) */\n"
+        ),
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/mobile/aircraft/fixwing/fw_move.c",
+        id: "SH6-clearance-leader",
+        why: "counts the first runtime guard of the clearance read (the task leader follows the guide)",
+        original: "\t\t\tif (get_local_entity_int_value (en, INT_TYPE_TASK_LEADER))\n\t\t\t{\n\t\t\t\tget_local_entity_vec3d (guide, VEC3D_TYPE_GUIDE_POSITION, wp_pos);\n",
+        replacement: concat!(
+            "\t\t\tif (get_local_entity_int_value (en, INT_TYPE_TASK_LEADER))\n\t\t\t{\n",
+            "\t\t\t\teech_sho_clearance_leader (); /* EECH sector-height observer (SH6) */\n",
+            "\t\t\t\tget_local_entity_vec3d (guide, VEC3D_TYPE_GUIDE_POSITION, wp_pos);\n"
+        ),
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/mobile/aircraft/fixwing/fw_move.c",
+        id: "SH7-clearance-read",
+        why: "counts the second runtime guard (terrain following), records the sector word, the terrain elevation and min_height after the tallest statement, then the final min_height",
+        original: "\t\t\t\t\tmin_height = max (min_height, get_local_entity_float_value (sector, FLOAT_TYPE_TALLEST_STRUCTURE_HEIGHT) - terrain_elevation);\n\n\t\t\t\t\tmin_height = max (get_local_entity_float_value (wp, FLOAT_TYPE_ALTITUDE), min_height);\n",
+        replacement: concat!(
+            "\t\t\t\t\teech_sho_clearance_follow (); /* EECH sector-height observer (SH7) */\n\n",
+            "\t\t\t\t\tmin_height = max (min_height, get_local_entity_float_value (sector, FLOAT_TYPE_TALLEST_STRUCTURE_HEIGHT) - terrain_elevation);\n",
+            "\t\t\t\t\teech_sho_clearance_tallest (sector, &terrain_elevation, &min_height);\n\n",
+            "\t\t\t\t\tmin_height = max (get_local_entity_float_value (wp, FLOAT_TYPE_ALTITUDE), min_height);\n",
+            "\t\t\t\t\teech_sho_clearance_final (&min_height);\n"
+        ),
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+        id: "SH8-statement-city",
+        why: "records the city statement the host is about to receive",
+        original: "\t\tcampaign_model_entity_city_state (key, city);\n",
+        replacement: "\t\teech_sho_statement_city (en, key, city); /* EECH sector-height observer (SH8) */\n\t\tcampaign_model_entity_city_state (key, city);\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/mobile/mb_hostplacemap.h",
+        id: "SH9-statement-fixed",
+        why: "records the fixed-family statement the host is about to receive",
+        original: "\tcampaign_model_entity_fixed (CAMPAIGN_PLACE_TYPE (en), key, state);\n",
+        replacement: "\teech_sho_statement_fixed (en, CAMPAIGN_PLACE_TYPE (en), key, state); /* EECH sector-height observer (SH9) */\n\tcampaign_model_entity_fixed (CAMPAIGN_PLACE_TYPE (en), key, state);\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/mobile/mb_hostscan.h",
+        id: "SH10-scan-first",
+        why: "records the FIRST read of the sector the host named",
+        original: "\t\t\t\tsector_tallest_structure_height = CAMPAIGN_SCAN_TALLEST (sector);\n",
+        replacement: concat!(
+            "\t\t\t\tsector_tallest_structure_height = CAMPAIGN_SCAN_TALLEST (sector);\n",
+            "\t\t\t\teech_sho_scan_first (x_sector, z_sector, &sector_tallest_structure_height); /* EECH sector-height observer (SH10) */\n"
+        ),
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/mobile/mb_hostoffer.h",
+        id: "SH11-candidate-fact",
+        why: "records fact 12 of one candidate question",
+        original: "\tfacts [CAMPAIGN_CANDIDATE_TALLEST] = sector_tallest_structure_height;\n",
+        replacement: concat!(
+            "\tfacts [CAMPAIGN_CANDIDATE_TALLEST] = sector_tallest_structure_height;\n",
+            "\teech_sho_candidate_fact (&sector_tallest_structure_height); /* EECH sector-height observer (SH11) */\n"
+        ),
+        count: 1,
+    },
+];
+
+pub fn apply_sector_height_observer(file: &str, text: &str) -> String {
+    let mut out = text.to_string();
+    for p in SECTOR_HEIGHT_OBSERVER_PATCHES.iter().filter(|p| p.file == file) {
+        let found = out.matches(p.original).count();
+        assert_eq!(
+            found, p.count,
+            "sector-height-observer patch {} expects {} occurrence(s) of its original text in {}, found {}",
+            p.id, p.count, file, found
+        );
+        out = out.replace(p.original, p.replacement);
+    }
+    out
+}
+
+pub fn sector_height_observer_files() -> Vec<&'static str> {
+    let mut files: Vec<&str> = SECTOR_HEIGHT_OBSERVER_PATCHES.iter().map(|p| p.file).collect();
+    files.sort_unstable();
+    files.dedup();
+    files
+}

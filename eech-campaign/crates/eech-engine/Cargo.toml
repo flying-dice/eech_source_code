@@ -40,6 +40,8 @@ env-observer = ["env-fixture", "eech-engine-sys/env-observer"]
 ground-fixture = ["eech-engine-sys/ground-fixture"]
 # TEST-ONLY (EEDCS-50, D3): see eech-engine-sys.
 route-fixture = ["eech-engine-sys/route-fixture"]
+# TEST-ONLY (EEDCS-49, D3): see eech-engine-sys.
+sector-height-observer = ["eech-engine-sys/sector-height-observer"]
 # TEST-ONLY (EEDCS-50, D3): see eech-engine-sys.
 route-original = ["eech-engine-sys/route-original"]
 # TEST-ONLY (EEDCS-52, D3): see eech-engine-sys.

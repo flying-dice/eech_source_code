@@ -1,0 +1,14 @@
+wsl: Failed to translate 'R:\d3-evidence\collision-characterization-20261029'
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+error[E0716]: temporary value dropped while borrowed
+   --> crates/eech-world/tests/sector_height_baseline_driver.rs:105:54
+    |
+105 | ...&Case { summary: &SUMMARY_WHOLE.replace("sho-complete value=1", "sho-complete value=0"), ..healthy() });
+    |                     -^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                - temporary value is freed at the end of this statement
+    |                     ||
+    |                     |creates a temporary value which is freed while still in use
+    |                     this usage requires that borrow lasts for `'static`
+
+For more information about this error, try `rustc --explain E0716`.
+error: could not compile `eech-world` (test "sector_height_baseline_driver") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...

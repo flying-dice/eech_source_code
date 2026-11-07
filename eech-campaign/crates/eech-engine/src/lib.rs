@@ -1044,6 +1044,18 @@ const GROUND_REPORT_CAPACITY: usize = 192 * 1024;
 #[cfg(feature = "ground-fixture")]
 pub const GROUND_PROBE_CASES_MAX: i32 = 100_000;
 
+/// TEST-ONLY (feature `sector-height-observer`, EEDCS-49 D3): room for one report line; a report that does not fit is refused, never cut short.
+#[cfg(feature = "sector-height-observer")]
+const SHO_REPORT_CAPACITY: usize = 4096;
+
+/// TEST-ONLY (feature `sector-height-observer`): the bounds of the C tables (csrc/eech_sho.c SHO_EVENTS, SHO_CLEARANCES, SHO_SCAN_SIDE squared).
+#[cfg(feature = "sector-height-observer")]
+pub const SHO_EVENTS_MAX: i32 = 262_144;
+#[cfg(feature = "sector-height-observer")]
+pub const SHO_CLEARANCES_MAX: i32 = 4096;
+#[cfg(feature = "sector-height-observer")]
+pub const SHO_SCAN_MAX: i32 = 65_536;
+
 /// TEST-ONLY (feature `route-fixture`, EEDCS-50 D3): room for one route report (the summary, or one recorded parser call); a report that does not fit is refused, never cut short.
 #[cfg(feature = "route-fixture")]
 const ROUTE_REPORT_CAPACITY: usize = 1024 * 1024;
@@ -6605,6 +6617,54 @@ impl Engine {
         // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
         let status = check(unsafe { sys::eech_engine_ground_probe(seed, points, impacts, text.as_mut_ptr(), text.len() as i32) });
         keep_case_reason(status, &text)
+    }
+
+    /// TEST-ONLY (feature `sector-height-observer`, EEDCS-49 D3): the counters, table bounds and completeness verdict of the read-only sector tallest-structure observer, as `key=value` text
+    /// lines (see `csrc/eech_sho.c`). Read-only; a report that does not fit fails.
+    #[cfg(feature = "sector-height-observer")]
+    pub fn sector_height_summary(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; SHO_REPORT_CAPACITY * 4];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_sho_summary(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `sector-height-observer`): one recorded insert, link, statement or pack event by its zero-based index. `index` is checked here before the engine is entered, and
+    /// again by the engine, which refuses an index it did not record.
+    #[cfg(feature = "sector-height-observer")]
+    pub fn sector_height_event(&self, index: i32) -> Result<String, EngineError> {
+        self.sector_height_row("sector_height_event", index, SHO_EVENTS_MAX, sys::eech_engine_sho_event)
+    }
+
+    /// TEST-ONLY (feature `sector-height-observer`): one recorded fixed-wing clearance read by its zero-based index.
+    #[cfg(feature = "sector-height-observer")]
+    pub fn sector_height_clearance(&self, index: i32) -> Result<String, EngineError> {
+        self.sector_height_row("sector_height_clearance", index, SHO_CLEARANCES_MAX, sys::eech_engine_sho_clearance)
+    }
+
+    /// TEST-ONLY (feature `sector-height-observer`): one sector's aggregate of FIRST reads, by its zero-based index in first-read order.
+    #[cfg(feature = "sector-height-observer")]
+    pub fn sector_height_scan(&self, index: i32) -> Result<String, EngineError> {
+        self.sector_height_row("sector_height_scan", index, SHO_SCAN_MAX, sys::eech_engine_sho_scan)
+    }
+
+    #[cfg(feature = "sector-height-observer")]
+    fn sector_height_row(
+        &self,
+        what: &str,
+        index: i32,
+        max: i32,
+        entry: unsafe extern "C" fn(i32, *mut std::os::raw::c_char, i32) -> i32,
+    ) -> Result<String, EngineError> {
+        if !(0..max).contains(&index) {
+            return Err(EngineError::BadArgument(format!("{what}: index {index} must be within 0..{max}")));
+        }
+        let mut text = vec![0 as std::os::raw::c_char; SHO_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { entry(index, text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 
     /// TEST-ONLY (feature `route-fixture`, EEDCS-50 D3): what the ORIGINAL airfield route parser read and produced while the campaign loaded, as `key=value` text lines: the

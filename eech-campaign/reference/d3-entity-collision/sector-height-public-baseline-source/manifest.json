@@ -1,0 +1,260 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "D3-sector-height-public-baseline-CODE-FROZEN-20261107.json",
+      "bytes": 15693,
+      "sha256": "06b4f3ee945e45288329d6149bdc37c9044ce86a0b44ea044435c6285b0177d1"
+    },
+    {
+      "path": "README.md",
+      "bytes": 9469,
+      "sha256": "09c9c2a353bef70c5168a46b4d84b37665e034052326e60cc3fa974d25fafe86"
+    },
+    {
+      "path": "runs/c1-build.json",
+      "bytes": 903,
+      "sha256": "416075200714f521b883dda41e37b7e6810e3f55734f898dbd3972354e0994b9"
+    },
+    {
+      "path": "runs/c1-build.stderr.log",
+      "bytes": 367,
+      "sha256": "3bb466c9cbe13b637770a179841bf30cdd5e5673d6e9c76a04f0b129e8351a7d"
+    },
+    {
+      "path": "runs/c1-build.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/c2-observer-test.json",
+      "bytes": 1046,
+      "sha256": "6894a2976e955b01486458035469d30144631d778c9b955e5c2abd210a3eafd1"
+    },
+    {
+      "path": "runs/c2-observer-test.stderr.log",
+      "bytes": 338,
+      "sha256": "cda1df18340a50fefd553a99ca465fed0b91477f24d0c5f95cab095e373ba1e4"
+    },
+    {
+      "path": "runs/c2-observer-test.stdout.log",
+      "bytes": 307,
+      "sha256": "d96dfb9f5ae62e5ba029b1f1b3f9cb8dec6a14902f0859c0ebf4850f366af27e"
+    },
+    {
+      "path": "runs/c3-driver-test.json",
+      "bytes": 916,
+      "sha256": "40d1f0649ce667cd0a40c9d08feee72527e26e953e1e50ad5498b5db6d949041"
+    },
+    {
+      "path": "runs/c3-driver-test.stderr.log",
+      "bytes": 983,
+      "sha256": "32cdd708b30fe146143192ccef5d86c887c4b26b71d404e68ced32183a29dc90"
+    },
+    {
+      "path": "runs/c3-driver-test.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/c3b-driver-test.json",
+      "bytes": 915,
+      "sha256": "5d5718bffc894d585f04a0326adb6745a14d27b0a537994174bd85e0e03d20c1"
+    },
+    {
+      "path": "runs/c3b-driver-test.stderr.log",
+      "bytes": 428,
+      "sha256": "7559949e9836f43b966cae6e72ba0af37366bdfc89f4d44677753ca143c92e0e"
+    },
+    {
+      "path": "runs/c3b-driver-test.stdout.log",
+      "bytes": 1516,
+      "sha256": "87b6621e7dd147e124297e2ffbfff8d7a73af1efbdc435dd539befaa229198a8"
+    },
+    {
+      "path": "runs/c3c-driver-test.json",
+      "bytes": 913,
+      "sha256": "6be617a88f2fa6d5dabbc70e73e9bdce9a35437dfa3f176c2fc1f51104c96c52"
+    },
+    {
+      "path": "runs/c3c-driver-test.stderr.log",
+      "bytes": 341,
+      "sha256": "dedc1a9fa80a9cd3254efc1b9455da66756f05e7cf8abf94af589b88fa2bd1ca"
+    },
+    {
+      "path": "runs/c3c-driver-test.stdout.log",
+      "bytes": 510,
+      "sha256": "5ad3044f5019a451434b5b53b39283be1b785ac7a4ff3925a93f7456ee50fcb2"
+    },
+    {
+      "path": "runs/d1-fmt.json",
+      "bytes": 932,
+      "sha256": "01679a3085ff8d9743f7fb6f3e0de07a01be48854f29fbc5aa21d374f4650ab4"
+    },
+    {
+      "path": "runs/d1-fmt.stderr.log",
+      "bytes": 78,
+      "sha256": "2590112730555bd0b2be70da36e0d34249b6ee8495c3333c2542c50d8e80a4e3"
+    },
+    {
+      "path": "runs/d1-fmt.stdout.log",
+      "bytes": 9194,
+      "sha256": "83c8e6e83eb86ba01daea7936eae2522df2665445c388b96621f11d4331e5ddc"
+    },
+    {
+      "path": "runs/d1b-fmt-apply.json",
+      "bytes": 910,
+      "sha256": "2dd90a46cfa6f6992e452c0e77d8d54876e86dec0f7dfa93daef5ad22aef002d"
+    },
+    {
+      "path": "runs/d1b-fmt-apply.stderr.log",
+      "bytes": 78,
+      "sha256": "2590112730555bd0b2be70da36e0d34249b6ee8495c3333c2542c50d8e80a4e3"
+    },
+    {
+      "path": "runs/d1b-fmt-apply.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/d2-clippy-default.json",
+      "bytes": 992,
+      "sha256": "661e39ed62efbae0af5bf919b36fc95f92e0c5606ad42d64628787f40182cba4"
+    },
+    {
+      "path": "runs/d2-clippy-default.stderr.log",
+      "bytes": 437,
+      "sha256": "e3b7fa5dab2f4685562a3769406f0e683638f48b1244d9346ad733076636cd41"
+    },
+    {
+      "path": "runs/d2-clippy-default.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/e1-fmt-check.json",
+      "bytes": 931,
+      "sha256": "41212c76632dd40a086acf493a15dd6875486dab6b6ae1ccc5e1cf47116a6318"
+    },
+    {
+      "path": "runs/e1-fmt-check.stderr.log",
+      "bytes": 78,
+      "sha256": "2590112730555bd0b2be70da36e0d34249b6ee8495c3333c2542c50d8e80a4e3"
+    },
+    {
+      "path": "runs/e1-fmt-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/e2-clippy-default.json",
+      "bytes": 992,
+      "sha256": "c09eeda4103fa515e7925d8df1fa99f4bb13d76a1624ef27c92f212df3110a49"
+    },
+    {
+      "path": "runs/e2-clippy-default.stderr.log",
+      "bytes": 284,
+      "sha256": "a2722de6d2034ce5139a56245a9edbf3561ae19deca3906cdb3f42a6088b5dea"
+    },
+    {
+      "path": "runs/e2-clippy-default.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/e3-clippy-engine-sys-observer.json",
+      "bytes": 1020,
+      "sha256": "cf5b83e8e806938ae2d4a062b83a6471c2f12f41b7b9c4a1f0ce5be65c1cd34f"
+    },
+    {
+      "path": "runs/e3-clippy-engine-sys-observer.stderr.log",
+      "bytes": 231,
+      "sha256": "7e959aaeaed8bfd2c7f898fe88a72c7248eb51f18a5b7eb756810d87c8e1b147"
+    },
+    {
+      "path": "runs/e3-clippy-engine-sys-observer.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/e4-clippy-dc-observer.json",
+      "bytes": 963,
+      "sha256": "473fffb51836933e47ac3e09c35bc144e6e3c8358b39617cb3dd201df2231d93"
+    },
+    {
+      "path": "runs/e4-clippy-dc-observer.stderr.log",
+      "bytes": 367,
+      "sha256": "ddd64a64d0a1a851a8fbe43c33ff02b5b96d53721212d7761595c1c2a26478c4"
+    },
+    {
+      "path": "runs/e4-clippy-dc-observer.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/f1-guards.json",
+      "bytes": 1123,
+      "sha256": "1b977af37c9b004e79eca12894b1cc0d0fb7816217707d559996378dddfc47de"
+    },
+    {
+      "path": "runs/f1-guards.stderr.log",
+      "bytes": 736,
+      "sha256": "2652e29311aebe47b7e2627bd6ae4d7a588dd186a30b08f4a4e7f3a8ce0c5da1"
+    },
+    {
+      "path": "runs/f1-guards.stdout.log",
+      "bytes": 4781,
+      "sha256": "950a999ed829ff258f086e84c535c43fa688f93cdd751c4a03a2224e535c0db1"
+    },
+    {
+      "path": "runs/f2-control-unhooked.json",
+      "bytes": 984,
+      "sha256": "f48daa1820b1a70cde3b32212295b6ad171df978687263e8efaa0f9a76186eb8"
+    },
+    {
+      "path": "runs/f2-control-unhooked.stderr.log",
+      "bytes": 320,
+      "sha256": "5da00a48680d6eea9c6192a467c83cc3031225b527bd7d6f88db6bed6d83a764"
+    },
+    {
+      "path": "runs/f2-control-unhooked.stdout.log",
+      "bytes": 254,
+      "sha256": "652ed13497ffc472016316399b08b5d8141aeb22ab6648502474624132cf63e4"
+    },
+    {
+      "path": "runs/f3-observer-control.json",
+      "bytes": 1047,
+      "sha256": "e5e3170c61894c66fa01156da6f43c2e61cee406271e6ca50099769ad846eb82"
+    },
+    {
+      "path": "runs/f3-observer-control.stderr.log",
+      "bytes": 337,
+      "sha256": "4dcf2afaa6fe227acd142f38cbf2771e4ca70f3985c61c781c4dd18a814fa9fb"
+    },
+    {
+      "path": "runs/f3-observer-control.stdout.log",
+      "bytes": 307,
+      "sha256": "d96dfb9f5ae62e5ba029b1f1b3f9cb8dec6a14902f0859c0ebf4850f366af27e"
+    },
+    {
+      "path": "runs/f4-driver-guards.json",
+      "bytes": 914,
+      "sha256": "10f1be26e60bfeded27cf852aa0131550dd526837759a6a87a00a857858b374d"
+    },
+    {
+      "path": "runs/f4-driver-guards.stderr.log",
+      "bytes": 341,
+      "sha256": "833f3058fafe335ca9c881c228a231fb8488764d0de0fe70c94605467d9ea945"
+    },
+    {
+      "path": "runs/f4-driver-guards.stdout.log",
+      "bytes": 510,
+      "sha256": "15601c06313414fc82eaedaa52abccd7f9fdfa89daa0347071ac14bbde38aeb7"
+    }
+  ],
+  "scope": "Source and Linux-check packet of the observer only; not a native result, review, approval or production move."
+}

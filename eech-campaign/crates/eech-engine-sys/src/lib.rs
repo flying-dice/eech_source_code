@@ -1925,6 +1925,14 @@ extern "C" {
     pub fn eech_engine_ground_probe(seed: u32, points: c_int, impacts: c_int, text: *mut c_char, capacity: c_int) -> c_int;
 }
 
+#[cfg(feature = "sector-height-observer")]
+extern "C" {
+    pub fn eech_engine_sho_summary(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_sho_event(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_sho_clearance(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_sho_scan(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+}
+
 #[cfg(feature = "route-fixture")]
 extern "C" {
     pub fn eech_engine_route_summary(text: *mut c_char, capacity: c_int) -> c_int;

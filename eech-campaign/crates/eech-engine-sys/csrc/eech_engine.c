@@ -2184,6 +2184,73 @@ int eech_engine_ground_probe (uint32_t seed, int points, int impacts, char *text
 
 #endif
 
+#ifdef EECH_SECTOR_HEIGHT_OBSERVER
+/*
+ * TEST-ONLY (feature sector-height-observer, EEDCS-49 D3): the read-only report of the sector tallest-structure observer (eech_sho.c, docs/d3-sector-height-public-baseline-plan.md).
+ * Each entry takes the engine lock like the other observer entries and fails as a bad argument when the report does not fit or the index was not recorded. No host is used.
+ */
+extern int eech_sho_summary_run (char *text, int capacity);
+extern int eech_sho_event_run (int index, char *text, int capacity);
+extern int eech_sho_clearance_run (int index, char *text, int capacity);
+extern int eech_sho_scan_run (int index, char *text, int capacity);
+
+int eech_engine_sho_summary (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_sho_summary_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_sho_event (int index, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || index < 0 || eech_sho_event_run (index, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_sho_clearance (int index, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || index < 0 || eech_sho_clearance_run (index, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_sho_scan (int index, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || index < 0 || eech_sho_scan_run (index, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+#endif
+
 #ifdef EECH_ROUTE_FIXTURE
 
 /*

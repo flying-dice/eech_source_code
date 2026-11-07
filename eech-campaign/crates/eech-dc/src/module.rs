@@ -3622,6 +3622,21 @@ impl LuaUserData for LuaEngine {
         methods.add_method("ground_probe", |_, this, (seed, points, impacts): (u32, i32, i32)| {
             this.engine.ground_probe(seed, points, impacts).map_err(lua_error)
         });
+        // TEST-ONLY (feature `sector-height-observer`, EEDCS-49 D3): the read-only report of the sector tallest-structure observer; not part of the shipping module.
+        #[cfg(feature = "sector-height-observer")]
+        methods.add_method("sector_height_summary", |_, this, ()| this.engine.sector_height_summary().map_err(lua_error));
+        #[cfg(feature = "sector-height-observer")]
+        methods.add_method("sector_height_event", |_, this, index: i32| {
+            this.engine.sector_height_event(index).map_err(lua_error)
+        });
+        #[cfg(feature = "sector-height-observer")]
+        methods.add_method("sector_height_clearance", |_, this, index: i32| {
+            this.engine.sector_height_clearance(index).map_err(lua_error)
+        });
+        #[cfg(feature = "sector-height-observer")]
+        methods.add_method("sector_height_scan", |_, this, index: i32| {
+            this.engine.sector_height_scan(index).map_err(lua_error)
+        });
         // TEST-ONLY (feature `route-fixture`, EEDCS-50 D3): what the ORIGINAL airfield route parser read and produced during the campaign load; not part of the shipping module.
         #[cfg(feature = "route-fixture")]
         methods.add_method("route_summary", |_, this, ()| this.engine.route_summary().map_err(lua_error));

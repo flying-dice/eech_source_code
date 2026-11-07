@@ -1,0 +1,11 @@
+
+running 6 tests
+test the_driver_grammar_is_the_emitters ... ok
+test a_module_built_without_the_observer_is_refused ... ok
+test a_whole_observation_is_written_in_order_after_the_ordinary_boot_and_frames ... ok
+test an_observation_that_is_not_whole_is_refused_after_the_file_is_closed ... ok
+test sequence_numbers_that_do_not_increase_are_refused ... ok
+test the_arguments_are_checked_before_any_side_effect ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

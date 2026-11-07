@@ -567,6 +567,19 @@ int eech_engine_env_play_events (char *text, int capacity, int *more);
 int eech_engine_ground_probe (uint32_t seed, int points, int impacts, char *text, int capacity);
 #endif
 
+#ifdef EECH_SECTOR_HEIGHT_OBSERVER
+/*
+ * TEST-ONLY (feature sector-height-observer, EEDCS-49 D3): see eech_sho.c. Not part of the shipping module.
+ * The read-only report of what the sector tallest-structure word did on the real path, as `key=value` text lines. `eech_engine_sho_summary` is the counters, the table bounds and a
+ * `sho-complete` verdict; `eech_engine_sho_event` is one recorded insert, link, statement or pack event by its zero-based index; `eech_engine_sho_clearance` is one recorded
+ * fixed-wing clearance read; `eech_engine_sho_scan` is one sector's aggregate of FIRST reads. All take no host. A report that does not fit, or an index not recorded, fails as a bad argument.
+ */
+int eech_engine_sho_summary (char *text, int capacity);
+int eech_engine_sho_event (int index, char *text, int capacity);
+int eech_engine_sho_clearance (int index, char *text, int capacity);
+int eech_engine_sho_scan (int index, char *text, int capacity);
+#endif
+
 #ifdef EECH_ROUTE_FIXTURE
 /*
  * TEST-ONLY (feature route-fixture, EEDCS-50 D3): see eech_route_fixture.c. Not part of the shipping module.
