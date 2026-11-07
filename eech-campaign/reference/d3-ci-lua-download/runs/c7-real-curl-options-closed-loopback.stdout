@@ -1,0 +1,5 @@
+curl 8.16.0 (x86_64-w64-mingw32) libcurl/8.16.0 Schannel zlib/1.3.1 brotli/1.1.0 zstd/1.5.7 libidn2/2.3.8 libpsl/0.21.5 libssh2/1.11.1
+curl: (7) Failed to connect to 127.0.0.1 port 9 after 2010 ms: Could not connect to server
+fetch-pinned-archive: https://127.0.0.1:9/lua-5.1.5.tar.gz failed: curl exit 7
+fetch-pinned-archive: no source delivered the pinned archive
+helper exit 1; files besides the log: []

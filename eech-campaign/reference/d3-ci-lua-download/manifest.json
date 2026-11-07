@@ -1,0 +1,205 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "ci-failures-safe-summary.json",
+      "bytes": 6339,
+      "sha256": "7e1c915a165869bd4435b37d5e0523ab098d21b9b0239e434e53c932ec5a045d"
+    },
+    {
+      "path": "D3-CI-LUA-PINNED-DOWNLOAD-CODE-FROZEN-20261107.json",
+      "bytes": 20766,
+      "sha256": "380fcaa3e336e5bfd8008bab600faa4c09643d1d16586b78fe19699dc8370a5f"
+    },
+    {
+      "path": "inputmaps-compare.json",
+      "bytes": 1737,
+      "sha256": "d9a5f9fc059d29bddd70261b4b467b6e7965e180318ce039260f9a1594509bb0"
+    },
+    {
+      "path": "join-vs-e326-and-1b89.json",
+      "bytes": 2626,
+      "sha256": "8a582a81823454a8f89863af4b151418499f732d6e5cc87e6dd8f28d408b4634"
+    },
+    {
+      "path": "literal-bytes-check.json",
+      "bytes": 4846,
+      "sha256": "52c2da16e7dbf677465f90ac115372e44066eb04ac5f544996301434ddb1ffcb"
+    },
+    {
+      "path": "lua-5.1.5-MacPorts-verification-20261107.json",
+      "bytes": 730,
+      "sha256": "be4adb3d7d4c8b051a605a130f87e98f3ddc99de300d8be48c8754f4e537cedf"
+    },
+    {
+      "path": "README.md",
+      "bytes": 8964,
+      "sha256": "00606c5d34cad97870497f867e4f1557c23351755e0e83240966e9d8f539fb8a"
+    },
+    {
+      "path": "runs/c0-archive-identity.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/c0-archive-identity.stdout",
+      "bytes": 22,
+      "sha256": "c48da12abc3b93b62a9c601f587075e636b3c08d28695c4fa43924fc37e5a5fc"
+    },
+    {
+      "path": "runs/c1-syntax-bash-posix.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/c1-syntax-bash-posix.stdout",
+      "bytes": 10,
+      "sha256": "86171b1c0c25fee986748333cd577d8429db461482d8a2f75a492966f739127e"
+    },
+    {
+      "path": "runs/c2-selftest-generated-payload.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/c2-selftest-generated-payload.stdout",
+      "bytes": 123,
+      "sha256": "22dc379c0cb4d394037cf0fcf7c34ba89345f448e3b765fecad3654a19b57b33"
+    },
+    {
+      "path": "runs/c3-selftest-actual-pinned-archive.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/c3-selftest-actual-pinned-archive.stdout",
+      "bytes": 123,
+      "sha256": "d138c089df7819a65d8b94f489f3d96054dd34cdbf8f97067ce13b3b7b2c2fdf"
+    },
+    {
+      "path": "runs/c4-selftest-actual-pinned-archive-bash-posix.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/c4-selftest-actual-pinned-archive-bash-posix.stdout",
+      "bytes": 123,
+      "sha256": "d138c089df7819a65d8b94f489f3d96054dd34cdbf8f97067ce13b3b7b2c2fdf"
+    },
+    {
+      "path": "runs/c5-mutation-sha-comparison-disabled-is-caught.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/c5-mutation-sha-comparison-disabled-is-caught.stdout",
+      "bytes": 504,
+      "sha256": "5dc4046a33a64a5195c6ea527d38d484719d1bb67702b2f45830d858aa871302"
+    },
+    {
+      "path": "runs/c6-workflow-static-vs-1b89.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/c6-workflow-static-vs-1b89.stdout",
+      "bytes": 98,
+      "sha256": "787507a46fd1e4afa3626a5f7677c2aa3410dda909bedb6d6f490b062f051604"
+    },
+    {
+      "path": "runs/c7-real-curl-options-closed-loopback.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/c7-real-curl-options-closed-loopback.stdout",
+      "bytes": 409,
+      "sha256": "806e6e9eb15dc146f2347a909862e6c4539178601e420d00c4f58db638041723"
+    },
+    {
+      "path": "runs/c8-git-diff-check.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/c8-git-diff-check.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/progress",
+      "bytes": 346,
+      "sha256": "a265c61a75c198ab44e6f7c978ff306d01897784bccfdd98e77d3f7c02ce6e03"
+    },
+    {
+      "path": "scripts/ci3-extra-identity-20261107.py",
+      "bytes": 3002,
+      "sha256": "6787b7b5dbe0bc05cb39ffd0eab7883faceb4609d726656b8288e2f236939543"
+    },
+    {
+      "path": "scripts/ci3-join-20261107.py",
+      "bytes": 4715,
+      "sha256": "fe0b9c7ae2296d84a26bc29c140f9c4cf2617ea17cee37694b24f57be853e5d3"
+    },
+    {
+      "path": "scripts/ci3-mutation-20261107.sh",
+      "bytes": 1203,
+      "sha256": "d7b5b30106e860775210770f39da579cc3008ef0aeda18dfea2799ce81651d33"
+    },
+    {
+      "path": "scripts/ci3-real-curl-options-20261107.sh",
+      "bytes": 864,
+      "sha256": "c0a6838fdca446736ead33f468fcce104f2b83a3ff5ce121b558ca01d029aada"
+    },
+    {
+      "path": "scripts/ci3-safe-summary-20261107.py",
+      "bytes": 3409,
+      "sha256": "a5b53b08111895a6f36c61510d598296f5a42d0231e272c094269092eef14d0b"
+    },
+    {
+      "path": "scripts/ci3-workflow-static-20261107.py",
+      "bytes": 3954,
+      "sha256": "461c758356be0003738e0f7594c0eaecf9ec020bf53795ec105e2a624c3cb30b"
+    },
+    {
+      "path": "scripts/freeze-ci-lua-20261107.py",
+      "bytes": 19266,
+      "sha256": "140cd72a13696227b2ddd5fc0746908edf19efefd0d41eccccade09b1e58d1f1"
+    },
+    {
+      "path": "scripts/patch-card-register-ci-lua-finding-20261107.py",
+      "bytes": 3112,
+      "sha256": "fd0bfee1be4b097a731f63021caf293a2da34d03e249f7afc061817992b12249"
+    },
+    {
+      "path": "scripts/patch-card-status-ci-lua-20261107.py",
+      "bytes": 9160,
+      "sha256": "d0b45cfb03a979128f4af61fa9ce2cbad978848a6abff0fc46b1552e2238e004"
+    },
+    {
+      "path": "scripts/run-ci3-final-set-20261107.sh",
+      "bytes": 1992,
+      "sha256": "0ff4e5ea040d35329df282031320a01c34db8a424546b9f9ae7d2a8d66169534"
+    },
+    {
+      "path": "scripts/sector-roster-inputmap-batched-20261106.py",
+      "bytes": 5094,
+      "sha256": "edb82ad861e63844ba1debccc48a1c72f061e1a4cd9c43668c122a7bdd70911b"
+    },
+    {
+      "path": "scripts/sho-compare-maps-20261107.py",
+      "bytes": 1897,
+      "sha256": "435be7362fe7d0f70edda69a82c87125476570da356aa7ea25fc05ed411bbb98"
+    },
+    {
+      "path": "scripts/verify-lua-5.1.5-fallback-archive-20261107.py",
+      "bytes": 1191,
+      "sha256": "571cedc1d169a5819d9c124f11d08c8841eea48723e92b28a533adc82b0540d1"
+    }
+  ],
+  "scope": "Source and local-check packet of the CI Lua pinned-download repair only; not a native result, CI result, review, approval or acceptance."
+}
