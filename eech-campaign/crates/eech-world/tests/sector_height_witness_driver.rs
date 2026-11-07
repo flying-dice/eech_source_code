@@ -1,15 +1,18 @@
 //! Boundary checks of `lua/sector-height-witness.lua` (EEDCS-49, D3, Task49): the host-owned driver of the two REQUIRED witnesses ENV-SECTOR-HEIGHT-GUARDED-CLEARANCE-WITNESS-1 (M5) and
-//! ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1 (M6). They run the REAL driver, unmodified, under a real Lua 5.1 state and the REAL exclusive-output host function, with ONE scripted collaborator standing in for the
-//! campaign DLL (`require ("eech_dc")`: a boot, a frame loop and the session method `sector_height_witness_save`) and a scripted host provider. The collaborator makes the calls the real campaign makes, in the order
-//! its source makes them (a task leader's step reads the sector word twice with nothing between, then asks the look-ahead and hands the minimum height to the host's move; the session save packs every sector; the load restores
-//! every saved word before the first insertion) and checks every reply the way the C bridge does (mb_hostentity.h check_sector_height_reply), so an altered reply stops it with the marker the real engine stops with.
+//! ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1 (M6). They run the REAL driver, unmodified, under a real Lua 5.1 state, the REAL exclusive-output host function and the REAL reference arithmetic profile (SSE
+//! round-toward-zero, selected and put back by the harness), with ONE scripted collaborator standing in for the campaign DLL (`require ("eech_dc")`: a boot, a frame loop and the session method
+//! `sector_height_witness_save`) and a scripted host provider. The collaborator makes the calls the real campaign makes, in the order its source makes them (a task leader's step reads the sector word twice with
+//! nothing between, then asks the look-ahead and hands the minimum height to the host's move; the session save packs every sector, and RETRIES the whole pack when its buffer grows; the load restores every saved word
+//! before the first insertion) and checks every reply the way the C bridge does (mb_hostentity.h check_sector_height_reply), so an altered reply stops it with the marker the real engine stops with.
 //!
 //! WHAT THIS IS NOT: campaign authority. Nothing here runs the guarded `fw_move.c` branch, `store_session`, `pack_session` or `unpack_session`; the first real observation of each is the native run (docs/
-//! d3-sector-height-production-contract.md section 12). These checks show that the DRIVER credits only the eligible intervention it made, never a fatal before it, never an unreached case, and that its controls and
-//! every single-fault variant of them end as stated. The scripted collaborator's hand-off arithmetic is computed in Rust single precision (`HANDOFF`) and is a stand-in, not a copy of the campaign's code.
+//! d3-sector-height-production-contract.md section 12). These checks show that the DRIVER credits only the eligible intervention it made, never a fatal before it, never an unreached case, consumes only whole successful
+//! reference reports and the exact reply grammar, and that its controls and every single-fault variant of them end as stated. The scripted collaborator's hand-off arithmetic is computed in Rust single precision
+//! UNDER the actually selected reference profile (`HANDOFF`) and is a stand-in, not a copy of the campaign's code.
 //!
 //! The helper block of single-precision words in the driver is the SAME text as entity-authority.lua's (the driver runs under a hardware divide-by-zero trap natively): compared below.
 
+use eech_world::reference_arithmetic;
 use mlua::{Lua, Table};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -31,15 +34,27 @@ local function split (text, separator)
 	for token in string.gmatch (text, "[^" .. separator .. "]+") do t [#t + 1] = token end
 	return t
 end
+-- the facts of a question; a read of the leader's sector can be damaged on its Nth ask (P.bad_request) to test the exact request grammar
+local LEADER_ASKS = 0
 local function facts (phase, x, z, stated)
 	local w = {}
 	for i = 1, 16 do w [i] = ZERO end
 	w [1] = stated or ZERO
 	w [12] = PHASE [phase]
 	w [13], w [14] = x, z
-	return table.concat (w, ",")
+	local text = table.concat (w, ",")
+	if phase == "read" and P.leader_sector and x == P.leader_sector [1] and z == P.leader_sector [2] then
+		LEADER_ASKS = LEADER_ASKS + 1
+		if P.bad_request and LEADER_ASKS == (P.bad_request_nth or 1) then
+			if P.bad_request == "identity" then return text .. " extra" end
+			if P.bad_request == "comma" then return (string.gsub (text, ",", ",,", 1)) end
+			if P.bad_request == "nonzero" then return (string.gsub (text, ZERO, "0x3f800000", 1)) end
+		end
+	end
+	return text
 end
 
+local LEADER_REPLIES = 0
 -- the host's provider (scripted): reads and restores of sector words, scans, inserts with the strict-greater raise
 function PROVIDER (op, scene, depth, kind, definition, key)
 	note ("model " .. tostring (op))
@@ -48,12 +63,26 @@ function PROVIDER (op, scene, depth, kind, definition, key)
 	local phase = PHASE_NAME [w [12]]
 	local k = w [13] .. "," .. w [14]
 	if phase == "read" then
-		return { result = "height", p = w [13] .. "," .. w [14] .. "," .. (HELD [k] or ZERO) }
+		local word = HELD [k] or (P.held and P.held [k]) or ZERO
+		local reply = { result = "height", p = w [13] .. "," .. w [14] .. "," .. word }
+		if P.leader_sector and k == P.leader_sector [1] .. "," .. P.leader_sector [2] then
+			LEADER_REPLIES = LEADER_REPLIES + 1
+			if P.reply and LEADER_REPLIES == (P.reply_nth or 1) then
+				if P.reply == "trailing" then reply.p = reply.p .. "," end
+				if P.reply == "empty" then reply.p = w [13] .. ",," .. word end
+				if P.reply == "name" then reply.name = "1" end
+				if P.reply == "extra" then reply.p = reply.p .. ",0x00000000" end
+				if P.reply == "result" then reply.result = "nope" end
+			end
+		end
+		return reply
 	elseif phase == "restore" then
 		HELD [k] = w [1]
 		local stored = w [1]
 		if P.stored_wrong == k then stored = string.format ("0x%08x", tonumber (string.sub (w [1], 3), 16) + 1) end
-		return { result = "restored", p = w [13] .. "," .. w [14] .. "," .. stored }
+		local reply = { result = "restored", p = w [13] .. "," .. w [14] .. "," .. stored }
+		if P.seed_reply == "trailing" then reply.p = reply.p .. "," end
+		return reply
 	elseif phase == "insert" then
 		-- scripted insert: the sector named in facts 12 and 13 is raised to the sum in fact 0 when it is strictly greater (a NaN compares false)
 		local held = HELD [k] or ZERO
@@ -87,15 +116,21 @@ local function ask (config, phase, x, z, stated)
 	return p [3], answer
 end
 
--- the reference host's movement (scripted): the physical answer depends on the minimum height handed over (half of it, exact)
+-- the reference host's movement (scripted): the physical answer depends on the minimum height handed over (half of it, exact) unless the case fixes it
 function REFERENCE_MOVE (step)
 	note ("move " .. tostring (step.mode))
+	if step.mode == "fixed_wing_lookahead" then
+		if P.lookahead_nil then return nil end
+		return { position = { 10, 3000, 20 } }
+	end
 	local y = 0
 	if step.fixed_wing_terrain then y = step.fixed_wing_terrain.min_height * 0.5 end
+	if P.host_y_const then y = P.host_y_const end
+	if P.answer_missing then return { motion_vector = { 0, 0, 0 } } end
 	return { position = { 10, y, 20 } }
 end
 
--- one task leader's step: the wrapper read, the navigation read, then (with a hand-off) the look-ahead and the move carrying fixed_wing_terrain
+-- one task leader's step: the wrapper read, the navigation read, then (with a hand-off) the look-ahead and the move carrying fixed_wing_terrain, all of ONE caller
 local function leader_step (config, window, with_handoff)
 	if P.break_at_window ~= nil and P.break_at_window == window then error ("host model: [model-provider:" .. (P.break_marker or "entity_scan.callback") .. "] the scripted campaign stops here", 0) end
 	local x, z = P.leader_sector [1], P.leader_sector [2]
@@ -106,13 +141,20 @@ local function leader_step (config, window, with_handoff)
 		consumed = ask (config, "read", x, z)
 	end
 	if with_handoff then
-		config.move_vehicle { mode = "fixed_wing_lookahead", host_id = "ac1" }
+		local id = P.caller or "ac1"
+		config.move_vehicle { mode = "fixed_wing_lookahead", host_id = P.lookahead_id or id }
+		if P.between == "bind" then config.bind_mobile {}
+		elseif P.between == "model" then config.model ("scene", 1)
+		elseif P.between == "move" then config.move_vehicle { mode = "move", host_id = "gv1" } end
 		local min_height = HANDOFF (consumed, P.elevation, P.wp_alt)
 		if P.ignores_word then min_height = HANDOFF (ZERO, P.elevation, P.wp_alt) end
-		config.move_vehicle {
-			mode = "fixed_wing_move", host_id = "ac1", phase = 1, elevation = P.elevation, pose = { position = { 10, 3000, 20 } },
+		if P.bump then min_height = min_height + P.bump end
+		local step = {
+			mode = "fixed_wing_move", host_id = P.move_id or id, phase = 1, elevation = P.elevation, pose = { position = { 10, 3000, 20 } },
 			fixed_wing_terrain = { min_height = min_height, guide_position = { 0, 0, 0 }, sample_point = { 0, 0 }, sample_elevation = 0, site_y = 0, cg = 0 },
 		}
+		if P.missing == "phase" then step.phase = nil elseif P.missing == "elevation" then step.elevation = nil elseif P.missing == "pose" then step.pose = nil elseif P.missing == "id" then step.host_id = nil end
+		config.move_vehicle (step)
 	else
 		-- a wrapper-only call: nothing hands a height over; the next host callback is another vehicle's
 		config.move_vehicle { mode = "move", host_id = "gv1" }
@@ -127,15 +169,20 @@ local function scan_frame (config)
 	config.model ("entity_scan", 0, nil, nil, nil, facts ("end", ZERO, ZERO))
 end
 
+-- the real writer's order: pack_session reads EVERY sector, and store_session RETRIES the whole pack with a larger buffer while pack_session reports an overflow
 local function pack (config)
-	for _, sector in ipairs (P.map) do
-		ask (config, "read", sector [1], sector [2])
-		if P.pack_twice and sector == P.map [1] then ask (config, "read", sector [1], sector [2]) end
+	local attempts = P.pack_attempts or 1
+	for attempt = 1, attempts do
+		if P.pack_damage and P.pack_damage.attempt == attempt then HELD [P.pack_damage.key] = P.pack_damage.word end
+		for index, sector in ipairs (P.map) do
+			local skipped = (P.pack_omit == attempt and index == #P.map) or (P.pack_short_first and attempt == 1 and index > 6)
+			if not skipped then ask (config, "read", sector [1], sector [2]) end
+			if P.pack_twice and attempt == 1 and index == 1 then ask (config, "read", sector [1], sector [2]) end
+		end
 	end
 end
 
 local function load_boot (config)
-	CONFIG_LOAD = config
 	local function restore (sector)
 		local word = P.saved_words [sector [1] .. "," .. sector [2]]
 		if P.restore_override and P.restore_override [1] == sector [1] .. "," .. sector [2] then word = P.restore_override [2] end
@@ -205,6 +252,18 @@ fn temp_path(stem: &str) -> std::path::PathBuf {
     ))
 }
 
+/// the thread's own SSE word, put back when the run ends so a failure cannot leak the reference profile into another test
+struct RestoreMxcsr(u32);
+impl Drop for RestoreMxcsr {
+    fn drop(&mut self) {
+        reference_arithmetic::write_mxcsr(self.0);
+    }
+}
+
+fn single_from_bits(text: &str) -> f32 {
+    f32::from_bits(u32::from_str_radix(text.trim_start_matches("0x"), 16).unwrap())
+}
+
 /// run the real driver with the host args `args` (a Lua table body; `@OUT@` is the report path) and the case table `p` (a Lua table body)
 fn run(args: &str, p: &str) -> Outcome {
     let out = temp_path("report");
@@ -213,24 +272,27 @@ fn run(args: &str, p: &str) -> Outcome {
 }
 
 fn run_to(args: &str, p: &str, out: &std::path::Path) -> Outcome {
+    let _restore = RestoreMxcsr(reference_arithmetic::current_mxcsr());
     let out_path = out.to_string_lossy().replace('\\', "/");
     let lua = unsafe { Lua::unsafe_new() };
     lua.globals()
         .set(
             "F32_GT",
-            lua.create_function(|_, (a, b): (String, String)| {
-                let f = |t: &str| f32::from_bits(u32::from_str_radix(t.trim_start_matches("0x"), 16).unwrap());
-                Ok(f(&a) > f(&b))
-            })
-            .unwrap(),
+            lua.create_function(|_, (a, b): (String, String)| Ok(single_from_bits(&a) > single_from_bits(&b)))
+                .unwrap(),
         )
         .unwrap();
     lua.globals()
         .set(
             "HANDOFF",
             lua.create_function(|_, (word, elevation, wp_alt): (String, f64, f64)| {
-                // the original expressions in single precision: max (altitude, max (terrain, word - terrain)); a scripted stand-in
-                let word = f32::from_bits(u32::from_str_radix(word.trim_start_matches("0x"), 16).unwrap());
+                // the original expressions in single precision, executed under the profile the driver actually selected: max (altitude, max (terrain, word - terrain)); a scripted stand-in
+                assert_eq!(
+                    reference_arithmetic::current_mxcsr() & reference_arithmetic::MXCSR_ROUNDING_CONTROL,
+                    reference_arithmetic::MXCSR_TOWARD_ZERO,
+                    "the scripted campaign ran outside the selected reference profile"
+                );
+                let word = single_from_bits(&word);
                 let (elevation, wp_alt) = (elevation as f32, wp_alt as f32);
                 let after_word = elevation.max(word - elevation);
                 Ok(f64::from(wp_alt.max(after_word)))
@@ -252,7 +314,6 @@ fn run_to(args: &str, p: &str, out: &std::path::Path) -> Outcome {
         host = {{
             args = {{ {args} }},
             log = function () end,
-            use_reference_arithmetic = function () end,
             terrain_provider = function () return function () end end,
             env_provider = function () return function () end end,
             model = function (...) return PROVIDER (...) end,
@@ -265,6 +326,16 @@ fn run_to(args: &str, p: &str, out: &std::path::Path) -> Outcome {
     .exec()
     .expect("the host table is valid Lua");
     let host: Table = lua.globals().get("host").unwrap();
+    // the REAL profile selection of the reference host (src/main.rs host.use_reference_arithmetic): SSE round-toward-zero, read back
+    host.set(
+        "use_reference_arithmetic",
+        lua.create_function(|_, ()| {
+            reference_arithmetic::select_sse_toward_zero().map_err(mlua::Error::runtime)?;
+            Ok(())
+        })
+        .unwrap(),
+    )
+    .unwrap();
     eech_world::exclusive_output::register(&lua, &host).unwrap();
     let result = lua.load(DRIVER).set_name("sector-height-witness.lua").exec().map_err(|e| e.to_string());
     let log: Vec<String> = lua.globals().get("LOG").unwrap();
@@ -280,6 +351,7 @@ fn bits(value: f32) -> String {
 
 const CLEARANCE_P: &str = "family = 'clearance', leader_sector = { BITS (7), BITS (9) }, elevation = 1500.5, wp_alt = 1000.0, \
      frames = { 'scan', 'step', 'handoff', 'handoff' }, window_of = { [2] = 1, [3] = 2, [4] = 3 }";
+const ORIGINAL_FRAMES: &str = "original = true, frames = { 'step', 'handoff' }";
 const CLEARANCE_ARGS: &str = "root = 'x', out = '@OUT@', hours = '0.0002'";
 
 fn clearance(mode_and_extra_args: &str, extra_p: &str) -> Outcome {
@@ -302,6 +374,169 @@ fn assert_failed(outcome: &Outcome, status: &str, needle: &str) {
     assert!(error.contains(status) && error.contains(needle), "wanted {status} / {needle}, got: {error}");
     let report = report(outcome);
     assert!(line_of(&report, "sh-witness-verdict").contains(&format!("status={status}")), "{report}");
+}
+
+fn assert_refused_before_any_effect(outcome: &Outcome, needle: &str) {
+    let error = outcome.result.as_ref().expect_err("the arguments must be refused");
+    assert!(error.contains(needle), "wanted {needle}, got: {error}");
+    assert!(
+        outcome.report.is_none() && outcome.log.is_empty(),
+        "no side effect before the arguments are accepted: {:?}",
+        outcome.log
+    );
+}
+
+fn path_text(path: &std::path::Path) -> String {
+    path.to_string_lossy().replace('\\', "/")
+}
+
+fn remove(paths: &[&std::path::Path]) {
+    for path in paths {
+        let _ = std::fs::remove_file(path);
+    }
+}
+
+/// the original-solver characterisation and the hosted control paired with it, both whole successful reports kept for the runs that consume them
+struct Paired {
+    original: std::path::PathBuf,
+    control: std::path::PathBuf,
+}
+
+fn paired(extra_p: &str) -> Paired {
+    let original = temp_path("original");
+    let control = temp_path("control");
+    let _ = std::fs::remove_file(&original);
+    let _ = std::fs::remove_file(&control);
+    let o = run_to(
+        &format!("{CLEARANCE_ARGS}, mode = 'clearance_original'"),
+        &format!("{CLEARANCE_P}, {ORIGINAL_FRAMES}, {extra_p}"),
+        &original,
+    );
+    o.result.as_ref().expect("the original profile run passes");
+    let c = run_to(
+        &format!("{CLEARANCE_ARGS}, mode = 'clearance_control', original = '{}'", path_text(&original)),
+        &format!("{CLEARANCE_P}, {extra_p}"),
+        &control,
+    );
+    c.result.as_ref().expect("the hosted control paired with it passes");
+    Paired { original, control }
+}
+
+impl Paired {
+    fn intervene(&self, mode: &str, extra_p: &str) -> Outcome {
+        clearance(&format!("mode = '{mode}', window = 2, control = '{}'", path_text(&self.control)), extra_p)
+    }
+    fn clean(&self) {
+        remove(&[&self.original, &self.control]);
+    }
+}
+
+fn damaged(report: &str, how: &str) -> String {
+    let mut lines: Vec<String> = report.lines().map(str::to_string).collect();
+    let position = |lines: &[String], prefix: &str| lines.iter().position(|l| l.starts_with(prefix)).unwrap_or_else(|| panic!("no {prefix} line"));
+    match how {
+        "no_verdict" => {
+            lines.pop();
+        }
+        "failed" => {
+            let at = lines.len() - 1;
+            lines[at] = lines[at].replace("status=PASS", "status=FAILURE");
+        }
+        "duplicate_record" => {
+            let at = lines
+                .iter()
+                .position(|l| l.starts_with("sh-witness-handoff ") || l.starts_with("sh-witness-save "))
+                .expect("a single record");
+            let copy = lines[at].clone();
+            lines.insert(at + 1, copy);
+        }
+        "duplicate_row" => {
+            let at = position(&lines, "sh-save-word ");
+            let copy = lines[at].clone();
+            lines.insert(at + 1, copy);
+        }
+        "other_setup" => {
+            lines[0] = lines[0].replace(" seed=1 ", " seed=2 ");
+        }
+        "unknown" => {
+            let at = lines.len() - 1;
+            lines.insert(at, "sh-witness-bogus x=1".to_string());
+        }
+        "fatal" => {
+            let at = lines.len() - 1;
+            lines.insert(at, "sh-witness-fatal where=frame marker=none line=stopped".to_string());
+        }
+        "empty_line" => lines.insert(1, String::new()),
+        "wrong_mode" => {
+            lines[0] = lines[0]
+                .replace("mode=clearance_original", "mode=clearance_control")
+                .replace("mode=save", "mode=load");
+        }
+        "no_counts" => {
+            let at = position(&lines, "sh-witness-counts");
+            lines.remove(at);
+        }
+        "schema1" => lines[0] = lines[0].replace("schema=2", "schema=1"),
+        "no_pack" => {
+            let at = position(&lines, "sh-witness-pack ");
+            lines.remove(at);
+        }
+        "gap" => {
+            let at = position(&lines, "sh-save-word i=3 ");
+            lines.remove(at);
+        }
+        "bad_word" => {
+            let at = position(&lines, "sh-save-word i=3 ");
+            lines[at] = lines[at].replace("word=0x", "word=0x,");
+        }
+        "wrong_profile" => {
+            lines[0] = lines[0]
+                .replace("profile=original-solver", "profile=hosted")
+                .replace("profile=witness-feature", "profile=hosted")
+        }
+        "profile_original" => lines[0] = lines[0].replace("profile=hosted", "profile=original-solver"),
+        "no_trajectory" => {
+            let at = position(&lines, "sh-witness-trajectory");
+            lines.remove(at);
+        }
+        "unpaired" => {
+            let at = position(&lines, "sh-witness-original");
+            lines.remove(at);
+        }
+        other => panic!("unknown damage {other}"),
+    }
+    lines.join("\n") + "\n"
+}
+
+fn write_temp(text: &str) -> std::path::PathBuf {
+    let path = temp_path("damaged");
+    std::fs::write(&path, text).unwrap();
+    path
+}
+
+/// the largest single not above a positive double (the truncation toward zero of the exact value)
+fn truncate_to_single(value: f64) -> f32 {
+    let nearest = value as f32;
+    if f64::from(nearest) > value {
+        f32::from_bits(nearest.to_bits() - 1)
+    } else {
+        nearest
+    }
+}
+
+/// an elevation, found by stepping single precision values from `start`, for which `word - elevation` is exact in double and NOT exact in single, and for which round-to-nearest and round-toward-zero differ
+fn elevation_where_nearest_and_toward_zero_differ(word: f32, start: f32) -> f32 {
+    let mut elevation = start;
+    for _ in 0..4096 {
+        let exact = f64::from(word) - f64::from(elevation);
+        let down = truncate_to_single(exact);
+        let up = f32::from_bits(down.to_bits() + 1);
+        if f64::from(down) != exact && f64::from(up) - exact < exact - f64::from(down) {
+            return elevation;
+        }
+        elevation = f32::from_bits(elevation.to_bits() + 1);
+    }
+    panic!("no elevation near {start} has a non-exact difference whose nearest and toward-zero values differ");
 }
 
 // ---------------------------------------------------------------------------------------------------------------- the float helper block is the one the native host already proved
@@ -346,7 +581,7 @@ fn the_driver_states_a_restore_only_to_its_own_provider_for_seeding_and_never_pa
     for forbidden in ["pack_session", "unpack_session", "store_session", "campaign_model", ".model_restore"] {
         assert!(!code_text.contains(forbidden), "the driver must not call or name {forbidden} in code");
     }
-    // the one place a restore question (phase 18) is BUILT is the seeding of the host's own provider, and it is skipped when there are no seeds; the restores the campaign makes are only observed
+    // the one place a restore question (phase 18) is BUILT is the seeding of the host's own provider; the restores the campaign makes are only observed
     assert_eq!(
         code_text.matches("\"0x41900000\"").count(),
         2,
@@ -361,16 +596,157 @@ fn the_driver_states_a_restore_only_to_its_own_provider_for_seeding_and_never_pa
         restore_build > seeding && restore_build < seeding + 6,
         "the restore question is built only inside seed_provider"
     );
-    // the only call into the engine's fixture is the save method
     assert_eq!(code_text.matches("engine:sector_height_witness_save (").count(), 1);
     // the host's own provider is delegated to, never replaced: the driver assigns nothing to host.model
     assert!(!code_text.contains("host.model = ") && !code_text.contains("host.model="));
+    // the one rounding of the clearance expression is the accepted toward-zero one: no round-to-nearest helper remains
+    assert!(
+        !code_text.contains("rem == 0.5") && !code_text.contains("ties"),
+        "no nearest-even rounding may remain in code"
+    );
 }
 
 // ---------------------------------------------------------------------------------------------------------------- M5: the guarded clearance
 
 #[test]
-fn the_clearance_control_credits_the_first_window_that_is_followed_by_a_hand_off_and_nothing_else() {
+fn the_original_profile_characterisation_comes_first_and_the_paired_control_must_equal_it_field_for_field() {
+    let original_out = temp_path("original");
+    let _ = std::fs::remove_file(&original_out);
+    let o = run_to(
+        &format!("{CLEARANCE_ARGS}, mode = 'clearance_original'"),
+        &format!("{CLEARANCE_P}, {ORIGINAL_FRAMES}"),
+        &original_out,
+    );
+    o.result.as_ref().expect("the original profile run passes");
+    let r = report(&o);
+    assert!(
+        line_of(&r, "sh-witness-identity").starts_with(
+            "sh-witness-identity schema=2 mode=clearance_original profile=original-solver scenario=lebanon_retail seed=1 frame_ms=100 hours=0.0002 window=none"
+        ),
+        "{r}"
+    );
+    assert!(
+        line_of(&r, "sh-witness-counts")
+            .contains("windows=0 windows_without_handoff=0 scan_reads=0 height_reads=0 altered_windows=0 altered_reads=0 handoffs=1"),
+        "{r}"
+    );
+    let handoff = line_of(&r, "sh-witness-handoff");
+    assert!(handoff.starts_with("sh-witness-handoff ordinal=1 window=0 reads=0 sector=none"), "{handoff}");
+    assert!(
+        handoff.contains(&format!("host_id=ac1 elevation={} min_height={} ", bits(1500.5), bits(1500.5))),
+        "{handoff}"
+    );
+    assert!(line_of(&r, "sh-witness-verdict").contains("status=PASS"), "{r}");
+    // the same setup hosted, PAIRED: the first hand-off equals the original profile's, field for field
+    let control_out = temp_path("control");
+    let _ = std::fs::remove_file(&control_out);
+    let o = run_to(
+        &format!("{CLEARANCE_ARGS}, mode = 'clearance_control', original = '{}'", path_text(&original_out)),
+        CLEARANCE_P,
+        &control_out,
+    );
+    o.result.as_ref().expect("the hosted control equals the original profile's first hand-off");
+    let r = report(&o);
+    assert!(line_of(&r, "sh-witness-original").contains("equal=1"), "{r}");
+    assert!(line_of(&r, "sh-witness-verdict").contains("paired with the original profile"), "{r}");
+    // a hosted first hand-off that differs (another terrain elevation) is a failure naming the field
+    let o = clearance(
+        &format!("mode = 'clearance_control', original = '{}'", path_text(&original_out)),
+        "elevation = 1600.5",
+    );
+    assert_failed(&o, "FAILURE", "differs from the original profile's: elevation");
+    assert!(!report(&o).contains("sh-witness-original"), "{}", report(&o));
+    // a run in which the host WAS asked is not the original-solver profile; one with no complete hand-off is UNREACHED
+    let o = clearance("mode = 'clearance_original'", "");
+    assert_failed(&o, "FAILURE", "this is not the original-solver profile");
+    let o = clearance("mode = 'clearance_original'", "original = true, frames = { 'step', 'step' }");
+    assert_failed(&o, "UNREACHED", "no complete same-caller hand-off");
+    remove(&[&original_out, &control_out]);
+}
+
+#[test]
+fn an_unpaired_control_is_explicitly_unpaired_and_unlocks_no_intervention() {
+    let control_out = temp_path("unpaired");
+    let _ = std::fs::remove_file(&control_out);
+    let o = run_to(&format!("{CLEARANCE_ARGS}, mode = 'clearance_control'"), CLEARANCE_P, &control_out);
+    o.result.as_ref().expect("a standalone control passes as UNPAIRED");
+    let r = report(&o);
+    assert!(line_of(&r, "sh-witness-verdict").contains("UNPAIRED: no parity claim"), "{r}");
+    assert!(!r.contains("sh-witness-original"), "{r}");
+    let o = clearance(
+        &format!("mode = 'clearance_changed_word', window = 2, control = '{}'", path_text(&control_out)),
+        "",
+    );
+    assert_refused_before_any_effect(&o, "not a PAIRED control");
+    remove(&[&control_out]);
+}
+
+#[test]
+fn a_reference_report_that_is_not_whole_successful_and_of_the_same_setup_is_refused_before_any_side_effect() {
+    let p = paired("");
+    let original = std::fs::read_to_string(&p.original).unwrap();
+    let control = std::fs::read_to_string(&p.control).unwrap();
+    // original= (consumed by the control)
+    for how in [
+        "no_verdict",
+        "failed",
+        "duplicate_record",
+        "other_setup",
+        "unknown",
+        "fatal",
+        "empty_line",
+        "wrong_mode",
+        "no_counts",
+        "schema1",
+        "wrong_profile",
+    ] {
+        let file = write_temp(&damaged(&original, how));
+        let o = clearance(&format!("mode = 'clearance_control', original = '{}'", path_text(&file)), "");
+        assert!(o.result.is_err(), "original damaged by {how} must be refused");
+        assert!(o.report.is_none() && o.log.is_empty(), "original damaged by {how}: no side effect: {:?}", o.log);
+        remove(&[&file]);
+    }
+    // control= (consumed by an intervention): the same single faults, plus the records an intervention needs
+    for how in [
+        "no_verdict",
+        "failed",
+        "duplicate_record",
+        "other_setup",
+        "unknown",
+        "fatal",
+        "empty_line",
+        "no_counts",
+        "schema1",
+        "no_trajectory",
+        "unpaired",
+        "profile_original",
+    ] {
+        let file = write_temp(&damaged(&control, how));
+        let o = clearance(&format!("mode = 'clearance_changed_word', window = 2, control = '{}'", path_text(&file)), "");
+        assert!(o.result.is_err(), "control damaged by {how} must be refused");
+        assert!(o.report.is_none() && o.log.is_empty(), "control damaged by {how}: no side effect: {:?}", o.log);
+        remove(&[&file]);
+    }
+    // a control of another window, a missing file, a control for a mode that takes none
+    let o = clearance(
+        &format!("mode = 'clearance_changed_word', window = 3, control = '{}'", path_text(&p.control)),
+        "",
+    );
+    assert_refused_before_any_effect(&o, "is not the control's window");
+    let o = clearance("mode = 'clearance_changed_word', window = 2, control = 'R:/nowhere/control.txt'", "");
+    assert_refused_before_any_effect(&o, "cannot read the control report");
+    let o = clearance(&format!("mode = 'clearance_control', control = '{}'", path_text(&p.control)), "");
+    assert_refused_before_any_effect(&o, "control=<report> is only for a clearance mode that intervenes");
+    // the coherent pair still passes (the single faults changed ONE thing each)
+    p.intervene("clearance_changed_word", "")
+        .result
+        .as_ref()
+        .expect("the undamaged pair is accepted");
+    p.clean();
+}
+
+#[test]
+fn the_clearance_control_credits_the_first_window_followed_by_a_complete_same_caller_hand_off_and_nothing_else() {
     let o = clearance("mode = 'clearance_control'", "");
     o.result.as_ref().expect("the control with an eligible window and a hand-off passes");
     let r = report(&o);
@@ -389,6 +765,11 @@ fn the_clearance_control_credits_the_first_window_that_is_followed_by_a_hand_off
         "{handoff}"
     );
     assert!(handoff.contains(&format!("answered_y={}", bits(750.25))), "{handoff}");
+    // the trajectory of the hand-off window: window 2 at frame 3 after one window without a hand-off, one scan read and no hand-off before
+    assert!(
+        line_of(&r, "sh-witness-trajectory").ends_with("window=2 frame=3 windows_without_handoff=1 scan_reads=1 handoffs=0"),
+        "{r}"
+    );
     assert!(line_of(&r, "sh-witness-verdict").contains("status=PASS"), "{r}");
     // the control stops at the first hand-off: the fourth frame is never run
     assert_eq!(o.log.iter().filter(|l| l.as_str() == "move fixed_wing_move").count(), 1, "{:?}", o.log);
@@ -396,82 +777,20 @@ fn the_clearance_control_credits_the_first_window_that_is_followed_by_a_hand_off
 
 #[test]
 fn a_clearance_control_with_no_hand_off_is_unreached_never_a_pass_and_scan_reads_are_never_windows() {
-    // windows with no hand-off only
     let o = clearance("mode = 'clearance_control'", "frames = { 'scan', 'step', 'step' }");
-    assert_failed(&o, "UNREACHED", "no hand-off");
+    assert_failed(&o, "UNREACHED", "no complete same-caller hand-off");
     assert!(
         line_of(&report(&o), "sh-witness-counts").contains("windows=2 windows_without_handoff=2 scan_reads=1"),
         "{}",
         report(&o)
     );
-    // only the scan's own FIRST read: it is a scan read, not the clearance asking
     let o = clearance("mode = 'clearance_control'", "frames = { 'scan', 'scan' }");
-    assert_failed(&o, "UNREACHED", "no hand-off");
+    assert_failed(&o, "UNREACHED", "no complete same-caller hand-off");
     assert!(
         line_of(&report(&o), "sh-witness-counts").contains("windows=0 windows_without_handoff=0 scan_reads=2"),
         "{}",
         report(&o)
     );
-}
-
-#[test]
-fn the_original_profile_characterisation_comes_first_and_the_hosted_control_must_equal_it_field_for_field() {
-    // the characterisation FIRST: in the original-solver profile the host is never asked and the first hand-off is reported
-    let original_out = temp_path("original");
-    let _ = std::fs::remove_file(&original_out);
-    let o = run_to(
-        &format!("{CLEARANCE_ARGS}, mode = 'clearance_original'"),
-        &format!("{CLEARANCE_P}, original = true, frames = {{ 'step', 'handoff' }}"),
-        &original_out,
-    );
-    o.result.as_ref().expect("the original profile run passes");
-    let r = report(&o);
-    assert!(
-        line_of(&r, "sh-witness-counts")
-            .contains("windows=0 windows_without_handoff=0 scan_reads=0 height_reads=0 altered_windows=0 altered_reads=0 handoffs=1"),
-        "{r}"
-    );
-    let handoff = line_of(&r, "sh-witness-handoff");
-    assert!(handoff.starts_with("sh-witness-handoff ordinal=1 window=0 reads=0 sector=none"), "{handoff}");
-    assert!(
-        handoff.contains(&format!("host_id=ac1 elevation={} min_height={} ", bits(1500.5), bits(1500.5))),
-        "{handoff}"
-    );
-    assert!(line_of(&r, "sh-witness-verdict").contains("status=PASS"), "{r}");
-    // the same setup hosted: the first hand-off equals the original profile's, field for field
-    let o = clearance(
-        &format!("mode = 'clearance_control', original = '{}'", original_out.to_string_lossy().replace('\\', "/")),
-        "",
-    );
-    o.result.as_ref().expect("the hosted control equals the original profile's first hand-off");
-    assert!(line_of(&report(&o), "sh-witness-original").contains("equal=1"), "{}", report(&o));
-    // a hosted first hand-off that differs (another terrain elevation) is a failure naming the field
-    let o = clearance(
-        &format!("mode = 'clearance_control', original = '{}'", original_out.to_string_lossy().replace('\\', "/")),
-        "elevation = 1600.5",
-    );
-    assert_failed(&o, "FAILURE", "differs from the original profile's: elevation");
-    assert!(!report(&o).contains("sh-witness-original"), "{}", report(&o));
-    // a run in which the host WAS asked is not the original-solver profile; one with no hand-off is UNREACHED
-    let o = clearance("mode = 'clearance_original'", "");
-    assert_failed(&o, "FAILURE", "this is not the original-solver profile");
-    let o = clearance("mode = 'clearance_original'", "original = true, frames = { 'step', 'step' }");
-    assert_failed(&o, "UNREACHED", "no hand-off");
-    // the argument belongs to the hosted control only
-    let o = clearance(
-        &format!(
-            "mode = 'clearance_changed_word', window = 2, original = '{}'",
-            original_out.to_string_lossy().replace('\\', "/")
-        ),
-        "",
-    );
-    assert!(o
-        .result
-        .as_ref()
-        .expect_err("original= for another mode")
-        .contains("original=<report> is only for clearance_control"));
-    assert!(o.report.is_none() && o.log.is_empty(), "{:?}", o.log);
-    let _ = std::fs::remove_file(original_out);
 }
 
 #[test]
@@ -488,14 +807,41 @@ fn another_host_callback_between_two_reads_ends_a_window() {
 }
 
 #[test]
+fn a_hand_off_is_credited_only_for_a_complete_same_caller_sequence_with_the_hosts_real_positive_answers() {
+    // from the coherent positive (the control above), change ONE thing between the reads and the move
+    for (extra, why) in [
+        ("lookahead_id = 'ac2'", "the look-ahead of another caller than the move"),
+        ("move_id = 'ac2'", "the move of another caller than the look-ahead"),
+        ("between = 'bind'", "a bind between the look-ahead and the move"),
+        ("between = 'model'", "a model question between the look-ahead and the move"),
+        ("between = 'move'", "another vehicle's step between the look-ahead and the move"),
+    ] {
+        let o = clearance("mode = 'clearance_control'", extra);
+        assert_failed(&o, "UNREACHED", "no complete same-caller hand-off");
+        assert!(!report(&o).contains("sh-witness-handoff"), "{why}: {}", report(&o));
+    }
+    // incomplete current evidence, or a host answer without its position or without a look-ahead answer, is a failure and never a hand-off
+    for (extra, needle) in [
+        ("missing = 'phase'", "no phase"),
+        ("missing = 'elevation'", "no finite elevation"),
+        ("missing = 'pose'", "no finite pre pose position"),
+        ("answer_missing = true", "the host's answer holds no finite position"),
+        ("lookahead_nil = true", "the host answered no table"),
+    ] {
+        let o = clearance("mode = 'clearance_control'", extra);
+        let error = o.result.as_ref().expect_err(extra);
+        assert!(error.contains("FAILURE") && error.contains(needle), "{extra}: {error}");
+        assert!(!report(&o).contains("sh-witness-handoff"), "{extra}");
+    }
+    // a missing host id in the move can never be the same caller as the look-ahead
+    let o = clearance("mode = 'clearance_control'", "missing = 'id'");
+    assert_failed(&o, "UNREACHED", "no complete same-caller hand-off");
+}
+
+#[test]
 fn a_changed_host_word_changes_the_campaigns_hand_off_and_the_hosts_physical_answer() {
-    let control = clearance("mode = 'clearance_control'", "");
-    control.result.as_ref().expect("the control passes");
-    let (min, y) = (bits(1500.5), bits(750.25));
-    let o = clearance(
-        &format!("mode = 'clearance_changed_word', window = 2, control_min = '{min}', control_answer_y = '{y}'"),
-        "",
-    );
+    let p = paired("");
+    let o = p.intervene("clearance_changed_word", "");
     o.result.as_ref().expect("the changed word reaches the hand-off");
     let r = report(&o);
     let handoff = line_of(&r, "sh-witness-handoff");
@@ -511,50 +857,176 @@ fn a_changed_host_word_changes_the_campaigns_hand_off_and_the_hosts_physical_ans
     assert!(handoff.contains(&format!("answered_y={}", bits(49249.75))), "{handoff}");
     assert!(line_of(&r, "sh-witness-effect").contains("handoff=changed physical=changed"), "{r}");
     assert!(line_of(&r, "sh-witness-counts").contains("altered_windows=1 altered_reads=2"), "{r}");
-    // without the control's values the comparison is stated as not made, never inferred
-    let o = clearance("mode = 'clearance_changed_word', window = 2", "");
-    o.result.as_ref().expect("passes");
-    assert!(line_of(&report(&o), "sh-witness-effect").contains("handoff=not_compared physical=not_compared"));
-    // a hand-off that does not follow the changed word (the campaign ignores it) is NOT shown to: UNREACHED, never a pass
-    let o = clearance("mode = 'clearance_changed_word', window = 2", "ignores_word = true");
-    assert_failed(&o, "UNREACHED", "did not dominate");
-    // a window that is never reached
-    let o = clearance("mode = 'clearance_changed_word', window = 7", "");
-    assert_failed(&o, "UNREACHED", "no hand-off in window 7");
+    // a host that answers the same height whatever it is handed: the hand-off effect is stated, the physical effect is stated UNCHANGED, never claimed
+    let o = p.intervene("clearance_changed_word", "host_y_const = 750.25");
+    o.result.as_ref().expect("the hand-off still follows the word");
+    assert!(
+        line_of(&report(&o), "sh-witness-effect").contains("handoff=changed physical=unchanged"),
+        "{}",
+        report(&o)
+    );
+    // a hand-off that does not follow the changed word (the campaign ignores it) is a hand-off that matches neither the word's value nor the control's: FAILURE, never a pass
+    let o = p.intervene("clearance_changed_word", "ignores_word = true");
+    assert_failed(&o, "FAILURE", "neither the round-toward-zero value");
+    // a hand-off one step above the accepted value is wrong
+    let o = p.intervene("clearance_changed_word", "bump = 0.0078125");
+    assert_failed(&o, "FAILURE", "neither the round-toward-zero value");
+    // the consumed hand-off of ANOTHER caller or step than the control's is not the control's
+    let o = p.intervene("clearance_changed_word", "caller = 'ac9'");
+    assert_failed(&o, "FAILURE", "not the control's caller and step (host_id");
+    let o = p.intervene("clearance_changed_word", "elevation = 1600.5");
+    assert_failed(&o, "FAILURE", "not the control's caller and step (elevation");
+    // no complete hand-off in the altered window is UNREACHED, with the altered read not credited as consumed
+    let o = p.intervene("clearance_changed_word", "move_id = 'ac2'");
+    assert_failed(&o, "UNREACHED", "no complete same-caller hand-off in window 2");
+    // a window never reached
+    let o = p.intervene("clearance_changed_word", "frames = { 'scan', 'step' }");
+    assert_failed(&o, "UNREACHED", "no complete same-caller hand-off in window 2");
+    // a run whose trajectory is not the control's is never intervened on
+    let o = p.intervene("clearance_changed_word", "frames = { 'step', 'step', 'handoff' }");
+    assert_failed(&o, "FAILURE", "the trajectory of window 2 differs from the control's");
+    assert!(
+        line_of(&report(&o), "sh-witness-counts").contains("altered_windows=0 altered_reads=0"),
+        "{}",
+        report(&o)
+    );
+    p.clean();
+}
+
+#[test]
+fn a_clean_non_dominance_is_unreached_and_an_unexplained_hand_off_is_a_failure() {
+    // an altitude term (200000.0) dominates the clearance expression in the control and in the changed run: the hand-off equals the control's and is larger than the word's value
+    let p = paired("wp_alt = 200000.0");
+    let o = p.intervene("clearance_changed_word", "wp_alt = 200000.0");
+    assert_failed(&o, "UNREACHED", "did not dominate the clearance expression");
+    p.clean();
+}
+
+#[test]
+fn the_expected_clearance_subtraction_uses_the_accepted_round_toward_zero_profile_not_round_to_nearest() {
+    // a finite NON-EXACT subtraction where round-to-nearest and round-toward-zero differ, computed by the scripted campaign under the profile the driver ACTUALLY selected (the harness reads it back and restores it)
+    let elevation = elevation_where_nearest_and_toward_zero_differ(100000.0, 1500.1);
+    let exact = f64::from(100000.0f32) - f64::from(elevation);
+    let down = truncate_to_single(exact);
+    assert!(
+        f64::from(down) != exact && f64::from(f32::from_bits(down.to_bits() + 1)) - exact < exact - f64::from(down),
+        "the precondition: nearest and toward-zero differ"
+    );
+    let extra = format!("elevation = {:?}", f64::from(elevation));
+    let p = paired(&extra);
+    let o = p.intervene("clearance_changed_word", &extra);
+    o.result.as_ref().expect("the accepted toward-zero hand-off is accepted");
+    let r = report(&o);
+    assert!(
+        line_of(&r, "sh-witness-handoff").contains(&format!("min_height={} ", bits(down))),
+        "the hand-off is the toward-zero value: {r}"
+    );
+    // the genuinely wrong hand-off (the round-to-nearest value, one unit above) is rejected
+    let o = p.intervene(
+        "clearance_changed_word",
+        &format!("{extra}, bump = {:?}", f64::from(f32::from_bits(down.to_bits() + 1)) - f64::from(down)),
+    );
+    assert_failed(&o, "FAILURE", "neither the round-toward-zero value");
+    p.clean();
+    // the control's lower bound is the same expression: a held word whose difference is non-exact, the hand-off the toward-zero value, accepted
+    let word = 6000.0f32;
+    let elevation = elevation_where_nearest_and_toward_zero_differ(word, 1500.1);
+    let extra = format!(
+        "elevation = {:?}, held = {{ [BITS (7) .. ',' .. BITS (9)] = '{}' }}",
+        f64::from(elevation),
+        bits(word)
+    );
+    let o = clearance("mode = 'clearance_control'", &extra);
+    o.result.as_ref().expect("the control's lower bound is formed under the accepted profile");
+    let handoff = report(&o);
+    let expected = truncate_to_single(f64::from(word) - f64::from(elevation));
+    assert!(
+        line_of(&handoff, "sh-witness-handoff").contains(&format!("min_height={} ", bits(expected))),
+        "{handoff}"
+    );
+    // an exact positive stays accepted (the 98499.5 case above) and a hand-off BELOW the lower bound is rejected
+    let o = clearance("mode = 'clearance_control'", &format!("{extra}, bump = -1.0"));
+    assert_failed(&o, "FAILURE", "is below max(elevation, word - elevation)");
+    // a subtraction the double cannot hold exactly is refused as unformable, never rounded twice
+    let o = clearance("mode = 'clearance_control'", "held = { [BITS (7) .. ',' .. BITS (9)] = '0x7e800000' }");
+    assert_failed(&o, "FAILURE", "cannot be formed exactly in single precision");
 }
 
 #[test]
 fn each_refusal_mode_is_credited_only_when_the_campaign_stops_at_its_marker_after_the_eligible_read() {
+    let p = paired("");
     for (mode, marker) in [
         ("clearance_withheld", "entity_scan.callback"),
         ("clearance_malformed", "entity_scan.answer"),
         ("clearance_wrong_state", "entity_scan.state"),
         ("clearance_wrong_sector", "entity_scan.sector_height"),
     ] {
-        // positive first: the control of the same campaign is healthy (above); the single fault stops at its marker
-        let o = clearance(&format!("mode = '{mode}', window = 2"), "");
+        // positive first: the paired control of the same campaign is healthy; the single fault stops at its marker
+        let o = p.intervene(mode, "");
         o.result.as_ref().unwrap_or_else(|e| panic!("{mode}: {e}"));
         let r = report(&o);
         assert!(line_of(&r, "sh-witness-fatal").contains(&format!("marker={marker}")), "{mode}: {r}");
         assert!(line_of(&r, "sh-witness-verdict").contains("status=PASS"), "{mode}: {r}");
         // a fatal BEFORE the eligible read, even at the same marker, is a failure
-        let o = clearance(
-            &format!("mode = '{mode}', window = 2"),
-            &format!("break_at_window = 1, break_marker = '{marker}'"),
-        );
+        let o = p.intervene(mode, &format!("break_at_window = 1, break_marker = '{marker}'"));
         assert_failed(&o, "FAILURE", "before the eligible read of window 2");
         // a campaign that accepts the faulty answer and goes on is a failure (a withheld answer is a host that raised: nothing can accept it)
         if mode != "clearance_withheld" {
-            let o = clearance(&format!("mode = '{mode}', window = 2"), "lenient = true");
+            let o = p.intervene(mode, "lenient = true");
             assert_failed(&o, "FAILURE", "accepted the faulty answer");
         }
-        // a window that is never reached is UNREACHED
-        let o = clearance(&format!("mode = '{mode}', window = 9"), "");
-        assert_failed(&o, "UNREACHED", "window 9 was never reached");
+        // a window never reached is UNREACHED
+        let o = p.intervene(mode, "frames = { 'scan', 'step' }");
+        assert_failed(&o, "UNREACHED", "window 2 was never reached");
+        // a run whose trajectory is not the control's is never intervened on
+        let o = p.intervene(mode, "frames = { 'step', 'step', 'handoff' }");
+        assert_failed(&o, "FAILURE", "the trajectory of window 2 differs from the control's");
+        assert!(!report(&o).contains("sh-witness-fatal"), "{mode}: no fault was delivered: {}", report(&o));
+        // a malformed positive reply (a trailing comma) or request (an identity, an extra comma, a non-zero fact) at the eligible read is the host's or the campaign's own failure, never the configured single fault
+        for extra in [
+            "reply = 'trailing', reply_nth = 3",
+            "reply = 'empty', reply_nth = 3",
+            "reply = 'name', reply_nth = 3",
+            "reply = 'extra', reply_nth = 3",
+            "reply = 'result', reply_nth = 3",
+        ] {
+            let o = p.intervene(mode, extra);
+            assert_failed(&o, "FAILURE", "the host's own answer broke the contract");
+            assert!(
+                !report(&o).contains("after the one intervention"),
+                "{mode} {extra}: the configured fault is not credited: {}",
+                report(&o)
+            );
+        }
+        for extra in [
+            "bad_request = 'identity', bad_request_nth = 3",
+            "bad_request = 'comma', bad_request_nth = 3",
+            "bad_request = 'nonzero', bad_request_nth = 3",
+        ] {
+            let o = p.intervene(mode, extra);
+            assert_failed(&o, "FAILURE", "the campaign's own request broke the contract");
+        }
     }
     // the right marker is required: a campaign whose bridge names another marker for the withheld answer is a failure
-    let o = clearance("mode = 'clearance_withheld', window = 2", "callback_marker = 'entity_scan.refused'");
+    let o = p.intervene("clearance_withheld", "callback_marker = 'entity_scan.refused'");
     assert_failed(&o, "FAILURE", "not at [model-provider:entity_scan.callback]");
+    p.clean();
+}
+
+#[test]
+fn a_fatal_or_a_request_or_reply_fault_outranks_a_clean_unreached() {
+    // no hand-off in the run, and a host answer that breaks the grammar (or a fatal): FAILURE, never the clean UNREACHED the absence alone would be
+    let o = clearance("mode = 'clearance_control'", "frames = { 'step', 'step' }, reply = 'trailing', reply_nth = 1");
+    assert_failed(&o, "FAILURE", "the host's own answer broke the contract");
+    let o = clearance("mode = 'clearance_control'", "frames = { 'step', 'step' }, bad_request = 'identity'");
+    assert_failed(&o, "FAILURE", "the campaign's own request broke the contract");
+    let o = clearance("mode = 'clearance_control'", "frames = { 'step', 'step' }, break_at_window = 1");
+    assert_failed(&o, "FAILURE", "the engine stopped");
+    let o = clearance(
+        "mode = 'clearance_original'",
+        "original = true, frames = { 'step', 'step' }, break_at_window = 1",
+    );
+    assert_failed(&o, "FAILURE", "the engine stopped");
 }
 
 #[test]
@@ -562,6 +1034,8 @@ fn the_clearance_modes_check_their_arguments_before_any_side_effect() {
     let o = clearance("mode = 'clearance_changed_word'", "");
     assert!(o.result.as_ref().expect_err("a missing window").contains("needs window=<N>"));
     assert!(o.report.is_none() && o.log.is_empty(), "{:?}", o.log);
+    let o = clearance("mode = 'clearance_changed_word', window = 2", "");
+    assert_refused_before_any_effect(&o, "needs control=<the successful paired clearance_control report>");
     let o = clearance("mode = 'clearance_nowhere'", "");
     assert!(o.result.as_ref().expect_err("an unknown mode").contains("is not a mode of this witness"));
     let o = clearance("mode = 'clearance_control', window = 2", "");
@@ -576,9 +1050,10 @@ fn the_clearance_modes_check_their_arguments_before_any_side_effect() {
         .as_ref()
         .expect_err("seeds for a clearance mode")
         .contains("seeds= is only for a session mode"));
+    let o = clearance("mode = 'clearance_control', expect = 'x'", "");
+    assert_refused_before_any_effect(&o, "expect=<report> is only for a load mode");
     let o = clearance("mode = 'clearance_control', scenario = 'nowhere'", "");
-    assert!(o.result.as_ref().expect_err("an unknown scenario").contains("scenario="));
-    assert!(o.report.is_none() && o.log.is_empty(), "{:?}", o.log);
+    assert_refused_before_any_effect(&o, "scenario=");
     // an existing report is never overwritten and nothing boots
     let existing = temp_path("existing");
     std::fs::write(&existing, "earlier evidence\n").unwrap();
@@ -586,7 +1061,7 @@ fn the_clearance_modes_check_their_arguments_before_any_side_effect() {
     assert!(o.result.as_ref().expect_err("an existing report").contains("cannot create"));
     assert_eq!(std::fs::read_to_string(&existing).unwrap(), "earlier evidence\n");
     assert!(o.log.is_empty(), "{:?}", o.log);
-    let _ = std::fs::remove_file(existing);
+    remove(&[&existing]);
 }
 
 // ---------------------------------------------------------------------------------------------------------------- M6: the native save and the campaign's own load
@@ -633,11 +1108,11 @@ fn the_native_save_records_every_packed_word_and_every_seeded_sector_with_its_se
         "{r}"
     );
     assert!(line_of(&r, "sh-witness-counts").contains("seeds_checked=3"), "{r}");
-    assert_eq!(r.lines().filter(|l| l.starts_with("sh-save-word ")).count(), 12);
     assert!(
-        r.contains("sh-save-word i=5 x=1 z=2 word=0x00000000") || r.contains("sh-save-word i=4 x=1 z=1 word=0xc0a00000"),
+        line_of(&r, "sh-witness-pack").contains("attempts=1 unique=12 repeat_reads=0 consistent=1"),
         "{r}"
     );
+    assert_eq!(r.lines().filter(|l| l.starts_with("sh-save-word ")).count(), 12);
     assert!(
         r.contains("x=1 z=1 word=0xc0a00000") && r.contains("x=2 z=1 word=0x7fc00000") && r.contains("x=3 z=2 word=0xff800000"),
         "{r}"
@@ -648,7 +1123,60 @@ fn the_native_save_records_every_packed_word_and_every_seeded_sector_with_its_se
         "{r}"
     );
     assert!(line_of(&r, "sh-witness-verdict").contains("status=PASS"), "{r}");
-    let _ = std::fs::remove_file(path);
+    remove(&[&path]);
+}
+
+#[test]
+fn the_real_stores_pack_retry_is_reconciled_and_every_inconsistent_or_unsupported_repetition_is_a_failure() {
+    let base = format!("mode = 'save', name = 'alpha', seeds = '{SEEDS}'");
+    // a coherent real-writer-order overflow and retry, then the successful save: every attempt reads every sector again in the same order with the same words
+    let o = save_run(&base, "pack_attempts = 3", "save");
+    o.result.as_ref().expect("a legitimate retry passes");
+    let r = report(&o);
+    assert!(
+        line_of(&r, "sh-witness-pack").contains("attempts=3 unique=12 repeat_reads=24 consistent=1"),
+        "{r}"
+    );
+    assert_eq!(
+        r.lines().filter(|l| l.starts_with("sh-save-word ")).count(),
+        12,
+        "the unique final relationship, not the repeats: {r}"
+    );
+    assert!(line_of(&r, "sh-witness-verdict").contains("3 attempt(s)"), "{r}");
+    // damage ONE repeated raw word, omit one sector of a repeat, a first attempt that stopped short, a sector read twice inside one attempt: each is non-pass
+    let o = save_run(
+        &base,
+        "pack_attempts = 2, pack_damage = { attempt = 2, key = BITS (0) .. ',' .. BITS (0), word = '0x3f800000' }",
+        "save",
+    );
+    assert_failed(&o, "FAILURE", "an inconsistent repeated word");
+    let o = save_run(&base, "pack_attempts = 2, pack_omit = 2", "save");
+    assert_failed(&o, "FAILURE", "unsupported repetition");
+    let o = save_run(&base, "pack_attempts = 2, pack_short_first = true", "save");
+    assert_failed(&o, "FAILURE", "unsupported repetition");
+    let o = save_run(&base, "pack_twice = true", "save");
+    assert_failed(&o, "FAILURE", "unsupported repetition");
+    let o = save_run(&base, "pack_attempts = 65", "save");
+    assert_failed(&o, "FAILURE", "more than the doubling");
+    // the same in the load's second pack: a retry passes, a damaged repeat or an omitted sector fails
+    let (path, saved) = healthy_save();
+    let o = load_run(&path, &saved, "mode = 'load', name = 'beta'", "pack_attempts = 2");
+    o.result.as_ref().expect("a retry in the second pack of a load passes");
+    assert!(
+        line_of(&report(&o), "sh-witness-pack").contains("attempts=2 unique=12 repeat_reads=12 consistent=1"),
+        "{}",
+        report(&o)
+    );
+    let o = load_run(
+        &path,
+        &saved,
+        "mode = 'load', name = 'beta'",
+        "pack_attempts = 2, pack_damage = { attempt = 2, key = BITS (3) .. ',' .. BITS (0), word = '0x3f800000' }",
+    );
+    assert_failed(&o, "FAILURE", "an inconsistent repeated word");
+    let o = load_run(&path, &saved, "mode = 'load', name = 'beta'", "pack_attempts = 2, pack_omit = 2");
+    assert_failed(&o, "FAILURE", "unsupported repetition");
+    remove(&[&path]);
 }
 
 #[test]
@@ -657,9 +1185,6 @@ fn every_single_fault_of_the_save_is_a_failure_or_a_refusal_never_a_pass() {
     // a seeded sector the session never packs
     let o = save_run(&format!("{base}, seeds = '9:9:0x3f800000'"), "", "save");
     assert_failed(&o, "FAILURE", "was never packed");
-    // the pack asks for one sector twice
-    let o = save_run(&format!("{base}, seeds = '{SEEDS}'"), "pack_twice = true", "save");
-    assert_failed(&o, "FAILURE", "read a sector twice");
     // a save report that is not whole
     let o = save_run(
         &format!("{base}, seeds = '{SEEDS}'"),
@@ -673,29 +1198,39 @@ fn every_single_fault_of_the_save_is_a_failure_or_a_refusal_never_a_pass() {
     // the engine refuses (a saved file of the name exists): the refusal is the verdict, nothing is credited
     let o = save_run(&format!("{base}, seeds = '{SEEDS}'"), "save_refused = true", "save");
     assert_failed(&o, "FAILURE", "a saved file of that name exists");
-    // a host answer that breaks the contract is a failure of the host's own provider
+    // a host that does not hold or acknowledge a seed, or answers its read malformed: refused before the save, never credited
+    let o = save_run(&format!("{base}, seeds = '{SEEDS}'"), "stored_wrong = BITS (1) .. ',' .. BITS (1)", "save");
+    assert_failed(&o, "FAILURE", "did not acknowledge the seed");
+    let o = save_run(&format!("{base}, seeds = '{SEEDS}'"), "seed_reply = 'trailing'", "save");
+    assert_failed(&o, "FAILURE", "did not acknowledge the seed");
+    assert!(!o.log.iter().any(|l| l.starts_with("save ")), "{:?}", o.log);
+    // a pack read the host answers malformed is the host's own failure
     let o = save_run(
         &format!("{base}, seeds = '{SEEDS}'"),
-        "lenient = true, stored_wrong = BITS (1) .. ',' .. BITS (1)",
+        "leader_sector = { BITS (1), BITS (1) }, reply = 'trailing', reply_nth = 2",
         "save",
     );
-    assert_failed(&o, "FAILURE", "the host's provider did not hold the seed");
-    // refused before any side effect: a signalling NaN is unmeasured, a duplicate or malformed seed, a bad name
+    assert_failed(&o, "FAILURE", "the host's own answer broke the contract");
+    let o = save_run(
+        &format!("{base}, seeds = '{SEEDS}'"),
+        "leader_sector = { BITS (1), BITS (1) }, bad_request = 'identity'",
+        "save",
+    );
+    assert_failed(&o, "FAILURE", "the campaign's own request broke the contract");
+    // refused before any side effect: a signalling NaN is unmeasured, a duplicate, malformed, empty-segment or trailing-comma seed, a bad name
     for (args, needle) in [
         (format!("{base}, seeds = '1:1:0x7f800001'"), "signalling NaN"),
         (format!("{base}, seeds = '1:1:0xffc00001,1:1:0x3f800000'"), "seeded twice"),
         (format!("{base}, seeds = '1:1:3f800000'"), "sx:sz:0xWORD"),
+        (format!("{base}, seeds = '1:1:0x3f800000,,2:2:0x3f800000'"), "sx:sz:0xWORD"),
+        (format!("{base}, seeds = '1:1:0x3f800000,'"), "end with a comma"),
+        (format!("{base}, seeds = ',1:1:0x3f800000'"), "sx:sz:0xWORD"),
         ("mode = 'save', name = '../x'".to_string(), "name=<1 to 24"),
         ("mode = 'save', name = 'aaaaaaaaaaaaaaaaaaaaaaaaa'".to_string(), "name=<1 to 24"),
         ("mode = 'save'".to_string(), "name=<1 to 24"),
     ] {
         let o = save_run(&args, "", "save");
-        assert!(o.result.as_ref().expect_err(&args).contains(needle), "{args}: {:?}", o.result);
-        assert!(
-            o.report.is_none() && o.log.is_empty(),
-            "{args}: no side effect before the arguments are accepted: {:?}",
-            o.log
-        );
+        assert_refused_before_any_effect(&o, needle);
     }
     // a quiet NaN, an infinity and a negative word are valid raw history
     let o = save_run(&format!("{base}, seeds = '1:1:0x7fc00001,2:1:0x7f800000,3:2:0x80000000'"), "", "save");
@@ -723,7 +1258,7 @@ fn load_run(save_report_path: &std::path::Path, report_text: &str, mode_args: &s
     run(
         &format!(
             "root = 'x', out = '@OUT@', {mode_args}, campaign = 'alpha.Sch', expect = '{}'",
-            save_report_path.to_string_lossy().replace('\\', "/")
+            path_text(save_report_path)
         ),
         &format!("family = 'load', {SESSION_P}, {}", load_p(&saved_words_table(report_text), extra_p)),
     )
@@ -761,7 +1296,60 @@ fn the_campaigns_own_load_restores_every_saved_word_exactly_before_any_insertion
         "{:?}",
         o.log
     );
-    let _ = std::fs::remove_file(path);
+    remove(&[&path]);
+}
+
+#[test]
+fn a_save_report_that_is_not_whole_successful_and_matched_is_refused_before_any_load_side_effect() {
+    let (path, saved) = healthy_save();
+    for how in [
+        "no_verdict",
+        "failed",
+        "duplicate_record",
+        "duplicate_row",
+        "other_setup",
+        "unknown",
+        "fatal",
+        "empty_line",
+        "wrong_mode",
+        "no_counts",
+        "schema1",
+        "no_pack",
+        "gap",
+        "bad_word",
+        "wrong_profile",
+    ] {
+        let file = write_temp(&damaged(&saved, how));
+        let o = load_run(&file, &saved, "mode = 'load', name = 'beta'", "");
+        assert!(o.result.is_err(), "the save report damaged by {how} must be refused");
+        assert!(
+            o.report.is_none() && o.log.is_empty(),
+            "the save report damaged by {how}: no side effect: {:?}",
+            o.log
+        );
+        remove(&[&file]);
+    }
+    // a saved script of another name, a new name equal to the saved one, seeds that are not the save report's
+    let o = run(
+        &format!(
+            "root = 'x', out = '@OUT@', mode = 'load', name = 'beta', campaign = 'zzz.Sch', expect = '{}'",
+            path_text(&path)
+        ),
+        &format!("family = 'load', {SESSION_P}, {}", load_p(&saved_words_table(&saved), "")),
+    );
+    assert_refused_before_any_effect(&o, "is not the saved script of the save report's name");
+    let o = load_run(&path, &saved, "mode = 'load', name = 'alpha'", "");
+    assert_refused_before_any_effect(&o, "must be a NEW saved name");
+    let o = load_run(&path, &saved, "mode = 'load', name = 'beta', seeds = '1:1:0x3f800000'", "");
+    assert_refused_before_any_effect(&o, "is not the save report's");
+    let o = load_run(&path, &saved, &format!("mode = 'load', name = 'beta', seeds = '{SEEDS},0:0:0x3f800000'"), "");
+    assert_refused_before_any_effect(&o, "is not the save report's");
+    let o = load_run(&path, &saved, "mode = 'load', name = 'beta', seeds = '1:1:0xc0a00000'", "");
+    assert_refused_before_any_effect(&o, "not among this run's seeds");
+    // the undamaged report with matching seeds still loads
+    let o = load_run(&path, &saved, &format!("mode = 'load', name = 'beta', seeds = '{SEEDS}'"), "");
+    o.result.as_ref().expect("matching seeds are accepted");
+    remove(&[&path]);
 }
 
 #[test]
@@ -809,14 +1397,13 @@ fn every_single_fault_of_the_load_is_a_failure_or_unreached_never_a_pass() {
         "root = 'x', out = '@OUT@', mode = 'load', name = 'beta', campaign = 'alpha.Sch'",
         &format!("family = 'load', {SESSION_P}, {}", load_p(&saved_words_table(&saved), "")),
     );
-    assert!(o.result.as_ref().expect_err("no expect").contains("needs expect="));
-    assert!(o.report.is_none() && o.log.is_empty(), "{:?}", o.log);
+    assert_refused_before_any_effect(&o, "needs expect=");
     let o = run(
         "root = 'x', out = '@OUT@', mode = 'load', name = 'beta'",
         &format!("family = 'load', {SESSION_P}"),
     );
     assert!(o.result.as_ref().expect_err("no campaign").contains("saved script's file name"));
-    let _ = std::fs::remove_file(path);
+    remove(&[&path]);
 }
 
 #[test]
@@ -840,6 +1427,15 @@ fn each_load_fault_mode_stops_the_campaigns_own_boot_at_its_marker_after_the_fir
         }
         let o = load_run(&path, &saved, &format!("mode = '{mode}'"), "no_restore = true");
         assert_failed(&o, "UNREACHED", "no restore reached");
+        // the fault modes consume the same whole successful save report
+        let file = write_temp(&damaged(&saved, "failed"));
+        let o = load_run(&file, &saved, &format!("mode = '{mode}'"), "");
+        assert!(
+            o.result.is_err() && o.report.is_none() && o.log.is_empty(),
+            "{mode}: a failed save report is refused before the boot: {:?}",
+            o.log
+        );
+        remove(&[&file]);
     }
-    let _ = std::fs::remove_file(path);
+    remove(&[&path]);
 }

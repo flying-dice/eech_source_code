@@ -1,0 +1,18 @@
+
+running 1 test
+test the_real_stores_pack_retry_is_reconciled_and_every_inconsistent_or_unsupported_repetition_is_a_failure ... FAILED
+
+failures:
+
+---- the_real_stores_pack_retry_is_reconciled_and_every_inconsistent_or_unsupported_repetition_is_a_failure stdout ----
+
+thread 'the_real_stores_pack_retry_is_reconciled_and_every_inconsistent_or_unsupported_repetition_is_a_failure' (19) panicked at crates/eech-world/tests/sector_height_witness_driver.rs:926:23:
+a legitimate retry passes: "runtime error: sector-height-witness: FAILURE: the pack read a sector twice (24)\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'error'\n\t[string \"sector-height-witness.lua\"]:763: in main chunk"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    the_real_stores_pack_retry_is_reconciled_and_every_inconsistent_or_unsupported_repetition_is_a_failure
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 22 filtered out; finished in 0.01s
+

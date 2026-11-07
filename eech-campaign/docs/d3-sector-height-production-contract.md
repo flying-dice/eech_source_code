@@ -182,15 +182,15 @@ is open (a scan opens at phase 0 and closes at its `done_*` reply) and during no
 | mode | what it does | credited |
 |---|---|---|
 | `clearance_original` | the same window in the ORIGINAL-solver profile (`tools/build-windows-collision-fixture.sh`): the campaign consumes its legacy word and the host is never asked | the first hand-off reported; FAILURE if the host WAS asked (not that profile) |
-| `clearance_control` | hosted, nothing altered, stops at the first window followed by a hand-off; `original=<report>` compares its first hand-off with the original profile's, field for field | one such window; `min_height >= max(elevation, word - elevation)` in single precision; equal to the original's row when given |
-| `clearance_changed_word` | `window=<N>` from the control: every word read in window N is answered 100000.0 (0x47c35000) | the hand-off equals the single precision value of 100000.0 - elevation exactly; with `control_min`/`control_answer_y` the hand-off and the host's answered height are compared (`physical=changed\|unchanged`, stated either way) |
+| `clearance_control` | hosted, nothing altered, stops at the first window followed by a hand-off; `original=<report>` compares its first hand-off with the original profile's, field for field | one such window whose hand-off is the SAME caller's (same host id in the look-ahead and the move, with a real answer); `min_height >= max(elevation, word - elevation)` in single precision; equal to the original's row when `original=` is a whole successful `clearance_original` report (section 12.4) |
+| `clearance_changed_word` | `window=<N>` and `control=<the clearance_control report>`: every word read in window N is answered 100000.0 (0x47c35000) | the hand-off equals the toward-zero single value of 100000.0 - elevation (the accepted reference profile, section 12.4) exactly; the SAME caller and step as the control; the host's answered height is compared with the control's (`physical=changed\|unchanged`, stated only when BOTH real answers exist) |
 | `clearance_withheld` / `_malformed` / `_wrong_state` / `_wrong_sector` | `window=<N>`: ONE fault at the first read of window N | the engine stops at `entity_scan.callback` / `.answer` / `.state` / `.sector_height`, and only after that intervention; a fatal before it, no fatal, or another marker is FAILURE; window N never reached is UNREACHED |
 
 Commands (each a fresh root; the ordinary hosted DLL for every row but the first):
-`eech-world.exe lua/sector-height-witness.lua root=<fresh root> out=<new report> mode=<mode> hours=3 [window=N] [original=<clearance_original report>] [control_min=0x.. control_answer_y=0x..]`
-Order: `clearance_original` (original-solver build), `clearance_control original=...`, `clearance_changed_word window=<the control's window>`, then the four refusals with the same window. The campaign is deterministic at a fixed seed, so window N of the control
-is the same step in every run; a run that reaches a different step shows it in its own counts. The word term can be absent from a hand-off (an altitude or terrain term may dominate): the changed word is chosen to dominate and a hand-off that does not follow it is reported UNREACHED,
-never credited.
+`eech-world.exe lua/sector-height-witness.lua root=<fresh root> out=<new report> mode=<mode> hours=3 [window=N] [original=<clearance_original report>] [control=<clearance_control report>]`
+Order: `clearance_original` (original-solver build), `clearance_control original=...`, `clearance_changed_word window=<the control's window> control=<the control's report>`, then the four refusals with the same window and control. The campaign is deterministic at a fixed seed, so window N of the control
+is the same step in every run; a run that reaches a different step shows it in its own counts. The word term can be absent from a hand-off (an altitude or terrain term may dominate): the changed word is chosen to dominate, and a hand-off that exceeds the expected value AND equals the control's own `min_height` (the word did not dominate) is reported UNREACHED,
+never credited; any other mismatch is a FAILURE.
 
 ### 12.2 M6, the native server-session save and the campaign's own load (`ENV-SECTOR-HEIGHT-NATIVE-SAVE-RESTORE-WITNESS-1`)
 
@@ -218,6 +218,24 @@ preserved bit for bit (no finite classifier, no canonicalisation); a SIGNALLING 
 
 Order: `save` (seeds on sectors inside the map: a negative word, minus infinity, a quiet NaN, plus the zero history that needs no seed) on the witness build (`tools/build-windows-sector-height-witness.sh`), then each `load*` mode on the same build and a COPY of the root that holds the saved files
 (a boot of the saved script reads them). A load that fails the first fault is FAILURE; absent insertions after the restores are UNREACHED.
+
+### 12.4 Corrections after the SAME review 96b2f414 (four P2s, ENV-SECTOR-HEIGHT-M5-ROUNDING-ORACLE-1, -M6-PACK-RETRY-1, -M6-SAVE-PATH-BOUND-1, -WITNESS-CONSUMER-JOIN-1)
+
+Test-only source and its scripted/real-C checks; nothing here was run natively, no C policy, solver, tolerance or baseline changed.
+
+- **Rounding oracle.** The expected clearance subtraction `100000 - elevation` is formed in the ACCEPTED reference profile, SSE round toward zero, not round to nearest: the driver computes it division-free (`toward_zero_single`, `subtract_single`: a two-sum exactness test that refuses an inexact
+  intermediate it cannot represent) and the scripted harness runs its hand-off under the real `eech_world::reference_arithmetic::select_sse_toward_zero` with MXCSR saved and restored. A finite NON-EXACT elevation where nearest and toward zero differ is accepted at the toward-zero hand-off;
+  the exact positive and a wrong hand-off stay rejected. A clean non-dominance (hand-off above the expected value and equal to the control's) is UNREACHED; an incorrectly formed hand-off is a FAILURE.
+- **Pack retry.** `store_session` doubles its buffer and re-packs while `pack_session` overflows, and every attempt re-reads EVERY sector. The driver reconciles the attempts (`sh-witness-pack attempts= unique= repeat_reads= consistent=1`): a repeated sector starts a new attempt, every attempt must repeat the first in
+  order with the same words, at most 64 attempts, and the UNIQUE final saved-sector relationship is what the save and load report. An inconsistent word, an omitted sector or a repetition that is not a whole attempt is NONPASS. The real `store_session` and the campaign's own later boot remain the only proof path.
+- **Path bound.** `eech_hw_save_paths` (`csrc/eech_hw_witness.c`) is the ONE shared check: the data path `<data_path>\<campaign_directory>\<name>.sav` and the script path with its extension must each be below 256 bytes (the original writer's `data_filename [256]` and `script_filename [256]`;
+  the session's inputs are `data_path [256]` and `campaign_directory [64]`, pinned by `tests/sector_height_witness_guard.rs`), an unterminated member is refused, and the wrapper calls it before any file access and before `store_session`. `tests/sector_height_witness.rs` calls it directly through the real C:
+  the longest fitting pair (255 bytes) is accepted, the first byte more is refused for the data path and for the longer-suffix script path, both outputs stay empty on a refusal and no file is touched.
+- **Consumer join.** (1) The hand-off is credited only for the SAME caller: a `fixed_wing_lookahead` binds a host id and the next `fixed_wing_move` must carry that id; any other callback in between drops the binding; complete hand-off evidence (id, finite elevation and `min_height`, finite pre pose, phase 0..3 and a real answer with a
+  finite position) is required before eligibility, intervention or consumption, else a request/reply fault. (2) An intervening mode requires `control=`, a whole successful `clearance_control` report, and proceeds only if its own window trajectory (window ordinal, frame, windows without hand-off, scan reads, hand-offs; `sh-witness-trajectory`)
+  equals the control's BEFORE intervening: the reads carry no caller identity, so the trajectory binds the window, and a mismatch is a FAILURE with no intervention (no created task leader was needed). (3) `original=`, `control=` and `expect=` are validated as WHOLE reports (schema 2: known records only, unique ordered single records, no fault record, terminal PASS of the expected mode and
+  profile, the same scenario, seed, frame and hours; `expect=` rows contiguous with matching counts, save/pack records, the saved name equal to the campaign's base name and the new name different, equal seeds). (4) Raw lists (`seeds=`, scan names, phases, sectors, echoes, restore ACKs) use one strict comma-list grammar: an empty, extra or trailing segment is malformed. (5) A missing physical answer never means "changed";
+  a request fault, a reply fault or an abort outranks a clean UNREACHED, and nothing is inspected or closed after a fatal. Positive-first and single-fault controls cover each.
 
 ### 12.3 What this does NOT establish
 

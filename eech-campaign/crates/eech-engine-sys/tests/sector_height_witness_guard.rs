@@ -92,6 +92,35 @@ fn the_witness_translation_unit_preprocesses_to_nothing_without_its_feature_and_
         .expect("the existing-file refusal");
     let save = code.find("store_session (session").expect("the save call");
     assert!(refusal < save, "the existing files are refused before store_session");
+    // the complete final writer paths are bounded by the ONE shared helper, called by the wrapper before any file access and before the original writer; no second, private length check remains
+    let helper_call = code
+        .find("eech_hw_save_paths (session->data_path")
+        .expect("the wrapper calls the shared path helper");
+    assert!(
+        helper_call < refusal && helper_call < save,
+        "the path bound runs before the file check and store_session"
+    );
+    assert_eq!(code.matches("eech_hw_save_paths (").count(), 2, "one definition and one call: {code}");
+    assert!(
+        !code.contains("320") && !code.contains("does not fit\")"),
+        "no private temporary size or length check beside the helper: {code}"
+    );
+    assert!(code.contains("#define HW_WRITER_PATH_CAPACITY 256"), "{code}");
+    // the 256 is the original writer's own: store_session fills data_filename [256] and script_filename [256] and the session's data_path [256] and campaign_directory [64] are the inputs
+    let writer = read("../../../aphavoc/source/ui_menu/session/uisession.c");
+    assert!(
+        writer.contains("data_filename [256],") && writer.contains("script_filename [256],"),
+        "the original writer's buffers changed"
+    );
+    assert!(
+        writer.contains("sprintf (data_filename, \"%s\\\\%s\\\\%s\", game_session->data_path, game_session->campaign_directory, limited_filename);"),
+        "the original writer's path construction changed"
+    );
+    let session = read("../../../aphavoc/source/ui_menu/session/session.h");
+    assert!(
+        session.contains("data_path [256],") && session.contains("campaign_directory [64],"),
+        "the session's path members changed"
+    );
     assert_eq!(code.matches("fopen (").count(), 2, "{code}");
     assert_eq!(code.matches(", \"rb\")").count(), 2, "every file access is a read: {code}");
     // the name is a bounded safe charset (it builds paths) and is the only caller input

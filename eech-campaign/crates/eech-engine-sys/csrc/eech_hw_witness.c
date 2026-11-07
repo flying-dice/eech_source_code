@@ -28,6 +28,10 @@
 
 #define HW_NAME_MAX 24
 
+/* the smallest path buffer of the ORIGINAL writer: store_session (ui_menu/session/uisession.c) fills data_filename [256] and script_filename [256] with sprintf and appends the suffix with strcat, so each
+   complete saved path, its suffix and the terminating NUL must fit 256 bytes (tests/sector_height_witness_guard.rs pins both literals in that source) */
+#define HW_WRITER_PATH_CAPACITY 256
+
 static int refuse (char *text, int capacity, const char *reason)
 {
 	snprintf (text, (size_t) capacity, "sh-witness-refused reason=%s\n", reason);
@@ -78,10 +82,69 @@ static int file_exists (const char *path)
 	return FALSE;
 }
 
+/* the length of a string that must end within `capacity` bytes, or FALSE when it does not (an unterminated member could not be copied safely) */
+static int bounded_length (const char *text, size_t capacity, size_t *length)
+{
+	const char *end = memchr (text, '\0', capacity);
+
+	if (!end)
+	{
+		return FALSE;
+	}
+
+	*length = (size_t) (end - text);
+
+	return TRUE;
+}
+
+/*
+ * The ONE check of the complete saved paths, shared by the wrapper (before store_session or any file access) and by the real-C test that calls it directly: the data path `<data_path>\<campaign_directory>\<name>.sav` and the
+ * script path `<data_path>\<campaign_directory>\<name><extension>` are built exactly as the original writer builds them and must each fit HW_WRITER_PATH_CAPACITY with their suffix and NUL. Both are written to
+ * `data_out` and `script_out` (HW_WRITER_PATH_CAPACITY bytes each) only when BOTH fit; otherwise both are left empty and `reason` names what failed. Returns 0 or -1.
+ */
+int eech_hw_save_paths (const char *data_path, size_t data_path_capacity, const char *campaign_directory, size_t directory_capacity, const char *name, const char *extension, char *data_out, char *script_out, const char **reason)
+{
+	size_t data_length, directory_length, name_length, extension_length;
+
+	data_out [0] = '\0';
+	script_out [0] = '\0';
+
+	if (!bounded_length (data_path, data_path_capacity, &data_length) || !bounded_length (campaign_directory, directory_capacity, &directory_length))
+	{
+		*reason = "the session's data path or campaign directory is not terminated within its own array";
+
+		return -1;
+	}
+
+	name_length = strlen (name);
+	extension_length = strlen (extension);
+
+	/* data_path, a separator, campaign_directory, a separator, the name, the suffix: the bytes of the longest path before its NUL */
+	if ((data_length + 1 + directory_length + 1 + name_length + strlen (".sav")) >= HW_WRITER_PATH_CAPACITY)
+	{
+		*reason = "the complete saved data path does not fit the original writer's 256-byte buffer";
+
+		return -1;
+	}
+
+	if ((data_length + 1 + directory_length + 1 + name_length + extension_length) >= HW_WRITER_PATH_CAPACITY)
+	{
+		*reason = "the complete saved script path does not fit the original writer's 256-byte buffer";
+
+		return -1;
+	}
+
+	snprintf (data_out, HW_WRITER_PATH_CAPACITY, "%s\\%s\\%s%s", data_path, campaign_directory, name, ".sav");
+	snprintf (script_out, HW_WRITER_PATH_CAPACITY, "%s\\%s\\%s%s", data_path, campaign_directory, name, extension);
+
+	return 0;
+}
+
 int eech_hw_session_save_run (const char *name, char *text, int capacity)
 {
 	session_list_data_type *session;
-	char data_path [320], script_path [320], extension [8];
+	char data_path [HW_WRITER_PATH_CAPACITY], script_path [HW_WRITER_PATH_CAPACITY], extension [8];
+	const char *path_reason = "";
 	FILE *file;
 	long size;
 	int version, saved_version;
@@ -115,11 +178,6 @@ int eech_hw_session_save_run (const char *name, char *text, int capacity)
 		return refuse (text, capacity, "only a campaign session is saved");
 	}
 
-	if (snprintf (data_path, sizeof (data_path), "%s\\%s\\%s.sav", session->data_path, session->campaign_directory, name) >= (int) sizeof (data_path))
-	{
-		return refuse (text, capacity, "the saved data path does not fit");
-	}
-
 	/* the saved script's extension exactly as store_session builds it */
 	snprintf (extension, sizeof (extension), ".%s", game_type_extensions [get_game_type ()]);
 
@@ -132,9 +190,10 @@ int eech_hw_session_save_run (const char *name, char *text, int capacity)
 	extension [2] = extension [1];
 	extension [1] = 'S';
 
-	if (snprintf (script_path, sizeof (script_path), "%s\\%s\\%s%s", session->data_path, session->campaign_directory, name, extension) >= (int) sizeof (script_path))
+	/* BEFORE any file access or the original writer: both complete paths must fit the writer's own buffers */
+	if (eech_hw_save_paths (session->data_path, sizeof (session->data_path), session->campaign_directory, sizeof (session->campaign_directory), name, extension, data_path, script_path, &path_reason) != 0)
 	{
-		return refuse (text, capacity, "the saved script path does not fit");
+		return refuse (text, capacity, path_reason);
 	}
 
 	if (file_exists (data_path) || file_exists (script_path))
